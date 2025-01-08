@@ -3910,6 +3910,16 @@ void filc_native_zsetcap(filc_thread* my_thread, filc_ptr dst_ptr, filc_ptr obje
 {
     /* FIXME: This could be optimized a lot. */
 
+    static const bool verbose = false;
+    
+    if (verbose) {
+        pas_log("zsetcap(");
+        filc_ptr_dump(dst_ptr, pas_log_stream);
+        pas_log(", ");
+        filc_object_dump(filc_ptr_object(object_ptr), pas_log_stream);
+        pas_log(", %zu)\n", size);
+    }
+
     FILC_CHECK(
         pas_is_aligned(size, FILC_WORD_SIZE),
         NULL,
