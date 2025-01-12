@@ -27,14 +27,17 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BENCHMARK_NAME = "PizBench9006"
+BASE_BENCHMARK_NAME = "PizBench9006"
+$benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 5
 $filter = /./
+$plugins = []
 
 GetoptLong.new(
     [ '--repeat', '-r', GetoptLong::REQUIRED_ARGUMENT ],
     [ '--filter', '-f', GetoptLong::REQUIRED_ARGUMENT ],
+    [ '--plugin', '-p', GetoptLong::REQUIRED_ARGUMENT ],
 ).each {
     | opt, arg |
     case opt
@@ -42,6 +45,9 @@ GetoptLong.new(
         $repeats = arg.to_i
     when '--filter'
         $filter = Regexp.new(arg)
+    when '--plugin'
+        $plugins << arg
+        $benchmarkName = BASE_BENCHMARK_NAME + "P"
     else
         raise
     end
@@ -322,6 +328,11 @@ $benchmarks << Benchmark.new(
     "benchmarkData/richards.js",
     [])
 
+$plugins.each {
+    | plugin |
+    load plugin
+}
+
 $benchmarks.filter! {
     | benchmark |
     benchmark.to_s =~ $filter
@@ -346,7 +357,7 @@ $plans = $plans * $repeats
 
 $plans.shuffle!
 
-$stderr.puts "Running #{BENCHMARK_NAME}!"
+$stderr.puts "Running #{$benchmarkName}!"
 
 $plans.each {
     | plan |
@@ -362,7 +373,7 @@ $results << Geomean.new
 
 $stderr.puts
 
-puts "---------- The #{BENCHMARK_NAME} Results ----------"
+puts "---------- The #{$benchmarkName} Results ----------"
 
 $results.each {
     | results |
