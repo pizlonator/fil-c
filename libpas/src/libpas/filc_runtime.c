@@ -397,7 +397,8 @@ void filc_initialize(void)
     thread->has_stopped = false;
     thread->thread = pthread_self();
     thread->tid = gettid();
-    thread->has_set_tid = true;
+    pas_fence();
+    thread->has_initialized = true;
     thread->tlc_node = verse_heap_get_thread_local_cache_node();
     thread->tlc_node_version = pas_thread_local_cache_node_version(thread->tlc_node);
     PAS_ASSERT(!pthread_key_create(&filc_thread_key, NULL));
@@ -5740,14 +5741,13 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
 
                 thread->forked = true;
                 thread->tid = 0;
-                thread->has_set_tid = true; /* Prevent anyone from waiting for this thread to set its
-                                               tid. */
+                thread->has_initialized = true;
                 thread->thread = PAS_NULL_SYSTEM_THREAD_ID;
             }
             pas_system_mutex_unlock(&thread->lock);
             thread = next_thread;
         }
-        PAS_ASSERT(my_thread->has_set_tid);
+        PAS_ASSERT(my_thread->has_initialized);
         my_thread->tid = gettid(); /* The child now has a different tid than before. */
         filc_first_thread = my_thread;
         PAS_ASSERT(filc_first_thread == my_thread);
@@ -8167,23 +8167,17 @@ filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 
 unsigned filc_native_zthread_get_id(filc_thread* my_thread, filc_ptr thread_ptr)
 {
+    PAS_UNUSED_PARAM(my_thread);
     check_zthread(thread_ptr);
     filc_thread* thread = (filc_thread*)filc_ptr_ptr(thread_ptr);
-    if (thread->has_set_tid)
-        return thread->tid;
-    filc_exit(my_thread);
-    pas_system_mutex_lock(&thread->lock);
-    while (!thread->has_set_tid)
-        pas_system_condition_wait(&thread->cond, &thread->lock);
-    pas_system_mutex_unlock(&thread->lock);
-    filc_enter(my_thread);
+    PAS_ASSERT(thread->has_initialized);
     return thread->tid;
 }
 
 unsigned filc_native_zthread_self_id(filc_thread* my_thread)
 {
     PAS_ASSERT(my_thread->tid);
-    PAS_ASSERT(my_thread->has_set_tid);
+    PAS_ASSERT(my_thread->has_initialized);
     return my_thread->tid;
 }
 
@@ -8289,13 +8283,7 @@ static void* start_thread(void* arg)
 
     set_stack_limit(thread);
 
-    pas_system_mutex_lock(&thread->lock);
     unsigned tid = gettid();
-    thread->tid = tid;
-    thread->has_set_tid = true;
-    pas_system_condition_broadcast(&thread->cond);
-    pas_system_mutex_unlock(&thread->lock);
-
     if (verbose)
         pas_log("thread %u (%p) starting\n", tid, thread);
 
@@ -8304,9 +8292,14 @@ static void* start_thread(void* arg)
     PAS_ASSERT(!thread->error_starting);
 
     PAS_ASSERT(!pthread_setspecific(filc_thread_key, thread));
+
+    pas_system_mutex_lock(&thread->lock);
     PAS_ASSERT(!thread->thread);
-    pas_fence();
+    thread->tid = tid;
     thread->thread = pthread_self();
+    thread->has_initialized = true;
+    pas_system_condition_broadcast(&thread->cond);
+    pas_system_mutex_unlock(&thread->lock);
 
     PAS_ASSERT(!pthread_detach(thread->thread));
 
@@ -8374,13 +8367,17 @@ filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_pt
         PAS_ASSERT(!thread->thread);
         thread->error_starting = true;
         filc_thread_undo_create(thread);
-        thread->has_set_tid = true;
+        thread->has_initialized = true;
         pas_system_condition_broadcast(&thread->cond);
         pas_system_mutex_unlock(&thread->lock);
         filc_thread_dispose(thread);
         filc_set_errno(result);
         return filc_ptr_forge_null();
     }
+    pas_system_mutex_lock(&thread->lock);
+    while (!thread->has_initialized)
+        pas_system_condition_wait(&thread->cond, &thread->lock);
+    pas_system_mutex_unlock(&thread->lock);
     return filc_ptr_for_special_payload_with_manual_tracking(thread);
 }
 
@@ -8390,6 +8387,7 @@ bool filc_native_zthread_join(filc_thread* my_thread, filc_ptr thread_ptr, filc_
     filc_thread* thread = (filc_thread*)filc_ptr_ptr(thread_ptr);
     /* Should never happen because we'd never vend such a thread to the user. */
     PAS_ASSERT(thread->has_started);
+    PAS_ASSERT(thread->has_initialized);
     PAS_ASSERT(!thread->error_starting);
     if (thread->forked) {
         filc_set_errno(ESRCH);
@@ -8409,6 +8407,38 @@ bool filc_native_zthread_join(filc_thread* my_thread, filc_ptr thread_ptr, filc_
                        filc_flight_ptr_load(my_thread, &thread->result_ptr));
     }
     return true;
+}
+
+bool filc_native_zthread_kill(filc_thread* my_thread, filc_ptr thread_ptr, int sig)
+{
+    if (is_unsafe_signal_for_kill(sig)) {
+        filc_set_errno(ENOSYS);
+        return false;
+    }
+    check_zthread(thread_ptr);
+    filc_thread* thread = (filc_thread*)filc_ptr_ptr(thread_ptr);
+    PAS_ASSERT(thread->has_initialized);
+    filc_exit(my_thread);
+    pas_system_mutex_lock(&thread->lock);
+    bool result;
+    int errno_to_set = 0;
+    if (thread->thread) {
+        int kill_result = pthread_kill(thread->thread, sig);
+        if (!kill_result)
+            result = true;
+        else {
+            result = false;
+            errno_to_set = kill_result;
+        }
+    } else {
+        errno_to_set = ESRCH;
+        result = false;
+    }
+    pas_system_mutex_unlock(&thread->lock);
+    filc_enter(my_thread);
+    if (!result)
+        filc_set_errno(errno_to_set);
+    return result;
 }
 
 void filc_native_zincrement_signal_deferral_depth(filc_thread* my_thread)

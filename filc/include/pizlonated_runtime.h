@@ -71,6 +71,7 @@ void zthread_exit(void* result);
 filc_bool zthread_join(void* thread, void** result); /* Only fails with ESRCH for forked threads.
                                                         Returns true on success, false on failure
                                                         and sets errno. */
+filc_bool zthread_kill(void* thread, int sig);
 
 /* Super fast signal deferral mechanism. Defers all catchable signals so long as the deferral depth
    is nonzero. */

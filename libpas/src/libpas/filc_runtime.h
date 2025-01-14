@@ -585,7 +585,8 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     bool forked; /* set to true if this thread died due to forking. We use this to implement super
                     precise semantics in that case; it allows zthread_join to return false/ESRCH if
                     you try to join a thread that died due to fork. */
-    bool has_set_tid; /* set to true when the thread actually sets the tid. */
+    bool has_initialized; /* set to true when the thread has gotten far enough in its start-up that
+                             it has sets the tid and thread field. */
     pthread_t thread; /* the underlying thread is always detached and this stays non-NULL so long
                          as the thread is running.
                          

@@ -29,6 +29,7 @@ int main()
         kill(pid, SIGTERM);
         sleep(1);
         if (getppid() == pid) { /* if parent did not exit, shoot it */
+            /* FIXME: This can happen due to a rare race, and then the test claims to fail. */
             zprintf("Killing parent.\n");
             kill(pid, SIGKILL);
         }
