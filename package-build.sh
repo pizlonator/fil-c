@@ -55,6 +55,7 @@ cp -R build/lib/clang/17/include $build_name/build/lib/clang/17/
 cp -R pizfix $build_name/
 rm -f $build_name/pizfix/etc/moduli
 rm -f $build_name/pizfix/etc/ssh_host*
+rm -rf $build_name/pizfix/yolo/lib-old
 
 sourcedir=$PWD
 
