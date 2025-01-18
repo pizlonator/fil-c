@@ -25,7 +25,8 @@ all: \
 	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so \
 	../pizfix/lib/filc_crt.o ../pizfix/lib/filc_mincrt.o
 
-PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo/include
+PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo/include \
+	-isystem `./find_clang_include_dir.rb`
 PASASM = clang -march=x86-64-v2 -fPIC
 FILCC = ../build/bin/clang
 SHLD = clang -Wl,-dynamic-linker,$(PWD)/../pizfix/yolo/lib/ld-yolo-x86_64.so.1 \
