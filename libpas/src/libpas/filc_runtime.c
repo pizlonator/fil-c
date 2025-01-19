@@ -5334,16 +5334,12 @@ static int to_user_sa_flags(int sa_flags)
 
 static bool is_unsafe_signal_for_kill(int signum)
 {
-    /* We don't want userland to be able to raise/kill with signals that are used internally by the
-       yolo libc. */
-    switch (signum) {
-    case SIGTIMER:
-    case SIGCANCEL:
-    case SIGSYNCCALL:
-        return true;
-    default:
-        return false;
+    unsigned index;
+    for (index = num_libc_internal_signals; index--;) {
+        if (signum == libc_internal_signals[index])
+            return true;
     }
+    return false;
 }
 
 static bool is_unsafe_signal_for_handlers(int signum)
@@ -6558,9 +6554,9 @@ void filc_from_user_sigset(sigset_t* user_sigset,
                            sigset_t* sigset)
 {
     memcpy(sigset, user_sigset, sizeof(sigset_t));
-    PAS_ASSERT(!sigdelsetyolo(sigset, SIGTIMER));
-    PAS_ASSERT(!sigdelsetyolo(sigset, SIGCANCEL));
-    PAS_ASSERT(!sigdelsetyolo(sigset, SIGSYNCCALL));
+    unsigned index;
+    for (index = num_libc_internal_signals; index--;)
+        PAS_ASSERT(!sigdelsetyolo(sigset, libc_internal_signals[index]));
 }
 
 void filc_to_user_sigset(sigset_t* sigset, sigset_t* user_sigset)
