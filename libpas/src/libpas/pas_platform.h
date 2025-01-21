@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2021 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,6 +31,15 @@
 #include <Availability.h>
 #include <AvailabilityMacros.h>
 #include <TargetConditionals.h>
+#endif
+
+#define _GNU_SOURCE
+#include <features.h>
+
+#ifdef __USE_GNU
+#define PAS_GLIBC 1
+#else
+#define PAS_GLIBC 0
 #endif
 
 /* PAS_COMPILER() - the target compiler */

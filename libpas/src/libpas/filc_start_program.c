@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -184,9 +184,6 @@ void filc_start_program(int argc, char** argv,
                         pizlonated_linker_stub pizlonated___libc_start_main,
                         pizlonated_linker_stub pizlonated_main)
 {
-    PAS_ASSERT(!pthread_getstack_yolo(pthread_self()));
-    PAS_ASSERT(!pthread_getstacksize_yolo(pthread_self()));
-    
     struct args* args = (struct args*)bmalloc_allocate(sizeof(struct args));
     args->argc = argc;
     args->argv = argv;

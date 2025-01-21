@@ -27,4 +27,5 @@ set -e
 set -x
 
 cd libpas
+./clean.sh
 ./build.sh

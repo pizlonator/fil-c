@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2022 Apple Inc. All rights reserved.
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1632,7 +1632,7 @@ static inline int pas_getpid(void) { return _getpid(); }
 #else /* _WIN32 -> so !_WIN32 */
 typedef pthread_t pas_system_thread_id;
 static inline pas_system_thread_id pas_get_current_system_thread_id(void) { return pthread_self(); }
-#if PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || PAS_OS(LINUX)
+#if PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC)
 #define PAS_SYSTEM_THREAD_ID_FORMAT "%p"
 #define PAS_NULL_SYSTEM_THREAD_ID NULL
 #else

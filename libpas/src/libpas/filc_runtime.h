@@ -3068,7 +3068,7 @@ PAS_API void filc_prepare_iovec_entry(filc_thread* my_thread,
                                       struct iovec* iov_entry,
                                       filc_access_kind access_kind);
 PAS_API struct iovec* filc_prepare_iovec(filc_thread* my_thread, filc_ptr user_iov,
-                                         int iovcnt, filc_access_kind access_kind);
+                                         size_t iovcnt, filc_access_kind access_kind);
 
 PAS_API char** filc_check_and_get_null_terminated_string_array(
     filc_thread* my_thread, filc_ptr user_array_ptr);

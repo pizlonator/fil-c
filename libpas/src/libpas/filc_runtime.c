@@ -312,21 +312,26 @@ static void set_stack_limit(filc_thread* thread)
     static const bool verbose = false;
     
     static const size_t stack_slack = 32768;
-    
-    char* stack = (char*)pthread_getstack_yolo(pthread_self());
-    size_t stack_size = pthread_getstacksize_yolo(pthread_self());
+
+    pthread_attr_t attr;
+    PAS_ASSERT(!pthread_getattr_np(pthread_self(), &attr));
+    char* stack;
+    size_t stack_size;
+    PAS_ASSERT(!pthread_attr_getstack(&attr, (void**)&stack, &stack_size));
 
     if (verbose)
         pas_log("stack = %p, stack_size = %zu\n", stack, stack_size);
 
     PAS_ASSERT(stack);
     PAS_ASSERT(stack_size);
-    PAS_ASSERT((char*)&stack < stack);
-    PAS_ASSERT((char*)&stack > stack - stack_size);
-    PAS_ASSERT(stack_size > stack_slack);
-    PAS_ASSERT((char*)&stack > stack - stack_size + stack_slack);
 
-    thread->stack_limit = stack - stack_size + stack_slack;
+    PAS_ASSERT(stack);
+    PAS_ASSERT((char*)&stack > stack);
+    PAS_ASSERT((char*)&stack < stack + stack_size);
+    PAS_ASSERT(stack_size > stack_slack);
+    PAS_ASSERT((char*)&stack > stack + stack_slack);
+
+    thread->stack_limit = stack + stack_slack;
 }
 
 static int file_log_fd = -1;
@@ -5127,15 +5132,11 @@ void filc_prepare_iovec_entry(filc_thread* my_thread, filc_ptr user_iov_entry_pt
     iov_entry->iov_len = iov_len;
 }
 
-struct iovec* filc_prepare_iovec(filc_thread* my_thread, filc_ptr user_iov, int iovcnt,
+struct iovec* filc_prepare_iovec(filc_thread* my_thread, filc_ptr user_iov, size_t iovcnt,
                                  filc_access_kind access_kind)
 {
     struct iovec* iov;
     size_t index;
-    FILC_CHECK(
-        iovcnt >= 0,
-        NULL,
-        "iovcnt cannot be negative; iovcnt = %d.\n", iovcnt);
     iov = filc_bmalloc_allocate_tmp(
         my_thread, filc_mul_size(sizeof(struct iovec), iovcnt));
     for (index = 0; index < (size_t)iovcnt; ++index) {
@@ -6809,7 +6810,7 @@ static void from_user_msghdr_base(filc_thread* my_thread, filc_ptr user_msghdr_p
     
     pas_zero_memory(msghdr, sizeof(struct msghdr));
 
-    int iovlen = user_msghdr->msg_iovlen;
+    size_t iovlen = user_msghdr->msg_iovlen;
     msghdr->msg_iov = filc_prepare_iovec(
         my_thread, filc_load_ptr_at(my_thread, user_msghdr_ptr, &user_msghdr->msg_iov), iovlen,
         access_kind);
@@ -6902,10 +6903,10 @@ ssize_t filc_native_zsys_recvmsg(filc_thread* my_thread, int sockfd, filc_ptr ms
     if (verbose) {
         pas_log("Actually doing recvmsg\n");
         pas_log("msg.msg_iov = %p\n", msg.msg_iov);
-        pas_log("msg.msg_iovlen = %d\n", msg.msg_iovlen);
-        int index;
-        for (index = 0; index < (int)msg.msg_iovlen; ++index)
-            pas_log("msg.msg_iov[%d].iov_len = %zu\n", index, msg.msg_iov[index].iov_len);
+        pas_log("msg.msg_iovlen = %zu\n", (size_t)msg.msg_iovlen);
+        size_t index;
+        for (index = 0; index < (size_t)msg.msg_iovlen; ++index)
+            pas_log("msg.msg_iov[%zu].iov_len = %zu\n", index, msg.msg_iov[index].iov_len);
     }
     ssize_t result = recvmsg(sockfd, &msg, flags);
     int my_errno = errno;
