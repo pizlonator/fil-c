@@ -82,6 +82,7 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
+#include <grp.h>
 
 #define DEFINE_LOCK(name) \
     pas_system_mutex filc_## name ## _lock; \
@@ -7497,14 +7498,6 @@ int filc_native_zsys_clock_getres(filc_thread* my_thread, int clock_id, filc_ptr
     PAS_ASSERT(!result || result == -1);
     if (result < 0)
         filc_set_errno(my_errno);
-    return result;
-}
-
-int filc_native_zsys_issetugid(filc_thread* my_thread)
-{
-    filc_exit(my_thread);
-    int result = issetugid();
-    filc_enter(my_thread);
     return result;
 }
 

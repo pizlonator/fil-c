@@ -200,7 +200,6 @@ int zsys_futimes(int fd, const void* times);
 int zsys_futimesat(int fd, const char* path, const void* times);
 int zsys_clock_settime(int clock_id, const void* tp);
 int zsys_clock_getres(int clock_id, void* tp);
-int zsys_issetugid(void);
 int zsys_getresgid(unsigned* rgid, unsigned* egid, unsigned* sgid);
 int zsys_getresuid(unsigned* ruid, unsigned* euid, unsigned* suid);
 int zsys_setresgid(unsigned rgid, unsigned egid, unsigned sgid);
