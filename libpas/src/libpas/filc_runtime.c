@@ -7685,7 +7685,13 @@ int filc_native_zsys_getdents(filc_thread* my_thread, int fd, filc_ptr dirent_pt
 {
     check_fd(fd);
     filc_check_write(dirent_ptr, size);
-    return FILC_SYSCALL(my_thread, getdents(fd, (struct dirent*)filc_ptr_ptr(dirent_ptr), size));
+#if PAS_GLIBC
+#if !defined(_LARGEFILE64_SOURCE)
+#error "Fil-C runtime requires _LARGEFILE64_SOURCE"
+#endif
+#define getdents getdents64
+#endif
+    return FILC_SYSCALL(my_thread, getdents(fd, filc_ptr_ptr(dirent_ptr), size));
 }
 
 long filc_native_zsys_getrandom(filc_thread* my_thread, filc_ptr buf_ptr, size_t buflen,
