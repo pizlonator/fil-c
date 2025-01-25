@@ -158,6 +158,7 @@ filc_thread* filc_thread_create_with_manual_tracking(void)
     pas_system_condition_construct(&thread->cond);
     filc_ptr_array_construct(&thread->allocation_roots);
     filc_object_array_construct(&thread->mark_stack);
+    filc_object_array_construct(&thread->thread_locals);
 
     unsigned allocator_index = 0;
     unsigned last_size = UINT_MAX;
@@ -231,6 +232,7 @@ void filc_thread_undo_create(filc_thread* thread)
     PAS_ASSERT(!thread->mark_stack.num_objects);
     filc_ptr_array_destruct(&thread->allocation_roots);
     filc_object_array_destruct(&thread->mark_stack);
+    filc_object_array_destruct(&thread->thread_locals);
     filc_thread_destroy_space_with_guard_page(thread);
 }
 
@@ -1258,6 +1260,9 @@ void filc_thread_mark_roots(filc_thread* my_thread)
 
     for (index = FILC_NUM_UNWIND_REGISTERS; index--;)
         PAS_ASSERT(filc_ptr_is_totally_null(my_thread->unwind_registers[index]));
+
+    for (index = my_thread->thread_locals.num_objects; index--;)
+        fugc_mark(&my_thread->mark_stack, my_thread->thread_locals.objects[index]);
 }
 
 void filc_thread_sweep_mark_stack(filc_thread* my_thread)
@@ -2391,6 +2396,21 @@ void filc_free(filc_object* object)
                                 filc_aux_get_ptr(aux))))
             break;
     }
+}
+
+filc_object* filc_allocate_thread_local(filc_thread* my_thread, size_t size, size_t alignment)
+{
+    filc_object* result = filc_allocate_with_alignment(my_thread, size, alignment);
+    filc_object_array_push(&my_thread->thread_locals, result);
+    return result;
+}
+
+filc_object* filc_allocate_thread_local_with_ptrs(filc_thread* my_thread, size_t size,
+                                                  size_t alignment)
+{
+    filc_object* result = filc_allocate_thread_local(my_thread, size, alignment);
+    filc_object_ensure_aux_ptr(my_thread, result);
+    return result;
 }
 
 static size_t num_ptrtables = 0;

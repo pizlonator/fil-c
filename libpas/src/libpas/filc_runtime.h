@@ -567,6 +567,7 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     filc_ptr_array allocation_roots;
 
     filc_object_array mark_stack;
+    filc_object_array thread_locals;
 
     pas_system_mutex lock; /* We grab all of these during fork(). */
     pas_system_condition cond;
@@ -2699,6 +2700,11 @@ filc_object* filc_reallocate_with_alignment(filc_thread* my_thread, filc_object*
 void filc_free(filc_object* object);
 
 PAS_API void filc_unmap(void* ptr, size_t size);
+
+filc_object* filc_allocate_thread_local(
+    filc_thread* my_thread, size_t new_size, size_t alignment);
+filc_object* filc_allocate_thread_local_with_ptrs(
+    filc_thread* my_thread, size_t new_size, size_t alignment);
 
 filc_ptr_table* filc_ptr_table_create(filc_thread* my_thread);
 void filc_ptr_table_destruct(filc_ptr_table* ptr_table);
