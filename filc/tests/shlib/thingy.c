@@ -45,4 +45,16 @@ extern int green;
 extern int yellow;
 __asm__(".filc_weak_alias green, yellow");
 
+int slim1 (void)
+{
+    return 13;
+}
+extern __typeof (slim1) slim2 __attribute__ ((weak, alias ("slim1")));
+extern __typeof (slim2) slim3 __attribute__ ((weak, alias ("slim2")));
 
+int slim4 (void)
+{
+    return 14;
+}
+extern __typeof (slim4) slim5 __attribute__ ((weak, alias ("slim4")));
+extern __typeof (slim5) slim6 __attribute__ ((weak, alias ("slim5")));

@@ -9,3 +9,9 @@ int red(int x, int y)
 }
 
 int green = 1000;
+
+int slim5(void)
+{
+    return 15;
+}
+

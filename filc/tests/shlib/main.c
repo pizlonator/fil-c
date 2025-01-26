@@ -13,6 +13,12 @@ int wombat(int x, int y);
 int baz(int x, int y);
 int red(int x, int y);
 int blue(int x, int y);
+int slim1(void);
+int slim2(void);
+int slim3(void);
+int slim4(void);
+int slim5(void);
+int slim6(void);
 extern int green;
 extern int yellow;
 
@@ -37,6 +43,13 @@ int main()
     zcompiler_fence();
     ZASSERT(green == 2000);
     ZASSERT(yellow == 2000);
+    ZASSERT(slim1() == 13);
+    ZASSERT(slim2() == 13);
+    ZASSERT(slim3() == 13);
+    ZASSERT(slim4() == 14);
+    ZASSERT(slim5() == 15);
+    ZASSERT(slim6() == 14); /* This is weird and not what I'd expect, but that's what you get with
+                               gcc, so I guess it's right? */
     return 0;
 }
 
