@@ -1,0 +1,11 @@
+return:
+  success
+libraries:
+  liblibrary:
+    isBundle: false
+    files:
+      - library.c
+extraLinkerArgs:
+  "-Lfilc/test-output/rename2 -llibrary"
+extraLDPath:
+  "filc/test-output/rename2"

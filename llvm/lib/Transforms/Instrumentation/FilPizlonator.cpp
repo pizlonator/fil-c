@@ -5990,6 +5990,27 @@ class Pizlonator {
             Dummy->replaceAllUsesWith(NewGA);
           continue;
         }
+        if (Tok.Str == ".filc_rename") {
+          std::string OldName = MAT.getNextSpecific(MATokenKind::Identifier).Str;
+          MAT.getNextSpecific(MATokenKind::Comma);
+          std::string NewName = MAT.getNextSpecific(MATokenKind::Identifier).Str;
+          MAT.getNextSpecific(MATokenKind::EndLine);
+          GlobalValue* GV = getGlobal(OldName);
+          if (!GV) {
+            errs() << "Cannot rename " << OldName << " to " << NewName << " because " << OldName
+                   << "doesn't exist.\n";
+            llvm_unreachable("Error parsing module asm");
+          }
+          GV->setName(NewName);
+          if (GV->getName() != NewName) {
+            errs() << "Cannot rename " << OldName << " to " << NewName;
+            if (getGlobal(NewName))
+              errs() << " (because " << NewName << " is taken)";
+            errs() << "\n";
+            llvm_unreachable("Error parsing module asm");
+          }
+          continue;
+        }
         errs() << "Invalid directive: " << Tok.Str << "\n";
         llvm_unreachable("Error parsing module asm");
       }
