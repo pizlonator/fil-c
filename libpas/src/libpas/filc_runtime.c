@@ -303,6 +303,12 @@ static void check_zthread(filc_ptr ptr)
 
 static filc_signal_handler* signal_table[FILC_MAX_USER_SIGNUM + 1];
 
+static bool user_environment_is_set = false;
+static int user_argc;
+static filc_ptr user_argv;
+static filc_ptr user_environ;
+static filc_ptr user_auxv;
+
 static bool is_initialized = false; /* Useful for assertions. */
 static bool exit_on_panic = false;
 static bool dump_errnos = false;
@@ -1307,6 +1313,10 @@ void filc_mark_global_roots(filc_object_array* mark_stack)
     for (index = num_threads; index--;)
         fugc_mark(mark_stack, filc_object_for_special_payload(threads[index]));
     bmalloc_deallocate(threads);
+
+    fugc_mark(mark_stack, filc_ptr_object(user_argv));
+    fugc_mark(mark_stack, filc_ptr_object(user_environ));
+    fugc_mark(mark_stack, filc_ptr_object(user_auxv));
 }
 
 static void dump_signals_mask(void)
@@ -4232,6 +4242,44 @@ void filc_execute_constant_relocations(
     }
 }
 
+void filc_set_user_environment(filc_thread* my_thread,
+                               int argc, filc_ptr argv, filc_ptr environ, filc_ptr auxv)
+{
+    PAS_ASSERT(!user_environment_is_set);
+    user_argc = argc;
+    filc_flight_ptr_store(my_thread, &user_argv, argv);
+    filc_flight_ptr_store(my_thread, &user_environ, environ);
+    filc_flight_ptr_store(my_thread, &user_auxv, auxv);
+    user_environment_is_set = true;
+}
+
+int filc_get_user_argc(void)
+{
+    PAS_ASSERT(user_environment_is_set);
+    return user_argc;
+}
+
+filc_ptr filc_get_user_argv(void)
+{
+    PAS_ASSERT(user_environment_is_set);
+    /* Don't need tracking because the global is monotonic. */
+    return filc_flight_ptr_load_with_manual_tracking(&user_argv);
+}
+
+filc_ptr filc_get_user_environ(void)
+{
+    PAS_ASSERT(user_environment_is_set);
+    /* Don't need tracking because the global is monotonic. */
+    return filc_flight_ptr_load_with_manual_tracking(&user_environ);
+}
+
+filc_ptr filc_get_user_auxv(void)
+{
+    PAS_ASSERT(user_environment_is_set);
+    /* Don't need tracking because the global is monotonic. */
+    return filc_flight_ptr_load_with_manual_tracking(&user_auxv);
+}
+
 static bool did_run_deferred_global_ctors = false;
 static pizlonated_function* deferred_global_ctors = NULL; 
 static size_t num_deferred_global_ctors = 0;
@@ -4247,7 +4295,8 @@ static void run_global_ctor(filc_thread* my_thread, pizlonated_function global_c
     FILC_DEFINE_FRAME("run_global_ctor");
     filc_push_frame(my_thread, frame);
 
-    filc_call_user_void(my_thread, global_ctor);
+    filc_call_user_void_int_ptr_ptr(
+        my_thread, global_ctor, filc_get_user_argc(), filc_get_user_argv(), filc_get_user_environ());
 
     filc_pop_frame(my_thread, frame);
 }

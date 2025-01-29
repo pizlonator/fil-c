@@ -247,6 +247,10 @@ $testDirectory.each_entry {
         outp.puts "fi"
     }
     if expectedReturn != "compileFailure"
+        extraArgs = handleArray(manifest["extraArgs"]).map {
+            | arg |
+            Shellwords.shellescape(arg)
+        }.join(" ")
         File.open(justRunScript, "w") {
             | outp |
             outp.puts "#!/bin/sh"
@@ -260,7 +264,7 @@ $testDirectory.each_entry {
                 | entry |
                 outp.print "#{entry} "
             }
-            outp.puts "#{Shellwords.shellescape(binary)}"
+            outp.puts "#{Shellwords.shellescape(binary)} #{extraArgs}"
         }
         File.open(justRunReleaseScript, "w") {
             | outp |
@@ -273,7 +277,7 @@ $testDirectory.each_entry {
                 | entry |
                 outp.print "#{entry} "
             }
-            outp.puts "#{Shellwords.shellescape(binary)}"
+            outp.puts "#{Shellwords.shellescape(binary)} #{extraArgs}"
         }
         [{:script => subRunScript,
           :cmdPrefix => "FUGC_RAGE_MODE=1",

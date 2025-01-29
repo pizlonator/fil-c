@@ -400,15 +400,14 @@ addSig "void", "zdecrement_signal_deferral_depth"
 addSig "unsigned long long", "zget_signal_deferral_depth"
 
 addOutSig "void_ptr_ptr", "void", "filc_ptr", "filc_ptr"
-addOutSig "int_int_ptr", "int", "int", "filc_ptr"
+addOutSig "int_int_ptr_ptr", "int", "int", "filc_ptr", "filc_ptr"
 addOutSig "void_int", "void", "int"
+addOutSig "void_int_ptr_ptr", "void", "int", "filc_ptr", "filc_ptr"
 addOutSig "void", "void"
 addOutSig "bool_ptr_ptr", "bool", "filc_ptr", "filc_ptr"
 addOutSig "eh_personality", "int", "int", "int", "unsigned long long", "filc_ptr", "filc_ptr"
 addOutSig "void_ptr", "void", "filc_ptr"
 addOutSig "ptr_ptr", "filc_ptr", "filc_ptr"
-addOutSig "bool_ptr", "bool", "filc_ptr"
-addOutSig "void_bool_bool_ptr", "void", "bool", "bool", "filc_ptr"
 addOutSig "libc_start_main", "void", "filc_ptr", "int", "filc_ptr", "filc_ptr", "filc_ptr"
 
 case ARGV[0]

@@ -42,7 +42,7 @@ static void really_start_program(
     static const bool verbose = false;
     
     filc_ptr pizlonated_argv;
-    int index;
+    size_t index;
     filc_ptr main_ptr;
 
     PAS_ASSERT(argc >= 1);
@@ -60,7 +60,7 @@ static void really_start_program(
     pizlonated_argv = filc_ptr_create_with_object(
         my_thread, filc_allocate(my_thread, filc_mul_size(sizeof(void*), (argc + 1))));
 
-    for (index = 0; index < argc; ++index) {
+    for (index = 0; index < (size_t)argc; ++index) {
         filc_ptr arg;
         size_t size;
         size = strlen(argv[index]) + 1;
@@ -73,55 +73,56 @@ static void really_start_program(
     if (verbose)
         pas_log("main_ptr.ptr = %p, main_ptr.lower = %p\n", main_ptr.ptr, main_ptr.lower);
     filc_thread_track_object(my_thread, filc_ptr_object(main_ptr));
+    
+    size_t environ_size;
+    filc_ptr environ_ptr;
+    filc_ptr __libc_start_main_ptr;
+    
+    for (environ_size = 0; environ[environ_size]; ++environ_size);
+    environ_size++;
+    
+    environ_ptr = filc_ptr_create_with_object(
+        my_thread, filc_allocate(my_thread, filc_mul_size(sizeof(void*), environ_size)));
+    
+    for (index = 0; index < environ_size; ++index) {
+        filc_ptr env_value;
+        if (index == environ_size - 1) {
+            PAS_ASSERT(!environ[index]);
+            env_value = filc_ptr_forge_null();
+        } else {
+            size_t size;
+            filc_ptr env_copy;
+            PAS_ASSERT(environ[index]);
+            size = strlen(environ[index]) + 1;
+            env_copy = filc_ptr_create_with_object(my_thread, filc_allocate(my_thread, size));
+            memcpy(filc_ptr_ptr(env_copy), environ[index], size);
+            filc_store_ptr(my_thread, environ_ptr, filc_mul_size(index, sizeof(void*)), env_copy);
+        }
+    }
+    
+    size_t max_num_keys = AT_MAX_KEY + 1;
+    size_t num_entries = (max_num_keys * 2 + 1);
+    filc_ptr auxv_ptr = filc_ptr_create_with_object(
+        my_thread, filc_allocate(my_thread, num_entries * sizeof(size_t)));
+    size_t* auxv = (size_t*)filc_ptr_ptr(auxv_ptr);
+    size_t key;
+    for (key = 0, index = 0; key <= AT_MAX_KEY; ++key) {
+        errno = 0;
+        size_t value = getauxval(key);
+        PAS_ASSERT(!errno || errno == ENOENT);
+        if (errno)
+            continue;
+        PAS_ASSERT(index < num_entries);
+        PAS_ASSERT(index + 1 < num_entries);
+        auxv[index] = key;
+        auxv[index + 1] = value;
+        index += 2;
+    }
+    PAS_ASSERT(!auxv[num_entries - 1]);
 
+    filc_set_user_environment(my_thread, argc, pizlonated_argv, environ_ptr, auxv_ptr);
+    
     if (pizlonated___libc_start_main) {
-        int environ_size;
-        filc_ptr environ_ptr;
-        filc_ptr __libc_start_main_ptr;
-        
-        for (environ_size = 0; environ[environ_size]; ++environ_size);
-        environ_size++;
-
-        environ_ptr = filc_ptr_create_with_object(
-            my_thread, filc_allocate(my_thread, filc_mul_size(sizeof(void*), environ_size)));
-
-        for (index = 0; index < environ_size; ++index) {
-            filc_ptr env_value;
-            if (index == environ_size - 1) {
-                PAS_ASSERT(!environ[index]);
-                env_value = filc_ptr_forge_null();
-            } else {
-                size_t size;
-                filc_ptr env_copy;
-                PAS_ASSERT(environ[index]);
-                size = strlen(environ[index]) + 1;
-                env_copy = filc_ptr_create_with_object(my_thread, filc_allocate(my_thread, size));
-                memcpy(filc_ptr_ptr(env_copy), environ[index], size);
-                filc_store_ptr(my_thread, environ_ptr, filc_mul_size(index, sizeof(void*)), env_copy);
-            }
-        }
-
-        size_t max_num_keys = AT_MAX_KEY + 1;
-        size_t num_entries = (max_num_keys * 2 + 1);
-        filc_ptr auxv_ptr = filc_ptr_create_with_object(
-            my_thread, filc_allocate(my_thread, num_entries * sizeof(size_t)));
-        size_t* auxv = (size_t*)filc_ptr_ptr(auxv_ptr);
-        size_t key;
-        size_t index;
-        for (key = 0, index = 0; key <= AT_MAX_KEY; ++key) {
-            errno = 0;
-            size_t value = getauxval(key);
-            PAS_ASSERT(!errno || errno == ENOENT);
-            if (errno)
-                continue;
-            PAS_ASSERT(index < num_entries);
-            PAS_ASSERT(index + 1 < num_entries);
-            auxv[index] = key;
-            auxv[index + 1] = value;
-            index += 2;
-        }
-        PAS_ASSERT(!auxv[num_entries - 1]);
-
         __libc_start_main_ptr = pizlonated___libc_start_main(NULL);
         if (verbose) {
             pas_log("__libc_start_main object = %p\n", filc_ptr_object(__libc_start_main_ptr));
@@ -142,8 +143,8 @@ static void really_start_program(
     filc_run_deferred_global_ctors(my_thread);
 
     filc_check_function_call(main_ptr);
-    int exit_status = filc_call_user_int_int_ptr(
-        my_thread, (pizlonated_function)filc_ptr_ptr(main_ptr), argc, pizlonated_argv);
+    int exit_status = filc_call_user_int_int_ptr_ptr(
+        my_thread, (pizlonated_function)filc_ptr_ptr(main_ptr), argc, pizlonated_argv, environ_ptr);
 
     if (verbose)
         pas_log("Exiting!\n");

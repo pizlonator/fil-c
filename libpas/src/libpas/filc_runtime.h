@@ -2981,6 +2981,13 @@ void filc_execute_constant_relocations(
     filc_object* constant, filc_constant_relocation* relocations, size_t num_relocations,
     filc_global_initialization_context* context);
 
+PAS_API void filc_set_user_environment(filc_thread* my_thread,
+                                       int argc, filc_ptr argv, filc_ptr environ, filc_ptr auxv);
+PAS_API int filc_get_user_argc(void);
+PAS_API filc_ptr filc_get_user_argv(void);
+PAS_API filc_ptr filc_get_user_environ(void);
+PAS_API filc_ptr filc_get_user_auxv(void);
+
 void filc_defer_or_run_global_ctor(pizlonated_function global_ctor);
 void filc_run_deferred_global_ctors(filc_thread* my_thread); /* Important safety property: libc must
                                                                 call this before letting the user
