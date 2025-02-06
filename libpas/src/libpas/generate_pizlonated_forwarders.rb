@@ -385,6 +385,7 @@ addSig "filc_ptr", "zsys_mremap", "filc_ptr", "size_t", "size_t", "int", "filc_p
 addSig "int", "zsys_signalfd", "int", "filc_ptr", "int"
 addSig "int", "zsys_clock_nanosleep", "int", "int", "filc_ptr", "filc_ptr"
 addSig "int", "zsys_posix_fallocate", "int", "long", "long"
+addSig "int", "zsys_sigaltstack", "filc_ptr", "filc_ptr"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"

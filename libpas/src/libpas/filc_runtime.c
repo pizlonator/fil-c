@@ -8229,6 +8229,15 @@ int filc_native_zsys_posix_fallocate(filc_thread* my_thread, int fd, long offset
     return FILC_SYSCALL(my_thread, posix_fallocate(fd, offset, len));
 }
 
+int filc_native_zsys_sigaltstack(filc_thread* my_thread, filc_ptr ss_ptr, filc_ptr old_ss_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(ss_ptr);
+    PAS_UNUSED_PARAM(old_ss_ptr);
+    filc_internal_panic(NULL, "sigaltstack not supported.");
+    return -1;
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
