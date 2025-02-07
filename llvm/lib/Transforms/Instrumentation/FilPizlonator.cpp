@@ -5593,6 +5593,154 @@ class Pizlonator {
     CallInst* CI = CallInst::Create(StackCheckAsm, { GEP }, "", InsertBefore);
     CI->addParamAttr(0, Attribute::get(C, Attribute::ElementType, RawPtrTy));
   }
+
+  void lowerIndirectBrForFunction(Function& F) {
+    // Code taken from IndirectBrExpandPass and modified.
+    
+    SmallVector<IndirectBrInst *, 1> IndirectBrs;
+
+    // Set of all potential successors for indirectbr instructions.
+    SmallPtrSet<BasicBlock *, 4> IndirectBrSuccs;
+
+    // Build a list of indirectbrs that we want to rewrite.
+    for (BasicBlock &BB : F)
+      if (auto *IBr = dyn_cast<IndirectBrInst>(BB.getTerminator())) {
+        // Handle the degenerate case of no successors by replacing the indirectbr
+        // with unreachable as there is no successor available.
+        if (IBr->getNumSuccessors() == 0) {
+          (void)new UnreachableInst(F.getContext(), IBr);
+          IBr->eraseFromParent();
+          continue;
+        }
+
+        IndirectBrs.push_back(IBr);
+        for (BasicBlock *SuccBB : IBr->successors())
+          IndirectBrSuccs.insert(SuccBB);
+      }
+
+    if (IndirectBrs.empty())
+      return;
+
+    // If we need to replace any indirectbrs we need to establish integer
+    // constants that will correspond to each of the basic blocks in the function
+    // whose address escapes. We do that here and rewrite all the blockaddress
+    // constants to just be those integer constants cast to a pointer type.
+    SmallVector<BasicBlock *, 4> BBs;
+
+    for (BasicBlock &BB : F) {
+      // Skip blocks that aren't successors to an indirectbr we're going to
+      // rewrite.
+      if (!IndirectBrSuccs.count(&BB))
+        continue;
+
+      auto IsBlockAddressUse = [&](const Use &U) {
+        return isa<BlockAddress>(U.getUser());
+      };
+      auto BlockAddressUseIt = llvm::find_if(BB.uses(), IsBlockAddressUse);
+      if (BlockAddressUseIt == BB.use_end())
+        continue;
+
+      assert(std::find_if(std::next(BlockAddressUseIt), BB.use_end(),
+                          IsBlockAddressUse) == BB.use_end() &&
+             "There should only ever be a single blockaddress use because it is "
+             "a constant and should be uniqued.");
+
+      auto *BA = cast<BlockAddress>(BlockAddressUseIt->getUser());
+
+      // Skip if the constant was formed but ended up not being used (due to DCE
+      // or whatever).
+      if (!BA->isConstantUsed())
+        continue;
+
+      // Compute the index we want to use for this basic block. We can't use zero
+      // because null can be compared with block addresses.
+      int BBIndex = BBs.size() + 1;
+      BBs.push_back(&BB);
+
+      auto *ITy = cast<IntegerType>(DL.getIntPtrType(BA->getType()));
+      ConstantInt *BBIndexC = ConstantInt::get(ITy, BBIndex);
+
+      // Now rewrite the blockaddress to an integer constant based on the index.
+      // FIXME: This part doesn't properly recognize other uses of blockaddress
+      // expressions, for instance, where they are used to pass labels to
+      // asm-goto. This part of the pass needs a rework.
+      BA->replaceAllUsesWith(ConstantExpr::getIntToPtr(BBIndexC, BA->getType()));
+    }
+
+    if (BBs.empty()) {
+      for (auto *IBr : IndirectBrs) {
+        (void)new UnreachableInst(F.getContext(), IBr);
+        IBr->eraseFromParent();
+      }
+      return;
+    }
+
+    BasicBlock *SwitchBB;
+    Value *SwitchValue;
+
+    // Compute a common integer type across all the indirectbr instructions.
+    IntegerType *CommonITy = nullptr;
+    for (auto *IBr : IndirectBrs) {
+      auto *ITy =
+        cast<IntegerType>(DL.getIntPtrType(IBr->getAddress()->getType()));
+      if (!CommonITy || ITy->getBitWidth() > CommonITy->getBitWidth())
+        CommonITy = ITy;
+    }
+
+    auto GetSwitchValue = [CommonITy](IndirectBrInst *IBr) {
+      return CastInst::CreatePointerCast(
+        IBr->getAddress(), CommonITy,
+        Twine(IBr->getAddress()->getName()) + ".switch_cast", IBr);
+    };
+
+    if (IndirectBrs.size() == 1) {
+      // If we only have one indirectbr, we can just directly replace it within
+      // its block.
+      IndirectBrInst *IBr = IndirectBrs[0];
+      SwitchBB = IBr->getParent();
+      SwitchValue = GetSwitchValue(IBr);
+      IBr->eraseFromParent();
+    } else {
+      // Otherwise we need to create a new block to hold the switch across BBs,
+      // jump to that block instead of each indirectbr, and phi together the
+      // values for the switch.
+      SwitchBB = BasicBlock::Create(F.getContext(), "switch_bb", &F);
+      auto *SwitchPN = PHINode::Create(CommonITy, IndirectBrs.size(),
+                                       "switch_value_phi", SwitchBB);
+      SwitchValue = SwitchPN;
+
+      // Now replace the indirectbr instructions with direct branches to the
+      // switch block and fill out the PHI operands.
+      for (auto *IBr : IndirectBrs) {
+        SwitchPN->addIncoming(GetSwitchValue(IBr), IBr->getParent());
+        BranchInst::Create(SwitchBB, IBr);
+        IBr->eraseFromParent();
+      }
+    }
+
+    // Now build the switch in the block. The block will have no terminator
+    // already.
+    auto *SI = SwitchInst::Create(SwitchValue, BBs[0], BBs.size(), SwitchBB);
+
+    // Add a case for each block.
+    for (int i : llvm::seq<int>(1, BBs.size()))
+      SI->addCase(ConstantInt::get(CommonITy, i + 1), BBs[i]);
+  }
+
+  void lowerIndirectBr() {
+    std::vector<BlockAddress*> ToDelete;
+    for (Function& F : M.functions()) {
+      lowerIndirectBrForFunction(F);
+      for (Value* User : F.users()) {
+        if (BlockAddress* BA = dyn_cast<BlockAddress>(User))
+          ToDelete.push_back(BA);
+      }
+    }
+    for (BlockAddress* BA : ToDelete) {
+      BA->replaceAllUsesWith(RawNull); // It's possible that a BA was used but not for indirectbr.
+      BA->destroyConstant();
+    }
+  }
   
   void undefineAvailableExternally() {
     for (GlobalVariable& G : M.globals()) {
@@ -6508,21 +6656,25 @@ public:
 
     Dummy = makeDummy(Int32Ty);
 
+    lowerIndirectBr();
+
+    if (verbose)
+      errs() << "Module with indirectbr lowered:\n" << M << "\n";
+    
     undefineAvailableExternally();
     removeIrrelevantIntrinsics();
     expandConstantExprs();
     inferPointerAsIntLaundering();
 
     if (verbose) {
-      errs() << "Module with irrelevant intrinsics removed, constexprs expanded, and pointer "
-             << "laundering inferred:\n" << M << "\n";
+      errs() << "Module with irrelevant intrinsics removed, constexprs expanded, "
+             << "and pointer laundering inferred:\n" << M << "\n";
     }
     
     lowerThreadLocals();
 
-    if (verbose) {
+    if (verbose)
       errs() << "Module with lowered thread locals:\n" << M << "\n";
-    }
     
     makeEHDatas();
     compileModuleAsm();
@@ -7408,8 +7560,11 @@ public:
       I->deleteValue();
     if (verbose)
       errs() << "RAUWing ToDelete values.\n";
-    for (GlobalValue* G : ToDelete)
+    for (GlobalValue* G : ToDelete) {
+      if (verbose)
+        errs() << "RAUWing " << G->getName() << "\n";
       G->replaceAllUsesWith(UndefValue::get(G->getType())); // FIXME - should be zero
+    }
     if (verbose)
       errs() << "Erasing ToDelete values.\n";
     for (GlobalValue* G : ToDelete) {
