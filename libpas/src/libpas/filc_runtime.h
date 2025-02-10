@@ -62,6 +62,8 @@ struct filc_constant_relocation;
 struct filc_constexpr_node;
 struct filc_exact_ptr_table;
 struct filc_exception_and_int;
+struct filc_exception_and_ptr;
+struct filc_exception_and_void;
 struct filc_frame;
 struct filc_function_origin;
 struct filc_global_initialization_context;
@@ -101,6 +103,8 @@ typedef struct filc_constant_relocation filc_constant_relocation;
 typedef struct filc_constexpr_node filc_constexpr_node;
 typedef struct filc_exact_ptr_table filc_exact_ptr_table;
 typedef struct filc_exception_and_int filc_exception_and_int;
+typedef struct filc_exception_and_ptr filc_exception_and_ptr;
+typedef struct filc_exception_and_void filc_exception_and_void;
 typedef struct filc_frame filc_frame;
 typedef struct filc_function_origin filc_function_origin;
 typedef struct filc_global_initialization_context filc_global_initialization_context;
@@ -245,7 +249,7 @@ typedef uintptr_t filc_word;
 #define FILC_CC_INLINE_SIZE               256u
 #define FILC_CC_ALIGNMENT                 64u
 
-#define FILC_DEFINE_RUNTIME_ORIGIN(origin_name, function_name, passed_num_lowers) \
+#define FILC_DEFINE_RUNTIME_ORIGIN_IMPL(origin_name, function_name, passed_num_lowers, passed_can_catch) \
     static const filc_function_origin function_ ## origin_name = { \
         .base = { \
             .function = (function_name), \
@@ -254,7 +258,7 @@ typedef uintptr_t filc_word;
         }, \
         .personality_getter = NULL, \
         .can_throw = true, \
-        .can_catch = false, \
+        .can_catch = (passed_can_catch), \
         .num_setjmps = 0 \
     }; \
     static const filc_origin origin_name = { \
@@ -262,6 +266,9 @@ typedef uintptr_t filc_word;
         .line = 0, \
         .column = 0 \
     }
+
+#define FILC_DEFINE_RUNTIME_ORIGIN(origin_name, function_name, passed_num_lowers) \
+    FILC_DEFINE_RUNTIME_ORIGIN_IMPL(origin_name, function_name, passed_num_lowers, false)
 
 struct pizlonated_return_value {
     bool has_exception;
@@ -472,14 +479,17 @@ struct filc_origin_with_eh {
     const filc_origin* origin
 
 /* Defines the following variables: origin, actual_frame, and frame. */
-#define FILC_DEFINE_FRAME(function_name) \
-    FILC_DEFINE_RUNTIME_ORIGIN(origin, (function_name), 0); \
+#define FILC_DEFINE_FRAME_IMPL(function_name, passed_can_catch) \
+    FILC_DEFINE_RUNTIME_ORIGIN_IMPL(origin, (function_name), 0, (passed_can_catch)); \
     struct { \
         FILC_FRAME_BODY; \
     } actual_frame; \
     pas_zero_memory(&actual_frame, sizeof(actual_frame)); \
     filc_frame* frame = (filc_frame*)&actual_frame; \
     frame->origin = &origin
+
+#define FILC_DEFINE_FRAME(function_name) FILC_DEFINE_FRAME_IMPL(function_name, false)
+#define FILC_DEFINE_CATCHING_FRAME(function_name) FILC_DEFINE_FRAME_IMPL(function_name, true)
 
 struct filc_frame {
     FILC_FRAME_BODY;
@@ -607,6 +617,9 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     filc_ptr unwind_context_ptr;
     filc_ptr exception_object_ptr;
     filc_frame* found_frame_for_unwind;
+    bool is_force_unwinding;
+    pizlonated_function force_stop_callback;
+    filc_ptr force_stop_arg_ptr;
 
     sigset_t initial_blocked_sigs;
 
@@ -850,6 +863,15 @@ struct filc_exact_ptr_table {
 struct filc_exception_and_int {
     bool has_exception;
     int value;
+};
+
+struct filc_exception_and_ptr {
+    bool has_exception;
+    filc_ptr value;
+};
+
+struct filc_exception_and_void {
+    bool has_exception;
 };
 
 enum filc_jmp_buf_kind {
@@ -2975,6 +2997,36 @@ static inline filc_exception_and_int filc_exception_and_int_with_exception(void)
     filc_exception_and_int result;
     result.has_exception = true;
     result.value = 0;
+    return result;
+}
+
+static inline filc_exception_and_ptr filc_exception_and_ptr_with_ptr(filc_ptr value)
+{
+    filc_exception_and_ptr result;
+    result.has_exception = false;
+    result.value = value;
+    return result;
+}
+
+static inline filc_exception_and_ptr filc_exception_and_ptr_with_exception(void)
+{
+    filc_exception_and_ptr result;
+    result.has_exception = true;
+    result.value = filc_ptr_forge_null();
+    return result;
+}
+
+static inline filc_exception_and_void filc_exception_and_void_with_void(void)
+{
+    filc_exception_and_void result;
+    result.has_exception = false;
+    return result;
+}
+
+static inline filc_exception_and_void filc_exception_and_void_with_exception(void)
+{
+    filc_exception_and_void result;
+    result.has_exception = true;
     return result;
 }
 

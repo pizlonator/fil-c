@@ -1215,7 +1215,7 @@ class Pizlonator {
       Personality = GlobalToGetter[cast<Function>(OldF->getPersonalityFn())];
     }
     
-    bool CanThrow = !OldF->doesNotThrow();
+    bool CanThrow = true;
     unsigned NumSetjmps = Setjmps.size();
 
     assert(FrameSize < UINT_MAX);
@@ -5361,7 +5361,7 @@ class Pizlonator {
       bool CanCatch;
       LandingPadInst* LPI;
       if (isa<CallInst>(CI)) {
-        CanCatch = !OldF->doesNotThrow();
+        CanCatch = true;
         LPI = nullptr;
       } else {
         CanCatch = true;

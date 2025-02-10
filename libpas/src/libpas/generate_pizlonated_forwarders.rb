@@ -112,23 +112,6 @@ class Signature
     end
 end
 
-class OutSignature
-    attr_reader :name, :args, :rets
-
-    def initialize(name, args, rets)
-        @name = name
-        @args = args
-        @rets = rets
-        args.each {
-            | arg |
-            checkType(arg)
-        }
-        if rets != "void"
-            checkType(rets)
-        end
-    end
-end
-
 $signatures = []
 
 def addSig(rets, name, *args)
@@ -138,7 +121,7 @@ end
 
 $outSignatures = []
 def addOutSig(name, rets, *args)
-    sig = OutSignature.new(name, args, rets)
+    sig = Signature.new(name, args, rets)
     $outSignatures << sig
 end
 
@@ -181,6 +164,7 @@ addSig "void", "zscavenger_resume"
 addSig "void", "zdump_stack"
 addSig "void", "zstack_scan", "filc_ptr", "filc_ptr"
 addSig "exception/int", "_Unwind_RaiseException", "filc_ptr"
+addSig "exception/int", "_Unwind_ForcedUnwind", "filc_ptr", "filc_ptr", "filc_ptr"
 addSig "void", "zlongjmp", "filc_ptr", "int"
 addSig "void", "z_longjmp", "filc_ptr", "int"
 addSig "void", "zsiglongjmp", "filc_ptr", "int"
@@ -404,15 +388,16 @@ addSig "int", "zmath_finitel", "long double"
 addSig "long double", "zmath_scalbnl", "long double", "int"
 
 addOutSig "void_ptr_ptr", "void", "filc_ptr", "filc_ptr"
-addOutSig "int_int_ptr_ptr", "int", "int", "filc_ptr", "filc_ptr"
+addOutSig "main", "exception/int", "int", "filc_ptr", "filc_ptr"
 addOutSig "void_int", "void", "int"
 addOutSig "void_int_ptr_ptr", "void", "int", "filc_ptr", "filc_ptr"
 addOutSig "void", "void"
 addOutSig "bool_ptr_ptr", "bool", "filc_ptr", "filc_ptr"
 addOutSig "eh_personality", "int", "int", "int", "unsigned long long", "filc_ptr", "filc_ptr"
+addOutSig "eh_stop_fn", "int", "int", "int", "unsigned long long", "filc_ptr", "filc_ptr", "filc_ptr"
 addOutSig "void_ptr", "void", "filc_ptr"
-addOutSig "ptr_ptr", "filc_ptr", "filc_ptr"
-addOutSig "libc_start_main", "void", "filc_ptr", "int", "filc_ptr", "filc_ptr", "filc_ptr"
+addOutSig "thread_main", "exception/filc_ptr", "filc_ptr"
+addOutSig "libc_start_main", "exception/void", "filc_ptr", "int", "filc_ptr", "filc_ptr", "filc_ptr"
 
 case ARGV[0]
 when "src/libpas/filc_native.h"
@@ -440,7 +425,7 @@ when "src/libpas/filc_native.h"
         }
         $outSignatures.each {
             | signature |
-            outp.print "PAS_API #{signature.rets} "
+            outp.print "PAS_API #{signature.nativeReturnType} "
             outp.print "filc_call_user_#{signature.name}(filc_thread* my_thread, "
             outp.print "pizlonated_function target"
             unless signature.args.empty?
@@ -551,7 +536,7 @@ when "src/libpas/filc_native_forwarders.c"
         }
         $outSignatures.each {
             | signature |
-            outp.print "#{signature.rets} "
+            outp.print "#{signature.nativeReturnType} "
             outp.print "filc_call_user_#{signature.name}(filc_thread* my_thread, "
             outp.print "pizlonated_function target"
             unless signature.args.empty?
@@ -562,6 +547,13 @@ when "src/libpas/filc_native_forwarders.c"
             end
             outp.puts ")"
             outp.puts "{"
+            outp.puts "    PAS_TESTING_ASSERT("
+            outp.print "        "
+            unless signature.throwsException
+                outp.print "!"
+            end
+            outp.puts "filc_origin_get_function_origin("
+            outp.puts "            my_thread->top_frame->origin)->can_catch);"
             outp.puts "    filc_cc_sizer args_sizer = filc_cc_sizer_create();"
             signature.args.each {
                 | arg |
@@ -580,19 +572,36 @@ when "src/libpas/filc_native_forwarders.c"
             outp.puts "    filc_lock_top_native_frame(my_thread);"
             outp.puts "    pizlonated_return_value return_value ="
             outp.puts "        target(my_thread, filc_cc_sizer_total_size(&args_sizer));"
-            outp.puts "    PAS_ASSERT(!return_value.has_exception);"
+            unless signature.throwsException
+                outp.puts "    PAS_ASSERT(!return_value.has_exception);"
+            end
             outp.puts "    filc_unlock_top_native_frame(my_thread);"
-            if signature.rets != "void"
+            if signature.throwsException
+                outp.puts "    if (return_value.has_exception)"
+                outp.puts "        return #{signature.nativeReturnType}_with_exception();"
+            end
+            actualRets = signature.actualRets
+            underbarRets = underbarType(actualRets)
+            if actualRets == "void"
+                if signature.throwsException
+                    outp.puts "    return filc_exception_and_void_with_void();"
+                end
+            else
                 outp.puts "    filc_cc_cursor rets_cursor ="
                 outp.puts "        filc_cc_cursor_create_begin(return_value.return_size);"
-                if signature.rets == "filc_ptr"
+                if actualRets == "filc_ptr"
                     outp.puts "    filc_ptr result ="
                     outp.puts "        filc_cc_cursor_get_next_ptr(my_thread, &rets_cursor);"
                     outp.puts "    filc_thread_track_object(my_thread, filc_ptr_object(result));"
-                    outp.puts "    return result;"
                 else
-                    outp.puts "    return filc_cc_cursor_get_next_#{underbarType(signature.rets)}("
-                    outp.puts "        my_thread, &rets_cursor);"
+                    outp.puts "    #{actualRets} result ="
+                    outp.puts "        filc_cc_cursor_get_next_#{underbarRets}("
+                    outp.puts "            my_thread, &rets_cursor);"
+                end
+                if signature.throwsException
+                    outp.puts "    return #{signature.nativeReturnType}_with_#{underbarRets}(result);"
+                else
+                    outp.puts "    return result;"
                 end
             end
             outp.puts "}"

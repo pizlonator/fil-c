@@ -16,7 +16,7 @@ static bool callback(zstack_frame_description description,
     if ((!strcmp(description.filename, "<runtime>") &&
          !strcmp(description.function_name, "start_program")) ||
         !strcmp(description.function_name, "__libc_start_main")) {
-        ZASSERT(!description.can_catch);
+        ZASSERT(description.can_catch);
         ZASSERT(!description.personality_function);
         ZASSERT(!description.eh_data);
         ZASSERT(!description.is_inline);

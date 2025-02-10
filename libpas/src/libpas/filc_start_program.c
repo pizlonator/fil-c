@@ -51,7 +51,7 @@ static void really_start_program(
     filc_thread* my_thread = filc_get_my_thread();
     filc_enter(my_thread);
 
-    FILC_DEFINE_FRAME("start_program");
+    FILC_DEFINE_CATCHING_FRAME("start_program");
     filc_push_frame(my_thread, frame);
 
     filc_native_frame native_frame;
@@ -134,22 +134,29 @@ static void really_start_program(
         }
         filc_thread_track_object(my_thread, filc_ptr_object(__libc_start_main_ptr));
         filc_check_function_call(__libc_start_main_ptr);
-        filc_call_user_libc_start_main(
+        filc_exception_and_void result = filc_call_user_libc_start_main(
             my_thread, (pizlonated_function)filc_ptr_ptr(__libc_start_main_ptr),
             main_ptr, argc, pizlonated_argv, environ_ptr, auxv_ptr);
+        if (result.has_exception)
+            filc_user_panic(NULL, "unexpected exception thrown from __libc_start_main.");
+        else
+            filc_user_panic(NULL, "unexpected return from __libc_start_main.");
         PAS_ASSERT(!"Should not be reached");
     }
 
     filc_run_deferred_global_ctors(my_thread);
 
     filc_check_function_call(main_ptr);
-    int exit_status = filc_call_user_int_int_ptr_ptr(
+    filc_exception_and_int exit_status = filc_call_user_main(
         my_thread, (pizlonated_function)filc_ptr_ptr(main_ptr), argc, pizlonated_argv, environ_ptr);
+
+    if (exit_status.has_exception)
+        filc_user_panic(NULL, "unexpected exception thrown from main.");
 
     if (verbose)
         pas_log("Exiting!\n");
 
-    exit(exit_status);
+    exit(exit_status.value);
 
     PAS_ASSERT(!"Should not get here");
 }

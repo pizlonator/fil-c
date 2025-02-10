@@ -6,7 +6,10 @@ static bool callback(zstack_frame_description description,
                      void* arg)
 {
     ZASSERT(arg == (void*)666);
-    ZASSERT(!description.can_catch);
+    if (description.is_inline)
+        ZASSERT(!description.can_catch);
+    else
+        ZASSERT(description.can_catch);
     ZASSERT(!description.personality_function);
     ZASSERT(!description.eh_data);
     if (!strcmp(description.function_name, "main"))

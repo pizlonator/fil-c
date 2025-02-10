@@ -251,6 +251,7 @@ void filc_thread_mark_outgoing_ptrs(filc_thread* thread, filc_object_array* stac
        times before finishing using them. */
     fugc_mark_or_free_flight(stack, &thread->unwind_context_ptr);
     fugc_mark_or_free_flight(stack, &thread->exception_object_ptr);
+    fugc_mark_or_free_flight(stack, &thread->force_stop_arg_ptr);
 }
 
 void filc_thread_destruct(filc_thread* thread)
@@ -4710,8 +4711,10 @@ static void check_unwind_exception(filc_ptr unwind_exception_ptr, filc_access_ki
     filc_check_access(unwind_exception_ptr, sizeof(unwind_exception), access_kind);
 }
 
+#define EH_VERSION 1
+
 static unwind_reason_code call_personality(
-    filc_thread* my_thread, filc_frame* current_frame, int version, unwind_action actions,
+    filc_thread* my_thread, filc_frame* current_frame, unwind_action actions,
     filc_ptr exception_object_ptr, filc_ptr context_ptr)
 {
     check_unwind_context(context_ptr, filc_write_access);
@@ -4737,7 +4740,7 @@ static unwind_reason_code call_personality(
 
     return (unwind_reason_code)filc_call_user_eh_personality(
         my_thread, (pizlonated_function)filc_ptr_ptr(personality_ptr),
-        version, actions, exception_class, exception_object_ptr, context_ptr);
+        EH_VERSION, actions, exception_class, exception_object_ptr, context_ptr);
 }
 
 filc_exception_and_int filc_native__Unwind_RaiseException(
@@ -4759,6 +4762,8 @@ filc_exception_and_int filc_native__Unwind_RaiseException(
     filc_frame* first_frame = my_frame->parent;
     filc_frame* current_frame;
 
+    my_thread->is_force_unwinding = false;
+
     /* Phase 1 */
     for (current_frame = first_frame; current_frame; current_frame = current_frame->parent) {
         PAS_ASSERT(current_frame->origin);
@@ -4775,8 +4780,7 @@ filc_exception_and_int filc_native__Unwind_RaiseException(
         }
 
         unwind_reason_code personality_result = call_personality(
-            my_thread, current_frame, 1, unwind_action_search_phase, exception_object_ptr,
-            context_ptr);
+            my_thread, current_frame, unwind_action_search_phase, exception_object_ptr, context_ptr);
         if (personality_result == unwind_reason_handler_found) {
             my_thread->found_frame_for_unwind = current_frame;
             filc_flight_ptr_store(my_thread, &my_thread->unwind_context_ptr, context_ptr);
@@ -4794,6 +4798,118 @@ filc_exception_and_int filc_native__Unwind_RaiseException(
     return filc_exception_and_int_with_int(unwind_reason_end_of_stack);
 }
 
+static void forced_unwind(filc_thread* my_thread, filc_ptr context_ptr, filc_ptr exception_object_ptr,
+                          filc_frame* current_frame)
+{
+    PAS_ASSERT(my_thread->is_force_unwinding);
+    PAS_ASSERT(my_thread->force_stop_callback);
+    PAS_ASSERT(current_frame);
+    
+    for (;;) {
+        current_frame = current_frame->parent;
+        
+        const filc_function_origin* function_origin = NULL;
+        if (current_frame) {
+            PAS_ASSERT(current_frame->origin);
+            function_origin = filc_origin_get_function_origin(current_frame->origin);
+            
+            FILC_CHECK(
+                function_origin->can_catch,
+                NULL,
+                "encountered function %s: %s that cannot catch during forced unwind.",
+                function_origin->base.filename, function_origin->base.function);
+        }
+
+        check_unwind_context(context_ptr, filc_write_access);
+        unwind_context* context = (unwind_context*)filc_ptr_ptr(context_ptr);
+        
+        filc_ptr eh_data = filc_ptr_forge_null();
+        if (current_frame && function_origin->personality_getter) {
+            filc_origin_with_eh* origin_with_eh = (filc_origin_with_eh*)current_frame->origin;
+            pizlonated_linker_stub eh_data_getter = origin_with_eh->eh_data_getter;
+            if (eh_data_getter)
+                eh_data = eh_data_getter(NULL);
+        }
+        filc_store_ptr_at(my_thread, context_ptr, &context->language_specific_data, eh_data);
+        
+        check_unwind_exception(exception_object_ptr, filc_read_access);
+        unwind_exception* exception_object = (unwind_exception*)filc_ptr_ptr(exception_object_ptr);
+        unwind_exception_class exception_class = exception_object->exception_class;
+
+        unwind_action actions = unwind_action_force_unwind | unwind_action_cleanup_phase;
+        if (!current_frame)
+            actions |= unwind_action_end_of_stack;
+        
+        unwind_reason_code stop_result = (unwind_reason_code)filc_call_user_eh_stop_fn(
+            my_thread, my_thread->force_stop_callback, EH_VERSION, actions, exception_class,
+            exception_object_ptr, context_ptr,
+            filc_flight_ptr_load(my_thread, &my_thread->force_stop_arg_ptr));
+        FILC_CHECK(
+            stop_result == unwind_reason_none,
+            NULL,
+            "stop function returned result %d instead of unwind_reason_none during forced "
+            "unwind.",
+            stop_result);
+        FILC_CHECK(
+            current_frame,
+            NULL,
+            "stop function returned even though we've reached the end of the stack.");
+
+        if (function_origin->personality_getter) {
+            unwind_reason_code personality_result = call_personality(
+                my_thread, current_frame, actions, exception_object_ptr, context_ptr);
+            if (personality_result == unwind_reason_install_context) {
+                my_thread->found_frame_for_unwind = current_frame;
+                filc_flight_ptr_store(my_thread, &my_thread->unwind_context_ptr, context_ptr);
+                filc_flight_ptr_store(my_thread, &my_thread->exception_object_ptr,
+                                      exception_object_ptr);
+                /* This causes the landing pads to transport us to found_frame_for_unwind. */
+                return;
+            }
+            
+            FILC_CHECK(
+                personality_result == unwind_reason_continue_unwind,
+                NULL,
+                "personality function returned result %d for %s: %s instead of either "
+                "unwind_reason_install_context or unwind_reason_continue_unwind during forced "
+                "unwinding.", personality_result, function_origin->base.filename,
+                function_origin->base.function);
+        }
+        
+        FILC_CHECK(
+            function_origin->can_throw,
+            NULL,
+            "encountered function %s: %s that cannot throw during forced unwind.",
+            function_origin->base.filename, function_origin->base.function);
+    }
+}
+
+filc_exception_and_int filc_native__Unwind_ForcedUnwind(filc_thread* my_thread,
+                                                        filc_ptr exception_object_ptr,
+                                                        filc_ptr stop_callback_ptr,
+                                                        filc_ptr stop_arg_ptr)
+{
+    filc_ptr context_ptr = filc_ptr_create_with_object(
+        my_thread, filc_allocate(my_thread, sizeof(unwind_context)));
+
+    filc_frame* my_frame = my_thread->top_frame;
+    PAS_ASSERT(my_frame->origin);
+    PAS_ASSERT(!strcmp(
+                   filc_origin_node_as_function_origin(my_frame->origin->origin_node)->base.function,
+                   "_Unwind_ForcedUnwind"));
+    PAS_ASSERT(!strcmp(
+                   filc_origin_node_as_function_origin(my_frame->origin->origin_node)->base.filename,
+                   "<runtime>"));
+    PAS_ASSERT(my_frame->parent);
+
+    my_thread->is_force_unwinding = true;
+    filc_check_function_call(stop_callback_ptr);
+    my_thread->force_stop_callback = (pizlonated_function)filc_ptr_ptr(stop_callback_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->force_stop_arg_ptr, stop_arg_ptr);
+    forced_unwind(my_thread, context_ptr, exception_object_ptr, my_frame);
+    return filc_exception_and_int_with_exception();
+}
+
 static bool landing_pad_impl(filc_thread* my_thread, filc_ptr context_ptr,
                              filc_ptr exception_object_ptr, filc_frame* found_frame,
                              filc_frame* current_frame)
@@ -4809,37 +4925,45 @@ static bool landing_pad_impl(filc_thread* my_thread, filc_ptr context_ptr,
     const filc_function_origin* function_origin =
         filc_origin_get_function_origin(current_frame->origin);
     PAS_ASSERT(function_origin->can_catch);
-    
-    if (!function_origin->personality_getter)
-        return false;
 
-    unwind_action action = unwind_action_cleanup_phase;
-    if (current_frame == found_frame)
-        action = (unwind_action)(unwind_action_cleanup_phase | unwind_action_handler_frame);
-    
-    unwind_reason_code personality_result = call_personality(
-        my_thread, current_frame, 1, action, exception_object_ptr, context_ptr);
-    if (personality_result == unwind_reason_continue_unwind)
-        return false;
-
-    FILC_CHECK(
-        personality_result == unwind_reason_install_context,
-        NULL,
-        "personality function returned neither continue_unwind nor install_context.");
+    if (my_thread->is_force_unwinding) {
+        if (current_frame != found_frame)
+            return false;
+        my_thread->found_frame_for_unwind = NULL;
+    } else {
+        if (!function_origin->personality_getter)
+            return false;
+        
+        unwind_action action = unwind_action_cleanup_phase;
+        if (current_frame == found_frame)
+            action = (unwind_action)(unwind_action_cleanup_phase | unwind_action_handler_frame);
+        
+        unwind_reason_code personality_result = call_personality(
+            my_thread, current_frame, action, exception_object_ptr, context_ptr);
+        if (personality_result == unwind_reason_continue_unwind)
+            return false;
+        
+        FILC_CHECK(
+            personality_result == unwind_reason_install_context,
+            NULL,
+            "personality function returned neither continue_unwind nor install_context.");
+    }
 
     check_unwind_context(context_ptr, filc_write_access);
     unwind_context* context = (unwind_context*)filc_ptr_ptr(context_ptr);
     unsigned index;
     for (index = FILC_NUM_UNWIND_REGISTERS; index--;) {
         PAS_ASSERT(filc_ptr_is_totally_null(my_thread->unwind_registers[index]));
-        my_thread->unwind_registers[index] =
-            filc_load_ptr_at(my_thread, context_ptr, context->registers + index);
+        filc_flight_ptr_store(
+            my_thread, my_thread->unwind_registers + index,
+            filc_load_ptr_at(my_thread, context_ptr, context->registers + index));
         if (verbose) {
             pas_log("Unwind register %u: ", index);
             filc_ptr_dump(my_thread->unwind_registers[index], pas_log_stream);
             pas_log("\n");
         }
     }
+
     return true;
 }
 
@@ -4891,15 +5015,15 @@ bool filc_landing_pad(filc_thread* my_thread)
     return result;
 }
 
-void filc_resume_unwind(filc_thread* my_thread, const filc_origin *origin)
+void filc_resume_unwind(filc_thread* my_thread, const filc_origin *passed_origin)
 {
     filc_frame* current_frame = my_thread->top_frame;
 
     /* The compiler always passes non-NULL, but I'm going to keep following the convention that
        runtime functions that taken an origin can take NULL to indicate that the origin has
        already been set. */
-    if (origin)
-        current_frame->origin = origin;
+    if (passed_origin)
+        current_frame->origin = passed_origin;
 
     /* The frame has to have an origin (maybe because we set it). */
     PAS_ASSERT(current_frame->origin);
@@ -4919,6 +5043,32 @@ void filc_resume_unwind(filc_thread* my_thread, const filc_origin *origin)
         filc_origin_get_function_origin(current_frame->parent->origin)->can_catch,
         NULL,
         "cannot resume unwinding, parent frame doesn't support catching.");
+
+    PAS_ASSERT(current_frame != my_thread->found_frame_for_unwind);
+
+    if (!my_thread->is_force_unwinding) {
+        PAS_ASSERT(my_thread->found_frame_for_unwind);
+        return;
+    }
+
+    if (my_thread->found_frame_for_unwind)
+        return;
+
+    /* We had consumed the found frame in the landing pad, and now it's time to continue the
+       forced unwind. */
+    FILC_DEFINE_FRAME("resume_unwind");
+    filc_push_frame(my_thread, frame);
+    PAS_ASSERT(current_frame == frame->parent);
+
+    filc_native_frame native_frame;
+    filc_push_native_frame(my_thread, &native_frame);
+
+    filc_ptr context_ptr = filc_flight_ptr_load(my_thread, &my_thread->unwind_context_ptr);
+    filc_ptr exception_object_ptr = filc_flight_ptr_load(my_thread, &my_thread->exception_object_ptr);
+    forced_unwind(my_thread, context_ptr, exception_object_ptr, current_frame);
+
+    filc_pop_native_frame(my_thread, &native_frame);
+    filc_pop_frame(my_thread, frame);
 }
 
 static bool setjmp_saves_sigmask = false;
@@ -8392,7 +8542,7 @@ static void* start_thread(void* arg)
     thread->tlc_node = verse_heap_get_thread_local_cache_node();
     thread->tlc_node_version = pas_thread_local_cache_node_version(thread->tlc_node);
 
-    FILC_DEFINE_FRAME("start_thread");
+    FILC_DEFINE_CATCHING_FRAME("start_thread");
     filc_push_frame(thread, frame);
 
     filc_native_frame native_frame;
@@ -8404,9 +8554,11 @@ static void* start_thread(void* arg)
     if (verbose)
         pas_log("thread %u calling main function\n", tid);
 
-    filc_ptr result = filc_call_user_ptr_ptr(thread, thread->thread_main, arg_ptr);
+    filc_exception_and_ptr result = filc_call_user_thread_main(thread, thread->thread_main, arg_ptr);
+    if (result.has_exception)
+        filc_user_panic(NULL, "unexpected exception thrown from thread main.");
 
-    filc_native_zthread_exit(thread, result);
+    filc_native_zthread_exit(thread, result.value);
 
     PAS_ASSERT(!"Should not get here");
     return NULL;
