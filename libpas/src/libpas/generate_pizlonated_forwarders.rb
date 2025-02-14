@@ -166,8 +166,6 @@ addSig "void", "zstack_scan", "filc_ptr", "filc_ptr"
 addSig "exception/int", "_Unwind_RaiseException", "filc_ptr"
 addSig "exception/int", "_Unwind_ForcedUnwind", "filc_ptr", "filc_ptr", "filc_ptr"
 addSig "void", "zlongjmp", "filc_ptr", "int"
-addSig "void", "z_longjmp", "filc_ptr", "int"
-addSig "void", "zsiglongjmp", "filc_ptr", "int"
 addSig "void", "zmake_setjmp_save_sigmask", "bool"
 addSig "void", "zcpuid", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr", "filc_ptr"
 addSig "void", "zcpuid_count", "unsigned", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr",

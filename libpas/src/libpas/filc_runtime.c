@@ -5131,15 +5131,10 @@ void filc_jmp_buf_mark_outgoing_ptrs(filc_jmp_buf* jmp_buf, filc_object_array* s
         fugc_mark(stack, filc_object_for_lower(jmp_buf->lowers[index]));
 }
 
-static void longjmp_impl(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value,
-                         filc_jmp_buf_kind kind)
+void filc_native_zlongjmp(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value)
 {
     static const bool verbose = false;
 
-    PAS_ASSERT(kind == filc_jmp_buf_setjmp ||
-               kind == filc_jmp_buf__setjmp ||
-               kind == filc_jmp_buf_sigsetjmp);
-    
     filc_check_access_special(jmp_buf_ptr, FILC_SPECIAL_TYPE_JMP_BUF);
     filc_jmp_buf* jmp_buf = (filc_jmp_buf*)filc_ptr_ptr(jmp_buf_ptr);
 
@@ -5148,12 +5143,10 @@ static void longjmp_impl(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
     
-    FILC_CHECK(
-        jmp_buf->kind == kind,
-        NULL,
-        "cannot mix %s with %s.",
-        filc_jmp_buf_kind_get_longjmp_string(kind), filc_jmp_buf_kind_get_string(jmp_buf->kind));
-
+    PAS_ASSERT(jmp_buf->kind == filc_jmp_buf_setjmp ||
+               jmp_buf->kind == filc_jmp_buf__setjmp ||
+               jmp_buf->kind == filc_jmp_buf_sigsetjmp);
+    
     filc_frame* current_frame;
     bool found_frame = false;
     for (current_frame = my_thread->top_frame;
@@ -5208,21 +5201,6 @@ static void longjmp_impl(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value
     
     _longjmp(jmp_buf->system_buf, value);
     PAS_ASSERT(!"Should not be reached");
-}
-
-void filc_native_zlongjmp(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value)
-{
-    longjmp_impl(my_thread, jmp_buf_ptr, value, filc_jmp_buf_setjmp);
-}
-
-void filc_native_z_longjmp(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value)
-{
-    longjmp_impl(my_thread, jmp_buf_ptr, value, filc_jmp_buf__setjmp);
-}
-
-void filc_native_zsiglongjmp(filc_thread* my_thread, filc_ptr jmp_buf_ptr, int value)
-{
-    longjmp_impl(my_thread, jmp_buf_ptr, value, filc_jmp_buf_sigsetjmp);
 }
 
 void filc_native_zmake_setjmp_save_sigmask(filc_thread* my_thread, bool save_sigmask)

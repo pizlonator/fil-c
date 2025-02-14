@@ -43,8 +43,6 @@
 struct zjmp_buf;
 typedef struct zjmp_buf zjmp_buf;
 void zlongjmp(zjmp_buf* jmp_buf, int value);
-void z_longjmp(zjmp_buf* jmp_buf, int value);
-void zsiglongjmp(zjmp_buf* jmp_buf, int value);
 
 /* Configure the behavior of setjmp/longjmp with respect to signal masks.
 
