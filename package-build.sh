@@ -80,8 +80,8 @@ do
     fi
 done
 
-rm pizfix/yolo/lib/ld-musl-x86_64.so.1
-(cd pizfix/yolo/lib/ && ln -s libyolomusl.so ld-musl-x86_64.so.1)
+rm pizfix/yolo/lib/ld-yolo-x86_64.so
+(cd pizfix/yolo/lib/ && ln -s libyoloc.so ld-yolo-x86_64.so)
 
 echo 'set +x' >> setup.sh
 echo 'echo' >> setup.sh
