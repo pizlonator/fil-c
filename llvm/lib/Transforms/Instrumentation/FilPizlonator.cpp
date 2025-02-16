@@ -6193,7 +6193,10 @@ class Pizlonator {
           GlobalValue* ExistingGV = getGlobal(NewName);
           if (ExistingGV) {
             T = ExistingGV->getValueType();
-            assert(ExistingGV->isDeclaration());
+            if (!ExistingGV->isDeclaration()) {
+              errs() << "New alias name " << NewName << " is already taken by a definition.\n";
+              MAT.error();
+            }
             assert(!Dummy->getNumUses());
             if (!GV) {
               if (isa<Function>(ExistingGV)) {
