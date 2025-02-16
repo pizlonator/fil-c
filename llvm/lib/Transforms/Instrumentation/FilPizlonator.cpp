@@ -364,6 +364,7 @@ struct MAToken {
 };
 
 class MATokenizer {
+  Module& M;
   std::string MA;
   size_t Idx { 0 };
 
@@ -387,12 +388,13 @@ class MATokenizer {
   }
   
 public:
-  MATokenizer(const std::string& MA): MA(MA) {}
+  MATokenizer(Module& M, const std::string& MA): M(M), MA(MA) {}
 
   bool isAtEnd() const { return Idx >= MA.size(); }
 
   void error() {
-    errs() << "Error parsing module asm: " << MA;
+    errs() << "Error parsing module asm:\n" << MA << "\n";
+    errs() << "The whole module:\n" << M << "\n";
     llvm_unreachable("Error parsing module asm");
   }
 
@@ -6138,7 +6140,7 @@ class Pizlonator {
   }
 
   void compileModuleAsm() {
-    MATokenizer MAT(M.getModuleInlineAsm());
+    MATokenizer MAT(M, M.getModuleInlineAsm());
 
     std::ostringstream NewModuleAsm;
 
@@ -6194,6 +6196,17 @@ class Pizlonator {
           if (ExistingGV) {
             T = ExistingGV->getValueType();
             if (!ExistingGV->isDeclaration()) {
+              if (GlobalAlias* GA = dyn_cast<GlobalAlias>(ExistingGV)) {
+                // FIXME: Also handle coalescing with existing global aliases even if there's an
+                // offset (and the offset matches).
+                GlobalValue* TargetGV = dyn_cast<GlobalValue>(GA->getAliasee());
+                if (!Offset &&
+                    (Tok.Str == ".filc_weak_alias") == (GA->hasWeakAnyLinkage() ||
+                                                        GA->hasExternalWeakLinkage()) &&
+                    TargetGV &&
+                    TargetGV->getName() == OldName)
+                  continue;
+              }
               errs() << "New alias name " << NewName << " is already taken by a definition.\n";
               MAT.error();
             }
