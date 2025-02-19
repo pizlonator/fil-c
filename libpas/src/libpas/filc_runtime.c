@@ -8551,6 +8551,10 @@ static void* start_thread(void* arg)
 
 filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_ptr, filc_ptr arg_ptr)
 {
+    FILC_CHECK(
+        did_run_deferred_global_ctors,
+        NULL,
+        "cannot create threads before global constructors have started being run.");
     filc_check_function_call(callback_ptr);
     filc_thread* thread = filc_thread_create_with_manual_tracking();
     filc_thread_track_object(my_thread, filc_object_for_special_payload(thread));

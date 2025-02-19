@@ -347,8 +347,11 @@ char* zasprintf(const char* format, ...);
 /* This is mostly just like printf, but does only per-call buffering. In particular, this relies on
    zvasprintf under the hood and then prints the entire string in one write(2) call (unless write
    demands that we call it again).
+   
+   One reason I like to call this function is that it's guaranteed not to buffer, unlike printf().
+   You'll see me use it all over the place in Fil-C tests, almost always for that reason.
 
-   Note that the main reason why you might want to use this for debugging over printf is that it
+   Another reason why you might want to use this for debugging over printf is that it
    supports:
 
        - '%P', which prints the full filc_ptr (i.e. 0xptr,0xlower,0xupper,...type...).
