@@ -1,0 +1,16 @@
+# This test shouldn't crash. But currently it segfaults due to basically a null dereference, because
+# musl's loader isn't aborting due to an error for some reason.
+#
+# FIXME: Fix musl's loader so this is dontCrash rather than crash. Or best possible outcome if the
+# expectation can be failure (i.e. the failure in the linker is funneled to the Fil-C runtime to
+# produce a panic).
+
+return:
+  crash
+libraries:
+  module.so:
+    isBundle: true
+    files:
+      - module.c
+output-excludes:
+  - "foo()"
