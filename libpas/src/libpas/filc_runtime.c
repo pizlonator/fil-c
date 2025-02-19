@@ -4287,13 +4287,18 @@ filc_ptr filc_get_user_auxv(void)
 }
 
 static bool did_run_deferred_global_ctors = false;
-static pizlonated_function* deferred_global_ctors = NULL; 
-static size_t num_deferred_global_ctors = 0;
-static size_t deferred_global_ctors_capacity = 0;
+static filc_ptr_array deferred_global_ctors = FILC_PTR_ARRAY_INITIALIZER;
 
 static void run_global_ctor(filc_thread* my_thread, pizlonated_function global_ctor)
 {
     if (!run_global_ctors) {
+        /* NOTE: This is an internal flag that is only useful for debugging, and it's quite dangerous
+           in the sense that it's likely to put whatever program you're running into a weird (but
+           still memory-safe) state. 
+        
+           The only way to get here is putting FILC_RUN_GLOBAL_CTORS=0 into the environment.
+        
+           And, I might deprecate this option at any time. */
         pas_log("filc: skipping global ctor.\n");
         return;
     }
@@ -4318,26 +4323,7 @@ void filc_defer_or_run_global_ctor(pizlonated_function global_ctor)
         return;
     }
 
-    if (num_deferred_global_ctors >= deferred_global_ctors_capacity) {
-        pizlonated_function* new_deferred_global_ctors;
-        size_t new_deferred_global_ctors_capacity;
-
-        PAS_ASSERT(num_deferred_global_ctors == deferred_global_ctors_capacity);
-
-        new_deferred_global_ctors_capacity = (deferred_global_ctors_capacity + 1) * 2;
-        new_deferred_global_ctors = (pizlonated_function*)bmalloc_allocate(
-            new_deferred_global_ctors_capacity * sizeof(pizlonated_function));
-
-        memcpy(new_deferred_global_ctors, deferred_global_ctors,
-               num_deferred_global_ctors * sizeof(pizlonated_function));
-
-        bmalloc_deallocate(deferred_global_ctors);
-
-        deferred_global_ctors = new_deferred_global_ctors;
-        deferred_global_ctors_capacity = new_deferred_global_ctors_capacity;
-    }
-
-    deferred_global_ctors[num_deferred_global_ctors++] = global_ctor;
+    filc_ptr_array_add(&deferred_global_ctors, global_ctor);
 }
 
 void filc_run_deferred_global_ctors(filc_thread* my_thread)
@@ -4349,16 +4335,16 @@ void filc_run_deferred_global_ctors(filc_thread* my_thread)
     did_run_deferred_global_ctors = true;
     /* It's important to run the destructors in exactly the order in which they were deferred, since
        this allows us to match the priority semantics despite not having the priority. */
-    for (size_t index = 0; index < num_deferred_global_ctors; ++index)
-        run_global_ctor(my_thread, deferred_global_ctors[index]);
-    bmalloc_deallocate(deferred_global_ctors);
-    num_deferred_global_ctors = 0;
-    deferred_global_ctors_capacity = 0;
+    for (size_t index = 0; index < deferred_global_ctors.size; ++index)
+        run_global_ctor(my_thread, (pizlonated_function)deferred_global_ctors.array[index]);
+    filc_ptr_array_destruct(&deferred_global_ctors);
 }
 
 void filc_run_global_dtor(pizlonated_function global_dtor)
 {
     if (!run_global_dtors) {
+        /* NOTE: This is an internal flag only used for debugging, and I might deprecate it at any
+           time. */
         pas_log("filc: skipping global dtor.\n");
         return;
     }

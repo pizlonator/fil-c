@@ -928,7 +928,11 @@ typedef enum filc_size_mode filc_size_mode;
    os_unfair_lock, which we use for most of libpas, is not fork-friendly. That's because
    os_unfair_lock has an assertion on unlock that the current thread holds the lock, and
    os_unfair_locks held across fork into the child are not seen as being held by the calling
-   (child process) thread. */
+   (child process) thread.
+
+   FIXME: Maybe remove the use of system mutexes for the purpose of fork friendliness since we're not
+   on Darwin anymore and it's probably not worth it to maintain these Darwin hacks. On Linux, pas_lock
+   is fork-friendly. */
 #define FILC_DECLARE_LOCK(name) \
     PAS_API extern pas_system_mutex filc_ ## name ## _lock; \
     PAS_API void filc_ ## name ## _lock_lock(void); \
@@ -1102,11 +1106,15 @@ static inline void filc_pop_frame(filc_thread* my_thread, filc_frame* frame)
     my_thread->top_frame = frame->parent;
 }
 
+#define FILC_PTR_ARRAY_INITIALIZER ((filc_ptr_array){ \
+        .array = NULL, \
+        .size = 0, \
+        .capacity = 0 \
+    })
+
 static inline void filc_ptr_array_construct(filc_ptr_array* array)
 {
-    array->array = NULL;
-    array->size = 0;
-    array->capacity = 0;
+    *array = FILC_PTR_ARRAY_INITIALIZER;
 }
 
 static inline void filc_ptr_array_destruct(filc_ptr_array* array)
@@ -3137,6 +3145,33 @@ static inline const char* filc_jmp_buf_kind_get_longjmp_string(filc_jmp_buf_kind
 filc_jmp_buf* filc_jmp_buf_create(filc_thread* my_thread, filc_jmp_buf_kind kind, int value);
 void filc_jmp_buf_mark_outgoing_ptrs(filc_jmp_buf* jmp_buf, filc_object_array* stack);
 
+/* This is for cases where you want to grab a lock while entered and hold it across an exit.
+   
+   If a lock is only ever held entered, and we never exit while holding it, then there's no need to
+   call this. In that case, handshakes will only see the lock not being held, so there's no problem.
+   
+   If a lock is only ever held exited, and we never enter while holding it, then there's no need to
+   call this. In that case, the lock is being acquired and released while the thread doesn't directly
+   participate in handshakes (the handshake logic happens asynchronously on its behalf).
+   
+   But if you grab a lock entered, and then possibly exit while holding it, then you need to call
+   this. This is because otherwise, if you acquire the lock directly (not via this function), you'd
+   have a deadlock like this:
+   
+   Thread A: acquires the lock while entered, then exits. It'll release the lock when it reenters.
+   
+   Thread B: tries to acquire the lock while entered.
+   
+   Thread C: asks to stop the world.
+   
+   At that point, C will stop A while A is exited, preventing it from reentering and releasing the
+   lock. C will try to stop B, but B is blocked trying to acquire the lock, which prevents it from
+   getting to an exit.
+
+   Note that exits might happen in any pollcheck or when running any user code.
+
+   Calling this function in B prevents the above race because this function exits around the lock
+   acquisition if the lock acquisition would block. So, C will get to stop B inside this function. */
 PAS_API void filc_system_mutex_lock(filc_thread* my_thread, pas_system_mutex* lock);
 
 PAS_API void filc_set_user_errno(int libc_errno_value);
