@@ -4387,6 +4387,7 @@ void filc_call_ifunc_from_yolo_ifunc(pizlonated_getter ifunc_getter)
 
 void filc_run_deferred_ifuncs(filc_thread* my_thread)
 {
+    PAS_ASSERT(!did_run_deferred_ifuncs);
     did_run_deferred_ifuncs = true;
     PAS_ASSERT(filc_thread_is_entered(my_thread));
     size_t index;
