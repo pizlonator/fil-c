@@ -7643,15 +7643,10 @@ long filc_native_zsys_fpathconf(filc_thread* my_thread, int fd, int name)
 
 int filc_native_zsys_setrlimit(filc_thread* my_thread, int resource, filc_ptr rlp_ptr)
 {
+    /* Clients expect that this is the 64-bit setrlimit. */
+    PAS_ASSERT(sizeof(rlim_t) == 8);
     filc_check_read(rlp_ptr, sizeof(struct rlimit));
-    filc_exit(my_thread);
-    int result = setrlimit(resource, (struct rlimit*)filc_ptr_ptr(rlp_ptr));
-    int my_errno = errno;
-    filc_enter(my_thread);
-    PAS_ASSERT(!result || result == -1);
-    if (result < 0)
-        filc_set_errno(my_errno);
-    return result;
+    return FILC_SYSCALL(my_thread, setrlimit(resource, (struct rlimit*)filc_ptr_ptr(rlp_ptr)));
 }
 
 /* It's totally a goal to implement SysV IPC, including the shared memory parts. I just don't have to,
