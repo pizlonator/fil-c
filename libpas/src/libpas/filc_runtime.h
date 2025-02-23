@@ -3160,9 +3160,6 @@ void filc_global_initialization_end(filc_thread* my_thread);
 filc_ptr filc_call_ifunc(filc_thread* my_thread, const filc_origin* passed_origin,
                          filc_ptr* pizlonated_gptr, pizlonated_function ifunc);
 
-void filc_call_ifunc_from_yolo_ifunc(pizlonated_getter ifunc_getter);
-void filc_run_deferred_ifuncs(filc_thread* my_thread);
-
 void filc_execute_constant_relocations(
     filc_thread* my_thread, filc_object* constant, filc_constant_relocation* relocations,
     size_t num_relocations);

@@ -121,7 +121,6 @@ static void really_start_program(
     PAS_ASSERT(!auxv[num_entries - 1]);
 
     filc_set_user_environment(my_thread, argc, pizlonated_argv, environ_ptr, auxv_ptr);
-    filc_run_deferred_ifuncs(my_thread);
     
     if (pizlonated___libc_start_main) {
         __libc_start_main_ptr = pizlonated___libc_start_main(my_thread, NULL);

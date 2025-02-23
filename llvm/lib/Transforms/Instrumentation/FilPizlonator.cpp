@@ -1082,7 +1082,6 @@ class Pizlonator {
   FunctionCallee GlobalInitializationStart;
   FunctionCallee GlobalInitializationEnd;
   FunctionCallee CallIfunc;
-  FunctionCallee CallIfuncFromYoloIfunc;
   FunctionCallee ExecuteConstantRelocations;
   FunctionCallee DeferOrRunGlobalCtor;
   FunctionCallee RunGlobalDtor;
@@ -6912,8 +6911,6 @@ public:
       "filc_global_initialization_end", VoidTy, RawPtrTy);
     CallIfunc = M.getOrInsertFunction(
       "filc_call_ifunc", FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
-    CallIfuncFromYoloIfunc = M.getOrInsertFunction(
-      "filc_call_ifunc_from_yolo_ifunc", VoidTy, RawPtrTy);
     ExecuteConstantRelocations = M.getOrInsertFunction(
       "filc_execute_constant_relocations", VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy);
     DeferOrRunGlobalCtor = M.getOrInsertFunction(
@@ -7685,24 +7682,6 @@ public:
         CallInst::Create(CallIfunc, { NewF->getArg(0), NewF->getArg(1), NewPtrG, LowResolveF },
                          "filc_call_ifunc_slow", SlowBB),
         SlowBB);
-
-      assert(G->getLinkage() == GlobalValue::ExternalLinkage);
-
-      Function* DummyTarget = Function::Create(
-        FunctionType::get(VoidTy, false), GlobalValue::PrivateLinkage, 0,
-        "filc_dummy_target_" + G->getName(), &M);
-      RootBB = BasicBlock::Create(C, "filc_dummy_target_root", DummyTarget);
-      ReturnInst::Create(C, RootBB);
-      
-      Function* YoloResolver = Function::Create(
-        FunctionType::get(RawPtrTy, false), GlobalValue::PrivateLinkage, 0,
-        "filc_yolo_resolver_" + G->getName(), &M);
-      RootBB = BasicBlock::Create(C, "filc_yolo_resolver_root", YoloResolver);
-      CallInst::Create(CallIfuncFromYoloIfunc, { NewF }, "", RootBB);
-      ReturnInst::Create(C, DummyTarget, RootBB);
-      
-      GlobalIFunc::create(FunctionType::get(VoidTy, false), 0, GlobalValue::ExternalLinkage,
-                          "pizlonatedIF_" + G->getName(), YoloResolver, &M);
     }
 
     Dummy->deleteValue();

@@ -4306,9 +4306,6 @@ filc_ptr filc_call_ifunc(filc_thread* my_thread, const filc_origin* passed_origi
         if (verbose)
             pas_log("was already initialized\n");
         unlock_global_initialization(my_thread);
-        /* We might not be getting a load-load dependency to fence accesses to the global, so do a
-           fence. */
-        pas_fence();
         return gptr_value;
     }
 
@@ -4369,31 +4366,7 @@ filc_ptr filc_call_ifunc(filc_thread* my_thread, const filc_origin* passed_origi
     pop_initialization_stack();
 
     filc_global_initialization_end(my_thread);
-
     return result;
-}
-
-static filc_ptr_array deferred_ifuncs = FILC_PTR_ARRAY_INITIALIZER;
-static bool did_run_deferred_ifuncs = false;
-
-void filc_call_ifunc_from_yolo_ifunc(pizlonated_getter ifunc_getter)
-{
-    /* We only expect ifuncs to be called yolo-style if we haven't been initialized yet. */
-    PAS_ASSERT(!did_run_deferred_ifuncs);
-    PAS_ASSERT(!is_initialized);
-
-    filc_ptr_array_add(&deferred_ifuncs, ifunc_getter);
-}
-
-void filc_run_deferred_ifuncs(filc_thread* my_thread)
-{
-    PAS_ASSERT(!did_run_deferred_ifuncs);
-    did_run_deferred_ifuncs = true;
-    PAS_ASSERT(filc_thread_is_entered(my_thread));
-    size_t index;
-    for (index = 0; index < deferred_ifuncs.size; ++index)
-        ((pizlonated_getter)deferred_ifuncs.array[index])(my_thread, NULL);
-    filc_ptr_array_destruct(&deferred_ifuncs);
 }
 
 static filc_ptr get_constant_value(filc_thread* my_thread, filc_constant_kind kind, void* target)
@@ -8758,10 +8731,6 @@ filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_pt
         did_run_deferred_global_ctors,
         NULL,
         "cannot create threads before global constructors have started being run.");
-    FILC_CHECK(
-        did_run_deferred_ifuncs,
-        NULL,
-        "cannot create threads before deferred ifuncs have started being run.");
     filc_check_function_call(callback_ptr);
     filc_thread* thread = filc_thread_create_with_manual_tracking();
     filc_thread_track_object(my_thread, filc_object_for_special_payload(thread));
