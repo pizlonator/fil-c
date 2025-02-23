@@ -268,6 +268,22 @@ int zsys_dup3(int oldfd, int newfd, int flags);
 int zsys_pipe2(int fds[2], int flags);
 long zsys_readlinkat(int dirfd, const char* pathname, char* buf, __SIZE_TYPE__ bufsize);
 int zsys_symlinkat(const char* target, int newdirfd, const char* linkpath);
+long zsys_getxattr(const char* path, const char* name, void* value, __SIZE_TYPE__ size);
+long zsys_lgetxattr(const char* path, const char* name, void* value, __SIZE_TYPE__ size);
+long zsys_fgetxattr(int fd, const char* name, void* value, __SIZE_TYPE__ size);
+int zsys_removexattr(const char* path, const char* name);
+int zsys_lremovexattr(const char* path, const char* name);
+int zsys_fremovexattr(int fd, const char* name);
+int zsys_setxattr(const char* path, const char* name, const void* value, __SIZE_TYPE__ size,
+                  int flags);
+int zsys_lsetxattr(const char* path, const char* name, const void* value, __SIZE_TYPE__ size,
+                   int flags);
+int zsys_fsetxattr(int fd, const char* name, const void* value, __SIZE_TYPE__ size, int flags);
+int zsys_getdomainname(char* name, __SIZE_TYPE__ len);
+int zsys_setdomainname(const char* name, __SIZE_TYPE__ len);
+int zsys_gethostname(char* name, __SIZE_TYPE__ len);
+int zsys_sethostname(const char* name, __SIZE_TYPE__ len);
+int zsys_remap_file_pages(void* addr, __SIZE_TYPE__ size, int prot, __SIZE_TYPE__ pgoff, int flags);
 
 #ifdef __cplusplus
 }

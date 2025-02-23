@@ -8595,6 +8595,116 @@ int filc_native_zsys_symlinkat(filc_thread* my_thread, filc_ptr target_ptr, int 
     return FILC_SYSCALL(my_thread, symlinkat(target, newdirfd, linkpath));
 }
 
+ssize_t filc_native_zsys_getxattr(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr name_ptr,
+                                  filc_ptr value_ptr, size_t size)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    filc_check_write(value_ptr, size);
+    return FILC_SYSCALL(my_thread, getxattr(path, name, filc_ptr_ptr(value_ptr), size));
+}
+
+ssize_t filc_native_zsys_lgetxattr(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr name_ptr,
+                                   filc_ptr value_ptr, size_t size)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    filc_check_write(value_ptr, size);
+    return FILC_SYSCALL(my_thread, lgetxattr(path, name, filc_ptr_ptr(value_ptr), size));
+}
+
+ssize_t filc_native_zsys_fgetxattr(filc_thread* my_thread, int fd, filc_ptr name_ptr,
+                                   filc_ptr value_ptr, size_t size)
+{
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    filc_check_write(value_ptr, size);
+    return FILC_SYSCALL(my_thread, fgetxattr(fd, name, filc_ptr_ptr(value_ptr), size));
+}
+
+int filc_native_zsys_removexattr(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr name_ptr)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    return FILC_SYSCALL(my_thread, removexattr(path, name));
+}
+
+int filc_native_zsys_lremovexattr(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr name_ptr)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    return FILC_SYSCALL(my_thread, lremovexattr(path, name));
+}
+
+int filc_native_zsys_fremovexattr(filc_thread* my_thread, int fd, filc_ptr name_ptr)
+{
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    return FILC_SYSCALL(my_thread, fremovexattr(fd, name));
+}
+
+int filc_native_zsys_setxattr(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr name_ptr,
+                              filc_ptr value_ptr, size_t size, int flags)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    filc_check_read(value_ptr, size);
+    return FILC_SYSCALL(my_thread, setxattr(path, name, filc_ptr_ptr(value_ptr), size, flags));
+}
+
+int filc_native_zsys_lsetxattr(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr name_ptr,
+                               filc_ptr value_ptr, size_t size, int flags)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    filc_check_read(value_ptr, size);
+    return FILC_SYSCALL(my_thread, lsetxattr(path, name, filc_ptr_ptr(value_ptr), size, flags));
+}
+
+int filc_native_zsys_fsetxattr(filc_thread* my_thread, int fd, filc_ptr name_ptr, filc_ptr value_ptr,
+                               size_t size, int flags)
+{
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    filc_check_read(value_ptr, size);
+    return FILC_SYSCALL(my_thread, fsetxattr(fd, name, filc_ptr_ptr(value_ptr), size, flags));
+}
+
+int filc_native_zsys_getdomainname(filc_thread* my_thread, filc_ptr name_ptr, size_t len)
+{
+    filc_check_write(name_ptr, len);
+    return FILC_SYSCALL(my_thread, getdomainname((char*)filc_ptr_ptr(name_ptr), len));
+}
+
+int filc_native_zsys_setdomainname(filc_thread* my_thread, filc_ptr name_ptr, size_t len)
+{
+    filc_check_read(name_ptr, len);
+    return FILC_SYSCALL(my_thread, setdomainname((const char*)filc_ptr_ptr(name_ptr), len));
+}
+
+int filc_native_zsys_gethostname(filc_thread* my_thread, filc_ptr name_ptr, size_t len)
+{
+    filc_check_write(name_ptr, len);
+    return FILC_SYSCALL(my_thread, gethostname((char*)filc_ptr_ptr(name_ptr), len));
+}
+
+int filc_native_zsys_sethostname(filc_thread* my_thread, filc_ptr name_ptr, size_t len)
+{
+    filc_check_read(name_ptr, len);
+    return FILC_SYSCALL(my_thread, sethostname((const char*)filc_ptr_ptr(name_ptr), len));
+}
+
+int filc_native_zsys_remap_file_pages(filc_thread* my_thread, filc_ptr addr_ptr, size_t size,
+                                      int user_prot, size_t pgoff, int flags)
+{
+    int prot;
+    if (!from_user_prot(user_prot, &prot)) {
+        filc_set_errno(EINVAL);
+        return -1;
+    }
+    filc_check_write(addr_ptr, size);
+    check_mmap(addr_ptr);
+    return FILC_SYSCALL(my_thread, remap_file_pages(filc_ptr_ptr(addr_ptr), size, user_prot, pgoff,
+                                                    flags));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
