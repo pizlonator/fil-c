@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -260,6 +260,14 @@ int zsys_signalfd(int fd, const void* mask, int flags);
 int zsys_clock_nanosleep(int clockid, int flags, const void* request, void* remain);
 int zsys_posix_fallocate(int fd, long offset, long len);
 int zsys_sigaltstack(const void* ss, void* old_ss);
+unsigned zsys_alarm(unsigned seconds);
+int zsys_close_range_impl(unsigned first, unsigned last, int flags);
+int zsys_dup3_impl(int oldfd, int newfd, int flags);
+int zsys_close_range(unsigned first, unsigned last, int flags);
+int zsys_dup3(int oldfd, int newfd, int flags);
+int zsys_pipe2(int fds[2], int flags);
+long zsys_readlinkat(int dirfd, const char* pathname, char* buf, __SIZE_TYPE__ bufsize);
+int zsys_symlinkat(const char* target, int newdirfd, const char* linkpath);
 
 #ifdef __cplusplus
 }

@@ -8549,6 +8549,57 @@ int filc_native_zsys_sigaltstack(filc_thread* my_thread, filc_ptr ss_ptr, filc_p
     return -1;
 }
 
+unsigned filc_native_zsys_alarm(filc_thread* my_thread, unsigned seconds)
+{
+    filc_exit(my_thread);
+    unsigned result = alarm(seconds);
+    filc_enter(my_thread);
+    return result;
+}
+
+int filc_native_zsys_close_range_impl(filc_thread* my_thread, unsigned first, unsigned last,
+                                      int flags)
+{
+#if PAS_GLIBC
+    return FILC_SYSCALL(my_thread, close_range(first, last, flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(first);
+    PAS_UNUSED_PARAM(last);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "close_range not supported.");
+    return -1;
+#endif
+}
+
+int filc_native_zsys_dup3_impl(filc_thread* my_thread, int oldfd, int newfd, int flags)
+{
+    return FILC_SYSCALL(my_thread, dup3(oldfd, newfd, flags));
+}
+
+int filc_native_zsys_pipe2(filc_thread* my_thread, filc_ptr fds_ptr, int flags)
+{
+    filc_check_write(fds_ptr, sizeof(int) * 2);
+    return FILC_SYSCALL(my_thread, pipe2((int*)filc_ptr_ptr(fds_ptr), flags));
+}
+
+ssize_t filc_native_zsys_readlinkat(filc_thread* my_thread, int dirfd, filc_ptr pathname_ptr,
+                                    filc_ptr buf_ptr, size_t bufsize)
+{
+    char* pathname = filc_check_and_get_tmp_str(my_thread, pathname_ptr);
+    filc_check_write(buf_ptr, bufsize);
+    return FILC_SYSCALL(my_thread, readlinkat(dirfd, pathname, (char*)filc_ptr_ptr(buf_ptr),
+                                              bufsize));
+}
+
+int filc_native_zsys_symlinkat(filc_thread* my_thread, filc_ptr target_ptr, int newdirfd,
+                               filc_ptr linkpath_ptr)
+{
+    char* target = filc_check_and_get_tmp_str(my_thread, target_ptr);
+    char* linkpath = filc_check_and_get_tmp_str(my_thread, linkpath_ptr);
+    return FILC_SYSCALL(my_thread, symlinkat(target, newdirfd, linkpath));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;

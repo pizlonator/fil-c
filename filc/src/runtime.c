@@ -385,6 +385,43 @@ int zsys_epoll_pwait(int epfd, void* events, int maxevents, int timeout, const v
     return result;
 }
 
+int zsys_close_range(unsigned first, unsigned last, int flags)
+{
+    if (flags) {
+        /* The flags can be CLOSE_RANGE_CLOEXEC or CLOSE_RANGE_UNSHARE.
+           
+           In the case of CLOSE_RANGE_CLOEXEC, we're not actually closing anything, so we don't have
+           to deal with our fd table.
+           
+           In the case of CLOSE_RANGE_UNSHARE, we're unsharing the file descriptors from other
+           threads, so we cannot remove them from the table. */
+        return zsys_close_range_impl(first, last, flags);
+    }
+
+    /* FIXME: This could be made so much more efficient! We only have to lock the parts of the table
+       that we're going to access. */
+    lock_table();
+    int result = zsys_close_range_impl(first, last, flags);
+    if (!result) {
+        __SIZE_TYPE__ index;
+        for (index = first; index <= last && index < zlength(fd_table); index++) {
+            struct fd_holder* holder = fd_table + index;
+            holder->backer = 0;
+        }
+    }
+    unlock_table();
+    return result;
+}
+
+int zsys_dup3(int oldfd, int newfd, int flags)
+{
+    struct fd_backer* backer = get_fd_backer(oldfd);
+    int result = zsys_dup3_impl(oldfd, newfd, flags);
+    if (result >= 0)
+        set_fd_backer(result, backer);
+    return result;
+}
+
 void* zthread_self_cookie(void)
 {
     return zthread_get_cookie(zthread_self());
