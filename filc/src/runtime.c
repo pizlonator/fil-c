@@ -422,6 +422,92 @@ int zsys_dup3(int oldfd, int newfd, int flags)
     return result;
 }
 
+struct futex_args {
+	volatile void* uaddr;
+	long futex_op;
+	unsigned long val;
+	const void* timeout;
+	volatile void* uaddr2;
+	unsigned long val3;
+};
+
+#define FUTEX_WAIT    0
+#define FUTEX_WAKE    1
+#define FUTEX_PRIVATE 128
+
+long zsys_syscall(long n, ...)
+{
+    /* The goal is to have this code support all syscalls, but it doesn't do that, yet. So,
+       it traps on syscalls it doesn't know about.
+	
+       That might be OK since the primary use case of syscall(2) is to make syscalls that libc
+       doesn't expose as a function. So, it's unlikely we'll ever see a legitimate call to this
+       function asking for something like SYS_write, for example.
+	
+       But if we find such a case, then we'll have to support it because the C programmer is
+       always right! */
+	
+    void* syscall_args = (char*)zargs() + 8;
+    void* callee;
+    switch (n) {
+    case 202: /* SYS_futex */ {
+        struct futex_args* args = (struct futex_args*)syscall_args;
+        switch (args->futex_op) {
+        case FUTEX_WAIT:
+        case FUTEX_WAIT | FUTEX_PRIVATE:
+            ZASSERT(!args->timeout);
+            zsys_futex_wait(args->uaddr, args->val, args->futex_op & FUTEX_PRIVATE);
+            return 0;
+        case FUTEX_WAKE:
+        case FUTEX_WAKE | FUTEX_PRIVATE:
+            zsys_futex_wake(args->uaddr, args->val, args->futex_op & FUTEX_PRIVATE);
+            return 0;
+        default:
+            zerrorf("unsupported futex op: %d (this is a bug in usermusl's syscall "
+                    "implementation).", args->futex_op);
+            return -1;
+        }
+    }
+
+    case 217 /* SYS_getdents64 */:
+        callee = zsys_getdents;
+        break;
+
+    case 444 /* SYS_landlock_create_ruleset */:
+        callee = zsys_landlock_create_ruleset;
+        break;
+
+    case 445 /* SYS_landlock_add_rule */:
+        callee = zsys_landlock_add_rule;
+        break;
+
+    case 446 /* SYS_landlock_restrict_self */:
+        callee = zsys_landlock_restrict_self;
+        break;
+
+    case 298 /* SYS_perf_event_open */:
+        callee = zsys_perf_event_open;
+        break;
+
+    case 186 /* SYS_gettid */:
+        callee = zthread_self_id;
+        break;
+
+    case 318 /* SYS_getrandom */:
+        callee = zsys_getrandom;
+        break;
+
+	/* FIXME: Implement more syscalls! */
+
+    default:
+        zerrorf("unsupported syscall: %ld (this is a bug in usermusl's syscall "
+                "implementation).", n);
+        return -1;
+    }
+	
+    return *(long*)zcall(callee, syscall_args);
+}
+
 void* zthread_self_cookie(void)
 {
     return zthread_get_cookie(zthread_self());

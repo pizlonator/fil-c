@@ -287,6 +287,7 @@ int zsys_remap_file_pages(void* addr, __SIZE_TYPE__ size, int prot, __SIZE_TYPE_
 int zsys_swapon(const char* path, int flags);
 int zsys_swapoff(const char* path);
 int zsys_syncfs(int fd);
+long zsys_syscall(long n, ...);
 
 #ifdef __cplusplus
 }
