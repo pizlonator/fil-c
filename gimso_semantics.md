@@ -54,7 +54,7 @@ Pointer-type accesses are required to have pointer alignment (so 8 on 64-bit pla
 
 ## Simplified Rules, Ignoring Atomics
 
-If we ignore the need for pointer atomics, pointers at rest are quite simple. Pointers at rest have their intval stored in the primary address space and their capability pointer stored in the secondary address space.
+If we ignore the need for pointer atomics, pointers at rest are quite simple. Pointers at rest have their intval stored in the primary address space and their capability pointer stored in the secondary address space. We do not allow any other user-defined or hardware-defined address spaces (the address space number on all pointers must be 0; note that we could devise a Fil-C semantics for safe pointers to other address spaces, but I haven't done that, because I haven't found a need for it yet).
 
 This permits pointer-integer aliasing as follows. Storing a pointer to a location and then loading it as an integer is like a `ptrtoint` cast. Storing a pointer to a location and then storing an integer to that same location, and then loading a pointer, yields a pointer with the capability of the pointer store and an intval from the integer store. Loading a pointer from a location that never had a pointer stored to it yields a pointer with a null capability.
 
@@ -239,7 +239,7 @@ GIMSO means dropping any UB flags from the gep (so inbounds, nusw, nuw, and inra
 
 The gep is really just pointer arithmetic; the effect of all of the indices passed to the gep is that a DataLayout-dependent integer value is computed, which we will call the `addend`. Then the `addend` is added to the incoming `ptrval`. The pseudocode for GIMSO semantics are:
 
-    result = MakePointer(capability = ptrval.capability
+    result = MakePointer(capability = ptrval.capability,
                          intval = ptrval.intval + addend)
 
 Hence, the `result` retains exactly the same capability as `ptrval`, but the intval is is changed.
@@ -250,7 +250,67 @@ The LLVM `ptrtoint` instruction returns a pointer's integer value. The syntax is
 
     <result> = ptrtoint <ty> <value> to <ty2>
 
-Where `ty` has to be `ptr` and `ty2` has to be some integer type. Note that `ty2` may have more or less bits than the pointer (so the bits are either truncated or extended). Let's define `IntCast<t>(X)` to mean either zero extending or truncating X depending on whether `t` is larger or smaller (respectively) than X. Then the semantics in pseudocode are just:
+Where `ty` has to be `ptr` and `ty2` has to be some integer type (we'll ignore vectors of pointers for now, but without loss of generality). Note that `ty2` may have more or less bits than the pointer (so the bits are either truncated or extended). Let's define `IntCast<t>(X)` to mean either zero extending or truncating X depending on whether `t` is larger or smaller (respectively) than X. Then the semantics in pseudocode are just:
 
     result = IntCast<ty2>(value.intval)
 
+## Inttoptr
+
+The LLVM `inttoptr` instruction creates a pointer from an integer value. This is super unsafe! Fil-C has to do special things for this instruction. The syntax is:
+
+    <result> = inttoptr <ty> <value> to <ty2>
+
+Where `ty` has to be an integer type and `ty2` has to be `ptr`. Then *an approximation of* the semantics in pseudocode are just:
+
+    result = MakePointer(capability = null,
+                         intval = IntCast<intptr>(value))
+
+This means that you get a pointer, but it lacks a capability, and so cannot be accessed. The only valid operations on it are comparisons and casting back to int. But, these aren't the complete semantics. Fil-C goes to great length to make code like this work:
+
+    int* p = ...;
+    p = (int*)(((uintptr_t)p & MASK) + (stuff() ? get_offset() : 0));
+
+Here, a pointer is cast to integer (`ptrtoint`), that integer goes through some math (which includes both control flow and effects), and then the resulting integer gets cast back to a pointer. The Fil-C compiler includes an abstract interpreter (with very simple rules) that checks if the integer being cast to a pointer came from exactly one pointer via `ptrtoint`. I'll describe it here.
+
+The abstract domain is a mapping from SSA instructions that produce integers to inferred capabilities.
+
+An inferred capability is either BOTTOM, Definite(C), or TOP. The Definite(C) case points to an SSA value of `ptr` type and indicates that we've inferred that to be the capability we should use for an integer.
+
+The start state of the interpreter has:
+
+- all `ptrtoint` instructions initialize their inferred capability to Definite(X), where X is their input operand.
+
+- all calls, loads, atomics, comparisons, vaargs, extracts, landing pads, and FP casts that return int have their inferred capapability set to BOTTOM.
+
+- all other integer instructions are handed off to the interpreter. The interpreter only interprets these instructions.
+
+Then the interpreter executes all of the instructions it knows about using the following rule:
+
+- for each input operand that is an instruction:
+
+    - If the current instruction is a `phi` or `select`:
+
+        - if the input's inferred capability is not bottom, and the current instruction's inferred capability is bottom, then create a `phi` or `select` right next to the current instruction that picks the capability. the current instruction's inferred capability is set to Definite(P), where P is the new `phi` or `select` that we created. Note that this means that `phi` and `select` never go to TOP.
+
+        - else, *merge* the input's inferred capability into the current instruction's inferred capability.
+
+The interpreter stops when none of these rules changes any inferred capabilities.
+
+The merge rule (merge X into Y) is:
+
+   1. if X is BOTTOM, do nothing.
+
+   2. if X == Y, do nothing.
+
+   3. if Y is BOTTOM, set Y to X.
+
+   4. if Y is Definite(C), set it to TOP. (Note that this rule rules after the *if X == &, do nothing* rule, hence merging Definite(C) into Definite(C) results in Definite(C).)
+
+   5. if Y is TOP, do nothing.
+
+After running this interpreter, any `inttoptr`'s whose input `value` has an inferred capability Definite(`cap`) get executed with the following pseudocode
+
+    result = MakePointer(capability = cap.capability,
+                         intval = IntCast<intptr>(value))
+
+Note that BOTTOM or TOP inferred capabilities still get the original treatment (i.e. a pointer with a null capability).
