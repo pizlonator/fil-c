@@ -291,6 +291,11 @@ long zsys_syscall(long n, ...);
 int zsys_vhangup(void);
 int zsys_ioperm(unsigned long form, unsigned long num, int turn_on);
 int zsys_iopl(int level);
+int zsys_personality(unsigned long persona);
+int zsys_setfsgid(unsigned fsgid);
+int zsys_setfsuid(unsigned fsuid);
+int zsys_arch_prctl(int code, void* addr);
+int zsys_modify_ldt(int func, void* ptr, unsigned long bytecount);
 
 #ifdef __cplusplus
 }

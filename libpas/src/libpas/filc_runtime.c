@@ -86,6 +86,10 @@
 #include <math.h>
 #include <sys/swap.h>
 #include <sys/io.h>
+#include <sys/personality.h>
+#include <sys/fsuid.h>
+#include <asm/prctl.h>
+#include <sys/prctl.h>
 
 #define DEFINE_LOCK(name) \
     pas_system_mutex filc_## name ## _lock; \
@@ -8738,6 +8742,59 @@ int filc_native_zsys_ioperm(filc_thread* my_thread, unsigned long form, unsigned
 int filc_native_zsys_iopl(filc_thread* my_thread, int level)
 {
     return FILC_SYSCALL(my_thread, iopl(level));
+}
+
+int filc_native_zsys_personality(filc_thread* my_thread, unsigned long persona)
+{
+    return FILC_SYSCALL(my_thread, personality(persona));
+}
+
+int filc_native_zsys_setfsgid(filc_thread* my_thread, unsigned fsgid)
+{
+    return FILC_SYSCALL(my_thread, setfsgid(fsgid));
+}
+
+int filc_native_zsys_setfsuid(filc_thread* my_thread, unsigned fsuid)
+{
+    return FILC_SYSCALL(my_thread, setfsuid(fsuid));
+}
+
+/* We have to declare this ourselves but libc promises to implement it. Also, its signature is usually
+   something like arch_prctl(int, unsigned long), but using void* is more convenient for us. */
+int arch_prctl(int code, void* addr);
+
+int filc_native_zsys_arch_prctl(filc_thread* my_thread, int code, filc_ptr addr_ptr)
+{
+    switch (code) {
+    case ARCH_SET_CPUID:
+        break;
+    case ARCH_GET_CPUID:
+    case ARCH_GET_FS:
+    case ARCH_GET_GS:
+        filc_check_write(addr_ptr, sizeof(unsigned long));
+        break;
+    case ARCH_SET_FS:
+        filc_safety_panic(NULL, "cannot arch_prctl(ARCH_SET_FS).");
+        break;
+    case ARCH_SET_GS:
+        filc_safety_panic(NULL, "cannot arch_prctl(ARCH_SET_GS).");
+        break;
+    default:
+        filc_set_errno(EINVAL);
+        return -1;
+    }
+    return FILC_SYSCALL(my_thread, arch_prctl(code, filc_ptr_ptr(addr_ptr)));
+}
+
+int filc_native_zsys_modify_ldt(filc_thread* my_thread, int func, filc_ptr ptr,
+                                unsigned long bytecount)
+{
+    FILC_CHECK(
+        !func,
+        NULL,
+        "modify_ldt with func != 0 not allowed.");
+    filc_check_write(ptr, bytecount);
+    return FILC_SYSCALL(my_thread, syscall(SYS_modify_ldt, 0, filc_ptr_ptr(ptr), bytecount));
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
