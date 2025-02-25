@@ -92,6 +92,11 @@
 #include <sys/prctl.h>
 #include <sys/inotify.h>
 #include <sys/mount.h>
+#include <sys/klog.h>
+
+#if PAS_GLIBC
+#include <sys/pidfd.h>
+#endif
 
 #define DEFINE_LOCK(name) \
     pas_system_mutex filc_## name ## _lock; \
@@ -8564,6 +8569,16 @@ int filc_native_zsys_close_range_impl(filc_thread* my_thread, unsigned first, un
                                       int flags)
 {
 #if PAS_GLIBC
+    /* NOTE: In those cases where glibc provides a wrapper for a syscall, we call the wrapper rather
+       than using syscall(2). This has some benefits:
+       
+       - It allows for the possibility that glibc's wrapper does something interesting other than just
+         making the syscall.
+       
+       - It gives us compile-time type checking for our arguments to the syscall.
+       
+       On the other hand, it means that we deprive musl builds of these syscalls. So, this is a
+       decision that might get revisited. */
     return FILC_SYSCALL(my_thread, close_range(first, last, flags));
 #else
     PAS_UNUSED_PARAM(my_thread);
@@ -8996,6 +9011,136 @@ int filc_native_zsys_fspick(filc_thread* my_thread, int fd, filc_ptr path_ptr, u
     PAS_UNUSED_PARAM(flags);
     filc_internal_panic(NULL, "fspick not supported.");
 #endif
+}
+
+int filc_native_zsys_init_module(filc_thread* my_thread, filc_ptr module_image_ptr, unsigned long len,
+                                 filc_ptr param_values_ptr)
+{
+    filc_check_read(module_image_ptr, len);
+    char* param_values = filc_check_and_get_tmp_str(my_thread, param_values_ptr);
+    return FILC_SYSCALL(my_thread, syscall(SYS_init_module, filc_ptr_ptr(module_image_ptr), len,
+                                           param_values));
+}
+
+int filc_native_zsys_finit_module(filc_thread* my_thread, int fd, filc_ptr param_values_ptr,
+                                  int flags)
+{
+    char* param_values = filc_check_and_get_tmp_str(my_thread, param_values_ptr);
+    return FILC_SYSCALL(my_thread, syscall(SYS_finit_module, fd, param_values, flags));
+}
+
+int filc_native_zsys_inotify_rm_watch(filc_thread* my_thread, int fd, int wd)
+{
+    return FILC_SYSCALL(my_thread, inotify_rm_watch(fd, wd));
+}
+
+int filc_native_zsys_inotify_init(filc_thread* my_thread)
+{
+    return FILC_SYSCALL(my_thread, inotify_init());
+}
+
+int filc_native_zsys_inotify_init1(filc_thread* my_thread, int flags)
+{
+    return FILC_SYSCALL(my_thread, inotify_init1(flags));
+}
+
+int filc_native_zsys_syslog(filc_thread* my_thread, int type, filc_ptr buf_ptr, int len)
+{
+    filc_check_write(buf_ptr, len);
+    return FILC_SYSCALL(my_thread, klogctl(type, (char*)filc_ptr_ptr(buf_ptr), len));
+}
+
+int filc_native_zsys_mount(filc_thread* my_thread, filc_ptr source_ptr, filc_ptr target_ptr,
+                           filc_ptr fs_type_ptr, unsigned long flags, filc_ptr data_ptr)
+{
+    char* source = filc_check_and_get_tmp_str(my_thread, source_ptr);
+    char* target = filc_check_and_get_tmp_str(my_thread, target_ptr);
+    char* fs_type = filc_check_and_get_tmp_str(my_thread, fs_type_ptr);
+    char* data = filc_check_and_get_tmp_str(my_thread, data_ptr);
+    return FILC_SYSCALL(my_thread, mount(source, target, fs_type, flags, data));
+}
+
+int filc_native_zsys_mount_setattr(filc_thread* my_thread, int fd, filc_ptr path_ptr, unsigned flags,
+                                   filc_ptr attr_ptr, size_t size)
+{
+#if PAS_GLIBC
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    filc_check_write(attr_ptr, size); /* maybe this can be check_read? */
+    return FILC_SYSCALL(my_thread, mount_setattr(fd, path, flags,
+                                                 (struct mount_attr*)filc_ptr_ptr(attr_ptr), size));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fd);
+    PAS_UNUSED_PARAM(path_ptr);
+    PAS_UNUSED_PARAM(flags);
+    PAS_UNUSED_PARAM(attr_ptr);
+    PAS_UNUSED_PARAM(size);
+    filc_internal_panic(NULL, "mount_setattr not supported.");
+#endif
+}
+
+int filc_native_zsys_move_mount(filc_thread* my_thread, int from_fd, filc_ptr from_path_ptr,
+                                int to_fd, filc_ptr to_path_ptr, unsigned flags)
+{
+#if PAS_GLIBC
+    char* from_path = filc_check_and_get_tmp_str(my_thread, from_path_ptr);
+    char* to_path = filc_check_and_get_tmp_str(my_thread, to_path_ptr);
+    return FILC_SYSCALL(my_thread, move_mount(from_fd, from_path, to_fd, to_path, flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(from_fd);
+    PAS_UNUSED_PARAM(from_path_ptr);
+    PAS_UNUSED_PARAM(to_fd);
+    PAS_UNUSED_PARAM(to_path_ptr);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "move_mount not supported.");
+#endif
+}
+
+int filc_native_zsys_open_tree(filc_thread* my_thread, int fd, filc_ptr path_ptr, unsigned flags)
+{
+#if PAS_GLIBC
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    return FILC_SYSCALL(my_thread, open_tree(fd, path, flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fd);
+    PAS_UNUSED_PARAM(path_ptr);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "open_tree not supported.");
+#endif
+}
+
+int filc_native_zsys_pidfd_open(filc_thread* my_thread, int pid, unsigned flags)
+{
+#if PAS_GLIBC
+    return FILC_SYSCALL(my_thread, pidfd_open(pid, flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(pid);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "pidfd_open not supported.");
+#endif
+}
+
+int filc_native_zsys_pidfd_getfd(filc_thread* my_thread, int pidfd, int targetfd, unsigned flags)
+{
+#if PAS_GLIBC
+    return FILC_SYSCALL(my_thread, pidfd_getfd(pidfd, targetfd, flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(pidfd);
+    PAS_UNUSED_PARAM(targetfd);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "pidfd_getfd not supported.");
+#endif
+}
+
+int filc_native_zsys_pivot_root(filc_thread* my_thread, filc_ptr new_root_ptr, filc_ptr put_old_ptr)
+{
+    char* new_root = filc_check_and_get_tmp_str(my_thread, new_root_ptr);
+    char* put_old = filc_check_and_get_tmp_str(my_thread, put_old_ptr);
+    return FILC_SYSCALL(my_thread, syscall(SYS_pivot_root, new_root, put_old));
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)

@@ -304,6 +304,21 @@ int zsys_fsconfig(int fd, unsigned cmd, const char* key, const void* data, int a
 int zsys_fsmount(int fd, unsigned flags, unsigned ms_flags);
 int zsys_fsopen(const char* name, unsigned flags);
 int zsys_fspick(int fd, const char* path, unsigned flags);
+int zsys_init_module(void* module_image, unsigned long len, const char* param_values);
+int zsys_finit_module(int fd, const char* param_values, int flags);
+int zsys_inotify_rm_watch(int fd, int wd);
+int zsys_inotify_init(void);
+int zsys_inotify_init1(int flags);
+int zsys_syslog(int type, char* bufp, int len); /* this is really klogctl */
+int zsys_mount(const char* source, const char* target, const char* fs_type, unsigned long flags,
+               const void* data);
+int zsys_mount_setattr(int fd, const char* path, unsigned flags, void* attr, __SIZE_TYPE__ size);
+int zsys_move_mount(int from_fd, const char* from_path, int to_fd, const char* to_path,
+                    unsigned flags);
+int zsys_open_tree(int fd, const char* path, unsigned flags);
+int zsys_pidfd_open(int pid, unsigned flags);
+int zsys_pidfd_getfd(int pidfd, int targetfd, unsigned flags);
+int zsys_pivot_root(const char* new_root, const char* put_old);
 
 #ifdef __cplusplus
 }
