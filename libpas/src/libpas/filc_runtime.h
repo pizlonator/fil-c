@@ -335,6 +335,22 @@ enum filc_access_kind {
 
 typedef enum filc_access_kind filc_access_kind;
 
+enum filc_extended_access_kind {
+    /* These mirror filc_access_kind's enum values. You're meant to be able to cast an extended
+       access kind to an access kind if you know that the extended access kind is one of these
+       two cases. */
+    filc_extended_read_access,
+    filc_extended_write_access,
+
+    /* We are actually not accessing this memory at all. */
+    filc_extended_no_access,
+
+    /* We want to treat this memory as mmap memory. */
+    filc_extended_mmap_access
+};
+
+typedef enum filc_extended_access_kind filc_extended_access_kind;
+
 struct filc_object {
     /* There's a debate to be had about whether this should be upper or size. There are two reasons
        for using upper:
@@ -2925,6 +2941,8 @@ static PAS_ALWAYS_INLINE void filc_check_access(
     filc_check_aligned_access(ptr, bytes, 1, kind);
 }
 
+PAS_API void filc_check_extended_access(filc_ptr ptr, size_t bytes, filc_extended_access_kind kind);
+
 static PAS_ALWAYS_INLINE void filc_check_read(filc_ptr ptr, size_t bytes)
 {
     filc_check_access(ptr, bytes, filc_read_access);
@@ -3299,9 +3317,9 @@ PAS_API void filc_extract_user_iovec_entry(filc_thread* my_thread,
 PAS_API void filc_prepare_iovec_entry(filc_thread* my_thread,
                                       filc_ptr user_iov_entry_ptr,
                                       struct iovec* iov_entry,
-                                      filc_access_kind access_kind);
+                                      filc_extended_access_kind access_kind);
 PAS_API struct iovec* filc_prepare_iovec(filc_thread* my_thread, filc_ptr user_iov,
-                                         size_t iovcnt, filc_access_kind access_kind);
+                                         size_t iovcnt, filc_extended_access_kind access_kind);
 
 PAS_API char** filc_check_and_get_null_terminated_string_array(
     filc_thread* my_thread, filc_ptr user_array_ptr);

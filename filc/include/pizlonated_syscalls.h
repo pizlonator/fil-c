@@ -319,6 +319,8 @@ int zsys_open_tree(int fd, const char* path, unsigned flags);
 int zsys_pidfd_open(int pid, unsigned flags);
 int zsys_pidfd_getfd(int pidfd, int targetfd, unsigned flags);
 int zsys_pivot_root(const char* new_root, const char* put_old);
+int zsys_pidfd_send_signal(int pidfd, int sig, void* info, unsigned flags);
+long zsys_process_madvise(int pidfd, const void* iov, __SIZE_TYPE__ n, int advice, unsigned flags);
 
 #ifdef __cplusplus
 }

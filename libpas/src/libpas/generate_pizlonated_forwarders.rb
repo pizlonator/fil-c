@@ -421,6 +421,8 @@ addSig "int", "zsys_open_tree", "int", "filc_ptr", "unsigned"
 addSig "int", "zsys_pidfd_open", "int", "unsigned"
 addSig "int", "zsys_pidfd_getfd", "int", "int", "unsigned"
 addSig "int", "zsys_pivot_root", "filc_ptr", "filc_ptr"
+addSig "int", "zsys_pidfd_send_signal", "int", "int", "filc_ptr", "unsigned"
+addSig "long", "zsys_process_madvise", "int", "filc_ptr", "size_t", "int", "unsigned"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"

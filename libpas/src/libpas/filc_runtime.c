@@ -3197,6 +3197,20 @@ static void check_mmap(filc_ptr ptr)
         filc_ptr_to_new_string(ptr));
 }
 
+void filc_check_extended_access(filc_ptr ptr, size_t bytes, filc_extended_access_kind kind)
+{
+    PAS_ASSERT(kind == filc_extended_no_access ||
+               kind == filc_extended_read_access ||
+               kind == filc_extended_write_access ||
+               kind == filc_extended_mmap_access);
+    if (kind == filc_extended_no_access)
+        return;
+    filc_check_access(
+        ptr, bytes, kind == filc_extended_read_access ? filc_read_access : filc_write_access);
+    if (kind == filc_extended_mmap_access)
+        check_mmap(ptr);
+}
+
 void filc_memset_with_exit(filc_thread* my_thread, void* ptr, unsigned value, size_t bytes)
 {
     if (bytes <= FILC_MAX_BYTES_BETWEEN_POLLCHECKS) {
@@ -5521,18 +5535,18 @@ void filc_extract_user_iovec_entry(filc_thread* my_thread, filc_ptr user_iov_ent
 }
 
 void filc_prepare_iovec_entry(filc_thread* my_thread, filc_ptr user_iov_entry_ptr,
-                              struct iovec* iov_entry, filc_access_kind access_kind)
+                              struct iovec* iov_entry, filc_extended_access_kind access_kind)
 {
     filc_ptr user_iov_base;
     size_t iov_len;
     filc_extract_user_iovec_entry(my_thread, user_iov_entry_ptr, &user_iov_base, &iov_len);
-    filc_check_access(user_iov_base, iov_len, access_kind);
+    filc_check_extended_access(user_iov_base, iov_len, access_kind);
     iov_entry->iov_base = filc_ptr_ptr(user_iov_base);
     iov_entry->iov_len = iov_len;
 }
 
 struct iovec* filc_prepare_iovec(filc_thread* my_thread, filc_ptr user_iov, size_t iovcnt,
-                                 filc_access_kind access_kind)
+                                 filc_extended_access_kind access_kind)
 {
     struct iovec* iov;
     size_t index;
@@ -5562,7 +5576,7 @@ ssize_t filc_native_zsys_writev(filc_thread* my_thread, int fd, filc_ptr user_io
 {
     check_fd(fd);
     ssize_t result;
-    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov, iovcnt, filc_read_access);
+    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov, iovcnt, filc_extended_read_access);
     filc_exit(my_thread);
     result = writev(fd, iov, iovcnt);
     int my_errno = errno;
@@ -5583,7 +5597,7 @@ ssize_t filc_native_zsys_readv(filc_thread* my_thread, int fd, filc_ptr user_iov
 {
     check_fd(fd);
     ssize_t result;
-    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov, iovcnt, filc_write_access);
+    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov, iovcnt, filc_extended_write_access);
     filc_exit(my_thread);
     result = readv(fd, iov, iovcnt);
     int my_errno = errno;
@@ -6813,7 +6827,8 @@ long filc_native_zsys_preadv(filc_thread* my_thread, int fd, filc_ptr user_iov_p
                              long offset)
 {
     check_fd(fd);
-    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov_ptr, iovcnt, filc_write_access);
+    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov_ptr, iovcnt,
+                                           filc_extended_write_access);
     return FILC_SYSCALL(my_thread, preadv(fd, iov, iovcnt, offset));
 }
 
@@ -6829,7 +6844,8 @@ long filc_native_zsys_pwritev(filc_thread* my_thread, int fd, filc_ptr user_iov_
                               long offset)
 {
     check_fd(fd);
-    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov_ptr, iovcnt, filc_read_access);
+    struct iovec* iov = filc_prepare_iovec(my_thread, user_iov_ptr, iovcnt,
+                                           filc_extended_read_access);
     return FILC_SYSCALL(my_thread, pwritev(fd, iov, iovcnt, offset));
 }
 
@@ -7212,7 +7228,7 @@ static void from_user_msghdr_base(filc_thread* my_thread, filc_ptr user_msghdr_p
     size_t iovlen = user_msghdr->msg_iovlen;
     msghdr->msg_iov = filc_prepare_iovec(
         my_thread, filc_load_ptr_at(my_thread, user_msghdr_ptr, &user_msghdr->msg_iov), iovlen,
-        access_kind);
+        (filc_extended_access_kind)access_kind);
     msghdr->msg_iovlen = iovlen;
 
     msghdr->msg_flags = user_msghdr->msg_flags;
@@ -7492,10 +7508,96 @@ int filc_native_zsys_setgroups(filc_thread* my_thread, size_t size, filc_ptr lis
     return result;
 }
 
+static bool is_semantically_transparent_madvise_advice(int advice)
+{
+    switch (advice) {
+    case MADV_NORMAL:
+    case MADV_RANDOM:
+    case MADV_SEQUENTIAL:
+    case MADV_WILLNEED:
+    case MADV_MERGEABLE:
+    case MADV_UNMERGEABLE:
+#ifdef MADV_SOFT_OFFLINE
+    case MADV_SOFT_OFFLINE:
+#endif
+    case MADV_HUGEPAGE:
+    case MADV_NOHUGEPAGE:
+#ifdef MADV_COLLAPSE
+    case MADV_COLLAPSE:
+#endif
+    case MADV_DONTDUMP:
+    case MADV_DODUMP:
+    case MADV_COLD:
+    case MADV_PAGEOUT:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static void check_madvise_advice(int advice)
+{
+    switch (advice) {
+    case MADV_NORMAL:
+    case MADV_RANDOM:
+    case MADV_SEQUENTIAL:
+    case MADV_WILLNEED:
+    case MADV_DONTNEED:
+    case MADV_REMOVE:
+    case MADV_DOFORK:
+    case MADV_MERGEABLE:
+    case MADV_UNMERGEABLE:
+#ifdef MADV_SOFT_OFFLINE
+    case MADV_SOFT_OFFLINE:
+#endif
+    case MADV_HUGEPAGE:
+    case MADV_NOHUGEPAGE:
+#ifdef MADV_COLLAPSE
+    case MADV_COLLAPSE:
+#endif
+    case MADV_DONTDUMP:
+    case MADV_DODUMP:
+    case MADV_WIPEONFORK:
+    case MADV_COLD:
+    case MADV_PAGEOUT:
+#ifdef MADV_POPULATE_READ
+    case MADV_POPULATE_READ:
+#endif
+#ifdef MADV_POPULATE_WRITE
+    case MADV_POPULATE_WRITE:
+#endif
+        return;
+
+    case MADV_DONTFORK:
+        filc_safety_panic(NULL, "attempted to use MADV_DONTFORK.");
+
+    case MADV_HWPOISON:
+        filc_safety_panic(NULL, "attempted to use MADV_HWPOISON.");
+
+#ifdef MADV_GUARD_INSTALL
+    case MADV_GUARD_INSTALL:
+        /* I'm not sure this thing is safe. Maybe it is tho. */
+        filc_safety_panic(NULL, "attempted to use MADV_GUARD_INSTALL.");
+#endif
+
+#ifdef MADV_GUARD_REMOVE
+    case MADV_GUARD_REMOVE:
+        /* I'm not sure this thing is safe. Maybe it is tho. */
+        filc_safety_panic(NULL, "attempted to use MADV_GUARD_REMOVE.");
+#endif
+
+    default:
+        filc_safety_panic(NULL, "attempting to use unrecognized madvise advice %d.", advice);
+    }
+}
+
 int filc_native_zsys_madvise(filc_thread* my_thread, filc_ptr ptr, size_t length, int advice)
 {
-    filc_check_write(ptr, length);
-    check_mmap(ptr);
+    if (!is_semantically_transparent_madvise_advice(advice)) {
+        filc_check_write(ptr, length);
+        check_mmap(ptr);
+        check_madvise_advice(advice);
+    }
     return FILC_SYSCALL(my_thread, madvise(filc_ptr_ptr(ptr), length, advice));
 }
 
@@ -9141,6 +9243,51 @@ int filc_native_zsys_pivot_root(filc_thread* my_thread, filc_ptr new_root_ptr, f
     char* new_root = filc_check_and_get_tmp_str(my_thread, new_root_ptr);
     char* put_old = filc_check_and_get_tmp_str(my_thread, put_old_ptr);
     return FILC_SYSCALL(my_thread, syscall(SYS_pivot_root, new_root, put_old));
+}
+
+int filc_native_zsys_pidfd_send_signal(filc_thread* my_thread, int pidfd, int sig,
+                                       filc_ptr siginfo_ptr, unsigned flags)
+{
+#if PAS_GLIBC
+    filc_check_write(siginfo_ptr, sizeof(siginfo_t)); /* Maybe this could be check read? */
+    return FILC_SYSCALL(my_thread, pidfd_send_signal(pidfd, sig,
+                                                     (siginfo_t*)filc_ptr_ptr(siginfo_ptr), flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(pidfd);
+    PAS_UNUSED_PARAM(sig);
+    PAS_UNUSED_PARAM(siginfo_ptr);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "pidfd_send_signal not supported.");
+#endif
+}
+
+ssize_t filc_native_zsys_process_madvise(filc_thread* my_thread, int pidfd, filc_ptr iov_ptr,
+                                         size_t n, int advice, unsigned flags)
+{
+#if PAS_GLIBC
+    struct iovec* iov;
+    if (getpid() == pidfd_getpid(pidfd) && !is_semantically_transparent_madvise_advice(advice)) {
+        iov = filc_prepare_iovec(my_thread, iov_ptr, n, filc_extended_mmap_access);
+        check_madvise_advice(advice);
+    } else {
+        FILC_CHECK(
+            is_semantically_transparent_madvise_advice(advice),
+            NULL,
+            "process_madvise advice %d is not semantically transparent when targetting other "
+            "process.", advice);
+        iov = filc_prepare_iovec(my_thread, iov_ptr, n, filc_extended_no_access);
+    }
+    return FILC_SYSCALL(my_thread, syscall(SYS_process_madvise, pidfd, iov, n, advice, flags));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(pidfd);
+    PAS_UNUSED_PARAM(iov_ptr);
+    PAS_UNUSED_PARAM(n);
+    PAS_UNUSED_PARAM(advice);
+    PAS_UNUSED_PARAM(flags);
+    filc_internal_panic(NULL, "process_madvise not supported.");
+#endif
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
