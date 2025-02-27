@@ -327,6 +327,17 @@ int zsys_fanotify_mark(int fd, unsigned flags, unsigned long long mask, int dfd,
 int zsys_timerfd_create(int clockid, int flags);
 int zsys_timerfd_settime(int fd, int flags, const void* new_value, void* old_value);
 int zsys_timerfd_gettime(int fd, void* curr_value);
+int zsys_quotactl(int cmd, const char* special, int id, void* addr);
+int zsys_unshare(int flags);
+int zsys_name_to_handle_at(int fd, const char* path, void* handle, int* mound_id, int flags);
+int zsys_open_by_handle_at(int mount_fd, void* handle, int flags);
+int zsys_pkey_alloc(unsigned flags, unsigned rights);
+int zsys_pkey_free(int pkey);
+int zsys_memfd_create(const char* name, unsigned flags);
+int zsys_setns(int fd, int nstype);
+int zsys_gettid(void);
+int zsys_tkill(int tid, int sig);
+int zsys_tgkill(int tgid, int tid, int sig);
 
 #ifdef __cplusplus
 }

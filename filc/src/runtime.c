@@ -512,3 +512,26 @@ void* zthread_self_cookie(void)
 {
     return zthread_get_cookie(zthread_self());
 }
+
+int zsys_gettid(void)
+{
+    return zthread_self_id();
+}
+
+int zsys_tkill(int tid, int sig)
+{
+    (void)tid;
+    (void)sig;
+    zerror("tkill not supported.");
+    return -1;
+}
+
+int zsys_tgkill(int tgid, int tid, int sig)
+{
+    (void)tgid;
+    (void)tid;
+    (void)sig;
+    zerror("tgkill not supported.");
+    return -1;
+}
+

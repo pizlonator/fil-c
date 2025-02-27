@@ -94,6 +94,7 @@
 #include <sys/mount.h>
 #include <sys/klog.h>
 #include <sys/timerfd.h>
+#include <sys/quota.h>
 
 #if PAS_GLIBC
 #include <sys/pidfd.h>
@@ -9356,6 +9357,137 @@ int filc_native_zsys_timerfd_gettime(filc_thread* my_thread, int fd, filc_ptr cu
     filc_check_write(curr_value_ptr, sizeof(struct itimerspec));
     return FILC_SYSCALL(
         my_thread, timerfd_gettime(fd, (struct itimerspec*)filc_ptr_ptr(curr_value_ptr)));
+}
+
+#ifdef Q_GETNEXTQUOTA
+struct nextdqblk {
+    uint64_t dqb_bhardlimit;
+    uint64_t dqb_bsoftlimit;
+    uint64_t dqb_curspace;
+    uint64_t dqb_ihardlimit;
+    uint64_t dqb_isoftlimit;
+    uint64_t dqb_curinodes;
+    uint64_t dqb_btime;
+    uint64_t dqb_itime;
+    uint32_t dqb_valid;
+    uint32_t dqb_id;
+};
+#endif
+
+int filc_native_zsys_quotactl(filc_thread* my_thread, int cmd, filc_ptr special_ptr, int id,
+                              filc_ptr addr_ptr)
+{
+    char* special = filc_check_and_get_tmp_str_or_null(my_thread, special_ptr);
+    char* addr = NULL;
+    switch (cmd >> SUBCMDSHIFT) {
+    case Q_QUOTAON:
+        addr = filc_check_and_get_tmp_str_or_null(my_thread, addr_ptr);
+        break;
+    case Q_QUOTAOFF:
+    case Q_SYNC:
+        break;
+    case Q_GETQUOTA:
+        filc_check_write(addr_ptr, sizeof(struct dqblk));
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+#ifdef Q_GETNEXTQUOTA
+    case Q_GETNEXTQUOTA:
+        filc_check_write(addr_ptr, sizeof(struct nextdqblk));
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+#endif
+    case Q_SETQUOTA:
+        filc_check_read(addr_ptr, sizeof(struct dqblk));
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+    case Q_GETINFO:
+        filc_check_write(addr_ptr, sizeof(struct dqinfo));
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+    case Q_SETINFO:
+        filc_check_read(addr_ptr, sizeof(struct dqinfo));
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+    case Q_GETFMT:
+        filc_check_write(addr_ptr, 4);
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+#ifdef Q_GETSTATS
+    case Q_GETSTATS:
+        filc_check_write(addr_ptr, sizeof(struct dqstats));
+        addr = filc_ptr_ptr(addr_ptr);
+        break;
+#endif
+    default:
+        filc_safety_panic(NULL, "unrecognized quotactl command %d.", cmd);
+    }
+    return FILC_SYSCALL(my_thread, quotactl(cmd, special, id, addr));
+}
+
+int filc_native_zsys_unshare(filc_thread* my_thread, int flags)
+{
+    return FILC_SYSCALL(my_thread, unshare(flags));
+}
+
+static struct file_handle* check_and_get_file_handle(filc_ptr handle_ptr)
+{
+    filc_check_write(handle_ptr, PAS_OFFSETOF(struct file_handle, f_handle));
+    struct file_handle* handle = (struct file_handle*)filc_ptr_ptr(handle_ptr);
+    filc_check_write(handle_ptr,
+                     PAS_OFFSETOF(struct file_handle, f_handle) + (size_t)handle->handle_bytes);
+    return handle;
+}
+
+int filc_native_zsys_name_to_handle_at(filc_thread* my_thread, int fd, filc_ptr path_ptr,
+                                       filc_ptr handle_ptr, filc_ptr mount_id_ptr, int flags)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    struct file_handle* handle = check_and_get_file_handle(handle_ptr);
+    filc_check_write(mount_id_ptr, sizeof(int));
+    return FILC_SYSCALL(my_thread, name_to_handle_at(fd, path, handle,
+                                                     (int*)filc_ptr_ptr(mount_id_ptr), flags));
+}
+
+int filc_native_zsys_open_by_handle_at(filc_thread* my_thread, int mount_fd, filc_ptr handle_ptr,
+                                       int flags)
+
+{
+    struct file_handle* handle = check_and_get_file_handle(handle_ptr);
+    return FILC_SYSCALL(my_thread, open_by_handle_at(mount_fd, handle, flags));
+}
+
+int filc_native_zsys_pkey_alloc(filc_thread* my_thread, unsigned flags, unsigned rights)
+{
+#if PAS_GLIBC
+    return FILC_SYSCALL(my_thread, pkey_alloc(flags, rights));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(flags);
+    PAS_UNUSED_PARAM(rights);
+    filc_internal_panic(NULL, "pkey_alloc not supported.");
+#endif
+}
+
+int filc_native_zsys_pkey_free(filc_thread* my_thread, int pkey)
+{
+#if PAS_GLIBC
+    return FILC_SYSCALL(my_thread, pkey_free(pkey));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(pkey);
+    filc_internal_panic(NULL, "pkey_free not supported.");
+#endif
+}
+
+int filc_native_zsys_memfd_create(filc_thread* my_thread, filc_ptr name_ptr, unsigned flags)
+{
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    return FILC_SYSCALL(my_thread, memfd_create(name, flags));
+}
+
+int filc_native_zsys_setns(filc_thread* my_thread, int fd, int nstype)
+{
+    return FILC_SYSCALL(my_thread, setns(fd, nstype));
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
