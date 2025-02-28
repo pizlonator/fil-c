@@ -199,6 +199,38 @@ This prints:
 
 Since the pointer is below lower bounds due to the integer store, this fails with a safety error.
 
+Note that this even works if we overwrite the entire object pointed to by `p`, like in this program:
+
+    #include <stdfil.h>
+    #include <stdlib.h>
+    
+    int main()
+    {
+        char* p = malloc(16);
+        *(int**)p = malloc(4);
+        unsigned i;
+        for (i = 16; i--;)
+            p[i] = 42;
+        **(int**)p = 666;
+        return 0;
+    }
+
+This prints:
+
+    filc safety error: cannot write pointer with ptr >= upper.
+        pointer: 0x2a2a2a2a2a2a2a2a,0x761282504270,0x761282504280
+        expected 4 writable bytes.
+    semantic origin:
+        test8b.c:11:16: main
+    check scheduled at:
+        test8b.c:11:16: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [470643] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+Notice how the entire pointer value is overwritten by 0x2a (i.e. 42), but the capability is totally intact. This is because the capability is not stored at any addresses that are accessible to the Fil-C program. So, when the pointer is loaded back, we get a pointer value full of 42 (because the Fil-C program overwrite that value with 42's) and the original capability (because storing integers into a memory location doesn't overwrite the invisible capability for that location).
+
 # Type Confusion: Function As Data
 
     #include <stdfil.h>
