@@ -60,6 +60,71 @@ Because Fil-C pointers carry bounds, we can trivially detect out-of-bounds store
 
 The *semantic origin* is the place in the code that initiated the memory access that led to the safety check. Fil-C hoists checks so long as doing so doesn't break the program. The *check scheduled at* tells you where the check was hoisted to.
 
+# Pointers Passed To Syscalls
+
+    #include <string.h>
+    #include <unistd.h>
+    
+    int main()
+    {
+        write(1, "hello\n", strlen("hello\n"));
+        return 0;
+    }
+
+This simple program just prints:
+
+    hello
+
+But what if we pass a bad pointer to `write`?
+
+    #include <string.h>
+    #include <unistd.h>
+    
+    int main()
+    {
+        write(1, "hello\n" - 100, strlen("hello\n"));
+        return 0;
+    }
+
+Now we get:
+
+    filc safety error: cannot read pointer with ptr < lower (ptr = 0x61326de8ccec,0x61326de8cd50,0x61326de8cd58,global,readonly).
+        <runtime>: zsys_write
+        src/unistd/write.c:7:9: write
+        test19.c:6:5: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [614516] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+Fil-C's lowest level API is the syscall layer it exposes to libc (Fil-C uses musl as its libc). Fil-C's syscall implementation enforces memory safety. Here, the `zsys_write` function in the runtime is failing because we passed an out-of-bounds pointer.
+
+Here's another example:
+
+    #include <string.h>
+    #include <unistd.h>
+    
+    int main()
+    {
+        write(1, "hello\n", 100);
+        return 0;
+    }
+
+This also fails:
+
+    filc safety error: cannot read 100 bytes when upper - ptr = 8 (ptr = 0x55c0cffe2d50,0x55c0cffe2d50,0x55c0cffe2d58,global,readonly).
+        <runtime>: zsys_write
+        src/unistd/write.c:7:9: write
+        test20.c:6:5: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [614640] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+Note that Fil-C capabilities always have a multiple of 8 bytes in them, so the string constant's size is a full 8 bytes. But, the program is trying `write` 100 bytes, so this fails.
+
+Fil-C provides wrappers for most of the syscalls that Linux provides (the goal is to wrap all of them, except a few that are not memory safe). Fil-C checks that any pointers passed to syscalls have the right capability for what the syscall will do to that pointer. Fil-C disallows syscalls that would break memory safety entirely (like `vfork`).
+
 # Pointers In Memory
 
     #include <stdfil.h>
@@ -230,6 +295,110 @@ This prints:
     Trace/breakpoint trap (core dumped)
 
 Notice how the entire pointer value is overwritten by 0x2a (i.e. 42), but the capability is totally intact. This is because the capability is not stored at any addresses that are accessible to the Fil-C program. So, when the pointer is loaded back, we get a pointer value full of 42 (because the Fil-C program overwrite that value with 42's) and the original capability (because storing integers into a memory location doesn't overwrite the invisible capability for that location).
+
+# Type Confusion: Int And Float
+
+    #include <stdio.h>
+    
+    int main()
+    {
+        int x = 666;
+        printf("%e\n", *(float*)&x);
+        return 0;
+    }
+
+Fil-C doesn't try to prevent type confusion between non-pointer types, like int versus float. This program is allowed, and prints:
+
+    9.332648e-43
+
+This means that you can use unions while violating the active union member rule in Fil-C.
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    
+    union u {
+        int x;
+        float y;
+    };
+    
+    int main()
+    {
+        union u* p = malloc(sizeof(union u));
+        p->x = 666;
+        printf("%e\n", p->y);
+        return 0;
+    }
+
+This also prints:
+
+    9.332648e-43
+
+# Sophisticated Unions
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    
+    union u {
+        struct {
+            int x;
+            int y;
+        };
+        struct {
+            const char* str1;
+            const char* str2;
+        };
+        struct {
+            double a;
+            double b;
+        };
+    };
+    
+    int main()
+    {
+        union u* p = malloc(sizeof(union u));
+        p->x = 1;
+        p->y = 2;
+        printf("(1) x = %d, y = %d, str1 = %p, str2 = %p, a = %le, b = %le\n",
+               p->x, p->y, p->str1, p->str2, p->a, p->b);
+        p->str1 = "hello";
+        p->str2 = "world";
+        printf("(2) x = %d, y = %d, str1 = %p, str2 = %p, a = %le, b = %le\n",
+               p->x, p->y, p->str1, p->str2, p->a, p->b);
+        p->a = 1.5;
+        p->b = 2.5;
+        printf("(3) x = %d, y = %d, str1 = %p, str2 = %p, a = %le, b = %le\n",
+               p->x, p->y, p->str1, p->str2, p->a, p->b);
+        return 0;
+    }
+
+This example shows more interesting type confusion using unions. This prints:
+
+    (1) x = 1, y = 2, str1 = 0x200000001, str2 = 0, a = 4.243992e-314, b = 0.000000e+00
+    (2) x = 1851820912, y = 23884, str1 = 0x5d4c6e608b70, str2 = 0x5d4c6e608b88, a = 5.068266e-310, b = 5.068266e-310
+    (3) x = 0, y = 1073217536, str1 = 0x3ff8000000000000, str2 = 0x4004000000000000, a = 1.500000e+00, b = 2.500000e+00
+
+Note that we're not printing the strings using `%s` but with `%p`, so we just see what the pointer's value. At the start, `p->str1` overlaps with `x` and `y` so it gets the value `0x200000001`, but with a null capability. `p->str2` stays NULL. Then, when we write string constants into `str1` and `str2`, we see the pointer's values printed in all of the fields. Finally, we see the double values in all of the fields.
+
+If we changes the `%p` format specifiers to `%s`, then we get this output:
+
+    filc safety error: cannot read pointer with null object.
+        pointer: 0x200000001,<null>
+        expected 1 bytes.
+    semantic origin:
+        src/string/memchr.c:9:14: memchr
+    check scheduled at:
+        src/string/memchr.c:9:14: memchr
+        src/string/strnlen.c:6:18: strnlen
+        src/stdio/vfprintf.c:600:12: printf_core
+        src/stdio/vfprintf.c:690:13: vfprintf
+        src/stdio/printf.c:9:8: printf
+        test17.c:24:5: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [614299] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+We're crashing inside libc because `p->str1`'s value has no capability (since it's really the values of `p->x` and `p->y`), and so `printf` cannot print this string.
 
 # Type Confusion: Function As Data
 
