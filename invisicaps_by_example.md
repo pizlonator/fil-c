@@ -60,6 +60,44 @@ Because Fil-C pointers carry bounds, we can trivially detect out-of-bounds store
 
 The *semantic origin* is the place in the code that initiated the memory access that led to the safety check. Fil-C hoists checks so long as doing so doesn't break the program. The *check scheduled at* tells you where the check was hoisted to.
 
+# Out Of Bounds But In Bounds
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    
+    int main()
+    {
+        char* x = malloc(100);
+        char* y = malloc(100);
+        x[y - x] = '!';
+        printf("*y = %c\n", *y);
+        return 0;
+    }
+
+This program writes out-of-bounds of `x`, but in-bounds to `y`. Fil-C doesn't allow this, because the pointer being used to do the memory access (`x`) is out-of-bounds of its own capability.
+
+    filc safety error: cannot write pointer with ptr >= upper.
+        pointer: 0x7e8af1934190,0x7e8af1934110,0x7e8af1934180
+        expected 1 writable bytes.
+    semantic origin:
+        test21.c:8:14: main
+    check scheduled at:
+        test21.c:8:14: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [715478] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+Note that by contrast, Yolo-C (i.e. not Fil-C) allows this and it works reliably:
+
+    *y = !
+
+Also, tag-based approaches to catching bugs in C code, like address sanitizer, do not catch this error and allow this program just fine (I'm using `gcc -O -g -fsanitize=address`):
+
+    *y = !
+
+This is a great example of Fil-C enforcing memory safety (the out-of-bounds access is not allowed based on `x`'s capability) and other approaches failing to enforce memory safety (asan allows this because the address that `x + (y - x)` points to happens to be a live address). It's important for memory safe languages to prevent this from happening, since attackers like to use invalid indices to array accesses to write to other objects in the heap. You can do that with asan, valgrind, and other safety approaches for C. You cannot do that in Fil-C, because Fil-C is memory safe.
+
 # Pointers Passed To Syscalls
 
     #include <string.h>
@@ -516,6 +554,141 @@ For the last example, I do a simple use after free bug. This is guaranteed to fa
     Trace/breakpoint trap (core dumped)
 
 The failure is guaranteed because `free()` doesn't actually free the memory; it just marks the capability free in-place. All subsequent accesses to that object then fail with this error. Note that the freed object appears to have an upper bound that is equal to the lower bound; this is due to an optimization (Fil-C doesn't actually do a distinct "is this free" check; free objects just have their upper bound clamped to force the bounds checks to fail).
+
+Let's explore a bit about what I mean by the failure being guaranteed. Even if we try to groom the heap by allocating a lot of memory:
+
+    #include <stdfil.h>
+    #include <stdlib.h>
+    
+    int main()
+    {
+        int* p = malloc(4);
+        free(p);
+        unsigned count;
+        for (count = 100000000; count--;)
+            malloc(4);
+        *p = 42;
+        return 0;
+    }
+
+Fil-C will still ensure that this use after free gets a panic, because the GC knows that `p` is still reachable. So, the object `p` points to is kept alive in a `free` state just to make sure that any use of it will definitely fail. To illustrate that this is really doing the allocations, I've run this program with `time`.
+
+    filc safety error: cannot write pointer to free object.
+        pointer: 0x79f016504250,0x79f016504250,0x79f016504250,free
+        expected 4 writable bytes.
+    semantic origin:
+        test22.c:11:8: main
+    check scheduled at:
+        test22.c:11:8: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [715950] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+    
+    real    0m2.373s
+    user    0m1.965s
+    sys     0m0.140s
+
+In cases where the freed object is referenced only from other objects in memory, the GC will be able to free the object while still preserving the guaranteed use-after-free protection. That's because the GC will repoint in-memory pointers to the freed objects to refer to the *free singleton* capability. Here's an example of that happening.
+
+    #include <stdfil.h>
+    #include <stdlib.h>
+    
+    int main()
+    {
+        int** p = malloc(sizeof(int*));
+        *p = malloc(4);
+        free(*p);
+        unsigned count;
+        for (count = 100000000; count--;)
+            malloc(4);
+        **p = 42;
+        return 0;
+    }
+
+Note that extra level of indirection that makes it so that the freed object is not directly referenced from local variables. This allows the GC to "move" the capability pointer to point to the free singleton.
+
+    filc safety error: cannot write pointer to free object.
+        pointer: 0x781b46504270,0x781b559b8fa8,0x781b559b8fa8,free,global,readonly
+        expected 4 writable bytes.
+    semantic origin:
+        test23.c:12:9: main
+    check scheduled at:
+        test23.c:12:9: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [716090] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+Note that the error now reports that the pointer isn't even pointing at the same memory as the capability (it's 256593208 bytes away) and the capability is free, global, and readonly. That's because the pointer's capability is now the global free singleton, and the memory it originally pointed to (at address 0x781b46504270) has likely been reused. But even though the memory is reused, this pointer still deterministically fails when accessed, and so this pointer cannot be used to access the reused memory.
+
+# Pointer Races
+
+    #include <pthread.h>
+    #include <stdlib.h>
+    #include <stdio.h>
+    
+    static int* ptr;
+    
+    static void* thread_main(void* arg)
+    {
+        unsigned count;
+        for (count = 10000000; count--;)
+            ptr = malloc(4);
+        return NULL;
+    }
+    
+    int main()
+    {
+        pthread_t t;
+        pthread_create(&t, NULL, thread_main, NULL);
+    
+        unsigned count;
+        for (count = 1000000; count--;)
+            ptr = malloc(4);
+    
+        asm volatile("" : : : "memory");
+    
+        printf("%d\n", *ptr);
+        return 0;
+    }
+
+This example shows what happens when we have a pointer in shared memory (`ptr`) that isn't marked atomic, and we deliberately race on it. Non-atomic pointer accesses are really a pair of 64-bit accesses:
+
+- A [monotonic](https://llvm.org/docs/Atomics.html#monotonic) access to the invisible capability.
+
+- A non-atomic access to the pointer value.
+
+Hence, it's possible that:
+
+- We get tearing between the capability and the pointer's value.
+
+- On some architectures (not X86_64), we get a totally bogus pointer value.
+
+Both outcomes are safe in Fil-C, because a bogus pointer value, or a pointer value that doesn't match the capability, results in a pointer that traps on access.
+
+This program does one more thing that's a little strange, but familiar to the Real C Programmers (TM): we emit a compiler fence using a dummy `asm` block that emits no code but clobbers memory. Fil-C disallows almost all inline assembly, but it does allow this idiom, because it's Awesome. We use it here to ensure that when the `printf` call at the end loads from `ptr`, it really loads from it rather than getting the value of the last `malloc` call as a result of load elimination.
+
+In my tests, this program runs just fine about 99% of the time, and fails with a Fil-C panic about 1% of the time:
+
+    filc safety error: cannot read pointer with ptr < lower.
+        pointer: 0x719b13650370,0x719b13650390,0x719b136503a0
+        expected 4 bytes.
+    semantic origin:
+        test25.c:26:20: main
+    check scheduled at:
+        test25.c:26:20: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [718033] filc panic: thwarted a futile attempt to violate memory safety.
+
+Notice how Fil-C thinks that the pointer is below bounds; that's because we got a pointer-capability tear.
+
+If we make one change to the program - add `_Atomic` to the signature of `ptr`:
+
+    static int* _Atomic ptr;
+
+Then the program works reliably every time. This is because `_Atomic` and `volatile` pointers in Fil-C use fancy lock-free algorithms to implement every pointer access. Fil-C supports all of clang's atomic intrinsics, `<stdatomic.h>`, and C++'s `std::atomic`. If you request a specific memory ordering for a pointer atomic operation, then you get *at least* monotonic ordering (because it has to at least be atomic to ensure we get a valid capability).
 
 # Conclusion
 
