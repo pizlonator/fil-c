@@ -379,7 +379,7 @@ This example shows more interesting type confusion using unions. This prints:
 
 Note that we're not printing the strings using `%s` but with `%p`, so we just see what the pointer's value. At the start, `p->str1` overlaps with `x` and `y` so it gets the value `0x200000001`, but with a null capability. `p->str2` stays NULL. Then, when we write string constants into `str1` and `str2`, we see the pointer's values printed in all of the fields. Finally, we see the double values in all of the fields.
 
-If we changes the `%p` format specifiers to `%s`, then we get this output:
+If we changed the `%p` format specifiers to `%s`, then we get this output:
 
     filc safety error: cannot read pointer with null object.
         pointer: 0x200000001,<null>
