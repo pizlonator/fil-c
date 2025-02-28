@@ -2,6 +2,8 @@ Fil-C achieves memory safety by introducing a *garbage in, memory safety out* (G
 
 But what are those rules, and what are the semantics that Fil-C's pass ascribes to LLVM IR? This document describes these GIMSO semantics.
 
+[This document shows examples of these semantics in action.](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md)
+
 # Pointers In Flight 
 
 We say that a value is "in flight" when it is carried in LLVM data flow rather than when it is stored in memory. For example, if a `call` instruction's first argument operand uses a `load` instruction of `ptr` type, then this data flow edge has a "pointer in flight".
