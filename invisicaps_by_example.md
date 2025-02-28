@@ -690,6 +690,106 @@ If we make one change to the program - add `_Atomic` to the signature of `ptr`:
 
 Then the program works reliably every time. This is because `_Atomic` and `volatile` pointers in Fil-C use fancy lock-free algorithms to implement every pointer access. Fil-C supports all of clang's atomic intrinsics, `<stdatomic.h>`, and C++'s `std::atomic`. If you request a specific memory ordering for a pointer atomic operation, then you get *at least* monotonic ordering (because it has to at least be atomic to ensure we get a valid capability).
 
+# Laundering Pointers As Integers
+
+    #include <stdio.h>
+    #include <inttypes.h>
+    
+    int main()
+    {
+        const char* str = "hello";
+        printf("%s\n", (const char*)((uintptr_t)str ^ 1));
+        return 0;
+    }
+
+Sometimes C's pointer arithmetic is best expressed using integers. So, like in this program, we cast the pointer to `uintptr_t` (or similar), do some math to it, and then cast it back to pointer. Fil-C allows this and prints:
+
+    ello
+
+But this only works if the cast from int-to-ptr and ptr-to-int casts are local to one another and the compiler can unambiguously pick the original pointer's capability. For example, this doesn't work:
+
+    #include <stdio.h>
+    #include <inttypes.h>
+    
+    uintptr_t x;
+    
+    int main()
+    {
+        const char* str = "hello";
+        x = (uintptr_t)str;
+        asm volatile("" : : : "memory");
+        printf("%s\n", (const char*)x);
+        return 0;
+    }
+
+Here, we've made sure that the compiler cannot see the int-to-ptr cast as having any relationship to the ptr-to-int cast, since `x` is a global variable (so anyone could muck with it) and we have prevented any kind of load elimination (thanks to the compiler fence). So, this gets:
+
+    filc safety error: cannot read pointer with null object.
+        pointer: 0x60ac4d7f1cf0,<null>
+        expected 1 bytes.
+    semantic origin:
+        src/string/strlen.c:8:9: strlen
+    check scheduled at:
+        src/string/strlen.c:8:9: strlen
+        src/stdio/fputs.c:6:13: fputs
+        src/stdio/puts.c:7:8: puts
+        test28.c:11:5: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [722598] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+# Laundering Integers As Pointers
+
+    #include <stdio.h>
+    #include <inttypes.h>
+    
+    void* x;
+    
+    int main()
+    {
+        x = (void*)42;
+        asm volatile("" : : : "memory");
+        printf("%d\n", (int)x);
+        return 0;
+    }
+
+Fil-C allows pointers to carry integer values. This is always fine and you can do the following things to such pointers:
+
+- Cast them back to integers.
+
+- Compare them.
+
+- Pass them around.
+
+But you cannot access them. For example, this doesn't work:
+
+    #include <stdio.h>
+    #include <inttypes.h>
+    
+    int* x;
+    
+    int main()
+    {
+        x = (int*)42;
+        printf("%d\n", *x);
+        return 0;
+    }
+
+This program panics:
+
+    filc safety error: cannot read pointer with null object.
+        pointer: 0x2a,<null>
+        expected 4 bytes.
+    semantic origin:
+        test30.c:9:20: main
+    check scheduled at:
+        test30.c:9:20: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [722837] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
 # Conclusion
 
 This document is meant to give you a feeling for how Fil-C pointer work by showing some examples. This is not an exhaustive list of safety checks that Fil-C performs.
