@@ -6,7 +6,7 @@ This document describes how Fil-C's pointers work. Fil-C is totally memory safe 
 
 The capability is invisible because other than via Fil-C reflection operations (compiler intrinsics and runtime functions unique to Fil-C), there is no way for a Fil-C program to see the capability. It's always there, but you cannot find it if you access memory.
 
-Invisicaps offer a similar programming model to SoftBound and CHERI. However, unlike CHERI, which uses wide pointers (`sizeof(void*)` is 16 or more) to store the capability, Fil-C's capabilities are invisible in the address space and do not affect pointer size. And unlike SoftBound, Fil-C's capabilities have a complete story for atomics (you cannot break invisicap protections by racing, and atomic pointer loads/stores really aree atomic).
+Invisicaps offer a similar programming model to SoftBound and CHERI. However, unlike CHERI, which uses wide pointers (`sizeof(void*)` is 16 or more) to store the capability, Fil-C's capabilities are invisible in the address space and do not affect pointer size. And unlike SoftBound, Fil-C's capabilities have a complete story for atomics (you cannot break invisicap protections by racing, and atomic pointer loads/stores really are atomic).
 
 I'll show you how that works with a bunch of example programs. In these programs I'll use the Fil-C header `<stdfil.h>`, which you only need to `#include` if you want to mess with Fil-C's guts.
 
