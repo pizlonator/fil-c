@@ -613,7 +613,7 @@ Let's explore a bit about what I mean by the failure being guaranteed. Even if w
         return 0;
     }
 
-Fil-C will still ensure that this use after free gets a panic, because the GC knows that `p` is still reachable. So, the object `p` points to is kept alive in a `free` state just to make sure that any use of it will definitely fail. To illustrate that this is really doing the allocations, I've run this program with `time`.
+Fil-C will still ensure that this use after free gets a panic, because FUGC (Fil's Unbelievable Garbage Collector, a concurrent on-the-fly GC based on grey-stack Dijkstra) knows that `p` is still reachable. So, the object `p` points to is kept alive in a `free` state just to make sure that any use of it will definitely fail. To illustrate that this is really doing the allocations, I've run this program with `time`.
 
     filc safety error: cannot write pointer to free object.
         pointer: 0x79f016504250,0x79f016504250,0x79f016504250,free
@@ -631,7 +631,7 @@ Fil-C will still ensure that this use after free gets a panic, because the GC kn
     user    0m1.965s
     sys     0m0.140s
 
-In cases where the freed object is referenced only from other objects in memory, the GC will be able to free the object while still preserving the guaranteed use-after-free protection. That's because the GC will repoint in-memory pointers to the freed objects to refer to the *free singleton* capability. Here's an example of that happening.
+In cases where the freed object is referenced only from other objects in memory, FUGC will be able to free the object while still preserving the guaranteed use-after-free protection. That's because FUGC will repoint in-memory pointers to the freed objects to refer to the *free singleton* capability. Here's an example of that happening.
 
     #include <stdfil.h>
     #include <stdlib.h>
@@ -648,7 +648,7 @@ In cases where the freed object is referenced only from other objects in memory,
         return 0;
     }
 
-Note that extra level of indirection that makes it so that the freed object is not directly referenced from local variables. This allows the GC to "move" the capability pointer to point to the free singleton.
+Note that extra level of indirection that makes it so that the freed object is not directly referenced from local variables. This allows FUGC to "move" the capability pointer to point to the free singleton.
 
     filc safety error: cannot write pointer to free object.
         pointer: 0x781b46504270,0x781b559b8fa8,0x781b559b8fa8,free,global,readonly
