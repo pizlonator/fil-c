@@ -98,6 +98,48 @@ Also, tag-based approaches to catching bugs in C code, like address sanitizer, d
 
 This is a great example of Fil-C enforcing memory safety (the out-of-bounds access is not allowed based on `x`'s capability) and other approaches failing to enforce memory safety (asan allows this because the address that `x + (y - x)` points to happens to be a live address). It's important for memory safe languages to prevent this from happening, since attackers like to use invalid indices to array accesses to write to other objects in the heap. You can do that with asan, valgrind, and other safety approaches for C. You cannot do that in Fil-C, because Fil-C is memory safe.
 
+# Overflowing Out Of Bounds
+
+    #include <stdlib.h>
+    #include <inttypes.h>
+    
+    int main()
+    {
+        char* p = malloc(16);
+        p -= (uintptr_t)p;
+        p += UINT_MAX;
+        *(int*)p = 42;
+        return 0;
+    }
+
+This program is quite clever, and if Fil-C's bounds checks were implemented carelessly, this access would bypass Fil-C's checks. Here's why:
+
+- `UINTPTR_MAX` is greater than the lower bounds of any allocation. So, the lower bounds check will succeed.
+
+- `UINTPTR_MAX + sizeof(int) = 3` because it overflows. Therefore, it's below the upper bounds of any allocation. So, the upper bounds check will succeed *if we had implemented it this way*.
+
+Fil-C implements upper bounds checks using tricks to make sure that the overflow is caught. So, this program panics:
+
+    filc safety error: cannot write pointer with ptr >= upper.
+        pointer: 0xffffffffffffffff,0x79e07ab04250,0x79e07ab04260
+        expected 4 writable bytes.
+    semantic origin:
+        test40.c:9:14: main
+    check scheduled at:
+        test40.c:8:7: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [1323066] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
+Fil-C uses three different approaches to implementing the upper bounds check so that the overflow isn't an issue. Let's assume that `P` is the pointer being checked, `S` is the size of the access, `lower` is the lower bounds, and `upper` is the upper bounds. Let's also assume we've already done a lower bounds check `P >= lower`. And, `S` is never large (it can fit in a 32-bit integer, but in practice we can expect it's much smaller, like `sizeof` some C type).
+
+- Upper bounds check can be `P <= upper - S`, since the lowest address at which any object is allocated is larger than `S`. This is what the compiler usually emits.
+
+- Upper bounds check can be `P < upper && P + S <= upper`. I use this in some places in the runtime.
+
+- Upper bounds check can be `P < upper` if `S` is equal to the alignment we checked. Some accesses have to check alignment. The compiler is smart enough to notice these cases to emit a simpler check.
+
 # Pointers Passed To Syscalls
 
     #include <string.h>
@@ -1061,6 +1103,35 @@ Another way to misuse `va_arg` is to try to get the wrong argument type. Fil-C a
 Escaping a `va_list` from the stack frame that has the arguments is super dangerous in Yolo-C. In Fil-C, this just works, because internally, the `va_list` has a pointer to a heap-allocated readonly object containing a snapshot of the arguments. Arguments are only heap-allocated for variadic functions. So, this program just works:
 
     args: 1 2 3 4 5
+
+# Memory Leak
+
+First file:
+
+    #include <stdlib.h>
+    
+    void* allocate(void)
+    {
+        return malloc(1000);
+    }
+
+Second file:
+
+    void allocate(void);
+    
+    int main()
+    {
+        unsigned count;
+        for (count = 1000000000; count--;)
+            allocate();
+        return 0;
+    }
+
+This allocates and does not free 1,000,000,000,000 bytes. I don't have that much memory on my computer. This program works fine in Fil-C. Note that I've pulled the function doing the allocating into a separate compilation unit, so that the compiler can't just optimize the `malloc` call out (though the Fil-C compiler doesn't have that optimization right now).
+
+Fil-C uses a concurrent garbage collector called FUGC (Fil's Unbelievable Garbage Collector). This test uses about 135% CPU according to `top`, meaning that FUGC is running 35% of the time. Memory usage stays between 5 MB and 7 MB, which is probably due to the lag between when these allocations happen and when FUGC can clean them up (this program is allocating very quickly).
+
+FUGC will fix a large class of memory leaks for you. It won't fix all leaks - for example, if the leaked objects are registered in some global data structure, which makes them reachable according to FUGC. FUGC also means that you can write C or C++ code that is largely oblivious to memory management, like a GC'd language programmer normally would.
 
 # Conclusion
 
