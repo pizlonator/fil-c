@@ -926,6 +926,36 @@ Now we're going to try to use data as if it was a function. This gives us:
     [1217542] filc panic: thwarted a futile attempt to violate memory safety.
     Trace/breakpoint trap (core dumped)
 
+# Bad Linking: Const Mixup
+
+First file:
+
+    const int x = 42;
+
+Second file:
+
+    extern int x;
+    
+    int main()
+    {
+        x = 666;
+        return 0;
+    }
+
+Fil-C capabilities track whether an object is readonly or not. So, if you accidentally link to a const global as if it was non-const, and then write to it, you get:
+
+    filc safety error: cannot write to read-only object.
+        pointer: 0x61b2b5698d70,0x61b2b5698d70,0x61b2b5698d78,global,readonly
+        expected 4 writable bytes.
+    semantic origin:
+        test39b.c:5:7: main
+    check scheduled at:
+        test39b.c:5:7: main
+        src/env/__libc_start_main.c:79:7: __libc_start_main
+        <runtime>: start_program
+    [1218685] filc panic: thwarted a futile attempt to violate memory safety.
+    Trace/breakpoint trap (core dumped)
+
 # Variadic Function Misuse: Not Enough Args
 
     #include <stdio.h>
