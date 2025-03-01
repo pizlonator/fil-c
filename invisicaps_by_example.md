@@ -730,7 +730,7 @@ If we make one change to the program - add `_Atomic` to the signature of `ptr`:
 
     static int* _Atomic ptr;
 
-Then the program works reliably every time. This is because `_Atomic` and `volatile` pointers in Fil-C use fancy lock-free algorithms to implement every pointer access. Fil-C supports all of clang's atomic intrinsics, `<stdatomic.h>`, and C++'s `std::atomic`. If you request a specific memory ordering for a pointer atomic operation, then you get *at least* monotonic ordering (because it has to at least be atomic to ensure we get a valid capability).
+Then the program works reliably every time. This is because `_Atomic` and `volatile` pointers in Fil-C use fancy lock-free algorithms to implement every pointer access. Fil-C supports all of clang's atomic intrinsics, `<stdatomic.h>`, and C++'s `std::atomic`. If you request a specific memory ordering for a pointer atomic operation, then you get *at least* monotonic ordering (because it has to at least be monotonic to ensure we get a valid capability).
 
 # Laundering Pointers As Integers
 
