@@ -172,6 +172,8 @@ addSig "void", "zcpuid", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr", "filc_p
 addSig "void", "zcpuid_count", "unsigned", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr",
        "filc_ptr"
 addSig "unsigned long", "zxgetbv"
+addSig "bool", "zis_unsafe_signal_for_kill", "int"
+addSig "bool", "zis_unsafe_signal_for_handlers", "int"
 addSig "void", "zregister_sys_errno_handler", "filc_ptr"
 addSig "void", "zregister_sys_dlerror_handler", "filc_ptr"
 

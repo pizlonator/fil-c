@@ -255,6 +255,11 @@ int main(int argc, char** argv)
     }
     ZASSERT(!all_zero);
 
+    ZASSERT(!zis_unsafe_signal_for_kill(SIGUSR1));
+    ZASSERT(!zis_unsafe_signal_for_handlers(SIGUSR1));
+    ZASSERT(!zis_unsafe_signal_for_kill(SIGTRAP));
+    ZASSERT(zis_unsafe_signal_for_handlers(SIGTRAP));
+
     zprintf("No worries.\n");
     return 0;
 }

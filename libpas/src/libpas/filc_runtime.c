@@ -865,8 +865,9 @@ static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* han
 
     /* This check shouldn't be necessary; we do it out of an abundance of paranoia! */
     filc_check_function_call(function_ptr);
-    filc_call_user_void_int(
-        my_thread, (pizlonated_function)filc_ptr_ptr(function_ptr), signum);
+    filc_call_user_void_int_ptr_ptr(
+        my_thread, (pizlonated_function)filc_ptr_ptr(function_ptr), signum,
+        filc_ptr_forge_null(), filc_ptr_forge_null());
 
     filc_pop_native_frame(my_thread, &native_frame);
     filc_pop_frame(my_thread, frame);
@@ -5739,8 +5740,6 @@ int filc_native_zsys_fstat(filc_thread* my_thread, int fd, filc_ptr stat_ptr)
 
 static bool from_user_sa_flags(int user_flags, int* flags)
 {
-    if ((user_flags & SA_SIGINFO))
-        return false;
     *flags = user_flags;
     return true;
 }
@@ -5760,6 +5759,12 @@ static bool is_unsafe_signal_for_kill(int signum)
     return false;
 }
 
+bool filc_native_zis_unsafe_signal_for_kill(filc_thread* my_thread, int signo)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return is_unsafe_signal_for_kill(signo);
+}
+
 static bool is_unsafe_signal_for_handlers(int signum)
 {
     switch (signum) {
@@ -5772,6 +5777,12 @@ static bool is_unsafe_signal_for_handlers(int signum)
     default:
         return is_unsafe_signal_for_kill(signum);
     }
+}
+
+bool filc_native_zis_unsafe_signal_for_handlers(filc_thread* my_thread, int signo)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return is_unsafe_signal_for_handlers(signo);
 }
 
 static bool is_special_signal_handler(void* handler)
@@ -5805,6 +5816,8 @@ int filc_native_zsys_sigaction(
         pas_log("[%d] sigaction on signum = %d\n", getpid(), signum);
     
     if (is_unsafe_signal_for_handlers(signum) && filc_ptr_ptr(act_ptr)) {
+        if (verbose)
+            pas_log("invalid signum and act is non-null.\n");
         filc_set_errno(ENOSYS);
         return -1;
     }

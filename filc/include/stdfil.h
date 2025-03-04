@@ -621,6 +621,12 @@ unsigned zthread_self_id(void);
 /* X86 xgetbv intrinsic. Reads XCR0. May trap if the CPU doesn't support the xsave feature. */
 unsigned long zxgetbv(void);
 
+/* Returns true if the signal number is not supported by Fil-C for raising. */
+filc_bool zis_unsafe_signal_for_kill(int signo);
+
+/* Returns true if the signal number is not supported by Fil-C for handling. */
+filc_bool zis_unsafe_signal_for_handlers(int signo);
+
 #ifdef __cplusplus
 }
 #endif
