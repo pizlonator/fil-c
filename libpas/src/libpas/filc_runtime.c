@@ -1114,7 +1114,21 @@ void filc_consume_deferred_signals(filc_thread* my_thread)
        pollchecks (or exits) in the user code. Those signals would arrive before the ones we're
        processing in this queue, which isn't quite right.
        
-       FIXME: Eventually, make this algorithm handle the order correctly. */
+       FIXME: Eventually, make this algorithm handle the order correctly.
+    
+       Here's a way to do that: continue to mask signals to the end of this function while working
+       with the live signal queue data structure. Unmask signals only when calling a signal handler
+       (and in that case, change the mask to the signal handler's mask directly). Have a separate
+       field in filc_thread that indicates our index in the queue. Have this function hold the queue
+       version (which gets bumped anytime we flush the queue all the way), and anytime it returns to
+       masking all signals after the signal handler, it checks if we're still on the same version of
+       the queue (if not, just return). We never have to worry about our index being advanced further
+       except if the queue is flushed all the way, and we can assert that.
+    
+       This would make it so that recursive signal delivery inside the signal handler just keeps
+       flushing the queue, and either flushes it to the point of the most recently delivered signal,
+       or further than that, or recurses and that recursive call flushes the queue. I believe that's
+       exactly what the kernel would do. */
 
     size_t index;
     for (index = 0; index < num_inline_signals; ++index)
