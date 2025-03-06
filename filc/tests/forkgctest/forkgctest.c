@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <stdfil.h>
 #include <stdbool.h>
+#include <filc_test_support.h>
 
 static size_t num_nodes = 20000;
 static size_t repeat = 10;

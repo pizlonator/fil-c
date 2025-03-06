@@ -1,4 +1,5 @@
 #include <stdfil.h>
+#include <filc_test_support.h>
 
 static void check(char* p)
 {

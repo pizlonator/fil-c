@@ -302,10 +302,6 @@ zexact_ptrtable* zexact_ptrtable_new(void);
 __SIZE_TYPE__ zexact_ptrtable_encode(zexact_ptrtable* table, void* ptr);
 void* zexact_ptrtable_decode(zexact_ptrtable* table, __SIZE_TYPE__ encoded_ptr);
 
-/* This function is just for testing zptrtable and it only returns accurate data if
-   zis_runtime_testing_enabled(). */
-__SIZE_TYPE__ ztesting_get_num_ptrtables(void);
-
 /* Low-level printing functions. These might die someday. They are useful for Fil-C's own tests. They
    print directly to stdout using write(). They are safe (passing an invalid ptr to zprint() will trap
    for sure, and it will never print out of bounds even if there is no null terminator). */
@@ -513,21 +509,6 @@ static inline void* zget_jmp_buf_frame(void* jmp_buf)
     return zget_jmp_buf_impl_frame(*(zjmp_buf**)jmp_buf);
 }
 
-/* Returns true if running in the build of the runtime that has extra (super expensive) testing
-   checks.
-
-   This is here so that the test suite can assert that it runs with testing asserts enabled. */
-filc_bool zis_runtime_testing_enabled(void);
-
-/* Asks Fil-C to run additional pointer validation on this pointer. If memory safety holds, then
-   these checks will succeed. If they don't, then it's a Fil-C bug, and we should fix it. It could
-   be a real bug, or it could be a bug in the validation checks. They are designed to be hella strict
-   and maybe I made them too strict.
-   
-   If you run with pizfix/lib_test in your library path, then this check happens in a bunch of
-   random places anyway (and that's the main reason why the lib_test version is so slow). */
-void zvalidate_ptr(void* ptr);
-
 /* Request and wait for a fresh garbage collection cycle. If a GC cycle is already happening, then this
    will cause another one to happen after that one finishes, and will wait for that one.
 
@@ -540,10 +521,6 @@ void zvalidate_ptr(void* ptr);
    If the GC is running in stop-the-world mode (not the default, also not recommended), then this will
    stop all threads to do the GC. */
 void zgc_request_and_wait(void);
-
-/* Tells if the GC is running in STW (stop the world) mode. The default is false. You can enable STW
-   mode by setting the FUGC_STW=1 environment variable. */
-filc_bool zgc_is_stw(void);
 
 /* Request a synchronous scavenge. This decommits all memory that can be decommitted.
    

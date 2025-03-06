@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <sys/random.h>
 #include <sys/syscall.h>
+#include <filc_test_support.h>
 
 int main(int argc, char** argv)
 {

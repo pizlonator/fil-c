@@ -85,6 +85,8 @@ struct filc_ptr_table;
 struct filc_ptr_table_array;
 struct filc_ptr_uintptr_hash_map_entry;
 struct filc_signal_handler;
+struct filc_signal_queue_chunk;
+struct filc_signal_queue_chunk_header;
 struct filc_thread;
 struct filc_uintptr_ptr_hash_map_entry;
 struct pas_basic_heap_runtime_config;
@@ -126,6 +128,8 @@ typedef struct filc_ptr_table filc_ptr_table;
 typedef struct filc_ptr_table_array filc_ptr_table_array;
 typedef struct filc_ptr_uintptr_hash_map_entry filc_ptr_uintptr_hash_map_entry;
 typedef struct filc_signal_handler filc_signal_handler;
+typedef struct filc_signal_queue_chunk filc_signal_queue_chunk;
+typedef struct filc_signal_queue_chunk_header filc_signal_queue_chunk_header;
 typedef struct filc_thread filc_thread;
 typedef struct filc_uintptr_ptr_hash_map_entry filc_uintptr_ptr_hash_map_entry;
 typedef struct pas_basic_heap_runtime_config pas_basic_heap_runtime_config;
@@ -230,7 +234,7 @@ typedef uintptr_t filc_word;
 
    Note that both the allocator offset and allocator size give breathing room for fields to be
    added. */
-#define FILC_THREAD_ALLOCATOR_OFFSET      1792u
+#define FILC_THREAD_ALLOCATOR_OFFSET      3072u
 #define FILC_THREAD_ALLOCATOR_SIZE        208u
 #define FILC_THREAD_MAX_INLINE_SIZE_CLASS 416u
 #define FILC_THREAD_NUM_ALLOCATORS \
@@ -248,6 +252,11 @@ typedef uintptr_t filc_word;
 
 #define FILC_CC_INLINE_SIZE               256u
 #define FILC_CC_ALIGNMENT                 64u
+
+#define FILC_INLINE_SIGNAL_QUEUE_SIZE     10u
+#define FILC_SIGNAL_QUEUE_CHUNK_SIZE      ((PAS_SYSTEM_PAGE_SIZE \
+                                            - sizeof(filc_signal_queue_chunk_header)) \
+                                           / sizeof(siginfo_t))
 
 #define FILC_DEFINE_RUNTIME_ORIGIN_IMPL(origin_name, function_name, passed_num_lowers, passed_can_catch) \
     static const filc_function_origin function_ ## origin_name = { \
@@ -564,6 +573,15 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_cc_unit {
     char contents[FILC_CC_ALIGNMENT];
 };
 
+struct filc_signal_queue_chunk_header {
+    filc_signal_queue_chunk* next;
+};
+
+struct filc_signal_queue_chunk {
+    filc_signal_queue_chunk_header header;
+    siginfo_t infos[FILC_SIGNAL_QUEUE_CHUNK_SIZE];
+};
+
 struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     /* Begin fields that the compiler has to know about. */
     void* stack_limit;
@@ -659,7 +677,10 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     unsigned special_signal_deferral_depth;
     bool have_deferred_signal_special;
     
-    uint64_t num_deferred_signals[FILC_MAX_USER_SIGNUM + 1];
+    size_t num_deferred_signals;
+    siginfo_t inline_signal_queue[FILC_INLINE_SIGNAL_QUEUE_SIZE];
+    filc_signal_queue_chunk* first_signal_queue_chunk;
+    filc_signal_queue_chunk* last_signal_queue_chunk;
 
     /* On platforms that implement ioctl (and similar syscalls) by passing the data
        down to the kernel directly, we need to have some way of telling the kernel
@@ -1180,6 +1201,9 @@ PAS_API void filc_exit(filc_thread* my_thread);
    handle_deferred_signals. */
 PAS_API void filc_increase_special_signal_deferral_depth(filc_thread* my_thread);
 PAS_API void filc_decrease_special_signal_deferral_depth(filc_thread* my_thread);
+
+PAS_API void filc_defer_signal(filc_thread* my_thread, siginfo_t* info);
+PAS_API void filc_consume_deferred_signals(filc_thread* my_thread);
 
 /* It's hilarious that these are outline function calls right now. It's also hilarious that pop_frame
    takes the frame. In the future, it'll only use it for assertions. */

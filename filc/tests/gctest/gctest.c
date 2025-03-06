@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdfil.h>
+#include <filc_test_support.h>
 
 #define ASSERT(exp) do { \
     if ((exp)) \

@@ -841,10 +841,10 @@ void filc_enter(filc_thread* my_thread)
     PAS_ASSERT((my_thread->state & FILC_THREAD_STATE_ENTERED));
 }
 
-static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* handler, int signum)
+static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* handler, siginfo_t* info)
 {
     PAS_ASSERT(handler);
-    PAS_ASSERT(handler->user_signum == signum);
+    PAS_ASSERT(handler->user_signum == info->si_signo);
 
     /* It's likely that we have a top native frame and it's not locked. Lock it to prevent assertions
        in that case. */
@@ -863,17 +863,41 @@ static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* han
        Also, we're choosing not to rely on the fact that functions are global and we track them anyway. */
     filc_ptr function_ptr = filc_flight_ptr_load(my_thread, &handler->function_ptr);
 
+    /* At this point, a GC can happen and we're not rooting the handler. So, we cannot touch the
+       handler anymore after this point. */
+
+    filc_ptr info_ptr = filc_ptr_create_with_object(
+        my_thread, filc_allocate_with_alignment(my_thread, sizeof(siginfo_t), alignof(siginfo_t)));
+    memcpy(filc_ptr_ptr(info_ptr), info, sizeof(siginfo_t));
+
     /* This check shouldn't be necessary; we do it out of an abundance of paranoia! */
     filc_check_function_call(function_ptr);
     filc_call_user_void_int_ptr_ptr(
-        my_thread, (pizlonated_function)filc_ptr_ptr(function_ptr), signum,
-        filc_ptr_forge_null(), filc_ptr_forge_null());
+        my_thread, (pizlonated_function)filc_ptr_ptr(function_ptr), info->si_signo, info_ptr,
+        filc_ptr_forge_null());
 
     filc_pop_native_frame(my_thread, &native_frame);
     filc_pop_frame(my_thread, frame);
 
     if (was_top_native_frame_unlocked)
         filc_unlock_top_native_frame(my_thread);
+}
+
+static void lookup_and_call_signal_handler_with_mask(filc_thread* my_thread, siginfo_t* info)
+{
+    static const bool verbose = false;
+    PAS_ASSERT(info->si_signo);
+    PAS_ASSERT((unsigned)info->si_signo <= FILC_MAX_USER_SIGNUM);
+    filc_signal_handler* handler = signal_table[info->si_signo];
+    PAS_ASSERT(handler);
+    sigset_t oldset;
+    if (verbose)
+        pas_log("%s: blocking signals\n", __PRETTY_FUNCTION__);
+    PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &handler->mask, &oldset));
+    call_signal_handler(my_thread, handler, info);
+    if (verbose)
+        pas_log("%s: unblocking signals\n", __PRETTY_FUNCTION__);
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
 }
 
 static void handle_deferred_signals(filc_thread* my_thread)
@@ -893,36 +917,7 @@ static void handle_deferred_signals(filc_thread* my_thread)
             break;
     }
 
-    size_t index;
-    /* I'm guessing at some point I'll actually have to care about the order here? */
-    for (index = FILC_MAX_USER_SIGNUM + 1; index--;) {
-        uint64_t num_deferred_signals;
-        /* We rely on the CAS for a fence, too. */
-        for (;;) {
-            num_deferred_signals = my_thread->num_deferred_signals[index];
-            if (pas_compare_and_swap_uint64_weak(
-                    my_thread->num_deferred_signals + index, num_deferred_signals, 0))
-                break;
-        }
-        if (!num_deferred_signals)
-            continue;
-
-        if (verbose)
-            pas_log("calling signal handler from pollcheck or exit\n");
-
-        /* We're a bit unsafe here because the handler object might get collected at the next exit. */
-        filc_signal_handler* handler = signal_table[index];
-        PAS_ASSERT(handler);
-        sigset_t oldset;
-        if (verbose)
-            pas_log("%s: blocking signals\n", __PRETTY_FUNCTION__);
-        PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &handler->mask, &oldset));
-        while (num_deferred_signals--)
-            call_signal_handler(my_thread, handler, (int)index);
-        if (verbose)
-            pas_log("%s: unblocking signals\n", __PRETTY_FUNCTION__);
-        PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
-    }
+    filc_consume_deferred_signals(my_thread);
 }
 
 static void broadcast_if_thread_stopped(filc_thread* my_thread)
@@ -1027,6 +1022,133 @@ void filc_decrease_special_signal_deferral_depth(filc_thread* my_thread)
     PAS_ASSERT(my_thread->special_signal_deferral_depth);
     my_thread->special_signal_deferral_depth--;
     handle_special_signal_deferral_depth_decrease(my_thread);
+}
+
+void filc_defer_signal(filc_thread* my_thread, siginfo_t* info)
+{
+    static const bool verbose = false;
+
+    PAS_ASSERT(info);
+    PAS_ASSERT(info->si_signo);
+    
+    sigset_t fullset;
+    sigset_t oldset;
+    pas_reasonably_fill_sigset(&fullset);
+    if (verbose)
+        pas_log("%s: blocking signals\n", __PRETTY_FUNCTION__);
+    PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &fullset, &oldset));
+
+    size_t index = my_thread->num_deferred_signals++;
+
+    if (index < FILC_INLINE_SIGNAL_QUEUE_SIZE)
+        my_thread->inline_signal_queue[index] = *info;
+    else {
+        index -= FILC_INLINE_SIGNAL_QUEUE_SIZE;
+        index %= FILC_SIGNAL_QUEUE_CHUNK_SIZE;
+        
+        filc_signal_queue_chunk* chunk;
+        if (!index) {
+            PAS_ASSERT(sizeof(filc_signal_queue_chunk) <= pas_page_malloc_alignment());
+            pas_aligned_allocation_result allocation_result =
+                pas_page_malloc_try_allocate_without_deallocating_padding(
+                    pas_page_malloc_alignment(), pas_alignment_create_trivial(),
+                    pas_committed);
+            PAS_ASSERT(allocation_result.result);
+            chunk = (filc_signal_queue_chunk*)allocation_result.result;
+            if (my_thread->first_signal_queue_chunk) {
+                PAS_ASSERT(my_thread->last_signal_queue_chunk);
+                my_thread->last_signal_queue_chunk->header.next = chunk;
+            } else {
+                PAS_ASSERT(!my_thread->last_signal_queue_chunk);
+                my_thread->first_signal_queue_chunk = chunk;
+            }
+            my_thread->last_signal_queue_chunk = chunk;
+        } else {
+            chunk = my_thread->last_signal_queue_chunk;
+            PAS_ASSERT(chunk);
+        }
+
+        PAS_ASSERT(index < FILC_SIGNAL_QUEUE_CHUNK_SIZE);
+        chunk->infos[index] = *info;
+    }
+    
+    if (verbose)
+        pas_log("%s: unblocking signals\n", __PRETTY_FUNCTION__);
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
+}
+
+void filc_consume_deferred_signals(filc_thread* my_thread)
+{
+    static const bool verbose = false;
+
+    PAS_ASSERT(filc_thread_is_entered(my_thread));
+
+    if (!my_thread->num_deferred_signals)
+        return;
+
+    sigset_t fullset;
+    sigset_t oldset;
+    pas_reasonably_fill_sigset(&fullset);
+    if (verbose)
+        pas_log("%s: blocking signals\n", __PRETTY_FUNCTION__);
+    PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &fullset, &oldset));
+
+    size_t num_deferred_signals = my_thread->num_deferred_signals;
+    size_t num_inline_signals = pas_min_uintptr(FILC_INLINE_SIGNAL_QUEUE_SIZE, num_deferred_signals);
+    siginfo_t* inline_signals = (siginfo_t*)bmalloc_allocate(
+        filc_mul_size(sizeof(siginfo_t), num_inline_signals));
+    memcpy(inline_signals, my_thread->inline_signal_queue,
+           filc_mul_size(sizeof(siginfo_t), num_inline_signals));
+    filc_signal_queue_chunk* signal_queue_chunk = my_thread->first_signal_queue_chunk;
+
+    my_thread->num_deferred_signals = 0;
+    my_thread->first_signal_queue_chunk = NULL;
+    my_thread->last_signal_queue_chunk = NULL;
+    
+    if (verbose)
+        pas_log("%s: unblocking signals\n", __PRETTY_FUNCTION__);
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
+
+    /* This code plays an imperfect game with ordering. Since we have unblocked signals and we're
+       calling into user code, it's possible for another signal to arrive and be serviced by
+       pollchecks (or exits) in the user code. Those signals would arrive before the ones we're
+       processing in this queue, which isn't quite right.
+       
+       FIXME: Eventually, make this algorithm handle the order correctly. */
+
+    size_t index;
+    for (index = 0; index < num_inline_signals; ++index)
+        lookup_and_call_signal_handler_with_mask(my_thread, inline_signals + index);
+    bmalloc_deallocate(inline_signals);
+    PAS_ASSERT(num_deferred_signals >= num_inline_signals);
+    num_deferred_signals -= num_inline_signals;
+
+    PAS_ASSERT(!!num_deferred_signals == !!signal_queue_chunk);
+
+    while (signal_queue_chunk) {
+        PAS_ASSERT(num_deferred_signals);
+        PAS_ASSERT(num_inline_signals == FILC_INLINE_SIGNAL_QUEUE_SIZE);
+        
+        for (index = 0;
+             index < pas_min_uintptr(num_deferred_signals, FILC_SIGNAL_QUEUE_CHUNK_SIZE);
+             ++index)
+            lookup_and_call_signal_handler_with_mask(my_thread, signal_queue_chunk->infos + index);
+        
+        filc_signal_queue_chunk* next = signal_queue_chunk->header.next;
+        PAS_ASSERT(sizeof(filc_signal_queue_chunk) <= pas_page_malloc_alignment());
+        pas_page_malloc_deallocate(signal_queue_chunk, pas_page_malloc_alignment());
+        signal_queue_chunk = next;
+        if (num_deferred_signals < FILC_SIGNAL_QUEUE_CHUNK_SIZE) {
+            PAS_ASSERT(!signal_queue_chunk);
+            break;
+        }
+        num_deferred_signals -= FILC_SIGNAL_QUEUE_CHUNK_SIZE;
+    }
+}
+
+size_t filc_native_znum_deferred_signals(filc_thread* my_thread)
+{
+    return my_thread->num_deferred_signals;
 }
 
 void filc_enter_with_allocation_root(filc_thread* my_thread, void* allocation_root)
@@ -1377,12 +1499,21 @@ static void dump_signals_mask(void)
     pas_log("\n");
 }
 
-static void signal_pizlonator(int signum)
+static void signal_pizlonator(int signum, siginfo_t* info, void* context)
 {
-    static const bool verbose = false;
+    PAS_UNUSED_PARAM(context);
     
+    static const bool verbose = false;
+
+    PAS_ASSERT(info);
     PAS_ASSERT((unsigned)signum <= FILC_MAX_USER_SIGNUM);
+    PAS_ASSERT(signum == info->si_signo);
+    PAS_ASSERT(signum);
     filc_thread* thread = filc_get_my_thread();
+
+    char stack_slot;
+    if ((char*)&stack_slot < (char*)thread->stack_limit)
+        filc_stack_overflow_failure_impl();
 
     /* We're running on a thread that shouldn't be receiving signals or we're running in a thread
        that hasn't fully started.
@@ -1401,12 +1532,7 @@ static void signal_pizlonator(int signum)
     
     if ((thread->state & FILC_THREAD_STATE_ENTERED) || thread->special_signal_deferral_depth) {
         /* For all we know the user asked for a mask that allows us to recurse, hence the lock-freedom. */
-        for (;;) {
-            uint64_t old_value = thread->num_deferred_signals[signum];
-            if (pas_compare_and_swap_uint64_weak(
-                    thread->num_deferred_signals + signum, old_value, old_value + 1))
-                break;
-        }
+        filc_defer_signal(thread, info);
         if (thread->special_signal_deferral_depth) {
             thread->have_deferred_signal_special = true;
             return;
@@ -1440,7 +1566,7 @@ static void signal_pizlonator(int signum)
     if (verbose)
         pas_log("calling signal handler from pizlonator\n");
     
-    call_signal_handler(thread, signal_table[signum], signum);
+    call_signal_handler(thread, signal_table[signum], info);
 
     filc_exit(thread);
 }
@@ -5829,6 +5955,14 @@ int filc_native_zsys_sigaction(
     struct sigaction oact;
     if (user_act) {
         filc_from_user_sigset(&user_act->sa_mask, &act.sa_mask);
+        if (!from_user_sa_flags(user_act->sa_flags, &act.sa_flags)) {
+            if (verbose)
+                pas_log("Bad sa_flags\n");
+            filc_set_errno(EINVAL);
+            return -1;
+        }
+        if (verbose)
+            pas_log("restart = %s\n", (act.sa_flags & SA_RESTART) ? "yes" : "no");
         filc_ptr user_handler = filc_load_ptr_at(my_thread, act_ptr, &user_act->sa_handler);
         if (is_user_special_signal_handler(filc_ptr_ptr(user_handler)))
             act.sa_handler = from_user_special_signal_handler(filc_ptr_ptr(user_handler));
@@ -5844,16 +5978,12 @@ int filc_native_zsys_sigaction(
             PAS_ASSERT((unsigned)signum <= FILC_MAX_USER_SIGNUM);
             filc_store_barrier(my_thread, filc_object_for_special_payload(handler));
             signal_table[signum] = handler;
-            act.sa_handler = signal_pizlonator;
+            act.sa_sigaction = signal_pizlonator;
+            act.sa_flags |= SA_SIGINFO; /* the signal_pizlonator always wants siginfo. FIXME: we could
+                                           optimize this so that we use siginfo-less handler for those
+                                           cases where the user didn't want siginfo, and that would
+                                           make stuff faster and use less memory. */
         }
-        if (!from_user_sa_flags(user_act->sa_flags, &act.sa_flags)) {
-            if (verbose)
-                pas_log("Bad sa_flags\n");
-            filc_set_errno(EINVAL);
-            return -1;
-        }
-        if (verbose)
-            pas_log("restart = %s\n", (act.sa_flags & SA_RESTART) ? "yes" : "no");
     }
     if (user_oact)
         pas_zero_memory(&oact, sizeof(struct sigaction));
@@ -5875,7 +6005,7 @@ int filc_native_zsys_sigaction(
             filc_store_ptr_at(my_thread, oact_ptr, &user_oact->sa_handler,
                               to_user_special_signal_handler(oact.sa_handler));
         } else {
-            PAS_ASSERT(oact.sa_handler == signal_pizlonator);
+            PAS_ASSERT(oact.sa_sigaction == signal_pizlonator);
             PAS_ASSERT((unsigned)signum <= FILC_MAX_USER_SIGNUM);
             /* FIXME: The signal_table entry should really be a filc_ptr so we can return it here. */
             filc_store_ptr_at(my_thread, oact_ptr, &user_oact->sa_handler,
@@ -9517,6 +9647,17 @@ int filc_native_zsys_query_module(filc_thread* my_thread, filc_ptr name_ptr, int
                                            bufsize, filc_ptr_ptr(ret_ptr)));
 }
 
+int filc_native_zsys_sigqueue(filc_thread* my_thread, int pid, int sig, filc_ptr value_ptr)
+{
+    if (is_unsafe_signal_for_kill(sig)) {
+        filc_set_errno(ENOSYS);
+        return -1;
+    }
+    union sigval sigval;
+    sigval.sival_ptr = filc_ptr_ptr(value_ptr);
+    return FILC_SYSCALL(my_thread, sigqueue(pid, sig, sigval));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
@@ -9612,9 +9753,9 @@ void filc_native_zthread_exit(filc_thread* thread, filc_ptr result)
     PAS_ASSERT(thread->thread);
     PAS_ASSERT(!(thread->state & FILC_THREAD_STATE_ENTERED));
     PAS_ASSERT(!(thread->state & FILC_THREAD_STATE_DEFERRED_SIGNAL));
-    size_t index;
-    for (index = FILC_MAX_USER_SIGNUM + 1; index--;)
-        PAS_ASSERT(!thread->num_deferred_signals[index]);
+    PAS_ASSERT(!thread->num_deferred_signals);
+    PAS_ASSERT(!thread->first_signal_queue_chunk);
+    PAS_ASSERT(!thread->last_signal_queue_chunk);
     thread->thread = PAS_NULL_SYSTEM_THREAD_ID;
     thread->has_stopped = true;
     pas_system_condition_broadcast(&thread->cond);
@@ -9816,6 +9957,7 @@ void filc_native_zincrement_signal_deferral_depth(filc_thread* my_thread)
 void filc_native_zdecrement_signal_deferral_depth(filc_thread* my_thread)
 {
     filc_decrease_special_signal_deferral_depth(my_thread);
+    filc_pollcheck(my_thread, NULL);
 }
 
 unsigned long long filc_native_zget_signal_deferral_depth(filc_thread* my_thread)

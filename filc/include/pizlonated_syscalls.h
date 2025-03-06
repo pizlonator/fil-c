@@ -344,6 +344,7 @@ long zsys_nfsservctl(int cmd, void* argp, void* resp);
 int zsys_query_module(const char* name, int which, void* buf, __SIZE_TYPE__ bufsize,
                       __SIZE_TYPE__* ret);
 int zsys_uselib(const char* library);
+int zsys_sigqueue(int pid, int sig, void* value);
 
 #ifdef __cplusplus
 }

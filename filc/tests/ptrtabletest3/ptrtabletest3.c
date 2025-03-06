@@ -1,4 +1,5 @@
 #include <stdfil.h>
+#include <filc_test_support.h>
 #include <stdbool.h>
 
 static const unsigned num_objects = 1000;

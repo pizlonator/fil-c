@@ -1,4 +1,5 @@
 #include <stdfil.h>
+#include <filc_test_support.h>
 
 __attribute__((__noinline__)) static void doit(void)
 {

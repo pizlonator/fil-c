@@ -7,6 +7,7 @@
 #include <stdfil.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <filc_test_support.h>
 
 static size_t num_nodes = 10000;
 static size_t repeat = 10;
