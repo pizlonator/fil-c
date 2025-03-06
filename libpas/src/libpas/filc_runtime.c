@@ -9752,6 +9752,9 @@ void filc_native_zthread_exit(filc_thread* thread, filc_ptr result)
         pas_log("%s: blocking signals\n", __PRETTY_FUNCTION__);
     PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &set, NULL));
 
+    /* Make sure that we handle all signals before we get to the exit below. */
+    handle_deferred_signals(thread);
+
     fugc_donate(&thread->mark_stack);
     filc_thread_stop_allocators(thread);
     thread->tid = 0;
