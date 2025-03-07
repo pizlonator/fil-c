@@ -1,0 +1,6 @@
+return:
+  failure
+output-includes:
+  # Cannot be more specific, because the test fails due to badly installed context. So we blow up in
+  # the exception handling runtime.
+  - "filc safety error"
