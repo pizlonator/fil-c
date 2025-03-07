@@ -95,6 +95,8 @@
 #include <sys/klog.h>
 #include <sys/timerfd.h>
 #include <sys/quota.h>
+#include <sys/statfs.h>
+#include <sys/statvfs.h>
 
 #if PAS_GLIBC
 #include <sys/pidfd.h>
@@ -7726,6 +7728,7 @@ static void check_madvise_advice(int advice)
 #ifdef MADV_POPULATE_WRITE
     case MADV_POPULATE_WRITE:
 #endif
+    case MADV_FREE:
         return;
 
     case MADV_DONTFORK:
@@ -9682,6 +9685,40 @@ int filc_native_zsys_openat(filc_thread* my_thread, int dirfd, filc_ptr path_ptr
     if (verbose)
         pas_log("doing an openat with dirfd = %d, path = %s, flags = %d.\n", dirfd, path, flags);
     return FILC_SYSCALL(my_thread, openat(dirfd, path, flags, mode));
+}
+
+int filc_native_zsys_statfs(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr buf_ptr)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    filc_check_write(buf_ptr, sizeof(struct statfs));
+    return FILC_SYSCALL(my_thread, statfs(path, (struct statfs*)filc_ptr_ptr(buf_ptr)));
+}
+
+int filc_native_zsys_fstatfs(filc_thread* my_thread, int fd, filc_ptr buf_ptr)
+{
+    filc_check_write(buf_ptr, sizeof(struct statfs));
+    return FILC_SYSCALL(my_thread, fstatfs(fd, (struct statfs*)filc_ptr_ptr(buf_ptr)));
+}
+
+int filc_native_zsys_statvfs(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr buf_ptr)
+{
+    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    filc_check_write(buf_ptr, sizeof(struct statvfs));
+    return FILC_SYSCALL(my_thread, statvfs(path, (struct statvfs*)filc_ptr_ptr(buf_ptr)));
+}
+
+int filc_native_zsys_fstatvfs(filc_thread* my_thread, int fd, filc_ptr buf_ptr)
+{
+    filc_check_write(buf_ptr, sizeof(struct statvfs));
+    return FILC_SYSCALL(my_thread, fstatvfs(fd, (struct statvfs*)filc_ptr_ptr(buf_ptr)));
+}
+
+int filc_native_zsys_renameat(filc_thread* my_thread, int oldfd, filc_ptr old_ptr, int newfd,
+                              filc_ptr new_ptr)
+{
+    char* old = filc_check_and_get_tmp_str(my_thread, old_ptr);
+    char* new = filc_check_and_get_tmp_str(my_thread, new_ptr);
+    return FILC_SYSCALL(my_thread, renameat(oldfd, old, newfd, new));
 }
 
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)

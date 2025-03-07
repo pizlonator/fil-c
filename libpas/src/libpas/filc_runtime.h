@@ -3402,6 +3402,24 @@ PAS_API void filc_call_syscall_with_guarded_ptr(filc_thread* my_thread,
    Curse: you cannot have anything in the syscall_call expression that uses any
    filc API that requires being entered. You can call things like filc_ptr_ptr()
    but almost nothing else.
+   
+   Also, because of this property, syscall_call cannot be the result of the syscall call; it has to be
+   the syscall call itself.
+   
+   GOOD:
+   
+       char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+       FILC_SYSCALL(my_thread, open(path, O_WHATEVER))
+
+   BAD: (the syscall isn't made in the exit)
+   
+       char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+       int result = open(path, O_WHATEVER);
+       FILC_SYSCALL(my_thread, result)
+
+   BAD: (cannot call filc_check_and_get_tmp_str in the exit)
+
+       FILC_SYSCALL(my_thread, open(filc_check_and_get_tmp_str(my_thread, path_ptr), O_WHATEVER))
 
    FIXME: We should totally use this macro a lot more. */
 #define FILC_SYSCALL(my_thread, syscall_call) ({ \

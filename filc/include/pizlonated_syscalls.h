@@ -346,6 +346,11 @@ int zsys_query_module(const char* name, int which, void* buf, __SIZE_TYPE__ bufs
 int zsys_uselib(const char* library);
 int zsys_sigqueue(int pid, int sig, void* value);
 int zsys_openat(int dirfd, const char* path, int flags, ...);
+int zsys_statfs(const char* path, void* buf);
+int zsys_fstatfs(int fd, void* buf);
+int zsys_statvfs(const char* path, void* buf);
+int zsys_fstatvfs(int fd, void* buf);
+int zsys_renameat(int oldfd, const char* old_path, int newfd, const char* new_path);
 
 #ifdef __cplusplus
 }

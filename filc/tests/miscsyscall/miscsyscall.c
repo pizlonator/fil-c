@@ -22,6 +22,8 @@
 #include <sys/random.h>
 #include <sys/syscall.h>
 #include <filc_test_support.h>
+#include <sys/statfs.h>
+#include <sys/statvfs.h>
 
 int main(int argc, char** argv)
 {
@@ -265,6 +267,62 @@ int main(int argc, char** argv)
     ZASSERT(!zis_unsafe_signal_for_handlers(SIGUSR1));
     ZASSERT(!zis_unsafe_signal_for_kill(SIGTRAP));
     ZASSERT(zis_unsafe_signal_for_handlers(SIGTRAP));
+
+    struct statfs sfs;
+    memset(&sfs, 0, sizeof(sfs));
+    ZASSERT(!statfs(".", &sfs));
+    ZASSERT(sfs.f_bsize);
+    ZASSERT(sfs.f_blocks);
+    ZASSERT(sfs.f_files);
+    ZASSERT(sfs.f_namelen);
+    struct statvfs svfs;
+    memset(&svfs, 0, sizeof(svfs));
+    ZASSERT(!statvfs(".", &svfs));
+    ZASSERT(svfs.f_bsize);
+    ZASSERT(svfs.f_blocks);
+    ZASSERT(svfs.f_files);
+    ZASSERT(svfs.f_namemax);
+    fd = open("filc/tests/miscsyscall/testfile.txt", O_RDONLY);
+    ZASSERT(fd > 2);
+    memset(&sfs, 0, sizeof(sfs));
+    ZASSERT(!fstatfs(fd, &sfs));
+    ZASSERT(sfs.f_bsize);
+    ZASSERT(sfs.f_blocks);
+    ZASSERT(sfs.f_files);
+    ZASSERT(sfs.f_namelen);
+    memset(&svfs, 0, sizeof(svfs));
+    ZASSERT(!fstatvfs(fd, &svfs));
+    ZASSERT(svfs.f_bsize);
+    ZASSERT(svfs.f_blocks);
+    ZASSERT(svfs.f_files);
+    ZASSERT(svfs.f_namemax);
+    close(fd);
+
+    ZASSERT(umask(0033) == 0133);
+
+    int miscsyscallfd = open("filc/test-output/miscsyscall", O_DIRECTORY);
+    ZASSERT(miscsyscallfd > 2);
+    unlinkat(miscsyscallfd, "dir1/test.txt", 0);
+    unlinkat(miscsyscallfd, "dir2/test.txt", 0);
+    unlinkat(miscsyscallfd, "dir1", AT_REMOVEDIR);
+    unlinkat(miscsyscallfd, "dir2", AT_REMOVEDIR);
+    ZASSERT(!mkdirat(miscsyscallfd, "dir1", 0700));
+    ZASSERT(!mkdirat(miscsyscallfd, "dir2", 0700));
+    fd = openat(miscsyscallfd, "dir1/test.txt", O_CREAT | O_WRONLY, 0600);
+    if (fd < 0)
+        zprintf("fd = %d, error = %s\n", fd, strerror(errno));
+    ZASSERT(fd > 2);
+    close(fd);
+    ZASSERT(!renameat(miscsyscallfd, "dir1/test.txt",
+                      AT_FDCWD, "filc/test-output/miscsyscall/dir2/test.txt"));
+    ZASSERT(openat(miscsyscallfd, "dir1/test.txt", O_RDONLY) < 0);
+    fd = openat(miscsyscallfd, "dir2/test.txt", O_RDONLY);
+    ZASSERT(fd > 2);
+    close(fd);
+    ZASSERT(!symlinkat("../dir2/test.txt", miscsyscallfd, "dir1/test.txt"));
+    fd = openat(miscsyscallfd, "dir1/test.txt", O_RDONLY);
+    ZASSERT(fd > 2);
+    close(fd);
 
     zprintf("No worries.\n");
     return 0;
