@@ -328,6 +328,20 @@ $benchmarks << Benchmark.new(
     "benchmarkData/richards.js",
     [])
 
+$benchmarks << Benchmark.new(
+    "bin/bzip3",
+    "< benchmarkData/libcrypto.3.dylib > benchmarkOutput/libcrypto.3.dylib.bz3",
+    [
+        "diff -n benchmarkOutput/libcrypto.3.dylib.bz3 benchmarkData/libcrypto.3.dylib.bz3"
+    ])
+
+$benchmarks << Benchmark.new(
+    "bin/bzip3",
+    "-d < benchmarkData/libcrypto.3.dylib.bz3 > benchmarkOutput/libcrypto.3.dylib",
+    [
+        "diff -n benchmarkOutput/libcrypto.3.dylib benchmarkData/libcrypto.3.dylib"
+    ])
+
 $plugins.each {
     | plugin |
     load plugin
