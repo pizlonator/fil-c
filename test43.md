@@ -433,7 +433,7 @@ Finally, we initialize the `lowers`.
         2298:       0f 11 44 24 38          movups %xmm0,0x38(%rsp)
         229d:       0f 11 44 24 48          movups %xmm0,0x48(%rsp)
 
-In Fil-C runtime and compiler jargon, the `lower` is a particular representation of the capability, where we point just above the `filc_object` (i.e. the capability object), which also happens to be the lower bounds. If you see accesses at negative constant offsets as big as -16, then those are likely to be `filc_object` accesses. Since this function doesn't get have any pointers that need to be tracked by GC, this is just initialized to zero. Whenever a pointer value is produced, it'll be stored into somewhere in this `lowers` array. ([Issue 18: Optimize how the compiler emits stores to the filc_frame lowers array](https://github.com/pizlonator/llvm-project-deluge/issues/18))
+In Fil-C runtime and compiler jargon, the `lower` is a particular representation of the capability, where we point just above the `filc_object` (i.e. the capability object), which also happens to be the lower bounds. If you see accesses at negative constant offsets as big as -16, then those are likely to be `filc_object` accesses. Since this function doesn't yet have any pointers that need to be tracked by GC, this is just initialized to zero. Whenever a pointer value is produced, it'll be stored into somewhere in this `lowers` array. ([Issue 18: Optimize how the compiler emits stores to the filc_frame lowers array](https://github.com/pizlonator/llvm-project-deluge/issues/18))
 
 Next, we process `insert_sorted`'s arguments, i.e. `struct list** list_head, int value`:
 
