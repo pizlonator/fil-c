@@ -567,7 +567,7 @@ Finally we make the call and extract the return value:
         2354:       48 8b bb 80 00 00 00    mov    0x80(%rbx),%rdi
         235b:       48 8b b3 80 01 00 00    mov    0x180(%rbx),%rsi
 
-The two arguments to any pizlonated function are `filc_thread* my_thread, size_t argument_size`. Here we pass 8 as the second argument (the argument size), since we're only passing one primitive argument (`%esi`). And we pass our thread pointer as the first argument (`%rdi`). Then we actually call `malloc`:
+The two arguments to any pizlonated function are `filc_thread* my_thread, size_t argument_size`. Here we pass 8 as the second argument (the argument size, in `%esi`), since we're only passing one primitive argument. And we pass our thread pointer as the first argument (`%rdi`). Then we actually call `malloc`:
 
         2340:       ff d0                   call   *%rax
 
