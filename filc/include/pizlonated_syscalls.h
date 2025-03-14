@@ -353,6 +353,7 @@ int zsys_fstatvfs(int fd, void* buf);
 int zsys_renameat(int oldfd, const char* old_path, int newfd, const char* new_path);
 int zsys_getcpu(unsigned* cpu, unsigned* node);
 int zsys_sched_getcpu(void);
+int zsys_msync(void* start, __SIZE_TYPE__ len, int flags);
 
 #ifdef __cplusplus
 }

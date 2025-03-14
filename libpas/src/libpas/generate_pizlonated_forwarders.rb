@@ -450,6 +450,7 @@ addSig "int", "zsys_fstatvfs", "int", "filc_ptr"
 addSig "int", "zsys_renameat", "int", "filc_ptr", "int", "filc_ptr"
 addSig "int", "zsys_getcpu", "filc_ptr", "filc_ptr"
 addSig "int", "zsys_sched_getcpu"
+addSig "int", "zsys_msync", "filc_ptr", "size_t", "int"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"

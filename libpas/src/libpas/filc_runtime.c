@@ -9752,6 +9752,13 @@ int filc_native_zsys_sched_getcpu(filc_thread* my_thread)
     return FILC_SYSCALL(my_thread, sched_getcpu());
 }
 
+int filc_native_zsys_msync(filc_thread* my_thread, filc_ptr start_ptr, size_t len, int flags)
+{
+    /* msync() doesn't change anything in *our* memory. Hence, it's always safe. At worst the kernel
+       will reject it because the pointer doesn't point to something that msync() makes sense for. */
+    return FILC_SYSCALL(my_thread, msync(filc_ptr_ptr(start_ptr), len, flags));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
