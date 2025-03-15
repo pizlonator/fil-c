@@ -4835,6 +4835,7 @@ class Pizlonator {
         return true;
 
       case Intrinsic::x86_xgetbv:
+      case Intrinsic::x86_sse2_pause:
         return true;
 
       case Intrinsic::returnaddress:
