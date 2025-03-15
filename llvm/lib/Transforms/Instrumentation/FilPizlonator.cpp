@@ -1,4 +1,4 @@
-//===- FilPizlonator.cpp - coolest fugcing pass ever written --------------===//
+//===- FilPizlonator.cpp - apply GIMSO semantics to LLVM IR ---------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -8,8 +8,20 @@
 //
 // This file is a part of Fil-C.
 //
-// See here:
+// See here for an overview:
 // https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md
+//
+// This document explains the semantics we're trying to achieve:
+// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/gimso_semantics.md
+//
+// Here is a non-exhaustive set of examples of issues this catches:
+// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md
+//
+// And and explanation of the disassembly:
+// https://github.com/pizlonator/llvm-project-deluge/blob/deluge/test43.md
+//
+// This pass strongly relies on the Fil-C runtime and FUGC garbage collector.
+// Those components are in the llvm-project/libpas directory.
 //
 //===----------------------------------------------------------------------===//
 
