@@ -60,3 +60,6 @@ filc_stack_overflow_failure:
 	.type failure_stack,@object
 	.local failure_stack
 	.comm failure_stack,8192,16
+
+        .section    .note.GNU-stack,"",@progbits
+        

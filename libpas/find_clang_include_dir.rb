@@ -39,7 +39,7 @@ IO.popen("clang -### -c fake_c_file.c 2>&1", "r") {
     | inp |
     inp.each_line {
         | line |
-        next unless line =~ /bin\/clang\"/
+        next unless line =~ /bin\/clang/
         Shellwords.split(line).each {
             | entry |
             path = Pathname.new(entry)
