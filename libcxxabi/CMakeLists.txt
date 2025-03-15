@@ -372,6 +372,8 @@ if (LIBCXXABI_HAS_UNDEFINED_SYMBOLS)
   endif()
 endif()
 
+list(APPEND LIBCXXABI_LINK_FLAGS "-nostdlib++")
+
 if (LIBCXXABI_HAS_PTHREAD_API)
   add_definitions(-D_LIBCPP_HAS_THREAD_API_PTHREAD)
 endif()

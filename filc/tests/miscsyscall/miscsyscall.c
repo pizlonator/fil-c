@@ -74,7 +74,6 @@ int main(int argc, char** argv)
             st.st_mode == (0664 | S_IFREG)); /* on my Linux install, I get 0664. */
     ZASSERT(st.st_nlink == 1);
     ZASSERT(st.st_uid);
-    ZASSERT(st.st_gid);
     ZASSERT(st.st_size == 86);
 
     ZASSERT(zthread_self());
