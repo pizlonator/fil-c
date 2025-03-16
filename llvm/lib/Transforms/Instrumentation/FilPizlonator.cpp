@@ -1045,6 +1045,7 @@ class Pizlonator {
   IntegerType* Int8Ty;
   IntegerType* Int16Ty;
   IntegerType* Int32Ty;
+  IntegerType* Int64Ty;
   IntegerType* IntPtrTy;
   IntegerType* Int128Ty;
   Type* FloatTy;
@@ -1088,6 +1089,7 @@ class Pizlonator {
   FunctionCallee AllocateWithAlignment;
   FunctionCallee OptimizedAlignmentContradiction;
   FunctionCallee OptimizedAccessCheckFail;
+  FunctionCallee MaskedAccessCheckFail;
   FunctionCallee CheckFunctionCallFail;
   FunctionCallee Memset;
   FunctionCallee Memmove;
@@ -3043,8 +3045,8 @@ class Pizlonator {
     return PtrAndOffset(OriginalHighP, 0);
   }
 
-  void buildChecks(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
-                   AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
+  void buildChecksImpl(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
+                       AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
     if (verbose) {
       errs() << "Building checks for " << *I << " with T = " << *T << ", HighP = " << *HighP
              << ", Alignment = " << Alignment.value() << ", AK = " << accessKindString(AK) << "\n";
@@ -3053,8 +3055,34 @@ class Pizlonator {
     PtrAndOffset PAO = canonicalizePtr(HighP);
     if (verbose)
       errs() << "PAO = " << *PAO.HighP << ", offset = " << PAO.Offset << "\n";
+
+    if (IntrinsicInst* II = dyn_cast<IntrinsicInst>(I)) {
+      switch (II->getIntrinsicID()) {
+      case Intrinsic::masked_load:
+      case Intrinsic::masked_store:
+        Checks.push_back(
+          AccessCheckWithDI(PAO.HighP, 0, 0, CheckKind::ValidObject, basicDI(I->getDebugLoc())));
+        Checks.push_back(
+          AccessCheckWithDI(
+            PAO.HighP, PositiveModulo(PAO.Offset, Alignment.value()), Alignment.value(),
+            CheckKind::Alignment, basicDI(I->getDebugLoc())));
+        if (II->getIntrinsicID() == Intrinsic::masked_store) {
+          Checks.push_back(
+            AccessCheckWithDI(PAO.HighP, 0, 0, CheckKind::CanWrite, basicDI(I->getDebugLoc())));
+        }
+        return;
+      default:
+        break;
+      }
+    }
+
     buildChecksRecurse(T, PAO.HighP, PAO.Offset, Alignment.value(), AO, AK, basicDI(I->getDebugLoc()),
                        Checks);
+  }
+
+  void buildChecks(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
+                   AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
+    buildChecksImpl(I, T, HighP, Alignment, AO, AK, Checks);
     canonicalizeAccessChecks(Checks);
   }
 
@@ -3101,6 +3129,16 @@ class Pizlonator {
              AccessKind::Write);
         Func(II, RawPtrTy, II->getArgOperand(1), Align(WordSize), AtomicOrdering::NotAtomic,
              AccessKind::Read);
+        return;
+      case Intrinsic::masked_load:
+        Func(II, II->getType(), II->getArgOperand(0),
+             Align(cast<ConstantInt>(II->getArgOperand(1))->getZExtValue()), AtomicOrdering::NotAtomic,
+             AccessKind::Read);
+        return;
+      case Intrinsic::masked_store:
+        Func(II, II->getArgOperand(0)->getType(), II->getArgOperand(1),
+             Align(cast<ConstantInt>(II->getArgOperand(2))->getZExtValue()), AtomicOrdering::NotAtomic,
+             AccessKind::Write);
         return;
       default:
         return;
@@ -4936,6 +4974,147 @@ class Pizlonator {
         return true;
       }
 
+      case Intrinsic::masked_load:
+      case Intrinsic::masked_store: {
+        bool isStore = II->getIntrinsicID() == Intrinsic::masked_store;
+        FixedVectorType* T;
+        Value* ValueToStore;
+        Value* Ptr;
+        unsigned PtrArgIndex;
+        Value* Mask;
+        assert(II->arg_size() == 4);
+        lowerConstantOperand(II->getArgOperandUse(0), II);
+        lowerConstantOperand(II->getArgOperandUse(1), II);
+        lowerConstantOperand(II->getArgOperandUse(2), II);
+        lowerConstantOperand(II->getArgOperandUse(3), II);
+        if (isStore) {
+          ValueToStore = II->getArgOperand(0);
+          T = cast<FixedVectorType>(ValueToStore->getType());
+          PtrArgIndex = 1;
+          Mask = II->getArgOperand(3);
+        } else {
+          ValueToStore = nullptr;
+          T = cast<FixedVectorType>(II->getType());
+          PtrArgIndex = 0;
+          Mask = II->getArgOperand(2);
+        }
+        Ptr = II->getArgOperand(PtrArgIndex);
+        assert(!hasPtrs(T));
+        uint64_t MaskSize = DL.getTypeSizeInBits(Mask->getType()).getFixedValue();
+        // Currently filc_masked_access_check_fail can only handle 64 bit masks max.
+        assert(MaskSize <= 64);
+        assert(MaskSize == T->getElementCount().getFixedValue());
+        assert(MaskSize * DL.getTypeAllocSize(T->getElementType()) == DL.getTypeAllocSize(T));
+        Type* MaskIntTy = Type::getIntNTy(C, MaskSize);
+        
+        // FIXME: We could query the abstract state to see if this is already above this lower bound.
+        Instruction* IsBelowLowerFast = new ICmpInst(
+          II, ICmpInst::ICMP_ULT, flightPtrPtr(Ptr, II), flightPtrLower(Ptr, II),
+          "filc_ptr_below_lower_masked_fast");
+        IsBelowLowerFast->setDebugLoc(II->getDebugLoc());
+        Instruction* BelowLowerTerm =
+          SplitBlockAndInsertIfThen(expectFalse(IsBelowLowerFast, II), II, false);
+        // NOTE: The codegen for BelowLowerTerm is further down below.
+        
+        // FIXME: Could check the alignment that was passed in, and use that to make this more
+        // efficient.
+        Instruction* UpperMinus = GetElementPtrInst::Create(
+          Int8Ty, upperForLower(flightPtrLower(Ptr, II), II),
+          { ConstantInt::get(IntPtrTy, -DL.getTypeStoreSize(T)) },
+          "filc_upper_minus_masked_fast", II);
+        UpperMinus->setDebugLoc(II->getDebugLoc());
+        Instruction* IsBelowUpperFast = new ICmpInst(
+          II, ICmpInst::ICMP_ULE, flightPtrPtr(Ptr, II), UpperMinus,
+          "filc_ptr_below_equal_upper_masked_fast");
+        IsBelowUpperFast->setDebugLoc(II->getDebugLoc());
+        Instruction* AboveUpperTerm = SplitBlockAndInsertIfElse(
+          expectTrue(IsBelowUpperFast, II), II, false);
+
+        // First we identify the ptr Offset. Then we do:
+        // Ptr >= Lower - Offset
+        //
+        // This is an overflow-free way of saying:
+        // Ptr + Offset >= Lower
+        Instruction* MaskInt = new BitCastInst(Mask, MaskIntTy, "filc_mask_as_int", BelowLowerTerm);
+        MaskInt->setDebugLoc(II->getDebugLoc());
+        Instruction* MaskIsZero = new ICmpInst(
+          BelowLowerTerm, ICmpInst::ICMP_EQ, MaskInt, ConstantInt::get(MaskIntTy, 0),
+          "filc_mask_is_zero");
+        MaskIsZero->setDebugLoc(II->getDebugLoc());
+        SplitBlockAndInsertIfThen(
+          MaskIsZero, BelowLowerTerm, false, nullptr, nullptr, nullptr, II->getParent());
+        Instruction* TrailingZeroes = CallInst::Create(
+          Intrinsic::getDeclaration(&M, Intrinsic::cttz, MaskIntTy),
+          { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", BelowLowerTerm);
+        TrailingZeroes->setDebugLoc(II->getDebugLoc());
+        Instruction* Offset = BinaryOperator::Create(
+          Instruction::Mul, makeIntPtr(TrailingZeroes, BelowLowerTerm),
+          ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
+          "filc_mask_offset", BelowLowerTerm);
+        Offset->setDebugLoc(II->getDebugLoc());
+        Instruction* NegativeOffset = BinaryOperator::Create(
+          Instruction::Sub, ConstantInt::get(IntPtrTy, 0), Offset, "filc_mask_neg_offset",
+          BelowLowerTerm);
+        NegativeOffset->setDebugLoc(II->getDebugLoc());
+        Instruction* LowerMinus = GetElementPtrInst::Create(
+          Int8Ty, flightPtrLower(Ptr, BelowLowerTerm), { NegativeOffset },
+          "filc_lower_minus_masked_offset", BelowLowerTerm);
+        LowerMinus->setDebugLoc(II->getDebugLoc());
+        Instruction* IsBelowLower = new ICmpInst(
+          BelowLowerTerm, ICmpInst::ICMP_ULT, flightPtrPtr(Ptr, BelowLowerTerm), LowerMinus,
+          "filc_ptr_below_lower_masked");
+        IsBelowLower->setDebugLoc(II->getDebugLoc());
+        Instruction* FailTerm = SplitBlockAndInsertIfThen(
+          expectFalse(IsBelowLower, BelowLowerTerm), BelowLowerTerm, true);
+        PHINode* MaskIntPhi = PHINode::Create(MaskIntTy, 2, "filc_mask_as_int_phi", FailTerm);
+        MaskIntPhi->addIncoming(MaskInt, IsBelowLower->getParent());
+        
+        // First we identify the true Size of the access. Then we do:
+        // Ptr <= Upper - Size
+        //
+        // This is an overflow-free way of saying:
+        // Ptr + Size <= Upper
+        MaskInt = new BitCastInst(Mask, MaskIntTy, "filc_mask_as_int", AboveUpperTerm);
+        MaskInt->setDebugLoc(II->getDebugLoc());
+        MaskIsZero = new ICmpInst(
+          AboveUpperTerm, ICmpInst::ICMP_EQ, MaskInt, ConstantInt::get(MaskIntTy, 0),
+          "filc_mask_is_zero");
+        MaskIsZero->setDebugLoc(II->getDebugLoc());
+        SplitBlockAndInsertIfThen(
+          MaskIsZero, AboveUpperTerm, false, nullptr, nullptr, nullptr, II->getParent());
+        Instruction* LeadingZeroes = CallInst::Create(
+          Intrinsic::getDeclaration(&M, Intrinsic::ctlz, MaskIntTy),
+          { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", AboveUpperTerm);
+        LeadingZeroes->setDebugLoc(II->getDebugLoc());
+        Instruction* OffsetFromEnd = BinaryOperator::Create(
+          Instruction::Mul, makeIntPtr(LeadingZeroes, AboveUpperTerm),
+          ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
+          "filc_mask_offset_from_end", AboveUpperTerm);
+        OffsetFromEnd->setDebugLoc(II->getDebugLoc());
+        UpperMinus = GetElementPtrInst::Create(
+          Int8Ty, UpperMinus, { OffsetFromEnd }, "filc_upper_minus_masked_offset",
+          AboveUpperTerm);
+        UpperMinus->setDebugLoc(II->getDebugLoc());
+        Instruction* IsBelowUpper = new ICmpInst(
+          AboveUpperTerm, ICmpInst::ICMP_ULE, flightPtrPtr(Ptr, AboveUpperTerm), UpperMinus,
+          "filc_ptr_below_equal_upper_masked");
+        IsBelowUpper->setDebugLoc(II->getDebugLoc());
+        SplitBlockAndInsertIfElse(
+          expectTrue(IsBelowUpper, AboveUpperTerm), AboveUpperTerm, false, nullptr, nullptr, nullptr,
+          FailTerm->getParent());
+        MaskIntPhi->addIncoming(MaskInt, IsBelowUpper->getParent());
+
+        CallInst::Create(
+          MaskedAccessCheckFail,
+          { Ptr, castInt(MaskIntPhi, Int64Ty, FailTerm),
+            ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T)), ConstantInt::get(Int32Ty, isStore),
+            getOrigin(II->getDebugLoc()) },
+          "", FailTerm);
+
+        II->getArgOperandUse(PtrArgIndex) = flightPtrPtr(Ptr, II);
+        return true;
+      }
+
       default:
         if (!II->getCalledFunction()->doesNotAccessMemory()
             && !isa<ConstrainedFPIntrinsic>(II)
@@ -6733,6 +6912,7 @@ public:
     Int32Ty = Type::getInt32Ty(C);
     IntPtrTy = Type::getIntNTy(C, PtrBits);
     assert(IntPtrTy == Type::getInt64Ty(C)); // FilC is 64-bit-only, for now.
+    Int64Ty = IntPtrTy;
     Int128Ty = Type::getInt128Ty(C);
     FloatTy = Type::getFloatTy(C);
     DoubleTy = Type::getDoubleTy(C);
@@ -6916,6 +7096,8 @@ public:
       "filc_optimized_alignment_contradiction", VoidTy, FlightPtrTy, RawPtrTy);
     OptimizedAccessCheckFail = M.getOrInsertFunction(
       "filc_optimized_access_check_fail", VoidTy, FlightPtrTy, RawPtrTy);
+    MaskedAccessCheckFail = M.getOrInsertFunction(
+      "filc_masked_access_check_fail", VoidTy, FlightPtrTy, Int64Ty, IntPtrTy, Int32Ty, RawPtrTy);
     Memset = M.getOrInsertFunction(
       "filc_memset", VoidTy, RawPtrTy, FlightPtrTy, Int32Ty, IntPtrTy, RawPtrTy);
     Memmove = M.getOrInsertFunction(

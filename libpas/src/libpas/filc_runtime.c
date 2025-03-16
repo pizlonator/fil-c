@@ -3308,6 +3308,25 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_alignment_contradiction(
                               contradiction_origin->semantic_origins);
 }
 
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_masked_access_check_fail(
+    filc_ptr ptr, uint64_t mask, size_t size, filc_access_kind access_kind, const filc_origin* origin)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+    PAS_ASSERT(my_thread->top_frame);
+    if (origin)
+        my_thread->top_frame->origin = origin;
+    pas_log("filc safety error: masked %s not in bounds (even accounting for the mask).\n",
+            filc_access_kind_get_string(access_kind));
+    pas_log("    pointer: ");
+    filc_ptr_dump(ptr, pas_log_stream);
+    pas_log("\n");
+    pas_log("    mask: %lx\n", mask);
+    pas_log("    vector size in bytes: %zu\n", size);
+    pas_log("origin:\n");
+    filc_thread_dump_stack(my_thread, pas_log_stream);
+    finish_panicking("thwarted a futile attempt to violate memory safety.");
+}
+
 void filc_check_function_call(filc_ptr ptr)
 {
     filc_check_access_special(ptr, FILC_SPECIAL_TYPE_FUNCTION);

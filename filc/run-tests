@@ -69,7 +69,13 @@ GetoptLong.new(
 
 raise unless ARGV.empty?
 
-raise unless system("#{$compilerPrefix}clang -c -o filc/tests/legacy_utils.o filc/tests/legacy_utils.c -Ilibpas/src/libpas -g")
+# Check if we have avx512
+raise unless system("clang -O3 -g -o filc/tests/has_avx512 filc/tests/has_avx512.c")
+system("filc/tests/has_avx512 > filc/tests/has_avx512.log 2>&1")
+raise unless $?.exited?
+raise unless $?.exitstatus == 0 or $?.exitstatus == 1
+$hasAVX512 = $?.exitstatus == 0
+
 raise unless system("#{$compilerPrefix}#{$pizfix}/../build/bin/clang -O3 -c -o filc/tests/utils.o filc/tests/utils.c -g")
 
 $testDirectory = Pathname.new("filc/tests")
@@ -107,6 +113,12 @@ $testDirectory.each_entry {
     if onlyOnPlatform and RUBY_PLATFORM !~ Regexp.new(onlyOnPlatform)
         if $verbose
             puts "Skipping #{testName}, requires #{onlyOnPlatform}"
+        end
+        next
+    end
+    if manifest["needsAVX512"] and not $hasAVX512
+        if $verbose
+            puts "Skipping #{testName}, requires AVX512"
         end
         next
     end
@@ -244,7 +256,7 @@ $testDirectory.each_entry {
         if manifest["extraLinkerArgs"]
             outp.print " #{manifest["extraLinkerArgs"]}"
         end
-        outp.puts " filc/tests/legacy_utils.o filc/tests/utils.o >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+        outp.puts " filc/tests/utils.o >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
         outp.puts "if [ $? -ne 0 ]"
         outp.puts "then"
         outp.puts("    echo " + Shellwords.shellescape(runScript.to_s + ": FAIL: couldn't link"))

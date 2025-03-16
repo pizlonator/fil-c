@@ -11,18 +11,33 @@
         } \
     } while (false)
 
+static void cpuid(unsigned* eax, unsigned* ebx, unsigned* ecx, unsigned* edx)
+{
+#ifdef __PIZLONATOR_WAS_HERE__
+    unsigned level = *eax;
+    __get_cpuid(level, eax, ebx, ecx, edx);
+#else
+    unsigned a = *eax, b, c = *ecx, d;
+    asm volatile("cpuid\n\t" : "+a"(a), "=b"(b), "+c"(c), "=d"(d));
+    *eax = a;
+    *ebx = b;
+    *ecx = c;
+    *edx = d;
+#endif
+}
+
 int main()
 {
     /* This really tests what simdutf calls "Icelake". But whatever. */
     
-    unsigned eax;
-    unsigned ebx;
-    unsigned ecx;
-    unsigned edx;
+    unsigned eax = 0x7;
+    unsigned ebx = 0;
+    unsigned ecx = 0;
+    unsigned edx = 0;
 
-    int result = __get_cpuid(7, &eax, &ebx, &ecx, &edx);
+    cpuid(&eax, &ebx, &ecx, &edx);
 
-    printf("result = %d, eax = %x, ebx = %x, ecx = %x, edx = %x\n", result, eax, ebx, ecx, edx);
+    printf("eax = %x, ebx = %x, ecx = %x, edx = %x\n", eax, ebx, ecx, edx);
 
     bool all_good = true;
 
