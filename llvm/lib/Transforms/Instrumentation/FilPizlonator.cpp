@@ -1034,9 +1034,7 @@ struct InferredCapability {
 struct MaskedAccessDetails {
   AccessKind AK { AccessKind::Read };
   FixedVectorType* T { nullptr };
-  Value* ValueToStore { nullptr };
   Value* Ptr { nullptr };
-  unsigned PtrArgIndex { 0 };
   Value* Mask { nullptr };
   int64_t Alignment { 0 };
 
@@ -3061,33 +3059,37 @@ class Pizlonator {
 
   MaskedAccessDetails analyzeMaskedLoadStore(Instruction* I) {
     if (IntrinsicInst* II = dyn_cast<IntrinsicInst>(I)) {
+      MaskedAccessDetails MAD;
       switch (II->getIntrinsicID()) {
       case Intrinsic::masked_load:
-      case Intrinsic::masked_store: {
+      case Intrinsic::masked_store:
         assert(II->arg_size() == 4);
-        MaskedAccessDetails MAD;
         MAD.AK = II->getIntrinsicID() == Intrinsic::masked_store
           ? AccessKind::Write : AccessKind::Read;
         if (MAD.AK == AccessKind::Write) {
-          MAD.ValueToStore = II->getArgOperand(0);
-          MAD.T = cast<FixedVectorType>(MAD.ValueToStore->getType());
-          MAD.PtrArgIndex = 1;
+          MAD.T = cast<FixedVectorType>(II->getArgOperand(0)->getType());
+          MAD.Ptr = II->getArgOperand(1);
           MAD.Mask = II->getArgOperand(3);
           MAD.Alignment = cast<ConstantInt>(II->getArgOperand(2))->getZExtValue();
         } else {
-          MAD.ValueToStore = nullptr;
           MAD.T = cast<FixedVectorType>(II->getType());
-          MAD.PtrArgIndex = 0;
+          MAD.Ptr = II->getArgOperand(0);
           MAD.Mask = II->getArgOperand(2);
           MAD.Alignment = cast<ConstantInt>(II->getArgOperand(1))->getZExtValue();
         }
-        MAD.Ptr = II->getArgOperand(MAD.PtrArgIndex);
         assert(!hasPtrs(MAD.T));
-        return MAD;
-      }
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_wb_mem_512:
+        MAD.AK = AccessKind::Write;
+        MAD.T = FixedVectorType::get(Int8Ty, 32);
+        MAD.Ptr = II->getArgOperand(0);
+        MAD.Mask = II->getArgOperand(2);
+        MAD.Alignment = 1;
+        break;
       default:
-        return MaskedAccessDetails();
+        break;
       }
+      return MAD;
     }
     return MaskedAccessDetails();
   }
