@@ -27,7 +27,7 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BASE_BENCHMARK_NAME = "PizBench9009"
+BASE_BENCHMARK_NAME = "PizBench9010"
 $benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 10
@@ -410,6 +410,18 @@ $benchmarks << Benchmark.new(
     "benchmarks/n-body-2",
     "10000000",
     [])
+
+$benchmarks << Benchmark.new(
+    "benchmarks/spectralnorm",
+    "3000",
+    [])
+
+$benchmarks << Benchmark.new(
+    "benchmarks/reversecomplement",
+    "< benchmarkData/revcomp-input.txt > benchmarkOutput/revcomp-output.txt",
+    [
+        "diff -n benchmarkOutput/revcomp-output.txt benchmarkData/revcomp-output.txt"
+    ])
 
 $plugins.each {
     | plugin |

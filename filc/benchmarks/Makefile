@@ -31,6 +31,8 @@ all: \
 	../../pizfix/benchmarks/fannkuch-redux-2 \
 	../../pizfix/benchmarks/n-body \
 	../../pizfix/benchmarks/n-body-2 \
+	../../pizfix/benchmarks/spectralnorm \
+	../../pizfix/benchmarks/reversecomplement
 
 clean:
 	rm -f ../../pizfix/benchmarks/stepanov_container
@@ -42,6 +44,8 @@ clean:
 	rm -f ../../pizfix/benchmarks/fannkuch-redux-2
 	rm -f ../../pizfix/benchmarks/n-body
 	rm -f ../../pizfix/benchmarks/n-body-2
+	rm -f ../../pizfix/benchmarks/spectralnorm
+	rm -f ../../pizfix/benchmarks/reversecomplement
 
 ../../pizfix/benchmarks/stepanov_container: stepanov_container.cpp
 	../../build/bin/clang++ \
@@ -87,4 +91,14 @@ clean:
 	../../build/bin/clang \
 	    -o ../../pizfix/benchmarks/n-body-2 \
 	    n-body-2.c -O3 -g
+
+../../pizfix/benchmarks/spectralnorm: spectralnorm.c
+	../../build/bin/clang \
+	    -o ../../pizfix/benchmarks/spectralnorm \
+	    spectralnorm.c -O3 -g -mavx
+
+../../pizfix/benchmarks/reversecomplement: reversecomplement.c
+	../../build/bin/clang \
+	    -o ../../pizfix/benchmarks/reversecomplement \
+	    reversecomplement.c -O3 -g
 

@@ -1031,14 +1031,14 @@ struct InferredCapability {
   }
 };
 
-struct MaskedAccessDetails {
+struct IntrinsicAccessDetails {
   AccessKind AK { AccessKind::Read };
-  FixedVectorType* T { nullptr };
+  Type* T { nullptr };
   Value* Ptr { nullptr };
   Value* Mask { nullptr };
   int64_t Alignment { 0 };
 
-  MaskedAccessDetails() = default;
+  IntrinsicAccessDetails() = default;
 
   explicit operator bool() const { return !!T; }
 };
@@ -3057,48 +3057,54 @@ class Pizlonator {
     return PtrAndOffset(OriginalHighP, 0);
   }
 
-  MaskedAccessDetails analyzeMaskedLoadStore(Instruction* I) {
+  IntrinsicAccessDetails analyzeIntrinsicLoadStore(Instruction* I) {
     if (IntrinsicInst* II = dyn_cast<IntrinsicInst>(I)) {
-      MaskedAccessDetails MAD;
+      IntrinsicAccessDetails IAD;
       switch (II->getIntrinsicID()) {
       case Intrinsic::masked_load:
       case Intrinsic::masked_store:
         assert(II->arg_size() == 4);
-        MAD.AK = II->getIntrinsicID() == Intrinsic::masked_store
+        IAD.AK = II->getIntrinsicID() == Intrinsic::masked_store
           ? AccessKind::Write : AccessKind::Read;
-        if (MAD.AK == AccessKind::Write) {
-          MAD.T = cast<FixedVectorType>(II->getArgOperand(0)->getType());
-          MAD.Ptr = II->getArgOperand(1);
-          MAD.Mask = II->getArgOperand(3);
-          MAD.Alignment = cast<ConstantInt>(II->getArgOperand(2))->getZExtValue();
+        if (IAD.AK == AccessKind::Write) {
+          IAD.T = cast<FixedVectorType>(II->getArgOperand(0)->getType());
+          IAD.Ptr = II->getArgOperand(1);
+          IAD.Mask = II->getArgOperand(3);
+          IAD.Alignment = cast<ConstantInt>(II->getArgOperand(2))->getZExtValue();
         } else {
-          MAD.T = cast<FixedVectorType>(II->getType());
-          MAD.Ptr = II->getArgOperand(0);
-          MAD.Mask = II->getArgOperand(2);
-          MAD.Alignment = cast<ConstantInt>(II->getArgOperand(1))->getZExtValue();
+          IAD.T = cast<FixedVectorType>(II->getType());
+          IAD.Ptr = II->getArgOperand(0);
+          IAD.Mask = II->getArgOperand(2);
+          IAD.Alignment = cast<ConstantInt>(II->getArgOperand(1))->getZExtValue();
         }
-        assert(!hasPtrs(MAD.T));
+        assert(!hasPtrs(IAD.T));
         break;
       case Intrinsic::x86_avx512_mask_pmov_wb_mem_512:
-        MAD.AK = AccessKind::Write;
-        MAD.T = FixedVectorType::get(Int8Ty, 32);
-        MAD.Ptr = II->getArgOperand(0);
-        MAD.Mask = II->getArgOperand(2);
-        MAD.Alignment = 1;
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 32);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_sse3_ldu_dq:
+        IAD.AK = AccessKind::Read;
+        IAD.T = cast<FixedVectorType>(II->getType());
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Alignment = 1;
         break;
       default:
         break;
       }
-      return MAD;
+      return IAD;
     }
-    return MaskedAccessDetails();
+    return IntrinsicAccessDetails();
   }
 
-  MaskedAccessDetails analyzeMaskedLoadStore(Instruction* I, AccessKind AK) {
-    MaskedAccessDetails MAD = analyzeMaskedLoadStore(I);
-    if (MAD)
-      assert(MAD.AK == AK);
-    return MAD;
+  IntrinsicAccessDetails analyzeIntrinsicLoadStore(Instruction* I, AccessKind AK) {
+    IntrinsicAccessDetails IAD = analyzeIntrinsicLoadStore(I);
+    if (IAD)
+      assert(IAD.AK == AK);
+    return IAD;
   }
 
   void buildChecksImpl(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
@@ -3112,7 +3118,7 @@ class Pizlonator {
     if (verbose)
       errs() << "PAO = " << *PAO.HighP << ", offset = " << PAO.Offset << "\n";
 
-    if (analyzeMaskedLoadStore(I, AK)) {
+    if (analyzeIntrinsicLoadStore(I, AK).Mask) {
       Checks.push_back(
         AccessCheckWithDI(PAO.HighP, 0, 0, CheckKind::ValidObject, basicDI(I->getDebugLoc())));
       Checks.push_back(
@@ -3181,8 +3187,8 @@ class Pizlonator {
              AccessKind::Read);
         return;
       default:
-        if (MaskedAccessDetails MAD = analyzeMaskedLoadStore(I))
-          Func(II, MAD.T, MAD.Ptr, Align(MAD.Alignment), AtomicOrdering::NotAtomic, MAD.AK);
+        if (IntrinsicAccessDetails IAD = analyzeIntrinsicLoadStore(I))
+          Func(II, IAD.T, IAD.Ptr, Align(IAD.Alignment), AtomicOrdering::NotAtomic, IAD.AK);
         return;
       }
     }
@@ -4837,11 +4843,13 @@ class Pizlonator {
       errs() << "After arg lowering: " << *I << "\n";
   }
 
-  void lowerMaskedAccess(IntrinsicInst* II, const MaskedAccessDetails& MAD) {
-    bool isStore = MAD.AK == AccessKind::Write;
-    FixedVectorType* T = MAD.T;
-    Value* Ptr = MAD.Ptr;
-    Value* Mask = MAD.Mask;
+  void lowerIntrinsicAccess(IntrinsicInst* II, const IntrinsicAccessDetails& IAD) {
+    if (!IAD.Mask)
+      return;
+    bool isStore = IAD.AK == AccessKind::Write;
+    FixedVectorType* T = cast<FixedVectorType>(IAD.T);
+    Value* Ptr = IAD.Ptr;
+    Value* Mask = IAD.Mask;
     assert(!hasPtrs(T));
     uint64_t MaskSize = DL.getTypeSizeInBits(Mask->getType()).getFixedValue();
     // Currently filc_masked_access_check_fail can only handle 64 bit masks max.
@@ -5135,9 +5143,9 @@ class Pizlonator {
       }
 
       default: {
-        MaskedAccessDetails MAD = analyzeMaskedLoadStore(II);
+        IntrinsicAccessDetails IAD = analyzeIntrinsicLoadStore(II);
         
-        if (!MAD
+        if (!IAD
             && !II->getCalledFunction()->doesNotAccessMemory()
             && !isa<ConstrainedFPIntrinsic>(II)
             && II->getIntrinsicID() != Intrinsic::prefetch) {
@@ -5155,8 +5163,8 @@ class Pizlonator {
             U = flightPtrPtr(U, II);
         }
 
-        if (MAD)
-          lowerMaskedAccess(II, MAD);
+        if (IAD)
+          lowerIntrinsicAccess(II, IAD);
         
         if (hasPtrs(II->getType()))
           hackRAUW(II, [&] () { return badFlightPtr(II, II->getNextNode()); });

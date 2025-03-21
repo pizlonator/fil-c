@@ -60,7 +60,6 @@ static double energy(double *m, __m256d *p, __m256d *v) {
 
     __m256d r[PAIRS+3];
     double w[PAIRS+3] __attribute__((aligned(sizeof(__m256d))));
-    printf("r = %p\n", (void*)r);
 
     r[N] = _mm256_set1_pd(0.0);
     r[N+1] = _mm256_set1_pd(0.0);
