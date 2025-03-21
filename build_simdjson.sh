@@ -34,6 +34,5 @@ CC="$PWD/../build/bin/clang -g -O3" CXX="$PWD/../build/bin/clang++ -g -O3" cmake
 cmake --build build -j $NCPU
 build/singleheader/amalgamate_demo jsonexamples/twitter.json
 
-# The tests don't pass yet.
-# cd build
-# ctest -j $NCPU .
+cd build
+ctest -j $NCPU .
