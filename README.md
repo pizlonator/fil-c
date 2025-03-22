@@ -1,14 +1,12 @@
-# Fil-C 0.668.3
+# Fil-C 0.668.4
 
-This is a spare-time personal project that I'm doing for fun. It's called
-Fil-C.
-
-What is it? It's a totally memory-safe version of C and C++. All memory safety
-errors are caught as Fil-C panics. Fil-C achieves this using a combination of
-real-time garbage collection and invisible capabilities (each pointer in memory
-has a corresponding capability, not visible to the C address space). Every
-fundamental C operation (as seen in LLVM IR) is checked against the capability.
-Fil-C has no `unsafe` escape hatch of any kind.
+Fil-C is a fanatically compatible memory-safe implementation of C and C++. Lots
+of software compiles and runs with Fil-C with zero or minimal changes. All
+memory safety errors are caught as Fil-C panics. Fil-C achieves this using a
+combination of concurrent garbage collection and invisible capabilities (each
+pointer in memory has a corresponding capability, not visible to the C address
+space). Every fundamental C operation (as seen in LLVM IR) is checked against
+the capability. Fil-C has no `unsafe` escape hatch of any kind.
 
 ## License
 
@@ -51,19 +49,12 @@ experimental piece of software!
 
 ## Things That Work
 
-Included if you build from source using build_all.sh:
+Lots of software packages work in Fil-C with zero or minimal changes, including
+big ones like openssl, CPython, SQLite, and many others.
 
-- Memory-safe SSH client and server.
-
-- Memory-safe curl.
-
-- Memory-safe libz and openssl.
-
-- Memory-safe libc (based on musl) and libc++ (based on LLVM's libc++).
-
-- A version of clang that you can use to compile C or C++ programs.
-
-The binary distribution only includes clang, libc, and libc++.
+Fil-C has full support for C and C++ plus almost all of the extensions that
+clang 17 supports. Fil-C has excellent support for atomics and SIMD intrinsics,
+for example.
 
 Fil-C catches all of the stuff that makes memory safety in C hard, like:
 
@@ -88,31 +79,22 @@ Fil-C comes with a reasonably complete POSIX libc and even supports tricky
 features like threads, signal handling, `mmap`/`munmap`, `longjmp`/`setjmp`,
 and C++ exceptions.
 
-## Things That Don't Work
-
-Fil-C is not a complete product. Lots of stuff isn't done!
-
-- Fil-C doesn't fully address UB not related to memory, yet. For example,
-  dividing by zero may take the compiler down a weird path.
-
-- I'm still working on performance. In good cases, it's 1.5x slower than normal
-  C. In bad cases, it's 5x slower. Lots of work remains to fix those bad cases.
-
-- Probably other stuff, too!
-
-These are all things that can be fixed. They just haven't been, yet.
-
 ## Learn More
 
-The best write-up of Fil-C is
-[the manifesto](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md).
+You can learn more about Fil-C by reading these docs:
+
+- [The Fil-C manifesto](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md).
+
+- [Fil-C capabilities by example](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md).
+
+- [Garbage-In, Memory Safety Out Semantics](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/gimso_semantics.md).
+
+- [Explanation of Disassembly of a Simple Fil-C Program](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/test43.md).
 
 You can also e-mail me: pizlo@mac.com
 
-And follow my rants on [Twitter](https://x.com/filpizlo).
+Follow me on [Twitter](https://x.com/filpizlo).
 
-I don't have a bug database or anything like that, so bothering me on Twitter
-or over e-mail is your best bet, probably. And I might ignore you anyway.
+File issues at [GH](https://github.com/pizlonator/llvm-project-deluge/issues).
 
-No guarantees!
 
