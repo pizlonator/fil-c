@@ -36,3 +36,9 @@ build/singleheader/amalgamate_demo jsonexamples/twitter.json
 
 cd build
 ctest -j $NCPU .
+
+cp singleheader/simdjson.h ../../pizfix/include
+cp libsimdjson.so.25.0.0 ../../pizfix/lib
+cd ../../pizfix/lib
+ln -fs libsimdjson.so.25.0.0 libsimdjson.so.25
+ln -fs libsimdjson.so.25 libsimdjson.so
