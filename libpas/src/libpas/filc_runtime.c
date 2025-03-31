@@ -1928,18 +1928,23 @@ char* filc_cc_cursor_to_new_string(filc_cc_cursor cursor)
     return pas_string_stream_take_string(&stream);
 }
 
-PAS_NEVER_INLINE void filc_store_barrier_slow(filc_thread* my_thread, filc_object* object)
+static PAS_ALWAYS_INLINE void store_barrier_impl(filc_thread* my_thread, filc_object* object)
 {
     PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
-    fugc_mark(&my_thread->mark_stack, object);
+    if (fugc_mark(&my_thread->mark_stack, object)
+        && (my_thread->mark_stack.num_objects > 100 || !fugc_global_stack.num_objects))
+        fugc_try_donate(&my_thread->mark_stack);
+}
+
+PAS_NEVER_INLINE void filc_store_barrier_slow(filc_thread* my_thread, filc_object* object)
+{
+    store_barrier_impl(my_thread, object);
 }
 
 PAS_NEVER_INLINE void filc_store_barrier_for_lower_slow(filc_thread* my_thread, void* lower)
 {
-    PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
-    PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
-    fugc_mark(&my_thread->mark_stack, filc_object_for_lower_not_null(lower));
+    store_barrier_impl(my_thread, filc_object_for_lower_not_null(lower));
 }
 
 PAS_NO_RETURN PAS_NEVER_INLINE void filc_check_native_access_fail(filc_ptr ptr,

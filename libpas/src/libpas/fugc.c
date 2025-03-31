@@ -86,7 +86,7 @@ static unsigned collector_suspend_count = 0;
 static uint64_t completed_cycle;
 static uint64_t requested_cycle;
 
-static filc_object_array global_stack;
+filc_object_array fugc_global_stack;
 static pas_lock global_stack_lock;
 
 static size_t destruct_size = SIZE_MAX;
@@ -233,7 +233,7 @@ static pas_thread_return_type parallel_worker_thread(void* arg)
     }
 }
 
-static void do_parallel_work(worker_function my_worker)
+static void do_parallel_work_impl(worker_function my_worker, const char* name)
 {
     PAS_ASSERT(!current_worker);
     PAS_ASSERT(!num_workers_finished);
@@ -246,6 +246,9 @@ static void do_parallel_work(worker_function my_worker)
         pas_system_mutex_unlock(&collector_thread_state_lock);
         return;
     }
+
+    if (verbose >= VERBOSE_PARALLEL)
+        pas_log("[%d] fugc: doing parallel work: %s\n", pas_getpid(), name);
     
     unsigned target_num_workers = parallelism_target();
     while (num_workers < target_num_workers) {
@@ -304,6 +307,8 @@ static void do_parallel_work(worker_function my_worker)
     PAS_ASSERT(!num_workers_finished);
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
+
+#define DO_PARALLEL_WORK(function) do_parallel_work_impl(function, #function)
 
 static const char* pollcheck_message_for_thread(filc_thread* thread)
 {
@@ -567,7 +572,7 @@ static void wait_and_start_marking(void)
     current_collector_state = collector_marking;
 }
 
-static void marking_parallel_worker(void)
+static void mark_parallel_worker(void)
 {
     filc_object_array local_stack;
 
@@ -592,20 +597,20 @@ static void marking_parallel_worker(void)
             for (;;) {
                 bool got_object = false;
                 pas_lock_lock(&global_stack_lock);
-                if (global_stack.num_objects) {
+                if (fugc_global_stack.num_objects) {
                     got_object = true;
                     PAS_ASSERT(num_workers_dispatched >= 1);
                     PAS_ASSERT(num_active_markers <= num_workers_dispatched);
                     if (num_workers_dispatched == 1)
-                        filc_object_array_pop_all_from_and_push_to(&global_stack, &local_stack);
+                        filc_object_array_pop_all_from_and_push_to(&fugc_global_stack, &local_stack);
                     else {
                         static const size_t max_n = 100;
                         size_t n = pas_max_uintptr(
-                            1, pas_min_uintptr(global_stack.num_objects / num_workers_dispatched,
+                            1, pas_min_uintptr(fugc_global_stack.num_objects / num_workers_dispatched,
                                                max_n));
                         PAS_ASSERT(n);
                         PAS_ASSERT(n <= max_n);
-                        filc_object_array_pop_n_from_and_push_to(&global_stack, &local_stack, n);
+                        filc_object_array_pop_n_from_and_push_to(&fugc_global_stack, &local_stack, n);
                     }
                 }
                 pas_lock_unlock(&global_stack_lock);
@@ -623,12 +628,12 @@ static void marking_parallel_worker(void)
                     pas_log("[%d, %d] marker waiting, num_active_markers = %u\n",
                             pas_getpid(), pas_gettid(), num_active_markers);
                 }
-                while (!global_stack.num_objects && num_active_markers
+                while (!fugc_global_stack.num_objects && num_active_markers
                        && !collector_control_request) {
                     pas_system_condition_wait(&collector_thread_state_cond,
                                               &collector_thread_state_lock);
                 }
-                if ((!global_stack.num_objects && !num_active_markers)
+                if ((!fugc_global_stack.num_objects && !num_active_markers)
                     || collector_control_request) {
                     if (!num_active_markers)
                         pas_system_condition_broadcast(&collector_thread_state_cond);
@@ -658,17 +663,17 @@ static void marking_parallel_worker(void)
             objects_traced += count;
 
             if (local_stack.num_objects >= 2 && num_workers_dispatched > 1) {
-                if (global_stack.num_objects) {
+                if (fugc_global_stack.num_objects) {
                     if (!pas_lock_try_lock(&global_stack_lock))
                         continue;
                 } else
                     pas_lock_lock(&global_stack_lock);
-                bool do_notification = !global_stack.num_objects;
+                bool do_notification = !fugc_global_stack.num_objects;
                 static const size_t max_n = 1000;
                 size_t n = pas_min_uintptr(local_stack.num_objects / 2, max_n);
                 PAS_ASSERT(n);
                 PAS_ASSERT(n <= max_n);
-                filc_object_array_pop_n_from_and_push_to(&local_stack, &global_stack, n);
+                filc_object_array_pop_n_from_and_push_to(&local_stack, &fugc_global_stack, n);
                 pas_lock_unlock(&global_stack_lock);
                 num_pushes++;
                 if (do_notification) {
@@ -702,11 +707,11 @@ static void mark_and_start_destructing(void)
     for (;;) {
         filc_soft_handshake(marking_pollcheck_callback, NULL);
         
-        if (!global_stack.num_objects)
+        if (!fugc_global_stack.num_objects)
             break;
 
         PAS_ASSERT(!num_active_markers);
-        do_parallel_work(marking_parallel_worker);
+        DO_PARALLEL_WORK(mark_parallel_worker);
         PAS_ASSERT(!num_active_markers);
 
         if (collector_control_request)
@@ -781,7 +786,7 @@ static void destruct_and_start_scribbling(void)
     PAS_ASSERT(!filc_is_marking);
     PAS_ASSERT(current_collector_state == collector_destructing);
 
-    do_parallel_work(destruct_parallel_worker);
+    DO_PARALLEL_WORK(destruct_parallel_worker);
     if (collector_control_request)
         return;
 
@@ -829,7 +834,7 @@ static void scribble_and_start_sweeping(void)
         if (!scribble_concurrently)
             filc_stop_the_world();
 
-        do_parallel_work(scribble_parallel_worker);
+        DO_PARALLEL_WORK(scribble_parallel_worker);
         if (collector_control_request) {
             if (!scribble_concurrently)
                 filc_resume_the_world();
@@ -850,8 +855,8 @@ static void scribble_and_start_sweeping(void)
 
     verse_heap_start_sweep_before_handshake();
     filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
-    PAS_ASSERT(!global_stack.num_objects);
-    filc_object_array_reset(&global_stack);
+    PAS_ASSERT(!fugc_global_stack.num_objects);
+    filc_object_array_reset(&fugc_global_stack);
 
     PAS_ASSERT(sweep_size == SIZE_MAX);
     PAS_ASSERT(sweep_index == SIZE_MAX);
@@ -878,7 +883,7 @@ static void sweep_and_end(void)
     PAS_ASSERT(!filc_is_marking);
     PAS_ASSERT(current_collector_state == collector_sweeping);
 
-    do_parallel_work(sweep_parallel_worker);
+    DO_PARALLEL_WORK(sweep_parallel_worker);
     if (collector_control_request)
         return;
 
@@ -1049,7 +1054,7 @@ void fugc_initialize_collector(void)
     
     pas_system_mutex_construct(&collector_thread_state_lock);
     pas_system_condition_construct(&collector_thread_state_cond);
-    filc_object_array_construct(&global_stack);
+    filc_object_array_construct(&fugc_global_stack);
     pas_lock_construct(&global_stack_lock);
 
     if (verbose >= VERBOSE_PHASES) {
@@ -1108,14 +1113,32 @@ void fugc_handshake(void)
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
 
-void fugc_donate(filc_object_array* mark_stack)
+static PAS_ALWAYS_INLINE bool donate_impl(filc_object_array* mark_stack, pas_lock_lock_mode mode)
 {
     if (!mark_stack->num_objects)
-        return;
-    pas_lock_lock(&global_stack_lock);
+        return true;
+    if (!pas_lock_lock_with_mode(&global_stack_lock, mode))
+        return false;
     PAS_ASSERT(filc_is_marking);
-    filc_object_array_pop_all_from_and_push_to(mark_stack, &global_stack);
+    bool do_notification = !fugc_global_stack.num_objects;
+    filc_object_array_pop_all_from_and_push_to(mark_stack, &fugc_global_stack);
     pas_lock_unlock(&global_stack_lock);
+    if (do_notification) {
+        pas_system_mutex_lock(&collector_thread_state_lock);
+        pas_system_condition_broadcast(&collector_thread_state_cond);
+        pas_system_mutex_unlock(&collector_thread_state_lock);
+    }
+    return true;
+}
+
+void fugc_donate(filc_object_array* mark_stack)
+{
+    PAS_ASSERT(donate_impl(mark_stack, pas_lock_lock_mode_lock));
+}
+
+bool fugc_try_donate(filc_object_array* mark_stack)
+{
+    return donate_impl(mark_stack, pas_lock_lock_mode_try_lock);
 }
 
 static uint64_t request_impl(uint64_t offset)

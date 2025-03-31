@@ -443,6 +443,10 @@ ARGV.each {
     $pizfixes << Pizfix.new(argv)
 }
 
+if $pizfixes.empty?
+    raise "No pizfixes found."
+end
+
 $plans = []
 $benchmarks.each {
     | benchmark |

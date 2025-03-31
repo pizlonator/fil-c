@@ -40,6 +40,8 @@ PAS_API extern pas_heap* fugc_destructor_heap;
 PAS_API extern verse_heap_object_set* fugc_destructor_set;
 PAS_API extern verse_heap_object_set* fugc_scribble_set; /* Only used if FUGC_SCRIBBLE=1 */
 
+PAS_API extern filc_object_array fugc_global_stack;
+
 PAS_API void fugc_initialize_heaps(void); /* Called first. */
 PAS_API void fugc_initialize_collector(void); /* Called second. */
 
@@ -50,26 +52,27 @@ PAS_API void fugc_resume(void);
 /* Needed for munmap/mprotect support. */
 PAS_API void fugc_handshake(void);
 
-static PAS_ALWAYS_INLINE void fugc_mark(filc_object_array* mark_stack, filc_object* object)
+static PAS_ALWAYS_INLINE bool fugc_mark(filc_object_array* mark_stack, filc_object* object)
 {
     static const bool verbose = false;
     if (verbose)
         pas_log("Marking object %p\n", object);
     if (!object)
-        return;
+        return false;
     uintptr_t aux = object->aux;
     filc_object_flags flags = filc_aux_get_flags(aux);
     if ((flags & FILC_OBJECT_FLAG_GLOBAL))
-        return;
+        return false;
     void* mark_base = filc_object_mark_base_with_flags(object, flags);
     if (verbose)
         pas_log("for object %p mark_base = %p\n", object, mark_base);
     if (!verse_heap_set_is_marked_relaxed(mark_base, true))
-        return;
+        return false;
     /* FIXME: We could tell by looking at the special type whether it needs to be pushed. For example,
        functions do not need to be pushed. */
     if (filc_aux_get_ptr(aux) || (flags & FILC_OBJECT_FLAGS_SPECIAL_MASK))
         filc_object_array_push(mark_stack, object);
+    return true;
 }
 
 static PAS_ALWAYS_INLINE void fugc_mark_or_free_flight(filc_object_array* mark_stack, filc_ptr* ptr)
@@ -144,6 +147,7 @@ static PAS_ALWAYS_INLINE void fugc_mark_or_free_lower_or_box(filc_object_array* 
 }
 
 PAS_API void fugc_donate(filc_object_array* mark_stack);
+PAS_API bool fugc_try_donate(filc_object_array* mark_stack);
 
 /* Request that a collection cycle begins. If one is already running, then that's the one you get.
  

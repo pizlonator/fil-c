@@ -314,6 +314,8 @@ void pas_create_detached_thread(pas_thread_return_type (*thread_main)(void* arg)
     pthread_t thread;
     int result;
     result = pthread_create(&thread, NULL, thread_main, arg);
+    if (result)
+        pas_log("failed to pthread_create: %s\n", strerror(result));
     PAS_ASSERT(!result);
     PAS_ASSERT(thread);
     pthread_detach(thread);
