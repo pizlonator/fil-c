@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,27 +52,53 @@ PAS_API void fugc_resume(void);
 /* Needed for munmap/mprotect support. */
 PAS_API void fugc_handshake(void);
 
-static PAS_ALWAYS_INLINE bool fugc_mark(filc_object_array* mark_stack, filc_object* object)
+enum fugc_mark_fast_result {
+    fugc_mark_fast_already_marked,
+    fugc_mark_fast_marked_leaf,
+    fugc_mark_fast_marked_and_need_slow_path
+};
+
+typedef enum fugc_mark_fast_result fugc_mark_fast_result;
+
+static PAS_ALWAYS_INLINE fugc_mark_fast_result fugc_mark_fast(filc_object* object)
 {
     static const bool verbose = false;
     if (verbose)
         pas_log("Marking object %p\n", object);
     if (!object)
-        return false;
+        return fugc_mark_fast_already_marked;
     uintptr_t aux = object->aux;
     filc_object_flags flags = filc_aux_get_flags(aux);
     if ((flags & FILC_OBJECT_FLAG_GLOBAL))
-        return false;
+        return fugc_mark_fast_already_marked;
     void* mark_base = filc_object_mark_base_with_flags(object, flags);
     if (verbose)
         pas_log("for object %p mark_base = %p\n", object, mark_base);
     if (!verse_heap_set_is_marked_relaxed(mark_base, true))
-        return false;
-    /* FIXME: We could tell by looking at the special type whether it needs to be pushed. For example,
-       functions do not need to be pushed. */
+        return fugc_mark_fast_already_marked;
     if (filc_aux_get_ptr(aux) || (flags & FILC_OBJECT_FLAGS_SPECIAL_MASK))
-        filc_object_array_push(mark_stack, object);
-    return true;
+        return fugc_mark_fast_marked_and_need_slow_path;
+    return fugc_mark_fast_marked_leaf;
+}
+
+static PAS_ALWAYS_INLINE void fugc_mark_slow(filc_object_array* mark_stack, filc_object* object)
+{
+    filc_object_array_push(mark_stack, object);
+}
+
+static PAS_ALWAYS_INLINE bool fugc_mark(filc_object_array* mark_stack, filc_object* object)
+{
+    switch (fugc_mark_fast(object)) {
+    case fugc_mark_fast_already_marked:
+        return false;
+    case fugc_mark_fast_marked_leaf:
+        return true;
+    case fugc_mark_fast_marked_and_need_slow_path:
+        fugc_mark_slow(mark_stack, object);
+        return true;
+    }
+    PAS_ASSERT(!"Should not be reached.");
+    return false;
 }
 
 static PAS_ALWAYS_INLINE void fugc_mark_or_free_flight(filc_object_array* mark_stack, filc_ptr* ptr)

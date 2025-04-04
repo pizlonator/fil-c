@@ -1737,7 +1737,7 @@ static inline void* filc_object_mark_base_with_flags(filc_object* object, filc_o
     filc_log_align log_align = filc_object_flags_log_align(flags);
     if (PAS_LIKELY(!log_align))
         return object;
-    return (void*)pas_round_down_to_power_of_2(
+    return (void*)PAS_ROUND_DOWN_TO_POWER_OF_2(
         (uintptr_t)object, filc_log_align_alignment(log_align));
 }
 

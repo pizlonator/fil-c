@@ -1928,13 +1928,23 @@ char* filc_cc_cursor_to_new_string(filc_cc_cursor cursor)
     return pas_string_stream_take_string(&stream);
 }
 
+static PAS_NEVER_INLINE void store_barrier_slowest_path_impl(filc_thread* my_thread,
+                                                             filc_object* object)
+{
+    PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
+    PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
+    fugc_mark_slow(&my_thread->mark_stack, object);
+    if (my_thread->mark_stack.num_objects > 100 || !fugc_global_stack.num_objects)
+        fugc_try_donate(&my_thread->mark_stack);
+}
+
 static PAS_ALWAYS_INLINE void store_barrier_impl(filc_thread* my_thread, filc_object* object)
 {
     PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
-    if (fugc_mark(&my_thread->mark_stack, object)
-        && (my_thread->mark_stack.num_objects > 100 || !fugc_global_stack.num_objects))
-        fugc_try_donate(&my_thread->mark_stack);
+    if (PAS_LIKELY(fugc_mark_fast(object) != fugc_mark_fast_marked_and_need_slow_path))
+        return;
+    store_barrier_slowest_path_impl(my_thread, object);
 }
 
 PAS_NEVER_INLINE void filc_store_barrier_slow(filc_thread* my_thread, filc_object* object)

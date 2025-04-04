@@ -105,7 +105,9 @@ static PAS_ALWAYS_INLINE bool verse_heap_is_marked(void* object)
      those CPUs that have such a thing, since based on the Riptide experience, that's worth significant overall
      throughput. But you cannot do that for conservative marking (see verse_heap_inlines.h, comment above
      verse_heap_find_allocated_object_start()). You also cannot use relaxed atomics in the libpas black
-     allocation, since that must be fenced against modifying alloc metadata (ibid). */
+     allocation, since that must be fenced against modifying alloc metadata (ibid).
+
+   Returns true if we marked the object, or false if it was already marked. */
 static PAS_ALWAYS_INLINE bool verse_heap_set_is_marked(void* object, bool value)
 {
     return pas_bitvector_set_atomic_in_word(
