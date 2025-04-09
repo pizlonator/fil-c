@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +73,9 @@ PAS_API bool verse_heap_mark_bits_page_commit_controller_decommit_if_possible(vo
 
 /* To be called periodically from the scavenger. */
 PAS_API bool verse_heap_mark_bits_page_commit_controller_scavenge_periodic(void);
+
+PAS_API void verse_heap_mark_bits_page_commit_controller_for_each(
+    void (*callback)(verse_heap_mark_bits_page_commit_controller* controller));
 
 PAS_END_EXTERN_C;
 

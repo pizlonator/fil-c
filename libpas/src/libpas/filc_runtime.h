@@ -688,6 +688,9 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
                     you try to join a thread that died due to fork. */
     bool has_initialized; /* set to true when the thread has gotten far enough in its start-up that
                              it has sets the tid and thread field. */
+    bool is_allocating_black; /* only for assertions. set to true if we can be sure that objects
+                                 allocated by this thread have to be black. this may be conservatively
+                                 set to false. */
     pthread_t thread; /* the underlying thread is always detached and this stays non-NULL so long
                          as the thread is running.
                          
@@ -1215,14 +1218,28 @@ static inline void* filc_thread_allocate_with_allocator_index(filc_thread* threa
 
 PAS_API PAS_NEVER_INLINE void* filc_thread_allocate_slow(size_t size);
 
-/* Super fast allocation function usable only when for the default heap and only if you don't need
-   special alignment. */
-static inline void* filc_thread_allocate(filc_thread* thread, size_t size)
+static PAS_ALWAYS_INLINE void* filc_thread_allocate_impl(filc_thread* thread, size_t size)
 {
     size_t allocator_index = filc_compute_allocator_index(size);
     if (PAS_LIKELY(filc_is_fast_allocator_index(allocator_index)))
         return filc_thread_allocate_with_allocator_index(thread, allocator_index);
     return filc_thread_allocate_slow(size);
+}
+
+static PAS_ALWAYS_INLINE void filc_thread_assert_allocation_color(filc_thread* thread,
+                                                                  void* allocation)
+{
+    if (PAS_ENABLE_TESTING && thread->is_allocating_black)
+        PAS_ASSERT(verse_heap_is_marked(allocation));
+}
+
+/* Super fast allocation function usable only when for the default heap and only if you don't need
+   special alignment. */
+static PAS_ALWAYS_INLINE void* filc_thread_allocate(filc_thread* thread, size_t size)
+{
+    void* result = filc_thread_allocate_impl(thread, size);
+    filc_thread_assert_allocation_color(thread, result);
+    return result;
 }
 
 PAS_API filc_thread* filc_get_my_thread(void);
@@ -1965,6 +1982,13 @@ static inline void* filc_object_mark_base_with_flags(filc_object* object, filc_o
 static inline void* filc_object_mark_base(filc_object* object)
 {
     return filc_object_mark_base_with_flags(object, filc_object_get_flags(object));
+}
+
+static PAS_ALWAYS_INLINE void filc_thread_assert_object_allocation_color(filc_thread* thread,
+                                                                         filc_object* object)
+{
+    if (PAS_ENABLE_TESTING && thread->is_allocating_black)
+        PAS_ASSERT(verse_heap_is_marked(filc_object_mark_base(object)));
 }
 
 static inline void* filc_object_lower_not_null(filc_object* object)

@@ -2224,7 +2224,9 @@ filc_object* filc_allocate_special(filc_thread* my_thread, size_t size, size_t a
 {
     PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
-    return filc_allocate_special_early(size, alignment, special_type);
+    filc_object* result = filc_allocate_special_early(size, alignment, special_type);
+    filc_thread_assert_object_allocation_color(my_thread, result);
+    return result;
 }
 
 static PAS_NEVER_INLINE PAS_NO_RETURN void size_too_big(size_t size)
@@ -2329,6 +2331,7 @@ static PAS_ALWAYS_INLINE filc_object* finish_allocate(
                 (char*)allocation + offset_to_payload + size);
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
+    filc_thread_assert_allocation_color(my_thread, allocation);
     filc_object* result = initialize_object_header(
         allocation, size, alignment, offset_to_payload, object_flags, NULL);
     if (PAS_UNLIKELY(size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS))
@@ -2407,6 +2410,8 @@ static filc_object* finish_reallocate(
 
     if (verbose)
         pas_log("new_size = %zu\n", new_size);
+
+    filc_thread_assert_allocation_color(my_thread, allocation);
     
     check_object_accessible(old_object);
 

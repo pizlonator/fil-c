@@ -361,11 +361,27 @@ static void no_op_pollcheck_callback(filc_thread* thread, void* arg)
     dump_handshake(thread, "no_op");
 }
 
+static void stop_allocators_to_allocate_black_pollcheck_callback(filc_thread* thread, void* arg)
+{
+    PAS_ASSERT(!arg);
+    dump_handshake(thread, "stop_allocators_to_allocate_black");
+    filc_thread_stop_allocators(thread);
+    if (PAS_ENABLE_TESTING)
+        thread->is_allocating_black = true;
+}
+
 static void stop_allocators_pollcheck_callback(filc_thread* thread, void* arg)
 {
     PAS_ASSERT(!arg);
     dump_handshake(thread, "stop_allocators");
     filc_thread_stop_allocators(thread);
+}
+
+static void turn_off_allocating_black_pollcheck_callback(filc_thread* thread, void* arg)
+{
+    PAS_ASSERT(!arg);
+    dump_handshake(thread, "turn_off_allocating_black");
+    thread->is_allocating_black = false;
 }
 
 static void marking_pollcheck_callback(filc_thread* thread, void* arg)
@@ -498,7 +514,7 @@ static void wait_and_start_marking(void)
     filc_soft_handshake(no_op_pollcheck_callback, NULL);
     
     verse_heap_start_allocating_black_before_handshake();
-    filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+    filc_soft_handshake(stop_allocators_to_allocate_black_pollcheck_callback, NULL);
 
     filc_mark_stack local_stack;
     filc_mark_stack_construct(&local_stack);
@@ -737,7 +753,7 @@ static void mark_and_start_destructing(void)
            everything it was supposed to mark. Only useful for debugging FUGC itself. */
         
         if (verbose >= VERBOSE_PHASES)
-            pas_log("[%d] fugc: verifying\n", pas_getpid());
+            pas_log("[%d] fugc: verifying mark\n", pas_getpid());
         filc_stop_the_world();
 
         pas_allocation_config allocation_config;
@@ -922,6 +938,9 @@ static void scribble_and_start_sweeping(void)
     PAS_ASSERT(live_bytes_before_sweeping == SIZE_MAX);
     live_bytes_before_sweeping = verse_heap_live_bytes;
 
+    if (PAS_ENABLE_TESTING)
+        filc_soft_handshake(turn_off_allocating_black_pollcheck_callback, NULL);
+
     verse_heap_start_sweep_before_handshake();
     filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
     PAS_ASSERT(!filc_mark_stack_num_objects(&fugc_global_stack));
@@ -944,6 +963,21 @@ static void sweep_parallel_worker(void)
         verse_heap_sweep_range(begin_index, end_index);
 }
 
+static void verify_mark_bits_swept(verse_heap_mark_bits_page_commit_controller* controller)
+{
+    unsigned* mark_bits = (unsigned*)controller->chunk_base;
+    size_t num_mark_bit_words = VERSE_HEAP_PAGE_SIZE / sizeof(unsigned);
+    size_t index;
+    for (index = 0; index < num_mark_bit_words; ++index) {
+        unsigned mark_bits_word = mark_bits[index];
+        if (mark_bits_word) {
+            pas_log("[%d] fugc: verify: in mark bits page %p at index %zu nonzero word 0x%x\n",
+                    pas_getpid(), mark_bits, index, mark_bits_word);
+            verify_failed = true;
+        }
+    }
+}
+
 static void sweep_and_end(void)
 {
     if (verbose >= VERBOSE_PHASES)
@@ -960,6 +994,17 @@ static void sweep_and_end(void)
     sweep_size = SIZE_MAX;
     
     verse_heap_end_sweep();
+
+    if (should_verify) {
+        if (verbose >= VERBOSE_PHASES)
+            pas_log("[%d] fugc: verifying sweep\n", pas_getpid());
+
+        filc_stop_the_world();
+        verse_heap_mark_bits_page_commit_controller_for_each(verify_mark_bits_swept);
+        PAS_ASSERT(!verify_failed);
+        filc_resume_the_world();
+    }
+    
     verse_heap_mark_bits_page_commit_controller_unlock();
     
     pas_system_mutex_lock(&collector_thread_state_lock);

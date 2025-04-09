@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,7 +97,8 @@ static bool for_each_mark_bits_page_commit_controller_vector_callback(verse_heap
 	return true;
 }
 
-static void for_each_mark_bits_page_commit_controller(void (*callback)(verse_heap_mark_bits_page_commit_controller* controller))
+void verse_heap_mark_bits_page_commit_controller_for_each(
+    void (*callback)(verse_heap_mark_bits_page_commit_controller* controller))
 {
 	size_t index;
 	
@@ -139,7 +140,7 @@ void verse_heap_mark_bits_page_commit_controller_lock(void)
 	PAS_ASSERT(!verse_heap_mark_bits_page_commit_controller_is_locked);
 	verse_heap_mark_bits_page_commit_controller_is_locked = true;
 	if (verse_heap_mark_bits_page_commit_controller_num_decommitted)
-		for_each_mark_bits_page_commit_controller(lock_callback);
+		verse_heap_mark_bits_page_commit_controller_for_each(lock_callback);
 	PAS_ASSERT(!verse_heap_mark_bits_page_commit_controller_num_decommitted);
 	pas_lock_unlock(&verse_heap_mark_bits_page_commit_controller_commit_lock);
 	PAS_ASSERT(!verse_heap_mark_bits_page_commit_controller_num_decommitted);
@@ -194,7 +195,7 @@ static bool try_decommit(void)
 	if (verse_heap_mark_bits_page_commit_controller_is_locked)
 		return false;
 	if (verse_heap_mark_bits_page_commit_controller_num_committed)
-		for_each_mark_bits_page_commit_controller(decommit_callback);
+		verse_heap_mark_bits_page_commit_controller_for_each(decommit_callback);
 	return true;
 }
 
