@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -498,7 +498,49 @@ void verse_heap_start_sweep_before_handshake(void)
     PAS_ASSERT(!verse_heap_is_sweeping);
     PAS_ASSERT(!verse_heap_current_iteration_state.version);
 	PAS_ASSERT(verse_heap_mark_bits_page_commit_controller_is_locked);
-    verse_heap_allocating_black_version = ++verse_heap_latest_version;
+    /* Let's consider the possible interleavings. We want pages allocated in a race with this function
+       to allocate black and get swept, or allocate white and not get swept.
+       
+       First store verse_heap_allocating_black_version then store verse_heap_latest_version.
+       
+       Interleaving A. create_page prepare_page store_allocating store_latest
+       
+       We allocate black because we use the old allocating version. We sweep the page because it had
+       the old version.
+       
+       Interleaving B. create_page store_allocating prepare_page store_latest
+       
+       We allocate black because we see the new allocating black version, and it's newer than the old
+       version that we see when creating the page. We sweep the page because it had the old version.
+       
+       Interleaving C. create_page store_allocating store_latest prepare_page
+       
+       We allocate black because we see the new allocating black version, and the page is created with
+       the old version. So we sweep the page.
+       
+       Interleaving D. store_allocating create_page prepare_page store_latest
+       
+       We allocate black because we see the new allocating black version, and the page is created with
+       the old version. So we sweep the page.
+       
+       Interleaving E. store_allocating create_page store_latest prepare_page
+       
+       We allocate black because we see the new allocating black version, and the page is created with
+       the old version. So we sweep the page.
+       
+       Interleaving F. store_allocating store_latest create_page prepare_page
+       
+       We allocate white because we see the new allocating black version and the page is created with
+       that new version. We do not sweep the page (it is at the right version).
+    
+       Hooray! This works. Note that it does not work if you break the order (you'll have pages that
+       allocate black but then don't get swept, since they will be created with a new version while
+       the allocating black version is still set to unconditionally allocate black). */
+    uint64_t new_version = verse_heap_latest_version + 1;
+    PAS_ASSERT(new_version);
+    verse_heap_allocating_black_version = new_version;
+    pas_store_store_fence();
+    verse_heap_latest_version = new_version;
     verse_heap_is_sweeping = true;
 	verse_heap_swept_bytes = 0;
     PAS_ASSERT(verse_heap_allocating_black_version >= VERSE_HEAP_FIRST_VERSION);
@@ -712,6 +754,7 @@ static PAS_ALWAYS_INLINE void sweep_segregated_exclusive_view_with_config(sweep_
         return;
 
     if (!page->emptiness.num_non_empty_words_or_live_bytes) {
+        PAS_ASSERT(!verse_heap_page_header_for_segregated_page(page)->may_have_set_mark_bits_for_dead_objects);
 		PAS_ASSERT(!verse_heap_page_header_for_segregated_page(page)->client_data);
         return;
 	}

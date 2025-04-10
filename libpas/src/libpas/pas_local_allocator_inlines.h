@@ -1671,6 +1671,10 @@ pas_local_allocator_return_memory_to_page_for_role(
 
         num_live_bytes_after = page->emptiness.num_non_empty_words_or_live_bytes;
 
+        /* We're strongly assuming that if we stop the allocator, we will never give back the whole
+           page. */
+        PAS_ASSERT(num_live_bytes_after);
+        
         PAS_ASSERT(num_live_bytes_before >= num_live_bytes_after);
         verse_heap_notify_deallocation(num_live_bytes_before - num_live_bytes_after);
 

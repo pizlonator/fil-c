@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +43,9 @@ void verse_heap_page_header_construct(verse_heap_page_header* header)
 	header->stashed_alloc_bits = NULL;
 	header->client_data = NULL;
 	pas_lock_construct(&header->client_data_lock);
+    pas_fence(); /* Needed to ensure that newly created pages see verse_heap_latest_version before
+                    they see verse_heap_allocating_black_version, see comment in
+                    verse_heap_start_sweep_before_handshake. */
 }
 
 void** verse_heap_page_header_lock_client_data(verse_heap_page_header* header)
