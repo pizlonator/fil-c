@@ -10135,6 +10135,12 @@ long double filc_native_zmath_scalbnl(filc_thread* my_thread, long double value,
     return scalbnl(value, exp);
 }
 
+long double filc_native_zmath_exp2l(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return exp2l(value);
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */

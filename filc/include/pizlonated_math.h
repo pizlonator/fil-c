@@ -43,6 +43,7 @@ extern "C" {
 
 int zmath_finitel(long double value);
 long double zmath_scalbnl(long double value, int exp);
+long double zmath_exp2l(long double value);
 
 #ifdef __cplusplus
 }
