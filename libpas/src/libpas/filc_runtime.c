@@ -10141,7 +10141,27 @@ long double filc_native_zmath_exp2l(filc_thread* my_thread, long double value)
     return exp2l(value);
 }
 
+long double filc_native_zmath_scalbl(filc_thread* my_thread, long double value, long double exp)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#if PAS_GLIBC
+    return scalbl(value, exp);
+#else
+    PAS_UNUSED_PARAM(value);
+    PAS_UNUSED_PARAM(exp);
+    filc_internal_panic(NULL, "scalbl not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_fmaxl(filc_thread* my_thread, long double x, long double y)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fmaxl(x, y);
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */
+
 

@@ -468,6 +468,8 @@ addSig "unsigned long long", "zget_signal_deferral_depth"
 addSig "int", "zmath_finitel", "long double"
 addSig "long double", "zmath_scalbnl", "long double", "int"
 addSig "long double", "zmath_exp2l", "long double"
+addSig "long double", "zmath_scalbl", "long double", "long double"
+addSig "long double", "zmath_fmaxl", "long double", "long double"
 
 addOutSig "void_ptr_ptr", "void", "filc_ptr", "filc_ptr"
 addOutSig "main", "exception/int", "int", "filc_ptr", "filc_ptr"
