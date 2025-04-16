@@ -10233,6 +10233,98 @@ long double filc_native_zmath_ilogbl(filc_thread* my_thread, long double value)
 #endif
 }
 
+long double filc_native_zmath_log10l(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_log10l(long double value);
+    return __ieee754_log10l(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "log10l not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_log10l_finite(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __log10l_finite(long double value);
+    return __log10l_finite(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "log10l_finite not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_log2l(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_log2l(long double value);
+    return __ieee754_log2l(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "log2l not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_log2l_finite(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __log2l_finite(long double value);
+    return __log2l_finite(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "log2l_finite not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_logl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_logl(long double value);
+    return __ieee754_logl(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "logl not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_logl_finite(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __logl_finite(long double value);
+    return __logl_finite(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "logl_finite not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_powl(filc_thread* my_thread, long double x, long double y)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_powl(long double x, long double y);
+    return __ieee754_powl(x, y);
+#else
+    PAS_UNUSED_PARAM(x);
+    PAS_UNUSED_PARAM(y);
+    filc_internal_panic(NULL, "powl not implemented.");
+    return 0;
+#endif
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */

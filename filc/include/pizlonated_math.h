@@ -52,6 +52,13 @@ long double zmath_expm1l(long double value);
 long double zmath_expl(long double value);
 long double zmath_fmodl(long double x, long double y);
 long double zmath_ilogbl(long double value);
+long double zmath_log10l(long double value);
+long double zmath_log10l_finite(long double value);
+long double zmath_log2l(long double value);
+long double zmath_log2l_finite(long double value);
+long double zmath_logl(long double value);
+long double zmath_logl_finite(long double value);
+long double zmath_powl(long double x, long double y);
 
 #ifdef __cplusplus
 }
