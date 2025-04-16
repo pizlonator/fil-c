@@ -46,6 +46,12 @@ long double zmath_scalbnl(long double value, int exp);
 long double zmath_exp2l(long double value);
 long double zmath_scalbl(long double value, long double exp);
 long double zmath_fmaxl(long double x, long double y);
+long double zmath_fminl(long double x, long double y);
+long double zmath_exp10l(long double value);
+long double zmath_expm1l(long double value);
+long double zmath_expl(long double value);
+long double zmath_fmodl(long double x, long double y);
+long double zmath_ilogbl(long double value);
 
 #ifdef __cplusplus
 }

@@ -10138,14 +10138,22 @@ long double filc_native_zmath_scalbnl(filc_thread* my_thread, long double value,
 long double filc_native_zmath_exp2l(filc_thread* my_thread, long double value)
 {
     PAS_UNUSED_PARAM(my_thread);
-    return exp2l(value);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_exp2l(long double value);
+    return __ieee754_exp2l(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "exp2l not implemented.");
+    return 0;
+#endif
 }
 
 long double filc_native_zmath_scalbl(filc_thread* my_thread, long double value, long double exp)
 {
     PAS_UNUSED_PARAM(my_thread);
-#if PAS_GLIBC
-    return scalbl(value, exp);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_scalbl(long double value, long double exp);
+    return __ieee754_scalbl(value, exp);
 #else
     PAS_UNUSED_PARAM(value);
     PAS_UNUSED_PARAM(exp);
@@ -10158,6 +10166,71 @@ long double filc_native_zmath_fmaxl(filc_thread* my_thread, long double x, long 
 {
     PAS_UNUSED_PARAM(my_thread);
     return fmaxl(x, y);
+}
+
+long double filc_native_zmath_fminl(filc_thread* my_thread, long double x, long double y)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fminl(x, y);
+}
+
+long double filc_native_zmath_exp10l(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_exp10l(long double value);
+    return __ieee754_exp10l(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "exp10l not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_expm1l(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return expm1l(value);
+}
+
+long double filc_native_zmath_expl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_expl(long double value);
+    return __ieee754_expl(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "expl not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_fmodl(filc_thread* my_thread, long double x, long double y)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_fmodl(long double x, long double y);
+    return __ieee754_fmodl(x, y);
+#else
+    PAS_UNUSED_PARAM(x);
+    PAS_UNUSED_PARAM(y);
+    filc_internal_panic(NULL, "fmodl not implemented.");
+    return 0;
+#endif
+}
+
+long double filc_native_zmath_ilogbl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_ilogbl(long double value);
+    return __ieee754_ilogbl(value);
+#else
+    PAS_UNUSED_PARAM(value);
+    filc_internal_panic(NULL, "ilogbl not implemented.");
+    return 0;
+#endif
 }
 
 #endif /* PAS_ENABLE_FILC */
