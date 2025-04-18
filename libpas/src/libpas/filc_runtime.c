@@ -10325,6 +10325,32 @@ long double filc_native_zmath_powl(filc_thread* my_thread, long double x, long d
 #endif
 }
 
+long double filc_native_zmath_remainderl(filc_thread* my_thread, long double x, long double y)
+{
+    PAS_UNUSED_PARAM(my_thread);
+#ifdef FILC_YOLO_MATH_HACKS
+    extern long double __ieee754_remainderl(long double x, long double y);
+    return __ieee754_remainderl(x, y);
+#else
+    PAS_UNUSED_PARAM(x);
+    PAS_UNUSED_PARAM(y);
+    filc_internal_panic(NULL, "remainderl not implemented.");
+    return 0;
+#endif
+}
+
+long long filc_native_zmath_llrintl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return llrintl(value);
+}
+
+long double filc_native_zmath_log1pl(filc_thread* my_thread, long double value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return log1pl(value);
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */
