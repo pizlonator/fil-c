@@ -1,0 +1,5 @@
+{
+    global:
+        foo;
+    local: *;
+};

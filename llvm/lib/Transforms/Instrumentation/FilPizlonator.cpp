@@ -1115,7 +1115,6 @@ class Pizlonator {
   FunctionType* PizlonatedFuncTy;
   FunctionType* PizlonatedGetterTy;
   FunctionType* ThreadLocalEnsureTy;
-  FunctionType* ThreadLocalGetterTy;
   FunctionType* CtorDtorTy;
   FunctionType* SetjmpTy;
   FunctionType* SigsetjmpTy;
@@ -1199,10 +1198,6 @@ class Pizlonator {
   std::unordered_map<GlobalValue*, GlobalVariable*> GlobalToGlobal;
   std::unordered_set<Value*> Getters;
   std::unordered_map<Function*, Function*> FunctionToHiddenFunction;
-
-  std::unordered_map<GlobalValue*, GlobalValue*> ThreadLocalToPtr;
-  std::unordered_map<GlobalValue*, GlobalValue*> ThreadLocalToEnsure;
-  std::unordered_map<GlobalValue*, GlobalValue*> ThreadLocalToGetter;
 
   std::string FunctionName;
   Function* OldF { nullptr };
@@ -4521,7 +4516,6 @@ class Pizlonator {
 
     if (GlobalValue* G = dyn_cast<GlobalValue>(C)) {
       assert(!shouldPassThrough(G));
-      assert(!G->isThreadLocal());
       switch (LM) {
       case TryLowerConstantImplMode::NeedFullFlightConstant:
         return nullptr;
@@ -4602,7 +4596,6 @@ class Pizlonator {
     
     if (GlobalValue* G = dyn_cast<GlobalValue>(C)) {
       assert(!shouldPassThrough(G));
-      assert(!G->isThreadLocal());
       assert(!Getters.count(G));
       assert(GlobalToGetter.count(G));
       Function* Getter = GlobalToGetter[G];
@@ -4705,7 +4698,6 @@ class Pizlonator {
     
     if (GlobalValue* G = dyn_cast<GlobalValue>(C)) {
       assert(!shouldPassThrough(G)); // This is a necessary safety check, at least for setjmp, probably for other things too.
-      assert(!G->isThreadLocal());
       assert(!GlobalToGetter.count(nullptr));
       assert(!Getters.count(nullptr));
       assert(!Getters.count(G));
@@ -5138,46 +5130,9 @@ class Pizlonator {
       }
 
       case Intrinsic::threadlocal_address: {
-        GlobalValue* HighG = cast<GlobalValue>(II->getArgOperand(0));
-        assert(HighG->isThreadLocal());
-        if (HighG->isDeclaration() &&
-            (HighG->hasWeakAnyLinkage() || HighG->hasExternalWeakLinkage())) {
-          GlobalValue* Getter = ThreadLocalToGetter[HighG];
-          ICmpInst* IsNull = new ICmpInst(
-            I, ICmpInst::ICMP_EQ, Getter, RawNull, "filc_weak_symbol_is_null");
-          IsNull->setDebugLoc(I->getDebugLoc());
-          Instruction* NotNullTerm = SplitBlockAndInsertIfElse(IsNull, I, false);
-          Instruction* NotNullResult = CallInst::Create(
-            ThreadLocalGetterTy, Getter, { MyThread }, "filc_get_thread_local", NotNullTerm);
-          NotNullResult->setDebugLoc(I->getDebugLoc());
-          PHINode* Result = PHINode::Create(RawPtrTy, 2, "filc_thread_local_phi", I);
-          Result->setDebugLoc(I->getDebugLoc());
-          Result->addIncoming(RawNull, IsNull->getParent());
-          Result->addIncoming(NotNullResult, NotNullResult->getParent());
-          I->replaceAllUsesWith(flightPtrForPayload(Result, I));
-          I->eraseFromParent();
-          return true;
-        }
-        GlobalValue* LowP = ThreadLocalToPtr[HighG];
-        GlobalValue* LowE = ThreadLocalToEnsure[HighG];
-        assert(LowP);
-        assert(LowE);
-        assert(LowP->isThreadLocal());
-        Instruction* FastLower = new LoadInst(RawPtrTy, LowP, "filc_fast_load_thread_local_ptr", I);
-        FastLower->setDebugLoc(I->getDebugLoc());
-        Instruction* FastIsNull = new ICmpInst(
-          I, ICmpInst::ICMP_EQ, FastLower, RawNull, "filc_fast_load_is_null");
-        FastIsNull->setDebugLoc(I->getDebugLoc());
-        Instruction* NullTerm = SplitBlockAndInsertIfThen(expectFalse(FastIsNull, I), I, false);
-        Instruction* SlowLower = CallInst::Create(
-          ThreadLocalEnsureTy, LowE, { MyThread }, "filc_ensure_thread_local", NullTerm);
-        SlowLower->setDebugLoc(I->getDebugLoc());
-        PHINode* Lower = PHINode::Create(RawPtrTy, 2, "filc_thread_local_lower", I);
-        Lower->setDebugLoc(I->getDebugLoc());
-        Lower->addIncoming(FastLower, FastLower->getParent());
-        Lower->addIncoming(SlowLower, SlowLower->getParent());
-        I->replaceAllUsesWith(flightPtrForPayload(Lower, I));
-        I->eraseFromParent();
+        lowerConstantOperand(II->getArgOperandUse(0), II);
+        II->replaceAllUsesWith(II->getArgOperand(0));
+        II->eraseFromParent();
         return true;
       }
 
@@ -6662,62 +6617,6 @@ class Pizlonator {
     }
   }
 
-  void lowerThreadLocalOperands(Instruction* I) {
-    IntrinsicInst* II = dyn_cast<IntrinsicInst>(I);
-    if (II && II->getIntrinsicID() == Intrinsic::threadlocal_address)
-      return;
-    
-    for (unsigned Index = I->getNumOperands(); Index--;) {
-      Instruction* InsertBefore;
-      if (PHINode* P = dyn_cast<PHINode>(I))
-        InsertBefore = P->getIncomingBlock(Index)->getTerminator();
-      else
-        InsertBefore = I;
-      
-      Use& U = I->getOperandUse(Index);
-      if (GlobalVariable* G = dyn_cast<GlobalVariable>(U)) {
-        if (G->isThreadLocal()) {
-          CallInst* CI = CallInst::Create(
-            ThreadlocalAddress, { U }, "filc_threadlocal_address", InsertBefore);
-          CI->setDebugLoc(I->getDebugLoc());
-          U = CI;
-        }
-        continue;
-      }
-
-      assert(!isa<ConstantExpr>(U));
-    }
-  }
-
-  void lowerThreadLocals() {
-    // All uses of threadlocals except threadlocal_address need to go through threadlocal_address.
-    for (Function& F : M.functions()) {
-      if (F.isDeclaration())
-        continue;
-      
-      for (BasicBlock& BB : F) {
-        std::vector<Instruction*> Insts;
-        for (Instruction& I : BB)
-          Insts.push_back(&I);
-        for (Instruction* I : Insts)
-          lowerThreadLocalOperands(I);
-      }
-
-      std::unordered_map<Value*, std::vector<Instruction*>> ThreadlocalAddressCalls;
-      for (BasicBlock& BB : F) {
-        for (Instruction& I : BB) {
-          IntrinsicInst* II = dyn_cast<IntrinsicInst>(&I);
-          if (!II || II->getIntrinsicID() != Intrinsic::threadlocal_address)
-            continue;
-          
-          ThreadlocalAddressCalls[II->getArgOperand(0)].push_back(II);
-        }
-      }
-      
-      simpleCSE(F, ThreadlocalAddressCalls);
-    }
-  }
-
   void makeEHDatas() {
     std::vector<LandingPadInst*> LPIs;
     
@@ -6919,7 +6818,6 @@ class Pizlonator {
             T = Int8Ty;
             GV = new GlobalVariable(M, Int8Ty, false, GlobalValue::ExternalLinkage, nullptr, OldName);
           }
-          assert(!GV->isThreadLocal());
           GlobalValue::LinkageTypes Linkage;
           if (Tok.Str == ".filc_weak_alias")
             Linkage = GlobalValue::WeakAnyLinkage;
@@ -7425,11 +7323,6 @@ public:
              << "and pointer laundering inferred:\n" << M << "\n";
     }
     
-    lowerThreadLocals();
-
-    if (verbose)
-      errs() << "Module with lowered thread locals:\n" << M << "\n";
-    
     makeEHDatas();
     compileModuleAsm();
     lazifyAllocas();
@@ -7501,7 +7394,6 @@ public:
       PizlonatedReturnValueTy, { RawPtrTy, IntPtrTy }, false);
     PizlonatedGetterTy = FunctionType::get(FlightPtrTy, { RawPtrTy, RawPtrTy }, false);
     ThreadLocalEnsureTy = FunctionType::get(RawPtrTy, { RawPtrTy }, false);
-    ThreadLocalGetterTy = FunctionType::get(RawPtrTy, { RawPtrTy }, false);
 
     // FIXME: Eventually, we'll want to do something with the DSO handle. But for now it doesn't
     // matter because we don't support dlclose.
@@ -7652,65 +7544,10 @@ public:
       Getters.insert(NewF);
       ToDelete.push_back(G);
     };
-    for (GlobalVariable* G : Globals) {
-      if (G->isThreadLocal()) {
-        if (verbose)
-          errs() << "Handling thread local: " << G->getName() << "\n";
-        if (!(G->isDeclaration() &&
-              (G->hasWeakAnyLinkage() || G->hasExternalWeakLinkage()))) {
-          GlobalVariable* NewG = new GlobalVariable(
-            M, RawPtrTy, false, G->getLinkage(), G->isDeclaration() ? nullptr : RawNull,
-            "pizlonatedTLP_" + G->getName(), nullptr, G->getThreadLocalMode());
-          NewG->setVisibility(G->getVisibility());
-          ThreadLocalToPtr[G] = NewG;
-          Function* NewF = Function::Create(
-            ThreadLocalEnsureTy, G->getLinkage(), 0, "pizlonatedTLE_" + G->getName(), &M);
-          NewF->setVisibility(G->getVisibility());
-          ThreadLocalToEnsure[G] = NewF;
-        }
-        Function* Getter = Function::Create(
-          ThreadLocalGetterTy, G->getLinkage(), 0, "pizlonatedTLG_" + G->getName(), &M);
-        Getter->setVisibility(G->getVisibility());
-        ThreadLocalToGetter[G] = Getter;
-        ToDelete.push_back(G);
-        continue;
-      }
+    for (GlobalVariable* G : Globals)
       HandleGlobal(G);
-    }
-    for (GlobalAlias* G : Aliases) {
-      if (G->isThreadLocal()) {
-        if (verbose)
-          errs() << "Handling thread local alias: " << G->getName() << "\n";
-        // For now, we require a global alias to a threadlocal to directly alias a threadlocal, not
-        // another alias.
-        GlobalValue* TargetG = cast<GlobalVariable>(G->getAliasee());
-        assert(TargetG);
-        assert(!TargetG->isDeclaration());
-        GlobalValue* NewTargetG = ThreadLocalToPtr[TargetG];
-        GlobalValue* NewTargetF = ThreadLocalToEnsure[TargetG];
-        GlobalValue* NewTargetGetter = ThreadLocalToGetter[TargetG];
-        assert(NewTargetG);
-        assert(NewTargetF);
-        assert(NewTargetGetter);
-        GlobalAlias* NewG = GlobalAlias::create(
-          RawPtrTy, 0, G->getLinkage(), "pizlonatedTLP_" + G->getName(), NewTargetG, &M);
-        NewG->setVisibility(G->getVisibility());
-        NewG->setThreadLocalMode(G->getThreadLocalMode());
-        ThreadLocalToPtr[G] = NewG;
-        GlobalAlias* NewF = GlobalAlias::create(
-          ThreadLocalEnsureTy, 0, G->getLinkage(), "pizlonatedTLE_" + G->getName(), NewTargetF, &M);
-        NewF->setVisibility(G->getVisibility());
-        ThreadLocalToEnsure[G] = NewF;
-        GlobalAlias* NewGetter = GlobalAlias::create(
-          ThreadLocalGetterTy, 0, G->getLinkage(), "pizlonatedTLG_" + G->getName(), NewTargetGetter,
-          &M);
-        NewGetter->setVisibility(G->getVisibility());
-        ThreadLocalToGetter[G] = NewGetter;
-        ToDelete.push_back(G);
-        continue;
-      }
+    for (GlobalAlias* G : Aliases)
       HandleGlobal(G);
-    }
     for (GlobalIFunc* G : IFuncs) {
       assert(!G->isThreadLocal());
       HandleGlobal(G);
@@ -7792,32 +7629,30 @@ public:
       if (!G->isDeclaration())
         Alignment = std::max(G->getAlignment(), DL.getABITypeAlign(G->getValueType()).value());
       
+      Function* NewF = GlobalToGetter[G];
+      assert(NewF);
+      assert(NewF->isDeclaration());
+
+      if (verbose)
+        errs() << "Dealing with global: " << *G << "\n";
+
+      if (G->isDeclaration())
+        continue;
+
+      assert(Alignment);
+      
       if (G->isThreadLocal()) {
-        Function* NewGetter = cast<Function>(ThreadLocalToGetter[G]);
-        assert(NewGetter);
-
-        if (G->isDeclaration() &&
-            (G->hasWeakAnyLinkage() || G->hasExternalWeakLinkage())) {
-          assert(NewGetter->isDeclaration());
-          continue;
-        }
-        
-        GlobalVariable* NewG = cast<GlobalVariable>(ThreadLocalToPtr[G]);
-        Function* NewF = cast<Function>(ThreadLocalToEnsure[G]);
-        assert(NewG);
-        assert(NewF);
-
-        if (G->isDeclaration()) {
-          assert(NewG->isDeclaration());
-          assert(NewF->isDeclaration());
-          continue;
-        }
-
-        assert(Alignment);
+        Function* SlowF = Function::Create(ThreadLocalEnsureTy, GlobalValue::PrivateLinkage,
+                                           G->getAddressSpace(), "filc_getter_slow", &M);
+        SlowF->addFnAttr(Attribute::NoInline);
+      
+        GlobalVariable* NewG = new GlobalVariable(
+          M, RawPtrTy, false, G->getLinkage(), G->isDeclaration() ? nullptr : RawNull,
+          "filc_tptr_" + G->getName(), nullptr, G->getThreadLocalMode());
 
         assert(!MyThread);
-        MyThread = NewF->getArg(0);
-        BasicBlock* RootB = BasicBlock::Create(C, "filc_thread_local_ensure_root", NewF);
+        MyThread = SlowF->getArg(0);
+        BasicBlock* RootB = BasicBlock::Create(C, "filc_thread_local_ensure_root", SlowF);
         ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(RawPtrTy), RootB);
         Instruction* Object = CallInst::Create(
           hasPtrs(G->getValueType()) ? AllocateThreadLocalWithPtrs : AllocateThreadLocal,
@@ -7837,8 +7672,8 @@ public:
           SyncScope::System, MemoryKind::ThreadLocalInit, Return);
         new StoreInst(Lower, NewG, Return);
 
-        MyThread = NewGetter->getArg(0);
-        RootB = BasicBlock::Create(C, "filc_thread_local_getter_root", NewGetter);
+        MyThread = NewF->getArg(0);
+        RootB = BasicBlock::Create(C, "filc_thread_local_getter_root", NewF);
         Return = ReturnInst::Create(C, UndefValue::get(RawPtrTy), RootB);
         Instruction* FastLower =
           new LoadInst(RawPtrTy, NewG, "filc_fast_load_thread_local_ptr", Return);
@@ -7847,31 +7682,19 @@ public:
         Instruction* NullTerm =
           SplitBlockAndInsertIfThen(expectFalse(FastIsNull, Return), Return, false);
         Instruction* SlowLower = CallInst::Create(
-          ThreadLocalEnsureTy, NewF, { MyThread }, "filc_ensure_thread_local", NullTerm);
+          ThreadLocalEnsureTy, SlowF, { MyThread }, "filc_ensure_thread_local", NullTerm);
         PHINode* Result = PHINode::Create(RawPtrTy, 2, "filc_thread_local_lower", Return);
         Result->addIncoming(FastLower, FastLower->getParent());
         Result->addIncoming(SlowLower, SlowLower->getParent());
-        Return->getOperandUse(0) = Result;
+        Return->getOperandUse(0) = flightPtrForPayload(Result, Return);
         MyThread = nullptr;
         continue;
       }
 
-      Function* NewF = GlobalToGetter[G];
-      assert(NewF);
-      assert(NewF->isDeclaration());
-
-      if (verbose)
-        errs() << "Dealing with global: " << *G << "\n";
-
-      if (G->isDeclaration())
-        continue;
-
-      assert(Alignment);
-      
       Function* SlowF = Function::Create(PizlonatedGetterTy, GlobalValue::PrivateLinkage,
                                          G->getAddressSpace(), "filc_getter_slow", &M);
       SlowF->addFnAttr(Attribute::NoInline);
-
+      
       Constant* NewC = paddedConstant(
         constantToRestConstantWithPtrPlaceholders(G->getInitializer()));
       assert(NewC);
@@ -8293,8 +8116,6 @@ public:
       NewF = nullptr;
     }
     for (GlobalAlias* G : Aliases) {
-      if (G->isThreadLocal())
-        continue;
       Constant* C = G->getAliasee();
       GlobalValue* Aliasee;
       int64_t Offset = 0;

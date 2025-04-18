@@ -1,0 +1,13 @@
+return:
+  success
+libraries:
+  libthingy:
+    isBundle: false
+    files:
+      - library.c
+    extraLinkerArgs:
+      "--version-script=filc/tests/versionscript4/versionscript.ld"
+extraLinkerArgs:
+  "-Lfilc/test-output/versionscript4 -lthingy"
+extraLDPath:
+  "filc/test-output/versionscript4"
