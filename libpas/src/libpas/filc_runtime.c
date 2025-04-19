@@ -5941,6 +5941,9 @@ void filc_native_zsys_sched_yield(filc_thread* my_thread)
 
 int filc_native_zsys_getrlimit(filc_thread* my_thread, int resource, filc_ptr rlim_ptr)
 {
+#if PAS_GLIBC
+    PAS_ASSERT(sizeof(rlim_t) == sizeof(rlim64_t));
+#endif
     filc_check_write(rlim_ptr, sizeof(struct rlimit));
     return FILC_SYSCALL(my_thread, getrlimit(resource, (struct rlimit*)filc_ptr_ptr(rlim_ptr)));
 }
