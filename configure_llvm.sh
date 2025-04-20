@@ -43,7 +43,12 @@ CMAKEOPTIONS="-S ../llvm -B . -G Ninja -DLLVM_ENABLE_PROJECTS=clang
     $LLVMLIBCOPT -DLLVM_ENABLE_ZSTD=OFF
     -DLIBCXX_FORCE_LIBCXXABI=ON -DLLVM_TARGETS_TO_BUILD=$LLVMARCH"
 
-COOKIECONTENTS=`cat build/filc_cookie.txt`
+if test -e build/filc_cookie.txt
+then
+    COOKIECONTENTS=`cat build/filc_cookie.txt`
+else
+    COOKIECONTENTS=""
+fi
 
 if test "x$COOKIECONTENTS" != "x$CMAKEOPTIONS"
 then
