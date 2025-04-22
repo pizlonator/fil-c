@@ -3,6 +3,7 @@
 
 int main()
 {
+    setvbuf(stdout, NULL, _IONBF, 0);
     int* ptr = malloc(100);
     *ptr = 42;
     printf("tak\n");
