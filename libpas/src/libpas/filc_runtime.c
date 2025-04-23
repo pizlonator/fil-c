@@ -9631,6 +9631,20 @@ int filc_native_zsys_waitid(filc_thread* my_thread, int idtype, unsigned id, fil
     return FILC_SYSCALL(my_thread, waitid(idtype, id, (siginfo_t*)filc_ptr_ptr(info_ptr), options));
 }
 
+int filc_native_zsys_sigtimedwait(filc_thread* my_thread, filc_ptr set_ptr, filc_ptr info_ptr,
+                                  filc_ptr timeout_ptr)
+{
+    filc_check_user_sigset(set_ptr, filc_read_access);
+    sigset_t sigmask;
+    filc_from_user_sigset((sigset_t*)filc_ptr_ptr(set_ptr), &sigmask);
+    if (filc_ptr_ptr(info_ptr))
+        filc_check_write(info_ptr, sizeof(siginfo_t));
+    if (filc_ptr_ptr(timeout_ptr))
+        filc_check_read(timeout_ptr, sizeof(struct timespec));
+    return FILC_SYSCALL(my_thread, sigtimedwait(&sigmask, (siginfo_t*)filc_ptr_ptr(info_ptr),
+                                                (const struct timespec*)filc_ptr_ptr(timeout_ptr)));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
