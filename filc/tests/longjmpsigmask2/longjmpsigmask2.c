@@ -5,6 +5,8 @@
 #include <pizlonated_runtime.h>
 #include <stdbool.h>
 
+#undef setjmp
+
 void* opaque(void*);
 
 int main(int argc, char** argv)

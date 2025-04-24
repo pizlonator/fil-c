@@ -10383,6 +10383,20 @@ long double filc_native_zmath_nearbyintl(filc_thread* my_thread, long double val
     return nearbyintl(value);
 }
 
+unsigned filc_native_zmath_getcw(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    unsigned result;
+    asm volatile ("fnstcw %0" : "=m"(result));
+    return result;
+}
+
+void filc_native_zmath_setcw(filc_thread* my_thread, unsigned cw)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    asm volatile ("fldcw %0" : : "m"(cw));
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */

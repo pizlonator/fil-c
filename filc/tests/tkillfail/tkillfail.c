@@ -34,6 +34,10 @@ main()
     ZASSERT(!signal(SIGUSR1, onsig));
     ZASSERT(!sigprocmask(SIG_BLOCK, &ss, 0));
     ZASSERT(!pthread_create(&t, 0, SuspendWorker, 0));
+#ifdef __USE_GNU
+    ZASSERT(pthread_kill(t, 33) == EINVAL);
+#else
     ZASSERT(pthread_kill(t, 33) == ENOSYS);
+#endif
     return 0;
 }

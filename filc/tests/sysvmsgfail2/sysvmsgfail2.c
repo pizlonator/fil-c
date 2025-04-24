@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/mman.h>

@@ -488,6 +488,8 @@ addSig "long double", "zmath_remainderl", "long double", "long double"
 addSig "long long", "zmath_llrintl", "long double"
 addSig "long double", "zmath_log1pl", "long double"
 addSig "long double", "zmath_nearbyintl", "long double"
+addSig "unsigned", "zmath_getcw"
+addSig "void", "zmath_setcw", "unsigned"
 
 addOutSig "void_ptr_ptr", "void", "filc_ptr", "filc_ptr"
 addOutSig "main", "exception/int", "int", "filc_ptr", "filc_ptr"

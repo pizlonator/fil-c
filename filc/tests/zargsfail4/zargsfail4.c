@@ -15,6 +15,7 @@ static __attribute__((__noinline__)) void thingy(char* x)
 
 int main()
 {
+    setvbuf(stdout, NULL, _IONBF, 0);
     thingy("hello");
     return 0;
 }

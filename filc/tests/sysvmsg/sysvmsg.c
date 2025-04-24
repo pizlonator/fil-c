@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/mman.h>
@@ -10,6 +12,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <stddef.h>
+#include <sys/types.h>
 
 #define ASSERT(exp) do { \
     if ((exp)) \
