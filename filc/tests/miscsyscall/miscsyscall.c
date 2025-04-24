@@ -24,6 +24,11 @@
 #include <filc_test_support.h>
 #include <sys/statfs.h>
 #include <sys/statvfs.h>
+#include "utils.h"
+
+#ifndef SA_RESTORER
+#define SA_RESTORER 0
+#endif
 
 int main(int argc, char** argv)
 {
@@ -168,7 +173,7 @@ int main(int argc, char** argv)
     ZASSERT(strlen(utsname.release));
     ZASSERT(strlen(utsname.version));
     ZASSERT(strlen(utsname.machine));
-    strlen(utsname.domainname); // Run for effect; the string may be empty!
+    opaque((void*)strlen(utsname.domainname)); // Run for effect; the string may be empty!
 
     struct itimerval timerval;
     memset(&timerval, 42, sizeof(struct itimerval));
