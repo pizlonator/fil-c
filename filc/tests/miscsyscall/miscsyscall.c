@@ -24,6 +24,7 @@
 #include <filc_test_support.h>
 #include <sys/statfs.h>
 #include <sys/statvfs.h>
+#include <termios.h>
 #include "utils.h"
 
 #ifndef SA_RESTORER
@@ -349,6 +350,10 @@ int main(int argc, char** argv)
     cpu_set_t cpuset;
     ZASSERT(!sched_getaffinity(getpid(), sizeof(cpuset), &cpuset));
     ZASSERT(!sched_setaffinity(getpid(), sizeof(cpuset), &cpuset));
+
+    struct termios tios;
+    ZASSERT(!tcgetattr(0, &tios));
+    ZASSERT(!tcsetattr(0, TCSANOW, &tios));
 
     zprintf("No worries.\n");
     return 0;
