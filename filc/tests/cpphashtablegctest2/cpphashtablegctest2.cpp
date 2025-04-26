@@ -9,11 +9,12 @@
 #include <thread>
 #include <mutex>
 #include <unistd.h>
+#include <filc_test_support.h>
 
 using namespace std;
 
 constexpr size_t num_threads = 10;
-constexpr size_t repeats = 70000;
+constexpr size_t base_repeats = 70000;
 constexpr size_t num_toplevel_keys = 10000;
 constexpr size_t num_inner_keys = 10000;
 constexpr size_t max_nodes_to_add = 20;
@@ -169,10 +170,21 @@ struct LocalTester {
     unordered_map<string, inner_map*> hash_map;
 };
 
+inline size_t repeats()
+{
+    size_t result = base_repeats;
+    if (zgc_is_scribbling())
+        result /= 2;
+    if (zgc_is_verifying())
+        result /= 2;
+    zprintf("repeats = %zu\n", result);
+    return result;
+}
+
 inline void thread_main()
 {
     LocalTester localTester;
-    for (size_t repeat = repeats; repeat--;) {
+    for (size_t repeat = repeats(); repeat--;) {
         unsigned selection = get_fast_random(selection_range);
         if (selection < add_nodes_probability) {
             localTester.addNodes();

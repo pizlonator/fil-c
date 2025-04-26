@@ -1292,6 +1292,16 @@ bool fugc_is_stw(void)
     return should_stop_the_world;
 }
 
+bool fugc_is_scribbling(void)
+{
+    return should_scribble;
+}
+
+bool fugc_is_verifying(void)
+{
+    return should_verify;
+}
+
 void fugc_dump_setup(void)
 {
     pas_log("    fugc minimum threshold: %zu\n", minimum_threshold);

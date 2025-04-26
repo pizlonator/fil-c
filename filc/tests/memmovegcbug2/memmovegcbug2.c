@@ -2,6 +2,7 @@
 #include <stdfil.h>
 #include <string.h>
 #include <pthread.h>
+#include <filc_test_support.h>
 
 #define SIZE 10000000
 #define REPEAT 10
@@ -35,8 +36,13 @@ static void do_test(void)
 
 int main()
 {
+    unsigned repeat = REPEAT;
+
+    if (zgc_is_scribbling() || zgc_is_verifying())
+        repeat /= 2;
+    
     unsigned i;
-    for (i = REPEAT; i--;)
+    for (i = repeat; i--;)
         do_test();
     
     return 0;

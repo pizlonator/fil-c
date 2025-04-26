@@ -203,6 +203,8 @@ PAS_API uint64_t fugc_request_fresh(void);
 PAS_API void fugc_wait(uint64_t cycle);
 
 PAS_API bool fugc_is_stw(void);
+PAS_API bool fugc_is_scribbling(void);
+PAS_API bool fugc_is_verifying(void);
 
 PAS_API void fugc_dump_setup(void);
 

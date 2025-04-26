@@ -62,6 +62,9 @@ void zvalidate_ptr(void* ptr);
    mode by setting the FUGC_STW=1 environment variable. */
 filc_bool zgc_is_stw(void);
 
+filc_bool zgc_is_scribbling(void);
+filc_bool zgc_is_verifying(void);
+
 __SIZE_TYPE__ znum_deferred_signals(void);
 
 #ifdef __cplusplus

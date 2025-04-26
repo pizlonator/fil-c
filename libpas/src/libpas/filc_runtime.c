@@ -4743,6 +4743,18 @@ bool filc_native_zgc_is_stw(filc_thread* my_thread)
     return fugc_is_stw();
 }
 
+bool filc_native_zgc_is_scribbling(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fugc_is_scribbling();
+}
+
+bool filc_native_zgc_is_verifying(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fugc_is_verifying();
+}
+
 void filc_native_zscavenge_synchronously(filc_thread* my_thread)
 {
     filc_exit(my_thread);
