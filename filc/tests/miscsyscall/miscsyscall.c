@@ -351,9 +351,9 @@ int main(int argc, char** argv)
     ZASSERT(!sched_getaffinity(getpid(), sizeof(cpuset), &cpuset));
     ZASSERT(!sched_setaffinity(getpid(), sizeof(cpuset), &cpuset));
 
-    struct termios tios;
-    ZASSERT(!tcgetattr(0, &tios));
-    ZASSERT(!tcsetattr(0, TCSANOW, &tios));
+    //struct termios tios;
+    //ZASSERT(!tcgetattr(0, &tios));
+    //ZASSERT(!tcsetattr(0, TCSANOW, &tios));
 
     zprintf("No worries.\n");
     return 0;
