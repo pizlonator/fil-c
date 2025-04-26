@@ -35,6 +35,7 @@ int main(int argc, char** argv)
 
     fd = open("filc/tests/fileio/test.txt", O_RDONLY);
     ZASSERT(fd > 2);
+    ZASSERT(!posix_fadvise(fd, 0, 1, POSIX_FADV_NORMAL));
     __builtin_memset(buf, 0, sizeof(buf));
     result = read(fd, buf, sizeof(buf));
     ZASSERT(result == 14);
