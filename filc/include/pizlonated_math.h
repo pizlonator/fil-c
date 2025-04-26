@@ -68,4 +68,4 @@ void zmath_setcw(unsigned cw);
 }
 #endif
 
-#endif /* PIZLONATED_COMMON_SYSCALLS_H */
+#endif /* PIZLONATED_MATH_H */
