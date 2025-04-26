@@ -340,6 +340,11 @@ int main(int argc, char** argv)
     ZASSERT(!symlink("dir2", "filc/test-output/miscsyscall/dir2-link"));
     ZASSERT(readlink("filc/test-output/miscsyscall/dir2-link", buf, sizeof(buf)) == strlen("dir2"));
     ZASSERT(!memcmp(buf, "dir2", strlen("dir2")));
+    ZASSERT(!rename("filc/test-output/miscsyscall/dir2-link",
+                    "filc/test-output/miscsyscall/dir2-link2"));
+    bzero(buf, sizeof(buf));
+    ZASSERT(readlink("filc/test-output/miscsyscall/dir2-link2", buf, sizeof(buf)) == strlen("dir2"));
+    ZASSERT(!memcmp(buf, "dir2", strlen("dir2")));
 
     zprintf("No worries.\n");
     return 0;
