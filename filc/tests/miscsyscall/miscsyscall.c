@@ -330,6 +330,17 @@ int main(int argc, char** argv)
     ZASSERT(fd > 2);
     close(fd);
 
+    unlink("filc/test-output/miscsyscall/dir1/test.txt");
+    unlink("filc/test-output/miscsyscall/dir2/test.txt");
+    rmdir("filc/test-output/miscsyscall/dir1");
+    rmdir("filc/test-output/miscsyscall/dir2");
+    unlink("filc/test-output/miscsyscall/dir2-link");
+    ZASSERT(!mkdir("filc/test-output/miscsyscall/dir1", 0700));
+    ZASSERT(!mkdir("filc/test-output/miscsyscall/dir2", 0700));
+    ZASSERT(!symlink("dir2", "filc/test-output/miscsyscall/dir2-link"));
+    ZASSERT(readlink("filc/test-output/miscsyscall/dir2-link", buf, sizeof(buf)) == strlen("dir2"));
+    ZASSERT(!memcmp(buf, "dir2", strlen("dir2")));
+
     zprintf("No worries.\n");
     return 0;
 }
