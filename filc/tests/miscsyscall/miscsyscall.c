@@ -346,6 +346,10 @@ int main(int argc, char** argv)
     ZASSERT(readlink("filc/test-output/miscsyscall/dir2-link2", buf, sizeof(buf)) == strlen("dir2"));
     ZASSERT(!memcmp(buf, "dir2", strlen("dir2")));
 
+    cpu_set_t cpuset;
+    ZASSERT(!sched_getaffinity(getpid(), sizeof(cpuset), &cpuset));
+    ZASSERT(!sched_setaffinity(getpid(), sizeof(cpuset), &cpuset));
+
     zprintf("No worries.\n");
     return 0;
 }
