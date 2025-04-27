@@ -90,7 +90,7 @@ clean:
 ../../pizfix/benchmarks/n-body-2: n-body-2.c
 	../../build/bin/clang \
 	    -o ../../pizfix/benchmarks/n-body-2 \
-	    n-body-2.c -O3 -g
+	    n-body-2.c -O3 -g -lm
 
 ../../pizfix/benchmarks/spectralnorm: spectralnorm.c
 	../../build/bin/clang \
