@@ -374,6 +374,10 @@ int main(int argc, char** argv)
     ZASSERT(getauxval(AT_ENTRY));
     ZASSERT(getauxval(AT_MINSIGSTKSZ));
 
+    int prio = getpriority(PRIO_PROCESS, 0);
+    ZASSERT(prio >= 0);
+    ZASSERT(!setpriority(PRIO_PROCESS, 0, prio));
+
     zprintf("No worries.\n");
     return 0;
 }
