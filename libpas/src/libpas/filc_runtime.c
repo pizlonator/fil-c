@@ -57,6 +57,7 @@
 #include <sys/resource.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
+#include <sys/times.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include <dlfcn.h>
@@ -7746,6 +7747,13 @@ int filc_native_zsys_flock(filc_thread* my_thread, int fd, int operation)
     if (result < 0)
         filc_set_errno(my_errno);
     return result;
+}
+
+long filc_native_zsys_times(filc_thread* my_thread, filc_ptr times_ptr)
+{
+    if (filc_ptr_ptr(times_ptr))
+        filc_check_read(times_ptr, sizeof(struct tms));
+    return FILC_SYSCALL(my_thread, times((struct tms *)filc_ptr_ptr(times_ptr)));
 }
 
 static int utimes_impl(filc_thread* my_thread, filc_ptr path_ptr, filc_ptr times_ptr,

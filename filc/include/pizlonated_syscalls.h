@@ -179,6 +179,7 @@ int zsys_gettimeofday(void* tp, void* tzp);
 int zsys_settimeofday(const void* tp, const void* tzp);
 int zsys_getrusage(int who, void* rusage);
 int zsys_flock(int fd, int operation);
+clock_t zsys_times(struct tms *buf);
 int zsys_utimes(const char* path, const void* times);
 int zsys_lutimes(const char* path, const void* times);
 int zsys_adjtime(const void* delta, void* olddelta);
