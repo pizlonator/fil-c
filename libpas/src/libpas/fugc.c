@@ -55,18 +55,7 @@
    
    This GC can be suspended and resumed for the purposes of fork(). Suspension can happen while the
    GC is active. That's made possible thanks to polling collector_suspend_requested and structuring
-   the GC loop as a state machine.
-
-   There are no destructors, except for internal use. There are no weak references. No weak maps,
-   either. This GC is just here so we don't have to trust the C-hacking Cowboy (TM) when they call
-   free(). But the fact that free() flags the object for killage (because of the redirect-ptr-to-
-   free-object thing) means that we don't have to worry about GC-induced leaks in C programs that
-   use free() like they would have if they were written against a legacy malloc.
-
-   This code looks simple, but it totally isn't. It's relying on the filc_runtime and the
-   FilPizlonator pass to do a lot of heavy lifting for us. And it's relying on the excellent
-   verse_heap that I wrote for the Verse VM, which in turn relies on the excellent libpas malloc,
-   which I wrote for WebKit. */
+   the GC loop as a state machine. */
 
 /* FIXME: Add the following things:
    
@@ -86,7 +75,7 @@
 
 pas_heap* fugc_default_heap;
 pas_heap* fugc_destructor_heap;
-pas_heap* fugc_weak_heap;
+pas_heap* fugc_census_heap;
 verse_heap_object_set* fugc_destructor_set;
 verse_heap_object_set* fugc_census_set;
 verse_heap_object_set* fugc_scribble_set;
@@ -1248,17 +1237,17 @@ void fugc_initialize_heaps(void)
 
     fugc_default_heap = verse_heap_create(1, 0, 0);
     fugc_destructor_heap = verse_heap_create(1, 0, 0);
-    fugc_weak_heap = verse_heap_create(1, 0, 0);
+    fugc_census_heap = verse_heap_create(1, 0, 0);
     fugc_destructor_set = verse_heap_object_set_create();
     fugc_census_set = verse_heap_object_set_create();
     verse_heap_add_to_set(fugc_destructor_heap, fugc_destructor_set);
-    verse_heap_add_to_set(fugc_weak_heap, fugc_census_set);
+    verse_heap_add_to_set(fugc_census_heap, fugc_census_set);
 
     if (should_scribble) {
         fugc_scribble_set = verse_heap_object_set_create();
         verse_heap_add_to_set(fugc_default_heap, fugc_scribble_set);
         verse_heap_add_to_set(fugc_destructor_heap, fugc_scribble_set);
-        verse_heap_add_to_set(fugc_weak_heap, fugc_scribble_set);
+        verse_heap_add_to_set(fugc_census_heap, fugc_scribble_set);
     }
     
     verse_heap_did_become_ready_for_allocation();

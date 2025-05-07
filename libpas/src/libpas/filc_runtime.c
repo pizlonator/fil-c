@@ -2189,7 +2189,7 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
     if (filc_special_type_has_destructor(special_type))
         heap = fugc_destructor_heap;
     else if (special_type == FILC_SPECIAL_TYPE_WEAK)
-        heap = fugc_weak_heap;
+        heap = fugc_census_heap;
     else
         heap = fugc_default_heap;
 
