@@ -307,7 +307,19 @@ void* zexact_ptrtable_decode(zexact_ptrtable* table, __SIZE_TYPE__ encoded_ptr);
 
 struct zweak;
 typedef struct zweak zweak;
+
+/* Create a new weak pointer. Weak pointers automatically become NULL if the GC was not able to
+   establish that the pointed-at object is live via any chain of non-weak pointers starting from GC
+   roots.
+
+   Note that if you create a weak pointer to a freed object, then it may or may not become NULL. It's
+   possible for weak pointers to freed object to never become NULL, if the GC had already repointed
+   the pointer's capability to the free singleton, since the free singleton is global and never
+   dies. */
 zweak* zweak_new(void* ptr);
+
+/* Get the value of the weak pointer. This returns exactly the pointer passed to `zweak_new`, or it
+   returns NULL, if the object was established to be dead by GC. */
 void* zweak_get(zweak* weak);
 
 /* Low-level printing functions. These might die someday. They are useful for Fil-C's own tests. They
