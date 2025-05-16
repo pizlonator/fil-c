@@ -37,6 +37,7 @@
 #include "pas_segmented_vector.h"
 #include "verse_heap.h"
 #include "verse_heap_config.h"
+#include "verse_heap_page_header.h"
 #include "ue_include/verse_local_allocator_ue.h"
 #include <inttypes.h>
 #include <pthread.h>
@@ -68,6 +69,9 @@ struct filc_frame;
 struct filc_function_origin;
 struct filc_global_initialization_work_item;
 struct filc_inline_frame;
+struct filc_inverse_weak_map_entry;
+struct filc_inverse_weak_map_key;
+struct filc_inverse_weak_map_map_entry;
 struct filc_jmp_buf;
 struct filc_lower_or_box;
 struct filc_mark_stack;
@@ -83,16 +87,18 @@ struct filc_origin_node;
 struct filc_origin_with_eh;
 struct filc_ptr;
 struct filc_ptr_array;
-struct filc_ptr_pair;
+struct filc_ptr_hash_map_entry;
 struct filc_ptr_table;
 struct filc_ptr_table_array;
 struct filc_ptr_uintptr_hash_map_entry;
+struct filc_rest_ptr_pair;
 struct filc_signal_handler;
 struct filc_signal_queue_chunk;
 struct filc_signal_queue_chunk_header;
 struct filc_thread;
 struct filc_uintptr_ptr_hash_map_entry;
 struct filc_weak;
+struct filc_weak_map;
 struct pas_basic_heap_runtime_config;
 struct pas_local_allocator;
 struct pas_stream;
@@ -115,6 +121,9 @@ typedef struct filc_frame filc_frame;
 typedef struct filc_function_origin filc_function_origin;
 typedef struct filc_global_initialization_work_item filc_global_initialization_work_item;
 typedef struct filc_inline_frame filc_inline_frame;
+typedef struct filc_inverse_weak_map_entry filc_inverse_weak_map_entry;
+typedef struct filc_inverse_weak_map_key filc_inverse_weak_map_key;
+typedef struct filc_inverse_weak_map_map_entry filc_inverse_weak_map_map_entry;
 typedef struct filc_jmp_buf filc_jmp_buf;
 typedef struct filc_lower_or_box filc_lower_or_box;
 typedef struct filc_mark_stack filc_mark_stack;
@@ -130,16 +139,18 @@ typedef struct filc_origin_node filc_origin_node;
 typedef struct filc_origin_with_eh filc_origin_with_eh;
 typedef struct filc_ptr filc_ptr;
 typedef struct filc_ptr_array filc_ptr_array;
-typedef struct filc_ptr_pair filc_ptr_pair;
+typedef struct filc_ptr_hash_map_entry filc_ptr_hash_map_entry;
 typedef struct filc_ptr_table filc_ptr_table;
 typedef struct filc_ptr_table_array filc_ptr_table_array;
 typedef struct filc_ptr_uintptr_hash_map_entry filc_ptr_uintptr_hash_map_entry;
+typedef struct filc_rest_ptr_pair filc_rest_ptr_pair;
 typedef struct filc_signal_handler filc_signal_handler;
 typedef struct filc_signal_queue_chunk filc_signal_queue_chunk;
 typedef struct filc_signal_queue_chunk_header filc_signal_queue_chunk_header;
 typedef struct filc_thread filc_thread;
 typedef struct filc_uintptr_ptr_hash_map_entry filc_uintptr_ptr_hash_map_entry;
 typedef struct filc_weak filc_weak;
+typedef struct filc_weak_map filc_weak_map;
 typedef struct pas_basic_heap_runtime_config pas_basic_heap_runtime_config;
 typedef struct pas_local_allocator pas_local_allocator;
 typedef struct pas_stream pas_stream;
@@ -177,6 +188,7 @@ typedef uintptr_t filc_word;
 #define FILC_SPECIAL_TYPE_JMP_BUF         ((filc_special_type)7)
 #define FILC_SPECIAL_TYPE_EXACT_PTR_TABLE ((filc_special_type)8)
 #define FILC_SPECIAL_TYPE_WEAK            ((filc_special_type)9)
+#define FILC_SPECIAL_TYPE_WEAK_MAP        ((filc_special_type)10)
 #define FILC_SPECIAL_TYPE_MASK            ((filc_special_type)15)
 
 #define FILC_LOG_ALIGN_MASK               ((filc_log_align)31)
@@ -213,11 +225,13 @@ typedef uintptr_t filc_word;
                                                                      marked. */
 #define FILC_OBJECT_FLAG_SYSV_SHM         ((filc_object_flags)32) /* The object is a System V IPC
                                                                      shared memory mapping. */
-#define FILC_OBJECT_FLAGS_SPECIAL_SHIFT   ((filc_object_flags)6)  /* The shift amount to get to the
+#define FILC_OBJECT_FLAG_WEAK_KEY         ((filc_object_flags)64) /* The object is being used as a key
+                                                                     in one or more weak maps. */
+#define FILC_OBJECT_FLAGS_SPECIAL_SHIFT   ((filc_object_flags)7)  /* The shift amount to get to the
                                                                      special type. */
 #define FILC_OBJECT_FLAGS_SPECIAL_MASK    ((filc_object_flags)FILC_SPECIAL_TYPE_MASK \
                                            << FILC_OBJECT_FLAGS_SPECIAL_SHIFT)
-#define FILC_OBJECT_FLAGS_ALIGN_SHIFT     ((filc_object_flags)10) /* The shift amount to get the log
+#define FILC_OBJECT_FLAGS_ALIGN_SHIFT     ((filc_object_flags)11) /* The shift amount to get the log
                                                                      align. */
 
 #define FILC_ATOMIC_BOX_BIT               ((uintptr_t)1)
@@ -298,7 +312,7 @@ struct PAS_ALIGNED(FILC_FLIGHT_PTR_ALIGNMENT) filc_ptr {
     void* lower;
 };
 
-struct filc_ptr_pair {
+struct filc_rest_ptr_pair {
     void* raw_ptr;
     filc_lower_or_box* lower_or_box_ptr;
 };
@@ -578,6 +592,9 @@ struct filc_marker {
        handle the intricacies of the atomic pointer representation. It may repoint the lower_or_box at
        the free singleton if the object being pointed at is free. */
     void (*mark_or_free_lower_or_box)(filc_mark_stack* stack, filc_lower_or_box* lower_or_box_ptr);
+
+    /* Tells if the object is marked right now. */
+    bool (*is_marked)(void* mark_base);
 
     /* Set that the object is marked and that's it. Effectively, this makes the object black possibly
        without ever having been grey. This is used for allocation roots for example (objects that have
@@ -953,6 +970,234 @@ struct filc_exact_ptr_table {
 struct filc_weak {
     filc_ptr ptr;
 };
+
+struct filc_ptr_hash_map_entry {
+    filc_ptr key;
+    filc_ptr value;
+};
+
+typedef filc_ptr filc_ptr_hash_map_key;
+
+static inline filc_ptr_hash_map_entry filc_ptr_hash_map_entry_create(filc_ptr key, filc_ptr value)
+{
+    filc_ptr_hash_map_entry result;
+    result.key = key;
+    result.value = value;
+    return result;
+}
+
+static inline filc_ptr_hash_map_entry filc_ptr_hash_map_entry_create_empty(void)
+{
+    return filc_ptr_hash_map_entry_create(filc_ptr_forge_null(), filc_ptr_forge_null());
+}
+
+static inline filc_ptr_hash_map_entry filc_ptr_hash_map_entry_create_deleted(void)
+{
+    filc_ptr_hash_map_entry result;
+    result.key.ptr = NULL;
+    result.key.lower = (void*)(uintptr_t)1;
+    result.value = filc_ptr_forge_null();
+    return result;
+}
+
+static inline bool filc_ptr_hash_map_entry_is_empty_or_deleted(filc_ptr_hash_map_entry entry)
+{
+    if (filc_ptr_is_totally_null(entry.value)) {
+        PAS_ASSERT(!entry.key.ptr);
+        PAS_ASSERT(!entry.key.lower || entry.key.lower == (void*)(uintptr_t)1);
+        return true;
+    }
+    PAS_ASSERT(entry.key.lower != (void*)(uintptr_t)1);
+    return false;
+}
+
+static inline bool filc_ptr_hash_map_entry_is_empty(filc_ptr_hash_map_entry entry)
+{
+    return filc_ptr_is_totally_null(entry.key) && filc_ptr_is_totally_null(entry.value);
+}
+
+static inline bool filc_ptr_hash_map_entry_is_deleted(filc_ptr_hash_map_entry entry)
+{
+    if (filc_ptr_is_totally_null(entry.value)) {
+        PAS_ASSERT(!entry.key.ptr);
+        PAS_ASSERT(!entry.key.lower || entry.key.lower == (void*)(uintptr_t)1);
+        return entry.key.lower == (void*)(uintptr_t)1;
+    }
+    PAS_ASSERT(entry.key.lower != (void*)(uintptr_t)1);
+    return false;
+}
+
+static inline filc_ptr filc_ptr_hash_map_entry_get_key(filc_ptr_hash_map_entry entry)
+{
+    return entry.key;
+}
+
+static inline unsigned filc_ptr_hash_map_key_get_hash(filc_ptr key)
+{
+    return filc_ptr_hash(key);
+}
+
+static inline bool filc_ptr_hash_map_key_is_equal(filc_ptr a, filc_ptr b)
+{
+    return filc_ptr_is_totally_equal(a, b);
+}
+
+PAS_CREATE_HASHTABLE(filc_ptr_hash_map,
+                     filc_ptr_hash_map_entry,
+                     filc_ptr_hash_map_key);
+
+struct filc_weak_map {
+    pas_lock lock;
+    filc_ptr_hash_map map;
+};
+
+struct filc_inverse_weak_map_key {
+    filc_weak_map* map;
+    void* ptr;
+};
+
+struct filc_inverse_weak_map_entry {
+    filc_inverse_weak_map_key key;
+    filc_object* value;
+};
+
+static inline filc_inverse_weak_map_key filc_inverse_weak_map_key_create(filc_weak_map* map,
+                                                                         void* ptr)
+{
+    filc_inverse_weak_map_key result;
+    result.map = map;
+    result.ptr = ptr;
+    return result;
+}
+
+static inline filc_inverse_weak_map_entry filc_inverse_weak_map_entry_create(
+    filc_inverse_weak_map_key key, filc_object* value)
+{
+    filc_inverse_weak_map_entry result;
+    result.key = key;
+    result.value = value;
+    return result;
+}
+
+static inline filc_inverse_weak_map_entry filc_inverse_weak_map_entry_create_empty(void)
+{
+    return filc_inverse_weak_map_entry_create(filc_inverse_weak_map_key_create(NULL, NULL), NULL);
+}
+
+static inline filc_inverse_weak_map_entry filc_inverse_weak_map_entry_create_deleted(void)
+{
+    return filc_inverse_weak_map_entry_create(
+        filc_inverse_weak_map_key_create((filc_weak_map*)(uintptr_t)1, NULL), NULL);
+}
+
+static inline bool filc_inverse_weak_map_entry_is_empty_or_deleted(filc_inverse_weak_map_entry entry)
+{
+    if (!entry.key.map || entry.key.map == (filc_weak_map*)(uintptr_t)1) {
+        PAS_ASSERT(!entry.key.ptr);
+        PAS_ASSERT(!entry.value);
+        return true;
+    }
+    PAS_ASSERT(entry.value);
+    return false;
+}
+
+static inline bool filc_inverse_weak_map_entry_is_empty(filc_inverse_weak_map_entry entry)
+{
+    if (!entry.key.map) {
+        PAS_ASSERT(!entry.key.ptr);
+        PAS_ASSERT(!entry.value);
+        return true;
+    }
+    return false;
+}
+
+static inline bool filc_inverse_weak_map_entry_is_deleted(filc_inverse_weak_map_entry entry)
+{
+    if (entry.key.map == (filc_weak_map*)(uintptr_t)1) {
+        PAS_ASSERT(!entry.key.ptr);
+        PAS_ASSERT(!entry.value);
+        return true;
+    }
+    return false;
+}
+
+static inline filc_inverse_weak_map_key filc_inverse_weak_map_entry_get_key(
+    filc_inverse_weak_map_entry entry)
+{
+    return entry.key;
+}
+
+static inline unsigned filc_inverse_weak_map_key_get_hash(filc_inverse_weak_map_key key)
+{
+    return pas_hash_ptr(key.map) ^ pas_hash_ptr(key.ptr);
+}
+
+static inline bool filc_inverse_weak_map_key_is_equal(filc_inverse_weak_map_key a,
+                                                      filc_inverse_weak_map_key b)
+{
+    return a.map == b.map && a.ptr == b.ptr;
+}
+
+PAS_CREATE_HASHTABLE(filc_inverse_weak_map,
+                     filc_inverse_weak_map_entry,
+                     filc_inverse_weak_map_key);
+
+struct filc_inverse_weak_map_map_entry {
+    filc_object* key;
+    filc_inverse_weak_map value;
+};
+
+typedef filc_object* filc_inverse_weak_map_map_key;
+
+static inline filc_inverse_weak_map_map_entry filc_inverse_weak_map_map_entry_create_empty(void)
+{
+    filc_inverse_weak_map_map_entry result;
+    result.key = NULL;
+    return result;
+}
+
+static inline filc_inverse_weak_map_map_entry filc_inverse_weak_map_map_entry_create_deleted(void)
+{
+    filc_inverse_weak_map_map_entry result;
+    result.key = (filc_object*)(uintptr_t)1;
+    return result;
+}
+
+static inline bool filc_inverse_weak_map_map_entry_is_empty_or_deleted(
+    filc_inverse_weak_map_map_entry entry)
+{
+    return !entry.key || entry.key == (filc_object*)(uintptr_t)1;
+}
+
+static inline bool filc_inverse_weak_map_map_entry_is_empty(filc_inverse_weak_map_map_entry entry)
+{
+    return !entry.key;
+}
+
+static inline bool filc_inverse_weak_map_map_entry_is_deleted(filc_inverse_weak_map_map_entry entry)
+{
+    return entry.key == (filc_object*)(uintptr_t)1;
+}
+
+static inline filc_object* filc_inverse_weak_map_map_entry_get_key(
+    filc_inverse_weak_map_map_entry entry)
+{
+    return entry.key;
+}
+
+static inline unsigned filc_inverse_weak_map_map_key_get_hash(filc_object* key)
+{
+    return pas_hash_ptr(key);
+}
+
+static inline bool filc_inverse_weak_map_map_key_is_equal(filc_object* a, filc_object* b)
+{
+    return a == b;
+}
+
+PAS_CREATE_HASHTABLE(filc_inverse_weak_map_map,
+                     filc_inverse_weak_map_map_entry,
+                     filc_inverse_weak_map_map_key);
 
 struct filc_exception_and_int {
     bool has_exception;
@@ -1919,6 +2164,12 @@ static inline filc_object_flags filc_object_get_flags(filc_object* object)
     return filc_aux_get_flags(filc_object_aux(object));
 }
 
+static inline bool filc_object_is_markable(filc_object* object)
+{
+    return object
+        && !(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL);
+}
+
 static inline filc_special_type filc_object_flags_special_type(filc_object_flags flags)
 {
     return (flags >> FILC_OBJECT_FLAGS_SPECIAL_SHIFT) & FILC_SPECIAL_TYPE_MASK;
@@ -2070,7 +2321,8 @@ static inline void filc_object_validate_special_with_payload(filc_object* object
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_PTR_TABLE_ARRAY ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_JMP_BUF ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_EXACT_PTR_TABLE ||
-               filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK);
+               filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK ||
+               filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK_MAP);
 }
 
 static inline void filc_object_testing_validate_special_with_payload(filc_object* object)
@@ -2184,6 +2436,16 @@ static inline void* filc_ptr_upper(filc_ptr ptr)
 static inline uintptr_t filc_ptr_offset(filc_ptr ptr)
 {
     return (char*)filc_ptr_ptr(ptr) - (char*)filc_ptr_lower(ptr);
+}
+
+static inline bool filc_ptr_is_markable(filc_ptr ptr)
+{
+    return filc_object_is_markable(filc_ptr_object(ptr));
+}
+
+static inline void* filc_ptr_mark_base(filc_ptr ptr)
+{
+    return filc_object_mark_base(filc_ptr_object(ptr));
 }
 
 static inline char* filc_ptr_aux_ptr(filc_ptr ptr)
@@ -3102,28 +3364,9 @@ static inline bool filc_special_type_is_valid(filc_special_type special_type)
     case FILC_SPECIAL_TYPE_DL_HANDLE:
     case FILC_SPECIAL_TYPE_JMP_BUF:
     case FILC_SPECIAL_TYPE_WEAK:
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
         return true;
     default:
-        return false;
-    }
-}
-
-static inline bool filc_special_type_has_destructor(filc_special_type special_type)
-{
-    switch (special_type) {
-    case FILC_SPECIAL_TYPE_THREAD:
-    case FILC_SPECIAL_TYPE_PTR_TABLE:
-    case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
-        return true;
-    case FILC_SPECIAL_TYPE_FUNCTION:
-    case FILC_SPECIAL_TYPE_SIGNAL_HANDLER:
-    case FILC_SPECIAL_TYPE_PTR_TABLE_ARRAY:
-    case FILC_SPECIAL_TYPE_DL_HANDLE:
-    case FILC_SPECIAL_TYPE_JMP_BUF:
-    case FILC_SPECIAL_TYPE_WEAK:
-        return false;
-    default:
-        PAS_ASSERT(!"Not a special type");
         return false;
     }
 }
@@ -3136,7 +3379,8 @@ void* filc_get_next_bytes_for_va_arg(filc_ptr ptr_ptr, size_t size, size_t align
 /* Same as filc_get_next_bytes_for_va_arg, but for cases where pointers may be loaded. So, this
    gets the aux and returns it (or returns NULL if there is no aux). This strongly assumes that we
    immediately load from the returned pointer pair without safepoints. */
-filc_ptr_pair filc_get_next_ptr_bytes_for_va_arg(filc_ptr ptr_ptr, size_t size, size_t alignment);
+filc_rest_ptr_pair filc_get_next_ptr_bytes_for_va_arg(
+    filc_ptr ptr_ptr, size_t size, size_t alignment);
 
 /* Allocates a "special" object; this is used for functions, threads, and and other specials. For
    these types, the object's lower/upper pretends to have just one word but the payload size could be
@@ -3332,8 +3576,8 @@ static PAS_ALWAYS_INLINE filc_ptr filc_weak_get_with_manual_tracking(filc_thread
         switch (filc_current_marking_state) {
         case filc_not_marking:
             if (filc_has_unfinished_census &&
-                !(filc_object_get_flags(filc_ptr_object(result)) & FILC_OBJECT_FLAG_GLOBAL) &&
-                !verse_heap_is_marked(filc_object_mark_base(filc_ptr_object(result))))
+                filc_ptr_is_markable(result) &&
+                !verse_heap_is_marked(filc_ptr_mark_base(result)))
                 return filc_ptr_forge_null();
             return result;
         case filc_marking:
@@ -3363,13 +3607,41 @@ static PAS_ALWAYS_INLINE void filc_weak_census(filc_weak* weak)
     /* We don't have to load atomic because the only thing that can mutate the ptr is the census,
        and we are the census. */
     filc_ptr ptr = weak->ptr;
-    if (!filc_ptr_object(ptr))
+    if (!filc_ptr_is_markable(ptr))
         return;
-    if ((filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAG_GLOBAL))
-        return;
-    if (!verse_heap_is_marked(filc_object_mark_base(filc_ptr_object(ptr))))
+    if (!verse_heap_is_marked(filc_ptr_mark_base(ptr)))
         filc_flight_ptr_store_atomic_unfenced_without_barrier(&weak->ptr, filc_ptr_forge_null());
 }
+
+PAS_API filc_weak_map* filc_weak_map_create(filc_thread* my_thread);
+PAS_API void filc_weak_map_set(filc_thread* my_thread, filc_weak_map* map,
+                               filc_ptr key, filc_ptr value);
+PAS_API filc_ptr filc_weak_map_get(filc_weak_map* map, filc_ptr key);
+
+static PAS_ALWAYS_INLINE void filc_weak_map_mark_outgoing_ptrs(filc_weak_map* map,
+                                                               const filc_marker marker,
+                                                               filc_mark_stack* stack)
+{
+    pas_lock_lock(&map->lock);
+    
+    unsigned index;
+    for (index = map->map.table_size; index--;) {
+        filc_ptr_hash_map_entry entry = map->map.table[index];
+        if (filc_ptr_hash_map_entry_is_empty_or_deleted(entry))
+            continue;
+        if (!filc_ptr_is_markable(entry.key)
+            || marker.is_marked(filc_ptr_mark_base(entry.key)))
+            marker.mark(stack, filc_ptr_object(entry.value));
+    }
+
+    pas_lock_unlock(&map->lock);
+}
+
+PAS_API void filc_weak_map_census(filc_weak_map* map);
+PAS_API void filc_weak_map_destruct(filc_weak_map* map);
+
+PAS_API filc_inverse_weak_map_map* filc_inverse_weak_map_map_create(void);
+PAS_API void filc_inverse_weak_map_map_destroy(filc_inverse_weak_map_map* map);
 
 static inline const char* filc_access_kind_get_string(filc_access_kind access_kind)
 {
@@ -4049,6 +4321,11 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
             (filc_exact_ptr_table*)filc_object_special_payload_with_manual_tracking(object),
             marker, stack);
         break;
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
+        filc_weak_map_mark_outgoing_ptrs(
+            (filc_weak_map*)filc_object_special_payload_with_manual_tracking(object),
+            marker, stack);
+        break;
     default:
         pas_log("Got a bad special ptr type: ");
         filc_special_type_dump(special_type, pas_log_stream);
@@ -4061,6 +4338,54 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
     }
 }
 
+static PAS_ALWAYS_INLINE void filc_object_mark_weak_map_values_based_on_key(filc_object* object,
+                                                                            const filc_marker marker,
+                                                                            filc_mark_stack* stack)
+{
+    verse_heap_page_header* header = verse_heap_get_page_header((uintptr_t)object);
+    PAS_ASSERT(header);
+    
+    void** client_data_ptr = verse_heap_page_header_lock_client_data(header);
+    PAS_ASSERT(client_data_ptr);
+
+    filc_inverse_weak_map_map* map_map = (filc_inverse_weak_map_map*)*client_data_ptr;
+    bool clear_weak_key_flag = true;
+    if (map_map) {
+        /* we should have removed the map map if it got empty. */
+        PAS_ASSERT(map_map->key_count);
+        filc_inverse_weak_map_map_entry* map_entry = filc_inverse_weak_map_map_find(map_map, object);
+        if (map_entry) {
+            clear_weak_key_flag = false;
+            /* We should have removed the sub-map if it got empty. */
+            PAS_ASSERT(map_entry->value.key_count);
+            unsigned index;
+            for (index = map_entry->value.table_size; index--;) {
+                filc_inverse_weak_map_entry entry = map_entry->value.table[index];
+                if (filc_inverse_weak_map_entry_is_empty_or_deleted(entry))
+                    continue;
+                if (marker.is_marked(
+                        filc_object_mark_base(filc_object_for_special_payload(entry.key.map))))
+                    marker.mark(stack, entry.value);
+            }
+        }
+    }
+
+    if (clear_weak_key_flag) {
+        for (;;) {
+            uintptr_t aux = object->aux;
+            if (!(filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_WEAK_KEY))
+                break;
+            if (pas_compare_and_swap_uintptr_weak(
+                    &object->aux, aux,
+                    filc_aux_create(filc_aux_get_flags(aux) & ~FILC_OBJECT_FLAG_WEAK_KEY,
+                                    filc_aux_get_ptr(aux))))
+                break;
+        }
+    }
+
+    verse_heap_page_header_unlock_client_data(header);
+}
+
 static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object,
                                                              const filc_marker marker,
                                                              filc_mark_stack* stack)
@@ -4068,7 +4393,11 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
     static const bool verbose = false;
     if (verbose)
         pas_log("Marking outgoing objects from %p\n", object);
-    if (filc_object_is_special(object)) {
+
+    if (PAS_UNLIKELY(filc_object_get_flags(object) & FILC_OBJECT_FLAG_WEAK_KEY))
+        filc_object_mark_weak_map_values_based_on_key(object, marker, stack);
+
+    if (PAS_UNLIKELY(filc_object_is_special(object))) {
         filc_object_mark_outgoing_special_ptrs(object, marker, stack);
         return;
     }

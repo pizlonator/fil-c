@@ -76,6 +76,7 @@
 pas_heap* fugc_default_heap;
 pas_heap* fugc_destructor_heap;
 pas_heap* fugc_census_heap;
+pas_heap* fugc_census_and_destructor_heap;
 verse_heap_object_set* fugc_destructor_set;
 verse_heap_object_set* fugc_census_set;
 verse_heap_object_set* fugc_scribble_set;
@@ -444,6 +445,10 @@ static void destruct_object_callback(void* allocation, void* arg)
         filc_exact_ptr_table_destruct(
             (filc_exact_ptr_table*)filc_object_special_payload_with_manual_tracking(object));
         break;
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
+        filc_weak_map_destruct(
+            (filc_weak_map*)filc_object_special_payload_with_manual_tracking(object));
+        break;
     default:
         PAS_ASSERT(!"Encountered object in destructor space that should not have destructor.");
         break;
@@ -469,6 +474,10 @@ static void census_object_callback(void* allocation, void* arg)
     switch (filc_object_special_type(object)) {
     case FILC_SPECIAL_TYPE_WEAK:
         filc_weak_census((filc_weak*)filc_object_special_payload_with_manual_tracking(object));
+        break;
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
+        filc_weak_map_census(
+            (filc_weak_map*)filc_object_special_payload_with_manual_tracking(object));
         break;
     default:
         PAS_ASSERT(!"Encountered object in census set that should not have census.");
@@ -698,6 +707,11 @@ static const char* source_explanation;
 static filc_object* source_object;
 static filc_thread* source_thread;
 
+static bool verify_is_marked(void* mark_base)
+{
+    return !!pas_ptr_hash_set_find(&verify_set, mark_base);
+}
+
 static bool verify_set_is_marked(void* mark_base)
 {
     if (!verse_heap_is_marked(mark_base)) {
@@ -760,6 +774,7 @@ static void verify_mark_or_free_lower_or_box(filc_mark_stack* mark_stack,
         .mark = verify_mark, \
         .mark_or_free_flight = verify_mark_or_free_flight, \
         .mark_or_free_lower_or_box = verify_mark_or_free_lower_or_box, \
+        .is_marked = verify_is_marked, \
         .set_is_marked = verify_set_is_marked \
     })
 
@@ -1238,16 +1253,20 @@ void fugc_initialize_heaps(void)
     fugc_default_heap = verse_heap_create(1, 0, 0);
     fugc_destructor_heap = verse_heap_create(1, 0, 0);
     fugc_census_heap = verse_heap_create(1, 0, 0);
+    fugc_census_and_destructor_heap = verse_heap_create(1, 0, 0);
     fugc_destructor_set = verse_heap_object_set_create();
     fugc_census_set = verse_heap_object_set_create();
     verse_heap_add_to_set(fugc_destructor_heap, fugc_destructor_set);
+    verse_heap_add_to_set(fugc_census_and_destructor_heap, fugc_destructor_set);
     verse_heap_add_to_set(fugc_census_heap, fugc_census_set);
+    verse_heap_add_to_set(fugc_census_and_destructor_heap, fugc_census_set);
 
     if (should_scribble) {
         fugc_scribble_set = verse_heap_object_set_create();
         verse_heap_add_to_set(fugc_default_heap, fugc_scribble_set);
         verse_heap_add_to_set(fugc_destructor_heap, fugc_scribble_set);
         verse_heap_add_to_set(fugc_census_heap, fugc_scribble_set);
+        verse_heap_add_to_set(fugc_census_and_destructor_heap, fugc_scribble_set);
     }
     
     verse_heap_did_become_ready_for_allocation();

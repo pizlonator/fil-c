@@ -322,6 +322,34 @@ zweak* zweak_new(void* ptr);
    returns NULL, if the object was established to be dead by GC. */
 void* zweak_get(zweak* weak);
 
+struct zweak_map;
+typedef struct zweak_map zweak_map;
+
+/* Create a new weak_map. Weak maps maintain key->value pairs such that if the key is live during GC
+   then the value is marked, but otherwise it isn't. */
+zweak_map* zweak_map_new(void);
+
+/* Create or replace a mapping for a given key. The mapping will now refer to the given value.
+   
+   If the key has an invalid capability, then this keeps the value alive forever. For example, it's
+   valid to use a NULL key.
+   
+   Using a NULL value deletes the mapping.
+   
+   Note that two keys that are == according to the C == operator may get different mappings if they
+   have different capabilities.
+   
+   This is an atomic operation with respect to other calls to zweak_map_set and zweak_map_get. */
+void zweak_map_set(zweak_map* map, void* key, void* value);
+
+/* Given a key, returns the value.
+ 
+   This is an atomic operation with respect to other calls to zweak_map_set and zweak_map_get. */
+void* zweak_map_get(zweak_map* map, void* key);
+
+/* Reports the number of entries currently in the weak map. */
+__SIZE_TYPE__ zweak_map_size(zweak_map* map);
+
 /* Low-level printing functions. These might die someday. They are useful for Fil-C's own tests. They
    print directly to stdout using write(). They are safe (passing an invalid ptr to zprint() will trap
    for sure, and it will never print out of bounds even if there is no null terminator). */

@@ -410,8 +410,8 @@ void filc_initialize(void)
     PAS_ASSERT(FILC_OBJECT_FLAG_READONLY == 2);
     PAS_ASSERT(FILC_OBJECT_FLAG_FREE == 4);
     PAS_ASSERT(FILC_OBJECT_FLAG_GLOBAL_AUX == 16);
-    PAS_ASSERT(FILC_OBJECT_FLAGS_SPECIAL_SHIFT == 6);
-    PAS_ASSERT(FILC_OBJECT_FLAGS_ALIGN_SHIFT == 10);
+    PAS_ASSERT(FILC_OBJECT_FLAGS_SPECIAL_SHIFT == 7);
+    PAS_ASSERT(FILC_OBJECT_FLAGS_ALIGN_SHIFT == 11);
     PAS_ASSERT(FILC_ATOMIC_BOX_BIT == 1);
     PAS_ASSERT(FILC_NUM_UNWIND_REGISTERS == 2);
     PAS_ASSERT(FILC_CC_INLINE_SIZE == 256);
@@ -1595,6 +1595,12 @@ void filc_special_type_dump(filc_special_type type, pas_stream* stream)
     case FILC_SPECIAL_TYPE_JMP_BUF:
         pas_stream_printf(stream, "jmp_buf");
         return;
+    case FILC_SPECIAL_TYPE_WEAK:
+        pas_stream_printf(stream, "weak");
+        return;
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
+        pas_stream_printf(stream, "weak_map");
+        return;
     default:
         pas_stream_printf(stream, "?%u", (unsigned)type);
         return;
@@ -2072,11 +2078,11 @@ void* filc_get_next_bytes_for_va_arg(filc_ptr ptr_ptr, size_t size, size_t align
     return filc_ptr_ptr(get_next_bytes_for_va_arg_impl(ptr_ptr, size, alignment));
 }
 
-filc_ptr_pair filc_get_next_ptr_bytes_for_va_arg(filc_ptr ptr_ptr, size_t size, size_t alignment)
+filc_rest_ptr_pair filc_get_next_ptr_bytes_for_va_arg(filc_ptr ptr_ptr, size_t size, size_t alignment)
 {
     filc_ptr result_ptr = get_next_bytes_for_va_arg_impl(ptr_ptr, size, alignment);
 
-    filc_ptr_pair result;
+    filc_rest_ptr_pair result;
     result.raw_ptr = filc_ptr_ptr(result_ptr);
 
     char* aux_ptr = filc_ptr_aux_ptr(result_ptr);
@@ -2194,12 +2200,30 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
     PAS_ASSERT(filc_special_type_is_valid(special_type));
 
     pas_heap* heap;
-    if (filc_special_type_has_destructor(special_type))
-        heap = fugc_destructor_heap;
-    else if (special_type == FILC_SPECIAL_TYPE_WEAK)
-        heap = fugc_census_heap;
-    else
+    switch (special_type) {
+    case FILC_SPECIAL_TYPE_FUNCTION:
+    case FILC_SPECIAL_TYPE_SIGNAL_HANDLER:
+    case FILC_SPECIAL_TYPE_PTR_TABLE_ARRAY:
+    case FILC_SPECIAL_TYPE_DL_HANDLE:
+    case FILC_SPECIAL_TYPE_JMP_BUF:
         heap = fugc_default_heap;
+        break;
+    case FILC_SPECIAL_TYPE_THREAD:
+    case FILC_SPECIAL_TYPE_PTR_TABLE:
+    case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
+        heap = fugc_destructor_heap;
+        break;
+    case FILC_SPECIAL_TYPE_WEAK:
+        heap = fugc_census_heap;
+        break;
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
+        heap = fugc_census_and_destructor_heap;
+        break;
+    default:
+        PAS_ASSERT(!"Not a special type");
+        heap = NULL;
+        break;
+    }
 
     size_t total_size;
     size_t base_size;
@@ -2788,6 +2812,184 @@ filc_weak* filc_weak_create(filc_thread* my_thread, filc_ptr ptr)
     return weak;
 }
 
+filc_weak_map* filc_weak_map_create(filc_thread* my_thread)
+{
+    filc_weak_map* weak_map = (filc_weak_map*)
+        filc_object_special_payload_with_manual_tracking(
+            filc_allocate_special(my_thread, sizeof(filc_weak_map), 1, FILC_SPECIAL_TYPE_WEAK_MAP));
+    pas_lock_construct(&weak_map->lock);
+    filc_ptr_hash_map_construct(&weak_map->map);
+    return weak_map;
+}
+
+static void remove_inverse_weak_mapping(filc_object* object, filc_inverse_weak_map_key key)
+{
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+
+    verse_heap_page_header* header = verse_heap_get_page_header((uintptr_t)object);
+    PAS_ASSERT(header);
+
+    void** client_data_ptr = verse_heap_page_header_lock_client_data(header);
+    PAS_ASSERT(client_data_ptr);
+
+    filc_inverse_weak_map_map* map_map = (filc_inverse_weak_map_map*)*client_data_ptr;
+    PAS_ASSERT(map_map);
+    filc_inverse_weak_map_map_entry* map_entry = filc_inverse_weak_map_map_find(map_map, object);
+    PAS_ASSERT(map_entry);
+    filc_inverse_weak_map_delete(&map_entry->value, key, NULL, &allocation_config);
+    if (!map_entry->value.key_count) {
+        filc_inverse_weak_map_map_delete(map_map, object, NULL, &allocation_config);
+        if (!map_map->key_count) {
+            filc_inverse_weak_map_map_destroy(map_map);
+            *client_data_ptr = NULL;
+        }
+    }
+
+    verse_heap_page_header_unlock_client_data(header);
+}
+
+void filc_weak_map_set(filc_thread* my_thread, filc_weak_map* map, filc_ptr key, filc_ptr value)
+{
+    filc_store_barrier(my_thread, filc_ptr_object(value));
+    
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+
+    pas_lock_lock(&map->lock);
+
+    if (filc_ptr_is_totally_null(value)) {
+        filc_ptr_hash_map_remove(&map->map, key, NULL, &allocation_config);
+        if (filc_ptr_is_markable(key)) {
+            remove_inverse_weak_mapping(
+                filc_ptr_object(key), filc_inverse_weak_map_key_create(map, filc_ptr_ptr(key)));
+        }
+    } else {
+        filc_ptr_hash_map_set(&map->map, filc_ptr_hash_map_entry_create(key, value),
+                              NULL, &allocation_config);
+        if (filc_ptr_is_markable(key) && filc_ptr_is_markable(value)) {
+            verse_heap_page_header* header =
+                verse_heap_get_page_header((uintptr_t)filc_ptr_object(key));
+            PAS_ASSERT(header);
+
+            void** client_data_ptr = verse_heap_page_header_lock_client_data(header);
+            PAS_ASSERT(client_data_ptr);
+
+            filc_inverse_weak_map_map* map_map = (filc_inverse_weak_map_map*)*client_data_ptr;
+            if (!map_map) {
+                map_map = filc_inverse_weak_map_map_create();
+                *client_data_ptr = map_map;
+
+                for (;;) {
+                    uintptr_t aux = filc_ptr_object(key)->aux;
+                    if ((filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_WEAK_KEY))
+                        break;
+                    if (pas_compare_and_swap_uintptr_weak(
+                            &filc_ptr_object(key)->aux, aux,
+                            filc_aux_create(filc_aux_get_flags(aux) | FILC_OBJECT_FLAG_WEAK_KEY,
+                                            filc_aux_get_ptr(aux))))
+                        break;
+                }
+            }
+            filc_inverse_weak_map_map_add_result add_result =
+                filc_inverse_weak_map_map_add(map_map, filc_ptr_object(key),
+                                              NULL, &allocation_config);
+            if (add_result.is_new_entry) {
+                add_result.entry->key = filc_ptr_object(key);
+                filc_inverse_weak_map_construct(&add_result.entry->value);
+            }
+            filc_inverse_weak_map_set(
+                &add_result.entry->value,
+                filc_inverse_weak_map_entry_create(
+                    filc_inverse_weak_map_key_create(map, filc_ptr_ptr(key)),
+                    filc_ptr_object(value)),
+                NULL, &allocation_config);
+
+            verse_heap_page_header_unlock_client_data(header);
+        }
+    }
+
+    pas_lock_unlock(&map->lock);
+}
+
+filc_ptr filc_weak_map_get(filc_weak_map* map, filc_ptr key)
+{
+    pas_lock_lock(&map->lock);
+    filc_ptr_hash_map_entry result = filc_ptr_hash_map_get(&map->map, key);
+    pas_lock_unlock(&map->lock);
+
+    return result.value;
+}
+
+void filc_weak_map_census(filc_weak_map* map)
+{
+    pas_lock_lock(&map->lock);
+
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+
+    /* FIXME: It would be super cool if we could filter maps without having to rebuild them like this.
+       But whatever, it's another future-me problem. */
+    filc_ptr_hash_map new_map;
+    filc_ptr_hash_map_construct(&new_map);
+    
+    unsigned index;
+    for (index = map->map.table_size; index--;) {
+        filc_ptr_hash_map_entry entry = map->map.table[index];
+        if (filc_ptr_hash_map_entry_is_empty_or_deleted(entry))
+            continue;
+        if (!filc_ptr_is_markable(entry.key)
+            || verse_heap_is_marked(filc_ptr_mark_base(entry.key)))
+            filc_ptr_hash_map_add_new(&new_map, entry, NULL, &allocation_config);
+        else if (filc_ptr_is_markable(entry.key) && filc_ptr_is_markable(entry.value)) {
+            remove_inverse_weak_mapping(
+                filc_ptr_object(entry.key),
+                filc_inverse_weak_map_key_create(map, filc_ptr_ptr(entry.key)));
+        }
+    }
+
+    filc_ptr_hash_map_destruct(&map->map, &allocation_config);
+    map->map = new_map;
+
+    pas_lock_unlock(&map->lock);
+}
+
+void filc_weak_map_destruct(filc_weak_map* map)
+{
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+
+    unsigned index;
+    for (index = map->map.table_size; index--;) {
+        filc_ptr_hash_map_entry entry = map->map.table[index];
+        if (filc_ptr_hash_map_entry_is_empty_or_deleted(entry))
+            continue;
+        if (filc_ptr_is_markable(entry.key) && filc_ptr_is_markable(entry.value)) {
+            remove_inverse_weak_mapping(
+                filc_ptr_object(entry.key),
+                filc_inverse_weak_map_key_create(map, filc_ptr_ptr(entry.key)));
+        }
+    }
+
+    filc_ptr_hash_map_destruct(&map->map, &allocation_config);
+}
+
+filc_inverse_weak_map_map* filc_inverse_weak_map_map_create(void)
+{
+    filc_inverse_weak_map_map* result =
+        (filc_inverse_weak_map_map*)bmalloc_allocate(sizeof(filc_inverse_weak_map_map));
+    filc_inverse_weak_map_map_construct(result);
+    return result;
+}
+
+void filc_inverse_weak_map_map_destroy(filc_inverse_weak_map_map* map)
+{
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+    filc_inverse_weak_map_map_destruct(map, &allocation_config);
+    bmalloc_deallocate(map);
+}
+
 filc_ptr filc_native_zgc_alloc(filc_thread* my_thread, size_t size)
 {
     return filc_ptr_create_with_object_and_manual_tracking(filc_allocate(my_thread, size));
@@ -2937,6 +3139,32 @@ filc_ptr filc_native_zweak_get(filc_thread* my_thread, filc_ptr weak_ptr)
 {
     filc_check_access_special(weak_ptr, FILC_SPECIAL_TYPE_WEAK);
     return filc_weak_get(my_thread, (filc_weak*)filc_ptr_ptr(weak_ptr));
+}
+
+filc_ptr filc_native_zweak_map_new(filc_thread* my_thread)
+{
+    return filc_ptr_for_special_payload_with_manual_tracking(filc_weak_map_create(my_thread));
+}
+
+void filc_native_zweak_map_set(filc_thread* my_thread, filc_ptr weak_map_ptr, filc_ptr key_ptr,
+                               filc_ptr value_ptr)
+{
+    filc_check_access_special(weak_map_ptr, FILC_SPECIAL_TYPE_WEAK_MAP);
+    filc_weak_map_set(my_thread, (filc_weak_map*)filc_ptr_ptr(weak_map_ptr), key_ptr, value_ptr);
+}
+
+filc_ptr filc_native_zweak_map_get(filc_thread* my_thread, filc_ptr weak_map_ptr, filc_ptr key_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_access_special(weak_map_ptr, FILC_SPECIAL_TYPE_WEAK_MAP);
+    return filc_weak_map_get((filc_weak_map*)filc_ptr_ptr(weak_map_ptr), key_ptr);
+}
+
+size_t filc_native_zweak_map_size(filc_thread* my_thread, filc_ptr weak_map_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_access_special(weak_map_ptr, FILC_SPECIAL_TYPE_WEAK_MAP);
+    return ((filc_weak_map*)filc_ptr_ptr(weak_map_ptr))->map.key_count;
 }
 
 size_t filc_native_ztesting_get_num_ptrtables(filc_thread* my_thread)

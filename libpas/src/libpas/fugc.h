@@ -38,6 +38,7 @@
 PAS_API extern pas_heap* fugc_default_heap;
 PAS_API extern pas_heap* fugc_destructor_heap;
 PAS_API extern pas_heap* fugc_census_heap;
+PAS_API extern pas_heap* fugc_census_and_destructor_heap;
 PAS_API extern verse_heap_object_set* fugc_destructor_set;
 PAS_API extern verse_heap_object_set* fugc_census_set;
 PAS_API extern verse_heap_object_set* fugc_scribble_set; /* Only used if FUGC_SCRIBBLE=1 */
@@ -78,7 +79,8 @@ static PAS_ALWAYS_INLINE fugc_mark_fast_result fugc_mark_fast(filc_object* objec
         pas_log("for object %p mark_base = %p\n", object, mark_base);
     if (!verse_heap_set_is_marked_relaxed(mark_base, true))
         return fugc_mark_fast_already_marked;
-    if (filc_aux_get_ptr(aux) || (flags & FILC_OBJECT_FLAGS_SPECIAL_MASK))
+    if (filc_aux_get_ptr(aux) || (flags & (FILC_OBJECT_FLAGS_SPECIAL_MASK |
+                                           FILC_OBJECT_FLAG_WEAK_KEY)))
         return fugc_mark_fast_marked_and_need_slow_path;
     return fugc_mark_fast_marked_leaf;
 }
@@ -183,6 +185,7 @@ static PAS_ALWAYS_INLINE bool fugc_set_is_marked(void* mark_base)
         .mark = fugc_mark, \
         .mark_or_free_flight = fugc_mark_or_free_flight, \
         .mark_or_free_lower_or_box = fugc_mark_or_free_lower_or_box, \
+        .is_marked = verse_heap_is_marked, \
         .set_is_marked = fugc_set_is_marked \
     })
 
