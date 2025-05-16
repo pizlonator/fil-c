@@ -57,22 +57,6 @@
    GC is active. That's made possible thanks to polling collector_suspend_requested and structuring
    the GC loop as a state machine. */
 
-/* FIXME: Add the following things:
-   
-   - Weak maps. I have everything I need to do this.
-   
-   - Finalizers. They should work like so. You can create a finalizer queue. You can add objects to
-     it. When the GC runs, it has the finalizer queue put all of the objects that died onto a revival
-     queue. Objects that are on the revival queue are then revived, and there's another finalizer
-     queue API that lets you wait for available objects. Then, users can implement finalizers and have
-     the finalization happen on the thread of their choice.
-   
-   - Phantoms. This is a list of objects that we wait for death on. You can add objects to it. You
-     can wait for any of the objects to die.
-
-   FIXME: Not sure about the phantom feature. It seems useful for anyone with a data structure that
-   has weak references. But maybe this can be integrated into the weak references somehow? */
-
 pas_heap* fugc_default_heap;
 pas_heap* fugc_destructor_heap;
 pas_heap* fugc_census_heap;

@@ -2865,14 +2865,26 @@ void filc_weak_map_set(filc_thread* my_thread, filc_weak_map* map, filc_ptr key,
     pas_lock_lock(&map->lock);
 
     if (filc_ptr_is_totally_null(value)) {
-        filc_ptr_hash_map_remove(&map->map, key, NULL, &allocation_config);
-        if (filc_ptr_is_markable(key)) {
+        filc_ptr_hash_map_entry entry =
+            filc_ptr_hash_map_take(&map->map, key, NULL, &allocation_config);
+        if (filc_ptr_is_markable(key) && filc_ptr_is_markable(entry.value)) {
             remove_inverse_weak_mapping(
                 filc_ptr_object(key), filc_inverse_weak_map_key_create(map, filc_ptr_ptr(key)));
         }
     } else {
-        filc_ptr_hash_map_set(&map->map, filc_ptr_hash_map_entry_create(key, value),
-                              NULL, &allocation_config);
+        filc_ptr_hash_map_add_result add_result =
+            filc_ptr_hash_map_add(&map->map, key, NULL, &allocation_config);
+        if (add_result.is_new_entry) {
+            add_result.entry->key = key;
+            add_result.entry->value = value;
+        } else {
+            if (filc_ptr_is_markable(add_result.entry->value) &&
+                !filc_ptr_is_markable(value)) {
+                remove_inverse_weak_mapping(
+                    filc_ptr_object(key), filc_inverse_weak_map_key_create(map, filc_ptr_ptr(key)));
+            }
+            add_result.entry->value = value;
+        }
         if (filc_ptr_is_markable(key) && filc_ptr_is_markable(value)) {
             verse_heap_page_header* header =
                 verse_heap_get_page_header((uintptr_t)filc_ptr_object(key));
