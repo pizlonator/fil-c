@@ -3622,6 +3622,8 @@ static PAS_ALWAYS_INLINE void filc_weak_map_mark_outgoing_ptrs(filc_weak_map* ma
                                                                const filc_marker marker,
                                                                filc_mark_stack* stack)
 {
+    static const bool verbose = false;
+    
     pas_lock_lock(&map->lock);
     
     unsigned index;
@@ -3629,9 +3631,16 @@ static PAS_ALWAYS_INLINE void filc_weak_map_mark_outgoing_ptrs(filc_weak_map* ma
         filc_ptr_hash_map_entry entry = map->map.table[index];
         if (filc_ptr_hash_map_entry_is_empty_or_deleted(entry))
             continue;
+        if (verbose) {
+            pas_log("considering map = %p, key = %p, value = %p\n",
+                    map, filc_ptr_ptr(entry.key), filc_ptr_ptr(entry.value));
+        }
         if (!filc_ptr_is_markable(entry.key)
-            || marker.is_marked(filc_ptr_mark_base(entry.key)))
+            || marker.is_marked(filc_ptr_mark_base(entry.key))) {
+            if (verbose)
+                pas_log("marking value %p\n", filc_ptr_ptr(entry.value));
             marker.mark(stack, filc_ptr_object(entry.value));
+        }
     }
 
     pas_lock_unlock(&map->lock);
@@ -4342,6 +4351,11 @@ static PAS_ALWAYS_INLINE void filc_object_mark_weak_map_values_based_on_key(filc
                                                                             const filc_marker marker,
                                                                             filc_mark_stack* stack)
 {
+    static const bool verbose = false;
+
+    if (verbose)
+        pas_log("inverse marking from %p\n", filc_object_lower(object));
+    
     verse_heap_page_header* header = verse_heap_get_page_header((uintptr_t)object);
     PAS_ASSERT(header);
     
@@ -4363,9 +4377,16 @@ static PAS_ALWAYS_INLINE void filc_object_mark_weak_map_values_based_on_key(filc
                 filc_inverse_weak_map_entry entry = map_entry->value.table[index];
                 if (filc_inverse_weak_map_entry_is_empty_or_deleted(entry))
                     continue;
+                if (verbose) {
+                    pas_log("inverse: considering key = %p, map = %p, value = %p\n",
+                            filc_object_lower(object), entry.key.map, filc_object_lower(entry.value));
+                }
                 if (marker.is_marked(
-                        filc_object_mark_base(filc_object_for_special_payload(entry.key.map))))
+                        filc_object_mark_base(filc_object_for_special_payload(entry.key.map)))) {
+                    if (verbose)
+                        pas_log("inverse: marking value %p\n", filc_object_lower(entry.value));
                     marker.mark(stack, entry.value);
+                }
             }
         }
     }

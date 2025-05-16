@@ -2897,17 +2897,6 @@ void filc_weak_map_set(filc_thread* my_thread, filc_weak_map* map, filc_ptr key,
             if (!map_map) {
                 map_map = filc_inverse_weak_map_map_create();
                 *client_data_ptr = map_map;
-
-                for (;;) {
-                    uintptr_t aux = filc_ptr_object(key)->aux;
-                    if ((filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_WEAK_KEY))
-                        break;
-                    if (pas_compare_and_swap_uintptr_weak(
-                            &filc_ptr_object(key)->aux, aux,
-                            filc_aux_create(filc_aux_get_flags(aux) | FILC_OBJECT_FLAG_WEAK_KEY,
-                                            filc_aux_get_ptr(aux))))
-                        break;
-                }
             }
             filc_inverse_weak_map_map_add_result add_result =
                 filc_inverse_weak_map_map_add(map_map, filc_ptr_object(key),
@@ -2922,6 +2911,17 @@ void filc_weak_map_set(filc_thread* my_thread, filc_weak_map* map, filc_ptr key,
                     filc_inverse_weak_map_key_create(map, filc_ptr_ptr(key)),
                     filc_ptr_object(value)),
                 NULL, &allocation_config);
+            
+            for (;;) {
+                uintptr_t aux = filc_ptr_object(key)->aux;
+                if ((filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_WEAK_KEY))
+                    break;
+                if (pas_compare_and_swap_uintptr_weak(
+                        &filc_ptr_object(key)->aux, aux,
+                        filc_aux_create(filc_aux_get_flags(aux) | FILC_OBJECT_FLAG_WEAK_KEY,
+                                        filc_aux_get_ptr(aux))))
+                    break;
+            }
 
             verse_heap_page_header_unlock_client_data(header);
         }
