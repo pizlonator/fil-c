@@ -86,3 +86,4 @@ handle_git pizlonated-libuev pizlonated-libuev
 handle_git pizlonated-bzip3 pizlonated-bzip3
 handle_git pizlonated-simdjson pizlonated-simdjson
 handle_git pizlonated-ada pizlonated-ada
+handle_git pizlonated-zstd-1.5.6 pizlonated-zstd
