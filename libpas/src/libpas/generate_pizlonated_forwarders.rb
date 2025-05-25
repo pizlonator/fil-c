@@ -161,6 +161,7 @@ addSig "int", "zisdigit", "int"
 addSig "void", "zerror", "filc_ptr"
 addSig "filc_ptr", "zcall", "filc_ptr", "filc_ptr"
 addSig "filc_ptr", "zget_jmp_buf_impl_frame", "filc_ptr"
+addSig "filc_ptr", "zclosure_new", "filc_ptr", "filc_ptr"
 addSig "bool", "zis_runtime_testing_enabled"
 addSig "void", "zvalidate_ptr", "filc_ptr"
 addSig "unsigned long long", "zgc_completed_cycle"
@@ -548,7 +549,7 @@ when "src/libpas/filc_native.h"
             | signature |
             outp.print "PAS_API #{signature.nativeReturnType} "
             outp.print "filc_call_user_#{signature.name}(filc_thread* my_thread, "
-            outp.print "pizlonated_function target"
+            outp.print "filc_ptr target"
             unless signature.args.empty?
                 outp.print(", " + signature.args.map.with_index {
                                | arg, index |
@@ -568,8 +569,9 @@ when "src/libpas/filc_native_forwarders.c"
         $signatures.each {
             | signature |
             outp.puts "static pizlonated_return_value native_thunk_#{signature.name}("
-            outp.puts "    filc_thread* my_thread, size_t argument_size)"
+            outp.puts "    filc_thread* my_thread, void* callee_lower, size_t argument_size)"
             outp.puts "{"
+            outp.puts "    PAS_UNUSED_PARAM(callee_lower);"
             outp.puts "    FILC_DEFINE_FRAME(\"#{signature.name}\");"
             outp.puts "    filc_native_frame native_frame;"
             outp.puts "    filc_push_frame(my_thread, frame);"
@@ -655,7 +657,7 @@ when "src/libpas/filc_native_forwarders.c"
             | signature |
             outp.print "#{signature.nativeReturnType} "
             outp.print "filc_call_user_#{signature.name}(filc_thread* my_thread, "
-            outp.print "pizlonated_function target"
+            outp.print "filc_ptr target"
             unless signature.args.empty?
                 outp.print(", " + signature.args.map.with_index {
                                | arg, index |
@@ -671,6 +673,7 @@ when "src/libpas/filc_native_forwarders.c"
             end
             outp.puts "filc_origin_get_function_origin("
             outp.puts "            my_thread->top_frame->origin)->can_catch);"
+            outp.puts "    filc_check_function_call(target);"
             outp.puts "    filc_cc_sizer args_sizer = filc_cc_sizer_create();"
             signature.args.each {
                 | arg |
@@ -687,8 +690,11 @@ when "src/libpas/filc_native_forwarders.c"
                 outp.puts "        my_thread, &args_cursor, arg#{index});"
             }
             outp.puts "    filc_lock_top_native_frame(my_thread);"
-            outp.puts "    pizlonated_return_value return_value ="
-            outp.puts "        target(my_thread, filc_cc_sizer_total_size(&args_sizer));"
+            outp.puts "    pizlonated_function target_function ="
+            outp.puts "        (pizlonated_function)filc_ptr_ptr(target);"
+            outp.puts "    pizlonated_return_value return_value = target_function("
+            outp.puts "        my_thread, filc_ptr_lower(target),"
+            outp.puts "        filc_cc_sizer_total_size(&args_sizer));"
             unless signature.throwsException
                 outp.puts "    PAS_ASSERT(!return_value.has_exception);"
             end

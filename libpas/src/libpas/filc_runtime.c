@@ -132,7 +132,7 @@ PAS_DEFINE_LOCK(filc_global_variable_roots);
 filc_thread* filc_global_initialization_thread;
 unsigned  filc_global_initialization_depth;
 
-filc_ptr_array filc_global_initialization_stack_of_stacks = FILC_PTR_ARRAY_INITIALIZER;
+filc_raw_ptr_array filc_global_initialization_stack_of_stacks = FILC_RAW_PTR_ARRAY_INITIALIZER;
 
 filc_global_initialization_work_item_hash_map filc_global_initialization_map =
     PAS_HASHTABLE_INITIALIZER;
@@ -193,7 +193,7 @@ filc_thread* filc_thread_create_with_manual_tracking(void)
 
     pas_system_mutex_construct(&thread->lock);
     pas_system_condition_construct(&thread->cond);
-    filc_ptr_array_construct(&thread->allocation_roots);
+    filc_raw_ptr_array_construct(&thread->allocation_roots);
     filc_mark_stack_construct(&thread->mark_stack);
     filc_object_array_construct(&thread->thread_locals);
 
@@ -267,7 +267,7 @@ void filc_thread_undo_create(filc_thread* thread)
     }
     PAS_ASSERT(!thread->allocation_roots.size);
     PAS_ASSERT(!filc_mark_stack_num_objects(&thread->mark_stack));
-    filc_ptr_array_destruct(&thread->allocation_roots);
+    filc_raw_ptr_array_destruct(&thread->allocation_roots);
     filc_object_array_destruct(&thread->thread_locals);
     filc_thread_destroy_space_with_guard_page(thread);
 }
@@ -410,6 +410,7 @@ void filc_initialize(void)
     PAS_ASSERT(FILC_OBJECT_FLAG_READONLY == 2);
     PAS_ASSERT(FILC_OBJECT_FLAG_FREE == 4);
     PAS_ASSERT(FILC_OBJECT_FLAG_GLOBAL_AUX == 16);
+    PAS_ASSERT(FILC_OBJECT_FLAG_CLOSURE == 64);
     PAS_ASSERT(FILC_OBJECT_FLAGS_SPECIAL_SHIFT == 7);
     PAS_ASSERT(FILC_OBJECT_FLAGS_ALIGN_SHIFT == 11);
     PAS_ASSERT(FILC_ATOMIC_BOX_BIT == 1);
@@ -869,11 +870,8 @@ static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* han
         my_thread, filc_allocate_with_alignment(my_thread, sizeof(siginfo_t), alignof(siginfo_t)));
     memcpy(filc_ptr_ptr(info_ptr), info, sizeof(siginfo_t));
 
-    /* This check shouldn't be necessary; we do it out of an abundance of paranoia! */
-    filc_check_function_call(function_ptr);
     filc_call_user_void_int_ptr_ptr(
-        my_thread, (pizlonated_function)filc_ptr_ptr(function_ptr), info->si_signo, info_ptr,
-        filc_ptr_forge_null());
+        my_thread, function_ptr, info->si_signo, info_ptr, filc_ptr_forge_null());
 
     filc_pop_native_frame(my_thread, &native_frame);
     filc_pop_frame(my_thread, frame);
@@ -1176,21 +1174,21 @@ void filc_exit_with_allocation_root(filc_thread* my_thread, void* allocation_roo
     filc_exit(my_thread);
 }
 
-filc_ptr_array* filc_ptr_array_create(void)
+filc_raw_ptr_array* filc_raw_ptr_array_create(void)
 {
-    filc_ptr_array* result = bmalloc_allocate(sizeof(filc_ptr_array));
-    filc_ptr_array_construct(result);
+    filc_raw_ptr_array* result = bmalloc_allocate(sizeof(filc_raw_ptr_array));
+    filc_raw_ptr_array_construct(result);
     return result;
 }
 
-void filc_ptr_array_destroy(filc_ptr_array* array)
+void filc_raw_ptr_array_destroy(filc_raw_ptr_array* array)
 {
     PAS_ASSERT(array);
-    filc_ptr_array_destruct(array);
+    filc_raw_ptr_array_destruct(array);
     bmalloc_deallocate(array);
 }
 
-void filc_ptr_array_add(filc_ptr_array* array, void* ptr)
+void filc_raw_ptr_array_add(filc_raw_ptr_array* array, void* ptr)
 {
     if (array->size >= array->capacity) {
         void** new_array;
@@ -1212,6 +1210,36 @@ void filc_ptr_array_add(filc_ptr_array* array, void* ptr)
     }
 
     array->array[array->size++] = ptr;
+}
+
+void filc_ptr_array_add(filc_thread* my_thread, filc_ptr_array* array, filc_ptr ptr)
+{
+    if (array->size >= array->capacity) {
+        filc_ptr* new_array;
+        unsigned new_capacity;
+        
+        PAS_ASSERT(array->size == array->capacity);
+        if (array->capacity)
+            PAS_ASSERT(!pas_mul_uint32_overflow(array->capacity, 2, &new_capacity));
+        else
+            new_capacity = 2;
+
+        new_array = (filc_ptr*)bmalloc_allocate(sizeof(filc_ptr) * new_capacity);
+        memcpy(new_array, array->array, sizeof(filc_ptr) * array->size);
+
+        bmalloc_deallocate(array->array);
+        array->array = new_array;
+        array->capacity = new_capacity;
+        PAS_ASSERT(array->size < array->capacity);
+    }
+
+    filc_flight_ptr_store(my_thread, array->array + array->size++, ptr);
+}
+
+filc_ptr filc_ptr_array_get(filc_thread* my_thread, filc_ptr_array* array, size_t index)
+{
+    PAS_ASSERT(index < array->size);
+    return filc_flight_ptr_load(my_thread, array->array + index);
 }
 
 PAS_NEVER_INLINE void filc_object_array_impl_enlarge(filc_object_array_impl* array,
@@ -1645,9 +1673,13 @@ void filc_object_flags_dump_with_comma(filc_object_flags flags, bool* comma, pas
         pas_stream_print_comma(stream, comma, ",");
         pas_stream_printf(stream, "readonly");
     }
-    if (flags & FILC_OBJECT_FLAG_SYSV_SHM) {
+    if (flags & FILC_OBJECT_FLAG_WEAK_KEY) {
         pas_stream_print_comma(stream, comma, ",");
-        pas_stream_printf(stream, "sysv_shm");
+        pas_stream_printf(stream, "weak_key");
+    }
+    if (flags & FILC_OBJECT_FLAG_CLOSURE) {
+        pas_stream_print_comma(stream, comma, ",");
+        pas_stream_printf(stream, "closure");
     }
     if (filc_object_flags_is_aligned(flags)) {
         pas_stream_print_comma(stream, comma, ",");
@@ -2245,6 +2277,7 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
         result = (filc_object*)allocation;
         log_align = 0;
     }
+    PAS_ASSERT((log_align & FILC_LOG_ALIGN_MASK) == log_align);
     filc_object_flags object_flags = filc_object_flags_create(0, special_type, log_align);
     result->upper = filc_object_lower_not_null(result);
     result->aux = filc_aux_create(object_flags, filc_object_lower(result));
@@ -2298,11 +2331,13 @@ filc_object* filc_allocate_special_with_existing_payload(
 static PAS_ALWAYS_INLINE void prepare_allocate(
     size_t* size, size_t alignment, size_t* offset_to_payload, size_t* total_size)
 {
+    size_t max_alignment =
+        pas_min_uintptr(VERSE_HEAP_CHUNK_SIZE / 2, filc_log_align_alignment(FILC_LOG_ALIGN_MASK));
     FILC_CHECK(
-        alignment < VERSE_HEAP_CHUNK_SIZE,
+        alignment <= max_alignment,
         NULL,
         "alignment %zu too big (max alignment is %zu).",
-        alignment, VERSE_HEAP_CHUNK_SIZE / 2);
+        alignment, max_alignment);
 
     PAS_ASSERT(sizeof(filc_object) == FILC_MINALIGN);
     prepare_allocate_object(size);
@@ -2822,7 +2857,8 @@ filc_weak_map* filc_weak_map_create(filc_thread* my_thread)
 {
     filc_weak_map* weak_map = (filc_weak_map*)
         filc_object_special_payload_with_manual_tracking(
-            filc_allocate_special(my_thread, sizeof(filc_weak_map), 1, FILC_SPECIAL_TYPE_WEAK_MAP));
+            filc_allocate_special(
+                my_thread, sizeof(filc_weak_map), 1, FILC_SPECIAL_TYPE_WEAK_MAP));
     pas_lock_construct(&weak_map->lock);
     filc_ptr_hash_map_construct(&weak_map->map);
     return weak_map;
@@ -3445,6 +3481,19 @@ void filc_check_function_call(filc_ptr ptr)
 PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr)
 {
     filc_check_function_call(ptr);
+    PAS_UNREACHABLE();
+}
+
+PAS_NO_RETURN void filc_check_closure_fail(void* lower, const filc_origin* origin)
+{
+    PAS_ASSERT(lower);
+    filc_object* object = filc_object_for_lower(lower);
+    PAS_ASSERT(filc_object_special_type(object) == FILC_SPECIAL_TYPE_FUNCTION);
+    FILC_CHECK(
+        filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE,
+        origin,
+        "callee %s is not a closure.",
+        filc_object_to_new_string(object));
     PAS_UNREACHABLE();
 }
 
@@ -4262,7 +4311,8 @@ filc_ptr filc_native_zcall(filc_thread* my_thread, filc_ptr callee_ptr, filc_ptr
 
     filc_lock_top_native_frame(my_thread);
     pizlonated_return_value result =
-        ((pizlonated_function)filc_ptr_ptr(callee_ptr))(my_thread, arg_size);
+        ((pizlonated_function)filc_ptr_ptr(callee_ptr))(
+            my_thread, filc_ptr_lower(callee_ptr), arg_size);
     PAS_ASSERT(!result.has_exception);
     filc_unlock_top_native_frame(my_thread);
 
@@ -4391,17 +4441,17 @@ filc_ptr filc_strdup(filc_thread* my_thread, const char* str)
 static void push_initialization_stack(void)
 {
     PAS_TESTING_ASSERT(filc_thread_is_entered(filc_get_my_thread()));
-    filc_ptr_array_add(&filc_global_initialization_stack_of_stacks, filc_ptr_array_create());
+    filc_raw_ptr_array_add(&filc_global_initialization_stack_of_stacks, filc_raw_ptr_array_create());
 }
 
 static void pop_initialization_stack(void)
 {
     PAS_TESTING_ASSERT(filc_thread_is_entered(filc_get_my_thread()));
-    filc_ptr_array* stack = (filc_ptr_array*)filc_ptr_array_pop(
+    filc_raw_ptr_array* stack = (filc_raw_ptr_array*)filc_raw_ptr_array_pop(
         &filc_global_initialization_stack_of_stacks);
     PAS_ASSERT(stack);
     PAS_ASSERT(!stack->size);
-    filc_ptr_array_destroy(stack);
+    filc_raw_ptr_array_destroy(stack);
 }
 
 static void lock_global_initialization(filc_thread* my_thread)
@@ -4516,9 +4566,9 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
     add_result.entry->pizlonated_gptr = pizlonated_gptr;
     add_result.entry->generation = filc_global_initialization_stack_of_stacks.size;
     add_result.entry->object = object;
-    filc_ptr_array_add((filc_ptr_array*)filc_ptr_array_top(
-                           &filc_global_initialization_stack_of_stacks),
-                       pizlonated_gptr);
+    filc_raw_ptr_array_add((filc_raw_ptr_array*)filc_raw_ptr_array_top(
+                               &filc_global_initialization_stack_of_stacks),
+                           pizlonated_gptr);
 
     return true;
 
@@ -4541,7 +4591,7 @@ static void finish_initialization_generation(filc_thread* my_thread)
     
     pas_store_store_fence();
 
-    filc_ptr_array* stack = (filc_ptr_array*)filc_ptr_array_top(
+    filc_raw_ptr_array* stack = (filc_raw_ptr_array*)filc_raw_ptr_array_top(
         &filc_global_initialization_stack_of_stacks);
     PAS_ASSERT(stack);
 
@@ -4582,7 +4632,7 @@ void filc_global_initialization_end(filc_thread* my_thread)
 }
 
 filc_ptr filc_call_ifunc(filc_thread* my_thread, const filc_origin* passed_origin,
-                         filc_ptr* pizlonated_gptr, pizlonated_function ifunc)
+                         filc_ptr* pizlonated_gptr, filc_ptr ifunc)
 {
     static const bool verbose = false;
     
@@ -4628,9 +4678,9 @@ filc_ptr filc_call_ifunc(filc_thread* my_thread, const filc_origin* passed_origi
     add_result.entry->pizlonated_gptr = pizlonated_gptr;
     add_result.entry->generation = filc_global_initialization_stack_of_stacks.size;
     add_result.entry->object = NULL;
-    filc_ptr_array_add((filc_ptr_array*)filc_ptr_array_top(
-                           &filc_global_initialization_stack_of_stacks),
-                       pizlonated_gptr);
+    filc_raw_ptr_array_add((filc_raw_ptr_array*)filc_raw_ptr_array_top(
+                               &filc_global_initialization_stack_of_stacks),
+                           pizlonated_gptr);
 
     push_initialization_stack();
 
@@ -4773,10 +4823,12 @@ filc_ptr filc_get_user_auxv(void)
     return filc_flight_ptr_load_with_manual_tracking(&user_auxv);
 }
 
-static bool did_run_deferred_global_ctors = false;
-static filc_ptr_array deferred_global_ctors = FILC_PTR_ARRAY_INITIALIZER;
+bool filc_did_run_deferred_global_ctors = false;
+bool filc_did_clear_deferred_global_ctors = false;
+pas_lock filc_deferred_global_ctors_lock = PAS_LOCK_INITIALIZER;
+filc_ptr_array filc_deferred_global_ctors = FILC_PTR_ARRAY_INITIALIZER;
 
-static void run_global_ctor(filc_thread* my_thread, pizlonated_function global_ctor)
+static void run_global_ctor(filc_thread* my_thread, filc_ptr global_ctor)
 {
     if (!run_global_ctors) {
         /* NOTE: This is an internal flag that is only useful for debugging, and it's quite dangerous
@@ -4799,35 +4851,49 @@ static void run_global_ctor(filc_thread* my_thread, pizlonated_function global_c
     filc_pop_frame(my_thread, frame);
 }
 
-void filc_defer_or_run_global_ctor(pizlonated_function global_ctor)
+void filc_defer_or_run_global_ctor(filc_ptr global_ctor)
 {
-    if (did_run_deferred_global_ctors) {
-        filc_thread* my_thread = filc_get_my_thread();
-        
+    filc_thread* my_thread = filc_get_my_thread();
+
+    pas_lock_lock(&filc_deferred_global_ctors_lock);
+    if (filc_did_run_deferred_global_ctors) {
+        pas_lock_unlock(&filc_deferred_global_ctors_lock);
         filc_enter(my_thread);
         run_global_ctor(my_thread, global_ctor);
         filc_exit(my_thread);
         return;
     }
 
-    filc_ptr_array_add(&deferred_global_ctors, global_ctor);
+    /* Weird fact: this will run before the runtime is initialized, so my_thread will be NULL, and
+       it doesn't matter because we only use the thread for store barriers, which won't run because
+       the marking state is not_marking. */
+    filc_ptr_array_add(my_thread, &filc_deferred_global_ctors, global_ctor);
+    pas_lock_unlock(&filc_deferred_global_ctors_lock);
 }
 
 void filc_run_deferred_global_ctors(filc_thread* my_thread)
 {
+    pas_lock_lock(&filc_deferred_global_ctors_lock);
     FILC_CHECK(
-        !did_run_deferred_global_ctors,
+        !filc_did_run_deferred_global_ctors,
         NULL,
         "cannot run deferred global constructors twice.");
-    did_run_deferred_global_ctors = true;
+    PAS_ASSERT(!filc_did_clear_deferred_global_ctors);
+    filc_did_run_deferred_global_ctors = true;
     /* It's important to run the destructors in exactly the order in which they were deferred, since
        this allows us to match the priority semantics despite not having the priority. */
-    for (size_t index = 0; index < deferred_global_ctors.size; ++index)
-        run_global_ctor(my_thread, (pizlonated_function)deferred_global_ctors.array[index]);
-    filc_ptr_array_destruct(&deferred_global_ctors);
+    for (size_t index = 0; index < filc_deferred_global_ctors.size; ++index) {
+        filc_ptr global_ctor = filc_ptr_array_get(my_thread, &filc_deferred_global_ctors, index);
+        pas_lock_unlock(&filc_deferred_global_ctors_lock);
+        run_global_ctor(my_thread, global_ctor);
+        pas_lock_lock(&filc_deferred_global_ctors_lock);
+    }
+    filc_did_clear_deferred_global_ctors = true;
+    filc_ptr_array_destruct(&filc_deferred_global_ctors);
+    pas_lock_unlock(&filc_deferred_global_ctors_lock);
 }
 
-void filc_run_global_dtor(pizlonated_function global_dtor)
+void filc_run_global_dtor(filc_ptr global_dtor)
 {
     if (!run_global_dtors) {
         /* NOTE: This is an internal flag only used for debugging, and I might deprecate it at any
@@ -5106,9 +5172,6 @@ static void check_stack_frame_description(
 
 void filc_native_zstack_scan(filc_thread* my_thread, filc_ptr callback_ptr, filc_ptr arg_ptr)
 {
-    filc_check_function_call(callback_ptr);
-    pizlonated_function callback = (pizlonated_function)filc_ptr_ptr(callback_ptr);
-
     filc_frame* my_frame = my_thread->top_frame;
     PAS_ASSERT(my_frame->origin);
     PAS_ASSERT(!strcmp(
@@ -5172,7 +5235,7 @@ void filc_native_zstack_scan(filc_thread* my_thread, filc_ptr callback_ptr, filc
                 filc_store_ptr_at(my_thread, description_ptr, &description->eh_data, eh_data);
             }
 
-            if (!filc_call_user_bool_ptr_ptr(my_thread, callback, description_ptr, arg_ptr))
+            if (!filc_call_user_bool_ptr_ptr(my_thread, callback_ptr, description_ptr, arg_ptr))
                 return;
         }
     }
@@ -5256,11 +5319,10 @@ static unwind_reason_code call_personality(
     filc_ptr personality_ptr =
         filc_origin_get_function_origin(current_frame->origin)->personality_getter(my_thread, NULL);
     filc_thread_track_object(my_thread, filc_ptr_object(personality_ptr));
-    filc_check_function_call(personality_ptr);
 
     return (unwind_reason_code)filc_call_user_eh_personality(
-        my_thread, (pizlonated_function)filc_ptr_ptr(personality_ptr),
-        EH_VERSION, actions, exception_class, exception_object_ptr, context_ptr);
+        my_thread, personality_ptr, EH_VERSION, actions, exception_class, exception_object_ptr,
+        context_ptr);
 }
 
 filc_exception_and_int filc_native__Unwind_RaiseException(
@@ -5322,7 +5384,7 @@ static void forced_unwind(filc_thread* my_thread, filc_ptr context_ptr, filc_ptr
                           filc_frame* current_frame)
 {
     PAS_ASSERT(my_thread->is_force_unwinding);
-    PAS_ASSERT(my_thread->force_stop_callback);
+    PAS_ASSERT(!filc_ptr_is_totally_null(my_thread->force_stop_callback));
     PAS_ASSERT(current_frame);
     
     for (;;) {
@@ -5362,8 +5424,8 @@ static void forced_unwind(filc_thread* my_thread, filc_ptr context_ptr, filc_ptr
             actions |= unwind_action_end_of_stack;
         
         unwind_reason_code stop_result = (unwind_reason_code)filc_call_user_eh_stop_fn(
-            my_thread, my_thread->force_stop_callback, EH_VERSION, actions, exception_class,
-            exception_object_ptr, context_ptr,
+            my_thread, filc_flight_ptr_load(my_thread, &my_thread->force_stop_callback), EH_VERSION,
+            actions, exception_class, exception_object_ptr, context_ptr,
             filc_flight_ptr_load(my_thread, &my_thread->force_stop_arg_ptr));
         FILC_CHECK(
             stop_result == unwind_reason_none,
@@ -5419,7 +5481,7 @@ filc_exception_and_int filc_native__Unwind_ForcedUnwind(filc_thread* my_thread,
 
     my_thread->is_force_unwinding = true;
     filc_check_function_call(stop_callback_ptr);
-    my_thread->force_stop_callback = (pizlonated_function)filc_ptr_ptr(stop_callback_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->force_stop_callback, stop_callback_ptr);
     filc_flight_ptr_store(my_thread, &my_thread->force_stop_arg_ptr, stop_arg_ptr);
     forced_unwind(my_thread, context_ptr, exception_object_ptr, my_frame);
     return filc_exception_and_int_with_exception();
@@ -5735,6 +5797,23 @@ void filc_native_zmake_setjmp_save_sigmask(filc_thread* my_thread, bool save_sig
     setjmp_saves_sigmask = save_sigmask;
 }
 
+filc_ptr filc_native_zclosure_new(filc_thread* my_thread, filc_ptr function_ptr, filc_ptr data_ptr)
+{
+    filc_check_function_call(function_ptr);
+    filc_object* object = (filc_object*)filc_thread_allocate(
+        my_thread, sizeof(filc_object) + sizeof(filc_closure));
+    object->upper = filc_object_lower_not_null(object);
+    object->aux = filc_aux_create(
+        filc_object_flags_create(FILC_OBJECT_FLAG_CLOSURE | FILC_OBJECT_FLAG_READONLY,
+                                 FILC_SPECIAL_TYPE_FUNCTION,
+                                 0),
+        filc_ptr_ptr(function_ptr));
+    filc_closure* closure = (filc_closure*)filc_object_special_payload_with_manual_tracking(object);
+    filc_flight_ptr_store(my_thread, &closure->data_ptr, data_ptr);
+    return filc_ptr_create_with_object_and_ptr_and_manual_tracking(
+        object, filc_ptr_ptr(function_ptr));
+}
+
 static void cpuid_impl(unsigned leaf, unsigned count, filc_ptr eax_ptr, filc_ptr ebx_ptr,
                        filc_ptr ecx_ptr, filc_ptr edx_ptr)
 {
@@ -5779,40 +5858,39 @@ unsigned long filc_native_zxgetbv(filc_thread* my_thread)
     return (unsigned long)low | ((unsigned long)high << (unsigned long)32);
 }
 
-static pizlonated_function pizlonated_errno_handler;
+filc_ptr filc_pizlonated_errno_handler;
 
 void filc_native_zregister_sys_errno_handler(filc_thread* my_thread, filc_ptr errno_handler)
 {
     PAS_UNUSED_PARAM(my_thread);
     FILC_CHECK(
-        !pizlonated_errno_handler,
+        filc_ptr_is_totally_null(filc_pizlonated_errno_handler),
         NULL,
         "errno handler already registered.");
-    filc_check_function_call(errno_handler);
-    pizlonated_errno_handler = (pizlonated_function)filc_ptr_ptr(errno_handler);
+    filc_flight_ptr_store(my_thread, &filc_pizlonated_errno_handler, errno_handler);
 }
 
-static pizlonated_function pizlonated_dlerror_handler;
+filc_ptr filc_pizlonated_dlerror_handler;
 
 void filc_native_zregister_sys_dlerror_handler(filc_thread* my_thread, filc_ptr dlerror_handler)
 {
     PAS_UNUSED_PARAM(my_thread);
     FILC_CHECK(
-        !pizlonated_dlerror_handler,
+        filc_ptr_is_totally_null(filc_pizlonated_dlerror_handler),
         NULL,
         "dlerror handler already registered.");
-    filc_check_function_call(dlerror_handler);
-    pizlonated_dlerror_handler = (pizlonated_function)filc_ptr_ptr(dlerror_handler);
+    filc_flight_ptr_store(my_thread, &filc_pizlonated_dlerror_handler, dlerror_handler);
 }
 
 void filc_set_user_errno(int errno_value)
 {
     FILC_CHECK(
-        pizlonated_errno_handler,
+        !filc_ptr_is_totally_null(filc_pizlonated_errno_handler),
         NULL,
         "errno handler not registered when trying to set errno = %d.", errno_value);
     filc_thread* my_thread = filc_get_my_thread();
-    filc_call_user_void_int(my_thread, pizlonated_errno_handler, errno_value);
+    filc_call_user_void_int(
+        my_thread, filc_flight_ptr_load(my_thread, &filc_pizlonated_errno_handler), errno_value);
 }
 
 void filc_set_errno(int errno_value)
@@ -5830,11 +5908,13 @@ static void set_dlerror(const char* error)
 {
     PAS_ASSERT(error);
     FILC_CHECK(
-        pizlonated_dlerror_handler,
+        !filc_ptr_is_totally_null(filc_pizlonated_dlerror_handler),
         NULL,
         "dlerror handler not registered when trying to set dlerror = %s.", error);
     filc_thread* my_thread = filc_get_my_thread();
-    filc_call_user_void_ptr(my_thread, pizlonated_dlerror_handler, filc_strdup(my_thread, error));
+    filc_call_user_void_ptr(
+        my_thread, filc_flight_ptr_load(my_thread, &filc_pizlonated_dlerror_handler),
+        filc_strdup(my_thread, error));
 }
 
 void filc_extract_user_iovec_entry(filc_thread* my_thread, filc_ptr user_iov_entry_ptr,
@@ -8252,7 +8332,7 @@ filc_ptr filc_native_zsys_shmat(filc_thread* my_thread, int shmid, filc_ptr addr
     addr_ptr = filc_ptr_create_with_object(
         my_thread, allocate_aligned_impl(
             my_thread, length, pas_page_malloc_alignment(),
-            FILC_OBJECT_FLAG_MMAP | FILC_OBJECT_FLAG_SYSV_SHM));
+            FILC_OBJECT_FLAG_MMAP));
 
     void* raw_result = FILC_SYSCALL(
         my_thread, shmat(shmid, filc_ptr_ptr(addr_ptr), flag | SHM_REMAP));
@@ -8285,11 +8365,6 @@ int filc_native_zsys_shmdt(filc_thread* my_thread, filc_ptr addr_ptr)
         filc_ptr_to_new_string(addr_ptr));
     filc_check_write(addr_ptr, available);
     check_mmap(addr_ptr);
-    FILC_CHECK(
-        filc_object_get_flags(filc_ptr_object(addr_ptr)) & FILC_OBJECT_FLAG_SYSV_SHM,
-        NULL,
-        "attempt to shmdt a pointer not to System V IPC shared memory (ptr = %s).",
-        filc_ptr_to_new_string(addr_ptr));
     PAS_ASSERT(pas_is_aligned(available, pas_page_malloc_alignment()));
     filc_free(filc_ptr_object(addr_ptr));
     filc_exit(my_thread);
@@ -10194,7 +10269,8 @@ static void* start_thread(void* arg)
     if (verbose)
         pas_log("thread %u calling main function\n", tid);
 
-    filc_exception_and_ptr result = filc_call_user_thread_main(thread, thread->thread_main, arg_ptr);
+    filc_exception_and_ptr result = filc_call_user_thread_main(
+        thread, filc_flight_ptr_load(thread, &thread->thread_main), arg_ptr);
     if (result.has_exception)
         filc_user_panic(NULL, "unexpected exception thrown from thread main.");
 
@@ -10207,9 +10283,10 @@ static void* start_thread(void* arg)
 filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_ptr, filc_ptr arg_ptr)
 {
     FILC_CHECK(
-        did_run_deferred_global_ctors,
+        filc_did_run_deferred_global_ctors,
         NULL,
         "cannot create threads before global constructors have started being run.");
+    PAS_ASSERT(filc_did_clear_deferred_global_ctors);
     filc_check_function_call(callback_ptr);
     filc_thread* thread = filc_thread_create_with_manual_tracking();
     filc_thread_track_object(my_thread, filc_object_for_special_payload(thread));
@@ -10219,7 +10296,7 @@ filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_pt
     PAS_ASSERT(filc_ptr_is_totally_null(thread->arg_ptr));
     PAS_ASSERT(filc_ptr_is_totally_null(thread->result_ptr));
     PAS_ASSERT(filc_ptr_is_totally_null(thread->cookie_ptr));
-    thread->thread_main = (pizlonated_function)filc_ptr_ptr(callback_ptr);
+    filc_flight_ptr_store(my_thread, &thread->thread_main, callback_ptr);
     filc_flight_ptr_store(my_thread, &thread->arg_ptr, arg_ptr);
     pas_system_mutex_unlock(&thread->lock);
     filc_exit(my_thread);

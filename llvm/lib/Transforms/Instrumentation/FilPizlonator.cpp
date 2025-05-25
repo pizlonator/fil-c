@@ -86,6 +86,7 @@ static constexpr uint16_t ObjectFlagGlobal = 1;
 static constexpr uint16_t ObjectFlagReadonly = 2;
 static constexpr uint16_t ObjectFlagFree = 4;
 static constexpr uint16_t ObjectFlagGlobalAux = 16;
+static constexpr uint16_t ObjectFlagClosure = 64;
 static constexpr uint16_t ObjectFlagsSpecialShift = 7;
 static constexpr uint16_t ObjectFlagsAlignShift = 11;
 
@@ -1137,6 +1138,7 @@ class Pizlonator {
   FunctionCallee OptimizedAccessCheckFail;
   FunctionCallee MaskedAccessCheckFail;
   FunctionCallee CheckFunctionCallFail;
+  FunctionCallee CheckClosureFail;
   FunctionCallee Memset;
   FunctionCallee Memmove;
   FunctionCallee GlobalInitializationStart;
@@ -1198,6 +1200,7 @@ class Pizlonator {
   std::unordered_map<GlobalValue*, GlobalVariable*> GlobalToGlobal;
   std::unordered_set<Value*> Getters;
   std::unordered_map<Function*, Function*> FunctionToHiddenFunction;
+  std::unordered_map<Function*, Constant*> FunctionToLower;
 
   std::string FunctionName;
   Function* OldF { nullptr };
@@ -5264,6 +5267,26 @@ class Pizlonator {
           return true;
         }
 
+        if (F->getName() == "zclosure_get_data" &&
+            !FT->getNumParams() &&
+            FT->getReturnType() == RawPtrTy) {
+          Value* CalleeLower = NewF->getArg(1);
+          BinaryOperator* Masked = BinaryOperator::Create(
+            Instruction::And, flagsForLower(CalleeLower, CI),
+            ConstantInt::get(IntPtrTy, ObjectFlagClosure), "filc_flags_masked", CI);
+          Masked->setDebugLoc(CI->getDebugLoc());
+          ICmpInst* IsNotClosure = new ICmpInst(
+            CI, ICmpInst::ICMP_EQ, Masked, ConstantInt::get(IntPtrTy, 0),
+            "filc_object_is_not_closure");
+          Instruction* FailTerm = SplitBlockAndInsertIfThen(expectFalse(IsNotClosure, CI), CI, true);
+          CallInst::Create(
+            CheckClosureFail, { CalleeLower, getOrigin(CI->getDebugLoc()) }, "", FailTerm)
+            ->setDebugLoc(CI->getDebugLoc());
+          CI->replaceAllUsesWith(loadFlightPtr(CalleeLower, CI));
+          CI->eraseFromParent();
+          return true;
+        }
+
         if ((F->getName() == "zgetlower" || F->getName() == "zgetupper") &&
             FT->getNumParams() == 1 &&
             !FT->isVarArg() &&
@@ -6075,7 +6098,10 @@ class Pizlonator {
 
       assert(!CI->hasOperandBundles());
       CallInst* TheCall = CallInst::Create(
-        PizlonatedFuncTy, flightPtrPtr(CI->getCalledOperand(), CI), { MyThread, ArgSize },
+        PizlonatedFuncTy, flightPtrPtr(CI->getCalledOperand(), CI),
+        { MyThread,
+          flightPtrLower(CI->getCalledOperand(), CI),
+          ArgSize },
         "filc_call", CI);
       TheCall->setDebugLoc(CI->getDebugLoc());
       Instruction* HasException = ExtractValueInst::Create(
@@ -6286,6 +6312,14 @@ class Pizlonator {
     Value* GEP = threadStackLimitPtr(MyThread, InsertBefore);
     CallInst* CI = CallInst::Create(StackCheckAsm, { GEP }, "", InsertBefore);
     CI->addParamAttr(0, Attribute::get(C, Attribute::ElementType, RawPtrTy));
+  }
+
+  Value* flightPtrForLocalFunction(Function* F, Instruction* InsertBefore) {
+    Function* NewF = FunctionToHiddenFunction[F];
+    Constant* Lower = FunctionToLower[F];
+    assert(NewF);
+    assert(Lower);
+    return createFlightPtr(Lower, NewF, InsertBefore);
   }
 
   void lowerIndirectBrForFunction(Function& F) {
@@ -7406,7 +7440,7 @@ public:
     PizlonatedReturnValueTy = StructType::create({ Int1Ty, IntPtrTy }, "pizlonated_return_value");
     PtrPairTy = StructType::create({ RawPtrTy, RawPtrTy }, "filc_ptr_pair");
     PizlonatedFuncTy = FunctionType::get(
-      PizlonatedReturnValueTy, { RawPtrTy, IntPtrTy }, false);
+      PizlonatedReturnValueTy, { RawPtrTy, RawPtrTy, IntPtrTy }, false);
     PizlonatedGetterTy = FunctionType::get(FlightPtrTy, { RawPtrTy, RawPtrTy }, false);
     ThreadLocalEnsureTy = FunctionType::get(RawPtrTy, { RawPtrTy }, false);
 
@@ -7484,6 +7518,8 @@ public:
       "filc_allocate_with_alignment", RawPtrTy, RawPtrTy, IntPtrTy, IntPtrTy);
     CheckFunctionCallFail = M.getOrInsertFunction(
       "filc_check_function_call_fail", VoidTy, FlightPtrTy);
+    CheckClosureFail = M.getOrInsertFunction(
+      "filc_check_closure_fail", VoidTy, RawPtrTy, RawPtrTy);
     OptimizedAlignmentContradiction = M.getOrInsertFunction(
       "filc_optimized_alignment_contradiction", VoidTy, FlightPtrTy, RawPtrTy);
     OptimizedAccessCheckFail = M.getOrInsertFunction(
@@ -7499,13 +7535,13 @@ public:
     GlobalInitializationEnd = M.getOrInsertFunction(
       "filc_global_initialization_end", VoidTy, RawPtrTy);
     CallIfunc = M.getOrInsertFunction(
-      "filc_call_ifunc", FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
+      "filc_call_ifunc", FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, FlightPtrTy);
     ExecuteConstantRelocations = M.getOrInsertFunction(
       "filc_execute_constant_relocations", VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy);
     DeferOrRunGlobalCtor = M.getOrInsertFunction(
-      "filc_defer_or_run_global_ctor", VoidTy, RawPtrTy);
+      "filc_defer_or_run_global_ctor", VoidTy, FlightPtrTy);
     RunGlobalDtor = M.getOrInsertFunction(
-      "filc_run_global_dtor", VoidTy, RawPtrTy);
+      "filc_run_global_dtor", VoidTy, FlightPtrTy);
     Error = M.getOrInsertFunction(
       "filc_error", VoidTy, RawPtrTy, RawPtrTy);
     RealMemset = M.getOrInsertFunction(
@@ -7573,10 +7609,29 @@ public:
         continue;
       HandleGlobal(F);
       if (!F->isDeclaration()) {
-        FunctionToHiddenFunction[F] = Function::Create(
+        Function* NewF = Function::Create(
           PizlonatedFuncTy,
           GlobalValue::InternalLinkage, F->getAddressSpace(),
           "Jf_" + F->getName(), &M);
+        FunctionToHiddenFunction[F] = NewF;
+
+        GlobalVariable* NewObjectG = new GlobalVariable(
+          M, ObjectTy, true, GlobalValue::InternalLinkage, nullptr, "Jfo_" + F->getName());
+        Constant* LowerAndUpper =
+          ConstantExpr::getGetElementPtr(ObjectTy, NewObjectG, ConstantInt::get(IntPtrTy, 1));
+        uint16_t ObjectFlags =
+          ObjectFlagGlobal |
+          ObjectFlagReadonly |
+          (SpecialTypeFunction << ObjectFlagsSpecialShift);
+        Constant* NewObjC = ConstantStruct::get(
+          ObjectTy,
+          { LowerAndUpper,
+            ConstantExpr::getGetElementPtr(
+              Int8Ty, NewF,
+              ConstantInt::get(
+                IntPtrTy, static_cast<uintptr_t>(ObjectFlags) << ObjectAuxFlagsShift)) });
+        NewObjectG->setInitializer(NewObjC);
+        FunctionToLower[F] = LowerAndUpper;
       }
     }
     if (verbose) {
@@ -7592,13 +7647,12 @@ public:
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
         ConstantStruct* Struct = cast<ConstantStruct>(Array->getOperand(Index));
         Function* Ctor = cast<Function>(Struct->getOperand(1));
-        Function* HiddenCtor = FunctionToHiddenFunction[Ctor];
-        assert(HiddenCtor);
         Function* NewF = Function::Create(
           CtorDtorTy, GlobalValue::InternalLinkage, 0, "filc_ctor_forwarder", &M);
         BasicBlock* RootBB = BasicBlock::Create(C, "filc_ctor_forwarder_root", NewF);
-        CallInst::Create(DeferOrRunGlobalCtor, { HiddenCtor }, "", RootBB);
-        ReturnInst::Create(C, RootBB);
+        ReturnInst* Return = ReturnInst::Create(C, RootBB);
+        CallInst::Create(
+          DeferOrRunGlobalCtor, { flightPtrForLocalFunction(Ctor, Return) }, "", Return);
         Args.push_back(ConstantStruct::get(Struct->getType(), Struct->getOperand(0), NewF, RawNull));
       }
       GlobalCtors->setInitializer(ConstantArray::get(Array->getType(), Args));
@@ -7612,12 +7666,11 @@ public:
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
         ConstantStruct* Struct = cast<ConstantStruct>(Array->getOperand(Index));
         Function* Dtor = cast<Function>(Struct->getOperand(1));
-        Function* HiddenDtor = FunctionToHiddenFunction[Dtor];
         Function* NewF = Function::Create(
           CtorDtorTy, GlobalValue::InternalLinkage, 0, "filc_dtor_forwarder", &M);
         BasicBlock* RootBB = BasicBlock::Create(C, "filc_dtor_forwarder_root", NewF);
-        CallInst::Create(RunGlobalDtor, { HiddenDtor }, "", RootBB);
-        ReturnInst::Create(C, RootBB);
+        ReturnInst* Return = ReturnInst::Create(C, RootBB);
+        CallInst::Create(RunGlobalDtor, { flightPtrForLocalFunction(Dtor, Return) }, "", Return);
         Args.push_back(ConstantStruct::get(Struct->getType(), Struct->getOperand(0), NewF, RawNull));
       }
       GlobalDtors->setInitializer(ConstantArray::get(Array->getType(), Args));
@@ -8039,7 +8092,7 @@ public:
         if (F->getFunctionType()->getNumParams()) {
           StructType* ArgsTy = argsType(F->getFunctionType());
           const StructLayout* SL = DL.getStructLayout(ArgsTy);
-          Value* ArgsV = loadCC(ArgsTy, NewF->getArg(1), CCArgsCheckFailure, InsertionPoint, DebugLoc());
+          Value* ArgsV = loadCC(ArgsTy, NewF->getArg(2), CCArgsCheckFailure, InsertionPoint, DebugLoc());
           for (unsigned Index = 0; Index < F->getFunctionType()->getNumParams(); ++Index) {
             Type* CanonicalT = ArgsTy->getElementType(Index);
             Type* OriginalT = F->getFunctionType()->getParamType(Index);
@@ -8052,7 +8105,7 @@ public:
         if (UsesVastartOrZargs) {
           // Do this after we have recorded all the args for GC, so it's safe to have a pollcheck.
           Value* SnapshottedArgsPtr = CallInst::Create(
-            PromoteArgsToHeap, { MyThread, NewF->getArg(1) }, "", InsertionPoint);
+            PromoteArgsToHeap, { MyThread, NewF->getArg(2) }, "", InsertionPoint);
           recordLowerAtIndex(
             flightPtrLower(SnapshottedArgsPtr, InsertionPoint), SnapshottedArgsFrameIndex,
             InsertionPoint);
@@ -8090,29 +8143,12 @@ public:
           lowerInstruction(I);
         MyThread = nullptr;
 
-        GlobalVariable* NewObjectG = new GlobalVariable(
-          M, ObjectTy, true, GlobalValue::InternalLinkage, nullptr, "Jfo_" + OldF->getName());
-        Constant* LowerAndUpper =
-          ConstantExpr::getGetElementPtr(ObjectTy, NewObjectG, ConstantInt::get(IntPtrTy, 1));
-        uint16_t ObjectFlags =
-          ObjectFlagGlobal |
-          ObjectFlagReadonly |
-          (SpecialTypeFunction << ObjectFlagsSpecialShift);
-        Constant* NewObjC = ConstantStruct::get(
-          ObjectTy,
-          { LowerAndUpper,
-            ConstantExpr::getGetElementPtr(
-              Int8Ty, NewF,
-              ConstantInt::get(
-                IntPtrTy, static_cast<uintptr_t>(ObjectFlags) << ObjectAuxFlagsShift)) });
-        NewObjectG->setInitializer(NewObjC);
-        
         Function* GetterF = GlobalToGetter[OldF];
         assert(GetterF);
         assert(GetterF->isDeclaration());
         BasicBlock* RootBB = BasicBlock::Create(C, "filc_function_getter_root", GetterF);
         Return = ReturnInst::Create(C, UndefValue::get(FlightPtrTy), RootBB);
-        Return->getOperandUse(0) = createFlightPtr(LowerAndUpper, NewF, Return);
+        Return->getOperandUse(0) = flightPtrForLocalFunction(OldF, Return);
 
         if (Setjmps.size())
           assert(NewF->callsFunctionThatReturnsTwice());
@@ -8163,9 +8199,6 @@ public:
       Function* NewF = GlobalToGetter[G];
       assert(NewF);
 
-      Function* LowResolveF = FunctionToHiddenFunction[ResolveF];
-      assert(LowResolveF);
-
       GlobalVariable* NewPtrG = new GlobalVariable(
         M, FlightPtrTy, false, GlobalValue::PrivateLinkage, FlightNull,
         "filc_gptr_" + G->getName());
@@ -8193,11 +8226,14 @@ public:
       
       ReturnInst::Create(C, LoadPtr, FastBB);
 
-      ReturnInst::Create(
-        C,
-        CallInst::Create(CallIfunc, { NewF->getArg(0), NewF->getArg(1), NewPtrG, LowResolveF },
-                         "filc_call_ifunc_slow", SlowBB),
-        SlowBB);
+      ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(FlightPtrTy), SlowBB);
+      Return->getOperandUse(0) = CallInst::Create(
+          CallIfunc,
+          { NewF->getArg(0),
+            NewF->getArg(1),
+            NewPtrG,
+            flightPtrForLocalFunction(ResolveF, Return) },
+          "filc_call_ifunc_slow", Return);
     }
 
     Dummy->deleteValue();

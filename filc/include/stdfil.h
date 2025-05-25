@@ -557,6 +557,30 @@ static inline void* zget_jmp_buf_frame(void* jmp_buf)
     return zget_jmp_buf_impl_frame(*(zjmp_buf**)jmp_buf);
 }
 
+/* Create a closure out of the given function.
+
+   Example:
+
+       static void foo(void)
+       {
+           ZASSERT(!strcmp(zclosure_get_data(), "hello"));
+       }
+
+       static void bar(void)
+       {
+           void (*foo_closure)(void) = zclosure_new(foo, "hello");
+           foo_closure();
+       }
+
+   This API can be used directly, but is mostly here to support libffi's closure API.
+
+   Note that the Fil-C implementation of closures does not rely on JIT permissions. Also, somewhat
+   awkwardly, `foo_closure == foo`. */
+void* zclosure_new(void* function, void* data);
+
+/* Get the data for the currently called closure. If the callee is not a closure, then this panics. */
+void* zclosure_get_data(void);
+
 /* Request and wait for a fresh garbage collection cycle. If a GC cycle is already happening, then this
    will cause another one to happen after that one finishes, and will wait for that one.
 
