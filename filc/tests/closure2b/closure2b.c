@@ -3,7 +3,7 @@
 
 static void foo(void)
 {
-    ZASSERT(!zcallee_closure_data());
+    ZASSERT(!zclosure_get_data(zcallee()));
 }
 
 int main()

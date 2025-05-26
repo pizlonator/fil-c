@@ -2,7 +2,7 @@
 
 static void foo(void)
 {
-    ZASSERT(zcallee_closure_data() == (void*)666);
+    ZASSERT(zclosure_get_data(zcallee()) == (void*)666);
 }
 
 int main()

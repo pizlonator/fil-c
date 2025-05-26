@@ -3,7 +3,7 @@
 
 static void foo(const char* str)
 {
-    ZASSERT(!strcmp(zcallee_closure_data(), str));
+    ZASSERT(!strcmp(zclosure_get_data(zcallee()), str));
 }
 
 int main()

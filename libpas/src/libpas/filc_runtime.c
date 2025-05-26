@@ -3484,16 +3484,21 @@ PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr)
     PAS_UNREACHABLE();
 }
 
+static void check_closure(filc_object* object, const filc_origin* origin)
+{
+    FILC_CHECK(
+        filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE,
+        origin,
+        "object %s is not a closure.",
+        filc_object_to_new_string(object));
+}
+
 PAS_NO_RETURN void filc_check_closure_fail(void* lower, const filc_origin* origin)
 {
     PAS_ASSERT(lower);
     filc_object* object = filc_object_for_lower(lower);
     PAS_ASSERT(filc_object_special_type(object) == FILC_SPECIAL_TYPE_FUNCTION);
-    FILC_CHECK(
-        filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE,
-        origin,
-        "callee %s is not a closure.",
-        filc_object_to_new_string(object));
+    check_closure(object, origin);
     PAS_UNREACHABLE();
 }
 
@@ -5817,6 +5822,25 @@ filc_ptr filc_native_zclosure_new(filc_thread* my_thread, filc_ptr function_ptr,
     filc_flight_ptr_store(my_thread, &closure->data_ptr, data_ptr);
     return filc_ptr_create_with_object_and_ptr_and_manual_tracking(
         object, filc_ptr_ptr(function_ptr));
+}
+
+filc_ptr filc_native_zclosure_get_data(filc_thread* my_thread, filc_ptr closure_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_function_call(closure_ptr);
+    check_closure(filc_ptr_object(closure_ptr), NULL);
+    filc_closure* closure = (filc_closure*)
+        filc_object_special_payload_with_manual_tracking(filc_ptr_object(closure_ptr));
+    return filc_flight_ptr_load_with_manual_tracking(&closure->data_ptr);
+}
+
+void filc_native_zclosure_set_data(filc_thread* my_thread, filc_ptr closure_ptr, filc_ptr data_ptr)
+{
+    filc_check_function_call(closure_ptr);
+    check_closure(filc_ptr_object(closure_ptr), NULL);
+    filc_closure* closure = (filc_closure*)
+        filc_object_special_payload_with_manual_tracking(filc_ptr_object(closure_ptr));
+    filc_flight_ptr_store(my_thread, &closure->data_ptr, data_ptr);
 }
 
 static void cpuid_impl(unsigned leaf, unsigned count, filc_ptr eax_ptr, filc_ptr ebx_ptr,

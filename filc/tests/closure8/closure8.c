@@ -2,7 +2,7 @@
 
 static int foo(void)
 {
-    return *(int*)zclosure_get_data();
+    return *(int*)zcallee_closure_data();
 }
 
 int main()

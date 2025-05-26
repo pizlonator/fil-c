@@ -557,6 +557,9 @@ static inline void* zget_jmp_buf_frame(void* jmp_buf)
     return zget_jmp_buf_impl_frame(*(zjmp_buf**)jmp_buf);
 }
 
+/* Get the function pointer for the callee. */
+void* zcallee(void);
+
 /* Create a closure out of the given function.
 
    Example:
@@ -578,8 +581,18 @@ static inline void* zget_jmp_buf_frame(void* jmp_buf)
    awkwardly, `foo_closure == foo`. */
 void* zclosure_new(void* function, void* data);
 
-/* Get the data for the currently called closure. If the callee is not a closure, then this panics. */
-void* zclosure_get_data(void);
+/* Get the data for the given closure. If the passed-in pointer is not a closure pointer, then this
+   panics. */
+void* zclosure_get_data(void* closure);
+
+/* Set the data for the given closure. If the passed-in pointer is not a closure pointer, then this
+   panics. */
+void zclosure_set_data(void* closure, void* data);
+
+/* Get the data for the currently called closure. If the callee is not a closure, then this panics.
+ 
+   This is a fast shorthand for zclosure_get_data(zcallee()). */
+void* zcallee_closure_data(void);
 
 /* Request and wait for a fresh garbage collection cycle. If a GC cycle is already happening, then this
    will cause another one to happen after that one finishes, and will wait for that one.

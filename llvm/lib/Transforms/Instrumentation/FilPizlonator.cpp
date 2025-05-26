@@ -5267,7 +5267,16 @@ class Pizlonator {
           return true;
         }
 
-        if (F->getName() == "zclosure_get_data" &&
+        if (F->getName() == "zcallee" &&
+            !FT->getNumParams() &&
+            FT->getReturnType() == RawPtrTy) {
+          Value* CalleeLower = NewF->getArg(1);
+          CI->replaceAllUsesWith(createFlightPtr(CalleeLower, NewF, CI));
+          CI->eraseFromParent();
+          return true;
+        }
+
+        if (F->getName() == "zcallee_closure_data" &&
             !FT->getNumParams() &&
             FT->getReturnType() == RawPtrTy) {
           Value* CalleeLower = NewF->getArg(1);

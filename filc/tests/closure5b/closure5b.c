@@ -49,13 +49,13 @@ static void build(void)
 
 static void remove_half(void)
 {
-    foo_getter* ptr;
+    foo_getter ptr;
     size_t index;
-    for (ptr = &root_getter, index = 0; (*ptr)(); index++) {
+    for (ptr = root_getter, index = 0; ptr(); index++) {
         if ((index & 1))
-            ptr = &(*ptr)()->other_getter;
+            ptr = ptr()->other_getter;
         else
-            *ptr = zclosure_new(getter, (*ptr)()->other_getter());
+            zclosure_set_data(ptr, ptr()->other_getter());
     }
 }
 
