@@ -566,7 +566,7 @@ void* zcallee(void);
 
        static void foo(void)
        {
-           ZASSERT(!strcmp(zclosure_get_data(), "hello"));
+           ZASSERT(!strcmp(zcallee_closure_data(), "hello"));
        }
 
        static void bar(void)
