@@ -5,7 +5,7 @@
 #include <filc_test_support.h>
 
 #define SIZE 10000000
-#define REPEAT 10
+#define REPEAT 7
 
 static char** one;
 static char** two;

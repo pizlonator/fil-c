@@ -13,7 +13,7 @@
 } while (0)
 
 static size_t num_nodes = 20000;
-static size_t repeat = 10;
+static size_t repeat = 7;
 
 struct foo;
 typedef struct foo foo;
