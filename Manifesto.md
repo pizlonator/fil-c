@@ -113,7 +113,7 @@ First I'll tell you how to download or build Fil-C and then I'll tell you how to
 
 You can download a Fil-C binary release from [https://github.com/pizlonator/llvm-project-deluge/releases](https://github.com/pizlonator/llvm-project-deluge/releases).
 
-Then, in the filc-0.668.6-linux-x86_64 directory, run:
+Then, in the filc-0.668.7-linux-x86_64 directory, run:
 
     ./setup.sh
 
