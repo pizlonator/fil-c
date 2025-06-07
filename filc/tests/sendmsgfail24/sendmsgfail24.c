@@ -1,0 +1,23 @@
+#include <sys/socket.h>
+#include <stdfil.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
+
+int main()
+{
+    int socks[2];
+    ZASSERT(!socketpair(AF_UNIX, SOCK_STREAM, 0, socks));
+
+    struct msghdr msg;
+    struct iovec vec;
+    
+    memset(&msg, 0, sizeof(msg));
+    vec.iov_base = (void*)0x1010101010101010UL;
+    vec.iov_len = 50;
+    msg.msg_iov = &vec;
+    msg.msg_iovlen = 1;
+    
+    sendmsg(socks[0], &msg, 0);
+    return 0;
+}
