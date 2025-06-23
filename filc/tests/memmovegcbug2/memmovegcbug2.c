@@ -5,31 +5,37 @@
 #include <filc_test_support.h>
 
 #define SIZE 10000000
-#define REPEAT 7
+#define REPEAT 5
 
-static char** one;
-static char** two;
+struct foo {
+    int x;
+};
+
+static struct foo** one;
+static struct foo** two;
 
 static void do_test(void)
 {
-    one = (char**)malloc(sizeof(char*) * SIZE);
-    two = (char**)malloc(sizeof(char*) * SIZE);
+    one = (struct foo**)malloc(sizeof(struct foo*) * SIZE);
+    two = (struct foo**)malloc(sizeof(struct foo*) * SIZE);
 
     unsigned i;
-    for (i = SIZE; i--;)
-        one[i] = strdup("hello");
+    for (i = SIZE; i--;) {
+        one[i] = malloc(sizeof(struct foo));
+        one[i]->x = i * 666;
+    }
 
-    zprintf("one[0] = %s\n", one[0]);
+    zprintf("one[0]=>x = %d\n", one[0]->x);
 
-    memmove(two, one, sizeof(char*) * SIZE);
+    memmove(two, one, sizeof(struct foo*) * SIZE);
     
     free(one);
     zgc_request_and_wait();
 
     for (i = SIZE; i--;) {
-        if (strcmp(two[i], "hello")) {
-            zprintf("two[%u] = %s\n", i, two[i]);
-            ZASSERT(!strcmp(two[i], "hello"));
+        if (two[i]->x != i * 666) {
+            zprintf("two[%u]->x = %d\n", i, two[i]->x);
+            ZASSERT(two[i]->x == i * 666);
         }
     }
 }

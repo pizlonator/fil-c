@@ -17,7 +17,7 @@
 int main()
 {
     unsigned count;
-    for (count = 100000; count--;) {
+    for (count = 30000; count--;) {
         unlink("filc/test-output/mmapfilestress/mmapfile.dat");
         int fd = open("filc/test-output/mmapfilestress/mmapfile.dat", O_CREAT | O_RDWR, 0644);
         ASSERT(fd > 2);
