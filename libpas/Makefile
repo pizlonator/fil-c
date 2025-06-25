@@ -25,15 +25,15 @@ all: \
 	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so \
 	../pizfix/lib/filc_crt.o ../pizfix/lib/filc_mincrt.o
 
-PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo/include \
+PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo-include \
 	-isystem ../pizfix/os-include -isystem `./find_clang_include_dir.rb`
 PASASM = clang -march=x86-64-v2 -fPIC
 FILCC = ../build/bin/clang
-SHLD = clang -Wl,-dynamic-linker,$(PWD)/../pizfix/yolo/lib/ld-yolo-x86_64.so \
-	-nostdlib -shared ../pizfix/yolo/lib/crti.o \
-	`./find_system_library_file.rb crtbeginS.o` -L../pizfix/yolo/lib
+SHLD = clang -Wl,-dynamic-linker,$(PWD)/../pizfix/lib/ld-yolo-x86_64.so \
+	-nostdlib -shared ../pizfix/lib/crti.o \
+	`./find_system_library_file.rb crtbeginS.o` -L../pizfix/lib
 SHLDPOST = `./find_system_library_file.rb libgcc.a` -lyoloc -lyolom \
-	`./find_system_library_file.rb crtendS.o` ../pizfix/yolo/lib/crtn.o
+	`./find_system_library_file.rb crtendS.o` ../pizfix/lib/crtn.o
 
 include common.mk
 

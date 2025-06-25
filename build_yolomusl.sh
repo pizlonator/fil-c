@@ -34,6 +34,23 @@ $MAKE clean
 $MAKE -j $NCPU
 $MAKE install
 
-cd ../pizfix/yolo/lib
+cd ../pizfix
+mkdir -p lib
+cd lib
+mv ../yolo/lib/libyoloc.so .
+mv ../yolo/lib/libyoloc.a .
+mv ../yolo/lib/crt1.o .
+mv ../yolo/lib/crti.o .
+mv ../yolo/lib/crtn.o .
+mv ../yolo/lib/rcrt1.o .
+mv ../yolo/lib/Scrt1.o .
 rm -f libyolom.a
 ar cr libyolom.a
+ln -fs libyoloc.so ld-yolo-x86_64.so
+
+cd ..
+rm -rf yolo-include
+mv yolo/include yolo-include
+
+rm -rf yolo
+

@@ -55,7 +55,7 @@ cp -R build/lib/clang/17/include $build_name/build/lib/clang/17/
 cp -R pizfix $build_name/
 rm -f $build_name/pizfix/etc/moduli
 rm -f $build_name/pizfix/etc/ssh_host*
-rm -rf $build_name/pizfix/yolo/lib-old
+rm -rf $build_name/pizfix/yolo-include
 rm -rf $build_name/pizfix/os-include
 
 sourcedir=$PWD
@@ -70,19 +70,19 @@ for binary in pizfix/lib/*.so pizfix/lib/*.so.* pizfix/lib64/*.so pizfix/lib64/*
 do
     if test ! -L $binary
     then
-        if patchelf --set-rpath pizfix/yolo/lib:pizfix/lib64:pizfix/lib $binary
+        if patchelf --set-rpath pizfix/lib64:pizfix/lib $binary
         then
-            echo "patchelf --set-rpath \$PWD/pizfix/yolo/lib:\$PWD/pizfix/lib64:\$PWD/pizfix/lib $binary" >> setup.sh
+            echo "patchelf --set-rpath \$PWD/pizfix/lib64:\$PWD/pizfix/lib $binary" >> setup.sh
         fi
-        if patchelf --set-interpreter pizfix/yolo/lib/ld-yolo-x86_64.so $binary
+        if patchelf --set-interpreter pizfix/lib/ld-yolo-x86_64.so $binary
         then
-            echo "patchelf --set-interpreter \$PWD/pizfix/yolo/lib/ld-yolo-x86_64.so $binary" >> setup.sh
+            echo "patchelf --set-interpreter \$PWD/pizfix/lib/ld-yolo-x86_64.so $binary" >> setup.sh
         fi
     fi
 done
 
-rm pizfix/yolo/lib/ld-yolo-x86_64.so
-(cd pizfix/yolo/lib/ && ln -s libyoloc.so ld-yolo-x86_64.so)
+rm pizfix/lib/ld-yolo-x86_64.so
+(cd pizfix/lib/ && ln -s libyoloc.so ld-yolo-x86_64.so)
 
 echo "cd pizfix" >> setup.sh
 echo "mkdir os-include" >> setup.sh

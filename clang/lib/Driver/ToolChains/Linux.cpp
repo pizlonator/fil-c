@@ -427,8 +427,8 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   const llvm::Triple &Triple = getTriple();
 
   if ((true)) {
-    SmallString<128> P(getDriver().InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "yolo");
+    SmallString<128> P(getDriver().Dir);
+    llvm::sys::path::append(P, "..", "..", "pizfix");
     llvm::sys::path::append(P, "lib", "ld-yolo-x86_64.so");
     return std::string(P);
   }
@@ -623,20 +623,20 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   std::string SysRoot = computeSysRoot();
 
   {
-    SmallString<128> P(D.InstalledDir);
+    SmallString<128> P(D.Dir);
     llvm::sys::path::append(P, "..", "..", "pizfix", "stdfil-include");
     addSystemInclude(DriverArgs, CC1Args, P);
   }
   
   {
-    SmallString<128> P(D.InstalledDir);
+    SmallString<128> P(D.Dir);
     llvm::sys::path::append(P, "..", "..", "pizfix", "os-include");
     addSystemInclude(DriverArgs, CC1Args, P);
   }
   
   if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)
       && !DriverArgs.hasArg(options::OPT_nostdlibinc)) {
-    SmallString<128> P(D.InstalledDir);
+    SmallString<128> P(D.Dir);
     llvm::sys::path::append(P, "..", "..", "pizfix", "include");
     addSystemInclude(DriverArgs, CC1Args, P);
   }
