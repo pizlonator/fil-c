@@ -154,6 +154,8 @@ public:
   /// command line.
   std::string Dir;
 
+  bool HasPizfix;
+
   /// The original path to the clang executable.
   std::string ClangExecutable;
 

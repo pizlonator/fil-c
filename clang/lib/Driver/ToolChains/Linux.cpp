@@ -427,10 +427,13 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   const llvm::Triple &Triple = getTriple();
 
   if ((true)) {
-    SmallString<128> P(getDriver().Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix");
-    llvm::sys::path::append(P, "lib", "ld-yolo-x86_64.so");
-    return std::string(P);
+    if (getDriver().HasPizfix) {
+      SmallString<128> P(getDriver().Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix");
+      llvm::sys::path::append(P, "lib", "ld-yolo-x86_64.so");
+      return std::string(P);
+    }
+    return "/lib/ld-yolo-x86_64.so";
   }
 
   const Distro Distro(getDriver().getVFS(), Triple);
@@ -622,24 +625,27 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   const Driver &D = getDriver();
   std::string SysRoot = computeSysRoot();
 
-  {
-    SmallString<128> P(D.Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "stdfil-include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
-  
-  {
-    SmallString<128> P(D.Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "os-include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
-  
-  if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)
-      && !DriverArgs.hasArg(options::OPT_nostdlibinc)) {
-    SmallString<128> P(D.Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
+  if (D.HasPizfix) {
+    {
+      SmallString<128> P(D.Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix", "stdfil-include");
+      addSystemInclude(DriverArgs, CC1Args, P);
+    }
+    
+    {
+      SmallString<128> P(D.Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix", "os-include");
+      addSystemInclude(DriverArgs, CC1Args, P);
+    }
+    
+    if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)
+        && !DriverArgs.hasArg(options::OPT_nostdlibinc)) {
+      SmallString<128> P(D.Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix", "include");
+      addSystemInclude(DriverArgs, CC1Args, P);
+    }
+  } else
+    addSystemInclude(DriverArgs, CC1Args, "/usr/include");
 
   SmallString<128> ResourceDirInclude(D.ResourceDir);
   llvm::sys::path::append(ResourceDirInclude, "include");

@@ -215,6 +215,12 @@ Driver::Driver(StringRef ClangExecutable, StringRef TargetTriple,
   Dir = std::string(llvm::sys::path::parent_path(ClangExecutable));
   InstalledDir = Dir; // Provide a sensible default installed dir.
 
+  {
+    SmallString<128> P(InstalledDir);
+    llvm::sys::path::append(P, "..", "..", "pizfix");
+    HasPizfix = llvm::sys::fs::is_directory(P);
+  }
+
   if ((!SysRoot.empty()) && llvm::sys::path::is_relative(SysRoot)) {
     // Prepend InstalledDir if SysRoot is relative
     SmallString<128> P(InstalledDir);

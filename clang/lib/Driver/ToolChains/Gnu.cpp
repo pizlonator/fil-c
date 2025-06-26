@@ -607,9 +607,14 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   CmdArgs.push_back(Output.getFilename());
 
   auto GetYoloLibPath = [&] (const StringRef str) -> std::string {
-    SmallString<128> P(ToolChain.getDriver().Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix");
-    llvm::sys::path::append(P, "lib", str);
+    if (ToolChain.getDriver().HasPizfix) {
+      SmallString<128> P(ToolChain.getDriver().Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix");
+      llvm::sys::path::append(P, "lib", str);
+      return std::string(P);
+    }
+    SmallString<128> P("/usr/lib");
+    llvm::sys::path::append(P, str);
     return std::string(P);
   };
 
@@ -670,20 +675,23 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   Args.AddAllArgs(CmdArgs, options::OPT_L);
 
-  {
-    SmallString<128> P(ToolChain.getDriver().Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "lib64");
-    CmdArgs.push_back(Args.MakeArgString("-L" + P));
-    CmdArgs.push_back("-rpath");
-    CmdArgs.push_back(Args.MakeArgString(P));
-  }
-  {
-    SmallString<128> P(ToolChain.getDriver().Dir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-    CmdArgs.push_back(Args.MakeArgString("-L" + P));
-    CmdArgs.push_back("-rpath");
-    CmdArgs.push_back(Args.MakeArgString(P));
-  }
+  if (ToolChain.getDriver().HasPizfix) {
+    {
+      SmallString<128> P(ToolChain.getDriver().Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix", "lib64");
+      CmdArgs.push_back(Args.MakeArgString("-L" + P));
+      CmdArgs.push_back("-rpath");
+      CmdArgs.push_back(Args.MakeArgString(P));
+    }
+    {
+      SmallString<128> P(ToolChain.getDriver().Dir);
+      llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
+      CmdArgs.push_back(Args.MakeArgString("-L" + P));
+      CmdArgs.push_back("-rpath");
+      CmdArgs.push_back(Args.MakeArgString(P));
+    }
+  } else
+    CmdArgs.push_back("-L/usr/lib");
   
   Args.AddAllArgs(CmdArgs, options::OPT_u);
 
@@ -708,15 +716,21 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
                      options::OPT_r) ||
         Args.hasArg(options::OPT_normalcrt)) {
-      SmallString<128> P(ToolChain.getDriver().Dir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-      llvm::sys::path::append(P, "filc_crt.o");
-      CmdArgs.push_back(Args.MakeArgString(P));
+      if (ToolChain.getDriver().HasPizfix) {
+        SmallString<128> P(ToolChain.getDriver().Dir);
+        llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
+        llvm::sys::path::append(P, "filc_crt.o");
+        CmdArgs.push_back(Args.MakeArgString(P));
+      } else
+        CmdArgs.push_back("/usr/lib/filc_crt.o");
     } else {
-      SmallString<128> P(ToolChain.getDriver().Dir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-      llvm::sys::path::append(P, "filc_mincrt.o");
-      CmdArgs.push_back(Args.MakeArgString(P));
+      if (ToolChain.getDriver().HasPizfix) {
+        SmallString<128> P(ToolChain.getDriver().Dir);
+        llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
+        llvm::sys::path::append(P, "filc_mincrt.o");
+        CmdArgs.push_back(Args.MakeArgString(P));
+      } else
+        CmdArgs.push_back("/usr/lib/filc_mincrt.o");
     }
   }
 
