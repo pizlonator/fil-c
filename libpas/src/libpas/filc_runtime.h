@@ -629,6 +629,10 @@ struct filc_marker {
        without ever having been grey. This is used for allocation roots for example (objects that have
        been allocated but aren't initialized enough to be looked at by the GC). */
     bool (*set_is_marked)(void* mark_base);
+
+    /* True if this is the FUGC marker. Avoid relying on this! It's mostly used for esoteric
+       verification features. */
+    bool is_fugc;
 };
 
 struct filc_finalizer_queue {

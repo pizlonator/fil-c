@@ -70,6 +70,11 @@ verse_heap_object_set* fugc_finalizer_set;
 
 bool fugc_has_unfinished_census;
 
+bool fugc_verify_weak_census;
+pas_ptr_hash_set fugc_weaks_marked;
+size_t fugc_num_weaks_marked;
+size_t fugc_num_weaks_censused;
+
 static pas_system_mutex collector_thread_state_lock;
 static pas_system_condition collector_thread_state_cond;
 static bool collector_thread_is_running = false;
@@ -588,6 +593,12 @@ static void wait_and_start_marking(void)
                 pas_getpid(), completed_cycle + 1, live_bytes_at_start / 1024);
     }
 
+    if (fugc_verify_weak_census) {
+        pas_ptr_hash_set_construct(&fugc_weaks_marked);
+        fugc_num_weaks_marked = 0;
+        fugc_num_weaks_censused = 0;
+    }
+
     verse_heap_mark_bits_page_commit_controller_lock();
     filc_current_marking_state = filc_marking;
     filc_soft_handshake(no_op_pollcheck_callback, NULL);
@@ -807,7 +818,8 @@ static void verify_mark_or_free_lower_or_box(filc_mark_stack* mark_stack,
         .mark_or_free_flight = verify_mark_or_free_flight, \
         .mark_or_free_lower_or_box = verify_mark_or_free_lower_or_box, \
         .is_marked = verify_is_marked, \
-        .set_is_marked = verify_set_is_marked \
+        .set_is_marked = verify_set_is_marked, \
+        .is_fugc = false \
     })
 
 static void verify_marking(void)
@@ -900,8 +912,10 @@ static void mark_and_start_censusing(void)
             return;
     }
 
-    if (should_verify_early)
+    if (should_verify_early) {
+        PAS_ASSERT(should_verify);
         verify_marking();
+    }
 
     if (verbose >= VERBOSE_CYCLES)
         mark_end_time = pas_get_time_in_milliseconds();
@@ -981,7 +995,33 @@ static void census_and_start_reviving(void)
     census_index = SIZE_MAX;
     census_size = SIZE_MAX;
 
-    fugc_has_unfinished_census = false;
+    /* We could set has_unfinished_census right now, but we wait until after we soft handshake for
+       sure. */
+
+    if (fugc_verify_weak_census) {
+        if (verbose >= VERBOSE_PHASES) {
+            pas_log("[%d] fugc: verify weak census: marked %zu weaks, censused %zu weaks\n",
+                    pas_getpid(), fugc_num_weaks_marked, fugc_num_weaks_censused);
+        }
+        pas_allocation_config allocation_config;
+        bmalloc_initialize_allocation_config(&allocation_config);
+        size_t index;
+        bool found_uncensused = false;
+        for (index = fugc_weaks_marked.table_size; index--;) {
+            void* entry = fugc_weaks_marked.table[index];
+            if (pas_ptr_hash_set_entry_is_empty_or_deleted(entry))
+                continue;
+            pas_log("[%d] fugc: verify weak census: found uncensused %p\n", pas_getpid(), entry);
+            found_uncensused = true;
+        }
+        if (verbose >= VERBOSE_PHASES) {
+            pas_log("[%d] fugc: verify weak census: have %zu weaks marked but not censused\n",
+                    pas_getpid(), (size_t)fugc_weaks_marked.key_count);
+        }
+        PAS_ASSERT(found_uncensused == !!fugc_weaks_marked.key_count);
+        PAS_ASSERT(!fugc_weaks_marked.key_count);
+        pas_ptr_hash_set_destruct(&fugc_weaks_marked, &allocation_config);
+    }
 
     PAS_ASSERT(finalizer_size == SIZE_MAX);
     PAS_ASSERT(finalizer_index == SIZE_MAX);
@@ -1023,7 +1063,7 @@ static void revive_and_start_remarking(void)
         pas_log("[%d] fugc: reviving\n", pas_getpid());
 
     PAS_ASSERT(!filc_current_marking_state);
-    PAS_ASSERT(!fugc_has_unfinished_census);
+    PAS_ASSERT(fugc_has_unfinished_census);
     PAS_ASSERT(current_collector_state == collector_reviving);
 
     if (finalizer_size) {
@@ -1047,7 +1087,7 @@ static void remark_and_start_recensusing(void)
 
     PAS_ASSERT(current_collector_state == collector_remarking);
     PAS_ASSERT(filc_current_marking_state == filc_not_marking);
-    PAS_ASSERT(!fugc_has_unfinished_census);
+    PAS_ASSERT(fugc_has_unfinished_census);
 
     /* This is super weird. It feels wrong but it's so right!
        
@@ -1103,7 +1143,7 @@ static void recensus_and_start_destructing(void)
         pas_log("[%d] fugc: recensusing\n", pas_getpid());
 
     PAS_ASSERT(!filc_current_marking_state);
-    PAS_ASSERT(!fugc_has_unfinished_census);
+    PAS_ASSERT(fugc_has_unfinished_census);
     PAS_ASSERT(current_collector_state == collector_recensusing);
 
     if (finalizer_size) {
@@ -1121,6 +1161,7 @@ static void recensus_and_start_destructing(void)
     PAS_ASSERT(destruct_index == SIZE_MAX);
     verse_heap_object_set_start_iterate_before_handshake(fugc_destructor_set);
     filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+    fugc_has_unfinished_census = false;
     destruct_size = verse_heap_object_set_start_iterate_after_handshake(fugc_destructor_set);
     destruct_index = 0;
     
@@ -1432,6 +1473,8 @@ void fugc_initialize_heaps(void)
     should_verify_early = filc_get_bool_env("FUGC_VERIFY_EARLY", false);
     if (should_verify_early)
         should_verify = true;
+    fugc_verify_weak_census = filc_get_bool_env("FUGC_VERIFY_WEAK_CENSUS", false);
+    PAS_ASSERT(!fugc_verify_weak_census || PAS_ENABLE_TESTING);
     rage_mode = filc_get_bool_env("FUGC_RAGE_MODE", false);
 
     fugc_default_heap = verse_heap_create(1, 0, 0);
@@ -1472,7 +1515,10 @@ void fugc_initialize_collector(void)
     PAS_ASSERT(number_of_cores >= 1);
 
     threads_override = filc_get_unsigned_env("FUGC_THREADS", 0);
-    
+
+    /* Weak census verification requires single-threaded GC. */
+    PAS_ASSERT(!fugc_verify_weak_census || threads_override == 1);
+
     pas_system_mutex_construct(&collector_thread_state_lock);
     pas_system_condition_construct(&collector_thread_state_cond);
     filc_mark_stack_construct(&fugc_global_stack);
@@ -1611,7 +1657,9 @@ void fugc_dump_setup(void)
             should_scribble
             ? (scribble_concurrently ? "yes, concurrently" : "yes")
             : "no");
-    pas_log("    fugc verify: %s\n", should_verify ? "yes" : "no");
+    pas_log("    fugc verify: %s\n",
+            should_verify_early ? "yes (and early)" : should_verify ? "yes" : "no");
+    pas_log("    fugc verify weak census: %s\n", fugc_verify_weak_census ? "yes" : "no");
     pas_log("    fugc rage mode: %s\n", rage_mode ? "yes" : "no");
     pas_log("    fugc threads: ");
     if (threads_override)

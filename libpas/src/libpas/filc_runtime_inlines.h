@@ -28,6 +28,7 @@
 
 #include "filc_runtime.h"
 #include "fugc.h"
+#include "pas_ptr_hash_set.h"
 
 PAS_BEGIN_EXTERN_C;
 
@@ -189,6 +190,19 @@ static PAS_ALWAYS_INLINE filc_ptr filc_weak_get(filc_thread* my_thread, filc_wea
     return result;
 }
 
+static PAS_ALWAYS_INLINE void filc_weak_mark_outgoing_ptrs(filc_weak* weak,
+                                                           const filc_marker marker,
+                                                           filc_mark_stack* stack)
+{
+    PAS_UNUSED_PARAM(stack);
+    if (PAS_ENABLE_TESTING && marker.is_fugc && fugc_verify_weak_census) {
+        pas_allocation_config allocation_config;
+        bmalloc_initialize_allocation_config(&allocation_config);
+        PAS_ASSERT(pas_ptr_hash_set_set(&fugc_weaks_marked, weak, NULL, &allocation_config));
+        fugc_num_weaks_marked++;
+    }
+}
+
 static PAS_ALWAYS_INLINE void filc_weak_census(filc_weak* weak)
 {
     /* We don't have to load atomic because the only thing that can mutate the ptr is the census,
@@ -196,6 +210,14 @@ static PAS_ALWAYS_INLINE void filc_weak_census(filc_weak* weak)
     filc_ptr ptr = weak->ptr;
     if (!filc_object_is_live_for_weak(filc_ptr_object(ptr), FUGC_MARKER))
         filc_flight_ptr_store_atomic_unfenced_without_barrier(&weak->ptr, filc_ptr_forge_null());
+    if (PAS_ENABLE_TESTING && fugc_verify_weak_census) {
+        pas_allocation_config allocation_config;
+        bmalloc_initialize_allocation_config(&allocation_config);
+        /* We could encounter a weak here that we didn't mark, and that's OK! That'll happen for any
+           weaks allocated during marking. */
+        pas_ptr_hash_set_remove(&fugc_weaks_marked, weak, NULL, &allocation_config);
+        fugc_num_weaks_censused++;
+    }
 }
 
 static PAS_ALWAYS_INLINE void filc_weak_map_mark_outgoing_ptrs(filc_weak_map* map,
@@ -466,7 +488,6 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
     filc_special_type special_type = filc_object_special_type(object);
     switch (special_type) {
     case FILC_SPECIAL_TYPE_DL_HANDLE:
-    case FILC_SPECIAL_TYPE_WEAK:
         break;
     case FILC_SPECIAL_TYPE_FUNCTION:
         if ((filc_object_get_flags(object) & FILC_OBJECT_FLAG_CLOSURE)) {
@@ -504,6 +525,10 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
         filc_exact_ptr_table_mark_outgoing_ptrs(
             (filc_exact_ptr_table*)filc_object_special_payload_with_manual_tracking(object),
             marker, stack);
+        break;
+    case FILC_SPECIAL_TYPE_WEAK:
+        filc_weak_mark_outgoing_ptrs(
+            (filc_weak*)filc_object_special_payload_with_manual_tracking(object), marker, stack);
         break;
     case FILC_SPECIAL_TYPE_WEAK_MAP:
         filc_weak_map_mark_outgoing_ptrs(

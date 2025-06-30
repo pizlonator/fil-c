@@ -47,6 +47,12 @@ PAS_API extern verse_heap_object_set* fugc_scribble_set; /* Only used if FUGC_SC
 
 PAS_API extern bool fugc_has_unfinished_census;
 
+PAS_API extern bool fugc_verify_weak_census;
+/* These weak mark tracking variables are only used when fugc_verify_weak_census is true. */
+PAS_API extern pas_ptr_hash_set fugc_weaks_marked;
+PAS_API extern size_t fugc_num_weaks_marked;
+PAS_API extern size_t fugc_num_weaks_censused;
+
 PAS_API extern filc_mark_stack fugc_global_stack;
 
 PAS_API void fugc_initialize_heaps(void); /* Called first. */
@@ -190,7 +196,8 @@ static PAS_ALWAYS_INLINE bool fugc_set_is_marked(void* mark_base)
         .mark_or_free_flight = fugc_mark_or_free_flight, \
         .mark_or_free_lower_or_box = fugc_mark_or_free_lower_or_box, \
         .is_marked = verse_heap_is_marked, \
-        .set_is_marked = fugc_set_is_marked \
+        .set_is_marked = fugc_set_is_marked, \
+        .is_fugc = true \
     })
 
 PAS_API void fugc_donate(filc_mark_stack* mark_stack);
