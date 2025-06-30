@@ -618,6 +618,15 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     return std::string(P);
   };
 
+  auto GetGCCLibPath = [&] (const char* str) -> std::string {
+    if (ToolChain.getDriver().HasPizfix)
+      return ToolChain.GetFilePath(str);
+    // FIXME LMAO
+    SmallString<128> P("/yolo/lib/gcc/x86_64-lfs-linux-gnu/14.2.0");
+    llvm::sys::path::append(P, str);
+    return std::string(P);
+  };
+
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
                    options::OPT_r)) {
     if (!isAndroid && !IsIAMCU) {
@@ -644,7 +653,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     }
 
     if (IsIAMCU)
-      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crt0.o")));
+      CmdArgs.push_back(Args.MakeArgString(GetGCCLibPath("crt0.o")));
     else if (HasCRTBeginEndFiles) {
       std::string P;
       if (ToolChain.GetRuntimeLibType(Args) == ToolChain::RLT_CompilerRT &&
@@ -664,7 +673,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
           crtbegin = isAndroid ? "crtbegin_dynamic.o" : "crtbeginS.o";
         else
           crtbegin = isAndroid ? "crtbegin_dynamic.o" : "crtbegin.o";
-        P = ToolChain.GetFilePath(crtbegin);
+        P = GetGCCLibPath(crtbegin);
       }
       CmdArgs.push_back(Args.MakeArgString(P));
     }
@@ -802,7 +811,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         if (D.CCCIsCXX())
           CmdArgs.push_back("-lm");
       }
-      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("libgcc.a")));
+      CmdArgs.push_back(Args.MakeArgString(GetGCCLibPath("libgcc.a")));
       CmdArgs.push_back("-lyoloc");
       CmdArgs.push_back("-lyolom");
       CmdArgs.push_back("-lpizlo");
@@ -892,7 +901,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
             crtend = isAndroid ? "crtend_android.o" : "crtendS.o";
           else
             crtend = isAndroid ? "crtend_android.o" : "crtend.o";
-          P = ToolChain.GetFilePath(crtend);
+          P = GetGCCLibPath(crtend);
         }
         CmdArgs.push_back(Args.MakeArgString(P));
       }
