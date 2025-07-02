@@ -286,6 +286,10 @@ int zsys_close(int fd)
 
 int zsys_fcntl(int fd, int cmd, ...)
 {
+    if (fd < 0) {
+        zset_errno(9); /* EBADF */
+        return -1;
+    }
     switch (cmd) {
     case 0: /* F_DUPFD */
     case 1030: { /* F_DUPFD_CLOEXEC */
@@ -303,6 +307,10 @@ int zsys_fcntl(int fd, int cmd, ...)
 
 int zsys_dup(int fd)
 {
+    if (fd < 0) {
+        zset_errno(9); /* EBADF */
+        return -1;
+    }
     struct fd_backer* backer = get_fd_backer(fd);
     int result = zsys_dup_impl(fd);
     if (result >= 0)
@@ -312,6 +320,10 @@ int zsys_dup(int fd)
 
 int zsys_dup2(int oldfd, int newfd)
 {
+    if (oldfd < 0) {
+        zset_errno(9); /* EBADF */
+        return -1;
+    }
     struct fd_backer* backer = get_fd_backer(oldfd);
     int result = zsys_dup2_impl(oldfd, newfd);
     if (result >= 0)

@@ -33,6 +33,8 @@
 #define SA_RESTORER 0x4000000
 #endif
 
+static void sighandler(int sig) { }
+
 int main(int argc, char** argv)
 {
     unsigned zid;
@@ -161,6 +163,20 @@ int main(int argc, char** argv)
     ZASSERT(sigismember(&oact.sa_mask, SIGPIPE));
     ZASSERT(sigismember(&oact.sa_mask, SIGTERM));
 
+    act.sa_handler = SIG_IGN;
+    ZASSERT(sigaction(SIGPIPE, &act, NULL) == 0);
+
+    act.sa_handler = sighandler;
+    ZASSERT(sigaction(SIGPIPE, &act, NULL) == 0);
+    ZASSERT(sigaction(SIGPIPE, NULL, &oact) == 0);
+    ZASSERT(oact.sa_handler == sighandler);
+    ZASSERT(oact.sa_flags == (SA_NODEFER | SA_RESTORER));
+    act.sa_handler = sighandler;
+    act.sa_flags = SA_SIGINFO;
+    ZASSERT(sigaction(SIGPIPE, &act, NULL) == 0);
+    ZASSERT(sigaction(SIGPIPE, NULL, &oact) == 0);
+    ZASSERT(oact.sa_handler == sighandler);
+    ZASSERT(oact.sa_flags == (SA_SIGINFO | SA_RESTORER));
     act.sa_handler = SIG_IGN;
     ZASSERT(sigaction(SIGPIPE, &act, NULL) == 0);
 
@@ -383,6 +399,21 @@ int main(int argc, char** argv)
     ZASSERT(times(&tms) != (clock_t)-1);
     ZASSERT(!tms.tms_cutime);
     ZASSERT(!tms.tms_cstime);
+
+    ZASSERT(getcwd(NULL, 0)[0] == '/');
+
+    char buf2[10000];
+    ZASSERT(getcwd(buf2, sizeof(buf2)) == buf2);
+    ZASSERT(buf2[0] == '/');
+
+    ZASSERT(dup(-1) == -1);
+    ZASSERT(errno == EBADF);
+    ZASSERT(dup2(-1, -1) == -1);
+    ZASSERT(errno == EBADF);
+    ZASSERT(fcntl(-1, F_DUPFD) == -1);
+    ZASSERT(errno == EBADF);
+    ZASSERT(fcntl(-1, F_DUPFD_CLOEXEC) == -1);
+    ZASSERT(errno == EBADF);
 
     zprintf("No worries.\n");
     return 0;

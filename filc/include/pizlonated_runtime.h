@@ -57,6 +57,8 @@ void zrun_deferred_global_ctors(void);
 void zregister_sys_errno_handler(void (*errno_handler)(int errno_value));
 void zregister_sys_dlerror_handler(void (*dlerror_handler)(const char* str));
 
+void zset_errno(int errno_value);
+
 void** zweak_map_snapshot_impl(zweak_map* map);
 
 /* Low-level threading APIs. */

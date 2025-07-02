@@ -297,6 +297,16 @@ int main(int argc, char** argv)
     ts2.tv_nsec = 0;
     ZASSERT(!pselect(0, NULL, NULL, NULL, &ts2, NULL));
 
+    fd = creat("filc/test-output/fileio/creattest.txt", 0600);
+    ZASSERT(fd > 2);
+    ZASSERT(write(fd, "hello", 5) == 5);
+    ZASSERT(!close(fd));
+    fd = open("filc/test-output/fileio/creattest.txt", O_RDONLY);
+    ZASSERT(fd > 2);
+    ZASSERT(read(fd, buf, 5) == 5);
+    ZASSERT(!memcmp(buf, "hello", 5));
+    ZASSERT(!close(fd));
+
     return 0;
 }
 

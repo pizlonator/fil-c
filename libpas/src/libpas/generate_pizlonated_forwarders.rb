@@ -197,6 +197,7 @@ addSig "bool", "zis_unsafe_signal_for_kill", "int"
 addSig "bool", "zis_unsafe_signal_for_handlers", "int"
 addSig "void", "zregister_sys_errno_handler", "filc_ptr"
 addSig "void", "zregister_sys_dlerror_handler", "filc_ptr"
+addSig "void", "zset_errno", "int"
 addSig "size_t", "znum_deferred_signals"
 
 addSig "int", "zsys_ioctl", "int", "int", "..."

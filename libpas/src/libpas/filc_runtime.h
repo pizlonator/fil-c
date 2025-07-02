@@ -655,6 +655,8 @@ struct filc_signal_handler {
     filc_ptr function_ptr; /* This has to be pre-checked to actually be a callable function, but out
                               of an abundance of caution, we check it again anyway when calling it. */
     sigset_t mask;
+    int flags; /* Original flags requested by user (useful for when sigaction is used to request the
+                  old flags). */
     int user_signum; /* This is only needed for assertion discipline. */
 };
 

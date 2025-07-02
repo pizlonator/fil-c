@@ -6246,6 +6246,12 @@ void filc_set_errno(int errno_value)
         my_thread, filc_flight_ptr_load(my_thread, &filc_pizlonated_errno_handler), errno_value);
 }
 
+void filc_native_zset_errno(filc_thread* my_thread, int errno_value)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_set_errno(errno_value);
+}
+
 static void set_dlerror(const char* error, const char* context)
 {
     PAS_ASSERT(error);
@@ -6612,6 +6618,7 @@ int filc_native_zsys_sigaction(
             filc_flight_ptr_store(my_thread, &new_handler->function_ptr, user_handler);
             new_handler->mask = act.sa_mask;
             new_handler->user_signum = signum;
+            new_handler->flags = act.sa_flags;
             pas_store_store_fence();
             PAS_ASSERT((unsigned)signum <= FILC_MAX_USER_SIGNUM);
             act.sa_sigaction = signal_pizlonator;
@@ -6639,19 +6646,29 @@ int filc_native_zsys_sigaction(
         check_user_sigaction(oact_ptr, filc_write_access);
         if (is_unsafe_signal_for_handlers(signum))
             PAS_ASSERT(oact.sa_handler == SIG_DFL);
+        filc_signal_handler* old_handler = filc_signal_table[signum];
         if (is_special_signal_handler(oact.sa_handler)) {
             filc_store_ptr_at(my_thread, oact_ptr, &user_oact->sa_handler,
                               to_user_special_signal_handler(oact.sa_handler));
         } else {
+            PAS_ASSERT(old_handler);
             PAS_ASSERT(oact.sa_sigaction == signal_pizlonator);
             PAS_ASSERT((unsigned)signum <= FILC_MAX_USER_SIGNUM);
-            /* FIXME: The signal_table entry should really be a filc_ptr so we can return it here. */
             filc_store_ptr_at(my_thread, oact_ptr, &user_oact->sa_handler,
-                              filc_flight_ptr_load(
-                                  my_thread, &filc_signal_table[signum]->function_ptr));
+                              filc_flight_ptr_load(my_thread, &old_handler->function_ptr));
+        }
+        user_oact->sa_flags = to_user_sa_flags(oact.sa_flags);
+        if (verbose)
+            pas_log("old flags = %u\n", user_oact->sa_flags);
+        if (old_handler) {
+            if ((old_handler->flags & SA_SIGINFO))
+                user_oact->sa_flags |= SA_SIGINFO;
+            else
+                user_oact->sa_flags &= ~SA_SIGINFO;
+            if (verbose)
+                pas_log("old flags after fixing  = %u\n", user_oact->sa_flags);
         }
         filc_to_user_sigset(&oact.sa_mask, &user_oact->sa_mask);
-        user_oact->sa_flags = to_user_sa_flags(oact.sa_flags);
     }
     if (user_act) {
         filc_store_barrier(my_thread, filc_object_for_special_payload(new_handler));
@@ -6869,11 +6886,9 @@ int filc_native_zsys_sigprocmask(filc_thread* my_thread, int user_how, filc_ptr 
     if (verbose)
         pas_log("%s: setting sigmask\n", __PRETTY_FUNCTION__);
     int result = pthread_sigmask(how, set, oldset);
-    int my_errno = errno;
     filc_enter(my_thread);
-    PAS_ASSERT(result == -1 || !result);
-    if (result < 0) {
-        filc_set_errno(my_errno);
+    if (result) {
+        filc_set_errno(result);
         return -1;
     }
     if (filc_ptr_ptr(user_oldset_ptr)) {
@@ -7339,6 +7354,12 @@ int filc_native_zsys_ftruncate(filc_thread* my_thread, int fd, long length)
 
 filc_ptr filc_native_zsys_getcwd(filc_thread* my_thread, filc_ptr buf_ptr, size_t size)
 {
+    FILC_CHECK(filc_ptr_ptr(buf_ptr),
+               NULL,
+               "buffer passed to zsys_getcwd must not be NULL.");
+    FILC_CHECK(size,
+               NULL,
+               "size passed to zsys_getcwd must not be 0.");
     filc_check_write(buf_ptr, size);
     filc_exit(my_thread);
     char* result = getcwd((char*)filc_ptr_ptr(buf_ptr), size);
