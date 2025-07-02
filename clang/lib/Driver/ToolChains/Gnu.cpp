@@ -699,8 +699,12 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       CmdArgs.push_back("-rpath");
       CmdArgs.push_back(Args.MakeArgString(P));
     }
-  } else
+  } else {
     CmdArgs.push_back("-L/usr/lib");
+    // This hack is needed for when we're using /yolo/bin/ld. And it's harmelss after that.
+    CmdArgs.push_back("-rpath-link");
+    CmdArgs.push_back("/usr/lib");
+  }
   
   Args.AddAllArgs(CmdArgs, options::OPT_u);
 
