@@ -72,6 +72,8 @@ void tools::gcc::Common::ConstructJob(Compilation &C, const JobAction &JA,
                                       const InputInfoList &Inputs,
                                       const ArgList &Args,
                                       const char *LinkingOutput) const {
+  llvm_unreachable("Refusing to construct GCC job");
+  
   const Driver &D = getToolChain().getDriver();
   ArgStringList CmdArgs;
 
@@ -177,7 +179,7 @@ void tools::gcc::Common::ConstructJob(Compilation &C, const JobAction &JA,
     GCCName = "g++";
   } else
     GCCName = "gcc";
-
+  
   const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath(GCCName));
   C.addCommand(std::make_unique<Command>(JA, *this,
                                          ResponseFileSupport::AtFileCurCP(),
