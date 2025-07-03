@@ -8,7 +8,7 @@ int main()
     FD_ZERO(&writefds);
     
     // Pass a pointer that is 1000 bytes below the bounds of writefds
-    select(0, NULL, (fd_set*)((char*)&writefds - 1000), NULL, NULL);
+    select(1, NULL, (fd_set*)((char*)&writefds - 1000), NULL, NULL);
     
     return 0;
 }

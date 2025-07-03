@@ -6,7 +6,7 @@
 int main()
 {
     // Use an integer cast to pointer as exceptfds
-    select(0, NULL, NULL, (fd_set*)0x1010101010101010UL, NULL);
+    select(1, NULL, NULL, (fd_set*)0x1010101010101010UL, NULL);
     
     return 0;
 }

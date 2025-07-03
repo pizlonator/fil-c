@@ -10,7 +10,7 @@ int main()
     
     // Free the memory and then use it
     free(opaque(exceptfds));
-    select(0, NULL, NULL, exceptfds, NULL);
+    select(1, NULL, NULL, exceptfds, NULL);
     
     return 0;
 }

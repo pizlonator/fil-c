@@ -5,7 +5,7 @@
 int main()
 {
     // Pass a string literal (read-only memory) as exceptfds
-    select(0, NULL, NULL, (fd_set*)"hello this is a read-only string that is at least 128 bytes long to ensure we have enough space for an fd_set structure which is 128 bytes in size", NULL);
+    select(1, NULL, NULL, (fd_set*)"hello this is a read-only string that is at least 128 bytes long to ensure we have enough space for an fd_set structure which is 128 bytes in size", NULL);
     
     return 0;
 }

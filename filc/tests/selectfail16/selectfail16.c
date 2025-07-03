@@ -12,7 +12,7 @@ int main()
     writefds = (fd_set*)((char*)writefds + UINTPTR_MAX - 10);   // Near max address
     
     // This should overflow when syscall validates the fd_set buffer
-    select(0, NULL, writefds, NULL, NULL);
+    select(1, NULL, writefds, NULL, NULL);
     
     return 0;
 }

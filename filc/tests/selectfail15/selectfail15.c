@@ -6,7 +6,7 @@
 int main()
 {
     // Use an integer cast to pointer as writefds
-    select(0, NULL, (fd_set*)0x1010101010101010UL, NULL, NULL);
+    select(1, NULL, (fd_set*)0x1010101010101010UL, NULL, NULL);
     
     return 0;
 }

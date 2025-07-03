@@ -12,7 +12,7 @@ int main()
     exceptfds = (fd_set*)((char*)exceptfds + UINTPTR_MAX - 10);   // Near max address
     
     // This should overflow when syscall validates the fd_set buffer
-    select(0, NULL, NULL, exceptfds, NULL);
+    select(FD_SETSIZE, NULL, NULL, exceptfds, NULL);
     
     return 0;
 }

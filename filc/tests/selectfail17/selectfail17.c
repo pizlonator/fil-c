@@ -8,7 +8,7 @@ int main()
     FD_ZERO(&exceptfds);
     
     // Pass a pointer that is 1000 bytes above the bounds of exceptfds
-    select(0, NULL, NULL, (fd_set*)((char*)&exceptfds + 1000), NULL);
+    select(FD_SETSIZE, NULL, NULL, (fd_set*)((char*)&exceptfds + 1000), NULL);
     
     return 0;
 }

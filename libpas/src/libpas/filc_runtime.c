@@ -6684,22 +6684,26 @@ int filc_native_zsys_pipe(filc_thread* my_thread, filc_ptr fds_ptr)
     return FILC_SYSCALL(my_thread, pipe((int*)filc_ptr_ptr(fds_ptr)));
 }
 
+static size_t fd_set_size_in_bytes(size_t nfds)
+{
+    return (nfds + 7) / 8;
+}
+
 int filc_native_zsys_select(filc_thread* my_thread, int nfds,
                             filc_ptr readfds_ptr, filc_ptr writefds_ptr, filc_ptr exceptfds_ptr,
                             filc_ptr timeout_ptr)
 {
-    PAS_ASSERT(FD_SETSIZE == 1024);
     FILC_CHECK(
-        nfds <= 1024,
+        nfds >= 0,
         NULL,
-        "attempt to select with nfds = %d (should be 1024 or less).",
+        "attempt to select with nfds = %d (should be non-negative).",
         nfds);
     if (filc_ptr_ptr(readfds_ptr))
-        filc_check_write(readfds_ptr, sizeof(fd_set));
+        filc_check_write(readfds_ptr, fd_set_size_in_bytes(nfds));
     if (filc_ptr_ptr(writefds_ptr))
-        filc_check_write(writefds_ptr, sizeof(fd_set));
+        filc_check_write(writefds_ptr, fd_set_size_in_bytes(nfds));
     if (filc_ptr_ptr(exceptfds_ptr))
-        filc_check_write(exceptfds_ptr, sizeof(fd_set));
+        filc_check_write(exceptfds_ptr, fd_set_size_in_bytes(nfds));
     if (filc_ptr_ptr(timeout_ptr))
         filc_check_write(timeout_ptr, sizeof(struct timeval));
     fd_set* readfds = (fd_set*)filc_ptr_ptr(readfds_ptr);
@@ -6779,18 +6783,17 @@ int filc_native_zsys_pselect(filc_thread* my_thread, int nfds,
                              filc_ptr readfds_ptr, filc_ptr writefds_ptr, filc_ptr exceptfds_ptr,
                              filc_ptr timeout_ptr, filc_ptr sigmask_ptr)
 {
-    PAS_ASSERT(FD_SETSIZE == 1024);
     FILC_CHECK(
-        nfds <= 1024,
+        nfds >= 0,
         NULL,
-        "attempt to select with nfds = %d (should be 1024 or less).",
+        "attempt to select with nfds = %d (should be non-negative).",
         nfds);
     if (filc_ptr_ptr(readfds_ptr))
-        filc_check_write(readfds_ptr, sizeof(fd_set));
+        filc_check_write(readfds_ptr, fd_set_size_in_bytes(nfds));
     if (filc_ptr_ptr(writefds_ptr))
-        filc_check_write(writefds_ptr, sizeof(fd_set));
+        filc_check_write(writefds_ptr, fd_set_size_in_bytes(nfds));
     if (filc_ptr_ptr(exceptfds_ptr))
-        filc_check_write(exceptfds_ptr, sizeof(fd_set));
+        filc_check_write(exceptfds_ptr, fd_set_size_in_bytes(nfds));
     if (filc_ptr_ptr(timeout_ptr))
         filc_check_read(timeout_ptr, sizeof(struct timespec));
     if (filc_ptr_ptr(sigmask_ptr))

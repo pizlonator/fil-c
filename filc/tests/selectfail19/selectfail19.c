@@ -9,7 +9,7 @@ int main()
     
     // Pass a pointer that starts in bounds but will go out of bounds
     // fd_set is 128 bytes, so offset by 64 to have only 64 bytes remaining
-    select(0, NULL, NULL, (fd_set*)((char*)&exceptfds + 64), NULL);
+    select(FD_SETSIZE, NULL, NULL, (fd_set*)((char*)&exceptfds + 64), NULL);
     
     return 0;
 }

@@ -5,7 +5,7 @@
 int main()
 {
     // Use a special pointer (zweak_map_new()) as exceptfds
-    select(0, NULL, NULL, (fd_set*)zweak_map_new(), NULL);
+    select(1, NULL, NULL, (fd_set*)zweak_map_new(), NULL);
     
     return 0;
 }

@@ -93,3 +93,4 @@ handle_git pizlonated-libxml2 libxml2-2.14.4
 handle_git pizlonated-dash dash-0.5.12
 handle_git pizlonated-pkgconf pkgconf-2.3.0
 handle_git pizlonated-toybox pizlonated-toybox
+handle_git pizlonated-libevent pizlonated-libevent
