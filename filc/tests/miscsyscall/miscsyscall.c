@@ -415,6 +415,9 @@ int main(int argc, char** argv)
     ZASSERT(fcntl(-1, F_DUPFD_CLOEXEC) == -1);
     ZASSERT(errno == EBADF);
 
+    struct rusage usage;
+    ZASSERT(!getrusage(RUSAGE_SELF, &usage));
+
     zprintf("No worries.\n");
     return 0;
 }
