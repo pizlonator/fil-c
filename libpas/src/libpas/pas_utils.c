@@ -94,9 +94,20 @@ PAS_IGNORE_WARNINGS_END;
 
 #endif
 
+static pas_system_thread_id panicking_thread = PAS_NULL_SYSTEM_THREAD_ID;
+
 void pas_panic(const char* format, ...)
 {
     static const bool fast_panic = false;
+    pas_system_thread_id my_thread = pas_get_current_system_thread_id();
+    for (;;) {
+        if (panicking_thread == my_thread)
+            __builtin_trap(); /* Recursive panic, just kill the process! */
+        /* Otherwise, block the current thread if there is already another thread panicking so that
+           we get a cleaner panic message. */
+        if (pas_system_thread_id_weak_cas(&panicking_thread, PAS_NULL_SYSTEM_THREAD_ID, my_thread))
+            break;
+    }
     if (!fast_panic) {
         char** strings;
         int frames;

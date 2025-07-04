@@ -317,6 +317,9 @@ $testDirectory.each_entry {
             File.open(params[:script], "w") {
                 | outp |
                 outp.puts "#!/bin/sh"
+                if expectedReturn == "crash"
+                    outp.puts "ulimit -c 0"
+                end
                 outp.puts "#{params[:cmdPrefix]} FILC_EXIT_ON_PANIC=1 FILC_DUMP_SETUP=1 #{Shellwords.shellescape(params[:justRunScript])} > #{Shellwords.shellescape(params[:output])} 2>&1"
                 case expectedReturn
                 when "failure"
