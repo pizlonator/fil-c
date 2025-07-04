@@ -88,7 +88,12 @@ echo "cd pizfix" >> setup.sh
 echo "mkdir os-include" >> setup.sh
 echo "cd os-include" >> setup.sh
 echo "ln -s /usr/include/linux ." >> setup.sh
-echo "ln -s /usr/include/x86_64-linux-gnu/asm ." >> setup.sh
+echo "if test -d /usr/include/x86_64-linux-gnu/asm" >> setup.sh
+echo "then" >> setup.sh
+echo "    ln -s /usr/include/x86_64-linux-gnu/asm ." >> setup.sh
+echo "else" >> setup.sh
+echo "    ln -s /usr/include/asm ." >> setup.sh
+echo "fi" >> setup.sh
 echo "ln -s /usr/include/asm-generic ." >> setup.sh
 echo "cd ../.." >> setup.sh
 

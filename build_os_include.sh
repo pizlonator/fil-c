@@ -30,5 +30,10 @@ rm -rf pizfix/os-include
 mkdir -p pizfix/os-include
 cd pizfix/os-include
 ln -s /usr/include/linux .
-ln -s /usr/include/x86_64-linux-gnu/asm .
+if test -d /usr/include/x86_64-linux-gnu/asm
+then
+    ln -s /usr/include/x86_64-linux-gnu/asm .
+else
+    ln -s /usr/include/asm .
+fi
 ln -s /usr/include/asm-generic .
