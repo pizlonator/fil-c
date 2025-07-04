@@ -1,4 +1,4 @@
-# Fil-C 0.668.7
+# Fil-C 0.668.8
 
 Fil-C is a fanatically compatible memory-safe implementation of C and C++. Lots
 of software compiles and runs with Fil-C with zero or minimal changes. All

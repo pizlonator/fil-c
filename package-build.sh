@@ -28,7 +28,7 @@
 set -e
 set -x
 
-build_name=filc-0.668.7-$OS-$ARCH
+build_name=filc-0.668.8-$OS-$ARCH
 
 rm -rf $build_name
 
@@ -68,7 +68,7 @@ echo 'set -x' >> setup.sh
 
 for binary in pizfix/lib/*.so pizfix/lib/*.so.* pizfix/lib64/*.so pizfix/lib64/*.so.* pizfix/bin/* pizfix/sbin/* pizfix/libexec/*
 do
-    if test ! -L $binary
+    if test ! -L $binary && test $binary != pizfix/lib/libyoloc.so
     then
         if patchelf --set-rpath pizfix/lib64:pizfix/lib $binary
         then
