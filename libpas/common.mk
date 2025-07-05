@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -23,6 +23,6 @@
 
 PASCFLAGS = -g -O3 -W -Werror -fno-strict-aliasing -MD
 PASASMFLAGS = 
-PASSRCS = $(sort $(wildcard src/libpas/*.c) src/libpas/filc_native_forwarders.c)
+PASSRCS = $(subst src/libpas/filc_static.c,,$(subst src/libpas/filc_dynamic.c,,$(sort $(wildcard src/libpas/*.c) src/libpas/filc_native_forwarders.c)))
 PASASMSRCS = $(sort $(wildcard src/libpas/*.s))
 

@@ -43,12 +43,18 @@ FILCFLAGS = -O3 -g -W -Werror -MD
 MAINSRC = ../filc/main/main.c
 FILSRCS = $(wildcard ../filc/src/*.c)
 
-PASPIZLOOBJS = \
+PASPIZLODYNAMICOBJS = \
 	$(patsubst %.c,build/pas-pizlo-release-%.o,$(notdir $(PASSRCS))) \
-	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS)))
+	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS))) \
+	build/pas-pizlo-test-filc_dynamic.o
+PASPIZLOSTATICOBJS = \
+	$(patsubst %.c,build/pas-pizlo-release-%.o,$(notdir $(PASSRCS))) \
+	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS))) \
+	build/pas-pizlo-test-filc_static.o
 PASPIZLOTESTOBJS = \
 	$(patsubst %.c,build/pas-pizlo-test-%.o,$(notdir $(PASSRCS))) \
-	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS)))
+	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS))) \
+	build/pas-pizlo-test-filc_dynamic.o
 
 FILPIZLOOBJS = $(patsubst %.c,build/fil-pizlo-%.o,$(notdir $(FILSRCS)))
 
@@ -65,17 +71,18 @@ clean:
 	rm -f ../pizfix/lib/libpizlo.a
 
 .filc-objs: $(FILPIZLOOBJS)
-.yoloc-objs: $(PASPIZLOOBJS)
+.yoloc-dynamic-objs: $(PASPIZLODYNAMICOBJS)
+.yoloc-static-objs: $(PASPIZLOSTATICOBJS)
 
-../pizfix/lib/libpizlo.so: $(PASPIZLOOBJS) $(FILPIZLOOBJS)
-	$(SHLD) -o ../pizfix/lib/libpizlo.so $(PASPIZLOOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
+../pizfix/lib/libpizlo.so: $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS)
+	$(SHLD) -o ../pizfix/lib/libpizlo.so $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
 
 ../pizfix/lib_test/libpizlo.so: $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS)
 	$(SHLD) -o ../pizfix/lib_test/libpizlo.so $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
 
-../pizfix/lib/libpizlo.a: $(PASPIZLOOBJS) $(FILPIZLOOBJS)
+../pizfix/lib/libpizlo.a: $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS)
 	rm -f ../pizfix/lib/libpizlo.a
-	ar cr ../pizfix/lib/libpizlo.a $(PASPIZLOOBJS) $(FILPIZLOOBJS)
+	ar cr ../pizfix/lib/libpizlo.a $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS)
 
 build/pas-pizlo-release-%.o: src/libpas/%.c
 	$(PASCC) $(PASCFLAGS) -c -o $@ $< -DPAS_FILC=1

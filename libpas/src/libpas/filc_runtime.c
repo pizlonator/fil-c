@@ -61,7 +61,6 @@
 #include <sys/times.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
-#include <dlfcn.h>
 #include <poll.h>
 #include <sys/timex.h>
 #include <sys/file.h>
@@ -6252,7 +6251,7 @@ void filc_native_zset_errno(filc_thread* my_thread, int errno_value)
     filc_set_errno(errno_value);
 }
 
-static void set_dlerror(const char* error, const char* context)
+void filc_set_dlerror(const char* error, const char* context)
 {
     PAS_ASSERT(error);
     filc_thread* my_thread = filc_get_my_thread();
@@ -7372,53 +7371,6 @@ filc_ptr filc_native_zsys_getcwd(filc_thread* my_thread, filc_ptr buf_ptr, size_
     if (!result)
         return filc_ptr_forge_null();
     return buf_ptr;
-}
-
-static bool from_user_dlopen_flags(int user_flags, int* flags)
-{
-    *flags = user_flags;
-    return true;
-}
-
-filc_ptr filc_native_zsys_dlopen(filc_thread* my_thread, filc_ptr filename_ptr, int user_flags)
-{
-    char* filename = filc_check_and_get_tmp_str_or_null(my_thread, filename_ptr);
-    int flags;
-    if (!from_user_dlopen_flags(user_flags, &flags)) {
-        set_dlerror("Unrecognized flag to dlopen", filename);
-        return filc_ptr_forge_null();
-    }
-    filc_exit(my_thread);
-    void* handle = dlopen(filename, flags);
-    filc_enter(my_thread);
-    if (!handle) {
-        set_dlerror(dlerror(), filename);
-        return filc_ptr_forge_null();
-    }
-    return filc_ptr_create_with_special_object_and_manual_tracking(
-        filc_allocate_special_with_existing_payload(my_thread, handle, FILC_SPECIAL_TYPE_DL_HANDLE));
-}
-
-filc_ptr filc_native_zsys_dlsym(filc_thread* my_thread, filc_ptr handle_ptr, filc_ptr symbol_ptr)
-{
-    filc_check_access_special(handle_ptr, FILC_SPECIAL_TYPE_DL_HANDLE);
-    void* handle = filc_ptr_ptr(handle_ptr);
-    char* symbol = filc_check_and_get_tmp_str(my_thread, symbol_ptr);
-    pas_allocation_config allocation_config;
-    bmalloc_initialize_allocation_config(&allocation_config);
-    pas_string_stream stream;
-    pas_string_stream_construct(&stream, &allocation_config);
-    pas_string_stream_printf(&stream, "pizlonated_%s", symbol);
-    filc_exit(my_thread);
-    pizlonated_getter raw_symbol =
-        (pizlonated_getter)dlsym(handle, pas_string_stream_get_string(&stream));
-    filc_enter(my_thread);
-    pas_string_stream_destruct(&stream);
-    if (!raw_symbol) {
-        set_dlerror(dlerror(), symbol);
-        return filc_ptr_forge_null();
-    }
-    return raw_symbol(my_thread, NULL);
 }
 
 int filc_native_zsys_faccessat(filc_thread* my_thread, int dirfd, filc_ptr pathname_ptr, int mode,

@@ -4095,6 +4095,7 @@ PAS_API void filc_system_mutex_lock(filc_thread* my_thread, pas_system_mutex* lo
 PAS_API void filc_lock_lock(filc_thread* my_thread, pas_lock* lock);
 
 PAS_API void filc_set_errno(int errno_value);
+PAS_API void filc_set_dlerror(const char* error, const char* context);
 
 #define filc_check_and_clear(passed_flags_ptr, passed_expected) ({ \
         typeof(passed_flags_ptr) flags_ptr = (passed_flags_ptr); \

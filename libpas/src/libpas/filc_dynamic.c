@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ */
+
+#include "pas_config.h"
+
+#if LIBPAS_ENABLED
+
+#include "filc_runtime.h"
+
+#if PAS_ENABLE_FILC
+
+#include "pas_string_stream.h"
+#include <dlfcn.h>
+
+filc_ptr filc_native_zsys_dlopen(filc_thread* my_thread, filc_ptr filename_ptr, int flags)
+{
+    char* filename = filc_check_and_get_tmp_str_or_null(my_thread, filename_ptr);
+    filc_exit(my_thread);
+    void* handle = dlopen(filename, flags);
+    filc_enter(my_thread);
+    if (!handle) {
+        filc_set_dlerror(dlerror(), filename);
+        return filc_ptr_forge_null();
+    }
+    return filc_ptr_create_with_special_object_and_manual_tracking(
+        filc_allocate_special_with_existing_payload(my_thread, handle, FILC_SPECIAL_TYPE_DL_HANDLE));
+}
+
+filc_ptr filc_native_zsys_dlsym(filc_thread* my_thread, filc_ptr handle_ptr, filc_ptr symbol_ptr)
+{
+    filc_check_access_special(handle_ptr, FILC_SPECIAL_TYPE_DL_HANDLE);
+    void* handle = filc_ptr_ptr(handle_ptr);
+    char* symbol = filc_check_and_get_tmp_str(my_thread, symbol_ptr);
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+    pas_string_stream stream;
+    pas_string_stream_construct(&stream, &allocation_config);
+    pas_string_stream_printf(&stream, "pizlonated_%s", symbol);
+    filc_exit(my_thread);
+    pizlonated_getter raw_symbol =
+        (pizlonated_getter)dlsym(handle, pas_string_stream_get_string(&stream));
+    filc_enter(my_thread);
+    pas_string_stream_destruct(&stream);
+    if (!raw_symbol) {
+        filc_set_dlerror(dlerror(), symbol);
+        return filc_ptr_forge_null();
+    }
+    return raw_symbol(my_thread, NULL);
+}
+
+#endif /* PAS_ENABLE_FILC */
+
+#endif /* LIBPAS_ENABLED */
+
