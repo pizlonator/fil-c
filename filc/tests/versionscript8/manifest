@@ -1,0 +1,9 @@
+return:
+  success
+libraries:
+  libtest.so:
+    isBundle: true
+    files:
+      - library.c
+    extraLinkerArgs:
+      "--version-script=filc/tests/versionscript8/versionscript.ld"

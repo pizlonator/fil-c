@@ -415,6 +415,9 @@ std::string PizlonateVersionScript(const std::string& Input) {
           if (take() == '*' && take() == '/')
             break;
         }
+      } else if (peek() == '#') {
+        InputIndex++;
+        while (take() != '\n');
       } else
         break;
     }
