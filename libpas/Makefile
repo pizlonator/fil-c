@@ -22,7 +22,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 all: \
-	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so \
+	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so ../pizfix/lib/libpizlo.a \
 	../pizfix/lib/filc_crt.o ../pizfix/lib/filc_mincrt.o
 
 PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo-include \
@@ -62,6 +62,7 @@ clean:
 	rm -f ../pizfix/lib/filc_mincrt.o
 	rm -f ../pizfix/lib/libpizlo.so
 	rm -f ../pizfix/lib_test/libpizlo.so
+	rm -f ../pizfix/lib/libpizlo.a
 
 .filc-objs: $(FILPIZLOOBJS)
 .yoloc-objs: $(PASPIZLOOBJS)
@@ -71,6 +72,10 @@ clean:
 
 ../pizfix/lib_test/libpizlo.so: $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS)
 	$(SHLD) -o ../pizfix/lib_test/libpizlo.so $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
+
+../pizfix/lib/libpizlo.a: $(PASPIZLOOBJS) $(FILPIZLOOBJS)
+	rm -f ../pizfix/lib/libpizlo.a
+	ar cr ../pizfix/lib/libpizlo.a $(PASPIZLOOBJS) $(FILPIZLOOBJS)
 
 build/pas-pizlo-release-%.o: src/libpas/%.c
 	$(PASCC) $(PASCFLAGS) -c -o $@ $< -DPAS_FILC=1
