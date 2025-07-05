@@ -814,17 +814,17 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_r)) {
     if ((true)) {
+      if (ToolChain.ShouldLinkCXXStdlib(Args))
+        ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
       if (!Args.hasArg(options::OPT_nodefaultlibs)) {
         CmdArgs.push_back("-lc");
         if (D.CCCIsCXX())
           CmdArgs.push_back("-lm");
       }
       CmdArgs.push_back(Args.MakeArgString(GetGCCLibPath("libgcc.a")));
+      CmdArgs.push_back("-lpizlo");
       CmdArgs.push_back("-lyoloc");
       CmdArgs.push_back("-lyolom");
-      CmdArgs.push_back("-lpizlo");
-      if (ToolChain.ShouldLinkCXXStdlib(Args))
-        ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
     } else if (!Args.hasArg(options::OPT_nodefaultlibs)) {
       if (IsStatic || IsStaticPIE)
         CmdArgs.push_back("--start-group");
