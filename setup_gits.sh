@@ -28,6 +28,8 @@ set -x
 
 GITBASE=`git remote -v | awk '{print $2}' | head -1 | sed 's/\([^\/]*\)$//'`
 
+shallow_clone="${SHALLOW_CLONE:-0}"
+
 handle_git_with_branch()
 {
     remote_path=$1
@@ -37,7 +39,12 @@ handle_git_with_branch()
     then
         (cd $local_path && git pull --rebase)
     else
-        git clone $GITBASE$remote_path $local_path
+        if test "$shallow_clone" = "1"
+        then
+            git clone --depth 1 --branch $branch $GITBASE$remote_path $local_path
+        else
+            git clone $GITBASE$remote_path $local_path
+        fi
         (cd $local_path &&
              git checkout $branch &&
              git branch --set-upstream-to origin/$branch)
@@ -52,7 +59,12 @@ handle_git()
     then
         (cd $local_path && git pull --rebase)
     else
-        git clone $GITBASE$remote_path $local_path
+        if test "$shallow_clone" = "1"
+        then
+            git clone --depth 1 $GITBASE$remote_path $local_path
+        else
+            git clone $GITBASE$remote_path $local_path
+        fi
     fi
 }
 
