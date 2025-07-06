@@ -377,6 +377,9 @@ int main(int argc, char** argv)
     bzero(buf, sizeof(buf));
     ZASSERT(readlink("filc/test-output/miscsyscall/dir2-link2", buf, sizeof(buf)) == strlen("dir2"));
     ZASSERT(!memcmp(buf, "dir2", strlen("dir2")));
+    bzero(buf, sizeof(buf));
+    ZASSERT(readlinkat(AT_FDCWD, "filc/test-output/miscsyscall/dir2-link2", buf, sizeof(buf)) == strlen("dir2"));
+    ZASSERT(!memcmp(buf, "dir2", strlen("dir2")));
 
     cpu_set_t cpuset;
     ZASSERT(!sched_getaffinity(getpid(), sizeof(cpuset), &cpuset));

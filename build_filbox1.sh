@@ -28,13 +28,22 @@
 set -e
 set -x
 
+cd dash-0.5.12
+make distclean || echo whatever
+./autogen.sh
+CC=$PWD/../build/bin/clang ./configure --enable-static
+make -j $NCPU
+cd ..
+
 cd pizlonated-toybox
 mkdir -p compiler-bin
 ln -fs ../../build/bin/clang-17 compiler-bin/cc
 rm -rf install
 PATH=$PWD/compiler-bin:$PATH make distclean
 cp good-config .config
-PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make oldconfig
-PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make -j $NCPU
-PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make install
+PATH=$PWD/compiler-bin:$PATH LDFLAGS=-static CFLAGS="-O2 -g" make oldconfig
+PATH=$PWD/compiler-bin:$PATH LDFLAGS=-static CFLAGS="-O2 -g" make -j $NCPU
+PATH=$PWD/compiler-bin:$PATH LDFLAGS=-static CFLAGS="-O2 -g" make install
+cd ..
 
+./build_filbox1_podman.sh

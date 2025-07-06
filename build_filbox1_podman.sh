@@ -28,13 +28,38 @@
 set -e
 set -x
 
-cd pizlonated-toybox
-mkdir -p compiler-bin
-ln -fs ../../build/bin/clang-17 compiler-bin/cc
-rm -rf install
-PATH=$PWD/compiler-bin:$PATH make distclean
-cp good-config .config
-PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make oldconfig
-PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make -j $NCPU
-PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make install
+test -d pizfix
+test -d dash-0.5.12
+test -d pizlonated-toybox
+
+podman rmi --force filbox1 || echo whatever
+
+rm -rf filbox1-build
+mkdir filbox1-build
+cd filbox1-build
+cp ../dash-0.5.12/src/dash .
+cp ../pizlonated-toybox/install/bin/toybox .
+
+cat > profile <<EOF
+export PATH=/bin
+export PS1='\$(pwd) $ '
+EOF
+
+for cmd in `./toybox`
+do
+    echo "/bin/toybox ln -s toybox /bin/$cmd" >> script
+done
+echo "/bin/toybox rm /script" >> script
+
+cat > Dockerfile <<EOF
+FROM scratch
+COPY toybox /bin/toybox
+COPY dash /bin/dash
+COPY profile /etc/profile
+COPY script /script
+RUN ["/bin/dash", "/script"]
+CMD ["/bin/dash", "-l"]
+EOF
+
+podman build -t filbox1 .
 
