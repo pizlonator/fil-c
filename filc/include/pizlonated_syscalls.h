@@ -365,6 +365,9 @@ int zsys_renameat2(int oldfd, const char* oldpath, int newfd, const char* newpat
 int zsys_sendmmsg(int sock, void* msgvec, unsigned vlen, int flags);
 int zsys_recvmmsg(int sock, void* msgvec, unsigned vlen, int flags, void* timeout);
 int zsys_statx(int dirfd, const char* pathname, int flags, unsigned mask, void* statxbuf);
+long zsys_splice(int fd_in, long* off_in, int fd_out, long* off_out, __SIZE_TYPE__ len,
+                 unsigned flags);
+long zsys_tee(int fd_in, int fd_out, __SIZE_TYPE__ len, unsigned flags);
 
 #ifdef __cplusplus
 }

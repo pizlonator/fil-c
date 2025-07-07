@@ -10518,6 +10518,23 @@ int filc_native_zsys_statx(filc_thread* my_thread, int dirfd, filc_ptr pathname_
 #endif
 }
 
+ssize_t filc_native_zsys_splice(filc_thread* my_thread, int fd_in, filc_ptr off_in_ptr, int fd_out,
+                                filc_ptr off_out_ptr, size_t len, unsigned flags)
+{
+    if (filc_ptr_ptr(off_in_ptr))
+        filc_check_write(off_in_ptr, sizeof(loff_t));
+    if (filc_ptr_ptr(off_out_ptr))
+        filc_check_write(off_out_ptr, sizeof(loff_t));
+    return FILC_SYSCALL(my_thread, splice(fd_in, (loff_t*)filc_ptr_ptr(off_in_ptr), fd_out,
+                                          (loff_t*)filc_ptr_ptr(off_out_ptr), len, flags));
+}
+
+ssize_t filc_native_zsys_tee(filc_thread* my_thread, int fd_in, int fd_out, size_t len,
+                             unsigned flags)
+{
+    return FILC_SYSCALL(my_thread, tee(fd_in, fd_out, len, flags));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;

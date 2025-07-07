@@ -426,6 +426,125 @@ int main(int argc, char** argv)
     ZASSERT(pselect(-1, NULL, NULL, NULL, NULL, NULL) == -1);
     ZASSERT(errno == EINVAL);
 
+    // Test splice and tee syscalls
+    int pipe1[2], pipe2[2], pipe3[2];
+    ZASSERT(!pipe(pipe1));
+    ZASSERT(!pipe(pipe2));
+    ZASSERT(!pipe(pipe3));
+
+    // Test splice: write to pipe1, splice to pipe2, read from pipe2
+    const char* test_data = "Hello splice!";
+    size_t test_len = strlen(test_data);
+    ZASSERT(write(pipe1[1], test_data, test_len) == (ssize_t)test_len);
+    
+    ssize_t spliced = splice(pipe1[0], NULL, pipe2[1], NULL, test_len, 0);
+    ZASSERT(spliced == (ssize_t)test_len);
+    
+    char splice_buf[100];
+    ZASSERT(read(pipe2[0], splice_buf, sizeof(splice_buf)) == (ssize_t)test_len);
+    ZASSERT(!memcmp(splice_buf, test_data, test_len));
+
+    // Test tee: write to pipe1, tee to pipe2 (data remains in pipe1), read from both
+    const char* tee_data = "Hello tee!";
+    size_t tee_len = strlen(tee_data);
+    ZASSERT(write(pipe1[1], tee_data, tee_len) == (ssize_t)tee_len);
+    
+    ssize_t teed = tee(pipe1[0], pipe3[1], tee_len, 0);
+    ZASSERT(teed == (ssize_t)tee_len);
+    
+    char tee_buf1[100], tee_buf2[100];
+    ZASSERT(read(pipe3[0], tee_buf1, sizeof(tee_buf1)) == (ssize_t)tee_len);
+    ZASSERT(!memcmp(tee_buf1, tee_data, tee_len));
+    
+    ZASSERT(read(pipe1[0], tee_buf2, sizeof(tee_buf2)) == (ssize_t)tee_len);
+    ZASSERT(!memcmp(tee_buf2, tee_data, tee_len));
+
+    // Clean up pipes
+    close(pipe1[0]);
+    close(pipe1[1]);
+    close(pipe2[0]);
+    close(pipe2[1]);
+    close(pipe3[0]);
+    close(pipe3[1]);
+
+    // Test splice with file descriptors and offsets
+    unlink("filc/test-output/miscsyscall/splice_src.txt");
+    unlink("filc/test-output/miscsyscall/splice_dst.txt");
+    
+    // Create source file with test data
+    int src_fd = open("filc/test-output/miscsyscall/splice_src.txt", O_CREAT | O_RDWR, 0600);
+    ZASSERT(src_fd > 2);
+    const char* file_data = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    size_t file_len = strlen(file_data);
+    ZASSERT(write(src_fd, file_data, file_len) == (ssize_t)file_len);
+    
+    // Create destination file
+    int dst_fd = open("filc/test-output/miscsyscall/splice_dst.txt", O_CREAT | O_RDWR | O_TRUNC, 0600);
+    ZASSERT(dst_fd > 2);
+    
+    // Create a pipe for splicing
+    int splice_pipe[2];
+    ZASSERT(!pipe(splice_pipe));
+    
+    // Test 1: Splice from file with offset to pipe
+    loff_t in_offset = 10; // Start from 'A'
+    ssize_t splice_count = 10; // Splice "ABCDEFGHIJ"
+    ssize_t spliced_from_file = splice(src_fd, &in_offset, splice_pipe[1], NULL, splice_count, 0);
+    ZASSERT(spliced_from_file == splice_count);
+    ZASSERT(in_offset == 20); // Offset should be updated
+    
+    // Test 2: Splice from pipe to file with offset
+    loff_t out_offset = 5; // Write at position 5 in destination
+    ssize_t spliced_to_file = splice(splice_pipe[0], NULL, dst_fd, &out_offset, splice_count, 0);
+    ZASSERT(spliced_to_file == splice_count);
+    ZASSERT(out_offset == 15); // Offset should be updated
+    
+    // Verify destination file content
+    char verify_buf[100];
+    memset(verify_buf, 0, sizeof(verify_buf));
+    lseek(dst_fd, 0, SEEK_SET);
+    ZASSERT(read(dst_fd, verify_buf, sizeof(verify_buf)) >= 15);
+    // First 5 bytes should be zeros, then "ABCDEFGHIJ"
+    ZASSERT(verify_buf[0] == 0 && verify_buf[4] == 0);
+    ZASSERT(!memcmp(verify_buf + 5, "ABCDEFGHIJ", 10));
+    
+    // Test 3: Splice more data from different offset
+    in_offset = 0; // Start from '0' at the beginning
+    splice_count = 10; // Splice "0123456789"
+    spliced_from_file = splice(src_fd, &in_offset, splice_pipe[1], NULL, splice_count, 0);
+    ZASSERT(spliced_from_file == splice_count);
+    ZASSERT(in_offset == 10); // Offset should be updated
+    
+    out_offset = 15; // Write right after the previous content
+    spliced_to_file = splice(splice_pipe[0], NULL, dst_fd, &out_offset, splice_count, 0);
+    ZASSERT(spliced_to_file == splice_count);
+    ZASSERT(out_offset == 25); // Offset should be updated
+    
+    // Verify the new content
+    memset(verify_buf, 0, sizeof(verify_buf));
+    lseek(dst_fd, 0, SEEK_SET);
+    ZASSERT(read(dst_fd, verify_buf, sizeof(verify_buf)) >= 25);
+    // Should have zeros, then "ABCDEFGHIJ", then "0123456789"
+    ZASSERT(!memcmp(verify_buf + 5, "ABCDEFGHIJ", 10));
+    ZASSERT(!memcmp(verify_buf + 15, "0123456789", 10));
+    
+    // Test 4: Splice without offset pointer (should use current file position)
+    lseek(src_fd, 0, SEEK_SET); // Reset to beginning
+    splice_count = 5;
+    spliced_from_file = splice(src_fd, NULL, splice_pipe[1], NULL, splice_count, 0);
+    ZASSERT(spliced_from_file == splice_count);
+    
+    // Read and verify it's from the beginning
+    char no_offset_buf[10];
+    ZASSERT(read(splice_pipe[0], no_offset_buf, splice_count) == splice_count);
+    ZASSERT(!memcmp(no_offset_buf, "01234", 5));
+    
+    // Clean up
+    close(src_fd);
+    close(dst_fd);
+    close(splice_pipe[0]);
+    close(splice_pipe[1]);
+
     zprintf("No worries.\n");
     return 0;
 }
