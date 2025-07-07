@@ -482,6 +482,7 @@ addSig "long", "zsys_copy_file_range", "int", "filc_ptr", "int", "filc_ptr", "si
 addSig "int", "zsys_renameat2", "int", "filc_ptr", "int", "filc_ptr", "unsigned"
 addSig "int", "zsys_sendmmsg", "int", "filc_ptr", "unsigned", "int"
 addSig "int", "zsys_recvmmsg", "int", "filc_ptr", "unsigned", "int", "filc_ptr"
+addSig "int", "zsys_statx", "int", "filc_ptr", "int", "unsigned", "filc_ptr"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"

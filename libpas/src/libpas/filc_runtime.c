@@ -7447,7 +7447,8 @@ int filc_native_zsys_rmdir(filc_thread* my_thread, filc_ptr path_ptr)
 int filc_native_zsys_futimens(filc_thread* my_thread, int fd, filc_ptr times_ptr)
 {
     check_fd(fd);
-    filc_check_read(times_ptr, sizeof(struct timespec) * 2);
+    if (filc_ptr_ptr(times_ptr))
+        filc_check_read(times_ptr, sizeof(struct timespec) * 2);
     return FILC_SYSCALL(my_thread, futimens(fd, (const struct timespec*)filc_ptr_ptr(times_ptr)));
 }
 
@@ -10495,6 +10496,25 @@ int filc_native_zsys_renameat2(filc_thread* my_thread, int oldfd, filc_ptr old_p
     PAS_UNUSED_PARAM(new_ptr);
     PAS_UNUSED_PARAM(flags);
     filc_internal_panic(NULL, "renameat2 not implemented.");
+#endif
+}
+
+int filc_native_zsys_statx(filc_thread* my_thread, int dirfd, filc_ptr pathname_ptr, int flags,
+                           unsigned mask, filc_ptr statxbuf_ptr)
+{
+#if PAS_GLIBC
+    char* pathname = filc_check_and_get_tmp_str(my_thread, pathname_ptr);
+    filc_check_write(statxbuf_ptr, sizeof(struct statx));
+    return FILC_SYSCALL(
+        my_thread, statx(dirfd, pathname, flags, mask, (struct statx*)filc_ptr_ptr(statxbuf_ptr)));
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(dirfd);
+    PAS_UNUSED_PARAM(pathname_ptr);
+    PAS_UNUSED_PARAM(flags);
+    PAS_UNUSED_PARAM(mask);
+    PAS_UNUSED_PARAM(statxbuf_ptr);
+    filc_internal_panic(NULL, "statx not implemented.");
 #endif
 }
 
