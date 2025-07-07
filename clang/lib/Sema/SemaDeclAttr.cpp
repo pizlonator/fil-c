@@ -1988,10 +1988,10 @@ static void handleAliasAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   if (!S.checkStringLiteralArgumentAttr(AL, 0, Str))
     return;
 
-  //if (S.Context.getTargetInfo().getTriple().isOSDarwin()) {
-  //  S.Diag(AL.getLoc(), diag::err_alias_not_supported_on_darwin);
-  //  return;
-  //}
+  if (S.Context.getTargetInfo().getTriple().isOSDarwin()) {
+    S.Diag(AL.getLoc(), diag::err_alias_not_supported_on_darwin);
+    return;
+  }
   if (S.Context.getTargetInfo().getTriple().isNVPTX()) {
     S.Diag(AL.getLoc(), diag::err_alias_not_supported_on_nvptx);
   }

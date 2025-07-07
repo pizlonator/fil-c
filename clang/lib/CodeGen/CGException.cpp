@@ -265,7 +265,7 @@ static llvm::Constant *getOpaquePersonalityFn(CodeGenModule &CGM,
   llvm::FunctionCallee Fn = getPersonalityFn(CGM, Personality);
   llvm::PointerType* Int8PtrTy = llvm::PointerType::get(
       llvm::Type::getInt8Ty(CGM.getLLVMContext()),
-      CGM.getDataLayoutBeforeFilC().getProgramAddressSpace());
+      CGM.getDataLayout().getProgramAddressSpace());
 
   return llvm::ConstantExpr::getBitCast(cast<llvm::Constant>(Fn.getCallee()),
                                         Int8PtrTy);

@@ -33,8 +33,6 @@ public:
   struct MemberPointerInfo {
     uint64_t Width;
     unsigned Align;
-    uint64_t ConstexprWidth;
-    unsigned ConstexprAlign;
     bool HasPadding;
   };
 

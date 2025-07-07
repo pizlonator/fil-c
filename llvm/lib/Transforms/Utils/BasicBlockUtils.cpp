@@ -227,11 +227,10 @@ bool llvm::MergeBlockIntoPredecessor(BasicBlock *BB, DomTreeUpdater *DTU,
   // Begin by getting rid of unneeded PHIs.
   SmallVector<AssertingVH<Value>, 4> IncomingValues;
   if (isa<PHINode>(BB->front())) {
-    for (PHINode &PN : BB->phis()) {
+    for (PHINode &PN : BB->phis())
       if (!isa<PHINode>(PN.getIncomingValue(0)) ||
           cast<PHINode>(PN.getIncomingValue(0))->getParent() != BB)
         IncomingValues.push_back(PN.getIncomingValue(0));
-    }
     FoldSingleEntryPHINodes(BB, MemDep);
   }
 

@@ -1711,7 +1711,7 @@ Address CGOpenMPRuntime::getAddrOfThreadPrivate(CodeGenFunction &CGF,
   llvm::Value *Args[] = {
       emitUpdateLocation(CGF, Loc), getThreadID(CGF, Loc),
       CGF.Builder.CreatePointerCast(VDAddr.getPointer(), CGM.Int8PtrTy),
-      CGM.getSize(CGM.GetTargetTypeStoreSizeBeforeFilC(VarTy)),
+      CGM.getSize(CGM.GetTargetTypeStoreSize(VarTy)),
       getOrCreateThreadPrivateCache(VD)};
   return Address(
       CGF.EmitRuntimeCall(

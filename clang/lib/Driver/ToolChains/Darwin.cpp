@@ -221,7 +221,6 @@ static bool shouldLinkerNotDedup(bool IsLinkerOnlyAction, const ArgList &Args) {
 
 void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
                                  ArgStringList &CmdArgs,
-                                 const InputInfo &Output,
                                  const InputInfoList &Inputs,
                                  VersionTuple Version, bool LinkerIsLLD) const {
   const Driver &D = getToolChain().getDriver();
@@ -273,11 +272,7 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
   // clang version won't work anyways.
   // lld is built at the same revision as clang and statically links in
   // LLVM libraries, so it doesn't need libLTO.dylib.
-  // FIXME: Eventually I'll have to make LTO work in Fil-C. Currently, I have to disable
-  // passing an LTO library, since if I do, Darwin's ld (at least on macOS 14.5) will
-  // try to load *its own* libraries from our build/lib, and then it'll trap because
-  // the libc++ in that directory is pizlonated.
-  if ((false) && Version >= VersionTuple(133) && !LinkerIsLLD) {
+  if (Version >= VersionTuple(133) && !LinkerIsLLD) {
     // Search for libLTO in <InstalledDir>/../lib/libLTO.dylib
     StringRef P = llvm::sys::path::parent_path(D.Dir);
     SmallString<128> LibLTOPath(P);
@@ -342,16 +337,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
 
     AddMachOArch(Args, CmdArgs);
 
-    if (Args.hasArg(options::OPT_install__name)) {
-      Args.AddAllArgsTranslated(CmdArgs, options::OPT_install__name,
-                                "-dylib_install_name");
-    } else {
-      CmdArgs.push_back("-dylib_install_name");
-      SmallString<128> P(D.InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-      llvm::sys::path::append(P, llvm::sys::path::filename(Output.getFilename()));
-      CmdArgs.push_back(Args.MakeArgString(P));
-    }
+    Args.AddAllArgsTranslated(CmdArgs, options::OPT_install__name,
+                              "-dylib_install_name");
   }
 
   Args.AddLastArg(CmdArgs, options::OPT_all__load);
@@ -614,7 +601,7 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   // I'm not sure why this particular decomposition exists in gcc, but
   // we follow suite for ease of comparison.
-  AddLinkArgs(C, Args, CmdArgs, Output, Inputs, Version, LinkerIsLLD);
+  AddLinkArgs(C, Args, CmdArgs, Inputs, Version, LinkerIsLLD);
 
   if (willEmitRemarks(Args) &&
       checkRemarksOptions(getToolChain().getDriver(), Args,
@@ -728,50 +715,27 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(Args.MakeArgString("-threads=" + Twine(NumThreads)));
   }
 
-  if ((true)) {
-    SmallString<128> P(getToolChain().getDriver().InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-    CmdArgs.push_back(Args.MakeArgString("-L" + P));
-    CmdArgs.push_back("-rpath");
-    CmdArgs.push_back(Args.MakeArgString(P));
-  }
-
   if (getToolChain().ShouldLinkCXXStdlib(Args))
     getToolChain().AddCXXStdlibLibArgs(Args, CmdArgs);
 
   bool NoStdOrDefaultLibs =
-    Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs);
+      Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs);
   bool ForceLinkBuiltins = Args.hasArg(options::OPT_fapple_link_rtlib);
-  if ((true)) {
-    CmdArgs.push_back("-lpizlo");
-    
-    // libpizlo depends on libSystem, so lets make sure it's there.
-    getMachOToolChain().AddLinkRuntimeLibArgs(Args, CmdArgs,
-                                              ForceLinkBuiltins);
-    
-    // No need to do anything for pthreads. Claim argument to avoid warning.
-    Args.ClaimAllArgs(options::OPT_pthread);
-    Args.ClaimAllArgs(options::OPT_pthreads);
+  if (!NoStdOrDefaultLibs || ForceLinkBuiltins) {
+    // link_ssp spec is empty.
 
-    if (!NoStdOrDefaultLibs)
-      CmdArgs.push_back("-lpizlonated_c");
-  } else {
-    if (!NoStdOrDefaultLibs || ForceLinkBuiltins) {
-      // link_ssp spec is empty.
+    // If we have both -nostdlib/nodefaultlibs and -fapple-link-rtlib then
+    // we just want to link the builtins, not the other libs like libSystem.
+    if (NoStdOrDefaultLibs && ForceLinkBuiltins) {
+      getMachOToolChain().AddLinkRuntimeLib(Args, CmdArgs, "builtins");
+    } else {
+      // Let the tool chain choose which runtime library to link.
+      getMachOToolChain().AddLinkRuntimeLibArgs(Args, CmdArgs,
+                                                ForceLinkBuiltins);
 
-      // If we have both -nostdlib/nodefaultlibs and -fapple-link-rtlib then
-      // we just want to link the builtins, not the other libs like libSystem.
-      if (NoStdOrDefaultLibs && ForceLinkBuiltins) {
-        getMachOToolChain().AddLinkRuntimeLib(Args, CmdArgs, "builtins");
-      } else {
-        // Let the tool chain choose which runtime library to link.
-        getMachOToolChain().AddLinkRuntimeLibArgs(Args, CmdArgs,
-                                                  ForceLinkBuiltins);
-
-        // No need to do anything for pthreads. Claim argument to avoid warning.
-        Args.ClaimAllArgs(options::OPT_pthread);
-        Args.ClaimAllArgs(options::OPT_pthreads);
-      }
+      // No need to do anything for pthreads. Claim argument to avoid warning.
+      Args.ClaimAllArgs(options::OPT_pthread);
+      Args.ClaimAllArgs(options::OPT_pthreads);
     }
   }
 
@@ -1297,9 +1261,7 @@ void MachO::AddLinkRuntimeLib(const ArgList &Args, ArgStringList &CmdArgs,
 
   DarwinLibName += getOSLibraryNameSuffix();
   DarwinLibName += IsShared ? "_dynamic.dylib" : ".a";
-  SmallString<128> Dir(getDriver().InstalledDir);
-  llvm::sys::path::append(Dir, "..", ".."); // at /crap/llvm-project-filc
-  llvm::sys::path::append(Dir, "runtime-build", "lib", "clang", "17"); // LMAYO
+  SmallString<128> Dir(getDriver().ResourceDir);
   llvm::sys::path::append(Dir, "lib", "darwin");
   if (Opts & RLO_IsEmbedded)
     llvm::sys::path::append(Dir, "macho_embedded");
@@ -2421,38 +2383,11 @@ void DarwinClang::AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs
   bool ForceBuiltinInc = DriverArgs.hasFlag(
       options::OPT_ibuiltininc, options::OPT_nobuiltininc, /*Default=*/false);
 
-  if ((true)) {
-    {
-      SmallString<128> P(D.InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "stdfil-include");
-      addSystemInclude(DriverArgs, CC1Args, P);
-    }
-    {
-      SmallString<128> P(D.InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "musl-include");
-      addSystemInclude(DriverArgs, CC1Args, P);
-    }
-    
-    // Add the Clang builtin headers that are allowlisted for FilC
-    if (!(NoStdInc && !ForceBuiltinInc) && !NoBuiltinInc) {
-      SmallString<128> P(D.InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "builtins-include");
-      addSystemInclude(DriverArgs, CC1Args, P);
-    }
-
-    if (!NoStdInc && !NoStdlibInc) {
-      SmallString<128> P(D.InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "include");
-      addSystemInclude(DriverArgs, CC1Args, P);
-    }
-    return;
-  }
-
   // Add <sysroot>/usr/local/include
   if (!NoStdInc && !NoStdlibInc) {
-    SmallString<128> P(Sysroot);
-    llvm::sys::path::append(P, "usr", "local", "include");
-    addSystemInclude(DriverArgs, CC1Args, P);
+      SmallString<128> P(Sysroot);
+      llvm::sys::path::append(P, "usr", "local", "include");
+      addSystemInclude(DriverArgs, CC1Args, P);
   }
 
   // Add the Clang builtin headers (<resource>/include)
@@ -2624,12 +2559,11 @@ void DarwinClang::AddCXXStdlibLibArgs(const ArgList &Args,
   CXXStdlibType Type = GetCXXStdlibType(Args);
 
   switch (Type) {
-  case ToolChain::CST_Libcxx: {
+  case ToolChain::CST_Libcxx:
     CmdArgs.push_back("-lc++");
     if (Args.hasArg(options::OPT_fexperimental_library))
       CmdArgs.push_back("-lc++experimental");
     break;
-  }
 
   case ToolChain::CST_Libstdcxx:
     // Unfortunately, -lstdc++ doesn't always exist in the standard search path;
@@ -3328,11 +3262,6 @@ static void addDefaultCRTLinkArgs(const Darwin &D, const ArgList &Args,
   else if (D.isMacosxVersionLT(10, 8))
     CmdArgs.push_back("-lcrt1.10.6.o");
   // darwin_crt2 spec is empty.
-
-  SmallString<128> P(D.getDriver().InstalledDir);
-  llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-  llvm::sys::path::append(P, "filc_crt.o");
-  CmdArgs.push_back(Args.MakeArgString(P));
 }
 
 void Darwin::addStartObjectFileArgs(const ArgList &Args,

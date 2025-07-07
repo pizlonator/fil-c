@@ -2200,8 +2200,8 @@ static void checkIntToPointerCast(bool CStyle, const SourceRange &OpRange,
       && !SrcType->isBooleanType()
       && !SrcType->isEnumeralType()
       && !SrcExpr->isIntegerConstantExpr(Self.Context)
-      && Self.Context.getConstexprTypeSize(DestType) >
-         Self.Context.getConstexprTypeSize(SrcType)) {
+      && Self.Context.getTypeSize(DestType) >
+         Self.Context.getTypeSize(SrcType)) {
     // Separate between casts to void* and non-void* pointers.
     // Some APIs use (abuse) void* for something like a user context,
     // and often that value is an integer even if it isn't a pointer itself.
@@ -2361,8 +2361,8 @@ static TryCastResult TryReinterpretCast(Sema &Self, ExprResult &SrcExpr,
     //   type large enough to hold it. A value of std::nullptr_t can be
     //   converted to an integral type; the conversion has the same meaning
     //   and validity as a conversion of (void*)0 to the integral type.
-    if (Self.Context.getConstexprTypeSize(SrcType) >
-        Self.Context.getConstexprTypeSize(DestType)) {
+    if (Self.Context.getTypeSize(SrcType) >
+        Self.Context.getTypeSize(DestType)) {
       msg = diag::err_bad_reinterpret_cast_small_int;
       return TC_Failed;
     }
@@ -2457,8 +2457,8 @@ static TryCastResult TryReinterpretCast(Sema &Self, ExprResult &SrcExpr,
     // C++ 5.2.10p4: A pointer can be explicitly converted to any integral
     //   type large enough to hold it; except in Microsoft mode, where the
     //   integral type size doesn't matter (except we don't allow bool).
-    if ((Self.Context.getConstexprTypeSize(SrcType) >
-         Self.Context.getConstexprTypeSize(DestType))) {
+    if ((Self.Context.getTypeSize(SrcType) >
+         Self.Context.getTypeSize(DestType))) {
       bool MicrosoftException =
           Self.getLangOpts().MicrosoftExt && !DestType->isBooleanType();
       if (MicrosoftException) {
@@ -3157,8 +3157,8 @@ void CastOperation::CheckCStyleCast() {
       return;
     }
 
-    if ((Self.Context.getConstexprTypeSize(SrcType) >
-         Self.Context.getConstexprTypeSize(DestType)) &&
+    if ((Self.Context.getTypeSize(SrcType) >
+         Self.Context.getTypeSize(DestType)) &&
         !DestType->isBooleanType()) {
       // C 6.3.2.3p6: Any pointer type may be converted to an integer type.
       // Except as previously specified, the result is implementation-defined.

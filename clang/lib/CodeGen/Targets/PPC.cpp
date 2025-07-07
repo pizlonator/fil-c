@@ -21,7 +21,7 @@ static Address complexTempStructure(CodeGenFunction &CGF, Address VAListAddr,
 
   Address RealAddr = Addr;
   Address ImagAddr = RealAddr;
-  if (CGF.CGM.getDataLayoutBeforeFilC().isBigEndian()) {
+  if (CGF.CGM.getDataLayout().isBigEndian()) {
     RealAddr =
         CGF.Builder.CreateConstInBoundsByteGEP(RealAddr, SlotSize - EltSize);
     ImagAddr = CGF.Builder.CreateConstInBoundsByteGEP(ImagAddr,

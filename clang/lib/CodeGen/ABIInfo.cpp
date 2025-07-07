@@ -23,12 +23,8 @@ llvm::LLVMContext &ABIInfo::getVMContext() const {
   return CGT.getLLVMContext();
 }
 
-const llvm::DataLayout &ABIInfo::getDataLayoutBeforeFilC() const {
-  return CGT.getDataLayoutBeforeFilC();
-}
-
-const llvm::DataLayout &ABIInfo::getDataLayoutAfterFilC() const {
-  return CGT.getDataLayoutAfterFilC();
+const llvm::DataLayout &ABIInfo::getDataLayout() const {
+  return CGT.getDataLayout();
 }
 
 const TargetInfo &ABIInfo::getTarget() const { return CGT.getTarget(); }

@@ -1959,9 +1959,6 @@ Constant *ConstantExpr::getCast(unsigned oc, Constant *C, Type *Ty,
   Instruction::CastOps opc = Instruction::CastOps(oc);
   assert(Instruction::isCast(opc) && "opcode out of range");
   assert(C && Ty && "Null arguments to getCast");
-  //errs() << "opc = " << Instruction::getOpcodeName(opc) << "\n";
-  //errs() << "C = " << *C << "\n";
-  //errs() << "Ty = " << *Ty << "\n";
   assert(CastInst::castIsValid(opc, C, Ty) && "Invalid constantexpr cast!");
 
   switch (opc) {

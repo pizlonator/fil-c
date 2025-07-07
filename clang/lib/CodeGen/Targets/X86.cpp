@@ -1333,7 +1333,7 @@ class X86_64ABIInfo : public ABIInfo {
 public:
   X86_64ABIInfo(CodeGen::CodeGenTypes &CGT, X86AVXABILevel AVXLevel)
       : ABIInfo(CGT), AVXLevel(AVXLevel),
-        Has64BitPointers(CGT.getDataLayoutAfterFilC().getPointerSize(0) == 8) {}
+        Has64BitPointers(CGT.getDataLayout().getPointerSize(0) == 8) {}
 
   bool isPassedUsingAVXType(QualType type) const {
     unsigned neededInt, neededSSE;
@@ -2364,7 +2364,7 @@ static llvm::Type *getFPTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
 llvm::Type *X86_64ABIInfo::
 GetSSETypeAtOffset(llvm::Type *IRType, unsigned IROffset,
                    QualType SourceTy, unsigned SourceOffset) const {
-  const llvm::DataLayout &TD = getDataLayoutAfterFilC();
+  const llvm::DataLayout &TD = getDataLayout();
   unsigned SourceSize =
       (unsigned)getContext().getTypeSize(SourceTy) / 8 - SourceOffset;
   llvm::Type *T0 = getFPTypeAtOffset(IRType, IROffset, TD);
@@ -2452,7 +2452,7 @@ GetINTEGERTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
 
   if (llvm::StructType *STy = dyn_cast<llvm::StructType>(IRType)) {
     // If this is a struct, recurse into the field at the specified offset.
-    const llvm::StructLayout *SL = getDataLayoutAfterFilC().getStructLayout(STy);
+    const llvm::StructLayout *SL = getDataLayout().getStructLayout(STy);
     if (IROffset < SL->getSizeInBytes()) {
       unsigned FieldIdx = SL->getElementContainingOffset(IROffset);
       IROffset -= SL->getElementOffset(FieldIdx);
@@ -2464,7 +2464,7 @@ GetINTEGERTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
 
   if (llvm::ArrayType *ATy = dyn_cast<llvm::ArrayType>(IRType)) {
     llvm::Type *EltTy = ATy->getElementType();
-    unsigned EltSize = getDataLayoutAfterFilC().getTypeAllocSize(EltTy);
+    unsigned EltSize = getDataLayout().getTypeAllocSize(EltTy);
     unsigned EltOffset = IROffset/EltSize*EltSize;
     return GetINTEGERTypeAtOffset(EltTy, IROffset-EltOffset, SourceTy,
                                   SourceOffset);
@@ -2654,7 +2654,7 @@ classifyReturnType(QualType RetTy) const {
   // known to pass in the high eightbyte of the result.  We do this by forming a
   // first class struct aggregate with the high and low part: {low, high}
   if (HighPart)
-    ResType = GetX86_64ByValArgumentPair(ResType, HighPart, getDataLayoutAfterFilC());
+    ResType = GetX86_64ByValArgumentPair(ResType, HighPart, getDataLayout());
 
   return ABIArgInfo::getDirect(ResType);
 }
@@ -2786,7 +2786,7 @@ X86_64ABIInfo::classifyArgumentType(QualType Ty, unsigned freeIntRegs,
   // known to pass in the high eightbyte of the result.  We do this by forming a
   // first class struct aggregate with the high and low part: {low, high}
   if (HighPart)
-    ResType = GetX86_64ByValArgumentPair(ResType, HighPart, getDataLayoutAfterFilC());
+    ResType = GetX86_64ByValArgumentPair(ResType, HighPart, getDataLayout());
 
   return ABIArgInfo::getDirect(ResType);
 }

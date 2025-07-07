@@ -261,7 +261,7 @@ SparcV9ABIInfo::classifyType(QualType Ty, unsigned SizeLimit) const {
   if (!StrTy)
     return ABIArgInfo::getDirect();
 
-  CoerceBuilder CB(getVMContext(), getDataLayoutBeforeFilC());
+  CoerceBuilder CB(getVMContext(), getDataLayout());
   CB.addStruct(0, StrTy);
   CB.pad(llvm::alignTo(CB.DL.getTypeSizeInBits(StrTy), 64));
 
@@ -306,7 +306,7 @@ Address SparcV9ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
   }
 
   case ABIArgInfo::Direct: {
-    auto AllocSize = getDataLayoutBeforeFilC().getTypeAllocSize(AI.getCoerceToType());
+    auto AllocSize = getDataLayout().getTypeAllocSize(AI.getCoerceToType());
     Stride = CharUnits::fromQuantity(AllocSize).alignTo(SlotSize);
     ArgAddr = Addr;
     break;

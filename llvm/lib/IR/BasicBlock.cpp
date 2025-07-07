@@ -411,8 +411,6 @@ BasicBlock *BasicBlock::splitBasicBlock(iterator I, const Twine &BBName,
   if (Before)
     return splitBasicBlockBefore(I, BBName);
 
-  if (!getTerminator())
-    errs() << "BB has no term:\n" << *this << "\n";
   assert(getTerminator() && "Can't use splitBasicBlock on degenerate BB!");
   assert(I != InstList.end() &&
          "Trying to get me to create degenerate basic block!");

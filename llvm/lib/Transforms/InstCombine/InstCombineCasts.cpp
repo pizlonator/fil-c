@@ -1902,7 +1902,7 @@ Instruction *InstCombinerImpl::visitIntToPtr(IntToPtrInst &CI) {
   // cast to be exposed to other transforms.
   unsigned AS = CI.getAddressSpace();
   if (CI.getOperand(0)->getType()->getScalarSizeInBits() !=
-      DL.getPointerPayloadSizeInBits(AS)) {
+      DL.getPointerSizeInBits(AS)) {
     Type *Ty = CI.getOperand(0)->getType()->getWithNewType(
         DL.getIntPtrType(CI.getContext(), AS));
     Value *P = Builder.CreateZExtOrTrunc(CI.getOperand(0), Ty);
@@ -1947,7 +1947,7 @@ Instruction *InstCombinerImpl::visitPtrToInt(PtrToIntInst &CI) {
   Type *Ty = CI.getType();
   unsigned AS = CI.getPointerAddressSpace();
   unsigned TySize = Ty->getScalarSizeInBits();
-  unsigned PtrSize = DL.getPointerPayloadSizeInBits(AS);
+  unsigned PtrSize = DL.getPointerSizeInBits(AS);
   if (TySize != PtrSize) {
     Type *IntPtrTy =
         SrcTy->getWithNewType(DL.getIntPtrType(CI.getContext(), AS));

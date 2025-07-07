@@ -104,7 +104,7 @@ llvm::AllocaInst *CodeGenFunction::CreateTempAlloca(llvm::Type *Ty,
                                                     llvm::Value *ArraySize) {
   if (ArraySize)
     return Builder.CreateAlloca(Ty, ArraySize, Name);
-  return new llvm::AllocaInst(Ty, CGM.getDataLayoutBeforeFilC().getAllocaAddrSpace(),
+  return new llvm::AllocaInst(Ty, CGM.getDataLayout().getAllocaAddrSpace(),
                               ArraySize, Name, AllocaInsertPt);
 }
 
@@ -115,7 +115,7 @@ llvm::AllocaInst *CodeGenFunction::CreateTempAlloca(llvm::Type *Ty,
 Address CodeGenFunction::CreateDefaultAlignTempAlloca(llvm::Type *Ty,
                                                       const Twine &Name) {
   CharUnits Align =
-      CharUnits::fromQuantity(CGM.getDataLayoutBeforeFilC().getPrefTypeAlign(Ty));
+      CharUnits::fromQuantity(CGM.getDataLayout().getPrefTypeAlign(Ty));
   return CreateTempAlloca(Ty, Align, Name);
 }
 
@@ -518,7 +518,7 @@ EmitMaterializeTemporaryExpr(const MaterializeTemporaryExpr *M) {
     switch (M->getStorageDuration()) {
     case SD_Automatic:
       if (auto *Size = EmitLifetimeStart(
-              CGM.getDataLayoutBeforeFilC().getTypeAllocSize(Alloca.getElementType()),
+              CGM.getDataLayout().getTypeAllocSize(Alloca.getElementType()),
               Alloca.getPointer())) {
         pushCleanupAfterFullExpr<CallLifetimeEnd>(NormalEHLifetimeMarker,
                                                   Alloca, Size);
@@ -553,7 +553,7 @@ EmitMaterializeTemporaryExpr(const MaterializeTemporaryExpr *M) {
       }
 
       if (auto *Size = EmitLifetimeStart(
-              CGM.getDataLayoutBeforeFilC().getTypeAllocSize(Alloca.getElementType()),
+              CGM.getDataLayout().getTypeAllocSize(Alloca.getElementType()),
               Alloca.getPointer())) {
         pushFullExprCleanup<CallLifetimeEnd>(NormalEHLifetimeMarker, Alloca,
                                              Size);
@@ -2090,7 +2090,7 @@ RValue CodeGenFunction::EmitLoadOfGlobalRegLValue(LValue LV) {
   llvm::Type *OrigTy = CGM.getTypes().ConvertType(LV.getType());
   llvm::Type *Ty = OrigTy;
   if (OrigTy->isPointerTy())
-    Ty = CGM.getTypes().getDataLayoutBeforeFilC().getIntPtrType(OrigTy);
+    Ty = CGM.getTypes().getDataLayout().getIntPtrType(OrigTy);
   llvm::Type *Types[] = { Ty };
 
   llvm::Function *F = CGM.getIntrinsic(llvm::Intrinsic::read_register, Types);
@@ -2381,7 +2381,7 @@ void CodeGenFunction::EmitStoreThroughGlobalRegLValue(RValue Src, LValue Dst) {
   llvm::Type *OrigTy = CGM.getTypes().ConvertType(Dst.getType());
   llvm::Type *Ty = OrigTy;
   if (OrigTy->isPointerTy())
-    Ty = CGM.getTypes().getDataLayoutBeforeFilC().getIntPtrType(OrigTy);
+    Ty = CGM.getTypes().getDataLayout().getIntPtrType(OrigTy);
   llvm::Type *Types[] = { Ty };
 
   llvm::Function *F = CGM.getIntrinsic(llvm::Intrinsic::write_register, Types);
@@ -3351,7 +3351,7 @@ void CodeGenFunction::EmitCheck(
           CGM.getModule(), Info->getType(), false,
           llvm::GlobalVariable::PrivateLinkage, Info, "", nullptr,
           llvm::GlobalVariable::NotThreadLocal,
-          CGM.getDataLayoutBeforeFilC().getDefaultGlobalsAddressSpace());
+          CGM.getDataLayout().getDefaultGlobalsAddressSpace());
       InfoPtr->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
       CGM.getSanitizerMetadata()->disableSanitizerForGlobal(InfoPtr);
       Args.push_back(InfoPtr);

@@ -191,7 +191,7 @@ CodeGen::emitVoidPtrDirectVAArg(CodeGenFunction &CGF, Address VAListAddr,
 
   // If the argument is smaller than a slot, and this is a big-endian
   // target, the argument will be right-adjusted in its slot.
-  if (DirectSize < SlotSize && CGF.CGM.getDataLayoutBeforeFilC().isBigEndian() &&
+  if (DirectSize < SlotSize && CGF.CGM.getDataLayout().isBigEndian() &&
       (!DirectTy->isStructTy() || ForceRightAdjust)) {
     Addr = CGF.Builder.CreateConstInBoundsByteGEP(Addr, SlotSize - DirectSize);
   }
@@ -218,7 +218,7 @@ Address CodeGen::emitVoidPtrVAArg(CodeGenFunction &CGF, Address VAListAddr,
   // Cast the address we've calculated to the right type.
   llvm::Type *DirectTy = CGF.ConvertTypeForMem(ValueTy), *ElementTy = DirectTy;
   if (IsIndirect) {
-    unsigned AllocaAS = CGF.CGM.getDataLayoutBeforeFilC().getAllocaAddrSpace();
+    unsigned AllocaAS = CGF.CGM.getDataLayout().getAllocaAddrSpace();
     DirectTy = llvm::PointerType::get(CGF.getLLVMContext(), AllocaAS);
   }
 

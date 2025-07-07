@@ -111,7 +111,7 @@ llvm::GlobalVariable *CodeGenVTables::GetAddrOfVTT(const CXXRecordDecl *RD) {
 
   llvm::ArrayType *ArrayType = llvm::ArrayType::get(
       CGM.GlobalsInt8PtrTy, Builder.getVTTComponents().size());
-  llvm::Align Align = CGM.getDataLayoutBeforeFilC().getABITypeAlign(CGM.GlobalsInt8PtrTy);
+  llvm::Align Align = CGM.getDataLayout().getABITypeAlign(CGM.GlobalsInt8PtrTy);
 
   llvm::GlobalVariable *GV = CGM.CreateOrReplaceCXXRuntimeVariable(
       Name, ArrayType, llvm::GlobalValue::ExternalLinkage, Align);

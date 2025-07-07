@@ -57,8 +57,7 @@ public:
   CodeGen::CGCXXABI &getCXXABI() const;
   ASTContext &getContext() const;
   llvm::LLVMContext &getVMContext() const;
-  const llvm::DataLayout &getDataLayoutBeforeFilC() const;
-  const llvm::DataLayout &getDataLayoutAfterFilC() const;
+  const llvm::DataLayout &getDataLayout() const;
   const TargetInfo &getTarget() const;
   const CodeGenOptions &getCodeGenOpts() const;
 

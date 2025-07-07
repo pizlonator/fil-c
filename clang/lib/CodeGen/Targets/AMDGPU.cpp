@@ -277,7 +277,7 @@ public:
 
   LangAS getASTAllocaAddressSpace() const override {
     return getLangASFromTargetAS(
-        getABIInfo().getDataLayoutBeforeFilC().getAllocaAddrSpace());
+        getABIInfo().getDataLayout().getAllocaAddrSpace());
   }
   LangAS getGlobalVarAddressSpace(CodeGenModule &CGM,
                                   const VarDecl *D) const override;
@@ -569,7 +569,7 @@ llvm::Value *AMDGPUTargetCodeGenInfo::createEnqueuedBlockKernel(
   auto IP = CGF.Builder.saveIP();
   auto *BB = llvm::BasicBlock::Create(C, "entry", F);
   Builder.SetInsertPoint(BB);
-  const auto BlockAlign = CGF.CGM.getDataLayoutBeforeFilC().getPrefTypeAlign(BlockTy);
+  const auto BlockAlign = CGF.CGM.getDataLayout().getPrefTypeAlign(BlockTy);
   auto *BlockPtr = Builder.CreateAlloca(BlockTy, nullptr);
   BlockPtr->setAlignment(BlockAlign);
   Builder.CreateAlignedStore(F->arg_begin(), BlockPtr, BlockAlign);

@@ -1293,7 +1293,7 @@ unsigned TargetLibraryInfoImpl::getSizeTSize(const Module &M) const {
   // unfortunate as well. Maybe getDefaultGlobalsAddressSpace() or
   // getAllocaAddrSpace() is better.
   unsigned AddressSpace = 0;
-  return M.getDataLayout().getPointerPayloadSizeInBits(AddressSpace);
+  return M.getDataLayout().getPointerSizeInBits(AddressSpace);
 }
 
 TargetLibraryInfoWrapperPass::TargetLibraryInfoWrapperPass()

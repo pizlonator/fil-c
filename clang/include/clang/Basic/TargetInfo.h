@@ -82,8 +82,7 @@ enum class FloatModeKind {
 /// be copied for targets like AMDGPU that base their ABIs on an auxiliary
 /// CPU target.
 struct TransferrableTargetInfo {
-  unsigned short PointerWidth, PointerAlign;
-  unsigned char ConstexprPointerWidth, ConstexprPointerAlign;
+  unsigned char PointerWidth, PointerAlign;
   unsigned char BoolWidth, BoolAlign;
   unsigned char IntWidth, IntAlign;
   unsigned char HalfWidth, HalfAlign;
@@ -455,26 +454,14 @@ public:
     return AddrSpace == LangAS::Default ? PointerWidth
                                         : getPointerWidthV(AddrSpace);
   }
-  uint64_t getConstexprPointerWidth(LangAS AddrSpace) const {
-    return AddrSpace == LangAS::Default ? ConstexprPointerWidth
-                                        : getPointerWidthV(AddrSpace);
-  }
   uint64_t getPointerAlign(LangAS AddrSpace) const {
     return AddrSpace == LangAS::Default ? PointerAlign
-                                        : getPointerAlignV(AddrSpace);
-  }
-  uint64_t getConstexprPointerAlign(LangAS AddrSpace) const {
-    return AddrSpace == LangAS::Default ? ConstexprPointerAlign
                                         : getPointerAlignV(AddrSpace);
   }
 
   /// Return the maximum width of pointers on this target.
   virtual uint64_t getMaxPointerWidth() const {
     return PointerWidth;
-  }
-
-  virtual uint64_t getMaxConstexprPointerWidth() const {
-    return ConstexprPointerWidth;
   }
 
   /// Get integer value for null pointer.

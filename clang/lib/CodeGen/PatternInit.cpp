@@ -44,7 +44,7 @@ llvm::Constant *clang::CodeGen::initializationPatternFor(CodeGenModule &CGM,
   if (Ty->isPtrOrPtrVectorTy()) {
     auto *PtrTy = cast<llvm::PointerType>(Ty->getScalarType());
     unsigned PtrWidth =
-        CGM.getDataLayoutAfterFilC().getPointerSizeInBits(PtrTy->getAddressSpace());
+        CGM.getDataLayout().getPointerSizeInBits(PtrTy->getAddressSpace());
     if (PtrWidth > 64)
       llvm_unreachable("pattern initialization of unsupported pointer width");
     llvm::Type *IntTy = llvm::IntegerType::get(CGM.getLLVMContext(), PtrWidth);

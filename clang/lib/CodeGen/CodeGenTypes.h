@@ -98,11 +98,8 @@ public:
   CodeGenTypes(CodeGenModule &cgm);
   ~CodeGenTypes();
 
-  const llvm::DataLayout &getDataLayoutBeforeFilC() const {
+  const llvm::DataLayout &getDataLayout() const {
     return TheModule.getDataLayout();
-  }
-  const llvm::DataLayout &getDataLayoutAfterFilC() const {
-    return TheModule.getDataLayoutAfterFilC();
   }
   CodeGenModule &getCGM() const { return CGM; }
   ASTContext &getContext() const { return Context; }

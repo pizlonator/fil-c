@@ -362,7 +362,7 @@ CGObjCRuntime::MessageSendInfo
 CGObjCRuntime::getMessageSendInfo(const ObjCMethodDecl *method,
                                   QualType resultType,
                                   CallArgList &callArgs) {
-  unsigned ProgramAS = CGM.getDataLayoutBeforeFilC().getProgramAddressSpace();
+  unsigned ProgramAS = CGM.getDataLayout().getProgramAddressSpace();
 
   llvm::PointerType *signatureType =
       llvm::PointerType::get(CGM.getLLVMContext(), ProgramAS);

@@ -92,7 +92,7 @@ llvm::Function *GetOpenMPVprintfDeclaration(CodeGenModule &CGM) {
 
 std::pair<llvm::Value *, llvm::TypeSize>
 packArgsIntoNVPTXFormatBuffer(CodeGenFunction *CGF, const CallArgList &Args) {
-  const llvm::DataLayout &DL = CGF->CGM.getDataLayoutBeforeFilC();
+  const llvm::DataLayout &DL = CGF->CGM.getDataLayout();
   llvm::LLVMContext &Ctx = CGF->CGM.getLLVMContext();
   CGBuilderTy &Builder = CGF->Builder;
 

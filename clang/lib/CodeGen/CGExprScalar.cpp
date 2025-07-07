@@ -1395,7 +1395,7 @@ Value *ScalarExprEmitter::EmitScalarConversion(Value *Src, QualType SrcType,
     assert(SrcType->isIntegerType() && "Not ptr->ptr or int->ptr conversion?");
     // First, convert to the correct width so that we control the kind of
     // extension.
-    llvm::Type *MiddleTy = CGF.CGM.getDataLayoutBeforeFilC().getIntPtrType(DstPT);
+    llvm::Type *MiddleTy = CGF.CGM.getDataLayout().getIntPtrType(DstPT);
     bool InputSigned = SrcType->isSignedIntegerOrEnumerationType();
     llvm::Value* IntResult =
         Builder.CreateIntCast(Src, MiddleTy, InputSigned, "conv");
@@ -2341,7 +2341,7 @@ Value *ScalarExprEmitter::VisitCastExpr(CastExpr *CE) {
     // First, convert to the correct width so that we control the kind of
     // extension.
     auto DestLLVMTy = ConvertType(DestTy);
-    llvm::Type *MiddleTy = CGF.CGM.getDataLayoutBeforeFilC().getIntPtrType(DestLLVMTy);
+    llvm::Type *MiddleTy = CGF.CGM.getDataLayout().getIntPtrType(DestLLVMTy);
     bool InputSigned = E->getType()->isSignedIntegerOrEnumerationType();
     llvm::Value* IntResult =
       Builder.CreateIntCast(Src, MiddleTy, InputSigned, "conv");
@@ -3636,7 +3636,7 @@ static Value *emitPointerArithmetic(CodeGenFunction &CGF,
   bool isSigned = indexOperand->getType()->isSignedIntegerOrEnumerationType();
 
   unsigned width = cast<llvm::IntegerType>(index->getType())->getBitWidth();
-  auto &DL = CGF.CGM.getDataLayoutBeforeFilC();
+  auto &DL = CGF.CGM.getDataLayout();
   auto PtrTy = cast<llvm::PointerType>(pointer->getType());
 
   // Some versions of glibc and gcc use idioms (particularly in their malloc
@@ -5043,7 +5043,7 @@ Value *ScalarExprEmitter::VisitAsTypeExpr(AsTypeExpr *E) {
   // vector to get a vec4, then a bitcast if the target type is different.
   if (NumElementsSrc == 3 && NumElementsDst != 3) {
     Src = ConvertVec3AndVec4(Builder, CGF, Src, 4);
-    Src = createCastsForTypeOfSameSize(Builder, CGF.CGM.getDataLayoutBeforeFilC(), Src,
+    Src = createCastsForTypeOfSameSize(Builder, CGF.CGM.getDataLayout(), Src,
                                        DstTy);
 
     Src->setName("astype");
@@ -5056,7 +5056,7 @@ Value *ScalarExprEmitter::VisitAsTypeExpr(AsTypeExpr *E) {
   if (NumElementsSrc != 3 && NumElementsDst == 3) {
     auto *Vec4Ty = llvm::FixedVectorType::get(
         cast<llvm::VectorType>(DstTy)->getElementType(), 4);
-    Src = createCastsForTypeOfSameSize(Builder, CGF.CGM.getDataLayoutBeforeFilC(), Src,
+    Src = createCastsForTypeOfSameSize(Builder, CGF.CGM.getDataLayout(), Src,
                                        Vec4Ty);
 
     Src = ConvertVec3AndVec4(Builder, CGF, Src, 3);
@@ -5064,7 +5064,7 @@ Value *ScalarExprEmitter::VisitAsTypeExpr(AsTypeExpr *E) {
     return Src;
   }
 
-  return createCastsForTypeOfSameSize(Builder, CGF.CGM.getDataLayoutBeforeFilC(),
+  return createCastsForTypeOfSameSize(Builder, CGF.CGM.getDataLayout(),
                                       Src, DstTy, "astype");
 }
 
@@ -5210,7 +5210,7 @@ static GEPOffsetAndOverflow EmitGEPOffsetInBytes(Value *BasePtr, Value *GEPVal,
                                                  llvm::LLVMContext &VMContext,
                                                  CodeGenModule &CGM,
                                                  CGBuilderTy &Builder) {
-  const auto &DL = CGM.getDataLayoutBeforeFilC();
+  const auto &DL = CGM.getDataLayout();
 
   // The total (signed) byte offset for the GEP.
   llvm::Value *TotalOffset = nullptr;
@@ -5324,7 +5324,7 @@ CodeGenFunction::EmitCheckedInBoundsGEP(llvm::Type *ElemTy, Value *Ptr,
   if (!(PerformNullCheck || PerformOverflowCheck))
     return GEPVal;
 
-  const auto &DL = CGM.getDataLayoutBeforeFilC();
+  const auto &DL = CGM.getDataLayout();
 
   SanitizerScope SanScope(this);
   llvm::Type *IntPtrTy = DL.getIntPtrType(PtrTy);

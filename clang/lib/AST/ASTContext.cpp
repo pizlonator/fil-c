@@ -1731,7 +1731,7 @@ CharUnits ASTContext::getDeclAlign(const Decl *D, bool ForAlignof) const {
             Align = std::max(Align, Target->getLargeArrayAlign());
         }
       }
-      Align = std::max(Align, getPreferredTypeAlign(T.getTypePtr(), ConstexprOrNot::Not));
+      Align = std::max(Align, getPreferredTypeAlign(T.getTypePtr()));
       if (BaseT.getQualifiers().hasUnaligned())
         Align = Target->getCharWidth();
       if (const auto *VD = dyn_cast<VarDecl>(D)) {
@@ -1816,14 +1816,12 @@ static getConstantArrayInfoInChars(const ASTContext &Context,
               (uint64_t)(-1)/Size) &&
          "Overflow in array type char size evaluation");
   uint64_t Width = EltInfo.Width.getQuantity() * Size;
-  uint64_t ConstexprWidth = EltInfo.ConstexprWidth.getQuantity() * Size;
   unsigned Align = EltInfo.Align.getQuantity();
-  unsigned ConstexprAlign = EltInfo.ConstexprAlign.getQuantity();
   if (!Context.getTargetInfo().getCXXABI().isMicrosoft() ||
       Context.getTargetInfo().getPointerWidth(LangAS::Default) == 64)
     Width = llvm::alignTo(Width, Align);
-  return TypeInfoChars(CharUnits::fromQuantity(Width), CharUnits::fromQuantity(ConstexprWidth),
-                       CharUnits::fromQuantity(Align), CharUnits::fromQuantity(ConstexprAlign),
+  return TypeInfoChars(CharUnits::fromQuantity(Width),
+                       CharUnits::fromQuantity(Align),
                        EltInfo.AlignRequirement);
 }
 
@@ -1831,9 +1829,8 @@ TypeInfoChars ASTContext::getTypeInfoInChars(const Type *T) const {
   if (const auto *CAT = dyn_cast<ConstantArrayType>(T))
     return getConstantArrayInfoInChars(*this, CAT);
   TypeInfo Info = getTypeInfo(T);
-  return TypeInfoChars(toCharUnitsFromBits(Info.Width), toCharUnitsFromBits(Info.ConstexprWidth),
-                       toCharUnitsFromBits(Info.Align), toCharUnitsFromBits(Info.ConstexprAlign),
-                       Info.AlignRequirement);
+  return TypeInfoChars(toCharUnitsFromBits(Info.Width),
+                       toCharUnitsFromBits(Info.Align), Info.AlignRequirement);
 }
 
 TypeInfoChars ASTContext::getTypeInfoInChars(QualType T) const {
@@ -1896,7 +1893,7 @@ unsigned ASTContext::getTypeAlignIfKnown(QualType T,
   // If we have an (array of) complete type, we're done.
   T = getBaseElementType(T);
   if (!T->isIncompleteType())
-    return NeedsPreferredAlignment ? getPreferredTypeAlign(T, ConstexprOrNot::Not) : getTypeAlign(T);
+    return NeedsPreferredAlignment ? getPreferredTypeAlign(T) : getTypeAlign(T);
 
   // If we had an array type, its element type might be a typedef
   // type with an alignment attribute.
@@ -1930,9 +1927,7 @@ TypeInfo ASTContext::getTypeInfo(const Type *T) const {
 /// should take a QualType, &c.
 TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
   uint64_t Width = 0;
-  uint64_t ConstexprWidth = 0;
   unsigned Align = 8;
-  unsigned ConstexprAlign = 8;
   AlignRequirementKind AlignRequirement = AlignRequirementKind::None;
   LangAS AS = LangAS::Default;
   switch (T->getTypeClass()) {
@@ -1951,9 +1946,7 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
   case Type::FunctionProto:
     // GCC extension: alignof(function) = 32 bits
     Width = 0;
-    ConstexprWidth = 0;
     Align = 32;
-    ConstexprAlign = 32;
     break;
 
   case Type::IncompleteArray:
@@ -1968,15 +1961,11 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     assert((Size == 0 || EltInfo.Width <= (uint64_t)(-1) / Size) &&
            "Overflow in array type bit size evaluation");
     Width = EltInfo.Width * Size;
-    ConstexprWidth = EltInfo.ConstexprWidth * Size;
     Align = EltInfo.Align;
-    ConstexprAlign = EltInfo.ConstexprAlign;
     AlignRequirement = EltInfo.AlignRequirement;
     if (!getTargetInfo().getCXXABI().isMicrosoft() ||
-        getTargetInfo().getPointerWidth(LangAS::Default) == 64) {
+        getTargetInfo().getPointerWidth(LangAS::Default) == 64)
       Width = llvm::alignTo(Width, Align);
-      ConstexprWidth = llvm::alignTo(ConstexprWidth, Align);
-    }
     break;
   }
 
@@ -1986,20 +1975,15 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     TypeInfo EltInfo = getTypeInfo(VT->getElementType());
     Width = VT->isExtVectorBoolType() ? VT->getNumElements()
                                       : EltInfo.Width * VT->getNumElements();
-    ConstexprWidth = VT->isExtVectorBoolType() ? VT->getNumElements()
-                                      : EltInfo.ConstexprWidth * VT->getNumElements();
     // Enforce at least byte size and alignment.
     Width = std::max<unsigned>(8, Width);
-    ConstexprWidth = std::max<unsigned>(8, ConstexprWidth);
     Align = std::max<unsigned>(8, Width);
-    ConstexprAlign = std::max<unsigned>(8, Width);
 
     // If the alignment is not a power of 2, round up to the next power of 2.
     // This happens for non-power-of-2 length vectors.
     if (Align & (Align-1)) {
       Align = llvm::bit_ceil(Align);
       Width = llvm::alignTo(Width, Align);
-      ConstexprWidth = llvm::alignTo(ConstexprWidth, Align);
     }
     // Adjust the alignment based on the target max.
     uint64_t TargetVectorAlign = Target->getMaxVectorAlign();
@@ -2015,7 +1999,6 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     else if (VT->getVectorKind() == VectorType::RVVFixedLengthDataVector)
       // Adjust the alignment for fixed-length RVV vectors.
       Align = std::min<unsigned>(64, Width);
-    ConstexprAlign = std::max<unsigned>(Align, ConstexprAlign);
     break;
   }
 
@@ -2026,9 +2009,7 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     // Initially be ABI compatible with arrays with respect to alignment and
     // size.
     Width = ElementInfo.Width * MT->getNumRows() * MT->getNumColumns();
-    ConstexprWidth = ElementInfo.ConstexprWidth * MT->getNumRows() * MT->getNumColumns();
     Align = ElementInfo.Align;
-    ConstexprAlign = ElementInfo.ConstexprAlign;
     break;
   }
 
@@ -2038,12 +2019,10 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     case BuiltinType::Void:
       // GCC extension: alignof(void) = 8 bits.
       Width = 0;
-      ConstexprWidth = 0;
       Align = 8;
-      ConstexprAlign = 8;
       break;
     case BuiltinType::Bool:
-      ConstexprWidth = Width = Target->getBoolWidth();
+      Width = Target->getBoolWidth();
       Align = Target->getBoolAlign();
       break;
     case BuiltinType::Char_S:
@@ -2051,159 +2030,159 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     case BuiltinType::UChar:
     case BuiltinType::SChar:
     case BuiltinType::Char8:
-      ConstexprWidth = Width = Target->getCharWidth();
-      ConstexprAlign = Align = Target->getCharAlign();
+      Width = Target->getCharWidth();
+      Align = Target->getCharAlign();
       break;
     case BuiltinType::WChar_S:
     case BuiltinType::WChar_U:
-      ConstexprWidth = Width = Target->getWCharWidth();
-      ConstexprAlign = Align = Target->getWCharAlign();
+      Width = Target->getWCharWidth();
+      Align = Target->getWCharAlign();
       break;
     case BuiltinType::Char16:
-      ConstexprWidth = Width = Target->getChar16Width();
-      ConstexprAlign = Align = Target->getChar16Align();
+      Width = Target->getChar16Width();
+      Align = Target->getChar16Align();
       break;
     case BuiltinType::Char32:
-      ConstexprWidth = Width = Target->getChar32Width();
-      ConstexprAlign = Align = Target->getChar32Align();
+      Width = Target->getChar32Width();
+      Align = Target->getChar32Align();
       break;
     case BuiltinType::UShort:
     case BuiltinType::Short:
-      ConstexprWidth = Width = Target->getShortWidth();
-      ConstexprAlign = Align = Target->getShortAlign();
+      Width = Target->getShortWidth();
+      Align = Target->getShortAlign();
       break;
     case BuiltinType::UInt:
     case BuiltinType::Int:
-      ConstexprWidth = Width = Target->getIntWidth();
-      ConstexprAlign = Align = Target->getIntAlign();
+      Width = Target->getIntWidth();
+      Align = Target->getIntAlign();
       break;
     case BuiltinType::ULong:
     case BuiltinType::Long:
-      ConstexprWidth = Width = Target->getLongWidth();
-      ConstexprAlign = Align = Target->getLongAlign();
+      Width = Target->getLongWidth();
+      Align = Target->getLongAlign();
       break;
     case BuiltinType::ULongLong:
     case BuiltinType::LongLong:
-      ConstexprWidth = Width = Target->getLongLongWidth();
-      ConstexprAlign = Align = Target->getLongLongAlign();
+      Width = Target->getLongLongWidth();
+      Align = Target->getLongLongAlign();
       break;
     case BuiltinType::Int128:
     case BuiltinType::UInt128:
-      ConstexprWidth = Width = 128;
-      ConstexprAlign = Align = Target->getInt128Align();
+      Width = 128;
+      Align = Target->getInt128Align();
       break;
     case BuiltinType::ShortAccum:
     case BuiltinType::UShortAccum:
     case BuiltinType::SatShortAccum:
     case BuiltinType::SatUShortAccum:
-      ConstexprWidth = Width = Target->getShortAccumWidth();
-      ConstexprAlign = Align = Target->getShortAccumAlign();
+      Width = Target->getShortAccumWidth();
+      Align = Target->getShortAccumAlign();
       break;
     case BuiltinType::Accum:
     case BuiltinType::UAccum:
     case BuiltinType::SatAccum:
     case BuiltinType::SatUAccum:
-      ConstexprWidth = Width = Target->getAccumWidth();
-      ConstexprAlign = Align = Target->getAccumAlign();
+      Width = Target->getAccumWidth();
+      Align = Target->getAccumAlign();
       break;
     case BuiltinType::LongAccum:
     case BuiltinType::ULongAccum:
     case BuiltinType::SatLongAccum:
     case BuiltinType::SatULongAccum:
-      ConstexprWidth = Width = Target->getLongAccumWidth();
-      ConstexprAlign = Align = Target->getLongAccumAlign();
+      Width = Target->getLongAccumWidth();
+      Align = Target->getLongAccumAlign();
       break;
     case BuiltinType::ShortFract:
     case BuiltinType::UShortFract:
     case BuiltinType::SatShortFract:
     case BuiltinType::SatUShortFract:
-      ConstexprWidth = Width = Target->getShortFractWidth();
-      ConstexprAlign = Align = Target->getShortFractAlign();
+      Width = Target->getShortFractWidth();
+      Align = Target->getShortFractAlign();
       break;
     case BuiltinType::Fract:
     case BuiltinType::UFract:
     case BuiltinType::SatFract:
     case BuiltinType::SatUFract:
-      ConstexprWidth = Width = Target->getFractWidth();
-      ConstexprAlign = Align = Target->getFractAlign();
+      Width = Target->getFractWidth();
+      Align = Target->getFractAlign();
       break;
     case BuiltinType::LongFract:
     case BuiltinType::ULongFract:
     case BuiltinType::SatLongFract:
     case BuiltinType::SatULongFract:
-      ConstexprWidth = Width = Target->getLongFractWidth();
-      ConstexprAlign = Align = Target->getLongFractAlign();
+      Width = Target->getLongFractWidth();
+      Align = Target->getLongFractAlign();
       break;
     case BuiltinType::BFloat16:
       if (Target->hasBFloat16Type()) {
-        ConstexprWidth = Width = Target->getBFloat16Width();
-        ConstexprAlign = Align = Target->getBFloat16Align();
+        Width = Target->getBFloat16Width();
+        Align = Target->getBFloat16Align();
       } else if ((getLangOpts().SYCLIsDevice ||
                   (getLangOpts().OpenMP &&
                    getLangOpts().OpenMPIsTargetDevice)) &&
                  AuxTarget->hasBFloat16Type()) {
-        ConstexprWidth = Width = AuxTarget->getBFloat16Width();
-        ConstexprAlign = Align = AuxTarget->getBFloat16Align();
+        Width = AuxTarget->getBFloat16Width();
+        Align = AuxTarget->getBFloat16Align();
       }
       break;
     case BuiltinType::Float16:
     case BuiltinType::Half:
       if (Target->hasFloat16Type() || !getLangOpts().OpenMP ||
           !getLangOpts().OpenMPIsTargetDevice) {
-        ConstexprWidth = Width = Target->getHalfWidth();
-        ConstexprAlign = Align = Target->getHalfAlign();
+        Width = Target->getHalfWidth();
+        Align = Target->getHalfAlign();
       } else {
         assert(getLangOpts().OpenMP && getLangOpts().OpenMPIsTargetDevice &&
                "Expected OpenMP device compilation.");
-        ConstexprWidth = Width = AuxTarget->getHalfWidth();
-        ConstexprAlign = Align = AuxTarget->getHalfAlign();
+        Width = AuxTarget->getHalfWidth();
+        Align = AuxTarget->getHalfAlign();
       }
       break;
     case BuiltinType::Float:
-      ConstexprWidth = Width = Target->getFloatWidth();
-      ConstexprAlign = Align = Target->getFloatAlign();
+      Width = Target->getFloatWidth();
+      Align = Target->getFloatAlign();
       break;
     case BuiltinType::Double:
-      ConstexprWidth = Width = Target->getDoubleWidth();
-      ConstexprAlign = Align = Target->getDoubleAlign();
+      Width = Target->getDoubleWidth();
+      Align = Target->getDoubleAlign();
       break;
     case BuiltinType::Ibm128:
-      ConstexprWidth = Width = Target->getIbm128Width();
-      ConstexprAlign = Align = Target->getIbm128Align();
+      Width = Target->getIbm128Width();
+      Align = Target->getIbm128Align();
       break;
     case BuiltinType::LongDouble:
       if (getLangOpts().OpenMP && getLangOpts().OpenMPIsTargetDevice &&
           (Target->getLongDoubleWidth() != AuxTarget->getLongDoubleWidth() ||
            Target->getLongDoubleAlign() != AuxTarget->getLongDoubleAlign())) {
-        ConstexprWidth = Width = AuxTarget->getLongDoubleWidth();
-        ConstexprAlign = Align = AuxTarget->getLongDoubleAlign();
+        Width = AuxTarget->getLongDoubleWidth();
+        Align = AuxTarget->getLongDoubleAlign();
       } else {
-        ConstexprWidth = Width = Target->getLongDoubleWidth();
-        ConstexprAlign = Align = Target->getLongDoubleAlign();
+        Width = Target->getLongDoubleWidth();
+        Align = Target->getLongDoubleAlign();
       }
       break;
     case BuiltinType::Float128:
       if (Target->hasFloat128Type() || !getLangOpts().OpenMP ||
           !getLangOpts().OpenMPIsTargetDevice) {
-        ConstexprWidth = Width = Target->getFloat128Width();
-        ConstexprAlign = Align = Target->getFloat128Align();
+        Width = Target->getFloat128Width();
+        Align = Target->getFloat128Align();
       } else {
         assert(getLangOpts().OpenMP && getLangOpts().OpenMPIsTargetDevice &&
                "Expected OpenMP device compilation.");
-        ConstexprWidth = Width = AuxTarget->getFloat128Width();
-        ConstexprAlign = Align = AuxTarget->getFloat128Align();
+        Width = AuxTarget->getFloat128Width();
+        Align = AuxTarget->getFloat128Align();
       }
       break;
     case BuiltinType::NullPtr:
       // C++ 3.9.1p11: sizeof(nullptr_t) == sizeof(void*)
-      ConstexprWidth = Width = Target->getConstexprPointerWidth(LangAS::Default);
-      ConstexprAlign = Align = Target->getPointerAlign(LangAS::Default);
+      Width = Target->getPointerWidth(LangAS::Default);
+      Align = Target->getPointerAlign(LangAS::Default);
       break;
     case BuiltinType::ObjCId:
     case BuiltinType::ObjCClass:
     case BuiltinType::ObjCSel:
-      ConstexprWidth = Width = Target->getPointerWidth(LangAS::Default);
-      ConstexprAlign = Align = Target->getPointerAlign(LangAS::Default);
+      Width = Target->getPointerWidth(LangAS::Default);
+      Align = Target->getPointerAlign(LangAS::Default);
       break;
     case BuiltinType::OCLSampler:
     case BuiltinType::OCLEvent:
@@ -2218,8 +2197,7 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
 #include "clang/Basic/OpenCLExtensionTypes.def"
       AS = Target->getOpenCLTypeAddrSpace(getOpenCLTypeKind(T));
       Width = Target->getPointerWidth(AS);
-      ConstexprWidth = Target->getConstexprPointerWidth(AS);
-      ConstexprAlign = Align = Target->getPointerAlign(AS);
+      Align = Target->getPointerAlign(AS);
       break;
     // The SVE types are effectively target-specific.  The length of an
     // SVE_VECTOR_TYPE is only known at runtime, but it is always a multiple
@@ -2232,58 +2210,54 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
 #define SVE_VECTOR_TYPE(Name, MangledName, Id, SingletonId, NumEls, ElBits,    \
                         IsSigned, IsFP, IsBF)                                  \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = 0;                                                \
-    ConstexprAlign = Align = 128;                                              \
+    Width = 0;                                                                 \
+    Align = 128;                                                               \
     break;
 #define SVE_PREDICATE_TYPE(Name, MangledName, Id, SingletonId, NumEls)         \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = 0;                                                \
-    ConstexprAlign = Align = 16;                                               \
+    Width = 0;                                                                 \
+    Align = 16;                                                                \
     break;
 #define SVE_OPAQUE_TYPE(Name, MangledName, Id, SingletonId)                    \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = 0;                                                \
-    ConstexprAlign = Align = 16;                                               \
+    Width = 0;                                                                 \
+    Align = 16;                                                                \
     break;
 #include "clang/Basic/AArch64SVEACLETypes.def"
 #define PPC_VECTOR_TYPE(Name, Id, Size)                                        \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = Size;                                             \
-    ConstexprAlign = Align = Size;                                             \
+    Width = Size;                                                              \
+    Align = Size;                                                              \
     break;
 #include "clang/Basic/PPCTypes.def"
 #define RVV_VECTOR_TYPE(Name, Id, SingletonId, ElKind, ElBits, NF, IsSigned,   \
                         IsFP)                                                  \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = 0;                                                \
-    ConstexprAlign = Align = ElBits;                                           \
+    Width = 0;                                                                 \
+    Align = ElBits;                                                            \
     break;
 #define RVV_PREDICATE_TYPE(Name, Id, SingletonId, ElKind)                      \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = 0;                                                \
-    ConstexprAlign = Align = 8;                                                \
+    Width = 0;                                                                 \
+    Align = 8;                                                                 \
     break;
 #include "clang/Basic/RISCVVTypes.def"
 #define WASM_TYPE(Name, Id, SingletonId)                                       \
   case BuiltinType::Id:                                                        \
-    ConstexprWidth = Width = 0;                                                \
-    ConstexprAlign = Align = 8;                                                \
+    Width = 0;                                                                 \
+    Align = 8;                                                                 \
     break;
 #include "clang/Basic/WebAssemblyReferenceTypes.def"
     }
     break;
   case Type::ObjCObjectPointer:
     Width = Target->getPointerWidth(LangAS::Default);
-    ConstexprWidth = Target->getConstexprPointerWidth(LangAS::Default);
     Align = Target->getPointerAlign(LangAS::Default);
-    ConstexprAlign = Target->getConstexprPointerAlign(LangAS::Default);
     break;
   case Type::BlockPointer:
     AS = cast<BlockPointerType>(T)->getPointeeType().getAddressSpace();
     Width = Target->getPointerWidth(AS);
-    ConstexprWidth = Target->getConstexprPointerWidth(AS);
     Align = Target->getPointerAlign(AS);
-    ConstexprAlign = Target->getConstexprPointerAlign(LangAS::Default);
     break;
   case Type::LValueReference:
   case Type::RValueReference:
@@ -2291,33 +2265,26 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     // the pointer route.
     AS = cast<ReferenceType>(T)->getPointeeType().getAddressSpace();
     Width = Target->getPointerWidth(AS);
-    ConstexprWidth = Target->getConstexprPointerWidth(AS);
     Align = Target->getPointerAlign(AS);
-    ConstexprAlign = Target->getConstexprPointerAlign(LangAS::Default);
     break;
   case Type::Pointer:
     AS = cast<PointerType>(T)->getPointeeType().getAddressSpace();
     Width = Target->getPointerWidth(AS);
-    ConstexprWidth = Target->getConstexprPointerWidth(AS);
     Align = Target->getPointerAlign(AS);
-    ConstexprAlign = Target->getConstexprPointerAlign(LangAS::Default);
     break;
   case Type::MemberPointer: {
     const auto *MPT = cast<MemberPointerType>(T);
     CXXABI::MemberPointerInfo MPI = ABI->getMemberPointerInfo(MPT);
     Width = MPI.Width;
-    ConstexprWidth = MPI.ConstexprWidth;
     Align = MPI.Align;
-    ConstexprAlign = MPI.ConstexprAlign;
     break;
   }
   case Type::Complex: {
     // Complex types have the same alignment as their elements, but twice the
     // size.
     TypeInfo EltInfo = getTypeInfo(cast<ComplexType>(T)->getElementType());
-    ConstexprWidth = Width = EltInfo.Width * 2;
+    Width = EltInfo.Width * 2;
     Align = EltInfo.Align;
-    ConstexprAlign = EltInfo.ConstexprAlign;
     break;
   }
   case Type::ObjCObject:
@@ -2328,20 +2295,20 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
   case Type::ObjCInterface: {
     const auto *ObjCI = cast<ObjCInterfaceType>(T);
     if (ObjCI->getDecl()->isInvalidDecl()) {
-      ConstexprWidth = Width = 8;
-      ConstexprAlign = Align = 8;
+      Width = 8;
+      Align = 8;
       break;
     }
     const ASTRecordLayout &Layout = getASTObjCInterfaceLayout(ObjCI->getDecl());
-    ConstexprWidth = Width = toBits(Layout.getSize());
-    ConstexprAlign = Align = toBits(Layout.getAlignment());
+    Width = toBits(Layout.getSize());
+    Align = toBits(Layout.getAlignment());
     break;
   }
   case Type::BitInt: {
     const auto *EIT = cast<BitIntType>(T);
-    ConstexprAlign = Align = std::clamp<unsigned>(llvm::PowerOf2Ceil(EIT->getNumBits()),
-                                                  getCharWidth(), Target->getLongLongAlign());
-    ConstexprWidth = Width = llvm::alignTo(EIT->getNumBits(), Align);
+    Align = std::clamp<unsigned>(llvm::PowerOf2Ceil(EIT->getNumBits()),
+                                 getCharWidth(), Target->getLongLongAlign());
+    Width = llvm::alignTo(EIT->getNumBits(), Align);
     break;
   }
   case Type::Record:
@@ -2349,8 +2316,8 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     const auto *TT = cast<TagType>(T);
 
     if (TT->getDecl()->isInvalidDecl()) {
-      ConstexprWidth = Width = 8;
-      ConstexprAlign = Align = 8;
+      Width = 8;
+      Align = 8;
       break;
     }
 
@@ -2359,7 +2326,7 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
       TypeInfo Info =
           getTypeInfo(ED->getIntegerType()->getUnqualifiedDesugaredType());
       if (unsigned AttrAlign = ED->getMaxAlignment()) {
-        Info.ConstexprAlign = Info.Align = AttrAlign;
+        Info.Align = AttrAlign;
         Info.AlignRequirement = AlignRequirementKind::RequiredByEnum;
       }
       return Info;
@@ -2368,8 +2335,8 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     const auto *RT = cast<RecordType>(TT);
     const RecordDecl *RD = RT->getDecl();
     const ASTRecordLayout &Layout = getASTRecordLayout(RD);
-    ConstexprWidth = Width = toBits(Layout.getSize());
-    ConstexprAlign = Align = toBits(Layout.getAlignment());
+    Width = toBits(Layout.getSize());
+    Align = toBits(Layout.getAlignment());
     AlignRequirement = RD->hasAttr<AlignedAttr>()
                            ? AlignRequirementKind::RequiredByRecord
                            : AlignRequirementKind::None;
@@ -2408,15 +2375,13 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     // alignment we have.  This violates the GCC documentation (which says that
     // attribute(aligned) can only round up) but matches its implementation.
     if (unsigned AttrAlign = TT->getDecl()->getMaxAlignment()) {
-      ConstexprAlign = Align = AttrAlign;
+      Align = AttrAlign;
       AlignRequirement = AlignRequirementKind::RequiredByTypedef;
     } else {
       Align = Info.Align;
-      ConstexprAlign = Info.ConstexprAlign;
       AlignRequirement = Info.AlignRequirement;
     }
     Width = Info.Width;
-    ConstexprWidth = Info.ConstexprWidth;
     break;
   }
 
@@ -2435,15 +2400,12 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     // Start with the base type information.
     TypeInfo Info = getTypeInfo(cast<AtomicType>(T)->getValueType());
     Width = Info.Width;
-    ConstexprWidth = Info.ConstexprWidth;
     Align = Info.Align;
-    ConstexprAlign = Info.ConstexprAlign;
 
     if (!Width) {
       // An otherwise zero-sized type should still generate an
       // atomic operation.
       Width = Target->getCharWidth();
-      ConstexprWidth = Target->getCharWidth();
       assert(Align);
     } else if (Width <= Target->getMaxAtomicPromoteWidth()) {
       // If the size of the type doesn't exceed the platform's max
@@ -2452,25 +2414,21 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
 
       // Round the size up to a power of 2.
       Width = llvm::bit_ceil(Width);
-      ConstexprWidth = llvm::bit_ceil(Width);
 
       // Set the alignment equal to the size.
-      ConstexprAlign = Align = static_cast<unsigned>(Width);
+      Align = static_cast<unsigned>(Width);
     }
   }
   break;
 
   case Type::Pipe:
     Width = Target->getPointerWidth(LangAS::opencl_global);
-    ConstexprWidth = Target->getConstexprPointerWidth(LangAS::opencl_global);
     Align = Target->getPointerAlign(LangAS::opencl_global);
-    ConstexprAlign = Target->getConstexprPointerAlign(LangAS::opencl_global);
     break;
   }
 
   assert(llvm::isPowerOf2_32(Align) && "Alignment must be power of 2");
-  assert(llvm::isPowerOf2_32(ConstexprAlign) && "Constexpr alignment must be power of 2 (lmao I suck at programming)");
-  return TypeInfo(Width, ConstexprWidth, Align, ConstexprAlign, AlignRequirement);
+  return TypeInfo(Width, Align, AlignRequirement);
 }
 
 unsigned ASTContext::getTypeUnadjustedAlign(const Type *T) const {
@@ -2518,12 +2476,6 @@ CharUnits ASTContext::getTypeSizeInChars(QualType T) const {
 CharUnits ASTContext::getTypeSizeInChars(const Type *T) const {
   return getTypeInfoInChars(T).Width;
 }
-CharUnits ASTContext::getConstexprTypeSizeInChars(QualType T) const {
-  return getTypeInfoInChars(T).ConstexprWidth;
-}
-CharUnits ASTContext::getConstexprTypeSizeInChars(const Type *T) const {
-  return getTypeInfoInChars(T).ConstexprWidth;
-}
 
 /// getTypeAlignInChars - Return the ABI-specified alignment of a type, in
 /// characters. This method does not work on incomplete types.
@@ -2532,12 +2484,6 @@ CharUnits ASTContext::getTypeAlignInChars(QualType T) const {
 }
 CharUnits ASTContext::getTypeAlignInChars(const Type *T) const {
   return toCharUnitsFromBits(getTypeAlign(T));
-}
-CharUnits ASTContext::getConstexprTypeAlignInChars(QualType T) const {
-  return toCharUnitsFromBits(getConstexprTypeAlign(T));
-}
-CharUnits ASTContext::getConstexprTypeAlignInChars(const Type *T) const {
-  return toCharUnitsFromBits(getConstexprTypeAlign(T));
 }
 
 /// getTypeUnadjustedAlignInChars - Return the ABI-specified alignment of a
@@ -2555,15 +2501,15 @@ CharUnits ASTContext::getTypeUnadjustedAlignInChars(const Type *T) const {
 /// alignment in cases where it is beneficial for performance or backwards
 /// compatibility preserving to overalign a data type. (Note: despite the name,
 /// the preferred alignment is ABI-impacting, and not an optimization.)
-unsigned ASTContext::getPreferredTypeAlign(const Type *T, ConstexprOrNot CON) const {
+unsigned ASTContext::getPreferredTypeAlign(const Type *T) const {
   TypeInfo TI = getTypeInfo(T);
-  unsigned ABIAlign = CON == ConstexprOrNot::Constexpr ? TI.ConstexprAlign : TI.Align;
+  unsigned ABIAlign = TI.Align;
 
   T = T->getBaseElementTypeUnsafe();
 
   // The preferred alignment of member pointers is that of a pointer.
   if (T->isMemberPointerType())
-    return getPreferredTypeAlign(getPointerDiffType().getTypePtr(), CON);
+    return getPreferredTypeAlign(getPointerDiffType().getTypePtr());
 
   if (!Target->allowsLargerPreferedTypeAlignment())
     return ABIAlign;
@@ -2601,9 +2547,7 @@ unsigned ASTContext::getPreferredTypeAlign(const Type *T, ConstexprOrNot CON) co
     // Don't increase the alignment if an alignment attribute was specified on a
     // typedef declaration.
     if (!TI.isAlignRequired())
-      return std::max(
-        ABIAlign,
-        CON == ConstexprOrNot::Constexpr ? (unsigned)getConstexprTypeSize(T) : (unsigned)getTypeSize(T));
+      return std::max(ABIAlign, (unsigned)getTypeSize(T));
 
   return ABIAlign;
 }
@@ -2619,7 +2563,7 @@ unsigned ASTContext::getTargetDefaultAlignForAttributeAligned() const {
 /// to a global variable of the specified type.
 unsigned ASTContext::getAlignOfGlobalVar(QualType T) const {
   uint64_t TypeSize = getTypeSize(T.getTypePtr());
-  return std::max(getPreferredTypeAlign(T, ConstexprOrNot::Not),
+  return std::max(getPreferredTypeAlign(T),
                   getTargetInfo().getMinGlobalAlign(TypeSize));
 }
 
@@ -3617,7 +3561,7 @@ QualType ASTContext::getConstantArrayType(QualType EltTy,
   // Convert the array size into a canonical width matching the pointer size for
   // the target.
   llvm::APInt ArySize(ArySizeIn);
-  ArySize = ArySize.zextOrTrunc(Target->getMaxConstexprPointerWidth());
+  ArySize = ArySize.zextOrTrunc(Target->getMaxPointerWidth());
 
   llvm::FoldingSetNodeID ID;
   ConstantArrayType::Profile(ID, *this, EltTy, ArySize, SizeExpr, ASM,

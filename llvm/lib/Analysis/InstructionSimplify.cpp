@@ -4878,7 +4878,6 @@ Value *llvm::simplifySelectInst(Value *Cond, Value *TrueVal, Value *FalseVal,
 static Value *simplifyGEPInst(Type *SrcTy, Value *Ptr,
                               ArrayRef<Value *> Indices, bool InBounds,
                               const SimplifyQuery &Q, unsigned) {
-
   // The type of the GEP pointer operand.
   unsigned AS =
       cast<PointerType>(Ptr->getType()->getScalarType())->getAddressSpace();

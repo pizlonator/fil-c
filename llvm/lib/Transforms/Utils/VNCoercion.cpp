@@ -76,8 +76,6 @@ bool canCoerceMustAliasedValueToLoad(Value *StoredVal, Type *LoadTy,
 Value *coerceAvailableValueToLoadType(Value *StoredVal, Type *LoadedTy,
                                       IRBuilderBase &Helper,
                                       const DataLayout &DL) {
-  //errs() << "StoredVal = " << *StoredVal << ", LoadedTy = " << *LoadedTy << "\n";
-  
   assert(canCoerceMustAliasedValueToLoad(StoredVal, LoadedTy, DL) &&
          "precondition violation - materialization can't fail");
   if (auto *C = dyn_cast<Constant>(StoredVal))
@@ -105,14 +103,8 @@ Value *coerceAvailableValueToLoadType(Value *StoredVal, Type *LoadedTy,
       if (TypeToCastTo->isPtrOrPtrVectorTy())
         TypeToCastTo = DL.getIntPtrType(TypeToCastTo);
 
-      if (StoredValTy != TypeToCastTo) {
-        if (DL.getTypeSizeInBits(StoredValTy) != DL.getTypeSizeInBits(TypeToCastTo)) {
-          assert(LoadedTy->isPtrOrPtrVectorTy());
-          assert(DL.getTypeSizeInBits(StoredValTy) > DL.getTypeSizeInBits(TypeToCastTo));
-          StoredVal = Helper.CreateTrunc(StoredVal, TypeToCastTo);
-        } else
-          StoredVal = Helper.CreateBitCast(StoredVal, TypeToCastTo);
-      }
+      if (StoredValTy != TypeToCastTo)
+        StoredVal = Helper.CreateBitCast(StoredVal, TypeToCastTo);
 
       // Cast to pointer if the load needs a pointer type.
       if (LoadedTy->isPtrOrPtrVectorTy())

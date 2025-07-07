@@ -138,7 +138,6 @@ struct CGRecordLowering {
   /// Gets an llvm type of size NumChars and alignment 1.
   llvm::Type *getByteArrayType(CharUnits NumChars) {
     assert(!NumChars.isZero() && "Empty byte arrays aren't allowed.");
-    //llvm::errs() << "want byte array of size " << NumChars.getQuantity() << "\n";
     llvm::Type *Type = getCharType();
     return NumChars == CharUnits::One() ? Type :
         (llvm::Type *)llvm::ArrayType::get(Type, NumChars.getQuantity());
@@ -160,10 +159,10 @@ struct CGRecordLowering {
     return Context.toCharUnitsFromBits(BitOffset);
   }
   CharUnits getSize(llvm::Type *Type) {
-    return CharUnits::fromQuantity(DataLayoutBeforeFilC.getTypeAllocSize(Type));
+    return CharUnits::fromQuantity(DataLayout.getTypeAllocSize(Type));
   }
   CharUnits getAlignment(llvm::Type *Type) {
-    return CharUnits::fromQuantity(DataLayoutBeforeFilC.getABITypeAlign(Type));
+    return CharUnits::fromQuantity(DataLayout.getABITypeAlign(Type));
   }
   bool isZeroInitializable(const FieldDecl *FD) {
     return Types.isZeroInitializable(FD->getType());
@@ -210,7 +209,7 @@ struct CGRecordLowering {
   const RecordDecl *D;
   const CXXRecordDecl *RD;
   const ASTRecordLayout &Layout;
-  const llvm::DataLayout &DataLayoutBeforeFilC;
+  const llvm::DataLayout &DataLayout;
   // Helpful intermediate data-structures.
   std::vector<MemberInfo> Members;
   // Output fields, consumed by CodeGenTypes::ComputeRecordLayout.
@@ -233,7 +232,7 @@ CGRecordLowering::CGRecordLowering(CodeGenTypes &Types, const RecordDecl *D,
     : Types(Types), Context(Types.getContext()), D(D),
       RD(dyn_cast<CXXRecordDecl>(D)),
       Layout(Types.getContext().getASTRecordLayout(D)),
-      DataLayoutBeforeFilC(Types.getDataLayoutBeforeFilC()), IsZeroInitializable(true),
+      DataLayout(Types.getDataLayout()), IsZeroInitializable(true),
       IsZeroInitializableAsBase(true), Packed(Packed) {}
 
 void CGRecordLowering::setBitFieldInfo(
@@ -242,7 +241,7 @@ void CGRecordLowering::setBitFieldInfo(
   Info.IsSigned = FD->getType()->isSignedIntegerOrEnumerationType();
   Info.Offset = (unsigned)(getFieldBitOffset(FD) - Context.toBits(StartOffset));
   Info.Size = FD->getBitWidthValue(Context);
-  Info.StorageSize = (unsigned)DataLayoutBeforeFilC.getTypeAllocSizeInBits(StorageType);
+  Info.StorageSize = (unsigned)DataLayout.getTypeAllocSizeInBits(StorageType);
   Info.StorageOffset = StartOffset;
   if (Info.Size > Info.StorageSize)
     Info.Size = Info.StorageSize;
@@ -250,7 +249,7 @@ void CGRecordLowering::setBitFieldInfo(
   // a bitfield as a single large integer load, we can imagine the bits
   // counting from the most-significant-bit instead of the
   // least-significant-bit.
-  if (DataLayoutBeforeFilC.isBigEndian())
+  if (DataLayout.isBigEndian())
     Info.Offset = Info.StorageSize - (Info.Offset + Info.Size);
 
   Info.VolatileStorageSize = 0;
@@ -430,7 +429,7 @@ CGRecordLowering::accumulateBitFields(RecordDecl::field_iterator Field,
       if (Run == FieldEnd || BitOffset >= Tail) {
         Run = Field;
         StartBitOffset = BitOffset;
-        Tail = StartBitOffset + DataLayoutBeforeFilC.getTypeAllocSizeInBits(Type);
+        Tail = StartBitOffset + DataLayout.getTypeAllocSizeInBits(Type);
         // Add the storage member to the record.  This must be added to the
         // record before the bitfield members so that it gets laid out before
         // the bitfields it contains get laid out.
@@ -454,7 +453,7 @@ CGRecordLowering::accumulateBitFields(RecordDecl::field_iterator Field,
     if (!Types.getCodeGenOpts().FineGrainedBitfieldAccesses)
       return false;
     if (OffsetInRecord < 8 || !llvm::isPowerOf2_64(OffsetInRecord) ||
-        !DataLayoutBeforeFilC.fitsInLegalInteger(OffsetInRecord))
+        !DataLayout.fitsInLegalInteger(OffsetInRecord))
       return false;
     // Make sure StartBitOffset is naturally aligned if it is treated as an
     // IType integer.
@@ -811,9 +810,7 @@ void CGRecordLowering::insertPadding() {
        Member != MemberEnd; ++Member) {
     if (!Member->Data)
       continue;
-    //llvm::errs() << "Size = " << Size.getQuantity() << "\n";
     CharUnits Offset = Member->Offset;
-    //llvm::errs() << "Member offset = " << Offset.getQuantity() << "\n";
     assert(Offset >= Size);
     // Insert padding if we need to.
     if (Offset !=
@@ -860,7 +857,7 @@ CGBitFieldInfo CGBitFieldInfo::MakeInfo(CodeGenTypes &Types,
   // when addressed will allow for the removal of this function.
   llvm::Type *Ty = Types.ConvertTypeForMem(FD->getType());
   CharUnits TypeSizeInBytes =
-    CharUnits::fromQuantity(Types.getDataLayoutBeforeFilC().getTypeAllocSize(Ty));
+    CharUnits::fromQuantity(Types.getDataLayout().getTypeAllocSize(Ty));
   uint64_t TypeSizeInBits = Types.getContext().toBits(TypeSizeInBytes);
 
   bool IsSigned = FD->getType()->isSignedIntegerOrEnumerationType();
@@ -882,7 +879,7 @@ CGBitFieldInfo CGBitFieldInfo::MakeInfo(CodeGenTypes &Types,
   // a bitfield as a single large integer load, we can imagine the bits
   // counting from the most-significant-bit instead of the
   // least-significant-bit.
-  if (Types.getDataLayoutBeforeFilC().isBigEndian()) {
+  if (Types.getDataLayout().isBigEndian()) {
     Offset = StorageSize - (Offset + Size);
   }
 
@@ -944,12 +941,7 @@ CodeGenTypes::ComputeRecordLayout(const RecordDecl *D, llvm::StructType *Ty) {
   const ASTRecordLayout &Layout = getContext().getASTRecordLayout(D);
 
   uint64_t TypeSizeInBits = getContext().toBits(Layout.getSize());
-  
-  //llvm::errs() << "Ty = " << *Ty << "\n";
-  //llvm::errs() << "TypeSizeInBits = " << TypeSizeInBits << "\n";
-  //llvm::errs() << "getDataLayoutBeforeFilC().getTypeAllocSizeInBits(Ty) = " << getDataLayoutBeforeFilC().getTypeAllocSizeInBits(Ty) << "\n";
-  
-  assert(TypeSizeInBits == getDataLayoutBeforeFilC().getTypeAllocSizeInBits(Ty) &&
+  assert(TypeSizeInBits == getDataLayout().getTypeAllocSizeInBits(Ty) &&
          "Type size mismatch!");
 
   if (BaseTy) {
@@ -959,13 +951,13 @@ CodeGenTypes::ComputeRecordLayout(const RecordDecl *D, llvm::StructType *Ty) {
       getContext().toBits(NonVirtualSize);
 
     assert(AlignedNonVirtualTypeSizeInBits ==
-           getDataLayoutBeforeFilC().getTypeAllocSizeInBits(BaseTy) &&
+           getDataLayout().getTypeAllocSizeInBits(BaseTy) &&
            "Type size mismatch!");
   }
 
   // Verify that the LLVM and AST field offsets agree.
   llvm::StructType *ST = RL->getLLVMType();
-  const llvm::StructLayout *SL = getDataLayoutBeforeFilC().getStructLayout(ST);
+  const llvm::StructLayout *SL = getDataLayout().getStructLayout(ST);
 
   const ASTRecordLayout &AST_RL = getContext().getASTRecordLayout(D);
   RecordDecl::field_iterator it = D->field_begin();
@@ -1000,7 +992,7 @@ CodeGenTypes::ComputeRecordLayout(const RecordDecl *D, llvm::StructType *Ty) {
       // is in-bounds. However, on BE systems, the offset may be non-zero, but
       // the size + offset should match the storage size in that case as it
       // "starts" at the back.
-      if (getDataLayoutBeforeFilC().isBigEndian())
+      if (getDataLayout().isBigEndian())
         assert(static_cast<unsigned>(Info.Offset + Info.Size) ==
                Info.StorageSize &&
                "Big endian union bitfield does not end at the back");
@@ -1011,9 +1003,9 @@ CodeGenTypes::ComputeRecordLayout(const RecordDecl *D, llvm::StructType *Ty) {
              "Union not large enough for bitfield storage");
     } else {
       assert((Info.StorageSize ==
-                  getDataLayoutBeforeFilC().getTypeAllocSizeInBits(ElementTy) ||
+                  getDataLayout().getTypeAllocSizeInBits(ElementTy) ||
               Info.VolatileStorageSize ==
-                  getDataLayoutBeforeFilC().getTypeAllocSizeInBits(ElementTy)) &&
+                  getDataLayout().getTypeAllocSizeInBits(ElementTy)) &&
              "Storage size does not match the element type size");
     }
     assert(Info.Size > 0 && "Empty bitfield!");

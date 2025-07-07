@@ -1037,10 +1037,6 @@ defm cuda_short_ptr : BoolFOption<"cuda-short-ptr",
   TargetOpts<"NVPTXUseShortPointers">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "Use 32-bit pointers for accessing const/local/shared address spaces">,
   NegFlag<SetFalse>>;
-defm filbsd : BoolFOption<"filbsd",
-  TargetOpts<"IsFilBSD">, DefaultFalse,
-  PosFlag<SetTrue, [CC1Option], "Enable FilBSD">,
-  NegFlag<SetFalse>>;
 def mprintf_kind_EQ : Joined<["-"], "mprintf-kind=">, Group<m_Group>,
   HelpText<"Specify the printf lowering scheme (AMDGPU only), allowed values are "
   "\"hostcall\"(printing happens during kernel execution, this scheme "

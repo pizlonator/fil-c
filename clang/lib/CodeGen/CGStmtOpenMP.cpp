@@ -1671,7 +1671,7 @@ Address CodeGenFunction::OMPBuilderCBHelpers::getAddrOfThreadPrivate(
   llvm::Type *VarTy = VDAddr.getElementType();
   llvm::Value *Data =
       CGF.Builder.CreatePointerCast(VDAddr.getPointer(), CGM.Int8PtrTy);
-  llvm::ConstantInt *Size = CGM.getSize(CGM.GetTargetTypeStoreSizeBeforeFilC(VarTy));
+  llvm::ConstantInt *Size = CGM.getSize(CGM.GetTargetTypeStoreSize(VarTy));
   std::string Suffix = getNameWithSeparators({"cache", ""});
   llvm::Twine CacheName = Twine(CGM.getMangledName(VD)).concat(Suffix);
 
@@ -6112,7 +6112,7 @@ static std::pair<bool, RValue> emitOMPAtomicRMW(CodeGenFunction &CGF, LValue X,
       return true;
 
     if (T->isFloatingPointTy() && (BO == BO_Add || BO == BO_Sub))
-      return llvm::isPowerOf2_64(CGF.CGM.getDataLayoutBeforeFilC().getTypeStoreSize(T));
+      return llvm::isPowerOf2_64(CGF.CGM.getDataLayout().getTypeStoreSize(T));
 
     return false;
   };

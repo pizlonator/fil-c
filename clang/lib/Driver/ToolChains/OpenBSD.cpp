@@ -173,8 +173,8 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     assert(Output.isNothing() && "Invalid output.");
   }
 
-  if ((true) || !Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
-                             options::OPT_r)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
+                   options::OPT_r)) {
     const char *crt0 = nullptr;
     const char *crtbegin = nullptr;
     if (!Shared) {
@@ -195,15 +195,6 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   }
 
   Args.AddAllArgs(CmdArgs, options::OPT_L);
-
-  {
-    SmallString<128> P(ToolChain.getDriver().InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-    CmdArgs.push_back(Args.MakeArgString("-L" + P));
-    CmdArgs.push_back("-rpath");
-    CmdArgs.push_back(Args.MakeArgString(P));
-  }
-
   ToolChain.AddFilePathLibArgs(Args, CmdArgs);
   Args.AddAllArgs(CmdArgs,
                   {options::OPT_T_Group, options::OPT_s, options::OPT_t,
@@ -213,28 +204,8 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   bool NeedsXRayDeps = addXRayRuntime(ToolChain, Args, CmdArgs);
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
-  if ((true)) {
-    CmdArgs.push_back("-lm");
-    CmdArgs.push_back("-lcompiler_rt");
-    Args.ClaimAllArgs(options::OPT_pthread);
-    CmdArgs.push_back("-lpthread");
-    CmdArgs.push_back("-lc");
-    CmdArgs.push_back("-lcompiler_rt");
-    CmdArgs.push_back("-lpizlo");
-    CmdArgs.push_back("-lutil");
-    if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
-                     options::OPT_r)) {
-      CmdArgs.push_back("-lpizlonated_c");
-      if (!Args.hasArg(options::OPT_shared))
-        CmdArgs.push_back("-lfilc_crt");
-    } else {
-      if (!Args.hasArg(options::OPT_shared))
-        CmdArgs.push_back("-lfilc_mincrt");
-    }
-    if (ToolChain.ShouldLinkCXXStdlib(Args))
-      ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
-  } else if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
-                          options::OPT_r)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+                   options::OPT_r)) {
     // Use the static OpenMP runtime with -static-openmp
     bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) && !Static;
     addOpenMPRuntime(CmdArgs, ToolChain, Args, StaticOpenMP);
@@ -276,8 +247,8 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back("-lcompiler_rt");
   }
 
-  if ((true) || !Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
-                             options::OPT_r)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
+                   options::OPT_r)) {
     const char *crtend = nullptr;
     if (!Shared)
       crtend = "crtend.o";
@@ -324,27 +295,6 @@ void OpenBSD::AddClangSystemIncludeArgs(
     llvm::opt::ArgStringList &CC1Args) const {
   const Driver &D = getDriver();
 
-  if ((true)) {
-    SmallString<128> P(D.InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "stdfil-include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-
-    if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)) {
-      if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
-        SmallString<128> P(D.InstalledDir);
-        llvm::sys::path::append(P, "..", "..", "pizfix", "builtins-include");
-        addSystemInclude(DriverArgs, CC1Args, P);
-      }
-      
-      if (!DriverArgs.hasArg(options::OPT_nostdlibinc)) {
-        SmallString<128> P(D.InstalledDir);
-        llvm::sys::path::append(P, "..", "..", "pizfix", "include");
-        addSystemInclude(DriverArgs, CC1Args, P);
-      }
-    }
-    return;
-  }
-
   if (DriverArgs.hasArg(clang::driver::options::OPT_nostdinc))
     return;
 
@@ -376,19 +326,8 @@ void OpenBSD::AddClangSystemIncludeArgs(
 
 void OpenBSD::addLibCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
                                     llvm::opt::ArgStringList &CC1Args) const {
-  {
-    llvm::SmallString<128> P =
-      llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
-    llvm::sys::path::append(P, "..", "include", getTripleString());
-    llvm::sys::path::append(P, "c++", "v1");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
-  {
-    llvm::SmallString<128> P =
-      llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
-    llvm::sys::path::append(P, "..", "include", "c++", "v1");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
+  addSystemInclude(DriverArgs, CC1Args,
+                   concat(getDriver().SysRoot, "/usr/include/c++/v1"));
 }
 
 void OpenBSD::AddCXXStdlibLibArgs(const ArgList &Args,

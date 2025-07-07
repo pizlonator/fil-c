@@ -284,9 +284,9 @@ ABIArgInfo RISCVABIInfo::coerceAndExpandFPCCEligibleStruct(
   }
 
   CharUnits Field2Align =
-      CharUnits::fromQuantity(getDataLayoutBeforeFilC().getABITypeAlign(Field2Ty));
+      CharUnits::fromQuantity(getDataLayout().getABITypeAlign(Field2Ty));
   CharUnits Field1End = Field1Off +
-      CharUnits::fromQuantity(getDataLayoutBeforeFilC().getTypeStoreSize(Field1Ty));
+      CharUnits::fromQuantity(getDataLayout().getTypeStoreSize(Field1Ty));
   CharUnits Field2OffNoPadNoPack = Field1End.alignTo(Field2Align);
 
   CharUnits Padding = CharUnits::Zero();

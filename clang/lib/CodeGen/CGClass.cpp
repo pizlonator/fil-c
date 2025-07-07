@@ -783,7 +783,7 @@ void CodeGenFunction::EmitAsanPrologueOrEpilogue(bool Prologue) {
     uint64_t Offset;
   };
 
-  unsigned PtrSize = CGM.getDataLayoutAfterFilC().getPointerSizeInBits();
+  unsigned PtrSize = CGM.getDataLayout().getPointerSizeInBits();
   const ASTRecordLayout &Info = Context.getASTRecordLayout(ClassDecl);
 
   // Populate sizes and offsets of fields.
@@ -2575,7 +2575,7 @@ void CodeGenFunction::InitializeVTablePointer(const VPtr &Vptr) {
 
   // Finally, store the address point. Use the same LLVM types as the field to
   // support optimization.
-  unsigned GlobalsAS = CGM.getDataLayoutBeforeFilC().getDefaultGlobalsAddressSpace();
+  unsigned GlobalsAS = CGM.getDataLayout().getDefaultGlobalsAddressSpace();
   llvm::Type *PtrTy = llvm::PointerType::get(CGM.getLLVMContext(), GlobalsAS);
   // vtable field is derived from `this` pointer, therefore they should be in
   // the same addr space. Note that this might not be LLVM address space 0.

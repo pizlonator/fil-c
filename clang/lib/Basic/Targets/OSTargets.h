@@ -213,13 +213,7 @@ protected:
     if (CCVersion == 0U)
       CCVersion = Release * 100000U + 1U;
 
-    // This is such a hack. I'm still going to support the musl style of Fil-C on FreeBSD,
-    // so I need a way to know what's up.
-    if (this->getTargetOpts().IsFilBSD) {
-      Builder.defineMacro("__FreeBSD__", Twine(Release));
-      Builder.defineMacro("__FilBSD__", "666");
-    } else
-      Builder.defineMacro("__PIZLONATED_FreeBSD__", Twine(Release));
+    Builder.defineMacro("__FreeBSD__", Twine(Release));
     Builder.defineMacro("__FreeBSD_cc_version", Twine(CCVersion));
     Builder.defineMacro("__KPRINTF_ATTRIBUTE__");
     DefineStd(Builder, "unix", Opts);
@@ -462,7 +456,7 @@ protected:
                     MacroBuilder &Builder) const override {
     // OpenBSD defines; list based off of gcc output
 
-    Builder.defineMacro("__PIZLONATED_OpenBSD__");
+    Builder.defineMacro("__OpenBSD__");
     DefineStd(Builder, "unix", Opts);
     if (Opts.POSIXThreads)
       Builder.defineMacro("_REENTRANT");

@@ -64,7 +64,6 @@ class LLVM_LIBRARY_VISIBILITY Linker : public MachOTool {
   bool NeedsTempPath(const InputInfoList &Inputs) const;
   void AddLinkArgs(Compilation &C, const llvm::opt::ArgList &Args,
                    llvm::opt::ArgStringList &CmdArgs,
-                   const InputInfo &Output,
                    const InputInfoList &Inputs, VersionTuple Version,
                    bool LinkerIsLLD) const;
 

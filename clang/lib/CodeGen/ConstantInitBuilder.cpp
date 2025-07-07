@@ -207,7 +207,7 @@ ConstantAggregateBuilderBase::addPlaceholderWithSize(llvm::Type *type) {
   auto position = addPlaceholder();
 
   // Advance the offset past that field.
-  auto &layout = Builder.CGM.getDataLayoutBeforeFilC();
+  auto &layout = Builder.CGM.getDataLayout();
   if (!Packed)
     offset = offset.alignTo(CharUnits::fromQuantity(layout.getABITypeAlign(type)));
   offset += CharUnits::fromQuantity(layout.getTypeStoreSize(type));
@@ -241,7 +241,7 @@ CharUnits ConstantAggregateBuilderBase::getOffsetFromGlobalTo(size_t end) const{
 
   // Perform simple layout on the elements in cacheEnd..<end.
   if (cacheEnd != end) {
-    auto &layout = Builder.CGM.getDataLayoutBeforeFilC();
+    auto &layout = Builder.CGM.getDataLayout();
     do {
       llvm::Constant *element = Builder.Buffer[cacheEnd];
       assert(element != nullptr &&

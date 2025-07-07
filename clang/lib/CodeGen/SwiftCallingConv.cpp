@@ -54,12 +54,12 @@ static llvm::Type *getCommonType(llvm::Type *first, llvm::Type *second) {
   return nullptr;
 }
 
-static CharUnits getTypeStoreSizeBeforeFilC(CodeGenModule &CGM, llvm::Type *type) {
-  return CharUnits::fromQuantity(CGM.getDataLayoutBeforeFilC().getTypeStoreSize(type));
+static CharUnits getTypeStoreSize(CodeGenModule &CGM, llvm::Type *type) {
+  return CharUnits::fromQuantity(CGM.getDataLayout().getTypeStoreSize(type));
 }
 
-static CharUnits getTypeAllocSizeBeforeFilC(CodeGenModule &CGM, llvm::Type *type) {
-  return CharUnits::fromQuantity(CGM.getDataLayoutBeforeFilC().getTypeAllocSize(type));
+static CharUnits getTypeAllocSize(CodeGenModule &CGM, llvm::Type *type) {
+  return CharUnits::fromQuantity(CGM.getDataLayout().getTypeAllocSize(type));
 }
 
 void SwiftAggLowering::addTypedData(QualType type, CharUnits begin) {
@@ -207,13 +207,13 @@ void SwiftAggLowering::addBitFieldData(const FieldDecl *bitfield,
 
 void SwiftAggLowering::addTypedData(llvm::Type *type, CharUnits begin) {
   assert(type && "didn't provide type for typed data");
-  addTypedData(type, begin, begin + getTypeStoreSizeBeforeFilC(CGM, type));
+  addTypedData(type, begin, begin + getTypeStoreSize(CGM, type));
 }
 
 void SwiftAggLowering::addTypedData(llvm::Type *type,
                                     CharUnits begin, CharUnits end) {
   assert(type && "didn't provide type for typed data");
-  assert(getTypeStoreSizeBeforeFilC(CGM, type) == end - begin);
+  assert(getTypeStoreSize(CGM, type) == end - begin);
 
   // Legalize vector types.
   if (auto vecTy = dyn_cast<llvm::VectorType>(type)) {
@@ -224,7 +224,7 @@ void SwiftAggLowering::addTypedData(llvm::Type *type,
     // Walk the initial components.
     for (size_t i = 0, e = componentTys.size(); i != e - 1; ++i) {
       llvm::Type *componentTy = componentTys[i];
-      auto componentSize = getTypeStoreSizeBeforeFilC(CGM, componentTy);
+      auto componentSize = getTypeStoreSize(CGM, componentTy);
       assert(componentSize < end - begin);
       addLegalTypedData(componentTy, begin, begin + componentSize);
       begin += componentSize;
@@ -255,7 +255,7 @@ void SwiftAggLowering::addLegalTypedData(llvm::Type *type,
       auto numElts = split.second;
 
       auto eltSize = (end - begin) / numElts;
-      assert(eltSize == getTypeStoreSizeBeforeFilC(CGM, eltTy));
+      assert(eltSize == getTypeStoreSize(CGM, eltTy));
       for (size_t i = 0, e = numElts; i != e; ++i) {
         addLegalTypedData(eltTy, begin, begin + eltSize);
         begin += eltSize;
@@ -337,7 +337,7 @@ restartAfterSplit:
     auto eltTy = vecTy->getElementType();
     CharUnits eltSize =
         (end - begin) / cast<llvm::FixedVectorType>(vecTy)->getNumElements();
-    assert(eltSize == getTypeStoreSizeBeforeFilC(CGM, eltTy));
+    assert(eltSize == getTypeStoreSize(CGM, eltTy));
     for (unsigned i = 0,
                   e = cast<llvm::FixedVectorType>(vecTy)->getNumElements();
          i != e; ++i) {
@@ -403,7 +403,7 @@ void SwiftAggLowering::splitVectorEntry(unsigned index) {
   auto split = splitLegalVectorType(CGM, Entries[index].getWidth(), vecTy);
 
   auto eltTy = split.first;
-  CharUnits eltSize = getTypeStoreSizeBeforeFilC(CGM, eltTy);
+  CharUnits eltSize = getTypeStoreSize(CGM, eltTy);
   auto numElts = split.second;
   Entries.insert(Entries.begin() + index + 1, numElts - 1, StorageEntry());
 
@@ -592,12 +592,12 @@ SwiftAggLowering::getCoerceAndExpandTypes() const {
     }
 
     if (!packed && !entry.Begin.isMultipleOf(CharUnits::fromQuantity(
-                       CGM.getDataLayoutBeforeFilC().getABITypeAlign(entry.Type))))
+                       CGM.getDataLayout().getABITypeAlign(entry.Type))))
       packed = true;
 
     elts.push_back(entry.Type);
 
-    lastEnd = entry.Begin + getTypeAllocSizeBeforeFilC(CGM, entry.Type);
+    lastEnd = entry.Begin + getTypeAllocSize(CGM, entry.Type);
     assert(entry.End <= lastEnd);
   }
 
@@ -658,9 +658,9 @@ CharUnits swiftcall::getMaximumVoluntaryIntegerSize(CodeGenModule &CGM) {
 CharUnits swiftcall::getNaturalAlignment(CodeGenModule &CGM, llvm::Type *type) {
   // For Swift's purposes, this is always just the store size of the type
   // rounded up to a power of 2.
-  auto size = (unsigned long long) getTypeStoreSizeBeforeFilC(CGM, type).getQuantity();
+  auto size = (unsigned long long) getTypeStoreSize(CGM, type).getQuantity();
   size = llvm::bit_ceil(size);
-  assert(CGM.getDataLayoutBeforeFilC().getABITypeAlign(type) <= size);
+  assert(CGM.getDataLayout().getABITypeAlign(type) <= size);
   return CharUnits::fromQuantity(size);
 }
 

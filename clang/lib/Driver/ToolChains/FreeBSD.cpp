@@ -239,14 +239,8 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     assert(Output.isNothing() && "Invalid output.");
   }
 
-  auto GetLegacyFilePath = [&] (const char* Name) -> std::string {
-    if (ToolChain.getIsFilBSD()) 
-      return std::string("/usr/lib/") + Name;
-    return ToolChain.GetFilePath(Name);
-  };
-
-  if ((true) || !Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
-                             options::OPT_r)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
+                   options::OPT_r)) {
     const char *crt1 = nullptr;
     if (!Args.hasArg(options::OPT_shared)) {
       if (Args.hasArg(options::OPT_pg))
@@ -257,9 +251,9 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         crt1 = "crt1.o";
     }
     if (crt1)
-      CmdArgs.push_back(Args.MakeArgString(GetLegacyFilePath(crt1)));
+      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crt1)));
 
-    CmdArgs.push_back(Args.MakeArgString(GetLegacyFilePath("crti.o")));
+    CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crti.o")));
 
     const char *crtbegin = nullptr;
     if (Args.hasArg(options::OPT_static))
@@ -269,21 +263,11 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     else
       crtbegin = "crtbegin.o";
 
-    CmdArgs.push_back(Args.MakeArgString(GetLegacyFilePath(crtbegin)));
+    CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtbegin)));
   }
 
   Args.AddAllArgs(CmdArgs, options::OPT_L);
-  
-  if (!ToolChain.getIsFilBSD()) {
-    SmallString<128> P(ToolChain.getDriver().InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-    CmdArgs.push_back(Args.MakeArgString("-L" + P));
-    CmdArgs.push_back("-rpath");
-    CmdArgs.push_back(Args.MakeArgString(P));
-  }
-
   ToolChain.AddFilePathLibArgs(Args, CmdArgs);
-
   Args.AddAllArgs(CmdArgs, options::OPT_T_Group);
   Args.AddAllArgs(CmdArgs, options::OPT_s);
   Args.AddAllArgs(CmdArgs, options::OPT_t);
@@ -301,141 +285,79 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   addLinkerCompressDebugSectionsOption(ToolChain, Args, CmdArgs);
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
-  if (ToolChain.getIsFilBSD()) {
-    CmdArgs.push_back("/usr/lib/libgcc.a");
-    CmdArgs.push_back("/usr/lib/libc.so");
-    {
-      SmallString<128> P(ToolChain.getDriver().InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "filbsdrt", "lib");
-      llvm::sys::path::append(P, "libpizlo.so");
-      CmdArgs.push_back(Args.MakeArgString(P));
-    }
-    if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
-                     options::OPT_r)) {
-      if (D.CCCIsCXX())
-        CmdArgs.push_back("-lm");
-      CmdArgs.push_back("-lc");
-      if (Args.hasArg(options::OPT_pthread))
-        CmdArgs.push_back("-lpthread");
-      if (!Args.hasArg(options::OPT_shared)) {
-        SmallString<128> P(ToolChain.getDriver().InstalledDir);
-        llvm::sys::path::append(P, "..", "..", "filbsdrt", "lib");
-        llvm::sys::path::append(P, "filc_crt.o");
-        CmdArgs.push_back(Args.MakeArgString(P));
-      }
-    } else {
-      if (!Args.hasArg(options::OPT_shared)) {
-        SmallString<128> P(ToolChain.getDriver().InstalledDir);
-        llvm::sys::path::append(P, "..", "..", "filbsdrt", "lib");
-        llvm::sys::path::append(P, "filc_mincrt.o");
-        CmdArgs.push_back(Args.MakeArgString(P));
-      }
-    }
-    if (ToolChain.ShouldLinkCXXStdlib(Args))
-      ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
-  } else if ((true)) {
-    CmdArgs.push_back("-lgcc");
-    // Once we switch to using the FreeBSD libc, then we'll have to actually emit -lpthread as
-    // necessary, and we'll probably have to emit -lm for C++, too.
-    Args.ClaimAllArgs(options::OPT_pthread);
-    if (D.CCCIsCXX())
-      CmdArgs.push_back("/usr/lib/libm.so");
-    CmdArgs.push_back("/usr/lib/libc.so");
-    CmdArgs.push_back("-lpizlo");
-    if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
-                     options::OPT_r)) {
-      CmdArgs.push_back("-lc");
-      if (!Args.hasArg(options::OPT_shared)) {
-        SmallString<128> P(ToolChain.getDriver().InstalledDir);
-        llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-        llvm::sys::path::append(P, "filc_crt.o");
-        CmdArgs.push_back(Args.MakeArgString(P));
-      }
-    } else {
-      if (!Args.hasArg(options::OPT_shared)) {
-        SmallString<128> P(ToolChain.getDriver().InstalledDir);
-        llvm::sys::path::append(P, "..", "..", "pizfix", "lib");
-        llvm::sys::path::append(P, "filc_mincrt.o");
-        CmdArgs.push_back(Args.MakeArgString(P));
-      }
-    }
-    if (ToolChain.ShouldLinkCXXStdlib(Args))
-      ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
-  } else {
-    unsigned Major = ToolChain.getTriple().getOSMajorVersion();
-    bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
-    if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
-                     options::OPT_r)) {
-      // Use the static OpenMP runtime with -static-openmp
-      bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
-        !Args.hasArg(options::OPT_static);
-      addOpenMPRuntime(CmdArgs, ToolChain, Args, StaticOpenMP);
+  unsigned Major = ToolChain.getTriple().getOSMajorVersion();
+  bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+                   options::OPT_r)) {
+    // Use the static OpenMP runtime with -static-openmp
+    bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
+                        !Args.hasArg(options::OPT_static);
+    addOpenMPRuntime(CmdArgs, ToolChain, Args, StaticOpenMP);
 
-      if (D.CCCIsCXX()) {
-        if (ToolChain.ShouldLinkCXXStdlib(Args))
-          ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
-        if (Profiling)
-          CmdArgs.push_back("-lm_p");
-        else
-          CmdArgs.push_back("-lm");
-      }
-      if (NeedsSanitizerDeps)
-        linkSanitizerRuntimeDeps(ToolChain, CmdArgs);
-      if (NeedsXRayDeps)
-        linkXRayRuntimeDeps(ToolChain, CmdArgs);
-      // FIXME: For some reason GCC passes -lgcc and -lgcc_s before adding
-      // the default system libraries. Just mimic this for now.
+    if (D.CCCIsCXX()) {
+      if (ToolChain.ShouldLinkCXXStdlib(Args))
+        ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
       if (Profiling)
-        CmdArgs.push_back("-lgcc_p");
+        CmdArgs.push_back("-lm_p");
       else
-        CmdArgs.push_back("-lgcc");
-      if (Args.hasArg(options::OPT_static)) {
-        CmdArgs.push_back("-lgcc_eh");
-      } else if (Profiling) {
-        CmdArgs.push_back("-lgcc_eh_p");
-      } else {
-        CmdArgs.push_back("--as-needed");
-        CmdArgs.push_back("-lgcc_s");
-        CmdArgs.push_back("--no-as-needed");
-      }
+        CmdArgs.push_back("-lm");
+    }
+    if (NeedsSanitizerDeps)
+      linkSanitizerRuntimeDeps(ToolChain, CmdArgs);
+    if (NeedsXRayDeps)
+      linkXRayRuntimeDeps(ToolChain, CmdArgs);
+    // FIXME: For some reason GCC passes -lgcc and -lgcc_s before adding
+    // the default system libraries. Just mimic this for now.
+    if (Profiling)
+      CmdArgs.push_back("-lgcc_p");
+    else
+      CmdArgs.push_back("-lgcc");
+    if (Args.hasArg(options::OPT_static)) {
+      CmdArgs.push_back("-lgcc_eh");
+    } else if (Profiling) {
+      CmdArgs.push_back("-lgcc_eh_p");
+    } else {
+      CmdArgs.push_back("--as-needed");
+      CmdArgs.push_back("-lgcc_s");
+      CmdArgs.push_back("--no-as-needed");
+    }
 
-      if (Args.hasArg(options::OPT_pthread)) {
-        if (Profiling)
-          CmdArgs.push_back("-lpthread_p");
-        else
-          CmdArgs.push_back("-lpthread");
-      }
+    if (Args.hasArg(options::OPT_pthread)) {
+      if (Profiling)
+        CmdArgs.push_back("-lpthread_p");
+      else
+        CmdArgs.push_back("-lpthread");
+    }
 
-      if (Profiling) {
-        if (Args.hasArg(options::OPT_shared))
-          CmdArgs.push_back("-lc");
-        else
-          CmdArgs.push_back("-lc_p");
-        CmdArgs.push_back("-lgcc_p");
-      } else {
+    if (Profiling) {
+      if (Args.hasArg(options::OPT_shared))
         CmdArgs.push_back("-lc");
-        CmdArgs.push_back("-lgcc");
-      }
+      else
+        CmdArgs.push_back("-lc_p");
+      CmdArgs.push_back("-lgcc_p");
+    } else {
+      CmdArgs.push_back("-lc");
+      CmdArgs.push_back("-lgcc");
+    }
 
-      if (Args.hasArg(options::OPT_static)) {
-        CmdArgs.push_back("-lgcc_eh");
-      } else if (Profiling) {
-        CmdArgs.push_back("-lgcc_eh_p");
-      } else {
-        CmdArgs.push_back("--as-needed");
-        CmdArgs.push_back("-lgcc_s");
-        CmdArgs.push_back("--no-as-needed");
-      }
+    if (Args.hasArg(options::OPT_static)) {
+      CmdArgs.push_back("-lgcc_eh");
+    } else if (Profiling) {
+      CmdArgs.push_back("-lgcc_eh_p");
+    } else {
+      CmdArgs.push_back("--as-needed");
+      CmdArgs.push_back("-lgcc_s");
+      CmdArgs.push_back("--no-as-needed");
     }
   }
 
-  if ((true) || !Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
-                             options::OPT_r)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
+                   options::OPT_r)) {
     if (Args.hasArg(options::OPT_shared) || IsPIE)
-      CmdArgs.push_back(Args.MakeArgString(GetLegacyFilePath("crtendS.o")));
+      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crtendS.o")));
     else
-      CmdArgs.push_back(Args.MakeArgString(GetLegacyFilePath("crtend.o")));
-    CmdArgs.push_back(Args.MakeArgString(GetLegacyFilePath("crtn.o")));
+      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crtend.o")));
+    CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crtn.o")));
   }
 
   ToolChain.addProfileRTLibs(Args, CmdArgs);
@@ -452,24 +374,6 @@ FreeBSD::FreeBSD(const Driver &D, const llvm::Triple &Triple,
                  const ArgList &Args)
     : Generic_ELF(D, Triple, Args) {
 
-  bool HasPizfixPath;
-  bool HasFilBSDRTPath;
-  {
-    SmallString<128> P(getDriver().InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "pizfix");
-    HasPizfixPath = llvm::sys::fs::is_directory(P);
-  }
-  {
-    SmallString<128> P(getDriver().InstalledDir);
-    llvm::sys::path::append(P, "..", "..", "filbsdrt");
-    HasFilBSDRTPath = llvm::sys::fs::is_directory(P);
-  }
-  if (!HasPizfixPath && !HasFilBSDRTPath)
-    llvm_unreachable("Must have at least a pizfix or a filbsdrt.");
-  if (HasPizfixPath && HasFilBSDRTPath)
-    llvm_unreachable("Cannot have both a pizfix and a filbsdrt. Pick one!");
-  IsFilBSD = HasFilBSDRTPath;
-  
   // When targeting 32-bit platforms, look for '/usr/lib32/crt1.o' and fall
   // back to '/usr/lib' if it doesn't exist.
   if (Triple.isArch32Bit() &&
@@ -491,42 +395,10 @@ void FreeBSD::AddClangSystemIncludeArgs(
     llvm::opt::ArgStringList &CC1Args) const {
   const Driver &D = getDriver();
 
-  const char* FilPrefix = IsFilBSD ? "filbsdrt" : "pizfix";
-
-  SmallString<128> P(D.InstalledDir);
-  llvm::sys::path::append(P, "..", "..", FilPrefix, "stdfil-include");
-  addSystemInclude(DriverArgs, CC1Args, P);
-  if (IsFilBSD) {
-    SmallString<128> P(D.InstalledDir);
-    llvm::sys::path::append(P, "..", "..", FilPrefix, "filbsd-include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  } else {
-    SmallString<128> P(D.InstalledDir);
-    llvm::sys::path::append(P, "..", "..", FilPrefix, "musl-include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
-  
-  if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)
-      && !DriverArgs.hasArg(options::OPT_nobuiltininc)) {
-    SmallString<128> P(D.InstalledDir);
-    llvm::sys::path::append(P, "..", "..", FilPrefix, "builtins-include");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
-
-  if (!IsFilBSD) {
-    if (!DriverArgs.hasArg(clang::driver::options::OPT_nostdinc)
-        && !DriverArgs.hasArg(options::OPT_nostdlibinc)) {
-      SmallString<128> P(D.InstalledDir);
-      llvm::sys::path::append(P, "..", "..", "pizfix", "include");
-      addSystemInclude(DriverArgs, CC1Args, P);
-    }
-    return;
-  }
-
   if (DriverArgs.hasArg(clang::driver::options::OPT_nostdinc))
     return;
 
-  if ((false) && !DriverArgs.hasArg(options::OPT_nobuiltininc)) {
+  if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
     SmallString<128> Dir(D.ResourceDir);
     llvm::sys::path::append(Dir, "include");
     addSystemInclude(DriverArgs, CC1Args, Dir.str());
@@ -554,19 +426,8 @@ void FreeBSD::AddClangSystemIncludeArgs(
 
 void FreeBSD::addLibCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
                                     llvm::opt::ArgStringList &CC1Args) const {
-  {
-    llvm::SmallString<128> P =
-      llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
-    llvm::sys::path::append(P, "..", "include", getTripleString());
-    llvm::sys::path::append(P, "c++", "v1");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
-  {
-    llvm::SmallString<128> P =
-      llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
-    llvm::sys::path::append(P, "..", "include", "c++", "v1");
-    addSystemInclude(DriverArgs, CC1Args, P);
-  }
+  addSystemInclude(DriverArgs, CC1Args,
+                   concat(getDriver().SysRoot, "/usr/include/c++/v1"));
 }
 
 void FreeBSD::AddCXXStdlibLibArgs(const ArgList &Args,
@@ -641,6 +502,4 @@ void FreeBSD::addClangTargetOptions(const ArgList &DriverArgs,
                           options::OPT_fno_use_init_array,
                           (Major >= 12 || Major == 0)))
     CC1Args.push_back("-fno-use-init-array");
-  if (IsFilBSD)
-    CC1Args.push_back("-ffilbsd");
 }

@@ -522,11 +522,11 @@ static void initializeForBlockHeader(CodeGenModule &CGM, CGBlockInfo &info,
       for (auto *I : Helper->getCustomFieldTypes()) /* custom fields */ {
         // TargetOpenCLBlockHelp needs to make sure the struct is packed.
         // If necessary, add padding fields to the custom fields.
-        unsigned Align = CGM.getDataLayoutBeforeFilC().getABITypeAlign(I).value();
+        unsigned Align = CGM.getDataLayout().getABITypeAlign(I).value();
         if (BlockAlign < Align)
           BlockAlign = Align;
         assert(Offset % Align == 0);
-        Offset += CGM.getDataLayoutBeforeFilC().getTypeAllocSize(I);
+        Offset += CGM.getDataLayout().getTypeAllocSize(I);
         elementTypes.push_back(I);
       }
     }
@@ -893,7 +893,7 @@ llvm::Value *CodeGenFunction::EmitBlockLiteral(const CGBlockInfo &blockInfo) {
         addHeaderField(
             I.first,
             CharUnits::fromQuantity(
-                CGM.getDataLayoutBeforeFilC().getTypeAllocSize(I.first->getType())),
+                CGM.getDataLayout().getTypeAllocSize(I.first->getType())),
             I.second);
       }
     }
@@ -2667,7 +2667,7 @@ const BlockByrefInfo &CodeGenFunction::getBlockByrefInfo(const VarDecl *D) {
     size = varOffset;
 
   // Conversely, we might have to prevent LLVM from inserting padding.
-  } else if (CGM.getDataLayoutBeforeFilC().getABITypeAlign(varTy) >
+  } else if (CGM.getDataLayout().getABITypeAlign(varTy) >
              uint64_t(varAlign.getQuantity())) {
     packed = true;
   }
@@ -2776,7 +2776,7 @@ void CodeGenFunction::emitByrefStructureInit(const AutoVarEmission &emission) {
   storeHeaderField(llvm::ConstantInt::get(IntTy, flags.getBitMask()),
                    getIntSize(), "byref.flags");
 
-  CharUnits byrefSize = CGM.GetTargetTypeStoreSizeBeforeFilC(byrefType);
+  CharUnits byrefSize = CGM.GetTargetTypeStoreSize(byrefType);
   V = llvm::ConstantInt::get(IntTy, byrefSize.getQuantity());
   storeHeaderField(V, getIntSize(), "byref.size");
 

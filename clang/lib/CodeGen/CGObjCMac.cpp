@@ -2586,7 +2586,7 @@ void CGObjCCommonMac::BuildRCBlockVarRecordLayout(const RecordType *RT,
   SmallVector<const FieldDecl*, 16> Fields(RD->fields());
   llvm::Type *Ty = CGM.getTypes().ConvertType(QualType(RT, 0));
   const llvm::StructLayout *RecLayout =
-    CGM.getDataLayoutBeforeFilC().getStructLayout(cast<llvm::StructType>(Ty));
+    CGM.getDataLayout().getStructLayout(cast<llvm::StructType>(Ty));
 
   BuildRCRecordLayout(RecLayout, RD, Fields, BytePos, HasUnion, ByrefLayout);
 }
@@ -2895,7 +2895,7 @@ void CGObjCCommonMac::fillRunSkipBlockVars(CodeGenModule &CGM,
 
   // Calculate the basic layout of the block structure.
   const llvm::StructLayout *layout =
-  CGM.getDataLayoutBeforeFilC().getStructLayout(blockInfo.StructureType);
+  CGM.getDataLayout().getStructLayout(blockInfo.StructureType);
 
   // Ignore the optional 'this' capture: C++ objects are not assumed
   // to be GC'ed.
@@ -3131,7 +3131,7 @@ CGObjCMac::EmitProtocolExtension(const ObjCProtocolDecl *PD,
   }
 
   uint64_t size =
-    CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.ProtocolExtensionTy);
+    CGM.getDataLayout().getTypeAllocSize(ObjCTypes.ProtocolExtensionTy);
 
   ConstantInitBuilder builder(CGM);
   auto values = builder.beginStruct(ObjCTypes.ProtocolExtensionTy);
@@ -3276,7 +3276,7 @@ llvm::Constant *CGObjCCommonMac::EmitPropertyList(Twine Name,
     return llvm::Constant::getNullValue(ObjCTypes.PropertyListPtrTy);
 
   unsigned propertySize =
-    CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.PropertyTy);
+    CGM.getDataLayout().getTypeAllocSize(ObjCTypes.PropertyTy);
 
   ConstantInitBuilder builder(CGM);
   auto values = builder.beginStruct();
@@ -3335,7 +3335,7 @@ CGObjCCommonMac::EmitProtocolMethodTypes(Twine Name,
   };
 */
 void CGObjCMac::GenerateCategory(const ObjCCategoryImplDecl *OCD) {
-  unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.CategoryTy);
+  unsigned Size = CGM.getDataLayout().getTypeAllocSize(ObjCTypes.CategoryTy);
 
   // FIXME: This is poor design, the OCD should have a pointer to the category
   // decl. Additionally, note that Category can be null for the @implementation
@@ -3610,7 +3610,7 @@ llvm::Constant *CGObjCMac::EmitMetaClass(const ObjCImplementationDecl *ID,
                                          llvm::Constant *Protocols,
                                 ArrayRef<const ObjCMethodDecl*> Methods) {
   unsigned Flags = FragileABI_Class_Meta;
-  unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.ClassTy);
+  unsigned Size = CGM.getDataLayout().getTypeAllocSize(ObjCTypes.ClassTy);
 
   if (ID->getClassInterface()->getVisibility() == HiddenVisibility)
     Flags |= FragileABI_Class_Hidden;
@@ -3742,7 +3742,7 @@ CGObjCMac::EmitClassExtension(const ObjCImplementationDecl *ID,
   }
 
   uint64_t size =
-    CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.ClassExtensionTy);
+    CGM.getDataLayout().getTypeAllocSize(ObjCTypes.ClassExtensionTy);
 
   ConstantInitBuilder builder(CGM);
   auto values = builder.beginStruct(ObjCTypes.ClassExtensionTy);
@@ -4933,7 +4933,7 @@ void CGObjCMac::EmitObjCWeakAssign(CodeGen::CodeGenFunction &CGF,
                                    llvm::Value *src, Address dst) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
                       : CGF.Builder.CreateBitCast(src, CGM.Int64Ty);
@@ -4955,7 +4955,7 @@ void CGObjCMac::EmitObjCGlobalAssign(CodeGen::CodeGenFunction &CGF,
                                      bool threadlocal) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
                       : CGF.Builder.CreateBitCast(src, CGM.Int64Ty);
@@ -4982,7 +4982,7 @@ void CGObjCMac::EmitObjCIvarAssign(CodeGen::CodeGenFunction &CGF,
   assert(ivarOffset && "EmitObjCIvarAssign - ivarOffset is NULL");
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
                       : CGF.Builder.CreateBitCast(src, CGM.Int64Ty);
@@ -5002,7 +5002,7 @@ void CGObjCMac::EmitObjCStrongCastAssign(CodeGen::CodeGenFunction &CGF,
                                          llvm::Value *src, Address dst) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4) ? CGF.Builder.CreateBitCast(src, CGM.Int32Ty)
                       : CGF.Builder.CreateBitCast(src, CGM.Int64Ty);
@@ -5165,7 +5165,7 @@ void CGObjCCommonMac::EmitImageInfo() {
 static const int ModuleVersion = 7;
 
 void CGObjCMac::EmitModuleInfo() {
-  uint64_t Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.ModuleTy);
+  uint64_t Size = CGM.getDataLayout().getTypeAllocSize(ObjCTypes.ModuleTy);
 
   ConstantInitBuilder builder(CGM);
   auto values = builder.beginStruct(ObjCTypes.ModuleTy);
@@ -5733,7 +5733,7 @@ ObjCCommonTypesHelper::ObjCCommonTypesHelper(CodeGen::CodeGenModule &cgm)
 {
   CodeGen::CodeGenTypes &Types = CGM.getTypes();
   ASTContext &Ctx = CGM.getContext();
-  unsigned ProgramAS = CGM.getDataLayoutBeforeFilC().getProgramAddressSpace();
+  unsigned ProgramAS = CGM.getDataLayout().getProgramAddressSpace();
 
   ShortTy = cast<llvm::IntegerType>(Types.ConvertType(Ctx.ShortTy));
   IntTy = CGM.IntTy;
@@ -6194,7 +6194,7 @@ void CGObjCNonFragileABIMac::AddModuleClassList(
   llvm::GlobalVariable *GV = new llvm::GlobalVariable(
       CGM.getModule(), Init->getType(), false,
       llvm::GlobalValue::PrivateLinkage, Init, SymbolName);
-  GV->setAlignment(CGM.getDataLayoutBeforeFilC().getABITypeAlign(Init->getType()));
+  GV->setAlignment(CGM.getDataLayout().getABITypeAlign(Init->getType()));
   GV->setSection(SectionName);
   CGM.addCompilerUsedGlobal(GV);
 }
@@ -6426,7 +6426,7 @@ CGObjCNonFragileABIMac::BuildClassObject(const ObjCInterfaceDecl *CI,
 
   if (CGM.getTriple().isOSBinFormatMachO())
     GV->setSection("__DATA, __objc_data");
-  GV->setAlignment(CGM.getDataLayoutBeforeFilC().getABITypeAlign(ObjCTypes.ClassnfABITy));
+  GV->setAlignment(CGM.getDataLayout().getABITypeAlign(ObjCTypes.ClassnfABITy));
   if (!CGM.getTriple().isOSBinFormatCOFF())
     if (HiddenVisibility)
       GV->setVisibility(llvm::GlobalValue::HiddenVisibility);
@@ -6499,7 +6499,7 @@ void CGObjCNonFragileABIMac::GenerateClass(const ObjCImplementationDecl *ID) {
 
   // FIXME: Is this correct (that meta class size is never computed)?
   uint32_t InstanceStart =
-    CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.ClassnfABITy);
+    CGM.getDataLayout().getTypeAllocSize(ObjCTypes.ClassnfABITy);
   uint32_t InstanceSize = InstanceStart;
   uint32_t flags = NonFragileABI_Class_Meta;
 
@@ -6728,7 +6728,7 @@ void CGObjCNonFragileABIMac::GenerateCategory(const ObjCCategoryImplDecl *OCD) {
   }
 
   unsigned Size =
-      CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.CategorynfABITy);
+      CGM.getDataLayout().getTypeAllocSize(ObjCTypes.CategorynfABITy);
   values.addInt(ObjCTypes.IntTy, Size);
 
   llvm::GlobalVariable *GCATV =
@@ -6832,7 +6832,7 @@ CGObjCNonFragileABIMac::emitMethodList(Twine name, MethodListType kind,
   auto values = builder.beginStruct();
 
   // sizeof(struct _objc_method)
-  unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.MethodTy);
+  unsigned Size = CGM.getDataLayout().getTypeAllocSize(ObjCTypes.MethodTy);
   values.addInt(ObjCTypes.IntTy, Size);
   // method_count
   values.addInt(ObjCTypes.IntTy, methods.size());
@@ -6888,7 +6888,7 @@ CGObjCNonFragileABIMac::EmitIvarOffsetVar(const ObjCInterfaceDecl *ID,
   IvarOffsetGV->setInitializer(
       llvm::ConstantInt::get(ObjCTypes.IvarOffsetVarTy, Offset));
   IvarOffsetGV->setAlignment(
-      CGM.getDataLayoutBeforeFilC().getABITypeAlign(ObjCTypes.IvarOffsetVarTy));
+      CGM.getDataLayout().getABITypeAlign(ObjCTypes.IvarOffsetVarTy));
 
   if (!CGM.getTriple().isOSBinFormatCOFF()) {
     // FIXME: This matches gcc, but shouldn't the visibility be set on the use
@@ -6935,7 +6935,7 @@ llvm::Constant *CGObjCNonFragileABIMac::EmitIvarList(
   ConstantInitBuilder builder(CGM);
   auto ivarList = builder.beginStruct();
   ivarList.addInt(ObjCTypes.IntTy,
-                  CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.IvarnfABITy));
+                  CGM.getDataLayout().getTypeAllocSize(ObjCTypes.IvarnfABITy));
   auto ivarCountSlot = ivarList.addPlaceholder();
   auto ivars = ivarList.beginArray(ObjCTypes.IvarnfABITy);
 
@@ -6957,9 +6957,9 @@ llvm::Constant *CGObjCNonFragileABIMac::EmitIvarList(
     ivar.add(GetMethodVarType(IVD));
     llvm::Type *FieldTy =
       CGM.getTypes().ConvertTypeForMem(IVD->getType());
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(FieldTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(FieldTy);
     unsigned Align = CGM.getContext().getPreferredTypeAlign(
-        IVD->getType().getTypePtr(), ConstexprOrNot::Not) >> 3;
+      IVD->getType().getTypePtr()) >> 3;
     Align = llvm::Log2_32(Align);
     ivar.addInt(ObjCTypes.IntTy, Align);
     // NOTE. Size of a bitfield does not match gcc's, because of the
@@ -7069,7 +7069,7 @@ llvm::Constant *CGObjCNonFragileABIMac::GetOrEmitProtocol(
                "_OBJC_$_PROP_LIST_" + PD->getObjCRuntimeNameAsString(),
                nullptr, PD, ObjCTypes, false));
   uint32_t Size =
-    CGM.getDataLayoutBeforeFilC().getTypeAllocSize(ObjCTypes.ProtocolnfABITy);
+    CGM.getDataLayout().getTypeAllocSize(ObjCTypes.ProtocolnfABITy);
   values.addInt(ObjCTypes.IntTy, Size);
   values.addInt(ObjCTypes.IntTy, 0);
   values.add(EmitProtocolMethodTypes("_OBJC_$_PROTOCOL_METHOD_TYPES_"
@@ -7117,7 +7117,7 @@ llvm::Constant *CGObjCNonFragileABIMac::GetOrEmitProtocol(
   if (!CGM.getTriple().isOSBinFormatMachO())
     PTGV->setComdat(CGM.getModule().getOrInsertComdat(ProtocolRef));
   PTGV->setAlignment(
-      CGM.getDataLayoutBeforeFilC().getABITypeAlign(ObjCTypes.ProtocolnfABIPtrTy));
+      CGM.getDataLayout().getABITypeAlign(ObjCTypes.ProtocolnfABIPtrTy));
   PTGV->setSection(GetSectionName("__objc_protolist",
                                   "coalesced,no_dead_strip"));
   PTGV->setVisibility(llvm::GlobalValue::HiddenVisibility);
@@ -7651,7 +7651,7 @@ void CGObjCNonFragileABIMac::EmitObjCIvarAssign(CodeGen::CodeGenFunction &CGF,
                                                 llvm::Value *ivarOffset) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
            : CGF.Builder.CreateBitCast(src, ObjCTypes.LongTy));
@@ -7672,7 +7672,7 @@ void CGObjCNonFragileABIMac::EmitObjCStrongCastAssign(
   llvm::Value *src, Address dst) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
            : CGF.Builder.CreateBitCast(src, ObjCTypes.LongTy));
@@ -7716,7 +7716,7 @@ void CGObjCNonFragileABIMac::EmitObjCWeakAssign(CodeGen::CodeGenFunction &CGF,
                                                 llvm::Value *src, Address dst) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
            : CGF.Builder.CreateBitCast(src, ObjCTypes.LongTy));
@@ -7738,7 +7738,7 @@ void CGObjCNonFragileABIMac::EmitObjCGlobalAssign(CodeGen::CodeGenFunction &CGF,
                                           bool threadlocal) {
   llvm::Type * SrcTy = src->getType();
   if (!isa<llvm::PointerType>(SrcTy)) {
-    unsigned Size = CGM.getDataLayoutBeforeFilC().getTypeAllocSize(SrcTy);
+    unsigned Size = CGM.getDataLayout().getTypeAllocSize(SrcTy);
     assert(Size <= 8 && "does not support size > 8");
     src = (Size == 4 ? CGF.Builder.CreateBitCast(src, ObjCTypes.IntTy)
            : CGF.Builder.CreateBitCast(src, ObjCTypes.LongTy));

@@ -990,11 +990,9 @@ IntegerLiteral::IntegerLiteral(const ASTContext &C, const llvm::APInt &V,
                                QualType type, SourceLocation l)
     : Expr(IntegerLiteralClass, type, VK_PRValue, OK_Ordinary), Loc(l) {
   assert(type->isIntegerType() && "Illegal type in IntegerLiteral");
-  //llvm::errs() << "V = " << V << ", V.getBitWidth() = " << V.getBitWidth() << ", type = " << type
-  //             << ", C.getIntWidth(type) = " << C.getIntWidth(type) << "\n";
-  assert(V.getBitWidth() >= C.getIntWidth(type) &&
+  assert(V.getBitWidth() == C.getIntWidth(type) &&
          "Integer type is not the correct size for constant.");
-  setValue(C, V.trunc(C.getIntWidth(type)));
+  setValue(C, V);
   setDependence(ExprDependence::None);
 }
 

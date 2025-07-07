@@ -921,7 +921,7 @@ llvm::GlobalVariable *CodeGenVTables::GenerateConstructionVTable(
   if (Linkage == llvm::GlobalVariable::AvailableExternallyLinkage)
     Linkage = llvm::GlobalVariable::InternalLinkage;
 
-  llvm::Align Align = CGM.getDataLayoutBeforeFilC().getABITypeAlign(VTType);
+  llvm::Align Align = CGM.getDataLayout().getABITypeAlign(VTType);
 
   // Create the variable that will hold the construction vtable.
   llvm::GlobalVariable *VTable =
@@ -1306,7 +1306,7 @@ void CodeGenModule::EmitVTableTypeMetadata(const CXXRecordDecl *RD,
   if (!getCodeGenOpts().LTOUnit)
     return;
 
-  CharUnits ComponentWidth = GetTargetTypeStoreSizeBeforeFilC(getVTableComponentType());
+  CharUnits ComponentWidth = GetTargetTypeStoreSize(getVTableComponentType());
 
   typedef std::pair<const CXXRecordDecl *, unsigned> AddressPoint;
   std::vector<AddressPoint> AddressPoints;

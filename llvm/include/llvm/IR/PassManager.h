@@ -497,8 +497,6 @@ public:
   /// ExtraArgs are passed to each pass.
   PreservedAnalyses run(IRUnitT &IR, AnalysisManagerT &AM,
                         ExtraArgTs... ExtraArgs) {
-    static constexpr bool verbose = false;
-    
     PreservedAnalyses PA = PreservedAnalyses::all();
 
     // Request PassInstrumentation from analysis manager, will use it to run
@@ -510,12 +508,6 @@ public:
             AM, IR, std::tuple<ExtraArgTs...>(ExtraArgs...));
 
     for (auto &Pass : Passes) {
-      if (verbose) {
-        errs() << "Running pass:\n";
-        Pass->printPipeline(errs(), [](StringRef ref) { return ref; });
-        errs() << "\n";
-      }
-      
       // Check the PassInstrumentation's BeforePass callbacks before running the
       // pass, skip its execution completely if asked to (callback returns
       // false).

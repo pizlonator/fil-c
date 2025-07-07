@@ -144,8 +144,7 @@ bool LayoutAlignElem::operator==(const LayoutAlignElem &rhs) const {
 PointerAlignElem PointerAlignElem::getInBits(uint32_t AddressSpace,
                                              Align ABIAlign, Align PrefAlign,
                                              uint32_t TypeBitWidth,
-                                             uint32_t IndexBitWidth,
-                                             uint32_t PayloadBitWidth) {
+                                             uint32_t IndexBitWidth) {
   assert(ABIAlign <= PrefAlign && "Preferred alignment worse than ABI!");
   PointerAlignElem retval;
   retval.AddressSpace = AddressSpace;
@@ -153,7 +152,6 @@ PointerAlignElem PointerAlignElem::getInBits(uint32_t AddressSpace,
   retval.PrefAlign = PrefAlign;
   retval.TypeBitWidth = TypeBitWidth;
   retval.IndexBitWidth = IndexBitWidth;
-  retval.PayloadBitWidth = PayloadBitWidth;
   return retval;
 }
 
@@ -215,7 +213,7 @@ void DataLayout::reset(StringRef Desc) {
                                  Layout.TypeBitWidth))
       return report_fatal_error(std::move(Err));
   }
-  if (Error Err = setPointerAlignmentInBits(0, Align(8), Align(8), 64, 64, 64))
+  if (Error Err = setPointerAlignmentInBits(0, Align(8), Align(8), 64, 64))
     return report_fatal_error(std::move(Err));
 
   if (Error Err = parseSpecifier(Desc))
@@ -357,9 +355,6 @@ Error DataLayout::parseSpecifier(StringRef Desc) {
 
       // Preferred alignment.
       unsigned PointerPrefAlign = PointerABIAlign;
-
-      unsigned PayloadBitWidth = PointerMemSize;
-      
       if (!Rest.empty()) {
         if (Error Err = ::split(Rest, ':', Split))
           return Err;
@@ -377,21 +372,11 @@ Error DataLayout::parseSpecifier(StringRef Desc) {
             return Err;
           if (!IndexSize)
             return reportError("Invalid index size of 0 bytes");
-
-          // Now read the payload size.
-          if (!Rest.empty()) {
-            if (Error Err = ::split(Rest, ':', Split))
-              return Err;
-            if (Error Err = getInt(Tok, PayloadBitWidth))
-              return Err;
-            if (!PayloadBitWidth)
-              return reportError("Invalid payload width of 0");
-          }
         }
       }
       if (Error Err = setPointerAlignmentInBits(
               AddrSpace, assumeAligned(PointerABIAlign),
-              assumeAligned(PointerPrefAlign), PointerMemSize, IndexSize, PayloadBitWidth))
+              assumeAligned(PointerPrefAlign), PointerMemSize, IndexSize))
         return Err;
       break;
     }
@@ -658,8 +643,7 @@ DataLayout::getPointerAlignElem(uint32_t AddressSpace) const {
 Error DataLayout::setPointerAlignmentInBits(uint32_t AddrSpace, Align ABIAlign,
                                             Align PrefAlign,
                                             uint32_t TypeBitWidth,
-                                            uint32_t IndexBitWidth,
-                                            uint32_t PayloadBitWidth) {
+                                            uint32_t IndexBitWidth) {
   if (PrefAlign < ABIAlign)
     return reportError(
         "Preferred alignment cannot be less than the ABI alignment");
@@ -671,14 +655,12 @@ Error DataLayout::setPointerAlignmentInBits(uint32_t AddrSpace, Align ABIAlign,
   if (I == Pointers.end() || I->AddressSpace != AddrSpace) {
     Pointers.insert(I,
                     PointerAlignElem::getInBits(AddrSpace, ABIAlign, PrefAlign,
-                                                TypeBitWidth, IndexBitWidth,
-                                                PayloadBitWidth));
+                                                TypeBitWidth, IndexBitWidth));
   } else {
     I->ABIAlign = ABIAlign;
     I->PrefAlign = PrefAlign;
     I->TypeBitWidth = TypeBitWidth;
     I->IndexBitWidth = IndexBitWidth;
-    I->PayloadBitWidth = PayloadBitWidth;
   }
   return Error::success();
 }
@@ -792,13 +774,6 @@ unsigned DataLayout::getIndexTypeSizeInBits(Type *Ty) const {
   return getIndexSizeInBits(cast<PointerType>(Ty)->getAddressSpace());
 }
 
-unsigned DataLayout::getPointerPayloadSizeInBits(Type *Ty) const {
-  assert(Ty->isPtrOrPtrVectorTy() &&
-         "This should only be called with a pointer or pointer vector type");
-  Ty = Ty->getScalarType();
-  return getPointerPayloadSizeInBits(cast<PointerType>(Ty)->getAddressSpace());
-}
-
 /*!
   \param abi_or_pref Flag that determines which alignment is returned. true
   returns the ABI alignment, false returns the preferred alignment.
@@ -898,13 +873,13 @@ Align DataLayout::getPrefTypeAlign(Type *Ty) const {
 
 IntegerType *DataLayout::getIntPtrType(LLVMContext &C,
                                        unsigned AddressSpace) const {
-  return IntegerType::get(C, getPointerPayloadSizeInBits(AddressSpace));
+  return IntegerType::get(C, getPointerSizeInBits(AddressSpace));
 }
 
 Type *DataLayout::getIntPtrType(Type *Ty) const {
   assert(Ty->isPtrOrPtrVectorTy() &&
          "Expected a pointer or pointer vector type.");
-  unsigned NumBits = getPointerPayloadSizeInBits(Ty);
+  unsigned NumBits = getPointerTypeSizeInBits(Ty);
   IntegerType *IntTy = IntegerType::get(Ty->getContext(), NumBits);
   if (VectorType *VecTy = dyn_cast<VectorType>(Ty))
     return VectorType::get(IntTy, VecTy);

@@ -2462,7 +2462,7 @@ void CodeGenFunction::emitAlignmentAssumption(llvm::Value *PtrValue,
     TheCheck = Builder.CreateICmpEQ(MaskedPtr, Zero, "maskcond");
   }
   llvm::Instruction *Assumption = Builder.CreateAlignmentAssumption(
-      CGM.getDataLayoutBeforeFilC(), PtrValue, Alignment, OffsetValue);
+      CGM.getDataLayout(), PtrValue, Alignment, OffsetValue);
 
   if (!SanOpts.has(SanitizerKind::Alignment))
     return;

@@ -7958,10 +7958,6 @@ Sema::BuildExpressionFromIntegralTemplateArgument(const TemplateArgument &Arg,
          "Operation is only valid for integral template arguments");
   QualType OrigT = Arg.getIntegralType();
 
-  //llvm::errs() << "At: ";
-  //Loc.print(llvm::errs(), SourceMgr);
-  //llvm::errs() << "\n";
-
   // If this is an enum type that we're instantiating, we need to use an integer
   // type the same size as the enumerator.  We don't want to build an
   // IntegerLiteral with enum type.  The integer type of an enum type can be of

@@ -1198,7 +1198,7 @@ CodeGenFunction::generateObjCGetterBody(const ObjCImplementationDecl *classImpl,
     // bitcast is likely to produce some pretty ugly IR, but it's not
     // the *most* terrible thing in the world.
     llvm::Type *retTy = ConvertType(getterMethod->getReturnType());
-    uint64_t retTySize = CGM.getDataLayoutBeforeFilC().getTypeSizeInBits(retTy);
+    uint64_t retTySize = CGM.getDataLayout().getTypeSizeInBits(retTy);
     llvm::Value *ivarVal = load;
     if (ivarSize > retTySize) {
       bitcastType = llvm::Type::getIntNTy(getLLVMContext(), retTySize);

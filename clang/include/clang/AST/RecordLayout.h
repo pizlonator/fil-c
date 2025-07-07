@@ -35,9 +35,6 @@ class CXXRecordDecl;
 /// This class is also used to contain layout information for one
 /// ObjCInterfaceDecl. FIXME - Find appropriate name.
 /// These objects are managed by ASTContext.
-// FIXME: FilC - This needs to have a ConstexprSize thingy for each Size thingy. Right now I
-// say fuck that, because I haven't yet compiled C code with constexpr structs. See FIXME(FilC)
-// in ASTContext.cpp.
 class ASTRecordLayout {
 public:
   struct VBaseInfo {

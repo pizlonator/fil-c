@@ -78,9 +78,6 @@ public:
   /// \brief If enabled, allow AMDGPU unsafe floating point atomics.
   bool AllowAMDGPUUnsafeFPAtomics = false;
 
-  // I'm a terrible person.
-  bool IsFilBSD = false;
-
   /// \brief Enumeration value for AMDGPU code object version, which is the
   /// code object version times 100.
   enum CodeObjectVersionKind {

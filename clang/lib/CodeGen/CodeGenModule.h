@@ -745,11 +745,8 @@ public:
   const CodeGenOptions &getCodeGenOpts() const { return CodeGenOpts; }
   llvm::Module &getModule() const { return TheModule; }
   DiagnosticsEngine &getDiags() const { return Diags; }
-  const llvm::DataLayout &getDataLayoutBeforeFilC() const {
+  const llvm::DataLayout &getDataLayout() const {
     return TheModule.getDataLayout();
-  }
-  const llvm::DataLayout &getDataLayoutAfterFilC() const {
-    return TheModule.getDataLayoutAfterFilC();
   }
   const TargetInfo &getTarget() const { return Target; }
   const llvm::Triple &getTriple() const { return Target.getTriple(); }
@@ -1329,7 +1326,7 @@ public:
   llvm::GlobalVariable::LinkageTypes getVTableLinkage(const CXXRecordDecl *RD);
 
   /// Return the store size, in character units, of the given LLVM type.
-  CharUnits GetTargetTypeStoreSizeBeforeFilC(llvm::Type *Ty) const;
+  CharUnits GetTargetTypeStoreSize(llvm::Type *Ty) const;
 
   /// Returns LLVM linkage for a declarator.
   llvm::GlobalValue::LinkageTypes

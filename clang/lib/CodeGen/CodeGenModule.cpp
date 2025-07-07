@@ -2386,7 +2386,7 @@ void CodeGenModule::SetLLVMFunctionAttributesForDefinition(const Decl *D,
   // functions. If the current target's C++ ABI requires this and this is a
   // member function, set its alignment accordingly.
   if (getTarget().getCXXABI().areMemberFunctionsAligned()) {
-    if (isa<CXXMethodDecl>(D) && F->getPointerAlignment(getDataLayoutBeforeFilC()) < 2)
+    if (isa<CXXMethodDecl>(D) && F->getPointerAlignment(getDataLayout()) < 2)
       F->setAlignment(std::max(llvm::Align(2), F->getAlign().valueOrOne()));
   }
 
@@ -3167,10 +3167,10 @@ llvm::Constant *CodeGenModule::EmitAnnotateAttr(llvm::GlobalValue *GV,
 
   llvm::Constant *GVInGlobalsAS = GV;
   if (GV->getAddressSpace() !=
-      getDataLayoutBeforeFilC().getDefaultGlobalsAddressSpace()) {
+      getDataLayout().getDefaultGlobalsAddressSpace()) {
     GVInGlobalsAS = llvm::ConstantExpr::getAddrSpaceCast(
         GV, GV->getValueType()->getPointerTo(
-                getDataLayoutBeforeFilC().getDefaultGlobalsAddressSpace()));
+                getDataLayout().getDefaultGlobalsAddressSpace()));
   }
 
   // Create the ConstantStruct for the global annotation.
@@ -4923,9 +4923,9 @@ void CodeGenModule::EmitExternalDeclaration(const VarDecl *D) {
   EmitExternalVarDeclaration(D);
 }
 
-CharUnits CodeGenModule::GetTargetTypeStoreSizeBeforeFilC(llvm::Type *Ty) const {
+CharUnits CodeGenModule::GetTargetTypeStoreSize(llvm::Type *Ty) const {
   return Context.toCharUnitsFromBits(
-      getDataLayoutBeforeFilC().getTypeStoreSizeInBits(Ty));
+      getDataLayout().getTypeStoreSizeInBits(Ty));
 }
 
 LangAS CodeGenModule::GetGlobalVarAddressSpace(const VarDecl *D) {
@@ -5173,7 +5173,7 @@ void CodeGenModule::EmitGlobalVarDefinition(const VarDecl *D,
       CharUnits VarSize = getContext().getTypeSizeInChars(ASTTy) +
                           InitDecl->getFlexibleArrayInitChars(getContext());
       CharUnits CstSize = CharUnits::fromQuantity(
-          getDataLayoutBeforeFilC().getTypeAllocSize(Init->getType()));
+          getDataLayout().getTypeAllocSize(Init->getType()));
       assert(VarSize == CstSize && "Emitted constant has unexpected size");
 #endif
     }
@@ -5867,7 +5867,7 @@ CodeGenModule::GetAddrOfConstantCFString(const StringLiteral *Literal) {
   bool isUTF16 = false;
   llvm::StringMapEntry<llvm::GlobalVariable *> &Entry =
       GetConstantCFStringEntry(CFConstantStringMap, Literal,
-                               getDataLayoutBeforeFilC().isLittleEndian(), isUTF16,
+                               getDataLayout().isLittleEndian(), isUTF16,
                                StringLength);
 
   if (auto *C = Entry.second)

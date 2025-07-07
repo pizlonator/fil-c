@@ -2720,9 +2720,9 @@ static bool EvalAndBitcastToAPInt(EvalInfo &Info, const Expr *E,
   }
   if (SVal.isVector()) {
     QualType VecTy = E->getType();
-    unsigned VecSize = Info.Ctx.getConstexprTypeSize(VecTy);
+    unsigned VecSize = Info.Ctx.getTypeSize(VecTy);
     QualType EltTy = VecTy->castAs<VectorType>()->getElementType();
-    unsigned EltSize = Info.Ctx.getConstexprTypeSize(EltTy);
+    unsigned EltSize = Info.Ctx.getTypeSize(EltTy);
     bool BigEndian = Info.Ctx.getTargetInfo().isBigEndian();
     Res = llvm::APInt::getZero(VecSize);
     for (unsigned i = 0; i < SVal.getVectorLength(); i++) {
@@ -7024,7 +7024,7 @@ class APValueToBufferConverter {
     if (!CAT)
       return false;
 
-    CharUnits ElemWidth = Info.Ctx.getConstexprTypeSizeInChars(CAT->getElementType());
+    CharUnits ElemWidth = Info.Ctx.getTypeSizeInChars(CAT->getElementType());
     unsigned NumInitializedElts = Val.getArrayInitializedElts();
     unsigned ArraySize = Val.getArraySize();
     // First, initialize the initialized elements.
@@ -7050,7 +7050,7 @@ class APValueToBufferConverter {
     APSInt AdjustedVal = Val;
     unsigned Width = AdjustedVal.getBitWidth();
     if (Ty->isBooleanType()) {
-      Width = Info.Ctx.getConstexprTypeSize(Ty);
+      Width = Info.Ctx.getTypeSize(Ty);
       AdjustedVal = AdjustedVal.extend(Width);
     }
 
@@ -7068,7 +7068,7 @@ class APValueToBufferConverter {
 public:
   static std::optional<BitCastBuffer>
   convert(EvalInfo &Info, const APValue &Src, const CastExpr *BCE) {
-    CharUnits DstSize = Info.Ctx.getConstexprTypeSizeInChars(BCE->getType());
+    CharUnits DstSize = Info.Ctx.getTypeSizeInChars(BCE->getType());
     APValueToBufferConverter Converter(Info, DstSize, BCE);
     if (!Converter.visit(Src, BCE->getSubExpr()->getType()))
       return std::nullopt;
@@ -7112,7 +7112,7 @@ class BufferToAPValueConverter {
                      APValue::NoLValuePath{}, /*IsNullPtr=*/true);
     }
 
-    CharUnits SizeOf = Info.Ctx.getConstexprTypeSizeInChars(T);
+    CharUnits SizeOf = Info.Ctx.getTypeSizeInChars(T);
 
     // Work around floating point types that contain unused padding bytes. This
     // is really just `long double` on x86, which is the only fundamental type
@@ -7241,7 +7241,7 @@ class BufferToAPValueConverter {
 
   std::optional<APValue> visit(const ConstantArrayType *Ty, CharUnits Offset) {
     size_t Size = Ty->getSize().getLimitedValue();
-    CharUnits ElementWidth = Info.Ctx.getConstexprTypeSizeInChars(Ty->getElementType());
+    CharUnits ElementWidth = Info.Ctx.getTypeSizeInChars(Ty->getElementType());
 
     APValue ArrayValue(APValue::UninitArray(), Size, Size);
     for (size_t I = 0; I != Size; ++I) {
@@ -8657,7 +8657,7 @@ static bool getBytesReturnedByAllocSizeCall(const ASTContext &Ctx,
 
   assert(AllocSize && AllocSize->getElemSizeParam().isValid());
   unsigned SizeArgNo = AllocSize->getElemSizeParam().getASTIndex();
-  unsigned BitsInSizeT = Ctx.getConstexprTypeSize(Ctx.getSizeType());
+  unsigned BitsInSizeT = Ctx.getTypeSize(Ctx.getSizeType());
   if (Call->getNumArgs() <= SizeArgNo)
     return false;
 
@@ -8857,7 +8857,7 @@ public:
     std::string ResultStr = E->ComputeName(Info.Ctx);
 
     QualType CharTy = Info.Ctx.CharTy.withConst();
-    APInt Size(Info.Ctx.getConstexprTypeSize(Info.Ctx.getSizeType()),
+    APInt Size(Info.Ctx.getTypeSize(Info.Ctx.getSizeType()),
                ResultStr.size() + 1);
     QualType ArrayTy = Info.Ctx.getConstantArrayType(CharTy, Size, nullptr,
                                                      ArrayType::Normal, 0);
@@ -9022,7 +9022,7 @@ bool PointerExprEvaluator::VisitCastExpr(const CastExpr *E) {
       break;
 
     if (Value.isInt()) {
-      unsigned Size = Info.Ctx.getConstexprTypeSize(E->getType());
+      unsigned Size = Info.Ctx.getTypeSize(E->getType());
       uint64_t N = Value.getInt().extOrTrunc(Size).getZExtValue();
       Result.Base = (Expr*)nullptr;
       Result.InvalidBase = false;
@@ -9095,7 +9095,7 @@ static CharUnits GetAlignOfType(EvalInfo &Info, QualType T,
   // as well.
   if (ExprKind == UETT_PreferredAlignOf || AlignOfReturnsPreferred)
     return Info.Ctx.toCharUnitsFromBits(
-        Info.Ctx.getPreferredTypeAlign(T.getTypePtr(), ConstexprOrNot::Not));
+      Info.Ctx.getPreferredTypeAlign(T.getTypePtr()));
   // alignof and _Alignof are defined to return the ABI alignment.
   else if (ExprKind == UETT_AlignOf)
     return Info.Ctx.getTypeAlignInChars(T.getTypePtr());
@@ -9476,7 +9476,7 @@ bool PointerExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
     }
 
     // Figure out how many T's we're copying.
-    uint64_t TSize = Info.Ctx.getConstexprTypeSizeInChars(T).getQuantity();
+    uint64_t TSize = Info.Ctx.getTypeSizeInChars(T).getQuantity();
     if (!WChar) {
       uint64_t Remainder;
       llvm::APInt OrigN = N;
@@ -10466,7 +10466,7 @@ bool VectorExprEvaluator::VisitCastExpr(const CastExpr *E) {
       return false;
     // Extract the elements
     QualType EltTy = VTy->getElementType();
-    unsigned EltSize = Info.Ctx.getConstexprTypeSize(EltTy);
+    unsigned EltSize = Info.Ctx.getTypeSize(EltTy);
     bool BigEndian = Info.Ctx.getTargetInfo().isBigEndian();
     SmallVector<APValue, 4> Elts;
     if (EltTy->isRealFloatingType()) {
@@ -11054,11 +11054,6 @@ public:
   bool Success(const llvm::APInt &I, const Expr *E, APValue &Result) {
     assert(E->getType()->isIntegralOrEnumerationType() &&
            "Invalid evaluation result.");
-    //llvm::errs() << "I = " << I << ", I.getBitWidth() = " << I.getBitWidth() << ", E->getType() = "
-    //             << E->getType() << "\n";
-    //llvm::errs() << "E is at: ";
-    //E->getExprLoc().print(llvm::errs(), Info.Ctx.getSourceManager());
-    //llvm::errs() << "\n";
     assert(I.getBitWidth() == Info.Ctx.getIntWidth(E->getType()) &&
            "Invalid evaluation result.");
     Result = APValue(APSInt(I));
@@ -12503,7 +12498,7 @@ bool IntExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
                       ResultType->isSignedIntegerOrEnumerationType();
       uint64_t LHSSize = LHS.getBitWidth();
       uint64_t RHSSize = RHS.getBitWidth();
-      uint64_t ResultSize = Info.Ctx.getConstexprTypeSize(ResultType);
+      uint64_t ResultSize = Info.Ctx.getTypeSize(ResultType);
       uint64_t MaxBits = std::max(std::max(LHSSize, RHSSize), ResultSize);
 
       // Add an additional bit if the signedness isn't uniformly agreed to. We
@@ -12562,9 +12557,9 @@ bool IntExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
       // APSInt doesn't have a TruncOrSelf, so we use extOrTrunc instead,
       // since it will give us the behavior of a TruncOrSelf in the case where
       // its parameter <= its size.  We previously set Result to be at least the
-      // type-size of the result, so getConstexprTypeSize(ResultType) <= Result.BitWidth
+      // type-size of the result, so getTypeSize(ResultType) <= Result.BitWidth
       // will work exactly like TruncOrSelf.
-      APSInt Temp = Result.extOrTrunc(Info.Ctx.getConstexprTypeSize(ResultType));
+      APSInt Temp = Result.extOrTrunc(Info.Ctx.getTypeSize(ResultType));
       Temp.setIsSigned(ResultType->isSignedIntegerOrEnumerationType());
 
       if (!APSInt::isSameValue(Temp, Result))
@@ -12603,7 +12598,7 @@ static bool isOnePastTheEndOfCompleteObject(const ASTContext &Ctx,
 
   // We're a past-the-end pointer if we point to the byte after the object,
   // no matter what our type or path is.
-  auto Size = Ctx.getConstexprTypeSizeInChars(Ty);
+  auto Size = Ctx.getTypeSizeInChars(Ty);
   return LV.getLValueOffset() == Size;
 }
 
@@ -13181,7 +13176,7 @@ EvaluateComparisonBinaryOperator(EvalInfo &Info, const BinaryOperator *E,
 
     // The comparison here must be unsigned, and performed with the same
     // width as the pointer.
-    unsigned PtrSize = Info.Ctx.getConstexprTypeSize(LHSTy);
+    unsigned PtrSize = Info.Ctx.getTypeSize(LHSTy);
     uint64_t CompareLHS = LHSOffset.getQuantity();
     uint64_t CompareRHS = RHSOffset.getQuantity();
     assert(PtrSize <= 64 && "Unexpected pointer width");
@@ -13196,7 +13191,7 @@ EvaluateComparisonBinaryOperator(EvalInfo &Info, const BinaryOperator *E,
       QualType BaseTy = getType(LHSValue.Base);
       if (BaseTy->isIncompleteType())
         return Error(E);
-      CharUnits Size = Info.Ctx.getConstexprTypeSizeInChars(BaseTy);
+      CharUnits Size = Info.Ctx.getTypeSizeInChars(BaseTy);
       uint64_t OffsetLimit = Size.getQuantity();
       if (CompareLHS > OffsetLimit || CompareRHS > OffsetLimit)
         return Error(E);
@@ -13736,9 +13731,9 @@ bool IntExprEvaluator::VisitCastExpr(const CastExpr *E) {
       // to detect here.  We let it through on the assumption the user knows
       // what they are doing.)
       if (Result.isAddrLabelDiff())
-        return Info.Ctx.getConstexprTypeSize(DestType) <= Info.Ctx.getConstexprTypeSize(SrcType);
+        return Info.Ctx.getTypeSize(DestType) <= Info.Ctx.getTypeSize(SrcType);
       // Only allow casts of lvalues if they are lossless.
-      return Info.Ctx.getConstexprTypeSize(DestType) == Info.Ctx.getConstexprTypeSize(SrcType);
+      return Info.Ctx.getTypeSize(DestType) == Info.Ctx.getTypeSize(SrcType);
     }
 
     if (Info.Ctx.getLangOpts().CPlusPlus && Info.InConstantContext &&
@@ -13808,7 +13803,7 @@ bool IntExprEvaluator::VisitCastExpr(const CastExpr *E) {
       // FIXME: Allow a larger integer size than the pointer size, and allow
       // narrowing back down to pointer width in subsequent integral casts.
       // FIXME: Check integer type's active bits, not its type size.
-      if (Info.Ctx.getConstexprTypeSize(DestType) != Info.Ctx.getConstexprTypeSize(SrcType))
+      if (Info.Ctx.getTypeSize(DestType) != Info.Ctx.getTypeSize(SrcType))
         return Error(E);
 
       LV.Designator.setInvalid();

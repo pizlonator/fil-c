@@ -975,13 +975,13 @@ static void InitializePredefinedMacros(const TargetInfo &TI,
     Builder.defineMacro("__LITTLE_ENDIAN__");
   }
 
-  if (TI.getConstexprPointerWidth(LangAS::Default) == 64 && TI.getLongWidth() == 64 &&
+  if (TI.getPointerWidth(LangAS::Default) == 64 && TI.getLongWidth() == 64 &&
       TI.getIntWidth() == 32) {
     Builder.defineMacro("_LP64");
     Builder.defineMacro("__LP64__");
   }
 
-  if (TI.getConstexprPointerWidth(LangAS::Default) == 32 && TI.getLongWidth() == 32 &&
+  if (TI.getPointerWidth(LangAS::Default) == 32 && TI.getLongWidth() == 32 &&
       TI.getIntWidth() == 32) {
     Builder.defineMacro("_ILP32");
     Builder.defineMacro("__ILP32__");
@@ -1027,8 +1027,6 @@ static void InitializePredefinedMacros(const TargetInfo &TI,
   DefineTypeSizeof("__SIZEOF_LONG_DOUBLE__",TI.getLongDoubleWidth(),TI,Builder);
   DefineTypeSizeof("__SIZEOF_LONG_LONG__", TI.getLongLongWidth(), TI, Builder);
   DefineTypeSizeof("__SIZEOF_POINTER__", TI.getPointerWidth(LangAS::Default),
-                   TI, Builder);
-  DefineTypeSizeof("__SIZEOF_INT_POINTER__", TI.getConstexprPointerWidth(LangAS::Default),
                    TI, Builder);
   DefineTypeSizeof("__SIZEOF_SHORT__", TI.getShortWidth(), TI, Builder);
   DefineTypeSizeof("__SIZEOF_PTRDIFF_T__",

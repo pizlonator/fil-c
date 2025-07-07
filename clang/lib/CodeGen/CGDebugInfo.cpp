@@ -1515,7 +1515,7 @@ CGDebugInfo::createBitFieldType(const FieldDecl *BitFieldDecl,
   // The bit offsets for big endian machines are reversed for big
   // endian target, compensate for that as the DIDerivedType requires
   // un-reversed offsets.
-  if (CGM.getDataLayoutBeforeFilC().isBigEndian())
+  if (CGM.getDataLayout().isBigEndian())
     Offset = BitFieldInfo.StorageSize - BitFieldInfo.Size - Offset;
   uint64_t OffsetInBits = StorageOffsetInBits + Offset;
   llvm::DINode::DIFlags Flags = getAccessFlag(BitFieldDecl->getAccess(), RD);
@@ -4914,7 +4914,7 @@ void CGDebugInfo::EmitDeclareOfBlockDeclRefVariable(
       getLineNumber(VD->getLocation().isValid() ? VD->getLocation() : CurLoc);
   unsigned Column = getColumnNumber(VD->getLocation());
 
-  const llvm::DataLayout &target = CGM.getDataLayoutBeforeFilC();
+  const llvm::DataLayout &target = CGM.getDataLayout();
 
   CharUnits offset = CharUnits::fromQuantity(
       target.getStructLayout(blockInfo.StructureType)
@@ -5029,7 +5029,7 @@ void CGDebugInfo::EmitDeclareOfBlockLiteralArgVariable(const CGBlockInfo &block,
   getDeclContextDescriptor(blockDecl);
 
   const llvm::StructLayout *blockLayout =
-      CGM.getDataLayoutBeforeFilC().getStructLayout(block.StructureType);
+      CGM.getDataLayout().getStructLayout(block.StructureType);
 
   SmallVector<llvm::Metadata *, 16> fields;
   collectDefaultFieldsForBlockLiteralDeclare(block, C, loc, *blockLayout, tunit,

@@ -45,7 +45,7 @@ public:
 
   LangAS getASTAllocaAddressSpace() const override {
     return getLangASFromTargetAS(
-        getABIInfo().getDataLayoutAfterFilC().getAllocaAddrSpace());
+        getABIInfo().getDataLayout().getAllocaAddrSpace());
   }
 
   unsigned getOpenCLKernelCallingConv() const override;

@@ -92,12 +92,11 @@ struct PointerAlignElem {
   uint32_t TypeBitWidth;
   uint32_t AddressSpace;
   uint32_t IndexBitWidth;
-  uint32_t PayloadBitWidth;
 
   /// Initializer
   static PointerAlignElem getInBits(uint32_t AddressSpace, Align ABIAlign,
                                     Align PrefAlign, uint32_t TypeBitWidth,
-                                    uint32_t IndexBitWidth, uint32_t PayloadBitWidth);
+                                    uint32_t IndexBitWidth);
 
   bool operator==(const PointerAlignElem &rhs) const;
 };
@@ -174,7 +173,7 @@ private:
   /// Returns an error description on failure.
   Error setPointerAlignmentInBits(uint32_t AddrSpace, Align ABIAlign,
                                   Align PrefAlign, uint32_t TypeBitWidth,
-                                  uint32_t IndexBitWidth, uint32_t PayloadBitWidth);
+                                  uint32_t IndexBitWidth);
 
   /// Internal helper to get alignment for integer of given bitwidth.
   Align getIntegerAlignment(uint32_t BitWidth, bool abi_or_pref) const;
@@ -410,11 +409,6 @@ public:
     return getPointerAlignElem(AS).TypeBitWidth;
   }
 
-  // FIXME: We don't need this anymore!
-  unsigned getPointerPayloadSizeInBits(unsigned AS = 0) const {
-    return getPointerAlignElem(AS).PayloadBitWidth;
-  }
-
   /// Returns the maximum index size over all address spaces.
   unsigned getMaxIndexSizeInBits() const {
     return getMaxIndexSize() * 8;
@@ -435,8 +429,6 @@ public:
   /// Layout size of the index used in GEP calculation.
   /// The function should be called with pointer or vector of pointers type.
   unsigned getIndexTypeSizeInBits(Type *Ty) const;
-
-  unsigned getPointerPayloadSizeInBits(Type *) const;
 
   unsigned getPointerTypeSize(Type *Ty) const {
     return getPointerTypeSizeInBits(Ty) / 8;

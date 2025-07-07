@@ -2191,7 +2191,7 @@ std::pair<llvm::Value*, llvm::Type *> CodeGenFunction::EmitAsmInputLValue(
       return {EmitLoadOfLValue(InputValue, Loc).getScalarVal(), nullptr};
 
     llvm::Type *Ty = ConvertType(InputType);
-    uint64_t Size = CGM.getDataLayoutBeforeFilC().getTypeSizeInBits(Ty);
+    uint64_t Size = CGM.getDataLayout().getTypeSizeInBits(Ty);
     if ((Size <= 64 && llvm::isPowerOf2_64(Size)) ||
         getTargetHooks().isScalarizableAsmOperand(*this, Ty)) {
       Ty = llvm::IntegerType::get(getLLVMContext(), Size);
@@ -2376,13 +2376,13 @@ EmitAsmStores(CodeGenFunction &CGF, const AsmStmt &S,
       if (TruncTy->isFloatingPointTy())
         Tmp = Builder.CreateFPTrunc(Tmp, TruncTy);
       else if (TruncTy->isPointerTy() && Tmp->getType()->isIntegerTy()) {
-        uint64_t ResSize = CGM.getDataLayoutBeforeFilC().getTypeSizeInBits(TruncTy);
+        uint64_t ResSize = CGM.getDataLayout().getTypeSizeInBits(TruncTy);
         Tmp = Builder.CreateTrunc(
             Tmp, llvm::IntegerType::get(CTX, (unsigned)ResSize));
         Tmp = Builder.CreateIntToPtr(Tmp, TruncTy);
       } else if (Tmp->getType()->isPointerTy() && TruncTy->isIntegerTy()) {
         uint64_t TmpSize =
-            CGM.getDataLayoutBeforeFilC().getTypeSizeInBits(Tmp->getType());
+            CGM.getDataLayout().getTypeSizeInBits(Tmp->getType());
         Tmp = Builder.CreatePtrToInt(
             Tmp, llvm::IntegerType::get(CTX, (unsigned)TmpSize));
         Tmp = Builder.CreateTrunc(Tmp, TruncTy);
