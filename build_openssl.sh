@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,7 +28,7 @@
 set -e
 set -x
 
-cd openssl-3.2.0
+cd openssl-3.3.1
 
 ($MAKE distclean || echo whatever)
 CC="$CCPREFIX$PWD/../build/bin/clang -g -O" ./Configure \
