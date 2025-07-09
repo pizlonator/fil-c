@@ -69,7 +69,7 @@ handle_git pizlonated-bzip2.git pizlonated-bzip2
 handle_git pizlonated-xz.git pizlonated-xz
 handle_git pizlonated-mg.git pizlonated-mg
 handle_git pizlonated-sqlite.git pizlonated-sqlite
-handle_git pizlonated-cpython.git pizlonated-cpython
+handle_git pizlonated-cpython-3.12.5.git Python-3.12.5
 handle_git pizlonated-ncurses.git ncurses-6.5-20240720
 handle_git pizlonated-pcre2.git pizlonated-pcre2
 handle_git pizlonated-zsh.git pizlonated-zsh

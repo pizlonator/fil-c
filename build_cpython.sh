@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,12 +28,12 @@
 set -e
 set -x
 
-cd pizlonated-cpython
+cd Python-3.12.5
 
 ($MAKE distclean || echo whatever)
-CC="$CCPREFIX$PWD/../build/bin/clang -g -O" ./configure \
-    --with-pydebug --without-mimalloc --without-pymalloc --without-freelists \
-    --disable-test-modules --with-pkg-config=no --prefix=$PWD/../pizfix
+PATH=$PWD/../pizfix/bin:$PATH CC="$CCPREFIX$PWD/../build/bin/clang -g -O2" ./configure \
+    --without-mimalloc --without-pymalloc --without-freelists \
+    --disable-test-modules --prefix=$PWD/../pizfix
 $MAKE -j $NCPU
 $MAKE install
 
