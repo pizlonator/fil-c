@@ -61,7 +61,7 @@ handle_git_with_branch deluded-musl usermusl usermusl
 
 handle_git deluded-zlib-1.3.git zlib-1.3
 handle_git pizlonated-openssl.git openssl-3.3.1
-handle_git deluded-curl-8.5.0.git curl-8.5.0
+handle_git pizlonated-curl-8.9.1 curl-8.9.1
 handle_git deluded-openssh-portable.git deluded-openssh-portable
 handle_git pizlonated-pcre-8.39.git pcre-8.39
 handle_git pizlonated-jpeg-6b.git pizlonated-jpeg-6b

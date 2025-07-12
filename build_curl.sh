@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,10 +28,9 @@
 set -e
 set -x
 
-cd curl-8.5.0
-
-($MAKE distclean || echo whatever)
-CC="$CCPREFIX$PWD/../build/bin/clang -g -O" ./configure --with-openssl \
-    --prefix=$PWD/../pizfix
+cd curl-8.9.1
+extract_source
+CC=$PWD/../../build/bin/clang ./configure --with-openssl \
+    --prefix=$PWD/../../pizfix
 $MAKE -j $NCPU
-$MAKE install
+$MAKE -j $NCPU install
