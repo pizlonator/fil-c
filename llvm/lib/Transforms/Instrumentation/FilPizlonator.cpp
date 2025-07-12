@@ -3497,7 +3497,7 @@ class Pizlonator {
   // Removes check combinations that are not useful. In particular, removes lower/upper bounds checks
   // where the lower bounds is higher than the lower bounds.
   //
-  // Note that this is not optional since emitChecks asserts that there are now upper bounds checks
+  // Note that this is not optional since emitChecks asserts that there are no upper bounds checks
   // with lower offset than the lower bounds check.
   void removeUnprofitableChecks(std::vector<AccessCheckWithDI>& Checks) {
     std::vector<AccessCheckWithDI> NewChecks;
