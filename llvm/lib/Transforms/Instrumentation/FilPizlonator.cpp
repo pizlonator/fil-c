@@ -508,7 +508,7 @@ enum class CheckKind {
   // Check if the object is not readonly.
   CanWrite,
 
-  // Indicates that we already know that CanonicalPtr + Offset is greaterequal object->lower, and
+  // Indicates that we already know that CanoalinicalPtr + Offset is greaterequal object->lower, and
   // there's no need to check, but we can rely on it. This kind should only appear in the final
   // ChecksForInst list but never during backward or forward propagation.
   KnownLowerBound,
@@ -711,6 +711,17 @@ struct AccessCheck {
     return !!CanonicalPtr;
   }
 
+  // The ordering is such that:
+  //
+  // - Checks for canonical ptrs are clustered together and CheckKinds are ordered in a canonical way.
+  //   This allows us to easily craft algorithms that understand the set of checks for a canonical
+  //   ptr. For example, knowing that the alignment-related checks come before the bounds checks, and
+  //   that lower bounds comes before upper bounds, makes it easier to extract the information we need
+  //   for any canonical ptr.
+  //
+  // - Stronger checks - ones that subsume others - come first. For example, for lower bounds, the
+  //   offsets are sorted in ascending order, so that a check that says P + 1 > Lower comes before
+  //   (and so subsumes) a check that says P + 2 > Lower.
   bool operator<(const AccessCheck& Other) const {
     if (CanonicalPtr != Other.CanonicalPtr)
       return CanonicalPtr < Other.CanonicalPtr;
@@ -2780,6 +2791,22 @@ class Pizlonator {
         //
         // I guess we'll find out!
         assert(HasLowerBound);
+
+        // What does this mean? Like, what if this is false?
+        //
+        // Say we have UpperBoundOffset = LowerBoundOffset. This is like saying:
+        //
+        // P > Lower && P <= Upper
+        //
+        // Effectively, we're asking that a zero-byte entry is within bounds. That's a fine, albeit
+        // dumb, thing to assert./
+        //
+        // Say we have UpperBoundOffset < LowerBoundOffset. This is like saying:
+        //
+        // P + 1 > Lower && P <= Upper
+        //
+        // Since Lower <= Upper for sure, This means that a pointer that is 1 byte below lower is
+        // going to pass this test. Again, pointless.
         assert(UpperBoundOffset > LowerBoundOffset);
       }
 
@@ -3467,6 +3494,70 @@ class Pizlonator {
       LastACRef.DI = NewAC.DI;
   }
 
+  // Removes check combinations that are not useful. In particular, removes lower/upper bounds checks
+  // where the lower bounds is higher than the lower bounds.
+  //
+  // Note that this is not optional since emitChecks asserts that there are now upper bounds checks
+  // with lower offset than the lower bounds check.
+  void removeUnprofitableChecks(std::vector<AccessCheckWithDI>& Checks) {
+    std::vector<AccessCheckWithDI> NewChecks;
+    for (size_t Index = 0; Index < Checks.size();) {
+      Value* CanonicalPtr = Checks[Index].CanonicalPtr;
+      size_t BeginIndex = Index;
+      size_t EndIndex;
+      int64_t LowerBoundOffset = 0;
+      bool HasLowerBound = false;
+      int64_t UpperBoundOffset = 0;
+      bool HasUpperBound = false;
+      for (EndIndex = BeginIndex;
+           EndIndex < Checks.size() && Checks[EndIndex].CanonicalPtr == CanonicalPtr;
+           ++EndIndex) {
+        AccessCheckWithDI AC = Checks[EndIndex];
+        switch (AC.CK) {
+        case CheckKind::KnownLowerBound:
+        case CheckKind::LowerBound:
+          LowerBoundOffset = AC.Offset;
+          HasLowerBound = true;
+          break;
+        case CheckKind::UpperBound:
+          UpperBoundOffset = AC.Offset;
+          HasUpperBound = true;
+          break;
+        default:
+          break;
+        }
+      }
+      if (HasUpperBound) {
+        // This should have been guaranteed for other reasons.
+        assert(HasLowerBound);
+      }
+
+      // Keep range checks if we have both lower and upper bound checks, and the upper bounds is above
+      // the lower bounds.
+      bool RangeCheckOK = HasUpperBound && HasLowerBound && UpperBoundOffset > LowerBoundOffset;
+
+      for (EndIndex = BeginIndex;
+           EndIndex < Checks.size() && Checks[EndIndex].CanonicalPtr == CanonicalPtr;
+           ++EndIndex) {
+        AccessCheckWithDI AC = Checks[EndIndex];
+        switch (AC.CK) {
+        case CheckKind::KnownLowerBound:
+        case CheckKind::LowerBound:
+        case CheckKind::UpperBound:
+          if (RangeCheckOK)
+            NewChecks.push_back(AC);
+          break;
+        default:
+          NewChecks.push_back(AC);
+          break;
+        }
+      }
+
+      Index = EndIndex;
+    }
+    Checks = NewChecks;
+  }
+
   // Produces a minimal set of access checks in an order that is suitable for executing them. Assumes
   // that given two equal checks, the DI of the latest one wins. This has no effect on forward prop,
   // since forward prop uses AccessCheck, not AccessCheckWithDI. For backward prop, it means that the
@@ -4123,6 +4214,9 @@ class Pizlonator {
         }
         if (verbose)
           errs() << "Checks at head after merging with predecessors: " << Checks << "\n";
+        removeUnprofitableChecks(Checks);
+        if (verbose)
+          errs() << "Checks at head after removing unprofitable: " << Checks << "\n";
         BackwardChecksAtHead[BB] = Checks;
         for (BasicBlock* PBB : predecessors(BB)) {
           ChecksWithDIOrBottom& PCOB = BackwardChecksAtTail[PBB];
