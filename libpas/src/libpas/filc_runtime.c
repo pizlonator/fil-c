@@ -10003,7 +10003,8 @@ int filc_native_zsys_inotify_init1(filc_thread* my_thread, int flags)
 
 int filc_native_zsys_syslog(filc_thread* my_thread, int type, filc_ptr buf_ptr, int len)
 {
-    filc_check_write(buf_ptr, len);
+    if (type != 8) /* 8 = SYSLOG_ACTION_CONSOLE_LEVEL */
+        filc_check_write(buf_ptr, len);
     return FILC_SYSCALL(my_thread, klogctl(type, (char*)filc_ptr_ptr(buf_ptr), len));
 }
 
@@ -10021,7 +10022,7 @@ int filc_native_zsys_mount_setattr(filc_thread* my_thread, int fd, filc_ptr path
                                    filc_ptr attr_ptr, size_t size)
 {
 #if PAS_GLIBC
-    char* path = filc_check_and_get_tmp_str(my_thread, path_ptr);
+    char* path = filc_check_and_get_tmp_str_or_null(my_thread, path_ptr);
     filc_check_write(attr_ptr, size); /* maybe this can be check_read? */
     return FILC_SYSCALL(my_thread, mount_setattr(fd, path, flags,
                                                  (struct mount_attr*)filc_ptr_ptr(attr_ptr), size));
