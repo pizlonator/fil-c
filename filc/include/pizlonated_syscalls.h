@@ -236,10 +236,14 @@ int zsys_epoll_create1_impl(int flags);
 int zsys_epoll_ctl_impl(int epfd, int op, int fd, void* event);
 int zsys_epoll_wait_impl(int epfd, void* events, int maxevents, int timeout);
 int zsys_epoll_pwait_impl(int epfd, void* events, int maxevents, int timeout, const void* sigmask);
+int zsys_epoll_pwait2_impl(int epfd, void* events, int maxevents, const void* timeout,
+                           const void* sigmask);
 int zsys_epoll_create1(int flags);
 int zsys_epoll_ctl(int epfd, int op, int fd, void* event);
 int zsys_epoll_wait(int epfd, void* events, int maxevents, int timeout);
 int zsys_epoll_pwait(int epfd, void* events, int maxevents, int timeout, const void* sigmask);
+int zsys_epoll_pwait2(int epfd, void* events, int maxevents, const void* timeout,
+                      const void* sigmask);
 int zsys_sysinfo(void* info);
 int zsys_sched_getaffinity(int tid, __SIZE_TYPE__ size, void* set);
 int zsys_sched_setaffinity(int tid, __SIZE_TYPE__ size, const void* set);

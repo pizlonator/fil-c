@@ -168,6 +168,16 @@ int main(int argc, char** argv)
     ZASSERT(epoll_wait(epfd2, &ev, 1, -1) == 1);
     ZASSERT(ev.events == EPOLLIN);
     ZASSERT(ev.data.fd == fds[0]);
+    memset(&ev, 0, sizeof(ev));
+    ZASSERT(epoll_pwait(epfd2, &ev, 1, -1, NULL) == 1);
+    ZASSERT(ev.events == EPOLLIN);
+    ZASSERT(ev.data.fd == fds[0]);
+#ifdef __USE_GNU
+    memset(&ev, 0, sizeof(ev));
+    ZASSERT(epoll_pwait2(epfd2, &ev, 1, NULL, NULL) == 1);
+    ZASSERT(ev.events == EPOLLIN);
+    ZASSERT(ev.data.fd == fds[0]);
+#endif
     ZASSERT(!close(epfd2));
     
     ZASSERT(read(fds[0], buf, strlen("hello") + 1) == strlen("hello") + 1);

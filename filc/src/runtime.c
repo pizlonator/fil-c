@@ -412,6 +412,13 @@ int zsys_epoll_pwait(int epfd, void* events, int maxevents, int timeout, const v
     return result;
 }
 
+int zsys_epoll_pwait2(int epfd, void* events, int maxevents, const void* timeout, const void* sigmask)
+{
+    int result = zsys_epoll_pwait2_impl(epfd, events, maxevents, timeout, sigmask);
+    fix_events(epfd, events, result);
+    return result;
+}
+
 int zsys_close_range(unsigned first, unsigned last, int flags)
 {
     if (flags) {

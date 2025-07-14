@@ -9126,6 +9126,37 @@ int filc_native_zsys_epoll_pwait_impl(filc_thread* my_thread, int epfd, filc_ptr
         evs, events_ptr);
 }
 
+int filc_native_zsys_epoll_pwait2_impl(filc_thread* my_thread, int epfd, filc_ptr events_ptr,
+                                       int maxevents, filc_ptr timeout_ptr, filc_ptr sigmask_ptr)
+{
+#if PAS_GLIBC
+    check_fd(epfd);
+    sigset_t* sigmask = NULL;
+    if (filc_ptr_ptr(sigmask_ptr)) {
+        filc_check_user_sigset(sigmask_ptr, filc_read_access);
+        sigmask = alloca(sizeof(sigset_t));
+        filc_from_user_sigset((sigset_t*)filc_ptr_ptr(sigmask_ptr), sigmask);
+    }
+    struct epoll_event* evs = make_epoll_events(my_thread, maxevents);
+    if (filc_ptr_ptr(timeout_ptr))
+        filc_check_read(timeout_ptr, sizeof(struct timespec));
+    return to_user_epoll_events(
+        FILC_SYSCALL(
+            my_thread,
+            epoll_pwait2(
+                epfd, evs, maxevents, (const struct timespec*)filc_ptr_ptr(timeout_ptr), sigmask)),
+        evs, events_ptr);
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(epfd);
+    PAS_UNUSED_PARAM(events_ptr);
+    PAS_UNUSED_PARAM(maxevents);
+    PAS_UNUSED_PARAM(timeout_ptr);
+    PAS_UNUSED_PARAM(sigmask_ptr);
+    filc_internal_panic(NULL, "epoll_pwait2 not supported.");
+#endif
+}
+
 int filc_native_zsys_sysinfo(filc_thread* my_thread, filc_ptr info_ptr)
 {
     filc_check_write(info_ptr, sizeof(struct sysinfo));
