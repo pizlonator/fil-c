@@ -9828,16 +9828,18 @@ int filc_native_zsys_capget(filc_thread* my_thread, filc_ptr header_ptr, filc_pt
 {
     filc_check_write(header_ptr, sizeof(struct user_cap_header));
     struct user_cap_header* header = (struct user_cap_header*)filc_ptr_ptr(header_ptr);
-    switch (header->version) {
-    case CAP_VERSION_1:
-        filc_check_write(data_ptr, sizeof(struct user_cap_data));
-        break;
-    case CAP_VERSION_2:
-    case CAP_VERSION_3:
-        filc_check_write(data_ptr, sizeof(struct user_cap_data) * 2);
-        break;
-    default:
-        return get_preferred_version(my_thread, header);
+    if (filc_ptr_ptr(data_ptr)) {
+        switch (header->version) {
+        case CAP_VERSION_1:
+            filc_check_write(data_ptr, sizeof(struct user_cap_data));
+            break;
+        case CAP_VERSION_2:
+        case CAP_VERSION_3:
+            filc_check_write(data_ptr, sizeof(struct user_cap_data) * 2);
+            break;
+        default:
+            return get_preferred_version(my_thread, header);
+        }
     }
     return FILC_SYSCALL(my_thread, syscall(SYS_capget, header, filc_ptr_ptr(data_ptr)));
 }
@@ -9846,16 +9848,18 @@ int filc_native_zsys_capset(filc_thread* my_thread, filc_ptr header_ptr, filc_pt
 {
     filc_check_write(header_ptr, sizeof(struct user_cap_header));
     struct user_cap_header* header = (struct user_cap_header*)filc_ptr_ptr(header_ptr);
-    switch (header->version) {
-    case CAP_VERSION_1:
-        filc_check_read(data_ptr, sizeof(struct user_cap_data));
-        break;
-    case CAP_VERSION_2:
-    case CAP_VERSION_3:
-        filc_check_read(data_ptr, sizeof(struct user_cap_data) * 2);
-        break;
-    default:
-        return get_preferred_version(my_thread, header);
+    if (filc_ptr_ptr(data_ptr)) {
+        switch (header->version) {
+        case CAP_VERSION_1:
+            filc_check_read(data_ptr, sizeof(struct user_cap_data));
+            break;
+        case CAP_VERSION_2:
+        case CAP_VERSION_3:
+            filc_check_read(data_ptr, sizeof(struct user_cap_data) * 2);
+            break;
+        default:
+            return get_preferred_version(my_thread, header);
+        }
     }
     return FILC_SYSCALL(my_thread, syscall(SYS_capset, header, filc_ptr_ptr(data_ptr)));
 }
