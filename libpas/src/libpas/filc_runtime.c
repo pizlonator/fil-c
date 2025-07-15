@@ -105,7 +105,9 @@
 #include <sys/fanotify.h>
 #endif
 
-#define DEFINE_LOCK(name) \
+pas_system_thread_id filc_panicking_thread;
+
+#define DEFINE_LOCK(name)                   \
     pas_system_mutex filc_## name ## _lock; \
     \
     void filc_ ## name ## _lock_lock(void) \
@@ -476,9 +478,17 @@ filc_thread* filc_get_my_thread(void)
     return (filc_thread*)pthread_getspecific(filc_thread_key);
 }
 
+void filc_assert_my_thread_is_entered(void)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+    PAS_ASSERT(my_thread);
+    PAS_ASSERT(filc_thread_is_entered(my_thread));
+}
+
 void filc_assert_my_thread_is_not_entered(void)
 {
-    PAS_ASSERT(!filc_get_my_thread() || !filc_thread_is_entered(filc_get_my_thread()));
+    filc_thread* my_thread = filc_get_my_thread();
+    PAS_ASSERT(!my_thread || !filc_thread_is_entered(my_thread));
 }
 
 void filc_snapshot_threads(filc_thread*** threads, size_t* num_threads)
@@ -3560,128 +3570,248 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_check_aligned_access_fail(
     PAS_UNREACHABLE();
 }
 
-PAS_NO_RETURN static void finish_panicking(const char* kind_string)
+filc_panic_context* filc_start_panicking(void)
 {
+    filc_assert_my_thread_is_entered();
+
+    pas_system_thread_id current_thread = pas_get_current_system_thread_id();
+    for (;;) {
+        PAS_ASSERT(filc_panicking_thread != current_thread);
+        if (pas_system_thread_id_weak_cas(&filc_panicking_thread,
+                                          PAS_NULL_SYSTEM_THREAD_ID,
+                                          current_thread))
+            break;
+    }
+
+    filc_panic_context* result = bmalloc_allocate(sizeof(filc_panic_context));
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+    pas_string_stream_construct(&result->stream, &allocation_config);
+    return result;
+}
+
+static bool write_fully(int fd, const char* buf, size_t length)
+{
+    const char* current = buf;
+    size_t remaining = length;
+
+    while (remaining) {
+        ssize_t result = write(fd, current, remaining);
+        if (result < 0) {
+            if (errno != EINTR)
+                return false;
+            continue;
+        }
+
+        if (!result) {
+            /* Totally weird if write(2) returns false. */
+            return false;
+        }
+
+        current += result;
+        remaining -= result;
+    }
+
+    return true;
+}
+
+static bool write_stream(int fd, pas_string_stream* stream)
+{
+    return write_fully(fd,
+                       pas_string_stream_get_string(stream),
+                       pas_string_stream_get_string_length(stream));
+}
+
+static bool write_panic_context(int fd, filc_panic_context* context)
+{
+    return write_stream(fd, &context->stream);
+}
+
+static bool write_str(int fd, const char* string)
+{
+    return write_fully(fd, string, strlen(string));
+}
+
+PAS_NO_RETURN void filc_finish_panicking(filc_panic_context* context, const char* kind_string)
+{
+    int log_fd;
+    if (file_log_fd >= 0)
+        log_fd = file_log_fd;
+    else
+        log_fd = PAS_LOG_DEFAULT_FD;
+    
     if (exit_on_panic) {
+        PAS_ASSERT(write_panic_context(log_fd, context));
         pas_log("[%d] filc panic: %s\n", pas_getpid(), kind_string);
         _exit(42);
         PAS_ASSERT(!"Should not be reached");
     }
+
+    char my_path[PATH_MAX];
+    ssize_t my_path_length = readlink("/proc/self/exe", my_path, sizeof(my_path) - 1);
+    if (my_path_length >= 0) {
+        my_path[my_path_length] = 0;
+        char* basename = strrchr(my_path, '/');
+        if (basename) {
+            basename++;
+            char maxname[32];
+            snprintf(maxname, sizeof(maxname), "%s", basename);
+            char buf[100];
+            time_t my_time = time(NULL);
+            snprintf(buf, sizeof(buf), "/var/filc/panics/%ld-%s-%d",
+                     my_time, maxname, pas_getpid());
+            int file_fd = open(buf, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+            if (file_fd >= 0) {
+                pas_allocation_config allocation_config;
+                bmalloc_initialize_allocation_config(&allocation_config);
+                pas_string_stream stream;
+                pas_string_stream_construct(&stream, &allocation_config);
+                pas_string_stream_printf(&stream, "pid: %d\n", pas_getpid());
+                pas_string_stream_printf(&stream, "executable: %s\n", my_path);
+                pas_string_stream_printf(&stream, "time: %ld\n", my_time);
+                write_stream(file_fd, &stream);
+                write_panic_context(file_fd, context);
+                write_str(file_fd, "filc panic: ");
+                write_str(file_fd, kind_string);
+                write_str(file_fd, "\n");
+                close(file_fd);
+            }
+        }
+    }
+
+    PAS_ASSERT(write_panic_context(log_fd, context));
     pas_panic("%s\n", kind_string);
 }
 
-PAS_NO_RETURN static void optimized_check_fail_impl(const filc_origin* scheduled_origin,
+PAS_NO_RETURN static void optimized_check_fail_impl(filc_panic_context* panic_context,
+                                                    const filc_origin* scheduled_origin,
                                                     const filc_origin*const* semantic_origins)
 {
     filc_thread* my_thread = filc_get_my_thread();
     size_t index;
     for (index = 0; semantic_origins[index]; ++index) {
-        pas_log("semantic origin:\n");
-        filc_origin_dump_all_inline_default(semantic_origins[index], pas_log_stream);
+        filc_panic_context_printf(panic_context, "semantic origin:\n");
+        filc_origin_dump_all_inline_default(semantic_origins[index],
+                                            filc_panic_context_stream(panic_context));
     }
     PAS_ASSERT(my_thread->top_frame);
     if (scheduled_origin) {
         my_thread->top_frame->origin = scheduled_origin;
-        pas_log("check scheduled at:\n");
+        filc_panic_context_printf(panic_context, "check scheduled at:\n");
     } else
-        pas_log("check scheduled at (uncertain):\n");
-    filc_thread_dump_stack(my_thread, pas_log_stream);
-    finish_panicking("thwarted a futile attempt to violate memory safety.");
+        filc_panic_context_printf(panic_context, "check scheduled at (uncertain):\n");
+    filc_thread_dump_stack(my_thread, filc_panic_context_stream(panic_context));
+    filc_finish_panicking(panic_context, "thwarted a futile attempt to violate memory safety.");
 }
 
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_access_check_fail(
     filc_ptr ptr, const filc_optimized_access_check_origin* check_origin)
 {
-    pas_log("filc safety error: ");
+    filc_panic_context* panic_context = filc_start_panicking();
+    filc_panic_context_printf(panic_context, "filc safety error: ");
     if (!filc_ptr_object(ptr)) {
-        pas_log("cannot %s pointer with null object.\n",
-                check_origin->needs_write ? "write" : "read");
+        filc_panic_context_printf(panic_context, "cannot %s pointer with null object.\n",
+                                  check_origin->needs_write ? "write" : "read");
     } else if ((filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAG_FREE)) {
-        pas_log("cannot %s pointer to free object.\n",
-                check_origin->needs_write ? "write" : "read");
+        filc_panic_context_printf(panic_context, "cannot %s pointer to free object.\n",
+                                  check_origin->needs_write ? "write" : "read");
     } else if ((filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAGS_SPECIAL_MASK)) {
-        pas_log("cannot %s pointer to special object.\n",
-                check_origin->needs_write ? "write" : "read");
+        filc_panic_context_printf(panic_context, "cannot %s pointer to special object.\n",
+                                  check_origin->needs_write ? "write" : "read");
     } else if (check_origin->size && filc_ptr_ptr(ptr) < filc_ptr_lower(ptr)) {
-        pas_log("cannot %s pointer with ptr < lower.\n",
-                check_origin->needs_write ? "write" : "read");
+        filc_panic_context_printf(panic_context, "cannot %s pointer with ptr < lower.\n",
+                                  check_origin->needs_write ? "write" : "read");
     } else if (check_origin->size && filc_ptr_ptr(ptr) >= filc_ptr_upper(ptr)) {
-        pas_log("cannot %s pointer with ptr >= upper.\n",
-                check_origin->needs_write ? "write" : "read");
+        filc_panic_context_printf(panic_context, "cannot %s pointer with ptr >= upper.\n",
+                                  check_origin->needs_write ? "write" : "read");
     } else if (check_origin->size > (char*)filc_ptr_upper(ptr) - (char*)filc_ptr_ptr(ptr)) {
-        pas_log("cannot %s %zu bytes when upper - ptr = %zu.\n",
-                check_origin->needs_write ? "write" : "read", (size_t)check_origin->size,
-                (size_t)((char*)filc_ptr_upper(ptr) - (char*)filc_ptr_ptr(ptr)));
+        filc_panic_context_printf(panic_context, "cannot %s %zu bytes when upper - ptr = %zu.\n",
+                                  check_origin->needs_write ? "write" : "read",
+                                  (size_t)check_origin->size,
+                                  (size_t)((char*)filc_ptr_upper(ptr) - (char*)filc_ptr_ptr(ptr)));
     } else if (check_origin->needs_write &&
                (filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAG_READONLY))
-        pas_log("cannot write to read-only object.\n");
+        filc_panic_context_printf(panic_context, "cannot write to read-only object.\n");
     else if (!pas_is_aligned((uintptr_t)filc_ptr_ptr(ptr) + (uintptr_t)check_origin->alignment_offset,
                              check_origin->alignment))
-        pas_log("alignment requirement of %u bytes not met.\n", (unsigned)check_origin->alignment);
+        filc_panic_context_printf(panic_context, "alignment requirement of %u bytes not met.\n",
+                                  (unsigned)check_origin->alignment);
     else
         PAS_ASSERT(!"Should not be reached");
-    pas_log("    pointer: ");
-    filc_ptr_dump(ptr, pas_log_stream);
-    pas_log("\n");
-    pas_log("    expected");
+    filc_panic_context_printf(panic_context, "    pointer: ");
+    filc_ptr_dump(ptr, filc_panic_context_stream(panic_context));
+    filc_panic_context_printf(panic_context, "\n");
+    filc_panic_context_printf(panic_context, "    expected");
     if (check_origin->size) {
-        pas_log(" %zu %sbytes",
-                (size_t)check_origin->size, check_origin->needs_write ? "writable " : "");
+        filc_panic_context_printf(panic_context, " %zu %sbytes",
+                                  (size_t)check_origin->size,
+                                  check_origin->needs_write ? "writable " : "");
     } else if (check_origin->needs_write)
-        pas_log(" writable capability");
+        filc_panic_context_printf(panic_context, " writable capability");
     else
-        pas_log(" valid capability");
+        filc_panic_context_printf(panic_context, " valid capability");
     PAS_ASSERT(check_origin->alignment >= 1);
     PAS_ASSERT(check_origin->alignment <= FILC_WORD_SIZE);
     PAS_ASSERT(pas_is_power_of_2(check_origin->alignment));
     PAS_ASSERT(check_origin->alignment_offset < check_origin->alignment);
     if (check_origin->alignment > 1) {
-        pas_log(" with ptr aligned to %zu bytes", (size_t)check_origin->alignment);
-        if (check_origin->alignment_offset)
-            pas_log(" at offset %zu", (size_t)check_origin->alignment_offset);
+        filc_panic_context_printf(panic_context, " with ptr aligned to %zu bytes",
+                                  (size_t)check_origin->alignment);
+        if (check_origin->alignment_offset) {
+            filc_panic_context_printf(panic_context, " at offset %zu",
+                                      (size_t)check_origin->alignment_offset);
+        }
     }
-    pas_log(".\n");
-    optimized_check_fail_impl(check_origin->scheduled_origin, check_origin->semantic_origins);
+    filc_panic_context_printf(panic_context, ".\n");
+    optimized_check_fail_impl(panic_context,
+                              check_origin->scheduled_origin,
+                              check_origin->semantic_origins);
 }
 
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_alignment_contradiction(
     filc_ptr ptr, const filc_optimized_alignment_contradiction_origin* contradiction_origin)
 {
-    pas_log("filc safety error: alignment contradiction.\n");
-    pas_log("    pointer: ");
-    filc_ptr_dump(ptr, pas_log_stream);
-    pas_log("\n");
-    pas_log("required alignments:\n");
+    filc_panic_context* panic_context = filc_start_panicking();
+    filc_panic_context_printf(panic_context, "filc safety error: alignment contradiction.\n");
+    filc_panic_context_printf(panic_context, "    pointer: ");
+    filc_ptr_dump(ptr, filc_panic_context_stream(panic_context));
+    filc_panic_context_printf(panic_context, "\n");
+    filc_panic_context_printf(panic_context, "required alignments:\n");
     /* Gotta have at least two alignments for there to have been a contradiction! */
     PAS_ASSERT(contradiction_origin->alignments[0].alignment);
     PAS_ASSERT(contradiction_origin->alignments[1].alignment);
     size_t index;
     for (index = 0; contradiction_origin->alignments[index].alignment; ++index) {
-        pas_log("    align to %zu at offset %zu.\n",
-                (size_t)contradiction_origin->alignments[index].alignment,
-                (size_t)contradiction_origin->alignments[index].alignment_offset);
+        filc_panic_context_printf(panic_context,
+                                  "    align to %zu at offset %zu.\n",
+                                  (size_t)contradiction_origin->alignments[index].alignment,
+                                  (size_t)contradiction_origin->alignments[index].alignment_offset);
     }
-    optimized_check_fail_impl(contradiction_origin->scheduled_origin,
+    optimized_check_fail_impl(panic_context,
+                              contradiction_origin->scheduled_origin,
                               contradiction_origin->semantic_origins);
 }
 
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_masked_access_check_fail(
     filc_ptr ptr, uint64_t mask, size_t size, filc_access_kind access_kind, const filc_origin* origin)
 {
+    filc_panic_context* panic_context = filc_start_panicking();
     filc_thread* my_thread = filc_get_my_thread();
     PAS_ASSERT(my_thread->top_frame);
     if (origin)
         my_thread->top_frame->origin = origin;
-    pas_log("filc safety error: masked %s not in bounds (even accounting for the mask).\n",
-            filc_access_kind_get_string(access_kind));
-    pas_log("    pointer: ");
-    filc_ptr_dump(ptr, pas_log_stream);
-    pas_log("\n");
-    pas_log("    mask: %lx\n", mask);
-    pas_log("    vector size in bytes: %zu\n", size);
-    pas_log("origin:\n");
-    filc_thread_dump_stack(my_thread, pas_log_stream);
-    finish_panicking("thwarted a futile attempt to violate memory safety.");
+    filc_panic_context_printf(
+        panic_context,
+        "filc safety error: masked %s not in bounds (even accounting for the mask).\n",
+        filc_access_kind_get_string(access_kind));
+    filc_panic_context_printf(panic_context, "    pointer: ");
+    filc_ptr_dump(ptr, filc_panic_context_stream(panic_context));
+    filc_panic_context_printf(panic_context, "\n");
+    filc_panic_context_printf(panic_context, "    mask: %lx\n", mask);
+    filc_panic_context_printf(panic_context, "    vector size in bytes: %zu\n", size);
+    filc_panic_context_printf(panic_context, "origin:\n");
+    filc_thread_dump_stack(my_thread, filc_panic_context_stream(panic_context));
+    filc_finish_panicking(panic_context, "thwarted a futile attempt to violate memory safety.");
 }
 
 void filc_check_function_call(filc_ptr ptr)
@@ -5267,12 +5397,13 @@ PAS_NEVER_INLINE PAS_NO_RETURN static void panic_impl(
     const filc_origin* origin, const char* prefix, const char* kind_string, const char* format,
     va_list args)
 {
+    filc_panic_context* panic_context = filc_start_panicking();
     fix_origin(origin);
-    pas_log("%s: ", prefix);
-    pas_vlog(format, args);
-    pas_log("\n");
-    filc_thread_dump_stack(filc_get_my_thread(), pas_log_stream);
-    finish_panicking(kind_string);
+    filc_panic_context_printf(panic_context, "%s: ", prefix);
+    filc_panic_context_vprintf(panic_context, format, args);
+    filc_panic_context_printf(panic_context, "\n");
+    filc_thread_dump_stack(filc_get_my_thread(), filc_panic_context_stream(panic_context));
+    filc_finish_panicking(panic_context, kind_string);
 }
 
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_safety_panic(

@@ -35,6 +35,7 @@
 #include "pas_ptr_hash_map.h"
 #include "pas_range.h"
 #include "pas_segmented_vector.h"
+#include "pas_string_stream.h"
 #include "verse_heap.h"
 #include "verse_heap_config.h"
 #include "verse_heap_page_header.h"
@@ -87,6 +88,7 @@ struct filc_optimized_alignment_contradiction_origin;
 struct filc_origin;
 struct filc_origin_node;
 struct filc_origin_with_eh;
+struct filc_panic_context;
 struct filc_ptr;
 struct filc_ptr_array;
 struct filc_ptr_hash_map_entry;
@@ -104,7 +106,6 @@ struct filc_weak;
 struct filc_weak_map;
 struct pas_basic_heap_runtime_config;
 struct pas_local_allocator;
-struct pas_stream;
 struct pas_thread_local_cache_node;
 struct pizlonated_return_value;
 struct verse_heap_object_set;
@@ -142,6 +143,7 @@ typedef struct filc_optimized_alignment_contradiction_origin filc_optimized_alig
 typedef struct filc_origin filc_origin;
 typedef struct filc_origin_node filc_origin_node;
 typedef struct filc_origin_with_eh filc_origin_with_eh;
+typedef struct filc_panic_context filc_panic_context;
 typedef struct filc_ptr filc_ptr;
 typedef struct filc_ptr_array filc_ptr_array;
 typedef struct filc_ptr_hash_map_entry filc_ptr_hash_map_entry;
@@ -159,7 +161,6 @@ typedef struct filc_weak filc_weak;
 typedef struct filc_weak_map filc_weak_map;
 typedef struct pas_basic_heap_runtime_config pas_basic_heap_runtime_config;
 typedef struct pas_local_allocator pas_local_allocator;
-typedef struct pas_stream pas_stream;
 typedef struct pas_thread_local_cache_node pas_thread_local_cache_node;
 typedef struct pizlonated_return_value pizlonated_return_value;
 typedef struct verse_heap_object_set verse_heap_object_set;
@@ -320,6 +321,10 @@ typedef uintptr_t filc_word;
 struct pizlonated_return_value {
     bool has_exception;
     size_t return_size;
+};
+
+struct filc_panic_context {
+    pas_string_stream stream;
 };
 
 struct PAS_ALIGNED(FILC_FLIGHT_PTR_ALIGNMENT) filc_ptr {
@@ -1298,6 +1303,8 @@ enum filc_size_mode {
 
 typedef enum filc_size_mode filc_size_mode;
 
+PAS_API extern pas_system_thread_id filc_panicking_thread;
+
 #define FILC_FOR_EACH_LOCK(macro) \
     macro(thread_list); \
     macro(stop_the_world)
@@ -1444,6 +1451,27 @@ PAS_API extern const filc_object filc_free_singleton;
 PAS_API extern filc_object_array filc_global_variable_roots;
 PAS_API extern filc_object_array filc_global_variable_root_ptrs;
 
+PAS_API filc_panic_context* filc_start_panicking(void);
+
+static inline pas_stream* filc_panic_context_stream(filc_panic_context* context)
+{
+    return (pas_stream*)&context->stream;
+}
+
+static void filc_panic_context_vprintf(filc_panic_context* context, const char* format,
+                                       va_list list) PAS_FORMAT_PRINTF(2, 0);
+static inline void filc_panic_context_vprintf(filc_panic_context* context, const char* format,
+                                              va_list list)
+{
+    pas_string_stream_vprintf(&context->stream, format, list);
+}
+
+#define filc_panic_context_printf(context, ...) \
+    pas_string_stream_printf(&(context)->stream, __VA_ARGS__)
+
+PAS_NO_RETURN PAS_API void filc_finish_panicking(filc_panic_context* context,
+                                                 const char* kind_string);
+
 /* Anything that takes origin for checking has the following meaning:
    
    - If the origin is NULL, we just use the origin that's at the top of the stack already.
@@ -1563,6 +1591,7 @@ static inline bool filc_thread_is_entered(filc_thread* thread)
     return thread->state & FILC_THREAD_STATE_ENTERED;
 }
 
+PAS_API void filc_assert_my_thread_is_entered(void);
 PAS_API void filc_assert_my_thread_is_not_entered(void);
 
 PAS_API void filc_snapshot_threads(filc_thread*** threads, size_t* num_threads);
