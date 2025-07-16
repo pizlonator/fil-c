@@ -70,6 +70,38 @@ filc_ptr filc_native_zsys_dlsym(filc_thread* my_thread, filc_ptr handle_ptr, fil
     return raw_symbol(my_thread, NULL);
 }
 
+filc_ptr filc_native_zsys_dlvsym(filc_thread* my_thread, filc_ptr handle_ptr, filc_ptr symbol_ptr,
+                                 filc_ptr version_ptr)
+{
+#if PAS_GLIBC
+    filc_check_access_special(handle_ptr, FILC_SPECIAL_TYPE_DL_HANDLE);
+    void* handle = filc_ptr_ptr(handle_ptr);
+    char* symbol = filc_check_and_get_tmp_str(my_thread, symbol_ptr);
+    char* version = filc_check_and_get_tmp_str(my_thread, version_ptr);
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+    pas_string_stream stream;
+    pas_string_stream_construct(&stream, &allocation_config);
+    pas_string_stream_printf(&stream, "pizlonated_%s", symbol);
+    filc_exit(my_thread);
+    pizlonated_getter raw_symbol =
+        (pizlonated_getter)dlvsym(handle, pas_string_stream_get_string(&stream), version);
+    filc_enter(my_thread);
+    pas_string_stream_destruct(&stream);
+    if (!raw_symbol) {
+        filc_set_dlerror(dlerror(), symbol);
+        return filc_ptr_forge_null();
+    }
+    return raw_symbol(my_thread, NULL);
+#else
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(handle_ptr);
+    PAS_UNUSED_PARAM(symbol_ptr);
+    PAS_UNUSED_PARAM(version_ptr);
+    filc_internal_panic(NULL, "dlvsym not supported.");
+#endif
+}
+
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */

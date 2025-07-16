@@ -47,7 +47,17 @@ filc_ptr filc_native_zsys_dlsym(filc_thread* my_thread, filc_ptr handle_ptr, fil
     PAS_UNUSED_PARAM(my_thread);
     PAS_UNUSED_PARAM(handle_ptr);
     PAS_UNUSED_PARAM(symbol_ptr);
-    filc_safety_panic(NULL, "cannot do dlsym in static build");
+    filc_safety_panic(NULL, "cannot do dlsym in static build.");
+}
+
+filc_ptr filc_native_zsys_dlvsym(filc_thread* my_thread, filc_ptr handle_ptr, filc_ptr symbol_ptr,
+                                 filc_ptr version_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(handle_ptr);
+    PAS_UNUSED_PARAM(symbol_ptr);
+    PAS_UNUSED_PARAM(version_ptr);
+    filc_safety_panic(NULL, "cannot do dlvsym in static build.");
 }
 
 #endif /* PAS_ENABLE_FILC */
