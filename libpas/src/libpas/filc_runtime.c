@@ -10743,6 +10743,53 @@ int filc_native_zsys_umount2(filc_thread* my_thread, filc_ptr special_ptr, int f
     return FILC_SYSCALL(my_thread, umount2(special, flags));
 }
 
+struct ksigevent {
+    union sigval sigev_value;
+    int sigev_signo;
+    int sigev_notify;
+    int sigev_tid;
+};
+
+int filc_native_zsys_timer_create(filc_thread* my_thread, int clockid, filc_ptr ksev_ptr,
+                                  filc_ptr timer_ptr)
+{
+    filc_check_write(ksev_ptr, sizeof(struct ksigevent)); /* Maybe this could be check read? */
+    filc_check_write(timer_ptr, sizeof(int));
+    return FILC_SYSCALL(my_thread, syscall(SYS_timer_create, clockid,
+                                           (struct ksigevent*)filc_ptr_ptr(ksev_ptr),
+                                           (int*)filc_ptr_ptr(timer_ptr)));
+}
+
+int filc_native_zsys_timer_getoverrun(filc_thread* my_thread, int timer)
+{
+    return FILC_SYSCALL(my_thread, syscall(SYS_timer_getoverrun, timer));
+}
+
+int filc_native_zsys_timer_settime(filc_thread* my_thread, int timer, int flags, filc_ptr val_ptr,
+                                   filc_ptr old_ptr)
+{
+    if (filc_ptr_ptr(val_ptr))
+        filc_check_read(val_ptr, sizeof(struct itimerspec));
+    if (filc_ptr_ptr(old_ptr))
+        filc_check_write(old_ptr, sizeof(struct itimerspec));
+    return FILC_SYSCALL(my_thread, syscall(SYS_timer_settime, timer, flags,
+                                           (const struct itimerspec*)filc_ptr_ptr(val_ptr),
+                                           (struct itimerspec*)filc_ptr_ptr(old_ptr)));
+}
+
+int filc_native_zsys_timer_delete(filc_thread* my_thread, int timer)
+{
+    return FILC_SYSCALL(my_thread, syscall(SYS_timer_delete, timer));
+}
+
+int filc_native_zsys_timer_gettime(filc_thread* my_thread, int timer, filc_ptr val_ptr)
+{
+    if (filc_ptr_ptr(val_ptr))
+        filc_check_write(val_ptr, sizeof(struct itimerspec));
+    return FILC_SYSCALL(my_thread, syscall(SYS_timer_gettime, timer,
+                                           (struct itimerspec*)filc_ptr_ptr(val_ptr)));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
@@ -10883,16 +10930,6 @@ static void* start_thread(void* arg)
 
     PAS_ASSERT(!pthread_setspecific(filc_thread_key, thread));
 
-    pas_system_mutex_lock(&thread->lock);
-    PAS_ASSERT(!thread->thread);
-    thread->tid = tid;
-    thread->thread = pthread_self();
-    thread->has_initialized = true;
-    pas_system_condition_broadcast(&thread->cond);
-    pas_system_mutex_unlock(&thread->lock);
-
-    PAS_ASSERT(!pthread_detach(thread->thread));
-
     PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &thread->initial_blocked_sigs, NULL));
     
     filc_enter(thread);
@@ -10905,6 +10942,27 @@ static void* start_thread(void* arg)
 
     filc_native_frame native_frame;
     filc_push_native_frame(thread, &native_frame);
+
+    filc_ptr zthread_ptr = filc_flight_ptr_load(thread, &thread->zthread_ptr);
+    if (filc_ptr_ptr(zthread_ptr)) {
+        filc_store_ptr(thread, zthread_ptr, 0,
+                       filc_ptr_for_special_payload_with_manual_tracking(thread));
+    }
+    filc_ptr tid_ptr = filc_flight_ptr_load(thread, &thread->tid_ptr);
+    if (filc_ptr_ptr(tid_ptr)) {
+        filc_check_write(tid_ptr, sizeof(unsigned));
+        *(unsigned*)filc_ptr_ptr(tid_ptr) = tid;
+    }
+
+    pas_system_mutex_lock(&thread->lock);
+    PAS_ASSERT(!thread->thread);
+    thread->tid = tid;
+    thread->thread = pthread_self();
+    thread->has_initialized = true;
+    pas_system_condition_broadcast(&thread->cond);
+    pas_system_mutex_unlock(&thread->lock);
+
+    PAS_ASSERT(!pthread_detach(thread->thread));
 
     filc_ptr arg_ptr = filc_flight_ptr_load(thread, &thread->arg_ptr);
     filc_flight_ptr_store(thread, &thread->arg_ptr, filc_ptr_forge_null());
@@ -10923,7 +10981,8 @@ static void* start_thread(void* arg)
     return NULL;
 }
 
-filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_ptr, filc_ptr arg_ptr)
+bool filc_native_zthread_create2(filc_thread* my_thread, filc_ptr callback_ptr, filc_ptr arg_ptr,
+                                 filc_ptr zthread_ptr, filc_ptr tid_ptr)
 {
     FILC_CHECK(
         filc_did_run_deferred_global_ctors,
@@ -10941,6 +11000,8 @@ filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_pt
     PAS_ASSERT(filc_ptr_is_totally_null(thread->cookie_ptr));
     filc_flight_ptr_store(my_thread, &thread->thread_main, callback_ptr);
     filc_flight_ptr_store(my_thread, &thread->arg_ptr, arg_ptr);
+    filc_flight_ptr_store(my_thread, &thread->zthread_ptr, zthread_ptr);
+    filc_flight_ptr_store(my_thread, &thread->tid_ptr, tid_ptr);
     pas_system_mutex_unlock(&thread->lock);
     filc_exit(my_thread);
     /* Make sure we don't create threads while in a handshake. This will hold the thread in the
@@ -10959,8 +11020,8 @@ filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_pt
         thread->has_started = false;
     filc_soft_handshake_lock_unlock();
     filc_stop_the_world_lock_unlock();
-    filc_enter(my_thread);
     if (result) {
+        filc_enter(my_thread);
         pas_system_mutex_lock(&thread->lock);
         PAS_ASSERT(!thread->thread);
         thread->error_starting = true;
@@ -10970,13 +11031,14 @@ filc_ptr filc_native_zthread_create(filc_thread* my_thread, filc_ptr callback_pt
         pas_system_mutex_unlock(&thread->lock);
         filc_thread_dispose(thread);
         filc_set_errno(result);
-        return filc_ptr_forge_null();
+        return false;
     }
     pas_system_mutex_lock(&thread->lock);
     while (!thread->has_initialized)
         pas_system_condition_wait(&thread->cond, &thread->lock);
     pas_system_mutex_unlock(&thread->lock);
-    return filc_ptr_for_special_payload_with_manual_tracking(thread);
+    filc_enter(my_thread);
+    return true;
 }
 
 bool filc_native_zthread_join(filc_thread* my_thread, filc_ptr thread_ptr, filc_ptr result_ptr)

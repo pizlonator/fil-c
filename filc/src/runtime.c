@@ -562,6 +562,13 @@ void* zthread_self_cookie(void)
     return zthread_get_cookie(zthread_self());
 }
 
+void* zthread_create(void* (*callback)(void* arg), void* arg)
+{
+    void* result = 0;
+    zthread_create2(callback, arg, &result, 0);
+    return result;
+}
+
 int zsys_gettid(void)
 {
     return zthread_self_id();

@@ -768,6 +768,8 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
                          This is set to non-NULL the moment that the thread is fully started and
                          is set back to NULL when the thread starts stopping. */
     filc_ptr thread_main;
+    filc_ptr zthread_ptr;
+    filc_ptr tid_ptr;
     filc_ptr arg_ptr;
     filc_ptr result_ptr;
 

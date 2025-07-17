@@ -377,6 +377,11 @@ int zsys_mknod(const char* pathname, unsigned mode, unsigned long dev);
 int zsys_mknodat(int dirfd, const char* pathname, unsigned mode, unsigned long dev);
 int zsys_reboot(int howto);
 int zsys_umount2(const char* special, int flags);
+int zsys_timer_create(int clockid, void* ksevp, int* timer);
+int zsys_timer_getoverrun(int timer);
+int zsys_timer_settime(int timer, int flags, const void* val, void* old);
+int zsys_timer_delete(int timer);
+int zsys_timer_gettime(int timer, void* value);
 
 #ifdef __cplusplus
 }
