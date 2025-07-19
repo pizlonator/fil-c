@@ -2210,6 +2210,14 @@ void CodeGenFunction::EmitAggregateCopy(LValue Dest, LValue Src, QualType Ty,
     }
   }
 
+  if (Ty.hasUnion()) {
+    Builder.CreateCall(
+      CGM.CreateRuntimeFunction(
+        llvm::FunctionType::get(VoidTy, { Int8PtrTy, Int8PtrTy, SizeTy }, false), "zmemmove"),
+      { DestPtr.getPointer(), SrcPtr.getPointer(), SizeVal });
+    return;
+  }
+
   auto Inst = Builder.CreateMemCpy(DestPtr, SrcPtr, SizeVal, isVolatile);
 
   // Determine the metadata to describe the position of any padding in this

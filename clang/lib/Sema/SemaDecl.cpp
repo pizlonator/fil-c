@@ -18754,6 +18754,9 @@ void Sema::ActOnFields(Scope *S, SourceLocation RecLoc, Decl *EnclosingDecl,
       RecFields.push_back(FD);
     }
 
+    if (FD->getType().hasUnion())
+      Record->setHasUnion(true);
+
     // If the field is already invalid for some reason, don't emit more
     // diagnostics about it.
     if (FD->isInvalidDecl()) {

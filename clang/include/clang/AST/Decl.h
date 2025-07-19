@@ -4173,6 +4173,14 @@ public:
     RecordDeclBits.HasNonTrivialToPrimitiveCopyCUnion = V;
   }
 
+  bool hasUnion() const {
+    return RecordDeclBits.HasUnion;
+  }
+
+  void setHasUnion(bool V) {
+    RecordDeclBits.HasUnion = V;
+  }
+
   /// Determine whether this class can be passed in registers. In C++ mode,
   /// it must have at least one trivial, non-deleted copy or move constructor.
   /// FIXME: This should be set as part of completeDefinition.

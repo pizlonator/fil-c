@@ -1316,6 +1316,8 @@ public:
   /// true, isNonTrivialToPrimitiveCopy returns PCK_Struct.
   bool hasNonTrivialToPrimitiveCopyCUnion() const;
 
+  bool hasUnion() const;
+
   /// Determine whether expressions of the given type are forbidden
   /// from being lvalues in C.
   ///
@@ -1393,6 +1395,7 @@ private:
   static bool hasNonTrivialToPrimitiveDefaultInitializeCUnion(const RecordDecl *RD);
   static bool hasNonTrivialToPrimitiveDestructCUnion(const RecordDecl *RD);
   static bool hasNonTrivialToPrimitiveCopyCUnion(const RecordDecl *RD);
+  static bool hasUnion(const RecordDecl *RD);
 };
 
 raw_ostream &operator<<(raw_ostream &OS, QualType QT);
@@ -6830,6 +6833,12 @@ inline bool QualType::hasNonTrivialToPrimitiveDestructCUnion() const {
 inline bool QualType::hasNonTrivialToPrimitiveCopyCUnion() const {
   if (auto *RD = getTypePtr()->getBaseElementTypeUnsafe()->getAsRecordDecl())
     return hasNonTrivialToPrimitiveCopyCUnion(RD);
+  return false;
+}
+
+inline bool QualType::hasUnion() const {
+  if (auto *RD = getTypePtr()->getBaseElementTypeUnsafe()->getAsRecordDecl())
+    return hasUnion(RD);
   return false;
 }
 

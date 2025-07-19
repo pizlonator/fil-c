@@ -1590,6 +1590,7 @@ class DeclContext {
     uint64_t HasNonTrivialToPrimitiveDefaultInitializeCUnion : 1;
     uint64_t HasNonTrivialToPrimitiveDestructCUnion : 1;
     uint64_t HasNonTrivialToPrimitiveCopyCUnion : 1;
+    uint64_t HasUnion : 1;
 
     /// Indicates whether this struct is destroyed in the callee.
     uint64_t ParamDestroyedInCallee : 1;
@@ -1602,7 +1603,7 @@ class DeclContext {
 
     /// True if a valid hash is stored in ODRHash. This should shave off some
     /// extra storage and prevent CXXRecordDecl to store unused bits.
-    uint64_t ODRHash : 26;
+    uint64_t ODRHash : 25;
   };
 
   /// Number of non-inherited bits in RecordDeclBitfields.
