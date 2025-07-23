@@ -43,7 +43,7 @@ typedef struct pas_heap pas_heap;
 
 PAS_API void verse_local_allocator_construct(pas_local_allocator* allocator, pas_heap* heap, size_t object_size, size_t allocator_size);
 PAS_API void verse_local_allocator_stop(pas_local_allocator* allocator);
-PAS_API void* verse_local_allocator_allocate(pas_local_allocator* allocator);
+void* verse_local_allocator_allocate(pas_local_allocator* allocator);
 PAS_API void* verse_local_allocator_try_allocate(pas_local_allocator* allocator);
     
 #ifdef __cplusplus

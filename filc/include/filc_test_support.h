@@ -67,6 +67,8 @@ filc_bool zgc_is_verifying(void);
 
 __SIZE_TYPE__ znum_deferred_signals(void);
 
+__SIZE_TYPE__ zgc_get_allocation_size(void* ptr);
+
 #ifdef __cplusplus
 }
 #endif

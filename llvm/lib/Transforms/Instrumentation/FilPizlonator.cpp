@@ -101,6 +101,11 @@ static constexpr uint8_t ThreadStateCheckRequested = 2;
 static constexpr uint8_t ThreadStateStopRequested = 4;
 static constexpr uint8_t ThreadStateDeferredSignal = 8;
 
+static constexpr size_t ThreadAllocatorOffset = 3072;
+static constexpr size_t ThreadAllocatorSize = 208;
+static constexpr size_t ThreadMaxInlineSizeClass = 416;
+static constexpr size_t ThreadNumAllocators = (ThreadMaxInlineSizeClass / GCMinAlign) + 1;
+
 enum class AccessKind {
   Read,
   Write
@@ -1160,6 +1165,7 @@ class Pizlonator {
   FunctionCallee GetNextPtrBytesForVAArg;
   FunctionCallee Allocate;
   FunctionCallee AllocateWithAlignment;
+  FunctionCallee LocalAllocatorAllocate;
   FunctionCallee OptimizedAlignmentContradiction;
   FunctionCallee OptimizedAccessCheckFail;
   FunctionCallee MaskedAccessCheckFail;
@@ -2164,22 +2170,73 @@ class Pizlonator {
     llvm_unreachable("Should not get here.");
   }
 
-  Value* allocateObject(Value* Size, size_t Alignment, Instruction* InsertBefore) {
+  Value* allocateObjectInline(size_t Size, Instruction* InsertBefore) {
+    // This sanity check allows us to avoid overflow checks. Note that if this check causes us to
+    // bail then, in the non-overflowing cases, we would have bailed anyway due to the NUM_ALLOCATORS
+    // limit.
+    if (Size >= 65536)
+      return nullptr;
+    Size = (Size + GCMinAlign - 1) & -GCMinAlign;
+    size_t TotalSize = ObjectSize + Size;
+    assert(!(TotalSize & (GCMinAlign - 1)));
+    size_t AllocatorIndex = TotalSize / GCMinAlign;
+    if (AllocatorIndex >= ThreadNumAllocators)
+      return nullptr;
+    GetElementPtrInst* Allocator = GetElementPtrInst::Create(
+      Int8Ty, MyThread,
+      { ConstantInt::get(IntPtrTy, ThreadAllocatorOffset + AllocatorIndex * ThreadAllocatorSize) },
+      "filc_thread_allocator", InsertBefore);
+    Allocator->setDebugLoc(InsertBefore->getDebugLoc());
+    CallInst* Allocate = CallInst::Create(
+      LocalAllocatorAllocate, { Allocator }, "filc_allocate", InsertBefore);
+    Allocate->setDebugLoc(InsertBefore->getDebugLoc());
+    GetElementPtrInst* Upper = GetElementPtrInst::Create(
+      Int8Ty, Allocate, { ConstantInt::get(IntPtrTy, TotalSize) },
+      "filc_allocate_upper", InsertBefore);
+    Upper->setDebugLoc(InsertBefore->getDebugLoc());
+    GetElementPtrInst* UpperPtr = GetElementPtrInst::Create(
+      ObjectTy, Allocate, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(Int32Ty, 0) },
+      "filc_allocate_upper_ptr", InsertBefore);
+    UpperPtr->setDebugLoc(InsertBefore->getDebugLoc());
+    (new StoreInst(Upper, UpperPtr, InsertBefore))->setDebugLoc(InsertBefore->getDebugLoc());
+    GetElementPtrInst* AuxPtr = GetElementPtrInst::Create(
+      ObjectTy, Allocate, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(Int32Ty, 1) },
+      "filc_allocate_aux_ptr", InsertBefore);
+    AuxPtr->setDebugLoc(InsertBefore->getDebugLoc());
+    (new StoreInst(RawNull, AuxPtr, InsertBefore))->setDebugLoc(InsertBefore->getDebugLoc());
+    GetElementPtrInst* Payload = GetElementPtrInst::Create(
+      ObjectTy, Allocate, { ConstantInt::get(IntPtrTy, 1) }, "filc_allocate_payload", InsertBefore);
+    Payload->setDebugLoc(InsertBefore->getDebugLoc());
+    CallInst* Memset = CallInst::Create(
+      RealMemset,
+      { Payload, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, Size),
+        ConstantInt::getBool(Int1Ty, false) },
+      "", InsertBefore);
+    Memset->addParamAttr(0, Attribute::getWithAlignment(C, Align(GCMinAlign)));
+    Memset->setDebugLoc(InsertBefore->getDebugLoc());
+    return Allocate;
+  }
+
+  Value* allocateObject(Value* Size, Value* Alignment, Instruction* InsertBefore) {
     Instruction* Result;
-    if (Alignment <= GCMinAlign) {
+    ConstantInt* AlignmentInt = dyn_cast<ConstantInt>(Alignment);
+    if (AlignmentInt && AlignmentInt->getZExtValue() <= GCMinAlign) {
+      if (ConstantInt* SizeConst = dyn_cast<ConstantInt>(Size)) {
+        Value* ResultValue = allocateObjectInline(SizeConst->getZExtValue(), InsertBefore);
+        if (ResultValue)
+          return ResultValue;
+      }
       Result = CallInst::Create(
         Allocate, { MyThread, Size }, "filc_allocate", InsertBefore);
     } else {
       Result = CallInst::Create(
-        AllocateWithAlignment,
-        { MyThread, Size, ConstantInt::get(IntPtrTy, Alignment) },
-        "filc_allocate", InsertBefore);
+        AllocateWithAlignment, { MyThread, Size, Alignment }, "filc_allocate", InsertBefore);
     }
     Result->setDebugLoc(InsertBefore->getDebugLoc());
     return Result;
   }
 
-  Value* allocate(Value* Size, size_t Alignment, Instruction* InsertBefore) {
+  Value* allocate(Value* Size, Value* Alignment, Instruction* InsertBefore) {
     return flightPtrForObject(allocateObject(Size, Alignment, InsertBefore), InsertBefore);
   }
 
@@ -6063,18 +6120,28 @@ class Pizlonator {
       }
       
       Type* T = AI->getAllocatedType();
-      Value* Length = AI->getArraySize();
-      if (Length->getType() != IntPtrTy) {
-        Instruction* ZExt = new ZExtInst(Length, IntPtrTy, "filc_alloca_length_zext", AI);
-        ZExt->setDebugLoc(AI->getDebugLoc());
-        Length = ZExt;
+      Value* Size;
+      std::optional<TypeSize> TSO = AI->getAllocationSize(DL);
+      if (TSO && !TSO->isScalable())
+        Size = ConstantInt::get(IntPtrTy, TSO->getFixedValue());
+      else {
+        Value* Length = AI->getArraySize();
+        if (Length->getType() != IntPtrTy) {
+          Instruction* ZExt = new ZExtInst(Length, IntPtrTy, "filc_alloca_length_zext", AI);
+          ZExt->setDebugLoc(AI->getDebugLoc());
+          Length = ZExt;
+        }
+        Instruction* SizeI = BinaryOperator::Create(
+          Instruction::Mul, Length, ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T)),
+          "filc_alloca_size", AI);
+        SizeI->setDebugLoc(AI->getDebugLoc());
+        Size = SizeI;
       }
-      Instruction* Size = BinaryOperator::Create(
-        Instruction::Mul, Length, ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T)),
-        "filc_alloca_size", AI);
-      Size->setDebugLoc(AI->getDebugLoc());
       AI->replaceAllUsesWith(
-          allocate(Size, std::max(DL.getABITypeAlign(T).value(), AI->getAlign().value()), AI));
+        allocate(
+          Size,
+          ConstantInt::get(IntPtrTy, std::max(DL.getABITypeAlign(T).value(), AI->getAlign().value())),
+          AI));
       AI->eraseFromParent();
       return;
     }
@@ -7734,6 +7801,8 @@ public:
       "filc_allocate", RawPtrTy, RawPtrTy, IntPtrTy);
     AllocateWithAlignment = M.getOrInsertFunction(
       "filc_allocate_with_alignment", RawPtrTy, RawPtrTy, IntPtrTy, IntPtrTy);
+    LocalAllocatorAllocate = M.getOrInsertFunction(
+      "verse_local_allocator_allocate", RawPtrTy, RawPtrTy);
     CheckFunctionCallFail = M.getOrInsertFunction(
       "filc_check_function_call_fail", VoidTy, FlightPtrTy);
     CheckClosureFail = M.getOrInsertFunction(

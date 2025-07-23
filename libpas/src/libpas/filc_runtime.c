@@ -419,6 +419,9 @@ void filc_initialize(void)
     PAS_ASSERT(FILC_NUM_UNWIND_REGISTERS == 2);
     PAS_ASSERT(FILC_CC_INLINE_SIZE == 256);
     PAS_ASSERT(FILC_CC_ALIGNMENT == 64);
+    PAS_ASSERT(FILC_THREAD_ALLOCATOR_OFFSET == 3072);
+    PAS_ASSERT(FILC_THREAD_ALLOCATOR_SIZE == 208);
+    PAS_ASSERT(FILC_THREAD_MAX_INLINE_SIZE_CLASS == 416);
 
 #define INITIALIZE_LOCK(name) \
     pas_system_mutex_construct(&filc_## name ## _lock)
@@ -1170,6 +1173,12 @@ void filc_consume_deferred_signals(filc_thread* my_thread)
 size_t filc_native_znum_deferred_signals(filc_thread* my_thread)
 {
     return my_thread->num_deferred_signals;
+}
+
+size_t filc_native_zgc_get_allocation_size(filc_thread* my_thread, filc_ptr ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return verse_heap_get_allocation_size_inline((uintptr_t)filc_ptr_ptr(ptr));
 }
 
 void filc_enter_with_allocation_root(filc_thread* my_thread, void* allocation_root)
@@ -2141,6 +2150,94 @@ filc_rest_ptr_pair filc_get_next_ptr_bytes_for_va_arg(filc_ptr ptr_ptr, size_t s
     return result;
 }
 
+static PAS_NO_RETURN PAS_NEVER_INLINE void ensure_aux_ptr_free_fail(filc_object* object)
+{
+    filc_safety_panic(NULL,
+                      "attempt to create aux for free object %s.\n",
+                      filc_object_to_new_string(object));
+}
+
+static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
+    filc_thread* my_thread, filc_object* object, filc_exit_allowed_mode exit_allowed_mode,
+    size_t size, filc_size_mode size_mode)
+{
+    static const bool verbose = false;
+    static const bool not_atomic_hack = false;
+    if (verbose) {
+        pas_log("ensuring aux for ");
+        filc_object_dump(object, pas_log_stream);
+        pas_log("\n");
+    }
+    PAS_TESTING_ASSERT(object);
+    PAS_TESTING_ASSERT(object != &filc_free_singleton);
+    PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
+    PAS_TESTING_ASSERT(size);
+    char* aux_ptr = filc_thread_allocate(my_thread, size);
+    if (verbose)
+        pas_log("allocated aux at %p with size %zu, ending at %p\n", aux_ptr, size, aux_ptr + size);
+    if (size_mode == filc_small_size || !exit_allowed_mode)
+        filc_memset_small_word(aux_ptr, 0, size);
+    else {
+        /* It's wild that we have to do this, but it's really necessary, and it means that anytime
+           we do a store, it's a safepoint.
+        
+           Fortunately, any object referenced from roots is guaranteed to be kept alive along with its
+           aux. even if this exit happens, anything the compiler had been able to prove about objects
+           referenced from locals will continue to be true.
+           
+           The only thing that the compiler can't reason about at all are barriers, but that was
+           already true due to the fantastic properties of Phil's concurrent marking (even if you just
+           allocated an object you still need a barrier). */
+        filc_exit_with_allocation_root(my_thread, aux_ptr);
+        memset(aux_ptr, 0, size);
+        filc_enter_with_allocation_root(my_thread, aux_ptr);
+    }
+    if (PAS_UNLIKELY(filc_current_marking_state))
+        verse_heap_set_is_marked_relaxed(aux_ptr, true);
+    for (;;) {
+        uintptr_t aux = object->aux;
+        PAS_TESTING_ASSERT(!(filc_aux_get_flags(aux) & FILC_OBJECT_FLAGS_SPECIAL_MASK));
+        if (filc_aux_get_ptr(aux)) {
+            if (verbose) {
+                pas_log("object already has aux at %p: ", (void*)aux);
+                filc_object_dump(object, pas_log_stream);
+                pas_log("\n");
+            }
+            return filc_aux_get_ptr(aux);
+        }
+        if (PAS_UNLIKELY(filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_FREE))
+            ensure_aux_ptr_free_fail(object);
+        if (not_atomic_hack) {
+            object->aux = filc_aux_create(filc_aux_get_flags(aux), aux_ptr);
+            return aux_ptr;
+        }
+        if (pas_compare_and_swap_uintptr_weak(
+                &object->aux, aux, filc_aux_create(filc_aux_get_flags(aux), aux_ptr))) {
+            if (verbose) {
+                pas_log("created aux at %p: ", aux_ptr);
+                filc_object_dump(object, pas_log_stream);
+                pas_log("\n");
+            }
+            return aux_ptr;
+        }
+    }
+}
+
+static PAS_NEVER_INLINE char* ensure_aux_ptr_slow_large(filc_thread* my_thread, filc_object* object,
+                                                        filc_exit_allowed_mode exit_allowed_mode,
+                                                        size_t size)
+{
+    return ensure_aux_ptr_slow_size_specialized(
+        my_thread, object, exit_allowed_mode, size, filc_large_size);
+}
+
+static PAS_NO_RETURN PAS_NEVER_INLINE void ensure_aux_ptr_zero_size(filc_object* object)
+{
+    filc_safety_panic(NULL,
+                      "attempt to create aux for object with zero size %s.\n",
+                      filc_object_to_new_string(object));
+}
+
 static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_impl(filc_thread* my_thread, filc_object* object,
                                                         filc_exit_allowed_mode exit_allowed_mode)
 {
@@ -2162,63 +2259,13 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_impl(filc_thread* my_thread, 
        access failures on this newly created aux (since in that case the rest of the access would have
        presumably already checked that it's in bounds of whatever the size was before it was
        freed). */
-    FILC_CHECK(
-        size,
-        NULL,
-        "attempt to create aux for object with zero size %s.\n",
-        filc_object_to_new_string(object));
-    char* aux_ptr = filc_thread_allocate(my_thread, size);
-    if (verbose)
-        pas_log("allocated aux at %p with size %zu, ending at %p\n", aux_ptr, size, aux_ptr + size);
-    if (PAS_LIKELY(size <= FILC_MAX_BYTES_BETWEEN_POLLCHECKS) || !exit_allowed_mode)
-        filc_memset_small_word(aux_ptr, 0, size);
-    else {
-        /* It's wild that we have to do this, but it's really necessary, and it means that anytime
-           we do a store, it's a safepoint.
-        
-           Fortunately, any object referenced from roots is guaranteed to be kept alive along with its
-           aux. even if this exit happens, anything the compiler had been able to prove about objects
-           referenced from locals will continue to be true.
-           
-           The only thing that the compiler can't reason about at all are barriers, but that was
-           already true due to the fantastic properties of Phil's concurrent marking (even if you just
-           allocated an object you still need a barrier). */
-        filc_exit_with_allocation_root(my_thread, aux_ptr);
-        memset(aux_ptr, 0, size);
-        filc_enter_with_allocation_root(my_thread, aux_ptr);
+    if (PAS_UNLIKELY(!size))
+        ensure_aux_ptr_zero_size(object);
+    if (PAS_LIKELY(size <= FILC_MAX_BYTES_BETWEEN_POLLCHECKS)) {
+        return ensure_aux_ptr_slow_size_specialized(
+            my_thread, object, exit_allowed_mode, size, filc_small_size);
     }
-    if (PAS_UNLIKELY(filc_current_marking_state))
-        verse_heap_set_is_marked_relaxed(aux_ptr, true);
-    for (;;) {
-        uintptr_t aux = object->aux;
-        PAS_ASSERT(!(filc_aux_get_flags(aux) & FILC_OBJECT_FLAGS_SPECIAL_MASK));
-        if (filc_aux_get_ptr(aux)) {
-            if (verbose) {
-                pas_log("object already has aux at %p: ", (void*)aux);
-                filc_object_dump(object, pas_log_stream);
-                pas_log("\n");
-            }
-            return filc_aux_get_ptr(aux);
-        }
-        FILC_CHECK(
-            !(filc_aux_get_flags(aux) & FILC_OBJECT_FLAG_FREE),
-            NULL,
-            "attempt to create aux for free object %s.\n",
-            filc_object_to_new_string(object));
-        if (not_atomic_hack) {
-            object->aux = filc_aux_create(filc_aux_get_flags(aux), aux_ptr);
-            return aux_ptr;
-        }
-        if (pas_compare_and_swap_uintptr_weak(
-                &object->aux, aux, filc_aux_create(filc_aux_get_flags(aux), aux_ptr))) {
-            if (verbose) {
-                pas_log("created aux at %p: ", aux_ptr);
-                filc_object_dump(object, pas_log_stream);
-                pas_log("\n");
-            }
-            return aux_ptr;
-        }
-    }
+    return ensure_aux_ptr_slow_large(my_thread, object, exit_allowed_mode, size);
 }
 
 char* filc_object_ensure_aux_ptr_slow(filc_thread* my_thread, filc_object* object)
@@ -2233,7 +2280,10 @@ char* filc_object_ensure_aux_ptr_slow_without_exiting(filc_thread* my_thread, fi
 
 char* filc_object_ensure_aux_ptr_outline(filc_thread* my_thread, filc_object* object)
 {
-    return filc_object_ensure_aux_ptr(my_thread, object);
+    char* result = filc_object_aux_ptr(object);
+    if (result)
+        return result;
+    return ensure_aux_ptr_slow_impl(my_thread, object, filc_exit_allowed);
 }
 
 filc_atomic_box* filc_atomic_box_create_for_ptr_store(filc_thread* my_thread, filc_ptr value)
