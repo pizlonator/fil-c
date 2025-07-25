@@ -810,6 +810,13 @@ enum filc_exit_allowed_mode {
 
 typedef enum filc_exit_allowed_mode filc_exit_allowed_mode;
 
+enum filc_word_alignment_mode {
+    filc_not_word_aligned,
+    filc_word_aligned
+};
+
+typedef enum filc_word_alignment_mode filc_word_alignment_mode;
+
 struct filc_global_initialization_work_item {
     filc_ptr* pizlonated_gptr;
     
@@ -2120,22 +2127,30 @@ PAS_API PAS_NEVER_INLINE char* filc_object_ensure_aux_ptr_slow(filc_thread* my_t
 PAS_NEVER_INLINE char* filc_object_ensure_aux_ptr_slow_without_exiting(filc_thread* my_thread,
                                                                        filc_object* object);
 
-/* This may exit! */
-static inline char* filc_object_ensure_aux_ptr(filc_thread* my_thread, filc_object* object)
+static PAS_ALWAYS_INLINE char* filc_object_ensure_aux_ptr_with_allowed_exit_mode(
+    filc_thread* my_thread,
+    filc_object* object,
+    filc_exit_allowed_mode exit_allowed)
 {
     char* result = filc_object_aux_ptr(object);
     if (PAS_LIKELY(result))
         return result;
-    return filc_object_ensure_aux_ptr_slow(my_thread, object);
+    if (exit_allowed)
+        return filc_object_ensure_aux_ptr_slow(my_thread, object);
+    return filc_object_ensure_aux_ptr_slow_without_exiting(my_thread, object);
 }
 
-static inline char* filc_object_ensure_aux_ptr_without_exiting(filc_thread* my_thread,
-                                                               filc_object* object)
+/* This may exit! */
+static PAS_ALWAYS_INLINE char* filc_object_ensure_aux_ptr(filc_thread* my_thread, filc_object* object)
 {
-    char* result = filc_object_aux_ptr(object);
-    if (PAS_LIKELY(result))
-        return result;
-    return filc_object_ensure_aux_ptr_slow_without_exiting(my_thread, object);
+    return filc_object_ensure_aux_ptr_with_allowed_exit_mode(my_thread, object, filc_exit_allowed);
+}
+
+static PAS_ALWAYS_INLINE char* filc_object_ensure_aux_ptr_without_exiting(filc_thread* my_thread,
+                                                                          filc_object* object)
+{
+    return filc_object_ensure_aux_ptr_with_allowed_exit_mode(
+        my_thread, object, filc_exit_not_allowed);
 }
 
 char* filc_object_ensure_aux_ptr_outline(filc_thread* my_thread, filc_object* object);
@@ -2576,6 +2591,11 @@ static inline void* filc_ptr_lower(filc_ptr ptr)
 static inline filc_object* filc_ptr_object(filc_ptr ptr)
 {
     return filc_object_for_lower(filc_ptr_lower(ptr));
+}
+
+static inline filc_object* filc_ptr_object_not_null(filc_ptr ptr)
+{
+    return filc_object_for_lower_not_null(filc_ptr_lower(ptr));
 }
 
 static inline void* filc_ptr_ptr(filc_ptr ptr)
@@ -3848,6 +3868,44 @@ static PAS_ALWAYS_INLINE void filc_memmove_small(void* dst, void* src, size_t by
     filc_memcpy_small_up_or_down(dst, src, bytes, dst < src);
 }
 
+static PAS_ALWAYS_INLINE void filc_memcpy_small_word_up(void* dst, void* src, size_t bytes)
+{
+    PAS_TESTING_ASSERT(pas_is_aligned(bytes, sizeof(uintptr_t)));
+    uintptr_t* cur_dst = (uintptr_t*)dst;
+    uintptr_t* end_dst = (uintptr_t*)((char*)dst + bytes);
+    uintptr_t* cur_src = (uintptr_t*)src;
+    while (cur_dst < end_dst) {
+        *cur_dst++ = *cur_src++;
+        pas_compiler_fence();
+    }
+}
+
+static PAS_ALWAYS_INLINE void filc_memcpy_small_word_down(void* dst, void* src, size_t bytes)
+{
+    PAS_TESTING_ASSERT(pas_is_aligned(bytes, sizeof(uintptr_t)));
+    uintptr_t* cur_dst = (uintptr_t*)((char*)dst + bytes);
+    uintptr_t* end_dst = (uintptr_t*)dst;
+    uintptr_t* cur_src = (uintptr_t*)((char*)src + bytes);
+    while (cur_dst > end_dst) {
+        *--cur_dst = *--cur_src;
+        pas_compiler_fence();
+    }
+}
+
+static PAS_ALWAYS_INLINE void filc_memcpy_small_word_up_or_down(void* dst, void* src, size_t bytes,
+                                                                bool is_up)
+{
+    if (is_up)
+        filc_memcpy_small_word_up(dst, src, bytes);
+    else
+        filc_memcpy_small_word_down(dst, src, bytes);
+}
+
+static PAS_ALWAYS_INLINE void filc_memmove_small_word(void* dst, void* src, size_t bytes)
+{
+    filc_memcpy_small_word_up_or_down(dst, src, bytes, dst < src);
+}
+
 /* These functions assume that the memory that you're setting or copying is already tracked by GC. */
 void filc_memset_with_exit(filc_thread* my_thread, void* ptr, unsigned value, size_t bytes);
 void filc_memcpy_with_exit(filc_thread* my_thread, void* dst, const void* src, size_t bytes);
@@ -3890,6 +3948,11 @@ void filc_low_level_ptr_safe_bzero_with_exit(filc_thread* my_thread, void* ptr, 
 
 void filc_memset(filc_thread* my_thread, filc_ptr ptr, unsigned value, size_t count,
                  const filc_origin* origin);
+
+void filc_memmove_already_checked(filc_thread* my_thread, filc_ptr dst, filc_ptr src, size_t count,
+                                  const filc_origin* origin);
+void filc_memmove_already_checked_aligned(filc_thread* my_thread, filc_ptr dst, filc_ptr src,
+                                          size_t count, const filc_origin* origin);
 
 /* We don't have a separate memcpy right now. We could, in the future. But likely, the cost
    difference between the two is much smaller than the cost overhead of checking, so it might
