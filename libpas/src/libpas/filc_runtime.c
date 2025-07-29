@@ -422,6 +422,7 @@ void filc_initialize(void)
     PAS_ASSERT(FILC_THREAD_ALLOCATOR_OFFSET == 3072);
     PAS_ASSERT(FILC_THREAD_ALLOCATOR_SIZE == 208);
     PAS_ASSERT(FILC_THREAD_MAX_INLINE_SIZE_CLASS == 416);
+    PAS_ASSERT(FILC_MAX_BYTES_BETWEEN_POLLCHECKS == 10000);
 
 #define INITIALIZE_LOCK(name) \
     pas_system_mutex_construct(&filc_## name ## _lock)

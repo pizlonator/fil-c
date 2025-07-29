@@ -69,6 +69,12 @@ __SIZE_TYPE__ znum_deferred_signals(void);
 
 __SIZE_TYPE__ zgc_get_allocation_size(void* ptr);
 
+/* This is the memmove that we use for union assignments. It gets optimized, but only after
+   FilPizlonator.
+
+   You shouldn't ever have to call this directly */
+void zmemmove_union(void* dst, void* src, __SIZE_TYPE__ count);
+
 #ifdef __cplusplus
 }
 #endif

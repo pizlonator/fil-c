@@ -260,7 +260,13 @@ typedef uintptr_t filc_word;
 #define FILC_THREAD_STATE_DEFERRED_SIGNAL ((uint8_t)8)
 
 #define FILC_MAX_BYTES_FOR_SMALL_CASE     ((size_t)1000)
-#define FILC_MAX_BYTES_BETWEEN_POLLCHECKS ((size_t)10000)
+#define FILC_MAX_BYTES_BETWEEN_POLLCHECKS ((size_t)10000) /* FIXME: We use this to mean that smaller
+                                                             sizes can use our own hacky inlined
+                                                             memcpy *and* we also use it to mean the
+                                                             number of bytes to copy between
+                                                             pollchecks. These should be unrelated
+                                                             things unless we're happy to make this
+                                                             threshold lower. */
 
 #define FILC_PTR_TABLE_OFFSET             ((uintptr_t)66666)
 #define FILC_PTR_TABLE_SHIFT              ((uintptr_t)4)

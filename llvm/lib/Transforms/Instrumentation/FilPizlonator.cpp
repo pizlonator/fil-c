@@ -109,6 +109,8 @@ static constexpr size_t ThreadAllocatorSize = 208;
 static constexpr size_t ThreadMaxInlineSizeClass = 416;
 static constexpr size_t ThreadNumAllocators = (ThreadMaxInlineSizeClass / GCMinAlign) + 1;
 
+static constexpr size_t MaxBytesBetweenPollchecks = 10000;
+
 enum class AccessKind {
   Read,
   Write
@@ -1177,6 +1179,8 @@ class Pizlonator {
   FunctionCallee CheckClosureFail;
   FunctionCallee Memset;
   FunctionCallee Memmove;
+  FunctionCallee MemmoveAlreadyChecked;
+  FunctionCallee MemmoveAlreadyCheckedSmall;
   FunctionCallee GlobalInitializationStart;
   FunctionCallee GlobalInitializationEnd;
   FunctionCallee CallIfunc;
@@ -3284,8 +3288,13 @@ class Pizlonator {
   void buildChecksImpl(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
                        AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
     if (verbose) {
-      errs() << "Building checks for " << *I << " with T = " << *T << ", HighP = " << *HighP
-             << ", Alignment = " << Alignment.value() << ", AK = " << accessKindString(AK) << "\n";
+      errs() << "Building checks for " << *I << " with T = ";
+      if (T)
+        errs() << "null";
+      else
+        errs() << *T;
+      errs() << ", HighP = " << *HighP << ", Alignment = " << Alignment.value() << ", AK = "
+             << accessKindString(AK) << "\n";
     }
 
     PtrAndOffset PAO = canonicalizePtr(HighP);
@@ -3306,6 +3315,21 @@ class Pizlonator {
         Checks.push_back(
           AccessCheckWithDI(PAO.HighP, 0, 0, CheckKind::CanWrite, basicDI(I->getDebugLoc())));
       }
+      return;
+    }
+
+    if (isOptMemmoveCall(I)) {
+      CallBase* CI = cast<CallBase>(I);
+      size_t Count = cast<ConstantInt>(CI->getArgOperand(2))->getZExtValue();
+      bool CouldHavePtrs = Count >= WordSize;
+      if (AK == AccessKind::Read)
+        assert(HighP == CI->getArgOperand(1));
+      else
+        assert(HighP == CI->getArgOperand(0));
+      const CombinedDI* DI = basicDI(I->getDebugLoc());
+      buildCheck(Count, Alignment.value(), PAO.HighP, PAO.Offset, AK, DI, Checks);
+      if (CouldHavePtrs || AK == AccessKind::Write)
+        Checks.push_back(AccessCheckWithDI(PAO.HighP, 0, 0, CheckKind::GetAuxPtr, DI));
       return;
     }
 
@@ -3331,6 +3355,39 @@ class Pizlonator {
     
     AtomicRMWInst* AI = cast<AtomicRMWInst>(I);
     return AI->getPointerOperand();
+  }
+
+  bool isMemmoveFT(FunctionType* FT) {
+    return FT->getNumParams() == 3 &&
+      !FT->isVarArg() &&
+      FT->getReturnType() == VoidTy &&
+      FT->getParamType(0) == RawPtrTy &&
+      FT->getParamType(1) == RawPtrTy &&
+      FT->getParamType(2) == IntPtrTy;
+  }
+
+  bool isOptMemmoveCall(Instruction* I) {
+    if (CallBase* CI = dyn_cast<CallBase>(I)) {
+      if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+        FunctionType* FT = CI->getFunctionType();
+        if ((F->isIntrinsic() && (F->getIntrinsicID() == Intrinsic::memcpy ||
+                                  F->getIntrinsicID() == Intrinsic::memcpy_inline ||
+                                  F->getIntrinsicID() == Intrinsic::memmove)) ||
+            (F->getName() == "zmemmove_union" && isMemmoveFT(FT))) {
+          if (ConstantInt* C = dyn_cast<ConstantInt>(CI->getArgOperand(2))) {
+            if (C->getBitWidth() <= 64) {
+              size_t Count = C->getZExtValue();
+              // This returns false for zero-length memmoves. We shouldn't see those ever, but if we
+              // did then we don't want to optimize them since the optimizations strongly (but subtly)
+              // assume that the count is not zero. Also return zero for any count that might
+              // overflow.
+              return Count && (uint32_t)(int32_t)Count == Count;
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   template<typename FuncT>
@@ -3362,6 +3419,17 @@ class Pizlonator {
       Type* T = AI->getValOperand()->getType();
       Value* HighP = AI->getPointerOperand();
       Func(AI, T, HighP, AI->getAlign(), AI->getOrdering(), AccessKind::Write);
+      return;
+    }
+
+    if (isOptMemmoveCall(I)) {
+      CallBase* CI = cast<CallBase>(I);
+      // FIXME: This callback situation is confusing and imperfect.
+      // FIXME: We actually know more about the alignment than what we're passing here.
+      Func(CI, nullptr, CI->getArgOperand(0), Align(1), AtomicOrdering::NotAtomic,
+           AccessKind::Write);
+      Func(CI, nullptr, CI->getArgOperand(1), Align(1), AtomicOrdering::NotAtomic,
+           AccessKind::Read);
       return;
     }
 
@@ -3984,6 +4052,7 @@ class Pizlonator {
             Checks.insert(Checks.end(), Iter->second.begin(), Iter->second.end());
           
           // For now, just conservatively assume that all calls may free stuff.
+          // FIXME: Could be a bit more precise here for memmoves, but it's probably not worth it
           if (isa<CallBase>(&I))
             HandleEffects();
           else if (isa<StoreInst>(&I) || isa<AtomicCmpXchgInst>(&I) || isa<AtomicRMWInst>(&I)) {
@@ -4251,6 +4320,7 @@ class Pizlonator {
 
           if (isa<CallBase>(I)) {
             // Conservatively assume that the call might not return!
+            // FIXME: Don't do this if we know that the call definitely returns (like memmoves).
             Checks.clear();
           }
 
@@ -5295,12 +5365,34 @@ class Pizlonator {
       "", FailTerm);
   }
 
-  void emitMemmove(Value* Dst, Value* Src, Value* Size, Instruction* I) {
-    Instruction* CI = CallInst::Create(
+  void emitOptMemmove(Value* Dst, Value* Src, size_t Count, Instruction* I) {
+    FunctionCallee MemmoveFunc;
+    if (Count <= MaxBytesBetweenPollchecks)
+      MemmoveFunc = MemmoveAlreadyCheckedSmall;
+    else
+      MemmoveFunc = MemmoveAlreadyChecked;
+    CallInst::Create(
+      MemmoveFunc,
+      { MyThread, Dst, Src, ConstantInt::get(IntPtrTy, Count), getOrigin(I->getDebugLoc()) },
+      "", I)->setDebugLoc(I->getDebugLoc());
+  }
+
+  void lowerMemmoveCall(Instruction* I) {
+    CallBase* CI = cast<CallBase>(I);
+    lowerConstantOperand(CI->getArgOperandUse(0), I);
+    lowerConstantOperand(CI->getArgOperandUse(1), I);
+    lowerConstantOperand(CI->getArgOperandUse(2), I);
+    Value* Dst = CI->getArgOperand(0);
+    Value* Src = CI->getArgOperand(1);
+    Value* Count = CI->getArgOperand(2);
+    if (isOptMemmoveCall(I)) {
+      emitOptMemmove(Dst, Src, cast<ConstantInt>(Count)->getZExtValue(), I);
+      return;
+    }
+    CallInst::Create(
       Memmove,
-      { MyThread, Dst, Src, makeIntPtr(Size, I), getOrigin(I->getDebugLoc()) },
-      "", I);
-    CI->setDebugLoc(I->getDebugLoc());
+      { MyThread, Dst, Src, makeIntPtr(Count, I), getOrigin(I->getDebugLoc()) },
+      "", I)->setDebugLoc(I->getDebugLoc());
   }
 
   bool earlyLowerInstruction(Instruction* I) {
@@ -5326,10 +5418,7 @@ class Pizlonator {
       case Intrinsic::memcpy:
       case Intrinsic::memcpy_inline:
       case Intrinsic::memmove: {
-        lowerConstantOperand(II->getArgOperandUse(0), I);
-        lowerConstantOperand(II->getArgOperandUse(1), I);
-        lowerConstantOperand(II->getArgOperandUse(2), I);
-        emitMemmove(II->getArgOperand(0), II->getArgOperand(1), II->getArgOperand(2), II);
+        lowerMemmoveCall(I);
         II->eraseFromParent();
         return true;
       }
@@ -5657,17 +5746,8 @@ class Pizlonator {
           return true;
         }
 
-        if (F->getName() == "zmemmove.union" &&
-            FT->getNumParams() == 3 &&
-            !FT->isVarArg() &&
-            FT->getReturnType() == VoidTy &&
-            FT->getParamType(0) == RawPtrTy &&
-            FT->getParamType(1) == RawPtrTy &&
-            FT->getParamType(2) == IntPtrTy) {
-          lowerConstantOperand(CI->getArgOperandUse(0), CI);
-          lowerConstantOperand(CI->getArgOperandUse(1), CI);
-          lowerConstantOperand(CI->getArgOperandUse(2), CI);
-          emitMemmove(CI->getArgOperand(0), CI->getArgOperand(1), CI->getArgOperand(2), CI);
+        if (F->getName() == "zmemmove_union" && isMemmoveFT(FT)) {
+          lowerMemmoveCall(CI);
           Erasify();
           return true;
         }
@@ -7884,6 +7964,11 @@ public:
       "filc_memset", VoidTy, RawPtrTy, FlightPtrTy, Int32Ty, IntPtrTy, RawPtrTy);
     Memmove = M.getOrInsertFunction(
       "filc_memmove", VoidTy, RawPtrTy, FlightPtrTy, FlightPtrTy, IntPtrTy, RawPtrTy);
+    MemmoveAlreadyChecked = M.getOrInsertFunction(
+      "filc_memmove_already_checked", VoidTy, RawPtrTy, FlightPtrTy, FlightPtrTy, IntPtrTy, RawPtrTy);
+    MemmoveAlreadyCheckedSmall = M.getOrInsertFunction(
+      "filc_memmove_already_checked_small",
+      VoidTy, RawPtrTy, FlightPtrTy, FlightPtrTy, IntPtrTy, RawPtrTy);
     GlobalInitializationStart = M.getOrInsertFunction(
       "filc_global_initialization_start", Int1Ty, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
     GlobalInitializationEnd = M.getOrInsertFunction(
