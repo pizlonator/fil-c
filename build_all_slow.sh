@@ -54,8 +54,16 @@ set -x
 ./build_lua.sh
 ./build_simdutf.sh
 ./build_quickjs.sh
-./build_simdjson.sh
-./build_ada.sh
+
+# Disable these because:
+# - We only need them for test coverage.
+# - They haven't ever caught a regression.
+# - To run the tests these builds have to download things from the intertubes, and I've seen the
+#   downloads fail flakily, causing the whole build to fail.
+# - They take forever to build.
+#./build_simdjson.sh
+#./build_ada.sh
+
 ./build_toybox.sh
 ./build_libevent.sh
 ./build_tmux.sh
