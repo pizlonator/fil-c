@@ -1991,14 +1991,6 @@ PAS_NO_RETURN PAS_NEVER_INLINE void filc_check_native_access_fail(filc_ptr ptr,
             fail; \
     } while (false)
 
-#define ASSERT_BOUNDS(raw_ptr, lower, upper, count) do { \
-        char* my_raw_ptr = (raw_ptr); \
-        char* my_upper = (upper); \
-        PAS_ASSERT(my_raw_ptr >= (lower)); \
-        PAS_ASSERT(my_raw_ptr < my_upper); \
-        PAS_ASSERT((count) <= (size_t)(my_upper - my_raw_ptr)); \
-    } while (false)
-
 #define CHECK_ACCESSIBLE_FAST(object, fail) do { \
         if ((filc_object_get_flags(object) & (FILC_OBJECT_FLAG_FREE | \
                                               FILC_OBJECT_FLAGS_SPECIAL_MASK))) \
@@ -2012,11 +2004,6 @@ PAS_NO_RETURN PAS_NEVER_INLINE void filc_check_native_access_fail(filc_ptr ptr,
                                               FILC_OBJECT_FLAGS_SPECIAL_MASK))) \
             fail; \
     } while (false)
-
-#define ASSERT_WRITE(object) \
-    PAS_ASSERT(!(filc_object_get_flags(object) & (FILC_OBJECT_FLAG_READONLY | \
-                                                  FILC_OBJECT_FLAG_FREE | \
-                                                  FILC_OBJECT_FLAGS_SPECIAL_MASK)))
 
 void filc_check_access_special(filc_ptr ptr, filc_special_type special_type)
 {
@@ -3811,24 +3798,31 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_access_check_fail(
 {
     filc_panic_context* panic_context = filc_start_panicking();
     filc_panic_context_printf(panic_context, "filc safety error: ");
+    const char* access_text;
+    if (check_origin->size) {
+        if (check_origin->needs_write)
+            access_text = "write";
+        else
+            access_text = "read";
+    } else
+        access_text = "access";
     if (!filc_ptr_object(ptr)) {
         filc_panic_context_printf(panic_context, "cannot %s pointer with null object.\n",
-                                  check_origin->needs_write ? "write" : "read");
+                                  access_text);
     } else if ((filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAG_FREE)) {
-        filc_panic_context_printf(panic_context, "cannot %s pointer to free object.\n",
-                                  check_origin->needs_write ? "write" : "read");
+        filc_panic_context_printf(panic_context, "cannot %s pointer to free object.\n", access_text);
     } else if ((filc_object_get_flags(filc_ptr_object(ptr)) & FILC_OBJECT_FLAGS_SPECIAL_MASK)) {
         filc_panic_context_printf(panic_context, "cannot %s pointer to special object.\n",
-                                  check_origin->needs_write ? "write" : "read");
+                                  access_text);
     } else if (check_origin->size && filc_ptr_ptr(ptr) < filc_ptr_lower(ptr)) {
         filc_panic_context_printf(panic_context, "cannot %s pointer with ptr < lower.\n",
-                                  check_origin->needs_write ? "write" : "read");
+                                  access_text);
     } else if (check_origin->size && filc_ptr_ptr(ptr) >= filc_ptr_upper(ptr)) {
         filc_panic_context_printf(panic_context, "cannot %s pointer with ptr >= upper.\n",
-                                  check_origin->needs_write ? "write" : "read");
+                                  access_text);
     } else if (check_origin->size > (char*)filc_ptr_upper(ptr) - (char*)filc_ptr_ptr(ptr)) {
         filc_panic_context_printf(panic_context, "cannot %s %zu bytes when upper - ptr = %zu.\n",
-                                  check_origin->needs_write ? "write" : "read",
+                                  access_text,
                                   (size_t)check_origin->size,
                                   (size_t)((char*)filc_ptr_upper(ptr) - (char*)filc_ptr_ptr(ptr)));
     } else if (check_origin->needs_write &&
@@ -4846,9 +4840,10 @@ PAS_ALWAYS_INLINE static void memmove_size_specialized(
         char* dst_upper = (char*)filc_object_upper(dst_object);
         char* src_upper = (char*)filc_object_upper(src_object);
 
-        ASSERT_BOUNDS(dst_start, dst_lower, dst_upper, count);
-        ASSERT_BOUNDS(src_start, src_lower, src_upper, count);
-        ASSERT_WRITE(dst_object);
+        /* NOTE: It's tempting to want to assert that we're in bounds. But we cannot! It's possible
+           that we stop being in bounds at any time due to an asynchronous free! And in that case it's
+           still safe to finish the memcpy, it just means reporting the UAF later or not at all while
+           wasting time on a memcpy to memory that will be (but hasn't yet been!) collected. */
 
         if (dst_word_alignment_mode)
             PAS_ASSERT(pas_is_aligned((uintptr_t)dst_start, FILC_WORD_SIZE));
@@ -5022,8 +5017,10 @@ static PAS_ALWAYS_INLINE void copy_stack_to_heap_already_checked(
     if (PAS_ENABLE_TESTING) {
         char* dst_upper = (char*)filc_object_upper(dst_object);
 
-        ASSERT_BOUNDS(dst_start, dst_lower, dst_upper, count);
-        ASSERT_WRITE(dst_object);
+        /* NOTE: It's tempting to want to assert that we're in bounds. But we cannot! It's possible
+           that we stop being in bounds at any time due to an asynchronous free! And in that case it's
+           still safe to finish the memcpy, it just means reporting the UAF later or not at all while
+           wasting time on a memcpy to memory that will be (but hasn't yet been!) collected. */
 
         if (dst_word_alignment_mode)
             PAS_ASSERT(pas_is_aligned((uintptr_t)dst_start, FILC_WORD_SIZE));
@@ -5067,7 +5064,10 @@ static PAS_ALWAYS_INLINE void copy_heap_to_stack_already_checked(
     if (PAS_ENABLE_TESTING) {
         char* src_upper = (char*)filc_object_upper(src_object);
 
-        ASSERT_BOUNDS(src_start, src_lower, src_upper, count);
+        /* NOTE: It's tempting to want to assert that we're in bounds. But we cannot! It's possible
+           that we stop being in bounds at any time due to an asynchronous free! And in that case it's
+           still safe to finish the memcpy, it just means reporting the UAF later or not at all while
+           wasting time on a memcpy to memory that will be (but hasn't yet been!) collected. */
 
         if (src_word_alignment_mode)
             PAS_ASSERT(pas_is_aligned((uintptr_t)src_start, FILC_WORD_SIZE));

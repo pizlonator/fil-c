@@ -3289,7 +3289,7 @@ class Pizlonator {
                        AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
     if (verbose) {
       errs() << "Building checks for " << *I << " with T = ";
-      if (T)
+      if (!T)
         errs() << "null";
       else
         errs() << *T;
@@ -3366,23 +3366,21 @@ class Pizlonator {
       FT->getParamType(2) == IntPtrTy;
   }
 
-  bool isOptMemmoveCall(Instruction* I) {
-    if (CallBase* CI = dyn_cast<CallBase>(I)) {
-      if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
-        FunctionType* FT = CI->getFunctionType();
-        if ((F->isIntrinsic() && (F->getIntrinsicID() == Intrinsic::memcpy ||
-                                  F->getIntrinsicID() == Intrinsic::memcpy_inline ||
-                                  F->getIntrinsicID() == Intrinsic::memmove)) ||
-            (F->getName() == "zmemmove_union" && isMemmoveFT(FT))) {
-          if (ConstantInt* C = dyn_cast<ConstantInt>(CI->getArgOperand(2))) {
-            if (C->getBitWidth() <= 64) {
-              size_t Count = C->getZExtValue();
-              // This returns false for zero-length memmoves. We shouldn't see those ever, but if we
-              // did then we don't want to optimize them since the optimizations strongly (but subtly)
-              // assume that the count is not zero. Also return zero for any count that might
-              // overflow.
-              return Count && (uint32_t)(int32_t)Count == Count;
-            }
+  bool isCallToOptMemmove(CallBase* CI) {
+    if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
+      FunctionType* FT = CI->getFunctionType();
+      if ((F->isIntrinsic() && (F->getIntrinsicID() == Intrinsic::memcpy ||
+                                F->getIntrinsicID() == Intrinsic::memcpy_inline ||
+                                F->getIntrinsicID() == Intrinsic::memmove)) ||
+          (F->getName() == "zmemmove_union" && isMemmoveFT(FT))) {
+        if (ConstantInt* C = dyn_cast<ConstantInt>(CI->getArgOperand(2))) {
+          if (C->getBitWidth() <= 64) {
+            size_t Count = C->getZExtValue();
+            // This returns false for zero-length memmoves. We shouldn't see those ever, but if we
+            // did then we don't want to optimize them since the optimizations strongly (but subtly)
+            // assume that the count is not zero. Also return zero for any count that might
+            // overflow.
+            return Count && (uint32_t)(int32_t)Count == Count;
           }
         }
       }
@@ -3390,6 +3388,101 @@ class Pizlonator {
     return false;
   }
 
+  bool isOptMemmoveCall(Instruction* I) {
+    if (CallBase* CI = dyn_cast<CallBase>(I))
+      return isCallToOptMemmove(CI);
+    return false;
+  }
+
+  bool functionWillReturn(Function* F) {
+    return F->willReturn() ||
+      F->getName() == "zmemmove_union" ||
+      F->getName() == "zgc_alloc" ||
+      F->getName() == "malloc" ||
+      F->getName() == "zgc_aligned_alloc" ||
+      F->getName() == "zgc_realloc" ||
+      F->getName() == "zgc_aligned_realloc" ||
+      F->getName() == "zgc_realloc_preserving_alignment" ||
+      F->getName() == "zgc_free" ||
+      F->getName() == "free" ||
+      F->getName() == "zgc_finq_new" ||
+      F->getName() == "zgc_finq_poll" ||
+      F->getName() == "zgc_finq_alloc" ||
+      F->getName() == "zgc_finq_aligned_alloc" ||
+      F->getName() == "zgetlower" ||
+      F->getName() == "zgetupper" ||
+      F->getName() == "zhasvalidcap" ||
+      F->getName() == "zsetcap" ||
+      F->getName() == "zptr_to_new_string" ||
+      F->getName() == "zptr_contents_to_new_string" ||
+      F->getName() == "zptrtable_new" ||
+      F->getName() == "zptrtable_encode" ||
+      F->getName() == "zptrtable_decode" ||
+      F->getName() == "zexact_ptrtable_new" ||
+      F->getName() == "zexact_ptrtable_encode" ||
+      F->getName() == "zexact_ptrtable_decode" ||
+      F->getName() == "zweak_new" ||
+      F->getName() == "zweak_get" ||
+      F->getName() == "zweak_map_new" ||
+      F->getName() == "zweak_map_set" ||
+      F->getName() == "zweak_map_get" ||
+      F->getName() == "zweak_map_size" ||
+      F->getName() == "zweak_map_get_iter" ||
+      F->getName() == "zweak_map_iter_next" ||
+      F->getName() == "zweak_map_iter_key" ||
+      F->getName() == "zweak_map_iter_value" ||
+      F->getName() == "zstrlen" ||
+      F->getName() == "zisdigit" ||
+      F->getName() == "zargs" ||
+      F->getName() == "zget_jmp_buf_impl_frame" ||
+      F->getName() == "zcallee" ||
+      F->getName() == "zclosure_new" ||
+      F->getName() == "zclosure_get_data" ||
+      F->getName() == "zclosure_set_data" ||
+      F->getName() == "zcallee_closure_data" ||
+      F->getName() == "zgc_completed_cycle" ||
+      F->getName() == "zgc_requested_cycle" ||
+      F->getName() == "zgc_try_request" ||
+      F->getName() == "zgc_request_fresh" ||
+      F->getName() == "zthread_self_id" ||
+      F->getName() == "zxgetbv" ||
+      F->getName() == "zis_unsafe_signal_for_kill" ||
+      F->getName() == "zis_unsafe_signal_for_handlers";
+  }
+
+  bool callWillReturn(CallBase* CI) {
+    if (Function* F = dyn_cast<Function>(CI->getCalledOperand()))
+      return functionWillReturn(F);
+    return false;
+  }
+
+  bool isPossiblyNonReturningCall(Instruction* I) {
+    if (CallBase* CI = dyn_cast<CallBase>(I))
+      return !callWillReturn(CI);
+    return false;
+  }
+
+  bool functionMayFree(Function* F) {
+    return !functionWillReturn(F) || 
+      F->getName() == "zgc_realloc" ||
+      F->getName() == "zgc_aligned_realloc" ||
+      F->getName() == "zgc_realloc_preserving_alignment" ||
+      F->getName() == "zgc_free" ||
+      F->getName() == "free";
+  }
+
+  bool callMayFree(CallBase* CI) {
+    if (Function* F = dyn_cast<Function>(CI->getCalledOperand()))
+      return functionMayFree(F);
+    return false;
+  }
+
+  bool instructionMayFree(Instruction* I) {
+    if (CallBase* CI = dyn_cast<CallBase>(I))
+      return callMayFree(CI);
+    return false;
+  }
+  
   template<typename FuncT>
   void forEachCheck(Instruction* I, const FuncT& Func) {
     if (LoadInst* LI = dyn_cast<LoadInst>(I)) {
@@ -4318,10 +4411,14 @@ class Pizlonator {
             return AC.CanonicalPtr == I;
           });
 
-          if (isa<CallBase>(I)) {
+          if (isPossiblyNonReturningCall(I)) {
             // Conservatively assume that the call might not return!
             // FIXME: Don't do this if we know that the call definitely returns (like memmoves).
             Checks.clear();
+          } else if (instructionMayFree(I)) {
+            EraseIf(Checks, [&] (const AccessCheck& AC) -> bool {
+              return AC.CK == CheckKind::NotFree;
+            });
           }
 
           auto Iter = ChecksForInst.find(I);
@@ -4408,11 +4505,20 @@ class Pizlonator {
       for (auto It = BB->rbegin(); It != BB->rend(); ++It) {
         Instruction* I = &*It;
 
-        if (isa<CallBase>(I)) {
+        if (isPossiblyNonReturningCall(I)) {
           // Conservatively assume that the call might not return!
           ChecksToEmit.insert(ChecksToEmit.end(), Checks.begin(), Checks.end());
           Checks.clear();
         } else {
+          if (instructionMayFree(I)) {
+            EraseIf(Checks, [&] (const AccessCheckWithDI& AC) -> bool {
+              if (AC.CK == CheckKind::NotFree) {
+                ChecksToEmit.push_back(AC);
+                return true;
+              }
+              return false;
+            });
+          }
           EraseIf(Checks, [&] (const AccessCheckWithDI& AC) -> bool {
             if (AC.CanonicalPtr == I) {
               ChecksToEmit.push_back(AC);
