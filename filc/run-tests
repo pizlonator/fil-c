@@ -355,7 +355,7 @@ $testDirectory.each_entry {
                 outp.puts "fi"
                 expectedOutputs.each {
                     | expectedOutput |
-                    outp.puts "fgrep -- #{Shellwords.shellescape(expectedOutput)} #{Shellwords.shellescape(params[:output])} > /dev/null || {"
+                    outp.puts "grep -F -- #{Shellwords.shellescape(expectedOutput)} #{Shellwords.shellescape(params[:output])} > /dev/null || {"
                     outp.puts("    echo " + Shellwords.shellescape(params[:script].to_s + ": FAIL: expected output to contain #{expectedOutput}"))
                     outp.puts "    cat #{Shellwords.shellescape(params[:output])}"
                     outp.puts "    exit 1"
@@ -363,7 +363,7 @@ $testDirectory.each_entry {
                 }
                 forbiddenOutputs.each {
                     | forbiddenOutput |
-                    outp.puts "fgrep -- #{Shellwords.shellescape(forbiddenOutput)} #{Shellwords.shellescape(params[:output])} > /dev/null && {"
+                    outp.puts "grep -F -- #{Shellwords.shellescape(forbiddenOutput)} #{Shellwords.shellescape(params[:output])} > /dev/null && {"
                     outp.puts("    echo " + Shellwords.shellescape(params[:script].to_s + ": FAIL: expected output to NOT contain #{forbiddenOutput}"))
                     outp.puts "    cat #{Shellwords.shellescape(params[:output])}"
                     outp.puts "    exit 1"
