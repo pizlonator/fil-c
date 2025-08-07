@@ -5002,6 +5002,89 @@ void filc_memmove_already_checked_small_aligned(filc_thread* my_thread, filc_ptr
                              filc_word_aligned, filc_exit_allowed, passed_origin);
 }
 
+static PAS_ALWAYS_INLINE filc_aux_base_and_ptr finish_memmove_small(filc_thread* my_thread,
+                                                                    filc_ptr dst, size_t n,
+                                                                    void** lowers)
+{
+    static const bool verbose = false;
+    
+    size_t index;
+
+    if (verbose) {
+        pas_log("doing finish_memmove_small on ");
+        filc_ptr_dump(dst, pas_log_stream);
+        pas_log(" with lowers: ");
+        for (index = 0; index < n; ++index) {
+            if (index)
+                pas_log(", ");
+            pas_log("%p", lowers[index]);
+        }
+        pas_log("\n");
+    }
+
+    char* dst_aux = filc_object_aux_ptr(filc_ptr_object(dst));
+    if (!dst_aux) {
+        size_t size = filc_object_size(filc_ptr_object(dst));
+        if (size <= FILC_MAX_BYTES_BETWEEN_POLLCHECKS) {
+            dst_aux = ensure_aux_ptr_slow_size_specialized(
+                my_thread, filc_ptr_object(dst), filc_exit_not_allowed, size, filc_small_size);
+        } else {
+            filc_native_frame native_frame;
+            filc_push_native_frame(my_thread, &native_frame);
+            for (index = n; index--;)
+                filc_native_frame_add(&native_frame, filc_object_for_lower(lowers[index]));
+            dst_aux = ensure_aux_ptr_slow_size_specialized(
+                my_thread, filc_ptr_object(dst), filc_exit_allowed, size, filc_large_size);
+            filc_pop_native_frame(my_thread, &native_frame);
+        }
+    }
+    
+    if (filc_current_marking_state) {
+        for (index = n; index--;) {
+            void* lower = lowers[index];
+            if (lower)
+                barrier_impl(my_thread, filc_object_for_lower_not_null(lower));
+        }
+    }
+
+    filc_lower_or_box* dst_base = (filc_lower_or_box*)(
+        dst_aux + pas_round_down_to_power_of_2(filc_ptr_offset(dst), FILC_WORD_SIZE));
+    for (index = n; index--;) {
+        void* lower = lowers[index];
+        filc_lower_or_box_store_unfenced_unbarriered(
+            dst_base + index, filc_lower_or_box_create_lower(lower));
+    }
+
+    filc_aux_base_and_ptr result;
+    result.aux_base = dst_aux;
+    result.aux_ptr = (char*)dst_base;
+    return result;
+}
+
+filc_aux_base_and_ptr filc_finish_memmove_small_1(filc_thread* my_thread, filc_ptr dst, void* lower)
+{
+    return finish_memmove_small(my_thread, dst, 1, &lower);
+}
+
+filc_aux_base_and_ptr filc_finish_memmove_small_2(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2)
+{
+    void* lowers[2];
+    lowers[0] = lower1;
+    lowers[1] = lower2;
+    return finish_memmove_small(my_thread, dst, 2, lowers);
+}
+
+filc_aux_base_and_ptr filc_finish_memmove_small_3(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2, void* lower3)
+{
+    void* lowers[3];
+    lowers[0] = lower1;
+    lowers[1] = lower2;
+    lowers[2] = lower3;
+    return finish_memmove_small(my_thread, dst, 3, lowers);
+}
+
 static PAS_ALWAYS_INLINE void copy_stack_to_heap_already_checked(
     filc_thread* my_thread, filc_ptr dst, void* src_payload, void* src_aux, size_t count,
     filc_word_alignment_mode dst_word_alignment_mode,

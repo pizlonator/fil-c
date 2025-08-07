@@ -997,11 +997,12 @@ void EraseIf(VectorT& V, const FuncT& F) {
 }
 
 struct AuxBaseAndPtr {
+  AllocaInst* Var { nullptr };
   Value* BaseP { nullptr };
   Value* P { nullptr };
 
   AuxBaseAndPtr() = default;
-  AuxBaseAndPtr(Value* BaseP, Value* P): BaseP(BaseP), P(P) {}
+  AuxBaseAndPtr(AllocaInst* Var, Value* BaseP, Value* P): Var(Var), BaseP(BaseP), P(P) {}
 };
 
 enum class CapabilityInferenceState {
@@ -1181,6 +1182,9 @@ class Pizlonator {
   FunctionCallee Memmove;
   FunctionCallee MemmoveAlreadyChecked;
   FunctionCallee MemmoveAlreadyCheckedSmall;
+  FunctionCallee FinishMemmoveSmall1;
+  FunctionCallee FinishMemmoveSmall2;
+  FunctionCallee FinishMemmoveSmall3;
   FunctionCallee GlobalInitializationStart;
   FunctionCallee GlobalInitializationEnd;
   FunctionCallee CallIfunc;
@@ -1210,6 +1214,7 @@ class Pizlonator {
   FunctionCallee LifetimeEnd;
   FunctionCallee StackCheckAsm;
   FunctionCallee ThreadlocalAddress;
+  FunctionCallee DoNothing;
 
   Constant* CurrentMarkingState;
 
@@ -1858,7 +1863,7 @@ class Pizlonator {
       }
       Instruction* LowerFromBoxLoadInt = new LoadInst(
         IntPtrTy, flightPtrLowerPtr(Box, ElseTerm), "filc_lower_from_box", isVolatile,
-        std::max(A, Align(WordSize)), getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO),
+        Align(WordSize), getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO),
         SyncScope::System, ElseTerm);
       LowerFromBoxLoadInt->setDebugLoc(InsertBefore->getDebugLoc());
       PHINode* NewLowerAsInt = PHINode::Create(IntPtrTy, 2, "filc_lower_as_int_phi2", InsertBefore);
@@ -2726,7 +2731,7 @@ class Pizlonator {
     Instruction* AuxP = GetElementPtrInst::Create(
       Int8Ty, AuxBaseP, flightPtrOffset(P, InsertBefore), "filc_aux_ptr", InsertBefore);
     AuxP->setDebugLoc(InsertBefore->getDebugLoc());
-    return AuxBaseAndPtr(AuxBaseP, AuxP);
+    return AuxBaseAndPtr(AuxBaseVar, AuxBaseP, AuxP);
   }
 
   void emitChecks(std::vector<AccessCheckWithDI> Checks, Instruction* Inst) {
@@ -5472,6 +5477,511 @@ class Pizlonator {
   }
 
   void emitOptMemmove(Value* Dst, Value* Src, size_t Count, Instruction* I) {
+    if (Count <= 16) {
+      // Let's consider the number of ptr words that have to be loaded and stored for different
+      // counts.
+      //
+      // 16: load 1 or 2, store 2 or 3
+      // 15: load 1, store 2 or 3
+      // 14: load 0 or 1, store 2 or 3
+      // 13: load 0 or 1, store 2 or 3
+      // 12: load 0 or 1, store 2 or 3
+      // 11: load 0 or 1, store 2 or 3
+      // 10: load 0 or 1, store 2 or 3
+      // 9: load 0 or 1, store 2
+      // 8: load 0 or 1, store 1 or 2
+      // 7: load 0, store 1 or 2
+      // 6: load 0, store 1 or 2
+      // 5: load 0, store 1 or 2
+      // 4: load 0, store 1 or 2
+      // 3: load 0, store 1 or 2
+      // 2: load 0, store 1 or 2
+      // 1: load 0, store 1
+      //
+      // One way to compute the number of loaded words is:
+      //
+      //     Max((RoundDown(Ptr + Count, 8) - RoundUp(Ptr, 8)), 0) / 8
+      // or: Max(Floor((Ptr + Count) / 8) - Ceil(Ptr / 8), 0)
+      //
+      // One way to compute the number of stored words is:
+      //
+      //     (RoundUp(Ptr + Count, 8) - RoundDown(Ptr, 8)) / 8
+      // or: Ceil((Ptr + Count) / 8) - Floor(Ptr / 8)
+      //
+      // Let's simplify the expression for Count = 16:
+      //
+      //     Max(Floor((Ptr + 16) / 8) - Ceil(Ptr / 8), 0)
+      //   = Max(Floor(Ptr / 8 + 2) - Ceil(Ptr / 8), 0)
+      //   = Max(Floor(Ptr / 8) - Ceil(Ptr / 8) + 2, 0)
+      //   = Floor(Ptr / 8) - Ceil(Ptr / 8) + 2
+      //   = 2 + Floor(Ptr / 8) - Ceil(Ptr / 8)
+      //   = 2 - (Ptr is misaligned ? 1 : 0)
+      //
+      //     Ceil((Ptr + 16) / 8) - Floor(Ptr / 8)
+      //   = Ceil(Ptr / 8) + 2 - Floor(Ptr / 8)
+      //   = 2 + Ceil(Ptr / 8) - Floor(Ptr / 8)
+      //   = 2 + (Ptr is misaligned ? 1 : 0)
+      //
+      // It gets weirder if Count is not aligned, since then we can't pull off the simplification.
+      // Except if Count is 1 less or 1 more than aligned, since RoundDown(Ptr + 7, 8) is really
+      // just RoundUp(Ptr, 8) and RoundUp(Ptr + 1, 8) is really RoundDown(Ptr, 8) + 1.
+      //
+      // But to really understand what is going on, it's best to consider some examples, and try to
+      // optimize each of them.
+      //
+      // Let's consider the aligned Count algo:
+      //
+      // track Count / 8 ptrs
+      // if (src and dst have different align)
+      //     set all ptrs to null
+      // else if (aligned)
+      //     load Count / 8 ptrs
+      // else
+      //     set first ptr to null
+      //     load Count / 8 - 1 ptrs
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      // store Count / 8 ptrs
+      // if (not dst aligned)
+      //     store extra null
+      //
+      // Now let's consider the aligned Count - 1 algo (so for example Count = 15 or Count = 8):
+      //
+      // track Floor(Count / 8) ptrs
+      // if (src and dst have different align)
+      //     set all ptrs to null
+      // else
+      //     load Floor(Count / 8) ptrs
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      // store Floor(Count / 8) ptrs
+      // if (dst mod 8 != 0)
+      //     store extra null below
+      // if (dst mod 8 != 1)
+      //     store extra null above
+      //
+      // Now let's consider aligned Count - 2 algo (so for example Count = 14):
+      //
+      // track Floor(Count / 8) ptrs
+      // if (src and dst have different align)
+      //     set all ptrs to null
+      // else if (dst mod 8 != 1)
+      //     load Floor(Count / 8) ptrs
+      // else
+      //     set first ptr to null
+      //     load Floor(Count / 8) - 1 ptrs
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      // store Floor(Count / 8) ptrs
+      // if (dst mod 8 > 1)
+      //     store extra null below
+      // if (dst mod 8 != 2)
+      //     store extra null above
+      //
+      // Now let's consider aligned Count - 3 algo (so for example Count = 13):
+      //
+      // track Floor(Count / 8) ptrs
+      // if (src and dst have different align)
+      //     set all ptrs to null
+      // else if (dst mod 8 == 0 or dst mod 8 > 2)
+      //     load Floor(Count / 8) ptrs
+      // else
+      //     set first ptr to null
+      //     load Floor(Count / 8) - 1 ptrs
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      // store Floor(Count / 8) ptrs
+      // if (dst mod 8 > 2)
+      //     store extra null below
+      // if (dst mod 8 != 3)
+      //     store extra null above
+      //
+      // Now let's consider aligned Count - 5 algo (so for example Count = 11):
+      //
+      // track Floor(Count / 8) ptrs
+      // if (src and dst have different align)
+      //     set all ptrs to null
+      // else if (dst mod 8 == 0 or dst mod 8 > 4)
+      //     load Floor(Count / 8) ptrs
+      // else
+      //     set first ptr to null
+      //     load Floor(Count / 8) - 1 ptrs
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      // store Floor(Count / 8) ptrs
+      // if (dst mod 8 > 4)
+      //     store extra null below
+      // if (dst mod 8 != 5)
+      //     store extra null above
+      //
+      // Now let's consider aligned Count - 7 algo (so for example Count = 9):
+      //
+      // track Floor(Count / 8) ptrs
+      // if (src and dst have different align)
+      //     set all ptrs to null
+      // else if (dst mod 8 == 0 or dst mod 8 == 7)
+      //     load Floor(Count / 8) ptrs
+      // else
+      //     set first ptr to null
+      //     load Floor(Count / 8) - 1 ptrs
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      // store Floor(Count / 8) ptrs
+      // if (dst mod 8 == 7)
+      //     store extra null below
+      // if (dst mod 8 != 7)
+      //     store extra null above
+      //
+      // Note that the above algorithms has extra conditionalizing.
+      //
+      // OK, so the general algorithm is:
+      //
+      // track Ceil(Count / 8) ptrs, initialize to null
+      // if (src and dst have same align && src has aux && Count >= 8)
+      //     if (dst mod 8 == 0)
+      //         load Floor(Count / 8) ptrs
+      //     else (dst mod 8 >= 8 - (Count mod 8))
+      //         load Floor(Count / 8) ptrs starting at dst rounded up to 8
+      //     else
+      //         load Floor(Count / 8) - 1 ptrs starting at dst rounded up to 8
+      // if (all ptrs null)
+      //     if (no dst aux)
+      //         goto done
+      // else
+      //     if (no dst aux or barrier)
+      //         slow
+      //         goto storeExtra
+      // store Ceil(Count / 8) ptrs at dst rounded down to 8
+      // storeExtra:
+      // if (dst mod 8 > (8 - Count mod 8) mod 8)
+      //     store extra null above
+      // done:
+
+      // Copy the payload.
+      Value* DstP = flightPtrPtr(Dst, I);
+      Value* SrcP = flightPtrPtr(Src, I);
+      Instruction* Threshold = CallInst::Create(DoNothing, { }, "", I);
+      size_t Offset = 0;
+      if (ultraVerbose)
+        errs() << "Offset = " << Offset << ", Count = " << Count << "\n";
+      while (Offset < Count) {
+        size_t Remaining = Count - Offset;
+        assert(Remaining);
+        Type* T;
+        size_t ActualOffset = Offset;
+        if (Remaining >= 5 && Count >= 8)
+          T = Int64Ty;
+        else if (Remaining >= 3 && Count >= 4)
+          T = Int32Ty;
+        else if (Remaining >= 2)
+          T = Int16Ty;
+        else
+          T = Int8Ty;
+        size_t AccessSize = DL.getTypeStoreSize(T);
+        if (ultraVerbose) {
+          errs() << "Offset = " << Offset << ", Count = " << Count << ", Remaining = " << Remaining
+                 << ", AccessSize = " << AccessSize << "\n";
+        }
+        if (AccessSize > Remaining) {
+          assert(ActualOffset >= AccessSize - Remaining);
+          ActualOffset -= AccessSize - Remaining;
+        }
+        assert(ActualOffset <= Offset);
+        assert(ActualOffset + AccessSize <= Count);
+        Instruction* LoadPtr = GetElementPtrInst::Create(
+          Int8Ty, SrcP, { ConstantInt::get(IntPtrTy, ActualOffset) }, "filc_memmove_load_ptr",
+          Threshold);
+        LoadPtr->setDebugLoc(I->getDebugLoc());
+        Instruction* Load = new LoadInst(T, LoadPtr, "filc_memmove_load", Threshold);
+        Load->setDebugLoc(I->getDebugLoc());
+        Instruction* StorePtr = GetElementPtrInst::Create(
+          Int8Ty, DstP, { ConstantInt::get(IntPtrTy, ActualOffset) }, "filc_memmove_store_ptr", I);
+        StorePtr->setDebugLoc(I->getDebugLoc());
+        (new StoreInst(Load, StorePtr, I))->setDebugLoc(I->getDebugLoc());
+        Offset = ActualOffset + AccessSize;
+      }
+
+      // Copy the lowers.
+      AuxBaseAndPtr DstAux = auxPtrForOperand(Dst, I, 0, I);
+      AuxBaseAndPtr SrcAux = auxPtrForOperand(Src, I, 1, I);
+      std::vector<AllocaInst*> LowerAllocas;
+      for (size_t Index = (Count + 7) / 8; Index--;) {
+        AllocaInst* Alloca = new AllocaInst(
+          RawPtrTy, 0, ConstantInt::get(IntPtrTy, 1), Align(WordSize), "filc_memove_lower_alloca",
+          &NewF->getEntryBlock().front());
+        Alloca->setDebugLoc(I->getDebugLoc());
+        LowerAllocas.push_back(Alloca);
+        (new StoreInst(RawNull, Alloca, I))->setDebugLoc(I->getDebugLoc());
+      }
+      Instruction* SrcPInt = new PtrToIntInst(
+        SrcP, IntPtrTy, "filc_memmove_src_ptr_int", I);
+      SrcPInt->setDebugLoc(I->getDebugLoc());
+      Instruction* DstPInt = new PtrToIntInst(
+        DstP, IntPtrTy, "filc_memmove_dst_ptr_int", I);
+      DstPInt->setDebugLoc(I->getDebugLoc());
+      Instruction* SrcPhase = BinaryOperator::Create(
+        Instruction::And, SrcPInt, ConstantInt::get(IntPtrTy, WordSize - 1),
+        "filc_memmove_src_phase", I);
+      SrcPhase->setDebugLoc(I->getDebugLoc());
+      Instruction* DstPhase = BinaryOperator::Create(
+        Instruction::And, DstPInt, ConstantInt::get(IntPtrTy, WordSize - 1),
+        "filc_memmove_dst_phase", I);
+      DstPhase->setDebugLoc(I->getDebugLoc());
+      Instruction* BeforeNullCheck = nullptr;
+      Value* AllNull = ConstantInt::getTrue(Int1Ty);
+      for (Value* LowerAlloca : LowerAllocas) {
+        Instruction* Lower = new LoadInst(RawPtrTy, LowerAlloca, "filc_memmove_lower", I);
+        Lower->setDebugLoc(I->getDebugLoc());
+        if (!BeforeNullCheck)
+          BeforeNullCheck = Lower;
+        Instruction* IsNull = new ICmpInst(
+          I, ICmpInst::ICMP_EQ, Lower, RawNull, "filc_memmove_lower_is_null");
+        IsNull->setDebugLoc(I->getDebugLoc());
+        Instruction* AllNullInst = BinaryOperator::Create(
+          Instruction::And, AllNull, IsNull, "filc_memmove_all_lowers_are_null", I);
+        AllNullInst->setDebugLoc(I->getDebugLoc());
+        AllNull = AllNullInst;
+      }
+      Instruction* AllNullTerm;
+      Instruction* NonNullTerm;
+      SplitBlockAndInsertIfThenElse(AllNull, I, &AllNullTerm, &NonNullTerm);
+      BasicBlock* AllNullB = AllNullTerm->getParent();
+      Instruction* SrcAuxIsNull = new ICmpInst(
+        BeforeNullCheck, ICmpInst::ICMP_EQ, SrcAux.BaseP, RawNull, "filc_memmove_src_aux_is_null");
+      SrcAuxIsNull->setDebugLoc(I->getDebugLoc());
+      SplitBlockAndInsertIfThen(
+        SrcAuxIsNull, BeforeNullCheck, false, nullptr, nullptr, nullptr, AllNullB);
+      Instruction* SamePhase = new ICmpInst(
+        BeforeNullCheck, ICmpInst::ICMP_EQ, SrcPhase, DstPhase, "filc_memmove_same_phase");
+      SamePhase->setDebugLoc(I->getDebugLoc());
+      SplitBlockAndInsertIfElse(
+        SamePhase, BeforeNullCheck, false, nullptr, nullptr, nullptr, AllNullB);
+      if (Count >= WordSize) {
+        Instruction* IsAligned = new ICmpInst(
+          BeforeNullCheck, ICmpInst::ICMP_EQ, DstPhase, ConstantInt::get(IntPtrTy, 0),
+          "filc_memmove_is_aligned");
+        IsAligned->setDebugLoc(I->getDebugLoc());
+        // We are trying to do:
+        //
+        //     if (dst mod 8 == 0)
+        //         load Floor(Count / 8) ptrs
+        //     else (dst mod 8 >= 8 - (Count mod 8))
+        //         load Floor(Count / 8) ptrs starting at dst rounded up to 8
+        //     else
+        //         load Floor(Count / 8) - 1 ptrs starting at dst rounded up to 8
+        //
+        // But a better way to say it is:
+        //
+        //     if (dst mod 8 == 0)
+        //         load first ptr
+        //     load Floor(Count / 8) - 1 ptrs starting at dst plus 1 rounded up to 8 (i.e. dst plus 8
+        //         rounded down to 8)
+        //     if (dst mod 8 >= 8 - (Count mod 8))
+        //         load last ptr
+        //
+        // Which means that an even better way to say it is:
+        //
+        //     if (dst mod 8 == 0)
+        //         load first ptr
+        //         baseSrc = src
+        //     else
+        //         baseSrc = src & -8
+        //     load Floor(Count / 8) - 1 ptrs starting at baseSrc + 8
+        //     if (dst mod 8 >= 8 - (Count mod 8))
+        //         load last ptr
+        Instruction* AlignedTerm;
+        Instruction* MisalignedTerm;
+        SplitBlockAndInsertIfThenElse(
+          IsAligned, BeforeNullCheck, &AlignedTerm, &MisalignedTerm);
+        auto LoadLower = [&] (Value* SrcAuxP, size_t Index, Instruction* Before) {
+          assert(Index < LowerAllocas.size());
+          Instruction* Load = new LoadInst(
+            IntPtrTy, SrcAuxP, "filc_memmove_load_lower", false, Align(WordSize),
+            AtomicOrdering::Monotonic, SyncScope::System, Before);
+          Load->setDebugLoc(I->getDebugLoc());
+          Instruction* Masked = BinaryOperator::Create(
+            Instruction::And, Load, ConstantInt::get(IntPtrTy, AtomicBoxBit),
+            "filc_memmove_lower_atomic_box_bit", Before);
+          Masked->setDebugLoc(I->getDebugLoc());
+          Instruction* IsNotBox = new ICmpInst(
+            Before, ICmpInst::ICMP_EQ, Masked, ConstantInt::get(IntPtrTy, 0),
+            "filc_memmove_lower_is_not_box");
+          IsNotBox->setDebugLoc(I->getDebugLoc());
+          Instruction* NotBoxTerm;
+          Instruction* BoxTerm;
+          SplitBlockAndInsertIfThenElse(expectTrue(IsNotBox, Before), Before, &NotBoxTerm, &BoxTerm);
+          (new StoreInst(Load, LowerAllocas[Index], NotBoxTerm))->setDebugLoc(I->getDebugLoc());
+          Instruction* BoxAsInt = BinaryOperator::Create(
+            Instruction::And, Load, ConstantInt::get(IntPtrTy, ~AtomicBoxBit),
+            "filc_memmove_box_as_int", BoxTerm);
+          BoxAsInt->setDebugLoc(I->getDebugLoc());
+          Instruction* Box = new IntToPtrInst(BoxAsInt, RawPtrTy, "filc_memmove_box", BoxTerm);
+          Box->setDebugLoc(I->getDebugLoc());
+          Instruction* LowerFromBoxLoad = new LoadInst(
+            IntPtrTy, flightPtrLowerPtr(Box, BoxTerm), "filc_memmove_lower_from_box", false,
+            Align(WordSize), AtomicOrdering::Monotonic, SyncScope::System, BoxTerm);
+          LowerFromBoxLoad->setDebugLoc(I->getDebugLoc());
+          (new StoreInst(LowerFromBoxLoad, LowerAllocas[Index], BoxTerm))
+            ->setDebugLoc(I->getDebugLoc());
+        };
+        LoadLower(SrcAux.P, 0, AlignedTerm);
+        Instruction* SrcAuxPInt =
+          new PtrToIntInst(SrcAux.P, IntPtrTy, "filc_memmove_src_aux_int", MisalignedTerm);
+        SrcAuxPInt->setDebugLoc(I->getDebugLoc());
+        Instruction* SrcRoundedDownInt = BinaryOperator::Create(
+          Instruction::And, SrcAuxPInt, ConstantInt::get(IntPtrTy, -WordSize),
+          "filc_memmove_src_aux_int_rounded_down", MisalignedTerm);
+        SrcRoundedDownInt->setDebugLoc(I->getDebugLoc());
+        Instruction* SrcRoundedDown = new IntToPtrInst(
+          SrcRoundedDownInt, RawPtrTy, "filc_memmove_src_aux_rounded_down", MisalignedTerm);
+        SrcRoundedDown->setDebugLoc(I->getDebugLoc());
+        PHINode* BaseSrc = PHINode::Create(RawPtrTy, 2, "filc_memmove_src_aux_base", BeforeNullCheck);
+        BaseSrc->addIncoming(SrcAux.P, AlignedTerm->getParent());
+        BaseSrc->addIncoming(SrcRoundedDown, MisalignedTerm->getParent());
+        BaseSrc->setDebugLoc(I->getDebugLoc());
+        for (size_t Index = 1; Index < Count / WordSize; ++Index) {
+          GetElementPtrInst* BaseGEP = GetElementPtrInst::Create(
+            RawPtrTy, BaseSrc, { ConstantInt::get(IntPtrTy, Index) }, "filc_memmove_src_aux_gep",
+            BeforeNullCheck);
+          BaseGEP->setDebugLoc(I->getDebugLoc());
+          LoadLower(BaseGEP, Index, BeforeNullCheck);
+        }
+        Instruction* NeedLast = new ICmpInst(
+          BeforeNullCheck, ICmpInst::ICMP_UGE, DstPhase,
+          ConstantInt::get(IntPtrTy, WordSize - (Count & (WordSize - 1))),
+          "filc_memmove_need_last_load");
+        NeedLast->setDebugLoc(I->getDebugLoc());
+        Instruction* LastTerm = SplitBlockAndInsertIfThen(NeedLast, BeforeNullCheck, false);
+        GetElementPtrInst* BaseGEP = GetElementPtrInst::Create(
+          RawPtrTy, BaseSrc, { ConstantInt::get(IntPtrTy, LowerAllocas.size() - 1) },
+          "filc_memmove_src_aux_last_gep", LastTerm);
+        BaseGEP->setDebugLoc(I->getDebugLoc());
+        LoadLower(BaseGEP, LowerAllocas.size() - 1, LastTerm);
+      }
+      BasicBlock* StoreLowersB = I->getParent();
+      BasicBlock* StoreExtraB = SplitBlock(StoreLowersB, I);
+      assert(StoreExtraB == I->getParent());
+      BasicBlock* DoneB = SplitBlock(StoreExtraB, I);
+      assert(StoreLowersB != StoreExtraB);
+      assert(StoreLowersB != DoneB);
+      assert(StoreExtraB != DoneB);
+      Instruction* StoreLowersTerm = StoreLowersB->getTerminator();
+      Instruction* StoreExtraTerm = StoreExtraB->getTerminator();
+      assert(StoreLowersTerm != StoreExtraTerm);
+      Instruction* DstAuxIsNull = new ICmpInst(
+        AllNullTerm, ICmpInst::ICMP_EQ, DstAux.BaseP, RawNull, "filc_memmove_dst_aux_is_null");
+      DstAuxIsNull->setDebugLoc(I->getDebugLoc());
+      SplitBlockAndInsertIfThen(
+        DstAuxIsNull, AllNullTerm, false, nullptr, nullptr, nullptr, DoneB);
+      DstAuxIsNull = new ICmpInst(
+        NonNullTerm, ICmpInst::ICMP_EQ, DstAux.BaseP, RawNull, "filc_memmove_dst_aux_is_null");
+      DstAuxIsNull->setDebugLoc(I->getDebugLoc());
+      Instruction* SlowTerm = SplitBlockAndInsertIfThen(DstAuxIsNull, NonNullTerm, false);
+      BasicBlock* SlowB = SlowTerm->getParent();
+      std::vector<Value*> Args;
+      FunctionCallee Callee;
+      switch (LowerAllocas.size()) {
+      case 1:
+        Callee = FinishMemmoveSmall1;
+        break;
+      case 2:
+        Callee = FinishMemmoveSmall2;
+        break;
+      case 3:
+        Callee = FinishMemmoveSmall3;
+        break;
+      default:
+        llvm_unreachable("Bad value of LowerAllocas.size()");
+        break;
+      }
+      Args.push_back(MyThread);
+      Args.push_back(Dst);
+      for (AllocaInst* LowerAlloca : LowerAllocas) {
+        Instruction* Load = new LoadInst(RawPtrTy, LowerAlloca, "filc_memmove_load_lower", SlowTerm);
+        Load->setDebugLoc(I->getDebugLoc());
+        Args.push_back(Load);
+      }
+      Instruction* Slow = CallInst::Create(Callee, Args, "filc_memmove_slow", SlowTerm);
+      Slow->setDebugLoc(I->getDebugLoc());
+      Instruction* SlowAuxBase = ExtractValueInst::Create(
+        RawPtrTy, Slow, { 0 }, "filc_memmove_slow_aux_base", SlowTerm);
+      SlowAuxBase->setDebugLoc(I->getDebugLoc());
+      Instruction* SlowAuxP = ExtractValueInst::Create(
+        RawPtrTy, Slow, { 1 }, "filc_memmove_slow_aux_ptr", SlowTerm);
+      SlowAuxP->setDebugLoc(I->getDebugLoc());
+      (new StoreInst(SlowAuxBase, DstAux.Var, SlowTerm))->setDebugLoc(I->getDebugLoc());
+      ReplaceInstWithInst(SlowTerm, BranchInst::Create(StoreExtraB));
+      LoadInst* MarkingState = new LoadInst(Int32Ty, CurrentMarkingState,
+                                            "filc_memmove_marking_state", NonNullTerm);
+      MarkingState->setDebugLoc(I->getDebugLoc());
+      ICmpInst* IsNotMarking = new ICmpInst(
+        NonNullTerm, ICmpInst::ICMP_EQ, MarkingState, ConstantInt::get(Int32Ty, 0),
+        "filc_memmove_is_not_marking");
+      IsNotMarking->setDebugLoc(I->getDebugLoc());
+      SplitBlockAndInsertIfElse(
+        IsNotMarking, NonNullTerm, false, nullptr, nullptr, nullptr, SlowB);
+      Instruction* DstAuxPInt =
+        new PtrToIntInst(DstAux.P, IntPtrTy, "filc_memmove_dst_aux_int", StoreLowersTerm);
+      DstAuxPInt->setDebugLoc(I->getDebugLoc());
+      Instruction* DstRoundedDownInt = BinaryOperator::Create(
+        Instruction::And, DstAuxPInt, ConstantInt::get(IntPtrTy, -WordSize),
+        "filc_memmove_dst_aux_rounded_down_int", StoreLowersTerm);
+      DstRoundedDownInt->setDebugLoc(I->getDebugLoc());
+      Instruction* DstRoundedDown = new IntToPtrInst(
+        DstRoundedDownInt, RawPtrTy, "filc_memmove_dst_aux_rounded_down", StoreLowersTerm);
+      DstRoundedDown->setDebugLoc(I->getDebugLoc());
+      for (size_t Index = 0; Index < LowerAllocas.size(); ++Index) {
+        Instruction* Load = new LoadInst(RawPtrTy, LowerAllocas[Index], "filc_memmove_load_lower",
+                                         StoreLowersTerm);
+        Load->setDebugLoc(I->getDebugLoc());
+        GetElementPtrInst* BaseGEP = GetElementPtrInst::Create(
+          RawPtrTy, DstRoundedDown, { ConstantInt::get(IntPtrTy, Index) }, "filc_memmove_dst_aux_gep",
+          StoreLowersTerm);
+        BaseGEP->setDebugLoc(I->getDebugLoc());
+        (new StoreInst(Load, BaseGEP, false, Align(WordSize), AtomicOrdering::Monotonic,
+                       SyncScope::System, StoreLowersTerm))->setDebugLoc(I->getDebugLoc());
+      }
+      PHINode* DstBasePhi = PHINode::Create(RawPtrTy, 2, "filc_memmove_dst_base", StoreExtraTerm);
+      DstBasePhi->addIncoming(DstRoundedDown, DstRoundedDown->getParent());
+      DstBasePhi->addIncoming(SlowAuxP, SlowAuxP->getParent());
+      Instruction* NeedExtra = new ICmpInst(
+        StoreExtraTerm, ICmpInst::ICMP_UGT, DstPhase,
+        ConstantInt::get(IntPtrTy, (WordSize - (Count & (WordSize - 1))) & (WordSize - 1)),
+        "filc_memmove_need_extra_store");
+      NeedExtra->setDebugLoc(I->getDebugLoc());
+      Instruction* ReallyStoreExtraTerm = SplitBlockAndInsertIfThen(NeedExtra, StoreExtraTerm, false);
+      GetElementPtrInst* BaseGEP = GetElementPtrInst::Create(
+        RawPtrTy, DstBasePhi, { ConstantInt::get(IntPtrTy, LowerAllocas.size()) },
+        "filc_memmove_dst_aux_gep", ReallyStoreExtraTerm);
+      BaseGEP->setDebugLoc(I->getDebugLoc());
+      (new StoreInst(RawNull, BaseGEP, false, Align(WordSize), AtomicOrdering::Monotonic,
+                     SyncScope::System, ReallyStoreExtraTerm))->setDebugLoc(I->getDebugLoc());
+      return;
+    }
     FunctionCallee MemmoveFunc;
     if (Count <= MaxBytesBetweenPollchecks)
       MemmoveFunc = MemmoveAlreadyCheckedSmall;
@@ -8075,6 +8585,12 @@ public:
     MemmoveAlreadyCheckedSmall = M.getOrInsertFunction(
       "filc_memmove_already_checked_small",
       VoidTy, RawPtrTy, FlightPtrTy, FlightPtrTy, IntPtrTy, RawPtrTy);
+    FinishMemmoveSmall1 = M.getOrInsertFunction(
+      "filc_finish_memmove_small_1", PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy);
+    FinishMemmoveSmall2 = M.getOrInsertFunction(
+      "filc_finish_memmove_small_2", PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy);
+    FinishMemmoveSmall3 = M.getOrInsertFunction(
+      "filc_finish_memmove_small_3", PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
     GlobalInitializationStart = M.getOrInsertFunction(
       "filc_global_initialization_start", Int1Ty, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
     GlobalInitializationEnd = M.getOrInsertFunction(
@@ -8136,6 +8652,7 @@ public:
       "jae filc_stack_overflow_failure@PLT",
       "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
       /*hasSideEffects=*/true);
+    DoNothing = Intrinsic::getDeclaration(&M, Intrinsic::donothing, { });
 
     cast<Function>(OptimizedAlignmentContradiction.getCallee())->addFnAttr(Attribute::NoReturn);
     cast<Function>(OptimizedAccessCheckFail.getCallee())->addFnAttr(Attribute::NoReturn);

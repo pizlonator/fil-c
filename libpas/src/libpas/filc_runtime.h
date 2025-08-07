@@ -57,6 +57,7 @@ PAS_BEGIN_EXTERN_C;
 struct filc_alignment_and_offset;
 struct filc_alignment_header;
 struct filc_atomic_box;
+struct filc_aux_base_and_ptr;
 struct filc_cc_cursor;
 struct filc_cc_sizer;
 struct filc_cc_unit;
@@ -112,6 +113,7 @@ struct verse_heap_object_set;
 typedef struct filc_alignment_and_offset filc_alignment_and_offset;
 typedef struct filc_alignment_header filc_alignment_header;
 typedef struct filc_atomic_box filc_atomic_box;
+typedef struct filc_aux_base_and_ptr filc_aux_base_and_ptr;
 typedef struct filc_cc_cursor filc_cc_cursor;
 typedef struct filc_cc_sizer filc_cc_sizer;
 typedef struct filc_cc_unit filc_cc_unit;
@@ -341,6 +343,11 @@ struct PAS_ALIGNED(FILC_FLIGHT_PTR_ALIGNMENT) filc_ptr {
 struct filc_rest_ptr_pair {
     void* raw_ptr;
     filc_lower_or_box* lower_or_box_ptr;
+};
+
+struct filc_aux_base_and_ptr {
+    char* aux_base;
+    char* aux_ptr;
 };
 
 typedef pizlonated_return_value (*pizlonated_function)(filc_thread* my_thread,
@@ -3970,6 +3977,12 @@ void filc_memmove_already_checked_small(filc_thread* my_thread, filc_ptr dst, fi
                                         size_t count, const filc_origin* origin);
 void filc_memmove_already_checked_small_aligned(filc_thread* my_thread, filc_ptr dst, filc_ptr src,
                                                 size_t count, const filc_origin* origin);
+
+filc_aux_base_and_ptr filc_finish_memmove_small_1(filc_thread* my_thread, filc_ptr dst, void* lower);
+filc_aux_base_and_ptr filc_finish_memmove_small_2(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2);
+filc_aux_base_and_ptr filc_finish_memmove_small_3(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2, void* lower3);
 
 /* We don't have a separate memcpy right now. We could, in the future. But likely, the cost
    difference between the two is much smaller than the cost overhead of checking, so it might
