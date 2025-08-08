@@ -119,7 +119,7 @@ endif
 
 if LIBFFI_BUILD_VERSIONED_SHLIB
 if LIBFFI_BUILD_VERSIONED_SHLIB_GNU
-libffi_version_script = -Wl,--version-script,libffi.map
+libffi_version_script = --version-script,libffi.map
 libffi_version_dep = libffi.map
 endif
 if LIBFFI_BUILD_VERSIONED_SHLIB_SUN

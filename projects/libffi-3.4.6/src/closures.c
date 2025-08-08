@@ -38,6 +38,30 @@
 #include <ffi_common.h>
 #include <tramp.h>
 
+#ifdef __FILC__
+
+#include <stdfil.h>
+
+extern void ffi_closure_callback (void);
+
+void *
+ffi_closure_alloc (size_t size, void **code)
+{
+  *code = zclosure_new(ffi_closure_callback, NULL);
+  return *code;
+}
+
+void
+ffi_closure_free (__attribute__((unused)) void *ptr)
+{
+}
+
+int ffi_tramp_is_present(__attribute__((unused)) void *ptr)
+{
+  return 0;
+}
+
+#else /* __FILC__ -> so !__FILC__ */
 #ifdef __NetBSD__
 #include <sys/param.h>
 #endif
@@ -1104,4 +1128,6 @@ ffi_tramp_is_present (__attribute__((unused)) void *ptr)
 #endif /* FFI_CLOSURES */
 
 #endif /* NetBSD with PROT_MPROTECT */
+#endif /* !__FILC__ */
 #endif /* __EMSCRIPTEN__ */
+

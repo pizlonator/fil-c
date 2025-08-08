@@ -33,8 +33,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <tramp.h>
 #include "internal64.h"
+
+#ifdef __FILC__
+#include <stdfil.h>
+#endif
 
 #ifdef __x86_64__
 
@@ -69,8 +74,16 @@ struct register_args
   UINT64 r10;	/* static chain */
 };
 
+#ifdef __FILC__
+static bool is_filc = true;
+#else
+static bool is_filc = false;
+#endif
+
+#ifndef __FILC__
 extern void ffi_call_unix64 (void *args, unsigned long bytes, unsigned flags,
 			     void *raddr, void (*fnaddr)(void)) FFI_HIDDEN;
+#endif
 
 /* All reference to register classes here is identical to the code in
    gcc/config/i386/i386.c. Do *not* change one without the other.  */
@@ -392,7 +405,7 @@ examine_argument (ffi_type *type, enum x86_64_reg_class classes[MAX_CLASSES],
 
 /* Perform machine dependent cif processing.  */
 
-#ifndef __ILP32__
+#if !defined(__ILP32__) && !defined(__FILC__)
 extern ffi_status
 ffi_prep_cif_machdep_efi64(ffi_cif *cif);
 #endif
@@ -406,12 +419,17 @@ ffi_prep_cif_machdep (ffi_cif *cif)
   size_t bytes, n, rtype_size;
   ffi_type *rtype;
 
-#ifndef __ILP32__
+#ifdef __FILC__
+  if (cif->abi != FFI_FILC)
+    return FFI_BAD_ABI;
+#else
+# ifndef __ILP32__
   if (cif->abi == FFI_EFI64 || cif->abi == FFI_GNUW64)
     return ffi_prep_cif_machdep_efi64(cif);
-#endif
+# endif
   if (cif->abi != FFI_UNIX64)
     return FFI_BAD_ABI;
+#endif
 
   gprcount = ssecount = 0;
 
@@ -530,7 +548,8 @@ ffi_prep_cif_machdep (ffi_cif *cif)
      not, add it's size to the stack byte count.  */
   for (bytes = 0, i = 0, avn = cif->nargs; i < avn; i++)
     {
-      if (examine_argument (cif->arg_types[i], classes, 0, &ngpr, &nsse) == 0
+      if (is_filc
+          || examine_argument (cif->arg_types[i], classes, 0, &ngpr, &nsse) == 0
 	  || gprcount + ngpr > MAX_GPR_REGS
 	  || ssecount + nsse > MAX_SSE_REGS)
 	{
@@ -561,6 +580,57 @@ static void
 ffi_call_int (ffi_cif *cif, void (*fn)(void), void *rvalue,
 	      void **avalue, void *closure)
 {
+#ifdef __FILC__
+  char *stack, *argp;
+  ffi_type **arg_types;
+  int i, avn, flags;
+  size_t bytes;
+  void *rets;
+
+  FFI_ASSERT (cif->abi == FFI_FILC);
+  FFI_ASSERT (closure == NULL);
+
+  flags = cif->flags;
+  bytes = cif->bytes;
+  if (flags & UNIX64_FLAG_RET_IN_MEM)
+    bytes += sizeof (void*);
+
+  stack = alloca (bytes);
+  argp = stack;
+
+  if (flags & UNIX64_FLAG_RET_IN_MEM)
+    {
+      if (rvalue == NULL)
+        rvalue = alloca (cif->rtype->size);
+
+      *(void **) argp = rvalue;
+      argp += sizeof (void*);
+    }
+
+  arg_types = cif->arg_types;
+  avn = cif->nargs;
+
+  for (i = 0; i < avn; ++i)
+    {
+      size_t size = size = arg_types[i]->size;
+      long align = arg_types[i]->alignment;
+
+      if (align < 8)
+        align = 8;
+
+      argp = (void *) FFI_ALIGN (argp, align);
+      memcpy (argp, avalue[i], size);
+
+      argp += size;
+    }
+
+  FFI_ASSERT (argp == stack + cif->bytes);
+
+  rets = zcall (fn, stack);
+
+  if (rvalue != NULL && !(flags & UNIX64_FLAG_RET_IN_MEM))
+    memcpy (rvalue, rets, cif->rtype->size);
+#else
   enum x86_64_reg_class classes[MAX_CLASSES];
   char *stack, *argp;
   ffi_type **arg_types;
@@ -672,9 +742,10 @@ ffi_call_int (ffi_cif *cif, void (*fn)(void), void *rvalue,
 
   ffi_call_unix64 (stack, cif->bytes + sizeof (struct register_args),
 		   flags, rvalue, fn);
+#endif
 }
 
-#ifndef __ILP32__
+#if !defined(__ILP32__) && !defined(__FILC__)
 extern void
 ffi_call_efi64(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
 #endif
@@ -682,8 +753,10 @@ ffi_call_efi64(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
 void
 ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 {
+#ifndef __FILC__
   ffi_type **arg_types = cif->arg_types;
   int i, nargs = cif->nargs;
+
   const int max_reg_struct_size = cif->abi == FFI_GNUW64 ? 8 : 16;
 
   /* If we have any large structure arguments, make a copy so we are passing
@@ -706,6 +779,7 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       ffi_call_efi64(cif, fn, rvalue, avalue);
       return;
     }
+#endif
 #endif
   ffi_call_int (cif, fn, rvalue, avalue, NULL);
 }
@@ -741,7 +815,7 @@ extern void ffi_closure_unix64_alt(void) FFI_HIDDEN;
 extern void ffi_closure_unix64_sse_alt(void) FFI_HIDDEN;
 #endif
 
-#ifndef __ILP32__
+#if !defined(__ILP32__) && !defined(__FILC__)
 extern ffi_status
 ffi_prep_closure_loc_efi64(ffi_closure* closure,
 			   ffi_cif* cif,
@@ -757,6 +831,9 @@ ffi_prep_closure_loc (ffi_closure* closure,
 		      void *user_data,
 		      void *codeloc)
 {
+#ifdef __FILC__
+  zclosure_set_data (codeloc, closure);
+#else
   static const unsigned char trampoline[24] = {
     /* endbr64 */
     0xf3, 0x0f, 0x1e, 0xfa,
@@ -802,6 +879,7 @@ ffi_prep_closure_loc (ffi_closure* closure,
 #if defined(FFI_EXEC_STATIC_TRAMP)
 out:
 #endif
+#endif
   closure->cif = cif;
   closure->fun = fun;
   closure->user_data = user_data;
@@ -809,6 +887,57 @@ out:
   return FFI_OK;
 }
 
+#ifdef __FILC__
+void FFI_HIDDEN
+ffi_closure_callback (void)
+{
+  ffi_closure *closure;
+  ffi_cif *cif;
+  void (*fun)(ffi_cif*, void*, void**, void*);
+  char *argp;
+  void *user_data, **avalue, *rvalue;
+  int i, avn, flags;
+  ffi_type **arg_types;
+
+  closure = zcallee_closure_data ();
+  cif = closure->cif;
+  fun = closure->fun;
+  user_data = closure->user_data;
+
+  avn = cif->nargs;
+  flags = cif->flags;
+  arg_types = cif->arg_types;
+
+  argp = zargs ();
+
+  avalue = alloca (avn * sizeof (void *));
+
+  if (flags & UNIX64_FLAG_RET_IN_MEM)
+    {
+      rvalue = *(void **) argp;
+      argp += sizeof (void*);
+    }
+  else
+    rvalue = alloca (cif->rtype->size);
+
+  for (i = 0; i < avn; ++i)
+    {
+      long align = arg_types[i]->alignment;
+
+      if (align < 8)
+        align = 8;
+
+      argp = (void *) FFI_ALIGN (argp, align);
+      avalue[i] = argp;
+      argp += arg_types[i]->size;
+    }
+
+  fun (cif, rvalue, avalue, user_data);
+
+  if (!(flags & UNIX64_FLAG_RET_IN_MEM))
+    zreturn (rvalue);
+}
+#else
 int FFI_HIDDEN
 ffi_closure_unix64_inner(ffi_cif *cif,
 			 void (*fun)(ffi_cif*, void*, void**, void*),
@@ -901,6 +1030,7 @@ ffi_closure_unix64_inner(ffi_cif *cif,
   /* Tell assembly how to perform return type promotions.  */
   return flags;
 }
+#endif
 
 #ifdef FFI_GO_CLOSURES
 

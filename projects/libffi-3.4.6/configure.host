@@ -331,6 +331,8 @@ case "${TARGET}" in
 	;;
 esac
 
+SOURCES=ffi64.c
+
 # If we failed to configure SOURCES, we can't do anything.
 if test -z "${SOURCES}"; then
   UNSUPPORTED=1
