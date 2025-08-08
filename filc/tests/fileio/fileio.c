@@ -54,7 +54,9 @@ int main(int argc, char** argv)
     zprintf("read with read way: %s", buf);
     ZASSERT(!close(fd));
 
+    ZASSERT(!errno);
     FILE* fin = fopen("filc/tests/fileio/test.txt", "r");
+    ZASSERT(!errno);
     ZASSERT(fin);
     __builtin_memset(buf, 0, sizeof(buf));
     result = fread(buf, 1, sizeof(buf), fin);
@@ -231,6 +233,7 @@ int main(int argc, char** argv)
 
     ZASSERT(read(666, buf, 100) == -1);
     ZASSERT(errno == EBADF);
+    errno = 0;
 
     fd = open("filc/test-output/fileio/piotest.txt", O_CREAT | O_RDWR, 0644);
     ZASSERT(fd > 2);
@@ -247,14 +250,16 @@ int main(int argc, char** argv)
     ZASSERT(pread(fd, buf, 100, 1) == 40);
     str = "his is a tesA co to tot, this is a test.";
     ZASSERT(!strcmp(buf, str));
-    close(fd);
+    ZASSERT(!close(fd));
 
     struct foo f;
     f.a = "hello";
     f.b = 42;
     f.c = 666;
     f.d = 1410;
+    ZASSERT(!errno);
     FILE* fout = fopen("filc/test-output/fileio/fiotest.txt", "w");
+    ZASSERT(!errno);
     ZASSERT(fout);
     ZASSERT(1 == fwrite(&f, sizeof(f), 1, fout));
     ZASSERT(!fclose(fout));
