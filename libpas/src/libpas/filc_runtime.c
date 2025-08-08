@@ -5085,6 +5085,30 @@ filc_aux_base_and_ptr filc_finish_memmove_small_3(filc_thread* my_thread, filc_p
     return finish_memmove_small(my_thread, dst, 3, lowers);
 }
 
+filc_aux_base_and_ptr filc_finish_memmove_small_4(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2, void* lower3, void* lower4)
+{
+    void* lowers[4];
+    lowers[0] = lower1;
+    lowers[1] = lower2;
+    lowers[2] = lower3;
+    lowers[3] = lower4;
+    return finish_memmove_small(my_thread, dst, 4, lowers);
+}
+
+filc_aux_base_and_ptr filc_finish_memmove_small_5(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2, void* lower3, void* lower4,
+                                                  void* lower5)
+{
+    void* lowers[5];
+    lowers[0] = lower1;
+    lowers[1] = lower2;
+    lowers[2] = lower3;
+    lowers[3] = lower4;
+    lowers[4] = lower5;
+    return finish_memmove_small(my_thread, dst, 5, lowers);
+}
+
 static PAS_ALWAYS_INLINE void copy_stack_to_heap_already_checked(
     filc_thread* my_thread, filc_ptr dst, void* src_payload, void* src_aux, size_t count,
     filc_word_alignment_mode dst_word_alignment_mode,

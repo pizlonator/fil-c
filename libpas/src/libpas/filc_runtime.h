@@ -3983,6 +3983,11 @@ filc_aux_base_and_ptr filc_finish_memmove_small_2(filc_thread* my_thread, filc_p
                                                   void* lower2);
 filc_aux_base_and_ptr filc_finish_memmove_small_3(filc_thread* my_thread, filc_ptr dst, void* lower1,
                                                   void* lower2, void* lower3);
+filc_aux_base_and_ptr filc_finish_memmove_small_4(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2, void* lower3, void* lower4);
+filc_aux_base_and_ptr filc_finish_memmove_small_5(filc_thread* my_thread, filc_ptr dst, void* lower1,
+                                                  void* lower2, void* lower3, void* lower4,
+                                                  void* lower5);
 
 /* We don't have a separate memcpy right now. We could, in the future. But likely, the cost
    difference between the two is much smaller than the cost overhead of checking, so it might

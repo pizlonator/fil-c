@@ -1185,6 +1185,8 @@ class Pizlonator {
   FunctionCallee FinishMemmoveSmall1;
   FunctionCallee FinishMemmoveSmall2;
   FunctionCallee FinishMemmoveSmall3;
+  FunctionCallee FinishMemmoveSmall4;
+  FunctionCallee FinishMemmoveSmall5;
   FunctionCallee GlobalInitializationStart;
   FunctionCallee GlobalInitializationEnd;
   FunctionCallee CallIfunc;
@@ -5477,7 +5479,7 @@ class Pizlonator {
   }
 
   void emitOptMemmove(Value* Dst, Value* Src, size_t Count, Instruction* I) {
-    if (Count <= 16) {
+    if (Count <= 40) {
       // Let's consider the number of ptr words that have to be loaded and stored for different
       // counts.
       //
@@ -5913,6 +5915,12 @@ class Pizlonator {
         break;
       case 3:
         Callee = FinishMemmoveSmall3;
+        break;
+      case 4:
+        Callee = FinishMemmoveSmall4;
+        break;
+      case 5:
+        Callee = FinishMemmoveSmall5;
         break;
       default:
         llvm_unreachable("Bad value of LowerAllocas.size()");
@@ -8591,6 +8599,12 @@ public:
       "filc_finish_memmove_small_2", PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy);
     FinishMemmoveSmall3 = M.getOrInsertFunction(
       "filc_finish_memmove_small_3", PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
+    FinishMemmoveSmall4 = M.getOrInsertFunction(
+      "filc_finish_memmove_small_4",
+      PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
+    FinishMemmoveSmall5 = M.getOrInsertFunction(
+      "filc_finish_memmove_small_5",
+      PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
     GlobalInitializationStart = M.getOrInsertFunction(
       "filc_global_initialization_start", Int1Ty, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
     GlobalInitializationEnd = M.getOrInsertFunction(
