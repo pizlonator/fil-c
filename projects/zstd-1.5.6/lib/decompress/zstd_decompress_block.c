@@ -1481,7 +1481,7 @@ ZSTD_decompressSequences_bodySplitLitBuffer( ZSTD_DCtx* dctx,
                 *
                 *   https://gist.github.com/terrelln/9889fc06a423fd5ca6e99351564473f4
                 */
-#if defined(__GNUC__) && defined(__x86_64__)
+#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
             __asm__(".p2align 6");
 #  if __GNUC__ >= 7
 	    /* good for gcc-7, gcc-9, and gcc-11 */
@@ -1543,7 +1543,7 @@ ZSTD_decompressSequences_bodySplitLitBuffer( ZSTD_DCtx* dctx,
         if (nbSeq > 0) {
             /* there is remaining lit from extra buffer */
 
-#if defined(__GNUC__) && defined(__x86_64__)
+#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
             __asm__(".p2align 6");
             __asm__("nop");
 #  if __GNUC__ != 7
@@ -1642,7 +1642,7 @@ ZSTD_decompressSequences_body(ZSTD_DCtx* dctx,
         ZSTD_initFseState(&seqState.stateML, &seqState.DStream, dctx->MLTptr);
         assert(dst != NULL);
 
-#if defined(__GNUC__) && defined(__x86_64__)
+#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
             __asm__(".p2align 6");
             __asm__("nop");
 #  if __GNUC__ >= 7
