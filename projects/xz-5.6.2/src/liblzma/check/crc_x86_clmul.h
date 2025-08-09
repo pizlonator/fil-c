@@ -38,6 +38,7 @@
 #define LZMA_CRC_X86_CLMUL_H
 
 #include <immintrin.h>
+#include <stdfil.h>
 
 #if defined(_MSC_VER)
 #	include <intrin.h>
@@ -100,8 +101,8 @@ crc_simd_body(const uint8_t *buf, const size_t size, __m128i *v0, __m128i *v1,
 	// D = buf + size + skip_end == aligned_buf + size2 + skip_end
 	const size_t skip_start = (size_t)((uintptr_t)buf & 15);
 	const size_t skip_end = (size_t)((0U - (uintptr_t)(buf + size)) & 15);
-	const __m128i *aligned_buf = (const __m128i *)(
-			(uintptr_t)buf & ~(uintptr_t)15);
+	const __m128i *aligned_buf = (const __m128i *)zmkptr(
+			buf, (uintptr_t)buf & ~(uintptr_t)15);
 
 	// If size2 <= 16 then the whole input fits into a single 16-byte
 	// vector. If size2 > 16 then at least two 16-byte vectors must

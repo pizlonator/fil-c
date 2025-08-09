@@ -33,7 +33,7 @@
 /// to avoid strict aliasing violations. Taking a pointer of u8
 /// should be fine as long as uint8_t maps to unsigned char which
 /// can alias anything.
-typedef union {
+typedef union __attribute__((aligned(16))) {
 	uint8_t u8[IO_BUFFER_SIZE];
 	uint32_t u32[IO_BUFFER_SIZE / sizeof(uint32_t)];
 	uint64_t u64[IO_BUFFER_SIZE / sizeof(uint64_t)];
