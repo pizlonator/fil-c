@@ -61,6 +61,6 @@ extract_source()
 {
     rm -rf extracted-source
     git archive --format=tar HEAD --prefix=extracted-source/ | tar -xf -
-    git diff HEAD | (cd extracted-source && patch -p1)
+    git diff HEAD . | (cd extracted-source && patch -p1)
     cd extracted-source
 }

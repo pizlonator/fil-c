@@ -28,13 +28,13 @@
 set -e
 set -x
 
-cd yolomusl
-./configure --prefix=$PWD/../pizfix/yolo --syslibdir=$PWD/../pizfix/yolo/lib
+cd projects/yolomusl
+./configure --prefix=$PWD/../../pizfix/yolo --syslibdir=$PWD/../../pizfix/yolo/lib
 $MAKE clean
 $MAKE -j $NCPU
 $MAKE install
 
-cd ../pizfix
+cd ../../pizfix
 mkdir -p lib
 cd lib
 mv ../yolo/lib/libyoloc.so .

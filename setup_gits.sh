@@ -56,17 +56,6 @@ handle_git()
     fi
 }
 
-handle_git_with_branch deluded-musl yolomusl yolomusl
-handle_git_with_branch deluded-musl usermusl usermusl
-
-handle_git deluded-zlib-1.3.git zlib-1.3
-handle_git pizlonated-openssl.git openssl-3.3.1
-handle_git pizlonated-curl-8.9.1 curl-8.9.1
-handle_git pizlonated-openssh-9.8p1 openssh-9.8p1
-handle_git pizlonated-pcre-8.39.git pcre-8.39
-handle_git pizlonated-jpeg-6b.git pizlonated-jpeg-6b
-handle_git pizlonated-bzip2.git pizlonated-bzip2
-handle_git pizlonated-xz.git pizlonated-xz
 handle_git pizlonated-mg.git pizlonated-mg
 handle_git pizlonated-sqlite.git pizlonated-sqlite
 handle_git pizlonated-cpython-3.12.5.git Python-3.12.5
@@ -84,7 +73,6 @@ handle_git wg14_signals wg14_signals
 handle_git pizlonated-libuev pizlonated-libuev
 handle_git pizlonated-bzip3 pizlonated-bzip3
 handle_git pizlonated-zstd-1.5.6 pizlonated-zstd
-handle_git pizlonated-libffi libffi-3.4.6
 handle_git pizlonated-libexpat expat-2.7.1
 handle_git pizlonated-libxml2 libxml2-2.14.4
 handle_git pizlonated-dash dash-0.5.12

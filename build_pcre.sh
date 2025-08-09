@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,12 +28,10 @@
 set -e
 set -x
 
-cd pcre-8.39
-
-($MAKE distclean || echo whatever)
-autoreconf
-CC="$CCPREFIX$PWD/../build/bin/clang -g -O" CXX="$CCPREFIX$PWD/../build/bin/clang++ -g -O" \
-    ./configure --prefix=$PWD/../pizfix \
+cd projects/pcre-8.39
+extract_source
+CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O" CXX="$CCPREFIX$PWD/../../../build/bin/clang++ -g -O" \
+    ./configure --prefix=$PWD/../../../pizfix \
     --enable-pcre16 --enable-pcre32 --enable-unicode-properties \
     --enable-pcregrep-libz
 $MAKE -j $NCPU

@@ -28,8 +28,8 @@
 set -e
 set -x
 
-cd openssh-9.8p1
+cd projects/openssh-9.8p1
 extract_source
-CC=$PWD/../../build/bin/clang ./configure --prefix=$PWD/../../pizfix
+CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make -j $NCPU install

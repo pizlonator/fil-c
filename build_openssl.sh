@@ -28,11 +28,10 @@
 set -e
 set -x
 
-cd openssl-3.3.1
-
-($MAKE distclean || echo whatever)
-CC="$CCPREFIX$PWD/../build/bin/clang -g -O" ./Configure \
-    zlib no-asm no-devcryptoeng no-afalgeng --prefix=$PWD/../pizfix
+cd projects/openssl-3.3.1
+extract_source
+CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O" ./Configure \
+    zlib no-asm no-devcryptoeng no-afalgeng --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
 $MAKE install_sw
 $MAKE install_ssldirs

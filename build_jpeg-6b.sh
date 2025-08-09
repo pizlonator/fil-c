@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,11 +28,10 @@
 set -e
 set -x
 
-cd pizlonated-jpeg-6b
-
-($MAKE distclean || echo whatever)
-CC="$CCPREFIX$PWD/../build/bin/clang -O -g -Wno-implicit-int" \
-    ./configure --prefix=$PWD/../pizfix
+cd projects/jpeg-6b
+extract_source
+CC="$CCPREFIX$PWD/../../../build/bin/clang -O -g -Wno-implicit-int" \
+    ./configure --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
 $MAKE install
 $MAKE install-lib

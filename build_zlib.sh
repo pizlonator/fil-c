@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,10 +28,9 @@
 set -e
 set -x
 
-cd zlib-1.3
-
-($MAKE distclean || echo whatever)
-CC="$CCPREFIX$PWD/../build/bin/clang" CFLAGS="-O3 -g" ./configure \
-         --prefix=$PWD/../pizfix
+cd projects/zlib-1.3
+extract_source
+CC="$CCPREFIX$PWD/../../../build/bin/clang" CFLAGS="-O3 -g" ./configure \
+         --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
 $MAKE install

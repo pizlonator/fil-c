@@ -28,14 +28,14 @@
 set -e
 set -x
 
-cd libffi-3.4.6
-make distclean || echo whatever
-CC="$PWD/../build/bin/clang -g" CXX="$PWD/../build/bin/clang++ -g" ./configure --prefix=$PWD/../pizfix --disable-exec-static-tramp
+cd projects/libffi-3.4.6
+extract_source
+CC="$PWD/../../../build/bin/clang -g" CXX="$PWD/../../../build/bin/clang++ -g" ./configure --prefix=$PWD/../../../pizfix --disable-exec-static-tramp
 make -j $NCPU
 make check
 make install
 
 # Do a cheesy test for now.
-../build/bin/clang -O2 -g -o ffitest ffitest.c -lffi -Wno-incompatible-function-pointer-types
+../../../build/bin/clang -O2 -g -o ffitest ffitest.c -lffi -Wno-incompatible-function-pointer-types
 ./ffitest > ffitest.actual
 diff ffitest.expected ffitest.actual

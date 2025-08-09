@@ -28,9 +28,9 @@
 set -e
 set -x
 
-cd curl-8.9.1
+cd projects/curl-8.9.1
 extract_source
-CC=$PWD/../../build/bin/clang ./configure --with-openssl \
-    --prefix=$PWD/../../pizfix
+CC=$PWD/../../../build/bin/clang ./configure --with-openssl \
+    --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
 $MAKE -j $NCPU install

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,9 +28,8 @@
 set -e
 set -x
 
-cd pizlonated-bzip2
-
-$MAKE CC="$CCPREFIX$PWD/../build/bin/clang" clean
-$MAKE CC="$CCPREFIX$PWD/../build/bin/clang" -j $NCPU
-$MAKE CC="$CCPREFIX$PWD/../build/bin/clang" PREFIX=$PWD/../pizfix install
+cd projects/bzip2
+extract_source
+$MAKE CC="$CCPREFIX$PWD/../../../build/bin/clang" -j $NCPU
+$MAKE CC="$CCPREFIX$PWD/../../../build/bin/clang" PREFIX=$PWD/../pizfix install
 
