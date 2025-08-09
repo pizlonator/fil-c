@@ -641,6 +641,8 @@ uprv_tzset()
 U_CAPI int32_t U_EXPORT2
 uprv_timezone()
 {
+    if ((1))
+        return timezone;
 #ifdef U_TIMEZONE
     return U_TIMEZONE;
 #else

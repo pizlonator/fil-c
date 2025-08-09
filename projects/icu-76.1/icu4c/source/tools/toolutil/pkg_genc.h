@@ -29,6 +29,10 @@
 #define BUILD_DATA_WITHOUT_ASSEMBLY
 #endif
 
+#ifdef __PIZLONATOR_WAS_HERE__
+#define U_DISABLE_OBJ_CODE
+#endif
+
 #ifndef U_DISABLE_OBJ_CODE /* testing */
 #if defined(WINDOWS_WITH_MSVC) || U_PLATFORM_IS_LINUX_BASED
 #define CAN_WRITE_OBJ_CODE
