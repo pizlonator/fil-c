@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+for FILE
+do
+  test $# -lt 2 ||
+    printf '::::::::::::::\n%s\n::::::::::::::\n' "$FILE" || break
+  bz3cat -- "$FILE"
+done 2>&1 | eval ${PAGER-more}

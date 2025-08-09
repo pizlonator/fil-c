@@ -1,0 +1,149 @@
+name: Build
+
+on: [ push, pull_request ]
+
+jobs:
+
+  dist:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install libtool v2.4.7
+      run: |
+        wget -q https://ftpmirror.gnu.org/libtool/libtool-2.4.7.tar.gz
+        tar xvfz libtool-2.4.7.tar.gz
+        cd libtool-2.4.7
+        ./configure
+        make
+        sudo make install
+    - name: Configure
+      run: |
+        ./bootstrap.sh
+        ./configure
+    - name: Make source package
+      run: make VERSION=${{ github.sha }} dist
+    - name: Upload source package artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bzip3-${{ github.sha }}
+        path: bzip3-${{ github.sha }}.tar.gz
+    - name: Run distcheck
+      run: make distcheck
+
+  build:
+    name: Build Matrix
+    needs: [ dist ]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ ubuntu-latest, macos-latest ]
+        compiler: [ clang, gcc ]
+        feature: [ with-pthread, without-pthread ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Download source package artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: bzip3-${{ github.sha }}
+    - name: Extract source package
+      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Fetch examples
+      run: |
+        mkdir examples
+        cd examples
+        wget https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt \
+             https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt.bz3
+    - name: Configure
+      run: ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
+    - name: Make
+      run: make
+    - name: Check
+      run: make roundtrip test
+
+  build-archs:
+    name: Build Matrix for non-x86 architectures (Debian Bookworm)
+    needs: [ dist ]
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ clang, gcc ]
+        feature: [ with-pthread, without-pthread ]
+        arch: [ armv6, armv7, aarch64, s390x, ppc64le ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download source package artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: bzip3-${{ github.sha }}
+    - name: Extract source package
+      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Fetch examples
+      run: |
+        mkdir examples
+        cd examples
+        wget https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt \
+             https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt.bz3
+    - uses: uraimo/run-on-arch-action@v2
+      name: Run in the container
+      with:
+        arch: ${{ matrix.arch }}
+        distro: bookworm
+        shell: /bin/sh
+        dockerRunArgs: |
+          --volume "${PWD}:/bzip3"
+        install: |
+          apt update -q -y
+          apt install -q -y clang gcc make
+        run: |
+          cd /bzip3
+          ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
+          make && make roundtrip test
+  build-archs-ubuntu:
+    name: Build Matrix for non-x86 architectures (Ubuntu Latest)
+    needs: [ dist ]
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ clang, gcc ]
+        feature: [ with-pthread, without-pthread ]
+        arch: [ riscv64 ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download source package artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: bzip3-${{ github.sha }}
+    - name: Extract source package
+      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Fetch examples
+      run: |
+        mkdir examples
+        cd examples
+        wget https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt \
+             https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt.bz3
+    - uses: uraimo/run-on-arch-action@v2
+      name: Run in the container
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ubuntu_latest
+        shell: /bin/sh
+        dockerRunArgs: |
+          --volume "${PWD}:/bzip3"
+        install: |
+          apt update -q -y
+          apt install -q -y clang gcc make
+        run: |
+          cd /bzip3
+          ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
+          make && make roundtrip test
+
+  cmake:
+    name: Build with CMake
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: CMake
+      run: cmake -B build
+    - name: Make
+      run: make -C build

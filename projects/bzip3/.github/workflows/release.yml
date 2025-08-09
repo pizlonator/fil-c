@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+
+  ghrelease:
+    name: Publish sources on GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure
+        run: |
+          ./bootstrap.sh
+          ./configure
+      - name: Build source packages
+        run: |
+          make dist
+          bzip2 -d -k bzip3-${{ github.ref_name }}.tar.bz2
+          zstd -19 bzip3-${{ github.ref_name }}.tar
+          7z a bzip3-${{ github.ref_name}}.tar{.7z,}
+      - name: Build a binary (for dogfooding)
+        run: make
+      - name: Create a dogfood package
+        run: |
+          ./bzip3 -e bzip3-${{ github.ref_name }}.tar
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bzip3-${{ github.ref_name }}.tar
+            bzip3-${{ github.ref_name }}.tar.7z
+            bzip3-${{ github.ref_name }}.tar.bz2
+            bzip3-${{ github.ref_name }}.tar.bz3
+            bzip3-${{ github.ref_name }}.tar.gz
+            bzip3-${{ github.ref_name }}.tar.xz
+            bzip3-${{ github.ref_name }}.tar.zst
+            bzip3-${{ github.ref_name }}.zip
+      - name: Upload source package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bzip3-${{ github.ref_name }}
+          path: bzip3-${{ github.ref_name }}.tar.gz
+
+  binaries:
+    name: Publish Binaries on GitHub Release
+    needs: [ ghrelease ]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - [ "x86_64-linux", "--enable-static-exe --disable-arch-native", "" ]
+          - [ "x86_64", "CC=x86_64-w64-mingw32-gcc --host x86_64-w64-mingw32 --enable-static-exe --disable-arch-native", "gcc-mingw-w64-x86-64" ]
+          - [ "i686", "CC=i686-w64-mingw32-gcc --host i686-w64-mingw32 --enable-static-exe --disable-arch-native", "gcc-mingw-w64-i686" ]
+    steps:
+      - name: Download source package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bzip3-${{ github.ref_name }}
+      - name: Extract source package
+        run: tar --strip-components=1 -xf bzip3-${{ github.ref_name }}.tar.gz
+      - name: Install cross-compile dependencies
+        if: ${{ matrix.target[2] }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.target[2] }}
+      - name: Configure
+        run: ./configure --bindir=/ --program-suffix=-${{ matrix.target[0] }} ${{ matrix.target[1] }}
+      - name: Make
+        run: |
+          make
+          make DESTDIR=$(pwd)/output install-exec
+      - name: Publish binary
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            output/bzip3-${{ matrix.target[0] }}*
