@@ -39,7 +39,8 @@
 	!(defined(__APPLE__) && defined(__MACH__)) && \
 	!defined(__OpenBSD__) && \
 	!defined(__FreeBSD__) && \
-	!defined(__DragonFly__)
+	!defined(__DragonFly__) && \
+	!defined(__linux__)
 #ifndef __STDC_ISO_10646__
 /* In many places it is assumed that the first 127 code points are ASCII
  * compatible, so ensure wchar_t indeed does ISO 10646 and not some other
