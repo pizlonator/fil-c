@@ -28,12 +28,12 @@
 set -e
 set -x
 
-cd pizlonated-icu/icu4c/source
-
-make distclean || echo whatever
-THE_OS=Linux THE_COMP="the Clang C++" CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ CFLAGS="-O3 -g" CXXFLAGS="-O3 -g" ./configure --enable-debug --prefix="$PWD/../../../pizfix"
+cd projects/icu-76.1
+extract_source
+cd icu4c/source
+THE_OS=Linux THE_COMP="the Clang C++" CC=$PWD/../../../../../build/bin/clang CXX=$PWD/../../../../../build/bin/clang++ CFLAGS="-O3 -g" CXXFLAGS="-O3 -g" ./configure --enable-debug --prefix="$PWD/../../../../../pizfix"
 make -j $NCPU
 
 make -j $NCPU check
 
-make install
+make -j $NCPU install

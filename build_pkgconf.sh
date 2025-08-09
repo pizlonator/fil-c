@@ -28,18 +28,9 @@
 set -e
 set -x
 
-cd pkgconf-2.3.0
-make distclean || echo whatever
-touch aclocal.m4
-touch configure
-touch config.h.in
-touch Makefile.in
-touch ./tests/test_env.sh.in
-touch ./tests/Kyuafile.in
-touch ./libpkgconf/config.h.in
-touch ./Kyuafile.in
-touch ./libpkgconf.pc.in
-CC=$PWD/../build/bin/clang ./configure --prefix=$PWD/../pizfix
+cd projects/pkgconf-2.3.0
+extract_source
+CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
-make install
-ln -s pkgconf $PWD/../pizfix/bin/pkg-config
+make -j $NCPU install
+ln -s pkgconf $PWD/../../../pizfix/bin/pkg-config

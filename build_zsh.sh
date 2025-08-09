@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,11 +28,9 @@
 set -e
 set -x
 
-cd pizlonated-zsh
-
-make distclean || echo whatever
-Util/preconfig
-CC="$PWD/../build/bin/clang -O -g -Wno-implicit-function-declaration -Wno-implicit-int" \
-    ./configure --prefix="$PWD/../pizfix"
+cd projects/zsh-5.8.0.1-dev
+extract_source
+CC="$PWD/../../../build/bin/clang -O -g -Wno-implicit-function-declaration -Wno-implicit-int" \
+    ./configure --prefix="$PWD/../../../pizfix"
 make
 make install.bin install.modules install.fns

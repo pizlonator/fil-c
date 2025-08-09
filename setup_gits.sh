@@ -56,28 +56,3 @@ handle_git()
     fi
 }
 
-handle_git pizlonated-mg.git pizlonated-mg
-handle_git pizlonated-sqlite.git pizlonated-sqlite
-handle_git pizlonated-cpython-3.12.5.git Python-3.12.5
-handle_git pizlonated-ncurses.git ncurses-6.5-20240720
-handle_git pizlonated-pcre2.git pizlonated-pcre2
-handle_git pizlonated-zsh.git pizlonated-zsh
-handle_git pizlonated-nghttp2.git pizlonated-nghttp2
-handle_git pizlonated-lua.git pizlonated-lua
-handle_git pizlonated-simdutf pizlonated-simdutf
-handle_git pizlonated-tcl pizlonated-tcl
-handle_git pizlonated-icu pizlonated-icu
-handle_git pizlonated-libedit pizlonated-libedit
-handle_git pizlonated-quickjs pizlonated-quickjs
-handle_git wg14_signals wg14_signals
-handle_git pizlonated-libuev pizlonated-libuev
-handle_git pizlonated-bzip3 pizlonated-bzip3
-handle_git pizlonated-zstd-1.5.6 pizlonated-zstd
-handle_git pizlonated-libexpat expat-2.7.1
-handle_git pizlonated-libxml2 libxml2-2.14.4
-handle_git pizlonated-dash dash-0.5.12
-handle_git pizlonated-pkgconf pkgconf-2.3.0
-handle_git pizlonated-toybox pizlonated-toybox
-handle_git pizlonated-libevent pizlonated-libevent
-handle_git pizlonated-tmux pizlonated-tmux
-handle_git pizlonated-sudo-1.9.15p5 sudo-1.9.15p5

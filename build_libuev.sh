@@ -28,11 +28,9 @@
 set -e
 set -x
 
-cd pizlonated-libuev
-
-(make distclean || echo whatever)
-./autogen.sh
-CC=$PWD/../build/bin/clang ./configure --prefix=$PWD/../pizfix
+cd projects/libuev-2.4.1
+extract_source
+CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make check -j $NCPU
-make install
+make install -j $NCPU

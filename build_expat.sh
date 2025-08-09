@@ -28,11 +28,10 @@
 set -e
 set -x
 
-cd expat-2.7.1/expat
-
-(make distclean || echo whatever)
-./buildconf.sh
-CC=$PWD/../../build/bin/clang CXX=$PWD/../../build/bin/clang++ ./configure --prefix=$PWD/../../pizfix
+cd projects/expat-2.7.1
+extract_source
+cd expat
+CC=$PWD/../../../../build/bin/clang CXX=$PWD/../../../../build/bin/clang++ ./configure --prefix=$PWD/../../../../pizfix
 make -j $NCPU
 make check -j $NCPU
-make install
+make install -j $NCPU

@@ -28,9 +28,8 @@
 set -e
 set -x
 
-cd pizlonated-zstd
-
-make clean
-CC=$PWD/../build/bin/clang CXX=$PWD/../build/bin/clang++ ZSTD_NO_ASM=1 make check V=1 -j $NCPU
-CC=$PWD/../build/bin/clang CXX=$PWD/../build/bin/clang++ ZSTD_NO_ASM=1 make install V=1 -j $NCPU prefix=$PWD/../pizfix
+cd projects/zstd-1.5.6
+extract_source
+CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ZSTD_NO_ASM=1 make check V=1 -j $NCPU
+CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ZSTD_NO_ASM=1 make install V=1 -j $NCPU prefix=$PWD/../../../pizfix
 

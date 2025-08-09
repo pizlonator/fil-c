@@ -28,10 +28,8 @@
 set -e
 set -x
 
-cd pizlonated-bzip3
-
-(make distclean || echo whatever)
-./bootstrap.sh
-CC=$PWD/../build/bin/clang CXX=$PWD/../build/bin/clang++ ./configure --prefix=$PWD/../pizfix
+cd projects/bzip3
+extract_source
+CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
-make install
+make -j $NCPU install

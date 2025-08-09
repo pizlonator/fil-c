@@ -28,10 +28,9 @@
 set -e
 set -x
 
-cd pizlonated-libevent
-make distclean || echo whatever
-./autogen.sh
-CC=$PWD/../build/bin/clang ./configure --prefix=$PWD/../pizfix
+cd projects/libevent-2.1.12
+extract_source
+CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 
 # Skipping this test because it has a flaky timeout, unfortunately.

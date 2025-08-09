@@ -23,14 +23,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
+. libpas/common.sh
+
 set -e
 set -x
 
-cd ncurses-6.5-20240720
-make distclean || echo whatever
-PATH=$PWD/../pizfix/bin:$PATH CC="$PWD/../build/bin/clang -O -g" CXX="$PWD/../build/bin/clang++ -O -g" ./configure \
-    --prefix="$PWD/../pizfix" --disable-lib-suffixes --with-shared --without-ada --enable-pc-files
+cd projects/ncurses-6.5-20240720
+extract_source
+PATH=$PWD/../../../pizfix/bin:$PATH CC="$PWD/../../../build/bin/clang -O -g" CXX="$PWD/../../../build/bin/clang++ -O -g" ./configure \
+    --prefix="$PWD/../../../pizfix" --disable-lib-suffixes --with-shared --without-ada --enable-pc-files
 make -j $NCPU
-make install
-ln -fs ncurses6-config ../pizfix/bin/ncursesw6-config
+make -j $NCPU install
+ln -fs ncurses6-config ../../../pizfix/bin/ncursesw6-config
 

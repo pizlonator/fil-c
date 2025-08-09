@@ -28,12 +28,11 @@
 set -e
 set -x
 
-cd Python-3.12.5
-
-($MAKE distclean || echo whatever)
-PATH=$PWD/../pizfix/bin:$PATH CC="$CCPREFIX$PWD/../build/bin/clang -g -O2" ./configure \
+cd projects/Python-3.12.5
+extract_source
+PATH=$PWD/../../../pizfix/bin:$PATH CC="$CCPREFIX$PWD/../../../build/bin/clang -g -O2" ./configure \
     --without-mimalloc --without-pymalloc --without-freelists \
-    --disable-test-modules --prefix=$PWD/../pizfix
+    --disable-test-modules --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
-$MAKE install
+$MAKE -j $NCPU install
 

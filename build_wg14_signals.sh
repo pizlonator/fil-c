@@ -28,11 +28,11 @@
 set -e
 set -x
 
-cd wg14_signals
+cd projects/wg14_signals
 
 rm -rf build
 mkdir build
 cd build
-cmake -S .. -B . -DCMAKE_C_COMPILER="$PWD/../../build/bin/clang" -DCMAKE_CXX_COMPILER="$PWD/../../build/bin/clang++" -DCMAKE_C_FLAGS=-DDISABLE_INLINE_ASM=1 -DCMAKE_CXX_FLAGS=-DDISABLE_INLINE_ASM=1
+cmake -S .. -B . -DCMAKE_C_COMPILER="$PWD/../../../build/bin/clang" -DCMAKE_CXX_COMPILER="$PWD/../../../build/bin/clang++" -DCMAKE_C_FLAGS=-DDISABLE_INLINE_ASM=1 -DCMAKE_CXX_FLAGS=-DDISABLE_INLINE_ASM=1
 make -j $NCPU
 ctest

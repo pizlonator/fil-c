@@ -28,10 +28,10 @@
 set -e
 set -x
 
-cd pizlonated-toybox
-mkdir -p compiler-bin
-ln -fs ../../build/bin/clang-17 compiler-bin/cc
-rm -rf install
+cd projects/toybox-8.12
+extract_source
+mkdir compiler-bin
+ln -fs ../../../../build/bin/clang-17 compiler-bin/cc
 PATH=$PWD/compiler-bin:$PATH make distclean
 cp good-config .config
 PATH=$PWD/compiler-bin:$PATH CFLAGS="-O2 -g" make oldconfig

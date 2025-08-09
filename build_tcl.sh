@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,14 +28,14 @@
 set -e
 set -x
 
-cd pizlonated-tcl/unix
-
-($MAKE distclean || echo whatever)
-CC="$PWD/../../build/bin/clang -g -O2" ./configure --prefix=`realpath $PWD/../../pizfix`
+cd projects/tcl-8.6.15
+extract_source
+cd unix
+CC="$PWD/../../../../build/bin/clang -g -O2" ./configure --prefix=`realpath $PWD/../../../../pizfix`
 $MAKE -j $NCPU
-$MAKE install
+$MAKE -j $NCPU install
 
-cd ../../pizfix/bin
+cd ../../../../pizfix/bin
 ln -fs tclsh8.6 tclsh
 
 cd ../lib

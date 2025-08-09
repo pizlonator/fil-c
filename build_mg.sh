@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,11 +28,9 @@
 set -e
 set -x
 
-cd pizlonated-mg
-
-($MAKE distclean || echo whatever)
-./autogen.sh
-CC="$CCPREFIX$PWD/../build/bin/clang -O -g" ./configure --prefix=$PWD/../pizfix
+cd projects/mg
+extract_source
+CC="$CCPREFIX$PWD/../../../build/bin/clang -O -g" ./configure --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
 $MAKE install
 

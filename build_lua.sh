@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,9 +28,8 @@
 set -e
 set -x
 
-cd pizlonated-lua
-
-make clean
-make -j $NCPU CC="$PWD/../build/bin/clang -Wno-unknown-warning-option"
-cp lua ../pizfix/bin/
+cd projects/lua-5.4.7
+extract_source
+make -j $NCPU CC="$PWD/../../../build/bin/clang -Wno-unknown-warning-option"
+cp lua ../../../pizfix/bin/
 

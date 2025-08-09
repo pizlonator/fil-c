@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,8 +28,7 @@
 set -e
 set -x
 
-cd pizlonated-quickjs
-
-make clean
+cd projects/quickjs
+extract_source
 make -j $NCPU
-cp qjs ../pizfix/bin/
+cp qjs ../../../pizfix/bin/

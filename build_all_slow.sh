@@ -26,6 +26,8 @@
 set -e
 set -x
 
+test ! -d projects/pizfix
+
 ./build_ffi.sh
 ./build_pkgconf.sh
 ./build_dash.sh
@@ -68,3 +70,5 @@ set -x
 ./build_libevent.sh
 ./build_tmux.sh
 ./build_benchmarks.sh
+
+test ! -d projects/pizfix

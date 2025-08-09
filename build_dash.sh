@@ -28,9 +28,8 @@
 set -e
 set -x
 
-cd dash-0.5.12
-make distclean || echo whatever
-./autogen.sh
-CC=$PWD/../build/bin/clang ./configure --prefix=$PWD/../pizfix
+cd projects/dash-0.5.12
+extract_source
+CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
-make install
+make -j $NCPU install

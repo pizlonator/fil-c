@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,12 +28,10 @@
 set -e
 set -x
 
-cd pizlonated-pcre2
-
-make distclean || echo whatever
-./autogen.sh
-CC="$PWD/../build/bin/clang -g -O" ./configure --prefix=$PWD/../pizfix \
+cd projects/pcre2-10.44
+extract_source
+CC="$PWD/../../../build/bin/clang -g -O" ./configure --prefix=$PWD/../../../pizfix \
     --enable-pcre2-16 --enable-pcre2-32 --enable-pcre2grep-libz
 make -j $NCPU
-make check
-make install
+make -j $NCPU check
+make -j $NCPU install

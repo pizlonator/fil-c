@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,13 +28,10 @@
 set -e
 set -x
 
-cd pizlonated-libedit
-
-($MAKE distclean || echo whatever)
-rm -f configure doc/Makefile.in examples/Makefile.in src/Makefile.in
-autoreconf -i
-CC="$PWD/../build/bin/clang -g -O3" CPPFLAGS="-I$PWD/../pizfix/include/ncurses" ./configure --prefix="$PWD/../pizfix"
+cd projects/libedit-20240808-3.1
+extract_source
+CC="$PWD/../../../build/bin/clang -g -O3" CPPFLAGS="-I$PWD/../../../pizfix/include/ncurses" ./configure --prefix="$PWD/../../../pizfix"
 $MAKE -j $NCPU
-$MAKE install
+$MAKE -j $NCPU install
 
 

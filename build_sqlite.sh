@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,13 +28,13 @@
 set -e
 set -x
 
-cd pizlonated-sqlite
+cd projects/sqlite
 
 # Get the SQLite build to use our tclsh.
-export PATH=$PWD/../pizfix/bin:$PATH
+export PATH=$PWD/../../pizfix/bin:$PATH
 
 $MAKE -f Makefile.filc TOP=$PWD clean
-$MAKE -f Makefile.filc TOP=$PWD CC="$CCPREFIX$PWD/../build/bin/clang -g -O2" \
+$MAKE -f Makefile.filc TOP=$PWD CC="$CCPREFIX$PWD/../../build/bin/clang -g -O2" \
       -j $NCPU all testfixture
-$MAKE -f Makefile.filc TOP=$PWD PREFIX=$PWD/../pizfix install
+$MAKE -f Makefile.filc TOP=$PWD PREFIX=$PWD/../../pizfix install
 
