@@ -1,0 +1,47 @@
+#!/bin/echo run this from "make root"
+
+# Plumbing to download files
+
+[ -z "$ROOT" ] && echo "no" && exit 1
+mkdir -p "${DOWNLOAD:=$PWD/root_download}" || exit 1
+
+### Functions to download, extract, and clean up after source packages.
+
+# Usage: download HASH URL
+# Grabs source from URL confirming SHA1 hash (Basically "wget $2")
+# If extracted source is in $DOWNLOAD (no version) build will use that instead
+download() {
+  local FILE="$(basename "$2")" WGET=wget
+  [ -d "$DOWNLOAD/${FILE/-*/}" ] && echo "$FILE" local && return 0
+  X=0; while true; do
+    [ "$(sha1sum < "$DOWNLOAD/$FILE" 2>/dev/null)" == "$1  -" ] &&
+      echo "$FILE" confirmed && break
+    rm -f $DOWNLOAD/${FILE/-[0-9]*/}-[0-9]* || exit 1
+    [ $X -eq 0 ] && X=1 || [ $X -eq 1 ] && X=2 WGET=/usr/bin/wget || exit 1
+    $WGET "$2" -O "$DOWNLOAD/$FILE"
+  done
+}
+
+# Usage: setupfor PACKAGE
+# Extracts source tarball (or snapshot a repo) to create disposable build dir.
+# Basically "tar -xvz -C $TEMP -f $DOWNLOAD/$1.tar.gz && cd $NEWDIR"
+setupfor() {
+  PACKAGE="$(basename "$1")"
+  announce "$PACKAGE" && cd "$TEMP" && rm -rf "$PACKAGE" || exit 1
+  if [ -d "$DOWNLOAD/$PACKAGE" ]; then
+    cp -la "$DOWNLOAD/$PACKAGE/." "$PACKAGE" && cd "$PACKAGE" || exit 1
+  else
+    local DIR=$(mktemp -dp.)
+    tar xvafC "$DOWNLOAD/$PACKAGE"-*.t* "$DIR" &&
+    mv "$DIR"/* "$PACKAGE" && rmdir "$DIR" && cd "$PACKAGE" || exit 1
+  fi
+}
+
+# Usage: cleanup
+# Delete setupfor's dir, exiting if build failed (basically "rm -rf $PACKAGE")
+cleanup() {
+  [ $? -ne 0 ] && exit 1
+  [ -z "$PACKAGE" ] && exit 1
+  [ ! -z "$NO_CLEANUP" ] && return
+  cd .. && rm -rf "$PACKAGE"* || exit 1
+}

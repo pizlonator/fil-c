@@ -1,0 +1,9 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "" "tee" "one" "" "one"
+testing "" "tee -" "two\n" "" "two\n"
+testing "" "tee one > two && cmp one two && echo that" "that\n" "" "three"

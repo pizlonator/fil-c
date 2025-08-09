@@ -1,0 +1,27 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+toyonly testing "-32" "factor -32" "-32: -1 2 2 2 2 2\n" "" ""
+toyonly testing "0" "factor 0" "0: 0\n" "" ""
+toyonly testing "1" "factor 1" "1: 1\n" "" ""
+testing "2" "factor 2" "2: 2\n" "" ""
+testing "3" "factor 3" "3: 3\n" "" ""
+testing "4" "factor 4" "4: 2 2\n" "" ""
+testing "10000000017" "factor 10000000017" \
+        "10000000017: 3 3 3 7 7 7 1079797\n" "" ""
+testing "10000000018" "factor 10000000018" \
+        "10000000018: 2 131 521 73259\n" "" ""
+testing "10000000019" "factor 10000000019" \
+        "10000000019: 10000000019\n" "" ""
+
+testing "3 6 from stdin" "factor" "3: 3\n6: 2 3\n" "" "3 6"
+testing "stdin newline" "factor" "3: 3\n6: 2 3\n" "" "3\n6\n"
+
+toyonly testing "-h" "factor -h $(((1<<63)-26))" \
+  "9223372036854775782: 2 3^4 17 23 319279 456065899\n" "" ""
+toyonly testing "-x" "factor -x $(((1<<63)-20))" \
+  "7fffffffffffffec: 2 2 3 283 43f2ba978e663\n" "" ""
+

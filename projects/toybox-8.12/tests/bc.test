@@ -1,0 +1,39 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testcmd "name "args" "result" "infile" "stdin"
+
+BDIR="$FILES/bc"
+
+run_bc_test() {
+	tst="$1"
+	results=$(cat "$BDIR/${tst}_results.txt")
+	testcmd "$tst" "-l $BDIR/$tst.txt" "$results\n" "$BDIR/$tst.txt" ""
+}
+
+run_bc_test decimal
+run_bc_test add
+run_bc_test subtract
+run_bc_test multiply
+run_bc_test divide
+run_bc_test modulus
+run_bc_test power
+run_bc_test sqrt
+run_bc_test vars
+run_bc_test boolean
+run_bc_test parse
+run_bc_test print
+run_bc_test exponent
+run_bc_test log
+run_bc_test pi
+run_bc_test arctan
+run_bc_test sine
+run_bc_test cosine
+run_bc_test bessel
+run_bc_test arrays
+run_bc_test misc
+run_bc_test misc1
+run_bc_test misc2
+
+testcmd "stdin" "" "2\n" "" "1+1\n"

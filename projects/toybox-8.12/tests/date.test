@@ -1,0 +1,102 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Use a consistent TZ for these tests, but not GMT/UTC because that
+# makes mistakes harder to spot.
+tz=Europe/Berlin
+this_year=$(TZ=$tz date +%Y)
+
+# Use a consistent locale too.
+export LANG=C
+
+# Unix date parsing.
+testing "-d @0" "TZ=$tz date -d @0" "Thu Jan  1 01:00:00 CET 1970\n" "" ""
+testing "-d @0x123 invalid" "TZ=$tz date -d @0x123 2>/dev/null || echo expected error" "expected error\n" "" ""
+
+# POSIX format with 2- and 4-digit years.
+# All toyonly because coreutils rejects POSIX format dates supplied to -d.
+# These expected values are from running on the host without -d (not as root!).
+toyonly testing "-d MMDDhhmm" \
+  "TZ=$tz date -d 06021234 +'%F %T'" "$this_year-06-02 12:34:00\n" "" ""
+toyonly testing "-d MMDDhhmmYY.SS" \
+  "TZ=$tz date -d 1110143115.30" "Tue Nov 10 14:31:30 CET 2015\n" "" ""
+# busybox thinks this is the year 603 (ISO time 0602-12-34 19:82 with out of range fields normalized).
+toyonly testing "-d MMDDhhmmCCYY" \
+  "TZ=$tz date -d 060212341982" "Wed Jun  2 12:34:00 CEST 1982\n" "" ""
+toyonly testing "-d MMDDhhmmCCYY.SS" \
+  "TZ=$tz date -d 111014312015.30" "Tue Nov 10 14:31:30 CET 2015\n" "" ""
+
+# ISO date format.
+testing "-d 1980-01-02" "TZ=$tz date -d 1980-01-02" "Wed Jan  2 00:00:00 CET 1980\n" "" ""
+testing "-d 1980-01-02 12:34" "TZ=$tz date -d '1980-01-02 12:34'" "Wed Jan  2 12:34:00 CET 1980\n" "" ""
+testing "-d 1980-01-02 12:34:56" "TZ=$tz date -d '1980-01-02 12:34:56'" "Wed Jan  2 12:34:56 CET 1980\n" "" ""
+
+# Reject Unix times without a leading @.
+testing "Unix time missing @" "TZ=$tz date 1438053157 2>/dev/null || echo no" \
+  "no\n" "" ""
+
+# Test just hour and minute (accepted by coreutils and busybox, presumably for setting the time).
+testing "-d 12:34" 'TZ=UTC date -d 12:34 | grep -q " 12:34:00 UTC $this_year" && echo OK' "OK\n" "" ""
+testing "-d 12:34:56" 'TZ=UTC date -d 12:34:56 | grep -q " 12:34:56 UTC $this_year" && echo OK' "OK\n" "" ""
+
+# Test the %N extension to srtftime(3) format strings.
+testing "%N" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%N" "20120123-123456.123456789\n" "" ""
+testing "%1N" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%1N" "20120123-123456.1\n" "" ""
+testing "%2N" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%2N" "20120123-123456.12\n" "" ""
+testing "%8N" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%8N" "20120123-123456.12345678\n" "" ""
+testing "%9N" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%9N" "20120123-123456.123456789\n" "" ""
+testing "%%N" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%%N" "20120123-123456.%N\n" "" ""
+testing "trailing %" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%Y%m%d-%H%M%S.%" "20120123-123456.%\n" "" ""
+testing "just %" "touch -d 2012-01-23T12:34:56.123456789 f && date -r f +%" "%\n" "" ""
+rm -f f
+
+# Test --iso...
+testing "-I" "touch -d 2012-01-23T12:34:56.123456789Z f && date -r f -u -I" \
+  "2012-01-23\n" "" ""
+testing "-Id" "touch -d 2012-01-23T12:34:56.123456789Z f && date -r f -u -Id" \
+  "2012-01-23\n" "" ""
+testing "-Ih" "touch -d 2012-01-23T12:34:56.123456789Z f && date -r f -u -Ih" \
+  "2012-01-23T12+00:00\n" "" ""
+testing "-Im" "touch -d 2012-01-23T12:34:56.123456789Z f && date -r f -u -Im" \
+  "2012-01-23T12:34+00:00\n" "" ""
+testing "-Is" "touch -d 2012-01-23T12:34:56.123456789Z f && date -r f -u -Is" \
+  "2012-01-23T12:34:56+00:00\n" "" ""
+testing "-In" "touch -d 2012-01-23T12:34:56.123456789Z f && date -r f -u -In" \
+  "2012-01-23T12:34:56,123456789+00:00\n" "" ""
+rm -f f
+
+# Test embedded TZ to take a date in one time zone and display it in another.
+testing "TZ=" "TZ='America/Los_Angeles' date -d 'TZ=\"Europe/Berlin\" 2018-01-04 08:00'" "Wed Jan  3 23:00:00 PST 2018\n" "" ""
+testing "TZ=" "TZ='America/Los_Angeles' date -d 'TZ=\"Europe/Berlin\" 2018-10-04 08:00'" "Wed Oct  3 23:00:00 PDT 2018\n" "" ""
+testing "TZ= @" "TZ='America/Los_Angeles' date -d 'TZ=\"GMT\" @1533427200'" "Sat Aug  4 17:00:00 PDT 2018\n" "" ""
+
+# Test all supported UTC offset variants.
+testing "tz Z" \
+  "date -u -d 2020-08-01T12:34:56Z" "Sat Aug  1 12:34:56 UTC 2020\n" "" ""
+testing "tz ' Z '" \
+  "date -u -d '2020-08-01T12:34:56 Z '" "Sat Aug  1 12:34:56 UTC 2020\n" "" ""
+testing "tz -0800" \
+  "date -u -d 2020-08-01T12:34:56-0800" "Sat Aug  1 20:34:56 UTC 2020\n" "" ""
+testing "tz +0800" \
+  "date -u -d 2020-08-01T12:34:56+0800" "Sat Aug  1 04:34:56 UTC 2020\n" "" ""
+testing "tz +08:00" \
+  "date -u -d 2020-08-01T12:34:56+08:00" "Sat Aug  1 04:34:56 UTC 2020\n" "" ""
+testing "tz +8" \
+  "date -u -d 2020-08-01T12:34:56+8" "Sat Aug  1 04:34:56 UTC 2020\n" "" ""
+testing "tz +08" \
+  "date -u -d 2020-08-01T12:34:56+08" "Sat Aug  1 04:34:56 UTC 2020\n" "" ""
+testing "tz +008" \
+  "date -u -d 2020-08-01T12:34:56+008" "Sat Aug  1 12:26:56 UTC 2020\n" "" ""
+testing "tz + 8 : 8 " \
+  "date -u -d '2020-08-01T12:34:56 + 8 : 8 '" "Sat Aug  1 04:26:56 UTC 2020\n"\
+  "" ""
+
+# Can we parse date's own output format?
+testing "round trip" 'TZ=$tz date -d "$(TZ=$tz date -d @1598476818)"' \
+  "Wed Aug 26 23:20:18 CEST 2020\n" "" ""
+
+toyonly testcmd "-D with -d" "-uD '%s' -d '1234567890'" \
+  "Fri Feb 13 23:31:30 UTC 2009\n" "" ""

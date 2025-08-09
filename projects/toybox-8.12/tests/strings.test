@@ -1,0 +1,25 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "stdin" "strings" "foobar\n" "" "foobar\n"
+testing "file" "strings input" "foobar\n" "foobar\n" ""
+testing "string to the end" "strings input" "foobar\n" "foobar" ""
+testing "short strings" "strings input" "" "foo\nbar\n" ""
+testing "-n6" "strings -n6 input" "foobar\n" "foobar\nbaz\n" ""
+testing "string and nulls" "strings input" "foobar\nbazfoo\n" \
+	"\0foobar\0\0bazfoo\0foo" ""
+testing "-f" "strings -f input" "input: foobar\n" "foobar\n" ""
+testing "-o" "strings -o input | sed 's/^ *//'" "6 foobar\n" \
+	"\0\0\0\0\0\0foobar\n" ""
+testing "-o, multiple strings" "strings -n3 -o input | sed 's/^ *//'" \
+	"1 foo\n7 bar\n" "\0foo\0b\0bar\n" ""
+testing "-fo" "strings -fo input | sed 's/: */: /'" "input: 6 foobar\n" \
+	"\0\0\0\0\0\0foobar\n" ""
+
+OFFSET_10="\0\0\0\0\0\0\0\0\0\0foobar\n"
+testing "-t o" "strings -t o | sed 's/^ *//'" "12 foobar\n" "" $OFFSET_10
+testing "-t d" "strings -t d | sed 's/^ *//'" "10 foobar\n" "" $OFFSET_10
+testing "-t x" "strings -t x | sed 's/^ *//'" "a foobar\n" "" $OFFSET_10

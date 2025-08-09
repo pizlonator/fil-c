@@ -1,0 +1,48 @@
+#!/bin/echo Try "scripts/mkroot.sh busybox"
+
+download a5d40ca0201b20909f7a8a561adf57adccc8a877 \
+  http://www.busybox.net/downloads/busybox-1.36.1.tar.bz2
+
+# 4 commands: ash, route, udhcpc, stty
+
+setupfor busybox
+make defconfig &&
+# Busybox checks for host bzip2, which toybox does not provide.
+sed -i 's/^bzip2/true bzip2/' scripts/{mkconfigs,embedded_scripts} &&
+# zap script that wants diff
+ln -sf /bin/true scripts/generate_BUFSIZ.sh &&
+echo '#define COMMON_BUFSIZE (4096)
+extern char bb_common_bufsiz1[];
+#define setup_common_bufsiz()' > include/common_bufsiz.h &&
+LDFLAGS=--static make SKIP_STRIP=y -j $(nproc) &&
+cp busybox "$ROOT/bin" &&
+make busybox.links &&
+mkdir -p "$ROOT/busybox" || exit 1
+while read i; do ln -sf /bin/busybox "$ROOT/busybox/$(basename "$i")" || exit 1
+done < busybox.links
+cp .config "$ROOT/../busybox-config"
+cleanup
+
+# busybox ash doesn't support $(<file)
+#ln -sf busybox "$ROOT/bin/sh" &&
+#mkdir -p "$ROOT/etc/rc" &&
+#echo '[ -z "$CONSOLE" ] && CONSOLE="$(cat /sys/class/tty/console/active)"' > \
+#  "$ROOT/etc/rc/busybox.sh" &&
+
+cat > "$ROOT"/etc/dhcp.sh << 'EOF' &&
+#!/bin/sh
+
+[ "$1" = bound ] || exit
+[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+[ -n "$subnet" ] && NETMASK="netmask $subnet"
+ifconfig $interface $ip $BROADCAST $NETMASK
+[ -n "$router" ] && exit
+echo "deleting routers"
+while route del default gw 0.0.0.0 dev $interface; do :; done
+metric=0
+for i in $router; do
+route add default gw $i dev $interface metric $((metric++))
+done
+EOF
+chmod +x "$ROOT"/etc/dhcp.sh || exit 1
+

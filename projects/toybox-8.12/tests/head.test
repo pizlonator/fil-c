@@ -1,0 +1,36 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd "stdin" "-n 1 && echo yes" "one\nyes\n" "" "one\ntwo"
+testcmd "stdin via -" "-n 1 - && echo yes" "one\nyes\n" "" "one\ntwo"
+testcmd "file" "input -n 1 && echo yes" "one\nyes\n" "one\ntwo" ""
+testcmd "-number" "-2 input && echo yes" "one\ntwo\nyes\n" \
+	"one\ntwo\nthree\nfour" ""
+testcmd "default lines" "" "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n" "" "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
+
+# coreutils & busybox name stdin as "standard input", toybox uses "-"
+testcmd "-v file" "-v -n 1 input" "==> input <==\none\n" "one\ntwo\n" ""
+testcmd "-v stdin" "-v -n 1 | sed 's/standard input/-/'" \
+	"==> - <==\none\n" "" "one\ntwo\n"
+
+testcmd "file and stdin" "-n 1 input - | sed 's/standard input/-/'" \
+	"==> input <==\none\n\n==> - <==\nfoo\n" "one\ntwo\n" "foo\nbar\n"
+
+echo "foo
+bar
+baz" > file1
+testcmd "multiple files" "-n 2 input file1" \
+  "==> input <==\none\ntwo\n\n==> file1 <==\nfoo\nbar\n" "one\ntwo\nthree\n" ""
+testcmd "-q, multiple files" "-q -n 2 input file1" "one\ntwo\nfoo\nbar\n" \
+	"one\ntwo\nthree\n" ""
+rm file1
+
+testcmd "-c 3" "-c 3" "one" "" "one\ntwo"
+testcmd "-c bigger than input" "-c 3" "a" "" "a"
+testcmd "-c 3 -n 1" "-c 3 -n 1" "one\n" "" "one\ntwo"
+testcmd "-n 1 -c 3" "-n 1 -c 3" "one" "" "one\ntwo"
+testing "unget" 'while read i; do echo =$i; head -n 1; done < input' \
+  '=one\ntwo\n=three\nfour\n=five\n' 'one\ntwo\nthree\nfour\nfive\n' ''

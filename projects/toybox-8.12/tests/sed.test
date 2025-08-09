@@ -1,0 +1,219 @@
+#!/bin/echo Run scripts/test.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd 'as cat' '""' "one\ntwo\nthree" "" "one\ntwo\nthree"
+# This segfaults ubuntu 12.04's sed. No really.
+testcmd '- - twice' '"" - -' "hello\n" "" "hello\n"
+testcmd '-n' '-n ""' "" "" "one\ntwo\nthree"
+testcmd '-n p' '-n p' "one\ntwo\nthree" "" "one\ntwo\nthree"
+testcmd 'explicit pattern' '-e p -n' "one\ntwo\nthree" "" "one\ntwo\nthree"
+
+# Exploring the wonders of sed addressing modes
+testcmd '' '-n 1p' "one\n" "" "one\ntwo\nthree"
+testcmd '' '2p' "one\ntwo\ntwo\nthree" "" "one\ntwo\nthree"
+testcmd '' '-n 2p' "two\n" "" "one\ntwo\nthree"
+testcmd '-n $p' '-n \$p' "three" "" "one\ntwo\nthree"
+testcmd 'as cat #2' "-n '1,\$p'" "one\ntwo\nthree" "" "one\ntwo\nthree"
+testcmd 'no input means no last line' "'\$a boing'" "" "" ""
+testcmd '-n $,$p' '-n \$,\$p' 'three' '' 'one\ntwo\nthree'
+testcmd '' '-n 1,2p' "one\ntwo\n" "" "one\ntwo\nthree"
+testcmd '' '-n 2,3p' "two\nthree" "" "one\ntwo\nthree"
+testcmd '' '-n 2,1p' "two\n" "" "one\ntwo\nthree"
+testcmd '$ with 2 inputs' '-n \$p - input' "four\n" "four\n" "one\ntwo\nthree"
+testcmd '' '-n /two/p' "two\n" "" "one\ntwo\nthree"
+testcmd '' '-n 1,/two/p' 'one\ntwo\n' '' 'one\ntwo\nthree'
+testcmd '' '-n /one/,2p' 'one\ntwo\n' '' 'one\ntwo\nthree'
+testcmd '' '-n 1,/one/p' 'one\ntwo\nthree' '' 'one\ntwo\nthree'
+testcmd '' '-n /one/,1p' 'one\n' '' 'one\ntwo\nthree'
+testcmd '-n /two/,$p' '-n /two/,\$p' 'two\nthree' '' 'one\ntwo\nthree'
+
+# Fun with newlines!
+testcmd '' '-n 3p' "three" "" "one\ntwo\nthree"
+testcmd 'prodigal newline' "-n '1,\$p' - input" \
+	"one\ntwo\nthree\nfour\n" "four\n" "one\ntwo\nthree"
+testcmd 'Newline only added if further output' "-n 3p - input" "three" \
+	"four\n" "one\ntwo\nthree"
+
+# Fun with match delimiters and escapes
+testcmd 'match \t tab' "-n '/\t/p'" "\tx\n" "" "\tx\n"
+testcmd 'match t delim disables \t tab' "-n '\t\txtp'" "" "" "\tx\n"
+testcmd 'match t delim makes \t literal t' "-n '\t\txtp'" "tx\n" "" "tx\n"
+testcmd 'match n delim' "-n '\n\txnp'" "\tx\n" "" "\tx\n"
+testcmd 'match n delim disables \n newline' "-n '\n\nxnp'" "" "" "\nx\n"
+toyonly testcmd 'match \n literal n' "-n '\n\nxnp'" "nx\n" "" "nx\n"
+testcmd 'end match does not check starting match line' \
+	"-n '/two/,/two/p'" "two\nthree" "" "one\ntwo\nthree"
+testcmd 'end match/start match mixing number/letter' \
+	"-n '2,/two/p'" "two\nthree" "" "one\ntwo\nthree"
+testcmd 'num then regex' '-n 2,/d/p' 'b\nc\nd\n' '' 'a\nb\nc\nd\ne\nf\n'
+testcmd 'regex then num' '-n /b/,4p' 'b\nc\nd\n' '' 'a\nb\nc\nd\ne\nf\n'
+testcmd 'multiple regex address match' '-n /on/,/off/p' \
+	'bone\nturtle\scoff\ntron\nlurid\noffer\n'  "" \
+	'zap\nbone\nturtle\scoff\nfred\ntron\nlurid\noffer\nbecause\n'
+testcmd 'regex address overlap' '-n /on/,/off/p' "on\nzap\noffon\n" "" \
+	'on\nzap\noffon\nping\noff\n'
+testcmd 'getdelim with nested [:blah:]' '-n "sa\a[a[:space:]bc]*aXXagp"' \
+	"ABXXCDXXEFXXGHXXIXX" "" "ABaaCDa EFaa aGHa a Ia "
+testcmd '[ in [[]' "'s@[[]@X@g'" "X" "" "["
+testcmd '[[] with ] as delimiter' "'s][[]]X]g'" "X" "" "["
+testcmd '[[] with [ as delimiter' "'s[\[\[][X['" "X" "" "["
+
+# gGhHlnNpPqrstwxy:=
+# s///#comment
+# abcdDi
+
+testcmd 'prodigaler newline' '-e a\\ -e woo' 'one\nwoo\n' '' 'one'
+testcmd "aci" "-e '3a boom' -e '/hre/i bang' -e '3a whack' -e '3c bong'" \
+	"one\ntwo\nbang\nbong\nboom\nwhack\nfour\n" "" \
+	"one\ntwo\nthree\nfour\n"
+testcmd "b loop" "':woo;=;b woo' | head -n 5" '1\n1\n1\n1\n1\n' "" "X"
+testcmd "b skip" "-n '2b zap;d;:zap;p'" "two\n" "" "one\ntwo\nthree"
+testcmd "b end" "-n '2b;p'" "one\nthree" "" "one\ntwo\nthree"
+testcmd "c range" "'2,4c blah'" "one\nblah\nfive\nsix" "" \
+	"one\ntwo\nthree\nfour\nfive\nsix"
+testcmd "c {range}" "-e '2,4{c blah' -e '}'" "one\nblah\nblah\nblah\nfive\nsix"\
+        "" "one\ntwo\nthree\nfour\nfive\nsix"
+testcmd "c multiple continuation" "-e 'c\\' -e 'two\\' -e ''" "two\n\n" "" \
+        "hello"
+testcmd 'multiline continuations' '-e c\\ -e line1\\ -e line2' 'line1\nline2\n'\
+        '' 'one\n'
+toyonly testing "c empty continuation" "sed -e 'c\\'" "\n" "" "hello"
+testing "D further processing depends on whether line is blank" \
+	"sed -e '/one/,/three/{' -e 'i meep' -e'N;2D;}'" \
+	"meep\nmeep\ntwo\nthree\n" "" "one\ntwo\nthree\n"
+testing 'newline staying away' 'sed s/o/x/' 'xne\ntwx' '' 'one\ntwo'
+
+# Why on _earth_ is this not an error? There's a \ with no continuation!
+#testing 'sed what, _really_?' 'sed -e a\\ && echo yes really' \
+#	'one\nyes really\n' '' 'one\n'
+
+# all the s/// test
+
+testing "match empty line" "sed -e 's/^\$/@/'" "@\n" "" "\n"
+
+testing '\1' "sed 's/t\\(w\\)o/za\\1py/'" "one\nzawpy\nthree" "" \
+	"one\ntwo\nthree"
+testing '\1 p' "sed 's/t\\(w\\)o/za\\1py/p'" "one\nzawpy\nzawpy\nthree" \
+	"" "one\ntwo\nthree"
+testing '\1 no newline' "sed 's/t\\(w\\)o/za\\1py/'" "one\nzawpy" "" \
+	"one\ntwo"
+testing '\1 p no newline' "sed 's/t\\(w\\)o/za\\1py/p'" \
+	"one\nzawpy\nzawpy" "" "one\ntwo"
+testing '-n s//\1/p' "sed -n 's/t\\(w\\)o/za\\1py/p'" "zawpy" "" "one\ntwo"
+testing '-n s//\1/p no newline' "sed -n 's/t\\(w\\)o/za\\1py/p'" "zawpy" \
+	"" "one\ntwo"
+testing 'backref error' \
+	"sed 's/w/ale \2 ha/' >/dev/null 2>/dev/null || echo no" \
+	"no\n" "" "one\ntwo\nthree"
+testing 'empty match after nonempty match' "sed -e 's/a*/c/g'" 'cbcncgc' \
+	'' 'baaang'
+testing 'empty match' "sed -e 's/[^ac]*/A/g'" 'AaAcA' '' 'abcde'
+testing 's///#comment' "sed -e 's/TWO/four/i#comment'" "one\nfour\nthree" \
+	"" "one\ntwo\nthree"
+testing 's///num off end' 'sed -e s/e//2' 'e\n' '' 'e\n'
+
+testing 'N flushes pending a and advances match counter' \
+	"sed -e 'a woo' -e 'N;\$p'" 'woo\none\ntwo\none\ntwo' "" 'one\ntwo'
+testing "delimiter in regex [char range] doesn't count" "sed -e 's/[/]//'" \
+	"onetwo\n" "" 'one/two\n'
+testing "delete regex range start line after trigger" \
+	"sed -e '/one/,/three/{' -e 'i meep' -e '1D;}'" \
+	"meep\nmeep\ntwo\nmeep\nthree" "" "one\ntwo\nthree"
+testing "blank pattern repeats last pattern" \
+	"sed -e '/^three/s//abc&def/'" \
+	"one two three\nabcthreedef four five\nfive six seven\n" "" \
+	"one two three\nthree four five\nfive six seven\n"
+
+testcmd "interleave -e and -f" "-e 'a abc' -f input -e 'a ghi'" \
+  "hello\nabc\ndef\nghi\n" "a def" "hello\n"
+
+# Different ways of parsing line continuations
+
+testing "" "sed -e '1a\' -e 'huh'" "meep\nhuh\n" "" "meep"
+testing "" "sed -f input" "blah\nboom\n" '1a\\\nboom' 'blah'
+testing "" "sed -f - input" "blah\nboom\n" 'blah' '1a\\\nboom'
+testing "" "sed '1a\
+hello'" "merp\nhello\n" "" "merp"
+
+testing "" "sed -e '/x/c\' -e 'y'" 'y\n' '' 'x\n'
+testing "" "sed -e 's/a[([]*b/X/'" 'X' '' 'a[(b'
+toyonly testing "" "sed 'y/a\\bc/de\f/'" "db\f" "" "abc"
+testing "[a-a] (for perl)" "sed '"'s/\([^a-zA-Z0-9.:_\-\/]\)/\\\1/g'"'" \
+  'he\ llo' "" "he llo"
+
+# Debian bug https://bugs.debian.org/635570 added code to ensure a file
+# ends with a newline via "sed -e '$a\'". Apparently all a\ with no additional
+# pattern lines after it does (other than making posix throw up) is
+# flush the pending newline as _if_ it had added another line. *shrug* Ok?
+testing "trailing a\ (for debian)" "sed 'a\\'" "hello\n" "" "hello"
+
+# You have to match the first line of a range in order to activate
+# the range, numeric and ascii work the same way
+toyonly testing "skip start of range" "sed -e n -e '1,2s/b/c/'" "a\nb\n" "" "a\nb\n"
+testing "range +1" "sed -ne '/blah/,+1p'" "blah\n6\n" "" \
+  "1\n2\n3\n4\n5\nblah\n6\n7\n8\n9\n"
+testing "range +0" "sed -ne '/blah/,+0p'" "blah\n" "" \
+  "1\n2\n3\n4\n5\nblah\n6\n7\n8\n9\n"
+testing "range +3" "sed -ne '2,+3p'" "2\n3\n4\n5\n" "" \
+  "1\n2\n3\n4\n5\nblah\n6\n7\n8\n9\n"
+
+testing "not -s" "sed -n 1p input -" "one" "one" "two"
+testing "-s" "sed -sn 1p input -" "one\ntwo" "one\n" "two"
+
+testing "bonus backslashes" \
+  "sed -e 'a \l \x\' -e \"\$(echo -e 'ab\\\nc')\"" \
+  "hello\nl x\nab\nc\n" "" "hello\n"
+
+# toybox saying "no }" here broke the AOSP build.
+testing "end b with }" "sed -n '/START/{:a;n;/END/q;p;ba}'" "b\nc\n" \
+  "" "a\nSTART\nb\nc\nEND\nd"
+
+testcmd '-z' '-z "s/\n/-/g"' "a-b-c" "" "a\nb\nc"
+testcmd '-z N' '-z N' 'one\0two\0' '' 'one\0two\0'
+testcmd 'p noeol' '-z p' 'one\0one' '' 'one'
+testcmd '-z N noeol' '-z N' 'one\0two' '' 'one\0two'
+testcmd '-z S' "-z 'N;P'" 'one\0one\0two' '' 'one\0two'
+testcmd '-z D' "-z 'N;D'" 'two' '' 'one\0two'
+testcmd '-z G' "-z 'h;G'" 'one\0one' '' 'one'
+testcmd '-z H' "-z 'H;g'" '\0one' '' 'one'
+toyonly testcmd '-z x NOEOL' '-z ax' 'abc\0x\0def\0x\0' '' 'abc\0def'
+testcmd 's after NUL' 's/t/x/' 'one\0xwo' '' 'one\0two'
+testcmd '^ not trigger after NUL' 's/^t/x/' 'one\0two' '' 'one\0two'
+
+# toybox handling of empty capturing groups broke minjail. Check that we
+# correctly replace an empty capturing group with the empty string:
+testcmd '\n with empty capture' \
+    '-E "s/(ARM_)?(NR_)([a-z]*) (.*)/\1\2\3/"' "NR_read" "" "NR_read foo"
+# ...but also that we report an error for a backreference to a group that
+# isn't in the pattern:
+testcmd '\n too high' '-E "s/(.*)/\2/p" 2>/dev/null || echo OK' "OK\n" "" "foo"
+
+toyonly testcmd 's///x' '"s/(hello )?(world)/\2/x"' "world" "" "hello world"
+
+SKIP=1
+# Performance test
+X=x; Y=20; while [ $Y -gt 0 ]; do X=$X$X; Y=$(($Y-1)); done
+testing 'megabyte s/x/y/g (20 sec timeout)' \
+  "timeout 20 sed 's/x/y/g' | sha1sum" \
+  '138c1fa7c3f64186203b0192fb4abdb33cb4e98a  -\n' '' "$X\n"
+unset X Y
+
+testcmd "w doesn't blank" "-e 'w one' -e 'w one' -e d; cat one" \
+        'hello\nhello\n' '' 'hello\n'
+
+testcmd 's i and I' 's/o/0/ig' "f00l F00L" "" "fool FOOL"
+
+testcmd 's l ignores posix' "-n 'N;l'" 'one\\ntwo$\n' '' 'one\ntwo\n'
+testcmd 's l loses missing newline' "-n 'N;l'" 'one\\ntwo$\n' '' 'one\ntwo'
+testcmd 's -z l' "-zn 'N;l'" 'one\\000two$\0' '' 'one\0two\0'
+testcmd 's -z l missing newline' "-zn 'N;l'" 'one\\000two$\0' '' 'one\0two'
+
+testcmd 'count match' '"s/./&X/4"' '0123X45\n' '' '012345\n'
+
+# -i with $ last line test
+
+#echo meep | sed/sed -e '1a\' -e 'huh'
+#echo blah | sed/sed -f <(echo -e "1a\\\\\nboom")
+#echo merp | sed/sed "1a\\
+#hello"

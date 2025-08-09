@@ -1,0 +1,108 @@
+<title>Rob's ext2 documentation</title>
+
+<p>This page focuses on the ext2 on-disk format.  The Linux kernel's filesystem
+implementation (the code to read and write it) is documented in the kernel
+source, Documentation/filesystems/ext2.txt.</p>
+
+<p>Note: for our purposes, ext3 and ext4 are just ext2 with some extra data
+fields.</p>
+
+<h2>Overview</h2>
+
+<h2>Blocks and Block Groups</h2>
+
+<p>Every ext2 filesystem consists of blocks, which are divided into block
+groups.  Blocks can be 1k, 2k, or 4k in length.<super><a href="#1">[1]</a></super>
+All ext2 disk layout is done in terms of these logical blocks, never in
+terms of 512-byte logical blocks.</p>
+
+<p>Each block group contains as many blocks as one block can hold a
+bitmap for, so at a 1k block size a block group contains 8192 blocks (1024
+bytes * 8 bits), and at 4k block size a block group contains 32768 blocks.
+Groups are numbered starting at 0, and occur one after another on disk,
+in order, with no gaps between them.</p>
+
+<p>Block groups contain the following structures, in order:</p>
+
+<ul>
+<li>Superblock (sometimes)</li>
+<li>Group table (sometimes)</li>
+<li>Block bitmap</li>
+<li>Inode bitmap</li>
+<li>Inode table</li>
+<li>Data blocks</li>
+</ul>
+
+<p>Not all block groups contain all structures.  Specifically, the first two
+(superblock and group table) only occur in some groups, and other block
+groups start with the block bitmap and go from there.  This frees up more
+data blocks to hold actual file and directory data, see the superblock
+description for details.</p>
+
+<p>Each structure in this list is stored in its' own block (or blocks in the
+case of the group and inode tables), and doesn't share blocks with any other
+structure.  This can involve padding the end of the block with zeroes, or
+extending tables with extra entries to fill up the rest of the block.</p>
+
+<p>The linux/ext2_fs.h #include file defines struct ext2_super_block,
+struct ext2_group_desc, struct ext2_inode, struct ext2_dir_entry_2, and a lot
+of constants.  Toybox doesn't use this file directly, instead it has an e2fs.h
+include of its own containting cleaned-up versions of the data it needs.</p>
+
+<h2>Superblock</h2>
+
+<p>The superblock contains a 1024 byte structure, which toybox calls
+"struct ext2_superblock".  Where exactly this structure is to be found is
+a bit complicated for historical reasons.</p>
+
+<p>For copies of the superblock stored in block groups after the first,
+the superblock structure starts at the beginning of the first block of the
+group, with zero padding afterwards if necessary (I.E. if the block size is
+larger than 1k).  In modern "sparse superblock" filesystems (everything
+anyone still cares about), the superblock occurs in group 0 and in later groups
+that are powers of 3, 5, and 7.  (So groups 0, 1, 3, 5, 7, 9, 25, 27, 49, 81,
+125, 243, 343...)  Any block group starting with a superblock will also
+have a group descriptor table, and ones that don't won't.</p>
+
+<p>The very first superblock is weird.  This is because if you format an entire
+block device (rather than a partition), you stomp the very start of the disk
+which contains the boot sector and the partition table.  Back when ext2 on
+floppies was common, this was a big deal.</p>
+
+<p>So the very first 1024 bytes of the very first block are always left alone.
+When the block size is 1024 bytes, then that block is left alone and the
+superblock is stored in the second block instead<super><a href="#2">[2]</a>.
+When the block size is larger than 1024 bytes, the first superblock starts
+1024 bytes into the block, with the original data preserved by mke2fs and
+appropriate zero padding added to the end of the block (if necessary).</p>
+
+<h2>Group descriptor table</h2>
+<h2>Block bitmap</h2>
+<h2>Inode bitmap</h2>
+<h2>Inode table</h2>
+<h2>Data blocks</h2>
+
+<h2>Directories</h2>
+
+<p>For performance reasons, directory entries are 4-byte aligned (rec_len is
+a multiple of 4), so up to 3 bytes of padding (zeroes) can be added at the end
+of each name.  (This affects rec_len but not the name_len.)</p>
+
+<p>The last directory entry in each block is padded up to block size.  If there
+isn't enough space for another struct ext2_dentry the last </p>
+
+<p>Question: is the length stored in the inode also padded up to block size?</p>
+
+<hr />
+<p><a name="1" />Footnote 1: On some systems blocks can be larger than 4k, but
+for implementation reasons not larger than PAGE_SIZE.  So the Alpha can have
+8k blocks but most other systems couldn't mount them, thus you don't see this
+out in the wild much anymore.</p>
+
+<p><a name="2" />Footnote 2: In this case, the first_data_block field in the
+superblock structure will be set to 1.  Otherwise it's always 0.  How this
+could POSSIBLY be useful information is an open question, since A) you have to
+read the superblock before you can get this information, so you know where
+it came from, B) the first copy of the superblock always starts at offset 1024
+no matter what, and if your block size is 1024 you already know you skipped the
+first block.</p>

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Removal of extra /'s
+testcmd "/-only" "///////" "/\n" "" ""
+testcmd "trailing /" "a//////" "a\n" "" ""
+testcmd "combined" "/////a///b///c///d/////" "d\n" "" ""
+
+# Standard suffix behavior.
+testcmd "suffix" "a/b/c/d.suffix .suffix" "d\n" "" ""
+
+# A suffix cannot be the entire result.
+testcmd "suffix=result" ".txt .txt" ".txt\n" "" ""
+
+# Deal with suffix appearing in the filename
+testcmd "reappearing suffix 1" "a.txt.txt .txt" "a.txt\n" "" ""
+testcmd "reappearing suffix 2" "a.txt.old .txt" "a.txt.old\n" "" ""
+
+# A suffix should be a real suffix, only a the end.
+testcmd "invalid suffix" "isthisasuffix? suffix" "isthisasuffix?\n" "" ""
+
+# Zero-length suffix
+testcmd "zero-length suffix" "a/b/c ''" "c\n" "" ""
+
+# -s.
+testcmd "-s" "-s .txt /a/b/c.txt" "c\n" "" ""
+testcmd "-s implies -a" "-s .txt /a/b/c.txt /a/b/d.txt" "c\nd\n" "" ""
+testcmd "-a" "-a /a/b/f1 /c/d/f2" "f1\nf2\n" "" ""

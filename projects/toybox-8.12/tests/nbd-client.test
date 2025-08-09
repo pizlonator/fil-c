@@ -1,0 +1,65 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+if [ "$(id -u)" -ne 0 ]
+then
+  echo "$SHOWSKIP: nbd-client (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+# Test filesystem images
+
+# truncate -s256k ext2.img; mke2fs ext2.img; bzip2 < ext2.img | base64
+base64 -d | bzcat > ext2.img << EOF
+QlpoOTFBWSZTWbBa6EkAABn//////0BEGVhI8AFKBR1FzqBiBACiQgFgAEgAAhVAZ4QMsAEYJEFN
+I0AA0AAAABoGgAGmg2ppkHMJoDQGjRhGgxGmJkxNBhGgZAMmAkiSamj0I9BMmmmEaAAAANADQGmI
+Vsb7iiy5kJkdeO7Nijja84iwwpZrgb1C54RIVpgQISiSGEk87UjHU9lMEUdeBNZVp2dNZqlfPsaF
+m1bufdAsy3r0SJadGCGluQKTCBABVYyGSUjCNaq4AABbuvG2UToQVhiJkSMCCV3QCADJbdvuYpjo
+vsnYkYkIFnzihj/ICWNlSoOYMLqmT3wO4C5ZCEAztpmAFCV0rUUwIgcB45oB+8iI/vtvYqkkWU7T
+QiPrkylDZYYRPFZQUFGmgRAFgwEygDC+o7xtv26GOcRFYzdlo2G5i0Yg1WxsQYQJJJhfrCP6DgGA
+VSH+LuSKcKEhYLXQkg==
+EOF
+
+tuncate -s360k fat.img; mkfs.fat fat.img; bzip2 < fat.img | base64
+base64 -d | bzcat > fat.img << EOF
+QlpoOTFBWSZTWRzu2ngAC6j/v/C7YaDQITAEIwPHCTfv3CRAQAAUBAlAAkAABAhAC7AAu2oampqP
+SMgAGmmgAAM1AaZGE8oNU8lPU2piDQBoADQAGgaHpPUaBlIjaQAaAGgA0yaaMJk0Bo0KfAsgEkgE
+j8EGgCSAQSEwpVSi2ik+oAQCC0FJOUzrkxZikHndRLY4URVk3SAv4kdIUvCMR7xxaNBFDI63CTTL
++9TioH4KEDXJDB1p4/uaA4CiIOROg4eLOL5FJBAk24CR6KFRyRLEdFnt1RnVbD9PKNZduYsKfdFB
+5xE1ErWAhXDDdJmXHoknmTLMhczHhSlJogGAMDGDxLOsTj+LuSKcKEgOd208AA==
+EOF
+
+
+
+dd if=
+testcmd "
+
+echo "one" > file1
+echo "two" > file2
+testing "cat" "cat && echo yes" "oneyes\n" "" "one"
+testing "-" "cat - && echo yes" "oneyes\n" "" "one"
+testing "file1 file2" "cat file1 file2" "one\ntwo\n"  "" ""
+testing "- file"      "cat - file1"     "zero\none\n" "" "zero\n"
+testing "file -"      "cat file1 -"     "one\nzero\n" "" "zero\n"
+
+testing "file1 notfound file2" \
+        "cat file1 notfound file2 2>stderr && echo ok ; cat stderr; rm stderr" \
+        "one\ntwo\ncat: notfound: No such file or directory\n" "" ""
+
+testing "binary" \
+        'cat "$C" > file1 && cmp "$C" file1 && echo yes' "yes\n" "" ""
+
+testing "- file1" \
+        "cat - file1 | diff -a -U 0 - file1 | tail -n 1" \
+        "-hello\n" "" "hello\n"
+
+skipnot [ -e /dev/full ]
+testing "> /dev/full" \
+        "cat - > /dev/full 2>/dev/null || echo failed" \
+        "failed\n" "" "zero\n"
+
+rm file1 file2

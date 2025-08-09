@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#testing "name" "command" "result" "infile" "stdin"
+
+rm -f foo
+testcmd 'simple' '-l 123 foo && stat -c %s foo' '123\n' '' ''
+testcmd 'shorter' '-l 12 foo && stat -c %s foo' '123\n' '' ''
+testcmd 'longer' '-o 200 -l 12 foo && stat -c %s foo' '212\n' '' ''

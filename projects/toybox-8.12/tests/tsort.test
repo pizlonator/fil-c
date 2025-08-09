@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd 'simple' '' 'a\nb\nc\nd\n' '' 'a b b c c d\n'
+testcmd 'reversed' '' 'a\nb\nc\nd\n' '' 'c d b c a b'
+testcmd '2 pass duplicate killing' '' 'c\nf\na\n' '' 'f a c f'
+testcmd 'detect cycle' '>/dev/null 2>/dev/null || echo yes' 'yes\n' '' 'a b b a'

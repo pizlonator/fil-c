@@ -1,0 +1,16 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+testing "2 known files" \
+ 'bzcat "$FILES/blkid/"{minix,ntfs}.bz2 | sha1sum | cut -d " " -f 1' \
+ 'c0b7469c9660d6056a988ef8a7fe73925efc9266\n' '' ''
+
+testing "overflow" \
+  'bzcat "$FILES/bzcat/overflow.bz2" >/dev/null 2>/dev/null ;
+   [ $? -ne 0 ] && echo good' "good\n" "" ""
+
+testing "badcrc" \
+  'bzcat "$FILES/bzcat/badcrc.bz2" > /dev/null 2>/dev/null ;
+   [ $? -ne 0 ] && echo good' "good\n" "" ""

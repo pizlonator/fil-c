@@ -1,0 +1,52 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Android keeps its modules (if any) on the vendor partition.
+# Don't need to quote variable expansions: no kernel version or
+# module name should ever have a space in it.
+MODULE_ROOT=/vendor/lib/modules
+[ -d $MODULE_ROOT ] || MODULE_ROOT=/lib/modules/$(uname -r)
+
+no_modules() {
+  echo "$SHOWSKIP: modinfo (no modules)"
+  exit
+}
+
+[[ ! -e /proc/modules || ! -d $MODULE_ROOT ]] && no_modules
+
+# Find some modules to work with.
+# Don't need to quote wildcards because test runs in an empty dir.
+MODULE_PATH1=$(find $MODULE_ROOT -name *.ko | head -1)
+[ ! -e "$MODULE_PATH1" ] && no_modules
+MODULE1=$(basename -s .ko $MODULE_PATH1)
+MODULE_PATH2=$(find $MODULE_ROOT -name *.ko | head -2 | tail -1)
+MODULE2=$(basename -s .ko $MODULE_PATH2)
+DASH_MODULE=$(basename -s .ko $(find $MODULE_ROOT -name *-*.ko | tail -1))
+BAR_MODULE=$(basename -s .ko $(find $MODULE_ROOT -name *_*.ko | tail -1))
+
+testcmd "missing" "missing 2>&1" "modinfo: missing: not found\n" "" ""
+
+# modinfo does not need to output fields in a specified order.
+# Instead, there are labelled fields.  We can use sort to make up for this.
+# Other issues to beware of are the volatile nature of srcversion and vermagic,
+# which change from kernel to kernel and can be disabled: grep to remove these.
+
+skipnot [ -n "$DASH_MODULE" ]
+testing "treats - and _ as equivalent" "modinfo $DASH_MODULE > dash-dash &&
+  modinfo ${DASH_MODULE/-/_} > dash-bar && diff -u dash-dash dash-bar" "" "" ""
+skipnot [ -n "$BAR_MODULE" ]
+testing "treats _ and - as equivalent" "modinfo $BAR_MODULE > bar-bar &&
+  modinfo ${BAR_MODULE/_/-} > bar-dash && diff -u bar-bar bar-dash" "" "" ""
+
+# Output of -F filename should be an absolute path to the module.
+# Otherwise, initrd generating scripts will break.
+
+testing "-F filename gets absolute path" "modinfo -F filename $MODULE1" \
+  "$MODULE_PATH1\n" "" ""
+
+skipnot [ "$MODULE1" != "$MODULE2" ]
+testing "supports multiple modules" "modinfo -F filename $MODULE1 $MODULE2" \
+  "$MODULE_PATH1\n$MODULE_PATH2\n" "" ""

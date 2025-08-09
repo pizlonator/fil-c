@@ -1,0 +1,23 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# TODO: migrate to internal hashes. Not sure I'm bothering with DES, so
+# this (currently) only tests md5, sha256, and sha512.
+# The -P0 is because debian's version misbehaves without it.
+testcmd 'md5' '-P0 -mmd5 -S abcdefgh' '$1$abcdefgh$G//4keteveJp0qb8z2DxG/\n' \
+  '' 'password'
+# No idea why debian's requires the dash in sha-256?
+testcmd 'sha256-8' '-P0 -msha-256 -S abcdefgh' \
+  '$5$abcdefgh$ZLdkj8mkc2XVSrPVjskDAgZPGjtj1VGVaa1aUkrMTU/\n' '' 'password'
+testcmd 'sha256-16' '-P0 -msha-256 -S ./Aa0Bb1Cc2Dd3Ee' \
+  '$5$./Aa0Bb1Cc2Dd3Ee$5iXcesTggTRGvAAa3cWlpxmUqNGOeQh/iO3Furo4y/D\n' '' \
+  'password'
+testcmd 'sha512-8' '-P0 -msha-512 -S abcdefgh' \
+  '$6$abcdefgh$yVfUwsw5T.JApa8POvClA1pQ5peiq97DUNyXCZN5IrF.BMSkiaLQ5kvpuEm/VQ1Tvh/KV2TcaWh8qinoW5dhA1\n' \
+  '' 'password'
+testcmd 'sha512-16' '-P0 -msha-512 -S ./Aa0Bb1Cc2Dd3Ee' \
+  '$6$./Aa0Bb1Cc2Dd3Ee$PvmedaPf329sM25Jn2jv3MsfK9DaDh6tyVtJucp35A/Lmrtp9g1Ab35Mr59pkuMU3QJlbXYoWJFaxyD4OwIZ60\n' \
+  '' 'password'

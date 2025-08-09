@@ -1,0 +1,206 @@
+mkroot - simple linux system builder
+
+Compiles a toybox-based root filesystem and kernel that can boot under qemu.
+
+Prebuilt binaries available from http://landley.net/bin/mkroot/latest
+launched via ./run-qemu.sh (which assumes you have QEMU installed, KVM
+works in a pinch), and then run "exit" to shut down the emulated system.
+
+This project is a successor to https://landley.net/aboriginal/about.html
+and shares most of the same goals, with a much simpler implementation.
+
+--- Quick Start
+
+To install the build prerequisites: download toybox source, linux kernel source,
+and one or more musl cross compiler toolchain(s) in the "ccc" directory:
+
+  $ cd toybox
+  $ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux
+  $ wget https://landley.net/bin/toolchains/latest/i686-linux-musl-cross.tar.xz
+  $ mkdir ccc
+  $ tar xvJCf ccc i686-linux-musl-cross.tar.xz
+
+Then invoke mkroot like:
+
+  $ mkroot/mkroot.sh CROSS=i686 LINUX=linux
+  $ root/i686/run-qemu.sh
+
+This project is a successor to https://landley.net/aboriginal/about.html
+and shares most of the same goals, with a much simpler implementation.
+
+--- Building without a cross compiler (warning: glibc sucks)
+
+Running ./mkroot.sh with no arguments and no $CROSS_COMPILE environment
+variable builds a statically linked root filesystem with the host's compiler.
+
+  $ mkroot/mkroot.sh
+
+You can then chroot into it like this:
+
+  $ sudo chroot output/host/root /init
+    $ ls -l
+    $ exit
+
+Unfortunately, glibc doesn't properly support static linking, so if your host
+Linux uses glibc the build will spit out a bunch of warnings indicating
+all sorts of glibc features won't work (DNS lookups always fail, ls -l can't
+read names out of /etc/password, etc). This is a known problem with glibc,
+because ex-maintainer Ulrich Drepper had a strong personal dislike of static
+linking and actively sabotaged it.
+
+If building on a non-glibc system, such as Alpine Linux, you're fine.
+Otherwise, you'll probably want to cross compile with a musl-libc toolchain
+to avoid glibc's very long list of static linking bugs. (The resulting root
+filesystem is also significantly smaller: a stripped statically linked
+"hello world" binary for x86-64 is 5420 bytes with musl-libc, and 682,696 bytes
+with glibc.)</p>
+
+--- Building with a cross compiler.
+
+The variable $CROSS_COMPILE indicates the toolchain prefix to apply to
+commands such as "cc" and "ld". Since prefixed cross compiler names tend
+to look like "armv5l-cc" this prefix tends to end with a dash.
+
+  $ mkroot/mkroot.sh CROSS_COMPILE=armv5l-
+
+If you haven't added the cross compiler to your $PATH, you can specify
+a path as part of the prefix:
+
+  $ mkroot/mkroot.sh CROSS_COMPILE=~/x86_64-linux-musl-cross/bin/x86_64-linux-musl-cross-
+
+Don't forget the trailing dash.
+
+Alternately, the variable $CROSS (as used in the Quick Start above) tells
+mkroot to look in the "ccc" directory for a cross compiler starting with
+a short name:
+
+  $ mkroot/mkroot.sh CROSS=s390x
+
+That would look (using wildcards) for ccc/s390x-*cross/bin/s390x*-cc and
+if found, work out the appropriate $CROSS_COMPILER prefix to use for the
+corresponding other tools. Use "CROSS=help" to see the list of cross compilers
+currently available in the ccc directory.
+
+You only need to set one of $CROSS or $CROSS_COMPILE, the other gets derived
+from the one you provided.
+
+The downloadable toolchains were built with toybox's scripts/mcm-buildall.sh
+running in a fresh checkout of https://github.com/richfelker/musl-cross-make
+and are available as prebuilt binaries from https://landley.net/bin/toolchains
+(The "native" compilers run _on_ the target system, as well as producing
+binaries for them. Those are packaged as squashfs filesystems, to be loopback
+mounted within qemu.)
+
+--- Adding a kernel
+
+On the mkroot command line add LINUX= pointing to a kernel source directory:
+
+  $ mkroot/mkroot.sh CROSS=sh4 LINUX=~/linux
+
+This will build a kernel for the appropriate target, package the filesystem
+as cpio.gz for use by initramfs, and create a run-qemu.sh script to invoke
+qemu. This results in the following files under root/$CROSS:
+
+  initramfs.cpio.gz - the "fs" dir packaged for initramfs, plus any $MODULES
+  linux-kernel      - the compiled kernel
+  linux.dtb         - The device tree binary (if this target requires one)
+  run-qemu.sh       - the qemu invocation to run it all
+
+And also:
+
+  fs/               - the generated root filesystem (you can chroot here)
+  docs/             - Additional information not needed to run qemu.
+
+The run-qemu.sh script will connect together the appropriate -kernel, -initrd,
+and -dtb arguments to consume the provided files, as well as -m board and
+-append "kernel command line arguments". The KARGS environment variable is
+added to the kernel command line arguments, and any additional arguments
+provided to the script are passed through to qemu, so you can do:
+
+  $ KARGS="rdinit=/bin/sh" ./run-qemu.sh -hda blah.img
+
+Running the script should boot the kernel to a command prompt, with the
+serial console connected to stdin and stdout of the qemu process so you can
+just type into it and see the output. The generated kernel config should
+provide basic NAT network support (as if behind a router) and block device
+support.
+
+--- Environment variables
+
+Any "name=value" argument provided on the mkroot.sh command line will set
+an environment variable, and any string without an = indicates a package
+script to run before building toybox (explained below). This is why CROSS=
+CROSS_COMPILE= and LINUX= were all set on the command line above.
+
+For portability reasons, mkroot.sh clears all environment variables at the
+start of its run, with the following exceptions:
+
+LINUX         - Linux kernel source directory.
+CROSS_COMPILE - Cross compiler prefix (sets $CROSS from prefix before first -)
+CROSS         - Short target name (sets $CROSS_COMPILE from ccc)
+HOME          - Absolute path to user's home directory.
+PATH          - Executable path to find binaries.
+NOCLEAR       - Don't clear environment variables. (Can't set on command line.)
+
+Other interesting variables to set on the command line include:
+
+NOAIRLOCK     - don't do a hermetic build, just use the $PATH's tools.
+NOLOGPATH     - don't use the command line recording wrapper
+NOLOG         - don't record build output to root/build/log/$CROSS.[yn]
+NOTOYBOX      - don't build toybox
+PENDING       - extra commands to enable out of toys/pending
+KEXTRA        - Additional kernel symbols to enable (in short CSV format)
+MODULES       - Kernel modules to build (in short CSV format)
+
+--- Adding build modules
+
+You can run additional build scripts from the mkroot/packages directory by
+listing them on the command line:
+
+  $ mkroot/mkroot.sh dropbear overlay OVERLAY=~/blah
+
+Any "name=value" argument provided on the command line will set an environment
+variable in mkroot (explained above), and any string that without an =
+indicates a package script to run before building toybox.
+
+The provided build scripts mostly download source tarballs, cross compile them,
+and install them into the root filesystem. Additional package build instructions
+are available from the "Linux From Scratch" (http://linuxfromscratch.org/lfs)
+and "Beyond Linux From Scratch" (http://linuxfromscratch.org/blfs) projects.
+
+If you specify any packages, the "plumbing" package is automatically read first
+to provide the download, setupfor, and cleanup shell functions to fetch and
+manage source tarballs, and set the $DOWNLOAD variable (defaulting to store
+downloaded tarballs in "./root_download").
+
+The "overlay" script copies the $OVERLAY directory (default "./overlay")
+into the root filesystem, so you can add arbitrary additional files.
+
+The "dynamic" script attempts to copy dynamic libraries out of the
+toolchain, to allow a dynamically linked root filesystem. It's a work in
+progress. (A debian host toolchain can have multiple gigabytes of shared
+libraries.)
+
+The "tests" script copies the toybox test suite into the new filesystem,
+downloads some test files, and adds some test modules to the kernel build.
+
+--- Creating new build modules
+
+Build scripts run after creating the directory layout and writing
+the the init script and etc files (resolv.conf/passwd/group), but before
+building toybox.
+
+These scripts are sourced, not run, so environment variables you set remain
+in force. The following variables can affect the remaining mkroot.sh build:
+
+NOTOYBOX  - if set, toybox will not be installed into the new root filesystem
+KEXTRA    - additional kernel symbols to enable (in same CSV format as $KCONF)
+QEMU_MORE - Additional qemu command line arguments added to run-qemu.sh
+
+To append instead of replacing (in case they're already set), you can use
+QEMU_MORE="$QEMU_MORE --blah" and KEXTRA="${KEXTRA+$KEXTRA,}"BLAH,BLAH,BLAH
+
+If you check your own build scripts into mkroot/packages without touching
+any existing files, you should be able to "git pull --ff" to update your tree
+without conflicts. Alternately, you can add your script directory to the start
+of the $PATH and bash's "source" command will fall back to looking there next.

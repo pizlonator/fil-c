@@ -1,0 +1,161 @@
+#!/bin/bash
+
+# TODO: needs root to mount tmpfs to test moving across filesystems.
+# check handling of chattr +i immutable bit
+# "touch two; chmod -w two; mv one two" shouldn't prompt to delete two if
+#   one doesn't exist.
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+touch file
+testing "file to file" \
+  "mv file file1 && [ ! -e file -a -f file1 ] && echo yes" \
+  "yes\n" "" ""
+rm -f file*
+
+touch file
+mkdir dir
+testing "file to dir" \
+  "mv file dir && [ ! -e file -a -f dir/file ] && echo yes" \
+  "yes\n" "" ""
+rm -rf file* dir*
+
+mkdir dir
+testing "dir to dir" \
+  "mv dir dir1 && [ ! -e dir -a -d dir1 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf dir*
+
+mkdir dir1 dir2
+touch file1 file2 dir1/file3
+ln -s file1 link1
+testing "multiple files/dirs to a dir" \
+  "mv file1 file2 link1 dir1 dir2 &&
+  [ ! -e file1 -a ! -e file2 -a ! -e link1 -a ! -e dir1 ] &&
+  [ -f dir2/file1 -a -f dir2/file2 -a -L dir2/link1 -a -d dir2/dir1 ] &&
+  [ -f dir2/dir1/file3 ] && readlink dir2/link1" \
+  "file1\n" "" ""
+rm -rf file* link* dir*
+
+dd if=/dev/zero of=file1 seek=10k count=1 >/dev/null 2>&1
+testing "random file to new file" \
+  "mv file1 file2 && [ ! -e file1 -a -f file2 ] && stat -c %s file2" \
+  "5243392\n" "" ""
+rm -f file*
+
+touch file1
+ln -s file1 link1
+testing "symlink to new symlink" \
+  "mv link1 link2 && [ ! -e link1 -a -L link2 ] && readlink link2" \
+  "file1\n" "" ""
+unlink tLink2 &>/dev/null
+rm -f file* link*
+
+touch file1
+ln file1 link1
+testing "hard link to new hardlink" \
+  "mv link1 link2 && [ ! -e link1 -a -f link2 -a file1 -ef link2 ] && echo yes" \
+  "yes\n" "" ""
+unlink link2 &>/dev/null
+rm -f file* link*
+
+touch file1
+chmod a-r file1
+testing "file to unreadable file" \
+  "mv file1 file2 && [ ! -e file1 -a -f file2 ] && echo yes" \
+  "yes\n" "" ""
+rm -f file*
+
+touch file1
+ln file1 link1
+mkdir dir1
+testing "file hardlink dir" \
+  "mv file1 link1 dir1 &&
+  [ ! -e file1 -a ! -e link1 -a -f dir1/file1 -a -f dir1/link1 ] &&
+  [ dir1/file1 -ef dir1/link1 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf file* link* dir*
+
+mkdir -p dir1/dir2 dir3
+touch dir1/dir2/file1 dir1/dir2/file2
+testing "dir to new dir" \
+  "mv dir1/dir2 dir3/new &&
+  [ ! -e dir1/dir2 -a -d dir3/new -a -f dir3/new/file1 ] &&
+  [ -f dir3/new/file2 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf file* dir*
+
+mkdir dir1 dir2
+testing "dir to existing dir" \
+  "mv dir1 dir2 && [ ! -e dir1 -a -d dir2/dir1 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf dir*
+
+# Trailing slash was once throwing: bad 'dir1/dir2/': Resource busy
+mkdir -p dir1/dir2
+testing "dir1/dir2 to ." \
+  "mv dir1/dir2 . && [ ! -e dir1/dir2 -a -d dir2 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf dir*
+mkdir -p dir1/dir2
+testing "dir1/dir2/ to ." \
+  "mv dir1/dir2/ . && [ ! -e dir1/dir2 -a -d dir2 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf dir*
+mkdir -p dir1/dir2
+testing "dir1/dir2/ to ./" \
+  "mv dir1/dir2/ ./ && [ ! -e dir1/dir2 -a -d dir2 ] && echo yes" \
+  "yes\n" "" ""
+rm -rf dir*
+testing "not/exists/ to ./" \
+  "mv not/exists/ ./ 2>&1 | grep -o not/exists/" \
+  "not/exists/\n" "" ""
+
+touch file1 file2
+chmod 400 file1 file2
+testing "force over unwritable" \
+  "mv -f file1 file2 && [ ! -e file1 -a -e file2 ] && echo yes" \
+  "yes\n" "" ""
+rm -f file*
+
+touch file1 file2
+testing "no clobber (dest exists)" \
+  "mv -n file1 file2 && [ -e file1 -a -e file2 ] && echo yes"\
+  "yes\n" "" ""
+rm -f file*
+
+touch file1
+testing "no clobber (dest doesn't exist)" \
+  "mv -n file1 new-dest && [ ! -e file1 -a -e new-dest ] && echo yes"\
+  "yes\n" "" ""
+rm -f file*
+
+touch file1 file2
+chmod 400 file1 file2
+testing "over unwritable file only prompts when stdin is a terminal" \
+  "mv file2 file1 2>/dev/null && [ -e file1 -a ! -e file2 ] && echo yes" \
+  "yes\n" "" ""
+rm -f file*
+
+touch file1 file2
+testing "interactive: no stdin" \
+  "mv -i file2 file1 2>/dev/null && [ -e file1 -a -e file2 ] && echo yes" \
+  "yes\n" "" ""
+rm -f file*
+
+touch file1 file2
+testing "interactive: answered YES" \
+  "mv -i file2 file1 2>/dev/null && [ -e file1 -a ! -e file2 ] && echo yes" \
+  "yes\n" "" "y\n"
+rm -f file*
+
+touch file1 file2
+testing "interactive: answered NO" \
+  "mv -i file2 file1 2>/dev/null && [ -e file1 -a -e file2 ] && echo yes" \
+  "yes\n" "" "n\n"
+rm -f file*

@@ -1,0 +1,126 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+test_line() {
+  ONE="$1"; shift; TWO="\"$FILES\"/$1 | sed 's/^.*: //'"; shift
+  testcmd "$ONE" "$TWO" "$@"
+}
+
+ln -s "$FILES"/java.class symlink
+LINK=$(readlink symlink)
+ln -s "$FILES"/java.klass dangler
+BROKEN=$(readlink dangler)
+
+mkdir directory
+testing "directory" "file ." ".: directory\n" "" ""
+rmdir directory
+touch empty
+testing "empty" "file empty" "empty: empty\n" "" ""
+rm -f empty
+
+testing "script" "file input | grep -o ' script'" " script\n" "#!/bin/bash\n" ""
+testing "script with spaces" "file input | grep -o ' script'" " script\n" \
+  "#!  /bin/bash\n" ""
+testing "env script" "file input | tr P p | egrep -o '(python|script)' | sort" \
+  "python\nscript\n" "#! /usr/bin/env python\n" ""
+testing "ascii" "file input" "input: ASCII text\n" "Hello, world!\n" ""
+testing "utf-8" \
+  "file \"$FILES\"/utf8/japan.txt | egrep -o 'UTF-8 text' | LANG=c sort" \
+  "UTF-8 text\n" "" ""
+
+# TODO each of these has multiple options we could test
+testing "java class" \
+  "file \"$FILES\"/java.class | egrep -o '(Java class|version 53.0)'"\
+  "Java class\nversion 53.0\n" "" ""
+
+echo "cafebabe000000020100000700000003000040000000d9300000000e0100000c8000000200014000000098500000000e" | xxd -r -p > universal
+testcmd "mach-o universal" \
+  "universal | egrep -o '(Mach-O|universal|x86_64|arm64)' | sort -u" \
+  "Mach-O\narm64\nuniversal\nx86_64\n" "" ""
+rm universal
+
+test_line "tar file" "tar/tar.tar" "POSIX tar archive (GNU)\n" "" ""
+testing "gzip data" "file \"$FILES\"/tar/tar.tgz | grep -o 'gzip compressed data'" \
+    "gzip compressed data\n" "" ""
+test_line "bzip2 data" "tar/tar.tbz2" \
+  "bzip2 compressed data, block size = 900k\n" "" ""
+test_line "7z file" "tar/tar.7z" "7-zip archive data, version 0.4\n" "" ""
+testing "zip file" \
+  "file $FILES/zip/example.zip | egrep -o '(Zip archive data|at least v1.0 to extract)'" \
+    "Zip archive data\nat least v1.0 to extract\n" "" ""
+
+echo R0lGODlhIAAgAMZHAAAAABYWFiYmJioqKi4uLjIy | base64 -d > gif
+testing "gif file" "file gif" "gif: GIF image data, version 89a, 32 x 32\n" "" ""
+rm -f gif
+
+# TODO: check in a genuine minimal .dex
+
+echo "6465780a3033350038ca8f6ce910f94e" | xxd -r -p > android.dex
+testing "Android .dex" "file android.dex | egrep -o '(dex file|version 035)'" \
+  "dex file\nversion 035\n" "" ""
+rm -f android.dex
+
+# These actually test a lot of the ELF code: 32-/64-bit, arm/arm64, PT_INTERP,
+# the two kinds of NDK ELF note, BuildID, and stripped/not stripped.
+toyonly test_line "Android NDK full ELF note" "elf/ndk-elf-note-full" \
+  "ELF shared object, 64-bit LSB arm64, dynamic (/system/bin/linker64), for Android 24, built by NDK r19b (5304403), BuildID=0c712b8af424d57041b85326f0000fadad38ee0a, not stripped\n" "" ""
+toyonly test_line "Android NDK short ELF note" "elf/ndk-elf-note-short" \
+  "ELF shared object, 32-bit LSB arm, EABI5, soft float, dynamic (/system/bin/linker), for Android 28, BuildID=da6a5f4ca8da163b9339326e626d8a3c, stripped\n" "" ""
+toyonly test_line "ELF static fdpic" "elf/fdstatic" \
+  "ELF executable (fdpic), 32-bit MSB sh, static, stripped\n" "" ""
+echo -ne '\x7fELF\00000000000000000000000000000000000000000000' > bad-bits
+testing "ELF bad bits" "file bad-bits | egrep -o '(ELF|unknown)'" \
+  "ELF\nunknown\n" "" ""
+rm -f bad-bits
+
+testing "broken symlink" "file dangler" "dangler: broken symbolic link to $BROKEN\n" "" ""
+testing "symlink" "file symlink" "symlink: symbolic link to $LINK\n" "" ""
+testing "symlink -h" "file -h symlink" "symlink: symbolic link to $LINK\n" "" ""
+testing "symlink -L" \
+  "file -L symlink | egrep -o '(symlink:|Java class|version 53.0)'" \
+  "symlink:\nJava class\nversion 53.0\n" "" ""
+
+# Some host versions say "-" some "/dev/stdin"...
+testing "- pipe" "cat $FILES/java.class | file - | egrep -o '(Java class|version 53.0)'" \
+  "Java class\nversion 53.0\n" "" ""
+testing "- redirect" \
+  "file - <$FILES/java.class | egrep -o '(Java class|version 53.0)'" \
+  "Java class\nversion 53.0\n" "" ""
+
+zero_dev="1/5"
+[ "$(uname)" == "Darwin" ] && zero_dev="3/3"
+testing "/dev/zero" "file /dev/zero" "/dev/zero: character special ($zero_dev)\n" "" ""
+testing "- </dev/zero" "file - </dev/zero | grep -ow data" "data\n" "" ""
+
+testcmd 'ar' 'input | grep -o " ar archive"' ' ar archive\n' \
+  "$(echo -e '!<arch>\nhello/          0           0     0     644     6         `\nworld')\n" ""
+testcmd 'cpio' 'input' 'input: ASCII cpio archive (SVR4 with no CRC)\n' \
+  '07070103344745000081A4000003E800' ''
+
+#TODO block fifo socket
+#can't stat (unopenable)
+#file
+#  readerror
+#  elf
+#  png (grayscale, color RGB, indexed color, grayscale with alpha, color RGBA
+#    X x X x-bit/{non-}interlaced
+#  gif87
+#  jpeg
+#  xz
+#  Ogg (buncha types)
+#  wav audio (buncha types)
+#  truetype font/collection
+#  Opentype font
+#  LLVM IR bitcode
+#  PEM certificate
+#  pe32
+#  BMP
+#  Linux perf
+#  Android sparse image file
+#  Android boot image
+#  Android DTB/DTBO
+#  Android Binary XML
+#  #! shell script

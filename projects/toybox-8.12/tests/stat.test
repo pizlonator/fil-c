@@ -1,0 +1,18 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+TZ=utc touch -at 200001010101.01 file
+testcmd "as echo" "-c hello file" "hello\n" "" ""
+testcmd "lone %" "-c % file" "%\n" "" ""
+testcmd "%% escapes" "-c '%% and %% then %%' file" "% and % then %\n" "" ""
+testcmd "%unknown = ?" "-c %q% file" "?%\n" "" ""
+
+TZ=utc testcmd "%x" "-c %x file" "2000-01-01 01:01:01.000000000 +0000\n" "" ""
+TZ=utc testcmd "%X" "-c %X file" "946688461\n" "" ""
+
+TZ=utc touch -mt 200002020202.02 file
+TZ=utc testcmd "%y" "-c %y file" "2000-02-02 02:02:02.000000000 +0000\n" "" ""
+TZ=utc testcmd "%Y" "-c %Y file" "949456922\n" "" ""

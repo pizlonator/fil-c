@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+echo "abcdefghijklmnopqrstuvwxyz" > file.txt
+testing "text-file" "rm file.txt && [ ! -e file.txt ] && echo 'yes'" "yes\n" "" ""
+rm -f file*
+
+testing "-i nonexistent" "</dev/zero rm -i file.txt 2>/dev/null || echo 'yes'" "yes\n" "" ""
+
+mkdir dir
+testing "empty directory" "rm -r dir && [ ! -d dir ] && echo 'yes'" "yes\n" "" ""
+rm -rf dir
+
+echo "abcdefghijklmnopqrstuvwxyz" > file.txt && chmod 000 file.txt
+testing "text file(mode 000)" "rm -f file.txt && [ ! -e file.txt ] && echo 'yes'" \
+  "yes\n" "" ""
+rm -f file*
+
+touch file1.txt file2.txt
+mkdir dir1 dir2
+testing "-r (multiple files and dirs)" \
+  "rm -r file1.txt file2.txt dir1 dir2 2>/dev/null &&
+   [ ! -e file1.txt -a ! -e file2.txt -a ! -d dir1 -a ! -d dir2 ] && echo 'yes'" \
+  "yes\n" "" ""
+rm -rf file* dir*
+
+touch file1.txt file2.txt
+mkdir dir1 dir2
+testing "-rf (present + missing files and dirs)" \
+  "rm -rf file1.txt file2.txt file3.txt dir1 dir2 dir3 2>/dev/null &&
+  [ ! -e file1.txt -a ! -e file2.txt -a ! -d dir1 -a ! -d dir2 ] && echo 'yes'" \
+  "yes\n" "" ""
+rm -rf file* dir*
+
+# testing with nested dirs.
+mkdir -p dir1/dir2/dir3 dir1/dir2/dir4
+touch dir1/file1.txt dir1/dir2/file2.txt dir1/dir2/dir3/file3.txt
+testing "-r nested_dir" "rm -r dir1/dir2/ 2>/dev/null &&
+  [ -d dir1 -a -f dir1/file1.txt -a ! -d dir1/dir2 ] && echo 'yes'" \
+  "yes\n" "" ""
+rm -rf dir*
+
+mkdir -p one && touch one/two && chmod 000 one
+toyonly testing "-rf 000 dir" \
+  "rm -rf one 2>/dev/null && [ ! -e one ] && echo yes" "yes\n" "" ""
+chmod 777 one 2>/dev/null ; rm -rf one
+
+mkdir -p d1
+touch d1/f1.txt d1/f2.txt
+testing "-rv dir" "rm -rv d1 | sed 's/emoved/m/;s/ directory/dir/' | sort" \
+  "rm 'd1/f1.txt'\nrm 'd1/f2.txt'\nrmdir 'd1'\n" "" ""
+rm -rf d1
+
+touch "meep"
+testing "-v" "rm -v meep | sed 's/emoved/m/'" "rm 'meep'\n" "" ""
+rm -f meep
+
+skipnot [ $(id -u) -eq 0 ]
+testing "-f <readonly_filesystem>/<missing_file>" \
+  "rm -rf mnt_point && mkdir -p mnt_point &&
+  mount -t tmpfs -o ro none ./mnt_point && rm -f mnt_point/missing_file &&
+  echo yes; umount ./mnt_point; rm -rf mnt_point" "yes\n" "" ""

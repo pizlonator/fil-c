@@ -1,0 +1,196 @@
+<h2>How mount actually works</h2>
+
+<p>The <a href=https://landley.net/toybox/help.html#mount>mount comand</a>
+calls the <a href=https://man7.org/linux/man-pages/man2/mount.2.html>mount
+system call</a>, which has five arguments:</p>
+
+<blockquote><b>
+int mount(const char *source, const char *target, const char *filesystemtype,
+          unsigned long mountflags, const void *data);
+</b></blockquote>
+
+<p>The command "<b>mount -t ext2 /dev/sda1 /path/to/mntpoint -o ro,noatime</b>"
+parses its command line arguments to feed them into those five system call
+arguments. In this example, the <b>source</b> is "/dev/sda1", the <b>target</b>
+is "/path/to/mountpoint", and the <b>filesystemtype</b> is "ext2".
+
+<p>The other two syscall arguments (<b>mountflags</b> and </b>data</b>)
+come from the "-o option,option,option" argument. The mountflags argument goes
+to the VFS (explained below), and the data argument is passed to the filesystem
+driver.</p>
+
+<p>The mount command's options string is a list of comma separated values. If
+there's more than one -o argument on the mount command line, they get glued
+together (in order) with a comma. The mount command also checks the file
+<b>/etc/fstab</b> for default options, and the options you specify on the command
+line get appended to those defaults (if any). Most other command line mount
+flags are just synonyms for adding option flags (for example
+"mount -o remount -w" is equivalent to "mount -o remount,rw"). Behind the
+scenes they all get appended to the -o string and fed to a common parser.</p>
+
+<p>VFS stands for "Virtual File System" and is the common infrastructure shared
+by different filesystems. It handles common things like making the filesystem
+read only. The mount command assembles an option string to supply to the "data"
+argument of the option syscall, but first it parses it for VFS options
+(ro,noexec,nodev,nosuid,noatime...) each of which corresponds to a flag
+from <b>#include &lt;sys/mount.h&gt;</b>. The mount command removes those options
+from the string and sets the corresponding bit in mountflags, then the
+remaining options (if any) form the data argument for the filesystem driver.</p>
+
+<blockquote>
+<p>Implementation details: the mountflag MS_SILENCE gets set by
+default even if there's nothing in /etc/fstab. Some actions (such as --bind
+and --move mounts, I.E. -o bind and -o move) are just VFS actions and don't
+require any specific filesystem at all. The "-o remount" flag requires looking
+up the filesystem in /proc/mounts and reassembling the full option string
+because you don't _just_ pass in the changed flags but have to reassemble
+the complete new filesystem state to give the system call. Some of the options
+in /etc/fstab are for the mount command (such as "user" which only does
+anything if the mount command has the suid bit set) and don't get passed
+through to the system call.</p>
+</blockquote>
+
+<p>When mounting a new filesystem, the "<b>filesystem</b>" argument to the mount system
+call specifies which filesystem driver to use. All the loaded drivers are
+listed in /proc/filesystems, but calling mount can also trigger a module load
+request to add another. A filesystem driver is responsible for putting files
+and subdirectories under the mount point: any time you open, close, read,
+write, truncate, list the contents of a directory, move, or delete a file,
+you're talking to a filesystem driver to do it. (Or when you call
+ioctl(), stat(), statvfs(), utime()...)</p>
+
+<h2>Four filesystem types (block backed, server backed, ramfs, synthetic).</h2>
+
+<p>Different drivers implement different filesystems, which come in four
+different types: the filesystem's backing store can be a fixed length
+block of storage, the backing store can be some server the driver connects to,
+the files can remain in memory with no backing store,
+or the filesystem driver can algorithmically create the filesystem's contents
+on the fly.</p>
+
+<ol>
+<li><h3>Block device backed filesystems, such as ext2 and vfat.</h3>
+
+<p>This kind of filesystem driver acts as a lens to look at a block device
+through. The source argument for block backed filesystems is a path to a
+block device (such as "/dev/hda1") which stores the contents of the
+filesystem in a fixed length block of sequential storage, with a seperate
+driver providing that block device.</p>
+
+<p>Block backed filesystems are the "conventional" filesystem type most people
+think of when they mount things. The name means that the "backing store"
+(where the data lives when the system is switched off) is on a block device.</p>
+</li>
+
+<li><h3>Server backed filesystems, such as cifs/samba or fuse.</h3>
+
+<p>These drivers convert filesystem operations into a sequential stream of
+bytes, which it can send through a pipe to talk to a program. The filesystem
+server could be a local Filesystem in Userspace daemon (connected to a local
+process through a pipe filehandle), behind a network socket (CIFS and v9fs),
+behind a char device (/dev/ttyS0), and so on. The common attribute is there's
+some program on the other end sending and receiving a sequential bytestream.
+The backing store is a server somewhere, and the filesystem driver is talking
+to a process that reads and writes data in some known protocol.</p>
+
+<p>The source argument for these filesystems indicates where the filesystem
+lives. It's often in a URL-like format for network filesystems, but it's
+really just a blob of data that the filesystem driver understands.</p>
+
+<p>A lot of server backed filesystems want to open their own connection so they
+don't have to pass their data through a persistent local userspace process,
+not really for performance reasons but because in low memory situations a
+chicken-and-egg situation can develop where all the process's pages have
+been swapped out but the filesystem needs to write data to its backing
+store in order to free up memory so it can swap the process's pages back in.
+If this mechanism is providing the root filesystem, this can deadlock and
+freeze the system solid. So while you _can_ pass some of them a filehandle,
+more often than not you don't.</p>
+
+<p>These are also known as "pipe backed" filesystems (or "network filesystems"
+because that's a common case, although a network doesn't need to be inolved).
+Conceptually they're char device backed filesystems analogous to the block
+backed filesystems (block devices provide seekable storage, char devices
+provide serial I/O), but you don't commonly specify a character device in
+/dev when mounting them because you're talking to a specific server process,
+not a whole machine.</p>
+</li>
+
+<li><h3>Ram backed filesystems (ramfs and tmpfs).</h3>
+
+<p>These are very simple filesystems that don't implement a backing store,
+but just keep the data in memory. Data
+written to these gets stored in the disk cache, and the driver ignores requests
+to flush it to backing store (reporting all the pages as pinned and
+unfreeable).</p>
+
+<p>These filesystem drivers essentially mount the VFS's page/dentry cache as if it was a
+filesystem. (Page cache stores file contents, dentry cache stores directory
+entries.) They grow and shrink dynamically as needed: when you write files
+into them they allocate more memory to store it, and when you delete files
+the memory is freed.</p>
+
+<p>The "ramfs" driver provides the simplest possible ram filesystem,
+which is too simple for most real use cases. The "tmpfs" driver adds
+a size limitation (by default 50% of system RAM, but it's adjustable as a mount
+option) so the system doesn't run out of memory and lock up if you
+"cat /dev/zero > file", can report how much space is remaining
+when asked (ramfs always says 0 bytes free), and can write its data
+out to swap space (like processes do) when the system is under memory pressure.</p>
+
+<blockquote>
+<p>Note that "ramdisk" is not the same as "ramfs". The ramdisk driver uses a
+chunk of memory to implement a block device, and then you can format that
+block device and mount it with a block device backed filesystem driver.
+(This is the same "two device drivers" approach you always have with block
+backed filesystems: one driver provides /dev/ram0 and the second driver mounts
+it as vfat.) Ram disks are significantly less efficient than ramfs,
+allocating a fixed amount of memory up front for the block device instead of
+dynamically resizing itself as files are written into an deleted from the
+page and dentry caches the way ramfs does.</p>
+</blockquote>
+
+<p>Initramfs (I.E. rootfs) is a ram backed filesystem mounted on / which
+can't be unmounted for the same reason PID 1 can't exit. The boot
+process can extract a cpio.gz archive into it (either statically linked
+into the kernel or loaded as a second file by the bootloader), and
+if it contains an executable "init" binary at the top level that
+will be run as PID 1. If you specify "root=" on the kernel command line,
+initramfs will be ramfs and will get overmounted with the specified
+filesystem if no "/init" binary can be run out of the initramfs.
+If you don't specify root= then initramfs will be tmpfs, which is probably
+what you want when the system is running from initramfs.</p>
+</li>
+
+<li><h3>Synthetic filesystems (proc, sysfs, devtmpfs, devpts...)</h3>
+
+<p>These filesystems don't have any backing store because they don't
+store arbitrary data the way the first three types of filesystems do.</p>
+
+<p>Instead they present artificial contents, which can represent processes or
+hardware or anything the driver writer wants them to show. Listing or reading
+from these files calls a driver function that produces whatever output it's
+programmed to, and writing to these files submits data to the driver which
+can do anything it wants with it.</p>
+
+<p>Synthetic filesystems are often implemented to provide monitoring and control
+knobs for parts of the operating system, as an alternative to adding more
+system calls (or ioctl, sysctl, etc). They provide a more human friendly user
+interface which programs can use but which users can also interact with
+directly from the command line via "cat" and redirecting the output of
+"echo" into special files.</p>
+
+<blockquote>
+<p>The first synthetic filesystem in Linux was "proc", which was initially
+intended to provide a directory for each process in the system to provide
+information to tools like "ps" and "top" (the /proc/[0-9]* entries)
+but became a dumping ground for any information the kernel wanted to export.
+Eventually the kernel developers <a href=https://lwn.net/Articles/57369/>genericized</a>
+the synthetic filesystem infrastructure so the system could have multiple
+different synthetic filesystems, but /proc remains full
+unrelated historic legacy exports kept for backwards compatibility.</p>
+</blockquote>
+</li>
+</ol>
+
+<p>TODO: explain overmounts, mount --move, mount namespaces.</p>

@@ -1,0 +1,81 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+BIGTEST="one\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\n"
+echo -ne "$BIGTEST" > file1
+testing "tail" "tail && echo yes" "oneyes\n" "" "one"
+testing "file" "tail file1" \
+	"two\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\n" "" ""
+testing "-n in bounds" "tail -n 3 file1" "nine\nten\neleven\n" "" ""
+testing "-n out of bounds" "tail -n 999 file1" "$BIGTEST" "" ""
+testing "-n+ in bounds" "tail -n +3 file1" \
+	"three\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\n" "" ""
+testing "-n+ outof bounds" "tail -n +999 file1" "" "" ""
+testing "-c in bounds" "tail -c 27 file1" \
+	"even\neight\nnine\nten\neleven\n" "" ""
+testing "-c out of bounds" "tail -c 999 file1" "$BIGTEST" "" ""
+testing "-c+ in bounds" "tail -c +27 file1" \
+	"x\nseven\neight\nnine\nten\neleven\n" "" ""
+testing "-c+ out of bonds" "tail -c +999 file1" "" "" ""
+testing "-N" "tail -1 file1" "eleven\n" "" ""
+rm file1
+
+testing "stdin no trailing newline" "tail -n 1 - " "c" "" "a\nb\nc"
+testing "file no trailing newline" "tail -n 1 input" "c" "a\nb\nc" ""
+
+testing "noseek -n in bounds" "tail -n 3" "nine\nten\neleven\n" \
+	"" "$BIGTEST"
+testing "noseek -n out of bounds" "tail -n 999" "$BIGTEST" "" "$BIGTEST"
+testing "noseek -n+ in bounds" "tail -n +3" \
+	"three\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\n" "" \
+	"$BIGTEST"
+testing "noseek -n+ outof bounds" "tail -n +999" "" "" "$BIGTEST"
+testing "noseek -c in bounds" "tail -c 27" \
+	"even\neight\nnine\nten\neleven\n" "" "$BIGTEST"
+testing "noseek -c out of bounds" "tail -c 999" "$BIGTEST" "" "$BIGTEST"
+testing "noseek -c+ in bounds" "tail -c +27" \
+	"x\nseven\neight\nnine\nten\neleven\n" "" "$BIGTEST"
+testing "noseek -c+ out of bonds" "tail -c +999" "" "" "$BIGTEST"
+
+makebigfile()
+{
+  for j in $(seq 1 100)
+  do
+    echo -n "$j "
+    for i in $(seq 1 100)
+    do
+      echo -n 123456789abcefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+    done
+    echo
+  done
+}
+makebigfile > bigfile
+
+testing "-c 12345 -n 3 bigfile" "tail -c 12345 -n 3 bigfile | md5sum" \
+  "347bbdcbad8a313f4dc7bd558c5bfcb8  -\n" "" ""
+testing "-n 3 -c 12345 bigfile" "tail -n 3 -c 12345 bigfile | md5sum" \
+  "1698825a750288284ec3ba7d8a59f302  -\n" "" ""
+rm bigfile
+
+echo 111 > one
+testing "-f one" \
+  'tail -f one & sleep .25 ; echo two >> one; sleep .25; echo three >> one; sleep .25; kill $! >/dev/null' \
+  "111\ntwo\nthree\n" "" ""
+rm one
+
+echo uno > one
+echo dos > two
+echo tres > three
+testing "-f one two three" \
+  'tail -f one two three & sleep .25 ; echo more >> three ; echo also >> one; sleep .25; kill $! >/dev/null' \
+  "==> one <==\nuno\n\n==> two <==\ndos\n\n==> three <==\ntres\nmore\n\n==> one <==\nalso\n" "" ""
+rm one two three
+
+testing "-F" "tail -s .1 -F walrus 2>/dev/null & sleep .2; echo hello > walrus;
+sleep .2; truncate -s 0 walrus; sleep .2; echo potato >> walrus; sleep .2;
+echo hello >> walrus; sleep .2; rm walrus; sleep .2; echo done > walrus;
+  sleep .5; kill %1" "hello\npotato\nhello\ndone\n" "" ""
+rm -f walrus

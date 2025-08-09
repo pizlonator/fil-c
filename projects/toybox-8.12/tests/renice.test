@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+fun_nice_val() 
+{
+  for each_proc in $@
+  do
+    echo `cut -d' ' -f18 /proc/${each_proc}/stat`
+  done
+}
+
+# creating processes as a test data
+yes >/dev/null &
+proc1=$!
+yes >/dev/null &
+proc2=$!
+yes >/dev/null &
+proc3=$!
+yes >/dev/null &
+proc4=$!
+yes >/dev/null &
+proc5=$!
+
+n_val1=`fun_nice_val $proc1`
+n_val2=`fun_nice_val $proc2`
+n_val3=`fun_nice_val $proc3`
+n_val4=`fun_nice_val $proc4`
+n_val5=`fun_nice_val $proc5`
+
+# Redirecting errors to /dev/null
+arg="2>/dev/null"
+
+for n_v in "-1" "1"
+do
+  for n_o in "" " -p"
+  do
+    nice_val1=$((`fun_nice_val $proc1` + $n_v))
+    nice_val2=$((`fun_nice_val $proc2` + $n_v))
+    nice_val3=$((`fun_nice_val $proc3` + $n_v))
+    nice_val4=$((`fun_nice_val $proc4` + $n_v))
+    nice_val5=$((`fun_nice_val $proc5` + $n_v))
+    testing "with -n=$n_v and with$n_o multiple_pids" \
+      "renice -n $n_v$n_o $proc1 $proc2 $proc3 $proc4 $proc5 &&
+       fun_nice_val $proc1 $proc2 $proc3 $proc4 $proc5" \
+      "$nice_val1\n$nice_val2\n$nice_val3\n$nice_val4\n$nice_val5\n" "" ""
+  
+    nice_val1=$((`fun_nice_val $proc1` + $n_v))
+    nice_val2=$((`fun_nice_val $proc2` + $n_v))
+    nice_val3=$((`fun_nice_val $proc3` + $n_v))
+    nice_val4=$((`fun_nice_val $proc4` + $n_v))
+    nice_val5=$((`fun_nice_val $proc5` + $n_v))
+    testing "with -n=$n_v and with$n_o multiple_pids (some invalid)" \
+      "renice -n $n_v$n_o $proc1 $proc2 88888 99999 $proc3 $proc4 $proc5 $arg ||
+       fun_nice_val $proc1 $proc2 $proc3 $proc4 $proc5" \
+      "$nice_val1\n$nice_val2\n$nice_val3\n$nice_val4\n$nice_val5\n" "" ""
+  done
+done
+
+# Starting Boundary Test Here .. 
+loop_cnt=2
+echo -n "TEST: Boundary value test for Id($proc1)..[old_nice_val/new_nice_val]:"
+cnt=0
+n_val=1
+while [ $cnt -gt -1 ]
+do
+  old_nice_val=`fun_nice_val $proc1`
+  new_nice_val=`renice -n $n_val $proc1 >/dev/null 2>&1 && fun_nice_val $proc1`
+  echo -n "[$old_nice_val/$new_nice_val],"
+  if [ $old_nice_val -eq 39 -a $old_nice_val -eq $new_nice_val ]
+  then
+    echo -n " [Equals 39,doing -1] "
+    n_val="-1"
+  elif [ $old_nice_val -eq 0 -a $old_nice_val -eq $new_nice_val ]
+  then
+    echo -n " [Equals 0,doing +1] "
+    n_val="1"
+  elif [ $new_nice_val -gt 39 -o $new_nice_val -lt 0 ]
+  then
+    echo " [Test Fail] "
+    echo "FAIL: renice with step 1 ($proc1) (boundary value)"
+    cnt="-1"
+  elif [ $new_nice_val -eq $n_val1 -a $new_nice_val -eq $(($old_nice_val+1)) ]
+  then
+    cnt=$(($cnt + 1))
+    if [ $cnt -eq $loop_cnt ]
+    then
+      echo " [Test Pass] "
+      echo "PASS: renice with step 1 ($proc1) (boundary value)"
+      cnt="-1"
+    fi
+  else
+    dif=`echo $(($new_nice_val-$old_nice_val))`
+    dif=`echo ${dif/-}`
+    if [ $dif -ne 1 ]
+    then
+      echo " [Test Fail] "
+      echo "FAIL: renice with step 1 ($proc1) (boundary value)"
+      cnt="-1"
+    fi
+  fi
+done
+# Boundary test End
+
+kill -9 $proc1 $proc2 $proc3 $proc4 $proc5

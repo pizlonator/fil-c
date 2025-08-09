@@ -1,0 +1,99 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+# We need to test name and file padding.
+# This means all possible values of strlen(name)+1 % 4,
+# plus file sizes of at least 0-4.
+
+CPIO="cpio${TEST_HOST:+ --quiet}"
+CPI_O="$CPIO -o -H newc"
+
+touch a bb ccc dddd
+testing "name padding" "$CPI_O|$CPIO -it" "a\nbb\nccc\ndddd\n" \
+  "" "a\nbb\nccc\ndddd\n"
+rm a bb ccc dddd
+
+touch a
+printf '1' >b
+printf '22' >c
+printf '333' >d
+testing "file padding" "$CPI_O|$CPIO -it" "a\nb\nc\nd\n" "" \
+  "a\nb\nc\nd\n"
+rm a b c d
+
+touch a
+printf '1' >bb
+printf '22' >ccc
+printf '333' >dddd
+# With the proper padding, header length, and file length, 
+# the relevant bit should be here:
+# 110*5 + 4*3 + 2 + 6*3 = 550 + 12 + 20 = 582
+# files are padded to n*4, names are padded to 2 + n*4 due to the header length
+testing "archive length" "$CPI_O|dd ibs=2 skip=291 count=5 2>/dev/null" "TRAILER!!!" "" "a\nbb\nccc\ndddd\n"
+testing "archive magic" "$CPI_O|dd ibs=2 count=3 2>/dev/null" "070701" "" "a\n"
+# check name length (8 bytes before the empty "crc")
+testing "name length" "$CPI_O|dd ibs=2 skip=47 count=4 2>/dev/null" "00000002" "" "a\n"
+testing "-t" "$CPI_O|$CPIO -it" "a\nbb\n" "" "a\nbb"
+# Only actually tests anything on toybox. :)
+testing "-t --quiet" "$CPI_O|$CPIO -it --quiet" "a\nbb\n" "" "a\nbb"
+mkdir out
+testing "-p" "$CPIO -p out && find out | sort" "out\nout/a\nout/bb\n" "" "a\nbb"
+rm -rf out
+testing "-pd" "$CPIO -pd out && find out | sort" "out\nout/a\nout/bb\n" "" "a\nbb"
+rm a bb ccc dddd
+
+# archive dangling symlinks and empty files even if we cannot open them
+touch a; chmod a-rwx a; ln -s a/cant b
+toyonly testing "archives unreadable empty files" "$CPI_O|$CPIO -it" "b\na\n" "" "b\na\n"
+chmod u+rw a; rm -f a b
+
+mkdir a
+echo "old" >a/b
+echo "a/b" | $CPI_O >a.cpio
+testing "directory exists is not an error" \
+  "$CPI_O | { $CPIO -i 2>&1 || echo bad; }" "" "" "a\n"
+rm -rf a
+testing "-i doesn't create leading directories" \
+  "$CPIO -i <a.cpio 2>/dev/null; [ -e a ] || echo yes" "yes\n" "" ""
+rm -rf a
+testing "-id creates leading directories" "$CPIO -id <a.cpio && cat a/b" \
+  "old\n" "" ""
+rm -rf a a.cpio
+
+mkdir a
+echo "old" >a/b
+find a | $CPI_O >a.cpio
+testing "-i keeps existing files" "echo new >a/b && $CPIO -i <a.cpio 2>/dev/null; cat a/b" "new\n" "" ""
+testing "-id keeps existing files" "echo new >a/b && $CPIO -id <a.cpio 2>/dev/null; cat a/b" "new\n" "" ""
+testing "-iu replaces existing files; no error" "echo new >a/b && $CPIO -iu <a.cpio && cat a/b" "old\n" "" ""
+testing "-idu replaces existing files; no error" "echo new >a/b && $CPIO -idu <a.cpio && cat a/b" "old\n" "" ""
+# The kernel's initramfs extractor does this
+toyonly testing "skip NUL" "for i in a b; do dd if=/dev/zero bs=512 count=1 2>/dev/null; cat a.cpio; done | $CPIO -t -H newc" \
+  "a\na/b\na\na/b\n" "" ""
+rm -rf a a.cpio
+
+testing "error on empty file" "$CPIO -i 2>/dev/null || echo err" "err\n" "" ""
+
+mkdir a
+touch a/file
+ln -s a/symlink a/symlink
+mkdir a/dir
+find a | $CPI_O >a.cpio
+if [ "$(id -u)" -eq 0 ]; then
+  # We chown between user "root" and the last user in /etc/passwd,
+  # and group "root" and the last group in /etc/group.
+  USR="$(sed -n '$s/:.*//p' /etc/passwd)"
+  GRP="$(sed -n '$s/:.*//p' /etc/group)"
+  # Or if that fails, we assume we're on Android...
+  : "${USR:=shell}"
+  : "${GRP:=shell}"
+  chown -h "${USR}:${GRP}" a/file a/symlink a/dir
+fi
+skipnot [ $(id -u) -eq 0 ]
+testing "-t preserve ownership" "$CPIO -t <a.cpio >/dev/null && stat -c '%U:%G' a/file a/symlink a/dir" "${USR}:${GRP}\n${USR}:${GRP}\n${USR}:${GRP}\n" "" ""
+rm -rf a a.cpio
+
+echo payload > one
+ln -s one two
+testing '-L' "$CPI_O -L | grep -ao payload" 'payload\n' '' 'two\n'

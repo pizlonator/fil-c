@@ -1,0 +1,256 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+elf=$FILES/elf/ndk-elf-note
+
+# toybox uses Linux kernel architecture names, so rewrite binutils with sed.
+NOSPACE=1 testing "-h" "readelf -hW $elf-full | sed s/AArch64/arm64/g" \
+"ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Shared object file)
+  Machine:                           arm64
+  Version:                           0x1
+  Entry point address:               0x660
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          7776 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         9
+  Size of section headers:           64 (bytes)
+  Number of section headers:         32
+  Section header string table index: 29
+" "" ""
+
+# We format the key to flags differently and don't include obsolete ones.
+NOSPACE=1 testing "-S" "readelf -SW $elf-full | head -36" \
+"There are 32 section headers, starting at offset 0x1e60:
+
+Section Headers:
+  [Nr] Name                 Type           Address          Off    Size   ES Flg Lk Inf Al
+  [ 0]                      NULL           0000000000000000 000000 000000 00      0  0  0
+  [ 1] .interp              PROGBITS       0000000000000238 000238 000015 00   A  0  0  1
+  [ 2] .note.android.ident  NOTE           0000000000000250 000250 000098 00   A  0  0  4
+  [ 3] .note.gnu.build-id   NOTE           00000000000002e8 0002e8 000024 00   A  0  0  4
+  [ 4] .hash                HASH           0000000000000310 000310 000048 04   A  5  0  8
+  [ 5] .dynsym              DYNSYM         0000000000000358 000358 000138 18   A  6  3  8
+  [ 6] .dynstr              STRTAB         0000000000000490 000490 000097 00   A  0  0  1
+  [ 7] .gnu.version         VERSYM         0000000000000528 000528 00001a 02   A  5  0  2
+  [ 8] .gnu.version_r       VERNEED        0000000000000548 000548 000020 00   A  6  1  8
+  [ 9] .rela.dyn            RELA           0000000000000568 000568 000060 18   A  5  0  8
+  [10] .rela.plt            RELA           00000000000005c8 0005c8 000048 18  AI  5 19  8
+  [11] .plt                 PROGBITS       0000000000000610 000610 000050 10  AX  0  0 16
+  [12] .text                PROGBITS       0000000000000660 000660 00008c 00  AX  0  0  4
+  [13] .eh_frame_hdr        PROGBITS       00000000000006ec 0006ec 000014 00   A  0  0  4
+  [14] .eh_frame            PROGBITS       0000000000000700 000700 000030 00   A  0  0  8
+  [15] .preinit_array       PREINIT_ARRAY  0000000000010d68 000d68 000010 08  WA  0  0  8
+  [16] .init_array          INIT_ARRAY     0000000000010d78 000d78 000010 08  WA  0  0  8
+  [17] .fini_array          FINI_ARRAY     0000000000010d88 000d88 000010 08  WA  0  0  8
+  [18] .dynamic             DYNAMIC        0000000000010d98 000d98 000210 10  WA  6  0  8
+  [19] .got                 PROGBITS       0000000000010fa8 000fa8 000058 08  WA  0  0  8
+  [20] .bss                 NOBITS         0000000000011000 001000 000008 00  WA  0  0  8
+  [21] .comment             PROGBITS       0000000000000000 001000 000107 01  MS  0  0  1
+  [22] .debug_pubnames      PROGBITS       0000000000000000 001107 00001b 00      0  0  1
+  [23] .debug_info          PROGBITS       0000000000000000 001122 00004b 00      0  0  1
+  [24] .debug_abbrev        PROGBITS       0000000000000000 00116d 000037 00      0  0  1
+  [25] .debug_line          PROGBITS       0000000000000000 0011a4 00003f 00      0  0  1
+  [26] .debug_str           PROGBITS       0000000000000000 0011e3 000138 01  MS  0  0  1
+  [27] .debug_macinfo       PROGBITS       0000000000000000 00131b 000001 00      0  0  1
+  [28] .debug_pubtypes      PROGBITS       0000000000000000 00131c 00001a 00      0  0  1
+  [29] .shstrtab            STRTAB         0000000000000000 001d0c 000151 00      0  0  1
+  [30] .symtab              SYMTAB         0000000000000000 001338 0007e0 18     31 68  8
+  [31] .strtab              STRTAB         0000000000000000 001b18 0001f4 00      0  0  1
+" "" ""
+
+# Verify many section header flags display properly.
+NOSPACE=1 testing "-S flags" "readelf -SW $elf-shflags | head -32" \
+"There are 28 section headers, starting at offset 0xc74:
+
+Section Headers:
+  [Nr] Name              Type            Address  Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+  [ 1] .interp           PROGBITS        000001b4 0001b4 000013 00   A  0   0  1
+  [ 2] .note.android.ident NOTE            000001c8 0001c8 000018 00   A  0   0  4
+  [ 3] .note.gnu.build-id NOTE            000001e0 0001e0 000020 00   A  0   0  4
+  [ 4] .dynsym           DYNSYM          00000200 000200 000060 10   A  8   1  4
+  [ 5] .gnu.version      VERSYM          00000260 000260 00000c 02   A  4   0  2
+  [ 6] .gnu.version_r    VERNEED         0000026c 00026c 000020 00   A  8   1  4
+  [ 7] .gnu.hash         GNU_HASH        0000028c 00028c 000018 00   A  4   0  4
+  [ 8] .dynstr           STRTAB          000002a4 0002a4 000064 00   A  0   0  1
+  [ 9] .rel.dyn          ANDROID_REL     00000308 000308 00000d 01   A  4   0  4
+  [10] .relr.dyn         RELR            00000318 000318 00000c 04   A  0   0  4
+  [11] .ARM.exidx        ARM_EXIDX       00000324 000324 000028 00  AL 14   0  4
+  [12] .rel.plt          REL             0000034c 00034c 000020 08  AI  4  19  4
+  [13] .rodata           PROGBITS        0000036c 00036c 000015 01 AMS  0   0  1
+  [14] .text             PROGBITS        00001384 000384 0001c4 00  AX  0   0  4
+  [15] .plt              PROGBITS        00001550 000550 000060 00  AX  0   0 16
+  [16] .tdata            PROGBITS        000025c0 0005c0 000000 00 WAT  0   0 32
+  [17] .dynamic          DYNAMIC         000025c0 0005c0 0000d0 08  WA  8   0  4
+  [18] .got              PROGBITS        00002690 000690 000010 00  WA  0   0  4
+  [19] .got.plt          PROGBITS        000026a0 0006a0 00001c 00  WA  0   0  4
+  [20] .data             PROGBITS        000036bc 0006bc 00000c 00  WA  0   0  4
+  [21] .comment          PROGBITS        00000000 0006c8 0000cc 01  MS  0   0  1
+  [22] .ARM.attributes   ATTRIBUTES      00000000 000794 000042 00      0   0  1
+  [23] .debug_frame      PROGBITS        00000000 0007d8 00007a 00   C  0   0  4
+  [24] .symtab           SYMTAB          00000000 000854 000220 10     26  27  4
+  [25] .shstrtab         STRTAB          00000000 000a74 00010e 00      0   0  1
+  [26] .strtab           STRTAB          00000000 000b82 0000de 00      0   0  1
+  [27] .gnu_debuglink    PROGBITS        00000000 000c60 000014 00      0   0  4
+" "" ""
+
+testing "-l" "readelf -lW $elf-short" "
+Elf file type is DYN (Shared object file)
+Entry point 0x1001
+There are 10 program headers, starting at offset 52
+
+Program Headers:
+  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+  PHDR           0x000034 0x00000034 0x00000034 0x00140 0x00140 R   0x4
+  INTERP         0x000174 0x00000174 0x00000174 0x00013 0x00013 R   0x1
+      [Requesting program interpreter: /system/bin/linker]
+  LOAD           0x000000 0x00000000 0x00000000 0x00404 0x00404 R   0x1000
+  LOAD           0x001000 0x00001000 0x00001000 0x00140 0x00140 R E 0x1000
+  LOAD           0x002000 0x00002000 0x00002000 0x00144 0x00144 RW  0x1000
+  DYNAMIC        0x002018 0x00002018 0x00002018 0x00100 0x00100 RW  0x4
+  GNU_RELRO      0x002000 0x00002000 0x00002000 0x00144 0x01000 R   0x1
+  GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0
+  NOTE           0x000188 0x00000188 0x00000188 0x00038 0x00038 R   0x4
+  EXIDX          0x0001c0 0x000001c0 0x000001c0 0x00030 0x00030 R   0x4
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     
+   01     .interp 
+   02     .interp .note.android.ident .note.gnu.build-id .ARM.exidx .dynsym .gnu.version .gnu.version_r .gnu.hash .dynstr .rel.dyn .relr.dyn .rel.plt 
+   03     .text .plt 
+   04     .preinit_array .init_array .fini_array .dynamic .got .got.plt 
+   05     .dynamic 
+   06     .preinit_array .init_array .fini_array .dynamic .got .got.plt 
+   07     
+   08     .note.android.ident .note.gnu.build-id 
+   09     .ARM.exidx 
+" "" ""
+
+# binutils doesn't line up the column headers for 64-bit ELF files.
+# TODO: binutils readelf lies about trailing NULL entires binutils ld produces
+NOSPACE=1 toyonly testing "-d" "readelf -dW $elf-full" "
+Dynamic section at offset 0xd98 contains 33 entries:
+  Tag                Type                 Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so]
+ 0x0000000000000001 (NEEDED)             Shared library: [libdl.so]
+ 0x0000000000000020 (PREINIT_ARRAY)      0x10d68
+ 0x0000000000000021 (PREINIT_ARRAYSZ)    0x10
+ 0x0000000000000019 (INIT_ARRAY)         0x10d78
+ 0x000000000000001b (INIT_ARRAYSZ)       16 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x10d88
+ 0x000000000000001c (FINI_ARRAYSZ)       16 (bytes)
+ 0x0000000000000004 (HASH)               0x310
+ 0x0000000000000005 (STRTAB)             0x490
+ 0x0000000000000006 (SYMTAB)             0x358
+ 0x000000000000000a (STRSZ)              151 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000015 (DEBUG)              0x0
+ 0x0000000000000003 (PLTGOT)             0x10fa8
+ 0x0000000000000002 (PLTRELSZ)           72 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x5c8
+ 0x0000000000000007 (RELA)               0x568
+ 0x0000000000000008 (RELASZ)             96 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW
+ 0x000000006ffffffe (VERNEED)            0x548
+ 0x000000006fffffff (VERNEEDNUM)         1
+ 0x000000006ffffff0 (VERSYM)             0x528
+ 0x000000006ffffff9 (RELACOUNT)          4
+ 0x0000000000000000 (NULL)               0x0
+ 0x0000000000000000 (NULL)               0x0
+ 0x0000000000000000 (NULL)               0x0
+ 0x0000000000000000 (NULL)               0x0
+ 0x0000000000000000 (NULL)               0x0
+" "" ""
+
+# toybox does a better job of decoding Android's ELF notes than binutils.
+toyonly testing "-n" "readelf -nW $elf-short" "
+Displaying notes found in: .note.android.ident
+  Owner                 Data size	Description
+  Android              0x00000004	NT_VERSION	API level 28
+
+Displaying notes found in: .note.gnu.build-id
+  Owner                 Data size	Description
+  GNU                  0x00000010	NT_GNU_BUILD_ID	da6a5f4ca8da163b9339326e626d8a3c
+" "" ""
+
+testing "-p" "readelf -p22 $elf-short" "
+String dump of section '.shstrtab':
+  [     1]  .preinit_array
+  [    10]  .init_array
+  [    1c]  .fini_array
+  [    28]  .ARM.exidx
+  [    33]  .text
+  [    39]  .got
+  [    3e]  .note.android.ident
+  [    52]  .got.plt
+  [    5b]  .rel.plt
+  [    64]  .ARM.attributes
+  [    74]  .dynstr
+  [    7c]  .gnu.version_r
+  [    8b]  .interp
+  [    93]  .relr.dyn
+  [    9d]  .rel.dyn
+  [    a6]  .gnu.version
+  [    b3]  .dynsym
+  [    bb]  .gnu.hash
+  [    c5]  .note.gnu.build-id
+  [    d8]  .dynamic
+  [    e1]  .shstrtab
+  [    eb]  .gnu_debugdata
+
+" "" ""
+
+testing "-x" "readelf -x22 $elf-short" "
+Hex dump of section '.shstrtab':
+  0x00000000 002e7072 65696e69 745f6172 72617900 ..preinit_array.
+  0x00000010 2e696e69 745f6172 72617900 2e66696e .init_array..fin
+  0x00000020 695f6172 72617900 2e41524d 2e657869 i_array..ARM.exi
+  0x00000030 6478002e 74657874 002e676f 74002e6e dx..text..got..n
+  0x00000040 6f74652e 616e6472 6f69642e 6964656e ote.android.iden
+  0x00000050 74002e67 6f742e70 6c74002e 72656c2e t..got.plt..rel.
+  0x00000060 706c7400 2e41524d 2e617474 72696275 plt..ARM.attribu
+  0x00000070 74657300 2e64796e 73747200 2e676e75 tes..dynstr..gnu
+  0x00000080 2e766572 73696f6e 5f72002e 696e7465 .version_r..inte
+  0x00000090 7270002e 72656c72 2e64796e 002e7265 rp..relr.dyn..re
+  0x000000a0 6c2e6479 6e002e67 6e752e76 65727369 l.dyn..gnu.versi
+  0x000000b0 6f6e002e 64796e73 796d002e 676e752e on..dynsym..gnu.
+  0x000000c0 68617368 002e6e6f 74652e67 6e752e62 hash..note.gnu.b
+  0x000000d0 75696c64 2d696400 2e64796e 616d6963 uild-id..dynamic
+  0x000000e0 002e7368 73747274 6162002e 676e755f ..shstrtab..gnu_
+  0x000000f0 64656275 67646174 61000000 000000   debugdata......
+
+" "" ""
+
+# TODO: remove the sed when we handle symbol versions
+testing "-s" "readelf -s $elf-short | sed s/@.*//" "
+Symbol table '.dynsym' contains 11 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 FUNC    GLOBAL DEFAULT  UND __libc_init
+     2: 00000000     0 FUNC    GLOBAL DEFAULT  UND __stack_chk_fail
+     3: 00000000     0 OBJECT  GLOBAL DEFAULT  UND __stack_chk_guard
+     4: 00000000     0 FUNC    GLOBAL DEFAULT  UND memset
+     5: 000010d8    12 FUNC    GLOBAL DEFAULT   13 __aeabi_memclr
+     6: 000010d8    12 FUNC    GLOBAL DEFAULT   13 __aeabi_memclr4
+     7: 000010d8    12 FUNC    GLOBAL DEFAULT   13 __aeabi_memclr8
+     8: 000010c8    16 FUNC    GLOBAL DEFAULT   13 __aeabi_memset
+     9: 000010c8    16 FUNC    GLOBAL DEFAULT   13 __aeabi_memset4
+    10: 000010c8    16 FUNC    GLOBAL DEFAULT   13 __aeabi_memset8
+" "" ""

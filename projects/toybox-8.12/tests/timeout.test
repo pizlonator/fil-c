@@ -1,0 +1,42 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# timeout's exit value is complicated!
+testcmd "times out" '.1 sleep 100 ; echo $?'  '124\n' '' ''
+testcmd "failure" '-s MONKEY .1 sleep 100 2>/dev/null ; echo $?' '125\n' '' ''
+testcmd "early failure" '2>/dev/null ; echo $?' '125\n' '' ''
+testcmd "can't execute" '1 / 2>/dev/null ; echo $?' '126\n' '' ''
+testcmd "can't find" '1 /does/not/exist 2>/dev/null ; echo $?' '127\n' '' ''
+testcmd "custom signal" '-s 3 .1 sleep 100; echo $?' '124\n' '' ''
+testcmd "killed" '-s 9 .1 sleep 100; echo $?' '137\n' '' ''
+testcmd "TERM" '-s TERM .1 sleep 100; echo $?' '124\n' '' ''
+testcmd "exit 0" '1 true ; echo $?' '0\n' '' ''
+testcmd "exit 1" '1 false ; echo $?' '1\n' '' ''
+
+testcmd "--preserve-status" '--preserve-status .1 sleep 100 ; echo $?' '143\n' '' ''
+testcmd "--preserve-status killed" '--preserve-status -s 9 .1 sleep 100 ; echo $?' '137\n' '' ''
+
+# There's another special case where if the subprocess catches our timeout
+# signal and exits, we need to report that as a timeout (unless overridden).
+cat > loop.sh <<EOF
+#!/bin/sh
+trap "exit 3" TERM
+while true; do
+  :
+done
+EOF
+chmod a+x loop.sh
+testcmd "trap-and-exit" '1 ./loop.sh ; echo $?' '124\n' '' ''
+testcmd "trap-and-exit --preserve-status" \
+  '--preserve-status 1 ./loop.sh ; echo $?' '3\n' '' ''
+rm loop.sh
+
+toyonly testcmd "-i" \
+  "-i 1 sh -c 'for i in .25 .50 2; do sleep \$i; echo hello; done'" \
+  "hello\nhello\n" "" ""
+testing '-v' "{ timeout -v .1 sleep 3;} 2>&1 | egrep -o 'TERM|sleep'" \
+  'TERM\nsleep\n' '' ''
+

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Show debian packages host versions of each command live in
+# (Alas, not as useful as I thought it would be.)
+
+[ -x toybox ] || { echo "no ./toybox" >&2; exit 1; }
+
+declare -A ray
+
+# Sad that this is NOT in the default path, but less dumb than /bin/sh->dash
+PATH="$PATH":/sbin:/usr/sbin
+
+# Only checks installed packages, puts anything it can't find in none:
+for i in $(./toybox)
+do
+  tty -s && echo -n . >&2
+  which $i >/dev/null || { ray["none:"]+=" $i"; continue; }
+
+  ray[$(dpkg-query -S $(readlink -f $(which $i)) | toybox cut -DF 1)]+=" $i"
+done
+
+# Print results
+for i in ${!ray[@]}
+do
+  echo $i ${ray[$i]}
+done

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+echo "hello world " > en.txt
+echo "this is some text    " >> en.txt
+# https://en.wikipedia.org/wiki/Aegukga
+echo "동해물과 백두산이 마르고 닳도록" > kr.txt
+echo "하나님이 보우하사 우리나라 만세." >> kr.txt
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "join" "fmt en.txt" "hello world this is some text\n" "" ""
+testing "split" "fmt -w 10 en.txt" "hello\nworld\nthis is\nsome text\n" "" ""
+testing "no room" "echo 'hello world' | fmt -w 1" "hello\nworld\n" "" ""
+testing "blank line" "echo -e 'first paragraph of text\n\nand another' | fmt -w 10" "first\nparagraph\nof text\n\nand\nanother\n" "" ""
+testing "ws-only line" "echo -e 'hello\n  \nworld' | fmt -w 10" "hello\n\nworld\n" "" ""
+testing "leading space" "echo '  hello world' | fmt -w 5" "  hello\n  world\n" "" ""
+testing "utf8" "fmt -w 10 kr.txt" "동해물과\n백두산이\n마르고\n닳도록\n하나님이\n보우하사\n우리나라\n만세.\n" "" ""
+
+testing "no newline" "fmt -w 10" "and\nthisisaverylongline\n" \
+  "" "and thisisaverylongline"
+testing "" "fmt -w 9" "1 2 3 4\n5 6 7 8\n9 0\n" "" "1 2 3 4 5 6 7 8 9 0\n"
+testing "" "fmt -w 10" "1 2 3 4 5\n6 7 8 9 0\n" "" "1 2 3 4 5 6 7 8 9 0\n"
+testing "" "fmt -w 11" "1 2 3 4 5\n6 7 8 9 0\n" "" "1 2 3 4 5 6 7 8 9 0\n"
+testing "" "fmt -w 12" "1 2 3 4 5 6\n7 8 9 0\n" "" "1 2 3 4 5 6 7 8 9 0\n"
+
+testing "matched tab indent" "fmt" "\thello world\n" "" "\thello\n\tworld"
+# Version skew: debian is now emitting \t instead of "first line's indent"
+toyonly testing "matched tab/space" "fmt" '        hello world\n' "" \
+  "        hello\n\tworld"
+testing "matched space/tab" "fmt" "\thello world\n" ""  "\thello\n        world"
+
+rm en.txt kr.txt

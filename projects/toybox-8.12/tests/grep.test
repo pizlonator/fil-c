@@ -1,0 +1,253 @@
+#!/bin/bash
+
+# TODO: several tests need to check both fast and slow paths
+
+[ -f testing.sh ] && . testing.sh
+
+# Copyright 2013 by Kyungsu Kim <kaspyx@gmail.com>
+# Copyright 2013 by Kyungwan Han <asura321@gmail.com>
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd 'simple' 'two' 'two\n' '' 'one\ntwo\nthree\n'
+testcmd 'negative' 'a' '' '' '\n'
+testcmd 'empty' "''" '\n' '' '\n'
+
+testcmd "-c" "-c 123 input" "3\n" "123\ncount 123\n123\nfasdfasdf" ""
+
+echo -e "this is test" > file
+echo -e "this is test2" > file2
+echo -e "this is number3" > file3
+testcmd "-l" "-l test file file2 file3" "file\nfile2\n" "" ""
+testcmd "-L" "-L test file file2 file3" "file3\n" "" ""
+rm file file2 file3
+
+testcmd "-q" "-q test input && echo yes" "yes\n" "this is a test\n" ""
+testcmd "-E" "-E '[0-9]' input" "1234123asdfas123123\n1\n" \
+  "1234123asdfas123123\nabc\n1\nabcde" ""
+testcmd "-e" "-e '[0-9]' input" "1234123asdfas123123\n1\n" \
+  "1234123asdfas123123\nabc\n1\nabcde" ""
+testcmd "-e -e" "-e one -e two -e three input" \
+  "two\ntwo\nthree\none\n" "two\ntwo\nthree\nand\none\n" ""
+testcmd "-F" "-F is input" "this is test\nthis is test2\n" \
+  "this is test\nthis is test2\ntest case" ""
+testcmd "-Fo ''" "-Fo ''" "" "" "hello\n"
+testcmd "-Fw ''" "-Fw ''" "" "" "hello\n"
+testcmd "-Fw '' 2" "-Fw ''" "\n" "" "\n"
+testcmd "-F is really fixed" "-F '.[x]'" "c.[x]d\n" "" "axb\nc.[x]d\n"
+
+echo -e "this is test\nthis is test2\ntest case" > foo
+echo -e "hello this is test" > foo2
+echo -e "hi hello" > foo3
+testcmd "-H" "-H is foo foo2 foo3" \
+  "foo:this is test\nfoo:this is test2\nfoo2:hello this is test\n" "" ""
+rm foo foo2 foo3
+
+testcmd "-b" "-b is input" "0:this is test\n13:this is test2\n" \
+  "this is test\nthis is test2\ntest case" ""
+testcmd "-i" "-i is input" "thisIs test\nthis is test2\n" \
+  "thisIs test\nthis is test2\ntest case" ""
+testcmd "-n" "-n is input" "1:this is test\n2:this is test2\n" \
+  "this is test\nthis is test2\ntest case" ""
+testcmd "-o" "-o is input" "is\nis\nis\nis\n" \
+  "this is test\nthis is test2\ntest case" ""
+testcmd "-s" "-hs hello asdf input 2>&1" "hello\n" "hello\n" ""
+testcmd "-v" "-v abc input" "1234123asdfas123123\n1ABa\n" \
+  "1234123asdfas123123\n1ABabc\nabc\n1ABa\nabcde" ""
+testcmd "-w" "-w abc input" "abc\n123 abc\nabc 123\n123 abc 456\n" \
+  "1234123asdfas123123\n1ABabc\nabc\n1ABa\nabcde\n123 abc\nabc 123\n123 abc 456\n" ""
+testcmd "-x" "-x abc input" "abc\n" "aabcc\nabc\n" ""
+
+testcmd "-H (standard input)" "-H abc" "(standard input):abc\n" "" "abc\n"
+testcmd "-l (standard input)" "-l abc" "(standard input)\n" "" "abc\n"
+testcmd "-n two inputs" "-hn def - input" "2:def\n2:def\n" \
+  "abc\ndef\n" "abc\ndef\n"
+
+testcmd "pattern with newline" $'"abc\ndef" input' "aabcc\nddeff\n" \
+  "aaaa\naabcc\n\dddd\nddeff\nffff\n" ""
+
+testcmd "-lH" "-lH abc input" "input\n" "abc\n" ""
+testcmd "-cn" "-cn abc input" "1\n" "abc\n" ""
+testcmd "-cH" "-cH abc input" "input:1\n" "abc\n" ""
+testcmd "-qs" "-qs abc none input && echo yes" "yes\n" "abc\n" ""
+testcmd "-hl" "-hl abc input" "input\n" "abc\n" ""
+testcmd "-b stdin" "-b one" "0:one\n4:one\n8:one\n" "" "one\none\none\n"
+testcmd "-o overlap" "-bo aaa" "1:aaa\n" "" "baaaa\n"
+# nonobvious: -co counts lines, not matches
+testcmd "-co" "-co one input" "1\n" "one one one\n" ""
+testcmd "-nom" "-nom 2 one" "1:one\n1:one\n1:one\n2:one\n2:one\n" \
+  "" "one one one\none one\none"
+toyonly testcmd "-vo" "-vo one input" "two\nthree\n" "onetwoonethreeone\n" ""
+testcmd "no newline" "-h one input -" \
+  "hello one\nthere one\n" "hello one" "there one"
+
+testcmd "-e multi" "-e one -ethree input" "three\none\n" "three\ntwo\none\n" ""
+# Suppress filenames for recursive test because dunno order they'd occur in
+mkdir sub
+echo -e "one\ntwo\nthree" > sub/one
+echo -e "three\ntwo\none" > sub/two
+testcmd "-hr" "-hr one sub" "one\none\n" "" ""
+testcmd "-r file" "-r three sub/two" "three\n" "" ""
+testcmd "-r dir" "-r one sub | sort" "sub/one:one\nsub/two:one\n" \
+  "" ""
+rm -rf sub
+
+# -x exact match overrides -F's "empty string matches whole line" behavior
+testcmd "-Fx ''" "-Fx '' input" "" "one one one\n" ""
+testcmd "-F ''" "-F '' input" "one one one\n" "one one one\n" ""
+testcmd "-F -e blah -e ''" "-F -e blah -e '' input" "one one one\n" \
+  "one one one\n" ""
+testcmd "-Fxv -e subset" "-Fxv -e bbswitch-dkms -e dkms" "" "" "bbswitch-dkms\n"
+testcmd "-e blah -e ''" "-e blah -e '' input" "one one one\n" "one one one\n" ""
+testcmd "-w ''" "-w '' input" "" "one one one\n" ""
+testcmd "-w '' 2" "-w '' input" "one  two\n" "one  two\n" ""
+#testcmd "-w '' 3" "-w ''" "one  two\n" "one  two\n" ""
+testcmd "'$' is ''" "'\$'" 'potato\n' '' 'potato\n'
+testcmd "'$' is '' 2" "'x*\$'" 'potato\n' '' 'potato\n'
+testcmd "-w '$'" "-w '\$'" '' '' 'abc  abc\n'
+testcmd "-w '$' 2" "-w '\$'" 'abc \n' '' 'abc \n'
+testcmd "'^' is ''" "'^'" 'potato\n' '' 'potato\n'
+testcmd "'^' is '' 2" "'^x*'" 'potato\n' '' 'potato\n'
+testcmd "-w '^'" "-w '^'" '' '' 'abc  abc\n'
+testcmd "-w '^' 2" "-w '^'" ' abc\n' '' ' abc\n'
+testcmd "-w \\1" "-wo '\\(x\\)\\1'" "xx\n" "" "xx"
+testcmd '' "-nw ''" '1:\n3: \n4:a \n5: a\n7:a  a\n' '' \
+  '\na\n \na \n a\na a\na  a'
+testcmd '' "-nw '^'" '1:\n3: \n5: a\n' '' '\na\n \na \n a\na a\na  a'
+testcmd '' "-nw '\$'" '1:\n3: \n4:a \n' '' '\na\n \na \n a\na a\na  a'
+testcmd '' "-nw '^\$'" '1:\n' '' '\na\n \na \n a\na a\na  a'
+testcmd "-o ''" "-o '' input" "" "one one one\n" ""
+testcmd "backref" '-e "a\(b\)" -e "b\(c\)\1"' "bcc\nab\n" "" "bcc\nbcb\nab\n"
+
+testcmd "-A" "-A 2 yes" "yes\nno\nno\n--\nyes\nno\nno\nyes\nno\n" \
+  "" "yes\nno\nno\nno\nyes\nno\nno\nyes\nno"
+testcmd "-B" "-B 1 yes" "no\nyes\n--\nno\nyes\nno\nyes\n" \
+  "" "no\nno\nno\nyes\nno\nno\nyes\nno\nyes"
+testcmd "-C" "-C 1 yes" "yes\nno\n--\nno\nyes\nno\nno\nyes\nno\nyes\nno\n" \
+  "" "yes\nno\nno\nno\nyes\nno\nno\nyes\nno\nyes\nno\nno"
+testcmd "-HnC" "-HnC1 two" \
+  "(standard input)-1-one\n(standard input):2:two\n(standard input)-3-three\n" \
+  "" "one\ntwo\nthree"
+
+# Context lines weren't showing -b
+testcmd "-HnbB1" "-HnbB1 f input" \
+  "input-3-8-three\ninput:4:14:four\ninput:5:19:five\n" \
+  "one\ntwo\nthree\nfour\nfive\n" ""
+
+testcmd "-q match overrides error" \
+  "-q hello missing input 2>/dev/null && echo yes" "yes\n" "hello\n" ""
+testcmd "-q not found is 1" '-q hello input || echo $?' "1\n" "x" ""
+testcmd "-q missing is 2" \
+  '-q hello missing missing 2>/dev/null || echo $?' "2\n" "" ""
+testcmd "-q missing survives exists but not found" \
+  '-q hello missing missing input 2>/dev/null || echo $?' "2\n" "" ""
+testcmd "not found retained past match" \
+  'hello missing input 2>/dev/null || echo $?' "input:hello\n2\n" "hello\n" ""
+touch empty
+testcmd "one match good enough for 0" \
+  'hello input empty && echo $?' 'input:hello\n0\n' 'hello\n' ''
+rm empty
+
+testcmd "-o ''" "-o ''" "" "" "one two three\none two\none\n"
+testcmd '' "-o -e '' -e two" "two\ntwo\n" "" "one two three\none two\none\n"
+
+echo "one\ntwo\nthree" > test
+testcmd "-l overrides -C" "-l -C1 two test input" "test\ninput\n" \
+  "three\ntwo\none\n" ""
+rm test
+
+# match after NUL byte
+testcmd "match after NUL byte" "-a two" "one\0and two three\n" \
+  "" 'one\0and two three'
+
+# BREs versus EREs
+testcmd "implicit BRE |" "'uno|dos'" "uno|dos\n" "" "uno\ndos\nuno|dos\n"
+testcmd "explicit BRE |" "-e 'uno|dos'" "uno|dos\n" "" "uno\ndos\nuno|dos\n"
+testcmd "explicit ERE |" "-E 'uno|dos'" "uno\ndos\nuno|dos\n" \
+  "" "uno\ndos\nuno|dos\n"
+
+testcmd "" "-o -e iss -e ipp" "iss\niss\nipp\n" "" "mississippi"
+testcmd "" "-o -e gum -e rgu" "rgu\n" "" "argument"
+
+testcmd "early failure" '--what 2>/dev/null || echo $?' "2\n" "" ""
+
+testcmd "" 'abc ; echo $?' "abcdef\n0\n" "" "abcdef\n"
+testcmd "" 'abc doesnotexist input 2>/dev/null; echo $?' \
+  "input:abcdef\n2\n" "abcdef\n" ""
+mkdir sub
+ln -s nope sub/link
+testcmd "" '-r walrus sub 2>/dev/null; echo $?' "1\n" "" ""
+rm -rf sub
+
+# --exclude-dir
+mkdir -p sub/yes
+echo "hello world" > sub/yes/test
+mkdir sub/no
+echo "hello world" > sub/no/test
+testcmd "--exclude-dir" '--exclude-dir=no -r world sub' \
+  "sub/yes/test:hello world\n" "" ""
+rm -rf sub
+
+# -r and -R differ in that -R will dereference symlinks to directories.
+mkdir dir
+echo "hello" > dir/f
+mkdir sub
+ln -s ../dir sub/link
+testcmd "" "-rh hello sub 2>/dev/null || echo err" "err\n" "" ""
+testcmd "" "-Rh hello sub" "hello\n" "" ""
+rm -rf sub real
+
+# -F multiple matches
+testcmd "-F multiple" "-F h input" "this is hello\nthis is world\n" \
+  "missing\nthis is hello\nthis is world\nmissing" ""
+testcmd "-Fi multiple" "-Fi h input" "this is HELLO\nthis is WORLD\n" \
+  "missing\nthis is HELLO\nthis is WORLD\nmissing" ""
+testcmd "-F empty multiple" "-Fi '' input" \
+  "missing\nthis is HELLO\nthis is WORLD\nmissing\n" \
+  "missing\nthis is HELLO\nthis is WORLD\nmissing" ""
+testcmd "-Fx" "-Fx h input" "h\n" \
+  "missing\nH\nthis is hello\nthis is world\nh\nmissing" ""
+testcmd "-Fix" "-Fix h input" "H\nh\n" \
+  "missing\nH\nthis is HELLO\nthis is WORLD\nh\nmissing" ""
+testcmd "-F bucket sort" "-F '\.zip'" '\\.zip\n' '' '\\.zip\n'
+testcmd "-f /dev/null" "-f /dev/null" "" "" "hello\n"
+
+# -z doesn't apply to the \n in -e or -f patterns
+# Because x\n becomes "x" and "" the second of which matches every line.
+testcmd '-z patter\n' "-ze $'x\n' | xxd -pc0" \
+  '6f6e650a74776f0a74687265650a00\n' '' 'one\ntwo\nthree\n'
+testcmd "-z patter\n 2" "-zof input | xxd -pc0" "69007400\n" "i\nt" "hi\nthere"
+testcmd '-lZ' '-lZ ^t input' 'input\0' 'one\ntwo' ''
+
+# other implementations get this wrong without -a, but right with -a???
+toyonly testcmd '-l ^ after \0' '-l ^t' '' 'one\0two' ''
+
+testcmd "print zero length match" "'[0-9]*'" "abc\n" "" "abc\n"
+testcmd "-o skip zero length match" "-o '[0-9]*'" "1234\n" "" "a1234b"
+# Bit of a hack, but other greps insert gratuitous \e[K clear-to-EOL
+testcmd "--color highlights all matches" \
+  "--color=always def | grep -o '[[][0-9;]*[Km]def.[[]m' | wc -l" \
+  "2\n" "" "abcdefghidefjkl\n"
+seq 1 100002 | base64 > testfile
+testing "speed" "timeout 5 grep -f testfile testfile 2>/dev/null | wc -l" \
+  "10332\n" "" ""
+rm -f testfile
+
+# Fast path tests
+
+testcmd 'initial \' '\\.jar' 'bell.jar\n' '' 'bell.jar\n'
+testcmd '^$' '^\$' '\n' '' 'one\n\ntwo\n'
+testcmd 'middle ^ not special' 'a^' 'a^b\n' '' 'a^b\nb^a\n'
+# Quoted to protect it from the shell, grep should just see '$b'
+testcmd 'middle $ not special' "'\$b'" 'a$b\n' '' 'a$b\nb$a\n'
+
+testcmd 'grep -of' '-of input' 'abc\n' 'a.c\n' 'abcdef\n'
+
+testcmd '-A with -m' '-A1 -m2 match' 'match\n1\nmatch\n2\n' '' \
+  'match\n1\nmatch\n2\nmatch\n3\n'
+
+mkdir sub
+mkfifo -m 600 sub/blah
+echo found > sub/found
+testcmd "don't block on FIFO" '-rh found sub && echo done' 'found\ndone\n' '' ''
+rm -rf sub

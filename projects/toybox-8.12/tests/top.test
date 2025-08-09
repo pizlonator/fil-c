@@ -1,0 +1,13 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "batch termination" "top -b -n1 | tail -c 1" "\n" "" ""
+testing "fractional seconds" "top -b -d 8.5 -n1 | tail -c 1" "\n" "" ""
+
+# These are unit tests of xparsetime.
+testing "-d invalid input" "top -b -d monkey -n1 2>&1 >/dev/null" "top: Not a number 'monkey'\n" "" ""
+testing "-d unknown suffix" "top -b -d 1u -n1 2>&1 >/dev/null" "top: Unknown suffix 'u'\n" "" ""
+testing "-d suffix trailing junk" "top -b -d 1monkey -n1 2>&1 >/dev/null" "top: Unknown suffix 'monkey'\n" "" ""

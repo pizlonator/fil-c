@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "/-only" "dirname ///////" "/\n" "" ""
+testing "trailing /" "dirname a//////" ".\n" "" ""
+testing "combined" "dirname /////a///b///c///d/////" "/////a///b///c\n" "" ""
+testing "/a/" "dirname /////a///" "/\n" "" ""
+testing "multiple" "dirname hello/a world/b" "hello\nworld\n" "" ""

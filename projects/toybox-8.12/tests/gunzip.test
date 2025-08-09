@@ -1,0 +1,57 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Decompress files.
+# On success, the input files are removed and replaced by new
+# files without the .gz suffix.
+echo -n "foo " | gzip > f1.gz
+echo "bar" | gzip > f2.gz
+testing "with input files" "gunzip f1.gz f2.gz && 
+    ! test -f f1.gz && ! test -f f2.gz && 
+    test -f f1 && test -f f2 && 
+    cat f1 f2" "foo bar\n" "" ""
+rm -f f1 f2 f1.gz f2.gz
+
+# With no files, decompresses stdin to stdout.
+echo "hello world" | gzip > f.gz
+testing "no files (stdin to stdout)" "cat f.gz | gunzip > f && 
+    test -f f.gz && cat f" "hello world\n" "" ""
+rm -f f f.gz
+
+# test FEXTRA support
+echo "1f8b08040000000000ff04000000ffff4bcbcfe70200a865327e04000000" | xxd -r -p > f1.gz
+testing "FEXTRA flag skipped properly" "gunzip f1.gz &&
+    ! test -f f1.gz && test -f f1 &&
+    cat f1" "foo\n" "" ""
+rm -f f1 f1.gz
+
+# -c	Output to stdout
+echo -n "foo " | gzip > f1.gz
+echo "bar" | gzip > f2.gz
+testing "with input files and -c" "gunzip -c f1.gz f2.gz > out && 
+    test -f f1.gz && test -f f2.gz && 
+    ! test -f f1 && ! test -f f2 && 
+    cat out" "foo bar\n" "" ""
+rm -f f1.gz f2.gz out
+
+# TODO: how to test "gunzip -f"?
+
+# -k	Keep input files (don't remove)
+echo "hello world" | gzip > f1.gz
+testing "-k" "gunzip -k f1.gz && cat f1 && zcat f1.gz" \
+    "hello world\nhello world\n" "" ""
+rm -f f1 f1.gz
+
+# Test that gunzip preserves permissions and times.
+export TZ=UTC
+echo "hello world" | gzip > f1.gz
+chmod 0411 f1.gz
+touch -a -t 197801020304 f1.gz
+touch -m -t 198704030201 f1.gz
+testing "permissions/times preservation" \
+    "gunzip -k f1.gz && stat -c '%a %X %Y' f1 && stat -c '%a %Y' f1.gz" \
+    "411 252558240 544413660\n411 544413660\n" "" ""
+rm -f f1 f1.gz

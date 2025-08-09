@@ -1,0 +1,28 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+function clean()
+{
+  # The filesystem may include some extended attributes by default (for
+  # instance, security.selinux). Skip them.
+  grep -v "security\."
+}
+
+mkdir attrs
+touch attrs/file
+setfattr -n user.empty attrs/file
+setfattr -n user.data -v hello attrs/file
+setfattr -n user.delete-me -v hello attrs/file
+
+testing "-x" \
+    "setfattr -x user.delete-me attrs/file && getfattr attrs/file | clean" \
+    "# file: attrs/file\nuser.data\nuser.empty\n\n" "" ""
+testing "-n" "setfattr -n user.new attrs/file && getfattr -d attrs/file | clean" \
+    "# file: attrs/file\nuser.data=\"hello\"\nuser.empty\nuser.new\n\n" "" ""
+testing "-n -v" "setfattr -n user.new -v data attrs/file && getfattr -d attrs/file | clean" \
+    "# file: attrs/file\nuser.data=\"hello\"\nuser.empty\nuser.new=\"data\"\n\n" "" ""
+
+rm -rf attrs

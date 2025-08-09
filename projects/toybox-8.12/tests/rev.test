@@ -1,0 +1,25 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+echo -e "one" > file1 
+echo -e "two" > file2
+testing "rev" "rev && echo yes" "orez\nyes\n" "" "zero\n"
+toyonly testing "-" "rev - && echo yes" "orez\nyes\n" "" "zero\n"
+testing "file1 file2" "rev file1 file2" "eno\nowt\n" "" ""
+toyonly testing "- file"      "rev - file1"     "orez\neno\n" "" "zero\n"
+toyonly testing "file -"      "rev file1 -"     "eno\norez\n" "" "zero\n"
+toyonly testing "no trailing newline" "rev input" "cba\nfed\n" "abc\ndef" ""
+
+testing "file1 notfound file2" \
+        "rev file1 notfound file2 2>stderr && echo ok ; grep -o 'notfound: No such file or directory' stderr; rm stderr" \
+        "eno\nowt\nnotfound: No such file or directory\n" "" ""
+
+testing "different input sizes"\
+        "rev"\
+        "\n1\n21\n321\n4321\n54321\n4321\n321\n21\n1\n\n"\
+        "" "\n1\n12\n123\n1234\n12345\n1234\n123\n12\n1\n\n"
+
+rm file1 file2

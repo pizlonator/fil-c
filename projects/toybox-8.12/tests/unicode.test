@@ -1,0 +1,13 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "text" "unicode 안녕 hi" "U+C548 : 안 : 0xec 0x95 0x88\nU+B155 : 녕 : 0xeb 0x85 0x95\nU+0068 : h\nU+0069 : i\n" "" ""
+testing "code points" "unicode 70 666" "U+0070 : p\nU+0666 : ٦ : 0xd9 0xa6\n" "" ""
+testing "ASCII controls" "unicode 0" "U+0000 : NUL\n" "" ""
+testing "del" "unicode 7f" "U+007F : DEL\n" "" ""
+testing "3-byte" "unicode 30b9" "U+30B9 : ス : 0xe3 0x82 0xb9\n" "" ""
+testing "4-byte" "unicode 10000" "U+10000 : 𐀀 : 0xf0 0x90 0x80 0x80\n" "" ""
+testing "range" "unicode 660-662" "U+0660 : ٠ : 0xd9 0xa0\nU+0661 : ١ : 0xd9 0xa1\nU+0662 : ٢ : 0xd9 0xa2\n" "" ""

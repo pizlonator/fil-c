@@ -1,0 +1,9 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd "-l HUP" "-l HUP" "1\n" "" ""
+testcmd "-l 1" "-l 1" "HUP\n" "" ""
+testcmd "-0 self" "-0 $$ && echo yes" "yes\n" "" ""

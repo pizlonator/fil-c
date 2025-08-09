@@ -1,0 +1,10 @@
+Bootable system images created by scripts/mkroot.sh:
+
+  LINUX=~/linux CROSS=allnonstop scripts/mkroot.sh
+
+Each system image is built from two packages: toybox and Linux.
+Run the ./qemu-*.sh script in the tarball to boot the system
+to a shell prompt under qemu. Run the "exit" command to shut down the
+virtual system and exit the emulator.
+
+See https://landley.net/toybox/FAQ.html#mkroot for details.

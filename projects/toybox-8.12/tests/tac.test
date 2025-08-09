@@ -1,0 +1,29 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+
+echo -e "one-A\none-B" > file1 
+echo -e "two-A\ntwo-B" > file2
+testing "tac" "tac && echo yes" "one-B\none-A\nyes\n" "" "one-A\none-B\n"
+testing "-" "tac - && echo yes" "one-B\none-A\nyes\n" "" "one-A\none-B\n"
+testing "file1 file2" "tac file1 file2" "one-B\none-A\ntwo-B\ntwo-A\n"  "" ""
+testing "- file"      "tac - file1"     "zero-B\nzero-A\none-B\none-A\n" "" "zero-A\nzero-B\n"
+testing "file -"      "tac file1 -"     "one-B\none-A\nzero-B\nzero-A\n" "" "zero-A\nzero-B\n"
+
+testing "file1 notfound file2" \
+        "tac file1 notfound file2 2>stderr && echo ok ; tac stderr; rm stderr" \
+        "one-B\none-A\ntwo-B\ntwo-A\ntac: notfound: No such file or directory\n" "" ""
+
+testing "no trailing newline" "tac -" "defabc\n" "" "abc\ndef"
+
+# xputs used by tac does not propagate this error condition properly. 
+#testing "> /dev/full" \
+#        "tac - > /dev/full 2>stderr && echo ok; cat stderr; rm stderr" \
+#        "tac: write: No space left on device\n" "" "zero\n"
+
+# 
+
+rm file1 file2

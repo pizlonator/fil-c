@@ -1,0 +1,42 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "$SHOWSKIP: losetup (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+if [ "$(losetup -a | wc -l)" -ne 0 ]; then
+  echo "$SHOWSKIP: losetup (devices already in use)"
+  return 2>/dev/null
+  exit
+fi
+
+# Android's loopback devices are only in /dev/block/loop*.
+# Debian has symlinks like /dev/block/7:0 back to ../loop*.
+if [ -b /dev/block/sda ]; then
+  DIR="/dev/block" # Presumably Android.
+else
+  DIR="/dev"
+fi
+
+#testing "name" "command" "result" "infile" "stdin"
+
+truncate -s 1M blah.img &&
+FILE="$(readlink -f blah.img)"
+DEV="$(stat --format %d blah.img)"
+NODE="$(stat --format %i blah.img)"
+
+# TODO: assumes there are no loopback devices!
+testcmd "-f" "-f" "$DIR/loop0\n" "" ""
+testcmd "-f blah.img" "-f blah.img" "" "" ""
+testcmd "-f --show" "-f --show blah.img" "$DIR/loop1\n" "" ""
+testcmd "-a" "-a | sort" \
+  "$DIR/loop0: [$DEV]:$NODE ($FILE)\n$DIR/loop1: [$DEV]:$NODE ($FILE)\n" "" ""
+testcmd "-d $DIR/loop0" "-d $DIR/loop0 && losetup -a" \
+  "$DIR/loop1: [$DEV]:$NODE ($FILE)\n" "" ""
+testcmd "-D" "-D && losetup -a" "" "" ""
+
+rm blah.img

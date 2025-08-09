@@ -1,0 +1,29 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Default behavior on stdin and on files.
+testing "on stdin" "echo -n hello | cksum" "3287646509 5\n" "" ""
+echo -n "hello" > tmpfile
+testing "on file" "cksum tmpfile" "3287646509 5 tmpfile\n" "" ""
+rm -f tmpfile
+touch one two
+testing "on multiple files" "cksum one two" "4294967295 0 one\n4294967295 0 two\n" "" ""
+rm -f one two
+
+# Check the length suppression, both calculate the CRC on 'abc' but the second
+# option has length suppression on and has the length concatenated to 'abc'.
+testing "on abc including length" "cksum" "1219131554 3\n" "" 'abc'
+toyonly testing "on abc excluding length" "cksum -N" "1219131554\n" "" 'abc\x3'
+
+# cksum on no contents gives 0xffffffff (=4294967295)
+testing "on no data post-inversion" "echo -n "" | cksum" "4294967295 0\n" "" ""
+# If we do preinversion we will then get 0.
+toyonly testing "on no data pre+post-inversion" "echo -n "" | cksum -P" "0 0\n" "" ""
+# If we skip the post-inversion we also get 0
+toyonly testing "on no data no inversion" "echo -n "" | cksum -I" "0 0\n" "" ""
+# Two wrongs make a right.
+toyonly testing "on no data pre-inversion" "echo -n "" | cksum -PI" "4294967295 0\n" "" ""

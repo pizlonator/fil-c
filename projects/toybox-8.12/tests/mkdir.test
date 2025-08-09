@@ -1,0 +1,78 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "mkdir" "mkdir one && [ -d one ] && echo yes" "yes\n" "" ""
+rmdir one
+
+touch existing
+testing "existing file" \
+	"mkdir existing 2> /dev/null || [ -f existing ] && echo yes" "yes\n" "" ""
+rm existing
+
+mkdir existing
+testing "existing dir" \
+	"mkdir existing 2> /dev/null || echo yes" "yes\n" "" ""
+rmdir existing
+
+testing "one two" \
+	"mkdir one two && [ -d one ] && [ -d two ] && echo yes" "yes\n" "" ""
+rmdir one two
+
+testing "missing/one" \
+	"mkdir missing/one 2> /dev/null || [ ! -d missing ] && echo yes" "yes\n" "" ""
+
+testing "-p" \
+	"mkdir -p one/two/three && [ -d one/two/three ] && echo yes" "yes\n" "" ""
+rm -rf one
+
+mkdir existing
+testing "-p existing" "mkdir -p existing && echo yes" "yes\n" "" ""
+rmdir existing
+
+umask 123
+testing "(default permissions)" \
+	"mkdir one && stat -c %a one" "654\n" "" ""
+rmdir one
+
+testing "-m 124" \
+	"mkdir -m 124 one && stat -c %a one" "124\n" "" ""
+rmdir one
+
+umask 000
+testing "-p -m 653" \
+	"mkdir -p -m 653 one/two && stat -c %a one && stat -c %a one/two" \
+	"777\n653\n" "" ""
+rm -rf one
+
+testing "-p one/two/ (trailing slash)" \
+	"mkdir -p one/two/ &&  [ -d one/two ] && echo yes" "yes\n" "" ""
+rm -rf one
+
+umask 022
+testing "-p -m 777 (022 umask)" \
+	"mkdir -p -m 777 one/two && stat -c %a one && stat -c %a one/two" \
+	"755\n777\n" "" ""
+rm -rf one
+
+umask 377
+testing "-p -m 777 (377 umask)" \
+	"mkdir -p -m 777 one/two && stat -c %a one && stat -c %a one/two" \
+	"700\n777\n" "" ""
+umask 002
+rm -rf one
+
+testing "-vp" "mkdir -vp walrus 2>&1" \
+	"mkdir: created directory 'walrus'\n" "" ""
+
+testing "-vp exists" "mkdir -vp walrus 2>&1" \
+	"" "" ""
+rm -rf walrus
+
+touch two
+testing "continue after fail" \
+	"mkdir -m 777 one two three 2>/dev/null || stat -c %a three" \
+	"777\n" "" ""
+rm -rf one two three

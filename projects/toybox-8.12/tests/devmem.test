@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#testing "name" "command" "result" "infile" "stdin"
+
+echo "xxxxxxxxhello, world!" > foo
+testcmd 'read default (4)' '-f foo 0x8' '0x6c6c6568\n' '' ''
+testcmd 'read 1' '-f foo 0x8 1' '0x68\n' '' ''
+testcmd 'read 2' '-f foo 0x8 2' '0x6568\n' '' ''
+testcmd 'read 4' '-f foo 0x8 4' '0x6c6c6568\n' '' ''
+testcmd 'read 8' '-f foo 0x8 8' '0x77202c6f6c6c6568\n' '' ''
+
+testcmd 'read --no-mmap default (4)' '--no-mmap -f foo 0x8' '0x6c6c6568\n' '' ''
+testcmd 'read --no-mmap 1' '--no-mmap -f foo 0x8 1' '0x68\n' '' ''
+testcmd 'read --no-mmap 2' '--no-mmap -f foo 0x8 2' '0x6568\n' '' ''
+testcmd 'read --no-mmap 4' '--no-mmap -f foo 0x8 4' '0x6c6c6568\n' '' ''
+testcmd 'read --no-mmap 8' '--no-mmap -f foo 0x8 8' '0x77202c6f6c6c6568\n' '' ''
+
+head -c 32 /dev/zero > foo
+NOSPACE=1 testcmd 'write 1' '-f foo 0x8 1 0x12 && od -t x foo' '0000000 00000000 00000000 00000012 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write 2' '-f foo 0x8 2 0x1234 && od -t x foo' '0000000 00000000 00000000 00001234 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write 4' '-f foo 0x8 4 0x12345678 && od -t x foo' '0000000 00000000 00000000 12345678 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write 8' '-f foo 0x8 8 0x12345678abcdef01 && od -t x foo' '0000000 00000000 00000000 abcdef01 12345678\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+
+head -c 32 /dev/zero > foo
+NOSPACE=1 testcmd 'write --no-mmap 1' '--no-mmap -f foo 0x8 1 0x12 && od -t x foo' '0000000 00000000 00000000 00000012 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write --no-mmap 2' '--no-mmap -f foo 0x8 2 0x1234 && od -t x foo' '0000000 00000000 00000000 00001234 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write --no-mmap 4' '--no-mmap -f foo 0x8 4 0x12345678 && od -t x foo' '0000000 00000000 00000000 12345678 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write --no-mmap 8' '--no-mmap -f foo 0x8 8 0x12345678abcdef01 && od -t x foo' '0000000 00000000 00000000 abcdef01 12345678\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+
+head -c 32 /dev/zero > foo
+NOSPACE=1 testcmd 'write 1 multiple' '-f foo 0x8 1 0x12 0x34 && od -t x foo' '0000000 00000000 00000000 00003412 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write 2 multiple' '-f foo 0x8 2 0x1234 0x5678 && od -t x foo' '0000000 00000000 00000000 56781234 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write 4 multiple' '-f foo 0x8 4 0x12345678 0xabcdef01 && od -t x foo' '0000000 00000000 00000000 12345678 abcdef01\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write 8 multiple' '-f foo 0x8 8 0x12345678abcdef01 0x1122334455667788 && od -t x foo' '0000000 00000000 00000000 abcdef01 12345678\n0000020 55667788 11223344 00000000 00000000\n0000040\n' '' ''
+
+head -c 32 /dev/zero > foo
+NOSPACE=1 testcmd 'write --no-mmap 1 multiple' '--no-mmap -f foo 0x8 1 0x12 0x34 && od -t x foo' '0000000 00000000 00000000 00003412 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write --no-mmap 2 multiple' '--no-mmap -f foo 0x8 2 0x1234 0x5678 && od -t x foo' '0000000 00000000 00000000 56781234 00000000\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write --no-mmap 4 multiple' '--no-mmap -f foo 0x8 4 0x12345678 0xabcdef01 && od -t x foo' '0000000 00000000 00000000 12345678 abcdef01\n0000020 00000000 00000000 00000000 00000000\n0000040\n' '' ''
+NOSPACE=1 testcmd 'write --no-mmap 8 multiple' '--no-mmap -f foo 0x8 8 0x12345678abcdef01 0x1122334455667788 && od -t x foo' '0000000 00000000 00000000 abcdef01 12345678\n0000020 55667788 11223344 00000000 00000000\n0000040\n' '' ''

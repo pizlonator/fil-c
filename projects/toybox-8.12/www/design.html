@@ -1,0 +1,787 @@
+<html><head><title>The design of toybox</title></head>
+<!--#include file="header.html" -->
+
+<h2>Topics</h2>
+<ul>
+<li><a href=#goals><h3>Design Goals</h3></a></li>
+<li><a href=#portability><h3>Portability Issues</h3></a></li>
+<li><a href=#license><h3>License</a></h3></a></li>
+<li><a href=#codestyle><h3>Coding Style</h3></a></li>
+</ul>
+<hr />
+
+<a name="goals"><b><h2><a href="#goals">Design goals</a></h2></b>
+
+<p>Toybox should be simple, small, fast, and full featured. In that order.</p>
+
+<p>It should be possible to get about <a href=https://en.wikipedia.org/wiki/Pareto_principle>80% of the way</a> to each goal
+before they really start to fight.
+When these goals need to be balanced off against each other, keeping the code
+as simple as it can be to do what it does is the most important (and hardest)
+goal. Then keeping it small is slightly more important than making it fast.
+Features are the reason we write code in the first place but this has all
+been implemented before so if we can't do a better job why bother?</p>
+
+<b><h3>Features</h3></b>
+
+<p>Toybox should provide the command line utilities of a build
+environment capable of recompiling itself under itself from source code.
+This minimal build system conceptually consists of 4 parts: toybox,
+a C library, a compiler, and a kernel. Toybox needs to provide all the
+commands (with all the behavior) necessary to run the configure/make/install
+of each package and boot the resulting system into a usable state.</p>
+
+<p>In addition, it should be possible to bootstrap up to arbitrary complexity
+under the result by compiling and installing additional packages into this
+minimal system, as measured by building both Linux From Scratch and the
+Android Open Source Project under the result. Any "circular dependencies"
+should be solved by toybox including the missing dependencies itself
+(see "Shared Libraries" below).</p>
+
+<p>Toybox may also provide some "convenience" utilties
+like top and vi that aren't necessarily used in a build but which turn
+the minimal build environment into a minimal development environment
+(supporting edit/compile/test cycles in a text console), configure
+network infrastructure for communication with other systems (in a build
+cluster), and so on.</p>
+
+<p>And these days toybox is the command line of Android, so anything the android
+guys say to do gets at the very least closely listened to.</p>
+
+<p>The hard part is deciding what NOT to include. A project without boundaries
+will bloat itself to death. One of the hardest but most important things a
+project must do is draw a line and say "no, this is somebody else's problem,
+not something we should do."
+Some things are simply outside the scope of the project: even though
+posix defines commands for compiling and linking, we're not going to include
+a compiler or linker (and support for a potentially infinite number of hardware
+targets). And until somebody comes up with a ~30k ssh implementation (with
+a crypto algorithm that won't need replacing every 5 years), we're
+going to point you at dropbear or bearssl.</p>
+
+<p>The <a href=roadmap.html>roadmap</a> has the list of features we're
+trying to implement, and the reasons why we decided to include those
+features. After the 1.0 release some of that material may get moved here,
+but for now it needs its own page. The <a href=status.html>status</a>
+page shows the project's progress against the roadmap.</p>
+
+<p>There are potential features (such as a screen/tmux implementation)
+that might be worth adding after 1.0, in part because they could share
+infrastructure with things like "less" and "vi" so might be less work for
+us to do than for an external from scratch implementation. But for now, major
+new features outside posix, android's existing commands, and the needs of
+development systems, are a distraction from the 1.0 release.</p>
+
+<b><h3>Speed</h3></b>
+
+<p>Quick smoketest: use the "time" command, and if you haven't got a test
+case that's embarassing enough to motivate digging, move on.</p>
+
+<p>It's easy to say a lot about optimizing for speed (which is why this section
+is so long), but at the same time it's the optimization we care the least about.
+The essence of speed is being as efficient as possible, which means doing as
+little work as possible.  A design that's small and simple gets you 90% of the
+way there, and most of the rest is either fine-tuning or more trouble than
+it's worth (and often actually counterproductive).  Still, here's some
+advice:</p>
+
+<p>First, understand the darn problem you're trying to solve.  You'd think
+I wouldn't have to say this, and yet.  Trying to find a faster sorting
+algorithm is no substitute for figuring out a way to skip the sorting step
+entirely.  The fastest way to do anything is not to have to do it at all,
+and _all_ optimization boils down to avoiding unnecessary work.</p>
+
+<p>Speed is easy to measure; there are dozens of profiling tools for Linux,
+but sticking in calls to "millitime()" out of lib.c and subtracting
+(or doing two clock_gettime() calls and then nanodiff() on them) is
+quick and easy. Don't waste too much time trying to optimize something you
+can't measure, and there's no much point speeding up things you don't spend
+much time doing anyway.</p>
+
+<p>Understand the difference between throughput and latency.  Faster
+processors improve throughput, but don't always do much for latency.
+After 30 years of Moore's Law, most of the remaining problems are latency,
+not throughput.  (There are of course a few exceptions, like data compression
+code, encryption, rsync...)  Worry about throughput inside long-running
+loops, and worry about latency everywhere else.  (And don't worry too much
+about avoiding system calls or function calls or anything else in the name
+of speed unless you are in the middle of a tight loop that's you've already
+proven isn't running fast enough.)</p>
+
+<p>The lowest hanging optimization fruit is usually either "don't make
+unnecessary copies of data" or "use a reasonable block size in your
+I/O transactions instead of byte-at-a-time".
+Start by looking for those, most of the rest of this advice is just explaining
+why they're bad.</p>
+
+<p>"Locality of reference" is generally nice, in all sorts of contexts.
+It's obvious that waiting for disk access is 1000x slower than doing stuff in
+RAM (and making the disk seek is 10x slower than sequential reads/writes),
+but it's just as true that a loop which stays in L1 cache is many times faster
+than a loop that has to wait for a DRAM fetch on each iteration.  Don't worry
+about whether "&" is faster than "%" until your executable loop stays in L1
+cache and the data access is fetching cache lines intelligently.  (To
+understand DRAM, L1, and L2 cache, read Hannibal's marvelous ram guide at Ars
+Technica:
+<a href=http://arstechnica.com/paedia/r/ram_guide/ram_guide.part1-2.html>part one</a>,
+<a href=http://arstechnica.com/paedia/r/ram_guide/ram_guide.part2-1.html>part two</a>,
+<a href=http://arstechnica.com/paedia/r/ram_guide/ram_guide.part3-1.html>part three</a>,
+plus this
+<a href=http://arstechnica.com/articles/paedia/cpu/caching.ars/1>article on
+cacheing</a>, and this one on
+<a href=http://arstechnica.com/articles/paedia/cpu/bandwidth-latency.ars>bandwidth
+and latency</a>.
+And there's <a href=http://arstechnica.com/paedia/index.html>more where that came from</a>.)
+Running out of L1 cache can execute one instruction per clock cycle, going
+to L2 cache costs a dozen or so clock cycles, and waiting for a worst case dram
+fetch (round trip latency with a bank switch) can cost thousands of
+clock cycles.  (Historically, this disparity has gotten worse with time,
+just like the speed hit for swapping to disk.  These days, a _big_ L1 cache
+is 128k and a big L2 cache is a couple of megabytes.  A cheap low-power
+embedded processor may have 8k of L1 cache and no L2.)</p>
+
+<p>Learn how <a href=http://nommu.org/memory-faq.txt>virtual memory and
+memory managment units work</a>.  Don't touch
+memory you don't have to.  Even just reading memory evicts stuff from L1 and L2
+cache, which may have to be read back in later.  Writing memory can force the
+operating system to break copy-on-write, which allocates more memory.  (The
+memory returned by malloc() is only a virtual allocation, filled with lots of
+copy-on-write mappings of the zero page.  Actual physical pages get allocated
+when the copy-on-write gets broken by writing to the virtual page.  This
+is why checking the return value of malloc() isn't very useful anymore, it
+only detects running out of virtual memory, not physical memory.  Unless
+you're using a <a href=http://nommu.org>NOMMU system</a>, where all bets
+are off.)</p>
+
+<p>Don't think that just because you don't have a swap file the system can't
+start swap thrashing: any file backed page (ala mmap) can be evicted, and
+there's a reason all running programs require an executable file (they're
+mmaped, and can be flushed back to disk when memory is short).  And long
+before that, disk cache gets reclaimed and has to be read back in.  When the
+operating system really can't free up any more pages it triggers the out of
+memory killer to free up pages by killing processes (the alternative is the
+entire OS freezing solid).  Modern operating systems seldom run out of
+memory gracefully.</p>
+
+<p>It's usually better to be simple than clever. Many people think that mmap()
+is faster than read() because it avoids a copy, but twiddling with the memory
+management is itself slow, and can cause unnecessary CPU cache flushes.  And
+if a read faults in dozens of pages sequentially, but your mmap iterates
+backwards through a file (causing lots of seeks, each of which your program
+blocks waiting for), the read can be many times faster.  On the other hand, the
+mmap can sometimes use less memory, since the memory provided by mmap
+comes from the page cache (allocated anyway), and it can be faster if you're
+doing a lot of different updates to the same area.  The moral?  Measure, then
+try to speed things up, and measure again to confirm it actually _did_ speed
+things up rather than made them worse.  (And understanding what's really going
+on underneath is a big help to making it happen faster.)</p>
+
+<p>Another reason to be simple than clever is optimization
+strategies change with time.  For example, decades ago precalculating a table
+of results (for things like isdigit() or cosine(int degrees)) was clearly
+faster because processors were so slow.  Then processors got faster and grew
+math coprocessors, and calculating the value each time became faster than
+the table lookup (because the calculation fit in L1 cache but the lookup
+had to go out to DRAM).  Then cache sizes got bigger (the Pentium M has
+2 megabytes of L2 cache) and the table fit in cache, so the table became
+fast again...  Predicting how changes in hardware will affect your algorithm
+is difficult, and using ten year old optimization advice can produce
+laughably bad results.  Being simple and efficient should give at least a
+reasonable starting point.</p>
+
+<p>Even at the design level, a lot of simple algorithms scale terribly but
+perform fine with small data sets. When small datasets are the common case,
+"better" versions that trade higher throughput for worse latency can
+consistently perform worse.
+So if you think you're only ever going to feed the algorithm small data sets,
+maybe just do the simple thing and wait for somebody to complain. For example,
+you probably don't need to sort and binary search the contents of
+/etc/passwd, because even 50k users is still a reasonably manageable data
+set for a readline/strcmp loop, and that's the userbase of a fairly major
+<a href=https://en.wikipedia.org/wiki/List_of_United_States_public_university_campuses_by_enrollment>university</a>.
+Instead commands like "ls" call bufgetpwuid() out of lib/lib.c
+which keeps a linked list of recently seen items, avoiding reparsing entirely
+and trusting locality of reference to bring up the same dozen or so entries
+for "ls -l /dev" or similar. The pathological failure mode of "simple
+linked list" is to perform exactly as badly as constantly rescanning a
+huge /etc/passwd, so this simple optimization shouldn't ever make performance
+worse (modulo possible memory exhaustion and thus swap thrashing).
+On the other hand, toybox's multiplexer does sort and binary
+search its command list to minimize the latency of each command startup,
+because the sort is a compile-time cost done once per build,
+and the whole of command startup
+is a "hot path" that should do as little work as possible because EVERY
+command has to go through it every time before performing any other function
+so tiny gains are worthwhile. (These decisions aren't perfect, the point is
+to show that thought went into them.)</p>
+
+<p>The famous quote from Ken Thompson, "When in doubt, use brute force",
+applies to toybox.  Do the simple thing first, do as little of it as possible,
+and make sure it's right.  You can always speed it up later.</p>
+
+<b><h3>Size</h3></b>
+<p>Quick smoketest: build toybox with and without the command (or the change),
+and maybe run "nm --size-sort" on files in generated/unstripped.
+(See make bloatcheck below for toybox's built in nm size diff-er.)</p>
+
+<p>Again, being simple gives you most of this. An algorithm that does less work
+is generally smaller. Understand the problem, treat size as a cost, and
+get a good bang for the byte.</p>
+
+<p>What "size" means depends on context: there are at least a half dozen
+different metrics in two broad categories: space used on disk/flash/ROM,
+and space used in memory at runtime.</p>
+
+<p>Your executable file has at least
+four main segments (text = executable code, rodata = read only data,
+data = writeable variables initialized to a value other than zero,
+bss = writeable data initialized to zero). Text and rodata are shared between multiple instances of the program running
+simultaneously, the other 4 aren't. Only text, rodata, and data take up
+space in the binary, bss, stack and heap only matter at runtime. You can
+view toybox's symbols with "nm generated/unstripped/toybox", the T/R/D/B
+lets you know the segment the symbol lives in. (Lowercase means it's
+local/static.)</p>
+
+<p>Then at runtime there's
+heap size (where malloc() memory lives) and stack size (where local
+variables and function call arguments and return addresses live). And
+on 32 bit systems mmap() can have a constrained amount of virtual memory
+(usually a couple gigabytes: the limits on 64 bit systems are generally big
+enough it doesn't come up)</p>
+
+<p>Optimizing for binary size is generally good: less code is less to go
+wrong, and executing fewer instructions makes your program run faster (and
+fits more of it in cache). On embedded systems, binary size is especially
+precious because flash is expensive and code may need binary auditing for
+security. Small stack size
+is important for nommu systems because they have to preallocate their stack
+and can't make it bigger via page fault. And everybody likes a small heap.</p>
+
+<p>Measure the right things. Especially with modern optimizers, expecting
+something to be smaller is no guarantee it will be after the compiler's done
+with it. Will total binary size is the final result, it isn't always the most
+accurate indicator of the impact of a given change, because lots of things
+get combined and rounded during compilation and linking (and things like
+ASAN disable optimization). Toybox has scripts/bloatcheck to compare two versions
+of a program and show size changes in each symbol (using "nm --size-sort").
+You can "make baseline" to build a baseline version to compare against,
+and then apply your changes and "make bloatcheck" to compare against
+the saved baseline version.</p>
+
+<p>Avoid special cases. Whenever you see similar chunks of code in more than
+one place, it might be possible to combine them and have the users call shared
+code (perhaps out of lib/*.c). This is the most commonly cited trick, which
+doesn't make it easy to work out HOW to share. If seeing two lines of code do
+the same thing makes you slightly uncomfortable, you've got the right mindset,
+but "reuse" requires the "re" to have benefit, and infrastructure in search
+of a user will generally bit-rot before it finds one.</p>
+
+<p>The are a lot of potential microoptimizations (on some architectures
+using char instead of int as a loop index is noticeably slower, on some
+architectures C bitfields are surprisingly inefficient, & is often faster
+than % in a tight loop, conditional assignment avoids branch prediction
+failures...) but they're generally not worth doing unless you're trying to
+speed up the middle of a tight inner loop chewing through a large amount
+of data (such as a compression algorithm). For data pumps sane blocking
+and fewer system calls (buffer some input/output and do a big read/write
+instead of a bunch of little small ones) is usually the big win. But
+be careful about cacheing stuff: the two persistently hard problems in computer
+science are naming things, cache coherency, and off by one errors.</p>
+
+<b><h3>Simplicity</h3></b>
+
+<p>Complexity is a cost, just like code size or runtime speed. Treat it as
+a cost, and spend your complexity budget wisely. (Sometimes this means you
+can't afford a feature because it complicates the code too much to be
+worth it.)</p>
+
+<p>Simplicity has lots of benefits.  Simple code is easy to maintain, easy to
+port to new processors, easy to audit for security holes, and easy to
+understand.</p>
+
+<p>Simplicity itself can have subtle non-obvious aspects requiring a tradeoff
+between one kind of simplicity and another: simple for the computer to
+execute and simple for a human reader to understand aren't always the
+same thing. A compact and clever algorithm that does very little work may
+not be as easy to explain or understand as a larger more explicit version
+requiring more code, memory, and CPU time. When balancing these, err on the
+side of doing less work, but add comments describing how you
+could be more explicit.</p>
+
+<p>In general, comments are not a substitute for good code (or well chosen
+variable or function names). Commenting "x += y;" with "/* add y to x */"
+can actually detract from the program's readability. If you need to describe
+what the code is doing (rather than _why_ it's doing it), that means the
+code itself isn't very clear.</p>
+
+<p>Environmental dependencies are another type of complexity, so needing other
+packages to build or run is a big downside. For example, we don't use curses
+when we can simply output ansi escape sequences and trust all terminal
+programs written in the past 30 years to be able to support them. Regularly
+testing that we work with C libraries which support static linking (musl does,
+glibc doesn't) is another way to be self-contained with known boundaries:
+it doesn't have to be the only way to build the project, but should be regularly
+tested and supported.</p>
+
+<p>Prioritizing simplicity tends to serve our other goals: simplifying code
+generally reduces its size (both in terms of binary size and runtime memory
+usage), and avoiding unnecessary work makes code run faster. Smaller code
+also tends to run faster on modern hardware due to CPU cacheing: fitting your
+code into L1 cache is great, and staying in L2 cache is still pretty good.</p>
+
+<p>But a simple implementation is not always the smallest or fastest, and
+balancing simplicity vs the other goals can be difficult. For example, the
+atolx_range() function in lib/lib.c always uses the 64 bit "long long" type,
+which produces larger and slower code on 32 bit platforms and
+often assigned into smaller interger types. Although libc has parallel
+implementations for different data sizes (atoi, atol, atoll) we chose a
+common codepath which can cover all cases (every user goes through the
+same codepath, with the maximum amount of testing and minimum and avoids
+surprising variations in behavior).</p>
+
+<p>On the other hand, the "tail" command has two codepaths, one for seekable
+files and one for nonseekable files. Although the nonseekable case can handle
+all inputs (and is required when input comes from a pipe or similar, so cannot
+be removed), reading through multiple gigabytes of data to reach the end of
+seekable files was both a common case and hugely penalized by a nonseekable
+approach (half-minute wait vs instant results). This is one example
+where performance did outweigh simplicity of implementation.</p>
+
+<p><a href=http://www.joelonsoftware.com/articles/fog0000000069.html>Joel
+Spolsky argues against throwing code out and starting over</a>, and he has
+good points: an existing debugged codebase contains a huge amount of baked
+in knowledge about strange real-world use cases that the designers didn't
+know about until users hit the bugs, and most of this knowledge is never
+explicitly stated anywhere except in the source code.</p>
+
+<p>That said, the Mythical Man-Month's "build one to throw away" advice points
+out that until you've solved the problem you don't properly understand it, and
+about the time you finish your first version is when you've finally figured
+out what you _should_ have done.  (The corrolary is that if you build one
+expecting to throw it away, you'll actually wind up throwing away two.  You
+don't understand the problem until you _have_ solved it.)</p>
+
+<p>Joel is talking about what closed source software can afford to do: Code
+that works and has been paid for is a corporate asset not lightly abandoned.
+Open source software can afford to re-implement code that works, over and
+over from scratch, for incremental gains.  Before toybox, the unix command line
+has already been reimplemented from scratch several times (the
+original AT&amp;T Unix command line in assembly and then in C, the BSD
+versions, Coherent was the first full from-scratch Unix clone in 1980,
+Minix was another clone which Linux was inspired by and developed under,
+the GNU tools were yet another rewrite intended for use in the stillborn
+"Hurd" project, BusyBox was still another rewrite, and more versions
+were written in Plan 9, uclinux, klibc, sash, sbase, s6, and of course
+android toolbox...). But maybe toybox can do a better job. :)</p>
+
+<p>As Antoine de St. Exupery (author of "The Little Prince" and an early
+aircraft designer) said, "Perfection is achieved, not when there
+is nothing left to add, but when there is nothing left to take away."
+And Ken Thompson (creator of Unix) said "One of my most productive
+days was throwing away 1000 lines of code." It's always possible to
+come up with a better way to do it.</p>
+
+<p>P.S. How could I resist linking to an article about
+<a href=http://blog.outer-court.com/archive/2005-08-24-n14.html>why
+programmers should strive to be lazy and dumb</a>?</p>
+
+<hr>
+<a name="portability"><b><h2><a href="#portability">Portability issues</a></h2></b>
+
+<b><h3>Platforms</h3></b>
+<p>Toybox should run on Android (all commands with musl-libc, as large a subset
+as practical with bionic), and every other hardware platform Linux runs on.
+Other posix/susv4 environments (perhaps MacOS X or newlib+libgloss) are vaguely
+interesting but only if they're easy to support; I'm not going to spend much
+effort on them.</p>
+
+<p>I don't do windows.</p>
+
+<a name="standards" />
+<b><h3>Standards</h3></b>
+
+<p>Toybox is implemented with reference to
+<a href=https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf>c11</a>,
+<a href=roadmap.html#susv4>Posix 2008</a>,
+<a href=#bits>LP64</a>,
+<a href=roadmap.html#sigh>LSB 4.1</a>,
+the <a href=https://www.kernel.org/doc/man-pages/>Linux man pages</a>,
+various <a href=https://www.rfc-editor.org/rfc-index.html>IETF RFCs</a>,
+the linux kernel source's
+<a href=https://www.kernel.org/doc/Documentation/>Documentation</a> directory,
+utf8 and unicode, and our terminal control outputs ANSI
+<a href=https://man7.org/linux/man-pages/man4/console_codes.4.html>escape sequences</a>.
+Toybox gets <a href=faq.html#cross>tested</a> with gcc and llvm on glibc,
+musl-libc, and bionic, plus occasional <a href=https://github.com/landley/toybox/blob/master/kconfig/freebsd_miniconfig>FreeBSD</a> and
+<a href=https://github.com/landley/toybox/blob/master/kconfig/macos_miniconfig>MacOS</a> builds for subsets
+of the commands.</p>
+
+<p>For the build environment and runtime environment, toybox depends on
+posix-2008 libc features such as the openat() family of
+functions. We also root around in the linux /proc directory a lot (no other
+way to implement "ps" at the moment), and assume certain "modern" linux kernel
+behavior (for example <a href=https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b6a2fea39318>linux 2.6.22</a>
+expanded the 128k process environment size limit to 2 gigabytes, then it was
+trimmed back down to 10 megabytes, and when I asked for a way to query the
+actual value from the kernel if it was going to keep changing
+like that <a href=https://lkml.org/lkml/2017/11/5/204>Linus declined</a>).
+We make an effort to support <a href=faq.html#support_horizon>older kernels</a>
+and other implementations (primarily MacOS and BSD) but we don't always
+police their corner cases very closely.</p>
+
+<p><b>Why not just use the newest version of each standard?</b>
+
+<p>Partly to <a href=faq.html#support_horizon>support older systems</a>:
+you can't fix a bug in the old system if you can't build in the old
+environment.</p>
+
+<p>Partly because toybox's maintainer has his own corollary to Moore's law:
+50% of what you know about programming is obsolete every 18
+months, but the advantage of C &amp; Unix it's usually the same 50% cycling
+out over and over.</p>
+
+<p>But mostly because the updates haven't added anything we care about.
+Posix-2008 switched some things to larger (64 bit) data types and added the
+openat() family of functions (which take a directory filehandle instead of
+using the Current Working Directory),
+but the 2013 and 2018 releases of posix were basically typo fixes: still
+release 7, still SUSv4. (An eventual release 8 might be interesting but
+it's not out yet.)</p>
+
+<p>We're nominally C11 but mostly just writing good old ANSI C (I.E. C89).
+We use a few of the new features like compound literals (6.5.2.5) and structure
+initialization by member name with unnamed members zeroed (6.7.9),
+but mostly we "officially" went from c99 to C11 to work around a
+<a href=https://github.com/landley/toybox/commit/3625a260065b>clang compiler bug</a>.
+The main thing we use from c99 that c89 hadn't had was // single line comments.
+(We mostly don't even use C99's explicit width data types, ala uint32_t and
+friends, because LP64 handles that for us.)</p>
+
+<p>We're ignoring new versions of the Linux Foundation's standards (LSB, FHS)
+entirely, for the same reason Debian is: they're not good at maintaining
+standards. (The Linux Foundation acquiring the Free Standards Group worked
+out about as well as Microsoft buying Nokia, Twitter buying Vine, Yahoo
+buying Flickr...)</p>
+
+<p>We refer to current versions of man7.org because it's
+not easily versioned (the website updates regularly) and because
+Michael Kerrisk does a good job maintaining it so far. That said, we
+try to "provide new" in our commands but "depend on old" in our build scripts.
+(For example, we didn't start using "wait -n" until it had been in bash for 7
+years, and even then people depending on Centos' 10 year support horizon
+complained.)</p>
+
+<p>Using newer vs older RFCs, and upgrading between versions, is a per-case
+judgement call.</p>
+
+<p><b>How strictly do you adhere to these standards?</b>
+
+<p>...ish? The man pages have a lot of stuff that's not in posix,
+and there's no "init" or "mount" in posix, you can't implement "ps"
+without replying on non-posix APIs....</p>
+
+<p>When the options a command offers visibly contradict posix, we try to have
+a "deviations from posix" section at the top of the source listing the
+differences, but that's about what we provide not what we used from the OS
+or build environment.</p>
+
+<p>The build needs bash (not a pure-posix sh), and building on MacOS requires
+"gsed" (because Mac's sed is terrible), but toybox is explicitly self-hosting
+and any failure to build under the tool versions we provide would be a bug
+needing to be fixed.</p>
+
+<p>Within the code, everything in main.c and lib/*.c has to build
+on every supported Linux version, compiler, and library, plus BSD and MacOS.
+We mostly try to keep #if/else staircases for portability issues to
+lib/portability.[ch].</p>
+
+<p>Portability of individual commands varies: we sometimes program directly
+against linux kernel APIs (unavoidable when accessing /proc and /sys),
+individual commands are allowed to #include &lt;linux/*.h&gt; (common
+headers and library files are not, except maybe lib/portability.* within an
+appropriate #ifdef),  we only really test against Linux errno values
+(unless somebody on BSD submits a bug), and a few commands outright cheat
+(the way ifconfig checks for ioctl numbers in the 0x89XX range). This is
+the main reason some commands build on BSD/MacOS and some don't.</p>
+
+<a name="bits" />
+<b><h3>32/64 bit</h3></b>
+<p>Toybox should work on both 32 bit and 64 bit systems. 64 bit desktop
+hardware went mainstream <a href=https://web.archive.org/web/20040307000108mp_/http://developer.intel.com/technology/64bitextensions/faq.htm>in 2005</a>
+and was essentially ubiquitous <a href=faq.html#support_horizon>by 2012</a>,
+but 32 bit hardware will continue to be important in embedded devices for years to come.</p>
+
+<p>Toybox relies on the
+<a href=http://archive.opengroup.org/public/tech/aspen/lp64_wp.htm>LP64 standard</a>
+which Linux, MacOS X, and BSD all implement, and which modern 64 bit processors such as
+x86-64 were <a href=http://www.pagetable.com/?p=6>explicitly designed to
+support</a>. (Here's the original <a href=https://web.archive.org/web/20020905181545/http://www.unix.org/whitepapers/64bit.html>LP64 white paper</a>.)</p>
+
+<p>LP64 defines explicit sizes for all the basic C integer types, and
+guarantees that on any Unix-like platform "long" and "pointer" types
+are always the same size (the processor's register size).
+This means it's safe to assign pointers into
+longs and vice versa without losing data: on 32 bit systems both are 32 bit,
+on 64 bit systems both are 64 bit.</p>
+
+<table border=1 cellpadding=10 cellspacing=2>
+<tr><td>C type</td><td>char</td><td>short</td><td>int</td><td>long</td><td>long long</td></tr>
+<tr><td>32 bit<br />sizeof</td><td>8 bits</td><td>16 bits</td><td>32 bits</td><td>32 bits</td><td>64 bits</td></tr>
+<tr><td>64 bit<br />sizeof</td><td>8 bits</td><td>16 bits</td><td>32 bits</td><td>64 bits</td><td>64 bits</td></tr>
+</table>
+
+<p>LP64 eliminates the need to use c99 "uint32_t" and friends: the basic
+C types all have known size/behavior, and the only type whose
+size varies is "long", which is the natural register size of the processor.</p>
+
+<p>Note that Windows doesn't work like this, and I don't care, but if you're
+curious here are <a href=https://devblogs.microsoft.com/oldnewthing/20050131-00/?p=36563>the insane legacy reasons why this is broken on Windows</a>.</a></p>
+
+<p>The main squishy bit in LP64 is that "long long" was defined as
+"at least" 64 bits instead of "exactly" 64 bits, and the standards body
+that issued it collapsed in the wake of the <a href=https://en.wikipedia.org/wiki/Unix_wars>proprietary unix wars</a> (all
+those lawsuits between AT&amp;T/BSDI/Novell/Caldera/SCO), so is
+not available to issue an official correction. Then again a processor
+with 128-bit general purpose registers wouldn't be commercially viable
+<a href=https://landley.net/notes-2011.html#26-06-2011>until 2053</a>
+(because 2005+32*1.5), and with the S-curve of Moore's Law slowly
+<a href=http://www.acm.org/articles/people-of-acm/2016/david-patterson>bending back down</a> as
+atomic limits and <a href=http://www.cnet.com/news/end-of-moores-law-its-not-just-about-physics/>exponential cost increases</a> produce increasing
+drag.... (The original Moore's Law curve would mean that in the year 2022
+a high end workstation would have around 8 terabytes of RAM, available retail.
+Most don't even come with
+that much disk space.) At worst we don't need to care for decades, the
+S-curve bending down means probably not in our lifetimes, and
+atomic limits may mean "never". So I'm ok treating "long long" as exactly 64 bits.</p>
+
+<b><h3>Signedness of char</h3></b>
+<p>On platforms like x86, variables of type char default to unsigned.  On
+platforms like arm, char defaults to signed.  This difference can lead to
+subtle portability bugs, and to avoid them we specify which one we want by
+feeding the compiler -funsigned-char.</p>
+
+<p>The reason to pick "unsigned" is that way char strings are 8-bit clean by
+default, which makes UTF-8 support easier.</p>
+
+<p><h3>Error messages and internationalization</h3></p>
+
+<p>Error messages are extremely terse not just to save bytes, but because we
+don't use any sort of _("string") translation infrastructure. (We're not
+translating the command names themselves, so we must expect a minimum amount of
+english knowledge from our users, but let's keep it to a minimum.)</p>
+
+<p>Thus "bad -A '%c'" is
+preferable to "Unrecognized address base '%c'", because a non-english speaker
+can see that -A was the problem (giving back the command line argument they
+supplied). A user with a ~20 word english vocabulary is
+more likely to know (or guess) "bad" than the longer message, and you can
+use "bad" in place of "invalid", "inappropriate", "unrecognized"...
+Similarly when atolx_range() complains about range constraints with
+"4 < 17" or "12 > 5", it's intentional: those don't need to be translated.</p>
+
+<p>The strerror() messages produced by perror_exit() and friends should be
+localized by libc, and our error functions also prepend the command name
+(which non-english speakers can presumably recognize already). Keep the
+explanation in between to a minimum, and where possible feed back the values
+they passed in to identify _what_ we couldn't process.
+If you say perror_exit("setsockopt"), you've identified the action you
+were trying to take, and the perror gives a translated error message (from libc)
+explaining _why_ it couldn't do it, so you probably don't need to add english
+words like "failed" or "couldn't assign".</p>
+
+<p>All commands should be 8-bit clean, with explicit
+<a href=http://yarchive.net/comp/linux/utf8.html>UTF-8</a> support where
+necessary. Assume all input data might be utf8, and at least preserve
+it and pass it through. (For this reason, our build is -funsigned-char on
+all architectures; "char" is unsigned unless you stick "signed" in front
+of it.)</p>
+
+<p>Locale support isn't currently a goal; that's a presentation layer issue
+(I.E. a GUI problem).</p>
+
+<p>Someday we should probably have translated --help text, but that's a
+post-1.0 issue.</p>
+
+<p><h3>Help text</h3></p>
+
+<p>Each command's help text tries to briefly answer the questions "what does
+this command do" and "how do I use it". There's a usage: line, basic
+description, list of command line options (mostly in alphabetical order),
+and sometimes additional explanation at the end. Default values and --longopts
+are usually in parentheses on the end of an option's explanation line.</p>
+
+<p>Toybox silently accepts a lot of compatibility flags like <b>patch -u</b>
+that aren't in the help text to work with existing scripts, but may not
+mention options that don't help write new scripts (mostly synonyms and NOPs).</p>
+
+<p><h3>Shared Libraries</h3></p>
+
+<p>Toybox's policy on shared libraries is that they should never be
+required, but can optionally be used to improve performance.</p>
+
+<p>Toybox should provide the command line utilities for
+<a href=roadmap.html#dev_env>self-hosting development envirionments</a>,
+and an easy way to set up "hermetic builds" (I.E. builds which provide
+their own dependencies, isolating the build logic from host command version
+skew with a simple known build environment). In both cases, external
+dependencies defeat the purpose.</p>
+
+<p>This means toybox should provide full functionality without relying
+on any external dependencies (other than libc). But toybox may optionally use
+libraries such as zlib and openssl to improve performance for things like
+deflate and sha1sum, which lets the corresponding built-in implementations
+be simple (and thus slow). But the built-in implementations need to exist and
+work.</p>
+
+<p>(This is why we use an external https wrapper program, because depending on
+openssl or similar to be linked in would change the behavior of toybox.)</p>
+
+<hr /><a name="license" /><h2>License</h2>
+
+<p>Toybox is licensed <a href=license.html>0BSD</a>, which is a public domain
+equivalent license approved by <a href=https://spdx.org/licenses/0BSD.html>SPDX</a>. This works like other BSD licenses except that it doesn't
+require copying specific license text into the resulting project when
+you copy code. (We care about attribution, not ownership, and the internet's
+really good at pointing out plagiarism.)</p>
+
+<p>This means toybox usually can't use external code contributions, and must
+implement new versions of everything unless the external code's original
+author (and any additional contributors) grants permission to relicense.
+Just as a GPLv2 project can't incorporate GPLv3 code and a BSD-licensed
+project can't incorporate either kind of GPL code, we can't incorporate
+most BSD or Apache licensed code without changing our license terms.</p>
+
+<p>The exception to this is code under an existing public domain equivalent
+license, such as the xz decompressor or
+<a href=https://github.com/mkj/dropbear/blob/master/libtommath/LICENSE>libtommath</a> and <a href=https://github.com/mkj/dropbear/blob/master/libtomcrypt/LICENSE>libtomcrypt</a>.</p>
+
+<hr /><a name="codestyle" /><h2>Coding style</h2>
+
+<p>The real coding style holy wars are over things that don't matter
+(whitespace, indentation, curly bracket placement...) and thus have no
+obviously correct answer. As in academia, "the fighting is so vicious because
+the stakes are so small". That said, being consistent makes the code readable,
+so here's how to make toybox code look like other toybox code.</p>
+
+<p>Toybox source uses two spaces per indentation level, and wraps at 80
+columns. (Indentation of continuation lines is awkward no matter what
+you do, sometimes two spaces looks better, sometimes indenting to the
+contents of a parentheses looks better.)</p>
+
+<p>I'm aware this indentation style creeps some people out, so here's
+the sed invocation to convert groups of two leading spaces to tabs:</p>
+<blockquote><pre>
+sed -i ':loop;s/^\( *\)  /\1\t/;t loop' filename
+</pre></blockquote>
+
+<p>And here's the sed invocation to convert leading tabs to two spaces each:</p>
+<blockquote><pre>
+sed -i ':loop;s/^\( *\)\t/\1  /;t loop' filename
+</pre></blockquote>
+
+<p>There's a space after C flow control statements that look like functions, so
+"if (blah)" instead of "if(blah)". (Note that sizeof is actually an
+operator, so we don't give it a space for the same reason ++ doesn't get
+one. Yeah, it doesn't need the parentheses either, but it gets them.
+These rules are mostly to make the code look consistent, and thus easier
+to read.) We also put a space around assignment operators (on both sides),
+so "int x = 0;".</p>
+
+<p>Blank lines (vertical whitespace) go between thoughts. "We were doing that,
+now we're doing this." (Not a hard and fast rule about _where_ it goes,
+but there should be some for the same reason writing has paragraph breaks.)</p>
+
+<p>Variable declarations go at the start of blocks, with a blank line between
+them and other code. Yes, c99 allowed you to put them anywhere, but they're
+harder to find if you do that. If there's a large enough distance between
+the declaration and the code using it to make you uncomfortable, maybe the
+function's too big, or is there an if statement or something you can
+use as an excuse to start a new closer block? Use a longer variable name
+that's easier to search for perhaps?</p>
+
+<p>An * binds to a variable name not a type name, so space it that way.
+(In C "char *a, b;" and "char* a, b;" mean the same thing: "a" is a pointer
+but "b" is not. Spacing it the second way is not how C works.)</p>
+
+<p>We wrap lines at 80 columns. Part of the reason for this I (toybox's
+founder Rob) have mediocre eyesight (so tend to increase the font size in
+terminal windows and web browsers), and program in a lot of coffee shops
+on laptops with a smallish sceen. I'm aware this <a href=http://lkml.iu.edu/hypermail/linux/kernel/2005.3/08168.html>exasperates Linus torvalds</a>
+(with his 8-character tab indents where just being in a function eats 8 chars
+and 4 more indent levels eats half of an 80 column terminal), but you've
+gotta break somewhere and even Linus admits there isn't another obvious
+place to do so. (80 columns came from punched cards, which came
+from civil war era dollar bill sorting boxes IBM founder Herman Hollerith
+bought secondhand when bidding to run the 1890 census. "Totally arbitrary"
+plus "100 yeas old" = standard.)</p>
+
+<p>If statements with a single line body go on the same line when the result
+fits in 80 columns, on a second line when it doesn't. We usually only use
+curly brackets if we need to, either because the body is multiple lines or
+because we need to distinguish which if an else binds to. Curly brackets go
+on the same line as the test/loop statement. The exception to both cases is
+if the test part of an if statement is long enough to split into multiple
+lines, then we put the curly bracket on its own line afterwards (so it doesn't
+get lost in the multple line variably indented mess), and we put it there
+even if it's only grouping one line (because the indentation level is not
+providing clear information in that case).</p>
+
+<p>I.E.</p>
+
+<blockquote>
+<pre>
+if (thingy) thingy;
+else thingy;
+
+if (thingy) {
+  thingy;
+  thingy;
+} else thingy;
+
+if (blah blah blah...
+    && blah blah blah)
+{
+  thingy;
+}
+</pre></blockquote>
+
+<p>Gotos are allowed for error handling, and for breaking out of
+nested loops. In general, a goto should only jump forward (not back), and
+should either jump to the end of an outer loop, or to error handling code
+at the end of the function. Goto labels are never indented: they override the
+block structure of the file. Putting them at the left edge makes them easy
+to spot as overrides to the normal flow of control, which they are.</p>
+
+<p>When there's a shorter way to say something, we tend to do that for
+consistency. For example, we tend to say "*blah" instead of "blah[0]" unless
+we're referring to more than one element of blah. Similarly, NULL is
+really just 0 (and C will automatically typecast 0 to anything, except in
+varargs), "if (function() != NULL)" is the same as "if (function())",
+"x = (blah == NULL);" is "x = !blah;", and so on.</p>
+
+<p>The goal is to be
+concise, not cryptic: if you're worried about the code being hard to
+understand, splitting it to multiple steps on multiple lines is
+better than a NOP operation like "!= NULL". A common sign of trying too
+hard is nesting ? : three levels deep, sometimes if/else and a temporary
+variable is just plain easier to read. If you think you need a comment,
+you may be right.</p>
+
+<p>Comments are nice, but don't overdo it. Comments should explain _why_,
+not how. If the code doesn't make the how part obvious, that's a problem with
+the code. Sometimes choosing a better variable name is more revealing than a
+comment. Comments on their own line are better than comments on the end of
+lines, and they usually have a blank line before them. Most of toybox's
+comments are c99 style // single line comments, even when there's more than
+one of them. The /* multiline */ style is used at the start for the metadata,
+but not so much in the code itself. They don't nest cleanly, are easy to leave
+accidentally unterminated, need extra nonfunctional * to look right, and if
+you need _that_ much explanation maybe what you really need is a URL citation
+linking to a standards document? Long comments can fall out of sync with what
+the code is doing. Comments do not get regression tested. There's no such
+thing as self-documenting code (if nothing else, code with _no_ comments
+is a bit unfriendly to new readers), but "chocolate sauce isn't the answer
+to bad cooking" either. Don't use comments as a crutch to explain unclear
+code if the code can be fixed.</p>
+
+<!--#include file="footer.html" -->

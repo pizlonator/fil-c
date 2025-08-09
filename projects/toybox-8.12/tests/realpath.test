@@ -1,0 +1,66 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+TOP="$(readlink -f .)"
+export PWD
+
+touch file
+mkdir -p one/two/three
+ln -s ./one uno
+ln -s one/two dos
+
+testcmd '' '.' "$TOP\n" '' ''
+testcmd 'missing' 'missing' "$TOP/missing\n" '' ''
+testcmd 'missing2' 'missing/sub 2>/dev/null || echo err' 'err\n' '' ''
+testcmd '-z' '-z . | tr "\0" X' "${TOP}X" '' ''
+testcmd 'file' 'file' "$TOP/file\n" '' ''
+testcmd 'dir' 'one/two/three' "$TOP/one/two/three\n" '' ''
+testcmd '--relative-to' '. --relative-to=one/two/three' '../../..\n' '' ''
+testcmd '--relative-to2' \
+  '-m --relative-to=missing/that/ uno/../dos/linux/../../bingeley/bongeley/beep' \
+  '../../one/bingeley/bongeley/beep\n' '' ''
+testcmd '--relative-to3' '-m walrus --relative-to walrus' '.\n' '' ''
+testcmd '--relative-to4' '"$PWD" --relative-to one' '..\n' '' ''
+testcmd '--relative-to5' '--relative-to "$PWD" one' 'one\n' '' ''
+testcmd 'relative-to missing' \
+  '--relative-to nothing/potato . 2>/dev/null || echo fail' 'fail\n' '' ''
+testcmd 'relative-to missing -m' \
+  '-m --relative-to nothing/potato .' '../..\n' '' ''
+testcmd '--relative-base' 'one one/two one/two/three --relative-base=one/two' \
+  "$TOP/one\n.\nthree\n" '' ''
+testcmd '--relative-base stomps --relative-to' \
+  '--relative-to=.. --relative-base=one/two one' "$TOP/one\n" '' ''
+testcmd '-m with relative-base1' '-m --relative-base wurble wurble/poing' \
+  'poing\n' '' ''
+testcmd '-m with relative-base2' '-sm --relative-base wurble .' "$PWD\n" '' ''
+testcmd '-m with relative-base3' '-m --relative-base wurble wurble wurble/' \
+  '.\n.\n' '' ''
+testcmd 'missing defaults to -m' 'missing' "$TOP/missing\n" '' ''
+testcmd 'missing -e' '-e missing 2>/dev/null || echo ok' 'ok\n' '' ''
+testcmd '-L' '-L dos/../one' "$TOP/one\n" '' ''
+
+# -s vs -L
+ln -s .. parent
+testcmd "-s isn't L" '-s --relative-to=. parent' 'parent\n' '' ''
+testcmd "-L isn't s" '-L --relative-to=. parent' '..\n' '' ''
+
+# The -s tests use $PWD instead of $TOP because symlinks in path _to_ here
+# should not be resolved either. The shell exports $PWD: use it.
+testcmd '-s' '-s uno/two' "$PWD/uno/two\n" '' ''
+testcmd '-s link/..' '-es dos/three' "$PWD/dos/three\n" '' ''
+testcmd '-s .. eats symlink' '-s dos/..' "$PWD\n" '' ''
+# In toybox this test is consistent with the previous one
+toyonly testing '-s .. eats symlink in $PWD' \
+  'cd dos && realpath -s ..' "$PWD\n" '' ''
+# Logically -es means the _symlink_ should exist, but match behavior...
+ln -s missing dangling
+testcmd '-es dangling symlink' '-es dangling 2>/dev/null || echo ok' \
+  'ok\n' '' ''
+testcmd '-ms' '-ms dangling/../dos/../one/two' "$PWD/one/two\n" '' ''
+ln -s ../two/.. one/two/ichi
+testcmd '-es' '-es one/two/ichi/two/ichi/two' "$PWD/one/two/ichi/two/ichi/two\n" '' ''
+
+rm -rf file one uno dos

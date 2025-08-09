@@ -1,0 +1,53 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+utf8locale
+
+cat >file1 <<EOF
+some words	. 
+
+some
+lines
+EOF
+
+testcmd "wc" ">/dev/null && echo yes" "yes\n" "" ""
+testcmd "empty file" "" "      0       0       0\n" "" ""
+testcmd "standard input" "" "      1       3       5\n" "" "a b\nc"
+testcmd "standard input -c" "-c" "5\n" "" "a b\nc"
+testcmd "standard input -cl" "-cl" "      1       5\n" "" "a b\nc"
+testcmd "-c" "-c file1" "26 file1\n" "" ""
+testcmd "-l" "-l file1" "4 file1\n" "" ""
+testcmd "-w" "-w file1" "5 file1\n" "" ""
+testcmd "-L" "-L file1" "18 file1\n" "" ""
+NOSPACE=1 testcmd "one file" "file1" "4 5 26 file1\n" "" ""
+testcmd "multiple files" "input - file1" \
+        "      1       2       3 input\n      0       2       3 -\n      4       5      26 file1\n      5       9      32 total\n" "a\nb" "a b"
+
+#Tests for wc -m
+echo -n " " > file1
+for i in $(seq 1 512); do echo -n "üüüüüüüüüüüüüüüü" >> file1; done
+testcmd "-m" "-m file1" "8193 file1\n" "" ""
+testing "-m 2" 'cat "$FILES/utf8/test2.txt" | wc -m' "169\n" "" ""
+echo -n " " > file1
+NOSPACE=1 testcmd "-mlw" "-mlw input" "1 2 11 input\n" "hello, 世界!\n" ""
+rm file1
+
+# Corner cases for "line length". Not QUITE fold because \b doesn't subtract
+
+testcmd '-L 2' '-L' '1\n' '' 'a\n'
+testcmd '-L 3' '-L' '1\n' '' 'a'
+testcmd '-L 4' '-L' '6\n' '' 'first\rsecond\n'
+testcmd '-L 5' '-L' '9\n' '' '\ta\n'
+testcmd '-L 6' '-L' '8\n' '' '\t\b\b\b\n'
+testcmd '-L 7' '-L' '9\n' '' 'abc\td\n'
+testcmd '-L 8' '-L' '4\n' '' 'abc\bd\n'
+testcmd '-L 9' '-L' '0\n' '' '\x01\n'
+testcmd '-L 10' '-L' '1\n' '' 'w\xcc\x88\n'
+NOSPACE=1 testcmd '-Lm incoherence' '-Lm' '2 0\n' '' '\x01\n'
+
+# 25 wide chars, also testing field order
+NOSPACE=1 testcmd '-cmlLw wide' '-cmlLw' '0 1 25 75 50\n' '' \
+  "$(<"$FILES"/utf8/japan.txt)"

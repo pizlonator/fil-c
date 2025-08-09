@@ -1,0 +1,45 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# This is basically a test of lib/args.c argument parsing
+
+out() { printf 'Ran skeleton\n%sOther globals should start zeroed: 0' "$@";}
+testcmd "baseline " "" "$(out '')\n" "" ""
+testcmd "unknown" "-z |& grep -o Unknown" "Unknown\n" "" ""
+testcmd "passthrough args" "bingeley bongeley beep" \
+  "$(out 'optarg=bingeley\noptarg=bongeley\noptarg=beep\n')\n" "" ""
+testcmd "" "-a" "$(out 'flags=1\nSaw a\n')\n" "" ""
+testcmd "" "-b |& grep -o Missing" "Missing\n" "" ""
+testcmd "" "-b abc" "$(out 'flags=2\nb=abc\n')\n" "" ""
+testcmd "" "-c nondigit |& grep -o integer" "integer\n" "" ""
+testcmd "" "-c 123" "$(out 'flags=4\nc=123\n')\n" "" ""
+testcmd "" "-c 1m" "$(out 'flags=4\nc=1048576\n')\n" "" ""
+testcmd "" "-d one -d two -d 3,4" "$(out 'flags=8\nd=one\nd=two\nd=3,4\n')\n" \
+  "" ""
+testcmd "" "-e" "$(out 'flags=10\ne was seen 1 times\n')\n" "" ""
+testcmd "" "-ee -e -ae" "$(out 'flags=11\nSaw a\ne was seen 4 times\n')\n" \
+  "" ""
+testcmd "mixed" "123 -c 456 789" \
+  "$(out 'flags=4\nc=456\noptarg=123\noptarg=789\n')\n" "" ""
+# ala date -I
+testcmd "':;' short attached" "-fabc" "$(out 'flags=20\nf=abc\n')\n" "" ""
+testcmd "':;' short detached" "-f abc" "$(out 'flags=20\noptarg=abc\n')\n" "" ""
+testcmd "':;' long" "--lo abc" "$(out 'flags=20\noptarg=abc\n')\n" "" ""
+testcmd "':;' long=x" "--long=abc" "$(out 'flags=20\nf=abc\n')\n" "" ""
+testcmd "':;' long=" "--long=" "$(out 'flags=20\nf=\n')\n" "" ""
+testcmd "':;' long detached" "--long abc" "$(out 'flags=20\noptarg=abc\n')\n" "" ""
+# ala kill -stop
+testcmd "': ' short attached" "-gabc 2>/dev/null || echo yup" "yup\n" "" ""
+testcmd "': ' short detached" "-g abc" "$(out 'flags=40\ng=abc\n')\n" "" ""
+testcmd "': ' long" "--glong abc" "$(out 'flags=40\ng=abc\n')\n" "" ""
+testcmd "': ' long=x" "--gl=abc" "$(out 'flags=40\ng=abc\n')\n" "" ""
+testcmd "': ' long=" "--gl=" "$(out 'flags=40\ng=\n')\n" "" ""
+# ala unshare -fim
+testcmd "':; ' short attached" "-habc" "$(out 'flags=83\nSaw a\nb=c\n')\n" "" ""
+testcmd "':; ' short detached" "-h abc" "$(out 'flags=80\noptarg=abc\n')\n" "" ""
+testcmd "':; ' long=x" "--h=abc" "$(out 'flags=80\nh=abc\n')\n" "" ""
+testcmd "':; ' long=" "--h=" "$(out 'flags=80\nh=\n')\n" "" ""
+testcmd "':; ' long detached" "--hlong abc" "$(out 'flags=80\noptarg=abc\n')\n" "" ""

@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+# TODO test skip= for seekable and nonseekable input.
+# TODO bs overrides ibs= and obs=, and disables block aggregation
+
+[ -f testing.sh ] && . testing.sh
+
+# 'dd' command, stderr prints redirecting to /dev/null
+exec 2>/dev/null
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Test suffixed number parsing; `count` is representative.
+testcmd "count=2" "if=input count=2 ibs=1" "hi" "high\n" ""
+testcmd "count= 2" "if=input 'count= 2' ibs=1" "hi" "high\n" ""
+toyonly testcmd "count=0x2" "if=input 'count=0x2' ibs=1" "hi" "high\n" ""
+testcmd 'posix 2x3x4' "if=input count=2x3x4 ibs=1" \
+  'abcdefghijklmnopqrstuvwx' 'abcdefghijklmnopqrstuvwxyz' ''
+testcmd "count=-2" "if=input 'count=-2' ibs=1 || echo errored" "errored\n" "" ""
+
+testcmd "if=(file)" "if=input" "I WANT\n" "I WANT\n" ""
+testcmd "of=(file)" "of=file && cat file" "I WANT\n" "" "I WANT\n"
+testcmd "if=file of=file" "if=input of=foo && cat foo && rm -f foo" \
+  "I WANT\n" "I WANT\n" ""
+testcmd "if=file | dd of=file" "if=input | dd of=foo && cat foo && rm -f foo" \
+  "I WANT\n" "I WANT\n" ""
+testcmd "(stdout)" '' "I WANT\n" "" "I WANT\n"
+testcmd "sync,noerror" \
+  "if=input of=outFile seek=8860 bs=1M conv=sync,noerror &&
+   stat -c \"%s\" outFile && rm -f outFile" "9291431936\n" "I WANT\n" ""
+testcmd "if=file of=(null)" "if=input of=/dev/null && echo 'yes'" "yes\n" \
+  "I WANT\n" ""
+testcmd "with if of bs" \
+  "if=/dev/zero of=sda.txt bs=512 count=1 &&
+   stat -c '%s' sda.txt && rm -f sda.txt" "512\n" "" ""
+testcmd "with if of ibs obs" \
+  "if=/dev/zero of=sda.txt ibs=512 obs=256 count=1 &&
+   stat -c '%s' sda.txt && rm -f sda.txt" "512\n" "" ""
+// TODO check block size of transactions
+testcmd "with if of ibs obs count" \
+  "if=/dev/zero of=sda.txt ibs=512 obs=256 count=3 &&
+   stat -c '%s' sda.txt && rm -f sda.txt" "1536\n" "" ""
+
+ln -s input softlink
+testcmd "if=softlink" "if=softlink" "I WANT\n" "I WANT\n" ""
+rm -f softlink
+
+ln -s file softlink
+testcmd "if=file of=softlink" "if=input of=softlink &&
+   [ -f file -a -L softlink ] && cat softlink" "I WANT\n" "I WANT\n" ""
+rm -f softlink file
+
+testcmd "if=file of=file (same file)" "if=input of=input &&
+   [ -f input ] && cat input && echo 'yes'" "yes\n" "I WANT\n" ""
+testcmd "same file notrunc" \
+  "if=input of=input conv=notrunc && cat input" "I WANT\n" "I WANT\n" ""
+testcmd "seek truncate" \
+  'of=input bs=3 count=2 seek=7 oflag=seek_bytes && cat input' \
+  '1234567ABCDEF' '1234567890abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJK'
+testcmd "seek notrunc" \
+  'of=input bs=3 count=2 seek=7 conv=notrunc oflag=seek_bytes && cat input' \
+  '1234567ABCDEFdefghijklmnopqrstuvwxyz' '1234567890abcdefghijklmnopqrstuvwxyz'\
+  'ABCDEFGHIJK'
+
+testcmd "with ibs obs bs" "ibs=2 obs=5 bs=9" "I WANT\n" "" "I WANT\n"
+testcmd "with ibs obs bs if" "ibs=2 obs=5 bs=9 if=input" "I WANT\n" "I WANT\n"\
+  ""
+
+testcmd "with ibs obs count" "ibs=1 obs=1 count=1" "I" "" "I WANT\n"
+testcmd "with ibs obs count if" "ibs=1 obs=1 count=3 if=input" "I W" "I WANT\n"\
+  ""
+
+testcmd "with count" "count=1" "I WANT\n" "" "I WANT\n"
+testcmd "with count if" "count=1 if=input" "I WANT\n" "I WANT\n" ""
+
+testcmd "with skip" "skip=0" "I WANT\n" "" "I WANT\n"
+testcmd "with skip if" "skip=0 if=input" "I WANT\n" "I WANT\n" ""
+
+testcmd "with seek" "seek=0" "I WANT\n" "" "I WANT\n"
+testcmd "with seek if" "seek=0 if=input" "I WANT\n" "I WANT\n" ""
+
+# Testing only 'notrunc', 'noerror', 'fsync', 'sync'
+
+testcmd "conv=notrunc" "conv=notrunc" "I WANT\n" "" "I WANT\n"
+testcmd "conv=notrunc with IF" "conv=notrunc if=input" "I WANT\n" \
+  "I WANT\n" ""
+
+testcmd "conv=noerror" "conv=noerror" "I WANT\n" "" "I WANT\n"
+testcmd "conv=noerror with IF" "conv=noerror if=input" "I WANT\n" \
+  "I WANT\n" ""
+
+testcmd "conv=fsync" "conv=fsync" "I WANT\n" "" "I WANT\n"
+testcmd "conv=fsync with IF" "conv=fsync if=input" "I WANT\n" \
+  "I WANT\n" ""
+
+testcmd "conv=sync" "conv=sync | head -n 1" "I WANT\n" "" "I WANT\n"
+testcmd "conv=sync with IF" "conv=sync if=input | head -n 1" "I WANT\n" \
+  "I WANT\n" ""
+
+# status=noxfer|none
+testcmd "status=noxfer" "if=input status=noxfer ibs=1 2>&1" \
+  "input\n6+0 records in\n0+1 records out\n" "input\n" ""
+testcmd "status=none" "if=input status=none ibs=1 2>&1" \
+ "input\n" "input\n" ""
+
+testing "seek stdout" "yes | dd bs=8 seek=2 count=1 > out && xxd -p out" \
+  "00000000000000000000000000000000790a790a790a790a\n" "" ""
+
+# Duplicated options are fine.
+testcmd "conv=sync,sync" "conv=sync,sync | head -n 1" "I WANT\n" "" "I WANT\n"
+
+# _bytes options
+testcmd "iflag=count_bytes" "if=input count=2 ibs=4096 iflag=count_bytes" "hi"\
+  "high" ""
+testcmd "iflag=skip_bytes" "if=input skip=2 ibs=4096 iflag=skip_bytes" "gh" \
+  "high" ""
+testcmd "oflag=seek_bytes" \
+  "if=input of=output seek=2 obs=4096 oflag=seek_bytes status=none && \
+   xxd -p output" "000030313233\n" "0123" ""
+
+# The sleep decouples input blocks to force short reads for conv=sync to pad
+testing 'sync padding ticks down count' \
+  'for i in one two three four five "$(seq 1 100)"
+   do echo "$i"; sleep .1; done | dd bs=1024 count=5 conv=sync | sha1sum' \
+  '02dcf1f497ccbe940f57818dfc34f2d0def8b3f9  -\n' '' ''

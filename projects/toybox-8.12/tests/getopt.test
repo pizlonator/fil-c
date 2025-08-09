@@ -1,0 +1,44 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+function test_getopt() {
+  testcmd "$1" "$1" "$2\n" "" ""
+}
+
+# Traditional behavior was to take the first argument as OPTSTR and not quote.
+test_getopt "a b c" " -- b c"
+test_getopt "a -a b c" " -a -- b c"
+test_getopt "a -- -a b c" " -- -a b c"
+
+# Modern -o mode.
+test_getopt "-o a -- " " --"
+test_getopt "-o a -- -a b c" " -a -- 'b' 'c'"
+test_getopt "-o a: -- -a b c" " -a 'b' -- 'c'"
+
+# Long options (--like --this).
+test_getopt "-o a -l long -- -a --long a" " -a --long -- 'a'"
+test_getopt "-o a -l one -l two -- -a --one --two" " -a --one --two --"
+test_getopt "-o a -l one,two -- -a --one --two" " -a --one --two --"
+# -l arg: (required)
+test_getopt "-o a -l one: -- -a --one arg" " -a --one 'arg' --"
+# -l arg:: (optional)
+test_getopt "-o a -l one:: -- -a --one" " -a --one '' --"
+test_getopt "-o a -l one:: -- -a --one arg" " -a --one '' -- 'arg'"
+test_getopt "-o a -l one:: -- -a --one=arg" " -a --one 'arg' --"
+
+# "Alternative" long options (-like -this but also --like --this).
+test_getopt "-o a -a -l long -- -long --long a" " --long --long -- 'a'"
+
+# -u lets you avoid quoting even with modern -o.
+test_getopt "-u -o a: -- -a b c" " -a b -- c"
+
+# Do we quote quotes right?
+test_getopt "-o a -- \"it\'s\"" " -- 'it\'\''s'"
+test_getopt "-o a -u -- \"it\'s\"" " -- it\'s"
+
+# Odds and ends.
+testcmd "-T" "-T ; echo \$?" "4\n" "" ""
+testcmd "-n" "-n unlikely a -x 2>&1 | grep -o unlikely:" "unlikely:\n" "" ""

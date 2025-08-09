@@ -1,0 +1,26 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "not enough args [fail]" "uuencode 2>/dev/null" "" "" ""
+
+testing "uu empty file" "uuencode test" \
+	"begin 744 test\nend\n" "" "" 
+testing "uu 1-char" "uuencode test" \
+	"begin 744 test\n!80\`\`\nend\n" "" "a" 
+testing "uu 2-char" "uuencode test" \
+	"begin 744 test\n\"86(\`\nend\n" "" "ab" 
+testing "uu 3-char" "uuencode test" \
+	"begin 744 test\n#86)C\nend\n" "" "abc" 
+
+testing "b64 empty file" "uuencode -m test" \
+	"begin-base64 744 test\n====\n" "" "" 
+testing "b64 1-char" "uuencode -m test" \
+	"begin-base64 744 test\nYQ==\n====\n" "" "a" 
+testing "b64 2-char" "uuencode -m test" \
+	"begin-base64 744 test\nYWI=\n====\n" "" "ab" 
+testing "b64 3-char" "uuencode -m test" \
+	"begin-base64 744 test\nYWJj\n====\n" "" "abc" 
+

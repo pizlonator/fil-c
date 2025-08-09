@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# POSIX 2008 compliant expand tests.
+# Copyright 2012 by Jonathan Clairembault <jonathan@clairembault.fr>
+
+[ -f testing.sh ] && . testing.sh
+
+# some basic tests
+
+testing "default" "expand input" "        foo     bar\n" "\tfoo\tbar\n" ""
+testing "default stdin" "expand"  "        foo     bar\n" "" "\tfoo\tbar\n"
+testing "single" "expand -t 2 input" "  foo bar\n" "\tfoo\tbar\n" ""
+testing "tablist" "expand -t 5,10,12 input" "     foo  bar foo\n" "\tfoo\tbar\tfoo\n" ""
+testing "backspace" "expand input" "foobarfoo\b\b bar\n" "foobarfoo\b\b\tbar\n" ""
+
+# advanced tests
+
+POW=15
+TABSTOP=1
+BIGTAB=" "
+for i in $(seq $POW); do
+    BIGTAB=$BIGTAB$BIGTAB
+    TABSTOP=$(($TABSTOP*2))
+done
+testing "long tab single" "expand -t $TABSTOP input" "${BIGTAB}foo\n" "\tfoo\n" ""
+testing "long tab tablist" "expand -t $TABSTOP,$((TABSTOP+5)) input" \
+        "${BIGTAB}foo  bar\n" "\tfoo\tbar\n" ""
+
+testing "multiline single" "expand -t 4 input" "foo \n    bar\n" "foo\t\n\tbar\n" ""
+testing "multiline tablist" "expand -t 4,8 input" \
+        "foo     bar\n    bar foo\n" "foo\t\tbar\n\tbar\tfoo\n" ""
+POW=15
+BIGLINE="foo "
+for i in $(seq $POW); do
+    BIGLINE=$BIGLINE$BIGLINE
+done
+if [ $POW -gt 0 ]; then
+    EXPANDLINE="${BIGLINE}        foo\n"
+else
+    EXPANDLINE="${BIGLINE}    foo\n"
+fi
+BIGLINE="${BIGLINE}\tfoo\n"
+testing "long line single" "expand input" \
+        "${EXPANDLINE}" "$BIGLINE" ""

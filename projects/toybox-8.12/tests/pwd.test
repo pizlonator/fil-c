@@ -1,0 +1,26 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+#TODO: Find better tests
+
+testing "pwd" "[ $(stat -c %i "$(pwd)") = $(stat -c %i .) ] && echo yes" \
+	"yes\n" "" ""
+testing "-P" "[ $(stat -c %i "$(pwd -P)") = $(stat -c %i .) ] && echo yes" \
+	"yes\n" "" ""
+
+
+ln -s . sym
+cd sym
+testing "pwd2" "[ $(stat -c %i "$(pwd)") = $(stat -c %i "$PWD") ] && echo yes" \
+	"yes\n" "" ""
+testing "-P2" "[ $(stat -c %i "$(pwd -P)") = $(stat -c %i "$PWD") ] || echo yes" \
+	"yes\n" "" ""
+cd ..
+rm sym
+
+export PWD=walrus
+testing "(bad PWD)" "[ "$(pwd)" = "$(cd . ; pwd)" ] && echo yes" \
+	"yes\n" "" ""

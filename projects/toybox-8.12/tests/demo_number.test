@@ -1,0 +1,29 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd "l 1024" "-h 123456789" "118M\n" "" ""
+testcmd "l 1000" "-d 123456789" "123M\n" "" ""
+testcmd "s 1024" "-h 5675" "5.5K\n" "" ""
+testcmd "s 1000" "-d 5675" "5.6k\n" "" ""
+
+# An example input where we give a better result than coreutils.
+# 267350/1024=261.08. We say 261K and coreutils says 262K.
+testcmd "edge case" "-h 267350" "261K\n" "" ""
+
+testcmd "-b" "-b 123" "123B\n" "" ""
+testcmd "-b" "-b 123456789" "118M\n" "" ""
+testcmd "-s" "-s 123456789" "118 M\n" "" ""
+testcmd "-bs" "-bs 123456789" "118 M\n" "" ""
+
+testcmd "units" "-b 1c 1b 1k 1kd 1m 1md 1g 1gd 1t 1td 1e 1ed" \
+  "1B\n512B\n1.0K\n0.9K\n1.0M\n977K\n1.0G\n954M\n1.0T\n931G\n1.0E\n888P\n" \
+  "" ""
+
+testcmd "decimal units" "-d 1c 1b 1k 1kd 1m 1md 1g 1gd 1t 1td 1e 1ed" \
+  "1\n512\n1.0k\n1.0k\n1.0M\n1.0M\n1.0G\n1.0G\n1.1T\n1.0T\n1.1E\n1.0E\n" \
+  "" ""
+
+testcmd "longer output" "-D6 123 1234567 1234567890" "123\n1206K\n1177M\n" "" ""

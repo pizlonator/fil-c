@@ -1,0 +1,77 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+APWD="$(pwd -P)"
+
+testing "missing" "readlink notfound || echo yes" "yes\n" "" ""
+
+# simple tests on a file
+
+touch file
+testing "file" "readlink file || echo yes" "yes\n" "" ""
+testing "-f dir" "readlink -f ." "$APWD\n" "" ""
+testing "-f missing" "readlink -f notfound" "$APWD/notfound\n" "" ""
+
+ln -sf notfound link
+testing "link" "readlink link" "notfound\n" "" ""
+testing "links" "readlink link link" "notfound\nnotfound\n" "" ""
+testing "link->missing" "readlink -f link" "$APWD/notfound\n" "" ""
+ln -sf ../../ link
+testing "stays relative" "readlink link" "../../\n" "" ""
+rm link
+ln -sf file link
+testing "-f link->file" "readlink -f link" "$APWD/file\n" "" ""
+ln -sf . link
+testing "-f link->dir" "readlink -f link" "$APWD\n" "" ""
+ln -snf link link
+testing "link->link (recursive)" "readlink link" "link\n" "" ""
+testing "-f link->link (recursive)" \
+  "readlink -f link 2>/dev/null || echo yes" "yes\n" "" ""
+
+testing "-q notlink" "readlink -q file 2>&1 || echo yes" "yes\n" "" ""
+testing "-q link" "readlink -q link && echo yes" "link\nyes\n" "" ""
+testing "-q notfound" "readlink -q notfound || echo yes" "yes\n" "" ""
+testing "-e found" "readlink -e file" "$APWD/file\n" "" ""
+testing "-e notfound" \
+  "readlink -e notfound 2>/dev/null || echo yes" "yes\n" "" ""
+testing "-nf ." "readlink -nf ." "$APWD" "" ""
+# -n means no newline at _end_. I.E. on last argument.
+toyonly testcmd '-nf multiple args' '-n link link' "link\nlink" '' ''
+testcmd '-nz' '-nz link' 'link' '' ''
+testcmd '-z' '-z link' 'link\0' '' ''
+
+mkdir sub &&
+ln -s . here &&
+ln -s ./sub dir &&
+touch sub/bang || exit 1
+testing "-f multi" "readlink -f dir/../here/dir/bang" \
+  "$APWD/sub/bang\n" "" ""
+testing "-f link/missing" "readlink -f dir/boing" \
+  "$APWD/sub/boing\n" "" ""
+testing "-f /dev/null/file" \
+  "readlink -f /dev/null/file 2>/dev/null || echo yes" "yes\n" "" ""
+testing "-m missing/dir" "readlink -m sub/two/three" "$APWD/sub/two/three\n" "" ""
+testing "-m missing/../elsewhere" "readlink -m sub/two/../../three" "$APWD/three\n" "" ""
+# TODO: host bug? That's not missing, that's "cannot exist".
+toyonly testing "-m file/dir" "readlink -m sub/bang/two 2>/dev/null || echo err" "err\n" "" ""
+rm link
+ln -sf / link || exit 1
+testing "-f link->/" "readlink -e link/dev" "/dev\n" "" ""
+testing "-f /dev/null/.." \
+  "readlink -f link/null/.. 2>/dev/null || echo yes" "yes\n" "" ""
+rm -f link && ln -sf link link || exit 1
+testing "recurse" "readlink link" "link\n" "" ""
+
+rm file link sub/bang dir here
+rmdir sub
+
+# Make sure circular links don't run away.
+
+ln -s link1 link2
+ln -s link2 link1
+testing "follow recursive2" "readlink -f link1 || echo yes" \
+	"yes\n" "" ""
+rm link1 link2

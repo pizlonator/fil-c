@@ -1,0 +1,24 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+# testing "name" "flags" "result" "infile" "stdin"
+
+testcmd "simple" "" "ONUW24DMMUFA====\n" "" "simple\n"
+testcmd "file" "input" "ONUW24DMMUFA====\n" "simple\n" ""
+testcmd "simple -d" "-d" "simple\n" "" "ONUW24DMMUFA====\n"
+testcmd "file -d" "-d input" "simple\n" "ONUW24DMMUFA====" ""
+testcmd "default wrap" "" \
+  "K5SSO5TFEBZGK4DMMFRWKZBAORUGKIDENFWGS5DINF2W2IDUNBSXSIDON5ZG2YLMNR4SA5LTMUQH\nO2LUNAQEM33MM5SXEJ3TEBBXE6LTORQWY4ZO\n" \
+  "" "We've replaced the dilithium they normally use with Folger's Crystals."
+testcmd "multiline -d " "-d" \
+ "We've replaced the dilithium they normally use with Folger's Crystals." "" \
+  "K5SSO5TFEBZGK4DMMFRWKZBAORUGKIDENFWGS5DINF2W2IDUNBSXSIDON5ZG2YLMNR4SA5LTMUQH\nO2LUNAQEM33MM5SXEJ3TEBBXE6LTORQWY4ZO\n"
+
+testcmd "-w" "-w 10" \
+  "JVQXEY3INF\nXGOIDUN4QH\nI2DFEBRGKY\nLUEBXWMIDB\nEBSGSZTGMV\nZGK3TUEBVW\nK5DUNRSSA3\n3GEBTGS43I\nFY======\n" \
+  "" "Marching to the beat of a different kettle of fish."
+
+testcmd "-w0" "-w0 input" \
+  "KZUWW2LOM5ZT6ICUNBSXEZJAMFUW4J3UEBXG6IDWNFVWS3THOMQGQZLSMUXCASTVON2CA5LTEBUG63TFON2CAZTBOJWWK4TTFYQFI2DFEB2G653OEB3WC4ZAMJ2XE3TJNZTSYIDUNBSSA5TJNRWGCZ3FOJZSA53FOJSSAZDFMFSC4ICUNBSXSIDENFSG4J3UEBXGKZLEEB2GQ33TMUQHG2DFMVYCAYLOPF3WC6JOEBKGQYLUE5ZSA33VOIQHG5DPOJ4SAYLOMQQHOZJHOJSSA43UNFRWW2LOM4QHI3ZANF2C4CQ=" \
+ "Vikings? There ain't no vikings here. Just us honest farmers. The town was burning, the villagers were dead. They didn't need those sheep anyway. That's our story and we're sticking to it.\n" ""

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+SIZE='&& stat -c %s freep'
+testing "0" "truncate -s 0 freep $SIZE" "0\n" "" ""
+testing "12345" "truncate -s 12345 freep $SIZE" "12345\n" "" ""
+testing "1m" "truncate -s 1m freep $SIZE" "1048576\n" "" ""
+# We can't test against 0 because Android filesystems use an extra 4KiB for
+# extended attributes (SELinux). We recreate the file because macOS behavior
+# is a bit weird; for some file sizes (12345, in this example) blocks will
+# have been allocated that aren't deallocated by the 1g extension.
+rm freep; touch freep
+testing "is sparse" "truncate -s 1g freep && [ $(stat -c %b freep) -le 64 ] &&
+  echo okay" \
+	"okay\n" "" ""
+testing "+" "truncate -s 1k freep && truncate -s +1k freep $SIZE" \
+	"2048\n" "" ""
+testing "-" "truncate -s 4k freep && truncate -s -1k freep $SIZE" \
+	"3072\n" "" ""
+testing "< hit" \
+	"truncate -s 5k freep && truncate -s \<4k freep $SIZE" "4096\n" "" ""
+testing "< miss" \
+	"truncate -s 4k freep && truncate -s \<6k freep $SIZE" "4096\n" "" ""
+testing "> hit" \
+	"truncate -s 3k freep && truncate -s \>4k freep $SIZE" "4096\n" "" ""
+testing "> miss" \
+	"truncate -s 4k freep && truncate -s \>2k freep $SIZE" "4096\n" "" ""
+testing "/" "truncate -s 7k freep && truncate -s /3k freep $SIZE" \
+	"6144\n" "" ""
+testing "%" "truncate -s 7k freep && truncate -s %3k freep $SIZE" \
+	"9216\n" "" ""

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+# ext stores extended attributes in a way that makes all the numbers in the
+# tests below incorrect.
+# TODO: include a read-only ext file system that we can mount for the tests?
+if [ "$(stat --format %C . 2>/dev/null)" != "?" ]; then
+  echo "$SHOWSKIP: du (SELinux extended attributes present)"
+  return 2>/dev/null
+  exit
+fi
+
+# darwin stores empty directories in the inode itself, making all the numbers
+# in the tests below 0. (TODO this is not the right fix.)
+if [ "$(uname)" == "Darwin" ]; then
+  echo "$SHOWSKIP: du (Darwin stores empty directories in inode)"
+  return 2>/dev/null
+  exit
+fi
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# we only test with -k since getting POSIX version is variable
+# POSIXLY_CORRECT is sometimes needed, sometimes -P is needed,
+# while -k is the default on most Linux systems
+
+mkdir -p du_test/test du_2/foo
+testing "(no options)" "du -k du_test" "4\tdu_test/test\n8\tdu_test\n" "" ""
+testing "-s" "du -k -s du_test" "8\tdu_test\n" "" ""
+ln -s ../du_2 du_test/xyz
+# "du shall count the size of the symbolic link"
+# The tests assume that like for most POSIX systems symbolic
+# links are stored directly in the inode so that the
+# allocated file space is zero.
+testing "counts symlinks without following" "du -ks du_test" "8\tdu_test\n" "" ""
+testing "-L follows symlinks" "du -ksL du_test" "16\tdu_test\n" "" ""
+ln -s . du_test/up
+testing "-L avoid endless loop" "du -ksL du_test" "16\tdu_test\n" "" ""
+rm du_test/up
+# if -H and -L are specified, the last takes priority
+testing "-HL follows symlinks" "du -ksHL du_test" "16\tdu_test\n" "" ""
+testing "-H does not follow unspecified symlinks" "du -ksH du_test" "8\tdu_test\n" "" ""
+testing "-LH does not follow unspecified symlinks" "du -ksLH du_test" "8\tdu_test\n" "" ""
+testing "-H follows specified symlinks" "du -ksH du_test/xyz" "8\tdu_test/xyz\n" "" ""
+
+rm -rf du_test du_2

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "" "tr 1 2" "223223223" "" "123123123"
+testing "-d" "tr -d 1" "232323" "" "123123123"
+testing "-s" "tr -s 1" "12223331222333" "" "111222333111222333"
+testing "-t" "tr -t 1234 567" "5674" "" "1234"
+testing "-t one arg" "tr -t 1234" "1234" "" "1234"
+
+testing "no pathological flushing" "seq 10000000 | tr 1 2 > /dev/null" "" "" ""

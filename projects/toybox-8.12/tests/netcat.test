@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+{ dd if=/dev/zero bs=4k count=1 2>/dev/null | tr '\0' a; echo b; } > testfile
+testing "more than buffer bytes left at end" \
+  "netcat -lp 1234 wc -c & sleep .1 && cat testfile | netcat 127.0.0.1 1234" \
+  "4098\n" "" ""
+rm -f testfile

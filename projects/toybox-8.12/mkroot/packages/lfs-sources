@@ -1,0 +1,35 @@
+#!/bin/echo Try "mkroot/mkroot.sh lfs"
+
+[ -z "$(which mksquashfs)" ] && echo "no squashfs" && exit 1
+
+# Download osuosl's rollup tarball of all the LFS packages.
+
+download 45a27da2ee443a8e35a7e29db8a0c6877bbb98bb \
+  http://ftp.osuosl.org/pub/lfs/lfs-packages/lfs-packages-12.1.tar
+
+# This one's a little weird, we're creating a target-agonstic squashfs image
+# not part of the initramfs.
+
+setupfor lfs-packages
+LFS="$OUTPUT/lfs" LFSRC="$LFS/src"
+rm -rf "$LFS" && mkdir -p "$LFSRC/tzdata" &&
+# Fixup names
+tar xfC tzdata*.tar.gz "$LFSRC/tzdata" && # Horrible package, no subdirectory!
+rm tzdata*.tar.gz &&
+mv {expect*,expect-0}.tar.gz &&           # broken name (no - before version)
+rm -f tcl*-html.tar.gz &&                 # Broken _and_ duplicate name
+mv {tcl*,tcl-0}.tar.gz &&
+mkdir sub || exit 1
+# extract tarballs to package name in output and apply patches (if any)
+for i in *.tar*; do
+  PKG="${i/-[0-9]*/}"
+  echo process $PKG
+  tar xfC $i sub && mv sub/* "$LFSRC/$PKG" || exit 1
+  for j in $PKG*.patch; do
+    [ -e "$j" ] && { ( cd "$LFSRC/$PKG" && patch -p1) < "$j" || exit 1 ; }
+  done
+done
+
+# Archive the sources
+
+mksquashfs "$LFSRC" "$TOP"/lfs.sqf -noappend -all-root >/dev/null

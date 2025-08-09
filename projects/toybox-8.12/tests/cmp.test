@@ -1,0 +1,48 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+# TODO: coreutils cmp uses stdin if only one file is given
+testcmd "one argument match" 'input && echo yes' "yes\n" \
+  "one\ntwo\nthree" "one\ntwo\nthree"
+# posix says ""%s %s differ: char %d, line %d\n" but diffutils says "byte"
+testcmd "one argument diff" 'input | sed s/byte/char/' \
+  "input - differ: char 5, line 2\n" "one\ntwo\nthree" "one\nboing\nthree"
+
+testcmd "missing file1 [fail]" 'file1 input 2>/dev/null || echo $?' "2\n" "foo" ""
+
+#mkdir dir
+#testing "directory [fail]" "cmp dir dir 2>/dev/null || echo yes" \
+	#"yes\n" "" ""
+#rmdir dir
+
+echo "ab
+c" > input2
+
+testcmd "identical files, stdout" "input input2" "" "ab\nc\n" ""
+testcmd "identical files, return code" "input input2 && echo yes" "yes\n" "ab\nc\n" ""
+
+testcmd "EOF, stderr" "input input2 2>&1" \
+  "cmp: EOF on input2 after byte 5, line 2\n" "ab\nc\nx" ""
+testcmd "EOF, return code" "input input2 2>/dev/null || echo yes" "yes\n" "ab\nc\nx" ""
+# The gnu/dammit version fails this because posix says "char" and they don't.
+testcmd "diff, stdout" "input input2 | sed s/byte/char/" \
+  "input input2 differ: char 4, line 2\n" "ab\nx\nx" ""
+testcmd "diff, return code" "input input2 > /dev/null || echo yes" "yes\n" "ab\nx\nx" ""
+
+testcmd "-s EOF, return code" "-s input input2 2>&1 || echo yes"  "yes\n" "ab\nc\nx" ""
+testcmd "-s diff, return code" "-s input input2 2>&1 || echo yes" "yes\n" "ab\nx\nx" ""
+
+testcmd "-l EOF, stderr" "-l input input2 2>&1" \
+  "cmp: EOF on input2 after byte 5\n" "ab\nc\nx" ""
+testcmd "-l diff and EOF, stdout and stderr" "-l input input2 2>&1 | sort" \
+  "4 170 143\ncmp: EOF on input2 after byte 5\n" "ab\nx\nx" ""
+
+testcmd "-s not exist" "-s input doesnotexist 2>&1 || echo yes" "yes\n" "x" ""
+
+rm input2
+
+testcmd "stdin and file" "input - | sed s/byte/char/" \
+  "input - differ: char 4, line 2\n" "ab\nc\n" "ab\nx\n"
+testcmd "-n skip1 skip2" "-n 3 input - 3 5 && echo yes" "yes\n" "abcdef123" "vwxyzdef987"
+

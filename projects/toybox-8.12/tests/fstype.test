@@ -1,0 +1,23 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+BDIR="$FILES/blkid"
+
+bzcat "$BDIR"/squashfs.bz2 > temp.img
+testing "file" "fstype temp.img" 'squashfs\n' "" ""
+rm temp.img
+
+for i in cramfs ext2 ext3 ext4 f2fs ntfs squashfs vfat xfs
+do
+  testing "$i" 'bzcat "$BDIR"/$i.bz2 | fstype -' "$i\n" "" ""
+done
+
+testing "msdos" 'bzcat "$BDIR"/msdos.bz2 | fstype -' 'vfat\n' "" ""
+testing "reiserfs" 'bzcat "$BDIR"/reiser3.bz2 | fstype -' 'reiserfs\n' "" ""
+
+#testing "blkid minix" 'bzcat "$BDIR"/minix.bz2 | blkid -'
+#adfs bfs btrfs cramfs jfs nilfs romfs
+#vfat  // fat32 fat12 fat16

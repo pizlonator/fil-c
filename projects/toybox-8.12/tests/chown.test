@@ -1,0 +1,43 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+if [ "$(id -u)" -ne 0 ]
+then
+  echo "$SHOWSKIP: chown (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+# We chown between user "root" and the last user in /etc/passwd,
+# and group "root" and the last group in /etc/group.
+USR="$(sed -n '$s/:.*//p' /etc/passwd)"
+GRP="$(sed -n '$s/:.*//p' /etc/group)"
+# Or if that fails, we assume we're on Android...
+: "${USR:=shell}"
+: "${GRP:=daemon}"
+
+# Set up a little testing hierarchy
+
+rm -rf testdir &&
+mkdir testdir &&
+touch testdir/file
+F=testdir/file
+
+# Wrapper to reset groups and return results
+
+OUT="&& stat --format '%U %G' $F"
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Basic smoketest
+testing "initial" "chown root:root $F $OUT" "root root\n" "" ""
+testing "usr:grp" "chown $USR:$GRP $F $OUT" "$USR $GRP\n" "" ""
+testing "root"    "chown root $F $OUT" "root $GRP\n" "" ""
+# TODO: can we test "owner:"?
+testing ":grp"    "chown root:root $F && chown :$GRP $F $OUT" \
+    "root $GRP\n" "" ""
+testing ":"       "chown $USR:$GRP $F && chown : $F $OUT" \
+    "$USR $GRP\n" "" ""
+
+rm -rf testdir

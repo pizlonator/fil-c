@@ -1,0 +1,30 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+#
+# pidof (unlike killall) doesn't match argv[1] unless you supply -x.
+#
+
+mkfifo fifo
+echo -e "#!$(which sh)\nread i < fifo" > pidof-$$.test
+chmod a+x pidof-$$.test
+cp pidof-$$.test toybox.pidof-$$.test.script
+(./pidof-$$.test & echo $! > pid.txt)
+pid=$(cat pid.txt)
+testcmd "short argv[1]" "pidof-$$.test" "" "" ""
+testcmd "short argv[1] -x" "-x pidof-$$.test" "$pid\n" "" ""
+kill $pid
+
+(./toybox.pidof-$$.test.script & echo $! > pid.txt)
+pid=$(cat pid.txt)
+testcmd "long argv[1]" "toybox.pidof-$$.test.script" "" "" ""
+testcmd "long argv[1] -x" "-x toybox.pidof-$$.test.script" "$pid\n" "" ""
+kill $pid
+
+rm -f toybox.pidof-$$.test.script pidof-$$.test pid.txt fifo
+
+# pidof (unlike killall) will match itself.
+testcmd "pidof pidof" "pidof > /dev/null && echo found" "found\n" "" ""

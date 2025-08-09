@@ -1,0 +1,192 @@
+#!/bin/bash
+# Copyright 2014 Cynthia Rempel <cynthia@rtems.org>
+#
+# Brief: Some cursery coverage tests of ifconfig...
+# Note: requires permissions to run modprobe and all ifconfig options
+# Commands used: grep, grep -i, ip link, ip tuntap, wc -l
+#
+# Possible improvements:
+# 1. Verify the dummy interface actually has the modified characteristics
+#    instead of relying on ifconfig output
+# 2. Introduce more error cases, to verify ifconfig fails gracefully
+# 3. Do more complex calls to ifconfig, while mixing the order of the
+#    arguments
+# 4. Cover more ifconfig options:
+#    hw ether|infiniband ADDRESS - set LAN hardware address (AA:BB:CC...)
+#    txqueuelen LEN - number of buffered packets before output blocks
+#    Obsolete fields included for historical purposes:
+#    irq|io_addr|mem_start ADDR - micromanage obsolete hardware
+#    outfill|keepalive INTEGER - SLIP analog dialup line quality monitoring
+#    metric INTEGER - added to Linux 0.9.10 with comment "never used", still true
+
+#testing "name" "command" "result" "infile" "stdin"
+
+[ -f testing.sh ] && . testing.sh
+
+if [ "$(id -u)" -ne 0 ]
+then
+  echo "$SHOWSKIP: ifconfig (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+# Add a dummy interface to test with
+modprobe dummy >/dev/null 2>&1
+if ! ifconfig dummy0 up 2>/dev/null
+then
+  echo "$SHOWSKIP: ifconfig dummy0 up failed"
+  return 2>/dev/null
+  exit
+fi
+
+# Results Expected: After calling ifconfig, no lines with dummy0 are displayed
+testing "Disable the dummy0 interface" \
+  "ifconfig dummy0 down && ifconfig | grep dummy | wc -l" "0\n" "" ""
+
+# Results Expected: After calling ifconfig, one line with dummy0 is displayed
+testing "Enable the dummy0 interface" \
+  "ifconfig dummy0 up && ifconfig dummy0 | grep dummy | wc -l" "1\n" "" ""
+
+# Results Expected: After calling ifconfig dummy0, one line displays the ip
+#                   address selected
+testing "Set the ip address of the dummy0 interface" \
+  "ifconfig dummy0 10.240.240.240 && ifconfig dummy0 | grep 10\.240\.240\.240 | wc -l" \
+  "1\n" "" ""
+
+# Results Expected: After calling ifconfig dummy0, one line displays the
+#                   netmask selected
+testing "Change the netmask to the interface" \
+  "ifconfig dummy0 netmask 255.255.240.0 && ifconfig dummy0 | grep 255\.255\.240\.0 | wc -l" \
+  "1\n" "" ""
+
+# Results Expected: After calling ifconfig dummy0, one line displays the
+#                   broadcast address selected
+testing "Change the broadcast address to the interface" \
+  "ifconfig dummy0 broadcast 10.240.240.255 && ifconfig dummy0 | grep 10\.240\.240\.255 | wc -l" \
+  "1\n" "" ""
+
+# Test Description: Revert to the default ip address
+# Results Expected: After calling ifconfig dummy0, there are no lines
+#                   displaying the ip address previously selected
+testing "dummy0 default" \
+"ifconfig dummy0 default && ifconfig dummy0 | grep 10\.240\.240\.240 | wc -l" \
+"0\n" "" ""
+
+# Test Description: Change the Maximum transmission unit (MTU) of the interface
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   selected MTU
+testing "dummy0 mtu 1269" \
+"ifconfig dummy0 mtu 1269 && ifconfig dummy0 | grep MTU:1269 | wc -l" \
+"1\n" "" ""
+
+# Test Description: ifconfig add for IPv6 fails with an mtu too small for IPv6.
+# Results Expected: Failure. No check for the exact error because old kernels
+#                   used ENOBUFS but 5.4 uses EINVAL.
+testing "dummy0 add ::2 -- too small mtu" \
+"ifconfig dummy0 add ::2 2>/dev/null || echo expected" "expected\n" "" ""
+
+# Test Description: Change the Maximum transmission unit (MTU) of the interface
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   selected MTU
+testing "dummy0 mtu 2000" \
+"ifconfig dummy0 mtu 2000 && ifconfig dummy0 | grep MTU:2000 | wc -l" \
+"1\n" "" ""
+
+# Test Description: Verify ifconfig add succeeds with a larger mtu
+# Results Expected: after calling ifconfig dummy0, there is one line with the
+#                   selected ip address
+testing "dummy0 add ::2" \
+"ifconfig dummy0 add ::2/126 && ifconfig dummy0 | grep \:\:2/126 | wc -l" \
+"1\n" "" ""
+
+# Test Description: Verify ifconfig del removes the selected ip6 address
+# Results Expected: after calling ifconfig dummy0, there are no lines with the
+#                   selected ip address
+testing "dummy0 del ::2" \
+"ifconfig dummy0 del ::2/126 && ifconfig dummy0 | grep \:\:2/126 | wc -l" \
+"0\n" "" ""
+
+# Test Description: Remove the noarp flag and bring the interface down in
+#                   preparation for the next test
+# Results Expected: After calling ifconfig dummy0, there are no lines with the
+#                   NOARP flag
+testing "dummy0 arp down" \
+"ifconfig dummy0 arp down && ifconfig dummy0 | grep -i NOARP | wc -l" \
+"0\n" "" ""
+
+# Test Description: Call the pointopoint option with no argument
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   NOARP and UP flags
+# TODO: http://lists.landley.net/pipermail/toybox-landley.net/2014-November/003795.html
+#testing "dummy0 pointopoint" \
+#"ifconfig dummy0 pointopoint && ifconfig dummy0 | grep -i NOARP | grep -i UP | wc -l" \
+#"1\n" "" ""
+
+# Test Description: Test the pointopoint option and set the ipaddress
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   word inet and the selected ip address
+# TODO: http://lists.landley.net/pipermail/toybox-landley.net/2014-November/003795.html
+#testing "dummy0 pointopoint 127.0.0.2" \
+#"ifconfig dummy0 pointopoint 127.0.0.2 && ifconfig dummy0 | grep -i inet | grep -i 127\.0\.0\.2 | wc -l" \
+#"1\n" "" ""
+
+####### Flags you can set on an interface (or -remove by prefixing with -): ###############
+
+# Test Description: Enable allmulti mode on the interface
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   allmulti flag
+testing "dummy0 allmulti" \
+"ifconfig dummy0 allmulti && ifconfig dummy0 | grep -i allmulti | wc -l" "1\n" \
+"" ""
+
+# Test Description: Disable multicast mode the interface
+# Results Expected: After calling ifconfig dummy0, there are no lines with the
+#                   allmulti flag
+testing "dummy0 -allmulti" \
+"ifconfig dummy0 -allmulti && ifconfig dummy0 | grep -i allmulti | wc -l" "0\n" \
+"" ""
+
+# Test Description: Disable NOARP mode on the interface
+# Results Expected: After calling ifconfig dummy0, there are no lines with the
+#                   NOARP flag
+testing "dummy0 arp" \
+"ifconfig dummy0 arp && ifconfig dummy0 | grep -i NOARP | wc -l" "0\n" \
+"" ""
+
+# Test Description: Enable NOARP mode on the interface
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   NOARP flag
+testing "dummy0 -arp" \
+"ifconfig dummy0 -arp && ifconfig dummy0 | grep -i NOARP | wc -l" "1\n" \
+"" ""
+
+# Test Description: Enable multicast mode on the interface
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   multicast flag
+testing "dummy0 multicast" \
+"ifconfig dummy0 multicast && ifconfig dummy0 | grep -i multicast | wc -l" \
+"1\n" "" ""
+
+# Test Description: Disable multicast mode the interface
+# Results Expected: After calling ifconfig dummy0, there are no lines with the
+#                   multicast flag
+testing "dummy0 -multicast" \
+"ifconfig dummy0 -multicast && ifconfig dummy0 | grep -i multicast | wc -l" \
+"0\n" "" ""
+
+# Test Description: Enable promiscuous mode the interface
+# Results Expected: After calling ifconfig dummy0, there is one line with the
+#                   promisc flag
+testing "dummy0 promisc" \
+"ifconfig dummy0 promisc && ifconfig dummy0 | grep -i promisc | wc -l" "1\n" \
+"" ""
+
+# Disable promiscuous mode the interface
+# Results Expected: After calling ifconfig dummy0, there are no lines with the
+#                   promisc flag
+testing "dummy0 -promisc" \
+"ifconfig dummy0 -promisc && ifconfig dummy0 | grep -i promisc | wc -l" "0\n" \
+"" ""
+
+# Disable the dummy interface
+ifconfig dummy0 down

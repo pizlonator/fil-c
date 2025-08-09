@@ -1,0 +1,138 @@
+#!/bin/bash
+
+#testing "name" "command" "result" "infile" "stdin"
+
+seq 10 > left
+seq 11 > right
+
+testcmd "unknown argument" '--oops left right 2>/dev/null ; echo $?' "2\n" "" ""
+testcmd "missing" 'missing1 missing2 2>/dev/null ; echo $?' "2\n" "" ""
+
+testcmd "- -" '- - ; echo $?' "0\n" "" "whatever"
+
+testcmd "simple" "-u -L lll -L rrr left right" '--- lll
++++ rrr
+@@ -8,3 +8,4 @@
+ 8
+ 9
+ 10
++11
+' "" ""
+rm left right
+
+mkdir -p tree1 tree2
+echo foo > tree1/file
+echo food > tree2/file
+
+# Debian's diff gratuitously echoes its command line with -r. No idea why.
+testcmd "-r" "-u -r -L tree1/file -L tree2/file tree1 tree2 | grep -v ^diff" \
+  '--- tree1/file
++++ tree2/file
+@@ -1 +1 @@
+-foo
++food
+' "" ""
+rm tree1/file tree2/file
+rmdir tree1 tree2
+
+echo -e "hello\r\nworld\r\n"> a
+echo -e "hello\nworld\n"> b
+testcmd "--strip-trailing-cr off" "-q a b" "Files a and b differ\n" "" ""
+testcmd "--strip-trailing-cr on" '-u --strip-trailing-cr a b; echo $?' \
+  "0\n" "" ""
+
+echo -e "1\n2" > aa
+echo -e "1\n3" > bb
+testcmd "line format" "--unchanged-line-format=U%l --old-line-format=D%l --new-line-format=A%l aa bb" "U1D2A3" "" ""
+testcmd "line format empty" "--unchanged-line-format= --old-line-format=D%l --new-line-format=A%l aa bb" "D2A3" "" ""
+
+ln -s aa cc
+testcmd "follow symlink" "-q -L aa -L cc aa cc" "" "" ""
+testcmd "no follow symlink" "-q --no-dereference -L aa -L cc aa cc" "File aa is a regular file while file cc is a symbolic link\n" "" ""
+ln -s ./aa dd
+testcmd "symlink differs" "-q -L cc -L dd cc dd" "" "" ""
+testcmd "symlink differs no follow" "-q --no-dereference -L cc -L dd cc dd" "Symbolic links cc and dd differ\n" "" ""
+rm aa bb cc dd
+
+mkfifo fifo1
+mkfifo fifo2
+echo -e "1\n2" > fifo1&
+echo -e "1\n3" > fifo2&
+testcmd "fifos" "-u -L fifo1 -L fifo2 fifo1 fifo2" '--- fifo1
++++ fifo2
+@@ -1,2 +1,2 @@
+ 1
+-2
++3
+' "" ""
+
+echo -e "1\n2" > fifo1&
+echo -e "1\n3" > file1
+ln -s file1 link1
+
+testcmd "fifo symlinked file" "-u -L fifo1 -L link1 fifo1 link1" '--- fifo1
++++ link1
+@@ -1,2 +1,2 @@
+ 1
+-2
++3
+' "" ""
+
+testcmd "fifo symlinked file no follow" "-u -L fifo1 -L link1 fifo1 link1 --no-dereference" "File fifo1 is a fifo while file link1 is a symbolic link\n" "" ""
+testcmd "symlinked file stdin no follow" "-u -L link1 -L - link1 - --no-dereference" "File link1 is a symbolic link while file - is a fifo\n" "" "test"
+rm fifo1 fifo2 link1 file1
+
+echo -e 'int bar() {
+}
+
+int foo() {
+}
+
+int baz() {
+  1
+  {2
+  3
+  4
+  foo
+}
+'> a
+echo -e 'int barbar() {
+}
+
+int foo() {
+}
+
+int baz() {
+  1a
+  {2
+  3
+  4
+  bar
+}
+'> b
+testcmd 'show function' "--show-function-line=' {$' -U1 -L lll -L rrr a b" \
+'--- lll
++++ rrr
+@@ -1,2 +1,2 @@
+-int bar() {
++int barbar() {
+ }
+@@ -7,3 +7,3 @@ int foo() {
+ int baz() {
+-  1
++  1a
+   {2
+@@ -11,3 +11,3 @@ int baz() {
+   4
+-  foo
++  bar
+ }
+' \
+'' ''
+rm a b
+
+seq 1 100000 > one
+seq 1 4 100000 > two
+testcmd 'big hunk' '-u --label nope --label nope one two' \
+  "$(echo -e '--- nope\n+++ nope\n@@ -1,100000 +1,25000 @@'; for i in $(seq 1 100000); do (((i-1)&3)) && echo "-$i" || echo " $i"; done)\n" '' ''
+rm one two

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "split" "seq 1 12345 | split && ls xa[a-z] | wc -l" "13\n" "" ""
+rm -f xa[a-z]
+
+testing "-" "seq 1 12345 | split - && ls xa[a-z] | wc -l" "13\n" "" ""
+rm -f xa[a-z]
+
+seq 1 12345 > file
+testing "file" "split file && ls xa[a-z] | wc -l" "13\n" "" ""
+rm -f xa[a-z]
+
+toyonly testing "-l" "split file -l 10k && wc -l xab" "2105 xab\n" "" ""
+rm -f xa[ab]
+
+testing "suffix exhaustion" \
+  "split file -l 10 -a 1 walrus 2>/dev/null || ls walrus* | wc -l" "26\n" "" ""
+rm -f walrus*
+
+testing "bytes" \
+  "seq 1 20000 | split -b 100 -a 3 - whang && ls whang* | wc -l && wc -c whangbpw" "1089\n94 whangbpw\n" "" ""
+
+testing "reassembly" \
+  'ls whang* | sort | xargs cat > reassembled && seq 1 20000 | diff -u reassembled - && echo yes' \
+  "yes\n" "" ""
+rm -f file whang* reassembled
+
+testing "-n" "split -n 3 input; md5sum xaa xab xac" \
+  "494bb8fb423bfa1a5fd66dd0b98f866d  xaa\n449acfdbc692780de30a2df05c5d32aa  xab\n15ab4be57aebe9a1e445195d5094036c  xac\n" \
+  "$(seq 1 10000)" ""
+

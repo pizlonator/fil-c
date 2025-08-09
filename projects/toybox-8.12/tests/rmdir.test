@@ -1,0 +1,59 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+mkdir one
+testing "rmdir" "rmdir one && [ ! -d one ] && echo yes" "yes\n" "" ""
+
+touch walrus
+testing "file" \
+	"rmdir walrus 2> /dev/null || [ -f walrus ] && echo yes" "yes\n" "" ""
+
+mkdir one two
+testing "one two" \
+	"rmdir one two 2> /dev/null && [ ! -d one ] && [ ! -d two ] && echo yes" \
+	"yes\n" "" ""
+
+mkdir one two three
+testing "one missing two file three" \
+	"rmdir one missing two walrus three 2> /dev/null || [ ! -d three ] && echo yes" \
+	"yes\n" "" ""
+rm walrus
+
+mkdir one
+chmod 000 one
+testing "mode 000" "rmdir one && [ ! -d one ] && echo yes" "yes\n" "" ""
+
+mkdir temp
+touch temp/thing
+testing "non-empty" \
+	"rmdir temp 2>/dev/null || [ -d temp ] && echo yes" "yes\n" "" ""
+testing "-p dir/file" \
+	"rmdir -p temp/thing 2>/dev/null || [ -f temp/thing ] && echo yes" \
+	"yes\n" "" ""
+
+mkdir -p temp/one/two/three
+testing "-p part of path" \
+	"rmdir -p temp/one/two/three 2>/dev/null || [ -d temp ] && [ ! -e temp/one ] && echo yes" \
+	"yes\n" "" ""
+rm -rf temp
+
+skipnot [ $UID -eq 0 ]
+testing '-p abspath' \
+  'mkdir -p /test/2/3 && rmdir -p /test/2/3 && [ ! -e /test ] && echo yes' \
+  'yes\n' '' ''
+
+mkdir -p one/two/three
+testing "-p one/two/three" \
+	"rmdir -p one/two/three && [ ! -e one ] && echo yes" "yes\n" "" ""
+
+mkdir -p one/two/three
+testing "-p one/two/three/" \
+	"rmdir -p one/two/three/ && [ ! -e one ] && echo yes" "yes\n" "" ""
+
+#mkdir -p one/two/three
+#chmod 000 one/two/three one/two one
+#testing "-p one/two/three" \
+#	"rmdir -p one/two/three && [ ! -e one ] && echo yes" "yes\n" "" ""

@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+#set -x
+
+# Creating test-file/dir for testing ls
+mkdir -p dir1 dir2 || exit 1
+echo "test file1" > file1.txt
+echo "test file2" > file2.txt
+echo "hidden file1" > .hfile1
+
+testcmd "no argument" "" "dir1\ndir2\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "-C column spacing equals 2" "-C" "dir1  dir2  file1.txt  file2.txt\n" \
+        "" ""
+testcmd "-x column spacing equals 2" "-x" "dir1  dir2  file1.txt  file2.txt\n" \
+        "" ""
+testcmd "explicit files" "file*" "file1.txt\nfile2.txt\n" "" ""
+testcmd "explicit -1" "-1 file*" "file1.txt\nfile2.txt\n" "" ""
+testcmd "" "-p" "dir1/\ndir2/\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "" "-a" ".\n..\n.hfile1\ndir1\ndir2\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "" "-A" ".hfile1\ndir1\ndir2\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "" "-d" ".\n" "" ""
+testcmd "" "-d *" "dir1\ndir2\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "" "-k" "dir1\ndir2\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "-m" "-m" "dir1, dir2, file1.txt, file2.txt\n" "" ""
+testcmd "-F" "-F" "dir1/\ndir2/\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "-dk *" "-dk *" "dir1\ndir2\nfile1.txt\nfile2.txt\n" "" ""
+testcmd "-Z" "-Z file1.txt | egrep -q '^[^ ]+ file1.txt' || echo fail" "" "" ""
+testcmd "-lZ" "--full-time -lZ file1.txt | egrep -q '^-[rwx-]+ +[0-9]+ +[^ ]+ +[^ ]+ +[^ ]+ +[0-9]+ [0-9][0-9][0-9][0-9]-[0-9][0-9]-.* file1.txt' || echo fail" "" "" ""
+
+ln -s file1.txt slink
+testcmd "-l symlink" "-l slink | grep -q -- ' slink -> file1.txt' && echo ok" \
+        "ok\n" "" ""
+rm -f slink
+
+ln -s /dev/null/nosuchfile nosuchfile
+testcmd "-d broken symlink" "-d nosuchfile" "nosuchfile\n" "" ""
+rm -f nosuchfile
+
+rm -rf file{1,2}.txt .hfile1 dir1 dir2
+
+mkdir -p dir1 && touch file1.txt dir1/file2
+testcmd "" "-R" ".:\ndir1\nfile1.txt\n\n./dir1:\nfile2\n" "" ""
+rm -rf dir1 file1.txt
+
+touch file1.txt
+testcmd "-i" "-i" "$(stat -c %i file1.txt) file1.txt\n" "" ""
+testcmd "missing" "does-not-exist 2>&1 >/dev/null | grep -o does-not-exist" \
+        "does-not-exist\n" "" ""
+rm -f file1.txt
+
+# sort tests
+TIME=1234567890
+for i in one two three four five six seven eight nine ten
+  do touch -d @$((TIME++)) $i
+done
+testcmd "" "-r" "two\nthree\nten\nsix\nseven\none\nnine\nfour\nfive\neight\n" \
+        "" ""
+testcmd "-w test 1" "-Cw 20" \
+  "eight  one    three\nfive   seven  two\nfour   six\nnine   ten\n" "" ""
+testcmd "-w test 2" "-Cw 19" \
+  "eight  seven\nfive   six\nfour   ten\nnine   three\none    two\n" "" ""
+rm -f one two three four five six seven eight nine ten
+
+touch a b c d e f
+testcmd "-w test 3" "-Cw 3" "a\nb\nc\nd\ne\nf\n" "" ""
+testcmd "-w test 4" "-Cw 4" "a  d\nb  e\nc  f\n" "" ""
+rm -f a b c d e f
+
+touch 'hello world'
+testcmd "default escaping" "" "hello world\n" "" ""
+testcmd "" "-b" 'hello\\ \\rworld\n' "" ""
+testcmd "" "-q" 'hello ?world\n' "" ""
+testcmd "" "-N" 'hello world\n' "" ""
+# testcmd "" "-qN" 'hello ?world\n' "" "" behaves differently, and ok with it.
+rm hello*
+
+mkdir zzz dir && echo hello > xxx && sleep .05 && echo longer > abc
+# pause because filesystem granularity may be "jiffies".
+X=999; for i in abc x abc.jkl zzz xxx Abc cde.def dir bcd.ghi
+do sleep .05; touch -d @$((X--)) $i; done
+
+# MacOS filesystems are case insensitive, so Abc and abc can't coexist.
+[ "$(uname)" == Darwin ] && SKIP=999
+testcmd '' '--group-directories-first' \
+  'dir\nzzz\nAbc\nabc\nabc.jkl\nbcd.ghi\ncde.def\nx\nxxx\n' '' ''
+testcmd '' '-cr' 'abc\nx\nabc.jkl\nzzz\nxxx\nAbc\ncde.def\ndir\nbcd.ghi\n' '' ''
+testcmd '' '-tr' 'bcd.ghi\ndir\ncde.def\nAbc\nxxx\nzzz\nabc.jkl\nx\nabc\n' '' ''
+testcmd '' '-S --group-directories-first' 'dir\nzzz\nabc\nxxx\nAbc\nabc.jkl\nbcd.ghi\ncde.def\nx\n' '' ''
+testcmd '' '-X' 'Abc\nabc\ndir\nx\nxxx\nzzz\ncde.def\nbcd.ghi\nabc.jkl\n' '' ''
+testcmd '-U matches -f' '-aU1' "$("$C" -f1)\n" '' ''
+# -ltu sorts by atime, -lu shows atime but sorts by name (same for -oc/-otc)
+TZ=utc testcmd '-ou' '-ou --full-time . | sed -n "s/.*:\([0-9]*\).*/\1/p"' \
+  '34\n39\n37\n31\n33\n32\n38\n35\n36\n' '' ''
+TZ=utc testcmd '-otu' '-otu --full-time . | sed -n "s/.*:\([0-9]*\).*/\1/p"' \
+  '39\n38\n37\n36\n35\n34\n33\n32\n31\n' '' ''
+toyonly testcmd '' '--sort=reverse' 'zzz\nxxx\nx\ndir\ncde.def\nbcd.ghi\nabc.jkl\nabc\nAbc\n' '' ''
+toyonly testcmd '' '--sort=nocase,time' 'abc\nAbc\nabc.jkl\nbcd.ghi\ncde.def\ndir\nx\nxxx\nzzz\n' '' ''
+SKIP=0

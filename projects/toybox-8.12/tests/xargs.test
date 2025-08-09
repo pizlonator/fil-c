@@ -1,0 +1,92 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "xargs" "xargs && echo yes" "hello\nyes\n" "" "hello"
+testing "spaces" "xargs" \
+	"one two three four\n" "" "one two\tthree  \nfour\n\n"
+
+testing "-n 0" "xargs -n 0 2>/dev/null || echo ok" "ok\n" \
+	"" "one \ntwo\n three"
+testing "-n 1" "xargs -n 1" "one\n" "" "one\n"
+testing "-n 2" "xargs -n 2" "one two\nthree\n" "" "one \ntwo\n three"
+testing "-n exact match" "xargs -n 3" "one two three\n" "" "one two three"
+testing "xargs2" "xargs -n2" "one two\nthree four\nfive\n" "" \
+	"one two three four five"
+testing "-s too long" "xargs -s 9 echo 2>/dev/null; echo \$?" \
+	"one\ntwo\n1\n" "" "one two three"
+testing "-s 13" "xargs -s 13 echo" "one two\nthree\n" "" "one \ntwo\n three"
+testing "-s 12" "xargs -s 12 echo" "one\ntwo\nthree\n" "" "one \ntwo\n three"
+# Check that we're accounting for the command *and* its arguments correctly.
+testing "-s counts args" "xargs -s 13 echo ' ' ' '" "    one\n" "" "one\n"
+# 5 is the minimum allowed for the default "echo".
+testing "-s 4 fails" "xargs -s 4 2>/dev/null || echo bad" "bad\n" "" ""
+testing "-s 5 no input okay" "xargs -s 5" "\n" "" ""
+testing "-s 5 with input bad" "xargs -s 5 2>/dev/null || echo bad" "bad\n" \
+  "" "a\n"
+
+touch one two three
+testing "command -opt" "xargs -n2 ls -1" "one\ntwo\nthree\n" "" \
+	"one two three"
+rm one two three
+
+testing "-0 -n1" "printf 'a\0b\0c\0d\0e\0f' | xargs -0 -n1 echo _" "_ a\n_ b\n_ c\n_ d\n_ e\n_ f\n" "" ""
+testing "-0 -n2" "printf 'a\0b\0c\0d\0e\0f' | xargs -0 -n2 echo _" "_ a b\n_ c d\n_ e f\n" "" ""
+
+testing "-t" "xargs -t 2>stderr ; cat stderr ; rm stderr" "one two\necho one two \n" "" "one\ntwo\n"
+
+testing "-E END" "xargs -E END" "a b ENDE\n" "" "a\nb\nENDE\nEND\nc\nd\n"
+
+testing "-r" "xargs -r echo x" "" "" ""
+testing "no -r" "xargs echo x" "x\n" "" ""
+
+# Exit value madness. 0 and 126/127 are normal.
+testing "true" "xargs true; echo \$?" "0\n" "" ""
+testing "command not found" "xargs does-not-exist 2>/dev/null; echo \$?" \
+  "127\n" "" ""
+# But 1-125 are flattened to 123.
+testing "false" "xargs false; echo \$?" "123\n" "" ""
+# 255 is special "abort early" magic.
+testing "exit 255" "xargs sh -c 'exit 255' 2>&1; echo \$?" \
+  "xargs: sh: exited with status 255; aborting\n124\n" "" ""
+
+# findutils maxes out at 131066 (they do the math wrong), kernel takes 131071.
+toyonly testing "max argument size" \
+  "head -c 131071 /dev/zero | tr '\0' x | xargs | wc -c" "131072\n" "" ""
+X=$(head -c 131066 /dev/zero | tr '\0' x)
+# This goes over the kernel's 10 meg limit
+testing "big input forces split" \
+  'for i in $(seq 1 100);do echo $X;done|{ xargs >/dev/null && echo yes;}' \
+  "yes\n" "" ""
+
+# -P max-proc
+testing "max-proc=1" "xargs -n 1 -P 1" "one\ntwo\nthree\n" "" "one\ntwo\nthree\n"
+testing "max-proc=2" "xargs -n 1 -P 2" "y\ny\ny\n" "" "y\ny\ny\n"
+testing "max-proc=3" "xargs -n 1 -P 3" "y\ny\ny\n" "" "y\ny\ny\n"
+# 3 seconds vs 2 seconds vs 1 second parallel sleep
+testing "parallel sleep" "
+  xargs_sleep() {
+    ( yes | head -3 | tr y 1 | time -p xargs -n 1 \${*} sleep ) 2>&1 |
+      sed -n 's/^real *\([0-9]*\)[.]\(.*\)/\1\2/p'
+  } &&
+  A=\`xargs_sleep\` &&
+  B=\`xargs_sleep -P 2\` &&
+  C=\`xargs_sleep -P 0\` &&
+  [ \${A} -gt \${B} -a \${B} -gt \${C} ] && echo OK || echo FAIL" "OK\n" "" ""
+
+# TODO: what exactly is -x supposed to do? why does coreutils output "one"?
+#testing "-x" "xargs -x -s 9 || echo expected" "one\nexpected\n" "" "one\ntwo\nthree"
+
+# TODO: test for -L? what exactly is the difference between -n and -L?
+
+#testing "-n exact match"
+#testing "-s exact match"
+#testing "-s impossible"
+
+testing "no stdin" "echo -n | xargs cat" "" "" ""
+
+testing "exit 255 aborts" \
+  "xargs -n1 sh -c 'echo \$1; exit \$1' blah 2>/dev/null" '123\n234\n255\n' \
+  '' '123\n234\n255\n42\n99\n'

@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# SUSv4 compliant sort tests.
+# Copyright 2005, 2012 by Rob Landley <rob@landley.net>
+
+[ -f testing.sh ] && . testing.sh
+
+# The basic tests.  These should work even with the small config.
+
+testing "unknown argument" 'sort --oops 2>/dev/null ; echo $?' "2\n" "" ""
+testing "sort" "sort input" "a\nb\nc\n" "c\na\nb\n" ""
+testing "#2" "sort input" "010\n1\n3\n" "3\n1\n010\n" ""
+testing "stdin" "sort" "a\nb\nc\n" "" "b\na\nc\n"
+testing "numeric" "sort -n input" "1\n3\n010\n" "3\n1\n010\n" ""
+testing "reverse" "sort -r input" "wook\nwalrus\npoint\npabst\naargh\n" \
+	"point\nwook\npabst\naargh\nwalrus\n" ""
+testing "sort -o" "sort input -o output && cat output" "a\nb\nc\n" "c\na\nb\n" ""
+testing "sort -o same" "sort input -o input && cat input" "a\nb\nc\n" "c\na\nb\n" ""
+
+# Longish chunk of data re-used by the next few tests.  The expected output
+# varies, but the input (this) is the same.
+
+data="42	1	3	woot
+42	1	010	zoology
+egg	1	2	papyrus
+7	3	42	soup
+999	3	0	algebra
+"
+
+# Sorting with keys
+
+testing "one key" "sort -k4,4 input" \
+"999	3	0	algebra
+egg	1	2	papyrus
+7	3	42	soup
+42	1	3	woot
+42	1	010	zoology
+" "$data" ""
+
+# The numeric sort orders field 2, ignores field 3 (because numeric sort stops
+# at the whitespace), then the global fallback sort does an alpha sort on
+# the whole string (starting at the beginning of the line).
+
+testing "key range with numeric option" "sort -k2,3n input" \
+"42	1	010	zoology
+42	1	3	woot
+egg	1	2	papyrus
+7	3	42	soup
+999	3	0	algebra
+" "$data" ""
+
+# Numeric sort on field 2 (again, ignore field 3 because it's numeric),
+# then do a _reversed_ alpha sort on the whole line as a tiebreaker.
+
+testing "key range with numeric option and global reverse" \
+"sort -k2,3n -r input" \
+"egg	1	2	papyrus
+42	1	3	woot
+42	1	010	zoology
+999	3	0	algebra
+7	3	42	soup
+" "$data" ""
+
+# Reversed numeric sort on field 2 (numeric ignores field 3), then
+# break ties with alpha sort on whole line.
+
+testing "key range with multiple options" "sort -k2,3rn input" \
+"7	3	42	soup
+999	3	0	algebra
+42	1	010	zoology
+42	1	3	woot
+egg	1	2	papyrus
+" "$data" ""
+
+testing "key doesn't strip leading blanks, disables fallback global sort" \
+"sort -n -k2 -t ' '" " a \n 1 \n 2 \n" "" " 2 \n 1 \n a \n"
+
+# Test case contributed by Joey Hess:
+
+testing "key edge case with -t" "sort -n -k4 -t/" \
+"/usr/lib/finish-install.d/1
+/usr/lib/finish-install.d/4
+/usr/lib/prebaseconfig.d/2
+/usr/lib/prebaseconfig.d/6
+" "" "/usr/lib/finish-install.d/1
+/usr/lib/prebaseconfig.d/2
+/usr/lib/finish-install.d/4
+/usr/lib/prebaseconfig.d/6
+"
+
+toyonly testing "-x" "sort -x" "010\na0\n 0c0\n" "" "a0\n010\n 0c0\n"
+
+# Test that -f applies to key or fallback independently
+
+testing "" "sort -k2,2f" "A b b\na B C\na B a\n" "" "a B a\nA b b\na B C\n"
+testing "" "sort -k2,2" "a B C\na B a\nA b b\n" "" "a B a\nA b b\na B C\n"
+testing "" "sort -f -k2,2" "A b b\na B C\na B a\n" "" "a B a\nA b b\na B C\n" 
+testing "" "sort -t, -k3n" "3,4,1,2\n4,1,2,3\n1,2,3,4\n2,3,4,1\n" "" \
+  "1,2,3,4\n2,3,4,1\n4,1,2,3\n3,4,1,2\n"
+toyonly testing "-kx" "sort -k1,1x" "3\na\n0c\n" "" "0c\na\n3\n"
+
+# This has irredeemable version skew on the host and no standard defining it.
+# testing "-V" "LANG=c sort -V" \
+#  "toy-2.37.tar.gz\ntoy-3.4.tar.gz\ntoy-3.12.tar.gz\ntoy-4.16-rc2.tar.gz\ntoy-4.16.tar.gz\n" "" \
+#  "toy-3.12.tar.gz\ntoy-2.37.tar.gz\ntoy-3.4.tar.gz\ntoy-4.16-rc2.tar.gz\ntoy-4.16.tar.gz"
+
+testcmd "-c" "-c 2>&1 | grep -o [0-9]*" "3\n" "" "a\nb\na\nc"
+testcmd "-uc" "-uc 2>&1 | grep -o [0-9]*" "3\n" "" "a\nb\nb\nc"
+testcmd "-C 1" "-C || echo yes" "yes\n" "" "one\ntwo\nthree"
+testcmd "-C 2" "-C && echo yes" "yes\n" "" "a\nb\nc\n"
+
+toyonly testcmd 'negative -k' '-k-2,-2 -k-1r' 'a b z\nd e q\nx e a\nb m n\n' \
+  '' 'a b z\nd e q\nb m n\nx e a\n'
+toyonly testcmd 'negative -k2' '-k-2' 'a b z\nx e a\nd e q\nb m n\n' \
+  '' 'a b z\nd e q\nb m n\nx e a\n'
+
+testcmd 'missing key becomes ""' '-k3r' 'm n o\ng h i\na b c\nd e\nj k\n' \
+  '' 'a b c\nd e\ng h i\nj k\nm n o\n'
+toyonly testcmd 'negative straddle' '-k-1r' 'm n o\nj k\ng h i\nd e\na b c\n' \
+  '' 'a b c\nd e\ng h i\nj k\nm n o\n'
+toyonly testcmd 'missing negative' '-k-3r' 'm n o\ng h i\na b c\nd e\nj k\n' \
+  '' 'a b c\nd e\ng h i\nj k\nm n o\n'
+
+optional TOYBOX_FLOAT
+
+# not numbers < NaN < -infinity < numbers < +infinity
+testing "-g" "sort -g" \
+  "bork\nNaN\n-inf\n0.4\n1.222\n01.37\n2.1\n+infinity\n" "" \
+  "01.37\n1.222\n2.1\n0.4\nNaN\nbork\n-inf\n+infinity\n"
+
+# -n without number sorts as leading zero, but fallback is whole string
+testcmd '-n without number sorts as leading zero' '-n' \
+  '-1\n0A\n0D\nC\n1z\n3b\n' '' '1z\n0D\n3b\nC\n-1\n0A\n'
+
+testcmd '-u implies -s' '-uk2,2n' 'zero 1\nthree 2\nfour 3\n' '' \
+   'zero 1\none 1\nfour 3\ntwo 1\nthree 2\nalso 1'

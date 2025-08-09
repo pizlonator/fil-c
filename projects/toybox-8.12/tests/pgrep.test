@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+
+#cleaning 'yes' processes
+killall yes >/dev/null 2>&1
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Starting processes to test pgrep command
+yes >/dev/null &
+proc=$!
+#echo "# Process created with id: $proc"
+sleep .1
+session_id=0
+proc_parent=`cat /proc/${proc}/stat | cut -d' ' -f4`
+#echo "# Parent Process id of $proc is $proc_parent"
+
+# Testcases for pgrep command
+testing "pattern" "pgrep yes" "$proc\n" "" ""
+testing "wildCardPattern" "pgrep ^y.*s$" "$proc\n" "" ""
+testing "-l pattern" "pgrep -l yes" "$proc yes\n" "" ""
+testing "-f pattern" "pgrep -f yes" "$proc\n" "" ""
+testing "-n pattern" "pgrep -n yes" "$proc\n" "" ""
+testing "-o pattern" "pgrep -o yes" "$proc\n" "" ""
+testing "-s" "pgrep -s $session_id yes" "$proc\n" "" ""
+testing "-P" "pgrep -P $proc_parent yes" "$proc\n" "" ""
+
+testing "return success" "pgrep yes && echo success" "$proc\nsuccess\n" "" ""
+testing "return failure" "pgrep almost-certainly-not || echo failure" \
+    "failure\n" "" ""
+
+#Clean-up
+kill -9 $proc

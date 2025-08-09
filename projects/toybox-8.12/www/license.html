@@ -1,0 +1,64 @@
+<html><head><title>Toybox License</title>
+<!--#include file="header.html" -->
+
+<h2>Toybox is released under the Zero Clause BSD license (SPDX: <a href=https://spdx.org/licenses/0BSD.html>0BSD</a>):</h2>
+
+<blockquote>
+<p>Copyright (C) 2006 by Rob Landley &lt;rob@landley.net&gt;
+
+<p>Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
+</blockquote>
+
+<p>The text of the above license is included in the file LICENSE in the source.</p>
+
+<h2>Why 0BSD?</h2>
+
+<p>Zero clause BSD is a <a href=https://en.wikipedia.org/wiki/Public_domain_equivalent_license>public domain equivalent</a> license.</p>
+
+<p>As with <a href=https://creativecommons.org/publicdomain/zero/1.0/>CC0</a>,
+<a href=http://unlicense.org>unlicense</a>, and <a href=http://wtfpl.net/>wtfpl</a>,
+the intent is to effectively place the licensed material into the public domain,
+which after decades of FUD (such as the time OSI's ex-lawyer compared
+<a href=https://web.archive.org/web/20160530090006/http://www.cod5.org/archive/>placing code into the public domain</a> to
+<a href=http://www.linuxjournal.com/article/6225>abandoning trash by the
+side of a highway</a>) is considered somehow unsafe. But if some random third
+party
+<a href=https://github.com/mkj/dropbear/blob/master/libtomcrypt/LICENSE>takes
+public domain code</a> and slaps <a href=http://www.opensource.apple.com/source/gnuzip/gnuzip-25/gzip/gzip.c>some other license on it</a>, then it's fine.</p>
+
+<p>To work around this perception, the above license is the
+<a href=https://www.openbsd.org/policy.html>OpenBSD suggested template
+license</a>, <a href=https://github.com/landley/toybox/commit/ee86b1d8e25cb0ca9d418b33eb0dc5e7716ddc1e>minus the half sentence</a>
+requiring the license text be copied verbatim into derived works. If 2BSD is
+ok, then 0BSD should be ok, despite being equivalent to placing code in the
+public domain.</p>
+
+<p>Modifying the license in this way avoids the hole android toolbox fell into where
+<a href=https://github.com/android/platform_system_core/blob/fd4c6b0a3a25921a9fe24691a695d715aecb6afe/toolbox/NOTICE>33 copies of BSD license text</a>
+were concatenated together when copyright dates changed, or the strange
+solution the busybox developers used to resolve tension between GPLv2's "no
+additional restrictions" and BSD's "you must include this large hunk of text"
+by sticking the two licenses at
+<a href=http://git.busybox.net/busybox/tree/networking/ping.c?id=887a1ad57fe978cd320be358effbe66df8a068bf>opposite ends of the file</a> and hoping nobody
+noticed.</a>
+
+<p>I asked <a href=https://www.oreilly.com/openbook/opensources/book/kirkmck.html>Kirk McKusick</a> for permission to call this a BSD license at
+a conference shortly before I started using the name,
+and <a href=0bsd-mckusick.txt>again in 2018</a>.</p>
+
+<p>In 2017 while walking 0BSD through the github choose-a-license approval
+process, I copied to my blog two very long posts in the thread
+(<a href=https://landley.net/notes-2017.html#26-03-2017>part one</a>,
+<a href=https://landley.net/notes-2017.html#27-03-2017>part two</a>)
+explaining why the license is like that and what it was trying to
+accomplish. It seems to have <a href=https://github.com/search?q=license%3A0bsd&type=Repositories>been convincing</a>.</p>
+<!--#include file="footer.html" -->

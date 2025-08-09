@@ -1,0 +1,53 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+# This one's tricky both because echo is a shell builtin (so $PATH is
+# irrelevant) and because the "result" field is parsed with echo -e.
+# To make it work, "$CMD" is an explicit path to the command being tested,
+# so "result" keeps using the shell builtin but we test the one in toybox.
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd "echo" "&& $C yes" "\nyes\n" "" ""
+testcmd "1 2 3" "one  two	three" "one two three\n" "" ""
+testcmd "with spaces" "'one  two	three'" \
+	"one  two	three\n" "" ""
+testcmd "" "-n" "" "" ""
+testcmd "" "-n one" "one" "" ""
+testcmd "" "one -n" "one -n\n" "" ""
+testcmd "-en" "-en 'one\ntwo'" "one\ntwo" "" ""
+testcmd "" "--hello" "--hello\n" "" ""
+testcmd "-e all" "-e '\a\b\c\f\n\r\t\v\\\0123' | xxd -p" "0708\n" "" ""
+testcmd "-e all but \\c" "-e '"'\a\b\f\n\r\t\v\\\0123'"' | xxd -p" \
+	"07080c0a0d090b5c530a\n" "" ""
+testcmd "-nex hello" "-nex hello" "-nex hello\n" "" ""
+
+# Octal formatting tests
+testcmd "-e octal values" \
+	"-ne '\01234 \0060 \060 \0130\0131\0132 \077\012'" \
+	"S4 0 0 XYZ ?\n" "" ""
+testcmd "-e invalid oct" "-ne 'one\\079two'" "one\a9two" "" ""
+testcmd "-e \\0040" "-ne '\0040'" " " "" ""
+
+# Hexadecimal value tests
+testcmd "-e hexadecimal values" \
+	"-ne '\x534 \x30 \x58\x59\x5a \x3F\x0A'"\
+	"S4 0 XYZ ?\n" "" ""
+testcmd "-e invalid hex 1" "-e 'one\xvdtwo'" "one\\xvdtwo\n" "" ""
+testcmd "-e invalid hex 2" "-e 'one\xavtwo'" "one\nvtwo\n" "" ""
+
+# GNU extension for ESC
+testcmd "-e \e" "-ne '\\e' | xxd -p" "1b\n" "" ""
+
+testcmd "-e \p" "-e '\\p'" "\\p\n" "" ""
+
+# http://austingroupbugs.net/view.php?id=1222 added -E
+testcmd "-En" "-En 'one\ntwo'" 'one\\ntwo' "" ""
+testcmd "-eE" "-eE '\e'" '\\e\n' "" ""
+
+# This is how bash's built-in echo behaves, but not how /bin/echo behaves.
+toyonly testcmd "" "-e 'a\x123\ufb3bbc' | od -An -tx1" \
+  " 61 12 33 ef ac bb 62 63 0a\n" "" ""
+
+testcmd "trailing nul" "-ne 'a\0b\0' | od -An -tx1" " 61 00 62 00\n" "" ""

@@ -1,0 +1,42 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+mkdir dir && cd dir && touch file
+
+chattr +A file &>/dev/null
+_A='-------A------------'
+_d='--------------------'
+
+function clean()
+{
+  # We don't know whether the fs will have extents (e, typically true on the
+  # desktop) or be encrypted (E, typically true on Android), or have data
+  # inlined in the inode (N), or use indexed directories, so strip those out.
+  # We also don't want to rely on chattr(1) to set a known version number or
+  # project number, so blank out any numbers.
+  sed -E -e 's/, (Encrypted|Extents|Indexed_directory|Inline_Data)//g;' \
+         -e 's/[EeIN]-/--/g; s/[0-9]+/_/g'
+}
+
+testing "file" "lsattr file | clean" "$_A file\n" "" ""
+testing "-R file" "lsattr -R file | clean" "$_A file\n" "" ""
+testing "-a file" "lsattr -a file | clean" "$_A file\n" "" ""
+testing "-d ." "lsattr -d . | clean" "$_d .\n" "" ""
+testing "-d file" "lsattr -d file | clean" "$_A file\n" "" ""
+NOSPACE=1 testing "-l file" "lsattr -l file | clean" "file No_Atime\n" "" ""
+NOSPACE=1 testing "-v file" "lsattr -v file | clean" "_ $_A file\n" "" ""
+NOSPACE=1 testing "-lv file" "lsattr -lv file | clean" "_ file No_Atime\n" "" ""
+
+# You need at least Linux 4.5 plus file system support for project ids.
+lsattr -p file >/dev/null 2>&1 || SKIP=999
+  NOSPACE=1 testing "-p file" "lsattr -p file | clean" "_ $_A file\n" "" ""
+  NOSPACE=1 testing "-lp file" "lsattr -lp file | clean" "_ file No_Atime\n" \
+    "" ""
+  NOSPACE=1 testing "-vp file" "lsattr -vp file | clean" "_ _ $_A file\n" "" ""
+SKIP=0
+
+chattr -AacDdijsStTu file && cd ..
+rm -rf dir

@@ -1,0 +1,79 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+echo "this is some text" > file1
+echo -n > file2
+
+# Note that the xxd in vim-common on Ubuntu 14 uses %07x for the file offset.
+
+testcmd "file1" "file1" \
+    "00000000: 7468 6973 2069 7320 736f 6d65 2074 6578  this is some tex\n00000010: 740a                                     t.\n" \
+    "" ""
+testcmd "file1 -l" "-l 2 file1" \
+    "00000000: 7468                                     th\n" \
+    "" ""
+testcmd "-" "-" \
+    "00000000: 6865 6c6c 6f                             hello\n" "" "hello"
+testcmd "no args" "" \
+    "00000000: 776f 726c 64                             world\n" "" "world"
+testcmd "-c 8 -g 4 file1" "-c 8 -g 4 file1" \
+    "00000000: 74686973 20697320  this is \n00000008: 736f6d65 20746578  some tex\n00000010: 740a               t.\n" "" ""
+testcmd "-c 8 -g 3 file1" "-c 8 -g 3 file1" \
+    "00000000: 746869 732069 7320  this is \n00000008: 736f6d 652074 6578  some tex\n00000010: 740a                t.\n" "" ""
+
+testcmd "-i" "-i - < file1" "  0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x73, 0x6f, 0x6d, 0x65,\n  0x20, 0x74, 0x65, 0x78, 0x74, 0x0a\n" "" ""
+
+testcmd "-o 0x8000" "-o 0x8000 file1" "00008000: 7468 6973 2069 7320 736f 6d65 2074 6578  this is some tex\n00008010: 740a                                     t.\n" "" ""
+
+testcmd "-p" "-p file1" "7468697320697320736f6d6520746578740a\n" "" ""
+
+# TODO: remove toyonly when distro catches up
+toyonly testcmd "-pc0" "-pc0" \
+  "73686f77203830206865782064696769747320776974686f757420776f72647772617070696e670a\n" \
+  "" "show 80 hex digits without wordwrapping\n"
+toyonly testcmd "-pc0 long" "-pc0 | wc -c" "97787\n" "" "$(seq 1 10000)"
+
+testcmd "-s" "-s 13 file1" \
+  "0000000d: 7465 7874 0a                             text.\n" "" ""
+
+testcmd "-r" "-r" "this is some text\n" "" \
+  '    00000000: 7468 6973 2069 7320 736f 6d65 2074 6578  this is some tex\n00000010: 740a                                     t.\n'
+
+# This isn't documented, but "real" xxd supports this input format too.
+testcmd "-r no colon" "-r" "this is some text\n" "" \
+  '    00000000  7468 6973 2069 7320 736f 6d65 2074 6578  this is some tex\n00000010: 740a                                     t.\n'
+
+toyonly testcmd "-r -i" "-ri" "this is some text\n" "" \
+  '0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x73, 0x6f, 0x6d, 0x65,\n  0x20, 0x74, 0x65, 0x78, 0x74, 0x0a\n'
+
+# This isn't documented, but "real" xxd supports this input format too.
+toyonly testcmd "-r -i no commas" "-ri" "this is some text\n" "" \
+  '0x74 0x68 0x69 0x73 0x20 0x69 0x73 0x20 0x73 0x6f 0x6d 0x65\n  0x20 0x74 0x65 0x78 0x74 0x0a\n'
+
+testcmd "-r garbage" '-r -' 'hello' '' '0000: 68 65 6c6c 6fxxxx\n'
+
+# -r will only read -c bytes (default 16) before skipping to the next line,
+# ignoring the rest.
+testcmd "-r long" '-r -' "@@@@@@@@@@@@@@@@" "" \
+    '0000: 40404040404040404040404040404040404040404040404040404040404040404040404040404040\r'
+
+# -r -p ignores the usual -p 30-byte/line limit (or any limit set by -c) and
+# will take as many bytes as you give it.
+testcmd "-r -p long" '-r -p -' "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" "" \
+    '40404040404040404040404040404040404040404040404040404040404040404040404040404040\n'
+
+testcmd "-r unnecessary output seeks" '-r | xxd' \
+  "00000000: 0100 0000 0000 0000 0000 0000 0000 00ff  ................\n" '' \
+  '00000000: 0100 0000 0000 0000 0000 0000 0000 00ff  deadbeef........\n'
+
+# Little-endian, testing both the "EOF in first word on line" and "EOF in word
+# mid-line" cases.
+testcmd "LE partial" "-e -" \
+    "00000000:     6568                             he\n" "" "he"
+testcmd "LE partial mid-line" "-e -" \
+    "00000000: 6c6c6568       6f                    hello\n" "" "hello"
+
+rm file1 file2

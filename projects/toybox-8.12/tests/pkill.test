@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+
+#cleaning 'yes' processes
+killall yes >/dev/null 2>&1
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Testcases for pkill command
+
+yes >/dev/null &
+sleep 1
+testing "pattern" "pkill yes && sleep 1 && (pgrep yes || echo 'yes')" \
+  "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+yes print1 >/dev/null &
+yes print2 >/dev/null &
+sleep 1
+testing "pattern (multiple)" "pkill yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+sleep 1
+testing "-f pattern (one)" "pkill -f yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes print1 >/dev/null &
+sleep 1
+testing "-f pattern args" "pkill -f \"yes print1\" && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+yes print1 >/dev/null &
+yes print2 >/dev/null &
+sleep 1
+testing "-f pattern (multiple)" "pkill -f yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes this-is-unlikely-to-appear-otherwise >/dev/null &
+sleep 1
+testing "-s 0 -f pattern (regexp)" "pkill -s 0 -f .*-unlikely-.*-otherwise &&
+   sleep 1 && (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+proc1=$!
+yes >/dev/null &
+proc2=$!
+sleep 1
+testing "-n pattern" "pkill -n yes && sleep 1 && pgrep yes" \
+  "$proc1\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+proc1=$!
+sleep 1
+yes >/dev/null &
+proc2=$!
+sleep 1
+testing "-o pattern" "pkill -o yes && sleep 1 && pgrep yes" \
+  "$proc2\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+sleep 1
+testing "-s (blank) pattern" "pkill -s '' yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+sleep 1
+testing "-s 0 pattern" "pkill -s 0 yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+proc=$!
+proc_p=`cat /proc/${proc}/stat | cut -d' ' -f4`
+sleep 1
+testing "-P parent_prodId pattern" "pkill -P $proc_p yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+sleep 1
+testing "-9 pattern" "pkill -9 yes && sleep 1 &&
+   (pgrep yes || echo 'yes')" "yes\n" "" ""
+killall yes >/dev/null 2>&1
+
+yes >/dev/null &
+sleep 1
+testing "return success" "pkill yes && echo success" "success\n" "" ""
+killall yes >/dev/null 2>&1
+
+testing "return failure" "pkill almost-certainly-not || echo failure" \
+    "failure\n" "" ""
+

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# TODO: fill this out.
+# TODO: "make install" means something else, so no test_install, only callable
+# from "make tests"...
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+dd if=/dev/urandom of=random bs=64 count=1 2> /dev/null
+testing "install -D exists" \
+  "mkdir -p a; touch a/b; install -D random a/b && cmp random a/b && echo yes" \
+  "yes\n" "" ""
+rm -rf a random
+testing "install -D -t creates directory" \
+  "touch a; install -Dt b a && echo yes" \
+  "yes\n" "" ""
+rm -rf a b
+
+testing "install -d" "umask 0 && install -d potato && stat -c%a potato" \
+  "755\n" "" ""
+rmdir potato
+testcmd "-dm" "-dm 02750 potato && stat -c%a potato" "2750\n" "" ""
+rmdir potato
+testcmd '' '-dm +x potato && stat -c%a potato' '111\n' '' ''

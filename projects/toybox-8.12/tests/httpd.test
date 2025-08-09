@@ -1,0 +1,15 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd "static file" \
+  "\"\$FILES\" | sed 's/\\r//g;1,/^\$/d'>file; cmp file \$FILES/tar/tar.tar && echo yes" \
+  'yes\n' '' 'GET /tar/tar.tar HTTP/1.1\r\n\r\n' 
+rm -f file
+
+testcmd "mime type" \
+  '"$FILES" | tr A-Z a-z | sed -n "s/\r//g;s/^content-type: //p"' "application/x-tar\n" "" \
+  'GET /tar/tar.tar HTTP/1.1\r\n\r\n' 
+

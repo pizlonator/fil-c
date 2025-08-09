@@ -1,0 +1,36 @@
+name: toybox CI
+
+on:
+  schedule:
+    - cron:  '0 2 * * *'
+  push:
+    branches: [ master ]
+
+jobs:
+  MacOS-13:
+    runs-on: macos-13
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup
+      run: brew install gnu-sed
+    - name: Configure
+      run: make macos_defconfig
+    - name: Build
+      run: make
+    - name: Test
+      run: VERBOSE=all make tests
+
+  Ubuntu-20_04:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup
+      run: sudo apt-get install build-essential
+    - name: Configure
+      run: make defconfig
+    - name: Build
+      run: make
+    - name: Test
+      run: VERBOSE=all make tests

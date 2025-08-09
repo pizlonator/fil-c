@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Quick and dirty check to see if anybody's leaked global variables.
+# We should have this, toy_list, toybuf, libbuf, toys, and toybox_version.
+
+nm --size-sort generated/unstripped/toybox | grep '[0-9A-Fa-f]* [BCDGRS]' | \
+  grep -v GLIBC | while read a b c; do printf '%s %d\t%s\n' $b 0x$a $c; done | \
+  sort -k2,2n

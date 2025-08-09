@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013  Kyungwan.Han <asura321@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Creating test file for testing cut
+echo "one:two:three:four:five:six:seven
+alpha:beta:gamma:delta:epsilon:zeta:eta:theta:iota:kappa:lambda:mu
+the quick brown fox jumps over the lazy dog" >abc.txt
+
+testcmd "-b a,a,a" "-b 3,3,3 abc.txt" "e\np\ne\n" "" ""
+testcmd "-b overlaps" "-b 1-3,2-5,7-9,9-10 abc.txt" \
+  "one:to:th\nalphabeta\nthe qick \n" "" ""
+testcmd "-b encapsulated" "-b 3-8,4-6 abc.txt" "e:two:\npha:be\ne quic\n" \
+  "" ""
+toyonly testcmd "-bO overlaps" "-O ' ' -b 1-3,2-5,7-9,9-10 abc.txt" \
+  "one:t o:th\nalpha beta\nthe q ick \n" "" ""
+testcmd "high-low error" "-b 8-3 abc.txt 2>/dev/null || echo err" "err\n" \
+  "" ""
+
+testcmd "-c a-b" "-c 4-10 abc.txt" ":two:th\nha:beta\n quick \n" "" ""
+testcmd "-c a-" "-c 41- abc.txt" "\ntheta:iota:kappa:lambda:mu\ndog\n" "" ""
+testcmd "-c -b" "-c -39 abc.txt" \
+  "one:two:three:four:five:six:seven\nalpha:beta:gamma:delta:epsilon:zeta:eta\nthe quick brown fox jumps over the lazy\n" \
+  "" ""
+testcmd "-c a" "-c 40 abc.txt" "\n:\n \n" "" ""
+testcmd "-c a,b-c,d" "-c 3,5-7,10 abc.txt" "etwoh\npa:ba\nequi \n" "" ""
+toyonly testcmd "-c japan.txt" '-c 3-6,9-12 "$FILES/utf8/japan.txt"' \
+  "ガラスをられます\n" "" ""
+
+toyonly testcmd "-C test1.txt" '-C -1 "$FILES/utf8/test1.txt"' "l̴̗̞̠\n" "" ""
+
+# substitute for awk
+toyonly testcmd "-DF" "-DF 2,7,5" \
+  "said and your\nare\nis demand. supply\nforecast :\nyou you better,\n\nEm: Took hate\n" "" \
+"Bother, said Pooh. It's your husband, and he has a gun.
+Cheerios are donut seeds.
+Talk is cheap because supply exceeds demand.
+Weather forecast for tonight : dark.
+Apple: you can buy better, but you can't pay more.
+Subcalifragilisticexpialidocious.
+Auntie Em: Hate you, hate Kansas. Took the dog. Dorothy."
+toyonly testcmd "-DF 2" "-DF 7,1,3-6,2-5" \
+  "seven one three four five six two three four five\n" "" \
+  "one two three four five six seven eight nine\n"
+
+testcmd "empty field" "-d ':' -f 1-3" "a::b\n" "" "a::b\n"
+testcmd "empty field 2" "-d ':' -f 3-5" "b::c\n" "" "a::b::c:d\n"
+
+testcmd "-f a-" "-d ':' -f 5- abc.txt" "five:six:seven\nepsilon:zeta:eta:theta:iota:kappa:lambda:mu\nthe quick brown fox jumps over the lazy dog\n" "" ""
+
+testcmd "show whole line with no delim" "-d ' ' -f 3 abc.txt" \
+	"one:two:three:four:five:six:seven\nalpha:beta:gamma:delta:epsilon:zeta:eta:theta:iota:kappa:lambda:mu\nbrown\n" "" ""
+
+testcmd "-c (a-b)" "-c 1-15 " "ref_categorie=t\n" "" "ref_categorie=test\n"
+testcmd "-c (a)" "-c 14" "=\n" "" "ref_categorie=test\n"
+
+# Modifying abc.txt data as per new testcase
+echo "abcdefghijklmnopqrstuvwxyz" >abc.txt
+
+testcmd "-c (a,b,c)" "-c 4,5,20 abc.txt" "det\n" "" ""
+testcmd "-b (a,b,c)" "-b 4,5,20 abc.txt" "det\n" "" ""
+
+# Modifying abc.txt data as per testcase
+echo "406378:Sales:Itorre:Jan
+031762:Marketing:Nasium:Jim
+636496:Research:Ancholie:Mel
+396082:Sales:Jucacion:Ed" >abc.txt
+
+testcmd "-d -f(:) -s" "-d: -f3 -s abc.txt" "Itorre\nNasium\nAncholie\nJucacion\n" "" ""
+testcmd "-d -f( ) -s" "-d' ' -f3 -s abc.txt && echo yes" "yes\n" "" ""
+testcmd "-d -f(a) -s" "-da -f3 -s abc.txt" "n\nsium:Jim\n\ncion:Ed\n" "" ""
+testcmd "-d -f(a) -s -n" "-da -f3 -s -n abc.txt" "n\nsium:Jim\n\ncion:Ed\n" "" ""
+
+# Feature posix documents but nobody bothers to implement
+toyonly testcmd "-nb" '-nb 8-17 "$FILES/utf8/japan.txt"' "ガラス\n" "" ""
+
+# Feature that is, as far as I can tell, totally undocumented?
+testcmd "-d newline" "-d \$'\n' -f 2-3,5" "two\nthree\nfive\n" "" \
+  'one\ntwo\nthree\nfour\nfive\nsix\seven\n'
+
+# Removing abc.txt file for cleanup purpose
+rm abc.txt

@@ -1,0 +1,63 @@
+#!/bin/bash
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+if [ "$(id -u)" -ne 0 ]
+then
+  echo "$SHOWSKIP: groupadd (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+# 70 characters long string; hereafter, we will use it as per our need.
+_s70="abcdefghijklmnopqrstuvwxyz123456789abcdefghijklmnopqrstuvwxyz123456789"
+
+echo "# usage: addgroup [-g GID] [USER] GROUP
+# Add a group or add a user to a group."
+
+# Redirecting all output to /dev/null for grep and delgroup
+arg="&>/dev/null"
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "group_name (text)" "groupadd toyTestGroup &&
+   grep '^toyTestGroup:' /etc/group $arg && groupdel toyTestGroup $arg &&
+   echo 'yes'" "yes\n" "" ""
+testing "group_name (alphanumeric)" "groupadd toy1Test2Group3 &&
+   grep '^toy1Test2Group3:' /etc/group $arg && groupdel toy1Test2Group3 $arg &&
+   echo 'yes'" "yes\n" "" ""
+testing "group_name (numeric)" "groupadd 987654321 &&
+   grep '^987654321:' /etc/group $arg && groupdel 987654321 $arg &&
+   echo 'yes'" "yes\n" "" ""
+testing "group_name (with ./-)" "groupadd toy.1Test-2Group.3 &&
+   grep '^toy.1Test-2Group.3:' /etc/group $arg &&
+   groupdel toy.1Test-2Group.3 $arg && echo 'yes'" "yes\n" "" ""
+
+_s210=`echo $_s70$_s70$_s70`
+testing "group_name (long string)" "groupadd $_s210 &&
+   grep '^$_s210:' /etc/group $arg && groupdel $_s210 $arg && echo 'yes'" \
+  "yes\n" "" ""
+testing "group_name with group_id" "groupadd -g 49999 toyTestGroup &&
+   grep '^toyTestGroup:' /etc/group $arg && groupdel toyTestGroup $arg &&
+   echo 'yes'" "yes\n" "" ""
+testing "group_name with group_id (system_group)" \
+  "groupadd -g 49999 -S toyTestGroup && grep '^toyTestGroup:' /etc/group $arg &&
+   groupdel toyTestGroup $arg && echo 'yes'" "yes\n" "" ""
+testing "group_name (system_group)" "groupadd -S toyTestGroup &&
+   grep '^toyTestGroup:' /etc/group $arg && groupdel toyTestGroup $arg &&
+   echo 'yes'" "yes\n" "" ""
+testing "group_name (add/del user)" "groupadd toyTestGroup &&
+   grep '^toyTestGroup:' /etc/group $arg && groupadd $USER toyTestGroup &&
+   grep '^toyTestGroup:.*:.*:.*$USER.*' /etc/group $arg &&
+   groupdel $USER toyTestGroup $arg || groupdel toyTestGroup &&
+   grep '^toyTestGroup:' /etc/group $arg || echo 'yes'" "yes\n" "" ""
+
+ echo "Testing to add single group multiple times after removing it..."
+ for each in {01..20}
+ do
+   testing "group_name ($each)" "groupadd toyTestGroup &&
+      grep '^toyTestGroup:' /etc/group $arg && groupdel toyTestGroup $arg &&
+      echo 'yes'" "yes\n" "" ""
+ done

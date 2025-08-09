@@ -1,0 +1,133 @@
+#!/bin/bash
+
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+
+#testing "name" "command" "result" "infile" "stdin"
+
+umask 022
+
+PERM="---""--x""-w-""-wx""r--""r-x""rw-""rwx"
+
+num2perm()
+{
+  for i in 0 1 2
+  do
+    num=${1:$i:1}
+    printf "%s" ${PERM:$(($num*3)):3}
+  done
+  echo
+}
+
+# Creating test files to test chmod command
+mkdir dir
+touch file
+
+# We don't need to test all 512 permissions
+for U in $(seq 0 7); do for G in 0 3 6; do for O in 0 7; do for T in dir file; do
+  chmod 777 $T 2>/dev/null
+  rm -rf $T
+  if [ "$T" == file ]; then
+    touch file
+    C=-
+  else
+    mkdir dir
+    C=d
+  fi
+  testing "$U$G$O $T" "chmod $U$G$O $T && ls -ld $T | cut -d' ' -f 1" \
+    "${C}$(num2perm $U$G$O)\n" "" ""
+done; done; done; done
+unset U G O T C
+
+rm -rf dir file && mkdir dir && touch file 640
+testing "750 dir 640 file" "chmod 750 dir 640 file &&
+  ls -ld 640 dir file | cut -d' ' -f 1 | cut -d. -f 1" \
+  "-rwxr-x---\ndrwxr-x---\n-rwxr-x---\n" "" ""
+
+chtest()
+{
+  chmod -fR 700 dir file 2>/dev/null
+  rm -rf dir file && mkdir dir && touch file
+  testing "$1 dir file" \
+    "chmod $1 dir file && ls -ld dir file | cut -d' ' -f 1 | cut -d. -f 1" \
+    "$2" "" ""
+}
+
+chtest 666 "drw-rw-rw-\n-rw-rw-rw-\n"
+chtest 765 "drwxrw-r-x\n-rwxrw-r-x\n"
+chtest u=r "dr--r-xr-x\n-r--r--r--\n"
+chtest u=w "d-w-r-xr-x\n--w-r--r--\n"
+chtest u=x "d--xr-xr-x\n---xr--r--\n"
+chtest u+r "drwxr-xr-x\n-rw-r--r--\n"
+chtest u+w "drwxr-xr-x\n-rw-r--r--\n"
+chtest u+x "drwxr-xr-x\n-rwxr--r--\n"
+chtest u-r "d-wxr-xr-x\n--w-r--r--\n"
+chtest u-w "dr-xr-xr-x\n-r--r--r--\n"
+chtest u-x "drw-r-xr-x\n-rw-r--r--\n"
+chtest g=r "drwxr--r-x\n-rw-r--r--\n"
+chtest g=w "drwx-w-r-x\n-rw--w-r--\n"
+chtest g=x "drwx--xr-x\n-rw---xr--\n"
+chtest g+r "drwxr-xr-x\n-rw-r--r--\n"
+chtest g+w "drwxrwxr-x\n-rw-rw-r--\n"
+chtest g+x "drwxr-xr-x\n-rw-r-xr--\n"
+chtest g-r "drwx--xr-x\n-rw----r--\n"
+chtest g-w "drwxr-xr-x\n-rw-r--r--\n"
+chtest g-x "drwxr--r-x\n-rw-r--r--\n"
+chtest o=r "drwxr-xr--\n-rw-r--r--\n"
+chtest o=w "drwxr-x-w-\n-rw-r---w-\n"
+chtest o=x "drwxr-x--x\n-rw-r----x\n"
+chtest o+r "drwxr-xr-x\n-rw-r--r--\n"
+chtest o+w "drwxr-xrwx\n-rw-r--rw-\n"
+chtest o+x "drwxr-xr-x\n-rw-r--r-x\n"
+chtest o-r "drwxr-x--x\n-rw-r-----\n"
+chtest o-w "drwxr-xr-x\n-rw-r--r--\n"
+chtest o-x "drwxr-xr--\n-rw-r--r--\n"
+chtest a=r "dr--r--r--\n-r--r--r--\n"
+chtest a=w "d-w--w--w-\n--w--w--w-\n"
+chtest a=x "d--x--x--x\n---x--x--x\n"
+chtest a+r "drwxr-xr-x\n-rw-r--r--\n"
+chtest a+w "drwxrwxrwx\n-rw-rw-rw-\n"
+chtest a+x "drwxr-xr-x\n-rwxr-xr-x\n"
+chtest a-r "d-wx--x--x\n--w-------\n"
+chtest a-w "dr-xr-xr-x\n-r--r--r--\n"
+chtest a-x "drw-r--r--\n-rw-r--r--\n"
+chtest =r "dr--r--r--\n-r--r--r--\n"
+chtest =w "d-w-------\n--w-------\n"
+chtest =x "d--x--x--x\n---x--x--x\n"
+chtest +r "drwxr-xr-x\n-rw-r--r--\n"
+chtest +w "drwxr-xr-x\n-rw-r--r--\n"
+chtest +x "drwxr-xr-x\n-rwxr-xr-x\n"
+chtest -r "d-wx--x--x\n--w-------\n"
+chtest -w "dr-xr-xr-x\n-r--r--r--\n"
+chtest -x "drw-r--r--\n-rw-r--r--\n"
+chtest a-w,a+x "dr-xr-xr-x\n-r-xr-xr-x\n"
+
+# macOS doesn't allow +s in /tmp
+touch s-supported
+chmod +s s-supported 2>/dev/null || SKIP=99
+rm s-supported
+chtest g+s "drwxr-sr-x\n-rw-r-Sr--\n"
+chtest u+s "drwsr-xr-x\n-rwSr--r--\n"
+chtest +s "drwsr-sr-x\n-rwSr-Sr--\n"
+chtest o+s "drwxr-xr-x\n-rw-r--r--\n"
+SKIP=0
+
+chtest +t  "drwxr-xr-t\n-rw-r--r-T\n"
+chtest a=r+w+x "drwxrwxrwx\n-rwxrwxrwx\n"
+chtest u+rwX-s,g+rX-ws,o+rX-wt "drwxr-xr-x\n-rw-r--r--\n"
+chtest u+rwX,u-s,g+rX,g-ws,o+rX,o-wt "drwxr-xr-x\n-rw-r--r--\n"
+
+# (chtest starts off with a directory that's +x...)
+testing "+X" \
+  "mkdir -m 000 Xd && touch Xf && chmod +X Xd Xf && ls -ld Xd Xf | cut -d' ' -f 1" \
+  "d--x--x--x\n-rw-r--r--\n" "" ""
+
+mkdir foo
+ln -s bar foo/baz
+# If you explicitly ask us, we'll try (and fail) to chmod a symlink.
+testing "-R symlink arg" 'chmod -R 750 foo/baz 2>/dev/null; echo $?' "1\n" "" ""
+# If you only imply that you might want us to do that, we'll skip it.
+testing "-R symlink recurse" 'chmod -R 750 foo; echo $?' "0\n" "" ""
+
+# Removing test files for cleanup purpose
+rm -rf dir file

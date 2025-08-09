@@ -1,0 +1,167 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd "-- isn't parsed" "-- == -- && echo yes" "yes\n" "" ""
+
+# Number and position of args is important
+testcmd 'no args is false' '; echo $?'  '1\n' '' ''
+testcmd 'empty string is false' '""; echo $?' '1\n' '' ''
+testcmd '1 arg is true if not empty string' '== ; echo $?' '0\n' '' ''
+testcmd "1 arg isn't an operand" '-t 2>&1; echo $?' '0\n' '' ''
+testcmd '2 args' '-e == ; echo $?' '1\n' '' ''
+testcmd '3 args' '-e == -e ; echo $?' '0\n' '' ''
+
+# parse as operator before parsing as parentheses around one argument
+testcmd '' '\( == \) ; echo $?' '1\n' '' ''
+testcmd '' '\( == \( ; echo $?' '0\n' '' ''
+testcmd '' '\( "" \) ; echo $?' '1\n' '' ''
+testcmd '' '\( x \) ; echo $?' '0\n' '' ''
+
+# TODO: Should also have device and socket files, but requires root
+
+mkdir d
+touch f
+ln -s /dev/null L
+echo nonempty > s
+mkfifo p
+
+type_test()
+{
+  for i in d f L s p n
+  do
+    "$C" $* $i && echo -n $i
+  done
+}
+
+testing "-b" "type_test -b" "" "" ""
+testing "-c" "type_test -c" "L" "" ""
+testing "-d" "type_test -d" "d" "" ""
+testing "-e" "type_test -e" "dfLsp" "" ""
+testing "-f" "type_test -f" "fs" "" ""
+testing "-h" "type_test -h" "L" "" ""
+testing "-L" "type_test -L" "L" "" ""
+testing "-p" "type_test -p" "p" "" ""
+testing "-S" "type_test -S" "" "" ""
+testing "-s" "type_test -s" "ds" "" ""
+testing "! -e" 'type_test ! -e' "n" "" ""
+
+rm f L s p
+rmdir d
+
+# Alas can't expand to a redirect, so just test one success/fail
+testcmd "-t" '-t 0 < /dev/null; echo $?' '1\n' '' ''
+testcmd "-t2" '-t 0 < /dev/ptmx; echo $?' '0\n' '' ''
+
+# test -rwx each bit position and failure
+touch walrus
+MASK=111
+for i in x w r k g u; do
+  [ $i == k ] && MASK=1000
+  XX=no
+  [ $(id -u) -eq 0 ] && [ $i == r -o $i == w ] && XX=yes  # Root always has access
+  # test everything off produces "off"
+  chmod 000 walrus
+  testcmd "-$i 0" "-$i walrus && echo yes || echo no" "$XX\n" "" ""
+  chmod $((7777-$MASK)) walrus
+  testcmd "-$i inverted" "-$i walrus && echo yes || echo no" "$XX\n" "" ""
+  MASK=$(($MASK<<1))
+done
+unset MASK
+# Test setuid setgid sticky enabled
+for i in uu+s gg+s k+t; do
+  chmod 000 walrus
+  chmod ${i:1}+s walrus
+  testcmd "-${i:0:1}" "-${i:0:1} walrus && echo yes" "yes\n" "" ""
+done
+# test each ugo+rwx bit position individually
+XX=no
+# Note: chmod 007 means everybody EXCEPT owner/group can access it. (Unix!)
+[ $(id -u) -eq 0 ] && XX=yes  # Root always has access
+for i in 1 10 100; do for j in x w r; do
+  chmod $i walrus
+
+  [ $i == 100 ] && XX=yes
+  testcmd "-$j $i" "-$j walrus && echo yes || echo no" "$XX\n" "" ""
+  i=$((i<<1))
+done; done
+rm -f walrus
+
+# Not zero length, zero length, equals, not equals
+testcmd "-n" "-n '' || echo yes" "yes\n" "" ""
+testcmd "-n2" "-n a && echo yes" "yes\n" "" ""
+testcmd "-z" "-z '' && echo yes" "yes\n" "" ""
+testcmd "-z2" "-z a || echo yes" "yes\n" "" ""
+testcmd "" "a = b || echo yes" "yes\n" "" ""
+testcmd "" "'' = '' && echo yes" "yes\n" "" ""
+testcmd "a != b" "a != b && echo yes" "yes\n" "" ""
+testcmd "a != b" "a != a || echo yes" "yes\n" "" ""
+
+arith_test()
+{
+  $C -1 $1 1 && echo -n l
+  $C 0 $1 0 && echo -n e
+  $C -3 $1 -5 && echo -n g
+}
+
+testing "-eq" "arith_test -eq" "e" "" ""
+testing "-ne" "arith_test -ne" "lg" "" ""
+testing "-gt" "arith_test -gt" "g" "" ""
+testing "-ge" "arith_test -ge" "eg" "" ""
+testing "-lt" "arith_test -lt" "l" "" ""
+testing "-le" "arith_test -le" "le" "" ""
+
+touch oldfile -d 1970-01-01
+touch newfile -d 2031-01-01T00:00:00.5
+ln -s newfile samefile
+
+testcmd "-ef" "newfile -ef newfile && echo yes" "yes\n" "" ""
+testcmd "-ef link" "newfile -ef samefile && echo yes" "yes\n" "" ""
+testcmd "-ef2" "newfile -ef oldfile || echo no" "no\n" "" ""
+testcmd "-ot" "oldfile -ot newfile && echo yes" "yes\n" "" ""
+testcmd "-ot2" "oldfile -ot oldfile || echo no" "no\n" "" ""
+testcmd "-nt" "newfile -nt oldfile && echo yes" "yes\n" "" ""
+testcmd "-nt2" "oldfile -nt newfile || echo no" "no\n" "" ""
+testcmd "-nt2" "oldfile -nt newfile || echo no" "no\n" "" ""
+
+testing "positional" "test -a == -a && echo yes" "yes\n" "" ""
+testing "! stacks" 'test \! \! \! \! 2 -eq 2 && echo yes' "yes\n" "" ""
+
+# bash builtin "test" has these, but /usr/bin/test does not.
+testing "<1" 'test abc \< def && echo yes' "yes\n" "" ""
+testing "<2" 'test def \< abc || echo yes' "yes\n" "" ""
+testing ">1" 'test abc \> def || echo yes' "yes\n" "" ""
+testing ">2" 'test def \> abc && echo yes' "yes\n" "" ""
+
+# bash only has this for [[ ]] but extra tests to _exclude_ silly...
+#toyonly testcmd "=~" "abc \'=~\' a.c && echo yes" "yes\n" "" ""
+#toyonly testcmd "=~ fail" "abc '=~' d.c; echo $?" '1\n' "" ""
+#toyonly testcmd "=~ zero length match" 'abc '=~' "1*" && echo yes' 'yes\n' '' ''
+
+# test ! = -o a
+# test ! \( = -o a \)
+# test \( ! = \) -o a
+# test \( \)
+
+
+# -e == -a
+# -e == -a -o -d != -o
+# \( "x" \) -a \) == \)
+# \( ! ! ! -e \) \)
+
+#  // () -a (() -a () -o ()) -o ()
+#  // x -a ( x -o x ) -a x
+#  // x -o ( x -a x ) -a x -o x
+
+# trailing ! and (
+# test \( ! ! ! -e \) \)
+# test \( \( "" \) -a "" \) -a ""
+# test !
+# test \( \) == \) \) -a x
+
+# test \( "" \) -a \) == \)
+# test \( "x" \) -a \) == \)
+# test -e == -a
+# test \( "" \)

@@ -1,0 +1,29 @@
+This is a snapshot of linux 2.6.12 kconfig as washed through busybox and
+further modified by Rob Landley.
+
+Note: The build infrastructure in this directory is still GPLv2. Cleaning
+that out is a TODO item, but it doesn't affect the resulting binary.
+
+Way back when I tried to push my local changes to kconfig upstream
+in 2005 https://lwn.net/Articles/161086/
+and 2006 http://lkml.iu.edu/hypermail/linux/kernel/0607.0/1805.html
+and 2007 http://lkml.iu.edu/hypermail/linux/kernel/0707.1/1741.html
+each of which spawned long "I think you should go do this and this and this
+but I'm not going to lift a finger personally" threads from the kernel
+developers. Twice I came back a year later to see if there was any interest
+in what I _had_ done, and the third thread was the longest of the lot but
+no code was merged as a result.
+
+*shrug* That's the linux-kernel community for you. I had an easier time
+than the author of squashfs, who spent 5 years actively trying to get his code
+merged, finally quitting his job to spend an unpaid year working on upstreaming
+squashfs _after_ after every major Linux distro had been locally carrying it
+for years. No really, here's where he wrote about it himself:
+
+https://lwn.net/Articles/563578/
+
+This code is _going_away_. Rewriting it is low priority, but removing it is a
+checklist item for the 1.0 toybox release. This directory contains the only
+GPL code left in the tree, and none of its code winds up in the resulting
+binary. It's just an editor that reads our Config.in files to update the top
+level .config file; you can edit they by hand if you really want to.

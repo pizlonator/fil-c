@@ -1,0 +1,39 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# These tests are from RFC 1321 appendix 5, reshuffled slightly to test
+# varying argument numbers
+
+testing "''" "md5sum" "d41d8cd98f00b204e9800998ecf8427e  -\n" "" ""
+testing "infile" "md5sum input" \
+  "0cc175b9c0f1b6a831c399e269772661  input\n" "a" ""
+testing "two files" "md5sum - input" \
+  "900150983cd24fb0d6963f7d28e17f72  -\nf96b697d7cb7938d525a2f31aaf161d0  input\n" \
+  "message digest" "abc"
+testing "4" "md5sum" "c3fcd3d76192e4007dfb496cca67e13b  -\n" \
+  "" "abcdefghijklmnopqrstuvwxyz"
+testing "5" "md5sum" "d174ab98d277d9f5a5611c2c9f419d9f  -\n" \
+  "" "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+testing "6" "md5sum" "57edf4a22be3c955ac49da2e2107b67a  -\n" \
+  "" "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+
+echo -n "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" > "te st"
+touch empty
+testing "-c spaces" "md5sum -c input || echo ok" \
+  "te st: OK\nempty: FAILED\n-: OK\nok\n" \
+"$(printf "d174ab98d277d9f5a5611c2c9f419d9f te st\n12345678901234567890123456789012 empty\nd41d8cd98f00b204e9800998ecf8427e -\n")" ""
+rm "te st" empty
+
+testing "-c nolines" "md5sum -c input 2>/dev/null || echo ok" "ok\n" "" ""
+
+touch empty
+echo "d41d8cd98f00b204e9800998ecf8427e  empty" > list
+echo "041d8cd98f00b204e9800998ecf8427e  empty" > badlist
+testing "--status okay" "md5sum --status -c list ; echo \$?" "0\n" "" ""
+testing "--status fail" "md5sum --status -c badlist ; echo \$?" "1\n" "" ""
+testing "-c multiple" "md5sum -c list badlist --status ; echo \$?" "1\n" "" ""
+
+rm empty list badlist

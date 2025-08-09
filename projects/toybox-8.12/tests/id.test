@@ -1,0 +1,23 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Systems with SELinux will have security context cruft,
+# BSDs call the root group "wheel" instead,
+# and Raspberry Pi OS has root also in the 117(lpadmin) group.
+CLEAN="sed 's/ context=.*//g' | sed 's/wheel/root/g' | \
+sed 's/117//g' | sed -E 's/\(?lpadmin\)?//g' | sed 's/[ ,]$//'"
+
+testing "0" "id 0 | $CLEAN" "uid=0(root) gid=0(root) groups=0(root)\n" "" ""
+testing "root" "id root | $CLEAN" \
+  "uid=0(root) gid=0(root) groups=0(root)\n" "" ""
+testing "-G root" "id -G root | $CLEAN" "0\n" "" ""
+testing "-nG root" "id -nG root | $CLEAN" "root\n" "" ""
+testing "-g root" "id -g root" "0\n" "" ""
+testing "-ng root" "id -ng root | $CLEAN" "root\n" "" ""
+testing "-u root" "id -u root" "0\n" "" ""
+testing "-nu root" "id -nu root" "root\n" "" ""
+testing "no-such-user" "id no-such-user 2>/dev/null ; echo \$?" "1\n" "" ""
+testing "2147483647" "id 2147483647 2>/dev/null ; echo \$?" "1\n" "" ""

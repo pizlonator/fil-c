@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Show bytes used by each command's GLOBALS() block, based on last build
+{
+  echo -e '#include "toys.h"\nint main(void) {'
+  sed -n 's/^\tstruct \(.*\)_data .*/printf("%d \1\\n", (int)sizeof(struct \1_data));/p' generated/globals.h
+  echo '}'
+} | "${CROSS_COMPILE}"cc -xc - && ./a.out | sort -n

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "mkfifo" "mkfifo one && [ -p one ] && echo yes" "yes\n" "" ""
+rm one
+
+touch existing
+testing "existing" \
+	"mkfifo existing 2> /dev/null || [ -f existing ] && echo yes" "yes\n" "" ""
+rm existing
+
+testing "one two" \
+	"mkfifo one two && [ -p one ] && [ -p two ] && echo yes" "yes\n" "" ""
+rm one two
+
+umask 123
+testing "(default permissions)" \
+	"mkfifo one && stat -c %a one" "644\n" "" ""
+rm one
+
+umask 000
+
+testing "-m 124" \
+	"mkfifo -m 124 one && stat -c %a one" "124\n" "" ""
+rm -f one

@@ -1,0 +1,14 @@
+#!/bin/echo Try "mkroot/mkroot.sh $0"
+
+# Alas http://www.linux-usb.org/usb.ids is not versioned, so...
+download 36d4e16755502fbc684be75e56841e1014e4a94a \
+  https://github.com/usbids/usbids/raw/a5edeafb6099/usb.ids
+
+# Nor is https://pci-ids.ucw.cz/v2.2/pci.ids (tool version, not file version)
+download 6694284723e034f0c564e81a30879939d5ef8b7e \
+  https://github.com/pciutils/pciids/raw/c7929c0f9480/pci.ids
+
+cp "$DOWNLOAD"/{usb,pci}.ids "$ROOT/etc/" || exit 1
+
+# add a couple test modules
+MODULES+=FSCACHE,CACHEFILES

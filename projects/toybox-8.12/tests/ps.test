@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+ln -s "$(which sleep)" xiphoid
+(./xiphoid 5 & echo $! > pid.txt)
+ID=$(cat pid.txt)
+NOSPACE=1 testing "" "ps -o pid $ID" "PID\n$ID\n" "" ""
+kill "$ID"

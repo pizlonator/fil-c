@@ -1,0 +1,180 @@
+From - Wed Oct 17 13:27:51 2018
+X-Account-Key: account1
+X-UIDL: GmailId166832be205bc2bd
+X-Mozilla-Status: 1013
+X-Mozilla-Status2: 00000000
+X-Mozilla-Keys:                                                                                 
+Delivered-To: rob@landley.net
+Received: by 2002:ab0:208c:0:0:0:0:0 with SMTP id r12csp943206uak;
+        Wed, 17 Oct 2018 10:56:23 -0700 (PDT)
+X-Google-Smtp-Source: ACcGV61EHdCAKXqiC2g4VHKVIL9kgr4swWkJtL9r6jorwOeN6QWG09j9dd8vuBA2AqOxUrypnI88
+X-Received: by 2002:a17:902:16a4:: with SMTP id h33-v6mr26279849plh.3.1539798983448;
+        Wed, 17 Oct 2018 10:56:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1539798983; cv=none;
+        d=google.com; s=arc-20160816;
+        b=E/rO76Tc0QzdNYVqa3mOrkhv21WxRyex6QvEcEw2ejkTXu3csi2hFDckupiXuJyBYi
+         zXk7prvMPwpP229CvoeWCl723QCCDRFU0b1S/1Z7gD9I3gk/t6Vnp0U1pJ/oFhUaExlJ
+         l2/HwgzW0eVnMQsJHKlzP8zNqJhOUFD+xI35NiRa9J1tH0BomncWOz7lTXlvaTED2Vdz
+         ZHoFuv89BUKCkKGbfm4/O0KTNECK6rK1Db87M/rGCpUQpCQacVr29Lf3AWLQikDR62dB
+         vCqIMCD3mvRcPPOo8VIN/xyQQ9J4OcBZ/jZ/zfxcbZc11fng8GNHlp33hCxuyKHUwbeT
+         nOmw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=date:content-transfer-encoding:content-id:mime-version:comments
+         :in-reply-to:reply-to:subject:to:from:message-id;
+        bh=HpIGga40Wz3PXDOHP7PrAJqWHlOoA7xl5QvPk2tjJig=;
+        b=JdV87WgS3oz/oa3fJSLdgU42ag+CKECK7OuT/DLvHfmwc2XtIMkx99zexEOi3S8DJp
+         eaxLjf70GfCzWyq2fP11rUjemnTxW9R9efZEkZanvq36rbj7A+3/NmzvYPLwm8bihlke
+         Gu8/FoVrE8ZANi252MKvejMVYsrYsyEJnO/vmiteVR5wD8mwHtYQnDXmwta6ZhH/ko+t
+         uWXkHxOxs6y21CElD+40BvkIGGwFNd4FptjTA1T0rgw0PTUB/igdKvvwk1LotqbERJv5
+         nhNHc47pJ4EU2o7G4yAwBBVETXQYYc8rl259VCKiSuGy0hEKGKweVieTEAe8V+NrZzd2
+         UV7A==
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: best guess record for domain of mckusick@mckusick.com designates 70.36.157.235 as permitted sender) smtp.mailfrom=mckusick@mckusick.com
+Return-Path: <mckusick@mckusick.com>
+Received: from chez.mckusick.com (chez.mckusick.com. [70.36.157.235])
+        by mx.google.com with ESMTPS id 129-v6si18906639pfd.201.2018.10.17.10.56.23
+        for <rob@landley.net>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 17 Oct 2018 10:56:23 -0700 (PDT)
+Received-SPF: pass (google.com: best guess record for domain of mckusick@mckusick.com designates 70.36.157.235 as permitted sender) client-ip=70.36.157.235;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: best guess record for domain of mckusick@mckusick.com designates 70.36.157.235 as permitted sender) smtp.mailfrom=mckusick@mckusick.com
+Received: from chez.mckusick.com (localhost [IPv6:::1])
+	by chez.mckusick.com (8.15.2/8.15.2) with ESMTP id w9HI1egQ039009
+	for <rob@landley.net>; Wed, 17 Oct 2018 11:01:40 -0700 (PDT)
+	(envelope-from mckusick@mckusick.com)
+Message-Id: <201810171801.w9HI1egQ039009@chez.mckusick.com>
+From: Kirk McKusick <mckusick@mckusick.com>
+To: Rob Landley <rob@landley.net>
+Subject: Re: License naming question.
+X-URL: http://WWW.McKusick.COM/
+Reply-To: Kirk McKusick <mckusick@mckusick.com>
+In-reply-to: <9bf40da7-afb3-d3d6-3759-d1566c99aa20@landley.net>
+Comments: In-reply-to Rob Landley <rob@landley.net>
+   message dated "Tue, 16 Oct 2018 17:57:10 -0500."
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <39007.1539799300.1@chez.mckusick.com>
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 17 Oct 2018 11:01:40 -0700
+X-Spam-Status: No, score=-1.4 required=5.0 tests=BAYES_00,MISSING_MID,
+	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.1
+X-Spam-Checker-Version: SpamAssassin 3.4.1 (2015-04-28) on chez.mckusick.com
+
+> To: mckusick@mckusick.com
+> From: Rob Landley <rob@landley.net>
+> Subject: License naming question.
+> Date: Tue, 16 Oct 2018 17:57:10 -0500
+> =
+
+> Hi,
+> =
+
+> We spoke at Ohio Linuxfest back in 2013 (you attended my Rise and
+> Fall of Copyleft talk, and then we talked in the hallway afterwards).
+> =
+
+> I _think_ I told you about my plans to try to promote public domain
+> equivalent licensing, a concept which has a wikipedia page now:
+> =
+
+> https://en.wikipedia.org/wiki/Public_domain_equivalent_license
+> =
+
+> For toybox what I did was take the OpenBSD suggested template license
+> off their website and remove the half-sentence requiring people to
+> copy that specific license text into derived works, and the resulting
+> license made it past Google's lawyers! My toybox project has been
+> providing the command line for android since Marshmallow
+> (https://lwn.net/Articles/629362/) and we're making progress on
+> getting android to build under android, the Bionic libc maintainer
+> recently sent me a roadmap update about that:
+> =
+
+> https://github.com/landley/toybox/commit/92b359f00057
+> =
+
+> I called the resulting license "Zero Clause BSD" (by analogy with
+> "Creative Commons Zero" and the existing 4 clause, 3 clause, and 2
+> clause BSD licenses), and I even got SPDX approval for it in 2015
+> (because Samsung asked me to shortly after Google merged it into
+> AOSP, they'd been adding it aftermarket before then and having an
+> SPDX identifier for the license simplified their internal bureaucracy).
+> =
+
+> Then a couple months after SPDX approved it, somebody _else_ submitted
+> the same license to Eric Raymond's old Open Source Initiative using
+> "Free" in the name, as in Free Software Foundation. (A sadly loaded
+> term these days.)
+> =
+
+> I hadn't known they were still in the license approval business
+> (they stopped approving new licenses in... 2012? And I remember
+> them explicitly _rejecting_ CC0 saying public domain isn't a license,
+> which their FAQ still talks about at
+> https://opensource.org/faq#public-domain). But they approved the
+> toybox license under a different name, then asked SPDX to retroactively
+> change their name for it. (SPDX didn't, but OSI refused to admit
+> it made a mistake, even though they said they had a policy to keep
+> the names in sync. They hadn't done their homework.)
+> =
+
+> Now every time the license is considered for a new use, the confusion
+> OSI caused tends to derail things:
+> =
+
+> https://github.com/david-a-wheeler/spdx-tutorial/issues/1
+> =
+
+> When github itself was considering adding 0BSD to its license
+> pulldown (which would have been a big win), I was asked what I
+> thought of the naming confusion, and I wrote two long things on my
+> rationale with lots of links to earlier stuff, which you can read
+> here if you'd like:
+> =
+
+> https://github.com/github/choosealicense.com/issues/464
+> =
+
+> Anyway, I recently decided to ask OSI to admit they made a mistake
+> and change their name for the license to match what SPDX did, and
+> there was unanimous approval...
+> =
+
+> http://lists.opensource.org/pipermail/license-review_lists.opensource.or=
+g/2018-September/003519.html
+> =
+
+> Until the same guy who was objecting last time showed up to continue
+> to object.  He ignord the "who used it first" axis, and said he
+> wanted to know which  name was used more today, and then when he
+> lost that argument he said he objects to calling something a BSD
+> license that isn't using Berkeley's original wording.
+> =
+
+> My question is: do you object to the name "Zero Clause BSD" for a
+> public domain equivalent license that's the OpenBSD suggested
+> template license with half a sentence removed?
+> =
+
+> If you want to stay out of this, I understand. I'm pretty sure I
+> asked you this in 2013 before I started pushing the name, and
+> wouldn't have if you'd objected then, but that was long ago and the
+> water under the bridge is dead...
+> =
+
+> Thanks for your time, sorry that took so long to explain. (And even
+> longer if you read the big long github choosealicense thread. :)
+> =
+
+> Rob
+
+Thanks for the through explanation of the situation.
+
+I have no objections to the name "Zero Clause BSD" for your license.
+
+I hope that you are successful in getting OSI to change their name
+for the license to match what SPDX did.
+
+	Kirk McKusick
+

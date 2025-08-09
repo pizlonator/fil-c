@@ -1,0 +1,168 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+mkdir dir
+cd dir
+touch file
+mkfifo fifo
+# fs timestamp granularity isn't always enough for -newer to tell, so wait
+sleep .1
+ln -s fifo link
+cd ..
+touch irrelevant
+
+mkdir perm
+touch perm/all-read-only
+chmod a=r perm/all-read-only
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Testing operators
+
+testing "-type l -a -type d -o -type p" \
+	"find dir -type l -a -type d -o -type p" "dir/fifo\n" "" ""
+testing "-type l -type d -o -type p" "find dir -type l -type d -o -type p" \
+	"dir/fifo\n" "" ""
+testing "-type l -o -type d -a -type p" \
+	"find dir -type l -o -type d -a -type p" "dir/link\n" "" ""
+testing "-type l -o -type d -type p" "find dir -type l -o -type d -type p" \
+	"dir/link\n" "" ""
+testing "-type l ( -type d -o -type l )" \
+	"find dir -type l \( -type d -o -type l \)" "dir/link\n" "" ""
+testing "extra parentheses" \
+	"find dir \( \( -type l \) \( -type d -o \( \( -type l \) \) \) \)" \
+	"dir/link\n" "" ""
+testing "( -type p -o -type d ) -type p" \
+	"find dir \( -type p -o -type d \) -type p" "dir/fifo\n" "" ""
+testing "-type l -o -type d -type p -o -type f" \
+	"find dir -type l -o -type d -type p -o -type f | sort" \
+	"dir/file\ndir/link\n" "" ""
+testing "-type l,f" \
+	"find dir -type l,f | sort" "dir/file\ndir/link\n" "" ""
+
+# Testing short-circuit evaluations
+
+testing "-type f -a -print" \
+	"find dir -type f -a -print" "dir/file\n" "" ""
+testing "-print -o -print" \
+	"find dir -type f -a \( -print -o -print \)" "dir/file\n" "" ""
+
+# these were erroring or segfaulting:
+# find -type f -user nobody -exec : \;
+# find -type f -user nobody -exec : -exec : \;
+
+# Testing previous failures
+
+testing " " "cd perm; find" ".\n./all-read-only\n" "" ""
+testing "-type f -user -exec" \
+  "find dir -type f -user $USER -exec ls {} \\;" "dir/file\n" "" ""
+testing "-type l -newer -exec" \
+  "find dir -type l -newer dir/file -exec ls {} \\;" "dir/link\n" "" ""
+testing "-exec true \\; -print" \
+  "find dir/file -exec true \\; -print" "dir/file\n" "" ""
+testing "-exec false \\; -print" \
+  "find dir/file -exec false \\; -print" "" "" ""
+testing "-perm (exact success)" \
+  "find perm -type f -perm 0444" "perm/all-read-only\n" "" ""
+testing "-perm (exact failure)" \
+  "find perm -type f -perm 0400" "" "" ""
+testing "-perm (min success)" \
+  "find perm -type f -perm -0400" "perm/all-read-only\n" "" ""
+testing "-perm (min failure)" \
+  "find perm -type f -perm -0600" "" "" ""
+testing "-perm (any success)" \
+  "find perm -type f -perm -0444" "perm/all-read-only\n" "" ""
+testing "-perm (any failure)" \
+  "find perm -type f -perm -0222" "" "" ""
+
+testing "unterminated -exec {}" \
+  "find dir -type f -exec ls {} 2>/dev/null || echo bad" "bad\n" "" ""
+testing "-exec {} +" \
+  "find dir -type f -exec ls {} +" "dir/file\n" "" ""
+
+# `find . -iname` was segfaulting
+testing "-name file" "find dir -name file" "dir/file\n" "" ""
+testing "-name FILE" "find dir -name FILE" "" "" ""
+
+ln -s ../broken dir/link2
+testing "-iname file" "find dir -iname FILE" "dir/file\n" "" ""
+testing "-iname FILE" "find dir -iname FILE" "dir/file\n" "" ""
+
+testing "-name (no arguments)" \
+  "find dir -name 2>&1 | grep -o '[-]name'" "-name\n" "" ""
+testing "-iname (no arguments)" \
+  "find dir -iname 2>&1 | grep -o '[-]iname'" "-iname\n" "" ""
+testing "-lname" "find dir -lname '?./brok*'" "dir/link2\n" "" ""
+testing "-ilname" "find dir -ilname '*ROK*'" "dir/link2\n" "" ""
+
+testing "" "find dir \( -iname file -o -iname missing \) -exec echo {} \;" \
+  "dir/file\n" "" ""
+
+testing "-path glob" "find dir -path 'dir*e'" "dir/file\n" "" ""
+testing "-wholename glob" "find dir -wholename 'dir*e'" "dir/file\n" "" ""
+testing "-ipath glob" "find dir -ipath 'dIr*E'" "dir/file\n" "" ""
+testing "-iwholename glob" "find dir -iwholename 'dIr*E'" "dir/file\n" "" ""
+testing "-printf" "find dir -name file -printf '%f %p %P %s'" \
+  "file dir/file file 0" "" ""
+testing "-printf .N" "find dir -name file -printf %.2f" "fi" "" ""
+# findutils find supports C letter escapes and \0 octal, but not \x or \u.
+testing "-printf escapes" \
+  "find dir -name file -printf '\0 \007 \t \079' | xxd -p" \
+  "0020072009200739\n" "" ""
+# findutils find treats \c as "no more output from this -printf", not "no more
+# output from find".
+testing "-printf \\c escape" "find dir -name f* -printf 'x\cy'" "xx" "" ""
+
+# No error message for a dangling link.
+ln -s does-not-exist dir/dangler
+testing "-L dangling symlink silent" \
+  "LANG=C find -L dir -name file 2>&1" "dir/file\n" "" ""
+rm -f dir/dangler
+
+# An error for a symlink loop.
+ln -s looper dir/looper
+testing "-L symlink loop noisy" \
+  "LANG=C find -L dir -name file 2>err ; grep -q dir/looper err || echo missing error" \
+  "dir/file\n" "" ""
+
+testing "-false" "find dir -false" "" "" ""
+testing "-true" "find dir/file -true" "dir/file\n" "" ""
+
+testing "missing root error" \
+  "LANG=C find -L dir/missing-root 2>err ; grep -q dir/missing-root err || echo missing error" \
+  "" "" ""
+rm -f dir/looper err
+
+testing "-path match root" "find dir/f* -path dir/file" "dir/file\n" "" ""
+testing "-name match root" "find dir/f* -name file" "dir/file\n" "" ""
+
+# https://github.com/landley/toybox/issues/69
+ln -s nowhere broken
+testing "-H broken" "find -H broken" "broken\n" "" ""
+testing "-L broken" "find -L broken" "broken\n" "" ""
+
+testing "one slash" 'find /etc/ -maxdepth 1 | grep /passwd\$' '/etc/passwd\n' \
+  '' ''
+testing 'empty arg' 'find "" dir -name file 2>/dev/null' 'dir/file\n' '' ''
+testing 'quit' 'find dir perm -print -quit' 'dir\n' '' ''
+ln dir/file perm/hardlink
+testing 'samefile' 'find . -samefile dir/file | sort' \
+  './dir/file\n./perm/hardlink\n' '' ''
+rm -rf dir broken perm irrelevant
+
+mkdir dir
+touch -d @12345 dir/one
+touch -d @12346 dir/two
+testing 'newerat' 'find dir -type f -newerat @12345' 'dir/two\n' '' ''
+testing 'newer nano' 'find dir -type f -newerat @12345.67890' 'dir/two\n' '' ''
+ln -s one dir/three
+testing '-size implies -type f' 'find dir -size -1M | sort' \
+  'dir/one\ndir/two\n' '' ''
+rm -rf dir
+
+utf8locale
+skipnot [ "$(uname)" != "Darwin" ]  # Darwin's towlower() is broken.
+testing 'strlower edge case' \
+  'touch aaaaaⱥⱥⱥⱥⱥⱥⱥⱥⱥ; find . -iname aaaaaȺȺȺȺȺȺȺȺȺ' './aaaaaⱥⱥⱥⱥⱥⱥⱥⱥⱥ\n' \
+  '' ''

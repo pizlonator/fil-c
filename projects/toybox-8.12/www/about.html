@@ -1,0 +1,200 @@
+<html><head><title>What is toybox?</title>
+<!--#include file="header.html" -->
+
+<h2><a name="what" />What is toybox?</h2>
+
+<p>Toybox combines many common Linux command line utilities together into
+a single <a href=license.html>BSD-licensed</a> executable. It's simple, small, fast, and reasonably
+standards-compliant (<a href=http://opengroup.org/onlinepubs/9699919799>POSIX-2008</a> and <a href=http://refspecs.linuxfoundation.org/LSB_4.1.0>LSB 4.1</a>).</p>
+
+<p>Toybox's main goal is to make Android
+<a href=http://landley.net/aboriginal/about.html#selfhost>self-hosting</a>
+by improving Android's command line utilities so it can
+build an installable Android Open Source Project image
+entirely from source under a stock Android system. After a talk at the 2013
+Embedded Linux Conference explaining this plan
+(<a href=http://landley.net/talks/celf-2013.txt>outline</a>,
+<a href=https://www.youtube.com/watch?v=SGmtP5Lg_t0>video</a>), Google
+<a href=https://lwn.net/Articles/629362/>merged toybox into AOSP</a> and
+began shipping toybox in Android Marshmallow in 2015.</p>
+
+<p>Toybox aims to provide one quarter of a theoretical "minimal native
+development environment", which is the simplest Linux system capable of
+rebuilding itself from source code and then building
+<a href=http://linuxfromscratch.org/lfs>Linux From Scratch</a>
+and the <a href=https://source.android.com>Android Open Source Project</a>
+under the result. In theory, this should only require four packages:
+1) a set of posix-ish command line utilities,
+2) a compiler<a name="1_back"></a><sup><font size=-3><a href=#1>[1]</a></font></sup>,
+3) a C library, and 4) a kernel. This provides a reproducible and auditable
+base system, which with the addition of a few convienciences (vi, top,
+shell command line history...) can provide a usable interactive experience
+rather than just a headless build server.</p>
+
+<b><h2><a name="why" />Why is toybox?</h2></b>
+
+<p>The <a href=http://landley.net/talks/celf-2013.txt>2013 toybox talk</a>
+at ELC was devoted to this question, and has the following sections:</p>
+
+<ul>
+<li>0m29s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=0m29s>The smartphone is replacing the PC</a></li>
+  <ul>
+  <li>4m22s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=4m22s>Software needed to become self-hosting</a></li>
+  <li>6m20s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=6m20s>Do we care if android or iphone wins?</a></li>
+  </ul>
+<li>9m45s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=9m45s>Android not vanilla: oppose or accept?</a></li>
+  <ul>
+  <li>11m30s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=11m30s>Open source can't do User Interfaces</a></li>
+  </ul>
+<li>15m09s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=15m09s>Android is not copyleft: oppose or accept?</a></li>
+<li>18m23s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=18m23s>Security issues</a></li>
+<li>21m15s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=21m15s>Solutions to the software problems</a></li>
+  <ul>
+  <li>22m55s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=22m55s>What toybox needs to be/do</a></li>
+  <li>28m17s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=28m17s>What is toybox?</a></li>
+    <ul>
+    <li>28m58s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=28m58s>Why toybox started...</a></li>
+    <li>37m50s <a href=http://www.youtube.com/watch?v=SGmtP5Lg_t0#t=37m50s>What does toybox actually implement?</a></li>
+    </ul>
+  </ul>
+</ul>
+
+<p>A more recent talk from 2019 compares
+<a href=https://www.youtube.com/watch?v=MkJkyMuBm3g#t=1m18s>BusyBox vs toybox</a>
+and explains the design decisions behind both.
+(A 2015 toybox talk was part of the channel
+<a href=https://marc.info/?l=linux-embedded&m=158159902514847&w=2>accidentally deleted</a> off youtube by the Linux Foundation,
+but the <a href=https://landley.net/talks/celf-2015.txt>outline</a> is
+still available.)</p>
+
+<b><h2><a name="context" />What context was toybox created in?</h2></b>
+
+<p>The toybox maintainer's previous minimal self-hosting system project,
+<a href=http://landley.net/aboriginal/about.html>Aboriginal Linux</a>,
+got a native development environment down to only seven packages in
+its 1.0 release (busybox, uClibc, gcc, binutils, make, bash, and linux)
+and then built Linux From Scratch under the result. That project
+<a href=http://landley.net/aboriginal/history.html>was the reason</a>
+toybox's maintainer became busybox maintainer, having done so
+much work to extend busybox to replace all the gnu tools in a Linux From
+Scratch build that the previous maintainer handed over the project (to
+spend more time on buildroot).</p>
+
+<p>Despite the maintainer's history with busybox, toybox is a fresh
+from-scratch implementation under an
+<a href=https://source.android.com/source/licenses.html>android-compatible</a>
+<a href=license.html>license</a>. Busybox predates Android, but has never
+shipped with Android due to the license. As long as we're starting over anyway,
+we can do a better job.</p>
+
+<p>Toybox's current minimal native development environment builder is a new
+<a href=https://github.com/landley/toybox/blob/master/scripts/mkroot.sh>tiny
+implementation</a> integrated into the toybox source.
+The "make root" target will create a simple toybox chroot
+(by default in the root/host directory), and adding a LINUX= argument to
+the make command line pointing to Linux kernel source code creates a tiny
+bootable system with a wrapper script to run it under the emulator
+<a href=https://qemu.org>qemu</a>.</p>
+
+<p>The list of commands remaining before we can build Linux From Scratch under
+the result (with an appropriate
+<a href=https://github.com/landley/toybox/blob/master/scripts/mcm-buildall.sh>compiler</a>)
+is tracked <a href=roadmap.html#dev_env>in
+the roadmap</a>, and doing so is one of the main goals for toybox's 1.0
+release.</p>
+
+<p>Building LFS requres fewer commands than building AOSP, which has a lot more
+<a href=http://source.android.com/source/initializing.html>build
+prerequisites</a>. In theory some of those can be built from source
+as external packages (we're clearly not including our own java implementation),
+but some early prerequisites may need to be added to bootstrap AOSP far enough
+to build them (such as a read-only version of "git":
+how does repo download the AOSP source otherwise?)
+<a name="2_back"></a><sup><font size=-3><a href=#2>[2]</a></font></sup></p>
+
+<b><h2><a name="status" />What commands are planned/implemented in toybox?</h2></b>
+
+<p>The current list of commands implemented by toybox is on the
+<a href=status.html>status page</a>, which is updated each release.
+There is also a <a href=roadmap.html>roadmap</a> listing all planned commands
+for the 1.0 release and the reasons for including them.</p>
+
+<p>In general, configuring toybox with "make defconfig" enables all the commands
+compete enough to be useful. Configuring "allyesconfig" enables partially
+implemented commands as well, along with debugging features.</p>
+
+<b><h3>Relevant Standards</h3></b>
+
+<p>Most commands are implemented according to POSIX-2008 (I.E.
+<a href=http://opengroup.org/onlinepubs/9699919799/idx/utilities.html>The
+Single Unix Specification version 4</a>) where applicable. This does not mean
+that toybox is implementing every SUSv4 utility: some such as SCCS and ed are
+obsolete, while others such as c99 are outside the scope of the project.
+Toybox also isn't implementing full internationalization support: it should be
+8-bit clean and handle UTF-8, but otherwise we leave this to X11 and higher
+layers. And some things (like $CDPATH support in "cd") await a good
+explanation of why to bother with them. (POSIX provides an important
+frame of reference, but is not an infallable set of commandments to be blindly
+obeyed. We do try to document our deviations from it in the comment section
+at the start of each command under toys/posix.)</p>
+
+<p>The other major sources of commands are the Linux man pages, the
+Linux Standard Base, and testing the behavior of existing command
+implementations (although not generally looking at their
+source code), including the commands in Android's toolbox. SUSv4 does not
+include many basic commands such as "mount", "init", and "mke2fs", which are
+kind of nice to have.</p>
+
+<p>For more on this see the <a href=roadmap.html>roadmap</a> and
+<a href=design.html>design goals</a>.</p>
+
+<b><h2><a name="downloads" />Download</h2></b>
+
+<p>This project is maintained as a <a href=https://github.com/landley/toybox>git
+archive</a>, and also offers <a href=http://landley.net/toybox/downloads>source
+tarballs</a> and <a href=http://landley.net/toybox/bin>static binaries</a>
+of the release versions.</p>
+
+<p>The maintainer's <a href=http://landley.net/notes.html>development log</a> and the project's
+<a href=http://lists.landley.net/listinfo.cgi/toybox-landley.net>mailing
+list</a> are also good ways to track what's going on with the project.</p>
+
+<b><h2><a name="toycans" />What's the toybox logo image?</h2></b>
+
+<p>It's <a href=toycans-big.jpg>carefully stacked soda cans</a>. Specifically,
+it's a bunch of the original "Coke Zero" and "Pepsi One" cans, circa 2006,
+stacked to spell out the binary values of the ascii string "Toybox", with
+null terminator at the bottom. (The big picture's on it's side because
+the camera was held sideways to get a better shot.)</p>
+
+<p>No, it's not photoshopped, I actually had these cans until a coworker
+who Totally Did Not Get It <sup><font size=-3><a href=http://www.timesys.com>tm</a></font></sup> threw them out one day after I'd gone home,
+thinking they were recycling. (I still have two of each kind, but
+Pepsi One seems discontinued and Coke Zero switched its can color
+from black to grey, presumably in celebration. It was fun while it lasted...)</p>
+
+<b><h2>Footnotes</h2></b>
+
+<p><a name="1" /><a href="#1_back">[1]</a> Ok, most toolchains (gcc, llvm, pcc, libfirm...)
+are multiple packages, but the maintainer of toybox used to maintain a
+<a href=http://landley.net/tinycc>fork of tinycc</a> (an integrated
+compiler/assembler/linker which once upon a
+time did <a href=http://bellard.org/tcc/tccboot.html>build a bootable linux
+kernel</a> before its original developer abandoned the project),
+and has <a href=http://landley.net/hg/qcc/file/tip/todo/todo.txt>vague plans</a> of <a href=http://landley.net/qcc>trying
+again someday</a>. The compiler toolchain is _conceptually_ one package,
+implementable as a single multicall binary acting like make, cc, as, ld, cpp,
+strip, readelf, nm, objdump, and so on as necessary. It's just the existing
+packages that do this <strike>kinda suck</strike> don't. (In theory "make"
+belongs in qcc, in practice llvm hasn't got its own make so toybox probably
+needs to add it after 1.0 to eliminate another gpl build prerequite from
+AOSP.)</p>
+
+<p><a name="2" /><a href="#2_back">[2]</a>
+The dividing line is
+"Is there an acceptably licensed version Android can ship, or do we have
+to write one?" Since android is not "GNU/Linux" in any way, we need to
+clean out all traces of gnu software from its build to get a clean
+self-hosting system.</p>
+
+<!--#include file="footer.html" -->

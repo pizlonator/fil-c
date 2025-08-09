@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+#set -x
+
+echo file1 > file
+testing "create_hardlink" "ln file hlink && [ file -ef hlink ] &&
+          echo 'yes'" "yes\n" "" ""
+testing "create_softlink" "ln -s file slink && [ -L slink ] &&
+          readlink slink" "file\n" "" ""
+rm slink hlink
+
+echo hlink1 > hlink
+testing "force_create_hardlink" "ln -f file hlink &&
+          [ file -ef hlink ] && cat hlink 2>/dev/null" "file1\n" "" ""
+
+echo slink1 > slink
+testing "force_create_symlink" "ln -f -s file slink &&
+          [ -L slink ] && readlink slink" "file\n" "" ""
+rm slink hlink
+
+echo hlink1 > hlink
+set +e
+testing "preserves_hardlinks" "ln file hlink 2>/dev/null || echo 'yes'" \
+          "yes\n" "" ""
+
+echo slink1 > slink
+set +e
+testing "preserves_symlinks" "ln -s file slink 2>/dev/null || echo 'yes'" \
+          "yes\n" "" ""
+rm slink hlink
+
+mkdir dir
+testing "multilevel_symbolic_links" "ln -s dir slink &&
+          ln -s file slink && [ -L slink -a -L slink/file ] &&
+          readlink slink && readlink slink/file" "dir\nfile\n" "" ""
+rm slink
+
+testing "no_dereference" "ln -s dir slink &&
+          ln -n -s file slink 2>/dev/null || [ -L slink ] && readlink slink" \
+          "dir\n" "" ""
+rm slink
+
+testing "-T acts like -n" "ln -s dir slink &&
+          ln -Tsf file slink || [ -L slink ] && readlink slink" "file\n" "" ""
+rm slink
+
+testing "-T with dir" "ln -Ts file dir 2>/dev/null || echo yes" "yes\n" "" ""
+rm -rf file dir slink
+
+testing "-t" "ln -st . one/two three && readlink two three" "one/two\nthree\n" \
+  "" ""
+rm -f two three
+
+touch file1 file2 && mkdir dir
+testing "create_multiple_hardlinks" "ln file* dir/ &&
+   [ file1 -ef dir/file1 -a file2 -ef dir/file2 ] && echo 'yes'" "yes\n" "" ""
+rm -rf file* dir
+
+touch file1 file2 && mkdir dir
+testing "create_multiple_softlinks" "ln -s file* dir/ &&
+          [ -L dir/file1 -a -L dir/file2 ] && readlink dir/file1 &&
+          readlink dir/file2" "file1\nfile2\n" "" ""
+rm -rf file* dir
+
+echo file1 > file
+testing "create_softlink_and_remove_sourcefile" "ln -s file slink &&
+          [ -L slink ] && rm file && cat slink 2>/dev/null || echo 'yes' " \
+          "yes\n" "" ""
+rm -f file slink
+
+echo file1 > file
+testing "create_hardlink_and_remove_sourcefile" "ln file hlink &&
+          [ file -ef hlink ] && rm file && [ -f hlink ] && echo 'yes'" \
+          "yes\n" "" ""
+rm -f file hlink
+
+mkdir -p one/two
+ln -s . circular
+mkdir -p three
+echo hello > three/four
+testing "ln -r" \
+  "ln -sr circular/three/../three/four one/two/five && cat one/two/five" \
+  "hello\n" "" ""
+rm -rf one three circular

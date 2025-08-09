@@ -1,0 +1,26 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "uu empty file" "uudecode -o - && echo yes" \
+	"yes\n" "" "begin 744 test\n\`\nend\n"
+testing "uu 1-char" "uudecode -o -" "a" "" \
+	"begin 744 test\n!80  \n\`\nend\n"
+testing "uu 2-char" "uudecode -o -" "ab" "" \
+	"begin 744 test\n\"86( \n\`\nend\n"
+testing "uu 3-char" "uudecode -o -" "abc" "" \
+	"begin 744 test\n#86)C\n\`\nend\n" 
+
+testing "b64 empty file" "uudecode -o - && echo yes" \
+        "yes\n" "" "begin-base64 744 test\n====\n" 
+testing "b64 1-char" "uudecode -o -" "a" "" \
+	"begin-base64 744 test\nYQ==\n====\n"
+testing "b64 2-char" "uudecode -o -" "ab" "" \
+	"begin-base64 744 test\nYWI=\n====\n"
+testing "b64 3-char" "uudecode -o -" "abc" "" \
+	"begin-base64 744 test\nYWJj\n====\n"
+
+testing "filename" "uudecode && echo -ne 'abc' | cmp uudecode-fn-test - && echo -ne yes && rm uudecode-fn-test" \
+	"yes" "" "begin-base64 744 uudecode-fn-test\nYWJj\n====\n"

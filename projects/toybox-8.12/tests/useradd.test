@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+if [ "$(id -u)" -ne 0 ]
+then
+  echo "$SHOWSKIP: useradd (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+# Redirecting all output to /dev/null for grep, adduser and deluser
+arg="&>/dev/null"
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Default password for adding user is: 'password'
+pass=`echo -ne 'password\npassword\n'`
+
+user="toyTestUser"
+testing "(text)" "useradd $user $arg || 
+   grep '^$user:' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+user="toy1Test2User3"
+testing "(alphanumeric)" "useradd $user $arg ||
+   grep '^$user:' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+user="987654321"
+testing "(numeric)" "useradd $user $arg ||
+   grep '^$user:' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+user="toy.1Test-2User_3"
+testing "(with ./-/_)" "useradd $user $arg ||
+   grep '^$user:' /etc/passwd $arg && [ -d /home/$user ] && 
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+# 70 characters long string; hereafter, we will use it as per our need.
+user="abcdefghijklmnopqrstuvwxyz123456789abcdefghijklmnopqrstuvwxyz123456789"
+testing "(long string)" "useradd $user $arg ||
+   grep '^$user:' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+user="toyTestUser"
+testing "dir" "useradd -h $PWD/dir $user $arg ||
+   grep '^$user:.*dir' /etc/passwd $arg && [ -d $PWD/dir ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+rm -rf $PWD/dir
+
+gecos="aaa,bbb,ccc,ddd,eee"
+testing "gecos" "useradd -g '$gecos' $user $arg ||
+   grep '^$user:.*$gecos' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+shl="/bin/sh"
+testing "shell" "useradd -s $shl $user $arg ||
+   grep '^$user:.*$shl$' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+g_name="root"
+g_id=`grep $g_name':.*:.*' /etc/group | cut -d : -f 3`
+testing "group" "useradd -G $g_name $user $arg ||
+   grep '^$user:.*:.*:$g_id:.*' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+testing "(system user)" "useradd -S $user $arg ||
+   grep '^$user:.*:.*:.*' /etc/passwd $arg && [ ! -e /home/$user ] && 
+   echo 'yes'" "yes\n" "" "$pass"   
+userdel -r $user $arg
+
+testing "-D" "useradd -D $user $arg ||
+   grep '^$user:.*:.*:.*' /etc/passwd $arg && [ -d /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+testing "-H" "useradd -H $user $arg ||
+   grep '^$user:.*:.*:.*' /etc/passwd $arg && [ ! -e /home/$user ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+testing "dir and -H" "useradd -H -h $PWD/dir $user $arg ||
+   grep '^$user:.*dir' /etc/passwd $arg && [ ! -e $PWD/dir ] &&
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+
+testing "-u" "useradd -u 49999 $user $arg ||
+   grep '^$user:x:49999:.*' /etc/passwd $arg && [ -d /home/$user ] && 
+   echo 'yes'" "yes\n" "" "$pass"
+userdel -r $user $arg
+

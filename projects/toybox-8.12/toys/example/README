@@ -1,0 +1,23 @@
+Example commands
+
+You probably don't want to deploy any of this.
+
+The hello.c and skeleton.c commands provide templates for new commands. When
+writing a new command, copying hello.c or skeleton.c to the new name may provide
+a good starting point. (The minimal staring point is toys/posix/false.c)
+
+  - hello.c is clean and simple, and an easy way to check the behavior of
+    toybox library functions running in command context.
+
+  - skeleton.c demonstrates the option parsing infrastructure and having
+    multiple commands per file.
+
+Some of the commands in here are test infrastructure:
+
+  - logpath.c is optionally used by mkroot.sh and scripts/record-commands
+
+  - demo_* demonstrates infrastructure, allowing tests/demo_*.test to
+    regression test library functions directly.
+
+hostid.c is an obsolete command still in posix and present on some recent
+Linux systems, but not really useful on modern systems.

@@ -1,0 +1,77 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "touch" "touch walrus && [ -e walrus ] && echo yes" "yes\n" "" ""
+testing "1 2 3" "touch one two three && rm one two three && echo yes" "yes\n" \
+  "" ""
+testing "-c" "touch -c walrus && [ -e walrus ] && echo yes" "yes\n" "" ""
+testing "-c missing" "touch -c warrus && [ ! -e warrus ] && echo yes" \
+  "yes\n" "" ""
+
+testing "-t" \
+  "touch -t 201201231234 walrus && date -r walrus +%Y%m%d-%H%M%S.%N" \
+  "20120123-123400.000000000\n" "" ""
+
+# Yes, the year could roll over while you're running this test. I do not care.
+testing "-t MMDDhhmm" \
+  "touch -t 01231234 input && date +%Y-%m-%d:%H-%M-%S -r input" \
+  "$(date +%Y)-01-23:12-34-00\n" "" ""
+
+testing "-t YYMMDDhhmm" \
+  "touch -t 2101231234 input && date +%Y-%m-%d:%H-%M-%S -r input" \
+  "$(date +%C)21-01-23:12-34-00\n" "" ""
+
+testing "-t CCYYMMDDhhmm" \
+  "touch -t 201201231234 walrus && date -r walrus +%Y%m%d-%H%M%S.%N" \
+  "20120123-123400.000000000\n" "" ""
+
+testing "-t seconds" \
+  "touch -t 201201231234.56 walrus && date -r walrus +%Y%m%d-%H%M%S.%N" \
+  "20120123-123456.000000000\n" "" ""
+
+testing "-t -" "TZ=utc touch -t 200109090146.40 - > walrus && TZ=utc date -r walrus +%s" \
+  "1000000000\n" "" ""
+
+toyonly testing "-t nanoseconds" \
+  "touch -t 201201231234.56123456789 walrus && date -r walrus +%Y%m%d-%H%M%S.%N" \
+  "20120123-123456.123456789\n" "" ""
+
+testing "-d" \
+  "touch -d 2009-02-13T23:31:30Z walrus && date -r walrus +%s" \
+  "1234567890\n" "" ""
+
+testing "-d with space" \
+  "touch -d '2009-02-13 23:31:30Z' walrus && date -r walrus +%s" \
+  "1234567890\n" "" ""
+
+testing "-d nanoseconds" \
+  "touch -d 2009-02-13T23:31:30.123456789Z walrus && date -r walrus +%s.%N" \
+  "1234567890.123456789\n" "" ""
+
+testing "-r" \
+  "touch -r walrus walrus2 && date -r walrus2 +%s.%N" \
+   "1234567890.123456789\n" "" ""
+
+# Yes, the year could roll over while you're running this test. I do not care.
+testing "-t MMDDhhmm" \
+  "touch -t 01231234 input && date +%Y-%m-%d:%H-%M-%S -r input" \
+  "$(date +%Y)-01-23:12-34-00\n" "" ""
+
+testing "-t CCMMDDhhmm" \
+  "touch -t 2101231234 input && date +%Y-%m-%d:%H-%M-%S -r input" \
+  "$(date +%C)21-01-23:12-34-00\n" "" ""
+
+testing "-a" "TZ=utc touch -t 197101020304 walrus &&
+    TZ=utc touch -t 197203040506 -a walrus && TZ=utc stat -c '%X %Y' walrus" \
+    "68533560 31633440\n" "" ""
+testing "-m" "TZ=utc touch -t 197101020304 walrus &&
+    TZ=utc touch -t 197203040506 -m walrus && TZ=utc stat -c '%X %Y' walrus" \
+    "31633440 68533560\n" "" ""
+testing "-am" "TZ=utc touch -t 197101020304 walrus &&
+    TZ=utc touch -t 197203040506 -am walrus && TZ=utc stat -c '%X %Y' walrus" \
+    "68533560 68533560\n" "" ""
+
+rm walrus walrus2

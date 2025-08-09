@@ -1,0 +1,18 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+# Example characters from https://en.wikipedia.org/wiki/UTF-16:
+# $:U+0024  €:U+20ac  𐐷:U+10437[==U+d801,U+dc37]
+# We can't simply use echo because bash 3.2 on the Mac mangles it, but toysh
+# should let us go back to just this when it's available...
+#   echo -n "$€𐐷" > chars
+echo -ne "\x24\xe2\x82\xac\xf0\x90\x90\xb7" > chars
+
+#testing "name" "command" "result" "infile" "stdin"
+utf8locale
+testing "" "iconv chars | xxd -p" "24e282acf09090b7\n" "" ""
+testing "-t UTF-16BE" "iconv -t UTF-16BE chars | xxd -p" "002420acd801dc37\n" "" ""
+testing "-t UTF-16LE" "iconv -t UTF-16LE chars | xxd -p" "2400ac2001d837dc\n" "" ""
+testing "-t UTF-32BE" "iconv -t UTF-32BE chars | xxd -p" "00000024000020ac00010437\n" "" ""
+testing "-t UTF-32LE" "iconv -t UTF-32LE chars | xxd -p" "24000000ac20000037040100\n" "" ""

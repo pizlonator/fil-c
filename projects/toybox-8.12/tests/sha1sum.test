@@ -1,0 +1,70 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# These tests are based on RFC3174 which were based on FIPS PUB 180-1
+
+case "$CMDNAME" in
+  sha1sum)
+  ABC=a9993e364706816aba3e25717850c26c9cd0d89d
+  ABCLONG=84983e441c3bd26ebaae4aa1f95129e5e54670f1
+  MILNUL=34aa973cd4c4daa4f61eeb2bdbad27316534016f
+  DIGITS=dea356a2cddd90c7a7ecedc5ebb563934f460452
+  DEF=589c22335a381f122d129225f5c0ba3056ed5811
+  SEQ=f70b7b8768a1183d6d1cd79d3b076d9eb5156350
+  ;; sha224sum)
+  ABC=23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7
+  ABCLONG=75388b16512776cc5dba5da1fd890150b0c6455cb4f58b1952522525
+  MILNUL=20794655980c91d8bbb4c1ea97618a4bf03f42581948b2ee4ee7ad67
+  DIGITS=567f69f168cd7844e65259ce658fe7aadfa25216e68eca0eb7ab8262
+  DEF=b6773126557f37fbc9b24e7b6adedc05d3eb3923fe3feeb369812d16
+  SEQ=d8b406f661bc690a1f58241f37c94e04d0a1af74af867b877778f18e
+  ;; sha256sum)
+  ABC=ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+  ABCLONG=248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1
+  MILNUL=cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0
+  DIGITS=594847328451bdfa85056225462cc1d867d877fb388df0ce35f25ab5562bfbb5
+  DEF=cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34
+  SEQ=8060aa0ac20a3e5db2b67325c98a0122f2d09a612574458225dcb9a086f87cc3
+  ;; sha384sum)
+  ABC=cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7
+  ABCLONG=3391fdddfc8dc7393707a65b1b4709397cf8b1d162af05abfe8f450de5f36bc6b0455a8520bc4e6f5fe95b1fe3c8452b
+  MILNUL=9d0e1809716474cb086e834e310a4a1ced149e9c00f248527972cec5704c2a5b07b8b3dc38ecc4ebae97ddd87f3d8985
+  DIGITS=2fc64a4f500ddb6828f6a3430b8dd72a368eb7f3a8322a70bc84275b9c0b3ab00d27a5cc3c2d224aa6b61a0d79fb4596
+  DEF=180c325cccb299e76ec6c03a5b5a7755af8ef499906dbf531f18d0ca509e4871b0805cac0f122b962d54badc6119f3cf
+  SEQ=7d2a49098f0df0f3c152ca9916a3864542258b2bd487e00ea33cb68e7d27c5c0f25b540d29f62fb33720846073c51b66
+  ;; sha512sum)
+  ABC=ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f
+  ABCLONG=204a8fc6dda82f0a0ced7beb8e08a41657c16ef468b228a8279be331a703c33596fd15c13b1b07f9aa1d3bea57789ca031ad85c7a71dd70354ec631238ca3445
+  MILNUL=e718483d0ce769644e2e42c7bc15b4638e1f98b13b2044285632a803afa973ebde0ff244877ea60a4cb0432ce577c31beb009c5c2c49aa2e4eadb217ad8cc09b
+  DIGITS=89d05ba632c699c31231ded4ffc127d5a894dad412c0e024db872d1abd2ba8141a0f85072a9be1e2aa04cf33c765cb510813a39cd5a84c4acaa64d3f3fb7bae9
+  DEF=40a855bf0a93c1019d75dd5b59cd8157608811dd75c5977e07f3bc4be0cad98b22dde4db9ddb429fc2ad3cf9ca379fedf6c1dc4d4bb8829f10c2f0ee04a66663
+  SEQ=3000c8961bb83de289fa8b407d0ea23f53a57ea11ddb0f782a4ccc0f586780822946053132794b177823c2974873d5dfb2ab1b6c45ae3328e2e703ca907f54d7
+  ;; sha3sum)
+  ABC=e642824c3f8cf24ad09234ee7d3c766fc9a3a5168d0c94ad73b46fdf
+  ABCLONG=8a24108b154ada21c9fd5574494479ba5c7e7ab76ef264ead0fcce33
+  MILNUL=d69335b93325192e516a912e6d19a15cb51c6ed5c15243e7a7fd653c
+  DIGITS=c97e9b948bcd69bbc0e76b39fc82df963ae61665ee12099b6631ffe6
+  DEF=52edc03c27124c2b83ebfd66f0669b6af40b44d4644c12d16b41f46b
+  SEQ=7049c446c0fb287872536a7737f61f9ac7100f8e6b421d11011505fb
+  ;;
+esac
+
+testcmd "abc" "" "$ABC  -\n" "" "abc"
+testcmd "longer str" "" "$ABCLONG  -\n"\
+        "" "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
+testing "a million nulls" \
+        'dd if=/dev/zero bs=1000 count=1000 2>/dev/null|tr \\0 a|$CMDNAME' \
+        "$MILNUL  -\n" "" ""
+testing "digits" 'for i in `seq 80`; do echo -n 01234567 ; done | $CMDNAME' \
+        "$DIGITS  -\n" "" ""
+testing "seq 10000" "seq 10000 | $CMDNAME" "$SEQ  -\n" "" ""
+
+echo -n "def" > file2
+testcmd "file" "input" "$ABC  input\n" "abc" ""
+testcmd "file1 file2" "input file2" "$ABC  input\n$DEF  file2\n" "abc" ""
+testcmd "file1 file2 -" "input file2 -" "$ABC  input\n$DEF  file2\n$ABC  -\n" \
+        "abc" "abc"
+rm -f file2

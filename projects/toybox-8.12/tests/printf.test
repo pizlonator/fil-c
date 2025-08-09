@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Note: must use "testcmd" not "testing" else it's testing the shell builtin.
+
+testcmd "text" "TEXT" "TEXT" "" ""
+
+# TODO: we have to use \x1b rather than \e in the expectations because
+# the Mac is stuck on bash 3.2 which doesn't support \e. This can go
+# away when we have a usable toysh.
+testcmd "escapes" "'one\ntwo\n\v\t\r\f\e\b\athree'" \
+  "one\ntwo\n\v\t\r\f\x1b\b\athree" "" ""
+testcmd "%b escapes" "%b 'one\ntwo\n\v\t\r\f\e\b\athree'" \
+  "one\ntwo\n\v\t\r\f\x1b\b\athree" "" ""
+
+testcmd "null" "'x\0y' | od -An -tx1" ' 78 00 79\n' "" ""
+testcmd "trailing slash" "'abc\'" 'abc\' "" ""
+testcmd "octal" "' \1\002\429\045x'" ' \001\002"9%x' "" ""
+testcmd "not octal" "'\9'" '\9' "" ""
+testcmd "hex" "'A\x1b\x2B\x3Q\xa' | od -An -tx1" ' 41 1b 2b 03 51 0a\n' "" ""
+testcmd "%x" "'%x\n' 0x2a" "2a\n" "" ""
+
+testcmd "%d 42" "%d 42" "42" "" ""
+testcmd "%d 0x2a" "%d 0x2a" "42" "" ""
+testcmd "%d 052" "%d 052" "42" "" ""
+testcmd "%d none" "%d" "0" "" ""
+testcmd "%d null" "%d ''" "0" "" ""
+
+testcmd "%s width precision" "'%3s,%.3s,%10s,%10.3s' abcde fghij klmno pqrst" \
+  "abcde,fgh,     klmno,       pqr" "" ""
+
+# posix: "The format operand shall be reused as often as necessary to satisfy
+# the argument operands."
+
+testcmd "extra args" "'abc%s!%ddef\n' X 42 ARG 36" \
+	"abcX!42def\nabcARG!36def\n" "" ""
+
+testcmd "'%3c'" "'%3c' x" "  x" "" ""
+testcmd "'%-3c'" "'%-3c' x" "x  " "" ""
+testcmd "'%+d'" "'%+d' 5" "+5" "" ""
+
+testcmd "'%5d%4d' 1 21 321 4321 54321" \
+  "'%5d%4d' 1 21 321 4321 54321" "    1  21  321432154321   0" "" ""
+testcmd "'%c %c' 78 79" "'%c %c' 78 79" "7 7" "" ""
+testcmd "'%d %d' 78 79" "'%d %d' 78 79" "78 79" "" ""
+testcmd "'%f %f' 78 79" "'%f %f' 78 79" "78.000000 79.000000" "" ""
+testcmd "'f f' 78 79" "'f f' 78 79 2>/dev/null" "f f" "" ""
+testcmd "'%i %i' 78 79" "'%i %i' 78 79" "78 79" "" ""
+testcmd "'%o %o' 78 79" "'%o %o' 78 79" "116 117" "" ""
+testcmd "'%u %u' 78 79" "'%u %u' 78 79" "78 79" "" ""
+testcmd "'%u %u' -1 -2" "'%u %u' -1 -2" \
+  "18446744073709551615 18446744073709551614" "" ""
+testcmd "'%x %X' 78 79" "'%x %X' 78 79" "4e 4F" "" ""
+testcmd "'%g %G' 78 79" "'%g %G' 78 79" "78 79" "" ""
+testcmd "'%s %s' 78 79" "'%s %s' 78 79" "78 79" "" ""
+
+testcmd "%.s acts like %.0s" "%.s_ 1 2 3 4 5" "_____" "" ""
+testcmd "corner case" "'\\8'" '\8' '' ''
+
+# The posix spec explicitly specifies inconsistent behavior,
+# so treating the \0066 in %b like the \0066 not in %b is wrong because posix.
+testcmd "posix inconsistency" "'\\0066-%b' '\\0066'" "\x066-6" "" ""
+
+testcmd '\x' "'A\x1b\x2B\x3Q\xa' | od -An -tx1" " 41 1b 2b 03 51 0a\n" \
+  "" ""
+
+testcmd '\c' "'one\ctwo'" "one" "" ""
+
+# An extra leading 0 is fine for %b, but not as a direct escape, for some
+# reason...
+testcmd "octal %b" "'\0007%b' '\0007' | xxd -p" "003707\n" "" ""
+
+# Unlike echo, printf errors out on bad hex.
+testcmd "invalid hex 1" "'one\xvdtwo' 2>/dev/null || echo err" "oneerr\n" "" ""
+testcmd "invalid hex 2" "'one\xavtwo'" "one\nvtwo" "" ""
+# But bad octal is shown as text.
+testcmd "invalid oct" "'one\079two'" "one\a9two" "" ""
+
+# extension for ESC
+testcmd "%b \e" "'%b' '\\e' | xxd -p" "1b\n" "" ""
+testcmd "\e" "'\\e' | xxd -p" "1b\n" "" ""
+
+testcmd '\0 in %b' '%b ab\\x07\\0x07 | xxd -p' '61620700783037\n' '' ''

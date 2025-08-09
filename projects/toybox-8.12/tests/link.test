@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Copyright 2014 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2014 Naha Maggu <maggu.neha@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+echo "" >foo
+testing "fails on non-existent file" "link foo/foo baz 2>/dev/null || echo GOOD" "GOOD\n" "" ""
+rm -f foo bar
+
+echo file1 > file
+testing "create_hardlink" "link file hlink && [ file -ef hlink ] &&
+          echo 'yes'; rm  -rf hlink" "yes\n" "" ""
+
+echo hlink1 > hlink
+set +e
+testing "preserves_hardlinks" "link file hlink 2>/dev/null || echo 'yes'; rm -rf hlink" \
+          "yes\n" "" ""
+
+echo file1 > file
+testing "create_hardlink_and_remove_sourcefile" "link file hlink &&
+          [ file -ef hlink ] && rm -rf file && [ -f hlink ] && echo 'yes'; rm -f file hlink" \
+          "yes\n" "" ""

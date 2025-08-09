@@ -1,0 +1,81 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Compress files.
+# On success, the input files are removed and replaced by new
+# files with the .gz suffix.
+echo -n "foo " > f1
+echo "bar" > f2
+testing "with input files" "gzip f1 f2 && 
+    test -f f1.gz && test -f f2.gz && 
+    ! test -f f1 && ! test -f f2 && 
+    zcat f1.gz f2.gz" "foo bar\n" "" ""
+rm -f f1 f2 f1.gz f2.gz
+
+# With no files, compresses stdin to stdout.
+testing "no files (stdin to stdout)" "echo hello world | gzip > f.gz && 
+    test -f f.gz && zcat f.gz" "hello world\n" "" ""
+rm -f f.gz
+
+# -c	Output to stdout
+echo -n "foo " > f1
+echo "bar" > f2
+testing "with input files and -c" "gzip -c f1 f2 > out.gz && 
+    ! test -f f1.gz && ! test -f f2.gz && 
+    test -f f1 && test -f f2 && 
+    zcat out.gz" "foo bar\n" "" ""
+rm -f f1 f2 out.gz
+
+# -d	Decompress (act as gunzip)
+echo "hello world" | gzip > f.gz
+testing "-d (act as gunzip)" "gzip -d f.gz && 
+    test -f f && ! test -f f.gz && cat f" "hello world\n" "" ""
+rm -f f.gz f
+
+echo "hello world" | gzip > f.gz
+testing "-dc (act as zcat)" "gzip -dc f.gz && 
+    ! test -f f && test -f f.gz" "hello world\n" "" ""
+rm -f f.gz f
+
+# -f	Force: allow overwrite of output file
+echo "hello world" > f1
+echo "precious data" > f1.gz
+testing "no overwrite without -f" \
+    "gzip f1 2>/dev/null || echo refused && cat f1 f1.gz" \
+    "refused\nhello world\nprecious data\n" "" ""
+testing "overwrite with -f" \
+    "gzip -f f1 && echo allowed && ! test -f f1 && zcat f1.gz" \
+    "allowed\nhello world\n" "" ""
+rm -f f1 f1.gz
+
+# -k	Keep input files (don't remove)
+echo "hello world" > f1
+testing "-k" "gzip -k f1 && cat f1 && zcat f1.gz" \
+    "hello world\nhello world\n" "" ""
+rm -f f1 f1.gz
+
+# Test that -9 compresses better than -1.
+for i in $(seq 1 1000) ; do echo "hello world" >> x ; done
+gzip -c1 x > x1.gz
+gzip -c9 x > x9.gz
+testing "-1 vs -9" \
+    "test $(stat -c '%s' x1.gz) -gt $(stat -c '%s' x9.gz) && echo okay" \
+    "okay\n" "" ""
+rm -f x x1.gz x9.gz
+
+# Test that gzip preserves permissions and times.
+export TZ=UTC
+echo "hello world" > f1
+chmod 0411 f1
+touch -a -t 197801020304 f1
+touch -m -t 198704030201 f1
+testing "permissions/times preservation" \
+    "gzip -k f1 && TZ=UTC stat -c '%a %Y' f1 && stat -c '%a %X %Y' f1.gz" \
+    "411 544413660\n411 252558240 544413660\n" "" ""
+rm -f f1 f1.gz
+
+testing "reject non-gzip" "gzip -dc $FILES/blkid/msdos.bz2 2>/dev/null ||
+    echo rejected" "rejected\n" "" ""

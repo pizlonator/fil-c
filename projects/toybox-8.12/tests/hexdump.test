@@ -1,0 +1,136 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+[ -n "$TEST_HOST" ] && NOSPACE=1
+testcmd "simple file" "input" "0000000 6973 706d 656c 000a\n0000007\n" "simple\\n" ""
+testcmd "simple file -b" "-b input" "0000000 163 151 155 160 154 145 012\n0000007\n" "simple\\n" ""
+testcmd "simple file -c" "-c input" "0000000   s   i   m   p   l   e  \\\\n\n0000007\n" "simple\\n" ""
+testcmd "simple file -d" "-d input" "0000000 26995 28781 25964 00010\n0000007\n" "simple\\n" ""
+testcmd "simple file -o" "-o input" "0000000 064563 070155 062554 000012\n0000007\n" "simple\\n" ""
+testcmd "simple file -x" "-x input" "0000000 6973 706d 656c 000a\n0000007\n" "simple\\n" ""
+
+testcmd \
+  "simple file canonical output -C" \
+  "-C input" \
+  "\
+00000000  73 69 6d 70 6c 65 0a                              |simple.|\n\
+00000007\n" \
+  "simple\n" \
+  ""
+testcmd \
+  "simple file canonical output -C multiline" \
+  "-C input" \
+  "\
+00000000  73 69 6d 70 6c 65 0a 62  61 72 66 6f 6f 62 61 72  |simple.barfoobar|\n\
+00000010  66 6f 6f 62 61 72 0a                              |foobar.|\n\
+00000017\n" \
+  "\
+simple\n\
+barfoobarfoobar\n" \
+  ""
+
+testcmd \
+  "head of file -n 10" \
+  "-n 10 input" \
+  "\
+0000000 6973 706d 656c 730a 6d69\n\
+000000a\n" \
+  "simple\nsimple\n" \
+  ""
+testcmd \
+  "skip head of file -s 10" \
+  "-s 10 input" \
+  "\
+000000a 6c70 0a65\n\
+000000e\n" \
+  "simple\nsimple\n" \
+  ""
+
+testcmd \
+  "squeeze repeating lines" \
+  "input" \
+  "\
+0000000 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+*\n\
+0000070 6f66 006f\n\
+0000073\n" \
+  "\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+foo" \
+  ""
+testcmd \
+  "squeeze repeating lines" \
+  "input" \
+  "\
+0000000 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+*\n\
+0000030 6262 6262 6262 6262 6262 6262 6262 0a62\n\
+0000040 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+*\n\
+0000070 6262 6262 6262 6262 6262 6262 6262 0a62\n\
+0000080\n" \
+  "\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+bbbbbbbbbbbbbbb\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+bbbbbbbbbbbbbbb\n" \
+  ""
+testcmd \
+  "don't squeeze repeating lines" \
+  "-v input" \
+  "\
+0000000 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000010 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000020 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000030 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000040 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000050 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000060 6161 6161 6161 6161 6161 6161 6161 0a61\n\
+0000070 6f66 006f\n\
+0000073\n" \
+  "\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+aaaaaaaaaaaaaaa\n\
+foo" \
+  ""
+
+for _ in {1..25}; do echo "foobar" >> file1; done
+for _ in {1..25}; do echo "buzzbar" >> file2; done
+
+testcmd \
+  "accumulate offset accross files" \
+  "file1 file2" \
+  "0000000 6f66 626f 7261 660a 6f6f 6162 0a72 6f66\n\
+0000010 626f 7261 660a 6f6f 6162 0a72 6f66 626f\n\
+0000020 7261 660a 6f6f 6162 0a72 6f66 626f 7261\n\
+0000030 660a 6f6f 6162 0a72 6f66 626f 7261 660a\n\
+0000040 6f6f 6162 0a72 6f66 626f 7261 660a 6f6f\n\
+0000050 6162 0a72 6f66 626f 7261 660a 6f6f 6162\n\
+0000060 0a72 6f66 626f 7261 660a 6f6f 6162 0a72\n\
+0000070 6f66 626f 7261 660a 6f6f 6162 0a72 6f66\n\
+0000080 626f 7261 660a 6f6f 6162 0a72 6f66 626f\n\
+0000090 7261 660a 6f6f 6162 0a72 6f66 626f 7261\n\
+00000a0 660a 6f6f 6162 0a72 6f66 626f 7261 620a\n\
+00000b0 7a75 627a 7261 620a 7a75 627a 7261 620a\n\
+*\n\
+0000170 7a75 627a 7261 000a\n\
+0000177\n" \
+  "" \
+  ""
+rm file1 file2

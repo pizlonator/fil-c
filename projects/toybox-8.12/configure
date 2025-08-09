@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# set environment variables used by scripts/make.sh
+
+# People run ./configure out of habit, so do "defconfig" for them.
+
+if [ "$(basename "$0")" == configure ]
+then
+  echo "Assuming you want 'make defconfig', but you should probably check the README."
+  make defconfig
+  exit $?
+fi
+
+# Warn about stuff, disable stupid warnings, be 8-bit clean for utf8.
+[ "${CFLAGS/-funsigned-char//}" == "$CFLAGS" ] &&
+  CFLAGS+=" -Wall -Wundef -Werror=implicit-function-declaration -Wno-char-subscripts -Wno-pointer-sign -funsigned-char"
+
+# Set default values if variable not already set
+: ${CC:=cc} ${HOSTCC:=cc} ${GENDIR:=generated} ${KCONFIG_CONFIG:=.config}
+: ${UNSTRIPPED:=$GENDIR/unstripped} ${OUTNAME:=toybox${TARGET:+-$TARGET}}
+: ${OPTIMIZE:=-Os -ffunction-sections -fdata-sections -fno-asynchronous-unwind-tables -fno-strict-aliasing}
+
+# We accept LDFLAGS, but by default don't have anything in it

@@ -1,0 +1,18 @@
+Use ./run-qemu.sh to boot system image to a shell prompt, "exit" when done.
+
+Additional arguments to run-qemu.sh are QEMU arguments,
+$KARGS contains additional linux kernel arguments. For example:
+
+  KARGS=quiet ./run-qemu.sh -hda docs/linux-fullconfig
+  # cat /dev/?da
+  # exit
+
+To extract the root filesystem from cpio.gz and chroot into it
+
+  ( mkdir fs && cd fs && zcat ../initramfs.cpio.gz | cpio -i -d -H newc )
+  chroot fs /init
+
+To recreate the initramfs.cpio.gz from fs directory
+
+  ( cd fs && find . -printf '%P\n' | cpio -o -H newc -R +0:+0 | gzip ) \
+    > initramfs.cpio.gz

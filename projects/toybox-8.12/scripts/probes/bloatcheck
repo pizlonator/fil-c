@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]
+then
+  echo "usage: bloatcheck old new"
+  exit 1
+fi
+
+addline()
+{
+  NEXT="$(printf "%s% $((50-${#LASTNAME}))d% 10d %10d" "$LASTNAME" "$OLD" "$NEW" "$DELTA")"
+  [ -z "$STUFF" ] &&
+    STUFF="$NEXT" ||
+    STUFF="$(printf "%s\n%s" "$STUFF" "$NEXT")"
+}
+
+do_bloatcheck()
+{
+  LASTNAME= DELTA=0 TOTAL=0 OLD=0 NEW=0 STUFF=
+
+  printf "name% 46s% 10s% 11s\n" old new delta
+  echo "-----------------------------------------------------------------------"
+  while read a b c d
+  do
+    THISNAME=$(echo "$d" | sed 's/[.][0-9]*$//')
+
+    if [ "$LASTNAME" != "$THISNAME" ]
+    then
+      TOTAL=$(($TOTAL+$DELTA))
+      [ $DELTA -ne 0 ] && addline
+      LASTNAME="$THISNAME"
+      DELTA=0
+      OLD=0
+      NEW=0
+    fi
+
+    SIZE=$(printf "%d" "0x$b")
+    if [ "$a" == "-" ]
+    then
+      OLD=$(($OLD+$SIZE))
+      SIZE=$((-1*$SIZE))
+    else
+      NEW=$(($NEW+$SIZE))
+    fi
+    DELTA=$(($DELTA+$SIZE))
+  done
+
+  TOTAL=$(($TOTAL+$DELTA))
+  [ $DELTA -ne 0 ] && addline
+
+  echo "$STUFF" | sort -k4,4nr
+  echo "-----------------------------------------------------------------------"
+  printf "% 71d total\n" "$TOTAL"
+}
+
+diff -U 0 <(nm --size-sort "$1"|sort -k 3,3) <(nm --size-sort "$2"|sort -k 3,3)\
+  | tail -n +3 | sed -n 's/^\([-+]\)/\1 /p' | sort -k4,4 | do_bloatcheck

@@ -1,0 +1,147 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "dry run doesn't create file" \
+  "patch --dry-run >/dev/null && [ ! -e bork ] && echo yes" "yes\n" "" "
+--- /dev/null
++++ bork
+@@ -0,0 +1,1 @@
++one
+"
+
+testing "create file" "patch >/dev/null && cat bork" "one\ntwo\nthree\n" "" "
+--- /dev/null
++++ bork
+@@ -0,0 +1,3 @@
++one
++two
++three
+"
+
+testing "insert in middle" "patch > /dev/null && cat bork" \
+  "one\nfour\ntwo\nthree\n" "" "
+--- bork
++++ bork
+@@ -1,3 +1,4 @@
+ one
++four
+ two
+ three
+"
+testing "append at end" "patch > /dev/null && cat bork" \
+  "one\nfour\ntwo\nthree\nfive\nsix\n" "" "
+--- bork
++++ bork
+@@ -2,3 +2,5 @@
+ four
+ two
+ three
++five
++six
+"
+testing "insert at start" "patch > /dev/null && cat bork" \
+  "seven\none\nfour\ntwo\nthree\nfive\nsix\n" "" "
+--- bork
++++ bork
+@@ -1,3 +1,4 @@
++seven
+ one
+ four
+ two
+"
+testing "delete at end" "patch > /dev/null && cat bork" \
+  "seven\none\nfour\ntwo\nthree\nfive\n" "" "
+--- bork
++++ bork
+@@ -4,4 +4,3 @@
+ two
+ three
+ five
+-six
+"
+
+testing "delete at start" "patch > /dev/null && cat bork" \
+  "four\ntwo\nthree\nfive\n" "" "
+--- bork
++++ bork
+@@ -1,5 +1,3 @@
+-seven
+-one
+ four
+ two
+ three
+"
+
+testing "filter timestamps" "patch > /dev/null && cat bork" \
+  "four\ntwo\nthree\neight\nfive\n" "" "
+--- bork	2019-12-20 16:54:35.735630973 -0600
++++ bork	2019-12-20 16:57:03.083625706 -0600
+@@ -1,4 +1,5 @@
+ four
+ two
+ three
++eight
+ five
+"
+
+testing "quoted name" "patch > /dev/null && cat 'fruit bat'" \
+  "hello\n" "" '
+--- /dev/null
++++ "fruit ba\164"
+@@ -0,0 +1 @@
++hello
+'
+
+testing "bad quote" "patch 2>&1" $'patch: bad "filename\n' "" '--- "filename'
+
+testing "dry run doesn't delete file" \
+  "patch --dry-run > /dev/null && [ -e 'fruit bat' ] && echo yes" "yes\n" "" '
+--- "fruit bat"
++++ /dev/null
+@@ -1 +0,0 @@
+-hello
+'
+
+testing "delete file" \
+  "patch > /dev/null && [ ! -e 'fruit bat' ] && echo yes" "yes\n" "" '
+--- "fruit bat"
++++ /dev/null
+@@ -1 +0,0 @@
+-hello
+'
+
+# todo bork bork2
+
+# We hit a bug, test the bugfix.
+testing "fuzz" "patch > /dev/null && cat input" \
+"blah blah
+ */
+package org.yaml.snakeyaml.representer;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+" "blah blah
+ */
+package org.yaml.snakeyaml.representer;
+
+import java.beans.IntrospectionException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+" "--- a/x/input
++++ b/x/input
+@@ -15,7 +15,6 @@
+  */
+ package org.yaml.snakeyaml.representer;
+
+-import java.beans.IntrospectionException;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Iterator;
+"

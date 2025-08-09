@@ -1,0 +1,32 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "default template uses \$TMPDIR" "TMPDIR=. mktemp | grep -q '^./tmp\...........$' && echo yes" "yes\n" "" ""
+testing "default creates file" "test -f `TMPDIR=. mktemp` && echo yes" "yes\n" \
+  "" ""
+testing "-d creates dir" "test -d `TMPDIR=. mktemp -d` && echo yes" "yes\n" \
+  "" ""
+testing "TEMPLATE does not use \$TMPDIR" "TMPDIR=/t mktemp -u hello.XXXXXXXX | grep -q '^hello\.........$' && echo yes" "yes\n" "" ""
+testing "/ in TEMPLATE works but ignores \$TMPDIR" "TMPDIR=/t mktemp -u /x/hello.XXXXXXXX | grep -q '^/x/hello\.........$' && echo yes" "yes\n" "" ""
+testing "/ in TEMPLATE with -p DIR is error" "TMPDIR=/t mktemp -p DIR -u /x/hello.XXXXXXXX 2>/dev/null || echo error" "error\n" "" ""
+testing "-t TEMPLATE uses \$TMPDIR" "TMPDIR=/t mktemp -u -t hello.XXXXXXXX | grep -q '^/t/hello\.........$' && echo yes" "yes\n" "" ""
+testing "-t and TEMPLATE but no \$TMPDIR uses /tmp" "TMPDIR= mktemp -u -t hello.XXXXXXXX | grep -q '^/tmp/hello\.........$' && echo yes" "yes\n" "" ""
+testing "-p DIR and TEMPLATE should use DIR" "TMPDIR=/t mktemp -u -p DIR hello.XXXXXXXX | grep -q '^DIR/hello\.........$' && echo yes" "yes\n" "" ""
+testing "-p DIR and -t: -t wins" "TMPDIR=/t mktemp -u -p DIR -t hello.XXXXXXXX | grep -q '^/t/hello\.........$' && echo yes" "yes\n" "" ""
+testing "-p DIR -t TEMPLATE but no \$TMPDIR (DIR wins)" "TMPDIR= mktemp -u -p DIR -t hello.XXXXXXXX | grep -q '^DIR/hello\.........\$' && echo yes" "yes\n" "" ""
+testing "-u doesn't need to be able to write to dir" \
+  "mktemp -u -p /proc | grep -q '^/proc/tmp\...........\$' && echo yes" "yes\n" \
+  "" ""
+testing "needs at least XXX in template" \
+  "mktemp -u helloX 2>/dev/null || echo error" "error\n" "" ""
+testing "-q shouldn't print path" \
+  "mktemp -p /proc -q || echo only-failure" "only-failure\n" "" ""
+testing "--tmpdir doesn't need argument" \
+  "TMPDIR= mktemp -u helloXXX --tmpdir | grep -q '^/tmp/hello...\$' && echo yes" \
+  "yes\n" "" ""
+testing "--tmpdir can have argument" \
+  "TMPDIR= mktemp -u helloXXX --tmpdir=abc | grep -q '^abc/hello...\$' && echo yes" \
+  "yes\n" "" ""

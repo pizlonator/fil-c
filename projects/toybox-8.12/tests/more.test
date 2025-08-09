@@ -1,0 +1,17 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+cat >file1 <<EOF
+line1
+line2
+EOF
+
+# For non-tty output, headers are shown even if there's only one file.
+testing "non-tty" "more file1 | cat -" "::::::::::::::\nfile1\n::::::::::::::\nline1\nline2\n" "" ""
+
+testing "directory" "more ." "\n*** .: directory ***\n\n" "" ""
+
+rm file1

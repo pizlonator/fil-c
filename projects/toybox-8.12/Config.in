@@ -1,0 +1,189 @@
+mainmenu "Toybox Configuration"
+
+
+source generated/Config.probed
+source generated/Config.in
+
+comment ""
+
+menu "Toybox global settings"
+
+# This entry controls the multiplexer, disabled for single command builds
+config TOYBOX
+	bool
+	default y
+	help
+	  usage: toybox [--long | --help | --version | [COMMAND] [ARGUMENTS...]]
+
+	  With no arguments, "toybox" shows available COMMAND names. Add --long
+	  to include suggested install path for each command, see
+	  https://landley.net/toybox/faq.html#install for details.
+
+	  First argument is name of a COMMAND to run, followed by any ARGUMENTS
+	  to that command. Most toybox commands also understand:
+
+	  --help		Show command help (only)
+	  --version	Show toybox version (only)
+
+	  The filename "-" means stdin/stdout, and "--" stops argument parsing.
+
+	  Numerical arguments accept a single letter suffix for
+	  kilo, mega, giga, tera, peta, and exabytes, plus an additional
+	  "d" to indicate decimal 1000's instead of 1024.
+
+	  Durations can be decimal fractions and accept minute ("m"), hour ("h"),
+	  or day ("d") suffixes (so 0.1m = 6s).
+
+config TOYBOX_SUID
+	bool "SUID support"
+	default y
+	help
+	  Support for the Set User ID bit, to install toybox suid root and drop
+	  permissions for commands which do not require root access. To use
+	  this change ownership of the file to the root user and set the suid
+	  bit in the file permissions:
+
+	  chown root:root toybox; chmod +s toybox
+
+choice
+	prompt "Security Blanket"
+	default TOYBOX_LSM_NONE
+	help
+	  Select a Linux Security Module to complicate your system
+	  until you can't find holes in it.
+
+config TOYBOX_LSM_NONE
+	bool "None"
+	help
+          Don't try to achieve "watertight" by plugging the holes in a
+          collander, instead use conventional unix security (and possibly
+          Linux Containers) for a simple straightforward system.
+	  
+config TOYBOX_SELINUX
+	bool "SELinux support"
+	help
+	  Include SELinux options in commands such as ls, and add
+	  SELinux-specific commands such as chcon to the Android menu.
+
+config TOYBOX_SMACK
+	bool "SMACK support"
+	help
+	  Include SMACK options in commands like ls for systems like Tizen.
+
+endchoice
+
+config TOYBOX_LIBCRYPTO
+       bool "Use libcrypto (OpenSSL/BoringSSL)"
+       default n
+       help
+         Use faster hash functions out of external -lcrypto library.
+
+config TOYBOX_LIBZ
+       bool "Use libz (zlib)"
+       default n
+       help
+         Use libz for gz support.
+
+config TOYBOX_FLOAT
+	bool "Floating point support"
+	default y
+	help
+	  Include floating point support infrastructure and commands that
+	  require it.
+
+config TOYBOX_HELP
+	bool "Help messages"
+	default y
+	help
+	  Include help text for each command.
+
+config TOYBOX_HELP_DASHDASH
+	bool "--help and --version"
+	default y
+	depends on TOYBOX_HELP
+	help
+	  Support --help argument in all commands, even ones with a NULL
+	  optstring. (Use TOYFLAG_NOHELP to disable.) Produces the same output
+	  as "help command". --version shows toybox version.
+
+config TOYBOX_ZHELP
+	bool "compress help text"
+	default y
+	depends on TOYBOX_HELP
+	help
+	  Compress help with gzip -9, deflating when displayed. This makes the
+	  binary smaller but can increase runtime memory usage.
+
+config TOYBOX_FREE
+	bool "Free memory unnecessarily"
+	default n
+	help
+	  When a program exits, the operating system will clean up after it
+	  (free memory, close files, etc). To save size, toybox usually relies
+	  on this behavior. If you're running toybox under a debugger or
+	  without a real OS (ala newlib+libgloss), enable this to make toybox
+	  clean up after itself.
+
+config TOYBOX_NORECURSE
+	bool "Disable recursive execution"
+	default n
+	help
+	  When one toybox command calls another, usually it just calls the new
+	  command's main() function rather than searching the $PATH and calling
+	  exec on another file (which is much slower).
+
+	  This disables that optimization, so toybox will run external commands
+          even when it has a built-in version of that command. This requires
+          toybox symlinks to be installed in the $PATH, or re-invoking the
+          "toybox" multiplexer command by name.
+
+config TOYBOX_DEBUG
+	bool "Debugging tests"
+	default n
+	help
+	  Enable extra checks for debugging purposes. All of them catch
+	  things that can only go wrong at development time, not runtime.
+
+config TOYBOX_UID_SYS
+	int "First system UID"
+	default 100
+	help
+	  When commands like useradd/groupadd allocate system IDs, start here.
+
+config TOYBOX_UID_USR
+	int "First user UID"
+	default 500
+	help
+	  When commands like useradd/groupadd allocate user IDs, start here.
+
+config TOYBOX_FORCE_NOMMU
+	bool "Enable nommu support when the build can't detect it."
+	default n
+	help
+	  When using musl-libc on a nommu system, you'll need to say "y" here
+	  unless you used the patch in the mcm-buildall.sh script. You can also
+	  say "y" here to test the nommu codepaths on an mmu system.
+
+	  A nommu system can't use fork(), it can only vfork() which suspends
+	  the parent until the child calls exec() or exits. When a program
+	  needs a second instance of itself to run specific code at the same
+	  time as the parent, it must use a more complicated approach (such as
+	  exec("/proc/self/exe") then pass data to the new child through a pipe)
+	  which is larger and slower, especially for things like toysh subshells
+	  that need to duplicate a lot of internal state in the child process
+	  fork() gives you for free.
+
+	  Libraries like uclibc omit fork() on nommu systems, allowing
+	  compile-time probes to select which codepath to use. But musl
+	  intentionally includes a broken version of fork() that always returns
+	  -ENOSYS on nommu systems, and goes out of its way to prevent any
+	  cross-compile compatible compile-time probes for a nommu system.
+	  (It doesn't even #define __MUSL__ in features.h.) Musl does this
+	  despite the fact that a nommu system can't even run standard ELF
+	  binaries (requiring specially packaged executables) because it wants
+	  to force every program to either include all nommu code in every
+	  instance ever built, or drop nommu support altogether.
+
+	  Building a scripts/mcm-buildall.sh toolchain patches musl to fix this.
+
+endmenu

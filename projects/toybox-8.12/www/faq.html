@@ -1,0 +1,993 @@
+<html><head><title>toybox FAQ</title>
+<!--#include file="header.html" -->
+
+<h1>Frequently Asked Questions</h1>
+
+<h2>General Questions</h2>
+
+<ul>
+<li><h2><a href="#why_toybox">Why toybox? (What was wrong with busybox?)</a></h2></li>
+<li><h2><a href="#capitalize">Do you capitalize toybox?</a></h2></li>
+<li><h2><a href="#support_horizon">Why a 7 year support horizon?</a></h2></li>
+<li><h2><a href="#releases">Why time based releases?</a></h2></li>
+<li><h2><a href="#code">Where do I start understanding the toybox source code?</a></h2></li>
+<li><h2><a href="#when">When were historical toybox versions released?</a></h2></li>
+<li><h2><a href="#bugs">Where do I report bugs?</a></h2></li>
+<li><h2><a href="#b_links">What are those /b/number links in the git log?</a></h2></li>
+<li><h2><a href="#opensource">What is the relationship between toybox and android?</a></h2></li>
+<li><h2><a href="#backporting">Will you backport fixes to old versions?</a></h2></li>
+<li><h2><a href="#dotslash">What's this ./ on the front of commands in your examples?</a></h2></li>
+</ul>
+
+<h2>Using toybox</h2>
+
+<ul>
+<!-- get binaries -->
+<li><h2><a href="#install">How do I install toybox?</h2></li>
+<li><h2><a href="#standalone">How do I make individual/standalone toybox command binaries?</h2></li>
+<li><h2><a href="#hermetic">How do I build toybox on a system with a broken $PATH?</a></h2></li>
+<li><h2><a href="#cross">How do I cross compile toybox?</h2></li>
+<li><h2><a href="#targets">What architectures does toybox support?</li>
+<li><h2><a href="#system">What part of Linux/Android does toybox provide?</h2></li>
+<li><h2><a href="#mkroot">How do I build a working Linux system with toybox?</a></h2></li>
+</ul>
+
+<h2>Specific commands</h2>
+
+<ul>
+<li><h2><a href="#cttyhack">Why don't you have cttyhack?</h2></li>
+</ul>
+
+<hr /><h2><a name="why_toybox" />Q: "Why is there toybox? What was wrong with busybox?"</h2>
+
+<p>A: Toybox started back in 2006 when I (Rob Landley)
+<a href=https://lwn.net/Articles/202106/>handed off BusyBox maintainership</a>
+and <a href=http://landley.net/notes-2006.html#28-09-2006>started over from
+scratch</a> on a new codebase after a
+<a href=http://lists.busybox.net/pipermail/busybox/2006-September/058617.html>protracted licensing argument</a> took all the fun out of working on BusyBox.</p>
+
+<p>Toybox was just a personal project until it got
+<a href=http://landley.net/notes-2011.html#13-11-2011>relaunched</a>
+in November 2011 with a new goal to make Android
+<a href=http://landley.net/aboriginal/about.html#selfhost>self-hosting</a>.
+This involved me relicensing my own
+code, which made people who had never used or participated in the project
+<a href=https://lwn.net/Articles/478308/>loudly angry</a>. The switch came
+after a lot of thinking <a href=http://landley.net/talks/ohio-2013.txt>about
+licenses</a> and <a href=http://landley.net/notes-2011.html#21-03-2011>the
+transition to smartphones</a>, which led to a
+<a href=https://www.youtube.com/watch?v=SGmtP5Lg_t0>2013 talk</a> laying
+out a
+<a href=http://landley.net/talks/celf-2013.txt>strategy</a>
+to make Android self-hosting using toybox. This helped
+<a href=https://code.google.com/p/android/issues/detail?id=76861>bring
+it to Android's attention</a>, and they
+<a href=https://lwn.net/Articles/629362/>merged it</a> into Android M.</p>
+
+<p>The unfixable problem with busybox was licensing: BusyBox predates Android
+by almost a decade, but Android still doesn't ship with it because GPLv3 came
+out around the same time Android did and caused many people to throw
+out the GPLv2 baby with the GPLv3 bathwater.
+Android <a href=https://source.android.com/source/licenses.html>explicitly
+discourages</a> use of GPL and LGPL licenses in its products, and has gradually
+reimplemented historical GPL components (such as its bluetooth stack) under the
+Apache license. Apple's
+<a href=http://meta.ath0.com/2012/02/05/apples-great-gpl-purge/>less subtle</a> response was to freeze xcode at the last GPLv2 releases
+(GCC 4.2.1 with binutils 2.17) for over 5 years while sponsoring the
+development of new projects (clang/llvm/lld) to replace them,
+implementing a
+<a href=https://www.osnews.com/story/24572/apple-ditches-samba-in-favour-of-homegrown-replacement/>new SMB server</a> from scratch to
+<a href=https://archive.org/details/copyleftconf2020-allison>replace samba</a>,
+switching <a href=https://www.theverge.com/2019/6/4/18651872/apple-macos-catalina-zsh-bash-shell-replacement-features>bash with zsh</a>, and so on.
+Toybox itself exists because somebody in a legacy position
+just wouldn't shut up about GPLv3, otherwise I would probably
+still happily be maintaining BusyBox. (For more on how I wound
+up working on busybox in the first place,
+<a href=http://landley.net/aboriginal/history.html>see here</a>.)</p>
+
+<hr /><h2><a name="capitalize" />Q: Do you capitalize toybox?</h2>
+
+<p>A: Only at the start of a sentence. The command name is all lower case so
+it seems silly to capitalize the project name, but not capitalizing the
+start of sentences is awkward, so... compromise. (It is _not_ "ToyBox".)</p>
+
+<hr /><h2><a name="support_horizon">Q: Why a 7 year support horizon?</a></h2>
+
+<p>A: Our <a href=http://lists.busybox.net/pipermail/busybox/2006-September/058440.html>longstanding rule of thumb</a> is to try to run and build on
+hardware and distributions released up to 7 years ago, and feel ok dropping
+support for stuff older than that. (This is a little longer than Ubuntu's
+Long Term Support, but not by much.)</p>
+
+<p>My original theory was "4 to 5 of the 18-month cycles of moore's law should cover
+the vast majority of the installed base of PC hardware", loosely based on some
+research I did <a href=http://www.catb.org/esr/halloween/halloween9.html#id2867629>back in 2003</a>
+and <a href=http://catb.org/esr/writings/world-domination/world-domination-201.html#id248066>updated in 2006</a>
+which said that low end systems were 2 iterations of moore's
+law below the high end systems, and that another 2-3 iterations should cover
+the useful lifetime of most systems no longer being sold but still in use and
+potentially being upgraded to new software releases.</p>
+
+<p>That analysis missed <a href=http://landley.net/notes-2011.html#26-06-2011>industry
+changes</a> in the 1990's that stretched the gap
+from low end to high end from 2 cycles to 4 cycles, and ignored
+<a href=https://landley.net/notes-2010.html#09-10-2010>the switch</a> from PC to smartphone cutting off the R&D air supply of the
+laptop market. Meanwhile the Moore's Law <a href=https://en.wikipedia.org/wiki/Logistic_function>s-curve</a> started bending back down (as they
+<a href=https://en.wikipedia.org/wiki/Diffusion_of_innovations>always do</a>)
+back in 2000, and these days is pretty flat: the drive for faster clock
+speeds <a href=http://www.anandtech.com/show/613>stumbled</a>
+and <a href=http://www.pcworld.com/article/118603/article.html>died</a>, with
+the subsequent drive to go "wide" maxing out for most applications
+around 4x SMP with maybe 2 megabyte caches. These days the switch from exponential to
+linear growth in hardware capabilities is
+<a href=https://www.cnet.com/news/end-of-moores-law-its-not-just-about-physics/>common knowledge</a> and
+<a href=http://www.acm.org/articles/people-of-acm/2016/david-patterson>widely
+accepted</a>.</p>
+
+<p>But the 7 year rule of thumb stuck around anyway: if a kernel or libc
+feature is less than 7 years old, I try to have a build-time configure test
+for it to let the functionality cleanly drop out. I also keep old Ubuntu
+images around in VMs to perform the occasional defconfig build there to
+see what breaks. (I'm not perfect about this, but I accept bug reports.)</p>
+
+<hr /><h2><a name="releases" />Q: Why time based releases?</h2>
+<p>A: Toybox targets quarterly releases (a similar schedule to the Linux
+kernel) because Martin Michlmayr's excellent
+<a href=http://www.youtube.com/watch?v=IKsQsxubuAA>talk on the
+subject</a> was convincing. This is actually two questions, "why have
+releases" and "why schedule them".</p>
+
+<p>Releases provide synchronization points where the developers certify
+"it worked for me". Each release is a known version with predictable behavior,
+and right or wrong at least everyone should be seeing
+similar results so might be able to google an unexpected outcome.
+Releases focus end-user testing on specific versions
+where issues can be reproduced, diagnosed, and fixed.
+Releases also force the developers to do periodic tidying, packaging,
+documentation review, finish up partially implemented features languishing
+in their private trees, and give regular checkpoints to measure progress.</p>
+
+<p>Changes accumulate over time: different feature sets, data formats,
+control knobs... Toybox's switch from "ls -q" to "ls -b" as the default output
+format was not-a-bug-it's-a "design improvement", but the
+difference is academic if the change breaks somebody's script.
+Releases give you the option to schedule upgrades as maintenance, not to rock
+the boat just now, and use a known working release version until later.</p>
+
+<p>The counter-argument is that "continuous integration"
+can be made robust with sufficient automated testing. But like the
+<a href=https://web.archive.org/web/20131123071427/http://www.shirky.com/weblog/2013/11/healthcare-gov-and-the-gulf-between-planning-and-reality/>waterfall method</a>, this places insufficent
+emphasis on end-user feedback and learning from real world experience.
+Developer testing is either testing that the code does what the developers
+expect given known inputs running in an established environment, or it's
+regression testing against bugs previously found in the field. No plan
+survives contact with the enemy, and technology always breaks once it
+leaves the lab and encounters real world data and use cases in new
+runtime and build environments.</p>
+
+<p>The best way to give new users a reasonable first experience is to point
+them at specific stable versions where development quiesced and
+extra testing occurred. There will still be teething troubles, but multiple
+people experiencing the _same_ teething troubles can potentially
+help each other out.</p>
+
+<p>Releases on a schedule are better than releases "when it's ready" for
+the same reason a regularly scheduled bus beats one that leaves when it's
+"full enough": the schedule lets its users make plans. Even if the bus leaves
+empty you know when the next one arrives so missing this one isn't a disaster.
+and starting the engine to leave doesn't provoke a last-minute rush of nearby
+not-quite-ready passengers racing to catch it causing further delay and
+repeated start/stop cycles as it ALMOST leaves.
+(The video in the first paragraph goes into much greater detail.)</p>
+
+<hr /><h2><a name="code" />Q: Where do I start understanding the source code?</h2>
+
+<p>A: Toybox is written in C. There are longer writeups of the
+<a href=design.html>design ideas</a> and a <a href=code.html>code walkthrough</a>,
+and the <a href=about.html>about page</a> summarizes what we're trying to
+accomplish, but here's a quick start:</p>
+
+<p>Toybox uses the standard three stage configure/make/install
+<a href=code.html#building>build</a>, in this case "<b>make defconfig;
+make; make install</b>". Type "<b>make help</b>" to
+see available make targets.</p>
+
+<p><u>The configure stage</u> is copied from the Linux kernel (in the "kconfig"
+directory), and saves your selections in the file ".config" at the top
+level. The "<b>make defconfig</b>" target selects the
+maximum sane configuration (enabling all the commands and features that
+aren't unfinished, or only intended as examples, or debug code...) and is
+probably what you want. You can use "<b>make menuconfig</b>" to manually select
+specific commands to include, through an interactive menu (cursor up and
+down, enter to descend into a sub-menu, space to select an entry, ? to see
+an entry's help text, esc to exit). The menuconfig help text is the
+same as the command's "<b>--help</b>" output.</p>
+
+<p><u>The "make" stage</u> creates a toybox binary (which is stripped, look in
+generated/unstripped for the debug versions), and "<b>make install</b>" adds a bunch of
+symlinks to toybox under the various command names. Toybox determines which
+command to run based on the filename, or you can use the "toybox" name in which case the first
+argument is the command to run (ala "toybox ls -l").</p>
+
+<p>You can also build individual commands as <a href="#standalone">standalone
+executables</a>, ala "make sed cat ls".
+The "make change" target builds all of them, as in "change for a $20".</p>
+
+<p><u>The main() function is in main.c</u> at the top level,
+along with setup plumbing and selecting which command to run this time.
+The function toybox_main() in the same file implements the "toybox"
+multiplexer command that lists and selects the other commands.</p>
+
+<p><u>The individual command implementations are under "toys"</u>, and are grouped
+into categories (mostly based on which standard they come from, posix, lsb,
+android...) The "pending" directory contains unfinished commands, and the
+"examples" directory contains example code that aren't really useful commands.
+Commands in those two directories
+are _not_ selected by defconfig. (Most of the files in the pending directory
+are third party submissions that have not yet undergone
+<a href=cleanup.html>proper code review</a>.)</p>
+
+<p><u>Common infrastructure shared between commands is under "lib"</u>. Most
+commands call lib/args.c to parse their command line arguments before calling
+the command's own main() function, which uses the option string in
+the command's NEWTOY() macro. This is similar to the libc function getopt(),
+but more powerful, and is documented at the top of lib/args.c. A NULL option
+string prevents this code from being called for that command.</p>
+
+<p><u>The build/install infrastructure is shell scripts under
+"scripts"</u> (starting with scripts/make.sh and scripts/install.sh).
+<u>These populate the "generated" directory</u> with headers
+created from other files, which are <a href=code.html#generated>described</a>
+in the code walkthrough. All the
+build's temporary files live under generated, including the .o files built
+from the .c files (in generated/obj). The "make clean" target deletes that
+directory. ("make distclean" also deletes your .config and deletes the
+kconfig binaries that process .config.)</p>
+
+<p><u>Each command's .c file contains all the information for that command</u>, so
+adding a command to toybox means adding a single file under "toys".
+Usually you <a href=code.html#adding>start a new command</a> by copying an
+existing command file to a new filename
+(toys/examples/hello.c, toys/examples/skeleton.c, toys/posix/cat.c,
+and toys/posix/true.c have all been used for this purpose) and then replacing
+all instances of its old name with the new name (which should match the
+new filename), and modifying the help text, argument string, and what the
+code does. You might have to "make distclean" before your new command
+shows up in defconfig or menuconfig.</p>
+
+<p><u>The toybox test suite lives in the "tests" directory</u>, and is
+driven by scripts/test.sh and scripts/runtest.sh. From the top
+level you can "make tests" to test everything, or "make test_sed" to test a
+single command's standalone version (which should behave identically,
+but that's why we test). You can set TEST_HOST=1 to test the host version
+instead of the toybox version (in theory they should work the same),
+and VERBOSE=all to see diffs of the expected and actual output for all
+failing tests. The default VERBOSE=fail stops at the first such failure.</p>
+
+<hr /><h2><a name="when" />Q: When were historical toybox versions released?</h2>
+
+<p>A: For vanilla releases, check the
+<a href=https://github.com/landley/toybox/tags>date on the commit tag</a>
+or <a href=https://landley.net/toybox/downloads/binaries/>the
+example binaries</a> against the output of "toybox --version".
+Between releases the --version
+information is in "git describe --tags" format with "tag-count-hash" showing the
+most recent commit tag, the number of commits since that tag, and
+the hash of the current commit.</p>
+
+<p>Android makes its own releases on its own
+<a href=https://en.wikipedia.org/wiki/Android_version_history>schedule</a>
+using its own version tags, but lists corresponding upstream toybox release
+versions <a href=https://android.googlesource.com/platform/system/core/+/master/shell_and_utilities/README.md>here</a>. For more detail you can look up
+<a href=https://android.googlesource.com/platform/external/toybox/+refs>AOSP's
+git tags</a>. (The <a href=https://source.android.com/setup/start>Android Open Source Project</a> is the "upstream" android vendors
+start form when making their own releases. Google's phones run AOSP versions
+verbatim, other vendors tend to take those releases as starting points to
+modify.)</p>
+
+<p>If you want to find the vanilla toybox commit corresponding to an AOSP
+toybox version, find the most recent commit in the android log that isn't from a
+@google or @android address and search for it in the vanilla commit log.
+(The timestamp should match but the hash will differ,
+because each git hash includes the previous
+git hash in the data used to generate it so all later commits have a different
+hash if any of the tree's history differs; yes Linus Torvalds published 3 years
+before Satoshi Nakamoto.) Once you've identified the vanilla commit's hash,
+"git describe --tags $HASH" in the vanilla tree should give you the --version
+info for that one.</p>
+
+<hr /><h2><a name="bugs" />Q: Where do I report bugs?</h2>
+
+<p>A: Ideally on the <a href=http://lists.landley.net/listinfo.cgi/toybox-landley.net>mailing list</a>, although <a href=mailto:rob@landley.net>emailing the
+maintainer</a> is a popular if slightly less reliable alternative.
+Issues submitted to <a href=https://github.com/landley/toybox>github</a>
+are generally dealt with less promptly, but mostly get done eventually.
+AOSP has its <a href=https://source.android.com/setup/contribute/report-bugs>own bug reporting mechanism</a> (although for toybox they usually forward them
+to the mailing list) and Android vendors usually forward them to AOSP which
+forwards them to the list.</p>
+
+<p>Note that if we can't reproduce a bug, we probably can't fix it.
+Not only does this mean providing enough information for us to see the
+behavior ourselves, but ideally doing so in a reasonably current version.
+The older it is the greater the chance somebody else found and fixed it
+already, so the more out of date the version you're reporting a bug against
+the less effort we're going to put into reproducing the problem.</p>
+
+<hr /><h2><a name="b_links" />Q: What are those /b/number bug report
+links in the git log?</h2>
+
+<p>A: It's a Google thing. Replace /b/$NUMBER with
+https://issuetracker.google.com/$NUMBER to read it outside the googleplex.</p>
+
+<hr /><a name="opensource" /><h2>Q: What is the relationship between toybox and android?</h2>
+
+<p>A: The <a href=about.html>about page</a> tries to explain that,
+and Linux Weekly News has covered toybox's history a
+<a href=https://lwn.net/Articles/202106/>little</a>
+<a href=https://lwn.net/Articles/478308/>over</a>
+<a href=https://lwn.net/Articles/616272/>the</a>
+<a href=https://lwn.net/Articles/629362/>years</a>.</p>
+
+<p>Toybox is a traditional open source project created and maintained
+by hobbyist (volunteer) developers, originally for Linux but these days
+also running on Android, BSD, and MacOS. The project started in 2006
+and its original author (Rob Landley)
+continues to maintain the open source project.</p>
+
+<p>Android's base OS maintainer (Elliott Hughes, I.E. enh)
+<a href=https://github.com/landley/toybox/commit/69a9f257234a>ported</a>
+<a href=https://github.com/landley/toybox/commit/6a29bb1ebe62>toybox</a>
+to Android in 2014, merged it into Android M (Marshmallow), and remains
+Android's toybox maintainer. (He explained it in his own words in
+<a href=http://androidbackstage.blogspot.com/2016/07/episode-53-adb-on-adb.html>this podcast</a>, starting either 18 or 20 minutes in depending how
+much backstory you want.)</p>
+
+<p>Android's policy for toybox development is to push patches to the
+open source project (submitting them via the mailing list) then
+"git pull" the public tree into Android's tree. To avoid merge conflicts, Android's
+tree doesn't change any of the existing toybox files but instead adds <a href=https://android.googlesource.com/platform/external/toybox/+/refs/heads/master/Android.bp>parallel
+build infrastructure</a> off to one side. (Toybox uses a make wrapper around bash
+scripts, AOSP builds with soong/ninja instead and checks in a snapshot of the
+generated/ directory to avoid running kconfig each build).
+Android's changes to toybox going into the open source tree first
+and being pulled from there into Android keeps the two trees in
+sync, and makes sure each change undergoes full open source design review
+and discussion.</p>
+
+<p>Rob acknowledges Android is by far the largest userbase for the project,
+but develops on a standard 64-bit Linux+glibc distro while building embedded
+32-bit big-endian nommu musl systems requiring proper data alignment for work,
+and is not a Google employee so does not have access
+to the Google build cluster of powerful machines capable of running the full
+AOSP build in a reasonable amount of time. Rob is working to get android
+building under android (the list of toybox tools Android's build uses is
+<a href=https://android.googlesource.com/platform/prebuilts/build-tools/+/refs/heads/master/path/linux-x86/>here</a>,
+and what else it needs from its build environment is
+<a href=https://android.googlesource.com/platform/build/soong/+/refs/heads/master/ui/build/paths/config.go>here</a>), and he hopes someday to not only make a usable development
+environment out of it but also nudge the base OS towards a more granular
+package management system allowing you to upgrade things like toybox without
+a complete reinstall and reboot, plus the introduction of a "posix container"
+within which you can not only run builds, but selinux lets you run binaries
+you've just built). In the meantime, Rob tests static bionic
+builds via the Android NDK when he remembers, but has limited time to work
+on toybox because it's not his day job. (The products his company makes ship
+toybox and they do sponsor the project's development, but it's one of many
+responsibilities at work.)</p>
+
+<p>Elliott is the Android base OS maintainer, in which role he manages
+a team of engineers. He also has limited time for toybox, both because it's one
+of many packages he's responsible for (he maintains bionic, used to maintain
+dalvik...) and because he allowed himself to be promoted into management
+and thus spends less time coding than he does sitting in meetings where testers
+talk to security people about vendor issues.</p>
+
+<p>Android has many other coders and security people who submit the occasional
+toybox patch, but of the last 1000 commits at the <a href=https://github.com/landley/toybox/commit/88b34c4bd3f8>time
+of writing</a> this FAQ entry, Elliott submitted 276 and all other google.com
+or android.com addresses combined totaled 17. (Rob submitted 591, leaving
+116 from other sources, but for both Rob and Elliott there's a lot of "somebody
+else pointed out an issue, and then we wrote a patch". A lot of patches
+from both "Author:" lines thank someone else for the suggestion in the
+commit comment.)</p>
+
+<hr /><a name="backporting" /><h2>Q: Will you backport fixes to old versions?</h2>
+
+<p>A: Probably not. The easiest thing to do is get your issue fixed upstream
+in the current release, then get the newest version of the
+project built and running in the old environment.</p>
+
+<p>Backporting fixes generally isn't something open source projects run by
+volunteer developers do because the goal of the project's development community
+is to extend and improve the project. We're happy to respond to our users'
+needs, but if you're coming to the us for free tech support we're going
+to ask you to upgrade to a current version before we try to diagnose your
+problem.</p>
+
+<p>The volunteers are happy to fix any bugs you point out in the current
+versions because doing so helps everybody and makes the project better. We
+want to make the current version work for you. But diagnosing, debugging, and
+backporting fixes to old versions doesn't help anybody but you, so isn't
+something we do for free. The cost of volunteer tech support is using a
+reasonably current version of the project.</p>
+
+<p>If you're using an old version built with an old
+compiler on an old OS (kernel and libc), there's a fairly large chance
+whatever problem you're
+seeing already got fixed, and to get that fix all you have to do is upgrade
+to a newer version. Diagnosing a problem that wasn't our bug means we spent
+time that only helps you, without improving the project.
+If you don't at least _try_ a current version, you're asking us for free
+personalized tech support.</p>
+
+<p>Reproducing bugs in current versions also makes our job easier.
+The further back in time
+you are, the more work it is for us digging back in the history to figure
+out what we hadn't done yet in your version. If spot a problem in a git
+build pulled 3 days ago, it's obvious what changed and easy to fix or back out.
+If you ask about the current release version 3 months after it came out,
+we may have to think a while to remember what we did and there are a number of
+possible culprits, but it's still tractable. If you ask about 3 year old
+code, we have to reconstruct the history and the problem could be anything,
+there's a lot more ground to cover and we haven't seen it in a while.</p>
+
+<p>As a rule of thumb, volunteers will generally answer polite questions about
+a given version for about three years after its release before it's so old
+we don't remember the answer off the top of our head. And if you want us to
+put any _effort_ into tracking it down, we want you to put in a little effort
+of your own by confirming it's still a problem with the current version
+(I.E. we didn't fix it already). It's
+also hard for us to fix a problem of yours if we can't reproduce it because
+we don't have any systems running an environment that old.</p>
+
+<p>If you don't want to upgrade, you have the complete source code and thus
+the ability to fix it yourself, or can hire a consultant to do it for you. If
+you got your version from a vendor who still supports the older version, they
+can help you. But there are limits as to what volunteers will feel obliged to
+do for you.</p>
+
+<p>Commercial companies have different incentives. Your OS vendor, or
+hardware vendor for preinstalled systems, may have their own bug reporting
+mechanism and update channel providing backported fixes. And a paid consultant
+will happily set up a special environment just to reproduce your problem.</p>
+
+<hr /><h2><a name="install" />Q: How do I install toybox?</h2>
+
+<p>A:
+Multicall binaries like toybox behave differently based on the filename
+used to call them, so if you "mv toybox ls; ./ls -l" it acts like ls. Creating
+symlinks or hardlinks and adding them to the $PATH lets you run the
+commands normally by name, so that's probably what you want to do.</p>
+
+<p>If you already have a <a href=https://landley.net/toybox/downloads/binaries/>toybox binary</a>
+you can install a tree of command symlinks to
+<a href=http://git.musl-libc.org/cgit/musl/tree/include/paths.h>the
+standard path</a>
+locations (<b>export PATH=/bin:/usr/bin:/sbin:/usr/sbin</b>) by doing:</p>
+
+<blockquote><p><b>for i in $(/bin/toybox --long); do ln -s /bin/toybox $i; done</b></p></blockquote>
+
+<p>Or you can install all the symlinks in the same directory as the toybox binary
+(<b>export PATH="$PWD:$PATH"</b>) via:</p>
+
+<blockquote><p><b>for i in $(./toybox); do ln -s toybox $i; done</b></p></blockquote></p>
+
+<p>When building from source, use the "<b>make install</b>" and
+"<b>make install_flat</b>"
+targets with an appropriate <b>PREFIX=/target/path</b> either
+exported or on the make command line. When cross compiling,
+"<b>make list</b>" outputs the command names enabled by defconfig.
+For more information, see "<b>make help</b>".</p>
+
+<p>The command name "toybox" takes the second argument as the name of the
+command to run, so "./toybox ls -l" also behaves like ls. The "toybox"
+name is special in that it can have a suffix (toybox-i686 or toybox-1.2.3)
+and still be recognized, so you can have multiple versions of toybox in the
+same directory.</p>
+
+<p>When toybox doesn't recognize its
+filename as a command, it dereferences one
+level of symlink. So if your script needs "gsed" you can "ln -s sed gsed",
+then when you run "gsed" toybox knows how to be "sed".</p>
+
+<hr /><h2><a name="dotslash" />Q: What's this ./ on the front of commands in your examples?</h2>
+
+<p>A: When you don't give a path to a command's executable file,
+linux command shells search the directories listed in the $PATH envionment
+variable (in order), which usually doesn't include the current directory
+for security reasons. The
+magic name "." indicates the current directory (the same way ".." means
+the parent directory and starting with "/" means the root directory)
+so "./file" gives a path to the executable file, and thus runs a command
+out of the current directory where just typing "file" won't find it.
+For historical reasons PATH is colon-separated, and treats an
+empty entry (including leading/trailing colon) as "check the current
+directory", so if you WANT to add the current directory to PATH you
+can PATH="$PATH:" but doing so is a TERRIBLE idea.</p>
+
+<p>Toybox's shell (toysh) checks for built-in commands before looking at the
+$PATH (using the standard "bash builtin" logic just with lots more builtins),
+so "ls" doesn't have to exist in your filesystem for toybox to find it. When
+you give a path to a command the shell won't run the built-in version
+but will run the file at that location. (But the multiplexer command
+won't: "toybox /bin/ls" runs the built-in ls, you can't point it at an
+arbitrary file out of the filesystem and have it run that. You could
+"toybox nice /bin/ls" though.)</p>
+
+<hr /><h2><a name="standalone" />Q: How do I make individual/standalone toybox command binaries?</h2>
+
+<p>A: You can use almost<a href="#stand_foot"</a>*</a><a name="stand_back">
+any command name as a make target (ala "make sed") or test the standalone versions individually
+with the test_ prefix ("make test_sed"). You'll need to run the configure
+step first (generally "make defconfig") so the .config file exists for
+the build. For a list of currently available commands run
+"make list".</p>
+
+<p>The "make change" target (as in change for a $20) builds every command
+standalone (in the "change" subdirectory). Note that this is collectively
+about 10 times as large as the all-in-one multiplexer version (in disk space,
+runtime memory, how long the build takes...)</p>
+
+<p>As always, the Makefile is a thin wrapper around bash scripts actually
+doing the work, you can just all "scripts/single.sh cat ls mv" directly
+if you like.</p>
+
+<p><a name="stand_foot"><a href="#stand_back">*</a> A few command names, like "help" and "test" have
+other meanings to the Makefile, and you have to use scripts/single.sh or
+"make change" to build them standalone.</p>
+
+<hr /><h2><a name="hermetic">How do I build toybox on a system with a broken $PATH?</a></h2>
+
+<p>Toybox can provide its own build prerequisites (I.E
+perform a "hermetic" build) using the script <b>scripts/prereq/build.sh</b>
+which is a canned minimal toybox build that basically does "cc *.c" against
+saved headers to build the commands needed by the rest of the build.</p>
+
+<p>At the moment, building toybox on mac requires homebrew to get a .config
+file, ala:</p>
+
+<blockquote><pre>
+$ homebrew
+$ make macos_defconfig
+$ make clean
+$ exit
+</pre></blockquote>
+
+<p>But the rest of the hermetic build works without it:</p>
+
+<blockquote><pre>
+$ scripts/prereq/build.sh #ignoring SO many warnings
+$ mkdir prereq; mv toybox-prereq prereq/
+$ for i in $(prereq/toybox-prereq); do ln -s toybox-prereq prereq/$i; done
+$ PATH=$PWD/prereq:$PATH scripts/make.sh
+$ ./toybox
+</pre></blockquote>
+
+<p>If you already have an appropriate .config file you can copy in you
+don't need homebrew at all (and can skip the first section above).
+Editing one up by hand for qnx and similar is currently left as an exercise
+for the reader (but it's a fairly simple text file format).</p>
+
+<p>The files in the scripts/prereq directory were created by
+<b>scripts/recreate-prereq.sh</b> which records the commands used by
+a toybox build, harvests stripped down headers, and writes a build.sh
+to compile the appropriate source files. It's a couple dozen lines of
+bash if you're interested.</p>
+
+<p>At the moment toybox's full scripts/make.sh still requires bash
+(until toysh is finished and promoted out of pending). Freebsd users
+can invoke "/opt/usr/local/bin/bash scripts/make.sh" or similar
+to work around their distro's policy insisting that /bin/env can be
+trusted to live at a specific path but /bin/bash can't. (On Android both
+env and sh live in /system/bin, which is at least internally consistent.)</p>
+
+<p>Toybox does not yet provide "make" either. You can call scripts/make.sh
+directly (and scripts/test.sh and scripts/single.sh) if you've got a .config,
+but until kconfig/ is replaced defconfig/menuconfig still need gmake.</p>
+
+<hr /><h2><a name="cross" />Q: How do I cross compile toybox?</h2>
+
+<p>A: You need a compiler "toolchain" capable of producing binaries that
+run on your target. A <a href=https://landley.net/toybox/downloads/binaries/toolchains>toolchain</a> is an
+integrated suite of compiler, assembler, and linker, plus the standard
+headers and
+libraries necessary to build C programs. (And a few miscellaneous binaries like
+nm and objdump that display info about <a href=https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>ELF files</a>.)</p>
+
+<p>Toybox supports the standard $CROSS_COMPILE prefix environnment variable,
+same as the Linux kernel build uses. This is used to prefix all the tools
+(target-cc, target-ld, target-strip) during the build, meaning the prefix
+usually ends with a "-" that's easy to forget but kind of important
+("target-cc" and "targetcc" are not the same name).</p>
+
+<p>You can either provide a
+full path in the CROSS_COMPILE string, or add the appropriate bin directory
+to your $PATH. I.E:</p>
+
+<blockquote>
+<b><p>make LDFLAGS=--static CROSS_COMPILE=~/musl-cross-make/ccc/m68k-linux-musl-cross/bin/m68k-linux-musl- distclean defconfig toybox</p></b>
+</blockquote>
+
+<p>Is equivalent to:</p>
+
+<blockquote><b><p>
+export "PATH=~/musl-cross-make/ccc/m68k-linux-musl-cross/bin:$PATH"<br />
+LDFLAGS=--static CROSS_COMPILE=m68k-linux-musl- make distclean defconfig toybox
+</p></b></blockquote>
+
+<p>Both of those examples use static linking so you can install just
+the single file to target, or test them with "qemu-m68k toybox". Feel free
+to dynamically link instead if you prefer, mkroot offers a "dynamic"
+add-on to copy the compiler's shared libraries into the new root
+filesystem.</p>
+
+<p>Although you can individually override $CC and $STRIP and such,
+providing the prefix twice applies it twice, ala
+"CROSS_COMPILE=prefix- CC=prefix-cc" gives "prefix-prefix-cc".</p>
+
+<p>Toybox's <a href=#mkroot>system builder</a> can use a simpler $CROSS
+variable to specify the target name(s) to build for if you've installed
+<a href=#cross2>compatible</a> cross compilers under the "ccc" directory.
+Behind the scenes this uses wildcard expansion to set $CROSS_COMPILE to
+an appropriate "path/prefix-".</p>
+
+<hr /><h2><a name="targets">Q: What architectures does toybox support?</h2>
+
+<p>Toybox runs on 64 bit and 32 bit processors, little endian and big endian,
+tries to respect alignment, and will enable nommu support when fork() is
+unavailable (or when TOYBOX_FORCE_NOMMU is enabled in the config to
+work around broken nommu toolchains), but otherwise tries to be
+processor agnostic (although some commands such as strace can't avoid
+a processor-specific if/else staircase.).</p>
+
+<P>Several commands (such as ps/top) are unavoidably full of Linux assumptions.
+Some subset of the commands have been made to run on BSD and MacOS X, and
+lib/portability.* and scripts/genconfig.sh exist to catch some known
+variations.</p>
+</p>
+
+<p>Each release gets tested against two compilers (llvm, gcc), three C
+libraries (bionic, musl, glibc), and a half-dozen different processor
+types, in the following combinations:</p>
+
+<a name="cross1" />
+<p><a href="#cross1">1) gcc+glibc = host toolchain</a></p>
+
+<p>Most Linux distros come with that as a host compiler, which is used by
+default when you build normally
+(<b>make distclean defconfig toybox</b>, or <b>make menuconfig</b> followed
+by <b>make</b>).</p>
+
+<p>You can use LDFLAGS=--static if you want static binaries, but static
+glibc is hugely inefficient ("hello world" is 810k on x86-64) and throws a
+zillion linker warnings because one of its previous maintainers
+<a href=https://www.akkadia.org/drepper/no_static_linking.html>was insane</a>
+(which meant at the time he refused to fix
+<a href=https://elinux.org/images/2/2d/ELC2010-gc-sections_Denys_Vlasenko.pdf>obvious bugs</a>), plus it uses dlopen() at runtime to implement basic things like
+<a href=https://stackoverflow.com/questions/15165306/compile-a-static-binary-which-code-there-a-function-gethostbyname>DNS lookup</a> (which is almost impossible
+to support properly from a static binary because you wind up with two
+instances of malloc() managing two heaps which corrupt as soon as a malloc()
+from one is free()d into the other, although glibc added
+<a href=https://stackoverflow.com/questions/14289488/use-dlsym-on-a-static-binary>improper support</a> which still requires the shared libraries to be
+installed on the system alongside the static binary:
+<a href=https://www.youtube.com/watch?v=Ih-3vK2qLls>in brief, avoid</a>).
+These days glibc is <a href=https://blog.aurel32.net/175>maintained
+by a committee</a> instead of a single
+maintainer, if that's an improvement. (As with Windows and
+Cobol, most people just try to get on with their lives.)</p>
+
+<a name="cross2" />
+<p><a href="#cross2">2) gcc+musl = musl-cross-make</a></p>
+
+<p>These cross compilers are built from the
+<a href=http://musl.libc.org/>musl-libc</a> maintainer's
+<a href=https://github.com/richfelker/musl-cross-make>musl-cross-make</a>
+project, built by running toybox's <a href=https://github.com/landley/toybox/blob/master/scripts/mcm-buildall.sh>scripts/mcm-buildall.sh</a> in that directory,
+and then symlink the resulting "ccc" subdirectory into toybox where
+"make root CROSS=" can find them, ala:</p>
+
+<blockquote><b><pre>
+cd ~
+git clone https://github.com/landley/toybox
+git clone https://github.com/richfelker/musl-cross-make
+cd musl-cross-make
+../toybox/scripts/mcm-buildall.sh # this takes a while
+ln -s $(realpath ccc) ../toybox/ccc
+</pre></b></blockquote>
+
+<p>Since this takes a long time to run, and builds lots of targets
+(cross and native), we've uploaded
+<a href=downloads/binaries/toolchains/latest>the resulting binaries</a>
+so you can wget and extract a tarball or two instead of
+compiling them all yourself. (See the README in that directory for details.
+Yes there's a big source tarball in there for license compliance reasons.)</p>
+
+<p>Instead of CROSS= you can also specify a CROSS_COMPILE= prefix
+in the same format the Linux kernel build uses. You can either provide a
+full path in the CROSS_COMPILE string, or add the appropriate bin directory
+to your $PATH. I.E:</p>
+
+<blockquote>
+<b><p>make LDFLAGS=--static CROSS_COMPILE=~/musl-cross-make/ccc/m68k-linux-musl-cross/bin/m68k-linux-musl- distclean defconfig toybox</p></b>
+</blockquote>
+
+<p>Is equivalent to:</p>
+
+<blockquote><b><p>
+export "PATH=~/musl-cross-make/ccc/m68k-linux-musl-cross/bin:$PATH"<br />
+LDFLAGS=--static make distclean defconfig toybox CROSS=m68k-linux-musl-
+</p></b></blockquote>
+
+<p>Note: these examples use static linking because a dynamic musl binary
+won't run on your host unless you install musl's libc.so into the system
+libraries (which is an accident waiting to happen adding a second C library
+to most glibc linux distribution) or play with $LD_LIBRARY_PATH.
+(The <a href=https://github.com/landley/toybox/blob/master/scripts/root/dynamic>dynamic</a> package
+in mkroot copies the shared libraries out of the toolchain to create a dynamic
+linking environment in the root filesystem, but it's not nearly as well
+tested.)</p>
+
+<a name="cross3" />
+<p><a href="#cross3">3) llvm+bionic = Android NDK</a></p>
+
+<p>The <a href=https://developer.android.com/ndk/downloads>Android
+Native Development Kit</a> provides an llvm toolchain with the bionic
+libc used by Android. To turn it into something toybox can use, you
+just have to add an appropriately prefixed "cc" symlink to the other
+prefixed tools, ala:</p>
+
+<blockquote><b><pre>
+unzip android-ndk-r21b-linux-x86_64.zip
+cd android-ndk-21b/toolchains/llvm/prebuilt/linux-x86_64/bin
+ln -s x86_64-linux-android29-clang x86_64-linux-android-cc
+PATH="$PWD:$PATH"
+cd ~/toybox
+make distclean
+make LDFLAGS=--static CROSS_COMPILE=x86_64-linux-android- defconfig toybox
+</pre></b></blockquote>
+
+<p>Again, you need to static link unless you want to install bionic on your
+host. Binaries statically linked against bionic are almost as big as with
+glibc, but at least it doesn't have the dlopen() issues. (You still can't
+sanely use dlopen() from a static binary, but bionic doesn't use dlopen()
+internally to implement basic features.)</p>
+
+<p>Note: although the resulting toybox will run in a standard
+Linux system, even "hello world"
+statically linked against bionic segfaults before calling main()
+when /dev/null isn't present. This presents mkroot with a chicken and
+egg problem for both chroot and qemu cases, because mkroot's init script
+has to mount devtmpfs on /dev to provide /dev/null before the shell binary
+can run mkroot's init script.
+Since mkroot runs as a normal user, we can't "mknod dev/null" at build
+time to create a "null" device in the filesystem we're packaging up so
+initramfs doesn't start with an empty /dev, and the
+<a href=https://lkml.org/lkml/2016/6/22/686>kernel</a>
+<a href=https://lkml.org/lkml/2017/5/14/180>developers</a>
+<a href=https://lkml.org/lkml/2017/9/13/651>repeatedly</a>
+<a href=https://lkml.org/lkml/2020/5/14/1584>rejected</a> a patch to
+make the Linux kernel honor DEVTMPFS_MOUNT in initramfs. Teaching toybox
+cpio to accept synthetic filesystem metadata,
+presumably in <a href=https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt>get_init_cpio</a> format, remains a todo item.</p>
+
+<hr /><h2><a name="system" />Q: What part of Linux/Android does toybox provide?</h2>
+
+<p>A:
+Toybox is one of three packages (linux, libc, command line) which together provide a bootable unix-style command line operating system.
+Toybox provides the "command line" part, with a
+<a href=https://en.wikipedia.org/wiki/Bash_(Unix_shell)>bash</a> compatible
+<a href=https://en.wikipedia.org/wiki/Unix_shell>command line interpreter</a>
+and over two hundred <a href=https://landley.net/toybox/help.html>commands</a>
+to call from it, as documented in
+<a href=https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/>posix</a>,
+the <a href=https://refspecs.linuxfoundation.org/LSB_4.1.0/LSB-Core-generic/LSB-Core-generic/cmdbehav.html>Linux Standard Base</a>, and the
+<a href=https://man7.org/linux/man-pages/dir_section_1.html>Linux Manual
+Pages</a>.</p>
+
+<p>Toybox is not by itself a complete operating system, it's a set of standard command line utilities that run in an operating system.
+Booting a simple system to a shell prompt requires a kernel to drive the hardware (such as Linux, or BSD with a Linux emulation layer), programs for the system to run (such as toybox's commands), and a C library ("libc") to connect them together.</p>
+
+<p>Toybox has a policy of requiring no external dependencies other than the
+kernel and C library (at least for defconfig builds). Our "software bill
+of materials" (SBOM) defaults to just "the C library", both at build time
+and and runtime. You can optionally enable support for
+additional libraries in menuconfig (such as openssl, zlib, or selinux),
+but toybox either provides its own built-in versions of such functionality
+(which the libraries provide larger, more complex, often assembly optimized
+alternatives to), or allows things like selinux support to cleanly drop
+out.</p>
+
+<p>Static linking (with the --static option) copies library contents
+into the resulting binary, creating larger but more portable programs which
+can run even if they're the only file in the filesystem. Otherwise,
+the "dynamically" linked programs require each shared library file to be
+present on the target system, either copied out of the toolchain or built
+again from source (with potential version skew if they don't match the toolchain
+versions exactly), plus a dynamic linker executable installed at a specific
+absolute path. See the
+<a href=https://www.man7.org/linux/man-pages/man1/ldd.1.html>ldd</a>,
+<a href=https://www.man7.org/linux/man-pages/man8/ld.so.8.html>ld.so</a>,
+and <a href=https://www.man7.org/linux/man-pages/man7/libc.7.html>libc</a>
+man pages for details.</p>
+
+<p>Most embedded systems will add another package to the kernel/libc/cmdline
+above containing the dedicated "application" that the embedded system exists to
+run, plus any other packages that application depends on.
+Build systems add a native version of the toolchain packages so
+they can compile additional software on the resulting system. Desktop systems
+add a GUI and additional application packages like web browsers
+and video players. A linux distro like Debian adds hundreds of packages.
+Android adds around a thousand.</p>
+
+<p>But all of these systems conceptually sit on a common three-package
+"kernel/libc/cmdline" base (often inefficiently implemented and broken up
+into more packages), and toybox aims to provide a simple, reproducible,
+auditable version of the cmdline portion of that base.</p>
+
+<hr /><h2><a name="mkroot" />Q: How do you build a working Linux system with toybox?</h2>
+
+<p>A: Toybox has a built-in <a href=https://github.com/landley/toybox/blob/master/mkroot/mkroot.sh>system builder</a> called "<a href=https://github.com/landley/toybox/blob/master/mkroot/README>mkroot</a>", with the Makefile target "<b>make
+root</b>". To enter the resulting root filesystem, "<b>sudo chroot
+root/host/fs /init</b>". Type "exit" to get back out.</p>
+
+<p>Prebuilt binary versions of these system images, suitable for running
+under the emulator <a href=https://qemu.org>qemu</a>, are uploaded to
+<a href=https://landley.net/bin/mkroot/latest>the website</a>
+each release if you'd like to try before building from source.</p>
+
+<p>You can cross compile simple three package (toybox+libc+linux) systems
+configured to boot to a shell prompt under qemu by setting CROSS_COMPILE= to a
+<a href=#cross>cross compiler</a> prefix (or by installing cross compilers
+in the "ccc" subdirectory and specifying a target type with CROSS=)
+and also pointing the build at a Linux kernel source directory, ala:</p>
+
+<blockquote><p><b>make root CROSS=sh4 LINUX=~/linux</b></p></blockquote>
+
+<p>Then you can <b>root/sh4/run-qemu.sh</b> to launch the emulator,
+which boots the new Linux system (kernel and root filesystem) on a simulated
+CPU with its own memory and I/O devices, connecting the
+virtual serial console to the emulator's stdin and stdout.
+You'll need the appropriate qemu-system-* emulator binary for the selected
+architecture in your $PATH. Type "exit" when done to shut down the emulator,
+similar to exiting the chroot version.</p>
+
+<p>The build finds the <a href=#system>three packages</a> needed to produce
+this system because 1) you're in a toybox source directory, 2) your cross
+compiler has a libc built into it, 3) you tell it where to find a Linux kernel
+source directory with LINUX= on the command line. If you don't say LINUX=,
+it skips that part of the build and just produces a root filesystem directory
+(root/$CROSS/fs or root/host/fs if no $CROSS target specified), which you
+can chroot into if your architecture can run those binaries. (For PID other
+than 1, the /init script at the top of the directory sets up and cleans up
+the /proc mount points, so <b>chroot root/i686/fs /init</b> is a reasonable
+"poke around and look at things" smoketest.)</p>
+
+<p>The CROSS= shortcut expects a "ccc" symlink in the toybox source directory
+pointing at a directory full of cross compilers. The ones I test this with are
+built from the musl-libc maintainer's
+<a href=https://github.com/richfelker/musl-cross-make>musl-cross-make</a>
+project, built by running toybox's
+<a href=https://github.com/landley/toybox/blob/master/scripts/mcm-buildall.sh>scripts/mcm-buildall.sh</a> in a musl-cross-make checkout directory,
+and then symlinking the resulting "ccc" subdirectory into toybox where CROSS=
+can find them:</p>
+
+<blockquote><b><pre>
+cd ~
+git clone https://github.com/landley/toybox
+git clone https://github.com/richfelker/musl-cross-make
+cd musl-cross-make
+../toybox/scripts/mcm-buildall.sh # this takes a while
+ln -s $(realpath ccc) ../toybox/ccc
+</pre></b></blockquote>
+
+<p>If you don't want to do that, you can download <a href=http://landley.net/bin/toolchains/latest>prebuilt binary versions</a>
+and extract them into a "ccc" subdirectory under the toybox source.</p>
+
+<p>Once you've installed the cross compilers, "<b>make root CROSS=help</b>"
+should list all the available cross compilers it recognizes under ccc,
+something like:</p>
+
+<blockquote><b><p>
+aarch64 armv4l armv5l armv7l armv7m armv7r i486 i686 m68k microblaze mips mips64 mipsel or1k powerpc powerpc64 powerpc64le riscv32 riscv64 s390x sh2eb sh4 sh4eb x32 x86_64
+</p></b></blockquote>
+
+<p>(A long time ago I
+<a href=http://landley.net/aboriginal/architectures.html>tried to explain</a>
+what some of these architectures were.)</p>
+
+<p>You can build all the targets at once, and can add additonal packages
+to the build, by calling the script directly and listing packages on
+the command line:</p>
+
+<blockquote>
+<p><b>mkroot/mkroot.sh CROSS=all LINUX=~/linux dropbear</b></p>
+</blockquote>
+
+<p>An example package build script (building the dropbear ssh server, adding a
+port forward from 127.0.0.1:2222 to the qemu command line, and providing a
+ssh2dropbear.sh convenience script to the output directory) is provided
+in the mkroot/packages directory. If you add your own scripts elsewhere, just
+give a path to them on the command line. (No, I'm not merging more package build
+scripts, I <a href=https://speakerdeck.com/landley/developing-for-non-x86-targets-using-qemu?slide=78>learned that lesson</a> long ago. But if you
+want to write your own, feel free.)</p>
+
+<p>(Note: currently mkroot.sh cheats. If you don't have a .config it'll
+make defconfig and add CONFIG_SH and CONFIG_ROUTE to it, because the new
+root filesystem kinda needs those commands to function properly. If you already
+have a .config that
+_doesn't_ have CONFIG_SH in it, you won't get a shell prompt or be able to run
+the init script without a shell. This is currently a problem because sh
+and route are still in pending and thus not in defconfig, so "make root"
+cheats and adds them. I'm working on it. tl;dr if make root doesn't work
+"rm .config" and run it again, and all this should be fixed up in future when
+those two commands are promoted out of pending so "make defconfig" would have
+what you need anyway. It's designed to let yout tweak your config, which is
+why it uses the .config that's there when there is one, but the default is
+currently wrong because it's not quite finished yet. All this should be
+cleaned up in a future release, before 1.0.)</p>
+
+<hr /><h2><a name="cttyhack" />Q: Why doesn't toybox have cttyhack?</h2></li>
+
+<p>A: Because it's unnecessary (it has "hack" in the name). Here's what
+mkroot does in its PID 1 init script instead (after mounting /sys and /dev):</p>
+
+<blockquote><p><b>
+trap '' CHLD<br />
+CONSOLE=$(sed '$s@.*/@@' /sys/class/tty/console/active)<br />
+: ${HANDOFF:=/bin/sh}<br />
+setsid -c &lt;&gt;/dev/$CONSOLE >&0 2>&1 $HANDOFF<br />
+reboot -f &amp;<br />
+sleep 5<br />
+</b></p></blockquote>
+
+<p>The "<b>trap</b>" tells the shell to accept and discard exiting child
+processes (so zombies don't accumulate).
+Child processes whose parents have already exited get reparented to init
+(I.E. pid 1) and the shell script is sticking around as PID 1.
+Setting SIGCHLD to SIG_IGN (which trap with an empty string does)
+prevents them from waiting around in Z state to deliver their exit status
+in case the parent ever gets around to calling wait().</p>
+
+<p><b>$CONSOLE</b> fishes the underlying console device behind /dev/console out
+of sysfs, because the linux kernel's /dev/console device can't act as a
+controlling tty (for some reason). Since there may be more than one, and it
+might or might not have a /dev/ prefix, we use <b>sed</b> to take the last
+entry and remove any path.</p>
+
+<p><b>$HANDOFF</b> is the child program to run, and the third line above
+gives it the default value of /bin/sh if it wasn't already set on the
+kernel command line. The bash ${NAME:=default value} syntax assigns a default
+value to blank environment variables (see the bash man page) and : is a synonym
+for the "<b>true</b>" command which ignores its arguments, so this combination is a
+quick way to assign default values to blank variables. You can set $HANDOFF on
+the kernel command line via "<b>KARGS='HANDOFF=cal' ./run-qemu.sh</b>"
+since the <b>run-qemu.sh</b> script appends $KARGS to the end of the kernel
+command line when launching QEMU, and unrecognized linux kernel command line
+arguments with an = in them are treated as variable assignments exported into
+PID 1's environment.</p>
+
+<p>The "<b>setsid</b>" command runs a command in a new session (see "man 7
+credentials") and the -c option makes stdin the controling TTY for the new
+session. The first redirect points stdin at the new console device (the
+<b>&lt;&gt;</b> redirect opens the file for both reading and writing at
+the same time) and the second and third redirects duplicate the stdin
+file descriptor to stdout and stderr. Redirects are guaranteed to be evaluated
+from left to right, and all redirects happen before launching the command,
+so -c grabs the new TTY device as the child's controlling tty.</p>
+
+<p>When the child process setsid launched exits (usually by using the shell's
+builtin "exit" command) the PID 1 shell script resumes and calls
+"<b>reboot</b>" to exit qemu. Ordinarily the reboot command sends SIGTERM
+to PID 1, but that won't do anything useful here, so we give it the -f option to
+force it to call the reboot() syscall directly (see man 2 reboot). For
+some reason the Linux reboot() syscall exits the process instead of blocking,
+and if PID 1 exits the kernel panics, which aborts the reboot process, so
+we background the reboot request into a child process and <b>sleep 5</b>
+to give the reboot time to finish.</p>
+
+<p>Toybox also has a <b>oneit</b> command that can do all this, and has a -3
+option which hands off daemon management to a child process by writing each
+exiting orphaned task's PID to the child's file descriptor 3 (the next
+available on after stdin, stdout, and stderr). It can also respawn its
+child (instead of halting or rebooting) when it exits, but you could add
+a loop to the shell script easily enough.</p>
+</li>
+<!--#include file="footer.html" -->

@@ -1,0 +1,15 @@
+#!/bin/echo Try "mkroot/mkroot.sh dynamic"
+
+# Copy dynamic libraries from cross compiler
+
+"${CROSS_COMPILE}cc" -xc - <<< 'void main(void) {;}' ||
+  die "${CROSS_COMPILE}cc can't create dynamic binaries"
+LDSO="$("${CROSS_COMPILE}readelf" -a a.out | sed -n 's/.*interpreter: \([^]]*\)[]]$/\1/p')"
+mkdir -p "$ROOT"/"$(dirname "$LDSO")" &&
+  cp "$LDSO" "$ROOT"/"$LDSO" || die "Couldn't copy ldso"
+unset LDSO
+
+"${CROSS_COMPILE}cc" -print-search-dirs | sed -n 's/libraries: =//p' | \
+  tr : '\n' | while read i; do
+    [ -e "$i" ] && find "$i" -maxdepth 1 -name '*.so' -o -name '*.so*[0-9]'
+  done | while read i; do cp -a "$i" "$ROOT"/lib/; done

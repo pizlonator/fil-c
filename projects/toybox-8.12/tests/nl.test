@@ -1,0 +1,56 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testing "nl" "nl" "     1\tone\n     2\ttwo\n     3\tthree\n" \
+  "" "one\ntwo\nthree\n"
+
+testing "explicit defaults" "nl -nrn -b a" \
+  "     1\tone\n     2\ttwo\n     3\tthree\n" "" "one\ntwo\nthree\n"
+
+# -n ln rn rz
+
+testing "-nln" "nl -nln" "1     \tone\n2     \ttwo\n3     \tthree\n" \
+  "" "one\ntwo\nthree\n"
+testing "-nln -w" "nl -nln -w 8" \
+  "1       \tone\n2       \ttwo\n3       \tthree\n" "" "one\ntwo\nthree\n"
+
+testing "-nrz" "nl -nrz" "000001\tone\n000002\ttwo\n000003\tthree\n" \
+  "" "one\ntwo\nthree\n"
+
+testing "-nrz -w" "nl -w3 -nrz" "001\tone\n002\ttwo\n003\tthree\n" \
+  "" "one\ntwo\nthree\n"
+
+
+# For non-matching lines the separator is "suppressed" meaning it...
+# turns into spaces! And the tab turns into one space, and -d boom turns
+# into 4 spaces, but these:
+#   nl -s"$(echo -e 'bo\tom')" -bpand README
+#   nl -w 3 -bpthe README
+# Yeah. And I doubt utf8 fontmetrics are used either.
+
+testing "-b t" "nl -b t" "       \n     1\tone\n       \n     2\ttwo\n" \
+  "" "\none\n\ntwo\n"
+testing "-b n" "nl -b n" "       one\n       two\n       three\n" \
+  "" "one\ntwo\nthree\n"
+testing "-sook -b p" "nl -sook -bpoing" \
+  "         one\n     1ookboing\n     2ooksproingy\n" \
+  "" "one\nboing\nsproingy\n"
+
+testing "-v42" "nl -v 42" "    42\tone\n    43\ttwo\n    44\tthree\n" \
+  "" "one\ntwo\nthree\n"
+testing "-v-1" "nl -v -1" "    -1\tone\n     0\ttwo\n     1\tthree\n" \
+  "" "one\ntwo\nthree\n"
+testing "-v0" "nl -v 0" "     0\tone\n     1\ttwo\n     2\tthree\n" \
+  "" "one\ntwo\nthree\n"
+
+testing "-l" "nl -ba -l2 -w2 - input" \
+  " 1\tone\n   \n 2\t\n 3\ttwo\n   \n 4\t\n   \n 5\tthree\n 6\tfour\n   \n 7\t\n   \n 8\tbang\n   \n" \
+  "\n\nbang\n\n" "one\n\n\ntwo\n\n\n\nthree\nfour\n\n"
+testing "no space" "nl -w 1 -v 42" "42\tline\n" "" "line\n"
+
+# Should test for -E but no other implementation seems to have it?
+toyonly testing "-E" "nl -w2 -sx -Ebp'(one|two)'" " 1xone\n   and\n 2xtwo\n" \
+  "" "one\nand\ntwo\n"

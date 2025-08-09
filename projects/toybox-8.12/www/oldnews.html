@@ -1,0 +1,139 @@
+<html><head><title>toybox: old news</title>
+<!--#include file="header.html" -->
+
+<h2>Old News</h2>
+
+<p>This project <a href=http://lists.busybox.net/pipermail/busybox/2006-September/024794.html>started in 2006</a>, got mothballed in 2009
+<a href=http://landley.net/notes-2009.html#18-06-2009>for</a>
+<a href=http://landley.net/notes-2011.html#31-03-2011>various</a>
+<a href=http://landley.net/notes-2011.html#08-06-2011>reasons</a>
+(during which time I
+<a href=http://lists.busybox.net/pipermail/busybox/2010-March/071783.html>contributed</a>
+some toybox code and design ideas to busybox</a> but retained the copyrights to
+my work), then <a href=http://landley.net/notes-2011.html#13-11-2011>relaunched</a>
+under a 2-clause BSD license in 2011.
+The following news entries predate that relaunch:</p>
+
+<hr>
+<p><b>December 1, 2009</b> - <a href=downloads/toybox-0.1.0.tar.bz2>toybox-0.1.0</a> is out.</p>
+
+<p>This release is a couple build fixes and another bugfix to patch.</p>
+
+<hr>
+<p><b>April 17, 2009</b> - Another bugfix release,
+<a href=downloads/toybox-0.0.9.2.tar.bz2>toybox-0.0.9.2</a>, off by one allocation error in patch.</p>
+
+<p>(Darn fiddly command, innit?)</p>
+
+<hr>
+<p><b>March 29, 2009</b> - Released
+<a href=downloads/toybox-0.0.9.1.tar.bz2>toybox 0.0.9.1</a> which is a bugfix
+release for issues with the patch command.</p>
+
+<p>The project is currently on hold while the developers learn Lua and
+decide whether or not to port the whole thing to that language.
+(Also note: the mailing list moved.  See the links on the left.  You'll
+have to resubscribe.)</p>
+
+<hr>
+<p><b>January 29, 2009</b> - Released
+<a href=downloads/toybox-0.0.9.tar.bz2>toybox 0.0.9.tar.bz2</a> which is a minor packaging
+fix for 0.0.8.  (The previous release tarball contained a prebuilt x86-64
+kconfig/conf file, because the release script ran defconfig to
+pregenerate help.h, and didn't run make clean afterwards.)  The actual source
+code is identical to the previous release.</p>
+
+<hr>
+<p><b>January 20, 2009</b> - <a href=downloads/toybox-0.0.8.tar.bz2>toybox 0.0.8</a>
+adds the uname, cksum, and mkswapfs commands.</p>
+
+<p>This uname implementation is cross compile friendly: when built as a 32 bit
+binary on an x86_64 host, it reports "i686" to confuse autoconf less.</p>
+
+<p>This cksum has several extra command line options which can be used to
+produce different cksum variants based on the same crc32 algorithm.  For
+example, the broadcom "trx" image packaging uses a little endian crc,
+pre-inverted instead of post-inverted, and does not include the length.
+(Without these arguments, it produces the normal SUSv4 cksum output.)</p>
+
+<p>It also upgrades netcat with a server mode (-l option) and fixes several
+netcat bugs.  It also fixed multiple bugs in "patch", works around a
+reiserfs bug in cp, and oneit can reboot on exit more reliably.</p>
+
+<p><b>November 12, 2008</b> -
+<a href=downloads/toybox-0.0.7.tar.bz2>toybox 0.0.7</a>
+adds sort and tee commands, upgrades the internal option parsing logic and the
+test suite, and numerous bugfixes (bunzip, chroot, cat, patch).</p>
+
+<p><b>May 26, 2008</b> - <a href=downloads/toybox-0.0.6.tar.bz2>toybox 0.0.6</a>
+adds cat, rmdir, and seq.  Bugfixes to cp and a new -v option.  Updates mdev to
+work with the 2.6.25 kernel.  Updates patch to knows that a file dated
+1969-12-31 means it doesn't exist, and to fail if a file it needs to create
+already exists.  Command line option parsing can now handle things like "echo
+-nex" vs "echo -ne".  Several updates to the test suite (run scripts/test.sh),
+and some build fixes.</p>
+
+<p>
+<hr>
+<p><b>March 29, 2008</b> -
+Time to release <a href=downloads/toybox-0.0.5.tar.bz2>toybox 0.0.5</a>, with
+new commands cp and chvt and several bugfixes.</p>
+
+<p>More makefile targets: "make test" runs the test suite (which needs more test
+scripts), and make install/install_flat/uninstall/uninstall_flat calls
+make/install.sh (with options --long --symlink --force --uninstall depending
+on the context).</p>
+
+<p>Most of the work has been behind the scenes, namely a significant rewrite of
+the build logic so adding each new command consists of adding a single C file to
+the "toys" directory, eliminating the need to touch any other files.
+There are specially formatted comments at the top of the C file to generate
+the other files, see toys/hello.c for an example.  (See generated/README.txt
+and <a href=code.html>code.html</a> for details.)</p>
+
+<p><b>January 2, 2008</b> - And <a href=downloads/toybox-0.0.4.tar.bz2>toybox-0.0.4.tar.bz2</a> is out.
+The new applets this time around include basename, chroot, dirname, dmesg,
+help, mkfifo, netcat, patch, sha1sum, touch, and tty.</p>
+
+<p>Note that this "touch" includes -l to set the length, which can truncate
+a file or create a commpletely sparse file, good for filesystem images.</p>
+
+<p>Expect the next release in about 6 months.</p>
+
+<p><b>December 12, 2007</b> - Updated the list of implemented applications,
+put up a <a href=todo.txt>todo list</a> and <a href=code.html>infrastructure
+documentation</a>.  Expect another release towards the end of the month.</p>
+
+<p><b>June 18, 2007</b> - Put out
+<a href=downloads/toybox-0.0.3.tar.bz2>toybox-0.0.3.tar.bz2</a> since it's
+been too long since I did something like that.  This one implements
+catv, count, df, echo, false, oneit, pwd, sleep, sync, toysh, true, which,
+and yes (which is what "make defconfig" enables).  There are several other
+commands not enabled by defconfig, because they don't really work yet.</p>
+
+<p>Most of the general infrastructure's there now, although lots of tweaking
+and optimizing is still needed.  The test suite is skeletal and not entirely
+checked in yet, but I'm working on that.</p>
+
+<p>I don't have nearly as much time to work on this as I'd like, but I'm making
+a little progress.</p>
+
+<p><b>January 31, 2007</b> -
+Toybox <a href=downloads/toybox-0.0.2.tar.bz2>0.0.2 release</a>.
+Implements count, yes, pwd, echo, bzcat, catv, oneit, and an unfinished
+skeleton of mke2fs.  Adds argument parsing logic and bunzip code to library.
+Now configured with menuconfig.  Adds "make baseline" and "make bloatcheck"
+using Matt Mackall's bloat-o-meter, and scripts/showasm.</p>
+
+<p>Screwing up the web page a bit, adding an index bar along the side
+which doesn't properly connect up to anything yet.  (Busy implementing
+mke2fs and gene2fs.)</p>
+
+<p><b>October 30, 2006</b> -
+Toybox <a href=downloads/toybox-0.0.1.tar.bz2>0.0.1 release</a>.  Implements
+df, a skeletal toysh, and some library functions.  Proof of concept, really.</p>
+
+<p><b>September 7, 2006</b> -
+Project launched, first commit to mercurial archive.</p>
+
+<!--#include file="footer.html" -->

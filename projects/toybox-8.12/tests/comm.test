@@ -1,0 +1,12 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+echo -e 'a\nb\nc'> lhs
+for i in c d e ; do echo $i >> rhs ; done
+testing "comm" "comm lhs input" "a\nb\n\t\tc\n\td\n\te\n" "c\nd\ne\n" ""
+testing "comm -" "comm - input" "a\nb\n\t\tc\n\td\n\te\n" "c\nd\ne\n" "a\nb\nc\n"
+testing "comm -123 detects missing" "comm - missing 2>/dev/null || echo here" \
+  "here\n" "" ""

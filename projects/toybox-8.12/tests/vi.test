@@ -1,0 +1,31 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+vitest() {
+  script="$2:wq\n"
+  testcmd "$1" "-s /dev/stdin input 1>/dev/null 2>/dev/null && cat input" "$4" "$3" "$script"
+}
+
+vitest "w movement" "wxwx" "abc def ghi" "abc ef hi"
+vitest "e movement" "exex" "abc def ghi" "ab de ghi"
+# TODO vitest "b movement" '$bxbx' "abc def ghi" "abc ef hi"
+
+vitest "dd first line ascii" "dd" "abc def\nghi jkl\n" "ghi jkl\n"
+# TODO vitest "dd last line ascii" "Gdd" "abc def\nghi jkl" "abc def\n"
+
+vitest "dw first line ascii" "dw" "abc def\nghi" "def\nghi"
+# TODO vitest "dw last line ascii" 'G$bdw' "abc def\nghi jkl\n" "abc def\nghi \n"
+
+vitest "D first line ascii" "llD" "abc def\nghi jkl" "ab\nghi jkl"
+# TODO vitest "D last line ascii" "GD" "abc def\nghi jkl" "abc def\n"
+
+vitest "yw push ascii" "wyw2ep" "abc def ghi\n" "abc def ghidef \n"
+
+vitest "insert start of file ascii" "ihello\x1b" "abc def" "helloabc def"
+# TODO vitest "insert end of file ascii" "GAhello\x1b" "abc\ndef" "abc\ndefhello"
+
+vitest "insert multiple times ascii" "iab\x1bicd\x1bief\x1b" "xyz" "acefdbxyz"
+
+vitest "insert multi yank move and push ascii" "ixyz\x1byyjp" \
+  "abc def\nghi jkl\nmno pqr\n" "xyzabc def\nghi jkl\nxyzabc def\nmno pqr\n"

@@ -1,0 +1,28 @@
+  toybox          - Build toybox.
+  COMMANDNAME     - Build individual toybox command as a standalone binary.
+  list            - List COMMANDNAMEs you can build standalone.
+  list_example    - List example commands (often used by the test suite)
+  list_pending    - List unfinished COMMANDNAMEs out of toys/pending.
+  change          - Build each command standalone under change/.
+  baseline        - Create toybox_old for use by bloatcheck.
+  bloatcheck      - Report size differences between old and current versions
+  test_COMMAND    - Run tests for COMMAND (test_ps, test_cat, etc.)
+  tests           - Run test suite against all compiled commands.
+                    export TEST_HOST=1 to test host command, VERBOSE=all
+                    to show all failures.
+  clean           - Delete temporary files.
+  distclean       - Delete everything that isn't shipped.
+  install_airlock - Install toybox and host toolchain (plus $TOOLCHAIN if any)
+                    into $PREFIX directory, providing $PATH for hermetic builds.
+  install_flat    - Install toybox into $PREFIX directory.
+  install         - Install toybox into subdirectories of $PREFIX.
+  uninstall_flat  - Remove toybox from $PREFIX directory.
+  uninstall       - Remove toybox from subdirectories of $PREFIX.
+  root            - Build/package root filesystem under root/ controlled by
+                    CROSS= cross compile (see scripts/mcm-buildall.sh)
+                    LINUX= build kernel from this source, configured for qemu
+  run_root        - boot toyroot under qemu, I.E. cd root/$CROSS && ./qemu-*.sh
+
+example: make defconfig toybox install LDFLAGS="--static" CROSS_COMPILE=armv5l-
+or     : make root run_root CROSS=sh4 LINUX=~/linux
+

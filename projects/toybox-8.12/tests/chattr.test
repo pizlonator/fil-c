@@ -1,0 +1,85 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "$SHOWSKIP: chattr (not root)"
+  return 2>/dev/null
+  exit
+fi
+
+function clean()
+{
+  # We don't know whether the fs will have extents (e, typically true on the
+  # desktop) or be encrypted (E, typically true on Android), or have data
+  # inlined in the inode (N), or use indexed directories, so strip those out.
+  # We also don't want to rely on chattr(1) to set a known version number or
+  # project number, so blank out any numbers.
+  sed -E -e 's/, (Encrypted|Extents|Indexed_directory|Inline_Data)//g;' \
+         -e 's/[EeIN]-/--/g; s/[0-9]+/_/g'
+}
+
+mkdir testattr
+IN="cd testattr"
+OUT="cd .."
+_t="abcdefghijklmnopqrstuvwxyz"
+
+_empty="--------------------"
+
+# Check +i (immutable) works by trying to write to and remove the file.
+_i="----i---------------"
+testing "immutable" "$IN && echo "$_t" > testFile &&
+         chattr +i testFile && lsattr testFile | clean &&
+         date > testFile 2>/dev/null; rm testFile; chattr -i testFile;
+         cat testFile; rm -rf testFile; $OUT " "$_i testFile\n$_t\n" "" ""
+
+# Check +a (append-only) works by failing to write and succeeding in appending.
+_a="-----a--------------"
+testing "append-only" "$IN && echo "$_t" > testFile &&
+         chattr +a testFile &&
+         echo $_t >> testFile &&
+         date > testFile || lsattr testFile | clean &&
+         chattr -a testFile; cat testFile; rm -rf testFile; $OUT" \
+         "$_a testFile\n$_t\n$_t\n" "" ""
+
+# For the rest, just toggle the bits back and forth (where supported).
+# Note that some file system/kernel combinations do return success but
+# silently ignore your request: +T on 4.19 f2fs, or +F on 5.2 ext4,
+# for example, so we're deliberately a bit selective here.
+# f2fs in 5.6+ kernels supports compression, but you can only enable
+# compression on a file while it's still empty, so we skip +c too.
+for attr in "A" "d" "e" "j" "P" "S" "s" "t" "u"; do
+  echo "$_t" > testFile && chattr +$attr testFile 2>/dev/null || ((++SKIP))
+  # Check that $attr is in the lsattr output, then that - turns it back off.
+  testing "toggle $attr" "lsattr testFile | awk '{print \$1}' > attrs;
+    grep -q $attr attrs || cat attrs; cat testFile && chattr -$attr testFile &&
+    lsattr testFile | clean; rm -rf testFile" "$_t\n$_empty testFile\n" "" ""
+done
+
+_aA="-----a-A------------"
+testing "multiple bits" "$IN && touch testFile &&
+  chattr +Aa testFile && lsattr testFile | clean &&
+  chattr -Aa testFile && lsattr testFile | clean;
+  rm -rf testFile; $OUT" "$_aA testFile\n$_empty testFile\n" "" ""
+
+testing "multiple files" "$IN && touch fileA && touch fileB &&
+  chattr +Aa fileA fileB && lsattr fileA fileB | clean &&
+  chattr -Aa fileA fileB && lsattr fileA fileB | clean;
+  rm -rf testFile*; $OUT" \
+  "$_aA fileA\n$_aA fileB\n$_empty fileA\n$_empty fileB\n" "" ""
+
+touch testFile && chattr -v 1234 testFile 2>/dev/null || ((++SKIP))
+testing "-v version" "lsattr -v testFile | awk '{print \$1}' &&
+  chattr -v 4567 testFile && lsattr -v testFile | awk '{print \$1}';
+  rm -rf testFile" "1234\n4567\n" "" ""
+
+mkdir -p a/b/c && touch a/b/c/fA a/b/c/fB
+testing "-R" "chattr -R +a a && lsattr a/b/c/fA a/b/c/fB | clean &&
+  chattr -R -a a && rm -rf a" \
+  "$_a a/b/c/fA\n$_a a/b/c/fB\n" "" ""
+rm -rf a
+
+# Clean up
+rm -rf testattr

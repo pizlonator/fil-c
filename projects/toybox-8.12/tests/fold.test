@@ -1,0 +1,30 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+testcmd 'default wrap' '-w10' 'one two th\nree\nfour five\n' \
+  '' 'one two three\nfour five\n'
+testing "abuse" "fold -w1" "a\nb\nc\nd" "" "abcd"
+testcmd 'first char goes over' '-w2' '\t\n' '' '\t\n'
+testcmd 'tab goes over' '-sw2' 'a\n\t\n' '' 'a\t\n'
+testcmd 'tab goes over unterminated' '-sw2' 'a\n\t' '' 'a\t'
+testcmd '-s' '-sw4' 'abcd\nef g\n' '' 'abcdef g\n'
+testcmd '-s 2' '-sw4' 'abcd\nef \ngh\n' '' 'abcdef gh\n'
+testcmd '-s 3' '-sw4' 'a \ncd \nfgh\n' '' 'a cd fgh\n'
+testcmd '-s 4' '-sw4' 'abcd\n efg\n' '' 'abcd efg\n'
+testcmd '-s 5' '-sw4' 'abc \nef\n' '' 'abc ef\n'
+testcmd '-b tab' '-bw8' 'abc\tdefg\nhi' '' 'abc\tdefghi'
+testcmd '-bs' '-bsw8' 'abc\t\ndefghi' '' 'abc\tdefghi'
+testcmd 'backspace' '-w3' 'abc\bd\nef\n' '' 'abc\bdef\n'
+testcmd '-b backspace' '-bw3' 'abc\n\bde\nf\n' '' 'abc\bdef\n'
+testcmd 'backspace tab' '-w8' 'a\t\b\b\bcde\nfghi' '' 'a\t\b\b\bcdefghi'
+
+toyonly testcmd 'combining umlaut wrap' '-w5' 'ẅabcd\nefg\n' '' \
+  'w\xcc\x88abcdefg\n'
+toyonly testcmd 'combining umlaut backspace wrap' '-w5' 'ẅ\bxabcd\nefg\n' '' \
+  'w\xcc\x88\bxabcdefg\n'
+toyonly testcmd 'wide wrap' '-w3' '私a\nbc' '' '\xe7\xa7\x81abc'
+toyonly testcmd 'wide combining wrap' '-w3' '私̈\bab\nc' '' \
+  '\xe7\xa7\x81\xcc\x88\babc'

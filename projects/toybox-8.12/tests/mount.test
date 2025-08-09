@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Copyright 2013 Divya Kothari <divya.s.kothari@gmail.com>
+# Copyright 2013 Robin Mittal <robinmittal.it@gmail.com>
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+root_fs=`df | grep "\/$" | cut -d' ' -f1`
+root_fs_type=`blkid -o value $root_fs | tail -1`
+
+tmp_b_fs="tmp_b_fs"
+tmp_b_fs_type="ext3"
+
+reCreateTmpFs() {
+  rm -rf $tmp_b_fs
+  mknod $tmp_b_fs b 1 0
+  mkfs.ext3 $tmp_b_fs >/dev/null 2>&1
+}
+reCreateTmpFs
+
+# TODO: replace /mnt with a directory we know exists. (Android has no /mnt.)
+
+testing "$root_fs /mnt" \
+  "mount $root_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && test -e /testDir && rmdir /testDir" "" "" ""
+testing "$tmp_b_fs /mnt" \
+  "mount $tmp_b_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && ! test -e /mnt/testDir" "" "" ""
+reCreateTmpFs
+
+chmod 444 /mnt
+testing "$root_fs /mnt (read_only dir)" \
+  "mount $root_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && test -e /testDir && rmdir /testDir" "" "" ""
+testing "$tmp_b_fs /mnt (read_only dir)" \
+  "mount $tmp_b_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && ! test -e /mnt/testDir" "" "" ""
+reCreateTmpFs
+chmod 755 /mnt
+testing "-w $root_fs /mnt (write_only mode)" \
+  "mount -w $root_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && test -e /testDir && rmdir /testDir" "" "" ""
+testing "-w $tmp_b_fs /mnt (write_only mode)" \
+  "mount -w $tmp_b_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && ! test -e /mnt/testDir" "" "" ""
+reCreateTmpFs
+testing "-rw $tmp_b_fs /mnt (read_write mode)" \
+  "mount -rw $tmp_b_fs /mnt >/dev/null && mkdir /mnt/testDir && \
+   sleep 1 && ! test -e /mnt/testDir && umount /mnt" "" "" ""
+reCreateTmpFs
+testing "$tmp_b_fs /mnt -t fs_type" \
+  "mount $tmp_b_fs /mnt -t $tmp_b_fs_type >/dev/null 2>&1 &&
+   mkdir /mnt/testDir && sleep 1 && umount /mnt &&
+   ! test -e /mnt/testDir" "" "" ""
+reCreateTmpFs
+mkdir -p testDir1/testDir2 testDir
+echo "abcdefghijklmnopqrstuvwxyz" > testDir1/testDir2/testFile
+testing "-o bind dir1 dir2" \
+  'mount -o bind testDir1 testDir >/dev/null 2>&1 && \
+   cat testDir/testDir2/testFile && sleep 1 && umount testDir' \
+  "abcdefghijklmnopqrstuvwxyz\n" "" ""
+testing "-o rbind dir1 dir2" \
+  'mount -o rbind testDir1 testDir >/dev/null 2>&1 && \
+   cat testDir/testDir2/testFile && sleep 1 && umount testDir' \
+  "abcdefghijklmnopqrstuvwxyz\n" "" ""
+testing "-o loop $tmp_b_fs /mnt" \
+  "mount -o loop $tmp_b_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDirp &&
+   sleep 1 && umount -d /mnt && ! test -e /mnt/testDirp" "" "" ""
+reCreateTmpFs
+
+mkdir testDir2
+testing "-o move mount_1 mount_2" \
+  "mount $tmp_b_fs testDir1 && mkdir testDir1/testDirr &&
+   mount -o move testDir1 testDir2 && test -r testDir2/testDirr &&
+   sleep 1 && umount testDir2" "" "" ""
+reCreateTmpFs
+testing "-o rw $tmp_b_fs /mnt" \
+  "mount -o rw $tmp_b_fs /mnt >/dev/null 2>&1 && mkdir /mnt/testDir &&
+   sleep 1 && umount /mnt && ! test -e /mnt/testDir" "" "" ""
+reCreateTmpFs
+testing "-o ro $tmp_b_fs /mnt" \
+  "mount -o ro $tmp_b_fs /mnt >/dev/null 2>&1 &&
+   mkdir /mnt/testDir 2>/dev/null || sleep 1 && umount /mnt" "" "" ""
+reCreateTmpFs
+testing "-o ro,remount $tmp_b_fs /mnt" \
+  "mount -o ro $tmp_b_fs /mnt >/dev/null 2>&1 &&
+   mkdir /mnt/testDir 2>/dev/null || sleep 1 && umount /mnt" "" "" ""
+reCreateTmpFs
+
+umount testDir1
+rm -f $tmp_b_fs

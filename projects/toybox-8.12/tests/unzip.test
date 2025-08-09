@@ -1,0 +1,86 @@
+#!/bin/bash
+
+[ -f testing.sh ] && . testing.sh
+
+#testing "name" "command" "result" "infile" "stdin"
+
+# Note: since "master key", Android uses libziparchive for all zip file
+# handling, and that scans the whole central directory immediately. Not only
+# lookups by name but also iteration is implemented using the resulting hash
+# table, meaning that any test that makes assumptions about iteration order
+# will fail on Android.
+
+# unzip -l
+testing "-l" "unzip -l $FILES/zip/example.zip d1/d2/x.txt && [ ! -f d1/d2/x.txt ] && echo okay" "\
+Archive:  $FILES/zip/example.zip\n\
+  Length      Date    Time    Name\n\
+---------  ---------- -----   ----\n\
+     1024  2017-06-04 08:45   d1/d2/x.txt\n\
+---------                     -------\n\
+     1024                     1 file\n\
+okay\n" "" ""
+
+# unzip -lq
+testing "-lq" "unzip -lq $FILES/zip/example.zip d1/d2/x.txt && [ ! -f d1/d2/x.txt ] && echo okay" "\
+  Length      Date    Time    Name\n\
+---------  ---------- -----   ----\n\
+     1024  2017-06-04 08:45   d1/d2/x.txt\n\
+---------                     -------\n\
+     1024                     1 file\n\
+okay\n" "" ""
+
+# unzip -lv
+testing "-lv" "unzip -lv $FILES/zip/example.zip d1/d2/x.txt && [ ! -f d1/d2/file ] && echo okay" "\
+Archive:  $FILES/zip/example.zip\n\
+ Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n\
+--------  ------  ------- ---- ---------- ----- --------  ----\n\
+    1024  Defl:N       11  99% 2017-06-04 08:45 48d7f063  d1/d2/x.txt\n\
+--------          -------  ---                            -------\n\
+    1024               11  99%                            1 file\n\
+okay\n" "" ""
+
+# unzip -v
+testing "-v" "unzip -v $FILES/zip/example.zip d1/d2/x.txt && [ ! -f d1/d2/file ] && echo okay" "\
+Archive:  $FILES/zip/example.zip\n\
+ Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n\
+--------  ------  ------- ---- ---------- ----- --------  ----\n\
+    1024  Defl:N       11  99% 2017-06-04 08:45 48d7f063  d1/d2/x.txt\n\
+--------          -------  ---                            -------\n\
+    1024               11  99%                            1 file\n\
+okay\n" "" ""
+
+# unzip
+testing "one file" "unzip -q $FILES/zip/example.zip d1/d2/a.txt && [ ! -f d1/d2/b.txt ] && cat d1/d2/a.txt" "a\n" "" ""
+rm -rf d1
+testing "all files" "unzip -q $FILES/zip/example.zip && [ -f d1/d2/a.txt ] && [ -f d1/d2/b.txt ] && [ -f d1/d2/c.txt ] && [ -f d1/d2/empty.txt ] && [ -f d1/d2/x.txt ] && [ -d d1/d2/dir ] && echo okay" "okay\n" "" ""
+rm -rf d1
+
+# unzip -o
+mkdir -p d1/d2
+echo b > d1/d2/a.txt
+testing "-o" "unzip -q -o $FILES/zip/example.zip d1/d2/a.txt && cat d1/d2/a.txt" "a\n" "" ""
+rm -rf d1
+
+# unzip -n
+mkdir -p d1/d2
+echo b > d1/d2/a.txt
+testing "-n" "unzip -q -n $FILES/zip/example.zip d1/d2/a.txt && cat d1/d2/a.txt" "b\n" "" ""
+rm -rf d1
+
+# unzip -d DIR
+testing "-d non-existent" "unzip -q -d will/not/be/created $FILES/zip/example.zip d1/d2/a.txt 2> /dev/null ; [ ! -d will ] && echo okay" "okay\n" "" ""
+mkdir dir
+testing "-d exists" "unzip -q -d dir $FILES/zip/example.zip d1/d2/a.txt && [ ! -f d1/d2/a.txt ] && cat dir/d1/d2/a.txt" "a\n" "" ""
+rm -rf dir
+
+# unzip -p
+testing "-p" "unzip -p $FILES/zip/example.zip d1/d2/a.txt && [ ! -f d1/d2/a.txt ] && echo okay" "a\nokay\n" "" ""
+
+# unzip -x FILE...
+# Note: the RI ignores -x DIR for some reason, but it's not obvious we should.
+testing "-x FILE..." "unzip -q $FILES/zip/example.zip -x d1/d2/a.txt d1/d2/b.txt d1/d2/empty.txt d1/d2/x.txt && [ ! -f d1/d2/a.txt ] && [ ! -f d1/d2/b.txt ] && [ ! -f d1/d2/empty.txt ] && [ ! -f d1/d2/x.txt ] && [ -d d1/d2/dir ] && cat d1/d2/c.txt" "ccc\n" "" ""
+rm -rf d1
+
+# unzip FILE -x FILE...
+testing "FILE... -x FILE..." "unzip -q $FILES/zip/example.zip d1/d2/a.txt d1/d2/b.txt -x d1/d2/a.txt && [ ! -f d1/d2/a.txt ] && [ -f d1/d2/b.txt ] && [ ! -f d1/d2/c.txt ] && [ ! -f d1/d2/empty.txt ] && [ ! -f d1/d2/x.txt ] && [ ! -d d1/d2/dir ] && cat d1/d2/b.txt" "bb\n" "" ""
+rm -rf d1
