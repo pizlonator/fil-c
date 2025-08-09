@@ -99,9 +99,9 @@
 #endif
 
 /* If available, use the ARM processor CRC32 instruction. */
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && W == 8
-#  define ARMCRC32
-#endif
+//#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32) && W == 8
+//#  define ARMCRC32
+//#endif
 
 #if defined(W) && (!defined(ARMCRC32) || defined(DYNAMIC_CRC_TABLE))
 /*
