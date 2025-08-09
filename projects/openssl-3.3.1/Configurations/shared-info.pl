@@ -31,7 +31,7 @@ my %shared_info;
     'linux-shared' => sub {
         return {
             %{$shared_info{'gnu-shared'}},
-            shared_defflag    => '-Wl,--version-script=',
+            shared_defflag    => '--version-script=',
             dso_ldflags       =>
                 (grep /(?:^|\s)-fsanitize/,
                  @{$config{CFLAGS}}, @{$config{cflags}})
@@ -43,7 +43,7 @@ my %shared_info;
     'bsd-gcc-nodef-shared' => sub { 
         return {
             %{$shared_info{'gnu-shared'}},
-            shared_defflags     => '-Wl,--version-script=',
+            shared_defflags     => '--version-script=',
         };
     },
     'darwin-shared' => {

@@ -87,6 +87,8 @@ VirtualLock(
 # define MAP_ANON MAP_ANONYMOUS
 #endif
 
+#include <stdfil.h>
+
 #ifndef OPENSSL_NO_SECURE_MEMORY
 static size_t secure_mem_used;
 
@@ -107,6 +109,7 @@ static int sh_allocated(const char *ptr);
 
 int CRYPTO_secure_malloc_init(size_t size, size_t minsize)
 {
+    zerror("Cannot do secure malloc in Fil-C");
 #ifndef OPENSSL_NO_SECURE_MEMORY
     int ret = 0;
 
