@@ -104,7 +104,7 @@ typedef xmlCatalogEntry *xmlCatalogEntryPtr;
 struct _xmlCatalogEntry {
     struct _xmlCatalogEntry *next;
     struct _xmlCatalogEntry *parent;
-    struct _xmlCatalogEntry *children;
+    struct _xmlCatalogEntry *_Atomic children;
     xmlCatalogEntryType type;
     xmlChar *name;
     xmlChar *value;
