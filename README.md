@@ -43,9 +43,7 @@ If you downloaded Fil-C source, run:
     ./setup_gits.sh
     ./build_all.sh
 
-Then you'll be able to use Fil-C from within this directory. There is no way to
-"install" it, because that would be a crazy thing to do for such an
-experimental piece of software!
+Then you'll be able to use Fil-C from within this directory.
 
 ## Things That Work
 
