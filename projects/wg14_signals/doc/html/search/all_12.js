@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['targets_0',['Supported targets',['../index.html#autotoc_md3',1,'']]],
+  ['thrd_5fraised_5fsignal_5ferror_5fcode_5ft_1',['thrd_raised_signal_error_code_t',['../thrd__signal__handle_8h.html#ab2e00b715ed9675faa57179d7502f5ab',1,'thrd_signal_handle.h']]],
+  ['thrd_5fraised_5fsignal_5finfo_2',['thrd_raised_signal_info',['../structthrd__raised__signal__info.html',1,'']]],
+  ['thrd_5fraised_5fsignal_5finfo_5fvalue_3',['thrd_raised_signal_info_value',['../unionthrd__raised__signal__info__value.html',1,'']]],
+  ['thrd_5fsignal_5fdecide_5ft_4',['thrd_signal_decide_t',['../thrd__signal__handle_8h.html#aa942e37a598d563c1ca7568f9ab36e7d',1,'thrd_signal_handle.h']]],
+  ['thrd_5fsignal_5ffunc_5ft_5',['thrd_signal_func_t',['../thrd__signal__handle_8h.html#af73bf2bd205323f686362faec8b219de',1,'thrd_signal_handle.h']]],
+  ['thrd_5fsignal_5fhandle_2eh_6',['thrd_signal_handle.h',['../thrd__signal__handle_8h.html',1,'']]],
+  ['thrd_5fsignal_5finvoke_7',['thrd_signal_invoke',['../thrd__signal__handle_8h.html#a7383ad2fc75d4ecc2243447bc6cd9318',1,'thrd_signal_handle.h']]],
+  ['thrd_5fsignal_5fraise_8',['thrd_signal_raise',['../thrd__signal__handle_8h.html#a1e13ba50e7b490b8af9510faee081001',1,'thrd_signal_handle.h']]],
+  ['thrd_5fsignal_5frecover_5ft_9',['thrd_signal_recover_t',['../thrd__signal__handle_8h.html#ad30c0cc3cb61d6cfd75559cf9bdfdc84',1,'thrd_signal_handle.h']]],
+  ['thread_5fid_5ft_10',['thread_id_t',['../current__thread__id_8h.html#ac444dec46b7189929ef11cbf30d1c717',1,'current_thread_id.h']]],
+  ['threadripper_205975wx_20which_20is_20a_203_206ghz_20processor_20bursting_20to_204_205ghz_20on_20linux_3a_11',['On my Threadripper 5975WX which is a 3.6Ghz processor bursting to 4.5Ghz on Linux:',['../index.html#autotoc_md6',1,'']]],
+  ['to_204_205ghz_20on_20linux_3a_12',['On my Threadripper 5975WX which is a 3.6Ghz processor bursting to 4.5Ghz on Linux:',['../index.html#autotoc_md6',1,'']]],
+  ['to_20standard_20c_20signals_20handling_13',['Reference implementation for proposed extensions to standard C signals handling',['../index.html',1,'']]],
+  ['todo_14',['Todo',['../index.html#autotoc_md9',1,'']]],
+  ['tss_5fasync_5fsignal_5fsafe_15',['tss_async_signal_safe',['../tss__async__signal__safe_8h.html#aa498a1a15313a617ce4890bf3f60a773',1,'tss_async_signal_safe.h']]],
+  ['tss_5fasync_5fsignal_5fsafe_2eh_16',['tss_async_signal_safe.h',['../tss__async__signal__safe_8h.html',1,'']]],
+  ['tss_5fasync_5fsignal_5fsafe_5fattr_17',['tss_async_signal_safe_attr',['../structtss__async__signal__safe__attr.html',1,'']]],
+  ['tss_5fasync_5fsignal_5fsafe_5fcreate_18',['tss_async_signal_safe_create',['../tss__async__signal__safe_8h.html#ac8b6e7c61aaf84aebf659d4548aea040',1,'tss_async_signal_safe.h']]],
+  ['tss_5fasync_5fsignal_5fsafe_5fdestroy_19',['tss_async_signal_safe_destroy',['../tss__async__signal__safe_8h.html#a930e475045c30370263cd6e17773d0bc',1,'tss_async_signal_safe.h']]],
+  ['tss_5fasync_5fsignal_5fsafe_5fget_20',['tss_async_signal_safe_get',['../tss__async__signal__safe_8h.html#a8fd7beb001b06936be5994a39be21a9f',1,'tss_async_signal_safe.h']]],
+  ['tss_5fasync_5fsignal_5fsafe_5fthread_5finit_21',['tss_async_signal_safe_thread_init',['../tss__async__signal__safe_8h.html#ad9afc8c7148bf7e2d248152e6b9b70a1',1,'tss_async_signal_safe.h']]]
+];

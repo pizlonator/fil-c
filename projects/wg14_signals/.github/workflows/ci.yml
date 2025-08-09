@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  schedule:
+  - cron: '0 0 1 * *'
+
+jobs:
+  Linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [clang, gcc]
+        debug: [Debug, Release]
+        standard: [11, 23]
+        shared: [OFF, ON]
+    env:
+      NAME: Linux-${{ matrix.compiler }}-${{ matrix.debug }}-${{ matrix.standard }}-${{ matrix.shared }}
+      CC: ${{ matrix.compiler }}
+          
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure Linux
+      shell: bash
+      run: |
+        mkdir build && cd build
+        export CXX=${CC/cc/}++
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.debug }} -DCMAKE_C_STANDARD=${{ matrix.standard }} -DBUILD_SHARED_LIBS=${{ matrix.shared }}  -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/sanitize-toolchain.cmake
+
+    - name: Build Linux
+      shell: bash
+      run: cd build && cmake --build . --parallel
+
+    - name: CMake tests Linux
+      shell: bash
+      run: cd build && ctest --output-on-failure --timeout 300 -E benchmark
+      
+  MacOS:
+    name: Mac OS
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        debug: [Debug, Release]
+        standard: [11, 23]
+        shared: [OFF, ON]
+    env:
+      NAME: MacOS-${{ matrix.debug }}-${{ matrix.standard }}-${{ matrix.shared }}
+          
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure Mac OS
+      shell: bash
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.debug }} -DCMAKE_C_STANDARD=${{ matrix.standard }} -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/sanitize-toolchain.cmake
+
+    - name: Build Mac OS
+      shell: bash
+      run: cd build && cmake --build . --parallel
+
+    - name: CMake tests Mac OS
+      shell: bash
+      run: cd build && ctest --output-on-failure --timeout 300 -E benchmark
+      
+  Windows:
+    name: Windows VS2022
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        debug: [Debug, Release]
+        standard: [11, 17]
+        shared: [OFF, ON]
+    env:
+      NAME: Windows-${{ matrix.debug }}-${{ matrix.standard }}-${{ matrix.shared }}
+          
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure WinVS2022
+      shell: bash
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_C_STANDARD=${{ matrix.standard }} -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DCMAKE_C_FLAGS=/fsanitize:address
+
+    - name: Build WinVS2022
+      shell: bash
+      run: cd build && cmake --build . --config ${{ matrix.debug }} --parallel
+
+    - name: CMake tests WinVS2022
+      shell: bash
+      run: cd build && ctest -C ${{ matrix.debug }} --output-on-failure --timeout 300 -E benchmark

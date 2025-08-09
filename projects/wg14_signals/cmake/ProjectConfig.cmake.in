@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+@PROJECT_PACKAGE_DEPENDENCIES@
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Exports.cmake")
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@SlExports.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@SlExports.cmake")
+endif()
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@DlExports.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@DlExports.cmake")
+endif()
+
+check_required_components(@PROJECT_NAME@)
