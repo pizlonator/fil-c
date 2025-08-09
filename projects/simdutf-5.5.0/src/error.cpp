@@ -1,0 +1,3 @@
+namespace simdutf {
+// deliberately empty
+}

@@ -1,0 +1,1 @@
+#define SIMDUTF_IMPLEMENTATION fallback

@@ -1,0 +1,251 @@
+#include "simdutf.h"
+
+#include <array>
+
+#include <tests/helpers/transcode_test_base.h>
+#include <tests/helpers/random_int.h>
+#include <tests/helpers/test.h>
+
+
+namespace {
+  std::array<size_t, 7> input_size{7, 16, 12, 64, 67, 128, 256};
+
+  using simdutf::tests::helpers::transcode_utf16_to_utf32_test_base;
+
+  constexpr int trials = 1000;
+}
+
+#if SIMDUTF_IS_BIG_ENDIAN
+// todo: port the next test.
+#else
+TEST(issue_532)
+{
+    const char16_t data[] = {
+        0x7171, 0x7171, 0xc8ab, 0xc8ab, 0xc8c8, 0xc8b1, 0xb1ab, 0xabc8, 0xb1c8, 0x0cc8, 0x0000, 0x0000, 0x0000, 
+        0x0000, 0x0000, 0xc8ff, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xb1c8, 0x01c8, 0x0000, 0x0000, 0x0b00, 0xa4a8, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 
+        0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 
+        0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0x4723, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 
+        0xb1c8, 0xc827, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xabc8, 0xc8b1, 0xc8b1, 
+        0xc8ab, 0xc8b1, 0xc8ab, 0xabab, 0x0000, 0x0000, 0x0000, 0xff00, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0x0dc8, 0x0000, 0x0000, 0x0000, 0xb100, 0xabc8, 0xb1c8, 0xabc8, 
+        0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xbec8, 0x4723, 0xb1d8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xbdc8, 0xc8b1, 0xc8ab, 0xabb1, 0xabc8, 0xabc8, 
+        0xc8c8, 0xb1b1, 0xabc8, 0xb1c8, 0xabc8, 0xfe68, 0xf4c9, 0xd949, 0xb1f4, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 
+        0xab3d, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xab48, 0xabc8, 0x00ab, 0x0000, 0x0000, 0x0000, 0xc8ff, 
+        0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0x00ab, 0x0000, 0xc8ff, 0xc8ab, 0xc8ab, 
+        0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0x000d, 0x0000, 0xb100, 0xabc8, 0xb1c8, 
+        0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xbec8, 0x4723, 0xb1d8, 0xabc8, 0xabc8, 0xabc8, 
+        0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xbdc8, 0xc8b1, 0xc8ab, 0xabb1, 0xabc8, 
+        0xabc8, 0xc8c8, 0xb1b1, 0xabc8, 0xb1c8, 0xabc8, 0xfe68, 0xf4c9, 0xd949, 0xb1f4, 0xabc8, 0xb1c8, 0xabc8, 
+        0xb1c8, 0xab3d, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xab48, 0xabc8, 0x00ab, 0x0000, 0x0000, 0x0000, 
+        0xc8ff, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 
+        0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xabab, 0xabc8, 0xabc8, 0x00c8, 0xb110, 0xabc8, 0xb1c8, 0xa4a4, 
+        0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4cc, 0x23a4, 
+        0xd847, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 
+        0xabab, 0x0000, 0x0000, 0x0000, 0xff00, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 
+        0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xabc8, 0xabc8, 0xbec8, 0x4723, 0xced8, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 
+        0xc8ab, 0xabb1, 0xb1c8, 0xabc8, 0x00c8, 0xb110, 0xabc8, 0xb1c8, 0xabc8, 0xc8b1, 0x00ab, 0x0008, 0x0000, 
+        0xc8ff, 0xc8c8, 0xabc8, 0xb1ab, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 
+        0x01c8, 0x0000, 0x0000, 0x0b00, 0xa4a8, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0x00a4, 0xc8ff, 
+        0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xab6e, 0xabc8, 
+        0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xbec8, 0x4723, 
+        0xb1d8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0x0000, 0x0000, 0x0000, 0xff00, 0xabc8, 0x47c8, 0xb1d8, 0xabc8, 0xabc8, 
+        0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0x00ab, 0x0000, 0x0000, 
+        0x0000, 0xc8ff, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 
+        0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 
+        0x23be, 0xd847, 0xb1ce, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xc8ab, 0xc8b1, 
+        0xc8ab, 0x1000, 0xc8b1, 0xc8ab, 0xc8b1, 0xb1ab, 0xabc8, 0x0800, 0x0000, 0xff00, 0xc8c8, 0xc8c8, 0xabab, 
+        0xc8b1, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0x0001, 0x0000, 0x0000, 
+        0xa80b, 0xa4e6, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0x00a4, 0xc8ff, 0xc8ab, 0xc8ab, 0xc8b1, 
+        0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 
+        0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0x23be, 0xd847, 0xc8b1, 0xc8ab, 0xc8ab, 
+        0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 
+        0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0x1000, 0xc8b1, 0xc8ab, 0xc8b1, 0xb1ab, 0xabc8, 0xb1c8, 
+        0xabc8, 0xabc8, 0x00ab, 0x0000, 0x0000, 0x0000, 0xc8ff, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xd847, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 
+        0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xabab, 0x0000, 0x0000, 0x0000, 0xff00, 0xabc8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 
+        0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xbec8, 0x4723, 0xced8, 0xc8b1, 0xc8ab, 0xc8ab, 
+        0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8b1, 0xc8ab, 0xc8ab, 0xc8ab, 0xc8b1, 0xc8ab, 0x1000, 0xc8b1, 
+        0xc8ab, 0xc8b1, 0xb1ab, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0x00ab, 0x0000, 0x0000, 0x0000, 0xc8ff, 0xabc8, 
+        0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xb1c8, 0xabc8, 0xabc8, 0xabc8, 0xb1c8, 0x26c8};
+    constexpr std::size_t data_len = 660;
+
+    const auto validation1 = implementation.validate_utf16le_with_errors(data,
+                                                                         data_len);
+    ASSERT_EQUAL(validation1.count, 137);
+    ASSERT_EQUAL(validation1.error, simdutf::error_code::SURROGATE);
+
+    const bool validation2 = implementation.validate_utf16le(data, data_len);
+    ASSERT_EQUAL(validation1.error == simdutf::error_code::SUCCESS, validation2);
+    
+    const auto outlen = implementation.utf32_length_from_utf16le(data, data_len);
+    std::vector<char32_t> output(outlen);
+    const auto r = implementation.convert_utf16le_to_utf32_with_errors((const char16_t *) data,
+                                                                       data_len,
+                                                                       output.data());
+    ASSERT_EQUAL(r.error, simdutf::error_code::SURROGATE);
+    ASSERT_EQUAL(r.count, 137);
+}
+#endif
+
+TEST(allow_empty_input) {
+    std::vector<char16_t> emptydata;
+    std::vector<char32_t> output(10);
+
+    auto ret = implementation.convert_utf16le_to_utf32_with_errors(emptydata.data(),
+                                                                   emptydata.size(),
+                                                                   output.data());
+    ASSERT_EQUAL(ret.error, simdutf::error_code::SUCCESS);
+}
+
+TEST_LOOP(trials, convert_2_UTF16_bytes) {
+    // range for 1, 2 or 3 UTF-8 bytes
+    simdutf::tests::helpers::RandomIntRanges random({{0x0000, 0x007f},
+                                                     {0x0080, 0x07ff},
+                                                     {0x0800, 0xd7ff},
+                                                     {0xe000, 0xffff}}, seed);
+
+    auto procedure = [&implementation](const char16_t* utf16, size_t size, char32_t* utf32) -> size_t {
+      simdutf::result res = implementation.convert_utf16le_to_utf32_with_errors(utf16, size, utf32);
+      ASSERT_EQUAL(res.error, simdutf::error_code::SUCCESS);
+      return res.count;
+    };
+    auto size_procedure = [&implementation](const char16_t* utf16, size_t size) -> size_t {
+      return implementation.utf32_length_from_utf16le(utf16, size);
+    };
+    for (size_t size: input_size) {
+      transcode_utf16_to_utf32_test_base test(random, size);
+      ASSERT_TRUE(test(procedure));
+      ASSERT_TRUE(test.check_size(size_procedure));
+    }
+}
+
+TEST_LOOP(trials, convert_with_surrogates) {
+    simdutf::tests::helpers::RandomIntRanges random({{0x0800, 0xd800-1},
+                                                     {0xe000, 0x10ffff}}, seed);
+
+    auto procedure = [&implementation](const char16_t* utf16, size_t size, char32_t* utf32) -> size_t {
+      simdutf::result res = implementation.convert_utf16le_to_utf32_with_errors(utf16, size, utf32);
+      ASSERT_EQUAL(res.error, simdutf::error_code::SUCCESS);
+      return res.count;
+    };
+    auto size_procedure = [&implementation](const char16_t* utf16, size_t size) -> size_t {
+      return implementation.utf32_length_from_utf16le(utf16, size);
+    };
+    for (size_t size: input_size) {
+      transcode_utf16_to_utf32_test_base test(random, size);
+      ASSERT_TRUE(test(procedure));
+      ASSERT_TRUE(test.check_size(size_procedure));
+    }
+}
+
+#if SIMDUTF_IS_BIG_ENDIAN
+// todo: port the next test.
+#else
+TEST(convert_fails_if_there_is_sole_low_surrogate) {
+  const size_t size = 64;
+  transcode_utf16_to_utf32_test_base test([](){return '*';}, size + 32);
+
+  for (char16_t low_surrogate = 0xdc00; low_surrogate <= 0xdfff; low_surrogate++) {
+    for (size_t i=0; i < size; i++) {
+      auto procedure = [&implementation, &i](const char16_t* utf16, size_t size, char32_t* utf32) -> size_t {
+        simdutf::result res = implementation.convert_utf16le_to_utf32_with_errors(utf16, size, utf32);
+        ASSERT_EQUAL(res.error, simdutf::error_code::SURROGATE);
+        ASSERT_EQUAL(res.count, i);
+        return 0;
+      };
+      const auto old = test.input_utf16[i];
+      test.input_utf16[i] = low_surrogate;
+      ASSERT_TRUE(test(procedure));
+      test.input_utf16[i] = old;
+    }
+  }
+}
+#endif
+
+#if SIMDUTF_IS_BIG_ENDIAN
+// todo: port the next test.
+#else
+TEST(convert_fails_if_there_is_sole_high_surrogate) {
+  const size_t size = 64;
+  transcode_utf16_to_utf32_test_base test([](){return '*';}, size + 32);
+
+  for (char16_t high_surrogate = 0xdc00; high_surrogate <= 0xdfff; high_surrogate++) {
+    for (size_t i=0; i < size; i++) {
+      auto procedure = [&implementation, &i](const char16_t* utf16, size_t size, char32_t* utf32) -> size_t {
+        simdutf::result res = implementation.convert_utf16le_to_utf32_with_errors(utf16, size, utf32);
+        ASSERT_EQUAL(res.error, simdutf::error_code::SURROGATE);
+        ASSERT_EQUAL(res.count, i);
+        return 0;
+      };
+      const auto old = test.input_utf16[i];
+      test.input_utf16[i] = high_surrogate;
+      ASSERT_TRUE(test(procedure));
+      test.input_utf16[i] = old;
+    }
+  }
+}
+#endif
+
+#if SIMDUTF_IS_BIG_ENDIAN
+// todo: port the next test.
+#else
+TEST(convert_fails_if_there_is_low_surrogate_is_followed_by_another_low_surrogate) {
+  const size_t size = 64;
+  transcode_utf16_to_utf32_test_base test([](){return '*';}, size + 32);
+
+  for (char16_t low_surrogate = 0xdc00; low_surrogate <= 0xdfff; low_surrogate++) {
+    for (size_t i=0; i < size - 1; i++) {
+      auto procedure = [&implementation, &i](const char16_t* utf16, size_t size, char32_t* utf32) -> size_t {
+        simdutf::result res = implementation.convert_utf16le_to_utf32_with_errors(utf16, size, utf32);
+        ASSERT_EQUAL(res.error, simdutf::error_code::SURROGATE);
+        ASSERT_EQUAL(res.count, i);
+        return 0;
+      };
+      const auto old0 = test.input_utf16[i + 0];
+      const auto old1 = test.input_utf16[i + 1];
+      test.input_utf16[i + 0] = low_surrogate;
+      test.input_utf16[i + 1] = low_surrogate;
+      ASSERT_TRUE(test(procedure));
+      test.input_utf16[i + 0] = old0;
+      test.input_utf16[i + 1] = old1;
+    }
+  }
+}
+#endif
+
+#if SIMDUTF_IS_BIG_ENDIAN
+// todo: port the next test.
+#else
+TEST(convert_fails_if_there_is_surrogate_pair_is_followed_by_high_surrogate) {
+  const size_t size = 64;
+  transcode_utf16_to_utf32_test_base test([](){return '*';}, size + 32);
+
+  const char16_t low_surrogate = 0xd801;
+  const char16_t high_surrogate = 0xdc02;
+  for (size_t i=0; i < size - 2; i++) {
+    auto procedure = [&implementation, &i](const char16_t* utf16, size_t size, char32_t* utf32) -> size_t {
+      simdutf::result res = implementation.convert_utf16le_to_utf32_with_errors(utf16, size, utf32);
+      ASSERT_EQUAL(res.error, simdutf::error_code::SURROGATE);
+      ASSERT_EQUAL(res.count, i + 2);
+      return 0;
+    };
+    const auto old0 = test.input_utf16[i + 0];
+    const auto old1 = test.input_utf16[i + 1];
+    const auto old2 = test.input_utf16[i + 2];
+    test.input_utf16[i + 0] = low_surrogate;
+    test.input_utf16[i + 1] = high_surrogate;
+    test.input_utf16[i + 2] = high_surrogate;
+    ASSERT_TRUE(test(procedure));
+    test.input_utf16[i + 0] = old0;
+    test.input_utf16[i + 1] = old1;
+    test.input_utf16[i + 2] = old2;
+  }
+}
+#endif
+
+TEST_MAIN

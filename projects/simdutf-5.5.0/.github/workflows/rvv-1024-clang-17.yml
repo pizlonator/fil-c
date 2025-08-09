@@ -1,0 +1,29 @@
+name: Ubuntu rvv VLEN=1024 (clang 17)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install packages
+      run: |
+        sudo sed 's/jammy/devel/g' -i /etc/apt/sources.list
+        sudo apt-get update -q -y
+        sudo apt-get install -y cmake make g++-riscv64-linux-gnu qemu-user-static clang-17
+    - name: Build
+      run: |
+        CXX=clang++-17 CXXFLAGS="--target=riscv64-linux-gnu -march=rv64gcv" cmake -DCMAKE_CROSSCOMPILING_EMULATOR=qemu-riscv64-static -DCMAKE_SYSTEM_PROCESSOR=riscv64 -DCMAKE_BUILD_TYPE=Release -B build
+        cmake --build build/ -j$(nproc)
+    - name: Test VLEN=1024
+      run: |
+        export QEMU_LD_PREFIX="/usr/riscv64-linux-gnu"
+        export QEMU_CPU="rv64,v=on,vlen=1024,rvv_ta_all_1s=on,rvv_ma_all_1s=on"
+        ctest --output-on-failure --test-dir build -j $(nproc)

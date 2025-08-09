@@ -1,0 +1,29 @@
+name: macos-latest Sanitized CI
+
+on:
+  push:
+
+jobs:
+  macos-build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - {shared: ON}
+          - {shared: OFF}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use cmake
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_CXX_FLAGS=-Werror -DCMAKE_INSTALL_PREFIX:PATH=destination -DBUILD_SHARED_LIBS=${{matrix.shared}} ..   -DSIMDUTF_BENCHMARKS=OFF
+          cmake --build .
+          ctest --output-on-failure
+          cmake --install .
+          cd ../tests/installation_tests/find
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX:PATH=../../../build/destination ..
+          cmake --build .
+          ./repro

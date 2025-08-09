@@ -1,0 +1,29 @@
+name: Ubuntu 22.04 Sanitized CI (GCC 11)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ubuntu-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use cmake with address sanitizer
+        run: |
+          mkdir build &&
+          cd build &&
+          cmake -DSIMDUTF_SANITIZE=ON ..  &&
+          cmake --build .   &&
+          ctest --output-on-failure
+      - name: Use cmake with undefined behavior sanitizer
+        run: |
+          mkdir buildundef &&
+          cd buildundef &&
+          cmake -DSIMDUTF_SANITIZE_UNDEFINED=ON ..  &&
+          cmake --build .   &&
+          ctest --output-on-failure

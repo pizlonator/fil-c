@@ -1,0 +1,27 @@
+name: Ubuntu 22.04 Sanitized CI (GCC 12)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ubuntu-build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - {shared: ON}
+          - {shared: OFF}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use cmake
+        run: |
+          mkdir build &&
+          cd build &&
+          CXX=g++-12 cmake -DCMAKE_CXX_FLAGS=-Werror -DSIMDUTF_ALWAYS_INCLUDE_FALLBACK=ON -DSIMDUTF_BENCHMARKS=ON  -DBUILD_SHARED_LIBS=${{matrix.shared}} ..  -DSIMDUTF_BENCHMARKS=OFF &&
+          cmake --build .   &&
+          ctest -j --output-on-failure

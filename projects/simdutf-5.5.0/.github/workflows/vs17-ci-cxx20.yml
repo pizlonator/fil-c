@@ -1,0 +1,41 @@
+name: VS17-CI C++20
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    name: windows-vs17
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {gen: Visual Studio 17 2022, arch: x64, shared: ON}
+          - {gen: Visual Studio 17 2022, arch: x64, shared: OFF}
+          - {gen: Visual Studio 17 2022, arch: Win32, shared: ON}
+          - {gen: Visual Studio 17 2022, arch: Win32, shared: OFF}
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: Configure
+      run: |
+        cmake  -DSIMDUTF_CXX_STANDARD=20 -DSIMDUTF_ALWAYS_INCLUDE_FALLBACK=ON -DSIMDUTF_BENCHMARKS=ON -G "${{matrix.gen}}" -A ${{matrix.arch}} -DBUILD_SHARED_LIBS=${{matrix.shared}} -B build
+    - name: Build Debug
+      run: cmake --build build --config Debug --verbose
+    - name: Build Release
+      run: cmake --build build --config Release --verbose
+    - name: Run Release tests
+      run: |
+        cd build
+        ctest -C Release   --output-on-failure
+    - name: Run Debug tests
+      run: |
+        cd build
+        ctest -C Debug  --output-on-failure  -E basic_fuzzer
+    - name: Install
+      run: |
+        cmake --install build --config Release
+    - name: Test Installation
+      run: |
+        cmake -G "${{matrix.gen}}" -A ${{matrix.arch}}  -B build_install_test tests/installation_tests/find
+        cmake --build build_install_test --config Release

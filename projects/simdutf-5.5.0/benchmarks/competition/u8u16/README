@@ -1,0 +1,56 @@
+u8u16 is a high-speed UTF-8 to UTF-16 transcoding program,
+with an iconv-compatible interface.
+
+Different versions of u8u16 can be created using the following
+commands.
+
+make u8u16_g4
+  creates a version for the Power PC G4 under Mac OS X, using
+  the Altivec SIMD capabilities
+
+make u8u16_p4 
+  creates a version using the SSE SIMD capabilities
+  of P4 or equivalent processors.
+
+make u8u16_p4_ideal
+  creates a P4 version that simulates the best algorithms
+  for an idealized SIMD processor implementing an inductive
+  doubling architecture
+
+make u8u16_mmx
+  creates a version for Pentium or equivalent processors using
+  MMX facilities; this runs, for example on AMD Geode
+
+make iconv_u8u16
+  creates an equivalent transcoding program that calls the OS-provided
+  iconv routine, for comparison purposes
+
+All versions are compiled to measure and report a histogram of cycle counts 
+per 1000 UTF-8 code units processed.   This instrumentation may be deleted
+by eliminating the flag -DBUFFER_PROFILING from the Makefile.
+
+http://download.wikimedia.org/ is a good source of XML test data
+for performance tests.   Depending on architecture and UTF-8 data
+characteristics, the high-speed u8u16 transcoder has been found to
+perform 3X to 15X faster than iconv.
+
+Correctness testing of a particular version may be carried out
+by changing to the QA directory and executing the run_all script
+as in the following example.
+./run_all ../u8u16_mmx
+
+Correctness testing of iconv implementations has shown errors in 
+Linux and Mac OS X environments, due to incorrect reporting of 
+some erroneous UTF-8 sequences as "incomplete" (when they occur at
+the end of file).
+
+u8u16 is a demonstration program for the ongoing research work
+of Prof. Rob Cameron of Simon Fraser University into high-speed
+character processing using parallel bit streams.   International
+Characters, Inc., an SFU spin-off company makes it available as
+open source software under Open Software License 3.0.   Commercial
+licenses are available as well.
+
+The u8u16 program is written using the cweb literate programming
+system of Knuth and Levy.  See src/libu8u16.pdf for the program
+documentation that results.

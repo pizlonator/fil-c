@@ -1,0 +1,39 @@
+Outline:
+
+The Portable SIMD Library with Inductive Doubling Support
+
+Robert D. Cameron and Dan Lin
+
+I.    Rationale
+II.   Definition of the SIMD Operations
+      a.  Power of Two Field Widths
+      b.  Binary Operations with Half-Operand Modifiers
+      c.  Value Generation
+      d.  Shifts with Immediate Operands
+      e.  simd_if
+      f.  aligned and nonaligned loads/stores
+III.  Implementation Alternatives
+      a.  Inline Functions vs. Macros
+          - Macros necessary for cases requiring literal
+            numeric constants: value generation, immed. shifts
+          - Inline functions used elsewhere, for readability,
+            error checking, compiler performance
+      b.  Defining mappings to built-ins
+          - Using processor-specific intrinsics
+          - operations requiring adjustments
+             - not a direct mapping between idealized and intrinsic
+               - ex simd_pack_16 for mmx
+      c.  Simulation for non-native field widths
+          - direct bit calculation: field width 2
+          - small field definitions in terms of double-size fields
+          - large field definitions in terms of half-size fields
+          - optimizations 
+      d.  Simulation for Half-Operand Modifications
+          - direct nonoptimized strategy
+          - optimizations
+IV.  MultiPlatform Architecture
+V.   Test Suite/Simulator
+VI.  Future Directions
+     - additional operations
+     - compiler integration
+
