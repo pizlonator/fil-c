@@ -1,0 +1,127 @@
+#compdef strace strace64
+
+local curcontext="$curcontext" state line root expl ret=1
+typeset -A opt_args
+
+(( EUID )) && root='!'
+
+_arguments -C -s \
+  '-a+[align return values in a specific column]:column number [40]' \
+  '(-c)-i[print instruction pointer at time of syscall]' \
+  '-o+[write the trace output to the file]:output file:->file-pipe' \
+  '-q[suppress messages about attaching, detaching etc.]' \
+  '(-q)-qq[suppress messages about process exit status]' \
+  '(-c)-r[print a relative timestamp upon entry to each system call]' \
+  '-s+[specify the maximum string size to print]:maximum string size [32]' \
+  '(-c -ttt)-t[prefix each line of the trace with the time of day]' \
+  '(-c -ttt -tt)-tt[prefix each line of the trace with the time of day including the microseconds]' \
+  '(-c -tt -t)-ttt[prefix each line of the trace with the number of seconds and microseconds since the epoch]' \
+  '(-c)-T[show the time spent in system calls]' \
+  '(-xx)-x[print all non-ASCII strings in hexadecimal string format]' \
+  '(-x)-xx[print all strings in hexadecimal string format]' \
+  '-X+[set the format for printing of named constants and flags]:format:(raw abbrev verbose)' \
+  '(-c -yy)-y[print paths associated with file descriptor arguments]' \
+  '(-c -y)-yy[print protocol specific information associated with socket file descriptors]' \
+  '(-C -i -k -r -ff -t -tt -ttt -T -y -yy)-c[count time, calls, and errors for each system call and report a summary]' \
+  '(-c)-C[count time, calls, and errors for each system call and report a summary in addition to regular output]' \
+  '-O+[overhead for tracing system calls]:overhead (microseconds)' \
+  '-S+[sort the output of the histogram (-c option) by the specified criterion]:sort criterion [time]:(time calls errors name nothing)' \
+  '-w[summarise syscall latency]' \
+  '*-e+[select events to trace or how to trace]:system call:->expressions' \
+  '*-P+[trace only system calls accessing given path]:path:_files' \
+  '(-Z)-z[trace only system calls that return success]' \
+  '(-z)-Z[trace only system calls that return an error]' \
+  '-b+[detach from process on specified syscall]:syscall:(execve)' \
+  '-f[trace child processes as they are created by currently traced processes]' \
+  '(-c -C)-ff[write each process trace to <filename>.<pid> (when using -o <filename>]' \
+  '-D[run tracer as detached grandchild, keeping traced process as direct child of calling process]' \
+  '-I+[when strace can be interrupted by signals]:interruptible:((1\:"no signals are blocked" 2\:"fatal signals are blocked while decoding syscall (default)" 3\:"fatal signals are always blocked (default with -o)" 4\:"fatal signals and SIGTSTP are always blocked"))' \
+  '*-E+[set or remove exported environment variable]:variable:->envars' \
+  "${root}-u+[run as specified user]:user:_users" \
+  '(:)*-p+[attach to the process with specified process ID and begin tracing]:process ID:_pids' \
+  '--seccomp-bpf[enable seccomp-bpf filtering]' \
+  '-d[show debug output of strace itself on standard error]' \
+  '-v[print unabbreviated versions of environment, stat, termios, etc. calls]' \
+  '(- 1 *)-h[display help information]' \
+  '(- 1 *)-V[display version information]' \
+  '(-c)-k[obtain stack trace between each syscall]' \
+  '(-):command name: _command_names -e' \
+  '*::arguments:_normal' && ret=0
+
+case $state in
+  expressions)
+    _values -C -S = 'qualifying expression' \
+      'trace[trace specified set of system calls only]:system calls:->syscalls' \
+      'abbrev[abbreviate the output from printing each member of large structures]:system call:_sequence _sys_calls -a -n' \
+      'verbose[dereference structures for the specified set of system calls]:system call:_sequence _sys_calls -a -n' \
+      'raw[print raw, undecoded arguments for the specified set of system calls]:system call:_sequence _sys_calls -a -n' \
+      'signal[trace only the specified subset of signals]:signal:_sequence _signals -s -M "B\:!="' \
+      'read[perform a full hex and ASCII dump of all the data read from listed file descriptors]:file descriptor:_sequence _file_descriptors' \
+      'write[perform a full hex and ASCII dump of all the data written to listed file descriptors]:file descriptor:_sequence _file_descriptors' \
+      'fault[perform syscall fault injection]:system call:_sys_calls -a -n' \
+      'inject[perform syscall tampering]:system call:_sys_calls -a -n' \
+      'status[trace system calls with given return status]:status:->status' \
+      'kvm[print the exit reason of kvm vcpu]: :(vcpu)' && ret=0
+    if [[ $state = status ]]; then
+      _values -s , 'return status [all]' \
+        all successful failed \
+        "unfinished[system calls that don't return]" \
+        'unavailable[system calls that return but strace fails to fetch the error]' \
+        'detached[system calls where strace detaches before the return]' && ret=0
+    elif [[ $words[CURRENT] != *=* || $state = syscalls ]]; then
+      local dedup sets suf="-qS,"
+      compset -P '!'
+      dedup=( ${(Ms.,.)PREFIX##*,} ${(Ms.,.)SUFFIX%%,*} )
+      compset -S ',*' || suf=""
+      compset -P '*,'
+      if compset -P /; then
+        _wanted syscalls expl "system call (regex)" _sys_calls -a -n $suf -F dedup && ret=0
+      else
+        sets=(
+          {%,}'file:trace all system calls which take a file name as an argument'
+          {%,}'process:trace all system calls which involve process management'
+          {%net,{%,}network}':trace all the network related system calls'
+          {%,}'signal:trace all signal related system calls'
+          {%,}'ipc:trace all IPC related system calls'
+          {%,}'desc:trace all file descriptor related system calls'
+          {%,}'memory:trace all memory mapping related system calls'
+          '%stat:trace variants of stat'
+          '%lstat:trace variants of lstat'
+          '%fstat:trace variants of fstat and fstatat'
+          '%%stat:trace variants of all syscalls used for requesting file status'
+          '%statfs:trace variants of statfs'
+          '%fstatfs:trace variants of fstatfs'
+          '%%statfs:trace variants of all syscalls used for file system statistics'
+          '%pure:trace syscalls that always succeed and have no arguments'
+        )
+        _alternative \
+          "sets:related system call: _describe -t traces 'related system call' sets -F dedup $suf" \
+          "syscalls:system call:_sys_calls -a -n $suf -F dedup" && ret=0
+      fi
+    fi
+  ;;
+  file-pipe)
+    compset -P '\\'
+    if (( ! $+opt_args[-ff] )) && compset -P '(!|\|)'; then
+      compset -q
+      if (( CURRENT == 1 )); then
+	_command_names -e && ret=0
+      else
+	_normal && ret=0
+      fi
+    else
+      _files && ret=0
+    fi
+  ;;
+  envars)
+    if [[ -prefix *=* ]]; then
+      compstate[parameter]="${PREFIX%%\=*}"
+      compset -P 1 '*='
+      _value && ret=0
+    else
+      _parameters -qS= -g "*export*" && ret=0
+    fi
+  ;;
+esac
+
+return ret

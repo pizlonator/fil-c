@@ -1,0 +1,10 @@
+#compdef zed fned
+
+case $service in
+(fned) _arguments -S : ':shell function:_functions';;
+(zed) _arguments -S : \
+	'(- 2):file:_files' \
+	'(1):shell function:_functions' \
+	'(1)-x+[specify spaces to use for indentation in function expansion]:spaces' \
+	'(1)-f[edit function]';;
+esac

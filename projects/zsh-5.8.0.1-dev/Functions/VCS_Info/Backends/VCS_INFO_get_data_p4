@@ -1,0 +1,29 @@
+## vim:ft=zsh
+## perforce support by: Phil Pennock
+## Distributed under the same BSD-ish license as zsh itself.
+
+# XXX: This soooo needs to be cached
+setopt localoptions extendedglob
+local p4base a b
+local -A p4info
+local -A hook_com
+
+${vcs_comm[cmd]} info | while IFS=: read a b; do p4info[${a// /_}]="${b## #}"; done
+p4base=${vcs_comm[basedir]}
+
+# We'll use the client name as the branch; close enough.
+local p4branch change
+# We'll use the latest change number to which the hierarchy from
+# here down is synced as the revision.
+# I suppose the following might be slow on a tortuous client view.
+change="${${$(${vcs_comm[cmd]} changes -m 1 ...\#have)##Change }%% *}"
+zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" branchformat p4branch || p4branch="%b:%r"
+hook_com=( branch "${p4info[Client_name]}" revision "${change}" )
+if VCS_INFO_hook 'set-branch-format' "${p4branch}"; then
+    zformat -f p4branch "${p4branch}" "b:${hook_com[branch]}" "r:${hook_com[revision]}"
+else
+    p4branch=${hook_com[branch-replace]}
+fi
+hook_com=()
+VCS_INFO_formats '' "${p4branch}" "${p4base}" '' '' "$change" ''
+return 0

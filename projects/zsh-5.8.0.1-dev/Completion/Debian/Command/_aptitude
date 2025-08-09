@@ -1,0 +1,108 @@
+#compdef aptitude
+
+local curcontext="$curcontext" state line cmds ret=1
+
+function _aptitude_release() {
+  #{{{
+  local expl releases
+  releases=(
+${${(M)${(f)"$(</etc/apt/sources.list)"}\
+:#[ $'\t']#deb(|-src)*}/(#b)[ $'\t']#[^ $'\t']##[ $'\t']##[^ $'\t']##[ $'\t']##([^ $'\t']##)*/$match[1]}
+  )
+  _wanted list expl release compadd ${expl} - ${(u)releases}
+  #}}}
+}
+
+# Helper function for -F / --display-format
+function _aptitude_format_strings() {
+  _values -s , 'format string' \
+    '%%[Literal %]' \
+    '%#number[Parameter replacement]' \
+    '%a[Action flag]' \
+    '%A[Action]' \
+    '%B[Broken count]' \
+    '%c[Current state flag]' \
+    '%C[Current state]' \
+    '%d[Description]' \
+    '%H[Hostname]' \
+    '%i[Pin priority]' \
+    '%I[Installed size]' \
+    '%m[Maintainer]' \
+    '%M[Automatic flag]' \
+    '%n[Program version]' \
+    '%N[Program name]' \
+    '%o[Download size]' \
+    '%p[Package name]' \
+    '%P[Priority]' \
+    '%r[Reverse depends count]' \
+    '%R[Abbreviated priority]' \
+    '%s[Section]' \
+    '%S[Trust status]' \
+    '%t[Archive]' \
+    '%T[Tagged]' \
+    '%u[Disk usage change]' \
+    '%v[Current version]' \
+    '%V[Candidate version]' \
+    '%Z[Size change]'
+}
+
+_arguments -C \
+  '(- 1 *)'{-h,--help}'[display help information]' \
+  '(- 1 *)--version[display version information]' \
+  '(-s --simulate)'{-s,--simulate}'[print actions without performing them]' \
+  '(-d --download-only)'{-d,--download-only}"[just download packages - don\'t install]" \
+  '(-P --prompt)'{-P,--prompt}'[always display a prompt]' \
+  '(-y --assume-yes)'{-y,--assume-yes}'[assume yes answer to questions]' \
+  '(-F --display-format)'{-F,--display-format}'[specify output format for search command]:format:_aptitude_format_strings' \
+  '(-O --sort)'{-O,--sort}'[specify sort order]:sort order:()' \
+  '(-w --width)'{-w,--width}'[specify output width]:width' \
+  '-f[aggressively try to fix dependencies of broken packages]' \
+  '(-V --show-versions)'{-V,--show-versions}'[show which versions of packages will be installed]' \
+  '(-D --show-deps)'{-D,--show-deps}'[show brief explanations of automatic installations and removals]' \
+  '-Z[show disk space changes for each package]' \
+  '(-v --verbose)'{-v,--verbose}'[causes some commands to display extra information]' \
+  '(-R --without-recommends)'{-R,--with-recommends}'[install recommended packages when installing new packages]' \
+  '(--without-suggests)--with-suggests[install suggested packages when installing new packages]' \
+  '(-r --with-recommends)'{-r,--without-recommends}'[ignore recommended packages when installing new packages]' \
+  '(--with-suggests)--without-suggests[ignore suggested packages when installing new packages]' \
+  '(-t --target-release)'{-t,--target-release}'[set the release from which packages should be installed]:release:_aptitude_release' \
+  '(-q --quiet)'{-q=,--quiet=}'[less Output]:level' \
+  '--schedule-only[schedule operations to be performed in the future]' \
+  '--purge-unused[purge unused packages instead of removing]' \
+  '--visual-preview[start up the visual interface and display its preview screen]' \
+  '--full-resolver[attempts to resolve conflicts with a higher risk of breakage]' \
+  '--safe-resolver[attempts to resolve conflicts with a lower risk of breakage]' \
+  '-S[load the extended state information from non-standard state file]:state file:_files' \
+  '-u[begin updating the package lists as soon as the program starts]' \
+  '-i[displays a download preview when the program starts]' \
+  '1: :->cmds' \
+  '*: :->args' && ret=0
+
+case $state in
+  cmds)
+    cmds=( ${${(M)${(f)"$(_call_program commands aptitude -h 2>/dev/null)"}:# [^- ][^ ]## *}/(#b) ([^ ]##) ##(- )#([^- ]*)/$match[1]:$match[3]:l})
+
+    _describe -t commands 'aptitude command' cmds && ret=0
+  ;;
+  args)
+    case $line[1] in
+      search)
+        _message -e patterns pattern
+      ;;
+      (download|show|changelog|why|why-not|build-dep|build-depends)
+        _deb_packages avail && ret=0
+      ;;
+      (remove|purge|hold|unhold|reinstall|forbid-version|markauto|unmarkauto)
+        _deb_packages installed && ret=0
+      ;;
+      install)
+        _deb_packages uninstalled && ret=0
+      ;;
+      *)
+        (( ret )) && _message 'no more arguments'
+      ;;
+    esac
+  ;;
+esac
+
+return ret

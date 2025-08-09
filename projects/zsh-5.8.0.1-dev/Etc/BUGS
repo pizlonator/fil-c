@@ -1,0 +1,33 @@
+-----------------
+KNOWN BUGS IN ZSH
+-----------------
+
+------------------------------------------------------------------------
+The pattern %?* matches names beginning with %? instead of names with at
+least two characters beginning with %. This is a hack to allow %?foo job
+substitution without quoting. This behaviour is incompatible with sh
+and ksh and may be removed in the future. A good fix would be to keep
+such patterns unchanged if they do not match regardless of the state of
+the nonomatch and nullglob options.
+------------------------------------------------------------------------
+It is currently impossible to time builtins.
+------------------------------------------------------------------------
+40106: The comp* completion-related builtins (compadd, compset, etc) are
+run with $_comp_options in effect, rather than the user's options.
+------------------------------------------------------------------------
+users/20807: vcs_info quilt 'addon' mode: hook lookup context specifies
+the underlying VCS but not whether quilt is used.
+
+Workaround: test (( ${+funcstack[(r)VCS_INFO_quilt]} )).
+------------------------------------------------------------------------
+41184: 'exec' optimization for last command in a subshell should be
+skipped when STTY=... is set for that command
+------------------------------------------------------------------------
+41203 and others: Make it easier to maintain C modules out of tree.
+(May require defining a stable API for modules, see 41254)
+------------------------------------------------------------------------
+44007 - Martijn - exit in trap executes rest of function
+See test case in Test/C03traps.ztst.
+------------------------------------------------------------------------
+45282: ${${:-foo}:P} where foo is a symlink that points to itself segfaults
+------------------------------------------------------------------------
