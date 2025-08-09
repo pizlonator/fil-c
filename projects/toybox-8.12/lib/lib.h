@@ -422,7 +422,7 @@ void names_to_pid(char **names, int (*callback)(pid_t pid, char *name),
     int scripts);
 
 pid_t __attribute__((returns_twice)) xvforkwrap(pid_t pid);
-#define XVFORK() xvforkwrap(vfork())
+#define XVFORK() xvforkwrap(({ errno = ENOSYS; -1; }))
 
 // Wrapper to make xfuncs() return (via siglongjmp) instead of exiting.
 // Assigns true/false "did it exit" value to first argument.

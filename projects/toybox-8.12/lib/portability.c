@@ -6,6 +6,8 @@
 
 #include "toys.h"
 
+#include <stdfil.h>
+
 // We can't fork() on nommu systems, and vfork() requires an exec() or exit()
 // before resuming the parent (because they share a heap until then). And no,
 // we can't implement our own clone() call that does the equivalent of fork()
@@ -447,7 +449,8 @@ void xsignal_all_killers(void *handler)
   int i;
 
   for (i = 1; signames[i].num != SIGCHLD; i++)
-    if (signames[i].num != SIGKILL) xsignal(signames[i].num, handler);
+    if (signames[i].num != SIGKILL && !zis_unsafe_signal_for_handlers(signames[i].num))
+      xsignal(signames[i].num, handler);
 }
 
 // Convert a string like "9", "KILL", "SIGHUP", or "SIGRTMIN+2" to a number.

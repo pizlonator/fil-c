@@ -329,13 +329,13 @@ static int color_from_mode(mode_t mode)
   return color;
 }
 
-static void zprint(int zap, char *pat, int len, unsigned long arg)
+static void zprint(int zap, char *pat, int len, void *arg)
 {
   char tmp[32];
 
   sprintf(tmp, "%%*%s", zap ? "s" : pat);
   if (zap && pat[strlen(pat)-1]==' ') strcat(tmp, " ");
-  printf(tmp, len, zap ? (unsigned long)"?" : arg);
+  printf(tmp, len, zap ? "?" : arg);
 }
 
 // Display a list of dirtree entries, according to current format
@@ -480,24 +480,24 @@ static void listfiles(int dirfd, struct dirtree *indir)
     }
     width += *len;
 
-    if (FLAG(i)) zprint(zap, "lu ", totals[1], st->st_ino);
+    if (FLAG(i)) zprint(zap, "lu ", totals[1], (void*)st->st_ino);
 
     if (FLAG(s)) {
       print_with_h(tmp, st->st_blocks, 1);
-      zprint(zap, "s ", totals[6], (unsigned long)tmp);
+      zprint(zap, "s ", totals[6], tmp);
     }
 
     if (FLAG(l)||FLAG(o)||FLAG(n)||FLAG(g)) {
       mode_to_string(mode, tmp);
       if (zap) memset(tmp+1, '?', 9);
       printf("%s", tmp);
-      zprint(zap, "ld", totals[2]+1, st->st_nlink);
+      zprint(zap, "ld", totals[2]+1, (void*)st->st_nlink);
 
       // print user
       if (!FLAG(g)) {
         putchar(' ');
         ii = -totals[3];
-        if (zap || FLAG(n)) zprint(zap, "lu", ii, st->st_uid);
+        if (zap || FLAG(n)) zprint(zap, "lu", ii, (void*)st->st_uid);
         else draw_trim_esc(getusername(st->st_uid), ii, abs(ii), TT.escmore,
                            crunch_qb);
       }
@@ -506,7 +506,7 @@ static void listfiles(int dirfd, struct dirtree *indir)
       if (!FLAG(o)) {
         putchar(' ');
         ii = -totals[4];
-        if (zap || FLAG(n)) zprint(zap, "lu", ii, st->st_gid);
+        if (zap || FLAG(n)) zprint(zap, "lu", ii, (void*)st->st_gid);
         else draw_trim_esc(getgroupname(st->st_gid), ii, abs(ii), TT.escmore,
                            crunch_qb);
       }
@@ -522,7 +522,7 @@ static void listfiles(int dirfd, struct dirtree *indir)
           dev_minor(st->st_rdev));
       else {
         print_with_h(tmp, st->st_size, 0);
-        zprint(zap, "s", totals[5]+1, (unsigned long)tmp);
+        zprint(zap, "s", totals[5]+1, tmp);
       }
 
       // print time, always in --time-style=long-iso
@@ -534,7 +534,7 @@ static void listfiles(int dirfd, struct dirtree *indir)
         s += sprintf(s, ":%02d.%09d ", tm->tm_sec, (int)st->st_mtim.tv_nsec);
         strftime(s, sizeof(tmp)-(s-tmp), "%z", tm);
       }
-      zprint(zap, "s ", 17+(TT.l>1)*13, (unsigned long)tmp);
+      zprint(zap, "s ", 17+(TT.l>1)*13, tmp);
     }
 
     if (FLAG(color)) {
@@ -557,7 +557,7 @@ static void listfiles(int dirfd, struct dirtree *indir)
         if (color) printf("\e[%d;%dm", color>>8, color&255);
       }
 
-      zprint(zap, "s", 0, (unsigned long)dt->symlink);
+      zprint(zap, "s", 0, dt->symlink);
       if (!zap && color) printf("\e[0m");
     }
 

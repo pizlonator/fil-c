@@ -59,7 +59,7 @@ static void oneit_signaled(int signal)
   // which causes the kernel to panic before the actual reboot happens.
   sync();
   if (getpid()!=1) _exit(127+signal);
-  if (!vfork()) reboot(action);
+  if (!fork()) reboot(action);
 }
 
 void oneit_main(void)
@@ -105,7 +105,7 @@ void oneit_main(void)
   while (!toys.signal) {
 
     // Create a new child process.
-    pid = XVFORK();
+    pid = fork();
     if (pid) {
 
       // pid 1 reaps zombies until it gets its child, then halts system.
