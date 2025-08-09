@@ -1,0 +1,84 @@
+proc ulam1 {n} {
+    set max $n
+    while {$n != 1} {
+	if {$n > $max} {
+	    set max $n
+	}
+	if {$n % 2} {
+	    set n [expr {3 * $n + 1}]
+	} else {
+	    set n [expr {$n / 2}]
+	}
+    }
+    return $max
+}
+
+set tcl_traceCompile 2; ulam1 1; set tcl_traceCompile 0
+
+proc ulam2 {n} {
+    tcl::unsupported::assemble {
+	load n;		# max
+	dup;		# max n
+	jump start;     # max n
+
+	label loop;	# max n
+	over 1;         # max n max
+	over 1;		# max in max n
+	ge;             # man n max>=n
+	jumpTrue skip;  # max n
+
+	reverse 2;      # n max
+	pop;            # n
+	dup;            # n n
+
+	label skip;	# max n
+	dup;            # max n n
+	push 2;         # max n n 2
+	mod;            # max n n%2
+	jumpTrue odd;   # max n
+
+	push 2;         # max n 2
+	div;            # max n/2 -> max n
+	jump start;     # max n
+
+	label odd;	# max n
+	push 3;         # max n 3
+	mult;           # max 3*n
+	push 1;         # max 3*n 1
+	add;            # max 3*n+1
+
+	label start;	# max n
+	dup;		# max n n
+	push 1;		# max n n 1
+	neq;		# max n n>1
+	jumpTrue loop;	# max n
+
+	pop;		# max
+    }
+}
+set tcl_traceCompile 2; ulam2 1; set tcl_traceCompile 0
+
+proc test1 {n} {
+    for {set i 1} {$i <= $n} {incr i} {
+	ulam1 $i
+    }
+}
+proc test2 {n} {
+    for {set i 1} {$i <= $n} {incr i} {
+	ulam2 $i
+    }
+}
+
+for {set j 0} {$j < 10} {incr j} {
+    test1 1
+    set before [clock microseconds]
+    test1 30000
+    set after [clock microseconds]
+    puts "compiled: [expr {1e-6 * ($after - $before)}]"
+
+    test2 1
+    set before [clock microseconds]
+    test2 30000
+    set after [clock microseconds]
+    puts "assembled: [expr {1e-6 * ($after - $before)}]"
+}

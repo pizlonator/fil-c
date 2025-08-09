@@ -1,0 +1,20 @@
+This directory contains unsupported tools used to build parts of Tcl
+for distribution.
+
+
+uniParse.tcl -- Script for converting the Unicode character database
+	into a compact table stored in generic/tclUniData.c.
+
+uniClass.tcl -- Script for generating regexp class tables from the Tcl
+	"string is" classes
+
+Generating HTML files.
+The tcltk-man2html.tcl script generates a nice set of HTML with
+good cross references. Use it like
+    cd unix
+    ./configure
+    make html
+This script is very picky about the organization of man pages,
+effectively acting as a style enforcer.
+The resulting documentation can be found at
+    /tmp/dist/tcl<version>/html

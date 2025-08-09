@@ -1,0 +1,265 @@
+#
+#   Name:             MacOS_Symbol [to Unicode]
+#   Unicode versions: 1.1, 2.0
+#   Table version:    0.2 (from internal ufrm version <4>)
+#   Date:             15 April 1995
+#   Author:           Peter Edberg <edberg1@applelink.apple.com>
+#
+#   Copyright (c) 1995 Apple Computer, Inc.  All Rights reserved.
+#
+#   Apple, the Apple logo, and Macintosh are trademarks of Apple
+#   Computer, Inc., registered in the United States and other countries.
+#   Unicode is a trademark of Unicode Inc. For the sake of brevity,
+#   throughout this document, "Macintosh" can be used to refer to
+#   Macintosh computers and "Unicode" can be used to refer to the
+#   Unicode standard.
+#
+#   Apple makes no warranty or representation, either express or
+#   implied, with respect to these tables, their quality, accuracy, or
+#   fitness for a particular purpose. In no event will Apple be liable
+#   for direct, indirect, special, incidental, or consequential damages
+#   resulting from any defect or inaccuracy in this document or the
+#   accompanying tables.
+#
+#   These mapping tables and character lists are preliminary and
+#   subject to change. Updated tables will be available from the
+#   Unicode Inc. ftp site (unicode.org), the Apple Computer ftp site
+#   (ftp.info.apple.com), the Apple Computer World-Wide Web pages
+#   (http://www.info.apple.com), and possibly on diskette from APDA
+#   (Apple's mail-order distribution service for developers).
+#
+#   Format:
+#   -------
+#
+#   Three tab-separated columns;
+#   '#' begins a comment which continues to the end of the line.
+#     Column #1 is the MacOS Symbol code (in hex as 0xNN)
+#     Column #2 is the Unicode (in hex as 0xNNNN)
+#     Column #3 is the Unicode name (follows a comment sign, '#')
+#
+#   The entries are in MacOS Symbol code order.
+#
+#   Several of these mappings require the use of corporate
+#   characters, including the Apple logo character. See the file
+#   "MacOS-CorpCharList".
+#   NOTE: The graphic image associated with the Apple logo character
+#   is not authorized for use without permission of Apple, and
+#   unauthorized use might constitute trademark infringement.
+#
+#   Notes on MacOS Symbol:
+#   ----------------------
+#
+#   The MacOS Symbol encoding shares the script code smRoman
+#   (0) with the standard MacOS Roman encoding. To determine if
+#   the Symbol encoding is being used, you must check if the
+#   font name is "Symbol".
+#
+#   The layout of the MacOS Symbol character set is identical to
+#   the layout of the Adobe Symbol encoding vector, with the
+#   addition of the Apple logo character at 0xF0.
+#
+#   This character set encodes a number of glyph fragments. Some are
+#   used as extenders: 0x60 is used to extend radical signs, 0xBD and
+#   0xBE are used to extend vertical and horizontal arrows, etc. In
+#   addition, there are top, bottom, and center sections for
+#   parentheses, brackets, integral signs, and other signs that may
+#   extend vertically for 2 or more lines of normal text. In general,
+#   Unicode does not encode such fragments, so corporate characters
+#   are used for round-trip fidelity.
+#
+#   In addition, Symbol separately encodes both serif and sans-serif
+#   forms for copyright, trademark, and registered signs. Unicode
+#   encodes only the abstract characters, so one set of these (the
+#   sans-serif forms) are mapped using corporate characters.
+#
+##################
+
+0x20	0x0020	# SPACE
+0x21	0x0021	# EXCLAMATION MARK
+0x22	0x2200	# FOR ALL
+0x23	0x0023	# NUMBER SIGN
+0x24	0x2203	# THERE EXISTS
+0x25	0x0025	# PERCENT SIGN
+0x26	0x0026	# AMPERSAND
+0x27	0x220D	# SMALL CONTAINS AS MEMBER
+0x28	0x0028	# LEFT PARENTHESIS
+0x29	0x0029	# RIGHT PARENTHESIS
+0x2A	0x2217	# ASTERISK OPERATOR
+0x2B	0x002B	# PLUS SIGN
+0x2C	0x002C	# COMMA
+0x2D	0x2212	# MINUS SIGN
+0x2E	0x002E	# FULL STOP
+0x2F	0x002F	# SOLIDUS
+0x30	0x0030	# DIGIT ZERO
+0x31	0x0031	# DIGIT ONE
+0x32	0x0032	# DIGIT TWO
+0x33	0x0033	# DIGIT THREE
+0x34	0x0034	# DIGIT FOUR
+0x35	0x0035	# DIGIT FIVE
+0x36	0x0036	# DIGIT SIX
+0x37	0x0037	# DIGIT SEVEN
+0x38	0x0038	# DIGIT EIGHT
+0x39	0x0039	# DIGIT NINE
+0x3A	0x003A	# COLON
+0x3B	0x003B	# SEMICOLON
+0x3C	0x003C	# LESS-THAN SIGN
+0x3D	0x003D	# EQUALS SIGN
+0x3E	0x003E	# GREATER-THAN SIGN
+0x3F	0x003F	# QUESTION MARK
+0x40	0x2245	# APPROXIMATELY EQUAL TO
+0x41	0x0391	# GREEK CAPITAL LETTER ALPHA
+0x42	0x0392	# GREEK CAPITAL LETTER BETA
+0x43	0x03A7	# GREEK CAPITAL LETTER CHI
+0x44	0x0394	# GREEK CAPITAL LETTER DELTA
+0x45	0x0395	# GREEK CAPITAL LETTER EPSILON
+0x46	0x03A6	# GREEK CAPITAL LETTER PHI
+0x47	0x0393	# GREEK CAPITAL LETTER GAMMA
+0x48	0x0397	# GREEK CAPITAL LETTER ETA
+0x49	0x0399	# GREEK CAPITAL LETTER IOTA
+0x4A	0x03D1	# GREEK THETA SYMBOL
+0x4B	0x039A	# GREEK CAPITAL LETTER KAPPA
+0x4C	0x039B	# GREEK CAPITAL LETTER LAMBDA
+0x4D	0x039C	# GREEK CAPITAL LETTER MU
+0x4E	0x039D	# GREEK CAPITAL LETTER NU
+0x4F	0x039F	# GREEK CAPITAL LETTER OMICRON
+0x50	0x03A0	# GREEK CAPITAL LETTER PI
+0x51	0x0398	# GREEK CAPITAL LETTER THETA
+0x52	0x03A1	# GREEK CAPITAL LETTER RHO
+0x53	0x03A3	# GREEK CAPITAL LETTER SIGMA
+0x54	0x03A4	# GREEK CAPITAL LETTER TAU
+0x55	0x03A5	# GREEK CAPITAL LETTER UPSILON
+0x56	0x03C2	# GREEK SMALL LETTER FINAL SIGMA
+0x57	0x03A9	# GREEK CAPITAL LETTER OMEGA
+0x58	0x039E	# GREEK CAPITAL LETTER XI
+0x59	0x03A8	# GREEK CAPITAL LETTER PSI
+0x5A	0x0396	# GREEK CAPITAL LETTER ZETA
+0x5B	0x005B	# LEFT SQUARE BRACKET
+0x5C	0x2234	# THEREFORE
+0x5D	0x005D	# RIGHT SQUARE BRACKET
+0x5E	0x22A5	# UP TACK
+0x5F	0x005F	# LOW LINE
+0x60	0xF8E5	# radical extender
+0x61	0x03B1	# GREEK SMALL LETTER ALPHA
+0x62	0x03B2	# GREEK SMALL LETTER BETA
+0x63	0x03C7	# GREEK SMALL LETTER CHI
+0x64	0x03B4	# GREEK SMALL LETTER DELTA
+0x65	0x03B5	# GREEK SMALL LETTER EPSILON
+0x66	0x03C6	# GREEK SMALL LETTER PHI
+0x67	0x03B3	# GREEK SMALL LETTER GAMMA
+0x68	0x03B7	# GREEK SMALL LETTER ETA
+0x69	0x03B9	# GREEK SMALL LETTER IOTA
+0x6A	0x03D5	# GREEK PHI SYMBOL
+0x6B	0x03BA	# GREEK SMALL LETTER KAPPA
+0x6C	0x03BB	# GREEK SMALL LETTER LAMBDA
+0x6D	0x03BC	# GREEK SMALL LETTER MU
+0x6E	0x03BD	# GREEK SMALL LETTER NU
+0x6F	0x03BF	# GREEK SMALL LETTER OMICRON
+0x70	0x03C0	# GREEK SMALL LETTER PI
+0x71	0x03B8	# GREEK SMALL LETTER THETA
+0x72	0x03C1	# GREEK SMALL LETTER RHO
+0x73	0x03C3	# GREEK SMALL LETTER SIGMA
+0x74	0x03C4	# GREEK SMALL LETTER TAU
+0x75	0x03C5	# GREEK SMALL LETTER UPSILON
+0x76	0x03D6	# GREEK PI SYMBOL
+0x77	0x03C9	# GREEK SMALL LETTER OMEGA
+0x78	0x03BE	# GREEK SMALL LETTER XI
+0x79	0x03C8	# GREEK SMALL LETTER PSI
+0x7A	0x03B6	# GREEK SMALL LETTER ZETA
+0x7B	0x007B	# LEFT CURLY BRACKET
+0x7C	0x007C	# VERTICAL LINE
+0x7D	0x007D	# RIGHT CURLY BRACKET
+0x7E	0x223C	# TILDE OPERATOR
+0xA1	0x03D2	# GREEK UPSILON WITH HOOK SYMBOL
+0xA2	0x2032	# PRIME
+0xA3	0x2264	# LESS-THAN OR EQUAL TO
+0xA4	0x2044	# FRACTION SLASH
+0xA5	0x221E	# INFINITY
+0xA6	0x0192	# LATIN SMALL LETTER F WITH HOOK
+0xA7	0x2663	# BLACK CLUB SUIT
+0xA8	0x2666	# BLACK DIAMOND SUIT
+0xA9	0x2665	# BLACK HEART SUIT
+0xAA	0x2660	# BLACK SPADE SUIT
+0xAB	0x2194	# LEFT RIGHT ARROW
+0xAC	0x2190	# LEFTWARDS ARROW
+0xAD	0x2191	# UPWARDS ARROW
+0xAE	0x2192	# RIGHTWARDS ARROW
+0xAF	0x2193	# DOWNWARDS ARROW
+0xB0	0x00B0	# DEGREE SIGN
+0xB1	0x00B1	# PLUS-MINUS SIGN
+0xB2	0x2033	# DOUBLE PRIME
+0xB3	0x2265	# GREATER-THAN OR EQUAL TO
+0xB4	0x00D7	# MULTIPLICATION SIGN
+0xB5	0x221D	# PROPORTIONAL TO
+0xB6	0x2202	# PARTIAL DIFFERENTIAL
+0xB7	0x2022	# BULLET
+0xB8	0x00F7	# DIVISION SIGN
+0xB9	0x2260	# NOT EQUAL TO
+0xBA	0x2261	# IDENTICAL TO
+0xBB	0x2248	# ALMOST EQUAL TO
+0xBC	0x2026	# HORIZONTAL ELLIPSIS
+0xBD	0xF8E6	# vertical arrow extender
+0xBE	0xF8E7	# horizontal arrow extender
+0xBF	0x21B5	# DOWNWARDS ARROW WITH CORNER LEFTWARDS
+0xC0	0x2135	# ALEF SYMBOL
+0xC1	0x2111	# BLACK-LETTER CAPITAL I
+0xC2	0x211C	# BLACK-LETTER CAPITAL R
+0xC3	0x2118	# SCRIPT CAPITAL P
+0xC4	0x2297	# CIRCLED TIMES
+0xC5	0x2295	# CIRCLED PLUS
+0xC6	0x2205	# EMPTY SET
+0xC7	0x2229	# INTERSECTION
+0xC8	0x222A	# UNION
+0xC9	0x2283	# SUPERSET OF
+0xCA	0x2287	# SUPERSET OF OR EQUAL TO
+0xCB	0x2284	# NOT A SUBSET OF
+0xCC	0x2282	# SUBSET OF
+0xCD	0x2286	# SUBSET OF OR EQUAL TO
+0xCE	0x2208	# ELEMENT OF
+0xCF	0x2209	# NOT AN ELEMENT OF
+0xD0	0x2220	# ANGLE
+0xD1	0x2207	# NABLA
+0xD2	0x00AE	# REGISTERED SIGN
+0xD3	0x00A9	# COPYRIGHT SIGN
+0xD4	0x2122	# TRADE MARK SIGN
+0xD5	0x220F	# N-ARY PRODUCT
+0xD6	0x221A	# SQUARE ROOT
+0xD7	0x22C5	# DOT OPERATOR
+0xD8	0x00AC	# NOT SIGN
+0xD9	0x2227	# LOGICAL AND
+0xDA	0x2228	# LOGICAL OR
+0xDB	0x21D4	# LEFT RIGHT DOUBLE ARROW
+0xDC	0x21D0	# LEFTWARDS DOUBLE ARROW
+0xDD	0x21D1	# UPWARDS DOUBLE ARROW
+0xDE	0x21D2	# RIGHTWARDS DOUBLE ARROW
+0xDF	0x21D3	# DOWNWARDS DOUBLE ARROW
+0xE0	0x22C4	# DIAMOND OPERATOR
+0xE1	0x2329	# LEFT-POINTING ANGLE BRACKET
+0xE2	0xF8E8	# registered sign sans serif
+0xE3	0xF8E9	# copyright sign sans serif
+0xE4	0xF8EA	# trade mark sign sans serif
+0xE5	0x2211	# N-ARY SUMMATION
+0xE6	0xF8EB	# left paren top
+0xE7	0xF8EC	# left paren extender
+0xE8	0xF8ED	# left paren bottom
+0xE9	0xF8EE	# left square bracket top
+0xEA	0xF8EF	# left square bracket extender
+0xEB	0xF8F0	# left square bracket bottom
+0xEC	0xF8F1	# left curly bracket top
+0xED	0xF8F2	# left curly bracket mid
+0xEE	0xF8F3	# left curly bracket bottom
+0xEF	0xF8F4	# curly bracket extender
+0xF0	0xF8FF	# Apple logo
+0xF1	0x232A	# RIGHT-POINTING ANGLE BRACKET
+0xF2	0x222B	# INTEGRAL
+0xF3	0x2320	# TOP HALF INTEGRAL
+0xF4	0xF8F5	# integral extender
+0xF5	0x2321	# BOTTOM HALF INTEGRAL
+0xF6	0xF8F6	# right paren top
+0xF7	0xF8F7	# right paren extender
+0xF8	0xF8F8	# right paren bottom
+0xF9	0xF8F9	# right square bracket top
+0xFA	0xF8FA	# right square bracket extender
+0xFB	0xF8FB	# right square bracket bottom
+0xFC	0xF8FC	# right curly bracket top
+0xFD	0xF8FD	# right curly bracket mid
+0xFE	0xF8FE	# right curly bracket bottom

@@ -1,0 +1,177 @@
+# This file is a Tcl script to test the [tcl_startOf|endOf]* functions in
+# word.tcl.  It is organized in the standard fashion for Tcl tests.
+#
+# Copyright (c) 2024 Jan Nijtmans
+# All rights reserved.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+::tcltest::loadTestedCommands
+catch [list package require -exact tcl::test [info patchlevel]]
+
+test word-1.0 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" -1
+} -result 2
+test word-1.1 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" 0
+} -result 2
+test word-1.2 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" 1
+} -result 2
+test word-1.3 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" 2
+} -result -1
+test word-1.4 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" 3
+} -result -1
+test word-1.5 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" 4
+} -result -1
+test word-1.6 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" 5
+} -result -1
+test word-1.7 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" end
+} -result -1
+test word-1.8 {tcl_endOfWord} -body {
+    tcl_endOfWord "ab cd" end-1
+} -result -1
+
+test word-2.0 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" -1
+} -result -1
+test word-2.1 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" 0
+} -result -1
+test word-2.2 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" 1
+} -result 0
+test word-2.3 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" 2
+} -result 0
+test word-2.4 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" 3
+} -result 0
+test word-2.5 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" 4
+} -result 3
+test word-2.6 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" 5
+} -result 3
+test word-2.7 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord "ab cd" end
+} -result 3
+test word-2.8 {tcl_startOfPreviousWord, bug [16e25e1402]} -body {
+    tcl_startOfPreviousWord "ab cd" end-1
+} -result 0
+
+test word-3.0 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" -1
+} -result 3
+test word-3.1 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" 0
+} -result 3
+test word-3.2 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" 1
+} -result 3
+test word-3.3 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" 2
+} -result 3
+test word-3.4 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" 3
+} -result -1
+test word-3.5 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" 4
+} -result -1
+test word-3.6 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" 5
+} -result -1
+test word-3.7 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" end
+} -result -1
+test word-3.8 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord "ab cd" end-1
+} -result -1
+
+test word-4.0 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" -1
+} -result -1
+test word-4.1 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" 0
+} -result -1
+test word-4.2 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" 1
+} -result -1
+test word-4.3 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" 2
+} -result 2
+test word-4.4 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" 3
+} -result 3
+test word-4.5 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" 4
+} -result 3
+test word-4.6 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" 5
+} -result 3
+test word-4.7 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore "ab cd" end
+} -result 3
+test word-4.8 {tcl_wordBreakBefore} -body {
+    tcl_startOfNextWord "ab cd" end-1
+} -result -1
+
+test word-5.0 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" -1
+} -result 2
+test word-5.1 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" 0
+} -result 2
+test word-5.2 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" 1
+} -result 2
+test word-5.3 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" 2
+} -result 3
+test word-5.4 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" 3
+} -result -1
+test word-5.5 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" 4
+} -result -1
+test word-5.6 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" 5
+} -result -1
+test word-5.7 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" end
+} -result -1
+test word-5.8 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter "ab cd" end-1
+} -result -1
+
+test word-6.0 {tcl_startOfPreviousWord} -body {
+    tcl_startOfPreviousWord a b c d
+} -returnCodes 1 -result {wrong # args: should be "tcl_startOfPreviousWord str start"}
+test word-6.1 {tcl_startOfNextWord} -body {
+    tcl_startOfNextWord a b c d
+} -returnCodes 1 -result {wrong # args: should be "tcl_startOfNextWord str start"}
+test word-6.2 {tcl_endOfWord} -body {
+    tcl_endOfWord a b c d
+} -returnCodes 1 -result {wrong # args: should be "tcl_endOfWord str start"}
+test word-6.3 {tcl_wordBreakBefore} -body {
+    tcl_wordBreakBefore a b c d
+} -returnCodes 1 -result {wrong # args: should be "tcl_wordBreakBefore str start"}
+test word-6.4 {tcl_wordBreakAfter} -body {
+    tcl_wordBreakAfter a b c d
+} -returnCodes 1 -result {wrong # args: should be "tcl_wordBreakAfter str start"}
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

@@ -1,0 +1,4467 @@
+--- BEGIN (CJK.INF VERSION 2.1 07/12/96) 185553 BYTES ---
+CJK.INF Version 2.1 (July 12, 1996)
+
+Copyright (C) 1995-1996 Ken Lunde. All Rights Reserved.
+
+CJK is a registered trademark and service mark of The Research
+  Libraries Group, Inc.
+
+Online Companion to "Understanding Japanese Information Processing"
+- ENGLISH: 1993, O'Reilly & Associates, Inc., ISBN 1-56592-043-0
+- JAPANESE: 1995, SOFTBANK Corporation, ISBN 4-89052-708-7
+
+
+	This online document provides information on CJK (that is,
+Chinese, Japanese, and Korean) character set standards and encoding
+systems. In short, it provides detailed information on how CJK text is
+handled electronically. I am happy to share this information with
+others, and I would appreciate any comments/feedback on its content.
+The current version (master copy) of this document is maintained at:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/doc/cjk.inf
+
+This file may also be obtained by contacting me directly using one of
+the e-mail addresses listed in the CONTACT INFORMATION section.
+
+
+TABLE OF CONTENTS
+
+  VERSION HISTORY
+  RESTRICTIONS
+  CONTACT INFORMATION
+  WHAT HAPPENED TO JAPAN.INF?
+  DISCLAIMER
+  CONVENTIONS
+  INTRODUCTION
+  PART 1: WHAT'S UP WITH UJIP?
+  PART 2: CJK CHARACTER SET STANDARDS
+    2.1: JAPANESE
+      2.1.1: JIS X 0201-1976
+      2.1.2: JIS X 0208-1990
+      2.1.3: JIS X 0212-1990
+      2.1.4: JIS X 0221-1995
+      2.1.5: JIS X 0213-199X
+      2.1.6: OBSOLETE STANDARDS
+    2.2: CHINESE (PRC)
+      2.2.1: GB 1988-89
+      2.2.2: GB 2312-80
+      2.2.3: GB 6345.1-86
+      2.2.4: GB 7589-87
+      2.2.5: GB 7590-87
+      2.2.6: GB 8565.2-88
+      2.2.7: GB/T 12345-90
+      2.2.8: GB/T 13131-9X
+      2.2.9: GB/T 13132-9X
+      2.2.10: GB 13000.1-93
+      2.2.11: ISO-IR-165:1992
+      2.2.12: OBSOLETE STANDARDS
+    2.3: CHINESE (TAIWAN)
+      2.3.1: BIG FIVE
+      2.3.2: CNS 11643-1992
+      2.3.3: CNS 5205
+      2.3.4: OBSOLETE STANDARDS
+    2.4: KOREAN
+      2.4.1: KS C 5636-1993
+      2.4.2: KS C 5601-1992
+      2.4.3: KS C 5657-1991
+      2.4.4: GB 12052-89
+      2.4.5: KS C 5700-1995
+      2.4.6: OBSOLETE STANDARDS
+    2.5: CJK
+      2.5.1: ISO 10646-1:1993
+      2.5.2: CCCII
+      2.5.3: ANSI Z39.64-1989
+    2.6: OTHER
+      2.6.1: GB 8045-87
+      2.6.2: TCVN-5773:1993
+  PART 3: CJK ENCODING SYSTEMS
+    3.1: 7-BIT ISO 2022 ENCODING
+      3.1.1: CODE SPACE
+      3.1.2: ISO-REGISTERED ESCAPE SEQUENCES
+      3.1.3: ISO-2022-JP AND ISO-2022-JP-2
+      3.1.4: ISO-2022-KR
+      3.1.5: ISO-2022-CN AND ISO-2022-CN-EXT
+    3.2: EUC ENCODING
+      3.2.1: JAPANESE REPRESENTATION
+      3.2.2: CHINESE (PRC) REPRESENTATION
+      3.2.3: CHINESE (TAIWAN) REPRESENTATION
+      3.2.4: KOREAN REPRESENTATION
+    3.3: LOCALE-SPECIFIC ENCODINGS
+      3.3.1: SHIFT-JIS
+      3.3.2: HZ (HZ-GB-2312)
+      3.3.3: zW
+      3.3.4: BIG FIVE
+      3.3.5: JOHAB
+      3.3.6: N-BYTE HANGUL
+      3.3.7: UCS-2
+      3.3.8: UCS-4
+      3.3.9: UTF-7
+      3.3.10: UTF-8
+      3.3.11: UTF-16
+      3.3.12: ANSI Z39.64-1989
+      3.3.13: BASE64
+      3.3.14: IBM DBCS-HOST
+      3.3.15: IBM DBCS-PC
+      3.3.16: IBM DBCS-/TBCS-EUC
+      3.3.17: UNIFIED HANGUL CODE
+      3.3.18: TRON CODE
+      3.3.19: GBK
+    3.4: CJK CODE PAGES
+  PART 4: CJK CHARACTER SET COMPATIBILITY ISSUES
+    4.1: JAPANESE
+    4.2: CHINESE (PRC)
+    4.3: CHINESE (TAIWAN)
+    4.4: KOREAN
+    4.5: ISO 10646-1:1993
+    4.6: UNICODE
+    4.7: CODE CONVERSION TIPS
+  PART 5: CJK-CAPABLE OPERATING SYSTEMS
+    5.1: MS-DOS
+    5.2: WINDOWS
+    5.3: MACINTOSH
+    5.4: UNIX AND X WINDOWS
+    5.5: OTHERS
+  PART 6: CJK TEXT AND INTERNET SERVICES
+    6.1: ELECTRONIC MAIL
+    6.2: USENET NEWS
+    6.3: GOPHER
+    6.4: WORLD-WIDE WEB
+    6.5: FILE TRANSFER TIPS
+  PART 7: CJK TEXT HANDLING SOFTWARE
+    7.1: MULE
+    7.2: CNPRINT
+    7.3: MASS
+    7.4: ADOBE TYPE MANAGER (ATM)
+    7.5: MACINTOSH SOFTWARE
+    7.6: MACBLUE TELNET
+    7.7: CXTERM
+    7.8: UW-DBM
+    7.9: POSTSCRIPT
+    7.10: NJWIN
+  PART 8: CJK PROGRAMMING ISSUES
+    8.1: C AND C++
+    8.2: PERL
+    8.3: JAVA
+  A FINAL NOTE
+  ACKNOWLEDGMENTS
+  APPENDIX A: INFORMATION SOURCES
+    A.1: USENET NEWSGROUPS AND MAILING LISTS
+      A.1.1: USENET NEWSGROUPS
+      A.1.2: MAILING LISTS
+    A.2: INTERNET RESOURCES
+      A.2.1: USEFUL FTP SITES
+      A.2.2: USEFUL TELNET SITES
+      A.2.3: USEFUL GOPHER SITES
+      A.2.4: USEFUL WWW SITES
+      A.2.5: USEFUL MAIL SERVERS
+    A.3: OTHER RESOURCES
+      A.3.1: BOOKS
+      A.3.2: MAGAZINES
+      A.3.3: JOURNALS
+      A.3.4: RFCs
+      A.3.5: FAQs
+
+
+VERSION HISTORY
+
+	The following is a complete listing of the earlier versions of
+this document along with their release dates and sizes (in bytes):
+
+  Document   Version  Release Date  Size
+  ^^^^^^^^   ^^^^^^^  ^^^^^^^^^^^^  ^^^^
+  JAPAN.INF  1.0      Unknown       Unknown
+  JAPAN.INF  1.1      08/19/91      101,784
+  JAPAN.INF  1.2      03/20/92      166,929 (JIS) or 165,639 (Shift-JIS/EUC)
+  CJK.INF    1.0      06/09/95      103,985
+  CJK.INF    1.1      06/12/95      112,771
+  CJK.INF    1.2      06/14/95      125,275
+  CJK.INF    1.3      06/16/95      130,069
+  CJK.INF    1.4      06/19/95      142,543
+  CJK.INF    1.5      06/22/95      146,064
+  CJK.INF    1.6      06/29/95      150,882
+  CJK.INF    1.7      08/15/95      153,772
+  CJK.INF    1.8      09/11/95      157,295
+  CJK.INF    1.9      12/18/95      170,698
+  CJK.INF    2.0      03/12/96      175,973
+
+With the release of this version, all of the above are now considered
+obsolete. Also, note the three-year gap between the last installment
+of JAPAN.INF and the first installment of CJK.INF -- I was writing
+UJIP and my PhD dissertation during those three years. Ah, so much for
+excuses...
+
+
+RESTRICTIONS
+
+	This document is provided free-of-charge to *anyone*, but no
+person or company is permitted to modify, sell, or otherwise
+distribute it for profit or other purposes. This document may be
+bundled with commercial products only with the prior consent from the
+author, and provided that it is not modified in any way whatsoever.
+The point here is that I worked long and hard on this document so that
+lots of fine folks and companies can benefit from its contents -- not
+profit from it.
+
+
+CONTACT INFORMATION
+
+	I would enjoy hearing from readers of this document, even if
+it is just to say "hello" or whatever. I can be contacted as follows:
+
+  Ken Lunde
+  Adobe Systems Incorporated
+  1585 Charleston Road
+  P.O. Box 7900
+  Mountain View, CA 94039-7900 USA
+  415-962-3866 (office phone)
+  415-960-0886 (facsimile)
+  lunde@adobe.com (preferred)
+  lunde@ora.com or ujip@ora.com
+  WWW Home Page: http://jasper.ora.com/lunde/
+
+If you wonder what I do for my day job, read on.
+	I have been working for Adobe Systems for over four years now
+(before that I was a graduate student at UW-Madison), and my current
+position is Project Manager, CJK Type Development.
+
+
+WHAT HAPPENED TO JAPAN.INF?
+
+	Put bluntly, JAPAN.INF died. It first evolved into my first
+book entitled "Understanding Japanese Information Processing" (this
+book is now into its second printing, and the Japanese translation was
+just published). After my book came out, I did attempt to update
+JAPAN.INF, but the effort felt a bit futile. I decided that something
+fresh was necessary.
+	JAPAN.INF also evolved into this document, which breaks the
+Japanese barrier by providing similar information on Chinese and
+Korean character sets and encodings. It fills the Chinese and Korean
+gap, so to speak. My specialty (and hobby, believe it or not) is the
+field of CJK character sets and encoding systems, so I felt that
+shifting this document more towards those lines was appropriate use of
+my (copious) free time (I wish there were more than 24 hours in a
+day!). Besides, this document now becomes useful to a much broader
+audience.
+
+
+DISCLAIMER
+
+	Ah yes, the ever popular disclaimer! Here's mine. Although I
+list my address here at Adobe Systems Incorporated for contact
+purposes, Adobe Systems does not endorse this document which I have
+created, and have continued (and will continue) to update on a regular
+basis (uh, yeah, I promise this time!). This document is a personal
+endeavor to inform people of how CJK text can be handled on a variety
+of platforms.
+
+
+CONVENTIONS
+
+	The notation that is used for detailing Internet resource
+information, such as the Internet protocol type, site name, path, and
+file follows the URL (Uniform Resource Locator) notation, namely:
+
+  protocol://site-name/path/file
+
+An example URL is as follows:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/00README
+
+The protocol is FTP, the site-name is ftp.ora.com, the path is pub/
+examples/nutshell/ujip/, and the file is 00README. Also note that this
+same notation is used for invoking FTP on WWW (World Wide Web)
+browsing software, such as Mosaic, Netscape, or Lynx.
+	Note that most references to HTTP documents use the four-
+letter file extension ".html". However, some HTTP documents are on
+file systems that support only three-letter file extensions (can you
+say "MS-DOS"?), so you may encounter just ".htm". This is just to let
+you know that what you see is not a typo.
+	References to my book "Understanding Japanese Information
+Processing" are (affectionately) abbreviated as UJIP. These references
+also apply to the Japanese translation (UJIP-J).
+	Hexadecimal values are prefixed with 0x, and every two
+hexadecimal digits represent a one-byte value. Other values can be
+assumed to be in decimal notation.
+	Chinese characters are referred to as kanji (Japanese), hanzi
+(Chinese), or hanja (Korean), depending on context.
+	References to ISO 10646-1:1993 also refer to Unicode
+(usually). I have done this so that I do not have to repeat "Unicode"
+in the same context as ISO 10646-1:1993. There are times, however,
+when I need to distinguish ISO 10646-1:1993 from Unicode.
+
+
+INTRODUCTION
+
+	Electronic mail (e-mail), just one of the many Internet
+resources, has become a very efficient means of communicating both
+locally and world-wide. While it is very simple to send text which
+uses only the 94 printable ASCII characters, character sets that
+contain more than these ASCII characters pose special problems.
+	This document is primarily concerned with CJK character set
+and encoding issues. Much of this sort of information is not easily
+obtained. This represents one person's attempt at making such
+information more widely available.
+
+
+PART 1: WHAT'S UP WITH UJIP?
+
+	UJIP (First Edition) was published in September 1993 by
+O'Reilly & Associates, Incorporated. The second printing (*not* the
+Second Edition) was subsequently published in March 1994. The page
+count for both printings is unchanged at 470.
+	The following files contain the latest information about
+changes (additions and corrections) made to UJIP and UJIP-J for
+various printings, both for those that have taken place (such as for
+the second printing of the English edition) and for those that are
+planned (the first digit is the edition, and the second is the
+printing):
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/errata/ujip-errata-1-2.txt
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/errata/ujip-errata-1-3.txt
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/errata/ujip-j-errata-1-2.txt
+
+I *highly* recommend that all readers of UJIP obtain these errata
+files. Those without FTP access can request copies directly from me.
+	The Japanese translation of UJIP (UJIP-J), co-published by
+O'Reilly & Associates, Incorporated and SOFTBANK Corporation, was just
+released. The translation was done by my good friend Jack Halpern,
+along with one of his colleagues, Takeo Suzuki. The Japanese edition
+incorporates corrections and updates not yet found in the English
+edition. The page count is 535.
+	Late-breaking news! I am currently working on UJIP Second
+Edition (to be retitled as "Understanding CJK Information Processing"
+and abbreviated UCJKIP). If all goes well, it should be available by
+January 1997, and will be well over 700 pages. If there was something
+you wanted to see in UJIP, now's your chance to send me a request...
+
+
+PART 2: CJK CHARACTER SET STANDARDS
+
+	These sections describe the character sets used in Japan,
+China (PRC and Taiwan), and Korea. Exact numbers of characters are
+provided for each character set standard (when known), as well as
+tidbits of information not otherwise available. This provides the
+basic foundations for understanding how CJK scripts are handled on
+computer systems.
+	The two basic types of characters enumerated by CJK character
+set standards are Chinese characters (kanji, hanzi, or hanja), which
+number in the thousands (and, in some cases, tens of thousands), and
+characters other than Chinese characters (symbols, numerals, kana
+hangul, alphabets, and so on), which usually number in the hundreds
+(there are thousands of pre-combined hangul, though).
+	If you happen to be running X Windows, it is very easy to
+display these CJK character sets (if a bitmapped font for the
+character set exists, that is). Here is what I usually do:
+
+o Obtain a BDF (Bitmap Distribution Format) font for the target
+  character set. Try the following URLs for starters:
+
+  ftp://cair-archive.kaist.ac.kr/pub/hangul/fonts/
+  ftp://etlport.etl.go.jp/pub/mule/fonts/
+  ftp://ftp.ifcss.org/pub/software/fonts/{big5,cns,gb,misc,unicode}/bdf/
+  ftp://ftp.kuis.kyoto-u.ac.jp/misc/fonts/jisksp-fonts/
+  ftp://ftp.net.tsinghua.edu.cn/pub/Chinese/fonts/
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/unix/
+  ftp://ftp.technet.sg:/pub/chinese/fonts/
+  http://ccic.ifcss.org/www/pub/software/fonts/
+
+  BDF files usually have the string "bdf" somewhere in their file
+  name, usually at the end. If the file is compressed (noticing that
+  it ends in .gz or .Z is a good indication), decompress it. BDF files
+  are text files.
+
+o Convert the BDF file to SNF (Server Natural Format) or PCF (Portable
+  Compiled Format) using the programs "bdftosnf" or "bdftopcf,"
+  respectively. Example command lines are as follows:
+
+  % bdftopcf jiskan16-1990.bdf > k16-90.pcf
+  % bdftosnf jiskan16-1990.bdf > k16-90.snf
+
+  SNF files (and the "bdftosnf" program) are used on X11R4 and
+  earlier, and PCF files (and the "bdftopcf" program) are used on
+  X11R5 and later.
+
+o Copy the SNF or PCF file to a directory in the font search path (or
+  make a new path). Supposing I made a new directory called "fonts" in
+  my home directory, I then run "mkfontdir" on the directory
+  containing the SNF or PCF files as follows:
+
+  % mkfontdir ~/fonts
+
+  This creates a fonts.dir file in ~/fonts. I can now add this
+  directory to my font search path with the following command:
+
+  % xset +fp ~/fonts
+
+o The command "xfd" (X Font Displayer) with the "-fn" switch followed
+  by a font name then invokes a window that displays all the
+  characters of the font. In the case of two-byte (CJK) fonts, one row
+  is displayed at a time. The following is an example command line:
+
+  % xfd -fn -misc-fixed-medium-r-normal--16-150-75-75-c-160-jisx0208.1990-0
+
+  You can create a "fonts.alias" file in the same directory as the
+  "fonts.dir" file in order to shorten the name when accessing the
+  font. The alias "k16-90" could be used instead if the content of the
+  fonts.alias file is as follows:
+
+  k16-90  -misc-fixed-medium-r-normal--16-150-75-75-c-160-jisx0208.1990-0
+
+  Don't forget to execute the following command in order to make the
+  X Font Server aware of the new alias:
+
+  % xset fp rehash
+
+  Now you can use a simpler command line for "xfd" as follows:
+
+  % xfd -fn k16-90
+
+	The "X Window System User's Guide" (Volume 3 of the X Window
+System series by O'Reilly & Associates, Inc.) provides detailed
+information on managing fonts under X Windows (pp 123-160). The
+article entitled "The X Administrator: Font Formats and Utilities" (pp
+14-34 in "The X Resource," Issue 2), describes the BDF, SNF, and PCF
+formats in great detail.
+	There is another bitmap format called HBF (Hanzi Bitmap
+Format), which is similar to BDF, but optimized for fixed-width
+(monospaced) fonts. It is described in the article entitled "The HBF
+Font Format: Optimizing Fixed-pitch Font Support" (pp 113-123 in "The
+X Resource," Issue 10), and also at the following URL:
+
+  ftp://ftp.ifcss.org/pub/software/fonts/hbf-discussion/
+
+HBF fonts can be found at the following URL:
+
+  ftp://ftp.ifcss.org/pub/software/fonts/{big5,cns,gb,misc,unicode}/hbf/
+
+	Lastly, you may wish to check out my newly-developed CJK
+Character Set Server, which generates various CJK character sets with
+proper encoding applied. It is written in Perl, and accessed through
+an HTML form. This server can be considered an upgrade to my JChar
+tool (written in C). The URL is:
+
+  http://jasper.ora.com/lunde/cjk-char.html
+
+
+2.1: JAPANESE
+
+	All (national) character set standards that originate in Japan
+have names that begin with the three letters JIS. JIS is short for
+"Japanese Industrial Standard." But it is JSA (Japanese Standards
+Association) who publishes the corresponding manuals. Chapter 3 and
+Appendixes H and J of UJIP provide more detailed information on
+Japanese character set standards.
+
+
+2.1.1: JIS X 0201-1976
+
+	JIS X 0201-1976 (formerly JIS C 6220-1969; reaffirmed in 1989;
+and its revision [with no character set changes] is currently under
+public review) enumerates two sets of characters: JIS-Roman and
+half-width katakana.
+	JIS-Roman is the Japanese equivalent of the ASCII character
+set, namely 128 characters consisting of the following:
+
+o 10 numerals
+o 52 uppercase and lowercase characters of the Latin alphabet
+o 32 symbols (punctuation and so on)
+o 34 non-printing characters (white space and control characters)
+
+The term "white space" refers to characters that occupy space, but
+have no appearance, such as tabs, spaces, and termination characters
+(line feed, carriage return, and form feed).
+	So, how are JIS-Roman and ASCII different? The following
+three codes are (usually) different:
+
+  Code   ASCII        JIS-Roman
+  ^^^^   ^^^^^        ^^^^^^^^^
+  0x5C   backslash    yen symbol
+  0x7C   broken bar   bar
+  0x7E   tilde        overbar
+
+	Half-width katakana consists of 63 characters that provide a
+minimal set of characters necessary for expressing Japanese. The
+shapes are compressed, and visually occupy a space half that of
+*normal* Japanese characters.
+
+
+2.1.2: JIS X 0208-1990
+
+	This basic Japanese character set standard enumerates 6,879
+characters, 6,355 of which are kanji separated into two levels. Kanji
+in the first level are arranged by (most frequent) reading, and those
+in the second level are arranged by radical then total number of
+(remaining) strokes.
+
+o Row 1: 94 symbols
+o Row 2: 53 symbols
+o Row 3: 10 numerals and 52 uppercase and lowercase Latin alphabet
+o Row 4: 83 hiragana
+o Row 5: 86 katakana
+o Row 6: 48 uppercase and lowercase Greek alphabet
+o Row 7: 66 uppercase and lowercase Cyrillic (Russian) alphabet
+o Row 8: 32 line-drawing elements
+o Rows 16 through 47: 2,965 kanji (JIS Level 1 Kanji; last is 47-51)
+o Rows 48 through 84: 3,390 kanji (JIS Level 2 Kanji; last is 84-06)
+
+Appendix B of UJIP provides a complete illustration of the JIS X
+0208-1990 character set standard by KUTEN (row-cell) code. Appendix G
+(pp 294-317) of "Developing International Software for Windows 95 and
+Windows NT" by Nadine Kano illustrates the JIS X 0208-1990 character
+set standard plus the Microsoft extensions by Shift-JIS code
+(Microsoft calls this Code Page 932).
+	Earlier versions of this standard were dated 1978 (JIS C
+6226-1978) and 1983 (JIS X 0208-1983, formerly JIS C 6226-1983).
+	JIS X 0208 went through a revision (from November 1995 until
+February 1996), and is slated for publication sometime in 1996 (to
+become JIS X 0208-1996). More information on this revision is
+available at the following URL:
+
+  ftp://ftp.tiu.ac.jp/jis/jisx0208/
+
+
+2.1.3: JIS X 0212-1990
+
+	This supplemental Japanese character set standard enumerates
+6,067 characters, 5,801 of which are kanji ordered by radical then
+total number of (remaining) strokes. All 5,801 kanji are unique when
+compared to those in JIS X 0208-1990 (see Section 2.1.2). The
+remaining 266 characters are categorized as non-kanji.
+
+o Row 2: 21 diacritics and symbols
+o Row 6: 21 Greek characters with diacritics
+o Row 7: 26 Eastern European characters
+o Rows 9 through 11: 198 alphabetic characters
+o Rows 16 through 77: 5,801 kanji (last is 77-67)
+
+Appendix C of UJIP provides a complete illustration of the JIS X
+0212-1990 character set standard by KUTEN (row-cell) code.
+	The only commercial operating system that provides JIS X
+0212-1990 support is BTRON by Personal Media Corporation:
+
+  http://www.personal-media.co.jp/
+
+Section 3.3.18 provides information about TRON Code (used by BTRON),
+and details how it encodes the JIS X 0212-1990 character set.
+
+
+2.1.4: JIS X 0221-1995
+
+	This document is, for all practical purposes, the Japanese
+translation of ISO 10646-1:1993 (see Section 2.5.1). Like ISO
+10646-1:1993, it is based on Unicode Version 1.1.
+	It is noteworthy that JIS X 0221-1995 enumerates subsets that
+are applicable for Japanese use (a brief description of their contents
+in parentheses):
+
+o BASIC JAPANESE (JIS X 0208-1990 and JIS X 0201-1976 -- characters
+  that can be created by means of combining are not included -- 6,884
+  characters)
+o JAPANESE NON IDEOGRAPHICS SUPPLEMENT (1,913 characters: all non-
+  kanji of JIS X 0212-1990 plus hundreds of non-JIS characters)
+o JAPANESE IDEOGRAPHICS SUPPLEMENT 1 (918 frequently-used kanji from
+  JIS X 0212-1990, including 28 that are identical to kanji forms in
+  JIS C 6226-1978)
+o JAPANESE IDEOGRAPHICS SUPPLEMENT 2 (the remainder of JIS X 0212-
+  1990, namely 4,883 kanji)
+o JAPANESE IDEOGRAPHICS SUPPLEMENT 3 (the remaining kanji of ISO
+  10646-1:1993, namely 8,746 characters)
+o FULLWIDTH ALPHANUMERICS (94 characters; for compatibility)
+o HALFWIDTH KATAKANA (63 characters; for compatibility)
+
+	Pages 893 through 993 provide Kangxi Zidian (a classic
+300-year-old Chinese character dictionary containing approximately
+50,000 characters) and Dai Kanwa Jiten (also known as Morohashi)
+indexes for the entire Chinese character block, namely from 0x4E00
+through 0x9FA5.
+	At 25,750 Yen, it is actually cheaper than ISO 10646-1:1993!
+
+
+2.1.5: JIS X 0213-199X
+
+	I recently became aware that JSA plans to publish an extension
+to JIS X 0208, containing approximately 2,000 characters (kanji and
+non-kanji). A public review of this new standard is planned for Summer
+1996. I would expect that its information will eventually be available
+at the following URL:
+
+    ftp://ftp.tiu.ac.jp/jis/
+
+
+2.1.6: OBSOLETE STANDARDS
+
+	JIS C 6226-1978 and JIS X 0208-1983 (formerly JIS C 6226-1983)
+have been superseded by JIS X 0208-1990. Section 4.1 provides details
+on the changes made between these earlier versions of JIS X 0208.
+	JIS X 0221-1995 does not mean the end of JIS X 0201-1976, JIS
+X 0208-1990, and JIS X 0212-1990. Instead, it will co-exist with those
+standards.
+
+
+2.2: CHINESE (PRC)
+
+	All character set standards that originate in PRC have
+designations that begin with "GB." "GB" is short for "Guo Biao" (which
+is, in turn, short for "Guojia Biaojun") and means "National
+Standard." A select few also have "/T" attached. The "T" presumably is
+short for "Traditional." Section 2.2.11 describes ISO-IR-165:1992,
+which is a variant of GB 2312-80. It is included here because of this
+relationship.
+	Most people correlate GB character set standards with
+simplified Chinese, but as you will see below, that is not always the
+case.
+	There are three basic character sets, each one having a
+simplified and traditional version.
+
+  Character Set  Set Number  Character Forms
+  ^^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^^^^^^
+  GB 2312-80     0           Simplified
+  GB/T 12345-90  1           Traditional of GB 2312-80
+  GB 7589-87     2           Simplified
+  GB/T 13131-9X  3           Traditional of GB 7589-87
+  GB 7590-87     4           Simplified
+  GB/T 13132-9X  5           Traditional of GB 7590-87
+
+
+2.2.1: GB 1988-89
+
+	This character set, formerly GB 1988-80 and sometimes referred
+to as GB-Roman, is the Chinese analog to ASCII and ISO 646. The main
+difference is that the currency symbol (0x24), which is represented as
+a dollar sign ($) in ASCII, is represented as a Chinese Yuan
+(currency) symbol instead. GB 1988-89 is sometimes referred to as
+GB-Roman.
+
+
+2.2.2: GB 2312-80
+
+	This basic (simplified) Chinese character set standard
+enumerates 7,445 characters, 6,763 of which are hanzi separated into
+two levels. Hanzi in the first level are arranged by reading, and
+those in the second level are arranges by radical then total number of
+(remaining) strokes. GB 2312-80 is also known as the "Primary Set,"
+GB0 (zero), or just GB.
+
+o Row 1: 94 symbols
+o Row 2: 72 numerals
+o Row 3: 94 full-width GB 1988-89 characters (see Section 2.2.1)
+o Row 4: 83 hiragana
+o Row 5: 86 katakana
+o Row 6: 48 uppercase and lowercase Greek alphabet
+o Row 7: 66 uppercase and lowercase Cyrillic (Russian) alphabet
+o Row 8: 26 Pinyin and 37 Bopomofo characters
+o Row 9: 76 line-drawing elements (09-04 through 09-79)
+o Rows 16 through 55: 3,755 hanzi (Level 1 Hanzi; last is 55-89)
+o Rows 56 through 87: 3,008 hanzi (Level 2 Hanzi; last is 87-94)
+
+Compare some of the structure with JIS X 0208-1990, and you will find
+many similarities, such as:
+
+o Hiragana, katakana, Greek, and Cyrillic characters are in Rows 4, 5,
+  6, and 7, respectively
+o Chinese characters begin at Row 16
+o Chinese characters are separated into two levels
+o Level 1 arranged by reading
+o Level 2 arranged by radical then total number of strokes
+
+The Japanese standard, JIS C 6226-1978, came out in 1978, which means
+that it pre-dates GB 2312-80. The above similarities could not be by
+coincidence, but rather by design.
+	Appendix G (pp 318-344) of "Developing International Software
+for Windows 95 and Windows NT" by Nadine Kano illustrates the GB 2312-
+80 character set standard by EUC code (Microsoft calls this Code Page
+936). Code Page 936 incorporates the correction of the hanzi at 79-81,
+and the correction of the order of 07-22 and 07-23 (see Section 2.2.3
+for more details).
+
+
+2.2.3: GB 6345.1-86
+
+	This document specifies corrections and additions to GB
+2312-80 (see Section 2.2.2). The following is a detailed enumeration
+of the changes:
+
+o The form of "g" in Row 3 (position 71) was altered
+o Row 8 has six additional Pinyin characters (08-27 through 08-32)
+o Row 10 contains half-width versions of Row 3 (94 characters)
+o Row 11 contains half-width versions of the Pinyin characters from
+  Row 8 (32 characters; 11-01 through 11-32)
+o The hanzi at 79-81 was corrected to have a simplified left-side
+  radical (this was an error in GB 2312-80)
+
+Note that these changes affect the total number of characters in GB
+2312-80 -- an increase of 132 characters. This now makes 7,577 as
+the total number of characters in GB 2312-80 (7,445 plus 132).
+	There was, however, an undocumented correction made in GB
+6345.1-86. The order of characters 07-22 and 07-23 (uppercase
+Cyrillic) were reversed. This error is apparently in the first and
+perhaps second printing of the GB 2312-80 manual, because the copy I
+have is from the third printing, and this has been corrected. Page 145
+(Figure 113) of John Clews' "Language Automation Worldwide: The
+Development of Character Set Standards" illustrates this error.
+Developers should take special note of this -- I have seen GB 2312-80
+based font products that propagate this ordering error.
+
+
+2.2.4: GB 7589-87
+
+	This character set enumerates 7,237 hanzi in Rows 16 through
+92 (last is 92-93), and they are ordered by radical then total number
+of (remaining) strokes. GB 7589-87 is also known as the "Second
+Supplementary Set" or GB2.
+
+
+2.2.5: GB 7590-87
+
+	This character set enumerates 7,039 hanzi in Rows 16 through
+90 (last is 90-83), and they are ordered by radical then total number
+of (remaining) strokes. GB 7590-87 is also known as the "Fourth
+Supplementary Set" or GB4.
+
+
+2.2.6: GB 8565.2-88
+
+	This standard makes additions to GB 2312-80 (these additions
+are separate from those made in GB 6345.1-86 described in Section
+2.2.3). GB 8565.2-88 is also known as GB8. In this case there are 705
+additions, indicated as follows:
+
+o Row 13 contains 50 hanzi from GB 7589-87 (last is 13-50)
+o Row 14 contains 92 hanzi from GB 7590-87 (last is 14-92)
+o Row 15 contains 69 non-hanzi indicating dates and times, plus 24
+  miscellaneous hanzi (for personal/place names and radicals; last is
+  15-93).
+o Rows 90 through 94 contain 470 hanzi from GB 7589-87 (94 each)
+
+GB 8565.2-88 therefore provides a total of 8,150 characters (7,445
+plus 705).
+
+
+2.2.7: GB/T 12345-90
+
+	This character set is nearly identical to GB 2312-80 (see
+Section 2.2.2) in terms of the number and arrangement of characters,
+but simplified hanzi are replaced by their traditional versions. GB/T
+12345-90 is also known as the "Supplementary Set" or GB1.
+	The following are some interesting facts about this character
+set (some instances of simplified/traditional pairs that appear below
+are actually character form differences):
+
+o 29 vertical-use characters (punctuation and parentheses) included in
+  Row 6 (06-57 through 06-85).
+
+o 2,118 traditional hanzi replace simplified hanzi in Rows 16 through
+  87. The "G1-Unique" appendix of the unofficial version (supplied to
+  the CJK-JRG for Han Unification purposes) is missing the following
+  four (specifies only 2,114):
+
+  0x5B3B    0x6D2F
+  0x5E7C    0x6F71
+
+  But, ISO 10646-1:1993 ended up getting these hanzi included anyway,
+  with correct mappings.
+
+o Four simplified/traditional hanzi pairs (eight affected code points)
+  in rows 16 through 87 are swapped:
+
+  0x3A73 <-> 0x6161
+  0x5577 <-> 0x6167
+  0x5360 <-> 0x6245 (see the next bullet)
+  0x4334 <-> 0x7761
+
+o One hanzi (0x6245), after being swapped, had its left-side radical
+  unsimplified (this character, now at 0x5360, is considered part of
+  the 2,118 traditional hanzi from the second bullet):
+
+  0x6245 -> 0x5360
+
+o 103 hanzi included in Rows 88 (94 characters) and 89 (9 characters;
+  89-01 through 89-09). These are all related to characters between
+  Rows 16 and 87.
+
+  - 41 simplified hanzi from Rows 16 through 87 moved to Rows 88 and
+    89 (traditional hanzi are now at the original code points):
+
+    0x3327 -> 0x7827  0x3E5D -> 0x7846  0x4B49 -> 0x7869
+    0x3365 -> 0x7828  0x3F64 -> 0x7849  0x4C28 -> 0x786B
+    0x3373 -> 0x7829  0x402F -> 0x784B  0x4D3F -> 0x786F
+    0x3533 -> 0x782C  0x4030 -> 0x784C  0x4D72 -> 0x7871
+    0x356D -> 0x782D  0x406F -> 0x784E  0x5236 -> 0x7878
+    0x3637 -> 0x782F  0x4131 -> 0x7850  0x5374 -> 0x7879
+    0x3736 -> 0x7832  0x463B -> 0x785C  0x5438 -> 0x787C
+    0x3761 -> 0x7833  0x463E -> 0x785D  0x5446 -> 0x787D
+    0x3849 -> 0x7835  0x464B -> 0x785E  0x5622 -> 0x7921
+    0x3963 -> 0x7838  0x464D -> 0x785F  0x563B -> 0x7923
+    0x3B2E -> 0x783B  0x4653 -> 0x7860  0x5656 -> 0x7926
+    0x3C38 -> 0x7840  0x4837 -> 0x7866  0x567E -> 0x7928
+    0x3C5B -> 0x7842  0x4961 -> 0x7867  0x573C -> 0x7929
+    0x3C76 -> 0x7843  0x4A75 -> 0x7868
+
+  - 62 hanzi added to Rows 88 and 89 (the gaps from the above are
+    filled in). These were mostly to account for multiple traditional
+    hanzi collapsing into a single simplified form.
+
+  - The following code point mappings illustrate how all of these 103
+    hanzi are related to hanzi between Rows 16 and 87 (note how many
+    of these 103 hanzi map to a single code point):
+
+    0x7821 -> 0x305A  0x7844 -> 0x3D2A  0x7867 -> 0x4961
+    0x7822 -> 0x3065  0x7845 -> 0x3E21  0x7868 -> 0x4A75
+    0x7823 -> 0x316D  0x7846 -> 0x3E5D  0x7869 -> 0x4B49
+    0x7824 -> 0x3170  0x7847 -> 0x3E6D  0x786A -> 0x4B55
+    0x7825 -> 0x3237  0x7848 -> 0x3F4B  0x786B -> 0x4C28
+    0x7826 -> 0x3245  0x7849 -> 0x3F64  0x786C -> 0x4C28
+    0x7827 -> 0x3327  0x784A -> 0x4027  0x786D -> 0x4C28
+    0x7828 -> 0x3365  0x784B -> 0x402F  0x786E -> 0x4C33
+    0x7829 -> 0x3373  0x784C -> 0x4030  0x786F -> 0x4D3F
+    0x782A -> 0x3376  0x784D -> 0x405B  0x7870 -> 0x4D45
+    0x782B -> 0x3531  0x784E -> 0x406F  0x7871 -> 0x4D72
+    0x782C -> 0x3533  0x784F -> 0x407A  0x7872 -> 0x4F35
+    0x782D -> 0x356D  0x7850 -> 0x4131  0x7873 -> 0x4F35
+    0x782E -> 0x362C  0x7851 -> 0x414B  0x7874 -> 0x4F4C
+    0x782F -> 0x3637  0x7852 -> 0x4231  0x7875 -> 0x4F72
+    0x7830 -> 0x3671  0x7853 -> 0x425E  0x7876 -> 0x506B
+    0x7831 -> 0x3722  0x7854 -> 0x4339  0x7877 -> 0x5229
+    0x7832 -> 0x3736  0x7855 -> 0x4349  0x7878 -> 0x5236
+    0x7833 -> 0x3761  0x7856 -> 0x4349  0x7879 -> 0x5374
+    0x7834 -> 0x3834  0x7857 -> 0x4349  0x787A -> 0x5379
+    0x7835 -> 0x3849  0x7858 -> 0x4356  0x787B -> 0x5375
+    0x7836 -> 0x3948  0x7859 -> 0x4366  0x787C -> 0x5438
+    0x7837 -> 0x394E  0x785A -> 0x436F  0x787D -> 0x5446
+    0x7838 -> 0x3963  0x785B -> 0x3159  0x787E -> 0x5460
+    0x7839 -> 0x6358  0x785C -> 0x463B  0x7921 -> 0x5622
+    0x783A -> 0x3A7A  0x785D -> 0x463E  0x7922 -> 0x563B
+    0x783B -> 0x3B2E  0x785E -> 0x464B  0x7923 -> 0x563B
+    0x783C -> 0x3B58  0x785F -> 0x464D  0x7924 -> 0x5642
+    0x783D -> 0x3B63  0x7860 -> 0x4653  0x7925 -> 0x5646
+    0x783E -> 0x3B71  0x7861 -> 0x4727  0x7926 -> 0x5656
+    0x783F -> 0x3C22  0x7862 -> 0x4729  0x7927 -> 0x566C
+    0x7840 -> 0x3C38  0x7863 -> 0x4F4B  0x7928 -> 0x567E
+    0x7841 -> 0x3C52  0x7864 -> 0x476F  0x7929 -> 0x573C
+    0x7842 -> 0x3C5B  0x7865 -> 0x477A
+    0x7843 -> 0x3C76  0x7866 -> 0x4837
+
+So, if we total everything up, we see that GB/T 12345-90 has 2,180
+hanzi (2,118 are replacements for GB 2312-80 code points, and 62 are
+additional) and 29 non-hanzi not found in GB 2312-80.
+	Note that the printing of the GB/T 12345-90 has some
+character-form errors. The errors I am aware of are as follows:
+
+  Code Point  Description of Error
+  ^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+  0x4125      The upper-left element should be "tree" instead of
+              "warrior"
+  0x596C      The "bird" radical should not include the "fire" element
+
+
+2.2.8: GB/T 13131-9X
+
+	This character set is identical to GB 7589-87 (see Section
+2.2.4) in terms of number of characters, but simplified hanzi are
+replaced by their traditional versions. The exact number of such
+substitutions is currently unknown to this author. GB/T 13131-9X is
+also known as the "Third Supplementary Set" or GB3.
+
+
+2.2.9: GB/T 13132-9X
+
+	This character set is identical to GB 7590-87 (see Section
+2.2.5) in terms of number of characters, but simplified hanzi are
+replaced by their traditional versions. The exact number of such
+substitutions is currently unknown to this author. GB/T 13132-9X is
+also known as the "Fifth Supplementary Set" or GB5.
+
+
+2.2.10: GB 13000.1-93
+
+	This document is, for all practical purposes, the Chinese
+translation of ISO 10646-1:1993 (see Section 2.5.1).
+
+
+2.2.11: ISO-IR-165:1992
+
+	This standard, also known as the CCITT Chinese Set, is a
+variant of GB 2312-80 with the following characteristics:
+
+o GB 6345.1-86 modifications (including the undocumented one) and
+  additions, namely 132 characters (see Section 2.2.3)
+o GB 8565.2-88 additions, namely 705 characters (see Section 2.2.6)
+o Row 6 contains 22 background (shading) characters (06-60 through
+  06-81)
+o Row 12 contains 94 hanzi
+o Row 13 contains 44 additional hanzi (13-51 through 13-94; fills the
+  row)
+o Row 15 contains 1 additional hanzi (15-94)
+
+ISO-IR-165:1992 can therefore be considered a superset of GB 2312-80,
+GB 6345.1-86, and GB 8565.2-88. This means 8,443 total characters
+compared to the 7,445 in GB 2312-80, 7,577 in GB 6345.1-86, and the
+8,150 in GB 8565.2-88.
+
+
+2.2.12: OBSOLETE STANDARDS
+
+	Most GB standards seem to be revised through other documents,
+so it is hard to point to a standard and claim that it is obsolete.
+The only revision I am aware of is the GB 1988-89 (the original was
+named GB 1988-80).
+
+
+2.3: CHINESE (TAIWAN)
+
+	The sections below describe two major Taiwanese character
+sets, namely Big Five and CNS 11643-1992. As you will learn they are
+somewhat compatible. CCCII, also developed in Taiwan, is described in
+Section 2.5.2.
+
+
+2.3.1: BIG FIVE
+
+	The Big Five character set is composed of 94 rows of 157
+characters each (the 157 characters of each row are encoded in an
+initial group of 63 codes followed by the remaining 94 codes). The
+following is a break-down of its contents:
+
+o Row 1: 157 symbols
+o Row 2: 157 symbols
+o Row 3: 94 symbols
+o Rows 4 through 38: 5,401 hanzi (Level 1 Hanzi; last is 38-63)
+o Rows 41 through 89: 7,652 hanzi (Level 2 Hanzi; last is 89-116)
+
+This forms what I consider to be the basic Big Five set. Actually, two
+of the hanzi in Level 2 are duplicates, so there are actually only
+7,650 unique hanzi in Level 2.
+	There are two major extensions to Big Five. The first really
+has no name, and can be considered part of the basic Big Five set as
+specified above. It adds the following characters:
+
+o Rows 38-39: 4 Japanese iteration marks, 83 hiragana, 86 katakana, 66
+  uppercase and lowercase Cyrillic (Russian) alphabet, 10 circled
+  digits, and 10 parenthesized digits
+
+	The other extension was developed by a company called ETen
+Information System in Taiwan, and is actually considered to be the
+most widely used version of Big Five. It provides the following
+extensions to Big Five (different from the above extension):
+
+o Rows 38-40: 10 circled digits, 10 parenthesized digits, 10 lowercase
+  Roman numerals, 25 classical radicals, 15 Japanese-specific symbols,
+  83 hiragana, 86 katakana, 66 uppercase and lowercase Cyrillic
+  (Russian) alphabet, 3 arrows, 10 radical-like hanzi elements, 40
+  fraction-like digits, and 7 symbols
+o Row 89: 7 hanzi, 33 double-lined line-drawing elements, and a black
+  box
+
+	It is *very* important to note that while these two extensions
+have many common portions (in particular, hiragana, katakana, the
+Cyrillic alphabet, and so on), they do not share the same code points
+for such characters.
+	Appendix G (pp 407-450) of "Developing International Software
+for Windows 95 and Windows NT" by Nadine Kano illustrates the Big Five
+character set standard by Big Five code (Microsoft calls this Code
+Page 950). Code Page 950 incorporates some of the ETen extensions,
+namely those in Row 89.
+
+
+2.3.2: CNS 11643-1992
+
+	CNS 11643-1992 (also known as CNS 11643 X 5012), by
+definition, consists of 16 planes of characters, seven of which have
+character assignments. Each plane is a 94-row-by-94-cell matrix
+capable of holding a total of 8,836 characters. CNS stands for
+"Chinese National Standard."
+	CNS 11643-1992 specifies characters only in the first seven
+planes. A break-down of characters, by plane, is as follows:
+
+o Plane 1:
+  - 438 symbols in Rows 1 through 6
+  - 213 classical radicals in Rows 7 through 9
+  - 33 graphic representations of control characters in Row 34
+  - 5,401 hanzi in Rows 36 through 93 (last is 93-43)
+o Plane 2: 7,650 hanzi in Rows 1 through 82 (last is 82-36)
+o Plane 3: 6,148 hanzi in Rows 1 through 66 (last is 66-38)
+o Plane 4: 7,298 hanzi in Rows 1 through 78 (last is 78-60)
+o Plane 5: 8,603 hanzi in Rows 1 through 92 (last is 92-49)
+o Plane 6: 6,388 hanzi in Rows 1 through 68 (last is 68-90)
+o Plane 7: 6,539 hanzi in Rows 1 through 70 (last is 70-53)
+
+The total number of characters in CNS 11643-1992 is a staggering
+48,711 characters, 48,027 of which are hanzi. Also note that number of
+hanzi in Plane 1 is identical to Level 1 hanzi of Big Five (see
+Section 2.3.1). The 2 extra hanzi in Level 2 hanzi of Big Five are
+actually redundant, and are therefore not in CNS 11643-1992 Plane 2.
+	It is rumored that Plane 8 is currently being defined, and
+will add yet more hanzi to this standard.
+
+
+2.3.3: CNS 5205
+
+	This character set is Taiwan's analog to ASCII and ISO 646,
+and is reportedly rarely used. How it differs from ASCII, if at all,
+is unknown to this author.
+
+
+2.3.4: OBSOLETE STANDARDS
+
+	CNS 11643-1986 specified characters only in the first three
+planes, as described in Section 2.3.2. Also, Plane 3 of CNS 11643-1992
+was called Plane 14 of CNS 11643-1986.
+
+
+2.4: KOREAN
+
+	The sections below describe the most current Korean character
+sets, namely KS C 5636-1993, KS C 5601-1992, KS C 5657-1991, and KS C
+5700-1995. "KS" stands for "Korean Standard."
+
+
+2.4.1: KS C 5636-1993
+
+	This character set (published on January 6, 1993), formerly KS
+C 5636-1989 (published on April 22, 1989) and sometimes referred to as
+KS-Roman, is the Korean analog to ASCII and ISO 646-1991. The primary
+difference is that the ASCII backslash (0x5C) is represented as a Won
+symbol.
+
+
+2.4.2: KS C 5601-1992
+
+	This basic Korean character set standard enumerates 8,224
+characters, 4,888 of which are hanja, and 2,350 of which are pre-
+combined hangul. The hanja and hangul blocks are arranged by reading.
+The following is a break-down of its contents:
+
+o Row 1: 94 symbols
+o Row 2: 69 abbreviations and symbols
+o Row 3: 94 full-width KS C 5636-1993 characters (see Section 2.4.1)
+o Row 4: 94 hangul elements
+o Row 5: 68 lowercase and uppercase Roman numerals and lowercase and
+  uppercase Greek alphabet
+o Row 6: 68 line-drawing elements
+o Row 7: 79 abbreviations
+o Row 8: 91 phonetic symbols, circled characters, and fractions
+o Row 9: 94 phonetic symbols, parenthesized characters, subscripts,
+  and superscripts
+o Row 10: 83 hiragana
+o Row 11: 86 katakana
+o Row 12: 66 lowercase and uppercase Cyrillic (Russian) alphabet
+o Rows 16 through 40: 2,350 pre-combined hangul (last is 40-94)
+o Rows 42 through 93: 4,888 hanja (last is 93-94)
+
+Rows 41 and 94 are designated for user-defined characters.
+	There are many similarities with JIS X 0208-1990 and GB
+2312-80, such as hiragana, katakana, Greek, and Cyrillic characters,
+but they are assigned to different rows.
+	There is an interesting note about the hanja block (Rows 42
+through 93). Although there are 4,888 hanja, not all are unique. The
+hanja block is arranged by reading, and in those cases when a hanja
+has more than one reading, that hanja is duplicated (sometimes more
+than once) in the same character set. There are 268 such cases of
+duplicate hanja in KS C 5601-1992, meaning that it contains 4,620
+unique hanja. If you have a copy of the KS C 5601-1992 manual handy,
+you can compare the following four code points:
+
+  0x6445
+  0x5162
+  0x5525
+  0x6879
+
+While most of these cases involve two hanja instances, there are four
+hanja that have three instances, and one (listed above) that has four!
+This is the only CJK character set that has this property of
+intentionally duplicating Chinese characters. See Section 4.4 for more
+details.
+	Annex 3 of this standard defines the complete set of 11,172
+pre-combined hangul characters, also known as Johab. Johab refers to
+the encoding method, and is almost like encoding all possible three-
+letter words (meaning that most are nonsense). See Section 3.3.5 for
+more details on Johab encoding.
+
+
+2.4.3: KS C 5657-1991
+
+	This character set standard provides supplemental characters
+for Korean writing, to include symbols, pre-combined hangul, and
+hanja. The following is a break-down of its contents:
+
+o Rows 1 through 7: 613 lowercase and uppercase Latin characters with
+  diacritics (see note below)
+o Rows 8 through 10: 273 lowercase and uppercase Greek characters with
+  diacritics
+o Rows 11 through 13: 275 symbols
+o Row 14: 27 compound hangul elements
+o Rows 16 through 36: 1,930 pre-combined hangul (last is 36-50)
+o Rows 37 through 54: 1,675 pre-combined hangul (last is 54-77; see
+  note below)
+o Rows 55 through 85: 2,856 hanja (last is 85-36)
+
+The KS C 5657-1991 manual has a possible error (or at least an
+inconsistency) for Rows 1 through 7. The manual says that there are
+615 characters in that range, but I only counted 613. The difference
+can be found on page 19 as the following two characters:
+
+  Character Code  Character
+  ^^^^^^^^^^^^^^  ^^^^^^^^^
+  0x2137          X
+  0x217A          TM
+
+An "X" doesn't belong there (it is already in KS C 5601-1992 at code
+point 0x2358), and the trademark symbol is also part of KS C 5601-1992
+at code point 0x2262. This is why I feel that my count of 613 is more
+accurate than what is explicitly stated in the manual on page 2.
+	Also, page 2 of the manual says that Rows 37 through 54
+contains 1,677 pre-combined hangul, but I only counted 1,675 (17 rows
+of 94 characters plus a final row with 77 characters -- do the math
+for yourself).
+	Here's another interesting note. My official copy of this
+standard has all of its 2,856 hanja hand-written.
+
+
+2.4.4: GB 12052-89
+
+	You may be asking yourself why a GB standard is listed under
+the Korean section of this document. Well, there is a rather large
+Korean population in China (Korea was considered part of China before
+the 1890s), and they need a character set standard for communicating
+using hangul. GB 12052-89 is a Korean character set standard
+established by China (PRC), and enumerates a total of 5,979
+characters.
+	The following is the arrangement of this character set:
+
+o Row 1: 94 symbols
+o Row 2: 72 numerals
+o Row 3: 94 full-width ASCII characters
+o Row 4: 83 hiragana
+o Row 5: 86 katakana
+o Row 6: 48 uppercase and lowercase Greek alphabet
+o Row 7: 66 uppercase and lowercase Cyrillic (Russian) alphabet
+o Row 8: 26 Pinyin and 37 Bopomofo characters
+o Row 9: 76 line-drawing elements (09-04 through 09-79)
+o Rows 16 through 37: 2,068 pre-combined hangul (Level 1 Hangul, Part
+  1; last is 37-94)
+o Rows 38 through 52: 1,356 pre-combined hangul (Level 1 Hangul, Part
+  2; last is 52-40)
+o Rows 53 through 71: 1,779 pre-combined hangul (Level 2 Hangul; last
+  is 71-87)
+o Rows 71 through 72: 94 "Idu" hanja (71-89 through 72-88)
+
+	There are a few interesting notes I can make about this
+character set:
+
+o Rows 1 through 9 are identical to the same rows in GB 2312-80,
+  except that 03-04 is a dollar sign, not a Chinese Yuan (currency)
+  symbol.
+
+o The GB 12052-89 manual states on pp 1 and 3 that Rows 53 through 72
+  contain 1,876 characters, but I only counted 1,873 (1,779 hangul
+  plus 94 hanja).
+
+o The total number of characters, 5,979, is correctly stated in the
+  manual although the hangul count is incorrect.
+
+o The arrangement and ordering of these hangul bear no relationship to
+  that of KS C 5601-1992. Both standards order by reading, which is
+  the only way in which they are similar.
+
+	I am not aware to what extent this character set is being
+used (and who might be using it).
+
+
+2.4.5: KS C 5700-1995
+
+	Korea has developed a new character set standard called KS C
+5700-1995. It is equivalent to ISO 10646-1:1993, but have pre-combined
+hangul as provided (and ordered) in Unicode Version 2.0 (meaning that
+all 11,172 hangul are in a contiguous block).
+
+
+2.4.6: OBSOLETE STANDARDS
+
+	KS C 5601-1986, KS C 5601-1987, and KS C 5601-1989 are the
+same, character-set wise, to KS C 5601-1992. The 1992 edition provides
+more material in the form of annexes. KS C 5601-1982, the original
+version, enumerated only the 51 basic hangul elements in a one-byte 7-
+and 8-bit encoding. This information is still part of KS C 5601-1992,
+but in Annex 4.
+	There were two earlier multiple-byte standards called KS C
+5619-1982 and KIPS. KS C 5619-1982 enumerated 51 hangul elements,
+1,316 pre-combined hangul, and 1,672 hanja. KIPS (Korean Information
+Processing System) enumerated 2,058 pre-combined hangul and 2,392
+hanja. Both have been rendered obsolete by KS C 5601-1987.
+
+
+2.5: CJK
+
+	The only true CJK character sets available today are CCCII,
+ANSI Z39.64-1989 (also known as EACC or REACC), and ISO 10646-1:1993.
+ISO 10646-1:1993 is unique in that it goes beyond CJK (Chinese
+characters) to provide virtually all commonly-used alphabetic scripts.
+	Of these three, only ISO 10646-1:1993 is expected to gain
+wide-spread acceptance. CCCII and ANSI Z39.64-1989 are still used
+today, but primarily for bibliographic purposes.
+
+
+2.5.1: ISO 10646-1:1993
+
+	Published by ISO (International Organization for
+Standardization) in Switzerland, this character set enumerates over
+34,000 characters. Its I-zone ("I" stands for "Ideograph") enumerates
+approximately 21,000 Chinese characters, which is the result of a
+massive effort by the CJK-JRG (CJK Joint Research Group) called "Han
+Unification." The CJK-JRG is now called the IRG (Ideographic
+Rapporteur Group), and is off doing additional research for future
+Chinese character allocations to ISO 10646-1:1993.
+	The Basic Multilingual Plane (BMP) of ISO 10646-1:1993 is
+equivalent to Unicode. While Unicode is comprised of a single plane of
+characters (which doesn't allow much room for future expansion), ISO
+10646-1:1993 contains hundreds of such planes.
+	One very nice feature of this standard's manual are the CJK
+code correspondence tables in Section 26 (pp 262-698). Four columns
+are provided for each ISO 10646-1:1993 I-zone code point -- simplified
+Chinese, traditional Chinese, Japanese, and Korean. If the ISO
+10646-1:1993 Chinese character maps to one of these locales, the
+hexadecimal character code, (decimal) row-cell value, and glyph for
+that locale is provided. The corresponding tables in Volume 2 of "The
+Unicode Standard" provide character codes (sometimes the hexadecimal
+character code, and sometimes the row-cell value) and a single
+glyph. Quite unfortunate. I hear that a new edition of "The Unicode
+Standard" is about to be released. I hope that this problem has been
+addressed.
+	ISO 10646-1:1993 does not replace existing national character
+set standards. It simply provides a single character set that is a
+superset of *most* national character sets. For example, only a
+fraction of the 48,027 hanzi in CNS 11643-1992 are included in ISO
+10646-1:1993. I feel that it is best to think of ISO 10646-1:1993 as
+"just another character set." My philosophy is to support the maximum
+number of character sets and encodings as possible.
+	A note about ordering this standard. If you order through ANSI
+in the United States, try to get an original manual. It is not easy,
+though. You see, ANSI has duplication rights for ISO documents.
+Photocopying Section 26 (pp 262-698) doesn't do the Chinese characters
+much justice, and some characters become hard-to-read. Unfortunately,
+there is no way to indicate that you want an original ISO document
+through ANSI's ordering process, so some post-ordering haggling may
+become necessary.
+	More information on ISO 10646-1:1993 can be found at the
+following URL:
+
+  http://www.unicode.org/
+
+	Japan, China (PRC), and Korea have developed their own
+national standards that are based on ISO 10646-1:1993. They are
+designated as JIS X 0221-1995 (see Section 2.1.4), GB 13000.1-93 (see
+Section 2.2.10), and KS C 5700-1995 (see Section 2.4.5), respectively.
+	Note that these national-standard versions of Unicode are
+aligned differently with its three versions:
+
+  Unicode Version 1.0
+  Unicode Version 1.1 <-> ISO 10646-1:1993, JIS X 0221-1995, GB 13000.1-93
+  Unicode Version 2.0 <-> KS C 5700-1995
+
+One of the major changes made for Unicode Version 2.0 is the inclusion
+of all 11,172 hangul. Versions 1.1 has 6,656 hangul.
+
+
+2.5.2: CCCII
+
+	The Chinese Character Analysis Group in Taiwan developed CCCII
+(Chinese Character Code for Information Interchange) in the 1980s.
+This character set is composed of 94 planes that have 94 rows and 94
+cells (94 x 94 x 94 = 830,584 characters). Furthermore, every six
+planes constitute a "layer" (6 x 94 x 94 = 53,016 characters). The
+following is the contents of each of the 16 layers (the 16th layer
+contains only four planes):
+
+o Layer 1: Symbols and Traditional Chinese characters
+o Layer 2: Simplified Chinese characters from PRC
+o Layers 3 through 12: Variant Chinese character forms
+o Layer 13: Japanese kana and kokuji (Japanese-made kanji)
+o Layer 14: Korean hangul
+o Layer 15: Reserved
+o Layer 16: Miscellaneous characters (Japanese and Korean)
+
+	Layers 1 through 12 have a special meaning and relationship.
+The same code point in these layers is designed to hold the same
+character, but with different forms. Layer 1 code points contain the
+traditional character forms, Layer 2 code points contain the
+simplified character forms (if any), and Layers 3 through 12 contain
+variant character forms (if any). For example, given a Chinese
+character with three forms, its encoding and arrangement may be as
+follows:
+
+  Character Form  Code Point  Layer
+  ^^^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^
+  Traditional     0x224E41    1
+  Simplified      0x284E41    2
+  Variant         0x2E4E41    3
+
+Note how the second and third bytes (0x4E41) are identical in all
+three instances -- only the first byte's value, which indicates the
+layer, differs. Needless to say, this method of arrangement provides
+easy access to related Chinese character forms. No wonder it is used
+for bibliographic purposes.
+	The first layer is composed as follows:
+
+o Plane 1/Row 2: 56 mathematical symbols
+o Plane 1/Row 3: The ASCII character set
+o Plane 1/Row 11: 35 Chinese punctuation marks
+o Plane 1/Rows 12 through 14: 214 classical radicals
+o Plane 1/Row 15: 41 Chinese numerical symbols, 37 phonetic symbols,
+  and 4 tone marks
+o Plane 1/Rows 16 through 67: 4,808 common Chinese characters
+o Plane 1/Row 68 through Plane 3/Row 64: 17,032 less common Chinese
+  characters
+o Plane 3/Row 65 through Plane 6/Row 5: 20,583 rare Chinese characters
+
+Note that Row 1 of all planes is reserved, and never assigned
+characters. Take this into account when studying the above table
+ranges that span planes (that is, skip Row 1).
+	In addition to the above, there are 11,517 simplified Chinese
+characters in Layer 2 (3,625 are considered PRC simplified forms, and
+the remaining 7,892 are regular simplified forms). This provides a
+total of 53,940 Chinese characters.
+	Further information on CCCII (to include very interesting
+historical notes) can be found on pp 146-149 of John Clews' "Language
+Automation Worldwide: The Development of Character Set Standards" and
+Chapter 6 of Huang & Huang's "An Introduction to Chinese, Japanese,
+and Korean Computing."
+
+
+2.5.3: ANSI Z39.64-1989
+
+	This national standard is designated as ANSI Z39.64-1989 and
+named "East Asian Character Code" (EACC), but was originally known as
+REACC (RLIN East Asian Character Code), that is, before it became a
+national standard. RLIN stands for "Research Libraries Information
+Network," which was developed by the Research Libraries Group (RLG)
+located in Mountain View, California.
+	RLG's Home Page is at the following URL:
+
+  http://www.rlg.org/
+
+	The structure of ANSI Z39.64-1989 is based on CCCII, but with
+a few differences. Many consider it to be superior to and a
+replacement for CCCII (see Section 2.5.2).
+	The ANSI Z39.64-1989 standard is available through ANSI, but
+you should be aware that it is distributed in the form of several
+microfiche. Not a terribly useful storage medium these days. I had my
+set tranformed into tangible printed pages. You can also obtain this
+standard through NISO (National Information Standards Organization)
+Press Fulfillment. Their URL is:
+
+  http://www.niso.org/
+
+	EACC has been designated by the Library of Congress as a
+character set for use in USMARC (United States MAchine-Readable
+Cataloging) records, and is used extensively by East Asian libraries
+across North America.
+	EACC is also being used in Australia for the National CJK
+Project. Check out the following URL for more details:
+
+  http://www.nla.gov.au/1/asian/ncjk/cjkhome.html
+
+	Further information on ANSI Z39.64-1989 (to include very
+interesting historical notes) can be found on pp 150-156 of John
+Clews' "Language Automation Worldwide: The Development of Character
+Set Standards" (although a source at RLG tells me that some of Clews'
+facts are wrong) and Chapter 6 of Huang & Huang's "An Introduction to
+Chinese, Japanese, and Korean Computing."
+	The authoritative paper on EACC is "RLIN East Asian Character
+Code and the RLIN CJK Thesaurus" by Karen Smith Yoshimura and Alan
+Tucker, published in "Proceedings of the Second Asian-Pacific
+Conference on Library Science," May 20-24,1985, Seoul, Korea.
+
+
+2.6: OTHER
+
+	This section includes character set standards that don't
+properly fall under the above sections.
+
+
+2.6.1: GB 8045-87
+
+	GB 8045-87 is a Mongolian character set standard established
+by China (PRC). This standard enumerates 94 Mongolian characters. Of
+these 94 characters, 12 are punctuation (vertically-oriented), and the
+remaining 82 are characters specific to the Mongolian script.
+Mongolian is written vertically like Chinese.
+	I do not discuss the encoding for GB 8045-87 in Part 3, so
+will do it here. The GB 8045-87 manual describes a 7- and 8-bit
+encoding. The 7-bit encoding puts these 94 characters in the standard
+ASCII printable range, namely 0x21 through 0x7E. Code point 0x20 is
+marked as "MSP" which stands for "Mongolian space." The 8-bit encoding
+puts these 94 characters in the range 0xA1 through 0xFE, with the
+"MSP" character at code point 0xA0. The GB 1988-89 set is then encoded
+in the range 0x21 through 0x7E.
+
+
+2.6.2: TCVN-5773:1993
+
+	TCVN-5773:1993 (also called NSCII, which is short for Nom
+Standard Code for Information Interchange) is the Vietnamese analog to
+ISO 10646-1:1993, but adds 1,775 Vietnamese-specific Chinese
+characters. These 1,775 characters are encoded in the range 0xA000
+through 0xA6EE.
+	More information on TCVN-5773:1993 can be found at the
+following URL:
+
+  ftp://unicode.org/pub/MappingTables/EastAsiaMaps/
+
+There are two files at the above URL that pertain to this standard.
+The first is a README, and the second is a Macintosh HyperCard stack
+(requires HyperCard):
+
+  TCVN-NSCII.README
+  TCVN-NSCIIstack_1.0.sea.hqx
+
+
+PART 3: CJK ENCODING SYSTEMS
+
+	These sections describe the various systems for encoding the
+character set standards listed in Part 2. The first two described,
+7-bit ISO 2022 and EUC, are not specific to a locale, and in some
+cases not specific to CJK.
+	The CJK Character Set Server at the following URL can generate
+character sets based on encodings described in this section:
+
+  http://jasper.ora.com/lunde/cjk-char.html
+
+I suggest that you use this as a way to obtain files that illustrate
+these encodings in action.
+	But first, please take a peek at the following table, which is
+an attempt to illustrate how two Chinese characters (that stand for
+"kanji/hanzi/hanja") are encoded using the various methods presented
+in the following sections (character codes as hexadecimal digits, and
+escape sequences or shift sequences as printable characters):
+
+o Japanese (JIS X 0208-1990 & JIS X 0201-1976):
+  - 7-bit ISO 2022        <ESC> & @ <ESC> $ B 0x3441 0x3B7A <ESC> ( J
+  - ISO-2022-JP           <ESC> $ B 0x3441 0x3B7A <ESC> ( J
+  - EUC                   0xB4C1 0xBBFA
+  - Shift-JIS             0x8ABF 0x8E9A
+
+o Simplified Chinese (GB 2312-80 & GB 1988-89 or ASCII):
+  - 7-bit ISO 2022        <ESC> $ A 0x3A3A 0x5756 <ESC> ( T
+  - ISO-2022-CN           <ESC> $ ) A <SO> 0x3A3A 0x5756 <SI>
+  - EUC                   0xBABA 0xD7D6
+  - HZ (HZ-GB-2312)       ~{ 0x3A3A 0x5756 ~}
+  - zW                    zW 0x3A3A 0x5756
+
+o Traditional Chinese (CNS 11643-1992):
+  - 7-bit ISO 2022        <ESC> $ ( G 0x6947 0x4773 <ESC> ( B
+  - ISO-2022-CN           <ESC> $ ) G <SO> 0x6947 0x4773 <SI>
+  - EUC                   0xE9C7 0xC7F3 or 0x8EA1E9C7 0x8EA1C7F3
+
+o Traditional Chinese (Big Five):
+  - Big Five              0xBA7E 0xA672
+
+o Korean (KS C 5601-1992 & ASCII):
+  - 7-bit ISO 2022        <ESC> $ ( C 0x7953 0x6D2E <ESC> ( B
+  - ISO-2022-KR           <ESC> $ ) C <SO> 0x7953 0x6D2E <SI>
+  - EUC                   0xF9D3 0xEDAE
+  - Johab                 0xF7D3 0xF1AE
+
+o CJK (ISO 10646-1:1993, JIS X 0221-1995, GB 13000.1-93, or KS C
+  5700-1995):
+  - UCS-2                 0x6F22 0x5B57
+  - UCS-4                 0x00006F22 0x00005B57
+
+The above should have given you a taste of what information the
+following sections provide.
+
+
+3.1: 7-BIT ISO 2022 ENCODING
+
+	7-bit ISO 2022 is the name commonly given to the encoding
+system that uses escape sequences to shift between character sets.
+(ISO 2022 encoded Japanese text is also known as "JIS" encoding, but
+is different from ISO-2022-JP and ISO-2022-JP-2, and will be explained
+in Section 3.1.3.) This encoding comes from the ISO 2022-1993
+standard.
+	An escape sequence, as the name implies, consists of an escape
+character followed by a sequence of one or more characters. These
+escape sequences are used to change character set of the text
+stream. This may also mean a shift from one- to two-byte-per-character
+mode (or vice versa).
+	7-bit ISO 2022 Character sets fall into two types: one-byte
+and two-byte. CJK character sets, for obvious reasons, fall into the
+latter group.
+	One advantage that 7-bit ISO 2022 encoding has over other
+encoding systems is that its escape sequences specify the character
+set, thus specify the locale. 7-bit ISO 2022 encoding also encodes
+text using only seven-bit bytes, which has the benefit of being able
+to survive Internet travel (e-mail).
+
+
+3.1.1: CODE SPACE
+
+	Each byte in the representation of graphic (printable)
+characters fall into the range 0x21 (decimal 33) through 0x7E (decimal
+126). For one-byte character sets, this means a maximum of 94
+characters. For two-byte character sets, this means a maximum of 8,836
+characters (94 x 94 = 8,836).
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  first byte range                              0x21-0x7E
+
+  Two-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  first byte range                              0x21-0x7E
+  second byte range                             0x21-0x7E
+
+White space and control characters (of which the "escape" character is
+one) are still found in 0x00-0x20 and 0x7F.
+
+
+3.1.2: ISO-REGISTERED ESCAPE SEQUENCES
+
+	The following is a table that provides the ISO-registered
+escape sequences for various one- and two-byte character sets
+mentioned in Part 2 of this document (ISO registration numbers
+provided in the fourth column):
+
+  One-byte Character Set  Escape Sequence      Hexadecimal     ISO Reg
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^      ^^^^^^^^^^^     ^^^^^^^
+  ASCII (ANSI X3.4-1986)  <ESC> ( B            0x1B2842        6
+  Half-width katakana     <ESC> ( I            0x1B2849        13
+  JIS X 0201-1976 Roman   <ESC> ( J            0x1B284A        14
+  GB 1988-89 Roman        <ESC> ( T            0x1B2854        57
+
+  Two-byte Character Set  Escape Sequence      Hexadecimal     ISO Reg
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^      ^^^^^^^^^^^     ^^^^^^^
+  JIS C 6226-1978         <ESC> $ @            0x1B2440        42
+  GB 2312-80              <ESC> $ A            0x1B2441        58
+  JIS X 0208-1983         <ESC> $ B            0x1B2442        87
+  KS C 5601-1992          <ESC> $ ( C          0x1B242843      149
+  JIS X 0212-1990         <ESC> $ ( D          0x1B242844      159
+  ISO-IR-165:1992         <ESC> $ ( E          0x1B242845      165
+  JIS X 0208-1990         <ESC> & @ <ESC> $ B  0x1B26401B2442  168
+  CNS 11643-1992 Plane 1  <ESC> $ ( G          0x1B242847      171
+  CNS 11643-1992 Plane 2  <ESC> $ ( H          0x1B242848      172
+  CNS 11643-1992 Plane 3  <ESC> $ ( I          0x1B242849      183
+  CNS 11643-1992 Plane 4  <ESC> $ ( J          0x1B24284A      184
+  CNS 11643-1992 Plane 5  <ESC> $ ( K          0x1B24284B      185
+  CNS 11643-1992 Plane 6  <ESC> $ ( L          0x1B24284C      186
+  CNS 11643-1992 Plane 7  <ESC> $ ( M          0x1B24284D      187
+
+Note that the first four two-byte character sets do not use an opening
+parenthesis (0x28 or "(") in their escape sequences, which means that
+they don't follow the 7-bit ISO 2022 rules precisely. They are shorter
+for historical reasons, and are retained for backwards compatibility.
+Also note that not all of the CJK character set standards described in
+Part 2 have ISO-registered escape sequences.
+	There are other encoding methods that are similar to 7-bit ISO
+2022 in that they are suitable for Internet use, but are locale-
+specific. These include HZ and zW encoding, both of which are specific
+to the GB 2312-80 character set (see Sections 3.3.2 and 3.3.3).
+ISO-2022-JP, ISO-2022-KR, ISO-2022-CN, and ISO-2022-CN-EXT are
+described below.
+
+
+3.1.3: ISO-2022-JP AND ISO-2022-JP-2
+
+	ISO-2022-JP is best described as a subset of 7-bit ISO 2022
+encoding for Japanese, and reflects how Japanese text is encoded for
+e-mail messages. ISO-2022-JP-2 is an extension that supports
+additional character sets.
+	There are only four escape sequences permitted in ISO-2022-JP,
+indicated as follows:
+
+  One-byte Character Set  Escape Sequence      Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^      ^^^^^^^^^^^
+  ASCII (ANSI X3.4-1986)  <ESC> ( B            0x1B2842
+  JIS X 0201-1976 Roman   <ESC> ( J            0x1B284A
+
+  Two-byte Character Set  Escape Sequence      Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^      ^^^^^^^^^^^
+  JIS C 6226-1978         <ESC> $ @            0x1B2440
+  JIS X 0208-1983         <ESC> $ B            0x1B2442
+
+Note the lack of JIS X 0208-1990, JIS X 0212-1990, and half-width
+katakana escape sequences. The JIS X 0208-1983 escape sequence is used
+to indicate both JIS X 0208-1983 and JIS X 0208-1990 (for practical
+reasons).
+	ISO-2022-JP-2 permits additional escape sequences, indicated
+as follows:
+
+  One-byte Character Set  Escape Sequence      Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^      ^^^^^^^^^^^
+  ASCII (ANSI X3.4-1986)  <ESC> ( B            0x1B2842
+  JIS X 0201-1976 Roman   <ESC> ( J            0x1B284A
+
+  Two-byte Character Set  Escape Sequence      Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^      ^^^^^^^^^^^
+  JIS C 6226-1978         <ESC> $ @            0x1B2440
+  JIS X 0208-1983         <ESC> $ B            0x1B2442
+  JIS X 0212-1990         <ESC> $ ( D          0x1B242844
+  GB 2312-80              <ESC> $ A            0x1B2441
+  KS C 5601-1992          <ESC> $ ( C          0x1B242843
+
+With the introduction of ISO-2022-KR (see Section 3.1.4), ISO-2022-CN
+(see Section 3.1.5), and ISO-2022-CN-EXT (see Section 3.1.5), the
+usefulness of supporting GB 2312-80 and KS C 5601-1992 can be
+questioned. However, ISO-2022-JP-2 provides support for JIS X
+0212-1990.
+	More detailed information on ISO-2022-JP encoding can be found
+in RFC 1468. And, more detailed information on ISO-2022-JP-2 encoding
+can be found in RFC 1554.
+
+
+3.1.4: ISO-2022-KR
+
+	ISO-2022-KR is similar to ISO-2022-JP (see Section 3.1.3) in
+that it reflects how Korean text is encoded for e-mail messages.
+However, its actual implementation is a bit different. Below is a
+summary.
+	There are only two shift sequences used in ISO-2022-KR,
+indicated as follows:
+
+  One-byte Character Set  Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  ASCII (ANSI X3.4-1986)  <SI>                 0x0F
+
+  Two-byte Character Set  Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  KS C 5601-1992          <SO>                 0x0E
+
+Furthermore, the following designator sequence must appear only once,
+at the beginning of a line, before any KS C 5601-1992 characters (this
+usually means that it appears by itself on the first line of the
+file):
+
+  <ESC> $ ) C             0x1B242943
+
+It almost looks the same as the KS C 5601-1992 escape sequence in
+7-bit ISO 2022, but look again. The opening parenthesis (0x28 or "(")
+is replaced by a closing parenthesis (0x29 or ")"). This designator
+sequence serves a different purpose than an escape sequence. It is
+like a flag indicating that "this document contains KS C 5601-1992
+characters." The <SO> and <SI> control characters actually perform the
+switching between one- (ASCII) and two-byte (KS C 5601-1992) codes.
+	More detailed information on ISO-2022-KR encoding can be found
+in RFC 1557.
+
+
+3.1.5: ISO-2022-CN AND ISO-2022-CN-EXT
+
+	ISO-2022-CN and ISO-2022-CN-EXT are similar to ISO-2022-JP
+(see Section 3.1.3) and ISO-2022-KR (see Section 3.1.4) in that they
+reflect how Chinese text is encoded for e-mail messages.
+	Like with ISO-2022-KR, there are only two shift sequences,
+indicated as follows:
+
+  One-byte Character Set  Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  ASCII (ANSI X3.4-1986)  <SI>                 0x0F
+
+  Two-byte Character Set  Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  <Too Many to List>      <SO>                 0x0E
+
+But, unlike ISO-2022-KR, there are single shift sequences. Single
+shift means that they are used before every (single) character, not
+before sequences of characters.
+
+  Single Shift Type       Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^       ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  SS2                     <ESC> N              0x1B4E
+  SS3                     <ESC> O (not zero!)  0x1B4F
+
+	ISO-2022-CN supports the following character sets using SO and
+SS2 designations:
+
+  Character Set           Type   Designation Sequence  Hexadecimal
+  ^^^^^^^^^^^^^           ^^^^   ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+  GB 2312-80              SO     <ESC> $ ) A           0x1B242941
+  CNS 11643-1992 Plane 1  SO     <ESC> $ ) G           0x1B242947
+  CNS 11643-1992 Plane 2  SS2    <ESC> $ * H           0x1B242A48
+
+The designator sequences must appear once on a line before any
+instance of the character set it designates. If two lines contain
+characters from the same character set, both lines must include the
+designator sequence (this is so the text can be displayed correctly
+when scroll back in a window). This is different behavior from
+ISO-2022-KR where the designator sequence appears once in the entire
+file (this is because ISO-2022-KR supports a single two-byte character
+set).
+	ISO-2022-CN-EXT supports the following character sets using
+SO, SS2, and SS3 designations (notice how ISO-2022-CN is still
+supported in the same manner):
+
+  Character Set           Type   Designation Sequence  Hexadecimal
+  ^^^^^^^^^^^^^           ^^^^   ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+  GB 2312-80              SO     <ESC> $ ) A           0x1B242941
+  GB/T 12345-90           SO     NOT REGISTERED
+  ISO-IR-165              SO     <ESC> $ ) E           0x1B242945
+  CNS 11643-1992 Plane 1  SO     <ESC> $ ) G           0x1B242947
+  CNS 11643-1992 Plane 2  SS2    <ESC> $ * H           0x1B242A48
+  GB 7589-87              SS2    NOT REGISTERED
+  GB/T 13131-9X           SS2    NOT REGISTERED
+  CNS 11643-1992 Plane 3  SS3    <ESC> $ + I           0x1B242B49
+  CNS 11643-1992 Plane 4  SS3    <ESC> $ + J           0x1B242B4A
+  CNS 11643-1992 Plane 5  SS3    <ESC> $ + K           0x1B242B4B
+  CNS 11643-1992 Plane 6  SS3    <ESC> $ + L           0x1B242B4C
+  CNS 11643-1992 Plane 7  SS3    <ESC> $ + M           0x1B242B4D
+  GB 7590-87              SS3    NOT REGISTERED
+  GB/T 13132-9X           SS3    NOT REGISTERED
+
+Support for character sets indicated as NOT REGISTERED will be added
+once they are ISO-registered.
+	More detailed information on ISO-2022-CN and ISO-2022-CN-EXT
+encodings can be found in RFC 1922.
+
+
+3.2: EUC ENCODING
+
+	EUC stands for "Extended UNIX Code," and is a rich encoding
+system from ISO 2022-1993 that is designed to handle large or multiple
+character sets. It is primarily used on UNIX systems, such as Sun's
+Solaris.
+	EUC consists of four codes sets, numbered 0 through 3. The
+only code set that is more or less fixed by definition is code set 0,
+which is specified to contain ASCII or a locale's equivalent (such as
+JIS X 0201-1976 for Japanese or GB 1988-89 for PRC Chinese).
+	It is quite common to append the locale name to "EUC" when
+designating a specific instance of EUC encoding. Common designations
+include EUC-JP, EUC-CN, EUC-KR, and EUC-TW.
+
+
+3.2.1: JAPANESE REPRESENTATION
+
+	The following table illustrates the Japanese representation of
+EUC packed format:
+
+  EUC Code Sets                                 Encoding Range
+  ^^^^^^^^^^^^^                                 ^^^^^^^^^^^^^^
+  Code set 0 (ASCII or JIS X 0201-1976 Roman):  0x21-0x7E
+  Code set 1 (JIS X 0208):                      0xA1A1-0xFEFE
+  Code set 2 (half-width katakana):             0x8EA1-0x8EDF
+  Code set 3 (JIS X 0212-1990):                 0x8FA1A1-0x8FFEFE
+
+An earlier version of EUC for Japanese used code set 3 as the user-
+defined range.
+
+
+3.2.2: CHINESE (PRC) REPRESENTATION
+
+	The following table illustrates the Chinese (PRC)
+representation of EUC packed format:
+
+  EUC Code Sets                                 Encoding Range
+  ^^^^^^^^^^^^^                                 ^^^^^^^^^^^^^^
+  Code set 0 (ASCII or GB 1988-89):             0x21-0x7E
+  Code set 1 (GB 2312-80):                      0xA1A1-0xFEFE
+  Code set 2:                                   unused
+  Code set 3:                                   unused
+
+Note how code sets 2 and 3 are unused.
+	The encoding used on Macintosh is quite similar, but has a
+shortened two-byte range (0xA1A1 through 0xFCFE) plus additional
+one-byte code points, namely 0x80 ("u" with dieresis), 0xFD
+("copyright" symbol: "c" in a circle), 0xFE ("trademark" symbol: "TM"
+as a superscript), and 0xFF ("ellipsis" symbol: three dots).
+
+
+3.2.3: CHINESE (TAIWAN) REPRESENTATION
+
+	The following table illustrates the Chinese (Taiwan)
+representation of EUC packed format:
+
+  EUC Code Sets                                 Encoding Range
+  ^^^^^^^^^^^^^                                 ^^^^^^^^^^^^^^
+  Code set 0 (ASCII):                           0x21-0x7E
+  Code set 1 (CNS 11643-1992 Plane 1):          0xA1A1-0xFEFE
+  Code set 2 (CNS 11643-1992 Planes 1-16):      0x8EA1A1A1-0x8EB0FEFE
+  Code set 3:                                   unused
+
+Note how CNS 11643-1992 Plane 1 is redundantly encoded in code set 1
+(two-byte) and code set 2 (four-byte). The second byte of code set 2
+indicates the plane number. For example, 0xA1 is Plane 1 and so on up
+until 0xB0, which is Plane 16.
+
+
+3.2.4: KOREAN REPRESENTATION
+
+	The following table illustrates the Korean representation of
+EUC packed format (this is also known as "Wansung" encoding -- the
+Korean word "wansung" means "pre-compose"):
+
+  EUC Code Sets                                 Encoding Range
+  ^^^^^^^^^^^^^                                 ^^^^^^^^^^^^^^
+  Code set 0 (ASCII or KS C 5636-1993):         0x21-0x7E
+  Code set 1 (KS C 5601-1992):                  0xA1A1-0xFEFE
+  Code set 2:                                   unused
+  Code set 3:                                   unused
+
+Note how code sets 2 and 3 are unused.
+	The encoding used on Macintosh is quite similar, but has a
+shortened two-byte range (0xA1A1 through 0xFDFE) plus additional
+one-byte code points, namely 0x81 ("won" symbol), 0x82 (hyphen), 0x83
+("copyright" symbol: "c" in a circle), 0xFE ("trademark" symbol: "TM"
+as a superscript), and 0xFF ("ellipsis" symbol: three dots).
+	See Section 3.3.17 for a description of Microsoft's extension
+to this encoding, called Unified Hangul Code.
+
+
+3.3: LOCALE-SPECIFIC ENCODINGS
+
+	The encoding systems described in the following sections are
+considered to be locale-specific, namely that are used to encode a
+specific character set standard. This is not to say that they are not
+widely used (actually, some of these are among the most widely used
+encoding systems!), but rather that they are tied to a specific
+character set.
+
+
+3.3.1: SHIFT-JIS
+
+	Shift-JIS (also known as MS Kanji, SJIS, or DBCS-PC) is the
+encoding system used on machines that support MS-DOS or Windows, and
+also for Macintosh (KanjiTalk or Japanese Language Kit). It was
+originally developed by Microsoft Corporation as a way to support the
+Japanese character set on MS-DOS. The following tables provide the
+Shift-JIS encoding ranges:
+
+  Two-byte Standard Characters                  Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^
+  first byte ranges                             0x81-0x9F, 0xE0-0xEF
+  second byte ranges                            0x40-0x7E, 0x80-0xFC
+
+  Two-byte User-defined Characters              Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^              ^^^^^^^^^^^^^^^
+  first byte range                              0xF0-0xFC
+  second byte ranges                            0x40-0x7E, 0x80-0xFC
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  Half-width katakana                           0xA1-0xDF
+  ASCII/JIS-Roman                               0x21-0x7E
+
+It is important to note that the user-defined range does not
+correspond to code points in other encodings that support Japanese,
+such as 7-bit ISO 2022 or EUC. This is a portability problem. It is
+also unique in that it does not support the JIS X 0212-1990 character
+set standard.
+	The encoding used on Macintosh is quite similar to the above
+table, but has additional one-byte code points, namely 0x80
+(backslash), 0xFD ("copyright" symbol: "c" in a circle), 0xFE
+("trademark" symbol: "TM" as a superscript), and 0xFF ("ellipsis"
+symbol: three dots).
+
+
+3.3.2: HZ (HZ-GB-2312)
+
+	HZ is a simple yet very powerful and reliable system for
+encoding GB 2312-80 text which was developed by Fung Fung Lee
+(lee@umunhum.stanford.edu). HZ encoding is commonly used when
+exchanging e-mail or posting messages to Usenet News (specifically, to
+alt.chinese.text).
+	The actual encoding ranges used for one- and two-byte
+characters is almost identical to 7-bit ISO 2022 encoding (see Section
+3.1.1). The first-byte range is limited to 0x21 through 0x77. But,
+instead of using an escape sequence to shift between one- and two-byte
+character modes, a simple string of two printable characters is used.
+
+  One-byte Character Set  Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  ASCII                   ~}                   0x7E7D
+
+  Two-byte Character Set  Shift Sequence       Hexadecimal
+  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^       ^^^^^^^^^^^
+  GB 2312-80              ~{                   0x7E7B
+
+The tilde character (0x7E) is interpreted as an escape character in HZ
+encoding, so it has special meaning. If a tilde character is to appear
+in one-byte-per-character mode, it must be doubled (so ~~ would appear
+as just ~). This means that there are three escape sequences used in
+HZ encoding:
+
+  Escape Sequence  Meaning
+  ^^^^^^^^^^^^^^^  ^^^^^^^
+  ~~               ~ in one-byte-per-character mode
+  ~}               Shift into one-byte-per-character mode
+  ~{               Shift into two-byte-per-character mode
+
+There is also a fourth escape sequence, namely ~ plus a newline
+character (~\n). This escape sequence is a line-continuation marker to
+be consumed with no output produced.
+	This method works without problems because the shift sequences
+represent empty positions in the very last row of the GB 2312-80 table
+(actually, the second- and third-from-last code points). HZ encoding
+makes 77 of the 94 rows accessible, and because there are no defined
+characters beyond row 77, this causes no problems.
+	The complete HZ specification is part of the HZ package,
+described in RFC 1843, and available in HTML format. These are
+available at the following URLs:
+
+  ftp://ftp.ifcss.org/pub/software/unix/convert/HZ-2.0.tar.gz
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/Ch9/rfc-1843.txt
+  http://umunhum.stanford.edu/~lee/chicomp/HZ_spec.html
+
+In addition, RFC 1842 establishes "HZ-GB-2312" as the "charset"
+parameter in MIME-encoded e-mail headers. Its properties are identical
+to HZ encoding as described in RFC 1843.
+
+
+3.3.3: zW
+
+	zW encoding, developed by Ya-Gui Wei and Edmund Lai, is older
+than and somewhat similar to HZ encoding (HZ is considered to be a
+better encoding system, and users are encouraged to switch over to HZ
+encoding).
+	zW encoding is named by how it encodes each line of GB 2312-80
+text, namely lines that contain Chinese text must begin with the two
+characters "z" and "W" ("zW"). This encoding method does not permit
+the mixture of one- (ASCII) and two-byte (GB 2312-80) characters on a
+per-character basis, but rather on a per-line basis. That is, each
+line can contain only Chinese or ASCII text, but not both.
+	More information on zW encoding can be found as part of the
+ZWDOS package available at the following URL:
+
+  ftp://ftp.ifcss.org/pub/software/dos/ZWDOS/
+
+
+3.3.4: BIG FIVE
+
+	Big Five is the encoding system used on machines that support
+MS-DOS or Windows, and also for Macintosh (such as the Chinese
+Language Kit or the fully-localized operating system).
+
+  Two-byte Standard Characters                  Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^
+  first byte range                              0xA1-0xFE
+  second byte ranges                            0x40-0x7E, 0xA1-0xFE
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  ASCII                                         0x21-0x7E
+
+	The encoding used on Macintosh is quite similar to the above,
+but has a slightly shortened two-byte range (second byte range up to
+0xFC only) plus additional one-byte code points, namely 0x80
+(backslash), 0xFD ("copyright" symbol: "c" in a circle), 0xFE
+("trademark" symbol: "TM" as a superscript), and 0xFF ("ellipsis"
+symbol: three dots).
+
+
+3.3.5: JOHAB
+
+	Korean hangul characters are typically encoded in what is
+known as pre-combined form, namely 2 or 3 hangul elements bound into a
+single character. KS C 5601-1992 enumerates 2,350 such pre-combined
+forms. While this number is felt to be sufficient for most purposes,
+it does not account for the total number of possible permutations. The
+encoding system that encodes all possible pre-combined hangul is known
+as Johab encoding (also known as "two-byte combination code" -- the
+Korean word "johab" means "combine"), and is described in Annex 3 of
+the KS C 5601-1992 standard. This encoding is almost like encoding all
+possible three-letter words in English -- while all combinations are
+possible, only a fraction represent *real* words.
+	Pre-combined hangul can be composed of 19 different initial,
+21 different medial, and 27 different final hangul elements (28,
+actually, if you count the placeholder). This provides a maximum of
+11,172 pre-combined hangul. Of these 67 hangul elements, 51 are unique
+(some can occur in different positions). Each of these positions are
+encoded using five bits each (five bits can encode up to 32 unique
+objects). The encoding array looks as follows:
+
+o Bit 1: always on
+o Bits 2-6: initial hangul element
+o Bits 7-11: medial hangul element
+o Bits 12-16: final hangul element
+
+Initial and final elements are consonants, and the medial elements are
+vowels. This encoding must be treated as a 16-bite entity because the
+bit array of the medial hangul element spans the first and second byte.
+	Johab encoding also provides the complete set of KS C 5601-
+1992 symbols and hanja, but in different code points. Annex 3 of the
+KS C 5601-1992 manual (pp 33-34) contains a complete symbol and hanja
+mapping table between EUC and Johab code points. (The KS C 5601-1989
+manual did not have this.) The code space ranges for Johab encoding
+are as follows:
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  ASCII or KS C 5636-1993                       0x21-0x7E
+
+  Two-byte Pre-combined Hangul                  Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^
+  first byte range                              0x84-0xD3
+  second byte ranges                            0x41-0x7E, 0x81-0xFE
+
+  Two-byte Symbols and Hanja                    Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^
+  first byte ranges                             0xD8-0xDE, 0xE0-0xF9
+  second byte ranges                            0x31-0x7E, 0x91-0xFE
+
+Note that the second byte ranges encode a total of 188 characters, and
+that the second byte ranges for hangul and symbols/hanja are slightly
+different (yet the same size, namely 188 characters).
+	Here is a summary of the above table, which better describes
+what is encoded where. Rows 0x84 through 0xD3 provide 80 rows of 188
+characters each (15,040 code points, which is more than enough for the
+11,172 pre-combined hangul). Row 0xD8 provides 188 user-defined
+positions, the same as Rows 41 and 94 in the standard KS C 5601-1992
+table. Rows 0xD9 through 0xDE encode Rows 1 through 12 of the standard
+KS C 5601-1992 table (symbols). Rows 0xE0 through 0xF9 encode Rows 42
+through 94 of the KS C 5601-1992 table (hanja). The following URL
+provides a complete mapping table for the KS C 5601-1992 symbols and
+hanja:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/non-hangul-codes.txt
+
+The following URLs provides similar information (they are the same
+file), but only for the 11,172 pre-combined hangul:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/hangul-codes.txt
+  ftp://unicode.org/pub/MappingTables/EastAsiaMaps/hangul-codes.txt
+
+	Of further interest may be that Microsoft designates Johab
+encoding as its Code Page 1361. Microsoft if planning to support Johab
+encoding for Korean Windows NT.
+
+
+3.3.6: N-BYTE HANGUL
+
+	In the days before full two-byte capable operating systems,
+each of the 51 basic hangul elements were encoding using a single
+(7-bit) byte. The encoding range spans 0x40 through 0x7C, but there
+are several unassigned gaps. This is known as the "N-byte Hangul"
+code, and is described in Annex 4 (page 35) of the KS C 5601-1992
+manual.
+	The following table illustrates these 51 one-byte code points
+(the pronunciation or meaning of the hangul element is provided in
+parentheses) and how they map to the three 5-bit arrays in Johab
+encoding (expressed as binary patterns):
+
+  Element        Initial  Medial   Final
+  ^^^^^^^        ^^^^^^^  ^^^^^^   ^^^^^
+  0x40 ("fill")  00001    00010    00001
+  0x41 (g)       00010    *****    00010
+  0x42 (gg)      00011    *****    00011
+  0x43 (gs)      *****    *****    00100
+  0x44 (n)       00100    *****    00101
+  0x45 (nj)      *****    *****    00110
+  0x46 (nh)      *****    *****    00111
+  0x47 (d)       00101    *****    01000
+  0x48 (dd)      00110    *****    *****
+  0x49 (r)       00111    *****    01001
+  0x4A (rg)      *****    *****    01010
+  0x4B (rm)      *****    *****    01011
+  0x4C (rb)      *****    *****    01100
+  0x4D (rs)      *****    *****    01101
+  0x4E (rt)      *****    *****    01110
+  0x4F (rp)      *****    *****    01111
+  0x50 (rh)      *****    *****    10000
+  0x51 (m)       01000    *****    10001
+  0x52 (b)       01001    *****    10011
+  0x53 (bb)      01010    *****    *****
+  0x54 (bs)      *****    *****    10100
+  0x55 (s)       01011    *****    10101
+  0x56 (ss)      01100    *****    10110
+  0x57 (ng)      01101    *****    10111
+  0x58 (j)       01110    *****    11000
+  0x59 (jj)      01111    *****    *****
+  0x5A (c)       10000    *****    11001
+  0x5B (k)       10001    *****    11010
+  0x5C (t)       10010    *****    11011
+  0x5D (p)       10011    *****    11100
+  0x5E (h)       10100    *****    11101
+  0x5F UNASSIGNED
+  0x60 UNASSIGNED
+  0x61 UNASSIGNED
+  0x62 (a)       *****    00011    *****
+  0x63 (ae)      *****    00100    *****
+  0x64 (ya)      *****    00101    *****
+  0x65 (yae)     *****    00110    *****
+  0x66 (eo)      *****    00111    *****
+  0x67 (e)       *****    01010    *****
+  0x68 UNASSIGNED
+  0x69 UNASSIGNED
+  0x6A (yeo)     *****    01011    *****
+  0x6B (ye)      *****    01100    *****
+  0x6C (o)       *****    01101    *****
+  0x6D (wa)      *****    01110    *****
+  0x6E (wae)     *****    01111    *****
+  0x6F (oe)      *****    10010    *****
+  0x70 UNASSIGNED
+  0x71 UNASSIGNED
+  0x72 (yo)      *****    10011    *****
+  0x73 (u)       *****    10100    *****
+  0x74 (weo)     *****    10101    *****
+  0x75 (we)      *****    10110    *****
+  0x76 (wi)      *****    10111    *****
+  0x77 (yu)      *****    11010    *****
+  0x78 UNASSIGNED
+  0x79 UNASSIGNED
+  0x7A (eu)      *****    11011    *****
+  0x7B (yi)      *****    11100    *****
+  0x7C (i)       *****    11101    *****
+
+	There are utilities to convert N-byte Hangul code to other,
+more widely-used, encoding methods. Pointers to these and other code
+conversion utilities can be found in Section 4.7.
+
+
+3.3.7: UCS-2
+
+	UCS-2 (Universal Character Set containing 2 bytes) encoding is
+one way to encode ISO 10646-1:1993 text, and is considered identical
+to Unicode encoding. Its encoding range, which is quite simple, is as
+follows:
+
+  ISO 10646-1:1993 Characters                   Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^
+  first byte range                              0x00-0xFF
+  second byte range                             0x00-0xFF
+
+Yes, folks, the whole range of 65,536 possible code points are
+available for encoding characters. The "signature" that indicates a
+file using UCS-2 is as follows:
+
+  0xFEFF
+
+	Escape sequences for UCS-2 have already been registered with
+ISO, and are as follows:
+
+  ISO 10646-1:1993        Escape Sequence      Hexadecimal     ISO Reg
+  ^^^^^^^^^^^^^^^^        ^^^^^^^^^^^^^^^      ^^^^^^^^^^^     ^^^^^^^
+  UCS-2 Level 1           <ESC> % / @          0x1B252F40      162
+  UCS-2 Level 2           <ESC> % / C          0x1B252F43      174
+  UCS-2 Level 3           <ESC> % / E          0x1B252F45      176
+
+So what do these three levels mean? Level 3 means all characters in
+ISO 10646-1:1993 with no restrictions (0x0000 through 0xFFFF).
+	Level 2 begins to restrict the character set by not including
+the following characters or character ranges:
+
+  0x0300-0x0345  0x09D7         0x0BD7         0x11A8-0x11F9
+  0x0360-0x0361  0x0A3C         0x0C55-0x0C56  0x20D0-0x20E1
+  0x0483-0x0486  0x0A70-0x0A71  0x0CD5-0x0CD6  0x302A-0x302F
+  0x093C         0x0ABC         0x0D57         0x3099-0x309A
+  0x0953-0x0954  0x0B3C         0x1100-0x1159  0xFE20-0xFE23
+  0x09BC         0x0B56-0x0B57  0x115F-0x11A2
+
+These are all combining characters, and represent 364 code points.
+	Level 1 further restricts the character set by not including
+the following characters or character ranges:
+
+  0x05B0-0x05B9  0x09BE-0x09C4  0x0B47-0x0B48  0x0D02-0x0D03
+  0x05BB-0x05BD  0x09C7-0x09C8  0x0B4B-0x0B4D  0x0D3E-0x0D43
+  0x05BF         0x09CB-0x09CD  0x0B82-0x0B83  0x0D46-0x0D48
+  0x05C1-0x05C2  0x09E2-0x09E3  0x0BBE-0x0BC2  0x0D4A-0x0D4D
+  0x064B-0x0652  0x0A02         0x0BC6-0x0BC8  0x0E31
+  0x0670         0x0A3E-0x0A42  0x0BCA-0x0BCD  0x0E34-0x0E3A
+  0x06D6-0x06E4  0x0A47-0x0A48  0x0C01-0x0C03  0x0E47-0x0E4E
+  0x06E7-0x06E8  0x0A4B-0x0A4D  0x0C3E-0x0C44  0x0EB1
+  0x06EA-0x06ED  0x0A81-0x0A83  0x0C46-0x0C48  0x0EB4-0x0EB9
+  0x0901-0x0903  0x0ABE-0x0AC5  0x0C4A-0x0C4D  0x0EBB-0x0EBC
+  0x093E-0x094D  0x0AC7-0x0AC9  0x0C82-0x0C83  0x0EC8-0x0ECD
+  0x0951-0x0952  0x0ACB-0x0ACD  0x0CBE-0x0CC4  0xFB1E
+  0x0962-0x0963  0x0B01-0x0B03  0x0CC6-0x0CC8
+  0x0981-0x0983  0x0B3E-0x0B43  0x0CCA-0x0CCD
+
+These, too, are all combining characters, and represent 586 code
+points (222 above plus the 364 characters from the Level 2
+restriction).
+
+
+3.3.8: UCS-4
+
+	UCS-4 (Universal Character Set containing 4 bytes) encoding is
+another way to encode ISO 10646-1:1993 text, and is used for future
+expansion of the character set. Its encoding range is as follows:
+
+  ISO 10646-1:1993 Characters                   Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^
+  first byte range                              0x00-0x7F
+  second byte range                             0x00-0xFF
+  third byte range                              0x00-0xFF
+  fourth byte range                             0x00-0xFF
+
+Note that the first byte range only goes up to 0x7F. This means that
+UCS-4 is a 31-bit encoding. And, in case you're wondering, 31 bits
+provide 2,147,483,648 code points. The "signature" that indicates a
+file using UCS-4 is as follows:
+
+  0x0000 0xFEFF
+
+	Escape sequences for UCS-4 have already been registered with
+ISO, and are as follows:
+
+  ISO 10646-1:1993        Escape Sequence      Hexadecimal     ISO Reg
+  ^^^^^^^^^^^^^^^^        ^^^^^^^^^^^^^^^      ^^^^^^^^^^^     ^^^^^^^
+  UCS-4 Level 1           <ESC> % / A          0x1B252F41      163
+  UCS-4 Level 2           <ESC> % / D          0x1B252F44      175
+  UCS-4 Level 3           <ESC> % / F          0x1B252F46      177
+
+See the end of Section 3.3.7 for a description of these three levels.
+But, in the case of UCS-4, simply prepend "0000" to all the values.
+
+
+3.3.9: UTF-7
+
+	It turns out that *raw* ISO 10646-1:1993 encoding (that is,
+UCS-2 or UCS-4) can cause problems because null bytes (0x00) are
+possible (and frequent). Several UTFs (UCS Transformation Formats)
+have been developed to deal with this and other problems. I must admit
+that I don't know too much about UTFs, and what I provide below is
+minimal, but does include pointers to more complete descriptions.
+	UTF-7 is a mail-safe 7-bit transformation format for UCS-2
+(including UTF-16). It uses straight ASCII for many ASCII characters,
+and switches into a Base64 encoding of UCS-2 or UTF-16 for everything
+else. It was designed to be usable in MIME-compliant e-mail headers as
+well as message bodies, and to pass through gateways to non-ASCII mail
+systems (like Bitnet). More detailed information on UTF-7 can be found
+in RFC 1642, and a UTF-7 converter is available. The following URLs
+provide this information:
+
+  http://www.stonehand.com/unicode/standard/utf7.html
+  ftp://unicode.org/pub/Programs/ConvertUTF/
+
+
+3.3.10: UTF-8
+
+	UTF-8 (also known as UTF-2 or FSS-UTF -- FSS stands for "file
+system safe") can represent any character in UCS-2 and UCS-4, and is
+officially an annex to ISO 10646-1:1993. It is different from UTF-7 in
+that it encodes character sets into 8-bit bytes. UCS-2 and UCS-4 have
+problems with some file systems and utilities, so this UTF was
+developed.
+	More detailed information on UTF-8 and its relationship with
+ISO 10646-1:1993 can be found at the following URLs:
+
+  http://www.stonehand.com/unicode/standard/utf8.html
+  ftp://unicode.org/pub/Programs/ConvertUTF/
+
+	X/Open Company Limited also published a document that
+describes UTF-8 in detail (they call it FSS-UTF), and you can find
+information about it at the following URL:
+
+  http://www.xopen.co.uk/public/pubs/catalog/c501.htm
+
+The new programming language called Java supports Unicode through
+UTF-8. More information on Java is at the following URL:
+
+  http://www.javasoft.com/
+
+
+3.3.11: UTF-16
+
+	UTF-16 (formerly UCS-2E), like UTF-8, is now officially an
+annex to ISO 10646-1:1993. From what I've read, UTF-16 transforms
+UCS-4 into a 16-bit form. UTF-16 can then be further encoded in UTF-7
+or UTF-8 (but doing this is not according to the standard -- there is
+little to gain by doing so).
+	More detailed information on UTF-16 and its relationship with
+ISO 10646-1:1993 can be found at the following URLs:
+
+  http://www.stonehand.com/unicode/standard/utf16.html
+  ftp://unicode.org/pub/Programs/ConvertUTF/
+
+
+3.3.12: ANSI Z39.64-1989
+
+	The encoding used for ANSI Z39.64-1989 (and CCCII) is three-
+byte 7-bit ISO 2022, namely the following code space:
+
+  Three-byte ANSI Z39.64-1989                   Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^                   ^^^^^^^^^^^^^^
+  first byte range                              0x21-0x7E
+  second byte range                             0x21-0x7E
+  third byte range                              0x21-0x7E
+
+
+3.3.13: BASE64
+
+	Base64 encoding is mentioned here only because of its common
+usage in e-mail headers, and relationship with MIME (Multi-purpose
+Internet Mail Extensions). It is also a source of confusion. Base64 is
+a method of encoding arbitrary bytes into the safest 64-character
+ASCII subset, and is defined in RFC 1341 (which adapted it from RFC
+1113). RFC 1341 was made obsolete by RFC 1521. RFC 1522 also provides
+useful information, particularly for handling non-ASCII text, and
+obsoletes RFC 1342.
+	Here is how it works. Every three bytes are encoded as a
+four-byte sequence. That is, the 24 bits that make up the three bytes
+are split into four 6-bit segments (6 bits can encode up to 64
+characters). Each 6-bit segment is then converted into a character in
+the Base64 Alphabet (see below). There is a 65th character, "=", which
+has a special purpose (it functions as a "pad" if a full three-byte
+sequence is not found). This all may sound a bit like uuencoding, but
+it is different. The Base64 Alphabet is as follows:
+
+  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
+
+	My name, written in Japanese kanji, is as follows when it is
+EUC-encoded (six bytes, expressed as three groups of hexadecimal
+values, one group for each character):
+
+  0xBEAE 0xCED3 0xB7F5
+
+When these three EUC-encoded characters are converted to Base64
+encoding, they appear as follows (eight bytes):
+
+  vq7O07f1
+
+	Base64 encoding is most commonly used for encoding non-ASCII
+text that appears in e-mail headers. Of all the portions of an e-mail
+message, its header gets manipulated the most during transmission, and
+Base64 encoding offers a safe way to further encode non-ASCII text so
+that it is not altered by mail-routing software. This is where Base64
+encoding can cause confusion. For example, what goes through your mind
+when you see the following chunk o' text?
+
+  From: lunde@adobe.com (=?ISO-2022-JP?B?vq7O07f1?=)
+
+Many folks think that they are seeing ISO-2022-JP encoding. Not
+true. The "ISO-2022-JP" portion is just a flag that indicates the
+original encoding before Base64 encoding was applied. The actual
+Base64-encoded portion is enclosed between question marks (?) as
+follows:
+
+  From: lunde@adobe.com (=?ISO-2022-JP?B?vq7O07f1?=)
+                                        >^^^^^^^^<
+
+The whole string enclosed in parentheses has several components, and
+the following explains their purpose and relationships (using the
+above string as an example):
+
+  Component      Explanation
+  ^^^^^^^^^      ^^^^^^^^^^^
+  =?             Signals start of encoded string
+  ISO-2022-JP    Charset name ("ISO-2022-JP" is for Japanese)
+  ?              Delimiter
+  B              Encoding ("B" is for Base64)
+  ?              Delimiter
+  vq7O07f1       Example string of type "charset" encoded by "encoding"
+  ?=             Signals end of encoded string
+
+	One typically does not need to worry about encoding text as
+Base64 (MIME-compliant mailing software usually performs this task for
+you). The problem is usually trying to decode Base64-encoded text. A
+Base64 decoder is available in Perl at the following URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/perl/b64decode.pl
+
+Note that this program takes "raw" Base64 data as input. Any non-
+Base64 stuff must be stripped. I usually run this from within Mule
+("C-u M-| b64decode.pl") after defining a region around the Base64-
+encoded material. I hope to replace this program soon with one that
+automatically recognizes the Base64-encoded portions.
+	Most MIME-compliant e-mail software can decode Base64-encoded
+text.
+
+
+3.3.14: IBM DBCS-HOST
+
+	The oldest two-byte encoding system is IBM's DBCS-Host. DBCS
+stands for Double-Byte Character Set. DBCS-Host is still in use on
+IBM's mainframe computer systems (hence the use of "Host").
+	DBCS-Host encoding is EBCDIC-based, and uses Shift characters,
+0x0E and 0x0F, to switch between one- and two-byte mode. Its encoding
+specifications are as follows:
+
+  Two-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  first byte range                              0x41-0xFE
+  second byte range                             0x41-0xFE
+
+  Two-byte "Space" Character                    Code Point
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^                    ^^^^^^^^^^
+  first- and second byte                        0x4040
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  EBCDIC                                        0x41-0xF9
+
+  Shifting Characters                           Code Point
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  Two-byte                                      0x0E
+  One-byte                                      0x0F
+
+This same encoding specification is shared by all of IBM's CJK
+character sets, namely for Japanese, Simplified Chinese, Traditional
+Chinese, and Korean.
+
+
+3.3.15: IBM DBCS-PC
+
+	IBM's DBCS-PC encoding is used on IBM personal computers (that
+is where the "PC" comes from). DBCS-PC encoding is ASCII-based, and
+uses the values of characters' bytes themselves to switch between one-
+and two-byte mode. Its encoding specifications are as follows:
+
+  Two-byte Characters                           Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^^
+  first byte range                              0x81-0xFE
+  second byte range                             0x40-0x7E, 0x80-0xFE
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  ASCII                                         0x21-0x7E
+
+This same encoding specification is shared by all of IBM's CJK
+character sets, namely for Japanese, Simplified Chinese, Traditional
+Chinese, and Korean.
+	DBCS-PC encoding for Japanese, although conforming to the
+above encoding specifications, actually uses the same encoding
+specifications for Shift-JIS, to include the full user-defined range
+(see Section 3.3.1 for more details on Shift-JIS encoding). One big
+accommodation is the half-width katakana range, namely 0xA1 through
+0xDF. Further, the DBCS-PC code space that is outside the Shift-JIS
+specification is unused.
+	DBCS-PC encoding for Korean uses the equivalent of EUC code
+set 1 code points (0xA1A1 through 0xFEFE) for those characters that
+are common with KS C 5601-1992. Those characters that are not common
+with KS C 5601-1992, namely IBM's extensions, are within the DBCS-PC
+encoding space, but outside EUC encoding space (0x9A through 0xA0).
+Many hanja and pre-combined hangul are part of IBM's Korean extension.
+	Note that DBCS-PC is sort of useless without a corresponding
+SBCS (Single-Byte Character Set) for the one-byte range. Mixing DBCS
+and SBCS results in a MBCS (Multiple-Byte Character Set). How these
+are mixed to form MBCSs is detailed in Section 3.4.
+
+
+3.3.16: IBM DBCS-/TBCS-EUC
+
+	IBM has also developed DBCS-EUC and TBCS-EUC encodings. TBCS
+stands for Triple-Byte Character Set. These essentially follow the EUC
+encoding specifications, and were developed for use with IBM's AIX
+(Advanced Interactive Executive) operating system, which is
+UNIX-based.
+	Refer to Section 3.2 for all the details on EUC encoding.
+
+
+3.3.17: UNIFIED HANGUL CODE
+
+	Microsoft has developed what is called "Unified Hangul Code"
+(UHC) for its Windows 95 operating system (this was also known as
+"Extended Wansung"). It is the optional, not standard, character set
+of Win95K.
+	UHC provides full compatibility with KS C 5601-1992 EUC
+encoding (see Section 3.2.4), but adds additional encoding ranges for
+holding additional pre-combined hangul (more precisely, the 8,822 that
+are needed to fully support the Johab character set). The following is
+a table that provides the encoding ranges for UHC encoding:
+
+  Two-byte Standard Characters                  Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^
+  first byte range                              0x81-0xFE
+  second byte ranges                            0x41-0x5A, 0x61-0x7A,
+                                                and 0x81-0xFE
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  ASCII                                         0x21-0x7E
+
+Note that 0xA1A1 through 0xFEFE in the above encoding is still
+identical, in terms of character-to-code allocation, with KS C 5601-
+1992 in EUC encoding.
+	Appendix G (pp 345-406) of "Developing International Software
+for Windows 95 and Windows NT" by Nadine Kano illustrates the KS C
+5601-1992 character set standard plus these Microsoft extensions
+(8,822 pre-combined hangul) by UHC code (Microsoft calls this Code
+Page 949).
+
+
+3.3.18: TRON CODE
+
+	TRON (The Real-time Operating system Nucleus) is an OS
+developed in Japan some time ago. Personal Media Corporation has done
+work to develop BTRON (Business TRON), which is unique in that it is
+the only commercially-available OS that supports JIS X 0212-1990.
+	TRON Code provides a one- and two-byte encoding space and a
+method for switching between them.
+	The following is how the two-byte space in TRON Code is
+allocated:
+
+  A-Zone (8,836 characters; JIS X 0208-1990)    Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    ^^^^^^^^^^^^^^
+  first byte range                              0x21-0x7E
+  second byte range                             0x21-0x7E
+
+  B-Zone (11,844 characters; JIS X 0212-1990)   Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^
+  first byte range                              0x80-0xFD
+  second byte range                             0x21-0x7E
+
+  C-Zone (11,844 characters; unassigned)        Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        ^^^^^^^^^^^^^^
+  first byte range                              0x21-0x7E
+  second byte range                             0x80-0xFD
+
+  D-Zone (15,876 characters; unassigned)        Encoding Range
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        ^^^^^^^^^^^^^^
+  first byte range                              0x80-0xFD
+  second byte range                             0x80-0xFD
+
+Note how the B-Zone is larger that the conventional 94-by-94
+matrix. In fact, the JIS X 0212-1990 portion of the B-Zone is
+restricted to 0xA121-0xFD7E (93-by-94 matrix -- 0xFE as a first-byte
+value is unavailable, and you will see why in a minute).
+	TRON Code implements "language specifying codes" consisting of
+two bytes as follows:
+
+  Two-byte Japanese                             0xFE21
+  One-byte English                              0xFE80
+
+0xFE21 in a one-byte stream invokes two-byte Japanese mode, and 0xFE80
+in a two-byte stream invokes one-byte English mode.
+	The following is the one-byte encoding range for TRON Code:
+
+  One-byte Characters                           0x21-0x7E and 0x80-0xFD
+
+Control codes are in 0x00-0x20 and 0x7F (the usual ASCII control code
+range). Also, 0xA0 is reserved as a fixed-width space character.
+
+
+3.3.19: GBK
+
+	GBK is an extension to GB 2312-80 that adds all ISO 10646-
+1:1993 (GB 13000.1-93) hanzi not already in GB 2312-80. GBK is defined
+as a normative annex of GB 13000.1-93 (see Section 2.2.10). The "K" in
+"GBK" is the first sound in the Chinese word meaning "extension" (read
+"Kuo Zhan").
+	GBK is divided into five levels as follows:
+
+  Level  Encoded Range  Total Code Points  Total Encoded Characters
+  ^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^
+  GBK/1  0xA1A1-0xA9FE    846                717
+  GBK/2  0xB0A1-0xF7FE  6,768              6,763
+  GBK/3  0x8140-0xA0FE  6,080              6,080
+  GBK/4  0xAA40-0xFEA0  8,160              8,160
+  GBK/5  0xA840-0xA9A0    192                166
+
+	There are also 1,894 user-defined code points as follows:
+
+  Encoded Range  Total Code Points
+  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^
+  0xAAA1-0xAFFE  564
+  0xF8A1-0xFEFE  658
+  0xA140-0xA7A0  672
+
+	GBK thus provides a total of 23,940 code points, 21,886 of
+which are assigned.
+	Each "row" in the GBK code table consists of 190 characters.
+The following describes the encoding ranges of GBK in detail:
+
+  Two-byte Standard Characters                  Encoding Ranges
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^
+  first byte range                              0x81-0xFE
+  second byte ranges                            0x40-0x7E and 0x80-0xFE
+
+  One-byte Characters                           Encoding Range
+  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^
+  ASCII                                         0x21-0x7E
+
+Note that the sub-range 0xA1A1-0xFEFE in the above encoding is still
+identical, in terms of character-to-code allocation, with GB 2312-80
+in EUC encoding. GBK is therefore backward-compatible with GB 2312-80
+and forward-compatible with ISO 10646-1:1993.
+	GBK is the standard character set and encoding for the
+Simplified Chinese version of Windows 95.
+
+
+3.4: CJK CODE PAGES
+
+	Many times one reads about references to "Code Pages" in
+material about CJK (and other) character sets and encodings. These are
+not literal pages, but rather references to a character set and
+encoding combination. In the case of CJK Code Pages, they definitely
+comprise more than one page!
+	Microsoft refers to its supported CJK character sets and
+encodings through such Code Page designations. The following is a
+listing of several Microsoft CJK Code Pages along with their
+characteristics:
+
+  Code Page  Characteristics
+  ^^^^^^^^^  ^^^^^^^^^^^^^^^
+  932        JIS X 0208-1990 base, Shift-JIS encoding, Microsoft
+             extensions (NEC Row 13 and IBM select characters in
+             redundantly encoded in Rows 89 through 92 and Rows 115
+             through 119)
+  936        GB 2312-80 base, EUC encoding
+  949        KS C 5601-1992 base, Unified Hangul Code encoding,
+             remaining 8,822 pre-combined hangul as extension (all of
+             this is referred to as Unified Hangul Code)
+  950        Big Five base, Big Five encoding, Microsoft extensions
+             (actually, the ETen extensions of Row 89)
+  1361       Johab base, Johab encoding
+
+	IBM also uses Code Page designations, and, in fact, some
+designations (and associated characteristics) are nearly identical to
+those in the above table, most notably, Code Pages 932 and 936. IBM's
+Code Page 932 does not include NEC Row 13 or IBM select characters in
+Rows 89 through 92.
+	The best way to describe IBM Code Page designations is by
+first listing the SBCS (Single-Byte Character Set) and DBCS (Double-
+Byte Character Set) Code Page designations (those designated by "Host"
+use EBCDIC-based encodings):
+
+  IBM SBCS Code Page          Characteristics
+  ^^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^
+  37 (US)                     SBCS-Host
+  290 (Japanese)              SBCS-Host
+  833 (Korean)                SBCS-Host
+  836 (Simplified Chinese)    SBCS-Host
+  891 (Korean)                SBCS-PC
+  897 (Japanese)              SBCS-PC
+  903 (Simplified Chinese)    SBCS-PC
+  904 (Traditional Chinese)   SBCS-PC
+
+  IBM DBCS Code Page          Characteristics
+  ^^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^
+  300 (Japanese)              DBCS-Host
+  301 (Japanese)              DBCS-PC
+  834 (Korean)                DBCS-Host
+  835 (Traditional Chinese)   DBCS-Host
+  837 (Simplified Chinese)    DBCS-Host
+  926 (Korean)                DBCS-PC
+  927 (Traditional Chinese)   DBCS-PC
+  928 (Simplified Chinese)    DBCS-PC
+
+So far there appears to be no relationship with Microsoft's CJK Code
+Pages, but when we combine the above SBCS and DBCS Code Pages into
+MBCS (Multiple-Byte Character Set) Code Pages, things become a bit
+more revealing:
+
+  IBM MBCS Code Page          Characteristics
+  ^^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^
+  930 (Japanese)              MBCS-Host (Code Pages 300 and 290)
+  932 (Japanese)              MBCS-PC (Code Pages 301 and 897)
+  933 (Korean)                MBCS-Host (Code Pages 834 and 833)
+  934 (Korean)                MBCS-PC (Code Pages 926 and 891)
+  938 (Traditional Chinese)   MBCS-PC (Code Pages 927 and 904)
+  936 (Simplified Chinese)    MBCS-PC (Code Pages 928 and 903)
+  5031 (Simplified Chinese)   MBCS-Host (Code Pages 837 and 836)
+  5033 (Traditional Chinese)  MBCS-Host (Code Pages 835 and 37)
+
+So, you can now see that many of Microsoft's CJK Code Pages are
+derived from those established by IBM.
+	More detailed information on the encoding specifications for
+DBCS-Host and DBCS-PC can be found in Sections 3.3.14 and 3.3.15,
+respectively.
+
+
+PART 4: CJK CHARACTER SET COMPATIBILITY ISSUES
+
+	The sections below provide detailed information about
+compatibility issues between CJK character sets, to include tidbits of
+useful information.
+	One thing to mention first is that conversion to and from
+IBM's DBCS-Host (Section 3.3.14) and DBCS-PC (Section 3.3.15)
+encodings is table-driven, and fully documented in the following IBM
+publication:
+
+o IBM Corporation. "Character Data Representation Architecture - Level
+  2, Registry." 1993. IBM order number SC09-1391-01.
+
+Unfortunately, the CJK-related tables are not supplied in machine-
+readable format, and must be obtained from IBM directly. The only real
+compatibility issue is trying to obtain the conversion tables from
+IBM.
+
+
+4.1: JAPANESE
+
+	In general, when a Japanese character set was revised,
+characters were simply added (usually appended at the end). However,
+when JIS C 6226-1978 was revised in 1983 (to become JIS X 0208-1983),
+a bit more happened (this is still a controversy).
+	A detailed treatment of the two main transitions, JIS C 6226-
+1978 to JIS X 0208-1983 and JIS X 0208-1983 to JIS X 0208-1990, is
+covered in Appendix J of UJIP. I provide machine-readable files that
+detail these transitions at the following URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/AppJ/
+
+	An interesting side note here is that there is a reason why
+there are many lists that illustrate JIS C 6226-1978 and JIS X 0208-
+1983 kanji form differences. While most share the same basic set of
+changes, there are some inconsistencies. Well, it turns out that JIS C
+6226-1978 had ten printings, and not all of them shared the same kanji
+forms. If comparisons between JIS C 6226-1978 and JIS X 0208-1983 were
+made using different printings of the JIS C 6226-1978 manual, the
+results can differ slightly.
+	There are also interesting correspondences between JIS X
+0208-1990 and JIS X 0212-1990. 28 kanji that vanished during the JIS C
+6226-1978 to JIS X 0208-1983 transition (they were replaced by
+simplified versions) were restored in JIS X 0212-1990 (at totally
+different code points). Appendix J of UJIP discusses this, and a file
+at the following URL details the 28 mappings:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/AppJ/TJ2.jis
+
+
+4.2: CHINESE (PRC)
+
+	The basic PRC standard, GB 2312-80, has been revised, but not
+through a later version of the standard. Instead, the revisions were
+carried out in the form of three other documents. Specifically, they
+are (in order of publication):
+
+o GB 6345.1-86 (see Section 2.2.3)
+o GB 8565.2-88 (see Section 2.2.6)
+o GB/T 12345-90 (see Section 2.2.7)
+
+Unless you are aware of these documents, figuring out what has been
+corrected or added to GB 2312-80 is nearly impossible.
+
+
+4.3: CHINESE (TAIWAN)
+
+	The first question people think of with regard to Big Five and
+CNS 11643-1992 is compatibility. It turns out that Planes 1 and 2 of
+CNS 11643-1992 are more or less equivalent to Big Five, but a handful
+of hanzi are in a different order. The following tables detail the
+mapping from Big Five (with the ETen extension) to CNS 11643-1992
+(when using this conversion table, keep in mind the encoding space
+ranges for both Big Five and CNS 11643-1992):
+
+Big Five Level 1 Correspondence to CNS 11643-1992 Plane 1:
+
+  0xA140-0xA1F5 <-> 0x2121-0x2256
+         0xA1F6 <-> 0x2258
+         0xA1F7 <-> 0x2257
+  0xA1F8-0xA2AE <-> 0x2259-0x234E
+  0xA2AF-0xA3BF <-> 0x2421-0x2570
+  0xA3C0-0xA3E0 <-> 0x4221-0x4241  # Symbols for control characters
+  0xA440-0xACFD <-> 0x4421-0x5322  # Level 1 Hanzi BEGIN
+         0xACFE <-> 0x5753
+  0xAD40-0xAFCF <-> 0x5323-0x5752
+  0xAFD0-0xBBC7 <-> 0x5754-0x6B4F
+  0xBBC8-0xBE51 <-> 0x6B51-0x6F5B
+         0xBE52 <-> 0x6B50
+  0xBE53-0xC1AA <-> 0x6F5C-0x7534
+  0xC1AB-0xC2CA <-> 0x7536-0x7736
+         0xC2CB <-> 0x7535
+  0xC2CC-0xC360 <-> 0x7737-0x782C
+  0xC361-0xC3B8 <-> 0x782E-0x7863
+         0xC3B9 <-> 0x7865
+         0xC3BA <-> 0x7864
+  0xC3BB-0xC455 <-> 0x7866-0x7961
+         0xC456 <-> 0x782D
+  0xC457-0xC67E <-> 0x7962-0x7D4B  # Level 1 Hanzi END
+  0xC6A1-0xC6AA <-> 0x2621-0x262A  # Circled numerals
+  0xC6AB-0xC6B4 <-> 0x262B-0x2634  # Parenthesized numerals
+  0xC6B5-0xC6BE <-> 0x2635-0x263E  # Lowercase Roman numerals
+  0xC6BF-0xC6C0 <-> 0x2723-0x2724  # 213 radicals BEGIN
+  0xC6C1-0xC6C2 <-> 0x2726, 0x2728
+  0xC6C3-0xC6C5 <-> 0x272D-0x272F
+  0xC6C6-0xC6C7 <-> 0x2734, 0x2737
+  0xC6C8-0xC6C9 <-> 0x273A, 0x273C
+  0xC6CA-0xC6CB <-> 0x2742, 0x2747
+  0xC6CC-0xC6CD <-> 0x274E, 0x2753
+  0xC6CE-0xC6CF <-> 0x2754-0x2755
+  0xC6D0-0xC6D1 <-> 0x2759-0x275A
+  0xC6D2-0xC6D3 <-> 0x2761, 0x2766
+  0xC6D4-0xC6D5 <-> 0x2829-0x282A
+  0xC6D6-0xC6D7 <-> 0x2863, 0x286C # 213 radicals END
+  0xC6D8-0xC6E6  -> ******         # Japanese symbols
+  0xC6E7-0xC77A  -> ******         # Hiragana
+  0xC77B-0xC7F2  -> ******         # Katakana
+  0xC7F3-0xC875  -> ******         # Cyrillic alphabet
+  0xC876-0xC878  -> ******         # Symbols
+         0xC87A  -> ******         # Hanzi element
+         0xC87C  -> ******         # Hanzi element
+  0xC87E-0xC8A1  -> ******         # Hanzi elements
+  0xC8A3-0xC8A4  -> ******         # Hanzi elements
+  0xC8A5-0xC8CC  -> ******         # Combined numerals
+  0xC8CD-0xC8D3  -> ******         # Japanese symbols
+
+Big Five Level 1 Correspondences to CNS 11643-1992 Plane 4:
+
+         0xC879 <-> 0x2123         # Hanzi element
+         0xC87B <-> 0x2124         # Hanzi element
+         0xC87D <-> 0x212A         # Hanzi element
+         0xC8A2 <-> 0x2152         # Hanzi element
+
+Big Five Level 2 Correspondence to CNS 11643-1992 Plane 1:
+
+         0xC94A  -> 0x4442         # duplicate of 0xA461
+
+Big Five Level 2 Correspondences to CNS 11643-1992 Plane 2:
+
+  0xC940-0xC949 <-> 0x2121-0x212A  # Level 2 Hanzi BEGIN
+  0xC94B-0xC96B <-> 0x212B-0x214B
+  0xC96C-0xC9BD <-> 0x214D-0x217C
+         0xC9BE <-> 0x214C
+  0xC9BF-0xC9EC <-> 0x217D-0x224C
+  0xC9ED-0xCAF6 <-> 0x224E-0x2438
+         0xCAF7 <-> 0x224D
+  0xCAF8-0xD6CB <-> 0x2439-0x376E
+         0xD6CC <-> 0x3E63
+  0xD6CD-0xD779 <-> 0x3770-0x387D
+         0xD77A <-> 0x3F6A
+  0xD77B-0xDADE <-> 0x387E-0x3E62
+         0xDADF <-> 0x376F
+  0xDAE0-0xDBA6 <-> 0x3E64-0x3F69
+  0xDBA7-0xDDFB <-> 0x3F6B-0x4423
+         0xDDFC  -> 0x4176         # duplicate of 0xDCD1
+  0xDDFD-0xE8A2 <-> 0x4424-0x554A
+  0xE8A3-0xE975 <-> 0x554C-0x5721
+  0xE976-0xEB5A <-> 0x5723-0x5A27
+  0xEB5B-0xEBF0 <-> 0x5A29-0x5B3E
+         0xEBF1 <-> 0x554B
+  0xEBF2-0xECDD <-> 0x5B3F-0x5C69
+         0xECDE <-> 0x5722
+  0xECDF-0xEDA9 <-> 0x5C6A-0x5D73
+  0xEDAA-0xEEEA <-> 0x5D75-0x6038
+         0xEEEB <-> 0x642F
+  0xEEEC-0xF055 <-> 0x6039-0x6242
+         0xF056 <-> 0x5D74
+  0xF057-0xF0CA <-> 0x6243-0x6336
+         0xF0CB <-> 0x5A28
+  0xF0CC-0xF162 <-> 0x6337-0x642E
+  0xF163-0xF16A <-> 0x6430-0x6437
+         0xF16B <-> 0x6761
+  0xF16C-0xF267 <-> 0x6438-0x6572
+         0xF268 <-> 0x6934
+  0xF269-0xF2C2 <-> 0x6573-0x664C
+  0xF2C3-0xF374 <-> 0x664E-0x6760
+  0xF375-0xF465 <-> 0x6762-0x6933
+  0xF466-0xF4B4 <-> 0x6935-0x6961
+         0xF4B5 <-> 0x664D
+  0xF4B6-0xF4FC <-> 0x6962-0x6A4A
+  0xF4FD-0xF662 <-> 0x6A4C-0x6C51
+         0xF663 <-> 0x6A4B
+  0xF664-0xF976 <-> 0x6C52-0x7165
+  0xF977-0xF9C3 <-> 0x7167-0x7233
+         0xF9C4 <-> 0x7166
+         0xF9C5 <-> 0x7234
+         0xF9C6 <-> 0x7240
+  0xF9C7-0xF9D1 <-> 0x7235-0x723F
+  0xF9D2-0xF9D5 <-> 0x7241-0x7244  # Level 2 Hanzi END
+  0xF9DD-0xF9FE  -> ******         # Symbols
+
+Big Five Level 2 Correspondence to CNS 11643-1992 Plane 3:
+
+         0xF9D6 <-> 0x4337         # ETen-specific hanzi
+         0xF9D7 <-> 0x4F50         # ETen-specific hanzi
+         0xF9D8 <-> 0x444E         # ETen-specific hanzi
+         0xF9D9 <-> 0x504A         # ETen-specific hanzi
+         0xF9DA <-> 0x2C5D         # ETen-specific hanzi
+         0xF9DB <-> 0x3D7E         # ETen-specific hanzi
+         0xF9DC <-> 0x4B5C         # ETen-specific hanzi
+
+I adapted the above from material Ross Paterson (rap@doc.ic.ac.uk)
+kindly made available at the following URL:
+
+  http://www.ifcss.org:8001/www/pub/software/info/cjk-codes/
+
+Check it out. Basically, I just changed the CNS 11643-1992 codes from
+decimal row-cell values to hexadecimal codes, and corrected the
+mappings to correspond to ETen's Big Five (which is considered to be
+the most standard).
+	It turns out that corrections were made to Big Five (at least
+in the ETen and Microsoft implementations thereof) which made it a bit
+closer to CNS 11643-1992 as far as character ordering is concerned.
+The following six lines of code correspondences:
+
+  0xCAF8-0xD6CB <-> 0x2439-0x376E
+         0xD6CC <-> 0x3E63
+  0xD6CD-0xD779 <-> 0x3770-0x387D
+         0xD77A <-> 0x3F6A
+  0xD77B-0xDADE <-> 0x387E-0x3E62
+         0xDADF <-> 0x376F
+
+can now be expressed as the following three lines:
+
+  0xCAF8-0xD779 <-> 0x2439-0x387D
+         0xD77A <-> 0x3F6A
+  0xD77B-0xDBA6 <-> 0x387E-0x3F69
+
+In essence, the ordering of Big Five characters 0xD6CC and 0xDADF were
+reversed. This resulted in the same order as found in CNS 11643-1992
+Plane 2.
+	As for the two duplicate hanzi in Big Five (as indicated in
+the above tables), they have been placed into a compatibility zone in
+ISO 10646-1:1993 (this allows for round-trip conversion). The mapping
+is as follows:
+
+  Big Five  ISO 10646-1:1993
+  ^^^^^^^^  ^^^^^^^^^^^^^^^^
+  0xC94A -> 0xFA0C
+  0xDDFC -> 0xFA0D
+
+	Speaking of duplicate hanzi, Plane 1 of CNS 11643-1992
+contains 213 classical radicals in rows 27 through 29. However, 187 of
+them map directly to hanzi code points in Planes 1, 2, and 3 (and
+naturally to Big Five). Below is a detailed mapping of these 213
+radicals:
+
+  Radical   CNS 11643   Big Five    Radical   CNS 11643   Big Five
+  ^^^^^^^   ^^^^^^^^^   ^^^^^^^^    ^^^^^^^   ^^^^^^^^^   ^^^^^^^^
+  0x2721 -> 0x4421      0xA440      0x282E -> 0x4678      0xA5D8
+  0x2722 -> 0x2121 (3)  ******      0x282F -> 0x4679      0xA5D9
+  0x2723 -> 0x2122 (3)  0xC6BF      0x2830 -> 0x467A      0xA5DA
+  0x2724 -> 0x2123 (3)	0xC6C0      0x2831 -> 0x467B      0xA5DB
+  0x2725 -> 0x4422      0xA441      0x2832 -> 0x467C      0xA5DC
+  0x2726 -> 0x2124 (3)	0xC6C1      0x2833 -> 0x2167 (2)  0xC9A8
+  0x2727 -> 0x4428      0xA447      0x2834 -> 0x467D      0xA5DD
+  0x2728 -> ******	0xC6C2      0x2835 -> 0x467E      0xA5DE
+  0x2729 -> 0x4429      0xA448      0x2836 -> 0x4721      0xA5DF
+  0x272A -> 0x442A      0xA449      0x2837 -> 0x484C      0xA6CB
+  0x272B -> 0x442B      0xA44A      0x2838 -> 0x484D      0xA6CC
+  0x272C -> 0x442C      0xA44B      0x2839 -> 0x484E      0xA6CD
+  0x272D -> 0x2127 (3)	0xC6C3      0x283A -> 0x484F      0xA6CE
+  0x272E -> 0x2128 (3)	0xC6C4      0x283B -> 0x2269 (2)  0xCA49
+  0x272F -> ******	0xC6C5      0x283C -> 0x4850      0xA6CF
+  0x2730 -> 0x442D      0xA44C      0x283D -> 0x4851      0xA6D0
+  0x2731 -> 0x2123 (2)  0xC942      0x283E -> 0x4852      0xA6D1
+  0x2732 -> 0x442E      0xA44D      0x283F -> 0x4854      0xA6D3
+  0x2733 -> 0x4430      0xA44F      0x2840 -> 0x4855      0xA6D4
+  0x2734 -> ******      0xC6C6      0x2841 -> 0x4856      0xA6D5
+  0x2735 -> 0x4431      0xA450      0x2842 -> 0x4857      0xA6D6
+  0x2736 -> 0x2124 (2)  0xC943      0x2843 -> 0x4858      0xA6D7
+  0x2737 -> 0x2129 (3)  0xC6C7      0x2844 -> 0x485B      0xA6DA
+  0x2738 -> 0x4432      0xA451      0x2845 -> 0x485C      0xA6DB
+  0x2739 -> 0x4433      0xA452      0x2846 -> 0x485D      0xA6DC
+  0x273A -> 0x212A (3)  0xC6C8      0x2847 -> 0x485E      0xA6DD
+  0x273B -> 0x2125 (2)  0xC944      0x2848 -> 0x485F      0xA6DE
+  0x273C -> 0x212B (3)  0xC6C9      0x2849 -> 0x4860      0xA6DF
+  0x273D -> 0x4434      0xA453      0x284A -> 0x4861      0xA6E0
+  0x273E -> 0x4447      0xA466      0x284B -> 0x4862      0xA6E1
+  0x273F -> 0x212A (2)  0xC949      0x284C -> 0x4863      0xA6E2
+  0x2740 -> 0x4448      0xA467      0x284D -> 0x226A (2)  0xCA4A
+  0x2741 -> 0x4449      0xA468      0x284E -> 0x226F (2)  0xCA4F
+  0x2742 -> 0x213A (3)  0xC6CA      0x284F -> 0x4865      0xA6E4
+  0x2743 -> 0x444A      0xA469      0x2850 -> 0x4866      0xA6E5
+  0x2744 -> 0x444B      0xA46A      0x2851 -> 0x4867      0xA6E6
+  0x2745 -> 0x444C      0xA46B      0x2852 -> 0x4868      0xA6E7
+  0x2746 -> 0x444D      0xA46C      0x2853 -> 0x2270 (2)  0xCA50
+  0x2747 -> 0x213B (3)  0xC6CB      0x2854 -> 0x4B44      0xA8A3
+  0x2748 -> 0x4450      0xA46F      0x2855 -> 0x4B45      0xA8A4
+  0x2749 -> 0x4451      0xA470      0x2856 -> 0x4B46      0xA8A5
+  0x274A -> 0x4452      0xA471      0x2857 -> 0x4B47      0xA8A6
+  0x274B -> 0x4453      0xA472      0x2858 -> 0x4B48      0xA8A7
+  0x274C -> 0x212B (2)  0xC94B      0x2859 -> 0x4B49      0xA8A8
+  0x274D -> 0x4454      0xA473      0x285A -> 0x2524 (2)  0xCBA4
+  0x274E -> 0x213C (3)  0xC6CC      0x285B -> 0x4B4A      0xA8A9
+  0x274F -> 0x4456      0xA475      0x285C -> 0x4B4B      0xA8AA
+  0x2750 -> 0x4457      0xA476      0x285D -> 0x4B4C      0xA8AB
+  0x2751 -> 0x445A      0xA479      0x285E -> 0x4B4D      0xA8AC
+  0x2752 -> 0x445B      0xA47A      0x285F -> 0x4B4E      0xA8AD
+  0x2753 -> 0x213D (3)  0xC6CD      0x2860 -> 0x4B4F      0xA8AE
+  0x2754 -> 0x213E (3)  0xC6CE      0x2861 -> 0x4B50      0xA8AF
+  0x2755 -> 0x213F (3)  0xC6CF      0x2862 -> 0x4B51      0xA8B0
+  0x2756 -> 0x445C      0xA47B      0x2863 -> 0x272F (3)  0xC6D6
+  0x2757 -> 0x445D      0xA47C      0x2864 -> 0x4B57      0xA8B6
+  0x2758 -> 0x445E      0xA47D      0x2865 -> 0x4B5C      0xA8BB
+  0x2759 -> 0x2140 (3)  0xC6D0      0x2866 -> 0x4B5D      0xA8BC
+  0x275A -> 0x2142 (3)  0xC6D1      0x2867 -> 0x4B5E      0xA8BD
+  0x275B -> 0x212C (2)  0xC94C      0x2868 -> 0x4F5A      0xAAF7
+  0x275C -> 0x4540      0xA4DF      0x2869 -> 0x4F5B      0xAAF8
+  0x275D -> 0x4541      0xA4E0      0x286A -> 0x4F5C      0xAAF9
+  0x275E -> 0x4542      0xA4E1      0x286B -> 0x4F5D      0xAAFA
+  0x275F -> 0x4543      0xA4E2      0x286C -> 0x2A7D (3)  0xC6D7
+  0x2760 -> 0x4545      0xA4E4      0x286D -> 0x4F63      0xAB41
+  0x2761 -> 0x2167 (3)  0xC6D2      0x286E -> 0x4F64      0xAB42
+  0x2762 -> 0x4546      0xA4E5      0x286F -> 0x4F65      0xAB43
+  0x2763 -> 0x4547      0xA4E6      0x2870 -> 0x4F66      0xAB44
+  0x2764 -> 0x4548      0xA4E7      0x2871 -> 0x5372      0xADB1
+  0x2765 -> 0x4549      0xA4E8      0x2872 -> 0x5373      0xADB2
+  0x2766 -> 0x2169 (3)  0xC6D3      0x2873 -> 0x5374      0xADB3
+  0x2767 -> 0x454A      0xA4E9      0x2874 -> 0x5375      0xADB4
+  0x2768 -> 0x454B      0xA4EA      0x2875 -> 0x5376      0xADB5
+  0x2769 -> 0x454C      0xA4EB      0x2876 -> 0x5377      0xADB6
+  0x276A -> 0x454D      0xA4EC      0x2877 -> 0x5378      0xADB7
+  0x276B -> 0x454E      0xA4ED      0x2878 -> 0x5379      0xADB8
+  0x276C -> 0x454F      0xA4EE      0x2879 -> 0x537A      0xADB9
+  0x276D -> 0x4550      0xA4EF      0x287A -> 0x537B      0xADBA
+  0x276E -> 0x213F (2)  0xC95F      0x287B -> 0x537C      0xADBB
+  0x276F -> 0x4551      0xA4F0      0x287C -> 0x586B      0xB0A8
+  0x2770 -> 0x4552      0xA4F1      0x287D -> 0x586C      0xB0A9
+  0x2771 -> 0x4553      0xA4F2      0x287E -> 0x586D      0xB0AA
+  0x2772 -> 0x4554      0xA4F3      0x2921 -> 0x334C (2)  0xD449
+  0x2773 -> 0x2141 (2)  0xC961      0x2922 -> 0x586E      0xB0AB
+  0x2774 -> 0x4555      0xA4F4      0x2923 -> 0x334D (2)  0xD44A
+  0x2775 -> 0x4556      0xA4F5      0x2924 -> 0x586F      0xB0AC
+  0x2776 -> 0x4557      0xA4F6      0x2925 -> 0x5870      0xB0AD
+  0x2777 -> 0x4558      0xA4F7      0x2926 -> 0x5E23      0xB3BD
+  0x2778 -> 0x4559      0xA4F8      0x2927 -> 0x5E24      0xB3BE
+  0x2779 -> 0x2142 (2)  0xC962      0x2928 -> 0x5E25      0xB3BF
+  0x277A -> 0x455A      0xA4F9      0x2929 -> 0x5E26      0xB3C0
+  0x277B -> 0x455B      0xA4FA      0x292A -> 0x5E27      0xB3C1
+  0x277C -> 0x455C      0xA4FB      0x292B -> 0x5E28      0xB3C2
+  0x277D -> 0x455D      0xA4FC      0x292C -> 0x6327      0xB6C0
+  0x277E -> 0x4668      0xA5C8      0x292D -> 0x6328      0xB6C1
+  0x2821 -> 0x4669      0xA5C9      0x292E -> 0x6329      0xB6C2
+  0x2822 -> 0x466A      0xA5CA      0x292F -> 0x4155 (2)  0xDCB0
+  0x2823 -> 0x466B      0xA5CB      0x2930 -> 0x4875 (2)  0xE0EF
+  0x2824 -> 0x466C      0xA5CC      0x2931 -> 0x676F      0xB9A9
+  0x2825 -> 0x466D      0xA5CD      0x2932 -> 0x6770      0xB9AA
+  0x2826 -> 0x466E      0xA5CE      0x2933 -> 0x6771      0xB9AB
+  0x2827 -> 0x4670      0xA5D0      0x2934 -> 0x6B7C      0xBBF3
+  0x2828 -> 0x4674      0xA5D4      0x2935 -> 0x6B7D      0xBBF4
+  0x2829 -> 0x225B (3)  0xC6D4      0x2936 -> 0x702F      0xBEA6
+  0x282A -> 0x225C (3)  0xC6D5      0x2937 -> 0x733E      0xC073
+  0x282B -> 0x4675      0xA5D5      0x2938 -> 0x733F      0xC074
+  0x282C -> 0x4676      0xA5D6      0x2939 -> 0x6142 (2)  0xEFB6
+  0x282D -> 0x4677      0xA5D7
+
+
+4.4: KOREAN
+
+	The 268 duplicate hanja in KS C 5601-1992 can cause problems
+when converting to and from other CJK character sets. When converting
+from KS C 5601-1992, two or more hanja can collapse into a single code
+point. When converting these 268 hanja to KS C 5601-1992, a decision
+about which KS C 5601-1992 code point to map to must be made. The only
+exception to this is mapping to and from ISO 10646-1:1993. That
+standard encodes these 268 duplicate hanja in a compatibility zone,
+namely from 0xF900 through 0xFA0B.
+	The following is a listing of 262 hanja that map to two or
+more code points (four map to three code points, and one maps to four:
+a total of 268 redundantly-encoded hanja) in KS C 5601-1992:
+
+  Standard  Extra     Standard  Extra     Standard  Extra
+  ^^^^^^^^  ^^^^^     ^^^^^^^^  ^^^^^     ^^^^^^^^  ^^^^^
+  0x4A39 -> 0x4D4F    0x5573 -> 0x6631    0x573C -> 0x6B29
+  0x4B3D -> 0x7A22    0x5574 -> 0x6633    0x573E -> 0x6B3A
+  0x4C38 -> 0x7A66    0x5575 -> 0x6637    0x573F -> 0x6B3B
+  0x4C5A -> 0x4B56    0x5576 -> 0x6638    0x5740 -> 0x6B3D
+  0x4C78 -> 0x5050    0x5579 -> 0x663C    0x5741 -> 0x6B41
+  0x4D7A -> 0x4E2D    0x557B -> 0x6646    0x5743 -> 0x6B42
+  0x4E29 -> 0x7C29    0x557C -> 0x6647    0x5744 -> 0x6B46
+  0x4F23 -> 0x4F7B    0x557E -> 0x6652    0x5745 -> 0x6B47
+  0x4F4F -> 0x5022    0x5621 -> 0x6656    0x5747 -> 0x6B4C
+            0x5038    0x5622 -> 0x6659    0x5748 -> 0x6B4F
+  0x5142 -> 0x4B50    0x5623 -> 0x665F    0x5749 -> 0x6B50
+  0x5151 -> 0x505D    0x5624 -> 0x6661    0x574A -> 0x6B51
+  0x5159 -> 0x547C    0x5625 -> 0x6665    0x574C -> 0x6B58
+  0x5167 -> 0x552B    0x5626 -> 0x6664    0x574D -> 0x5270
+  0x522F -> 0x5155    0x5627 -> 0x6666    0x574E -> 0x5271
+  0x5233 -> 0x657C    0x5628 -> 0x6668    0x574F -> 0x5272
+  0x5234 -> 0x6644    0x562A -> 0x666A    0x5750 -> 0x5273
+  0x5235 -> 0x664A    0x562B -> 0x666B    0x5752 -> 0x5274
+  0x5236 -> 0x665C    0x562D -> 0x666F    0x5753 -> 0x5275
+  0x5237 -> 0x6676    0x562E -> 0x6671    0x5754 -> 0x5277
+  0x523A -> 0x6677    0x562F -> 0x6675    0x5755 -> 0x5278
+  0x523B -> 0x5638    0x5631 -> 0x6679    0x5757 -> 0x6C26
+            0x672C    0x5633 -> 0x6721    0x5759 -> 0x6C27
+  0x5241 -> 0x564D    0x5634 -> 0x6726    0x575B -> 0x6C2A
+  0x5263 -> 0x6871    0x5635 -> 0x6729    0x575D -> 0x6C30
+  0x526E -> 0x6A74    0x5637 -> 0x672A    0x575E -> 0x6C31
+  0x526F -> 0x6B2A    0x563A -> 0x672D    0x5762 -> 0x6C35
+  0x527A -> 0x6C32    0x563B -> 0x6730    0x5765 -> 0x6C38
+  0x527B -> 0x6C49    0x563C -> 0x673F    0x5767 -> 0x6C3A
+  0x527C -> 0x6C4A    0x563E -> 0x6746    0x576A -> 0x6C40
+  0x527E -> 0x7331    0x5640 -> 0x6747    0x576B -> 0x6C41
+  0x5321 -> 0x552E    0x5642 -> 0x674B    0x576C -> 0x6C45
+  0x5358 -> 0x7738    0x5643 -> 0x674D    0x576E -> 0x6C46
+  0x536B -> 0x7748    0x5644 -> 0x674F    0x5770 -> 0x6C55
+  0x5378 -> 0x7674    0x5645 -> 0x6750    0x5772 -> 0x6C5D
+  0x5441 -> 0x5466    0x5647 -> 0x6753    0x5773 -> 0x6C5E
+  0x5457 -> 0x7753    0x5649 -> 0x675F    0x5774 -> 0x6C61
+  0x547A -> 0x5154    0x564A -> 0x6764    0x5776 -> 0x6C64
+  0x547B -> 0x5158    0x564B -> 0x6766    0x5777 -> 0x6C67
+  0x547D -> 0x515B    0x564C -> 0x523E    0x5778 -> 0x6C68
+  0x547E -> 0x515C    0x564F -> 0x5242    0x5779 -> 0x6C77
+  0x5521 -> 0x515D    0x5650 -> 0x5243    0x577A -> 0x6C78
+  0x5522 -> 0x515E    0x5653 -> 0x5244    0x577C -> 0x6C7A
+  0x5523 -> 0x515F    0x5654 -> 0x5246    0x5821 -> 0x6D21
+  0x5524 -> 0x5160    0x5655 -> 0x5247    0x5822 -> 0x6D22
+  0x5526 -> 0x5163    0x5656 -> 0x5248    0x5823 -> 0x6D23
+  0x5527 -> 0x5164    0x5657 -> 0x5249    0x5A72 -> 0x5B64
+  0x5528 -> 0x5165    0x5658 -> 0x524A    0x5C56 -> 0x5D25
+  0x552A -> 0x5166    0x565A -> 0x524B    0x5C5F -> 0x7870
+  0x552C -> 0x5168    0x565B -> 0x524D    0x5C74 -> 0x5D55
+  0x552D -> 0x5169    0x565C -> 0x524E    0x5D41 -> 0x5B45
+  0x552F -> 0x516A    0x565E -> 0x524F    0x5F2F -> 0x616D
+  0x5530 -> 0x516B    0x565F -> 0x5250    0x5F52 -> 0x6D6E
+  0x5531 -> 0x516D    0x5660 -> 0x5251    0x5F5D -> 0x5F61
+  0x5534 -> 0x516F    0x5661 -> 0x5252    0x5F63 -> 0x5E7E
+  0x5535 -> 0x5170    0x5662 -> 0x5253    0x6063 -> 0x612D
+  0x5536 -> 0x5172    0x5663 -> 0x5254              0x6672
+  0x5539 -> 0x5176    0x5665 -> 0x5255    0x607D -> 0x5F68
+  0x553D -> 0x517A    0x5666 -> 0x5256    0x6163 -> 0x574B
+  0x5540 -> 0x517C    0x5667 -> 0x5257              0x6B52
+  0x5541 -> 0x517D    0x566B -> 0x5259    0x6226 -> 0x5E7C
+  0x5543 -> 0x517E    0x566C -> 0x525A    0x6326 -> 0x6429
+  0x5544 -> 0x5222    0x566F -> 0x525E    0x635B -> 0x723D
+  0x5545 -> 0x5223    0x5670 -> 0x525F    0x6427 -> 0x727A
+  0x5546 -> 0x5227    0x5671 -> 0x5261    0x6442 -> 0x6777
+  0x5547 -> 0x5228    0x5674 -> 0x5262    0x6445 -> 0x5162
+  0x5548 -> 0x5229    0x5675 -> 0x6867              0x5525
+  0x5549 -> 0x522A    0x5676 -> 0x6868              0x6879
+  0x554D -> 0x522B    0x5677 -> 0x6870    0x6534 -> 0x652E
+  0x554E -> 0x522D    0x5679 -> 0x6877    0x6636 -> 0x6C2F
+  0x5552 -> 0x5232    0x567A -> 0x687B    0x6728 -> 0x6071
+  0x5553 -> 0x6531    0x567B -> 0x687E    0x6856 -> 0x6A41
+  0x5554 -> 0x6532    0x567E -> 0x6927    0x6C36 -> 0x5764
+  0x5555 -> 0x6539    0x5721 -> 0x692C    0x6C56 -> 0x666C
+  0x5557 -> 0x653B    0x5723 -> 0x694C    0x6D29 -> 0x7427
+  0x5558 -> 0x653C    0x5724 -> 0x5264    0x6D33 -> 0x6E5B
+  0x5559 -> 0x6544    0x5726 -> 0x5265    0x6F37 -> 0x746E
+  0x555D -> 0x654E    0x5727 -> 0x5266    0x7263 -> 0x6375
+  0x555E -> 0x6550    0x5728 -> 0x5267    0x7333 -> 0x4B67
+  0x555F -> 0x6552    0x5729 -> 0x5268    0x7351 -> 0x5F33
+  0x5561 -> 0x6556    0x572B -> 0x5269    0x742C -> 0x7676
+  0x5564 -> 0x657A    0x572C -> 0x526A    0x7658 -> 0x6421
+  0x5565 -> 0x657B    0x5730 -> 0x526B    0x7835 -> 0x5C25
+  0x5566 -> 0x657E    0x5731 -> 0x6A65    0x786C -> 0x785B
+  0x5569 -> 0x6621    0x5733 -> 0x6A77    0x7932 -> 0x5D74
+  0x556B -> 0x6624    0x5735 -> 0x6A7C    0x7A3C -> 0x7A21
+  0x556C -> 0x6627    0x5736 -> 0x6A7E    0x7B29 -> 0x6741
+  0x556F -> 0x662D    0x5738 -> 0x6B24    0x7C41 -> 0x4D68
+  0x5571 -> 0x662F    0x573A -> 0x6B27    0x7D3B -> 0x6977
+  0x5572 -> 0x6630
+
+The above table represents a weekend of my time (but time well spent,
+in my opinion).
+
+
+4.5: ISO 10646-1:1993
+
+	The Chinese character subset of ISO 10646-1:1993
+has excellent round-trip conversion capability with the various
+national character sets. Those national character sets with duplicate
+characters, such as KS C 5601-1992 (268 hanja) and Big Five (2 hanzi),
+have corresponding code points in ISO 10646-1:1993 within
+a compatibility zone. See Sections 4.3 and 4.4 for more details.
+	Other issues regarding ISO 10646-1:1993 have to do with proper
+character rendering (that is, how characters are displayed, printed,
+or otherwise imaged). Many (sometimes) subtle character form
+differences have been collapsed under ISO 10646-1:1993. Language or
+locale was not one of the factors used in performing Han Unification.
+This means that it is nearly impossible to create a single ISO 10646-1:
+1993 font that meets the character form criteria of each of the four
+CJK locales. An ISO 10646-1:1993 code point is not enough information
+to render a Chinese character. If the font was specifically designed
+for a single locale, it is a non-problem, but if there is any CJK
+intent, text must be flagged for language or locale.
+
+
+4.6: UNICODE
+
+	One of the most interesting (and major) differences between
+the current three flavors of Unicode are the number and arrangement of
+pre-combined hangul. The following table provides a summary of the
+differences:
+
+  Unicode       Number of Pre-combined Hangul   UCS-2 Ranges
+  ^^^^^^^       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^
+  Version 1.0   2,350 Basic Hangul              0x3400-0x3D3D
+
+  Version 1.1   2,350 Basic Hangul              0x3400-0x3D3D
+                1,930 Supplemental Hangul A     0x3D2E-0x44B7
+                2,376 Supplemental Hangul B     0x44BE-0x4DFF
+
+  Version 2.0  11,172 Hangul                    0xAC00-0xD7A3
+
+Of the above three versions, the most controversial is Version 2.0.
+Why? Because it is located in the user-defined range of Unicode
+(O-Zone: 16,384 code points in 0xA000-0xDFFF), and occupies
+approximately two-thirds of its space.
+	The information in the above table is courtesy of the
+following useful document:
+
+  ftp://unicode.org/pub/MappingTables/EastAsiaMaps/Hangul-Codes.txt
+
+The same file is also mirrored at the following URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/hangul-codes.txt
+
+
+4.7: CODE CONVERSION TIPS
+
+	There are two types of conversions that can be performed. The
+first type is converting between different encodings for the same
+character set. This is usually without problems (but not always). The
+second type is converting from one character set to another (it is not
+usually relevant whether the underlying encoding has changed or not).
+This usually involves the handling of characters that are in one
+character set, but not the other. So, what to do?
+	I suggest JConv for handling Japanese code conversion (this
+means converting between JIS, Shift-JIS, and EUC encodings). This is
+in the category of different encodings for the same character set. The
+following URLs provide executables or source code:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/mac/jconv-30.hqx
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/mac/jconv-dd-181.hqx
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/dos/jconv.exe
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/src/jconv.c
+
+There are other programs available that do the same basic thing as
+JConv, such as kc and nkf. They are available at the following URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/unix/
+
+	For software and tables that handles Chinese code conversion
+(this includes conversion to and from Japanese), I suggest browsing at
+the following URLs:
+
+  ftp://etlport.etl.go.jp/pub/iso-2022-cn/convert/
+  ftp://ftp.ifcss.org/pub/software/dos/convert/
+  ftp://ftp.ifcss.org/pub/software/mac/convert/
+  ftp://ftp.ifcss.org/pub/software/ms-win/convert/
+  ftp://ftp.ifcss.org/pub/software/unix/convert/
+  ftp://ftp.ifcss.org/pub/software/vms/convert/
+  ftp://ftp.net.tsinghua.edu.cn/pub/Chinese/convert/
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/
+  ftp://ftp.seed.net.tw/Pub/Chinese/DOS/code-convert/
+  http://www.yajima.kuis.kyoto-u.ac.jp/staffs/yasuoka/CJK.html
+
+The latter URL has FTP links to tables created by Koichi Yasuoka
+(yasuoka@kudpc.kyoto-u.ac.jp).
+	The following URLs provide utilities or tables for converting
+between various Korean encodings (the last represent the same file):
+
+  ftp://cair-archive.kaist.ac.kr/pub/hangul/code/
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/non-hangul-codes.txt
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/hangul-codes.txt
+  ftp://unicode.org/pub/MappingTables/EastAsiaMaps/Hangul-Codes.txt
+
+A popular Korean code conversion utility seems to be "hcode" by
+June-Yub Lee (jylee@cims.nyu.edu).
+	Finally, the following URLs provide many Unicode- and CJK-
+related mapping tables:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/map/
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/unicode/
+  ftp://unicode.org/pub/MappingTables/
+  http://www.yajima.kuis.kyoto-u.ac.jp/staffs/yasuoka/CJK.html
+
+Note that the official and authoritative Unicode mapping tables (from
+Unicode values to various international, national and vendor
+standards) are maintained by the Unicode Consortium at the following
+URL:
+
+  ftp://unicode.org/pub/MappingTables/
+
+Version 2.0 of "The Unicode Standard" (to be published by Addison-
+Wesley shortly) will include these mapping tables on CD-ROM.
+
+
+PART 5: CJK-CAPABLE OPERATING SYSTEMS
+
+	The first step in being able to display CJK text is to obtain
+an operating system that handles such text (or an application that
+sets up its own CJK-capable environment). Below I describe how
+different types of machines can handle CJK text.
+	Actually, for the first few releases of CJK.INF, these
+subsections will be far from complete (some may even be empty!). The
+purpose of CJK.INF is to provide detailed information on character set
+standards and encoding systems, so I therefore consider this sort of
+information secondary.
+
+
+5.1: MS-DOS
+
+	I am not aware of any CJK-capable MS-DOS operating system, but
+localized versions do exist. CJK support has been introduced with
+Microsoft's Windows operating system (see Section 5.2).
+
+
+5.2: WINDOWS
+
+	Microsoft has CJK versions of its Windows operating system
+available. The latest versions of their Windows operating system are
+called Windows 95 and Windows NT. Windows 95 supports the same
+character sets and encodings as in Windows Version 3.1 -- Windows NT
+supports Unicode (ISO 10646-1:1993). Contact Microsoft Corporation for
+more details. The URL of their WWW Home Page is:
+
+  http://www.microsoft.com/
+
+Nadine Kano's "Developing International Software for Windows 95 and
+Windows NT" provides abundant reference material for how CJK is
+supported in Windows 95 and Windows NT. Check it out.
+	TwinBridge is a package that adds CJK functionality to non-CJK
+Windows. Demo versions of TwinBridge for Japanese and Chinese are at
+the following URLs:
+
+  ftp://ftp.netcom.com/pub/tw/twinbrg/Japanese/demo/tbjdemo.zip
+  ftp://ftp.netcom.com/pub/tw/twinbrg/Chinese/demo/tbcdemo.zip
+
+	Another useful CJK add-on for Windows 95 is NJWIN (see Section
+7.10) by Hongbo Data Systems.
+
+
+5.3: MACINTOSH
+
+	Macintosh is well-known as a computer that was designed to
+handle multilingual texts. There are currently fully-localized
+operating systems available for Japanese (KanjiTalk), Chinese
+(simplified and traditional available), and Korean (HangulTalk). In
+addition, Apple has developed "Language Kits" (*LK) for Chinese (CLK)
+and Japanese (JLK). A Korean Language Kit (KLK) will be released
+shortly.
+	These localized operating systems can usually be installed
+together in order to make your system CJK-capable.
+	The common portion of these CJK-capable operating systems is a
+technology Apple calls "WorldScript II" ("WorldScript I" is for one-
+byte scripts). It provides the basic one- and two-byte functionality.
+
+
+5.4: UNIX AND X WINDOWS
+
+	The typical encoding system used on UNIX and X Windows is EUC
+(see Section 3.2). Many systems, such as IBM's AIX, can be configured
+to handle both EUC and Shift-JIS (for Japanese). In addition, X11R6 (X
+Window System, Version 11, Release 6) has many CJK-capable features.
+	If you have a fast PC and a good amount of RAM (more than
+4MB), you should consider replacing MS-DOS (and Microsoft Windows,
+too, if you have it) with Linux, which is a full-blown UNIX operating
+system that runs on Intel processors. You can even run X Windows
+(X11R6). "Running Linux" by Matt Welsh and Lar Kaufman is an excellent
+guide to installing and using Linux. The companion volume, "Linux
+Network Administrator's Guide" by Olaf Kirch is also useful. Because
+there is a fine line -- or no line at all -- between a user and System
+Administrator when using Linux, "Essential System Administration"
+Second Edition by AEleen Frisch is a must-have.
+	Linux and Linux information are available at the following
+URLs:
+
+  ftp://sunsite.unc.edu/pub/Linux/
+  http://sunsite.unc.edu/mdw/linux.html
+
+I personally use Linux, and find it quite useful and powerful. My bias
+comes from being a UNIX user. But, you can't beat the price (free),
+and all of my favorite text-manipulation tools (such as Perl) are
+readily available.
+
+
+5.5: OTHERS
+
+	No information yet.
+
+
+PART 6: CJK TEXT AND INTERNET SERVICES
+
+	Part 5 described how CJK text is handled on a machine
+internally, but this part goes into the implications of handling such
+text externally, namely for information interchange purposes. This
+boils down to handling CJK text on Internet services.
+	For more detailed information on how these and other Internet
+services are used, I suggest "The Whole Internet User's Guide &
+Catalog" by Ed Krol. For more information on setting up and
+maintaining these and other Internet services, I suggest "Managing
+Internet Information Services" by Cricket Liu et al.
+
+
+6.1: ELECTRONIC MAIL
+
+	The most basic Internet service is electronic mail (henceforth
+to be called "e-mail"), which is virtually guaranteed to be available
+to all users regardless of their system.
+	Several Internet standards (called RFCs, short for Request For
+Comments) have been developed to describe how CJK text is to be handled
+over e-mail systems (see Section A.3.4).
+	The bottom-line is that most e-mail systems do not support
+8-bit characters (that is, bytes that have their 8th bit set). Some do
+offer 8-bit support, but you can never know what path your e-mail
+might take while on route to its recipient. This means that 7-bit ISO
+2022 (or equivalent) is the ideal encoding to use when sending CJK
+text through e-mail. If your operating system processes another
+encoding system, you must convert from that encoding to one that is
+compatible with 7-bit ISO 2022.
+	However, even 7-bit ISO 2022 encoding can get mangled by
+mail-routing software -- the escape character, sometimes even part of
+the escape sequence (meaning more than just the escape character), is
+stripped. The JConv tool described in Section 4.7 restores stripped
+escape sequences for Japanese 7-bit ISO 2022.
+	If your mailing software is MIME-compliant, there is a means
+to identify the character set and encoding of the message using the
+"charset" parameter. Some valid "charset" values include the
+following:
+
+o iso-2022-jp     (see Section 3.1.3)
+o iso-2022-jp-2   (see Section 3.1.3)
+o iso-2022-kr     (see Section 3.1.4)
+o iso-2022-cn     (see Section 3.1.5)
+o iso-2022-cn-ext (see Section 3.1.5)
+o iso-8859-1
+
+Insertion of these values should happen automatically.
+	A last-ditch effort to send CJK text through e-mail is to use
+uuencode or Base64 encoding (see Section 3.3.13). Base64 is something
+that is usually done automatically by mailing software -- explicit
+Base64 encoding is not common. The recipient must then run uudecode or
+a Base64 decoder to get the original file (if such utilities are
+available).
+
+
+6.2: USENET NEWS
+
+	Usenet News follows many of the same requirements as e-mail,
+namely that 7-bit ISO 2022 encoding is ideal. However, some newsgroups
+use specific encoding methods, such as:
+
+  alt.chinese.text             (HZ encoding used for Chinese text)
+  alt.chinese.text.big5        (Big Five encoding used for Chinese text)
+  chinese.flame                (UTF-7)
+  chinese.text.unicode         (UTF-8)
+
+Also, the newsgroups in Korean (all begin with "han.*") use EUC (EUC-
+KR) because the news-handling software in Korea has been designed to
+handle eight-bit characters correctly. Mailing list versions of Korean
+newsgroups are likely to use ISO-2022-KR encoding.
+	One common problem with Usenet News is that the escape
+characters used in 7-bit ISO 2022 encoding are sometimes stripped,
+usually by the software used to post the article. This can be quite
+annoying. There are programs available, such as JConv, that repair
+such files by restoring the escape characters.
+	Another common problem are news readers that do not allow
+escape characters to function. One simple solution is to "pipe" the
+article through a display command, such as "more," "page," "less," or
+"cat." This is done by typing a "pipe" character (|) followed by the
+command name anywhere within the article being displayed.
+
+
+6.3: GOPHER
+
+	The World-Wide Web (WWW) has almost eliminated the need for
+using Gopher, so I won't discuss it here. Not that I don't appreciate
+Gopher servers, but what I mean is that WWW browsing software permits
+access to Gopher sites.
+
+
+6.4: WORLD-WIDE WEB
+
+	First, there are two types of WWW browsers available. The most
+common type is the graphics-based browser (examples include Mosaic and
+Netscape). Graphics-based browsers have the unfortunate requirement of
+a TCP/IP (SLIP and PPP support these protocols) connection. Lynx and
+the W3 client for Emacs, which are text-based browsers, can be run
+from the host computer through a standard terminal connection. They
+don't display all the pretty pictures that folks put into their WWW
+documents, but you get all the text (this is, in many ways, a blessing
+in disguise -- transferring graphics is what slows down graphics-based
+browsers the most). When the W3 client is run using Mule, it becomes a
+fully CJK-capable WWW browser. Both Lynx and the W3 client for Emacs
+are freely available. A Japanese-capable Lynx is available at the
+following URL:
+
+  ftp://ftp.ipc.chiba-u.ac.jp/pub.asada/www/lynx/
+
+There is also a WWW page that provides information on Japanese-capable
+Lynx. Its URL is as follows:
+
+  http://www.icsd6.tj.chiba-u.ac.jp/lynx/
+
+	When WWW documents first came online, there was no method for
+handling CJK character sets. This has, fortunately, changed. As of
+this writing, two commercial WWW browsers support Japanese. They are
+Infomosaic by Fujitsu Limited, and Netscape Navigator by Netscape
+Communications Corporation (Version 1.1 added Japanese support). Both
+are graphics-based browsers. The former can be ordered at the
+following URL:
+
+  http://www.fujitsu.co.jp/
+
+The latter can be found at the following URLs:
+
+  http://www.netscape.com/
+  ftp://ftp.netscape.com/
+
+	One can also use a delegate server to *filter* Japanese codes
+to the one supported by your browser. It is also possible to
+"Japanize" existing WWW browsers using assorted tools and patches.
+Katsuhiko Momoi (momoi@tigger.stcloud.msus.edu) has authored an
+excellent guide to Japanizing WWW browsers. Its URL is:
+
+  http://condor.stcloud.msus.edu:20020/netscape.html
+
+I *highly* suggest reading it.
+	Japanese-capable WWW browsers support automatic detection of
+the three Japanese encoding methods (JIS, Shift-JIS, and EUC). Hey,
+but, what about support for the "C" and "K" of CJK? Attempting to
+answer this question provides us an answer to another question: "What
+is the best encoding method to use for CJK WWW documents?"
+	Encoding methods such as EUC and Shift-JIS provide for mixing
+only two character sets. This is because they provide no way to *flag*
+or *tag* text for locale (character set) information. Without flagging
+information, it is impossible to distinguish Japanese EUC from Chinese
+or Korean EUC. However, the escape sequences used in 7-bit ISO 2022
+encoding explicitly provide locale information. 7-bit ISO 2022 is
+ideal for static documents, which is exactly what one finds on WWW.
+	My personal recommendation (for the short-term) is to compose
+WWW documents (also called HTML documents; HTML stands for Hyper Text
+Markup Language) using 7-bit ISO 2022 encoding. The escape sequences
+themselves act as explicit flags that indicate locale. However, some
+WWW clients are confused by 7-bit ISO 2022 encoding, but the products
+by Netscape Communications and Fujitsu Limited prove that this can
+work. See the following URL for a description of this problem:
+
+  http://www.ntt.jp/japan/note-on-JP/LibWWW-patch.html
+
+	Check out the following URLs for information on and proposals
+for international support for WWW:
+
+  http://www.ebt.com:8080/docs/multilingual-www.html
+  http://www.w3.org/hypertext/WWW/International/Overview/
+
+	There is currently an RFC in the works (called an Internet
+Draft) to address the problem of internationalizing HTML by using
+Unicode. It is very promising. The latest draft is available at the
+following URLs:
+
+  ftp://ds.internic.net/internet-drafts/draft-ietf-html-i18n-04.txt.Z
+  ftp://ftp.isi.edu/internet-drafts/draft-ietf-html-i18n-04.txt
+  ftp://munnari.oz.au/internet-drafts/draft-ietf-html-i18n-04.txt.Z
+  ftp://nic.nordu.net/internet-drafts/draft-ietf-html-i18n-04.txt
+
+Note that some have been compressed.
+
+
+6.5: FILE TRANSFER TIPS
+
+	Although CJK encoding systems such as Shift-JIS and EUC make
+extensive use of 8-bit bytes, that does not mean that you need to
+treat the data as binary. Such files are simply to be treated as text,
+and should be transferred in text mode (for example, FTP's ASCII mode,
+which is also called "Type A Transfer").
+	When text files are transferred in binary mode (such as FTP's
+BINARY mode, which is also called Type I Transfer"), line termination
+characters are left unaltered. For example, when transferring a text
+file from UNIX to Macintosh, a text transfer will translate the UNIX
+newline (0x0A) characters to Macintosh carriage return (0x0D)
+characters, but a binary transfer will make no such modifications.
+Text-style conversion is typically desired.
+	The most common types of files that need to be handled as
+binary include tar archives (*.tar), compressed files (*.Z, *.gz,
+*.zip, *.zoo, *.lzh, and so on), and executables (*.exe, *.bin, and so
+on).
+
+
+PART 7: CJK TEXT HANDLING SOFTWARE
+
+	This section describes various CJK-capable software packages.
+I expect this section to grow with future versions of this document. I
+define "CJK-capable" as being able to support Chinese, Japanese, and
+Korean text.
+	The descriptions I provide below are intentionally short. You
+are encouraged to use the information pointers to obtain further
+information or the software itself.
+
+
+7.1: MULE
+
+	Mule (multilingual enhancement to GNU Emacs), written by
+Kenichi Handa (handa@etl.go.jp), is the first (and only?) CJK-capable
+editor for UNIX systems, and is freely available under the terms of
+the GNU General Public License. Mule was developed from Nemacs
+(Nihongo Emacs).
+	Mule is available at the following URL:
+
+  ftp://etlport.etl.go.jp/pub/mule/
+
+	Mule, beginning with Version 2.2, includes handy utilities
+(any2ps and m2ps) for printing files in any of the encodings supported
+by Mule (which is a lot of encodings, by the way). These programs use
+BDF fonts. See the beginning of Part 2 for a list of URLs that have
+CJK BDF fonts.
+	GNU Emacs is a fine editor, and Mule takes it several steps
+further by providing multilingual support. I personally use Mule
+together with SKK (for Japanese input) -- it is a superb combination.
+
+
+7.2: CNPRINT
+
+	CNPRINT, developed by Yidao Cai (cai@neurophys.wisc.edu), is a
+utility to print CJK text (or convert it to a PostScript file), and is
+available for MS-DOS, VMS, and UNIX systems. A wide range of encoding
+methods are supported by CNPRINT.
+	CNPRINT is available at the following URLs:
+
+  ftp://ftp.ifcss.org/pub/software/{dos,unix,vms}/print/
+  ftp://neurophys.wisc.edu/[public.cn]/
+
+
+7.3: MASS
+
+	MASS (Multilingual Application Support Service), developed at
+the National University of Singapore, is a suite of software tools
+that speed and ease the development of UNIX-based CJK (actually, more
+than just CJK) applications. It supports a wide variety of character
+sets and encodings, including ISO 10646-1:1993 (UCS-2, UTF-7, and
+UTF-8), EACC, and CCCII.
+	More information on MASS, to include contact information for
+its developers, can be found at the following URL:
+
+  http://www.iss.nus.sg/RND/MLP/Projects/MASS/MASS.html
+
+
+7.4: ADOBE TYPE MANAGER (ATM)
+
+	Adobe Type Manager for Macintosh, beginning with Version 3.8,
+is CJK-capable (as long as the underlying operating system is CJK-
+capable). Actually, ATM generically supports CID-keyed fonts, which
+are based on a newly-developed file specification for fonts with large
+numbers of characters (like CJK fonts). See Section 7.9 for more
+details.
+	ATM is very easy to obtain. It is bundled with fonts and
+applications from Adobe Systems (chances are you have ATM if you
+recently purchased an Adobe product). But what about Windows? The
+Windows version of ATM should soon follow with identical
+functionality.
+
+
+7.5: MACINTOSH SOFTWARE
+
+	WorldScript II, a System Extension introduced with System 7,
+provides multi-byte script handling, namely CJK support. If a
+Macintosh product claims to support WorldScript II, chances are it is
+CJK-capable (provided that your operating system has the necessary
+extensions loaded).
+	The CJK encodings that are supported by WorldScript II capable
+applications are the same as made available by the underlying
+Macintosh operating system. No import/export of other encodings is
+supported at the operating system level. You must run separate
+conversion utilities for both import and export. Anyway, below are
+some products that are known to be CJK capable.
+	Nisus Writer, written by Nisus Software, is fully CJK-capable
+as long as you have the appropriate scripts installed (such as CLK for
+Chinese or JLK for Japanese). A "Language Key" (read "dongle") is also
+required for Chinese and Korean (and some one-byte scripts such as
+Arabic and Hebrew). A demo version of Nisus Writer is available at the
+following URL:
+
+  ftp://ftp.nisus-soft.com/pub/nisus/demos/
+
+Give it a try! Updates are also available at the same FTP site. Nisus
+Software can be contacted using the following e-mail address or
+through their WWW page:
+
+  info@nisus-soft.com
+  http://www.nisus-soft.com/
+
+I also suggest reading "The Nisus Way" by Joe Kissell. Chapter 13
+provides detailed information about using Nisus Writer with
+WorldScript, and includes a CD-ROM containing among other things a
+trial (expires after 90 days) version of Nisus Writer and a
+non-expiring version of Nisus Compact.
+	ClarisWorks by Claris Corporation, beginning with Version 4.0,
+is compatible with WorldScript II and all Apple language kits. This
+translates into full CJK support. The following URL provides a trial
+version of ClarisWorks:
+
+  ftp://ftp.claris.com/pub/USA-Macintosh/Trial_Software/
+
+The following URL has detailed information on this and other Claris
+products:
+
+  http://www.claris.com/
+
+	The latest version of WordPerfect by Novell Incorporated is
+also compatible with WorldScript II. The following URL has detailed
+information:
+
+  http://wp.novell.com/tree.htm
+
+
+7.6: MACBLUE TELNET
+
+	Although MacBlue Telnet (a modified version of NCSA Telnet) is
+Macintosh software, I describe it separately because it does not
+require the various Apple Language Kits or localized operating
+systems. There are also input methods, adapted from cxterm (see
+Section 7.7), available that cover the CJK spectrum (Japanese,
+Simplified Chinese, Traditional Chinese, and Korean).
+	MacBlue Telnet is available at the following URL:
+
+  ftp://ftp.ifcss.org/pub/software/mac/networking/MacBlueTelnet/
+
+Its associated CJK input methods are at the following URL:
+
+  ftp://ftp.ifcss.org/pub/software/mac/input/
+
+
+7.7: CXTERM
+
+	This program, cxterm, is a CJK-capable xterm for X Windows
+(works with X11R4, X11R5, and X11R6). It is based on the X11R6 xterm.
+It is available at the following URL:
+
+  ftp://ftp.ifcss.org/pub/software/x-win/cxterm/
+
+	The following URL is for a program that adds Unicode
+capability to cxterm:
+
+  ftp://ftp.ifcss.org/pub/software/unix/convert/hztty-2.0.tar.gz
+
+The following URL adds support for other encodings to cxterm:
+
+  ftp://ftp.ifcss.org/pub/software/unix/convert/BeTTY-1.534.tar.gz
+
+
+7.8: UW-DBM
+
+	UW-DBM, for Windows 3.1, Windows 95, and Windows NT, is a
+program that allows users to handle Chinese (Big Five, GB-2312-80, or
+HZ code), Japanese (Shift-JIS), and Korean (KS C 5601-1992)
+simultaneously. More information on UW-DBM is available at the
+following URL:
+
+  http://www.gy.com/ccd/win95/cjkw95.htm
+
+	A demo version of UW-DBM is available at the following URL:
+
+  ftp://ftp.aimnet.com/pub/users/chinabus/uwdbm40.zip
+
+
+7.9: POSTSCRIPT
+
+	With the introduction of CID-keyed Font Technology, PostScript
+has become fully CJK capable.
+	Adobe Systems has developed the following CJK character
+collection for CID-keyed fonts (font developers are encouraged to
+conform to these specifications):
+
+  Character Collection  CIDs   Supported Character Sets & Encodings
+  ^^^^^^^^^^^^^^^^^^^^  ^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Adobe-GB1-1           9,897  GB 2312-80 and GB/T 12345-90; 7-bit ISO
+                               2022 and EUC
+  Adobe-CNS1-0         14,099  Big Five (ETen extensions) and CNS
+                               11643-1992 Planes 1 and 2; Big Five,
+                               7-bit ISO 2022, and EUC
+  Adobe-Japan1-2        8,720  JIS X 0208-1990; Shift-JIS, 7-bit ISO
+                               2022, and EUC
+  Adobe-Japan2-0        6,068  JIS X 0212-1990; 7-bit ISO 2022 and EUC
+  Adobe-Korea1-1       18,155  KS C 5601-1992 (Macintosh extensions
+                               plus Johab); 7-bit ISO 2022, EUC, UHC,
+                               and Johab
+
+Note that Macintosh and Windows do not support any of the encodings
+for Adobe-Japan2-0, thus fonts based on that specification are
+unusable for those platforms.
+	Adobe Systems also have a few things in the works (that is,
+they are either proposed or in draft form), all of which are
+supplements to above character collections (that is, they add CIDs):
+
+  Character Collection  CIDs   Supported Character Sets & Encodings
+  ^^^^^^^^^^^^^^^^^^^^  ^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Adobe-CNS1-1         +6,018  Add CNS 11643-1992 Plane 3 support (30
+                               of the 6,148 hanzi are in Adobe-CNS1-0)
+
+	To find out more about these CJK character collections or
+CID-keyed font technology, contact the Adobe Developers Association.
+Several CID-related documents have been published. ADA's contact
+information is as follows:
+
+  Adobe Developers Association
+  Adobe Systems Incorporated
+  1585 Charleston Road
+  P.O. Box 7900
+  Mountain View, CA 94039-7900
+  USA
+  +1-415-961-4111 (phone)
+  +1-415-967-9231 (facsimile)
+  devsupp-person@adobe.com
+  http://www.adobe.com/Support/
+
+Adobe Systems has recently developed the CID SDK (CID Software
+Developers Kit), which is on a single CD-ROM. Contact the Adobe
+Developers Association for information on obtaining a copy.
+	The complete CID-keyed font file specification and an overview
+document are available at the following URLs (as a PostScript or PDF
+[Adobe Acrobat] file, respectively):
+
+  ftp://ftp.adobe.com/pub/adobe/DeveloperSupport/TechNotes/PSfiles/
+  ftp://ftp.adobe.com/pub/adobe/DeveloperSupport/TechNotes/PDFfiles/
+
+The file names (not provided above due to URL length) are:
+
+  5014.CMap_CIDFont_Spec.ps    (complete CID engineering specification)
+  5014.CMap_CIDFont_Spec.pdf
+  5092.CID_Overview.ps         (CID technology overview)
+  5092.CID_Overview.pdf
+
+Other related files, most character collection specifications, are
+available only in PDF format at the latter URL indicated above:
+
+  5004.AFM_Spec.pdf            (Includes CID-keyed AFM specification)
+  5078b.pdf                    (Adobe-Japan1-2 character collection)
+  5079b.pdf                    (Adobe-GB1-0 character collection)
+  5080b.pdf                    (Adobe-CNS1-0 character collection)
+  5093b.pdf                    (Adobe-Korea1-0 character collection)
+  5094.pdf                     (Adobe CJK CMap file descriptions)
+  5097b.pdf                    (Adobe-Japan2-0 character collection)
+
+If you do not have Adobe Acrobat, there is a freely-available Acrobat
+Reader (for Macintosh, Windows, MS-DOS, and UNIX) at the following
+URL:
+
+  ftp://ftp.adobe.com/pub/adobe/Applications/Acrobat/
+
+	I have also placed some CJK character collection materials,
+including prototype Unicode (UCS-2 and UTF-8) CMap files, at the
+following URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/adobe/
+
+A sample (Adobe-Korea1-0) CIDFont is also available at the above URL.
+	There is also a somewhat brief description of CID-keyed fonts
+at the end of Chapter 6 in UJIP.
+
+
+7.10: NJWIN
+
+	Hongbo Data Systems has recently release a ShareWare ($49 USD)
+product called NJWIN whose purpose is to force the display of CJK text
+in non-CJK applications running under US Windows 95. Actually, there
+are two versions: full CJK and Japanese only.
+	NJWIN and its full description are available at the following
+URL:
+
+  http://www.njstar.com.au/njstar/njwin.htm
+
+Other (popular) URLs that carry NJWIN are as follows:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/windows/
+  ftp://ftp.cc.monash.edu.au/pub/nihongo/
+
+	Hongbo Data Systems' e-mail address is:
+
+  hongbo@njstar.com.au
+
+Their WWW Home Page is at the following URL:
+
+  http://www.njstar.com.au/
+
+
+PART 8: CJK PROGRAMMING ISSUES
+
+	This new section describes issues related to using specific
+programming languages to process CJK text.
+
+
+8.1: C AND C++
+
+	At one time I used C on a regular basis for my CJK programming
+needs, and released three tools for others to use: JConv, JChar, and
+JCode. While these tools are specific to Japanese, they can be easily
+adapted for CJK use. Their source code is available at the following
+URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/src/
+
+	I also provided several C code snippets in Chapter 7 of
+UJIP. These are available in machine-readable form at the following
+URL:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/Ch7/
+
+
+8.2: PERL
+
+	Although Perl does not have any special CJK facilities (note
+that most implementations of C and C++ do not either), it provides a
+powerful programming environment that is useful for many CJK-related
+tasks.
+	The noteworthy features of Perl are associative arrays and
+regular expressions. These are features not found in C or C++, and
+allow one to write meaningful code in little time.
+	JPerl is an implementation of Perl that provides two-byte
+support for Japanese (EUC or Shift-JIS encoding). It is not ideal
+because JPerl scripts often cannot run under (non-Japanese) Perl.
+	If you often write programs for internal use, I suggest that
+you check out Perl to see if it can offer you something. Chances are
+that it can. A good place to start looking at Perl are through books
+on the subject (see Section A.3.1) and at the following URL:
+
+  http://www.perl.com/
+
+	For those who like additional reading, "The Perl Journal" is
+starting up, and information is at the following URL:
+
+  http://work.media.mit.edu/the_perl_journal/
+
+
+8.3: JAVA
+
+	I am just starting to learn about the Java programming
+language (and rightly so since my wife is Javanese!). It seems to have
+a lot to offer.
+	The most interesting aspects of Java are:
+
+o Built-in support for Unicode and UTF-8.
+o The programmer must write code in the object-oriented paradigm.
+o Provides a portable way to supply compiled code.
+o Security features for Internet use.
+
+More information on Java are at the following URLs:
+
+  http://www.gamelan.com/
+  http://www.javasoft.com/
+
+Oh, Gamelan is the name of Javanese music.
+	Of the books about Java published thus far, the one I consider
+to be the best is "Java in a Nutshell" by David Flanagan.
+	One programming feature of Perl that I dearly miss in Java are
+regexes (regular expressions). Luckily, some kind person wrote a regex
+package for Java based on Perl regexes. Information on this Java regex
+package is available at the following URL:
+
+  http://www.win.net/~stevesoft/pat/
+
+
+A FINAL NOTE
+
+	I hope that the information presented here will prove
+useful. I would like to keep the electronic version of this document
+as up-to-date as possible, and through readers' input, I am able to
+do so.
+	Many readers will notice that I am very heavy into UNIX and
+Macintosh (well, I recently got my first PC). If anyone has any
+information on CJK-capable interfaces for other platforms, please feel
+free to send it to me, and I will be sure to include it in the next
+version of CJK.INF. Please include sources for the software or
+documentation by providing addresses, phone numbers, FTP sites, and so
+on.
+	Please do not hesitate to ask me further question concerning
+any subject presented in this document.
+
+
+ACKNOWLEDGMENTS
+
+	I would like to express my deepest thanks to Kazumasa Utashiro
+of Internet Initiative Japan (IIJ). He taught to me how to send and
+receive Japanese text using the 7-bit ISO 2022 codes back in 1989.
+With his help I was able to write JAPAN.INF, my book, and this
+document in order to inform others about what he has taught me plus
+more.
+	Next, I thank all the folks at O'Reilly & Associates for
+publishing UJIP. Special thanks to Tim O'Reilly for accepting the book
+proposal, and to Peter Mui for guiding me through the process. I have
+had nothing but good experiences with "them there fine folks."
+	I got to know Jack Halpern through UJIP, and he subsequently
+translated it into Japanese. Many thanks to him.
+	I am also grateful to my employer, Adobe Systems, for letting
+me work on interesting CJK-related projects. I really like what I do
+here. In particular, I want to thank Dan Mills, my manager, for
+putting up with me for these past four years.
+	Lastly, I would also like to thank the countless people who
+provided comments on JAPAN.INF, UJIP, and CJK.INF. I hope that this
+new document lives up to the spirit of my previous efforts.
+
+
+APPENDIX A: OTHER INFORMATION SOURCES
+
+	One of the most useful types of information are pointers to
+other information sources. This appendix provides just that.
+
+
+A.1: USENET NEWSGROUPS AND MAILING LISTS
+
+	Appendix L of UJIP provided information on a number of mailing
+lists. This section supplements that appendix with information on
+other useful mailing lists, and points out which ones in UJIP are
+relevant to readers of CJK.INF.
+
+
+A.1.1: USENET NEWSGROUPS
+
+	The following Usenet Newsgroups typically have postings with
+information relevant to issues discussed in CJK.INF (in alphabetical
+order):
+
+  alt.chinese.computing
+  alt.chinese.text                (HZ encoding used for Chinese text)
+  alt.chinese.text.big5           (Big Five encoding used for Chinese text)
+  alt.japanese.text               (JIS encoding used for Japanese text)
+  chinese.flame                   (UTF-7)
+  chinese.text.unicode            (UTF-8)
+  comp.lang.c
+  comp.lang.c++
+  comp.lang.java
+  comp.lang.perl.misc
+  comp.software.international
+  comp.std.internat
+  fj.editor.mule                  (JIS encoding used for Japanese text)
+  fj.kanji                        (JIS encoding used for Japanese text)
+  fj.net.infosystems.www.browsers (JIS encoding used for Japanese text)
+  fj.news.reader                  (JIS encoding used for Japanese text)
+  han.comp.hangul
+  han.sys.mac
+  sci.lang.japan                  (JIS encoding used for Japanese text)
+
+	If your local news host does not provide a feed of the fj.*
+newsgroups (shame on them!), or if you do not have access to Usenet
+News, you can alternatively fetch them from the following URL:
+
+  ftp://kuso.shef.ac.uk/pub/News/
+
+The subdirectories correspond to the newsgroup name, but with the
+"dots" being replaced by "slashes." For example, the "fj.binaries.mac"
+newsgroup is archived in the "fj/binaries/mac" subdirectory. Many
+thanks to Earl Kinmonth (jp1ek@sunc.shef.uc.uk) for this service.
+	There are some sites that carry full feeds of the fj.*
+newsgroups, and permit public access (meaning that you can configure
+your news reader to point to it). The only one I know of thus far is
+as follows:
+
+  ume.cc.tsukuba.ac.jp
+
+
+A.1.2: MAILING LISTS
+
+	The following are mailing lists that should interest readers
+of this document (some are more active than others). The first line
+after each entry indicates the address (or addresses) that can be used
+for subscribing. The second line is the address for posting.
+
+o CCNET-L MAILING LIST
+  listserv@uga.uga.edu (or listserv@uga)
+  ccnet-l@uga.uga.edu
+
+o China Net Mailing List
+  majordomo@lists.mindspring.com
+  (See http://www.asia-net.com/ or jobs@asia-net.com)
+
+o EASUG (East Asian Software Users Group) Mailing List
+  easug-request@guvax.acc.georgetown.edu
+  easug@guvax.acc.georgetown.edu
+
+o EBTI-L (Electronic Buddhist Text Initiative) Mailing List
+  ebti-l-request@uxmail.ust.hk
+  ebti-l@uxmail.ust.hk
+
+o EFJ (Electronic Frontiers Japan) Mailing List
+  majordomo@lists.twics.com
+  efj@lists.twics.com
+
+o Hangul Mailing List (han.comp.hangul newsgroup)
+  majordomo@cair.kaist.ac.kr
+  hangul@cair.kaist.ac.kr
+
+o INSOFT-L Mailing List
+  majordomo@trans2.b30.ingr.com
+  insoft-l@trans2.b30
+
+o ISO 10646 Mailing List
+  listproc@listproc.hcf.jhu.edu
+  iso10646@listproc.hcf.jhu.edu
+
+o Japan Net Mailing List
+  majordomo@lists.mindspring.com
+  (See http://www.asia-net.com/ or jobs@asia-net.com)
+
+o KanjiTalk Mailing List
+  kanjitalk-request@cs15.atr-sw.atr.co.jp (or kanjitalk-request@crl.go.jp)
+  kanjitalk@cs15.atr-sw.atr.co.jp (or kanjitalk@crl.go.jp)
+
+o Mac Mailing List (han.sys.mac newsgroup)
+  majordomo@krnic.net
+  mac@krnic.net
+
+o Mule Mailing List
+  mule-request@etl.go.jp
+  mule@etl.go.jp or mule-jp@etl.go.jp
+
+o NIHONGO Mailing List (sci.lang.japan newsgroup)
+  listserv@mitvma.mit.edu (or listserv@mitvma)
+  nihongo@mitvma.mit.edu
+
+o Nihongo-Hiroba Mailing List
+  listproc@mcfeeley.cc.utexas.edu
+  nihongo-hiroba@mcfeeley.cc.utexas.edu
+
+o Nisus Mailing List
+  listserv@dartmouth.edu
+  nisus@dartmouth.edu
+
+o TLUG (Tokyo Linux User's Group) Mailing List
+  majordomo@lists.twics.com
+  tlug@lists.twics.com
+
+o Unicode Mailing List
+  unicode-request@unicode.org
+  unicode@unicode.org
+
+o WNN User Mailing List
+  wnn-user-request@wnn.astem.or.jp
+  wnn-user-jp@wnn.astem.or.jp
+
+o WWW Multilingual Mailing List
+  www-mling-request@square.ntt.jp
+  www-mling@square.ntt.jp
+
+If the name of the mailing list is part of the subscription address
+(such as "easug-request"), the message body should look like this:
+
+  subscribe
+
+Including your name is optional. If username in the subscription
+address is "listserv" or "majordomo" (these are names of mailing list
+managing software), the mailing list name must appear after
+"subscribe" in the message body as follows:
+
+  subscribe ccnet-l
+
+Again, including your name is optional.
+	The following URL has information about Japanese-related
+mailing lists:
+
+  gopher://gan1.ncc.go.jp/11/INFO/mail-lists/
+
+
+A.2: INTERNET RESOURCES
+
+	The Internet provides what I would consider to be the greatest
+information resources of all. These can be subcategorized into FTP,
+Telnet, Gopher, WWW, and e-mail.
+
+
+A.2.1: USEFUL FTP SITES
+
+	Below are the URLs for useful FTP sites. The directory
+specified is the recommended place from which to start poking around
+for useful files.
+
+  ftp://cair-archive.kaist.ac.kr/pub/hangul/
+  ftp://etlport.etl.go.jp/pub/mule/
+  ftp://ftp.adobe.com/pub/adobe/
+  ftp://ftp.cc.monash.edu.au/pub/nihongo/
+  ftp://ftp.ifcss.org/pub/software/
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/
+  ftp://ftp.sra.co.jp/pub/
+  ftp://ftp.uwtc.washington.edu/pub/Japanese/
+  ftp://kuso.shef.ac.uk/pub/Japanese/
+  ftp://unicode.org/pub/
+
+This list is expected to grow.
+
+
+A.2.2: USEFUL TELNET SITES
+
+	For those who have a NIFTY-Serve account, there is now a very
+convenient way to access NIFTY-Serve using telnet. The URL is as
+follows:
+
+  telnet://r2.niftyserve.or.jp/
+
+Information about what NIFTY-Serve has to offer (and how to subscribe)
+can be found at the following URL:
+
+  http://www.nifty.co.jp/
+
+	Another information service with a similar access mechanism is
+CompuServe, whose URL is as follows:
+
+  telnet://compuserve.com/
+
+You will need to press the return key to get the "Host Name:" prompt,
+at which time you type "cis" (just follow the menus from this point
+on).
+	You can also do a search on fj.* newsgroup articles at the
+following URL:
+
+  telnet://asahi-net.or.jp/
+
+You login as "fj-db" once you are connected.
+
+
+A.2.3: USEFUL GOPHER SITES
+
+	I am not too much of a Gopher user. There, of course, is the
+following:
+
+  gopher://gopher.ora.com/
+
+Another Gopher site provides information on Japanese-related mailing
+lists:
+
+  gopher://gan1.ncc.go.jp/11/INFO/mail-lists/
+
+If you happen to know of others, please let me know.
+
+
+A.2.4: USEFUL WWW SITES
+
+	Because the World-Wide Web is a constantly changing place (and
+more importantly, because I don't want to re-issue a new version of
+this document every month!), I will maintain links to useful documents
+at my WWW Home Page. Its URL is as follows:
+
+  http://jasper.ora.com/lunde/
+
+If you cannot get to my WWW Home Page, you couldn't get to any that I
+would list here anyway.
+
+
+A.2.5: USEFUL MAIL SERVERS
+
+	In the past (that is, in JAPAN.INF) I included a full list of
+the domains in the "jp" hierarchy. That took up a lot of space, and
+changes very rapidly. You can now send a request to a mail server in
+order to return the most current listing. The mail server is:
+
+  mail-server@nic.ad.jp
+
+The most common command is "send," and the following arguments can be
+supplied to retrieve specific documents (and should be in the message
+body, not on the "Subject:" line):
+
+  send help
+  send index
+  send jpnic/domain-list.txt
+  send jpnic/domain-list-e.txt
+
+The first sends back a help file, the second sends back a complete
+index of files that can be retrieved (use this one to see what other
+useful stuff is available), and the last two send back a complete
+listing of domains in the "fj" hierarchy (the last one send it back in
+English/romanized).
+
+
+A.3: OTHER RESOURCES
+
+	This section provides pointers to specific documentation
+available electronically or in print.
+
+
+A.3.1: BOOKS
+
+	There are other useful reference materials available in print
+or online, in addition to the various national and international
+standards mentioned throughout this document. The following are books
+that I recommend for further reading or mental stimulus. (Sorry for
+plugging my own books in this list, but they are relevant.)
+
+o Clews, John. "Language Automation Worldwide: The Development of
+  Character Set Standards." SESAME Computer Projects. 1988. ISBN
+  1-870095-01-4.
+
+o Flanagan, David. "Java in a Nutshell." O'Reilly & Associates,
+  Inc. 1996. ISBN 1-56592-183-6.
+
+o Frisch, AEleen. "Essential System Administration." Second Edition.
+  O'Reilly & Associates, Inc. 1995. ISBN 1-56592-127-5.
+
+o Huang, Jack & Timothy Huang. "An Introduction to Chinese, Japanese
+  and Korean Computing." World Scientific Computing. 1989. ISBN
+  9971-50-664-5.
+
+o IBM Corporation. "Character Data Representation Architecture - Level
+  2, Registry." 1993. IBM order number SC09-1391-01.
+
+o Kano, Nadine. "Developing International Software for Windows 95 and
+  Windows NT." Microsoft Press. 1995. ISBN 1-55615-840-8.
+
+o Kirch, Olaf. "Linux Network Administrator's Guide." O'Reilly &
+  Associates, Inc. 1995. ISBN 1-56592-087-2.
+
+o Kissell, Joe. "The Nisus Way." MIS:Press. 1996. ISBN 1-55828-455-9.
+
+o Krol, Ed. "The Whole Internet User's Guide & Catalog." Second
+  Edition. O'Reilly & Associates, Inc. 1994. ISBN 1-56592-063-5.
+
+o Liu, Cricket et al. "Managing Internet Information Services."
+  O'Reilly & Associates, Inc. 1994. ISBN 1-56592-062-7.
+
+o Lunde, Ken. "Understanding Japanese Information Processing."
+  O'Reilly & Associates, Incorporated. 1993. ISBN 1-56592-043-0. LCCN
+  PL524.5.L86 1993.
+
+o Lunde, Ken. "Nihongo Joho Shori." SOFTBANK Corporation. 1995. ISBN
+  4-89052-708-7.
+
+o Luong, Tuoc V. et al. "Internationalization: Developing Software for
+  Global Markets." John Wiley & Sons, Incorporated. 1995. ISBN
+  0-471-07661-9.
+
+o Schwartz, Randal L. "Learning Perl." O'Reilly & Associates,
+  Incorporated. 1993. ISBN 1-56592-042-2.
+
+o Stallman, Richard M. "GNU Emacs Manual." Tenth edition. Free
+  Software Foundation. 1994. ISBN 1-882114-04-3.
+
+o Tuthill, Bill. "Solaris International Developer's Guide." SunSoft
+  Press and PTR Prentice Hall. 1993. ISBN 0-13-031063-8.
+
+o Unicode Consortium, The. "The Unicode Standard: Worldwide Character
+  Encoding." Version 1.0. Volume 2. Addison-Wesley. 1992. ISBN
+  0-201-60845-6.
+
+o Vromans, Johan. "Perl 5 Desktop Reference." O'Reilly & Associates,
+  Inc. 1996. ISBN 1-56592-187-9.
+
+o Wall, Larry & Randal L. Schwartz. "Programming Perl." O'Reilly &
+  Associates, Incorporated. 1991. ISBN 0-937175-64-1.
+
+o Welsh, Matt & Lar Kaufman. "Running Linux." O'Reilly & Associates,
+  Inc. 1995. ISBN 1-56592-100-3.
+
+	If you want to get your hands on any of the national or
+international standards mentioned in this document, I suggest the
+following:
+
+o The American National Standards Institute can provide ISO, KS, and
+  JIS standards. Bear in mind that ISO standards will most likely
+  arrive as a photocopy of the original.
+
+  ANSI
+  11 West 42nd Street
+  New York, NY 10036
+  USA
+  +1-212-642-4900 (phone)
+  +1-212-302-1286 (facsimile)
+
+o The International Organization for Standardization can provide
+  ISO standards.
+
+  ISO
+  1, rue de Varemb
+  Case postale 56
+  CH-1211, Geneva 20
+  SWITZERLAND
+  +41-22-749-01-11 (phone)
+  +41-22-733-34-30 (facsimile)
+  central@isocs.iso.ch (e-mail)
+  http://www.iso.ch/ (WWW)
+
+o Chinese (GB and CNS) standards are the hardest to obtain. It is
+  quite unfortunate.
+
+
+A.3.2: MAGAZINES
+
+o "Computing Japan," published monthly, ISSN 1340-7228,
+  editors@cj.gol.com.
+
+o "MANGAJIN," published 10 times per year, ISSN 1051-8177.
+
+o "Multilingual Communications & Computing," published bi-monthly,
+  ISSN 1065-7657, info@multilingual.com.
+
+o "The Perl Journal," published quarterly, ISSN 1087-903X,
+  perl-journal-subscriptions@perl.com.
+
+
+A.3.3: JOURNALS
+
+o "Chinese Information Processing" (CIP), published bi-monthly, ISSN
+  1003-9082. (In Chinese.)
+
+o "Computer Processing of Chinese & Oriental Languages" (CPCOL),
+  co-published twice a year by World Scientific Publishing and Chinese
+  Language Computer Society (CLCS), ISSN 0715-9048.
+
+o "The Electronic Bodhidharma," published by the International
+  Research Institute for Zen (IRIZ) Buddhism, Hanazono University,
+  Japan. More information on the organization that publishes this
+  journal is available at the following URL:
+
+  http://www.iijnet.or.jp/iriz/irizhtml/irizhome.htm
+
+
+A.3.4: RFCs
+
+	Many RFCs (Request For Comments) are relevant to this
+document. They are:
+
+o RFC 1341: "MIME (Multipurpose Internet Mail Extensions): Mechanisms
+  for Specifying and Describing the Format of Internet Message
+  Bodies," by Nathaniel Borenstein and Ned Freed, June 1992.
+
+o RFC 1342: "Representation of Non-ASCII Text in Internet Message
+  Headers," by Keith Moore, June 1992.
+
+o RFC 1468: "Japanese Character Encoding for Internet Messages," by
+  Jun Murai et al., June 1993.
+
+o RFC 1521: "MIME (Multipurpose Internet Mail Extensions) Part One:
+  Mechanisms for Specifying and Describing the Format of Internet
+  Message Bodies," by Nathaniel Borenstein and Ned Freed, September
+  1993. Obsoletes RFC 1341.
+
+o RFC 1522: "MIME (Multipurpose Internet Mail Extensions) Part Two:
+  Message Header Extensions for Non-ASCII Text," by Keith Moore,
+  September 1993. Obsoletes RFC 1342.
+
+o RFC 1554: "ISO-2022-JP-2: Multilingual Extension of ISO-2022-JP," by
+  Masataka Ohta and Kenichi Handa, December 1993.
+
+o RFC 1557: "Korean Character Encoding for Internet Messages," by
+  Uhhyung Choi et al., December 1993.
+
+o RFC 1642: "UTF-7: A Mail-Safe Transformation Format of Unicode," by
+  David Goldsmith and Mark Davis, July 1994.
+
+o RFC 1815: "Character Sets ISO-10646 and ISO-10646-J-1," by Masataka
+  Ohta, July 1995.
+
+o RFC 1842: "ASCII Printable Characters-Based Chinese Character
+  Encoding for Internet Messages," by Ya-Gui Wei et al., August 1995.
+
+o RFC 1843: "HZ - A Data Format for Exchanging Files of Arbitrarily
+  Mixed Chinese and ASCII Characters," by Fung Fung Lee, August 1995.
+
+o RFC 1922: "Chinese Character Encoding for Internet Messages," by
+  Haifeng Zhu et al., March 1996.
+
+These RFCs can be obtained from FTP archives that contain all RFC
+documents, such as at the following URLs
+
+  ftp://nic.ddn.mil/rfc/
+  ftp://ftp.uu.net/inet/rfc/
+
+But these specific ones are mirrored at the following URL for
+convenience:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/Ch9/
+
+
+A.3.5: FAQs
+
+	There are several FAQ (Frequently Asked Questions) files that
+provide useful information. The following is a listing of some along
+with their URLs:
+
+o "Japanese Language Information" FAQ (formerly the "sci.lang.japan"
+  FAQ) by Rafael Santos (santos@mickey.ai.kyutech.ac.jp) at:
+
+  http://www.mickey.ai.kyutech.ac.jp/cgi-bin/japanese/
+
+  Update announcements are usually posted to the sci.lang.japan
+  newsgroup.
+
+o "Programming for Internationalization" FAQ by Michael Gschwind
+  (mike@vlsivie.tuwien.ac.at) at:
+
+  ftp://ftp.vlsivie.tuwien.ac.at/pub/8bit/ISO-programming
+
+  Also posted to the comp.software.international newsgroup. This and
+  other internationalization documents are also accessible through the
+  following URL:
+
+  http://www.vlsivie.tuwien.ac.at/mike/i18n.html
+
+o Three FAQs about Internet Service Providers in Japan by Taki Naruto
+  (tn@panix.com), Jesse Casman (jcasman@unm.edu), and Kenji Yoshida
+  (kenny@mb.tokyo.infoweb.or.jp), respectively, at:
+
+  http://www.panix.com/~tn/ispj.html
+  http://nobunaga.unm.edu/internet.html
+  http://cswww2.essex.ac.uk/users/whean/japan/net.html
+
+o "Internationalization Reference List" by Eugene Dorr
+  (gdorr@pgh.legent.com) at:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/doc/i18n-books.txt
+
+  Note really a FAQ, but quite useful because it is a very complete
+  listing of I18N-related books.
+
+o "INSOFT-L Service" by Brian Tatro (btatro@tatro.com) at:
+
+  http://iquest.com/~btatro/in2.html
+
+  This includes a link to the FAQ for the INSOFT-L Mailing List (see
+  Section A.1.2).
+
+o "How to Use Japanese on the Internet with a PC: From Login to WWW"
+  by Hideki Hirayama (sgw01623@niftyserve.or.jp) at:
+
+  ftp://ftp.ora.com/pub/examples/nutshell/ujip/faq/jpn-inet.FAQ
+
+o "Hangul and Internet in Korea" FAQ by Jungshik Shin
+  (jshin@minerva.cis.yale.edu) at:
+
+  http://pantheon.cis.yale.edu/~jshin/faq/
+---  END (CJK.INF VERSION 2.1 07/12/96) 185553 BYTES  ---

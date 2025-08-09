@@ -1,0 +1,109 @@
+# safe-stock.test --
+#
+# This file contains tests for safe Tcl that were previously in the file
+# safe.test, and use files and packages of stock Tcl 8.6 to perform the tests.
+# These files may be changed or disappear in future revisions of Tcl,
+# for example package http 1.0 will be removed from Tcl 8.7.
+#
+# The tests are replaced in safe.tcl with tests that use files provided in the
+# tests directory.  Test numbering is for comparison with similar tests in
+# safe.test.
+#
+# Sourcing this file into tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1995-1996 Sun Microsystems, Inc.
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+if {"::tcltest" ni [namespace children]} {
+    package require tcltest 2.5
+    namespace import -force ::tcltest::*
+}
+
+foreach i [interp children] {
+    interp delete $i
+}
+
+set SaveAutoPath $::auto_path
+set ::auto_path [info library]
+set TestsDir [file normalize [file dirname [info script]]]
+set PathMapp [list $tcl_library TCLLIB $TestsDir TESTSDIR]
+
+proc mapList {map listIn} {
+    set listOut {}
+    foreach element $listIn {
+        lappend listOut [string map $map $element]
+    }
+    return $listOut
+}
+
+# Force actual loading of the safe package because we use unexported (and
+# thus unautoindexed) APIs in this test result arguments:
+catch {safe::interpConfigure}
+
+# high level general test
+test safe-stock-7.1 {tests that everything works at high level, uses http 2} -body {
+    set i [safe::interpCreate]
+    # no error shall occur:
+    # (because the default access_path shall include 1st level sub dirs so
+    #  package require in a child works like in the parent)
+    set v [interp eval $i {package require http 2}]
+    # no error shall occur:
+    interp eval $i {http::config}
+    safe::interpDelete $i
+    set v
+} -match glob -result 2.*
+test safe-stock-7.2 {tests specific path and interpFind/AddToAccessPath, uses http1.0} -body {
+    set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+    # should not add anything (p0)
+    set token1 [safe::interpAddToAccessPath $i [info library]]
+    # should add as p1
+    set token2 [safe::interpAddToAccessPath $i "/dummy/unixlike/test/path"]
+    set confA [safe::interpConfigure $i]
+    set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+    # an error shall occur (http is not anymore in the secure 0-level
+    # provided deep path)
+    list $token1 $token2 -- \
+	    [catch {interp eval $i {package require http 1}} msg] $msg -- \
+	    $mappA -- [safe::interpDelete $i]
+} -match glob -result {{$p(:0:)} {$p(:*:)} -- 1 {can't find package http 1} --\
+        {TCLLIB */dummy/unixlike/test/path} -- {}}
+test safe-stock-7.4 {tests specific path and positive search, uses http1.0} -body {
+    set i [safe::interpCreate -nostat -nested 1 -accessPath [list [info library]]]
+    # should not add anything (p0)
+    set token1 [safe::interpAddToAccessPath $i [info library]]
+    # should add as p1
+    set token2 [safe::interpAddToAccessPath $i [file join [info library] http1.0]]
+    set confA [safe::interpConfigure $i]
+    set mappA [mapList $PathMapp [dict get $confA -accessPath]]
+    # this time, unlike test safe-stock-7.2, http should be found
+    list $token1 $token2 -- \
+	    [catch {interp eval $i {package require http 1}} msg] $msg -- \
+	    $mappA -- [safe::interpDelete $i]
+} -match glob -result {{$p(:0:)} {$p(:*:)} -- 0 1.0 -- {TCLLIB *TCLLIB/http1.0} -- {}}
+
+# The following test checks whether the definition of tcl_endOfWord can be
+# obtained from auto_loading.  It was previously test "safe-5.1".
+test safe-stock-9.8 {test auto-loading in safe interpreters, was test 5.1} -setup {
+    catch {safe::interpDelete a}
+    safe::interpCreate a
+} -body {
+    interp eval a {tcl_endOfWord "" 0}
+} -cleanup {
+    safe::interpDelete a
+} -result -1
+
+set ::auto_path $SaveAutoPath
+unset SaveAutoPath TestsDir PathMapp
+rename mapList {}
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

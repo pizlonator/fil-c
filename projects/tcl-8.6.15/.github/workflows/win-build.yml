@@ -1,0 +1,105 @@
+name: Windows
+on:
+  push:
+    branches:
+    - "main"
+    - "core-8-branch"
+    - "core-8-6-branch"
+    tags:
+    - "core-**"
+permissions:
+  contents: read
+env:
+  ERROR_ON_FAILURES: 1
+jobs:
+  msvc:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: powershell
+        working-directory: win
+    strategy:
+      matrix:
+        config:
+          - ""
+          - "OPTS=static,msvcrt"
+          - "OPTS=static,staticpkg,msvcrt"
+          - "OPTS=symbols"
+          - "OPTS=symbols STATS=compdbg,memdbg"
+    # Using powershell means we need to explicitly stop on failure
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        timeout-minutes: 5
+      - name: Init MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        timeout-minutes: 5
+      - name: Build ${{ matrix.config }}
+        run: |
+          &nmake -f makefile.vc ${{ matrix.config }} all
+          if ($lastexitcode -ne 0) {
+             throw "nmake exit code: $lastexitcode"
+          }
+        timeout-minutes: 5
+      - name: Build Test Harness ${{ matrix.config }}
+        run: |
+          &nmake -f makefile.vc ${{ matrix.config }} tcltest
+          if ($lastexitcode -ne 0) {
+             throw "nmake exit code: $lastexitcode"
+          }
+        timeout-minutes: 5
+      - name: Run Tests ${{ matrix.config }}
+        run: |
+          &nmake -f makefile.vc ${{ matrix.config }} test
+          if ($lastexitcode -ne 0) {
+             throw "nmake exit code: $lastexitcode"
+          }
+        timeout-minutes: 30
+  gcc:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+        working-directory: win
+    strategy:
+      matrix:
+        config:
+          - ""
+          - "--disable-shared"
+          - "--enable-symbols"
+          - "--enable-symbols=mem"
+          - "--enable-symbols=all"
+    # Using powershell means we need to explicitly stop on failure
+    steps:
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: git mingw-w64-x86_64-toolchain make
+        timeout-minutes: 10
+      - name: Checkout
+        uses: actions/checkout@v4
+        timeout-minutes: 5
+      - name: Prepare
+        run: |
+          touch tclStubInit.c tclOOStubInit.c
+          mkdir "${HOME}/install dir"
+        working-directory: generic
+      - name: Configure ${{ matrix.config }}
+        run: |
+          ./configure ${CFGOPT} "--prefix=$HOME/install dir" || (cat config.log && exit 1)
+        env:
+          CFGOPT: --enable-64bit ${{ matrix.config }}
+        timeout-minutes: 5
+      - name: Build
+        run: make all
+        timeout-minutes: 5
+      - name: Build Test Harness
+        run: make tcltest
+        timeout-minutes: 5
+      - name: Run Tests
+        run: make test
+        timeout-minutes: 30
+
+# If you add builds with Wine, be sure to define the environment variable
+# CI_USING_WINE when running them so that broken tests know not to run.

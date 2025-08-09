@@ -1,0 +1,9 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: LibTomMath
+Description: public domain library for manipulating large integer numbers
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -ltommath
+Cflags: -I${includedir}

@@ -1,0 +1,42 @@
+#!  /usr/bin/env tclsh
+
+# Copyright (c) 2019 Poor Yorick
+
+if {[string equal $::tcl_platform(os) "Windows NT"]} {
+    return
+}
+
+namespace eval ::tcl::test::fileSystemEncoding {
+
+    if {"::tcltest" ni [namespace children]} {
+	package require tcltest 2.5
+	namespace import -force ::tcltest::*
+    }
+
+    variable fname1 \u767b\u9e1b\u9d72\u6a13
+
+    source [file join [file dirname [info script]] tcltests.tcl]
+
+    test filesystemEncoding-1.0 {
+	issue bcd100410465
+    } -body {
+	set dir [tcltests::tempdir]
+	set saved [encoding system]
+	encoding system iso8859-1
+	set fname1a $dir/$fname1
+	set utf8name [encoding convertto utf-8 $fname1a]
+	makeFile {} $utf8name
+	set globbed [lindex [glob -directory $dir *] 0]
+	encoding system utf-8
+	set res [file exists $globbed]
+	encoding system iso8859-1
+	lappend res [file exists $globbed]
+	return $res
+    } -cleanup {
+	removeFile $utf8name
+	file delete -force $dir
+	encoding system $saved
+    } -result  {0 1}
+
+    cleanupTests
+}

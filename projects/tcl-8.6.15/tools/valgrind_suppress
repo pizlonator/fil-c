@@ -1,0 +1,263 @@
+#{
+#    Tcl_GetChannelOption/TcpGetOptionProc/TcphostPortList/getnameinfo/gethostbyaddr_r
+#    Memcheck:Leak
+#    match-leak-kinds: reachable
+#    fun:malloc
+#    fun:strdup
+#    ...
+#    fun:module_load
+#    ...
+#    fun:getnameinfo
+#    ...
+#    fun:Tcl_GetChannelOption
+#}
+
+{
+   TclCreatesocketAddress/getaddrinfo/calloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:getaddrinfo
+   fun:TclCreateSocketAddress
+}
+
+{
+   TclCreatesocketAddress/getaddrinfo/malloc
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:getaddrinfo
+   fun:TclCreateSocketAddress
+}
+
+{
+   TclCreatesocketAddress/getaddrinfo/malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:getaddrinfo
+   fun:TclCreateSocketAddress
+}
+
+{
+   TclpDlopen/decompose_rpath
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:decompose_rpath
+   ...
+   fun:dlopen_doit
+   ...
+   fun:TclpDlopen
+}
+
+{
+   TclpDlopen/load
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:dlopen
+   fun:TclpDlopen
+}
+
+{
+   TclpDlopen/load
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:dlopen
+   fun:TclpDlopen
+}
+
+{
+   TclpGetGrNam/__nss_next2/calloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:__nss_next2
+   ...
+   fun:TclpGetGrNam
+}
+
+{
+   TclpGetGrNam/__nss_next2/malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:__nss_next2
+   ...
+   fun:TclpGetGrNam
+}
+
+{
+   TclpGetGrNam/__nss_systemd_getfrname_r/malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:_nss_systemd_getgrnam_r
+   ...
+   fun:TclpGetGrNam
+}
+
+{
+    TclpGeHostByName/gethostbyname_r/strdup/malloc
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    fun:malloc
+    fun:strdup
+    ...
+    fun:dl_open_worker
+    ...
+    fun:do_dlopen
+    ...
+    fun:TclpGetHostByName
+}
+
+{
+    TclpGeHostByName/gethostbyname_r/calloc
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    fun:calloc
+    ...
+    fun:dl_open_worker
+    ...
+    fun:do_dlopen
+    ...
+    fun:TclpGetHostByName
+}
+
+{
+    TclpGeHostByName/gethostbyname_r/malloc
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    fun:malloc
+    ...
+    fun:dl_open_worker
+    ...
+    fun:do_dlopen
+    ...
+    fun:TclpGetHostByName
+}
+
+{
+   TclpGetPwNam/getpwname_r/__nss_next2/calloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:__nss_next2
+   ...
+   fun:TclpGetPwNam
+}
+
+{
+   TclpGetPwNam/getpwname_r/__nss_next2/malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:__nss_next2
+   ...
+   fun:TclpGetPwNam
+}
+
+{
+   TclpGetPwNam/getpwname_r/_nss_systemd_getpwnam_r/malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:_nss_systemd_getpwnam_r
+   ...
+   fun:TclpGetPwNam
+}
+
+{
+    TclpGetGrGid/getgrgid_r/module_load
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    fun:calloc
+    ...
+    fun:module_load
+    ...
+    fun:TclpGetGrGid
+}
+
+{
+    TclpGetGrGid/getgrgid_r/module_load
+    Memcheck:Leak
+    match-leak-kinds: reachable
+    fun:malloc
+    ...
+    fun:module_load
+    ...
+    fun:TclpGetGrGid
+}
+
+{
+    TcphostPortList/getnameinfo/module_load/calloc
+    Memcheck:Leak
+    match-leak-kinds: definite,reachable
+    fun:calloc
+    ...
+    fun:dl_open_worker_begin
+    ...
+    fun:module_load
+    ...
+    fun:getnameinfo
+    fun:TcpHostPortList
+}
+
+{
+    # see sourceware glibc Bug 14984 - getnameinfo() might be leaking memory
+    TcphostPortList/getnameinfo/module_load/mallco
+    Memcheck:Leak
+    match-leak-kinds: definite,reachable
+    fun:malloc
+    ...
+    fun:dl_open_worker_begin
+    ...
+    fun:module_load
+    ...
+    fun:getnameinfo
+    fun:TcpHostPortList
+}
+
+{
+	TclpThreadExit/pthread_exit/calloc
+    Memcheck:Leak
+    match-leak-kinds: reachable
+	fun:calloc
+	...
+	fun:pthread_exit
+	fun:TclpThreadExit
+}
+
+{
+	TclpThreadExit/pthread_exit/malloc
+    Memcheck:Leak
+    match-leak-kinds: reachable
+	fun:malloc
+	...
+	fun:pthread_exit
+	fun:TclpThreadExit
+}
+
+{
+	TclpThreadExit/pthread_exit/malloc
+    Memcheck:Leak
+    match-leak-kinds: definite
+	fun:malloc
+	...
+	fun:pthread_exit
+	fun:TclpThreadExit
+}
+
