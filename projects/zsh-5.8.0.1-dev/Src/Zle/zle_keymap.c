@@ -85,6 +85,7 @@ struct keymap {
 struct key {
     HashNode next;	/* next in hash chain */
     char *nam;		/* key sequence (metafied) */
+    int flags;          /* field from hashnode */
     Thingy bind;	/* binding of this key sequence */
     char *str;		/* string for send-string (metafied) */
     int prefixct;	/* number of sequences for which this is a prefix */

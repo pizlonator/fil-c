@@ -576,6 +576,9 @@ zheapptr(void *p)
 mod_export void *
 zhalloc(size_t size)
 {
+    if ((1))
+        return malloc(size);
+    
     Heap h, hp = NULL;
     size_t n;
 #ifdef ZSH_VALGRIND
@@ -704,6 +707,12 @@ hrealloc(char *p, size_t old, size_t new)
 	return zhalloc(new);
 #endif
 
+    if ((1)) {
+        char* result = malloc(new);
+        memcpy(result, p, old < new ? old : new);
+        return result;
+    }
+    
     /* find the heap with p */
 
     queue_signals();
