@@ -1,0 +1,141 @@
+<!--
+  ****************************************************************************
+  * Copyright 2019-2023,2024 Thomas E. Dickey                                *
+  * Copyright 1998-2010,2017 Free Software Foundation, Inc.                  *
+  *                                                                          *
+  * Permission is hereby granted, free of charge, to any person obtaining a  *
+  * copy of this software and associated documentation files (the            *
+  * "Software"), to deal in the Software without restriction, including      *
+  * without limitation the rights to use, copy, modify, merge, publish,      *
+  * distribute, distribute with modifications, sublicense, and/or sell       *
+  * copies of the Software, and to permit persons to whom the Software is    *
+  * furnished to do so, subject to the following conditions:                 *
+  *                                                                          *
+  * The above copyright notice and this permission notice shall be included  *
+  * in all copies or substantial portions of the Software.                   *
+  *                                                                          *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+  * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+  *                                                                          *
+  * Except as contained in this notice, the name(s) of the above copyright   *
+  * holders shall not be used in advertising or otherwise to promote the     *
+  * sale, use or other dealings in this Software without prior written       *
+  * authorization.                                                           *
+  ****************************************************************************
+  * @Id: curs_insstr.3x,v 1.55 2024/06/08 21:03:03 tom Exp @
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="Manpage converted by man2html - see https://invisible-island.net/scripts/readme.html#others_scripts">
+<TITLE>curs_insstr 3x 2024-06-08 ncurses 6.5 Library calls</TITLE>
+<link rel="author" href="mailto:bug-ncurses@gnu.org">
+
+</HEAD>
+<BODY>
+<H1 class="no-header">curs_insstr 3x 2024-06-08 ncurses 6.5 Library calls</H1>
+<PRE>
+<STRONG><A HREF="curs_insstr.3x.html">curs_insstr(3x)</A></STRONG>                  Library calls                 <STRONG><A HREF="curs_insstr.3x.html">curs_insstr(3x)</A></STRONG>
+
+
+
+
+</PRE><H2><a name="h2-NAME">NAME</a></H2><PRE>
+       <STRONG>insstr</STRONG>,  <STRONG>insnstr</STRONG>,  <STRONG>winsstr</STRONG>,  <STRONG>winsnstr</STRONG>,  <STRONG>mvinsstr</STRONG>, <STRONG>mvinsnstr</STRONG>, <STRONG>mvwinsstr</STRONG>,
+       <STRONG>mvwinsnstr</STRONG> - insert a string in a <EM>curses</EM> window
+
+
+</PRE><H2><a name="h2-SYNOPSIS">SYNOPSIS</a></H2><PRE>
+       <STRONG>#include</STRONG> <STRONG>&lt;curses.h&gt;</STRONG>
+       <STRONG>int</STRONG> <STRONG>insstr(const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>insnstr(const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>winsstr(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>winsnstr(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+
+       <STRONG>int</STRONG> <STRONG>mvinsstr(int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvinsnstr(int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwinsstr(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>);</STRONG>
+       <STRONG>int</STRONG> <STRONG>mvwinsnstr(WINDOW</STRONG> <STRONG>*</STRONG><EM>win</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>y</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>x</EM><STRONG>,</STRONG> <STRONG>const</STRONG> <STRONG>char</STRONG> <STRONG>*</STRONG><EM>str</EM><STRONG>,</STRONG> <STRONG>int</STRONG> <EM>n</EM><STRONG>);</STRONG>
+
+
+</PRE><H2><a name="h2-DESCRIPTION">DESCRIPTION</a></H2><PRE>
+       These routines insert a character string (as many  characters  as  will
+       fit  on  the line) before the character under the cursor, as if calling
+       <STRONG><A HREF="curs_insch.3x.html">winsch(3x)</A></STRONG>.  All characters to the right  of  the  cursor  are  shifted
+       right,  with  the  possibility  of the rightmost characters on the line
+       being lost.  No wrapping is performed.
+
+       The cursor  position  does  not  change  (after  moving  to  <EM>y</EM>,  <EM>x</EM>,  if
+       specified).
+
+       The functions with <EM>n</EM> as the last argument insert a leading substring of
+       at most <EM>n</EM> characters.  If <EM>n</EM> is less than zero,  the  entire  string  is
+       inserted (stopping on a NUL character).
+
+       Special characters are handled as in <STRONG><A HREF="curs_addch.3x.html">waddch(3x)</A></STRONG>.
+
+
+</PRE><H2><a name="h2-RETURN-VALUE">RETURN VALUE</a></H2><PRE>
+       All functions return the integer <STRONG>ERR</STRONG> upon failure and <STRONG>OK</STRONG> on success.
+
+       X/Open   Curses   does   not   specify   any  error  conditions.   This
+       implementation returns <STRONG>ERR</STRONG>
+
+       <STRONG>o</STRONG>   if the <EM>win</EM> parameter is null or
+
+       <STRONG>o</STRONG>   if the <EM>str</EM> parameter is null or
+
+       <STRONG>o</STRONG>   the <STRONG><A HREF="curs_insch.3x.html">winsch(3x)</A></STRONG> function returns <STRONG>ERR</STRONG>.
+
+       Functions prefixed with "mv" first perform cursor movement and fail  if
+       the position (<EM>y</EM>, <EM>x</EM>) is outside the window boundaries.
+
+
+</PRE><H2><a name="h2-NOTES">NOTES</a></H2><PRE>
+       All but <STRONG>winsnstr</STRONG> may be macros.
+
+
+</PRE><H2><a name="h2-PORTABILITY">PORTABILITY</a></H2><PRE>
+       X/Open  Curses,  Issue  4  describes  these functions.  It specifies no
+       error conditions for them.
+
+       Issue 4 distinguished <STRONG>insnstr</STRONG> and <STRONG>winsnstr</STRONG>  by  stating  they  "do  not
+       perform  wrapping".   This  was  probably an error, since it makes this
+       group of functions inconsistent.  No implementation of <EM>curses</EM> documents
+       this inconsistency, and Issue 7 removed it.
+
+       Issue  4 states that the entire string is inserted if <EM>n</EM> is less than 1.
+       This is probably an  error,  because  it  is  inconsistent  with  other
+       functions,  and  differs  from  the  SVr4  <EM>curses</EM>  and  Solaris <EM>xcurses</EM>
+       implementations.  Nevertheless, Issue 7 retains it.
+
+
+</PRE><H2><a name="h2-SEE-ALSO">SEE ALSO</a></H2><PRE>
+       <STRONG><A HREF="curs_ins_wstr.3x.html">curs_ins_wstr(3x)</A></STRONG> describes comparable functions of the <EM>ncurses</EM> library
+       in its wide-character configuration (<EM>ncursesw</EM>).
+
+       <STRONG><A HREF="ncurses.3x.html">curses(3x)</A></STRONG>, <STRONG><A HREF="curs_inch.3x.html">curs_inch(3x)</A></STRONG>, <STRONG><A HREF="curs_ins_wstr.3x.html">curs_ins_wstr(3x)</A></STRONG>, <STRONG><A HREF="curs_util.3x.html">curs_util(3x)</A></STRONG>
+
+
+
+ncurses 6.5                       2024-06-08                   <STRONG><A HREF="curs_insstr.3x.html">curs_insstr(3x)</A></STRONG>
+</PRE>
+<div class="nav">
+<ul>
+<li><a href="#h2-NAME">NAME</a></li>
+<li><a href="#h2-SYNOPSIS">SYNOPSIS</a></li>
+<li><a href="#h2-DESCRIPTION">DESCRIPTION</a></li>
+<li><a href="#h2-RETURN-VALUE">RETURN VALUE</a></li>
+<li><a href="#h2-NOTES">NOTES</a></li>
+<li><a href="#h2-PORTABILITY">PORTABILITY</a></li>
+<li><a href="#h2-SEE-ALSO">SEE ALSO</a></li>
+</ul>
+</div>
+</BODY>
+</HTML>
