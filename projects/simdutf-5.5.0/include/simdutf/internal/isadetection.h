@@ -50,8 +50,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>
 #if defined(_MSC_VER)
 #include <intrin.h>
-#elif defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)
+#elif (defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)) || defined(__PIZLONATOR_WAS_HERE__)
 #include <cpuid.h>
+#endif
+#ifdef __PIZLONATOR_WAS_HERE__
+#include <stdfil.h>
 #endif
 
 #include "simdutf/portability.h"
@@ -187,7 +190,7 @@ static inline void cpuid(uint32_t *eax, uint32_t *ebx, uint32_t *ecx,
   *ebx = cpu_info[1];
   *ecx = cpu_info[2];
   *edx = cpu_info[3];
-#elif defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)
+#elif (defined(HAVE_GCC_GET_CPUID) && defined(USE_GCC_GET_CPUID)) || defined(__PIZLONATOR_WAS_HERE__)
   uint32_t level = *eax;
   __get_cpuid(level, eax, ebx, ecx, edx);
 #else
@@ -203,6 +206,8 @@ static inline void cpuid(uint32_t *eax, uint32_t *ebx, uint32_t *ecx,
 static inline uint64_t xgetbv() {
  #if defined(_MSC_VER)
    return _xgetbv(0);
+ #elif defined(__PIZLONATOR_WAS_HERE__)
+   return zxgetbv();
  #else
    uint32_t xcr0_lo, xcr0_hi;
    asm volatile("xgetbv\n\t" : "=a" (xcr0_lo), "=d" (xcr0_hi) : "c" (0));
