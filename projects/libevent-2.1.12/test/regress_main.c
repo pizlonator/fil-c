@@ -386,7 +386,8 @@ run_legacy_test_fn(void *ptr)
 	test_ok = called = 0;
 
 	in_legacy_test_wrapper = 1;
-	data->legacy_test_fn(); /* This part actually calls the test */
+        void (*fn)(void* arg) = (void (*)(void*))data->legacy_test_fn;
+	fn(NULL); /* This part actually calls the test */
 	in_legacy_test_wrapper = 0;
 
 	if (!test_ok)

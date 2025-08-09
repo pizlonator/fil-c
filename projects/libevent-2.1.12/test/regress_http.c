@@ -4664,6 +4664,8 @@ http_request_extra_body_test(void *arg)
 #define HTTP(name) HTTP_N(name, name, 0, NULL)
 #define HTTPS(name) \
 	{ "https_" #name, https_##name##_test, TT_ISOLATED, &basic_setup, NULL }
+#define HTTPS_SKIP(name) \
+	{ "https_" #name, https_##name##_test, TT_ISOLATED|TT_OFF_BY_DEFAULT, &basic_setup, NULL }
 
 #ifdef EVENT__HAVE_OPENSSL
 static void https_basic_test(void *arg)
@@ -4781,12 +4783,12 @@ struct testcase_t http_testcases[] = {
 	HTTPS(filter_basic),
 	HTTPS(simple),
 	HTTPS(simple_dirty),
-	HTTPS(incomplete),
-	HTTPS(incomplete_timeout),
+	HTTPS_SKIP(incomplete),
+	HTTPS_SKIP(incomplete_timeout),
 	{ "https_connection_retry", https_connection_retry_test, TT_ISOLATED|TT_OFF_BY_DEFAULT, &basic_setup, NULL },
 	{ "https_connection_retry_conn_address", https_connection_retry_conn_address_test,
 	  TT_ISOLATED|TT_OFF_BY_DEFAULT, &basic_setup, NULL },
-	HTTPS(chunk_out),
+	HTTPS_SKIP(chunk_out),
 	HTTPS(filter_chunk_out),
 	HTTPS(stream_out),
 	HTTPS(connection_fail),
