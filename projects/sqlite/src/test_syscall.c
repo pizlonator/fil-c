@@ -84,6 +84,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdfil.h>
 
 #if SQLITE_OS_UNIX
 
@@ -418,7 +419,10 @@ static void *ts_mremap(void *a, size_t b, size_t c, int d, ...){
     return MAP_FAILED;
   }
   va_start(ap, d);
-  pArg = va_arg(ap, void *);
+  if (zcan_va_arg(ap))
+    pArg = va_arg(ap, void *);
+  else
+    pArg = 0;
   return orig_mremap(a, b, c, d, pArg);
 }
 

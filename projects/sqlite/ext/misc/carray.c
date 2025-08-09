@@ -521,6 +521,7 @@ SQLITE_API int sqlite3_carray_bind(
 ** This is for testing on TCL only.
 */
 #ifdef SQLITE_TEST
+extern void *sqlite3DecodeExternalTestPtr(void*);
 static void inttoptrFunc(
   sqlite3_context *context,
   int argc,
@@ -535,6 +536,7 @@ static void inttoptrFunc(
     int i32 = i64 & 0xffffffff;
     memcpy(&p, &i32, sizeof(p));
   }
+  p = sqlite3DecodeExternalTestPtr(p);
   sqlite3_result_pointer(context, p, "carray", 0);
 }
 #endif /* SQLITE_TEST */

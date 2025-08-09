@@ -36,7 +36,7 @@ extern void *sqlite3TestTextToPtr(const char *z);
 */
 static char *ptrToText(void *p){
   static char buf[100];
-  sqlite3_snprintf(sizeof(buf)-1, buf, "%p", p);
+  sqlite3_snprintf(sizeof(buf)-1, buf, "%p", sqlite3EncodeExternalTestPtr(p));
   return buf;
 }
 

@@ -241,6 +241,7 @@ static void pointerToText(void *p, char *z){
   int i, k;
   unsigned int u;
   sqlite3_uint64 n;
+  p = sqlite3EncodeExternalTestPtr(p);
   if( p==0 ){
     strcpy(z, "0");
     return;
@@ -287,6 +288,7 @@ static int textToPointer(const char *z, void **pp){
   }else{
     assert( 0 );
   }
+  *pp = sqlite3DecodeExternalTestPtr(*pp);
   return TCL_OK;
 }
 

@@ -69,7 +69,7 @@ static int SQLITE_TCLAPI pager_open(
   sqlite3PagerSetCachesize(pPager, nPage);
   pageSize = test_pagesize;
   sqlite3PagerSetPagesize(pPager, &pageSize, -1);
-  sqlite3_snprintf(sizeof(zBuf),zBuf,"%p",pPager);
+  sqlite3_snprintf(sizeof(zBuf),zBuf,"%p",sqlite3EncodeExternalTestPtr(pPager));
   Tcl_AppendResult(interp, zBuf, 0);
   return TCL_OK;
 }
@@ -332,7 +332,7 @@ static int SQLITE_TCLAPI page_get(
     Tcl_AppendResult(interp, sqlite3ErrName(rc), 0);
     return TCL_ERROR;
   }
-  sqlite3_snprintf(sizeof(zBuf),zBuf,"%p",pPage);
+  sqlite3_snprintf(sizeof(zBuf),zBuf,"%p",sqlite3EncodeExternalTestPtr(pPage));
   Tcl_AppendResult(interp, zBuf, 0);
   return TCL_OK;
 }
@@ -362,7 +362,7 @@ static int SQLITE_TCLAPI page_lookup(
   if( Tcl_GetInt(interp, argv[2], &pgno) ) return TCL_ERROR;
   pPage = sqlite3PagerLookup(pPager, pgno);
   if( pPage ){
-    sqlite3_snprintf(sizeof(zBuf),zBuf,"%p",pPage);
+    sqlite3_snprintf(sizeof(zBuf),zBuf,"%p",sqlite3EncodeExternalTestPtr(pPage));
     Tcl_AppendResult(interp, zBuf, 0);
   }
   return TCL_OK;

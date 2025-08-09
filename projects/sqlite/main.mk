@@ -1106,9 +1106,9 @@ snapshot-tarball: sqlite3.c sqlite3rc.h
 # Standard install and cleanup targets
 #
 install:	sqlite3 libsqlite3.a sqlite3.h
-	mv sqlite3 /usr/bin
-	mv libsqlite3.a /usr/lib
-	mv sqlite3.h /usr/include
+	mv sqlite3 $(PREFIX)/bin
+	mv libsqlite3.a $(PREFIX)/lib
+	mv sqlite3.h $(PREFIX)/include
 
 clean:
 	rm -f *.o sqlite3 sqlite3.exe libsqlite3.a sqlite3.h opcodes.*
@@ -1149,3 +1149,5 @@ clean:
 	rm -f lsm.h lsm1.c
 	rm -f threadtest5
 	rm -f src-verify
+	rm -f mksourceid
+

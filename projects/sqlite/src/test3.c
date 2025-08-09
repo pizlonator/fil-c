@@ -73,7 +73,7 @@ static int SQLITE_TCLAPI btree_open(
     return TCL_ERROR;
   }
   sqlite3BtreeSetCacheSize(pBt, nCache);
-  sqlite3_snprintf(sizeof(zBuf), zBuf,"%p", pBt);
+  sqlite3_snprintf(sizeof(zBuf), zBuf,"%p", sqlite3EncodeExternalTestPtr(pBt));
   Tcl_AppendResult(interp, zBuf, 0);
   return TCL_OK;
 }
@@ -236,7 +236,7 @@ static int SQLITE_TCLAPI btree_cursor(
     Tcl_AppendResult(interp, sqlite3ErrName(rc), 0);
     return TCL_ERROR;
   }
-  sqlite3_snprintf(sizeof(zBuf), zBuf,"%p", pCur);
+  sqlite3_snprintf(sizeof(zBuf), zBuf,"%p", sqlite3EncodeExternalTestPtr(pCur));
   Tcl_AppendResult(interp, zBuf, 0);
   return SQLITE_OK;
 }
@@ -543,7 +543,7 @@ static int SQLITE_TCLAPI btree_from_db(
   assert( db );
 
   pBt = db->aDb[iDb].pBt;
-  sqlite3_snprintf(sizeof(zBuf), zBuf, "%p", pBt);
+  sqlite3_snprintf(sizeof(zBuf), zBuf, "%p", sqlite3EncodeExternalTestPtr(pBt));
   Tcl_SetResult(interp, zBuf, TCL_VOLATILE);
   return TCL_OK;
 }

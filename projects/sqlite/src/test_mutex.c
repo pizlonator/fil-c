@@ -322,7 +322,7 @@ static int SQLITE_TCLAPI test_alloc_mutex(
   sqlite3_mutex *p = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
   char zBuf[100];
   sqlite3_mutex_free(p);
-  sqlite3_snprintf(sizeof(zBuf), zBuf, "%p", p);
+  sqlite3_snprintf(sizeof(zBuf), zBuf, "%p", sqlite3EncodeExternalTestPtr(p));
   Tcl_AppendResult(interp, zBuf, (char*)0);
 #endif
   return TCL_OK;

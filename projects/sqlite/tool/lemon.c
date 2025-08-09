@@ -1718,7 +1718,7 @@ int main(int argc, char **argv){
   static int quiet = 0;
   static int statistics = 0;
   static int mhflag = 0;
-  static int nolinenosflag = 0;
+  static int nolinenosflag = 1;
   static int noResort = 0;
   static int sqlFlag = 0;
   static int printPP = 0;

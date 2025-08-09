@@ -1534,6 +1534,9 @@ static int SQLITE_TCLAPI test_quota_dump(
   return TCL_OK;
 }
 
+/* Defined in test1.c */
+extern void* sqlite3EncodeExternalTestPtr(void *);
+
 /*
 ** tclcmd: sqlite3_quota_fopen FILENAME MODE
 */
@@ -1556,7 +1559,7 @@ static int SQLITE_TCLAPI test_quota_fopen(
   zFilename = Tcl_GetString(objv[1]);
   zMode = Tcl_GetString(objv[2]);
   p = sqlite3_quota_fopen(zFilename, zMode);
-  sqlite3_snprintf(sizeof(zReturn), zReturn, "%p", p);
+  sqlite3_snprintf(sizeof(zReturn), zReturn, "%p", sqlite3EncodeExternalTestPtr(p));
   Tcl_SetResult(interp, zReturn, TCL_VOLATILE);
   return TCL_OK;
 }
