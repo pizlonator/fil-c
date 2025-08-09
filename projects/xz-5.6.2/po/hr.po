@@ -1,0 +1,1136 @@
+# SPDX-License-Identifier: 0BSD
+# This file is published under the BSD Zero Clause License.
+#
+# Copyright (C) The XZ Utils authors and contributors
+#
+# Croatian messages for xz.
+# Božidar Putanec <bozidarp@yahoo.com>, 2020, 2022, 2023, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xz 5.6.0-pre2\n"
+"Report-Msgid-Bugs-To: xz@tukaani.org\n"
+"POT-Creation-Date: 2024-05-29 17:41+0300\n"
+"PO-Revision-Date: 2024-02-18 17:31-0800\n"
+"Last-Translator: Božidar Putanec <bozidarp@yahoo.com>\n"
+"Language-Team: Croatian <lokalizacija@linux.hr>\n"
+"Language: hr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+#: src/xz/args.c
+#, c-format
+msgid "%s: Invalid argument to --block-list"
+msgstr "%s: nevaljani argument za --block-list"
+
+#: src/xz/args.c
+#, c-format
+msgid "%s: Too many arguments to --block-list"
+msgstr "%s: Previše argumenata za --block-list"
+
+#: src/xz/args.c
+#, c-format
+msgid "In --block-list, block size is missing after filter chain number '%c:'"
+msgstr "U --block-list nedostaje veličina bloka iza broja lanca filtra „%c:“"
+
+#: src/xz/args.c
+msgid "0 can only be used as the last element in --block-list"
+msgstr "0 se može koristiti samo kao posljedni element za --block-list"
+
+#: src/xz/args.c
+#, c-format
+msgid "%s: Unknown file format type"
+msgstr "%s: Nepoznati tip formata datoteke"
+
+#: src/xz/args.c
+#, c-format
+msgid "%s: Unsupported integrity check type"
+msgstr "%s: Nepodržani način (tip) provjere integriteta"
+
+#: src/xz/args.c
+msgid "Only one file can be specified with '--files' or '--files0'."
+msgstr "Samo jedna datoteka može biti specificirana s --files ili --files0."
+
+#. TRANSLATORS: This is a translatable
+#. string because French needs a space
+#. before the colon ("%s : %s").
+#: src/xz/args.c src/xz/coder.c src/xz/file_io.c src/xz/list.c
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/xz/args.c
+#, c-format
+msgid "The environment variable %s contains too many arguments"
+msgstr "Varijabla okoline %s sadrži previše argumenata"
+
+#: src/xz/args.c
+msgid "Compression support was disabled at build time"
+msgstr "Podrška za kompresiju bila je onemogućena prilikom kompiliranja"
+
+#: src/xz/args.c
+msgid "Decompression support was disabled at build time"
+msgstr "Podrška za dekompresiju bila je onemogućena prilikom kompiliranja"
+
+#: src/xz/args.c
+msgid "Compression of lzip files (.lz) is not supported"
+msgstr "Kompresija lzip datoteka (.lz) nije podržana"
+
+#: src/xz/args.c
+msgid "--block-list is ignored unless compressing to the .xz format"
+msgstr "--block-list je zanemaren osim ako se ne komprimira u .xz format"
+
+#: src/xz/args.c
+msgid "With --format=raw, --suffix=.SUF is required unless writing to stdout"
+msgstr "Uz opciju --format=raw, --suffix=.SUF je nužan, osim ako je izlaz na stdout"
+
+#: src/xz/coder.c
+msgid "Maximum number of filters is four"
+msgstr "Maksimalni broj filtara je četiri (4)"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Error in --filters%s=FILTERS option:"
+msgstr "Greška u opciji --filters%s=FILTRI:"
+
+#: src/xz/coder.c
+msgid "Memory usage limit is too low for the given filter setup."
+msgstr "Ograničenje upotrebe memorije premalo je za danu postavku filtra."
+
+#: src/xz/coder.c
+#, c-format
+msgid "filter chain %u used by --block-list but not specified with --filters%u="
+msgstr "lanac filtra %u koristi se u --block-list ali nije specificiran s --filters%u="
+
+#: src/xz/coder.c
+msgid "Using a preset in raw mode is discouraged."
+msgstr "Nije preporučeno koristiti preset postavke u sirovom načinu rada."
+
+#: src/xz/coder.c
+msgid "The exact options of the presets may vary between software versions."
+msgstr "Točne opcije preset postavki mogu se razlikovati ovisno o verziji softvera."
+
+#: src/xz/coder.c
+msgid "The .lzma format supports only the LZMA1 filter"
+msgstr "Format .lzma podržan je samo s .lzma filtrom"
+
+#: src/xz/coder.c
+msgid "LZMA1 cannot be used with the .xz format"
+msgstr "LZMA1 ne može se koristi za .xz format"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Filter chain %u is incompatible with --flush-timeout"
+msgstr "Lanac filtara %u nije kompatibilan s --flush-timeout"
+
+#: src/xz/coder.c
+msgid "Switching to single-threaded mode due to --flush-timeout"
+msgstr "Prelazimo na jednodretveni način rada zbog --flush-timeout"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Unsupported options in filter chain %u"
+msgstr "Nepodržane opcije u lancu filtra %u"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Using up to %<PRIu32> threads."
+msgstr "Koristimo do %<PRIu32> dretvi."
+
+#: src/xz/coder.c
+msgid "Unsupported filter chain or filter options"
+msgstr "Nepodržani lanac filtara ili opcija filtara"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Decompression will need %s MiB of memory."
+msgstr "Za dekompresiju će trebati %s MiB memorije."
+
+#: src/xz/coder.c
+#, c-format
+msgid "Reduced the number of threads from %s to %s to not exceed the memory usage limit of %s MiB"
+msgstr "Smanjen je broj dretvi od %s na %s da ne prekoračimo ograničenje upotrebe memorije od %s MiB"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Reduced the number of threads from %s to one. The automatic memory usage limit of %s MiB is still being exceeded. %s MiB of memory is required. Continuing anyway."
+msgstr "Smanjen je broj dretvi od %s na jednu. Ograničenje automatske upotrebe memorije od %s MiB je još uvijek prekoračeno. Potrebno je %s MiB memorije. Ipak nastavljamo dalje."
+
+#: src/xz/coder.c
+#, c-format
+msgid "Switching to single-threaded mode to not exceed the memory usage limit of %s MiB"
+msgstr "Prelazimo na način rada s jednom dretvom da ne prekoračimo ograničenje upotrebe memorije od %s MiB"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Adjusted LZMA%c dictionary size from %s MiB to %s MiB to not exceed the memory usage limit of %s MiB"
+msgstr "Prilagođena je veličina LZMA%c rječnika od %s na %s da ne prekoračimo ograničenje upotrebe memorije od %s MiB"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Adjusted LZMA%c dictionary size for --filters%u from %s MiB to %s MiB to not exceed the memory usage limit of %s MiB"
+msgstr "Prilagođena veličina LZMA%c rječnika za --filters%u od %s na %s da ne prekoračimo ograničenje upotrebe memorije od %s MiB"
+
+#: src/xz/coder.c
+#, c-format
+msgid "Error changing to filter chain %u: %s"
+msgstr "Greška pri promjeni na lanac filtra %u: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "Error creating a pipe: %s"
+msgstr "Greška pri stvaranju cijevi: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: poll() failed: %s"
+msgstr "%s: poll() nije uspjela: %s"
+
+#. TRANSLATORS: When compression or decompression finishes,
+#. and xz is going to remove the source file, xz first checks
+#. if the source file still exists, and if it does, does its
+#. device and inode numbers match what xz saw when it opened
+#. the source file. If these checks fail, this message is
+#. shown, %s being the filename, and the file is not deleted.
+#. The check for device and inode numbers is there, because
+#. it is possible that the user has put a new file in place
+#. of the original file, and in that case it obviously
+#. shouldn't be removed.
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: File seems to have been moved, not removing"
+msgstr "%s: Izgleda da je datoteka pomaknuta -- ne brišemo ju"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Cannot remove: %s"
+msgstr "%s: Brisanje nije moguće: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Cannot set the file owner: %s"
+msgstr "%s: Nije moguće promijeniti vlasnika datoteke: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Cannot set the file group: %s"
+msgstr "%s: Nije moguće promijeniti grupu datoteke: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Cannot set the file permissions: %s"
+msgstr "%s: Nije moguće postaviti prava dostupa datoteci: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "Error getting the file status flags from standard input: %s"
+msgstr "Greška pri pokušaju dobivanja oznaka statusa datoteke iz standardnog ulaza: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Is a symbolic link, skipping"
+msgstr "%s: To je simbolička poveznica -- preskačemo ju"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Is a directory, skipping"
+msgstr "%s: To je direktorij -- preskačemo ga"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Not a regular file, skipping"
+msgstr "%s: To nije regularna datoteka -- preskačemo je"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: File has setuid or setgid bit set, skipping"
+msgstr "%s: Datoteka s postavljenim setuid ili setgid bitom -- preskačemo ju"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: File has sticky bit set, skipping"
+msgstr "%s: Datoteka s postavljenim ljepljivim bitom -- preskačemo ju"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Input file has more than one hard link, skipping"
+msgstr "%s: Ulazna datoteka ima više od jedne tvrde poveznice -- preskačemo ju"
+
+#: src/xz/file_io.c
+msgid "Empty filename, skipping"
+msgstr "Prazna datoteka -- preskačemo ju"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "Error restoring the status flags to standard input: %s"
+msgstr "Greška pri vraćanju oznaka statusa na standardni ulaz: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "Error getting the file status flags from standard output: %s"
+msgstr "Greška pri dobivanju oznaka statusa datoteke iz standardnog izlazu: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "Error restoring the O_APPEND flag to standard output: %s"
+msgstr "Greška pri vraćanju O_APPEND oznaka na standardni izlaz: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Closing the file failed: %s"
+msgstr "%s: Nije uspjelo zatvoriti datoteku: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Seeking failed when trying to create a sparse file: %s"
+msgstr "%s: Poziciona greška pri pokušaju stvaranja raštrkane datoteke: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Read error: %s"
+msgstr "%s: Greška pri čitanju: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Error seeking the file: %s"
+msgstr "%s: Greška pozicioniranja u datoteci: %s"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Unexpected end of file"
+msgstr "%s: Neočekivani kraj datoteke"
+
+#: src/xz/file_io.c
+#, c-format
+msgid "%s: Write error: %s"
+msgstr "%s: Greška pri pisanju: %s"
+
+#: src/xz/hardware.c
+msgid "Disabled"
+msgstr "Onemogućeno"
+
+#: src/xz/hardware.c
+msgid "Amount of physical memory (RAM):"
+msgstr "Količina fizičke memorije (RAM):"
+
+#: src/xz/hardware.c
+msgid "Number of processor threads:"
+msgstr "Broj dretvi procesora:"
+
+#: src/xz/hardware.c
+msgid "Compression:"
+msgstr "Kompresija:"
+
+#: src/xz/hardware.c
+msgid "Decompression:"
+msgstr "Dekompresija:"
+
+#: src/xz/hardware.c
+msgid "Multi-threaded decompression:"
+msgstr "Višedretvena dekompresija:"
+
+#: src/xz/hardware.c
+msgid "Default for -T0:"
+msgstr "Zadano za -T0:"
+
+#: src/xz/hardware.c
+msgid "Hardware information:"
+msgstr "Informacije o hardveru:"
+
+#: src/xz/hardware.c
+msgid "Memory usage limits:"
+msgstr "Ograničenja za korištenje memorije:"
+
+#: src/xz/list.c
+msgid "Streams:"
+msgstr "Tokovi:"
+
+#: src/xz/list.c
+msgid "Blocks:"
+msgstr "Blokovi:"
+
+#: src/xz/list.c
+msgid "Compressed size:"
+msgstr "Komprimirana veličina:"
+
+#: src/xz/list.c
+msgid "Uncompressed size:"
+msgstr "Dekomprimirana veličina:"
+
+#: src/xz/list.c
+msgid "Ratio:"
+msgstr "Omjer:"
+
+#: src/xz/list.c
+msgid "Check:"
+msgstr "Kontrola:"
+
+#: src/xz/list.c
+msgid "Stream Padding:"
+msgstr "Ispuna za tok:"
+
+#: src/xz/list.c
+msgid "Memory needed:"
+msgstr "Potrebna memorija:"
+
+#: src/xz/list.c
+msgid "Sizes in headers:"
+msgstr "Veličine u zaglavljima:"
+
+#: src/xz/list.c
+msgid "Number of files:"
+msgstr "Broj datoteka:"
+
+#: src/xz/list.c
+msgid "Stream"
+msgstr "Tok"
+
+#: src/xz/list.c
+msgid "Block"
+msgstr "Blok"
+
+#: src/xz/list.c
+msgid "Blocks"
+msgstr "Blokovi"
+
+#: src/xz/list.c
+msgid "CompOffset"
+msgstr "KomprOffset"
+
+#: src/xz/list.c
+msgid "UncompOffset"
+msgstr "DekomprOffset"
+
+#: src/xz/list.c
+msgid "CompSize"
+msgstr "KomprVeličina"
+
+#: src/xz/list.c
+msgid "UncompSize"
+msgstr "DekomprVeličina"
+
+#: src/xz/list.c
+msgid "TotalSize"
+msgstr "TotalVeličina"
+
+#: src/xz/list.c
+msgid "Ratio"
+msgstr "Omjer"
+
+#: src/xz/list.c
+msgid "Check"
+msgstr "Kontrola"
+
+#: src/xz/list.c
+msgid "CheckVal"
+msgstr "KontrolVrijednost"
+
+#: src/xz/list.c
+msgid "Padding"
+msgstr "Ispuna"
+
+#: src/xz/list.c
+msgid "Header"
+msgstr "Zaglavlje"
+
+#: src/xz/list.c
+msgid "Flags"
+msgstr "Oznake"
+
+#: src/xz/list.c
+msgid "MemUsage"
+msgstr "MemUpotreba"
+
+#: src/xz/list.c
+msgid "Filters"
+msgstr "Filtri"
+
+#. TRANSLATORS: Indicates that there is no integrity check.
+#. This string is used in tables. In older xz version this
+#. string was limited to ten columns in a fixed-width font, but
+#. nowadays there is no strict length restriction anymore.
+#: src/xz/list.c
+msgid "None"
+msgstr "Nijedan"
+
+#. TRANSLATORS: Indicates that integrity check name is not known,
+#. but the Check ID is known (here 2). In older xz version these
+#. strings were limited to ten columns in a fixed-width font, but
+#. nowadays there is no strict length restriction anymore.
+#: src/xz/list.c
+msgid "Unknown-2"
+msgstr "Nepoznat-2"
+
+#: src/xz/list.c
+msgid "Unknown-3"
+msgstr "Nepoznat-3"
+
+#: src/xz/list.c
+msgid "Unknown-5"
+msgstr "Nepoznat-5"
+
+#: src/xz/list.c
+msgid "Unknown-6"
+msgstr "Nepoznat-6"
+
+#: src/xz/list.c
+msgid "Unknown-7"
+msgstr "Nepoznat-7"
+
+#: src/xz/list.c
+msgid "Unknown-8"
+msgstr "Nepoznat-8"
+
+#: src/xz/list.c
+msgid "Unknown-9"
+msgstr "Nepoznat-9"
+
+#: src/xz/list.c
+msgid "Unknown-11"
+msgstr "Nepoznat-11"
+
+#: src/xz/list.c
+msgid "Unknown-12"
+msgstr "Nepoznat-12"
+
+#: src/xz/list.c
+msgid "Unknown-13"
+msgstr "Nepoznat-13"
+
+#: src/xz/list.c
+msgid "Unknown-14"
+msgstr "Nepoznat-14"
+
+#: src/xz/list.c
+msgid "Unknown-15"
+msgstr "Nepoznat-15"
+
+#: src/xz/list.c
+#, c-format
+msgid "%s: File is empty"
+msgstr "%s: Datoteka je prazna"
+
+#: src/xz/list.c
+#, c-format
+msgid "%s: Too small to be a valid .xz file"
+msgstr "%s: Premala da bude valjana .xz datoteka"
+
+#. TRANSLATORS: These are column headings. From Strms (Streams)
+#. to Ratio, the columns are right aligned. Check and Filename
+#. are left aligned. If you need longer words, it's OK to
+#. use two lines here. Test with "xz -l foo.xz".
+#: src/xz/list.c
+msgid "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename"
+msgstr "  Tok    Blok Komprimirano  Dekomprimir  Omjer  Kontr   Datoteka"
+
+#: src/xz/list.c
+msgid "Yes"
+msgstr "Da"
+
+#: src/xz/list.c
+msgid "No"
+msgstr "Ne"
+
+#: src/xz/list.c
+#, c-format
+msgid "  Minimum XZ Utils version: %s\n"
+msgstr "  Minimalno je potrebna verzija XZ Utils: %s\n"
+
+#. TRANSLATORS: %s is an integer. Only the plural form of this
+#. message is used (e.g. "2 files"). Test with "xz -l foo.xz bar.xz".
+#: src/xz/list.c
+#, c-format
+msgid "%s file\n"
+msgid_plural "%s files\n"
+msgstr[0] "%s datoteka\n"
+msgstr[1] "%s datoteke\n"
+msgstr[2] "%s datoteka\n"
+
+#: src/xz/list.c
+msgid "Totals:"
+msgstr "Ukupno:"
+
+#: src/xz/list.c
+msgid "--list works only on .xz files (--format=xz or --format=auto)"
+msgstr "--list radi samo sa .xz datoteke (--format=xz ili --format=auto)"
+
+#: src/xz/list.c
+msgid "Try 'lzmainfo' with .lzma files."
+msgstr "Pokušajte s „lzmainfo“ s .lzma datotekama."
+
+#: src/xz/list.c
+msgid "--list does not support reading from standard input"
+msgstr "--list ne podržava čitanje iz standardnog izlaza"
+
+#: src/xz/main.c
+#, c-format
+msgid "%s: Error reading filenames: %s"
+msgstr "%s: Greška pri čitanju datoteka: %s"
+
+#: src/xz/main.c
+#, c-format
+msgid "%s: Unexpected end of input when reading filenames"
+msgstr "%s: Neočekivani kraj ulaznih podataka tijekom čitanja imena datoteka"
+
+#: src/xz/main.c
+#, c-format
+msgid "%s: Null character found when reading filenames; maybe you meant to use '--files0' instead of '--files'?"
+msgstr "%s: Prazni (null) znak pronađen pri čitanju imena datoteka; možda ste mislili koristiti --files0 umjesto --files?"
+
+#: src/xz/main.c
+msgid "Compression and decompression with --robot are not supported yet."
+msgstr "Komprimiranje i dekomprimiranje s --robot još nije podržano."
+
+#: src/xz/main.c
+msgid "Cannot read data from standard input when reading filenames from standard input"
+msgstr "Nije moguće čitati podatke iz standardnog ulaza dok se čitaju imena datoteka iz standardnog ulaza"
+
+#. TRANSLATORS: This is the program name in the beginning
+#. of the line in messages. Usually it becomes "xz: ".
+#. This is a translatable string because French needs
+#. a space before a colon.
+#: src/xz/message.c
+#, c-format
+msgid "%s: "
+msgstr "%s: "
+
+#: src/xz/message.c src/lzmainfo/lzmainfo.c
+msgid "Internal error (bug)"
+msgstr "Interna greška (bug)"
+
+#: src/xz/message.c
+msgid "Cannot establish signal handlers"
+msgstr "Nije moguće uspostaviti rukovatelje signala"
+
+#: src/xz/message.c
+msgid "No integrity check; not verifying file integrity"
+msgstr "Nema provjere integriteta -- ne provjeravamo integritet datoteke"
+
+#: src/xz/message.c
+msgid "Unsupported type of integrity check; not verifying file integrity"
+msgstr "Nepodržani tip provjere integriteta -- ne provjeravamo integritet datoteke"
+
+#: src/xz/message.c
+msgid "Memory usage limit reached"
+msgstr "Dosegnuto je ograničenje za upotrebu memorije"
+
+#: src/xz/message.c
+msgid "File format not recognized"
+msgstr "Format datoteke nije prepoznat"
+
+#: src/xz/message.c
+msgid "Unsupported options"
+msgstr "Nepodržane opcije"
+
+#: src/xz/message.c
+msgid "Compressed data is corrupt"
+msgstr "Komprimirani podaci su oštećeni"
+
+#: src/xz/message.c
+msgid "Unexpected end of input"
+msgstr "Neočekivani kraj ulaznih podataka"
+
+#: src/xz/message.c
+#, c-format
+msgid "%s MiB of memory is required. The limiter is disabled."
+msgstr "%s Potrebno je MiB memorije. Ograničavač je onemogućen."
+
+#: src/xz/message.c
+#, c-format
+msgid "%s MiB of memory is required. The limit is %s."
+msgstr "%s Potrebno je MiB memorije. Ograničenje je %s."
+
+#: src/xz/message.c
+#, c-format
+msgid "%s: Filter chain: %s\n"
+msgstr "%s: Lanac filtara: %s\n"
+
+#: src/xz/message.c
+#, c-format
+msgid "Try '%s --help' for more information."
+msgstr "Pokušajte s „%s --help“ za pomoć i više informacija."
+
+#: src/xz/message.c
+#, c-format
+msgid ""
+"Usage: %s [OPTION]... [FILE]...\n"
+"Compress or decompress FILEs in the .xz format.\n"
+"\n"
+msgstr ""
+"Uporaba: %s [OPCIJA]... [FILE]...\n"
+"Komprimira ili dekomprimira DATOTEKE u .xz formatu.\n"
+"\n"
+
+#: src/xz/message.c
+msgid "Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr "Obvezni argumenti za duge opcije, obvezni su i za kratke opcije.\n"
+
+#: src/xz/message.c
+msgid " Operation mode:\n"
+msgstr " Način rada:\n"
+
+#: src/xz/message.c
+msgid ""
+"  -z, --compress      force compression\n"
+"  -d, --decompress    force decompression\n"
+"  -t, --test          test compressed file integrity\n"
+"  -l, --list          list information about .xz files"
+msgstr ""
+"  -z, --compress      komprimira (prisilna kompresija)\n"
+"  -d, --decompress    dekomprimira (prisilna dekompresija)\n"
+"  -t, --test          testira integritet komprimirane datoteke\n"
+"  -l, --list          ispiše podatke o .xz datotekama"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+" Operation modifiers:\n"
+msgstr ""
+"\n"
+" Modifikatori načina rada:\n"
+
+#: src/xz/message.c
+msgid ""
+"  -k, --keep          keep (don't delete) input files\n"
+"  -f, --force         force overwrite of output file and (de)compress links\n"
+"  -c, --stdout        write to standard output and don't delete input files"
+msgstr ""
+"  -k, --keep          zadrži (ne briše) navedene ulazne datoteke\n"
+"  -f, --force         piše preko izlaznih datoteka i\n"
+"                        preko (de)komprimiranih poveznica\n"
+"  -c, --stdout        piše na standardni izlaz i ne briše\n"
+"                        ulazne datoteke"
+
+#: src/xz/message.c
+msgid ""
+"      --single-stream decompress only the first stream, and silently\n"
+"                      ignore possible remaining input data"
+msgstr ""
+"      --single-stream dekomprimira samo prvi tok i tiho\n"
+"                        zanemari moguće preostale ulazne podatke"
+
+#: src/xz/message.c
+msgid ""
+"      --no-sparse     do not create sparse files when decompressing\n"
+"  -S, --suffix=.SUF   use the suffix '.SUF' on compressed files\n"
+"      --files[=FILE]  read filenames to process from FILE; if FILE is\n"
+"                      omitted, filenames are read from the standard input;\n"
+"                      filenames must be terminated with the newline character\n"
+"      --files0[=FILE] like --files but use the null character as terminator"
+msgstr ""
+"      --no-sparse     ne stvara raštrkane datoteke pri dekompresiji\n"
+"  -S, --suffix=.SUF   rabi sufiks .SUF za komprimirane datoteke\n"
+"      --files[=DATOTEKA]  čita imena datoteka za obradu iz DATOTEKE; ako\n"
+"                            DATOTEKA nije dana, imena datoteka čita iz\n"
+"                            standardnog ulaza; imena datoteka moraju završiti\n"
+"                            sa znakom novog retka\n"
+"      --files0[=DATOTEKA]   kao --files, ali koristi NULL znak kao terminator"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+" Basic file format and compression options:\n"
+msgstr ""
+"\n"
+" Osnovne opcije za format datoteka i kompresiju:\n"
+
+#: src/xz/message.c
+msgid ""
+"  -F, --format=FMT    file format to encode or decode; possible values are\n"
+"                      'auto' (default), 'xz', 'lzma', 'lzip', and 'raw'\n"
+"  -C, --check=CHECK   integrity check type: 'none' (use with caution),\n"
+"                      'crc32', 'crc64' (default), or 'sha256'"
+msgstr ""
+"  -F, --format=FMT    format datoteke za kodiranje ili dekodiranje; mogućnosti:\n"
+"                        „auto” (zadano), „xz”, „lzma”, „lzip“ i „raw”\n"
+"  -C, --check=KONTROLA  tip provjere integriteta: „none” (koristite s oprezom),\n"
+"                          „crc32”, „crc64” (zadano), ili „sha256”"
+
+#: src/xz/message.c
+msgid "      --ignore-check  don't verify the integrity check when decompressing"
+msgstr "      --ignore-check  ne verificira provjeru integriteta pri dekompresiji"
+
+#: src/xz/message.c
+msgid ""
+"  -0 ... -9           compression preset; default is 6; take compressor *and*\n"
+"                      decompressor memory usage into account before using 7-9!"
+msgstr ""
+"  -0 ... -9           preset postavke za kompresiju; zadano je 6; u obzir\n"
+"                        uzmite i upotrebu memorije za (de)kompresor prije\n"
+"                        upotrebe 7-9!"
+
+#: src/xz/message.c
+msgid ""
+"  -e, --extreme       try to improve compression ratio by using more CPU time;\n"
+"                      does not affect decompressor memory requirements"
+msgstr ""
+"  -e, --extreme       pokuša poboljšati omjer kompresije koristeći više CPU\n"
+"                        vremena; ne utječe na potrebnu memoriju za dekompresiju"
+
+#: src/xz/message.c
+msgid ""
+"  -T, --threads=NUM   use at most NUM threads; the default is 0 which uses\n"
+"                      as many threads as there are processor cores"
+msgstr ""
+"  -T, --threads=BROJ  ne rabi više od BROJ dretvi; zadano je 0 kojom se koristi\n"
+"                        toliko dretvi koliko CPU ima jezgri"
+
+#: src/xz/message.c
+msgid ""
+"      --block-size=SIZE\n"
+"                      start a new .xz block after every SIZE bytes of input;\n"
+"                      use this to set the block size for threaded compression"
+msgstr ""
+"      --block-size=VELIČINA  započne novi.xz blok nakon svakih VELIČINA bajtova\n"
+"                               ulaznih podataka; ovo rabite za postavljanje\n"
+"                               veličine bloka za kompresiju s dretvama"
+
+#: src/xz/message.c
+msgid ""
+"      --block-list=BLOCKS\n"
+"                      start a new .xz block after the given comma-separated\n"
+"                      intervals of uncompressed data; optionally, specify a\n"
+"                      filter chain number (0-9) followed by a ':' before the\n"
+"                      uncompressed data size"
+msgstr ""
+"      --block-list=BLOKOVI\n"
+"                      započne novi .xz blok nakon navedenih intervala (zarezima\n"
+"                      odvojenih) nekomprimiranih podataka; opcionalno, navedite\n"
+"                      lance filtra broj (0-9) iza kojeg slijedi „:“ (dvotočka)\n"
+"                      prije veličine nekompromiranih podataka"
+
+#: src/xz/message.c
+msgid ""
+"      --flush-timeout=TIMEOUT\n"
+"                      when compressing, if more than TIMEOUT milliseconds has\n"
+"                      passed since the previous flush and reading more input\n"
+"                      would block, all pending data is flushed out"
+msgstr ""
+"      --flush-timeout=VRIJEME\n"
+"                      ako se pri komprimiranju potroši više od VRIJEME\n"
+"                      milisekundi od prethodnog pražnjenja, a daljne čitanje\n"
+"                      bi blokiralo ulaz, svi podatci na čekanju se isprazne"
+
+#: src/xz/message.c
+#, no-c-format
+msgid ""
+"      --memlimit-compress=LIMIT\n"
+"      --memlimit-decompress=LIMIT\n"
+"      --memlimit-mt-decompress=LIMIT\n"
+"  -M, --memlimit=LIMIT\n"
+"                      set memory usage limit for compression, decompression,\n"
+"                      threaded decompression, or all of these; LIMIT is in\n"
+"                      bytes, % of RAM, or 0 for defaults"
+msgstr ""
+"      --memlimit-compress=GRANICA\n"
+"      --memlimit-decompress=GRANICA\n"
+"  -M, --memlimit=GRANICA\n"
+"                     ograničenje korištenja memorije za kompresiju,\n"
+"                     dekompresiju, dretvama dekompresiju, ili sve ovo;\n"
+"                     GRANICA je u bajtima, % RAM, ili 0 za zadano"
+
+#: src/xz/message.c
+msgid ""
+"      --no-adjust     if compression settings exceed the memory usage limit,\n"
+"                      give an error instead of adjusting the settings downwards"
+msgstr ""
+"      --no-adjust     ako dane postavke kompresije prekorače ograničenje\n"
+"                        upotrebe memorije, završi s greškom umjesto da\n"
+"                        prilagodi postavke shodno ograničenju memorije"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+" Custom filter chain for compression (alternative for using presets):"
+msgstr ""
+"\n"
+" Prilagođeni lanac filtra za kompresiju (alternativa korištenju presets):"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+"  --filters=FILTERS   set the filter chain using the liblzma filter string\n"
+"                      syntax; use --filters-help for more information"
+msgstr ""
+"\n"
+"  --filters=FILTRI    postavi lanac filtara pomoću sintakse za string liblzma\n"
+"                        filtra; koristite --filters-help za više informacija"
+
+#: src/xz/message.c
+msgid ""
+"  --filters1=FILTERS ... --filters9=FILTERS\n"
+"                      set additional filter chains using the liblzma filter\n"
+"                      string syntax to use with --block-list"
+msgstr ""
+"  --filters1=FILTRI ... --filters9=FILTERS\n"
+"                      postavite dodatne lance filtera pomoću sintakse za\n"
+"                      string liblzma filtra za upotrebu s --block-list"
+
+#: src/xz/message.c
+msgid ""
+"  --filters-help      display more information about the liblzma filter string\n"
+"                      syntax and exit."
+msgstr "  --filters-help      pokaže više informacija za sintaksu stringa liblzma filtra"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+"  --lzma1[=OPTS]      LZMA1 or LZMA2; OPTS is a comma-separated list of zero or\n"
+"  --lzma2[=OPTS]      more of the following options (valid values; default):\n"
+"                        preset=PRE reset options to a preset (0-9[e])\n"
+"                        dict=NUM   dictionary size (4KiB - 1536MiB; 8MiB)\n"
+"                        lc=NUM     number of literal context bits (0-4; 3)\n"
+"                        lp=NUM     number of literal position bits (0-4; 0)\n"
+"                        pb=NUM     number of position bits (0-4; 2)\n"
+"                        mode=MODE  compression mode (fast, normal; normal)\n"
+"                        nice=NUM   nice length of a match (2-273; 64)\n"
+"                        mf=NAME    match finder (hc3, hc4, bt2, bt3, bt4; bt4)\n"
+"                        depth=NUM  maximum search depth; 0=automatic (default)"
+msgstr ""
+"\n"
+"  --lzma1[=OPCIJE]    LZMA1 ili LZMA2; OPCIJE je popis\n"
+"  --lzma2[=OPCIJE]    nula ili više od sljedećih opcija zarezom odijeljenih;\n"
+"                      (valjane vrijednosti; zadano):\n"
+"                        preset=PRE vrati opcije na pretpostavke (0-9[e])\n"
+"                        dict=BROJ  veličina rječnika (4KiB - 1536MiB; 8MiB)\n"
+"                        lc=BROJ    broj bitova doslovnog konteksta (0-4; 3)\n"
+"                        lp=BROJ    broj bitova doslovne pozicije (0-4; 0)\n"
+"                        pb=BROJ    broj pozicionih bitova (0-4; 2)\n"
+"                        mode=NAČIN način kompresije (fast, normal; normal)\n"
+"                        nice=BROJ  nice-dužina za podudaranje (2-273; 64)\n"
+"                        mf=IME     podudarač (hc3, hc4, bt2, bt3, bt4; bt4)\n"
+"                        depth=BROJ max. dubina traženja; 0=automatski (default)"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+"  --x86[=OPTS]        x86 BCJ filter (32-bit and 64-bit)\n"
+"  --arm[=OPTS]        ARM BCJ filter\n"
+"  --armthumb[=OPTS]   ARM-Thumb BCJ filter\n"
+"  --arm64[=OPTS]      ARM64 BCJ filter\n"
+"  --powerpc[=OPTS]    PowerPC BCJ filter (big endian only)\n"
+"  --ia64[=OPTS]       IA-64 (Itanium) BCJ filter\n"
+"  --sparc[=OPTS]      SPARC BCJ filter\n"
+"  --riscv[=OPTS]      RISC-V BCJ filter\n"
+"                      Valid OPTS for all BCJ filters:\n"
+"                        start=NUM  start offset for conversions (default=0)"
+msgstr ""
+"\n"
+"  --x86[=OPCIJE]      x86 BCJ filtar (32-bit i 64-bit)\n"
+"  --arm[=OPCIJE]      ARM BCJ filtar\n"
+"  --armthumb[=OPCIJE] ARM-Thumb BCJ filtar\n"
+"  --arm64[=OPCIJE]    ARM64 BCJ filtar\n"
+"  --powerpc[=OPCIJE]  PowerPC BCJ filtar (samo veliki endian)\n"
+"  --ia64[=OPCIJE]     IA-64 (Itanium) BCJ filtar\n"
+"  --sparc[=OPCIJE]    SPARC BCJ filtar\n"
+"  --riscv[=OPTS]      RISC-V BCJ filtar\n"
+"                      Valjane OPCIJE za BCJ filtre:\n"
+"                        start=BROJ  početni offset za konverzije (zadano=0)"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+"  --delta[=OPTS]      Delta filter; valid OPTS (valid values; default):\n"
+"                        dist=NUM   distance between bytes being subtracted\n"
+"                                   from each other (1-256; 1)"
+msgstr ""
+"\n"
+"  --delta[=OPCIJE]    Delta filtar; valjane OPCIJE\n"
+"                        (valjane vrijednosti; zadano):\n"
+"                        dist=BROJ  razmak između bajtova koji se oduzimaju\n"
+"                                   jedan od drugog (1-256; 1)"
+
+#: src/xz/message.c
+msgid ""
+"\n"
+" Other options:\n"
+msgstr ""
+"\n"
+" Ostale opcije:\n"
+
+#: src/xz/message.c
+msgid ""
+"  -q, --quiet         suppress warnings; specify twice to suppress errors too\n"
+"  -v, --verbose       be verbose; specify twice for even more verbose"
+msgstr ""
+"  -q, --quiet         izostavi upozorenja; -qq izostavi i greške\n"
+"  -v, --verbose       opširnije informira; -vv još više informira"
+
+#: src/xz/message.c
+msgid "  -Q, --no-warn       make warnings not affect the exit status"
+msgstr "  -Q, --no-warn       upozorenja nemaju utjecaja na status završetka (izlaza)"
+
+#: src/xz/message.c
+msgid "      --robot         use machine-parsable messages (useful for scripts)"
+msgstr "      --robot         poruke u strojnom formatu (korisno za skripte)"
+
+#: src/xz/message.c
+msgid ""
+"      --info-memory   display the total amount of RAM and the currently active\n"
+"                      memory usage limits, and exit"
+msgstr ""
+"      --info-memory   pokaže ukupnu količinu RAM-a i trenutno\n"
+"                        aktivna ograničenja korištenja memorije, pa iziđe"
+
+#: src/xz/message.c
+msgid ""
+"  -h, --help          display the short help (lists only the basic options)\n"
+"  -H, --long-help     display this long help and exit"
+msgstr ""
+"  -h, --help          pokaže kratku pomoć (izlista samo osnovne opcije)\n"
+"  -H, --long-help     pokaže opširnu pomoć"
+
+#: src/xz/message.c
+msgid ""
+"  -h, --help          display this short help and exit\n"
+"  -H, --long-help     display the long help (lists also the advanced options)"
+msgstr ""
+"  -h, --help          pokaže kratku pomoć\n"
+"  -H, --long-help     pokaže opširnu pomoć (izlista i napredne opcije)"
+
+#: src/xz/message.c
+msgid "  -V, --version       display the version number and exit"
+msgstr "  -V, --version       pokaže informacije o inačici"
+
+#: src/xz/message.c src/lzmainfo/lzmainfo.c
+#, c-format
+msgid ""
+"\n"
+"With no FILE, or when FILE is -, read standard input.\n"
+msgstr ""
+"\n"
+"Ako DATOTEKA nije navedena ili je - (crtica), čita standardni ulaz.\n"
+
+#. TRANSLATORS: This message indicates the bug reporting address
+#. for this package. Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the email or WWW
+#. address for translation bugs. Thanks.
+#: src/xz/message.c src/lzmainfo/lzmainfo.c
+#, c-format
+msgid "Report bugs to <%s> (in English or Finnish).\n"
+msgstr "Greške prijavite na <%s> (na engleskom ili finskom).\n"
+
+#: src/xz/message.c src/lzmainfo/lzmainfo.c
+#, c-format
+msgid "%s home page: <%s>\n"
+msgstr ""
+"%s matična mrežna stranica: <%s>\n"
+"Pogreške u prijevodu i vaše prijedloge javite na <lokalizacija@linux.hr>.\n"
+
+#: src/xz/message.c
+msgid "THIS IS A DEVELOPMENT VERSION NOT INTENDED FOR PRODUCTION USE."
+msgstr "OVO JE RAZVOJNA INAČICA I NIJE NAMIJENJENA ZA PROIZVODNJU."
+
+#: src/xz/message.c
+msgid ""
+"Filter chains are set using the --filters=FILTERS or\n"
+"--filters1=FILTERS ... --filters9=FILTERS options. Each filter in the chain\n"
+"can be separated by spaces or '--'. Alternatively a preset <0-9>[e] can be\n"
+"specified instead of a filter chain.\n"
+msgstr ""
+"Lanci filtara postavljaju se pomoću --filters=FILTERS ili\n"
+"--filters1=FILTRI ... --filters9=FILTRI opcije. Svaki filter u lancu može biti\n"
+"odvojen s razmakom ili s „--“ (dvije crtice). Alternativno, preset postavka\n"
+"<0-9>[e] može biti navedena umjesto lanca filtra.\n"
+
+#: src/xz/message.c
+msgid "The supported filters and their options are:"
+msgstr "Podržani filtri i njihove opcije su:"
+
+#: src/xz/options.c
+#, c-format
+msgid "%s: Options must be 'name=value' pairs separated with commas"
+msgstr "%s: Opcije moraju biti parovi „name=value” odvojeni zarezima"
+
+#: src/xz/options.c
+#, c-format
+msgid "%s: Invalid option name"
+msgstr "%s: Nevaljano ime opcije"
+
+#: src/xz/options.c
+#, c-format
+msgid "%s: Invalid option value"
+msgstr "%s: Nevaljana vrijednost opcije"
+
+#: src/xz/options.c
+#, c-format
+msgid "Unsupported LZMA1/LZMA2 preset: %s"
+msgstr "Nepodržana LZMA1/LZMA2 preset postavka: %s"
+
+#: src/xz/options.c
+msgid "The sum of lc and lp must not exceed 4"
+msgstr "Zbroj lc i lp ne smije biti veći od 4"
+
+#: src/xz/suffix.c
+#, c-format
+msgid "%s: Filename has an unknown suffix, skipping"
+msgstr "%s: Ime datoteke nema poznati sufiks, preskačemo"
+
+#: src/xz/suffix.c
+#, c-format
+msgid "%s: File already has '%s' suffix, skipping"
+msgstr "%s: Datoteka već ima „%s” sufiks, preskačemo"
+
+#: src/xz/suffix.c
+#, c-format
+msgid "%s: Invalid filename suffix"
+msgstr "%s: Nevaljani sufiks imena datoteke"
+
+#: src/xz/util.c
+#, c-format
+msgid "%s: Value is not a non-negative decimal integer"
+msgstr "%s: Vrijednost nije nula ili pozitivni decimalni cijeli broj"
+
+#: src/xz/util.c
+#, c-format
+msgid "%s: Invalid multiplier suffix"
+msgstr "%s: Nevaljana mjerna jedinica (sufiks)"
+
+#: src/xz/util.c
+msgid "Valid suffixes are 'KiB' (2^10), 'MiB' (2^20), and 'GiB' (2^30)."
+msgstr "Valjani sufiksi (mjerne jedinice) su „KiB” (2^10), „MiB” (2^20), i „GiB” (2^30)."
+
+#: src/xz/util.c
+#, c-format
+msgid "Value of the option '%s' must be in the range [%<PRIu64>, %<PRIu64>]"
+msgstr "Vrijednost opcije „%s” mora biti u rasponu [%<PRIu64>, %<PRIu64>]"
+
+#: src/xz/util.c
+msgid "Compressed data cannot be read from a terminal"
+msgstr "Nije moguće čitati komprimirane podatke iz terminala"
+
+#: src/xz/util.c
+msgid "Compressed data cannot be written to a terminal"
+msgstr "Nije moguće pisati komprimirane podatke na terminala"
+
+#: src/lzmainfo/lzmainfo.c
+#, c-format
+msgid ""
+"Usage: %s [--help] [--version] [FILE]...\n"
+"Show information stored in the .lzma file header"
+msgstr ""
+"Upotreba: %s [--help] [--version] [DATOTEKA]...\n"
+"Pokaže informacije pohranjene u zaglavlju datoteke .lzma"
+
+#: src/lzmainfo/lzmainfo.c
+msgid "File is too small to be a .lzma file"
+msgstr "Datoteka je premala da bude .lzma datoteka"
+
+#: src/lzmainfo/lzmainfo.c
+msgid "Not a .lzma file"
+msgstr "To nije .lzma datoteka"
+
+#: src/common/tuklib_exit.c
+msgid "Writing to standard output failed"
+msgstr "Pisanje na standardni izlaz nije uspjelo"
+
+#: src/common/tuklib_exit.c
+msgid "Unknown error"
+msgstr "Nepoznata greška"
+
+#~ msgid "Failed to enable the sandbox"
+#~ msgstr "Nije uspjelo omogućiti sandbox"
