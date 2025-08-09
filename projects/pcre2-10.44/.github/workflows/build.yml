@@ -1,0 +1,116 @@
+
+name: Build
+on: [push, pull_request]
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        run: ./autogen.sh
+
+      - name: Configure
+        run: ./configure CPPFLAGS='-Wall -Wextra' --enable-jit --enable-pcre2-16 --enable-pcre2-32
+
+      - name: Build
+        run: make -j2
+
+      - name: Test (main test script)
+        run: ./RunTest
+
+      - name: Test (JIT test program)
+        run: ./pcre2_jit_test
+
+      - name: Test (pcre2grep test script)
+        run: ./RunGrepTest
+
+      - name: Test (pcre2posix program)
+        run: ./pcre2posix_test -v
+
+  alpine:
+    name: alpine
+    runs-on: ubuntu-latest
+    container: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        run: apk add --no-cache automake autoconf gcc libtool make musl-dev #musl-locales
+
+      - name: Prepare
+        run: ./autogen.sh
+
+      - name: Configure
+        run: ./configure CPPFLAGS='-Wall -Wextra' --enable-jit --enable-pcre2-16 --enable-pcre2-32
+
+      - name: Build
+        run: make -j2
+
+      - name: Test (main test script)
+        run: ./RunTest
+
+      - name: Test (JIT test program)
+        run: ./pcre2_jit_test
+
+      - name: Test (pcre2grep test script)
+        run: ./RunGrepTest
+
+      - name: Test (pcre2posix program)
+        run: ./pcre2posix_test -v
+
+  macos:
+    name: macOS universal
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -DPCRE2_SUPPORT_JIT=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DCMAKE_C_FLAGS='-Wall -Wextra' -B build
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test (main test script)
+        run: |
+          cd build
+          ../RunTest
+
+      - name: Test (JIT test program)
+        run: |
+          cd build
+          ./pcre2_jit_test
+
+      - name: Test (pcre2grep test script)
+        run: |
+          cd build
+          ../RunGrepTest
+
+      - name: Test (pcre2posix program)
+        run: |
+          cd build
+          ./pcre2posix_test -v
+
+  windows:
+    name: 32bit Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -DPCRE2_SUPPORT_JIT=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DCMAKE_IGNORE_PREFIX_PATH=C:/Strawberry/c -B build -A Win32
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: |
+          cd build\Debug
+          ..\..\RunTest.bat
+          ./pcre2posix_test -v

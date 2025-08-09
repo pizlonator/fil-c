@@ -1,0 +1,81 @@
+name: Dev
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  canary:
+    name: gcc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        run: ./autogen.sh
+
+      - name: Configure
+        run: ./configure CC='gcc -O0 -fsanitize=undefined,address -fsanitize-undefined-trap-on-error' CPPFLAGS='-Wall -Wextra -Werror -Wno-error=unused-but-set-parameter' --enable-jit --enable-pcre2-16 --enable-pcre2-32 --enable-debug --with-link-size=4
+
+      - name: Build
+        run: make -j3
+
+      - name: Test (main test script)
+        run: ./RunTest
+
+      - name: Test (JIT test program)
+        run: ./pcre2_jit_test
+
+      - name: Test (pcre2grep test script)
+        run: ./RunGrepTest
+
+      - name: Test (pcre2posix program)
+        run: ./pcre2posix_test -v
+
+  dragon:
+    name: clang
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        run: ./autogen.sh
+
+      - name: Configure
+        run: ./configure CC='clang -fsanitize=undefined,address,integer -fno-sanitize=unsigned-integer-overflow' CPPFLAGS='-Wall -Wextra -Werror -Wno-error=unused-but-set-parameter -Wno-error=deprecated-declarations -Wno-error=incompatible-library-redeclaration' --enable-jit --enable-pcre2-16 --enable-pcre2-32 --enable-debug --with-link-size=3
+
+      - name: Build
+        run: make -j3
+
+      - name: Test (main test script)
+        run: ./RunTest
+
+      - name: Test (JIT test program)
+        run: ./pcre2_jit_test
+
+      - name: Test (pcre2grep test script)
+        run: ./RunGrepTest
+
+      - name: Test (pcre2posix program)
+        run: ./pcre2posix_test -v
+
+  bigbird:
+    name: manyconfig
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Run
+        run: |
+          ./autogen.sh
+          ./maint/ManyConfigTests

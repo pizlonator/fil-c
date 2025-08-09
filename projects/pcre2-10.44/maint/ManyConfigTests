@@ -1,0 +1,479 @@
+#! /bin/sh
+
+# This is a script for the use of PCRE2 maintainers. It configures and builds
+# PCRE2 with a variety of configuration options, and in each case runs the
+# tests to ensure that all goes well. Every possible combination would take far
+# too long, so we use a representative sample. This script should be run in the
+# PCRE2 source directory.
+
+# While debugging, it is sometimes useful to be able to cut out some of the
+# tests, in order to run those that are giving errors. The following options
+# do this:
+#
+# -noasan         skip the test that uses -fsanitize=address
+# -nousan         skip the test that uses -fsanitize=undefined
+# -nodebug        skip the test that uses --enable-debug
+# -nojit          skip all JIT tests
+# -nojitmain      skip non-valgrind JIT tests
+# -nojitvalgrind  skip JIT tests with valgrind
+# -nomain         skip all the main (non-JIT) set of tests
+# -nomainvalgrind skip the main (non-JIT) valgrind tests
+# -notmp          skip the tests in a temporary directory
+# -notmpjit       skip the JIT test in a temporary directory
+# -novalgrind     skip all the valgrind tests
+
+# Alternatively, if any of those names are given with '+' instead of '-no',
+# only those groups named with '+' are run (e.g. +jit). If -dummy is given,
+# no tests are actually run - this provides a means of testing the selectors.
+
+# The -v option causes a call to 'pcre2test -C' to happen for each
+# configuration.
+
+useasan=1
+useusan=1
+usedebug=1
+usejit=1
+usejitvalgrind=1
+usemain=1
+usemainvalgrind=1
+usetmp=1
+usetmpjit=1
+usevalgrind=1
+
+dummy=0
+seenplus=0
+verbose=0
+
+while [ $# -gt 0 ] ; do
+  case $1 in
+    +*) if [ $seenplus -eq 0 ]; then
+          useasan=0
+          useusan=0
+          usedebug=0
+          usejit=0
+          usejitvalgrind=0
+          usemain=0
+          usemainvalgrind=0
+          usetmp=0
+          usetmpjit=0 
+          usevalgrind=0 
+          seenplus=1
+        fi;;
+  esac
+
+  case $1 in
+    -dummy)          dummy=1;;
+    -v)              verbose=1;;
+    -noasan)         useasan=0;;
+    -nousan)         useusan=0;;
+    -nodebug)        usedebug=0;;
+    -nojit)          usejit=0; usejitvalgrind=0; usetmpjit=0;;
+    -nojitmain)      usejit=0;;
+    -nojitvalgrind)  usejitvalgrind=0;;
+    -nomain)         usemain=0; usemainvalgrind=0;;
+    -nomainvalgrind) usemainvalgrind=0;;
+    -notmp)          usetmp=0; usetmpjit=0;;
+    -notmpjit)       usetmpjit=0;;
+    -novalgrind)     usevalgrind=0;;
+    +asan)           useasan=1;;
+    +usan)           useusan=1;;
+    +debug)          usedebug=1;;
+    +jit)            usejit=1; usejitvalgrind=1; usetmpjit=1;;
+    +jitmain)        usejit=1;;
+    +jitvalgrind)    usejitvalgrind=1;;
+    +main)           usemain=1; usemainvalgrind=1;;
+    +mainvalgrind)   usemainvalgrind=1;;
+    +tmp)            usetmp=1;;
+    +tmpjit)         usetmpjit=1;;
+    +valgrind)       usevalgrind=1; usejitvalgrind=1; usemainvalgrind=1;;
+    *)               echo "Unknown option '$1'"; exit 1;;
+  esac
+  shift
+done
+
+if [ $usejitvalgrind -eq 0 -a $usemainvalgrind -eq 0 ] ; then
+  usevalgrind=0
+fi
+
+# This is in case the caller has set aliases (as I do - PH)
+
+unset cp ls mv rm
+
+# This is a temporary directory for testing out-of-line builds
+
+tmp=/tmp/pcre2testing
+
+# Don't bother with compiler optimization for most tests; it just slows down
+# compilation a lot (and running the tests themselves is quick). However, one
+# special test turns optimization on, because it can provoke some compiler
+# warnings.
+
+CFLAGS="-g"
+OFLAGS="-O0"
+ISGCC=0
+
+# If the compiler is gcc, add a lot of warning switches.
+
+cc --version >/tmp/pcre2ccversion 2>/dev/null
+if [ $? -eq 0 ] && grep GCC /tmp/pcre2ccversion >/dev/null; then
+  ISGCC=1
+  CFLAGS="$CFLAGS -Wall"
+  CFLAGS="$CFLAGS -Wno-overlength-strings"
+  CFLAGS="$CFLAGS -Wpointer-arith"
+  CFLAGS="$CFLAGS -Wwrite-strings"
+  CFLAGS="$CFLAGS -Wundef -Wshadow"
+  CFLAGS="$CFLAGS -Wmissing-field-initializers"
+  CFLAGS="$CFLAGS -Wunused-parameter"
+  CFLAGS="$CFLAGS -Wextra -Wformat"
+  CFLAGS="$CFLAGS -Wbad-function-cast"
+  CFLAGS="$CFLAGS -Wmissing-declarations"
+  CFLAGS="$CFLAGS -Wnested-externs"
+  CFLAGS="$CFLAGS -pedantic"
+  CFLAGS="$CFLAGS -Wuninitialized"
+  CFLAGS="$CFLAGS -Wmaybe-uninitialized"
+  CFLAGS="$CFLAGS -Wmissing-prototypes"
+  CFLAGS="$CFLAGS -Wstrict-prototypes"
+  CFKAGS="$CFLAGS -Warray-bounds"
+  CFLAGS="$CFLAGS -Wformat-overflow=2"
+fi
+rm -f /tmp/pcre2ccversion
+
+# This function runs a single test with the set of configuration options that
+# are in $opts. The source directory must be set in srcdir. The function must
+# be defined as "runtest()" not "function runtest()" in order to run on
+# Solaris.
+
+runtest()
+  {
+  rm -f $srcdir/pcre2test $srcdir/pcre2grep $srcdir/pcre2_jit_test $srcdir/pcre2posix_test
+  testcount=`expr $testcount + 1`
+
+  if [ "$opts" = "" ] ; then
+    echo "[$testcount/$testtotal] Configuring with: default settings"
+  else
+    echo "[$testcount/$testtotal] Configuring with:"
+    echo "  $opts"
+  fi
+
+  if [ $dummy -eq 1 ]; then return; fi
+
+  CFLAGS="$CFLAGS" \
+    $srcdir/configure $opts >/dev/null 2>teststderrM
+  if [ $? -ne 0 ]; then
+    echo " "
+    echo "******** Error while configuring ********"
+    cat teststderrM
+    exit 1
+  fi
+
+# There is an infelicity in the Autotools world (as of October 2015) which
+# causes the message
+#
+# ar: `u' modifier ignored since `D' is the default (see `U')
+#
+# to be output while linking. This triggers an unwanted error report from this
+# script, because it expects no stderr output while making. To get round this
+# we filter the stderr output through sed, removing all occurrences of the
+# above lines. Just for paranoia, check that sed is available before doing
+# this.
+
+  echo "Making"
+  make -j >/dev/null 2>teststderrM
+  makeRC=$?
+  if command -v sed >/dev/null 2>&1 ; then
+    sed "/\`u' modifier ignored since \`D' is the default/ d" \
+      teststderrM > teststderrMM
+    mv -f teststderrMM teststderrM
+  fi
+  if [ $makeRC -ne 0 -o -s teststderrM ]; then
+    echo " "
+    echo "******** Errors or warnings while making ********"
+    echo " "
+    cat teststderrM
+    exit 1
+  fi
+
+  if [ $verbose -eq 1 ]; then
+    ./pcre2test -C
+  fi
+
+  ./pcre2test -C jit >/dev/null
+  jit=$?
+  ./pcre2test -C pcre2-8 >/dev/null
+  pcre2_8=$?
+
+  echo "Running PCRE2 library tests $withvalgrind"
+  $srcdir/RunTest $valgrind >teststdoutM 2>teststderrM
+
+  if [ $? -ne 0 -o -s teststderrM ]; then
+    echo " "
+    echo "**** Test failed ****"
+    if [ -s teststderrM ] ; then
+      cat teststderrM
+    else
+      cat teststdoutM
+    fi
+    exit 1
+  fi
+
+  if [ $pcre2_8 -gt 0 ]; then
+    echo "Running pcre2grep tests $withvalgrind"
+    $srcdir/RunGrepTest $valgrind >teststdoutM 2>teststderrM
+    if [ $? -ne 0 -o -s teststderrM ]; then
+      echo " "
+      echo "**** Test failed ****"
+      cat teststderrM
+      cat teststdoutM
+      exit 1
+    fi
+    echo "Running pcre2posix test $withvalgrind"
+    $valgrind ./pcre2posix_test >teststdoutM 2>teststderrM
+
+    if [ $? -ne 0 ]; then
+      echo " "
+      echo "**** Test failed ****"
+      exit 1
+    fi
+  else
+    echo "Skipping pcre2grep and pcre2posix tests: 8-bit library not compiled"
+  fi
+
+  if [ "$jit" -gt 0 ]; then
+    echo "Running JIT regression tests $withvalgrind"
+    $jrvalgrind ./pcre2_jit_test >teststdoutM 2>teststderrM
+    if [ $? -ne 0 -o -s teststderrM ]; then
+      echo " "
+      echo "**** Test failed ****"
+      cat teststderrM
+      cat teststdoutM
+      exit 1
+    fi
+  else
+    echo "Skipping JIT regression tests: JIT is not enabled"
+  fi
+  }
+
+# Update the total count whenever a new test is added; it is used to show
+# progess as each test is run.
+
+testtotal=`expr 17 \* $usemain + \
+  1 \* $usemain \* $usedebug + \
+  1 \* $usetmp + 1 \* $usetmpjit + \
+  1 \* $ISGCC \* $usemain + \
+  1 \* $ISGCC \* $usemain \* $useasan + \
+  1 \* $ISGCC \* $usemain \* $useusan + \
+  13 \* $usejit + \
+  2 \* $usemainvalgrind + \
+  2 \* $usejitvalgrind`
+
+testcount=0
+
+if [ $testtotal -eq 0 ] ; then
+  echo "** No tests selected"
+  exit 1
+fi
+
+valgrind=
+jrvalgrind=
+withvalgrind=
+srcdir=.
+export srcdir
+
+if [ $usejit -ne 0 ]; then
+  enable_jit=--enable-jit
+else
+  enable_jit=
+fi
+
+# If gcc is in use, run a maximally configured test with -O2, because that can
+# throw up warnings that are not detected with -O0. Then run a second test with
+# -fsanitize=address, which also may throw up new warnings as well as checking
+# things at runtime. Finally, run another test using -fsanitize=undefined
+# -std-gnu99 to check for runtime actions that are not well defined.
+
+if [ $ISGCC -ne 0 -a $usemain -ne 0 ]; then
+  echo "---------- Maximally configured test with -O2 ----------"
+  SAVECFLAGS="$CFLAGS"
+  CFLAGS="-O2 $CFLAGS"
+  echo "CFLAGS=$CFLAGS"
+  opts="--disable-shared $enable_jit --enable-pcre2-16 --enable-pcre2-32"
+  runtest
+  if [ $useasan -ne 0 ]; then
+    echo "---------- Maximally configured test with -fsanitize=address ----------"
+# Following a kernel change, sanitize address doesn't work unless the extra
+# PIE options are also set.
+    CFLAGS="$OFLAGS $SAVECFLAGS -no-pie -fno-PIE -fsanitize=address"
+    echo "CFLAGS=$CFLAGS"
+    opts="--disable-shared $enable_jit --enable-pcre2-16 --enable-pcre2-32"
+    runtest
+  fi
+# This also seems to be the case for sanitize undefined.
+  if [ $useusan -ne 0 ]; then
+    echo "------- Maximally configured test with -fsanitize=undefined -fno-sanitize=alignment -std=gnu99 -------"
+    CFLAGS="$OFLAGS $SAVECFLAGS -no-pie -fno-PIE -fsanitize=undefined -fno-sanitize=alignment -std=gnu99"
+    echo "CFLAGS=$CFLAGS"
+    opts="--disable-shared $enable_jit --enable-pcre2-16 --enable-pcre2-32"
+    runtest
+  fi
+  CFLAGS="$SAVECFLAGS"
+fi
+
+# This set of tests builds PCRE2 and runs the tests with a variety of configure
+# options, in the current (source) directory. The empty configuration builds
+# with all the default settings. As well as testing that these options work, we
+# use --disable-shared or --disable-static except for the default test (which
+# builds both) to save a bit of time by building only one version of the
+# library for the subsequent tests.
+
+echo "---------- CFLAGS for the remaining tests ----------"
+CFLAGS="$OFLAGS $CFLAGS"
+echo "CFLAGS=$CFLAGS"
+
+if [ $usemain -ne 0 ]; then
+  if [ $usedebug -ne 0 ]; then
+    echo "---------- Maximally configured test with --enable-debug ----------"
+    opts="--disable-shared $enable_jit --enable-pcre2-16 --enable-pcre2-32 --enable-debug"
+    runtest
+  fi
+
+  echo "---------- Non-JIT tests in the current directory ----------"
+  for opts in \
+    "" \
+    "--disable-static" \
+    "--disable-shared" \
+    "--disable-unicode --disable-shared --enable-never-backslash-C" \
+    "--with-link-size=3 --disable-shared --disable-pcre2grep-callout" \
+    "--disable-unicode --enable-rebuild-chartables --disable-shared" \
+    "--disable-unicode --enable-newline-is-any --disable-shared" \
+    "--disable-unicode --enable-newline-is-cr --disable-shared" \
+    "--disable-unicode --enable-newline-is-crlf --disable-shared" \
+    "--disable-unicode --enable-newline-is-anycrlf --enable-bsr-anycrlf --disable-shared" \
+    "--enable-newline-is-any --disable-static" \
+    "--disable-unicode --enable-pcre2-16" \
+    "--enable-pcre2-16 --disable-shared" \
+    "--disable-unicode --enable-pcre2-32" \
+    "--enable-pcre2-32 --disable-shared" \
+    "--disable-unicode --enable-pcre2-32 --enable-pcre2-16 --disable-shared" \
+    "--disable-unicode --enable-pcre2-32 --enable-pcre2-16 --disable-pcre2-8 --disable-shared"
+  do
+    runtest
+  done
+fi
+
+# Now run the JIT tests unless disabled
+
+if [ $usejit -ne 0 ]; then
+  echo "---------- JIT tests in the current directory ----------"
+  for opts in \
+    "--disable-unicode --enable-jit --disable-shared" \
+    "--enable-jit --disable-shared" \
+    "--enable-jit --with-link-size=3 --disable-shared" \
+    "--enable-jit --enable-pcre2-16 --disable-shared" \
+    "--disable-unicode --enable-jit --enable-pcre2-16 --disable-pcre2-8 --disable-shared" \
+    "--enable-jit --enable-pcre2-16 --disable-pcre2-8 --disable-shared" \
+    "--enable-jit --enable-pcre2-16 --with-link-size=3 --disable-shared" \
+    "--enable-jit --enable-pcre2-16 --with-link-size=4 --disable-shared" \
+    "--enable-jit --enable-pcre2-32 --disable-shared" \
+    "--disable-unicode --enable-jit --enable-pcre2-32 --disable-pcre2-8 --disable-shared" \
+    "--enable-jit --enable-pcre2-32 --disable-pcre2-8 --disable-shared" \
+    "--enable-jit --enable-pcre2-32 --with-link-size=4 --disable-shared" \
+    "--enable-jit --enable-pcre2-32 --enable-pcre2-16 --disable-pcre2-8 --enable-newline-is-anycrlf --enable-bsr-anycrlf --disable-shared"
+  do
+    runtest
+  done
+fi
+
+# Now re-run some of the tests under valgrind.
+
+if [ $usevalgrind -ne 0 ]; then
+  echo "---------- Tests in the current directory using valgrind ----------"
+  valgrind=valgrind
+  withvalgrind="with valgrind"
+
+  if [ $usemainvalgrind -ne 0 ]; then
+    for opts in \
+      "--disable-shared" \
+      "--with-link-size=3 --enable-pcre2-16 --enable-pcre2-32 --disable-shared"
+    do
+      opts="--enable-valgrind $opts"
+      runtest
+    done
+  fi
+
+  if [ $usejitvalgrind -ne 0 ]; then
+    jrvalgrind="valgrind --tool=memcheck -q --smc-check=all-non-file --suppressions=$srcdir/testdata/valgrind-jit.supp"
+    for opts in \
+      "--enable-jit --disable-shared" \
+      "--enable-jit --enable-pcre2-16 --enable-pcre2-32"
+    do
+      opts="--enable-valgrind $opts"
+      runtest
+    done
+  fi
+fi
+
+valgrind=
+jrvalgrind=
+withvalgrind=
+
+# Clean up the distribution and then do at least one build and test in a
+# directory other than the source directory. It doesn't work unless the
+# source directory is cleaned up first.
+
+if [ -f Makefile ]; then
+  echo "Running 'make distclean'"
+  make distclean >/dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "** 'make distclean' failed"
+    exit 1
+  fi
+fi
+
+echo "---------- End of tests in the source directory ----------"
+echo "Removing teststdoutM and teststderrM"
+rm -rf teststdoutM teststderrM
+
+if [ $usetmp -ne 0 -o $usetmpjit -ne 0 ]; then
+  srcdir=`pwd`
+  export srcdir
+
+  if [ ! -e $tmp ]; then
+    mkdir $tmp
+  fi
+
+  if [ ! -d $tmp ]; then
+    echo "** Failed to create $tmp or it is not a directory"
+    exit 1
+  fi
+
+  cd $tmp
+  if [ $? -ne 0 ]; then
+    echo "** Failed to cd to $tmp"
+    exit 1
+  fi
+
+  if [ $usetmp -ne 0 ]; then
+    echo "---------- Tests in the $tmp directory ----------"
+    for opts in \
+      "--disable-shared"
+    do
+      runtest
+    done
+  fi   
+  
+  if [ $usetmpjit -ne 0 ]; then
+    echo "---------- JIT tests in the $tmp directory ----------"
+    for opts in \
+      "--enable-jit --disable-shared"
+    do
+      runtest
+    done
+  fi
+
+  echo "Removing $tmp"
+  rm -rf $tmp
+fi
+
+echo "---------- All done ----------"
+
+# End

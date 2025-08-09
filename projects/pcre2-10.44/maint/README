@@ -1,0 +1,464 @@
+MAINTENANCE README FOR PCRE2
+============================
+
+The files in the "maint" directory of the PCRE2 source contain data, scripts,
+and programs that are used for the maintenance of PCRE2, but which do not form
+part of the PCRE2 distribution tarballs. This document describes these files
+and also contains some notes for maintainers. Its contents are:
+
+  Files in the maint directory
+  Updating to a new Unicode release
+  Preparing for a PCRE2 release
+  Making a PCRE2 release
+  Long-term ideas (wish list)
+
+
+Files in the maint directory
+============================
+
+GenerateCommon.py
+  A Python module containing data and functions that are used by the other
+  Generate scripts.
+  
+GenerateTest26.py
+  A Python script that generates input and expected output test data for test
+  26, which tests certain aspects of Unicode property support.  
+
+GenerateUcd.py
+  A Python script that generates the file pcre2_ucd.c from GenerateCommon.py
+  and Unicode data files, which are themselves downloaded from the Unicode web
+  site. The generated file contains the tables for a 2-stage lookup of Unicode
+  properties, along with some auxiliary tables. The script starts with a long
+  comment that gives details of the tables it constructs. 
+
+GenerateUcpHeader.py
+  A Python script that generates the file pcre2_ucp.h from GenerateCommon.py
+  and Unicode data files. The generated file defines constants for various
+  Unicode property values.
+
+GenerateUcpTables.py
+  A Python script that generates the file pcre2_ucptables.c from
+  GenerateCommon.py and Unicode data files. The generated file contains tables
+  for looking up Unicode property names.
+
+ManyConfigTests
+  A shell script that runs "configure, make, test" a number of times with
+  different configuration settings.
+
+pcre2_chartables.c.non-standard
+  This is a set of character tables that came from a Windows system. It has
+  characters greater than 128 that are set as spaces, amongst other things. I
+  kept it so that it can be used for testing from time to time.
+
+README
+  This file.
+
+Unicode.tables
+  The files in this directory were downloaded from the Unicode web site. They
+  contain information about Unicode characters and scripts, and are used by the
+  Generate scripts. There is also UnicodeData.txt, which is no longer used by
+  any script, because it is useful occasionally for manually looking up the
+  details of certain characters. However, note that character names in this
+  file such as "Arabic sign sanah" do NOT mean that the character is in a
+  particular script (in this case, Arabic). Scripts.txt and
+  ScriptExtensions.txt are where to look for script information.
+
+ucptest.c
+  A program for testing the Unicode property macros that do lookups in the
+  pcre2_ucd.c data, mainly useful after rebuilding the Unicode property tables.
+  Compile and run this in the "maint" directory (see comments at its head).
+  This program can also be used to find characters with specific properties and 
+  to list which properties are supported. 
+
+ucptestdata
+  A directory containing four files, testinput{1,2} and testoutput{1,2}, for
+  use in conjunction with the ucptest program.
+
+utf8.c
+  A short, freestanding C program for converting a Unicode code point into a
+  sequence of bytes in the UTF-8 encoding, and vice versa. If its argument is a
+  hex number such as 0x1234, it outputs a list of the equivalent UTF-8 bytes.
+  If its argument is a sequence of concatenated UTF-8 bytes (e.g. 12e188b4) it
+  treats them as a UTF-8 string and outputs the equivalent code points in hex.
+  See comments at its head for details.
+
+
+Updating to a new Unicode release
+=================================
+
+When there is a new release of Unicode, the files in Unicode.tables must be
+refreshed from the web site. Once that is done, the four Python scripts that 
+generate files from the Unicode data can be run from within the "maint" 
+directory.
+
+Note: Previously, it was necessary to update lists of scripts and their 
+abbreviations by hand before running the Python scripts. This is no longer
+necessary because the scripts have been upgraded to extract this information
+themselves. Also, there used to be explicit lists of scripts in two of the man
+pages. This is no longer the case; the pcre2test program can now output a list 
+of supported scripts.
+
+You can give an output file name as an argument to the following scripts, but
+by default:
+
+GenerateUcd.py        creates pcre2_ucd.c        )
+GenerateUcpHeader.py  creates pcre2_ucp.h        ) in the current directory
+GenerateUcpTables.py  creates pcre2_ucptables.c  )
+
+These files can be compared against the existing versions in the src directory
+to check on any changes before replacing the old files, but you can also
+generate directly into the final location by running:
+
+./GenerateUcd.py       ../src/pcre2_ucd.c
+./GenerateUcpHeader.py ../src/pcre2_ucp.h
+./GenerateUcpTables.py ../src/pcre2_ucptables.c
+
+Once the .c and .h files are in the ../src directory, the ucptest program can
+be compiled and used to check that the new tables work properly. The data files
+in ucptestdata are set up to check a number of test characters. See the
+comments at the start of ucptest.c. If there are new scripts, adding a few
+tests to the files in ucptestdata is a good idea.
+
+Finally, you should run the GenerateTest26.py script to regenerate new versions 
+of the input and expected output from a series of Unicode property tests that 
+are automatically generated from the Unicode data files. By default, the files
+are written to testinput26 and testoutput26 in the current directory, but you
+can give an alternative directory name as an argument to the script. These
+files should eventually be installed in the main testdata directory.
+
+
+Preparing for a PCRE2 release
+=============================
+
+This section contains a checklist of things that I do before building a new
+release.
+
+. Ensure that the version number and version date are correct in configure.ac.
+
+. Update the library version numbers in configure.ac according to the rules
+  given below.
+
+. If new build options or new source files have been added, ensure that they
+  are added to the CMake files as well as to the autoconf files. The relevant
+  files are CMakeLists.txt and config-cmake.h.in. After making a release, test
+  it out with CMake if there have been changes here.
+
+. Run ./autogen.sh to ensure everything is up-to-date.
+
+. Compile and test with many different config options, and combinations of
+  options. Also, test with valgrind by running "RunTest valgrind" and
+  "RunGrepTest valgrind". The script maint/ManyConfigTests now encapsulates
+  this testing. It runs tests with different configurations, and it also runs
+  some of them with valgrind, all of which can take quite some time.
+
+. Run tests in both 32-bit and 64-bit environments if possible. I can no longer
+  run 32-bit tests.
+
+. Run tests with two or more different compilers (e.g. clang and gcc), and
+  make use of -fsanitize=address and friends where possible. For gcc,
+  -fsanitize=undefined -std=gnu99 picks up undefined behaviour at runtime.
+  For clang, -fsanitize=address,undefined,integer can be used but
+  -fno-sanitize=unsigned-integer-overflow must be added when compiling with JIT.
+  Another useful clang option is -fsanitize=signed-integer-overflow
+
+. Do a test build using CMake. Remove src/config.h first, lest it override the
+  version that CMake creates. Also do a CMake unity build to check that it 
+  still works: [c]cmake -DCMAKE_UNITY_BUILD=ON sets up a unity build.
+
+. Run perltest.sh on the test data for tests 1 and 4. The output should match
+  the PCRE2 test output, apart from the version identification at the start of
+  each test. Sometimes there are other differences in test 4 if PCRE2 and Perl
+  are using different Unicode releases. The other tests are not Perl-compatible
+  (they use various PCRE2-specific features or options).
+
+. It is possible to test with the emulated memmove() function by undefining
+  HAVE_MEMMOVE and HAVE_BCOPY in config.h, though I do not do this often.
+
+. Documentation: check AUTHORS, ChangeLog (check version and date), LICENCE,
+  NEWS (check version and date), NON-AUTOTOOLS-BUILD, and README. Many of these
+  won't need changing, but over the long term things do change.
+
+. I used to test new releases myself on a number of different operating
+  systems. For example, on Solaris it is helpful to test using Sun's cc
+  compiler as a change from gcc. Adding -xarch=v9 to the cc options does a
+  64-bit test, but it also needs -S 64 for pcre2test to increase the stack size
+  for test 2. Since I retired I can no longer do much of this. There are 
+  automated tests under Ubuntu, Alpine, and Windows that are now set up as 
+  GitHub actions. Check that they are running clean.
+
+. The buildbots at http://buildfarm.opencsw.org/ do some automated testing
+  of PCRE2 and should also be checked before putting out a release.
+
+
+Updating version info for libtool
+=================================
+
+This set of rules for updating library version information came from a web page
+whose URL I have forgotten. The version information consists of three parts:
+(current, revision, age).
+
+1. Start with version information of 0:0:0 for each libtool library.
+
+2. Update the version information only immediately before a public release of
+   your software. More frequent updates are unnecessary, and only guarantee
+   that the current interface number gets larger faster.
+
+3. If the library source code has changed at all since the last update, then
+   increment revision; c:r:a becomes c:r+1:a.
+
+4. If any interfaces have been added, removed, or changed since the last
+   update, increment current, and set revision to 0.
+
+5. If any interfaces have been added since the last public release, then
+   increment age.
+
+6. If any interfaces have been removed or changed since the last public
+   release, then set age to 0.
+
+The following explanation may help in understanding the above rules a bit
+better. Consider that there are three possible kinds of reaction from users to
+changes in a shared library:
+
+1. Programs using the previous version may use the new version as a drop-in
+   replacement, and programs using the new version can also work with the
+   previous one. In other words, no recompiling nor relinking is needed. In
+   this case, increment revision only, don't touch current or age.
+
+2. Programs using the previous version may use the new version as a drop-in
+   replacement, but programs using the new version may use APIs not present in
+   the previous one. In other words, a program linking against the new version
+   may fail if linked against the old version at run time. In this case, set
+   revision to 0, increment current and age.
+
+3. Programs may need to be changed, recompiled, relinked in order to use the
+   new version. Increment current, set revision and age to 0.
+
+
+Making a PCRE2 release
+======================
+
+Run PrepareRelease and commit the files that it changes. The first thing this
+script does is to run CheckMan on the man pages; if it finds any markup errors,
+it reports them and then aborts. Otherwise it removes trailing spaces from
+sources and refreshes the HTML documentation. Update the GitHub repository with
+"git push".
+
+Once PrepareRelease has run clean, run "make distcheck" to create the tarballs
+and the zipball. I then sign these files. Double-check with "git status" that
+the repository is fully up-to-date, then create a new tag and a release on
+GitHub. Upload the tarballs, zipball, and the signatures as "assets" of the
+GitHub release.
+
+When the new release is out, don't forget to tell webmaster@pcre.org and the
+mailing list.
+
+
+Future ideas (wish list)
+========================
+
+This section records a list of ideas so that they do not get forgotten. They
+vary enormously in their usefulness and potential for implementation. Some are
+very sensible; some are rather wacky. Some have been on this list for many
+years.
+
+. Optimization
+
+  There are always ideas for new optimizations so as to speed up pattern
+  matching. Most of them try to save work by recognizing a non-match without
+  having to scan all the possibilities. These are some that I've recorded:
+
+  * /((A{0,5}){0,5}){0,5}(something complex)/ on a non-matching string is very
+    slow, though Perl is fast. Can we speed up somehow? Convert to {0,125}?
+    OTOH, this is pathological - the user could easily fix it.
+
+  * Turn ={4} into ==== ? (for speed). I once did an experiment, and it seems
+    to have little effect, and maybe makes things worse.
+
+  * "Ends with literal string" - note that a single character doesn't gain much
+    over the existing "required code unit" feature that just remembers one code
+    unit.
+
+  * Remember an initial string rather than just 1 code unit.
+
+  * A required code unit from alternatives - not just the last unit, but an
+    earlier one if common to all alternatives.
+
+  * Friedl contains other ideas.
+
+  * The code does not set initial code unit flags for Unicode property types
+    such as \p; I don't know how much benefit there would be for, for example,
+    setting the bits for 0-9 and all values >= xC0 (in 8-bit mode) when a
+    pattern starts with \p{N}.
+
+. If Perl gets to a consistent state over the settings of capturing sub-
+  patterns inside repeats, see if we can match it. One example of the
+  difference is the matching of /(main(O)?)+/ against mainOmain, where PCRE2
+  leaves $2 set. In Perl, it's unset. Changing this in PCRE2 will be very hard
+  because I think it needs much more state to be remembered.
+
+. A feature to suspend a match via a callout was once requested.
+
+. An option to convert results into character offsets and character lengths.
+
+. A (non-Unix) user wanted pcregrep options to (a) list a file name just once,
+  preceded by a blank line, instead of adding it to every matched line, and (b)
+  support --outputfile=name.
+
+. Define a union for the results from pcre2_pattern_info().
+
+. Provide a "random access to the subject" facility so that the way in which it
+  is stored is independent of PCRE2. For efficiency, it probably isn't possible
+  to switch this dynamically. It would have to be specified when PCRE2 was
+  compiled. PCRE2 would then call a function every time it wanted a character.
+
+. pcre2grep: add -rs for a sorted recurse. Having to store file names and sort
+  them will of course slow it down.
+
+. Someone suggested --disable-callout to save code space when callouts are
+  never wanted. This seems rather marginal.
+
+. A user suggested a parameter to limit the length of string matched, for
+  example if the parameter is N, the current match should fail if the matched
+  substring exceeds N. This could apply to both match functions. The value
+  could be a new field in the match context. Compare the offset_limit feature,
+  which limits where a match must start.
+
+. Write a function that generates random matching strings for a compiled
+  pattern.
+
+. Pcre2grep: an option to specify the output line separator, either as a string
+  or select from a fixed list. This is not straightforward, because at the
+  moment it outputs whatever is in the input file.
+
+. Improve the code for duplicate checking in pcre2_dfa_match(). An incomplete,
+  non-thread-safe patch showed that this can help performance for patterns
+  where there are many alternatives. However, a simple thread-safe
+  implementation that I tried made things worse in many simple cases, so this
+  is not an obviously good thing.
+
+. PCRE2 cannot at present distinguish between subpatterns with different names,
+  but the same number (created by the use of ?|). In order to do so, a way of
+  remembering *which* subpattern numbered n matched is needed. (*MARK) can
+  perhaps be used as a way round this problem. However, note that Perl does not
+  distinguish: like PCRE2, a name is just an alias for a number in Perl.
+
+. Instead of having #ifdef HAVE_CONFIG_H in each module, put #include
+  "something" and the the #ifdef appears only in one place, in "something".
+
+. Implement something like (?(R2+)... to check outer recursions.
+
+. If Perl ever supports the POSIX notation [[.something.]] PCRE2 should try
+  to follow.
+
+. A user wanted a way of ignoring all Unicode "mark" characters so that, for
+  example "a" followed by an accent would, together, match "a". This can only
+  be done clumsily at present by using a lookahead such as /(?=a)\X/, which
+  works for "combining" characters.
+
+. Perl supports [\N{x}-\N{y}] as a Unicode range, even in EBCDIC. PCRE2
+  supports \N{U+dd..} everywhere, but not in EBCDIC.
+
+. Unicode stuff from Perl:
+
+    \b{gcb} or \b{g}    grapheme cluster boundary
+    \b{sb}              sentence boundary
+    \b{wb}              word boundary
+
+  See Unicode TR 29. The last two are very much aimed at natural language.
+
+. Allow a callout to specify a number of characters to skip. This can be done
+  compatibly via an extra callout field.
+
+. Allow callouts to return *PRUNE, *COMMIT, *THEN, *SKIP, with and without
+  continuing (that is, with and without an implied *FAIL). A new option,
+  PCRE2_CALLOUT_EXTENDED say, would be needed. This is unlikely ever to be
+  implemented by JIT, so this could be an option for pcre2_match().
+
+. A limit on substitutions: a user suggested somehow finding a way of making
+  match_limit apply to the whole operation instead of each match separately.
+
+. Some #defines could be replaced with enums to improve robustness.
+
+. There was a request for an option for pcre2_match() to return the longest
+  match. This would mean searching for all possible matches, of course.
+
+. Perl's /a modifier sets Unicode, but restricts \d etc to ASCII characters,
+  which is the PCRE2 default for PCRE2_UTF (use PCRE2_UCP to change). However,
+  Perl also has /aa, which in addition, disables ASCII/non-ASCII caseless
+  matching. Perhaps we need a new option PCRE2_CASELESS_RESTRICT_ASCII. In
+  practice, this just means not using the ucd_caseless_sets[] table.
+
+. There is more that could be done to the oss-fuzz setup (needs some research).
+  A seed corpus could be built. I noted something about $LIB_FUZZING_ENGINE.
+  The test function could make use of get_substrings() to cover more code.
+
+. A neater way of handling recursion file names in pcre2grep, e.g. a single
+  buffer that can grow. See also GitHub issue #2 (recursion looping via
+  symlinks).
+
+. A user suggested that before/after parameters in pcre2grep could have
+  negative values, to list lines near to the matched line, but not necessarily
+  the line itself. For example, --before-context=-1 would list the line *after*
+  each matched line, without showing the matched line. The problem here is what
+  to do with matches that are close together. Maybe a simpler way would be a
+  flag to disable showing matched lines, only valid with either -A or -B?
+
+. There was a suggestiong for a pcre2grep colour default, or possibly a more
+  general PCRE2GREP_OPT, but only for some options - not file names or patterns.
+
+. Breaking loops that match an empty string: perhaps find a way of continuing
+  if *something* has changed, but this might mean remembering additional data.
+  "Something" could be a capture value, but then a list of previous values
+  would be needed to avoid a cycle of changes.
+
+. If a function could be written to find 3-character (or other length) fixed
+  strings, at least one of which must be present for a match, efficient
+  pre-searching of large datasets could be implemented.
+
+. If pcre2grep had --first-line (match only in the first line) it could be
+  efficiently used to find files "starting with xxx". What about --last-line?
+  There was also the suggestion of an option for pcre2grep to scan only the
+  start of a file. I am not keen - this is the job of "head".
+
+. A user requested a means of determining whether a failed match was failed by
+  the start-of-match optimizations, or by running the match engine. Easy enough
+  to define a bit in the match data, but all three matchers would need work.
+
+. Would inlining "simple" recursions provide a useful performance boost for the
+  interpreters? JIT already does some of this, but it may not be worth it for
+  the interpreters.
+
+. Redesign handling of class/nclass/xclass because the compile code logic is
+  currently very contorted and obscure. Also there was a request for a way of
+  re-defining \w (and therefore \W, \b, and \B). An in-pattern sequence such as
+  (?w=[...]) was suggested. Easiest way would be simply to inline the class,
+  with lookarounds for \b and \B. Ideally the setting should last till the end
+  of the group, which means remembering all previous settings; maybe a fixed
+  amount of stack would do - how deep would anyone want to nest these things?
+  See GitHub issue #13 for a compendium of character class issues, including
+  (?[...]) extended classes.
+
+. A user suggested something like --with-build-info to set a build information
+  string that could be retrieved by pcre2_config(). However, there's no
+  facility for a length limit in pcre2_config(), and what would be the
+  encoding?
+
+. Quantified groups with a fixed count currently operate by replicating the
+  group in the compiled bytecode. This may not really matter in these days of
+  gigabyte memory, but perhaps another implementation might be considered.
+  Needs coordination between the interpreters and JIT.
+
+. The POSIX interface is no longer POSIX compatible, because regoff_t is still
+  defined as an int.
+
+. The POSIX interface is not thread safe because it modifies a pcre2_match
+  inside its regex_t while doing matching. A thread safe version that uses
+  a thread local object has been proposed but it will require that the code
+  requires at least C11 compatibility.
+
+. See also any suggestions in the GitHub issues.
+
+Philip Hazel
+Email local part: Philip.Hazel
+Email domain: gmail.com
+Last updated: 30 November 2023
