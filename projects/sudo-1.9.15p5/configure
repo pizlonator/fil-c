@@ -33644,7 +33644,7 @@ else case e in #(
 		_CFLAGS="$CFLAGS"
 		CFLAGS="$CFLAGS $lt_prog_compiler_pic"
 		_LDFLAGS="$LDFLAGS"
-		LDFLAGS="$LDFLAGS $lt_prog_compiler_pic -shared -Wl,--version-script,./conftest.map"
+		LDFLAGS="$LDFLAGS $lt_prog_compiler_pic -shared --version-script=./conftest.map"
 		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 int foo;
@@ -33672,7 +33672,7 @@ fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $sudo_cv_var_gnu_ld_anon_map" >&5
 printf "%s\n" "$sudo_cv_var_gnu_ld_anon_map" >&6; }
 	if test "$sudo_cv_var_gnu_ld_anon_map" = "yes"; then
-	    LT_LDDEP="\$(shlib_map)"; LT_LDEXPORTS="-Wl,--version-script,\$(shlib_map)"
+	    LT_LDDEP="\$(shlib_map)"; LT_LDEXPORTS="--version-script=\$(shlib_map)"
 	fi
     else
 	case "$host_os" in
