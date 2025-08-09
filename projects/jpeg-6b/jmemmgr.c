@@ -70,7 +70,7 @@ extern char * getenv JPP((const char * name));
  */
 
 #ifndef ALIGN_TYPE		/* so can override from jconfig.h */
-#define ALIGN_TYPE  void*
+#define ALIGN_TYPE  double
 #endif
 
 
