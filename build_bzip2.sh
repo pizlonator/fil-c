@@ -31,5 +31,5 @@ set -x
 cd projects/bzip2
 extract_source
 $MAKE CC="$CCPREFIX$PWD/../../../build/bin/clang" -j $NCPU
-$MAKE CC="$CCPREFIX$PWD/../../../build/bin/clang" PREFIX=$PWD/../pizfix install
+$MAKE CC="$CCPREFIX$PWD/../../../build/bin/clang" PREFIX=$PWD/../../../pizfix install
 

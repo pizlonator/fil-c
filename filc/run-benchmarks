@@ -317,7 +317,7 @@ $benchmarks << Benchmark.new(
     [])
 
 $benchmarks << Benchmark.new(
-    "../pizlonated-simdutf/build/benchmarks/benchmark",
+    "../projects/simdutf-5.5.0/build/benchmarks/benchmark",
     "-F benchmarkData/simdutf-README.md -I 2000 " +
     "-P convert_latin1_to_utf16+haswell " +
     "-P convert_latin1_to_utf32+haswell " +
@@ -340,7 +340,7 @@ $benchmarks << Benchmark.new(
 
 if $hasAVX512
     $benchmarks << Benchmark.new(
-        "../pizlonated-simdutf/build/benchmarks/benchmark",
+        "../projects/simdutf-5.5.0/build/benchmarks/benchmark",
         "-F benchmarkData/simdutf-README.md -I 2000 " +
         "-P convert_latin1_to_utf16+icelake " +
         "-P convert_latin1_to_utf32+icelake " +

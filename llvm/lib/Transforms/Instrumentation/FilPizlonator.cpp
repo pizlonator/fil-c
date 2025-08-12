@@ -3379,7 +3379,8 @@ class Pizlonator {
       if ((F->isIntrinsic() && (F->getIntrinsicID() == Intrinsic::memcpy ||
                                 F->getIntrinsicID() == Intrinsic::memcpy_inline ||
                                 F->getIntrinsicID() == Intrinsic::memmove)) ||
-          (F->getName() == "zmemmove_union" && isMemmoveFT(FT))) {
+          ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
+           && isMemmoveFT(FT))) {
         if (ConstantInt* C = dyn_cast<ConstantInt>(CI->getArgOperand(2))) {
           if (C->getBitWidth() <= 64) {
             size_t Count = C->getZExtValue();
@@ -3404,6 +3405,7 @@ class Pizlonator {
   bool functionWillReturn(Function* F) {
     return F->willReturn() ||
       F->getName() == "zmemmove_union" ||
+      F->getName() == "zmemmove_builtin" ||
       F->getName() == "zgc_alloc" ||
       F->getName() == "malloc" ||
       F->getName() == "zgc_aligned_alloc" ||
@@ -6370,7 +6372,8 @@ class Pizlonator {
           return true;
         }
 
-        if (F->getName() == "zmemmove_union" && isMemmoveFT(FT)) {
+        if ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
+            && isMemmoveFT(FT)) {
           lowerMemmoveCall(CI);
           Erasify();
           return true;

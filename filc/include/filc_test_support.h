@@ -75,6 +75,12 @@ __SIZE_TYPE__ zgc_get_allocation_size(void* ptr);
    You shouldn't ever have to call this directly */
 void zmemmove_union(void* dst, void* src, __SIZE_TYPE__ count);
 
+/* This is the memmove that we use when you call memmove/memcpy and clang recognizes it as a builtin.
+   It gets optimized, but only after FilPizlonator.
+
+   You shouldn't ever have to call this directly */
+void zmemmove_builtin(void* dst, void* src, __SIZE_TYPE__ count);
+
 #ifdef __cplusplus
 }
 #endif

@@ -3567,7 +3567,15 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
                         E->getArg(0)->getExprLoc(), FD, 0);
     EmitNonNullArgCheck(RValue::get(Src.getPointer()), E->getArg(1)->getType(),
                         E->getArg(1)->getExprLoc(), FD, 1);
-    Builder.CreateMemCpy(Dest, Src, SizeVal, false);
+    if (BuiltinID == Builtin::BImemcpy ||
+        BuiltinID == Builtin::BImempcpy) {
+      Builder.CreateCall(
+        CGM.CreateRuntimeFunction(
+          llvm::FunctionType::get(VoidTy, { Int8PtrTy, Int8PtrTy, SizeTy }, false),
+          "zmemmove_builtin"),
+        { Dest.getPointer(), Src.getPointer(), SizeVal });
+    } else
+      Builder.CreateMemCpy(Dest, Src, SizeVal, false);
     if (BuiltinID == Builtin::BImempcpy ||
         BuiltinID == Builtin::BI__builtin_mempcpy)
       return RValue::get(Builder.CreateInBoundsGEP(Dest.getElementType(),
@@ -3645,7 +3653,14 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
                         E->getArg(0)->getExprLoc(), FD, 0);
     EmitNonNullArgCheck(RValue::get(Src.getPointer()), E->getArg(1)->getType(),
                         E->getArg(1)->getExprLoc(), FD, 1);
-    Builder.CreateMemMove(Dest, Src, SizeVal, false);
+    if (BuiltinID == Builtin::BImemmove) {
+      Builder.CreateCall(
+        CGM.CreateRuntimeFunction(
+          llvm::FunctionType::get(VoidTy, { Int8PtrTy, Int8PtrTy, SizeTy }, false),
+          "zmemmove_builtin"),
+        { Dest.getPointer(), Src.getPointer(), SizeVal });
+    } else
+      Builder.CreateMemMove(Dest, Src, SizeVal, false);
     return RValue::get(Dest.getPointer());
   }
   case Builtin::BImemset:
