@@ -15,7 +15,6 @@
 #include <cstring>
 #include "atomic_support.h"
 
-#if !defined(__PIZLONATOR_WAS_HERE__)
 // MacOS and iOS used to ship with libstdc++, and still support old applications
 // linking against libstdc++. The libc++ and libstdc++ exceptions are supposed
 // to be ABI compatible, such that they can be thrown from one library and caught
@@ -32,7 +31,6 @@
 #   include <dlfcn.h>
 #   include <mach-o/dyld.h>
 #endif
-#endif // !defined(__PIZLONATOR_WAS_HERE__)
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
