@@ -19,6 +19,7 @@ int __init_tp(void *p)
 	libc.can_do_threads = 1;
 	td->detach_state = DT_JOINABLE;
 	td->tid = zthread_self_id();
+        td->zthread = zthread_self();
 	ZASSERT(td->tid);
 	td->locale = &libc.global_locale;
 	td->robust_list.head = &td->robust_list.head;

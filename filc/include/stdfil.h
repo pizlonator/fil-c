@@ -320,7 +320,19 @@ void* zptrtable_decode(zptrtable* table, __SIZE_TYPE__ encoded_ptr);
 struct zexact_ptrtable;
 typedef struct zexact_ptrtable zexact_ptrtable;
 
+/* Create a strong exact ptrtable. This strongly holds onto any encoded pointers and only drops them
+   if they are freed. */
 zexact_ptrtable* zexact_ptrtable_new(void);
+
+/* Create a weak exact ptrtable. This weakly holds onto any encoded pointers and drops them if they
+   are either freed, or if the only references left to them are weak. So, for example, if the last
+   reference to a pointer is from the weak exact ptrtable, then the weak exact ptrtable will drop the
+   reference. Decoding that pointer will then give an invalid pointer. */
+zexact_ptrtable* zexact_ptrtable_new_weak(void);
+
+/* Tells you if this exact ptrtable is weak is not. */
+filc_bool zexact_ptrtable_is_weak(zexact_ptrtable* table);
+
 __SIZE_TYPE__ zexact_ptrtable_encode(zexact_ptrtable* table, void* ptr);
 void* zexact_ptrtable_decode(zexact_ptrtable* table, __SIZE_TYPE__ encoded_ptr);
 

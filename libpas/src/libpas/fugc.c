@@ -501,6 +501,10 @@ static void census_object_callback(void* allocation, void* arg)
         filc_weak_map_census(
             (filc_weak_map*)filc_object_special_payload_with_manual_tracking(object));
         break;
+    case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
+        filc_exact_ptr_table_census(
+            (filc_exact_ptr_table*)filc_object_special_payload_with_manual_tracking(object));
+        break;
     default:
         PAS_ASSERT(!"Encountered object in census set that should not have census.");
         break;

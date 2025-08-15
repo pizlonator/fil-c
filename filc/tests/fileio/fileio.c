@@ -389,6 +389,115 @@ int main(int argc, char** argv)
     ZASSERT(!close(ifd));
     ZASSERT(!unlink("filc/test-output/fileio/inotifytest.txt"));
 
+    // Test copy_file_range syscall
+    int src_fd = open("filc/test-output/fileio/copy_src.txt", O_CREAT | O_RDWR | O_TRUNC, 0644);
+    ZASSERT(src_fd > 2);
+    const char* copy_test_data = "This is test data for copy_file_range syscall test. It should be copied correctly.";
+    ssize_t test_data_len = strlen(copy_test_data);
+    ZASSERT(write(src_fd, copy_test_data, test_data_len) == test_data_len);
+    ZASSERT(lseek(src_fd, 0, SEEK_SET) == 0);
+    
+    int dst_fd = open("filc/test-output/fileio/copy_dst.txt", O_CREAT | O_RDWR | O_TRUNC, 0644);
+    ZASSERT(dst_fd > 2);
+    
+    // Copy first 20 bytes
+    off_t src_off = 0;
+    off_t dst_off = 0;
+    ssize_t copied = syscall(SYS_copy_file_range, src_fd, &src_off, dst_fd, &dst_off, 20, 0);
+    ZASSERT(copied == 20);
+    ZASSERT(src_off == 20);
+    ZASSERT(dst_off == 20);
+    
+    // Copy another 30 bytes
+    copied = syscall(SYS_copy_file_range, src_fd, &src_off, dst_fd, &dst_off, 30, 0);
+    ZASSERT(copied == 30);
+    ZASSERT(src_off == 50);
+    ZASSERT(dst_off == 50);
+    
+    // Try to copy more than available (should copy only what's left)
+    copied = syscall(SYS_copy_file_range, src_fd, &src_off, dst_fd, &dst_off, 100, 0);
+    ZASSERT(copied == test_data_len - 50);
+    
+    // Verify the destination file contents
+    ZASSERT(lseek(dst_fd, 0, SEEK_SET) == 0);
+    char verify_buf[200];
+    memset(verify_buf, 0, sizeof(verify_buf));
+    ZASSERT(read(dst_fd, verify_buf, sizeof(verify_buf)) == test_data_len);
+    ZASSERT(!strcmp(verify_buf, copy_test_data));
+    
+    // Test copy_file_range with NULL offsets (should use current file positions)
+    ZASSERT(lseek(src_fd, 10, SEEK_SET) == 10);
+    ZASSERT(lseek(dst_fd, 0, SEEK_SET) == 0);
+    ZASSERT(ftruncate(dst_fd, 0) == 0);
+    
+    copied = syscall(SYS_copy_file_range, src_fd, NULL, dst_fd, NULL, 15, 0);
+    ZASSERT(copied == 15);
+    
+    // Verify partial copy
+    ZASSERT(lseek(dst_fd, 0, SEEK_SET) == 0);
+    memset(verify_buf, 0, sizeof(verify_buf));
+    ZASSERT(read(dst_fd, verify_buf, sizeof(verify_buf)) == 15);
+    ZASSERT(!memcmp(verify_buf, copy_test_data + 10, 15));
+    
+    // Clean up copy_file_range test files
+    ZASSERT(!close(src_fd));
+    ZASSERT(!close(dst_fd));
+    ZASSERT(!unlink("filc/test-output/fileio/copy_src.txt"));
+    ZASSERT(!unlink("filc/test-output/fileio/copy_dst.txt"));
+
+    // Test copy_file_range() libc wrapper function (as opposed to syscall)
+    src_fd = open("filc/test-output/fileio/copy_src2.txt", O_CREAT | O_RDWR | O_TRUNC, 0644);
+    ZASSERT(src_fd > 2);
+    ZASSERT(write(src_fd, copy_test_data, test_data_len) == test_data_len);
+    ZASSERT(lseek(src_fd, 0, SEEK_SET) == 0);
+    
+    dst_fd = open("filc/test-output/fileio/copy_dst2.txt", O_CREAT | O_RDWR | O_TRUNC, 0644);
+    ZASSERT(dst_fd > 2);
+    
+    // Copy first 20 bytes using libc wrapper
+    src_off = 0;
+    dst_off = 0;
+    copied = copy_file_range(src_fd, &src_off, dst_fd, &dst_off, 20, 0);
+    ZASSERT(copied == 20);
+    ZASSERT(src_off == 20);
+    ZASSERT(dst_off == 20);
+    
+    // Copy another 30 bytes using libc wrapper
+    copied = copy_file_range(src_fd, &src_off, dst_fd, &dst_off, 30, 0);
+    ZASSERT(copied == 30);
+    ZASSERT(src_off == 50);
+    ZASSERT(dst_off == 50);
+    
+    // Try to copy more than available (should copy only what's left)
+    copied = copy_file_range(src_fd, &src_off, dst_fd, &dst_off, 100, 0);
+    ZASSERT(copied == test_data_len - 50);
+    
+    // Verify the destination file contents
+    ZASSERT(lseek(dst_fd, 0, SEEK_SET) == 0);
+    memset(verify_buf, 0, sizeof(verify_buf));
+    ZASSERT(read(dst_fd, verify_buf, sizeof(verify_buf)) == test_data_len);
+    ZASSERT(!strcmp(verify_buf, copy_test_data));
+    
+    // Test copy_file_range with NULL offsets (should use current file positions)
+    ZASSERT(lseek(src_fd, 10, SEEK_SET) == 10);
+    ZASSERT(lseek(dst_fd, 0, SEEK_SET) == 0);
+    ZASSERT(ftruncate(dst_fd, 0) == 0);
+    
+    copied = copy_file_range(src_fd, NULL, dst_fd, NULL, 15, 0);
+    ZASSERT(copied == 15);
+    
+    // Verify partial copy
+    ZASSERT(lseek(dst_fd, 0, SEEK_SET) == 0);
+    memset(verify_buf, 0, sizeof(verify_buf));
+    ZASSERT(read(dst_fd, verify_buf, sizeof(verify_buf)) == 15);
+    ZASSERT(!memcmp(verify_buf, copy_test_data + 10, 15));
+    
+    // Clean up copy_file_range libc wrapper test files
+    ZASSERT(!close(src_fd));
+    ZASSERT(!close(dst_fd));
+    ZASSERT(!unlink("filc/test-output/fileio/copy_src2.txt"));
+    ZASSERT(!unlink("filc/test-output/fileio/copy_dst2.txt"));
+
     return 0;
 }
 

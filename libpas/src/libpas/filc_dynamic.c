@@ -50,7 +50,8 @@ filc_ptr filc_native_zsys_dlopen(filc_thread* my_thread, filc_ptr filename_ptr, 
 
 filc_ptr filc_native_zsys_dlsym(filc_thread* my_thread, filc_ptr handle_ptr, filc_ptr symbol_ptr)
 {
-    filc_check_access_special(handle_ptr, FILC_SPECIAL_TYPE_DL_HANDLE);
+    if (filc_ptr_ptr(handle_ptr))
+        filc_check_access_special(handle_ptr, FILC_SPECIAL_TYPE_DL_HANDLE);
     void* handle = filc_ptr_ptr(handle_ptr);
     char* symbol = filc_check_and_get_tmp_str(my_thread, symbol_ptr);
     pas_allocation_config allocation_config;

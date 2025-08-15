@@ -148,6 +148,40 @@ static PAS_ALWAYS_INLINE void filc_ptr_table_mark_outgoing_ptrs(filc_ptr_table* 
     pas_lock_unlock(&ptr_table->lock);
 }
 
+static PAS_ALWAYS_INLINE void filc_exact_ptr_table_mark_outgoing_ptrs(filc_exact_ptr_table* ptr_table,
+                                                                      const filc_marker marker,
+                                                                      filc_mark_stack* stack)
+{
+    static const bool verbose = false;
+    if (verbose)
+        pas_log("Marking exact ptr table at %p.\n", ptr_table);
+
+    if (ptr_table->ref_strength == filc_weak_ref_strength)
+        return;
+
+    pas_lock_lock(&ptr_table->lock);
+    
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+
+    filc_uintptr_ptr_hash_map new_decode_map;
+    filc_uintptr_ptr_hash_map_construct(&new_decode_map);
+    size_t index;
+    for (index = ptr_table->decode_map.table_size; index--;) {
+        filc_uintptr_ptr_hash_map_entry entry = ptr_table->decode_map.table[index];
+        if (filc_uintptr_ptr_hash_map_entry_is_empty_or_deleted(entry))
+            continue;
+        if (filc_object_get_flags(filc_ptr_object(entry.value)) & FILC_OBJECT_FLAG_FREE)
+            continue;
+        marker.mark(stack, filc_ptr_object(entry.value));
+        filc_uintptr_ptr_hash_map_add_new(&new_decode_map, entry, NULL, &allocation_config);
+    }
+    filc_uintptr_ptr_hash_map_destruct(&ptr_table->decode_map, &allocation_config);
+    ptr_table->decode_map = new_decode_map;
+    
+    pas_lock_unlock(&ptr_table->lock);
+}
+
 /* Returns true if we should treat the loaded pointer as being valid. Returns false if the pointer
    should be treated as if it had been cleared. */
 static PAS_ALWAYS_INLINE bool filc_weak_load_barrier(filc_thread* my_thread, filc_ptr result)

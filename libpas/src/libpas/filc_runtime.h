@@ -1044,6 +1044,13 @@ struct filc_ptr_table_array {
     filc_ptr ptrs[];
 };
 
+enum filc_ref_strength {
+    filc_weak_ref_strength,
+    filc_strong_ref_strength
+};
+
+typedef enum filc_ref_strength filc_ref_strength;
+
 /* FIXME: This could *easily* be a lock-free map from ptr to object. In fact, it
    could even be a uintptr_t-to-object map anyway.
 
@@ -1053,6 +1060,7 @@ struct filc_ptr_table_array {
    or a global. */
 struct filc_exact_ptr_table {
     pas_lock lock;
+    filc_ref_strength ref_strength;
     filc_uintptr_ptr_hash_map decode_map;
 };
 
@@ -3592,10 +3600,17 @@ filc_rest_ptr_pair filc_get_next_ptr_bytes_for_va_arg(
 filc_object* filc_allocate_special(filc_thread* my_thread, size_t size, size_t alignment,
                                    filc_special_type special_type);
  
+filc_object* filc_allocate_special_with_heap(filc_thread* my_thread, size_t size, size_t alignment,
+                                             filc_special_type special_type, pas_heap* heap);
+ 
 /* Same as filc_allocate_special, but usable before we have ever created threads and before we have
    any thread context. */
 filc_object* filc_allocate_special_early(size_t size, size_t alignment,
                                          filc_special_type special_type);
+
+filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment,
+                                                   filc_special_type special_type,
+                                                   pas_heap* heap);
 
 filc_object* filc_allocate_special_with_existing_payload(
     filc_thread* my_thread, void* payload, filc_special_type special_type);
@@ -3662,45 +3677,16 @@ static PAS_ALWAYS_INLINE void filc_ptr_table_array_mark_outgoing_ptrs(filc_ptr_t
     }
 }
 
-filc_exact_ptr_table* filc_exact_ptr_table_create(filc_thread* my_thread);
-void filc_exact_ptr_table_destruct(filc_exact_ptr_table* ptr_table);
-uintptr_t filc_exact_ptr_table_encode(filc_thread* my_thread, filc_exact_ptr_table* ptr_table,
-                                      filc_ptr ptr);
-filc_ptr filc_exact_ptr_table_decode_with_manual_tracking(
-    filc_exact_ptr_table* ptr_table, uintptr_t encoded_ptr);
-filc_ptr filc_exact_ptr_table_decode(filc_thread* my_thread, filc_exact_ptr_table* ptr_table,
-                                     uintptr_t encoded_ptr);
-
-static PAS_ALWAYS_INLINE void filc_exact_ptr_table_mark_outgoing_ptrs(filc_exact_ptr_table* ptr_table,
-                                                                      const filc_marker marker,
-                                                                      filc_mark_stack* stack)
-{
-    static const bool verbose = false;
-    if (verbose)
-        pas_log("Marking exact ptr table at %p.\n", ptr_table);
-
-    pas_lock_lock(&ptr_table->lock);
-    
-    pas_allocation_config allocation_config;
-    bmalloc_initialize_allocation_config(&allocation_config);
-
-    filc_uintptr_ptr_hash_map new_decode_map;
-    filc_uintptr_ptr_hash_map_construct(&new_decode_map);
-    size_t index;
-    for (index = ptr_table->decode_map.table_size; index--;) {
-        filc_uintptr_ptr_hash_map_entry entry = ptr_table->decode_map.table[index];
-        if (filc_uintptr_ptr_hash_map_entry_is_empty_or_deleted(entry))
-            continue;
-        if (filc_object_get_flags(filc_ptr_object(entry.value)) & FILC_OBJECT_FLAG_FREE)
-            continue;
-        marker.mark(stack, filc_ptr_object(entry.value));
-        filc_uintptr_ptr_hash_map_add_new(&new_decode_map, entry, NULL, &allocation_config);
-    }
-    filc_uintptr_ptr_hash_map_destruct(&ptr_table->decode_map, &allocation_config);
-    ptr_table->decode_map = new_decode_map;
-    
-    pas_lock_unlock(&ptr_table->lock);
-}
+PAS_API filc_exact_ptr_table* filc_exact_ptr_table_create(filc_thread* my_thread,
+                                                          filc_ref_strength ref_strength);
+PAS_API void filc_exact_ptr_table_destruct(filc_exact_ptr_table* ptr_table);
+PAS_API uintptr_t filc_exact_ptr_table_encode(filc_thread* my_thread, filc_exact_ptr_table* ptr_table,
+                                              filc_ptr ptr);
+PAS_API filc_ptr filc_exact_ptr_table_decode_with_manual_tracking(
+    filc_thread* my_thread, filc_exact_ptr_table* ptr_table, uintptr_t encoded_ptr);
+PAS_API filc_ptr filc_exact_ptr_table_decode(filc_thread* my_thread, filc_exact_ptr_table* ptr_table,
+                                             uintptr_t encoded_ptr);
+PAS_API void filc_exact_ptr_table_census(filc_exact_ptr_table* ptr_table);
 
 PAS_API filc_weak* filc_weak_create(filc_thread* my_thread, filc_ptr ptr);
 

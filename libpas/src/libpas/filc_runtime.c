@@ -2298,8 +2298,8 @@ filc_atomic_box* filc_atomic_box_create_for_ptr_store(filc_thread* my_thread, fi
     return result;
 }
 
-filc_object* filc_allocate_special_early(size_t size, size_t alignment,
-                                         filc_special_type special_type)
+filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment,
+                                                   filc_special_type special_type, pas_heap* heap)
 {
     /* NOTE: This cannot assert anything about the Fil-C thread because we do use this before any
        threads have been created. */
@@ -2308,30 +2308,30 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
 
     PAS_ASSERT(filc_special_type_is_valid(special_type));
 
-    pas_heap* heap;
     switch (special_type) {
     case FILC_SPECIAL_TYPE_FUNCTION:
     case FILC_SPECIAL_TYPE_SIGNAL_HANDLER:
     case FILC_SPECIAL_TYPE_PTR_TABLE_ARRAY:
     case FILC_SPECIAL_TYPE_DL_HANDLE:
     case FILC_SPECIAL_TYPE_JMP_BUF:
-        heap = fugc_default_heap;
+        PAS_ASSERT(heap == fugc_default_heap);
         break;
     case FILC_SPECIAL_TYPE_THREAD:
     case FILC_SPECIAL_TYPE_PTR_TABLE:
-    case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
-        heap = fugc_destructor_heap;
+        PAS_ASSERT(heap == fugc_destructor_heap);
         break;
     case FILC_SPECIAL_TYPE_WEAK:
-        heap = fugc_census_heap;
+        PAS_ASSERT(heap == fugc_census_heap);
         break;
     case FILC_SPECIAL_TYPE_WEAK_MAP:
-        heap = fugc_census_and_destructor_heap;
+        PAS_ASSERT(heap == fugc_census_and_destructor_heap);
+        break;
+    case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
+        PAS_ASSERT(heap == fugc_destructor_heap || heap == fugc_census_and_destructor_heap);
         break;
     default:
         PAS_ASSERT(!"Not a special type");
-        heap = NULL;
         break;
     }
 
@@ -2365,12 +2365,55 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
     return result;
 }
 
+filc_object* filc_allocate_special_early(size_t size, size_t alignment,
+                                         filc_special_type special_type)
+{
+    pas_heap* heap = NULL;
+    switch (special_type) {
+    case FILC_SPECIAL_TYPE_FUNCTION:
+    case FILC_SPECIAL_TYPE_SIGNAL_HANDLER:
+    case FILC_SPECIAL_TYPE_PTR_TABLE_ARRAY:
+    case FILC_SPECIAL_TYPE_DL_HANDLE:
+    case FILC_SPECIAL_TYPE_JMP_BUF:
+        heap = fugc_default_heap;
+        break;
+    case FILC_SPECIAL_TYPE_THREAD:
+    case FILC_SPECIAL_TYPE_PTR_TABLE:
+    case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
+        heap = fugc_destructor_heap;
+        break;
+    case FILC_SPECIAL_TYPE_WEAK:
+        heap = fugc_census_heap;
+        break;
+    case FILC_SPECIAL_TYPE_WEAK_MAP:
+        heap = fugc_census_and_destructor_heap;
+        break;
+    case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
+        PAS_ASSERT(!"Exact ptr table needs to explicitly select a heap");
+        break;
+    default:
+        PAS_ASSERT(!"Not a special type");
+        break;
+    }
+    return filc_allocate_special_early_with_heap(size, alignment, special_type, heap);
+}
+
 filc_object* filc_allocate_special(filc_thread* my_thread, size_t size, size_t alignment,
                                    filc_special_type special_type)
 {
     PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
     filc_object* result = filc_allocate_special_early(size, alignment, special_type);
+    filc_thread_assert_object_allocation_color(my_thread, result);
+    return result;
+}
+
+filc_object* filc_allocate_special_with_heap(filc_thread* my_thread, size_t size, size_t alignment,
+                                             filc_special_type special_type, pas_heap* heap)
+{
+    PAS_TESTING_ASSERT(my_thread == filc_get_my_thread());
+    PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
+    filc_object* result = filc_allocate_special_early_with_heap(size, alignment, special_type, heap);
     filc_thread_assert_object_allocation_color(my_thread, result);
     return result;
 }
@@ -2894,14 +2937,18 @@ filc_ptr_table_array* filc_ptr_table_array_create(filc_thread* my_thread, size_t
     return result;
 }
 
-filc_exact_ptr_table* filc_exact_ptr_table_create(filc_thread* my_thread)
+filc_exact_ptr_table* filc_exact_ptr_table_create(filc_thread* my_thread,
+                                                  filc_ref_strength ref_strength)
 {
     filc_exact_ptr_table* result = (filc_exact_ptr_table*)
         filc_object_special_payload_with_manual_tracking(
-            filc_allocate_special(
-                my_thread, sizeof(filc_exact_ptr_table), 1, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE));
+            filc_allocate_special_with_heap(
+                my_thread, sizeof(filc_exact_ptr_table), 1, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE,
+                ref_strength == filc_strong_ref_strength
+                ? fugc_destructor_heap : fugc_census_and_destructor_heap));
 
     pas_lock_construct(&result->lock);
+    result->ref_strength = ref_strength;
     filc_uintptr_ptr_hash_map_construct(&result->decode_map);
 
     return result;
@@ -2938,7 +2985,8 @@ uintptr_t filc_exact_ptr_table_encode(filc_thread* my_thread, filc_exact_ptr_tab
     return (uintptr_t)filc_ptr_ptr(ptr);
 }
 
-filc_ptr filc_exact_ptr_table_decode_with_manual_tracking(filc_exact_ptr_table* ptr_table,
+filc_ptr filc_exact_ptr_table_decode_with_manual_tracking(filc_thread* my_thread,
+                                                          filc_exact_ptr_table* ptr_table,
                                                           uintptr_t encoded_ptr)
 {
     if (!ptr_table->decode_map.key_count)
@@ -2950,15 +2998,57 @@ filc_ptr filc_exact_ptr_table_decode_with_manual_tracking(filc_exact_ptr_table* 
     if (filc_ptr_is_totally_null(result.value))
         return filc_ptr_forge_invalid((void*)encoded_ptr);
     PAS_ASSERT((uintptr_t)filc_ptr_ptr(result.value) == encoded_ptr);
-    return result.value;
+    PAS_ASSERT(filc_ptr_object(result.value));
+    switch(ptr_table->ref_strength) {
+    case filc_strong_ref_strength:
+        if (!(filc_object_get_flags(filc_ptr_object(result.value)) & FILC_OBJECT_FLAG_FREE))
+            return result.value;
+        break;
+    case filc_weak_ref_strength:
+        if (filc_weak_load_barrier(my_thread, result.value))
+            return result.value;
+        break;
+    }
+    return filc_ptr_forge_invalid((void*)encoded_ptr);
 }
 
 filc_ptr filc_exact_ptr_table_decode(filc_thread* my_thread, filc_exact_ptr_table* ptr_table,
                                      uintptr_t encoded_ptr)
 {
-    filc_ptr result = filc_exact_ptr_table_decode_with_manual_tracking(ptr_table, encoded_ptr);
+    filc_ptr result = filc_exact_ptr_table_decode_with_manual_tracking(
+        my_thread, ptr_table, encoded_ptr);
     filc_thread_track_object(my_thread, filc_ptr_object(result));
     return result;
+}
+
+void filc_exact_ptr_table_census(filc_exact_ptr_table* ptr_table)
+{
+    static const bool verbose = false;
+    if (verbose)
+        pas_log("Censusing exact ptr table at %p.\n", ptr_table);
+
+    PAS_ASSERT(ptr_table->ref_strength == filc_weak_ref_strength);
+
+    pas_lock_lock(&ptr_table->lock);
+    
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+
+    filc_uintptr_ptr_hash_map new_decode_map;
+    filc_uintptr_ptr_hash_map_construct(&new_decode_map);
+    size_t index;
+    for (index = ptr_table->decode_map.table_size; index--;) {
+        filc_uintptr_ptr_hash_map_entry entry = ptr_table->decode_map.table[index];
+        if (filc_uintptr_ptr_hash_map_entry_is_empty_or_deleted(entry))
+            continue;
+        if (!filc_object_is_live_for_weak(filc_ptr_object(entry.value), FUGC_MARKER))
+            continue;
+        filc_uintptr_ptr_hash_map_add_new(&new_decode_map, entry, NULL, &allocation_config);
+    }
+    filc_uintptr_ptr_hash_map_destruct(&ptr_table->decode_map, &allocation_config);
+    ptr_table->decode_map = new_decode_map;
+    
+    pas_lock_unlock(&ptr_table->lock);
 }
 
 filc_weak* filc_weak_create(filc_thread* my_thread, filc_ptr ptr)
@@ -3457,7 +3547,21 @@ filc_ptr filc_native_zptrtable_decode(filc_thread* my_thread, filc_ptr table_ptr
 
 filc_ptr filc_native_zexact_ptrtable_new(filc_thread* my_thread)
 {
-    return filc_ptr_for_special_payload_with_manual_tracking(filc_exact_ptr_table_create(my_thread));
+    return filc_ptr_for_special_payload_with_manual_tracking(
+        filc_exact_ptr_table_create(my_thread, filc_strong_ref_strength));
+}
+
+filc_ptr filc_native_zexact_ptrtable_new_weak(filc_thread* my_thread)
+{
+    return filc_ptr_for_special_payload_with_manual_tracking(
+        filc_exact_ptr_table_create(my_thread, filc_weak_ref_strength));
+}
+
+bool filc_native_zexact_ptrtable_is_weak(filc_thread* my_thread, filc_ptr table_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_access_special(table_ptr, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
+    return ((filc_exact_ptr_table*)filc_ptr_ptr(table_ptr))->ref_strength == filc_weak_ref_strength;
 }
 
 size_t filc_native_zexact_ptrtable_encode(filc_thread* my_thread, filc_ptr table_ptr, filc_ptr ptr)
@@ -3469,10 +3573,9 @@ size_t filc_native_zexact_ptrtable_encode(filc_thread* my_thread, filc_ptr table
 filc_ptr filc_native_zexact_ptrtable_decode(filc_thread* my_thread, filc_ptr table_ptr,
                                             size_t encoded_ptr)
 {
-    PAS_UNUSED_PARAM(my_thread);
     filc_check_access_special(table_ptr, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
     return filc_exact_ptr_table_decode_with_manual_tracking(
-        (filc_exact_ptr_table*)filc_ptr_ptr(table_ptr), encoded_ptr);
+        my_thread, (filc_exact_ptr_table*)filc_ptr_ptr(table_ptr), encoded_ptr);
 }
 
 filc_ptr filc_native_zweak_new(filc_thread* my_thread, filc_ptr ptr)
@@ -9648,7 +9751,8 @@ int filc_native_zsys_sched_setparam(filc_thread* my_thread, int pid, filc_ptr pa
 int filc_native_zsys_sched_getparam(filc_thread* my_thread, int pid, filc_ptr param_buf)
 {
     filc_check_write(param_buf, sizeof(struct sched_param));
-    return FILC_SYSCALL(my_thread, sched_getparam(pid, (struct sched_param*)filc_ptr_ptr(param_buf)));
+    return FILC_SYSCALL(my_thread, syscall(SYS_sched_getparam, pid,
+                                           (struct sched_param*)filc_ptr_ptr(param_buf)));
 }
 
 int filc_native_zsys_sched_setscheduler(filc_thread* my_thread, int pid, int policy,
@@ -9662,7 +9766,7 @@ int filc_native_zsys_sched_setscheduler(filc_thread* my_thread, int pid, int pol
 
 int filc_native_zsys_sched_getscheduler(filc_thread* my_thread, int pid)
 {
-    return FILC_SYSCALL(my_thread, sched_getscheduler(pid));
+    return FILC_SYSCALL(my_thread, syscall(SYS_sched_getscheduler, pid));
 }
 
 int filc_native_zsys_sched_get_priority_min(filc_thread* my_thread, int policy)

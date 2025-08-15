@@ -70,6 +70,7 @@ test ! -d projects/pizfix
 ./build_toybox.sh
 ./build_libevent.sh
 ./build_tmux.sh
+./build_libuv.sh
 ./build_benchmarks.sh
 
 test ! -d projects/pizfix

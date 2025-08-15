@@ -262,7 +262,7 @@ static void unlock_table(void)
 static struct fd_backer* fd_backer_create(void)
 {
     struct fd_backer* result = zgc_alloc(sizeof(struct fd_backer));
-    result->epoll_table = zexact_ptrtable_new();
+    result->epoll_table = zexact_ptrtable_new_weak();
     return result;
 }
 
@@ -554,6 +554,10 @@ long zsys_syscall(long n, ...)
 
     case 332 /* SYS_statx */:
         callee = zsys_statx;
+        break;
+
+    case 326 /* SYS_copy_file_range */:
+        callee = zsys_copy_file_range;
         break;
 
 	/* FIXME: Implement more syscalls! */
