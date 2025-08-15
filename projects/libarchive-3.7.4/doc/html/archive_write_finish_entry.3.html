@@ -1,0 +1,85 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:47 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_WRITE_FINISH_... BSD Library Functions Manual
+ARCHIVE_WRITE_FINISH_...</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_write_finish_entry</b>
+&mdash; functions for creating archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_write_finish_entry</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">Close out the entry just
+written. In particular, this writes out the final padding
+required by some formats. Ordinarily, clients never need to
+call this, as it is called automatically by
+<b>archive_write_header</b>() and
+<b>archive_write_close</b>() as needed. For
+archive_write_disk handles, this flushes pending file
+attribute changes like modification time.</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+<p style="margin-left:6%;">This function returns
+<b>ARCHIVE_OK</b> on success, or one of several non-zero
+error codes for errors. Specific error codes include:
+<b>ARCHIVE_RETRY</b> for operations that might succeed if
+retried, <b>ARCHIVE_WARN</b> for unusual conditions that do
+not prevent further operations, and <b>ARCHIVE_FATAL</b> for
+serious errors that make remaining operations
+impossible.</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">Detailed error codes and textual
+descriptions are available from the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_write_data(3),
+archive_write_set_options(3), libarchive(3), cpio(5),
+mtree(5), tar(5)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;28, 2017 BSD</p>
+<hr>
+</body>
+</html>

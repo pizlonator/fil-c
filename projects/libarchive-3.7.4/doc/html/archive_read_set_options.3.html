@@ -1,0 +1,293 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_READ_OPTIONS(3) BSD Library Functions Manual
+ARCHIVE_READ_OPTIONS(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_read_set_filter_option</b>,
+<b>archive_read_set_format_option</b>,
+<b>archive_read_set_option</b>,
+<b>archive_read_set_options</b> &mdash; functions
+controlling options for reading archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><i>int</i></p>
+
+
+<p><b>archive_read_set_filter_option</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*module</i>,
+<i>const&nbsp;char&nbsp;*option</i>,
+<i>const&nbsp;char&nbsp;*value</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_set_format_option</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*module</i>,
+<i>const&nbsp;char&nbsp;*option</i>,
+<i>const&nbsp;char&nbsp;*value</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_set_option</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*module</i>,
+<i>const&nbsp;char&nbsp;*option</i>,
+<i>const&nbsp;char&nbsp;*value</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_set_options</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*options</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide a way
+for libarchive clients to configure specific read
+modules.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_set_filter_option</b>(),
+<b>archive_read_set_format_option</b>()</p>
+
+<p style="margin-left:17%;">Specifies an option that will
+be passed to currently-registered filters (including
+decompression filters) or format readers.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If
+<i>option</i> and <i>value</i> are both NULL, these
+functions will do nothing and <b>ARCHIVE_OK</b> will be
+returned. If <i>option</i> is NULL but <i>value</i> is not,
+these functions will do nothing and <b>ARCHIVE_FAILED</b>
+will be returned.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If
+<i>module</i> is not NULL, <i>option</i> and <i>value</i>
+will be provided to the filter or reader named
+<i>module</i>. The return value will be that of the module.
+If there is no such module, <b>ARCHIVE_FAILED</b> will be
+returned.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If
+<i>module</i> is NULL, <i>option</i> and <i>value</i> will
+be provided to every registered module. If any module
+returns <b>ARCHIVE_FATAL</b>, this value will be returned
+immediately. Otherwise, <b>ARCHIVE_OK</b> will be returned
+if any module accepts the option, and <b>ARCHIVE_FAILED</b>
+in all other cases.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_set_option</b>()</p>
+
+<p style="margin-left:17%;">Calls
+<b>archive_read_set_format_option</b>(), then
+<b>archive_read_set_filter_option</b>(). If either function
+returns <b>ARCHIVE_FATAL</b>, <b>ARCHIVE_FATAL</b> will be
+returned immediately. Otherwise, greater of the two values
+will be returned.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_set_options</b>()</p>
+
+<p style="margin-left:17%;"><i>options</i> is a
+comma-separated list of options. If <i>options</i> is NULL
+or empty, <b>ARCHIVE_OK</b> will be returned
+immediately.</p>
+
+<p style="margin-left:17%; margin-top: 1em">Calls
+<b>archive_read_set_option</b>() with each option in turn.
+If any <b>archive_read_set_option</b>() call returns
+<b>ARCHIVE_FATAL</b>, <b>ARCHIVE_FATAL</b> will be returned
+immediately.</p>
+
+<p style="margin-left:17%; margin-top: 1em">Individual
+options have one of the following forms:</p>
+
+<p><i>option=value</i></p>
+
+<p style="margin-left:27%;">The option/value pair will be
+provided to every module. Modules that do not accept an
+option with this name will ignore it.</p>
+
+<p><i>option</i></p>
+
+<p style="margin-left:27%; margin-top: 1em">The option will
+be provided to every module with a value of
+&ldquo;1&rdquo;.</p>
+
+<p><i>!option</i></p>
+
+<p style="margin-left:27%;">The option will be provided to
+every module with a NULL value.</p>
+
+<p><i>module:option=value</i>, <i>module:option</i>,
+<i>module:!option</i></p>
+
+<p style="margin-left:27%;">As above, but the corresponding
+option and value will be provided only to modules whose name
+matches <i>module</i>.</p>
+
+<p style="margin-top: 1em"><b>OPTIONS</b> <br>
+Format cab <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format cpio <b><br>
+compat-2x</b></p>
+
+<p style="margin-left:27%;">Libarchive 2.x incorrectly
+encoded Unicode filenames on some platforms. This option
+mimics the libarchive 2.x filename handling so that such
+archives can be read correctly.</p>
+
+<p><b>hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p><b>pwb</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">When reading a
+binary CPIO archive, assume that it is in the original PWB
+cpio format, and handle file mode bits accordingly. The
+default is to assume v7 format.</p>
+
+<p>Format iso9660 <b><br>
+joliet</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">Support Joliet
+extensions. Defaults to enabled, use <b>!joliet</b> to
+disable.</p>
+
+<p><b>rockridge</b></p>
+
+<p style="margin-left:27%;">Support RockRidge extensions.
+Defaults to enabled, use <b>!rockridge</b> to disable.</p>
+
+<p>Format lha <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format mtree <b><br>
+checkfs</b></p>
+
+<p style="margin-left:27%;">Allow reading information
+missing from the mtree from the file system. Disabled by
+default.</p>
+
+<p>Format rar <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format tar <b><br>
+compat-2x</b></p>
+
+<p style="margin-left:27%;">Libarchive 2.x incorrectly
+encoded Unicode filenames on some platforms. This option
+mimics the libarchive 2.x filename handling so that such
+archives can be read correctly.</p>
+
+<p><b>hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p><b>mac-ext</b></p>
+
+<p style="margin-left:27%;">Support Mac OS metadata
+extension that records data in special files beginning with
+a period and underscore. Defaults to enabled on Mac OS,
+disabled on other platforms. Use <b>!mac-ext</b> to
+disable.</p>
+
+<p><b>read_concatenated_archives</b></p>
+
+<p style="margin-left:27%;">Ignore zeroed blocks in the
+archive, which occurs when multiple tar archives have been
+concatenated together. Without this option, only the
+contents of the first concatenated archive would be
+read.</p>
+
+<p>Format zip <b><br>
+compat-2x</b></p>
+
+<p style="margin-left:27%;">Libarchive 2.x incorrectly
+encoded Unicode filenames on some platforms. This option
+mimics the libarchive 2.x filename handling so that such
+archives can be read correctly.</p>
+
+<p><b>hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p><b>ignorecrc32</b></p>
+
+<p style="margin-left:27%;">Skip the CRC32 check. Mostly
+used for testing.</p>
+
+<p><b>mac-ext</b></p>
+
+<p style="margin-left:27%;">Support Mac OS metadata
+extension that records data in special files beginning with
+a period and underscore. Defaults to enabled on Mac OS,
+disabled on other platforms. Use <b>!mac-ext</b> to
+disable.</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">Detailed error codes and textual
+descriptions are available from the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_read(3),
+archive_write_set_options(3), libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+January&nbsp;31, 2020 BSD</p>
+<hr>
+</body>
+</html>

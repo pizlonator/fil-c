@@ -1,0 +1,36 @@
+.TH ARCHIVE_WRITE_NEW 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_write_new\fP
+\- functions for creating archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIstruct archive *\fP
+.br
+\fB\%archive_write_new\fP(\fI\%void\fP);
+.SH DESCRIPTION
+.ad l
+Allocates and initializes a
+Tn struct archive
+object suitable for writing a tar archive.
+.BR NULL
+is returned on error.
+.PP
+A complete description of the
+Tn struct archive
+object can be found in the overview manual page for
+\fBlibarchive\fP(3).
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write\fP(3),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)

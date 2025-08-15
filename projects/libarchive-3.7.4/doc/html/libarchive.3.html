@@ -1,0 +1,328 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:47 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>LIBARCHIVE(3) BSD Library Functions Manual
+LIBARCHIVE(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>libarchive</b> &mdash;
+functions for reading and writing streaming archives</p>
+
+<p style="margin-top: 1em"><b>OVERVIEW</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+provides a flexible interface for reading and writing
+archives in various formats such as tar and cpio.
+<b>libarchive</b> also supports reading and writing archives
+compressed using various compression filters such as gzip
+and bzip2. The library is inherently stream-oriented;
+readers serially iterate through the archive, writers
+serially add things to the archive. In particular, note that
+there is currently no built-in support for random access nor
+for in-place modification.</p>
+
+<p style="margin-left:6%; margin-top: 1em">When reading an
+archive, the library automatically detects the format and
+the compression. The library currently has read support
+for:</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">old-style tar archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">most variants of the POSIX
+&ldquo;ustar&rdquo; format,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">the POSIX &ldquo;pax
+interchange&rdquo; format,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">GNU-format tar archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">most common cpio archive
+formats,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">7-Zip archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">ar archives (including GNU/SysV
+and BSD extensions),</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">Microsoft CAB archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">ISO9660 CD images (including
+RockRidge and Joliet extensions),</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">LHA archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">mtree file tree
+descriptions,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">RAR and most RAR5 archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">WARC archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">XAR archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">Zip archives.</p>
+
+<p style="margin-left:6%;">The library automatically
+detects archives compressed with compress(1), bzip2(1),
+grzip(1), gzip(1), lrzip(1), lz4(1), lzip(1), lzop(1),
+xz(1), or zstd(1) and decompresses them transparently.
+Decompression of some formats requires external decompressor
+utilities. It can similarly detect and decode archives
+processed with uuencode(1) or which have an rpm(1)
+header.</p>
+
+<p style="margin-left:6%; margin-top: 1em">When writing an
+archive, you can specify the compression to be used and the
+format to use. The library can write</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">POSIX-standard
+&ldquo;ustar&rdquo; archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">POSIX &ldquo;pax interchange
+format&rdquo; archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">cpio archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">7-Zip archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">ar archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">two different variants of shar
+archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">ISO9660 CD images,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">mtree file tree
+descriptions,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">XAR archives,</p>
+
+<p><b>&bull;</b></p>
+
+<p style="margin-left:12%;">Zip archive.</p>
+
+<p style="margin-left:6%;">Pax interchange format is an
+extension of the tar archive format that eliminates
+essentially all of the limitations of historic tar formats
+in a standard fashion that is supported by POSIX-compliant
+pax(1) implementations on many systems as well as several
+newer implementations of tar(1). Note that the default write
+format will suppress the pax extended attributes for most
+entries; explicitly requesting pax format will enable those
+attributes for all entries.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The read and
+write APIs are accessed through the
+<b>archive_read_XXX</b>() functions and the
+<b>archive_write_XXX</b>() functions, respectively, and
+either can be used independently of the other.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The rest of this
+manual page provides an overview of the library operation.
+More detailed information can be found in the individual
+manual pages for each API or utility function.</p>
+
+<p style="margin-top: 1em"><b>READING AN ARCHIVE</b></p>
+
+<p style="margin-left:6%;">See archive_read(3).</p>
+
+<p style="margin-top: 1em"><b>WRITING AN ARCHIVE</b></p>
+
+<p style="margin-left:6%;">See archive_write(3).</p>
+
+<p style="margin-top: 1em"><b>WRITING ENTRIES TO
+DISK</b></p>
+
+<p style="margin-left:6%;">The archive_write_disk(3) API
+allows you to write archive_entry(3) objects to disk using
+the same API used by archive_write(3). The
+archive_write_disk(3) API is used internally by
+<b>archive_read_extract</b>(); using it directly can provide
+greater control over how entries get written to disk. This
+API also makes it possible to share code between
+archive-to-archive copy and archive-to-disk extraction
+operations.</p>
+
+<p style="margin-top: 1em"><b>READING ENTRIES FROM
+DISK</b></p>
+
+<p style="margin-left:6%;">The archive_read_disk(3)
+supports for populating archive_entry(3) objects from
+information in the filesystem. This includes the information
+accessible from the stat(2) system call as well as ACLs,
+extended attributes, and other metadata. The
+archive_read_disk(3) API also supports iterating over
+directory trees, which allows directories of files to be
+read using an API compatible with the archive_read(3)
+API.</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">Detailed descriptions of each
+function are provided by the corresponding manual pages.</p>
+
+<p style="margin-left:6%; margin-top: 1em">All of the
+functions utilize an opaque struct archive datatype that
+provides access to the archive contents.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The struct
+archive_entry structure contains a complete description of a
+single archive entry. It uses an opaque interface that is
+fully documented in archive_entry(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Users familiar
+with historic formats should be aware that the newer
+variants have eliminated most restrictions on the length of
+textual fields. Clients should not assume that filenames,
+link names, user names, or group names are limited in
+length. In particular, pax interchange format can easily
+accommodate pathnames in arbitrary character sets that
+exceed <i>PATH_MAX</i>.</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+<p style="margin-left:6%;">Most functions return
+<b>ARCHIVE_OK</b> (zero) on success, non-zero on error. The
+return value indicates the general severity of the error,
+ranging from <b>ARCHIVE_WARN</b>, which indicates a minor
+problem that should probably be reported to the user, to
+<b>ARCHIVE_FATAL</b>, which indicates a serious problem that
+will prevent any further operations on this archive. On
+error, the <b>archive_errno</b>() function can be used to
+retrieve a numeric error code (see errno(2)). The
+<b>archive_error_string</b>() returns a textual error
+message suitable for display.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_read_new</b>()
+and <b>archive_write_new</b>() return pointers to an
+allocated and initialized struct archive object.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_read_data</b>()
+and <b>archive_write_data</b>() return a count of the number
+of bytes actually read or written. A value of zero indicates
+the end of the data for this entry. A negative value
+indicates an error, in which case the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions can be used to
+obtain more information.</p>
+
+<p style="margin-top: 1em"><b>ENVIRONMENT</b></p>
+
+<p style="margin-left:6%;">There are character set
+conversions within the archive_entry(3) functions that are
+impacted by the currently-selected locale.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_entry(3),
+archive_read(3), archive_util(3), archive_write(3),
+tar(5)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was originally written by Tim Kientzle
+&lt;kientzle@acm.org&gt;.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">Some archive formats support
+information that is not supported by struct archive_entry.
+Such information cannot be fully archived or restored using
+this library. This includes, for example, comments,
+character sets, or the arbitrary key/value pairs that can
+appear in pax interchange format archives.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Conversely, of
+course, not all of the information that can be stored in an
+struct archive_entry is supported by all formats. For
+example, cpio formats do not support nanosecond timestamps;
+old tar formats do not support large device numbers.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The ISO9660
+reader cannot yet read all ISO9660 images; it should learn
+how to seek.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The AR writer
+requires the client program to use two passes, unlike all
+other libarchive writers.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+March&nbsp;18, 2012 BSD</p>
+<hr>
+</body>
+</html>

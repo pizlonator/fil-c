@@ -1,0 +1,49 @@
+.TH ARCHIVE_ENTRY_MISC 3 "April 15, 2019" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_symlink_type\fP,
+\fB\%archive_entry_set_symlink_type\fP
+\- miscellaneous functions for manipulating properties of archive_entry
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_symlink_type\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_symlink_type\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%int\fP);
+.SH DESCRIPTION
+.ad l
+The function
+\fB\%archive_entry_symlink_type\fP()
+returns and the function
+\fB\%archive_entry_set_symlink_type\fP()
+sets the type of the symbolic link stored in an archive entry.
+These functions
+have special meaning on operating systems that support multiple symbolic link
+types (e.g. Microsoft Windows).
+.PP
+Supported values are:
+.RS 5
+.TP
+AE_SYMLINK_TYPE_UNDEFINED
+Symbolic link target type is not defined (default on unix systems)
+.TP
+AE_SYMLINK_TYPE_FILE
+Symbolic link points to a file
+.TP
+AE_SYMLINK_TYPE_DIRECTORY
+Symbolic link points to a directory
+.RE
+.SH SEE ALSO
+.ad l
+\fBarchive_entry\fP(3),
+\fBarchive_entry_paths\fP(3),
+\fBarchive_entry_stat\fP(3),
+\fBlibarchive\fP(3)

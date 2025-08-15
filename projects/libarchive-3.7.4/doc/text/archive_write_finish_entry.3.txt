@@ -1,0 +1,37 @@
+ARCHIVE_WRITE_FINISH_... BSD Library Functions Manual ARCHIVE_WRITE_FINISH_...
+
+NAME
+     archive_write_finish_entry — functions for creating archives
+
+LIBRARY
+     Streaming Archive Library (libarchive, -larchive)
+
+SYNOPSIS
+     #include <archive.h>
+
+     int
+     archive_write_finish_entry(struct archive *);
+
+DESCRIPTION
+     Close out the entry just written.	In particular, this writes out the fi‐
+     nal padding required by some formats.  Ordinarily, clients never need to
+     call this, as it is called automatically by archive_write_header() and
+     archive_write_close() as needed.  For archive_write_disk handles, this
+     flushes pending file attribute changes like modification time.
+
+RETURN VALUES
+     This function returns ARCHIVE_OK on success, or one of several non-zero
+     error codes for errors.  Specific error codes include: ARCHIVE_RETRY for
+     operations that might succeed if retried, ARCHIVE_WARN for unusual condi‐
+     tions that do not prevent further operations, and ARCHIVE_FATAL for seri‐
+     ous errors that make remaining operations impossible.
+
+ERRORS
+     Detailed error codes and textual descriptions are available from the
+     archive_errno() and archive_error_string() functions.
+
+SEE ALSO
+     tar(1), archive_write_data(3), archive_write_set_options(3),
+     libarchive(3), cpio(5), mtree(5), tar(5)
+
+BSD			       February 28, 2017			   BSD

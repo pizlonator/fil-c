@@ -1,0 +1,35 @@
+ARCHIVE_WRITE_HEADER(3)	 BSD Library Functions Manual  ARCHIVE_WRITE_HEADER(3)
+
+NAME
+     archive_write_header — functions for creating archives
+
+LIBRARY
+     Streaming Archive Library (libarchive, -larchive)
+
+SYNOPSIS
+     #include <archive.h>
+
+     int
+     archive_write_header(struct archive *, struct archive_entry *);
+
+DESCRIPTION
+     Build and write a header using the data in the provided struct
+     archive_entry structure.  See archive_entry(3) for information on creat‐
+     ing and populating struct archive_entry objects.
+
+RETURN VALUES
+     This function returns ARCHIVE_OK on success, or one of the following on
+     error: ARCHIVE_RETRY for operations that might succeed if retried,
+     ARCHIVE_WARN for unusual conditions that do not prevent further opera‐
+     tions, and ARCHIVE_FATAL for serious errors that make remaining opera‐
+     tions impossible.
+
+ERRORS
+     Detailed error codes and textual descriptions are available from the
+     archive_errno() and archive_error_string() functions.
+
+SEE ALSO
+     tar(1), archive_write_set_options(3), libarchive(3), cpio(5), mtree(5),
+     tar(5)
+
+BSD			       February 2, 2012				   BSD

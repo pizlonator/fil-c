@@ -1,0 +1,175 @@
+ARCHIVE_ENTRY_PATHS(3) manual page 
+== NAME == 
+'''archive_entry_hardlink''', 
+'''archive_entry_hardlink_w''', 
+'''archive_entry_set_hardlink''', 
+'''archive_entry_copy_hardlink''', 
+'''archive_entry_copy_hardlink_w''', 
+'''archive_entry_update_hardlink_utf8''', 
+'''archive_entry_set_link''', 
+'''archive_entry_copy_link''', 
+'''archive_entry_copy_link_w''', 
+'''archive_entry_update_link_utf8''', 
+'''archive_entry_pathname''', 
+'''archive_entry_pathname_w''', 
+'''archive_entry_set_pathname''', 
+'''archive_entry_copy_pathname''', 
+'''archive_entry_copy_pathname_w''', 
+'''archive_entry_update_pathname_utf8''', 
+'''archive_entry_sourcepath''', 
+'''archive_entry_copy_sourcepath''', 
+'''archive_entry_symlink''', 
+'''archive_entry_symlink_w''', 
+'''archive_entry_set_symlink''', 
+'''archive_entry_copy_symlink''', 
+'''archive_entry_copy_symlink_w''', 
+'''archive_entry_update_symlink_utf8''' 
+- functions for manipulating path names in archive entry descriptions 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive_entry.h></nowiki>''' 
+<br> 
+''const char *'' 
+<br> 
+'''archive_entry_hardlink'''(''struct archive_entry *a''); 
+<br> 
+''const wchar_t *'' 
+<br> 
+'''archive_entry_hardlink_w'''(''struct archive_entry *a''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_set_hardlink'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_hardlink'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_hardlink_w'''(''struct archive_entry *a '', ''const'', ''wchar_t'', ''*path"''); 
+<br> 
+''int'' 
+<br> 
+'''archive_entry_update_hardlink_utf8'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_set_link'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_link'''(''struct archive_entry *a'', '' const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_link_w'''(''struct archive_entry *a'', '' const wchar_t *path''); 
+<br> 
+''int'' 
+<br> 
+'''archive_entry_update_link_utf8'''(''struct archive_entry *a'', '' const char *path''); 
+<br> 
+''const char *'' 
+<br> 
+'''archive_entry_pathname'''(''struct archive_entry *a''); 
+<br> 
+''const wchar_t *'' 
+<br> 
+'''archive_entry_pathname_w'''(''struct archive_entry *a''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_set_pathname'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_pathname'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_pathname_w'''(''struct archive_entry *a'', ''const wchar_t *path''); 
+<br> 
+''int'' 
+<br> 
+'''archive_entry_update_pathname_utf8'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''const char *'' 
+<br> 
+'''archive_entry_sourcepath'''(''struct archive_entry *a''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_sourcepath'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''const char *'' 
+<br> 
+'''archive_entry_symlink'''(''struct archive_entry *a''); 
+<br> 
+''const wchar_t *'' 
+<br> 
+'''archive_entry_symlink_w'''(''struct archive_entry *a''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_set_symlink'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_symlink'''(''struct archive_entry *a'', ''const char *path''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_copy_symlink_w'''(''struct archive_entry *a'', ''const wchar_t *path''); 
+<br> 
+''int'' 
+<br> 
+'''archive_entry_update_symlink_utf8'''(''struct archive_entry *a'', ''const char *path''); 
+== DESCRIPTION == 
+Path names supported by 
+[[ManPageArchiveEntry3]]: 
+<dl> 
+<dt>hardlink</dt><dd> 
+Destination of the hardlink. 
+</dd><dt>link</dt><dd> 
+Update only. 
+For a symlink, update the destination. 
+Otherwise, make the entry a hardlink and alter 
+the destination for that. 
+</dd><dt>pathname</dt><dd> 
+Path in the archive 
+</dd><dt>sourcepath</dt><dd> 
+Path on the disk for use by 
+[[ManPageArchiveReadDisk3]]. 
+</dd><dt>symlink</dt><dd> 
+Destination of the symbolic link. 
+</dd></dl> 
+
+Path names can be provided in one of three different ways: 
+<dl> 
+<dt>char *</dt><dd> 
+Multibyte strings in the current locale. 
+</dd><dt>wchar_t *</dt><dd> 
+Wide character strings in the current locale. 
+The accessor functions are named 
+'''XXX_w'''(). 
+</dd><dt>UTF-8</dt><dd> 
+Unicode strings encoded as UTF-8. 
+These are convenience functions to update both the multibyte and wide 
+character strings at the same time. 
+</dd></dl> 
+
+The sourcepath is a pure filesystem concept and never stored in an 
+archive directly. 
+
+For that reason, it is only available as multibyte string. 
+The link path is a convenience function for conditionally setting 
+hardlink or symlink destination. 
+It doesn't have a corresponding get accessor function. 
+
+'''archive_entry_set_XXX'''() 
+is an alias for 
+'''archive_entry_copy_XXX'''(). 
+== SEE ALSO == 
+[[ManPageArchiveEntry3]], 
+[[ManPageLibarchive3]] 

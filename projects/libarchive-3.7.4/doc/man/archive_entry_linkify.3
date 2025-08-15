@@ -1,0 +1,203 @@
+.TH ARCHIVE_ENTRY_LINKIFY 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_linkresolver\fP,
+\fB\%archive_entry_linkresolver_new\fP,
+\fB\%archive_entry_linkresolver_set_strategy\fP,
+\fB\%archive_entry_linkresolver_free\fP,
+\fB\%archive_entry_linkify\fP
+\- hardlink resolver functions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fIstruct archive_entry_linkresolver *\fP
+.br
+\fB\%archive_entry_linkresolver_new\fP(\fI\%void\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_linkresolver_set_strategy\fP(\fI\%struct\ archive_entry_linkresolver\ *resolver\fP, \fI\%int\ format\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_linkresolver_free\fP(\fI\%struct\ archive_entry_linkresolver\ *resolver\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_linkify\fP(\fI\%struct\ archive_entry_linkresolver\ *resolver\fP, \fI\%struct\ archive_entry\ **entry\fP, \fI\%struct\ archive_entry\ **sparse\fP);
+.SH DESCRIPTION
+.ad l
+Programs that want to create archives have to deal with hardlinks.
+Hardlinks are handled in different ways by the archive formats.
+The basic strategies are:
+.RS 5
+.IP 1.
+Ignore hardlinks and store the body for each reference (old cpio, zip).
+.IP 2.
+Store the body the first time an inode is seen (ustar, pax).
+.IP 3.
+Store the body the last time an inode is seen (new cpio).
+.RE
+.PP
+The
+\fB\%archive_entry_linkresolver\fP
+functions help by providing a unified interface and handling the complexity
+behind the scene.
+.PP
+The
+\fB\%archive_entry_linkresolver\fP
+functions assume that
+Vt archive_entry
+instances have valid nlinks, inode and device values.
+The inode and device value is used to match entries.
+The nlinks value is used to determined if all references have been found and
+if the internal references can be recycled.
+.PP
+The
+\fB\%archive_entry_linkresolver_new\fP()
+function allocates a new link resolver.
+The instance can be freed using
+\fB\%archive_entry_linkresolver_free\fP().
+All deferred entries are flushed and the internal storage is freed.
+.PP
+The
+\fB\%archive_entry_linkresolver_set_strategy\fP()
+function selects the optimal hardlink strategy for the given format.
+The format code can be obtained from
+\fBarchive_format\fP(3).
+The function can be called more than once, but it is recommended to
+flush all deferred entries first.
+.PP
+The
+\fB\%archive_entry_linkify\fP()
+function is the core of
+\fB\%archive_entry_linkresolver\fP.
+The
+\fB\%entry\fP()
+argument points to the
+Vt archive_entry
+that should be written.
+Depending on the strategy one of the following actions is taken:
+.RS 5
+.IP 1.
+For the simple archive formats
+\fI*entry\fP
+is left unmodified and
+\fI*sparse\fP
+is set to
+.BR NULL.
+.IP 2.
+For tar like archive formats,
+\fI*sparse\fP
+is set to
+.BR NULL.
+If
+\fI*entry\fP
+is
+.BR NULL,
+no action is taken.
+If the hardlink count of
+\fI*entry\fP
+is larger than 1 and the file type is a regular file or symbolic link,
+the internal list is searched for a matching inode.
+If such an inode is found, the link count is decremented and the file size
+of
+\fI*entry\fP
+is set to 0 to notify that no body should be written.
+If no such inode is found, a copy of the entry is added to the internal cache
+with a link count reduced by one.
+.IP 3.
+For new cpio like archive formats a value for
+\fI*entry\fP
+of
+.BR NULL
+is used to flush deferred entries.
+In that case
+\fI*entry\fP
+is set to an arbitrary deferred entry and the entry itself is removed from the
+internal list.
+If the internal list is empty,
+\fI*entry\fP
+is set to
+.BR NULL.
+In either case,
+\fI*sparse\fP
+is set to
+.BR NULL
+and the function returns.
+If the hardlink count of
+\fI*entry\fP
+is one or the file type is a directory or device,
+\fI*sparse\fP
+is set to
+.BR NULL
+and no further action is taken.
+Otherwise, the internal list is searched for a matching inode.
+If such an inode is not found, the entry is added to the internal list,
+both
+\fI*entry\fP
+and
+\fI*sparse\fP
+are set to
+.BR NULL
+and the function returns.
+If such an inode is found, the link count is decremented.
+If it remains larger than one, the existing entry on the internal list
+is swapped with
+\fI*entry\fP
+after retaining the link count.
+The existing entry is returned in
+\fI*entry\fP.
+If the link count reached one, the new entry is also removed from the
+internal list and returned in
+\fI*sparse\fP.
+Otherwise
+\fI*sparse\fP
+is set to
+.BR NULL.
+.RE
+.PP
+The general usage is therefore:
+.RS 5
+.IP 1.
+For each new archive entry, call
+\fB\%archive_entry_linkify\fP().
+.IP 2.
+Keep in mind that the entries returned may have a size of 0 now.
+.IP 3.
+If
+\fI*entry\fP
+is not
+.BR NULL,
+archive it.
+.IP 4.
+If
+\fI*sparse\fP
+is not
+.BR NULL,
+archive it.
+.IP 5.
+After all entries have been written to disk, call
+\fB\%archive_entry_linkify\fP()
+with
+\fI*entry\fP
+set to
+.BR NULL
+and archive the returned entry as long as it is not
+.BR NULL.
+.RE
+.SH RETURN VALUES
+.ad l
+\fB\%archive_entry_linkresolver_new\fP()
+returns
+.BR NULL
+on
+\fBmalloc\fP(3)
+failures.
+.SH SEE ALSO
+.ad l
+\fBarchive_entry\fP(3)

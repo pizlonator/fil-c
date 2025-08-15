@@ -1,0 +1,205 @@
+.TH ARCHIVE_READ_OPEN 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_read_open\fP,
+\fB\%archive_read_open2\fP,
+\fB\%archive_read_open_fd\fP,
+\fB\%archive_read_open_FILE\fP,
+\fB\%archive_read_open_filename\fP,
+\fB\%archive_read_open_memory\fP
+\- functions for reading streaming archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_read_open\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *client_data\fP, \fI\%archive_open_callback\ *\fP, \fI\%archive_read_callback\ *\fP, \fI\%archive_close_callback\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_open2\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *client_data\fP, \fI\%archive_open_callback\ *\fP, \fI\%archive_read_callback\ *\fP, \fI\%archive_skip_callback\ *\fP, \fI\%archive_close_callback\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_open_FILE\fP(\fI\%struct\ archive\ *\fP, \fI\%FILE\ *file\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_open_fd\fP(\fI\%struct\ archive\ *\fP, \fI\%int\ fd\fP, \fI\%size_t\ block_size\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_open_filename\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *filename\fP, \fI\%size_t\ block_size\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_open_memory\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ void\ *buff\fP, \fI\%size_t\ size\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_read_open\fP()
+The same as
+\fB\%archive_read_open2\fP(),
+except that the skip callback is assumed to be
+.BR NULL.
+.TP
+\fB\%archive_read_open2\fP()
+Freeze the settings, open the archive, and prepare for reading entries.
+This is the most generic version of this call, which accepts
+four callback functions.
+Most clients will want to use
+\fB\%archive_read_open_filename\fP(),
+\fB\%archive_read_open_FILE\fP(),
+\fB\%archive_read_open_fd\fP(),
+or
+\fB\%archive_read_open_memory\fP()
+instead.
+The library invokes the client-provided functions to obtain
+raw bytes from the archive.
+.TP
+\fB\%archive_read_open_FILE\fP()
+Like
+\fB\%archive_read_open\fP(),
+except that it accepts a
+\fIFILE *\fP
+pointer.
+This function should not be used with tape drives or other devices
+that require strict I/O blocking.
+.TP
+\fB\%archive_read_open_fd\fP()
+Like
+\fB\%archive_read_open\fP(),
+except that it accepts a file descriptor and block size rather than
+a set of function pointers.
+Note that the file descriptor will not be automatically closed at
+end-of-archive.
+This function is safe for use with tape drives or other blocked devices.
+.TP
+\fB\%archive_read_open_file\fP()
+This is a deprecated synonym for
+\fB\%archive_read_open_filename\fP().
+.TP
+\fB\%archive_read_open_filename\fP()
+Like
+\fB\%archive_read_open\fP(),
+except that it accepts a simple filename and a block size.
+A NULL filename represents standard input.
+This function is safe for use with tape drives or other blocked devices.
+.TP
+\fB\%archive_read_open_memory\fP()
+Like
+\fB\%archive_read_open\fP(),
+except that it accepts a pointer and size of a block of
+memory containing the archive data.
+.RE
+.PP
+A complete description of the
+Tn struct archive
+and
+Tn struct archive_entry
+objects can be found in the overview manual page for
+\fBlibarchive\fP(3).
+.SH CLIENT CALLBACKS
+.ad l
+The callback functions must match the following prototypes:
+.RS 5
+.IP
+\fItypedef la_ssize_t\fP
+\fB\%archive_read_callback\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *client_data\fP, \fI\%const\ void\ **buffer\fP)
+.IP
+\fItypedef la_int64_t\fP
+\fB\%archive_skip_callback\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *client_data\fP, \fI\%off_t\ request\fP)
+.IP
+\fItypedef int\fP
+\fB\%archive_open_callback\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *client_data\fP)
+.IP
+\fItypedef int\fP
+\fB\%archive_close_callback\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *client_data\fP)
+.RE
+.PP
+The open callback is invoked by
+\fB\%archive_open\fP().
+It should return
+\fBARCHIVE_OK\fP
+if the underlying file or data source is successfully
+opened.
+If the open fails, it should call
+\fB\%archive_set_error\fP()
+to register an error code and message and return
+\fBARCHIVE_FATAL\fP.
+.PP
+The read callback is invoked whenever the library
+requires raw bytes from the archive.
+The read callback should read data into a buffer,
+set the
+.RS 4
+const void **buffer
+.RE
+argument to point to the available data, and
+return a count of the number of bytes available.
+The library will invoke the read callback again
+only after it has consumed this data.
+The library imposes no constraints on the size
+of the data blocks returned.
+On end-of-file, the read callback should
+return zero.
+On error, the read callback should invoke
+\fB\%archive_set_error\fP()
+to register an error code and message and
+return -1.
+.PP
+The skip callback is invoked when the
+library wants to ignore a block of data.
+The return value is the number of bytes actually
+skipped, which may differ from the request.
+If the callback cannot skip data, it should return
+zero.
+If the skip callback is not provided (the
+function pointer is
+.BR NULL ),
+the library will invoke the read function
+instead and simply discard the result.
+A skip callback can provide significant
+performance gains when reading uncompressed
+archives from slow disk drives or other media
+that can skip quickly.
+.PP
+The close callback is invoked by archive_close when
+the archive processing is complete.
+The callback should return
+\fBARCHIVE_OK\fP
+on success.
+On failure, the callback should invoke
+\fB\%archive_set_error\fP()
+to register an error code and message and
+return
+\fBARCHIVE_FATAL\fP.
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+on success, or
+\fBARCHIVE_FATAL\fP.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_read\fP(3),
+\fBarchive_read_data\fP(3),
+\fBarchive_read_filter\fP(3),
+\fBarchive_read_format\fP(3),
+\fBarchive_read_set_options\fP(3),
+\fBarchive_util\fP(3),
+\fBlibarchive\fP(3),
+\fBtar\fP(5)

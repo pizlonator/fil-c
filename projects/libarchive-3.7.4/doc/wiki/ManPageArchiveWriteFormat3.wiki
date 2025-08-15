@@ -1,0 +1,208 @@
+ARCHIVE_WRITE_FORMAT(3) manual page 
+== NAME == 
+'''archive_write_set_format''', 
+'''archive_write_set_format_7zip''', 
+'''archive_write_set_format_ar''', 
+'''archive_write_set_format_ar_bsd''', 
+'''archive_write_set_format_ar_svr4''', 
+'''archive_write_set_format_by_name''', 
+'''archive_write_set_format_cpio''', 
+'''archive_write_set_format_cpio_bin''', 
+'''archive_write_set_format_cpio_newc''', 
+'''archive_write_set_format_cpio_odc''', 
+'''archive_write_set_format_cpio_pwb''', 
+'''archive_write_set_format_filter_by_ext''', 
+'''archive_write_set_format_filter_by_ext_def''', 
+'''archive_write_set_format_gnutar''', 
+'''archive_write_set_format_iso9660''', 
+'''archive_write_set_format_mtree''', 
+'''archive_write_set_format_mtree_classic''', 
+'''archive_write_set_format_mtree_default''', 
+'''archive_write_set_format_pax''', 
+'''archive_write_set_format_pax_restricted''', 
+'''archive_write_set_format_raw''', 
+'''archive_write_set_format_shar''', 
+'''archive_write_set_format_shar_dump''', 
+'''archive_write_set_format_ustar''', 
+'''archive_write_set_format_v7tar''', 
+'''archive_write_set_format_warc''', 
+'''archive_write_set_format_xar''', 
+'''archive_write_set_format_zip''' 
+- functions for creating archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format'''(''struct archive *'', ''int code''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_7zip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_ar'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_ar_bsd'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_ar_svr4'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_by_name'''(''struct archive *'', ''const char *name''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_cpio'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_cpio_bin'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_cpio_newc'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_cpio_odc'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_cpio_pwb'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_filter_by_ext'''(''struct archive *'', ''const char *filename''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_filter_by_ext_def'''(''struct archive *'', ''const char *filename'', ''const char *def_ext''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_gnutar'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_iso9660'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_mtree'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_pax'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_pax_restricted'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_raw'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_shar'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_shar_dump'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_ustar'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_v7tar'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_warc'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_xar'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_format_zip'''(''struct archive *''); 
+== DESCRIPTION == 
+These functions set the format that will be used for the archive. 
+
+The library can write a variety of common archive formats. 
+<dl> 
+<dt>'''archive_write_set_format'''()</dt><dd> 
+Sets the format based on the format code (see 
+''archive.h'' 
+for the full list of format codes). 
+In particular, this can be used in conjunction with 
+'''archive_format'''() 
+to create a new archive with the same format as an existing archive. 
+</dd><dt>'''archive_write_set_format_by_name'''()</dt><dd> 
+Sets the corresponding format based on the common name. 
+</dd><dt> 
+'''archive_write_set_format_filter_by_ext'''() 
+'''archive_write_set_format_filter_by_ext_def'''() 
+</dt> <dd> 
+Sets both filters and format based on the output filename. 
+Supported extensions: .7z, .zip, .jar, .cpio, .iso, .a, .ar, .tar, .tgz, .tar.gz, .tar.bz2, .tar.xz 
+</dd><dt> 
+'''archive_write_set_format_7zip'''() 
+'''archive_write_set_format_ar_bsd'''() 
+'''archive_write_set_format_ar_svr4'''() 
+'''archive_write_set_format_cpio'''() 
+'''archive_write_set_format_cpio_bin'''() 
+'''archive_write_set_format_cpio_newc'''() 
+'''archive_write_set_format_cpio_odc'''() 
+'''archive_write_set_format_cpio_pwb'''() 
+'''archive_write_set_format_gnutar'''() 
+'''archive_write_set_format_iso9660'''() 
+'''archive_write_set_format_mtree'''() 
+'''archive_write_set_format_mtree_classic'''() 
+'''archive_write_set_format_pax'''() 
+'''archive_write_set_format_pax_restricted'''() 
+'''archive_write_set_format_raw'''() 
+'''archive_write_set_format_shar'''() 
+'''archive_write_set_format_shar_dump'''() 
+'''archive_write_set_format_ustar'''() 
+'''archive_write_set_format_v7tar'''() 
+'''archive_write_set_format_warc'''() 
+'''archive_write_set_format_xar'''() 
+'''archive_write_set_format_zip'''() 
+</dt> <dd> 
+Set the format as specified. 
+More details on the formats supported by libarchive can be found in the 
+[[ManPageLibarchiveFormats5]] 
+manual page. 
+</dd></dl> 
+== RETURN VALUES == 
+These functions return 
+'''ARCHIVE_OK''' 
+on success, or 
+'''ARCHIVE_FATAL'''. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWrite3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageLibarchiveFormats5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

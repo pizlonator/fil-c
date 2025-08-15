@@ -1,0 +1,570 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_ENTRY_ACL(3) BSD Library Functions Manual
+ARCHIVE_ENTRY_ACL(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_entry_acl_add_entry</b>,
+<b>archive_entry_acl_add_entry_w</b>,
+<b>archive_entry_acl_clear</b>,
+<b>archive_entry_acl_count</b>,
+<b>archive_entry_acl_from_text</b>,
+<b>archive_entry_acl_from_text_w</b>,
+<b>archive_entry_acl_next</b>,
+<b>archive_entry_acl_reset</b>,
+<b>archive_entry_acl_to_text</b>,
+<b>archive_entry_acl_to_text_w</b>,
+<b>archive_entry_acl_types</b> &mdash; functions for
+manipulating Access Control Lists in archive entry
+descriptions</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive_entry.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p><b>archive_entry_acl_add_entry</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int&nbsp;type</i>, <i>int&nbsp;permset</i>,
+<i>int&nbsp;tag</i>, <i>int&nbsp;qualifier</i>,
+<i>const&nbsp;char&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p><b>archive_entry_acl_add_entry_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int&nbsp;type</i>, <i>int&nbsp;permset</i>,
+<i>int&nbsp;tag</i>, <i>int&nbsp;qualifier</i>,
+<i>const&nbsp;wchar_t&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_acl_clear</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_acl_count</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int&nbsp;type</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_entry_acl_from_text</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*text</i>,
+<i>int&nbsp;type</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_entry_acl_from_text_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*text</i>,
+<i>int&nbsp;type</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_entry_acl_next</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int&nbsp;type</i>, <i>int&nbsp;*ret_type</i>,
+<i>int&nbsp;*ret_permset</i>, <i>int&nbsp;*ret_tag</i>,
+<i>int&nbsp;*ret_qual</i>,
+<i>const&nbsp;char&nbsp;**ret_name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_acl_reset</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int&nbsp;type</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>char
+*</i></p>
+
+
+<p><b>archive_entry_acl_to_text</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>ssize_t&nbsp;*len_p</i>, <i>int&nbsp;flags</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>wchar_t
+*</i></p>
+
+
+<p><b>archive_entry_acl_to_text_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>ssize_t&nbsp;*len_p</i>, <i>int&nbsp;flags</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_acl_types</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">The &ldquo;Access Control Lists
+(ACLs)&rdquo; extend the standard Unix permission model. The
+ACL interface of <b>libarchive</b> supports both POSIX.1e
+and NFSv4 style ACLs. Use of ACLs is restricted by various
+levels of ACL support in operating systems, file systems and
+archive formats.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>POSIX.1e
+Access Control Lists</b> <br>
+A POSIX.1e ACL consists of a number of independent entries.
+Each entry specifies the permission set as a bitmask of
+basic permissions. Valid permissions in the <i>permset</i>
+are:</p>
+
+<p>ARCHIVE_ENTRY_ACL_READ (<b>r</b>) <br>
+ARCHIVE_ENTRY_ACL_WRITE (<b>w</b>) <br>
+ARCHIVE_ENTRY_ACL_EXECUTE (<b>x</b>)</p>
+
+<p style="margin-left:6%;">The permissions correspond to
+the normal Unix permissions.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The <i>tag</i>
+specifies the principal to which the permission applies.
+Valid values are:</p>
+
+<p>ARCHIVE_ENTRY_ACL_USER</p>
+
+<p style="margin-left:51%;">The user specified by the name
+field.</p>
+
+<p>ARCHIVE_ENTRY_ACL_USER_OBJ</p>
+
+<p style="margin-left:51%;">The owner of the file.</p>
+
+<p>ARCHIVE_ENTRY_ACL_GROUP</p>
+
+<p style="margin-left:51%;">The group specified by the name
+field.</p>
+
+<p>ARCHIVE_ENTRY_ACL_GROUP_OBJ</p>
+
+<p style="margin-left:51%;">The group which owns the
+file.</p>
+
+<p>ARCHIVE_ENTRY_ACL_MASK</p>
+
+<p style="margin-left:51%;">The maximum permissions to be
+obtained via group permissions.</p>
+
+<p>ARCHIVE_ENTRY_ACL_OTHER</p>
+
+<p style="margin-left:51%;">Any principal who is not the
+file owner or a member of the owning group.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The principals
+ARCHIVE_ENTRY_ACL_USER_OBJ, ARCHIVE_ENTRY_ACL_GROUP_OBJ and
+ARCHIVE_ENTRY_ACL_OTHER are equivalent to user, group and
+other in the classic Unix permission model and specify
+non-extended ACL entries.</p>
+
+<p style="margin-left:6%; margin-top: 1em">All files have
+an access ACL (ARCHIVE_ENTRY_ACL_TYPE_ACCESS). This
+specifies the permissions required for access to the file
+itself. Directories have an additional ACL
+(ARCHIVE_ENTRY_ACL_TYPE_DEFAULT), which controls the initial
+access ACL for newly-created directory entries.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>NFSv4 Access
+Control Lists</b> <br>
+A NFSv4 ACL consists of multiple individual entries called
+Access Control Entries (ACEs).</p>
+
+<p style="margin-left:6%; margin-top: 1em">There are four
+possible types of a NFSv4 ACE:</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_ALLOW</p>
+
+<p style="margin-left:51%;">Allow principal to perform
+actions requiring given permissions.</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_DENY</p>
+
+<p style="margin-left:51%;">Prevent principal from
+performing actions requiring given permissions.</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_AUDIT</p>
+
+<p style="margin-left:51%;">Log access attempts by
+principal which require given permissions.</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_ALARM</p>
+
+<p style="margin-left:51%;">Trigger a system alarm on
+access attempts by principal which require given
+permissions.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The <i>tag</i>
+specifies the principal to which the permission applies.
+Valid values are:</p>
+
+<p>ARCHIVE_ENTRY_ACL_USER</p>
+
+<p style="margin-left:51%;">The user specified by the name
+field.</p>
+
+<p>ARCHIVE_ENTRY_ACL_USER_OBJ</p>
+
+<p style="margin-left:51%;">The owner of the file.</p>
+
+<p>ARCHIVE_ENTRY_ACL_GROUP</p>
+
+<p style="margin-left:51%;">The group specified by the name
+field.</p>
+
+<p>ARCHIVE_ENTRY_ACL_GROUP_OBJ</p>
+
+<p style="margin-left:51%;">The group which owns the
+file.</p>
+
+<p>ARCHIVE_ENTRY_ACL_EVERYONE</p>
+
+<p style="margin-left:51%;">Any principal who is not the
+file owner or a member of the owning group.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Entries with the
+ARCHIVE_ENTRY_ACL_USER or ARCHIVE_ENTRY_ACL_GROUP tag store
+the user and group name in the <i>name</i> string and
+optionally the user or group ID in the <i>qualifier</i>
+integer.</p>
+
+<p style="margin-left:6%; margin-top: 1em">NFSv4 ACE
+permissions and flags are stored in the same <i>permset</i>
+bitfield. Some permissions share the same constant and
+permission character but have different effect on
+directories than on files. The following ACE permissions are
+supported:</p>
+
+<p>ARCHIVE_ENTRY_ACL_READ_DATA (<b>r</b>)</p>
+
+<p style="margin-left:24%;">Read data (file).</p>
+
+<p>ARCHIVE_ENTRY_ACL_LIST_DIRECTORY (<b>r</b>)</p>
+
+<p style="margin-left:24%;">List entries (directory).</p>
+
+<p>ARCHIVE_ENTRY_ACL_WRITE_DATA (<b>w</b>)</p>
+
+<p style="margin-left:24%;">Write data (file).</p>
+
+<p>ARCHIVE_ENTRY_ACL_ADD_FILE (<b>w</b>)</p>
+
+<p style="margin-left:24%;">Create files (directory).</p>
+
+<p>ARCHIVE_ENTRY_ACL_EXECUTE (<b>x</b>)</p>
+
+<p style="margin-left:24%;">Execute file or change into a
+directory.</p>
+
+<p>ARCHIVE_ENTRY_ACL_APPEND_DATA (<b>p</b>)</p>
+
+<p style="margin-left:24%;">Append data (file).</p>
+
+<p>ARCHIVE_ENTRY_ACL_ADD_SUBDIRECTORY (<b>p</b>)</p>
+
+<p style="margin-left:24%;">Create subdirectories
+(directory).</p>
+
+<p>ARCHIVE_ENTRY_ACL_DELETE_CHILD (<b>D</b>)</p>
+
+<p style="margin-left:24%;">Remove files and subdirectories
+inside a directory.</p>
+
+<p>ARCHIVE_ENTRY_ACL_DELETE (<b>d</b>)</p>
+
+<p style="margin-left:24%;">Remove file or directory.</p>
+
+<p>ARCHIVE_ENTRY_ACL_READ_ATTRIBUTES (<b>a</b>)</p>
+
+<p style="margin-left:24%;">Read file or directory
+attributes.</p>
+
+<p>ARCHIVE_ENTRY_ACL_WRITE_ATTRIBUTES (<b>A</b>)</p>
+
+<p style="margin-left:24%;">Write file or directory
+attributes.</p>
+
+<p>ARCHIVE_ENTRY_ACL_READ_NAMED_ATTRS (<b>R</b>)</p>
+
+<p style="margin-left:24%;">Read named file or directory
+attributes.</p>
+
+<p>ARCHIVE_ENTRY_ACL_WRITE_NAMED_ATTRS (<b>W</b>)</p>
+
+<p style="margin-left:24%;">Write named file or directory
+attributes.</p>
+
+<p>ARCHIVE_ENTRY_ACL_READ_ACL (<b>c</b>)</p>
+
+<p style="margin-left:24%;">Read file or directory ACL.</p>
+
+<p>ARCHIVE_ENTRY_ACL_WRITE_ACL (<b>C</b>)</p>
+
+<p style="margin-left:24%;">Write file or directory
+ACL.</p>
+
+<p>ARCHIVE_ENTRY_ACL_WRITE_OWNER (<b>o</b>)</p>
+
+<p style="margin-left:24%;">Change owner of a file or
+directory.</p>
+
+<p>ARCHIVE_ENTRY_ACL_SYNCHRONIZE (<b>s</b>)</p>
+
+<p style="margin-left:24%;">Use synchronous I/O.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The following
+NFSv4 ACL inheritance flags are supported:</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_FILE_INHERIT (<b>f</b>)</p>
+
+<p style="margin-left:24%;">Inherit parent directory ACE to
+files.</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_DIRECTORY_INHERIT (<b>d</b>)</p>
+
+<p style="margin-left:24%;">Inherit parent directory ACE to
+subdirectories.</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_INHERIT_ONLY (<b>i</b>)</p>
+
+<p style="margin-left:24%;">Only inherit, do not apply the
+permission on the directory itself.</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_NO_PROPAGATE_INHERIT
+(<b>n</b>)</p>
+
+<p style="margin-left:24%;">Do not propagate inherit flags.
+Only first-level entries inherit ACLs.</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_SUCCESSFUL_ACCESS (<b>S</b>)</p>
+
+<p style="margin-left:24%;">Trigger alarm or audit on
+successful access.</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_FAILED_ACCESS (<b>F</b>)</p>
+
+<p style="margin-left:24%;">Trigger alarm or audit on
+failed access.</p>
+
+<p>ARCHIVE_ENTRY_ACL_ENTRY_INHERITED (<b>I</b>)</p>
+
+<p style="margin-left:24%;">Mark that ACE was
+inherited.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Functions
+<br>
+archive_entry_acl_add_entry</b>() and
+<b>archive_entry_acl_add_entry_w</b>() add a single ACL
+entry. For the access ACL and non-extended principals, the
+classic Unix permissions are updated. An archive entry
+cannot contain both POSIX.1e and NFSv4 ACL entries.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_clear</b>()
+removes all ACL entries and resets the enumeration
+pointer.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_count</b>()
+counts the ACL entries that have the given type mask.
+<i>type</i> can be the bitwise-or of</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_ACCESS <br>
+ARCHIVE_ENTRY_ACL_TYPE_DEFAULT</p>
+
+<p style="margin-left:6%; margin-top: 1em">for POSIX.1e
+ACLs and</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_ALLOW <br>
+ARCHIVE_ENTRY_ACL_TYPE_DENY <br>
+ARCHIVE_ENTRY_ACL_TYPE_AUDIT <br>
+ARCHIVE_ENTRY_ACL_TYPE_ALARM</p>
+
+<p style="margin-left:6%; margin-top: 1em">for NFSv4 ACLs.
+For POSIX.1e ACLs if ARCHIVE_ENTRY_ACL_TYPE_ACCESS is
+included and at least one extended ACL entry is found, the
+three non-extended ACLs are added.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_from_text</b>()
+and <b>archive_entry_acl_from_text_w</b>() add new (or merge
+with existing) ACL entries from (wide) text. The argument
+<i>type</i> may take one of the following values:</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_ACCESS <br>
+ARCHIVE_ENTRY_ACL_TYPE_DEFAULT <br>
+ARCHIVE_ENTRY_ACL_TYPE_NFS4</p>
+
+<p style="margin-left:6%; margin-top: 1em">Supports all
+formats that can be created with
+<b>archive_entry_acl_to_text</b>() or respectively
+<b>archive_entry_acl_to_text_w</b>(). Existing ACL entries
+are preserved. To get a clean new ACL from text
+<b>archive_entry_acl_clear</b>() must be called first.
+Entries prefixed with &ldquo;default:&rdquo; are treated as
+ARCHIVE_ENTRY_ACL_TYPE_DEFAULT unless <i>type</i> is
+ARCHIVE_ENTRY_ACL_TYPE_NFS4. Invalid entries, non-parseable
+ACL entries and entries beginning with the &rsquo;#&rsquo;
+character (comments) are skipped.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_next</b>()
+return the next entry of the ACL list. This functions may
+only be called after <b>archive_entry_acl_reset</b>() has
+indicated the presence of extended ACL entries.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_reset</b>()
+prepare reading the list of ACL entries with
+<b>archive_entry_acl_next</b>(). The function returns 0 if
+no non-extended ACLs are found. In this case, the access
+permissions should be obtained by archive_entry_mode(3) or
+set using chmod(2). Otherwise, the function returns the same
+value as <b>archive_entry_acl_count</b>().</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_to_text</b>()
+and <b>archive_entry_acl_to_text_w</b>() convert the ACL
+entries for the given type into a (wide) string of ACL
+entries separated by newline. If the pointer <i>len_p</i> is
+not NULL, then the function shall return the length of the
+string (not including the NULL terminator) in the location
+pointed to by <i>len_p</i>. The <i>flag</i> argument is a
+bitwise-or.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The following
+flags are effective only on POSIX.1e ACL:</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_ACCESS</p>
+
+<p style="margin-left:24%;">Output access ACLs.</p>
+
+<p>ARCHIVE_ENTRY_ACL_TYPE_DEFAULT</p>
+
+<p style="margin-left:24%;">Output POSIX.1e default
+ACLs.</p>
+
+<p>ARCHIVE_ENTRY_ACL_STYLE_MARK_DEFAULT</p>
+
+<p style="margin-left:24%;">Prefix each default ACL entry
+with the word &ldquo;default:&rdquo;.</p>
+
+<p>ARCHIVE_ENTRY_ACL_STYLE_SOLARIS</p>
+
+<p style="margin-left:24%;">The mask and other ACLs don not
+contain a double colon.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The following
+flags are effective only on NFSv4 ACL:</p>
+
+<p>ARCHIVE_ENTRY_ACL_STYLE_COMPACT</p>
+
+<p style="margin-left:24%;">Do not output minus characters
+for unset permissions and flags in NFSv4 ACL permission and
+flag fields.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The following
+flags are effective on both POSIX.1e and NFSv4 ACL:</p>
+
+<p>ARCHIVE_ENTRY_ACL_STYLE_EXTRA_ID</p>
+
+<p style="margin-left:24%;">Add an additional
+colon-separated field containing the user or group id.</p>
+
+<p>ARCHIVE_ENTRY_ACL_STYLE_SEPARATOR_COMMA</p>
+
+<p style="margin-left:24%;">Separate ACL entries with comma
+instead of newline.</p>
+
+<p style="margin-left:6%; margin-top: 1em">If the archive
+entry contains NFSv4 ACLs, all types of NFSv4 ACLs are
+returned. It the entry contains POSIX.1e ACLs and none of
+the flags ARCHIVE_ENTRY_ACL_TYPE_ACCESS or
+ARCHIVE_ENTRY_ACL_TYPE_DEFAULT are specified, both access
+and default entries are returned and default entries are
+prefixed with &ldquo;default:&rdquo;.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_types</b>()
+get ACL entry types contained in an archive entry&rsquo;s
+ACL. As POSIX.1e and NFSv4 ACL entries cannot be mixed, this
+function is a very efficient way to detect if an ACL already
+contains POSIX.1e or NFSv4 ACL entries.</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_entry_acl_count</b>()
+and <b>archive_entry_acl_reset</b>() returns the number of
+ACL entries that match the given type mask. For POSIX.1e
+ACLS if the type mask includes ARCHIVE_ENTRY_ACL_TYPE_ACCESS
+and at least one extended ACL entry exists, the three
+classic Unix permissions are counted.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_from_text</b>()
+and <b>archive_entry_acl_from_text_w</b>() return ARCHIVE_OK
+if all entries were successfully parsed and ARCHIVE_WARN if
+one or more entries were invalid or non-parseable.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_next</b>()
+returns ARCHIVE_OK on success, ARCHIVE_EOF if no more ACL
+entries exist and ARCHIVE_WARN if
+<b>archive_entry_acl_reset</b>() has not been called
+first.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_to_text</b>()
+returns a string representing the ACL entries matching the
+given type and flags on success or NULL on error.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_to_text_w</b>()
+returns a wide string representing the ACL entries matching
+the given type and flags on success or NULL on error.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_acl_types</b>()
+returns a bitmask of ACL entry types or 0 if archive entry
+has no ACL entries.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_entry(3),
+libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;15, 2017 BSD</p>
+<hr>
+</body>
+</html>

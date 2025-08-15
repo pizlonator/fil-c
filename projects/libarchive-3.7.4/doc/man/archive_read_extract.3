@@ -1,0 +1,112 @@
+.TH ARCHIVE_READ_EXTRACT 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_read_extract\fP,
+\fB\%archive_read_extract2\fP,
+\fB\%archive_read_extract_set_progress_callback\fP
+\- functions for reading streaming archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_read_extract\fP(\fI\%struct\ archive\ *\fP, \fI\%struct\ archive_entry\ *\fP, \fI\%int\ flags\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_extract2\fP(\fI\%struct\ archive\ *src\fP, \fI\%struct\ archive_entry\ *\fP, \fI\%struct\ archive\ *dest\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_read_extract_set_progress_callback\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ (*func)(void\ *)\fP, \fI\%void\ *user_data\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_read_extract\fP(), \fB\%archive_read_extract_set_skip_file\fP()
+A convenience function that wraps the corresponding
+\fBarchive_write_disk\fP(3)
+interfaces.
+The first call to
+\fB\%archive_read_extract\fP()
+creates a restore object using
+\fBarchive_write_disk_new\fP(3)
+and
+\fBarchive_write_disk_set_standard_lookup\fP(3),
+then transparently invokes
+\fBarchive_write_disk_set_options\fP(3),
+\fBarchive_write_header\fP(3),
+\fBarchive_write_data\fP(3),
+and
+\fBarchive_write_finish_entry\fP(3)
+to create the entry on disk and copy data into it.
+The
+\fIflags\fP
+argument is passed unmodified to
+\fBarchive_write_disk_set_options\fP(3).
+.TP
+\fB\%archive_read_extract2\fP()
+This is another version of
+\fB\%archive_read_extract\fP()
+that allows you to provide your own restore object.
+In particular, this allows you to override the standard lookup functions
+using
+\fBarchive_write_disk_set_group_lookup\fP(3),
+and
+\fBarchive_write_disk_set_user_lookup\fP(3).
+Note that
+\fB\%archive_read_extract2\fP()
+does not accept a
+\fIflags\fP
+argument; you should use
+\fB\%archive_write_disk_set_options\fP()
+to set the restore options yourself.
+.TP
+\fB\%archive_read_extract_set_progress_callback\fP()
+Sets a pointer to a user-defined callback that can be used
+for updating progress displays during extraction.
+The progress function will be invoked during the extraction of large
+regular files.
+The progress function will be invoked with the pointer provided to this call.
+Generally, the data pointed to should include a reference to the archive
+object and the archive_entry object so that various statistics
+can be retrieved for the progress display.
+.RE
+.SH RETURN VALUES
+.ad l
+Most functions return zero on success, non-zero on error.
+The possible return codes include:
+\fBARCHIVE_OK\fP
+(the operation succeeded),
+\fBARCHIVE_WARN\fP
+(the operation succeeded but a non-critical error was encountered),
+\fBARCHIVE_EOF\fP
+(end-of-archive was encountered),
+\fBARCHIVE_RETRY\fP
+(the operation failed but can be retried),
+and
+\fBARCHIVE_FATAL\fP
+(there was a fatal error; the archive should be closed immediately).
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_read\fP(3),
+\fBarchive_read_data\fP(3),
+\fBarchive_read_filter\fP(3),
+\fBarchive_read_format\fP(3),
+\fBarchive_read_open\fP(3),
+\fBarchive_read_set_options\fP(3),
+\fBarchive_util\fP(3),
+\fBlibarchive\fP(3),
+\fBtar\fP(5)

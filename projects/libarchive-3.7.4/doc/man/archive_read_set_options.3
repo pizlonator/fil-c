@@ -1,0 +1,281 @@
+.TH ARCHIVE_READ_OPTIONS 3 "January 31, 2020" ""
+.SH NAME
+.ad l
+\fB\%archive_read_set_filter_option\fP,
+\fB\%archive_read_set_format_option\fP,
+\fB\%archive_read_set_option\fP,
+\fB\%archive_read_set_options\fP
+\- functions controlling options for reading archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+.br
+\fIint\fP
+.br
+\fB\%archive_read_set_filter_option\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *module\fP, \fI\%const\ char\ *option\fP, \fI\%const\ char\ *value\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_set_format_option\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *module\fP, \fI\%const\ char\ *option\fP, \fI\%const\ char\ *value\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_set_option\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *module\fP, \fI\%const\ char\ *option\fP, \fI\%const\ char\ *value\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_set_options\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *options\fP);
+.SH DESCRIPTION
+.ad l
+These functions provide a way for libarchive clients to configure
+specific read modules.
+.RS 5
+.TP
+\fB\%archive_read_set_filter_option\fP(),
+\fB\%archive_read_set_format_option\fP()
+Specifies an option that will be passed to currently-registered
+filters (including decompression filters) or format readers.
+.PP
+If
+\fIoption\fP
+and
+\fIvalue\fP
+are both
+.BR NULL,
+these functions will do nothing and
+\fBARCHIVE_OK\fP
+will be returned.
+If
+\fIoption\fP
+is
+.BR NULL
+but
+\fIvalue\fP
+is not, these functions will do nothing and
+\fBARCHIVE_FAILED\fP
+will be returned.
+.PP
+If
+\fImodule\fP
+is not
+.BR NULL,
+\fIoption\fP
+and
+\fIvalue\fP
+will be provided to the filter or reader named
+\fImodule\fP.
+The return value will be that of the module.
+If there is no such module,
+\fBARCHIVE_FAILED\fP
+will be returned.
+.PP
+If
+\fImodule\fP
+is
+.BR NULL,
+\fIoption\fP
+and
+\fIvalue\fP
+will be provided to every registered module.
+If any module returns
+\fBARCHIVE_FATAL\fP,
+this value will be returned immediately.
+Otherwise,
+\fBARCHIVE_OK\fP
+will be returned if any module accepts the option, and
+\fBARCHIVE_FAILED\fP
+in all other cases.
+.TP
+\fB\%archive_read_set_option\fP()
+Calls
+\fB\%archive_read_set_format_option\fP(),
+then
+\fB\%archive_read_set_filter_option\fP().
+If either function returns
+\fBARCHIVE_FATAL\fP,
+\fBARCHIVE_FATAL\fP
+will be returned
+immediately.
+Otherwise, greater of the two values will be returned.
+.TP
+\fB\%archive_read_set_options\fP()
+\fIoptions\fP
+is a comma-separated list of options.
+If
+\fIoptions\fP
+is
+.BR NULL
+or empty,
+\fBARCHIVE_OK\fP
+will be returned immediately.
+.PP
+Calls
+\fB\%archive_read_set_option\fP()
+with each option in turn.
+If any
+\fB\%archive_read_set_option\fP()
+call returns
+\fBARCHIVE_FATAL\fP,
+\fBARCHIVE_FATAL\fP
+will be returned immediately.
+.PP
+Individual options have one of the following forms:
+.RS 5
+.TP
+\fIoption=value\fP
+The option/value pair will be provided to every module.
+Modules that do not accept an option with this name will ignore it.
+.TP
+\fIoption\fP
+The option will be provided to every module with a value of
+``1''.
+.TP
+\fI!option\fP
+The option will be provided to every module with a NULL value.
+.TP
+\fImodule:option=value\fP, \fImodule:option\fP, \fImodule:!option\fP
+As above, but the corresponding option and value will be provided
+only to modules whose name matches
+\fImodule\fP.
+.RE
+.RE
+.SH OPTIONS
+.ad l
+.RS 5
+.TP
+Format cab
+.RS 5
+.TP
+\fBhdrcharset\fP
+The value is used as a character set name that will be
+used when translating file names.
+.RE
+.TP
+Format cpio
+.RS 5
+.TP
+\fBcompat-2x\fP
+Libarchive 2.x incorrectly encoded Unicode filenames on
+some platforms.
+This option mimics the libarchive 2.x filename handling
+so that such archives can be read correctly.
+.TP
+\fBhdrcharset\fP
+The value is used as a character set name that will be
+used when translating file names.
+.TP
+\fBpwb\fP
+When reading a binary CPIO archive, assume that it is
+in the original PWB cpio format, and handle file mode
+bits accordingly.  The default is to assume v7 format.
+.RE
+.TP
+Format iso9660
+.RS 5
+.TP
+\fBjoliet\fP
+Support Joliet extensions.
+Defaults to enabled, use
+\fB!joliet\fP
+to disable.
+.TP
+\fBrockridge\fP
+Support RockRidge extensions.
+Defaults to enabled, use
+\fB!rockridge\fP
+to disable.
+.RE
+.TP
+Format lha
+.RS 5
+.TP
+\fBhdrcharset\fP
+The value is used as a character set name that will be
+used when translating file names.
+.RE
+.TP
+Format mtree
+.RS 5
+.TP
+\fBcheckfs\fP
+Allow reading information missing from the mtree from the file system.
+Disabled by default.
+.RE
+.TP
+Format rar
+.RS 5
+.TP
+\fBhdrcharset\fP
+The value is used as a character set name that will be
+used when translating file names.
+.RE
+.TP
+Format tar
+.RS 5
+.TP
+\fBcompat-2x\fP
+Libarchive 2.x incorrectly encoded Unicode filenames on
+some platforms.
+This option mimics the libarchive 2.x filename handling
+so that such archives can be read correctly.
+.TP
+\fBhdrcharset\fP
+The value is used as a character set name that will be
+used when translating file names.
+.TP
+\fBmac-ext\fP
+Support Mac OS metadata extension that records data in special
+files beginning with a period and underscore.
+Defaults to enabled on Mac OS, disabled on other platforms.
+Use
+\fB!mac-ext\fP
+to disable.
+.TP
+\fBread_concatenated_archives\fP
+Ignore zeroed blocks in the archive, which occurs when multiple tar archives
+have been concatenated together.
+Without this option, only the contents of
+the first concatenated archive would be read.
+.RE
+.TP
+Format zip
+.RS 5
+.TP
+\fBcompat-2x\fP
+Libarchive 2.x incorrectly encoded Unicode filenames on
+some platforms.
+This option mimics the libarchive 2.x filename handling
+so that such archives can be read correctly.
+.TP
+\fBhdrcharset\fP
+The value is used as a character set name that will be
+used when translating file names.
+.TP
+\fBignorecrc32\fP
+Skip the CRC32 check.
+Mostly used for testing.
+.TP
+\fBmac-ext\fP
+Support Mac OS metadata extension that records data in special
+files beginning with a period and underscore.
+Defaults to enabled on Mac OS, disabled on other platforms.
+Use
+\fB!mac-ext\fP
+to disable.
+.RE
+.RE
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_read\fP(3),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3)

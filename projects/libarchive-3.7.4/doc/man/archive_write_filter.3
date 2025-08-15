@@ -1,0 +1,141 @@
+.TH ARCHIVE_WRITE_FILTER 3 "August 14, 2014" ""
+.SH NAME
+.ad l
+\fB\%archive_write_add_filter_b64encode\fP,
+\fB\%archive_write_add_filter_by_name\fP,
+\fB\%archive_write_add_filter_bzip2\fP,
+\fB\%archive_write_add_filter_compress\fP,
+\fB\%archive_write_add_filter_grzip\fP,
+\fB\%archive_write_add_filter_gzip\fP,
+\fB\%archive_write_add_filter_lrzip\fP,
+\fB\%archive_write_add_filter_lz4\fP,
+\fB\%archive_write_add_filter_lzip\fP,
+\fB\%archive_write_add_filter_lzma\fP,
+\fB\%archive_write_add_filter_lzop\fP,
+\fB\%archive_write_add_filter_none\fP,
+\fB\%archive_write_add_filter_program\fP,
+\fB\%archive_write_add_filter_uuencode\fP,
+\fB\%archive_write_add_filter_xz\fP,
+\fB\%archive_write_add_filter_zstd\fP
+\- functions enabling output filters
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_b64encode\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_bzip2\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_compress\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_grzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_gzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_lrzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_lz4\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_lzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_lzma\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_lzop\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_none\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_program\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *\ cmd\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_uuencode\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_xz\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_add_filter_zstd\fP(\fI\%struct\ archive\ *\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_write_add_filter_bzip2\fP(),
+\fB\%archive_write_add_filter_compress\fP(),
+\fB\%archive_write_add_filter_grzip\fP(),
+\fB\%archive_write_add_filter_gzip\fP(),
+\fB\%archive_write_add_filter_lrzip\fP(),
+\fB\%archive_write_add_filter_lz4\fP(),
+\fB\%archive_write_add_filter_lzip\fP(),
+\fB\%archive_write_add_filter_lzma\fP(),
+\fB\%archive_write_add_filter_lzop\fP(),
+\fB\%archive_write_add_filter_xz\fP(),
+\fB\%archive_write_add_filter_zstd\fP(),
+The resulting archive will be compressed as specified.
+Note that the compressed output is always properly blocked.
+.TP
+\fB\%archive_write_add_filter_b64encode\fP(),
+\fB\%archive_write_add_filter_uuencode\fP(),
+The output will be encoded as specified.
+The encoded output is always properly blocked.
+.TP
+\fB\%archive_write_add_filter_none\fP()
+This is never necessary.
+It is provided only for backwards compatibility.
+.TP
+\fB\%archive_write_add_filter_program\fP()
+The archive will be fed into the specified compression program.
+The output of that program is blocked and written to the client
+write callbacks.
+.RE
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+on success, or
+\fBARCHIVE_FATAL\fP.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write\fP(3),
+\fBarchive_write_format\fP(3),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)

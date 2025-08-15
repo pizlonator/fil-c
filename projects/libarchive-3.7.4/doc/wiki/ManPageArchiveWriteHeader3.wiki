@@ -1,0 +1,44 @@
+ARCHIVE_WRITE_HEADER(3) manual page 
+== NAME == 
+'''archive_write_header''' 
+- functions for creating archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_write_header'''(''struct archive *'', ''struct archive_entry *''); 
+== DESCRIPTION == 
+Build and write a header using the data in the provided 
+'''struct archive_entry''' 
+structure. 
+See 
+[[ManPageArchiveEntry3]] 
+for information on creating and populating 
+'''struct archive_entry''' 
+objects. 
+== RETURN VALUES == 
+This function returns 
+'''ARCHIVE_OK''' 
+on success, or one of the following on error: 
+'''ARCHIVE_RETRY''' 
+for operations that might succeed if retried, 
+'''ARCHIVE_WARN''' 
+for unusual conditions that do not prevent further operations, and 
+'''ARCHIVE_FATAL''' 
+for serious errors that make remaining operations impossible. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

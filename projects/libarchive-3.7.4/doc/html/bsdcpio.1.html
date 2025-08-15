@@ -1,0 +1,521 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:48 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>CPIO(1) BSD General Commands Manual CPIO(1)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>cpio</b> &mdash; copy files
+to and from archives</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:13%;"><b>cpio -i</b> [<i>options</i>]
+[<i>pattern&nbsp;...</i>] [<i>&lt;&nbsp;archive</i>] <b><br>
+cpio -o</b> [<i>options</i>] <i>&lt; name-list</i>
+[<i>&gt;&nbsp;archive</i>] <b><br>
+cpio -p</b> [<i>options</i>] <i>dest-dir &lt;
+name-list</i></p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;"><b>cpio</b> copies files between
+archives and directories. This implementation can extract
+from tar, pax, cpio, zip, jar, ar, and ISO 9660 cdrom images
+and can create tar, pax, cpio, ar, and shar archives.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The first option
+to <b>cpio</b> is a mode indicator from the following
+list:</p>
+
+<p><b>-i</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">Input. Read an
+archive from standard input (unless overridden) and extract
+the contents to disk or (if the <b>-t</b> option is
+specified) list the contents to standard output. If one or
+more file patterns are specified, only files matching one of
+the patterns will be extracted.</p>
+
+<p><b>-o</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">Output. Read a
+list of filenames from standard input and produce a new
+archive on standard output (unless overridden) containing
+the specified items.</p>
+
+<p><b>-p</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">Pass-through.
+Read a list of filenames from standard input and copy the
+files to the specified directory.</p>
+
+<p style="margin-top: 1em"><b>OPTIONS</b></p>
+
+<p style="margin-left:6%;">Unless specifically stated
+otherwise, options are applicable in all operating
+modes.</p>
+
+<p style="margin-top: 1em"><b>-0</b>, <b>--null</b></p>
+
+<p style="margin-left:17%;">Read filenames separated by NUL
+characters instead of newlines. This is necessary if any of
+the filenames being read might contain newlines.</p>
+
+<p style="margin-top: 1em"><b>-6</b>, <b>--pwb</b></p>
+
+<p style="margin-left:17%;">When reading a binary format
+archive, assume it&rsquo;s the earlier one, from the PWB
+variant of 6th Edition UNIX. When writing a cpio archive,
+use the PWB format.</p>
+
+<p style="margin-top: 1em"><b>-7</b>, <b>--binary</b></p>
+
+<p style="margin-left:17%;">(o mode only) When writing a
+cpio archive, use the (newer, non-PWB) binary format.</p>
+
+<p style="margin-top: 1em"><b>-A</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Append to the specified archive. (Not yet implemented.)</p>
+
+<p style="margin-top: 1em"><b>-a</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o and p modes)
+Reset access times on files after they are read.</p>
+
+<p style="margin-top: 1em"><b>-B</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Block output to records of 5120 bytes.</p>
+
+<p style="margin-top: 1em"><b>-C</b> <i>size</i></p>
+
+<p style="margin-left:17%;">(o mode only) Block output to
+records of <i>size</i> bytes.</p>
+
+<p style="margin-top: 1em"><b>-c</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Use the old POSIX portable character format. Equivalent to
+<b>--format</b> <i>odc</i>.</p>
+
+<p style="margin-top: 1em"><b>-d</b>,
+<b>--make-directories</b></p>
+
+<p style="margin-left:17%;">(i and p modes) Create
+directories as necessary.</p>
+
+<p style="margin-top: 1em"><b>-E</b> <i>file</i></p>
+
+<p style="margin-left:17%;">(i mode only) Read list of file
+name patterns from <i>file</i> to list and extract.</p>
+
+<p style="margin-top: 1em"><b>-F</b> <i>file</i>,
+<b>--file</b> <i>file</i></p>
+
+<p style="margin-left:17%;">Read archive from or write
+archive to <i>file</i>.</p>
+
+<p style="margin-top: 1em"><b>-f</b> <i>pattern</i></p>
+
+<p style="margin-left:17%;">(i mode only) Ignore files that
+match <i>pattern</i>.</p>
+
+<p style="margin-top: 1em"><b>-H</b> <i>format</i>,
+<b>--format</b> <i>format</i></p>
+
+<p style="margin-left:17%;">(o mode only) Produce the
+output archive in the specified format. Supported formats
+include:</p>
+
+<p style="margin-top: 1em"><i>cpio</i></p>
+
+<p style="margin-left:28%; margin-top: 1em">Synonym for
+<i>odc</i>.</p>
+
+<p><i>newc</i></p>
+
+<p style="margin-left:28%; margin-top: 1em">The SVR4
+portable cpio format.</p>
+
+<p><i>odc</i></p>
+
+<p style="margin-left:28%; margin-top: 1em">The old POSIX.1
+portable octet-oriented cpio format.</p>
+
+<p><i>pax</i></p>
+
+<p style="margin-left:28%; margin-top: 1em">The POSIX.1 pax
+format, an extension of the ustar format.</p>
+
+<p><i>ustar</i></p>
+
+<p style="margin-left:28%; margin-top: 1em">The POSIX.1 tar
+format.</p>
+
+<p style="margin-left:17%; margin-top: 1em">The default
+format is <i>odc</i>. See libarchive-formats(5) for more
+complete information about the formats currently supported
+by the underlying libarchive(3) library.</p>
+
+<p style="margin-top: 1em"><b>-h</b>, <b>--help</b></p>
+
+<p style="margin-left:17%;">Print usage information.</p>
+
+<p style="margin-top: 1em"><b>-I</b> <i>file</i></p>
+
+<p style="margin-left:17%;">Read archive from
+<i>file</i>.</p>
+
+<p style="margin-top: 1em"><b>-i</b>, <b>--extract</b></p>
+
+<p style="margin-left:17%;">Input mode. See above for
+description.</p>
+
+<p style="margin-top: 1em"><b>--insecure</b></p>
+
+<p style="margin-left:17%;">(i and p mode only) Disable
+security checks during extraction or copying. This allows
+extraction via symbolic links, absolute paths, and path
+names containing &rsquo;..&rsquo; in the name.</p>
+
+<p style="margin-top: 1em"><b>-J</b>, <b>--xz</b></p>
+
+<p style="margin-left:17%;">(o mode only) Compress the file
+with xz-compatible compression before writing it. In input
+mode, this option is ignored; xz compression is recognized
+automatically on input.</p>
+
+<p style="margin-top: 1em"><b>-j</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">Synonym for
+<b>-y</b>.</p>
+
+<p style="margin-top: 1em"><b>-L</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o and p modes)
+All symbolic links will be followed. Normally, symbolic
+links are archived and copied as symbolic links. With this
+option, the target of the link will be archived or copied
+instead.</p>
+
+<p style="margin-top: 1em"><b>-l</b>, <b>--link</b></p>
+
+<p style="margin-left:17%;">(p mode only) Create links from
+the target directory to the original files, instead of
+copying.</p>
+
+<p style="margin-top: 1em"><b>--lrzip</b></p>
+
+<p style="margin-left:17%;">(o mode only) Compress the
+resulting archive with lrzip(1). In input mode, this option
+is ignored.</p>
+
+<p style="margin-top: 1em"><b>--lz4</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the archive with lz4-compatible compression before
+writing it. In input mode, this option is ignored; lz4
+compression is recognized automatically on input.</p>
+
+<p style="margin-top: 1em"><b>--zstd</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the archive with zstd-compatible compression before
+writing it. In input mode, this option is ignored; zstd
+compression is recognized automatically on input.</p>
+
+<p style="margin-top: 1em"><b>--lzma</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the file with lzma-compatible compression before
+writing it. In input mode, this option is ignored; lzma
+compression is recognized automatically on input.</p>
+
+<p style="margin-top: 1em"><b>--lzop</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the resulting archive with lzop(1). In input mode,
+this option is ignored.</p>
+
+<p style="margin-top: 1em"><b>--passphrase</b>
+<i>passphrase</i></p>
+
+<p style="margin-left:17%;">The <i>passphrase</i> is used
+to extract or create an encrypted archive. Currently, zip is
+only a format that <b>cpio</b> can handle encrypted
+archives. You shouldn&rsquo;t use this option unless you
+realize how insecure use of this option is.</p>
+
+<p style="margin-top: 1em"><b>-m</b>,
+<b>--preserve-modification-time</b></p>
+
+<p style="margin-left:17%;">(i and p modes) Set file
+modification time on created files to match those in the
+source.</p>
+
+<p style="margin-top: 1em"><b>-n</b>,
+<b>--numeric-uid-gid</b></p>
+
+<p style="margin-left:17%;">(i mode, only with <b>-t</b>)
+Display numeric uid and gid. By default, <b>cpio</b>
+displays the user and group names when they are provided in
+the archive, or looks up the user and group names in the
+system password database.</p>
+
+<p style="margin-top: 1em"><b>--no-preserve-owner</b></p>
+
+<p style="margin-left:17%;">(i mode only) Do not attempt to
+restore file ownership. This is the default when run by
+non-root users.</p>
+
+<p style="margin-top: 1em"><b>-O</b> <i>file</i></p>
+
+<p style="margin-left:17%;">Write archive to
+<i>file</i>.</p>
+
+<p style="margin-top: 1em"><b>-o</b>, <b>--create</b></p>
+
+<p style="margin-left:17%;">Output mode. See above for
+description.</p>
+
+<p style="margin-top: 1em"><b>-p</b>,
+<b>--pass-through</b></p>
+
+<p style="margin-left:17%;">Pass-through mode. See above
+for description.</p>
+
+<p style="margin-top: 1em"><b>--preserve-owner</b></p>
+
+<p style="margin-left:17%;">(i mode only) Restore file
+ownership. This is the default when run by the root
+user.</p>
+
+<p style="margin-top: 1em"><b>--quiet</b></p>
+
+<p style="margin-left:17%;">Suppress unnecessary
+messages.</p>
+
+<p style="margin-top: 1em"><b>-R</b> [ <br>
+user][ <br>
+:][ <br>
+group], <b>--owner</b> [ <br>
+user][ <br>
+:][ <br>
+group]</p>
+
+<p style="margin-left:17%;">Set the owner and/or group on
+files in the output. If group is specified with no user (for
+example, <b>-R</b> <i>:wheel</i>) then the group will be set
+but not the user. If the user is specified with a trailing
+colon and no group (for example, <b>-R</b> <i>root:</i>)
+then the group will be set to the user&rsquo;s default
+group. If the user is specified with no trailing colon, then
+the user will be set but not the group. In <b>-i</b> and
+<b>-p</b> modes, this option can only be used by the
+super-user. (For compatibility, a period can be used in
+place of the colon.)</p>
+
+<p style="margin-top: 1em"><b>-r</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(All modes.)
+Rename files interactively. For each file, a prompt is
+written to <i>/dev/tty</i> containing the name of the file
+and a line is read from <i>/dev/tty</i>. If the line read is
+blank, the file is skipped. If the line contains a single
+period, the file is processed normally. Otherwise, the line
+is taken to be the new name of the file.</p>
+
+<p style="margin-top: 1em"><b>-t</b>, <b>--list</b></p>
+
+<p style="margin-left:17%;">(i mode only) List the contents
+of the archive to stdout; do not restore the contents to
+disk.</p>
+
+<p style="margin-top: 1em"><b>-u</b>,
+<b>--unconditional</b></p>
+
+<p style="margin-left:17%;">(i and p modes) Unconditionally
+overwrite existing files. Ordinarily, an older file will not
+overwrite a newer file on disk.</p>
+
+<p style="margin-top: 1em"><b>-V</b>, <b>--dot</b></p>
+
+<p style="margin-left:17%;">Print a dot to stderr for each
+file as it is processed. Superseded by <b>-v</b>.</p>
+
+<p style="margin-top: 1em"><b>-v</b>, <b>--verbose</b></p>
+
+<p style="margin-left:17%;">Print the name of each file to
+stderr as it is processed. With <b>-t</b>, provide a
+detailed listing of each file.</p>
+
+<p style="margin-top: 1em"><b>--version</b></p>
+
+<p style="margin-left:17%;">Print the program version
+information and exit.</p>
+
+<p style="margin-top: 1em"><b>-y</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the archive with bzip2-compatible compression
+before writing it. In input mode, this option is ignored;
+bzip2 compression is recognized automatically on input.</p>
+
+<p style="margin-top: 1em"><b>-Z</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the archive with compress-compatible compression
+before writing it. In input mode, this option is ignored;
+compression is recognized automatically on input.</p>
+
+<p style="margin-top: 1em"><b>-z</b></p>
+
+<p style="margin-left:17%; margin-top: 1em">(o mode only)
+Compress the archive with gzip-compatible compression before
+writing it. In input mode, this option is ignored; gzip
+compression is recognized automatically on input.</p>
+
+<p style="margin-top: 1em"><b>EXIT STATUS</b></p>
+
+<p style="margin-left:6%;">The <b>cpio</b> utility
+exits&nbsp;0 on success, and&nbsp;&gt;0 if an error
+occurs.</p>
+
+<p style="margin-top: 1em"><b>ENVIRONMENT</b></p>
+
+<p style="margin-left:6%;">The following environment
+variables affect the execution of <b>cpio</b>:</p>
+
+<p style="margin-top: 1em">LANG</p>
+
+<p style="margin-left:21%; margin-top: 1em">The locale to
+use. See environ(7) for more information.</p>
+
+<p style="margin-top: 1em">TZ</p>
+
+<p style="margin-left:21%; margin-top: 1em">The timezone to
+use when displaying dates. See environ(7) for more
+information.</p>
+
+<p style="margin-top: 1em"><b>EXAMPLES</b></p>
+
+<p style="margin-left:6%;">The <b>cpio</b> command is
+traditionally used to copy file hierarchies in conjunction
+with the find(1) command. The first example here simply
+copies all files from <i>src</i> to <i>dest</i>:</p>
+
+<p style="margin-left:14%;"><b>find</b> <i>src</i> |
+<b>cpio -pmud</b> <i>dest</i></p>
+
+<p style="margin-left:6%; margin-top: 1em">By carefully
+selecting options to the find(1) command and combining it
+with other standard utilities, it is possible to exercise
+very fine control over which files are copied. This next
+example copies files from <i>src</i> to <i>dest</i> that are
+more than 2 days old and whose names match a particular
+pattern:</p>
+
+<p style="margin-left:14%;"><b>find</b> <i>src</i>
+<b>-mtime</b> <i>+2</i> | <b>grep foo[bar]</b> | <b>cpio
+-pdmu</b> <i>dest</i></p>
+
+<p style="margin-left:6%; margin-top: 1em">This example
+copies files from <i>src</i> to <i>dest</i> that are more
+than 2 days old and which contain the word &ldquo;</p>
+
+<p>foobar &rdquo;:</p>
+
+<p style="margin-left:14%;"><b>find</b> <i>src</i>
+<b>-mtime</b> <i>+2</i> | <b>xargs grep -l foobar</b> |
+<b>cpio -pdmu</b> <i>dest</i></p>
+
+<p style="margin-top: 1em"><b>COMPATIBILITY</b></p>
+
+<p style="margin-left:6%;">The mode options i, o, and p and
+the options a, B, c, d, f, l, m, r, t, u, and v comply with
+SUSv2.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The old POSIX.1
+standard specified that only <b>-i</b>, <b>-o</b>, and
+<b>-p</b> were interpreted as command-line options. Each
+took a single argument of a list of modifier characters. For
+example, the standard syntax allows <b>-imu</b> but does not
+support <b>-miu</b> or <b>-i -m -u</b>, since <i>m</i> and
+<i>u</i> are only modifiers to <b>-i</b>, they are not
+command-line options in their own right. The syntax
+supported by this implementation is backwards-compatible
+with the standard. For best compatibility, scripts should
+limit themselves to the standard syntax.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">bzip2(1), gzip(1), mt(1),
+pax(1), tar(1), libarchive(3), cpio(5),
+libarchive-formats(5), tar(5)</p>
+
+<p style="margin-top: 1em"><b>STANDARDS</b></p>
+
+<p style="margin-left:6%;">There is no current POSIX
+standard for the cpio command; it appeared in ISO/IEC
+9945-1:1996 (&ldquo;POSIX.1&rdquo;) but was dropped from
+IEEE Std 1003.1-2001 (&ldquo;POSIX.1&rdquo;).</p>
+
+<p style="margin-left:6%; margin-top: 1em">The cpio, ustar,
+and pax interchange file formats are defined by IEEE Std
+1003.1-2001 (&ldquo;POSIX.1&rdquo;) for the pax command.</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The original <b>cpio</b> and
+<b>find</b> utilities were written by Dick Haight while
+working in AT&amp;T&rsquo;s Unix Support Group. They first
+appeared in 1977 in PWB/UNIX 1.0, the
+&ldquo;Programmer&rsquo;s Work Bench&rdquo; system developed
+for use within AT&amp;T. They were first released outside of
+AT&amp;T as part of System III Unix in 1981. As a result,
+<b>cpio</b> actually predates <b>tar</b>, even though it was
+not well-known outside of AT&amp;T until some time
+later.</p>
+
+<p style="margin-left:6%; margin-top: 1em">This is a
+complete re-implementation based on the libarchive(3)
+library.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">The cpio archive format has
+several basic limitations: It does not store user and group
+names, only numbers. As a result, it cannot be reliably used
+to transfer files between systems with dissimilar user and
+group numbering. Older cpio formats limit the user and group
+numbers to 16 or 18 bits, which is insufficient for modern
+systems. The cpio archive formats cannot support files over
+4 gigabytes, except for the &ldquo;odc&rdquo; variant, which
+can support files up to 8 gigabytes.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+September&nbsp;16, 2014 BSD</p>
+<hr>
+</body>
+</html>

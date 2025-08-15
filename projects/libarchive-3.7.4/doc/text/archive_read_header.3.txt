@@ -1,0 +1,45 @@
+ARCHIVE_READ_HEADER(3)	 BSD Library Functions Manual	ARCHIVE_READ_HEADER(3)
+
+NAME
+     archive_read_next_header, archive_read_next_header2 — functions for read‐
+     ing streaming archives
+
+LIBRARY
+     Streaming Archive Library (libarchive, -larchive)
+
+SYNOPSIS
+     #include <archive.h>
+
+     int
+     archive_read_next_header(struct archive *, struct archive_entry **);
+
+     int
+     archive_read_next_header2(struct archive *, struct archive_entry *);
+
+DESCRIPTION
+     archive_read_next_header()
+	     Read the header for the next entry and return a pointer to a
+	     struct archive_entry.  This is a convenience wrapper around
+	     archive_read_next_header2() that reuses an internal struct
+	     archive_entry object for each request.
+     archive_read_next_header2()
+	     Read the header for the next entry and populate the provided
+	     struct archive_entry.
+
+RETURN VALUES
+     These functions return ARCHIVE_OK (the operation succeeded), ARCHIVE_WARN
+     (the operation succeeded but a non-critical error was encountered),
+     ARCHIVE_EOF (end-of-archive was encountered), ARCHIVE_RETRY (the opera‐
+     tion failed but can be retried), and ARCHIVE_FATAL (there was a fatal er‐
+     ror; the archive should be closed immediately).
+
+ERRORS
+     Detailed error codes and textual descriptions are available from the
+     archive_errno() and archive_error_string() functions.
+
+SEE ALSO
+     tar(1), archive_read(3), archive_read_data(3), archive_read_extract(3),
+     archive_read_filter(3), archive_read_format(3), archive_read_open(3),
+     archive_read_set_options(3), archive_util(3), libarchive(3), tar(5)
+
+BSD			       February 2, 2012				   BSD

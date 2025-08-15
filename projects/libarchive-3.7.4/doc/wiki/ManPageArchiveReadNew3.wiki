@@ -1,0 +1,32 @@
+ARCHIVE_READ_NEW(3) manual page 
+== NAME == 
+'''archive_read_new''' 
+- functions for reading streaming archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''struct archive *'' 
+<br> 
+'''archive_read_new'''(''void''); 
+== DESCRIPTION == 
+Allocates and initializes a 
+'''struct archive''' 
+object suitable for reading from an archive. 
+NULL 
+is returned on error. 
+
+A complete description of the 
+'''struct archive''' 
+object can be found in the overview manual page for 
+[[ManPageLibarchive3]]. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveReadData3]], 
+[[ManPageArchiveReadFilter3]], 
+[[ManPageArchiveReadFormat3]], 
+[[ManPageArchiveReadSetOptions3]], 
+[[ManPageArchiveUtil3]], 
+[[ManPageLibarchive3]], 
+[[ManPageTar5]] 

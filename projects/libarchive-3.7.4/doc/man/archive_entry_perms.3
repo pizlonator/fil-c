@@ -1,0 +1,231 @@
+.TH ARCHIVE_ENTRY_PERMS 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_gid\fP,
+\fB\%archive_entry_set_gid\fP,
+\fB\%archive_entry_uid\fP,
+\fB\%archive_entry_set_uid\fP,
+\fB\%archive_entry_perm\fP,
+\fB\%archive_entry_set_perm\fP,
+\fB\%archive_entry_strmode\fP,
+\fB\%archive_entry_uname\fP,
+\fB\%archive_entry_uname_w\fP,
+\fB\%archive_entry_set_uname\fP,
+\fB\%archive_entry_copy_uname\fP,
+\fB\%archive_entry_copy_uname_w\fP,
+\fB\%archive_entry_update_uname_utf8\fP,
+\fB\%archive_entry_gname\fP,
+\fB\%archive_entry_gname_w\fP,
+\fB\%archive_entry_set_gname\fP,
+\fB\%archive_entry_copy_gname\fP,
+\fB\%archive_entry_copy_gname_w\fP,
+\fB\%archive_entry_update_gname_utf8\fP,
+\fB\%archive_entry_fflags\fP,
+\fB\%archive_entry_fflags_text\fP,
+\fB\%archive_entry_set_fflags\fP,
+\fB\%archive_entry_copy_fflags_text\fP,
+\fB\%archive_entry_copy_fflags_text_w\fP
+\- functions for manipulating ownership and permissions in archive entry descriptions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fIgid_t\fP
+.br
+\fB\%archive_entry_gid\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_gid\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%gid_t\ gid\fP);
+.br
+\fIuid_t\fP
+.br
+\fB\%archive_entry_uid\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_uid\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%uid_t\ uid\fP);
+.br
+\fImode_t\fP
+.br
+\fB\%archive_entry_perm\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_perm\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%mode_t\ mode\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_strmode\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_gname\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIconst wchar_t *\fP
+.br
+\fB\%archive_entry_gname_w\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_gname\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_gname\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *name\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_gname_w\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ wchar_t\ *name\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_update_gname_utf8\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *name\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_uname\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIconst wchar_t *\fP
+.br
+\fB\%archive_entry_uname_w\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_uname\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *name\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_uname\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *name\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_uname_w\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ wchar_t\ *name\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_update_uname_utf8\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *name\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_fflags\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%unsigned\ long\ *set_bits\fP, \fI\%unsigned\ long\ *clear_bits\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_fflags_text\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_fflags\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%unsigned\ long\ set_bits\fP, \fI\%unsigned\ long\ clear_bits\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_copy_fflags_text\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *text\fP);
+.br
+\fIconst wchar_t *\fP
+.br
+\fB\%archive_entry_copy_fflags_text_w\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ wchar_t\ *text\fP);
+.SH DESCRIPTION
+.ad l
+.SS User id, group id and mode
+The functions
+\fB\%archive_entry_uid\fP(),
+\fB\%archive_entry_gid\fP(),
+and
+\fB\%archive_entry_perm\fP()
+can be used to extract the user id, group id and permission from the given entry.
+The corresponding functions
+\fB\%archive_entry_set_uid\fP(),
+\fB\%archive_entry_set_gid\fP(),
+and
+\fB\%archive_entry_set_perm\fP()
+store the given user id, group id and permission in the entry.
+The permission is also set as a side effect of calling
+\fB\%archive_entry_set_mode\fP().
+.PP
+\fB\%archive_entry_strmode\fP()
+returns a string representation of the permission as used by the long mode of
+\fBls\fP(1).
+.SS User and group name
+User and group names can be provided in one of three different ways:
+.RS 5
+.TP
+char *
+Multibyte strings in the current locale.
+.TP
+wchar_t *
+Wide character strings in the current locale.
+The accessor functions are named
+\fB\%XXX_w\fP().
+.TP
+UTF-8
+Unicode strings encoded as UTF-8.
+These are convenience functions to update both the multibyte and wide
+character strings at the same time.
+.RE
+.PP
+\fB\%archive_entry_set_XXX\fP()
+is an alias for
+\fB\%archive_entry_copy_XXX\fP().
+.SS File Flags
+File flags are transparently converted between a bitmap
+representation and a textual format.
+For example, if you set the bitmap and ask for text, the library
+will build a canonical text format.
+However, if you set a text format and request a text format,
+you will get back the same text, even if it is ill-formed.
+If you need to canonicalize a textual flags string, you should first set the
+text form, then request the bitmap form, then use that to set the bitmap form.
+Setting the bitmap format will clear the internal text representation
+and force it to be reconstructed when you next request the text form.
+.PP
+The bitmap format consists of two integers, one containing bits
+that should be set, the other specifying bits that should be
+cleared.
+Bits not mentioned in either bitmap will be ignored.
+Usually, the bitmap of bits to be cleared will be set to zero.
+In unusual circumstances, you can force a fully-specified set
+of file flags by setting the bitmap of flags to clear to the complement
+of the bitmap of flags to set.
+(This differs from
+\fBfflagstostr\fP(3),
+which only includes names for set bits.)
+Converting a bitmap to a textual string is a platform-specific
+operation; bits that are not meaningful on the current platform
+will be ignored.
+.PP
+The canonical text format is a comma-separated list of flag names.
+The
+\fB\%archive_entry_copy_fflags_text\fP()
+and
+\fB\%archive_entry_copy_fflags_text_w\fP()
+functions parse the provided text and set the internal bitmap values.
+This is a platform-specific operation; names that are not meaningful
+on the current platform will be ignored.
+The function returns a pointer to the start of the first name that was not
+recognized, or NULL if every name was recognized.
+Note that every name \(em including names that follow an unrecognized
+name \(em will be evaluated, and the bitmaps will be set to reflect
+every name that is recognized.
+(In particular, this differs from
+\fBstrtofflags\fP(3),
+which stops parsing at the first unrecognized name.)
+.SH SEE ALSO
+.ad l
+\fBarchive_entry\fP(3),
+\fBarchive_entry_acl\fP(3),
+\fBarchive_read_disk\fP(3),
+\fBarchive_write_disk\fP(3),
+\fBlibarchive\fP(3)
+.SH BUGS
+.ad l
+The platform types
+Vt uid_t
+and
+Vt gid_t
+are often 16 or 32 bit wide.
+In this case it is possible that the ids can not be correctly restored
+from archives and get truncated.

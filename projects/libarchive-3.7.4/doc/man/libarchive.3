@@ -1,0 +1,281 @@
+.TH LIBARCHIVE 3 "March 18, 2012" ""
+.SH NAME
+.ad l
+\fB\%libarchive\fP
+\- functions for reading and writing streaming archives
+.SH OVERVIEW
+.ad l
+The
+\fB\%libarchive\fP
+library provides a flexible interface for reading and writing
+archives in various formats such as tar and cpio.
+\fB\%libarchive\fP
+also supports reading and writing archives compressed using
+various compression filters such as gzip and bzip2.
+The library is inherently stream-oriented; readers serially iterate through
+the archive, writers serially add things to the archive.
+In particular, note that there is currently no built-in support for
+random access nor for in-place modification.
+.PP
+When reading an archive, the library automatically detects the
+format and the compression.
+The library currently has read support for:
+.RS 5
+.IP \(bu
+old-style tar archives,
+.IP \(bu
+most variants of the POSIX
+``ustar''
+format,
+.IP \(bu
+the POSIX
+``pax interchange''
+format,
+.IP \(bu
+GNU-format tar archives,
+.IP \(bu
+most common cpio archive formats,
+.IP \(bu
+7-Zip archives,
+.IP \(bu
+ar archives (including GNU/SysV and BSD extensions),
+.IP \(bu
+Microsoft CAB archives,
+.IP \(bu
+ISO9660 CD images (including RockRidge and Joliet extensions),
+.IP \(bu
+LHA archives,
+.IP \(bu
+mtree file tree descriptions,
+.IP \(bu
+RAR and most RAR5 archives,
+.IP \(bu
+WARC archives,
+.IP \(bu
+XAR archives,
+.IP \(bu
+Zip archives.
+.RE
+The library automatically detects archives compressed with
+\fBcompress\fP(1),
+\fBbzip2\fP(1),
+\fBgrzip\fP(1),
+\fBgzip\fP(1),
+\fBlrzip\fP(1),
+\fBlz4\fP(1),
+\fBlzip\fP(1),
+\fBlzop\fP(1),
+\fBxz\fP(1),
+or
+\fBzstd\fP(1)
+and decompresses them transparently. Decompression of some formats
+requires external decompressor utilities.
+It can similarly detect and decode archives processed with
+\fBuuencode\fP(1)
+or which have an
+\fBrpm\fP(1)
+header.
+.PP
+When writing an archive, you can specify the compression
+to be used and the format to use.
+The library can write
+.RS 5
+.IP \(bu
+POSIX-standard
+``ustar''
+archives,
+.IP \(bu
+POSIX
+``pax interchange format''
+archives,
+.IP \(bu
+cpio archives,
+.IP \(bu
+7-Zip archives,
+.IP \(bu
+ar archives,
+.IP \(bu
+two different variants of shar archives,
+.IP \(bu
+ISO9660 CD images,
+.IP \(bu
+mtree file tree descriptions,
+.IP \(bu
+XAR archives,
+.IP \(bu
+Zip archive.
+.RE
+Pax interchange format is an extension of the tar archive format that
+eliminates essentially all of the limitations of historic tar formats
+in a standard fashion that is supported
+by POSIX-compliant
+\fBpax\fP(1)
+implementations on many systems as well as several newer implementations of
+\fBtar\fP(1).
+Note that the default write format will suppress the pax extended
+attributes for most entries; explicitly requesting pax format will
+enable those attributes for all entries.
+.PP
+The read and write APIs are accessed through the
+\fB\%archive_read_XXX\fP()
+functions and the
+\fB\%archive_write_XXX\fP()
+functions, respectively, and either can be used independently
+of the other.
+.PP
+The rest of this manual page provides an overview of the library
+operation.
+More detailed information can be found in the individual manual
+pages for each API or utility function.
+.SH READING AN ARCHIVE
+.ad l
+See
+\fBarchive_read\fP(3).
+.SH WRITING AN ARCHIVE
+.ad l
+See
+\fBarchive_write\fP(3).
+.SH WRITING ENTRIES TO DISK
+.ad l
+The
+\fBarchive_write_disk\fP(3)
+API allows you to write
+\fBarchive_entry\fP(3)
+objects to disk using the same API used by
+\fBarchive_write\fP(3).
+The
+\fBarchive_write_disk\fP(3)
+API is used internally by
+\fB\%archive_read_extract\fP(\fI\%;\fP)
+using it directly can provide greater control over how entries
+get written to disk.
+This API also makes it possible to share code between
+archive-to-archive copy and archive-to-disk extraction
+operations.
+.SH READING ENTRIES FROM DISK
+.ad l
+The
+\fBarchive_read_disk\fP(3)
+supports for populating
+\fBarchive_entry\fP(3)
+objects from information in the filesystem.
+This includes the information accessible from the
+\fBstat\fP(2)
+system call as well as ACLs, extended attributes,
+and other metadata.
+The
+\fBarchive_read_disk\fP(3)
+API also supports iterating over directory trees,
+which allows directories of files to be read using
+an API compatible with
+the
+\fBarchive_read\fP(3)
+API.
+.SH DESCRIPTION
+.ad l
+Detailed descriptions of each function are provided by the
+corresponding manual pages.
+.PP
+All of the functions utilize an opaque
+Tn struct archive
+datatype that provides access to the archive contents.
+.PP
+The
+Tn struct archive_entry
+structure contains a complete description of a single archive
+entry.
+It uses an opaque interface that is fully documented in
+\fBarchive_entry\fP(3).
+.PP
+Users familiar with historic formats should be aware that the newer
+variants have eliminated most restrictions on the length of textual fields.
+Clients should not assume that filenames, link names, user names, or
+group names are limited in length.
+In particular, pax interchange format can easily accommodate pathnames
+in arbitrary character sets that exceed
+\fIPATH_MAX\fP.
+.SH RETURN VALUES
+.ad l
+Most functions return
+\fBARCHIVE_OK\fP
+(zero) on success, non-zero on error.
+The return value indicates the general severity of the error, ranging
+from
+\fBARCHIVE_WARN\fP,
+which indicates a minor problem that should probably be reported
+to the user, to
+\fBARCHIVE_FATAL\fP,
+which indicates a serious problem that will prevent any further
+operations on this archive.
+On error, the
+\fB\%archive_errno\fP()
+function can be used to retrieve a numeric error code (see
+\fBerrno\fP(2)).
+The
+\fB\%archive_error_string\fP()
+returns a textual error message suitable for display.
+.PP
+\fB\%archive_read_new\fP()
+and
+\fB\%archive_write_new\fP()
+return pointers to an allocated and initialized
+Tn struct archive
+object.
+.PP
+\fB\%archive_read_data\fP()
+and
+\fB\%archive_write_data\fP()
+return a count of the number of bytes actually read or written.
+A value of zero indicates the end of the data for this entry.
+A negative value indicates an error, in which case the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions can be used to obtain more information.
+.SH ENVIRONMENT
+.ad l
+There are character set conversions within the
+\fBarchive_entry\fP(3)
+functions that are impacted by the currently-selected locale.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_entry\fP(3),
+\fBarchive_read\fP(3),
+\fBarchive_util\fP(3),
+\fBarchive_write\fP(3),
+\fBtar\fP(5)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was originally written by
+Tim Kientzle \%<kientzle@acm.org.>
+.SH BUGS
+.ad l
+Some archive formats support information that is not supported by
+Tn struct archive_entry.
+Such information cannot be fully archived or restored using this library.
+This includes, for example, comments, character sets,
+or the arbitrary key/value pairs that can appear in
+pax interchange format archives.
+.PP
+Conversely, of course, not all of the information that can be
+stored in an
+Tn struct archive_entry
+is supported by all formats.
+For example, cpio formats do not support nanosecond timestamps;
+old tar formats do not support large device numbers.
+.PP
+The ISO9660 reader cannot yet read all ISO9660 images;
+it should learn how to seek.
+.PP
+The AR writer requires the client program to use
+two passes, unlike all other libarchive writers.

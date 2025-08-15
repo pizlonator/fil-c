@@ -1,0 +1,205 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_ENTRY_TIME(3) BSD Library Functions Manual
+ARCHIVE_ENTRY_TIME(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_entry_atime</b>,
+<b>archive_entry_atime_nsec</b>,
+<b>archive_entry_atime_is_set</b>,
+<b>archive_entry_set_atime</b>,
+<b>archive_entry_unset_atime</b>,
+<b>archive_entry_birthtime</b>,
+<b>archive_entry_birthtime_nsec</b>,
+<b>archive_entry_birthtime_is_set</b>,
+<b>archive_entry_set_birthtime</b>,
+<b>archive_entry_unset_birthtime</b>,
+<b>archive_entry_ctime</b>, <b>archive_entry_ctime_nsec</b>,
+<b>archive_entry_ctime_is_set</b>,
+<b>archive_entry_set_ctime</b>,
+<b>archive_entry_unset_ctime</b>,
+<b>archive_entry_mtime</b>, <b>archive_entry_mtime_nsec</b>,
+<b>archive_entry_mtime_is_set</b>,
+<b>archive_entry_set_mtime</b>,
+<b>archive_entry_unset_mtime</b> &mdash; functions for
+manipulating times in archive entry descriptions</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive_entry.h&gt;</b></p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>time_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_atime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>long</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_atime_nsec</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_atime_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_atime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>time_t&nbsp;sec</i>, <i>long&nbsp;nanosec</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_unset_atime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>time_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_birthtime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>long</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_birthtime_nsec</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_birthtime_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_birthtime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>time_t&nbsp;sec</i>, <i>long&nbsp;nanosec</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_unset_birthtime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>time_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_ctime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>long</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_ctime_nsec</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_ctime_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_ctime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>time_t&nbsp;sec</i>, <i>long&nbsp;nanosec</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_unset_ctime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>time_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_mtime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>long</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_mtime_nsec</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_mtime_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_mtime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>time_t&nbsp;sec</i>, <i>long&nbsp;nanosec</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_unset_mtime</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions create and
+manipulate the time fields in an <i>archive_entry</i>.
+Supported time fields are atime (access time), birthtime
+(creation time), ctime (last time an inode property was
+changed) and mtime (modification time).</p>
+
+<p style="margin-left:6%; margin-top: 1em">libarchive(3)
+provides a high-resolution interface. The timestamps are
+truncated automatically depending on the archive format (for
+archiving) or the filesystem capabilities (for
+restoring).</p>
+
+<p style="margin-left:6%; margin-top: 1em">All timestamp
+fields are optional. The <b>XXX_unset</b>() functions can be
+used to mark the corresponding field as missing. The current
+state can be queried using <b>XXX_is_set</b>(). Unset time
+fields have a second and nanosecond field of 0.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_entry(3),
+libarchive(3)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was written by Tim Kientzle &lt;kientzle@acm.org&gt;.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

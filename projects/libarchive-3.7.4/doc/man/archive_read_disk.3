@@ -1,0 +1,439 @@
+.TH ARCHIVE_READ_DISK 3 "April 3, 2017" ""
+.SH NAME
+.ad l
+\fB\%archive_read_disk_new\fP,
+\fB\%archive_read_disk_open\fP,
+\fB\%archive_read_disk_open_w\fP,
+\fB\%archive_read_disk_set_behavior\fP,
+\fB\%archive_read_disk_set_symlink_logical\fP,
+\fB\%archive_read_disk_set_symlink_physical\fP,
+\fB\%archive_read_disk_set_symlink_hybrid\fP,
+\fB\%archive_read_disk_entry_from_file\fP,
+\fB\%archive_read_disk_gname\fP,
+\fB\%archive_read_disk_uname\fP,
+\fB\%archive_read_disk_set_uname_lookup\fP,
+\fB\%archive_read_disk_set_gname_lookup\fP,
+\fB\%archive_read_disk_set_standard_lookup\fP,
+\fB\%archive_read_disk_descend\fP,
+\fB\%archive_read_disk_can_descend\fP,
+\fB\%archive_read_disk_current_filesystem\fP,
+\fB\%archive_read_disk_current_filesystem_is_synthetic\fP,
+\fB\%archive_read_disk_current_filesystem_is_remote\fP,
+\fB\%archive_read_disk_set_matching\fP,
+\fB\%archive_read_disk_set_metadata_filter_callback\fP,
+\- functions for reading objects from disk
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIstruct archive *\fP
+.br
+\fB\%archive_read_disk_new\fP(\fI\%void\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_open\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_open_w\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ wchar_t\ *\fP, \fI\%\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_behavior\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_symlink_logical\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_symlink_physical\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_symlink_hybrid\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_read_disk_gname\fP(\fI\%struct\ archive\ *\fP, \fI\%gid_t\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_read_disk_uname\fP(\fI\%struct\ archive\ *\fP, \fI\%uid_t\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_gname_lookup\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *\fP, \fI\%const\ char\ *(*lookup)(void\ *,\ gid_t)\fP, \fI\%void\ (*cleanup)(void\ *)\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_uname_lookup\fP(\fI\%struct\ archive\ *\fP, \fI\%void\ *\fP, \fI\%const\ char\ *(*lookup)(void\ *,\ uid_t)\fP, \fI\%void\ (*cleanup)(void\ *)\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_standard_lookup\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_entry_from_file\fP(\fI\%struct\ archive\ *\fP, \fI\%struct\ archive_entry\ *\fP, \fI\%int\ fd\fP, \fI\%const\ struct\ stat\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_descend\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_can_descend\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_current_filesystem\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_current_filesystem_is_synthetic\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_current_filesystem_is_remote\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_matching\fP(\fI\%struct\ archive\ *\fP, \fI\%struct\ archive\ *\fP, \fI\%void\ (*excluded_func)(struct\ archive\ *,\ void\ *,\ struct\ archive\ entry\ *)\fP, \fI\%void\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_disk_set_metadata_filter_callback\fP(\fI\%struct\ archive\ *\fP, \fI\%int\ (*metadata_filter_func)(struct\ archive\ *,\ void*,\ struct\ archive_entry\ *)\fP, \fI\%void\ *\fP);
+.SH DESCRIPTION
+.ad l
+These functions provide an API for reading information about
+objects on disk.
+In particular, they provide an interface for populating
+Tn struct archive_entry
+objects.
+.RS 5
+.TP
+\fB\%archive_read_disk_new\fP()
+Allocates and initializes a
+Tn struct archive
+object suitable for reading object information from disk.
+.TP
+\fB\%archive_read_disk_open\fP()
+Opens the file or directory from the given path and prepares the
+Tn struct archive
+to read it from disk.
+.TP
+\fB\%archive_read_disk_open_w\fP()
+Opens the file or directory from the given path as a wide character string and prepares the
+Tn struct archive
+to read it from disk.
+.TP
+\fB\%archive_read_disk_set_behavior\fP()
+Configures various behavior options when reading entries from disk.
+The flags field consists of a bitwise OR of one or more of the
+following values:
+.RS 5
+.TP
+\fBARCHIVE_READDISK_HONOR_NODUMP\fP
+Skip files and directories with the nodump file attribute (file flag) set.
+By default, the nodump file attribute is ignored.
+.TP
+\fBARCHIVE_READDISK_MAC_COPYFILE\fP
+Mac OS X specific.
+Read metadata (ACLs and extended attributes) with
+\fBcopyfile\fP(3).
+By default, metadata is read using
+\fBcopyfile\fP(3).
+.TP
+\fBARCHIVE_READDISK_NO_ACL\fP
+Do not read Access Control Lists.
+By default, ACLs are read from disk.
+.TP
+\fBARCHIVE_READDISK_NO_FFLAGS\fP
+Do not read file attributes (file flags).
+By default, file attributes are read from disk.
+See
+\fBchattr\fP(1)
+(Linux)
+or
+\fBchflags\fP(1)
+(FreeBSD, Mac OS X)
+for more information on file attributes.
+.TP
+\fBARCHIVE_READDISK_NO_TRAVERSE_MOUNTS\fP
+Do not traverse mount points.
+By default, mount points are traversed.
+.TP
+\fBARCHIVE_READDISK_NO_XATTR\fP
+Do not read extended file attributes (xattrs).
+By default, extended file attributes are read from disk.
+See
+\fBxattr\fP(7)
+(Linux,)
+\fBxattr\fP(2)
+(Mac OS X,)
+or
+\fBgetextattr\fP(8)
+(FreeBSD)
+for more information on extended file attributes.
+.TP
+\fBARCHIVE_READDISK_RESTORE_ATIME\fP
+Restore access time of traversed files.
+By default, access time of traversed files is not restored.
+.TP
+\fBARCHIVE_READDISK_NO_SPARSE\fP
+Do not read sparse file information.
+By default, sparse file information is read from disk.
+.RE
+.TP
+\fB\%archive_read_disk_set_symlink_logical\fP(),
+\fB\%archive_read_disk_set_symlink_physical\fP(),
+\fB\%archive_read_disk_set_symlink_hybrid\fP()
+This sets the mode used for handling symbolic links.
+The
+``logical''
+mode follows all symbolic links.
+The
+``physical''
+mode does not follow any symbolic links.
+The
+``hybrid''
+mode currently behaves identically to the
+``logical''
+mode.
+.TP
+\fB\%archive_read_disk_gname\fP(),
+\fB\%archive_read_disk_uname\fP()
+Returns a user or group name given a gid or uid value.
+By default, these always return a NULL string.
+.TP
+\fB\%archive_read_disk_set_gname_lookup\fP(),
+\fB\%archive_read_disk_set_uname_lookup\fP()
+These allow you to override the functions used for
+user and group name lookups.
+You may also provide a
+Tn void *
+pointer to a private data structure and a cleanup function for
+that data.
+The cleanup function will be invoked when the
+Tn struct archive
+object is destroyed or when new lookup functions are registered.
+.TP
+\fB\%archive_read_disk_set_standard_lookup\fP()
+This convenience function installs a standard set of user
+and group name lookup functions.
+These functions use
+\fBgetpwuid\fP(3)
+and
+\fBgetgrgid\fP(3)
+to convert ids to names, defaulting to NULL if the names cannot
+be looked up.
+These functions also implement a simple memory cache to reduce
+the number of calls to
+\fBgetpwuid\fP(3)
+and
+\fBgetgrgid\fP(3).
+.TP
+\fB\%archive_read_disk_entry_from_file\fP()
+Populates a
+Tn struct archive_entry
+object with information about a particular file.
+The
+Tn archive_entry
+object must have already been created with
+\fBarchive_entry_new\fP(3)
+and at least one of the source path or path fields must already be set.
+(If both are set, the source path will be used.)
+.PP
+Information is read from disk using the path name from the
+Tn struct archive_entry
+object.
+If a file descriptor is provided, some information will be obtained using
+that file descriptor, on platforms that support the appropriate
+system calls.
+.PP
+If a pointer to a
+Tn struct stat
+is provided, information from that structure will be used instead
+of reading from the disk where appropriate.
+This can provide performance benefits in scenarios where
+Tn struct stat
+information has already been read from the disk as a side effect
+of some other operation.
+(For example, directory traversal libraries often provide this information.)
+.PP
+Where necessary, user and group ids are converted to user and group names
+using the currently-registered lookup functions above.
+This affects the file ownership fields and ACL values in the
+Tn struct archive_entry
+object.
+.TP
+\fB\%archive_read_disk_descend\fP()
+If the current entry can be descended, this function will mark the directory as the next entry for 
+\fBarchive_read_header\fP(3)
+to visit.
+.TP
+\fB\%archive_read_disk_can_descend\fP()
+Returns 1 if the current entry is an unvisited directory and 0 otherwise.
+.TP
+\fB\%archive_read_disk_current_filesystem\fP()
+Returns the index of the most recent filesystem entry that has been visited through archive_read_disk
+.TP
+\fB\%archive_read_disk_current_filesystem_is_synthetic\fP()
+Returns 1 if the current filesystem is a virtual filesystem. Returns 0 if the current filesystem is not a virtual filesystem. Returns -1 if it is unknown.
+.TP
+\fB\%archive_read_disk_current_filesystem_is_remote\fP()
+Returns 1 if the current filesystem is a remote filesystem. Returns 0 if the current filesystem is not a remote filesystem. Returns -1 if it is unknown.
+.TP
+\fB\%archive_read_disk_set_matching\fP()
+Allows the caller to set
+Tn struct archive
+*_ma to compare each entry during
+\fBarchive_read_header\fP(3)
+calls. If matched based on calls to
+Tn archive_match_path_excluded,
+Tn archive_match_time_excluded,
+or
+Tn archive_match_owner_excluded,
+then the callback function specified by the _excluded_func parameter will execute. This function will receive data provided to the fourth parameter, void *_client_data.
+.TP
+\fB\%archive_read_disk_set_metadata_filter_callback\fP()
+Allows the caller to set a callback function during calls to
+\fBarchive_read_header\fP(3)
+to filter out metadata for each entry. The callback function receives the
+Tn struct archive
+object, void* custom filter data, and the 
+Tn struct archive_entry.
+If the callback function returns an error, ARCHIVE_RETRY will be returned and the entry will not be further processed.
+.RE
+More information about the
+\fIstruct\fP archive
+object and the overall design of the library can be found in the
+\fBlibarchive\fP(3)
+overview.
+.SH EXAMPLES
+.ad l
+The following illustrates basic usage of the library by
+showing how to use it to copy an item on disk into an archive.
+.RS 4
+.nf
+void
+file_to_archive(struct archive *a, const char *name)
+{
+  char buff[8192];
+  size_t bytes_read;
+  struct archive *ard;
+  struct archive_entry *entry;
+  int fd;
+  ard = archive_read_disk_new();
+  archive_read_disk_set_standard_lookup(ard);
+  entry = archive_entry_new();
+  fd = open(name, O_RDONLY);
+  if (fd < 0)
+     return;
+  archive_entry_copy_pathname(entry, name);
+  archive_read_disk_entry_from_file(ard, entry, fd, NULL);
+  archive_write_header(a, entry);
+  while ((bytes_read = read(fd, buff, sizeof(buff))) > 0)
+    archive_write_data(a, buff, bytes_read);
+  archive_write_finish_entry(a);
+  archive_read_free(ard);
+  archive_entry_free(entry);
+}
+.RE
+.SH RETURN VALUES
+.ad l
+Most functions return
+\fBARCHIVE_OK\fP
+(zero) on success, or one of several negative
+error codes for errors.
+Specific error codes include:
+\fBARCHIVE_RETRY\fP
+for operations that might succeed if retried,
+\fBARCHIVE_WARN\fP
+for unusual conditions that do not prevent further operations, and
+\fBARCHIVE_FATAL\fP
+for serious errors that make remaining operations impossible.
+.PP
+\fB\%archive_read_disk_new\fP()
+returns a pointer to a newly-allocated
+Tn struct archive
+object or NULL if the allocation failed for any reason.
+.PP
+\fB\%archive_read_disk_gname\fP()
+and
+\fB\%archive_read_disk_uname\fP()
+return
+Tn const char *
+pointers to the textual name or NULL if the lookup failed for any reason.
+The returned pointer points to internal storage that
+may be reused on the next call to either of these functions;
+callers should copy the string if they need to continue accessing it.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_read\fP(3),
+\fBarchive_util\fP(3),
+\fBarchive_write\fP(3),
+\fBarchive_write_disk\fP(3),
+\fBlibarchive\fP(3)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+The
+\fB\%archive_read_disk\fP
+interface was added to
+\fB\%libarchive\fP 2.6
+and first appeared in
+FreeBSD 8.0.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was written by
+Tim Kientzle \%<kientzle@FreeBSD.org.>
+.SH BUGS
+.ad l
+The
+``standard''
+user name and group name lookup functions are not the defaults because
+\fBgetgrgid\fP(3)
+and
+\fBgetpwuid\fP(3)
+are sometimes too large for particular applications.
+The current design allows the application author to use a more
+compact implementation when appropriate.
+.PP
+The full list of metadata read from disk by
+\fB\%archive_read_disk_entry_from_file\fP()
+is necessarily system-dependent.
+.PP
+The
+\fB\%archive_read_disk_entry_from_file\fP()
+function reads as much information as it can from disk.
+Some method should be provided to limit this so that clients who
+do not need ACLs, for instance, can avoid the extra work needed
+to look up such information.
+.PP
+This API should provide a set of methods for walking a directory tree.
+That would make it a direct parallel of the
+\fBarchive_read\fP(3)
+API.
+When such methods are implemented, the
+``hybrid''
+symbolic link mode will make sense.

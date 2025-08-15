@@ -1,0 +1,381 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_ENTRY_STAT(3) BSD Library Functions Manual
+ARCHIVE_ENTRY_STAT(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_entry_stat</b>,
+<b>archive_entry_copy_stat</b>,
+<b>archive_entry_filetype</b>,
+<b>archive_entry_set_filetype</b>,
+<b>archive_entry_mode</b>, <b>archive_entry_set_mode</b>,
+<b>archive_entry_size</b>, <b>archive_entry_size_is_set</b>,
+<b>archive_entry_set_size</b>,
+<b>archive_entry_unset_size</b>, <b>archive_entry_dev</b>,
+<b>archive_entry_set_dev</b>,
+<b>archive_entry_dev_is_set</b>,
+<b>archive_entry_devmajor</b>,
+<b>archive_entry_set_devmajor</b>,
+<b>archive_entry_devminor</b>,
+<b>archive_entry_set_devminor</b>, <b>archive_entry_ino</b>,
+<b>archive_entry_set_ino</b>,
+<b>archive_entry_ino_is_set</b>, <b>archive_entry_ino64</b>,
+<b>archive_entry_set_ino64</b>, <b>archive_entry_nlink</b>,
+<b>archive_entry_rdev</b>, <b>archive_entry_set_rdev</b>,
+<b>archive_entry_rdevmajor</b>,
+<b>archive_entry_set_rdevmajor</b>,
+<b>archive_entry_rdevminor</b>,
+<b>archive_entry_set_rdevminor</b> &mdash; accessor
+functions for manipulating archive entry descriptions</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive_entry.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const struct
+stat *</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_stat</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_stat</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;struct&nbsp;stat&nbsp;*sb</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>mode_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_filetype</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_filetype</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>unsigned&nbsp;int&nbsp;type</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>mode_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_mode</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_mode</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>mode_t&nbsp;mode</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>int64_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_size</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_size_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_size</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int64_t&nbsp;size</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_unset_size</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>dev_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_dev</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_dev</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>dev_t&nbsp;dev</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_dev_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>dev_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_devmajor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_devmajor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>dev_t&nbsp;major</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>dev_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_devminor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_devminor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>dev_t&nbsp;minor</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>ino_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_ino</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_ino</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>unsigned&nbsp;long&nbsp;ino</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_ino_is_set</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>int64_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_ino64</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_ino64</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int64_t&nbsp;ino</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>unsigned
+int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_nlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_nlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>unsigned&nbsp;int&nbsp;count</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>dev_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_rdev</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>dev_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_rdevmajor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>dev_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_rdevminor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_rdev</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>dev_t&nbsp;dev</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_rdevmajor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>dev_t&nbsp;major</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_rdevminor</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>dev_t&nbsp;minor</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;"><b>Copying to and from</b>
+<i>struct stat</i> <br>
+The function <b>archive_entry_stat</b>() converts the
+various fields stored in the archive entry to the format
+used by stat(2). The return value remains valid until either
+<b>archive_entry_clear</b>() or <b>archive_entry_free</b>()
+is called. It is not affected by calls to the set accessor
+functions. It currently sets the following values in
+<i>struct stat</i>: <i>st_atime</i>, <i>st_ctime</i>,
+<i>st_dev</i>, <i>st_gid</i>, <i>st_ino</i>, <i>st_mode</i>,
+<i>st_mtime</i>, <i>st_nlink</i>, <i>st_rdev</i>,
+<i>st_size</i>, <i>st_uid</i>. In addition,
+<i>st_birthtime</i> and high-precision information for
+time-related fields will be included on platforms that
+support it.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The function
+<b>archive_entry_copy_stat</b>() copies fields from the
+platform&rsquo;s <i>struct stat</i>. Fields not provided by
+<i>struct stat</i> are unchanged.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>General
+accessor functions</b> <br>
+The functions <b>archive_entry_filetype</b>() and
+<b>archive_entry_set_filetype</b>() get respectively set the
+filetype. The file type is one of the following
+constants:</p>
+
+<p>AE_IFREG</p>
+
+<p style="margin-left:28%; margin-top: 1em">Regular
+file</p>
+
+<p>AE_IFLNK</p>
+
+<p style="margin-left:28%; margin-top: 1em">Symbolic
+link</p>
+
+<p>AE_IFSOCK</p>
+
+<p style="margin-left:28%; margin-top: 1em">Socket</p>
+
+<p>AE_IFCHR</p>
+
+<p style="margin-left:28%; margin-top: 1em">Character
+device</p>
+
+<p>AE_IFBLK</p>
+
+<p style="margin-left:28%; margin-top: 1em">Block
+device</p>
+
+<p>AE_IFDIR</p>
+
+<p style="margin-left:28%; margin-top: 1em">Directory</p>
+
+<p>AE_IFIFO</p>
+
+<p style="margin-left:28%; margin-top: 1em">Named pipe
+(fifo)</p>
+
+<p style="margin-left:6%;">Not all file types are supported
+by all platforms. The constants used by stat(2) may have
+different numeric values from the corresponding constants
+above.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The functions
+<b>archive_entry_mode</b>() and
+<b>archive_entry_set_mode</b>() get/set a combination of
+file type and permissions and provide the equivalent of
+<i>st_mode</i>. Use of <b>archive_entry_filetype</b>() and
+<b>archive_entry_perm</b>() for getting and
+<b>archive_entry_set_filetype</b>() and
+<b>archive_entry_set_perm</b>() for setting is
+recommended.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The function
+<b>archive_entry_size</b>() returns the file size, if it has
+been set, and 0 otherwise. <b>archive_entry_size</b>() can
+be used to query that status.
+<b>archive_entry_set_size</b>() and
+<b>archive_entry_unset_size</b>() set and unset the size,
+respectively.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The number of
+references (hardlinks) can be obtained by calling
+<b>archive_entry_nlink</b>() and set with
+<b>archive_entry_set_nlink</b>().</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Identifying
+unique files</b> <br>
+The functions <b>archive_entry_dev</b>() and
+<b>archive_entry_ino64</b>() are used by
+archive_entry_linkify(3) to find hardlinks. The pair of
+device and inode is supposed to identify hardlinked
+files.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The device major
+and minor number can be obtained independently using
+<b>archive_entry_devmajor</b>() and
+<b>archive_entry_devminor</b>(). The device can be set
+either via <b>archive_entry_set_dev</b>() or by the
+combination of major and minor number using
+<b>archive_entry_set_devmajor</b>() and
+<b>archive_entry_set_devminor</b>().</p>
+
+<p style="margin-left:6%; margin-top: 1em">The inode number
+can be obtained using <b>archive_entry_ino</b>(). This is a
+legacy interface that uses the platform <i>ino_t</i>, which
+may be very small. To set the inode number,
+<b>archive_entry_set_ino64</b>() is the preferred
+interface.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Accessor
+functions for block and character devices</b> <br>
+Block and character devices are characterised either using a
+device number or a pair of major and minor number. The
+combined device number can be obtained with
+<b>archive_device_rdev</b>() and set with
+<b>archive_device_set_rdev</b>(). The major and minor
+numbers are accessed by <b>archive_device_rdevmajor</b>(),
+<b>archive_device_rdevminor</b>()
+<b>archive_device_set_rdevmajor</b>() and
+<b>archive_device_set_rdevminor</b>().</p>
+
+<p style="margin-left:6%; margin-top: 1em">The process of
+splitting the combined device number into major and minor
+number and the reverse process of combing them differs
+between platforms. Some archive formats use the combined
+form, while other formats use the split form.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">stat(2), archive_entry_acl(3),
+archive_entry_perms(3), archive_entry_time(3),
+libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

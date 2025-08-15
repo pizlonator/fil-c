@@ -1,0 +1,188 @@
+.TH ARCHIVE_ENTRY_PATHS 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_hardlink\fP,
+\fB\%archive_entry_hardlink_w\fP,
+\fB\%archive_entry_set_hardlink\fP,
+\fB\%archive_entry_copy_hardlink\fP,
+\fB\%archive_entry_copy_hardlink_w\fP,
+\fB\%archive_entry_update_hardlink_utf8\fP,
+\fB\%archive_entry_set_link\fP,
+\fB\%archive_entry_copy_link\fP,
+\fB\%archive_entry_copy_link_w\fP,
+\fB\%archive_entry_update_link_utf8\fP,
+\fB\%archive_entry_pathname\fP,
+\fB\%archive_entry_pathname_w\fP,
+\fB\%archive_entry_set_pathname\fP,
+\fB\%archive_entry_copy_pathname\fP,
+\fB\%archive_entry_copy_pathname_w\fP,
+\fB\%archive_entry_update_pathname_utf8\fP,
+\fB\%archive_entry_sourcepath\fP,
+\fB\%archive_entry_copy_sourcepath\fP,
+\fB\%archive_entry_symlink\fP,
+\fB\%archive_entry_symlink_w\fP,
+\fB\%archive_entry_set_symlink\fP,
+\fB\%archive_entry_copy_symlink\fP,
+\fB\%archive_entry_copy_symlink_w\fP,
+\fB\%archive_entry_update_symlink_utf8\fP
+\- functions for manipulating path names in archive entry descriptions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_hardlink\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIconst wchar_t *\fP
+.br
+\fB\%archive_entry_hardlink_w\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_hardlink\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_hardlink\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_hardlink_w\fP(\fI\%struct\ archive_entry\ *a\ \fP, \fI\%const\fP, \fI\%wchar_t\fP, \fI\%*path"\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_update_hardlink_utf8\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_link\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_link\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%\ const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_link_w\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%\ const\ wchar_t\ *path\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_update_link_utf8\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%\ const\ char\ *path\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_pathname\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIconst wchar_t *\fP
+.br
+\fB\%archive_entry_pathname_w\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_pathname\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_pathname\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_pathname_w\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ wchar_t\ *path\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_update_pathname_utf8\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_sourcepath\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_sourcepath\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_entry_symlink\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIconst wchar_t *\fP
+.br
+\fB\%archive_entry_symlink_w\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_symlink\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_symlink\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_symlink_w\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ wchar_t\ *path\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_update_symlink_utf8\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ char\ *path\fP);
+.SH DESCRIPTION
+.ad l
+Path names supported by
+\fBarchive_entry\fP(3):
+.RS 5
+.TP
+hardlink
+Destination of the hardlink.
+.TP
+link
+Update only.
+For a symlink, update the destination.
+Otherwise, make the entry a hardlink and alter
+the destination for that.
+.TP
+pathname
+Path in the archive
+.TP
+sourcepath
+Path on the disk for use by
+\fBarchive_read_disk\fP(3).
+.TP
+symlink
+Destination of the symbolic link.
+.RE
+.PP
+Path names can be provided in one of three different ways:
+.RS 5
+.TP
+char *
+Multibyte strings in the current locale.
+.TP
+wchar_t *
+Wide character strings in the current locale.
+The accessor functions are named
+\fB\%XXX_w\fP().
+.TP
+UTF-8
+Unicode strings encoded as UTF-8.
+These are convenience functions to update both the multibyte and wide
+character strings at the same time.
+.RE
+.PP
+The sourcepath is a pure filesystem concept and never stored in an
+archive directly.
+.PP
+For that reason, it is only available as multibyte string.
+The link path is a convenience function for conditionally setting
+hardlink or symlink destination.
+It doesn't have a corresponding get accessor function.
+.PP
+\fB\%archive_entry_set_XXX\fP()
+is an alias for
+\fB\%archive_entry_copy_XXX\fP().
+.SH SEE ALSO
+.ad l
+\fBarchive_entry\fP(3),
+\fBlibarchive\fP(3)

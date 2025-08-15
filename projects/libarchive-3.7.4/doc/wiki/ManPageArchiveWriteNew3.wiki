@@ -1,0 +1,31 @@
+ARCHIVE_WRITE_NEW(3) manual page 
+== NAME == 
+'''archive_write_new''' 
+- functions for creating archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''struct archive *'' 
+<br> 
+'''archive_write_new'''(''void''); 
+== DESCRIPTION == 
+Allocates and initializes a 
+'''struct archive''' 
+object suitable for writing a tar archive. 
+NULL 
+is returned on error. 
+
+A complete description of the 
+'''struct archive''' 
+object can be found in the overview manual page for 
+[[ManPageLibarchive3]]. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWrite3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

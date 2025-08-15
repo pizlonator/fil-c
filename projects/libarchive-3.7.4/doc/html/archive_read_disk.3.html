@@ -1,0 +1,518 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_READ_DISK(3) BSD Library Functions Manual
+ARCHIVE_READ_DISK(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_read_disk_new</b>,
+<b>archive_read_disk_open</b>,
+<b>archive_read_disk_open_w</b>,
+<b>archive_read_disk_set_behavior</b>,
+<b>archive_read_disk_set_symlink_logical</b>,
+<b>archive_read_disk_set_symlink_physical</b>,
+<b>archive_read_disk_set_symlink_hybrid</b>,
+<b>archive_read_disk_entry_from_file</b>,
+<b>archive_read_disk_gname</b>,
+<b>archive_read_disk_uname</b>,
+<b>archive_read_disk_set_uname_lookup</b>,
+<b>archive_read_disk_set_gname_lookup</b>,
+<b>archive_read_disk_set_standard_lookup</b>,
+<b>archive_read_disk_descend</b>,
+<b>archive_read_disk_can_descend</b>,
+<b>archive_read_disk_current_filesystem</b>,
+<b>archive_read_disk_current_filesystem_is_synthetic</b>,
+<b>archive_read_disk_current_filesystem_is_remote</b>,
+<b>archive_read_disk_set_matching</b>,
+<b>archive_read_disk_set_metadata_filter_callback</b>,
+&mdash; functions for reading objects from disk</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>struct
+archive *</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_new</b>(<i>void</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_open</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_open_w</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;wchar_t&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_set_behavior</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_set_symlink_logical</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_set_symlink_physical</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_set_symlink_hybrid</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_gname</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>gid_t</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_uname</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>uid_t</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_disk_set_gname_lookup</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*(*lookup)(void&nbsp;*,&nbsp;gid_t)</i>,
+<i>void&nbsp;(*cleanup)(void&nbsp;*)</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_disk_set_uname_lookup</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*(*lookup)(void&nbsp;*,&nbsp;uid_t)</i>,
+<i>void&nbsp;(*cleanup)(void&nbsp;*)</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_set_standard_lookup</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_disk_entry_from_file</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>struct&nbsp;archive_entry&nbsp;*</i>, <i>int&nbsp;fd</i>,
+<i>const&nbsp;struct&nbsp;stat&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_descend</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_can_descend</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_current_filesystem</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_current_filesystem_is_synthetic</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_disk_current_filesystem_is_remote</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_disk_set_matching</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;(*excluded_func)(struct&nbsp;archive&nbsp;*,&nbsp;void&nbsp;*,&nbsp;struct&nbsp;archive&nbsp;entry&nbsp;*)</i>,
+<i>void&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_disk_set_metadata_filter_callback</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int&nbsp;(*metadata_filter_func)(struct&nbsp;archive&nbsp;*,&nbsp;void*,&nbsp;struct&nbsp;archive_entry&nbsp;*)</i>,
+<i>void&nbsp;*</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide an API
+for reading information about objects on disk. In
+particular, they provide an interface for populating struct
+archive_entry objects.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_new</b>()</p>
+
+<p style="margin-left:17%;">Allocates and initializes a
+struct archive object suitable for reading object
+information from disk.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_open</b>()</p>
+
+<p style="margin-left:17%;">Opens the file or directory
+from the given path and prepares the struct archive to read
+it from disk.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_open_w</b>()</p>
+
+<p style="margin-left:17%;">Opens the file or directory
+from the given path as a wide character string and prepares
+the struct archive to read it from disk.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_set_behavior</b>()</p>
+
+<p style="margin-left:17%;">Configures various behavior
+options when reading entries from disk. The flags field
+consists of a bitwise OR of one or more of the following
+values:</p>
+
+<p><b>ARCHIVE_READDISK_HONOR_NODUMP</b></p>
+
+<p style="margin-left:27%;">Skip files and directories with
+the nodump file attribute (file flag) set. By default, the
+nodump file attribute is ignored.</p>
+
+<p><b>ARCHIVE_READDISK_MAC_COPYFILE</b></p>
+
+<p style="margin-left:27%;">Mac OS X specific. Read
+metadata (ACLs and extended attributes) with copyfile(3). By
+default, metadata is read using copyfile(3).</p>
+
+<p><b>ARCHIVE_READDISK_NO_ACL</b></p>
+
+<p style="margin-left:27%;">Do not read Access Control
+Lists. By default, ACLs are read from disk.</p>
+
+<p><b>ARCHIVE_READDISK_NO_FFLAGS</b></p>
+
+<p style="margin-left:27%;">Do not read file attributes
+(file flags). By default, file attributes are read from
+disk. See chattr(1) (Linux) or chflags(1) (FreeBSD, Mac OS
+X) for more information on file attributes.</p>
+
+<p><b>ARCHIVE_READDISK_NO_TRAVERSE_MOUNTS</b></p>
+
+<p style="margin-left:27%;">Do not traverse mount points.
+By default, mount points are traversed.</p>
+
+<p><b>ARCHIVE_READDISK_NO_XATTR</b></p>
+
+<p style="margin-left:27%;">Do not read extended file
+attributes (xattrs). By default, extended file attributes
+are read from disk. See xattr(7) (Linux), xattr(2) (Mac OS
+X), or getextattr(8) (FreeBSD) for more information on
+extended file attributes.</p>
+
+<p><b>ARCHIVE_READDISK_RESTORE_ATIME</b></p>
+
+<p style="margin-left:27%;">Restore access time of
+traversed files. By default, access time of traversed files
+is not restored.</p>
+
+<p><b>ARCHIVE_READDISK_NO_SPARSE</b></p>
+
+<p style="margin-left:27%;">Do not read sparse file
+information. By default, sparse file information is read
+from disk.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_set_symlink_logical</b>(),
+<b>archive_read_disk_set_symlink_physical</b>(),
+<b>archive_read_disk_set_symlink_hybrid</b>()</p>
+
+<p style="margin-left:17%;">This sets the mode used for
+handling symbolic links. The &ldquo;logical&rdquo; mode
+follows all symbolic links. The &ldquo;physical&rdquo; mode
+does not follow any symbolic links. The &ldquo;hybrid&rdquo;
+mode currently behaves identically to the
+&ldquo;logical&rdquo; mode.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_gname</b>(),
+<b>archive_read_disk_uname</b>()</p>
+
+<p style="margin-left:17%;">Returns a user or group name
+given a gid or uid value. By default, these always return a
+NULL string.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_set_gname_lookup</b>(),
+<b>archive_read_disk_set_uname_lookup</b>()</p>
+
+<p style="margin-left:17%;">These allow you to override the
+functions used for user and group name lookups. You may also
+provide a void * pointer to a private data structure and a
+cleanup function for that data. The cleanup function will be
+invoked when the struct archive object is destroyed or when
+new lookup functions are registered.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_set_standard_lookup</b>()</p>
+
+<p style="margin-left:17%;">This convenience function
+installs a standard set of user and group name lookup
+functions. These functions use getpwuid(3) and getgrgid(3)
+to convert ids to names, defaulting to NULL if the names
+cannot be looked up. These functions also implement a simple
+memory cache to reduce the number of calls to getpwuid(3)
+and getgrgid(3).</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_entry_from_file</b>()</p>
+
+<p style="margin-left:17%;">Populates a struct
+archive_entry object with information about a particular
+file. The archive_entry object must have already been
+created with archive_entry_new(3) and at least one of the
+source path or path fields must already be set. (If both are
+set, the source path will be used.)</p>
+
+<p style="margin-left:17%; margin-top: 1em">Information is
+read from disk using the path name from the struct
+archive_entry object. If a file descriptor is provided, some
+information will be obtained using that file descriptor, on
+platforms that support the appropriate system calls.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If a pointer to
+a struct stat is provided, information from that structure
+will be used instead of reading from the disk where
+appropriate. This can provide performance benefits in
+scenarios where struct stat information has already been
+read from the disk as a side effect of some other operation.
+(For example, directory traversal libraries often provide
+this information.)</p>
+
+<p style="margin-left:17%; margin-top: 1em">Where
+necessary, user and group ids are converted to user and
+group names using the currently-registered lookup functions
+above. This affects the file ownership fields and ACL values
+in the struct archive_entry object.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_descend</b>()</p>
+
+<p style="margin-left:17%;">If the current entry can be
+descended, this function will mark the directory as the next
+entry for archive_read_header(3) to visit.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_can_descend</b>()</p>
+
+<p style="margin-left:17%;">Returns 1 if the current entry
+is an unvisited directory and 0 otherwise.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_current_filesystem</b>()</p>
+
+<p style="margin-left:17%;">Returns the index of the most
+recent filesystem entry that has been visited through
+archive_read_disk</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_current_filesystem_is_synthetic</b>()</p>
+
+<p style="margin-left:17%;">Returns 1 if the current
+filesystem is a virtual filesystem. Returns 0 if the current
+filesystem is not a virtual filesystem. Returns -1 if it is
+unknown.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_current_filesystem_is_remote</b>()</p>
+
+<p style="margin-left:17%;">Returns 1 if the current
+filesystem is a remote filesystem. Returns 0 if the current
+filesystem is not a remote filesystem. Returns -1 if it is
+unknown.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_set_matching</b>()</p>
+
+<p style="margin-left:17%;">Allows the caller to set struct
+archive *_ma to compare each entry during
+archive_read_header(3) calls. If matched based on calls to
+archive_match_path_excluded, archive_match_time_excluded, or
+archive_match_owner_excluded, then the callback function
+specified by the _excluded_func parameter will execute. This
+function will receive data provided to the fourth parameter,
+void *_client_data.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_disk_set_metadata_filter_callback</b>()</p>
+
+<p style="margin-left:17%;">Allows the caller to set a
+callback function during calls to archive_read_header(3) to
+filter out metadata for each entry. The callback function
+receives the struct archive object, void* custom filter
+data, and the struct archive_entry. If the callback function
+returns an error, ARCHIVE_RETRY will be returned and the
+entry will not be further processed.</p>
+
+<p style="margin-left:6%;">More information about the
+<i>struct archive</i> object and the overall design of the
+library can be found in the libarchive(3) overview.</p>
+
+<p style="margin-top: 1em"><b>EXAMPLES</b></p>
+
+<p style="margin-left:6%;">The following illustrates basic
+usage of the library by showing how to use it to copy an
+item on disk into an archive.</p>
+
+<p style="margin-left:14%; margin-top: 1em">void <br>
+file_to_archive(struct archive *a, const char *name) <br>
+{ <br>
+char buff[8192]; <br>
+size_t bytes_read; <br>
+struct archive *ard; <br>
+struct archive_entry *entry; <br>
+int fd;</p>
+
+<p style="margin-left:14%; margin-top: 1em">ard =
+archive_read_disk_new(); <br>
+archive_read_disk_set_standard_lookup(ard); <br>
+entry = archive_entry_new(); <br>
+fd = open(name, O_RDONLY); <br>
+if (fd &lt; 0) <br>
+return; <br>
+archive_entry_copy_pathname(entry, name); <br>
+archive_read_disk_entry_from_file(ard, entry, fd, NULL);
+<br>
+archive_write_header(a, entry); <br>
+while ((bytes_read = read(fd, buff, sizeof(buff))) &gt; 0)
+<br>
+archive_write_data(a, buff, bytes_read); <br>
+archive_write_finish_entry(a); <br>
+archive_read_free(ard); <br>
+archive_entry_free(entry); <br>
+}</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+<p style="margin-left:6%;">Most functions return
+<b>ARCHIVE_OK</b> (zero) on success, or one of several
+negative error codes for errors. Specific error codes
+include: <b>ARCHIVE_RETRY</b> for operations that might
+succeed if retried, <b>ARCHIVE_WARN</b> for unusual
+conditions that do not prevent further operations, and
+<b>ARCHIVE_FATAL</b> for serious errors that make remaining
+operations impossible.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_read_disk_new</b>()
+returns a pointer to a newly-allocated struct archive object
+or NULL if the allocation failed for any reason.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_read_disk_gname</b>()
+and <b>archive_read_disk_uname</b>() return const char *
+pointers to the textual name or NULL if the lookup failed
+for any reason. The returned pointer points to internal
+storage that may be reused on the next call to either of
+these functions; callers should copy the string if they need
+to continue accessing it.</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">Detailed error codes and textual
+descriptions are available from the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_read(3),
+archive_util(3), archive_write(3), archive_write_disk(3),
+libarchive(3)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3. The
+<b>archive_read_disk</b> interface was added to
+<b>libarchive 2.6</b> and first appeared in
+FreeBSD&nbsp;8.0.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was written by Tim Kientzle
+&lt;kientzle@FreeBSD.org&gt;.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">The &ldquo;standard&rdquo; user
+name and group name lookup functions are not the defaults
+because getgrgid(3) and getpwuid(3) are sometimes too large
+for particular applications. The current design allows the
+application author to use a more compact implementation when
+appropriate.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The full list of
+metadata read from disk by
+<b>archive_read_disk_entry_from_file</b>() is necessarily
+system-dependent.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The
+<b>archive_read_disk_entry_from_file</b>() function reads as
+much information as it can from disk. Some method should be
+provided to limit this so that clients who do not need ACLs,
+for instance, can avoid the extra work needed to look up
+such information.</p>
+
+<p style="margin-left:6%; margin-top: 1em">This API should
+provide a set of methods for walking a directory tree. That
+would make it a direct parallel of the archive_read(3) API.
+When such methods are implemented, the &ldquo;hybrid&rdquo;
+symbolic link mode will make sense.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+April&nbsp;3, 2017 BSD</p>
+<hr>
+</body>
+</html>

@@ -1,0 +1,215 @@
+.TH ARCHIVE_WRITE_FORMAT 3 "February 14, 2013" ""
+.SH NAME
+.ad l
+\fB\%archive_write_set_format\fP,
+\fB\%archive_write_set_format_7zip\fP,
+\fB\%archive_write_set_format_ar\fP,
+\fB\%archive_write_set_format_ar_bsd\fP,
+\fB\%archive_write_set_format_ar_svr4\fP,
+\fB\%archive_write_set_format_by_name\fP,
+\fB\%archive_write_set_format_cpio\fP,
+\fB\%archive_write_set_format_cpio_bin\fP,
+\fB\%archive_write_set_format_cpio_newc\fP,
+\fB\%archive_write_set_format_cpio_odc\fP,
+\fB\%archive_write_set_format_cpio_pwb\fP,
+\fB\%archive_write_set_format_filter_by_ext\fP,
+\fB\%archive_write_set_format_filter_by_ext_def\fP,
+\fB\%archive_write_set_format_gnutar\fP,
+\fB\%archive_write_set_format_iso9660\fP,
+\fB\%archive_write_set_format_mtree\fP,
+\fB\%archive_write_set_format_mtree_classic\fP,
+\fB\%archive_write_set_format_mtree_default\fP,
+\fB\%archive_write_set_format_pax\fP,
+\fB\%archive_write_set_format_pax_restricted\fP,
+\fB\%archive_write_set_format_raw\fP,
+\fB\%archive_write_set_format_shar\fP,
+\fB\%archive_write_set_format_shar_dump\fP,
+\fB\%archive_write_set_format_ustar\fP,
+\fB\%archive_write_set_format_v7tar\fP,
+\fB\%archive_write_set_format_warc\fP,
+\fB\%archive_write_set_format_xar\fP,
+\fB\%archive_write_set_format_zip\fP
+\- functions for creating archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format\fP(\fI\%struct\ archive\ *\fP, \fI\%int\ code\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_7zip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_ar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_ar_bsd\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_ar_svr4\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_by_name\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *name\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_cpio\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_cpio_bin\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_cpio_newc\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_cpio_odc\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_cpio_pwb\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_filter_by_ext\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *filename\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_filter_by_ext_def\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *filename\fP, \fI\%const\ char\ *def_ext\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_gnutar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_iso9660\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_mtree\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_pax\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_pax_restricted\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_raw\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_shar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_shar_dump\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_ustar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_v7tar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_warc\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_xar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_set_format_zip\fP(\fI\%struct\ archive\ *\fP);
+.SH DESCRIPTION
+.ad l
+These functions set the format that will be used for the archive.
+.PP
+The library can write a variety of common archive formats.
+.RS 5
+.TP
+\fB\%archive_write_set_format\fP()
+Sets the format based on the format code (see
+\fIarchive.h\fP
+for the full list of format codes).
+In particular, this can be used in conjunction with
+\fB\%archive_format\fP()
+to create a new archive with the same format as an existing archive.
+.TP
+\fB\%archive_write_set_format_by_name\fP()
+Sets the corresponding format based on the common name.
+.TP
+\fB\%archive_write_set_format_filter_by_ext\fP()
+\fB\%archive_write_set_format_filter_by_ext_def\fP()
+Sets both filters and format based on the output filename.
+Supported extensions: .7z, .zip, .jar, .cpio, .iso, .a, .ar, .tar, .tgz, .tar.gz, .tar.bz2, .tar.xz
+.TP
+\fB\%archive_write_set_format_7zip\fP()
+\fB\%archive_write_set_format_ar_bsd\fP()
+\fB\%archive_write_set_format_ar_svr4\fP()
+\fB\%archive_write_set_format_cpio\fP()
+\fB\%archive_write_set_format_cpio_bin\fP()
+\fB\%archive_write_set_format_cpio_newc\fP()
+\fB\%archive_write_set_format_cpio_odc\fP()
+\fB\%archive_write_set_format_cpio_pwb\fP()
+\fB\%archive_write_set_format_gnutar\fP()
+\fB\%archive_write_set_format_iso9660\fP()
+\fB\%archive_write_set_format_mtree\fP()
+\fB\%archive_write_set_format_mtree_classic\fP()
+\fB\%archive_write_set_format_pax\fP()
+\fB\%archive_write_set_format_pax_restricted\fP()
+\fB\%archive_write_set_format_raw\fP()
+\fB\%archive_write_set_format_shar\fP()
+\fB\%archive_write_set_format_shar_dump\fP()
+\fB\%archive_write_set_format_ustar\fP()
+\fB\%archive_write_set_format_v7tar\fP()
+\fB\%archive_write_set_format_warc\fP()
+\fB\%archive_write_set_format_xar\fP()
+\fB\%archive_write_set_format_zip\fP()
+Set the format as specified.
+More details on the formats supported by libarchive can be found in the
+\fBlibarchive-formats\fP(5)
+manual page.
+.RE
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+on success, or
+\fBARCHIVE_FATAL\fP.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write\fP(3),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBlibarchive-formats\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)

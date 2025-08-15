@@ -1,0 +1,1641 @@
+.TH TAR 1 "April 23, 2024" ""
+.SH NAME
+.ad l
+\fB\%tar\fP
+\- manipulate tape archives
+.SH SYNOPSIS
+.ad l
+.br
+\fB\%tar\fP
+[\fIbundled-flags\fP <args>]
+[<\fIfile\fP> | <\fIpattern\fP> ...]
+.br
+\fB\%tar\fP
+{\fB\-c\fP}
+[\fIoptions\fP]
+[\fIfiles\fP | \fIdirectories\fP]
+.br
+\fB\%tar\fP
+{\fB\-r\fP | \fB\-u\fP}
+\fB\-f\fP \fIarchive-file\fP
+[\fIoptions\fP]
+[\fIfiles\fP | \fIdirectories\fP]
+.br
+\fB\%tar\fP
+{\fB\-t\fP | \fB\-x\fP}
+[\fIoptions\fP]
+[\fIpatterns\fP]
+.SH DESCRIPTION
+.ad l
+\fB\%tar\fP
+creates and manipulates streaming archive files.
+This implementation can extract from tar, pax, cpio, zip, jar, ar, xar,
+rpm, 7-zip, and ISO 9660 cdrom images and can create tar, pax, cpio, ar, zip,
+7-zip, and shar archives.
+.PP
+The first synopsis form shows a
+``bundled''
+option word.
+This usage is provided for compatibility with historical implementations.
+See COMPATIBILITY below for details.
+.PP
+The other synopsis forms show the preferred usage.
+The first option to
+\fB\%tar\fP
+is a mode indicator from the following list:
+.RS 5
+.TP
+\fB\-c\fP
+Create a new archive containing the specified items.
+The long option form is
+\fB\-Fl\fP create.
+.TP
+\fB\-r\fP
+Like
+\fB\-c\fP,
+but new entries are appended to the archive.
+Note that this only works on uncompressed archives stored in regular files.
+The
+\fB\-f\fP
+option is required.
+The long option form is
+\fB\-Fl\fP append.
+.TP
+\fB\-t\fP
+List archive contents to stdout.
+The long option form is
+\fB\-Fl\fP list.
+.TP
+\fB\-u\fP
+Like
+\fB\-r\fP,
+but new entries are added only if they have a modification date
+newer than the corresponding entry in the archive.
+Note that this only works on uncompressed archives stored in regular files.
+The
+\fB\-f\fP
+option is required.
+The long form is
+\fB\-Fl\fP update.
+.TP
+\fB\-x\fP
+Extract to disk from the archive.
+If a file with the same name appears more than once in the archive,
+each copy will be extracted, with later copies overwriting (replacing)
+earlier copies.
+The long option form is
+\fB\-Fl\fP extract.
+.RE
+.PP
+In
+\fB\-c\fP,
+\fB\-r\fP,
+or
+\fB\-u\fP
+mode, each specified file or directory is added to the
+archive in the order specified on the command line.
+By default, the contents of each directory are also archived.
+.PP
+In extract or list mode, the entire command line
+is read and parsed before the archive is opened.
+The pathnames or patterns on the command line indicate
+which items in the archive should be processed.
+Patterns are shell-style globbing patterns as
+documented in
+\fBtcsh\fP(1).
+.SH OPTIONS
+.ad l
+Unless specifically stated otherwise, options are applicable in
+all operating modes.
+.RS 5
+.TP
+\fB@\fP \fIarchive\fP
+(c and r modes only)
+The specified archive is opened and the entries
+in it will be appended to the current archive.
+As a simple example,
+.RS 4
+\fB\%tar\fP \fB\-c\fP \fB\-f\fP \fI-\fP \fInewfile\fP \fB@\fP \fIoriginal.tar\fP
+.RE
+writes a new archive to standard output containing a file
+\fInewfile\fP
+and all of the entries from
+\fIoriginal.tar\fP.
+In contrast,
+.RS 4
+\fB\%tar\fP \fB\-c\fP \fB\-f\fP \fI-\fP \fInewfile\fP \fIoriginal.tar\fP
+.RE
+creates a new archive with only two entries.
+Similarly,
+.RS 4
+\fB\%tar\fP \fB\-czf\fP \fI-\fP \fB\-Fl\fP format \fBpax\fP \fB@\fP \fI-\fP
+.RE
+reads an archive from standard input (whose format will be determined
+automatically) and converts it into a gzip-compressed
+pax-format archive on stdout.
+In this way,
+\fB\%tar\fP
+can be used to convert archives from one format to another.
+.TP
+\fB\-a\fP, \fB\-Fl\fP auto-compress
+(c mode only)
+Use the archive suffix to decide a set of the format and
+the compressions.
+As a simple example,
+.RS 4
+\fB\%tar\fP \fB\-a\fP \fB\-cf\fP \fIarchive.tgz\fP source.c source.h
+.RE
+creates a new archive with restricted pax format and gzip compression,
+.RS 4
+\fB\%tar\fP \fB\-a\fP \fB\-cf\fP \fIarchive.tar.bz2.uu\fP source.c source.h
+.RE
+creates a new archive with restricted pax format and bzip2 compression
+and uuencode compression,
+.RS 4
+\fB\%tar\fP \fB\-a\fP \fB\-cf\fP \fIarchive.zip\fP source.c source.h
+.RE
+creates a new archive with zip format,
+.RS 4
+\fB\%tar\fP \fB\-a\fP \fB\-jcf\fP \fIarchive.tgz\fP source.c source.h
+.RE
+ignores the
+``-j''
+option, and creates a new archive with restricted pax format
+and gzip compression,
+.RS 4
+\fB\%tar\fP \fB\-a\fP \fB\-jcf\fP \fIarchive.xxx\fP source.c source.h
+.RE
+if it is unknown suffix or no suffix, creates a new archive with
+restricted pax format and bzip2 compression.
+.TP
+\fB\-Fl\fP acls
+(c, r, u, x modes only)
+Archive or extract POSIX.1e or NFSv4 ACLs.
+This is the reverse of
+\fB\-Fl\fP no-acls
+and the default behavior in c, r, and u modes (except on Mac OS X) or if
+\fB\%tar\fP
+is run in x mode as root.
+On Mac OS X this option translates extended ACLs to NFSv4 ACLs.
+To store extended ACLs the
+\fB\-Fl\fP mac-metadata
+option is preferred.
+.TP
+\fB\-B\fP, \fB\-Fl\fP read-full-blocks
+Ignored for compatibility with other
+\fBtar\fP(1)
+implementations.
+.TP
+\fB\-b\fP \fIblocksize\fP, \fB\-Fl\fP block-size \fIblocksize\fP
+Specify the block size, in 512-byte records, for tape drive I/O.
+As a rule, this argument is only needed when reading from or writing
+to tape drives, and usually not even then as the default block size of
+20 records (10240 bytes) is very common.
+.TP
+\fB\-C\fP \fIdirectory\fP, \fB\-Fl\fP cd \fIdirectory\fP, \fB\-Fl\fP directory \fIdirectory\fP
+In c and r mode, this changes the directory before adding
+the following files.
+In x mode, change directories after opening the archive
+but before extracting entries from the archive.
+.TP
+\fB\-Fl\fP chroot
+(x mode only)
+\fB\%chroot\fP()
+to the current directory after processing any
+\fB\-C\fP
+options and before extracting any files.
+.TP
+\fB\-Fl\fP clear-nochange-fflags
+(x mode only)
+Before removing file system objects to replace them, clear platform-specific
+file attributes or file flags that might prevent removal.
+.TP
+\fB\-Fl\fP exclude \fIpattern\fP
+Do not process files or directories that match the
+specified pattern.
+Note that exclusions take precedence over patterns or filenames
+specified on the command line.
+.TP
+\fB\-Fl\fP exclude-vcs
+Do not process files or directories internally used by the
+version control systems
+Sq Arch,
+Sq Bazaar,
+Sq CVS,
+Sq Darcs,
+Sq Mercurial,
+Sq RCS,
+Sq SCCS,
+Sq SVN
+and
+Sq git.
+.TP
+\fB\-Fl\fP fflags
+(c, r, u, x modes only)
+Archive or extract platform-specific file attributes or file flags.
+This is the reverse of
+\fB\-Fl\fP no-fflags
+and the default behavior in c, r, and u modes or if
+\fB\%tar\fP
+is run in x mode as root.
+.TP
+\fB\-Fl\fP format \fIformat\fP
+(c, r, u mode only)
+Use the specified format for the created archive.
+Supported formats include
+``cpio'',
+``pax'',
+``shar'',
+and
+``ustar''.
+Other formats may also be supported; see
+\fBlibarchive-formats\fP(5)
+for more information about currently-supported formats.
+In r and u modes, when extending an existing archive, the format specified
+here must be compatible with the format of the existing archive on disk.
+.TP
+\fB\-f\fP \fIfile\fP, \fB\-Fl\fP file \fIfile\fP
+Read the archive from or write the archive to the specified file.
+The filename can be
+\fI-\fP
+for standard input or standard output.
+The default varies by system;
+on
+FreeBSD,
+the default is
+\fI/dev/sa0\fP;
+on Linux, the default is
+\fI/dev/st0\fP.
+.TP
+\fB\-Fl\fP gid \fIid\fP
+Use the provided group id number.
+On extract, this overrides the group id in the archive;
+the group name in the archive will be ignored.
+On create, this overrides the group id read from disk;
+if
+\fB\-Fl\fP gname
+is not also specified, the group name will be set to
+match the group id.
+.TP
+\fB\-Fl\fP gname \fIname\fP
+Use the provided group name.
+On extract, this overrides the group name in the archive;
+if the provided group name does not exist on the system,
+the group id
+(from the archive or from the
+\fB\-Fl\fP gid
+option)
+will be used instead.
+On create, this sets the group name that will be stored
+in the archive;
+the name will not be verified against the system group database.
+.TP
+\fB\-Fl\fP group \fIname\fP [: \fIgid\fP]
+Use the provided group, if
+\fIgid\fP
+is not provided,
+\fIname\fP
+can be either a group name or numeric id.
+See the
+\fB\-Fl\fP gname
+option for details.
+.TP
+\fB\-H\fP
+(c and r modes only)
+Symbolic links named on the command line will be followed; the
+target of the link will be archived, not the link itself.
+.TP
+\fB\-h\fP
+(c and r modes only)
+Synonym for
+\fB\-L\fP.
+.TP
+\fB\-I\fP
+Synonym for
+\fB\-T\fP.
+.TP
+\fB\-Fl\fP help
+Show usage.
+.TP
+\fB\-Fl\fP hfsCompression
+(x mode only)
+Mac OS X specific (v10.6 or later). Compress extracted regular files with HFS+
+compression.
+.TP
+\fB\-Fl\fP ignore-zeros
+An alias of
+\fB\-Fl\fP options \fBread_concatenated_archives\fP
+for compatibility with GNU tar.
+.TP
+\fB\-Fl\fP include \fIpattern\fP
+Process only files or directories that match the specified pattern.
+Note that exclusions specified with
+\fB\-Fl\fP exclude
+take precedence over inclusions.
+If no inclusions are explicitly specified, all entries are processed by
+default.
+The
+\fB\-Fl\fP include
+option is especially useful when filtering archives.
+For example, the command
+.RS 4
+\fB\%tar\fP \fB\-c\fP \fB\-f\fP \fInew.tar\fP \fB\-Fl\fP include='*foo*' \fB@\fP \fIold.tgz\fP
+.RE
+creates a new archive
+\fInew.tar\fP
+containing only the entries from
+\fIold.tgz\fP
+containing the string
+Sq foo.
+.TP
+\fB\-J\fP, \fB\-Fl\fP xz
+(c mode only)
+Compress the resulting archive with
+\fBxz\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes XZ compression automatically when reading archives.
+.TP
+\fB\-j\fP, \fB\-Fl\fP bzip, \fB\-Fl\fP bzip2, \fB\-Fl\fP bunzip2
+(c mode only)
+Compress the resulting archive with
+\fBbzip2\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes bzip2 compression automatically when reading
+archives.
+.TP
+\fB\-k\fP, \fB\-Fl\fP keep-old-files
+(x mode only)
+Do not overwrite existing files.
+In particular, if a file appears more than once in an archive,
+later copies will not overwrite earlier copies.
+.TP
+\fB\-Fl\fP keep-newer-files
+(x mode only)
+Do not overwrite existing files that are newer than the
+versions appearing in the archive being extracted.
+.TP
+\fB\-L\fP, \fB\-Fl\fP dereference
+(c and r modes only)
+All symbolic links will be followed.
+Normally, symbolic links are archived as such.
+With this option, the target of the link will be archived instead.
+.TP
+\fB\-l\fP, \fB\-Fl\fP check-links
+(c and r modes only)
+Issue a warning message unless all links to each file are archived.
+.TP
+\fB\-Fl\fP lrzip
+(c mode only)
+Compress the resulting archive with
+\fBlrzip\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes lrzip compression automatically when reading
+archives.
+.TP
+\fB\-Fl\fP lz4
+(c mode only)
+Compress the archive with lz4-compatible compression before writing it.
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes lz4 compression automatically when reading archives.
+.TP
+\fB\-Fl\fP zstd
+(c mode only)
+Compress the archive with zstd-compatible compression before writing it.
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes zstd compression automatically when reading archives.
+.TP
+\fB\-Fl\fP lzma
+(c mode only) Compress the resulting archive with the original LZMA algorithm.
+In extract or list modes, this option is ignored.
+Use of this option is discouraged and new archives should be created with
+\fB\-Fl\fP xz
+instead.
+Note that this
+\fB\%tar\fP
+implementation recognizes LZMA compression automatically when reading archives.
+.TP
+\fB\-Fl\fP lzop
+(c mode only)
+Compress the resulting archive with
+\fBlzop\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes LZO compression automatically when reading archives.
+.TP
+\fB\-m\fP, \fB\-Fl\fP modification-time
+(x mode only)
+Do not extract modification time.
+By default, the modification time is set to the time stored in the archive.
+.TP
+\fB\-Fl\fP mac-metadata
+(c, r, u and x mode only)
+Mac OS X specific.
+Archive or extract extended ACLs and extended file
+attributes using
+\fBcopyfile\fP(3)
+in AppleDouble format.
+This is the reverse of
+\fB\-Fl\fP no-mac-metadata.
+and the default behavior in c, r, and u modes or if
+\fB\%tar\fP
+is run in x mode as root.
+Currently supported only for pax formats
+(including "pax restricted", the default tar format for bsdtar.)
+.TP
+\fB\-n\fP, \fB\-Fl\fP norecurse, \fB\-Fl\fP no-recursion
+Do not operate recursively on the content of directories.
+.TP
+\fB\-Fl\fP newer \fIdate\fP
+(c, r, u modes only)
+Only include files and directories newer than the specified date.
+This compares ctime entries.
+.TP
+\fB\-Fl\fP newer-mtime \fIdate\fP
+(c, r, u modes only)
+Like
+\fB\-Fl\fP newer,
+except it compares mtime entries instead of ctime entries.
+.TP
+\fB\-Fl\fP newer-than \fIfile\fP
+(c, r, u modes only)
+Only include files and directories newer than the specified file.
+This compares ctime entries.
+.TP
+\fB\-Fl\fP newer-mtime-than \fIfile\fP
+(c, r, u modes only)
+Like
+\fB\-Fl\fP newer-than,
+except it compares mtime entries instead of ctime entries.
+.TP
+\fB\-Fl\fP nodump
+(c and r modes only)
+Honor the nodump file flag by skipping this file.
+.TP
+\fB\-Fl\fP nopreserveHFSCompression
+(x mode only)
+Mac OS X specific (v10.6 or later). Do not compress extracted regular files
+which were compressed with HFS+ compression before archived.
+By default, compress the regular files again with HFS+ compression.
+.TP
+\fB\-Fl\fP null
+(use with
+\fB\-I\fP
+or
+\fB\-T\fP)
+Filenames or patterns are separated by null characters,
+not by newlines.
+This is often used to read filenames output by the
+\fB\-print0\fP
+option to
+\fBfind\fP(1).
+.TP
+\fB\-Fl\fP no-acls
+(c, r, u, x modes only)
+Do not archive or extract POSIX.1e or NFSv4 ACLs.
+This is the reverse of
+\fB\-Fl\fP acls
+and the default behavior if
+\fB\%tar\fP
+is run as non-root in x mode (on Mac OS X as any user in c, r, u and x modes).
+.TP
+\fB\-Fl\fP no-fflags
+(c, r, u, x modes only)
+Do not archive or extract file attributes or file flags.
+This is the reverse of
+\fB\-Fl\fP fflags
+and the default behavior if
+\fB\%tar\fP
+is run as non-root in x mode.
+.TP
+\fB\-Fl\fP no-mac-metadata
+(x mode only)
+Mac OS X specific.
+Do not archive or extract ACLs and extended file attributes
+using
+\fBcopyfile\fP(3)
+in AppleDouble format.
+This is the reverse of
+\fB\-Fl\fP mac-metadata.
+and the default behavior if
+\fB\%tar\fP
+is run as non-root in x mode.
+.TP
+\fB\-Fl\fP no-read-sparse
+(c, r, u modes only)
+Do not read sparse file information from disk.
+This is the reverse of
+\fB\-Fl\fP read-sparse.
+.TP
+\fB\-Fl\fP no-safe-writes
+(x mode only)
+Do not create temporary files and use
+\fBrename\fP(2)
+to replace the original ones.
+This is the reverse of
+\fB\-Fl\fP safe-writes.
+.TP
+\fB\-Fl\fP no-same-owner
+(x mode only)
+Do not extract owner and group IDs.
+This is the reverse of
+\fB\-Fl\fP same-owner
+and the default behavior if
+\fB\%tar\fP
+is run as non-root.
+.TP
+\fB\-Fl\fP no-same-permissions
+(x mode only)
+Do not extract full permissions (SGID, SUID, sticky bit,
+file attributes or file flags, extended file attributes and ACLs).
+This is the reverse of
+\fB\-p\fP
+and the default behavior if
+\fB\%tar\fP
+is run as non-root.
+.TP
+\fB\-Fl\fP no-xattrs
+(c, r, u, x modes only)
+Do not archive or extract extended file attributes.
+This is the reverse of
+\fB\-Fl\fP xattrs
+and the default behavior if
+\fB\%tar\fP
+is run as non-root in x mode.
+.TP
+\fB\-Fl\fP numeric-owner
+This is equivalent to
+\fB\-Fl\fP uname
+Qq
+\fB\-Fl\fP gname
+Qq.
+On extract, it causes user and group names in the archive
+to be ignored in favor of the numeric user and group ids.
+On create, it causes user and group names to not be stored
+in the archive.
+.TP
+\fB\-O\fP, \fB\-Fl\fP to-stdout
+(x, t modes only)
+In extract (-x) mode, files will be written to standard out rather than
+being extracted to disk.
+In list (-t) mode, the file listing will be written to stderr rather than
+the usual stdout.
+.TP
+\fB\-o\fP
+(x mode)
+Use the user and group of the user running the program rather
+than those specified in the archive.
+Note that this has no significance unless
+\fB\-p\fP
+is specified, and the program is being run by the root user.
+In this case, the file modes and flags from
+the archive will be restored, but ACLs or owner information in
+the archive will be discarded.
+.TP
+\fB\-o\fP
+(c, r, u mode)
+A synonym for
+\fB\-Fl\fP format \fIustar\fP
+.TP
+\fB\-Fl\fP older \fIdate\fP
+(c, r, u modes only)
+Only include files and directories older than the specified date.
+This compares ctime entries.
+.TP
+\fB\-Fl\fP older-mtime \fIdate\fP
+(c, r, u modes only)
+Like
+\fB\-Fl\fP older,
+except it compares mtime entries instead of ctime entries.
+.TP
+\fB\-Fl\fP older-than \fIfile\fP
+(c, r, u modes only)
+Only include files and directories older than the specified file.
+This compares ctime entries.
+.TP
+\fB\-Fl\fP older-mtime-than \fIfile\fP
+(c, r, u modes only)
+Like
+\fB\-Fl\fP older-than,
+except it compares mtime entries instead of ctime entries.
+.TP
+\fB\-Fl\fP one-file-system
+(c, r, and u modes)
+Do not cross mount points.
+.TP
+\fB\-Fl\fP options \fIoptions\fP
+Select optional behaviors for particular modules.
+The argument is a text string containing comma-separated
+keywords and values.
+These are passed to the modules that handle particular
+formats to control how those formats will behave.
+Each option has one of the following forms:
+.RS 5
+.TP
+\fIkey=value\fP
+The key will be set to the specified value in every module that supports it.
+Modules that do not support this key will ignore it.
+.TP
+\fIkey\fP
+The key will be enabled in every module that supports it.
+This is equivalent to
+\fIkey\fP \fB=1\fP.
+.TP
+\fI!key\fP
+The key will be disabled in every module that supports it.
+.TP
+\fImodule:key=value\fP, \fImodule:key\fP, \fImodule:!key\fP
+As above, but the corresponding key and value will be provided
+only to modules whose name matches
+\fImodule\fP.
+.RE
+.PP
+The complete list of supported modules and keys
+for create and append modes is in
+\fBarchive_write_set_options\fP(3)
+and for extract and list modes in
+\fBarchive_read_set_options\fP(3).
+.PP
+Examples of supported options:
+.RS 5
+.TP
+\fBiso9660:joliet\fP
+Support Joliet extensions.
+This is enabled by default, use
+\fB!joliet\fP
+or
+\fBiso9660:!joliet\fP
+to disable.
+.TP
+\fBiso9660:rockridge\fP
+Support Rock Ridge extensions.
+This is enabled by default, use
+\fB!rockridge\fP
+or
+\fBiso9660:!rockridge\fP
+to disable.
+.TP
+\fBgzip:compression-level\fP
+A decimal integer from 1 to 9 specifying the gzip compression level.
+.TP
+\fBgzip:timestamp\fP
+Store timestamp.
+This is enabled by default, use
+\fB!timestamp\fP
+or
+\fBgzip:!timestamp\fP
+to disable.
+.TP
+\fBlrzip:compression\fP=\fItype\fP
+Use
+\fItype\fP
+as compression method.
+Supported values are bzip2, gzip, lzo (ultra fast),
+and zpaq (best, extremely slow).
+.TP
+\fBlrzip:compression-level\fP
+A decimal integer from 1 to 9 specifying the lrzip compression level.
+.TP
+\fBlz4:compression-level\fP
+A decimal integer from 1 to 9 specifying the lzop compression level.
+.TP
+\fBlz4:stream-checksum\fP
+Enable stream checksum.
+This is by default, use
+\fBlz4:!stream-checksum\fP
+to disable.
+.TP
+\fBlz4:block-checksum\fP
+Enable block checksum (Disabled by default).
+.TP
+\fBlz4:block-size\fP
+A decimal integer from 4 to 7 specifying the lz4 compression block size
+(7 is set by default).
+.TP
+\fBlz4:block-dependence\fP
+Use the previous block of the block being compressed for
+a compression dictionary to improve compression ratio.
+.TP
+\fBzstd:compression-level\fP=\fIN\fP
+A decimal integer specifying the zstd compression level.
+Supported values depend
+on the library version, common values are from 1 to 22.
+.TP
+\fBzstd:threads\fP=\fIN\fP
+Specify the number of worker threads to use, or 0 to use as many
+threads as there are CPU cores in the system.
+.TP
+\fBzstd:frame-per-file\fP
+Start a new compression frame at the beginning of each file in the
+archive.
+.TP
+\fBzstd:min-frame-in\fP=\fIN\fP
+In combination with
+\fBzstd:frame-per-file\fP,
+do not start a new compression frame unless the uncompressed size of
+the current frame is at least
+\fIN\fP
+bytes.
+The number may be followed by
+.RS 4
+k /
+.RE
+.RS 4
+kB,
+.RE
+.RS 4
+M /
+.RE
+.RS 4
+MB,
+.RE
+or
+.RS 4
+G /
+.RE
+.RS 4
+GB
+.RE
+to indicate kilobytes, megabytes or gigabytes respectively.
+.TP
+\fBzstd:min-frame-out\fP=\fIN\fP, \fBzstd:min-frame-size\fP=\fIN\fP
+In combination with
+\fBzstd:frame-per-file\fP,
+do not start a new compression frame unless the compressed size of the
+current frame is at least
+\fIN\fP
+bytes.
+The number may be followed by
+.RS 4
+k /
+.RE
+.RS 4
+kB,
+.RE
+.RS 4
+M /
+.RE
+.RS 4
+MB,
+.RE
+or
+.RS 4
+G /
+.RE
+.RS 4
+GB
+.RE
+to indicate kilobytes, megabytes or gigabytes respectively.
+.TP
+\fBzstd:max-frame-in\fP=\fIN\fP, \fBzstd:max-frame-size\fP=\fIN\fP
+Start a new compression frame as soon as possible after the
+uncompressed size of the current frame exceeds
+\fIN\fP
+bytes.
+The number may be followed by
+.RS 4
+k /
+.RE
+.RS 4
+kB,
+.RE
+.RS 4
+M /
+.RE
+.RS 4
+MB,
+.RE
+or
+.RS 4
+G /
+.RE
+.RS 4
+GB
+.RE
+to indicate kilobytes, megabytes or gigabytes respectively.
+Values less than 1,024 will be rejected.
+.TP
+\fBzstd:max-frame-out\fP=\fIN\fP
+Start a new compression frame as soon as possible after the compressed
+size of the current frame exceeds
+\fIN\fP
+bytes.
+The number may be followed by
+.RS 4
+k /
+.RE
+.RS 4
+kB,
+.RE
+.RS 4
+M /
+.RE
+.RS 4
+MB,
+.RE
+or
+.RS 4
+G /
+.RE
+.RS 4
+GB
+.RE
+to indicate kilobytes, megabytes or gigabytes respectively.
+Values less than 1,024 will be rejected.
+.TP
+\fBlzop:compression-level\fP
+A decimal integer from 1 to 9 specifying the lzop compression level.
+.TP
+\fBxz:compression-level\fP
+A decimal integer from 0 to 9 specifying the xz compression level.
+.TP
+\fBxz:threads\fP
+Specify the number of worker threads to use.
+Setting threads to a special value 0 makes
+\fBxz\fP(1)
+use as many threads as there are CPU cores on the system.
+.TP
+\fBmtree:\fP \fIkeyword\fP
+The mtree writer module allows you to specify which mtree keywords
+will be included in the output.
+Supported keywords include:
+\fBcksum\fP, \fBdevice\fP, \fBflags\fP, \fBgid\fP, \fBgname\fP, \fBindent\fP,
+\fBlink\fP, \fBmd5\fP, \fBmode\fP, \fBnlink\fP, \fBrmd160\fP, \fBsha1\fP, \fBsha256\fP,
+\fBsha384\fP, \fBsha512\fP, \fBsize\fP, \fBtime\fP, \fBuid\fP, \fBuname\fP.
+The default is equivalent to:
+``device, flags, gid, gname, link, mode, nlink, size, time, type, uid, uname''.
+.TP
+\fBmtree:all\fP
+Enables all of the above keywords.
+You can also use
+\fBmtree:!all\fP
+to disable all keywords.
+.TP
+\fBmtree:use-set\fP
+Enable generation of
+\fB/set\fP
+lines in the output.
+.TP
+\fBmtree:indent\fP
+Produce human-readable output by indenting options and splitting lines
+to fit into 80 columns.
+.TP
+\fBzip:compression\fP=\fItype\fP
+Use
+\fItype\fP
+as compression method.
+Supported values are store (uncompressed) and deflate (gzip algorithm).
+.TP
+\fBzip:encryption\fP
+Enable encryption using traditional zip encryption.
+.TP
+\fBzip:encryption\fP=\fItype\fP
+Use
+\fItype\fP
+as encryption type.
+Supported values are zipcrypt (traditional zip encryption),
+aes128 (WinZip AES-128 encryption) and aes256 (WinZip AES-256 encryption).
+.TP
+\fBread_concatenated_archives\fP
+Ignore zeroed blocks in the archive, which occurs when multiple tar archives
+have been concatenated together.
+Without this option, only the contents of
+the first concatenated archive would be read.
+This option is comparable to the
+\fB\-i\fP, \fB\-Fl\fP ignore-zeros
+option of GNU tar.
+.RE
+If a provided option is not supported by any module, that
+is a fatal error.
+.TP
+\fB\-P\fP, \fB\-Fl\fP absolute-paths
+Preserve pathnames.
+By default, absolute pathnames (those that begin with a /
+character) have the leading slash removed both when creating archives
+and extracting from them.
+Also,
+\fB\%tar\fP
+will refuse to extract archive entries whose pathnames contain
+\fI\& ..\fP
+or whose target directory would be altered by a symlink.
+This option suppresses these behaviors.
+.TP
+\fB\-p\fP, \fB\-Fl\fP insecure, \fB\-Fl\fP preserve-permissions
+(x mode only)
+Preserve file permissions.
+Attempt to restore the full permissions, including file modes, file attributes
+or file flags, extended file attributes and ACLs, if available, for each item
+extracted from the archive.
+This is the reverse of
+\fB\-Fl\fP no-same-permissions
+and the default if
+\fB\%tar\fP
+is being run as root.
+It can be partially overridden by also specifying
+\fB\-Fl\fP no-acls,
+\fB\-Fl\fP no-fflags,
+\fB\-Fl\fP no-mac-metadata
+or
+\fB\-Fl\fP no-xattrs.
+.TP
+\fB\-Fl\fP passphrase \fIpassphrase\fP
+The
+\fIpassphrase\fP
+is used to extract or create an encrypted archive.
+Currently, zip is the only supported format that supports encryption.
+You shouldn't use this option unless you realize how insecure
+use of this option is.
+.TP
+\fB\-Fl\fP posix
+(c, r, u mode only)
+Synonym for
+\fB\-Fl\fP format \fIpax\fP
+.TP
+\fB\-q\fP, \fB\-Fl\fP fast-read
+(x and t mode only)
+Extract or list only the first archive entry that matches each pattern
+or filename operand.
+Exit as soon as each specified pattern or filename has been matched.
+By default, the archive is always read to the very end, since
+there can be multiple entries with the same name and, by convention,
+later entries overwrite earlier entries.
+This option is provided as a performance optimization.
+.TP
+\fB\-Fl\fP read-sparse
+(c, r, u modes only)
+Read sparse file information from disk.
+This is the reverse of
+\fB\-Fl\fP no-read-sparse
+and the default behavior.
+.TP
+\fB\-S\fP
+(x mode only)
+Extract files as sparse files.
+For every block on disk, check first if it contains only NULL bytes and seek
+over it otherwise.
+This works similar to the conv=sparse option of dd.
+.TP
+\fB\-s\fP \fIpattern\fP
+Modify file or archive member names according to
+\fIpattern\fP.
+The pattern has the format
+\fI/old/new/\fP [bghHprRsS]
+where
+\fIold\fP
+is a basic regular expression,
+\fInew\fP
+is the replacement string of the matched part,
+and the optional trailing letters modify
+how the replacement is handled.
+If
+\fIold\fP
+is not matched, the pattern is skipped.
+Within
+\fInew\fP,
+~ is substituted with the match, \e1 to \e9 with the content of
+the corresponding captured group.
+The optional trailing g specifies that matching should continue
+after the matched part and stop on the first unmatched pattern.
+The optional trailing s specifies that the pattern applies to the value
+of symbolic links.
+The optional trailing p specifies that after a successful substitution
+the original path name and the new path name should be printed to
+standard error.
+The optional trailing b specifies that the substitution should be
+matched from the beginning of the string rather than from right after the
+position at which the previous matching substitution ended.
+Optional trailing H, R, or S characters suppress substitutions
+for hardlink targets, regular filenames, or symlink targets,
+respectively.
+Optional trailing h, r, or s characters enable substitutions
+for hardlink targets, regular filenames, or symlink targets,
+respectively.
+The default is
+\fIhrs\fP
+which applies substitutions to all names.
+In particular, it is never necessary to specify h, r, or s.
+.TP
+\fB\-Fl\fP safe-writes
+(x mode only)
+Extract files atomically.
+By default
+\fB\%tar\fP
+unlinks the original file with the same name as the extracted file (if it
+exists), and then creates it immediately under the same name and writes to
+it.
+For a short period of time, applications trying to access the file might
+not find it, or see incomplete results.
+If
+\fB\-Fl\fP safe-writes
+is enabled,
+\fB\%tar\fP
+first creates a unique temporary file, then writes the new contents to
+the temporary file, and finally renames the temporary file to its final
+name atomically using
+\fBrename\fP(2).
+This guarantees that an application accessing the file, will either see
+the old contents or the new contents at all times.
+.TP
+\fB\-Fl\fP same-owner
+(x mode only)
+Extract owner and group IDs.
+This is the reverse of
+\fB\-Fl\fP no-same-owner
+and the default behavior if
+\fB\%tar\fP
+is run as root.
+.TP
+\fB\-Fl\fP strip-components \fIcount\fP
+Remove the specified number of leading path elements.
+Pathnames with fewer elements will be silently skipped.
+Note that the pathname is edited after checking inclusion/exclusion patterns
+but before security checks.
+.TP
+\fB\-T\fP \fIfilename\fP, \fB\-Fl\fP files-from \fIfilename\fP
+In x or t mode,
+\fB\%tar\fP
+will read the list of names to be extracted from
+\fIfilename\fP.
+In c mode,
+\fB\%tar\fP
+will read names to be archived from
+\fIfilename\fP.
+The special name
+``-C''
+on a line by itself will cause the current directory to be changed to
+the directory specified on the following line.
+Names are terminated by newlines unless
+\fB\-Fl\fP null
+is specified.
+Note that
+\fB\-Fl\fP null
+also disables the special handling of lines containing
+``-C''.
+Note:  If you are generating lists of files using
+\fBfind\fP(1),
+you probably want to use
+\fB\-n\fP
+as well.
+.TP
+\fB\-Fl\fP totals
+(c, r, u modes only)
+After archiving all files, print a summary to stderr.
+.TP
+\fB\-U\fP, \fB\-Fl\fP unlink, \fB\-Fl\fP unlink-first
+(x mode only)
+Unlink files before creating them.
+This can be a minor performance optimization if most files
+already exist, but can make things slower if most files
+do not already exist.
+This flag also causes
+\fB\%tar\fP
+to remove intervening directory symlinks instead of
+reporting an error.
+See the SECURITY section below for more details.
+.TP
+\fB\-Fl\fP uid \fIid\fP
+Use the provided user id number and ignore the user
+name from the archive.
+On create, if
+\fB\-Fl\fP uname
+is not also specified, the user name will be set to
+match the user id.
+.TP
+\fB\-Fl\fP uname \fIname\fP
+Use the provided user name.
+On extract, this overrides the user name in the archive;
+if the provided user name does not exist on the system,
+it will be ignored and the user id
+(from the archive or from the
+\fB\-Fl\fP uid
+option)
+will be used instead.
+On create, this sets the user name that will be stored
+in the archive;
+the name is not verified against the system user database.
+.TP
+\fB\-Fl\fP use-compress-program \fIprogram\fP
+Pipe the input (in x or t mode) or the output (in c mode) through
+\fIprogram\fP
+instead of using the builtin compression support.
+.TP
+\fB\-Fl\fP owner \fIname\fP [: \fIuid\fP]
+Use the provided user, if
+\fIuid\fP
+is not provided,
+\fIname\fP
+can be either an username or numeric id.
+See the
+\fB\-Fl\fP uname
+option for details.
+.TP
+\fB\-v\fP, \fB\-Fl\fP verbose
+Produce verbose output.
+In create and extract modes,
+\fB\%tar\fP
+will list each file name as it is read from or written to
+the archive.
+In list mode,
+\fB\%tar\fP
+will produce output similar to that of
+\fBls\fP(1).
+An additional
+\fB\-v\fP
+option will also provide ls-like details in create and extract mode.
+.TP
+\fB\-Fl\fP version
+Print version of
+\fB\%tar\fP
+and
+\fB\%libarchive\fP,
+and exit.
+.TP
+\fB\-w\fP, \fB\-Fl\fP confirmation, \fB\-Fl\fP interactive
+Ask for confirmation for every action.
+.TP
+\fB\-X\fP \fIfilename\fP, \fB\-Fl\fP exclude-from \fIfilename\fP
+Read a list of exclusion patterns from the specified file.
+See
+\fB\-Fl\fP exclude
+for more information about the handling of exclusions.
+.TP
+\fB\-Fl\fP xattrs
+(c, r, u, x modes only)
+Archive or extract extended file attributes.
+This is the reverse of
+\fB\-Fl\fP no-xattrs
+and the default behavior in c, r, and u modes or if
+\fB\%tar\fP
+is run in x mode as root.
+.TP
+\fB\-y\fP
+(c mode only)
+Compress the resulting archive with
+\fBbzip2\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes bzip2 compression automatically when reading
+archives.
+.TP
+\fB\-Z\fP, \fB\-Fl\fP compress, \fB\-Fl\fP uncompress
+(c mode only)
+Compress the resulting archive with
+\fBcompress\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes compress compression automatically when reading
+archives.
+.TP
+\fB\-z\fP, \fB\-Fl\fP gunzip, \fB\-Fl\fP gzip
+(c mode only)
+Compress the resulting archive with
+\fBgzip\fP(1).
+In extract or list modes, this option is ignored.
+Note that this
+\fB\%tar\fP
+implementation recognizes gzip compression automatically when reading
+archives.
+.RE
+.SH ENVIRONMENT
+.ad l
+The following environment variables affect the execution of
+\fB\%tar\fP:
+.RS 5
+.TP
+.B TAR_READER_OPTIONS
+The default options for format readers and compression readers.
+The
+\fB\-Fl\fP options
+option overrides this.
+.TP
+.B TAR_WRITER_OPTIONS
+The default options for format writers and compression writers.
+The
+\fB\-Fl\fP options
+option overrides this.
+.TP
+.B LANG
+The locale to use.
+See
+\fBenviron\fP(7)
+for more information.
+.TP
+.B TAPE
+The default device.
+The
+\fB\-f\fP
+option overrides this.
+Please see the description of the
+\fB\-f\fP
+option above for more details.
+.TP
+.B TZ
+The timezone to use when displaying dates.
+See
+\fBenviron\fP(7)
+for more information.
+.RE
+.SH EXIT STATUS
+.ad l
+The \fBtar\fP utility exits 0 on success, and >0 if an error occurs.
+.SH EXAMPLES
+.ad l
+The following creates a new archive
+called
+\fIfile.tar.gz\fP
+that contains two files
+\fIsource.c\fP
+and
+\fIsource.h\fP:
+.RS 4
+\fB\%tar\fP \fB\-czf\fP \fIfile.tar.gz\fP \fIsource.c\fP \fIsource.h\fP
+.RE
+.PP
+To view a detailed table of contents for this
+archive:
+.RS 4
+\fB\%tar\fP \fB\-tvf\fP \fIfile.tar.gz\fP
+.RE
+.PP
+To extract all entries from the archive on
+the default tape drive:
+.RS 4
+\fB\%tar\fP \fB\-x\fP
+.RE
+.PP
+To examine the contents of an ISO 9660 cdrom image:
+.RS 4
+\fB\%tar\fP \fB\-tf\fP \fIimage.iso\fP
+.RE
+.PP
+To move file hierarchies, invoke
+\fB\%tar\fP
+as
+.RS 4
+\fB\%tar\fP \fB\-cf\fP \fI-\fP \fB\-C\fP \fIsrcdir\fP \&. | \fB\%tar\fP \fB\-xpf\fP \fI-\fP \fB\-C\fP \fIdestdir\fP
+.RE
+or more traditionally
+.RS 4
+cd srcdir \&; \fB\%tar\fP \fB\-cf\fP \fI-\fP \&. | (cd destdir \&; \fB\%tar\fP \fB\-xpf\fP \fI-\fP)
+.RE
+.PP
+In create mode, the list of files and directories to be archived
+can also include directory change instructions of the form
+\fB-C\fP \fIfoo/baz\fP
+and archive inclusions of the form
+\fB@\fP \fIarchive-file\fP.
+For example, the command line
+.RS 4
+\fB\%tar\fP \fB\-c\fP \fB\-f\fP \fInew.tar\fP \fIfoo1\fP \fB@\fP \fIold.tgz\fP \fB-C\fP \fI/tmp\fP \fIfoo2\fP
+.RE
+will create a new archive
+\fInew.tar\fP.
+\fB\%tar\fP
+will read the file
+\fIfoo1\fP
+from the current directory and add it to the output archive.
+It will then read each entry from
+\fIold.tgz\fP
+and add those entries to the output archive.
+Finally, it will switch to the
+\fI/tmp\fP
+directory and add
+\fIfoo2\fP
+to the output archive.
+.PP
+An input file in
+\fBmtree\fP(5)
+format can be used to create an output archive with arbitrary ownership,
+permissions, or names that differ from existing data on disk:
+.RS 4
+.nf
+$ cat input.mtree
+#mtree
+usr/bin uid=0 gid=0 mode=0755 type=dir
+usr/bin/ls uid=0 gid=0 mode=0755 type=file content=myls
+$ tar -cvf output.tar @input.mtree
+.RE
+.PP
+The
+\fB\-Fl\fP newer
+and
+\fB\-Fl\fP newer-mtime
+switches accept a variety of common date and time specifications, including
+``12 Mar 2005 7:14:29pm'',
+``2005-03-12 19:14'',
+``5 minutes ago'',
+and
+``19:14 PST May 1''.
+.PP
+The
+\fB\-Fl\fP options
+argument can be used to control various details of archive generation
+or reading.
+For example, you can generate mtree output which only contains
+\fBtype\fP, \fBtime\fP,
+and
+\fBuid\fP
+keywords:
+.RS 4
+\fB\%tar\fP \fB\-cf\fP \fIfile.tar\fP \fB\-Fl\fP format=mtree \fB\-Fl\fP options='!all,type,time,uid' \fIdir\fP
+.RE
+or you can set the compression level used by gzip or xz compression:
+.RS 4
+\fB\%tar\fP \fB\-czf\fP \fIfile.tar\fP \fB\-Fl\fP options='compression-level=9'.
+.RE
+For more details, see the explanation of the
+\fB\%archive_read_set_options\fP()
+and
+\fB\%archive_write_set_options\fP()
+API calls that are described in
+\fBarchive_read\fP(3)
+and
+\fBarchive_write\fP(3).
+.SH COMPATIBILITY
+.ad l
+The bundled-arguments format is supported for compatibility
+with historic implementations.
+It consists of an initial word (with no leading - character) in which
+each character indicates an option.
+Arguments follow as separate words.
+The order of the arguments must match the order
+of the corresponding characters in the bundled command word.
+For example,
+.RS 4
+\fB\%tar\fP \fBtbf\fP 32 \fIfile.tar\fP
+.RE
+specifies three flags
+\fBt\fP,
+\fBb\fP,
+and
+\fBf\fP.
+The
+\fBb\fP
+and
+\fBf\fP
+flags both require arguments,
+so there must be two additional items
+on the command line.
+The
+\fI32\fP
+is the argument to the
+\fBb\fP
+flag, and
+\fIfile.tar\fP
+is the argument to the
+\fBf\fP
+flag.
+.PP
+The mode options c, r, t, u, and x and the options
+b, f, l, m, o, v, and w comply with SUSv2.
+.PP
+For maximum portability, scripts that invoke
+\fB\%tar\fP
+should use the bundled-argument format above, should limit
+themselves to the
+\fBc\fP,
+\fBt\fP,
+and
+\fBx\fP
+modes, and the
+\fBb\fP,
+\fBf\fP,
+\fBm\fP,
+\fBv\fP,
+and
+\fBw\fP
+options.
+.PP
+Additional long options are provided to improve compatibility with other
+tar implementations.
+.SH SECURITY
+.ad l
+Certain security issues are common to many archiving programs, including
+\fB\%tar\fP.
+In particular, carefully-crafted archives can request that
+\fB\%tar\fP
+extract files to locations outside of the target directory.
+This can potentially be used to cause unwitting users to overwrite
+files they did not intend to overwrite.
+If the archive is being extracted by the superuser, any file
+on the system can potentially be overwritten.
+There are three ways this can happen.
+Although
+\fB\%tar\fP
+has mechanisms to protect against each one,
+savvy users should be aware of the implications:
+.RS 5
+.IP \(bu
+Archive entries can have absolute pathnames.
+By default,
+\fB\%tar\fP
+removes the leading
+\fI/\fP
+character from filenames before restoring them to guard against this problem.
+.IP \(bu
+Archive entries can have pathnames that include
+\fI\& ..\fP
+components.
+By default,
+\fB\%tar\fP
+will not extract files containing
+\fI\& ..\fP
+components in their pathname.
+.IP \(bu
+Archive entries can exploit symbolic links to restore
+files to other directories.
+An archive can restore a symbolic link to another directory,
+then use that link to restore a file into that directory.
+To guard against this,
+\fB\%tar\fP
+checks each extracted path for symlinks.
+If the final path element is a symlink, it will be removed
+and replaced with the archive entry.
+If
+\fB\-U\fP
+is specified, any intermediate symlink will also be unconditionally removed.
+If neither
+\fB\-U\fP
+nor
+\fB\-P\fP
+is specified,
+\fB\%tar\fP
+will refuse to extract the entry.
+.RE
+To protect yourself, you should be wary of any archives that
+come from untrusted sources.
+You should examine the contents of an archive with
+.RS 4
+\fB\%tar\fP \fB\-tf\fP \fIfilename\fP
+.RE
+before extraction.
+You should use the
+\fB\-k\fP
+option to ensure that
+\fB\%tar\fP
+will not overwrite any existing files or the
+\fB\-U\fP
+option to remove any pre-existing files.
+You should generally not extract archives while running with super-user
+privileges.
+Note that the
+\fB\-P\fP
+option to
+\fB\%tar\fP
+disables the security checks above and allows you to extract
+an archive while preserving any absolute pathnames,
+\fI\& ..\fP
+components, or symlinks to other directories.
+.SH SEE ALSO
+.ad l
+\fBbzip2\fP(1),
+\fBcompress\fP(1),
+\fBcpio\fP(1),
+\fBgzip\fP(1),
+\fBmt\fP(1),
+\fBpax\fP(1),
+\fBshar\fP(1),
+\fBxz\fP(1),
+\fBlibarchive\fP(3),
+\fBlibarchive-formats\fP(5),
+\fBtar\fP(5)
+.SH STANDARDS
+.ad l
+There is no current POSIX standard for the tar command; it appeared
+in
+ISO/IEC 9945-1:1996 (``POSIX.1'')
+but was dropped from
+IEEE Std 1003.1-2001 (``POSIX.1'').
+The options supported by this implementation were developed by surveying a
+number of existing tar implementations as well as the old POSIX specification
+for tar and the current POSIX specification for pax.
+.PP
+The ustar and pax interchange file formats are defined by
+IEEE Std 1003.1-2001 (``POSIX.1'')
+for the pax command.
+.SH HISTORY
+.ad l
+A
+\fB\%tar\fP
+command appeared in Seventh Edition Unix, which was released in January, 1979.
+There have been numerous other implementations,
+many of which extended the file format.
+John Gilmore's
+\fB\%pdtar\fP
+public-domain implementation (circa November, 1987)
+was quite influential, and formed the basis of GNU tar.
+GNU tar was included as the standard system tar
+in
+FreeBSD
+beginning with
+FreeBSD 1.0.
+.PP
+This is a complete re-implementation based on the
+\fBlibarchive\fP(3)
+library.
+It was first released with
+FreeBSD 5.4
+in May, 2005.
+.SH BUGS
+.ad l
+This program follows
+ISO/IEC 9945-1:1996 (``POSIX.1'')
+for the definition of the
+\fB\-l\fP
+option.
+Note that GNU tar prior to version 1.15 treated
+\fB\-l\fP
+as a synonym for the
+\fB\-Fl\fP one-file-system
+option.
+.PP
+The
+\fB\-C\fP \fIdir\fP
+option may differ from historic implementations.
+.PP
+All archive output is written in correctly-sized blocks, even
+if the output is being compressed.
+Whether or not the last output block is padded to a full
+block size varies depending on the format and the
+output device.
+For tar and cpio formats, the last block of output is padded
+to a full block size if the output is being
+written to standard output or to a character or block device such as
+a tape drive.
+If the output is being written to a regular file, the last block
+will not be padded.
+Many compressors, including
+\fBgzip\fP(1)
+and
+\fBbzip2\fP(1),
+complain about the null padding when decompressing an archive created by
+\fB\%tar\fP,
+although they still extract it correctly.
+.PP
+The compression and decompression is implemented internally, so
+there may be insignificant differences between the compressed output
+generated by
+.RS 4
+\fB\%tar\fP \fB\-czf\fP \fI-\fP file
+.RE
+and that generated by
+.RS 4
+\fB\%tar\fP \fB\-cf\fP \fI-\fP file | \fB\%gzip\fP
+.RE
+.PP
+The default should be to read and write archives to the standard I/O paths,
+but tradition (and POSIX) dictates otherwise.
+.PP
+The
+\fBr\fP
+and
+\fBu\fP
+modes require that the archive be uncompressed
+and located in a regular file on disk.
+Other archives can be modified using
+\fBc\fP
+mode with the
+\fI@archive-file\fP
+extension.
+.PP
+To archive a file called
+\fI@foo\fP
+or
+\fI-foo\fP
+you must specify it as
+\fI\& ./@foo\fP
+or
+\fI\& ./-foo\fP,
+respectively.
+.PP
+In create mode, a leading
+\fI\& ./\fP
+is always removed.
+A leading
+\fI/\fP
+is stripped unless the
+\fB\-P\fP
+option is specified.
+.PP
+There needs to be better support for file selection on both create
+and extract.
+.PP
+There is not yet any support for multi-volume archives.
+.PP
+Converting between dissimilar archive formats (such as tar and cpio) using the
+\fB@\fP \fI-\fP
+convention can cause hard link information to be lost.
+(This is a consequence of the incompatible ways that different archive
+formats store hardlink information.)

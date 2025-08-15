@@ -1,0 +1,71 @@
+.TH ARCHIVE_WRITE_DATA 3 "February 28, 2017" ""
+.SH NAME
+.ad l
+\fB\%archive_write_data\fP,
+\fB\%archive_write_data_block\fP
+\- functions for creating archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIla_ssize_t\fP
+.br
+\fB\%archive_write_data\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ void\ *\fP, \fI\%size_t\fP);
+.br
+\fIla_ssize_t\fP
+.br
+\fB\%archive_write_data_block\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ void\ *\fP, \fI\%size_t\ size\fP, \fI\%int64_t\ offset\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_write_data\fP()
+Write data corresponding to the header just written.
+.TP
+\fB\%archive_write_data_block\fP()
+Write data corresponding to the header just written.
+This is like
+\fB\%archive_write_data\fP()
+except that it performs a seek on the file being
+written to the specified offset before writing the data.
+This is useful when restoring sparse files from archive
+formats that support sparse files.
+Returns number of bytes written or -1 on error.
+(Note: This is currently not supported for
+Tn archive_write
+handles, only for
+Tn archive_write_disk
+handles.
+.RE
+.SH RETURN VALUES
+.ad l
+This function returns the number of bytes actually written, or
+a negative error code on error.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH BUGS
+.ad l
+In libarchive 3.x, this function sometimes returns
+zero on success instead of returning the number of bytes written.
+Specifically, this occurs when writing to an
+Vt archive_write_disk
+handle.
+Clients should treat any value less than zero as an error
+and consider any non-negative value as success.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write_finish_entry\fP(3),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)

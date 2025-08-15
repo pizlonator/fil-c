@@ -1,0 +1,42 @@
+ARCHIVE_WRITE_SET_PASSPHRASE(3) manual page 
+== NAME == 
+'''archive_write_set_passphrase''', 
+'''archive_write_set_passphrase_callback''' 
+- functions for writing encrypted archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_passphrase'''(''struct archive *'', ''const char *passphrase''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_set_passphrase_callback'''(''struct archive *'', ''void *client_data'', ''archive_passphrase_callback *''); 
+== DESCRIPTION == 
+<dl> 
+<dt>'''archive_write_set_passphrase'''()</dt><dd> 
+Set a passphrase for writing an encrypted archive. 
+If 
+''passphrase'' 
+is 
+NULL 
+or empty, this function will do nothing and 
+'''ARCHIVE_FAILED''' 
+will be returned. 
+Otherwise, 
+'''ARCHIVE_OK''' 
+will be returned. 
+</dd><dt>'''archive_write_set_passphrase_callback'''()</dt><dd> 
+Register a callback function that will be invoked to get a passphrase 
+for encryption if the passphrase was not set by the 
+'''archive_write_set_passphrase'''() 
+function. 
+</dd></dl> 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWrite3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]] 

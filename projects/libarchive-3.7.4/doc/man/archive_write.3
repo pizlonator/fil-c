@@ -1,0 +1,233 @@
+.TH ARCHIVE_WRITE 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_write\fP
+\- functions for creating archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.SH DESCRIPTION
+.ad l
+These functions provide a complete API for creating streaming
+archive files.
+The general process is to first create the
+Tn struct archive
+object, set any desired options, initialize the archive, append entries, then
+close the archive and release all resources.
+.SS Create archive object
+See
+\fBarchive_write_new\fP(3).
+.PP
+To write an archive, you must first obtain an initialized
+Tn struct archive
+object from
+\fB\%archive_write_new\fP().
+.SS Enable filters and formats, configure block size and padding
+See
+\fBarchive_write_filter\fP(3),
+\fBarchive_write_format\fP(3)
+and
+\fBarchive_write_blocksize\fP(3).
+.PP
+You can then modify this object for the desired operations with the
+various
+\fB\%archive_write_set_XXX\fP()
+functions.
+In particular, you will need to invoke appropriate
+\fB\%archive_write_add_XXX\fP()
+and
+\fB\%archive_write_set_XXX\fP()
+functions to enable the corresponding compression and format
+support.
+.SS Set options
+See
+\fBarchive_write_set_options\fP(3).
+.SS Open archive
+See
+\fBarchive_write_open\fP(3).
+.PP
+Once you have prepared the
+Tn struct archive
+object, you call
+\fB\%archive_write_open\fP()
+to actually open the archive and prepare it for writing.
+There are several variants of this function;
+the most basic expects you to provide pointers to several
+functions that can provide blocks of bytes from the archive.
+There are convenience forms that allow you to
+specify a filename, file descriptor,
+\fIFILE *\fP
+object, or a block of memory from which to write the archive data.
+.SS Produce archive
+See
+\fBarchive_write_header\fP(3)
+and
+\fBarchive_write_data\fP(3).
+.PP
+Individual archive entries are written in a three-step
+process:
+You first initialize a
+Tn struct archive_entry
+structure with information about the new entry.
+At a minimum, you should set the pathname of the
+entry and provide a
+\fIstruct\fP stat
+with a valid
+\fIst_mode\fP
+field, which specifies the type of object and
+\fIst_size\fP
+field, which specifies the size of the data portion of the object.
+.SS Release resources
+See
+\fBarchive_write_free\fP(3).
+.PP
+After all entries have been written, use the
+\fB\%archive_write_free\fP()
+function to release all resources.
+.SH EXAMPLES
+.ad l
+The following sketch illustrates basic usage of the library.
+In this example,
+the callback functions are simply wrappers around the standard
+\fBopen\fP(2),
+\fBwrite\fP(2),
+and
+\fBclose\fP(2)
+system calls.
+.RS 4
+.nf
+#ifdef __linux__
+#define	_FILE_OFFSET_BITS 64
+#endif
+#include <sys/stat.h>
+#include <archive.h>
+#include <archive_entry.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+struct mydata {
+  const char *name;
+  int fd;
+};
+int
+myopen(struct archive *a, void *client_data)
+{
+  struct mydata *mydata = client_data;
+  mydata->fd = open(mydata->name, O_WRONLY | O_CREAT, 0644);
+  if (mydata->fd >= 0)
+    return (ARCHIVE_OK);
+  else
+    return (ARCHIVE_FATAL);
+}
+la_ssize_t
+mywrite(struct archive *a, void *client_data, const void *buff, size_t n)
+{
+  struct mydata *mydata = client_data;
+  return (write(mydata->fd, buff, n));
+}
+int
+myclose(struct archive *a, void *client_data)
+{
+  struct mydata *mydata = client_data;
+  if (mydata->fd > 0)
+    close(mydata->fd);
+  return (0);
+}
+void
+write_archive(const char *outname, const char **filename)
+{
+  struct mydata *mydata = malloc(sizeof(struct mydata));
+  struct archive *a;
+  struct archive_entry *entry;
+  struct stat st;
+  char buff[8192];
+  int len;
+  int fd;
+  a = archive_write_new();
+  mydata->name = outname;
+  /* Set archive format and filter according to output file extension.
+   * If it fails, set default format. Platform depended function.
+   * See supported formats in archive_write_set_format_filter_by_ext.c */
+  if (archive_write_set_format_filter_by_ext(a, outname) != ARCHIVE_OK)  {
+    archive_write_add_filter_gzip(a);
+    archive_write_set_format_ustar(a);
+  }
+  archive_write_open(a, mydata, myopen, mywrite, myclose);
+  while (*filename) {
+    stat(*filename, &st);
+    entry = archive_entry_new();
+    archive_entry_copy_stat(entry, &st);
+    archive_entry_set_pathname(entry, *filename);
+    archive_write_header(a, entry);
+    if ((fd = open(*filename, O_RDONLY)) != -1) {
+      len = read(fd, buff, sizeof(buff));
+      while (len > 0) {
+        archive_write_data(a, buff, len);
+        len = read(fd, buff, sizeof(buff));
+      }
+      close(fd);
+    }
+    archive_entry_free(entry);
+    filename++;
+  }
+  archive_write_free(a);
+}
+int main(int argc, const char **argv)
+{
+  const char *outname;
+  argv++;
+  outname = *argv++;
+  write_archive(outname, argv);
+  return 0;
+}
+.RE
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was written by
+Tim Kientzle \%<kientzle@acm.org.>
+.SH BUGS
+.ad l
+There are many peculiar bugs in historic tar implementations that may cause
+certain programs to reject archives written by this library.
+For example, several historic implementations calculated header checksums
+incorrectly and will thus reject valid archives; GNU tar does not fully support
+pax interchange format; some old tar implementations required specific
+field terminations.
+.PP
+The default pax interchange format eliminates most of the historic
+tar limitations and provides a generic key/value attribute facility
+for vendor-defined extensions.
+One oversight in POSIX is the failure to provide a standard attribute
+for large device numbers.
+This library uses
+``SCHILY.devminor''
+and
+``SCHILY.devmajor''
+for device numbers that exceed the range supported by the backwards-compatible
+ustar header.
+These keys are compatible with Joerg Schilling's
+\fB\%star\fP
+archiver.
+Other implementations may not recognize these keys and will thus be unable
+to correctly restore device nodes with large device numbers from archives
+created by this library.

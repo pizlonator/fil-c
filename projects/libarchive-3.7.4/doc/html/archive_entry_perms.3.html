@@ -1,0 +1,315 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_ENTRY_PERMS(3) BSD Library Functions Manual
+ARCHIVE_ENTRY_PERMS(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_entry_gid</b>,
+<b>archive_entry_set_gid</b>, <b>archive_entry_uid</b>,
+<b>archive_entry_set_uid</b>, <b>archive_entry_perm</b>,
+<b>archive_entry_set_perm</b>, <b>archive_entry_strmode</b>,
+<b>archive_entry_uname</b>, <b>archive_entry_uname_w</b>,
+<b>archive_entry_set_uname</b>,
+<b>archive_entry_copy_uname</b>,
+<b>archive_entry_copy_uname_w</b>,
+<b>archive_entry_update_uname_utf8</b>,
+<b>archive_entry_gname</b>, <b>archive_entry_gname_w</b>,
+<b>archive_entry_set_gname</b>,
+<b>archive_entry_copy_gname</b>,
+<b>archive_entry_copy_gname_w</b>,
+<b>archive_entry_update_gname_utf8</b>,
+<b>archive_entry_fflags</b>,
+<b>archive_entry_fflags_text</b>,
+<b>archive_entry_set_fflags</b>,
+<b>archive_entry_copy_fflags_text</b>,
+<b>archive_entry_copy_fflags_text_w</b> &mdash; functions
+for manipulating ownership and permissions in archive entry
+descriptions</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive_entry.h&gt;</b></p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>gid_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_gid</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_gid</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>gid_t&nbsp;gid</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>uid_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_uid</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_uid</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>uid_t&nbsp;uid</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>mode_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_perm</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_perm</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>mode_t&nbsp;mode</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_strmode</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_gname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const wchar_t
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_gname_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_gname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_gname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_gname_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_update_gname_utf8</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_uname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const wchar_t
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_uname_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_uname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_uname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_uname_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_update_uname_utf8</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*name</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p><b>archive_entry_fflags</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>unsigned&nbsp;long&nbsp;*set_bits</i>,
+<i>unsigned&nbsp;long&nbsp;*clear_bits</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_fflags_text</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p><b>archive_entry_set_fflags</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>unsigned&nbsp;long&nbsp;set_bits</i>,
+<i>unsigned&nbsp;long&nbsp;clear_bits</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_fflags_text</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*text</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const wchar_t
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_fflags_text_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*text</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;"><b>User id, group id and
+mode</b> <br>
+The functions <b>archive_entry_uid</b>(),
+<b>archive_entry_gid</b>(), and <b>archive_entry_perm</b>()
+can be used to extract the user id, group id and permission
+from the given entry. The corresponding functions
+<b>archive_entry_set_uid</b>(),
+<b>archive_entry_set_gid</b>(), and
+<b>archive_entry_set_perm</b>() store the given user id,
+group id and permission in the entry. The permission is also
+set as a side effect of calling
+<b>archive_entry_set_mode</b>().</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_strmode</b>()
+returns a string representation of the permission as used by
+the long mode of ls(1).</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>User and
+group name</b> <br>
+User and group names can be provided in one of three
+different ways:</p>
+
+<p style="margin-top: 1em">char *</p>
+
+<p style="margin-left:21%; margin-top: 1em">Multibyte
+strings in the current locale.</p>
+
+<p style="margin-top: 1em">wchar_t *</p>
+
+<p style="margin-left:21%; margin-top: 1em">Wide character
+strings in the current locale. The accessor functions are
+named <b>XXX_w</b>().</p>
+
+<p style="margin-top: 1em">UTF-8</p>
+
+<p style="margin-left:21%; margin-top: 1em">Unicode strings
+encoded as UTF-8. These are convenience functions to update
+both the multibyte and wide character strings at the same
+time.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_set_XXX</b>()
+is an alias for <b>archive_entry_copy_XXX</b>().</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>File
+Flags</b> <br>
+File flags are transparently converted between a bitmap
+representation and a textual format. For example, if you set
+the bitmap and ask for text, the library will build a
+canonical text format. However, if you set a text format and
+request a text format, you will get back the same text, even
+if it is ill-formed. If you need to canonicalize a textual
+flags string, you should first set the text form, then
+request the bitmap form, then use that to set the bitmap
+form. Setting the bitmap format will clear the internal text
+representation and force it to be reconstructed when you
+next request the text form.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The bitmap
+format consists of two integers, one containing bits that
+should be set, the other specifying bits that should be
+cleared. Bits not mentioned in either bitmap will be
+ignored. Usually, the bitmap of bits to be cleared will be
+set to zero. In unusual circumstances, you can force a
+fully-specified set of file flags by setting the bitmap of
+flags to clear to the complement of the bitmap of flags to
+set. (This differs from fflagstostr(3), which only includes
+names for set bits.) Converting a bitmap to a textual string
+is a platform-specific operation; bits that are not
+meaningful on the current platform will be ignored.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The canonical
+text format is a comma-separated list of flag names. The
+<b>archive_entry_copy_fflags_text</b>() and
+<b>archive_entry_copy_fflags_text_w</b>() functions parse
+the provided text and set the internal bitmap values. This
+is a platform-specific operation; names that are not
+meaningful on the current platform will be ignored. The
+function returns a pointer to the start of the first name
+that was not recognized, or NULL if every name was
+recognized. Note that every name &mdash; including names
+that follow an unrecognized name &mdash; will be evaluated,
+and the bitmaps will be set to reflect every name that is
+recognized. (In particular, this differs from
+strtofflags(3), which stops parsing at the first
+unrecognized name.)</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_entry(3),
+archive_entry_acl(3), archive_read_disk(3),
+archive_write_disk(3), libarchive(3)</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">The platform types <i>uid_t</i>
+and <i>gid_t</i> are often 16 or 32 bit wide. In this case
+it is possible that the ids can not be correctly restored
+from archives and get truncated.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

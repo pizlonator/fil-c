@@ -1,0 +1,61 @@
+ARCHIVE_WRITE_DATA(3) manual page 
+== NAME == 
+'''archive_write_data''', 
+'''archive_write_data_block''' 
+- functions for creating archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''la_ssize_t'' 
+<br> 
+'''archive_write_data'''(''struct archive *'', ''const void *'', ''size_t''); 
+<br> 
+''la_ssize_t'' 
+<br> 
+'''archive_write_data_block'''(''struct archive *'', ''const void *'', ''size_t size'', ''int64_t offset''); 
+== DESCRIPTION == 
+<dl> 
+<dt>'''archive_write_data'''()</dt><dd> 
+Write data corresponding to the header just written. 
+</dd><dt>'''archive_write_data_block'''()</dt><dd> 
+Write data corresponding to the header just written. 
+This is like 
+'''archive_write_data'''() 
+except that it performs a seek on the file being 
+written to the specified offset before writing the data. 
+This is useful when restoring sparse files from archive 
+formats that support sparse files. 
+Returns number of bytes written or -1 on error. 
+(Note: This is currently not supported for 
+'''archive_write''' 
+handles, only for 
+'''archive_write_disk''' 
+handles. 
+</dd></dl> 
+== RETURN VALUES == 
+This function returns the number of bytes actually written, or 
+a negative error code on error. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== BUGS == 
+In libarchive 3.x, this function sometimes returns 
+zero on success instead of returning the number of bytes written. 
+Specifically, this occurs when writing to an 
+''archive_write_disk'' 
+handle. 
+Clients should treat any value less than zero as an error 
+and consider any non-negative value as success. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWriteFinishEntry3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

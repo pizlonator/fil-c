@@ -1,0 +1,41 @@
+ARCHIVE_ENTRY_MISC(3) manual page 
+== NAME == 
+'''archive_entry_symlink_type''', 
+'''archive_entry_set_symlink_type''' 
+- miscellaneous functions for manipulating properties of archive_entry 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive_entry.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_entry_symlink_type'''(''struct archive_entry *a''); 
+<br> 
+''void'' 
+<br> 
+'''archive_entry_set_symlink_type'''(''struct archive_entry *a'', ''int''); 
+== DESCRIPTION == 
+The function 
+'''archive_entry_symlink_type'''() 
+returns and the function 
+'''archive_entry_set_symlink_type'''() 
+sets the type of the symbolic link stored in an archive entry. 
+These functions 
+have special meaning on operating systems that support multiple symbolic link 
+types (e.g. Microsoft Windows). 
+
+Supported values are: 
+<dl> 
+<dt>AE_SYMLINK_TYPE_UNDEFINED</dt><dd> 
+Symbolic link target type is not defined (default on unix systems) 
+</dd><dt>AE_SYMLINK_TYPE_FILE</dt><dd> 
+Symbolic link points to a file 
+</dd><dt>AE_SYMLINK_TYPE_DIRECTORY</dt><dd> 
+Symbolic link points to a directory 
+</dd></dl> 
+== SEE ALSO == 
+[[ManPageArchiveEntry3]], 
+[[ManPageArchiveEntryPaths3]], 
+[[ManPageArchiveEntryStat3]], 
+[[ManPageLibarchive3]] 

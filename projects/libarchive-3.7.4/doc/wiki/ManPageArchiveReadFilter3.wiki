@@ -1,0 +1,155 @@
+ARCHIVE_READ_FILTER(3) manual page 
+== NAME == 
+'''archive_read_support_filter_all''', 
+'''archive_read_support_filter_bzip2''', 
+'''archive_read_support_filter_compress''', 
+'''archive_read_support_filter_gzip''', 
+'''archive_read_support_filter_lz4''', 
+'''archive_read_support_filter_lzma''', 
+'''archive_read_support_filter_none''', 
+'''archive_read_support_filter_rpm''', 
+'''archive_read_support_filter_uu''', 
+'''archive_read_support_filter_xz''', 
+'''archive_read_support_filter_zstd''', 
+'''archive_read_support_filter_program''', 
+'''archive_read_support_filter_program_signature''' 
+- functions for reading streaming archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_all'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_by_code'''(''struct archive *'', ''int''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_bzip2'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_compress'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_grzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_gzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_lrzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_lz4'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_lzma'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_lzop'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_none'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_rpm'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_uu'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_xz'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_zstd'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_program'''(''struct archive *'', ''const char *cmd''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_support_filter_program_signature'''(''struct archive *'', ''const char *cmd'', ''const void *signature'', ''size_t signature_length''); 
+== DESCRIPTION == 
+<dl> 
+<dt> 
+'''archive_read_support_filter_bzip2'''(), 
+'''archive_read_support_filter_compress'''(), 
+'''archive_read_support_filter_grzip'''(), 
+'''archive_read_support_filter_gzip'''(), 
+'''archive_read_support_filter_lrzip'''(), 
+'''archive_read_support_filter_lz4'''(), 
+'''archive_read_support_filter_lzma'''(), 
+'''archive_read_support_filter_lzop'''(), 
+'''archive_read_support_filter_none'''(), 
+'''archive_read_support_filter_rpm'''(), 
+'''archive_read_support_filter_uu'''(), 
+'''archive_read_support_filter_xz'''(), 
+'''archive_read_support_filter_zstd'''(), 
+</dt> <dd> 
+Enables auto-detection code and decompression support for the 
+specified compression. 
+These functions may fall back on external programs if an appropriate 
+library was not available at build time. 
+Decompression using an external program is usually slower than 
+decompression through built-in libraries. 
+Note that 
+"none" 
+is always enabled by default. 
+</dd><dt>'''archive_read_support_filter_all'''()</dt><dd> 
+Enables all available decompression filters. 
+</dd><dt>'''archive_read_support_filter_by_code'''()</dt><dd> 
+Enables a single filter specified by the filter code. 
+This function does not work with 
+'''ARCHIVE_FILTER_PROGRAM'''. 
+Note: In statically-linked executables, this will cause 
+your program to include support for every filter. 
+If executable size is a concern, you may wish to avoid 
+using this function. 
+</dd><dt>'''archive_read_support_filter_program'''()</dt><dd> 
+Data is fed through the specified external program before being dearchived. 
+Note that this disables automatic detection of the compression format, 
+so it makes no sense to specify this in conjunction with any other 
+decompression option. 
+</dd><dt>'''archive_read_support_filter_program_signature'''()</dt><dd> 
+This feeds data through the specified external program 
+but only if the initial bytes of the data match the specified 
+signature value. 
+</dd></dl> 
+== RETURN VALUES == 
+These functions return 
+'''ARCHIVE_OK''' 
+if the compression is fully supported, 
+'''ARCHIVE_WARN''' 
+if the compression is supported only through an external program. 
+
+'''archive_read_support_filter_none'''() 
+always succeeds. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageArchiveRead3]], 
+[[ManPageArchiveReadData3]], 
+[[ManPageArchiveReadFormat3]], 
+[[ManPageArchiveReadFormat3]], 
+[[ManPageLibarchive3]] 

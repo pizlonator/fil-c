@@ -1,0 +1,185 @@
+.TH ARCHIVE_READ_FORMAT 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_read_support_format_7zip\fP,
+\fB\%archive_read_support_format_all\fP,
+\fB\%archive_read_support_format_ar\fP,
+\fB\%archive_read_support_format_by_code\fP,
+\fB\%archive_read_support_format_cab\fP,
+\fB\%archive_read_support_format_cpio\fP,
+\fB\%archive_read_support_format_empty\fP,
+\fB\%archive_read_support_format_iso9660\fP,
+\fB\%archive_read_support_format_lha\fP,
+\fB\%archive_read_support_format_mtree\fP,
+\fB\%archive_read_support_format_rar\fP,
+\fB\%archive_read_support_format_raw\fP,
+\fB\%archive_read_support_format_tar\fP,
+\fB\%archive_read_support_format_xar\fP,
+\fB\%archive_read_support_format_zip\fP
+\- functions for reading streaming archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_7zip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_all\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_ar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_by_code\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_cab\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_cpio\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_empty\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_iso9660\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_lha\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_mtree\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_rar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_raw\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_tar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_xar\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_format_zip\fP(\fI\%struct\ archive\ *\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_read_support_format_7zip\fP(),
+\fB\%archive_read_support_format_ar\fP(),
+\fB\%archive_read_support_format_cab\fP(),
+\fB\%archive_read_support_format_cpio\fP(),
+\fB\%archive_read_support_format_iso9660\fP(),
+\fB\%archive_read_support_format_lha\fP(),
+\fB\%archive_read_support_format_mtree\fP(),
+\fB\%archive_read_support_format_rar\fP(),
+\fB\%archive_read_support_format_raw\fP(),
+\fB\%archive_read_support_format_tar\fP(),
+\fB\%archive_read_support_format_xar\fP(),
+\fB\%archive_read_support_format_zip\fP()
+Enables support---including auto-detection code---for the
+specified archive format.
+For example,
+\fB\%archive_read_support_format_tar\fP()
+enables support for a variety of standard tar formats, old-style tar,
+ustar, pax interchange format, and many common variants.
+.TP
+\fB\%archive_read_support_format_all\fP()
+Enables support for all available formats except the
+``raw''
+format (see below).
+.TP
+\fB\%archive_read_support_format_by_code\fP()
+Enables a single format specified by the format code.
+This can be useful when reading a single archive twice;
+use
+\fB\%archive_format\fP()
+after reading the first time and pass the resulting code
+to this function to selectively enable only the necessary
+format support.
+Note:  In statically-linked executables, this will cause
+your program to include support for every format.
+If executable size is a concern, you may wish to avoid
+using this function.
+.TP
+\fB\%archive_read_support_format_empty\fP()
+Enables support for treating empty files as empty archives.
+Because empty files are valid for several different formats,
+it is not possible to accurately determine a format for
+an empty file based purely on contents.
+So empty files are treated by libarchive as a distinct
+format.
+.TP
+\fB\%archive_read_support_format_raw\fP()
+The
+``raw''
+format handler allows libarchive to be used to read arbitrary data.
+It treats any data stream as an archive with a single entry.
+The pathname of this entry is
+``data ;''
+all other entry fields are unset.
+This is not enabled by
+\fB\%archive_read_support_format_all\fP()
+in order to avoid erroneous handling of damaged archives.
+.RE
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+on success, or
+\fBARCHIVE_FATAL\fP.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_read_data\fP(3),
+\fBarchive_read_filter\fP(3),
+\fBarchive_read_set_options\fP(3),
+\fBarchive_util\fP(3),
+\fBlibarchive\fP(3),
+\fBtar\fP(5)
+.SH BUGS
+.ad l
+Many traditional archiver programs treat
+empty files as valid empty archives.
+For example, many implementations of
+\fBtar\fP(1)
+allow you to append entries to an empty file.
+Of course, it is impossible to determine the format of an empty file
+by inspecting the contents, so this library treats empty files as
+having a special
+``empty''
+format.
+.PP
+Using the
+``raw''
+handler together with any other handler will often work
+but can produce surprising results.

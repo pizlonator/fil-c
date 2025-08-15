@@ -1,0 +1,52 @@
+ARCHIVE_READ_FREE(3)	 BSD Library Functions Manual	  ARCHIVE_READ_FREE(3)
+
+NAME
+     archive_read_close, archive_read_finish, archive_read_free — functions
+     for reading streaming archives
+
+LIBRARY
+     Streaming Archive Library (libarchive, -larchive)
+
+SYNOPSIS
+     #include <archive.h>
+
+     int
+     archive_read_close(struct archive *);
+
+     int
+     archive_read_finish(struct archive *);
+
+     int
+     archive_read_free(struct archive *);
+
+DESCRIPTION
+     archive_read_close()
+	     Complete the archive and invoke the close callback.
+     archive_read_finish()
+	     This is a deprecated synonym for archive_read_free().  The new
+	     name was introduced with libarchive 3.0.  Applications that need
+	     to compile with either libarchive 2 or libarchive 3 should con‐
+	     tinue to use the archive_read_finish() name.  Both names will be
+	     supported until libarchive 4.0 is released, which is not expected
+	     to occur earlier than 2013.
+     archive_read_free()
+	     Invokes archive_read_close() if it was not invoked manually, then
+	     release all resources.  Note: In libarchive 1.x, this function
+	     was declared to return void, which made it impossible to detect
+	     certain errors when archive_read_close() was invoked implicitly
+	     from this function.  The declaration is corrected beginning with
+	     libarchive 2.0.
+
+RETURN VALUES
+     These functions return ARCHIVE_OK on success, or ARCHIVE_FATAL.
+
+ERRORS
+     Detailed error codes and textual descriptions are available from the
+     archive_errno() and archive_error_string() functions.
+
+SEE ALSO
+     archive_read_data(3), archive_read_filter(3), archive_read_format(3),
+     archive_read_new(3), archive_read_open(3), archive_read_set_options(3),
+     archive_util(3), libarchive(3)
+
+BSD			       February 2, 2012				   BSD

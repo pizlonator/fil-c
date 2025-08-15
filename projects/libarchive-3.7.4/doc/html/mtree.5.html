@@ -1,0 +1,378 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:48 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>MTREE(5) BSD File Formats Manual MTREE(5)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>mtree</b> &mdash; format of
+mtree dir hierarchy files</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">The <b>mtree</b> format is a
+textual format that describes a collection of filesystem
+objects. Such files are typically used to create or verify
+directory hierarchies.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>General
+Format</b> <br>
+An <b>mtree</b> file consists of a series of lines, each
+providing information about a single filesystem object.
+Leading whitespace is always ignored.</p>
+
+<p style="margin-left:6%; margin-top: 1em">When encoding
+file or pathnames, any backslash character or character
+outside of the 95 printable ASCII characters must be encoded
+as a backslash followed by three octal digits. When reading
+mtree files, any appearance of a backslash followed by three
+octal digits should be converted into the corresponding
+character.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Each line is
+interpreted independently as one of the following types:</p>
+
+<p style="margin-top: 1em">Blank</p>
+
+<p style="margin-left:22%; margin-top: 1em">Blank lines are
+ignored.</p>
+
+<p style="margin-top: 1em">Comment</p>
+
+<p style="margin-left:22%; margin-top: 1em">Lines beginning
+with <b>#</b> are ignored.</p>
+
+<p style="margin-top: 1em">Special</p>
+
+<p style="margin-left:22%; margin-top: 1em">Lines beginning
+with <b>/</b> are special commands that influence the
+interpretation of later lines.</p>
+
+<p style="margin-top: 1em">Relative</p>
+
+<p style="margin-left:22%; margin-top: 1em">If the first
+whitespace-delimited word has no <b>/</b> characters, it is
+the name of a file in the current directory. Any relative
+entry that describes a directory changes the current
+directory.</p>
+
+<p style="margin-top: 1em">dot-dot</p>
+
+<p style="margin-left:22%; margin-top: 1em">As a special
+case, a relative entry with the filename <i>..</i> changes
+the current directory to the parent directory. Options on
+dot-dot entries are always ignored.</p>
+
+<p style="margin-top: 1em">Full</p>
+
+<p style="margin-left:22%; margin-top: 1em">If the first
+whitespace-delimited word has a <b>/</b> character after the
+first character, it is the pathname of a file relative to
+the starting directory. There can be multiple full entries
+describing the same file.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Some tools that
+process <b>mtree</b> files may require that multiple lines
+describing the same file occur consecutively. It is not
+permitted for the same file to be mentioned using both a
+relative and a full file specification.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Special
+commands</b> <br>
+Two special commands are currently defined:</p>
+
+<p style="margin-top: 1em"><b>/set</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">This command
+defines default values for one or more keywords. It is
+followed on the same line by one or more
+whitespace-separated keyword definitions. These definitions
+apply to all following files that do not specify a value for
+that keyword.</p>
+
+<p style="margin-top: 1em"><b>/unset</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">This command
+removes any default value set by a previous <b>/set</b>
+command. It is followed on the same line by one or more
+keywords separated by whitespace.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Keywords</b>
+<br>
+After the filename, a full or relative entry consists of
+zero or more whitespace-separated keyword definitions. Each
+such definition consists of a key from the following list
+immediately followed by an &rsquo;=&rsquo; sign and a value.
+Software programs reading mtree files should warn about
+unrecognized keywords.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Currently
+supported keywords are as follows:</p>
+
+<p style="margin-top: 1em"><b>cksum</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The checksum of
+the file using the default algorithm specified by the
+cksum(1) utility.</p>
+
+<p style="margin-top: 1em"><b>device</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The device
+number for <b>block</b> or <b>char</b> file types. The value
+must be one of the following forms:</p>
+
+
+<p style="margin-top: 1em"><i>format</i>,<i>major</i>,<i>minor</i>[
+<br>
+,<i>subunit</i>]</p>
+
+<p style="margin-left:29%;">A device with <i>major</i>,
+<i>minor</i> and optional <i>subunit</i> fields. Their
+meaning is specified by the operating&rsquo;s system
+<i>format</i>. See below for valid formats.</p>
+
+<p style="margin-top: 1em"><i>number</i></p>
+
+<p style="margin-left:29%;">Opaque number (as stored on the
+file system).</p>
+
+<p style="margin-left:22%; margin-top: 1em">The following
+values for <i>format</i> are recognized: <b>native</b>,
+<b>386bsd</b>, <b>4bsd</b>, <b>bsdos</b>, <b>freebsd</b>,
+<b>hpux</b>, <b>isc</b>, <b>linux</b>, <b>netbsd</b>,
+<b>osf1</b>, <b>sco</b>, <b>solaris</b>, <b>sunos</b>,
+<b>svr3</b>, <b>svr4</b>, and <b>ultrix</b>.</p>
+
+<p style="margin-left:22%; margin-top: 1em">See mknod(8)
+for more details.</p>
+
+<p style="margin-top: 1em"><b>contents</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The full
+pathname of a file that holds the contents of this file.</p>
+
+<p style="margin-top: 1em"><b>flags</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The file flags
+as a symbolic name. See chflags(1) for information on these
+names. If no flags are to be set the string
+&ldquo;none&rdquo; may be used to override the current
+default.</p>
+
+<p style="margin-top: 1em"><b>gid</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The file group
+as a numeric value.</p>
+
+<p style="margin-top: 1em"><b>gname</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The file group
+as a symbolic name.</p>
+
+<p style="margin-top: 1em"><b>ignore</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">Ignore any file
+hierarchy below this file.</p>
+
+<p style="margin-top: 1em"><b>inode</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The inode
+number.</p>
+
+<p style="margin-top: 1em"><b>link</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The target of
+the symbolic link when type=link.</p>
+
+<p style="margin-top: 1em"><b>md5</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The MD5 message
+digest of the file.</p>
+
+<p style="margin-top: 1em"><b>md5digest</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">A synonym for
+<b>md5</b>.</p>
+
+<p style="margin-top: 1em"><b>mode</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The current
+file&rsquo;s permissions as a numeric (octal) or symbolic
+value.</p>
+
+<p style="margin-top: 1em"><b>nlink</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The number of
+hard links the file is expected to have.</p>
+
+<p style="margin-top: 1em"><b>nochange</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">Make sure this
+file or directory exists but otherwise ignore all
+attributes.</p>
+
+<p style="margin-top: 1em"><b>optional</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The file is
+optional; do not complain about the file if it is not in the
+file hierarchy.</p>
+
+<p style="margin-top: 1em"><b>resdevice</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+&ldquo;resident&rdquo; device number of the file, e.g. the
+ID of the device that contains the file. Its format is the
+same as the one for <b>device</b>.</p>
+
+<p style="margin-top: 1em"><b>ripemd160digest</b></p>
+
+<p style="margin-left:22%;">The RIPEMD160 message digest of
+the file.</p>
+
+<p style="margin-top: 1em"><b>rmd160</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">A synonym for
+<b>ripemd160digest</b>.</p>
+
+<p style="margin-top: 1em"><b>rmd160digest</b></p>
+
+<p style="margin-left:22%;">A synonym for
+<b>ripemd160digest</b>.</p>
+
+<p style="margin-top: 1em"><b>sha1</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The FIPS 160-1
+(&ldquo;SHA-1&rdquo;) message digest of the file.</p>
+
+<p style="margin-top: 1em"><b>sha1digest</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">A synonym for
+<b>sha1</b>.</p>
+
+<p style="margin-top: 1em"><b>sha256</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The FIPS 180-2
+(&ldquo;SHA-256&rdquo;) message digest of the file.</p>
+
+<p style="margin-top: 1em"><b>sha256digest</b></p>
+
+<p style="margin-left:22%;">A synonym for
+<b>sha256</b>.</p>
+
+<p style="margin-top: 1em"><b>sha384</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The FIPS 180-2
+(&ldquo;SHA-384&rdquo;) message digest of the file.</p>
+
+<p style="margin-top: 1em"><b>sha384digest</b></p>
+
+<p style="margin-left:22%;">A synonym for
+<b>sha384</b>.</p>
+
+<p style="margin-top: 1em"><b>sha512</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The FIPS 180-2
+(&ldquo;SHA-512&rdquo;) message digest of the file.</p>
+
+<p style="margin-top: 1em"><b>sha512digest</b></p>
+
+<p style="margin-left:22%;">A synonym for
+<b>sha512</b>.</p>
+
+<p style="margin-top: 1em"><b>size</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The size, in
+bytes, of the file.</p>
+
+<p style="margin-top: 1em"><b>time</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The last
+modification time of the file.</p>
+
+<p style="margin-top: 1em"><b>type</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The type of the
+file; may be set to any one of the following:</p>
+
+<p style="margin-top: 1em"><b>block</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">block special
+device</p>
+
+<p><b>char</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">character
+special device</p>
+
+<p><b>dir</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">directory</p>
+
+<p><b>fifo</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">fifo</p>
+
+<p><b>file</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">regular
+file</p>
+
+<p><b>link</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">symbolic
+link</p>
+
+<p><b>socket</b></p>
+
+<p style="margin-left:37%; margin-top: 1em">socket</p>
+
+<p style="margin-top: 1em"><b>uid</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The file owner
+as a numeric value.</p>
+
+<p style="margin-top: 1em"><b>uname</b></p>
+
+<p style="margin-left:22%; margin-top: 1em">The file owner
+as a symbolic name.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">cksum(1), find(1), mtree(8)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>mtree</b> utility
+appeared in 4.3BSD-Reno. The MD5 digest capability was added
+in FreeBSD&nbsp;2.1, in response to the widespread use of
+programs which can spoof cksum(1). The SHA-1 and RIPEMD160
+digests were added in FreeBSD&nbsp;4.0, as new attacks have
+demonstrated weaknesses in MD5. The SHA-256 digest was added
+in FreeBSD&nbsp;6.0. Support for file flags was added in
+FreeBSD&nbsp;4.0, and mostly comes from NetBSD. The
+&ldquo;full&rdquo; entry format was added by NetBSD.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+September&nbsp;4, 2013 BSD</p>
+<hr>
+</body>
+</html>

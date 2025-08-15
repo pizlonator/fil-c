@@ -1,0 +1,248 @@
+ARCHIVE_READ_OPTIONS(3) manual page 
+== NAME == 
+'''archive_read_set_filter_option''', 
+'''archive_read_set_format_option''', 
+'''archive_read_set_option''', 
+'''archive_read_set_options''' 
+- functions controlling options for reading archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+<br> 
+''int'' 
+<br> 
+'''archive_read_set_filter_option'''(''struct archive *'', ''const char *module'', ''const char *option'', ''const char *value''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_set_format_option'''(''struct archive *'', ''const char *module'', ''const char *option'', ''const char *value''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_set_option'''(''struct archive *'', ''const char *module'', ''const char *option'', ''const char *value''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_set_options'''(''struct archive *'', ''const char *options''); 
+== DESCRIPTION == 
+These functions provide a way for libarchive clients to configure 
+specific read modules. 
+<dl> 
+<dt> 
+'''archive_read_set_filter_option'''(), 
+'''archive_read_set_format_option'''() 
+</dt> <dd> 
+Specifies an option that will be passed to currently-registered 
+filters (including decompression filters) or format readers. 
+
+If 
+''option'' 
+and 
+''value'' 
+are both 
+NULL, 
+these functions will do nothing and 
+'''ARCHIVE_OK''' 
+will be returned. 
+If 
+''option'' 
+is 
+NULL 
+but 
+''value'' 
+is not, these functions will do nothing and 
+'''ARCHIVE_FAILED''' 
+will be returned. 
+
+If 
+''module'' 
+is not 
+NULL, 
+''option'' 
+and 
+''value'' 
+will be provided to the filter or reader named 
+''module''. 
+The return value will be that of the module. 
+If there is no such module, 
+'''ARCHIVE_FAILED''' 
+will be returned. 
+
+If 
+''module'' 
+is 
+NULL, 
+''option'' 
+and 
+''value'' 
+will be provided to every registered module. 
+If any module returns 
+'''ARCHIVE_FATAL''', 
+this value will be returned immediately. 
+Otherwise, 
+'''ARCHIVE_OK''' 
+will be returned if any module accepts the option, and 
+'''ARCHIVE_FAILED''' 
+in all other cases. 
+</dd><dt> 
+'''archive_read_set_option'''() 
+</dt> <dd> 
+Calls 
+'''archive_read_set_format_option'''(), 
+then 
+'''archive_read_set_filter_option'''(). 
+If either function returns 
+'''ARCHIVE_FATAL''', 
+'''ARCHIVE_FATAL''' 
+will be returned 
+immediately. 
+Otherwise, greater of the two values will be returned. 
+</dd><dt> 
+'''archive_read_set_options'''() 
+</dt> <dd> 
+''options'' 
+is a comma-separated list of options. 
+If 
+''options'' 
+is 
+NULL 
+or empty, 
+'''ARCHIVE_OK''' 
+will be returned immediately. 
+
+Calls 
+'''archive_read_set_option'''() 
+with each option in turn. 
+If any 
+'''archive_read_set_option'''() 
+call returns 
+'''ARCHIVE_FATAL''', 
+'''ARCHIVE_FATAL''' 
+will be returned immediately. 
+
+Individual options have one of the following forms: 
+<dl> 
+<dt>''option=value''</dt><dd> 
+The option/value pair will be provided to every module. 
+Modules that do not accept an option with this name will ignore it. 
+</dd><dt>''option''</dt><dd> 
+The option will be provided to every module with a value of 
+"1". 
+</dd><dt>''!option''</dt><dd> 
+The option will be provided to every module with a NULL value. 
+</dd><dt>''module:option=value'', ''module:option'', ''module:!option''</dt><dd> 
+As above, but the corresponding option and value will be provided 
+only to modules whose name matches 
+''module''. 
+</dd></dl> 
+</dd></dl> 
+== OPTIONS == 
+<dl> 
+<dt>Format cab</dt><dd> 
+<dl> 
+<dt>'''hdrcharset'''</dt><dd> 
+The value is used as a character set name that will be 
+used when translating file names. 
+</dd></dl> 
+</dd><dt>Format cpio</dt><dd> 
+<dl> 
+<dt>'''compat-2x'''</dt><dd> 
+Libarchive 2.x incorrectly encoded Unicode filenames on 
+some platforms. 
+This option mimics the libarchive 2.x filename handling 
+so that such archives can be read correctly. 
+</dd><dt>'''hdrcharset'''</dt><dd> 
+The value is used as a character set name that will be 
+used when translating file names. 
+</dd><dt>'''pwb'''</dt><dd> 
+When reading a binary CPIO archive, assume that it is 
+in the original PWB cpio format, and handle file mode 
+bits accordingly.  The default is to assume v7 format. 
+</dd></dl> 
+</dd><dt>Format iso9660</dt><dd> 
+<dl> 
+<dt>'''joliet'''</dt><dd> 
+Support Joliet extensions. 
+Defaults to enabled, use 
+'''!joliet''' 
+to disable. 
+</dd><dt>'''rockridge'''</dt><dd> 
+Support RockRidge extensions. 
+Defaults to enabled, use 
+'''!rockridge''' 
+to disable. 
+</dd></dl> 
+</dd><dt>Format lha</dt><dd> 
+<dl> 
+<dt>'''hdrcharset'''</dt><dd> 
+The value is used as a character set name that will be 
+used when translating file names. 
+</dd></dl> 
+</dd><dt>Format mtree</dt><dd> 
+<dl> 
+<dt>'''checkfs'''</dt><dd> 
+Allow reading information missing from the mtree from the file system. 
+Disabled by default. 
+</dd></dl> 
+</dd><dt>Format rar</dt><dd> 
+<dl> 
+<dt>'''hdrcharset'''</dt><dd> 
+The value is used as a character set name that will be 
+used when translating file names. 
+</dd></dl> 
+</dd><dt>Format tar</dt><dd> 
+<dl> 
+<dt>'''compat-2x'''</dt><dd> 
+Libarchive 2.x incorrectly encoded Unicode filenames on 
+some platforms. 
+This option mimics the libarchive 2.x filename handling 
+so that such archives can be read correctly. 
+</dd><dt>'''hdrcharset'''</dt><dd> 
+The value is used as a character set name that will be 
+used when translating file names. 
+</dd><dt>'''mac-ext'''</dt><dd> 
+Support Mac OS metadata extension that records data in special 
+files beginning with a period and underscore. 
+Defaults to enabled on Mac OS, disabled on other platforms. 
+Use 
+'''!mac-ext''' 
+to disable. 
+</dd><dt>'''read_concatenated_archives'''</dt><dd> 
+Ignore zeroed blocks in the archive, which occurs when multiple tar archives 
+have been concatenated together. 
+Without this option, only the contents of 
+the first concatenated archive would be read. 
+</dd></dl> 
+</dd><dt>Format zip</dt><dd> 
+<dl> 
+<dt>'''compat-2x'''</dt><dd> 
+Libarchive 2.x incorrectly encoded Unicode filenames on 
+some platforms. 
+This option mimics the libarchive 2.x filename handling 
+so that such archives can be read correctly. 
+</dd><dt>'''hdrcharset'''</dt><dd> 
+The value is used as a character set name that will be 
+used when translating file names. 
+</dd><dt>'''ignorecrc32'''</dt><dd> 
+Skip the CRC32 check. 
+Mostly used for testing. 
+</dd><dt>'''mac-ext'''</dt><dd> 
+Support Mac OS metadata extension that records data in special 
+files beginning with a period and underscore. 
+Defaults to enabled on Mac OS, disabled on other platforms. 
+Use 
+'''!mac-ext''' 
+to disable. 
+</dd></dl> 
+</dd></dl> 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveRead3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]] 

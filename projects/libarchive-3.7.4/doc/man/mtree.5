@@ -1,0 +1,345 @@
+.TH MTREE 5 "September 4, 2013" ""
+.SH NAME
+.ad l
+\fB\%mtree\fP
+\- format of mtree dir hierarchy files
+.SH DESCRIPTION
+.ad l
+The
+\fB\%mtree\fP
+format is a textual format that describes a collection of filesystem objects.
+Such files are typically used to create or verify directory hierarchies.
+.SS General Format
+An
+\fB\%mtree\fP
+file consists of a series of lines, each providing information
+about a single filesystem object.
+Leading whitespace is always ignored.
+.PP
+When encoding file or pathnames, any backslash character or
+character outside of the 95 printable ASCII characters must be
+encoded as a backslash followed by three
+octal digits.
+When reading mtree files, any appearance of a backslash
+followed by three octal digits should be converted into the
+corresponding character.
+.PP
+Each line is interpreted independently as one of the following types:
+.RS 5
+.TP
+Blank
+Blank lines are ignored.
+.TP
+Comment
+Lines beginning with
+\fB#\fP
+are ignored.
+.TP
+Special
+Lines beginning with
+\fB/\fP
+are special commands that influence
+the interpretation of later lines.
+.TP
+Relative
+If the first whitespace-delimited word has no
+\fB/\fP
+characters,
+it is the name of a file in the current directory.
+Any relative entry that describes a directory changes the
+current directory.
+.TP
+dot-dot
+As a special case, a relative entry with the filename
+\fI\& ..\fP
+changes the current directory to the parent directory.
+Options on dot-dot entries are always ignored.
+.TP
+Full
+If the first whitespace-delimited word has a
+\fB/\fP
+character after
+the first character, it is the pathname of a file relative to the
+starting directory.
+There can be multiple full entries describing the same file.
+.RE
+.PP
+Some tools that process
+\fB\%mtree\fP
+files may require that multiple lines describing the same file
+occur consecutively.
+It is not permitted for the same file to be mentioned using
+both a relative and a full file specification.
+.SS Special commands
+Two special commands are currently defined:
+.RS 5
+.TP
+\fB/set\fP
+This command defines default values for one or more keywords.
+It is followed on the same line by one or more whitespace-separated
+keyword definitions.
+These definitions apply to all following files that do not specify
+a value for that keyword.
+.TP
+\fB/unset\fP
+This command removes any default value set by a previous
+\fB/set\fP
+command.
+It is followed on the same line by one or more keywords
+separated by whitespace.
+.RE
+.SS Keywords
+After the filename, a full or relative entry consists of zero
+or more whitespace-separated keyword definitions.
+Each such definition consists of a key from the following
+list immediately followed by an '=' sign
+and a value.
+Software programs reading mtree files should warn about
+unrecognized keywords.
+.PP
+Currently supported keywords are as follows:
+.RS 5
+.TP
+\fBcksum\fP
+The checksum of the file using the default algorithm specified by
+the
+\fBcksum\fP(1)
+utility.
+.TP
+\fBdevice\fP
+The device number for
+.B block
+or
+.B char
+file types.
+The value must be one of the following forms:
+.RS 5
+.TP
+\fIformat\fP, \fImajor\fP, \fIminor\fP Bo, \fIsubunit\fP Bc
+A device with
+\fImajor\fP, minor
+and optional
+\fIsubunit\fP
+fields.
+Their meaning is specified by the operating's system
+\fIformat\fP.
+See below for valid formats.
+.TP
+\fInumber\fP
+Opaque number (as stored on the file system).
+.RE
+.PP
+The following values for
+\fIformat\fP
+are recognized:
+.B native ,
+.B 386bsd ,
+.B 4bsd ,
+.B bsdos ,
+.B freebsd ,
+.B hpux ,
+.B isc ,
+.B linux ,
+.B netbsd ,
+.B osf1 ,
+.B sco ,
+.B solaris ,
+.B sunos ,
+.B svr3 ,
+.B svr4 ,
+and
+.B ultrix .
+.PP
+See
+\fBmknod\fP(8)
+for more details.
+.TP
+\fBcontents\fP
+The full pathname of a file that holds the contents of this file.
+.TP
+\fBflags\fP
+The file flags as a symbolic name.
+See
+\fBchflags\fP(1)
+for information on these names.
+If no flags are to be set the string
+``none''
+may be used to override the current default.
+.TP
+\fBgid\fP
+The file group as a numeric value.
+.TP
+\fBgname\fP
+The file group as a symbolic name.
+.TP
+\fBignore\fP
+Ignore any file hierarchy below this file.
+.TP
+\fBinode\fP
+The inode number.
+.TP
+\fBlink\fP
+The target of the symbolic link when type=link.
+.TP
+\fBmd5\fP
+The MD5 message digest of the file.
+.TP
+\fBmd5digest\fP
+A synonym for
+\fBmd5\fP.
+.TP
+\fBmode\fP
+The current file's permissions as a numeric (octal) or symbolic
+value.
+.TP
+\fBnlink\fP
+The number of hard links the file is expected to have.
+.TP
+\fBnochange\fP
+Make sure this file or directory exists but otherwise ignore all attributes.
+.TP
+\fBoptional\fP
+The file is optional; do not complain about the file if it is not in
+the file hierarchy.
+.TP
+\fBresdevice\fP
+The
+``resident''
+device number of the file, e.g. the ID of the device that
+contains the file.
+Its format is the same as the one for
+\fBdevice\fP.
+.TP
+\fBripemd160digest\fP
+The
+Tn RIPEMD160
+message digest of the file.
+.TP
+\fBrmd160\fP
+A synonym for
+\fBripemd160digest\fP.
+.TP
+\fBrmd160digest\fP
+A synonym for
+\fBripemd160digest\fP.
+.TP
+\fBsha1\fP
+The
+Tn FIPS
+160-1
+(``Tn SHA-1'')
+message digest of the file.
+.TP
+\fBsha1digest\fP
+A synonym for
+\fBsha1\fP.
+.TP
+\fBsha256\fP
+The
+Tn FIPS
+180-2
+(``Tn SHA-256'')
+message digest of the file.
+.TP
+\fBsha256digest\fP
+A synonym for
+\fBsha256\fP.
+.TP
+\fBsha384\fP
+The
+Tn FIPS
+180-2
+(``Tn SHA-384'')
+message digest of the file.
+.TP
+\fBsha384digest\fP
+A synonym for
+\fBsha384\fP.
+.TP
+\fBsha512\fP
+The
+Tn FIPS
+180-2
+(``Tn SHA-512'')
+message digest of the file.
+.TP
+\fBsha512digest\fP
+A synonym for
+\fBsha512\fP.
+.TP
+\fBsize\fP
+The size, in bytes, of the file.
+.TP
+\fBtime\fP
+The last modification time of the file.
+.TP
+\fBtype\fP
+The type of the file; may be set to any one of the following:
+.PP
+.RS 5
+.TP
+\fBblock\fP
+block special device
+.TP
+\fBchar\fP
+character special device
+.TP
+\fBdir\fP
+directory
+.TP
+\fBfifo\fP
+fifo
+.TP
+\fBfile\fP
+regular file
+.TP
+\fBlink\fP
+symbolic link
+.TP
+\fBsocket\fP
+socket
+.RE
+.TP
+\fBuid\fP
+The file owner as a numeric value.
+.TP
+\fBuname\fP
+The file owner as a symbolic name.
+.RE
+.SH SEE ALSO
+.ad l
+\fBcksum\fP(1),
+\fBfind\fP(1),
+\fBmtree\fP(8)
+.SH HISTORY
+.ad l
+The
+\fB\%mtree\fP
+utility appeared in
+Bx 4.3 Reno.
+The
+Tn MD5
+digest capability was added in
+FreeBSD 2.1,
+in response to the widespread use of programs which can spoof
+\fBcksum\fP(1).
+The
+Tn SHA-1
+and
+Tn RIPEMD160
+digests were added in
+FreeBSD 4.0,
+as new attacks have demonstrated weaknesses in
+Tn MD5.
+The
+Tn SHA-256
+digest was added in
+FreeBSD 6.0.
+Support for file flags was added in
+FreeBSD 4.0,
+and mostly comes from
+NetBSD.
+The
+``full''
+entry format was added by
+NetBSD.

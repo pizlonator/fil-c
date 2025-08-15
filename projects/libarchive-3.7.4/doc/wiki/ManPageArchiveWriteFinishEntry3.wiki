@@ -1,0 +1,50 @@
+ARCHIVE_WRITE_FINISH_ENTRY(3) manual page 
+== NAME == 
+'''archive_write_finish_entry''' 
+- functions for creating archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_write_finish_entry'''(''struct archive *''); 
+== DESCRIPTION == 
+Close out the entry just written. 
+In particular, this writes out the final padding required by some formats. 
+Ordinarily, clients never need to call this, as it 
+is called automatically by 
+'''archive_write_header'''() 
+and 
+'''archive_write_close'''() 
+as needed. 
+For 
+'''archive_write_disk''' 
+handles, this flushes pending file attribute changes like modification time. 
+== RETURN VALUES == 
+This function returns 
+'''ARCHIVE_OK''' 
+on success, or one of several non-zero 
+error codes for errors. 
+Specific error codes include: 
+'''ARCHIVE_RETRY''' 
+for operations that might succeed if retried, 
+'''ARCHIVE_WARN''' 
+for unusual conditions that do not prevent further operations, and 
+'''ARCHIVE_FATAL''' 
+for serious errors that make remaining operations impossible. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWriteData3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

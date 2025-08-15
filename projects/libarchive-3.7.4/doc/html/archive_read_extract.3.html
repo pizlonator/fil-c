@@ -1,0 +1,134 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_READ_EXTRACT(3) BSD Library Functions Manual
+ARCHIVE_READ_EXTRACT(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_read_extract</b>,
+<b>archive_read_extract2</b>,
+<b>archive_read_extract_set_progress_callback</b> &mdash;
+functions for reading streaming archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_extract</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>struct&nbsp;archive_entry&nbsp;*</i>,
+<i>int&nbsp;flags</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_extract2</b>(<i>struct&nbsp;archive&nbsp;*src</i>,
+<i>struct&nbsp;archive_entry&nbsp;*</i>,
+<i>struct&nbsp;archive&nbsp;*dest</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p><b>archive_read_extract_set_progress_callback</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;(*func)(void&nbsp;*)</i>,
+<i>void&nbsp;*user_data</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION <br>
+archive_read_extract</b>(),
+<b>archive_read_extract_set_skip_file</b>()</p>
+
+<p style="margin-left:17%;">A convenience function that
+wraps the corresponding archive_write_disk(3) interfaces.
+The first call to <b>archive_read_extract</b>() creates a
+restore object using archive_write_disk_new(3) and
+archive_write_disk_set_standard_lookup(3), then
+transparently invokes archive_write_disk_set_options(3),
+archive_write_header(3), archive_write_data(3), and
+archive_write_finish_entry(3) to create the entry on disk
+and copy data into it. The <i>flags</i> argument is passed
+unmodified to archive_write_disk_set_options(3).</p>
+
+<p><b>archive_read_extract2</b>()</p>
+
+<p style="margin-left:17%;">This is another version of
+<b>archive_read_extract</b>() that allows you to provide
+your own restore object. In particular, this allows you to
+override the standard lookup functions using
+archive_write_disk_set_group_lookup(3), and
+archive_write_disk_set_user_lookup(3). Note that
+<b>archive_read_extract2</b>() does not accept a
+<i>flags</i> argument; you should use
+<b>archive_write_disk_set_options</b>() to set the restore
+options yourself.</p>
+
+<p><b>archive_read_extract_set_progress_callback</b>()</p>
+
+<p style="margin-left:17%;">Sets a pointer to a
+user-defined callback that can be used for updating progress
+displays during extraction. The progress function will be
+invoked during the extraction of large regular files. The
+progress function will be invoked with the pointer provided
+to this call. Generally, the data pointed to should include
+a reference to the archive object and the archive_entry
+object so that various statistics can be retrieved for the
+progress display.</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+<p style="margin-left:6%;">Most functions return zero on
+success, non-zero on error. The possible return codes
+include: <b>ARCHIVE_OK</b> (the operation succeeded),
+<b>ARCHIVE_WARN</b> (the operation succeeded but a
+non-critical error was encountered), <b>ARCHIVE_EOF</b>
+(end-of-archive was encountered), <b>ARCHIVE_RETRY</b> (the
+operation failed but can be retried), and
+<b>ARCHIVE_FATAL</b> (there was a fatal error; the archive
+should be closed immediately).</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">Detailed error codes and textual
+descriptions are available from the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_read(3),
+archive_read_data(3), archive_read_filter(3),
+archive_read_format(3), archive_read_open(3),
+archive_read_set_options(3), archive_util(3), libarchive(3),
+tar(5)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

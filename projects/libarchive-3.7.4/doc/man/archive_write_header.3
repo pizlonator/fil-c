@@ -1,0 +1,51 @@
+.TH ARCHIVE_WRITE_HEADER 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_write_header\fP
+\- functions for creating archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_write_header\fP(\fI\%struct\ archive\ *\fP, \fI\%struct\ archive_entry\ *\fP);
+.SH DESCRIPTION
+.ad l
+Build and write a header using the data in the provided
+Tn struct archive_entry
+structure.
+See
+\fBarchive_entry\fP(3)
+for information on creating and populating
+Tn struct archive_entry
+objects.
+.SH RETURN VALUES
+.ad l
+This function returns
+\fBARCHIVE_OK\fP
+on success, or one of the following on error:
+\fBARCHIVE_RETRY\fP
+for operations that might succeed if retried,
+\fBARCHIVE_WARN\fP
+for unusual conditions that do not prevent further operations, and
+\fBARCHIVE_FATAL\fP
+for serious errors that make remaining operations impossible.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)

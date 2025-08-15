@@ -1,0 +1,73 @@
+ARCHIVE_WRITE_FREE(3) manual page 
+== NAME == 
+'''archive_write_fail''', 
+'''archive_write_close''', 
+'''archive_write_finish''', 
+'''archive_write_free''' 
+- functions for creating archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_write_fail'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_close'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_finish'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_free'''(''struct archive *''); 
+== DESCRIPTION == 
+<dl> 
+<dt>'''archive_write_fail'''()</dt><dd> 
+Always returns 
+'''ARCHIVE_FATAL'''. 
+This marks the archive object as being unusable; 
+after calling this function, the only call that can succeed is 
+'''archive_write_free'''() 
+to release the resources. 
+This can be used to speed recovery when the archive creation 
+must be aborted. 
+Note that the created archive is likely to be malformed in this case; 
+</dd><dt>'''archive_write_close'''()</dt><dd> 
+Complete the archive and invoke the close callback. 
+</dd><dt>'''archive_write_finish'''()</dt><dd> 
+This is a deprecated synonym for 
+'''archive_write_free'''(). 
+</dd><dt>'''archive_write_free'''()</dt><dd> 
+Invokes 
+'''archive_write_close'''() 
+if necessary, then releases all resources. 
+If you need detailed information about 
+'''archive_write_close'''() 
+failures, you should be careful to call it separately, as 
+you cannot obtain error information after 
+'''archive_write_free'''() 
+returns. 
+</dd></dl> 
+== RETURN VALUES == 
+These functions return 
+'''ARCHIVE_OK''' 
+on success, or 
+'''ARCHIVE_FATAL'''. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

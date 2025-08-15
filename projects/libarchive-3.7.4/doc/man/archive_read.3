@@ -1,0 +1,219 @@
+.TH ARCHIVE_READ 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_read\fP
+\- functions for reading streaming archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.SH DESCRIPTION
+.ad l
+These functions provide a complete API for reading streaming archives.
+The general process is to first create the
+Tn struct archive
+object, set options, initialize the reader, iterate over the archive
+headers and associated data, then close the archive and release all
+resources.
+.SS Create archive object
+See
+\fBarchive_read_new\fP(3).
+.PP
+To read an archive, you must first obtain an initialized
+Tn struct archive
+object from
+\fB\%archive_read_new\fP().
+.SS Enable filters and formats
+See
+\fBarchive_read_filter\fP(3)
+and
+\fBarchive_read_format\fP(3).
+.PP
+You can then modify this object for the desired operations with the
+various
+\fB\%archive_read_set_XXX\fP()
+and
+\fB\%archive_read_support_XXX\fP()
+functions.
+In particular, you will need to invoke appropriate
+\fB\%archive_read_support_XXX\fP()
+functions to enable the corresponding compression and format
+support.
+Note that these latter functions perform two distinct operations:
+they cause the corresponding support code to be linked into your
+program, and they enable the corresponding auto-detect code.
+Unless you have specific constraints, you will generally want
+to invoke
+\fB\%archive_read_support_filter_all\fP()
+and
+\fB\%archive_read_support_format_all\fP()
+to enable auto-detect for all formats and compression types
+currently supported by the library.
+.SS Set options
+See
+\fBarchive_read_set_options\fP(3).
+.SS Open archive
+See
+\fBarchive_read_open\fP(3).
+.PP
+Once you have prepared the
+Tn struct archive
+object, you call
+\fB\%archive_read_open\fP()
+to actually open the archive and prepare it for reading.
+There are several variants of this function;
+the most basic expects you to provide pointers to several
+functions that can provide blocks of bytes from the archive.
+There are convenience forms that allow you to
+specify a filename, file descriptor,
+\fIFILE *\fP
+object, or a block of memory from which to read the archive data.
+Note that the core library makes no assumptions about the
+size of the blocks read;
+callback functions are free to read whatever block size is
+most appropriate for the medium.
+.SS Consume archive
+See
+\fBarchive_read_header\fP(3),
+\fBarchive_read_data\fP(3)
+and
+\fBarchive_read_extract\fP(3).
+.PP
+Each archive entry consists of a header followed by a certain
+amount of data.
+You can obtain the next header with
+\fB\%archive_read_next_header\fP(),
+which returns a pointer to an
+Tn struct archive_entry
+structure with information about the current archive element.
+If the entry is a regular file, then the header will be followed
+by the file data.
+You can use
+\fB\%archive_read_data\fP()
+(which works much like the
+\fBread\fP(2)
+system call)
+to read this data from the archive, or
+\fB\%archive_read_data_block\fP()
+which provides a slightly more efficient interface.
+You may prefer to use the higher-level
+\fB\%archive_read_data_skip\fP(),
+which reads and discards the data for this entry,
+\fB\%archive_read_data_into_fd\fP(),
+which copies the data to the provided file descriptor, or
+\fB\%archive_read_extract\fP(),
+which recreates the specified entry on disk and copies data
+from the archive.
+In particular, note that
+\fB\%archive_read_extract\fP()
+uses the
+Tn struct archive_entry
+structure that you provide it, which may differ from the
+entry just read from the archive.
+In particular, many applications will want to override the
+pathname, file permissions, or ownership.
+.SS Release resources
+See
+\fBarchive_read_free\fP(3).
+.PP
+Once you have finished reading data from the archive, you
+should call
+\fB\%archive_read_close\fP()
+to close the archive, then call
+\fB\%archive_read_free\fP()
+to release all resources, including all memory allocated by the library.
+.SH EXAMPLES
+.ad l
+The following illustrates basic usage of the library.
+In this example,
+the callback functions are simply wrappers around the standard
+\fBopen\fP(2),
+\fBread\fP(2),
+and
+\fBclose\fP(2)
+system calls.
+.RS 4
+.nf
+void
+list_archive(const char *name)
+{
+  struct mydata *mydata;
+  struct archive *a;
+  struct archive_entry *entry;
+  mydata = malloc(sizeof(struct mydata));
+  a = archive_read_new();
+  mydata->name = name;
+  archive_read_support_filter_all(a);
+  archive_read_support_format_all(a);
+  archive_read_open(a, mydata, myopen, myread, myclose);
+  while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+    printf("%s\en",archive_entry_pathname(entry));
+    archive_read_data_skip(a);
+  }
+  archive_read_free(a);
+  free(mydata);
+}
+la_ssize_t
+myread(struct archive *a, void *client_data, const void **buff)
+{
+  struct mydata *mydata = client_data;
+  *buff = mydata->buff;
+  return (read(mydata->fd, mydata->buff, 10240));
+}
+int
+myopen(struct archive *a, void *client_data)
+{
+  struct mydata *mydata = client_data;
+  mydata->fd = open(mydata->name, O_RDONLY);
+  return (mydata->fd >= 0 ? ARCHIVE_OK : ARCHIVE_FATAL);
+}
+int
+myclose(struct archive *a, void *client_data)
+{
+  struct mydata *mydata = client_data;
+  if (mydata->fd > 0)
+    close(mydata->fd);
+  return (ARCHIVE_OK);
+}
+.RE
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_read_data\fP(3),
+\fBarchive_read_extract\fP(3),
+\fBarchive_read_filter\fP(3),
+\fBarchive_read_format\fP(3),
+\fBarchive_read_header\fP(3),
+\fBarchive_read_new\fP(3),
+\fBarchive_read_open\fP(3),
+\fBarchive_read_set_options\fP(3),
+\fBarchive_util\fP(3),
+\fBlibarchive\fP(3),
+\fBtar\fP(5)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was written by
+Tim Kientzle \%<kientzle@acm.org.>
+.SH BUGS
+.ad l
+Many traditional archiver programs treat
+empty files as valid empty archives.
+For example, many implementations of
+\fBtar\fP(1)
+allow you to append entries to an empty file.
+Of course, it is impossible to determine the format of an empty file
+by inspecting the contents, so this library treats empty files as
+having a special
+``empty''
+format.

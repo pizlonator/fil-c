@@ -1,0 +1,490 @@
+.TH CPIO 1 "September 16, 2014" ""
+.SH NAME
+.ad l
+\fB\%cpio\fP
+\- copy files to and from archives
+.SH SYNOPSIS
+.ad l
+.br
+\fB\%cpio\fP
+\fB\-i\fP
+[\fIoptions\fP]
+[\fIpattern\fP ...]
+[\fI<\fP archive]
+.br
+\fB\%cpio\fP
+\fB\-o\fP
+[\fIoptions\fP]
+\fI<\fP name-list
+[\fI>\fP archive]
+.br
+\fB\%cpio\fP
+\fB\-p\fP
+[\fIoptions\fP]
+\fIdest-dir\fP
+\fI<\fP name-list
+.SH DESCRIPTION
+.ad l
+\fB\%cpio\fP
+copies files between archives and directories.
+This implementation can extract from tar, pax, cpio, zip, jar, ar,
+and ISO 9660 cdrom images and can create tar, pax, cpio, ar,
+and shar archives.
+.PP
+The first option to
+\fB\%cpio\fP
+is a mode indicator from the following list:
+.RS 5
+.TP
+\fB\-i\fP
+Input.
+Read an archive from standard input (unless overridden) and extract the
+contents to disk or (if the
+\fB\-t\fP
+option is specified)
+list the contents to standard output.
+If one or more file patterns are specified, only files matching
+one of the patterns will be extracted.
+.TP
+\fB\-o\fP
+Output.
+Read a list of filenames from standard input and produce a new archive
+on standard output (unless overridden) containing the specified items.
+.TP
+\fB\-p\fP
+Pass-through.
+Read a list of filenames from standard input and copy the files to the
+specified directory.
+.RE
+.SH OPTIONS
+.ad l
+Unless specifically stated otherwise, options are applicable in
+all operating modes.
+.RS 5
+.TP
+\fB\-0\fP, \fB\-Fl\fP null
+Read filenames separated by NUL characters instead of newlines.
+This is necessary if any of the filenames being read might contain newlines.
+.TP
+\fB\-6\fP, \fB\-Fl\fP pwb
+When reading a binary format archive, assume it's the earlier one,
+from the PWB variant of 6th Edition UNIX.
+When writing a cpio archive, use the PWB format.
+.TP
+\fB\-7\fP, \fB\-Fl\fP binary
+(o mode only)
+When writing a cpio archive, use the (newer, non-PWB) binary format.
+.TP
+\fB\-A\fP
+(o mode only)
+Append to the specified archive.
+(Not yet implemented.)
+.TP
+\fB\-a\fP
+(o and p modes)
+Reset access times on files after they are read.
+.TP
+\fB\-B\fP
+(o mode only)
+Block output to records of 5120 bytes.
+.TP
+\fB\-C\fP \fIsize\fP
+(o mode only)
+Block output to records of
+\fIsize\fP
+bytes.
+.TP
+\fB\-c\fP
+(o mode only)
+Use the old POSIX portable character format.
+Equivalent to
+\fB\-Fl\fP format \fIodc\fP.
+.TP
+\fB\-d\fP, \fB\-Fl\fP make-directories
+(i and p modes)
+Create directories as necessary.
+.TP
+\fB\-E\fP \fIfile\fP
+(i mode only)
+Read list of file name patterns from
+\fIfile\fP
+to list and extract.
+.TP
+\fB\-F\fP \fIfile\fP, \fB\-Fl\fP file \fIfile\fP
+Read archive from or write archive to
+\fIfile\fP.
+.TP
+\fB\-f\fP \fIpattern\fP
+(i mode only)
+Ignore files that match
+\fIpattern\fP.
+.TP
+\fB\-H\fP \fIformat\fP, \fB\-Fl\fP format \fIformat\fP
+(o mode only)
+Produce the output archive in the specified format.
+Supported formats include:
+.PP
+.RS 5
+.TP
+\fIcpio\fP
+Synonym for
+\fIodc\fP.
+.TP
+\fInewc\fP
+The SVR4 portable cpio format.
+.TP
+\fIodc\fP
+The old POSIX.1 portable octet-oriented cpio format.
+.TP
+\fIpax\fP
+The POSIX.1 pax format, an extension of the ustar format.
+.TP
+\fIustar\fP
+The POSIX.1 tar format.
+.RE
+.PP
+The default format is
+\fIodc\fP.
+See
+\fBlibarchive-formats\fP(5)
+for more complete information about the
+formats currently supported by the underlying
+\fBlibarchive\fP(3)
+library.
+.TP
+\fB\-h\fP, \fB\-Fl\fP help
+Print usage information.
+.TP
+\fB\-I\fP \fIfile\fP
+Read archive from
+\fIfile\fP.
+.TP
+\fB\-i\fP, \fB\-Fl\fP extract
+Input mode.
+See above for description.
+.TP
+\fB\-Fl\fP insecure
+(i and p mode only)
+Disable security checks during extraction or copying.
+This allows extraction via symbolic links, absolute paths,
+and path names containing
+Sq ..
+in the name.
+.TP
+\fB\-J\fP, \fB\-Fl\fP xz
+(o mode only)
+Compress the file with xz-compatible compression before writing it.
+In input mode, this option is ignored; xz compression is recognized
+automatically on input.
+.TP
+\fB\-j\fP
+Synonym for
+\fB\-y\fP.
+.TP
+\fB\-L\fP
+(o and p modes)
+All symbolic links will be followed.
+Normally, symbolic links are archived and copied as symbolic links.
+With this option, the target of the link will be archived or copied instead.
+.TP
+\fB\-l\fP, \fB\-Fl\fP link
+(p mode only)
+Create links from the target directory to the original files,
+instead of copying.
+.TP
+\fB\-Fl\fP lrzip
+(o mode only)
+Compress the resulting archive with
+\fBlrzip\fP(1).
+In input mode, this option is ignored.
+.TP
+\fB\-Fl\fP lz4
+(o mode only)
+Compress the archive with lz4-compatible compression before writing it.
+In input mode, this option is ignored; lz4 compression is recognized
+automatically on input.
+.TP
+\fB\-Fl\fP zstd
+(o mode only)
+Compress the archive with zstd-compatible compression before writing it.
+In input mode, this option is ignored; zstd compression is recognized
+automatically on input.
+.TP
+\fB\-Fl\fP lzma
+(o mode only)
+Compress the file with lzma-compatible compression before writing it.
+In input mode, this option is ignored; lzma compression is recognized
+automatically on input.
+.TP
+\fB\-Fl\fP lzop
+(o mode only)
+Compress the resulting archive with
+\fBlzop\fP(1).
+In input mode, this option is ignored.
+.TP
+\fB\-Fl\fP passphrase \fIpassphrase\fP
+The
+\fIpassphrase\fP
+is used to extract or create an encrypted archive.
+Currently, zip is only a format that
+\fB\%cpio\fP
+can handle encrypted archives.
+You shouldn't use this option unless you realize how insecure
+use of this option is.
+.TP
+\fB\-m\fP, \fB\-Fl\fP preserve-modification-time
+(i and p modes)
+Set file modification time on created files to match
+those in the source.
+.TP
+\fB\-n\fP, \fB\-Fl\fP numeric-uid-gid
+(i mode, only with
+\fB\-t\fP)
+Display numeric uid and gid.
+By default,
+\fB\%cpio\fP
+displays the user and group names when they are provided in the
+archive, or looks up the user and group names in the system
+password database.
+.TP
+\fB\-Fl\fP no-preserve-owner
+(i mode only)
+Do not attempt to restore file ownership.
+This is the default when run by non-root users.
+.TP
+\fB\-O\fP \fIfile\fP
+Write archive to
+\fIfile\fP.
+.TP
+\fB\-o\fP, \fB\-Fl\fP create
+Output mode.
+See above for description.
+.TP
+\fB\-p\fP, \fB\-Fl\fP pass-through
+Pass-through mode.
+See above for description.
+.TP
+\fB\-Fl\fP preserve-owner
+(i mode only)
+Restore file ownership.
+This is the default when run by the root user.
+.TP
+\fB\-Fl\fP quiet
+Suppress unnecessary messages.
+.TP
+\fB\-R\fP [user] [:] [group], \fB\-Fl\fP owner [user] [:] [group]
+Set the owner and/or group on files in the output.
+If group is specified with no user
+(for example,
+\fB\-R\fP \fI:wheel\fP)
+then the group will be set but not the user.
+If the user is specified with a trailing colon and no group
+(for example,
+\fB\-R\fP \fIroot:\fP)
+then the group will be set to the user's default group.
+If the user is specified with no trailing colon, then
+the user will be set but not the group.
+In
+\fB\-i\fP
+and
+\fB\-p\fP
+modes, this option can only be used by the super-user.
+(For compatibility, a period can be used in place of the colon.)
+.TP
+\fB\-r\fP
+(All modes.)
+Rename files interactively.
+For each file, a prompt is written to
+\fI/dev/tty\fP
+containing the name of the file and a line is read from
+\fI/dev/tty\fP.
+If the line read is blank, the file is skipped.
+If the line contains a single period, the file is processed normally.
+Otherwise, the line is taken to be the new name of the file.
+.TP
+\fB\-t\fP, \fB\-Fl\fP list
+(i mode only)
+List the contents of the archive to stdout;
+do not restore the contents to disk.
+.TP
+\fB\-u\fP, \fB\-Fl\fP unconditional
+(i and p modes)
+Unconditionally overwrite existing files.
+Ordinarily, an older file will not overwrite a newer file on disk.
+.TP
+\fB\-V\fP, \fB\-Fl\fP dot
+Print a dot to stderr for each file as it is processed.
+Superseded by
+\fB\-v\fP.
+.TP
+\fB\-v\fP, \fB\-Fl\fP verbose
+Print the name of each file to stderr as it is processed.
+With
+\fB\-t\fP,
+provide a detailed listing of each file.
+.TP
+\fB\-Fl\fP version
+Print the program version information and exit.
+.TP
+\fB\-y\fP
+(o mode only)
+Compress the archive with bzip2-compatible compression before writing it.
+In input mode, this option is ignored;
+bzip2 compression is recognized automatically on input.
+.TP
+\fB\-Z\fP
+(o mode only)
+Compress the archive with compress-compatible compression before writing it.
+In input mode, this option is ignored;
+compression is recognized automatically on input.
+.TP
+\fB\-z\fP
+(o mode only)
+Compress the archive with gzip-compatible compression before writing it.
+In input mode, this option is ignored;
+gzip compression is recognized automatically on input.
+.RE
+.SH EXIT STATUS
+.ad l
+The \fBcpio\fP utility exits 0 on success, and >0 if an error occurs.
+.SH ENVIRONMENT
+.ad l
+The following environment variables affect the execution of
+\fB\%cpio\fP:
+.RS 5
+.TP
+.B LANG
+The locale to use.
+See
+\fBenviron\fP(7)
+for more information.
+.TP
+.B TZ
+The timezone to use when displaying dates.
+See
+\fBenviron\fP(7)
+for more information.
+.RE
+.SH EXAMPLES
+.ad l
+The
+\fB\%cpio\fP
+command is traditionally used to copy file hierarchies in conjunction
+with the
+\fBfind\fP(1)
+command.
+The first example here simply copies all files from
+\fIsrc\fP
+to
+\fIdest\fP:
+.RS 4
+\fB\%find\fP \fIsrc\fP | \fB\%cpio\fP \fB\-pmud\fP \fIdest\fP
+.RE
+.PP
+By carefully selecting options to the
+\fBfind\fP(1)
+command and combining it with other standard utilities,
+it is possible to exercise very fine control over which files are copied.
+This next example copies files from
+\fIsrc\fP
+to
+\fIdest\fP
+that are more than 2 days old and whose names match a particular pattern:
+.RS 4
+\fB\%find\fP \fIsrc\fP \fB\-mtime\fP \fI+2\fP | \fB\%grep\fP foo[bar] | \fB\%cpio\fP \fB\-pdmu\fP \fIdest\fP
+.RE
+.PP
+This example copies files from
+\fIsrc\fP
+to
+\fIdest\fP
+that are more than 2 days old and which contain the word
+``foobar'':
+.RS 4
+\fB\%find\fP \fIsrc\fP \fB\-mtime\fP \fI+2\fP | \fB\%xargs\fP \fB\%grep\fP -l foobar | \fB\%cpio\fP \fB\-pdmu\fP \fIdest\fP
+.RE
+.SH COMPATIBILITY
+.ad l
+The mode options i, o, and p and the options
+a, B, c, d, f, l, m, r, t, u, and v comply with SUSv2.
+.PP
+The old POSIX.1 standard specified that only
+\fB\-i\fP,
+\fB\-o\fP,
+and
+\fB\-p\fP
+were interpreted as command-line options.
+Each took a single argument of a list of modifier
+characters.
+For example, the standard syntax allows
+\fB\-imu\fP
+but does not support
+\fB\-miu\fP
+or
+\fB\-i\fP \fB\-m\fP \fB\-u\fP,
+since
+\fIm\fP
+and
+\fIu\fP
+are only modifiers to
+\fB\-i\fP,
+they are not command-line options in their own right.
+The syntax supported by this implementation is backwards-compatible
+with the standard.
+For best compatibility, scripts should limit themselves to the
+standard syntax.
+.SH SEE ALSO
+.ad l
+\fBbzip2\fP(1),
+\fBgzip\fP(1),
+\fBmt\fP(1),
+\fBpax\fP(1),
+\fBtar\fP(1),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBlibarchive-formats\fP(5),
+\fBtar\fP(5)
+.SH STANDARDS
+.ad l
+There is no current POSIX standard for the cpio command; it appeared
+in
+ISO/IEC 9945-1:1996 (``POSIX.1'')
+but was dropped from
+IEEE Std 1003.1-2001 (``POSIX.1'').
+.PP
+The cpio, ustar, and pax interchange file formats are defined by
+IEEE Std 1003.1-2001 (``POSIX.1'')
+for the pax command.
+.SH HISTORY
+.ad l
+The original
+\fB\%cpio\fP
+and
+\fB\%find\fP
+utilities were written by Dick Haight
+while working in AT&T's Unix Support Group.
+They first appeared in 1977 in PWB/UNIX 1.0, the
+``Programmer's Work Bench''
+system developed for use within AT&T.
+They were first released outside of AT&T as part of System III Unix in 1981.
+As a result,
+\fB\%cpio\fP
+actually predates
+\fB\%tar\fP,
+even though it was not well-known outside of AT&T until some time later.
+.PP
+This is a complete re-implementation based on the
+\fBlibarchive\fP(3)
+library.
+.SH BUGS
+.ad l
+The cpio archive format has several basic limitations:
+It does not store user and group names, only numbers.
+As a result, it cannot be reliably used to transfer
+files between systems with dissimilar user and group numbering.
+Older cpio formats limit the user and group numbers to
+16 or 18 bits, which is insufficient for modern systems.
+The cpio archive formats cannot support files over 4 gigabytes,
+except for the
+``odc''
+variant, which can support files up to 8 gigabytes.

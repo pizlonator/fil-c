@@ -1,0 +1,190 @@
+ARCHIVE_READ_OPEN(3) manual page 
+== NAME == 
+'''archive_read_open''', 
+'''archive_read_open2''', 
+'''archive_read_open_fd''', 
+'''archive_read_open_FILE''', 
+'''archive_read_open_filename''', 
+'''archive_read_open_memory''' 
+- functions for reading streaming archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_read_open'''(''struct archive *'', ''void *client_data'', ''archive_open_callback *'', ''archive_read_callback *'', ''archive_close_callback *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_open2'''(''struct archive *'', ''void *client_data'', ''archive_open_callback *'', ''archive_read_callback *'', ''archive_skip_callback *'', ''archive_close_callback *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_open_FILE'''(''struct archive *'', ''FILE *file''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_open_fd'''(''struct archive *'', ''int fd'', ''size_t block_size''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_open_filename'''(''struct archive *'', ''const char *filename'', ''size_t block_size''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_open_memory'''(''struct archive *'', ''const void *buff'', ''size_t size''); 
+== DESCRIPTION == 
+<dl> 
+<dt>'''archive_read_open'''()</dt><dd> 
+The same as 
+'''archive_read_open2'''(), 
+except that the skip callback is assumed to be 
+NULL. 
+</dd><dt>'''archive_read_open2'''()</dt><dd> 
+Freeze the settings, open the archive, and prepare for reading entries. 
+This is the most generic version of this call, which accepts 
+four callback functions. 
+Most clients will want to use 
+'''archive_read_open_filename'''(), 
+'''archive_read_open_FILE'''(), 
+'''archive_read_open_fd'''(), 
+or 
+'''archive_read_open_memory'''() 
+instead. 
+The library invokes the client-provided functions to obtain 
+raw bytes from the archive. 
+</dd><dt>'''archive_read_open_FILE'''()</dt><dd> 
+Like 
+'''archive_read_open'''(), 
+except that it accepts a 
+''FILE *'' 
+pointer. 
+This function should not be used with tape drives or other devices 
+that require strict I/O blocking. 
+</dd><dt>'''archive_read_open_fd'''()</dt><dd> 
+Like 
+'''archive_read_open'''(), 
+except that it accepts a file descriptor and block size rather than 
+a set of function pointers. 
+Note that the file descriptor will not be automatically closed at 
+end-of-archive. 
+This function is safe for use with tape drives or other blocked devices. 
+</dd><dt>'''archive_read_open_file'''()</dt><dd> 
+This is a deprecated synonym for 
+'''archive_read_open_filename'''(). 
+</dd><dt>'''archive_read_open_filename'''()</dt><dd> 
+Like 
+'''archive_read_open'''(), 
+except that it accepts a simple filename and a block size. 
+A NULL filename represents standard input. 
+This function is safe for use with tape drives or other blocked devices. 
+</dd><dt>'''archive_read_open_memory'''()</dt><dd> 
+Like 
+'''archive_read_open'''(), 
+except that it accepts a pointer and size of a block of 
+memory containing the archive data. 
+</dd></dl> 
+
+A complete description of the 
+'''struct archive''' 
+and 
+'''struct archive_entry''' 
+objects can be found in the overview manual page for 
+[[ManPageLibarchive3]]. 
+== CLIENT CALLBACKS == 
+The callback functions must match the following prototypes: 
+<ul> 
+<li> 
+''typedef la_ssize_t'' 
+'''archive_read_callback'''(''struct archive *'', ''void *client_data'', ''const void **buffer'') 
+</li><li> 
+''typedef la_int64_t'' 
+'''archive_skip_callback'''(''struct archive *'', ''void *client_data'', ''off_t request'') 
+</li><li> 
+''typedef int'' 
+'''archive_open_callback'''(''struct archive *'', ''void *client_data'') 
+</li><li> 
+''typedef int'' 
+'''archive_close_callback'''(''struct archive *'', ''void *client_data'') 
+</li></ul> 
+
+The open callback is invoked by 
+'''archive_open'''(). 
+It should return 
+'''ARCHIVE_OK''' 
+if the underlying file or data source is successfully 
+opened. 
+If the open fails, it should call 
+'''archive_set_error'''() 
+to register an error code and message and return 
+'''ARCHIVE_FATAL'''. 
+
+The read callback is invoked whenever the library 
+requires raw bytes from the archive. 
+The read callback should read data into a buffer, 
+set the 
+```text
+const void **buffer 
+```
+argument to point to the available data, and 
+return a count of the number of bytes available. 
+The library will invoke the read callback again 
+only after it has consumed this data. 
+The library imposes no constraints on the size 
+of the data blocks returned. 
+On end-of-file, the read callback should 
+return zero. 
+On error, the read callback should invoke 
+'''archive_set_error'''() 
+to register an error code and message and 
+return -1. 
+
+The skip callback is invoked when the 
+library wants to ignore a block of data. 
+The return value is the number of bytes actually 
+skipped, which may differ from the request. 
+If the callback cannot skip data, it should return 
+zero. 
+If the skip callback is not provided (the 
+function pointer is 
+NULL ), 
+the library will invoke the read function 
+instead and simply discard the result. 
+A skip callback can provide significant 
+performance gains when reading uncompressed 
+archives from slow disk drives or other media 
+that can skip quickly. 
+
+The close callback is invoked by archive_close when 
+the archive processing is complete. 
+The callback should return 
+'''ARCHIVE_OK''' 
+on success. 
+On failure, the callback should invoke 
+'''archive_set_error'''() 
+to register an error code and message and 
+return 
+'''ARCHIVE_FATAL'''. 
+== RETURN VALUES == 
+These functions return 
+'''ARCHIVE_OK''' 
+on success, or 
+'''ARCHIVE_FATAL'''. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveRead3]], 
+[[ManPageArchiveReadData3]], 
+[[ManPageArchiveReadFilter3]], 
+[[ManPageArchiveReadFormat3]], 
+[[ManPageArchiveReadSetOptions3]], 
+[[ManPageArchiveUtil3]], 
+[[ManPageLibarchive3]], 
+[[ManPageTar5]] 

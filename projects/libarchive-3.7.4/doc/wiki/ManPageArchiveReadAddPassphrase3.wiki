@@ -1,0 +1,42 @@
+ARCHIVE_READ_ADD_PASSPHRASE(3) manual page 
+== NAME == 
+'''archive_read_add_passphrase''', 
+'''archive_read_set_passphrase_callback''' 
+- functions for reading encrypted archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_read_add_passphrase'''(''struct archive *'', ''const char *passphrase''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_set_passphrase_callback'''(''struct archive *'', ''void *client_data'', ''archive_passphrase_callback *''); 
+== DESCRIPTION == 
+<dl> 
+<dt>'''archive_read_add_passphrase'''()</dt><dd> 
+Register passphrases for reading an encryption archive. 
+If 
+''passphrase'' 
+is 
+NULL 
+or empty, this function will do nothing and 
+'''ARCHIVE_FAILED''' 
+will be returned. 
+Otherwise, 
+'''ARCHIVE_OK''' 
+will be returned. 
+</dd><dt>'''archive_read_set_passphrase_callback'''()</dt><dd> 
+Register a callback function that will be invoked to get a passphrase  
+for decryption after trying all the passphrases registered by the 
+'''archive_read_add_passphrase'''() 
+function failed. 
+</dd></dl> 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveRead3]], 
+[[ManPageArchiveReadSetOptions3]], 
+[[ManPageLibarchive3]] 

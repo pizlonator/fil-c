@@ -1,0 +1,376 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_WRITE_DISK(3) BSD Library Functions Manual
+ARCHIVE_WRITE_DISK(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_write_disk_new</b>,
+<b>archive_write_disk_set_options</b>,
+<b>archive_write_disk_set_skip_file</b>,
+<b>archive_write_disk_set_group_lookup</b>,
+<b>archive_write_disk_set_standard_lookup</b>,
+<b>archive_write_disk_set_user_lookup</b> &mdash; functions
+for creating objects on disk</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>struct
+archive *</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_write_disk_new</b>(<i>void</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_write_disk_set_options</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int&nbsp;flags</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_write_disk_set_skip_file</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>dev_t</i>, <i>ino_t</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_write_disk_set_group_lookup</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;*</i>,
+<i>gid_t&nbsp;(*)(void&nbsp;*,&nbsp;const&nbsp;char&nbsp;*gname,&nbsp;gid_t&nbsp;gid)</i>,
+<i>void&nbsp;(*cleanup)(void&nbsp;*)</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_write_disk_set_standard_lookup</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_write_disk_set_user_lookup</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;*</i>,
+<i>uid_t&nbsp;(*)(void&nbsp;*,&nbsp;const&nbsp;char&nbsp;*uname,&nbsp;uid_t&nbsp;uid)</i>,
+<i>void&nbsp;(*cleanup)(void&nbsp;*)</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide a
+complete API for creating objects on disk from struct
+archive_entry descriptions. They are most naturally used
+when extracting objects from an archive using the
+<b>archive_read</b>() interface. The general process is to
+read struct archive_entry objects from an archive, then
+write those objects to a struct archive object created using
+the <b>archive_write_disk</b>() family functions. This
+interface is deliberately very similar to the
+<b>archive_write</b>() interface used to write objects to a
+streaming archive.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_disk_new</b>()</p>
+
+<p style="margin-left:17%;">Allocates and initializes a
+struct archive object suitable for writing objects to
+disk.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_disk_set_skip_file</b>()</p>
+
+<p style="margin-left:17%;">Records the device and inode
+numbers of a file that should not be overwritten. This is
+typically used to ensure that an extraction process does not
+overwrite the archive from which objects are being read.
+This capability is technically unnecessary but can be a
+significant performance optimization in practice.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_disk_set_options</b>()</p>
+
+<p style="margin-left:17%;">The options field consists of a
+bitwise OR of one or more of the following values:</p>
+
+<p><b>ARCHIVE_EXTRACT_ACL</b></p>
+
+<p style="margin-left:27%;">Attempt to restore Access
+Control Lists. By default, extended ACLs are ignored.</p>
+
+<p><b>ARCHIVE_EXTRACT_CLEAR_NOCHANGE_FFLAGS</b></p>
+
+<p style="margin-left:27%;">Before removing a file system
+object prior to replacing it, clear platform-specific file
+flags which might prevent its removal.</p>
+
+<p><b>ARCHIVE_EXTRACT_FFLAGS</b></p>
+
+<p style="margin-left:27%;">Attempt to restore file
+attributes (file flags). By default, file attributes are
+ignored. See chattr(1) (Linux) or chflags(1) (FreeBSD, Mac
+OS X) for more information on file attributes.</p>
+
+<p><b>ARCHIVE_EXTRACT_MAC_METADATA</b></p>
+
+<p style="margin-left:27%;">Mac OS X specific. Restore
+metadata using copyfile(3). By default, copyfile(3) metadata
+is ignored.</p>
+
+<p><b>ARCHIVE_EXTRACT_NO_OVERWRITE</b></p>
+
+<p style="margin-left:27%;">Existing files on disk will not
+be overwritten. By default, existing regular files are
+truncated and overwritten; existing directories will have
+their permissions updated; other pre-existing objects are
+unlinked and recreated from scratch.</p>
+
+<p><b>ARCHIVE_EXTRACT_OWNER</b></p>
+
+<p style="margin-left:27%;">The user and group IDs should
+be set on the restored file. By default, the user and group
+IDs are not restored.</p>
+
+<p><b>ARCHIVE_EXTRACT_PERM</b></p>
+
+<p style="margin-left:27%;">Full permissions (including
+SGID, SUID, and sticky bits) should be restored exactly as
+specified, without obeying the current umask. Note that SUID
+and SGID bits can only be restored if the user and group ID
+of the object on disk are correct. If
+<b>ARCHIVE_EXTRACT_OWNER</b> is not specified, then SUID and
+SGID bits will only be restored if the default user and
+group IDs of newly-created objects on disk happen to match
+those specified in the archive entry. By default, only basic
+permissions are restored, and umask is obeyed.</p>
+
+<p><b>ARCHIVE_EXTRACT_SAFE_WRITES</b></p>
+
+<p style="margin-left:27%;">Extract files atomically, by
+first creating a unique temporary file and then renaming it
+to its required destination name. This avoids a race where
+an application might see a partial file (or no file) during
+extraction.</p>
+
+<p><b>ARCHIVE_EXTRACT_SECURE_NOABSOLUTEPATHS</b></p>
+
+<p style="margin-left:27%;">Refuse to extract an absolute
+path. The default is to not refuse such paths.</p>
+
+<p><b>ARCHIVE_EXTRACT_SECURE_NODOTDOT</b></p>
+
+<p style="margin-left:27%;">Refuse to extract a path that
+contains a <i>..</i> element anywhere within it. The default
+is to not refuse such paths. Note that paths ending in
+<i>..</i> always cause an error, regardless of this
+flag.</p>
+
+<p><b>ARCHIVE_EXTRACT_SECURE_SYMLINKS</b></p>
+
+<p style="margin-left:27%;">Refuse to extract any object
+whose final location would be altered by a symlink on disk.
+This is intended to help guard against a variety of mischief
+caused by archives that (deliberately or otherwise) extract
+files outside of the current directory. The default is not
+to perform this check. If <b>ARCHIVE_EXTRACT_UNLINK</b> is
+specified together with this option, the library will remove
+any intermediate symlinks it finds and return an error only
+if such symlink could not be removed.</p>
+
+<p><b>ARCHIVE_EXTRACT_SPARSE</b></p>
+
+<p style="margin-left:27%;">Scan data for blocks of NUL
+bytes and try to recreate them with holes. This results in
+sparse files, independent of whether the archive format
+supports or uses them.</p>
+
+<p><b>ARCHIVE_EXTRACT_TIME</b></p>
+
+<p style="margin-left:27%;">The timestamps (mtime, ctime,
+and atime) should be restored. By default, they are ignored.
+Note that restoring of atime is not currently supported.</p>
+
+<p><b>ARCHIVE_EXTRACT_UNLINK</b></p>
+
+<p style="margin-left:27%;">Existing files on disk will be
+unlinked before any attempt to create them. In some cases,
+this can prove to be a significant performance improvement.
+By default, existing files are truncated and rewritten, but
+the file is not recreated. In particular, the default
+behavior does not break existing hard links.</p>
+
+<p><b>ARCHIVE_EXTRACT_XATTR</b></p>
+
+<p style="margin-left:27%;">Attempt to restore extended
+file attributes. By default, they are ignored. See xattr(7)
+(Linux), xattr(2) (Mac OS X), or getextattr(8) (FreeBSD) for
+more information on extended file attributes.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_disk_set_group_lookup</b>(),
+<b>archive_write_disk_set_user_lookup</b>()</p>
+
+<p style="margin-left:17%;">The struct archive_entry
+objects contain both names and ids that can be used to
+identify users and groups. These names and ids describe the
+ownership of the file itself and also appear in ACL lists.
+By default, the library uses the ids and ignores the names,
+but this can be overridden by registering user and group
+lookup functions. To register, you must provide a lookup
+function which accepts both a name and id and returns a
+suitable id. You may also provide a void * pointer to a
+private data structure and a cleanup function for that data.
+The cleanup function will be invoked when the struct archive
+object is destroyed.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_disk_set_standard_lookup</b>()</p>
+
+<p style="margin-left:17%;">This convenience function
+installs a standard set of user and group lookup functions.
+These functions use getpwnam(3) and getgrnam(3) to convert
+names to ids, defaulting to the ids if the names cannot be
+looked up. These functions also implement a simple memory
+cache to reduce the number of calls to getpwnam(3) and
+getgrnam(3).</p>
+
+<p style="margin-left:6%;">More information about the
+<i>struct archive</i> object and the overall design of the
+library can be found in the libarchive(3) overview. Many of
+these functions are also documented under
+archive_write(3).</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+<p style="margin-left:6%;">Most functions return
+<b>ARCHIVE_OK</b> (zero) on success, or one of several
+non-zero error codes for errors. Specific error codes
+include: <b>ARCHIVE_RETRY</b> for operations that might
+succeed if retried, <b>ARCHIVE_WARN</b> for unusual
+conditions that do not prevent further operations, and
+<b>ARCHIVE_FATAL</b> for serious errors that make remaining
+operations impossible.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_write_disk_new</b>()
+returns a pointer to a newly-allocated struct archive
+object.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_write_data</b>()
+returns a count of the number of bytes actually written, or
+-1 on error.</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">Detailed error codes and textual
+descriptions are available from the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_read(3),
+archive_write(3), libarchive(3)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3. The
+<b>archive_write_disk</b> interface was added to
+<b>libarchive 2.0</b> and first appeared in
+FreeBSD&nbsp;6.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was written by Tim Kientzle &lt;kientzle@acm.org&gt;.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">Directories are actually
+extracted in two distinct phases. Directories are created
+during <b>archive_write_header</b>(), but final permissions
+are not set until <b>archive_write_close</b>(). This
+separation is necessary to correctly handle borderline cases
+such as a non-writable directory containing files, but can
+cause unexpected results. In particular, directory
+permissions are not fully restored until the archive is
+closed. If you use chdir(2) to change the current directory
+between calls to <b>archive_read_extract</b>() or before
+calling <b>archive_read_close</b>(), you may confuse the
+permission-setting logic with the result that directory
+permissions are restored incorrectly.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The library
+attempts to create objects with filenames longer than
+<b>PATH_MAX</b> by creating prefixes of the full path and
+changing the current directory. Currently, this logic is
+limited in scope; the fixup pass does not work correctly for
+such objects and the symlink security check option disables
+the support for very long pathnames.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Restoring the
+path <i>aa/../bb</i> does create each intermediate
+directory. In particular, the directory <i>aa</i> is created
+as well as the final object <i>bb</i>. In theory, this can
+be exploited to create an entire directory hierarchy with a
+single request. Of course, this does not work if the
+<b>ARCHIVE_EXTRACT_NODOTDOT</b> option is specified.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Implicit
+directories are always created obeying the current umask.
+Explicit objects are created obeying the current umask
+unless <b>ARCHIVE_EXTRACT_PERM</b> is specified, in which
+case they current umask is ignored.</p>
+
+<p style="margin-left:6%; margin-top: 1em">SGID and SUID
+bits are restored only if the correct user and group could
+be set. If <b>ARCHIVE_EXTRACT_OWNER</b> is not specified,
+then no attempt is made to set the ownership. In this case,
+SGID and SUID bits are restored only if the user and group
+of the final object happen to match those specified in the
+entry.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The
+&ldquo;standard&rdquo; user-id and group-id lookup functions
+are not the defaults because getgrnam(3) and getpwnam(3) are
+sometimes too large for particular applications. The current
+design allows the application author to use a more compact
+implementation when appropriate.</p>
+
+<p style="margin-left:6%; margin-top: 1em">There should be
+a corresponding <b>archive_read_disk</b> interface that
+walks a directory hierarchy and returns archive entry
+objects.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+January&nbsp;19, 2020 BSD</p>
+<hr>
+</body>
+</html>

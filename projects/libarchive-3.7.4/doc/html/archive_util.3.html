@@ -1,0 +1,284 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_UTIL(3) BSD Library Functions Manual
+ARCHIVE_UTIL(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_clear_error</b>,
+<b>archive_compression</b>, <b>archive_compression_name</b>,
+<b>archive_copy_error</b>, <b>archive_errno</b>,
+<b>archive_error_string</b>, <b>archive_file_count</b>,
+<b>archive_filter_code</b>, <b>archive_filter_count</b>,
+<b>archive_filter_name</b>, <b>archive_format</b>,
+<b>archive_format_name</b>, <b>archive_position</b>,
+<b>archive_set_error</b> &mdash; libarchive utility
+functions</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_clear_error</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_compression</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_compression_name</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_copy_error</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_errno</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_error_string</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_file_count</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_filter_code</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_filter_count</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_filter_name</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_format</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_format_name</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><i>int64_t</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_position</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p><b>archive_set_error</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int&nbsp;error_code</i>,
+<i>const&nbsp;char&nbsp;*fmt</i>, <i>...</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide access
+to various information about the struct archive object used
+in the libarchive(3) library.</p>
+
+<p><b>archive_clear_error</b>()</p>
+
+<p style="margin-left:17%;">Clears any error information
+left over from a previous call. Not generally used in client
+code.</p>
+
+<p><b>archive_compression</b>()</p>
+
+<p style="margin-left:17%;">Synonym for
+<b>archive_filter_code</b>(<i>a</i>, <i>0</i>).</p>
+
+<p><b>archive_compression_name</b>()</p>
+
+<p style="margin-left:17%;">Synonym for
+<b>archive_filter_name</b>(<i>a</i>, <i>0</i>).</p>
+
+<p><b>archive_copy_error</b>()</p>
+
+<p style="margin-left:17%;">Copies error information from
+one archive to another.</p>
+
+<p><b>archive_errno</b>()</p>
+
+<p style="margin-left:17%;">Returns a numeric error code
+(see errno(2)) indicating the reason for the most recent
+error return. Note that this can not be reliably used to
+detect whether an error has occurred. It should be used only
+after another libarchive function has returned an error
+status.</p>
+
+<p><b>archive_error_string</b>()</p>
+
+<p style="margin-left:17%;">Returns a textual error message
+suitable for display. The error message here is usually more
+specific than that obtained from passing the result of
+<b>archive_errno</b>() to strerror(3).</p>
+
+<p><b>archive_file_count</b>()</p>
+
+<p style="margin-left:17%;">Returns a count of the number
+of files processed by this archive object. The count is
+incremented by calls to archive_write_header(3) or
+archive_read_next_header(3).</p>
+
+<p><b>archive_filter_code</b>()</p>
+
+<p style="margin-left:17%;">Returns a numeric code
+identifying the indicated filter. See
+<b>archive_filter_count</b>() for details of the
+numbering.</p>
+
+<p><b>archive_filter_count</b>()</p>
+
+<p style="margin-left:17%;">Returns the number of filters
+in the current pipeline. For read archive handles, these
+filters are added automatically by the automatic format
+detection. For write archive handles, these filters are
+added by calls to the various
+<b>archive_write_add_filter_XXX</b>() functions. Filters in
+the resulting pipeline are numbered so that filter 0 is the
+filter closest to the format handler. As a convenience,
+functions that expect a filter number will accept -1 as a
+synonym for the highest-numbered filter.</p>
+
+<p style="margin-left:17%; margin-top: 1em">For example,
+when reading a uuencoded gzipped tar archive, there are
+three filters: filter 0 is the gunzip filter, filter 1 is
+the uudecode filter, and filter 2 is the pseudo-filter that
+wraps the archive read functions. In this case, requesting
+<b>archive_position</b>(<i>a</i>, <i>-1</i>) would be a
+synonym for <b>archive_position</b>(<i>a</i>, <i>2</i>)
+which would return the number of bytes currently read from
+the archive, while <b>archive_position</b>(<i>a</i>,
+<i>1</i>) would return the number of bytes after uudecoding,
+and <b>archive_position</b>(<i>a</i>, <i>0</i>) would return
+the number of bytes after decompression.</p>
+
+<p><b>archive_filter_name</b>()</p>
+
+<p style="margin-left:17%;">Returns a textual name
+identifying the indicated filter. See
+<b>archive_filter_count</b>() for details of the
+numbering.</p>
+
+<p><b>archive_format</b>()</p>
+
+<p style="margin-left:17%;">Returns a numeric code
+indicating the format of the current archive entry. This
+value is set by a successful call to
+<b>archive_read_next_header</b>(). Note that it is common
+for this value to change from entry to entry. For example, a
+tar archive might have several entries that utilize GNU tar
+extensions and several entries that do not. These entries
+will have different format codes.</p>
+
+<p><b>archive_format_name</b>()</p>
+
+<p style="margin-left:17%;">A textual description of the
+format of the current entry.</p>
+
+<p><b>archive_position</b>()</p>
+
+<p style="margin-left:17%;">Returns the number of bytes
+read from or written to the indicated filter. In particular,
+<b>archive_position</b>(<i>a</i>, <i>0</i>) returns the
+number of bytes read or written by the format handler, while
+<b>archive_position</b>(<i>a</i>, <i>-1</i>) returns the
+number of bytes read or written to the archive. See
+<b>archive_filter_count</b>() for details of the numbering
+here.</p>
+
+<p><b>archive_set_error</b>()</p>
+
+<p style="margin-left:17%;">Sets the numeric error code and
+error description that will be returned by
+<b>archive_errno</b>() and <b>archive_error_string</b>().
+This function should be used within I/O callbacks to set
+system-specific error codes and error descriptions. This
+function accepts a printf-like format string and arguments.
+However, you should be careful to use only the following
+printf format specifiers: &ldquo;%c&rdquo;,
+&ldquo;%d&rdquo;, &ldquo;%jd&rdquo;, &ldquo;%jo&rdquo;,
+&ldquo;%ju&rdquo;, &ldquo;%jx&rdquo;, &ldquo;%ld&rdquo;,
+&ldquo;%lo&rdquo;, &ldquo;%lu&rdquo;, &ldquo;%lx&rdquo;,
+&ldquo;%o&rdquo;, &ldquo;%u&rdquo;, &ldquo;%s&rdquo;,
+&ldquo;%x&rdquo;, &ldquo;%%&rdquo;. Field-width specifiers
+and other printf features are not uniformly supported and
+should not be used.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_read(3),
+archive_write(3), libarchive(3), printf(3)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was written by Tim Kientzle &lt;kientzle@acm.org&gt;.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

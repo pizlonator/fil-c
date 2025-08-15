@@ -1,0 +1,290 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_WRITE(3) BSD Library Functions Manual
+ARCHIVE_WRITE(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_write</b> &mdash;
+functions for creating archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide a
+complete API for creating streaming archive files. The
+general process is to first create the struct archive
+object, set any desired options, initialize the archive,
+append entries, then close the archive and release all
+resources.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Create
+archive object</b> <br>
+See archive_write_new(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">To write an
+archive, you must first obtain an initialized struct archive
+object from <b>archive_write_new</b>().</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Enable
+filters and formats, configure block size and padding</b>
+<br>
+See archive_write_filter(3), archive_write_format(3) and
+archive_write_blocksize(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">You can then
+modify this object for the desired operations with the
+various <b>archive_write_set_XXX</b>() functions. In
+particular, you will need to invoke appropriate
+<b>archive_write_add_XXX</b>() and
+<b>archive_write_set_XXX</b>() functions to enable the
+corresponding compression and format support.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Set
+options</b> <br>
+See archive_write_set_options(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Open
+archive</b> <br>
+See archive_write_open(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Once you have
+prepared the struct archive object, you call
+<b>archive_write_open</b>() to actually open the archive and
+prepare it for writing. There are several variants of this
+function; the most basic expects you to provide pointers to
+several functions that can provide blocks of bytes from the
+archive. There are convenience forms that allow you to
+specify a filename, file descriptor, <i>FILE *</i> object,
+or a block of memory from which to write the archive
+data.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Produce
+archive</b> <br>
+See archive_write_header(3) and archive_write_data(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Individual
+archive entries are written in a three-step process: You
+first initialize a struct archive_entry structure with
+information about the new entry. At a minimum, you should
+set the pathname of the entry and provide a <i>struct
+stat</i> with a valid <i>st_mode</i> field, which specifies
+the type of object and <i>st_size</i> field, which specifies
+the size of the data portion of the object.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Release
+resources</b> <br>
+See archive_write_free(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">After all
+entries have been written, use the
+<b>archive_write_free</b>() function to release all
+resources.</p>
+
+<p style="margin-top: 1em"><b>EXAMPLES</b></p>
+
+<p style="margin-left:6%;">The following sketch illustrates
+basic usage of the library. In this example, the callback
+functions are simply wrappers around the standard open(2),
+write(2), and close(2) system calls.</p>
+
+<p style="margin-left:14%; margin-top: 1em">#ifdef
+__linux__</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="14%"></td>
+<td width="10%">
+
+
+<p>#define</p></td>
+<td width="11%">
+
+
+<p>_FILE_OFFSET_BITS 64</p></td>
+<td width="65%">
+</td></tr>
+</table>
+
+<p style="margin-left:14%;">#endif <br>
+#include &lt;sys/stat.h&gt; <br>
+#include &lt;archive.h&gt; <br>
+#include &lt;archive_entry.h&gt; <br>
+#include &lt;fcntl.h&gt; <br>
+#include &lt;stdlib.h&gt; <br>
+#include &lt;unistd.h&gt;</p>
+
+<p style="margin-left:14%; margin-top: 1em">struct mydata {
+<br>
+const char *name; <br>
+int fd; <br>
+};</p>
+
+<p style="margin-left:14%; margin-top: 1em">int <br>
+myopen(struct archive *a, void *client_data) <br>
+{ <br>
+struct mydata *mydata = client_data;</p>
+
+<p style="margin-left:14%; margin-top: 1em">mydata-&gt;fd =
+open(mydata-&gt;name, O_WRONLY | O_CREAT, 0644); <br>
+if (mydata-&gt;fd &gt;= 0) <br>
+return (ARCHIVE_OK); <br>
+else <br>
+return (ARCHIVE_FATAL); <br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">la_ssize_t <br>
+mywrite(struct archive *a, void *client_data, const void
+*buff, size_t n) <br>
+{ <br>
+struct mydata *mydata = client_data;</p>
+
+<p style="margin-left:14%; margin-top: 1em">return
+(write(mydata-&gt;fd, buff, n)); <br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">int <br>
+myclose(struct archive *a, void *client_data) <br>
+{ <br>
+struct mydata *mydata = client_data;</p>
+
+<p style="margin-left:14%; margin-top: 1em">if
+(mydata-&gt;fd &gt; 0) <br>
+close(mydata-&gt;fd); <br>
+return (0); <br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">void <br>
+write_archive(const char *outname, const char **filename)
+<br>
+{ <br>
+struct mydata *mydata = malloc(sizeof(struct mydata)); <br>
+struct archive *a; <br>
+struct archive_entry *entry; <br>
+struct stat st; <br>
+char buff[8192]; <br>
+int len; <br>
+int fd;</p>
+
+<p style="margin-left:14%; margin-top: 1em">a =
+archive_write_new(); <br>
+mydata-&gt;name = outname; <br>
+/* Set archive format and filter according to output file
+extension. <br>
+* If it fails, set default format. Platform depended
+function. <br>
+* See supported formats in
+archive_write_set_format_filter_by_ext.c */ <br>
+if (archive_write_set_format_filter_by_ext(a, outname) !=
+ARCHIVE_OK) { <br>
+archive_write_add_filter_gzip(a); <br>
+archive_write_set_format_ustar(a); <br>
+} <br>
+archive_write_open(a, mydata, myopen, mywrite, myclose);
+<br>
+while (*filename) { <br>
+stat(*filename, &amp;st); <br>
+entry = archive_entry_new(); <br>
+archive_entry_copy_stat(entry, &amp;st); <br>
+archive_entry_set_pathname(entry, *filename); <br>
+archive_write_header(a, entry); <br>
+if ((fd = open(*filename, O_RDONLY)) != -1) { <br>
+len = read(fd, buff, sizeof(buff)); <br>
+while (len &gt; 0) { <br>
+archive_write_data(a, buff, len); <br>
+len = read(fd, buff, sizeof(buff)); <br>
+} <br>
+close(fd); <br>
+} <br>
+archive_entry_free(entry); <br>
+filename++; <br>
+} <br>
+archive_write_free(a); <br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">int main(int
+argc, const char **argv) <br>
+{ <br>
+const char *outname; <br>
+argv++; <br>
+outname = *argv++; <br>
+write_archive(outname, argv); <br>
+return 0; <br>
+}</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1),
+archive_write_set_options(3), libarchive(3), cpio(5),
+mtree(5), tar(5)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was written by Tim Kientzle &lt;kientzle@acm.org&gt;.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">There are many peculiar bugs in
+historic tar implementations that may cause certain programs
+to reject archives written by this library. For example,
+several historic implementations calculated header checksums
+incorrectly and will thus reject valid archives; GNU tar
+does not fully support pax interchange format; some old tar
+implementations required specific field terminations.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The default pax
+interchange format eliminates most of the historic tar
+limitations and provides a generic key/value attribute
+facility for vendor-defined extensions. One oversight in
+POSIX is the failure to provide a standard attribute for
+large device numbers. This library uses
+&ldquo;SCHILY.devminor&rdquo; and
+&ldquo;SCHILY.devmajor&rdquo; for device numbers that exceed
+the range supported by the backwards-compatible ustar
+header. These keys are compatible with Joerg
+Schilling&rsquo;s <b>star</b> archiver. Other
+implementations may not recognize these keys and will thus
+be unable to correctly restore device nodes with large
+device numbers from archives created by this library.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

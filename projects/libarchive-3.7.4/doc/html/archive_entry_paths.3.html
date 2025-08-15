@@ -1,0 +1,284 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_ENTRY_PATHS(3) BSD Library Functions Manual
+ARCHIVE_ENTRY_PATHS(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_entry_hardlink</b>,
+<b>archive_entry_hardlink_w</b>,
+<b>archive_entry_set_hardlink</b>,
+<b>archive_entry_copy_hardlink</b>,
+<b>archive_entry_copy_hardlink_w</b>,
+<b>archive_entry_update_hardlink_utf8</b>,
+<b>archive_entry_set_link</b>,
+<b>archive_entry_copy_link</b>,
+<b>archive_entry_copy_link_w</b>,
+<b>archive_entry_update_link_utf8</b>,
+<b>archive_entry_pathname</b>,
+<b>archive_entry_pathname_w</b>,
+<b>archive_entry_set_pathname</b>,
+<b>archive_entry_copy_pathname</b>,
+<b>archive_entry_copy_pathname_w</b>,
+<b>archive_entry_update_pathname_utf8</b>,
+<b>archive_entry_sourcepath</b>,
+<b>archive_entry_copy_sourcepath</b>,
+<b>archive_entry_symlink</b>,
+<b>archive_entry_symlink_w</b>,
+<b>archive_entry_set_symlink</b>,
+<b>archive_entry_copy_symlink</b>,
+<b>archive_entry_copy_symlink_w</b>,
+<b>archive_entry_update_symlink_utf8</b> &mdash; functions
+for manipulating path names in archive entry
+descriptions</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive_entry.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_hardlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const wchar_t
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_hardlink_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_hardlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_hardlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_hardlink_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const</i>, <i>wchar_t</i>, <i>*path&quot;</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_update_hardlink_utf8</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_link</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_link</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_link_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_update_link_utf8</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_pathname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const wchar_t
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_pathname_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_pathname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_pathname</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_pathname_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_update_pathname_utf8</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_sourcepath</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_sourcepath</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const char
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_symlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>const wchar_t
+*</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_symlink_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_symlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_symlink</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_copy_symlink_w</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;wchar_t&nbsp;*path</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_update_symlink_utf8</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>const&nbsp;char&nbsp;*path</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">Path names supported by
+archive_entry(3):</p>
+
+<p>hardlink</p>
+
+<p style="margin-left:22%; margin-top: 1em">Destination of
+the hardlink.</p>
+
+<p>link</p>
+
+<p style="margin-left:22%; margin-top: 1em">Update only.
+For a symlink, update the destination. Otherwise, make the
+entry a hardlink and alter the destination for that.</p>
+
+<p>pathname</p>
+
+<p style="margin-left:22%; margin-top: 1em">Path in the
+archive</p>
+
+<p>sourcepath</p>
+
+<p style="margin-left:22%; margin-top: 1em">Path on the
+disk for use by archive_read_disk(3).</p>
+
+<p>symlink</p>
+
+<p style="margin-left:22%; margin-top: 1em">Destination of
+the symbolic link.</p>
+
+<p style="margin-left:6%; margin-top: 1em">Path names can
+be provided in one of three different ways:</p>
+
+<p style="margin-top: 1em">char *</p>
+
+<p style="margin-left:21%; margin-top: 1em">Multibyte
+strings in the current locale.</p>
+
+<p style="margin-top: 1em">wchar_t *</p>
+
+<p style="margin-left:21%; margin-top: 1em">Wide character
+strings in the current locale. The accessor functions are
+named <b>XXX_w</b>().</p>
+
+<p style="margin-top: 1em">UTF-8</p>
+
+<p style="margin-left:21%; margin-top: 1em">Unicode strings
+encoded as UTF-8. These are convenience functions to update
+both the multibyte and wide character strings at the same
+time.</p>
+
+<p style="margin-left:6%; margin-top: 1em">The sourcepath
+is a pure filesystem concept and never stored in an archive
+directly.</p>
+
+<p style="margin-left:6%; margin-top: 1em">For that reason,
+it is only available as multibyte string. The link path is a
+convenience function for conditionally setting hardlink or
+symlink destination. It doesn&rsquo;t have a corresponding
+get accessor function.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_entry_set_XXX</b>()
+is an alias for <b>archive_entry_copy_XXX</b>().</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_entry(3),
+libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

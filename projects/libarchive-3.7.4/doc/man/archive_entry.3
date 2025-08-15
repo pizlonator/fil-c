@@ -1,0 +1,143 @@
+.TH ARCHIVE_ENTRY 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_clear\fP,
+\fB\%archive_entry_clone\fP,
+\fB\%archive_entry_free\fP,
+\fB\%archive_entry_new\fP
+\- functions for managing archive entry descriptions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fIstruct archive_entry *\fP
+.br
+\fB\%archive_entry_clear\fP(\fI\%struct\ archive_entry\ *\fP);
+.br
+\fIstruct archive_entry *\fP
+.br
+\fB\%archive_entry_clone\fP(\fI\%struct\ archive_entry\ *\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_free\fP(\fI\%struct\ archive_entry\ *\fP);
+.br
+\fIstruct archive_entry *\fP
+.br
+\fB\%archive_entry_new\fP(\fI\%void\fP);
+.SH DESCRIPTION
+.ad l
+These functions create and manipulate data objects that
+represent entries within an archive.
+You can think of a
+Tn struct archive_entry
+as a heavy-duty version of
+Tn struct stat:
+it includes everything from
+Tn struct stat
+plus associated pathname, textual group and user names, etc.
+These objects are used by
+\fBlibarchive\fP(3)
+to represent the metadata associated with a particular
+entry in an archive.
+.SS Create and Destroy
+There are functions to allocate, destroy, clear, and copy
+\fIarchive_entry\fP
+objects:
+.RS 5
+.TP
+\fB\%archive_entry_clear\fP()
+Erases the object, resetting all internal fields to the
+same state as a newly-created object.
+This is provided to allow you to quickly recycle objects
+without thrashing the heap.
+.TP
+\fB\%archive_entry_clone\fP()
+A deep copy operation; all text fields are duplicated.
+.TP
+\fB\%archive_entry_free\fP()
+Releases the
+Tn struct archive_entry
+object.
+.TP
+\fB\%archive_entry_new\fP()
+Allocate and return a blank
+Tn struct archive_entry
+object.
+.RE
+.SS Function groups
+Due to high number of functions, the accessor functions can be found in
+man pages grouped by the purpose.
+.RS 5
+.TP
+\fBarchive_entry_acl\fP(3)
+Access Control List manipulation
+.TP
+\fBarchive_entry_paths\fP(3)
+Path name manipulation
+.TP
+\fBarchive_entry_perms\fP(3)
+User, group and mode manipulation
+.TP
+\fBarchive_entry_stat\fP(3)
+Functions not in the other groups and copying to/from
+Vt struct stat.
+.TP
+\fBarchive_entry_time\fP(3)
+Time field manipulation
+.RE
+.PP
+Most of the functions set or read entries in an object.
+Such functions have one of the following forms:
+.RS 5
+.TP
+\fB\%archive_entry_set_XXXX\fP()
+Stores the provided data in the object.
+In particular, for strings, the pointer is stored,
+not the referenced string.
+.TP
+\fB\%archive_entry_copy_XXXX\fP()
+As above, except that the referenced data is copied
+into the object.
+.TP
+\fB\%archive_entry_XXXX\fP()
+Returns the specified data.
+In the case of strings, a const-qualified pointer to
+the string is returned.
+.RE
+String data can be set or accessed as wide character strings
+or normal
+\fIchar\fP
+strings.
+The functions that use wide character strings are suffixed with
+\fB_w\fP.
+Note that these are different representations of the same data:
+For example, if you store a narrow string and read the corresponding
+wide string, the object will transparently convert formats
+using the current locale.
+Similarly, if you store a wide string and then store a
+narrow string for the same data, the previously-set wide string will
+be discarded in favor of the new data.
+.SH SEE ALSO
+.ad l
+\fBarchive_entry_acl\fP(3),
+\fBarchive_entry_paths\fP(3),
+\fBarchive_entry_perms\fP(3),
+\fBarchive_entry_time\fP(3),
+\fBlibarchive\fP(3)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was written by
+Tim Kientzle \%<kientzle@acm.org.>

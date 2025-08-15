@@ -1,0 +1,134 @@
+ARCHIVE_WRITE_FILTER(3) manual page 
+== NAME == 
+'''archive_write_add_filter_b64encode''', 
+'''archive_write_add_filter_by_name''', 
+'''archive_write_add_filter_bzip2''', 
+'''archive_write_add_filter_compress''', 
+'''archive_write_add_filter_grzip''', 
+'''archive_write_add_filter_gzip''', 
+'''archive_write_add_filter_lrzip''', 
+'''archive_write_add_filter_lz4''', 
+'''archive_write_add_filter_lzip''', 
+'''archive_write_add_filter_lzma''', 
+'''archive_write_add_filter_lzop''', 
+'''archive_write_add_filter_none''', 
+'''archive_write_add_filter_program''', 
+'''archive_write_add_filter_uuencode''', 
+'''archive_write_add_filter_xz''', 
+'''archive_write_add_filter_zstd''' 
+- functions enabling output filters 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_b64encode'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_bzip2'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_compress'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_grzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_gzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_lrzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_lz4'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_lzip'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_lzma'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_lzop'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_none'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_program'''(''struct archive *'', ''const char * cmd''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_uuencode'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_xz'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_write_add_filter_zstd'''(''struct archive *''); 
+== DESCRIPTION == 
+<dl> 
+<dt> 
+'''archive_write_add_filter_bzip2'''(), 
+'''archive_write_add_filter_compress'''(), 
+'''archive_write_add_filter_grzip'''(), 
+'''archive_write_add_filter_gzip'''(), 
+'''archive_write_add_filter_lrzip'''(), 
+'''archive_write_add_filter_lz4'''(), 
+'''archive_write_add_filter_lzip'''(), 
+'''archive_write_add_filter_lzma'''(), 
+'''archive_write_add_filter_lzop'''(), 
+'''archive_write_add_filter_xz'''(), 
+'''archive_write_add_filter_zstd'''(), 
+</dt> <dd> 
+The resulting archive will be compressed as specified. 
+Note that the compressed output is always properly blocked. 
+</dd><dt> 
+'''archive_write_add_filter_b64encode'''(), 
+'''archive_write_add_filter_uuencode'''(), 
+</dt> <dd> 
+The output will be encoded as specified. 
+The encoded output is always properly blocked. 
+</dd><dt>'''archive_write_add_filter_none'''()</dt><dd> 
+This is never necessary. 
+It is provided only for backwards compatibility. 
+</dd><dt>'''archive_write_add_filter_program'''()</dt><dd> 
+The archive will be fed into the specified compression program. 
+The output of that program is blocked and written to the client 
+write callbacks. 
+</dd></dl> 
+== RETURN VALUES == 
+These functions return 
+'''ARCHIVE_OK''' 
+on success, or 
+'''ARCHIVE_FATAL'''. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageBsdtar1]], 
+[[ManPageArchiveWrite3]], 
+[[ManPageArchiveWriteFormat3]], 
+[[ManPageArchiveWriteSetOptions3]], 
+[[ManPageLibarchive3]], 
+[[ManPageCpio5]], 
+[[ManPageMtree5]], 
+[[ManPageTar5]] 

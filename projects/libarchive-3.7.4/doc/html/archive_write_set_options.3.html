@@ -1,0 +1,842 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:47 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_WRITE_OPTIONS(3) BSD Library Functions Manual
+ARCHIVE_WRITE_OPTIONS(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_write_set_filter_option</b>,
+<b>archive_write_set_format_option</b>,
+<b>archive_write_set_option</b>,
+<b>archive_write_set_options</b> &mdash; functions
+controlling options for writing archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><i>int</i></p>
+
+
+<p><b>archive_write_set_filter_option</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*module</i>,
+<i>const&nbsp;char&nbsp;*option</i>,
+<i>const&nbsp;char&nbsp;*value</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_write_set_format_option</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*module</i>,
+<i>const&nbsp;char&nbsp;*option</i>,
+<i>const&nbsp;char&nbsp;*value</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_write_set_option</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*module</i>,
+<i>const&nbsp;char&nbsp;*option</i>,
+<i>const&nbsp;char&nbsp;*value</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_write_set_options</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*options</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide a way
+for libarchive clients to configure specific write
+modules.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_set_filter_option</b>(),
+<b>archive_write_set_format_option</b>()</p>
+
+<p style="margin-left:17%;">Specifies an option that will
+be passed to the currently-registered filters (including
+decompression filters) or format readers.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If
+<i>option</i> and <i>value</i> are both NULL, these
+functions will do nothing and <b>ARCHIVE_OK</b> will be
+returned. If <i>option</i> is NULL but <i>value</i> is not,
+these functions will do nothing and <b>ARCHIVE_FAILED</b>
+will be returned.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If
+<i>module</i> is not NULL, <i>option</i> and <i>value</i>
+will be provided to the filter or reader named
+<i>module</i>. The return value will be either
+<b>ARCHIVE_OK</b> if the option was successfully handled or
+<b>ARCHIVE_WARN</b> if the option was unrecognized by the
+module or could otherwise not be handled. If there is no
+such module, <b>ARCHIVE_FAILED</b> will be returned.</p>
+
+<p style="margin-left:17%; margin-top: 1em">If
+<i>module</i> is NULL, <i>option</i> and <i>value</i> will
+be provided to every registered module. If any module
+returns <b>ARCHIVE_FATAL</b>, this value will be returned
+immediately. Otherwise, <b>ARCHIVE_OK</b> will be returned
+if any module accepts the option, and <b>ARCHIVE_FAILED</b>
+in all other cases.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_set_option</b>()</p>
+
+<p style="margin-left:17%;">Calls
+<b>archive_write_set_format_option</b>(), then
+<b>archive_write_set_filter_option</b>(). If either function
+returns <b>ARCHIVE_FATAL</b>, <b>ARCHIVE_FATAL</b> will be
+returned immediately. Otherwise, the greater of the two
+values will be returned.</p>
+
+
+<p style="margin-top: 1em"><b>archive_write_set_options</b>()</p>
+
+<p style="margin-left:17%;"><i>options</i> is a
+comma-separated list of options. If <i>options</i> is NULL
+or empty, <b>ARCHIVE_OK</b> will be returned
+immediately.</p>
+
+<p style="margin-left:17%; margin-top: 1em">Individual
+options have one of the following forms:</p>
+
+<p><i>option=value</i></p>
+
+<p style="margin-left:27%;">The option/value pair will be
+provided to every module. Modules that do not accept an
+option with this name will ignore it.</p>
+
+<p><i>option</i></p>
+
+<p style="margin-left:27%; margin-top: 1em">The option will
+be provided to every module with a value of
+&ldquo;1&rdquo;.</p>
+
+<p><i>!option</i></p>
+
+<p style="margin-left:27%;">The option will be provided to
+every module with a NULL value.</p>
+
+<p><i>module:option=value</i>, <i>module:option</i>,
+<i>module:!option</i></p>
+
+<p style="margin-left:27%;">As above, but the corresponding
+option and value will be provided only to modules whose name
+matches <i>module</i>.</p>
+
+<p style="margin-top: 1em"><b>OPTIONS</b> <br>
+Filter b64encode <b><br>
+mode</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">The value is
+interpreted as octal digits specifying the file mode.</p>
+
+<p><b>name</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">The value
+specifies the file name.</p>
+
+<p>Filter bzip2 <b><br>
+compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the bzip2 compression level.
+Supported values are from 1 to 9.</p>
+
+<p>Filter gzip <b><br>
+compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the gzip compression level.
+Supported values are from 0 to 9.</p>
+
+<p><b>timestamp</b></p>
+
+<p style="margin-left:27%;">Store timestamp. This is
+enabled by default.</p>
+
+<p>Filter lrzip <b><br>
+compression</b>=<i>type</i></p>
+
+<p style="margin-left:27%;">Use <i>type</i> as compression
+method. Supported values are &ldquo;bzip2&rdquo;,
+&ldquo;gzipi&rdquo;, &ldquo;lzo&rdquo; (ultra fast), and
+&ldquo;zpaq&rdquo; (best, extremely slow).</p>
+
+<p><b>compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the lrzip compression level.
+Supported values are from 1 to 9.</p>
+
+<p>Filter lz4 <b><br>
+compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the lz4 compression level.
+Supported values are from 0 to 9.</p>
+
+<p><b>stream-checksum</b></p>
+
+<p style="margin-left:27%;">Enable stream checksum. This is
+enabled by default.</p>
+
+<p><b>block-checksum</b></p>
+
+<p style="margin-left:27%;">Enable block checksum. This is
+disabled by default.</p>
+
+<p><b>block-size</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the lz4 compression block size.
+Supported values are from 4 to 7 (default).</p>
+
+<p><b>block-dependence</b></p>
+
+<p style="margin-left:27%;">Use the previous block of the
+block being compressed for a compression dictionary to
+improve compression ratio. This is disabled by default.</p>
+
+<p>Filter lzop <b><br>
+compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the lzop compression level.
+Supported values are from 1 to 9.</p>
+
+<p>Filter uuencode <b><br>
+mode</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">The value is
+interpreted as octal digits specifying the file mode.</p>
+
+<p><b>name</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">The value
+specifies the file name.</p>
+
+<p>Filter xz <b><br>
+compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the compression level. Supported
+values are from 0 to 9.</p>
+
+<p><b>threads</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the number of threads for
+multi-threaded lzma compression. If supported, the default
+value is read from <b>lzma_cputhreads</b>().</p>
+
+<p>Filter zstd <b><br>
+compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the compression level. Supported
+values depend on the library version, common values are from
+1 to 22.</p>
+
+<p><b>long</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">Enables long
+distance matching. The value is interpreted as a decimal
+integer specifying log2 window size in bytes. Values from 10
+to 30 for 32 bit, or 31 for 64 bit, are supported.</p>
+
+<p><b>threads</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the number of threads for
+multi-threaded zstd compression. If set to 0, zstd will
+attempt to detect and use the number of physical CPU
+cores.</p>
+
+<p>Format 7zip <b><br>
+compression</b></p>
+
+<p style="margin-left:27%;">The value is one of
+&ldquo;store&rdquo;, &ldquo;copy&rdquo;,
+&ldquo;deflate&rdquo;, &ldquo;bzip2&rdquo;,
+&ldquo;lzma1&rdquo;, &ldquo;lzma2&rdquo; or
+&ldquo;ppmd&rdquo; to indicate how the following entries
+should be compressed. The values &ldquo;store&rdquo; and
+&ldquo;copy&rdquo; are synonyms. Note that this setting is
+ignored for directories, symbolic links, and other special
+entries.</p>
+
+<p><b>compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the compression level. Values
+between 0 and 9 are supported, with the exception of bzip2
+which only supports values between 1 and 9. The
+interpretation of the compression level depends on the
+chosen compression method.</p>
+
+<p>Format bin <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format gnutar <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file,
+group and user names.</p>
+
+<p>Format iso9660 - volume metadata</p>
+
+<p style="margin-left:17%;">These options are used to set
+standard ISO9660 metadata.</p>
+
+<p><b>abstract-file</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">The file with the specified
+name will be identified in the ISO9660 metadata as holding
+the abstract for this volume. Default: none.</p>
+
+<p><b>application-id</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">The file with the specified
+name will be identified in the ISO9660 metadata as holding
+the application identifier for this volume. Default:
+none.</p>
+
+<p><b>biblio-file</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">The file with the specified
+name will be identified in the ISO9660 metadata as holding
+the bibliography for this volume. Default: none.</p>
+
+<p><b>copyright-file</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">The file with the specified
+name will be identified in the ISO9660 metadata as holding
+the copyright for this volume. Default: none.</p>
+
+<p><b>publisher</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">The file with the specified
+name will be identified in the ISO9660 metadata as holding
+the publisher information for this volume. Default:
+none.</p>
+
+<p><b>volume-id</b>=<i>string</i></p>
+
+<p style="margin-left:27%;">The specified string will be
+used as the Volume Identifier in the ISO9660 metadata. It is
+limited to 32 bytes. Default: none.</p>
+
+<p>Format iso9660 - boot support</p>
+
+<p style="margin-left:17%;">These options are used to make
+an ISO9660 image that can be directly booted on various
+systems.</p>
+
+<p><b>boot</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">The file matching this name
+will be used as the El Torito boot image file.</p>
+
+<p><b>boot-catalog</b>=<i>name</i></p>
+
+<p style="margin-left:27%;">The name that will be used for
+the El Torito boot catalog. Default: <i>boot.catalog</i></p>
+
+<p><b>boot-info-table</b></p>
+
+<p style="margin-left:27%;">The boot image file provided by
+the <b>boot</b>=<i>filename</i> option will be edited with
+appropriate boot information in bytes 8 through 64. Default:
+disabled</p>
+
+<p><b>boot-load-seg</b>=<i>hexadecimal-number</i></p>
+
+<p style="margin-left:27%;">The load segment for a
+no-emulation boot image.</p>
+
+<p><b>boot-load-size</b>=<i>decimal-number</i></p>
+
+<p style="margin-left:27%;">The number of
+&quot;virtual&quot; 512-byte sectors to be loaded from a
+no-emulation boot image. Some very old BIOSes can only load
+very small images, setting this value to 4 will often allow
+such BIOSes to load the first part of the boot image (which
+will then need to be intelligent enough to load the rest of
+itself). This should not be needed unless you are trying to
+support systems with very old BIOSes. This defaults to the
+full size of the image.</p>
+
+<p><b>boot-type</b>=<i>value</i></p>
+
+<p style="margin-left:27%;">Specifies the boot semantics
+used by the El Torito boot image: If the <i>value</i> is
+<b>fd</b>, then the boot image is assumed to be a bootable
+floppy image. If the <i>value</i> is <b>hd</b>, then the
+boot image is assumed to be a bootable hard disk image. If
+the <i>value</i> is <b>no-emulation</b>, the boot image is
+used without floppy or hard disk emulation. If the boot
+image is exactly 1.2MB, 1.44MB, or 2.88MB, then the default
+is <b>fd</b>, otherwise the default is
+<b>no-emulation</b>.</p>
+
+<p>Format iso9660 - filename and size extensions</p>
+
+<p style="margin-left:17%;">Various extensions to the base
+ISO9660 format.</p>
+
+<p><b>allow-ldots</b></p>
+
+<p style="margin-left:27%;">If enabled, allows filenames to
+begin with a leading period. If disabled, filenames that
+begin with a leading period will have that period replaced
+by an underscore character in the standard ISO9660
+namespace. This does not impact names stored in the
+Rockridge or Joliet extension area. Default: disabled.</p>
+
+<p><b>allow-lowercase</b></p>
+
+<p style="margin-left:27%;">If enabled, allows filenames to
+contain lowercase characters. If disabled, filenames will be
+forced to uppercase. This does not impact names stored in
+the Rockridge or Joliet extension area. Default:
+disabled.</p>
+
+<p><b>allow-multidot</b></p>
+
+<p style="margin-left:27%;">If enabled, allows filenames to
+contain multiple period characters, in violation of the
+ISO9660 specification. If disabled, additional periods will
+be converted to underscore characters. This does not impact
+names stored in the Rockridge or Joliet extension area.
+Default: disabled.</p>
+
+<p><b>allow-period</b></p>
+
+<p style="margin-left:27%;">If enabled, allows filenames to
+contain trailing period characters, in violation of the
+ISO9660 specification. If disabled, trailing periods will be
+converted to underscore characters. This does not impact
+names stored in the Rockridge or Joliet extension area.
+Default: disabled.</p>
+
+<p><b>allow-pvd-lowercase</b></p>
+
+<p style="margin-left:27%;">If enabled, the Primary Volume
+Descriptor may contain lowercase ASCII characters, in
+violation of the ISO9660 specification. If disabled,
+characters will be converted to uppercase ASCII. Default:
+disabled.</p>
+
+<p><b>allow-sharp-tilde</b></p>
+
+<p style="margin-left:27%;">If enabled, sharp and tilde
+characters will be permitted in filenames, in violation if
+the ISO9660 specification. If disabled, such characters will
+be converted to underscore characters. Default:
+disabled.</p>
+
+<p><b>allow-vernum</b></p>
+
+<p style="margin-left:27%;">If enabled, version numbers
+will be included with files. If disabled, version numbers
+will be suppressed, in violation of the ISO9660 standard.
+This does not impact names stored in the Rockridge or Joliet
+extension area. Default: enabled.</p>
+
+<p><b>iso-level</b></p>
+
+<p style="margin-left:27%;">This enables support for file
+size and file name extensions in the core ISO9660 area. The
+name extensions specified here do not affect the names
+stored in the Rockridge or Joliet extension areas.</p>
+
+<p><b>iso-level=1</b></p>
+
+<p style="margin-left:37%;">The most compliant form of
+ISO9660 image. Filenames are limited to 8.3 uppercase
+format, directory names are limited to 8 uppercase
+characters, files are limited to 4 GiB, the complete ISO9660
+image cannot exceed 4 GiB.</p>
+
+<p><b>iso-level=2</b></p>
+
+<p style="margin-left:37%;">Filenames are limited to 30
+uppercase characters with a 30-character extension,
+directory names are limited to 30 characters, files are
+limited to 4 GiB.</p>
+
+<p><b>iso-level=3</b></p>
+
+<p style="margin-left:37%;">As with <b>iso-level=2</b>,
+except that files may exceed 4 GiB.</p>
+
+<p><b>iso-level=4</b></p>
+
+<p style="margin-left:37%;">As with <b>iso-level=3</b>,
+except that filenames may be up to 193 characters and may
+include arbitrary 8-bit characters.</p>
+
+<p><b>joliet</b></p>
+
+
+<p style="margin-left:27%; margin-top: 1em">Microsoft&rsquo;s
+Joliet extensions store a completely separate set of
+directory information about each file. In particular, this
+information includes Unicode filenames of up to 255
+characters. Default: enabled.</p>
+
+<p><b>limit-depth</b></p>
+
+<p style="margin-left:27%;">If enabled, libarchive will use
+directory relocation records to ensure that no pathname
+exceeds the ISO9660 limit of 8 directory levels. If
+disabled, no relocation will occur. Default: enabled.</p>
+
+<p><b>limit-dirs</b></p>
+
+<p style="margin-left:27%;">If enabled, libarchive will
+cause an error if there are more than 65536 directories. If
+disabled, there is no limit on the number of directories.
+Default: enabled</p>
+
+<p><b>pad</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">If enabled, 300
+kiB of zero bytes will be appended to the end of the
+archive. Default: enabled</p>
+
+<p><b>relaxed-filenames</b></p>
+
+<p style="margin-left:27%;">If enabled, all 7-bit ASCII
+characters are permitted in filenames (except lowercase
+characters unless <b>allow-lowercase</b> is also specified).
+This violates ISO9660 standards. This does not impact names
+stored in the Rockridge or Joliet extension area. Default:
+disabled.</p>
+
+<p><b>rockridge</b></p>
+
+<p style="margin-left:27%;">The Rockridge extensions store
+an additional set of POSIX-style file information with each
+file, including mtime, atime, ctime, permissions, and long
+filenames with arbitrary 8-bit characters. These extensions
+also support symbolic links and other POSIX file types.
+Default: enabled.</p>
+
+<p>Format iso9660 - zisofs support</p>
+
+<p style="margin-left:17%;">The zisofs extensions permit
+each file to be independently compressed using a
+gzip-compatible compression. This can provide significant
+size savings, but requires the reading system to have
+support for these extensions. These extensions are disabled
+by default.</p>
+
+<p><b>compression-level</b>=number</p>
+
+<p style="margin-left:27%;">The compression level used by
+the deflate compressor. Ranges from 0 (least effort) to 9
+(most effort). Default: 6</p>
+
+<p><b>zisofs</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">Synonym for
+<b>zisofs=direct</b>.</p>
+
+<p><b>zisofs=direct</b></p>
+
+<p style="margin-left:27%;">Compress each file in the
+archive. Unlike <b>zisofs=indirect</b>, this is handled
+entirely within libarchive and does not require a separate
+utility. For best results, libarchive tests each file and
+will store the file uncompressed if the compression does not
+actually save any space. In particular, files under 2k will
+never be compressed. Note that boot image files are never
+compressed.</p>
+
+<p><b>zisofs=indirect</b></p>
+
+<p style="margin-left:27%;">Recognizes files that have
+already been compressed with the <b>mkzftree</b> utility and
+sets up the necessary file metadata so that readers will
+correctly identify these as zisofs-compressed files.</p>
+
+<p><b>zisofs-exclude</b>=<i>filename</i></p>
+
+<p style="margin-left:27%;">Specifies a filename that
+should not be compressed when using <b>zisofs=direct</b>.
+This option can be provided multiple times to suppress
+compression on many files.</p>
+
+<p>Format mtree <b><br>
+cksum</b>, <b>device</b>, <b>flags</b>, <b>gid</b>,
+<b>gname</b>, <b>indent</b>, <b>link</b>, <b>md5</b>,
+<b>mode</b>, <b>nlink</b>, <b>rmd160</b>, <b>sha1</b>,
+<b>sha256</b>, <b>sha384</b>, <b>sha512</b>, <b>size</b>,
+<b>time</b>, <b>uid</b>, <b>uname</b></p>
+
+<p style="margin-left:27%;">Enable a particular keyword in
+the mtree output. Prefix with an exclamation mark to disable
+the corresponding keyword. The default is equivalent to
+&ldquo;device, flags, gid, gname, link, mode, nlink, size,
+time, type, uid, uname&rdquo;.</p>
+
+<p><b>all</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">Enables all of
+the above keywords.</p>
+
+<p><b>use-set</b></p>
+
+<p style="margin-left:27%;">Enables generation of
+<b>/set</b> lines that specify default values for the
+following files and/or directories.</p>
+
+<p><b>indent</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">XXX needs
+explanation XXX</p>
+
+<p>Format newc <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format odc <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format pwb <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p>Format pax <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file,
+group and user names. The value is one of
+&ldquo;BINARY&rdquo; or &ldquo;UTF-8&rdquo;. With
+&ldquo;BINARY&rdquo; there is no character conversion, with
+&ldquo;UTF-8&rdquo; names are converted to UTF-8.</p>
+
+<p><b>xattrheader</b></p>
+
+<p style="margin-left:27%;">When storing extended
+attributes, this option configures which headers should be
+written. The value is one of &ldquo;all&rdquo;,
+&ldquo;LIBARCHIVE&rdquo;, or &ldquo;SCHILY&rdquo;. By
+default, both &ldquo;LIBARCHIVE.xattr&rdquo; and
+&ldquo;SCHILY.xattr&rdquo; headers are written.</p>
+
+<p>Format ustar <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file,
+group and user names.</p>
+
+<p>Format v7tar <b><br>
+hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file,
+group and user names.</p>
+
+<p>Format warc <b><br>
+omit-warcinfo</b></p>
+
+<p style="margin-left:27%;">Set to &ldquo;true&rdquo; to
+disable output of the warcinfo record.</p>
+
+<p>Format xar <b><br>
+checksum</b>=<i>type</i></p>
+
+<p style="margin-left:27%;">Use <i>type</i> as file
+checksum method. Supported values are &ldquo;none&rdquo;,
+&ldquo;md5&rdquo;, and &ldquo;sha1&rdquo; (default).</p>
+
+<p><b>compression</b>=<i>type</i></p>
+
+<p style="margin-left:27%;">Use <i>type</i> as compression
+method. Supported values are &ldquo;none&rdquo;,
+&ldquo;bzip2&rdquo;, &ldquo;gzip&rdquo; (default),
+&ldquo;lzma&rdquo; and &ldquo;xz&rdquo;.</p>
+
+<p><b>compression_level</b></p>
+
+<p style="margin-left:27%;">The value is a decimal integer
+from 1 to 9 specifying the compression level.</p>
+
+<p><b>toc-checksum</b>=<i>type</i></p>
+
+<p style="margin-left:27%;">Use <i>type</i> as table of
+contents checksum method. Supported values are
+&ldquo;none&rdquo;, &ldquo;md5&rdquo; and &ldquo;sha1&rdquo;
+(default).</p>
+
+<p>Format zip <b><br>
+compression</b></p>
+
+<p style="margin-left:27%;">The value is either
+&ldquo;store&rdquo; or &ldquo;deflate&rdquo; to indicate how
+the following entries should be compressed. Note that this
+setting is ignored for directories, symbolic links, and
+other special entries.</p>
+
+<p><b>compression-level</b></p>
+
+<p style="margin-left:27%;">The value is interpreted as a
+decimal integer specifying the compression level. Values
+between 0 and 9 are supported. A compression level of 0
+switches the compression method to &ldquo;store&rdquo;,
+other values will enable &ldquo;deflate&rdquo; compression
+with the given level.</p>
+
+<p><b>encryption</b></p>
+
+<p style="margin-left:27%;">Enable encryption using
+traditional zip encryption.</p>
+
+<p><b>encryption</b>=<i>type</i></p>
+
+<p style="margin-left:27%;">Use <i>type</i> as encryption
+type. Supported values are &ldquo;zipcrypt&rdquo;
+(traditional zip encryption), &ldquo;aes128&rdquo; (WinZip
+AES-128 encryption) and &ldquo;aes256&rdquo; (WinZip AES-256
+encryption).</p>
+
+<p><b>experimental</b></p>
+
+<p style="margin-left:27%;">This boolean option enables or
+disables experimental Zip features that may not be
+compatible with other Zip implementations.</p>
+
+<p><b>fakecrc32</b></p>
+
+<p style="margin-left:27%;">This boolean option disables
+CRC calculations. All CRC fields are set to zero. It should
+not be used except for testing purposes.</p>
+
+<p><b>hdrcharset</b></p>
+
+<p style="margin-left:27%;">The value is used as a
+character set name that will be used when translating file
+names.</p>
+
+<p><b>zip64</b></p>
+
+<p style="margin-left:27%; margin-top: 1em">Zip64
+extensions provide additional file size information for
+entries larger than 4 GiB. They also provide extended file
+offset and archive size information when archives exceed 4
+GiB. By default, the Zip writer selectively enables these
+extensions only as needed. In particular, if the file size
+is unknown, the Zip writer will include Zip64 extensions to
+guard against the possibility that the file might be larger
+than 4 GiB.</p>
+
+<p style="margin-left:27%; margin-top: 1em">Setting this
+boolean option will force the writer to use Zip64 extensions
+even for small files that would not otherwise require them.
+This is primarily useful for testing.</p>
+
+<p style="margin-left:27%; margin-top: 1em">Disabling this
+option with <b>!zip64</b> will force the Zip writer to avoid
+Zip64 extensions: It will reject files with size greater
+than 4 GiB, it will reject any new entries once the total
+archive size reaches 4 GiB, and it will not use Zip64
+extensions for files with unknown size. In particular, this
+can improve compatibility when generating archives where the
+entry sizes are not known in advance.</p>
+
+<p style="margin-top: 1em"><b>EXAMPLES</b></p>
+
+<p style="margin-left:6%;">The following example creates an
+archive write handle to create a gzip-compressed ISO9660
+format image. The two options here specify that the ISO9660
+archive will use <i>kernel.img</i> as the boot image for El
+Torito booting, and that the gzip compressor should use the
+maximum compression level.</p>
+
+<p style="margin-left:14%; margin-top: 1em">a =
+archive_write_new(); <br>
+archive_write_add_filter_gzip(a); <br>
+archive_write_set_format_iso9660(a); <br>
+archive_write_set_options(a,
+&quot;boot=kernel.img,compression=9&quot;); <br>
+archive_write_open_filename(a, filename, blocksize);</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">More detailed error codes and
+textual descriptions are available from the
+<b>archive_errno</b>() and <b>archive_error_string</b>()
+functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1),
+archive_read_set_options(3), archive_write(3),
+libarchive(3)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The options support for
+libarchive was originally implemented by Michihiro
+NAKAJIMA.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">BSD January&nbsp;31, 2020
+BSD</p>
+<hr>
+</body>
+</html>

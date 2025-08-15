@@ -1,0 +1,320 @@
+.TH ARCHIVE_ENTRY_STAT 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_stat\fP,
+\fB\%archive_entry_copy_stat\fP,
+\fB\%archive_entry_filetype\fP,
+\fB\%archive_entry_set_filetype\fP,
+\fB\%archive_entry_mode\fP,
+\fB\%archive_entry_set_mode\fP,
+\fB\%archive_entry_size\fP,
+\fB\%archive_entry_size_is_set\fP,
+\fB\%archive_entry_set_size\fP,
+\fB\%archive_entry_unset_size\fP,
+\fB\%archive_entry_dev\fP,
+\fB\%archive_entry_set_dev\fP,
+\fB\%archive_entry_dev_is_set\fP,
+\fB\%archive_entry_devmajor\fP,
+\fB\%archive_entry_set_devmajor\fP,
+\fB\%archive_entry_devminor\fP,
+\fB\%archive_entry_set_devminor\fP,
+\fB\%archive_entry_ino\fP,
+\fB\%archive_entry_set_ino\fP,
+\fB\%archive_entry_ino_is_set\fP,
+\fB\%archive_entry_ino64\fP,
+\fB\%archive_entry_set_ino64\fP,
+\fB\%archive_entry_nlink\fP,
+\fB\%archive_entry_rdev\fP,
+\fB\%archive_entry_set_rdev\fP,
+\fB\%archive_entry_rdevmajor\fP,
+\fB\%archive_entry_set_rdevmajor\fP,
+\fB\%archive_entry_rdevminor\fP,
+\fB\%archive_entry_set_rdevminor\fP
+\- accessor functions for manipulating archive entry descriptions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fIconst struct stat *\fP
+.br
+\fB\%archive_entry_stat\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_copy_stat\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%const\ struct\ stat\ *sb\fP);
+.br
+\fImode_t\fP
+.br
+\fB\%archive_entry_filetype\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_filetype\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%unsigned\ int\ type\fP);
+.br
+\fImode_t\fP
+.br
+\fB\%archive_entry_mode\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_mode\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%mode_t\ mode\fP);
+.br
+\fIint64_t\fP
+.br
+\fB\%archive_entry_size\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_size_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_size\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%int64_t\ size\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_unset_size\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIdev_t\fP
+.br
+\fB\%archive_entry_dev\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_dev\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%dev_t\ dev\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_dev_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIdev_t\fP
+.br
+\fB\%archive_entry_devmajor\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_devmajor\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%dev_t\ major\fP);
+.br
+\fIdev_t\fP
+.br
+\fB\%archive_entry_devminor\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_devminor\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%dev_t\ minor\fP);
+.br
+\fIino_t\fP
+.br
+\fB\%archive_entry_ino\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_ino\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%unsigned\ long\ ino\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_ino_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIint64_t\fP
+.br
+\fB\%archive_entry_ino64\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_ino64\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%int64_t\ ino\fP);
+.br
+\fIunsigned int\fP
+.br
+\fB\%archive_entry_nlink\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_nlink\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%unsigned\ int\ count\fP);
+.br
+\fIdev_t\fP
+.br
+\fB\%archive_entry_rdev\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIdev_t\fP
+.br
+\fB\%archive_entry_rdevmajor\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIdev_t\fP
+.br
+\fB\%archive_entry_rdevminor\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_rdev\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%dev_t\ dev\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_rdevmajor\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%dev_t\ major\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_rdevminor\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%dev_t\ minor\fP);
+.SH DESCRIPTION
+.ad l
+.SS Copying to and from Vt struct stat
+The function
+\fB\%archive_entry_stat\fP()
+converts the various fields stored in the archive entry to the format
+used by
+\fBstat\fP(2).
+The return value remains valid until either
+\fB\%archive_entry_clear\fP()
+or
+\fB\%archive_entry_free\fP()
+is called.
+It is not affected by calls to the set accessor functions.
+It currently sets the following values in
+Vt struct stat:
+Vt st_atime,
+Vt st_ctime,
+Vt st_dev,
+Vt st_gid,
+Vt st_ino,
+Vt st_mode,
+Vt st_mtime,
+Vt st_nlink,
+Vt st_rdev,
+Vt st_size,
+Vt st_uid.
+In addition,
+Vt st_birthtime
+and high-precision information for time-related fields
+will be included on platforms that support it.
+.PP
+The function
+\fB\%archive_entry_copy_stat\fP()
+copies fields from the platform's
+Vt struct stat.
+Fields not provided by
+Vt struct stat
+are unchanged.
+.SS General accessor functions
+The functions
+\fB\%archive_entry_filetype\fP()
+and
+\fB\%archive_entry_set_filetype\fP()
+get respectively set the filetype.
+The file type is one of the following constants:
+.RS 5
+.TP
+AE_IFREG
+Regular file
+.TP
+AE_IFLNK
+Symbolic link
+.TP
+AE_IFSOCK
+Socket
+.TP
+AE_IFCHR
+Character device
+.TP
+AE_IFBLK
+Block device
+.TP
+AE_IFDIR
+Directory
+.TP
+AE_IFIFO
+Named pipe (fifo)
+.RE
+Not all file types are supported by all platforms.
+The constants used by
+\fBstat\fP(2)
+may have different numeric values from the
+corresponding constants above.
+.PP
+The functions
+\fB\%archive_entry_mode\fP()
+and
+\fB\%archive_entry_set_mode\fP()
+get/set a combination of file type and permissions and provide the
+equivalent of
+\fIst_mode\fP.
+Use of
+\fB\%archive_entry_filetype\fP()
+and
+\fB\%archive_entry_perm\fP()
+for getting and
+\fB\%archive_entry_set_filetype\fP()
+and
+\fB\%archive_entry_set_perm\fP()
+for setting is recommended.
+.PP
+The function
+\fB\%archive_entry_size\fP()
+returns the file size, if it has been set, and 0 otherwise.
+\fB\%archive_entry_size\fP()
+can be used to query that status.
+\fB\%archive_entry_set_size\fP()
+and
+\fB\%archive_entry_unset_size\fP()
+set and unset the size, respectively.
+.PP
+The number of references (hardlinks) can be obtained by calling
+\fB\%archive_entry_nlink\fP()
+and set with
+\fB\%archive_entry_set_nlink\fP().
+.SS Identifying unique files
+The functions
+\fB\%archive_entry_dev\fP()
+and
+\fB\%archive_entry_ino64\fP()
+are used by
+\fBarchive_entry_linkify\fP(3)
+to find hardlinks.
+The pair of device and inode is supposed to identify hardlinked files.
+.PP
+The device major and minor number can be obtained independently using
+\fB\%archive_entry_devmajor\fP()
+and
+\fB\%archive_entry_devminor\fP().
+The device can be set either via
+\fB\%archive_entry_set_dev\fP()
+or by the combination of major and minor number using
+\fB\%archive_entry_set_devmajor\fP()
+and
+\fB\%archive_entry_set_devminor\fP().
+.PP
+The inode number can be obtained using
+\fB\%archive_entry_ino\fP().
+This is a legacy interface that uses the platform
+Vt ino_t,
+which may be very small.
+To set the inode number,
+\fB\%archive_entry_set_ino64\fP()
+is the preferred interface.
+.SS Accessor functions for block and character devices
+Block and character devices are characterised either using a device number
+or a pair of major and minor number.
+The combined device number can be obtained with
+\fB\%archive_device_rdev\fP()
+and set with
+\fB\%archive_device_set_rdev\fP().
+The major and minor numbers are accessed by
+\fB\%archive_device_rdevmajor\fP(),
+\fB\%archive_device_rdevminor\fP()
+\fB\%archive_device_set_rdevmajor\fP()
+and
+\fB\%archive_device_set_rdevminor\fP().
+.PP
+The process of splitting the combined device number into major and
+minor number and the reverse process of combing them differs between
+platforms.
+Some archive formats use the combined form, while other formats use
+the split form.
+.SH SEE ALSO
+.ad l
+\fBstat\fP(2),
+\fBarchive_entry_acl\fP(3),
+\fBarchive_entry_perms\fP(3),
+\fBarchive_entry_time\fP(3),
+\fBlibarchive\fP(3)

@@ -1,0 +1,84 @@
+.TH ARCHIVE_WRITE_FREE 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_write_fail\fP,
+\fB\%archive_write_close\fP,
+\fB\%archive_write_finish\fP,
+\fB\%archive_write_free\fP
+\- functions for creating archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_write_fail\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_close\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_finish\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_write_free\fP(\fI\%struct\ archive\ *\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_write_fail\fP()
+Always returns
+\fBARCHIVE_FATAL\fP.
+This marks the archive object as being unusable;
+after calling this function, the only call that can succeed is
+\fB\%archive_write_free\fP()
+to release the resources.
+This can be used to speed recovery when the archive creation
+must be aborted.
+Note that the created archive is likely to be malformed in this case;
+.TP
+\fB\%archive_write_close\fP()
+Complete the archive and invoke the close callback.
+.TP
+\fB\%archive_write_finish\fP()
+This is a deprecated synonym for
+\fB\%archive_write_free\fP().
+.TP
+\fB\%archive_write_free\fP()
+Invokes
+\fB\%archive_write_close\fP()
+if necessary, then releases all resources.
+If you need detailed information about
+\fB\%archive_write_close\fP()
+failures, you should be careful to call it separately, as
+you cannot obtain error information after
+\fB\%archive_write_free\fP()
+returns.
+.RE
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+on success, or
+\fBARCHIVE_FATAL\fP.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBtar\fP(1),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3),
+\fBcpio\fP(5),
+\fBmtree\fP(5),
+\fBtar\fP(5)

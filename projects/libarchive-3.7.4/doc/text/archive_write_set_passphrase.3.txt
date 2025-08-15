@@ -1,0 +1,35 @@
+ARCHIVE_WRITE_SET_PAS... BSD Library Functions Manual ARCHIVE_WRITE_SET_PAS...
+
+NAME
+     archive_write_set_passphrase, archive_write_set_passphrase_callback —
+     functions for writing encrypted archives
+
+LIBRARY
+     Streaming Archive Library (libarchive, -larchive)
+
+SYNOPSIS
+     #include <archive.h>
+
+     int
+     archive_write_set_passphrase(struct archive *, const char *passphrase);
+
+     int
+     archive_write_set_passphrase_callback(struct archive *,
+	 void *client_data, archive_passphrase_callback *);
+
+DESCRIPTION
+     archive_write_set_passphrase()
+	     Set a passphrase for writing an encrypted archive.	 If passphrase
+	     is NULL or empty, this function will do nothing and
+	     ARCHIVE_FAILED will be returned.  Otherwise, ARCHIVE_OK will be
+	     returned.
+
+     archive_write_set_passphrase_callback()
+	     Register a callback function that will be invoked to get a
+	     passphrase for encryption if the passphrase was not set by the
+	     archive_write_set_passphrase() function.
+
+SEE ALSO
+     tar(1), archive_write(3), archive_write_set_options(3), libarchive(3)
+
+BSD			      September 21, 2014			   BSD

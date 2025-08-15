@@ -1,0 +1,82 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_READ_ADD_PASS... BSD Library Functions Manual
+ARCHIVE_READ_ADD_PASS...</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_read_add_passphrase</b>,
+<b>archive_read_set_passphrase_callback</b> &mdash;
+functions for reading encrypted archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_add_passphrase</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*passphrase</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_set_passphrase_callback</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>void&nbsp;*client_data</i>,
+<i>archive_passphrase_callback&nbsp;*</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION <br>
+archive_read_add_passphrase</b>()</p>
+
+<p style="margin-left:17%;">Register passphrases for
+reading an encryption archive. If <i>passphrase</i> is NULL
+or empty, this function will do nothing and
+<b>ARCHIVE_FAILED</b> will be returned. Otherwise,
+<b>ARCHIVE_OK</b> will be returned.</p>
+
+
+<p style="margin-top: 1em"><b>archive_read_set_passphrase_callback</b>()</p>
+
+<p style="margin-left:17%;">Register a callback function
+that will be invoked to get a passphrase for decryption
+after trying all the passphrases registered by the
+<b>archive_read_add_passphrase</b>() function failed.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_read(3),
+archive_read_set_options(3), libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+September&nbsp;14, 2014 BSD</p>
+<hr>
+</body>
+</html>

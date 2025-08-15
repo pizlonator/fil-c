@@ -1,0 +1,233 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_READ(3) BSD Library Functions Manual
+ARCHIVE_READ(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+<p style="margin-left:6%;"><b>archive_read</b> &mdash;
+functions for reading streaming archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">These functions provide a
+complete API for reading streaming archives. The general
+process is to first create the struct archive object, set
+options, initialize the reader, iterate over the archive
+headers and associated data, then close the archive and
+release all resources.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Create
+archive object</b> <br>
+See archive_read_new(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">To read an
+archive, you must first obtain an initialized struct archive
+object from <b>archive_read_new</b>().</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Enable
+filters and formats</b> <br>
+See archive_read_filter(3) and archive_read_format(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">You can then
+modify this object for the desired operations with the
+various <b>archive_read_set_XXX</b>() and
+<b>archive_read_support_XXX</b>() functions. In particular,
+you will need to invoke appropriate
+<b>archive_read_support_XXX</b>() functions to enable the
+corresponding compression and format support. Note that
+these latter functions perform two distinct operations: they
+cause the corresponding support code to be linked into your
+program, and they enable the corresponding auto-detect code.
+Unless you have specific constraints, you will generally
+want to invoke <b>archive_read_support_filter_all</b>() and
+<b>archive_read_support_format_all</b>() to enable
+auto-detect for all formats and compression types currently
+supported by the library.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Set
+options</b> <br>
+See archive_read_set_options(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Open
+archive</b> <br>
+See archive_read_open(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Once you have
+prepared the struct archive object, you call
+<b>archive_read_open</b>() to actually open the archive and
+prepare it for reading. There are several variants of this
+function; the most basic expects you to provide pointers to
+several functions that can provide blocks of bytes from the
+archive. There are convenience forms that allow you to
+specify a filename, file descriptor, <i>FILE *</i> object,
+or a block of memory from which to read the archive data.
+Note that the core library makes no assumptions about the
+size of the blocks read; callback functions are free to read
+whatever block size is most appropriate for the medium.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Consume
+archive</b> <br>
+See archive_read_header(3), archive_read_data(3) and
+archive_read_extract(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Each archive
+entry consists of a header followed by a certain amount of
+data. You can obtain the next header with
+<b>archive_read_next_header</b>(), which returns a pointer
+to an struct archive_entry structure with information about
+the current archive element. If the entry is a regular file,
+then the header will be followed by the file data. You can
+use <b>archive_read_data</b>() (which works much like the
+read(2) system call) to read this data from the archive, or
+<b>archive_read_data_block</b>() which provides a slightly
+more efficient interface. You may prefer to use the
+higher-level <b>archive_read_data_skip</b>(), which reads
+and discards the data for this entry,
+<b>archive_read_data_into_fd</b>(), which copies the data to
+the provided file descriptor, or
+<b>archive_read_extract</b>(), which recreates the specified
+entry on disk and copies data from the archive. In
+particular, note that <b>archive_read_extract</b>() uses the
+struct archive_entry structure that you provide it, which
+may differ from the entry just read from the archive. In
+particular, many applications will want to override the
+pathname, file permissions, or ownership.</p>
+
+<p style="margin-left:6%; margin-top: 1em"><b>Release
+resources</b> <br>
+See archive_read_free(3).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Once you have
+finished reading data from the archive, you should call
+<b>archive_read_close</b>() to close the archive, then call
+<b>archive_read_free</b>() to release all resources,
+including all memory allocated by the library.</p>
+
+<p style="margin-top: 1em"><b>EXAMPLES</b></p>
+
+<p style="margin-left:6%;">The following illustrates basic
+usage of the library. In this example, the callback
+functions are simply wrappers around the standard open(2),
+read(2), and close(2) system calls.</p>
+
+<p style="margin-left:14%; margin-top: 1em">void <br>
+list_archive(const char *name) <br>
+{ <br>
+struct mydata *mydata; <br>
+struct archive *a; <br>
+struct archive_entry *entry;</p>
+
+<p style="margin-left:14%; margin-top: 1em">mydata =
+malloc(sizeof(struct mydata)); <br>
+a = archive_read_new(); <br>
+mydata-&gt;name = name; <br>
+archive_read_support_filter_all(a); <br>
+archive_read_support_format_all(a); <br>
+archive_read_open(a, mydata, myopen, myread, myclose); <br>
+while (archive_read_next_header(a, &amp;entry) ==
+ARCHIVE_OK) { <br>
+printf(&quot;%s\n&quot;,archive_entry_pathname(entry)); <br>
+archive_read_data_skip(a); <br>
+} <br>
+archive_read_free(a); <br>
+free(mydata); <br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">la_ssize_t <br>
+myread(struct archive *a, void *client_data, const void
+**buff) <br>
+{ <br>
+struct mydata *mydata = client_data;</p>
+
+<p style="margin-left:14%; margin-top: 1em">*buff =
+mydata-&gt;buff; <br>
+return (read(mydata-&gt;fd, mydata-&gt;buff, 10240)); <br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">int <br>
+myopen(struct archive *a, void *client_data) <br>
+{ <br>
+struct mydata *mydata = client_data;</p>
+
+<p style="margin-left:14%; margin-top: 1em">mydata-&gt;fd =
+open(mydata-&gt;name, O_RDONLY); <br>
+return (mydata-&gt;fd &gt;= 0 ? ARCHIVE_OK : ARCHIVE_FATAL);
+<br>
+}</p>
+
+<p style="margin-left:14%; margin-top: 1em">int <br>
+myclose(struct archive *a, void *client_data) <br>
+{ <br>
+struct mydata *mydata = client_data;</p>
+
+<p style="margin-left:14%; margin-top: 1em">if
+(mydata-&gt;fd &gt; 0) <br>
+close(mydata-&gt;fd); <br>
+return (ARCHIVE_OK); <br>
+}</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">tar(1), archive_read_data(3),
+archive_read_extract(3), archive_read_filter(3),
+archive_read_format(3), archive_read_header(3),
+archive_read_new(3), archive_read_open(3),
+archive_read_set_options(3), archive_util(3), libarchive(3),
+tar(5)</p>
+
+<p style="margin-top: 1em"><b>HISTORY</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+first appeared in FreeBSD&nbsp;5.3.</p>
+
+<p style="margin-top: 1em"><b>AUTHORS</b></p>
+
+<p style="margin-left:6%;">The <b>libarchive</b> library
+was written by Tim Kientzle &lt;kientzle@acm.org&gt;.</p>
+
+<p style="margin-top: 1em"><b>BUGS</b></p>
+
+<p style="margin-left:6%;">Many traditional archiver
+programs treat empty files as valid empty archives. For
+example, many implementations of tar(1) allow you to append
+entries to an empty file. Of course, it is impossible to
+determine the format of an empty file by inspecting the
+contents, so this library treats empty files as having a
+special &ldquo;empty&rdquo; format.</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+February&nbsp;2, 2012 BSD</p>
+<hr>
+</body>
+</html>

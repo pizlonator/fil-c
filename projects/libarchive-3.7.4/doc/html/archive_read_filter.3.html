@@ -1,0 +1,223 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:46 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_READ_FILTER(3) BSD Library Functions Manual
+ARCHIVE_READ_FILTER(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_read_support_filter_all</b>,
+<b>archive_read_support_filter_bzip2</b>,
+<b>archive_read_support_filter_compress</b>,
+<b>archive_read_support_filter_gzip</b>,
+<b>archive_read_support_filter_lz4</b>,
+<b>archive_read_support_filter_lzma</b>,
+<b>archive_read_support_filter_none</b>,
+<b>archive_read_support_filter_rpm</b>,
+<b>archive_read_support_filter_uu</b>,
+<b>archive_read_support_filter_xz</b>,
+<b>archive_read_support_filter_zstd</b>,
+<b>archive_read_support_filter_program</b>,
+<b>archive_read_support_filter_program_signature</b> &mdash;
+functions for reading streaming archives</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_all</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_by_code</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>int</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_bzip2</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_compress</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_grzip</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_gzip</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_lrzip</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_lz4</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_lzma</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_lzop</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_none</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_rpm</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_uu</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_xz</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_read_support_filter_zstd</b>(<i>struct&nbsp;archive&nbsp;*</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_support_filter_program</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*cmd</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p><b>archive_read_support_filter_program_signature</b>(<i>struct&nbsp;archive&nbsp;*</i>,
+<i>const&nbsp;char&nbsp;*cmd</i>,
+<i>const&nbsp;void&nbsp;*signature</i>,
+<i>size_t&nbsp;signature_length</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION <br>
+archive_read_support_filter_bzip2</b>(),
+<b>archive_read_support_filter_compress</b>(),
+<b>archive_read_support_filter_grzip</b>(),
+<b>archive_read_support_filter_gzip</b>(),
+<b>archive_read_support_filter_lrzip</b>(),
+<b>archive_read_support_filter_lz4</b>(),
+<b>archive_read_support_filter_lzma</b>(),
+<b>archive_read_support_filter_lzop</b>(),
+<b>archive_read_support_filter_none</b>(),
+<b>archive_read_support_filter_rpm</b>(),
+<b>archive_read_support_filter_uu</b>(),
+<b>archive_read_support_filter_xz</b>(),
+<b>archive_read_support_filter_zstd</b>(),</p>
+
+<p style="margin-left:17%;">Enables auto-detection code and
+decompression support for the specified compression. These
+functions may fall back on external programs if an
+appropriate library was not available at build time.
+Decompression using an external program is usually slower
+than decompression through built-in libraries. Note that
+&ldquo;none&rdquo; is always enabled by default.</p>
+
+<p><b>archive_read_support_filter_all</b>()</p>
+
+<p style="margin-left:17%;">Enables all available
+decompression filters.</p>
+
+<p><b>archive_read_support_filter_by_code</b>()</p>
+
+<p style="margin-left:17%;">Enables a single filter
+specified by the filter code. This function does not work
+with <b>ARCHIVE_FILTER_PROGRAM</b>. Note: In
+statically-linked executables, this will cause your program
+to include support for every filter. If executable size is a
+concern, you may wish to avoid using this function.</p>
+
+<p><b>archive_read_support_filter_program</b>()</p>
+
+<p style="margin-left:17%;">Data is fed through the
+specified external program before being dearchived. Note
+that this disables automatic detection of the compression
+format, so it makes no sense to specify this in conjunction
+with any other decompression option.</p>
+
+
+<p><b>archive_read_support_filter_program_signature</b>()</p>
+
+<p style="margin-left:17%;">This feeds data through the
+specified external program but only if the initial bytes of
+the data match the specified signature value.</p>
+
+<p style="margin-top: 1em"><b>RETURN VALUES</b></p>
+
+<p style="margin-left:6%;">These functions return
+<b>ARCHIVE_OK</b> if the compression is fully supported,
+<b>ARCHIVE_WARN</b> if the compression is supported only
+through an external program.</p>
+
+
+<p style="margin-left:6%; margin-top: 1em"><b>archive_read_support_filter_none</b>()
+always succeeds.</p>
+
+<p style="margin-top: 1em"><b>ERRORS</b></p>
+
+<p style="margin-left:6%;">Detailed error codes and textual
+descriptions are available from the <b>archive_errno</b>()
+and <b>archive_error_string</b>() functions.</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_read(3),
+archive_read_data(3), archive_read_format(3),
+archive_read_format(3), libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD June&nbsp;9,
+2020 BSD</p>
+<hr>
+</body>
+</html>

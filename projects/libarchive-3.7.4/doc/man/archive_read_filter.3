@@ -1,0 +1,165 @@
+.TH ARCHIVE_READ_FILTER 3 "June 9, 2020" ""
+.SH NAME
+.ad l
+\fB\%archive_read_support_filter_all\fP,
+\fB\%archive_read_support_filter_bzip2\fP,
+\fB\%archive_read_support_filter_compress\fP,
+\fB\%archive_read_support_filter_gzip\fP,
+\fB\%archive_read_support_filter_lz4\fP,
+\fB\%archive_read_support_filter_lzma\fP,
+\fB\%archive_read_support_filter_none\fP,
+\fB\%archive_read_support_filter_rpm\fP,
+\fB\%archive_read_support_filter_uu\fP,
+\fB\%archive_read_support_filter_xz\fP,
+\fB\%archive_read_support_filter_zstd\fP,
+\fB\%archive_read_support_filter_program\fP,
+\fB\%archive_read_support_filter_program_signature\fP
+\- functions for reading streaming archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_all\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_by_code\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_bzip2\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_compress\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_grzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_gzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_lrzip\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_lz4\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_lzma\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_lzop\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_none\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_rpm\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_uu\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_xz\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_zstd\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_program\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *cmd\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_support_filter_program_signature\fP(\fI\%struct\ archive\ *\fP, \fI\%const\ char\ *cmd\fP, \fI\%const\ void\ *signature\fP, \fI\%size_t\ signature_length\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_read_support_filter_bzip2\fP(),
+\fB\%archive_read_support_filter_compress\fP(),
+\fB\%archive_read_support_filter_grzip\fP(),
+\fB\%archive_read_support_filter_gzip\fP(),
+\fB\%archive_read_support_filter_lrzip\fP(),
+\fB\%archive_read_support_filter_lz4\fP(),
+\fB\%archive_read_support_filter_lzma\fP(),
+\fB\%archive_read_support_filter_lzop\fP(),
+\fB\%archive_read_support_filter_none\fP(),
+\fB\%archive_read_support_filter_rpm\fP(),
+\fB\%archive_read_support_filter_uu\fP(),
+\fB\%archive_read_support_filter_xz\fP(),
+\fB\%archive_read_support_filter_zstd\fP(),
+Enables auto-detection code and decompression support for the
+specified compression.
+These functions may fall back on external programs if an appropriate
+library was not available at build time.
+Decompression using an external program is usually slower than
+decompression through built-in libraries.
+Note that
+``none''
+is always enabled by default.
+.TP
+\fB\%archive_read_support_filter_all\fP()
+Enables all available decompression filters.
+.TP
+\fB\%archive_read_support_filter_by_code\fP()
+Enables a single filter specified by the filter code.
+This function does not work with
+\fBARCHIVE_FILTER_PROGRAM\fP.
+Note: In statically-linked executables, this will cause
+your program to include support for every filter.
+If executable size is a concern, you may wish to avoid
+using this function.
+.TP
+\fB\%archive_read_support_filter_program\fP()
+Data is fed through the specified external program before being dearchived.
+Note that this disables automatic detection of the compression format,
+so it makes no sense to specify this in conjunction with any other
+decompression option.
+.TP
+\fB\%archive_read_support_filter_program_signature\fP()
+This feeds data through the specified external program
+but only if the initial bytes of the data match the specified
+signature value.
+.RE
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+if the compression is fully supported,
+\fBARCHIVE_WARN\fP
+if the compression is supported only through an external program.
+.PP
+\fB\%archive_read_support_filter_none\fP()
+always succeeds.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBarchive_read\fP(3),
+\fBarchive_read_data\fP(3),
+\fBarchive_read_format\fP(3),
+\fBarchive_read_format\fP(3),
+\fBlibarchive\fP(3)

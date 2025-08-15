@@ -1,0 +1,340 @@
+.TH LIBARCHIVE_CHANGES 3 "December 23, 2011" ""
+.SH NAME
+.ad l
+\fB\%libarchive_changes\fP
+\- changes in libarchive interface
+.SH CHANGES IN LIBARCHIVE 3
+.ad l
+This page describes user-visible changes in libarchive3, and lists
+public functions and other symbols changed, deprecated or removed
+in libarchive3, along with their replacements if any.
+.SS Multiple Filters
+Libarchive2 permitted a single (input or output) filter active
+on an archive.
+Libarchive3 extends this into a variable-length stack.
+Where
+\fB\%archive_write_set_compression_XXX\fP()
+would replace any existing filter,
+\fB\%archive_write_add_filter_XXX\fP()
+extends the write pipeline with another filter.
+.SS Character Set Handling
+Libarchive2 assumed that the local platform uses
+Tn Unicode
+as the native
+Tn wchar_t
+encoding, which is true on
+Tn Windows,
+modern
+Tn Linux,
+and a few other systems, but is certainly not universal.
+As a result, pax format archives were written incorrectly on some
+systems, since pax format requires
+Tn UTF-8
+and libarchive 2 incorrectly
+assumed that
+Tn wchar_t
+strings can be easily converted to
+Tn UTF-8.
+.PP
+Libarchive3 uses the standard iconv library to convert between character
+sets and is introducing the notion of a
+``default character set for the archive''.
+To support this,
+Tn archive_entry
+objects can now be bound to a particular archive when they are created.
+The automatic character set conversions performed by
+Tn archive_entry
+objects when reading and writing filenames, usernames, and other strings
+will now use an appropriate default character set:
+.PP
+If the
+Tn archive_entry
+object is bound to an archive, it will use the
+default character set for that archive.
+.PP
+The platform default character encoding (as returned by
+\fB\%nl_langinfo\fP(\fI\%CHARSET\fP, \fI\%)\fP)
+will be used if nothing else is specified.
+.PP
+Libarchive3 also introduces charset options to many of the archive
+readers and writers to control the character set that will be used for
+filenames written in those archives.
+When possible, this will be set automatically based on information in
+the archive itself.
+Combining this with the notion of a default character set for the
+archive should allow you to configure libarchive to read archives from
+other platforms and have the filenames and other information
+transparently converted to the character encoding suitable for your
+application.
+.SS Prototype Changes
+These changes break binary compatibility; libarchive3 has a new shared
+library version to reflect these changes.
+The library now uses portable wide types such as
+Tn int64_t
+instead of less-portable types such as
+Tn off_t,
+Tn gid_t,
+Tn uid_t,
+and
+Tn ino_t.
+.PP
+There are a few cases where these changes will affect your source code:
+.RS 5
+.IP \(bu
+In some cases, libarchive's wider types will introduce the possibility
+of truncation: for example, on a system with a 16-bit
+Tn uid_t, you risk having uid
+.RS 4
+65536
+.RE
+be truncated to uid
+.RS 4
+0,
+.RE
+which can cause serious security problems.
+.IP \(bu
+Typedef function pointer types will be incompatible.
+For example, if you define custom skip callbacks, you may have to use
+code similar to the following if you want to support building against
+libarchive2 and libarchive3:
+.RS 4
+.nf
+#if ARCHIVE_VERSION_NUMBER < 3000000
+typedef off_t myoff_t;
+#else
+typedef int64_t myoff_t;
+#endif
+myoff_t
+my_skip_function(struct archive *a, void *v, myoff_t o)
+{
+    ... implementation ...
+}
+.RE
+.RE
+.PP
+Affected functions:
+.PP
+.RS 5
+.IP \(bu
+\fB\%archive_entry_gid\fP(),
+\fB\%archive_entry_set_gid\fP()
+.IP \(bu
+\fB\%archive_entry_uid\fP(),
+\fB\%archive_entry_set_uid\fP()
+.IP \(bu
+\fB\%archive_entry_ino\fP(),
+\fB\%archive_entry_set_ino\fP()
+.IP \(bu
+\fB\%archive_read_data_block\fP(),
+\fB\%archive_write_data_block\fP()
+.IP \(bu
+\fB\%archive_read_disk_gname\fP(),
+\fB\%archive_read_disk_uname\fP()
+.IP \(bu
+\fB\%archive_read_disk_set_gname_lookup\fP(),
+\fB\%archive_read_disk_set_group_lookup\fP(),
+\fB\%archive_read_disk_set_uname_lookup\fP(),
+\fB\%archive_read_disk_set_user_lookup\fP()
+.IP \(bu
+\fB\%archive_skip_callback\fP()
+.IP \(bu
+\fB\%archive_read_extract_set_skip_file\fP(),
+\fB\%archive_write_disk_set_skip_file\fP(),
+\fB\%archive_write_set_skip_file\fP()
+.IP \(bu
+\fB\%archive_write_disk_set_group_lookup\fP(),
+\fB\%archive_write_disk_set_user_lookup\fP()
+.RE
+.PP
+Where these functions or their arguments took or returned
+Tn gid_t,
+Tn ino_t,
+Tn off_t,
+or
+Tn uid_t
+they now take or return
+Tn int64_t
+or equivalent.
+.SS Deprecated Symbols
+Symbols deprecated in libarchive3 will be removed in libarchive4.
+These symbols, along with their replacements if any, are listed below:
+.RS 5
+.TP
+\fB\%archive_position_compressed\fP(), \fB\%archive_position_uncompressed\fP()
+\fB\%archive_filter_bytes\fP()
+.TP
+\fB\%archive_compression\fP()
+\fB\%archive_filter_code\fP()
+.TP
+\fB\%archive_compression_name\fP()
+\fB\%archive_filter_name\fP()
+.TP
+\fB\%archive_read_finish\fP(), \fB\%archive_write_finish\fP()
+\fB\%archive_read_free\fP(),
+\fB\%archive_write_free\fP()
+.TP
+\fB\%archive_read_open_file\fP(), \fB\%archive_write_open_file\fP()
+\fB\%archive_read_open_filename\fP(),
+\fB\%archive_write_open_filename\fP()
+.TP
+\fB\%archive_read_support_compression_all\fP()
+\fB\%archive_read_support_filter_all\fP()
+.TP
+\fB\%archive_read_support_compression_bzip2\fP()
+\fB\%archive_read_support_filter_bzip2\fP()
+.TP
+\fB\%archive_read_support_compression_compress\fP()
+\fB\%archive_read_support_filter_compress\fP()
+.TP
+\fB\%archive_read_support_compression_gzip\fP()
+\fB\%archive_read_support_filter_gzip\fP()
+.TP
+\fB\%archive_read_support_compression_lzip\fP()
+\fB\%archive_read_support_filter_lzip\fP()
+.TP
+\fB\%archive_read_support_compression_lzma\fP()
+\fB\%archive_read_support_filter_lzma\fP()
+.TP
+\fB\%archive_read_support_compression_none\fP()
+\fB\%archive_read_support_filter_none\fP()
+.TP
+\fB\%archive_read_support_compression_program\fP()
+\fB\%archive_read_support_filter_program\fP()
+.TP
+\fB\%archive_read_support_compression_program_signature\fP()
+\fB\%archive_read_support_filter_program_signature\fP()
+.TP
+\fB\%archive_read_support_compression_rpm\fP()
+\fB\%archive_read_support_filter_rpm\fP()
+.TP
+\fB\%archive_read_support_compression_uu\fP()
+\fB\%archive_read_support_filter_uu\fP()
+.TP
+\fB\%archive_read_support_compression_xz\fP()
+\fB\%archive_read_support_filter_xz\fP()
+.TP
+\fB\%archive_write_set_compression_bzip2\fP()
+\fB\%archive_write_add_filter_bzip2\fP()
+.TP
+\fB\%archive_write_set_compression_compress\fP()
+\fB\%archive_write_add_filter_compress\fP()
+.TP
+\fB\%archive_write_set_compression_gzip\fP()
+\fB\%archive_write_add_filter_gzip\fP()
+.TP
+\fB\%archive_write_set_compression_lzip\fP()
+\fB\%archive_write_add_filter_lzip\fP()
+.TP
+\fB\%archive_write_set_compression_lzma\fP()
+\fB\%archive_write_add_filter_lzma\fP()
+.TP
+\fB\%archive_write_set_compression_none\fP()
+\fB\%archive_write_add_filter_none\fP()
+.TP
+\fB\%archive_write_set_compression_program\fP()
+\fB\%archive_write_add_filter_program\fP()
+.TP
+\fB\%archive_write_set_compression_filter\fP()
+\fB\%archive_write_add_filter_filter\fP()
+.RE
+.SS Removed Symbols
+These symbols, listed below along with their replacements if any,
+were deprecated in libarchive2, and are not part of libarchive3.
+.RS 5
+.TP
+\fB\%archive_api_feature\fP()
+\fB\%archive_version_number\fP()
+.TP
+\fB\%archive_api_version\fP()
+\fB\%archive_version_number\fP()
+.TP
+\fB\%archive_version\fP()
+\fB\%archive_version_string\fP()
+.TP
+\fB\%archive_version_stamp\fP()
+\fB\%archive_version_number\fP()
+.TP
+\fB\%archive_read_set_filter_options\fP()
+\fB\%archive_read_set_options\fP()
+or
+\fB\%archive_read_set_filter_option\fP()
+.TP
+\fB\%archive_read_set_format_options\fP()
+\fB\%archive_read_set_options\fP()
+or
+\fB\%archive_read_set_format_option\fP()
+.TP
+\fB\%archive_write_set_filter_options\fP()
+\fB\%archive_write_set_options\fP()
+or
+\fB\%archive_write_set_filter_option\fP()
+.TP
+\fB\%archive_write_set_format_options\fP()
+\fB\%archive_write_set_options\fP()
+or
+\fB\%archive_write_set_format_option\fP()
+.TP
+.BR ARCHIVE_API_FEATURE
+.BR ARCHIVE_VERSION_NUMBER
+.TP
+.BR ARCHIVE_API_VERSION
+.BR ARCHIVE_VERSION_NUMBER
+.TP
+.BR ARCHIVE_VERSION_STAMP
+.BR ARCHIVE_VERSION_NUMBER
+.TP
+.BR ARCHIVE_LIBRARY_VERSION
+.BR ARCHIVE_VERSION_STRING
+.TP
+.BR ARCHIVE_COMPRESSION_NONE
+.BR ARCHIVE_FILTER_NONE
+.TP
+.BR ARCHIVE_COMPRESSION_GZIP
+.BR ARCHIVE_FILTER_GZIP
+.TP
+.BR ARCHIVE_COMPRESSION_BZIP2
+.BR ARCHIVE_FILTER_BZIP2
+.TP
+.BR ARCHIVE_COMPRESSION_COMPRESS
+.BR ARCHIVE_FILTER_COMPRESS
+.TP
+.BR ARCHIVE_COMPRESSION_PROGRAM
+.BR ARCHIVE_FILTER_PROGRAM
+.TP
+.BR ARCHIVE_COMPRESSION_LZMA
+.BR ARCHIVE_FILTER_LZMA
+.TP
+.BR ARCHIVE_COMPRESSION_XZ
+.BR ARCHIVE_FILTER_XZ
+.TP
+.BR ARCHIVE_COMPRESSION_UU
+.BR ARCHIVE_FILTER_UU
+.TP
+.BR ARCHIVE_COMPRESSION_RPM
+.BR ARCHIVE_FILTER_RPM
+.TP
+.BR ARCHIVE_COMPRESSION_LZIP
+.BR ARCHIVE_FILTER_LZIP
+.TP
+.BR ARCHIVE_BYTES_PER_RECORD
+.RS 4
+512
+.RE
+.TP
+.BR ARCHIVE_DEFAULT_BYTES_PER_BLOCK
+.RS 4
+10240
+.RE
+.RE
+.SH SEE ALSO
+.ad l
+\fBarchive_read\fP(3),
+\fBarchive_read_filter\fP(3),
+\fBarchive_read_format\fP(3),
+\fBarchive_read_set_options\fP(3),
+\fBarchive_util\fP(3),
+\fBarchive_write\fP(3),
+\fBarchive_write_filter\fP(3),
+\fBarchive_write_format\fP(3),
+\fBarchive_write_set_options\fP(3),
+\fBlibarchive\fP(3)

@@ -1,0 +1,292 @@
+MTREE(5) manual page 
+== NAME == 
+'''mtree''' 
+- format of mtree dir hierarchy files 
+== DESCRIPTION == 
+The 
+'''mtree''' 
+format is a textual format that describes a collection of filesystem objects. 
+Such files are typically used to create or verify directory hierarchies. 
+=== General Format=== 
+An 
+'''mtree''' 
+file consists of a series of lines, each providing information 
+about a single filesystem object. 
+Leading whitespace is always ignored. 
+
+When encoding file or pathnames, any backslash character or 
+character outside of the 95 printable ASCII characters must be 
+encoded as a backslash followed by three 
+octal digits. 
+When reading mtree files, any appearance of a backslash 
+followed by three octal digits should be converted into the 
+corresponding character. 
+
+Each line is interpreted independently as one of the following types: 
+<dl> 
+<dt>Blank</dt><dd> 
+Blank lines are ignored. 
+</dd><dt>Comment</dt><dd> 
+Lines beginning with 
+'''#''' 
+are ignored. 
+</dd><dt>Special</dt><dd> 
+Lines beginning with 
+'''/''' 
+are special commands that influence 
+the interpretation of later lines. 
+</dd><dt>Relative</dt><dd> 
+If the first whitespace-delimited word has no 
+'''/''' 
+characters, 
+it is the name of a file in the current directory. 
+Any relative entry that describes a directory changes the 
+current directory. 
+</dd><dt>dot-dot</dt><dd> 
+As a special case, a relative entry with the filename 
+''..'' 
+changes the current directory to the parent directory. 
+Options on dot-dot entries are always ignored. 
+</dd><dt>Full</dt><dd> 
+If the first whitespace-delimited word has a 
+'''/''' 
+character after 
+the first character, it is the pathname of a file relative to the 
+starting directory. 
+There can be multiple full entries describing the same file. 
+</dd></dl> 
+
+Some tools that process 
+'''mtree''' 
+files may require that multiple lines describing the same file 
+occur consecutively. 
+It is not permitted for the same file to be mentioned using 
+both a relative and a full file specification. 
+=== Special commands=== 
+Two special commands are currently defined: 
+<dl> 
+<dt>'''/set'''</dt><dd> 
+This command defines default values for one or more keywords. 
+It is followed on the same line by one or more whitespace-separated 
+keyword definitions. 
+These definitions apply to all following files that do not specify 
+a value for that keyword. 
+</dd><dt>'''/unset'''</dt><dd> 
+This command removes any default value set by a previous 
+'''/set''' 
+command. 
+It is followed on the same line by one or more keywords 
+separated by whitespace. 
+</dd></dl> 
+=== Keywords=== 
+After the filename, a full or relative entry consists of zero 
+or more whitespace-separated keyword definitions. 
+Each such definition consists of a key from the following 
+list immediately followed by an '=' sign 
+and a value. 
+Software programs reading mtree files should warn about 
+unrecognized keywords. 
+
+Currently supported keywords are as follows: 
+<dl> 
+<dt>'''cksum'''</dt><dd> 
+The checksum of the file using the default algorithm specified by 
+the 
+[[cksum(1)|http://www.freebsd.org/cgi/man.cgi?query=cksum&sektion=1]] 
+utility. 
+</dd><dt>'''device'''</dt><dd> 
+The device number for 
+.B block 
+or 
+.B char 
+file types. 
+The value must be one of the following forms: 
+<dl> 
+<dt>''format'',''major'',''minor''Bo,''subunit'' Bc</dt><dd> 
+A device with 
+''major'', minor 
+and optional 
+''subunit'' 
+fields. 
+Their meaning is specified by the operating's system 
+''format''. 
+See below for valid formats. 
+</dd><dt>''number''</dt><dd> 
+Opaque number (as stored on the file system). 
+</dd></dl> 
+
+The following values for 
+''format'' 
+are recognized: 
+.B native , 
+.B 386bsd , 
+.B 4bsd , 
+.B bsdos , 
+.B freebsd , 
+.B hpux , 
+.B isc , 
+.B linux , 
+.B netbsd , 
+.B osf1 , 
+.B sco , 
+.B solaris , 
+.B sunos , 
+.B svr3 , 
+.B svr4 , 
+and 
+.B ultrix . 
+
+See 
+[[mknod(8)|http://www.freebsd.org/cgi/man.cgi?query=mknod&sektion=8]] 
+for more details. 
+</dd><dt>'''contents'''</dt><dd> 
+The full pathname of a file that holds the contents of this file. 
+</dd><dt>'''flags'''</dt><dd> 
+The file flags as a symbolic name. 
+See 
+[[chflags(1)|http://www.freebsd.org/cgi/man.cgi?query=chflags&sektion=1]] 
+for information on these names. 
+If no flags are to be set the string 
+"none" 
+may be used to override the current default. 
+</dd><dt>'''gid'''</dt><dd> 
+The file group as a numeric value. 
+</dd><dt>'''gname'''</dt><dd> 
+The file group as a symbolic name. 
+</dd><dt>'''ignore'''</dt><dd> 
+Ignore any file hierarchy below this file. 
+</dd><dt>'''inode'''</dt><dd> 
+The inode number. 
+</dd><dt>'''link'''</dt><dd> 
+The target of the symbolic link when type=link. 
+</dd><dt>'''md5'''</dt><dd> 
+The MD5 message digest of the file. 
+</dd><dt>'''md5digest'''</dt><dd> 
+A synonym for 
+'''md5'''. 
+</dd><dt>'''mode'''</dt><dd> 
+The current file's permissions as a numeric (octal) or symbolic 
+value. 
+</dd><dt>'''nlink'''</dt><dd> 
+The number of hard links the file is expected to have. 
+</dd><dt>'''nochange'''</dt><dd> 
+Make sure this file or directory exists but otherwise ignore all attributes. 
+</dd><dt>'''optional'''</dt><dd> 
+The file is optional; do not complain about the file if it is not in 
+the file hierarchy. 
+</dd><dt>'''resdevice'''</dt><dd> 
+The 
+"resident" 
+device number of the file, e.g. the ID of the device that 
+contains the file. 
+Its format is the same as the one for 
+'''device'''. 
+</dd><dt>'''ripemd160digest'''</dt><dd> 
+The 
+'''RIPEMD160''' 
+message digest of the file. 
+</dd><dt>'''rmd160'''</dt><dd> 
+A synonym for 
+'''ripemd160digest'''. 
+</dd><dt>'''rmd160digest'''</dt><dd> 
+A synonym for 
+'''ripemd160digest'''. 
+</dd><dt>'''sha1'''</dt><dd> 
+The 
+'''FIPS''' 
+160-1 
+("Tn SHA-1") 
+message digest of the file. 
+</dd><dt>'''sha1digest'''</dt><dd> 
+A synonym for 
+'''sha1'''. 
+</dd><dt>'''sha256'''</dt><dd> 
+The 
+'''FIPS''' 
+180-2 
+("Tn SHA-256") 
+message digest of the file. 
+</dd><dt>'''sha256digest'''</dt><dd> 
+A synonym for 
+'''sha256'''. 
+</dd><dt>'''sha384'''</dt><dd> 
+The 
+'''FIPS''' 
+180-2 
+("Tn SHA-384") 
+message digest of the file. 
+</dd><dt>'''sha384digest'''</dt><dd> 
+A synonym for 
+'''sha384'''. 
+</dd><dt>'''sha512'''</dt><dd> 
+The 
+'''FIPS''' 
+180-2 
+("Tn SHA-512") 
+message digest of the file. 
+</dd><dt>'''sha512digest'''</dt><dd> 
+A synonym for 
+'''sha512'''. 
+</dd><dt>'''size'''</dt><dd> 
+The size, in bytes, of the file. 
+</dd><dt>'''time'''</dt><dd> 
+The last modification time of the file. 
+</dd><dt>'''type'''</dt><dd> 
+The type of the file; may be set to any one of the following: 
+
+<dl> 
+<dt>'''block'''</dt><dd> 
+block special device 
+</dd><dt>'''char'''</dt><dd> 
+character special device 
+</dd><dt>'''dir'''</dt><dd> 
+directory 
+</dd><dt>'''fifo'''</dt><dd> 
+fifo 
+</dd><dt>'''file'''</dt><dd> 
+regular file 
+</dd><dt>'''link'''</dt><dd> 
+symbolic link 
+</dd><dt>'''socket'''</dt><dd> 
+socket 
+</dd></dl> 
+</dd><dt>'''uid'''</dt><dd> 
+The file owner as a numeric value. 
+</dd><dt>'''uname'''</dt><dd> 
+The file owner as a symbolic name. 
+</dd></dl> 
+== SEE ALSO == 
+[[cksum(1)|http://www.freebsd.org/cgi/man.cgi?query=cksum&sektion=1]], 
+[[find(1)|http://www.freebsd.org/cgi/man.cgi?query=find&sektion=1]], 
+[[mtree(8)|http://www.freebsd.org/cgi/man.cgi?query=mtree&sektion=8]] 
+== HISTORY == 
+The 
+'''mtree''' 
+utility appeared in 
+BSD 4.3 Reno. 
+The 
+'''MD5''' 
+digest capability was added in 
+FreeBSD 2.1, 
+in response to the widespread use of programs which can spoof 
+[[cksum(1)|http://www.freebsd.org/cgi/man.cgi?query=cksum&sektion=1]]. 
+The 
+'''SHA-1''' 
+and 
+'''RIPEMD160''' 
+digests were added in 
+FreeBSD 4.0, 
+as new attacks have demonstrated weaknesses in 
+'''MD5 .''' 
+The 
+'''SHA-256''' 
+digest was added in 
+FreeBSD 6.0. 
+Support for file flags was added in 
+FreeBSD 4.0, 
+and mostly comes from 
+NetBSD. 
+The 
+"full" 
+entry format was added by 
+NetBSD. 

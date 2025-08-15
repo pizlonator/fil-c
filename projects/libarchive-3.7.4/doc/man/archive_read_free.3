@@ -1,0 +1,78 @@
+.TH ARCHIVE_READ_FREE 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_read_close\fP,
+\fB\%archive_read_finish\fP,
+\fB\%archive_read_free\fP
+\- functions for reading streaming archives
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIint\fP
+.br
+\fB\%archive_read_close\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_finish\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_read_free\fP(\fI\%struct\ archive\ *\fP);
+.SH DESCRIPTION
+.ad l
+.RS 5
+.TP
+\fB\%archive_read_close\fP()
+Complete the archive and invoke the close callback.
+.TP
+\fB\%archive_read_finish\fP()
+This is a deprecated synonym for
+\fB\%archive_read_free\fP().
+The new name was introduced with libarchive 3.0.
+Applications that need to compile with either libarchive 2
+or libarchive 3 should continue to use the
+\fB\%archive_read_finish\fP()
+name.
+Both names will be supported until libarchive 4.0 is
+released, which is not expected to occur earlier
+than 2013.
+.TP
+\fB\%archive_read_free\fP()
+Invokes
+\fB\%archive_read_close\fP()
+if it was not invoked manually, then release all resources.
+Note: In libarchive 1.x, this function was declared to return
+\fIvoid ,\fP
+which made it impossible to detect certain errors when
+\fB\%archive_read_close\fP()
+was invoked implicitly from this function.
+The declaration is corrected beginning with libarchive 2.0.
+.RE
+.SH RETURN VALUES
+.ad l
+These functions return
+\fBARCHIVE_OK\fP
+on success, or
+\fBARCHIVE_FATAL\fP.
+.SH ERRORS
+.ad l
+Detailed error codes and textual descriptions are available from the
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP()
+functions.
+.SH SEE ALSO
+.ad l
+\fBarchive_read_data\fP(3),
+\fBarchive_read_filter\fP(3),
+\fBarchive_read_format\fP(3),
+\fBarchive_read_new\fP(3),
+\fBarchive_read_open\fP(3),
+\fBarchive_read_set_options\fP(3),
+\fBarchive_util\fP(3),
+\fBlibarchive\fP(3)

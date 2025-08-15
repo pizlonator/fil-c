@@ -1,0 +1,68 @@
+ARCHIVE_READ_FREE(3) manual page 
+== NAME == 
+'''archive_read_close''', 
+'''archive_read_finish''', 
+'''archive_read_free''' 
+- functions for reading streaming archives 
+== LIBRARY == 
+Streaming Archive Library (libarchive, -larchive) 
+== SYNOPSIS == 
+'''<nowiki>#include <archive.h></nowiki>''' 
+<br> 
+''int'' 
+<br> 
+'''archive_read_close'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_finish'''(''struct archive *''); 
+<br> 
+''int'' 
+<br> 
+'''archive_read_free'''(''struct archive *''); 
+== DESCRIPTION == 
+<dl> 
+<dt>'''archive_read_close'''()</dt><dd> 
+Complete the archive and invoke the close callback. 
+</dd><dt>'''archive_read_finish'''()</dt><dd> 
+This is a deprecated synonym for 
+'''archive_read_free'''(). 
+The new name was introduced with libarchive 3.0. 
+Applications that need to compile with either libarchive 2 
+or libarchive 3 should continue to use the 
+'''archive_read_finish'''() 
+name. 
+Both names will be supported until libarchive 4.0 is 
+released, which is not expected to occur earlier 
+than 2013. 
+</dd><dt>'''archive_read_free'''()</dt><dd> 
+Invokes 
+'''archive_read_close'''() 
+if it was not invoked manually, then release all resources. 
+Note: In libarchive 1.x, this function was declared to return 
+''void ,'' 
+which made it impossible to detect certain errors when 
+'''archive_read_close'''() 
+was invoked implicitly from this function. 
+The declaration is corrected beginning with libarchive 2.0. 
+</dd></dl> 
+== RETURN VALUES == 
+These functions return 
+'''ARCHIVE_OK''' 
+on success, or 
+'''ARCHIVE_FATAL'''. 
+== ERRORS == 
+Detailed error codes and textual descriptions are available from the 
+'''archive_errno'''() 
+and 
+'''archive_error_string'''() 
+functions. 
+== SEE ALSO == 
+[[ManPageArchiveReadData3]], 
+[[ManPageArchiveReadFilter3]], 
+[[ManPageArchiveReadFormat3]], 
+[[ManPageArchiveReadNew3]], 
+[[ManPageArchiveReadOpen3]], 
+[[ManPageArchiveReadSetOptions3]], 
+[[ManPageArchiveUtil3]], 
+[[ManPageLibarchive3]] 

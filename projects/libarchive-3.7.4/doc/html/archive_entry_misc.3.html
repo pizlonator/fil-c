@@ -1,0 +1,91 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 26 09:23:45 2024 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title></title>
+</head>
+<body>
+
+<hr>
+
+
+<p>ARCHIVE_ENTRY_MISC(3) BSD Library Functions Manual
+ARCHIVE_ENTRY_MISC(3)</p>
+
+<p style="margin-top: 1em"><b>NAME</b></p>
+
+
+<p style="margin-left:6%;"><b>archive_entry_symlink_type</b>,
+<b>archive_entry_set_symlink_type</b> &mdash; miscellaneous
+functions for manipulating properties of archive_entry</p>
+
+<p style="margin-top: 1em"><b>LIBRARY</b></p>
+
+<p style="margin-left:6%;">Streaming Archive Library
+(libarchive, -larchive)</p>
+
+<p style="margin-top: 1em"><b>SYNOPSIS</b></p>
+
+<p style="margin-left:6%;"><b>#include
+&lt;archive_entry.h&gt;</b></p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>int</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_symlink_type</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>);</p>
+
+<p style="margin-left:6%; margin-top: 1em"><i>void</i></p>
+
+
+<p style="margin-left:12%;"><b>archive_entry_set_symlink_type</b>(<i>struct&nbsp;archive_entry&nbsp;*a</i>,
+<i>int</i>);</p>
+
+<p style="margin-top: 1em"><b>DESCRIPTION</b></p>
+
+<p style="margin-left:6%;">The function
+<b>archive_entry_symlink_type</b>() returns and the function
+<b>archive_entry_set_symlink_type</b>() sets the type of the
+symbolic link stored in an archive entry. These functions
+have special meaning on operating systems that support
+multiple symbolic link types (e.g. Microsoft Windows).</p>
+
+<p style="margin-left:6%; margin-top: 1em">Supported values
+are:</p>
+
+<p>AE_SYMLINK_TYPE_UNDEFINED</p>
+
+<p style="margin-left:41%; margin-top: 1em">Symbolic link
+target type is not defined (default on unix systems)</p>
+
+<p>AE_SYMLINK_TYPE_FILE</p>
+
+<p style="margin-left:41%; margin-top: 1em">Symbolic link
+points to a file</p>
+
+<p>AE_SYMLINK_TYPE_DIRECTORY</p>
+
+<p style="margin-left:41%; margin-top: 1em">Symbolic link
+points to a directory</p>
+
+<p style="margin-top: 1em"><b>SEE ALSO</b></p>
+
+<p style="margin-left:6%;">archive_entry(3),
+archive_entry_paths(3), archive_entry_stat(3),
+libarchive(3)</p>
+
+<p style="margin-left:6%; margin-top: 1em">BSD
+April&nbsp;15, 2019 BSD</p>
+<hr>
+</body>
+</html>

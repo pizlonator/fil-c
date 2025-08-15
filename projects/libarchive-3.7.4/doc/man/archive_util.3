@@ -1,0 +1,240 @@
+.TH ARCHIVE_UTIL 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_clear_error\fP,
+\fB\%archive_compression\fP,
+\fB\%archive_compression_name\fP,
+\fB\%archive_copy_error\fP,
+\fB\%archive_errno\fP,
+\fB\%archive_error_string\fP,
+\fB\%archive_file_count\fP,
+\fB\%archive_filter_code\fP,
+\fB\%archive_filter_count\fP,
+\fB\%archive_filter_name\fP,
+\fB\%archive_format\fP,
+\fB\%archive_format_name\fP,
+\fB\%archive_position\fP,
+\fB\%archive_set_error\fP
+\- libarchive utility functions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive.h>\fP
+.br
+\fIvoid\fP
+.br
+\fB\%archive_clear_error\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_compression\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_compression_name\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_copy_error\fP(\fI\%struct\ archive\ *\fP, \fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_errno\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_error_string\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_file_count\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_filter_code\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_filter_count\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_filter_name\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_format\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIconst char *\fP
+.br
+\fB\%archive_format_name\fP(\fI\%struct\ archive\ *\fP);
+.br
+\fIint64_t\fP
+.br
+\fB\%archive_position\fP(\fI\%struct\ archive\ *\fP, \fI\%int\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_set_error\fP(\fI\%struct\ archive\ *\fP, \fI\%int\ error_code\fP, \fI\%const\ char\ *fmt\fP, \fI\%...\fP);
+.SH DESCRIPTION
+.ad l
+These functions provide access to various information about the
+Tn struct archive
+object used in the
+\fBlibarchive\fP(3)
+library.
+.RS 5
+.TP
+\fB\%archive_clear_error\fP()
+Clears any error information left over from a previous call.
+Not generally used in client code.
+.TP
+\fB\%archive_compression\fP()
+Synonym for
+\fB\%archive_filter_code\fP(\fI\%a\fP, \fI\%0\fP).
+.TP
+\fB\%archive_compression_name\fP()
+Synonym for
+\fB\%archive_filter_name\fP(\fI\%a\fP, \fI\%0\fP).
+.TP
+\fB\%archive_copy_error\fP()
+Copies error information from one archive to another.
+.TP
+\fB\%archive_errno\fP()
+Returns a numeric error code (see
+\fBerrno\fP(2))
+indicating the reason for the most recent error return.
+Note that this can not be reliably used to detect whether an
+error has occurred.
+It should be used only after another libarchive function
+has returned an error status.
+.TP
+\fB\%archive_error_string\fP()
+Returns a textual error message suitable for display.
+The error message here is usually more specific than that
+obtained from passing the result of
+\fB\%archive_errno\fP()
+to
+\fBstrerror\fP(3).
+.TP
+\fB\%archive_file_count\fP()
+Returns a count of the number of files processed by this archive object.
+The count is incremented by calls to
+\fBarchive_write_header\fP(3)
+or
+\fBarchive_read_next_header\fP(3).
+.TP
+\fB\%archive_filter_code\fP()
+Returns a numeric code identifying the indicated filter.
+See
+\fB\%archive_filter_count\fP()
+for details of the numbering.
+.TP
+\fB\%archive_filter_count\fP()
+Returns the number of filters in the current pipeline.
+For read archive handles, these filters are added automatically
+by the automatic format detection.
+For write archive handles, these filters are added by calls to the various
+\fB\%archive_write_add_filter_XXX\fP()
+functions.
+Filters in the resulting pipeline are numbered so that filter 0
+is the filter closest to the format handler.
+As a convenience, functions that expect a filter number will
+accept -1 as a synonym for the highest-numbered filter.
+.PP
+For example, when reading a uuencoded gzipped tar archive, there
+are three filters:
+filter 0 is the gunzip filter,
+filter 1 is the uudecode filter,
+and filter 2 is the pseudo-filter that wraps the archive read functions.
+In this case, requesting
+\fB\%archive_position\fP(\fI\%a\fP, \fI\%-1\fP)
+would be a synonym for
+\fB\%archive_position\fP(\fI\%a\fP, \fI\%2\fP)
+which would return the number of bytes currently read from the archive, while
+\fB\%archive_position\fP(\fI\%a\fP, \fI\%1\fP)
+would return the number of bytes after uudecoding, and
+\fB\%archive_position\fP(\fI\%a\fP, \fI\%0\fP)
+would return the number of bytes after decompression.
+.TP
+\fB\%archive_filter_name\fP()
+Returns a textual name identifying the indicated filter.
+See
+\fB\%archive_filter_count\fP()
+for details of the numbering.
+.TP
+\fB\%archive_format\fP()
+Returns a numeric code indicating the format of the current
+archive entry.
+This value is set by a successful call to
+\fB\%archive_read_next_header\fP().
+Note that it is common for this value to change from
+entry to entry.
+For example, a tar archive might have several entries that
+utilize GNU tar extensions and several entries that do not.
+These entries will have different format codes.
+.TP
+\fB\%archive_format_name\fP()
+A textual description of the format of the current entry.
+.TP
+\fB\%archive_position\fP()
+Returns the number of bytes read from or written to the indicated filter.
+In particular,
+\fB\%archive_position\fP(\fI\%a\fP, \fI\%0\fP)
+returns the number of bytes read or written by the format handler, while
+\fB\%archive_position\fP(\fI\%a\fP, \fI\%-1\fP)
+returns the number of bytes read or written to the archive.
+See
+\fB\%archive_filter_count\fP()
+for details of the numbering here.
+.TP
+\fB\%archive_set_error\fP()
+Sets the numeric error code and error description that will be returned
+by
+\fB\%archive_errno\fP()
+and
+\fB\%archive_error_string\fP().
+This function should be used within I/O callbacks to set system-specific
+error codes and error descriptions.
+This function accepts a printf-like format string and arguments.
+However, you should be careful to use only the following printf
+format specifiers:
+``%c'',
+``%d'',
+``%jd'',
+``%jo'',
+``%ju'',
+``%jx'',
+``%ld'',
+``%lo'',
+``%lu'',
+``%lx'',
+``%o'',
+``%u'',
+``%s'',
+``%x'',
+``%%''.
+Field-width specifiers and other printf features are
+not uniformly supported and should not be used.
+.RE
+.SH SEE ALSO
+.ad l
+\fBarchive_read\fP(3),
+\fBarchive_write\fP(3),
+\fBlibarchive\fP(3),
+\fBprintf\fP(3)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was written by
+Tim Kientzle \%<kientzle@acm.org.>

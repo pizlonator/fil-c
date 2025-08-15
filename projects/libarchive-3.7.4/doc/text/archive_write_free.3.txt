@@ -1,0 +1,58 @@
+ARCHIVE_WRITE_FREE(3)	 BSD Library Functions Manual	 ARCHIVE_WRITE_FREE(3)
+
+NAME
+     archive_write_fail, archive_write_close, archive_write_finish,
+     archive_write_free — functions for creating archives
+
+LIBRARY
+     Streaming Archive Library (libarchive, -larchive)
+
+SYNOPSIS
+     #include <archive.h>
+
+     int
+     archive_write_fail(struct archive *);
+
+     int
+     archive_write_close(struct archive *);
+
+     int
+     archive_write_finish(struct archive *);
+
+     int
+     archive_write_free(struct archive *);
+
+DESCRIPTION
+     archive_write_fail()
+	     Always returns ARCHIVE_FATAL.  This marks the archive object as
+	     being unusable; after calling this function, the only call that
+	     can succeed is archive_write_free() to release the resources.
+	     This can be used to speed recovery when the archive creation must
+	     be aborted.  Note that the created archive is likely to be mal‐
+	     formed in this case;
+
+     archive_write_close()
+	     Complete the archive and invoke the close callback.
+
+     archive_write_finish()
+	     This is a deprecated synonym for archive_write_free().
+
+     archive_write_free()
+	     Invokes archive_write_close() if necessary, then releases all re‐
+	     sources.  If you need detailed information about
+	     archive_write_close() failures, you should be careful to call it
+	     separately, as you cannot obtain error information after
+	     archive_write_free() returns.
+
+RETURN VALUES
+     These functions return ARCHIVE_OK on success, or ARCHIVE_FATAL.
+
+ERRORS
+     Detailed error codes and textual descriptions are available from the
+     archive_errno() and archive_error_string() functions.
+
+SEE ALSO
+     tar(1), archive_write_set_options(3), libarchive(3), cpio(5), mtree(5),
+     tar(5)
+
+BSD			       February 2, 2012				   BSD

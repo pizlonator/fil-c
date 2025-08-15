@@ -1,0 +1,146 @@
+.TH ARCHIVE_ENTRY_TIME 3 "February 2, 2012" ""
+.SH NAME
+.ad l
+\fB\%archive_entry_atime\fP,
+\fB\%archive_entry_atime_nsec\fP,
+\fB\%archive_entry_atime_is_set\fP,
+\fB\%archive_entry_set_atime\fP,
+\fB\%archive_entry_unset_atime\fP,
+\fB\%archive_entry_birthtime\fP,
+\fB\%archive_entry_birthtime_nsec\fP,
+\fB\%archive_entry_birthtime_is_set\fP,
+\fB\%archive_entry_set_birthtime\fP,
+\fB\%archive_entry_unset_birthtime\fP,
+\fB\%archive_entry_ctime\fP,
+\fB\%archive_entry_ctime_nsec\fP,
+\fB\%archive_entry_ctime_is_set\fP,
+\fB\%archive_entry_set_ctime\fP,
+\fB\%archive_entry_unset_ctime\fP,
+\fB\%archive_entry_mtime\fP,
+\fB\%archive_entry_mtime_nsec\fP,
+\fB\%archive_entry_mtime_is_set\fP,
+\fB\%archive_entry_set_mtime\fP,
+\fB\%archive_entry_unset_mtime\fP
+\- functions for manipulating times in archive entry descriptions
+.SH LIBRARY
+.ad l
+Streaming Archive Library (libarchive, -larchive)
+.SH SYNOPSIS
+.ad l
+\fB#include <archive_entry.h>\fP
+.br
+\fItime_t\fP
+.br
+\fB\%archive_entry_atime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIlong\fP
+.br
+\fB\%archive_entry_atime_nsec\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_atime_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_atime\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%time_t\ sec\fP, \fI\%long\ nanosec\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_unset_atime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fItime_t\fP
+.br
+\fB\%archive_entry_birthtime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIlong\fP
+.br
+\fB\%archive_entry_birthtime_nsec\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_birthtime_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_birthtime\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%time_t\ sec\fP, \fI\%long\ nanosec\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_unset_birthtime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fItime_t\fP
+.br
+\fB\%archive_entry_ctime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIlong\fP
+.br
+\fB\%archive_entry_ctime_nsec\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_ctime_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_ctime\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%time_t\ sec\fP, \fI\%long\ nanosec\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_unset_ctime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fItime_t\fP
+.br
+\fB\%archive_entry_mtime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIlong\fP
+.br
+\fB\%archive_entry_mtime_nsec\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIint\fP
+.br
+\fB\%archive_entry_mtime_is_set\fP(\fI\%struct\ archive_entry\ *a\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_set_mtime\fP(\fI\%struct\ archive_entry\ *a\fP, \fI\%time_t\ sec\fP, \fI\%long\ nanosec\fP);
+.br
+\fIvoid\fP
+.br
+\fB\%archive_entry_unset_mtime\fP(\fI\%struct\ archive_entry\ *a\fP);
+.SH DESCRIPTION
+.ad l
+These functions create and manipulate the time fields in an
+Vt archive_entry.
+Supported time fields are atime (access time), birthtime (creation time),
+ctime (last time an inode property was changed) and mtime (modification time).
+.PP
+\fBlibarchive\fP(3)
+provides a high-resolution interface.
+The timestamps are truncated automatically depending on the archive format
+(for archiving) or the filesystem capabilities (for restoring).
+.PP
+All timestamp fields are optional.
+The
+\fB\%XXX_unset\fP()
+functions can be used to mark the corresponding field as missing.
+The current state can be queried using
+\fB\%XXX_is_set\fP().
+Unset time fields have a second and nanosecond field of 0.
+.SH SEE ALSO
+.ad l
+\fBarchive_entry\fP(3),
+\fBlibarchive\fP(3)
+.SH HISTORY
+.ad l
+The
+\fB\%libarchive\fP
+library first appeared in
+FreeBSD 5.3.
+.SH AUTHORS
+.ad l
+-nosplit
+The
+\fB\%libarchive\fP
+library was written by
+Tim Kientzle \%<kientzle@acm.org.>
