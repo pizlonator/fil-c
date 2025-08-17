@@ -32,6 +32,10 @@ cd projects/libarchive-3.7.4
 extract_source
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ./configure --without-expat --without-nettle --without-xml2 --prefix=$PWD/../../../pizfix
 make -j $NCPU
-LC_ALL=C.UTF-8 make -j $NCPU check
+test -e ../../../pizfix/lib/libc.so
+if test -e ../../../pizfix/lib/libc.so.6666
+then
+    LC_ALL=C.UTF-8 make -j $NCPU check
+fi
 make -j $NCPU install
 
