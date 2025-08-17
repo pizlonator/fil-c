@@ -35,6 +35,19 @@
    how Fil-C works. Examples: pollchecks, enter/exit, filc_thread, using the verse_heap, store barriers,
    etc. */
 
+PAS_API extern size_t fugc_minimum_threshold;
+PAS_API extern unsigned fugc_verbose;
+PAS_API extern bool fugc_should_stop_the_world;
+PAS_API extern bool fugc_should_scribble;
+PAS_API extern bool fugc_scribble_concurrently;
+PAS_API extern bool fugc_should_verify;
+PAS_API extern bool fugc_should_verify_early;
+PAS_API extern bool fugc_rage_mode;
+PAS_API extern bool fugc_verify_weak_census;
+PAS_API extern unsigned fugc_number_of_cores;
+PAS_API extern unsigned fugc_threads_override;
+PAS_API extern double fugc_threshold_multiplier;
+
 PAS_API extern pas_heap* fugc_default_heap;
 PAS_API extern pas_heap* fugc_destructor_heap;
 PAS_API extern pas_heap* fugc_census_heap;
@@ -47,7 +60,6 @@ PAS_API extern verse_heap_object_set* fugc_scribble_set; /* Only used if FUGC_SC
 
 PAS_API extern bool fugc_has_unfinished_census;
 
-PAS_API extern bool fugc_verify_weak_census;
 /* These weak mark tracking variables are only used when fugc_verify_weak_census is true. */
 PAS_API extern pas_ptr_hash_set fugc_weaks_marked;
 PAS_API extern size_t fugc_num_weaks_marked;
@@ -55,8 +67,10 @@ PAS_API extern size_t fugc_num_weaks_censused;
 
 PAS_API extern filc_mark_stack fugc_global_stack;
 
-PAS_API void fugc_initialize_heaps(void); /* Called first. */
-PAS_API void fugc_initialize_collector(void); /* Called second. */
+PAS_API void fugc_initialize_settings(void); /* Called first. */
+PAS_API void fugc_parse_settings(void); /* Called second. */
+PAS_API void fugc_initialize_heaps(void); /* Called third. */
+PAS_API void fugc_initialize_collector(void); /* Called fourth. */
 
 /* Needed for fork(). Has no other purpose. */
 PAS_API void fugc_suspend(void);
@@ -221,7 +235,6 @@ PAS_API uint64_t fugc_request_fresh(void);
    To do the equivalent of "System.gc()", you do fugc_wait(fugc_request_fresh()). */
 PAS_API void fugc_wait(uint64_t cycle);
 
-PAS_API bool fugc_is_stw(void);
 PAS_API bool fugc_is_scribbling(void);
 PAS_API bool fugc_is_verifying(void);
 

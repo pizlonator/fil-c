@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2024-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,9 @@ mkdir -p ../pizfix/sbin
 mkdir -p ../pizfix/libexec
 mkdir -p ../pizfix/share
 mkdir -p ../pizfix/lib
+mkdir -p ../pizfix/lib_gcverify
 mkdir -p ../pizfix/lib_test
+mkdir -p ../pizfix/lib_test_gcverify
 mkdir -p ../pizfix/man
 mkdir -p ../pizfix/man/man1
 $MAKE -f Makefile-setup

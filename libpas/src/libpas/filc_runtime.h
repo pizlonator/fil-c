@@ -1394,6 +1394,12 @@ PAS_API extern filc_ptr_array filc_deferred_global_ctors;
 PAS_API extern filc_ptr filc_pizlonated_errno_handler;
 PAS_API extern filc_ptr filc_pizlonated_dlerror_handler;
 
+PAS_API extern bool filc_exit_on_panic;
+PAS_API extern bool filc_dump_errnos;
+PAS_API extern bool filc_run_global_ctors;
+PAS_API extern bool filc_run_global_dtors;
+PAS_API extern bool filc_verbose_stop_the_world;
+
 typedef filc_ptr* filc_global_initialization_key;
 
 static inline filc_global_initialization_work_item
@@ -4354,13 +4360,16 @@ PAS_API void filc_call_syscall_with_guarded_ptr(filc_thread* my_thread,
         syscall_result; \
     })
 
-PAS_API bool filc_get_bool_env(const char* name, bool default_value);
-PAS_API unsigned filc_get_unsigned_env(const char* name, unsigned default_value);
-PAS_API size_t filc_get_size_env(const char* name, size_t default_value);
+PAS_API void filc_get_bool_env(const char* name, bool* value);
+PAS_API void filc_get_unsigned_env(const char* name, unsigned* value);
+PAS_API void filc_get_size_env(const char* name, size_t* default_value);
+PAS_API void filc_get_double_env(const char* name, double* default_value);
 
 void filc_start_program(int argc, char** argv,
                         pizlonated_getter pizlonated___libc_start_main,
                         pizlonated_getter pizlonated_main);
+
+void filc_override_settings_if_appropriate(void);
 
 PAS_END_EXTERN_C;
 

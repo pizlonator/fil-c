@@ -66,7 +66,7 @@ echo '#!/bin/sh' > setup.sh
 echo 'set -e' >> setup.sh
 echo 'set -x' >> setup.sh
 
-for binary in pizfix/lib/*.so pizfix/lib/*.so.* pizfix/lib64/*.so pizfix/lib64/*.so.* pizfix/bin/* pizfix/sbin/* pizfix/libexec/*
+for binary in pizfix/lib/*.so pizfix/lib/*.so.* pizfix/lib64/*.so pizfix/lib64/*.so.* pizfix/bin/* pizfix/sbin/* pizfix/libexec/* pizfix/lib_test/*.so pizfix/lib_test_gcverify/*.so pizfix/lib_gcverify/*.so
 do
     if test ! -L $binary && test $binary != pizfix/lib/libyoloc.so
     then

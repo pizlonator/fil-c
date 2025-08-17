@@ -58,6 +58,19 @@
    GC is active. That's made possible thanks to polling collector_suspend_requested and structuring
    the GC loop as a state machine. */
 
+size_t fugc_minimum_threshold = 1024 * 1024;
+unsigned fugc_verbose = 0;
+bool fugc_should_stop_the_world = false;
+bool fugc_should_scribble = false;
+bool fugc_scribble_concurrently = false;
+bool fugc_should_verify = false;
+bool fugc_should_verify_early = false;
+bool fugc_rage_mode = false;
+bool fugc_verify_weak_census = false;
+unsigned fugc_number_of_cores;
+unsigned fugc_threads_override = 0;
+double fugc_threshold_multiplier = 1.5;
+
 pas_heap* fugc_default_heap;
 pas_heap* fugc_destructor_heap;
 pas_heap* fugc_census_heap;
@@ -70,7 +83,6 @@ verse_heap_object_set* fugc_finalizer_set;
 
 bool fugc_has_unfinished_census;
 
-bool fugc_verify_weak_census;
 pas_ptr_hash_set fugc_weaks_marked;
 size_t fugc_num_weaks_marked;
 size_t fugc_num_weaks_censused;
@@ -110,8 +122,6 @@ static size_t sweep_index = SIZE_MAX;
 static size_t live_bytes_at_start = SIZE_MAX;
 static size_t live_bytes_before_sweeping = SIZE_MAX;
 
-static size_t minimum_threshold;
-
 static double overall_start_time;
 static double mark_end_time;
 static double overall_end_time;
@@ -124,14 +134,6 @@ static double overall_end_time;
 #define VERBOSE_BEGIN 3
 #define VERBOSE_BREAKDOWN 2
 #define VERBOSE_CYCLES 1
-
-static unsigned verbose;
-static bool should_stop_the_world;
-static bool should_scribble;
-static bool scribble_concurrently;
-static bool should_verify;
-static bool should_verify_early;
-static bool rage_mode;
 
 enum collector_state {
     collector_waiting,
@@ -149,9 +151,6 @@ typedef enum collector_state collector_state;
 
 static collector_state current_collector_state = collector_waiting;
 
-static unsigned number_of_cores;
-static unsigned threads_override;
-
 typedef void (*worker_function)(void);
 
 static worker_function current_worker;
@@ -165,10 +164,10 @@ static unsigned num_active_markers;
 
 static unsigned parallelism_target(void)
 {
-    PAS_ASSERT(number_of_cores);
-    if (threads_override)
-        return threads_override;
-    return pas_max_uintptr(1, pas_min_uintptr(number_of_cores, verse_heap_live_bytes / 5000000));
+    PAS_ASSERT(fugc_number_of_cores);
+    if (fugc_threads_override)
+        return fugc_threads_override;
+    return pas_max_uintptr(1, pas_min_uintptr(fugc_number_of_cores, verse_heap_live_bytes / 5000000));
 }
 
 static unsigned num_worker_threads_alive(void)
@@ -183,7 +182,7 @@ static pas_thread_return_type parallel_worker_thread(void* arg)
     uint64_t my_version = *my_version_ptr;
     bmalloc_deallocate(my_version_ptr);
 
-    if (verbose >= VERBOSE_EXTREME) {
+    if (fugc_verbose >= VERBOSE_EXTREME) {
         pas_log("[%d, %d] fugc: parallel worker started\n",
                 pas_getpid(), pas_gettid());
     }
@@ -205,7 +204,7 @@ static pas_thread_return_type parallel_worker_thread(void* arg)
         } else
             my_worker = NULL;
         if (!my_worker || collector_control_request) {
-            if (verbose >= VERBOSE_EXTREME) {
+            if (fugc_verbose >= VERBOSE_EXTREME) {
                 pas_log("[%d, %d] fugc: parallel worker stopping\n",
                         pas_getpid(), pas_gettid());
             }
@@ -229,14 +228,14 @@ static pas_thread_return_type parallel_worker_thread(void* arg)
         }
         pas_system_mutex_unlock(&collector_thread_state_lock);
 
-        if (verbose >= VERBOSE_EXTREME) {
+        if (fugc_verbose >= VERBOSE_EXTREME) {
             pas_log("[%d, %d] fugc: parallel worker doing work\n",
                     pas_getpid(), pas_gettid());
         }
         
         my_worker();
 
-        if (verbose >= VERBOSE_EXTREME) {
+        if (fugc_verbose >= VERBOSE_EXTREME) {
             pas_log("[%d, %d] fugc: parallel worker done\n",
                     pas_getpid(), pas_gettid());
         }
@@ -249,7 +248,7 @@ static pas_thread_return_type parallel_worker_thread(void* arg)
             PAS_ASSERT(current_worker == my_worker);
             
             num_workers_finished++;
-            if (verbose >= VERBOSE_EXTREME) {
+            if (fugc_verbose >= VERBOSE_EXTREME) {
                 pas_log("[%d, %d] fugc: num_workers_finished = %u, "
                         "num_workers_dispatched = %u\n",
                         pas_getpid(), pas_gettid(), num_workers_finished, num_workers_dispatched);
@@ -275,7 +274,7 @@ static void do_parallel_work_impl(worker_function my_worker, const char* name)
         return;
     }
 
-    if (verbose >= VERBOSE_PARALLEL)
+    if (fugc_verbose >= VERBOSE_PARALLEL)
         pas_log("[%d] fugc: doing parallel work: %s\n", pas_getpid(), name);
     
     unsigned target_num_workers = parallelism_target();
@@ -291,7 +290,7 @@ static void do_parallel_work_impl(worker_function my_worker, const char* name)
         }
     }
 
-    if (verbose >= VERBOSE_EXTREME) {
+    if (fugc_verbose >= VERBOSE_EXTREME) {
         pas_log("[%d] fugc: num_workers = %u, target_num_workers = %u\n",
                 pas_getpid(), num_workers, target_num_workers);
     }
@@ -306,27 +305,27 @@ static void do_parallel_work_impl(worker_function my_worker, const char* name)
 
     pas_system_mutex_unlock(&collector_thread_state_lock);
 
-    if (verbose >= VERBOSE_EXTREME)
+    if (fugc_verbose >= VERBOSE_EXTREME)
         pas_log("[%d] fugc: calling worker from collector thread.\n", pas_getpid());
     
     my_worker();
 
-    if (verbose >= VERBOSE_EXTREME)
+    if (fugc_verbose >= VERBOSE_EXTREME)
         pas_log("[%d] fugc: worker done on collector thread.\n", pas_getpid());
     
     pas_system_mutex_lock(&collector_thread_state_lock);
     num_workers_finished++;
-    if (verbose >= VERBOSE_EXTREME) {
+    if (fugc_verbose >= VERBOSE_EXTREME) {
         pas_log("[%d] fugc: in collector thread: num_workers_finished = %u, "
                 "num_workers_dispatched = %u, num_workers = %u\n",
                 pas_getpid(), num_workers_finished, num_workers_dispatched, num_workers);
     }
     while ((num_workers_finished < num_workers_dispatched && !collector_control_request) ||
            (num_worker_threads_alive() > 1 && collector_control_request)) {
-        if (verbose >= VERBOSE_EXTREME)
+        if (fugc_verbose >= VERBOSE_EXTREME)
             pas_log("[%d] fugc: waiting for parallel workers to finish.\n", pas_getpid());
         pas_system_condition_wait(&collector_thread_state_cond, &collector_thread_state_lock);
-        if (verbose >= VERBOSE_EXTREME) {
+        if (fugc_verbose >= VERBOSE_EXTREME) {
             pas_log("[%d] fugc: awoken, num_workers_finished = %u, num_workers_dispatched = %u, "
                     "num_workers = %u\n",
                     pas_getpid(), num_workers_finished, num_workers_dispatched, num_workers);
@@ -355,12 +354,12 @@ static pas_lock dump_handshake_lock = PAS_LOCK_INITIALIZER;
 
 static void dump_handshake(filc_thread* thread, const char* handshake_name)
 {
-    if (verbose >= VERBOSE_HANDSHAKES) {
-        if (verbose >= VERBOSE_HANDSHAKE_STACKS)
+    if (fugc_verbose >= VERBOSE_HANDSHAKES) {
+        if (fugc_verbose >= VERBOSE_HANDSHAKE_STACKS)
             pas_lock_lock(&dump_handshake_lock);
         pas_log("[%d] fugc: %s handshake with thread %u (%p) %s\n",
                 pas_getpid(), handshake_name, thread->tid, thread, pollcheck_message_for_thread(thread));
-        if (verbose >= VERBOSE_HANDSHAKE_STACKS) {
+        if (fugc_verbose >= VERBOSE_HANDSHAKE_STACKS) {
             filc_thread_dump_stack(thread, pas_log_stream);
             pas_lock_unlock(&dump_handshake_lock);
         }
@@ -548,19 +547,19 @@ static void wait_and_start_marking(void)
     PAS_ASSERT(current_collector_state == collector_waiting);
     PAS_ASSERT(completed_cycle <= requested_cycle);
 
-    if (verbose >= VERBOSE_PHASES) {
+    if (fugc_verbose >= VERBOSE_PHASES) {
         pas_log("[%d] fugc: waiting with threshold %zu bytes, currently at %zu.\n",
                 pas_getpid(), verse_heap_live_bytes_trigger_threshold, verse_heap_live_bytes);
     }
     
     while (completed_cycle == requested_cycle
            && verse_heap_live_bytes < verse_heap_live_bytes_trigger_threshold
-           && !rage_mode) {
+           && !fugc_rage_mode) {
         pas_system_mutex_lock(&collector_thread_state_lock);
         PAS_ASSERT(completed_cycle <= requested_cycle);
         while (completed_cycle == requested_cycle
                && verse_heap_live_bytes < verse_heap_live_bytes_trigger_threshold
-               && !rage_mode
+               && !fugc_rage_mode
                && !collector_control_request)
             pas_system_condition_wait(&collector_thread_state_cond, &collector_thread_state_lock);
         pas_system_mutex_unlock(&collector_thread_state_lock);
@@ -573,10 +572,10 @@ static void wait_and_start_marking(void)
 
     verse_heap_live_bytes_trigger_threshold = SIZE_MAX;
 
-    if (verbose >= VERBOSE_CYCLES)
+    if (fugc_verbose >= VERBOSE_CYCLES)
         overall_start_time = pas_get_time_in_milliseconds();
 
-    if (should_stop_the_world)
+    if (fugc_should_stop_the_world)
         filc_stop_the_world();
     
     pas_system_mutex_lock(&collector_thread_state_lock);
@@ -589,10 +588,10 @@ static void wait_and_start_marking(void)
     PAS_ASSERT(live_bytes_at_start == SIZE_MAX);
     live_bytes_at_start = verse_heap_live_bytes;
 
-    if (verbose >= VERBOSE_PHASES) {
+    if (fugc_verbose >= VERBOSE_PHASES) {
         pas_log("[%d] fugc: starting cycle %" PRIu64 " with %zu live bytes\n",
                 pas_getpid(), completed_cycle + 1, live_bytes_at_start);
-    } else if (verbose >= VERBOSE_BEGIN) {
+    } else if (fugc_verbose >= VERBOSE_BEGIN) {
         pas_log("[%d] fugc: starting cycle %" PRIu64 " with %zu kb\n",
                 pas_getpid(), completed_cycle + 1, live_bytes_at_start / 1024);
     }
@@ -629,7 +628,7 @@ static void mark_parallel_worker(void)
 
     pas_system_mutex_lock(&collector_thread_state_lock);
     num_active_markers++;
-    if (verbose >= VERBOSE_EXTREME) {
+    if (fugc_verbose >= VERBOSE_EXTREME) {
         pas_log("[%d, %d] marker started, num_active_markers = %u\n",
                 pas_getpid(), pas_gettid(), num_active_markers);
     }
@@ -676,7 +675,7 @@ static void mark_parallel_worker(void)
                 pas_system_mutex_lock(&collector_thread_state_lock);
                 PAS_ASSERT(num_active_markers);
                 num_active_markers--;
-                if (verbose >= VERBOSE_EXTREME) {
+                if (fugc_verbose >= VERBOSE_EXTREME) {
                     pas_log("[%d, %d] marker waiting, num_active_markers = %u\n",
                             pas_getpid(), pas_gettid(), num_active_markers);
                 }
@@ -690,7 +689,7 @@ static void mark_parallel_worker(void)
                     if (!num_active_markers)
                         pas_system_condition_broadcast(&collector_thread_state_cond);
                     pas_system_mutex_unlock(&collector_thread_state_lock);
-                    if (verbose >= VERBOSE_PARALLEL) {
+                    if (fugc_verbose >= VERBOSE_PARALLEL) {
                         pas_log("[%d, %d] marker traced %lu objects (pulls = %lu, waits = %lu, "
                                 "pushes = %lu, broadcasts = %lu).\n",
                                 pas_getpid(), pas_gettid(), objects_traced, num_pulls, num_waits,
@@ -831,7 +830,7 @@ static void verify_marking(void)
     /* This is a super slow verify GC that you can optionally enable to make sure that FUGC marked
        everything it was supposed to mark. Only useful for debugging FUGC itself. */
     
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: verifying mark\n", pas_getpid());
     filc_stop_the_world();
     
@@ -886,7 +885,7 @@ static void verify_marking(void)
 
 static void mark_and_start_censusing(void)
 {
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: marking\n", pas_getpid());
 
     PAS_ASSERT(current_collector_state == collector_marking);
@@ -916,12 +915,12 @@ static void mark_and_start_censusing(void)
             return;
     }
 
-    if (should_verify_early) {
-        PAS_ASSERT(should_verify);
+    if (fugc_should_verify_early) {
+        PAS_ASSERT(fugc_should_verify);
         verify_marking();
     }
 
-    if (verbose >= VERBOSE_CYCLES)
+    if (fugc_verbose >= VERBOSE_CYCLES)
         mark_end_time = pas_get_time_in_milliseconds();
 
     /* We need the after_marking_pollcheck_callback to execute after marking no matter what, so that's
@@ -943,7 +942,7 @@ static bool iterate_in_parallel(size_t* global_index, size_t global_size,
     static const size_t increment_size = 10;
     
     if (collector_control_request) {
-        if (verbose >= VERBOSE_PARALLEL) {
+        if (fugc_verbose >= VERBOSE_PARALLEL) {
             pas_log("[%d, %d] iteration handled %zu views before interrupt\n",
                     pas_getpid(), pas_gettid(), *count);
         }
@@ -953,7 +952,7 @@ static bool iterate_in_parallel(size_t* global_index, size_t global_size,
     for (;;) {
         *begin_index = *global_index;
         if (*begin_index >= global_size) {
-            if (verbose >= VERBOSE_PARALLEL) {
+            if (fugc_verbose >= VERBOSE_PARALLEL) {
                 pas_log("[%d, %d] iteration handled %zu views\n",
                         pas_getpid(), pas_gettid(), *count);
             }
@@ -981,7 +980,7 @@ static void census_parallel_worker(void)
 
 static void census_and_start_reviving(void)
 {
-    if (verbose >= VERBOSE_PHASES) {
+    if (fugc_verbose >= VERBOSE_PHASES) {
         pas_log("[%d] fugc: marking took %lf ms; censusing\n",
                 pas_getpid(), mark_end_time - overall_start_time);
     }
@@ -1003,7 +1002,7 @@ static void census_and_start_reviving(void)
        sure. */
 
     if (fugc_verify_weak_census) {
-        if (verbose >= VERBOSE_PHASES) {
+        if (fugc_verbose >= VERBOSE_PHASES) {
             pas_log("[%d] fugc: verify weak census: marked %zu weaks, censused %zu weaks\n",
                     pas_getpid(), fugc_num_weaks_marked, fugc_num_weaks_censused);
         }
@@ -1018,7 +1017,7 @@ static void census_and_start_reviving(void)
             pas_log("[%d] fugc: verify weak census: found uncensused %p\n", pas_getpid(), entry);
             found_uncensused = true;
         }
-        if (verbose >= VERBOSE_PHASES) {
+        if (fugc_verbose >= VERBOSE_PHASES) {
             pas_log("[%d] fugc: verify weak census: have %zu weaks marked but not censused\n",
                     pas_getpid(), (size_t)fugc_weaks_marked.key_count);
         }
@@ -1063,7 +1062,7 @@ static void revive_parallel_worker(void)
 
 static void revive_and_start_remarking(void)
 {
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: reviving\n", pas_getpid());
 
     PAS_ASSERT(!filc_current_marking_state);
@@ -1086,7 +1085,7 @@ static void revive_and_start_remarking(void)
 
 static void remark_and_start_recensusing(void)
 {
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: remarking\n", pas_getpid());
 
     PAS_ASSERT(current_collector_state == collector_remarking);
@@ -1112,7 +1111,7 @@ static void remark_and_start_recensusing(void)
             return;
     }
 
-    if (should_verify)
+    if (fugc_should_verify)
         verify_marking();
 
     PAS_ASSERT(finalizer_size == SIZE_MAX);
@@ -1143,7 +1142,7 @@ static void recensus_parallel_worker(void)
 
 static void recensus_and_start_destructing(void)
 {
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: recensusing\n", pas_getpid());
 
     PAS_ASSERT(!filc_current_marking_state);
@@ -1186,7 +1185,7 @@ static void destruct_parallel_worker(void)
 
 static void destruct_and_start_scribbling(void)
 {
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: destructing\n", pas_getpid());
 
     PAS_ASSERT(!filc_current_marking_state);
@@ -1202,7 +1201,7 @@ static void destruct_and_start_scribbling(void)
 
     verse_heap_object_set_end_iterate(fugc_destructor_set);
 
-    if (should_scribble) {
+    if (fugc_should_scribble) {
         PAS_ASSERT(scribble_size == SIZE_MAX);
         PAS_ASSERT(scribble_index == SIZE_MAX);
         verse_heap_object_set_start_iterate_before_handshake(fugc_scribble_set);
@@ -1228,7 +1227,7 @@ static void scribble_parallel_worker(void)
 
 static void scribble_and_start_sweeping(void)
 {
-    if (verbose >= VERBOSE_PHASES && should_scribble)
+    if (fugc_verbose >= VERBOSE_PHASES && fugc_should_scribble)
         pas_log("[%d] fugc: scribbling\n", pas_getpid());
         
     PAS_ASSERT(!filc_current_marking_state);
@@ -1236,15 +1235,15 @@ static void scribble_and_start_sweeping(void)
     PAS_ASSERT(current_collector_state == collector_scribbling);
 
     /* Scribbling is a debug mode for catching GC bugs by overwriting dead objects with garbage. */
-    if (should_scribble) {
+    if (fugc_should_scribble) {
         /* By default, we stop the world to scribble, because scribbling concurrently means positive
            feedback in the concurrent GC. It can easily lead to memory exhaustion. */
-        if (!scribble_concurrently)
+        if (!fugc_scribble_concurrently)
             filc_stop_the_world();
 
         DO_PARALLEL_WORK(scribble_parallel_worker);
         if (collector_control_request) {
-            if (!scribble_concurrently)
+            if (!fugc_scribble_concurrently)
                 filc_resume_the_world();
             return;
         }
@@ -1254,7 +1253,7 @@ static void scribble_and_start_sweeping(void)
         
         verse_heap_object_set_end_iterate(fugc_scribble_set);
 
-        if (!scribble_concurrently)
+        if (!fugc_scribble_concurrently)
             filc_resume_the_world();
     }
 
@@ -1303,7 +1302,7 @@ static void verify_mark_bits_swept(verse_heap_mark_bits_page_commit_controller* 
 
 static void sweep_and_end(void)
 {
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: sweeping\n", pas_getpid());
 
     PAS_ASSERT(!filc_current_marking_state);
@@ -1319,8 +1318,8 @@ static void sweep_and_end(void)
     
     verse_heap_end_sweep();
 
-    if (should_verify) {
-        if (verbose >= VERBOSE_PHASES)
+    if (fugc_should_verify) {
+        if (fugc_verbose >= VERBOSE_PHASES)
             pas_log("[%d] fugc: verifying sweep\n", pas_getpid());
 
         filc_stop_the_world();
@@ -1341,16 +1340,16 @@ static void sweep_and_end(void)
         surviving_bytes = 0;
     else
         surviving_bytes = live_bytes_at_start - verse_heap_swept_bytes;
-    if (verbose >= VERBOSE_CYCLES) {
+    if (fugc_verbose >= VERBOSE_CYCLES) {
         overall_end_time = pas_get_time_in_milliseconds();
-        if (verbose >= VERBOSE_PHASES) {
+        if (fugc_verbose >= VERBOSE_PHASES) {
             pas_log("[%d] fugc: destructing and sweeping took %lf ms; completed cycle %" PRIu64
                     " in %lf ms, swept %zu bytes, "
                     "survived %zu bytes, have %zu live bytes\n",
                     pas_getpid(), overall_end_time - mark_end_time, completed_cycle,
                     overall_end_time - overall_start_time,
                     verse_heap_swept_bytes, surviving_bytes, verse_heap_live_bytes);
-        } else if (verbose >= VERBOSE_BREAKDOWN) {
+        } else if (fugc_verbose >= VERBOSE_BREAKDOWN) {
             pas_log("[%d] fugc: %zu kb -> %zu kb -> %zu kb + %zu kb (floated) in %.3lf ms "
                     "(%.0lf%% marking)\n",
                     pas_getpid(), live_bytes_at_start / 1024, live_bytes_before_sweeping / 1024,
@@ -1368,14 +1367,14 @@ static void sweep_and_end(void)
     }
     live_bytes_at_start = SIZE_MAX;
     live_bytes_before_sweeping = SIZE_MAX;
-    size_t proposed_threshold = (size_t)(surviving_bytes * 1.5);
+    size_t proposed_threshold = (size_t)(surviving_bytes * fugc_threshold_multiplier);
     PAS_ASSERT(proposed_threshold >= surviving_bytes);
-    PAS_ASSERT(!surviving_bytes || proposed_threshold < surviving_bytes * 2);
-    verse_heap_live_bytes_trigger_threshold = pas_max_uintptr(proposed_threshold, minimum_threshold);
+    verse_heap_live_bytes_trigger_threshold =
+        pas_max_uintptr(proposed_threshold, fugc_minimum_threshold);
     pas_system_condition_broadcast(&collector_thread_state_cond);
     pas_system_mutex_unlock(&collector_thread_state_lock);
 
-    if (should_stop_the_world)
+    if (fugc_should_stop_the_world)
         filc_resume_the_world();
 
     current_collector_state = collector_waiting;
@@ -1387,12 +1386,12 @@ static pas_thread_return_type collector_thread(void* arg)
     
     PAS_ASSERT(collector_thread_is_running);
     
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: thread started\n", pas_getpid());
 
     while (!(collector_control_request & COLLECTOR_CONTROL_REQUEST_SUSPEND)) {
         if ((collector_control_request & COLLECTOR_CONTROL_REQUEST_HANDSHAKE)) {
-            if (verbose >= VERBOSE_PHASES)
+            if (fugc_verbose >= VERBOSE_PHASES)
                 pas_log("[%d] fugc: handshaking with mutator\n", pas_getpid());
             pas_system_mutex_lock(&collector_thread_state_lock);
             collector_control_request &= ~COLLECTOR_CONTROL_REQUEST_HANDSHAKE;
@@ -1431,7 +1430,7 @@ static pas_thread_return_type collector_thread(void* arg)
         PAS_ASSERT(!"Invalid collector state");
     }
 
-    if (verbose >= VERBOSE_PHASES)
+    if (fugc_verbose >= VERBOSE_PHASES)
         pas_log("[%d] fugc: thread stopping\n", pas_getpid());
 
     pas_thread_local_cache_destroy(pas_lock_is_not_held);
@@ -1461,25 +1460,46 @@ static void create_thread(void)
     PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
 }
 
+void fugc_initialize_settings(void)
+{
+    fugc_number_of_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    PAS_ASSERT(fugc_number_of_cores >= 1);
+
+    /* Limit parallelism to 8 cores. That's the best we can do right now. */
+    fugc_number_of_cores = pas_min_uintptr(fugc_number_of_cores, 8);
+}
+
+void fugc_parse_settings(void)
+{
+    filc_get_size_env("FUGC_MIN_THRESHOLD", &fugc_minimum_threshold);
+
+    filc_get_unsigned_env("FUGC_VERBOSE", &fugc_verbose);
+    filc_get_bool_env("FUGC_STW", &fugc_should_stop_the_world);
+    filc_get_bool_env("FUGC_SCRIBBLE", &fugc_should_scribble);
+    filc_get_bool_env("FUGC_SCRIBBLE_CONCURRENTLY", &fugc_scribble_concurrently);
+    if (fugc_scribble_concurrently)
+        fugc_should_scribble = true;
+    filc_get_bool_env("FUGC_VERIFY", &fugc_should_verify);
+    filc_get_bool_env("FUGC_VERIFY_EARLY", &fugc_should_verify_early);
+    if (fugc_should_verify_early)
+        fugc_should_verify = true;
+    filc_get_bool_env("FUGC_VERIFY_WEAK_CENSUS", &fugc_verify_weak_census);
+    PAS_ASSERT(!fugc_verify_weak_census || PAS_ENABLE_TESTING);
+    filc_get_bool_env("FUGC_RAGE_MODE", &fugc_rage_mode);
+    
+    filc_get_unsigned_env("FUGC_CORES", &fugc_number_of_cores);
+    PAS_ASSERT(fugc_number_of_cores >= 1);
+
+    filc_get_unsigned_env("FUGC_THREADS", &fugc_threads_override);
+
+    filc_get_double_env("FUGC_THRESHOLD_MULTIPLIER", &fugc_threshold_multiplier);
+    PAS_ASSERT(fugc_threshold_multiplier >= 1.);
+}
+
 void fugc_initialize_heaps(void)
 {
-    minimum_threshold = filc_get_size_env("FUGC_MIN_THRESHOLD", 1024 * 1024);
-    verse_heap_live_bytes_trigger_threshold = minimum_threshold;
+    verse_heap_live_bytes_trigger_threshold = fugc_minimum_threshold;
     verse_heap_live_bytes_trigger_callback = trigger_callback;
-
-    verbose = filc_get_unsigned_env("FUGC_VERBOSE", 0);
-    should_stop_the_world = filc_get_bool_env("FUGC_STW", false);
-    should_scribble = filc_get_bool_env("FUGC_SCRIBBLE", false);
-    scribble_concurrently = filc_get_bool_env("FUGC_SCRIBBLE_CONCURRENTLY", false);
-    if (scribble_concurrently)
-        should_scribble = true;
-    should_verify = filc_get_bool_env("FUGC_VERIFY", false);
-    should_verify_early = filc_get_bool_env("FUGC_VERIFY_EARLY", false);
-    if (should_verify_early)
-        should_verify = true;
-    fugc_verify_weak_census = filc_get_bool_env("FUGC_VERIFY_WEAK_CENSUS", false);
-    PAS_ASSERT(!fugc_verify_weak_census || PAS_ENABLE_TESTING);
-    rage_mode = filc_get_bool_env("FUGC_RAGE_MODE", false);
 
     fugc_default_heap = verse_heap_create(1, 0, 0);
     fugc_destructor_heap = verse_heap_create(1, 0, 0);
@@ -1495,7 +1515,7 @@ void fugc_initialize_heaps(void)
     verse_heap_add_to_set(fugc_census_and_destructor_heap, fugc_census_set);
     verse_heap_add_to_set(fugc_finalizer_heap, fugc_finalizer_set);
 
-    if (should_scribble) {
+    if (fugc_should_scribble) {
         fugc_scribble_set = verse_heap_object_set_create();
         verse_heap_add_to_set(fugc_default_heap, fugc_scribble_set);
         verse_heap_add_to_set(fugc_destructor_heap, fugc_scribble_set);
@@ -1509,26 +1529,15 @@ void fugc_initialize_heaps(void)
 
 void fugc_initialize_collector(void)
 {
-    number_of_cores = sysconf(_SC_NPROCESSORS_ONLN);
-    PAS_ASSERT(number_of_cores >= 1);
-
-    /* Limit parallelism to 8 cores. That's the best we can do right now. */
-    number_of_cores = pas_min_uintptr(number_of_cores, 8);
-    
-    number_of_cores = filc_get_unsigned_env("FUGC_CORES", number_of_cores);
-    PAS_ASSERT(number_of_cores >= 1);
-
-    threads_override = filc_get_unsigned_env("FUGC_THREADS", 0);
-
     /* Weak census verification requires single-threaded GC. */
-    PAS_ASSERT(!fugc_verify_weak_census || threads_override == 1);
+    PAS_ASSERT(!fugc_verify_weak_census || fugc_threads_override == 1);
 
     pas_system_mutex_construct(&collector_thread_state_lock);
     pas_system_condition_construct(&collector_thread_state_cond);
     filc_mark_stack_construct(&fugc_global_stack);
     pas_lock_construct(&global_stack_lock);
 
-    if (verbose >= VERBOSE_PHASES) {
+    if (fugc_verbose >= VERBOSE_PHASES) {
         pas_log("[%d] fugc: initializing GC with %zu live bytes.\n",
                 pas_getpid(), verse_heap_live_bytes);
     }
@@ -1637,39 +1646,25 @@ void fugc_wait(uint64_t cycle)
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
 
-bool fugc_is_stw(void)
-{
-    return should_stop_the_world;
-}
-
-bool fugc_is_scribbling(void)
-{
-    return should_scribble;
-}
-
-bool fugc_is_verifying(void)
-{
-    return should_verify;
-}
-
 void fugc_dump_setup(void)
 {
-    pas_log("    fugc minimum threshold: %zu\n", minimum_threshold);
-    pas_log("    fugc verbose level: %u\n", verbose);
-    pas_log("    fugc stop the world: %s\n", should_stop_the_world ? "yes" : "no");
+    pas_log("    fugc minimum threshold: %zu\n", fugc_minimum_threshold);
+    pas_log("    fugc threshold multiplier: %lf\n", fugc_threshold_multiplier);
+    pas_log("    fugc verbose level: %u\n", fugc_verbose);
+    pas_log("    fugc stop the world: %s\n", fugc_should_stop_the_world ? "yes" : "no");
     pas_log("    fugc scribble: %s\n",
-            should_scribble
-            ? (scribble_concurrently ? "yes, concurrently" : "yes")
+            fugc_should_scribble
+            ? (fugc_scribble_concurrently ? "yes, concurrently" : "yes")
             : "no");
     pas_log("    fugc verify: %s\n",
-            should_verify_early ? "yes (and early)" : should_verify ? "yes" : "no");
+            fugc_should_verify_early ? "yes (and early)" : fugc_should_verify ? "yes" : "no");
     pas_log("    fugc verify weak census: %s\n", fugc_verify_weak_census ? "yes" : "no");
-    pas_log("    fugc rage mode: %s\n", rage_mode ? "yes" : "no");
+    pas_log("    fugc rage mode: %s\n", fugc_rage_mode ? "yes" : "no");
     pas_log("    fugc threads: ");
-    if (threads_override)
-        pas_log("%u\n", threads_override);
+    if (fugc_threads_override)
+        pas_log("%u\n", fugc_threads_override);
     else
-        pas_log("up to %u\n", number_of_cores);
+        pas_log("up to %u\n", fugc_number_of_cores);
 }
 
 #endif /* PAS_ENABLE_FILC */

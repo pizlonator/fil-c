@@ -334,11 +334,12 @@ static filc_ptr user_environ;
 static filc_ptr user_auxv;
 
 static bool is_initialized = false; /* Useful for assertions. */
-static bool exit_on_panic = false;
-static bool dump_errnos = false;
-static bool run_global_ctors = true;
-static bool run_global_dtors = true;
-static bool verbose_stop_the_world = false;
+
+bool filc_exit_on_panic = false;
+bool filc_dump_errnos = false;
+bool filc_run_global_ctors = true;
+bool filc_run_global_dtors = true;
+bool filc_verbose_stop_the_world = false;
 
 static void set_stack_limit(filc_thread* thread)
 {
@@ -388,7 +389,9 @@ static void open_new_log_file_if_necessary(void)
 
 void filc_initialize(void)
 {
-    if (filc_get_bool_env("FILC_LOG_TO_FILE", false))
+    bool should_log_to_file = false;
+    filc_get_bool_env("FILC_LOG_TO_FILE", &should_log_to_file);
+    if (should_log_to_file)
         open_new_log_file();
     
     PAS_ASSERT(!is_initialized);
@@ -431,6 +434,31 @@ void filc_initialize(void)
 
     pas_system_condition_construct(&filc_stop_the_world_cond);
 
+    fugc_initialize_settings();
+
+    filc_get_bool_env("FILC_EXIT_ON_PANIC", &filc_exit_on_panic);
+    filc_get_bool_env("FILC_DUMP_ERRNOS", &filc_dump_errnos);
+    filc_get_bool_env("FILC_RUN_GLOBAL_CTORS", &filc_run_global_ctors);
+    filc_get_bool_env("FILC_RUN_GLOBAL_DTORS", &filc_run_global_dtors);
+    filc_get_bool_env("FILC_VERBOSE_STW", &filc_verbose_stop_the_world);
+
+    filc_override_settings_if_appropriate();
+    
+    fugc_parse_settings();
+
+    bool should_dump_setup = false;
+    filc_get_bool_env("FILC_DUMP_SETUP", &should_dump_setup);
+    if (should_dump_setup) {
+        pas_log("filc setup:\n");
+        pas_log("    testing library: %s\n", PAS_ENABLE_TESTING ? "yes" : "no");
+        pas_log("    exit on panic: %s\n", filc_exit_on_panic ? "yes" : "no");
+        pas_log("    dump errnos: %s\n", filc_dump_errnos ? "yes" : "no");
+        pas_log("    run global ctors: %s\n", filc_run_global_ctors ? "yes" : "no");
+        pas_log("    run global dtors: %s\n", filc_run_global_dtors ? "yes" : "no");
+        pas_log("    verbose stop the world: %s\n", filc_verbose_stop_the_world ? "yes" : "no");
+        fugc_dump_setup();
+    }
+    
     fugc_initialize_heaps();
 
     filc_object_array_construct(&filc_global_variable_roots);
@@ -452,23 +480,6 @@ void filc_initialize(void)
     /* This has to happen *after* we do our primordial allocations. */
     fugc_initialize_collector();
 
-    exit_on_panic = filc_get_bool_env("FILC_EXIT_ON_PANIC", false);
-    dump_errnos = filc_get_bool_env("FILC_DUMP_ERRNOS", false);
-    run_global_ctors = filc_get_bool_env("FILC_RUN_GLOBAL_CTORS", true);
-    run_global_dtors = filc_get_bool_env("FILC_RUN_GLOBAL_DTORS", true);
-    verbose_stop_the_world = filc_get_bool_env("FILC_VERBOSE_STW", false);
-    
-    if (filc_get_bool_env("FILC_DUMP_SETUP", false)) {
-        pas_log("filc setup:\n");
-        pas_log("    testing library: %s\n", PAS_ENABLE_TESTING ? "yes" : "no");
-        pas_log("    exit on panic: %s\n", exit_on_panic ? "yes" : "no");
-        pas_log("    dump errnos: %s\n", dump_errnos ? "yes" : "no");
-        pas_log("    run global ctors: %s\n", run_global_ctors ? "yes" : "no");
-        pas_log("    run global dtors: %s\n", run_global_dtors ? "yes" : "no");
-        pas_log("    verbose stop the world: %s\n", verbose_stop_the_world ? "yes" : "no");
-        fugc_dump_setup();
-    }
-    
     is_initialized = true;
 }
 
@@ -827,7 +838,7 @@ void filc_enter(filc_thread* my_thread)
             PAS_ASSERT(!(my_thread->state & FILC_THREAD_STATE_ENTERED));
             run_pollcheck_callback_if_necessary(my_thread);
             if ((my_thread->state & FILC_THREAD_STATE_STOP_REQUESTED)
-                && verbose_stop_the_world) {
+                && filc_verbose_stop_the_world) {
                 pas_log("[%d] thread %u (%p) stopping\n", pas_getpid(), my_thread->tid, my_thread);
                 filc_thread_dump_stack(my_thread, pas_log_stream);
             }
@@ -3832,7 +3843,7 @@ PAS_NO_RETURN void filc_finish_panicking(filc_panic_context* context, const char
     else
         log_fd = PAS_LOG_DEFAULT_FD;
     
-    if (exit_on_panic) {
+    if (filc_exit_on_panic) {
         PAS_ASSERT(write_panic_context(log_fd, context));
         pas_log("[%d] filc panic: %s\n", pas_getpid(), kind_string);
         _exit(42);
@@ -6000,7 +6011,7 @@ filc_ptr_array filc_deferred_global_ctors = FILC_PTR_ARRAY_INITIALIZER;
 
 static void run_global_ctor(filc_thread* my_thread, filc_ptr global_ctor)
 {
-    if (!run_global_ctors) {
+    if (!filc_run_global_ctors) {
         /* NOTE: This is an internal flag that is only useful for debugging, and it's quite dangerous
            in the sense that it's likely to put whatever program you're running into a weird (but
            still memory-safe) state. 
@@ -6070,7 +6081,7 @@ void filc_run_deferred_global_ctors(filc_thread* my_thread)
 
 void filc_run_global_dtor(filc_ptr global_dtor)
 {
-    if (!run_global_dtors) {
+    if (!filc_run_global_dtors) {
         /* NOTE: This is an internal flag only used for debugging, and I might deprecate it at any
            time. */
         pas_log("filc: skipping global dtor.\n");
@@ -6284,19 +6295,19 @@ void filc_native_zgc_wait(filc_thread* my_thread, unsigned long long cycle)
 bool filc_native_zgc_is_stw(filc_thread* my_thread)
 {
     PAS_UNUSED_PARAM(my_thread);
-    return fugc_is_stw();
+    return fugc_should_stop_the_world;
 }
 
 bool filc_native_zgc_is_scribbling(filc_thread* my_thread)
 {
     PAS_UNUSED_PARAM(my_thread);
-    return fugc_is_scribbling();
+    return fugc_should_scribble;
 }
 
 bool filc_native_zgc_is_verifying(filc_thread* my_thread)
 {
     PAS_UNUSED_PARAM(my_thread);
-    return fugc_is_verifying();
+    return fugc_should_verify;
 }
 
 void filc_native_zscavenge_synchronously(filc_thread* my_thread)
@@ -7085,7 +7096,7 @@ void filc_native_zregister_sys_dlerror_handler(filc_thread* my_thread, filc_ptr 
 void filc_set_errno(int errno_value)
 {
     filc_thread* my_thread = filc_get_my_thread();
-    if (dump_errnos) {
+    if (filc_dump_errnos) {
         pas_log("[%d] Setting errno! System errno = %d, system error = %s\n",
                 getpid(), errno_value, strerror(errno_value));
         filc_thread_dump_stack(my_thread, pas_log_stream);
@@ -7108,7 +7119,7 @@ void filc_set_dlerror(const char* error, const char* context)
 {
     PAS_ASSERT(error);
     filc_thread* my_thread = filc_get_my_thread();
-    if (dump_errnos) {
+    if (filc_dump_errnos) {
         pas_log("[%d] Setting dlerror! message = %s, context = %s\n",
                 getpid(), error, context);
         filc_thread_dump_stack(my_thread, pas_log_stream);
@@ -7308,7 +7319,7 @@ int filc_native_zsys_open(filc_thread* my_thread, filc_ptr path_ptr, int flags,
     if (verbose)
         pas_log("doing an open with path = %s, flags = %d, mode = %u.\n", path, flags, mode);
     int result = FILC_SYSCALL(my_thread, open(path, flags, (mode_t)mode));
-    if (result < 0 && dump_errnos)
+    if (result < 0 && filc_dump_errnos)
         pas_log("[%d] open(2) failed for path = %s\n", pas_getpid(), path);
     return result;
 }
@@ -12021,48 +12032,67 @@ size_t filc_mul_size(size_t a, size_t b)
     return result;
 }
 
-bool filc_get_bool_env(const char* name, bool default_value)
+void filc_get_bool_env(const char* name, bool* value_ptr)
 {
     char* value = getenv(name);
     if (!value)
-        return default_value;
+        return;
     if (!strcmp(value, "1") ||
         !strcasecmp(value, "yes") ||
-        !strcasecmp(value, "true"))
-        return true;
+        !strcasecmp(value, "true")) {
+        *value_ptr = true;
+        return;
+    }
     if (!strcmp(value, "0") ||
         !strcasecmp(value, "no") ||
-        !strcasecmp(value, "false"))
-        return false;
+        !strcasecmp(value, "false")) {
+        *value_ptr = false;
+        return;
+    }
     pas_panic("invalid environment variable %s value: %s (expected boolean like 1, yes, true, 0, no, "
               "or false)\n", name, value);
-    return false;
 }
 
-unsigned filc_get_unsigned_env(const char* name, unsigned default_value)
+void filc_get_unsigned_env(const char* name, unsigned* value_ptr)
 {
     char* value = getenv(name);
     if (!value)
-        return default_value;
+        return;
     unsigned result;
-    if (sscanf(value, "%u", &result) == 1)
-        return result;
+    if (sscanf(value, "%u", &result) == 1) {
+        *value_ptr = result;
+        return;
+    }
     pas_panic("invalid environment variable %s value: %s (expected decimal unsigned int)\n",
               name, value);
-    return 0;
 }
 
-size_t filc_get_size_env(const char* name, size_t default_value)
+void filc_get_size_env(const char* name, size_t* value_ptr)
 {
     char* value = getenv(name);
     if (!value)
-        return default_value;
+        return;
     size_t result;
-    if (sscanf(value, "%zu", &result) == 1)
-        return result;
+    if (sscanf(value, "%zu", &result) == 1) {
+        *value_ptr = result;
+        return;
+    }
     pas_panic("invalid environment variable %s value: %s (expected decimal byte size)\n",
               name, value);
-    return 0;
+}
+
+void filc_get_double_env(const char* name, double* value_ptr)
+{
+    char* value = getenv(name);
+    if (!value)
+        return;
+    double result;
+    if (sscanf(value, "%lf", &result) == 1) {
+        *value_ptr = result;
+        return;
+    }
+    pas_panic("invalid environment variable %s value: %s (expected decimal real number)\n",
+              name, value);
 }
 
 int filc_native_zmath_finitel(filc_thread* my_thread, long double value)

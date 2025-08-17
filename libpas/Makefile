@@ -22,7 +22,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 all: \
-	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so ../pizfix/lib/libpizlo.a \
+	../pizfix/lib/libpizlo.so ../pizfix/lib_test/libpizlo.so ../pizfix/lib_gcverify/libpizlo.so \
+	../pizfix/lib_test_gcverify/libpizlo.so ../pizfix/lib/libpizlo.a \
 	../pizfix/lib/filc_crt.o ../pizfix/lib/filc_mincrt.o
 
 PASCC = clang -march=x86-64-v2 -fPIC -pthread -nostdinc -isystem ../pizfix/yolo-include \
@@ -43,18 +44,34 @@ FILCFLAGS = -O3 -g -W -Werror -MD
 MAINSRC = ../filc/main/main.c
 FILSRCS = $(wildcard ../filc/src/*.c)
 
-PASPIZLODYNAMICOBJS = \
+PASPIZLODYNAMICOBJSBASE = \
 	$(patsubst %.c,build/pas-pizlo-release-%.o,$(notdir $(PASSRCS))) \
 	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS))) \
-	build/pas-pizlo-test-filc_dynamic.o
-PASPIZLOSTATICOBJS = \
+	build/pas-pizlo-release-filc_dynamic.o
+PASPIZLOSTATICOBJSBASE = \
 	$(patsubst %.c,build/pas-pizlo-release-%.o,$(notdir $(PASSRCS))) \
 	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS))) \
-	build/pas-pizlo-test-filc_static.o
-PASPIZLOTESTOBJS = \
+	build/pas-pizlo-release-filc_static.o
+PASPIZLOTESTOBJSBASE = \
 	$(patsubst %.c,build/pas-pizlo-test-%.o,$(notdir $(PASSRCS))) \
 	$(patsubst %.s,build/pas-pizlo-release-%.o,$(notdir $(PASASMSRCS))) \
 	build/pas-pizlo-test-filc_dynamic.o
+
+PASPIZLODYNAMICOBJS = \
+	$(PASPIZLODYNAMICOBJSBASE) \
+	build/pas-pizlo-release-filc_default_settings.o
+PASPIZLODYNAMICGCVERIFYOBJS = \
+	$(PASPIZLODYNAMICOBJSBASE) \
+	build/pas-pizlo-release-filc_gc_verify_settings.o
+PASPIZLOSTATICOBJS = \
+	$(PASPIZLOSTATICOBJSBASE) \
+	build/pas-pizlo-release-filc_default_settings.o
+PASPIZLOTESTOBJS = \
+	$(PASPIZLOTESTOBJSBASE) \
+	build/pas-pizlo-test-filc_default_settings.o
+PASPIZLOTESTGCVERIFYOBJS = \
+	$(PASPIZLOTESTOBJSBASE) \
+	build/pas-pizlo-test-filc_gc_verify_settings.o
 
 FILPIZLOOBJS = $(patsubst %.c,build/fil-pizlo-%.o,$(notdir $(FILSRCS)))
 
@@ -72,13 +89,24 @@ clean:
 
 .filc-objs: $(FILPIZLOOBJS)
 .yoloc-dynamic-objs: $(PASPIZLODYNAMICOBJS)
+.yoloc-dynamic-gcverify-objs: $(PASPIZLODYNAMICGCVERIFYOBJS)
+.yoloc-test-objs: $(PASPIZLOTESTOBJS)
+.yoloc-test-gcverify-objs: $(PASPIZLOTESTGCVERIFYOBJS)
 .yoloc-static-objs: $(PASPIZLOSTATICOBJS)
 
 ../pizfix/lib/libpizlo.so: $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS)
 	$(SHLD) -o ../pizfix/lib/libpizlo.so $(PASPIZLODYNAMICOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
 
+../pizfix/lib_gcverify/libpizlo.so: $(PASPIZLODYNAMICGCVERIFYOBJS) $(FILPIZLOOBJS)
+	$(SHLD) -o ../pizfix/lib_gcverify/libpizlo.so $(PASPIZLODYNAMICGCVERIFYOBJS) $(FILPIZLOOBJS) \
+		$(SHLDPOST)
+
 ../pizfix/lib_test/libpizlo.so: $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS)
 	$(SHLD) -o ../pizfix/lib_test/libpizlo.so $(PASPIZLOTESTOBJS) $(FILPIZLOOBJS) $(SHLDPOST)
+
+../pizfix/lib_test_gcverify/libpizlo.so: $(PASPIZLOTESTGCVERIFYOBJS) $(FILPIZLOOBJS)
+	$(SHLD) -o ../pizfix/lib_test_gcverify/libpizlo.so $(PASPIZLOTESTGCVERIFYOBJS) \
+		$(FILPIZLOOBJS) $(SHLDPOST)
 
 ../pizfix/lib/libpizlo.a: $(PASPIZLOSTATICOBJS) $(FILPIZLOOBJS)
 	rm -f ../pizfix/lib/libpizlo.a
