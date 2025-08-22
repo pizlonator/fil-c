@@ -51,8 +51,8 @@ private:
 public:
   explicit X86RegisterInfo(const Triple &TT);
 
-  // FIXME: This should be tablegen'd like getDwarfRegNum is
-  int getSEHRegNum(unsigned i) const;
+  /// Return the number of registers for the function.
+  unsigned getNumSupportedRegs(const MachineFunction &MF) const override;
 
   /// getMatchingSuperRegClass - Return a subclass of the specified register
   /// class A so that each register in it has a sub-register of the
@@ -99,6 +99,9 @@ public:
   /// callee-save registers on this target.
   const MCPhysReg *
   getCalleeSavedRegs(const MachineFunction* MF) const override;
+  /// getIPRACSRegs - This API can be removed when rbp is safe to optimized out
+  /// when IPRA is on.
+  const MCPhysReg *getIPRACSRegs(const MachineFunction *MF) const override;
   const MCPhysReg *
   getCalleeSavedRegsViaCopy(const MachineFunction *MF) const;
   const uint32_t *getCallPreservedMask(const MachineFunction &MF,
@@ -142,6 +145,12 @@ public:
   bool eliminateFrameIndex(MachineBasicBlock::iterator MI,
                            int SPAdj, unsigned FIOperandNum,
                            RegScavenger *RS = nullptr) const override;
+
+  /// Process frame indices in forwards block order because
+  /// X86InstrInfo::getSPAdjust relies on it when searching for the
+  /// ADJCALLSTACKUP pseudo following a call.
+  /// TODO: Fix this and return true like all other targets.
+  bool eliminateFrameIndicesBackwards() const override { return false; }
 
   /// findDeadCallerSavedReg - Return a caller-saved register that isn't live
   /// when it reaches the "return" instruction. We can then pop a stack object

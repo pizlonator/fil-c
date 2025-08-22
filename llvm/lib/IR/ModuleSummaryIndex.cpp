@@ -37,7 +37,8 @@ static cl::opt<bool> ImportConstantsWithRefs(
 constexpr uint32_t FunctionSummary::ParamAccess::RangeWidth;
 
 FunctionSummary FunctionSummary::ExternalNode =
-    FunctionSummary::makeDummyFunctionSummary({});
+    FunctionSummary::makeDummyFunctionSummary(
+        SmallVector<FunctionSummary::EdgeTy, 0>());
 
 GlobalValue::VisibilityTypes ValueInfo::getELFVisibility() const {
   bool HasProtected = false;
@@ -91,12 +92,11 @@ constexpr uint64_t ModuleSummaryIndex::BitcodeSummaryVersion;
 
 uint64_t ModuleSummaryIndex::getFlags() const {
   uint64_t Flags = 0;
+  // Flags & 0x4 is reserved. DO NOT REUSE.
   if (withGlobalValueDeadStripping())
     Flags |= 0x1;
   if (skipModuleByDistributedBackend())
     Flags |= 0x2;
-  if (hasSyntheticEntryCounts())
-    Flags |= 0x4;
   if (enableSplitLTOUnit())
     Flags |= 0x8;
   if (partiallySplitLTOUnits())
@@ -124,10 +124,7 @@ void ModuleSummaryIndex::setFlags(uint64_t Flags) {
   // Set on combined index only.
   if (Flags & 0x2)
     setSkipModuleByDistributedBackend();
-  // 1 bit: HasSyntheticEntryCounts flag.
-  // Set on combined index only.
-  if (Flags & 0x4)
-    setHasSyntheticEntryCounts();
+  // Flags & 0x4 is reserved. DO NOT REUSE.
   // 1 bit: DisableSplitLTOUnit flag.
   // Set on per module indexes. It is up to the client to validate
   // the consistency of this flag across modules being linked.
@@ -331,6 +328,13 @@ void ModuleSummaryIndex::propagateAttributes(
 
 bool ModuleSummaryIndex::canImportGlobalVar(const GlobalValueSummary *S,
                                             bool AnalyzeRefs) const {
+  bool CanImportDecl;
+  return canImportGlobalVar(S, AnalyzeRefs, CanImportDecl);
+}
+
+bool ModuleSummaryIndex::canImportGlobalVar(const GlobalValueSummary *S,
+                                            bool AnalyzeRefs,
+                                            bool &CanImportDecl) const {
   auto HasRefsPreventingImport = [this](const GlobalVarSummary *GVS) {
     // We don't analyze GV references during attribute propagation, so
     // GV with non-trivial initializer can be marked either read or
@@ -351,13 +355,20 @@ bool ModuleSummaryIndex::canImportGlobalVar(const GlobalValueSummary *S,
   };
   auto *GVS = cast<GlobalVarSummary>(S->getBaseObject());
 
+  const bool nonInterposable =
+      !GlobalValue::isInterposableLinkage(S->linkage());
+  const bool eligibleToImport = !S->notEligibleToImport();
+
+  // It's correct to import a global variable only when it is not interposable
+  // and eligible to import.
+  CanImportDecl = (nonInterposable && eligibleToImport);
+
   // Global variable with non-trivial initializer can be imported
   // if it's readonly. This gives us extra opportunities for constant
   // folding and converting indirect calls to direct calls. We don't
   // analyze GV references during attribute propagation, because we
   // don't know yet if it is readonly or not.
-  return !GlobalValue::isInterposableLinkage(S->linkage()) &&
-         !S->notEligibleToImport() &&
+  return nonInterposable && eligibleToImport &&
          (!AnalyzeRefs || !HasRefsPreventingImport(GVS));
 }
 
@@ -554,6 +565,17 @@ void ModuleSummaryIndex::exportToDot(
   std::map<StringRef, GVSOrderedMapTy> ModuleToDefinedGVS;
   collectDefinedGVSummariesPerModule(ModuleToDefinedGVS);
 
+  // Assign an id to each module path for use in graph labels. Since the
+  // StringMap iteration order isn't guaranteed, order by path string before
+  // assigning ids.
+  std::vector<StringRef> ModulePaths;
+  for (auto &[ModPath, _] : modulePaths())
+    ModulePaths.push_back(ModPath);
+  llvm::sort(ModulePaths);
+  DenseMap<StringRef, uint64_t> ModuleIdMap;
+  for (auto &ModPath : ModulePaths)
+    ModuleIdMap.try_emplace(ModPath, ModuleIdMap.size());
+
   // Get node identifier in form MXXX_<GUID>. The MXXX prefix is required,
   // because we may have multiple linkonce functions summaries.
   auto NodeId = [](uint64_t ModId, GlobalValue::GUID Id) {
@@ -589,7 +611,10 @@ void ModuleSummaryIndex::exportToDot(
 
   OS << "digraph Summary {\n";
   for (auto &ModIt : ModuleToDefinedGVS) {
-    auto ModId = getModuleId(ModIt.first);
+    // Will be empty for a just built per-module index, which doesn't setup a
+    // module paths table. In that case use 0 as the module id.
+    assert(ModuleIdMap.count(ModIt.first) || ModuleIdMap.empty());
+    auto ModId = ModuleIdMap.empty() ? 0 : ModuleIdMap[ModIt.first];
     OS << "  // Module: " << ModIt.first << "\n";
     OS << "  subgraph cluster_" << std::to_string(ModId) << " {\n";
     OS << "    style = filled;\n";
@@ -630,6 +655,10 @@ void ModuleSummaryIndex::exportToDot(
         A.addComment("dsoLocal");
       if (Flags.CanAutoHide)
         A.addComment("canAutoHide");
+      if (Flags.ImportType == GlobalValueSummary::ImportKind::Definition)
+        A.addComment("definition");
+      else if (Flags.ImportType == GlobalValueSummary::ImportKind::Declaration)
+        A.addComment("declaration");
       if (GUIDPreservedSymbols.count(SummaryIt.first))
         A.addComment("preserved");
 

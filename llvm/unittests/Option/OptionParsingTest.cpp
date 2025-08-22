@@ -9,36 +9,36 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Option/Arg.h"
 #include "llvm/Option/ArgList.h"
+#include "llvm/Option/OptTable.h"
 #include "llvm/Option/Option.h"
 #include "gtest/gtest.h"
 
 using namespace llvm;
 using namespace llvm::opt;
 
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+#define OPTTABLE_STR_TABLE_CODE
+#include "Opts.inc"
+#undef OPTTABLE_STR_TABLE_CODE
+
 enum ID {
   OPT_INVALID = 0, // This is not an option ID.
-#define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS, PARAM,  \
-               HELPTEXT, METAVAR, VALUES)                                      \
-  OPT_##ID,
+#define OPTION(...) LLVM_MAKE_OPT_ID(__VA_ARGS__),
 #include "Opts.inc"
   LastOption
 #undef OPTION
 };
 
-#define PREFIX(NAME, VALUE)                                                    \
-  static constexpr StringLiteral NAME##_init[] = VALUE;                        \
-  static constexpr ArrayRef<StringLiteral> NAME(NAME##_init,                   \
-                                                std::size(NAME##_init) - 1);
+#define OPTTABLE_PREFIXES_TABLE_CODE
 #include "Opts.inc"
-#undef PREFIX
+#undef OPTTABLE_PREFIXES_TABLE_CODE
 
-static constexpr const StringLiteral PrefixTable_init[] =
-#define PREFIX_UNION(VALUES) VALUES
+#define OPTTABLE_PREFIXES_UNION_CODE
 #include "Opts.inc"
-#undef PREFIX_UNION
-    ;
-static constexpr const ArrayRef<StringLiteral>
-    PrefixTable(PrefixTable_init, std::size(PrefixTable_init) - 1);
+#undef OPTTABLE_PREFIXES_UNION_CODE
 
 enum OptionFlags {
   OptFlag1 = (1 << 4),
@@ -46,11 +46,13 @@ enum OptionFlags {
   OptFlag3 = (1 << 6)
 };
 
+enum OptionVisibility {
+  SubtoolVis = (1 << 2),
+  MultiLineVis = (1 << 3),
+};
+
 static constexpr OptTable::Info InfoTable[] = {
-#define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS, PARAM,  \
-               HELPTEXT, METAVAR, VALUES)                                      \
-  {PREFIX, NAME,  HELPTEXT,    METAVAR,     OPT_##ID,  Option::KIND##Class,    \
-   PARAM,  FLAGS, OPT_##GROUP, OPT_##ALIAS, ALIASARGS, VALUES},
+#define OPTION(...) LLVM_CONSTRUCT_OPT_INFO(__VA_ARGS__),
 #include "Opts.inc"
 #undef OPTION
 };
@@ -59,13 +61,15 @@ namespace {
 class TestOptTable : public GenericOptTable {
 public:
   TestOptTable(bool IgnoreCase = false)
-      : GenericOptTable(InfoTable, IgnoreCase) {}
+      : GenericOptTable(OptionStrTable, OptionPrefixesTable, InfoTable,
+                        IgnoreCase) {}
 };
 
 class TestPrecomputedOptTable : public PrecomputedOptTable {
 public:
   TestPrecomputedOptTable(bool IgnoreCase = false)
-      : PrecomputedOptTable(InfoTable, PrefixTable, IgnoreCase) {}
+      : PrecomputedOptTable(OptionStrTable, OptionPrefixesTable, InfoTable,
+                            OptionPrefixesUnion, IgnoreCase) {}
 };
 }
 
@@ -168,6 +172,43 @@ TYPED_TEST(OptTableTest, ParseWithFlagExclusions) {
   EXPECT_EQ("bar", AL.getLastArgValue(OPT_C));
 }
 
+TYPED_TEST(OptTableTest, ParseWithVisibility) {
+  TypeParam T;
+  unsigned MAI, MAC;
+
+  const char *STArgs[] = {"-A", "-Q", "-R"};
+
+  // With no visibility specified, we find all of the arguments.
+  InputArgList AL = T.ParseArgs(STArgs, MAI, MAC);
+  EXPECT_TRUE(AL.hasArg(OPT_A));
+  EXPECT_TRUE(AL.hasArg(OPT_Q));
+  EXPECT_TRUE(AL.hasArg(OPT_R));
+
+  // Default visibility omits SubtoolVis.
+  AL = T.ParseArgs(STArgs, MAI, MAC, Visibility(DefaultVis));
+  EXPECT_TRUE(AL.hasArg(OPT_A));
+  EXPECT_FALSE(AL.hasArg(OPT_Q));
+  EXPECT_TRUE(AL.hasArg(OPT_R));
+
+  // ~SubtoolVis still finds arguments that are visible in Default.
+  AL = T.ParseArgs(STArgs, MAI, MAC, Visibility(~SubtoolVis));
+  EXPECT_TRUE(AL.hasArg(OPT_A));
+  EXPECT_FALSE(AL.hasArg(OPT_Q));
+  EXPECT_TRUE(AL.hasArg(OPT_R));
+
+  // Only SubtoolVis.
+  AL = T.ParseArgs(STArgs, MAI, MAC, Visibility(SubtoolVis));
+  EXPECT_FALSE(AL.hasArg(OPT_A));
+  EXPECT_TRUE(AL.hasArg(OPT_Q));
+  EXPECT_TRUE(AL.hasArg(OPT_R));
+
+  // Both Default and SubtoolVis are found.
+  AL = T.ParseArgs(STArgs, MAI, MAC, Visibility(DefaultVis | SubtoolVis));
+  EXPECT_TRUE(AL.hasArg(OPT_A));
+  EXPECT_TRUE(AL.hasArg(OPT_Q));
+  EXPECT_TRUE(AL.hasArg(OPT_R));
+}
+
 TYPED_TEST(OptTableTest, ParseAliasInGroup) {
   TypeParam T;
   unsigned MAI, MAC;
@@ -197,6 +238,33 @@ TYPED_TEST(OptTableTest, IgnoreCase) {
   EXPECT_TRUE(AL.hasArg(OPT_A));
   EXPECT_TRUE(AL.hasArg(OPT_B));
 }
+
+#if defined(__clang__)
+// Disable the warning that triggers on exactly what is being tested.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-move"
+#endif
+
+TYPED_TEST(OptTableTest, InputArgListSelfAssign) {
+  TypeParam T;
+  unsigned MAI, MAC;
+  InputArgList AL = T.ParseArgs(Args, MAI, MAC,
+                                /*FlagsToInclude=*/0,
+                                /*FlagsToExclude=*/OptFlag3);
+  EXPECT_TRUE(AL.hasArg(OPT_A));
+  EXPECT_TRUE(AL.hasArg(OPT_C));
+  EXPECT_FALSE(AL.hasArg(OPT_SLASH_C));
+
+  AL = std::move(AL);
+
+  EXPECT_TRUE(AL.hasArg(OPT_A));
+  EXPECT_TRUE(AL.hasArg(OPT_C));
+  EXPECT_FALSE(AL.hasArg(OPT_SLASH_C));
+}
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 TYPED_TEST(OptTableTest, DoNotIgnoreCase) {
   TypeParam T;
@@ -342,12 +410,20 @@ TYPED_TEST(OptTableTest, FindNearest) {
   EXPECT_EQ(Nearest, "--blurmp=foo");
 
   // Flags should be included and excluded as specified.
-  EXPECT_EQ(1U, T.findNearest("-doopf", Nearest, /*FlagsToInclude=*/OptFlag2));
+  EXPECT_EQ(1U, T.findNearest("-doopf", Nearest,
+                              /*FlagsToInclude=*/OptFlag2,
+                              /*FlagsToExclude=*/0));
   EXPECT_EQ(Nearest, "-doopf2");
   EXPECT_EQ(1U, T.findNearest("-doopf", Nearest,
                               /*FlagsToInclude=*/0,
                               /*FlagsToExclude=*/OptFlag2));
   EXPECT_EQ(Nearest, "-doopf1");
+
+  // Spelling should respect visibility.
+  EXPECT_EQ(1U, T.findNearest("-xyzzy", Nearest, Visibility(DefaultVis)));
+  EXPECT_EQ(Nearest, "-xyzzy2");
+  EXPECT_EQ(1U, T.findNearest("-xyzzy", Nearest, Visibility(SubtoolVis)));
+  EXPECT_EQ(Nearest, "-xyzzy1");
 }
 
 TYPED_TEST(DISABLED_OptTableTest, FindNearestFIXME) {
@@ -462,4 +538,24 @@ TYPED_TEST(OptTableTest, UnknownGroupedShortOptions) {
   EXPECT_EQ("-z", Unknown[1]);
   EXPECT_EQ("-u", Unknown[2]);
   EXPECT_EQ("-z", Unknown[3]);
+}
+
+TYPED_TEST(OptTableTest, PrintMultilineHelpText) {
+  TypeParam T;
+  std::string Help;
+  raw_string_ostream RSO(Help);
+  T.printHelp(RSO, "usage", "title", /*ShowHidden=*/false,
+              /*ShowAllAliases=*/false, Visibility(MultiLineVis));
+  EXPECT_STREQ(Help.c_str(), R"(OVERVIEW: title
+
+USAGE: usage
+
+OPTIONS:
+  -multiline-help-with-long-name
+                  This a help text that has
+                  multiple lines in it
+                  and a long name
+  -multiline-help This a help text that has
+                  multiple lines in it
+)");
 }

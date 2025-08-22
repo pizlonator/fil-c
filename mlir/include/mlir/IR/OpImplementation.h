@@ -180,9 +180,21 @@ public:
   /// provide a valid type for the attribute.
   virtual void printAttributeWithoutType(Attribute attr);
 
+  /// Print the alias for the given attribute, return failure if no alias could
+  /// be printed.
+  virtual LogicalResult printAlias(Attribute attr);
+
+  /// Print the alias for the given type, return failure if no alias could
+  /// be printed.
+  virtual LogicalResult printAlias(Type type);
+
   /// Print the given string as a keyword, or a quoted and escaped string if it
   /// has any special or non-printable characters in it.
   virtual void printKeywordOrString(StringRef keyword);
+
+  /// Print the given string as a quoted string, escaping any special or
+  /// non-printable characters in it.
+  virtual void printString(StringRef string);
 
   /// Print the given string as a symbol reference, i.e. a form representable by
   /// a SymbolRefAttr. A symbol reference is represented as a string prefixed
@@ -222,22 +234,74 @@ public:
     printArrowTypeList(results);
   }
 
+  void printDimensionList(ArrayRef<int64_t> shape);
+
+  /// Class used to automatically end a cyclic region on destruction.
+  class CyclicPrintReset {
+  public:
+    explicit CyclicPrintReset(AsmPrinter *printer) : printer(printer) {}
+
+    ~CyclicPrintReset() {
+      if (printer)
+        printer->popCyclicPrinting();
+    }
+
+    CyclicPrintReset(const CyclicPrintReset &) = delete;
+
+    CyclicPrintReset &operator=(const CyclicPrintReset &) = delete;
+
+    CyclicPrintReset(CyclicPrintReset &&rhs)
+        : printer(std::exchange(rhs.printer, nullptr)) {}
+
+    CyclicPrintReset &operator=(CyclicPrintReset &&rhs) {
+      printer = std::exchange(rhs.printer, nullptr);
+      return *this;
+    }
+
+  private:
+    AsmPrinter *printer;
+  };
+
+  /// Attempts to start a cyclic printing region for `attrOrType`.
+  /// A cyclic printing region starts with this call and ends with the
+  /// destruction of the returned `CyclicPrintReset`. During this time,
+  /// calling `tryStartCyclicPrint` with the same attribute in any printer
+  /// will lead to returning failure.
+  ///
+  /// This makes it possible to break infinite recursions when trying to print
+  /// cyclic attributes or types by printing only immutable parameters if nested
+  /// within itself.
+  template <class AttrOrTypeT>
+  FailureOr<CyclicPrintReset> tryStartCyclicPrint(AttrOrTypeT attrOrType) {
+    static_assert(
+        std::is_base_of_v<AttributeTrait::IsMutable<AttrOrTypeT>,
+                          AttrOrTypeT> ||
+            std::is_base_of_v<TypeTrait::IsMutable<AttrOrTypeT>, AttrOrTypeT>,
+        "Only mutable attributes or types can be cyclic");
+    if (failed(pushCyclicPrinting(attrOrType.getAsOpaquePointer())))
+      return failure();
+    return CyclicPrintReset(this);
+  }
+
 protected:
   /// Initialize the printer with no internal implementation. In this case, all
   /// virtual methods of this class must be overriden.
   AsmPrinter() = default;
 
+  /// Pushes a new attribute or type in the form of a type erased pointer
+  /// into an internal set.
+  /// Returns success if the type or attribute was inserted in the set or
+  /// failure if it was already contained.
+  virtual LogicalResult pushCyclicPrinting(const void *opaquePointer);
+
+  /// Removes the element that was last inserted with a successful call to
+  /// `pushCyclicPrinting`. There must be exactly one `popCyclicPrinting` call
+  /// in reverse order of all successful `pushCyclicPrinting`.
+  virtual void popCyclicPrinting();
+
 private:
   AsmPrinter(const AsmPrinter &) = delete;
   void operator=(const AsmPrinter &) = delete;
-
-  /// Print the alias for the given attribute, return failure if no alias could
-  /// be printed.
-  virtual LogicalResult printAlias(Attribute attr);
-
-  /// Print the alias for the given type, return failure if no alias could
-  /// be printed.
-  virtual LogicalResult printAlias(Type type);
 
   /// The internal implementation of the printer.
   Impl *impl{nullptr};
@@ -577,6 +641,12 @@ public:
   /// Parse a '+' token if present.
   virtual ParseResult parseOptionalPlus() = 0;
 
+  /// Parse a '-' token.
+  virtual ParseResult parseMinus() = 0;
+
+  /// Parse a '-' token if present.
+  virtual ParseResult parseOptionalMinus() = 0;
+
   /// Parse a '*' token.
   virtual ParseResult parseStar() = 0;
 
@@ -636,6 +706,10 @@ public:
   /// Parse a floating point value from the stream.
   virtual ParseResult parseFloat(double &result) = 0;
 
+  /// Parse a floating point value into APFloat from the stream.
+  virtual ParseResult parseFloat(const llvm::fltSemantics &semantics,
+                                 APFloat &result) = 0;
+
   /// Parse an integer value from the stream.
   template <typename IntT>
   ParseResult parseInteger(IntT &result) {
@@ -646,16 +720,27 @@ public:
     return *parseResult;
   }
 
+  /// Parse a decimal integer value from the stream.
+  template <typename IntT>
+  ParseResult parseDecimalInteger(IntT &result) {
+    auto loc = getCurrentLocation();
+    OptionalParseResult parseResult = parseOptionalDecimalInteger(result);
+    if (!parseResult.has_value())
+      return emitError(loc, "expected decimal integer value");
+    return *parseResult;
+  }
+
   /// Parse an optional integer value from the stream.
   virtual OptionalParseResult parseOptionalInteger(APInt &result) = 0;
+  virtual OptionalParseResult parseOptionalDecimalInteger(APInt &result) = 0;
 
-  template <typename IntT>
-  OptionalParseResult parseOptionalInteger(IntT &result) {
+private:
+  template <typename IntT, typename ParseFn>
+  OptionalParseResult parseOptionalIntegerAndCheck(IntT &result,
+                                                   ParseFn &&parseFn) {
     auto loc = getCurrentLocation();
-
-    // Parse the unsigned variant.
     APInt uintResult;
-    OptionalParseResult parseResult = parseOptionalInteger(uintResult);
+    OptionalParseResult parseResult = parseFn(uintResult);
     if (!parseResult.has_value() || failed(*parseResult))
       return parseResult;
 
@@ -664,9 +749,25 @@ public:
     // zero for non-negated integers.
     result =
         (IntT)uintResult.sextOrTrunc(sizeof(IntT) * CHAR_BIT).getLimitedValue();
-    if (APInt(uintResult.getBitWidth(), result) != uintResult)
+    if (APInt(uintResult.getBitWidth(), result,
+              /*isSigned=*/std::is_signed_v<IntT>,
+              /*implicitTrunc=*/true) != uintResult)
       return emitError(loc, "integer value too large");
     return success();
+  }
+
+public:
+  template <typename IntT>
+  OptionalParseResult parseOptionalInteger(IntT &result) {
+    return parseOptionalIntegerAndCheck(
+        result, [&](APInt &result) { return parseOptionalInteger(result); });
+  }
+
+  template <typename IntT>
+  OptionalParseResult parseOptionalDecimalInteger(IntT &result) {
+    return parseOptionalIntegerAndCheck(result, [&](APInt &result) {
+      return parseOptionalDecimalInteger(result);
+    });
   }
 
   /// These are the supported delimiters around operand lists and region
@@ -1180,10 +1281,7 @@ public:
   }
 
   /// Parse a type list.
-  ParseResult parseTypeList(SmallVectorImpl<Type> &result) {
-    return parseCommaSeparatedList(
-        [&]() { return parseType(result.emplace_back()); });
-  }
+  ParseResult parseTypeList(SmallVectorImpl<Type> &result);
 
   /// Parse an arrow followed by a type list.
   virtual ParseResult parseArrowTypeList(SmallVectorImpl<Type> &result) = 0;
@@ -1265,11 +1363,66 @@ public:
   /// next token.
   virtual ParseResult parseXInDimensionList() = 0;
 
+  /// Class used to automatically end a cyclic region on destruction.
+  class CyclicParseReset {
+  public:
+    explicit CyclicParseReset(AsmParser *parser) : parser(parser) {}
+
+    ~CyclicParseReset() {
+      if (parser)
+        parser->popCyclicParsing();
+    }
+
+    CyclicParseReset(const CyclicParseReset &) = delete;
+    CyclicParseReset &operator=(const CyclicParseReset &) = delete;
+    CyclicParseReset(CyclicParseReset &&rhs)
+        : parser(std::exchange(rhs.parser, nullptr)) {}
+    CyclicParseReset &operator=(CyclicParseReset &&rhs) {
+      parser = std::exchange(rhs.parser, nullptr);
+      return *this;
+    }
+
+  private:
+    AsmParser *parser;
+  };
+
+  /// Attempts to start a cyclic parsing region for `attrOrType`.
+  /// A cyclic parsing region starts with this call and ends with the
+  /// destruction of the returned `CyclicParseReset`. During this time,
+  /// calling `tryStartCyclicParse` with the same attribute in any parser
+  /// will lead to returning failure.
+  ///
+  /// This makes it possible to parse cyclic attributes or types by parsing a
+  /// short from if nested within itself.
+  template <class AttrOrTypeT>
+  FailureOr<CyclicParseReset> tryStartCyclicParse(AttrOrTypeT attrOrType) {
+    static_assert(
+        std::is_base_of_v<AttributeTrait::IsMutable<AttrOrTypeT>,
+                          AttrOrTypeT> ||
+            std::is_base_of_v<TypeTrait::IsMutable<AttrOrTypeT>, AttrOrTypeT>,
+        "Only mutable attributes or types can be cyclic");
+    if (failed(pushCyclicParsing(attrOrType.getAsOpaquePointer())))
+      return failure();
+
+    return CyclicParseReset(this);
+  }
+
 protected:
   /// Parse a handle to a resource within the assembly format for the given
   /// dialect.
   virtual FailureOr<AsmDialectResourceHandle>
   parseResourceHandle(Dialect *dialect) = 0;
+
+  /// Pushes a new attribute or type in the form of a type erased pointer
+  /// into an internal set.
+  /// Returns success if the type or attribute was inserted in the set or
+  /// failure if it was already contained.
+  virtual LogicalResult pushCyclicParsing(const void *opaquePointer) = 0;
+
+  /// Removes the element that was last inserted with a successful call to
+  /// `pushCyclicParsing`. There must be exactly one `popCyclicParsing` call
+  /// in reverse order of all successful `pushCyclicParsing`.
+  virtual void popCyclicParsing() = 0;
 
   //===--------------------------------------------------------------------===//
   // Code Completion
@@ -1451,7 +1604,8 @@ public:
     size_t typeSize = llvm::range_size(types);
     if (operandSize != typeSize)
       return emitError(loc)
-             << operandSize << " operands present, but expected " << typeSize;
+             << "number of operands and types do not match: got " << operandSize
+             << " operands and " << typeSize << " types";
 
     for (auto [operand, type] : llvm::zip_equal(operands, types))
       if (resolveOperand(operand, type, result))
@@ -1481,9 +1635,9 @@ public:
   //===--------------------------------------------------------------------===//
 
   struct Argument {
-    UnresolvedOperand ssaName;    // SourceLoc, SSA name, result #.
-    Type type;                    // Type.
-    DictionaryAttr attrs;         // Attributes if present.
+    UnresolvedOperand ssaName;         // SourceLoc, SSA name, result #.
+    Type type;                         // Type.
+    DictionaryAttr attrs;              // Attributes if present.
     std::optional<Location> sourceLoc; // Source location specifier if present.
   };
 
@@ -1573,6 +1727,10 @@ public:
 // Dialect OpAsm interface.
 //===--------------------------------------------------------------------===//
 
+/// A functor used to set the name of the result. See 'getAsmResultNames' below
+/// for more details.
+using OpAsmSetNameFn = function_ref<void(StringRef)>;
+
 /// A functor used to set the name of the start of a result group of an
 /// operation. See 'getAsmResultNames' below for more details.
 using OpAsmSetValueNameFn = function_ref<void(Value, StringRef)>;
@@ -1648,6 +1806,17 @@ public:
                  const SetVector<AsmDialectResourceHandle> &referencedResources,
                  AsmResourceBuilder &builder) const {}
 };
+
+//===--------------------------------------------------------------------===//
+// Custom printers and parsers.
+//===--------------------------------------------------------------------===//
+
+// Handles custom<DimensionList>(...) in TableGen.
+void printDimensionList(OpAsmPrinter &printer, Operation *op,
+                        ArrayRef<int64_t> dimensions);
+ParseResult parseDimensionList(OpAsmParser &parser,
+                               DenseI64ArrayAttr &dimensions);
+
 } // namespace mlir
 
 //===--------------------------------------------------------------------===//
@@ -1655,7 +1824,8 @@ public:
 //===--------------------------------------------------------------------===//
 
 /// The OpAsmOpInterface, see OpAsmInterface.td for more details.
-#include "mlir/IR/OpAsmInterface.h.inc"
+#include "mlir/IR/OpAsmOpInterface.h.inc"
+#include "mlir/IR/OpAsmTypeInterface.h.inc"
 
 namespace llvm {
 template <>

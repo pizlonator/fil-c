@@ -57,6 +57,7 @@ foreach(arch ${MSAN_SUPPORTED_ARCH})
             $<TARGET_OBJECTS:RTSanitizerCommonLibc.${arch}>
             $<TARGET_OBJECTS:RTSanitizerCommonCoverage.${arch}>
             $<TARGET_OBJECTS:RTSanitizerCommonSymbolizer.${arch}>
+            $<TARGET_OBJECTS:RTSanitizerCommonSymbolizerInternal.${arch}>
             $<TARGET_OBJECTS:RTUbsan.${arch}>
     ADDITIONAL_HEADERS ${MSAN_RTL_HEADERS}
     CFLAGS ${MSAN_RTL_CFLAGS}
@@ -65,7 +66,6 @@ foreach(arch ${MSAN_SUPPORTED_ARCH})
     STATIC
     ARCHS ${arch}
     SOURCES ${MSAN_RTL_CXX_SOURCES}
-            $<TARGET_OBJECTS:RTUbsan_cxx.${arch}>
     ADDITIONAL_HEADERS ${MSAN_RTL_HEADERS}
     CFLAGS ${MSAN_RTL_CFLAGS}
     PARENT_TARGET msan)

@@ -5,17 +5,19 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef LLVM_LIBC_SRC_SUPPORT_CPP_SPAN_H
-#define LLVM_LIBC_SRC_SUPPORT_CPP_SPAN_H
+#ifndef LLVM_LIBC_SRC___SUPPORT_CPP_SPAN_H
+#define LLVM_LIBC_SRC___SUPPORT_CPP_SPAN_H
 
 #include <stddef.h> // For size_t
 
 #include "array.h"       // For array
+#include "src/__support/macros/config.h"
 #include "type_traits.h" // For remove_cv_t, enable_if_t, is_same_v, is_const_v
 
 #include "src/__support/macros/attributes.h"
 
-namespace __llvm_libc::cpp {
+namespace LIBC_NAMESPACE_DECL {
+namespace cpp {
 
 // A trimmed down implementation of std::span.
 // Missing features:
@@ -46,7 +48,7 @@ public:
   using const_reference = const T &;
   using iterator = T *;
 
-  static constexpr size_type dynamic_extent = -1;
+  LIBC_INLINE_VAR static constexpr size_type dynamic_extent = -1;
 
   LIBC_INLINE constexpr span() : span_data(nullptr), span_size(0) {}
 
@@ -119,6 +121,7 @@ private:
   size_t span_size;
 };
 
-} // namespace __llvm_libc::cpp
+} // namespace cpp
+} // namespace LIBC_NAMESPACE_DECL
 
-#endif /* LLVM_LIBC_SRC_SUPPORT_CPP_SPAN_H */
+#endif // LLVM_LIBC_SRC___SUPPORT_CPP_SPAN_H

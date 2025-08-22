@@ -59,7 +59,7 @@ char t6 (char* p) {
 }
 
 
-// PR13440 / <rdar://problem/11977113>
+// PR13440
 // Test that the array-to-pointer decay works for array references as well.
 // More generally, when we want an lvalue for a reference field, we still need
 // to do one level of load.
@@ -89,8 +89,8 @@ namespace PR13440 {
     S s = { a };
     S2 s2 = { a };
 
-    if (s.x != a) return;
-    if (s2.x != a) return;
+    if (s.x != a) return;  // expected-warning {{comparison between two arrays}}
+    if (s2.x != a) return; // expected-warning {{comparison between two arrays}}
 
     a[0] = 42;
     clang_analyzer_eval(s.x[0] == 42); // expected-warning{{TRUE}}

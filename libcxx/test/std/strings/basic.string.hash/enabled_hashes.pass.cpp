@@ -36,35 +36,35 @@ struct std::char_traits<MyChar> {
   static bool eq(char_type, char_type);
   static bool lt(char_type, char_type);
 
-  static int              compare(const char_type*, const char_type*, std::size_t);
-  static std::size_t           length(const char_type*);
+  static int compare(const char_type*, const char_type*, std::size_t);
+  static std::size_t length(const char_type*);
   static const char_type* find(const char_type*, std::size_t, const char_type&);
-  static char_type*       move(char_type*, const char_type*, std::size_t);
-  static char_type*       copy(char_type*, const char_type*, std::size_t);
-  static char_type*       assign(char_type*, std::size_t, char_type);
+  static char_type* move(char_type*, const char_type*, std::size_t);
+  static char_type* copy(char_type*, const char_type*, std::size_t);
+  static char_type* assign(char_type*, std::size_t, char_type);
 
-  static int_type  not_eof(int_type);
+  static int_type not_eof(int_type);
   static char_type to_char_type(int_type);
-  static int_type  to_int_type(char_type);
-  static bool      eq_int_type(int_type, int_type);
-  static int_type  eof();
+  static int_type to_int_type(char_type);
+  static bool eq_int_type(int_type, int_type);
+  static int_type eof();
 };
 
 int main(int, char**) {
   test_library_hash_specializations_available();
   {
-    test_hash_enabled_for_type<std::string>();
+    test_hash_enabled<std::string>();
 #ifndef TEST_HAS_NO_WIDE_CHARACTERS
-    test_hash_enabled_for_type<std::wstring>();
+    test_hash_enabled<std::wstring>();
 #endif
 #ifndef TEST_HAS_NO_CHAR8_T
-    test_hash_enabled_for_type<std::u8string>();
+    test_hash_enabled<std::u8string>();
 #endif
-    test_hash_enabled_for_type<std::u16string>();
-    test_hash_enabled_for_type<std::u32string>();
-    test_hash_enabled_for_type<std::basic_string<char, std::char_traits<char>, test_allocator<char>>>();
-    test_hash_disabled_for_type<std::basic_string<MyChar, std::char_traits<MyChar>, std::allocator<MyChar>>>();
-    test_hash_disabled_for_type<std::basic_string<char, constexpr_char_traits<char>, std::allocator<char>>>();
+    test_hash_enabled<std::u16string>();
+    test_hash_enabled<std::u32string>();
+    test_hash_enabled<std::basic_string<char, std::char_traits<char>, test_allocator<char>>>();
+    test_hash_disabled<std::basic_string<MyChar, std::char_traits<MyChar>, std::allocator<MyChar>>>();
+    test_hash_disabled<std::basic_string<char, constexpr_char_traits<char>, std::allocator<char>>>();
   }
 
   return 0;

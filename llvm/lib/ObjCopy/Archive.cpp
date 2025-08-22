@@ -11,7 +11,6 @@
 #include "llvm/ObjCopy/MultiFormatConfig.h"
 #include "llvm/ObjCopy/ObjCopy.h"
 #include "llvm/Object/Error.h"
-#include "llvm/Object/MachO.h"
 #include "llvm/Support/FileOutputBuffer.h"
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
 
@@ -60,8 +59,9 @@ createNewArchiveMembers(const MultiFormatConfig &Config, const Archive &Ar) {
 // For thin archives it writes the archive file itself as well as its members.
 static Error deepWriteArchive(StringRef ArcName,
                               ArrayRef<NewArchiveMember> NewMembers,
-                              bool WriteSymtab, object::Archive::Kind Kind,
-                              bool Deterministic, bool Thin) {
+                              SymtabWritingMode WriteSymtab,
+                              object::Archive::Kind Kind, bool Deterministic,
+                              bool Thin) {
   if (Kind == object::Archive::K_BSD && !NewMembers.empty() &&
       NewMembers.front().detectKindFromObject() == object::Archive::K_DARWIN)
     Kind = object::Archive::K_DARWIN;
@@ -102,8 +102,10 @@ Error executeObjcopyOnArchive(const MultiFormatConfig &Config,
     return NewArchiveMembersOrErr.takeError();
   const CommonConfig &CommonConfig = Config.getCommonConfig();
   return deepWriteArchive(CommonConfig.OutputFilename, *NewArchiveMembersOrErr,
-                          Ar.hasSymbolTable(), Ar.kind(),
-                          CommonConfig.DeterministicArchives, Ar.isThin());
+                          Ar.hasSymbolTable() ? SymtabWritingMode::NormalSymtab
+                                              : SymtabWritingMode::NoSymtab,
+                          Ar.kind(), CommonConfig.DeterministicArchives,
+                          Ar.isThin());
 }
 
 } // end namespace objcopy

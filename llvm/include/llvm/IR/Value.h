@@ -72,12 +72,6 @@ using ValueName = StringMapEntry<Value *>;
 /// objects that watch it and listen to RAUW and Destroy events.  See
 /// llvm/IR/ValueHandle.h for details.
 class Value {
-  Type *VTy;
-  Use *UseList;
-
-  friend class ValueAsMetadata; // Allow access to IsUsedByMD.
-  friend class ValueHandleBase;
-
   const unsigned char SubclassID;   // Subclass identifier (for isa/dyn_cast)
   unsigned char HasValueHandle : 1; // Has a ValueHandle pointing to this?
 
@@ -121,6 +115,12 @@ protected:
   unsigned HasDescriptor : 1;
 
 private:
+  Type *VTy;
+  Use *UseList;
+
+  friend class ValueAsMetadata; // Allow access to IsUsedByMD.
+  friend class ValueHandleBase; // Allow access to HasValueHandle.
+
   template <typename UseT> // UseT == 'Use' or 'const Use'
   class use_iterator_impl {
     friend class Value;
@@ -131,7 +131,7 @@ private:
 
   public:
     using iterator_category = std::forward_iterator_tag;
-    using value_type = UseT *;
+    using value_type = UseT;
     using difference_type = std::ptrdiff_t;
     using pointer = value_type *;
     using reference = value_type &;
@@ -242,7 +242,7 @@ public:
   ///
   /// This is useful when you just want to print 'int %reg126', not the
   /// instruction that generated it. If you specify a Module for context, then
-  /// even constanst get pretty-printed; for example, the type of a null
+  /// even constants get pretty-printed; for example, the type of a null
   /// pointer is printed symbolically.
   /// @{
   void printAsOperand(raw_ostream &O, bool PrintType = true,
@@ -562,7 +562,11 @@ protected:
   /// These functions require that the value have at most a single attachment
   /// of the given kind, and return \c nullptr if such an attachment is missing.
   /// @{
-  MDNode *getMetadata(unsigned KindID) const;
+  MDNode *getMetadata(unsigned KindID) const {
+    if (!HasMetadata)
+      return nullptr;
+    return getMetadataImpl(KindID);
+  }
   MDNode *getMetadata(StringRef Kind) const;
   /// @}
 
@@ -614,8 +618,16 @@ protected:
   /// \returns true if any metadata was removed.
   bool eraseMetadata(unsigned KindID);
 
+  /// Erase all metadata attachments matching the given predicate.
+  void eraseMetadataIf(function_ref<bool(unsigned, MDNode *)> Pred);
+
   /// Erase all metadata attached to this Value.
   void clearMetadata();
+
+  /// Get metadata for the given kind, if any.
+  /// This is an internal function that must only be called after
+  /// checking that `hasMetadata()` returns true.
+  MDNode *getMetadataImpl(unsigned KindID) const;
 
 public:
   /// Return true if this value is a swifterror value.
@@ -711,12 +723,16 @@ public:
       bool AllowInvariantGroup = false,
       function_ref<bool(Value &Value, APInt &Offset)> ExternalAnalysis =
           nullptr) const;
-  Value *stripAndAccumulateConstantOffsets(const DataLayout &DL, APInt &Offset,
-                                           bool AllowNonInbounds,
-                                           bool AllowInvariantGroup = false) {
+
+  Value *stripAndAccumulateConstantOffsets(
+      const DataLayout &DL, APInt &Offset, bool AllowNonInbounds,
+      bool AllowInvariantGroup = false,
+      function_ref<bool(Value &Value, APInt &Offset)> ExternalAnalysis =
+          nullptr) {
     return const_cast<Value *>(
         static_cast<const Value *>(this)->stripAndAccumulateConstantOffsets(
-            DL, Offset, AllowNonInbounds, AllowInvariantGroup));
+            DL, Offset, AllowNonInbounds, AllowInvariantGroup,
+            ExternalAnalysis));
   }
 
   /// This is a wrapper around stripAndAccumulateConstantOffsets with the

@@ -18,6 +18,7 @@ Basic Commands
    llc
    lli
    llvm-as
+   llvm-cgdata
    llvm-config
    llvm-cov
    llvm-cxxmap
@@ -96,5 +97,4 @@ Remarks Tools
 .. toctree::
    :maxdepth: 1
 
-   llvm-remark-size-diff
    llvm-remarkutil

@@ -1,4 +1,5 @@
 // RUN: %clang_cc1 -triple i386-pc-linux-gnu -emit-llvm < %s| FileCheck %s
+// RUN: %clang_cc1 -triple i386-pc-linux-gnu -emit-llvm -fexperimental-new-constant-interpreter < %s| FileCheck %s
 
 typedef __WCHAR_TYPE__ wchar_t;
 typedef __SIZE_TYPE__ size_t;
@@ -22,8 +23,6 @@ int test1(int argc, char **argv) {
   __builtin_memmove(&a, &b, sizeof(a));
   return 0;
 }
-
-// rdar://9289468
 
 // CHECK: @test2
 // CHECK: call void @llvm.memcpy.p0.p0.i32
@@ -57,7 +56,7 @@ int test6(char *X) {
 
 // CHECK: @test7
 // PR12094
-int test7(int *p) {
+void test7(int *p) {
   struct snd_pcm_hw_params_t* hwparams;  // incomplete type.
   
   // CHECK: call void @llvm.memset{{.*}} align 4 {{.*}}256, i1 false)
@@ -70,7 +69,6 @@ int test7(int *p) {
   // CHECK: call void @llvm.memset{{.*}} align 1{{.*}}256, i1 false)
 }
 
-// <rdar://problem/11314941>
 // Make sure we don't over-estimate the alignment of fields of
 // packed structs.
 struct PS {

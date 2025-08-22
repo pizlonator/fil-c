@@ -316,10 +316,10 @@ public:
   }
 
 private:
-  /// Add `symbol` to the current map and bind a `box`.
+  /// Bind `box` to `symRef` in the symbol map.
   void makeSym(semantics::SymbolRef symRef, const SymbolBox &box,
                bool force = false) {
-    const auto *sym = &symRef.get().GetUltimate();
+    auto *sym = symRef->HasLocalLocality() ? &*symRef : &symRef->GetUltimate();
     if (force)
       symbolMapStack.back().erase(sym);
     assert(box && "cannot add an undefined symbol box");
@@ -332,6 +332,16 @@ private:
   // Implied DO induction variables are not represented as Se::Symbol in
   // Ev::Expr. Keep the variable markers in their own stack.
   llvm::SmallVector<std::pair<AcDoVar, mlir::Value>> impliedDoStack;
+};
+
+/// RAII wrapper for SymMap.
+class SymMapScope {
+public:
+  explicit SymMapScope(SymMap &map) : map(map) { map.pushScope(); }
+  ~SymMapScope() { map.popScope(); }
+
+private:
+  SymMap &map;
 };
 
 } // namespace Fortran::lower

@@ -3,7 +3,7 @@ set(LLVM_LINK_COMPONENTS
   FrontendOpenMP
   )
 
-add_clang_library(findAllSymbols
+add_clang_library(findAllSymbols STATIC
   FindAllSymbols.cpp
   FindAllSymbolsAction.cpp
   FindAllMacros.cpp
@@ -15,6 +15,7 @@ add_clang_library(findAllSymbols
 
   DEPENDS
   omp_gen
+  ClangDriverOptions
   )
 
 clang_target_link_libraries(findAllSymbols

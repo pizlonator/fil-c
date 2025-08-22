@@ -20,6 +20,7 @@
 #include "mlir/Dialect/MemRef/Transforms/Transforms.h"
 #include "mlir/IR/TypeUtilities.h"
 #include "mlir/Transforms/DialectConversion.h"
+#include "llvm/ADT/STLExtras.h"
 
 namespace mlir {
 namespace memref {
@@ -33,18 +34,18 @@ using namespace mlir;
 namespace {
 
 /// Converts `atomic_rmw` that cannot be lowered to a simple atomic op with
-/// AtomicRMWOpLowering pattern, e.g. with "minf" or "maxf" attributes, to
-/// `memref.generic_atomic_rmw` with the expanded code.
+/// AtomicRMWOpLowering pattern, such as minimum and maximum operations for
+/// floating-point numbers, to `memref.generic_atomic_rmw` with the expanded
+/// code.
 ///
-/// %x = atomic_rmw "maxf" %fval, %F[%i] : (f32, memref<10xf32>) -> f32
+/// %x = atomic_rmw maximumf %fval, %F[%i] : (f32, memref<10xf32>) -> f32
 ///
 /// will be lowered to
 ///
 /// %x = memref.generic_atomic_rmw %F[%i] : memref<10xf32> {
 /// ^bb0(%current: f32):
-///   %cmp = arith.cmpf "ogt", %current, %fval : f32
-///   %new_value = select %cmp, %current, %fval : f32
-///   memref.atomic_yield %new_value : f32
+///   %1 = arith.maximumf %current, %fval : f32
+///   memref.atomic_yield %1 : f32
 /// }
 struct AtomicRMWOpConverter : public OpRewritePattern<memref::AtomicRMWOp> {
 public:
@@ -52,18 +53,6 @@ public:
 
   LogicalResult matchAndRewrite(memref::AtomicRMWOp op,
                                 PatternRewriter &rewriter) const final {
-    arith::CmpFPredicate predicate;
-    switch (op.getKind()) {
-    case arith::AtomicRMWKind::maxf:
-      predicate = arith::CmpFPredicate::OGT;
-      break;
-    case arith::AtomicRMWKind::minf:
-      predicate = arith::CmpFPredicate::OLT;
-      break;
-    default:
-      return failure();
-    }
-
     auto loc = op.getLoc();
     auto genericOp = rewriter.create<memref::GenericAtomicRMWOp>(
         loc, op.getMemref(), op.getIndices());
@@ -72,9 +61,10 @@ public:
 
     Value lhs = genericOp.getCurrentValue();
     Value rhs = op.getValue();
-    Value cmp = bodyBuilder.create<arith::CmpFOp>(loc, predicate, lhs, rhs);
-    Value select = bodyBuilder.create<arith::SelectOp>(loc, cmp, lhs, rhs);
-    bodyBuilder.create<memref::AtomicYieldOp>(loc, select);
+
+    Value arithOp =
+        mlir::arith::getReductionOp(op.getKind(), bodyBuilder, loc, lhs, rhs);
+    bodyBuilder.create<memref::AtomicYieldOp>(loc, arithOp);
 
     rewriter.replaceOp(op, genericOp.getResult());
     return success();
@@ -99,7 +89,8 @@ public:
     strides.resize(rank);
 
     Location loc = op.getLoc();
-    Value stride = rewriter.create<arith::ConstantIndexOp>(loc, 1);
+    Value stride = nullptr;
+    int64_t staticStride = 1;
     for (int i = rank - 1; i >= 0; --i) {
       Value size;
       // Load dynamic sizes from the shape input, use constants for static dims.
@@ -115,9 +106,22 @@ public:
         size = rewriter.create<arith::ConstantOp>(loc, sizeAttr);
         sizes[i] = sizeAttr;
       }
-      strides[i] = stride;
-      if (i > 0)
-        stride = rewriter.create<arith::MulIOp>(loc, stride, size);
+      if (stride)
+        strides[i] = stride;
+      else
+        strides[i] = rewriter.getIndexAttr(staticStride);
+
+      if (i > 0) {
+        if (stride) {
+          stride = rewriter.create<arith::MulIOp>(loc, stride, size);
+        } else if (op.getType().isDynamicDim(i)) {
+          stride = rewriter.create<arith::MulIOp>(
+              loc, rewriter.create<arith::ConstantIndexOp>(loc, staticStride),
+              size);
+        } else {
+          staticStride *= op.getType().getDimSize(i);
+        }
+      }
     }
     rewriter.replaceOpWithNewOp<memref::ReinterpretCastOp>(
         op, op.getType(), op.getSource(), /*offset=*/rewriter.getIndexAttr(0),
@@ -137,8 +141,10 @@ struct ExpandOpsPass : public memref::impl::ExpandOpsBase<ExpandOpsPass> {
     target.addLegalDialect<arith::ArithDialect, memref::MemRefDialect>();
     target.addDynamicallyLegalOp<memref::AtomicRMWOp>(
         [](memref::AtomicRMWOp op) {
-          return op.getKind() != arith::AtomicRMWKind::maxf &&
-                 op.getKind() != arith::AtomicRMWKind::minf;
+          constexpr std::array shouldBeExpandedKinds = {
+              arith::AtomicRMWKind::maximumf, arith::AtomicRMWKind::minimumf,
+              arith::AtomicRMWKind::minnumf, arith::AtomicRMWKind::maxnumf};
+          return !llvm::is_contained(shouldBeExpandedKinds, op.getKind());
         });
     target.addDynamicallyLegalOp<memref::ReshapeOp>([](memref::ReshapeOp op) {
       return !cast<MemRefType>(op.getShape().getType()).hasStaticShape();

@@ -2,10 +2,10 @@
 
 // CHECK: @test1.x = internal constant [12 x i32] [i32 1
 // CHECK: @__const.test2.x = private unnamed_addr constant [13 x i32] [i32 1,
-// CHECK: @test5w = {{(dso_local )?}}global { i32, [4 x i8] } { i32 2, [4 x i8] undef }
+// CHECK: @test5w = {{(dso_local )?}}global { i32, [4 x i8] } { i32 2, [4 x i8] zeroinitializer }
 // CHECK: @test5y = {{(dso_local )?}}global { double } { double 7.300000e+0{{[0]*}}1 }
 
-// CHECK: @__const.test6.x = private unnamed_addr constant %struct.SelectDest { i8 1, i8 2, i32 3, i32 0 }
+// CHECK: @__const.test6.x = private unnamed_addr constant { i8, i8, [2 x i8], i32, i32 } { i8 1, i8 2, [2 x i8] zeroinitializer, i32 3, i32 0 }
 
 // CHECK: @test7 = {{(dso_local )?}}global [2 x %struct.test7s] [%struct.test7s { i32 1, i32 2 }, %struct.test7s { i32 4, i32 0 }]
 
@@ -19,7 +19,6 @@ void test1(void) {
 }
 
 
-// rdar://7346691
 void test2(void) {
   // This should codegen as a "@test2.x" global + memcpy.
   int x[] = { 1, 2, 3, 4, 6, 8, 9, 10, 123, 231, 123,23, 24 };
@@ -78,13 +77,11 @@ void test6(void) {
   test6f(&x);
 }
 
-// rdar://7657600
 struct test7s { int a; int b; } test7[] = {
   {1, 2},
   {4},
 };
 
-// rdar://7872531
 #pragma pack(push, 2)
 struct test8s { int f0; char f1; } test8g = {};
 
@@ -104,7 +101,7 @@ void init_error(void) {
 
 
 
-// rdar://8147692 - ABI crash in recursive struct-through-function-pointer.
+// ABI crash in recursive struct-through-function-pointer.
 typedef struct {
   int x5a;
 } x5;

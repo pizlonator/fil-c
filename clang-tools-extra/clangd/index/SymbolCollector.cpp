@@ -18,6 +18,7 @@
 #include "clang-include-cleaner/Record.h"
 #include "clang-include-cleaner/Types.h"
 #include "index/CanonicalIncludes.h"
+#include "index/Ref.h"
 #include "index/Relation.h"
 #include "index/Symbol.h"
 #include "index/SymbolID.h"
@@ -41,6 +42,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
@@ -75,18 +77,62 @@ bool isPrivateProtoDecl(const NamedDecl &ND) {
   if (ND.getIdentifier() == nullptr)
     return false;
   auto Name = ND.getIdentifier()->getName();
-  if (!Name.contains('_'))
-    return false;
-  // Nested proto entities (e.g. Message::Nested) have top-level decls
-  // that shouldn't be used (Message_Nested). Ignore them completely.
-  // The nested entities are dangling type aliases, we may want to reconsider
-  // including them in the future.
-  // For enum constants, SOME_ENUM_CONSTANT is not private and should be
-  // indexed. Outer_INNER is private. This heuristic relies on naming style, it
-  // will include OUTER_INNER and exclude some_enum_constant.
-  // FIXME: the heuristic relies on naming style (i.e. no underscore in
-  // user-defined names) and can be improved.
-  return (ND.getKind() != Decl::EnumConstant) || llvm::any_of(Name, islower);
+  // There are some internal helpers like _internal_set_foo();
+  if (Name.contains("_internal_"))
+    return true;
+
+  // https://protobuf.dev/reference/cpp/cpp-generated/#nested-types
+  // Nested entities (messages/enums) has two names, one at the top-level scope,
+  // with a mangled name created by prepending all the outer types. These names
+  // are almost never preferred by the developers, so exclude them from index.
+  // e.g.
+  //   message Foo {
+  //    message Bar {}
+  //    enum E { A }
+  //   }
+  //
+  // yields:
+  //   class Foo_Bar {};
+  //   enum Foo_E { Foo_E_A };
+  //   class Foo {
+  //    using Bar = Foo_Bar;
+  //    static constexpr Foo_E A = Foo_E_A;
+  //   };
+
+  // We get rid of Foo_Bar and Foo_E by discarding any top-level entries with
+  // `_` in the name. This relies on original message/enum not having `_` in the
+  // name. Hence might go wrong in certain cases.
+  if (ND.getDeclContext()->isNamespace()) {
+    // Strip off some known public suffix helpers for enums, rest of the helpers
+    // are generated inside record decls so we don't care.
+    // https://protobuf.dev/reference/cpp/cpp-generated/#enum
+    Name.consume_back("_descriptor");
+    Name.consume_back("_IsValid");
+    Name.consume_back("_Name");
+    Name.consume_back("_Parse");
+    Name.consume_back("_MIN");
+    Name.consume_back("_MAX");
+    Name.consume_back("_ARRAYSIZE");
+    return Name.contains('_');
+  }
+
+  // EnumConstantDecls need some special attention, despite being nested in a
+  // TagDecl, they might still have mangled names. We filter those by checking
+  // if it has parent's name as a prefix.
+  // This might go wrong if a nested entity has a name that starts with parent's
+  // name, e.g: enum Foo { Foo_X }.
+  if (llvm::isa<EnumConstantDecl>(&ND)) {
+    auto *DC = llvm::cast<EnumDecl>(ND.getDeclContext());
+    if (!DC || !DC->getIdentifier())
+      return false;
+    auto CtxName = DC->getIdentifier()->getName();
+    return !CtxName.empty() && Name.consume_front(CtxName) &&
+           Name.consume_front("_");
+  }
+
+  // Now we're only left with fields/methods without an `_internal_` in the
+  // name, they're intended for public use.
+  return false;
 }
 
 // We only collect #include paths for symbols that are suitable for global code
@@ -174,7 +220,10 @@ bool isSpelled(SourceLocation Loc, const NamedDecl &ND) {
   auto Name = ND.getDeclName();
   const auto NameKind = Name.getNameKind();
   if (NameKind != DeclarationName::Identifier &&
-      NameKind != DeclarationName::CXXConstructorName)
+      NameKind != DeclarationName::CXXConstructorName &&
+      NameKind != DeclarationName::ObjCZeroArgSelector &&
+      NameKind != DeclarationName::ObjCOneArgSelector &&
+      NameKind != DeclarationName::ObjCMultiArgSelector)
     return false;
   const auto &AST = ND.getASTContext();
   const auto &SM = AST.getSourceManager();
@@ -182,8 +231,10 @@ bool isSpelled(SourceLocation Loc, const NamedDecl &ND) {
   clang::Token Tok;
   if (clang::Lexer::getRawToken(Loc, Tok, SM, LO))
     return false;
-  auto StrName = Name.getAsString();
-  return clang::Lexer::getSpelling(Tok, SM, LO) == StrName;
+  auto TokSpelling = clang::Lexer::getSpelling(Tok, SM, LO);
+  if (const auto *MD = dyn_cast<ObjCMethodDecl>(&ND))
+    return TokSpelling == MD->getSelector().getNameForSlot(0);
+  return TokSpelling == Name.getAsString();
 }
 } // namespace
 
@@ -262,7 +313,7 @@ public:
     if (Canonical.empty())
       return "";
     // If we had a mapping, always use it.
-    assert(Canonical.startswith("<") || Canonical.startswith("\""));
+    assert(Canonical.starts_with("<") || Canonical.starts_with("\""));
     return Canonical;
   }
 
@@ -285,9 +336,10 @@ private:
   }
 
   struct FrameworkHeaderPath {
-    // Path to the framework directory containing the Headers/PrivateHeaders
-    // directories  e.g. /Frameworks/Foundation.framework/
-    llvm::StringRef HeadersParentDir;
+    // Path to the frameworks directory containing the .framework directory.
+    llvm::StringRef FrameworkParentDir;
+    // Name of the framework.
+    llvm::StringRef FrameworkName;
     // Subpath relative to the Headers or PrivateHeaders dir, e.g. NSObject.h
     // Note: This is NOT relative to the `HeadersParentDir`.
     llvm::StringRef HeaderSubpath;
@@ -301,19 +353,17 @@ private:
     path::reverse_iterator I = path::rbegin(Path);
     path::reverse_iterator Prev = I;
     path::reverse_iterator E = path::rend(Path);
+    FrameworkHeaderPath HeaderPath;
     while (I != E) {
-      if (*I == "Headers") {
-        FrameworkHeaderPath HeaderPath;
-        HeaderPath.HeadersParentDir = Path.substr(0, I - E);
+      if (*I == "Headers" || *I == "PrivateHeaders") {
         HeaderPath.HeaderSubpath = Path.substr(Prev - E);
-        HeaderPath.IsPrivateHeader = false;
-        return HeaderPath;
-      }
-      if (*I == "PrivateHeaders") {
-        FrameworkHeaderPath HeaderPath;
-        HeaderPath.HeadersParentDir = Path.substr(0, I - E);
-        HeaderPath.HeaderSubpath = Path.substr(Prev - E);
-        HeaderPath.IsPrivateHeader = true;
+        HeaderPath.IsPrivateHeader = *I == "PrivateHeaders";
+        if (++I == E)
+          break;
+        HeaderPath.FrameworkName = *I;
+        if (!HeaderPath.FrameworkName.consume_back(".framework"))
+          break;
+        HeaderPath.FrameworkParentDir = Path.substr(0, I - E);
         return HeaderPath;
       }
       Prev = I;
@@ -328,42 +378,34 @@ private:
   // <Foundation/Foundation_Private.h> instead of
   // <Foundation/NSObject_Private.h> which should be used instead of directly
   // importing the header.
-  std::optional<std::string> getFrameworkUmbrellaSpelling(
-      llvm::StringRef Framework, SrcMgr::CharacteristicKind HeadersDirKind,
-      const HeaderSearch &HS, FrameworkHeaderPath &HeaderPath) {
+  std::optional<std::string>
+  getFrameworkUmbrellaSpelling(const HeaderSearch &HS,
+                               FrameworkHeaderPath &HeaderPath) {
+    StringRef Framework = HeaderPath.FrameworkName;
     auto Res = CacheFrameworkToUmbrellaHeaderSpelling.try_emplace(Framework);
     auto *CachedSpelling = &Res.first->second;
     if (!Res.second) {
       return HeaderPath.IsPrivateHeader ? CachedSpelling->PrivateHeader
                                         : CachedSpelling->PublicHeader;
     }
-    bool IsSystem = isSystem(HeadersDirKind);
-    SmallString<256> UmbrellaPath(HeaderPath.HeadersParentDir);
-    llvm::sys::path::append(UmbrellaPath, "Headers", Framework + ".h");
+    SmallString<256> UmbrellaPath(HeaderPath.FrameworkParentDir);
+    llvm::sys::path::append(UmbrellaPath, Framework + ".framework", "Headers",
+                            Framework + ".h");
 
     llvm::vfs::Status Status;
     auto StatErr = HS.getFileMgr().getNoncachedStatValue(UmbrellaPath, Status);
-    if (!StatErr) {
-      if (IsSystem)
-        CachedSpelling->PublicHeader = llvm::formatv("<{0}/{0}.h>", Framework);
-      else
-        CachedSpelling->PublicHeader =
-            llvm::formatv("\"{0}/{0}.h\"", Framework);
-    }
+    if (!StatErr)
+      CachedSpelling->PublicHeader = llvm::formatv("<{0}/{0}.h>", Framework);
 
-    UmbrellaPath = HeaderPath.HeadersParentDir;
-    llvm::sys::path::append(UmbrellaPath, "PrivateHeaders",
-                            Framework + "_Private.h");
+    UmbrellaPath = HeaderPath.FrameworkParentDir;
+    llvm::sys::path::append(UmbrellaPath, Framework + ".framework",
+                            "PrivateHeaders", Framework + "_Private.h");
 
     StatErr = HS.getFileMgr().getNoncachedStatValue(UmbrellaPath, Status);
-    if (!StatErr) {
-      if (IsSystem)
-        CachedSpelling->PrivateHeader =
-            llvm::formatv("<{0}/{0}_Private.h>", Framework);
-      else
-        CachedSpelling->PrivateHeader =
-            llvm::formatv("\"{0}/{0}_Private.h\"", Framework);
-    }
+    if (!StatErr)
+      CachedSpelling->PrivateHeader =
+          llvm::formatv("<{0}/{0}_Private.h>", Framework);
+
     return HeaderPath.IsPrivateHeader ? CachedSpelling->PrivateHeader
                                       : CachedSpelling->PublicHeader;
   }
@@ -372,35 +414,30 @@ private:
   // named `Framework`, e.g. `NSObject.h` in framework `Foundation` would
   // give <Foundation/Foundation.h> if the umbrella header exists, otherwise
   // <Foundation/NSObject.h>.
-  std::optional<llvm::StringRef> getFrameworkHeaderIncludeSpelling(
-      const FileEntry *FE, llvm::StringRef Framework, HeaderSearch &HS) {
-    auto Res = CachePathToFrameworkSpelling.try_emplace(FE->getName());
+  std::optional<llvm::StringRef>
+  getFrameworkHeaderIncludeSpelling(FileEntryRef FE, HeaderSearch &HS) {
+    auto Res = CachePathToFrameworkSpelling.try_emplace(FE.getName());
     auto *CachedHeaderSpelling = &Res.first->second;
     if (!Res.second)
       return llvm::StringRef(*CachedHeaderSpelling);
 
-    auto HeaderPath = splitFrameworkHeaderPath(FE->getName());
+    auto HeaderPath = splitFrameworkHeaderPath(FE.getName());
     if (!HeaderPath) {
       // Unexpected: must not be a proper framework header, don't cache the
       // failure.
       CachePathToFrameworkSpelling.erase(Res.first);
       return std::nullopt;
     }
-    auto DirKind = HS.getFileDirFlavor(FE);
     if (auto UmbrellaSpelling =
-            getFrameworkUmbrellaSpelling(Framework, DirKind, HS, *HeaderPath)) {
+            getFrameworkUmbrellaSpelling(HS, *HeaderPath)) {
       *CachedHeaderSpelling = *UmbrellaSpelling;
       return llvm::StringRef(*CachedHeaderSpelling);
     }
 
-    if (isSystem(DirKind))
-      *CachedHeaderSpelling =
-          llvm::formatv("<{0}/{1}>", Framework, HeaderPath->HeaderSubpath)
-              .str();
-    else
-      *CachedHeaderSpelling =
-          llvm::formatv("\"{0}/{1}\"", Framework, HeaderPath->HeaderSubpath)
-              .str();
+    *CachedHeaderSpelling =
+        llvm::formatv("<{0}/{1}>", HeaderPath->FrameworkName,
+                      HeaderPath->HeaderSubpath)
+            .str();
     return llvm::StringRef(*CachedHeaderSpelling);
   }
 
@@ -419,17 +456,14 @@ private:
     // Framework headers are spelled as <FrameworkName/Foo.h>, not
     // "path/FrameworkName.framework/Headers/Foo.h".
     auto &HS = PP->getHeaderSearchInfo();
-    if (const auto *HFI = HS.getExistingFileInfo(*FE, /*WantExternal*/ false))
-      if (!HFI->Framework.empty())
-        if (auto Spelling =
-                getFrameworkHeaderIncludeSpelling(*FE, HFI->Framework, HS))
-          return *Spelling;
+    if (auto Spelling = getFrameworkHeaderIncludeSpelling(*FE, HS))
+      return *Spelling;
 
     if (!tooling::isSelfContainedHeader(*FE, PP->getSourceManager(),
                                         PP->getHeaderSearchInfo())) {
       // A .inc or .def file is often included into a real header to define
       // symbols (e.g. LLVM tablegen files).
-      if (Filename.endswith(".inc") || Filename.endswith(".def"))
+      if (Filename.ends_with(".inc") || Filename.ends_with(".def"))
         // Don't use cache reentrantly due to iterator invalidation.
         return getIncludeHeaderUncached(SM.getFileID(SM.getIncludeLoc(FID)));
       // Conservatively refuse to insert #includes to files without guards.
@@ -516,9 +550,14 @@ bool SymbolCollector::shouldCollectSymbol(const NamedDecl &ND,
   // Avoid indexing internal symbols in protobuf generated headers.
   if (isPrivateProtoDecl(ND))
     return false;
+
+  // System headers that end with `intrin.h` likely contain useful symbols.
   if (!Opts.CollectReserved &&
       (hasReservedName(ND) || hasReservedScope(*ND.getDeclContext())) &&
-      ASTCtx.getSourceManager().isInSystemHeader(ND.getLocation()))
+      ASTCtx.getSourceManager().isInSystemHeader(ND.getLocation()) &&
+      !ASTCtx.getSourceManager()
+           .getFilename(ND.getLocation())
+           .ends_with("intrin.h"))
     return false;
 
   return true;
@@ -627,7 +666,7 @@ bool SymbolCollector::handleDeclOccurrence(
     auto FileLoc = SM.getFileLoc(Loc);
     auto FID = SM.getFileID(FileLoc);
     if (Opts.RefsInHeaders || FID == SM.getMainFileID()) {
-      addRef(ID, SymbolRef{FileLoc, FID, Roles,
+      addRef(ID, SymbolRef{FileLoc, FID, Roles, index::getSymbolInfo(ND).Kind,
                            getRefContainer(ASTNode.Parent, Opts),
                            isSpelled(FileLoc, *ND)});
     }
@@ -645,17 +684,21 @@ bool SymbolCollector::handleDeclOccurrence(
     return true;
 
   const Symbol *BasicSymbol = Symbols.find(ID);
-  if (isPreferredDeclaration(*OriginalDecl, Roles))
+  bool SkipDocCheckInDef = false;
+  if (isPreferredDeclaration(*OriginalDecl, Roles)) {
     // If OriginalDecl is preferred, replace/create the existing canonical
     // declaration (e.g. a class forward declaration). There should be at most
     // one duplicate as we expect to see only one preferred declaration per
     // TU, because in practice they are definitions.
     BasicSymbol = addDeclaration(*OriginalDecl, std::move(ID), IsMainFileOnly);
-  else if (!BasicSymbol || DeclIsCanonical)
+    SkipDocCheckInDef = true;
+  } else if (!BasicSymbol || DeclIsCanonical) {
     BasicSymbol = addDeclaration(*ND, std::move(ID), IsMainFileOnly);
+    SkipDocCheckInDef = true;
+  }
 
   if (Roles & static_cast<unsigned>(index::SymbolRole::Definition))
-    addDefinition(*OriginalDecl, *BasicSymbol);
+    addDefinition(*OriginalDecl, *BasicSymbol, SkipDocCheckInDef);
 
   return true;
 }
@@ -737,8 +780,10 @@ bool SymbolCollector::handleMacroOccurrence(const IdentifierInfo *Name,
     // FIXME: Populate container information for macro references.
     // FIXME: All MacroRefs are marked as Spelled now, but this should be
     // checked.
-    addRef(ID, SymbolRef{Loc, SM.getFileID(Loc), Roles, /*Container=*/nullptr,
-                         /*Spelled=*/true});
+    addRef(ID,
+           SymbolRef{Loc, SM.getFileID(Loc), Roles, index::SymbolKind::Macro,
+                     /*Container=*/nullptr,
+                     /*Spelled=*/true});
   }
 
   // Collect symbols.
@@ -836,26 +881,33 @@ void SymbolCollector::setIncludeLocation(const Symbol &S, SourceLocation DefLoc,
 
   // Use the expansion location to get the #include header since this is
   // where the symbol is exposed.
-  IncludeFiles[S.ID] = SM.getDecomposedExpansionLoc(DefLoc).first;
+  if (FileID FID = SM.getDecomposedExpansionLoc(DefLoc).first; FID.isValid())
+    IncludeFiles[S.ID] = FID;
+
+  // We update providers for a symbol with each occurence, as SymbolCollector
+  // might run while parsing, rather than at the end of a translation unit.
+  // Hence we see more and more redecls over time.
+  SymbolProviders[S.ID] =
+      include_cleaner::headersForSymbol(Sym, *PP, Opts.PragmaIncludes);
 }
 
 llvm::StringRef getStdHeader(const Symbol *S, const LangOptions &LangOpts) {
   tooling::stdlib::Lang Lang = tooling::stdlib::Lang::CXX;
-    if (LangOpts.C11)
-      Lang = tooling::stdlib::Lang::C;
-    else if(!LangOpts.CPlusPlus)
-      return "";
-
-    if (S->Scope == "std::" && S->Name == "move") {
-      if (!S->Signature.contains(','))
-        return "<utility>";
-      return "<algorithm>";
-    }
-   
-    if (auto StdSym = tooling::stdlib::Symbol::named(S->Scope, S->Name, Lang))
-     if (auto Header = StdSym->header())
-       return Header->name();
+  if (LangOpts.C11)
+    Lang = tooling::stdlib::Lang::C;
+  else if(!LangOpts.CPlusPlus)
     return "";
+
+  if (S->Scope == "std::" && S->Name == "move") {
+    if (!S->Signature.contains(','))
+      return "<utility>";
+    return "<algorithm>";
+  }
+
+  if (auto StdSym = tooling::stdlib::Symbol::named(S->Scope, S->Name, Lang))
+    if (auto Header = StdSym->header())
+      return Header->name();
+  return "";
 }
 
 void SymbolCollector::finish() {
@@ -881,20 +933,22 @@ void SymbolCollector::finish() {
     }
   }
   llvm::DenseMap<FileID, bool> FileToContainsImportsOrObjC;
+  llvm::DenseMap<include_cleaner::Header, std::string> HeaderSpelling;
   // Fill in IncludeHeaders.
   // We delay this until end of TU so header guards are all resolved.
-  for (const auto &[SID, FID] : IncludeFiles) {
+  for (const auto &[SID, Providers] : SymbolProviders) {
     const Symbol *S = Symbols.find(SID);
     if (!S)
       continue;
 
+    FileID FID = IncludeFiles.lookup(SID);
     // Determine if the FID is #include'd or #import'ed.
     Symbol::IncludeDirective Directives = Symbol::Invalid;
     auto CollectDirectives = shouldCollectIncludePath(S->SymInfo.Kind);
     if ((CollectDirectives & Symbol::Include) != 0)
       Directives |= Symbol::Include;
     // Only allow #import for symbols from ObjC-like files.
-    if ((CollectDirectives & Symbol::Import) != 0) {
+    if ((CollectDirectives & Symbol::Import) != 0 && FID.isValid()) {
       auto [It, Inserted] = FileToContainsImportsOrObjC.try_emplace(FID);
       if (Inserted)
         It->second = FilesWithObjCConstructs.contains(FID) ||
@@ -907,20 +961,79 @@ void SymbolCollector::finish() {
     if (Directives == Symbol::Invalid)
       continue;
 
-    // FIXME: Use the include-cleaner library instead.
-    llvm::StringRef IncludeHeader = getStdHeader(S, ASTCtx->getLangOpts());
-    if (IncludeHeader.empty())
-      IncludeHeader = HeaderFileURIs->getIncludeHeader(FID);
+    // Use the include location-based logic for Objective-C symbols.
+    if (Directives & Symbol::Import) {
+      llvm::StringRef IncludeHeader = getStdHeader(S, ASTCtx->getLangOpts());
+      if (IncludeHeader.empty())
+        IncludeHeader = HeaderFileURIs->getIncludeHeader(FID);
 
-    if (!IncludeHeader.empty()) {
+      if (!IncludeHeader.empty()) {
+        auto NewSym = *S;
+        NewSym.IncludeHeaders.push_back({IncludeHeader, 1, Directives});
+        Symbols.insert(NewSym);
+      }
+      // FIXME: use providers from include-cleaner library once it's polished
+      // for Objective-C.
+      continue;
+    }
+
+    // For #include's, use the providers computed by the include-cleaner
+    // library.
+    assert(Directives == Symbol::Include);
+    // Ignore providers that are not self-contained, this is especially
+    // important for symbols defined in the main-file. We want to prefer the
+    // header, if possible.
+    // TODO: Limit this to specifically ignore main file, when we're indexing a
+    // non-header file?
+    auto SelfContainedProvider =
+        [this](llvm::ArrayRef<include_cleaner::Header> Providers)
+        -> std::optional<include_cleaner::Header> {
+      for (const auto &H : Providers) {
+        if (H.kind() != include_cleaner::Header::Physical)
+          return H;
+        if (tooling::isSelfContainedHeader(H.physical(), PP->getSourceManager(),
+                                           PP->getHeaderSearchInfo()))
+          return H;
+      }
+      return std::nullopt;
+    };
+    const auto OptionalProvider = SelfContainedProvider(Providers);
+    if (!OptionalProvider)
+      continue;
+    const auto &H = *OptionalProvider;
+    const auto [SpellingIt, Inserted] = HeaderSpelling.try_emplace(H);
+    if (Inserted) {
+      auto &SM = ASTCtx->getSourceManager();
+      if (H.kind() == include_cleaner::Header::Kind::Physical) {
+        // FIXME: Get rid of this once include-cleaner has support for system
+        // headers.
+        if (auto Canonical =
+                HeaderFileURIs->mapCanonical(H.physical().getName());
+            !Canonical.empty())
+          SpellingIt->second = Canonical;
+        // For physical files, prefer URIs as spellings might change
+        // depending on the translation unit.
+        else if (tooling::isSelfContainedHeader(H.physical(), SM,
+                                                PP->getHeaderSearchInfo()))
+          SpellingIt->second =
+              HeaderFileURIs->toURI(H.physical());
+      } else {
+        SpellingIt->second = include_cleaner::spellHeader(
+            {H, PP->getHeaderSearchInfo(),
+             SM.getFileEntryForID(SM.getMainFileID())});
+      }
+    }
+
+    if (!SpellingIt->second.empty()) {
       auto NewSym = *S;
-      NewSym.IncludeHeaders.push_back({IncludeHeader, 1, Directives});
+      NewSym.IncludeHeaders.push_back({SpellingIt->second, 1, Directives});
       Symbols.insert(NewSym);
     }
   }
 
   ReferencedSymbols.clear();
   IncludeFiles.clear();
+  SymbolProviders.clear();
   FilesWithObjCConstructs.clear();
 }
 
@@ -967,16 +1080,28 @@ const Symbol *SymbolCollector::addDeclaration(const NamedDecl &ND, SymbolID ID,
       *ASTCtx, *PP, CodeCompletionContext::CCC_Symbol, *CompletionAllocator,
       *CompletionTUInfo,
       /*IncludeBriefComments*/ false);
-  std::string Documentation =
-      formatDocumentation(*CCS, getDocComment(Ctx, SymbolCompletion,
-                                              /*CommentsFromHeaders=*/true));
+  std::string DocComment;
+  std::string Documentation;
+  bool AlreadyHasDoc = S.Flags & Symbol::HasDocComment;
+  if (!AlreadyHasDoc) {
+    DocComment = getDocComment(Ctx, SymbolCompletion,
+                               /*CommentsFromHeaders=*/true);
+    Documentation = formatDocumentation(*CCS, DocComment);
+  }
+  const auto UpdateDoc = [&] {
+    if (!AlreadyHasDoc) {
+      if (!DocComment.empty())
+        S.Flags |= Symbol::HasDocComment;
+      S.Documentation = Documentation;
+    }
+  };
   if (!(S.Flags & Symbol::IndexedForCodeCompletion)) {
     if (Opts.StoreAllDocumentation)
-      S.Documentation = Documentation;
+      UpdateDoc();
     Symbols.insert(S);
     return Symbols.find(S.ID);
   }
-  S.Documentation = Documentation;
+  UpdateDoc();
   std::string Signature;
   std::string SnippetSuffix;
   getSignature(*CCS, &Signature, &SnippetSuffix, SymbolCompletion.Kind,
@@ -1000,8 +1125,8 @@ const Symbol *SymbolCollector::addDeclaration(const NamedDecl &ND, SymbolID ID,
   return Symbols.find(S.ID);
 }
 
-void SymbolCollector::addDefinition(const NamedDecl &ND,
-                                    const Symbol &DeclSym) {
+void SymbolCollector::addDefinition(const NamedDecl &ND, const Symbol &DeclSym,
+                                    bool SkipDocCheck) {
   if (DeclSym.Definition)
     return;
   const auto &SM = ND.getASTContext().getSourceManager();
@@ -1016,6 +1141,27 @@ void SymbolCollector::addDefinition(const NamedDecl &ND,
   Symbol S = DeclSym;
   // FIXME: use the result to filter out symbols.
   S.Definition = *DefLoc;
+
+  std::string DocComment;
+  std::string Documentation;
+  if (!SkipDocCheck && !(S.Flags & Symbol::HasDocComment) &&
+      (llvm::isa<FunctionDecl>(ND) || llvm::isa<CXXMethodDecl>(ND))) {
+    CodeCompletionResult SymbolCompletion(&getTemplateOrThis(ND), 0);
+    const auto *CCS = SymbolCompletion.CreateCodeCompletionString(
+        *ASTCtx, *PP, CodeCompletionContext::CCC_Symbol, *CompletionAllocator,
+        *CompletionTUInfo,
+        /*IncludeBriefComments*/ false);
+    DocComment = getDocComment(ND.getASTContext(), SymbolCompletion,
+                               /*CommentsFromHeaders=*/true);
+    if (!S.Documentation.empty())
+      Documentation = S.Documentation.str() + '\n' + DocComment;
+    else
+      Documentation = formatDocumentation(*CCS, DocComment);
+    if (!DocComment.empty())
+      S.Flags |= Symbol::HasDocComment;
+    S.Documentation = Documentation;
+  }
+
   Symbols.insert(S);
 }
 
@@ -1026,6 +1172,14 @@ bool SymbolCollector::shouldIndexFile(FileID FID) {
   if (I.second)
     I.first->second = Opts.FileFilter(ASTCtx->getSourceManager(), FID);
   return I.first->second;
+}
+
+static bool refIsCall(index::SymbolKind Kind) {
+  using SK = index::SymbolKind;
+  return Kind == SK::Function || Kind == SK::InstanceMethod ||
+         Kind == SK::ClassMethod || Kind == SK::StaticMethod ||
+         Kind == SK::Constructor || Kind == SK::Destructor ||
+         Kind == SK::ConversionFunction;
 }
 
 void SymbolCollector::addRef(SymbolID ID, const SymbolRef &SR) {
@@ -1039,6 +1193,9 @@ void SymbolCollector::addRef(SymbolID ID, const SymbolRef &SR) {
     R.Location.End = Range.second;
     R.Location.FileURI = HeaderFileURIs->toURI(*FE).c_str();
     R.Kind = toRefKind(SR.Roles, SR.Spelled);
+    if (refIsCall(SR.Kind)) {
+      R.Kind |= RefKind::Call;
+    }
     R.Container = getSymbolIDCached(SR.Container);
     Refs.insert(ID, R);
   }

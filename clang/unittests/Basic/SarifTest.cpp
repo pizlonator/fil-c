@@ -35,7 +35,6 @@ static std::string serializeSarifDocument(llvm::json::Object &&Doc) {
   llvm::json::Value Value(std::move(Doc));
   llvm::raw_string_ostream OS{Output};
   OS << llvm::formatv("{0}", Value);
-  OS.flush();
   return Output;
 }
 
@@ -60,8 +59,8 @@ protected:
                         bool IsMainFile = false) {
     std::unique_ptr<llvm::MemoryBuffer> SourceBuf =
         llvm::MemoryBuffer::getMemBuffer(SourceText);
-    const FileEntry *SourceFile =
-        FileMgr.getVirtualFile(Name, SourceBuf->getBufferSize(), 0);
+    FileEntryRef SourceFile =
+        FileMgr.getVirtualFileRef(Name, SourceBuf->getBufferSize(), 0);
     SourceMgr.overrideFileContents(SourceFile, std::move(SourceBuf));
     FileID FID = SourceMgr.getOrCreateFileID(SourceFile, SrcMgr::C_User);
     if (IsMainFile)

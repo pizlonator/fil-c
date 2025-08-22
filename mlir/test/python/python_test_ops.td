@@ -32,7 +32,9 @@ class TestAttr<string name, string attrMnemonic>
 }
 
 class TestOp<string mnemonic, list<Trait> traits = []>
-    : Op<Python_Test_Dialect, mnemonic, traits>;
+    : Op<Python_Test_Dialect, mnemonic, traits> {
+  let assemblyFormat = "operands attr-dict functional-type(operands, results)";
+}
 
 //===----------------------------------------------------------------------===//
 // Type definitions.
@@ -56,21 +58,65 @@ def AttributedOp : TestOp<"attributed_op"> {
                    UnitAttr:$unit);
 }
 
+def CustomAttributedOp : TestOp<"custom_attributed_op"> {
+  let arguments = (ins TestAttr:$test_attr);
+}
+
 def AttributesOp : TestOp<"attributes_op"> {
-  let arguments = (ins BoolAttr:$x_bool,
-                   I16Attr: $x_i16,
-                   I32Attr: $x_i32,
-                   I64Attr: $x_i64,
-                   SI16Attr: $x_si16,
-                   SI32Attr: $x_si32,
-                   F32Attr: $x_f32,
-                   F64Attr: $x_f64,
-                   StrAttr: $x_str,
-                   I32ArrayAttr: $x_i32_array,
-                   I64ArrayAttr: $x_i64_array,
-                   F32ArrayAttr: $x_f32_array,
-                   F64ArrayAttr: $x_f64_array,
-                   DenseI64ArrayAttr: $x_i64_dense);
+  let arguments = (ins
+                   AffineMapArrayAttr:$x_affinemaparr,
+                   AffineMapAttr:$x_affinemap,
+                   ArrayAttr:$x_arr,
+                   BoolArrayAttr:$x_boolarr,
+                   BoolAttr:$x_bool,
+                   DenseBoolArrayAttr:$x_dboolarr,
+                   DenseF32ArrayAttr:$x_df32arr,
+                   DenseF64ArrayAttr:$x_df64arr,
+                   DenseI16ArrayAttr:$x_df16arr,
+                   DenseI32ArrayAttr:$x_di32arr,
+                   DenseI64ArrayAttr:$x_di64arr,
+                   DenseI8ArrayAttr:$x_di8arr,
+                   DictArrayAttr:$x_dictarr,
+                   DictionaryAttr:$x_dict,
+                   F32ArrayAttr:$x_f32arr,
+                   F32Attr:$x_f32,
+                   F64ArrayAttr:$x_f64arr,
+                   F64Attr:$x_f64,
+                   F64ElementsAttr:$x_f64elems,
+                   FlatSymbolRefArrayAttr:$x_flatsymrefarr,
+                   FlatSymbolRefAttr:$x_flatsymref,
+                   I16Attr:$x_i16,
+                   I1Attr:$x_i1,
+                   I32ArrayAttr:$x_i32arr,
+                   I32Attr:$x_i32,
+                   I32ElementsAttr:$x_i32elems,
+                   I64ArrayAttr:$x_i64arr,
+                   I64Attr:$x_i64,
+                   I64ElementsAttr:$x_i64elems,
+                   I64SmallVectorArrayAttr:$x_i64svecarr,
+                   I8Attr:$x_i8,
+                   IndexAttr:$x_idx,
+                   IndexElementsAttr:$x_idxelems,
+                   IndexListArrayAttr:$x_idxlistarr,
+                   SI16Attr:$x_si16,
+                   SI1Attr:$x_si1,
+                   SI32Attr:$x_si32,
+                   SI64Attr:$x_si64,
+                   SI8Attr:$x_si8,
+                   StrArrayAttr:$x_strarr,
+                   StrAttr:$x_str,
+                   SymbolNameAttr:$x_sym,
+                   SymbolRefArrayAttr:$x_symrefarr,
+                   SymbolRefAttr:$x_symref,
+                   TypeArrayAttr:$x_typearr,
+                   TypeAttr:$x_type,
+                   UI16Attr:$x_ui16,
+                   UI1Attr:$x_ui1,
+                   UI32Attr:$x_ui32,
+                   UI64Attr:$x_ui64,
+                   UI8Attr:$x_ui8,
+                   UnitAttr:$x_unit
+                   );
 }
 
 def PropertyOp : TestOp<"property_op"> {
@@ -86,7 +132,7 @@ def InferResultsOp : TestOp<"infer_results_op", [InferTypeOpInterface]> {
   let results = (outs AnyInteger:$single, AnyInteger:$doubled);
 
   let extraClassDeclaration = [{
-    static ::mlir::LogicalResult inferReturnTypes(
+    static ::llvm::LogicalResult inferReturnTypes(
       ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
       ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
       ::mlir::OpaqueProperties,
@@ -109,7 +155,7 @@ def InferResultsVariadicInputsOp : TestOp<"infer_results_variadic_inputs_op",
   let results = (outs I32OrF32:$res);
 
   let extraClassDeclaration = [{
-    static ::mlir::LogicalResult inferReturnTypes(
+    static ::llvm::LogicalResult inferReturnTypes(
       ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
       ::mlir::ValueRange operands, ::mlir::DictionaryAttr attributes,
       ::mlir::OpaqueProperties,
@@ -138,7 +184,7 @@ def InferShapedTypeComponentsOp : TestOp<"infer_shaped_type_components_op",
   let results = (outs AnyTensor:$result);
 
   let extraClassDefinition = [{
-    ::mlir::LogicalResult $cppClass::inferReturnTypeComponents(
+    ::llvm::LogicalResult $cppClass::inferReturnTypeComponents(
       ::mlir::MLIRContext *context, ::std::optional<::mlir::Location> location,
       ::mlir::ValueShapeRange operands, ::mlir::DictionaryAttr attributes,
       ::mlir::OpaqueProperties properties, ::mlir::RegionRange regions,
@@ -179,6 +225,44 @@ def FirstAttrDeriveAttrOp : TestOp<"first_attr_derive_attr_op",
 def OptionalOperandOp : TestOp<"optional_operand_op"> {
   let arguments = (ins Optional<AnyType>:$input);
   let results = (outs I32:$result);
+}
+
+def SameVariadicOperandSizeOp : TestOp<"same_variadic_operand",
+                                       [SameVariadicOperandSize]> {
+  let arguments = (ins Variadic<AnyType>:$variadic1, AnyType:$non_variadic,
+                   Variadic<AnyType>:$variadic2);
+}
+
+// Check different arrangements of variadic groups
+def SameVariadicResultSizeOpVFV : TestOp<"same_variadic_result_vfv",
+                                        [SameVariadicResultSize]> {
+  let results = (outs Variadic<AnyType>:$variadic1, AnyType:$non_variadic,
+                 Variadic<AnyType>:$variadic2);
+}
+
+def SameVariadicResultSizeOpVVV : TestOp<"same_variadic_result_vvv",
+                                        [SameVariadicResultSize]> {
+  let results = (outs Variadic<AnyType>:$variadic1, Variadic<AnyType>:$variadic2,
+                 Variadic<AnyType>:$variadic3);
+}
+
+def SameVariadicResultSizeOpFFV : TestOp<"same_variadic_result_ffv",
+                                        [SameVariadicResultSize]> {
+  let results = (outs AnyType:$non_variadic1, AnyType:$non_variadic2,
+                 Variadic<AnyType>:$variadic);
+}
+
+def SameVariadicResultSizeOpVVF : TestOp<"same_variadic_result_vvf",
+                                        [SameVariadicResultSize]> {
+  let results = (outs Variadic<AnyType>:$variadic1, Variadic<AnyType>:$variadic2,
+                 AnyType:$non_variadic);
+}
+
+def SameVariadicResultSizeOpFVFVF : TestOp<"same_variadic_result_fvfvf",
+                                          [SameVariadicResultSize]> {
+  let results = (outs AnyType:$non_variadic1, Variadic<AnyType>:$variadic1,
+                 AnyType:$non_variadic2, Variadic<AnyType>:$variadic2,
+                 AnyType:$non_variadic3);
 }
 
 #endif // PYTHON_TEST_OPS

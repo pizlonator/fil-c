@@ -297,7 +297,8 @@ public:
   using MemoryMemberSet = SmallPtrSet<const MemoryMemberType *, 2>;
 
   explicit CongruenceClass(unsigned ID) : ID(ID) {}
-  CongruenceClass(unsigned ID, Value *Leader, const Expression *E)
+  CongruenceClass(unsigned ID, std::pair<Value *, unsigned int> Leader,
+                  const Expression *E)
       : ID(ID), RepLeader(Leader), DefiningExpr(E) {}
 
   unsigned getID() const { return ID; }
@@ -311,15 +312,23 @@ public:
   }
 
   // Leader functions
-  Value *getLeader() const { return RepLeader; }
-  void setLeader(Value *Leader) { RepLeader = Leader; }
+  Value *getLeader() const { return RepLeader.first; }
+  void setLeader(std::pair<Value *, unsigned int> Leader) {
+    RepLeader = Leader;
+  }
   const std::pair<Value *, unsigned int> &getNextLeader() const {
     return NextLeader;
   }
   void resetNextLeader() { NextLeader = {nullptr, ~0}; }
-  void addPossibleNextLeader(std::pair<Value *, unsigned int> LeaderPair) {
-    if (LeaderPair.second < NextLeader.second)
+  bool addPossibleLeader(std::pair<Value *, unsigned int> LeaderPair) {
+    if (LeaderPair.second < RepLeader.second) {
+      NextLeader = RepLeader;
+      RepLeader = LeaderPair;
+      return true;
+    } else if (LeaderPair.second < NextLeader.second) {
       NextLeader = LeaderPair;
+    }
+    return false;
   }
 
   Value *getStoredValue() const { return RepStoredValue; }
@@ -392,11 +401,13 @@ public:
 private:
   unsigned ID;
 
-  // Representative leader.
-  Value *RepLeader = nullptr;
+  // Representative leader and its corresponding RPO number.
+  // The leader must have the lowest RPO number.
+  std::pair<Value *, unsigned int> RepLeader = {nullptr, ~0U};
 
-  // The most dominating leader after our current leader, because the member set
-  // is not sorted and is expensive to keep sorted all the time.
+  // The most dominating leader after our current leader (given by the RPO
+  // number), because the member set is not sorted and is expensive to keep
+  // sorted all the time.
   std::pair<Value *, unsigned int> NextLeader = {nullptr, ~0U};
 
   // If this is represented by a store, the value of the store.
@@ -529,7 +540,11 @@ class NewGVN {
   // IR.
   SmallPtrSet<const Instruction *, 8> PHINodeUses;
 
-  DenseMap<const Value *, bool> OpSafeForPHIOfOps;
+  // The cached results, in general, are only valid for the specific block where
+  // they were computed. The unsigned part of the key is a unique block
+  // identifier
+  DenseMap<std::pair<const Value *, unsigned>, bool> OpSafeForPHIOfOps;
+  unsigned CacheIdx;
 
   // Map a temporary instruction we created to a parent block.
   DenseMap<const Value *, BasicBlock *> TempToBlock;
@@ -731,7 +746,19 @@ private:
 
   // Congruence class handling.
   CongruenceClass *createCongruenceClass(Value *Leader, const Expression *E) {
-    auto *result = new CongruenceClass(NextCongruenceNum++, Leader, E);
+    // Set RPO to 0 for values that are always available (constants and function
+    // args). These should always be made leader.
+    unsigned LeaderDFS = 0;
+
+    // If Leader is not specified, either we have a memory class or the leader
+    // will be set later. Otherwise, if Leader is an Instruction, set LeaderDFS
+    // to its RPO number.
+    if (!Leader)
+      LeaderDFS = ~0;
+    else if (auto *I = dyn_cast<Instruction>(Leader))
+      LeaderDFS = InstrToDFSNum(I);
+    auto *result =
+        new CongruenceClass(NextCongruenceNum++, {Leader, LeaderDFS}, E);
     CongruenceClasses.emplace_back(result);
     return result;
   }
@@ -774,7 +801,7 @@ private:
 
   // Symbolic evaluation.
   ExprResult checkExprResults(Expression *, Instruction *, Value *) const;
-  ExprResult performSymbolicEvaluation(Value *,
+  ExprResult performSymbolicEvaluation(Instruction *,
                                        SmallPtrSetImpl<Value *> &) const;
   const Expression *performSymbolicLoadCoercion(Type *, Value *, LoadInst *,
                                                 Instruction *,
@@ -892,7 +919,7 @@ private:
 
   // Debug counter info.  When verifying, we have to reset the value numbering
   // debug counter to the same state it started in to get the same results.
-  int64_t StartingVNCounter = 0;
+  DebugCounter::CounterState StartingVNCounter;
 };
 
 } // end anonymous namespace
@@ -916,6 +943,18 @@ bool StoreExpression::equals(const Expression &Other) const {
     if (getStoredValue() != S->getStoredValue())
       return false;
   return true;
+}
+
+bool CallExpression::equals(const Expression &Other) const {
+  if (!MemoryExpression::equals(Other))
+    return false;
+
+  if (auto *RHS = dyn_cast<CallExpression>(&Other))
+    return Call->getAttributes()
+        .intersectWith(Call->getContext(), RHS->Call->getAttributes())
+        .has_value();
+
+  return false;
 }
 
 // Determine if the edge From->To is a backedge
@@ -1199,7 +1238,7 @@ NewGVN::ExprResult NewGVN::createExpression(Instruction *I) const {
   } else if (auto *GEPI = dyn_cast<GetElementPtrInst>(I)) {
     Value *V = simplifyGEPInst(GEPI->getSourceElementType(), *E->op_begin(),
                                ArrayRef(std::next(E->op_begin()), E->op_end()),
-                               GEPI->isInBounds(), Q);
+                               GEPI->getNoWrapFlags(), Q);
     if (auto Simplified = checkExprResults(E, I, V))
       return Simplified;
   } else if (AllConstant) {
@@ -1904,7 +1943,7 @@ NewGVN::ExprResult NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
       LastPredInfo = PI;
       // In phi of ops cases, we may have predicate info that we are evaluating
       // in a different context.
-      if (!DT->dominates(PBranch->To, getBlockForValue(I)))
+      if (!DT->dominates(PBranch->To, I->getParent()))
         continue;
       // TODO: Along the false edge, we may know more things too, like
       // icmp of
@@ -1925,18 +1964,10 @@ NewGVN::ExprResult NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
         if (PBranch->TrueEdge) {
           // If we know the previous predicate is true and we are in the true
           // edge then we may be implied true or false.
-          if (CmpInst::isImpliedTrueByMatchingCmp(BranchPredicate,
-                                                  OurPredicate)) {
-            return ExprResult::some(
-                createConstantExpression(ConstantInt::getTrue(CI->getType())),
-                PI);
-          }
-
-          if (CmpInst::isImpliedFalseByMatchingCmp(BranchPredicate,
-                                                   OurPredicate)) {
-            return ExprResult::some(
-                createConstantExpression(ConstantInt::getFalse(CI->getType())),
-                PI);
+          if (auto R = ICmpInst::isImpliedByMatchingCmp(BranchPredicate,
+                                                        OurPredicate)) {
+            auto *C = ConstantInt::getBool(CI->getType(), *R);
+            return ExprResult::some(createConstantExpression(C), PI);
           }
         } else {
           // Just handle the ne and eq cases, where if we have the same
@@ -1961,95 +1992,88 @@ NewGVN::ExprResult NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
   return createExpression(I);
 }
 
-// Substitute and symbolize the value before value numbering.
+// Substitute and symbolize the instruction before value numbering.
 NewGVN::ExprResult
-NewGVN::performSymbolicEvaluation(Value *V,
+NewGVN::performSymbolicEvaluation(Instruction *I,
                                   SmallPtrSetImpl<Value *> &Visited) const {
 
   const Expression *E = nullptr;
-  if (auto *C = dyn_cast<Constant>(V))
-    E = createConstantExpression(C);
-  else if (isa<Argument>(V) || isa<GlobalVariable>(V)) {
-    E = createVariableExpression(V);
-  } else {
-    // TODO: memory intrinsics.
-    // TODO: Some day, we should do the forward propagation and reassociation
-    // parts of the algorithm.
-    auto *I = cast<Instruction>(V);
-    switch (I->getOpcode()) {
-    case Instruction::ExtractValue:
-    case Instruction::InsertValue:
-      E = performSymbolicAggrValueEvaluation(I);
-      break;
-    case Instruction::PHI: {
-      SmallVector<ValPair, 3> Ops;
-      auto *PN = cast<PHINode>(I);
-      for (unsigned i = 0; i < PN->getNumOperands(); ++i)
-        Ops.push_back({PN->getIncomingValue(i), PN->getIncomingBlock(i)});
-      // Sort to ensure the invariant createPHIExpression requires is met.
-      sortPHIOps(Ops);
-      E = performSymbolicPHIEvaluation(Ops, I, getBlockForValue(I));
-    } break;
-    case Instruction::Call:
-      return performSymbolicCallEvaluation(I);
-      break;
-    case Instruction::Store:
-      E = performSymbolicStoreEvaluation(I);
-      break;
-    case Instruction::Load:
-      E = performSymbolicLoadEvaluation(I);
-      break;
-    case Instruction::BitCast:
-    case Instruction::AddrSpaceCast:
-    case Instruction::Freeze:
-      return createExpression(I);
-      break;
-    case Instruction::ICmp:
-    case Instruction::FCmp:
-      return performSymbolicCmpEvaluation(I);
-      break;
-    case Instruction::FNeg:
-    case Instruction::Add:
-    case Instruction::FAdd:
-    case Instruction::Sub:
-    case Instruction::FSub:
-    case Instruction::Mul:
-    case Instruction::FMul:
-    case Instruction::UDiv:
-    case Instruction::SDiv:
-    case Instruction::FDiv:
-    case Instruction::URem:
-    case Instruction::SRem:
-    case Instruction::FRem:
-    case Instruction::Shl:
-    case Instruction::LShr:
-    case Instruction::AShr:
-    case Instruction::And:
-    case Instruction::Or:
-    case Instruction::Xor:
-    case Instruction::Trunc:
-    case Instruction::ZExt:
-    case Instruction::SExt:
-    case Instruction::FPToUI:
-    case Instruction::FPToSI:
-    case Instruction::UIToFP:
-    case Instruction::SIToFP:
-    case Instruction::FPTrunc:
-    case Instruction::FPExt:
-    case Instruction::PtrToInt:
-    case Instruction::IntToPtr:
-    case Instruction::Select:
-    case Instruction::ExtractElement:
-    case Instruction::InsertElement:
-    case Instruction::GetElementPtr:
-      return createExpression(I);
-      break;
-    case Instruction::ShuffleVector:
-      // FIXME: Add support for shufflevector to createExpression.
-      return ExprResult::none();
-    default:
-      return ExprResult::none();
-    }
+  // TODO: memory intrinsics.
+  // TODO: Some day, we should do the forward propagation and reassociation
+  // parts of the algorithm.
+  switch (I->getOpcode()) {
+  case Instruction::ExtractValue:
+  case Instruction::InsertValue:
+    E = performSymbolicAggrValueEvaluation(I);
+    break;
+  case Instruction::PHI: {
+    SmallVector<ValPair, 3> Ops;
+    auto *PN = cast<PHINode>(I);
+    for (unsigned i = 0; i < PN->getNumOperands(); ++i)
+      Ops.push_back({PN->getIncomingValue(i), PN->getIncomingBlock(i)});
+    // Sort to ensure the invariant createPHIExpression requires is met.
+    sortPHIOps(Ops);
+    E = performSymbolicPHIEvaluation(Ops, I, getBlockForValue(I));
+  } break;
+  case Instruction::Call:
+    return performSymbolicCallEvaluation(I);
+    break;
+  case Instruction::Store:
+    E = performSymbolicStoreEvaluation(I);
+    break;
+  case Instruction::Load:
+    E = performSymbolicLoadEvaluation(I);
+    break;
+  case Instruction::BitCast:
+  case Instruction::AddrSpaceCast:
+  case Instruction::Freeze:
+    return createExpression(I);
+    break;
+  case Instruction::ICmp:
+  case Instruction::FCmp:
+    return performSymbolicCmpEvaluation(I);
+    break;
+  case Instruction::FNeg:
+  case Instruction::Add:
+  case Instruction::FAdd:
+  case Instruction::Sub:
+  case Instruction::FSub:
+  case Instruction::Mul:
+  case Instruction::FMul:
+  case Instruction::UDiv:
+  case Instruction::SDiv:
+  case Instruction::FDiv:
+  case Instruction::URem:
+  case Instruction::SRem:
+  case Instruction::FRem:
+  case Instruction::Shl:
+  case Instruction::LShr:
+  case Instruction::AShr:
+  case Instruction::And:
+  case Instruction::Or:
+  case Instruction::Xor:
+  case Instruction::Trunc:
+  case Instruction::ZExt:
+  case Instruction::SExt:
+  case Instruction::FPToUI:
+  case Instruction::FPToSI:
+  case Instruction::UIToFP:
+  case Instruction::SIToFP:
+  case Instruction::FPTrunc:
+  case Instruction::FPExt:
+  case Instruction::PtrToInt:
+  case Instruction::IntToPtr:
+  case Instruction::Select:
+  case Instruction::ExtractElement:
+  case Instruction::InsertElement:
+  case Instruction::GetElementPtr:
+    return createExpression(I);
+    break;
+  case Instruction::ShuffleVector:
+    // FIXME: Add support for shufflevector to createExpression.
+    return ExprResult::none();
+  default:
+    return ExprResult::none();
   }
   return ExprResult::some(E);
 }
@@ -2251,8 +2275,13 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
   OldClass->erase(I);
   NewClass->insert(I);
 
-  if (NewClass->getLeader() != I)
-    NewClass->addPossibleNextLeader({I, InstrToDFSNum(I)});
+  // Ensure that the leader has the lowest RPO. If the leader changed notify all
+  // members of the class.
+  if (NewClass->getLeader() != I &&
+      NewClass->addPossibleLeader({I, InstrToDFSNum(I)})) {
+    markValueLeaderChangeTouched(NewClass);
+  }
+
   // Handle our special casing of stores.
   if (auto *SI = dyn_cast<StoreInst>(I)) {
     OldClass->decStoreCount();
@@ -2276,7 +2305,7 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
                           << " because store joined class\n");
         // If we changed the leader, we have to mark it changed because we don't
         // know what it will do to symbolic evaluation.
-        NewClass->setLeader(SI);
+        NewClass->setLeader({SI, InstrToDFSNum(SI)});
       }
       // We rely on the code below handling the MemoryAccess change.
     }
@@ -2322,7 +2351,8 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
       if (OldClass->getStoredValue())
         OldClass->setStoredValue(nullptr);
     }
-    OldClass->setLeader(getNextValueLeader(OldClass));
+    OldClass->setLeader({getNextValueLeader(OldClass),
+                         InstrToDFSNum(getNextValueLeader(OldClass))});
     OldClass->resetNextLeader();
     markValueLeaderChangeTouched(OldClass);
   }
@@ -2361,15 +2391,15 @@ void NewGVN::performCongruenceFinding(Instruction *I, const Expression *E) {
 
       // Constants and variables should always be made the leader.
       if (const auto *CE = dyn_cast<ConstantExpression>(E)) {
-        NewClass->setLeader(CE->getConstantValue());
+        NewClass->setLeader({CE->getConstantValue(), 0});
       } else if (const auto *SE = dyn_cast<StoreExpression>(E)) {
         StoreInst *SI = SE->getStoreInst();
-        NewClass->setLeader(SI);
+        NewClass->setLeader({SI, InstrToDFSNum(SI)});
         NewClass->setStoredValue(SE->getStoredValue());
         // The RepMemoryAccess field will be filled in properly by the
         // moveValueToNewCongruenceClass call.
       } else {
-        NewClass->setLeader(I);
+        NewClass->setLeader({I, InstrToDFSNum(I)});
       }
       assert(!isa<VariableExpression>(E) &&
              "VariableExpression should have been handled already");
@@ -2532,18 +2562,14 @@ void NewGVN::processOutgoingEdges(Instruction *TI, BasicBlock *B) {
       BasicBlock *TargetBlock = Case.getCaseSuccessor();
       updateReachableEdge(B, TargetBlock);
     } else {
-      for (unsigned i = 0, e = SI->getNumSuccessors(); i != e; ++i) {
-        BasicBlock *TargetBlock = SI->getSuccessor(i);
+      for (BasicBlock *TargetBlock : successors(SI->getParent()))
         updateReachableEdge(B, TargetBlock);
-      }
     }
   } else {
     // Otherwise this is either unconditional, or a type we have no
     // idea about. Just mark successors as reachable.
-    for (unsigned i = 0, e = TI->getNumSuccessors(); i != e; ++i) {
-      BasicBlock *TargetBlock = TI->getSuccessor(i);
+    for (BasicBlock *TargetBlock : successors(TI->getParent()))
       updateReachableEdge(B, TargetBlock);
-    }
 
     // This also may be a memory defining terminator, in which case, set it
     // equivalent only to itself.
@@ -2607,19 +2633,19 @@ bool NewGVN::OpIsSafeForPHIOfOps(Value *V, const BasicBlock *PHIBlock,
     if (!isa<Instruction>(I))
       continue;
 
-    auto OISIt = OpSafeForPHIOfOps.find(I);
+    auto OISIt = OpSafeForPHIOfOps.find({I, CacheIdx});
     if (OISIt != OpSafeForPHIOfOps.end())
       return OISIt->second;
 
     // Keep walking until we either dominate the phi block, or hit a phi, or run
     // out of things to check.
     if (DT->properlyDominates(getBlockForValue(I), PHIBlock)) {
-      OpSafeForPHIOfOps.insert({I, true});
+      OpSafeForPHIOfOps.insert({{I, CacheIdx}, true});
       continue;
     }
     // PHI in the same block.
     if (isa<PHINode>(I) && getBlockForValue(I) == PHIBlock) {
-      OpSafeForPHIOfOps.insert({I, false});
+      OpSafeForPHIOfOps.insert({{I, CacheIdx}, false});
       return false;
     }
 
@@ -2638,10 +2664,10 @@ bool NewGVN::OpIsSafeForPHIOfOps(Value *V, const BasicBlock *PHIBlock,
       if (!isa<Instruction>(Op))
         continue;
       // Stop now if we find an unsafe operand.
-      auto OISIt = OpSafeForPHIOfOps.find(OrigI);
+      auto OISIt = OpSafeForPHIOfOps.find({OrigI, CacheIdx});
       if (OISIt != OpSafeForPHIOfOps.end()) {
         if (!OISIt->second) {
-          OpSafeForPHIOfOps.insert({I, false});
+          OpSafeForPHIOfOps.insert({{I, CacheIdx}, false});
           return false;
         }
         continue;
@@ -2651,7 +2677,7 @@ bool NewGVN::OpIsSafeForPHIOfOps(Value *V, const BasicBlock *PHIBlock,
       Worklist.push_back(cast<Instruction>(Op));
     }
   }
-  OpSafeForPHIOfOps.insert({V, true});
+  OpSafeForPHIOfOps.insert({{V, CacheIdx}, true});
   return true;
 }
 
@@ -2772,6 +2798,9 @@ NewGVN::makePossiblePHIOfOps(Instruction *I,
       // Clone the instruction, create an expression from it that is
       // translated back into the predecessor, and see if we have a leader.
       Instruction *ValueOp = I->clone();
+      // Emit the temporal instruction in the predecessor basic block where the
+      // corresponding value is defined.
+      ValueOp->insertBefore(PredBB->getTerminator()->getIterator());
       if (MemAccess)
         TempToMemory.insert({ValueOp, MemAccess});
       bool SafeForPHIOfOps = true;
@@ -2801,7 +2830,7 @@ NewGVN::makePossiblePHIOfOps(Instruction *I,
       FoundVal = !SafeForPHIOfOps ? nullptr
                                   : findLeaderForInst(ValueOp, Visited,
                                                       MemAccess, I, PredBB);
-      ValueOp->deleteValue();
+      ValueOp->eraseFromParent();
       if (!FoundVal) {
         // We failed to find a leader for the current ValueOp, but this might
         // change in case of the translated operands change.
@@ -3257,7 +3286,6 @@ void NewGVN::verifyMemoryCongruency() const {
         return ReachableEdges.count(
                    {FirstMP->getIncomingBlock(U), FirstMP->getBlock()}) &&
                isa<MemoryDef>(U);
-
       };
       // All arguments should in the same class, ignoring unreachable arguments
       auto FilteredPhiArgs =
@@ -3282,7 +3310,7 @@ void NewGVN::verifyIterationSettled(Function &F) {
 #ifndef NDEBUG
   LLVM_DEBUG(dbgs() << "Beginning iteration verification\n");
   if (DebugCounter::isCounterSet(VNCounter))
-    DebugCounter::setCounterValue(VNCounter, StartingVNCounter);
+    DebugCounter::setCounterState(VNCounter, StartingVNCounter);
 
   // Note that we have to store the actual classes, as we may change existing
   // classes during iteration.  This is because our memory iteration propagation
@@ -3301,6 +3329,7 @@ void NewGVN::verifyIterationSettled(Function &F) {
   TouchedInstructions.set();
   TouchedInstructions.reset(0);
   OpSafeForPHIOfOps.clear();
+  CacheIdx = 0;
   iterateTouchedInstructions();
   DenseSet<std::pair<const CongruenceClass *, const CongruenceClass *>>
       EqualClasses;
@@ -3404,6 +3433,8 @@ void NewGVN::iterateTouchedInstructions() {
                             << " because it is unreachable\n");
           continue;
         }
+        // Use the appropriate cache for "OpIsSafeForPHIOfOps".
+        CacheIdx = RPOOrdering.lookup(DT->getNode(CurrBlock)) - 1;
         updateProcessedCount(CurrBlock);
       }
       // Reset after processing (because we may mark ourselves as touched when
@@ -3427,7 +3458,7 @@ void NewGVN::iterateTouchedInstructions() {
 // This is the main transformation entry point.
 bool NewGVN::runGVN() {
   if (DebugCounter::isCounterSet(VNCounter))
-    StartingVNCounter = DebugCounter::getCounterValue(VNCounter);
+    StartingVNCounter = DebugCounter::getCounterState(VNCounter);
   bool Changed = false;
   NumFuncArgs = F.arg_size();
   MSSAWalker = MSSA->getWalker();
@@ -3483,6 +3514,8 @@ bool NewGVN::runGVN() {
   LLVM_DEBUG(dbgs() << "Block " << getBlockName(&F.getEntryBlock())
                     << " marked reachable\n");
   ReachableBlocks.insert(&F.getEntryBlock());
+  // Use index corresponding to entry block.
+  CacheIdx = 0;
 
   iterateTouchedInstructions();
   verifyMemoryCongruency();
@@ -3542,7 +3575,7 @@ struct NewGVN::ValueDFS {
     // the second. We only want it to be less than if the DFS orders are equal.
     //
     // Each LLVM instruction only produces one value, and thus the lowest-level
-    // differentiator that really matters for the stack (and what we use as as a
+    // differentiator that really matters for the stack (and what we use as a
     // replacement) is the local dfs number.
     // Everything else in the structure is instruction level, and only affects
     // the order in which we will replace operands of a given instruction.
@@ -3725,7 +3758,7 @@ void NewGVN::deleteInstructionsInBlock(BasicBlock *BB) {
   new StoreInst(
       PoisonValue::get(Int8Ty),
       Constant::getNullValue(PointerType::getUnqual(BB->getContext())),
-      BB->getTerminator());
+      BB->getTerminator()->getIterator());
 }
 
 void NewGVN::markInstructionForDeletion(Instruction *I) {
@@ -3934,6 +3967,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
           MembersLeft.insert(Member);
           continue;
         }
+
         LLVM_DEBUG(dbgs() << "Found replacement " << *(Leader) << " for "
                           << *Member << "\n");
         auto *I = cast<Instruction>(Member);
@@ -3978,7 +4012,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
             LLVM_DEBUG(dbgs() << "Inserting fully real phi of ops" << *Def
                               << " into block "
                               << getBlockName(getBlockForValue(Def)) << "\n");
-            PN->insertBefore(&DefBlock->front());
+            PN->insertBefore(DefBlock->begin());
             Def = PN;
             NumGVNPHIOfOpsEliminations++;
           }
@@ -4023,7 +4057,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
           // dominated defs as dead.
           if (Def) {
             // For anything in this case, what and how we value number
-            // guarantees that any side-effets that would have occurred (ie
+            // guarantees that any side-effects that would have occurred (ie
             // throwing, etc) can be proven to either still occur (because it's
             // dominated by something that has the same side-effects), or never
             // occur.  Otherwise, we would not have been able to prove it value
@@ -4034,9 +4068,18 @@ bool NewGVN::eliminateInstructions(Function &F) {
             // because stores are put in terms of the stored value, we skip
             // stored values here. If the stored value is really dead, it will
             // still be marked for deletion when we process it in its own class.
-            if (!EliminationStack.empty() && Def != EliminationStack.back() &&
-                isa<Instruction>(Def) && !FromStore)
-              markInstructionForDeletion(cast<Instruction>(Def));
+            auto *DefI = dyn_cast<Instruction>(Def);
+            if (!EliminationStack.empty() && DefI && !FromStore) {
+              Value *DominatingLeader = EliminationStack.back();
+              if (DominatingLeader != Def) {
+                // Even if the instruction is removed, we still need to update
+                // flags/metadata due to downstreams users of the leader.
+                if (!match(DefI, m_Intrinsic<Intrinsic::ssa_copy>()))
+                  patchReplacementInstruction(DefI, DominatingLeader);
+
+                markInstructionForDeletion(DefI);
+              }
+            }
             continue;
           }
           // At this point, we know it is a Use we are trying to possibly
@@ -4074,9 +4117,6 @@ bool NewGVN::eliminateInstructions(Function &F) {
           // Don't replace our existing users with ourselves.
           if (U->get() == DominatingLeader)
             continue;
-          LLVM_DEBUG(dbgs()
-                     << "Found replacement " << *DominatingLeader << " for "
-                     << *U->get() << " in " << *(U->getUser()) << "\n");
 
           // If we replaced something in an instruction, handle the patching of
           // metadata.  Skip this if we are replacing predicateinfo with its
@@ -4085,6 +4125,10 @@ bool NewGVN::eliminateInstructions(Function &F) {
           auto *PI = PredInfo->getPredicateInfoFor(ReplacedInst);
           if (!PI || DominatingLeader != PI->OriginalOp)
             patchReplacementInstruction(ReplacedInst, DominatingLeader);
+
+          LLVM_DEBUG(dbgs()
+                     << "Found replacement " << *DominatingLeader << " for "
+                     << *U->get() << " in " << *(U->getUser()) << "\n");
           U->set(DominatingLeader);
           // This is now a use of the dominating leader, which means if the
           // dominating leader was dead, it's now live!
@@ -4095,9 +4139,12 @@ bool NewGVN::eliminateInstructions(Function &F) {
           // For copy instructions, we use their operand as a leader,
           // which means we remove a user of the copy and it may become dead.
           if (isSSACopy) {
-            unsigned &IIUseCount = UseCounts[II];
-            if (--IIUseCount == 0)
-              ProbablyDead.insert(II);
+            auto It = UseCounts.find(II);
+            if (It != UseCounts.end()) {
+              unsigned &IIUseCount = It->second;
+              if (--IIUseCount == 0)
+                ProbablyDead.insert(II);
+            }
           }
           ++LeaderUseCount;
           AnythingReplaced = true;
@@ -4229,7 +4276,7 @@ PreservedAnalyses NewGVNPass::run(Function &F, AnalysisManager<Function> &AM) {
   auto &AA = AM.getResult<AAManager>(F);
   auto &MSSA = AM.getResult<MemorySSAAnalysis>(F).getMSSA();
   bool Changed =
-      NewGVN(F, &DT, &AC, &TLI, &AA, &MSSA, F.getParent()->getDataLayout())
+      NewGVN(F, &DT, &AC, &TLI, &AA, &MSSA, F.getDataLayout())
           .runGVN();
   if (!Changed)
     return PreservedAnalyses::all();

@@ -11,24 +11,31 @@ set(LLVM_LINK_COMPONENTS
   )
 
 add_llvm_library(LLVMBOLTCore
+  AddressMap.cpp
   BinaryBasicBlock.cpp
   BinaryContext.cpp
   BinaryData.cpp
   BinaryEmitter.cpp
   BinaryFunction.cpp
+  BinaryFunctionCallGraph.cpp
   BinaryFunctionProfile.cpp
   BinarySection.cpp
+  CallGraph.cpp
+  CallGraphWalker.cpp
   DebugData.cpp
+  DebugNames.cpp
   DIEBuilder.cpp
   DynoStats.cpp
   Exceptions.cpp
   FunctionLayout.cpp
+  GDBIndex.cpp
   HashUtilities.cpp
   JumpTable.cpp
   MCPlusBuilder.cpp
   ParallelUtilities.cpp
   Relocation.cpp
 
+  NO_EXPORT
   DISABLE_LLVM_LINK_LLVM_DYLIB
   LINK_LIBS
   ${LLVM_PTHREAD_LIB}

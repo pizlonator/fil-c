@@ -11,14 +11,20 @@
 #include "mlir/IR/Diagnostics.h"
 #include "mlir/IR/DialectImplementation.h"
 #include "mlir/IR/DialectInterface.h"
+#include "mlir/IR/DialectRegistry.h"
 #include "mlir/IR/ExtensibleDialect.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/Operation.h"
+#include "mlir/Support/TypeID.h"
 #include "llvm/ADT/MapVector.h"
+#include "llvm/ADT/SetOperations.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SmallVectorExtras.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Regex.h"
+#include <memory>
 
 #define DEBUG_TYPE "dialect"
 
@@ -97,7 +103,7 @@ bool Dialect::isValidNamespace(StringRef str) {
 /// Register a set of dialect interfaces with this dialect instance.
 void Dialect::addInterface(std::unique_ptr<DialectInterface> interface) {
   // Handle the case where the models resolve a promised interface.
-  handleAdditionOfUndefinedPromisedInterface(interface->getID());
+  handleAdditionOfUndefinedPromisedInterface(getTypeID(), interface->getID());
 
   auto it = registeredInterfaces.try_emplace(interface->getID(),
                                              std::move(interface));
@@ -125,8 +131,8 @@ DialectInterfaceCollectionBase::DialectInterfaceCollectionBase(
     MLIRContext *ctx, TypeID interfaceKind, StringRef interfaceName) {
   for (auto *dialect : ctx->getLoadedDialects()) {
 #ifndef NDEBUG
-    dialect->handleUseOfUndefinedPromisedInterface(interfaceKind,
-                                                   interfaceName);
+    dialect->handleUseOfUndefinedPromisedInterface(
+        dialect->getTypeID(), interfaceKind, interfaceName);
 #endif
     if (auto *interface = dialect->getRegisteredInterface(interfaceKind)) {
       interfaces.insert(interface);
@@ -151,24 +157,67 @@ DialectInterfaceCollectionBase::getInterfaceFor(Operation *op) const {
 DialectExtensionBase::~DialectExtensionBase() = default;
 
 void dialect_extension_detail::handleUseOfUndefinedPromisedInterface(
-    Dialect &dialect, TypeID interfaceID, StringRef interfaceName) {
-  dialect.handleUseOfUndefinedPromisedInterface(interfaceID, interfaceName);
+    Dialect &dialect, TypeID interfaceRequestorID, TypeID interfaceID,
+    StringRef interfaceName) {
+  dialect.handleUseOfUndefinedPromisedInterface(interfaceRequestorID,
+                                                interfaceID, interfaceName);
 }
 
 void dialect_extension_detail::handleAdditionOfUndefinedPromisedInterface(
-    Dialect &dialect, TypeID interfaceID) {
-  dialect.handleAdditionOfUndefinedPromisedInterface(interfaceID);
+    Dialect &dialect, TypeID interfaceRequestorID, TypeID interfaceID) {
+  dialect.handleAdditionOfUndefinedPromisedInterface(interfaceRequestorID,
+                                                     interfaceID);
+}
+
+bool dialect_extension_detail::hasPromisedInterface(Dialect &dialect,
+                                                    TypeID interfaceRequestorID,
+                                                    TypeID interfaceID) {
+  return dialect.hasPromisedInterface(interfaceRequestorID, interfaceID);
 }
 
 //===----------------------------------------------------------------------===//
 // DialectRegistry
 //===----------------------------------------------------------------------===//
 
+namespace {
+template <typename Fn>
+void applyExtensionsFn(
+    Fn &&applyExtension,
+    const llvm::MapVector<TypeID, std::unique_ptr<DialectExtensionBase>>
+        &extensions) {
+  // Note: Additional extensions may be added while applying an extension.
+  // The iterators will be invalidated if extensions are added so we'll keep
+  // a copy of the extensions for ourselves.
+
+  const auto extractExtension =
+      [](const auto &entry) -> DialectExtensionBase * {
+    return entry.second.get();
+  };
+
+  auto startIt = extensions.begin(), endIt = extensions.end();
+  size_t count = 0;
+  while (startIt != endIt) {
+    count += endIt - startIt;
+
+    // Grab the subset of extensions we'll apply in this iteration.
+    const auto subset =
+        llvm::map_to_vector(llvm::make_range(startIt, endIt), extractExtension);
+
+    for (const auto *ext : subset)
+      applyExtension(*ext);
+
+    // Book-keep for the next iteration.
+    startIt = extensions.begin() + count;
+    endIt = extensions.end();
+  }
+}
+} // namespace
+
 DialectRegistry::DialectRegistry() { insert<BuiltinDialect>(); }
 
 DialectAllocatorFunctionRef
 DialectRegistry::getDialectAllocator(StringRef name) const {
-  auto it = registry.find(name.str());
+  auto it = registry.find(name);
   if (it == registry.end())
     return nullptr;
   return it->second.second;
@@ -210,6 +259,11 @@ void DialectRegistry::applyExtensions(Dialect *dialect) const {
   // Functor used to try to apply the given extension.
   auto applyExtension = [&](const DialectExtensionBase &extension) {
     ArrayRef<StringRef> dialectNames = extension.getRequiredDialects();
+    // An empty set is equivalent to always invoke.
+    if (dialectNames.empty()) {
+      extension.apply(ctx, dialect);
+      return;
+    }
 
     // Handle the simple case of a single dialect name. In this case, the
     // required dialect should be the current dialect.
@@ -244,15 +298,18 @@ void DialectRegistry::applyExtensions(Dialect *dialect) const {
     extension.apply(ctx, requiredDialects);
   };
 
-  // Note: Additional extensions may be added while applying an extension.
-  for (int i = 0; i < static_cast<int>(extensions.size()); ++i)
-    applyExtension(*extensions[i]);
+  applyExtensionsFn(applyExtension, extensions);
 }
 
 void DialectRegistry::applyExtensions(MLIRContext *ctx) const {
   // Functor used to try to apply the given extension.
   auto applyExtension = [&](const DialectExtensionBase &extension) {
     ArrayRef<StringRef> dialectNames = extension.getRequiredDialects();
+    if (dialectNames.empty()) {
+      auto loadedDialects = ctx->getLoadedDialects();
+      extension.apply(ctx, loadedDialects);
+      return;
+    }
 
     // Check to see if all of the dialects for this extension are loaded.
     SmallVector<Dialect *> requiredDialects;
@@ -266,15 +323,17 @@ void DialectRegistry::applyExtensions(MLIRContext *ctx) const {
     extension.apply(ctx, requiredDialects);
   };
 
-  // Note: Additional extensions may be added while applying an extension.
-  for (int i = 0; i < static_cast<int>(extensions.size()); ++i)
-    applyExtension(*extensions[i]);
+  applyExtensionsFn(applyExtension, extensions);
 }
 
 bool DialectRegistry::isSubsetOf(const DialectRegistry &rhs) const {
-  // Treat any extensions conservatively.
-  if (!extensions.empty())
+  // Check that all extension keys are present in 'rhs'.
+  const auto hasExtension = [&](const auto &key) {
+    return rhs.extensions.contains(key);
+  };
+  if (!llvm::all_of(make_first_range(extensions), hasExtension))
     return false;
+
   // Check that the current dialects fully overlap with the dialects in 'rhs'.
   return llvm::all_of(
       registry, [&](const auto &it) { return rhs.registry.count(it.first); });

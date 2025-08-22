@@ -9,7 +9,7 @@ tablegen(LLVM MipsGenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM MipsGenDisassemblerTables.inc -gen-disassembler)
 tablegen(LLVM MipsGenFastISel.inc -gen-fast-isel)
 tablegen(LLVM MipsGenGlobalISel.inc -gen-global-isel)
-tablegen(LLVM MipsGenPostLegalizeGICombiner.inc -gen-global-isel-combiner-matchtable
+tablegen(LLVM MipsGenPostLegalizeGICombiner.inc -gen-global-isel-combiner
               -combiners="MipsPostLegalizerCombiner")
 tablegen(LLVM MipsGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM MipsGenMCCodeEmitter.inc -gen-emitter)
@@ -58,6 +58,7 @@ add_llvm_target(MipsCodeGen
   MipsSEISelDAGToDAG.cpp
   MipsSEISelLowering.cpp
   MipsSERegisterInfo.cpp
+  MipsSelectionDAGInfo.cpp
   MipsSubtarget.cpp
   MipsTargetMachine.cpp
   MipsTargetObjectFile.cpp
@@ -79,6 +80,7 @@ add_llvm_target(MipsCodeGen
   Support
   Target
   TargetParser
+  TransformUtils
 
   ADD_TO_COMPONENT
   Mips

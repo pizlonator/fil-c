@@ -20,11 +20,13 @@
 namespace llvm {
 
 class AAResults;
+class AllocaInst;
 class BatchAAResults;
 class AssumptionCache;
 class CallBase;
 class CallInst;
 class DominatorTree;
+class EarliestEscapeAnalysis;
 class Function;
 class Instruction;
 class LoadInst;
@@ -33,8 +35,10 @@ class MemMoveInst;
 class MemorySSA;
 class MemorySSAUpdater;
 class MemSetInst;
+class PostDominatorTree;
 class StoreInst;
 class TargetLibraryInfo;
+class TypeSize;
 class Value;
 
 class MemCpyOptPass : public PassInfoMixin<MemCpyOptPass> {
@@ -42,8 +46,10 @@ class MemCpyOptPass : public PassInfoMixin<MemCpyOptPass> {
   AAResults *AA = nullptr;
   AssumptionCache *AC = nullptr;
   DominatorTree *DT = nullptr;
+  PostDominatorTree *PDT = nullptr;
   MemorySSA *MSSA = nullptr;
   MemorySSAUpdater *MSSAU = nullptr;
+  EarliestEscapeAnalysis *EEA = nullptr;
 
 public:
   MemCpyOptPass() = default;
@@ -52,7 +58,8 @@ public:
 
   // Glue for the old PM.
   bool runImpl(Function &F, TargetLibraryInfo *TLI, AAResults *AA,
-               AssumptionCache *AC, DominatorTree *DT, MemorySSA *MSSA);
+               AssumptionCache *AC, DominatorTree *DT, PostDominatorTree *PDT,
+               MemorySSA *MSSA);
 
 private:
   // Helper functions
@@ -61,7 +68,7 @@ private:
                           BasicBlock::iterator &BBI);
   bool processMemSet(MemSetInst *SI, BasicBlock::iterator &BBI);
   bool processMemCpy(MemCpyInst *M, BasicBlock::iterator &BBI);
-  bool processMemMove(MemMoveInst *M);
+  bool processMemMove(MemMoveInst *M, BasicBlock::iterator &BBI);
   bool performCallSlotOptzn(Instruction *cpyLoad, Instruction *cpyStore,
                             Value *cpyDst, Value *cpySrc, TypeSize cpyLen,
                             Align cpyAlign, BatchAAResults &BAA,
@@ -77,6 +84,10 @@ private:
   Instruction *tryMergingIntoMemset(Instruction *I, Value *StartPtr,
                                     Value *ByteVal);
   bool moveUp(StoreInst *SI, Instruction *P, const LoadInst *LI);
+  bool performStackMoveOptzn(Instruction *Load, Instruction *Store,
+                             AllocaInst *DestAlloca, AllocaInst *SrcAlloca,
+                             TypeSize Size, BatchAAResults &BAA);
+  bool isMemMoveMemSetDependency(MemMoveInst *M);
 
   void eraseInstruction(Instruction *I);
   bool iterateOnFunction(Function &F);

@@ -5,7 +5,7 @@ import os
 
 def get_required_attr(config, attr_name):
     attr_value = getattr(config, attr_name, None)
-    if attr_value == None:
+    if attr_value is None:
         lit_config.fatal(
             "No attribute %r in test configuration! You may need to run "
             "tests from your build directory or add this attribute "
@@ -48,5 +48,3 @@ if config.host_os not in [
 # Don't target x86_64h if the test machine can't execute x86_64h binaries.
 if "-arch x86_64h" in target_cflags and "x86_64h" not in config.available_features:
     config.unsupported = True
-
-config.available_features.add("arch=" + config.target_arch)

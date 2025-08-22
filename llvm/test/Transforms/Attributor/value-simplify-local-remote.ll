@@ -106,7 +106,7 @@ define ptr @t2(ptr %this, ptr %this.addr, ptr %this1) {
 ; TUNIT-SAME: (ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS:%.*]], ptr nocapture nofree readnone [[THIS_ADDR:%.*]], ptr nocapture nofree readnone [[THIS1:%.*]]) #[[ATTR1:[0-9]+]] {
 ; TUNIT-NEXT:  entry:
 ; TUNIT-NEXT:    store ptr [[THIS]], ptr [[THIS]], align 8
-; TUNIT-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @foo.1(ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR4:[0-9]+]]
+; TUNIT-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @[[FOO_1:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]](ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR4:[0-9]+]]
 ; TUNIT-NEXT:    [[TEST_RET:%.*]] = extractvalue [[S]] [[CALL]], 0
 ; TUNIT-NEXT:    ret ptr [[TEST_RET]]
 ;
@@ -115,7 +115,7 @@ define ptr @t2(ptr %this, ptr %this.addr, ptr %this1) {
 ; CGSCC-SAME: (ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS:%.*]], ptr nocapture nofree readnone [[THIS_ADDR:%.*]], ptr nocapture nofree readnone [[THIS1:%.*]]) #[[ATTR2:[0-9]+]] {
 ; CGSCC-NEXT:  entry:
 ; CGSCC-NEXT:    store ptr [[THIS]], ptr [[THIS]], align 8
-; CGSCC-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @foo.1(ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR8:[0-9]+]]
+; CGSCC-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @[[FOO_1:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]](ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR8:[0-9]+]]
 ; CGSCC-NEXT:    [[TEST_RET:%.*]] = extractvalue [[S]] [[CALL]], 0
 ; CGSCC-NEXT:    ret ptr [[TEST_RET]]
 ;
@@ -205,7 +205,7 @@ define ptr @foo(ptr %this, ptr %this.addr, ptr %this1) {
 ; TUNIT-SAME: (ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS:%.*]], ptr nocapture nofree readnone [[THIS_ADDR:%.*]], ptr nocapture nofree readnone [[THIS1:%.*]]) #[[ATTR1]] {
 ; TUNIT-NEXT:  entry:
 ; TUNIT-NEXT:    store ptr [[THIS]], ptr [[THIS]], align 8
-; TUNIT-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @bar.5(ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR4]]
+; TUNIT-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @[[BAR_5:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]](ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR4]]
 ; TUNIT-NEXT:    [[FOO_RET:%.*]] = extractvalue [[S]] [[CALL]], 0
 ; TUNIT-NEXT:    ret ptr [[FOO_RET]]
 ;
@@ -214,7 +214,7 @@ define ptr @foo(ptr %this, ptr %this.addr, ptr %this1) {
 ; CGSCC-SAME: (ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS:%.*]], ptr nocapture nofree readnone [[THIS_ADDR:%.*]], ptr nocapture nofree readnone [[THIS1:%.*]]) #[[ATTR2]] {
 ; CGSCC-NEXT:  entry:
 ; CGSCC-NEXT:    store ptr [[THIS]], ptr [[THIS]], align 8
-; CGSCC-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @bar.5(ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR8]]
+; CGSCC-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @[[BAR_5:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]](ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR8]]
 ; CGSCC-NEXT:    [[FOO_RET:%.*]] = extractvalue [[S]] [[CALL]], 0
 ; CGSCC-NEXT:    ret ptr [[FOO_RET]]
 ;
@@ -310,18 +310,18 @@ entry:
 define weak_odr void @t3() {
 ; CHECK-LABEL: define {{[^@]+}}@t3() {
 ; CHECK-NEXT:  entry:
-; CHECK-NEXT:    [[TMP0:%.*]] = call i32 @__kmpc_target_init(ptr noundef align 4294967296 null, i8 noundef 0, i1 noundef false, i1 noundef false)
+; CHECK-NEXT:    [[TMP0:%.*]] = call i32 @__kmpc_target_init(ptr noundef align 4294967296 null)
 ; CHECK-NEXT:    br label [[USER_CODE_ENTRY:%.*]]
 ; CHECK:       user_code.entry:
 ; CHECK-NEXT:    br label [[FOR_COND:%.*]]
 ; CHECK:       for.cond:
 ; CHECK-NEXT:    br label [[FOR_BODY:%.*]]
 ; CHECK:       for.body:
-; CHECK-NEXT:    [[CALL4:%.*]] = call [[S_2:%.*]] @t3.helper()
+; CHECK-NEXT:    [[CALL4:%.*]] = call [[S_2:%.*]] @[[T3_HELPER:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]]()
 ; CHECK-NEXT:    ret void
 ;
 entry:
-  %0 = call i32 @__kmpc_target_init(ptr null, i8 0, i1 false, i1 false)
+  %0 = call i32 @__kmpc_target_init(ptr null)
   br label %user_code.entry
 
 user_code.entry:                                  ; preds = %entry
@@ -335,7 +335,7 @@ for.body:                                         ; preds = %for.cond
   ret void
 }
 
-declare i32 @__kmpc_target_init(ptr, i8, i1, i1)
+declare i32 @__kmpc_target_init(ptr)
 
 define %S.2 @t3.helper() {
 ; CHECK-LABEL: define {{[^@]+}}@t3.helper() {
@@ -380,25 +380,18 @@ define dso_local void @spam() {
 ; TUNIT-NEXT:    store i32 [[X]], ptr [[TMP]], align 4
 ; TUNIT-NEXT:    br label [[BB16:%.*]]
 ; TUNIT:       bb16:
-; TUNIT-NEXT:    [[TRUETMP18:%.*]] = icmp eq i32 [[X]], 0
-; TUNIT-NEXT:    br i1 [[TRUETMP18]], label [[BB35:%.*]], label [[BB19:%.*]]
+; TUNIT-NEXT:    [[TMP18:%.*]] = icmp eq i32 [[X]], 0
+; TUNIT-NEXT:    br i1 [[TMP18]], label [[BB35:%.*]], label [[BB19:%.*]]
 ; TUNIT:       bb19:
-; TUNIT-NEXT:    [[TRUETMP21:%.*]] = load float, ptr [[TMP]], align 4
-; TUNIT-NEXT:    [[TRUETMP22:%.*]] = fadd fast float [[TRUETMP21]], 0.000000e+00
 ; TUNIT-NEXT:    br label [[BB23:%.*]]
 ; TUNIT:       bb23:
-; TUNIT-NEXT:    [[TRUETMP24:%.*]] = phi <2 x float> [ undef, [[BB19]] ], [ [[TRUETMP26:%.*]], [[BB34:%.*]] ]
 ; TUNIT-NEXT:    br label [[BB25:%.*]]
 ; TUNIT:       bb25:
-; TUNIT-NEXT:    [[TRUETMP26]] = phi <2 x float> [ [[TRUETMP30:%.*]], [[BB28:%.*]] ], [ [[TRUETMP24]], [[BB23]] ]
-; TUNIT-NEXT:    [[TRUETMP27:%.*]] = icmp ult i32 undef, 8
-; TUNIT-NEXT:    br i1 [[TRUETMP27]], label [[BB28]], label [[BB34]]
+; TUNIT-NEXT:    unreachable
 ; TUNIT:       bb28:
-; TUNIT-NEXT:    [[TRUETMP29:%.*]] = insertelement <2 x float> [[TRUETMP26]], float undef, i32 0
-; TUNIT-NEXT:    [[TRUETMP30]] = insertelement <2 x float> [[TRUETMP29]], float [[TRUETMP22]], i32 1
-; TUNIT-NEXT:    br label [[BB25]]
+; TUNIT-NEXT:    unreachable
 ; TUNIT:       bb34:
-; TUNIT-NEXT:    br label [[BB23]]
+; TUNIT-NEXT:    unreachable
 ; TUNIT:       bb35:
 ; TUNIT-NEXT:    unreachable
 ;
@@ -411,25 +404,18 @@ define dso_local void @spam() {
 ; CGSCC-NEXT:    store i32 [[X]], ptr [[TMP]], align 4
 ; CGSCC-NEXT:    br label [[BB16:%.*]]
 ; CGSCC:       bb16:
-; CGSCC-NEXT:    [[TRUETMP18:%.*]] = icmp eq i32 [[X]], 0
-; CGSCC-NEXT:    br i1 [[TRUETMP18]], label [[BB35:%.*]], label [[BB19:%.*]]
+; CGSCC-NEXT:    [[TMP18:%.*]] = icmp eq i32 [[X]], 0
+; CGSCC-NEXT:    br i1 [[TMP18]], label [[BB35:%.*]], label [[BB19:%.*]]
 ; CGSCC:       bb19:
-; CGSCC-NEXT:    [[TRUETMP21:%.*]] = load float, ptr [[TMP]], align 4
-; CGSCC-NEXT:    [[TRUETMP22:%.*]] = fadd fast float [[TRUETMP21]], 0.000000e+00
 ; CGSCC-NEXT:    br label [[BB23:%.*]]
 ; CGSCC:       bb23:
-; CGSCC-NEXT:    [[TRUETMP24:%.*]] = phi <2 x float> [ undef, [[BB19]] ], [ [[TRUETMP26:%.*]], [[BB34:%.*]] ]
 ; CGSCC-NEXT:    br label [[BB25:%.*]]
 ; CGSCC:       bb25:
-; CGSCC-NEXT:    [[TRUETMP26]] = phi <2 x float> [ [[TRUETMP30:%.*]], [[BB28:%.*]] ], [ [[TRUETMP24]], [[BB23]] ]
-; CGSCC-NEXT:    [[TRUETMP27:%.*]] = icmp ult i32 undef, 8
-; CGSCC-NEXT:    br i1 [[TRUETMP27]], label [[BB28]], label [[BB34]]
+; CGSCC-NEXT:    unreachable
 ; CGSCC:       bb28:
-; CGSCC-NEXT:    [[TRUETMP29:%.*]] = insertelement <2 x float> [[TRUETMP26]], float undef, i32 0
-; CGSCC-NEXT:    [[TRUETMP30]] = insertelement <2 x float> [[TRUETMP29]], float [[TRUETMP22]], i32 1
-; CGSCC-NEXT:    br label [[BB25]]
+; CGSCC-NEXT:    unreachable
 ; CGSCC:       bb34:
-; CGSCC-NEXT:    br label [[BB23]]
+; CGSCC-NEXT:    unreachable
 ; CGSCC:       bb35:
 ; CGSCC-NEXT:    unreachable
 ;
@@ -481,7 +467,7 @@ define double @t4(ptr %this, ptr %this.addr, ptr %this1) {
 ; TUNIT-NEXT:  entry:
 ; TUNIT-NEXT:    [[THIS_ADDR1:%.*]] = alloca ptr, i32 0, align 8
 ; TUNIT-NEXT:    store ptr [[THIS]], ptr [[THIS]], align 8
-; TUNIT-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @t4a(ptr nofree noundef nonnull writeonly align 8 dereferenceable(8) [[THIS]]) #[[ATTR5]]
+; TUNIT-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @[[T4A:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]](ptr nofree noundef nonnull writeonly align 8 dereferenceable(8) [[THIS]]) #[[ATTR5]]
 ; TUNIT-NEXT:    ret double 0.000000e+00
 ;
 ; CGSCC: Function Attrs: mustprogress nofree nosync nounwind willreturn memory(argmem: readwrite)
@@ -490,7 +476,7 @@ define double @t4(ptr %this, ptr %this.addr, ptr %this1) {
 ; CGSCC-NEXT:  entry:
 ; CGSCC-NEXT:    [[THIS_ADDR1:%.*]] = alloca ptr, i32 0, align 8
 ; CGSCC-NEXT:    store ptr [[THIS]], ptr [[THIS]], align 8
-; CGSCC-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @t4a(ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR8]]
+; CGSCC-NEXT:    [[CALL:%.*]] = call [[S:%.*]] @[[T4A:[a-zA-Z0-9_$\"\\.-]*[a-zA-Z_$\"\\.-][a-zA-Z0-9_$\"\\.-]*]](ptr nofree noundef nonnull align 8 dereferenceable(8) [[THIS]]) #[[ATTR8]]
 ; CGSCC-NEXT:    [[TMP0:%.*]] = extractvalue [[S]] [[CALL]], 0
 ; CGSCC-NEXT:    ret double 0.000000e+00
 ;
@@ -625,16 +611,25 @@ entry:
 ; CGSCC: attributes #[[ATTR4]] = { mustprogress nofree norecurse nosync nounwind willreturn memory(argmem: readwrite) }
 ; CGSCC: attributes #[[ATTR5]] = { nofree norecurse noreturn nosync nounwind memory(none) }
 ; CGSCC: attributes #[[ATTR6]] = { nofree nounwind willreturn memory(write) }
-; CGSCC: attributes #[[ATTR7]] = { nofree willreturn }
+; CGSCC: attributes #[[ATTR7]] = { nofree nosync willreturn }
 ; CGSCC: attributes #[[ATTR8]] = { nofree nounwind willreturn }
 ; CGSCC: attributes #[[ATTR9]] = { nofree nounwind willreturn memory(readwrite) }
 ;.
-; CHECK: [[META0:![0-9]+]] = !{i32 2, !"SDK Version", [2 x i32] [i32 11, i32 5]}
-; CHECK: [[META1:![0-9]+]] = !{i32 1, !"wchar_size", i32 4}
-; CHECK: [[META2:![0-9]+]] = !{i32 7, !"openmp", i32 50}
-; CHECK: [[META3:![0-9]+]] = !{i32 7, !"openmp-device", i32 50}
-; CHECK: [[META4:![0-9]+]] = !{i32 8, !"PIC Level", i32 2}
-; CHECK: [[META5:![0-9]+]] = !{i32 7, !"frame-pointer", i32 2}
-; CHECK: [[META6:![0-9]+]] = !{i32 7, !"Dwarf Version", i32 2}
-; CHECK: [[META7:![0-9]+]] = !{i32 2, !"Debug Info Version", i32 3}
+; TUNIT: [[META0:![0-9]+]] = !{i32 2, !"SDK Version", [2 x i32] [i32 11, i32 5]}
+; TUNIT: [[META1:![0-9]+]] = !{i32 1, !"wchar_size", i32 4}
+; TUNIT: [[META2:![0-9]+]] = !{i32 7, !"openmp", i32 50}
+; TUNIT: [[META3:![0-9]+]] = !{i32 7, !"openmp-device", i32 50}
+; TUNIT: [[META4:![0-9]+]] = !{i32 8, !"PIC Level", i32 2}
+; TUNIT: [[META5:![0-9]+]] = !{i32 7, !"frame-pointer", i32 2}
+; TUNIT: [[META6:![0-9]+]] = !{i32 7, !"Dwarf Version", i32 2}
+; TUNIT: [[META7:![0-9]+]] = !{i32 2, !"Debug Info Version", i32 3}
+;.
+; CGSCC: [[META0:![0-9]+]] = !{i32 2, !"SDK Version", [2 x i32] [i32 11, i32 5]}
+; CGSCC: [[META1:![0-9]+]] = !{i32 1, !"wchar_size", i32 4}
+; CGSCC: [[META2:![0-9]+]] = !{i32 7, !"openmp", i32 50}
+; CGSCC: [[META3:![0-9]+]] = !{i32 7, !"openmp-device", i32 50}
+; CGSCC: [[META4:![0-9]+]] = !{i32 8, !"PIC Level", i32 2}
+; CGSCC: [[META5:![0-9]+]] = !{i32 7, !"frame-pointer", i32 2}
+; CGSCC: [[META6:![0-9]+]] = !{i32 7, !"Dwarf Version", i32 2}
+; CGSCC: [[META7:![0-9]+]] = !{i32 2, !"Debug Info Version", i32 3}
 ;.

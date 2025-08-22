@@ -25,6 +25,7 @@
 #include "TidyProvider.h"
 #include "support/Context.h"
 #include "clang/AST/DeclTemplate.h"
+#include "clang/Basic/FileEntry.h"
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Basic/TokenKinds.h"
@@ -35,7 +36,10 @@
 #include "gmock/gmock-matchers.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include <memory>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 namespace clang {
 namespace clangd {
@@ -46,7 +50,6 @@ using ::testing::Contains;
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAreArray;
 
 MATCHER_P(declNamed, Name, "") {
   if (NamedDecl *ND = dyn_cast<NamedDecl>(arg))
@@ -341,9 +344,8 @@ TEST(ParsedASTTest, CollectsMainFileMacroExpansions) {
   }
   for (const auto &R : AST.getMacros().UnknownMacros)
     MacroExpansionPositions.push_back(R.StartOffset);
-  EXPECT_THAT(
-      MacroExpansionPositions,
-      testing::UnorderedElementsAreArray(TestCase.points()));
+  EXPECT_THAT(MacroExpansionPositions,
+              testing::UnorderedElementsAreArray(TestCase.points()));
 }
 
 MATCHER_P(withFileName, Inc, "") { return arg.FileName == Inc; }
@@ -395,10 +397,10 @@ TEST(ParsedASTTest, PatchesAdditionalIncludes) {
   auto &FM = SM.getFileManager();
   // Copy so that we can use operator[] to get the children.
   IncludeStructure Includes = PatchedAST->getIncludeStructure();
-  auto MainFE = FM.getFile(testPath("foo.cpp"));
+  auto MainFE = FM.getOptionalFileRef(testPath("foo.cpp"));
   ASSERT_TRUE(MainFE);
   auto MainID = Includes.getID(*MainFE);
-  auto AuxFE = FM.getFile(testPath("sub/aux.h"));
+  auto AuxFE = FM.getOptionalFileRef(testPath("sub/aux.h"));
   ASSERT_TRUE(AuxFE);
   auto AuxID = Includes.getID(*AuxFE);
   EXPECT_THAT(Includes.IncludeChildren[*MainID], Contains(*AuxID));
@@ -465,10 +467,10 @@ std::string once(llvm::StringRef Code) {
 
 bool mainIsGuarded(const ParsedAST &AST) {
   const auto &SM = AST.getSourceManager();
-  const FileEntry *MainFE = SM.getFileEntryForID(SM.getMainFileID());
+  OptionalFileEntryRef MainFE = SM.getFileEntryRefForID(SM.getMainFileID());
   return AST.getPreprocessor()
       .getHeaderSearchInfo()
-      .isFileMultipleIncludeGuarded(MainFE);
+      .isFileMultipleIncludeGuarded(*MainFE);
 }
 
 MATCHER_P(diag, Desc, "") {
@@ -731,6 +733,66 @@ TEST(ParsedASTTest, DiscoversPragmaMarks) {
                                           pragmaTrivia(" End")));
 }
 
+TEST(ParsedASTTest, GracefulFailureOnAssemblyFile) {
+  std::string Filename = "TestTU.S";
+  std::string Code = R"S(
+main:
+    # test comment
+    bx lr
+  )S";
+
+  // The rest is a simplified version of TestTU::build().
+  // Don't call TestTU::build() itself because it would assert on
+  // failure to build an AST.
+  MockFS FS;
+  std::string FullFilename = testPath(Filename);
+  FS.Files[FullFilename] = Code;
+  ParseInputs Inputs;
+  auto &Argv = Inputs.CompileCommand.CommandLine;
+  Argv = {"clang"};
+  Argv.push_back(FullFilename);
+  Inputs.CompileCommand.Filename = FullFilename;
+  Inputs.CompileCommand.Directory = testRoot();
+  Inputs.Contents = Code;
+  Inputs.TFS = &FS;
+  StoreDiags Diags;
+  auto CI = buildCompilerInvocation(Inputs, Diags);
+  assert(CI && "Failed to build compilation invocation.");
+  auto AST = ParsedAST::build(FullFilename, Inputs, std::move(CI), {}, nullptr);
+
+  EXPECT_FALSE(AST.has_value())
+      << "Should not try to build AST for assembly source file";
+}
+
+TEST(ParsedASTTest, PreambleWithDifferentTarget) {
+  constexpr std::string_view kPreambleTarget = "x86_64";
+  // Specifically picking __builtin_va_list as it triggers crashes when
+  // switching to wasm.
+  // It's due to different predefined types in different targets.
+  auto TU = TestTU::withHeaderCode("void foo(__builtin_va_list);");
+  TU.Code = "void bar() { foo(2); }";
+  TU.ExtraArgs.emplace_back("-target");
+  TU.ExtraArgs.emplace_back(kPreambleTarget);
+  const auto Preamble = TU.preamble();
+
+  // Switch target to wasm.
+  TU.ExtraArgs.pop_back();
+  TU.ExtraArgs.emplace_back("wasm32");
+
+  IgnoreDiagnostics Diags;
+  MockFS FS;
+  auto Inputs = TU.inputs(FS);
+  auto CI = buildCompilerInvocation(Inputs, Diags);
+  ASSERT_TRUE(CI) << "Failed to build compiler invocation";
+
+  auto AST = ParsedAST::build(testPath(TU.Filename), std::move(Inputs),
+                              std::move(CI), {}, Preamble);
+
+  ASSERT_TRUE(AST);
+  // We use the target from preamble, not with the most-recent flags.
+  EXPECT_EQ(AST->getASTContext().getTargetInfo().getTriple().getArchName(),
+            llvm::StringRef(kPreambleTarget));
+}
 } // namespace
 } // namespace clangd
 } // namespace clang

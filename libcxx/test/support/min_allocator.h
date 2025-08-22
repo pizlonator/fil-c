@@ -464,15 +464,15 @@ public:
 
   TEST_CONSTEXPR_CXX20 T* allocate(std::size_t n) {
     T* memory = std::allocator<T>().allocate(n);
-    if (!std::__libcpp_is_constant_evaluated())
-      std::memset(memory, 0, sizeof(T) * n);
+    if (!TEST_IS_CONSTANT_EVALUATED)
+      std::memset(static_cast<void*>(memory), 0, sizeof(T) * n);
 
     return memory;
   }
 
   TEST_CONSTEXPR_CXX20 void deallocate(T* p, std::size_t n) {
-    if (!std::__libcpp_is_constant_evaluated())
-      DoNotOptimize(std::memset(p, 0, sizeof(T) * n));
+    if (!TEST_IS_CONSTANT_EVALUATED)
+      DoNotOptimize(std::memset(static_cast<void*>(p), 0, sizeof(T) * n));
     std::allocator<T>().deallocate(p, n);
   }
 

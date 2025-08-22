@@ -15,12 +15,15 @@
 #define __AVX512BITALGINTRIN_H
 
 /* Define the default attributes for the functions in this file. */
-#define __DEFAULT_FN_ATTRS __attribute__((__always_inline__, __nodebug__, __target__("avx512bitalg"), __min_vector_width__(512)))
+#define __DEFAULT_FN_ATTRS                                                     \
+  __attribute__((__always_inline__, __nodebug__,                               \
+                 __target__("avx512bitalg,evex512"),                           \
+                 __min_vector_width__(512)))
 
 static __inline__ __m512i __DEFAULT_FN_ATTRS
 _mm512_popcnt_epi16(__m512i __A)
 {
-  return (__m512i) __builtin_ia32_vpopcntw_512((__v32hi) __A);
+  return (__m512i)__builtin_elementwise_popcount((__v32hu)__A);
 }
 
 static __inline__ __m512i __DEFAULT_FN_ATTRS
@@ -42,7 +45,7 @@ _mm512_maskz_popcnt_epi16(__mmask32 __U, __m512i __B)
 static __inline__ __m512i __DEFAULT_FN_ATTRS
 _mm512_popcnt_epi8(__m512i __A)
 {
-  return (__m512i) __builtin_ia32_vpopcntb_512((__v64qi) __A);
+  return (__m512i)__builtin_elementwise_popcount((__v64qu)__A);
 }
 
 static __inline__ __m512i __DEFAULT_FN_ATTRS

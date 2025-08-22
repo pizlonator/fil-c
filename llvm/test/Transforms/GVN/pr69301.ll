@@ -5,8 +5,8 @@
 ; select available value.
 
 define i64 @test(i1 %c, ptr %p) {
-; CHECK-LABEL: define i64 @test
-; CHECK-SAME: (i1 [[C:%.*]], ptr [[P:%.*]]) {
+; CHECK-LABEL: define i64 @test(
+; CHECK-SAME: i1 [[C:%.*]], ptr [[P:%.*]]) {
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    br label [[LOOP:%.*]]
 ; CHECK:       loop:
@@ -20,15 +20,17 @@ define i64 @test(i1 %c, ptr %p) {
 ; CHECK:       loop.cont:
 ; CHECK-NEXT:    [[ADD]] = add i64 [[IV]], -1
 ; CHECK-NEXT:    [[RES_PRE1:%.*]] = load i64, ptr [[PTR_IV]], align 8
-; CHECK-NEXT:    br i1 [[C]], label [[EXIT]], label [[LOOP_LATCH]]
+; CHECK-NEXT:    br i1 [[C]], label [[EXITSPLIT:%.*]], label [[LOOP_LATCH]]
 ; CHECK:       loop.latch:
 ; CHECK-NEXT:    [[LOAD6:%.*]] = load i64, ptr [[P]], align 8
 ; CHECK-NEXT:    [[ICMP7:%.*]] = icmp ugt i64 [[RES_PRE1]], [[LOAD6]]
 ; CHECK-NEXT:    [[TMP0:%.*]] = select i1 [[ICMP7]], i64 [[RES_PRE1]], i64 [[LOAD6]]
 ; CHECK-NEXT:    [[SELECT]] = select i1 [[ICMP7]], ptr [[PTR_IV]], ptr [[P]]
 ; CHECK-NEXT:    br label [[LOOP]]
+; CHECK:       exitsplit:
+; CHECK-NEXT:    br label [[EXIT]]
 ; CHECK:       exit:
-; CHECK-NEXT:    [[RES:%.*]] = phi i64 [ [[RES_PRE]], [[LOOP_EXIT_CRIT_EDGE]] ], [ [[RES_PRE1]], [[LOOP_CONT]] ]
+; CHECK-NEXT:    [[RES:%.*]] = phi i64 [ [[RES_PRE1]], [[EXITSPLIT]] ], [ [[RES_PRE]], [[LOOP_EXIT_CRIT_EDGE]] ]
 ; CHECK-NEXT:    ret i64 [[RES]]
 ;
 entry:

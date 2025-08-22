@@ -55,20 +55,29 @@ static const SymbolHeaderMapping *getMappingPerLang(Lang L) {
 }
 
 static int countSymbols(Lang Language) {
-  llvm::DenseSet<llvm::StringRef> Set;
-#define SYMBOL(Name, NS, Header) Set.insert(#NS #Name);
+  ArrayRef<const char *> Symbols;
+#define SYMBOL(Name, NS, Header) #NS #Name,
   switch (Language) {
-  case Lang::C:
+  case Lang::C: {
+    static constexpr const char *CSymbols[] = {
+#include "CSpecialSymbolMap.inc"
 #include "CSymbolMap.inc"
+    };
+    Symbols = CSymbols;
     break;
-  case Lang::CXX:
+  }
+  case Lang::CXX: {
+    static constexpr const char *CXXSymbols[] = {
 #include "StdSpecialSymbolMap.inc"
 #include "StdSymbolMap.inc"
 #include "StdTsSymbolMap.inc"
+    };
+    Symbols = CXXSymbols;
     break;
   }
+  }
 #undef SYMBOL
-  return Set.size();
+  return llvm::DenseSet<StringRef>(Symbols.begin(), Symbols.end()).size();
 }
 
 static int initialize(Lang Language) {
@@ -106,19 +115,19 @@ static int initialize(Lang Language) {
       NSLen = 0;
     }
 
-    if (SymIndex >= 0 &&
-        Mapping->SymbolNames[SymIndex].qualifiedName() == QName) {
-      // Not a new symbol, use the same index.
+    if (SymIndex > 0) {
       assert(llvm::none_of(llvm::ArrayRef(Mapping->SymbolNames, SymIndex),
                            [&QName](const SymbolHeaderMapping::SymbolName &S) {
                              return S.qualifiedName() == QName;
                            }) &&
              "The symbol has been added before, make sure entries in the .inc "
              "file are grouped by symbol name!");
-    } else {
+    }
+    if (SymIndex < 0 ||
+        Mapping->SymbolNames[SymIndex].qualifiedName() != QName) {
       // First symbol or new symbol, increment next available index.
       ++SymIndex;
-    }
+    } // Else use the same index.
     Mapping->SymbolNames[SymIndex] = {
         QName.data(), NSLen, static_cast<unsigned int>(QName.size() - NSLen)};
     if (!HeaderName.empty())
@@ -127,16 +136,35 @@ static int initialize(Lang Language) {
     NSSymbolMap &NSSymbols = AddNS(QName.take_front(NSLen));
     NSSymbols.try_emplace(QName.drop_front(NSLen), SymIndex);
   };
-#define SYMBOL(Name, NS, Header) Add(#NS #Name, strlen(#NS), #Header);
+
+  struct Symbol {
+    const char *QName;
+    unsigned NSLen;
+    const char *HeaderName;
+  };
+#define SYMBOL(Name, NS, Header)                                               \
+  {#NS #Name, static_cast<decltype(Symbol::NSLen)>(StringRef(#NS).size()),     \
+   #Header},
   switch (Language) {
-  case Lang::C:
+  case Lang::C: {
+    static constexpr Symbol CSymbols[] = {
+#include "CSpecialSymbolMap.inc"
 #include "CSymbolMap.inc"
+    };
+    for (const Symbol &S : CSymbols)
+      Add(S.QName, S.NSLen, S.HeaderName);
     break;
-  case Lang::CXX:
+  }
+  case Lang::CXX: {
+    static constexpr Symbol CXXSymbols[] = {
 #include "StdSpecialSymbolMap.inc"
 #include "StdSymbolMap.inc"
 #include "StdTsSymbolMap.inc"
+    };
+    for (const Symbol &S : CXXSymbols)
+      Add(S.QName, S.NSLen, S.HeaderName);
     break;
+  }
   }
 #undef SYMBOL
 
@@ -247,13 +275,12 @@ NSSymbolMap *Recognizer::namespaceSymbols(const DeclContext *DC, Lang L) {
 
 std::optional<Symbol> Recognizer::operator()(const Decl *D) {
   Lang L;
-  if (D->getLangOpts().CPlusPlus) {
+  if (D->getLangOpts().CPlusPlus)
     L = Lang::CXX;
-  } else if (D->getLangOpts().C11) {
+  else if (D->getLangOpts().C99)
     L = Lang::C;
-  } else {
+  else
     return std::nullopt; // not a supported language.
-  }
 
   // If D is std::vector::iterator, `vector` is the outer symbol to look up.
   // We keep all the candidate DCs as some may turn out to be anon enums.

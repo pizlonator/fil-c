@@ -8,6 +8,7 @@
 
 #include "mlir/IR/OperationSupport.h"
 #include "../../test/lib/Dialect/Test/TestDialect.h"
+#include "../../test/lib/Dialect/Test/TestOps.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "llvm/ADT/BitVector.h"
@@ -285,7 +286,7 @@ TEST(OperandStorageTest, PopulateDefaultAttrs) {
   // Verify default attributes populated post op creation.
   Operation *op = b.create<test::OpAttrMatch1>(b.getUnknownLoc(), req1, nullptr,
                                                nullptr, req2);
-  auto opt = op->getAttr("default_valued_attr");
+  auto opt = op->getInherentAttr("default_valued_attr");
   EXPECT_NE(opt, nullptr) << *op;
 
   op->destroy();
@@ -295,9 +296,9 @@ TEST(OperationEquivalenceTest, HashWorksWithFlags) {
   MLIRContext context;
   context.getOrLoadDialect<test::TestDialect>();
 
-  auto op1 = createOp(&context);
+  auto *op1 = createOp(&context);
   // `op1` has an unknown loc.
-  auto op2 = createOp(&context);
+  auto *op2 = createOp(&context);
   op2->setLoc(NameLoc::get(StringAttr::get(&context, "foo")));
   auto getHash = [](Operation *op, OperationEquivalence::Flags flags) {
     return OperationEquivalence::computeHash(

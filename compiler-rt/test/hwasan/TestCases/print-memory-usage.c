@@ -1,8 +1,8 @@
 // Tests __hwasan_print_memory_usage.
+// REQUIRES: shell
 // RUN: %clang_hwasan %s -o %t
 // RUN: ulimit -s 1000
 // RUN: %run %t 2>&1 | FileCheck %s
-// REQUIRES: stable-runtime
 
 #include <pthread.h>
 #include <stdlib.h>

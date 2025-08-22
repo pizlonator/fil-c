@@ -146,10 +146,9 @@ define i32 @f16_i8(half %in) {
 
 define <4 x i64> @v4f32_i32(<4 x float> %in) {
 ; CHECK-LABEL: @v4f32_i32(
-; CHECK-NEXT:    [[CONV:%.*]] = fptosi <4 x float> [[IN:%.*]] to <4 x i64>
-; CHECK-NEXT:    [[MIN:%.*]] = call <4 x i64> @llvm.smin.v4i64(<4 x i64> [[CONV]], <4 x i64> <i64 2147483647, i64 2147483647, i64 2147483647, i64 2147483647>)
-; CHECK-NEXT:    [[MAX:%.*]] = call <4 x i64> @llvm.smax.v4i64(<4 x i64> [[MIN]], <4 x i64> <i64 -2147483648, i64 -2147483648, i64 -2147483648, i64 -2147483648>)
-; CHECK-NEXT:    ret <4 x i64> [[MAX]]
+; CHECK-NEXT:    [[TMP1:%.*]] = call <4 x i32> @llvm.fptosi.sat.v4i32.v4f32(<4 x float> [[IN:%.*]])
+; CHECK-NEXT:    [[TMP2:%.*]] = sext <4 x i32> [[TMP1]] to <4 x i64>
+; CHECK-NEXT:    ret <4 x i64> [[TMP2]]
 ;
   %conv = fptosi <4 x float> %in to <4 x i64>
   %min = call <4 x i64> @llvm.smin.v4i64(<4 x i64> %conv, <4 x i64> <i64 2147483647, i64 2147483647, i64 2147483647, i64 2147483647>)
@@ -160,8 +159,8 @@ define <4 x i64> @v4f32_i32(<4 x float> %in) {
 define <8 x i32> @v8f16_i16(<8 x half> %in) {
 ; CHECK-LABEL: @v8f16_i16(
 ; CHECK-NEXT:    [[CONV:%.*]] = fptosi <8 x half> [[IN:%.*]] to <8 x i32>
-; CHECK-NEXT:    [[MIN:%.*]] = call <8 x i32> @llvm.smin.v8i32(<8 x i32> [[CONV]], <8 x i32> <i32 32767, i32 32767, i32 32767, i32 32767, i32 32767, i32 32767, i32 32767, i32 32767>)
-; CHECK-NEXT:    [[MAX:%.*]] = call <8 x i32> @llvm.smax.v8i32(<8 x i32> [[MIN]], <8 x i32> <i32 -32768, i32 -32768, i32 -32768, i32 -32768, i32 -32768, i32 -32768, i32 -32768, i32 -32768>)
+; CHECK-NEXT:    [[MIN:%.*]] = call <8 x i32> @llvm.smin.v8i32(<8 x i32> [[CONV]], <8 x i32> splat (i32 32767))
+; CHECK-NEXT:    [[MAX:%.*]] = call <8 x i32> @llvm.smax.v8i32(<8 x i32> [[MIN]], <8 x i32> splat (i32 -32768))
 ; CHECK-NEXT:    ret <8 x i32> [[MAX]]
 ;
   %conv = fptosi <8 x half> %in to <8 x i32>

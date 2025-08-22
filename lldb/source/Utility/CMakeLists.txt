@@ -24,10 +24,12 @@ if (NOT HAVE_CXX_ATOMICS64_WITHOUT_LIB )
 endif()
 
 add_lldb_library(lldbUtility NO_INTERNAL_DEPENDENCIES
+  AddressableBits.cpp
   ArchSpec.cpp
   Args.cpp
   Baton.cpp
   Broadcaster.cpp
+  Checksum.cpp
   CompletionRequest.cpp
   Connection.cpp
   ConstString.cpp
@@ -36,7 +38,9 @@ add_lldb_library(lldbUtility NO_INTERNAL_DEPENDENCIES
   DataEncoder.cpp
   DataExtractor.cpp
   Diagnostics.cpp
+  DiagnosticsRendering.cpp
   Environment.cpp
+  ErrorMessages.cpp
   Event.cpp
   FileSpec.cpp
   FileSpecList.cpp
@@ -48,6 +52,7 @@ add_lldb_library(lldbUtility NO_INTERNAL_DEPENDENCIES
   Log.cpp
   NameMatches.cpp
   ProcessInfo.cpp
+  RealpathPrefixes.cpp
   RegisterValue.cpp
   RegularExpression.cpp
   Instrumentation.cpp

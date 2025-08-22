@@ -14,14 +14,14 @@
 #define LLVM_LIB_TARGET_ARC_ARCTARGETMACHINE_H
 
 #include "ARCSubtarget.h"
-#include "llvm/Target/TargetMachine.h"
+#include "llvm/CodeGen/CodeGenTargetMachineImpl.h"
 #include <optional>
 
 namespace llvm {
 
 class TargetPassConfig;
 
-class ARCTargetMachine : public LLVMTargetMachine {
+class ARCTargetMachine : public CodeGenTargetMachineImpl {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
   ARCSubtarget Subtarget;
 
@@ -29,7 +29,7 @@ public:
   ARCTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                    StringRef FS, const TargetOptions &Options,
                    std::optional<Reloc::Model> RM,
-                   std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                   std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                    bool JIT);
   ~ARCTargetMachine() override;
 

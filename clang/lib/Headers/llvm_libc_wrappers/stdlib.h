@@ -23,15 +23,26 @@
 
 #pragma omp begin declare target
 
-// The LLVM C library uses this type so we forward declare it.
+// The LLVM C library uses these named types so we forward declare them.
 typedef void (*__atexithandler_t)(void);
+typedef int (*__bsearchcompare_t)(const void *, const void *);
+typedef int (*__qsortcompare_t)(const void *, const void *);
+typedef int (*__qsortrcompare_t)(const void *, const void *, void *);
 
 // Enforce ABI compatibility with the structs used by the LLVM C library.
 _Static_assert(__builtin_offsetof(div_t, quot) == 0, "ABI mismatch!");
 _Static_assert(__builtin_offsetof(ldiv_t, quot) == 0, "ABI mismatch!");
 _Static_assert(__builtin_offsetof(lldiv_t, quot) == 0, "ABI mismatch!");
 
+#if defined(__GLIBC__) && __cplusplus >= 201703L
+#define at_quick_exit atexit
+#endif
+
 #include <llvm-libc-decls/stdlib.h>
+
+#if defined(__GLIBC__) && __cplusplus >= 201703L
+#undef at_quick_exit
+#endif
 
 #pragma omp end declare target
 

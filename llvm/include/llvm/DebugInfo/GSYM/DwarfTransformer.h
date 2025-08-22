@@ -10,6 +10,7 @@
 #define LLVM_DEBUGINFO_GSYM_DWARFTRANSFORMER_H
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/DebugInfo/DWARF/DWARFContext.h"
 #include "llvm/DebugInfo/GSYM/ExtractRanges.h"
 #include "llvm/Support/Error.h"
 
@@ -22,6 +23,7 @@ namespace gsym {
 struct CUInfo;
 struct FunctionInfo;
 class GsymCreator;
+class OutputAggregator;
 
 /// A class that transforms the DWARF in a DWARFContext into GSYM information
 /// by populating the GsymCreator object that it is constructed with. This
@@ -31,28 +33,33 @@ class GsymCreator;
 /// allows this class to be unit tested.
 class DwarfTransformer {
 public:
-
   /// Create a DWARF transformer.
   ///
   /// \param D The DWARF to use when converting to GSYM.
   ///
-  /// \param OS The stream to log warnings and non fatal issues to.
-  ///
   /// \param G The GSYM creator to populate with the function information
   /// from the debug info.
-  DwarfTransformer(DWARFContext &D, raw_ostream &OS, GsymCreator &G) :
-      DICtx(D), Log(OS), Gsym(G) {}
+  ///
+  /// \param LDCS Flag to indicate whether we should load the call site
+  /// information from DWARF `DW_TAG_call_site` entries
+  DwarfTransformer(DWARFContext &D, GsymCreator &G, bool LDCS = false)
+      : DICtx(D), Gsym(G), LoadDwarfCallSites(LDCS) {}
 
   /// Extract the DWARF from the supplied object file and convert it into the
   /// Gsym format in the GsymCreator object that is passed in. Returns an
   /// error if something fatal is encountered.
   ///
+  /// \param NumThreads The number of threads that the conversion process can
+  ///                   use.
+  ///
+  /// \param OS The stream to log warnings and non fatal issues to. If NULL
+  ///           then don't log.
+  ///
   /// \returns An error indicating any fatal issues that happen when parsing
   /// the DWARF, or Error::success() if all goes well.
-  llvm::Error convert(uint32_t NumThreads);
+  llvm::Error convert(uint32_t NumThreads, OutputAggregator &OS);
 
-  llvm::Error verify(StringRef GsymPath);
-
+  llvm::Error verify(StringRef GsymPath, OutputAggregator &OS);
 
 private:
 
@@ -69,18 +76,26 @@ private:
   /// \param Strm The thread specific log stream for any non fatal errors and
   /// warnings. Once a thread has finished parsing an entire compile unit, all
   /// information in this temporary stream will be forwarded to the member
-  /// variable log. This keeps logging thread safe.
+  /// variable log. This keeps logging thread safe. If the value is NULL, then
+  /// don't log.
   ///
   /// \param CUI The compile unit specific information that contains the DWARF
   /// line table, cached file list, and other compile unit specific
   /// information.
   ///
   /// \param Die The DWARF debug info entry to parse.
-  void handleDie(raw_ostream &Strm, CUInfo &CUI, DWARFDie Die);
+  void handleDie(OutputAggregator &Strm, CUInfo &CUI, DWARFDie Die);
+
+  /// Parse call site information from DWARF
+  ///
+  /// \param CUI   The compile unit info for the current CU.
+  /// \param Die   The DWARFDie for the function.
+  /// \param FI    The FunctionInfo for the function being populated.
+  void parseCallSiteInfoFromDwarf(CUInfo &CUI, DWARFDie Die, FunctionInfo &FI);
 
   DWARFContext &DICtx;
-  raw_ostream &Log;
   GsymCreator &Gsym;
+  bool LoadDwarfCallSites;
 
   friend class DwarfTransformerTest;
 };

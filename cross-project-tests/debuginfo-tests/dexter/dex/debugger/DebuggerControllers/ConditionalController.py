@@ -62,7 +62,7 @@ class BreakpointRange:
         self.finish_on_remove = finish_on_remove
 
     def has_conditions(self):
-        return self.expression != None
+        return self.expression is not None
 
     def get_conditional_expression_list(self):
         conditional_list = []
@@ -76,7 +76,7 @@ class BreakpointRange:
         self.current_hit_count += 1
 
     def should_be_removed(self):
-        if self.max_hit_count == None:
+        if self.max_hit_count is None:
             return False
         return self.current_hit_count >= self.max_hit_count
 
@@ -164,7 +164,6 @@ class ConditionalController(DebuggerControllerBase):
         total_timeout = Timeout(self.context.options.timeout_total)
 
         while not self.debugger.is_finished:
-
             breakpoint_timeout = Timeout(self.context.options.timeout_breakpoint)
             while self.debugger.is_running and not timed_out:
                 # Check to see whether we've timed out while we're waiting.

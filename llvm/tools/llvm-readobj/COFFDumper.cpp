@@ -27,6 +27,7 @@
 #include "llvm/DebugInfo/CodeView/DebugInlineeLinesSubsection.h"
 #include "llvm/DebugInfo/CodeView/DebugLinesSubsection.h"
 #include "llvm/DebugInfo/CodeView/DebugStringTableSubsection.h"
+#include "llvm/DebugInfo/CodeView/Formatters.h"
 #include "llvm/DebugInfo/CodeView/LazyRandomTypeCollection.h"
 #include "llvm/DebugInfo/CodeView/Line.h"
 #include "llvm/DebugInfo/CodeView/MergingTypeTableBuilder.h"
@@ -110,7 +111,7 @@ public:
 
 private:
   StringRef getSymbolName(uint32_t Index);
-  void printSymbols() override;
+  void printSymbols(bool ExtraSymInfo) override;
   void printDynamicSymbols() override;
   void printSymbol(const SymbolRef &Sym);
   void printRelocation(const SectionRef &Section, const RelocationRef &Reloc,
@@ -793,7 +794,9 @@ void COFFDumper::printCOFFDebugDirectory() {
       DictScope PDBScope(W, "PDBInfo");
       W.printHex("PDBSignature", DebugInfo->Signature.CVSignature);
       if (DebugInfo->Signature.CVSignature == OMF::Signature::PDB70) {
-        W.printBinary("PDBGUID", ArrayRef(DebugInfo->PDB70.Signature));
+        W.printString(
+            "PDBGUID",
+            formatv("{0}", fmt_guid(DebugInfo->PDB70.Signature)).str());
         W.printNumber("PDBAge", DebugInfo->PDB70.Age);
         W.printString("PDBFileName", PDBFileName);
       }
@@ -854,17 +857,17 @@ void COFFDumper::printCOFFLoadConfig() {
         reportError(std::move(E), Obj->getFileName());
       auto CodeMap = reinterpret_cast<const chpe_range_entry *>(CodeMapInt);
       for (uint32_t i = 0; i < CHPE->CodeMapCount; i++) {
-        uint32_t Start = CodeMap[i].StartOffset & ~3;
+        uint32_t Start = CodeMap[i].getStart();
         W.startLine() << W.hex(Start) << " - "
                       << W.hex(Start + CodeMap[i].Length) << "  ";
-        switch (CodeMap[i].StartOffset & 3) {
-        case CHPE_RANGE_ARM64:
+        switch (CodeMap[i].getType()) {
+        case chpe_range_type::Arm64:
           W.getOStream() << "ARM64\n";
           break;
-        case CHPE_RANGE_ARM64EC:
+        case chpe_range_type::Arm64EC:
           W.getOStream() << "ARM64EC\n";
           break;
-        case CHPE_RANGE_AMD64:
+        case chpe_range_type::Amd64:
           W.getOStream() << "X64\n";
           break;
         default:
@@ -927,6 +930,12 @@ void COFFDumper::printCOFFLoadConfig() {
     W.printHex("ExtraRFETableSize", CHPE->ExtraRFETableSize);
     W.printHex("__os_arm64x_dispatch_fptr", CHPE->__os_arm64x_dispatch_fptr);
     W.printHex("AuxiliaryIATCopy", CHPE->AuxiliaryIATCopy);
+
+    if (CHPE->Version >= 2) {
+      W.printHex("AuxiliaryDelayloadIAT", CHPE->AuxiliaryDelayloadIAT);
+      W.printHex("AuxiliaryDelayloadIATCopy", CHPE->AuxiliaryDelayloadIATCopy);
+      W.printHex("HybridImageInfoBitfield", CHPE->HybridImageInfoBitfield);
+    }
   }
 
   if (Tables.SEHTableVA) {
@@ -968,6 +977,43 @@ void COFFDumper::printCOFFLoadConfig() {
     ListScope LS(W, "GuardEHContTable");
     printRVATable(Tables.GuardEHContTableVA, Tables.GuardEHContTableCount,
                   4 + Stride, PrintExtra);
+  }
+
+  if (const coff_dynamic_reloc_table *DynRelocTable =
+          Obj->getDynamicRelocTable()) {
+    ListScope LS(W, "DynamicRelocations");
+    W.printHex("Version", DynRelocTable->Version);
+    for (auto reloc : Obj->dynamic_relocs()) {
+      switch (reloc.getType()) {
+      case COFF::IMAGE_DYNAMIC_RELOCATION_ARM64X: {
+        ListScope TLS(W, "Arm64X");
+        for (auto Arm64XReloc : reloc.arm64x_relocs()) {
+          ListScope ELS(W, "Entry");
+          W.printHex("RVA", Arm64XReloc.getRVA());
+          switch (Arm64XReloc.getType()) {
+          case COFF::IMAGE_DVRT_ARM64X_FIXUP_TYPE_ZEROFILL:
+            W.printString("Type", "ZEROFILL");
+            W.printHex("Size", Arm64XReloc.getSize());
+            break;
+          case COFF::IMAGE_DVRT_ARM64X_FIXUP_TYPE_VALUE:
+            W.printString("Type", "VALUE");
+            W.printHex("Size", Arm64XReloc.getSize());
+            W.printHex("Value", Arm64XReloc.getValue());
+            break;
+          case COFF::IMAGE_DVRT_ARM64X_FIXUP_TYPE_DELTA:
+            W.printString("Type", "DELTA");
+            W.printNumber("Value",
+                          static_cast<int32_t>(Arm64XReloc.getValue()));
+            break;
+          }
+        }
+        break;
+      }
+      default:
+        W.printHex("Type", reloc.getType());
+        break;
+      }
+    }
   }
 }
 
@@ -1106,7 +1152,7 @@ void COFFDumper::initializeFileAndStringTables(BinaryStreamReader &Reader) {
     if (Error E = Reader.readFixedString(Contents, SubSectionSize))
       reportError(std::move(E), Obj->getFileName());
 
-    BinaryStreamRef ST(Contents, support::little);
+    BinaryStreamRef ST(Contents, llvm::endianness::little);
     switch (DebugSubsectionKind(SubType)) {
     case DebugSubsectionKind::FileChecksums:
       if (Error E = CVFileChecksumTable.initialize(ST))
@@ -1148,7 +1194,7 @@ void COFFDumper::printCodeViewSymbolSection(StringRef SectionName,
     reportError(errorCodeToError(object_error::parse_failed),
                 Obj->getFileName());
 
-  BinaryStreamReader FSReader(Data, support::little);
+  BinaryStreamReader FSReader(Data, llvm::endianness::little);
   initializeFileAndStringTables(FSReader);
 
   // TODO: Convert this over to using ModuleSubstreamVisitor.
@@ -1237,7 +1283,7 @@ void COFFDumper::printCodeViewSymbolSection(StringRef SectionName,
     }
     case DebugSubsectionKind::FrameData: {
       // First four bytes is a relocation against the function.
-      BinaryStreamReader SR(Contents, llvm::support::little);
+      BinaryStreamReader SR(Contents, llvm::endianness::little);
 
       DebugFrameDataSubsectionRef FrameData;
       if (Error E = FrameData.initialize(SR))
@@ -1302,7 +1348,8 @@ void COFFDumper::printCodeViewSymbolSection(StringRef SectionName,
     ListScope S(W, "FunctionLineTable");
     W.printString("LinkageName", Name);
 
-    BinaryStreamReader Reader(FunctionLineTables[Name], support::little);
+    BinaryStreamReader Reader(FunctionLineTables[Name],
+                              llvm::endianness::little);
 
     DebugLinesSubsectionRef LineInfo;
     if (Error E = LineInfo.initialize(Reader))
@@ -1354,7 +1401,7 @@ void COFFDumper::printCodeViewSymbolsSubsection(StringRef Subsection,
   CVSymbolDumper CVSD(W, Types, CodeViewContainer::ObjectFile, std::move(CODD),
                       CompilationCPUType, opts::CodeViewSubsectionBytes);
   CVSymbolArray Symbols;
-  BinaryStreamReader Reader(BinaryData, llvm::support::little);
+  BinaryStreamReader Reader(BinaryData, llvm::endianness::little);
   if (Error E = Reader.readArray(Symbols, Reader.getLength())) {
     W.flush();
     reportError(std::move(E), Obj->getFileName());
@@ -1369,7 +1416,7 @@ void COFFDumper::printCodeViewSymbolsSubsection(StringRef Subsection,
 }
 
 void COFFDumper::printCodeViewFileChecksums(StringRef Subsection) {
-  BinaryStreamRef Stream(Subsection, llvm::support::little);
+  BinaryStreamRef Stream(Subsection, llvm::endianness::little);
   DebugChecksumsSubsectionRef Checksums;
   if (Error E = Checksums.initialize(Stream))
     reportError(std::move(E), Obj->getFileName());
@@ -1389,7 +1436,7 @@ void COFFDumper::printCodeViewFileChecksums(StringRef Subsection) {
 }
 
 void COFFDumper::printCodeViewInlineeLines(StringRef Subsection) {
-  BinaryStreamReader SR(Subsection, llvm::support::little);
+  BinaryStreamReader SR(Subsection, llvm::endianness::little);
   DebugInlineeLinesSubsectionRef Lines;
   if (Error E = Lines.initialize(SR))
     reportError(std::move(E), Obj->getFileName());
@@ -1449,7 +1496,7 @@ void COFFDumper::mergeCodeViewTypes(MergingTypeTableBuilder &CVIDs,
                     Obj->getFileName());
 
       CVTypeArray Types;
-      BinaryStreamReader Reader(Data, llvm::support::little);
+      BinaryStreamReader Reader(Data, llvm::endianness::little);
       if (auto EC = Reader.readArray(Types, Reader.getLength())) {
         consumeError(std::move(EC));
         W.flush();
@@ -1609,7 +1656,7 @@ void COFFDumper::printRelocation(const SectionRef &Section,
   }
 }
 
-void COFFDumper::printSymbols() {
+void COFFDumper::printSymbols(bool /*ExtraSymInfo*/) {
   ListScope Group(W, "Symbols");
 
   for (const SymbolRef &Symbol : Obj->symbols())
@@ -1945,7 +1992,7 @@ void COFFDumper::printCOFFResources() {
   ListScope ResourcesD(W, "Resources");
   for (const SectionRef &S : Obj->sections()) {
     StringRef Name = unwrapOrError(Obj->getFileName(), S.getName());
-    if (!Name.startswith(".rsrc"))
+    if (!Name.starts_with(".rsrc"))
       continue;
 
     StringRef Ref = unwrapOrError(Obj->getFileName(), S.getContents());
@@ -2091,10 +2138,10 @@ void COFFDumper::printStackMap() const {
 
   if (Obj->isLittleEndian())
     prettyPrintStackMap(
-        W, StackMapParser<support::little>(StackMapContentsArray));
+        W, StackMapParser<llvm::endianness::little>(StackMapContentsArray));
   else
     prettyPrintStackMap(
-        W, StackMapParser<support::big>(StackMapContentsArray));
+        W, StackMapParser<llvm::endianness::big>(StackMapContentsArray));
 }
 
 void COFFDumper::printAddrsig() {
@@ -2125,7 +2172,7 @@ void COFFDumper::printAddrsig() {
   const uint8_t *End = AddrsigContents.bytes_end();
   while (Cur != End) {
     unsigned Size;
-    const char *Err;
+    const char *Err = nullptr;
     uint64_t SymIndex = decodeULEB128(Cur, &Size, End, &Err);
     if (Err)
       reportError(createError(Err), Obj->getFileName());
@@ -2150,7 +2197,7 @@ void COFFDumper::printCGProfile() {
 
   StringRef CGProfileContents =
       unwrapOrError(Obj->getFileName(), CGProfileSection.getContents());
-  BinaryStreamReader Reader(CGProfileContents, llvm::support::little);
+  BinaryStreamReader Reader(CGProfileContents, llvm::endianness::little);
 
   ListScope L(W, "CGProfile");
   while (!Reader.empty()) {

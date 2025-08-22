@@ -441,8 +441,6 @@ AST_MATCHER(Expr, isIntegerConstantExpr) {
   return Node.isIntegerConstantExpr(Finder->getASTContext());
 }
 
-AST_MATCHER(Expr, isRequiresExpr) { return isa<RequiresExpr>(Node); }
-
 AST_MATCHER(BinaryOperator, operandsAreEquivalent) {
   return areEquivalentExpr(Node.getLHS(), Node.getRHS());
 }
@@ -857,29 +855,24 @@ static bool areExprsMacroAndNonMacro(const Expr *&LhsExpr,
 } // namespace
 
 void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
-  const auto AnyLiteralExpr = ignoringParenImpCasts(
-      anyOf(cxxBoolLiteral(), characterLiteral(), integerLiteral()));
-
   const auto BannedIntegerLiteral =
       integerLiteral(expandedByMacro(KnownBannedMacroNames));
-  const auto BannedAncestor = expr(isRequiresExpr());
+  const auto IsInUnevaluatedContext = expr(anyOf(
+      hasAncestor(expr(hasUnevaluatedContext())), hasAncestor(typeLoc())));
 
   // Binary with equivalent operands, like (X != 2 && X != 2).
   Finder->addMatcher(
       traverse(TK_AsIs,
-               binaryOperator(
-                   anyOf(isComparisonOperator(),
-                         hasAnyOperatorName("-", "/", "%", "|", "&", "^", "&&",
-                                            "||", "=")),
-                   operandsAreEquivalent(),
-                   // Filter noisy false positives.
-                   unless(isInTemplateInstantiation()),
-                   unless(binaryOperatorIsInMacro()),
-                   unless(hasType(realFloatingPointType())),
-                   unless(hasEitherOperand(hasType(realFloatingPointType()))),
-                   unless(hasLHS(AnyLiteralExpr)),
-                   unless(hasDescendant(BannedIntegerLiteral)),
-                   unless(hasAncestor(BannedAncestor)))
+               binaryOperator(anyOf(isComparisonOperator(),
+                                    hasAnyOperatorName("-", "/", "%", "|", "&",
+                                                       "^", "&&", "||", "=")),
+                              operandsAreEquivalent(),
+                              // Filter noisy false positives.
+                              unless(isInTemplateInstantiation()),
+                              unless(binaryOperatorIsInMacro()),
+                              unless(hasAncestor(arraySubscriptExpr())),
+                              unless(hasDescendant(BannedIntegerLiteral)),
+                              unless(IsInUnevaluatedContext))
                    .bind("binary")),
       this);
 
@@ -893,7 +886,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                      unless(binaryOperatorIsInMacro()),
                      // TODO: if the banned macros are themselves duplicated
                      unless(hasDescendant(BannedIntegerLiteral)),
-                     unless(hasAncestor(BannedAncestor)))
+                     unless(IsInUnevaluatedContext))
           .bind("nested-duplicates"),
       this);
 
@@ -904,7 +897,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                                    // Filter noisy false positives.
                                    unless(conditionalOperatorIsInMacro()),
                                    unless(isInTemplateInstantiation()),
-                                   unless(hasAncestor(BannedAncestor)))
+                                   unless(IsInUnevaluatedContext))
                    .bind("cond")),
       this);
 
@@ -918,7 +911,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                    parametersAreEquivalent(),
                    // Filter noisy false positives.
                    unless(isMacro()), unless(isInTemplateInstantiation()),
-                   unless(hasAncestor(BannedAncestor)))
+                   unless(IsInUnevaluatedContext))
                    .bind("call")),
       this);
 
@@ -929,7 +922,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
           nestedParametersAreEquivalent(), argumentCountIs(2),
           // Filter noisy false positives.
           unless(isMacro()), unless(isInTemplateInstantiation()),
-          unless(hasAncestor(BannedAncestor)))
+          unless(IsInUnevaluatedContext))
           .bind("nested-duplicates"),
       this);
 
@@ -947,7 +940,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                                    integerLiteral())),
                                hasRHS(integerLiteral())))))
                            .bind("logical-bitwise-confusion")),
-                   unless(hasAncestor(BannedAncestor)))),
+                   unless(IsInUnevaluatedContext))),
       this);
 
   // Match expressions like: (X << 8) & 0xFF
@@ -961,7 +954,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                                        integerLiteral().bind("shift-const"))))),
                                ignoringParenImpCasts(
                                    integerLiteral().bind("and-const"))),
-                   unless(hasAncestor(BannedAncestor)))
+                   unless(IsInUnevaluatedContext))
                    .bind("left-right-shift-confusion")),
       this);
 
@@ -980,7 +973,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
   Finder->addMatcher(
       traverse(TK_AsIs, binaryOperator(isComparisonOperator(),
                                        hasOperands(BinOpCstLeft, CstRight),
-                                       unless(hasAncestor(BannedAncestor)))
+                                       unless(IsInUnevaluatedContext))
                             .bind("binop-const-compare-to-const")),
       this);
 
@@ -991,7 +984,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
           binaryOperator(isComparisonOperator(),
                          anyOf(allOf(hasLHS(BinOpCstLeft), hasRHS(SymRight)),
                                allOf(hasLHS(SymRight), hasRHS(BinOpCstLeft))),
-                         unless(hasAncestor(BannedAncestor)))
+                         unless(IsInUnevaluatedContext))
               .bind("binop-const-compare-to-sym")),
       this);
 
@@ -1002,7 +995,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                               hasRHS(BinOpCstRight),
                               // Already reported as redundant.
                               unless(operandsAreEquivalent()),
-                              unless(hasAncestor(BannedAncestor)))
+                              unless(IsInUnevaluatedContext))
                    .bind("binop-const-compare-to-binop-const")),
       this);
 
@@ -1019,7 +1012,7 @@ void RedundantExpressionCheck::registerMatchers(MatchFinder *Finder) {
                               hasLHS(ComparisonLeft), hasRHS(ComparisonRight),
                               // Already reported as redundant.
                               unless(operandsAreEquivalent()),
-                              unless(hasAncestor(BannedAncestor)))
+                              unless(IsInUnevaluatedContext))
                    .bind("comparisons-of-symbol-and-const")),
       this);
 }
@@ -1028,7 +1021,7 @@ void RedundantExpressionCheck::checkArithmeticExpr(
     const MatchFinder::MatchResult &Result) {
   APSInt LhsValue, RhsValue;
   const Expr *LhsSymbol = nullptr, *RhsSymbol = nullptr;
-  BinaryOperatorKind LhsOpcode, RhsOpcode;
+  BinaryOperatorKind LhsOpcode{}, RhsOpcode{};
 
   if (const auto *ComparisonOperator = Result.Nodes.getNodeAs<BinaryOperator>(
           "binop-const-compare-to-sym")) {
@@ -1105,7 +1098,7 @@ void RedundantExpressionCheck::checkBitwiseExpr(
 
     APSInt LhsValue, RhsValue;
     const Expr *LhsSymbol = nullptr;
-    BinaryOperatorKind LhsOpcode;
+    BinaryOperatorKind LhsOpcode{};
     if (!retrieveBinOpIntegerConstantExpr(Result, "lhs", LhsOpcode, LhsSymbol,
                                           LhsValue) ||
         !retrieveIntegerConstantExpr(Result, "rhs", RhsValue))
@@ -1181,7 +1174,7 @@ void RedundantExpressionCheck::checkRelationalExpr(
     const Expr *LhsExpr = nullptr, *RhsExpr = nullptr;
     const Expr *LhsSymbol = nullptr, *RhsSymbol = nullptr;
     const Expr *LhsConst = nullptr, *RhsConst = nullptr;
-    BinaryOperatorKind LhsOpcode, RhsOpcode;
+    BinaryOperatorKind LhsOpcode{}, RhsOpcode{};
     APSInt LhsValue, RhsValue;
 
     if (!retrieveRelationalIntegerConstantExpr(
@@ -1239,9 +1232,53 @@ void RedundantExpressionCheck::check(const MatchFinder::MatchResult &Result) {
   if (const auto *BinOp = Result.Nodes.getNodeAs<BinaryOperator>("binary")) {
     // If the expression's constants are macros, check whether they are
     // intentional.
+
+    //
+    // Special case for floating-point representation.
+    //
+    // If expressions on both sides of comparison operator are of type float,
+    // then for some comparison operators no warning shall be
+    // reported even if the expressions are identical from a symbolic point of
+    // view. Comparison between expressions, declared variables and literals
+    // are treated differently.
+    //
+    // != and == between float literals that have the same value should NOT
+    // warn. < > between float literals that have the same value SHOULD warn.
+    //
+    // != and == between the same float declaration should NOT warn.
+    // < > between the same float declaration SHOULD warn.
+    //
+    // != and == between eq. expressions that evaluates into float
+    //           should NOT warn.
+    // < >       between eq. expressions that evaluates into float
+    //           should NOT warn.
+    //
+    const Expr *LHS = BinOp->getLHS()->IgnoreParenImpCasts();
+    const Expr *RHS = BinOp->getRHS()->IgnoreParenImpCasts();
+    const BinaryOperator::Opcode Op = BinOp->getOpcode();
+    const bool OpEqualEQorNE = ((Op == BO_EQ) || (Op == BO_NE));
+
+    const auto *DeclRef1 = dyn_cast<DeclRefExpr>(LHS);
+    const auto *DeclRef2 = dyn_cast<DeclRefExpr>(RHS);
+    const auto *FloatLit1 = dyn_cast<FloatingLiteral>(LHS);
+    const auto *FloatLit2 = dyn_cast<FloatingLiteral>(RHS);
+
+    if (DeclRef1 && DeclRef2 &&
+        DeclRef1->getType()->hasFloatingRepresentation() &&
+        DeclRef2->getType()->hasFloatingRepresentation() &&
+        (DeclRef1->getDecl() == DeclRef2->getDecl()) && OpEqualEQorNE) {
+      return;
+    }
+
+    if (FloatLit1 && FloatLit2 &&
+        FloatLit1->getValue().bitwiseIsEqual(FloatLit2->getValue()) &&
+        OpEqualEQorNE) {
+      return;
+    }
+
     if (areSidesBinaryConstExpressions(BinOp, Result.Context)) {
       const Expr *LhsConst = nullptr, *RhsConst = nullptr;
-      BinaryOperatorKind MainOpcode, SideOpcode;
+      BinaryOperatorKind MainOpcode{}, SideOpcode{};
 
       if (!retrieveConstExprFromBothSides(BinOp, MainOpcode, SideOpcode,
                                           LhsConst, RhsConst, Result.Context))
@@ -1286,7 +1323,7 @@ void RedundantExpressionCheck::check(const MatchFinder::MatchResult &Result) {
 
     const auto Diag = diag(Op->getExprLoc(), Message);
     for (const auto &KeyValue : Result.Nodes.getMap()) {
-      if (StringRef(KeyValue.first).startswith("duplicate"))
+      if (StringRef(KeyValue.first).starts_with("duplicate"))
         Diag << KeyValue.second.getSourceRange();
     }
   }

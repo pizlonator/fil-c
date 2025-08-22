@@ -190,9 +190,10 @@ static unsigned ProcessCharEscape(const char *ThisTokBegin,
       Delimited = true;
       ThisTokBuf++;
       if (*ThisTokBuf == '}') {
-        Diag(Diags, Features, Loc, ThisTokBegin, EscapeBegin, ThisTokBuf,
-             diag::err_delimited_escape_empty);
-        return ResultChar;
+        HadError = true;
+        if (Diags)
+          Diag(Diags, Features, Loc, ThisTokBegin, EscapeBegin, ThisTokBuf,
+               diag::err_delimited_escape_empty);
       }
     } else if (ThisTokBuf == ThisTokEnd || !isHexDigit(*ThisTokBuf)) {
       if (Diags)
@@ -283,9 +284,10 @@ static unsigned ProcessCharEscape(const char *ThisTokBegin,
     Delimited = true;
     ++ThisTokBuf;
     if (*ThisTokBuf == '}') {
-      Diag(Diags, Features, Loc, ThisTokBegin, EscapeBegin, ThisTokBuf,
-           diag::err_delimited_escape_empty);
-      return ResultChar;
+      HadError = true;
+      if (Diags)
+        Diag(Diags, Features, Loc, ThisTokBegin, EscapeBegin, ThisTokBuf,
+             diag::err_delimited_escape_empty);
     }
 
     while (ThisTokBuf != ThisTokEnd) {
@@ -407,10 +409,10 @@ void clang::expandUCNs(SmallVectorImpl<char> &Buf, StringRef Input) {
       ++I;
       auto Delim = std::find(I, Input.end(), '}');
       assert(Delim != Input.end());
+      StringRef Name(I, std::distance(I, Delim));
       std::optional<llvm::sys::unicode::LooseMatchingResult> Res =
-          llvm::sys::unicode::nameToCodepointLooseMatching(
-              StringRef(I, std::distance(I, Delim)));
-      assert(Res);
+          llvm::sys::unicode::nameToCodepointLooseMatching(Name);
+      assert(Res && "could not find a codepoint that was previously found");
       CodePoint = Res->CodePoint;
       assert(CodePoint != 0xFFFFFFFF);
       appendCodePoint(CodePoint, Buf);
@@ -437,6 +439,19 @@ void clang::expandUCNs(SmallVectorImpl<char> &Buf, StringRef Input) {
     appendCodePoint(CodePoint, Buf);
     --I;
   }
+}
+
+bool clang::isFunctionLocalStringLiteralMacro(tok::TokenKind K,
+                                              const LangOptions &LO) {
+  return LO.MicrosoftExt &&
+         (K == tok::kw___FUNCTION__ || K == tok::kw_L__FUNCTION__ ||
+          K == tok::kw___FUNCSIG__ || K == tok::kw_L__FUNCSIG__ ||
+          K == tok::kw___FUNCDNAME__);
+}
+
+bool clang::tokenIsLikeStringLiteral(const Token &Tok, const LangOptions &LO) {
+  return tok::isStringLiteral(Tok.getKind()) ||
+         isFunctionLocalStringLiteralMacro(Tok.getKind(), LO);
 }
 
 static bool ProcessNumericUCNEscape(const char *ThisTokBegin,
@@ -662,13 +677,13 @@ static bool ProcessUCNEscape(const char *ThisTokBegin, const char *&ThisTokBuf,
     return false;
   }
 
-  // C2x and C++11 allow UCNs that refer to control characters
+  // C23 and C++11 allow UCNs that refer to control characters
   // and basic source characters inside character and string literals
   if (UcnVal < 0xa0 &&
       // $, @, ` are allowed in all language modes
       (UcnVal != 0x24 && UcnVal != 0x40 && UcnVal != 0x60)) {
     bool IsError =
-        (!(Features.CPlusPlus11 || Features.C2x) || !in_char_string_literal);
+        (!(Features.CPlusPlus11 || Features.C23) || !in_char_string_literal);
     if (Diags) {
       char BasicSCSChar = UcnVal;
       if (UcnVal >= 0x20 && UcnVal < 0x7f)
@@ -676,14 +691,14 @@ static bool ProcessUCNEscape(const char *ThisTokBegin, const char *&ThisTokBuf,
              IsError ? diag::err_ucn_escape_basic_scs
              : Features.CPlusPlus
                  ? diag::warn_cxx98_compat_literal_ucn_escape_basic_scs
-                 : diag::warn_c2x_compat_literal_ucn_escape_basic_scs)
+                 : diag::warn_c23_compat_literal_ucn_escape_basic_scs)
             << StringRef(&BasicSCSChar, 1);
       else
         Diag(Diags, Features, Loc, ThisTokBegin, UcnBegin, ThisTokBuf,
              IsError ? diag::err_ucn_control_character
              : Features.CPlusPlus
                  ? diag::warn_cxx98_compat_literal_ucn_control_character
-                 : diag::warn_c2x_compat_literal_ucn_control_character);
+                 : diag::warn_c23_compat_literal_ucn_control_character);
     }
     if (IsError)
       return false;
@@ -917,7 +932,11 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
   // and FP constants (specifically, the 'pp-number' regex), and assumes that
   // the byte at "*end" is both valid and not part of the regex.  Because of
   // this, it doesn't have to check for 'overscan' in various places.
-  if (isPreprocessingNumberBody(*ThisTokEnd)) {
+  // Note: For HLSL, the end token is allowed to be '.' which would be in the
+  // 'pp-number' regex. This is required to support vector swizzles on numeric
+  // constants (i.e. 1.xx or 1.5f.rrr).
+  if (isPreprocessingNumberBody(*ThisTokEnd) &&
+      !(LangOpts.HLSL && *ThisTokEnd == '.')) {
     Diags.Report(TokLoc, diag::err_lexing_numeric);
     hadError = true;
     return;
@@ -957,6 +976,7 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
   bool isFixedPointConstant = isFixedPointLiteral();
   bool isFPConstant = isFloatingLiteral();
   bool HasSize = false;
+  bool DoubleUnderscore = false;
 
   // Loop over all of the characters of the suffix.  If we see something bad,
   // we break out of the loop.
@@ -1100,6 +1120,32 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
       if (isImaginary) break;   // Cannot be repeated.
       isImaginary = true;
       continue;  // Success.
+    case '_':
+      if (isFPConstant)
+        break; // Invalid for floats
+      if (HasSize)
+        break;
+      // There is currently no way to reach this with DoubleUnderscore set.
+      // If new double underscope literals are added handle it here as above.
+      assert(!DoubleUnderscore && "unhandled double underscore case");
+      if (LangOpts.CPlusPlus && s + 2 < ThisTokEnd &&
+          s[1] == '_') { // s + 2 < ThisTokEnd to ensure some character exists
+                         // after __
+        DoubleUnderscore = true;
+        s += 2; // Skip both '_'
+        if (s + 1 < ThisTokEnd &&
+            (*s == 'u' || *s == 'U')) { // Ensure some character after 'u'/'U'
+          isUnsigned = true;
+          ++s;
+        }
+        if (s + 1 < ThisTokEnd &&
+            ((*s == 'w' && *(++s) == 'b') || (*s == 'W' && *(++s) == 'B'))) {
+          isBitInt = true;
+          HasSize = true;
+          continue;
+        }
+      }
+      break;
     case 'w':
     case 'W':
       if (isFPConstant)
@@ -1110,9 +1156,9 @@ NumericLiteralParser::NumericLiteralParser(StringRef TokSpelling,
       // wb and WB are allowed, but a mixture of cases like Wb or wB is not. We
       // explicitly do not support the suffix in C++ as an extension because a
       // library-based UDL that resolves to a library type may be more
-      // appropriate there.
-      if (!LangOpts.CPlusPlus && ((s[0] == 'w' && s[1] == 'b') ||
-          (s[0] == 'W' && s[1] == 'B'))) {
+      // appropriate there. The same rules apply for __wb/__WB.
+      if ((!LangOpts.CPlusPlus || DoubleUnderscore) && s + 1 < ThisTokEnd &&
+          ((s[0] == 'w' && s[1] == 'b') || (s[0] == 'W' && s[1] == 'B'))) {
         isBitInt = true;
         HasSize = true;
         ++s; // Skip both characters (2nd char skipped on continue).
@@ -1224,7 +1270,9 @@ bool NumericLiteralParser::isValidUDSuffix(const LangOptions &LangOpts,
     return false;
 
   // By C++11 [lex.ext]p10, ud-suffixes starting with an '_' are always valid.
-  if (Suffix[0] == '_')
+  // Suffixes starting with '__' (double underscore) are for use by
+  // the implementation.
+  if (Suffix.starts_with("_") && !Suffix.starts_with("__"))
     return true;
 
   // In C++11, there are no library suffixes.
@@ -1341,11 +1389,17 @@ void NumericLiteralParser::ParseNumberStartingWithZero(SourceLocation TokLoc) {
 
   // Handle simple binary numbers 0b01010
   if ((c1 == 'b' || c1 == 'B') && (s[1] == '0' || s[1] == '1')) {
-    // 0b101010 is a C++1y / GCC extension.
-    Diags.Report(TokLoc, LangOpts.CPlusPlus14
-                             ? diag::warn_cxx11_compat_binary_literal
-                         : LangOpts.CPlusPlus ? diag::ext_binary_literal_cxx14
-                                              : diag::ext_binary_literal);
+    // 0b101010 is a C++14 and C23 extension.
+    unsigned DiagId;
+    if (LangOpts.CPlusPlus14)
+      DiagId = diag::warn_cxx11_compat_binary_literal;
+    else if (LangOpts.C23)
+      DiagId = diag::warn_c23_compat_binary_literal;
+    else if (LangOpts.CPlusPlus)
+      DiagId = diag::ext_binary_literal_cxx14;
+    else
+      DiagId = diag::ext_binary_literal;
+    Diags.Report(TokLoc, DiagId);
     ++s;
     assert(s < ThisTokEnd && "didn't maximally munch?");
     radix = 2;
@@ -1469,7 +1523,8 @@ bool NumericLiteralParser::GetIntegerValue(llvm::APInt &Val) {
 }
 
 llvm::APFloat::opStatus
-NumericLiteralParser::GetFloatValue(llvm::APFloat &Result) {
+NumericLiteralParser::GetFloatValue(llvm::APFloat &Result,
+                                    llvm::RoundingMode RM) {
   using llvm::APFloat;
 
   unsigned n = std::min(SuffixBegin - ThisTokBegin, ThisTokEnd - ThisTokBegin);
@@ -1483,15 +1538,16 @@ NumericLiteralParser::GetFloatValue(llvm::APFloat &Result) {
     Str = Buffer;
   }
 
-  auto StatusOrErr =
-      Result.convertFromString(Str, APFloat::rmNearestTiesToEven);
+  auto StatusOrErr = Result.convertFromString(Str, RM);
   assert(StatusOrErr && "Invalid floating point representation");
   return !errorToBool(StatusOrErr.takeError()) ? *StatusOrErr
                                                : APFloat::opInvalidOp;
 }
 
-static inline bool IsExponentPart(char c) {
-  return c == 'p' || c == 'P' || c == 'e' || c == 'E';
+static inline bool IsExponentPart(char c, bool isHex) {
+  if (isHex)
+    return c == 'p' || c == 'P';
+  return c == 'e' || c == 'E';
 }
 
 bool NumericLiteralParser::GetFixedPointValue(llvm::APInt &StoreVal, unsigned Scale) {
@@ -1510,7 +1566,8 @@ bool NumericLiteralParser::GetFixedPointValue(llvm::APInt &StoreVal, unsigned Sc
   if (saw_exponent) {
     const char *Ptr = DigitsBegin;
 
-    while (!IsExponentPart(*Ptr)) ++Ptr;
+    while (!IsExponentPart(*Ptr, radix == 16))
+      ++Ptr;
     ExponentBegin = Ptr;
     ++Ptr;
     NegativeExponent = *Ptr == '-';

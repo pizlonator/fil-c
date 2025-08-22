@@ -1,8 +1,6 @@
 // RUN: mlir-opt %s \
-// RUN: | mlir-opt -gpu-kernel-outlining \
-// RUN: | mlir-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
-// RUN: | mlir-opt -gpu-to-llvm \
-// RUN: | mlir-cpu-runner \
+// RUN: | mlir-opt -gpu-lower-to-nvvm-pipeline="cubin-format=%gpu_compilation_format" \
+// RUN: | mlir-runner \
 // RUN:   --shared-libs=%mlir_cuda_runtime \
 // RUN:   --shared-libs=%mlir_runner_utils \
 // RUN:   --entry-point-result=void \

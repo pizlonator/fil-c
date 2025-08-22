@@ -14,22 +14,25 @@
 #include "terminator.h"
 #include "tools.h"
 #include "type-info.h"
+#include "flang/Runtime/allocator-registry.h"
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
 
 namespace Fortran::runtime {
 
-Descriptor::Descriptor(const Descriptor &that) { *this = that; }
+RT_OFFLOAD_API_GROUP_BEGIN
 
-Descriptor &Descriptor::operator=(const Descriptor &that) {
+RT_API_ATTRS Descriptor::Descriptor(const Descriptor &that) { *this = that; }
+
+RT_API_ATTRS Descriptor &Descriptor::operator=(const Descriptor &that) {
   std::memcpy(this, &that, that.SizeInBytes());
   return *this;
 }
 
-void Descriptor::Establish(TypeCode t, std::size_t elementBytes, void *p,
-    int rank, const SubscriptValue *extent, ISO::CFI_attribute_t attribute,
-    bool addendum) {
+RT_API_ATTRS void Descriptor::Establish(TypeCode t, std::size_t elementBytes,
+    void *p, int rank, const SubscriptValue *extent,
+    ISO::CFI_attribute_t attribute, bool addendum) {
   Terminator terminator{__FILE__, __LINE__};
   int cfiStatus{ISO::VerifyEstablishParameters(&raw_, p, attribute, t.raw(),
       elementBytes, rank, extent, /*external=*/false)};
@@ -48,7 +51,9 @@ void Descriptor::Establish(TypeCode t, std::size_t elementBytes, void *p,
       GetDimension(j).SetByteStride(0);
     }
   }
-  raw_.f18Addendum = addendum;
+  if (addendum) {
+    SetHasAddendum();
+  }
   DescriptorAddendum *a{Addendum()};
   RUNTIME_CHECK(terminator, addendum == (a != nullptr));
   if (a) {
@@ -58,34 +63,35 @@ void Descriptor::Establish(TypeCode t, std::size_t elementBytes, void *p,
 
 namespace {
 template <TypeCategory CAT, int KIND> struct TypeSizeGetter {
-  constexpr std::size_t operator()() const {
+  constexpr RT_API_ATTRS std::size_t operator()() const {
     CppTypeFor<CAT, KIND> arr[2];
     return sizeof arr / 2;
   }
 };
 } // namespace
 
-std::size_t Descriptor::BytesFor(TypeCategory category, int kind) {
+RT_API_ATTRS std::size_t Descriptor::BytesFor(TypeCategory category, int kind) {
   Terminator terminator{__FILE__, __LINE__};
   return ApplyType<TypeSizeGetter, std::size_t>(category, kind, terminator);
 }
 
-void Descriptor::Establish(TypeCategory c, int kind, void *p, int rank,
-    const SubscriptValue *extent, ISO::CFI_attribute_t attribute,
+RT_API_ATTRS void Descriptor::Establish(TypeCategory c, int kind, void *p,
+    int rank, const SubscriptValue *extent, ISO::CFI_attribute_t attribute,
     bool addendum) {
   Establish(TypeCode(c, kind), BytesFor(c, kind), p, rank, extent, attribute,
       addendum);
 }
 
-void Descriptor::Establish(int characterKind, std::size_t characters, void *p,
-    int rank, const SubscriptValue *extent, ISO::CFI_attribute_t attribute,
-    bool addendum) {
+RT_API_ATTRS void Descriptor::Establish(int characterKind,
+    std::size_t characters, void *p, int rank, const SubscriptValue *extent,
+    ISO::CFI_attribute_t attribute, bool addendum) {
   Establish(TypeCode{TypeCategory::Character, characterKind},
       characterKind * characters, p, rank, extent, attribute, addendum);
 }
 
-void Descriptor::Establish(const typeInfo::DerivedType &dt, void *p, int rank,
-    const SubscriptValue *extent, ISO::CFI_attribute_t attribute) {
+RT_API_ATTRS void Descriptor::Establish(const typeInfo::DerivedType &dt,
+    void *p, int rank, const SubscriptValue *extent,
+    ISO::CFI_attribute_t attribute) {
   Establish(TypeCode{TypeCategory::Derived, 0}, dt.sizeInBytes(), p, rank,
       extent, attribute, true);
   DescriptorAddendum *a{Addendum()};
@@ -94,44 +100,52 @@ void Descriptor::Establish(const typeInfo::DerivedType &dt, void *p, int rank,
   new (a) DescriptorAddendum{&dt};
 }
 
-OwningPtr<Descriptor> Descriptor::Create(TypeCode t, std::size_t elementBytes,
-    void *p, int rank, const SubscriptValue *extent,
-    ISO::CFI_attribute_t attribute, int derivedTypeLenParameters) {
-  std::size_t bytes{SizeInBytes(rank, true, derivedTypeLenParameters)};
+RT_API_ATTRS OwningPtr<Descriptor> Descriptor::Create(TypeCode t,
+    std::size_t elementBytes, void *p, int rank, const SubscriptValue *extent,
+    ISO::CFI_attribute_t attribute, bool addendum,
+    const typeInfo::DerivedType *dt) {
   Terminator terminator{__FILE__, __LINE__};
+  RUNTIME_CHECK(terminator, t.IsDerived() == (dt != nullptr));
+  int derivedTypeLenParameters = dt ? dt->LenParameters() : 0;
+  std::size_t bytes{SizeInBytes(rank, addendum, derivedTypeLenParameters)};
   Descriptor *result{
       reinterpret_cast<Descriptor *>(AllocateMemoryOrCrash(terminator, bytes))};
-  result->Establish(t, elementBytes, p, rank, extent, attribute, true);
+  if (dt) {
+    result->Establish(*dt, p, rank, extent, attribute);
+  } else {
+    result->Establish(t, elementBytes, p, rank, extent, attribute, addendum);
+  }
   return OwningPtr<Descriptor>{result};
 }
 
-OwningPtr<Descriptor> Descriptor::Create(TypeCategory c, int kind, void *p,
-    int rank, const SubscriptValue *extent, ISO::CFI_attribute_t attribute) {
+RT_API_ATTRS OwningPtr<Descriptor> Descriptor::Create(TypeCategory c, int kind,
+    void *p, int rank, const SubscriptValue *extent,
+    ISO::CFI_attribute_t attribute) {
   return Create(
       TypeCode(c, kind), BytesFor(c, kind), p, rank, extent, attribute);
 }
 
-OwningPtr<Descriptor> Descriptor::Create(int characterKind,
+RT_API_ATTRS OwningPtr<Descriptor> Descriptor::Create(int characterKind,
     SubscriptValue characters, void *p, int rank, const SubscriptValue *extent,
     ISO::CFI_attribute_t attribute) {
   return Create(TypeCode{TypeCategory::Character, characterKind},
       characterKind * characters, p, rank, extent, attribute);
 }
 
-OwningPtr<Descriptor> Descriptor::Create(const typeInfo::DerivedType &dt,
-    void *p, int rank, const SubscriptValue *extent,
-    ISO::CFI_attribute_t attribute) {
+RT_API_ATTRS OwningPtr<Descriptor> Descriptor::Create(
+    const typeInfo::DerivedType &dt, void *p, int rank,
+    const SubscriptValue *extent, ISO::CFI_attribute_t attribute) {
   return Create(TypeCode{TypeCategory::Derived, 0}, dt.sizeInBytes(), p, rank,
-      extent, attribute, dt.LenParameters());
+      extent, attribute, /*addendum=*/true, &dt);
 }
 
-std::size_t Descriptor::SizeInBytes() const {
+RT_API_ATTRS std::size_t Descriptor::SizeInBytes() const {
   const DescriptorAddendum *addendum{Addendum()};
   return sizeof *this - sizeof(Dimension) + raw_.rank * sizeof(Dimension) +
       (addendum ? addendum->SizeInBytes() : 0);
 }
 
-std::size_t Descriptor::Elements() const {
+RT_API_ATTRS std::size_t Descriptor::Elements() const {
   int n{rank()};
   std::size_t elements{1};
   for (int j{0}; j < n; ++j) {
@@ -140,14 +154,38 @@ std::size_t Descriptor::Elements() const {
   return elements;
 }
 
-int Descriptor::Allocate() {
-  std::size_t byteSize{Elements() * ElementBytes()};
-  void *p{std::malloc(byteSize)};
-  if (!p && byteSize) {
+RT_API_ATTRS static inline int MapAllocIdx(const Descriptor &desc) {
+#ifdef RT_DEVICE_COMPILATION
+  // Force default allocator in device code.
+  return kDefaultAllocator;
+#else
+  return desc.GetAllocIdx();
+#endif
+}
+
+RT_API_ATTRS int Descriptor::Allocate() {
+  std::size_t elementBytes{ElementBytes()};
+  if (static_cast<std::int64_t>(elementBytes) < 0) {
+    // F'2023 7.4.4.2 p5: "If the character length parameter value evaluates
+    // to a negative value, the length of character entities declared is zero."
+    elementBytes = raw_.elem_len = 0;
+  }
+  std::size_t byteSize{Elements() * elementBytes};
+  AllocFct alloc{allocatorRegistry.GetAllocator(MapAllocIdx(*this))};
+  // Zero size allocation is possible in Fortran and the resulting
+  // descriptor must be allocated/associated. Since std::malloc(0)
+  // result is implementation defined, always allocate at least one byte.
+  void *p{alloc(byteSize ? byteSize : 1)};
+  if (!p) {
     return CFI_ERROR_MEM_ALLOCATION;
   }
   // TODO: image synchronization
   raw_.base_addr = p;
+  SetByteStrides();
+  return 0;
+}
+
+RT_API_ATTRS void Descriptor::SetByteStrides() {
   if (int dims{rank()}) {
     std::size_t stride{ElementBytes()};
     for (int j{0}; j < dims; ++j) {
@@ -156,17 +194,17 @@ int Descriptor::Allocate() {
       stride *= dimension.Extent();
     }
   }
-  return 0;
 }
 
-int Descriptor::Destroy(bool finalize, bool destroyPointers) {
+RT_API_ATTRS int Descriptor::Destroy(
+    bool finalize, bool destroyPointers, Terminator *terminator) {
   if (!destroyPointers && raw_.attribute == CFI_attribute_pointer) {
     return StatOk;
   } else {
     if (auto *addendum{Addendum()}) {
       if (const auto *derived{addendum->derivedType()}) {
         if (!derived->noDestructionNeeded()) {
-          runtime::Destroy(*this, finalize, *derived);
+          runtime::Destroy(*this, finalize, *derived, terminator);
         }
       }
     }
@@ -174,9 +212,19 @@ int Descriptor::Destroy(bool finalize, bool destroyPointers) {
   }
 }
 
-int Descriptor::Deallocate() { return ISO::CFI_deallocate(&raw_); }
+RT_API_ATTRS int Descriptor::Deallocate() {
+  ISO::CFI_cdesc_t &descriptor{raw()};
+  if (!descriptor.base_addr) {
+    return CFI_ERROR_BASE_ADDR_NULL;
+  } else {
+    FreeFct free{allocatorRegistry.GetDeallocator(MapAllocIdx(*this))};
+    free(descriptor.base_addr);
+    descriptor.base_addr = nullptr;
+    return CFI_SUCCESS;
+  }
+}
 
-bool Descriptor::DecrementSubscripts(
+RT_API_ATTRS bool Descriptor::DecrementSubscripts(
     SubscriptValue *subscript, const int *permutation) const {
   for (int j{raw_.rank - 1}; j >= 0; --j) {
     int k{permutation ? permutation[j] : j};
@@ -189,7 +237,7 @@ bool Descriptor::DecrementSubscripts(
   return false;
 }
 
-std::size_t Descriptor::ZeroBasedElementNumber(
+RT_API_ATTRS std::size_t Descriptor::ZeroBasedElementNumber(
     const SubscriptValue *subscript, const int *permutation) const {
   std::size_t result{0};
   std::size_t coefficient{1};
@@ -202,7 +250,7 @@ std::size_t Descriptor::ZeroBasedElementNumber(
   return result;
 }
 
-bool Descriptor::EstablishPointerSection(const Descriptor &source,
+RT_API_ATTRS bool Descriptor::EstablishPointerSection(const Descriptor &source,
     const SubscriptValue *lower, const SubscriptValue *upper,
     const SubscriptValue *stride) {
   *this = source;
@@ -228,7 +276,23 @@ bool Descriptor::EstablishPointerSection(const Descriptor &source,
   return CFI_section(&raw_, &source.raw_, lower, upper, stride) == CFI_SUCCESS;
 }
 
-void Descriptor::Check() const {
+RT_API_ATTRS void Descriptor::ApplyMold(const Descriptor &mold, int rank) {
+  raw_.elem_len = mold.raw_.elem_len;
+  raw_.rank = rank;
+  raw_.type = mold.raw_.type;
+  for (int j{0}; j < rank && j < mold.raw_.rank; ++j) {
+    GetDimension(j) = mold.GetDimension(j);
+  }
+  if (auto *addendum{Addendum()}) {
+    if (auto *moldAddendum{mold.Addendum()}) {
+      *addendum = *moldAddendum;
+    } else {
+      INTERNAL_CHECK(!addendum->derivedType());
+    }
+  }
+}
+
+RT_API_ATTRS void Descriptor::Check() const {
   // TODO
 }
 
@@ -240,7 +304,9 @@ void Descriptor::Dump(FILE *f) const {
   std::fprintf(f, "  rank      %d\n", static_cast<int>(raw_.rank));
   std::fprintf(f, "  type      %d\n", static_cast<int>(raw_.type));
   std::fprintf(f, "  attribute %d\n", static_cast<int>(raw_.attribute));
-  std::fprintf(f, "  addendum  %d\n", static_cast<int>(raw_.f18Addendum));
+  std::fprintf(f, "  extra     %d\n", static_cast<int>(raw_.extra));
+  std::fprintf(f, "    addendum  %d\n", static_cast<int>(HasAddendum()));
+  std::fprintf(f, "    alloc_idx %d\n", static_cast<int>(GetAllocIdx()));
   for (int j{0}; j < raw_.rank; ++j) {
     std::fprintf(f, "  dim[%d] lower_bound %jd\n", j,
         static_cast<std::intmax_t>(raw_.dim[j].lower_bound));
@@ -254,7 +320,7 @@ void Descriptor::Dump(FILE *f) const {
   }
 }
 
-DescriptorAddendum &DescriptorAddendum::operator=(
+RT_API_ATTRS DescriptorAddendum &DescriptorAddendum::operator=(
     const DescriptorAddendum &that) {
   derivedType_ = that.derivedType_;
   auto lenParms{that.LenParameters()};
@@ -264,11 +330,11 @@ DescriptorAddendum &DescriptorAddendum::operator=(
   return *this;
 }
 
-std::size_t DescriptorAddendum::SizeInBytes() const {
+RT_API_ATTRS std::size_t DescriptorAddendum::SizeInBytes() const {
   return SizeInBytes(LenParameters());
 }
 
-std::size_t DescriptorAddendum::LenParameters() const {
+RT_API_ATTRS std::size_t DescriptorAddendum::LenParameters() const {
   const auto *type{derivedType()};
   return type ? type->LenParameters() : 0;
 }
@@ -281,4 +347,7 @@ void DescriptorAddendum::Dump(FILE *f) const {
     std::fprintf(f, "  len[%zd] %jd\n", j, static_cast<std::intmax_t>(len_[j]));
   }
 }
+
+RT_OFFLOAD_API_GROUP_END
+
 } // namespace Fortran::runtime

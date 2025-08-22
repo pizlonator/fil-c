@@ -1,4 +1,5 @@
 //===----------------------------------------------------------------------===//
+//
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -6,8 +7,6 @@
 //===----------------------------------------------------------------------===//
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17, c++20
-// Older Clangs do not support the C++20 feature to constrain destructors
-// XFAIL: clang-15, apple-clang-14
 
 // friend constexpr void swap(expected& x, expected& y) noexcept(noexcept(x.swap(y)));
 
@@ -33,16 +32,16 @@ static_assert(!std::is_swappable_v<std::expected<NotSwappable, int>>);
 // !is_swappable_v<E>
 static_assert(!std::is_swappable_v<std::expected<int, NotSwappable>>);
 
-struct NotMoveContructible {
-  NotMoveContructible(NotMoveContructible&&) = delete;
-  friend void swap(NotMoveContructible&, NotMoveContructible&) {}
+struct NotMoveConstructible {
+  NotMoveConstructible(NotMoveConstructible&&) = delete;
+  friend void swap(NotMoveConstructible&, NotMoveConstructible&) {}
 };
 
 // !is_move_constructible_v<T>
-static_assert(!std::is_swappable_v<std::expected<NotMoveContructible, int>>);
+static_assert(!std::is_swappable_v<std::expected<NotMoveConstructible, int>>);
 
 // !is_move_constructible_v<E>
-static_assert(!std::is_swappable_v<std::expected<int, NotMoveContructible>>);
+static_assert(!std::is_swappable_v<std::expected<int, NotMoveConstructible>>);
 
 struct MoveMayThrow {
   MoveMayThrow(MoveMayThrow&&) noexcept(false);

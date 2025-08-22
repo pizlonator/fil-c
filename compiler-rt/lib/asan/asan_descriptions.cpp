@@ -20,24 +20,20 @@
 namespace __asan {
 
 AsanThreadIdAndName::AsanThreadIdAndName(AsanThreadContext *t) {
-  Init(t->tid, t->name);
-}
-
-AsanThreadIdAndName::AsanThreadIdAndName(u32 tid) {
-  if (tid == kInvalidTid) {
-    Init(tid, "");
-  } else {
-    asanThreadRegistry().CheckLocked();
-    AsanThreadContext *t = GetThreadContextByTidLocked(tid);
-    Init(tid, t->name);
+  if (!t) {
+    internal_snprintf(name, sizeof(name), "T-1");
+    return;
   }
+  int len = internal_snprintf(name, sizeof(name), "T%llu", t->unique_id);
+  CHECK(((unsigned int)len) < sizeof(name));
+  if (internal_strlen(t->name))
+    internal_snprintf(&name[len], sizeof(name) - len, " (%s)", t->name);
 }
 
-void AsanThreadIdAndName::Init(u32 tid, const char *tname) {
-  int len = internal_snprintf(name, sizeof(name), "T%d", tid);
-  CHECK(((unsigned int)len) < sizeof(name));
-  if (tname[0] != '\0')
-    internal_snprintf(&name[len], sizeof(name) - len, " (%s)", tname);
+AsanThreadIdAndName::AsanThreadIdAndName(u32 tid)
+    : AsanThreadIdAndName(
+          tid == kInvalidTid ? nullptr : GetThreadContextByTidLocked(tid)) {
+  asanThreadRegistry().CheckLocked();
 }
 
 void DescribeThread(AsanThreadContext *context) {
@@ -48,23 +44,29 @@ void DescribeThread(AsanThreadContext *context) {
     return;
   }
   context->announced = true;
+
   InternalScopedString str;
-  str.append("Thread %s", AsanThreadIdAndName(context).c_str());
-  if (context->parent_tid == kInvalidTid) {
-    str.append(" created by unknown thread\n");
+  str.AppendF("Thread %s", AsanThreadIdAndName(context).c_str());
+
+  AsanThreadContext *parent_context =
+      context->parent_tid == kInvalidTid
+          ? nullptr
+          : GetThreadContextByTidLocked(context->parent_tid);
+
+  // `context->parent_tid` may point to reused slot. Check `unique_id` which
+  // is always smaller for the parent, always greater for a new user.
+  if (!parent_context || context->unique_id <= parent_context->unique_id) {
+    str.Append(" created by unknown thread\n");
     Printf("%s", str.data());
     return;
   }
-  str.append(" created by %s here:\n",
-             AsanThreadIdAndName(context->parent_tid).c_str());
+  str.AppendF(" created by %s here:\n",
+              AsanThreadIdAndName(context->parent_tid).c_str());
   Printf("%s", str.data());
   StackDepotGet(context->stack_id).Print();
   // Recursively described parent thread if needed.
-  if (flags()->print_full_thread_history) {
-    AsanThreadContext *parent_context =
-        GetThreadContextByTidLocked(context->parent_tid);
+  if (flags()->print_full_thread_history)
     DescribeThread(parent_context);
-  }
 }
 
 // Shadow descriptions
@@ -126,29 +128,29 @@ static void GetAccessToHeapChunkInformation(ChunkAccess *descr,
 static void PrintHeapChunkAccess(uptr addr, const ChunkAccess &descr) {
   Decorator d;
   InternalScopedString str;
-  str.append("%s", d.Location());
+  str.Append(d.Location());
   switch (descr.access_type) {
     case kAccessTypeLeft:
-      str.append("%p is located %zd bytes before",
-                 (void *)descr.bad_addr, descr.offset);
+      str.AppendF("%p is located %zd bytes before", (void *)descr.bad_addr,
+                  descr.offset);
       break;
     case kAccessTypeRight:
-      str.append("%p is located %zd bytes after",
-                 (void *)descr.bad_addr, descr.offset);
+      str.AppendF("%p is located %zd bytes after", (void *)descr.bad_addr,
+                  descr.offset);
       break;
     case kAccessTypeInside:
-      str.append("%p is located %zd bytes inside of", (void *)descr.bad_addr,
-                 descr.offset);
+      str.AppendF("%p is located %zd bytes inside of", (void *)descr.bad_addr,
+                  descr.offset);
       break;
     case kAccessTypeUnknown:
-      str.append(
+      str.AppendF(
           "%p is located somewhere around (this is AddressSanitizer bug!)",
           (void *)descr.bad_addr);
   }
-  str.append(" %zu-byte region [%p,%p)\n", descr.chunk_size,
-             (void *)descr.chunk_begin,
-             (void *)(descr.chunk_begin + descr.chunk_size));
-  str.append("%s", d.Default());
+  str.AppendF(" %zu-byte region [%p,%p)\n", descr.chunk_size,
+              (void *)descr.chunk_begin,
+              (void *)(descr.chunk_begin + descr.chunk_size));
+  str.Append(d.Default());
   Printf("%s", str.data());
 }
 
@@ -243,24 +245,24 @@ static void PrintAccessAndVarIntersection(const StackVarDescr &var, uptr addr,
       pos_descr = "underflows";
   }
   InternalScopedString str;
-  str.append("    [%zd, %zd)", var.beg, var_end);
+  str.AppendF("    [%zd, %zd)", var.beg, var_end);
   // Render variable name.
-  str.append(" '");
+  str.Append(" '");
   for (uptr i = 0; i < var.name_len; ++i) {
-    str.append("%c", var.name_pos[i]);
+    str.AppendF("%c", var.name_pos[i]);
   }
-  str.append("'");
+  str.Append("'");
   if (var.line > 0) {
-    str.append(" (line %zd)", var.line);
+    str.AppendF(" (line %zd)", var.line);
   }
   if (pos_descr) {
     Decorator d;
     // FIXME: we may want to also print the size of the access here,
     // but in case of accesses generated by memset it may be confusing.
-    str.append("%s <== Memory access at offset %zd %s this variable%s\n",
-               d.Location(), addr, pos_descr, d.Default());
+    str.AppendF("%s <== Memory access at offset %zd %s this variable%s\n",
+                d.Location(), addr, pos_descr, d.Default());
   } else {
-    str.append("\n");
+    str.Append("\n");
   }
   Printf("%s", str.data());
 }
@@ -277,23 +279,23 @@ static void DescribeAddressRelativeToGlobal(uptr addr, uptr access_size,
                                             const __asan_global &g) {
   InternalScopedString str;
   Decorator d;
-  str.append("%s", d.Location());
+  str.Append(d.Location());
   if (addr < g.beg) {
-    str.append("%p is located %zd bytes before", (void *)addr,
-               g.beg - addr);
+    str.AppendF("%p is located %zd bytes before", (void *)addr, g.beg - addr);
   } else if (addr + access_size > g.beg + g.size) {
     if (addr < g.beg + g.size) addr = g.beg + g.size;
-    str.append("%p is located %zd bytes after", (void *)addr,
-               addr - (g.beg + g.size));
+    str.AppendF("%p is located %zd bytes after", (void *)addr,
+                addr - (g.beg + g.size));
   } else {
     // Can it happen?
-    str.append("%p is located %zd bytes inside of", (void *)addr, addr - g.beg);
+    str.AppendF("%p is located %zd bytes inside of", (void *)addr,
+                addr - g.beg);
   }
-  str.append(" global variable '%s' defined in '",
-             MaybeDemangleGlobalName(g.name));
-  PrintGlobalLocation(&str, g);
-  str.append("' (0x%zx) of size %zu\n", g.beg, g.size);
-  str.append("%s", d.Default());
+  str.AppendF(" global variable '%s' defined in '",
+              MaybeDemangleGlobalName(g.name));
+  PrintGlobalLocation(&str, g, /*print_module_name=*/false);
+  str.AppendF("' (%p) of size %zu\n", (void *)g.beg, g.size);
+  str.Append(d.Default());
   PrintGlobalNameIfASCII(&str, g);
   Printf("%s", str.data());
 }

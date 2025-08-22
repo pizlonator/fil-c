@@ -1,4 +1,5 @@
 //===----------------------------------------------------------------------===//
+//
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -23,6 +24,7 @@
 #include <concepts>
 #include <deque>
 #include <filesystem>
+#include <flat_map>
 #include <format>
 #include <forward_list>
 #include <list>
@@ -149,9 +151,15 @@ void test_P1361() {
   assert_is_formattable<std::chrono::microseconds, CharT>();
 
   assert_is_formattable<std::chrono::sys_time<std::chrono::microseconds>, CharT>();
-  //assert_is_formattable<std::chrono::utc_time<std::chrono::microseconds>, CharT>();
+#  if !defined(TEST_HAS_NO_EXPERIMENTAL_TZDB) && !defined(TEST_HAS_NO_TIME_ZONE_DATABASE) &&                           \
+      !defined(TEST_HAS_NO_FILESYSTEM)
+  assert_is_formattable<std::chrono::utc_time<std::chrono::microseconds>, CharT>();
   //assert_is_formattable<std::chrono::tai_time<std::chrono::microseconds>, CharT>();
   //assert_is_formattable<std::chrono::gps_time<std::chrono::microseconds>, CharT>();
+
+#  endif // !defined(TEST_HAS_NO_EXPERIMENTAL_TZDB) && !defined(TEST_HAS_NO_TIME_ZONE_DATABASE) &&
+         // !defined(TEST_HAS_NO_FILESYSTEM)
+
   assert_is_formattable<std::chrono::file_time<std::chrono::microseconds>, CharT>();
   assert_is_formattable<std::chrono::local_time<std::chrono::microseconds>, CharT>();
 
@@ -176,10 +184,12 @@ void test_P1361() {
 
   assert_is_formattable<std::chrono::hh_mm_ss<std::chrono::microseconds>, CharT>();
 
-  //assert_is_formattable<std::chrono::sys_info, CharT>();
-  //assert_is_formattable<std::chrono::local_info, CharT>();
+#  if !defined(TEST_HAS_NO_EXPERIMENTAL_TZDB)
+  assert_is_formattable<std::chrono::sys_info, CharT>();
+  assert_is_formattable<std::chrono::local_info, CharT>();
 
   //assert_is_formattable<std::chrono::zoned_time, CharT>();
+#  endif // !defined(TEST_HAS_NO_EXPERIMENTAL_TZDB)
 
 #endif // TEST_HAS_NO_LOCALIZATION
 }
@@ -233,6 +243,13 @@ void test_P2286() {
   assert_is_formattable<std::multiset<int>, CharT>();
   assert_is_formattable<std::multimap<int, int>, CharT>();
 
+#if TEST_STD_VER >= 23
+  // assert_is_formattable<std::flat_set<int>, CharT>();
+  assert_is_formattable<std::flat_map<int, int>, CharT>();
+  // assert_is_formattable<std::flat_multiset<int>, CharT>();
+  assert_is_formattable<std::flat_multimap<int, int>, CharT>();
+#endif // TEST_STD_VER >= 2
+
   assert_is_formattable<std::unordered_set<int>, CharT>();
   assert_is_formattable<std::unordered_map<int, int>, CharT>();
   assert_is_formattable<std::unordered_multiset<int>, CharT>();
@@ -254,7 +271,7 @@ void test_P2286() {
   test_P2286_vector_bool<CharT, std::vector<bool, min_allocator<bool>>>();
 }
 
-// Tests volatile quified objects are no longer formattable.
+// Tests volatile qualified objects are no longer formattable.
 template <class CharT>
 void test_LWG3631() {
   assert_is_not_formattable<volatile CharT, CharT>();
@@ -412,6 +429,4 @@ void test() {
   test<char8_t>();
   test<char16_t>();
   test<char32_t>();
-
-  test<int>();
 }

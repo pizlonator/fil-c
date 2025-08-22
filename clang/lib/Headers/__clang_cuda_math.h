@@ -12,6 +12,10 @@
 #error "This file is for CUDA compilation only."
 #endif
 
+// The __CLANG_GPU_DISABLE_MATH_WRAPPERS macro provides a way to let standard
+// libcalls reach the link step instead of being eagerly replaced.
+#ifndef __CLANG_GPU_DISABLE_MATH_WRAPPERS
+
 #ifndef __OPENMP_NVPTX__
 #if CUDA_VERSION < 9000
 #error This file is intended to be used with CUDA-9+ only.
@@ -45,9 +49,9 @@
 // libdevice provides fast low precision and slow full-recision implementations
 // for some functions. Which one gets selected depends on
 // __CLANG_CUDA_APPROX_TRANSCENDENTALS__ which gets defined by clang if
-// -ffast-math or -fcuda-approx-transcendentals are in effect.
+// -ffast-math or -fgpu-approx-transcendentals are in effect.
 #pragma push_macro("__FAST_OR_SLOW")
-#if defined(__CLANG_CUDA_APPROX_TRANSCENDENTALS__)
+#if defined(__CLANG_GPU_APPROX_TRANSCENDENTALS__)
 #define __FAST_OR_SLOW(fast, slow) fast
 #else
 #define __FAST_OR_SLOW(fast, slow) slow
@@ -345,4 +349,5 @@ __DEVICE__ float ynf(int __a, float __b) { return __nv_ynf(__a, __b); }
 #pragma pop_macro("__DEVICE_VOID__")
 #pragma pop_macro("__FAST_OR_SLOW")
 
+#endif // __CLANG_GPU_DISABLE_MATH_WRAPPERS
 #endif // __CLANG_CUDA_MATH_H__

@@ -2,15 +2,27 @@
 ; RUN: llc -mtriple=riscv32 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV32I %s
 ; RUN: llc -mtriple=riscv32 -mattr=+a -verify-machineinstrs < %s \
-; RUN:   | FileCheck -check-prefix=RV32IA %s
-; RUN: llc -mtriple=riscv32 -mattr=+a,+experimental-ztso -verify-machineinstrs < %s \
-; RUN:   | FileCheck -check-prefix=RV32IA %s
+; RUN:   | FileCheck -check-prefixes=RV32IA,RV32IA-WMO %s
+; RUN: llc -mtriple=riscv32 -mattr=+a,+zacas -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV32IA,RV32IA-ZACAS,RV32IA-WMO-ZACAS %s
+; RUN: llc -mtriple=riscv32 -mattr=+a,+ztso -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV32IA,RV32IA-TSO %s
+; RUN: llc -mtriple=riscv32 -mattr=+a,+ztso,+zacas -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV32IA,RV32IA-ZACAS,RV32IA-TSO-ZACAS %s
 ; RUN: llc -mtriple=riscv64 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV64I %s
 ; RUN: llc -mtriple=riscv64 -mattr=+a -verify-machineinstrs < %s \
-; RUN:   | FileCheck -check-prefix=RV64IA %s
-; RUN: llc -mtriple=riscv64 -mattr=+a,+experimental-ztso -verify-machineinstrs < %s \
-; RUN:   | FileCheck -check-prefix=RV64IA %s
+; RUN:   | FileCheck -check-prefixes=RV64IA,RV64IA-WMO %s
+; RUN: llc -mtriple=riscv64 -mattr=+a,+zacas -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV64IA,RV64IA-ZACAS,RV64IA-WMO-ZACAS %s
+; RUN: llc -mtriple=riscv64 -mattr=+a,+zacas,+zabha -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV64IA,RV64IA-ZABHA,RV64IA-WMO-ZABHA %s
+; RUN: llc -mtriple=riscv64 -mattr=+a,+ztso -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV64IA,RV64IA-TSO %s
+; RUN: llc -mtriple=riscv64 -mattr=+a,+ztso,+zacas -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV64IA,RV64IA-ZACAS,RV64IA-TSO-ZACAS %s
+; RUN: llc -mtriple=riscv64 -mattr=+a,+ztso,+zacas,+zabha -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefixes=RV64IA,RV64IA-ZABHA,RV64IA-TSO-ZABHA %s
 
 define void @cmpxchg_i8_monotonic_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-LABEL: cmpxchg_i8_monotonic_monotonic:
@@ -21,7 +33,7 @@ define void @cmpxchg_i8_monotonic_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 0
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -31,10 +43,10 @@ define void @cmpxchg_i8_monotonic_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind
 ; RV32IA-NEXT:    andi a3, a0, -4
 ; RV32IA-NEXT:    slli a0, a0, 3
 ; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
 ; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    andi a2, a2, 255
+; RV32IA-NEXT:    sll a4, a4, a0
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB0_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w a2, (a3)
@@ -57,33 +69,84 @@ define void @cmpxchg_i8_monotonic_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 0
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_monotonic_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB0_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB0_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB0_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB0_1
-; RV64IA-NEXT:  .LBB0_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_monotonic_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB0_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB0_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB0_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB0_1
+; RV64IA-WMO-NEXT:  .LBB0_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i8_monotonic_monotonic:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    li a4, 255
+; RV64IA-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB0_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-ZACAS-NEXT:    bne a5, a1, .LBB0_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB0_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a5, .LBB0_1
+; RV64IA-ZACAS-NEXT:  .LBB0_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-ZABHA-LABEL: cmpxchg_i8_monotonic_monotonic:
+; RV64IA-ZABHA:       # %bb.0:
+; RV64IA-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_monotonic_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB0_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB0_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB0_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB0_1
+; RV64IA-TSO-NEXT:  .LBB0_3:
+; RV64IA-TSO-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val monotonic monotonic
   ret void
 }
@@ -97,33 +160,102 @@ define void @cmpxchg_i8_acquire_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 2
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i8_acquire_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
-; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    andi a2, a2, 255
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a5, a2, a4
-; RV32IA-NEXT:    bne a5, a1, .LBB1_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
-; RV32IA-NEXT:    xor a5, a2, a0
-; RV32IA-NEXT:    and a5, a5, a4
-; RV32IA-NEXT:    xor a5, a2, a5
-; RV32IA-NEXT:    sc.w a5, a5, (a3)
-; RV32IA-NEXT:    bnez a5, .LBB1_1
-; RV32IA-NEXT:  .LBB1_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    li a4, 255
+; RV32IA-WMO-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a5, a2, a4
+; RV32IA-WMO-NEXT:    bne a5, a1, .LBB1_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-NEXT:    and a5, a5, a4
+; RV32IA-WMO-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-WMO-NEXT:    bnez a5, .LBB1_1
+; RV32IA-WMO-NEXT:  .LBB1_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB1_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a5, .LBB1_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB1_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    li a4, 255
+; RV32IA-TSO-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a5, a2, a4
+; RV32IA-TSO-NEXT:    bne a5, a1, .LBB1_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-NEXT:    and a5, a5, a4
+; RV32IA-TSO-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-NEXT:    bnez a5, .LBB1_1
+; RV32IA-TSO-NEXT:  .LBB1_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB1_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a5, .LBB1_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB1_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i8_acquire_monotonic:
 ; RV64I:       # %bb.0:
@@ -133,33 +265,112 @@ define void @cmpxchg_i8_acquire_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_acquire_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB1_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB1_1
-; RV64IA-NEXT:  .LBB1_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB1_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB1_1
+; RV64IA-WMO-NEXT:  .LBB1_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB1_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a5, .LBB1_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB1_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB1_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB1_1
+; RV64IA-TSO-NEXT:  .LBB1_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB1_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB1_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a5, .LBB1_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB1_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_acquire_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val acquire monotonic
   ret void
 }
@@ -173,33 +384,102 @@ define void @cmpxchg_i8_acquire_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 2
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i8_acquire_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
-; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    andi a2, a2, 255
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a5, a2, a4
-; RV32IA-NEXT:    bne a5, a1, .LBB2_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
-; RV32IA-NEXT:    xor a5, a2, a0
-; RV32IA-NEXT:    and a5, a5, a4
-; RV32IA-NEXT:    xor a5, a2, a5
-; RV32IA-NEXT:    sc.w a5, a5, (a3)
-; RV32IA-NEXT:    bnez a5, .LBB2_1
-; RV32IA-NEXT:  .LBB2_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i8_acquire_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    li a4, 255
+; RV32IA-WMO-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a5, a2, a4
+; RV32IA-WMO-NEXT:    bne a5, a1, .LBB2_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-NEXT:    and a5, a5, a4
+; RV32IA-WMO-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-WMO-NEXT:    bnez a5, .LBB2_1
+; RV32IA-WMO-NEXT:  .LBB2_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i8_acquire_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB2_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a5, .LBB2_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB2_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i8_acquire_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    li a4, 255
+; RV32IA-TSO-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a5, a2, a4
+; RV32IA-TSO-NEXT:    bne a5, a1, .LBB2_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-NEXT:    and a5, a5, a4
+; RV32IA-TSO-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-NEXT:    bnez a5, .LBB2_1
+; RV32IA-TSO-NEXT:  .LBB2_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i8_acquire_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB2_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a5, .LBB2_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB2_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i8_acquire_acquire:
 ; RV64I:       # %bb.0:
@@ -209,33 +489,112 @@ define void @cmpxchg_i8_acquire_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_acquire_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB2_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB2_1
-; RV64IA-NEXT:  .LBB2_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_acquire_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB2_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB2_1
+; RV64IA-WMO-NEXT:  .LBB2_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i8_acquire_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB2_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a5, .LBB2_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB2_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_acquire_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_acquire_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB2_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB2_1
+; RV64IA-TSO-NEXT:  .LBB2_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i8_acquire_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB2_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB2_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a5, .LBB2_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB2_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_acquire_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val acquire acquire
   ret void
 }
@@ -249,33 +608,102 @@ define void @cmpxchg_i8_release_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 3
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i8_release_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
-; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    andi a2, a2, 255
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w a2, (a3)
-; RV32IA-NEXT:    and a5, a2, a4
-; RV32IA-NEXT:    bne a5, a1, .LBB3_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
-; RV32IA-NEXT:    xor a5, a2, a0
-; RV32IA-NEXT:    and a5, a5, a4
-; RV32IA-NEXT:    xor a5, a2, a5
-; RV32IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV32IA-NEXT:    bnez a5, .LBB3_1
-; RV32IA-NEXT:  .LBB3_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i8_release_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    li a4, 255
+; RV32IA-WMO-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w a2, (a3)
+; RV32IA-WMO-NEXT:    and a5, a2, a4
+; RV32IA-WMO-NEXT:    bne a5, a1, .LBB3_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-NEXT:    and a5, a5, a4
+; RV32IA-WMO-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-NEXT:    bnez a5, .LBB3_1
+; RV32IA-WMO-NEXT:  .LBB3_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i8_release_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB3_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a5, .LBB3_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB3_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i8_release_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    li a4, 255
+; RV32IA-TSO-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a5, a2, a4
+; RV32IA-TSO-NEXT:    bne a5, a1, .LBB3_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-NEXT:    and a5, a5, a4
+; RV32IA-TSO-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-NEXT:    bnez a5, .LBB3_1
+; RV32IA-TSO-NEXT:  .LBB3_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i8_release_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB3_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a5, .LBB3_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB3_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i8_release_monotonic:
 ; RV64I:       # %bb.0:
@@ -285,33 +713,112 @@ define void @cmpxchg_i8_release_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_release_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB3_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB3_1
-; RV64IA-NEXT:  .LBB3_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_release_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB3_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB3_1
+; RV64IA-WMO-NEXT:  .LBB3_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i8_release_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB3_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a5, .LBB3_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB3_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_release_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.rl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_release_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB3_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB3_1
+; RV64IA-TSO-NEXT:  .LBB3_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i8_release_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB3_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB3_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a5, .LBB3_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB3_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_release_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val release monotonic
   ret void
 }
@@ -325,33 +832,102 @@ define void @cmpxchg_i8_release_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 3
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i8_release_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
-; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    andi a2, a2, 255
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a5, a2, a4
-; RV32IA-NEXT:    bne a5, a1, .LBB4_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
-; RV32IA-NEXT:    xor a5, a2, a0
-; RV32IA-NEXT:    and a5, a5, a4
-; RV32IA-NEXT:    xor a5, a2, a5
-; RV32IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV32IA-NEXT:    bnez a5, .LBB4_1
-; RV32IA-NEXT:  .LBB4_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i8_release_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    li a4, 255
+; RV32IA-WMO-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a5, a2, a4
+; RV32IA-WMO-NEXT:    bne a5, a1, .LBB4_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-NEXT:    and a5, a5, a4
+; RV32IA-WMO-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-NEXT:    bnez a5, .LBB4_1
+; RV32IA-WMO-NEXT:  .LBB4_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i8_release_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB4_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a5, .LBB4_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB4_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i8_release_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    li a4, 255
+; RV32IA-TSO-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a5, a2, a4
+; RV32IA-TSO-NEXT:    bne a5, a1, .LBB4_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-NEXT:    and a5, a5, a4
+; RV32IA-TSO-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-NEXT:    bnez a5, .LBB4_1
+; RV32IA-TSO-NEXT:  .LBB4_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i8_release_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB4_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a5, .LBB4_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB4_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i8_release_acquire:
 ; RV64I:       # %bb.0:
@@ -361,33 +937,112 @@ define void @cmpxchg_i8_release_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_release_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB4_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB4_1
-; RV64IA-NEXT:  .LBB4_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_release_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB4_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB4_1
+; RV64IA-WMO-NEXT:  .LBB4_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i8_release_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB4_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a5, .LBB4_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB4_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_release_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_release_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB4_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB4_1
+; RV64IA-TSO-NEXT:  .LBB4_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i8_release_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB4_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB4_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a5, .LBB4_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB4_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_release_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val release acquire
   ret void
 }
@@ -401,33 +1056,102 @@ define void @cmpxchg_i8_acq_rel_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 4
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i8_acq_rel_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
-; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    andi a2, a2, 255
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a5, a2, a4
-; RV32IA-NEXT:    bne a5, a1, .LBB5_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
-; RV32IA-NEXT:    xor a5, a2, a0
-; RV32IA-NEXT:    and a5, a5, a4
-; RV32IA-NEXT:    xor a5, a2, a5
-; RV32IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV32IA-NEXT:    bnez a5, .LBB5_1
-; RV32IA-NEXT:  .LBB5_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    li a4, 255
+; RV32IA-WMO-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a5, a2, a4
+; RV32IA-WMO-NEXT:    bne a5, a1, .LBB5_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-NEXT:    and a5, a5, a4
+; RV32IA-WMO-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-NEXT:    bnez a5, .LBB5_1
+; RV32IA-WMO-NEXT:  .LBB5_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB5_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a5, .LBB5_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB5_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    li a4, 255
+; RV32IA-TSO-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a5, a2, a4
+; RV32IA-TSO-NEXT:    bne a5, a1, .LBB5_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-NEXT:    and a5, a5, a4
+; RV32IA-TSO-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-NEXT:    bnez a5, .LBB5_1
+; RV32IA-TSO-NEXT:  .LBB5_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB5_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a5, .LBB5_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB5_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i8_acq_rel_monotonic:
 ; RV64I:       # %bb.0:
@@ -437,33 +1161,112 @@ define void @cmpxchg_i8_acq_rel_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_acq_rel_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB5_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB5_1
-; RV64IA-NEXT:  .LBB5_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB5_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB5_1
+; RV64IA-WMO-NEXT:  .LBB5_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB5_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a5, .LBB5_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB5_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB5_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB5_1
+; RV64IA-TSO-NEXT:  .LBB5_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB5_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB5_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a5, .LBB5_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB5_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_acq_rel_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val acq_rel monotonic
   ret void
 }
@@ -477,33 +1280,102 @@ define void @cmpxchg_i8_acq_rel_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 4
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i8_acq_rel_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
-; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    andi a2, a2, 255
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a5, a2, a4
-; RV32IA-NEXT:    bne a5, a1, .LBB6_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
-; RV32IA-NEXT:    xor a5, a2, a0
-; RV32IA-NEXT:    and a5, a5, a4
-; RV32IA-NEXT:    xor a5, a2, a5
-; RV32IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV32IA-NEXT:    bnez a5, .LBB6_1
-; RV32IA-NEXT:  .LBB6_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    li a4, 255
+; RV32IA-WMO-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a5, a2, a4
+; RV32IA-WMO-NEXT:    bne a5, a1, .LBB6_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-NEXT:    and a5, a5, a4
+; RV32IA-WMO-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-NEXT:    bnez a5, .LBB6_1
+; RV32IA-WMO-NEXT:  .LBB6_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-WMO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB6_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a5, .LBB6_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB6_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    li a4, 255
+; RV32IA-TSO-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a5, a2, a4
+; RV32IA-TSO-NEXT:    bne a5, a1, .LBB6_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-NEXT:    and a5, a5, a4
+; RV32IA-TSO-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-NEXT:    bnez a5, .LBB6_1
+; RV32IA-TSO-NEXT:  .LBB6_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV32IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV32IA-TSO-ZACAS-NEXT:    sll a4, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB6_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV32IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a5, .LBB6_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB6_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i8_acq_rel_acquire:
 ; RV64I:       # %bb.0:
@@ -513,33 +1385,112 @@ define void @cmpxchg_i8_acq_rel_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_acq_rel_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB6_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB6_1
-; RV64IA-NEXT:  .LBB6_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB6_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB6_1
+; RV64IA-WMO-NEXT:  .LBB6_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    li a4, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    bne a5, a1, .LBB6_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-WMO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a5, .LBB6_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB6_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB6_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB6_1
+; RV64IA-TSO-NEXT:  .LBB6_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    li a4, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    bne a5, a1, .LBB6_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB6_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-TSO-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a5, a5, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a5, .LBB6_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB6_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_acq_rel_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val acq_rel acquire
   ret void
 }
@@ -553,7 +1504,7 @@ define void @cmpxchg_i8_seq_cst_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -563,10 +1514,10 @@ define void @cmpxchg_i8_seq_cst_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32IA-NEXT:    andi a3, a0, -4
 ; RV32IA-NEXT:    slli a0, a0, 3
 ; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
 ; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    andi a2, a2, 255
+; RV32IA-NEXT:    sll a4, a4, a0
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB7_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w.aqrl a2, (a3)
@@ -589,33 +1540,89 @@ define void @cmpxchg_i8_seq_cst_monotonic(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_seq_cst_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB7_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB7_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB7_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB7_1
-; RV64IA-NEXT:  .LBB7_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_seq_cst_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB7_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB7_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB7_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB7_1
+; RV64IA-WMO-NEXT:  .LBB7_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i8_seq_cst_monotonic:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    li a4, 255
+; RV64IA-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB7_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-ZACAS-NEXT:    bne a5, a1, .LBB7_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB7_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a5, .LBB7_1
+; RV64IA-ZACAS-NEXT:  .LBB7_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_seq_cst_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_seq_cst_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB7_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB7_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB7_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB7_1
+; RV64IA-TSO-NEXT:  .LBB7_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_seq_cst_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val seq_cst monotonic
   ret void
 }
@@ -629,7 +1636,7 @@ define void @cmpxchg_i8_seq_cst_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -639,10 +1646,10 @@ define void @cmpxchg_i8_seq_cst_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32IA-NEXT:    andi a3, a0, -4
 ; RV32IA-NEXT:    slli a0, a0, 3
 ; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
 ; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    andi a2, a2, 255
+; RV32IA-NEXT:    sll a4, a4, a0
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB8_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w.aqrl a2, (a3)
@@ -665,33 +1672,89 @@ define void @cmpxchg_i8_seq_cst_acquire(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_seq_cst_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB8_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB8_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB8_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB8_1
-; RV64IA-NEXT:  .LBB8_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_seq_cst_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB8_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB8_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB8_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB8_1
+; RV64IA-WMO-NEXT:  .LBB8_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i8_seq_cst_acquire:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    li a4, 255
+; RV64IA-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB8_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-ZACAS-NEXT:    bne a5, a1, .LBB8_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB8_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a5, .LBB8_1
+; RV64IA-ZACAS-NEXT:  .LBB8_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_seq_cst_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_seq_cst_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB8_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB8_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB8_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB8_1
+; RV64IA-TSO-NEXT:  .LBB8_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_seq_cst_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val seq_cst acquire
   ret void
 }
@@ -705,7 +1768,7 @@ define void @cmpxchg_i8_seq_cst_seq_cst(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32I-NEXT:    addi a1, sp, 11
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 5
-; RV32I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_1
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -715,10 +1778,10 @@ define void @cmpxchg_i8_seq_cst_seq_cst(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV32IA-NEXT:    andi a3, a0, -4
 ; RV32IA-NEXT:    slli a0, a0, 3
 ; RV32IA-NEXT:    li a4, 255
-; RV32IA-NEXT:    sll a4, a4, a0
 ; RV32IA-NEXT:    andi a1, a1, 255
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    andi a2, a2, 255
+; RV32IA-NEXT:    sll a4, a4, a0
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB9_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w.aqrl a2, (a3)
@@ -741,33 +1804,91 @@ define void @cmpxchg_i8_seq_cst_seq_cst(ptr %ptr, i8 %cmp, i8 %val) nounwind {
 ; RV64I-NEXT:    addi a1, sp, 7
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 5
-; RV64I-NEXT:    call __atomic_compare_exchange_1@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_1
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i8_seq_cst_seq_cst:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    li a4, 255
-; RV64IA-NEXT:    sllw a4, a4, a0
-; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    andi a2, a2, 255
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB9_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a2, (a3)
-; RV64IA-NEXT:    and a5, a2, a4
-; RV64IA-NEXT:    bne a5, a1, .LBB9_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB9_1 Depth=1
-; RV64IA-NEXT:    xor a5, a2, a0
-; RV64IA-NEXT:    and a5, a5, a4
-; RV64IA-NEXT:    xor a5, a2, a5
-; RV64IA-NEXT:    sc.w.rl a5, a5, (a3)
-; RV64IA-NEXT:    bnez a5, .LBB9_1
-; RV64IA-NEXT:  .LBB9_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i8_seq_cst_seq_cst:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    li a4, 255
+; RV64IA-WMO-NEXT:    andi a1, a1, 255
+; RV64IA-WMO-NEXT:    andi a2, a2, 255
+; RV64IA-WMO-NEXT:    sllw a4, a4, a0
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB9_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-WMO-NEXT:    and a5, a2, a4
+; RV64IA-WMO-NEXT:    bne a5, a1, .LBB9_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB9_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a5, a2, a0
+; RV64IA-WMO-NEXT:    and a5, a5, a4
+; RV64IA-WMO-NEXT:    xor a5, a2, a5
+; RV64IA-WMO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-WMO-NEXT:    bnez a5, .LBB9_1
+; RV64IA-WMO-NEXT:  .LBB9_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i8_seq_cst_seq_cst:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    li a4, 255
+; RV64IA-ZACAS-NEXT:    andi a1, a1, 255
+; RV64IA-ZACAS-NEXT:    andi a2, a2, 255
+; RV64IA-ZACAS-NEXT:    sllw a4, a4, a0
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB9_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a5, a2, a4
+; RV64IA-ZACAS-NEXT:    bne a5, a1, .LBB9_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB9_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a0
+; RV64IA-ZACAS-NEXT:    and a5, a5, a4
+; RV64IA-ZACAS-NEXT:    xor a5, a2, a5
+; RV64IA-ZACAS-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a5, .LBB9_1
+; RV64IA-ZACAS-NEXT:  .LBB9_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i8_seq_cst_seq_cst:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-WMO-ZABHA-NEXT:    amocas.b.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i8_seq_cst_seq_cst:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    li a4, 255
+; RV64IA-TSO-NEXT:    andi a1, a1, 255
+; RV64IA-TSO-NEXT:    andi a2, a2, 255
+; RV64IA-TSO-NEXT:    sllw a4, a4, a0
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB9_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-TSO-NEXT:    and a5, a2, a4
+; RV64IA-TSO-NEXT:    bne a5, a1, .LBB9_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB9_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a5, a2, a0
+; RV64IA-TSO-NEXT:    and a5, a5, a4
+; RV64IA-TSO-NEXT:    xor a5, a2, a5
+; RV64IA-TSO-NEXT:    sc.w.rl a5, a5, (a3)
+; RV64IA-TSO-NEXT:    bnez a5, .LBB9_1
+; RV64IA-TSO-NEXT:  .LBB9_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i8_seq_cst_seq_cst:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-TSO-ZABHA-NEXT:    amocas.b a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i8 %cmp, i8 %val seq_cst seq_cst
   ret void
 }
@@ -781,7 +1902,7 @@ define void @cmpxchg_i16_monotonic_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounw
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 0
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -794,8 +1915,8 @@ define void @cmpxchg_i16_monotonic_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounw
 ; RV32IA-NEXT:    addi a4, a4, -1
 ; RV32IA-NEXT:    sll a5, a4, a0
 ; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    and a2, a2, a4
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB10_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w a2, (a3)
@@ -818,34 +1939,87 @@ define void @cmpxchg_i16_monotonic_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounw
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 0
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_monotonic_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB10_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB10_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB10_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB10_1
-; RV64IA-NEXT:  .LBB10_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_monotonic_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB10_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB10_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB10_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB10_1
+; RV64IA-WMO-NEXT:  .LBB10_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i16_monotonic_monotonic:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    lui a4, 16
+; RV64IA-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB10_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-ZACAS-NEXT:    bne a4, a1, .LBB10_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB10_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a4, .LBB10_1
+; RV64IA-ZACAS-NEXT:  .LBB10_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-ZABHA-LABEL: cmpxchg_i16_monotonic_monotonic:
+; RV64IA-ZABHA:       # %bb.0:
+; RV64IA-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_monotonic_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB10_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB10_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB10_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB10_1
+; RV64IA-TSO-NEXT:  .LBB10_3:
+; RV64IA-TSO-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val monotonic monotonic
   ret void
 }
@@ -859,34 +2033,106 @@ define void @cmpxchg_i16_acquire_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 2
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i16_acquire_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    lui a4, 16
-; RV32IA-NEXT:    addi a4, a4, -1
-; RV32IA-NEXT:    sll a5, a4, a0
-; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    and a2, a2, a4
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a4, a2, a5
-; RV32IA-NEXT:    bne a4, a1, .LBB11_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
-; RV32IA-NEXT:    xor a4, a2, a0
-; RV32IA-NEXT:    and a4, a4, a5
-; RV32IA-NEXT:    xor a4, a2, a4
-; RV32IA-NEXT:    sc.w a4, a4, (a3)
-; RV32IA-NEXT:    bnez a4, .LBB11_1
-; RV32IA-NEXT:  .LBB11_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    lui a4, 16
+; RV32IA-WMO-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-NEXT:    and a1, a1, a4
+; RV32IA-WMO-NEXT:    and a2, a2, a4
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a4, a2, a5
+; RV32IA-WMO-NEXT:    bne a4, a1, .LBB11_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-NEXT:    and a4, a4, a5
+; RV32IA-WMO-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB11_1
+; RV32IA-WMO-NEXT:  .LBB11_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB11_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a4, .LBB11_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB11_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    lui a4, 16
+; RV32IA-TSO-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-NEXT:    and a1, a1, a4
+; RV32IA-TSO-NEXT:    and a2, a2, a4
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a4, a2, a5
+; RV32IA-TSO-NEXT:    bne a4, a1, .LBB11_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-NEXT:    and a4, a4, a5
+; RV32IA-TSO-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB11_1
+; RV32IA-TSO-NEXT:  .LBB11_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB11_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a4, .LBB11_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB11_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i16_acquire_monotonic:
 ; RV64I:       # %bb.0:
@@ -896,34 +2142,116 @@ define void @cmpxchg_i16_acquire_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_acquire_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB11_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB11_1
-; RV64IA-NEXT:  .LBB11_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB11_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB11_1
+; RV64IA-WMO-NEXT:  .LBB11_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB11_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a4, .LBB11_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB11_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB11_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB11_1
+; RV64IA-TSO-NEXT:  .LBB11_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB11_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB11_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a4, .LBB11_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB11_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_acquire_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val acquire monotonic
   ret void
 }
@@ -937,34 +2265,106 @@ define void @cmpxchg_i16_acquire_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 2
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i16_acquire_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    lui a4, 16
-; RV32IA-NEXT:    addi a4, a4, -1
-; RV32IA-NEXT:    sll a5, a4, a0
-; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    and a2, a2, a4
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a4, a2, a5
-; RV32IA-NEXT:    bne a4, a1, .LBB12_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
-; RV32IA-NEXT:    xor a4, a2, a0
-; RV32IA-NEXT:    and a4, a4, a5
-; RV32IA-NEXT:    xor a4, a2, a4
-; RV32IA-NEXT:    sc.w a4, a4, (a3)
-; RV32IA-NEXT:    bnez a4, .LBB12_1
-; RV32IA-NEXT:  .LBB12_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i16_acquire_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    lui a4, 16
+; RV32IA-WMO-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-NEXT:    and a1, a1, a4
+; RV32IA-WMO-NEXT:    and a2, a2, a4
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a4, a2, a5
+; RV32IA-WMO-NEXT:    bne a4, a1, .LBB12_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-NEXT:    and a4, a4, a5
+; RV32IA-WMO-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB12_1
+; RV32IA-WMO-NEXT:  .LBB12_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i16_acquire_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB12_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a4, .LBB12_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB12_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i16_acquire_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    lui a4, 16
+; RV32IA-TSO-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-NEXT:    and a1, a1, a4
+; RV32IA-TSO-NEXT:    and a2, a2, a4
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a4, a2, a5
+; RV32IA-TSO-NEXT:    bne a4, a1, .LBB12_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-NEXT:    and a4, a4, a5
+; RV32IA-TSO-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB12_1
+; RV32IA-TSO-NEXT:  .LBB12_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i16_acquire_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB12_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a4, .LBB12_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB12_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i16_acquire_acquire:
 ; RV64I:       # %bb.0:
@@ -974,34 +2374,116 @@ define void @cmpxchg_i16_acquire_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_acquire_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB12_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB12_1
-; RV64IA-NEXT:  .LBB12_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_acquire_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB12_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB12_1
+; RV64IA-WMO-NEXT:  .LBB12_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i16_acquire_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB12_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a4, .LBB12_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB12_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_acquire_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_acquire_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB12_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB12_1
+; RV64IA-TSO-NEXT:  .LBB12_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i16_acquire_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB12_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB12_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a4, .LBB12_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB12_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_acquire_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val acquire acquire
   ret void
 }
@@ -1015,34 +2497,106 @@ define void @cmpxchg_i16_release_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 3
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i16_release_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    lui a4, 16
-; RV32IA-NEXT:    addi a4, a4, -1
-; RV32IA-NEXT:    sll a5, a4, a0
-; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    and a2, a2, a4
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w a2, (a3)
-; RV32IA-NEXT:    and a4, a2, a5
-; RV32IA-NEXT:    bne a4, a1, .LBB13_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
-; RV32IA-NEXT:    xor a4, a2, a0
-; RV32IA-NEXT:    and a4, a4, a5
-; RV32IA-NEXT:    xor a4, a2, a4
-; RV32IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV32IA-NEXT:    bnez a4, .LBB13_1
-; RV32IA-NEXT:  .LBB13_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i16_release_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    lui a4, 16
+; RV32IA-WMO-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-NEXT:    and a1, a1, a4
+; RV32IA-WMO-NEXT:    and a2, a2, a4
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w a2, (a3)
+; RV32IA-WMO-NEXT:    and a4, a2, a5
+; RV32IA-WMO-NEXT:    bne a4, a1, .LBB13_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-NEXT:    and a4, a4, a5
+; RV32IA-WMO-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB13_1
+; RV32IA-WMO-NEXT:  .LBB13_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i16_release_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB13_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a4, .LBB13_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB13_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i16_release_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    lui a4, 16
+; RV32IA-TSO-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-NEXT:    and a1, a1, a4
+; RV32IA-TSO-NEXT:    and a2, a2, a4
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a4, a2, a5
+; RV32IA-TSO-NEXT:    bne a4, a1, .LBB13_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-NEXT:    and a4, a4, a5
+; RV32IA-TSO-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB13_1
+; RV32IA-TSO-NEXT:  .LBB13_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i16_release_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB13_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a4, .LBB13_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB13_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i16_release_monotonic:
 ; RV64I:       # %bb.0:
@@ -1052,34 +2606,116 @@ define void @cmpxchg_i16_release_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_release_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB13_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB13_1
-; RV64IA-NEXT:  .LBB13_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_release_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB13_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB13_1
+; RV64IA-WMO-NEXT:  .LBB13_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i16_release_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB13_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a4, .LBB13_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB13_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_release_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.rl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_release_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB13_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB13_1
+; RV64IA-TSO-NEXT:  .LBB13_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i16_release_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB13_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB13_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a4, .LBB13_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB13_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_release_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val release monotonic
   ret void
 }
@@ -1093,34 +2729,106 @@ define void @cmpxchg_i16_release_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 3
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i16_release_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    lui a4, 16
-; RV32IA-NEXT:    addi a4, a4, -1
-; RV32IA-NEXT:    sll a5, a4, a0
-; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    and a2, a2, a4
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a4, a2, a5
-; RV32IA-NEXT:    bne a4, a1, .LBB14_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
-; RV32IA-NEXT:    xor a4, a2, a0
-; RV32IA-NEXT:    and a4, a4, a5
-; RV32IA-NEXT:    xor a4, a2, a4
-; RV32IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV32IA-NEXT:    bnez a4, .LBB14_1
-; RV32IA-NEXT:  .LBB14_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i16_release_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    lui a4, 16
+; RV32IA-WMO-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-NEXT:    and a1, a1, a4
+; RV32IA-WMO-NEXT:    and a2, a2, a4
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a4, a2, a5
+; RV32IA-WMO-NEXT:    bne a4, a1, .LBB14_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-NEXT:    and a4, a4, a5
+; RV32IA-WMO-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB14_1
+; RV32IA-WMO-NEXT:  .LBB14_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i16_release_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB14_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a4, .LBB14_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB14_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i16_release_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    lui a4, 16
+; RV32IA-TSO-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-NEXT:    and a1, a1, a4
+; RV32IA-TSO-NEXT:    and a2, a2, a4
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a4, a2, a5
+; RV32IA-TSO-NEXT:    bne a4, a1, .LBB14_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-NEXT:    and a4, a4, a5
+; RV32IA-TSO-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB14_1
+; RV32IA-TSO-NEXT:  .LBB14_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i16_release_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB14_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a4, .LBB14_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB14_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i16_release_acquire:
 ; RV64I:       # %bb.0:
@@ -1130,34 +2838,116 @@ define void @cmpxchg_i16_release_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_release_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB14_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB14_1
-; RV64IA-NEXT:  .LBB14_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_release_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB14_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB14_1
+; RV64IA-WMO-NEXT:  .LBB14_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i16_release_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB14_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a4, .LBB14_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB14_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_release_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_release_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB14_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB14_1
+; RV64IA-TSO-NEXT:  .LBB14_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i16_release_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB14_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB14_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a4, .LBB14_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB14_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_release_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val release acquire
   ret void
 }
@@ -1171,34 +2961,106 @@ define void @cmpxchg_i16_acq_rel_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 4
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i16_acq_rel_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    lui a4, 16
-; RV32IA-NEXT:    addi a4, a4, -1
-; RV32IA-NEXT:    sll a5, a4, a0
-; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    and a2, a2, a4
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a4, a2, a5
-; RV32IA-NEXT:    bne a4, a1, .LBB15_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
-; RV32IA-NEXT:    xor a4, a2, a0
-; RV32IA-NEXT:    and a4, a4, a5
-; RV32IA-NEXT:    xor a4, a2, a4
-; RV32IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV32IA-NEXT:    bnez a4, .LBB15_1
-; RV32IA-NEXT:  .LBB15_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    lui a4, 16
+; RV32IA-WMO-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-NEXT:    and a1, a1, a4
+; RV32IA-WMO-NEXT:    and a2, a2, a4
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a4, a2, a5
+; RV32IA-WMO-NEXT:    bne a4, a1, .LBB15_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-NEXT:    and a4, a4, a5
+; RV32IA-WMO-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB15_1
+; RV32IA-WMO-NEXT:  .LBB15_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB15_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a4, .LBB15_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB15_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    lui a4, 16
+; RV32IA-TSO-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-NEXT:    and a1, a1, a4
+; RV32IA-TSO-NEXT:    and a2, a2, a4
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a4, a2, a5
+; RV32IA-TSO-NEXT:    bne a4, a1, .LBB15_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-NEXT:    and a4, a4, a5
+; RV32IA-TSO-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB15_1
+; RV32IA-TSO-NEXT:  .LBB15_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB15_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a4, .LBB15_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB15_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i16_acq_rel_monotonic:
 ; RV64I:       # %bb.0:
@@ -1208,34 +3070,116 @@ define void @cmpxchg_i16_acq_rel_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_acq_rel_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB15_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB15_1
-; RV64IA-NEXT:  .LBB15_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB15_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB15_1
+; RV64IA-WMO-NEXT:  .LBB15_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB15_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a4, .LBB15_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB15_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB15_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB15_1
+; RV64IA-TSO-NEXT:  .LBB15_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB15_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB15_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB15_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a4, .LBB15_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB15_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_acq_rel_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val acq_rel monotonic
   ret void
 }
@@ -1249,34 +3193,106 @@ define void @cmpxchg_i16_acq_rel_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 4
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i16_acq_rel_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:    andi a3, a0, -4
-; RV32IA-NEXT:    slli a0, a0, 3
-; RV32IA-NEXT:    lui a4, 16
-; RV32IA-NEXT:    addi a4, a4, -1
-; RV32IA-NEXT:    sll a5, a4, a0
-; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
-; RV32IA-NEXT:    and a2, a2, a4
-; RV32IA-NEXT:    sll a0, a2, a0
-; RV32IA-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a2, (a3)
-; RV32IA-NEXT:    and a4, a2, a5
-; RV32IA-NEXT:    bne a4, a1, .LBB16_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
-; RV32IA-NEXT:    xor a4, a2, a0
-; RV32IA-NEXT:    and a4, a4, a5
-; RV32IA-NEXT:    xor a4, a2, a4
-; RV32IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV32IA-NEXT:    bnez a4, .LBB16_1
-; RV32IA-NEXT:  .LBB16_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-NEXT:    lui a4, 16
+; RV32IA-WMO-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-NEXT:    and a1, a1, a4
+; RV32IA-WMO-NEXT:    and a2, a2, a4
+; RV32IA-WMO-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-NEXT:    and a4, a2, a5
+; RV32IA-WMO-NEXT:    bne a4, a1, .LBB16_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV32IA-WMO-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-NEXT:    and a4, a4, a5
+; RV32IA-WMO-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB16_1
+; RV32IA-WMO-NEXT:  .LBB16_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-WMO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-WMO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB16_3
+; RV32IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV32IA-WMO-ZACAS-NEXT:    bnez a4, .LBB16_1
+; RV32IA-WMO-ZACAS-NEXT:  .LBB16_3:
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-NEXT:    lui a4, 16
+; RV32IA-TSO-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-NEXT:    and a1, a1, a4
+; RV32IA-TSO-NEXT:    and a2, a2, a4
+; RV32IA-TSO-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-NEXT:    and a4, a2, a5
+; RV32IA-TSO-NEXT:    bne a4, a1, .LBB16_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV32IA-TSO-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-NEXT:    and a4, a4, a5
+; RV32IA-TSO-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB16_1
+; RV32IA-TSO-NEXT:  .LBB16_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV32IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV32IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV32IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV32IA-TSO-ZACAS-NEXT:    sll a5, a4, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV32IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sll a1, a1, a0
+; RV32IA-TSO-ZACAS-NEXT:    sll a0, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV32IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB16_3
+; RV32IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV32IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV32IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV32IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV32IA-TSO-ZACAS-NEXT:    bnez a4, .LBB16_1
+; RV32IA-TSO-ZACAS-NEXT:  .LBB16_3:
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i16_acq_rel_acquire:
 ; RV64I:       # %bb.0:
@@ -1286,34 +3302,116 @@ define void @cmpxchg_i16_acq_rel_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_acq_rel_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB16_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB16_1
-; RV64IA-NEXT:  .LBB16_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB16_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB16_1
+; RV64IA-WMO-NEXT:  .LBB16_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-WMO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-WMO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    lr.w.aq a2, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-WMO-ZACAS-NEXT:    bne a4, a1, .LBB16_3
+; RV64IA-WMO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-WMO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-ZACAS-NEXT:    bnez a4, .LBB16_1
+; RV64IA-WMO-ZACAS-NEXT:  .LBB16_3:
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB16_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB16_1
+; RV64IA-TSO-NEXT:  .LBB16_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-ZACAS-NEXT:    lui a4, 16
+; RV64IA-TSO-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-TSO-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:  .LBB16_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    lr.w a2, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-TSO-ZACAS-NEXT:    bne a4, a1, .LBB16_3
+; RV64IA-TSO-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB16_1 Depth=1
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-TSO-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-ZACAS-NEXT:    sc.w a4, a4, (a3)
+; RV64IA-TSO-ZACAS-NEXT:    bnez a4, .LBB16_1
+; RV64IA-TSO-ZACAS-NEXT:  .LBB16_3:
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_acq_rel_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val acq_rel acquire
   ret void
 }
@@ -1327,7 +3425,7 @@ define void @cmpxchg_i16_seq_cst_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -1340,8 +3438,8 @@ define void @cmpxchg_i16_seq_cst_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV32IA-NEXT:    addi a4, a4, -1
 ; RV32IA-NEXT:    sll a5, a4, a0
 ; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    and a2, a2, a4
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB17_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w.aqrl a2, (a3)
@@ -1364,34 +3462,92 @@ define void @cmpxchg_i16_seq_cst_monotonic(ptr %ptr, i16 %cmp, i16 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_seq_cst_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB17_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB17_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB17_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB17_1
-; RV64IA-NEXT:  .LBB17_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_seq_cst_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB17_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB17_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB17_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB17_1
+; RV64IA-WMO-NEXT:  .LBB17_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i16_seq_cst_monotonic:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    lui a4, 16
+; RV64IA-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB17_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-ZACAS-NEXT:    bne a4, a1, .LBB17_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB17_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a4, .LBB17_1
+; RV64IA-ZACAS-NEXT:  .LBB17_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_seq_cst_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_seq_cst_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB17_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB17_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB17_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB17_1
+; RV64IA-TSO-NEXT:  .LBB17_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_seq_cst_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val seq_cst monotonic
   ret void
 }
@@ -1405,7 +3561,7 @@ define void @cmpxchg_i16_seq_cst_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -1418,8 +3574,8 @@ define void @cmpxchg_i16_seq_cst_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32IA-NEXT:    addi a4, a4, -1
 ; RV32IA-NEXT:    sll a5, a4, a0
 ; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    and a2, a2, a4
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB18_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w.aqrl a2, (a3)
@@ -1442,34 +3598,92 @@ define void @cmpxchg_i16_seq_cst_acquire(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_seq_cst_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB18_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB18_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB18_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB18_1
-; RV64IA-NEXT:  .LBB18_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_seq_cst_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB18_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB18_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB18_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB18_1
+; RV64IA-WMO-NEXT:  .LBB18_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i16_seq_cst_acquire:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    lui a4, 16
+; RV64IA-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB18_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-ZACAS-NEXT:    bne a4, a1, .LBB18_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB18_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a4, .LBB18_1
+; RV64IA-ZACAS-NEXT:  .LBB18_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_seq_cst_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_seq_cst_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB18_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB18_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB18_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB18_1
+; RV64IA-TSO-NEXT:  .LBB18_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_seq_cst_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val seq_cst acquire
   ret void
 }
@@ -1483,7 +3697,7 @@ define void @cmpxchg_i16_seq_cst_seq_cst(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 10
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 5
-; RV32I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_2
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -1496,8 +3710,8 @@ define void @cmpxchg_i16_seq_cst_seq_cst(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV32IA-NEXT:    addi a4, a4, -1
 ; RV32IA-NEXT:    sll a5, a4, a0
 ; RV32IA-NEXT:    and a1, a1, a4
-; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    and a2, a2, a4
+; RV32IA-NEXT:    sll a1, a1, a0
 ; RV32IA-NEXT:    sll a0, a2, a0
 ; RV32IA-NEXT:  .LBB19_1: # =>This Inner Loop Header: Depth=1
 ; RV32IA-NEXT:    lr.w.aqrl a2, (a3)
@@ -1520,34 +3734,94 @@ define void @cmpxchg_i16_seq_cst_seq_cst(ptr %ptr, i16 %cmp, i16 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 6
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 5
-; RV64I-NEXT:    call __atomic_compare_exchange_2@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_2
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i16_seq_cst_seq_cst:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    andi a3, a0, -4
-; RV64IA-NEXT:    slli a0, a0, 3
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a5, a4, a0
-; RV64IA-NEXT:    and a1, a1, a4
-; RV64IA-NEXT:    sllw a1, a1, a0
-; RV64IA-NEXT:    and a2, a2, a4
-; RV64IA-NEXT:    sllw a0, a2, a0
-; RV64IA-NEXT:  .LBB19_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a2, (a3)
-; RV64IA-NEXT:    and a4, a2, a5
-; RV64IA-NEXT:    bne a4, a1, .LBB19_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB19_1 Depth=1
-; RV64IA-NEXT:    xor a4, a2, a0
-; RV64IA-NEXT:    and a4, a4, a5
-; RV64IA-NEXT:    xor a4, a2, a4
-; RV64IA-NEXT:    sc.w.rl a4, a4, (a3)
-; RV64IA-NEXT:    bnez a4, .LBB19_1
-; RV64IA-NEXT:  .LBB19_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i16_seq_cst_seq_cst:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    andi a3, a0, -4
+; RV64IA-WMO-NEXT:    slli a0, a0, 3
+; RV64IA-WMO-NEXT:    lui a4, 16
+; RV64IA-WMO-NEXT:    addi a4, a4, -1
+; RV64IA-WMO-NEXT:    sllw a5, a4, a0
+; RV64IA-WMO-NEXT:    and a1, a1, a4
+; RV64IA-WMO-NEXT:    and a2, a2, a4
+; RV64IA-WMO-NEXT:    sllw a1, a1, a0
+; RV64IA-WMO-NEXT:    sllw a0, a2, a0
+; RV64IA-WMO-NEXT:  .LBB19_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-WMO-NEXT:    and a4, a2, a5
+; RV64IA-WMO-NEXT:    bne a4, a1, .LBB19_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB19_1 Depth=1
+; RV64IA-WMO-NEXT:    xor a4, a2, a0
+; RV64IA-WMO-NEXT:    and a4, a4, a5
+; RV64IA-WMO-NEXT:    xor a4, a2, a4
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB19_1
+; RV64IA-WMO-NEXT:  .LBB19_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i16_seq_cst_seq_cst:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    andi a3, a0, -4
+; RV64IA-ZACAS-NEXT:    slli a0, a0, 3
+; RV64IA-ZACAS-NEXT:    lui a4, 16
+; RV64IA-ZACAS-NEXT:    addi a4, a4, -1
+; RV64IA-ZACAS-NEXT:    sllw a5, a4, a0
+; RV64IA-ZACAS-NEXT:    and a1, a1, a4
+; RV64IA-ZACAS-NEXT:    and a2, a2, a4
+; RV64IA-ZACAS-NEXT:    sllw a1, a1, a0
+; RV64IA-ZACAS-NEXT:    sllw a0, a2, a0
+; RV64IA-ZACAS-NEXT:  .LBB19_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-ZACAS-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-ZACAS-NEXT:    and a4, a2, a5
+; RV64IA-ZACAS-NEXT:    bne a4, a1, .LBB19_3
+; RV64IA-ZACAS-NEXT:  # %bb.2: # in Loop: Header=BB19_1 Depth=1
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a0
+; RV64IA-ZACAS-NEXT:    and a4, a4, a5
+; RV64IA-ZACAS-NEXT:    xor a4, a2, a4
+; RV64IA-ZACAS-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-ZACAS-NEXT:    bnez a4, .LBB19_1
+; RV64IA-ZACAS-NEXT:  .LBB19_3:
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i16_seq_cst_seq_cst:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-WMO-ZABHA-NEXT:    amocas.h.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i16_seq_cst_seq_cst:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    andi a3, a0, -4
+; RV64IA-TSO-NEXT:    slli a0, a0, 3
+; RV64IA-TSO-NEXT:    lui a4, 16
+; RV64IA-TSO-NEXT:    addi a4, a4, -1
+; RV64IA-TSO-NEXT:    sllw a5, a4, a0
+; RV64IA-TSO-NEXT:    and a1, a1, a4
+; RV64IA-TSO-NEXT:    and a2, a2, a4
+; RV64IA-TSO-NEXT:    sllw a1, a1, a0
+; RV64IA-TSO-NEXT:    sllw a0, a2, a0
+; RV64IA-TSO-NEXT:  .LBB19_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a2, (a3)
+; RV64IA-TSO-NEXT:    and a4, a2, a5
+; RV64IA-TSO-NEXT:    bne a4, a1, .LBB19_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB19_1 Depth=1
+; RV64IA-TSO-NEXT:    xor a4, a2, a0
+; RV64IA-TSO-NEXT:    and a4, a4, a5
+; RV64IA-TSO-NEXT:    xor a4, a2, a4
+; RV64IA-TSO-NEXT:    sc.w.rl a4, a4, (a3)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB19_1
+; RV64IA-TSO-NEXT:  .LBB19_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i16_seq_cst_seq_cst:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-TSO-ZABHA-NEXT:    amocas.h a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i16 %cmp, i16 %val seq_cst seq_cst
   ret void
 }
@@ -1561,21 +3835,37 @@ define void @cmpxchg_i32_monotonic_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounw
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 0
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_monotonic_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB20_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB20_1 Depth=1
-; RV32IA-NEXT:    sc.w a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB20_1
-; RV32IA-NEXT:  .LBB20_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB20_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB20_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB20_1
+; RV32IA-WMO-NEXT:  .LBB20_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-ZACAS-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV32IA-ZACAS:       # %bb.0:
+; RV32IA-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB20_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB20_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB20_1
+; RV32IA-TSO-NEXT:  .LBB20_3:
+; RV32IA-TSO-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_monotonic_monotonic:
 ; RV64I:       # %bb.0:
@@ -1585,22 +3875,44 @@ define void @cmpxchg_i32_monotonic_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounw
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 0
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_monotonic_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB20_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB20_1 Depth=1
-; RV64IA-NEXT:    sc.w a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB20_1
-; RV64IA-NEXT:  .LBB20_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB20_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB20_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB20_1
+; RV64IA-WMO-NEXT:  .LBB20_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-ZABHA-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV64IA-ZABHA:       # %bb.0:
+; RV64IA-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_monotonic_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB20_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB20_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB20_1
+; RV64IA-TSO-NEXT:  .LBB20_3:
+; RV64IA-TSO-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val monotonic monotonic
   ret void
 }
@@ -1614,21 +3926,42 @@ define void @cmpxchg_i32_acquire_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 2
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_acquire_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB21_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB21_1 Depth=1
-; RV32IA-NEXT:    sc.w a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB21_1
-; RV32IA-NEXT:  .LBB21_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB21_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB21_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB21_1
+; RV32IA-WMO-NEXT:  .LBB21_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aq a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB21_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB21_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB21_1
+; RV32IA-TSO-NEXT:  .LBB21_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_acquire_monotonic:
 ; RV64I:       # %bb.0:
@@ -1638,22 +3971,54 @@ define void @cmpxchg_i32_acquire_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_acquire_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB21_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB21_1 Depth=1
-; RV64IA-NEXT:    sc.w a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB21_1
-; RV64IA-NEXT:  .LBB21_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB21_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB21_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB21_1
+; RV64IA-WMO-NEXT:  .LBB21_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aq a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB21_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB21_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB21_1
+; RV64IA-TSO-NEXT:  .LBB21_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_acquire_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val acquire monotonic
   ret void
 }
@@ -1667,21 +4032,42 @@ define void @cmpxchg_i32_acquire_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 2
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_acquire_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB22_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB22_1 Depth=1
-; RV32IA-NEXT:    sc.w a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB22_1
-; RV32IA-NEXT:  .LBB22_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_acquire_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB22_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB22_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB22_1
+; RV32IA-WMO-NEXT:  .LBB22_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_acquire_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aq a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_acquire_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB22_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB22_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB22_1
+; RV32IA-TSO-NEXT:  .LBB22_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_acquire_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_acquire_acquire:
 ; RV64I:       # %bb.0:
@@ -1691,22 +4077,54 @@ define void @cmpxchg_i32_acquire_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_acquire_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB22_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB22_1 Depth=1
-; RV64IA-NEXT:    sc.w a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB22_1
-; RV64IA-NEXT:  .LBB22_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_acquire_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB22_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB22_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB22_1
+; RV64IA-WMO-NEXT:  .LBB22_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_acquire_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aq a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_acquire_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_acquire_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB22_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB22_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB22_1
+; RV64IA-TSO-NEXT:  .LBB22_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_acquire_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_acquire_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val acquire acquire
   ret void
 }
@@ -1720,21 +4138,42 @@ define void @cmpxchg_i32_release_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 3
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_release_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB23_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB23_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB23_1
-; RV32IA-NEXT:  .LBB23_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_release_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB23_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB23_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB23_1
+; RV32IA-WMO-NEXT:  .LBB23_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_release_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.rl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_release_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB23_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB23_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB23_1
+; RV32IA-TSO-NEXT:  .LBB23_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_release_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_release_monotonic:
 ; RV64I:       # %bb.0:
@@ -1744,22 +4183,54 @@ define void @cmpxchg_i32_release_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_release_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB23_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB23_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB23_1
-; RV64IA-NEXT:  .LBB23_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_release_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB23_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB23_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB23_1
+; RV64IA-WMO-NEXT:  .LBB23_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_release_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.rl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_release_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.rl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_release_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB23_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB23_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB23_1
+; RV64IA-TSO-NEXT:  .LBB23_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_release_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_release_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val release monotonic
   ret void
 }
@@ -1773,21 +4244,42 @@ define void @cmpxchg_i32_release_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 3
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_release_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB24_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB24_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB24_1
-; RV32IA-NEXT:  .LBB24_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_release_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB24_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB24_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB24_1
+; RV32IA-WMO-NEXT:  .LBB24_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_release_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_release_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB24_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB24_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB24_1
+; RV32IA-TSO-NEXT:  .LBB24_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_release_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_release_acquire:
 ; RV64I:       # %bb.0:
@@ -1797,22 +4289,54 @@ define void @cmpxchg_i32_release_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_release_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB24_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB24_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB24_1
-; RV64IA-NEXT:  .LBB24_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_release_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB24_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB24_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB24_1
+; RV64IA-WMO-NEXT:  .LBB24_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_release_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_release_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_release_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB24_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB24_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB24_1
+; RV64IA-TSO-NEXT:  .LBB24_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_release_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_release_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val release acquire
   ret void
 }
@@ -1826,21 +4350,42 @@ define void @cmpxchg_i32_acq_rel_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 4
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_acq_rel_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB25_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB25_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB25_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB25_1
-; RV32IA-NEXT:  .LBB25_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB25_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB25_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB25_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB25_1
+; RV32IA-WMO-NEXT:  .LBB25_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB25_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB25_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB25_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB25_1
+; RV32IA-TSO-NEXT:  .LBB25_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_acq_rel_monotonic:
 ; RV64I:       # %bb.0:
@@ -1850,22 +4395,54 @@ define void @cmpxchg_i32_acq_rel_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_acq_rel_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB25_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB25_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB25_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB25_1
-; RV64IA-NEXT:  .LBB25_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB25_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB25_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB25_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB25_1
+; RV64IA-WMO-NEXT:  .LBB25_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB25_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB25_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB25_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB25_1
+; RV64IA-TSO-NEXT:  .LBB25_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_acq_rel_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val acq_rel monotonic
   ret void
 }
@@ -1879,21 +4456,42 @@ define void @cmpxchg_i32_acq_rel_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 4
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_acq_rel_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB26_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aq a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB26_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB26_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB26_1
-; RV32IA-NEXT:  .LBB26_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB26_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB26_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB26_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB26_1
+; RV32IA-WMO-NEXT:  .LBB26_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB26_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB26_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB26_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB26_1
+; RV32IA-TSO-NEXT:  .LBB26_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_acq_rel_acquire:
 ; RV64I:       # %bb.0:
@@ -1903,22 +4501,54 @@ define void @cmpxchg_i32_acq_rel_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_acq_rel_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB26_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB26_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB26_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB26_1
-; RV64IA-NEXT:  .LBB26_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB26_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB26_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB26_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB26_1
+; RV64IA-WMO-NEXT:  .LBB26_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB26_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB26_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB26_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB26_1
+; RV64IA-TSO-NEXT:  .LBB26_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_acq_rel_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val acq_rel acquire
   ret void
 }
@@ -1932,21 +4562,42 @@ define void @cmpxchg_i32_seq_cst_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_seq_cst_monotonic:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB27_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aqrl a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB27_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB27_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB27_1
-; RV32IA-NEXT:  .LBB27_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB27_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aqrl a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB27_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB27_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB27_1
+; RV32IA-WMO-NEXT:  .LBB27_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB27_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w.aqrl a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB27_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB27_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB27_1
+; RV32IA-TSO-NEXT:  .LBB27_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_seq_cst_monotonic:
 ; RV64I:       # %bb.0:
@@ -1956,22 +4607,54 @@ define void @cmpxchg_i32_seq_cst_monotonic(ptr %ptr, i32 %cmp, i32 %val) nounwin
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_seq_cst_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB27_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB27_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB27_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB27_1
-; RV64IA-NEXT:  .LBB27_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB27_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB27_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB27_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB27_1
+; RV64IA-WMO-NEXT:  .LBB27_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB27_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB27_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB27_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB27_1
+; RV64IA-TSO-NEXT:  .LBB27_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_seq_cst_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val seq_cst monotonic
   ret void
 }
@@ -1985,21 +4668,42 @@ define void @cmpxchg_i32_seq_cst_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 2
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_seq_cst_acquire:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB28_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aqrl a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB28_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB28_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB28_1
-; RV32IA-NEXT:  .LBB28_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB28_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aqrl a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB28_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB28_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB28_1
+; RV32IA-WMO-NEXT:  .LBB28_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB28_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w.aqrl a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB28_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB28_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB28_1
+; RV32IA-TSO-NEXT:  .LBB28_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_seq_cst_acquire:
 ; RV64I:       # %bb.0:
@@ -2009,22 +4713,54 @@ define void @cmpxchg_i32_seq_cst_acquire(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_seq_cst_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB28_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB28_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB28_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB28_1
-; RV64IA-NEXT:  .LBB28_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB28_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB28_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB28_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB28_1
+; RV64IA-WMO-NEXT:  .LBB28_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB28_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB28_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB28_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB28_1
+; RV64IA-TSO-NEXT:  .LBB28_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_seq_cst_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val seq_cst acquire
   ret void
 }
@@ -2038,21 +4774,44 @@ define void @cmpxchg_i32_seq_cst_seq_cst(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV32I-NEXT:    addi a1, sp, 8
 ; RV32I-NEXT:    li a3, 5
 ; RV32I-NEXT:    li a4, 5
-; RV32I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_4
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
-; RV32IA-LABEL: cmpxchg_i32_seq_cst_seq_cst:
-; RV32IA:       # %bb.0:
-; RV32IA-NEXT:  .LBB29_1: # =>This Inner Loop Header: Depth=1
-; RV32IA-NEXT:    lr.w.aqrl a3, (a0)
-; RV32IA-NEXT:    bne a3, a1, .LBB29_3
-; RV32IA-NEXT:  # %bb.2: # in Loop: Header=BB29_1 Depth=1
-; RV32IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV32IA-NEXT:    bnez a4, .LBB29_1
-; RV32IA-NEXT:  .LBB29_3:
-; RV32IA-NEXT:    ret
+; RV32IA-WMO-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV32IA-WMO:       # %bb.0:
+; RV32IA-WMO-NEXT:  .LBB29_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-WMO-NEXT:    lr.w.aqrl a3, (a0)
+; RV32IA-WMO-NEXT:    bne a3, a1, .LBB29_3
+; RV32IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB29_1 Depth=1
+; RV32IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-WMO-NEXT:    bnez a4, .LBB29_1
+; RV32IA-WMO-NEXT:  .LBB29_3:
+; RV32IA-WMO-NEXT:    ret
+;
+; RV32IA-WMO-ZACAS-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV32IA-WMO-ZACAS:       # %bb.0:
+; RV32IA-WMO-ZACAS-NEXT:    fence rw, rw
+; RV32IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV32IA-WMO-ZACAS-NEXT:    ret
+;
+; RV32IA-TSO-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV32IA-TSO:       # %bb.0:
+; RV32IA-TSO-NEXT:  .LBB29_1: # =>This Inner Loop Header: Depth=1
+; RV32IA-TSO-NEXT:    lr.w.aqrl a3, (a0)
+; RV32IA-TSO-NEXT:    bne a3, a1, .LBB29_3
+; RV32IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB29_1 Depth=1
+; RV32IA-TSO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV32IA-TSO-NEXT:    bnez a4, .LBB29_1
+; RV32IA-TSO-NEXT:  .LBB29_3:
+; RV32IA-TSO-NEXT:    ret
+;
+; RV32IA-TSO-ZACAS-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV32IA-TSO-ZACAS:       # %bb.0:
+; RV32IA-TSO-ZACAS-NEXT:    fence rw, rw
+; RV32IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV32IA-TSO-ZACAS-NEXT:    ret
 ;
 ; RV64I-LABEL: cmpxchg_i32_seq_cst_seq_cst:
 ; RV64I:       # %bb.0:
@@ -2062,22 +4821,58 @@ define void @cmpxchg_i32_seq_cst_seq_cst(ptr %ptr, i32 %cmp, i32 %val) nounwind 
 ; RV64I-NEXT:    addi a1, sp, 4
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 5
-; RV64I-NEXT:    call __atomic_compare_exchange_4@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_4
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i32_seq_cst_seq_cst:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    sext.w a1, a1
-; RV64IA-NEXT:  .LBB29_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.w.aqrl a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB29_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB29_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB29_1
-; RV64IA-NEXT:  .LBB29_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:    sext.w a1, a1
+; RV64IA-WMO-NEXT:  .LBB29_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.w.aqrl a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB29_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB29_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB29_1
+; RV64IA-WMO-NEXT:  .LBB29_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    fence rw, rw
+; RV64IA-WMO-ZACAS-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-WMO-ZABHA-NEXT:    amocas.w.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:    sext.w a1, a1
+; RV64IA-TSO-NEXT:  .LBB29_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.w.aqrl a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB29_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB29_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.w.rl a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB29_1
+; RV64IA-TSO-NEXT:  .LBB29_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    fence rw, rw
+; RV64IA-TSO-ZACAS-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i32_seq_cst_seq_cst:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-TSO-ZABHA-NEXT:    amocas.w a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i32 %cmp, i32 %val seq_cst seq_cst
   ret void
 }
@@ -2087,14 +4882,14 @@ define void @cmpxchg_i64_monotonic_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounw
 ; RV32I:       # %bb.0:
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a4
 ; RV32I-NEXT:    li a4, 0
 ; RV32I-NEXT:    li a5, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2103,14 +4898,14 @@ define void @cmpxchg_i64_monotonic_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounw
 ; RV32IA:       # %bb.0:
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a4
 ; RV32IA-NEXT:    li a4, 0
 ; RV32IA-NEXT:    li a5, 0
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2123,21 +4918,42 @@ define void @cmpxchg_i64_monotonic_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounw
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 0
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_monotonic_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB30_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB30_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB30_1 Depth=1
-; RV64IA-NEXT:    sc.d a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB30_1
-; RV64IA-NEXT:  .LBB30_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_monotonic_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB30_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB30_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB30_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB30_1
+; RV64IA-WMO-NEXT:  .LBB30_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-ZACAS-LABEL: cmpxchg_i64_monotonic_monotonic:
+; RV64IA-ZACAS:       # %bb.0:
+; RV64IA-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-ZACAS-NEXT:    ret
+;
+; RV64IA-ZABHA-LABEL: cmpxchg_i64_monotonic_monotonic:
+; RV64IA-ZABHA:       # %bb.0:
+; RV64IA-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_monotonic_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB30_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB30_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB30_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB30_1
+; RV64IA-TSO-NEXT:  .LBB30_3:
+; RV64IA-TSO-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val monotonic monotonic
   ret void
 }
@@ -2148,14 +4964,14 @@ define void @cmpxchg_i64_acquire_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a5, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 2
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a5
 ; RV32I-NEXT:    li a5, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2165,14 +4981,14 @@ define void @cmpxchg_i64_acquire_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a5, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 2
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a5
 ; RV32IA-NEXT:    li a5, 0
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2185,21 +5001,52 @@ define void @cmpxchg_i64_acquire_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_acquire_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB31_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB31_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB31_1 Depth=1
-; RV64IA-NEXT:    sc.d a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB31_1
-; RV64IA-NEXT:  .LBB31_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_acquire_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB31_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB31_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB31_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB31_1
+; RV64IA-WMO-NEXT:  .LBB31_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_acquire_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aq a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_acquire_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_acquire_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB31_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB31_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB31_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB31_1
+; RV64IA-TSO-NEXT:  .LBB31_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_acquire_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_acquire_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val acquire monotonic
   ret void
 }
@@ -2210,14 +5057,14 @@ define void @cmpxchg_i64_acquire_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a6, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 2
 ; RV32I-NEXT:    li a5, 2
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a6
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2227,14 +5074,14 @@ define void @cmpxchg_i64_acquire_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a6, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 2
 ; RV32IA-NEXT:    li a5, 2
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a6
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2247,21 +5094,52 @@ define void @cmpxchg_i64_acquire_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 2
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_acquire_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB32_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB32_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB32_1 Depth=1
-; RV64IA-NEXT:    sc.d a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB32_1
-; RV64IA-NEXT:  .LBB32_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_acquire_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB32_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB32_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB32_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB32_1
+; RV64IA-WMO-NEXT:  .LBB32_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_acquire_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aq a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_acquire_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aq a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_acquire_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB32_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB32_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB32_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB32_1
+; RV64IA-TSO-NEXT:  .LBB32_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_acquire_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_acquire_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val acquire acquire
   ret void
 }
@@ -2272,14 +5150,14 @@ define void @cmpxchg_i64_release_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a5, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 3
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a5
 ; RV32I-NEXT:    li a5, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2289,14 +5167,14 @@ define void @cmpxchg_i64_release_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a5, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 3
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a5
 ; RV32IA-NEXT:    li a5, 0
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2309,21 +5187,52 @@ define void @cmpxchg_i64_release_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_release_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB33_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB33_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB33_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB33_1
-; RV64IA-NEXT:  .LBB33_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_release_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB33_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB33_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB33_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB33_1
+; RV64IA-WMO-NEXT:  .LBB33_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_release_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.rl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_release_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.rl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_release_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB33_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB33_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB33_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB33_1
+; RV64IA-TSO-NEXT:  .LBB33_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_release_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_release_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val release monotonic
   ret void
 }
@@ -2334,14 +5243,14 @@ define void @cmpxchg_i64_release_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a6, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 3
 ; RV32I-NEXT:    li a5, 2
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a6
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2351,14 +5260,14 @@ define void @cmpxchg_i64_release_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a6, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 3
 ; RV32IA-NEXT:    li a5, 2
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a6
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2371,21 +5280,52 @@ define void @cmpxchg_i64_release_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 3
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_release_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB34_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB34_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB34_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB34_1
-; RV64IA-NEXT:  .LBB34_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_release_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB34_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB34_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB34_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB34_1
+; RV64IA-WMO-NEXT:  .LBB34_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_release_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_release_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_release_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB34_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB34_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB34_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB34_1
+; RV64IA-TSO-NEXT:  .LBB34_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_release_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_release_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val release acquire
   ret void
 }
@@ -2396,14 +5336,14 @@ define void @cmpxchg_i64_acq_rel_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a5, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 4
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a5
 ; RV32I-NEXT:    li a5, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2413,14 +5353,14 @@ define void @cmpxchg_i64_acq_rel_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a5, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 4
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a5
 ; RV32IA-NEXT:    li a5, 0
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2433,21 +5373,52 @@ define void @cmpxchg_i64_acq_rel_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_acq_rel_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB35_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB35_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB35_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB35_1
-; RV64IA-NEXT:  .LBB35_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_acq_rel_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB35_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB35_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB35_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB35_1
+; RV64IA-WMO-NEXT:  .LBB35_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_acq_rel_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_acq_rel_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_acq_rel_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB35_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB35_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB35_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB35_1
+; RV64IA-TSO-NEXT:  .LBB35_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_acq_rel_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_acq_rel_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val acq_rel monotonic
   ret void
 }
@@ -2458,14 +5429,14 @@ define void @cmpxchg_i64_acq_rel_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a6, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 4
 ; RV32I-NEXT:    li a5, 2
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a6
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2475,14 +5446,14 @@ define void @cmpxchg_i64_acq_rel_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a6, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 4
 ; RV32IA-NEXT:    li a5, 2
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a6
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2495,21 +5466,52 @@ define void @cmpxchg_i64_acq_rel_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 4
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_acq_rel_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB36_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aq a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB36_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB36_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB36_1
-; RV64IA-NEXT:  .LBB36_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_acq_rel_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB36_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aq a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB36_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB36_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB36_1
+; RV64IA-WMO-NEXT:  .LBB36_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_acq_rel_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_acq_rel_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_acq_rel_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB36_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB36_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB36_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB36_1
+; RV64IA-TSO-NEXT:  .LBB36_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_acq_rel_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_acq_rel_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val acq_rel acquire
   ret void
 }
@@ -2520,14 +5522,14 @@ define void @cmpxchg_i64_seq_cst_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a5, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 5
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a5
 ; RV32I-NEXT:    li a5, 0
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2537,14 +5539,14 @@ define void @cmpxchg_i64_seq_cst_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a5, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 5
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a5
 ; RV32IA-NEXT:    li a5, 0
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2557,21 +5559,52 @@ define void @cmpxchg_i64_seq_cst_monotonic(ptr %ptr, i64 %cmp, i64 %val) nounwin
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 0
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_seq_cst_monotonic:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB37_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aqrl a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB37_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB37_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB37_1
-; RV64IA-NEXT:  .LBB37_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_seq_cst_monotonic:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB37_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aqrl a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB37_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB37_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB37_1
+; RV64IA-WMO-NEXT:  .LBB37_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_seq_cst_monotonic:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_seq_cst_monotonic:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_seq_cst_monotonic:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB37_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d.aqrl a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB37_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB37_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB37_1
+; RV64IA-TSO-NEXT:  .LBB37_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_seq_cst_monotonic:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_seq_cst_monotonic:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val seq_cst monotonic
   ret void
 }
@@ -2582,14 +5615,14 @@ define void @cmpxchg_i64_seq_cst_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a6, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 5
 ; RV32I-NEXT:    li a5, 2
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a6
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2599,14 +5632,14 @@ define void @cmpxchg_i64_seq_cst_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a6, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 5
 ; RV32IA-NEXT:    li a5, 2
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a6
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2619,21 +5652,52 @@ define void @cmpxchg_i64_seq_cst_acquire(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 2
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_seq_cst_acquire:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB38_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aqrl a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB38_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB38_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB38_1
-; RV64IA-NEXT:  .LBB38_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_seq_cst_acquire:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB38_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aqrl a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB38_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB38_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB38_1
+; RV64IA-WMO-NEXT:  .LBB38_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_seq_cst_acquire:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_seq_cst_acquire:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_seq_cst_acquire:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB38_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d.aqrl a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB38_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB38_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB38_1
+; RV64IA-TSO-NEXT:  .LBB38_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_seq_cst_acquire:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_seq_cst_acquire:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val seq_cst acquire
   ret void
 }
@@ -2644,14 +5708,14 @@ define void @cmpxchg_i64_seq_cst_seq_cst(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32I-NEXT:    addi sp, sp, -16
 ; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32I-NEXT:    mv a6, a4
-; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    sw a1, 0(sp)
+; RV32I-NEXT:    sw a2, 4(sp)
 ; RV32I-NEXT:    mv a1, sp
 ; RV32I-NEXT:    li a4, 5
 ; RV32I-NEXT:    li a5, 5
 ; RV32I-NEXT:    mv a2, a3
 ; RV32I-NEXT:    mv a3, a6
-; RV32I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32I-NEXT:    call __atomic_compare_exchange_8
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
@@ -2661,14 +5725,14 @@ define void @cmpxchg_i64_seq_cst_seq_cst(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV32IA-NEXT:    addi sp, sp, -16
 ; RV32IA-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
 ; RV32IA-NEXT:    mv a6, a4
-; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    sw a1, 0(sp)
+; RV32IA-NEXT:    sw a2, 4(sp)
 ; RV32IA-NEXT:    mv a1, sp
 ; RV32IA-NEXT:    li a4, 5
 ; RV32IA-NEXT:    li a5, 5
 ; RV32IA-NEXT:    mv a2, a3
 ; RV32IA-NEXT:    mv a3, a6
-; RV32IA-NEXT:    call __atomic_compare_exchange_8@plt
+; RV32IA-NEXT:    call __atomic_compare_exchange_8
 ; RV32IA-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
 ; RV32IA-NEXT:    addi sp, sp, 16
 ; RV32IA-NEXT:    ret
@@ -2681,21 +5745,58 @@ define void @cmpxchg_i64_seq_cst_seq_cst(ptr %ptr, i64 %cmp, i64 %val) nounwind 
 ; RV64I-NEXT:    mv a1, sp
 ; RV64I-NEXT:    li a3, 5
 ; RV64I-NEXT:    li a4, 5
-; RV64I-NEXT:    call __atomic_compare_exchange_8@plt
+; RV64I-NEXT:    call __atomic_compare_exchange_8
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
-; RV64IA-LABEL: cmpxchg_i64_seq_cst_seq_cst:
-; RV64IA:       # %bb.0:
-; RV64IA-NEXT:  .LBB39_1: # =>This Inner Loop Header: Depth=1
-; RV64IA-NEXT:    lr.d.aqrl a3, (a0)
-; RV64IA-NEXT:    bne a3, a1, .LBB39_3
-; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB39_1 Depth=1
-; RV64IA-NEXT:    sc.d.rl a4, a2, (a0)
-; RV64IA-NEXT:    bnez a4, .LBB39_1
-; RV64IA-NEXT:  .LBB39_3:
-; RV64IA-NEXT:    ret
+; RV64IA-WMO-LABEL: cmpxchg_i64_seq_cst_seq_cst:
+; RV64IA-WMO:       # %bb.0:
+; RV64IA-WMO-NEXT:  .LBB39_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-WMO-NEXT:    lr.d.aqrl a3, (a0)
+; RV64IA-WMO-NEXT:    bne a3, a1, .LBB39_3
+; RV64IA-WMO-NEXT:  # %bb.2: # in Loop: Header=BB39_1 Depth=1
+; RV64IA-WMO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-WMO-NEXT:    bnez a4, .LBB39_1
+; RV64IA-WMO-NEXT:  .LBB39_3:
+; RV64IA-WMO-NEXT:    ret
+;
+; RV64IA-WMO-ZACAS-LABEL: cmpxchg_i64_seq_cst_seq_cst:
+; RV64IA-WMO-ZACAS:       # %bb.0:
+; RV64IA-WMO-ZACAS-NEXT:    fence rw, rw
+; RV64IA-WMO-ZACAS-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZACAS-NEXT:    ret
+;
+; RV64IA-WMO-ZABHA-LABEL: cmpxchg_i64_seq_cst_seq_cst:
+; RV64IA-WMO-ZABHA:       # %bb.0:
+; RV64IA-WMO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-WMO-ZABHA-NEXT:    amocas.d.aqrl a1, a2, (a0)
+; RV64IA-WMO-ZABHA-NEXT:    ret
+;
+; RV64IA-TSO-LABEL: cmpxchg_i64_seq_cst_seq_cst:
+; RV64IA-TSO:       # %bb.0:
+; RV64IA-TSO-NEXT:  .LBB39_1: # =>This Inner Loop Header: Depth=1
+; RV64IA-TSO-NEXT:    lr.d.aqrl a3, (a0)
+; RV64IA-TSO-NEXT:    bne a3, a1, .LBB39_3
+; RV64IA-TSO-NEXT:  # %bb.2: # in Loop: Header=BB39_1 Depth=1
+; RV64IA-TSO-NEXT:    sc.d.rl a4, a2, (a0)
+; RV64IA-TSO-NEXT:    bnez a4, .LBB39_1
+; RV64IA-TSO-NEXT:  .LBB39_3:
+; RV64IA-TSO-NEXT:    ret
+;
+; RV64IA-TSO-ZACAS-LABEL: cmpxchg_i64_seq_cst_seq_cst:
+; RV64IA-TSO-ZACAS:       # %bb.0:
+; RV64IA-TSO-ZACAS-NEXT:    fence rw, rw
+; RV64IA-TSO-ZACAS-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZACAS-NEXT:    ret
+;
+; RV64IA-TSO-ZABHA-LABEL: cmpxchg_i64_seq_cst_seq_cst:
+; RV64IA-TSO-ZABHA:       # %bb.0:
+; RV64IA-TSO-ZABHA-NEXT:    fence rw, rw
+; RV64IA-TSO-ZABHA-NEXT:    amocas.d a1, a2, (a0)
+; RV64IA-TSO-ZABHA-NEXT:    ret
   %res = cmpxchg ptr %ptr, i64 %cmp, i64 %val seq_cst seq_cst
   ret void
 }
+;; NOTE: These prefixes are unused and the list is autogenerated. Do not add tests below this line:
+; RV64IA: {{.*}}

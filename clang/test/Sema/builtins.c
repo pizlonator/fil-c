@@ -40,7 +40,7 @@ void test9(short v) {
 
   old = __sync_fetch_and_add();  // expected-error {{too few arguments to function call}}
   old = __sync_fetch_and_add(&old);  // expected-error {{too few arguments to function call}}
-  old = __sync_fetch_and_add((unsigned*)0, 42i); // expected-warning {{imaginary constants are a GNU extension}}
+  old = __sync_fetch_and_add((unsigned*)0, 42i); // expected-warning {{imaginary constants are a C2y extension}}
 
   // PR7600: Pointers are implicitly casted to integers and back.
   void *old_ptr = __sync_val_compare_and_swap((void**)0, 0, 0);
@@ -71,7 +71,6 @@ void test9_4(volatile int* ptr, int val) {
   __sync_fetch_and_nand(ptr, val);
 }
 
-// rdar://7236819
 void test10(void) __attribute__((noreturn));
 
 void test10(void) {
@@ -104,13 +103,11 @@ int test13(void) {
   __builtin_eh_return(0, 0); // no warning, eh_return never returns.
 }
 
-// <rdar://problem/8228293>
 void test14(void) {
   int old;
   old = __sync_fetch_and_min((volatile int *)&old, 1);
 }
 
-// <rdar://problem/8336581>
 void test15(const char *s) {
   __builtin_printf("string is %s\n", s);
 }
@@ -174,8 +171,8 @@ void test17(void) {
 #define OPT(...) (__builtin_constant_p(__VA_ARGS__) && strlen(__VA_ARGS__) < 4)
   // FIXME: These are incorrectly treated as ICEs because strlen is treated as
   // a builtin.
-  ASSERT(OPT("abc"));
-  ASSERT(!OPT("abcd"));
+  ASSERT(OPT("abc")); // expected-warning {{expression is not an integer constant expression; folding it to a constant is a GNU extension}}
+  ASSERT(!OPT("abcd")); // expected-warning {{expression is not an integer constant expression; folding it to a constant is a GNU extension}}
   // In these cases, the strlen is non-constant, but the __builtin_constant_p
   // is 0: the array size is not an ICE but is foldable.
   ASSERT(!OPT(test17_c));
@@ -217,7 +214,6 @@ void unavailable(void) {
   __builtin_operator_delete(0); // expected-error {{'__builtin_operator_delete' is only available in C++}}
 }
 
-// rdar://18259539
 size_t strlcpy(char * restrict dst, const char * restrict src, size_t size);
 size_t strlcat(char * restrict dst, const char * restrict src, size_t size);
 
@@ -240,7 +236,6 @@ void Test19(void)
 				                                                   // expected-warning {{'strlcat' will always overflow; destination buffer has size 20, but size argument is 40}}
 }
 
-// rdar://11076881
 char * Test20(char *p, const char *in, unsigned n)
 {
     static char buf[10];
@@ -282,9 +277,9 @@ void test21(const int *ptr) {
 }
 
 void test_ei_i42i(_BitInt(42) *ptr, int value) {
-  __sync_fetch_and_add(ptr, value); // expected-error {{Atomic memory operand must have a power-of-two size}}
+  __sync_fetch_and_add(ptr, value); // expected-error {{atomic memory operand must have a power-of-two size}}
   // expected-warning@+1 {{the semantics of this intrinsic changed with GCC version 4.4 - the newer semantics are provided here}}
-  __sync_nand_and_fetch(ptr, value); // expected-error {{Atomic memory operand must have a power-of-two size}}
+  __sync_nand_and_fetch(ptr, value); // expected-error {{atomic memory operand must have a power-of-two size}}
 
   __atomic_fetch_add(ptr, 1, 0); // expected-error {{argument to atomic builtin of type '_BitInt' is not supported}}
 }
@@ -310,9 +305,9 @@ void test_ei_ii64(int *ptr, _BitInt(64) value) {
 }
 
 void test_ei_i42i42(_BitInt(42) *ptr, _BitInt(42) value) {
-  __sync_fetch_and_add(ptr, value); // expected-error {{Atomic memory operand must have a power-of-two size}}
+  __sync_fetch_and_add(ptr, value); // expected-error {{atomic memory operand must have a power-of-two size}}
   // expected-warning@+1 {{the semantics of this intrinsic changed with GCC version 4.4 - the newer semantics are provided here}}
-  __sync_nand_and_fetch(ptr, value); // expected-error {{Atomic memory operand must have a power-of-two size}}
+  __sync_nand_and_fetch(ptr, value); // expected-error {{atomic memory operand must have a power-of-two size}}
 }
 
 void test_ei_i64i64(_BitInt(64) *ptr, _BitInt(64) value) {
@@ -344,7 +339,6 @@ void test22(void) {
   (void)__builtin_signbitl(1.0L);
 }
 
-// rdar://43909200
 #define memcpy(x,y,z) __builtin___memcpy_chk(x,y,z, __builtin_object_size(x,0))
 #define my_memcpy(x,y,z) __builtin___memcpy_chk(x,y,z, __builtin_object_size(x,0))
 

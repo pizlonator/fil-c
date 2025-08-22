@@ -36,13 +36,12 @@ void foo(void)
   [Derived registerFunc: ExternFunc];  // expected-error{{incompatible function pointer types sending 'NSObject *(NSObject *, NSObject *)' to parameter of type 'FuncSignature *' (aka 'id (*)(NSObject *, Derived *)')}}
 }
 
-// rdar://10751015
 @protocol NSCopying @end
 @interface I
 - (void) Meth : (id <NSCopying>)aKey; // expected-note {{passing argument to parameter 'aKey' here}}
 @end
 
-@class ForwarClass; // expected-note 3 {{conformance of forward class 'ForwarClass' to protocol 'NSCopying' can not be confirmed}}
+@class ForwarClass; // expected-note 3 {{conformance of forward class 'ForwarClass' to protocol 'NSCopying' cannot be confirmed}}
 
 ForwarClass *Test10751015 (I* pi, ForwarClass *ns_forward) {
 

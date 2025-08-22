@@ -18,13 +18,11 @@
 #include "lldb/Host/FileSystem.h"
 #include "lldb/Utility/RangeMap.h"
 #include "lldb/Utility/RegularExpression.h"
-#include "lldb/Utility/Timer.h"
 #include "lldb/Utility/StreamString.h"
+#include "lldb/Utility/StructuredData.h"
+#include "lldb/Utility/Timer.h"
 
 //#define DEBUG_OSO_DMAP // DO NOT CHECKIN WITH THIS NOT COMMENTED OUT
-#if defined(DEBUG_OSO_DMAP)
-#include "lldb/Core/StreamFile.h"
-#endif
 
 #include "lldb/Symbol/CompileUnit.h"
 #include "lldb/Symbol/LineTable.h"
@@ -39,12 +37,14 @@
 
 #include "LogChannelDWARF.h"
 #include "SymbolFileDWARF.h"
+#include "lldb/lldb-private-enumerations.h"
 
 #include <memory>
 #include <optional>
 
 using namespace lldb;
 using namespace lldb_private;
+using namespace lldb_private::plugin::dwarf;
 
 char SymbolFileDWARFDebugMap::ID;
 
@@ -169,11 +169,13 @@ SymbolFileDWARFDebugMap::CompileUnitInfo::GetFileRangeMap(
   return file_range_map;
 }
 
+namespace lldb_private::plugin {
+namespace dwarf {
 class DebugMapModule : public Module {
 public:
   DebugMapModule(const ModuleSP &exe_module_sp, uint32_t cu_idx,
                  const FileSpec &file_spec, const ArchSpec &arch,
-                 const ConstString *object_name, off_t object_offset,
+                 ConstString object_name, off_t object_offset,
                  const llvm::sys::TimePoint<> object_mod_time)
       : Module(file_spec, arch, object_name, object_offset, object_mod_time),
         m_exe_module_wp(exe_module_sp), m_cu_idx(cu_idx) {}
@@ -225,6 +227,8 @@ protected:
   ModuleWP m_exe_module_wp;
   const uint32_t m_cu_idx;
 };
+} // namespace dwarf
+} // namespace lldb_private::plugin
 
 void SymbolFileDWARFDebugMap::Initialize() {
   PluginManager::RegisterPlugin(GetPluginNameStatic(),
@@ -244,9 +248,8 @@ SymbolFile *SymbolFileDWARFDebugMap::CreateInstance(ObjectFileSP objfile_sp) {
 }
 
 SymbolFileDWARFDebugMap::SymbolFileDWARFDebugMap(ObjectFileSP objfile_sp)
-    : SymbolFileCommon(std::move(objfile_sp)), m_flags(), m_compile_unit_infos(),
-      m_func_indexes(), m_glob_indexes(),
-      m_supports_DW_AT_APPLE_objc_complete_type(eLazyBoolCalculate) {}
+    : SymbolFileCommon(std::move(objfile_sp)), m_flags(),
+      m_compile_unit_infos(), m_func_indexes(), m_glob_indexes() {}
 
 SymbolFileDWARFDebugMap::~SymbolFileDWARFDebugMap() = default;
 
@@ -422,10 +425,11 @@ Module *SymbolFileDWARFDebugMap::GetModuleByCompUnitInfo(
         // modification timestamp, since it will never match.
         if (comp_unit_info->oso_mod_time != llvm::sys::TimePoint<>() &&
             oso_mod_time != comp_unit_info->oso_mod_time) {
-          comp_unit_info->oso_load_error.SetErrorStringWithFormat(
+          comp_unit_info->oso_load_error = Status::FromErrorStringWithFormat(
               "debug map object file \"%s\" changed (actual: 0x%8.8x, debug "
               "map: 0x%8.8x) since this executable was linked, debug info "
-              "will not be loaded", oso_file.GetPath().c_str(),
+              "will not be loaded",
+              oso_file.GetPath().c_str(),
               (uint32_t)llvm::sys::toTimeT(oso_mod_time),
               (uint32_t)llvm::sys::toTimeT(comp_unit_info->oso_mod_time));
           obj_file->GetModule()->ReportError(
@@ -438,7 +442,7 @@ Module *SymbolFileDWARFDebugMap::GetModuleByCompUnitInfo(
 
         if (!ObjectFile::SplitArchivePathWithObject(oso_path, oso_file,
                                                     oso_object, must_exist)) {
-          comp_unit_info->oso_load_error.SetErrorStringWithFormat(
+          comp_unit_info->oso_load_error = Status::FromErrorStringWithFormat(
               "debug map object file \"%s\" containing debug info does not "
               "exist, debug info will not be loaded",
               comp_unit_info->oso_path.GetCString());
@@ -462,7 +466,7 @@ Module *SymbolFileDWARFDebugMap::GetModuleByCompUnitInfo(
                              .c_str());
       comp_unit_info->oso_sp->module_sp = std::make_shared<DebugMapModule>(
           obj_file->GetModule(), GetCompUnitInfoIndex(comp_unit_info), oso_file,
-          oso_arch, oso_object ? &oso_object : nullptr, 0,
+          oso_arch, oso_object, 0,
           oso_object ? comp_unit_info->oso_mod_time : llvm::sys::TimePoint<>());
 
       if (oso_object && !comp_unit_info->oso_sp->module_sp->GetObjectFile() &&
@@ -470,7 +474,7 @@ Module *SymbolFileDWARFDebugMap::GetModuleByCompUnitInfo(
         // If we are loading a .o file from a .a file the "oso_object" will
         // have a valid value name and if the .a file exists, either the .o
         // file didn't exist in the .a file or the mod time didn't match.
-        comp_unit_info->oso_load_error.SetErrorStringWithFormat(
+        comp_unit_info->oso_load_error = Status::FromErrorStringWithFormat(
             "\"%s\" object from the \"%s\" archive: "
             "either the .o file doesn't exist in the archive or the "
             "modification time (0x%8.8x) of the .o file doesn't match",
@@ -595,10 +599,10 @@ CompUnitSP SymbolFileDWARFDebugMap::ParseCompileUnitAtIndex(uint32_t cu_idx) {
         // User zero as the ID to match the compile unit at offset zero in each
         // .o file.
         lldb::user_id_t cu_id = 0;
-        cu_info.compile_units_sps.push_back(
-            std::make_shared<CompileUnit>(
-                m_objfile_sp->GetModule(), nullptr, so_file_spec, cu_id,
-                eLanguageTypeUnknown, eLazyBoolCalculate));
+        cu_info.compile_units_sps.push_back(std::make_shared<CompileUnit>(
+            m_objfile_sp->GetModule(), nullptr,
+            std::make_shared<SupportFile>(so_file_spec), cu_id,
+            eLanguageTypeUnknown, eLazyBoolCalculate));
         cu_info.id_to_index_map.insert({0, 0});
         SetCompileUnitAtIndex(cu_idx, cu_info.compile_units_sps[0]);
         // If there's a symbol file also register all the extra compile units.
@@ -612,7 +616,8 @@ CompUnitSP SymbolFileDWARFDebugMap::ParseCompileUnitAtIndex(uint32_t cu_idx) {
               if (dwarf_cu->GetID() == 0)
                 continue;
               cu_info.compile_units_sps.push_back(std::make_shared<CompileUnit>(
-                  m_objfile_sp->GetModule(), nullptr, so_file_spec,
+                  m_objfile_sp->GetModule(), nullptr,
+                  std::make_shared<SupportFile>(so_file_spec),
                   dwarf_cu->GetID(), eLanguageTypeUnknown, eLazyBoolCalculate));
               cu_info.id_to_index_map.insert(
                   {dwarf_cu->GetID(), cu_info.compile_units_sps.size() - 1});
@@ -722,8 +727,8 @@ bool SymbolFileDWARFDebugMap::ForEachExternalModule(
   return false;
 }
 
-bool SymbolFileDWARFDebugMap::ParseSupportFiles(CompileUnit &comp_unit,
-                                                FileSpecList &support_files) {
+bool SymbolFileDWARFDebugMap::ParseSupportFiles(
+    CompileUnit &comp_unit, SupportFileList &support_files) {
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   SymbolFileDWARF *oso_dwarf = GetSymbolFile(comp_unit);
   if (oso_dwarf)
@@ -799,13 +804,13 @@ SymbolFileDWARFDebugMap::GetDynamicArrayInfoForUID(
 bool SymbolFileDWARFDebugMap::CompleteType(CompilerType &compiler_type) {
   bool success = false;
   if (compiler_type) {
-    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
-      if (oso_dwarf->HasForwardDeclForClangType(compiler_type)) {
+    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
+      if (oso_dwarf->HasForwardDeclForCompilerType(compiler_type)) {
         oso_dwarf->CompleteType(compiler_type);
         success = true;
-        return true;
+        return IterationAction::Stop;
       }
-      return false;
+      return IterationAction::Continue;
     });
   }
   return success;
@@ -843,9 +848,17 @@ SymbolFileDWARFDebugMap::ResolveSymbolContext(const Address &exe_so_addr,
                 debug_map_entry->data.GetOSOFileAddress();
             Address oso_so_addr;
             if (oso_module->ResolveFileAddress(oso_file_addr, oso_so_addr)) {
-              resolved_flags |=
-                  oso_module->GetSymbolFile()->ResolveSymbolContext(
-                      oso_so_addr, resolve_scope, sc);
+              if (SymbolFile *sym_file = oso_module->GetSymbolFile()) {
+                resolved_flags |= sym_file->ResolveSymbolContext(
+                    oso_so_addr, resolve_scope, sc);
+              } else {
+                ObjectFile *obj_file = GetObjectFile();
+                LLDB_LOG(GetLog(DWARFLog::DebugMap),
+                         "Failed to get symfile for OSO: {0} in module: {1}",
+                         oso_module->GetFileSpec(),
+                         obj_file ? obj_file->GetFileSpec()
+                                  : FileSpec("unknown"));
+              }
             }
           }
         }
@@ -911,7 +924,7 @@ void SymbolFileDWARFDebugMap::FindGlobalVariables(
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   uint32_t total_matches = 0;
 
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     const uint32_t old_size = variables.GetSize();
     oso_dwarf->FindGlobalVariables(name, parent_decl_ctx, max_matches,
                                    variables);
@@ -921,18 +934,18 @@ void SymbolFileDWARFDebugMap::FindGlobalVariables(
 
       // Are we getting all matches?
       if (max_matches == UINT32_MAX)
-        return false; // Yep, continue getting everything
+        return IterationAction::Continue; // Yep, continue getting everything
 
       // If we have found enough matches, lets get out
       if (max_matches >= total_matches)
-        return true;
+        return IterationAction::Stop;
 
       // Update the max matches for any subsequent calls to find globals in any
       // other object files with DWARF
       max_matches -= oso_matches;
     }
 
-    return false;
+    return IterationAction::Continue;
   });
 }
 
@@ -941,7 +954,7 @@ void SymbolFileDWARFDebugMap::FindGlobalVariables(
     VariableList &variables) {
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   uint32_t total_matches = 0;
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     const uint32_t old_size = variables.GetSize();
     oso_dwarf->FindGlobalVariables(regex, max_matches, variables);
 
@@ -951,18 +964,18 @@ void SymbolFileDWARFDebugMap::FindGlobalVariables(
 
       // Are we getting all matches?
       if (max_matches == UINT32_MAX)
-        return false; // Yep, continue getting everything
+        return IterationAction::Continue; // Yep, continue getting everything
 
       // If we have found enough matches, lets get out
       if (max_matches >= total_matches)
-        return true;
+        return IterationAction::Stop;
 
       // Update the max matches for any subsequent calls to find globals in any
       // other object files with DWARF
       max_matches -= oso_matches;
     }
 
-    return false;
+    return IterationAction::Continue;
   });
 }
 
@@ -1048,8 +1061,7 @@ static void RemoveFunctionsWithModuleNotEqualTo(const ModuleSP &module_sp,
     SymbolContext sc;
     sc_list.GetContextAtIndex(i, sc);
     if (sc.function) {
-      const SectionSP section_sp(
-          sc.function->GetAddressRange().GetBaseAddress().GetSection());
+      const SectionSP section_sp = sc.function->GetAddress().GetSection();
       if (section_sp->GetModule() != module_sp) {
         sc_list.RemoveContextAtIndex(i);
         continue;
@@ -1067,7 +1079,7 @@ void SymbolFileDWARFDebugMap::FindFunctions(
   LLDB_SCOPED_TIMERF("SymbolFileDWARFDebugMap::FindFunctions (name = %s)",
                      lookup_info.GetLookupName().GetCString());
 
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     uint32_t sc_idx = sc_list.GetSize();
     oso_dwarf->FindFunctions(lookup_info, parent_decl_ctx, include_inlines,
                              sc_list);
@@ -1075,7 +1087,7 @@ void SymbolFileDWARFDebugMap::FindFunctions(
       RemoveFunctionsWithModuleNotEqualTo(m_objfile_sp->GetModule(), sc_list,
                                           sc_idx);
     }
-    return false;
+    return IterationAction::Continue;
   });
 }
 
@@ -1086,7 +1098,7 @@ void SymbolFileDWARFDebugMap::FindFunctions(const RegularExpression &regex,
   LLDB_SCOPED_TIMERF("SymbolFileDWARFDebugMap::FindFunctions (regex = '%s')",
                      regex.GetText().str().c_str());
 
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     uint32_t sc_idx = sc_list.GetSize();
 
     oso_dwarf->FindFunctions(regex, include_inlines, sc_list);
@@ -1094,7 +1106,7 @@ void SymbolFileDWARFDebugMap::FindFunctions(const RegularExpression &regex,
       RemoveFunctionsWithModuleNotEqualTo(m_objfile_sp->GetModule(), sc_list,
                                           sc_idx);
     }
-    return false;
+    return IterationAction::Continue;
   });
 }
 
@@ -1117,9 +1129,9 @@ void SymbolFileDWARFDebugMap::GetTypes(SymbolContextScope *sc_scope,
         oso_dwarf->GetTypes(sc_scope, type_mask, type_list);
     }
   } else {
-    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
       oso_dwarf->GetTypes(sc_scope, type_mask, type_list);
-      return false;
+      return IterationAction::Continue;
     });
   }
 }
@@ -1134,30 +1146,13 @@ SymbolFileDWARFDebugMap::ParseCallEdgesInFunction(
   return {};
 }
 
-TypeSP SymbolFileDWARFDebugMap::FindDefinitionTypeForDWARFDeclContext(
-    const DWARFDIE &die) {
-  TypeSP type_sp;
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
-    type_sp = oso_dwarf->FindDefinitionTypeForDWARFDeclContext(die);
-    return ((bool)type_sp);
+DWARFDIE SymbolFileDWARFDebugMap::FindDefinitionDIE(const DWARFDIE &die) {
+  DWARFDIE result;
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
+    result = oso_dwarf->FindDefinitionDIE(die);
+    return result ? IterationAction::Stop : IterationAction::Continue;
   });
-  return type_sp;
-}
-
-bool SymbolFileDWARFDebugMap::Supports_DW_AT_APPLE_objc_complete_type(
-    SymbolFileDWARF *skip_dwarf_oso) {
-  if (m_supports_DW_AT_APPLE_objc_complete_type == eLazyBoolCalculate) {
-    m_supports_DW_AT_APPLE_objc_complete_type = eLazyBoolNo;
-    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
-      if (skip_dwarf_oso != oso_dwarf &&
-          oso_dwarf->Supports_DW_AT_APPLE_objc_complete_type(nullptr)) {
-        m_supports_DW_AT_APPLE_objc_complete_type = eLazyBoolYes;
-        return true;
-      }
-      return false;
-    });
-  }
-  return m_supports_DW_AT_APPLE_objc_complete_type == eLazyBoolYes;
+  return result;
 }
 
 TypeSP SymbolFileDWARFDebugMap::FindCompleteObjCDefinitionTypeForDIE(
@@ -1213,10 +1208,10 @@ TypeSP SymbolFileDWARFDebugMap::FindCompleteObjCDefinitionTypeForDIE(
   if (!must_be_implementation) {
     TypeSP type_sp;
 
-    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+    ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
       type_sp = oso_dwarf->FindCompleteObjCDefinitionTypeForDIE(
           die, type_name, must_be_implementation);
-      return (bool)type_sp;
+      return type_sp ? IterationAction::Stop : IterationAction::Continue;
     });
 
     return type_sp;
@@ -1224,27 +1219,13 @@ TypeSP SymbolFileDWARFDebugMap::FindCompleteObjCDefinitionTypeForDIE(
   return TypeSP();
 }
 
-void SymbolFileDWARFDebugMap::FindTypes(
-    ConstString name, const CompilerDeclContext &parent_decl_ctx,
-    uint32_t max_matches,
-    llvm::DenseSet<lldb_private::SymbolFile *> &searched_symbol_files,
-    TypeMap &types) {
+void SymbolFileDWARFDebugMap::FindTypes(const TypeQuery &query,
+                                        TypeResults &results) {
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
-    oso_dwarf->FindTypes(name, parent_decl_ctx, max_matches,
-                         searched_symbol_files, types);
-    return types.GetSize() >= max_matches;
-  });
-}
-
-void SymbolFileDWARFDebugMap::FindTypes(
-    llvm::ArrayRef<CompilerContext> context, LanguageSet languages,
-    llvm::DenseSet<lldb_private::SymbolFile *> &searched_symbol_files,
-    TypeMap &types) {
-  LLDB_SCOPED_TIMER();
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
-    oso_dwarf->FindTypes(context, languages, searched_symbol_files, types);
-    return false;
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
+    oso_dwarf->FindTypes(query, results);
+    return results.Done(query) ? IterationAction::Stop
+                               : IterationAction::Continue;
   });
 }
 
@@ -1254,24 +1235,62 @@ CompilerDeclContext SymbolFileDWARFDebugMap::FindNamespace(
   std::lock_guard<std::recursive_mutex> guard(GetModuleMutex());
   CompilerDeclContext matching_namespace;
 
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     matching_namespace =
         oso_dwarf->FindNamespace(name, parent_decl_ctx, only_root_namespaces);
 
-    return (bool)matching_namespace;
+    return matching_namespace ? IterationAction::Stop
+                              : IterationAction::Continue;
   });
 
   return matching_namespace;
 }
 
 void SymbolFileDWARFDebugMap::DumpClangAST(Stream &s) {
-  ForEachSymbolFile([&s](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&s](SymbolFileDWARF *oso_dwarf) {
     oso_dwarf->DumpClangAST(s);
     // The underlying assumption is that DumpClangAST(...) will obtain the
     // AST from the underlying TypeSystem and therefore we only need to do
     // this once and can stop after the first iteration hence we return true.
-    return true;
+    return IterationAction::Stop;
   });
+}
+
+bool SymbolFileDWARFDebugMap::GetSeparateDebugInfo(
+    lldb_private::StructuredData::Dictionary &d, bool errors_only) {
+  StructuredData::Array separate_debug_info_files;
+  const uint32_t cu_count = GetNumCompileUnits();
+  for (uint32_t cu_idx = 0; cu_idx < cu_count; ++cu_idx) {
+    const auto &info = m_compile_unit_infos[cu_idx];
+    StructuredData::DictionarySP oso_data =
+        std::make_shared<StructuredData::Dictionary>();
+    oso_data->AddStringItem("so_file", info.so_file.GetPath());
+    oso_data->AddStringItem("oso_path", info.oso_path);
+    oso_data->AddIntegerItem("oso_mod_time",
+                             (uint32_t)llvm::sys::toTimeT(info.oso_mod_time));
+
+    bool loaded_successfully = false;
+    if (GetModuleByOSOIndex(cu_idx)) {
+      // If we have a valid pointer to the module, we successfully
+      // loaded the oso if there are no load errors.
+      if (!info.oso_load_error.Fail()) {
+        loaded_successfully = true;
+      }
+    }
+    if (!loaded_successfully) {
+      oso_data->AddStringItem("error", info.oso_load_error.AsCString());
+    }
+    oso_data->AddBooleanItem("loaded", loaded_successfully);
+    if (!errors_only || oso_data->HasKey("error"))
+      separate_debug_info_files.AddItem(oso_data);
+  }
+
+  d.AddStringItem("type", "oso");
+  d.AddStringItem("symfile", GetMainObjectFile()->GetFileSpec().GetPath());
+  d.AddItem("separate-debug-info-files",
+            std::make_shared<StructuredData::Array>(
+                std::move(separate_debug_info_files)));
+  return true;
 }
 
 lldb::CompUnitSP
@@ -1340,26 +1359,32 @@ void SymbolFileDWARFDebugMap::SetCompileUnit(SymbolFileDWARF *oso_dwarf,
 CompilerDeclContext
 SymbolFileDWARFDebugMap::GetDeclContextForUID(lldb::user_id_t type_uid) {
   const uint64_t oso_idx = GetOSOIndexFromUserID(type_uid);
-  SymbolFileDWARF *oso_dwarf = GetSymbolFileByOSOIndex(oso_idx);
-  if (oso_dwarf)
+  if (SymbolFileDWARF *oso_dwarf = GetSymbolFileByOSOIndex(oso_idx))
     return oso_dwarf->GetDeclContextForUID(type_uid);
-  return CompilerDeclContext();
+  return {};
 }
 
 CompilerDeclContext
 SymbolFileDWARFDebugMap::GetDeclContextContainingUID(lldb::user_id_t type_uid) {
   const uint64_t oso_idx = GetOSOIndexFromUserID(type_uid);
-  SymbolFileDWARF *oso_dwarf = GetSymbolFileByOSOIndex(oso_idx);
-  if (oso_dwarf)
+  if (SymbolFileDWARF *oso_dwarf = GetSymbolFileByOSOIndex(oso_idx))
     return oso_dwarf->GetDeclContextContainingUID(type_uid);
-  return CompilerDeclContext();
+  return {};
+}
+
+std::vector<CompilerContext>
+SymbolFileDWARFDebugMap::GetCompilerContextForUID(lldb::user_id_t type_uid) {
+  const uint64_t oso_idx = GetOSOIndexFromUserID(type_uid);
+  if (SymbolFileDWARF *oso_dwarf = GetSymbolFileByOSOIndex(oso_idx))
+    return oso_dwarf->GetCompilerContextForUID(type_uid);
+  return {};
 }
 
 void SymbolFileDWARFDebugMap::ParseDeclsForContext(
     lldb_private::CompilerDeclContext decl_ctx) {
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     oso_dwarf->ParseDeclsForContext(decl_ctx);
-    return true; // Keep iterating
+    return IterationAction::Continue;
   });
 }
 
@@ -1487,14 +1512,14 @@ SymbolFileDWARFDebugMap::AddOSOARanges(SymbolFileDWARF *dwarf2Data,
 
 ModuleList SymbolFileDWARFDebugMap::GetDebugInfoModules() {
   ModuleList oso_modules;
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     ObjectFile *oso_objfile = oso_dwarf->GetObjectFile();
     if (oso_objfile) {
       ModuleSP module_sp = oso_objfile->GetModule();
       if (module_sp)
         oso_modules.Append(module_sp);
     }
-    return false; // Keep iterating
+    return IterationAction::Continue;
   });
   return oso_modules;
 }
@@ -1531,11 +1556,12 @@ Status SymbolFileDWARFDebugMap::CalculateFrameVariableError(StackFrame &frame) {
             // we weren't able to open the .o file. Display an appropriate
             // error
             if (comp_unit_info->oso_load_error.Fail())
-              return comp_unit_info->oso_load_error;
+              return comp_unit_info->oso_load_error.Clone();
             else
-              return Status("unable to load debug map object file \"%s\" "
-                            "exist, debug info will not be loaded",
-                            comp_unit_info->oso_path.GetCString());
+              return Status::FromErrorStringWithFormat(
+                  "unable to load debug map object file \"%s\" "
+                  "exist, debug info will not be loaded",
+                  comp_unit_info->oso_path.GetCString());
           }
         }
       }
@@ -1547,8 +1573,8 @@ Status SymbolFileDWARFDebugMap::CalculateFrameVariableError(StackFrame &frame) {
 void SymbolFileDWARFDebugMap::GetCompileOptions(
     std::unordered_map<lldb::CompUnitSP, lldb_private::Args> &args) {
 
-  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) -> bool {
+  ForEachSymbolFile([&](SymbolFileDWARF *oso_dwarf) {
     oso_dwarf->GetCompileOptions(args);
-    return false;
+    return IterationAction::Continue;
   });
 }

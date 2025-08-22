@@ -19,6 +19,7 @@
 #include "bolt/Core/MCPlus.h"
 #include "llvm/ADT/GraphTraits.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Config/llvm-config.h" // for LLVM_ON_UNIX
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/ErrorOr.h"
@@ -100,16 +101,6 @@ private:
   using LocSymsTy = std::vector<std::pair<uint32_t, const MCSymbol *>>;
   std::unique_ptr<LocSymsTy> LocSyms;
 
-  /// After output/codegen, map output offsets of instructions in this basic
-  /// block to instruction offsets in the original function. Note that the
-  /// output basic block could be different from the input basic block.
-  /// We only map instruction of interest, such as calls and markers.
-  ///
-  /// We store the offset array in a basic block to facilitate BAT tables
-  /// generation. Otherwise, the mapping could be done at function level.
-  using OffsetTranslationTableTy = std::vector<std::pair<uint32_t, uint32_t>>;
-  std::unique_ptr<OffsetTranslationTableTy> OffsetTranslationTable;
-
   /// Alignment requirements for the block.
   uint32_t Alignment{1};
 
@@ -125,7 +116,7 @@ private:
   unsigned Index{InvalidIndex};
 
   /// Index in the current layout.
-  mutable unsigned LayoutIndex{InvalidIndex};
+  unsigned LayoutIndex{InvalidIndex};
 
   /// Number of pseudo instructions in this block.
   uint32_t NumPseudos{0};
@@ -828,8 +819,10 @@ public:
     return OutputAddressRange;
   }
 
-  /// Update addresses of special instructions inside this basic block.
-  void updateOutputValues(const MCAsmLayout &Layout);
+  uint64_t getOutputStartAddress() const { return OutputAddressRange.first; }
+  uint64_t getOutputEndAddress() const { return OutputAddressRange.second; }
+
+  bool hasLocSyms() const { return LocSyms != nullptr; }
 
   /// Return mapping of input offsets to symbols in the output.
   LocSymsTy &getLocSyms() {
@@ -839,19 +832,6 @@ public:
   /// Return mapping of input offsets to symbols in the output.
   const LocSymsTy &getLocSyms() const {
     return const_cast<BinaryBasicBlock *>(this)->getLocSyms();
-  }
-
-  /// Return offset translation table for the basic block.
-  OffsetTranslationTableTy &getOffsetTranslationTable() {
-    return OffsetTranslationTable
-               ? *OffsetTranslationTable
-               : *(OffsetTranslationTable =
-                       std::make_unique<OffsetTranslationTableTy>());
-  }
-
-  /// Return offset translation table for the basic block.
-  const OffsetTranslationTableTy &getOffsetTranslationTable() const {
-    return const_cast<BinaryBasicBlock *>(this)->getOffsetTranslationTable();
   }
 
   /// Return size of the basic block in the output binary.
@@ -865,15 +845,6 @@ public:
   /// initialized with the original fall-through for this BB.
   bool analyzeBranch(const MCSymbol *&TBB, const MCSymbol *&FBB,
                      MCInst *&CondBranch, MCInst *&UncondBranch);
-
-  /// Return true if iterator \p I is pointing to the first instruction in
-  /// a pair that could be macro-fused.
-  bool isMacroOpFusionPair(const_iterator I) const;
-
-  /// If the basic block has a pair of instructions suitable for macro-fusion,
-  /// return iterator to the first instruction of the pair.
-  /// Otherwise return end().
-  const_iterator getMacroOpFusionPair() const;
 
   /// Printer required for printing dominator trees.
   void printAsOperand(raw_ostream &OS, bool PrintType = true) {
@@ -915,7 +886,7 @@ public:
   }
 
   /// Set layout index. To be used by BinaryFunction.
-  void setLayoutIndex(unsigned Index) const { LayoutIndex = Index; }
+  void setLayoutIndex(unsigned Index) { LayoutIndex = Index; }
 
   /// Needed by graph traits.
   BinaryFunction *getParent() const { return getFunction(); }

@@ -367,11 +367,11 @@ static AMDGPULibFunc::Param getRetType(AMDGPULibFunc::EFuncId id,
 class ParamIterator {
   const AMDGPULibFunc::Param (&Leads)[2];
   const ManglingRule& Rule;
-  int Index;
+  int Index = 0;
 public:
   ParamIterator(const AMDGPULibFunc::Param (&leads)[2],
                 const ManglingRule& rule)
-    : Leads(leads), Rule(rule), Index(0) {}
+    : Leads(leads), Rule(rule) {}
 
   AMDGPULibFunc::Param getNextParam();
 };
@@ -478,7 +478,7 @@ static bool eatTerm(StringRef& mangledName, const char c) {
 
 template <size_t N>
 static bool eatTerm(StringRef& mangledName, const char (&str)[N]) {
-  if (mangledName.startswith(StringRef(str, N-1))) {
+  if (mangledName.starts_with(StringRef(str, N - 1))) {
     drop_front(mangledName, N-1);
     return true;
   }
@@ -525,6 +525,16 @@ AMDGPUMangledLibFunc::AMDGPUMangledLibFunc(
   FKind = copyFrom.FKind;
   Leads[0] = copyFrom.Leads[0];
   Leads[1] = copyFrom.Leads[1];
+}
+
+AMDGPUMangledLibFunc::AMDGPUMangledLibFunc(EFuncId id, FunctionType *FT,
+                                           bool SignedInts) {
+  FuncId = id;
+  unsigned NumArgs = FT->getNumParams();
+  if (NumArgs >= 1)
+    Leads[0] = Param::getFromTy(FT->getParamType(0), SignedInts);
+  if (NumArgs >= 2)
+    Leads[1] = Param::getFromTy(FT->getParamType(1), SignedInts);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -610,17 +620,17 @@ bool ItaniumParamParser::parseItaniumParam(StringRef& param,
   // parse type
   char const TC = param.front();
   if (isDigit(TC)) {
-    res.ArgType = StringSwitch<AMDGPULibFunc::EType>
-      (eatLengthPrefixedName(param))
-      .Case("ocl_image1darray" , AMDGPULibFunc::IMG1DA)
-      .Case("ocl_image1dbuffer", AMDGPULibFunc::IMG1DB)
-      .Case("ocl_image2darray" , AMDGPULibFunc::IMG2DA)
-      .Case("ocl_image1d"      , AMDGPULibFunc::IMG1D)
-      .Case("ocl_image2d"      , AMDGPULibFunc::IMG2D)
-      .Case("ocl_image3d"      , AMDGPULibFunc::IMG3D)
-      .Case("ocl_event"        , AMDGPULibFunc::DUMMY)
-      .Case("ocl_sampler"      , AMDGPULibFunc::DUMMY)
-      .Default(AMDGPULibFunc::DUMMY);
+    res.ArgType =
+        StringSwitch<AMDGPULibFunc::EType>(eatLengthPrefixedName(param))
+            .StartsWith("ocl_image1d_array", AMDGPULibFunc::IMG1DA)
+            .StartsWith("ocl_image1d_buffer", AMDGPULibFunc::IMG1DB)
+            .StartsWith("ocl_image2d_array", AMDGPULibFunc::IMG2DA)
+            .StartsWith("ocl_image1d", AMDGPULibFunc::IMG1D)
+            .StartsWith("ocl_image2d", AMDGPULibFunc::IMG2D)
+            .StartsWith("ocl_image3d", AMDGPULibFunc::IMG3D)
+            .Case("ocl_event", AMDGPULibFunc::DUMMY)
+            .Case("ocl_sampler", AMDGPULibFunc::DUMMY)
+            .Default(AMDGPULibFunc::DUMMY);
   } else {
     drop_front(param);
     switch (TC) {
@@ -875,23 +885,82 @@ std::string AMDGPUMangledLibFunc::mangleNameItanium() const {
 ///////////////////////////////////////////////////////////////////////////////
 // Misc
 
-static Type* getIntrinsicParamType(
-  LLVMContext& C,
-  const AMDGPULibFunc::Param& P,
-  bool useAddrSpace) {
-  Type* T = nullptr;
+AMDGPULibFuncBase::Param AMDGPULibFuncBase::Param::getFromTy(Type *Ty,
+                                                             bool Signed) {
+  Param P;
+  if (FixedVectorType *VT = dyn_cast<FixedVectorType>(Ty)) {
+    P.VectorSize = VT->getNumElements();
+    Ty = VT->getElementType();
+  }
+
+  switch (Ty->getTypeID()) {
+  case Type::FloatTyID:
+    P.ArgType = AMDGPULibFunc::F32;
+    break;
+  case Type::DoubleTyID:
+    P.ArgType = AMDGPULibFunc::F64;
+    break;
+  case Type::HalfTyID:
+    P.ArgType = AMDGPULibFunc::F16;
+    break;
+  case Type::IntegerTyID:
+    switch (cast<IntegerType>(Ty)->getBitWidth()) {
+    case 8:
+      P.ArgType = Signed ? AMDGPULibFunc::I8 : AMDGPULibFunc::U8;
+      break;
+    case 16:
+      P.ArgType = Signed ? AMDGPULibFunc::I16 : AMDGPULibFunc::U16;
+      break;
+    case 32:
+      P.ArgType = Signed ? AMDGPULibFunc::I32 : AMDGPULibFunc::U32;
+      break;
+    case 64:
+      P.ArgType = Signed ? AMDGPULibFunc::I64 : AMDGPULibFunc::U64;
+      break;
+    default:
+      llvm_unreachable("unhandled libcall argument type");
+    }
+
+    break;
+  default:
+    llvm_unreachable("unhandled libcall argument type");
+  }
+
+  return P;
+}
+
+static Type *getIntrinsicParamType(LLVMContext &C,
+                                   const AMDGPULibFunc::Param &P,
+                                   bool UseAddrSpace) {
+  Type *T = nullptr;
   switch (P.ArgType) {
+  default:
+    return nullptr;
   case AMDGPULibFunc::U8:
-  case AMDGPULibFunc::I8:   T = Type::getInt8Ty(C);   break;
+  case AMDGPULibFunc::I8:
+    T = Type::getInt8Ty(C);
+    break;
   case AMDGPULibFunc::U16:
-  case AMDGPULibFunc::I16:  T = Type::getInt16Ty(C);  break;
+  case AMDGPULibFunc::I16:
+    T = Type::getInt16Ty(C);
+    break;
   case AMDGPULibFunc::U32:
-  case AMDGPULibFunc::I32:  T = Type::getInt32Ty(C);  break;
+  case AMDGPULibFunc::I32:
+    T = Type::getInt32Ty(C);
+    break;
   case AMDGPULibFunc::U64:
-  case AMDGPULibFunc::I64:  T = Type::getInt64Ty(C);  break;
-  case AMDGPULibFunc::F16:  T = Type::getHalfTy(C);   break;
-  case AMDGPULibFunc::F32:  T = Type::getFloatTy(C);  break;
-  case AMDGPULibFunc::F64:  T = Type::getDoubleTy(C); break;
+  case AMDGPULibFunc::I64:
+    T = Type::getInt64Ty(C);
+    break;
+  case AMDGPULibFunc::F16:
+    T = Type::getHalfTy(C);
+    break;
+  case AMDGPULibFunc::F32:
+    T = Type::getFloatTy(C);
+    break;
+  case AMDGPULibFunc::F64:
+    T = Type::getDoubleTy(C);
+    break;
 
   case AMDGPULibFunc::IMG1DA:
   case AMDGPULibFunc::IMG1DB:
@@ -899,35 +968,47 @@ static Type* getIntrinsicParamType(
   case AMDGPULibFunc::IMG1D:
   case AMDGPULibFunc::IMG2D:
   case AMDGPULibFunc::IMG3D:
-    T = StructType::create(C,"ocl_image")->getPointerTo(); break;
   case AMDGPULibFunc::SAMPLER:
-    T = StructType::create(C,"ocl_sampler")->getPointerTo(); break;
   case AMDGPULibFunc::EVENT:
-    T = StructType::create(C,"ocl_event")->getPointerTo(); break;
-  default:
-    llvm_unreachable("Unhandled param type");
+    T = PointerType::getUnqual(C);
+    break;
+  case AMDGPULibFunc::B8:
+  case AMDGPULibFunc::B16:
+  case AMDGPULibFunc::B32:
+  case AMDGPULibFunc::B64:
+  case AMDGPULibFunc::SIZE_MASK:
+  case AMDGPULibFunc::FLOAT:
+  case AMDGPULibFunc::INT:
+  case AMDGPULibFunc::UINT:
+  case AMDGPULibFunc::DUMMY:
     return nullptr;
   }
   if (P.VectorSize > 1)
     T = FixedVectorType::get(T, P.VectorSize);
   if (P.PtrKind != AMDGPULibFunc::BYVALUE)
-    T = useAddrSpace ? T->getPointerTo((P.PtrKind & AMDGPULibFunc::ADDR_SPACE)
-                                       - 1)
-                     : T->getPointerTo();
+    T = PointerType::get(
+        C, UseAddrSpace ? ((P.PtrKind & AMDGPULibFunc::ADDR_SPACE) - 1) : 0);
   return T;
 }
 
-FunctionType *AMDGPUMangledLibFunc::getFunctionType(Module &M) const {
+FunctionType *AMDGPUMangledLibFunc::getFunctionType(const Module &M) const {
   LLVMContext& C = M.getContext();
   std::vector<Type*> Args;
   ParamIterator I(Leads, manglingRules[FuncId]);
   Param P;
-  while ((P=I.getNextParam()).ArgType != 0)
-    Args.push_back(getIntrinsicParamType(C, P, true));
+  while ((P = I.getNextParam()).ArgType != 0) {
+    Type *ParamTy = getIntrinsicParamType(C, P, true);
+    if (!ParamTy)
+      return nullptr;
 
-  return FunctionType::get(
-    getIntrinsicParamType(C, getRetType(FuncId, Leads), true),
-    Args, false);
+    Args.push_back(ParamTy);
+  }
+
+  Type *RetTy = getIntrinsicParamType(C, getRetType(FuncId, Leads), true);
+  if (!RetTy)
+    return nullptr;
+
+  return FunctionType::get(RetTy, Args, false);
 }
 
 unsigned AMDGPUMangledLibFunc::getNumArgs() const {
@@ -945,18 +1026,60 @@ std::string AMDGPUMangledLibFunc::getName() const {
   return std::string(OS.str());
 }
 
+bool AMDGPULibFunc::isCompatibleSignature(const Module &M,
+                                          const FunctionType *CallTy) const {
+  const FunctionType *FuncTy = getFunctionType(M);
+
+  if (!FuncTy) {
+    // Give up on mangled functions with unexpected types.
+    if (AMDGPULibFuncBase::isMangled(getId()))
+      return false;
+
+    // FIXME: UnmangledFuncInfo does not have any type information other than
+    // the number of arguments.
+    return getNumArgs() == CallTy->getNumParams();
+  }
+
+  // Normally the types should exactly match.
+  if (FuncTy == CallTy)
+    return true;
+
+  const unsigned NumParams = FuncTy->getNumParams();
+  if (NumParams != CallTy->getNumParams())
+    return false;
+
+  for (unsigned I = 0; I != NumParams; ++I) {
+    Type *FuncArgTy = FuncTy->getParamType(I);
+    Type *CallArgTy = CallTy->getParamType(I);
+    if (FuncArgTy == CallArgTy)
+      continue;
+
+    // Some cases permit implicit splatting a scalar value to a vector argument.
+    auto *FuncVecTy = dyn_cast<VectorType>(FuncArgTy);
+    if (FuncVecTy && FuncVecTy->getElementType() == CallArgTy &&
+        allowsImplicitVectorSplat(I))
+      continue;
+
+    return false;
+  }
+
+  return true;
+}
+
 Function *AMDGPULibFunc::getFunction(Module *M, const AMDGPULibFunc &fInfo) {
   std::string FuncName = fInfo.mangle();
   Function *F = dyn_cast_or_null<Function>(
     M->getValueSymbolTable().lookup(FuncName));
+  if (!F || F->isDeclaration())
+    return nullptr;
 
-  // check formal with actual types conformance
-  if (F && !F->isDeclaration()
-        && !F->isVarArg()
-        && F->arg_size() == fInfo.getNumArgs()) {
-    return F;
-  }
-  return nullptr;
+  if (F->hasFnAttribute(Attribute::NoBuiltin))
+    return nullptr;
+
+  if (!fInfo.isCompatibleSignature(*M, F->getFunctionType()))
+    return nullptr;
+
+  return F;
 }
 
 FunctionCallee AMDGPULibFunc::getOrInsertFunction(Module *M,
@@ -965,14 +1088,16 @@ FunctionCallee AMDGPULibFunc::getOrInsertFunction(Module *M,
   Function *F = dyn_cast_or_null<Function>(
     M->getValueSymbolTable().lookup(FuncName));
 
-  // check formal with actual types conformance
-  if (F && !F->isDeclaration()
-        && !F->isVarArg()
-        && F->arg_size() == fInfo.getNumArgs()) {
-    return F;
+  if (F) {
+    if (F->hasFnAttribute(Attribute::NoBuiltin))
+      return nullptr;
+    if (!F->isDeclaration() &&
+        fInfo.isCompatibleSignature(*M, F->getFunctionType()))
+      return F;
   }
 
   FunctionType *FuncTy = fInfo.getFunctionType(*M);
+  assert(FuncTy);
 
   bool hasPtr = false;
   for (FunctionType::param_iterator
@@ -1022,9 +1147,9 @@ bool UnmangledFuncInfo::lookup(StringRef Name, ID &Id) {
 
 AMDGPULibFunc::AMDGPULibFunc(const AMDGPULibFunc &F) {
   if (auto *MF = dyn_cast<AMDGPUMangledLibFunc>(F.Impl.get()))
-    Impl.reset(new AMDGPUMangledLibFunc(*MF));
+    Impl = std::make_unique<AMDGPUMangledLibFunc>(*MF);
   else if (auto *UMF = dyn_cast<AMDGPUUnmangledLibFunc>(F.Impl.get()))
-    Impl.reset(new AMDGPUUnmangledLibFunc(*UMF));
+    Impl = std::make_unique<AMDGPUUnmangledLibFunc>(*UMF);
   else
     Impl = std::unique_ptr<AMDGPULibFuncImpl>();
 }
@@ -1039,15 +1164,21 @@ AMDGPULibFunc &AMDGPULibFunc::operator=(const AMDGPULibFunc &F) {
 AMDGPULibFunc::AMDGPULibFunc(EFuncId Id, const AMDGPULibFunc &CopyFrom) {
   assert(AMDGPULibFuncBase::isMangled(Id) && CopyFrom.isMangled() &&
          "not supported");
-  Impl.reset(new AMDGPUMangledLibFunc(
-      Id, *cast<AMDGPUMangledLibFunc>(CopyFrom.Impl.get())));
+  Impl = std::make_unique<AMDGPUMangledLibFunc>(
+      Id, *cast<AMDGPUMangledLibFunc>(CopyFrom.Impl.get()));
+}
+
+AMDGPULibFunc::AMDGPULibFunc(EFuncId Id, FunctionType *FT, bool SignedInts) {
+  Impl = std::make_unique<AMDGPUMangledLibFunc>(Id, FT, SignedInts);
 }
 
 AMDGPULibFunc::AMDGPULibFunc(StringRef Name, FunctionType *FT) {
-  Impl.reset(new AMDGPUUnmangledLibFunc(Name, FT));
+  Impl = std::make_unique<AMDGPUUnmangledLibFunc>(Name, FT);
 }
 
-void AMDGPULibFunc::initMangled() { Impl.reset(new AMDGPUMangledLibFunc()); }
+void AMDGPULibFunc::initMangled() {
+  Impl = std::make_unique<AMDGPUMangledLibFunc>();
+}
 
 AMDGPULibFunc::Param *AMDGPULibFunc::getLeads() {
   if (!Impl)

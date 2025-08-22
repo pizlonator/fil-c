@@ -3,7 +3,7 @@ set(LLVM_LINK_COMPONENTS
   Support
   )
 
-add_clang_library(clangTidyCppCoreGuidelinesModule
+add_clang_library(clangTidyCppCoreGuidelinesModule STATIC
   AvoidCapturingLambdaCoroutinesCheck.cpp
   AvoidConstOrRefDataMembersCheck.cpp
   AvoidDoWhileCheck.cpp
@@ -16,8 +16,8 @@ add_clang_library(clangTidyCppCoreGuidelinesModule
   MacroUsageCheck.cpp
   MisleadingCaptureDefaultByValueCheck.cpp
   MissingStdForwardCheck.cpp
-  NarrowingConversionsCheck.cpp
   NoMallocCheck.cpp
+  NoSuspendWithLockCheck.cpp
   OwningMemoryCheck.cpp
   PreferMemberInitializerCheck.cpp
   ProBoundsArrayToPointerDecayCheck.cpp
@@ -37,6 +37,7 @@ add_clang_library(clangTidyCppCoreGuidelinesModule
 
   LINK_LIBS
   clangTidy
+  clangTidyBugproneModule
   clangTidyMiscModule
   clangTidyModernizeModule
   clangTidyPerformanceModule
@@ -45,10 +46,12 @@ add_clang_library(clangTidyCppCoreGuidelinesModule
 
   DEPENDS
   omp_gen
+  ClangDriverOptions
   )
 
 clang_target_link_libraries(clangTidyCppCoreGuidelinesModule
   PRIVATE
+  clangAnalysis
   clangAST
   clangASTMatchers
   clangBasic

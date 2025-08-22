@@ -372,7 +372,7 @@ ImplicitNullChecks::isSuitableMemoryOp(const MachineInstr &MI,
   if (!MI.mayLoadOrStore() || MI.isPredicable())
     return SR_Unsuitable;
   auto AM = TII->getAddrModeFromMemoryOp(MI, TRI);
-  if (!AM)
+  if (!AM || AM->Form != ExtAddrMode::Formula::Basic)
     return SR_Unsuitable;
   auto AddrMode = *AM;
   const Register BaseReg = AddrMode.BaseReg, ScaledReg = AddrMode.ScaledReg;
@@ -801,7 +801,7 @@ void ImplicitNullChecks::rewriteNullChecks(
     // Insert an *unconditional* branch to not-null successor - we expect
     // block placement to remove fallthroughs later.
     TII->insertBranch(*NC.getCheckBlock(), NC.getNotNullSucc(), nullptr,
-                      /*Cond=*/std::nullopt, DL);
+                      /*Cond=*/{}, DL);
 
     NumImplicitNullChecks++;
   }

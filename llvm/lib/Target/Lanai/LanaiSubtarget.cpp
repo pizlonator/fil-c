@@ -12,8 +12,6 @@
 
 #include "LanaiSubtarget.h"
 
-#include "Lanai.h"
-
 #define DEBUG_TYPE "lanai-subtarget"
 
 #define GET_SUBTARGETINFO_TARGET_DESC
@@ -40,7 +38,7 @@ LanaiSubtarget::LanaiSubtarget(const Triple &TargetTriple, StringRef Cpu,
                                StringRef FeatureString, const TargetMachine &TM,
                                const TargetOptions & /*Options*/,
                                CodeModel::Model /*CodeModel*/,
-                               CodeGenOpt::Level /*OptLevel*/)
+                               CodeGenOptLevel /*OptLevel*/)
     : LanaiGenSubtargetInfo(TargetTriple, Cpu, /*TuneCPU*/ Cpu, FeatureString),
       FrameLowering(initializeSubtargetDependencies(Cpu, FeatureString)),
       TLInfo(TM, *this) {}

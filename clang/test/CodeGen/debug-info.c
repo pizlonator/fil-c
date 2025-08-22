@@ -1,5 +1,5 @@
-// RUN: %clang_cc1 -triple x86_64-unk-unk -o - -emit-llvm -debug-info-kind=limited %s | FileCheck %s
-// RUN: %clang_cc1 -triple powerpc64-ibm-aix-xcoff -o - -emit-llvm -debug-info-kind=limited %s | FileCheck %s
+// RUN: %clang_cc1 -Wno-error=return-type -triple x86_64-unk-unk -o - -emit-llvm -debug-info-kind=limited %s | FileCheck %s
+// RUN: %clang_cc1 -Wno-error=return-type -triple powerpc64-ibm-aix-xcoff -o - -emit-llvm -debug-info-kind=limited %s | FileCheck %s
 
 // PR3023
 void convert(void) {
@@ -41,8 +41,6 @@ struct foo2 {
 
 struct foo2 foo2;
 
-
-// Radar 7325611
 // CHECK-DAG: !DIDerivedType(tag: DW_TAG_typedef, name: "barfoo"
 typedef int barfoo;
 barfoo foo(void) {

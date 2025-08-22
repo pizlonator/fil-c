@@ -286,7 +286,7 @@ define void @multi_index_gep(ptr %ptr) {
 ; CHECK-SAME: (ptr nocapture nofree nonnull readnone dereferenceable(1) [[PTR:%.*]]) #[[ATTR2]] {
 ; CHECK-NEXT:    ret void
 ;
-  %arrayidx00 = getelementptr <4 x i8>, <4 x i8>* %ptr, i64 0, i64 0
+  %arrayidx00 = getelementptr <4 x i8>, ptr %ptr, i64 0, i64 0
   %t0 = load i8, ptr %arrayidx00
   ret void
 }
@@ -517,11 +517,10 @@ define i32 @require_cfg_analysis(i32 %c, ptr %p) {
 ; CHECK-NEXT:    [[TOBOOL1:%.*]] = icmp eq i32 [[C]], 0
 ; CHECK-NEXT:    br i1 [[TOBOOL1]], label [[L1:%.*]], label [[L2:%.*]]
 ; CHECK:       l1:
-; CHECK-NEXT:    [[TOBOOL2:%.*]] = icmp eq i32 [[C]], 1
-; CHECK-NEXT:    br i1 [[TOBOOL2]], label [[L3:%.*]], label [[L4:%.*]]
+; CHECK-NEXT:    br label [[L4:%.*]]
 ; CHECK:       l2:
 ; CHECK-NEXT:    [[TOBOOL3:%.*]] = icmp eq i32 [[C]], 2
-; CHECK-NEXT:    br i1 [[TOBOOL3]], label [[L3]], label [[L4]]
+; CHECK-NEXT:    br i1 [[TOBOOL3]], label [[L3:%.*]], label [[L4]]
 ; CHECK:       l3:
 ; CHECK-NEXT:    br label [[L5:%.*]]
 ; CHECK:       l4:

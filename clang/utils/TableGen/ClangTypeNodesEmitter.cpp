@@ -1,4 +1,4 @@
-//=== ClangTypeNodesEmitter.cpp - Generate type node tables -----*- C++ -*-===//
+//===-- ClangTypeNodesEmitter.cpp - Generate type node tables -------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -52,8 +52,6 @@
 #include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include <set>
-#include <string>
 #include <vector>
 
 using namespace llvm;
@@ -74,16 +72,15 @@ using namespace clang::tblgen;
 
 namespace {
 class TypeNodeEmitter {
-  RecordKeeper &Records;
+  const RecordKeeper &Records;
   raw_ostream &Out;
-  const std::vector<Record*> Types;
+  ArrayRef<const Record *> Types;
   std::vector<StringRef> MacrosToUndef;
 
 public:
-  TypeNodeEmitter(RecordKeeper &records, raw_ostream &out)
-    : Records(records), Out(out),
-      Types(Records.getAllDerivedDefinitions(TypeNodeClassName)) {
-  }
+  TypeNodeEmitter(const RecordKeeper &records, raw_ostream &out)
+      : Records(records), Out(out),
+        Types(Records.getAllDerivedDefinitions(TypeNodeClassName)) {}
 
   void emit();
 
@@ -104,7 +101,7 @@ void TypeNodeEmitter::emit() {
   if (Types.empty())
     PrintFatalError("no Type records in input!");
 
-  emitSourceFileHeader("An x-macro database of Clang type nodes", Out);
+  emitSourceFileHeader("An x-macro database of Clang type nodes", Out, Records);
 
   // Preamble
   addMacroToUndef(TypeMacroName);
@@ -203,6 +200,6 @@ void TypeNodeEmitter::emitUndefs() {
   }
 }
 
-void clang::EmitClangTypeNodes(RecordKeeper &records, raw_ostream &out) {
+void clang::EmitClangTypeNodes(const RecordKeeper &records, raw_ostream &out) {
   TypeNodeEmitter(records, out).emit();
 }

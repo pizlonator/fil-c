@@ -44,7 +44,8 @@ int allow_fwd_decl2(void);
 void use_fwd_decl(void) {
   allow_fwd_decl2();
 }
-// expected-error@+1 {{function declaration cannot become a multiversioned function after first usage}}
+// expected-error@+2 {{function declaration cannot become a multiversioned function after first usage}}
+// expected-note@-5 {{previous declaration is here}}
 int __attribute__((cpu_dispatch(atom))) allow_fwd_decl2(void) {}
 
 
@@ -181,3 +182,8 @@ int __attribute__((__overloadable__)) __attribute__((cpu_specific(ivybridge))) g
 // expected-error@+1 {{attribute 'cpu_specific' multiversioning cannot be combined with attribute 'overloadable'}}
 int __attribute__((__overloadable__)) __attribute__((cpu_specific(atom))) good_overload7(void);
 int __attribute__((cpu_specific(ivybridge))) good_overload7(int);
+
+// expected-error@+1 {{invalid option 'x86_64'}}
+int __attribute__((cpu_specific(x86_64))) baseline(void);
+// expected-error@+1 {{invalid option 'x86_64_v2'}}
+int __attribute__((cpu_specific(x86_64_v2))) baseline(void);

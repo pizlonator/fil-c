@@ -107,7 +107,7 @@ define void @select_uniform_ugt_7xi8(ptr %ptr, i8 %x) {
 ; CHECK-LABEL: @select_uniform_ugt_7xi8(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <4 x i8>, ptr [[PTR:%.*]], align 1
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <4 x i8> [[TMP0]], <i8 -1, i8 -1, i8 -1, i8 -1>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <4 x i8> [[TMP0]], splat (i8 -1)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <4 x i8> poison, i8 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <4 x i8> [[TMP2]], <4 x i8> poison, <4 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <4 x i1> [[TMP1]], <4 x i8> [[TMP0]], <4 x i8> [[TMP3]]
@@ -181,7 +181,7 @@ define void @select_uniform_ugt_8xi8(ptr %ptr, i8 %x) {
 ; CHECK-LABEL: @select_uniform_ugt_8xi8(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <8 x i8>, ptr [[PTR:%.*]], align 1
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <8 x i8> [[TMP0]], <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <8 x i8> [[TMP0]], splat (i8 -1)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <8 x i8> poison, i8 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <8 x i8> [[TMP2]], <8 x i8> poison, <8 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <8 x i1> [[TMP1]], <8 x i8> [[TMP0]], <8 x i8> [[TMP3]]
@@ -241,41 +241,28 @@ entry:
 define void @select_uniform_ugt_16xi8(ptr %ptr, i8 %x) {
 ; CHECK-LABEL: @select_uniform_ugt_16xi8(
 ; CHECK-NEXT:  entry:
-; CHECK-NEXT:    [[TMP0:%.*]] = load <8 x i8>, ptr [[PTR:%.*]], align 1
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <8 x i8> [[TMP0]], <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>
-; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <8 x i8> poison, i8 [[X:%.*]], i32 0
-; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <8 x i8> [[TMP2]], <8 x i8> poison, <8 x i32> zeroinitializer
-; CHECK-NEXT:    [[TMP4:%.*]] = select <8 x i1> [[TMP1]], <8 x i8> [[TMP0]], <8 x i8> [[TMP3]]
-; CHECK-NEXT:    store <8 x i8> [[TMP4]], ptr [[PTR]], align 2
-; CHECK-NEXT:    [[GEP_8:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 8
+; CHECK-NEXT:    [[GEP_8:%.*]] = getelementptr inbounds i8, ptr [[PTR:%.*]], i8 8
 ; CHECK-NEXT:    [[L_8:%.*]] = load i8, ptr [[GEP_8]], align 1
 ; CHECK-NEXT:    [[CMP_8:%.*]] = icmp ugt i8 [[L_8]], -1
-; CHECK-NEXT:    [[TMP5:%.*]] = extractelement <8 x i8> [[TMP0]], i32 0
-; CHECK-NEXT:    [[S_8:%.*]] = select i1 [[CMP_8]], i8 [[TMP5]], i8 [[X]]
-; CHECK-NEXT:    [[TMP6:%.*]] = extractelement <8 x i8> [[TMP4]], i32 0
-; CHECK-NEXT:    store i8 [[TMP6]], ptr [[GEP_8]], align 2
 ; CHECK-NEXT:    [[GEP_9:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 9
-; CHECK-NEXT:    [[TMP7:%.*]] = load <4 x i8>, ptr [[GEP_9]], align 1
-; CHECK-NEXT:    [[TMP8:%.*]] = icmp ugt <4 x i8> [[TMP7]], <i8 -1, i8 -1, i8 -1, i8 -1>
-; CHECK-NEXT:    [[TMP9:%.*]] = insertelement <4 x i8> poison, i8 [[X]], i32 0
-; CHECK-NEXT:    [[TMP10:%.*]] = shufflevector <4 x i8> [[TMP9]], <4 x i8> poison, <4 x i32> zeroinitializer
-; CHECK-NEXT:    [[TMP11:%.*]] = select <4 x i1> [[TMP8]], <4 x i8> [[TMP7]], <4 x i8> [[TMP10]]
-; CHECK-NEXT:    store <4 x i8> [[TMP11]], ptr [[GEP_9]], align 2
-; CHECK-NEXT:    [[GEP_13:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 13
-; CHECK-NEXT:    [[L_13:%.*]] = load i8, ptr [[GEP_13]], align 1
-; CHECK-NEXT:    [[CMP_13:%.*]] = icmp ugt i8 [[L_13]], -1
-; CHECK-NEXT:    [[S_13:%.*]] = select i1 [[CMP_13]], i8 [[L_13]], i8 [[X]]
-; CHECK-NEXT:    store i8 [[S_13]], ptr [[GEP_13]], align 2
-; CHECK-NEXT:    [[GEP_14:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 14
-; CHECK-NEXT:    [[L_14:%.*]] = load i8, ptr [[GEP_14]], align 1
-; CHECK-NEXT:    [[CMP_14:%.*]] = icmp ugt i8 [[L_14]], -1
-; CHECK-NEXT:    [[S_14:%.*]] = select i1 [[CMP_14]], i8 [[L_14]], i8 [[X]]
-; CHECK-NEXT:    store i8 [[S_14]], ptr [[GEP_14]], align 2
-; CHECK-NEXT:    [[GEP_15:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 15
-; CHECK-NEXT:    [[L_15:%.*]] = load i8, ptr [[GEP_15]], align 1
-; CHECK-NEXT:    [[CMP_15:%.*]] = icmp ugt i8 [[L_15]], -1
-; CHECK-NEXT:    [[S_15:%.*]] = select i1 [[CMP_15]], i8 [[L_15]], i8 [[X]]
-; CHECK-NEXT:    store i8 [[S_15]], ptr [[GEP_15]], align 2
+; CHECK-NEXT:    [[GEP_11:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 11
+; CHECK-NEXT:    [[L_11:%.*]] = load i8, ptr [[GEP_11]], align 1
+; CHECK-NEXT:    [[GEP_12:%.*]] = getelementptr inbounds i8, ptr [[PTR]], i8 12
+; CHECK-NEXT:    [[TMP0:%.*]] = load <8 x i8>, ptr [[PTR]], align 1
+; CHECK-NEXT:    [[TMP1:%.*]] = extractelement <8 x i8> [[TMP0]], i32 0
+; CHECK-NEXT:    [[S_8:%.*]] = select i1 [[CMP_8]], i8 [[TMP1]], i8 [[X:%.*]]
+; CHECK-NEXT:    [[TMP2:%.*]] = load <2 x i8>, ptr [[GEP_9]], align 1
+; CHECK-NEXT:    [[TMP3:%.*]] = load <4 x i8>, ptr [[GEP_12]], align 1
+; CHECK-NEXT:    [[TMP4:%.*]] = shufflevector <2 x i8> [[TMP2]], <2 x i8> poison, <8 x i32> <i32 0, i32 1, i32 poison, i32 poison, i32 poison, i32 poison, i32 poison, i32 poison>
+; CHECK-NEXT:    [[TMP5:%.*]] = shufflevector <8 x i8> [[TMP0]], <8 x i8> [[TMP4]], <16 x i32> <i32 poison, i32 poison, i32 poison, i32 poison, i32 poison, i32 poison, i32 poison, i32 poison, i32 0, i32 8, i32 9, i32 poison, i32 poison, i32 poison, i32 poison, i32 poison>
+; CHECK-NEXT:    [[TMP6:%.*]] = insertelement <16 x i8> [[TMP5]], i8 [[L_11]], i32 11
+; CHECK-NEXT:    [[TMP7:%.*]] = call <16 x i8> @llvm.vector.insert.v16i8.v8i8(<16 x i8> [[TMP6]], <8 x i8> [[TMP0]], i64 0)
+; CHECK-NEXT:    [[TMP8:%.*]] = call <16 x i8> @llvm.vector.insert.v16i8.v4i8(<16 x i8> [[TMP7]], <4 x i8> [[TMP3]], i64 12)
+; CHECK-NEXT:    [[TMP9:%.*]] = icmp ugt <16 x i8> [[TMP8]], splat (i8 -1)
+; CHECK-NEXT:    [[TMP12:%.*]] = insertelement <16 x i8> poison, i8 [[X]], i32 0
+; CHECK-NEXT:    [[TMP13:%.*]] = shufflevector <16 x i8> [[TMP12]], <16 x i8> poison, <16 x i32> zeroinitializer
+; CHECK-NEXT:    [[TMP14:%.*]] = select <16 x i1> [[TMP9]], <16 x i8> [[TMP8]], <16 x i8> [[TMP13]]
+; CHECK-NEXT:    store <16 x i8> [[TMP14]], ptr [[PTR]], align 2
 ; CHECK-NEXT:    ret void
 ;
 entry:
@@ -382,7 +369,7 @@ define void @select_uniform_ugt_4xi16(ptr %ptr, i16 %x) {
 ; CHECK-LABEL: @select_uniform_ugt_4xi16(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <4 x i16>, ptr [[PTR:%.*]], align 2
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <4 x i16> [[TMP0]], <i16 16383, i16 16383, i16 16383, i16 16383>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp ugt <4 x i16> [[TMP0]], splat (i16 16383)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <4 x i16> poison, i16 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <4 x i16> [[TMP2]], <4 x i16> poison, <4 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <4 x i1> [[TMP1]], <4 x i16> [[TMP0]], <4 x i16> [[TMP3]]
@@ -420,7 +407,7 @@ define void @select_uniform_ult_8xi16(ptr %ptr, i16 %x) {
 ; CHECK-LABEL: @select_uniform_ult_8xi16(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <8 x i16>, ptr [[PTR:%.*]], align 2
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp ult <8 x i16> [[TMP0]], <i16 16383, i16 16383, i16 16383, i16 16383, i16 16383, i16 16383, i16 16383, i16 16383>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp ult <8 x i16> [[TMP0]], splat (i16 16383)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <8 x i16> poison, i16 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <8 x i16> [[TMP2]], <8 x i16> poison, <8 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <8 x i1> [[TMP1]], <8 x i16> [[TMP0]], <8 x i16> [[TMP3]]
@@ -481,7 +468,7 @@ define void @select_uniform_eq_2xi32(ptr %ptr, i32 %x) {
 ; CHECK-LABEL: @select_uniform_eq_2xi32(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <2 x i32>, ptr [[PTR:%.*]], align 4
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp eq <2 x i32> [[TMP0]], <i32 16383, i32 16383>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp eq <2 x i32> [[TMP0]], splat (i32 16383)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <2 x i32> poison, i32 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <2 x i32> [[TMP2]], <2 x i32> poison, <2 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <2 x i1> [[TMP1]], <2 x i32> [[TMP0]], <2 x i32> [[TMP3]]
@@ -507,7 +494,7 @@ define void @select_uniform_eq_4xi32(ptr %ptr, i32 %x) {
 ; CHECK-LABEL: @select_uniform_eq_4xi32(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <4 x i32>, ptr [[PTR:%.*]], align 4
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp eq <4 x i32> [[TMP0]], <i32 16383, i32 16383, i32 16383, i32 16383>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp eq <4 x i32> [[TMP0]], splat (i32 16383)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <4 x i32> poison, i32 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <4 x i32> [[TMP2]], <4 x i32> poison, <4 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <4 x i1> [[TMP1]], <4 x i32> [[TMP0]], <4 x i32> [[TMP3]]
@@ -544,7 +531,7 @@ define void @select_uniform_ne_2xi64(ptr %ptr, i64 %x) {
 ; CHECK-LABEL: @select_uniform_ne_2xi64(
 ; CHECK-NEXT:  entry:
 ; CHECK-NEXT:    [[TMP0:%.*]] = load <2 x i64>, ptr [[PTR:%.*]], align 8
-; CHECK-NEXT:    [[TMP1:%.*]] = icmp ne <2 x i64> [[TMP0]], <i64 16383, i64 16383>
+; CHECK-NEXT:    [[TMP1:%.*]] = icmp ne <2 x i64> [[TMP0]], splat (i64 16383)
 ; CHECK-NEXT:    [[TMP2:%.*]] = insertelement <2 x i64> poison, i64 [[X:%.*]], i32 0
 ; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <2 x i64> [[TMP2]], <2 x i64> poison, <2 x i32> zeroinitializer
 ; CHECK-NEXT:    [[TMP4:%.*]] = select <2 x i1> [[TMP1]], <2 x i64> [[TMP0]], <2 x i64> [[TMP3]]

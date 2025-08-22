@@ -1,4 +1,4 @@
-// RUN: %clang_cc1 -std=c++20 -verify %s
+// RUN: %clang_cc1 -std=c++20 -ferror-limit 0 -verify %s
 
 namespace PR47043 {
   template<typename T> concept True = true;
@@ -992,5 +992,188 @@ void test_params() {
     params<int, true>();
     params<int, false>(); // expected-note {{in instantiation of function template specialization 'GH63181::params<int, false>' requested here}}
 }
+
+}
+
+namespace GH54678 {
+template<class>
+concept True = true;
+
+template<class>
+concept False = false; // expected-note 9 {{'false' evaluated to false}}
+
+template<class>
+concept Irrelevant = false;
+
+template <typename T>
+concept ErrorRequires = requires(ErrorRequires auto x) { x; };
+// expected-error@-1 {{a concept definition cannot refer to itself}} \
+// expected-error@-1 {{'auto' not allowed in requires expression parameter}} \
+// expected-note@-1 {{declared here}}
+
+template<typename T> concept C1 = C1<T> && []<C1>(C1 auto) -> C1 auto {};
+//expected-error@-1 4{{a concept definition cannot refer to itself}} \
+//expected-note@-1 4{{declared here}}
+
+template<class T> void aaa(T t) // expected-note {{candidate template ignored: constraints not satisfied}}
+requires (False<T> || False<T>) || False<T> {} // expected-note 3 {{'int' does not satisfy 'False'}}
+template<class T> void bbb(T t) // expected-note {{candidate template ignored: constraints not satisfied}}
+requires (False<T> || False<T>) && True<T> {} // expected-note 2 {{'long' does not satisfy 'False'}}
+template<class T> void ccc(T t) // expected-note {{candidate template ignored: constraints not satisfied}}
+requires (True<T> || Irrelevant<T>) && False<T> {} // expected-note {{'unsigned long' does not satisfy 'False'}}
+template<class T> void ddd(T t) // expected-note {{candidate template ignored: constraints not satisfied}}
+requires (Irrelevant<T> || True<T>) && False<T> {} // expected-note {{'int' does not satisfy 'False'}}
+template<class T> void eee(T t) // expected-note {{candidate template ignored: constraints not satisfied}}
+requires (Irrelevant<T> || Irrelevant<T> || True<T>) && False<T> {} // expected-note {{'long' does not satisfy 'False'}}
+
+template<class T> void fff(T t) // expected-note {{candidate template ignored: constraints not satisfied}}
+requires((ErrorRequires<T> || False<T> || True<T>) && False<T>) {} // expected-note {{'unsigned long' does not satisfy 'False'}}
+
+void test() {
+    aaa(42); // expected-error {{no matching function}}
+    bbb(42L); // expected-error{{no matching function}}
+    ccc(42UL); // expected-error {{no matching function}}
+    ddd(42); // expected-error {{no matching function}}
+    eee(42L); // expected-error {{no matching function}}
+    fff(42UL); // expected-error {{no matching function}}
+}
+}
+
+namespace GH66612 {
+  template<typename C>
+    auto end(C c) ->int;
+
+  template <typename T>
+    concept Iterator = true;
+
+  template <typename CT>
+    concept Container = requires(CT b) {
+        { end } -> Iterator; // #66612GH_END
+    };
+
+  static_assert(Container<int>);// expected-error{{static assertion failed}}
+  // expected-note@-1{{because 'int' does not satisfy 'Container'}}
+  // expected-note@#66612GH_END{{because 'end' would be invalid: reference to overloaded function could not be resolved; did you mean to call it?}}
+}
+
+namespace GH66938 {
+template <class>
+concept True = true;
+
+template <class>
+concept False = false;
+
+template <class T>
+void cand(T t)
+  requires False<T> || False<T> || False<T> || False<T> || False<T> ||
+           False<T> || False<T> || False<T> || False<T> || True<T>
+{}
+
+void test() { cand(42); }
+}
+
+namespace GH63837 {
+
+template<class> concept IsFoo = true;
+
+template<class> struct Struct {
+  template<IsFoo auto... xs>
+  void foo() {}
+
+  template<auto... xs> requires (... && IsFoo<decltype(xs)>)
+  void bar() {}
+
+  template<IsFoo auto... xs>
+  static inline int field = 0;
+};
+
+template void Struct<void>::foo<>();
+template void Struct<void>::bar<>();
+template int Struct<void>::field<1, 2>;
+
+}
+
+namespace GH64808 {
+
+template <class T> struct basic_sender {
+  T func;
+  basic_sender(T) : func(T()) {}
+};
+
+auto a = basic_sender{[](auto... __captures) {
+  return []() // #note-a-1
+    requires((__captures, ...), false) // #note-a-2
+  {};
+}()};
+
+auto b = basic_sender{[](auto... __captures) {
+  return []()
+    requires([](int, double) { return true; }(decltype(__captures)()...))
+  {};
+}(1, 2.33)};
+
+void foo() {
+  a.func();
+  // expected-error@-1{{no matching function for call}}
+  // expected-note@#note-a-1{{constraints not satisfied}}
+  // expected-note@#note-a-2{{evaluated to false}}
+  b.func();
+}
+
+} // namespace GH64808
+
+namespace GH86757_1 {
+template <typename...> concept b = false;
+template <typename> concept c = b<>;
+template <typename d> concept f = c< d >;
+template <f> struct e; // expected-note {{}}
+template <f d> struct e<d>; // expected-error {{class template partial specialization is not more specialized than the primary template}}
+}
+
+
+namespace constrained_variadic {
+template <typename T = int>
+struct S {
+    void f(); // expected-note {{candidate}}
+    void f(...) requires true;   // expected-note {{candidate}}
+
+    void g(...);  // expected-note {{candidate}}
+    void g() requires true;  // expected-note {{candidate}}
+
+    consteval void h(...);
+    consteval void h(...) requires true {};
+};
+
+int test() {
+    S{}.f(); // expected-error{{call to member function 'f' is ambiguous}}
+    S{}.g(); // expected-error{{call to member function 'g' is ambiguous}}
+    S{}.h();
+}
+
+}
+
+namespace GH109780 {
+
+template <typename T>
+concept Concept; // expected-error {{expected '='}}
+
+bool val = Concept<int>;
+
+template <typename T>
+concept C = invalid; // expected-error {{use of undeclared identifier 'invalid'}}
+
+bool val2 = C<int>;
+
+} // namespace GH109780
+
+namespace GH121980 {
+
+template <class>
+concept has_member_difference_type; // expected-error {{expected '='}}
+
+template <has_member_difference_type> struct incrementable_traits; // expected-note {{declared here}}
+
+template <has_member_difference_type Tp>
+struct incrementable_traits<Tp>; // expected-error {{not more specialized than the primary}}
 
 }

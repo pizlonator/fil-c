@@ -11,9 +11,11 @@
 #include "clang/AST/ASTFwd.h"
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclCXX.h"
+#include "clang/AST/DeclFriend.h"
 #include "clang/AST/DeclTemplate.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/ExprCXX.h"
+#include "clang/AST/NestedNameSpecifier.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/TemplateBase.h"
 #include "clang/AST/TemplateName.h"
@@ -26,6 +28,7 @@
 #include "llvm/ADT/STLFunctionalExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace clang::include_cleaner {
 namespace {
@@ -125,14 +128,47 @@ public:
     return true;
   }
 
-  bool VisitDeclRefExpr(DeclRefExpr *DRE) {
-    // Static class members are handled here, as they don't produce MemberExprs.
-    if (DRE->getFoundDecl()->isCXXClassMember()) {
-      if (auto *Qual = DRE->getQualifier())
-        report(DRE->getLocation(), Qual->getAsRecordDecl(), RefType::Implicit);
-    } else {
-      report(DRE->getLocation(), DRE->getFoundDecl());
+  bool qualifierIsNamespaceOrNone(DeclRefExpr *DRE) {
+    const auto *Qual = DRE->getQualifier();
+    if (!Qual)
+      return true;
+    switch (Qual->getKind()) {
+    case NestedNameSpecifier::Namespace:
+    case NestedNameSpecifier::NamespaceAlias:
+    case NestedNameSpecifier::Global:
+      return true;
+    case NestedNameSpecifier::TypeSpec:
+    case NestedNameSpecifier::TypeSpecWithTemplate:
+    case NestedNameSpecifier::Super:
+    case NestedNameSpecifier::Identifier:
+      return false;
     }
+    llvm_unreachable("Unknown value for NestedNameSpecifierKind");
+  }
+
+  bool VisitDeclRefExpr(DeclRefExpr *DRE) {
+    auto *FD = DRE->getFoundDecl();
+    // Prefer the underlying decl if FoundDecl isn't a shadow decl, e.g:
+    // - For templates, found-decl is always primary template, but we want the
+    // specializaiton itself.
+    if (!llvm::isa<UsingShadowDecl>(FD))
+      FD = DRE->getDecl();
+    // For refs to non-meber-like decls, use the found decl.
+    // For member-like decls, we should have a reference from the qualifier to
+    // the container decl instead, which is preferred as it'll handle
+    // aliases/exports properly.
+    if (!FD->isCXXClassMember() && !llvm::isa<EnumConstantDecl>(FD)) {
+      report(DRE->getLocation(), FD);
+      return true;
+    }
+    // If the ref is without a qualifier, and is a member, ignore it. As it is
+    // available in current context due to some other construct (e.g. base
+    // specifiers, using decls) that has to spell the name explicitly.
+    //
+    // If it's an enum constant, it must be due to prior decl. Report references
+    // to it when qualifier isn't a type.
+    if (llvm::isa<EnumConstantDecl>(FD) && qualifierIsNamespaceOrNone(DRE))
+      report(DRE->getLocation(), FD);
     return true;
   }
 
@@ -164,9 +200,8 @@ public:
 
   bool VisitOverloadExpr(OverloadExpr *E) {
     // Since we can't prove which overloads are used, report all of them.
-    llvm::for_each(E->decls(), [this, E](NamedDecl *D) {
+    for (NamedDecl *D : E->decls())
       report(E->getNameLoc(), D, RefType::Ambiguous);
-    });
     return true;
   }
 
@@ -187,7 +222,12 @@ public:
   bool VisitUsingDecl(UsingDecl *UD) {
     for (const auto *Shadow : UD->shadows()) {
       auto *TD = Shadow->getTargetDecl();
-      auto IsUsed = TD->isUsed() || TD->isReferenced();
+      // For function-decls, we might have overloads brought in due to
+      // transitive dependencies. Hence we only want to report explicit
+      // references for those if they're used.
+      // But for record decls, spelling of the type always refers to primary
+      // decl non-ambiguously. Hence spelling is already a use.
+      auto IsUsed = TD->isUsed() || TD->isReferenced() || !TD->getAsFunction();
       report(UD->getLocation(), TD,
              IsUsed ? RefType::Explicit : RefType::Ambiguous);
 
@@ -211,6 +251,11 @@ public:
     // Mark declaration from definition as it needs type-checking.
     if (FD->isThisDeclarationADefinition())
       report(FD->getLocation(), FD);
+    // Explicit specializaiton/instantiations of a function template requires
+    // primary template.
+    if (clang::isTemplateExplicitInstantiationOrSpecialization(
+            FD->getTemplateSpecializationKind()))
+      report(FD->getLocation(), FD->getPrimaryTemplate());
     return true;
   }
   bool VisitVarDecl(VarDecl *VD) {
@@ -232,18 +277,32 @@ public:
     return true;
   }
 
-  // Report a reference from explicit specializations to the specialized
-  // template. Implicit ones are filtered out by RAV and explicit instantiations
-  // are already traversed through typelocs.
+  bool VisitFriendDecl(FriendDecl *D) {
+    // We already visit the TypeLoc properly, but need to special case the decl
+    // case.
+    if (auto *FD = D->getFriendDecl())
+      report(D->getLocation(), FD);
+    return true;
+  }
+
+  bool VisitConceptReference(const ConceptReference *CR) {
+    report(CR->getConceptNameLoc(), CR->getFoundDecl());
+    return true;
+  }
+
+  // Report a reference from explicit specializations/instantiations to the
+  // specialized template. Implicit ones are filtered out by RAV.
   bool
   VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl *CTSD) {
-    if (CTSD->isExplicitSpecialization())
+    if (clang::isTemplateExplicitInstantiationOrSpecialization(
+            CTSD->getTemplateSpecializationKind()))
       report(CTSD->getLocation(),
              CTSD->getSpecializedTemplate()->getTemplatedDecl());
     return true;
   }
   bool VisitVarTemplateSpecializationDecl(VarTemplateSpecializationDecl *VTSD) {
-    if (VTSD->isExplicitSpecialization())
+    if (clang::isTemplateExplicitInstantiationOrSpecialization(
+            VTSD->getTemplateSpecializationKind()))
       report(VTSD->getLocation(),
              VTSD->getSpecializedTemplate()->getTemplatedDecl());
     return true;
@@ -303,6 +362,25 @@ public:
       return true;
     }
     return RecursiveASTVisitor::TraverseTemplateArgumentLoc(TL);
+  }
+
+  bool VisitCXXStdInitializerListExpr(CXXStdInitializerListExpr *E) {
+    // Reliance on initializer_lists requires std::initializer_list to be
+    // visible per standard. So report a reference to it, otherwise include of
+    // `<initializer_list>` might not receive any use.
+    report(E->getExprLoc(),
+           const_cast<CXXRecordDecl *>(E->getBestDynamicClassType()),
+           RefType::Implicit);
+    return true;
+  }
+
+  bool VisitCXXNewExpr(CXXNewExpr *E) {
+    report(E->getExprLoc(), E->getOperatorNew(), RefType::Ambiguous);
+    return true;
+  }
+  bool VisitCXXDeleteExpr(CXXDeleteExpr *E) {
+    report(E->getExprLoc(), E->getOperatorDelete(), RefType::Ambiguous);
+    return true;
   }
 };
 

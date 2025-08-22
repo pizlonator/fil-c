@@ -8,9 +8,8 @@
 
 #ifndef LLDB_HOST_POSIX_PIPEPOSIX_H
 #define LLDB_HOST_POSIX_PIPEPOSIX_H
-#if defined(__cplusplus)
-
 #include "lldb/Host/PipeBase.h"
+#include <mutex>
 
 namespace lldb_private {
 
@@ -65,16 +64,32 @@ public:
 
   Status Delete(llvm::StringRef name) override;
 
-  Status Write(const void *buf, size_t size, size_t &bytes_written) override;
+  Status WriteWithTimeout(const void *buf, size_t size,
+                          const std::chrono::microseconds &timeout,
+                          size_t &bytes_written) override;
   Status ReadWithTimeout(void *buf, size_t size,
                          const std::chrono::microseconds &timeout,
                          size_t &bytes_read) override;
 
 private:
+  bool CanReadUnlocked() const;
+  bool CanWriteUnlocked() const;
+
+  int GetReadFileDescriptorUnlocked() const;
+  int GetWriteFileDescriptorUnlocked() const;
+  int ReleaseReadFileDescriptorUnlocked();
+  int ReleaseWriteFileDescriptorUnlocked();
+  void CloseReadFileDescriptorUnlocked();
+  void CloseWriteFileDescriptorUnlocked();
+  void CloseUnlocked();
+
   int m_fds[2];
+
+  /// Mutexes for m_fds;
+  mutable std::mutex m_read_mutex;
+  mutable std::mutex m_write_mutex;
 };
 
 } // namespace lldb_private
 
-#endif // #if defined(__cplusplus)
 #endif // LLDB_HOST_POSIX_PIPEPOSIX_H

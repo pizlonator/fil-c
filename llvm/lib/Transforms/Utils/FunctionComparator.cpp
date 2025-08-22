@@ -15,7 +15,6 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Attributes.h"
@@ -84,6 +83,13 @@ int FunctionComparator::cmpAPInts(const APInt &L, const APInt &R) const {
   return 0;
 }
 
+int FunctionComparator::cmpConstantRanges(const ConstantRange &L,
+                                          const ConstantRange &R) const {
+  if (int Res = cmpAPInts(L.getLower(), R.getLower()))
+    return Res;
+  return cmpAPInts(L.getUpper(), R.getUpper());
+}
+
 int FunctionComparator::cmpAPFloats(const APFloat &L, const APFloat &R) const {
   // Floats are ordered first by semantics (i.e. float, double, half, etc.),
   // then by value interpreted as a bitstring (aka APInt).
@@ -143,6 +149,28 @@ int FunctionComparator::cmpAttrs(const AttributeList L,
         if (int Res = cmpNumbers((uint64_t)TyL, (uint64_t)TyR))
           return Res;
         continue;
+      } else if (LA.isConstantRangeAttribute() &&
+                 RA.isConstantRangeAttribute()) {
+        if (LA.getKindAsEnum() != RA.getKindAsEnum())
+          return cmpNumbers(LA.getKindAsEnum(), RA.getKindAsEnum());
+
+        if (int Res = cmpConstantRanges(LA.getRange(), RA.getRange()))
+          return Res;
+        continue;
+      } else if (LA.isConstantRangeListAttribute() &&
+                 RA.isConstantRangeListAttribute()) {
+        if (LA.getKindAsEnum() != RA.getKindAsEnum())
+          return cmpNumbers(LA.getKindAsEnum(), RA.getKindAsEnum());
+
+        ArrayRef<ConstantRange> CRL = LA.getValueAsConstantRangeList();
+        ArrayRef<ConstantRange> CRR = RA.getValueAsConstantRangeList();
+        if (int Res = cmpNumbers(CRL.size(), CRR.size()))
+          return Res;
+
+        for (const auto &[L, R] : zip(CRL, CRR))
+          if (int Res = cmpConstantRanges(L, R))
+            return Res;
+        continue;
       }
       if (LA < RA)
         return -1;
@@ -160,10 +188,23 @@ int FunctionComparator::cmpAttrs(const AttributeList L,
 int FunctionComparator::cmpMetadata(const Metadata *L,
                                     const Metadata *R) const {
   // TODO: the following routine coerce the metadata contents into constants
-  // before comparison.
+  // or MDStrings before comparison.
   // It ignores any other cases, so that the metadata nodes are considered
   // equal even though this is not correct.
   // We should structurally compare the metadata nodes to be perfect here.
+
+  auto *MDStringL = dyn_cast<MDString>(L);
+  auto *MDStringR = dyn_cast<MDString>(R);
+  if (MDStringL && MDStringR) {
+    if (MDStringL == MDStringR)
+      return 0;
+    return MDStringL->getString().compare(MDStringR->getString());
+  }
+  if (MDStringR)
+    return -1;
+  if (MDStringL)
+    return 1;
+
   auto *CL = dyn_cast<ConstantAsMetadata>(L);
   auto *CR = dyn_cast<ConstantAsMetadata>(R);
   if (CL == CR)
@@ -392,6 +433,8 @@ int FunctionComparator::cmpConstants(const Constant *L,
   case Value::ConstantExprVal: {
     const ConstantExpr *LE = cast<ConstantExpr>(L);
     const ConstantExpr *RE = cast<ConstantExpr>(R);
+    if (int Res = cmpNumbers(LE->getOpcode(), RE->getOpcode()))
+      return Res;
     unsigned NumOperandsL = LE->getNumOperands();
     unsigned NumOperandsR = RE->getNumOperands();
     if (int Res = cmpNumbers(NumOperandsL, NumOperandsR))
@@ -399,6 +442,35 @@ int FunctionComparator::cmpConstants(const Constant *L,
     for (unsigned i = 0; i < NumOperandsL; ++i) {
       if (int Res = cmpConstants(cast<Constant>(LE->getOperand(i)),
                                  cast<Constant>(RE->getOperand(i))))
+        return Res;
+    }
+    if (auto *GEPL = dyn_cast<GEPOperator>(LE)) {
+      auto *GEPR = cast<GEPOperator>(RE);
+      if (int Res = cmpTypes(GEPL->getSourceElementType(),
+                             GEPR->getSourceElementType()))
+        return Res;
+      if (int Res = cmpNumbers(GEPL->getNoWrapFlags().getRaw(),
+                               GEPR->getNoWrapFlags().getRaw()))
+        return Res;
+
+      std::optional<ConstantRange> InRangeL = GEPL->getInRange();
+      std::optional<ConstantRange> InRangeR = GEPR->getInRange();
+      if (InRangeL) {
+        if (!InRangeR)
+          return 1;
+        if (int Res = cmpConstantRanges(*InRangeL, *InRangeR))
+          return Res;
+      } else if (InRangeR) {
+        return -1;
+      }
+    }
+    if (auto *OBOL = dyn_cast<OverflowingBinaryOperator>(LE)) {
+      auto *OBOR = cast<OverflowingBinaryOperator>(RE);
+      if (int Res =
+              cmpNumbers(OBOL->hasNoUnsignedWrap(), OBOR->hasNoUnsignedWrap()))
+        return Res;
+      if (int Res =
+              cmpNumbers(OBOL->hasNoSignedWrap(), OBOR->hasNoSignedWrap()))
         return Res;
     }
     return 0;
@@ -466,7 +538,7 @@ int FunctionComparator::cmpTypes(Type *TyL, Type *TyR) const {
   PointerType *PTyL = dyn_cast<PointerType>(TyL);
   PointerType *PTyR = dyn_cast<PointerType>(TyR);
 
-  const DataLayout &DL = FnL->getParent()->getDataLayout();
+  const DataLayout &DL = FnL->getDataLayout();
   if (PTyL && PTyL->getAddressSpace() == 0)
     TyL = DL.getIntPtrType(TyL);
   if (PTyR && PTyR->getAddressSpace() == 0)
@@ -747,7 +819,7 @@ int FunctionComparator::cmpGEPs(const GEPOperator *GEPL,
 
   // When we have target data, we can reduce the GEP down to the value in bytes
   // added to the address.
-  const DataLayout &DL = FnL->getParent()->getDataLayout();
+  const DataLayout &DL = FnL->getDataLayout();
   unsigned OffsetBitWidth = DL.getIndexSizeInBits(ASL);
   APInt OffsetL(OffsetBitWidth, 0), OffsetR(OffsetBitWidth, 0);
   if (GEPL->accumulateConstantOffset(DL, OffsetL) &&
@@ -818,6 +890,21 @@ int FunctionComparator::cmpValues(const Value *L, const Value *R) const {
   if (ConstL)
     return 1;
   if (ConstR)
+    return -1;
+
+  const MetadataAsValue *MetadataValueL = dyn_cast<MetadataAsValue>(L);
+  const MetadataAsValue *MetadataValueR = dyn_cast<MetadataAsValue>(R);
+  if (MetadataValueL && MetadataValueR) {
+    if (MetadataValueL == MetadataValueR)
+      return 0;
+
+    return cmpMetadata(MetadataValueL->getMetadata(),
+                       MetadataValueR->getMetadata());
+  }
+
+  if (MetadataValueL)
+    return 1;
+  if (MetadataValueR)
     return -1;
 
   const InlineAsm *InlineAsmL = dyn_cast<InlineAsm>(L);
@@ -957,68 +1044,4 @@ int FunctionComparator::compare() {
     }
   }
   return 0;
-}
-
-namespace {
-
-// Accumulate the hash of a sequence of 64-bit integers. This is similar to a
-// hash of a sequence of 64bit ints, but the entire input does not need to be
-// available at once. This interface is necessary for functionHash because it
-// needs to accumulate the hash as the structure of the function is traversed
-// without saving these values to an intermediate buffer. This form of hashing
-// is not often needed, as usually the object to hash is just read from a
-// buffer.
-class HashAccumulator64 {
-  uint64_t Hash;
-
-public:
-  // Initialize to random constant, so the state isn't zero.
-  HashAccumulator64() { Hash = 0x6acaa36bef8325c5ULL; }
-
-  void add(uint64_t V) { Hash = hashing::detail::hash_16_bytes(Hash, V); }
-
-  // No finishing is required, because the entire hash value is used.
-  uint64_t getHash() { return Hash; }
-};
-
-} // end anonymous namespace
-
-// A function hash is calculated by considering only the number of arguments and
-// whether a function is varargs, the order of basic blocks (given by the
-// successors of each basic block in depth first order), and the order of
-// opcodes of each instruction within each of these basic blocks. This mirrors
-// the strategy compare() uses to compare functions by walking the BBs in depth
-// first order and comparing each instruction in sequence. Because this hash
-// does not look at the operands, it is insensitive to things such as the
-// target of calls and the constants used in the function, which makes it useful
-// when possibly merging functions which are the same modulo constants and call
-// targets.
-FunctionComparator::FunctionHash FunctionComparator::functionHash(Function &F) {
-  HashAccumulator64 H;
-  H.add(F.isVarArg());
-  H.add(F.arg_size());
-
-  SmallVector<const BasicBlock *, 8> BBs;
-  SmallPtrSet<const BasicBlock *, 16> VisitedBBs;
-
-  // Walk the blocks in the same order as FunctionComparator::cmpBasicBlocks(),
-  // accumulating the hash of the function "structure." (BB and opcode sequence)
-  BBs.push_back(&F.getEntryBlock());
-  VisitedBBs.insert(BBs[0]);
-  while (!BBs.empty()) {
-    const BasicBlock *BB = BBs.pop_back_val();
-    // This random value acts as a block header, as otherwise the partition of
-    // opcodes into BBs wouldn't affect the hash, only the order of the opcodes
-    H.add(45798);
-    for (const auto &Inst : *BB) {
-      H.add(Inst.getOpcode());
-    }
-    const Instruction *Term = BB->getTerminator();
-    for (unsigned i = 0, e = Term->getNumSuccessors(); i != e; ++i) {
-      if (!VisitedBBs.insert(Term->getSuccessor(i)).second)
-        continue;
-      BBs.push_back(Term->getSuccessor(i));
-    }
-  }
-  return H.getHash();
 }

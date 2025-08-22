@@ -37,19 +37,18 @@ void g(int count) {
   int (*b)[][count];
 }
 
-// rdar://8403108
 // CHECK-LABEL: define{{.*}} void @f_8403108
 void f_8403108(unsigned x) {
-  // CHECK: call ptr @llvm.stacksave()
+  // CHECK: call ptr @llvm.stacksave.p0()
   char s1[x];
   while (1) {
-    // CHECK: call ptr @llvm.stacksave()
+    // CHECK: call ptr @llvm.stacksave.p0()
     char s2[x];
     if (1)
       break;
-  // CHECK: call void @llvm.stackrestore(ptr
+  // CHECK: call void @llvm.stackrestore.p0(ptr
   }
-  // CHECK: call void @llvm.stackrestore(ptr
+  // CHECK: call void @llvm.stackrestore.p0(ptr
 }
 
 // pr7827
@@ -74,7 +73,6 @@ void test1(void) {
      function(1, bork[2]);
 }
 
-// rdar://8476159
 static int GLOB;
 int test2(int n)
 {
@@ -122,7 +120,7 @@ int test4(unsigned n, char (*p)[n][n+1][6]) {
   // CHECK-NEXT: [[T2:%.*]] = udiv i32 [[T1]], 2
   // CHECK-NEXT: [[T3:%.*]] = mul nuw i32 [[DIM0]], [[DIM1]]
   // CHECK-NEXT: [[T4:%.*]] = mul nsw i32 [[T2]], [[T3]]
-  // CHECK-NEXT: [[T5:%.*]] = getelementptr inbounds [6 x i8], ptr [[T0]], i32 [[T4]]
+  // CHECK-NEXT: [[T5:%.*]] = getelementptr inbounds nuw [6 x i8], ptr [[T0]], i32 [[T4]]
   // CHECK-NEXT: [[T6:%.*]] = load i32, ptr [[N]], align 4
   // CHECK-NEXT: [[T7:%.*]] = udiv i32 [[T6]], 4
   // CHECK-NEXT: [[T8:%.*]] = sub i32 0, [[T7]]
@@ -144,7 +142,6 @@ int test4(unsigned n, char (*p)[n][n+1][6]) {
   return p2 - p;
 }
 
-// rdar://11485774
 void test5(void)
 {
   // CHECK-LABEL: define{{.*}} void @test5(

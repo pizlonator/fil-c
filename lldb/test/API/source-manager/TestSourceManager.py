@@ -39,7 +39,6 @@ class SourceManagerTestCase(TestBase):
         self.line = line_number("main.c", "// Set break point at this line.")
 
     def modify_content(self):
-
         # Read the main.c file content.
         with io.open(self.file, "r", newline="\n") as f:
             original_content = f.read()
@@ -260,7 +259,7 @@ class SourceManagerTestCase(TestBase):
         m = re.search("^\[(\d+)\].*// Set break point at this line.", output)
         if not m:
             self.fail("Fail to display source level breakpoints")
-        self.assertTrue(int(m.group(1)) > 0)
+        self.assertGreater(int(m.group(1)), 0)
 
         # Modify content
         self.modify_content()
@@ -315,22 +314,30 @@ class SourceManagerTestCase(TestBase):
         )
 
     def test_artificial_source_location(self):
-        src_file = "artificial_location.c"
-        d = {"C_SOURCES": src_file}
+        src_file = "artificial_location.cpp"
+        d = {"C_SOURCES": "", "CXX_SOURCES": src_file}
         self.build(dictionary=d)
 
-        lldbutil.run_to_source_breakpoint(
-            self, "main", lldb.SBFileSpec(src_file, False)
-        )
+        target = lldbutil.run_to_breakpoint_make_target(self)
+
+        # Find the instruction with line=0 and put a breakpoint there.
+        sc_list = target.FindFunctions("A::foo")
+        self.assertEqual(len(sc_list), 1)
+        insns = sc_list[0].function.GetInstructions(target)
+        insn0 = next(filter(lambda insn: insn.addr.line_entry.line == 0, insns))
+        bkpt = target.BreakpointCreateBySBAddress(insn0.addr)
+        self.assertGreater(bkpt.GetNumLocations(), 0)
+
+        lldbutil.run_to_breakpoint_do_run(self, target, bkpt)
 
         self.expect(
-            "run",
-            RUN_SUCCEEDED,
+            "process status",
             substrs=[
                 "stop reason = breakpoint",
-                "%s:%d" % (src_file, 0),
-                "Note: this address is compiler-generated code in " "function",
-                "that has no source code associated " "with it.",
+                f"{src_file}:0",
+                "static int foo();",
+                "note: This address is not associated with a specific line "
+                "of code. This may be due to compiler optimizations.",
             ],
         )
 
@@ -361,16 +368,12 @@ class SourceManagerTestCase(TestBase):
 
         # Create a first target.
         self.runCmd("file " + exe, CURRENT_EXECUTABLE_SET)
-        lldbutil.run_break_set_by_symbol(
-            self, "main", num_expected_locations=1
-        )
+        lldbutil.run_break_set_by_symbol(self, "main", num_expected_locations=1)
         self.expect("run", RUN_SUCCEEDED, substrs=["Hello world"])
 
         # Create a second target.
         self.runCmd("file " + exe, CURRENT_EXECUTABLE_SET)
-        lldbutil.run_break_set_by_symbol(
-            self, "main", num_expected_locations=1
-        )
+        lldbutil.run_break_set_by_symbol(self, "main", num_expected_locations=1)
         self.expect("run", RUN_SUCCEEDED, substrs=["Hello world"])
 
         # Modify the source file content.
@@ -381,7 +384,8 @@ class SourceManagerTestCase(TestBase):
         self.runCmd("source cache clear")
 
         # Make sure we're seeing the new content from the clean process cache.
-        self.expect("next",
+        self.expect(
+            "next",
             SOURCE_DISPLAYED_CORRECTLY,
             substrs=["Hello lldb"],
         )
@@ -391,8 +395,8 @@ class SourceManagerTestCase(TestBase):
 
         # Make sure we're seeing the old content from the first target's
         # process cache.
-        self.expect("next",
+        self.expect(
+            "next",
             SOURCE_DISPLAYED_CORRECTLY,
             substrs=["Hello world"],
         )
-

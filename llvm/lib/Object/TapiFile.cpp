@@ -13,7 +13,6 @@
 #include "llvm/Object/TapiFile.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/MachO.h"
-#include "llvm/Object/Error.h"
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/TextAPI/ArchitectureSet.h"
 #include "llvm/TextAPI/InterfaceFile.h"
@@ -49,17 +48,18 @@ static SymbolRef::Type getType(const Symbol *Sym) {
 
 TapiFile::TapiFile(MemoryBufferRef Source, const InterfaceFile &Interface,
                    Architecture Arch)
-    : SymbolicFile(ID_TapiFile, Source), Arch(Arch) {
+    : SymbolicFile(ID_TapiFile, Source), Arch(Arch),
+      FileKind(Interface.getFileType()) {
   for (const auto *Symbol : Interface.symbols()) {
     if (!Symbol->getArchitectures().has(Arch))
       continue;
 
     switch (Symbol->getKind()) {
-    case SymbolKind::GlobalSymbol:
+    case EncodeKind::GlobalSymbol:
       Symbols.emplace_back(StringRef(), Symbol->getName(), getFlags(Symbol),
                            ::getType(Symbol));
       break;
-    case SymbolKind::ObjectiveCClass:
+    case EncodeKind::ObjectiveCClass:
       if (Interface.getPlatforms().count(PLATFORM_MACOS) && Arch == AK_i386) {
         Symbols.emplace_back(ObjC1ClassNamePrefix, Symbol->getName(),
                              getFlags(Symbol), ::getType(Symbol));
@@ -70,11 +70,11 @@ TapiFile::TapiFile(MemoryBufferRef Source, const InterfaceFile &Interface,
                              getFlags(Symbol), ::getType(Symbol));
       }
       break;
-    case SymbolKind::ObjectiveCClassEHType:
+    case EncodeKind::ObjectiveCClassEHType:
       Symbols.emplace_back(ObjC2EHTypePrefix, Symbol->getName(),
                            getFlags(Symbol), ::getType(Symbol));
       break;
-    case SymbolKind::ObjectiveCInstanceVariable:
+    case EncodeKind::ObjectiveCInstanceVariable:
       Symbols.emplace_back(ObjC2IVarPrefix, Symbol->getName(), getFlags(Symbol),
                            ::getType(Symbol));
       break;

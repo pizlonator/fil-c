@@ -1211,9 +1211,8 @@ define i8 @icmp0_v8i1(<8 x i8>) nounwind {
 ; AVX1OR2:       # %bb.0:
 ; AVX1OR2-NEXT:    vpmovzxbw {{.*#+}} xmm0 = xmm0[0],zero,xmm0[1],zero,xmm0[2],zero,xmm0[3],zero,xmm0[4],zero,xmm0[5],zero,xmm0[6],zero,xmm0[7],zero
 ; AVX1OR2-NEXT:    vpsllw $15, %xmm0, %xmm0
-; AVX1OR2-NEXT:    vpsraw $15, %xmm0, %xmm0
 ; AVX1OR2-NEXT:    vpmovmskb %xmm0, %eax
-; AVX1OR2-NEXT:    testl %eax, %eax
+; AVX1OR2-NEXT:    testl $43690, %eax # imm = 0xAAAA
 ; AVX1OR2-NEXT:    sete %al
 ; AVX1OR2-NEXT:    retq
 ;
@@ -1623,7 +1622,7 @@ define i1 @icmp1_v8i64_v8i1(<8 x i64>) nounwind {
 ;
 ; AVX512-LABEL: icmp1_v8i64_v8i1:
 ; AVX512:       # %bb.0:
-; AVX512-NEXT:    vpternlogd $255, %zmm1, %zmm1, %zmm1
+; AVX512-NEXT:    vpternlogd {{.*#+}} zmm1 = -1
 ; AVX512-NEXT:    vpcmpneqd %zmm1, %zmm0, %k0
 ; AVX512-NEXT:    kortestw %k0, %k0
 ; AVX512-NEXT:    sete %al
@@ -1696,7 +1695,7 @@ define i1 @icmp1_v16i32_v16i1(<16 x i32>) nounwind {
 ;
 ; AVX512-LABEL: icmp1_v16i32_v16i1:
 ; AVX512:       # %bb.0:
-; AVX512-NEXT:    vpternlogd $255, %zmm1, %zmm1, %zmm1
+; AVX512-NEXT:    vpternlogd {{.*#+}} zmm1 = -1
 ; AVX512-NEXT:    vpcmpneqd %zmm1, %zmm0, %k0
 ; AVX512-NEXT:    kortestw %k0, %k0
 ; AVX512-NEXT:    sete %al
@@ -1769,7 +1768,7 @@ define i1 @icmp1_v32i16_v32i1(<32 x i16>) nounwind {
 ;
 ; AVX512-LABEL: icmp1_v32i16_v32i1:
 ; AVX512:       # %bb.0:
-; AVX512-NEXT:    vpternlogd $255, %zmm1, %zmm1, %zmm1
+; AVX512-NEXT:    vpternlogd {{.*#+}} zmm1 = -1
 ; AVX512-NEXT:    vpcmpneqd %zmm1, %zmm0, %k0
 ; AVX512-NEXT:    kortestw %k0, %k0
 ; AVX512-NEXT:    sete %al
@@ -1842,7 +1841,7 @@ define i1 @icmp1_v64i8_v64i1(<64 x i8>) nounwind {
 ;
 ; AVX512-LABEL: icmp1_v64i8_v64i1:
 ; AVX512:       # %bb.0:
-; AVX512-NEXT:    vpternlogd $255, %zmm1, %zmm1, %zmm1
+; AVX512-NEXT:    vpternlogd {{.*#+}} zmm1 = -1
 ; AVX512-NEXT:    vpcmpneqd %zmm1, %zmm0, %k0
 ; AVX512-NEXT:    kortestw %k0, %k0
 ; AVX512-NEXT:    sete %al

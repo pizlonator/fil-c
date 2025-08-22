@@ -244,7 +244,7 @@ public:
     if (first_intersect == m_entries.end())
       return;
 
-    // We we can combine at least one entry, then we make a new collection and
+    // We can combine at least one entry, then we make a new collection and
     // populate it accordingly, and then swap it into place.
     auto pos = std::next(first_intersect);
     Collection minimal_ranges(m_entries.begin(), pos);
@@ -450,6 +450,12 @@ public:
 
   void Append(const Entry &entry) { m_entries.emplace_back(entry); }
 
+  /// Append a range with data to the vector
+  /// \param B The base of the memory range
+  /// \param S The size of the memory range
+  /// \param T The data associated with the memory range
+  void Append(B &&b, S &&s, T &&t) { m_entries.emplace_back(Entry(b, s, t)); }
+
   bool Erase(uint32_t start, uint32_t end) {
     if (start >= end || end > m_entries.size())
       return false;
@@ -501,7 +507,7 @@ public:
       }
     }
 
-    // We we can combine at least one entry, then we make a new collection and
+    // We can combine at least one entry, then we make a new collection and
     // populate it accordingly, and then swap it into place.
     if (can_combine) {
       Collection minimal_ranges;

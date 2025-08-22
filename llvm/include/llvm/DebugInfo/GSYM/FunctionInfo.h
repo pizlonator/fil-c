@@ -10,13 +10,14 @@
 #define LLVM_DEBUGINFO_GSYM_FUNCTIONINFO_H
 
 #include "llvm/ADT/SmallString.h"
+#include "llvm/DebugInfo/GSYM/CallSiteInfo.h"
 #include "llvm/DebugInfo/GSYM/ExtractRanges.h"
 #include "llvm/DebugInfo/GSYM/InlineInfo.h"
 #include "llvm/DebugInfo/GSYM/LineTable.h"
 #include "llvm/DebugInfo/GSYM/LookupResult.h"
+#include "llvm/DebugInfo/GSYM/MergedFunctionsInfo.h"
 #include "llvm/DebugInfo/GSYM/StringTable.h"
 #include <cstdint>
-#include <tuple>
 
 namespace llvm {
 class raw_ostream;
@@ -63,7 +64,9 @@ class GsymReader;
 ///   enum InfoType {
 ///     EndOfList = 0u,
 ///     LineTableInfo = 1u,
-///     InlineInfo = 2u
+///     InlineInfo = 2u,
+///     MergedFunctionsInfo = 3u,
+///     CallSiteInfo = 4u
 ///   };
 ///
 /// This stream of tuples is terminated by a "InfoType" whose value is
@@ -73,7 +76,7 @@ class GsymReader;
 /// clients to still parse the format and skip over any data that they don't
 /// understand or want to parse.
 ///
-/// So the function information encoding essientially looks like:
+/// So the function information encoding essentially looks like:
 ///
 /// struct {
 ///   uint32_t Size;
@@ -91,6 +94,8 @@ struct FunctionInfo {
   uint32_t Name; ///< String table offset in the string table.
   std::optional<LineTable> OptLineTable;
   std::optional<InlineInfo> Inline;
+  std::optional<MergedFunctionsInfo> MergedFunctions;
+  std::optional<CallSiteInfoCollection> CallSites;
   /// If we encode a FunctionInfo during segmenting so we know its size, we can
   /// cache that encoding here so we don't need to re-encode it when saving the
   /// GSYM file.
@@ -106,7 +111,7 @@ struct FunctionInfo {
   /// debug info, we might end up with multiple FunctionInfo objects for the
   /// same range and we need to be able to tell which one is the better object
   /// to use.
-  bool hasRichInfo() const { return OptLineTable || Inline; }
+  bool hasRichInfo() const { return OptLineTable || Inline || CallSites; }
 
   /// Query if a FunctionInfo object is valid.
   ///
@@ -141,9 +146,16 @@ struct FunctionInfo {
   /// \param O The binary stream to write the data to at the current file
   /// position.
   ///
+  /// \param NoPadding Directly write the FunctionInfo data, without any padding
+  /// By default, FunctionInfo will be 4-byte aligned by padding with
+  /// 0's at the start. This is OK since the function will return the offset of
+  /// actual data in the stream. However when writing FunctionInfo's as a
+  /// stream, the padding will break the decoding of the data - since the offset
+  /// where the FunctionInfo starts is not kept in this scenario.
+  ///
   /// \returns An error object that indicates failure or the offset of the
   /// function info that was successfully written into the stream.
-  llvm::Expected<uint64_t> encode(FileWriter &O) const;
+  llvm::Expected<uint64_t> encode(FileWriter &O, bool NoPadding = false) const;
 
   /// Encode this function info into the internal byte cache and return the size
   /// in bytes.
@@ -175,13 +187,17 @@ struct FunctionInfo {
   ///
   /// \param Addr The address to lookup.
   ///
+  /// \param MergedFuncsData A pointer to an optional DataExtractor that, if
+  /// non-null, will be set to the raw data of the MergedFunctionInfo, if
+  /// present.
+  ///
   /// \returns An LookupResult or an error describing the issue that was
   /// encountered during decoding. An error should only be returned if the
   /// address is not contained in the FunctionInfo or if the data is corrupted.
-  static llvm::Expected<LookupResult> lookup(DataExtractor &Data,
-                                             const GsymReader &GR,
-                                             uint64_t FuncAddr,
-                                             uint64_t Addr);
+  static llvm::Expected<LookupResult>
+  lookup(DataExtractor &Data, const GsymReader &GR, uint64_t FuncAddr,
+         uint64_t Addr,
+         std::optional<DataExtractor> *MergedFuncsData = nullptr);
 
   uint64_t startAddress() const { return Range.start(); }
   uint64_t endAddress() const { return Range.end(); }
@@ -202,21 +218,27 @@ inline bool operator==(const FunctionInfo &LHS, const FunctionInfo &RHS) {
 inline bool operator!=(const FunctionInfo &LHS, const FunctionInfo &RHS) {
   return !(LHS == RHS);
 }
-/// This sorting will order things consistently by address range first, but then
-/// followed by inlining being valid and line tables. We might end up with a
-/// FunctionInfo from debug info that will have the same range as one from the
-/// symbol table, but we want to quickly be able to sort and use the best version
-/// when creating the final GSYM file.
+/// This sorting will order things consistently by address range first, but
+/// then followed by increasing levels of debug info like inline information
+/// and line tables. We might end up with a FunctionInfo from debug info that
+/// will have the same range as one from the symbol table, but we want to
+/// quickly be able to sort and use the best version when creating the final
+/// GSYM file. This function compares the inline information as we have seen
+/// cases where LTO can generate a wide array of differing inline information,
+/// mostly due to messing up the address ranges for inlined functions, so the
+/// inline information with the most entries will appeear last. If the inline
+/// information match, either by both function infos not having any or both
+/// being exactly the same, we will then compare line tables. Comparing line
+/// tables allows the entry with the most line entries to appear last. This
+/// ensures we are able to save the FunctionInfo with the most debug info into
+/// the GSYM file.
 inline bool operator<(const FunctionInfo &LHS, const FunctionInfo &RHS) {
   // First sort by address range
   if (LHS.Range != RHS.Range)
     return LHS.Range < RHS.Range;
-
-  // Then sort by inline
-  if (LHS.Inline.has_value() != RHS.Inline.has_value())
-    return RHS.Inline.has_value();
-
-  return LHS.OptLineTable < RHS.OptLineTable;
+  if (LHS.Inline == RHS.Inline)
+    return LHS.OptLineTable < RHS.OptLineTable;
+  return LHS.Inline < RHS.Inline;
 }
 
 raw_ostream &operator<<(raw_ostream &OS, const FunctionInfo &R);

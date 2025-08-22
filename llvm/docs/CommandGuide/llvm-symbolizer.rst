@@ -14,12 +14,12 @@ DESCRIPTION
 :program:`llvm-symbolizer` reads input names and addresses from the command-line
 and prints corresponding source code locations to standard output. It can also
 symbolize logs containing :doc:`Symbolizer Markup </SymbolizerMarkupFormat>` via
-:option:`--filter-markup`.
+:option:`--filter-markup`. Addresses may be specified as numbers or symbol names.
 
 If no address is specified on the command-line, it reads the addresses from
 standard input. If no input name is specified on the command-line, but addresses
-are, or if at any time an input value is not recognized, the input is simply
-echoed to the output.
+are, the first address value is treated as an input name. If an input value is not
+recognized, it reports that source information is not found.
 
 Input names can be specified together with the addresses either on standard
 input or as positional arguments on the command-line. By default, input names
@@ -196,6 +196,44 @@ shows --relativenames.
   main
   foo/test.cpp:15:0
 
+Example 7 - Addresses as symbol names:
+
+.. code-block:: console
+
+  $ llvm-symbolizer --obj=test.elf main
+  main
+  /tmp/test.cpp:14:0
+  $ llvm-symbolizer --obj=test.elf "CODE foz"
+  foz
+  /tmp/test.h:1:0
+
+Example 8 - :option:`--skip-line-zero` output for an address with no line correspondence (an address associated with line zero):
+
+.. code-block:: c
+
+  // test.c
+  int foo = 0;
+  int x = 1234;
+  int main() {
+    if (x)
+      return foo;
+    else
+      return x;
+  }
+
+These files are built as follows:
+
+.. code-block:: console
+
+  $ clang -g -O2 -S test.c -o test.s
+  $ llvm-mc -filetype=obj -triple=x86_64-unknown-linux  test.s -o test.o
+
+.. code-block:: console
+
+  $ llvm-symbolizer --obj=test.o --skip-line-zero 0xa
+  main
+  /tmp/test.c:5:7 (approximate)
+
 OPTIONS
 -------
 
@@ -204,6 +242,12 @@ OPTIONS
   Add the specified offset to object file addresses when performing lookups.
   This can be used to perform lookups as if the object were relocated by the
   offset.
+
+.. option:: --skip-line-zero
+
+  If an address does not have an associated line number, use the last line
+  number from the current sequence in the line-table. Such lines are labeled
+  as "approximate" in the output as they may be misleading.
 
 .. option:: --basenames, -s
 
@@ -268,7 +312,7 @@ OPTIONS
   ``#<number>[.<inline>] <address> <function> <file>:<line>:<col> (<module>+<relative address>)``
 
   ``<inline>`` provides frame numbers for calls inlined into the caller
-  coresponding to ``<number>``. The inlined call numbers start at 1 and increase
+  corresponding to ``<number>``. The inlined call numbers start at 1 and increase
   from callee to caller.
 
   ``<address>`` is an address inside the call instruction to the function.  The

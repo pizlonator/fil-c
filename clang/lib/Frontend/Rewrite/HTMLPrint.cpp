@@ -20,8 +20,10 @@
 #include "clang/Rewrite/Core/HTMLRewrite.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "clang/Rewrite/Frontend/ASTConsumers.h"
+#include "llvm/ADT/RewriteBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 using namespace clang;
+using llvm::RewriteBuffer;
 
 //===----------------------------------------------------------------------===//
 // Functional HTML pretty-printing.
@@ -62,7 +64,7 @@ void HTMLPrinter::HandleTranslationUnit(ASTContext &Ctx) {
 
   // Format the file.
   FileID FID = R.getSourceMgr().getMainFileID();
-  const FileEntry* Entry = R.getSourceMgr().getFileEntryForID(FID);
+  OptionalFileEntryRef Entry = R.getSourceMgr().getFileEntryRefForID(FID);
   StringRef Name;
   // In some cases, in particular the case where the input is from stdin,
   // there is no entry.  Fall back to the memory buffer for a name in those

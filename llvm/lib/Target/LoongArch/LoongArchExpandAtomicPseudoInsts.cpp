@@ -58,6 +58,9 @@ private:
   bool expandAtomicCmpXchg(MachineBasicBlock &MBB,
                            MachineBasicBlock::iterator MBBI, bool IsMasked,
                            int Width, MachineBasicBlock::iterator &NextMBBI);
+  bool expandAtomicCmpXchg128(MachineBasicBlock &MBB,
+                              MachineBasicBlock::iterator,
+                              MachineBasicBlock::iterator &NextMBBI);
 };
 
 char LoongArchExpandAtomicPseudo::ID = 0;
@@ -131,6 +134,9 @@ bool LoongArchExpandAtomicPseudo::expandMI(
     return expandAtomicCmpXchg(MBB, MBBI, false, 32, NextMBBI);
   case LoongArch::PseudoCmpXchg64:
     return expandAtomicCmpXchg(MBB, MBBI, false, 64, NextMBBI);
+  case LoongArch::PseudoCmpXchg128:
+  case LoongArch::PseudoCmpXchg128Acquire:
+    return expandAtomicCmpXchg128(MBB, MBBI, NextMBBI);
   case LoongArch::PseudoMaskedCmpXchg32:
     return expandAtomicCmpXchg(MBB, MBBI, true, 32, NextMBBI);
   case LoongArch::PseudoMaskedAtomicLoadMax32:
@@ -153,18 +159,12 @@ static void doAtomicBinOpExpansion(const LoongArchInstrInfo *TII,
   Register ScratchReg = MI.getOperand(1).getReg();
   Register AddrReg = MI.getOperand(2).getReg();
   Register IncrReg = MI.getOperand(3).getReg();
-  AtomicOrdering Ordering =
-      static_cast<AtomicOrdering>(MI.getOperand(4).getImm());
 
   // .loop:
-  //   if(Ordering != AtomicOrdering::Monotonic)
-  //     dbar 0
   //   ll.[w|d] dest, (addr)
   //   binop scratch, dest, val
   //   sc.[w|d] scratch, scratch, (addr)
   //   beqz scratch, loop
-  if (Ordering != AtomicOrdering::Monotonic)
-    BuildMI(LoopMBB, DL, TII->get(LoongArch::DBAR)).addImm(0);
   BuildMI(LoopMBB, DL,
           TII->get(Width == 32 ? LoongArch::LL_W : LoongArch::LL_D), DestReg)
       .addReg(AddrReg)
@@ -251,12 +251,8 @@ static void doMaskedAtomicBinOpExpansion(
   Register AddrReg = MI.getOperand(2).getReg();
   Register IncrReg = MI.getOperand(3).getReg();
   Register MaskReg = MI.getOperand(4).getReg();
-  AtomicOrdering Ordering =
-      static_cast<AtomicOrdering>(MI.getOperand(5).getImm());
 
   // .loop:
-  //   if(Ordering != AtomicOrdering::Monotonic)
-  //     dbar 0
   //   ll.w destreg, (alignedaddr)
   //   binop scratch, destreg, incr
   //   xor scratch, destreg, scratch
@@ -264,8 +260,6 @@ static void doMaskedAtomicBinOpExpansion(
   //   xor scratch, destreg, scratch
   //   sc.w scratch, scratch, (alignedaddr)
   //   beqz scratch, loop
-  if (Ordering != AtomicOrdering::Monotonic)
-    BuildMI(LoopMBB, DL, TII->get(LoongArch::DBAR)).addImm(0);
   BuildMI(LoopMBB, DL, TII->get(LoongArch::LL_W), DestReg)
       .addReg(AddrReg)
       .addImm(0);
@@ -372,23 +366,20 @@ bool LoongArchExpandAtomicPseudo::expandAtomicMinMaxOp(
   auto LoopHeadMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
   auto LoopIfBodyMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
   auto LoopTailMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
-  auto TailMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
   auto DoneMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
 
   // Insert new MBBs.
   MF->insert(++MBB.getIterator(), LoopHeadMBB);
   MF->insert(++LoopHeadMBB->getIterator(), LoopIfBodyMBB);
   MF->insert(++LoopIfBodyMBB->getIterator(), LoopTailMBB);
-  MF->insert(++LoopTailMBB->getIterator(), TailMBB);
-  MF->insert(++TailMBB->getIterator(), DoneMBB);
+  MF->insert(++LoopTailMBB->getIterator(), DoneMBB);
 
   // Set up successors and transfer remaining instructions to DoneMBB.
   LoopHeadMBB->addSuccessor(LoopIfBodyMBB);
   LoopHeadMBB->addSuccessor(LoopTailMBB);
   LoopIfBodyMBB->addSuccessor(LoopTailMBB);
   LoopTailMBB->addSuccessor(LoopHeadMBB);
-  LoopTailMBB->addSuccessor(TailMBB);
-  TailMBB->addSuccessor(DoneMBB);
+  LoopTailMBB->addSuccessor(DoneMBB);
   DoneMBB->splice(DoneMBB->end(), &MBB, MI, MBB.end());
   DoneMBB->transferSuccessors(&MBB);
   MBB.addSuccessor(LoopHeadMBB);
@@ -402,11 +393,9 @@ bool LoongArchExpandAtomicPseudo::expandAtomicMinMaxOp(
 
   //
   // .loophead:
-  //   dbar 0
   //   ll.w destreg, (alignedaddr)
   //   and scratch2, destreg, mask
   //   move scratch1, destreg
-  BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::DBAR)).addImm(0);
   BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::LL_W), DestReg)
       .addReg(AddrReg)
       .addImm(0);
@@ -463,7 +452,6 @@ bool LoongArchExpandAtomicPseudo::expandAtomicMinMaxOp(
   // .looptail:
   //   sc.w scratch1, scratch1, (addr)
   //   beqz scratch1, loop
-  //   dbar 0x700
   BuildMI(LoopTailMBB, DL, TII->get(LoongArch::SC_W), Scratch1Reg)
       .addReg(Scratch1Reg)
       .addReg(AddrReg)
@@ -472,10 +460,6 @@ bool LoongArchExpandAtomicPseudo::expandAtomicMinMaxOp(
       .addReg(Scratch1Reg)
       .addMBB(LoopHeadMBB);
 
-  // .tail:
-  //   dbar 0x700
-  BuildMI(TailMBB, DL, TII->get(LoongArch::DBAR)).addImm(0x700);
-
   NextMBBI = MBB.end();
   MI.eraseFromParent();
 
@@ -483,7 +467,6 @@ bool LoongArchExpandAtomicPseudo::expandAtomicMinMaxOp(
   computeAndAddLiveIns(LiveRegs, *LoopHeadMBB);
   computeAndAddLiveIns(LiveRegs, *LoopIfBodyMBB);
   computeAndAddLiveIns(LiveRegs, *LoopTailMBB);
-  computeAndAddLiveIns(LiveRegs, *TailMBB);
   computeAndAddLiveIns(LiveRegs, *DoneMBB);
 
   return true;
@@ -535,12 +518,10 @@ bool LoongArchExpandAtomicPseudo::expandAtomicCmpXchg(
         .addReg(CmpValReg)
         .addMBB(TailMBB);
     // .looptail:
-    //   dbar 0
     //   move scratch, newval
     //   sc.[w|d] scratch, scratch, (addr)
     //   beqz scratch, loophead
     //   b done
-    BuildMI(LoopTailMBB, DL, TII->get(LoongArch::DBAR)).addImm(0);
     BuildMI(LoopTailMBB, DL, TII->get(LoongArch::OR), ScratchReg)
         .addReg(NewValReg)
         .addReg(LoongArch::R0);
@@ -573,13 +554,11 @@ bool LoongArchExpandAtomicPseudo::expandAtomicCmpXchg(
         .addMBB(TailMBB);
 
     // .looptail:
-    //   dbar 0
     //   andn scratch, dest, mask
     //   or scratch, scratch, newval
     //   sc.[w|d] scratch, scratch, (addr)
     //   beqz scratch, loophead
     //   b done
-    BuildMI(LoopTailMBB, DL, TII->get(LoongArch::DBAR)).addImm(0);
     BuildMI(LoopTailMBB, DL, TII->get(LoongArch::ANDN), ScratchReg)
         .addReg(DestReg)
         .addReg(MaskReg);
@@ -598,9 +577,130 @@ bool LoongArchExpandAtomicPseudo::expandAtomicCmpXchg(
     BuildMI(LoopTailMBB, DL, TII->get(LoongArch::B)).addMBB(DoneMBB);
   }
 
+  AtomicOrdering FailureOrdering =
+      static_cast<AtomicOrdering>(MI.getOperand(IsMasked ? 6 : 5).getImm());
+  int hint;
+
+  switch (FailureOrdering) {
+  case AtomicOrdering::Acquire:
+  case AtomicOrdering::AcquireRelease:
+  case AtomicOrdering::SequentiallyConsistent:
+    // acquire
+    hint = 0b10100;
+    break;
+  default:
+    hint = 0x700;
+  }
+
   // .tail:
-  //   dbar 0x700
-  BuildMI(TailMBB, DL, TII->get(LoongArch::DBAR)).addImm(0x700);
+  //   dbar 0x700 | acquire
+
+  if (!(hint == 0x700 && MF->getSubtarget<LoongArchSubtarget>().hasLD_SEQ_SA()))
+    BuildMI(TailMBB, DL, TII->get(LoongArch::DBAR)).addImm(hint);
+
+  NextMBBI = MBB.end();
+  MI.eraseFromParent();
+
+  LivePhysRegs LiveRegs;
+  computeAndAddLiveIns(LiveRegs, *LoopHeadMBB);
+  computeAndAddLiveIns(LiveRegs, *LoopTailMBB);
+  computeAndAddLiveIns(LiveRegs, *TailMBB);
+  computeAndAddLiveIns(LiveRegs, *DoneMBB);
+
+  return true;
+}
+
+bool LoongArchExpandAtomicPseudo::expandAtomicCmpXchg128(
+    MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
+    MachineBasicBlock::iterator &NextMBBI) {
+  MachineInstr &MI = *MBBI;
+  DebugLoc DL = MI.getDebugLoc();
+  MachineFunction *MF = MBB.getParent();
+  auto LoopHeadMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
+  auto LoopTailMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
+  auto TailMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
+  auto DoneMBB = MF->CreateMachineBasicBlock(MBB.getBasicBlock());
+
+  // Insert new MBBs
+  MF->insert(++MBB.getIterator(), LoopHeadMBB);
+  MF->insert(++LoopHeadMBB->getIterator(), LoopTailMBB);
+  MF->insert(++LoopTailMBB->getIterator(), TailMBB);
+  MF->insert(++TailMBB->getIterator(), DoneMBB);
+
+  // Set up successors and transfer remaining instructions to DoneMBB.
+  LoopHeadMBB->addSuccessor(LoopTailMBB);
+  LoopHeadMBB->addSuccessor(TailMBB);
+  LoopTailMBB->addSuccessor(DoneMBB);
+  LoopTailMBB->addSuccessor(LoopHeadMBB);
+  TailMBB->addSuccessor(DoneMBB);
+  DoneMBB->splice(DoneMBB->end(), &MBB, MI, MBB.end());
+  DoneMBB->transferSuccessors(&MBB);
+  MBB.addSuccessor(LoopHeadMBB);
+
+  Register DestLoReg = MI.getOperand(0).getReg();
+  Register DestHiReg = MI.getOperand(1).getReg();
+  Register ScratchReg = MI.getOperand(2).getReg();
+  Register AddrReg = MI.getOperand(3).getReg();
+  Register CmpValLoReg = MI.getOperand(4).getReg();
+  Register CmpValHiReg = MI.getOperand(5).getReg();
+  Register NewValLoReg = MI.getOperand(6).getReg();
+  Register NewValHiReg = MI.getOperand(7).getReg();
+
+  // .loophead:
+  //   ll.d res_lo, (addr)
+  //   dbar acquire
+  //   ld.d res_hi, (addr), 8
+  //   bne dest_lo, cmpval_lo, tail
+  //   bne dest_hi, cmpval_hi, tail
+  BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::LL_D), DestLoReg)
+      .addReg(AddrReg)
+      .addImm(0);
+  BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::DBAR)).addImm(0b10100);
+  BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::LD_D), DestHiReg)
+      .addReg(AddrReg)
+      .addImm(8);
+  BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::BNE))
+      .addReg(DestLoReg)
+      .addReg(CmpValLoReg)
+      .addMBB(TailMBB);
+  BuildMI(LoopHeadMBB, DL, TII->get(LoongArch::BNE))
+      .addReg(DestHiReg)
+      .addReg(CmpValHiReg)
+      .addMBB(TailMBB);
+  // .looptail:
+  //   move scratch, newval_lo
+  //   sc.q scratch, newval_hi, (addr)
+  //   beqz scratch, loophead
+  //   b done
+  BuildMI(LoopTailMBB, DL, TII->get(LoongArch::OR), ScratchReg)
+      .addReg(NewValLoReg)
+      .addReg(LoongArch::R0);
+  BuildMI(LoopTailMBB, DL, TII->get(LoongArch::SC_Q), ScratchReg)
+      .addReg(ScratchReg)
+      .addReg(NewValHiReg)
+      .addReg(AddrReg);
+  BuildMI(LoopTailMBB, DL, TII->get(LoongArch::BEQZ))
+      .addReg(ScratchReg)
+      .addMBB(LoopHeadMBB);
+  BuildMI(LoopTailMBB, DL, TII->get(LoongArch::B)).addMBB(DoneMBB);
+  int hint;
+
+  switch (MI.getOpcode()) {
+  case LoongArch::PseudoCmpXchg128Acquire:
+    // acquire acqrel seqcst
+    hint = 0b10100;
+    break;
+  case LoongArch::PseudoCmpXchg128:
+    hint = 0x700;
+    break;
+  default:
+    llvm_unreachable("Unexpected opcode");
+  }
+
+  // .tail:
+  //   dbar 0x700 | acquire
+  if (!(hint == 0x700 && MF->getSubtarget<LoongArchSubtarget>().hasLD_SEQ_SA()))
+    BuildMI(TailMBB, DL, TII->get(LoongArch::DBAR)).addImm(hint);
 
   NextMBBI = MBB.end();
   MI.eraseFromParent();

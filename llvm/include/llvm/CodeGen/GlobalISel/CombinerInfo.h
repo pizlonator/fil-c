@@ -6,7 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 /// \file
-/// Interface for Targets to specify which operations are combined how and when.
+/// Option class for Targets to specify which operations are combined how and
+/// when.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -16,15 +17,11 @@
 #include <cassert>
 namespace llvm {
 
-class GISelChangeObserver;
 class LegalizerInfo;
-class MachineInstr;
-class MachineIRBuilder;
 
 // Contains information relevant to enabling/disabling various combines for a
 // pass.
-class CombinerInfo {
-public:
+struct CombinerInfo {
   CombinerInfo(bool AllowIllegalOps, bool ShouldLegalizeIllegal,
                const LegalizerInfo *LInfo, bool OptEnabled, bool OptSize,
                bool MinSize)
@@ -53,18 +50,34 @@ public:
   /// Whether we're optimizing for minsize (-Oz).
   bool EnableMinSize;
 
-  /// Attempt to combine instructions using MI as the root.
-  ///
-  /// Use Observer to report the creation, modification, and erasure of
-  /// instructions. GISelChangeObserver will automatically report certain
-  /// kinds of operations. These operations are:
-  /// * Instructions that are newly inserted into the MachineFunction
-  /// * Instructions that are erased from the MachineFunction.
-  ///
-  /// However, it is important to report instruction modification and this is
-  /// not automatic.
-  virtual bool combine(GISelChangeObserver &Observer, MachineInstr &MI,
-                       MachineIRBuilder &B) const = 0;
+  /// The maximum number of times the Combiner will iterate over the
+  /// MachineFunction. Setting this to 0 enables fixed-point iteration.
+  unsigned MaxIterations = 0;
+
+  enum class ObserverLevel {
+    /// Only retry combining created/changed instructions.
+    /// This replicates the legacy default Observer behavior for use with
+    /// fixed-point iteration.
+    Basic,
+    /// Enables Observer-based detection of dead instructions. This can save
+    /// some compile-time if full disabling of fixed-point iteration is not
+    /// desired. If the input IR doesn't contain dead instructions, consider
+    /// disabling \p EnableFullDCE.
+    DCE,
+    /// Enables Observer-based DCE and additional heuristics that retry
+    /// combining defined and used instructions of modified instructions.
+    /// This provides a good balance between compile-time and completeness of
+    /// combining without needing fixed-point iteration.
+    SinglePass,
+  };
+
+  /// Select how the Combiner acts on MIR changes.
+  ObserverLevel ObserverLvl = ObserverLevel::Basic;
+
+  /// Whether dead code elimination is performed before each Combiner iteration.
+  /// If Observer-based DCE is enabled, this controls if a full DCE pass is
+  /// performed before the first Combiner iteration.
+  bool EnableFullDCE = true;
 };
 } // namespace llvm
 

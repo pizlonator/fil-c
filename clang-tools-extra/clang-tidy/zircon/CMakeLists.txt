@@ -3,7 +3,7 @@ set(LLVM_LINK_COMPONENTS
   Support
   )
 
-add_clang_library(clangTidyZirconModule
+add_clang_library(clangTidyZirconModule STATIC
   TemporaryObjectsCheck.cpp
   ZirconTidyModule.cpp
 
@@ -13,6 +13,7 @@ add_clang_library(clangTidyZirconModule
 
   DEPENDS
   omp_gen
+  ClangDriverOptions
   )
 
 clang_target_link_libraries(clangTidyZirconModule

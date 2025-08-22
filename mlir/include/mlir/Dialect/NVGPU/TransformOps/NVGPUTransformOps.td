@@ -11,9 +11,24 @@
 
 include "mlir/Dialect/Transform/IR/TransformAttrs.td"
 include "mlir/Dialect/Transform/IR/TransformDialect.td"
-include "mlir/Dialect/Transform/IR/TransformInterfaces.td"
+include "mlir/Dialect/Transform/Interfaces/TransformInterfaces.td"
 include "mlir/Dialect/Transform/IR/TransformTypes.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
+
+//===----------------------------------------------------------------------===//
+// Apply...ConversionPatternsOp
+//===----------------------------------------------------------------------===//
+
+def ApplyNVGPUToNVVMConversionPatternsOp : Op<Transform_Dialect,
+    "apply_conversion_patterns.nvgpu.nvgpu_to_nvvm",
+    [DeclareOpInterfaceMethods<ConversionPatternDescriptorOpInterface,
+                               ["verifyTypeConverter"]>]> {
+  let description = [{
+    Collects patterns that convert NVGPU dialect ops to NVVM dialect ops. These
+    patterns require an "LLVMTypeConverter".
+  }];
+  let assemblyFormat = "attr-dict";
+}
 
 //===----------------------------------------------------------------------===//
 // CreateAsyncGroupsOp
@@ -160,6 +175,35 @@ def RewriteMatmulAsMmaSyncOp :
         ::mlir::transform::TransformRewriter &rewriter,
         ::mlir::linalg::LinalgOp linalgOp,
         ::mlir::transform::ApplyToEachResultList &results,
+        ::mlir::transform::TransformState &state);
+  }];
+}
+
+//===----------------------------------------------------------------------===//
+// RewriteCopyAsTmaOp
+//===----------------------------------------------------------------------===//
+
+def RewriteCopyAsTmaOp :
+  Op<Transform_Dialect, "nvgpu.rewrite_copy_as_tma",
+    [FunctionalStyleTransformOpTrait,
+     MemoryEffectsOpInterface,
+     TransformEachOpTrait,
+     TransformOpInterface,
+     ReportTrackingListenerFailuresOpTrait]> {
+  let description = [{
+    Rewrite a copy operation on memref to tma operations that transit through
+    shared memory.
+  }];
+
+  let arguments = (ins TransformHandleTypeInterface:$target);
+  let results = (outs);
+
+  let assemblyFormat = "$target attr-dict `:` functional-type(operands, results) ";
+
+  let extraClassDeclaration = [{
+    ::mlir::DiagnosedSilenceableFailure apply(
+        ::mlir::transform::TransformRewriter &rewriter,
+        ::mlir::transform::TransformResults &transformResults,
         ::mlir::transform::TransformState &state);
   }];
 }

@@ -31,114 +31,27 @@
 #ifndef LLVM_ANALYSIS_INSTRUCTIONSIMPLIFY_H
 #define LLVM_ANALYSIS_INSTRUCTIONSIMPLIFY_H
 
-#include "llvm/IR/PatternMatch.h"
+#include "llvm/Analysis/SimplifyQuery.h"
+#include "llvm/IR/FPEnv.h"
 
 namespace llvm {
 
 template <typename T, typename... TArgs> class AnalysisManager;
 template <class T> class ArrayRef;
 class AssumptionCache;
-class BinaryOperator;
 class CallBase;
 class DataLayout;
 class DominatorTree;
 class Function;
 class Instruction;
+class CmpPredicate;
+class LoadInst;
 struct LoopStandardAnalysisResults;
-class MDNode;
 class Pass;
 template <class T, unsigned n> class SmallSetVector;
 class TargetLibraryInfo;
 class Type;
 class Value;
-
-/// InstrInfoQuery provides an interface to query additional information for
-/// instructions like metadata or keywords like nsw, which provides conservative
-/// results if the users specified it is safe to use.
-struct InstrInfoQuery {
-  InstrInfoQuery(bool UMD) : UseInstrInfo(UMD) {}
-  InstrInfoQuery() = default;
-  bool UseInstrInfo = true;
-
-  MDNode *getMetadata(const Instruction *I, unsigned KindID) const {
-    if (UseInstrInfo)
-      return I->getMetadata(KindID);
-    return nullptr;
-  }
-
-  template <class InstT> bool hasNoUnsignedWrap(const InstT *Op) const {
-    if (UseInstrInfo)
-      return Op->hasNoUnsignedWrap();
-    return false;
-  }
-
-  template <class InstT> bool hasNoSignedWrap(const InstT *Op) const {
-    if (UseInstrInfo)
-      return Op->hasNoSignedWrap();
-    return false;
-  }
-
-  bool isExact(const BinaryOperator *Op) const {
-    if (UseInstrInfo && isa<PossiblyExactOperator>(Op))
-      return cast<PossiblyExactOperator>(Op)->isExact();
-    return false;
-  }
-
-  template <class InstT> bool hasNoSignedZeros(const InstT *Op) const {
-    if (UseInstrInfo)
-      return Op->hasNoSignedZeros();
-    return false;
-  }
-};
-
-struct SimplifyQuery {
-  const DataLayout &DL;
-  const TargetLibraryInfo *TLI = nullptr;
-  const DominatorTree *DT = nullptr;
-  AssumptionCache *AC = nullptr;
-  const Instruction *CxtI = nullptr;
-
-  // Wrapper to query additional information for instructions like metadata or
-  // keywords like nsw, which provides conservative results if those cannot
-  // be safely used.
-  const InstrInfoQuery IIQ;
-
-  /// Controls whether simplifications are allowed to constrain the range of
-  /// possible values for uses of undef. If it is false, simplifications are not
-  /// allowed to assume a particular value for a use of undef for example.
-  bool CanUseUndef = true;
-
-  SimplifyQuery(const DataLayout &DL, const Instruction *CXTI = nullptr)
-      : DL(DL), CxtI(CXTI) {}
-
-  SimplifyQuery(const DataLayout &DL, const TargetLibraryInfo *TLI,
-                const DominatorTree *DT = nullptr,
-                AssumptionCache *AC = nullptr,
-                const Instruction *CXTI = nullptr, bool UseInstrInfo = true,
-                bool CanUseUndef = true)
-      : DL(DL), TLI(TLI), DT(DT), AC(AC), CxtI(CXTI), IIQ(UseInstrInfo),
-        CanUseUndef(CanUseUndef) {}
-  SimplifyQuery getWithInstruction(Instruction *I) const {
-    SimplifyQuery Copy(*this);
-    Copy.CxtI = I;
-    return Copy;
-  }
-  SimplifyQuery getWithoutUndef() const {
-    SimplifyQuery Copy(*this);
-    Copy.CanUseUndef = false;
-    return Copy;
-  }
-
-  /// If CanUseUndef is true, returns whether \p V is undef.
-  /// Otherwise always return false.
-  bool isUndefValue(Value *V) const {
-    if (!CanUseUndef)
-      return false;
-
-    using namespace PatternMatch;
-    return match(V, m_Undef());
-  }
-};
 
 // NOTE: the explicit multiple argument versions of these functions are
 // deprecated.
@@ -240,11 +153,11 @@ Value *simplifyOrInst(Value *LHS, Value *RHS, const SimplifyQuery &Q);
 Value *simplifyXorInst(Value *LHS, Value *RHS, const SimplifyQuery &Q);
 
 /// Given operands for an ICmpInst, fold the result or return null.
-Value *simplifyICmpInst(unsigned Predicate, Value *LHS, Value *RHS,
+Value *simplifyICmpInst(CmpPredicate Pred, Value *LHS, Value *RHS,
                         const SimplifyQuery &Q);
 
 /// Given operands for an FCmpInst, fold the result or return null.
-Value *simplifyFCmpInst(unsigned Predicate, Value *LHS, Value *RHS,
+Value *simplifyFCmpInst(CmpPredicate Predicate, Value *LHS, Value *RHS,
                         FastMathFlags FMF, const SimplifyQuery &Q);
 
 /// Given operands for a SelectInst, fold the result or return null.
@@ -253,7 +166,7 @@ Value *simplifySelectInst(Value *Cond, Value *TrueVal, Value *FalseVal,
 
 /// Given operands for a GetElementPtrInst, fold the result or return null.
 Value *simplifyGEPInst(Type *SrcTy, Value *Ptr, ArrayRef<Value *> Indices,
-                       bool InBounds, const SimplifyQuery &Q);
+                       GEPNoWrapFlags NW, const SimplifyQuery &Q);
 
 /// Given operands for an InsertValueInst, fold the result or return null.
 Value *simplifyInsertValueInst(Value *Agg, Value *Val, ArrayRef<unsigned> Idxs,
@@ -275,6 +188,11 @@ Value *simplifyExtractElementInst(Value *Vec, Value *Idx,
 Value *simplifyCastInst(unsigned CastOpc, Value *Op, Type *Ty,
                         const SimplifyQuery &Q);
 
+/// Given operands for a BinaryIntrinsic, fold the result or return null.
+Value *simplifyBinaryIntrinsic(Intrinsic::ID IID, Type *ReturnType, Value *Op0,
+                               Value *Op1, const SimplifyQuery &Q,
+                               const CallBase *Call);
+
 /// Given operands for a ShuffleVectorInst, fold the result or return null.
 /// See class ShuffleVectorInst for a description of the mask representation.
 Value *simplifyShuffleVectorInst(Value *Op0, Value *Op1, ArrayRef<int> Mask,
@@ -283,7 +201,7 @@ Value *simplifyShuffleVectorInst(Value *Op0, Value *Op1, ArrayRef<int> Mask,
 //=== Helper functions for higher up the class hierarchy.
 
 /// Given operands for a CmpInst, fold the result or return null.
-Value *simplifyCmpInst(unsigned Predicate, Value *LHS, Value *RHS,
+Value *simplifyCmpInst(CmpPredicate Predicate, Value *LHS, Value *RHS,
                        const SimplifyQuery &Q);
 
 /// Given operand for a UnaryOperator, fold the result or return null.
@@ -339,8 +257,14 @@ simplifyInstructionWithOperands(Instruction *I, ArrayRef<Value *> NewOps,
 /// AllowRefinement specifies whether the simplification can be a refinement
 /// (e.g. 0 instead of poison), or whether it needs to be strictly identical.
 /// Op and RepOp can be assumed to not be poison when determining refinement.
-Value *simplifyWithOpReplaced(Value *V, Value *Op, Value *RepOp,
-                              const SimplifyQuery &Q, bool AllowRefinement);
+///
+/// If DropFlags is passed, then the replacement result is only valid if
+/// poison-generating flags/metadata on those instructions are dropped. This
+/// is only useful in conjunction with AllowRefinement=false.
+Value *
+simplifyWithOpReplaced(Value *V, Value *Op, Value *RepOp,
+                       const SimplifyQuery &Q, bool AllowRefinement,
+                       SmallVectorImpl<Instruction *> *DropFlags = nullptr);
 
 /// Replace all uses of 'I' with 'SimpleV' and simplify the uses recursively.
 ///

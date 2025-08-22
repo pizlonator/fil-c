@@ -27,7 +27,7 @@
 #include "llvm/Option/Option.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Support/InitLLVM.h"
+#include "llvm/Support/LLVMDriver.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/ToolOutputFile.h"
@@ -42,42 +42,37 @@ static mc::RegisterMCTargetOptionsFlags MCTargetOptionsFlags;
 namespace {
 enum ID {
   OPT_INVALID = 0, // This is not an option ID.
-#define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS, PARAM,  \
-               HELPTEXT, METAVAR, VALUES)                                      \
-  OPT_##ID,
+#define OPTION(...) LLVM_MAKE_OPT_ID(__VA_ARGS__),
 #include "Opts.inc"
 #undef OPTION
 };
 
-#define PREFIX(NAME, VALUE)                                                    \
-  static constexpr StringLiteral NAME##_init[] = VALUE;                        \
-  static constexpr ArrayRef<StringLiteral> NAME(NAME##_init,                   \
-                                                std::size(NAME##_init) - 1);
+#define OPTTABLE_STR_TABLE_CODE
 #include "Opts.inc"
-#undef PREFIX
+#undef OPTTABLE_STR_TABLE_CODE
 
+#define OPTTABLE_PREFIXES_TABLE_CODE
+#include "Opts.inc"
+#undef OPTTABLE_PREFIXES_TABLE_CODE
+
+using namespace llvm::opt;
 static constexpr opt::OptTable::Info InfoTable[] = {
-#define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS, PARAM,  \
-               HELPTEXT, METAVAR, VALUES)                                      \
-  {                                                                            \
-      PREFIX,      NAME,      HELPTEXT,                                        \
-      METAVAR,     OPT_##ID,  opt::Option::KIND##Class,                        \
-      PARAM,       FLAGS,     OPT_##GROUP,                                     \
-      OPT_##ALIAS, ALIASARGS, VALUES},
+#define OPTION(...) LLVM_CONSTRUCT_OPT_INFO(__VA_ARGS__),
 #include "Opts.inc"
 #undef OPTION
 };
 
 class DwpOptTable : public opt::GenericOptTable {
 public:
-  DwpOptTable() : GenericOptTable(InfoTable) {}
+  DwpOptTable()
+      : GenericOptTable(OptionStrTable, OptionPrefixesTable, InfoTable) {}
 };
 } // end anonymous namespace
 
 // Options
 static std::vector<std::string> ExecFilenames;
 static std::string OutputFilename;
-static bool ContinueOnCuIndexOverflow;
+static std::string ContinueOption;
 
 static Expected<SmallVector<std::string, 16>>
 getDWOFilenames(StringRef ExecFilename) {
@@ -98,7 +93,7 @@ getDWOFilenames(StringRef ExecFilename) {
     std::string DWOCompDir =
         dwarf::toString(Die.find(dwarf::DW_AT_comp_dir), "");
     if (!DWOCompDir.empty()) {
-      SmallString<16> DWOPath(std::move(DWOName));
+      SmallString<16> DWOPath(DWOName);
       sys::fs::make_absolute(DWOCompDir, DWOPath);
       if (!sys::fs::exists(DWOPath) && sys::fs::exists(DWOName))
         DWOPaths.push_back(std::move(DWOName));
@@ -125,12 +120,11 @@ static Expected<Triple> readTargetTriple(StringRef FileName) {
   return ErrOrObj->getBinary()->makeTriple();
 }
 
-int main(int argc, char **argv) {
-  InitLLVM X(argc, argv);
-
+int llvm_dwp_main(int argc, char **argv, const llvm::ToolContext &) {
   DwpOptTable Tbl;
   llvm::BumpPtrAllocator A;
   llvm::StringSaver Saver{A};
+  OnCuIndexOverflow OverflowOptValue = OnCuIndexOverflow::HardStop;
   opt::InputArgList Args =
       Tbl.parseArgs(argc, argv, OPT_UNKNOWN, Saver, [&](StringRef Msg) {
         llvm::errs() << Msg << '\n';
@@ -149,7 +143,23 @@ int main(int argc, char **argv) {
   }
 
   OutputFilename = Args.getLastArgValue(OPT_outputFileName, "");
-  ContinueOnCuIndexOverflow = Args.hasArg(OPT_continueOnCuIndexOverflow);
+  if (Arg *Arg = Args.getLastArg(OPT_continueOnCuIndexOverflow,
+                                 OPT_continueOnCuIndexOverflow_EQ)) {
+    if (Arg->getOption().matches(OPT_continueOnCuIndexOverflow)) {
+      OverflowOptValue = OnCuIndexOverflow::Continue;
+    } else {
+      ContinueOption = Arg->getValue();
+      if (ContinueOption == "soft-stop") {
+        OverflowOptValue = OnCuIndexOverflow::SoftStop;
+      } else if (ContinueOption == "continue") {
+        OverflowOptValue = OnCuIndexOverflow::Continue;
+      } else {
+        llvm::errs() << "invalid value for --continue-on-cu-index-overflow"
+                     << ContinueOption << '\n';
+        exit(1);
+      }
+    }
+  }
 
   for (const llvm::opt::Arg *A : Args.filtered(OPT_execFileNames))
     ExecFilenames.emplace_back(A->getValue());
@@ -180,8 +190,11 @@ int main(int argc, char **argv) {
                         std::make_move_iterator(DWOs->end()));
   }
 
-  if (DWOFilenames.empty())
+  if (DWOFilenames.empty()) {
+    WithColor::defaultWarningHandler(make_error<DWPError>(
+        "executable file does not contain any references to dwo files"));
     return 0;
+  }
 
   std::string ErrorStr;
   StringRef Context = "dwarf streamer init";
@@ -255,13 +268,12 @@ int main(int argc, char **argv) {
 
   std::unique_ptr<MCStreamer> MS(TheTarget->createMCObjectStreamer(
       *ErrOrTriple, MC, std::unique_ptr<MCAsmBackend>(MAB),
-      MAB->createObjectWriter(*OS), std::unique_ptr<MCCodeEmitter>(MCE), *MSTI,
-      MCOptions.MCRelaxAll, MCOptions.MCIncrementalLinkerCompatible,
-      /*DWARFMustBeAtTheEnd*/ false));
+      MAB->createObjectWriter(*OS), std::unique_ptr<MCCodeEmitter>(MCE),
+      *MSTI));
   if (!MS)
     return error("no object streamer for target " + TripleName, Context);
 
-  if (auto Err = write(*MS, DWOFilenames, ContinueOnCuIndexOverflow)) {
+  if (auto Err = write(*MS, DWOFilenames, OverflowOptValue)) {
     logAllUnhandledErrors(std::move(Err), WithColor::error());
     return 1;
   }

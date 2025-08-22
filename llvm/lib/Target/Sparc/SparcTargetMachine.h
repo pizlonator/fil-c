@@ -15,14 +15,14 @@
 
 #include "SparcInstrInfo.h"
 #include "SparcSubtarget.h"
+#include "llvm/CodeGen/CodeGenTargetMachineImpl.h"
 #include "llvm/Target/TargetMachine.h"
 #include <optional>
 
 namespace llvm {
 
-class SparcTargetMachine : public LLVMTargetMachine {
+class SparcTargetMachine : public CodeGenTargetMachineImpl {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
-  SparcSubtarget Subtarget;
   bool is64Bit;
   mutable StringMap<std::unique_ptr<SparcSubtarget>> SubtargetMap;
 
@@ -30,12 +30,11 @@ public:
   SparcTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                      StringRef FS, const TargetOptions &Options,
                      std::optional<Reloc::Model> RM,
-                     std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                     std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                      bool JIT, bool is64bit);
   ~SparcTargetMachine() override;
 
-  const SparcSubtarget *getSubtargetImpl() const { return &Subtarget; }
-  const SparcSubtarget *getSubtargetImpl(const Function &) const override;
+  const SparcSubtarget *getSubtargetImpl(const Function &F) const override;
 
   // Pass Pipeline Configuration
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
@@ -57,7 +56,7 @@ public:
   SparcV8TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                        StringRef FS, const TargetOptions &Options,
                        std::optional<Reloc::Model> RM,
-                       std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                       std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                        bool JIT);
 };
 
@@ -70,7 +69,7 @@ public:
   SparcV9TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                        StringRef FS, const TargetOptions &Options,
                        std::optional<Reloc::Model> RM,
-                       std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                       std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                        bool JIT);
 };
 
@@ -81,7 +80,7 @@ public:
   SparcelTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                        StringRef FS, const TargetOptions &Options,
                        std::optional<Reloc::Model> RM,
-                       std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                       std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                        bool JIT);
 };
 

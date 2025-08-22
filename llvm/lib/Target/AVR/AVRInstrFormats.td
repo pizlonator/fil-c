@@ -75,17 +75,6 @@ class FRdRr<bits<4> opcode, bits<2> f, dag outs, dag ins, string asmstr,
   let Inst{3 - 0} = rr{3 - 0};
 }
 
-class FTST<bits<4> opcode, bits<2> f, dag outs, dag ins, string asmstr,
-           list<dag> pattern> : AVRInst16<outs, ins, asmstr, pattern> {
-  bits<5> rd;
-
-  let Inst{15 - 12} = opcode;
-  let Inst{11 - 10} = f;
-  let Inst{9} = rd{4};
-  let Inst{8 - 4} = rd;
-  let Inst{3 - 0} = rd{3 - 0};
-}
-
 //===----------------------------------------------------------------------===//
 // Instruction of the format `<mnemonic> Z, Rd`
 // <|1001|001r|rrrr|0ttt>
@@ -184,7 +173,6 @@ class FSTDLDD<bit type, dag outs, dag ins, string asmstr, list<dag> pattern>
 //===---------------------------------------------------------------------===//
 class FSTLD<bit type, bits<2> mode, dag outs, dag ins, string asmstr,
             list<dag> pattern> : AVRInst16<outs, ins, asmstr, pattern> {
-  bits<2> ptrreg;
   bits<5> reg;
 
   let Inst{15 - 13} = 0b100;
@@ -198,7 +186,6 @@ class FSTLD<bit type, bits<2> mode, dag outs, dag ins, string asmstr,
 
   let Inst{7 - 4} = reg{3 - 0};
 
-  let Inst{3 - 2} = ptrreg{1 - 0};
   let Inst{1 - 0} = mode{1 - 0};
 
   let DecoderMethod = "decodeLoadStore";
@@ -442,11 +429,6 @@ class FBRsk<bit f, bits<3> s, dag outs, dag ins, string asmstr,
 
 class F16<bits<16> opcode, dag outs, dag ins, string asmstr, list<dag> pattern>
     : AVRInst16<outs, ins, asmstr, pattern> {
-  let Inst = opcode;
-}
-
-class F32<bits<32> opcode, dag outs, dag ins, string asmstr, list<dag> pattern>
-    : AVRInst32<outs, ins, asmstr, pattern> {
   let Inst = opcode;
 }
 

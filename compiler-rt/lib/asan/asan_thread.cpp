@@ -21,6 +21,7 @@
 #include "sanitizer_common/sanitizer_common.h"
 #include "sanitizer_common/sanitizer_placement_new.h"
 #include "sanitizer_common/sanitizer_stackdepot.h"
+#include "sanitizer_common/sanitizer_thread_history.h"
 #include "sanitizer_common/sanitizer_tls_get_addr.h"
 
 namespace __asan {
@@ -28,10 +29,7 @@ namespace __asan {
 // AsanThreadContext implementation.
 
 void AsanThreadContext::OnCreated(void *arg) {
-  CreateThreadContextArgs *args = static_cast<CreateThreadContextArgs *>(arg);
-  if (args->stack)
-    stack_id = StackDepotPut(*args->stack);
-  thread = args->thread;
+  thread = static_cast<AsanThread *>(arg);
   thread->set_context(this);
 }
 
@@ -44,6 +42,10 @@ static ThreadRegistry *asan_thread_registry;
 static ThreadArgRetval *thread_data;
 
 static Mutex mu_for_thread_context;
+// TODO(leonardchan@): It should be possible to make LowLevelAllocator
+// threadsafe and consolidate this one into the GlobalLoweLevelAllocator.
+// We should be able to do something similar to what's in
+// sanitizer_stack_store.cpp.
 static LowLevelAllocator allocator_for_thread_context;
 
 static ThreadContextBase *GetAsanThreadContext(u32 tid) {
@@ -63,10 +65,10 @@ static void InitThreads() {
   // thread before all TSD destructors will be called for it.
 
   // MIPS requires aligned address
-  static ALIGNED(alignof(
-      ThreadRegistry)) char thread_registry_placeholder[sizeof(ThreadRegistry)];
-  static ALIGNED(alignof(
-      ThreadArgRetval)) char thread_data_placeholder[sizeof(ThreadArgRetval)];
+  alignas(alignof(ThreadRegistry)) static char
+      thread_registry_placeholder[sizeof(ThreadRegistry)];
+  alignas(alignof(ThreadArgRetval)) static char
+      thread_data_placeholder[sizeof(ThreadArgRetval)];
 
   asan_thread_registry =
       new (thread_registry_placeholder) ThreadRegistry(GetAsanThreadContext);
@@ -91,18 +93,25 @@ AsanThreadContext *GetThreadContextByTidLocked(u32 tid) {
 
 // AsanThread implementation.
 
-AsanThread *AsanThread::Create(thread_callback_t start_routine, void *arg,
+AsanThread *AsanThread::Create(const void *start_data, uptr data_size,
                                u32 parent_tid, StackTrace *stack,
                                bool detached) {
   uptr PageSize = GetPageSizeCached();
   uptr size = RoundUpTo(sizeof(AsanThread), PageSize);
   AsanThread *thread = (AsanThread *)MmapOrDie(size, __func__);
-  thread->start_routine_ = start_routine;
-  thread->arg_ = arg;
-  AsanThreadContext::CreateThreadContextArgs args = {thread, stack};
-  asanThreadRegistry().CreateThread(0, detached, parent_tid, &args);
+  if (data_size) {
+    uptr availible_size = (uptr)thread + size - (uptr)(thread->start_data_);
+    CHECK_LE(data_size, availible_size);
+    internal_memcpy(thread->start_data_, start_data, data_size);
+  }
+  asanThreadRegistry().CreateThread(0, detached, parent_tid,
+                                    stack ? StackDepotPut(*stack) : 0, thread);
 
   return thread;
+}
+
+void AsanThread::GetStartData(void *out, uptr out_size) const {
+  internal_memcpy(out, start_data_, out_size);
 }
 
 void AsanThread::TSDDtor(void *tsd) {
@@ -273,37 +282,17 @@ void AsanThread::Init(const InitOptions *options) {
 // asan_fuchsia.c definies CreateMainThread and SetThreadStackAndTls.
 #if !SANITIZER_FUCHSIA
 
-thread_return_t AsanThread::ThreadStart(tid_t os_id) {
+void AsanThread::ThreadStart(tid_t os_id) {
   Init();
   asanThreadRegistry().StartThread(tid(), os_id, ThreadType::Regular, nullptr);
 
   if (common_flags()->use_sigaltstack)
     SetAlternateSignalStack();
-
-  if (!start_routine_) {
-    // start_routine_ == 0 if we're on the main thread or on one of the
-    // OS X libdispatch worker threads. But nobody is supposed to call
-    // ThreadStart() for the worker threads.
-    CHECK_EQ(tid(), 0);
-    return 0;
-  }
-
-  thread_return_t res = start_routine_(arg_);
-
-  // On POSIX systems we defer this to the TSD destructor. LSan will consider
-  // the thread's memory as non-live from the moment we call Destroy(), even
-  // though that memory might contain pointers to heap objects which will be
-  // cleaned up by a user-defined TSD destructor. Thus, calling Destroy() before
-  // the TSD destructors have run might cause false positives in LSan.
-  if (!SANITIZER_POSIX)
-    this->Destroy();
-
-  return res;
 }
 
 AsanThread *CreateMainThread() {
   AsanThread *main_thread = AsanThread::Create(
-      /* start_routine */ nullptr, /* arg */ nullptr, /* parent_tid */ kMainTid,
+      /* parent_tid */ kMainTid,
       /* stack */ nullptr, /* detached */ true);
   SetCurrentThread(main_thread);
   main_thread->ThreadStart(internal_getpid());
@@ -315,13 +304,10 @@ AsanThread *CreateMainThread() {
 // OS-specific implementations that need more information passed through.
 void AsanThread::SetThreadStackAndTls(const InitOptions *options) {
   DCHECK_EQ(options, nullptr);
-  uptr tls_size = 0;
-  uptr stack_size = 0;
-  GetThreadStackAndTls(tid() == kMainTid, &stack_bottom_, &stack_size,
-                       &tls_begin_, &tls_size);
-  stack_top_ = RoundDownTo(stack_bottom_ + stack_size, ASAN_SHADOW_GRANULARITY);
+  GetThreadStackAndTls(tid() == kMainTid, &stack_bottom_, &stack_top_,
+                       &tls_begin_, &tls_end_);
+  stack_top_ = RoundDownTo(stack_top_, ASAN_SHADOW_GRANULARITY);
   stack_bottom_ = RoundDownTo(stack_bottom_, ASAN_SHADOW_GRANULARITY);
-  tls_end_ = tls_begin_ + tls_size;
   dtls_ = DTLS_Get();
 
   if (stack_top_ != stack_bottom_) {
@@ -568,6 +554,12 @@ void GetRunningThreadsLocked(InternalMmapVector<tid_t> *threads) {
               tctx->os_id);
       },
       threads);
+}
+
+void PrintThreads() {
+  InternalScopedString out;
+  PrintThreadHistory(__asan::asanThreadRegistry(), out);
+  Report("%s\n", out.data());
 }
 
 }  // namespace __lsan

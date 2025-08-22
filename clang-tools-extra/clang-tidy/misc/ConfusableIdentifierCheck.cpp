@@ -56,7 +56,7 @@ static llvm::SmallString<64U> skeleton(StringRef Name) {
   while (Curr < End) {
 
     const char *Prev = Curr;
-    UTF32 CodePoint;
+    UTF32 CodePoint = 0;
     ConversionResult Result = convertUTF8Sequence(
         reinterpret_cast<const UTF8 **>(&Curr),
         reinterpret_cast<const UTF8 *>(End), &CodePoint, strictConversion);
@@ -137,11 +137,11 @@ static bool mayShadow(const NamedDecl *ND0,
 const ConfusableIdentifierCheck::ContextInfo *
 ConfusableIdentifierCheck::getContextInfo(const DeclContext *DC) {
   const DeclContext *PrimaryContext = DC->getPrimaryContext();
-  auto It = ContextInfos.find(PrimaryContext);
-  if (It != ContextInfos.end())
+  auto [It, Inserted] = ContextInfos.try_emplace(PrimaryContext);
+  if (!Inserted)
     return &It->second;
 
-  ContextInfo &Info = ContextInfos[PrimaryContext];
+  ContextInfo &Info = It->second;
   Info.PrimaryContext = PrimaryContext;
   Info.NonTransparentContext = PrimaryContext;
 
@@ -161,7 +161,7 @@ ConfusableIdentifierCheck::getContextInfo(const DeclContext *DC) {
     DC = DC->getParent();
   }
 
-  if (const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(PrimaryContext)) {
+  if (const auto *RD = dyn_cast<CXXRecordDecl>(PrimaryContext)) {
     RD = RD->getDefinition();
     if (RD) {
       Info.Bases.push_back(RD);

@@ -43,7 +43,7 @@ Type matchContainerType(Type element, Type container) {
 TypedAttr getConstantAttr(Type type, int64_t value, PatternRewriter &rewriter) {
   if (auto shapedTy = dyn_cast<ShapedType>(type)) {
     Type eTy = shapedTy.getElementType();
-    APInt valueInt(eTy.getIntOrFloatBitWidth(), value);
+    APInt valueInt(eTy.getIntOrFloatBitWidth(), value, /*isSigned=*/true);
     return DenseIntElementsAttr::get(shapedTy, valueInt);
   }
 
@@ -81,7 +81,9 @@ public:
     Value shift32 = rewriter.create<arith::ExtUIOp>(loc, i32Ty, op.getShift());
 
     // Compute the multiplication in 64-bits then select the high / low parts.
-    Value value64 = rewriter.create<arith::ExtSIOp>(loc, i64Ty, value);
+    Value value64 = value;
+    if (getElementTypeOrSelf(valueTy) != rewriter.getI64Type())
+      value64 = rewriter.create<arith::ExtSIOp>(loc, i64Ty, value);
     Value multiplier64 =
         rewriter.create<arith::ExtSIOp>(loc, i64Ty, multiplier32);
     Value multiply64 =

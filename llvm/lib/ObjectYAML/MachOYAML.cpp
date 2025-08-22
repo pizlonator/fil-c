@@ -13,11 +13,10 @@
 #include "llvm/ObjectYAML/MachOYAML.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/MachO.h"
-#include "llvm/Support/Format.h"
+#include "llvm/Support/SystemZ/zOSSupport.h"
 #include "llvm/Support/YAMLTraits.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Host.h"
-#include <cinttypes>
 #include <cstdint>
 #include <cstring>
 
@@ -347,7 +346,10 @@ void MappingTraits<MachOYAML::Section>::mapping(IO &IO,
 std::string
 MappingTraits<MachOYAML::Section>::validate(IO &IO,
                                             MachOYAML::Section &Section) {
-  if (Section.content && Section.size < Section.content->binary_size())
+  // Can't check the `size`, as it's required and may be left uninitialized by
+  // previous error.
+  if (!IO.error() && Section.content &&
+      Section.size < Section.content->binary_size())
     return "Section size must be greater than or equal to the content size";
   return "";
 }
@@ -627,7 +629,8 @@ void MappingTraits<MachO::fileset_entry_command>::mapping(
     IO &IO, MachO::fileset_entry_command &LoadCommand) {
   IO.mapRequired("vmaddr", LoadCommand.vmaddr);
   IO.mapRequired("fileoff", LoadCommand.fileoff);
-  IO.mapRequired("id", LoadCommand.entry_id);
+  IO.mapRequired("id", LoadCommand.entry_id.offset);
+  IO.mapOptional("reserved", LoadCommand.reserved);
 }
 
 } // end namespace yaml

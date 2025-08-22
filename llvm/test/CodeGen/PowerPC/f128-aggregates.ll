@@ -283,7 +283,7 @@ define fp128 @testMixedAggregate([3 x i128] %a.coerce) {
 ;
 ; CHECK-BE-LABEL: testMixedAggregate:
 ; CHECK-BE:       # %bb.0: # %entry
-; CHECK-BE-NEXT:    mtvsrdd v2, r8, r7
+; CHECK-BE-NEXT:    mtvsrdd v2, r7, r8
 ; CHECK-BE-NEXT:    blr
 ;
 ; CHECK-P8-LABEL: testMixedAggregate:
@@ -310,7 +310,7 @@ define fp128 @testMixedAggregate_02([4 x i128] %a.coerce) {
 ;
 ; CHECK-BE-LABEL: testMixedAggregate_02:
 ; CHECK-BE:       # %bb.0: # %entry
-; CHECK-BE-NEXT:    mtvsrdd v2, r6, r5
+; CHECK-BE-NEXT:    mtvsrdd v2, r5, r6
 ; CHECK-BE-NEXT:    blr
 ;
 ; CHECK-P8-LABEL: testMixedAggregate_02:
@@ -344,7 +344,7 @@ define fp128 @testMixedAggregate_03([4 x i128] %sa.coerce) {
 ; CHECK-BE-LABEL: testMixedAggregate_03:
 ; CHECK-BE:       # %bb.0: # %entry
 ; CHECK-BE-NEXT:    mtvsrwa v2, r4
-; CHECK-BE-NEXT:    mtvsrdd v3, r6, r5
+; CHECK-BE-NEXT:    mtvsrdd v3, r5, r6
 ; CHECK-BE-NEXT:    xscvsdqp v2, v2
 ; CHECK-BE-NEXT:    xsaddqp v2, v3, v2
 ; CHECK-BE-NEXT:    mtvsrd v3, r9
@@ -438,13 +438,13 @@ define fp128 @testNestedAggregate(ptr byval(%struct.MixedC) nocapture readonly a
 ;
 ; CHECK-P8-LABEL: testNestedAggregate:
 ; CHECK-P8:       # %bb.0: # %entry
-; CHECK-P8-NEXT:    li r11, 32
 ; CHECK-P8-NEXT:    std r8, 72(r1)
 ; CHECK-P8-NEXT:    std r7, 64(r1)
+; CHECK-P8-NEXT:    li r7, 32
+; CHECK-P8-NEXT:    addi r8, r1, 32
 ; CHECK-P8-NEXT:    std r9, 80(r1)
 ; CHECK-P8-NEXT:    std r10, 88(r1)
-; CHECK-P8-NEXT:    addi r7, r1, 32
-; CHECK-P8-NEXT:    lxvd2x vs0, r7, r11
+; CHECK-P8-NEXT:    lxvd2x vs0, r8, r7
 ; CHECK-P8-NEXT:    std r3, 32(r1)
 ; CHECK-P8-NEXT:    std r4, 40(r1)
 ; CHECK-P8-NEXT:    std r5, 48(r1)
@@ -467,15 +467,15 @@ define fp128 @testUnion_01([1 x i128] %a.coerce) {
 ;
 ; CHECK-BE-LABEL: testUnion_01:
 ; CHECK-BE:       # %bb.0: # %entry
-; CHECK-BE-NEXT:    mtvsrdd v2, r4, r3
+; CHECK-BE-NEXT:    mtvsrdd v2, r3, r4
 ; CHECK-BE-NEXT:    blr
 ;
 ; CHECK-P8-LABEL: testUnion_01:
 ; CHECK-P8:       # %bb.0: # %entry
-; CHECK-P8-NEXT:    addi r5, r1, -16
-; CHECK-P8-NEXT:    std r4, -8(r1)
 ; CHECK-P8-NEXT:    std r3, -16(r1)
-; CHECK-P8-NEXT:    lxvd2x vs0, 0, r5
+; CHECK-P8-NEXT:    addi r3, r1, -16
+; CHECK-P8-NEXT:    std r4, -8(r1)
+; CHECK-P8-NEXT:    lxvd2x vs0, 0, r3
 ; CHECK-P8-NEXT:    xxswapd v2, vs0
 ; CHECK-P8-NEXT:    blr
 
@@ -494,15 +494,15 @@ define fp128 @testUnion_02([1 x i128] %a.coerce) {
 ;
 ; CHECK-BE-LABEL: testUnion_02:
 ; CHECK-BE:       # %bb.0: # %entry
-; CHECK-BE-NEXT:    mtvsrdd v2, r4, r3
+; CHECK-BE-NEXT:    mtvsrdd v2, r3, r4
 ; CHECK-BE-NEXT:    blr
 ;
 ; CHECK-P8-LABEL: testUnion_02:
 ; CHECK-P8:       # %bb.0: # %entry
-; CHECK-P8-NEXT:    addi r5, r1, -16
-; CHECK-P8-NEXT:    std r4, -8(r1)
 ; CHECK-P8-NEXT:    std r3, -16(r1)
-; CHECK-P8-NEXT:    lxvd2x vs0, 0, r5
+; CHECK-P8-NEXT:    addi r3, r1, -16
+; CHECK-P8-NEXT:    std r4, -8(r1)
+; CHECK-P8-NEXT:    lxvd2x vs0, 0, r3
 ; CHECK-P8-NEXT:    xxswapd v2, vs0
 ; CHECK-P8-NEXT:    blr
 
@@ -521,7 +521,7 @@ define fp128 @testUnion_03([4 x i128] %a.coerce) {
 ;
 ; CHECK-BE-LABEL: testUnion_03:
 ; CHECK-BE:       # %bb.0: # %entry
-; CHECK-BE-NEXT:    mtvsrdd v2, r8, r7
+; CHECK-BE-NEXT:    mtvsrdd v2, r7, r8
 ; CHECK-BE-NEXT:    blr
 ;
 ; CHECK-P8-LABEL: testUnion_03:
@@ -597,16 +597,16 @@ define fp128 @sum_float128(i32 signext %count, ...) {
 ; CHECK-P8-NEXT:    .cfi_offset r30, -16
 ; CHECK-P8-NEXT:    std r30, -16(r1) # 8-byte Folded Spill
 ; CHECK-P8-NEXT:    stdu r1, -64(r1)
-; CHECK-P8-NEXT:    addis r11, r2, .LCPI17_0@toc@ha
-; CHECK-P8-NEXT:    cmpwi r3, 0
 ; CHECK-P8-NEXT:    std r0, 80(r1)
 ; CHECK-P8-NEXT:    std r4, 104(r1)
+; CHECK-P8-NEXT:    addis r4, r2, .LCPI17_0@toc@ha
+; CHECK-P8-NEXT:    cmpwi r3, 0
 ; CHECK-P8-NEXT:    std r5, 112(r1)
 ; CHECK-P8-NEXT:    std r6, 120(r1)
-; CHECK-P8-NEXT:    addi r11, r11, .LCPI17_0@toc@l
-; CHECK-P8-NEXT:    lxvd2x vs0, 0, r11
+; CHECK-P8-NEXT:    addi r4, r4, .LCPI17_0@toc@l
 ; CHECK-P8-NEXT:    std r7, 128(r1)
 ; CHECK-P8-NEXT:    std r8, 136(r1)
+; CHECK-P8-NEXT:    lxvd2x vs0, 0, r4
 ; CHECK-P8-NEXT:    std r9, 144(r1)
 ; CHECK-P8-NEXT:    std r10, 152(r1)
 ; CHECK-P8-NEXT:    xxswapd v3, vs0

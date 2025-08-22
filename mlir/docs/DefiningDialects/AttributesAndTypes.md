@@ -14,8 +14,8 @@ from the [MLIR LangRef](../LangRef.md).
 
 Attributes are the mechanism for specifying constant data on operations in
 places where a variable is never allowed - e.g. the comparison predicate of a
-[`arith.cmpi` operation](../Dialects/ArithOps.md#arithcmpi-mlirarithcmpiop), or
-the underlying value of a [`arith.constant` operation](../Dialects/ArithOps.md#arithconstant-mlirarithconstantop).
+[`arith.cmpi` operation](../Dialects/ArithOps.md/#arithcmpi-arithcmpiop), or
+the underlying value of a [`arith.constant` operation](../Dialects/ArithOps.md/#arithconstant-arithconstantop).
 Each operation has an attribute dictionary, which associates a set of attribute
 names to attribute values.
 
@@ -24,7 +24,7 @@ names to attribute values.
 Every SSA value, such as operation results or block arguments, in MLIR has a type
 defined by the type system. MLIR has an open type system with no fixed list of types,
 and there are no restrictions on the abstractions they represent. For example, take
-the following [Arithmetic AddI operation](../Dialects/ArithOps.md#arithaddi-mlirarithaddiop):
+the following [Arithmetic AddI operation](../Dialects/ArithOps.md/#arithaddi-arithaddiop):
 
 ```mlir
   %result = arith.addi %lhs, %rhs : i64
@@ -32,7 +32,7 @@ the following [Arithmetic AddI operation](../Dialects/ArithOps.md#arithaddi-mlir
 
 It takes two input SSA values (`%lhs` and `%rhs`), and returns a single SSA
 value (`%result`). The inputs and outputs of this operation are of type `i64`,
-which is an instance of the [Builtin IntegerType](../Dialects/Builtin.md#integertype).
+which is an instance of the [Builtin IntegerType](../Dialects/Builtin.md/#integertype).
 
 ## Attributes and Types
 
@@ -47,6 +47,10 @@ few differences depending on the context. As such, a majority of this document
 describes the process for defining both Attributes and Types side-by-side with
 examples for both. If necessary, a section will explicitly call out any
 distinct differences.
+
+One difference is that generating C++ classes from declarative TableGen 
+definitions will require adding additional targets to your `CMakeLists.txt`.
+This is not necessary for custom types. The details are outlined further below.
 
 ### Adding a new Attribute or Type definition
 
@@ -168,6 +172,26 @@ was provided to `MyDialect_Attr` and `MyDialect_Type`. For the definitions we
 added above, we would get C++ classes named `IntegerType` and `IntegerAttr`
 respectively. This can be explicitly overridden via the `cppClassName` field.
 
+### CMake Targets
+
+If you added your dialect using `add_mlir_dialect()` in your `CMakeLists.txt`,
+the above mentioned classes will automatically get generated for custom 
+_types_. They will be output in a file named `<Your Dialect>Types.h.inc`. 
+
+To also generate the classes for custom _attributes_, you will need to add
+two additional TableGen targets to your `CMakeLists.txt`: 
+
+```cmake
+mlir_tablegen(<Your Dialect>AttrDefs.h.inc -gen-attrdef-decls 
+              -attrdefs-dialect=<Your Dialect>)
+mlir_tablegen(<Your Dialect>AttrDefs.cpp.inc -gen-attrdef-defs 
+              -attrdefs-dialect=<Your Dialect>)
+add_public_tablegen_target(<Your Dialect>AttrDefsIncGen)
+```
+
+The generated `<Your Dialect>AttrDefs.h.inc` will need to be included whereever
+you are referencing the custom attribute types.
+
 ### Documentation
 
 The `summary` and `description` fields allow for providing user documentation
@@ -281,7 +305,7 @@ MLIR includes several specialized classes for common situations:
 Similarly to operations, Attribute and Type classes may attach `Traits` that
 provide additional mixin methods and other data. `Trait`s may be attached via
 the trailing template argument, i.e. the `traits` list parameter in the example
-above. See the main [`Trait`](../Traits.md) documentation for more information
+above. See the main [`Trait`](../Traits) documentation for more information
 on defining and using traits.
 
 ### Interfaces
@@ -527,13 +551,13 @@ For Types, these methods will have the form:
 
 - `static Type MyType::parse(AsmParser &parser)`
 
-- `Type MyType::print(AsmPrinter &p) const`
+- `void MyType::print(AsmPrinter &p) const`
 
 For Attributes, these methods will have the form:
 
 - `static Attribute MyAttr::parse(AsmParser &parser, Type attrType)`
 
-- `Attribute MyAttr::print(AsmPrinter &p) const`
+- `void MyAttr::print(AsmPrinter &p) const`
 
 #### Using `assemblyFormat`
 
@@ -866,7 +890,7 @@ The `custom` directive `custom<Foo>($foo)` will in the parser and printer
 respectively generate calls to:
 
 ```c++
-LogicalResult parseFoo(AsmParser &parser, int &foo);
+ParseResult parseFoo(AsmParser &parser, int &foo);
 void printFoo(AsmPrinter &printer, int foo);
 ```
 
@@ -883,7 +907,7 @@ let assemblyFormat = "custom<Fizz>($foobar)";
 It will generate calls expecting the following signature for `parseFizz`:
 
 ```c++
-LogicalResult parseFizz(AsmParser &parser, FailureOr<NotDefaultConstructible> &foobar);
+ParseResult parseFizz(AsmParser &parser, FailureOr<NotDefaultConstructible> &foobar);
 ```
 
 A previously bound variable can be passed as a parameter to a `custom` directive
@@ -892,7 +916,7 @@ the first directive. The second directive references it and expects the
 following printer and parser signatures:
 
 ```c++
-LogicalResult parseBar(AsmParser &parser, int &bar, int foo);
+ParseResult parseBar(AsmParser &parser, int &bar, int foo);
 void printBar(AsmPrinter &printer, int bar, int foo);
 ```
 
@@ -901,7 +925,7 @@ is that the parameter for the parser must use the storage type of the parameter.
 For example, `StringRefParameter` expects the parser and printer signatures as:
 
 ```c++
-LogicalResult parseStringParam(AsmParser &parser, std::string &value);
+ParseResult parseStringParam(AsmParser &parser, std::string &value);
 void printStringParam(AsmPrinter &printer, StringRef value);
 ```
 

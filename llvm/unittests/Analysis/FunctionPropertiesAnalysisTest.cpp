@@ -7,7 +7,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Analysis/FunctionPropertiesAnalysis.h"
-#include "llvm/ADT/iterator_range.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/AsmParser/Parser.h"
@@ -24,6 +23,13 @@
 #include <cstring>
 
 using namespace llvm;
+
+namespace llvm {
+extern cl::opt<bool> EnableDetailedFunctionProperties;
+extern cl::opt<bool> BigBasicBlockInstructionThreshold;
+extern cl::opt<bool> MediumBasicBlockInstrutionThreshold;
+} // namespace llvm
+
 namespace {
 
 class FunctionPropertiesAnalysisTest : public testing::Test {
@@ -117,6 +123,93 @@ define internal i32 @top() {
   EXPECT_EQ(BranchesFeatures.StoreInstCount, 0);
   EXPECT_EQ(BranchesFeatures.MaxLoopDepth, 0);
   EXPECT_EQ(BranchesFeatures.TopLevelLoopCount, 0);
+
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedBranchesFeatures = buildFPI(*BranchesFunction);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlocksWithSingleSuccessor, 2);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlocksWithTwoSuccessors, 1);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlocksWithMoreThanTwoSuccessors, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlocksWithSinglePredecessor, 2);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlocksWithTwoPredecessors, 1);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlocksWithMoreThanTwoPredecessors, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.BigBasicBlocks, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.MediumBasicBlocks, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.SmallBasicBlocks, 4);
+  EXPECT_EQ(DetailedBranchesFeatures.CastInstructionCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.FloatingPointInstructionCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.IntegerInstructionCount, 4);
+  EXPECT_EQ(DetailedBranchesFeatures.ConstantIntOperandCount, 1);
+  EXPECT_EQ(DetailedBranchesFeatures.ConstantFPOperandCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.ConstantOperandCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.InstructionOperandCount, 4);
+  EXPECT_EQ(DetailedBranchesFeatures.BasicBlockOperandCount, 4);
+  EXPECT_EQ(DetailedBranchesFeatures.GlobalValueOperandCount, 2);
+  EXPECT_EQ(DetailedBranchesFeatures.InlineAsmOperandCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.ArgumentOperandCount, 3);
+  EXPECT_EQ(DetailedBranchesFeatures.UnknownOperandCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.CriticalEdgeCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.ControlFlowEdgeCount, 4);
+  EXPECT_EQ(DetailedBranchesFeatures.UnconditionalBranchCount, 2);
+  EXPECT_EQ(DetailedBranchesFeatures.IntrinsicCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.DirectCallCount, 2);
+  EXPECT_EQ(DetailedBranchesFeatures.IndirectCallCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.CallReturnsIntegerCount, 2);
+  EXPECT_EQ(DetailedBranchesFeatures.CallReturnsFloatCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.CallReturnsPointerCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.CallWithManyArgumentsCount, 0);
+  EXPECT_EQ(DetailedBranchesFeatures.CallWithPointerArgumentCount, 0);
+  EnableDetailedFunctionProperties.setValue(false);
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, DifferentPredecessorSuccessorCounts) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+define i64 @f1() {
+  br i1 0, label %br1, label %finally
+br1:
+  ret i64 0
+finally:
+  ret i64 3
+}
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedF1Properties = buildFPI(*F1);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithSingleSuccessor, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithTwoSuccessors, 1);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithMoreThanTwoSuccessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithSinglePredecessor, 2);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithTwoPredecessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithMoreThanTwoPredecessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BigBasicBlocks, 0);
+  EXPECT_EQ(DetailedF1Properties.MediumBasicBlocks, 0);
+  EXPECT_EQ(DetailedF1Properties.SmallBasicBlocks, 3);
+  EXPECT_EQ(DetailedF1Properties.CastInstructionCount, 0);
+  EXPECT_EQ(DetailedF1Properties.FloatingPointInstructionCount, 0);
+  EXPECT_EQ(DetailedF1Properties.IntegerInstructionCount, 0);
+  EXPECT_EQ(DetailedF1Properties.ConstantIntOperandCount, 3);
+  EXPECT_EQ(DetailedF1Properties.ConstantFPOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.ConstantOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.InstructionOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlockOperandCount, 2);
+  EXPECT_EQ(DetailedF1Properties.GlobalValueOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.InlineAsmOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.ArgumentOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.UnknownOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CriticalEdgeCount, 0);
+  EXPECT_EQ(DetailedF1Properties.ControlFlowEdgeCount, 2);
+  EXPECT_EQ(DetailedF1Properties.UnconditionalBranchCount, 0);
+  EXPECT_EQ(DetailedF1Properties.IntrinsicCount, 0);
+  EXPECT_EQ(DetailedF1Properties.DirectCallCount, 0);
+  EXPECT_EQ(DetailedF1Properties.IndirectCallCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsIntegerCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsFloatCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsPointerCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallWithManyArgumentsCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallWithPointerArgumentCount, 0);
+  EnableDetailedFunctionProperties.setValue(false);
 }
 
 TEST_F(FunctionPropertiesAnalysisTest, InlineSameBBSimple) {
@@ -739,5 +832,286 @@ declare void @f3()
   invalidate(*F1);
   EXPECT_TRUE(FPU.finishAndTest(FAM));
   EXPECT_EQ(FPI, ExpectedFinal);
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, DetailedOperandCount) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+@a = global i64 1
+
+define i64 @f1(i64 %e) {
+	%b = load i64, i64* @a
+  %c = add i64 %b, 2
+  %d = call i64 asm "mov $1,$0", "=r,r" (i64 %c)																						
+	%f = add i64 %d, %e
+	ret i64 %f
+}
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedF1Properties = buildFPI(*F1);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithSingleSuccessor, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithTwoSuccessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithMoreThanTwoSuccessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithSinglePredecessor, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithTwoPredecessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BasicBlocksWithMoreThanTwoPredecessors, 0);
+  EXPECT_EQ(DetailedF1Properties.BigBasicBlocks, 0);
+  EXPECT_EQ(DetailedF1Properties.MediumBasicBlocks, 0);
+  EXPECT_EQ(DetailedF1Properties.SmallBasicBlocks, 1);
+  EXPECT_EQ(DetailedF1Properties.CastInstructionCount, 0);
+  EXPECT_EQ(DetailedF1Properties.FloatingPointInstructionCount, 0);
+  EXPECT_EQ(DetailedF1Properties.IntegerInstructionCount, 4);
+  EXPECT_EQ(DetailedF1Properties.ConstantIntOperandCount, 1);
+  EXPECT_EQ(DetailedF1Properties.ConstantFPOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.ConstantOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.InstructionOperandCount, 4);
+  EXPECT_EQ(DetailedF1Properties.BasicBlockOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.GlobalValueOperandCount, 1);
+  EXPECT_EQ(DetailedF1Properties.InlineAsmOperandCount, 1);
+  EXPECT_EQ(DetailedF1Properties.ArgumentOperandCount, 1);
+  EXPECT_EQ(DetailedF1Properties.UnknownOperandCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CriticalEdgeCount, 0);
+  EXPECT_EQ(DetailedF1Properties.ControlFlowEdgeCount, 0);
+  EXPECT_EQ(DetailedF1Properties.UnconditionalBranchCount, 0);
+  EXPECT_EQ(DetailedF1Properties.IntrinsicCount, 0);
+  EXPECT_EQ(DetailedF1Properties.DirectCallCount, 1);
+  EXPECT_EQ(DetailedF1Properties.IndirectCallCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsIntegerCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsFloatCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsPointerCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallWithManyArgumentsCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallWithPointerArgumentCount, 0);
+  EnableDetailedFunctionProperties.setValue(false);
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, IntrinsicCount) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+define float @f1(float %a) {
+  %b = call float @llvm.cos.f32(float %a)
+  ret float %b
+}
+declare float @llvm.cos.f32(float)
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedF1Properties = buildFPI(*F1);
+  EXPECT_EQ(DetailedF1Properties.IntrinsicCount, 1);
+  EXPECT_EQ(DetailedF1Properties.DirectCallCount, 1);
+  EXPECT_EQ(DetailedF1Properties.IndirectCallCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsIntegerCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsFloatCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsPointerCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallWithManyArgumentsCount, 0);
+  EXPECT_EQ(DetailedF1Properties.CallWithPointerArgumentCount, 0);
+  EnableDetailedFunctionProperties.setValue(false);
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, FunctionCallMetrics) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+define i64 @f1(i64 %a) {
+  %b = call i64 @f2(i64 %a, i64 %a, i64 %a, i64 %a, i64 %a)
+  %c = call ptr @f3()
+  call void @f4(ptr %c)
+  %d = call float @f5()
+  %e = call i64 %c(i64 %b)
+  ret i64 %b
+}
+
+declare i64 @f2(i64,i64,i64,i64,i64)
+declare ptr @f3()
+declare void @f4(ptr)
+declare float @f5()
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedF1Properties = buildFPI(*F1);
+  EXPECT_EQ(DetailedF1Properties.IntrinsicCount, 0);
+  EXPECT_EQ(DetailedF1Properties.DirectCallCount, 4);
+  EXPECT_EQ(DetailedF1Properties.IndirectCallCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsIntegerCount, 2);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsFloatCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsPointerCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallWithManyArgumentsCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallWithPointerArgumentCount, 1);
+  EnableDetailedFunctionProperties.setValue(false);
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, CriticalEdge) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+define i64 @f1(i64 %a) {
+  %b = icmp eq i64 %a, 1
+  br i1 %b, label %TopBlock1, label %TopBlock2
+TopBlock1:
+  %c = add i64 %a, 1
+  %e = icmp eq i64 %c, 2
+  br i1 %e, label %BottomBlock1, label %BottomBlock2
+TopBlock2:
+  %d = add i64 %a, 2
+  br label %BottomBlock2
+BottomBlock1:
+  ret i64 0
+BottomBlock2:
+  %f = phi i64 [ %c, %TopBlock1 ], [ %d, %TopBlock2 ]
+  ret i64 %f
+}
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedF1Properties = buildFPI(*F1);
+  EXPECT_EQ(DetailedF1Properties.CriticalEdgeCount, 1);
+  EnableDetailedFunctionProperties.setValue(false);
+}
+
+
+TEST_F(FunctionPropertiesAnalysisTest, FunctionReturnVectors) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+define <4 x i64> @f1(<4 x i64> %a) {
+  %b = call <4 x i64> @f2()
+  %c = call <4 x float> @f3()
+  %d = call <4 x ptr> @f4()
+  ret <4 x i64> %b
+}
+
+declare <4 x i64> @f2()
+declare <4 x float> @f3()
+declare <4 x ptr> @f4()
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  EnableDetailedFunctionProperties.setValue(true);
+  FunctionPropertiesInfo DetailedF1Properties = buildFPI(*F1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsVectorIntCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsVectorFloatCount, 1);
+  EXPECT_EQ(DetailedF1Properties.CallReturnsVectorPointerCount, 1);
+  EnableDetailedFunctionProperties.setValue(false);
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, ReAddEdges) {
+  LLVMContext C;
+  std::unique_ptr<Module> M = makeLLVMModule(C, R"IR(
+define hidden void @f1(ptr noundef %destatep, i32 noundef %offset, i8 noundef zeroext %byte1) {
+entry:
+  %cmp = icmp eq i8 %byte1, 0
+  br i1 %cmp, label %if.then, label %if.else
+
+if.then:                                          ; preds = %entry
+  call fastcc void @f2(ptr noundef %destatep, i32 noundef 37, i32 noundef 600)
+  %and = and i32 %offset, 3
+  switch i32 %and, label %default.unreachable [
+    i32 0, label %sw.bb
+    i32 1, label %sw.bb1
+    i32 2, label %sw.bb1
+    i32 3, label %if.end
+  ]
+
+sw.bb:                                            ; preds = %if.then
+  call fastcc void @f2(ptr noundef %destatep, i32 noundef 57, i32 noundef 600)
+  br label %if.end
+
+sw.bb1:                                           ; preds = %if.then, %if.then
+  call fastcc void @f2(ptr noundef %destatep, i32 noundef 56, i32 noundef 600) #34
+  br label %if.end
+
+default.unreachable:                              ; preds = %if.then
+  unreachable
+
+if.else:                                          ; preds = %entry
+  call fastcc void @f2(ptr noundef %destatep, i32 noundef 56, i32 noundef 600)
+  br label %if.end
+
+if.end:                                           ; preds = %sw.bb, %sw.bb1, %if.then, %if.else
+  ret void
+}
+
+define internal fastcc void @f2(ptr nocapture noundef %destatep, i32 noundef %r_enc, i32 noundef %whack) {
+entry:
+  %enc_prob = getelementptr inbounds nuw i8, ptr %destatep, i32 512
+  %arrayidx = getelementptr inbounds [67 x i32], ptr %enc_prob, i32 0, i32 %r_enc
+  %0 = load i32, ptr %arrayidx, align 4
+  %sub = sub nsw i32 %0, %whack
+  store i32 %sub, ptr %arrayidx, align 4
+  ret void
+}
+  )IR");
+  auto *F1 = M->getFunction("f1");
+  auto *F2 = M->getFunction("f2");
+  auto *CB = [&]() -> CallBase * {
+    for (auto &BB : *F1)
+      for (auto &I : BB)
+        if (auto *CB = dyn_cast<CallBase>(&I);
+            CB && CB->getCalledFunction() && CB->getCalledFunction() == F2)
+          return CB;
+    return nullptr;
+  }();
+  ASSERT_NE(CB, nullptr);
+  auto FPI = buildFPI(*F1);
+  FunctionPropertiesUpdater FPU(FPI, *CB);
+  InlineFunctionInfo IFI;
+  auto IR = llvm::InlineFunction(*CB, IFI);
+  EXPECT_TRUE(IR.isSuccess());
+  invalidate(*F1);
+  EXPECT_TRUE(FPU.finishAndTest(FAM));
+}
+
+TEST_F(FunctionPropertiesAnalysisTest, InvokeLandingCanStillBeReached) {
+  LLVMContext C;
+  // %lpad is reachable from a block not involved in the inlining decision. We
+  // make sure that's not the entry - otherwise the DT will be recomputed from
+  // scratch. The idea here is that the edge known to the inliner to potentially
+  // disappear - %lpad->%ehcleanup -should survive because it is still reachable
+  // from %middle.
+  std::unique_ptr<Module> M = makeLLVMModule(C,
+                                             R"IR(
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
+
+define i64 @f1(i32 noundef %value) {
+entry:
+  br label %middle
+middle:
+  %c = icmp eq i32 %value, 0
+  br i1 %c, label %invoke, label %lpad
+invoke:
+  invoke fastcc void @f2() to label %cont unwind label %lpad
+cont:
+  br label %exit
+lpad:
+  %lp = landingpad i32 cleanup
+  br label %ehcleanup
+ehcleanup:
+  resume i32 0
+exit:
+  ret i64 1
+}
+define void @f2() {
+  ret void
+}
+)IR");
+
+  Function *F1 = M->getFunction("f1");
+  CallBase *CB = findCall(*F1);
+  EXPECT_NE(CB, nullptr);
+
+  auto FPI = buildFPI(*F1);
+  FunctionPropertiesUpdater FPU(FPI, *CB);
+  InlineFunctionInfo IFI;
+  auto IR = llvm::InlineFunction(*CB, IFI);
+  EXPECT_TRUE(IR.isSuccess());
+  invalidate(*F1);
+  EXPECT_TRUE(FPU.finishAndTest(FAM));
 }
 } // end anonymous namespace

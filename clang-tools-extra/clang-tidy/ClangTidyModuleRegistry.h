@@ -14,8 +14,12 @@
 
 namespace clang::tidy {
 
-typedef llvm::Registry<ClangTidyModule> ClangTidyModuleRegistry;
+using ClangTidyModuleRegistry = llvm::Registry<ClangTidyModule>;
 
 } // namespace clang::tidy
+
+namespace llvm {
+extern template class Registry<clang::tidy::ClangTidyModule>;
+} // namespace llvm
 
 #endif // LLVM_CLANG_TOOLS_EXTRA_CLANG_TIDY_CLANGTIDYMODULEREGISTRY_H

@@ -14,10 +14,10 @@
 #include "lldb/Core/ModuleSpec.h"
 #include "lldb/Core/PluginManager.h"
 #include "lldb/Core/Section.h"
-#include "lldb/Core/StreamFile.h"
 #include "lldb/Interpreter/OptionValueDictionary.h"
 #include "lldb/Interpreter/OptionValueProperties.h"
 #include "lldb/Symbol/ObjectFile.h"
+#include "lldb/Symbol/SaveCoreOptions.h"
 #include "lldb/Target/Process.h"
 #include "lldb/Target/SectionLoadList.h"
 #include "lldb/Target/Target.h"
@@ -80,8 +80,8 @@ enum {
 
 class PluginProperties : public Properties {
 public:
-  static ConstString GetSettingName() {
-    return ConstString(ObjectFilePECOFF::GetPluginNameStatic());
+  static llvm::StringRef GetSettingName() {
+    return ObjectFilePECOFF::GetPluginNameStatic();
   }
 
   PluginProperties() {
@@ -356,11 +356,12 @@ size_t ObjectFilePECOFF::GetModuleSpecifications(
 }
 
 bool ObjectFilePECOFF::SaveCore(const lldb::ProcessSP &process_sp,
-                                const lldb_private::FileSpec &outfile,
-                                lldb::SaveCoreStyle &core_style,
+                                lldb_private::SaveCoreOptions &options,
                                 lldb_private::Status &error) {
-  core_style = eSaveCoreFull;
-  return SaveMiniDump(process_sp, outfile, error);
+  // Outfile and process_sp are validated by PluginManager::SaveCore
+  assert(options.GetOutputFile().has_value());
+  assert(process_sp);
+  return SaveMiniDump(process_sp, options, error);
 }
 
 bool ObjectFilePECOFF::MagicBytesMatch(DataBufferSP data_sp) {
@@ -481,7 +482,7 @@ bool ObjectFilePECOFF::SetLoadAddress(Target &target, addr_t value,
         // that have SHF_ALLOC in their flag bits.
         SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
         if (section_sp && !section_sp->IsThreadSpecific()) {
-          if (target.GetSectionLoadList().SetSectionLoadAddress(
+          if (target.SetSectionLoadAddress(
                   section_sp, section_sp->GetFileAddress() + value))
             ++num_loaded_sections;
         }
@@ -792,11 +793,10 @@ void ObjectFilePECOFF::AppendFromCOFFSymbolTable(
   for (const auto &sym_ref : m_binary->symbols()) {
     const auto coff_sym_ref = m_binary->getCOFFSymbol(sym_ref);
     auto name_or_error = sym_ref.getName();
-    if (auto err = name_or_error.takeError()) {
-      LLDB_LOG(log,
-               "ObjectFilePECOFF::AppendFromCOFFSymbolTable - failed to get "
-               "symbol table entry name: {0}",
-               llvm::fmt_consume(std::move(err)));
+    if (!name_or_error) {
+      LLDB_LOG_ERROR(log, name_or_error.takeError(),
+                     "ObjectFilePECOFF::AppendFromCOFFSymbolTable - failed to "
+                     "get symbol table entry name: {0}");
       continue;
     }
     const llvm::StringRef sym_name = *name_or_error;
@@ -1010,6 +1010,9 @@ SectionType ObjectFilePECOFF::GetSectionType(llvm::StringRef sect_name,
           // .eh_frame can be truncated to 8 chars.
           .Cases(".eh_frame", ".eh_fram", eSectionTypeEHFrame)
           .Case(".gosymtab", eSectionTypeGoSymtab)
+          .Case(".lldbsummaries", lldb::eSectionTypeLLDBTypeSummaries)
+          .Case(".lldbformatters", lldb::eSectionTypeLLDBFormatters)
+          .Case("swiftast", eSectionTypeSwiftModules)
           .Default(eSectionTypeInvalid);
   if (section_type != eSectionTypeInvalid)
     return section_type;
@@ -1025,6 +1028,16 @@ SectionType ObjectFilePECOFF::GetSectionType(llvm::StringRef sect_name,
       return eSectionTypeData;
   }
   return eSectionTypeOther;
+}
+
+size_t ObjectFilePECOFF::GetSectionDataSize(Section *section) {
+  // For executables, SizeOfRawData (getFileSize()) is aligned by
+  // FileAlignment and the actual section size is in VirtualSize
+  // (getByteSize()). See the comment on
+  // llvm::object::COFFObjectFile::getSectionSize().
+  if (m_binary->getPE32Header() || m_binary->getPE32PlusHeader())
+    return std::min(section->GetByteSize(), section->GetFileSize());
+  return section->GetFileSize();
 }
 
 void ObjectFilePECOFF::CreateSections(SectionList &unified_section_list) {

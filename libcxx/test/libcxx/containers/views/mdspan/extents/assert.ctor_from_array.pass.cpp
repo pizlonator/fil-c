@@ -6,8 +6,8 @@
 //===----------------------------------------------------------------------===//
 // REQUIRES: has-unix-headers
 // UNSUPPORTED: c++03, c++11, c++14, c++17, c++20
-// UNSUPPORTED: !libcpp-has-hardened-mode && !libcpp-has-debug-mode && !libcpp-has-assertions
-// XFAIL: availability-verbose_abort-missing
+// UNSUPPORTED: libcpp-hardening-mode=none
+// XFAIL: libcpp-hardening-mode=debug && availability-verbose_abort-missing
 
 // <mdspan>
 
@@ -51,19 +51,13 @@ int main(int, char**) {
   }
   // value out of range
   {
-    TEST_LIBCPP_ASSERT_FAILURE(
-        ([] {
-          std::extents<char, D, 5> e1(std::array{1000, 5});
-        }()),
-        "extents ctor: arguments must be representable as index_type and nonnegative");
+    TEST_LIBCPP_ASSERT_FAILURE(([] { std::extents<signed char, D, 5> e1(std::array{1000, 5}); }()),
+                               "extents ctor: arguments must be representable as index_type and nonnegative");
   }
   // negative value
   {
-    TEST_LIBCPP_ASSERT_FAILURE(
-        ([] {
-          std::extents<char, D, 5> e1(std::array{-1, 5});
-        }()),
-        "extents ctor: arguments must be representable as index_type and nonnegative");
+    TEST_LIBCPP_ASSERT_FAILURE(([] { std::extents<signed char, D, 5> e1(std::array{-1, 5}); }()),
+                               "extents ctor: arguments must be representable as index_type and nonnegative");
   }
   return 0;
 }

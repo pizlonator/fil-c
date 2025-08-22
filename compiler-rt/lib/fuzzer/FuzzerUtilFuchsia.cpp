@@ -292,7 +292,7 @@ void CrashHandler() {
     zx_wait_item_t WaitItems[] = {
         {
             .handle = SignalHandlerEvent,
-            .waitfor = ZX_SIGNAL_HANDLE_CLOSED,
+            .waitfor = ZX_USER_SIGNAL_1,
             .pending = 0,
         },
         {
@@ -378,10 +378,11 @@ void CrashHandler() {
 }
 
 void StopSignalHandler() {
-  _zx_handle_close(SignalHandlerEvent);
+  _zx_object_signal(SignalHandlerEvent, 0, ZX_USER_SIGNAL_1);
   if (SignalHandler.joinable()) {
     SignalHandler.join();
   }
+  _zx_handle_close(SignalHandlerEvent);
 }
 
 } // namespace
@@ -603,6 +604,14 @@ void DiscardOutput(int Fd) {
 size_t PageSize() {
   static size_t PageSizeCached = _zx_system_get_page_size();
   return PageSizeCached;
+}
+
+void SetThreadName(std::thread &thread, const std::string &name) {
+  if (zx_status_t s = zx_object_set_property(
+          thread.native_handle(), ZX_PROP_NAME, name.data(), name.size());
+      s != ZX_OK)
+    Printf("SetThreadName for name %s failed: %s", name.c_str(),
+           zx_status_get_string(s));
 }
 
 } // namespace fuzzer

@@ -32,13 +32,13 @@ def IRDL_AttributeType : IRDL_Type<"Attribute", "attribute"> {
     Example:
 
     ```mlir
-    irdl.dialect cmath {
+    irdl.dialect @cmath {
 
       irdl.type @complex { /* ... */ }
 
       irdl.operation @norm {
         %0 = irdl.any
-        %1 = irdl.parametric @complex<%0>
+        %1 = irdl.parametric @cmath::@complex<%0>
         irdl.operands(%1)
         irdl.results(%0)
       }
@@ -48,6 +48,30 @@ def IRDL_AttributeType : IRDL_Type<"Attribute", "attribute"> {
     Here, `%0` and `%1` are both of type `!irdl.attribute`. Note that in
     particular, `%1` will be a handle to a `mlir::TypeAttr` wrapping an
     instance of a `cmath.complex` type.
+  }];
+}
+
+def IRDL_RegionType : IRDL_Type<"Region", "region"> {
+  let summary = "IRDL handle to a region definition";
+  let description = [{
+    This type represents a region constraint. It is produced by
+    the `irdl.region` operation and consumed by the `irdl.regions` operation.
+    The region can be constrained on the number of arguments
+    and the number of blocks.
+
+    Example:
+    ```mlir
+    irdl.dialect @example {
+      irdl.operation @op_with_regions {
+        %r1 = irdl.region with size 3
+        %0 = irdl.any
+        %r2 = irdl.region(%0)
+        irdl.regions(%r1, %r2)
+      }
+    }
+    ```
+
+    Here we have `%r1` and `%r2`, both of which have the type `!irdl.region`.
   }];
 }
 

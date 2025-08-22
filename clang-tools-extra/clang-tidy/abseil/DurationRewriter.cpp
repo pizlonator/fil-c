@@ -29,7 +29,7 @@ static std::optional<llvm::APSInt>
 truncateIfIntegral(const FloatingLiteral &FloatLiteral) {
   double Value = FloatLiteral.getValueAsApproximateDouble();
   if (std::fmod(Value, 1) == 0) {
-    if (Value >= static_cast<double>(1u << 31))
+    if (Value >= static_cast<double>(1U << 31))
       return std::nullopt;
 
     return llvm::APSInt::get(static_cast<int64_t>(Value));
@@ -244,7 +244,7 @@ std::optional<DurationScale> getScaleForDurationInverse(llvm::StringRef Name) {
        {"ToDoubleNanoseconds", DurationScale::Nanoseconds},
        {"ToInt64Nanoseconds", DurationScale::Nanoseconds}});
 
-  auto ScaleIter = ScaleMap.find(std::string(Name));
+  auto ScaleIter = ScaleMap.find(Name);
   if (ScaleIter == ScaleMap.end())
     return std::nullopt;
 
@@ -260,7 +260,7 @@ std::optional<DurationScale> getScaleForTimeInverse(llvm::StringRef Name) {
        {"ToUnixMicros", DurationScale::Microseconds},
        {"ToUnixNanos", DurationScale::Nanoseconds}});
 
-  auto ScaleIter = ScaleMap.find(std::string(Name));
+  auto ScaleIter = ScaleMap.find(Name);
   if (ScaleIter == ScaleMap.end())
     return std::nullopt;
 
@@ -278,7 +278,7 @@ std::string rewriteExprFromNumberToDuration(
     return *MaybeRewrite;
 
   if (isLiteralZero(Result, RootNode))
-    return std::string("absl::ZeroDuration()");
+    return {"absl::ZeroDuration()"};
 
   return (llvm::Twine(getDurationFactoryForScale(Scale)) + "(" +
           simplifyDurationFactoryArg(Result, RootNode) + ")")
@@ -296,7 +296,7 @@ std::string rewriteExprFromNumberToTime(
     return *MaybeRewrite;
 
   if (isLiteralZero(Result, RootNode))
-    return std::string("absl::UnixEpoch()");
+    return {"absl::UnixEpoch()"};
 
   return (llvm::Twine(getTimeFactoryForScale(Scale)) + "(" +
           tooling::fixit::getText(RootNode, *Result.Context) + ")")

@@ -1,4 +1,4 @@
-add_clang_library(clangTidyPlugin
+add_clang_library(clangTidyPlugin STATIC
   ClangTidyPlugin.cpp
 
   LINK_LIBS
@@ -7,6 +7,7 @@ add_clang_library(clangTidyPlugin
 
   DEPENDS
   omp_gen
+  ClangDriverOptions
   )
 
 clang_target_link_libraries(clangTidyPlugin

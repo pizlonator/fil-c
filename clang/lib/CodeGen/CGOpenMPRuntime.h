@@ -122,6 +122,7 @@ struct OMPTaskDataTy final {
   bool IsReductionWithTaskMod = false;
   bool IsWorksharingReduction = false;
   bool HasNowaitClause = false;
+  bool HasModifier = false;
 };
 
 /// Class intended to support codegen of all kind of the reduction clauses.
@@ -311,6 +312,11 @@ protected:
   /// An OpenMP-IR-Builder instance.
   llvm::OpenMPIRBuilder OMPBuilder;
 
+  /// Helper to determine the min/max number of threads/teams for \p D.
+  void computeMinAndMaxThreadsAndTeams(
+      const OMPExecutableDirective &D, CodeGenFunction &CGF,
+      llvm::OpenMPIRBuilder::TargetKernelDefaultAttrs &Attrs);
+
   /// Helper to emit outlined function for 'target' directive.
   /// \param D Directive to emit.
   /// \param ParentName Name of the function that encloses the target region.
@@ -344,7 +350,7 @@ protected:
   /// Emits \p Callee function call with arguments \p Args with location \p Loc.
   void emitCall(CodeGenFunction &CGF, SourceLocation Loc,
                 llvm::FunctionCallee Callee,
-                ArrayRef<llvm::Value *> Args = std::nullopt) const;
+                ArrayRef<llvm::Value *> Args = {}) const;
 
   /// Emits address of the word in a memory where current thread id is
   /// stored.
@@ -527,28 +533,6 @@ protected:
   /// Returns pointer to kmpc_micro type.
   llvm::Type *getKmpc_MicroPointerTy();
 
-  /// Returns __kmpc_for_static_init_* runtime function for the specified
-  /// size \a IVSize and sign \a IVSigned. Will create a distribute call
-  /// __kmpc_distribute_static_init* if \a IsGPUDistribute is set.
-  llvm::FunctionCallee createForStaticInitFunction(unsigned IVSize,
-                                                   bool IVSigned,
-                                                   bool IsGPUDistribute);
-
-  /// Returns __kmpc_dispatch_init_* runtime function for the specified
-  /// size \a IVSize and sign \a IVSigned.
-  llvm::FunctionCallee createDispatchInitFunction(unsigned IVSize,
-                                                  bool IVSigned);
-
-  /// Returns __kmpc_dispatch_next_* runtime function for the specified
-  /// size \a IVSize and sign \a IVSigned.
-  llvm::FunctionCallee createDispatchNextFunction(unsigned IVSize,
-                                                  bool IVSigned);
-
-  /// Returns __kmpc_dispatch_fini_* runtime function for the specified
-  /// size \a IVSize and sign \a IVSigned.
-  llvm::FunctionCallee createDispatchFiniFunction(unsigned IVSize,
-                                                  bool IVSigned);
-
   /// If the specified mangled name is not in the module, create and
   /// return threadprivate cache object. This object is a pointer's worth of
   /// storage that's reserved for use by the OpenMP runtime.
@@ -571,15 +555,6 @@ protected:
   void emitThreadPrivateVarInit(CodeGenFunction &CGF, Address VDAddr,
                                 llvm::Value *Ctor, llvm::Value *CopyCtor,
                                 llvm::Value *Dtor, SourceLocation Loc);
-
-  /// Emit the array initialization or deletion portion for user-defined mapper
-  /// code generation.
-  void emitUDMapperArrayInitOrDel(CodeGenFunction &MapperCGF,
-                                  llvm::Value *Handle, llvm::Value *BasePtr,
-                                  llvm::Value *Ptr, llvm::Value *Size,
-                                  llvm::Value *MapType, llvm::Value *MapName,
-                                  CharUnits ElementSize,
-                                  llvm::BasicBlock *ExitBB, bool IsInit);
 
   struct TaskResultTy {
     llvm::Value *NewTask = nullptr;
@@ -659,21 +634,23 @@ public:
   /// Otherwise, return nullptr.
   const Expr *getNumTeamsExprForTargetDirective(CodeGenFunction &CGF,
                                                 const OMPExecutableDirective &D,
-                                                int32_t &DefaultVal);
+                                                int32_t &MinTeamsVal,
+                                                int32_t &MaxTeamsVal);
   llvm::Value *emitNumTeamsForTargetDirective(CodeGenFunction &CGF,
                                               const OMPExecutableDirective &D);
-  /// Emit the number of threads for a target directive.  Inspect the
-  /// thread_limit clause associated with a teams construct combined or closely
-  /// nested with the target directive.
-  ///
-  /// Emit the num_threads clause for directives such as 'target parallel' that
-  /// have no associated teams construct.
-  ///
-  /// Otherwise, return nullptr.
-  const Expr *
-  getNumThreadsExprForTargetDirective(CodeGenFunction &CGF,
-                                      const OMPExecutableDirective &D,
-                                      int32_t &DefaultVal);
+
+  /// Check for a number of threads upper bound constant value (stored in \p
+  /// UpperBound), or expression (returned). If the value is conditional (via an
+  /// if-clause), store the condition in \p CondExpr. Similarly, a potential
+  /// thread limit expression is stored in \p ThreadLimitExpr. If \p
+  /// UpperBoundOnly is true, no expression evaluation is perfomed.
+  const Expr *getNumThreadsExprForTargetDirective(
+      CodeGenFunction &CGF, const OMPExecutableDirective &D,
+      int32_t &UpperBound, bool UpperBoundOnly,
+      llvm::Value **CondExpr = nullptr, const Expr **ThreadLimitExpr = nullptr);
+
+  /// Emit an expression that denotes the number of threads a target region
+  /// shall use. Will generate "i32 0" to allow the runtime to choose.
   llvm::Value *
   emitNumThreadsForTargetDirective(CodeGenFunction &CGF,
                                    const OMPExecutableDirective &D);
@@ -958,6 +935,14 @@ public:
                                    unsigned IVSize, bool IVSigned, bool Ordered,
                                    const DispatchRTInput &DispatchValues);
 
+  /// This is used for non static scheduled types and when the ordered
+  /// clause is present on the loop construct.
+  ///
+  /// \param CGF Reference to current CodeGenFunction.
+  /// \param Loc Clang source location.
+  ///
+  virtual void emitForDispatchDeinit(CodeGenFunction &CGF, SourceLocation Loc);
+
   /// Struct with the values to be passed to the static runtime function
   struct StaticRTInput {
     /// Size of the iteration variable in bits.
@@ -1080,13 +1065,12 @@ public:
   /// \param Loc Location of the reference to threadprivate var.
   /// \return Address of the threadprivate variable for the current thread.
   virtual Address getAddrOfThreadPrivate(CodeGenFunction &CGF,
-                                         const VarDecl *VD,
-                                         Address VDAddr,
+                                         const VarDecl *VD, Address VDAddr,
                                          SourceLocation Loc);
 
   /// Returns the address of the variable marked as declare target with link
   /// clause OR as declare target with to clause and unified memory.
-  virtual Address getAddrOfDeclareTargetVar(const VarDecl *VD);
+  virtual ConstantAddress getAddrOfDeclareTargetVar(const VarDecl *VD);
 
   /// Emit a code for initialization of threadprivate variable. It emits
   /// a call to runtime library which adds initial value to the newly created
@@ -1101,13 +1085,12 @@ public:
                                  SourceLocation Loc, bool PerformInit,
                                  CodeGenFunction *CGF = nullptr);
 
-  /// Emit a code for initialization of declare target variable.
-  /// \param VD Declare target variable.
-  /// \param Addr Address of the global variable \a VD.
+  /// Emit code for handling declare target functions in the runtime.
+  /// \param FD Declare target function.
+  /// \param Addr Address of the global \a FD.
   /// \param PerformInit true if initialization expression is not constant.
-  virtual bool emitDeclareTargetVarDefinition(const VarDecl *VD,
-                                              llvm::GlobalVariable *Addr,
-                                              bool PerformInit);
+  virtual void emitDeclareTargetFunction(const FunctionDecl *FD,
+                                         llvm::GlobalValue *GV);
 
   /// Creates artificial threadprivate variable with name \p Name and type \p
   /// VarType.
@@ -1420,10 +1403,6 @@ public:
   /// \param GD Global to scan.
   virtual bool emitTargetGlobal(GlobalDecl GD);
 
-  /// Creates and returns a registration function for when at least one
-  /// requires directives was used in the current module.
-  llvm::Function *emitRequiresDirectiveRegFun();
-
   /// Creates all the offload entries in the current compilation unit
   /// along with the associated metadata.
   void createOffloadEntriesAndInfoMetadata();
@@ -1448,6 +1427,14 @@ public:
   /// \param ThreadLimit An integer expression of threads.
   virtual void emitNumTeamsClause(CodeGenFunction &CGF, const Expr *NumTeams,
                                   const Expr *ThreadLimit, SourceLocation Loc);
+
+  /// Emits call to void __kmpc_set_thread_limit(ident_t *loc, kmp_int32
+  /// global_tid, kmp_int32 thread_limit) to generate code for
+  /// thread_limit clause on target directive
+  /// \param ThreadLimit An integer expression of threads.
+  virtual void emitThreadLimitClause(CodeGenFunction &CGF,
+                                     const Expr *ThreadLimit,
+                                     SourceLocation Loc);
 
   /// Struct that keeps all the relevant information that should be kept
   /// throughout a 'target data' region.
@@ -1545,7 +1532,7 @@ public:
   virtual void
   emitOutlinedFunctionCall(CodeGenFunction &CGF, SourceLocation Loc,
                            llvm::FunctionCallee OutlinedFn,
-                           ArrayRef<llvm::Value *> Args = std::nullopt) const;
+                           ArrayRef<llvm::Value *> Args = {}) const;
 
   /// Emits OpenMP-specific function prolog.
   /// Required for device constructs.
@@ -1838,6 +1825,14 @@ public:
                            const OpenMPScheduleTy &ScheduleKind,
                            unsigned IVSize, bool IVSigned, bool Ordered,
                            const DispatchRTInput &DispatchValues) override;
+
+  /// This is used for non static scheduled types and when the ordered
+  /// clause is present on the loop construct.
+  ///
+  /// \param CGF Reference to current CodeGenFunction.
+  /// \param Loc Clang source location.
+  ///
+  void emitForDispatchDeinit(CodeGenFunction &CGF, SourceLocation Loc) override;
 
   /// Call the appropriate runtime routine to initialize it before start
   /// of loop.

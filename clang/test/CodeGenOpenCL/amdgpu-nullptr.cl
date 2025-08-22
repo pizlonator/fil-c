@@ -513,9 +513,9 @@ typedef struct {
 
 // CHECK-LABEL: test_memset_private
 // CHECK: call void @llvm.memset.p5.i64(ptr addrspace(5) noundef align 8 {{.*}}, i8 0, i64 32, i1 false)
-// CHECK: [[GEP:%.*]] = getelementptr inbounds i8, ptr addrspace(5) %ptr, i32 32
+// CHECK: [[GEP:%.*]] = getelementptr inbounds nuw i8, ptr addrspace(5) %ptr, i32 32
 // CHECK: store ptr addrspace(5) addrspacecast (ptr null to ptr addrspace(5)), ptr addrspace(5) [[GEP]]
-// CHECK: [[GEP1:%.*]] = getelementptr inbounds i8, ptr addrspace(5) {{.*}}, i32 36
+// CHECK: [[GEP1:%.*]] = getelementptr inbounds nuw i8, ptr addrspace(5) {{.*}}, i32 36
 // CHECK: store i32 0, ptr addrspace(5) [[GEP1]], align 4
 void test_memset_private(private StructTy3 *ptr) {
   StructTy3 S3 = {0, 0, 0, 0, 0};
@@ -606,7 +606,8 @@ int test_and_ptr(private char* p1, local char* p2) {
 // NOOPT: store ptr addrspace(1) null, ptr addrspace(5) %glob, align 8
 // NOOPT: %{{.*}} = sub i64 %{{.*}}, 0
 // NOOPT: call void @test_fold_callee
-// NOOPT: %{{.*}} = add nsw i64 %1, sext (i32 ptrtoint (ptr addrspace(5) addrspacecast (ptr null to ptr addrspace(5)) to i32) to i64)
+// NOOPT: %[[SEXT:.*]] = sext i32 ptrtoint (ptr addrspace(5) addrspacecast (ptr null to ptr addrspace(5)) to i32) to i64
+// NOOPT: %{{.*}} = add nsw i64 %1, %[[SEXT]]
 // NOOPT: %{{.*}} = sub nsw i64 %{{.*}}, 1
 void test_fold_callee(void);
 void test_fold_private(void) {
@@ -621,7 +622,8 @@ void test_fold_private(void) {
 // NOOPT: store ptr addrspace(1) null, ptr addrspace(5) %glob, align 8
 // NOOPT: %{{.*}} = sub i64 %{{.*}}, 0
 // NOOPT: call void @test_fold_callee
-// NOOPT: %{{.*}} = add nsw i64 %{{.*}}, sext (i32 ptrtoint (ptr addrspace(3) addrspacecast (ptr null to ptr addrspace(3)) to i32) to i64)
+// NOOPT: %[[SEXT:.*]] = sext i32 ptrtoint (ptr addrspace(3) addrspacecast (ptr null to ptr addrspace(3)) to i32) to i64
+// NOOPT: %{{.*}} = add nsw i64 %{{.*}}, %[[SEXT]]
 // NOOPT: %{{.*}} = sub nsw i64 %{{.*}}, 1
 void test_fold_local(void) {
   global int* glob = (test_fold_callee(), (global int*)(generic char*)0);

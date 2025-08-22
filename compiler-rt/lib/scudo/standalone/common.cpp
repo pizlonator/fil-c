@@ -12,31 +12,21 @@
 
 namespace scudo {
 
-uptr PageSizeCached;
+#if !defined(SCUDO_PAGE_SIZE)
+uptr PageSizeCached = 0;
+uptr PageSizeLogCached = 0;
+
+// Must be defined in platform specific code.
 uptr getPageSize();
 
+// This must be called in the init path or there could be a race if multiple
+// threads try to set the cached values.
 uptr getPageSizeSlow() {
   PageSizeCached = getPageSize();
   CHECK_NE(PageSizeCached, 0);
+  PageSizeLogCached = getLog2(PageSizeCached);
   return PageSizeCached;
 }
-
-// Fatal internal map() or unmap() error (potentially OOM related).
-void NORETURN dieOnMapUnmapError(uptr SizeIfOOM) {
-  char Error[128] = "Scudo ERROR: internal map or unmap failure\n";
-  if (SizeIfOOM) {
-    formatString(
-        Error, sizeof(Error),
-        "Scudo ERROR: internal map failure (NO MEMORY) requesting %zuKB\n",
-        SizeIfOOM >> 10);
-  }
-  outputRaw(Error);
-  setAbortMessage(Error);
-  die();
-}
-
-#if !SCUDO_LINUX
-uptr GetRSS() { return 0; }
 #endif
 
 } // namespace scudo

@@ -41,13 +41,14 @@
 /// %sgpr0 = S_OR_SAVEEXEC_B64 %sgpr0  // Restore the exec mask for the Then
 ///                                    // block
 /// %exec = S_XOR_B64 %sgpr0, %exec    // Update the exec mask
-/// S_BRANCH_EXECZ label1              // Use our branch optimization
+/// S_CBRANCH_EXECZ label1             // Use our branch optimization
 ///                                    // instruction again.
-/// %vgpr0 = V_SUB_F32 %vgpr0, %vgpr   // Do the THEN block
+/// %vgpr0 = V_SUB_F32 %vgpr0, %vgpr   // Do the ELSE block
 /// label1:
 /// %exec = S_OR_B64 %exec, %sgpr0     // Re-enable saved exec mask bits
 //===----------------------------------------------------------------------===//
 
+#include "SILowerControlFlow.h"
 #include "AMDGPU.h"
 #include "GCNSubtarget.h"
 #include "MCTargetDesc/AMDGPUMCTargetDesc.h"
@@ -68,7 +69,7 @@ RemoveRedundantEndcf("amdgpu-remove-redundant-endcf",
 
 namespace {
 
-class SILowerControlFlow : public MachineFunctionPass {
+class SILowerControlFlow {
 private:
   const SIRegisterInfo *TRI = nullptr;
   const SIInstrInfo *TII = nullptr;
@@ -79,6 +80,7 @@ private:
   SetVector<MachineInstr*> LoweredEndCf;
   DenseSet<Register> LoweredIf;
   SmallSet<MachineBasicBlock *, 4> KillBlocks;
+  SmallSet<Register, 8> RecomputeRegs;
 
   const TargetRegisterClass *BoolRC = nullptr;
   unsigned AndOpc;
@@ -101,8 +103,6 @@ private:
   void emitLoop(MachineInstr &MI);
 
   MachineBasicBlock *emitEndCf(MachineInstr &MI);
-
-  void lowerInitExec(MachineBasicBlock *MBB, MachineInstr &MI);
 
   void findMaskOperands(MachineInstr &MI, unsigned OpNo,
                         SmallVectorImpl<MachineOperand> &Src) const;
@@ -137,9 +137,17 @@ private:
   void optimizeEndCf();
 
 public:
+  SILowerControlFlow(LiveIntervals *LIS, LiveVariables *LV,
+                     MachineDominatorTree *MDT)
+      : LIS(LIS), LV(LV), MDT(MDT) {}
+  bool run(MachineFunction &MF);
+};
+
+class SILowerControlFlowLegacy : public MachineFunctionPass {
+public:
   static char ID;
 
-  SILowerControlFlow() : MachineFunctionPass(ID) {}
+  SILowerControlFlowLegacy() : MachineFunctionPass(ID) {}
 
   bool runOnMachineFunction(MachineFunction &MF) override;
 
@@ -148,22 +156,22 @@ public:
   }
 
   void getAnalysisUsage(AnalysisUsage &AU) const override {
-    AU.addUsedIfAvailable<LiveIntervals>();
+    AU.addUsedIfAvailable<LiveIntervalsWrapperPass>();
     // Should preserve the same set that TwoAddressInstructions does.
-    AU.addPreserved<MachineDominatorTree>();
-    AU.addPreserved<SlotIndexes>();
-    AU.addPreserved<LiveIntervals>();
-    AU.addPreservedID(LiveVariablesID);
+    AU.addPreserved<MachineDominatorTreeWrapperPass>();
+    AU.addPreserved<SlotIndexesWrapperPass>();
+    AU.addPreserved<LiveIntervalsWrapperPass>();
+    AU.addPreserved<LiveVariablesWrapperPass>();
     MachineFunctionPass::getAnalysisUsage(AU);
   }
 };
 
 } // end anonymous namespace
 
-char SILowerControlFlow::ID = 0;
+char SILowerControlFlowLegacy::ID = 0;
 
-INITIALIZE_PASS(SILowerControlFlow, DEBUG_TYPE,
-               "SI lower control flow", false, false)
+INITIALIZE_PASS(SILowerControlFlowLegacy, DEBUG_TYPE, "SI lower control flow",
+                false, false)
 
 static void setImpSCCDefDead(MachineInstr &MI, bool IsDead) {
   MachineOperand &ImpDefSCC = MI.getOperand(3);
@@ -172,7 +180,7 @@ static void setImpSCCDefDead(MachineInstr &MI, bool IsDead) {
   ImpDefSCC.setIsDead(IsDead);
 }
 
-char &llvm::SILowerControlFlowID = SILowerControlFlow::ID;
+char &llvm::SILowerControlFlowLegacyID = SILowerControlFlowLegacy::ID;
 
 bool SILowerControlFlow::hasKill(const MachineBasicBlock *Begin,
                                  const MachineBasicBlock *End) {
@@ -271,7 +279,7 @@ void SILowerControlFlow::emitIf(MachineInstr &MI) {
   I = skipToUncondBrOrEnd(MBB, I);
 
   // Insert the S_CBRANCH_EXECZ instruction which will be optimized later
-  // during SIRemoveShortExecBranches.
+  // during SIPreEmitPeephole.
   MachineInstr *NewBr = BuildMI(MBB, I, DL, TII->get(AMDGPU::S_CBRANCH_EXECZ))
                             .add(MI.getOperand(2));
 
@@ -297,8 +305,7 @@ void SILowerControlFlow::emitIf(MachineInstr &MI) {
   // FIXME: Is there a better way of adjusting the liveness? It shouldn't be
   // hard to add another def here but I'm not sure how to correctly update the
   // valno.
-  LIS->removeInterval(SaveExecReg);
-  LIS->createAndComputeVirtRegInterval(SaveExecReg);
+  RecomputeRegs.insert(SaveExecReg);
   LIS->createAndComputeVirtRegInterval(Tmp);
   if (!SimpleIf)
     LIS->createAndComputeVirtRegInterval(CopyReg);
@@ -309,6 +316,7 @@ void SILowerControlFlow::emitElse(MachineInstr &MI) {
   const DebugLoc &DL = MI.getDebugLoc();
 
   Register DstReg = MI.getOperand(0).getReg();
+  Register SrcReg = MI.getOperand(1).getReg();
 
   MachineBasicBlock::iterator Start = MBB.begin();
 
@@ -319,7 +327,7 @@ void SILowerControlFlow::emitElse(MachineInstr &MI) {
     BuildMI(MBB, Start, DL, TII->get(OrSaveExecOpc), SaveReg)
     .add(MI.getOperand(1)); // Saved EXEC
   if (LV)
-    LV->replaceKillInstruction(MI.getOperand(1).getReg(), MI, *OrSaveExec);
+    LV->replaceKillInstruction(SrcReg, MI, *OrSaveExec);
 
   MachineBasicBlock *DestBB = MI.getOperand(2).getMBB();
 
@@ -330,9 +338,6 @@ void SILowerControlFlow::emitElse(MachineInstr &MI) {
   MachineInstr *And = BuildMI(MBB, ElsePt, DL, TII->get(AndOpc), DstReg)
                           .addReg(Exec)
                           .addReg(SaveReg);
-
-  if (LIS)
-    LIS->InsertMachineInstrInMaps(*And);
 
   MachineInstr *Xor =
     BuildMI(MBB, ElsePt, DL, TII->get(XorTermrOpc), Exec)
@@ -356,12 +361,13 @@ void SILowerControlFlow::emitElse(MachineInstr &MI) {
   MI.eraseFromParent();
 
   LIS->InsertMachineInstrInMaps(*OrSaveExec);
+  LIS->InsertMachineInstrInMaps(*And);
 
   LIS->InsertMachineInstrInMaps(*Xor);
   LIS->InsertMachineInstrInMaps(*Branch);
 
-  LIS->removeInterval(DstReg);
-  LIS->createAndComputeVirtRegInterval(DstReg);
+  RecomputeRegs.insert(SrcReg);
+  RecomputeRegs.insert(DstReg);
   LIS->createAndComputeVirtRegInterval(SaveReg);
 
   // Let this be recomputed.
@@ -388,8 +394,9 @@ void SILowerControlFlow::emitIfBreak(MachineInstr &MI) {
   // AND the break condition operand with exec, then OR that into the "loop
   // exit" mask.
   MachineInstr *And = nullptr, *Or = nullptr;
+  Register AndReg;
   if (!SkipAnding) {
-    Register AndReg = MRI->createVirtualRegister(BoolRC);
+    AndReg = MRI->createVirtualRegister(BoolRC);
     And = BuildMI(MBB, &MI, DL, TII->get(AndOpc), AndReg)
              .addReg(Exec)
              .add(MI.getOperand(1));
@@ -398,8 +405,6 @@ void SILowerControlFlow::emitIfBreak(MachineInstr &MI) {
     Or = BuildMI(MBB, &MI, DL, TII->get(OrOpc), Dst)
              .addReg(AndReg)
              .add(MI.getOperand(2));
-    if (LIS)
-      LIS->createAndComputeVirtRegInterval(AndReg);
   } else {
     Or = BuildMI(MBB, &MI, DL, TII->get(OrOpc), Dst)
              .add(MI.getOperand(1))
@@ -411,9 +416,13 @@ void SILowerControlFlow::emitIfBreak(MachineInstr &MI) {
     LV->replaceKillInstruction(MI.getOperand(2).getReg(), MI, *Or);
 
   if (LIS) {
-    if (And)
-      LIS->InsertMachineInstrInMaps(*And);
     LIS->ReplaceMachineInstrInMaps(MI, *Or);
+    if (And) {
+      // Read of original operand 1 is on And now not Or.
+      RecomputeRegs.insert(And->getOperand(2).getReg());
+      LIS->InsertMachineInstrInMaps(*And);
+      LIS->createAndComputeVirtRegInterval(AndReg);
+    }
   }
 
   MI.eraseFromParent();
@@ -436,6 +445,7 @@ void SILowerControlFlow::emitLoop(MachineInstr &MI) {
           .add(MI.getOperand(1));
 
   if (LIS) {
+    RecomputeRegs.insert(MI.getOperand(0).getReg());
     LIS->ReplaceMachineInstrInMaps(MI, *AndN2);
     LIS->InsertMachineInstrInMaps(*Branch);
   }
@@ -706,94 +716,6 @@ MachineBasicBlock *SILowerControlFlow::process(MachineInstr &MI) {
   return SplitBB;
 }
 
-void SILowerControlFlow::lowerInitExec(MachineBasicBlock *MBB,
-                                       MachineInstr &MI) {
-  MachineFunction &MF = *MBB->getParent();
-  const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();
-  bool IsWave32 = ST.isWave32();
-
-  if (MI.getOpcode() == AMDGPU::SI_INIT_EXEC) {
-    // This should be before all vector instructions.
-    BuildMI(*MBB, MBB->begin(), MI.getDebugLoc(),
-            TII->get(IsWave32 ? AMDGPU::S_MOV_B32 : AMDGPU::S_MOV_B64), Exec)
-        .addImm(MI.getOperand(0).getImm());
-    if (LIS)
-      LIS->RemoveMachineInstrFromMaps(MI);
-    MI.eraseFromParent();
-    return;
-  }
-
-  // Extract the thread count from an SGPR input and set EXEC accordingly.
-  // Since BFM can't shift by 64, handle that case with CMP + CMOV.
-  //
-  // S_BFE_U32 count, input, {shift, 7}
-  // S_BFM_B64 exec, count, 0
-  // S_CMP_EQ_U32 count, 64
-  // S_CMOV_B64 exec, -1
-  Register InputReg = MI.getOperand(0).getReg();
-  MachineInstr *FirstMI = &*MBB->begin();
-  if (InputReg.isVirtual()) {
-    MachineInstr *DefInstr = MRI->getVRegDef(InputReg);
-    assert(DefInstr && DefInstr->isCopy());
-    if (DefInstr->getParent() == MBB) {
-      if (DefInstr != FirstMI) {
-        // If the `InputReg` is defined in current block, we also need to
-        // move that instruction to the beginning of the block.
-        DefInstr->removeFromParent();
-        MBB->insert(FirstMI, DefInstr);
-        if (LIS)
-          LIS->handleMove(*DefInstr);
-      } else {
-        // If first instruction is definition then move pointer after it.
-        FirstMI = &*std::next(FirstMI->getIterator());
-      }
-    }
-  }
-
-  // Insert instruction sequence at block beginning (before vector operations).
-  const DebugLoc DL = MI.getDebugLoc();
-  const unsigned WavefrontSize = ST.getWavefrontSize();
-  const unsigned Mask = (WavefrontSize << 1) - 1;
-  Register CountReg = MRI->createVirtualRegister(&AMDGPU::SGPR_32RegClass);
-  auto BfeMI = BuildMI(*MBB, FirstMI, DL, TII->get(AMDGPU::S_BFE_U32), CountReg)
-                   .addReg(InputReg)
-                   .addImm((MI.getOperand(1).getImm() & Mask) | 0x70000);
-  if (LV)
-    LV->recomputeForSingleDefVirtReg(InputReg);
-  auto BfmMI =
-      BuildMI(*MBB, FirstMI, DL,
-              TII->get(IsWave32 ? AMDGPU::S_BFM_B32 : AMDGPU::S_BFM_B64), Exec)
-          .addReg(CountReg)
-          .addImm(0);
-  auto CmpMI = BuildMI(*MBB, FirstMI, DL, TII->get(AMDGPU::S_CMP_EQ_U32))
-                   .addReg(CountReg, RegState::Kill)
-                   .addImm(WavefrontSize);
-  if (LV)
-    LV->getVarInfo(CountReg).Kills.push_back(CmpMI);
-  auto CmovMI =
-      BuildMI(*MBB, FirstMI, DL,
-              TII->get(IsWave32 ? AMDGPU::S_CMOV_B32 : AMDGPU::S_CMOV_B64),
-              Exec)
-          .addImm(-1);
-
-  if (!LIS) {
-    MI.eraseFromParent();
-    return;
-  }
-
-  LIS->RemoveMachineInstrFromMaps(MI);
-  MI.eraseFromParent();
-
-  LIS->InsertMachineInstrInMaps(*BfeMI);
-  LIS->InsertMachineInstrInMaps(*BfmMI);
-  LIS->InsertMachineInstrInMaps(*CmpMI);
-  LIS->InsertMachineInstrInMaps(*CmovMI);
-
-  LIS->removeInterval(InputReg);
-  LIS->createAndComputeVirtRegInterval(InputReg);
-  LIS->createAndComputeVirtRegInterval(CountReg);
-}
-
 bool SILowerControlFlow::removeMBBifRedundant(MachineBasicBlock &MBB) {
   for (auto &I : MBB.instrs()) {
     if (!I.isDebugInstr() && !I.isUnconditionalBranch())
@@ -807,7 +729,7 @@ bool SILowerControlFlow::removeMBBifRedundant(MachineBasicBlock &MBB) {
 
   while (!MBB.predecessors().empty()) {
     MachineBasicBlock *P = *MBB.pred_begin();
-    if (P->getFallThrough() == &MBB)
+    if (P->getFallThrough(false) == &MBB)
       FallThrough = P;
     P->ReplaceUsesOfBlockWith(&MBB, Succ);
   }
@@ -828,31 +750,25 @@ bool SILowerControlFlow::removeMBBifRedundant(MachineBasicBlock &MBB) {
   MBB.clear();
   MBB.eraseFromParent();
   if (FallThrough && !FallThrough->isLayoutSuccessor(Succ)) {
-    if (!Succ->canFallThrough()) {
-      MachineFunction *MF = FallThrough->getParent();
-      MachineFunction::iterator FallThroughPos(FallThrough);
-      MF->splice(std::next(FallThroughPos), Succ);
-    } else
-      BuildMI(*FallThrough, FallThrough->end(),
-              FallThrough->findBranchDebugLoc(), TII->get(AMDGPU::S_BRANCH))
-          .addMBB(Succ);
+    // Note: we cannot update block layout and preserve live intervals;
+    // hence we must insert a branch.
+    MachineInstr *BranchMI = BuildMI(*FallThrough, FallThrough->end(),
+            FallThrough->findBranchDebugLoc(), TII->get(AMDGPU::S_BRANCH))
+        .addMBB(Succ);
+    if (LIS)
+      LIS->InsertMachineInstrInMaps(*BranchMI);
   }
 
   return true;
 }
 
-bool SILowerControlFlow::runOnMachineFunction(MachineFunction &MF) {
+bool SILowerControlFlow::run(MachineFunction &MF) {
   const GCNSubtarget &ST = MF.getSubtarget<GCNSubtarget>();
   TII = ST.getInstrInfo();
   TRI = &TII->getRegisterInfo();
-  EnableOptimizeEndCf =
-      RemoveRedundantEndcf && MF.getTarget().getOptLevel() > CodeGenOpt::None;
+  EnableOptimizeEndCf = RemoveRedundantEndcf &&
+                        MF.getTarget().getOptLevel() > CodeGenOptLevel::None;
 
-  // This doesn't actually need LiveIntervals, but we can preserve them.
-  LIS = getAnalysisIfAvailable<LiveIntervals>();
-  // This doesn't actually need LiveVariables, but we can preserve them.
-  LV = getAnalysisIfAvailable<LiveVariables>();
-  MDT = getAnalysisIfAvailable<MachineDominatorTree>();
   MRI = &MF.getRegInfo();
   BoolRC = TRI->getBoolRC();
 
@@ -924,18 +840,6 @@ bool SILowerControlFlow::runOnMachineFunction(MachineFunction &MF) {
         SplitMBB = process(MI);
         Changed = true;
         break;
-
-      // FIXME: find a better place for this
-      case AMDGPU::SI_INIT_EXEC:
-      case AMDGPU::SI_INIT_EXEC_FROM_INPUT:
-        lowerInitExec(MBB, MI);
-        if (LIS)
-          LIS->removeAllRegUnitsForPhysReg(AMDGPU::EXEC);
-        Changed = true;
-        break;
-
-      default:
-        break;
       }
 
       if (SplitMBB != MBB) {
@@ -947,9 +851,49 @@ bool SILowerControlFlow::runOnMachineFunction(MachineFunction &MF) {
 
   optimizeEndCf();
 
+  if (LIS) {
+    for (Register Reg : RecomputeRegs) {
+      LIS->removeInterval(Reg);
+      LIS->createAndComputeVirtRegInterval(Reg);
+    }
+  }
+
+  RecomputeRegs.clear();
   LoweredEndCf.clear();
   LoweredIf.clear();
   KillBlocks.clear();
 
   return Changed;
+}
+
+bool SILowerControlFlowLegacy::runOnMachineFunction(MachineFunction &MF) {
+  // This doesn't actually need LiveIntervals, but we can preserve them.
+  auto *LISWrapper = getAnalysisIfAvailable<LiveIntervalsWrapperPass>();
+  LiveIntervals *LIS = LISWrapper ? &LISWrapper->getLIS() : nullptr;
+  // This doesn't actually need LiveVariables, but we can preserve them.
+  auto *LVWrapper = getAnalysisIfAvailable<LiveVariablesWrapperPass>();
+  LiveVariables *LV = LVWrapper ? &LVWrapper->getLV() : nullptr;
+  auto *MDTWrapper = getAnalysisIfAvailable<MachineDominatorTreeWrapperPass>();
+  MachineDominatorTree *MDT = MDTWrapper ? &MDTWrapper->getDomTree() : nullptr;
+  return SILowerControlFlow(LIS, LV, MDT).run(MF);
+}
+
+PreservedAnalyses
+SILowerControlFlowPass::run(MachineFunction &MF,
+                            MachineFunctionAnalysisManager &MFAM) {
+  LiveIntervals *LIS = MFAM.getCachedResult<LiveIntervalsAnalysis>(MF);
+  LiveVariables *LV = MFAM.getCachedResult<LiveVariablesAnalysis>(MF);
+  MachineDominatorTree *MDT =
+      MFAM.getCachedResult<MachineDominatorTreeAnalysis>(MF);
+
+  bool Changed = SILowerControlFlow(LIS, LV, MDT).run(MF);
+  if (!Changed)
+    return PreservedAnalyses::all();
+
+  auto PA = getMachineFunctionPassPreservedAnalyses();
+  PA.preserve<MachineDominatorTreeAnalysis>();
+  PA.preserve<SlotIndexesAnalysis>();
+  PA.preserve<LiveIntervalsAnalysis>();
+  PA.preserve<LiveVariablesAnalysis>();
+  return PA;
 }

@@ -23,6 +23,7 @@
 #include "lldb/lldb-private-enumerations.h"
 #include "lldb/lldb-private-interfaces.h"
 #include "llvm/Support/JSON.h"
+#include <mutex>
 
 namespace lldb_private {
 
@@ -70,6 +71,10 @@ public:
 
   virtual ~OptionValue() = default;
 
+  OptionValue(const OptionValue &other);
+  
+  OptionValue& operator=(const OptionValue &other);
+
   // Subclasses should override these functions
   virtual Type GetType() const = 0;
 
@@ -114,7 +119,8 @@ public:
   virtual lldb::OptionValueSP GetSubValue(const ExecutionContext *exe_ctx,
                                           llvm::StringRef name,
                                           Status &error) const {
-    error.SetErrorStringWithFormatv("'{0}' is not a valid subvalue", name);
+    error = Status::FromErrorStringWithFormatv("'{0}' is not a valid subvalue",
+                                               name);
     return lldb::OptionValueSP();
   }
 
@@ -382,6 +388,8 @@ private:
 
   const FormatEntity::Entry *GetFormatEntity() const;
   const RegularExpression *GetRegexValue() const;
+  
+  mutable std::mutex m_mutex;
 };
 
 } // namespace lldb_private

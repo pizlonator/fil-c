@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This pass implements IR expansion for vector predication intrinsics, allowing
+// This file implements IR expansion for vector predication intrinsics, allowing
 // targets to enable vector predication until just before codegen.
 //
 //===----------------------------------------------------------------------===//
@@ -16,19 +16,16 @@
 #include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/Analysis/ValueTracking.h"
 #include "llvm/Analysis/VectorUtils.h"
-#include "llvm/CodeGen/Passes.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Intrinsics.h"
-#include "llvm/InitializePasses.h"
-#include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Transforms/Utils/LoopUtils.h"
 #include <optional>
 
 using namespace llvm;
@@ -123,9 +120,12 @@ static bool maySpeculateLanes(VPIntrinsic &VPI) {
   if (isa<VPReductionIntrinsic>(VPI))
     return false;
   // Fallback to whether the intrinsic is speculatable.
-  std::optional<unsigned> OpcOpt = VPI.getFunctionalOpcode();
-  unsigned FunctionalOpc = OpcOpt.value_or((unsigned)Instruction::Call);
-  return isSafeToSpeculativelyExecuteWithOpcode(FunctionalOpc, &VPI);
+  if (auto IntrID = VPI.getFunctionalIntrinsicID())
+    return Intrinsic::getAttributes(VPI.getContext(), *IntrID)
+        .hasFnAttr(Attribute::AttrKind::Speculatable);
+  if (auto Opc = VPI.getFunctionalOpcode())
+    return isSafeToSpeculativelyExecuteWithOpcode(*Opc, &VPI);
+  return false;
 }
 
 //// } Helpers
@@ -134,19 +134,7 @@ namespace {
 
 // Expansion pass state at function scope.
 struct CachingVPExpander {
-  Function &F;
   const TargetTransformInfo &TTI;
-
-  /// \returns A (fixed length) vector with ascending integer indices
-  /// (<0, 1, ..., NumElems-1>).
-  /// \p Builder
-  ///    Used for instruction creation.
-  /// \p LaneTy
-  ///    Integer element type of the result vector.
-  /// \p NumElems
-  ///    Number of vector elements.
-  Value *createStepVector(IRBuilder<> &Builder, Type *LaneTy,
-                          unsigned NumElems);
 
   /// \returns A bitmask that is true where the lane position is less-than \p
   /// EVLParam
@@ -161,15 +149,22 @@ struct CachingVPExpander {
   Value *convertEVLToMask(IRBuilder<> &Builder, Value *EVLParam,
                           ElementCount ElemCount);
 
-  Value *foldEVLIntoMask(VPIntrinsic &VPI);
+  /// If needed, folds the EVL in the mask operand and discards the EVL
+  /// parameter. Returns a pair of the value of the intrinsic after the change
+  /// (if any) and whether the mask was actually folded.
+  std::pair<Value *, bool> foldEVLIntoMask(VPIntrinsic &VPI);
 
   /// "Remove" the %evl parameter of \p PI by setting it to the static vector
-  /// length of the operation.
-  void discardEVLParameter(VPIntrinsic &PI);
+  /// length of the operation. Returns true if the %evl (if any) was effectively
+  /// changed.
+  bool discardEVLParameter(VPIntrinsic &PI);
 
   /// Lower this VP binary operator to a unpredicated binary operator.
   Value *expandPredicationInBinaryOperator(IRBuilder<> &Builder,
                                            VPIntrinsic &PI);
+
+  /// Lower this VP int call to a unpredicated int call.
+  Value *expandPredicationToIntCall(IRBuilder<> &Builder, VPIntrinsic &PI);
 
   /// Lower this VP fp call to a unpredicated fp call.
   Value *expandPredicationToFPCall(IRBuilder<> &Builder, VPIntrinsic &PI,
@@ -178,6 +173,10 @@ struct CachingVPExpander {
   /// Lower this VP reduction to a call to an unpredicated reduction intrinsic.
   Value *expandPredicationInReduction(IRBuilder<> &Builder,
                                       VPReductionIntrinsic &PI);
+
+  /// Lower this VP cast operation to a non-VP intrinsic.
+  Value *expandPredicationToCastIntrinsic(IRBuilder<> &Builder,
+                                          VPIntrinsic &VPI);
 
   /// Lower this VP memory operation to a non-VP intrinsic.
   Value *expandPredicationInMemoryIntrinsic(IRBuilder<> &Builder,
@@ -196,24 +195,15 @@ struct CachingVPExpander {
   bool UsingTTIOverrides;
 
 public:
-  CachingVPExpander(Function &F, const TargetTransformInfo &TTI)
-      : F(F), TTI(TTI), UsingTTIOverrides(anyExpandVPOverridesSet()) {}
+  CachingVPExpander(const TargetTransformInfo &TTI)
+      : TTI(TTI), UsingTTIOverrides(anyExpandVPOverridesSet()) {}
 
-  bool expandVectorPredication();
+  /// Expand llvm.vp.* intrinsics as requested by \p TTI.
+  /// Returns the details of the expansion.
+  VPExpansionDetails expandVectorPredication(VPIntrinsic &VPI);
 };
 
 //// CachingVPExpander {
-
-Value *CachingVPExpander::createStepVector(IRBuilder<> &Builder, Type *LaneTy,
-                                           unsigned NumElems) {
-  // TODO add caching
-  SmallVector<Constant *, 16> ConstElems;
-
-  for (unsigned Idx = 0; Idx < NumElems; ++Idx)
-    ConstElems.push_back(ConstantInt::get(LaneTy, Idx, false));
-
-  return ConstantVector::get(ConstElems);
-}
 
 Value *CachingVPExpander::convertEVLToMask(IRBuilder<> &Builder,
                                            Value *EVLParam,
@@ -221,20 +211,19 @@ Value *CachingVPExpander::convertEVLToMask(IRBuilder<> &Builder,
   // TODO add caching
   // Scalable vector %evl conversion.
   if (ElemCount.isScalable()) {
-    auto *M = Builder.GetInsertBlock()->getModule();
     Type *BoolVecTy = VectorType::get(Builder.getInt1Ty(), ElemCount);
-    Function *ActiveMaskFunc = Intrinsic::getDeclaration(
-        M, Intrinsic::get_active_lane_mask, {BoolVecTy, EVLParam->getType()});
     // `get_active_lane_mask` performs an implicit less-than comparison.
     Value *ConstZero = Builder.getInt32(0);
-    return Builder.CreateCall(ActiveMaskFunc, {ConstZero, EVLParam});
+    return Builder.CreateIntrinsic(Intrinsic::get_active_lane_mask,
+                                   {BoolVecTy, EVLParam->getType()},
+                                   {ConstZero, EVLParam});
   }
 
   // Fixed vector %evl conversion.
   Type *LaneTy = EVLParam->getType();
   unsigned NumElems = ElemCount.getFixedValue();
   Value *VLSplat = Builder.CreateVectorSplat(NumElems, EVLParam);
-  Value *IdxVec = createStepVector(Builder, LaneTy, NumElems);
+  Value *IdxVec = Builder.CreateStepVector(VectorType::get(LaneTy, ElemCount));
   return Builder.CreateICmp(CmpInst::ICMP_ULT, IdxVec, VLSplat);
 }
 
@@ -275,6 +264,21 @@ CachingVPExpander::expandPredicationInBinaryOperator(IRBuilder<> &Builder,
   return NewBinOp;
 }
 
+Value *CachingVPExpander::expandPredicationToIntCall(IRBuilder<> &Builder,
+                                                     VPIntrinsic &VPI) {
+  std::optional<unsigned> FID = VPI.getFunctionalIntrinsicID();
+  if (!FID)
+    return nullptr;
+  SmallVector<Value *, 2> Argument;
+  for (unsigned i = 0; i < VPI.getNumOperands() - 3; i++) {
+    Argument.push_back(VPI.getOperand(i));
+  }
+  Value *NewOp = Builder.CreateIntrinsic(FID.value(), {VPI.getType()}, Argument,
+                                         /*FMFSource=*/nullptr, VPI.getName());
+  replaceOperation(*NewOp, VPI);
+  return NewOp;
+}
+
 Value *CachingVPExpander::expandPredicationToFPCall(
     IRBuilder<> &Builder, VPIntrinsic &VPI, unsigned UnpredicatedIntrinsicID) {
   assert((maySpeculateLanes(VPI) || VPI.canIgnoreVectorLengthParam()) &&
@@ -282,23 +286,34 @@ Value *CachingVPExpander::expandPredicationToFPCall(
 
   switch (UnpredicatedIntrinsicID) {
   case Intrinsic::fabs:
-  case Intrinsic::sqrt: {
-    Value *Op0 = VPI.getOperand(0);
-    Function *Fn = Intrinsic::getDeclaration(
-        VPI.getModule(), UnpredicatedIntrinsicID, {VPI.getType()});
-    Value *NewOp = Builder.CreateCall(Fn, {Op0}, VPI.getName());
+  case Intrinsic::sqrt:
+  case Intrinsic::maxnum:
+  case Intrinsic::minnum: {
+    SmallVector<Value *, 2> Argument;
+    for (unsigned i = 0; i < VPI.getNumOperands() - 3; i++) {
+      Argument.push_back(VPI.getOperand(i));
+    }
+    Value *NewOp = Builder.CreateIntrinsic(
+        UnpredicatedIntrinsicID, {VPI.getType()}, Argument,
+        /*FMFSource=*/nullptr, VPI.getName());
     replaceOperation(*NewOp, VPI);
     return NewOp;
   }
+  case Intrinsic::fma:
+  case Intrinsic::fmuladd:
   case Intrinsic::experimental_constrained_fma:
   case Intrinsic::experimental_constrained_fmuladd: {
     Value *Op0 = VPI.getOperand(0);
     Value *Op1 = VPI.getOperand(1);
     Value *Op2 = VPI.getOperand(2);
-    Function *Fn = Intrinsic::getDeclaration(
+    Function *Fn = Intrinsic::getOrInsertDeclaration(
         VPI.getModule(), UnpredicatedIntrinsicID, {VPI.getType()});
-    Value *NewOp =
-        Builder.CreateConstrainedFPCall(Fn, {Op0, Op1, Op2}, VPI.getName());
+    Value *NewOp;
+    if (Intrinsic::isConstrainedFPIntrinsic(UnpredicatedIntrinsicID))
+      NewOp =
+          Builder.CreateConstrainedFPCall(Fn, {Op0, Op1, Op2}, VPI.getName());
+    else
+      NewOp = Builder.CreateCall(Fn, {Op0, Op1, Op2}, VPI.getName());
     replaceOperation(*NewOp, VPI);
     return NewOp;
   }
@@ -309,44 +324,11 @@ Value *CachingVPExpander::expandPredicationToFPCall(
 
 static Value *getNeutralReductionElement(const VPReductionIntrinsic &VPI,
                                          Type *EltTy) {
-  bool Negative = false;
-  unsigned EltBits = EltTy->getScalarSizeInBits();
-  switch (VPI.getIntrinsicID()) {
-  default:
-    llvm_unreachable("Expecting a VP reduction intrinsic");
-  case Intrinsic::vp_reduce_add:
-  case Intrinsic::vp_reduce_or:
-  case Intrinsic::vp_reduce_xor:
-  case Intrinsic::vp_reduce_umax:
-    return Constant::getNullValue(EltTy);
-  case Intrinsic::vp_reduce_mul:
-    return ConstantInt::get(EltTy, 1, /*IsSigned*/ false);
-  case Intrinsic::vp_reduce_and:
-  case Intrinsic::vp_reduce_umin:
-    return ConstantInt::getAllOnesValue(EltTy);
-  case Intrinsic::vp_reduce_smin:
-    return ConstantInt::get(EltTy->getContext(),
-                            APInt::getSignedMaxValue(EltBits));
-  case Intrinsic::vp_reduce_smax:
-    return ConstantInt::get(EltTy->getContext(),
-                            APInt::getSignedMinValue(EltBits));
-  case Intrinsic::vp_reduce_fmax:
-    Negative = true;
-    [[fallthrough]];
-  case Intrinsic::vp_reduce_fmin: {
-    FastMathFlags Flags = VPI.getFastMathFlags();
-    const fltSemantics &Semantics = EltTy->getFltSemantics();
-    return !Flags.noNaNs() ? ConstantFP::getQNaN(EltTy, Negative)
-           : !Flags.noInfs()
-               ? ConstantFP::getInfinity(EltTy, Negative)
-               : ConstantFP::get(EltTy,
-                                 APFloat::getLargest(Semantics, Negative));
-  }
-  case Intrinsic::vp_reduce_fadd:
-    return ConstantFP::getNegativeZero(EltTy);
-  case Intrinsic::vp_reduce_fmul:
-    return ConstantFP::get(EltTy, 1.0);
-  }
+  Intrinsic::ID RdxID = *VPI.getFunctionalIntrinsicID();
+  FastMathFlags FMF;
+  if (isa<FPMathOperator>(VPI))
+    FMF = VPI.getFastMathFlags();
+  return getReductionIdentity(RdxID, EltTy, FMF);
 }
 
 Value *
@@ -373,57 +355,33 @@ CachingVPExpander::expandPredicationInReduction(IRBuilder<> &Builder,
   default:
     llvm_unreachable("Impossible reduction kind");
   case Intrinsic::vp_reduce_add:
-    Reduction = Builder.CreateAddReduce(RedOp);
-    Reduction = Builder.CreateAdd(Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_mul:
-    Reduction = Builder.CreateMulReduce(RedOp);
-    Reduction = Builder.CreateMul(Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_and:
-    Reduction = Builder.CreateAndReduce(RedOp);
-    Reduction = Builder.CreateAnd(Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_or:
-    Reduction = Builder.CreateOrReduce(RedOp);
-    Reduction = Builder.CreateOr(Reduction, Start);
+  case Intrinsic::vp_reduce_xor: {
+    Intrinsic::ID RedID = *VPI.getFunctionalIntrinsicID();
+    unsigned Opc = getArithmeticReductionInstruction(RedID);
+    assert(Instruction::isBinaryOp(Opc));
+    Reduction = Builder.CreateUnaryIntrinsic(RedID, RedOp);
+    Reduction =
+        Builder.CreateBinOp((Instruction::BinaryOps)Opc, Reduction, Start);
     break;
-  case Intrinsic::vp_reduce_xor:
-    Reduction = Builder.CreateXorReduce(RedOp);
-    Reduction = Builder.CreateXor(Reduction, Start);
-    break;
+  }
   case Intrinsic::vp_reduce_smax:
-    Reduction = Builder.CreateIntMaxReduce(RedOp, /*IsSigned*/ true);
-    Reduction =
-        Builder.CreateBinaryIntrinsic(Intrinsic::smax, Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_smin:
-    Reduction = Builder.CreateIntMinReduce(RedOp, /*IsSigned*/ true);
-    Reduction =
-        Builder.CreateBinaryIntrinsic(Intrinsic::smin, Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_umax:
-    Reduction = Builder.CreateIntMaxReduce(RedOp, /*IsSigned*/ false);
-    Reduction =
-        Builder.CreateBinaryIntrinsic(Intrinsic::umax, Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_umin:
-    Reduction = Builder.CreateIntMinReduce(RedOp, /*IsSigned*/ false);
-    Reduction =
-        Builder.CreateBinaryIntrinsic(Intrinsic::umin, Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_fmax:
-    Reduction = Builder.CreateFPMaxReduce(RedOp);
-    transferDecorations(*Reduction, VPI);
-    Reduction =
-        Builder.CreateBinaryIntrinsic(Intrinsic::maxnum, Reduction, Start);
-    break;
   case Intrinsic::vp_reduce_fmin:
-    Reduction = Builder.CreateFPMinReduce(RedOp);
+  case Intrinsic::vp_reduce_fmaximum:
+  case Intrinsic::vp_reduce_fminimum: {
+    Intrinsic::ID RedID = *VPI.getFunctionalIntrinsicID();
+    Intrinsic::ID ScalarID = getMinMaxReductionIntrinsicOp(RedID);
+    Reduction = Builder.CreateUnaryIntrinsic(RedID, RedOp);
     transferDecorations(*Reduction, VPI);
-    Reduction =
-        Builder.CreateBinaryIntrinsic(Intrinsic::minnum, Reduction, Start);
+    Reduction = Builder.CreateBinaryIntrinsic(ScalarID, Reduction, Start);
     break;
+  }
   case Intrinsic::vp_reduce_fadd:
     Reduction = Builder.CreateFAddReduce(Start, RedOp);
     break;
@@ -436,12 +394,25 @@ CachingVPExpander::expandPredicationInReduction(IRBuilder<> &Builder,
   return Reduction;
 }
 
+Value *CachingVPExpander::expandPredicationToCastIntrinsic(IRBuilder<> &Builder,
+                                                           VPIntrinsic &VPI) {
+  Intrinsic::ID VPID = VPI.getIntrinsicID();
+  unsigned CastOpcode = VPIntrinsic::getFunctionalOpcodeForVP(VPID).value();
+  assert(Instruction::isCast(CastOpcode));
+  Value *CastOp =
+      Builder.CreateCast(Instruction::CastOps(CastOpcode), VPI.getOperand(0),
+                         VPI.getType(), VPI.getName());
+
+  replaceOperation(*CastOp, VPI);
+  return CastOp;
+}
+
 Value *
 CachingVPExpander::expandPredicationInMemoryIntrinsic(IRBuilder<> &Builder,
                                                       VPIntrinsic &VPI) {
   assert(VPI.canIgnoreVectorLengthParam());
 
-  const auto &DL = F.getParent()->getDataLayout();
+  const auto &DL = VPI.getDataLayout();
 
   Value *MaskParam = VPI.getMaskParam();
   Value *PtrParam = VPI.getMemoryPointerParam();
@@ -519,43 +490,42 @@ Value *CachingVPExpander::expandPredicationInComparison(IRBuilder<> &Builder,
   return NewCmp;
 }
 
-void CachingVPExpander::discardEVLParameter(VPIntrinsic &VPI) {
+bool CachingVPExpander::discardEVLParameter(VPIntrinsic &VPI) {
   LLVM_DEBUG(dbgs() << "Discard EVL parameter in " << VPI << "\n");
 
   if (VPI.canIgnoreVectorLengthParam())
-    return;
+    return false;
 
   Value *EVLParam = VPI.getVectorLengthParam();
   if (!EVLParam)
-    return;
+    return false;
 
   ElementCount StaticElemCount = VPI.getStaticVectorLength();
   Value *MaxEVL = nullptr;
   Type *Int32Ty = Type::getInt32Ty(VPI.getContext());
   if (StaticElemCount.isScalable()) {
     // TODO add caching
-    auto *M = VPI.getModule();
-    Function *VScaleFunc =
-        Intrinsic::getDeclaration(M, Intrinsic::vscale, Int32Ty);
     IRBuilder<> Builder(VPI.getParent(), VPI.getIterator());
     Value *FactorConst = Builder.getInt32(StaticElemCount.getKnownMinValue());
-    Value *VScale = Builder.CreateCall(VScaleFunc, {}, "vscale");
+    Value *VScale = Builder.CreateIntrinsic(Intrinsic::vscale, Int32Ty, {},
+                                            /*FMFSource=*/nullptr, "vscale");
     MaxEVL = Builder.CreateMul(VScale, FactorConst, "scalable_size",
                                /*NUW*/ true, /*NSW*/ false);
   } else {
     MaxEVL = ConstantInt::get(Int32Ty, StaticElemCount.getFixedValue(), false);
   }
   VPI.setVectorLengthParam(MaxEVL);
+  return true;
 }
 
-Value *CachingVPExpander::foldEVLIntoMask(VPIntrinsic &VPI) {
+std::pair<Value *, bool> CachingVPExpander::foldEVLIntoMask(VPIntrinsic &VPI) {
   LLVM_DEBUG(dbgs() << "Folding vlen for " << VPI << '\n');
 
   IRBuilder<> Builder(&VPI);
 
   // Ineffective %evl parameter and so nothing to do here.
   if (VPI.canIgnoreVectorLengthParam())
-    return &VPI;
+    return {&VPI, false};
 
   // Only VP intrinsics can have an %evl parameter.
   Value *OldMaskParam = VPI.getMaskParam();
@@ -578,7 +548,7 @@ Value *CachingVPExpander::foldEVLIntoMask(VPIntrinsic &VPI) {
          "transformation did not render the evl param ineffective!");
 
   // Reassess the modified instruction.
-  return &VPI;
+  return {&VPI, true};
 }
 
 Value *CachingVPExpander::expandPredication(VPIntrinsic &VPI) {
@@ -598,18 +568,45 @@ Value *CachingVPExpander::expandPredication(VPIntrinsic &VPI) {
   if (auto *VPCmp = dyn_cast<VPCmpIntrinsic>(&VPI))
     return expandPredicationInComparison(Builder, *VPCmp);
 
+  if (VPCastIntrinsic::isVPCast(VPI.getIntrinsicID())) {
+    return expandPredicationToCastIntrinsic(Builder, VPI);
+  }
+
   switch (VPI.getIntrinsicID()) {
   default:
     break;
   case Intrinsic::vp_fneg: {
     Value *NewNegOp = Builder.CreateFNeg(VPI.getOperand(0), VPI.getName());
     replaceOperation(*NewNegOp, VPI);
-    return NewNegOp;  
+    return NewNegOp;
   }
+  case Intrinsic::vp_abs:
+  case Intrinsic::vp_smax:
+  case Intrinsic::vp_smin:
+  case Intrinsic::vp_umax:
+  case Intrinsic::vp_umin:
+  case Intrinsic::vp_bswap:
+  case Intrinsic::vp_bitreverse:
+  case Intrinsic::vp_ctpop:
+  case Intrinsic::vp_ctlz:
+  case Intrinsic::vp_cttz:
+  case Intrinsic::vp_sadd_sat:
+  case Intrinsic::vp_uadd_sat:
+  case Intrinsic::vp_ssub_sat:
+  case Intrinsic::vp_usub_sat:
+  case Intrinsic::vp_fshl:
+  case Intrinsic::vp_fshr:
+    return expandPredicationToIntCall(Builder, VPI);
   case Intrinsic::vp_fabs:
-    return expandPredicationToFPCall(Builder, VPI, Intrinsic::fabs);
   case Intrinsic::vp_sqrt:
-    return expandPredicationToFPCall(Builder, VPI, Intrinsic::sqrt);
+  case Intrinsic::vp_maxnum:
+  case Intrinsic::vp_minnum:
+  case Intrinsic::vp_maximum:
+  case Intrinsic::vp_minimum:
+  case Intrinsic::vp_fma:
+  case Intrinsic::vp_fmuladd:
+    return expandPredicationToFPCall(Builder, VPI,
+                                     VPI.getFunctionalIntrinsicID().value());
   case Intrinsic::vp_load:
   case Intrinsic::vp_store:
   case Intrinsic::vp_gather:
@@ -625,15 +622,6 @@ Value *CachingVPExpander::expandPredication(VPIntrinsic &VPI) {
 }
 
 //// } CachingVPExpander
-
-struct TransformJob {
-  VPIntrinsic *PI;
-  TargetTransformInfo::VPLegalization Strategy;
-  TransformJob(VPIntrinsic *PI, TargetTransformInfo::VPLegalization InitStrat)
-      : PI(PI), Strategy(InitStrat) {}
-
-  bool isDone() const { return Strategy.shouldDoNothing(); }
-};
 
 void sanitizeStrategy(VPIntrinsic &VPI, VPLegalization &LegalizeStrat) {
   // Operations with speculatable lanes do not strictly need predication.
@@ -671,99 +659,50 @@ CachingVPExpander::getVPLegalizationStrategy(const VPIntrinsic &VPI) const {
   return VPStrat;
 }
 
-/// Expand llvm.vp.* intrinsics as requested by \p TTI.
-bool CachingVPExpander::expandVectorPredication() {
-  SmallVector<TransformJob, 16> Worklist;
+VPExpansionDetails
+CachingVPExpander::expandVectorPredication(VPIntrinsic &VPI) {
+  auto Strategy = getVPLegalizationStrategy(VPI);
+  sanitizeStrategy(VPI, Strategy);
 
-  // Collect all VPIntrinsics that need expansion and determine their expansion
-  // strategy.
-  for (auto &I : instructions(F)) {
-    auto *VPI = dyn_cast<VPIntrinsic>(&I);
-    if (!VPI)
-      continue;
-    auto VPStrat = getVPLegalizationStrategy(*VPI);
-    sanitizeStrategy(*VPI, VPStrat);
-    if (!VPStrat.shouldDoNothing())
-      Worklist.emplace_back(VPI, VPStrat);
-  }
-  if (Worklist.empty())
-    return false;
+  VPExpansionDetails Changed = VPExpansionDetails::IntrinsicUnchanged;
 
-  // Transform all VPIntrinsics on the worklist.
-  LLVM_DEBUG(dbgs() << "\n:::: Transforming " << Worklist.size()
-                    << " instructions ::::\n");
-  for (TransformJob Job : Worklist) {
-    // Transform the EVL parameter.
-    switch (Job.Strategy.EVLParamStrategy) {
-    case VPLegalization::Legal:
-      break;
-    case VPLegalization::Discard:
-      discardEVLParameter(*Job.PI);
-      break;
-    case VPLegalization::Convert:
-      if (foldEVLIntoMask(*Job.PI))
-        ++NumFoldedVL;
-      break;
+  // Transform the EVL parameter.
+  switch (Strategy.EVLParamStrategy) {
+  case VPLegalization::Legal:
+    break;
+  case VPLegalization::Discard:
+    if (discardEVLParameter(VPI))
+      Changed = VPExpansionDetails::IntrinsicUpdated;
+    break;
+  case VPLegalization::Convert:
+    if (auto [NewVPI, Folded] = foldEVLIntoMask(VPI); Folded) {
+      (void)NewVPI;
+      Changed = VPExpansionDetails::IntrinsicUpdated;
+      ++NumFoldedVL;
     }
-    Job.Strategy.EVLParamStrategy = VPLegalization::Legal;
+    break;
+  }
 
-    // Replace with a non-predicated operation.
-    switch (Job.Strategy.OpStrategy) {
-    case VPLegalization::Legal:
-      break;
-    case VPLegalization::Discard:
-      llvm_unreachable("Invalid strategy for operators.");
-    case VPLegalization::Convert:
-      expandPredication(*Job.PI);
+  // Replace with a non-predicated operation.
+  switch (Strategy.OpStrategy) {
+  case VPLegalization::Legal:
+    break;
+  case VPLegalization::Discard:
+    llvm_unreachable("Invalid strategy for operators.");
+  case VPLegalization::Convert:
+    if (Value *V = expandPredication(VPI); V != &VPI) {
       ++NumLoweredVPOps;
-      break;
+      Changed = VPExpansionDetails::IntrinsicReplaced;
     }
-    Job.Strategy.OpStrategy = VPLegalization::Legal;
-
-    assert(Job.isDone() && "incomplete transformation");
+    break;
   }
 
-  return true;
+  return Changed;
 }
-class ExpandVectorPredication : public FunctionPass {
-public:
-  static char ID;
-  ExpandVectorPredication() : FunctionPass(ID) {
-    initializeExpandVectorPredicationPass(*PassRegistry::getPassRegistry());
-  }
-
-  bool runOnFunction(Function &F) override {
-    const auto *TTI = &getAnalysis<TargetTransformInfoWrapperPass>().getTTI(F);
-    CachingVPExpander VPExpander(F, *TTI);
-    return VPExpander.expandVectorPredication();
-  }
-
-  void getAnalysisUsage(AnalysisUsage &AU) const override {
-    AU.addRequired<TargetTransformInfoWrapperPass>();
-    AU.setPreservesCFG();
-  }
-};
 } // namespace
 
-char ExpandVectorPredication::ID;
-INITIALIZE_PASS_BEGIN(ExpandVectorPredication, "expandvp",
-                      "Expand vector predication intrinsics", false, false)
-INITIALIZE_PASS_DEPENDENCY(TargetTransformInfoWrapperPass)
-INITIALIZE_PASS_DEPENDENCY(DominatorTreeWrapperPass)
-INITIALIZE_PASS_END(ExpandVectorPredication, "expandvp",
-                    "Expand vector predication intrinsics", false, false)
-
-FunctionPass *llvm::createExpandVectorPredicationPass() {
-  return new ExpandVectorPredication();
-}
-
-PreservedAnalyses
-ExpandVectorPredicationPass::run(Function &F, FunctionAnalysisManager &AM) {
-  const auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  CachingVPExpander VPExpander(F, TTI);
-  if (!VPExpander.expandVectorPredication())
-    return PreservedAnalyses::all();
-  PreservedAnalyses PA;
-  PA.preserveSet<CFGAnalyses>();
-  return PA;
+VPExpansionDetails
+llvm::expandVectorPredicationIntrinsic(VPIntrinsic &VPI,
+                                       const TargetTransformInfo &TTI) {
+  return CachingVPExpander(TTI).expandVectorPredication(VPI);
 }

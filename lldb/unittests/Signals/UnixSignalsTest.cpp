@@ -84,9 +84,9 @@ TEST(UnixSignalsTest, GetInfo) {
 
   bool should_suppress = false, should_stop = false, should_notify = false;
   int32_t signo = 4;
-  std::string name =
+  bool success =
       signals.GetSignalInfo(signo, should_suppress, should_stop, should_notify);
-  EXPECT_EQ("SIG4", name);
+  ASSERT_TRUE(success);
   EXPECT_EQ(true, should_suppress);
   EXPECT_EQ(false, should_stop);
   EXPECT_EQ(true, should_notify);
@@ -94,15 +94,13 @@ TEST(UnixSignalsTest, GetInfo) {
   EXPECT_EQ(true, signals.GetShouldSuppress(signo));
   EXPECT_EQ(false, signals.GetShouldStop(signo));
   EXPECT_EQ(true, signals.GetShouldNotify(signo));
-  EXPECT_EQ(name, signals.GetSignalAsCString(signo));
 }
 
-TEST(UnixSignalsTest, GetAsCString) {
+TEST(UnixSignalsTest, GetAsStringRef) {
   TestSignals signals;
 
-  ASSERT_EQ(nullptr, signals.GetSignalAsCString(100));
-  std::string name = signals.GetSignalAsCString(16);
-  ASSERT_EQ("SIG16", name);
+  ASSERT_EQ(llvm::StringRef(), signals.GetSignalAsStringRef(100));
+  ASSERT_EQ("SIG16", signals.GetSignalAsStringRef(16));
 }
 
 TEST(UnixSignalsTest, GetAsString) {
@@ -121,7 +119,7 @@ TEST(UnixSignalsTest, GetAsString) {
   ASSERT_EQ("SIG16: a specific type of SIG16",
             signals.GetSignalDescription(16, 1, 0xCAFEF00D));
   // Known code that should.
-  ASSERT_EQ("SIG16: SIG16 with a fault address (fault address: 0xcafef00d)",
+  ASSERT_EQ("SIG16: SIG16 with a fault address (fault address=0xcafef00d)",
             signals.GetSignalDescription(16, 2, 0xCAFEF00D));
   // No address given just print the code description.
   ASSERT_EQ("SIG16: SIG16 with a fault address",
@@ -133,11 +131,11 @@ TEST(UnixSignalsTest, GetAsString) {
   ASSERT_EQ(expected, signals.GetSignalDescription(16, 3, 0xcafef00d));
   ASSERT_EQ(expected, signals.GetSignalDescription(16, 3, 0xcafef00d, 0x1234));
 
-  ASSERT_EQ("SIG16: upper bound violation (fault address: 0x5679, lower bound: "
-            "0x1234, upper bound: 0x5678)",
+  ASSERT_EQ("SIG16: upper bound violation (fault address=0x5679, lower bound="
+            "0x1234, upper bound=0x5678)",
             signals.GetSignalDescription(16, 3, 0x5679, 0x1234, 0x5678));
-  ASSERT_EQ("SIG16: lower bound violation (fault address: 0x1233, lower bound: "
-            "0x1234, upper bound: 0x5678)",
+  ASSERT_EQ("SIG16: lower bound violation (fault address=0x1233, lower bound="
+            "0x1234, upper bound=0x5678)",
             signals.GetSignalDescription(16, 3, 0x1233, 0x1234, 0x5678));
 }
 

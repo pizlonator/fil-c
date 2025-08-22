@@ -21,6 +21,11 @@
 // See https://android.googlesource.com/platform/bionic/+/master/docs/defines.md
 #if defined(__BIONIC__)
 #define SCUDO_ANDROID 1
+// Transitive includes of unistd.h will get PAGE_SIZE if it is defined.
+#include <unistd.h>
+#if defined(PAGE_SIZE)
+#define SCUDO_PAGE_SIZE PAGE_SIZE
+#endif
 #else
 #define SCUDO_ANDROID 0
 #endif
@@ -61,6 +66,10 @@
 
 #ifndef SCUDO_CAN_USE_MTE
 #define SCUDO_CAN_USE_MTE (SCUDO_LINUX || SCUDO_TRUSTY)
+#endif
+
+#ifndef SCUDO_ENABLE_HOOKS
+#define SCUDO_ENABLE_HOOKS 0
 #endif
 
 #ifndef SCUDO_MIN_ALIGNMENT_LOG

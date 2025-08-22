@@ -1,6 +1,5 @@
 // RUN: %clang_cc1 %s -Wno-private-extern -triple i386-pc-linux-gnu -verify -fsyntax-only
 
-
 void f(void) {
   int i;
 
@@ -40,14 +39,12 @@ void clobbers(void) {
   asm ("nop" : "=a" (a) : "b" (b) : "%rcx", "%rbx"); // expected-error {{asm-specifier for input or output variable conflicts with asm clobber list}} 
 }
 
-// rdar://6094010
 void test3(void) {
   int x;
   asm(L"foo" : "=r"(x)); // expected-error {{wide string}}
   asm("foo" : L"=r"(x)); // expected-error {{wide string}}
 }
 
-// <rdar://problem/6156893>
 void test4(const volatile void *addr)
 {
     asm ("nop" : : "r"(*addr)); /* expected-error {{invalid type 'const volatile void' in asm input for constraint 'r'}}
@@ -60,7 +57,6 @@ void test4(const volatile void *addr)
     asm ("nop" : : "m"(f())); // expected-error {{invalid lvalue in asm input for constraint 'm'}}
 }
 
-// <rdar://problem/6512595>
 void test5(void) {
   asm("nop" : : "X" (8));
 }
@@ -94,7 +90,7 @@ int test7(unsigned long long b) {
 
 // PR3904
 void test8(int i) {
-  // A number in an input constraint can't point to a read-write constraint.
+  // A number in an input constraint cannot point to a read-write constraint.
   asm("" : "+r" (i), "=r"(i) :  "0" (i)); // expected-error{{invalid input constraint '0' in asm}}
 }
 
@@ -119,7 +115,6 @@ void test10(void){
 
 // This is just an assert because of the boolean conversion.
 // Feel free to change the assembly to something sensible if it causes a problem.
-// rdar://problem/9414925
 void test11(void) {
   _Bool b;
   asm volatile ("movb %%gs:%P2,%b0" : "=q"(b) : "0"(0), "i"(5L));
@@ -135,7 +130,6 @@ void test13(void) {
   __asm__ volatile ("mov %%esp, %o" : "=r"(esp) : : ); // expected-error {{invalid % escape in inline assembly string}}
 }
 
-// <rdar://problem/12700799>
 struct S;  // expected-note 2 {{forward declaration of 'struct S'}}
 void test14(struct S *s) {
   __asm("": : "a"(*s)); // expected-error {{dereference of pointer to incomplete type 'struct S'}}
@@ -197,8 +191,8 @@ void iOutputConstraint(int x){
 struct foo {
   int a;
 };
-register struct foo bar asm("esp"); // expected-error {{bad type for named register variable}}
-register float baz asm("esp"); // expected-error {{bad type for named register variable}}
+register struct foo bar asm("esp"); // expected-error {{unsupported type for named register variable}}
+register float baz asm("esp"); // expected-error {{unsupported type for named register variable}}
 
 register int r0 asm ("edi"); // expected-error {{register 'edi' unsuitable for global register variables on this target}}
 register long long r1 asm ("esp"); // expected-error {{size of register 'esp' does not match variable size}}
@@ -207,6 +201,12 @@ register int r2 asm ("esp");
 double f_output_constraint(void) {
   double result;
   __asm("foo1": "=f" (result)); // expected-error {{invalid output constraint '=f' in asm}}
+  return result;
+}
+
+double f_output_constraint_2(void) {
+  double result;
+  __asm("foo1": "+f" (result)); // expected-error {{invalid output constraint '+f' in asm}}
   return result;
 }
 
@@ -359,9 +359,30 @@ void test19(long long x)
   asm ("" : "=rm" (x): "0" (a)); // expected-error {{unsupported inline asm: input with type 'st_size64' (aka 'struct _st_size64') matching output with type 'long long'}}
   // FIXME: This case is actually supported by codegen.
   asm ("" : "=rm" (a): "0" (d)); // expected-error {{unsupported inline asm: input with type 'st_size32' (aka 'struct _st_size32') matching output with type 'st_size64' (aka 'struct _st_size64')}}
-  asm ("" : "=rm" (b): "0" (1)); // expected-error {{impossible constraint in asm: can't store value into a register}}
+  asm ("" : "=rm" (b): "0" (1)); // expected-error {{impossible constraint in asm: cannot store value into a register}}
   // FIXME: This case should be supported by codegen, but it fails now.
   asm ("" : "=rm" (e): "0" (1)); // no-error
   // FIXME: This case should be supported by codegen, but it fails now.
   asm ("" : "=rm" (x): "0" (e)); // expected-error {{unsupported inline asm: input with type 'st_size128' (aka 'struct _st_size128') matching output with type 'long long'}}
+}
+
+typedef int int2 __attribute__((ext_vector_type(2)));
+
+// GH118892
+void test20(char x) {
+  double d;
+  float f;
+
+  asm ("fabs" : "=t" (d): "0" (x)); // expected-error {{unsupported inline asm: input with type 'char' matching output with type 'double'}}
+  asm ("fabs" : "=t" (x): "0" (d)); // expected-error {{unsupported inline asm: input with type 'double' matching output with type 'char'}}
+  asm ("fabs" : "=t" (f): "0" (d)); // no-error
+  asm ("fabs" : "=t" (d): "0" (f)); // no-error
+
+  st_size64 a;
+  asm ("fabs" : "=t" (d): "0" (a)); // expected-error {{unsupported inline asm: input with type 'st_size64' (aka 'struct _st_size64') matching output with type 'double'}}
+  asm ("fabs" : "=t" (a): "0" (d)); // expected-error {{unsupported inline asm: input with type 'double' matching output with type 'st_size64' (aka 'struct _st_size64')}}
+
+  int2 v;
+  asm ("fabs" : "=t" (d): "0" (v)); // expected-error {{unsupported inline asm: input with type 'int2' (vector of 2 'int' values) matching output with type 'double'}}
+  asm ("fabs" : "=t" (v): "0" (d)); // expected-error {{unsupported inline asm: input with type 'double' matching output with type 'int2' (vector of 2 'int' values)}}
 }

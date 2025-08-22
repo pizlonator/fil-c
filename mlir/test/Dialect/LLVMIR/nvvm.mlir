@@ -43,6 +43,62 @@ func.func @llvm_nvvm_barrier0() {
   llvm.return
 }
 
+// CHECK-LABEL: @llvm_nvvm_barrier
+// CHECK-SAME: (%[[barId:.*]]: i32, %[[numberOfThreads:.*]]: i32)
+llvm.func @llvm_nvvm_barrier(%barId : i32, %numberOfThreads : i32) {
+  // CHECK: nvvm.barrier 
+  nvvm.barrier 
+  // CHECK: nvvm.barrier id = %[[barId]]
+  nvvm.barrier id = %barId
+  // CHECK: nvvm.barrier id = %[[barId]] number_of_threads = %[[numberOfThreads]]
+  nvvm.barrier id = %barId number_of_threads = %numberOfThreads
+  llvm.return
+}
+
+// CHECK-LABEL: @llvm_nvvm_barrier_arrive
+// CHECK-SAME: (%[[barId:.*]]: i32, %[[numberOfThreads:.*]]: i32)
+llvm.func @llvm_nvvm_barrier_arrive(%barId : i32, %numberOfThreads : i32) {
+  // CHECK: nvvm.barrier.arrive number_of_threads = %[[numberOfThreads]]
+  nvvm.barrier.arrive number_of_threads = %numberOfThreads
+  // CHECK: nvvm.barrier.arrive id = %[[barId]] number_of_threads = %[[numberOfThreads]]
+  nvvm.barrier.arrive id = %barId number_of_threads = %numberOfThreads
+  llvm.return
+}
+
+// CHECK-LABEL: @llvm_nvvm_cluster_arrive
+func.func @llvm_nvvm_cluster_arrive() {
+  // CHECK: nvvm.cluster.arrive
+  nvvm.cluster.arrive
+  // CHECK: nvvm.cluster.arrive {aligned}
+  nvvm.cluster.arrive {aligned}
+  llvm.return
+}
+
+// CHECK-LABEL: @llvm_nvvm_cluster_arrive_relaxed
+func.func @llvm_nvvm_cluster_arrive_relaxed() {
+  // CHECK: nvvm.cluster.arrive.relaxed
+  nvvm.cluster.arrive.relaxed
+  // CHECK: nvvm.cluster.arrive.relaxed {aligned}
+  nvvm.cluster.arrive.relaxed {aligned}
+  llvm.return
+}
+
+// CHECK-LABEL: @llvm_nvvm_cluster_wait
+func.func @llvm_nvvm_cluster_wait() {
+  // CHECK: nvvm.cluster.wait
+  nvvm.cluster.wait
+  // CHECK: nvvm.cluster.wait {aligned}
+  nvvm.cluster.wait {aligned}
+  llvm.return
+}
+
+// CHECK-LABEL: @llvm_nvvm_fence_sc_cluster
+func.func @llvm_nvvm_fence_sc_cluster() {
+  // CHECK: nvvm.fence.sc.cluster
+  nvvm.fence.sc.cluster
+  llvm.return
+}
+
 // CHECK-LABEL: @nvvm_shfl
 func.func @nvvm_shfl(
     %arg0 : i32, %arg1 : i32, %arg2 : i32,
@@ -105,6 +161,29 @@ func.func @nvvm_mma_m8n8k4_f16_f16(%a0 : vector<2xf16>, %a1 : vector<2xf16>,
     {layoutA = #nvvm.mma_layout<row>, layoutB = #nvvm.mma_layout<col>,
      shape = #nvvm.shape<m = 8, n = 8, k = 4>} : (vector<2xf16>,vector<2xf16>,vector<2xf16>) -> !llvm.struct<(vector<2xf16>, vector<2xf16>, vector<2xf16>, vector<2xf16>)>
   llvm.return %0 : !llvm.struct<(vector<2xf16>, vector<2xf16>, vector<2xf16>, vector<2xf16>)>
+}
+
+// CHECK-LABEL: @nvvm_mma_m16n8k8_bf16_bf16
+func.func @nvvm_mma_m16n8k8_bf16_bf16(%a0 : i32, %a1 : i32, %b0 : i32,
+                              %c0 : f32, %c1 : f32, %c2 : f32, %c3 : f32) {
+  // CHECK: nvvm.mma.sync A[{{.*}}] B[{{.*}}] C[{{.*}}] {layoutA = #nvvm.mma_layout<row>, layoutB = #nvvm.mma_layout<col>, multiplicandAPtxType = #nvvm.mma_type<bf16>, multiplicandBPtxType = #nvvm.mma_type<bf16>, shape = #nvvm.shape<m = 16, n = 8, k = 8>} : (i32, i32, f32) -> !llvm.struct<(f32, f32, f32, f32)>
+  %0 = nvvm.mma.sync A[%a0, %a1] B[%b0] C[%c0, %c1, %c2, %c3]
+    {layoutA = #nvvm.mma_layout<row>, layoutB = #nvvm.mma_layout<col>,
+     multiplicandAPtxType = #nvvm.mma_type<bf16>, multiplicandBPtxType = #nvvm.mma_type<bf16>,
+     shape = #nvvm.shape<m = 16, n = 8, k = 8>} : (i32, i32, f32) -> !llvm.struct<(f32, f32, f32, f32)>
+  llvm.return %0 : !llvm.struct<(f32, f32, f32, f32)>
+}
+
+// CHECK-LABEL: @nvvm_mma_m16n8k16_bf16_bf16
+func.func @nvvm_mma_m16n8k16_bf16_bf16(%a0 : i32, %a1 : i32, %a2 : i32, %a3 : i32,
+                              %b0 : i32, %b1 : i32,
+                              %c0 : f32, %c1 : f32, %c2 : f32, %c3 : f32) {
+  // CHECK: nvvm.mma.sync A[{{.*}}] B[{{.*}}] C[{{.*}}] {layoutA = #nvvm.mma_layout<row>, layoutB = #nvvm.mma_layout<col>, multiplicandAPtxType = #nvvm.mma_type<bf16>, multiplicandBPtxType = #nvvm.mma_type<bf16>, shape = #nvvm.shape<m = 16, n = 8, k = 16>} : (i32, i32, f32) -> !llvm.struct<(f32, f32, f32, f32)>
+  %0 = nvvm.mma.sync A[%a0, %a1, %a2, %a3] B[%b0, %b1] C[%c0, %c1, %c2, %c3]
+    {layoutA = #nvvm.mma_layout<row>, layoutB = #nvvm.mma_layout<col>,
+     multiplicandAPtxType = #nvvm.mma_type<bf16>, multiplicandBPtxType = #nvvm.mma_type<bf16>,
+     shape = #nvvm.shape<m = 16, n = 8, k = 16>} : (i32, i32, f32) -> !llvm.struct<(f32, f32, f32, f32)>
+  llvm.return %0 : !llvm.struct<(f32, f32, f32, f32)>
 }
 
 // CHECK-LABEL: @nvvm_mma_m8n8k16_s8_s8
@@ -408,24 +487,59 @@ llvm.func private @mbarrier_test_wait_shared(%barrier: !llvm.ptr<3>, %token : i6
   llvm.return
 }
 
-// CHECK-LABEL : @wgmma_fence_aligned
+// CHECK-LABEL: @wgmma_fence_aligned
 func.func @wgmma_fence_aligned() {
-  // CHECK : nvvm.wgmma.fence.aligned
+  // CHECK: nvvm.wgmma.fence.aligned
   nvvm.wgmma.fence.aligned
   return
 }
 
-// CHECK-LABEL : @wgmma_commit_group_sync_aligned
+// CHECK-LABEL: @wgmma_commit_group_sync_aligned
 func.func @wgmma_commit_group_sync_aligned() {
-  // CHECK : nvvm.wgmma.commit.group.sync.aligned
+  // CHECK: nvvm.wgmma.commit.group.sync.aligned
   nvvm.wgmma.commit.group.sync.aligned
   return
 }
 
 
-// CHECK-LABEL : @wgmma_commit_group_sync_aligned
+// CHECK-LABEL: @wgmma_wait_group_sync_aligned
 func.func @wgmma_wait_group_sync_aligned() {
-  // CHECK : nvvm.wgmma.wait.group.sync.aligned
+  // CHECK: nvvm.wgmma.wait.group.sync.aligned
   nvvm.wgmma.wait.group.sync.aligned 0
   return
+}
+
+// -----
+
+// Just check these don't emit errors.
+gpu.module @module_1 [#nvvm.target<chip = "sm_90", features = "+ptx70", link = ["my_device_lib.bc"], flags = {fast, ftz}>] {
+}
+
+gpu.module @module_2 [#nvvm.target<chip = "sm_90">, #nvvm.target<chip = "sm_80">, #nvvm.target<chip = "sm_70">] {
+}
+
+// CHECK-LABEL: nvvm.grid_constant
+llvm.func @kernel_func(%arg0: !llvm.ptr {llvm.byval = i32, nvvm.grid_constant}) attributes {nvvm.kernel} {
+  llvm.return
+}
+
+// -----
+
+// expected-error @below {{'"nvvm.grid_constant"' attribute must be present only on kernel arguments}}
+llvm.func @kernel_func(%arg0: !llvm.ptr {llvm.byval = i32, nvvm.grid_constant}) {
+  llvm.return
+}
+
+// -----
+
+// expected-error @below {{'"nvvm.grid_constant"' attribute requires the argument to also have attribute 'llvm.byval'}}
+llvm.func @kernel_func(%arg0: !llvm.ptr {nvvm.grid_constant}) attributes {nvvm.kernel} {
+  llvm.return
+}
+
+// -----
+
+// expected-error @below {{'"nvvm.grid_constant"' must be a unit attribute}}
+llvm.func @kernel_func(%arg0: !llvm.ptr {llvm.byval = i32, nvvm.grid_constant = true}) attributes {nvvm.kernel} {
+  llvm.return
 }

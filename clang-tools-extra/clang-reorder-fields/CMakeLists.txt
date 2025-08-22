@@ -3,11 +3,12 @@ set(LLVM_LINK_COMPONENTS
   support
 )
 
-add_clang_library(clangReorderFields
+add_clang_library(clangReorderFields STATIC
   ReorderFieldsAction.cpp
 
   DEPENDS
   omp_gen
+  ClangDriverOptions
 )
 
 clang_target_link_libraries(clangReorderFields

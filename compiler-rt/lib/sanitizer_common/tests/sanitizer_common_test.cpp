@@ -204,30 +204,29 @@ TEST(SanitizerCommon, InternalMmapVectorSwap) {
 }
 
 void TestThreadInfo(bool main) {
-  uptr stk_addr = 0;
-  uptr stk_size = 0;
-  uptr tls_addr = 0;
-  uptr tls_size = 0;
-  GetThreadStackAndTls(main, &stk_addr, &stk_size, &tls_addr, &tls_size);
+  uptr stk_begin = 0;
+  uptr stk_end = 0;
+  uptr tls_begin = 0;
+  uptr tls_end = 0;
+  GetThreadStackAndTls(main, &stk_begin, &stk_end, &tls_begin, &tls_end);
 
   int stack_var;
-  EXPECT_NE(stk_addr, (uptr)0);
-  EXPECT_NE(stk_size, (uptr)0);
-  EXPECT_GT((uptr)&stack_var, stk_addr);
-  EXPECT_LT((uptr)&stack_var, stk_addr + stk_size);
+  EXPECT_NE(stk_begin, (uptr)0);
+  EXPECT_GT(stk_end, stk_begin);
+  EXPECT_GT((uptr)&stack_var, stk_begin);
+  EXPECT_LT((uptr)&stack_var, stk_end);
 
 #if SANITIZER_LINUX && defined(__x86_64__)
   static __thread int thread_var;
-  EXPECT_NE(tls_addr, (uptr)0);
-  EXPECT_NE(tls_size, (uptr)0);
-  EXPECT_GT((uptr)&thread_var, tls_addr);
-  EXPECT_LT((uptr)&thread_var, tls_addr + tls_size);
+  EXPECT_NE(tls_begin, (uptr)0);
+  EXPECT_GT(tls_end, tls_begin);
+  EXPECT_GT((uptr)&thread_var, tls_begin);
+  EXPECT_LT((uptr)&thread_var, tls_end);
 
   // Ensure that tls and stack do not intersect.
-  uptr tls_end = tls_addr + tls_size;
-  EXPECT_TRUE(tls_addr < stk_addr || tls_addr >= stk_addr + stk_size);
-  EXPECT_TRUE(tls_end  < stk_addr || tls_end  >=  stk_addr + stk_size);
-  EXPECT_TRUE((tls_addr < stk_addr) == (tls_end  < stk_addr));
+  EXPECT_TRUE(tls_begin < stk_begin || tls_begin >= stk_end);
+  EXPECT_TRUE(tls_end < stk_begin || tls_end >= stk_end);
+  EXPECT_TRUE((tls_begin < stk_begin) == (tls_end < stk_begin));
 #endif
 }
 
@@ -237,12 +236,12 @@ static void *WorkerThread(void *arg) {
 }
 
 TEST(SanitizerCommon, ThreadStackTlsMain) {
-  InitTlsSize();
+  InitializePlatformEarly();
   TestThreadInfo(true);
 }
 
 TEST(SanitizerCommon, ThreadStackTlsWorker) {
-  InitTlsSize();
+  InitializePlatformEarly();
   pthread_t t;
   PTHREAD_CREATE(&t, 0, WorkerThread, 0);
   PTHREAD_JOIN(t, 0);
@@ -376,21 +375,43 @@ TEST(SanitizerCommon, RemoveANSIEscapeSequencesFromString) {
   }
 }
 
-TEST(SanitizerCommon, InternalScopedString) {
+TEST(SanitizerCommon, InternalScopedStringAppend) {
   InternalScopedString str;
   EXPECT_EQ(0U, str.length());
   EXPECT_STREQ("", str.data());
 
-  str.append("foo");
+  str.Append("");
+  EXPECT_EQ(0U, str.length());
+  EXPECT_STREQ("", str.data());
+
+  str.Append("foo");
+  EXPECT_EQ(3U, str.length());
+  EXPECT_STREQ("foo", str.data());
+
+  str.Append("");
+  EXPECT_EQ(3U, str.length());
+  EXPECT_STREQ("foo", str.data());
+
+  str.Append("123\000456");
+  EXPECT_EQ(6U, str.length());
+  EXPECT_STREQ("foo123", str.data());
+}
+
+TEST(SanitizerCommon, InternalScopedStringAppendF) {
+  InternalScopedString str;
+  EXPECT_EQ(0U, str.length());
+  EXPECT_STREQ("", str.data());
+
+  str.AppendF("foo");
   EXPECT_EQ(3U, str.length());
   EXPECT_STREQ("foo", str.data());
 
   int x = 1234;
-  str.append("%d", x);
+  str.AppendF("%d", x);
   EXPECT_EQ(7U, str.length());
   EXPECT_STREQ("foo1234", str.data());
 
-  str.append("%d", x);
+  str.AppendF("%d", x);
   EXPECT_EQ(11U, str.length());
   EXPECT_STREQ("foo12341234", str.data());
 
@@ -405,7 +426,7 @@ TEST(SanitizerCommon, InternalScopedStringLarge) {
   for (int i = 0; i < 1000; ++i) {
     std::string append(i, 'a' + i % 26);
     expected += append;
-    str.append("%s", append.c_str());
+    str.AppendF("%s", append.c_str());
     EXPECT_EQ(expected, str.data());
   }
 }
@@ -416,7 +437,7 @@ TEST(SanitizerCommon, InternalScopedStringLargeFormat) {
   for (int i = 0; i < 1000; ++i) {
     std::string append(i, 'a' + i % 26);
     expected += append;
-    str.append("%s", append.c_str());
+    str.AppendF("%s", append.c_str());
     EXPECT_EQ(expected, str.data());
   }
 }

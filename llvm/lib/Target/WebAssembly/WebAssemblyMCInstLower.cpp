@@ -13,12 +13,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "WebAssemblyMCInstLower.h"
+#include "MCTargetDesc/WebAssemblyMCTargetDesc.h"
 #include "TargetInfo/WebAssemblyTargetInfo.h"
 #include "Utils/WebAssemblyTypeUtilities.h"
-#include "Utils/WebAssemblyUtilities.h"
 #include "WebAssemblyAsmPrinter.h"
-#include "WebAssemblyISelLowering.h"
 #include "WebAssemblyMachineFunctionInfo.h"
+#include "WebAssemblyUtilities.h"
 #include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/IR/Constants.h"
@@ -73,14 +73,13 @@ WebAssemblyMCInstLower::GetGlobalAddressSymbol(const MachineOperand &MO) const {
   SmallVector<MVT, 4> ParamMVTs;
   const auto *const F = dyn_cast<Function>(Global);
   computeSignatureVTs(FuncTy, F, CurrentFunc, TM, ParamMVTs, ResultMVTs);
-  auto Signature = signatureFromMVTs(ResultMVTs, ParamMVTs);
+  auto Signature = signatureFromMVTs(Ctx, ResultMVTs, ParamMVTs);
 
   bool InvokeDetected = false;
   auto *WasmSym = Printer.getMCSymbolForFunction(
       F, WebAssembly::WasmEnableEmEH || WebAssembly::WasmEnableEmSjLj,
-      Signature.get(), InvokeDetected);
-  WasmSym->setSignature(Signature.get());
-  Printer.addSignature(std::move(Signature));
+      Signature, InvokeDetected);
+  WasmSym->setSignature(Signature);
   WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
   return WasmSym;
 }
@@ -142,12 +141,12 @@ MCOperand WebAssemblyMCInstLower::lowerSymbolOperand(const MachineOperand &MO,
 MCOperand WebAssemblyMCInstLower::lowerTypeIndexOperand(
     SmallVectorImpl<wasm::ValType> &&Returns,
     SmallVectorImpl<wasm::ValType> &&Params) const {
-  auto Signature = std::make_unique<wasm::WasmSignature>(std::move(Returns),
-                                                         std::move(Params));
+  auto Signature = Ctx.createWasmSignature();
+  Signature->Returns = std::move(Returns);
+  Signature->Params = std::move(Params);
   MCSymbol *Sym = Printer.createTempSymbol("typeindex");
   auto *WasmSym = cast<MCSymbolWasm>(Sym);
-  WasmSym->setSignature(Signature.get());
-  Printer.addSignature(std::move(Signature));
+  WasmSym->setSignature(Signature);
   WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
   const MCExpr *Expr =
       MCSymbolRefExpr::create(WasmSym, MCSymbolRefExpr::VK_WASM_TYPEINDEX, Ctx);
@@ -170,6 +169,13 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
 
   const MCInstrDesc &Desc = MI->getDesc();
   unsigned NumVariadicDefs = MI->getNumExplicitDefs() - Desc.getNumDefs();
+  const MachineFunction *MF = MI->getMF();
+  const auto &TLI =
+      *MF->getSubtarget<WebAssemblySubtarget>().getTargetLowering();
+  wasm::ValType PtrTy = TLI.getPointerTy(MF->getDataLayout()) == MVT::i32
+                            ? wasm::ValType::I32
+                            : wasm::ValType::I64;
+
   for (unsigned I = 0, E = MI->getNumOperands(); I != E; ++I) {
     const MachineOperand &MO = MI->getOperand(I);
 
@@ -202,12 +208,12 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
           const MachineRegisterInfo &MRI =
               MI->getParent()->getParent()->getRegInfo();
           for (const MachineOperand &MO : MI->defs())
-            Returns.push_back(
-                WebAssembly::regClassToValType(MRI.getRegClass(MO.getReg())));
+            Returns.push_back(WebAssembly::regClassToValType(
+                MRI.getRegClass(MO.getReg())->getID()));
           for (const MachineOperand &MO : MI->explicit_uses())
             if (MO.isReg())
-              Params.push_back(
-                  WebAssembly::regClassToValType(MRI.getRegClass(MO.getReg())));
+              Params.push_back(WebAssembly::regClassToValType(
+                  MRI.getRegClass(MO.getReg())->getID()));
 
           // call_indirect instructions have a callee operand at the end which
           // doesn't count as a param.
@@ -221,12 +227,27 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
 
           MCOp = lowerTypeIndexOperand(std::move(Returns), std::move(Params));
           break;
-        } else if (Info.OperandType == WebAssembly::OPERAND_SIGNATURE) {
+        }
+        if (Info.OperandType == WebAssembly::OPERAND_SIGNATURE) {
           auto BT = static_cast<WebAssembly::BlockType>(MO.getImm());
           assert(BT != WebAssembly::BlockType::Invalid);
           if (BT == WebAssembly::BlockType::Multivalue) {
-            SmallVector<wasm::ValType, 1> Returns;
-            getFunctionReturns(MI, Returns);
+            SmallVector<wasm::ValType, 2> Returns;
+            // Multivalue blocks are emitted in two cases:
+            // 1. When the blocks will never be exited and are at the ends of
+            //    functions (see
+            //    WebAssemblyCFGStackify::fixEndsAtEndOfFunction). In this case
+            //    the exact multivalue signature can always be inferred from the
+            //    return type of the parent function.
+            // 2. (catch_ref ...) clause in try_table instruction. Currently all
+            //    tags we support (cpp_exception and c_longjmp) throws a single
+            //    pointer, so the multivalue signature for this case will be
+            //    (ptr, exnref). Having MO_CATCH_BLOCK_SIG target flags means
+            //    this is a destination of a catch_ref.
+            if (MO.getTargetFlags() == WebAssemblyII::MO_CATCH_BLOCK_SIG) {
+              Returns = {PtrTy, wasm::ValType::EXNREF};
+            } else
+              getFunctionReturns(MI, Returns);
             MCOp = lowerTypeIndexOperand(std::move(Returns),
                                          SmallVector<wasm::ValType, 4>());
             break;

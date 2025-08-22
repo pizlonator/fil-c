@@ -4,35 +4,104 @@
 Contributing to libc++
 ======================
 
-This file contains notes about various tasks and processes specific to contributing
-to libc++. If this is your first time contributing, please also read `this document
-<https://www.llvm.org/docs/Contributing.html>`__ on general rules for contributing to LLVM.
-
-For libc++, please make sure you follow `these instructions <https://www.llvm.org/docs/Phabricator.html#requesting-a-review-via-the-command-line>`_
-for submitting a code review from the command-line using ``arc``, since we have some
-automation (e.g. CI) that depends on the review being submitted that way.
+This file contains information useful when contributing to libc++. If this is your first time contributing,
+please also read `this document <https://www.llvm.org/docs/Contributing.html>`__ on general rules for
+contributing to LLVM.
 
 If you plan on contributing to libc++, it can be useful to join the ``#libcxx`` channel
 on `LLVM's Discord server <https://discord.gg/jzUbyP26tQ>`__.
 
-Looking for pre-existing reviews
-================================
+Looking for pre-existing pull requests
+======================================
 
-Before you start working on any feature, please take a look at the open reviews
-to avoid duplicating someone else's work. You can do that by going to the website
-where code reviews are held, `Differential <https://reviews.llvm.org/differential>`__,
-and clicking on ``Libc++ Open Reviews`` in the sidebar to the left. If you see
-that your feature is already being worked on, please consider chiming in instead
-of duplicating work!
+Before you start working on any feature, please take a look at the open libc++ pull
+requests to avoid duplicating someone else's work. You can do that on GitHub by
+filtering pull requests `tagged with libc++ <https://github.com/llvm/llvm-project/pulls?q=is%3Apr+is%3Aopen+label%3Alibc%2B%2B>`__.
+If you see that your feature is already being worked on, please consider chiming in
+and helping review the code instead of duplicating work!
 
 RFCs for significant user-affecting changes
 ===========================================
 
 Before you start working on a change that can have significant impact on users of the library,
-please consider creating a RFC on `libc++'s Discourse forum <https://discourse.llvm.org/c/runtimes/libcxx>`__.
+please consider creating a RFC on the `libc++ forum <https://discourse.llvm.org/c/runtimes/libcxx>`_.
 This will ensure that you work in a direction that the project endorses and will ease reviewing your
-contribution as directional questions can be raised early. Including a WIP patch is not mandatory, but
-it can be useful to ground the discussion in something concrete.
+contribution as directional questions can be raised early. Including a WIP patch is not mandatory,
+but it can be useful to ground the discussion in something concrete.
+
+Writing tests and running the test suite
+========================================
+
+Every change in libc++ must come with appropriate tests. Libc++ has an extensive test suite that
+should be run locally by developers before submitting patches and is also run as part of our CI
+infrastructure. The documentation about writing tests and running them is :ref:`here <testing>`.
+
+Coding Guidelines
+=================
+
+libc++'s coding guidelines are documented :ref:`here <CodingGuidelines>`.
+
+
+Resources
+=========
+
+Libc++ specific
+---------------
+
+- ``libcxx/include/__config`` -- this file contains the commonly used
+  macros in libc++. Libc++ supports all C++ language versions. Newer versions
+  of the Standard add new features. For example, making functions ``constexpr``
+  in C++20 is done by using ``_LIBCPP_CONSTEXPR_SINCE_CXX20``. This means the
+  function is ``constexpr`` in C++20 and later. The Standard does not allow
+  making this available in C++17 or earlier, so we use a macro to implement
+  this requirement.
+- ``libcxx/test/support/test_macros.h`` -- similar to the above, but for the
+  test suite.
+
+
+ISO C++ Standard
+----------------
+
+Libc++ implements the library part of the ISO C++ standard. The official
+publication must be bought from ISO or your national body. This is not
+needed to work on libc++, there are other free resources available.
+
+- The `LaTeX sources <https://github.com/cplusplus/draft>`_  used to
+  create the official C++ standard. This can be used to create your own
+  unofficial build of the standard.
+
+- An `HTML rendered version of the draft <https://eel.is/c++draft/>`_  is
+  available. This is the most commonly used place to look for the
+  wording of the standard.
+
+- An `alternative <https://github.com/timsong-cpp/cppwp>`_ is available.
+  This link has both recent and historic versions of the standard.
+
+- When implementing features, there are
+  `general requirements <https://eel.is/c++draft/#library>`_.
+  Most papers use this
+  `jargon <http://eel.is/c++draft/structure#specifications>`_
+  to describe how library functions work.
+
+- The `WG21 redirect service <https://wg21.link/>`_ is a tool to quickly locate
+  papers, issues, and wording in the standard.
+
+- The `paper trail <https://github.com/cplusplus/papers/issues>`_ of
+  papers is publicly available, including the polls taken. It
+  contains links to the minutes of paper's discussion. Per ISO rules,
+  these minutes are only accessible by members of the C++ committee.
+
+- `Feature-Test Macros and Policies
+  <https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations>`_
+  contains information about feature-test macros in C++.
+  It contains a list with all feature-test macros, their versions, and the paper
+  that introduced them.
+
+- `cppreference <https://en.cppreference.com/w/>`_ is a good resource
+  for the usage of C++ library and language features. It's easier to
+  read than the C++ Standard, but it lacks details needed to properly implement
+  library features.
+
 
 Pre-commit check list
 =====================
@@ -47,12 +116,13 @@ sure you don't forget anything:
 - Did you add all new named declarations to the ``std`` module?
 - If you added a header:
 
-  - Did you add it to ``include/module.modulemap.in``?
+  - Did you add it to ``include/module.modulemap``?
   - Did you add it to ``include/CMakeLists.txt``?
   - If it's a public header, did you update ``utils/libcxx/header_information.py``?
 
 - Did you add the relevant feature test macro(s) for your feature? Did you update the ``generate_feature_test_macro_components.py`` script with it?
 - Did you run the ``libcxx-generate-files`` target and verify its output?
+- If needed, did you add ``_LIBCPP_PUSH_MACROS`` and ``_LIBCPP_POP_MACROS`` to the relevant headers?
 
 The review process
 ==================
@@ -69,6 +139,17 @@ of the group to have approved the patch, excluding the patch author. This is not
 rule -- for very simple patches, use your judgement. The `"libc++" review group <https://reviews.llvm.org/project/members/64/>`__
 consists of frequent libc++ contributors with a good understanding of the project's
 guidelines -- if you would like to be added to it, please reach out on Discord.
+
+Some tips:
+
+- Keep the number of formatting changes in patches minimal.
+- Provide separate patches for style fixes and for bug fixes or features. Keep in
+  mind that large formatting patches may cause merge conflicts with other patches
+  under review. In general, we prefer to avoid large reformatting patches.
+- Keep patches self-contained. Large and/or complicated patches are harder to
+  review and take a significant amount of time. It's fine to have multiple
+  patches to implement one feature if the feature can be split into
+  self-contained sub-tasks.
 
 Exporting new symbols from the library
 ======================================
@@ -95,14 +176,14 @@ Introduction
 
 Unlike most parts of the LLVM project, libc++ uses a pre-commit CI [#]_. This
 CI is hosted on `Buildkite <https://buildkite.com/llvm-project/libcxx-ci>`__ and
-the build results are visible in the review on Phabricator. Please make sure
+the build results are visible in the review on GitHub. Please make sure
 the CI is green before committing a patch.
 
 The CI tests libc++ for all :ref:`supported platforms <SupportedPlatforms>`.
-The build is started for every diff uploaded to Phabricator. A complete CI run
-takes approximately one hour. To reduce the load:
+The build is started for every commit added to a Pull Request. A complete CI
+run takes approximately one hour. To reduce the load:
 
-* The build is cancelled when a new diff for the same revision is uploaded.
+* The build is cancelled when a new commit is pushed to a PR that is already running CI.
 * The build is done in several stages and cancelled when a stage fails.
 
 Typically, the libc++ jobs use a Ubuntu Docker image. This image contains

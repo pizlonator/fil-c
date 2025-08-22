@@ -1,4 +1,4 @@
-// RUN: %check_clang_tidy %s modernize-raw-string-literal %t -- -config="{CheckOptions: [{key: modernize-raw-string-literal.ReplaceShorterLiterals, value: true}]}"
+// RUN: %check_clang_tidy %s modernize-raw-string-literal %t -- -config="{CheckOptions: {modernize-raw-string-literal.ReplaceShorterLiterals: true}}"
 
 char const *const BackSlash("goink\\frob");
 // CHECK-MESSAGES: :[[@LINE-1]]:29: warning: escaped string literal can be written as a raw string literal [modernize-raw-string-literal]
@@ -129,3 +129,16 @@ void callFn() {
   // CHECK-MESSAGES: :[[@LINE-1]]:14: warning: {{.*}} can be written as a raw string literal
   // CHECK-FIXES: {{^}}  fn<double>(R"(foo\bar)");{{$}}
 }
+
+namespace std {
+using size_t = decltype(sizeof(0));
+namespace ud {
+int operator""_abc(const char *str, std::size_t len);
+} // namespace ud
+} // namespace std
+namespace gh97243 {
+using namespace std::ud;
+auto UserDefinedLiteral = "foo\\bar"_abc;
+// CHECK-MESSAGES: :[[@LINE-1]]:27: warning: {{.*}} can be written as a raw string literal
+// CHECK-FIXES: {{^}}auto UserDefinedLiteral = R"(foo\bar)"_abc;
+} // namespace gh97243

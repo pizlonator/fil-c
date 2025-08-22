@@ -4,11 +4,12 @@ set(LLVM_LINK_COMPONENTS
   TargetParser
   )
 
-add_clang_library(clangTidyPortabilityModule
+add_clang_library(clangTidyPortabilityModule STATIC
   PortabilityTidyModule.cpp
   RestrictSystemIncludesCheck.cpp
   SIMDIntrinsicsCheck.cpp
   StdAllocatorConstCheck.cpp
+  TemplateVirtualMemberFunctionCheck.cpp
 
   LINK_LIBS
   clangTidy
@@ -16,6 +17,7 @@ add_clang_library(clangTidyPortabilityModule
 
   DEPENDS
   omp_gen
+  ClangDriverOptions
   )
 
 clang_target_link_libraries(clangTidyPortabilityModule

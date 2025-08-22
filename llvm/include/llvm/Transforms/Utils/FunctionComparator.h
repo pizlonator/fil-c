@@ -99,11 +99,6 @@ public:
   /// Test whether the two functions have equivalent behaviour.
   int compare();
 
-  /// Hash a function. Equivalent functions will have the same hash, and unequal
-  /// functions will have different hashes with high probability.
-  using FunctionHash = uint64_t;
-  static FunctionHash functionHash(Function &);
-
 protected:
   /// Start the comparison.
   void beginCompare() {
@@ -322,6 +317,7 @@ protected:
   int cmpNumbers(uint64_t L, uint64_t R) const;
   int cmpAligns(Align L, Align R) const;
   int cmpAPInts(const APInt &L, const APInt &R) const;
+  int cmpConstantRanges(const ConstantRange &L, const ConstantRange &R) const;
   int cmpAPFloats(const APFloat &L, const APFloat &R) const;
   int cmpMem(StringRef L, StringRef R) const;
 

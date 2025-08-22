@@ -15,7 +15,7 @@ DEFINE_DEFAULT_CONSTRUCTORS_AND_ASSIGNMENTS(OffsetSymbol)
 
 std::optional<OffsetSymbol> DesignatorFolder::FoldDesignator(
     const Symbol &symbol, ConstantSubscript which) {
-  if (IsAllocatableOrPointer(symbol)) {
+  if (!getLastComponent_ && IsAllocatableOrPointer(symbol)) {
     // A pointer may appear as a DATA statement object if it is the
     // rightmost symbol in a designator and has no subscripts.
     // An allocatable may appear if its initializer is NULL().
@@ -142,21 +142,26 @@ std::optional<OffsetSymbol> DesignatorFolder::FoldDesignator(
 std::optional<OffsetSymbol> DesignatorFolder::FoldDesignator(
     const Component &component, ConstantSubscript which) {
   const Symbol &comp{component.GetLastSymbol()};
-  const DataRef &base{component.base()};
-  std::optional<OffsetSymbol> baseResult, compResult;
-  if (base.Rank() == 0) { // A%X(:) - apply "which" to component
-    baseResult = FoldDesignator(base, 0);
-    compResult = FoldDesignator(comp, which);
-  } else { // A(:)%X - apply "which" to base
-    baseResult = FoldDesignator(base, which);
-    compResult = FoldDesignator(comp, 0);
-  }
-  if (baseResult && compResult) {
-    OffsetSymbol result{baseResult->symbol(), compResult->size()};
-    result.Augment(baseResult->offset() + compResult->offset() + comp.offset());
-    return {std::move(result)};
+  if (getLastComponent_) {
+    return FoldDesignator(comp, which);
   } else {
-    return std::nullopt;
+    const DataRef &base{component.base()};
+    std::optional<OffsetSymbol> baseResult, compResult;
+    if (base.Rank() == 0) { // A%X(:) - apply "which" to component
+      baseResult = FoldDesignator(base, 0);
+      compResult = FoldDesignator(comp, which);
+    } else { // A(:)%X - apply "which" to base
+      baseResult = FoldDesignator(base, which);
+      compResult = FoldDesignator(comp, 0);
+    }
+    if (baseResult && compResult) {
+      OffsetSymbol result{baseResult->symbol(), compResult->size()};
+      result.Augment(
+          baseResult->offset() + compResult->offset() + comp.offset());
+      return {std::move(result)};
+    } else {
+      return std::nullopt;
+    }
   }
 }
 
@@ -215,7 +220,8 @@ static std::optional<ArrayRef> OffsetToArrayRef(FoldingContext &context,
   Shape lbs{GetRawLowerBounds(context, entity)};
   auto lower{AsConstantExtents(context, lbs)};
   auto elementBytes{ToInt64(elementType.MeasureSizeInBytes(context, true))};
-  if (!extents || !lower || !elementBytes || *elementBytes <= 0) {
+  if (!extents || HasNegativeExtent(*extents) || !lower || !elementBytes ||
+      *elementBytes <= 0) {
     return std::nullopt;
   }
   int rank{GetRank(shape)};
@@ -268,9 +274,8 @@ static std::optional<DataRef> OffsetToDataRef(FoldingContext &context,
   if (IsAllocatableOrPointer(symbol)) {
     return entity.IsSymbol() ? DataRef{symbol}
                              : DataRef{std::move(entity.GetComponent())};
-  }
-  std::optional<DataRef> result;
-  if (std::optional<DynamicType> type{DynamicType::From(symbol)}) {
+  } else if (std::optional<DynamicType> type{DynamicType::From(symbol)}) {
+    std::optional<DataRef> result;
     if (!type->IsUnlimitedPolymorphic()) {
       if (std::optional<Shape> shape{GetShape(context, symbol)}) {
         if (GetRank(*shape) > 0) {
@@ -284,7 +289,7 @@ static std::optional<DataRef> OffsetToDataRef(FoldingContext &context,
               : DataRef{std::move(entity.GetComponent())};
         }
         if (result && type->category() == TypeCategory::Derived &&
-            size < result->GetLastSymbol().size()) {
+            size <= result->GetLastSymbol().size()) {
           if (const Symbol *
               component{OffsetToUniqueComponent(
                   type->GetDerivedTypeSpec(), offset)}) {
@@ -293,25 +298,32 @@ static std::optional<DataRef> OffsetToDataRef(FoldingContext &context,
                 NamedEntity{Component{std::move(*result), *component}}, offset,
                 size);
           }
-          result.reset();
         }
       }
     }
+    return result;
+  } else {
+    return std::nullopt;
   }
-  return result;
 }
 
 // Reconstructs a Designator from a symbol, an offset, and a size.
+// Returns a ProcedureDesignator in the case of a whole procedure pointer.
 std::optional<Expr<SomeType>> OffsetToDesignator(FoldingContext &context,
     const Symbol &baseSymbol, ConstantSubscript offset, std::size_t size) {
   if (offset < 0) {
     return std::nullopt;
-  }
-  if (std::optional<DataRef> dataRef{
-          OffsetToDataRef(context, NamedEntity{baseSymbol}, offset, size)}) {
+  } else if (std::optional<DataRef> dataRef{OffsetToDataRef(
+                 context, NamedEntity{baseSymbol}, offset, size)}) {
     const Symbol &symbol{dataRef->GetLastSymbol()};
-    if (std::optional<Expr<SomeType>> result{
-            AsGenericExpr(std::move(*dataRef))}) {
+    if (IsProcedurePointer(symbol)) {
+      if (std::holds_alternative<SymbolRef>(dataRef->u)) {
+        return Expr<SomeType>{ProcedureDesignator{symbol}};
+      } else if (auto *component{std::get_if<Component>(&dataRef->u)}) {
+        return Expr<SomeType>{ProcedureDesignator{std::move(*component)}};
+      }
+    } else if (std::optional<Expr<SomeType>> result{
+                   AsGenericExpr(std::move(*dataRef))}) {
       if (IsAllocatableOrPointer(symbol)) {
       } else if (auto type{DynamicType::From(symbol)}) {
         if (auto elementBytes{
@@ -368,7 +380,9 @@ ConstantObjectPointer ConstantObjectPointer::From(
     FoldingContext &context, const Expr<SomeType> &expr) {
   auto extents{GetConstantExtents(context, expr)};
   CHECK(extents);
-  std::size_t elements{TotalElementCount(*extents)};
+  std::optional<uint64_t> optElements{TotalElementCount(*extents)};
+  CHECK(optElements);
+  uint64_t elements{*optElements};
   CHECK(elements > 0);
   int rank{GetRank(*extents)};
   ConstantSubscripts at(rank, 1);

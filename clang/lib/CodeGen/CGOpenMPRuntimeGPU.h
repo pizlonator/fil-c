@@ -32,6 +32,18 @@ public:
     /// Unknown execution mode (orphaned directive).
     EM_Unknown,
   };
+
+  /// Target codegen is specialized based on two data-sharing modes: CUDA, in
+  /// which the local variables are actually global threadlocal, and Generic, in
+  /// which the local variables are placed in global memory if they may escape
+  /// their declaration context.
+  enum DataSharingMode {
+    /// CUDA data sharing mode.
+    DS_CUDA,
+    /// Generic data-sharing mode.
+    DS_Generic,
+  };
+
 private:
   /// Parallel outlined function work for workers to execute.
   llvm::SmallVector<llvm::Function *, 16> Work;
@@ -42,23 +54,24 @@ private:
 
   ExecutionMode getExecutionMode() const;
 
+  DataSharingMode getDataSharingMode() const;
+
   /// Get barrier to synchronize all threads in a block.
   void syncCTAThreads(CodeGenFunction &CGF);
 
   /// Helper for target directive initialization.
-  void emitKernelInit(CodeGenFunction &CGF, EntryFunctionState &EST,
-                      bool IsSPMD);
+  void emitKernelInit(const OMPExecutableDirective &D, CodeGenFunction &CGF,
+                      EntryFunctionState &EST, bool IsSPMD);
 
   /// Helper for target directive finalization.
   void emitKernelDeinit(CodeGenFunction &CGF, EntryFunctionState &EST,
                         bool IsSPMD);
 
   /// Helper for generic variables globalization prolog.
-  void emitGenericVarsProlog(CodeGenFunction &CGF, SourceLocation Loc,
-                             bool WithSPMDCheck = false);
+  void emitGenericVarsProlog(CodeGenFunction &CGF, SourceLocation Loc);
 
   /// Helper for generic variables globalization epilog.
-  void emitGenericVarsEpilog(CodeGenFunction &CGF, bool WithSPMDCheck = false);
+  void emitGenericVarsEpilog(CodeGenFunction &CGF);
 
   //
   // Base class overrides.
@@ -117,7 +130,6 @@ protected:
 
 public:
   explicit CGOpenMPRuntimeGPU(CodeGenModule &CGM);
-  void clear() override;
 
   bool isGPU() const override { return true; };
 
@@ -137,9 +149,6 @@ public:
   void getKmpcFreeShared(
       CodeGenFunction &CGF,
       const std::pair<llvm::Value *, llvm::Value *> &AddrSizePair) override;
-
-  /// Get the GPU warp size.
-  llvm::Value *getGPUWarpSize(CodeGenFunction &CGF);
 
   /// Get the id of the current thread on the GPU.
   llvm::Value *getGPUThreadID(CodeGenFunction &CGF);
@@ -285,9 +294,10 @@ public:
 
   /// Emits call of the outlined function with the provided arguments,
   /// translating these arguments to correct target-specific arguments.
-  void emitOutlinedFunctionCall(
-      CodeGenFunction &CGF, SourceLocation Loc, llvm::FunctionCallee OutlinedFn,
-      ArrayRef<llvm::Value *> Args = std::nullopt) const override;
+  void
+  emitOutlinedFunctionCall(CodeGenFunction &CGF, SourceLocation Loc,
+                           llvm::FunctionCallee OutlinedFn,
+                           ArrayRef<llvm::Value *> Args = {}) const override;
 
   /// Emits OpenMP-specific function prolog.
   /// Required for device constructs.
@@ -296,17 +306,6 @@ public:
   /// Gets the OpenMP-specific address of the local variable.
   Address getAddressOfLocalVariable(CodeGenFunction &CGF,
                                     const VarDecl *VD) override;
-
-  /// Target codegen is specialized based on two data-sharing modes: CUDA, in
-  /// which the local variables are actually global threadlocal, and Generic, in
-  /// which the local variables are placed in global memory if they may escape
-  /// their declaration context.
-  enum DataSharingMode {
-    /// CUDA data sharing mode.
-    CUDA,
-    /// Generic data-sharing mode.
-    Generic,
-  };
 
   /// Cleans up references to the objects in finished function.
   ///
@@ -342,6 +341,10 @@ private:
   /// target region and used by containing directives such as 'parallel'
   /// to emit optimized code.
   ExecutionMode CurrentExecutionMode = EM_Unknown;
+
+  /// Track the data sharing mode when codegening directives within a target
+  /// region.
+  DataSharingMode CurrentDataSharingMode = DataSharingMode::DS_Generic;
 
   /// true if currently emitting code for target/teams/distribute region, false
   /// - otherwise.
@@ -380,7 +383,6 @@ private:
   /// Maps the function to the list of the globalized variables with their
   /// addresses.
   llvm::SmallDenseMap<llvm::Function *, FunctionData> FunctionGlobalizedDecls;
-  llvm::GlobalVariable *KernelTeamsReductionPtr = nullptr;
   /// List of the records with the list of fields for the reductions across the
   /// teams. Used to build the intermediate buffer for the fast teams
   /// reductions.

@@ -4,45 +4,78 @@
 
 """LLVM libc starlark rules for building individual functions."""
 
-load(":platforms.bzl", "PLATFORM_CPU_ARM64", "PLATFORM_CPU_X86_64")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:selects.bzl", "selects")
+load(":libc_configure_options.bzl", "LIBC_CONFIGURE_OPTIONS")
+load(":libc_namespace.bzl", "LIBC_NAMESPACE")
+load(":platforms.bzl", "PLATFORM_CPU_X86_64")
 
-LIBC_ROOT_TARGET = ":libc_root"
-INTERNAL_SUFFIX = ".__internal__"
+def libc_internal_target(name):
+    return name + ".__internal__"
 
-def _libc_library(name, copts = None, **kwargs):
+def libc_common_copts():
+    root_label = Label(":libc")
+    libc_include_path = paths.join(root_label.workspace_root, root_label.package)
+    return [
+        "-I" + libc_include_path,
+        "-I" + paths.join(libc_include_path, "include"),
+        "-DLIBC_NAMESPACE=" + LIBC_NAMESPACE,
+    ]
+
+def libc_release_copts():
+    copts = [
+        "-DLIBC_COPT_PUBLIC_PACKAGING",
+        # This is used to explicitly give public symbols "default" visibility.
+        # See src/__support/common.h for more information.
+        "-DLLVM_LIBC_FUNCTION_ATTR='[[gnu::visibility(\"default\")]]'",
+        # All other libc sources need to be compiled with "hidden" visibility.
+        "-fvisibility=hidden",
+        "-O3",
+        "-fno-builtin",
+        "-fno-lax-vector-conversions",
+        "-ftrivial-auto-var-init=pattern",
+        "-fno-omit-frame-pointer",
+        "-fstack-protector-strong",
+    ]
+
+    platform_copts = selects.with_or({
+        PLATFORM_CPU_X86_64: ["-mno-omit-leaf-frame-pointer"],
+        "//conditions:default": [],
+    })
+    return copts + platform_copts
+
+def _libc_library(name, copts = [], deps = [], local_defines = [], **kwargs):
     """Internal macro to serve as a base for all other libc library rules.
 
     Args:
       name: Target name.
       copts: The special compiler options for the target.
+      deps: The list of target dependencies if any.
+      local_defines: The list of target local_defines if any.
       **kwargs: All other attributes relevant for the cc_library rule.
     """
-    copts = copts or []
 
-    # We want all libc sources to be compiled with "hidden" visibility.
-    # The public symbols will be given "default" visibility explicitly.
-    # See src/__support/common.h for more information.
-    copts = copts + ["-fvisibility=hidden"]
     native.cc_library(
         name = name,
-        copts = copts,
+        copts = copts + libc_common_copts(),
+        local_defines = local_defines + LIBC_CONFIGURE_OPTIONS,
+        deps = deps,
         linkstatic = 1,
         **kwargs
     )
 
-# A convenience var which should be used to list all libc support libraries.
+# A convenience function which should be used to list all libc support libraries.
 # Any library which does not define a public function should be listed with
 # libc_support_library.
-libc_support_library = _libc_library
+def libc_support_library(name, **kwargs):
+    _libc_library(name = name, **kwargs)
 
 def libc_function(
         name,
         srcs,
         weak = False,
-        deps = None,
-        copts = None,
-        local_defines = None,
+        copts = [],
+        local_defines = [],
         **kwargs):
     """Add target for a libc function.
 
@@ -57,72 +90,48 @@ def libc_function(
             for.
       srcs: The .cpp files which contain the function implementation.
       weak: Make the symbol corresponding to the libc function "weak".
-      deps: The list of target dependencies if any.
       copts: The list of options to add to the C++ compilation command.
       local_defines: The preprocessor defines which will be prepended with -D
                      and passed to the compile command of this target but not
                      its deps.
       **kwargs: Other attributes relevant for a cc_library. For example, deps.
     """
-    deps = deps or []
-
-    # We use the explicit equals pattern here because append and += mutate the
-    # original list, where this creates a new list and stores it in deps.
-    deps = deps + [LIBC_ROOT_TARGET]
-    copts = copts or []
-    copts = copts + ["-O3", "-fno-builtin", "-fno-lax-vector-conversions"]
 
     # We compile the code twice, the first target is suffixed with ".__internal__" and contains the
-    # C++ functions in the "__llvm_libc" namespace. This allows us to test the function in the
+    # C++ functions in the "LIBC_NAMESPACE" namespace. This allows us to test the function in the
     # presence of another libc.
-    native.cc_library(
-        name = name + INTERNAL_SUFFIX,
+    libc_support_library(
+        name = libc_internal_target(name),
         srcs = srcs,
-        deps = deps,
-        copts = copts,
-        linkstatic = 1,
-        **kwargs
-    )
-
-    # This second target is the llvm libc C function.
-
-    func_attrs = ["__attribute__((visibility(\"default\")))"]
-    if weak:
-        func_attrs = func_attrs + ["__attribute__((weak))"]
-    local_defines = local_defines or ["LIBC_COPT_PUBLIC_PACKAGING"]
-    local_defines = local_defines + ["LLVM_LIBC_FUNCTION_ATTR='%s'" % " ".join(func_attrs)]
-    _libc_library(
-        name = name,
-        srcs = srcs,
-        deps = deps,
         copts = copts,
         local_defines = local_defines,
         **kwargs
     )
 
+    # This second target is the llvm libc C function with default visibility.
+    func_attrs = [
+        "LLVM_LIBC_FUNCTION_ATTR_" + name + "='LLVM_LIBC_EMPTY, [[gnu::weak]]'",
+    ] if weak else []
+
+    _libc_library(
+        name = name,
+        srcs = srcs,
+        copts = copts + libc_release_copts(),
+        local_defines = local_defines + func_attrs,
+        **kwargs
+    )
+
 def libc_math_function(
         name,
-        specializations = None,
         additional_deps = None):
     """Add a target for a math function.
 
     Args:
       name: The name of the function.
-      specializations: List of machine specializations available for this
-                       function. Possible specializations are "generic",
-                       "aarch64" and "x86_64".
       additional_deps: Other deps like helper cc_library targes used by the
                        math function.
     """
     additional_deps = additional_deps or []
-    specializations = specializations or ["generic"]
-    select_map = {}
-    if "generic" in specializations:
-        select_map["//conditions:default"] = ["src/math/generic/" + name + ".cpp"]
-    if "aarch64" in specializations:
-        select_map[PLATFORM_CPU_ARM64] = ["src/math/aarch64/" + name + ".cpp"]
-    if "x86_64" in specializations:
-        select_map[PLATFORM_CPU_X86_64] = ["src/math/x86_64/" + name + ".cpp"]
 
     #TODO(michaelrj): Fix the floating point dependencies
     OLD_FPUTIL_DEPS = [
@@ -130,18 +139,16 @@ def libc_math_function(
         ":__support_fputil_division_and_remainder_operations",
         ":__support_fputil_fenv_impl",
         ":__support_fputil_fp_bits",
-        ":__support_fputil_float_properties",
         ":__support_fputil_hypot",
         ":__support_fputil_manipulation_functions",
         ":__support_fputil_nearest_integer_operations",
         ":__support_fputil_normal_float",
-        ":__support_fputil_platform_defs",
-        ":__support_builtin_wrappers",
+        ":__support_math_extras",
         ":__support_fputil_except_value_utils",
     ]
     libc_function(
         name = name,
-        srcs = selects.with_or(select_map),
+        srcs = ["src/math/generic/" + name + ".cpp"],
         hdrs = ["src/math/" + name + ".h"],
         deps = [":__support_common"] + OLD_FPUTIL_DEPS + additional_deps,
     )

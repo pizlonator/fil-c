@@ -188,28 +188,20 @@ Type OpTrait::util::getBroadcastedType(Type type1, Type type2,
 /// Returns a tuple corresponding to whether range has tensor or vector type.
 template <typename iterator_range>
 static std::tuple<bool, bool> hasTensorOrVectorType(iterator_range types) {
-  return std::make_tuple(
-      llvm::any_of(types, [](Type t) { return isa<TensorType>(t); }),
-      llvm::any_of(types, [](Type t) { return isa<VectorType>(t); }));
+  return {llvm::any_of(types, llvm::IsaPred<TensorType>),
+          llvm::any_of(types, llvm::IsaPred<VectorType>)};
 }
 
 static bool isCompatibleInferredReturnShape(ArrayRef<int64_t> inferred,
                                             ArrayRef<int64_t> existing) {
+  // If both interred and existing dimensions are static, they must be equal.
   auto isCompatible = [](int64_t inferredDim, int64_t existingDim) {
-    // The following criterion is used to determine the validity of an existing
-    // dimension:
-    //
-    // inferredDim  existingDim  Behavior
-    // -----------  -----------  --------
-    // dynamic      dynamic      OK
-    // dynamic      static       Error
-    // static       dynamic      OK
-    // static       static       OK if equal
-    return ShapedType::isDynamic(existingDim) || inferredDim == existingDim;
+    return ShapedType::isDynamic(existingDim) ||
+           ShapedType::isDynamic(inferredDim) || inferredDim == existingDim;
   };
   if (inferred.size() != existing.size())
     return false;
-  for (auto [inferredDim, existingDim] : llvm::zip(inferred, existing))
+  for (auto [inferredDim, existingDim] : llvm::zip_equal(inferred, existing))
     if (!isCompatible(inferredDim, existingDim))
       return false;
   return true;
@@ -231,7 +223,7 @@ static std::string getShapeString(ArrayRef<int64_t> shape) {
       },
       "x");
   ss << '\'';
-  return ss.str();
+  return ret;
 }
 
 LogicalResult OpTrait::impl::verifyCompatibleOperandBroadcast(Operation *op) {
@@ -245,8 +237,8 @@ LogicalResult OpTrait::impl::verifyCompatibleOperandBroadcast(Operation *op) {
        std::get<1>(resultsHasTensorVectorType)))
     return op->emitError("cannot broadcast vector with tensor");
 
-  auto rankedOperands = make_filter_range(
-      op->getOperandTypes(), [](Type t) { return isa<RankedTensorType>(t); });
+  auto rankedOperands =
+      make_filter_range(op->getOperandTypes(), llvm::IsaPred<RankedTensorType>);
 
   // If all operands are unranked, then all result shapes are possible.
   if (rankedOperands.empty())
@@ -264,8 +256,8 @@ LogicalResult OpTrait::impl::verifyCompatibleOperandBroadcast(Operation *op) {
       return op->emitOpError("operands don't have broadcast-compatible shapes");
   }
 
-  auto rankedResults = make_filter_range(
-      op->getResultTypes(), [](Type t) { return isa<RankedTensorType>(t); });
+  auto rankedResults =
+      make_filter_range(op->getResultTypes(), llvm::IsaPred<RankedTensorType>);
 
   // If all of the results are unranked then no further verification.
   if (rankedResults.empty())

@@ -16,6 +16,7 @@ define protected amdgpu_kernel void @kern(ptr %addr) !llvm.amdgcn.lds.kernel.id 
 ; CHECK-NEXT:    s_setreg_b32 hwreg(HW_REG_FLAT_SCR_HI), s13
 ; CHECK-NEXT:    s_add_u32 s0, s0, s17
 ; CHECK-NEXT:    s_addc_u32 s1, s1, 0
+; CHECK-NEXT:    ; implicit-def: $vgpr40 : SGPR spill to VGPR lane
 ; CHECK-NEXT:    v_writelane_b32 v40, s16, 0
 ; CHECK-NEXT:    s_mov_b32 s13, s15
 ; CHECK-NEXT:    s_mov_b32 s12, s14
@@ -58,4 +59,6 @@ define protected amdgpu_kernel void @kern(ptr %addr) !llvm.amdgcn.lds.kernel.id 
   ret void
 }
 
+!llvm.module.flags = !{!1}
 !0 = !{i32 42}
+!1 = !{i32 1, !"amdhsa_code_object_version", i32 500}

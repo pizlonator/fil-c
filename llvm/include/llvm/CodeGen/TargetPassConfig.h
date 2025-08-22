@@ -15,12 +15,13 @@
 
 #include "llvm/Pass.h"
 #include "llvm/Support/CodeGen.h"
+#include "llvm/Support/Error.h"
 #include <cassert>
 #include <string>
 
 namespace llvm {
 
-class LLVMTargetMachine;
+class TargetMachine;
 struct MachineSchedContext;
 class PassConfigImpl;
 class ScheduleDAGInstrs;
@@ -119,7 +120,7 @@ private:
   void setStartStopPasses();
 
 protected:
-  LLVMTargetMachine *TM;
+  TargetMachine *TM;
   PassConfigImpl *Impl = nullptr; // Internal data structures
   bool Initialized = false; // Flagged after all passes are configured.
 
@@ -130,16 +131,24 @@ protected:
   /// Default setting for -enable-tail-merge on this target.
   bool EnableTailMerge = true;
 
+  /// Enable sinking of instructions in MachineSink where a computation can be
+  /// folded into the addressing mode of a memory load/store instruction or
+  /// replace a copy.
+  bool EnableSinkAndFold = false;
+
   /// Require processing of functions such that callees are generated before
   /// callers.
   bool RequireCodeGenSCCOrder = false;
+
+  /// Enable LoopTermFold immediately after LSR
+  bool EnableLoopTermFold = false;
 
   /// Add the actual instruction selection passes. This does not include
   /// preparation passes on IR.
   bool addCoreISelPasses();
 
 public:
-  TargetPassConfig(LLVMTargetMachine &TM, PassManagerBase &pm);
+  TargetPassConfig(TargetMachine &TM, PassManagerBase &PM);
   // Dummy constructor.
   TargetPassConfig();
 
@@ -155,7 +164,7 @@ public:
   //
   void setInitialized() { Initialized = true; }
 
-  CodeGenOpt::Level getOptLevel() const;
+  CodeGenOptLevel getOptLevel() const;
 
   /// Returns true if one of the `-start-after`, `-start-before`, `-stop-after`
   /// or `-stop-before` options is set.
@@ -165,16 +174,32 @@ public:
   /// set.
   static bool willCompleteCodeGenPipeline();
 
-  /// If hasLimitedCodeGenPipeline is true, this method
-  /// returns a string with the name of the options, separated
-  /// by \p Separator that caused this pipeline to be limited.
-  static std::string
-  getLimitedCodeGenPipelineReason(const char *Separator = "/");
+  /// If hasLimitedCodeGenPipeline is true, this method returns
+  /// a string with the name of the options that caused this
+  /// pipeline to be limited.
+  static std::string getLimitedCodeGenPipelineReason();
+
+  struct StartStopInfo {
+    bool StartAfter;
+    bool StopAfter;
+    unsigned StartInstanceNum;
+    unsigned StopInstanceNum;
+    StringRef StartPass;
+    StringRef StopPass;
+  };
+
+  /// Returns pass name in `-stop-before` or `-stop-after`
+  /// NOTE: New pass manager migration only
+  static Expected<StartStopInfo>
+  getStartStopInfo(PassInstrumentationCallbacks &PIC);
 
   void setDisableVerify(bool Disable) { setOpt(DisableVerify, Disable); }
 
   bool getEnableTailMerge() const { return EnableTailMerge; }
   void setEnableTailMerge(bool Enable) { setOpt(EnableTailMerge, Enable); }
+
+  bool getEnableSinkAndFold() const { return EnableSinkAndFold; }
+  void setEnableSinkAndFold(bool Enable) { setOpt(EnableSinkAndFold, Enable); }
 
   bool requiresCodeGenSCCOrder() const { return RequireCodeGenSCCOrder; }
   void setRequiresCodeGenSCCOrder(bool Enable = true) {
@@ -388,7 +413,8 @@ protected:
   virtual void addFastRegAlloc();
 
   /// addOptimizedRegAlloc - Add passes related to register allocation.
-  /// LLVMTargetMachine provides standard regalloc passes for most targets.
+  /// CodeGenTargetMachineImpl provides standard regalloc passes for most
+  /// targets.
   virtual void addOptimizedRegAlloc();
 
   /// addPreRewrite - Add passes to the optimized register allocation pipeline
@@ -401,7 +427,7 @@ protected:
   /// all virtual registers.
   ///
   /// Note if the target overloads addRegAssignAndRewriteOptimized, this may not
-  /// be honored. This is also not generally used for the the fast variant,
+  /// be honored. This is also not generally used for the fast variant,
   /// where the allocation and rewriting are done in one pass.
   virtual bool addPreRewrite() {
     return false;
@@ -472,7 +498,7 @@ protected:
 };
 
 void registerCodeGenCallback(PassInstrumentationCallbacks &PIC,
-                             LLVMTargetMachine &);
+                             TargetMachine &);
 
 } // end namespace llvm
 

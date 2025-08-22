@@ -33,9 +33,10 @@ program is ill-formed.
 Currently, the element type of a matrix is only permitted to be one of the
 following types:
 
-* an integer type (as in C2x 6.2.5p19), but excluding enumerated types and ``_Bool``
-* the standard floating types ``float`` or ``double``
-* a half-precision floating point type, if one is supported on the target
+* an integer type (as in C23 6.2.5p22), but excluding enumerated types, ``bool``,
+  and ``_BitInt`` types whose width is not a power of 2;
+* the standard floating types ``float`` or ``double``;
+* a half-precision floating point type, if one is supported on the target.
 
 Other types may be supported in the future.
 
@@ -68,7 +69,7 @@ rows and columns are the same and the value's elements can be converted to the
 element type of the result type. The result is a matrix where each element is
 the converted corresponding element.
 
-A value of any real type (as in C2x 6.2.5p17) can be converted to a matrix type
+A value of any real type (as in C23 6.2.5p14) can be converted to a matrix type
 if it can be converted to the element type of the matrix. The result is a
 matrix where all elements are the converted original value.
 

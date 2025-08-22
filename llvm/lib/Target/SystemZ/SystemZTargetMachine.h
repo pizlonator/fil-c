@@ -17,6 +17,7 @@
 #include "SystemZSubtarget.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
+#include "llvm/CodeGen/CodeGenTargetMachineImpl.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Target/TargetMachine.h"
 #include <memory>
@@ -24,7 +25,7 @@
 
 namespace llvm {
 
-class SystemZTargetMachine : public LLVMTargetMachine {
+class SystemZTargetMachine : public CodeGenTargetMachineImpl {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
 
   mutable StringMap<std::unique_ptr<SystemZSubtarget>> SubtargetMap;
@@ -33,7 +34,7 @@ public:
   SystemZTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                        StringRef FS, const TargetOptions &Options,
                        std::optional<Reloc::Model> RM,
-                       std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                       std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                        bool JIT);
   ~SystemZTargetMachine() override;
 
@@ -43,7 +44,7 @@ public:
   // attributes of each function.
   const SystemZSubtarget *getSubtargetImpl() const = delete;
 
-  // Override LLVMTargetMachine
+  // Override CodeGenTargetMachineImpl
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
   TargetTransformInfo getTargetTransformInfo(const Function &F) const override;
 

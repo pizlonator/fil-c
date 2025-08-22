@@ -16,6 +16,7 @@
 
 #include "mlir-c/AffineMap.h"
 #include "mlir-c/IR.h"
+#include "mlir-c/IntegerSet.h"
 #include "mlir-c/Support.h"
 
 #ifdef __cplusplus
@@ -177,6 +178,14 @@ MLIR_CAPI_EXPORTED bool mlirBoolAttrGetValue(MlirAttribute attr);
 /// Checks whether the given attribute is an integer set attribute.
 MLIR_CAPI_EXPORTED bool mlirAttributeIsAIntegerSet(MlirAttribute attr);
 
+/// Creates an integer set attribute wrapping the given set. The attribute
+/// belongs to the same context as the integer set.
+MLIR_CAPI_EXPORTED MlirAttribute mlirIntegerSetAttrGet(MlirIntegerSet set);
+
+/// Returns the integer set wrapped in the given integer set attribute.
+MLIR_CAPI_EXPORTED MlirIntegerSet
+mlirIntegerSetAttrGetValue(MlirAttribute attr);
+
 /// Returns the typeID of an IntegerSet attribute.
 MLIR_CAPI_EXPORTED MlirTypeID mlirIntegerSetAttrGetTypeID(void);
 
@@ -265,6 +274,10 @@ mlirSymbolRefAttrGetNestedReference(MlirAttribute attr, intptr_t pos);
 
 /// Returns the typeID of an SymbolRef attribute.
 MLIR_CAPI_EXPORTED MlirTypeID mlirSymbolRefAttrGetTypeID(void);
+
+/// Creates a DisctinctAttr with the referenced attribute.
+MLIR_CAPI_EXPORTED MlirAttribute
+mlirDisctinctAttrCreate(MlirAttribute referencedAttr);
 
 //===----------------------------------------------------------------------===//
 // Flat SymbolRef attribute.
@@ -557,6 +570,23 @@ mlirDenseElementsAttrGetRawData(MlirAttribute attr);
 //===----------------------------------------------------------------------===//
 // Resource blob attributes.
 //===----------------------------------------------------------------------===//
+
+MLIR_CAPI_EXPORTED bool
+mlirAttributeIsADenseResourceElements(MlirAttribute attr);
+
+/// Unlike the typed accessors below, constructs the attribute with a raw
+/// data buffer and no type/alignment checking. Use a more strongly typed
+/// accessor if possible. If dataIsMutable is false, then an immutable
+/// AsmResourceBlob will be created and that passed data contents will be
+/// treated as const.
+/// If the deleter is non NULL, then it will be called when the data buffer
+/// can no longer be accessed (passing userData to it).
+MLIR_CAPI_EXPORTED MlirAttribute mlirUnmanagedDenseResourceElementsAttrGet(
+    MlirType shapedType, MlirStringRef name, void *data, size_t dataLength,
+    size_t dataAlignment, bool dataIsMutable,
+    void (*deleter)(void *userData, const void *data, size_t size,
+                    size_t align),
+    void *userData);
 
 MLIR_CAPI_EXPORTED MlirAttribute mlirUnmanagedDenseBoolResourceElementsAttrGet(
     MlirType shapedType, MlirStringRef name, intptr_t numElements,

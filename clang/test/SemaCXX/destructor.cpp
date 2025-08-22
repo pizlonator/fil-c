@@ -85,7 +85,6 @@ struct G {
 
 G::~G() { }
 
-// <rdar://problem/6841210>
 struct H {
   ~H(void) { } 
 };
@@ -563,6 +562,73 @@ struct Baz : public Test { // expected-warning {{non-virtual destructor}}
 struct Foo : public Baz { // expected-error {{cannot override a non-deleted function}} \
                           // expected-note {{destructor of 'Foo' is implicitly deleted}}
   Foo() {}
+};
+}
+
+namespace GH89544 {
+class Foo {
+  ~Foo() = {}
+  // expected-error@-1 {{initializer on function does not look like a pure-specifier}}
+  // expected-error@-2 {{expected ';' at end of declaration list}}
+};
+
+static_assert(!__is_trivially_constructible(Foo), "");
+static_assert(!__is_trivially_constructible(Foo, const Foo &), "");
+static_assert(!__is_trivially_constructible(Foo, Foo &&), "");
+} // namespace GH89544
+
+namespace GH97230 {
+struct X {
+  ~X() = defaul; // expected-error {{initializer on function does not look like a pure-specifier}} \
+                 // expected-error {{use of undeclared identifier 'defaul'}}
+};
+struct Y : X {} y1{ }; // expected-error {{call to implicitly-deleted default constructor of 'struct Y'}} \
+                       // expected-note {{default constructor of 'Y' is implicitly deleted because base class 'X' has no destructor}}
+}
+
+namespace GH121706 {
+struct A {
+  *&~A(); // expected-error {{invalid destructor declaration}}
+};
+
+struct B {
+  *&&~B(); // expected-error {{invalid destructor declaration}}
+};
+
+struct C {
+  *const ~C(); // expected-error {{invalid destructor declaration}}
+};
+
+struct D {
+  *const * ~D(); // expected-error {{invalid destructor declaration}}
+};
+
+struct E {
+  *E::*~E(); // expected-error {{invalid destructor declaration}}
+};
+
+struct F {
+  *F::*const ~F(); // expected-error {{invalid destructor declaration}}
+};
+
+struct G {
+  ****~G(); // expected-error {{invalid destructor declaration}}
+};
+
+struct H {
+  **~H(); // expected-error {{invalid destructor declaration}}
+};
+
+struct I {
+  *~I(); // expected-error {{invalid destructor declaration}}
+};
+
+struct J {
+  *&~J(); // expected-error {{invalid destructor declaration}}
+};
+
+struct K {
+  **&&~K(); // expected-error {{invalid destructor declaration}}
 };
 }
 

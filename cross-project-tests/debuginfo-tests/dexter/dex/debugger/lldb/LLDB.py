@@ -7,7 +7,6 @@
 """Interface for communicating with the LLDB debugger via its python interface.
 """
 
-import imp
 import os
 import shlex
 from subprocess import CalledProcessError, check_output, STDOUT
@@ -18,6 +17,7 @@ from dex.dextIR import FrameIR, LocIR, StepIR, StopReason, ValueIR
 from dex.dextIR import StackFrame, SourceLocation, ProgramState
 from dex.utils.Exceptions import DebuggerException, LoadDebuggerException
 from dex.utils.ReturnCode import ReturnCode
+from dex.utils.Imports import load_module
 
 
 class LLDB(DebuggerBase):
@@ -82,8 +82,7 @@ class LLDB(DebuggerBase):
             )
 
         try:
-            module_info = imp.find_module("lldb", [pythonpath])
-            return imp.load_module("lldb", *module_info)
+            return load_module("lldb", pythonpath)
         except ImportError as e:
             msg = str(e)
             if msg.endswith("not a valid Win32 application."):
@@ -174,18 +173,65 @@ class LLDB(DebuggerBase):
             self._target.BreakpointDelete(id)
 
     def launch(self, cmdline):
+        num_resolved_breakpoints = 0
+        for b in self._target.breakpoint_iter():
+            num_resolved_breakpoints += b.GetNumLocations() > 0
+        assert num_resolved_breakpoints > 0
+
         if self.context.options.target_run_args:
             cmdline += shlex.split(self.context.options.target_run_args)
-        self._process = self._target.LaunchSimple(cmdline, None, os.getcwd())
+        launch_info = self._target.GetLaunchInfo()
+        launch_info.SetWorkingDirectory(os.getcwd())
+        launch_info.SetArguments(cmdline, True)
+        error = self._interface.SBError()
+        self._process = self._target.Launch(launch_info, error)
+        
+        if error.Fail():
+            raise DebuggerException(error.GetCString())
+        if not os.path.exists(self._target.executable.fullpath):
+            raise DebuggerException("exe does not exist")
         if not self._process or self._process.GetNumThreads() == 0:
             raise DebuggerException("could not launch process")
         if self._process.GetNumThreads() != 1:
             raise DebuggerException("multiple threads not supported")
         self._thread = self._process.GetThreadAtIndex(0)
+        
+        num_stopped_threads = 0
+        for thread in self._process:
+            if thread.GetStopReason() == self._interface.eStopReasonBreakpoint:
+                num_stopped_threads += 1
+        assert num_stopped_threads > 0
         assert self._thread, (self._process, self._thread)
 
     def step(self):
         self._thread.StepInto()
+        stop_reason = self._thread.GetStopReason()
+        # If we (1) completed a step and (2) are sitting at a breakpoint,
+        # but (3) the breakpoint is not reported as the stop reason, then
+        # we'll need to step once more to hit the breakpoint.
+        #
+        # dexter sets breakpoints on every source line, then steps
+        # each source line. Older lldb's would overwrite the stop
+        # reason with "breakpoint hit" when we stopped at a breakpoint,
+        # even if the breakpoint hadn't been exectued yet.  One
+        # step per source line, hitting a breakpoint each time.
+        #
+        # But a more accurate behavior is that the step completes
+        # with step-completed stop reason, then when we step again,
+        # we execute the breakpoint and stop (with the pc the same) and
+        # a breakpoint-hit stop reason.  So we need to step twice per line.
+        if stop_reason == self._interface.eStopReasonPlanComplete:
+            stepped_to_breakpoint = False
+            pc = self._thread.GetFrameAtIndex(0).GetPC()
+            for bp in self._target.breakpoints:
+                for bploc in bp.locations:
+                    if (
+                        bploc.IsEnabled()
+                        and bploc.GetAddress().GetLoadAddress(self._target) == pc
+                    ):
+                        stepped_to_breakpoint = True
+            if stepped_to_breakpoint:
+                self._thread.StepInto()
 
     def go(self) -> ReturnCode:
         self._process.Continue()
@@ -288,6 +334,7 @@ class LLDB(DebuggerBase):
                 "use of undeclared identifier",
                 "no member named",
                 "Couldn't lookup symbols",
+                "Couldn't look up symbols",
                 "reference to local variable",
                 "invalid use of 'this' outside of a non-static member function",
             ]

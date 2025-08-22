@@ -59,7 +59,6 @@ int test_cond_assign(void) {
 }
 
 // The following previously crashed when generating extensive diagnostics.
-// <rdar://problem/10797980>
 @interface RDar10797980_help
 @property (readonly) int x;
 @end
@@ -80,7 +79,7 @@ int test_cond_assign(void) {
 
 // The original source for the above Radar contains another problem:
 // if the end-of-path node is an implicit statement, it may not have a valid
-// source location. <rdar://problem/12446776>
+// source location.
 - (void)test2 {
   if (bar_cond_assign()) {
     id foo = [[RDar10797980 alloc] init]; // leak
@@ -178,7 +177,7 @@ void RDar13295437_f(void *i) __attribute__((__nonnull__));
 
 struct  RDar13295437_S { int *i; };
 
-int  RDar13295437(void) {
+void RDar13295437(void) {
   struct RDar13295437_S s = {0};
   struct RDar13295437_S *sp = &s;
   RDar13295437_f(sp->i);

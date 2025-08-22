@@ -44,8 +44,8 @@ define <vscale x 2 x i64> @index_ii_i64() {
 define <vscale x 2 x i64> @index_ii_range() {
 ; CHECK-LABEL: index_ii_range:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    mov w8, #16
-; CHECK-NEXT:    mov x9, #-17
+; CHECK-NEXT:    mov w8, #16 // =0x10
+; CHECK-NEXT:    mov x9, #-17 // =0xffffffffffffffef
 ; CHECK-NEXT:    index z0.d, x9, x8
 ; CHECK-NEXT:    ret
   %out = call <vscale x 2 x i64> @llvm.aarch64.sve.index.nxv2i64(i64 -17, i64 16)
@@ -58,11 +58,9 @@ define <vscale x 8 x i16> @index_ii_range_combine(i16 %a) {
 ; CHECK-NEXT:    index z0.h, #0, #8
 ; CHECK-NEXT:    orr z0.h, z0.h, #0x2
 ; CHECK-NEXT:    ret
-  %val = insertelement <vscale x 8 x i16> poison, i16 2, i32 0
-  %val1 = shufflevector <vscale x 8 x i16> %val, <vscale x 8 x i16> poison, <vscale x 8 x i32> zeroinitializer
   %val2 = call <vscale x 8 x i16> @llvm.aarch64.sve.index.nxv8i16(i16 0, i16 2)
-  %val3 = shl <vscale x 8 x i16> %val2, %val1
-  %out = add <vscale x 8 x i16> %val3, %val1
+  %val3 = shl <vscale x 8 x i16> %val2, splat(i16 2)
+  %out = add <vscale x 8 x i16> %val3, splat(i16 2) 
   ret <vscale x 8 x i16> %out
 }
 
@@ -109,7 +107,7 @@ define <vscale x 2 x i64> @index_ir_i64(i64 %a) {
 define <vscale x 4 x i32> @index_ir_range(i32 %a) {
 ; CHECK-LABEL: index_ir_range:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    mov w8, #-17
+; CHECK-NEXT:    mov w8, #-17 // =0xffffffef
 ; CHECK-NEXT:    index z0.s, w8, w0
 ; CHECK-NEXT:    ret
   %out = call <vscale x 4 x i32> @llvm.aarch64.sve.index.nxv4i32(i32 -17, i32 %a)
@@ -121,10 +119,8 @@ define <vscale x 4 x i32> @index_ir_range_combine(i32 %a) {
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    index z0.s, #0, w0
 ; CHECK-NEXT:    ret
-  %val = insertelement <vscale x 4 x i32> poison, i32 2, i32 0
-  %val1 = shufflevector <vscale x 4 x i32> %val, <vscale x 4 x i32> poison, <vscale x 4 x i32> zeroinitializer
   %tmp = call <vscale x 4 x i32> @llvm.aarch64.sve.index.nxv4i32(i32 2, i32 1)
-  %tmp1 = sub <vscale x 4 x i32> %tmp, %val1
+  %tmp1 = sub <vscale x 4 x i32> %tmp, splat(i32 2) 
   %val2 = insertelement <vscale x 4 x i32> poison, i32 %a, i32 0
   %val3 = shufflevector <vscale x 4 x i32> %val2, <vscale x 4 x i32> poison, <vscale x 4 x i32> zeroinitializer
   %out = mul <vscale x 4 x i32> %tmp1, %val3
@@ -174,7 +170,7 @@ define <vscale x 2 x i64> @index_ri_i64(i64 %a) {
 define <vscale x 8 x i16> @index_ri_range(i16 %a) {
 ; CHECK-LABEL: index_ri_range:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    mov w8, #16
+; CHECK-NEXT:    mov w8, #16 // =0x10
 ; CHECK-NEXT:    index z0.h, w0, w8
 ; CHECK-NEXT:    ret
   %out = call <vscale x 8 x i16> @llvm.aarch64.sve.index.nxv8i16(i16 %a, i16 16)

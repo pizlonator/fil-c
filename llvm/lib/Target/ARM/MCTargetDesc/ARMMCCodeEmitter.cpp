@@ -29,11 +29,10 @@
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
+#include "llvm/Support/EndianStream.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Triple.h"
-#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
@@ -436,19 +435,7 @@ public:
                               SmallVectorImpl<MCFixup> &Fixups,
                               const MCSubtargetInfo &STI) const;
 
-  void EmitByte(unsigned char C, raw_ostream &OS) const {
-    OS << (char)C;
-  }
-
-  void EmitConstant(uint64_t Val, unsigned Size, raw_ostream &OS) const {
-    // Output the constant in little endian byte order.
-    for (unsigned i = 0; i != Size; ++i) {
-      unsigned Shift = IsLittleEndian ? i * 8 : (Size - 1 - i) * 8;
-      EmitByte((Val >> Shift) & 0xff, OS);
-    }
-  }
-
-  void encodeInstruction(const MCInst &MI, raw_ostream &OS,
+  void encodeInstruction(const MCInst &MI, SmallVectorImpl<char> &CB,
                          SmallVectorImpl<MCFixup> &Fixups,
                          const MCSubtargetInfo &STI) const override;
 
@@ -554,7 +541,7 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                   SmallVectorImpl<MCFixup> &Fixups,
                   const MCSubtargetInfo &STI) const {
   if (MO.isReg()) {
-    unsigned Reg = MO.getReg();
+    MCRegister Reg = MO.getReg();
     unsigned RegNo = CTX.getRegisterInfo()->getEncodingValue(Reg);
 
     // In NEON, Q registers are encoded as 2x their register number,
@@ -566,7 +553,7 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
     if (STI.hasFeature(ARM::HasMVEIntegerOps))
       return RegNo;
 
-    switch (Reg) {
+    switch (Reg.id()) {
     default:
       return RegNo;
     case ARM::Q0:  case ARM::Q1:  case ARM::Q2:  case ARM::Q3:
@@ -722,7 +709,7 @@ static bool HasConditionalBranch(const MCInst &MI) {
       const MCOperand &MCOp1 = MI.getOperand(i);
       const MCOperand &MCOp2 = MI.getOperand(i + 1);
       if (MCOp1.isImm() && MCOp2.isReg() &&
-          (MCOp2.getReg() == 0 || MCOp2.getReg() == ARM::CPSR)) {
+          (!MCOp2.getReg() || MCOp2.getReg() == ARM::CPSR)) {
         if (ARMCC::CondCodes(MCOp1.getImm()) != ARMCC::AL)
           return true;
       }
@@ -1322,7 +1309,7 @@ getAddrMode2OffsetOpValue(const MCInst &MI, unsigned OpIdx,
   const MCOperand &MO1 = MI.getOperand(OpIdx+1);
   unsigned Imm = MO1.getImm();
   bool isAdd = ARM_AM::getAM2Op(Imm) == ARM_AM::add;
-  bool isReg = MO.getReg() != 0;
+  bool isReg = MO.getReg().isValid();
   uint32_t Binary = ARM_AM::getAM2Offset(Imm);
   // if reg +/- reg, Rm will be non-zero. Otherwise, we have reg +/- imm12
   if (isReg) {
@@ -1358,7 +1345,7 @@ getAddrMode3OffsetOpValue(const MCInst &MI, unsigned OpIdx,
   const MCOperand &MO1 = MI.getOperand(OpIdx+1);
   unsigned Imm = MO1.getImm();
   bool isAdd = ARM_AM::getAM3Op(Imm) == ARM_AM::add;
-  bool isImm = MO.getReg() == 0;
+  bool isImm = !MO.getReg().isValid();
   uint32_t Imm8 = ARM_AM::getAM3Offset(Imm);
   // if reg +/- reg, Rm will be non-zero. Otherwise, we have reg +/- imm8
   if (!isImm)
@@ -1394,7 +1381,7 @@ getAddrMode3OpValue(const MCInst &MI, unsigned OpIdx,
   unsigned Rn = CTX.getRegisterInfo()->getEncodingValue(MO.getReg());
   unsigned Imm = MO2.getImm();
   bool isAdd = ARM_AM::getAM3Op(Imm) == ARM_AM::add;
-  bool isImm = MO1.getReg() == 0;
+  bool isImm = !MO1.getReg().isValid();
   uint32_t Imm8 = ARM_AM::getAM3Offset(Imm);
   // if reg +/- reg, Rm will be non-zero. Otherwise, we have reg +/- imm8
   if (!isImm)
@@ -1548,7 +1535,7 @@ getSORegRegOpValue(const MCInst &MI, unsigned OpIdx,
 
   // Encode the shift opcode.
   unsigned SBits = 0;
-  unsigned Rs = MO1.getReg();
+  MCRegister Rs = MO1.getReg();
   if (Rs) {
     // Set shift operand (bit[7:4]).
     // LSL - 0001
@@ -1748,21 +1735,34 @@ getRegisterListOpValue(const MCInst &MI, unsigned Op,
   //
   // LDM/STM:
   //   {15-0}  = Bitfield of GPRs.
-  unsigned Reg = MI.getOperand(Op).getReg();
+  MCRegister Reg = MI.getOperand(Op).getReg();
   bool SPRRegs = ARMMCRegisterClasses[ARM::SPRRegClassID].contains(Reg);
   bool DPRRegs = ARMMCRegisterClasses[ARM::DPRRegClassID].contains(Reg);
 
   unsigned Binary = 0;
 
-  if (SPRRegs || DPRRegs) {
+  if (SPRRegs || DPRRegs || Reg == ARM::VPR) {
     // VLDM/VSTM/VSCCLRM
     unsigned RegNo = CTX.getRegisterInfo()->getEncodingValue(Reg);
     unsigned NumRegs = (MI.getNumOperands() - Op) & 0xff;
     Binary |= (RegNo & 0x1f) << 8;
 
-    // Ignore VPR
-    if (MI.getOpcode() == ARM::VSCCLRMD || MI.getOpcode() == ARM::VSCCLRMS)
+    if (MI.getOpcode() == ARM::VSCCLRMD)
+      // Ignore VPR
       --NumRegs;
+    else if (MI.getOpcode() == ARM::VSCCLRMS) {
+      // The register list can contain both S registers and D registers, with D
+      // registers counting as two registers. VPR doesn't count towards the
+      // number of registers.
+      NumRegs = 0;
+      for (unsigned I = Op, E = MI.getNumOperands(); I < E; ++I) {
+        Reg = MI.getOperand(I).getReg();
+        if (ARMMCRegisterClasses[ARM::SPRRegClassID].contains(Reg))
+          NumRegs += 1;
+        else if (ARMMCRegisterClasses[ARM::DPRRegClassID].contains(Reg))
+          NumRegs += 2;
+      }
+    }
     if (SPRRegs)
       Binary |= NumRegs;
     else
@@ -1862,7 +1862,8 @@ getAddrMode6OffsetOpValue(const MCInst &MI, unsigned Op,
                           SmallVectorImpl<MCFixup> &Fixups,
                           const MCSubtargetInfo &STI) const {
   const MCOperand &MO = MI.getOperand(Op);
-  if (MO.getReg() == 0) return 0x0D;
+  if (!MO.getReg())
+    return 0x0D;
   return CTX.getRegisterInfo()->getEncodingValue(MO.getReg());
 }
 
@@ -1894,10 +1895,10 @@ getShiftRight64Imm(const MCInst &MI, unsigned Op,
   return 64 - MI.getOperand(Op).getImm();
 }
 
-void ARMMCCodeEmitter::
-encodeInstruction(const MCInst &MI, raw_ostream &OS,
-                  SmallVectorImpl<MCFixup> &Fixups,
-                  const MCSubtargetInfo &STI) const {
+void ARMMCCodeEmitter::encodeInstruction(const MCInst &MI,
+                                         SmallVectorImpl<char> &CB,
+                                         SmallVectorImpl<MCFixup> &Fixups,
+                                         const MCSubtargetInfo &STI) const {
   // Pseudo instructions don't get encoded.
   const MCInstrDesc &Desc = MCII.get(MI.getOpcode());
   uint64_t TSFlags = Desc.TSFlags;
@@ -1910,14 +1911,19 @@ encodeInstruction(const MCInst &MI, raw_ostream &OS,
   else
     llvm_unreachable("Unexpected instruction size!");
 
+  auto Endian =
+      IsLittleEndian ? llvm::endianness::little : llvm::endianness::big;
   uint32_t Binary = getBinaryCodeForInstr(MI, Fixups, STI);
-  // Thumb 32-bit wide instructions need to emit the high order halfword
-  // first.
-  if (isThumb(STI) && Size == 4) {
-    EmitConstant(Binary >> 16, 2, OS);
-    EmitConstant(Binary & 0xffff, 2, OS);
-  } else
-    EmitConstant(Binary, Size, OS);
+  if (Size == 2) {
+    support::endian::write<uint16_t>(CB, Binary, Endian);
+  } else if (isThumb(STI)) {
+    // Thumb 32-bit wide instructions need to emit the high order halfword
+    // first.
+    support::endian::write<uint16_t>(CB, Binary >> 16, Endian);
+    support::endian::write<uint16_t>(CB, Binary & 0xffff, Endian);
+  } else {
+    support::endian::write<uint32_t>(CB, Binary, Endian);
+  }
   ++MCNumEmitted;  // Keep track of the # of mi's emitted.
 }
 

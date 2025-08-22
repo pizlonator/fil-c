@@ -1,5 +1,4 @@
 // RUN: %clang_hwasan %s -o %t && not %env_hwasan_opts=verbose_threads=1 %run %t 2>&1 | FileCheck %s
-// REQUIRES: stable-runtime
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -24,6 +23,7 @@ void *BoringThread(void *arg) {
 void *UAFThread(void *arg) {
   char * volatile x = (char*)malloc(10);
   fprintf(stderr, "ZZZ %p\n", x);
+  fflush(stderr);
   free(x);
   x[5] = 42;
   // CHECK: ERROR: HWAddressSanitizer: tag-mismatch on address

@@ -24,6 +24,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/BuryPointer.h"
 #include "llvm/Support/FileSystem.h"
+#include "llvm/Support/VirtualFileSystem.h"
 #include <cassert>
 #include <list>
 #include <memory>
@@ -40,6 +41,11 @@ class TimerGroup;
 namespace clang {
 class ASTContext;
 class ASTReader;
+
+namespace serialization {
+class ModuleFile;
+}
+
 class CodeCompleteConsumer;
 class DiagnosticsEngine;
 class DiagnosticConsumer;
@@ -112,7 +118,7 @@ class CompilerInstance : public ModuleLoader {
   std::unique_ptr<Sema> TheSema;
 
   /// The frontend timer group.
-  std::unique_ptr<llvm::TimerGroup> FrontendTimerGroup;
+  std::unique_ptr<llvm::TimerGroup> timerGroup;
 
   /// The frontend timer.
   std::unique_ptr<llvm::Timer> FrontendTimer;
@@ -127,6 +133,24 @@ class CompilerInstance : public ModuleLoader {
   std::shared_ptr<PCHContainerOperations> ThePCHContainerOperations;
 
   std::vector<std::shared_ptr<DependencyCollector>> DependencyCollectors;
+
+  /// Records the set of modules
+  class FailedModulesSet {
+    llvm::StringSet<> Failed;
+
+  public:
+    bool hasAlreadyFailed(StringRef module) { return Failed.count(module) > 0; }
+
+    void addFailed(StringRef module) { Failed.insert(module); }
+  };
+
+  /// The set of modules that failed to build.
+  ///
+  /// This pointer will be shared among all of the compiler instances created
+  /// to (re)build modules, so that once a module fails to build anywhere,
+  /// other instances will see that the module has failed and won't try to
+  /// build it again.
+  std::shared_ptr<FailedModulesSet> FailedModules;
 
   /// The set of top-level modules that has already been built on the
   /// fly as part of this overall compilation action.
@@ -189,7 +213,7 @@ public:
   ~CompilerInstance() override;
 
   /// @name High-Level Operations
-  /// {
+  /// @{
 
   /// ExecuteAction - Execute the provided action against the compiler's
   /// CompilerInvocation object.
@@ -220,12 +244,15 @@ public:
   // of the context or else not CompilerInstance specific.
   bool ExecuteAction(FrontendAction &Act);
 
+  /// At the end of a compilation, print the number of warnings/errors.
+  void printDiagnosticStats();
+
   /// Load the list of plugins requested in the \c FrontendOptions.
   void LoadRequestedPlugins();
 
-  /// }
+  /// @}
   /// @name Compiler Invocation and Options
-  /// {
+  /// @{
 
   bool hasInvocation() const { return Invocation != nullptr; }
 
@@ -248,13 +275,11 @@ public:
     BuildGlobalModuleIndex = Build;
   }
 
-  /// }
+  /// @}
   /// @name Forwarding Methods
-  /// {
+  /// @{
 
-  AnalyzerOptionsRef getAnalyzerOpts() {
-    return Invocation->getAnalyzerOpts();
-  }
+  AnalyzerOptions &getAnalyzerOpts() { return Invocation->getAnalyzerOpts(); }
 
   CodeGenOptions &getCodeGenOpts() {
     return Invocation->getCodeGenOpts();
@@ -301,11 +326,15 @@ public:
     return Invocation->getHeaderSearchOptsPtr();
   }
 
-  LangOptions &getLangOpts() {
-    return *Invocation->getLangOpts();
+  APINotesOptions &getAPINotesOpts() { return Invocation->getAPINotesOpts(); }
+  const APINotesOptions &getAPINotesOpts() const {
+    return Invocation->getAPINotesOpts();
   }
-  const LangOptions &getLangOpts() const {
-    return *Invocation->getLangOpts();
+
+  LangOptions &getLangOpts() { return Invocation->getLangOpts(); }
+  const LangOptions &getLangOpts() const { return Invocation->getLangOpts(); }
+  std::shared_ptr<LangOptions> getLangOptsPtr() const {
+    return Invocation->getLangOptsPtr();
   }
 
   PreprocessorOptions &getPreprocessorOpts() {
@@ -329,9 +358,9 @@ public:
     return Invocation->getTargetOpts();
   }
 
-  /// }
+  /// @}
   /// @name Diagnostics Engine
-  /// {
+  /// @{
 
   bool hasDiagnostics() const { return Diagnostics != nullptr; }
 
@@ -355,9 +384,9 @@ public:
     return *Diagnostics->getClient();
   }
 
-  /// }
+  /// @}
   /// @name VerboseOutputStream
-  /// }
+  /// @{
 
   /// Replace the current stream for verbose output.
   void setVerboseOutputStream(raw_ostream &Value);
@@ -370,9 +399,9 @@ public:
     return *VerboseOutputStream;
   }
 
-  /// }
+  /// @}
   /// @name Target Info
-  /// {
+  /// @{
 
   bool hasTarget() const { return Target != nullptr; }
 
@@ -389,9 +418,9 @@ public:
   /// Replace the current Target.
   void setTarget(TargetInfo *Value);
 
-  /// }
+  /// @}
   /// @name AuxTarget Info
-  /// {
+  /// @{
 
   TargetInfo *getAuxTarget() const { return AuxTarget.get(); }
 
@@ -401,15 +430,15 @@ public:
   // Create Target and AuxTarget based on current options
   bool createTarget();
 
-  /// }
+  /// @}
   /// @name Virtual File System
-  /// {
+  /// @{
 
   llvm::vfs::FileSystem &getVirtualFileSystem() const;
 
-  /// }
+  /// @}
   /// @name File Manager
-  /// {
+  /// @{
 
   bool hasFileManager() const { return FileMgr != nullptr; }
 
@@ -432,9 +461,9 @@ public:
   /// Replace the current file manager and virtual file system.
   void setFileManager(FileManager *Value);
 
-  /// }
+  /// @}
   /// @name Source Manager
-  /// {
+  /// @{
 
   bool hasSourceManager() const { return SourceMgr != nullptr; }
 
@@ -457,9 +486,9 @@ public:
   /// setSourceManager - Replace the current source manager.
   void setSourceManager(SourceManager *Value);
 
-  /// }
+  /// @}
   /// @name Preprocessor
-  /// {
+  /// @{
 
   bool hasPreprocessor() const { return PP != nullptr; }
 
@@ -478,9 +507,9 @@ public:
   /// Replace the current preprocessor.
   void setPreprocessor(std::shared_ptr<Preprocessor> Value);
 
-  /// }
+  /// @}
   /// @name ASTContext
-  /// {
+  /// @{
 
   bool hasASTContext() const { return Context != nullptr; }
 
@@ -506,9 +535,9 @@ public:
   /// of S.
   void setSema(Sema *S);
 
-  /// }
+  /// @}
   /// @name ASTConsumer
-  /// {
+  /// @{
 
   bool hasASTConsumer() const { return (bool)Consumer; }
 
@@ -525,9 +554,9 @@ public:
   /// takes ownership of \p Value.
   void setASTConsumer(std::unique_ptr<ASTConsumer> Value);
 
-  /// }
+  /// @}
   /// @name Semantic analysis
-  /// {
+  /// @{
   bool hasSema() const { return (bool)TheSema; }
 
   Sema &getSema() const {
@@ -538,9 +567,9 @@ public:
   std::unique_ptr<Sema> takeSema();
   void resetAndLeakSema();
 
-  /// }
+  /// @}
   /// @name Module Management
-  /// {
+  /// @{
 
   IntrusiveRefCntPtr<ASTReader> getASTReader() const;
   void setASTReader(IntrusiveRefCntPtr<ASTReader> Reader);
@@ -581,9 +610,9 @@ public:
     return *Reader;
   }
 
-  /// }
+  /// @}
   /// @name Code Completion
-  /// {
+  /// @{
 
   bool hasCodeCompletionConsumer() const { return (bool)CompletionConsumer; }
 
@@ -597,20 +626,38 @@ public:
   /// the compiler instance takes ownership of \p Value.
   void setCodeCompletionConsumer(CodeCompleteConsumer *Value);
 
-  /// }
+  /// @}
   /// @name Frontend timer
-  /// {
+  /// @{
 
-  bool hasFrontendTimer() const { return (bool)FrontendTimer; }
+  llvm::TimerGroup &getTimerGroup() const { return *timerGroup; }
 
   llvm::Timer &getFrontendTimer() const {
     assert(FrontendTimer && "Compiler instance has no frontend timer!");
     return *FrontendTimer;
   }
 
+  /// @}
+  /// @name Failed modules set
+  /// @{
+
+  bool hasFailedModulesSet() const { return (bool)FailedModules; }
+
+  void createFailedModulesSet() {
+    FailedModules = std::make_shared<FailedModulesSet>();
+  }
+
+  std::shared_ptr<FailedModulesSet> getFailedModulesSetPtr() const {
+    return FailedModules;
+  }
+
+  void setFailedModulesSet(std::shared_ptr<FailedModulesSet> FMS) {
+    FailedModules = FMS;
+  }
+
   /// }
   /// @name Output Files
-  /// {
+  /// @{
 
   /// clearOutputFiles - Clear the output file list. The underlying output
   /// streams must have been closed beforehand.
@@ -618,9 +665,9 @@ public:
   /// \param EraseFiles - If true, attempt to erase the files from disk.
   void clearOutputFiles(bool EraseFiles);
 
-  /// }
+  /// @}
   /// @name Construction Utility Methods
-  /// {
+  /// @{
 
   /// Create the diagnostics engine using the invocation's diagnostic options
   /// and replace any existing one with it.
@@ -628,13 +675,17 @@ public:
   /// Note that this routine also replaces the diagnostic client,
   /// allocating one if one is not provided.
   ///
+  /// \param VFS is used for any IO needed when creating DiagnosticsEngine. It
+  /// doesn't replace VFS in the CompilerInstance (if any).
+  ///
   /// \param Client If non-NULL, a diagnostic client that will be
   /// attached to (and, then, owned by) the DiagnosticsEngine inside this AST
   /// unit.
   ///
   /// \param ShouldOwnClient If Client is non-NULL, specifies whether
   /// the diagnostic object should take ownership of the client.
-  void createDiagnostics(DiagnosticConsumer *Client = nullptr,
+  void createDiagnostics(llvm::vfs::FileSystem &VFS,
+                         DiagnosticConsumer *Client = nullptr,
                          bool ShouldOwnClient = true);
 
   /// Create a DiagnosticsEngine object with a the TextDiagnosticPrinter.
@@ -656,7 +707,7 @@ public:
   ///
   /// \return The new object on success, or null on failure.
   static IntrusiveRefCntPtr<DiagnosticsEngine>
-  createDiagnostics(DiagnosticOptions *Opts,
+  createDiagnostics(llvm::vfs::FileSystem &VFS, DiagnosticOptions *Opts,
                     DiagnosticConsumer *Client = nullptr,
                     bool ShouldOwnClient = true,
                     const CodeGenOptions *CodeGenOpts = nullptr);
@@ -769,9 +820,9 @@ private:
 public:
   std::unique_ptr<raw_pwrite_stream> createNullOutputFile();
 
-  /// }
+  /// @}
   /// @name Initialization Utility Methods
-  /// {
+  /// @{
 
   /// InitializeSourceManager - Initialize the source manager to set InputFile
   /// as the main file.
@@ -788,7 +839,7 @@ public:
                                       FileManager &FileMgr,
                                       SourceManager &SourceMgr);
 
-  /// }
+  /// @}
 
   void setOutputStream(std::unique_ptr<llvm::raw_pwrite_stream> OutStream) {
     OutputStream = std::move(OutStream);
@@ -800,7 +851,8 @@ public:
 
   void createASTReader();
 
-  bool loadModuleFile(StringRef FileName);
+  bool loadModuleFile(StringRef FileName,
+                      serialization::ModuleFile *&LoadedModuleFile);
 
 private:
   /// Find a module, potentially compiling it, before reading its AST.  This is

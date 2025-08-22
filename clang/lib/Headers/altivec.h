@@ -2502,37 +2502,37 @@ vec_cmplt(vector unsigned long long __a, vector unsigned long long __b) {
 
 static __inline__ vector unsigned char __ATTRS_o_ai
 vec_popcnt(vector signed char __a) {
-  return (vector unsigned char)__builtin_altivec_vpopcntb(
+  return (vector unsigned char)__builtin_elementwise_popcount(
       (vector unsigned char)__a);
 }
 static __inline__ vector unsigned char __ATTRS_o_ai
 vec_popcnt(vector unsigned char __a) {
-  return __builtin_altivec_vpopcntb(__a);
+  return __builtin_elementwise_popcount(__a);
 }
 static __inline__ vector unsigned short __ATTRS_o_ai
 vec_popcnt(vector signed short __a) {
-  return (vector unsigned short)__builtin_altivec_vpopcnth(
+  return (vector unsigned short)__builtin_elementwise_popcount(
       (vector unsigned short)__a);
 }
 static __inline__ vector unsigned short __ATTRS_o_ai
 vec_popcnt(vector unsigned short __a) {
-  return __builtin_altivec_vpopcnth(__a);
+  return __builtin_elementwise_popcount(__a);
 }
 static __inline__ vector unsigned int __ATTRS_o_ai
 vec_popcnt(vector signed int __a) {
-  return __builtin_altivec_vpopcntw((vector unsigned int)__a);
+  return __builtin_elementwise_popcount((vector unsigned int)__a);
 }
 static __inline__ vector unsigned int __ATTRS_o_ai
 vec_popcnt(vector unsigned int __a) {
-  return __builtin_altivec_vpopcntw(__a);
+  return __builtin_elementwise_popcount(__a);
 }
 static __inline__ vector unsigned long long __ATTRS_o_ai
 vec_popcnt(vector signed long long __a) {
-  return __builtin_altivec_vpopcntd((vector unsigned long long)__a);
+  return __builtin_elementwise_popcount((vector unsigned long long)__a);
 }
 static __inline__ vector unsigned long long __ATTRS_o_ai
 vec_popcnt(vector unsigned long long __a) {
-  return __builtin_altivec_vpopcntd(__a);
+  return __builtin_elementwise_popcount(__a);
 }
 
 #define vec_vclz vec_cntlz
@@ -14647,67 +14647,86 @@ static __inline__ void __ATTRS_o_ai vec_stvrxl(vector float __a, int __b,
 
 static __inline__ vector signed char __ATTRS_o_ai vec_promote(signed char __a,
                                                               int __b) {
-  vector signed char __res = (vector signed char)(0);
-  __res[__b & 0x7] = __a;
+  const vector signed char __zero = (vector signed char)0;
+  vector signed char __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1, -1, -1, -1, -1,
+                              -1, -1, -1, -1, -1, -1, -1, -1);
+  __res[__b & 0xf] = __a;
   return __res;
 }
 
 static __inline__ vector unsigned char __ATTRS_o_ai
 vec_promote(unsigned char __a, int __b) {
-  vector unsigned char __res = (vector unsigned char)(0);
-  __res[__b & 0x7] = __a;
+  const vector unsigned char __zero = (vector unsigned char)(0);
+  vector unsigned char __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1, -1, -1, -1, -1,
+                              -1, -1, -1, -1, -1, -1, -1, -1);
+  __res[__b & 0xf] = __a;
   return __res;
 }
 
 static __inline__ vector short __ATTRS_o_ai vec_promote(short __a, int __b) {
-  vector short __res = (vector short)(0);
+  const vector short __zero = (vector short)(0);
+  vector short __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1, -1, -1, -1, -1);
   __res[__b & 0x7] = __a;
   return __res;
 }
 
 static __inline__ vector unsigned short __ATTRS_o_ai
 vec_promote(unsigned short __a, int __b) {
-  vector unsigned short __res = (vector unsigned short)(0);
+  const vector unsigned short __zero = (vector unsigned short)(0);
+  vector unsigned short __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1, -1, -1, -1, -1);
   __res[__b & 0x7] = __a;
   return __res;
 }
 
 static __inline__ vector int __ATTRS_o_ai vec_promote(int __a, int __b) {
-  vector int __res = (vector int)(0);
+  const vector int __zero = (vector int)(0);
+  vector int __res = __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1);
   __res[__b & 0x3] = __a;
   return __res;
 }
 
 static __inline__ vector unsigned int __ATTRS_o_ai vec_promote(unsigned int __a,
                                                                int __b) {
-  vector unsigned int __res = (vector unsigned int)(0);
+  const vector unsigned int __zero = (vector unsigned int)(0);
+  vector unsigned int __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1);
   __res[__b & 0x3] = __a;
   return __res;
 }
 
 static __inline__ vector float __ATTRS_o_ai vec_promote(float __a, int __b) {
-  vector float __res = (vector float)(0);
+  const vector float __zero = (vector float)(0);
+  vector float __res = __builtin_shufflevector(__zero, __zero, -1, -1, -1, -1);
   __res[__b & 0x3] = __a;
   return __res;
 }
 
 #ifdef __VSX__
 static __inline__ vector double __ATTRS_o_ai vec_promote(double __a, int __b) {
-  vector double __res = (vector double)(0);
+  const vector double __zero = (vector double)(0);
+  vector double __res = __builtin_shufflevector(__zero, __zero, -1, -1);
   __res[__b & 0x1] = __a;
   return __res;
 }
 
 static __inline__ vector signed long long __ATTRS_o_ai
 vec_promote(signed long long __a, int __b) {
-  vector signed long long __res = (vector signed long long)(0);
+  const vector signed long long __zero = (vector signed long long)(0);
+  vector signed long long __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1);
   __res[__b & 0x1] = __a;
   return __res;
 }
 
 static __inline__ vector unsigned long long __ATTRS_o_ai
 vec_promote(unsigned long long __a, int __b) {
-  vector unsigned long long __res = (vector unsigned long long)(0);
+  const vector unsigned long long __zero = (vector unsigned long long)(0);
+  vector unsigned long long __res =
+      __builtin_shufflevector(__zero, __zero, -1, -1);
   __res[__b & 0x1] = __a;
   return __res;
 }

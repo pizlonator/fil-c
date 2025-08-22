@@ -760,6 +760,7 @@ private:
   void cleanupConstructionContext(Expr *E);
 
   void autoCreateBlock() { if (!Block) Block = createBlock(); }
+
   CFGBlock *createBlock(bool add_successor = true);
   CFGBlock *createNoReturnBlock();
 
@@ -818,15 +819,21 @@ private:
     B->appendStmt(const_cast<Stmt*>(S), cfg->getBumpVectorContext());
   }
 
-  void appendConstructor(CFGBlock *B, CXXConstructExpr *CE) {
+  void appendConstructor(CXXConstructExpr *CE) {
+    CXXConstructorDecl *C = CE->getConstructor();
+    if (C && C->isNoReturn())
+      Block = createNoReturnBlock();
+    else
+      autoCreateBlock();
+
     if (const ConstructionContext *CC =
             retrieveAndCleanupConstructionContext(CE)) {
-      B->appendConstructor(CE, CC, cfg->getBumpVectorContext());
+      Block->appendConstructor(CE, CC, cfg->getBumpVectorContext());
       return;
     }
 
     // No valid construction context found. Fall back to statement.
-    B->appendStmt(CE, cfg->getBumpVectorContext());
+    Block->appendStmt(CE, cfg->getBumpVectorContext());
   }
 
   void appendCall(CFGBlock *B, CallExpr *CE) {
@@ -879,6 +886,10 @@ private:
 
   void appendAutomaticObjDtor(CFGBlock *B, VarDecl *VD, Stmt *S) {
     B->appendAutomaticObjDtor(VD, S, cfg->getBumpVectorContext());
+  }
+
+  void appendCleanupFunction(CFGBlock *B, VarDecl *VD) {
+    B->appendCleanupFunction(VD, cfg->getBumpVectorContext());
   }
 
   void appendLifetimeEnds(CFGBlock *B, VarDecl *VD, Stmt *S) {
@@ -1070,16 +1081,41 @@ private:
     }
   }
 
-  /// Find a pair of comparison expressions with or without parentheses
+  /// There are two checks handled by this function:
+  /// 1. Find a law-of-excluded-middle or law-of-noncontradiction expression
+  /// e.g. if (x || !x), if (x && !x)
+  /// 2. Find a pair of comparison expressions with or without parentheses
   /// with a shared variable and constants and a logical operator between them
   /// that always evaluates to either true or false.
   /// e.g. if (x != 3 || x != 4)
   TryResult checkIncorrectLogicOperator(const BinaryOperator *B) {
     assert(B->isLogicalOp());
-    const BinaryOperator *LHS =
-        dyn_cast<BinaryOperator>(B->getLHS()->IgnoreParens());
-    const BinaryOperator *RHS =
-        dyn_cast<BinaryOperator>(B->getRHS()->IgnoreParens());
+    const Expr *LHSExpr = B->getLHS()->IgnoreParens();
+    const Expr *RHSExpr = B->getRHS()->IgnoreParens();
+
+    auto CheckLogicalOpWithNegatedVariable = [this, B](const Expr *E1,
+                                                       const Expr *E2) {
+      if (const auto *Negate = dyn_cast<UnaryOperator>(E1)) {
+        if (Negate->getOpcode() == UO_LNot &&
+            Expr::isSameComparisonOperand(Negate->getSubExpr(), E2)) {
+          bool AlwaysTrue = B->getOpcode() == BO_LOr;
+          if (BuildOpts.Observer)
+            BuildOpts.Observer->logicAlwaysTrue(B, AlwaysTrue);
+          return TryResult(AlwaysTrue);
+        }
+      }
+      return TryResult();
+    };
+
+    TryResult Result = CheckLogicalOpWithNegatedVariable(LHSExpr, RHSExpr);
+    if (Result.isKnown())
+        return Result;
+    Result = CheckLogicalOpWithNegatedVariable(RHSExpr, LHSExpr);
+    if (Result.isKnown())
+        return Result;
+
+    const auto *LHS = dyn_cast<BinaryOperator>(LHSExpr);
+    const auto *RHS = dyn_cast<BinaryOperator>(RHSExpr);
     if (!LHS || !RHS)
       return {};
 
@@ -1321,7 +1357,8 @@ private:
     return {};
   }
 
-  bool hasTrivialDestructor(VarDecl *VD);
+  bool hasTrivialDestructor(const VarDecl *VD) const;
+  bool needsAutomaticDestruction(const VarDecl *VD) const;
 };
 
 } // namespace
@@ -1758,10 +1795,7 @@ static QualType getReferenceInitTemporaryType(const Expr *Init,
     }
 
     // Skip sub-object accesses into rvalues.
-    SmallVector<const Expr *, 2> CommaLHSs;
-    SmallVector<SubobjectAdjustment, 2> Adjustments;
-    const Expr *SkippedInit =
-        Init->skipRValueSubobjectAdjustments(CommaLHSs, Adjustments);
+    const Expr *SkippedInit = Init->skipRValueSubobjectAdjustments();
     if (SkippedInit != Init) {
       Init = SkippedInit;
       continue;
@@ -1836,14 +1870,14 @@ void CFGBuilder::addAutomaticObjDestruction(LocalScope::const_iterator B,
   if (B == E)
     return;
 
-  SmallVector<VarDecl *, 10> DeclsNonTrivial;
-  DeclsNonTrivial.reserve(B.distance(E));
+  SmallVector<VarDecl *, 10> DeclsNeedDestruction;
+  DeclsNeedDestruction.reserve(B.distance(E));
 
   for (VarDecl* D : llvm::make_range(B, E))
-    if (!hasTrivialDestructor(D))
-      DeclsNonTrivial.push_back(D);
+    if (needsAutomaticDestruction(D))
+      DeclsNeedDestruction.push_back(D);
 
-  for (VarDecl *VD : llvm::reverse(DeclsNonTrivial)) {
+  for (VarDecl *VD : llvm::reverse(DeclsNeedDestruction)) {
     if (BuildOpts.AddImplicitDtors) {
       // If this destructor is marked as a no-return destructor, we need to
       // create a new block for the destructor which does not have as a
@@ -1854,7 +1888,8 @@ void CFGBuilder::addAutomaticObjDestruction(LocalScope::const_iterator B,
         Ty = getReferenceInitTemporaryType(VD->getInit());
       Ty = Context->getBaseElementType(Ty);
 
-      if (Ty->getAsCXXRecordDecl()->isAnyDestructorNoReturn())
+      const CXXRecordDecl *CRD = Ty->getAsCXXRecordDecl();
+      if (CRD && CRD->isAnyDestructorNoReturn())
         Block = createNoReturnBlock();
     }
 
@@ -1865,8 +1900,10 @@ void CFGBuilder::addAutomaticObjDestruction(LocalScope::const_iterator B,
     // objects, we end lifetime with scope end.
     if (BuildOpts.AddLifetime)
       appendLifetimeEnds(Block, VD, S);
-    if (BuildOpts.AddImplicitDtors)
+    if (BuildOpts.AddImplicitDtors && !hasTrivialDestructor(VD))
       appendAutomaticObjDtor(Block, VD, S);
+    if (VD->hasAttr<CleanupAttr>())
+      appendCleanupFunction(Block, VD);
   }
 }
 
@@ -1897,7 +1934,7 @@ void CFGBuilder::addScopeExitHandling(LocalScope::const_iterator B,
   // is destroyed, for automatic variables, this happens when the end of the
   // scope is added.
   for (VarDecl* D : llvm::make_range(B, E))
-    if (hasTrivialDestructor(D))
+    if (!needsAutomaticDestruction(D))
       DeclsTrivial.push_back(D);
 
   if (DeclsTrivial.empty())
@@ -2009,7 +2046,7 @@ void CFGBuilder::addImplicitDtorsForDestructor(const CXXDestructorDecl *DD) {
     QualType QT = FI->getType();
     // It may be a multidimensional array.
     while (const ConstantArrayType *AT = Context->getAsConstantArrayType(QT)) {
-      if (AT->getSize() == 0)
+      if (AT->isZeroSize())
         break;
       QT = AT->getElementType();
     }
@@ -2070,7 +2107,11 @@ LocalScope* CFGBuilder::addLocalScopeForDeclStmt(DeclStmt *DS,
   return Scope;
 }
 
-bool CFGBuilder::hasTrivialDestructor(VarDecl *VD) {
+bool CFGBuilder::needsAutomaticDestruction(const VarDecl *VD) const {
+  return !hasTrivialDestructor(VD) || VD->hasAttr<CleanupAttr>();
+}
+
+bool CFGBuilder::hasTrivialDestructor(const VarDecl *VD) const {
   // Check for const references bound to temporary. Set type to pointee.
   QualType QT = VD->getType();
   if (QT->isReferenceType()) {
@@ -2099,7 +2140,7 @@ bool CFGBuilder::hasTrivialDestructor(VarDecl *VD) {
 
   // Check for constant size array. Set type to array element type.
   while (const ConstantArrayType *AT = Context->getAsConstantArrayType(QT)) {
-    if (AT->getSize() == 0)
+    if (AT->isZeroSize())
       return true;
     QT = AT->getElementType();
   }
@@ -2124,7 +2165,7 @@ LocalScope* CFGBuilder::addLocalScopeForVarDecl(VarDecl *VD,
     return Scope;
 
   if (!BuildOpts.AddLifetime && !BuildOpts.AddScopes &&
-      hasTrivialDestructor(VD)) {
+      !needsAutomaticDestruction(VD)) {
     assert(BuildOpts.AddImplicitDtors);
     return Scope;
   }
@@ -2224,8 +2265,7 @@ CFGBlock *CFGBuilder::Visit(Stmt * S, AddStmtChoice asc,
       // FIXME: The expression inside a CXXDefaultArgExpr is owned by the
       // called function's declaration, not by the caller. If we simply add
       // this expression to the CFG, we could end up with the same Expr
-      // appearing multiple times.
-      // PR13385 / <rdar://problem/12156507>
+      // appearing multiple times (PR13385).
       //
       // It's likewise possible for multiple CXXDefaultInitExprs for the same
       // expression to be used in the same function (through aggregate
@@ -3144,10 +3184,13 @@ CFGBlock *CFGBuilder::VisitIfStmt(IfStmt *I) {
     if (!I->isConsteval())
       KnownVal = tryEvaluateBool(I->getCond());
 
-    // Add the successors.  If we know that specific branches are
+    // Add the successors. If we know that specific branches are
     // unreachable, inform addSuccessor() of that knowledge.
     addSuccessor(Block, ThenBlock, /* IsReachable = */ !KnownVal.isFalse());
     addSuccessor(Block, ElseBlock, /* IsReachable = */ !KnownVal.isTrue());
+
+    if (I->isConsteval())
+      return Block;
 
     // Add the condition as the last statement in the new block.  This may
     // create new blocks as the condition may contain control-flow.  Any newly
@@ -4796,9 +4839,7 @@ CFGBlock *CFGBuilder::VisitCXXConstructExpr(CXXConstructExpr *C,
   // construct these objects. Construction contexts we find here aren't for the
   // constructor C, they're for its arguments only.
   findConstructionContextsForArguments(C);
-
-  autoCreateBlock();
-  appendConstructor(Block, C);
+  appendConstructor(C);
 
   return VisitChildren(C);
 }
@@ -4856,16 +4897,15 @@ CFGBlock *CFGBuilder::VisitCXXFunctionalCastExpr(CXXFunctionalCastExpr *E,
   return Visit(E->getSubExpr(), asc);
 }
 
-CFGBlock *CFGBuilder::VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr *C,
+CFGBlock *CFGBuilder::VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr *E,
                                                   AddStmtChoice asc) {
   // If the constructor takes objects as arguments by value, we need to properly
   // construct these objects. Construction contexts we find here aren't for the
   // constructor C, they're for its arguments only.
-  findConstructionContextsForArguments(C);
+  findConstructionContextsForArguments(E);
+  appendConstructor(E);
 
-  autoCreateBlock();
-  appendConstructor(Block, C);
-  return VisitChildren(C);
+  return VisitChildren(E);
 }
 
 CFGBlock *CFGBuilder::VisitImplicitCastExpr(ImplicitCastExpr *E,
@@ -5263,6 +5303,7 @@ CFGImplicitDtor::getDestructorDecl(ASTContext &astContext) const {
     case CFGElement::CXXRecordTypedCall:
     case CFGElement::ScopeBegin:
     case CFGElement::ScopeEnd:
+    case CFGElement::CleanupFunction:
       llvm_unreachable("getDestructorDecl should only be used with "
                        "ImplicitDtors");
     case CFGElement::AutomaticObjectDtor: {
@@ -5806,6 +5847,11 @@ static void print_elem(raw_ostream &OS, StmtPrinterHelper &Helper,
     break;
   }
 
+  case CFGElement::Kind::CleanupFunction:
+    OS << "CleanupFunction ("
+       << E.castAs<CFGCleanupFunction>().getFunctionDecl()->getName() << ")\n";
+    break;
+
   case CFGElement::Kind::LifetimeEnds:
     Helper.handleDecl(E.castAs<CFGLifetimeEnds>().getVarDecl(), OS);
     OS << " (Lifetime ends)\n";
@@ -6125,7 +6171,7 @@ void CFGBlock::printTerminatorJson(raw_ostream &Out, const LangOptions &LO,
 
   printTerminator(TempOut, LO);
 
-  Out << JsonFormat(TempOut.str(), AddQuotes);
+  Out << JsonFormat(Buf, AddQuotes);
 }
 
 // Returns true if by simply looking at the block, we can be sure that it
@@ -6306,10 +6352,9 @@ struct DOTGraphTraits<const CFG*> : public DefaultDOTGraphTraits {
   DOTGraphTraits(bool isSimple = false) : DefaultDOTGraphTraits(isSimple) {}
 
   static std::string getNodeLabel(const CFGBlock *Node, const CFG *Graph) {
-    std::string OutSStr;
-    llvm::raw_string_ostream Out(OutSStr);
+    std::string OutStr;
+    llvm::raw_string_ostream Out(OutStr);
     print_block(Out,Graph, *Node, *GraphHelper, false, false);
-    std::string& OutStr = Out.str();
 
     if (OutStr[0] == '\n') OutStr.erase(OutStr.begin());
 

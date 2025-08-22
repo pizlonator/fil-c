@@ -37,16 +37,16 @@ StructuredData::ParseJSONFromFile(const FileSpec &input_spec, Status &error) {
 
   auto buffer_or_error = llvm::MemoryBuffer::getFile(input_spec.GetPath());
   if (!buffer_or_error) {
-    error.SetErrorStringWithFormatv("could not open input file: {0} - {1}.",
-                                    input_spec.GetPath(),
-                                    buffer_or_error.getError().message());
+    error = Status::FromErrorStringWithFormatv(
+        "could not open input file: {0} - {1}.", input_spec.GetPath(),
+        buffer_or_error.getError().message());
     return return_sp;
   }
   llvm::Expected<json::Value> value =
       json::parse(buffer_or_error.get()->getBuffer().str());
   if (value)
     return ParseJSONValue(*value);
-  error.SetErrorString(toString(value.takeError()));
+  error = Status::FromError(value.takeError());
   return StructuredData::ObjectSP();
 }
 
@@ -162,8 +162,18 @@ void StructuredData::String::Serialize(json::OStream &s) const {
 
 void StructuredData::Dictionary::Serialize(json::OStream &s) const {
   s.objectBegin();
-  for (const auto &pair : m_dict) {
-    s.attributeBegin(pair.first.GetStringRef());
+
+  // To ensure the output format is always stable, we sort the dictionary by key
+  // first.
+  using Entry = std::pair<llvm::StringRef, ObjectSP>;
+  std::vector<Entry> sorted_entries;
+  for (const auto &pair : m_dict)
+    sorted_entries.push_back({pair.first(), pair.second});
+
+  llvm::sort(sorted_entries);
+
+  for (const auto &pair : sorted_entries) {
+    s.attributeBegin(pair.first);
     pair.second->Serialize(s);
     s.attributeEnd();
   }
@@ -228,9 +238,20 @@ void StructuredData::Array::GetDescription(lldb_private::Stream &s) const {
 
 void StructuredData::Dictionary::GetDescription(lldb_private::Stream &s) const {
   size_t indentation_level = s.GetIndentLevel();
-  for (const auto &pair : m_dict) {
+
+  // To ensure the output format is always stable, we sort the dictionary by key
+  // first.
+  using Entry = std::pair<llvm::StringRef, ObjectSP>;
+  std::vector<Entry> sorted_entries;
+  for (const auto &pair : m_dict)
+    sorted_entries.push_back({pair.first(), pair.second});
+
+  llvm::sort(sorted_entries);
+
+  for (auto iter = sorted_entries.begin(); iter != sorted_entries.end();
+       iter++) {
     // Sanitize.
-    if (pair.first.IsNull() || pair.first.IsEmpty() || !pair.second)
+    if (iter->first.empty() || !iter->second)
       continue;
 
     // Reset original indentation level.
@@ -238,11 +259,11 @@ void StructuredData::Dictionary::GetDescription(lldb_private::Stream &s) const {
     s.Indent();
 
     // Print key.
-    s.Printf("%s:", pair.first.AsCString());
+    s.Format("{0}:", iter->first);
 
     // Return to new line and increase indentation if value is record type.
     // Otherwise add spacing.
-    bool should_indent = IsRecordType(pair.second);
+    bool should_indent = IsRecordType(iter->second);
     if (should_indent) {
       s.EOL();
       s.IndentMore();
@@ -251,8 +272,8 @@ void StructuredData::Dictionary::GetDescription(lldb_private::Stream &s) const {
     }
 
     // Print value and new line if now last pair.
-    pair.second->GetDescription(s);
-    if (pair != *(--m_dict.end()))
+    iter->second->GetDescription(s);
+    if (std::next(iter) != sorted_entries.end())
       s.EOL();
 
     // Reset indentation level if it was incremented previously.

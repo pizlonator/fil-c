@@ -9,7 +9,6 @@
 #include "llvm/Object/OffloadBinary.h"
 #include "llvm/ObjectYAML/OffloadYAML.h"
 #include "llvm/ObjectYAML/yaml2obj.h"
-#include "llvm/Support/Error.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
@@ -38,14 +37,10 @@ bool yaml2offload(Binary &Doc, raw_ostream &Out, ErrorHandler EH) {
       Member.Content->writeAsBinary(OS);
     Image.Image = MemoryBuffer::getMemBufferCopy(OS.str());
 
-    std::unique_ptr<MemoryBuffer> Binary = object::OffloadBinary::write(Image);
-
     // Copy the data to a new buffer so we can modify the bytes directly.
-    SmallVector<char> NewBuffer;
-    std::copy(Binary->getBufferStart(), Binary->getBufferEnd(),
-              std::back_inserter(NewBuffer));
+    auto Buffer = object::OffloadBinary::write(Image);
     auto *TheHeader =
-        reinterpret_cast<object::OffloadBinary::Header *>(&NewBuffer[0]);
+        reinterpret_cast<object::OffloadBinary::Header *>(&Buffer[0]);
     if (Doc.Version)
       TheHeader->Version = *Doc.Version;
     if (Doc.Size)
@@ -55,7 +50,7 @@ bool yaml2offload(Binary &Doc, raw_ostream &Out, ErrorHandler EH) {
     if (Doc.EntrySize)
       TheHeader->EntrySize = *Doc.EntrySize;
 
-    Out.write(NewBuffer.begin(), NewBuffer.size());
+    Out.write(Buffer.begin(), Buffer.size());
   }
 
   return true;

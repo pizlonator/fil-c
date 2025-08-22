@@ -53,7 +53,7 @@ void setCurrentDebugType(const char *Type);
 void setCurrentDebugTypes(const char **Types, unsigned Count);
 
 /// DEBUG_WITH_TYPE macro - This macro should be used by passes to emit debug
-/// information.  In the '-debug' option is specified on the commandline, and if
+/// information.  If the '-debug' option is specified on the commandline, and if
 /// this is a debug build, then the code specified as the option to the macro
 /// will be executed.  Otherwise it will not be.  Example:
 ///
@@ -61,15 +61,20 @@ void setCurrentDebugTypes(const char **Types, unsigned Count);
 ///
 /// This will emit the debug information if -debug is present, and -debug-only
 /// is not specified, or is specified as "bitset".
-#define DEBUG_WITH_TYPE(TYPE, X)                                        \
-  do { if (::llvm::DebugFlag && ::llvm::isCurrentDebugType(TYPE)) { X; } \
+#define DEBUG_WITH_TYPE(TYPE, ...)                                             \
+  do {                                                                         \
+    if (::llvm::DebugFlag && ::llvm::isCurrentDebugType(TYPE)) {               \
+      __VA_ARGS__;                                                             \
+    }                                                                          \
   } while (false)
 
 #else
 #define isCurrentDebugType(X) (false)
 #define setCurrentDebugType(X) do { (void)(X); } while (false)
 #define setCurrentDebugTypes(X, N) do { (void)(X); (void)(N); } while (false)
-#define DEBUG_WITH_TYPE(TYPE, X) do { } while (false)
+#define DEBUG_WITH_TYPE(TYPE, ...)                                             \
+  do {                                                                         \
+  } while (false)
 #endif
 
 /// This boolean is set to true if the '-debug' command line option
@@ -92,13 +97,13 @@ extern bool EnableDebugBuffering;
 raw_ostream &dbgs();
 
 // DEBUG macro - This macro should be used by passes to emit debug information.
-// In the '-debug' option is specified on the commandline, and if this is a
+// If the '-debug' option is specified on the commandline, and if this is a
 // debug build, then the code specified as the option to the macro will be
 // executed.  Otherwise it will not be.  Example:
 //
 // LLVM_DEBUG(dbgs() << "Bitset contains: " << Bitset << "\n");
 //
-#define LLVM_DEBUG(X) DEBUG_WITH_TYPE(DEBUG_TYPE, X)
+#define LLVM_DEBUG(...) DEBUG_WITH_TYPE(DEBUG_TYPE, __VA_ARGS__)
 
 } // end namespace llvm
 

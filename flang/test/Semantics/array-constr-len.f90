@@ -10,5 +10,5 @@ subroutine subr(s,n)
   print *, [(s(1:j),j=1,0)]
   print *, [(s(1:1),j=1,0)] ! ok
   print *, [character(2)::(s(1:n),j=1,0)] ! ok
-  print *, [character(n)::(s(1:n),j=1,0)] ! ok
+  print *, [character(n)::(s(1:n),j=1,0)]
 end

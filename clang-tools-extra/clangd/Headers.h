@@ -33,6 +33,8 @@
 namespace clang {
 namespace clangd {
 
+using HeaderFilter = llvm::ArrayRef<std::function<bool(llvm::StringRef)>>;
+
 /// Returns true if \p Include is literal include like "path" or <path>.
 bool isLiteralInclude(llvm::StringRef Include);
 
@@ -173,6 +175,11 @@ public:
 
   std::vector<Inclusion> MainFileIncludes;
 
+  // The entries of the header search path. (HeaderSearch::search_dir_range())
+  // Only includes the plain-directory entries (not header maps or frameworks).
+  // All paths are canonical (FileManager::getCanonicalPath()).
+  std::vector<std::string> SearchPathsCanonical;
+
   // We reserve HeaderID(0) for the main file and will manually check for that
   // in getID and getOrCreateID because the UniqueID is not stable when the
   // content of the main file changes.
@@ -206,10 +213,12 @@ public:
   // include path of non-verbatim header will not be shortened.
   IncludeInserter(StringRef FileName, StringRef Code,
                   const format::FormatStyle &Style, StringRef BuildDir,
-                  HeaderSearch *HeaderSearchInfo)
+                  HeaderSearch *HeaderSearchInfo, HeaderFilter QuotedHeaders,
+                  HeaderFilter AngledHeaders)
       : FileName(FileName), Code(Code), BuildDir(BuildDir),
         HeaderSearchInfo(HeaderSearchInfo),
-        Inserter(FileName, Code, Style.IncludeStyle) {}
+        Inserter(FileName, Code, Style.IncludeStyle),
+        QuotedHeaders(QuotedHeaders), AngledHeaders(AngledHeaders) {}
 
   void addExisting(const Inclusion &Inc);
 
@@ -253,6 +262,8 @@ private:
   HeaderSearch *HeaderSearchInfo = nullptr;
   llvm::StringSet<> IncludedHeaders; // Both written and resolved.
   tooling::HeaderIncludes Inserter;  // Computers insertion replacement.
+  HeaderFilter QuotedHeaders;
+  HeaderFilter AngledHeaders;
 };
 
 } // namespace clangd

@@ -30,12 +30,13 @@ public:
 private:
   void handleCastToBool(const ImplicitCastExpr *CastExpression,
                         const Stmt *ParentStatement, ASTContext &Context);
-  void handleCastFromBool(const ImplicitCastExpr *CastExpression,
-                          const ImplicitCastExpr *FurtherImplicitCastExpression,
+  void handleCastFromBool(const ImplicitCastExpr *Cast,
+                          const ImplicitCastExpr *NextImplicitCast,
                           ASTContext &Context);
 
   const bool AllowIntegerConditions;
   const bool AllowPointerConditions;
+  const bool UseUpperCaseLiteralSuffix;
 };
 
 } // namespace clang::tidy::readability

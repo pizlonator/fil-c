@@ -16,11 +16,11 @@
 
 #include "mlir/Dialect/Affine/IR/AffineMemoryOpInterfaces.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Utils/StaticValueUtils.h"
 #include "mlir/IR/AffineMap.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/Interfaces/ControlFlowInterfaces.h"
 #include "mlir/Interfaces/LoopLikeInterface.h"
-
 namespace mlir {
 namespace affine {
 
@@ -107,6 +107,9 @@ public:
 
   /// Returns the source MemRefType for this DMA operation.
   Value getSrcMemRef() { return getOperand(getSrcMemRefOperandIndex()); }
+  OpOperand &getSrcMemRefMutable() {
+    return getOperation()->getOpOperand(getSrcMemRefOperandIndex());
+  }
   MemRefType getSrcMemRefType() {
     return cast<MemRefType>(getSrcMemRef().getType());
   }
@@ -117,7 +120,8 @@ public:
   /// Returns the affine map used to access the source memref.
   AffineMap getSrcMap() { return getSrcMapAttr().getValue(); }
   AffineMapAttr getSrcMapAttr() {
-    return cast<AffineMapAttr>((*this)->getAttr(getSrcMapAttrStrName()));
+    return cast<AffineMapAttr>(
+        *(*this)->getInherentAttr(getSrcMapAttrStrName()));
   }
 
   /// Returns the source memref affine map indices for this DMA operation.
@@ -139,6 +143,9 @@ public:
 
   /// Returns the destination MemRefType for this DMA operation.
   Value getDstMemRef() { return getOperand(getDstMemRefOperandIndex()); }
+  OpOperand &getDstMemRefMutable() {
+    return getOperation()->getOpOperand(getDstMemRefOperandIndex());
+  }
   MemRefType getDstMemRefType() {
     return cast<MemRefType>(getDstMemRef().getType());
   }
@@ -156,7 +163,8 @@ public:
   /// Returns the affine map used to access the destination memref.
   AffineMap getDstMap() { return getDstMapAttr().getValue(); }
   AffineMapAttr getDstMapAttr() {
-    return cast<AffineMapAttr>((*this)->getAttr(getDstMapAttrStrName()));
+    return cast<AffineMapAttr>(
+        *(*this)->getInherentAttr(getDstMapAttrStrName()));
   }
 
   /// Returns the destination memref indices for this DMA operation.
@@ -173,6 +181,9 @@ public:
 
   /// Returns the Tag MemRef for this DMA operation.
   Value getTagMemRef() { return getOperand(getTagMemRefOperandIndex()); }
+  OpOperand &getTagMemRefMutable() {
+    return getOperation()->getOpOperand(getTagMemRefOperandIndex());
+  }
   MemRefType getTagMemRefType() {
     return cast<MemRefType>(getTagMemRef().getType());
   }
@@ -185,7 +196,8 @@ public:
   /// Returns the affine map used to access the tag memref.
   AffineMap getTagMap() { return getTagMapAttr().getValue(); }
   AffineMapAttr getTagMapAttr() {
-    return cast<AffineMapAttr>((*this)->getAttr(getTagMapAttrStrName()));
+    return cast<AffineMapAttr>(
+        *(*this)->getInherentAttr(getTagMapAttrStrName()));
   }
 
   /// Returns the tag memref indices for this DMA operation.
@@ -300,6 +312,7 @@ public:
 
   /// Returns the Tag MemRef associated with the DMA operation being waited on.
   Value getTagMemRef() { return getOperand(0); }
+  OpOperand &getTagMemRefMutable() { return getOperation()->getOpOperand(0); }
   MemRefType getTagMemRefType() {
     return cast<MemRefType>(getTagMemRef().getType());
   }
@@ -307,7 +320,8 @@ public:
   /// Returns the affine map used to access the tag memref.
   AffineMap getTagMap() { return getTagMapAttr().getValue(); }
   AffineMapAttr getTagMapAttr() {
-    return cast<AffineMapAttr>((*this)->getAttr(getTagMapAttrStrName()));
+    return cast<AffineMapAttr>(
+        *(*this)->getInherentAttr(getTagMapAttrStrName()));
   }
 
   /// Returns the tag memref index for this DMA operation.
@@ -490,20 +504,6 @@ void buildAffineLoopNest(OpBuilder &builder, Location loc, ValueRange lbs,
                          function_ref<void(OpBuilder &, Location, ValueRange)>
                              bodyBuilderFn = nullptr);
 
-/// Replace `loop` with a new loop where `newIterOperands` are appended with
-/// new initialization values and `newYieldedValues` are added as new yielded
-/// values. The returned ForOp has `newYieldedValues.size()` new result values.
-/// Additionally, if `replaceLoopResults` is true, all uses of
-/// `loop.getResults()` are replaced with the first `loop.getNumResults()`
-/// return values  of the original loop respectively. The original loop is
-/// deleted and the new loop returned.
-/// Prerequisite: `newIterOperands.size() == newYieldedValues.size()`.
-AffineForOp replaceForOpWithNewYields(OpBuilder &b, AffineForOp loop,
-                                      ValueRange newIterOperands,
-                                      ValueRange newYieldedValues,
-                                      ValueRange newIterArgs,
-                                      bool replaceLoopResults = true);
-
 /// AffineBound represents a lower or upper bound in the for operation.
 /// This class does not own the underlying operands. Instead, it refers
 /// to the operands stored in the AffineForOp. Its life span should not exceed
@@ -513,27 +513,28 @@ public:
   AffineForOp getAffineForOp() { return op; }
   AffineMap getMap() { return map; }
 
-  unsigned getNumOperands() { return opEnd - opStart; }
-  Value getOperand(unsigned idx) { return op.getOperand(opStart + idx); }
+  unsigned getNumOperands() { return operands.size(); }
+  Value getOperand(unsigned idx) {
+    return op.getOperand(operands.getBeginOperandIndex() + idx);
+  }
 
   using operand_iterator = AffineForOp::operand_iterator;
   using operand_range = AffineForOp::operand_range;
 
-  operand_iterator operandBegin() { return op.operand_begin() + opStart; }
-  operand_iterator operandEnd() { return op.operand_begin() + opEnd; }
+  operand_iterator operandBegin() { return operands.begin(); }
+  operand_iterator operandEnd() { return operands.end(); }
   operand_range getOperands() { return {operandBegin(), operandEnd()}; }
 
 private:
   // 'affine.for' operation that contains this bound.
   AffineForOp op;
-  // Start and end positions of this affine bound operands in the list of
-  // the containing 'affine.for' operation operands.
-  unsigned opStart, opEnd;
+  // Operands of the affine map.
+  OperandRange operands;
   // Affine map for this bound.
   AffineMap map;
 
-  AffineBound(AffineForOp op, unsigned opStart, unsigned opEnd, AffineMap map)
-      : op(op), opStart(opStart), opEnd(opEnd), map(map) {}
+  AffineBound(AffineForOp op, OperandRange operands, AffineMap map)
+      : op(op), operands(operands), map(map) {}
 
   friend class AffineForOp;
 };

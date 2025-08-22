@@ -190,8 +190,8 @@ static struct cname {
  * other clumsinesses
  */
 struct parse {
-	char *next;		/* next character in RE */
-	char *end;		/* end of string (-> NUL normally) */
+	const char *next;	/* next character in RE */
+	const char *end;	/* end of string (-> NUL normally) */
 	int error;		/* has an error been seen? */
 	sop *strip;		/* malloced strip */
 	sopno ssize;		/* malloced strip size (allocated) */
@@ -278,7 +278,7 @@ static char nuls[10];		/* place to point scanner in event of error */
 #else
 #define	DUPMAX	255
 #endif
-#define	INFINITY	(DUPMAX + 1)
+#define REGINFINITY (DUPMAX + 1)
 
 #ifndef NDEBUG
 static int never = 0;		/* for use in asserts; shuts lint up */
@@ -329,15 +329,7 @@ llvm_regcomp(llvm_regex_t *preg, const char *pattern, int cflags)
 
 	/* set things up */
 	p->g = g;
-	/* suppress warning from the following explicit cast. */
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#endif /* __GNUC__ */
-	p->next = (char *)pattern;	/* convenience; we do not modify it */
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif /* __GNUC__ */
+	p->next = pattern;
 	p->end = p->next + len;
 	p->error = 0;
 	p->ncsalloc = 0;
@@ -590,7 +582,7 @@ p_ere_exp(struct parse *p)
 				count2 = p_count(p);
 				REQUIRE(count <= count2, REG_BADBR);
 			} else		/* single number with comma */
-				count2 = INFINITY;
+				count2 = REGINFINITY;
 		} else		/* just a single number */
 			count2 = count;
 		repeat(p, pos, count, count2);
@@ -761,7 +753,7 @@ p_simp_re(struct parse *p,
 				count2 = p_count(p);
 				REQUIRE(count <= count2, REG_BADBR);
 			} else		/* single number with comma */
-				count2 = INFINITY;
+				count2 = REGINFINITY;
 		} else		/* just a single number */
 			count2 = count;
 		repeat(p, pos, count, count2);
@@ -948,7 +940,7 @@ p_b_term(struct parse *p, cset *cs)
 static void
 p_b_cclass(struct parse *p, cset *cs)
 {
-	char *sp = p->next;
+	const char *sp = p->next;
 	struct cclass *cp;
 	size_t len;
 	const char *u;
@@ -1012,7 +1004,7 @@ static char			/* value of collating element */
 p_b_coll_elem(struct parse *p,
     int endc)			/* name ended by endc,']' */
 {
-	char *sp = p->next;
+	const char *sp = p->next;
 	struct cname *cp;
 	size_t len;
 
@@ -1056,8 +1048,8 @@ othercase(int ch)
 static void
 bothcases(struct parse *p, int ch)
 {
-	char *oldnext = p->next;
-	char *oldend = p->end;
+	const char *oldnext = p->next;
+	const char *oldend = p->end;
 	char bracket[3];
 
 	ch = (uch)ch;
@@ -1098,16 +1090,12 @@ ordinary(struct parse *p, int ch)
 static void
 nonnewline(struct parse *p)
 {
-	char *oldnext = p->next;
-	char *oldend = p->end;
-	char bracket[4];
+	const char *oldnext = p->next;
+	const char *oldend = p->end;
+	static const char bracket[4] = {'^', '\n', ']', '\0'};
 
 	p->next = bracket;
 	p->end = bracket+3;
-	bracket[0] = '^';
-	bracket[1] = '\n';
-	bracket[2] = ']';
-	bracket[3] = '\0';
 	p_bracket(p);
 	assert(p->next == bracket+3);
 	p->next = oldnext;
@@ -1127,7 +1115,7 @@ repeat(struct parse *p,
 #	define	N	2
 #	define	INF	3
 #	define	REP(f, t)	((f)*8 + (t))
-#	define	MAP(n)	(((n) <= 1) ? (n) : ((n) == INFINITY) ? INF : N)
+#	define	MAP(n)	(((n) <= 1) ? (n) : ((n) == REGINFINITY) ? INF : N)
 	sopno copy;
 
 	if (p->error != 0)	/* head off possible runaway recursion */

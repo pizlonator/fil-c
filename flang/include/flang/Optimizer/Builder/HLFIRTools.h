@@ -33,38 +33,8 @@ class AssociateOp;
 class ElementalOp;
 class ElementalOpInterface;
 class ElementalAddrOp;
+class EvaluateInMemoryOp;
 class YieldElementOp;
-
-/// Is this an SSA value type for the value of a Fortran procedure
-/// designator ?
-inline bool isFortranProcedureValue(mlir::Type type) {
-  return type.isa<fir::BoxProcType>() ||
-         (type.isa<mlir::TupleType>() &&
-          fir::isCharacterProcedureTuple(type, /*acceptRawFunc=*/false));
-}
-
-/// Is this an SSA value type for the value of a Fortran expression?
-inline bool isFortranValueType(mlir::Type type) {
-  return type.isa<hlfir::ExprType>() || fir::isa_trivial(type) ||
-         isFortranProcedureValue(type);
-}
-
-/// Is this the value of a Fortran expression in an SSA value form?
-inline bool isFortranValue(mlir::Value value) {
-  return isFortranValueType(value.getType());
-}
-
-/// Is this a Fortran variable?
-/// Note that by "variable", it must be understood that the mlir::Value is
-/// a memory value of a storage that can be reason about as a Fortran object
-/// (its bounds, shape, and type parameters, if any, are retrievable).
-/// This does not imply that the mlir::Value points to a variable from the
-/// original source or can be legally defined: temporaries created to store
-/// expression values are considered to be variables, and so are PARAMETERs
-/// global constant address.
-inline bool isFortranEntity(mlir::Value value) {
-  return isFortranValue(value) || isFortranVariableType(value.getType());
-}
 
 /// Is this a Fortran variable for which the defining op carrying the Fortran
 /// attributes is visible?
@@ -89,6 +59,9 @@ public:
   bool isValue() const { return isFortranValue(*this); }
   bool isVariable() const { return !isValue(); }
   bool isMutableBox() const { return hlfir::isBoxAddressType(getType()); }
+  bool isProcedurePointer() const {
+    return fir::isBoxProcAddressType(getType());
+  }
   bool isBoxAddressOrValue() const {
     return hlfir::isBoxAddressOrValueType(getType());
   }
@@ -99,15 +72,18 @@ public:
   /// Is this an array or an assumed ranked entity?
   bool isArray() const { return getRank() != 0; }
 
+  /// Is this an assumed ranked entity?
+  bool isAssumedRank() const { return getRank() == -1; }
+
   /// Return the rank of this entity or -1 if it is an assumed rank.
   int getRank() const {
     mlir::Type type = fir::unwrapPassByRefType(fir::unwrapRefType(getType()));
-    if (auto seqTy = type.dyn_cast<fir::SequenceType>()) {
+    if (auto seqTy = mlir::dyn_cast<fir::SequenceType>(type)) {
       if (seqTy.hasUnknownShape())
         return -1;
       return seqTy.getDimension();
     }
-    if (auto exprType = type.dyn_cast<hlfir::ExprType>())
+    if (auto exprType = mlir::dyn_cast<hlfir::ExprType>(type))
       return exprType.getRank();
     return 0;
   }
@@ -124,38 +100,24 @@ public:
 
   bool hasLengthParameters() const {
     mlir::Type eleTy = getFortranElementType();
-    return eleTy.isa<fir::CharacterType>() ||
+    return mlir::isa<fir::CharacterType>(eleTy) ||
            fir::isRecordWithTypeParameters(eleTy);
   }
 
   bool isCharacter() const {
-    return getFortranElementType().isa<fir::CharacterType>();
+    return mlir::isa<fir::CharacterType>(getFortranElementType());
   }
 
   bool hasIntrinsicType() const {
     mlir::Type eleTy = getFortranElementType();
-    return fir::isa_trivial(eleTy) || eleTy.isa<fir::CharacterType>();
+    return fir::isa_trivial(eleTy) || mlir::isa<fir::CharacterType>(eleTy);
   }
 
   bool isDerivedWithLengthParameters() const {
     return fir::isRecordWithTypeParameters(getFortranElementType());
   }
 
-  bool hasNonDefaultLowerBounds() const {
-    if (!isBoxAddressOrValue() || isScalar())
-      return false;
-    if (isMutableBox())
-      return true;
-    if (auto varIface = getIfVariableInterface()) {
-      if (auto shape = varIface.getShape()) {
-        auto shapeTy = shape.getType();
-        return shapeTy.isa<fir::ShiftType>() ||
-               shapeTy.isa<fir::ShapeShiftType>();
-      }
-      return false;
-    }
-    return true;
-  }
+  bool mayHaveNonDefaultLowerBounds() const;
 
   // Is this entity known to be contiguous at compile time?
   // Note that when this returns false, the entity may still
@@ -203,6 +165,11 @@ public:
     return varIface ? varIface.isAllocatable() : false;
   }
 
+  bool isPointer() const {
+    auto varIface = getIfVariableInterface();
+    return varIface ? varIface.isPointer() : false;
+  }
+
   // Get the entity as an mlir SSA value containing all the shape, type
   // parameters and dynamic shape information.
   mlir::Value getBase() const { return *this; }
@@ -243,30 +210,32 @@ public:
 using CleanupFunction = std::function<void()>;
 std::pair<fir::ExtendedValue, std::optional<CleanupFunction>>
 translateToExtendedValue(mlir::Location loc, fir::FirOpBuilder &builder,
-                         Entity entity);
+                         Entity entity, bool contiguousHint = false);
 
 /// Function to translate FortranVariableOpInterface to fir::ExtendedValue.
 /// It may generates IR to unbox fir.boxchar, but has otherwise no side effects
 /// on the IR.
 fir::ExtendedValue
 translateToExtendedValue(mlir::Location loc, fir::FirOpBuilder &builder,
-                         fir::FortranVariableOpInterface fortranVariable);
+                         fir::FortranVariableOpInterface fortranVariable,
+                         bool forceHlfirBase = false);
 
 /// Generate declaration for a fir::ExtendedValue in memory.
-fir::FortranVariableOpInterface genDeclare(mlir::Location loc,
-                                           fir::FirOpBuilder &builder,
-                                           const fir::ExtendedValue &exv,
-                                           llvm::StringRef name,
-                                           fir::FortranVariableFlagsAttr flags);
+fir::FortranVariableOpInterface
+genDeclare(mlir::Location loc, fir::FirOpBuilder &builder,
+           const fir::ExtendedValue &exv, llvm::StringRef name,
+           fir::FortranVariableFlagsAttr flags,
+           mlir::Value dummyScope = nullptr,
+           cuf::DataAttributeAttr dataAttr = {});
 
 /// Generate an hlfir.associate to build a variable from an expression value.
 /// The type of the variable must be provided so that scalar logicals are
 /// properly typed when placed in memory.
-hlfir::AssociateOp genAssociateExpr(mlir::Location loc,
-                                    fir::FirOpBuilder &builder,
-                                    hlfir::Entity value,
-                                    mlir::Type variableType,
-                                    llvm::StringRef name);
+hlfir::AssociateOp
+genAssociateExpr(mlir::Location loc, fir::FirOpBuilder &builder,
+                 hlfir::Entity value, mlir::Type variableType,
+                 llvm::StringRef name,
+                 std::optional<mlir::NamedAttribute> attr = std::nullopt);
 
 /// Get the raw address of a variable (simple fir.ref/fir.ptr, or fir.heap
 /// value). The returned value should be used with care, it does not contain any
@@ -352,6 +321,9 @@ void genLengthParameters(mlir::Location loc, fir::FirOpBuilder &builder,
 mlir::Value genCharLength(mlir::Location loc, fir::FirOpBuilder &builder,
                           Entity entity);
 
+mlir::Value genRank(mlir::Location loc, fir::FirOpBuilder &builder,
+                    Entity entity, mlir::Type resultType);
+
 /// Return the fir base, shape, and type parameters for a variable. Note that
 /// type parameters are only added if the entity is not a box and the type
 /// parameters is not a constant in the base type. This matches the arguments
@@ -374,32 +346,70 @@ using ElementalKernelGenerator = std::function<hlfir::Entity(
     mlir::Location, fir::FirOpBuilder &, mlir::ValueRange)>;
 /// Generate an hlfir.elementalOp given call back to generate the element
 /// value at for each iteration.
-/// If exprType is specified, this will be the return type of the elemental op
-hlfir::ElementalOp genElementalOp(mlir::Location loc,
-                                  fir::FirOpBuilder &builder,
-                                  mlir::Type elementType, mlir::Value shape,
-                                  mlir::ValueRange typeParams,
-                                  const ElementalKernelGenerator &genKernel,
-                                  bool isUnordered = false,
-                                  mlir::Type exprType = mlir::Type{});
+/// If exprType is specified, this will be the return type of the elemental op.
+/// If exprType is not specified, the resulting expression type is computed
+/// from the given \p elementType and \p shape, and the type is polymorphic
+/// if \p polymorphicMold is present.
+hlfir::ElementalOp genElementalOp(
+    mlir::Location loc, fir::FirOpBuilder &builder, mlir::Type elementType,
+    mlir::Value shape, mlir::ValueRange typeParams,
+    const ElementalKernelGenerator &genKernel, bool isUnordered = false,
+    mlir::Value polymorphicMold = {}, mlir::Type exprType = mlir::Type{});
 
 /// Structure to describe a loop nest.
 struct LoopNest {
-  fir::DoLoopOp outerLoop;
-  fir::DoLoopOp innerLoop;
+  mlir::Operation *outerOp = nullptr;
+  mlir::Block *body = nullptr;
   llvm::SmallVector<mlir::Value> oneBasedIndices;
 };
 
 /// Generate a fir.do_loop nest looping from 1 to extents[i].
 /// \p isUnordered specifies whether the loops in the loop nest
 /// are unordered.
+///
+/// NOTE: genLoopNestWithReductions() should be used in favor
+/// of this method, though, it cannot generate OpenMP workshare
+/// loop constructs currently.
 LoopNest genLoopNest(mlir::Location loc, fir::FirOpBuilder &builder,
-                     mlir::ValueRange extents, bool isUnordered = false);
+                     mlir::ValueRange extents, bool isUnordered = false,
+                     bool emitWorkshareLoop = false);
 inline LoopNest genLoopNest(mlir::Location loc, fir::FirOpBuilder &builder,
-                            mlir::Value shape, bool isUnordered = false) {
+                            mlir::Value shape, bool isUnordered = false,
+                            bool emitWorkshareLoop = false) {
   return genLoopNest(loc, builder, getIndexExtents(loc, builder, shape),
-                     isUnordered);
+                     isUnordered, emitWorkshareLoop);
 }
+
+/// The type of a callback that generates the body of a reduction
+/// loop nest. It takes a location and a builder, as usual.
+/// In addition, the first set of values are the values of the loops'
+/// induction variables. The second set of values are the values
+/// of the reductions on entry to the innermost loop.
+/// The callback must return the updated values of the reductions.
+using ReductionLoopBodyGenerator = std::function<llvm::SmallVector<mlir::Value>(
+    mlir::Location, fir::FirOpBuilder &, mlir::ValueRange, mlir::ValueRange)>;
+
+/// Generate a loop nest loopong from 1 to \p extents[i] and reducing
+/// a set of values.
+/// \p isUnordered specifies whether the loops in the loop nest
+/// are unordered.
+/// \p reductionInits are the initial values of the reductions
+/// on entry to the outermost loop.
+/// \p genBody callback is repsonsible for generating the code
+/// that updates the reduction values in the innermost loop.
+///
+/// NOTE: the implementation of this function may decide
+/// to perform the reductions on SSA or in memory.
+/// In the latter case, this function is responsible for
+/// allocating/loading/storing the reduction variables,
+/// and making sure they have proper data sharing attributes
+/// in case any parallel constructs are present around the point
+/// of the loop nest insertion, or if the function decides
+/// to use any worksharing loop constructs for the loop nest.
+llvm::SmallVector<mlir::Value> genLoopNestWithReductions(
+    mlir::Location loc, fir::FirOpBuilder &builder, mlir::ValueRange extents,
+    mlir::ValueRange reductionInits, const ReductionLoopBodyGenerator &genBody,
+    bool isUnordered = false);
 
 /// Inline the body of an hlfir.elemental at the current insertion point
 /// given a list of one based indices. This generates the computation
@@ -424,22 +434,90 @@ mlir::Value inlineElementalOp(
     mlir::IRMapping &mapper,
     const std::function<bool(hlfir::ElementalOp)> &mustRecursivelyInline);
 
+/// Create a new temporary with the shape and parameters of the provided
+/// hlfir.eval_in_mem operation and clone the body of the hlfir.eval_in_mem
+/// operating on this new temporary.  returns the temporary and whether the
+/// temporary is heap or stack allocated.
+std::pair<hlfir::Entity, bool>
+computeEvaluateOpInNewTemp(mlir::Location, fir::FirOpBuilder &,
+                           hlfir::EvaluateInMemoryOp evalInMem,
+                           mlir::Value shape, mlir::ValueRange typeParams);
+
+// Clone the body of the hlfir.eval_in_mem operating on this the provided
+// storage.  The provided storage must be a contiguous "raw" memory reference
+// (not a fir.box) big enough to hold the value computed by hlfir.eval_in_mem.
+// No runtime check is inserted by this utility to enforce that. It is also
+// usually invalid to provide some storage that is already addressed directly
+// or indirectly inside the hlfir.eval_in_mem body.
+void computeEvaluateOpIn(mlir::Location, fir::FirOpBuilder &,
+                         hlfir::EvaluateInMemoryOp, mlir::Value storage);
+
 std::pair<fir::ExtendedValue, std::optional<hlfir::CleanupFunction>>
 convertToValue(mlir::Location loc, fir::FirOpBuilder &builder,
-               const hlfir::Entity &entity);
+               hlfir::Entity entity);
 
 std::pair<fir::ExtendedValue, std::optional<hlfir::CleanupFunction>>
 convertToAddress(mlir::Location loc, fir::FirOpBuilder &builder,
-                 const hlfir::Entity &entity, mlir::Type targetType);
+                 hlfir::Entity entity, mlir::Type targetType);
 
 std::pair<fir::ExtendedValue, std::optional<hlfir::CleanupFunction>>
 convertToBox(mlir::Location loc, fir::FirOpBuilder &builder,
-             const hlfir::Entity &entity, mlir::Type targetType);
+             hlfir::Entity entity, mlir::Type targetType);
 
 /// Clone an hlfir.elemental_addr into an hlfir.elemental value.
 hlfir::ElementalOp cloneToElementalOp(mlir::Location loc,
                                       fir::FirOpBuilder &builder,
                                       hlfir::ElementalAddrOp elementalAddrOp);
+
+/// Return true, if \p elemental must produce a temporary array,
+/// for example, for the purpose of finalization. Note that such
+/// ElementalOp's must be optimized with caution. For example,
+/// completely inlining such ElementalOp into another one
+/// would be incorrect.
+bool elementalOpMustProduceTemp(hlfir::ElementalOp elemental);
+
+std::pair<hlfir::Entity, mlir::Value>
+createTempFromMold(mlir::Location loc, fir::FirOpBuilder &builder,
+                   hlfir::Entity mold);
+
+// TODO: this does not support polymorphic molds
+hlfir::Entity createStackTempFromMold(mlir::Location loc,
+                                      fir::FirOpBuilder &builder,
+                                      hlfir::Entity mold);
+
+hlfir::EntityWithAttributes convertCharacterKind(mlir::Location loc,
+                                                 fir::FirOpBuilder &builder,
+                                                 hlfir::Entity scalarChar,
+                                                 int toKind);
+
+/// Materialize an implicit Fortran type conversion from \p source to \p toType.
+/// This is a no-op if the Fortran category and KIND of \p source are
+/// the same as the one in \p toType. This is also a no-op if \p toType is an
+/// unlimited polymorphic. For characters, this implies that a conversion is
+/// only inserted in case of KIND mismatch (and not in case of length mismatch),
+/// and that the resulting entity length is the same as the one from \p source.
+/// It is valid to call this helper if \p source is an array. If a conversion is
+/// inserted for arrays, a clean-up will be returned. If no conversion is
+/// needed, the source is returned.
+/// Beware that the resulting entity mlir type may not be toType: it will be a
+/// Fortran entity with the same Fortran category and KIND.
+/// If preserveLowerBounds is set, the returned entity will have the same lower
+/// bounds as \p source.
+std::pair<hlfir::Entity, std::optional<hlfir::CleanupFunction>>
+genTypeAndKindConvert(mlir::Location loc, fir::FirOpBuilder &builder,
+                      hlfir::Entity source, mlir::Type toType,
+                      bool preserveLowerBounds);
+
+/// A shortcut for loadTrivialScalar(getElementAt()),
+/// which designates and loads an element of an array.
+Entity loadElementAt(mlir::Location loc, fir::FirOpBuilder &builder,
+                     Entity entity, mlir::ValueRange oneBasedIndices);
+
+/// Return a vector of extents for the given entity.
+/// The function creates new operations, but tries to clean-up
+/// after itself.
+llvm::SmallVector<mlir::Value, Fortran::common::maxRank>
+genExtentsVector(mlir::Location loc, fir::FirOpBuilder &builder, Entity entity);
 
 } // namespace hlfir
 

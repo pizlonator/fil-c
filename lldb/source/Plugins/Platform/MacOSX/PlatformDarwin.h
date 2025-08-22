@@ -124,6 +124,17 @@ public:
   /// located in.
   static FileSpec GetCurrentCommandLineToolsDirectory();
 
+  llvm::Expected<std::pair<XcodeSDK, bool>>
+  GetSDKPathFromDebugInfo(Module &module) override;
+
+  llvm::Expected<std::string>
+  ResolveSDKPathFromDebugInfo(Module &module) override;
+
+  llvm::Expected<XcodeSDK> GetSDKPathFromDebugInfo(CompileUnit &unit) override;
+
+  llvm::Expected<std::string>
+  ResolveSDKPathFromDebugInfo(CompileUnit &unit) override;
+
 protected:
   static const char *GetCompatibleArch(ArchSpec::Core core, size_t idx);
 
@@ -138,7 +149,7 @@ protected:
     uint64_t abort_cause;      // unsigned int
   };
 
-  /// Extract the `__crash_info` annotations from each of of the target's
+  /// Extract the `__crash_info` annotations from each of the target's
   /// modules.
   ///
   /// If the platform have a crashed processes with a `__crash_info` section,

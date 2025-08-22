@@ -48,8 +48,7 @@ void ModelInjector::onBodySynthesis(const NamedDecl *D) {
   SourceManager &SM = CI.getSourceManager();
   FileID mainFileID = SM.getMainFileID();
 
-  AnalyzerOptionsRef analyzerOpts = CI.getAnalyzerOpts();
-  llvm::StringRef modelPath = analyzerOpts->ModelPath;
+  llvm::StringRef modelPath = CI.getAnalyzerOpts().ModelPath;
 
   llvm::SmallString<128> fileName;
 
@@ -79,6 +78,7 @@ void ModelInjector::onBodySynthesis(const NamedDecl *D) {
   CompilerInstance Instance(CI.getPCHContainerOperations());
   Instance.setInvocation(std::move(Invocation));
   Instance.createDiagnostics(
+      CI.getVirtualFileSystem(),
       new ForwardingDiagnosticConsumer(CI.getDiagnosticClient()),
       /*ShouldOwnClient=*/true);
 

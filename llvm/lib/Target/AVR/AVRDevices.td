@@ -13,7 +13,7 @@
 // this by simply setting the same dummy member for all feature sets, which is
 // then ignored.
 class FeatureSet<string name, string desc, list<SubtargetFeature> i>
-    : SubtargetFeature<name, "m_FeatureSetDummy", "true", desc, i>;
+    : SubtargetFeature<name, "HasFeatureSet"#NAME, "true", desc, i>;
 
 // A family of microcontrollers, defining a set of supported features.
 class Family<string name, list<SubtargetFeature> i>
@@ -31,103 +31,115 @@ class Family<string name, list<SubtargetFeature> i>
 // `LDS Rd, K`
 // `STS k, Rr`
 // `PUSH`/`POP`
-def FeatureSRAM : SubtargetFeature<"sram", "m_hasSRAM", "true",
+def FeatureSRAM : SubtargetFeature<"sram", "HasSRAM", "true",
                                    "The device has random access memory">;
 
 // The device supports the `JMP k` and `CALL k` instructions.
-def FeatureJMPCALL : SubtargetFeature<"jmpcall", "m_hasJMPCALL", "true",
+def FeatureJMPCALL : SubtargetFeature<"jmpcall", "HasJMPCALL", "true",
                                       "The device supports the `JMP` and "
                                       "`CALL` instructions">;
 
 // The device supports the indirect branches `IJMP` and `ICALL`.
-def FeatureIJMPCALL : SubtargetFeature<"ijmpcall", "m_hasIJMPCALL", "true",
+def FeatureIJMPCALL : SubtargetFeature<"ijmpcall", "HasSRAMIJMPCALL", "true",
                                        "The device supports `IJMP`/`ICALL`"
                                        "instructions">;
 
 // The device supports the extended indirect branches `EIJMP` and `EICALL`.
-def FeatureEIJMPCALL : SubtargetFeature<"eijmpcall", "m_hasEIJMPCALL", "true",
+def FeatureEIJMPCALL : SubtargetFeature<"eijmpcall", "HasEIJMPCALL", "true",
                                         "The device supports the "
                                         "`EIJMP`/`EICALL` instructions">;
 
 // The device supports `ADDI Rd, K`, `SUBI Rd, K`.
-def FeatureADDSUBIW : SubtargetFeature<"addsubiw", "m_hasADDSUBIW", "true",
+def FeatureADDSUBIW : SubtargetFeature<"addsubiw", "HasADDSUBIW", "true",
                                        "Enable 16-bit register-immediate "
                                        "addition and subtraction instructions">;
 
 // The device has an 8-bit stack pointer (SP) register.
 def FeatureSmallStack
-    : SubtargetFeature<"smallstack", "m_hasSmallStack", "true",
+    : SubtargetFeature<"smallstack", "HasSmallStack", "true",
                        "The device has an 8-bit "
                        "stack pointer">;
 
+// The device potentially requires emitting rjmp that wraps across the flash
+// boundary.
+//
+// We enable this for devices that have exactly 8 kB of flash memory and don't
+// support the `jmp` instruction - with this feature enabled, we try to convert
+// out-of-bounds relative jumps into in-bounds by wrapping the offset, e.g.
+// `rjmp +5000` becomes `rjmp -3192`.
+def FeatureWrappingRjmp
+    : SubtargetFeature<"wrappingrjmp", "HasWrappingRjmp", "true",
+                       "The device potentially requires emitting rjmp that "
+                       "wraps across the flash boundary">;
+
 // The device supports the 16-bit GPR pair MOVW instruction.
-def FeatureMOVW : SubtargetFeature<"movw", "m_hasMOVW", "true",
+def FeatureMOVW : SubtargetFeature<"movw", "HasMOVW", "true",
                                    "The device supports the 16-bit MOVW "
                                    "instruction">;
 
 // The device supports the `LPM` instruction, with implied destination being r0.
-def FeatureLPM : SubtargetFeature<"lpm", "m_hasLPM", "true",
+def FeatureLPM : SubtargetFeature<"lpm", "HasLPM", "true",
                                   "The device supports the `LPM` instruction">;
 
 // The device supports the `LPM Rd, Z[+] instruction.
-def FeatureLPMX : SubtargetFeature<"lpmx", "m_hasLPMX", "true",
+def FeatureLPMX : SubtargetFeature<"lpmx", "HasLPMX", "true",
                                    "The device supports the `LPM Rd, Z[+]` "
                                    "instruction">;
 
 // The device supports the `ELPM` instruction.
-def FeatureELPM : SubtargetFeature<"elpm", "m_hasELPM", "true",
+def FeatureELPM : SubtargetFeature<"elpm", "HasELPM", "true",
                                    "The device supports the ELPM instruction">;
 
 // The device supports the `ELPM Rd, Z[+]` instructions.
-def FeatureELPMX : SubtargetFeature<"elpmx", "m_hasELPMX", "true",
+def FeatureELPMX : SubtargetFeature<"elpmx", "HasELPMX", "true",
                                     "The device supports the `ELPM Rd, Z[+]` "
                                     "instructions">;
 
 // The device supports the `SPM` instruction.
-def FeatureSPM : SubtargetFeature<"spm", "m_hasSPM", "true",
+def FeatureSPM : SubtargetFeature<"spm", "HasSPM", "true",
                                   "The device supports the `SPM` instruction">;
 
 // The device supports the `SPM Z+` instruction.
-def FeatureSPMX : SubtargetFeature<"spmx", "m_hasSPMX", "true",
+def FeatureSPMX : SubtargetFeature<"spmx", "HasSPMX", "true",
                                    "The device supports the `SPM Z+` "
                                    "instruction">;
 
 // The device supports the `DES k` instruction.
-def FeatureDES : SubtargetFeature<"des", "m_hasDES", "true",
+def FeatureDES : SubtargetFeature<"des", "HasDES", "true",
                                   "The device supports the `DES k` encryption "
                                   "instruction">;
 
 // The device supports the Read-Write-Modify instructions
 // XCH, LAS, LAC, and LAT.
-def FeatureRMW : SubtargetFeature<"rmw", "m_supportsRMW", "true",
+def FeatureRMW : SubtargetFeature<"rmw", "SupportsRMW", "true",
                                   "The device supports the read-write-modify "
                                   "instructions: XCH, LAS, LAC, LAT">;
 
 // The device supports the `[F]MUL[S][U]` family of instructions.
 def FeatureMultiplication
-    : SubtargetFeature<"mul", "m_supportsMultiplication", "true",
+    : SubtargetFeature<"mul", "SupportsMultiplication", "true",
                        "The device supports the "
                        "multiplication instructions">;
 
 // The device supports the `BREAK` instruction.
-def FeatureBREAK : SubtargetFeature<"break", "m_hasBREAK", "true",
+def FeatureBREAK : SubtargetFeature<"break", "HasBREAK", "true",
                                     "The device supports the `BREAK` debugging "
                                     "instruction">;
 
 // The device has instruction encodings specific to the Tiny core.
 def FeatureTinyEncoding
-    : SubtargetFeature<"tinyencoding", "m_hasTinyEncoding", "true",
+    : SubtargetFeature<"tinyencoding", "HasTinyEncoding", "true",
                        "The device has Tiny core specific "
                        "instruction encodings">;
 
 // When writing a 16-bit port or storing a 16-bit word, do the low byte first.
 def FeatureLowByteFirst
-    : SubtargetFeature<"lowbytefirst", "m_hasLowByteFirst", "true",
+    : SubtargetFeature<"lowbytefirst", "HasLowByteFirst", "true",
                        "Do the low byte first when writing a 16-bit port or "
                        "storing a 16-bit word">;
 
 // The device has CPU registers mapped in data address space
-def FeatureMMR : SubtargetFeature<"memmappedregs", "m_hasMemMappedGPR", "true",
+def FeatureMMR : SubtargetFeature<"memmappedregs", "HasMemMappedGPR", "true",
                                   "The device has CPU registers "
                                   "mapped in data address space">;
 
@@ -274,11 +286,11 @@ def : Device<"at86rf401", FamilyAVR2, ELFArchAVR25, [FeatureMOVW, FeatureLPMX]>;
 def : Device<"at90s4414", FamilyAVR2, ELFArchAVR2, [FeatureSmallStack]>;
 def : Device<"at90s4433", FamilyAVR2, ELFArchAVR2, [FeatureSmallStack]>;
 def : Device<"at90s4434", FamilyAVR2, ELFArchAVR2, [FeatureSmallStack]>;
-def : Device<"at90s8515", FamilyAVR2, ELFArchAVR2>;
-def : Device<"at90c8534", FamilyAVR2, ELFArchAVR2>;
-def : Device<"at90s8535", FamilyAVR2, ELFArchAVR2>;
-def : Device<"ata5272", FamilyAVR25, ELFArchAVR25>;
-def : Device<"ata6616c", FamilyAVR25, ELFArchAVR25>;
+def : Device<"at90s8515", FamilyAVR2, ELFArchAVR2, [FeatureWrappingRjmp]>;
+def : Device<"at90c8534", FamilyAVR2, ELFArchAVR2, [FeatureWrappingRjmp]>;
+def : Device<"at90s8535", FamilyAVR2, ELFArchAVR2, [FeatureWrappingRjmp]>;
+def : Device<"ata5272", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
+def : Device<"ata6616c", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
 def : Device<"attiny13", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
 def : Device<"attiny13a", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
 def : Device<"attiny2313", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
@@ -288,24 +300,24 @@ def : Device<"attiny24a", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
 def : Device<"attiny4313", FamilyAVR25, ELFArchAVR25>;
 def : Device<"attiny44", FamilyAVR25, ELFArchAVR25>;
 def : Device<"attiny44a", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny84", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny84a", FamilyAVR25, ELFArchAVR25>;
+def : Device<"attiny84", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
+def : Device<"attiny84a", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
 def : Device<"attiny25", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
 def : Device<"attiny45", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny85", FamilyAVR25, ELFArchAVR25>;
+def : Device<"attiny85", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
 def : Device<"attiny261", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
 def : Device<"attiny261a", FamilyAVR25, ELFArchAVR25, [FeatureSmallStack]>;
 def : Device<"attiny441", FamilyAVR25, ELFArchAVR25>;
 def : Device<"attiny461", FamilyAVR25, ELFArchAVR25>;
 def : Device<"attiny461a", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny841", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny861", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny861a", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny87", FamilyAVR25, ELFArchAVR25>;
+def : Device<"attiny841", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
+def : Device<"attiny861", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
+def : Device<"attiny861a", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
+def : Device<"attiny87", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
 def : Device<"attiny43u", FamilyAVR25, ELFArchAVR25>;
 def : Device<"attiny48", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny88", FamilyAVR25, ELFArchAVR25>;
-def : Device<"attiny828", FamilyAVR25, ELFArchAVR25>;
+def : Device<"attiny88", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
+def : Device<"attiny828", FamilyAVR25, ELFArchAVR25, [FeatureWrappingRjmp]>;
 def : Device<"at43usb355", FamilyAVR3, ELFArchAVR3>;
 def : Device<"at76c711", FamilyAVR3, ELFArchAVR3>;
 def : Device<"atmega103", FamilyAVR31, ELFArchAVR31>;
@@ -321,11 +333,11 @@ def : Device<"atmega16u2", FamilyAVR35, ELFArchAVR35>;
 def : Device<"atmega32u2", FamilyAVR35, ELFArchAVR35>;
 def : Device<"attiny1634", FamilyAVR35, ELFArchAVR35>;
 def : Device<"atmega8", FamilyAVR2, ELFArchAVR4,
-             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM]>;
+             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM, FeatureWrappingRjmp]>;
 def : Device<"ata6289", FamilyAVR4, ELFArchAVR4>;
 def : Device<"atmega8a", FamilyAVR2, ELFArchAVR4,
-             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM]>;
-def : Device<"ata6285", FamilyAVR4, ELFArchAVR4>;
+             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM, FeatureWrappingRjmp]>;
+def : Device<"ata6285", FamilyAVR4, ELFArchAVR4, [FeatureWrappingRjmp]>;
 def : Device<"ata6286", FamilyAVR4, ELFArchAVR4>;
 def : Device<"ata6612c", FamilyAVR4, ELFArchAVR4>;
 def : Device<"atmega48", FamilyAVR4, ELFArchAVR4>;
@@ -339,9 +351,9 @@ def : Device<"atmega88p", FamilyAVR4, ELFArchAVR4>;
 def : Device<"atmega88pa", FamilyAVR4, ELFArchAVR4>;
 def : Device<"atmega88pb", FamilyAVR4, ELFArchAVR4>;
 def : Device<"atmega8515", FamilyAVR2, ELFArchAVR4,
-             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM]>;
+             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM, FeatureWrappingRjmp]>;
 def : Device<"atmega8535", FamilyAVR2, ELFArchAVR4,
-             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM]>;
+             [FeatureMultiplication, FeatureMOVW, FeatureLPMX, FeatureSPM, FeatureWrappingRjmp]>;
 def : Device<"atmega8hva", FamilyAVR4, ELFArchAVR4>;
 def : Device<"at90pwm1", FamilyAVR4, ELFArchAVR4>;
 def : Device<"at90pwm2", FamilyAVR4, ELFArchAVR4>;

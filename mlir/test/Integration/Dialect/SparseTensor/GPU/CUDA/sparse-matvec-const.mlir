@@ -2,14 +2,14 @@
 // NOTE: this test requires gpu-sm80
 //
 // RUN: mlir-opt %s \
-// RUN:   --sparse-compiler="enable-runtime-library=false parallelization-strategy=dense-outer-loop gpu-triple=nvptx64-nvidia-cuda gpu-chip=sm_80 gpu-features=+ptx71" \
-// RUN: | mlir-cpu-runner \
+// RUN:   --sparsifier="enable-runtime-library=false parallelization-strategy=dense-outer-loop gpu-triple=nvptx64-nvidia-cuda gpu-chip=sm_80 gpu-features=+ptx71 gpu-format=%gpu_compilation_format" \
+// RUN: | mlir-runner \
 // RUN:   --shared-libs=%mlir_cuda_runtime \
 // RUN:   --shared-libs=%mlir_c_runner_utils \
 // RUN:   --e main --entry-point-result=void \
 // RUN: | FileCheck %s
 
-#CSR = #sparse_tensor.encoding<{ lvlTypes = [ "dense", "compressed" ] }>
+#CSR = #sparse_tensor.encoding<{ map = (d0, d1) -> (d0 : dense, d1 : compressed) }>
 
 module {
   // Compute matrix vector y = Ax
@@ -47,7 +47,7 @@ module {
 
     // Call the kernel with an vector taken from global memory.
     %xbuf = memref.get_global @__constant_64xf64 : memref<64xf64>
-    %x = bufferization.to_tensor %xbuf restrict : memref<64xf64>
+    %x = bufferization.to_tensor %xbuf restrict : memref<64xf64> to tensor<64xf64>
     %0 = call @matvec(%A, %x, %y) : (tensor<1024x64xf64, #CSR>, tensor<64xf64>, tensor<1024xf64>) -> tensor<1024xf64>
 
     //

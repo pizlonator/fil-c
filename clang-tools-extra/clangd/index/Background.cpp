@@ -96,7 +96,7 @@ BackgroundIndex::BackgroundIndex(
     : SwapIndex(std::make_unique<MemIndex>()), TFS(TFS), CDB(CDB),
       IndexingPriority(Opts.IndexingPriority),
       ContextProvider(std::move(Opts.ContextProvider)),
-      IndexedSymbols(IndexContents::All),
+      IndexedSymbols(IndexContents::All, Opts.SupportContainedRefs),
       Rebuilder(this, &IndexedSymbols, Opts.ThreadPoolSize),
       IndexStorageFactory(std::move(IndexStorageFactory)),
       Queue(std::move(Opts.OnProgress)),
@@ -157,7 +157,7 @@ static llvm::StringRef filenameWithoutExtension(llvm::StringRef Path) {
 
 BackgroundQueue::Task BackgroundIndex::indexFileTask(std::string Path) {
   std::string Tag = filenameWithoutExtension(Path).str();
-  uint64_t Key = llvm::xxHash64(Path);
+  uint64_t Key = llvm::xxh3_64bits(Path);
   BackgroundQueue::Task T([this, Path(std::move(Path))] {
     std::optional<WithContext> WithProvidedContext;
     if (ContextProvider)

@@ -16,6 +16,7 @@
 include "mlir/Dialect/Arith/IR/ArithBase.td"
 include "mlir/Dialect/Affine/IR/AffineMemoryOpInterfaces.td"
 include "mlir/Interfaces/ControlFlowInterfaces.td"
+include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/LoopLikeInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 
@@ -23,8 +24,7 @@ def Affine_Dialect : Dialect {
   let name = "affine";
   let cppNamespace = "::mlir::affine";
   let hasConstantMaterializer = 1;
-  let usePropertiesForAttributes = 1;
-  let dependentDialects = ["arith::ArithDialect"];
+  let dependentDialects = ["arith::ArithDialect", "ub::UBDialect"];
 }
 
 // Base class for Affine dialect ops.
@@ -64,14 +64,11 @@ def AffineApplyOp : Affine_Op<"apply", [Pure]> {
   // has a constant builder. That way we wouldn't need to explicitly specify the
   // result types here.
   let builders = [
-    OpBuilder<(ins "AffineMap":$map, "ValueRange":$mapOperands),
-    [{
-      build($_builder, $_state, $_builder.getIndexType(), map, mapOperands);
-    }]>,
     OpBuilder<(ins "ArrayRef<AffineExpr> ":$exprList,"ValueRange":$mapOperands),
     [{
       build($_builder, $_state, $_builder.getIndexType(),
-            AffineMap::inferFromExprList(exprList).front(), mapOperands);
+            AffineMap::inferFromExprList(exprList, $_builder.getContext())
+                                        .front(), mapOperands);
     }]>
   ];
 
@@ -118,12 +115,14 @@ def AffineApplyOp : Affine_Op<"apply", [Pure]> {
 }
 
 def AffineForOp : Affine_Op<"for",
-    [AutomaticAllocationScope, ImplicitAffineTerminator, ConditionallySpeculatable,
+    [AttrSizedOperandSegments, AutomaticAllocationScope,
+     ImplicitAffineTerminator, ConditionallySpeculatable,
      RecursiveMemoryEffects, DeclareOpInterfaceMethods<LoopLikeOpInterface,
-     ["getSingleInductionVar", "getSingleLowerBound", "getSingleStep",
-      "getSingleUpperBound"]>,
+     ["getLoopInductionVars", "getLoopLowerBounds", "getLoopSteps",
+      "getLoopUpperBounds", "getYieldedValuesMutable",
+      "replaceWithAdditionalYields"]>,
      DeclareOpInterfaceMethods<RegionBranchOpInterface,
-     ["getSuccessorEntryOperands"]>]> {
+     ["getEntrySuccessorOperands"]>]> {
   let summary = "for operation";
   let description = [{
     Syntax:
@@ -148,7 +147,7 @@ def AffineForOp : Affine_Op<"for",
     from a lower bound to an upper bound by a stride. The stride, represented by
     `step`, is a positive constant integer which defaults to "1" if not present.
     The lower and upper bounds specify a half-open range: the range includes the
-    lower bound but does not include the upper bound.
+    lower bound but does not include the upper bound.
 
     The lower and upper bounds of a `affine.for` operation are represented as an
     application of an affine mapping to a list of SSA values passed to the map.
@@ -230,7 +229,12 @@ def AffineForOp : Affine_Op<"for",
     explicitly present. The number and types of the "affine.for" results must
     match the initial values in the `iter_args` binding and the yield operands.
   }];
-  let arguments = (ins Variadic<AnyType>);
+  let arguments = (ins Variadic<Index>:$lowerBoundOperands,
+                       Variadic<Index>:$upperBoundOperands,
+                       Variadic<AnyType>:$inits,
+                       AffineMapAttr:$lowerBoundMap,
+                       AffineMapAttr:$upperBoundMap,
+                       IndexAttr:$step);
   let results = (outs Variadic<AnyType>:$results);
   let regions = (region SizedRegion<1>:$region);
 
@@ -252,26 +256,10 @@ def AffineForOp : Affine_Op<"for",
     using BodyBuilderFn =
         function_ref<void(OpBuilder &, Location, Value, ValueRange)>;
 
-    static StringRef getStepAttrStrName() { return "step"; }
-    static StringRef getLowerBoundAttrStrName() { return "lower_bound"; }
-    static StringRef getUpperBoundAttrStrName() { return "upper_bound"; }
-
     BlockArgument getInductionVar() { return getBody()->getArgument(0); }
     Block::BlockArgListType getRegionIterArgs() {
       return getBody()->getArguments().drop_front();
     }
-    Operation::operand_range getIterOperands() {
-      return getOperands().drop_front(getNumControlOperands());
-    }
-
-    // TODO: provide iterators for the lower and upper bound operands
-    // if the current access via getLowerBound(), getUpperBound() is too slow.
-
-    /// Returns operands for the lower bound map.
-    operand_range getLowerBoundOperands();
-
-    /// Returns operands for the upper bound map.
-    operand_range getUpperBoundOperands();
 
     /// Returns operands for the lower and upper bound maps with the operands
     /// for the lower bound map in front of those for the upper bound map.
@@ -284,20 +272,7 @@ def AffineForOp : Affine_Op<"for",
     AffineBound getUpperBound();
 
     /// Returns loop step.
-    int64_t getStep() {
-      return ::llvm::cast<IntegerAttr>((*this)->getAttr(getStepAttrStrName())).getInt();
-    }
-
-    /// Returns affine map for the lower bound.
-    AffineMap getLowerBoundMap() { return getLowerBoundMapAttr().getValue(); }
-    AffineMapAttr getLowerBoundMapAttr() {
-      return ::llvm::cast<AffineMapAttr>((*this)->getAttr(getLowerBoundAttrStrName()));
-    }
-    /// Returns affine map for the upper bound. The upper bound is exclusive.
-    AffineMap getUpperBoundMap() { return getUpperBoundMapAttr().getValue(); }
-    AffineMapAttr getUpperBoundMapAttr() {
-      return ::llvm::cast<AffineMapAttr>((*this)->getAttr(getUpperBoundAttrStrName()));
-    }
+    int64_t getStepAsInt() { return getStep().getSExtValue(); }
 
     /// Set lower bound. The new bound must have the same number of operands as
     /// the current bound map. Otherwise, 'replaceForLowerBound' should be used.
@@ -306,18 +281,10 @@ def AffineForOp : Affine_Op<"for",
     /// current bound map. Otherwise, 'replaceForUpperBound' should be used.
     void setUpperBound(ValueRange operands, AffineMap map);
 
-    /// Set the lower bound map without changing operands.
-    void setLowerBoundMap(AffineMap map);
-
-    /// Set the upper bound map without changing operands.
-    void setUpperBoundMap(AffineMap map);
-
     /// Set loop step.
     void setStep(int64_t step) {
       assert(step > 0 && "step has to be a positive integer constant");
-      auto *context = getLowerBoundMap().getContext();
-      (*this)->setAttr(StringAttr::get(context, getStepAttrStrName()),
-                       IntegerAttr::get(IndexType::get(context), step));
+      setStep(APInt(/*numBits=*/64, step, /*isSigned=*/true));
     }
 
     /// Returns number of region arguments for loop-carried values.
@@ -326,7 +293,9 @@ def AffineForOp : Affine_Op<"for",
     }
 
     /// Number of operands controlling the loop: lb and ub.
-    unsigned getNumControlOperands() { return getOperation()->getNumOperands() - getNumIterOperands(); }
+    unsigned getNumControlOperands() {
+      return getOperation()->getNumOperands() - getNumIterOperands();
+    }
 
     /// Get the number of loop-carried values.
     unsigned getNumIterOperands();
@@ -438,7 +407,8 @@ def AffineIfOp : Affine_Op<"if",
     }
     ```
   }];
-  let arguments = (ins Variadic<AnyType>);
+  let arguments = (ins Variadic<AnyType>,
+                       IntegerSetAttr:$condition);
   let results = (outs Variadic<AnyType>:$results);
   let regions = (region SizedRegion<1>:$thenRegion, AnyRegion:$elseRegion);
 
@@ -498,7 +468,8 @@ class AffineLoadOpBase<string mnemonic, list<Trait> traits = []> :
         MemRefsNormalizable])> {
   let arguments = (ins Arg<AnyMemRef, "the reference to load from",
       [MemRead]>:$memref,
-      Variadic<Index>:$indices);
+      Variadic<Index>:$indices,
+      AffineMapAttr:$map);
 
   code extraClassDeclarationBase = [{
     /// Returns the operand index of the memref.
@@ -508,7 +479,7 @@ class AffineLoadOpBase<string mnemonic, list<Trait> traits = []> :
 
     /// Returns the affine map used to index the memref for this operation.
     AffineMapAttr getAffineMapAttr() {
-      return ::llvm::cast<AffineMapAttr>((*this)->getAttr(getMapAttrStrName()));
+      return getProperties().map;
     }
 
     static StringRef getMapAttrStrName() { return "map"; }
@@ -568,13 +539,6 @@ class AffineMinMaxOpBase<string mnemonic, list<Trait> traits = []> :
     Op<Affine_Dialect, mnemonic, traits> {
   let arguments = (ins AffineMapAttr:$map, Variadic<Index>:$operands);
   let results = (outs Index);
-
-  let builders = [
-    OpBuilder<(ins "AffineMap":$affineMap, "ValueRange":$mapOperands),
-    [{
-      build($_builder, $_state, $_builder.getIndexType(), affineMap, mapOperands);
-    }]>
-  ];
 
   let extraClassDeclaration = [{
     static StringRef getMapAttrStrName() { return "map"; }
@@ -779,7 +743,8 @@ def AffineParallelOp : Affine_Op<"parallel",
 }
 
 def AffinePrefetchOp : Affine_Op<"prefetch",
-  [DeclareOpInterfaceMethods<AffineMapAccessInterface>]> {
+  [DeclareOpInterfaceMethods<AffineMapAccessInterface>,
+   MemRefsNormalizable]> {
   let summary = "affine prefetch operation";
   let description = [{
     The `affine.prefetch` op prefetches data from a memref location described
@@ -802,7 +767,8 @@ def AffinePrefetchOp : Affine_Op<"prefetch",
                    BoolAttr:$isWrite,
                    ConfinedAttr<I32Attr, [IntMinValue<0>,
                      IntMaxValue<3>]>:$localityHint,
-                   BoolAttr:$isDataCache);
+                   BoolAttr:$isDataCache,
+                   AffineMapAttr:$map);
 
   let builders = [
     OpBuilder<(ins "Value":$memref, "AffineMap":$map,
@@ -815,11 +781,12 @@ def AffinePrefetchOp : Affine_Op<"prefetch",
       auto isWriteAttr = $_builder.getBoolAttr(isWrite);
       auto isDataCacheAttr = $_builder.getBoolAttr(isDataCache);
       $_state.addOperands(memref);
-      $_state.addAttribute(getMapAttrStrName(), AffineMapAttr::get(map));
       $_state.addOperands(mapOperands);
-      $_state.addAttribute(getLocalityHintAttrStrName(), localityHintAttr);
-      $_state.addAttribute(getIsWriteAttrStrName(), isWriteAttr);
-      $_state.addAttribute(getIsDataCacheAttrStrName(), isDataCacheAttr);
+      Properties &prop = $_state.getOrAddProperties<Properties>();
+      prop.map = AffineMapAttr::get(map);
+      prop.localityHint = localityHintAttr;
+      prop.isWrite = isWriteAttr;
+      prop.isDataCache = isDataCacheAttr;
     }]>];
 
   let extraClassDeclaration = [{
@@ -830,10 +797,10 @@ def AffinePrefetchOp : Affine_Op<"prefetch",
     /// Returns the affine map used to index the memref for this operation.
     AffineMap getAffineMap() { return getAffineMapAttr().getValue(); }
     AffineMapAttr getAffineMapAttr() {
-      return ::llvm::cast<AffineMapAttr>((*this)->getAttr(getMapAttrStrName()));
+      return getProperties().map;
     }
 
-    /// Impelements the AffineMapAccessInterface.
+    /// Implements the AffineMapAccessInterface.
     /// Returns the AffineMapAttr associated with 'memref'.
     NamedAttribute getAffineMapAttrForMemRef(Value mref) {
       assert(mref == getMemref() &&
@@ -875,7 +842,7 @@ class AffineStoreOpBase<string mnemonic, list<Trait> traits = []> :
 
     /// Returns the affine map used to index the memref for this operation.
     AffineMapAttr getAffineMapAttr() {
-      return ::llvm::cast<AffineMapAttr>((*this)->getAttr(getMapAttrStrName()));
+      return getProperties().map;
     }
 
     static StringRef getMapAttrStrName() { return "map"; }
@@ -913,7 +880,8 @@ def AffineStoreOp : AffineStoreOpBase<"store"> {
   let arguments = (ins AnyType:$value,
       Arg<AnyMemRef, "the reference to store to",
       [MemWrite]>:$memref,
-      Variadic<Index>:$indices);
+      Variadic<Index>:$indices,
+      AffineMapAttr:$map);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -996,7 +964,7 @@ def AffineVectorLoadOp : AffineLoadOpBase<"vector_load"> {
     (see [vector.transfer_read](../Vector/#vectortransfer_read-mlirvectortransferreadop)).
   }];
 
-  let results = (outs AnyVector:$result);
+  let results = (outs AnyVectorOfNonZeroRank:$result);
 
   let builders = [
     /// Builds an affine vector load op with the specified map and operands.
@@ -1063,10 +1031,11 @@ def AffineVectorStoreOp : AffineStoreOpBase<"vector_store"> {
     (see [vector.transfer_write](../Vector/#vectortransfer_write-mlirvectortransferwriteop)).
   }];
 
-  let arguments = (ins AnyVector:$value,
+  let arguments = (ins AnyVectorOfNonZeroRank:$value,
       Arg<AnyMemRef, "the reference to store to",
       [MemWrite]>:$memref,
-      Variadic<Index>:$indices);
+      Variadic<Index>:$indices,
+      AffineMapAttr:$map);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -1091,8 +1060,7 @@ def AffineVectorStoreOp : AffineStoreOpBase<"vector_store"> {
 // AffineDelinearizeIndexOp
 //===----------------------------------------------------------------------===//
 
-def AffineDelinearizeIndexOp : Affine_Op<"delinearize_index",
-    [Pure]> {
+def AffineDelinearizeIndexOp : Affine_Op<"delinearize_index", [Pure]> {
   let summary = "delinearize an index";
   let description = [{
     The `affine.delinearize_index` operation takes a single index value and
@@ -1114,20 +1082,178 @@ def AffineDelinearizeIndexOp : Affine_Op<"delinearize_index",
     %indices_1 = affine.apply #map1()[%linear_index]
     %indices_2 = affine.apply #map2()[%linear_index]
     ```
+
+    In other words, `%0:3 = affine.delinearize_index %x into (B, C)` produces
+    `%0 = {%x / (B * C), (%x mod (B * C)) / C, %x mod C}`.
+
+    The basis may either contain `N` or `N-1` elements, where `N` is the number of results.
+    If there are N basis elements, the first one will not be used during computations,
+    but may be used during analysis and canonicalization to eliminate terms from
+    the `affine.delinearize_index` or to enable conclusions about the total size of
+    `%linear_index`.
+
+    If the basis is fully provided, the delinearize_index operation is said to "have
+    an outer bound". The builders assume that an `affine.delinearize_index` has
+    an outer bound by default, as this is how the operation was initially defined.
+
+    That is, the example above could also have been written
+    ```mlir
+    %0:3 = affine.delinearize_index %linear_index into (244, 244) : index, index
+    ```
+
+    Note that, for symmetry with `getPaddedBasis()`, if `hasOuterBound` is `true`
+    when one of the `OpFoldResult` builders is called but the first element of the
+    basis is `nullptr`, that first element is ignored and the builder proceeds as if
+    there was no outer bound.
+
+    Due to the constraints of affine maps, all the basis elements must
+    be strictly positive. A dynamic basis element being 0 or negative causes
+    undefined behavior.
   }];
 
-  let arguments = (ins Index:$linear_index, Variadic<Index>:$basis);
+  let arguments = (ins Index:$linear_index,
+    Variadic<Index>:$dynamic_basis,
+    DenseI64ArrayAttr:$static_basis);
   let results = (outs Variadic<Index>:$multi_index);
 
   let assemblyFormat = [{
-    $linear_index `into` ` ` `(` $basis `)` attr-dict `:` type($multi_index)
+    $linear_index `into`
+    custom<DynamicIndexList>($dynamic_basis, $static_basis, "{}", "::mlir::AsmParser::Delimiter::Paren")
+    attr-dict `:` type($multi_index)
   }];
 
   let builders = [
-    OpBuilder<(ins "Value":$linear_index, "ArrayRef<OpFoldResult>":$basis)>
+    OpBuilder<(ins "Value":$linear_index, "ValueRange":$dynamic_basis, "ArrayRef<int64_t>":$static_basis, CArg<"bool", "true">:$hasOuterBound)>,
+    OpBuilder<(ins "Value":$linear_index, "ValueRange":$basis, CArg<"bool", "true">:$hasOuterBound)>,
+    OpBuilder<(ins "Value":$linear_index, "ArrayRef<OpFoldResult>":$basis, CArg<"bool", "true">:$hasOuterBound)>,
+    OpBuilder<(ins "Value":$linear_index, "ArrayRef<int64_t>":$basis, CArg<"bool", "true">:$hasOuterBound)>
   ];
 
+  let extraClassDeclaration = [{
+    /// Return true if the basis includes a bound on the first index input.
+    bool hasOuterBound() {
+      return getMultiIndex().size() == getStaticBasis().size();
+    }
+
+    /// Returns a vector with all the static and dynamic basis values.
+    SmallVector<OpFoldResult> getMixedBasis() {
+      OpBuilder builder(getContext());
+      return ::mlir::getMixedValues(getStaticBasis(), getDynamicBasis(), builder);
+    }
+
+    /// Return a vector that contains the basis of the operation, removing
+    /// the outer bound if one is present.
+    SmallVector<OpFoldResult> getEffectiveBasis();
+
+    /// Return the vector with one basis element per result of the operation. If
+    /// there is no outer bound specified, the leading entry of this result will be
+    /// nullptr.
+    SmallVector<OpFoldResult> getPaddedBasis();
+  }];
+
   let hasVerifier = 1;
+  let hasFolder = 1;
+  let hasCanonicalizer = 1;
+}
+
+//===----------------------------------------------------------------------===//
+// AffineLinearizeIndexOp
+//===----------------------------------------------------------------------===//
+def AffineLinearizeIndexOp : Affine_Op<"linearize_index",
+    [Pure, AttrSizedOperandSegments]> {
+  let summary = "linearize an index";
+  let description = [{
+    The `affine.linearize_index` operation takes a sequence of index values and a
+    basis of the same length and linearizes the indices using that basis.
+
+    That is, for indices `%idx_0` to `%idx_{N-1}` and basis elements `b_0`
+    (or `b_1`) up to `b_{N-1}` it computes
+
+    ```
+    sum(i = 0 to N-1) %idx_i * product(j = i + 1 to N-1) B_j
+    ```
+
+    In other words, `%0 = affine.linearize_index [%z, %y, %x] by (Z, Y, X)`
+    gives `%0 = %x + %y * X + %z * X * Y`, or `%0 = %x + X * (%y + Y * (%z))`.
+
+    The basis may either have `N` or `N-1` elements, where `N` is the number of
+    inputs to linearize_index. If `N` inputs are provided, the first one is not used
+    in computation, but may be used during analysis or canonicalization as a bound
+    on `%idx_0`.
+
+    If all `N` basis elements are provided, the linearize_index operation is said to
+    "have an outer bound".
+
+    As a convenience, and for symmetry with `getPaddedBasis()`, ifg the first
+    element of a set of `OpFoldResult`s passed to the builders of this operation is
+    `nullptr`, that element is ignored.
+
+    If the `disjoint` property is present, this is an optimization hint that,
+    for all `i`, `0 <= %idx_i < B_i` - that is, no index affects any other index,
+    except that `%idx_0` may be negative to make the index as a whole negative.
+
+    Note that the outputs of `affine.delinearize_index` are, by definition, `disjoint`.
+
+    Example:
+
+    ```mlir
+    %linear_index = affine.linearize_index [%index_0, %index_1, %index_2] by (2, 3, 5) : index
+    // Same effect
+    %linear_index = affine.linearize_index [%index_0, %index_1, %index_2] by (3, 5) : index
+    ```
+
+    In the above example, `%linear_index` conceptually holds the following:
+
+    ```mlir
+    #map = affine_map<()[s0, s1, s2] -> (s0 * 15 + s1 * 5 + s2)>
+    %linear_index = affine.apply #map()[%index_0, %index_1, %index_2]
+    ```
+  }];
+
+  let arguments = (ins Variadic<Index>:$multi_index,
+    Variadic<Index>:$dynamic_basis,
+    DenseI64ArrayAttr:$static_basis,
+    UnitProp:$disjoint);
+  let results = (outs Index:$linear_index);
+
+  let assemblyFormat = [{
+    (`disjoint` $disjoint^)? ` `
+    `[` $multi_index `]` `by`
+    custom<DynamicIndexList>($dynamic_basis, $static_basis, "{}", "::mlir::AsmParser::Delimiter::Paren")
+    attr-dict `:` type($linear_index)
+  }];
+
+  let builders = [
+    OpBuilder<(ins "ValueRange":$multi_index, "ValueRange":$basis, CArg<"bool", "false">:$disjoint)>,
+    OpBuilder<(ins "ValueRange":$multi_index, "ArrayRef<OpFoldResult>":$basis, CArg<"bool", "false">:$disjoint)>,
+    OpBuilder<(ins "ValueRange":$multi_index, "ArrayRef<int64_t>":$basis, CArg<"bool", "false">:$disjoint)>
+  ];
+
+  let extraClassDeclaration = [{
+    /// Return true if the basis includes a bound on the first index input.
+    bool hasOuterBound() {
+      return getMultiIndex().size() == getStaticBasis().size();
+    }
+
+    /// Return a vector with all the static and dynamic basis values.
+    SmallVector<OpFoldResult> getMixedBasis() {
+      OpBuilder builder(getContext());
+      return ::mlir::getMixedValues(getStaticBasis(), getDynamicBasis(), builder);
+    }
+
+    /// Return a vector that contains the basis of the operation, removing
+    /// the outer bound if one is present.
+    SmallVector<OpFoldResult> getEffectiveBasis();
+
+    /// Return the vector with one basis element per index operand of the operation.
+    /// If there is no outer bound specified, the leading entry of this basis will be
+    /// nullptr.
+    SmallVector<OpFoldResult> getPaddedBasis();
+  }];
+
+  let hasVerifier = 1;
+  let hasFolder = 1;
+  let hasCanonicalizer = 1;
 }
 
 #endif // AFFINE_OPS

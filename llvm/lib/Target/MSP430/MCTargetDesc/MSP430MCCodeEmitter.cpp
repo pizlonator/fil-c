@@ -24,9 +24,7 @@
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/Support/Endian.h"
 #include "llvm/Support/EndianStream.h"
-#include "llvm/Support/raw_ostream.h"
 
 #define DEBUG_TYPE "mccodeemitter"
 
@@ -94,7 +92,8 @@ void MSP430MCCodeEmitter::encodeInstruction(const MCInst &MI,
   size_t WordCount = Size / 2;
 
   while (WordCount--) {
-    support::endian::write(CB, (uint16_t)BinaryOpCode, support::little);
+    support::endian::write(CB, (uint16_t)BinaryOpCode,
+                           llvm::endianness::little);
     BinaryOpCode >>= 16;
   }
 }

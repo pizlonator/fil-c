@@ -18,6 +18,7 @@
 #include "llvm/MC/MCDisassembler/MCRelocationInfo.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCInstPrinter.h"
+#include "llvm/MC/MCInstrAnalysis.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
@@ -59,9 +60,11 @@ public:
 
   uint64_t GetMCInst(const uint8_t *opcode_data, size_t opcode_data_len,
                      lldb::addr_t pc, llvm::MCInst &mc_inst) const;
-  void PrintMCInst(llvm::MCInst &mc_inst, std::string &inst_string,
-                   std::string &comments_string);
+  void PrintMCInst(llvm::MCInst &mc_inst, lldb::addr_t pc,
+                   std::string &inst_string, std::string &comments_string);
   void SetStyle(bool use_hex_immed, HexImmediateStyle hex_style);
+  void SetUseColor(bool use_color);
+  bool GetUseColor() const;
   bool CanBranch(llvm::MCInst &mc_inst) const;
   bool HasDelaySlot(llvm::MCInst &mc_inst) const;
   bool IsCall(llvm::MCInst &mc_inst) const;
@@ -75,7 +78,8 @@ private:
                    std::unique_ptr<llvm::MCAsmInfo> &&asm_info_up,
                    std::unique_ptr<llvm::MCContext> &&context_up,
                    std::unique_ptr<llvm::MCDisassembler> &&disasm_up,
-                   std::unique_ptr<llvm::MCInstPrinter> &&instr_printer_up);
+                   std::unique_ptr<llvm::MCInstPrinter> &&instr_printer_up,
+                   std::unique_ptr<llvm::MCInstrAnalysis> &&instr_analysis_up);
 
   std::unique_ptr<llvm::MCInstrInfo> m_instr_info_up;
   std::unique_ptr<llvm::MCRegisterInfo> m_reg_info_up;
@@ -84,6 +88,7 @@ private:
   std::unique_ptr<llvm::MCContext> m_context_up;
   std::unique_ptr<llvm::MCDisassembler> m_disasm_up;
   std::unique_ptr<llvm::MCInstPrinter> m_instr_printer_up;
+  std::unique_ptr<llvm::MCInstrAnalysis> m_instr_analysis_up;
 };
 
 namespace x86 {
@@ -562,7 +567,9 @@ public:
 
     if (m_opcode.GetData(data)) {
       std::string out_string;
+      std::string markup_out_string;
       std::string comment_string;
+      std::string markup_comment_string;
 
       DisassemblerScope disasm(*this, exe_ctx);
       if (disasm) {
@@ -576,7 +583,6 @@ public:
         lldb::addr_t pc = m_address.GetFileAddress();
         m_using_file_addr = true;
 
-        const bool data_from_file = disasm->m_data_from_file;
         bool use_hex_immediates = true;
         Disassembler::HexImmediateStyle hex_style = Disassembler::eHexStyleC;
 
@@ -586,12 +592,10 @@ public:
             use_hex_immediates = target->GetUseHexImmediates();
             hex_style = target->GetHexImmediateStyle();
 
-            if (!data_from_file) {
-              const lldb::addr_t load_addr = m_address.GetLoadAddress(target);
-              if (load_addr != LLDB_INVALID_ADDRESS) {
-                pc = load_addr;
-                m_using_file_addr = false;
-              }
+            const lldb::addr_t load_addr = m_address.GetLoadAddress(target);
+            if (load_addr != LLDB_INVALID_ADDRESS) {
+              pc = load_addr;
+              m_using_file_addr = false;
             }
           }
         }
@@ -604,7 +608,14 @@ public:
 
         if (inst_size > 0) {
           mc_disasm_ptr->SetStyle(use_hex_immediates, hex_style);
-          mc_disasm_ptr->PrintMCInst(inst, out_string, comment_string);
+
+          const bool saved_use_color = mc_disasm_ptr->GetUseColor();
+          mc_disasm_ptr->SetUseColor(false);
+          mc_disasm_ptr->PrintMCInst(inst, pc, out_string, comment_string);
+          mc_disasm_ptr->SetUseColor(true);
+          mc_disasm_ptr->PrintMCInst(inst, pc, markup_out_string,
+                                     markup_comment_string);
+          mc_disasm_ptr->SetUseColor(saved_use_color);
 
           if (!comment_string.empty()) {
             AppendComment(comment_string);
@@ -668,6 +679,11 @@ public:
         if (s_regex.Execute(out_string, &matches)) {
           m_opcode_name = matches[1].str();
           m_mnemonics = matches[2].str();
+        }
+        matches.clear();
+        if (s_regex.Execute(markup_out_string, &matches)) {
+          m_markup_opcode_name = matches[1].str();
+          m_markup_mnemonics = matches[2].str();
         }
       }
     }
@@ -1287,11 +1303,17 @@ DisassemblerLLVMC::MCDisasmInstance::Create(const char *triple, const char *cpu,
   if (!instr_printer_up)
     return Instance();
 
-  return Instance(
-      new MCDisasmInstance(std::move(instr_info_up), std::move(reg_info_up),
-                           std::move(subtarget_info_up), std::move(asm_info_up),
-                           std::move(context_up), std::move(disasm_up),
-                           std::move(instr_printer_up)));
+  instr_printer_up->setPrintBranchImmAsAddress(true);
+
+  // Not all targets may have registered createMCInstrAnalysis().
+  std::unique_ptr<llvm::MCInstrAnalysis> instr_analysis_up(
+      curr_target->createMCInstrAnalysis(instr_info_up.get()));
+
+  return Instance(new MCDisasmInstance(
+      std::move(instr_info_up), std::move(reg_info_up),
+      std::move(subtarget_info_up), std::move(asm_info_up),
+      std::move(context_up), std::move(disasm_up), std::move(instr_printer_up),
+      std::move(instr_analysis_up)));
 }
 
 DisassemblerLLVMC::MCDisasmInstance::MCDisasmInstance(
@@ -1301,13 +1323,15 @@ DisassemblerLLVMC::MCDisasmInstance::MCDisasmInstance(
     std::unique_ptr<llvm::MCAsmInfo> &&asm_info_up,
     std::unique_ptr<llvm::MCContext> &&context_up,
     std::unique_ptr<llvm::MCDisassembler> &&disasm_up,
-    std::unique_ptr<llvm::MCInstPrinter> &&instr_printer_up)
+    std::unique_ptr<llvm::MCInstPrinter> &&instr_printer_up,
+    std::unique_ptr<llvm::MCInstrAnalysis> &&instr_analysis_up)
     : m_instr_info_up(std::move(instr_info_up)),
       m_reg_info_up(std::move(reg_info_up)),
       m_subtarget_info_up(std::move(subtarget_info_up)),
       m_asm_info_up(std::move(asm_info_up)),
       m_context_up(std::move(context_up)), m_disasm_up(std::move(disasm_up)),
-      m_instr_printer_up(std::move(instr_printer_up)) {
+      m_instr_printer_up(std::move(instr_printer_up)),
+      m_instr_analysis_up(std::move(instr_analysis_up)) {
   assert(m_instr_info_up && m_reg_info_up && m_subtarget_info_up &&
          m_asm_info_up && m_context_up && m_disasm_up && m_instr_printer_up);
 }
@@ -1328,16 +1352,16 @@ uint64_t DisassemblerLLVMC::MCDisasmInstance::GetMCInst(
 }
 
 void DisassemblerLLVMC::MCDisasmInstance::PrintMCInst(
-    llvm::MCInst &mc_inst, std::string &inst_string,
+    llvm::MCInst &mc_inst, lldb::addr_t pc, std::string &inst_string,
     std::string &comments_string) {
   llvm::raw_string_ostream inst_stream(inst_string);
   llvm::raw_string_ostream comments_stream(comments_string);
 
+  inst_stream.enable_colors(m_instr_printer_up->getUseColor());
   m_instr_printer_up->setCommentStream(comments_stream);
-  m_instr_printer_up->printInst(&mc_inst, 0, llvm::StringRef(),
+  m_instr_printer_up->printInst(&mc_inst, pc, llvm::StringRef(),
                                 *m_subtarget_info_up, inst_stream);
   m_instr_printer_up->setCommentStream(llvm::nulls());
-  comments_stream.flush();
 
   static std::string g_newlines("\r\n");
 
@@ -1363,8 +1387,18 @@ void DisassemblerLLVMC::MCDisasmInstance::SetStyle(
   }
 }
 
+void DisassemblerLLVMC::MCDisasmInstance::SetUseColor(bool use_color) {
+  m_instr_printer_up->setUseColor(use_color);
+}
+
+bool DisassemblerLLVMC::MCDisasmInstance::GetUseColor() const {
+  return m_instr_printer_up->getUseColor();
+}
+
 bool DisassemblerLLVMC::MCDisasmInstance::CanBranch(
     llvm::MCInst &mc_inst) const {
+  if (m_instr_analysis_up)
+    return m_instr_analysis_up->mayAffectControlFlow(mc_inst, *m_reg_info_up);
   return m_instr_info_up->get(mc_inst.getOpcode())
       .mayAffectControlFlow(mc_inst, *m_reg_info_up);
 }
@@ -1375,6 +1409,8 @@ bool DisassemblerLLVMC::MCDisasmInstance::HasDelaySlot(
 }
 
 bool DisassemblerLLVMC::MCDisasmInstance::IsCall(llvm::MCInst &mc_inst) const {
+  if (m_instr_analysis_up)
+    return m_instr_analysis_up->isCall(mc_inst);
   return m_instr_info_up->get(mc_inst.getOpcode()).isCall();
 }
 
@@ -1400,7 +1436,9 @@ bool DisassemblerLLVMC::MCDisasmInstance::IsAuthenticated(
 }
 
 DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
-                                     const char *flavor_string)
+                                     const char *flavor_string,
+                                     const char *cpu_string,
+                                     const char *features_string)
     : Disassembler(arch, flavor_string), m_exe_ctx(nullptr), m_inst(nullptr),
       m_data_from_file(false), m_adrp_address(LLDB_INVALID_ADDRESS),
       m_adrp_insn() {
@@ -1408,6 +1446,7 @@ DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
     m_flavor.assign("default");
   }
 
+  const bool cpu_or_features_overriden = cpu_string || features_string;
   unsigned flavor = ~0U;
   llvm::Triple triple = arch.GetTriple();
 
@@ -1444,64 +1483,68 @@ DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
       triple.getSubArch() == llvm::Triple::NoSubArch)
     triple.setArchName("armv9.3a");
 
-  std::string features_str;
+  std::string features_str =
+      features_string ? std::string(features_string) : "";
   const char *triple_str = triple.getTriple().c_str();
 
   // ARM Cortex M0-M7 devices only execute thumb instructions
   if (arch.IsAlwaysThumbInstructions()) {
     triple_str = thumb_arch.GetTriple().getTriple().c_str();
-    features_str += "+fp-armv8,";
+    if (!features_string)
+      features_str += "+fp-armv8,";
   }
 
-  const char *cpu = "";
+  const char *cpu = cpu_string;
 
-  switch (arch.GetCore()) {
-  case ArchSpec::eCore_mips32:
-  case ArchSpec::eCore_mips32el:
-    cpu = "mips32";
-    break;
-  case ArchSpec::eCore_mips32r2:
-  case ArchSpec::eCore_mips32r2el:
-    cpu = "mips32r2";
-    break;
-  case ArchSpec::eCore_mips32r3:
-  case ArchSpec::eCore_mips32r3el:
-    cpu = "mips32r3";
-    break;
-  case ArchSpec::eCore_mips32r5:
-  case ArchSpec::eCore_mips32r5el:
-    cpu = "mips32r5";
-    break;
-  case ArchSpec::eCore_mips32r6:
-  case ArchSpec::eCore_mips32r6el:
-    cpu = "mips32r6";
-    break;
-  case ArchSpec::eCore_mips64:
-  case ArchSpec::eCore_mips64el:
-    cpu = "mips64";
-    break;
-  case ArchSpec::eCore_mips64r2:
-  case ArchSpec::eCore_mips64r2el:
-    cpu = "mips64r2";
-    break;
-  case ArchSpec::eCore_mips64r3:
-  case ArchSpec::eCore_mips64r3el:
-    cpu = "mips64r3";
-    break;
-  case ArchSpec::eCore_mips64r5:
-  case ArchSpec::eCore_mips64r5el:
-    cpu = "mips64r5";
-    break;
-  case ArchSpec::eCore_mips64r6:
-  case ArchSpec::eCore_mips64r6el:
-    cpu = "mips64r6";
-    break;
-  default:
-    cpu = "";
-    break;
+  if (!cpu_or_features_overriden) {
+    switch (arch.GetCore()) {
+    case ArchSpec::eCore_mips32:
+    case ArchSpec::eCore_mips32el:
+      cpu = "mips32";
+      break;
+    case ArchSpec::eCore_mips32r2:
+    case ArchSpec::eCore_mips32r2el:
+      cpu = "mips32r2";
+      break;
+    case ArchSpec::eCore_mips32r3:
+    case ArchSpec::eCore_mips32r3el:
+      cpu = "mips32r3";
+      break;
+    case ArchSpec::eCore_mips32r5:
+    case ArchSpec::eCore_mips32r5el:
+      cpu = "mips32r5";
+      break;
+    case ArchSpec::eCore_mips32r6:
+    case ArchSpec::eCore_mips32r6el:
+      cpu = "mips32r6";
+      break;
+    case ArchSpec::eCore_mips64:
+    case ArchSpec::eCore_mips64el:
+      cpu = "mips64";
+      break;
+    case ArchSpec::eCore_mips64r2:
+    case ArchSpec::eCore_mips64r2el:
+      cpu = "mips64r2";
+      break;
+    case ArchSpec::eCore_mips64r3:
+    case ArchSpec::eCore_mips64r3el:
+      cpu = "mips64r3";
+      break;
+    case ArchSpec::eCore_mips64r5:
+    case ArchSpec::eCore_mips64r5el:
+      cpu = "mips64r5";
+      break;
+    case ArchSpec::eCore_mips64r6:
+    case ArchSpec::eCore_mips64r6el:
+      cpu = "mips64r6";
+      break;
+    default:
+      cpu = "";
+      break;
+    }
   }
 
-  if (arch.IsMIPS()) {
+  if (arch.IsMIPS() && !cpu_or_features_overriden) {
     uint32_t arch_flags = arch.GetFlags();
     if (arch_flags & ArchSpec::eMIPSAse_msa)
       features_str += "+msa,";
@@ -1511,15 +1554,15 @@ DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
       features_str += "+dspr2,";
   }
 
-  // If any AArch64 variant, enable latest ISA with all extensions.
-  if (triple.isAArch64()) {
+  // If any AArch64 variant, enable latest ISA with all extensions unless the
+  // CPU or features were overridden.
+  if (triple.isAArch64() && !cpu_or_features_overriden) {
     features_str += "+all,";
-
     if (triple.getVendor() == llvm::Triple::Apple)
       cpu = "apple-latest";
   }
 
-  if (triple.isRISCV()) {
+  if (triple.isRISCV() && !cpu_or_features_overriden) {
     uint32_t arch_flags = arch.GetFlags();
     if (arch_flags & ArchSpec::eRISCV_rvc)
       features_str += "+c,";
@@ -1535,6 +1578,8 @@ DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
         ArchSpec::eRISCV_float_abi_quad)
       features_str += "+f,+d,+q,";
     // FIXME: how do we detect features such as `+a`, `+m`?
+    // Turn them on by default now, since everyone seems to use them
+    features_str += "+a,+m,";
   }
 
   // We use m_disasm_up.get() to tell whether we are valid or not, so if this
@@ -1573,9 +1618,12 @@ DisassemblerLLVMC::DisassemblerLLVMC(const ArchSpec &arch,
 DisassemblerLLVMC::~DisassemblerLLVMC() = default;
 
 lldb::DisassemblerSP DisassemblerLLVMC::CreateInstance(const ArchSpec &arch,
-                                                       const char *flavor) {
+                                                       const char *flavor,
+                                                       const char *cpu,
+                                                       const char *features) {
   if (arch.GetTriple().getArch() != llvm::Triple::UnknownArch) {
-    auto disasm_sp = std::make_shared<DisassemblerLLVMC>(arch, flavor);
+    auto disasm_sp =
+        std::make_shared<DisassemblerLLVMC>(arch, flavor, cpu, features);
     if (disasm_sp && disasm_sp->IsValid())
       return disasm_sp;
   }
@@ -1739,9 +1787,9 @@ const char *DisassemblerLLVMC::SymbolLookup(uint64_t value, uint64_t *type_ptr,
           module_sp->ResolveFileAddress(value, value_so_addr);
           module_sp->ResolveFileAddress(pc, pc_so_addr);
         }
-      } else if (target && !target->GetSectionLoadList().IsEmpty()) {
-        target->GetSectionLoadList().ResolveLoadAddress(value, value_so_addr);
-        target->GetSectionLoadList().ResolveLoadAddress(pc, pc_so_addr);
+      } else if (target && target->HasLoadedSections()) {
+        target->ResolveLoadAddress(value, value_so_addr);
+        target->ResolveLoadAddress(pc, pc_so_addr);
       }
 
       SymbolContext sym_ctx;

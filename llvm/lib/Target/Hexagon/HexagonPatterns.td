@@ -108,6 +108,14 @@ def ptrue:  PatFrag<(ops), (HexagonPTRUE)>;
 def pfalse: PatFrag<(ops), (HexagonPFALSE)>;
 def pnot:   PatFrag<(ops node:$Pu), (xor node:$Pu, ptrue)>;
 
+def: Pat<(v8i1 (HexagonPFALSE)), (C2_tfrrp (A2_tfrsi (i32 0)))>;
+def: Pat<(v4i1 (HexagonPFALSE)), (C2_tfrrp (A2_tfrsi (i32 0)))>;
+def: Pat<(v2i1 (HexagonPFALSE)), (C2_tfrrp (A2_tfrsi (i32 0)))>;
+
+def: Pat<(v8i1 (HexagonPTRUE)), (C2_tfrrp (A2_tfrsi (i32 -1)))>;
+def: Pat<(v4i1 (HexagonPTRUE)), (C2_tfrrp (A2_tfrsi (i32 -1)))>;
+def: Pat<(v2i1 (HexagonPTRUE)), (C2_tfrrp (A2_tfrsi (i32 -1)))>;
+
 def valign: PatFrag<(ops node:$Vt, node:$Vs, node:$Ru),
                     (HexagonVALIGN node:$Vt, node:$Vs, node:$Ru)>;
 def valignaddr: PatFrag<(ops node:$Addr), (HexagonVALIGNADDR node:$Addr)>;
@@ -171,7 +179,7 @@ class IsUGT<int Width, int Arg>: PatLeaf<(i32 imm),
 
 def SDEC1: SDNodeXForm<imm, [{
   int32_t V = N->getSExtValue();
-  return CurDAG->getTargetConstant(V-1, SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(V-1, SDLoc(N), MVT::i32);
 }]>;
 
 def UDEC1: SDNodeXForm<imm, [{
@@ -388,12 +396,12 @@ def Uitofp: pf1<uint_to_fp>;
 //
 
 def Imm64Lo: SDNodeXForm<imm, [{
-  return CurDAG->getTargetConstant(int32_t (N->getSExtValue()),
-                                   SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(int32_t(N->getSExtValue()),
+                                         SDLoc(N), MVT::i32);
 }]>;
 def Imm64Hi: SDNodeXForm<imm, [{
-  return CurDAG->getTargetConstant(int32_t (N->getSExtValue()>>32),
-                                   SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(int32_t(N->getSExtValue()>>32),
+                                         SDLoc(N), MVT::i32);
 }]>;
 
 
@@ -406,7 +414,7 @@ def HexagonCONST32:     SDNode<"HexagonISD::CONST32",     SDTHexagonCONST32>;
 def HexagonCONST32_GP:  SDNode<"HexagonISD::CONST32_GP",  SDTHexagonCONST32>;
 
 def TruncI64ToI32: SDNodeXForm<imm, [{
-  return CurDAG->getTargetConstant(N->getSExtValue(), SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(N->getSExtValue(), SDLoc(N), MVT::i32);
 }]>;
 
 def: Pat<(s32_0ImmPred:$s16), (A2_tfrsi imm:$s16)>;
@@ -525,11 +533,11 @@ def Vsplatpi: OutPatFrag<(ops node:$V),
                          (Combinew (A2_tfrsi $V), (A2_tfrsi $V))>;
 
 def: Pat<(v2i16 (azext V2I1:$Pu)),
-         (A2_andir (LoReg (C2_mask V2I1:$Pu)), (i32 0x00010001))>;
+         (A2_andir (S2_vtrunehb (C2_mask V2I1:$Pu)), (i32 0x00010001))>;
 def: Pat<(v2i32 (azext V2I1:$Pu)),
          (A2_andp (C2_mask V2I1:$Pu), (A2_combineii (i32 1), (i32 1)))>;
 def: Pat<(v4i8 (azext V4I1:$Pu)),
-         (A2_andir (LoReg (C2_mask V4I1:$Pu)), (i32 0x01010101))>;
+         (A2_andir (S2_vtrunehb (C2_mask V4I1:$Pu)), (i32 0x01010101))>;
 def: Pat<(v4i16 (azext V4I1:$Pu)),
          (A2_andp (C2_mask V4I1:$Pu), (Vsplatpi (i32 0x00010001)))>;
 def: Pat<(v8i8 (azext V8I1:$Pu)),
@@ -718,11 +726,6 @@ def: OpR_RR_pat<A2_vcmpwgtu,  setugt,         v2i1, V2I32>;
 def: OpR_RR_pat<F2_sfcmpeq,   seteq,          i1, F32>;
 def: OpR_RR_pat<F2_sfcmpgt,   setgt,          i1, F32>;
 def: OpR_RR_pat<F2_sfcmpge,   setge,          i1, F32>;
-def: OpR_RR_pat<F2_sfcmpeq,   setoeq,         i1, F32>;
-def: OpR_RR_pat<F2_sfcmpgt,   setogt,         i1, F32>;
-def: OpR_RR_pat<F2_sfcmpge,   setoge,         i1, F32>;
-def: OpR_RR_pat<F2_sfcmpgt,   RevCmp<setolt>, i1, F32>;
-def: OpR_RR_pat<F2_sfcmpge,   RevCmp<setole>, i1, F32>;
 def: OpR_RR_pat<F2_sfcmpgt,   RevCmp<setlt>,  i1, F32>;
 def: OpR_RR_pat<F2_sfcmpge,   RevCmp<setle>,  i1, F32>;
 def: OpR_RR_pat<F2_sfcmpuo,   setuo,          i1, F32>;
@@ -730,11 +733,6 @@ def: OpR_RR_pat<F2_sfcmpuo,   setuo,          i1, F32>;
 def: OpR_RR_pat<F2_dfcmpeq,   seteq,          i1, F64>;
 def: OpR_RR_pat<F2_dfcmpgt,   setgt,          i1, F64>;
 def: OpR_RR_pat<F2_dfcmpge,   setge,          i1, F64>;
-def: OpR_RR_pat<F2_dfcmpeq,   setoeq,         i1, F64>;
-def: OpR_RR_pat<F2_dfcmpgt,   setogt,         i1, F64>;
-def: OpR_RR_pat<F2_dfcmpge,   setoge,         i1, F64>;
-def: OpR_RR_pat<F2_dfcmpgt,   RevCmp<setolt>, i1, F64>;
-def: OpR_RR_pat<F2_dfcmpge,   RevCmp<setole>, i1, F64>;
 def: OpR_RR_pat<F2_dfcmpgt,   RevCmp<setlt>,  i1, F64>;
 def: OpR_RR_pat<F2_dfcmpge,   RevCmp<setle>,  i1, F64>;
 def: OpR_RR_pat<F2_dfcmpuo,   setuo,          i1, F64>;
@@ -897,15 +895,35 @@ def: OpmR_RR_pat<Cmpud<F2_dfcmpge>,  RevCmp<setule>, i1, F64>;
 def: OpmR_RR_pat<Cmpud<F2_dfcmpgt>,  RevCmp<setult>, i1, F64>;
 def: OpmR_RR_pat<Cmpudn<F2_dfcmpeq>, setune,         i1, F64>;
 
-def: OpmR_RR_pat<Outn<F2_sfcmpeq>, setone, i1, F32>;
-def: OpmR_RR_pat<Outn<F2_sfcmpeq>, setne,  i1, F32>;
+class T4<InstHexagon MI1, InstHexagon MI2, InstHexagon MI3, InstHexagon MI4>
+  : OutPatFrag<(ops node:$Rs, node:$Rt),
+               (MI1 (MI2 (MI3 $Rs, $Rt), (MI4 $Rs, $Rt)))>;
 
-def: OpmR_RR_pat<Outn<F2_dfcmpeq>, setone, i1, F64>;
-def: OpmR_RR_pat<Outn<F2_dfcmpeq>, setne,  i1, F64>;
+class Cmpof<InstHexagon MI>: T3<C2_andn, MI,  F2_sfcmpuo>;
+class Cmpod<InstHexagon MI>: T3<C2_andn, MI,  F2_dfcmpuo>;
+
+class Cmpofn<InstHexagon MI>: T4<C2_not,  C2_or, MI,  F2_sfcmpuo>;
+class Cmpodn<InstHexagon MI>: T4<C2_not,  C2_or, MI,  F2_dfcmpuo>;
+
+def: OpmR_RR_pat<Cmpof<F2_sfcmpeq>,  setoeq,         i1, F32>;
+def: OpmR_RR_pat<Cmpof<F2_sfcmpge>,  setoge,         i1, F32>;
+def: OpmR_RR_pat<Cmpof<F2_sfcmpgt>,  setogt,         i1, F32>;
+def: OpmR_RR_pat<Cmpof<F2_sfcmpge>,  RevCmp<setole>, i1, F32>;
+def: OpmR_RR_pat<Cmpof<F2_sfcmpgt>,  RevCmp<setolt>, i1, F32>;
+def: OpmR_RR_pat<Cmpofn<F2_sfcmpeq>, setone,         i1, F32>;
+
+def: OpmR_RR_pat<Cmpod<F2_dfcmpeq>,  setoeq,         i1, F64>;
+def: OpmR_RR_pat<Cmpod<F2_dfcmpge>,  setoge,         i1, F64>;
+def: OpmR_RR_pat<Cmpod<F2_dfcmpgt>,  setogt,         i1, F64>;
+def: OpmR_RR_pat<Cmpod<F2_dfcmpge>,  RevCmp<setole>, i1, F64>;
+def: OpmR_RR_pat<Cmpod<F2_dfcmpgt>,  RevCmp<setolt>, i1, F64>;
+def: OpmR_RR_pat<Cmpodn<F2_dfcmpeq>, setone,         i1, F64>;
 
 def: OpmR_RR_pat<Outn<F2_sfcmpuo>, seto,   i1, F32>;
 def: OpmR_RR_pat<Outn<F2_dfcmpuo>, seto,   i1, F64>;
 
+def: OpmR_RR_pat<Outn<F2_sfcmpeq>, setne,  i1, F32>;
+def: OpmR_RR_pat<Outn<F2_dfcmpeq>, setne,  i1, F64>;
 
 // --(6) Select ----------------------------------------------------------
 //
@@ -2593,31 +2611,18 @@ class Stoream_pat<PatFrag Store, PatFrag Value, PatFrag Addr, PatFrag ValueMod,
   : Pat<(Store Value:$val, Addr:$addr),
         (MI Addr:$addr, (ValueMod Value:$val))>;
 
-// Regular stores in the DAG have two operands: value and address.
-// Atomic stores also have two, but they are reversed: address, value.
-// To use atomic stores with the patterns, they need to have their operands
-// swapped. This relies on the knowledge that the F.Fragment uses names
-// "ptr" and "val".
-class AtomSt<PatFrag F>
-  : PatFrag<(ops node:$val, node:$ptr), !head(F.Fragments), F.PredicateCode,
-            F.OperandTransform> {
-  let IsAtomic = F.IsAtomic;
-  let MemoryVT = F.MemoryVT;
-}
-
-
 def IMM_BYTE : SDNodeXForm<imm, [{
   // -1 can be represented as 255, etc.
   // assigning to a byte restores our desired signed value.
   int8_t imm = N->getSExtValue();
-  return CurDAG->getTargetConstant(imm, SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(imm, SDLoc(N), MVT::i32);
 }]>;
 
 def IMM_HALF : SDNodeXForm<imm, [{
   // -1 can be represented as 65535, etc.
   // assigning to a short restores our desired signed value.
   int16_t imm = N->getSExtValue();
-  return CurDAG->getTargetConstant(imm, SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(imm, SDLoc(N), MVT::i32);
 }]>;
 
 def IMM_WORD : SDNodeXForm<imm, [{
@@ -2626,7 +2631,7 @@ def IMM_WORD : SDNodeXForm<imm, [{
   // might convert -1 to a large +ve number.
   // assigning to a word restores our desired signed value.
   int32_t imm = N->getSExtValue();
-  return CurDAG->getTargetConstant(imm, SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(imm, SDLoc(N), MVT::i32);
 }]>;
 
 def ToImmByte : OutPatFrag<(ops node:$R), (IMM_BYTE $R)>;
@@ -2688,7 +2693,7 @@ def s30_2ProperPred  : PatLeaf<(i32 imm), [{
 }]>;
 def RoundTo8 : SDNodeXForm<imm, [{
   int32_t Imm = N->getSExtValue();
-  return CurDAG->getTargetConstant(Imm & -8, SDLoc(N), MVT::i32);
+  return CurDAG->getSignedTargetConstant(Imm & -8, SDLoc(N), MVT::i32);
 }]>;
 
 let AddedComplexity = 150 in
@@ -2726,15 +2731,15 @@ let AddedComplexity = 120 in {
   def: Storea_pat<store,                    V2I32, addrgp, S2_storerdgp>;
   def: Storea_pat<store,                      F32, addrgp, S2_storerigp>;
   def: Storea_pat<store,                      F64, addrgp, S2_storerdgp>;
-  def: Storea_pat<AtomSt<atomic_store_8>,     I32, addrgp, S2_storerbgp>;
-  def: Storea_pat<AtomSt<atomic_store_16>,    I32, addrgp, S2_storerhgp>;
-  def: Storea_pat<AtomSt<atomic_store_32>,    I32, addrgp, S2_storerigp>;
-  def: Storea_pat<AtomSt<atomic_store_32>,   V4I8, addrgp, S2_storerigp>;
-  def: Storea_pat<AtomSt<atomic_store_32>,  V2I16, addrgp, S2_storerigp>;
-  def: Storea_pat<AtomSt<atomic_store_64>,    I64, addrgp, S2_storerdgp>;
-  def: Storea_pat<AtomSt<atomic_store_64>,   V8I8, addrgp, S2_storerdgp>;
-  def: Storea_pat<AtomSt<atomic_store_64>,  V4I16, addrgp, S2_storerdgp>;
-  def: Storea_pat<AtomSt<atomic_store_64>,  V2I32, addrgp, S2_storerdgp>;
+  def: Storea_pat<atomic_store_8,             I32, addrgp, S2_storerbgp>;
+  def: Storea_pat<atomic_store_16,            I32, addrgp, S2_storerhgp>;
+  def: Storea_pat<atomic_store_32,            I32, addrgp, S2_storerigp>;
+  def: Storea_pat<atomic_store_32,           V4I8, addrgp, S2_storerigp>;
+  def: Storea_pat<atomic_store_32,          V2I16, addrgp, S2_storerigp>;
+  def: Storea_pat<atomic_store_64,            I64, addrgp, S2_storerdgp>;
+  def: Storea_pat<atomic_store_64,           V8I8, addrgp, S2_storerdgp>;
+  def: Storea_pat<atomic_store_64,          V4I16, addrgp, S2_storerdgp>;
+  def: Storea_pat<atomic_store_64,          V2I32, addrgp, S2_storerdgp>;
 
   def: Stoream_pat<truncstorei8,  I64, addrgp, LoReg,    S2_storerbgp>;
   def: Stoream_pat<truncstorei16, I64, addrgp, LoReg,    S2_storerhgp>;
@@ -2755,15 +2760,15 @@ let AddedComplexity = 110 in {
   def: Storea_pat<store,                    V2I32, anyimm3, PS_storerdabs>;
   def: Storea_pat<store,                      F32, anyimm2, PS_storeriabs>;
   def: Storea_pat<store,                      F64, anyimm3, PS_storerdabs>;
-  def: Storea_pat<AtomSt<atomic_store_8>,     I32, anyimm0, PS_storerbabs>;
-  def: Storea_pat<AtomSt<atomic_store_16>,    I32, anyimm1, PS_storerhabs>;
-  def: Storea_pat<AtomSt<atomic_store_32>,    I32, anyimm2, PS_storeriabs>;
-  def: Storea_pat<AtomSt<atomic_store_32>,   V4I8, anyimm2, PS_storeriabs>;
-  def: Storea_pat<AtomSt<atomic_store_32>,  V2I16, anyimm2, PS_storeriabs>;
-  def: Storea_pat<AtomSt<atomic_store_64>,    I64, anyimm3, PS_storerdabs>;
-  def: Storea_pat<AtomSt<atomic_store_64>,   V8I8, anyimm3, PS_storerdabs>;
-  def: Storea_pat<AtomSt<atomic_store_64>,  V4I16, anyimm3, PS_storerdabs>;
-  def: Storea_pat<AtomSt<atomic_store_64>,  V2I32, anyimm3, PS_storerdabs>;
+  def: Storea_pat<atomic_store_8,             I32, anyimm0, PS_storerbabs>;
+  def: Storea_pat<atomic_store_16,            I32, anyimm1, PS_storerhabs>;
+  def: Storea_pat<atomic_store_32,            I32, anyimm2, PS_storeriabs>;
+  def: Storea_pat<atomic_store_32,           V4I8, anyimm2, PS_storeriabs>;
+  def: Storea_pat<atomic_store_32,          V2I16, anyimm2, PS_storeriabs>;
+  def: Storea_pat<atomic_store_64,            I64, anyimm3, PS_storerdabs>;
+  def: Storea_pat<atomic_store_64,           V8I8, anyimm3, PS_storerdabs>;
+  def: Storea_pat<atomic_store_64,          V4I16, anyimm3, PS_storerdabs>;
+  def: Storea_pat<atomic_store_64,          V2I32, anyimm3, PS_storerdabs>;
 
   def: Stoream_pat<truncstorei8,  I64, anyimm0, LoReg,    PS_storerbabs>;
   def: Stoream_pat<truncstorei16, I64, anyimm1, LoReg,    PS_storerhabs>;
@@ -2918,15 +2923,15 @@ let AddedComplexity = 40 in {
   defm: Storexim_pat<truncstorei32, I64, anyimm2, LoReg,   S2_storeri_io>;
   defm: Storexim_pat<store,         I1,  anyimm0, I1toI32, S2_storerb_io>;
 
-  defm: Storexi_pat<AtomSt<atomic_store_8>,     I32, anyimm0, S2_storerb_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_16>,    I32, anyimm1, S2_storerh_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_32>,    I32, anyimm2, S2_storeri_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_32>,   V4I8, anyimm2, S2_storeri_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_32>,  V2I16, anyimm2, S2_storeri_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_64>,    I64, anyimm3, S2_storerd_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_64>,   V8I8, anyimm3, S2_storerd_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_64>,  V4I16, anyimm3, S2_storerd_io>;
-  defm: Storexi_pat<AtomSt<atomic_store_64>,  V2I32, anyimm3, S2_storerd_io>;
+  defm: Storexi_pat<atomic_store_8,     I32, anyimm0, S2_storerb_io>;
+  defm: Storexi_pat<atomic_store_16,    I32, anyimm1, S2_storerh_io>;
+  defm: Storexi_pat<atomic_store_32,    I32, anyimm2, S2_storeri_io>;
+  defm: Storexi_pat<atomic_store_32,   V4I8, anyimm2, S2_storeri_io>;
+  defm: Storexi_pat<atomic_store_32,  V2I16, anyimm2, S2_storeri_io>;
+  defm: Storexi_pat<atomic_store_64,    I64, anyimm3, S2_storerd_io>;
+  defm: Storexi_pat<atomic_store_64,   V8I8, anyimm3, S2_storerd_io>;
+  defm: Storexi_pat<atomic_store_64,  V4I16, anyimm3, S2_storerd_io>;
+  defm: Storexi_pat<atomic_store_64,  V2I32, anyimm3, S2_storerd_io>;
 }
 
 // Reg+Reg
@@ -2977,15 +2982,15 @@ let AddedComplexity = 10 in {
   def: Storexim_base_pat<truncstorei32, I64, LoReg,   S2_storeri_io>;
   def: Storexim_base_pat<store,         I1,  I1toI32, S2_storerb_io>;
 
-  def: Storexi_base_pat<AtomSt<atomic_store_8>,     I32, S2_storerb_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_16>,    I32, S2_storerh_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_32>,    I32, S2_storeri_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_32>,   V4I8, S2_storeri_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_32>,  V2I16, S2_storeri_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_64>,    I64, S2_storerd_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_64>,   V8I8, S2_storerd_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_64>,  V4I16, S2_storerd_io>;
-  def: Storexi_base_pat<AtomSt<atomic_store_64>,  V2I32, S2_storerd_io>;
+  def: Storexi_base_pat<atomic_store_8,     I32, S2_storerb_io>;
+  def: Storexi_base_pat<atomic_store_16,    I32, S2_storerh_io>;
+  def: Storexi_base_pat<atomic_store_32,    I32, S2_storeri_io>;
+  def: Storexi_base_pat<atomic_store_32,   V4I8, S2_storeri_io>;
+  def: Storexi_base_pat<atomic_store_32,  V2I16, S2_storeri_io>;
+  def: Storexi_base_pat<atomic_store_64,    I64, S2_storerd_io>;
+  def: Storexi_base_pat<atomic_store_64,   V8I8, S2_storerd_io>;
+  def: Storexi_base_pat<atomic_store_64,  V4I16, S2_storerd_io>;
+  def: Storexi_base_pat<atomic_store_64,  V2I32, S2_storerd_io>;
 }
 
 
@@ -3397,6 +3402,7 @@ def HexagonBARRIER: SDNode<"HexagonISD::BARRIER", SDTNone, [SDNPHasChain]>;
 def: Pat<(HexagonBARRIER), (Y2_barrier)>;
 
 def: Pat<(trap), (PS_crash)>;
+def: Pat<(debugtrap), (Y2_break)>;
 
 // Read cycle counter.
 def SDTInt64Leaf: SDTypeProfile<1, 0, [SDTCisVT<0, i64>]>;
@@ -3404,6 +3410,12 @@ def HexagonREADCYCLE: SDNode<"HexagonISD::READCYCLE", SDTInt64Leaf,
   [SDNPHasChain]>;
 
 def: Pat<(HexagonREADCYCLE), (A4_tfrcpp UPCYCLE)>;
+
+// Read time counter.
+def HexagonREADTIMER: SDNode<"HexagonISD::READTIMER", SDTInt64Leaf,
+  [SDNPHasChain]>;
+
+def: Pat<(HexagonREADTIMER), (A4_tfrcpp UTIMER)>;
 
 // The declared return value of the store-locked intrinsics is i32, but
 // the instructions actually define i1. To avoid register copies from

@@ -141,8 +141,8 @@ LogicalResult mlir::verifyCompatibleShapes(TypeRange types) {
   }
 
   // Remove all unranked shapes
-  auto shapes = llvm::to_vector<8>(llvm::make_filter_range(
-      shapedTypes, [](auto shapedType) { return shapedType.hasRank(); }));
+  auto shapes = llvm::filter_to_vector<8>(
+      shapedTypes, [](auto shapedType) { return shapedType.hasRank(); });
   if (shapes.empty())
     return success();
 
@@ -171,4 +171,34 @@ Type OperandElementTypeIterator::mapElement(Value value) const {
 
 Type ResultElementTypeIterator::mapElement(Value value) const {
   return llvm::cast<ShapedType>(value.getType()).getElementType();
+}
+
+TypeRange mlir::insertTypesInto(TypeRange oldTypes, ArrayRef<unsigned> indices,
+                                TypeRange newTypes,
+                                SmallVectorImpl<Type> &storage) {
+  assert(indices.size() == newTypes.size() &&
+         "mismatch between indice and type count");
+  if (indices.empty())
+    return oldTypes;
+
+  auto fromIt = oldTypes.begin();
+  for (auto it : llvm::zip(indices, newTypes)) {
+    const auto toIt = oldTypes.begin() + std::get<0>(it);
+    storage.append(fromIt, toIt);
+    storage.push_back(std::get<1>(it));
+    fromIt = toIt;
+  }
+  storage.append(fromIt, oldTypes.end());
+  return storage;
+}
+
+TypeRange mlir::filterTypesOut(TypeRange types, const BitVector &indices,
+                               SmallVectorImpl<Type> &storage) {
+  if (indices.none())
+    return types;
+
+  for (unsigned i = 0, e = types.size(); i < e; ++i)
+    if (!indices[i])
+      storage.emplace_back(types[i]);
+  return storage;
 }

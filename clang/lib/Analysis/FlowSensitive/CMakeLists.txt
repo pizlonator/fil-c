@@ -1,12 +1,16 @@
 add_clang_library(clangAnalysisFlowSensitive
+  AdornedCFG.cpp
   Arena.cpp
-  ControlFlowContext.cpp
+  ASTOps.cpp
+  CNFFormula.cpp
   DataflowAnalysisContext.cpp
   DataflowEnvironment.cpp
   Formula.cpp
   HTMLLogger.cpp
   Logger.cpp
   RecordOps.cpp
+  SimplifyConstraints.cpp
+  SmartPointerAccessorCaching.cpp
   Transfer.cpp
   TypeErasedDataflowAnalysis.cpp
   Value.cpp
@@ -18,6 +22,7 @@ add_clang_library(clangAnalysisFlowSensitive
   LINK_LIBS
   clangAnalysis
   clangAST
+  clangASTMatchers
   clangBasic
   clangLex
   )
@@ -33,3 +38,4 @@ add_custom_command(OUTPUT HTMLLogger.inc
   DEPENDS ${CLANG_SOURCE_DIR}/utils/bundle_resources.py HTMLLogger.html HTMLLogger.css HTMLLogger.js
   VERBATIM)
 add_custom_target(clangAnalysisFlowSensitiveResources DEPENDS HTMLLogger.inc)
+set_target_properties(clangAnalysisFlowSensitiveResources PROPERTIES FOLDER "Clang/Misc")

@@ -327,9 +327,6 @@ void ErrorBadParamsToAnnotateContiguousContainer::Print() {
       "      old_mid : %p\n"
       "      new_mid : %p\n",
       (void *)beg, (void *)end, (void *)old_mid, (void *)new_mid);
-  uptr granularity = ASAN_SHADOW_GRANULARITY;
-  if (!IsAligned(beg, granularity))
-    Report("ERROR: beg is not aligned by %zu\n", granularity);
   stack->Print();
   ReportErrorSummary(scariness.GetDescription(), stack);
 }
@@ -347,9 +344,20 @@ void ErrorBadParamsToAnnotateDoubleEndedContiguousContainer::Print() {
       (void *)storage_beg, (void *)storage_end, (void *)old_container_beg,
       (void *)old_container_end, (void *)new_container_beg,
       (void *)new_container_end);
-  uptr granularity = ASAN_SHADOW_GRANULARITY;
-  if (!IsAligned(storage_beg, granularity))
-    Report("ERROR: storage_beg is not aligned by %zu\n", granularity);
+  stack->Print();
+  ReportErrorSummary(scariness.GetDescription(), stack);
+}
+
+void ErrorBadParamsToCopyContiguousContainerAnnotations::Print() {
+  Report(
+      "ERROR: AddressSanitizer: bad parameters to "
+      "__sanitizer_copy_contiguous_container_annotations:\n"
+      "      src_storage_beg : %p\n"
+      "      src_storage_end : %p\n"
+      "      dst_storage_beg : %p\n"
+      "      new_storage_end : %p\n",
+      (void *)old_storage_beg, (void *)old_storage_end, (void *)new_storage_beg,
+      (void *)new_storage_end);
   stack->Print();
   ReportErrorSummary(scariness.GetDescription(), stack);
 }
@@ -362,8 +370,8 @@ void ErrorODRViolation::Print() {
   Printf("%s", d.Default());
   InternalScopedString g1_loc;
   InternalScopedString g2_loc;
-  PrintGlobalLocation(&g1_loc, global1);
-  PrintGlobalLocation(&g2_loc, global2);
+  PrintGlobalLocation(&g1_loc, global1, /*print_module_name=*/true);
+  PrintGlobalLocation(&g2_loc, global2, /*print_module_name=*/true);
   Printf("  [1] size=%zd '%s' %s\n", global1.size,
          MaybeDemangleGlobalName(global1.name), g1_loc.data());
   Printf("  [2] size=%zd '%s' %s\n", global2.size,
@@ -379,8 +387,8 @@ void ErrorODRViolation::Print() {
       "HINT: if you don't care about these errors you may set "
       "ASAN_OPTIONS=detect_odr_violation=0\n");
   InternalScopedString error_msg;
-  error_msg.append("%s: global '%s' at %s", scariness.GetDescription(),
-                   MaybeDemangleGlobalName(global1.name), g1_loc.data());
+  error_msg.AppendF("%s: global '%s' at %s", scariness.GetDescription(),
+                    MaybeDemangleGlobalName(global1.name), g1_loc.data());
   ReportErrorSummary(error_msg.data());
 }
 
@@ -517,15 +525,15 @@ static void PrintShadowByte(InternalScopedString *str, const char *before,
 }
 
 static void PrintLegend(InternalScopedString *str) {
-  str->append(
+  str->AppendF(
       "Shadow byte legend (one shadow byte represents %d "
       "application bytes):\n",
       (int)ASAN_SHADOW_GRANULARITY);
   PrintShadowByte(str, "  Addressable:           ", 0);
-  str->append("  Partially addressable: ");
+  str->AppendF("  Partially addressable: ");
   for (u8 i = 1; i < ASAN_SHADOW_GRANULARITY; i++)
     PrintShadowByte(str, "", i, " ");
-  str->append("\n");
+  str->AppendF("\n");
   PrintShadowByte(str, "  Heap left redzone:       ",
                   kAsanHeapLeftRedzoneMagic);
   PrintShadowByte(str, "  Freed heap region:       ", kAsanHeapFreeMagic);
@@ -559,8 +567,8 @@ static void PrintShadowBytes(InternalScopedString *str, const char *before,
                              u8 *bytes, u8 *guilty, uptr n) {
   Decorator d;
   if (before)
-    str->append("%s%p:", before,
-                (void *)ShadowToMem(reinterpret_cast<uptr>(bytes)));
+    str->AppendF("%s%p:", before,
+                 (void *)ShadowToMem(reinterpret_cast<uptr>(bytes)));
   for (uptr i = 0; i < n; i++) {
     u8 *p = bytes + i;
     const char *before =
@@ -568,7 +576,7 @@ static void PrintShadowBytes(InternalScopedString *str, const char *before,
     const char *after = p == guilty ? "]" : "";
     PrintShadowByte(str, before, *p, after);
   }
-  str->append("\n");
+  str->AppendF("\n");
 }
 
 static void PrintShadowMemoryForAddress(uptr addr) {
@@ -577,7 +585,7 @@ static void PrintShadowMemoryForAddress(uptr addr) {
   const uptr n_bytes_per_row = 16;
   uptr aligned_shadow = shadow_addr & ~(n_bytes_per_row - 1);
   InternalScopedString str;
-  str.append("Shadow bytes around the buggy address:\n");
+  str.AppendF("Shadow bytes around the buggy address:\n");
   for (int i = -5; i <= 5; i++) {
     uptr row_shadow_addr = aligned_shadow + i * n_bytes_per_row;
     // Skip rows that would be outside the shadow range. This can happen when

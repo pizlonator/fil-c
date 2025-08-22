@@ -246,3 +246,106 @@ void check_params_tpl() {
     static_assert(is_same<int&, decltype((ap))>);
   };
 }
+
+namespace GH61267 {
+template <typename> concept C = true;
+
+template<typename>
+void f(int) {
+  int i;
+  [i]<C P>(P) {}(0);
+  i = 4;
+}
+
+void test() { f<int>(0);  }
+
+}
+
+namespace GH65067 {
+
+template <typename> class a {
+public:
+  template <typename b> void c(b f) { d<int>(f)(0); }
+  template <typename, typename b> auto d(b f) {
+    return [f = f](auto arg) -> a<decltype(f(arg))> { return {}; };
+  }
+};
+a<void> e;
+auto fn1() {
+  e.c([](int) {});
+}
+
+}
+
+namespace GH63675 {
+
+template <class _Tp> _Tp __declval();
+struct __get_tag {
+  template <class _Tag> void operator()(_Tag);
+};
+template <class _ImplFn> struct __basic_sender {
+  using __tag_t = decltype(__declval<_ImplFn>()(__declval<__get_tag>()));
+  _ImplFn __impl_;
+};
+auto __make_basic_sender = []<class... _Children>(
+                               _Children... __children) {
+  return __basic_sender{[... __children = __children]<class _Fun>(
+                     _Fun __fun) -> decltype(__fun(__children...)) {}};
+};
+void __trans_tmp_1() {
+  __make_basic_sender(__trans_tmp_1);
+}
+
+}
+
+namespace GH115931 {
+
+struct Range {};
+
+template <Range>
+struct LengthPercentage {};
+
+void reflectSum() {
+  Range resultR;
+  [&] (auto) -> LengthPercentage<resultR> { 
+    return {};
+  }(0);
+}
+
+} // namespace GH115931
+
+namespace GH47400 {
+
+struct Foo {};
+
+template <int, Foo> struct Arr {};
+
+template <int> struct S {};
+
+constexpr void foo() {
+  constexpr Foo f;
+  [&]<int is>() {
+    [&](Arr<is, f>) {}({}); // f constitutes an ODR-use
+  }.template operator()<42>();
+
+  constexpr int C = 1;
+  [] {
+    [](S<C>) { }({}); // ... while C doesn't
+  }();
+}
+
+} // namespace GH47400
+
+namespace GH84961 {
+
+template <typename T> void g(const T &t) {}
+
+template <typename T> void f(const T &t) {
+  [t] { g(t); }();
+}
+
+void h() {
+  f(h);
+}
+
+} // namespace GH84961

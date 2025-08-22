@@ -7,7 +7,6 @@
 //===----------------------------------------------------------------------===//
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17
-// UNSUPPORTED: libcpp-no-coroutines
 
 // <coroutine>
 
@@ -17,8 +16,9 @@
 // coroutine_handle& operator=(nullptr_t) noexcept
 
 #include <coroutine>
-#include <type_traits>
 #include <cassert>
+#include <cstddef>
+#include <type_traits>
 
 #include "test_macros.h"
 

@@ -46,34 +46,45 @@
 #include "llvm/TargetParser/Triple.h"
 #include <optional>
 
-#if !defined(_MSC_VER) && !defined(__MINGW32__)
-#include <unistd.h>
-#endif
-
 using namespace lld;
+using namespace llvm::opt;
 using namespace llvm;
 
 // Create OptTable
 enum {
   OPT_INVALID = 0,
-#define OPTION(_1, _2, ID, _4, _5, _6, _7, _8, _9, _10, _11, _12) OPT_##ID,
+#define OPTION(...) LLVM_MAKE_OPT_ID(__VA_ARGS__),
 #include "Options.inc"
 #undef OPTION
 };
 
-// Create prefix string literals used in Options.td
-#define PREFIX(NAME, VALUE)                                                    \
-  static constexpr llvm::StringLiteral NAME##_init[] = VALUE;                  \
-  static constexpr llvm::ArrayRef<llvm::StringLiteral> NAME(                   \
-      NAME##_init, std::size(NAME##_init) - 1);
+#define OPTTABLE_STR_TABLE_CODE
 #include "Options.inc"
-#undef PREFIX
+#undef OPTTABLE_STR_TABLE_CODE
+
+#define OPTTABLE_PREFIXES_TABLE_CODE
+#include "Options.inc"
+#undef OPTTABLE_PREFIXES_TABLE_CODE
 
 // Create table mapping all options defined in Options.td
 static constexpr opt::OptTable::Info infoTable[] = {
-#define OPTION(X1, X2, ID, KIND, GROUP, ALIAS, X7, X8, X9, X10, X11, X12)      \
-  {X1, X2, X10,         X11,         OPT_##ID, opt::Option::KIND##Class,       \
-   X9, X8, OPT_##GROUP, OPT_##ALIAS, X7,       X12},
+#define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS,         \
+               VISIBILITY, PARAM, HELPTEXT, HELPTEXTSFORVARIANTS, METAVAR,     \
+               VALUES)                                                         \
+  {PREFIX,                                                                     \
+   NAME,                                                                       \
+   HELPTEXT,                                                                   \
+   HELPTEXTSFORVARIANTS,                                                       \
+   METAVAR,                                                                    \
+   OPT_##ID,                                                                   \
+   opt::Option::KIND##Class,                                                   \
+   PARAM,                                                                      \
+   FLAGS,                                                                      \
+   VISIBILITY,                                                                 \
+   OPT_##GROUP,                                                                \
+   OPT_##ALIAS,                                                                \
+   ALIASARGS,                                                                  \
+   VALUES},
 #include "Options.inc"
 #undef OPTION
 };
@@ -81,16 +92,19 @@ static constexpr opt::OptTable::Info infoTable[] = {
 namespace {
 class MinGWOptTable : public opt::GenericOptTable {
 public:
-  MinGWOptTable() : opt::GenericOptTable(infoTable, false) {}
+  MinGWOptTable()
+      : opt::GenericOptTable(OptionStrTable, OptionPrefixesTable, infoTable,
+                             false) {}
   opt::InputArgList parse(ArrayRef<const char *> argv);
 };
 } // namespace
 
-static void printHelp(const char *argv0) {
+static void printHelp(CommonLinkerContext &ctx, const char *argv0) {
+  auto &outs = ctx.e.outs();
   MinGWOptTable().printHelp(
-      lld::outs(), (std::string(argv0) + " [options] file...").c_str(), "lld",
-      false /*ShowHidden*/, true /*ShowAllAliases*/);
-  lld::outs() << "\n";
+      outs, (std::string(argv0) + " [options] file...").c_str(), "lld",
+      /*ShowHidden=*/false, /*ShowAllAliases=*/true);
+  outs << '\n';
 }
 
 static cl::TokenizerCallback getQuotingStyle() {
@@ -178,7 +192,7 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     return false;
 
   if (args.hasArg(OPT_help)) {
-    printHelp(argsArr[0]);
+    printHelp(*ctx, argsArr[0]);
     return true;
   }
 
@@ -212,8 +226,10 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     StringRef s = a->getValue();
     if (args.getLastArgValue(OPT_m) == "i386pe" && s.starts_with("_"))
       add("-entry:" + s.substr(1));
-    else
+    else if (!s.empty())
       add("-entry:" + s);
+    else
+      add("-noentry");
   }
 
   if (args.hasArg(OPT_major_os_version, OPT_minor_os_version,
@@ -269,14 +285,14 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     add("-lldmap:" + StringRef(a->getValue()));
   if (auto *a = args.getLastArg(OPT_reproduce))
     add("-reproduce:" + StringRef(a->getValue()));
-  if (auto *a = args.getLastArg(OPT_thinlto_cache_dir))
-    add("-lldltocache:" + StringRef(a->getValue()));
   if (auto *a = args.getLastArg(OPT_file_alignment))
     add("-filealign:" + StringRef(a->getValue()));
   if (auto *a = args.getLastArg(OPT_section_alignment))
     add("-align:" + StringRef(a->getValue()));
   if (auto *a = args.getLastArg(OPT_heap))
     add("-heap:" + StringRef(a->getValue()));
+  if (auto *a = args.getLastArg(OPT_threads))
+    add("-threads:" + StringRef(a->getValue()));
 
   if (auto *a = args.getLastArg(OPT_o))
     add("-out:" + StringRef(a->getValue()));
@@ -290,10 +306,38 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     StringRef v = a->getValue();
     if (!v.empty())
       add("-pdb:" + v);
+    if (args.hasArg(OPT_strip_all)) {
+      add("-debug:nodwarf,nosymtab");
+    } else if (args.hasArg(OPT_strip_debug)) {
+      add("-debug:nodwarf,symtab");
+    }
   } else if (args.hasArg(OPT_strip_debug)) {
     add("-debug:symtab");
   } else if (!args.hasArg(OPT_strip_all)) {
     add("-debug:dwarf");
+  }
+  if (auto *a = args.getLastArg(OPT_build_id)) {
+    StringRef v = a->getValue();
+    if (v == "none")
+      add("-build-id:no");
+    else {
+      if (!v.empty())
+        warn("unsupported build id hashing: " + v + ", using default hashing.");
+      add("-build-id");
+    }
+  } else {
+    if (args.hasArg(OPT_strip_debug) || args.hasArg(OPT_strip_all))
+      add("-build-id:no");
+    else
+      add("-build-id");
+  }
+
+  if (auto *a = args.getLastArg(OPT_functionpadmin)) {
+    StringRef v = a->getValue();
+    if (v.empty())
+      add("-functionpadmin");
+    else
+      add("-functionpadmin:" + v);
   }
 
   if (args.hasFlag(OPT_fatal_warnings, OPT_no_fatal_warnings, false))
@@ -325,6 +369,7 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
 
   if (args.getLastArgValue(OPT_m) != "thumb2pe" &&
       args.getLastArgValue(OPT_m) != "arm64pe" &&
+      args.getLastArgValue(OPT_m) != "arm64ecpe" &&
       args.hasFlag(OPT_disable_dynamicbase, OPT_dynamicbase, false))
     add("-dynamicbase:no");
   if (args.hasFlag(OPT_disable_high_entropy_va, OPT_high_entropy_va, false))
@@ -364,11 +409,16 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
                    OPT_no_allow_multiple_definition, false))
     add("-force:multiple");
 
+  if (auto *a = args.getLastArg(OPT_dependent_load_flag))
+    add("-dependentloadflag:" + StringRef(a->getValue()));
+
   if (auto *a = args.getLastArg(OPT_icf)) {
     StringRef s = a->getValue();
     if (s == "all")
       add("-opt:icf");
-    else if (s == "safe" || s == "none")
+    else if (s == "safe")
+      add("-opt:safeicf");
+    else if (s == "none")
       add("-opt:noicf");
     else
       error("unknown parameter: --icf=" + s);
@@ -386,6 +436,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
       add("-machine:arm");
     else if (s == "arm64pe")
       add("-machine:arm64");
+    else if (s == "arm64ecpe")
+      add("-machine:arm64ec");
     else
       error("unknown parameter: -m" + s);
   }
@@ -410,8 +462,61 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
       add("-errorlimit:" + s);
   }
 
+  if (auto *a = args.getLastArg(OPT_rpath))
+    warn("parameter " + a->getSpelling() + " has no effect on PE/COFF targets");
+
   for (auto *a : args.filtered(OPT_mllvm))
     add("-mllvm:" + StringRef(a->getValue()));
+
+  if (auto *arg = args.getLastArg(OPT_plugin_opt_mcpu_eq))
+    add("-mllvm:-mcpu=" + StringRef(arg->getValue()));
+  if (auto *arg = args.getLastArg(OPT_lto_O))
+    add("-opt:lldlto=" + StringRef(arg->getValue()));
+  if (auto *arg = args.getLastArg(OPT_lto_CGO))
+    add("-opt:lldltocgo=" + StringRef(arg->getValue()));
+  if (auto *arg = args.getLastArg(OPT_plugin_opt_dwo_dir_eq))
+    add("-dwodir:" + StringRef(arg->getValue()));
+  if (args.hasArg(OPT_lto_cs_profile_generate))
+    add("-lto-cs-profile-generate");
+  if (auto *arg = args.getLastArg(OPT_lto_cs_profile_file))
+    add("-lto-cs-profile-file:" + StringRef(arg->getValue()));
+  if (args.hasArg(OPT_plugin_opt_emit_llvm))
+    add("-lldemit:llvm");
+  if (args.hasArg(OPT_lto_emit_asm))
+    add("-lldemit:asm");
+  if (auto *arg = args.getLastArg(OPT_lto_sample_profile))
+    add("-lto-sample-profile:" + StringRef(arg->getValue()));
+
+  if (auto *a = args.getLastArg(OPT_thinlto_cache_dir))
+    add("-lldltocache:" + StringRef(a->getValue()));
+  if (auto *a = args.getLastArg(OPT_thinlto_cache_policy))
+    add("-lldltocachepolicy:" + StringRef(a->getValue()));
+  if (args.hasArg(OPT_thinlto_emit_imports_files))
+    add("-thinlto-emit-imports-files");
+  if (args.hasArg(OPT_thinlto_index_only))
+    add("-thinlto-index-only");
+  if (auto *arg = args.getLastArg(OPT_thinlto_index_only_eq))
+    add("-thinlto-index-only:" + StringRef(arg->getValue()));
+  if (auto *arg = args.getLastArg(OPT_thinlto_jobs_eq))
+    add("-opt:lldltojobs=" + StringRef(arg->getValue()));
+  if (auto *arg = args.getLastArg(OPT_thinlto_object_suffix_replace_eq))
+    add("-thinlto-object-suffix-replace:" + StringRef(arg->getValue()));
+  if (auto *arg = args.getLastArg(OPT_thinlto_prefix_replace_eq))
+    add("-thinlto-prefix-replace:" + StringRef(arg->getValue()));
+
+  for (auto *a : args.filtered(OPT_plugin_opt_eq_minus))
+    add("-mllvm:-" + StringRef(a->getValue()));
+
+  // GCC collect2 passes -plugin-opt=path/to/lto-wrapper with an absolute or
+  // relative path. Just ignore. If not ended with "lto-wrapper" (or
+  // "lto-wrapper.exe" for GCC cross-compiled for Windows), consider it an
+  // unsupported LLVMgold.so option and error.
+  for (opt::Arg *arg : args.filtered(OPT_plugin_opt_eq)) {
+    StringRef v(arg->getValue());
+    if (!v.ends_with("lto-wrapper") && !v.ends_with("lto-wrapper.exe"))
+      error(arg->getSpelling() + ": unknown plugin option '" + arg->getValue() +
+            "'");
+  }
 
   for (auto *a : args.filtered(OPT_Xlink))
     add(a->getValue());
@@ -423,6 +528,8 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
 
   for (auto *a : args.filtered(OPT_require_defined))
     add("-include:" + StringRef(a->getValue()));
+  for (auto *a : args.filtered(OPT_undefined_glob))
+    add("-includeglob:" + StringRef(a->getValue()));
   for (auto *a : args.filtered(OPT_undefined))
     add("-includeoptional:" + StringRef(a->getValue()));
   for (auto *a : args.filtered(OPT_delayload))
@@ -470,7 +577,7 @@ bool link(ArrayRef<const char *> argsArr, llvm::raw_ostream &stdoutOS,
     return false;
 
   if (args.hasArg(OPT_verbose) || args.hasArg(OPT__HASH_HASH_HASH))
-    lld::errs() << llvm::join(linkArgs, " ") << "\n";
+    ctx->e.errs() << llvm::join(linkArgs, " ") << "\n";
 
   if (args.hasArg(OPT__HASH_HASH_HASH))
     return true;

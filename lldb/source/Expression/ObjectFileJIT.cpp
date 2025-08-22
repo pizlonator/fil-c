@@ -25,10 +25,6 @@
 #include "lldb/Utility/Timer.h"
 #include "lldb/Utility/UUID.h"
 
-#ifndef __APPLE__
-#include "Utility/UuidCompatibility.h"
-#endif
-
 using namespace lldb;
 using namespace lldb_private;
 
@@ -182,8 +178,8 @@ bool ObjectFileJIT::SetLoadAddress(Target &target, lldb::addr_t value,
       SectionSP section_sp(section_list->GetSectionAtIndex(sect_idx));
       if (section_sp && section_sp->GetFileSize() > 0 &&
           !section_sp->IsThreadSpecific()) {
-        if (target.GetSectionLoadList().SetSectionLoadAddress(
-                section_sp, section_sp->GetFileAddress() + value))
+        if (target.SetSectionLoadAddress(section_sp,
+                                         section_sp->GetFileAddress() + value))
           ++num_loaded_sections;
       }
     }

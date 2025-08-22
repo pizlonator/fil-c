@@ -17,6 +17,7 @@
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
+#include "llvm/CodeGen/CodeGenTargetMachineImpl.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Target/TargetMachine.h"
 #include <memory>
@@ -24,7 +25,7 @@
 
 namespace llvm {
 
-class ARMBaseTargetMachine : public LLVMTargetMachine {
+class ARMBaseTargetMachine : public CodeGenTargetMachineImpl {
 public:
   enum ARMABI {
     ARM_ABI_UNKNOWN,
@@ -38,11 +39,14 @@ protected:
   bool isLittle;
   mutable StringMap<std::unique_ptr<ARMSubtarget>> SubtargetMap;
 
+  /// Reset internal state.
+  void reset() override;
+
 public:
   ARMBaseTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                        StringRef FS, const TargetOptions &Options,
                        std::optional<Reloc::Model> RM,
-                       std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                       std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                        bool isLittle);
   ~ARMBaseTargetMachine() override;
 
@@ -64,6 +68,7 @@ public:
 
   bool isTargetHardFloat() const {
     return TargetTriple.getEnvironment() == Triple::GNUEABIHF ||
+           TargetTriple.getEnvironment() == Triple::GNUEABIHFT64 ||
            TargetTriple.getEnvironment() == Triple::MuslEABIHF ||
            TargetTriple.getEnvironment() == Triple::EABIHF ||
            (TargetTriple.isOSBinFormatMachO() &&
@@ -83,6 +88,14 @@ public:
     // Addrspacecasts are always noops.
     return true;
   }
+
+  yaml::MachineFunctionInfo *createDefaultFuncInfoYAML() const override;
+  yaml::MachineFunctionInfo *
+  convertFuncInfoToYAML(const MachineFunction &MF) const override;
+  bool parseMachineFunctionInfo(const yaml::MachineFunctionInfo &,
+                                PerFunctionMIParsingState &PFS,
+                                SMDiagnostic &Error,
+                                SMRange &SourceRange) const override;
 };
 
 /// ARM/Thumb little endian target machine.
@@ -92,7 +105,7 @@ public:
   ARMLETargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                      StringRef FS, const TargetOptions &Options,
                      std::optional<Reloc::Model> RM,
-                     std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                     std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                      bool JIT);
 };
 
@@ -103,7 +116,7 @@ public:
   ARMBETargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                      StringRef FS, const TargetOptions &Options,
                      std::optional<Reloc::Model> RM,
-                     std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                     std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                      bool JIT);
 };
 

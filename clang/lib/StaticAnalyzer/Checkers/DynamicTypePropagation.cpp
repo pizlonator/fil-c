@@ -20,8 +20,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "clang/AST/DynamicRecursiveASTVisitor.h"
 #include "clang/AST/ParentMap.h"
-#include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/Builtins.h"
 #include "clang/StaticAnalyzer/Checkers/BuiltinCheckerRegistration.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
@@ -268,12 +268,12 @@ void DynamicTypePropagation::checkPreCall(const CallEvent &Call,
     //   a more-derived class.
 
     switch (Ctor->getOriginExpr()->getConstructionKind()) {
-    case CXXConstructExpr::CK_Complete:
-    case CXXConstructExpr::CK_Delegating:
+    case CXXConstructionKind::Complete:
+    case CXXConstructionKind::Delegating:
       // No additional type info necessary.
       return;
-    case CXXConstructExpr::CK_NonVirtualBase:
-    case CXXConstructExpr::CK_VirtualBase:
+    case CXXConstructionKind::NonVirtualBase:
+    case CXXConstructionKind::VirtualBase:
       if (const MemRegion *Target = Ctor->getCXXThisVal().getAsRegion())
         recordFixedType(Target, Ctor->getDecl(), C);
       return;
@@ -360,16 +360,16 @@ void DynamicTypePropagation::checkPostCall(const CallEvent &Call,
   if (const CXXConstructorCall *Ctor = dyn_cast<CXXConstructorCall>(&Call)) {
     // We may need to undo the effects of our pre-call check.
     switch (Ctor->getOriginExpr()->getConstructionKind()) {
-    case CXXConstructExpr::CK_Complete:
-    case CXXConstructExpr::CK_Delegating:
+    case CXXConstructionKind::Complete:
+    case CXXConstructionKind::Delegating:
       // No additional work necessary.
       // Note: This will leave behind the actual type of the object for
       // complete constructors, but arguably that's a good thing, since it
       // means the dynamic type info will be correct even for objects
       // constructed with operator new.
       return;
-    case CXXConstructExpr::CK_NonVirtualBase:
-    case CXXConstructExpr::CK_VirtualBase:
+    case CXXConstructionKind::NonVirtualBase:
+    case CXXConstructionKind::VirtualBase:
       if (const MemRegion *Target = Ctor->getCXXThisVal().getAsRegion()) {
         // We just finished a base constructor. Now we can use the subclass's
         // type when resolving virtual calls.
@@ -379,9 +379,9 @@ void DynamicTypePropagation::checkPostCall(const CallEvent &Call,
         // aggregates, and in such case no top-frame constructor will be called.
         // Figure out if we need to do anything in this case.
         // FIXME: Instead of relying on the ParentMap, we should have the
-        // trigger-statement (InitListExpr in this case) available in this
-        // callback, ideally as part of CallEvent.
-        if (isa_and_nonnull<InitListExpr>(
+        // trigger-statement (InitListExpr or CXXParenListInitExpr in this case)
+        // available in this callback, ideally as part of CallEvent.
+        if (isa_and_nonnull<InitListExpr, CXXParenListInitExpr>(
                 LCtx->getParentMap().getParent(Ctor->getOriginExpr())))
           return;
 
@@ -711,10 +711,10 @@ static bool isObjCTypeParamDependent(QualType Type) {
   // an Objective-C type can only be dependent on a type parameter when the type
   // parameter structurally present in the type itself.
   class IsObjCTypeParamDependentTypeVisitor
-      : public RecursiveASTVisitor<IsObjCTypeParamDependentTypeVisitor> {
+      : public DynamicRecursiveASTVisitor {
   public:
-    IsObjCTypeParamDependentTypeVisitor() : Result(false) {}
-    bool VisitObjCTypeParamType(const ObjCTypeParamType *Type) {
+    IsObjCTypeParamDependentTypeVisitor() = default;
+    bool VisitObjCTypeParamType(ObjCTypeParamType *Type) override {
       if (isa<ObjCTypeParamDecl>(Type->getDecl())) {
         Result = true;
         return false;
@@ -722,7 +722,7 @@ static bool isObjCTypeParamDependent(QualType Type) {
       return true;
     }
 
-    bool Result;
+    bool Result = false;
   };
 
   IsObjCTypeParamDependentTypeVisitor Visitor;

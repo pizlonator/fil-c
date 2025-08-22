@@ -17,10 +17,10 @@
 #include "M68kSubtarget.h"
 #include "MCTargetDesc/M68kMCTargetDesc.h"
 
+#include "llvm/CodeGen/CodeGenTargetMachineImpl.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/CodeGen/TargetFrameLowering.h"
-#include "llvm/Target/TargetMachine.h"
 
 #include <optional>
 
@@ -28,7 +28,7 @@ namespace llvm {
 class formatted_raw_ostream;
 class M68kRegisterInfo;
 
-class M68kTargetMachine : public LLVMTargetMachine {
+class M68kTargetMachine : public CodeGenTargetMachineImpl {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
   M68kSubtarget Subtarget;
 
@@ -38,7 +38,7 @@ public:
   M68kTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                     StringRef FS, const TargetOptions &Options,
                     std::optional<Reloc::Model> RM,
-                    std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                    std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                     bool JIT);
 
   ~M68kTargetMachine() override;

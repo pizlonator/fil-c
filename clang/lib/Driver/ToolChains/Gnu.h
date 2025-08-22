@@ -12,6 +12,7 @@
 #include "Cuda.h"
 #include "LazyDetector.h"
 #include "ROCm.h"
+#include "SYCL.h"
 #include "clang/Driver/Tool.h"
 #include "clang/Driver/ToolChain.h"
 #include <set>
@@ -218,8 +219,7 @@ public:
 
   public:
     explicit GCCInstallationDetector(const Driver &D) : IsValid(false), D(D) {}
-    void init(const llvm::Triple &TargetTriple, const llvm::opt::ArgList &Args,
-              ArrayRef<std::string> ExtraTripleAliases = std::nullopt);
+    void init(const llvm::Triple &TargetTriple, const llvm::opt::ArgList &Args);
 
     /// Check whether we detected a valid GCC install.
     bool isValid() const { return IsValid; }
@@ -289,6 +289,7 @@ protected:
   GCCInstallationDetector GCCInstallation;
   LazyDetector<CudaInstallationDetector> CudaInstallation;
   LazyDetector<RocmInstallationDetector> RocmInstallation;
+  LazyDetector<SYCLInstallationDetector> SYCLInstallation;
 
 public:
   Generic_GCC(const Driver &D, const llvm::Triple &Triple,
@@ -336,6 +337,9 @@ protected:
   void AddClangCXXStdlibIncludeArgs(
       const llvm::opt::ArgList &DriverArgs,
       llvm::opt::ArgStringList &CC1Args) const override;
+
+  void addSYCLIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                          llvm::opt::ArgStringList &CC1Args) const override;
 
   virtual void
   addLibCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,

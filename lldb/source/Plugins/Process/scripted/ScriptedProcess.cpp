@@ -81,8 +81,8 @@ ScriptedProcess::ScriptedProcess(lldb::TargetSP target_sp,
     : Process(target_sp, listener_sp), m_scripted_metadata(scripted_metadata) {
 
   if (!target_sp) {
-    error.SetErrorStringWithFormat("ScriptedProcess::%s () - ERROR: %s",
-                                   __FUNCTION__, "Invalid target");
+    error = Status::FromErrorStringWithFormat(
+        "ScriptedProcess::%s () - ERROR: %s", __FUNCTION__, "Invalid target");
     return;
   }
 
@@ -90,16 +90,16 @@ ScriptedProcess::ScriptedProcess(lldb::TargetSP target_sp,
       target_sp->GetDebugger().GetScriptInterpreter();
 
   if (!interpreter) {
-    error.SetErrorStringWithFormat("ScriptedProcess::%s () - ERROR: %s",
-                                   __FUNCTION__,
-                                   "Debugger has no Script Interpreter");
+    error = Status::FromErrorStringWithFormat(
+        "ScriptedProcess::%s () - ERROR: %s", __FUNCTION__,
+        "Debugger has no Script Interpreter");
     return;
   }
 
   // Create process instance interface
   m_interface_up = interpreter->CreateScriptedProcessInterface();
   if (!m_interface_up) {
-    error.SetErrorStringWithFormat(
+    error = Status::FromErrorStringWithFormat(
         "ScriptedProcess::%s () - ERROR: %s", __FUNCTION__,
         "Script interpreter couldn't create Scripted Process Interface");
     return;
@@ -108,25 +108,39 @@ ScriptedProcess::ScriptedProcess(lldb::TargetSP target_sp,
   ExecutionContext exe_ctx(target_sp, /*get_process=*/false);
 
   // Create process script object
-  StructuredData::GenericSP object_sp = GetInterface().CreatePluginObject(
+  auto obj_or_err = GetInterface().CreatePluginObject(
       m_scripted_metadata.GetClassName(), exe_ctx,
       m_scripted_metadata.GetArgsSP());
 
+  if (!obj_or_err) {
+    llvm::consumeError(obj_or_err.takeError());
+    error = Status::FromErrorString("Failed to create script object.");
+    return;
+  }
+
+  StructuredData::GenericSP object_sp = *obj_or_err;
+
   if (!object_sp || !object_sp->IsValid()) {
-    error.SetErrorStringWithFormat("ScriptedProcess::%s () - ERROR: %s",
-                                   __FUNCTION__,
-                                   "Failed to create valid script object");
+    error = Status::FromErrorStringWithFormat(
+        "ScriptedProcess::%s () - ERROR: %s", __FUNCTION__,
+        "Failed to create valid script object");
     return;
   }
 }
 
 ScriptedProcess::~ScriptedProcess() {
   Clear();
+  // If the interface is not valid, we can't call Finalize(). When that happens
+  // it means that the Scripted Process instanciation failed and the
+  // CreateProcess function returns a nullptr, so no one besides this class
+  // should have access to that bogus process object.
+  if (!m_interface_up)
+    return;
   // We need to call finalize on the process before destroying ourselves to
   // make sure all of the broadcaster cleanup goes as planned. If we destruct
   // this class, then Process::~Process() might have problems trying to fully
   // destroy the broadcaster.
-  Finalize();
+  Finalize(true /* destructing */);
 }
 
 void ScriptedProcess::Initialize() {
@@ -256,7 +270,8 @@ Status ScriptedProcess::EnableBreakpointSite(BreakpointSite *bp_site) {
   }
 
   if (bp_site->HardwareRequired()) {
-    return Status("Scripted Processes don't support hardware breakpoints");
+    return Status::FromErrorString(
+        "Scripted Processes don't support hardware breakpoints");
   }
 
   Status error;

@@ -31,6 +31,7 @@
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/DebugInfo.h>
 #include <llvm/IR/InlineAsm.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/Operator.h>
 #include <llvm/IR/TypedPointerType.h>
 #include <llvm/IR/Verifier.h>
@@ -5261,7 +5262,8 @@ class Pizlonator {
     if (verbose)
       errs() << "Lowering CE = " << *CE << "\n";
 
-    Instruction* CEInst = CE->getAsInstruction(InsertBefore);
+    Instruction* CEInst = CE->getAsInstruction();
+    CEInst->insertBefore(InsertBefore);
     CEInst->setDebugLoc(InsertBefore->getDebugLoc());
 
     // I am the worst compiler programmer.
@@ -5412,7 +5414,7 @@ class Pizlonator {
     SplitBlockAndInsertIfThen(
       MaskIsZero, BelowLowerTerm, false, nullptr, nullptr, nullptr, II->getParent());
     Instruction* TrailingZeroes = CallInst::Create(
-      Intrinsic::getDeclaration(&M, Intrinsic::cttz, MaskIntTy),
+      Intrinsic::getOrInsertDeclaration(&M, Intrinsic::cttz, MaskIntTy),
       { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", BelowLowerTerm);
     TrailingZeroes->setDebugLoc(II->getDebugLoc());
     Instruction* Offset = BinaryOperator::Create(
@@ -5451,7 +5453,7 @@ class Pizlonator {
     SplitBlockAndInsertIfThen(
       MaskIsZero, AboveUpperTerm, false, nullptr, nullptr, nullptr, II->getParent());
     Instruction* LeadingZeroes = CallInst::Create(
-      Intrinsic::getDeclaration(&M, Intrinsic::ctlz, MaskIntTy),
+      Intrinsic::getOrInsertDeclaration(&M, Intrinsic::ctlz, MaskIntTy),
       { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", AboveUpperTerm);
     LeadingZeroes->setDebugLoc(II->getDebugLoc());
     Instruction* OffsetFromEnd = BinaryOperator::Create(
@@ -6154,6 +6156,13 @@ class Pizlonator {
         lowerConstantOperand(II->getArgOperandUse(0), II);
         II->replaceAllUsesWith(II->getArgOperand(0));
         II->eraseFromParent();
+        return true;
+      }
+
+      case Intrinsic::trap: {
+        CallInst::Create(
+          Error, { getString("llvm trap intrinsic"), getOrigin(I->getDebugLoc()) }, "", I)
+          ->setDebugLoc(I->getDebugLoc());
         return true;
       }
 
@@ -7555,7 +7564,8 @@ class Pizlonator {
       
       Use& U = I->getOperandUse(Index);
       if (ConstantExpr* CE = dyn_cast<ConstantExpr>(U)) {
-        Instruction* NewI = CE->getAsInstruction(InsertBefore);
+        Instruction* NewI = CE->getAsInstruction();
+        NewI->insertBefore(InsertBefore);
         expandConstantExprOperands(NewI);
         U = NewI;
       }
@@ -7728,7 +7738,7 @@ class Pizlonator {
     
     for (Function& F : M.functions()) {
       for (BasicBlock& BB : F) {
-        LandingPadInst* LPI = dyn_cast<LandingPadInst>(BB.getFirstNonPHI());
+        LandingPadInst* LPI = BB.getLandingPadInst();
         if (LPI)
           LPIs.push_back(LPI);
       }
@@ -8261,7 +8271,7 @@ class Pizlonator {
       for (BasicBlock& BB : F) {
         for (Instruction& I : BB) {
           I.dropUnknownNonDebugMetadata();
-          I.dropPoisonGeneratingFlagsAndMetadata();
+          I.dropPoisonGeneratingAnnotations();
           I.dropUBImplyingAttrsAndUnknownMetadata();
         }
       }
@@ -8410,7 +8420,8 @@ public:
     SetjmpTy = FunctionType::get(Int32Ty, RawPtrTy, false);
     SigsetjmpTy = FunctionType::get(Int32Ty, { RawPtrTy, Int32Ty }, false);
     RawNull = ConstantPointerNull::get(RawPtrTy);
-    ThreadlocalAddress = Intrinsic::getDeclaration(&M, Intrinsic::threadlocal_address, { RawPtrTy });
+    ThreadlocalAddress = Intrinsic::getOrInsertDeclaration(
+      &M, Intrinsic::threadlocal_address, { RawPtrTy });
 
     Dummy = makeDummy(Int32Ty);
 
@@ -8660,16 +8671,16 @@ public:
     _Setjmp = M.getOrInsertFunction(
       "_setjmp", Int32Ty, RawPtrTy);
     cast<Function>(_Setjmp.getCallee())->addFnAttr(Attribute::ReturnsTwice);
-    ExpectI1 = Intrinsic::getDeclaration(&M, Intrinsic::expect, Int1Ty);
-    LifetimeStart = Intrinsic::getDeclaration(&M, Intrinsic::lifetime_start, { RawPtrTy });
-    LifetimeEnd = Intrinsic::getDeclaration(&M, Intrinsic::lifetime_end, { RawPtrTy });
+    ExpectI1 = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::expect, Int1Ty);
+    LifetimeStart = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::lifetime_start, { RawPtrTy });
+    LifetimeEnd = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::lifetime_end, { RawPtrTy });
     StackCheckAsm = InlineAsm::get(
       FunctionType::get(VoidTy, { RawPtrTy }, false),
       "cmp %rsp, $0\n\t"
       "jae filc_stack_overflow_failure@PLT",
       "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
       /*hasSideEffects=*/true);
-    DoNothing = Intrinsic::getDeclaration(&M, Intrinsic::donothing, { });
+    DoNothing = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::donothing, { });
 
     cast<Function>(OptimizedAlignmentContradiction.getCallee())->addFnAttr(Attribute::NoReturn);
     cast<Function>(OptimizedAccessCheckFail.getCallee())->addFnAttr(Attribute::NoReturn);

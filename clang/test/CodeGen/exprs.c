@@ -7,7 +7,7 @@ int x=sizeof(zxcv);
 int y=__alignof__(zxcv);
 
 
-void *test(int *i) {
+void test(int *i) {
  short a = 1;
  i += a;
  i + a;
@@ -18,7 +18,7 @@ _Bool test2b;
 int test2(void) { if (test2b); return 0; }
 
 // PR1921
-int test3(void) {
+void test3(void) {
   const unsigned char *bp;
   bp -= (short)1;
 }
@@ -53,7 +53,6 @@ void eMaisUma(void) {
     return;
 }
 
-// rdar://6520707
 void f0(void (*fp)(void), void (*fp2)(void)) {
   int x = fp - fp2;
 }
@@ -105,7 +104,6 @@ int f8(void) {
   return ({ foo(); }).Y;
 }
 
-// rdar://6880558
 struct S;
 struct C {
   int i;
@@ -120,7 +118,6 @@ void f10(void) {
   __builtin_sin(0);
 }
 
-// rdar://7530813
 // CHECK-LABEL: define{{.*}} i32 @f11
 int f11(long X) {
   int A[100];

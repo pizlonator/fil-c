@@ -1,11 +1,10 @@
 //===----------------------------------------------------------------------===//
+//
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-
-// XFAIL: LIBCXX-FREEBSD-FIXME
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17
 // UNSUPPORTED: no-localization
@@ -96,7 +95,7 @@ static void test_valid_values() {
 #endif
 
   // Use supplied locale (ja_JP). This locale has a different alternate on some platforms.
-#if defined(__APPLE__) || defined(_AIX) || defined(_WIN32)
+#if defined(__APPLE__) || defined(_AIX) || defined(_WIN32) || defined(__FreeBSD__)
 #  if defined(_WIN32)
   check(loc, SV("%d=''\t%Od=''\t%e=''\t%Oe=''\n"), lfmt, 0d);
 #  else
@@ -111,12 +110,12 @@ static void test_valid_values() {
 #  else
   check(SV("%d='255'\t%Od='255'\t%e='255'\t%Oe='255'\n"), fmt, 255d);
 #  endif
-#else  // defined(__APPLE__) || defined(_AIX) || defined(_WIN32)
+#else  // defined(__APPLE__) || defined(_AIX) || defined(_WIN32) || defined(__FreeBSD__)
   check(loc, SV("%d='00'\t%Od='〇'\t%e=' 0'\t%Oe='〇'\n"), lfmt, 0d);
   check(loc, SV("%d='01'\t%Od='一'\t%e=' 1'\t%Oe='一'\n"), lfmt, 1d);
   check(loc, SV("%d='31'\t%Od='三十一'\t%e='31'\t%Oe='三十一'\n"), lfmt, 31d);
   check(loc, SV("%d='255'\t%Od='255'\t%e='255'\t%Oe='255'\n"), lfmt, 255d);
-#endif // defined(__APPLE__) || defined(_AIX) || defined(_WIN32)
+#endif // defined(__APPLE__) || defined(_AIX) || defined(_WIN32) || defined(__FreeBSD__)
 
   std::locale::global(std::locale::classic());
 }

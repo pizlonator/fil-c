@@ -1,4 +1,4 @@
-//===-- TextX86GetControlFlowKind.cpp ------------------------------------------===//
+//===-- TestX86GetControlFlowKind.cpp -------------------------------------===//
 
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -20,6 +20,7 @@
 using namespace lldb;
 using namespace lldb_private;
 
+namespace {
 class TestGetControlFlowKindx86 : public testing::Test {
 public:
   static void SetUpTestCase();
@@ -39,6 +40,7 @@ void TestGetControlFlowKindx86::SetUpTestCase() {
 void TestGetControlFlowKindx86::TearDownTestCase() {
   DisassemblerLLVMC::Terminate();
 }
+} // namespace
 
 TEST_F(TestGetControlFlowKindx86, TestX86_64Instruction) {
   ArchSpec arch("x86_64-*-linux");
@@ -122,24 +124,40 @@ TEST_F(TestGetControlFlowKindx86, TestX86_64Instruction) {
 
   DisassemblerSP disass_sp;
   Address start_addr(0x100);
-  disass_sp =
-      Disassembler::DisassembleBytes(arch, nullptr, nullptr, start_addr, &data,
-                                    sizeof (data), num_of_instructions, false);
+  disass_sp = Disassembler::DisassembleBytes(
+      arch, nullptr, nullptr, nullptr, nullptr, start_addr, &data, sizeof(data),
+      num_of_instructions, false);
 
   // If we failed to get a disassembler, we can assume it is because
   // the llvm we linked against was not built with the i386 target,
   // and we should skip these tests without marking anything as failing.
+  if (!disass_sp)
+    return;
 
-  if (disass_sp) {
-    const InstructionList inst_list(disass_sp->GetInstructionList());
-    EXPECT_EQ(num_of_instructions, inst_list.GetSize());
+  const InstructionList inst_list(disass_sp->GetInstructionList());
+  EXPECT_EQ(num_of_instructions, inst_list.GetSize());
 
-    for (size_t i = 0; i < num_of_instructions; ++i) {
-      InstructionSP inst_sp;
-      inst_sp = inst_list.GetInstructionAtIndex(i);
-      ExecutionContext exe_ctx (nullptr, nullptr, nullptr);
-      InstructionControlFlowKind kind = inst_sp->GetControlFlowKind(&exe_ctx);
-      EXPECT_EQ(kind, result[i]);
+  for (size_t i = 0; i < num_of_instructions; ++i) {
+    InstructionSP inst_sp;
+    inst_sp = inst_list.GetInstructionAtIndex(i);
+    ExecutionContext exe_ctx(nullptr, nullptr, nullptr);
+    InstructionControlFlowKind kind = inst_sp->GetControlFlowKind(&exe_ctx);
+    EXPECT_EQ(kind, result[i]);
+
+    // Also, test the DisassemblerLLVMC::MCDisasmInstance methods.
+    if (kind == eInstructionControlFlowKindReturn) {
+      EXPECT_FALSE(inst_sp->IsCall());
+    }
+
+    if (kind == eInstructionControlFlowKindCall) {
+      EXPECT_TRUE(inst_sp->IsCall());
+    }
+
+    if (kind == eInstructionControlFlowKindCall ||
+        kind == eInstructionControlFlowKindJump ||
+        kind == eInstructionControlFlowKindCondJump ||
+        kind == eInstructionControlFlowKindReturn) {
+      EXPECT_TRUE(inst_sp->DoesBranch());
     }
   }
 }

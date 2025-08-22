@@ -14,7 +14,6 @@
 #include "Sparc.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/raw_ostream.h"
@@ -38,8 +37,13 @@ bool SparcInstPrinter::isV9(const MCSubtargetInfo &STI) const {
   return (STI.hasFeature(Sparc::FeatureV9)) != 0;
 }
 
-void SparcInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg) const {
-  OS << '%' << StringRef(getRegisterName(Reg)).lower();
+void SparcInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg) {
+  OS << '%' << getRegisterName(Reg);
+}
+
+void SparcInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg,
+                                    unsigned AltIdx) const {
+  OS << '%' << getRegisterName(Reg, AltIdx);
 }
 
 void SparcInstPrinter::printInst(const MCInst *MI, uint64_t Address,
@@ -111,7 +115,11 @@ void SparcInstPrinter::printOperand(const MCInst *MI, int opNum,
   const MCOperand &MO = MI->getOperand (opNum);
 
   if (MO.isReg()) {
-    printRegName(O, MO.getReg());
+    unsigned Reg = MO.getReg();
+    if (isV9(STI))
+      printRegName(O, Reg, SP::RegNamesStateReg);
+    else
+      printRegName(O, Reg);
     return ;
   }
 
@@ -139,15 +147,7 @@ void SparcInstPrinter::printOperand(const MCInst *MI, int opNum,
 
 void SparcInstPrinter::printMemOperand(const MCInst *MI, int opNum,
                                        const MCSubtargetInfo &STI,
-                                       raw_ostream &O, const char *Modifier) {
-  // If this is an ADD operand, emit it like normal operands.
-  if (Modifier && !strcmp(Modifier, "arith")) {
-    printOperand(MI, opNum, STI, O);
-    O << ", ";
-    printOperand(MI, opNum + 1, STI, O);
-    return;
-  }
-
+                                       raw_ostream &O) {
   const MCOperand &Op1 = MI->getOperand(opNum);
   const MCOperand &Op2 = MI->getOperand(opNum + 1);
 
@@ -241,4 +241,25 @@ void SparcInstPrinter::printMembarTag(const MCInst *MI, int opNum,
       First = false;
     }
   }
+}
+
+void SparcInstPrinter::printASITag(const MCInst *MI, int opNum,
+                                   const MCSubtargetInfo &STI, raw_ostream &O) {
+  unsigned Imm = MI->getOperand(opNum).getImm();
+  auto ASITag = SparcASITag::lookupASITagByEncoding(Imm);
+  if (isV9(STI) && ASITag)
+    O << '#' << ASITag->Name;
+  else
+    O << Imm;
+}
+
+void SparcInstPrinter::printPrefetchTag(const MCInst *MI, int opNum,
+                                        const MCSubtargetInfo &STI,
+                                        raw_ostream &O) {
+  unsigned Imm = MI->getOperand(opNum).getImm();
+  auto PrefetchTag = SparcPrefetchTag::lookupPrefetchTagByEncoding(Imm);
+  if (PrefetchTag)
+    O << '#' << PrefetchTag->Name;
+  else
+    O << Imm;
 }

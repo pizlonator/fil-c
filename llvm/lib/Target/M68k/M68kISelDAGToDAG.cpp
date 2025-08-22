@@ -174,12 +174,10 @@ namespace {
 
 class M68kDAGToDAGISel : public SelectionDAGISel {
 public:
-  static char ID;
-
   M68kDAGToDAGISel() = delete;
 
   explicit M68kDAGToDAGISel(M68kTargetMachine &TM)
-      : SelectionDAGISel(ID, TM), Subtarget(nullptr) {}
+      : SelectionDAGISel(TM), Subtarget(nullptr) {}
 
   bool runOnMachineFunction(MachineFunction &MF) override;
   bool IsProfitableToFold(SDValue N, SDNode *U, SDNode *Root) const override;
@@ -227,7 +225,8 @@ private:
   bool SelectPCD(SDNode *Parent, SDValue N, SDValue &Imm);
   bool SelectPCI(SDNode *Parent, SDValue N, SDValue &Imm, SDValue &Index);
 
-  bool SelectInlineAsmMemoryOperand(const SDValue &Op, unsigned ConstraintID,
+  bool SelectInlineAsmMemoryOperand(const SDValue &Op,
+                                    InlineAsm::ConstraintCode ConstraintID,
                                     std::vector<SDValue> &OutOps) override;
 
   // If Address Mode represents Frame Index store FI in Disp and
@@ -290,17 +289,17 @@ private:
 
   /// Return a target constant with the specified value of type i8.
   inline SDValue getI8Imm(int64_t Imm, const SDLoc &DL) {
-    return CurDAG->getTargetConstant(Imm, DL, MVT::i8);
+    return CurDAG->getSignedTargetConstant(Imm, DL, MVT::i8);
   }
 
   /// Return a target constant with the specified value of type i8.
   inline SDValue getI16Imm(int64_t Imm, const SDLoc &DL) {
-    return CurDAG->getTargetConstant(Imm, DL, MVT::i16);
+    return CurDAG->getSignedTargetConstant(Imm, DL, MVT::i16);
   }
 
   /// Return a target constant with the specified value, of type i32.
   inline SDValue getI32Imm(int64_t Imm, const SDLoc &DL) {
-    return CurDAG->getTargetConstant(Imm, DL, MVT::i32);
+    return CurDAG->getSignedTargetConstant(Imm, DL, MVT::i32);
   }
 
   /// Return a reference to the TargetInstrInfo, casted to the target-specific
@@ -315,15 +314,22 @@ private:
   SDNode *getGlobalBaseReg();
 };
 
-char M68kDAGToDAGISel::ID;
+class M68kDAGToDAGISelLegacy : public SelectionDAGISelLegacy {
+public:
+  static char ID;
+  explicit M68kDAGToDAGISelLegacy(M68kTargetMachine &TM)
+      : SelectionDAGISelLegacy(ID, std::make_unique<M68kDAGToDAGISel>(TM)) {}
+};
+
+char M68kDAGToDAGISelLegacy::ID;
 
 } // namespace
 
-INITIALIZE_PASS(M68kDAGToDAGISel, DEBUG_TYPE, PASS_NAME, false, false)
+INITIALIZE_PASS(M68kDAGToDAGISelLegacy, DEBUG_TYPE, PASS_NAME, false, false)
 
 bool M68kDAGToDAGISel::IsProfitableToFold(SDValue N, SDNode *U,
                                           SDNode *Root) const {
-  if (OptLevel == CodeGenOpt::None)
+  if (OptLevel == CodeGenOptLevel::None)
     return false;
 
   if (U == Root) {
@@ -356,7 +362,7 @@ bool M68kDAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 /// This pass converts a legalized DAG into a M68k-specific DAG,
 /// ready for instruction scheduling.
 FunctionPass *llvm::createM68kISelDag(M68kTargetMachine &TM) {
-  return new M68kDAGToDAGISel(TM);
+  return new M68kDAGToDAGISelLegacy(TM);
 }
 
 static bool doesDispFitFI(M68kISelAddressMode &AM) {
@@ -702,6 +708,20 @@ bool M68kDAGToDAGISel::SelectARIPD(SDNode *Parent, SDValue N, SDValue &Base) {
   return false;
 }
 
+[[maybe_unused]] static bool allowARIDWithDisp(SDNode *Parent) {
+  if (!Parent)
+    return false;
+  switch (Parent->getOpcode()) {
+  case ISD::LOAD:
+  case ISD::STORE:
+  case ISD::ATOMIC_LOAD:
+  case ISD::ATOMIC_STORE:
+    return true;
+  default:
+    return false;
+  }
+}
+
 bool M68kDAGToDAGISel::SelectARID(SDNode *Parent, SDValue N, SDValue &Disp,
                                   SDValue &Base) {
   LLVM_DEBUG(dbgs() << "Selecting AddrType::ARID: ");
@@ -734,7 +754,8 @@ bool M68kDAGToDAGISel::SelectARID(SDNode *Parent, SDValue N, SDValue &Disp,
   Base = AM.BaseReg;
 
   if (getSymbolicDisplacement(AM, SDLoc(N), Disp)) {
-    assert(!AM.Disp && "Should not be any displacement");
+    assert((!AM.Disp || allowARIDWithDisp(Parent)) &&
+           "Should not be any displacement");
     LLVM_DEBUG(dbgs() << "SUCCESS, matched Symbol\n");
     return true;
   }
@@ -760,6 +781,21 @@ static bool isAddressBase(const SDValue &N) {
   case M68kISD::Wrapper:
   case M68kISD::WrapperPC:
   case M68kISD::GLOBAL_BASE_REG:
+    return true;
+  default:
+    return false;
+  }
+}
+
+static bool AllowARIIWithZeroDisp(SDNode *Parent) {
+  if (!Parent)
+    return false;
+  switch (Parent->getOpcode()) {
+  case ISD::LOAD:
+  case ISD::STORE:
+  case ISD::ATOMIC_LOAD:
+  case ISD::ATOMIC_STORE:
+  case ISD::ATOMIC_CMP_SWAP:
     return true;
   default:
     return false;
@@ -805,8 +841,7 @@ bool M68kDAGToDAGISel::SelectARII(SDNode *Parent, SDValue N, SDValue &Disp,
   // The idea here is that we want to use AddrType::ARII without displacement
   // only if necessary like memory operations, otherwise this must be lowered
   // into addition
-  if (AM.Disp == 0 && (!Parent || (Parent->getOpcode() != ISD::LOAD &&
-                                   Parent->getOpcode() != ISD::STORE))) {
+  if (AM.Disp == 0 && !AllowARIIWithZeroDisp(Parent)) {
     LLVM_DEBUG(dbgs() << "REJECT: Displacement is Zero\n");
     return false;
   }
@@ -953,7 +988,8 @@ bool M68kDAGToDAGISel::SelectARI(SDNode *Parent, SDValue N, SDValue &Base) {
 }
 
 bool M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(
-    const SDValue &Op, unsigned ConstraintID, std::vector<SDValue> &OutOps) {
+    const SDValue &Op, InlineAsm::ConstraintCode ConstraintID,
+    std::vector<SDValue> &OutOps) {
   // In order to tell AsmPrinter the exact addressing mode we select here, which
   // might comprise of multiple SDValues (hence MachineOperands), a 32-bit
   // immediate value is prepended to the list of selected SDValues to indicate
@@ -966,7 +1002,7 @@ bool M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(
 
   switch (ConstraintID) {
   // Generic memory operand.
-  case InlineAsm::Constraint_m: {
+  case InlineAsm::ConstraintCode::m: {
     // Try every supported (memory) addressing modes.
     SDValue Operands[4];
 
@@ -997,7 +1033,7 @@ bool M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(
     return true;
   }
   // 'Q': Address register indirect addressing.
-  case InlineAsm::Constraint_Q: {
+  case InlineAsm::ConstraintCode::Q: {
     SDValue AMKind, Base;
     // 'j' addressing mode.
     // TODO: Add support for 'o' and 'e' after their
@@ -1009,7 +1045,7 @@ bool M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(
     return true;
   }
   // 'U': Address register indirect w/ constant offset addressing.
-  case InlineAsm::Constraint_Um: {
+  case InlineAsm::ConstraintCode::Um: {
     SDValue AMKind, Base, Offset;
     // 'p' addressing mode.
     if (SelectARID(nullptr, Op, Offset, Base) && addKind(AMKind, AMK::p)) {

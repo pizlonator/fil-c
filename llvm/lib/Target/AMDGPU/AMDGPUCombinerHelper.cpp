@@ -9,12 +9,20 @@
 #include "AMDGPUCombinerHelper.h"
 #include "GCNSubtarget.h"
 #include "MCTargetDesc/AMDGPUMCTargetDesc.h"
+#include "llvm/CodeGen/GlobalISel/GenericMachineInstrs.h"
 #include "llvm/CodeGen/GlobalISel/MIPatternMatch.h"
 #include "llvm/IR/IntrinsicsAMDGPU.h"
 #include "llvm/Target/TargetMachine.h"
 
 using namespace llvm;
 using namespace MIPatternMatch;
+
+AMDGPUCombinerHelper::AMDGPUCombinerHelper(
+    GISelChangeObserver &Observer, MachineIRBuilder &B, bool IsPreLegalize,
+    GISelKnownBits *KB, MachineDominatorTree *MDT, const LegalizerInfo *LI,
+    const GCNSubtarget &STI)
+    : CombinerHelper(Observer, B, IsPreLegalize, KB, MDT, LI), STI(STI),
+      TII(*STI.getInstrInfo()) {}
 
 LLVM_READNONE
 static bool fnegFoldsIntoMI(const MachineInstr &MI) {
@@ -28,6 +36,8 @@ static bool fnegFoldsIntoMI(const MachineInstr &MI) {
   case AMDGPU::G_FMAXNUM:
   case AMDGPU::G_FMINNUM_IEEE:
   case AMDGPU::G_FMAXNUM_IEEE:
+  case AMDGPU::G_FMINIMUM:
+  case AMDGPU::G_FMAXIMUM:
   case AMDGPU::G_FSIN:
   case AMDGPU::G_FPEXT:
   case AMDGPU::G_INTRINSIC_TRUNC:
@@ -42,7 +52,7 @@ static bool fnegFoldsIntoMI(const MachineInstr &MI) {
   case AMDGPU::G_AMDGPU_FMAX_LEGACY:
     return true;
   case AMDGPU::G_INTRINSIC: {
-    unsigned IntrinsicID = MI.getIntrinsicID();
+    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID();
     switch (IntrinsicID) {
     case Intrinsic::amdgcn_rcp:
     case Intrinsic::amdgcn_rcp_legacy:
@@ -66,8 +76,7 @@ static bool fnegFoldsIntoMI(const MachineInstr &MI) {
 LLVM_READONLY
 static bool opMustUseVOP3Encoding(const MachineInstr &MI,
                                   const MachineRegisterInfo &MRI) {
-  return MI.getNumOperands() >
-             (MI.getOpcode() == AMDGPU::G_INTRINSIC ? 4u : 3u) ||
+  return MI.getNumOperands() > (isa<GIntrinsic>(MI) ? 4u : 3u) ||
          MRI.getType(MI.getOperand(0).getReg()).getScalarSizeInBits() == 64;
 }
 
@@ -85,14 +94,16 @@ static bool hasSourceMods(const MachineInstr &MI) {
   case TargetOpcode::INLINEASM:
   case TargetOpcode::INLINEASM_BR:
   case AMDGPU::G_INTRINSIC_W_SIDE_EFFECTS:
+  case AMDGPU::G_INTRINSIC_CONVERGENT_W_SIDE_EFFECTS:
   case AMDGPU::G_BITCAST:
   case AMDGPU::G_ANYEXT:
   case AMDGPU::G_BUILD_VECTOR:
   case AMDGPU::G_BUILD_VECTOR_TRUNC:
   case AMDGPU::G_PHI:
     return false;
-  case AMDGPU::G_INTRINSIC: {
-    unsigned IntrinsicID = MI.getIntrinsicID();
+  case AMDGPU::G_INTRINSIC:
+  case AMDGPU::G_INTRINSIC_CONVERGENT: {
+    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MI).getIntrinsicID();
     switch (IntrinsicID) {
     case Intrinsic::amdgcn_interp_p1:
     case Intrinsic::amdgcn_interp_p2:
@@ -172,6 +183,10 @@ static unsigned inverseMinMax(unsigned Opc) {
     return AMDGPU::G_FMINNUM_IEEE;
   case AMDGPU::G_FMINNUM_IEEE:
     return AMDGPU::G_FMAXNUM_IEEE;
+  case AMDGPU::G_FMAXIMUM:
+    return AMDGPU::G_FMINIMUM;
+  case AMDGPU::G_FMINIMUM:
+    return AMDGPU::G_FMAXIMUM;
   case AMDGPU::G_AMDGPU_FMAX_LEGACY:
     return AMDGPU::G_AMDGPU_FMIN_LEGACY;
   case AMDGPU::G_AMDGPU_FMIN_LEGACY:
@@ -182,7 +197,7 @@ static unsigned inverseMinMax(unsigned Opc) {
 }
 
 bool AMDGPUCombinerHelper::matchFoldableFneg(MachineInstr &MI,
-                                             MachineInstr *&MatchInfo) {
+                                             MachineInstr *&MatchInfo) const {
   Register Src = MI.getOperand(1).getReg();
   MatchInfo = MRI.getVRegDef(Src);
 
@@ -205,6 +220,8 @@ bool AMDGPUCombinerHelper::matchFoldableFneg(MachineInstr &MI,
   case AMDGPU::G_FMAXNUM:
   case AMDGPU::G_FMINNUM_IEEE:
   case AMDGPU::G_FMAXNUM_IEEE:
+  case AMDGPU::G_FMINIMUM:
+  case AMDGPU::G_FMAXIMUM:
   case AMDGPU::G_AMDGPU_FMIN_LEGACY:
   case AMDGPU::G_AMDGPU_FMAX_LEGACY:
     // 0 doesn't have a negated inline immediate.
@@ -227,8 +244,9 @@ bool AMDGPUCombinerHelper::matchFoldableFneg(MachineInstr &MI,
   case AMDGPU::G_FCANONICALIZE:
   case AMDGPU::G_AMDGPU_RCP_IFLAG:
     return true;
-  case AMDGPU::G_INTRINSIC: {
-    unsigned IntrinsicID = MatchInfo->getIntrinsicID();
+  case AMDGPU::G_INTRINSIC:
+  case AMDGPU::G_INTRINSIC_CONVERGENT: {
+    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MatchInfo)->getIntrinsicID();
     switch (IntrinsicID) {
     case Intrinsic::amdgcn_rcp:
     case Intrinsic::amdgcn_rcp_legacy:
@@ -248,7 +266,7 @@ bool AMDGPUCombinerHelper::matchFoldableFneg(MachineInstr &MI,
 }
 
 void AMDGPUCombinerHelper::applyFoldableFneg(MachineInstr &MI,
-                                             MachineInstr *&MatchInfo) {
+                                             MachineInstr *&MatchInfo) const {
   // Transform:
   // %A = inst %Op1, ...
   // %B = fneg %A
@@ -301,6 +319,8 @@ void AMDGPUCombinerHelper::applyFoldableFneg(MachineInstr &MI,
   case AMDGPU::G_FMAXNUM:
   case AMDGPU::G_FMINNUM_IEEE:
   case AMDGPU::G_FMAXNUM_IEEE:
+  case AMDGPU::G_FMINIMUM:
+  case AMDGPU::G_FMAXIMUM:
   case AMDGPU::G_AMDGPU_FMIN_LEGACY:
   case AMDGPU::G_AMDGPU_FMAX_LEGACY: {
     NegateOperand(MatchInfo->getOperand(1));
@@ -326,8 +346,9 @@ void AMDGPUCombinerHelper::applyFoldableFneg(MachineInstr &MI,
   case AMDGPU::G_FPTRUNC:
     NegateOperand(MatchInfo->getOperand(1));
     break;
-  case AMDGPU::G_INTRINSIC: {
-    unsigned IntrinsicID = MatchInfo->getIntrinsicID();
+  case AMDGPU::G_INTRINSIC:
+  case AMDGPU::G_INTRINSIC_CONVERGENT: {
+    Intrinsic::ID IntrinsicID = cast<GIntrinsic>(MatchInfo)->getIntrinsicID();
     switch (IntrinsicID) {
     case Intrinsic::amdgcn_rcp:
     case Intrinsic::amdgcn_rcp_legacy:
@@ -404,7 +425,7 @@ static bool isFPExtFromF16OrConst(const MachineRegisterInfo &MRI,
 bool AMDGPUCombinerHelper::matchExpandPromotedF16FMed3(MachineInstr &MI,
                                                        Register Src0,
                                                        Register Src1,
-                                                       Register Src2) {
+                                                       Register Src2) const {
   assert(MI.getOpcode() == TargetOpcode::G_FPTRUNC);
   Register SrcReg = MI.getOperand(1).getReg();
   if (!MRI.hasOneNonDBGUse(SrcReg) || MRI.getType(SrcReg) != LLT::scalar(32))
@@ -417,9 +438,7 @@ bool AMDGPUCombinerHelper::matchExpandPromotedF16FMed3(MachineInstr &MI,
 void AMDGPUCombinerHelper::applyExpandPromotedF16FMed3(MachineInstr &MI,
                                                        Register Src0,
                                                        Register Src1,
-                                                       Register Src2) {
-  Builder.setInstrAndDebugLoc(MI);
-
+                                                       Register Src2) const {
   // We expect fptrunc (fpext x) to fold out, and to constant fold any constant
   // sources.
   Src0 = Builder.buildFPTrunc(LLT::scalar(16), Src0).getReg(0);
@@ -432,4 +451,68 @@ void AMDGPUCombinerHelper::applyExpandPromotedF16FMed3(MachineInstr &MI,
   auto C1 = Builder.buildFMaxNumIEEE(Ty, A1, Src2);
   Builder.buildFMinNumIEEE(MI.getOperand(0), B1, C1);
   MI.eraseFromParent();
+}
+
+bool AMDGPUCombinerHelper::matchCombineFmulWithSelectToFldexp(
+    MachineInstr &MI, MachineInstr &Sel,
+    std::function<void(MachineIRBuilder &)> &MatchInfo) const {
+  assert(MI.getOpcode() == TargetOpcode::G_FMUL);
+  assert(Sel.getOpcode() == TargetOpcode::G_SELECT);
+  assert(MI.getOperand(2).getReg() == Sel.getOperand(0).getReg());
+
+  Register Dst = MI.getOperand(0).getReg();
+  LLT DestTy = MRI.getType(Dst);
+  LLT ScalarDestTy = DestTy.getScalarType();
+
+  if ((ScalarDestTy != LLT::float64() && ScalarDestTy != LLT::float32() &&
+       ScalarDestTy != LLT::float16()) ||
+      !MRI.hasOneNonDBGUse(Sel.getOperand(0).getReg()))
+    return false;
+
+  Register SelectCondReg = Sel.getOperand(1).getReg();
+  MachineInstr *SelectTrue = MRI.getVRegDef(Sel.getOperand(2).getReg());
+  MachineInstr *SelectFalse = MRI.getVRegDef(Sel.getOperand(3).getReg());
+
+  const auto SelectTrueVal =
+      isConstantOrConstantSplatVectorFP(*SelectTrue, MRI);
+  if (!SelectTrueVal)
+    return false;
+  const auto SelectFalseVal =
+      isConstantOrConstantSplatVectorFP(*SelectFalse, MRI);
+  if (!SelectFalseVal)
+    return false;
+
+  if (SelectTrueVal->isNegative() != SelectFalseVal->isNegative())
+    return false;
+
+  // For f32, only non-inline constants should be transformed.
+  if (ScalarDestTy == LLT::float32() && TII.isInlineConstant(*SelectTrueVal) &&
+      TII.isInlineConstant(*SelectFalseVal))
+    return false;
+
+  int SelectTrueLog2Val = SelectTrueVal->getExactLog2Abs();
+  if (SelectTrueLog2Val == INT_MIN)
+    return false;
+  int SelectFalseLog2Val = SelectFalseVal->getExactLog2Abs();
+  if (SelectFalseLog2Val == INT_MIN)
+    return false;
+
+  MatchInfo = [=, &MI](MachineIRBuilder &Builder) {
+    LLT IntDestTy = DestTy.changeElementType(LLT::scalar(32));
+    auto NewSel = Builder.buildSelect(
+        IntDestTy, SelectCondReg,
+        Builder.buildConstant(IntDestTy, SelectTrueLog2Val),
+        Builder.buildConstant(IntDestTy, SelectFalseLog2Val));
+
+    Register XReg = MI.getOperand(1).getReg();
+    if (SelectTrueVal->isNegative()) {
+      auto NegX =
+          Builder.buildFNeg(DestTy, XReg, MRI.getVRegDef(XReg)->getFlags());
+      Builder.buildFLdexp(Dst, NegX, NewSel, MI.getFlags());
+    } else {
+      Builder.buildFLdexp(Dst, XReg, NewSel, MI.getFlags());
+    }
+  };
+
+  return true;
 }

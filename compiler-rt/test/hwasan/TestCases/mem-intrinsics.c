@@ -3,7 +3,7 @@
 // RUN: %clang_hwasan %s -DTEST_NO=3 -mllvm -hwasan-instrument-mem-intrinsics -o %t && not %run %t 2>&1 | FileCheck %s --check-prefix=WRITE
 // RUN: %clang_hwasan %s -DTEST_NO=2 -mllvm -hwasan-instrument-mem-intrinsics -o %t && not %env_hwasan_opts=halt_on_error=0 %run %t 2>&1 | FileCheck %s --check-prefix=RECOVER
 
-// REQUIRES: stable-runtime, pointer-tagging
+// REQUIRES: pointer-tagging
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +21,7 @@ int main() {
   memcpy(Q, P, 32);
 #endif
   write(STDOUT_FILENO, "recovered\n", 10);
+  fflush(stdout);
   // WRITE: ERROR: HWAddressSanitizer: tag-mismatch on address
   // WRITE: WRITE of size 32 at {{.*}} tags: [[PTR_TAG:..]]/[[MEM_TAG:..]] (ptr/mem)
   // WRITE: Invalid access starting at offset 16

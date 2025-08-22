@@ -1,9 +1,10 @@
 if (APPLE AND LLVM_ENABLE_LOCAL_SUBMODULE_VISIBILITY)
   # The arpa/inet.h header used in the files here is providing a miscompiled
-  # htonl function on macOS <= 10.15 when local submodule visibility is active.
-  # Disabling modules in this directory until this is is fixed.
-  # See rdar://problem/62886385
-  remove_module_flags()
+  # htonl function on macOS < 14 when local submodule visibility is active.
+  if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 14.0)
+    # Disabling modules in this directory.
+    remove_module_flags()
+  endif()
 endif()
 
 macro(add_host_subdirectory group)
@@ -12,6 +13,7 @@ macro(add_host_subdirectory group)
 endmacro()
 
 add_host_subdirectory(common
+  common/Alarm.cpp
   common/FileAction.cpp
   common/FileCache.cpp
   common/File.cpp
@@ -35,6 +37,7 @@ add_host_subdirectory(common
   common/ProcessLaunchInfo.cpp
   common/ProcessRunLock.cpp
   common/PseudoTerminal.cpp
+  common/StreamFile.cpp
   common/SocketAddress.cpp
   common/Socket.cpp
   common/TCPSocket.cpp
@@ -110,7 +113,6 @@ else()
     if (CMAKE_SYSTEM_NAME MATCHES "Android")
       add_host_subdirectory(android
         android/HostInfoAndroid.cpp
-        android/LibcGlue.cpp
         )
     endif()
   elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
@@ -130,6 +132,11 @@ else()
       openbsd/Host.cpp
       openbsd/HostInfoOpenBSD.cpp
       )
+
+  elseif (CMAKE_SYSTEM_NAME MATCHES "AIX")
+    add_host_subdirectory(aix
+      aix/HostInfoAIX.cpp
+      )    
   endif()
 endif()
 

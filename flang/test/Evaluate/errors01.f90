@@ -6,8 +6,8 @@ module m
     real x
   end type t
  contains
-  subroutine s1(a,b)
-    real :: a(*), b(:)
+  subroutine s1(a,b,c)
+    real :: a(*), b(:), c(..)
     !CHECK: error: DIM=1 dimension is out of range for rank-1 assumed-size array
     integer :: ub1(ubound(a,1))
     !CHECK-NOT: error: DIM=1 dimension is out of range for rank-1 assumed-size array
@@ -20,6 +20,10 @@ module m
     integer :: lb2(lbound(b,0))
     !CHECK: error: DIM=2 dimension is out of range for rank-1 array
     integer :: lb3(lbound(b,2))
+    !CHECK: error: DIM=0 dimension must be positive
+    integer :: lb4(lbound(c,0))
+    !CHECK: error: DIM=666 dimension is too large for any array (maximum rank 15)
+    integer :: lb4(lbound(c,666))
   end subroutine
   subroutine s2
     integer, parameter :: array(2,3) = reshape([(j, j=1, 6)], shape(array))
@@ -164,10 +168,13 @@ module m
     print *, ibits(0, 33, n)
   end
   subroutine warnings
+    use ieee_arithmetic, only: ieee_scalb
     real, parameter :: ok1 = scale(0.0, 99999) ! 0.0
     real, parameter :: ok2 = scale(1.0, -99999) ! 0.0
-    !CHECK: SCALE intrinsic folding overflow
+    !CHECK: SCALE/IEEE_SCALB intrinsic folding overflow
     real, parameter :: bad1 = scale(1.0, 99999)
+    !CHECK: SCALE/IEEE_SCALB intrinsic folding overflow
+    real, parameter :: bad1a = ieee_scalb(1.0, 99999)
     !CHECK: complex ABS intrinsic folding overflow
     real, parameter :: bad2 = abs(cmplx(huge(0.),huge(0.)))
     !CHECK: warning: DIM intrinsic folding overflow
@@ -188,6 +195,8 @@ module m
     real, parameter :: bad10 = product([huge(1.),huge(1.)])
     !CHECK: warning: PRODUCT() of COMPLEX(4) data overflowed
     complex, parameter :: bad11 = product([(huge(1.),0.),(huge(1.),0.)])
+    !CHECK: warning: conversion of 111111111111111111111_16 to INTEGER(8) overflowed; result is 430646668853801415
+    integer(8), parameter :: bad12 = int(111111111111111111111, 8)
     !CHECK: warning: overflow on REAL(8) to REAL(4) conversion
     x = 1.D40
     !CHECK-NOT: warning: invalid argument

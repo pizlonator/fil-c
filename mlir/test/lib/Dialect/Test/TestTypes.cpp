@@ -21,6 +21,7 @@
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/TypeSwitch.h"
+#include "llvm/Support/TypeSize.h"
 #include <optional>
 
 using namespace mlir;
@@ -89,14 +90,14 @@ static llvm::hash_code test::hash_value(const FieldInfo &fi) { // NOLINT
 // TestCustomType
 //===----------------------------------------------------------------------===//
 
-static LogicalResult parseCustomTypeA(AsmParser &parser, int &aResult) {
+static ParseResult parseCustomTypeA(AsmParser &parser, int &aResult) {
   return parser.parseInteger(aResult);
 }
 
 static void printCustomTypeA(AsmPrinter &printer, int a) { printer << a; }
 
-static LogicalResult parseCustomTypeB(AsmParser &parser, int a,
-                                      std::optional<int> &bResult) {
+static ParseResult parseCustomTypeB(AsmParser &parser, int a,
+                                    std::optional<int> &bResult) {
   if (a < 0)
     return success();
   for (int i : llvm::seq(0, a))
@@ -115,7 +116,7 @@ static void printCustomTypeB(AsmPrinter &printer, int a, std::optional<int> b) {
   printer << *b;
 }
 
-static LogicalResult parseFooString(AsmParser &parser, std::string &foo) {
+static ParseResult parseFooString(AsmParser &parser, std::string &foo) {
   std::string result;
   if (parser.parseString(&result))
     return failure();
@@ -127,7 +128,7 @@ static void printFooString(AsmPrinter &printer, StringRef foo) {
   printer << '"' << foo << '"';
 }
 
-static LogicalResult parseBarString(AsmParser &parser, StringRef foo) {
+static ParseResult parseBarString(AsmParser &parser, StringRef foo) {
   return parser.parseKeyword(foo);
 }
 
@@ -138,6 +139,7 @@ static void printBarString(AsmPrinter &printer, StringRef foo) {
 // Tablegen Generated Definitions
 //===----------------------------------------------------------------------===//
 
+#include "TestTypeInterfaces.cpp.inc"
 #define GET_TYPEDEF_CLASSES
 #include "TestTypeDefs.cpp.inc"
 
@@ -258,21 +260,27 @@ void TestTypeWithLayoutType::print(AsmPrinter &printer) const {
   printer << "<" << getKey() << ">";
 }
 
-unsigned
+llvm::TypeSize
 TestTypeWithLayoutType::getTypeSizeInBits(const DataLayout &dataLayout,
                                           DataLayoutEntryListRef params) const {
-  return extractKind(params, "size");
+  return llvm::TypeSize::getFixed(extractKind(params, "size"));
 }
 
-unsigned
+uint64_t
 TestTypeWithLayoutType::getABIAlignment(const DataLayout &dataLayout,
                                         DataLayoutEntryListRef params) const {
   return extractKind(params, "alignment");
 }
 
-unsigned TestTypeWithLayoutType::getPreferredAlignment(
+uint64_t TestTypeWithLayoutType::getPreferredAlignment(
     const DataLayout &dataLayout, DataLayoutEntryListRef params) const {
   return extractKind(params, "preferred");
+}
+
+std::optional<uint64_t>
+TestTypeWithLayoutType::getIndexBitwidth(const DataLayout &dataLayout,
+                                         DataLayoutEntryListRef params) const {
+  return extractKind(params, "index");
 }
 
 bool TestTypeWithLayoutType::areCompatible(
@@ -287,8 +295,9 @@ TestTypeWithLayoutType::verifyEntries(DataLayoutEntryListRef params,
   for (DataLayoutEntryInterface entry : params) {
     // This is for testing purposes only, so assert well-formedness.
     assert(entry.isTypeEntry() && "unexpected identifier entry");
-    assert(llvm::isa<TestTypeWithLayoutType>(entry.getKey().get<Type>()) &&
-           "wrong type passed in");
+    assert(
+        llvm::isa<TestTypeWithLayoutType>(llvm::cast<Type>(entry.getKey())) &&
+        "wrong type passed in");
     auto array = llvm::dyn_cast<ArrayAttr>(entry.getValue());
     assert(array && array.getValue().size() == 2 &&
            "expected array of two elements");
@@ -296,14 +305,14 @@ TestTypeWithLayoutType::verifyEntries(DataLayoutEntryListRef params,
     (void)kind;
     assert(kind &&
            (kind.getValue() == "size" || kind.getValue() == "alignment" ||
-            kind.getValue() == "preferred") &&
+            kind.getValue() == "preferred" || kind.getValue() == "index") &&
            "unexpected kind");
     assert(llvm::isa<IntegerAttr>(array.getValue().back()));
   }
   return success();
 }
 
-unsigned TestTypeWithLayoutType::extractKind(DataLayoutEntryListRef params,
+uint64_t TestTypeWithLayoutType::extractKind(DataLayoutEntryListRef params,
                                              StringRef expectedKind) const {
   for (DataLayoutEntryInterface entry : params) {
     ArrayRef<Attribute> pair =
@@ -404,8 +413,7 @@ void TestDialect::registerTypes() {
   registerDynamicType(getCustomAssemblyFormatDynamicType(this));
 }
 
-Type TestDialect::parseTestType(AsmParser &parser,
-                                SetVector<Type> &stack) const {
+Type TestDialect::parseType(DialectAsmParser &parser) const {
   StringRef typeTag;
   {
     Type genType;
@@ -434,9 +442,12 @@ Type TestDialect::parseTestType(AsmParser &parser,
     return Type();
   auto rec = TestRecursiveType::get(parser.getContext(), name);
 
+  FailureOr<AsmParser::CyclicParseReset> cyclicParse =
+      parser.tryStartCyclicParse(rec);
+
   // If this type already has been parsed above in the stack, expect just the
   // name.
-  if (stack.contains(rec)) {
+  if (failed(cyclicParse)) {
     if (failed(parser.parseGreater()))
       return Type();
     return rec;
@@ -445,22 +456,14 @@ Type TestDialect::parseTestType(AsmParser &parser,
   // Otherwise, parse the body and update the type.
   if (failed(parser.parseComma()))
     return Type();
-  stack.insert(rec);
-  Type subtype = parseTestType(parser, stack);
-  stack.pop_back();
+  Type subtype = parseType(parser);
   if (!subtype || failed(parser.parseGreater()) || failed(rec.setBody(subtype)))
     return Type();
 
   return rec;
 }
 
-Type TestDialect::parseType(DialectAsmParser &parser) const {
-  SetVector<Type> stack;
-  return parseTestType(parser, stack);
-}
-
-void TestDialect::printTestType(Type type, AsmPrinter &printer,
-                                SetVector<Type> &stack) const {
+void TestDialect::printType(Type type, DialectAsmPrinter &printer) const {
   if (succeeded(generatedTypePrinter(type, printer)))
     return;
 
@@ -468,19 +471,16 @@ void TestDialect::printTestType(Type type, AsmPrinter &printer,
     return;
 
   auto rec = llvm::cast<TestRecursiveType>(type);
+
+  FailureOr<AsmPrinter::CyclicPrintReset> cyclicPrint =
+      printer.tryStartCyclicPrint(rec);
+
   printer << "test_rec<" << rec.getName();
-  if (!stack.contains(rec)) {
+  if (succeeded(cyclicPrint)) {
     printer << ", ";
-    stack.insert(rec);
-    printTestType(rec.getBody(), printer, stack);
-    stack.pop_back();
+    printType(rec.getBody(), printer);
   }
   printer << ">";
-}
-
-void TestDialect::printType(Type type, DialectAsmPrinter &printer) const {
-  SetVector<Type> stack;
-  printTestType(type, printer, stack);
 }
 
 Type TestRecursiveAliasType::getBody() const { return getImpl()->body; }
@@ -490,16 +490,17 @@ void TestRecursiveAliasType::setBody(Type type) { (void)Base::mutate(type); }
 StringRef TestRecursiveAliasType::getName() const { return getImpl()->name; }
 
 Type TestRecursiveAliasType::parse(AsmParser &parser) {
-  thread_local static SetVector<Type> stack;
-
   StringRef name;
   if (parser.parseLess() || parser.parseKeyword(&name))
     return Type();
   auto rec = TestRecursiveAliasType::get(parser.getContext(), name);
 
+  FailureOr<AsmParser::CyclicParseReset> cyclicParse =
+      parser.tryStartCyclicParse(rec);
+
   // If this type already has been parsed above in the stack, expect just the
   // name.
-  if (stack.contains(rec)) {
+  if (failed(cyclicParse)) {
     if (failed(parser.parseGreater()))
       return Type();
     return rec;
@@ -508,11 +509,9 @@ Type TestRecursiveAliasType::parse(AsmParser &parser) {
   // Otherwise, parse the body and update the type.
   if (failed(parser.parseComma()))
     return Type();
-  stack.insert(rec);
   Type subtype;
   if (parser.parseType(subtype))
     return nullptr;
-  stack.pop_back();
   if (!subtype || failed(parser.parseGreater()))
     return Type();
 
@@ -522,14 +521,19 @@ Type TestRecursiveAliasType::parse(AsmParser &parser) {
 }
 
 void TestRecursiveAliasType::print(AsmPrinter &printer) const {
-  thread_local static SetVector<Type> stack;
+
+  FailureOr<AsmPrinter::CyclicPrintReset> cyclicPrint =
+      printer.tryStartCyclicPrint(*this);
 
   printer << "<" << getName();
-  if (!stack.contains(*this)) {
+  if (succeeded(cyclicPrint)) {
     printer << ", ";
-    stack.insert(*this);
     printer << getBody();
-    stack.pop_back();
   }
   printer << ">";
+}
+
+void TestTypeOpAsmTypeInterfaceType::getAsmName(
+    OpAsmSetNameFn setNameFn) const {
+  setNameFn("op_asm_type_interface");
 }

@@ -9,6 +9,7 @@ set(LLVM_LINK_COMPONENTS
 add_clang_unittest(ClangDriverTests
   DistroTest.cpp
   DXCModeTest.cpp
+  GCCVersionTest.cpp
   ToolChainTest.cpp
   ModuleCacheTest.cpp
   MultilibBuilderTest.cpp
@@ -21,4 +22,5 @@ clang_target_link_libraries(ClangDriverTests
   clangDriver
   clangBasic
   clangFrontend # For TextDiagnosticPrinter.
+  clangSerialization
   )

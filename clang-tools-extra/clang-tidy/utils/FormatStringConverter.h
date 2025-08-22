@@ -32,9 +32,16 @@ class FormatStringConverter
 public:
   using ConversionSpecifier = clang::analyze_format_string::ConversionSpecifier;
   using PrintfSpecifier = analyze_printf::PrintfSpecifier;
+
+  struct Configuration {
+    bool StrictMode = false;
+    bool AllowTrailingNewlineRemoval = false;
+  };
+
   FormatStringConverter(ASTContext *Context, const CallExpr *Call,
-                        unsigned FormatArgOffset, bool StrictMode,
-                        const LangOptions &LO);
+                        unsigned FormatArgOffset, Configuration Config,
+                        const LangOptions &LO, SourceManager &SM,
+                        Preprocessor &PP);
 
   bool canApply() const { return ConversionNotPossibleReason.empty(); }
   const std::string &conversionNotPossibleReason() const {
@@ -45,6 +52,7 @@ public:
 
 private:
   ASTContext *Context;
+  const Configuration Config;
   const bool CastMismatchedIntegerTypes;
   const Expr *const *Args;
   const unsigned NumArgs;
@@ -64,7 +72,16 @@ private:
   std::string StandardFormatString;
 
   /// Casts to be used to wrap arguments to retain printf compatibility.
-  std::vector<std::tuple<const Expr *, std::string>> ArgFixes;
+  struct ArgumentFix {
+    unsigned ArgIndex;
+    std::string Fix;
+
+    // We currently need this for emplace_back. Roll on C++20.
+    explicit ArgumentFix(unsigned ArgIndex, std::string Fix)
+        : ArgIndex(ArgIndex), Fix(std::move(Fix)) {}
+  };
+
+  std::vector<ArgumentFix> ArgFixes;
   std::vector<clang::ast_matchers::BoundNodes> ArgCStrRemovals;
 
   // Argument rotations to cope with the fact that std::print puts the value to
@@ -77,7 +94,7 @@ private:
   void emitAlternativeForm(const PrintfSpecifier &FS, std::string &FormatSpec);
   void emitFieldWidth(const PrintfSpecifier &FS, std::string &FormatSpec);
   void emitPrecision(const PrintfSpecifier &FS, std::string &FormatSpec);
-  void emitStringArgument(const Expr *Arg);
+  void emitStringArgument(unsigned ArgIndex, const Expr *Arg);
   bool emitIntegerArgument(ConversionSpecifier::Kind ArgKind, const Expr *Arg,
                            unsigned ArgIndex, std::string &FormatSpec);
 
@@ -94,6 +111,10 @@ private:
 
   void appendFormatText(StringRef Text);
   void finalizeFormatText();
+  static std::optional<StringRef>
+  formatStringContainsUnreplaceableMacro(const CallExpr *CallExpr,
+                                         const StringLiteral *FormatExpr,
+                                         SourceManager &SM, Preprocessor &PP);
   bool conversionNotPossible(std::string Reason) {
     ConversionNotPossibleReason = std::move(Reason);
     return false;

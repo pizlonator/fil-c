@@ -29,11 +29,9 @@
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/CodeGen/MachineModuleInfoImpls.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/MC/MCAsmInfo.h"
-#include "llvm/Support/Debug.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "wasm-frame-info"
@@ -98,7 +96,7 @@ bool WebAssemblyFrameLowering::hasBP(const MachineFunction &MF) const {
 
 /// Return true if the specified function should have a dedicated frame pointer
 /// register.
-bool WebAssemblyFrameLowering::hasFP(const MachineFunction &MF) const {
+bool WebAssemblyFrameLowering::hasFPImpl(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
 
   // When we have var-sized objects, we move the stack pointer by an unknown
@@ -130,7 +128,15 @@ bool WebAssemblyFrameLowering::hasReservedCallFrame(
 bool WebAssemblyFrameLowering::needsSPForLocalFrame(
     const MachineFunction &MF) const {
   auto &MFI = MF.getFrameInfo();
-  return MFI.getStackSize() || MFI.adjustsStack() || hasFP(MF);
+  auto &MRI = MF.getRegInfo();
+  // llvm.stacksave can explicitly read SP register and it can appear without
+  // dynamic alloca.
+  bool HasExplicitSPUse =
+      any_of(MRI.use_operands(getSPReg(MF)),
+             [](MachineOperand &MO) { return !MO.isImplicit(); });
+
+  return MFI.getStackSize() || MFI.adjustsStack() || hasFP(MF) ||
+         HasExplicitSPUse;
 }
 
 // In function with EH pads, we need to make a copy of the value of

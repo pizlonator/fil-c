@@ -49,8 +49,8 @@ define i1 @va_func(i32 %a, i8 %b, i8 %c, ...) {
 ; GISEL-NEXT:    stp x3, x4, [sp, #40]
 ; GISEL-NEXT:    mov w19, w0
 ; GISEL-NEXT:    stp x5, x6, [sp, #56]
-; GISEL-NEXT:    str w0, [sp, #12]
 ; GISEL-NEXT:    str x7, [sp, #72]
+; GISEL-NEXT:    str w0, [sp, #12]
 ; GISEL-NEXT:    strb w1, [sp, #11]
 ; GISEL-NEXT:    strb w2, [sp, #10]
 ; GISEL-NEXT:    bl other

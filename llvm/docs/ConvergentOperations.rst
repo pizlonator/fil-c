@@ -607,8 +607,9 @@ those in the caller.
    only if both threads entered the function by executing converged
    dynamic instances of the call-site.
 
-This intrinsic can occur at most once in a function, and only at the start of
-the entry block of the function.
+This intrinsic can occur at most once in a function, and only in the entry
+block of the function. If this intrinsic occurs in a basic block, then it must
+precede any other convergent operation in the same basic block.
 
 It is an error if this intrinsic appears in a non-convergent function.
 
@@ -669,7 +670,8 @@ threads execute converged dynamic instances of ``U`` if and only if:
 It is an error to omit the ``convergencectrl`` operand bundle on a
 call to this intrinsic.
 
-This intrinsic can only occur at the start of a basic block.
+If this intrinsic occurs in a basic block, then it must precede any other
+convergent operation in the same basic block.
 
 .. _convergence_cycle_heart:
 
@@ -934,7 +936,8 @@ property <uniformity-analysis>` of static instances in the convergence region of
      1. Both threads executed converged dynamic instances of every token
         definition ``D`` such that ``X`` is in the convergence region of ``D``,
         and,
-     2. For every cycle ``C`` with header ``H`` that contains ``X``:
+     2. Either ``X`` is not contained in any cycle, or, for every cycle ``C``
+        with header ``H`` that contains ``X``:
 
         - every dynamic instance ``H1`` of ``H`` that precedes ``X1`` in the
           respective thread is convergence-before ``X2``, and,

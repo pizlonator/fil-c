@@ -13,7 +13,7 @@
 #include "lldb/API/SBStream.h"
 #include "lldb/Core/Disassembler.h"
 #include "lldb/Core/Module.h"
-#include "lldb/Core/StreamFile.h"
+#include "lldb/Host/StreamFile.h"
 #include "lldb/Symbol/SymbolContext.h"
 #include "lldb/Utility/Instrumentation.h"
 #include "lldb/Utility/Stream.h"
@@ -151,6 +151,10 @@ bool SBInstructionList::GetDescription(Stream &sref) {
       FormatEntity::Parse("${addr}: ", format);
       SymbolContext sc;
       SymbolContext prev_sc;
+
+      // Expected address of the next instruction. Used to print an empty line
+      // for non-contiguous blocks of insns.
+      std::optional<Address> next_addr;
       for (size_t i = 0; i < num_instructions; ++i) {
         Instruction *inst =
             m_opaque_sp->GetInstructionList().GetInstructionAtIndex(i).get();
@@ -165,10 +169,14 @@ bool SBInstructionList::GetDescription(Stream &sref) {
               addr, eSymbolContextEverything, sc);
         }
 
+        if (next_addr && *next_addr != addr)
+          sref.EOL();
         inst->Dump(&sref, max_opcode_byte_size, true, false,
                    /*show_control_flow_kind=*/false, nullptr, &sc, &prev_sc,
                    &format, 0);
         sref.EOL();
+        next_addr = addr;
+        next_addr->Slide(inst->GetOpcode().GetByteSize());
       }
       return true;
     }

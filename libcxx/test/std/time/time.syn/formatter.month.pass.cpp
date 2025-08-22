@@ -1,11 +1,10 @@
 //===----------------------------------------------------------------------===//
+//
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-
-// XFAIL: LIBCXX-FREEBSD-FIXME
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17
 // UNSUPPORTED: no-localization
@@ -101,7 +100,7 @@ static void test_valid_values() {
   check(SV("%b='janv.'\t%B='janvier'\t%h='janv.'\t%m='01'\t%Om='01'\n"), lfmt, std::chrono::January);
   check(SV("%b='févr.'\t%B='février'\t%h='févr.'\t%m='02'\t%Om='02'\n"), lfmt, std::chrono::February);
   check(SV("%b='mars'\t%B='mars'\t%h='mars'\t%m='03'\t%Om='03'\n"), lfmt, std::chrono::March);
-#  if defined(_WIN32) || defined(_AIX)
+#  if defined(_WIN32) || defined(_AIX) || defined(__FreeBSD__)
   check(SV("%b='avr.'\t%B='avril'\t%h='avr.'\t%m='04'\t%Om='04'\n"), lfmt, std::chrono::April);
 #  else
   check(SV("%b='avril'\t%B='avril'\t%h='avril'\t%m='04'\t%Om='04'\n"), lfmt, std::chrono::April);
@@ -140,6 +139,19 @@ static void test_valid_values() {
   check(loc, SV("%b='7月'\t%B='7月'\t%h='7月'\t%m='07'\t%Om='07'\n"), lfmt, std::chrono::July);
   check(loc, SV("%b='8月'\t%B='8月'\t%h='8月'\t%m='08'\t%Om='08'\n"), lfmt, std::chrono::August);
   check(loc, SV("%b='9月'\t%B='9月'\t%h='9月'\t%m='09'\t%Om='09'\n"), lfmt, std::chrono::September);
+  check(loc, SV("%b='10月'\t%B='10月'\t%h='10月'\t%m='10'\t%Om='10'\n"), lfmt, std::chrono::October);
+  check(loc, SV("%b='11月'\t%B='11月'\t%h='11月'\t%m='11'\t%Om='11'\n"), lfmt, std::chrono::November);
+  check(loc, SV("%b='12月'\t%B='12月'\t%h='12月'\t%m='12'\t%Om='12'\n"), lfmt, std::chrono::December);
+#elif defined(__FreeBSD__) // defined(_WIN32)
+  check(loc, SV("%b=' 1月'\t%B='1月'\t%h=' 1月'\t%m='01'\t%Om='01'\n"), lfmt, std::chrono::January);
+  check(loc, SV("%b=' 2月'\t%B='2月'\t%h=' 2月'\t%m='02'\t%Om='02'\n"), lfmt, std::chrono::February);
+  check(loc, SV("%b=' 3月'\t%B='3月'\t%h=' 3月'\t%m='03'\t%Om='03'\n"), lfmt, std::chrono::March);
+  check(loc, SV("%b=' 4月'\t%B='4月'\t%h=' 4月'\t%m='04'\t%Om='04'\n"), lfmt, std::chrono::April);
+  check(loc, SV("%b=' 5月'\t%B='5月'\t%h=' 5月'\t%m='05'\t%Om='05'\n"), lfmt, std::chrono::May);
+  check(loc, SV("%b=' 6月'\t%B='6月'\t%h=' 6月'\t%m='06'\t%Om='06'\n"), lfmt, std::chrono::June);
+  check(loc, SV("%b=' 7月'\t%B='7月'\t%h=' 7月'\t%m='07'\t%Om='07'\n"), lfmt, std::chrono::July);
+  check(loc, SV("%b=' 8月'\t%B='8月'\t%h=' 8月'\t%m='08'\t%Om='08'\n"), lfmt, std::chrono::August);
+  check(loc, SV("%b=' 9月'\t%B='9月'\t%h=' 9月'\t%m='09'\t%Om='09'\n"), lfmt, std::chrono::September);
   check(loc, SV("%b='10月'\t%B='10月'\t%h='10月'\t%m='10'\t%Om='10'\n"), lfmt, std::chrono::October);
   check(loc, SV("%b='11月'\t%B='11月'\t%h='11月'\t%m='11'\t%Om='11'\n"), lfmt, std::chrono::November);
   check(loc, SV("%b='12月'\t%B='12月'\t%h='12月'\t%m='12'\t%Om='12'\n"), lfmt, std::chrono::December);

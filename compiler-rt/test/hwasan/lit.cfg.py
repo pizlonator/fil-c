@@ -2,6 +2,9 @@
 
 import os
 
+from lit.llvm import llvm_config
+from lit.llvm.subst import ToolSubst, FindTool
+
 # Setup config name.
 config.name = "HWAddressSanitizer" + getattr(config, "name_suffix", "default")
 
@@ -13,7 +16,7 @@ clang_cflags = [config.target_cflags] + config.debug_info_flags
 clang_cxxflags = config.cxx_mode_flags + clang_cflags
 clang_hwasan_common_cflags = clang_cflags + ["-fsanitize=hwaddress", "-fuse-ld=lld"]
 
-if config.target_arch == "x86_64" and config.enable_aliases == "1":
+if config.target_arch == "x86_64" and config.enable_aliases != "0":
     clang_hwasan_common_cflags += ["-fsanitize-hwaddress-experimental-aliasing"]
 else:
     config.available_features.add("pointer-tagging")
@@ -72,6 +75,12 @@ if default_hwasan_opts_str:
     default_hwasan_opts_str += ":"
 config.substitutions.append(
     ("%env_hwasan_opts=", "env HWASAN_OPTIONS=" + default_hwasan_opts_str)
+)
+
+# Ensure that we can use hwasan_symbolize from the expected location
+llvm_config.add_tool_substitutions(
+    [ToolSubst("hwasan_symbolize", unresolved="fatal")],
+    search_dirs=[config.compiler_rt_bindir],
 )
 
 # Default test suffixes.

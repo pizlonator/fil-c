@@ -1,5 +1,5 @@
 // REQUIRES: aarch64
-// RUN: llvm-mc -filetype=obj -triple=aarch64-none-linux %s -o %t.o
+// RUN: llvm-mc -filetype=obj -triple=aarch64 %s -o %t.o
 // RUN: ld.lld --fix-cortex-a53-843419 -z separate-code %t.o -o %t2
 // RUN: llvm-objdump --triple=aarch64-linux-gnu -d %t2 --start-address=0x210000   --stop-address=0x21000c   | FileCheck --check-prefix=CHECK1 %s
 // RUN: llvm-objdump --triple=aarch64-linux-gnu -d %t2 --start-address=0x211000   --stop-address=0x211004   | FileCheck --check-prefix=CHECK2 %s
@@ -16,7 +16,6 @@
 // CHECK1:  <__AArch64AbsLongThunk_need_thunk_after_patch>:
 // CHECK1-NEXT:    210000:       58000050        ldr     x16, 0x210008
 // CHECK1-NEXT:    210004:       d61f0200        br      x16
-// CHECK1: <$d>:
 // CHECK1-NEXT:    210008:       0c 10 21 08     .word   0x0821100c
 
         .section .text.01, "ax", %progbits

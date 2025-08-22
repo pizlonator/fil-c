@@ -21,6 +21,18 @@
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/ErrorHandling.h"
 
+namespace llvm {
+namespace SparcASITag {
+#define GET_ASITagsList_IMPL
+#include "SparcGenSearchableTables.inc"
+} // end namespace SparcASITag
+
+namespace SparcPrefetchTag {
+#define GET_PrefetchTagsList_IMPL
+#include "SparcGenSearchableTables.inc"
+} // end namespace SparcPrefetchTag
+} // end namespace llvm
+
 using namespace llvm;
 
 #define GET_INSTRINFO_MC_DESC
@@ -74,13 +86,12 @@ createSparcMCSubtargetInfo(const Triple &TT, StringRef CPU, StringRef FS) {
 
 static MCTargetStreamer *
 createObjectTargetStreamer(MCStreamer &S, const MCSubtargetInfo &STI) {
-  return new SparcTargetELFStreamer(S);
+  return new SparcTargetELFStreamer(S, STI);
 }
 
 static MCTargetStreamer *createTargetAsmStreamer(MCStreamer &S,
                                                  formatted_raw_ostream &OS,
-                                                 MCInstPrinter *InstPrint,
-                                                 bool isVerboseAsm) {
+                                                 MCInstPrinter *InstPrint) {
   return new SparcTargetAsmStreamer(S, OS);
 }
 

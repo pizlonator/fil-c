@@ -1,4 +1,4 @@
-// RUN: %clang_cc1 -triple i686-apple-darwin9 -fobjc-runtime=macosx-fragile-10.5 -emit-llvm -o %t %s
+// RUN: %clang_cc1 -Wno-error=return-type -triple i686-apple-darwin9 -fobjc-runtime=macosx-fragile-10.5 -emit-llvm -o %t %s
 // RUN: FileCheck < %t %s
 //
 // CHECK: @OBJC_METH_VAR_TYPE_{{.*}} = private unnamed_addr constant [16 x i8] c"v12@0:4[3[4@]]8\00"
@@ -162,7 +162,6 @@ struct f
 // CHECK: @g10 ={{.*}} constant [14 x i8] c"{f=i[4{?=}]i}\00"
 const char g10[] = @encode(struct f);
 
-// rdar://9622422
 // CHECK: @g11 ={{.*}} constant [2 x i8] c"v\00"
 const char g11[] = @encode(void);
 
@@ -170,7 +169,6 @@ const char g11[] = @encode(void);
 // CHECK: @g12 ={{.*}} constant [3 x i8] c"Ai\00"
 const char g12[] = @encode(_Atomic(int));
 
-// rdar://15824769
 id test_id = 0;
 Class test_class = 0;
 const char g13[] = @encode(__typeof__(*test_class));

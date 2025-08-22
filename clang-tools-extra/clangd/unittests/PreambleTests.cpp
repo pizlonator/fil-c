@@ -43,14 +43,10 @@
 using testing::AllOf;
 using testing::Contains;
 using testing::ElementsAre;
-using testing::ElementsAreArray;
-using testing::Eq;
 using testing::Field;
-using testing::HasSubstr;
 using testing::IsEmpty;
 using testing::Matcher;
 using testing::MatchesRegex;
-using testing::Not;
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 
@@ -88,7 +84,7 @@ collectPatchedIncludes(llvm::StringRef ModifiedContents,
   // introduced by the patch is parsed and nothing else.
   // We don't run PP directly over the patch cotents to test production
   // behaviour.
-  auto Bounds = Lexer::ComputePreamble(ModifiedContents, *CI->getLangOpts());
+  auto Bounds = Lexer::ComputePreamble(ModifiedContents, CI->getLangOpts());
   auto Clang =
       prepareCompilerInstance(std::move(CI), &BaselinePreamble->Preamble,
                               llvm::MemoryBuffer::getMemBufferCopy(
@@ -421,7 +417,7 @@ TEST(PreamblePatchTest, LocateMacroAtWorks) {
     ASSERT_TRUE(AST);
 
     const auto &SM = AST->getSourceManager();
-    auto *MacroTok = AST->getTokens().spelledTokenAt(
+    auto *MacroTok = AST->getTokens().spelledTokenContaining(
         SM.getComposedLoc(SM.getMainFileID(), Modified.point("use")));
     ASSERT_TRUE(MacroTok);
 
@@ -445,7 +441,7 @@ TEST(PreamblePatchTest, LocateMacroAtDeletion) {
     ASSERT_TRUE(AST);
 
     const auto &SM = AST->getSourceManager();
-    auto *MacroTok = AST->getTokens().spelledTokenAt(
+    auto *MacroTok = AST->getTokens().spelledTokenContaining(
         SM.getComposedLoc(SM.getMainFileID(), Modified.point()));
     ASSERT_TRUE(MacroTok);
 
@@ -516,9 +512,10 @@ TEST(PreamblePatchTest, RefsToMacros) {
       ExpectedLocations.push_back(referenceRangeIs(R));
 
     for (const auto &P : Modified.points()) {
-      auto *MacroTok = AST->getTokens().spelledTokenAt(SM.getComposedLoc(
-          SM.getMainFileID(),
-          llvm::cantFail(positionToOffset(Modified.code(), P))));
+      auto *MacroTok =
+          AST->getTokens().spelledTokenContaining(SM.getComposedLoc(
+              SM.getMainFileID(),
+              llvm::cantFail(positionToOffset(Modified.code(), P))));
       ASSERT_TRUE(MacroTok);
       EXPECT_THAT(findReferences(*AST, P, 0).References,
                   testing::ElementsAreArray(ExpectedLocations));
@@ -588,7 +585,7 @@ TEST(PreamblePatch, ModifiedBounds) {
     ASSERT_TRUE(CI);
 
     const auto ExpectedBounds =
-        Lexer::ComputePreamble(Case.Modified, *CI->getLangOpts());
+        Lexer::ComputePreamble(Case.Modified, CI->getLangOpts());
     EXPECT_EQ(PP.modifiedBounds().Size, ExpectedBounds.Size);
     EXPECT_EQ(PP.modifiedBounds().PreambleEndsAtStartOfLine,
               ExpectedBounds.PreambleEndsAtStartOfLine);
@@ -892,9 +889,9 @@ TEST(PreamblePatch, PatchFileEntry) {
   }
   {
     auto AST = createPatchedAST(Code.code(), NewCode.code());
-    auto *FE =
+    auto FE =
         PreamblePatch::getPatchEntry(AST->tuPath(), AST->getSourceManager());
-    ASSERT_NE(FE, nullptr);
+    ASSERT_NE(FE, std::nullopt);
     EXPECT_THAT(FE->getName().str(),
                 testing::EndsWith(PreamblePatch::HeaderName.str()));
   }

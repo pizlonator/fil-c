@@ -93,7 +93,7 @@ private:
     using result_type = OnDiskTable *;
 
     result_type operator()(void *P) const {
-      return Table::getFromOpaqueValue(P).template get<OnDiskTable *>();
+      return llvm::cast<OnDiskTable *>(Table::getFromOpaqueValue(P));
     }
   };
 
@@ -130,7 +130,7 @@ private:
     Files.insert(PendingOverrides.begin(), PendingOverrides.end());
     // Explicitly capture Files to work around an MSVC 2015 rejects-valid bug.
     auto ShouldRemove = [&Files](void *T) -> bool {
-      auto *ODT = Table::getFromOpaqueValue(T).template get<OnDiskTable *>();
+      auto *ODT = llvm::cast<OnDiskTable *>(Table::getFromOpaqueValue(T));
       bool Remove = Files.count(ODT->File);
       if (Remove)
         delete ODT;
@@ -199,10 +199,12 @@ public:
 
     storage_type Ptr = Data;
 
-    uint32_t BucketOffset = endian::readNext<uint32_t, little, unaligned>(Ptr);
+    uint32_t BucketOffset =
+        endian::readNext<uint32_t, llvm::endianness::little>(Ptr);
 
     // Read the list of overridden files.
-    uint32_t NumFiles = endian::readNext<uint32_t, little, unaligned>(Ptr);
+    uint32_t NumFiles =
+        endian::readNext<uint32_t, llvm::endianness::little>(Ptr);
     // FIXME: Add a reserve() to TinyPtrVector so that we don't need to make
     // an additional copy.
     llvm::SmallVector<file_type, 16> OverriddenFiles;
@@ -311,7 +313,7 @@ public:
 
     // Write our header information.
     {
-      endian::Writer Writer(OutStream, little);
+      endian::Writer Writer(OutStream, llvm::endianness::little);
 
       // Reserve four bytes for the bucket offset.
       Writer.write<uint32_t>(0);

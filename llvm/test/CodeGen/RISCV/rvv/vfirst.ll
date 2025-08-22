@@ -3,6 +3,7 @@
 ; RUN:   -verify-machineinstrs | FileCheck %s
 ; RUN: sed 's/iXLen/i64/g' %s | llc -mtriple=riscv64 -mattr=+v \
 ; RUN:   -verify-machineinstrs | FileCheck %s
+
 declare iXLen @llvm.riscv.vfirst.iXLen.nxv1i1(
   <vscale x 1 x i1>,
   iXLen);
@@ -42,8 +43,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv1i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv1i1(<vscale x 1 x i1> %0, <vscale x 1 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv1i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, mf8, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret
@@ -96,8 +97,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv2i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv2i1(<vscale x 2 x i1> %0, <vscale x 2 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv2i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, mf4, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret
@@ -136,8 +137,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv4i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv4i1(<vscale x 4 x i1> %0, <vscale x 4 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv4i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, mf2, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret
@@ -176,8 +177,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv8i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv8i1(<vscale x 8 x i1> %0, <vscale x 8 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv8i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, m1, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret
@@ -216,8 +217,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv16i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv16i1(<vscale x 16 x i1> %0, <vscale x 16 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv16i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, m2, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret
@@ -256,8 +257,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv32i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv32i1(<vscale x 32 x i1> %0, <vscale x 32 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv32i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, m4, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret
@@ -296,8 +297,8 @@ declare iXLen @llvm.riscv.vfirst.mask.iXLen.nxv64i1(
 define iXLen @intrinsic_vfirst_mask_m_nxv64i1(<vscale x 64 x i1> %0, <vscale x 64 x i1> %1, iXLen %2) nounwind {
 ; CHECK-LABEL: intrinsic_vfirst_mask_m_nxv64i1:
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vsetvli zero, a0, e8, m8, ta, ma
+; CHECK-NEXT:    vmv1r.v v9, v0
 ; CHECK-NEXT:    vmv1r.v v0, v8
 ; CHECK-NEXT:    vfirst.m a0, v9, v0.t
 ; CHECK-NEXT:    ret

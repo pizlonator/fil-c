@@ -15,10 +15,12 @@
 
 // UNSUPPORTED: no-wide-characters
 
+// XFAIL: FROZEN-CXX03-HEADERS-FIXME
+
 #include <fstream>
 
 std::basic_filebuf<char, std::char_traits<wchar_t> > f;
-// expected-error-re@streambuf:* {{{{(static_assert|static assertion)}} failed{{.*}}traits_type::char_type must be the same type as CharT}}
+// expected-error-re@streambuf:* {{static assertion failed{{.*}}traits_type::char_type must be the same type as CharT}}
 // expected-error@fstream:* {{only virtual member functions can be marked 'override'}}
 // expected-error@fstream:* {{only virtual member functions can be marked 'override'}}
 // expected-error@fstream:* {{only virtual member functions can be marked 'override'}}

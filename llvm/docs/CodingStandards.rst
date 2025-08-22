@@ -73,7 +73,10 @@ Each toolchain provides a good reference for what it accepts:
 
   * libstdc++: https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2017
 
-* MSVC: https://msdn.microsoft.com/en-us/library/hh567368.aspx
+* MSVC: https://learn.microsoft.com/cpp/overview/visual-cpp-language-conformance
+
+Additionally, there are compiler comparison tables of supported C++ features on
+`cppreference.com <https://en.cppreference.com/w/cpp/compiler_support/17>`_.
 
 
 C++ Standard Library
@@ -113,12 +116,42 @@ section. Python code in the LLVM repository should only use language features
 available in this version of Python.
 
 The Python code within the LLVM repository should adhere to the formatting guidelines
-outlined in `PEP-8 <https://peps.python.org/pep-0008/>`_.
+outlined in `PEP 8 <https://peps.python.org/pep-0008/>`_.
 
-For consistency and to limit churn, code should be automatically formatted with the
-`black <https://github.com/psf/black>`_ utility. Black allows changing the formatting
-rules based on major version. In order to avoid unnecessary churn in the formatting rules
+For consistency and to limit churn, code should be automatically formatted with
+the `black <https://github.com/psf/black>`_ utility, which is PEP 8 compliant.
+Use its default rules. For example, avoid specifying ``--line-length`` even
+though it does not default to 80. The default rules can change between major
+versions of black. In order to avoid unnecessary churn in the formatting rules,
 we currently use black version 23.x in LLVM.
+
+When contributing a patch unrelated to formatting, you should format only the
+Python code that the patch modifies. For this purpose, use the `darker
+<https://pypi.org/project/darker/>`_ utility, which runs default black rules
+over only the modified Python code. Doing so should ensure the patch will pass
+the Python format checks in LLVM's pre-commit CI, which also uses darker. When
+contributing a patch specifically for reformatting Python files, use black,
+which currently only supports formatting entire files.
+
+Here are some quick examples, but see the black and darker documentation for
+details:
+
+.. code-block:: bash
+
+    $ pip install black=='23.*' darker # install black 23.x and darker
+    $ darker test.py                   # format uncommitted changes
+    $ darker -r HEAD^ test.py          # also format changes from last commit
+    $ black test.py                    # format entire file
+
+Instead of individual file names, you can specify directories to
+darker, and it will find the changed files. However, if a directory is
+large, like a clone of the LLVM repository, darker can be painfully
+slow. In that case, you might wish to use git to list changed files.
+For example:
+
+.. code-block:: bash
+
+   $ darker -r HEAD^ $(git diff --name-only --diff-filter=d HEAD^)
 
 Mechanical Source Issues
 ========================
@@ -144,7 +177,7 @@ the file. The standard header looks like this:
 
 .. code-block:: c++
 
-  //===-- llvm/Instruction.h - Instruction class definition -------*- C++ -*-===//
+  //===----------------------------------------------------------------------===//
   //
   // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
   // See https://llvm.org/LICENSE.txt for license information.
@@ -158,17 +191,7 @@ the file. The standard header looks like this:
   ///
   //===----------------------------------------------------------------------===//
 
-A few things to note about this particular format: The "``-*- C++ -*-``" string
-on the first line is there to tell Emacs that the source file is a C++ file, not
-a C file (Emacs assumes ``.h`` files are C files by default).
-
-.. note::
-
-    This tag is not necessary in ``.cpp`` files.  The name of the file is also
-    on the first line, along with a very short description of the purpose of the
-    file.
-
-The next section in the file is a concise note that defines the license that the
+The first section in the file is a concise note that defines the license that the
 file is released under.  This makes it perfectly clear what terms the source
 code can be distributed under and should not be modified in any way.
 
@@ -559,6 +582,19 @@ That said, LLVM does make extensive use of a hand-rolled form of RTTI that use
 templates like :ref:`isa\<>, cast\<>, and dyn_cast\<> <isa>`.
 This form of RTTI is opt-in and can be
 :doc:`added to any class <HowToSetUpLLVMStyleRTTI>`.
+
+Prefer C++-style casts
+^^^^^^^^^^^^^^^^^^^^^^
+
+When casting, use ``static_cast``, ``reinterpret_cast``, and ``const_cast``,
+rather than C-style casts. There are two exceptions to this:
+
+* When casting to ``void`` to suppress warnings about unused variables (as an
+  alternative to ``[[maybe_unused]]``). Prefer C-style casts in this instance.
+
+* When casting between integral types (including enums that are not strongly-
+  typed), functional-style casts are permitted as an alternative to
+  ``static_cast``.
 
 .. _static constructor:
 
@@ -1664,6 +1700,17 @@ would help to avoid running into a "dangling else" situation.
     // In this `else` case, it is necessary that we explain the situation with
     // this surprisingly long comment, so it would be unclear without the braces
     // whether the following statement is in the scope of the `if`.
+    handleOtherDecl(D);
+  }
+
+  // Use braces for the `else if` and `else` block to keep it uniform with the
+  // `if` block.
+  if (isa<FunctionDecl>(D)) {
+    verifyFunctionDecl(D);
+    handleFunctionDecl(D);
+  } else if (isa<GlobalVarDecl>(D)) {
+    handleGlobalVarDecl(D);
+  } else {
     handleOtherDecl(D);
   }
 

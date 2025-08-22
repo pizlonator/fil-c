@@ -44,7 +44,13 @@ void MoveConstArgCheck::registerMatchers(MatchFinder *Finder) {
                unless(isInTemplateInstantiation()))
           .bind("call-move");
 
-  Finder->addMatcher(MoveCallMatcher, this);
+  Finder->addMatcher(
+      expr(anyOf(
+          castExpr(hasSourceExpression(MoveCallMatcher)),
+          cxxConstructExpr(hasDeclaration(cxxConstructorDecl(anyOf(
+                               isCopyConstructor(), isMoveConstructor()))),
+                           hasArgument(0, MoveCallMatcher)))),
+      this);
 
   auto ConstTypeParmMatcher =
       qualType(references(isConstQualified())).bind("invocation-parm-type");
@@ -73,14 +79,12 @@ bool IsRValueReferenceParam(const Expr *Invocation,
       Arg->isLValue()) {
     if (!Invocation->getType()->isRecordType())
       return true;
-    else {
-      if (const auto *ConstructCallExpr =
-              dyn_cast<CXXConstructExpr>(Invocation)) {
-        if (const auto *ConstructorDecl = ConstructCallExpr->getConstructor()) {
-          if (!ConstructorDecl->isCopyOrMoveConstructor() &&
-              !ConstructorDecl->isDefaultConstructor())
-            return true;
-        }
+    if (const auto *ConstructCallExpr =
+            dyn_cast<CXXConstructExpr>(Invocation)) {
+      if (const auto *ConstructorDecl = ConstructCallExpr->getConstructor()) {
+        if (!ConstructorDecl->isCopyOrMoveConstructor() &&
+            !ConstructorDecl->isDefaultConstructor())
+          return true;
       }
     }
   }
@@ -205,8 +209,9 @@ void MoveConstArgCheck::check(const MatchFinder::MatchResult &Result) {
     }
 
     if (const CXXRecordDecl *RecordDecl = ArgType->getAsCXXRecordDecl();
-        RecordDecl && !(RecordDecl->hasMoveConstructor() &&
-                        RecordDecl->hasMoveAssignment())) {
+        RecordDecl && RecordDecl->hasDefinition() &&
+        !(RecordDecl->hasMoveConstructor() &&
+          RecordDecl->hasMoveAssignment())) {
       const bool MissingMoveAssignment = !RecordDecl->hasMoveAssignment();
       const bool MissingMoveConstructor = !RecordDecl->hasMoveConstructor();
       const bool MissingBoth = MissingMoveAssignment && MissingMoveConstructor;

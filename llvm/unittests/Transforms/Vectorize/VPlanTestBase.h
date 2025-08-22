@@ -20,6 +20,7 @@
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/AsmParser/Parser.h"
 #include "llvm/IR/Dominators.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Support/SourceMgr.h"
 #include "gtest/gtest.h"
 
@@ -27,7 +28,7 @@ namespace llvm {
 
 /// Helper class to create a module from an assembly string and VPlans for a
 /// given loop entry block.
-class VPlanTestBase : public testing::Test {
+class VPlanTestIRBase : public testing::Test {
 protected:
   TargetLibraryInfoImpl TLII;
   TargetLibraryInfo TLI;
@@ -40,7 +41,7 @@ protected:
   std::unique_ptr<AssumptionCache> AC;
   std::unique_ptr<ScalarEvolution> SE;
 
-  VPlanTestBase()
+  VPlanTestIRBase()
       : TLII(), TLI(TLII),
         DL("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-"
            "f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:"
@@ -62,24 +63,48 @@ protected:
   }
 
   VPlanPtr buildHCFG(BasicBlock *LoopHeader) {
-    doAnalysis(*LoopHeader->getParent());
+    Function &F = *LoopHeader->getParent();
+    assert(!verifyFunction(F) && "input function must be valid");
+    doAnalysis(F);
 
-    auto Plan = VPlan::createInitialVPlan(
-        SE->getBackedgeTakenCount(LI->getLoopFor(LoopHeader)), *SE);
-    VPlanHCFGBuilder HCFGBuilder(LI->getLoopFor(LoopHeader), LI.get(), *Plan);
+    Loop *L = LI->getLoopFor(LoopHeader);
+    PredicatedScalarEvolution PSE(*SE, *L);
+    auto Plan = VPlan::createInitialVPlan(IntegerType::get(*Ctx, 64), PSE, true,
+                                          false, L);
+    VPlanHCFGBuilder HCFGBuilder(L, LI.get(), *Plan);
     HCFGBuilder.buildHierarchicalCFG();
     return Plan;
   }
 
   /// Build the VPlan plain CFG for the loop starting from \p LoopHeader.
   VPlanPtr buildPlainCFG(BasicBlock *LoopHeader) {
-    doAnalysis(*LoopHeader->getParent());
+    Function &F = *LoopHeader->getParent();
+    assert(!verifyFunction(F) && "input function must be valid");
+    doAnalysis(F);
 
-    auto Plan = VPlan::createInitialVPlan(
-        SE->getBackedgeTakenCount(LI->getLoopFor(LoopHeader)), *SE);
-    VPlanHCFGBuilder HCFGBuilder(LI->getLoopFor(LoopHeader), LI.get(), *Plan);
+    Loop *L = LI->getLoopFor(LoopHeader);
+    PredicatedScalarEvolution PSE(*SE, *L);
+    auto Plan = VPlan::createInitialVPlan(IntegerType::get(*Ctx, 64), PSE, true,
+                                          false, L);
+    VPlanHCFGBuilder HCFGBuilder(L, LI.get(), *Plan);
     HCFGBuilder.buildPlainCFG();
     return Plan;
+  }
+};
+
+class VPlanTestBase : public testing::Test {
+protected:
+  LLVMContext C;
+  std::unique_ptr<BasicBlock> ScalarHeader;
+  SmallVector<std::unique_ptr<VPlan>> Plans;
+
+  VPlanTestBase() : ScalarHeader(BasicBlock::Create(C, "scalar.header")) {
+    BranchInst::Create(&*ScalarHeader, &*ScalarHeader);
+  }
+
+  VPlan &getPlan(VPValue *TC = nullptr) {
+    Plans.push_back(std::make_unique<VPlan>(&*ScalarHeader, TC));
+    return *Plans.back();
   }
 };
 

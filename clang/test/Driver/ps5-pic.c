@@ -23,8 +23,6 @@
 // CHECK-DIAG-PIE: option '-fno-PIE' was ignored by the PS5 toolchain, using '-fPIC'
 // CHECK-DIAG-pic: option '-fno-pic' was ignored by the PS5 toolchain, using '-fPIC'
 // CHECK-DIAG-pie: option '-fno-pie' was ignored by the PS5 toolchain, using '-fPIC'
-//
-// CHECK-STATIC-ERR: unsupported option '-static' for target 'PS5'
 
 // RUN: %clang -c %s -target x86_64-sie-ps5 -### 2>&1 \
 // RUN:   | FileCheck %s --check-prefix=CHECK-PIC2
@@ -76,12 +74,13 @@
 // Disregard any of the PIC-specific flags if we have a trump-card flag.
 // RUN: %clang -c %s -target x86_64-sie-ps5 -mkernel -fPIC -### 2>&1 \
 // RUN:   | FileCheck %s --check-prefix=CHECK-NO-PIC
-// RUN: %clang -c %s -target x86_64-sie-ps5 -mdynamic-no-pic -fPIC -### 2>&1 \
+// RUN: not %clang -c %s --target=x86_64-sie-ps5 -mdynamic-no-pic -fPIC -### 2>&1 \
 // RUN:   | FileCheck %s --check-prefix=CHECK-DYNAMIC-NO-PIC2
 //
-// -static not supported at all.
-// RUN: %clang -c %s -target x86_64-sie-ps5 -static -### 2>&1 \
-// RUN:   | FileCheck %s --check-prefix=CHECK-STATIC-ERR
+// The -static argument *doesn't* override PIC: -static only affects
+// linking, and -fPIC only affects code generation.
+// RUN: %clang -c %s -target x86_64-sie-ps5 -static -fPIC -### 2>&1 \
+// RUN:   | FileCheck %s --check-prefix=CHECK-PIC2
 //
 // -fno-PIC etc. is obeyed if -mcmodel=kernel is also present.
 // RUN: %clang -c %s -target x86_64-sie-ps5 -mcmodel=kernel -fno-PIC -### 2>&1 \

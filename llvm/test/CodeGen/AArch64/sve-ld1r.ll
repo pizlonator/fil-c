@@ -66,8 +66,8 @@ define <vscale x 16 x i8> @ld1rb_gep(ptr %valp) {
 define <vscale x 16 x i8> @ld1rb_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LABEL: ld1rb_gep_out_of_range_up:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    add x8, x0, #64
 ; CHECK-NEXT:    ptrue p0.b
+; CHECK-NEXT:    add x8, x0, #64
 ; CHECK-NEXT:    ld1rb { z0.b }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i8, ptr %valp, i32 64
@@ -80,8 +80,8 @@ define <vscale x 16 x i8> @ld1rb_gep_out_of_range_up(ptr %valp) {
 define <vscale x 16 x i8> @ld1rb_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LABEL: ld1rb_gep_out_of_range_down:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    sub x8, x0, #1
 ; CHECK-NEXT:    ptrue p0.b
+; CHECK-NEXT:    sub x8, x0, #1
 ; CHECK-NEXT:    ld1rb { z0.b }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i8, ptr %valp, i32 -1
@@ -197,8 +197,8 @@ define <vscale x 8 x i16> @ld1rh_gep(ptr %valp) {
 define <vscale x 8 x i16> @ld1rh_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LABEL: ld1rh_gep_out_of_range_up:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    add x8, x0, #128
 ; CHECK-NEXT:    ptrue p0.h
+; CHECK-NEXT:    add x8, x0, #128
 ; CHECK-NEXT:    ld1rh { z0.h }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i16, ptr %valp, i32 64
@@ -211,8 +211,8 @@ define <vscale x 8 x i16> @ld1rh_gep_out_of_range_up(ptr %valp) {
 define <vscale x 8 x i16> @ld1rh_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LABEL: ld1rh_gep_out_of_range_down:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    sub x8, x0, #2
 ; CHECK-NEXT:    ptrue p0.h
+; CHECK-NEXT:    sub x8, x0, #2
 ; CHECK-NEXT:    ld1rh { z0.h }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i16, ptr %valp, i32 -1
@@ -302,8 +302,8 @@ define <vscale x 4 x i32> @ld1rw_gep(ptr %valp) {
 define <vscale x 4 x i32> @ld1rw_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LABEL: ld1rw_gep_out_of_range_up:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    add x8, x0, #256
 ; CHECK-NEXT:    ptrue p0.s
+; CHECK-NEXT:    add x8, x0, #256
 ; CHECK-NEXT:    ld1rw { z0.s }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i32, ptr %valp, i32 64
@@ -316,8 +316,8 @@ define <vscale x 4 x i32> @ld1rw_gep_out_of_range_up(ptr %valp) {
 define <vscale x 4 x i32> @ld1rw_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LABEL: ld1rw_gep_out_of_range_down:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    sub x8, x0, #4
 ; CHECK-NEXT:    ptrue p0.s
+; CHECK-NEXT:    sub x8, x0, #4
 ; CHECK-NEXT:    ld1rw { z0.s }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i32, ptr %valp, i32 -1
@@ -381,8 +381,8 @@ define <vscale x 2 x i64> @ld1rd_gep(ptr %valp) {
 define <vscale x 2 x i64> @ld1rd_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LABEL: ld1rd_gep_out_of_range_up:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    add x8, x0, #512
 ; CHECK-NEXT:    ptrue p0.d
+; CHECK-NEXT:    add x8, x0, #512
 ; CHECK-NEXT:    ld1rd { z0.d }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i64, ptr %valp, i32 64
@@ -395,8 +395,8 @@ define <vscale x 2 x i64> @ld1rd_gep_out_of_range_up(ptr %valp) {
 define <vscale x 2 x i64> @ld1rd_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LABEL: ld1rd_gep_out_of_range_down:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    sub x8, x0, #8
 ; CHECK-NEXT:    ptrue p0.d
+; CHECK-NEXT:    sub x8, x0, #8
 ; CHECK-NEXT:    ld1rd { z0.d }, p0/z, [x8]
 ; CHECK-NEXT:    ret
   %valp2 = getelementptr i64, ptr %valp, i32 -1
@@ -458,8 +458,8 @@ define <vscale x 8 x half> @ld1rh_half_gep(ptr %valp) {
 define <vscale x 8 x half> @ld1rh_half_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rh_half_gep_out_of_range_up:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    add x8, x0, #128
 ; CHECK-LD1R-NEXT:    ptrue p0.h
+; CHECK-LD1R-NEXT:    add x8, x0, #128
 ; CHECK-LD1R-NEXT:    ld1rh { z0.h }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -478,8 +478,8 @@ define <vscale x 8 x half> @ld1rh_half_gep_out_of_range_up(ptr %valp) {
 define <vscale x 8 x half> @ld1rh_half_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rh_half_gep_out_of_range_down:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    sub x8, x0, #2
 ; CHECK-LD1R-NEXT:    ptrue p0.h
+; CHECK-LD1R-NEXT:    sub x8, x0, #2
 ; CHECK-LD1R-NEXT:    ld1rh { z0.h }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -535,8 +535,8 @@ define <vscale x 4 x half> @ld1rh_half_unpacked4_gep(ptr %valp) {
 define <vscale x 4 x half> @ld1rh_half_unpacked4_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rh_half_unpacked4_gep_out_of_range_up:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    add x8, x0, #128
 ; CHECK-LD1R-NEXT:    ptrue p0.s
+; CHECK-LD1R-NEXT:    add x8, x0, #128
 ; CHECK-LD1R-NEXT:    ld1rh { z0.s }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -555,8 +555,8 @@ define <vscale x 4 x half> @ld1rh_half_unpacked4_gep_out_of_range_up(ptr %valp) 
 define <vscale x 4 x half> @ld1rh_half_unpacked4_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rh_half_unpacked4_gep_out_of_range_down:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    sub x8, x0, #2
 ; CHECK-LD1R-NEXT:    ptrue p0.s
+; CHECK-LD1R-NEXT:    sub x8, x0, #2
 ; CHECK-LD1R-NEXT:    ld1rh { z0.s }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -612,8 +612,8 @@ define <vscale x 2 x half> @ld1rh_half_unpacked2_gep(ptr %valp) {
 define <vscale x 2 x half> @ld1rh_half_unpacked2_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rh_half_unpacked2_gep_out_of_range_up:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    add x8, x0, #128
 ; CHECK-LD1R-NEXT:    ptrue p0.d
+; CHECK-LD1R-NEXT:    add x8, x0, #128
 ; CHECK-LD1R-NEXT:    ld1rh { z0.d }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -632,8 +632,8 @@ define <vscale x 2 x half> @ld1rh_half_unpacked2_gep_out_of_range_up(ptr %valp) 
 define <vscale x 2 x half> @ld1rh_half_unpacked2_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rh_half_unpacked2_gep_out_of_range_down:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    sub x8, x0, #2
 ; CHECK-LD1R-NEXT:    ptrue p0.d
+; CHECK-LD1R-NEXT:    sub x8, x0, #2
 ; CHECK-LD1R-NEXT:    ld1rh { z0.d }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -689,8 +689,8 @@ define <vscale x 4 x float> @ld1rw_float_gep(ptr %valp) {
 define <vscale x 4 x float> @ld1rw_float_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rw_float_gep_out_of_range_up:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    add x8, x0, #256
 ; CHECK-LD1R-NEXT:    ptrue p0.s
+; CHECK-LD1R-NEXT:    add x8, x0, #256
 ; CHECK-LD1R-NEXT:    ld1rw { z0.s }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -709,8 +709,8 @@ define <vscale x 4 x float> @ld1rw_float_gep_out_of_range_up(ptr %valp) {
 define <vscale x 4 x float> @ld1rw_float_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rw_float_gep_out_of_range_down:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    sub x8, x0, #4
 ; CHECK-LD1R-NEXT:    ptrue p0.s
+; CHECK-LD1R-NEXT:    sub x8, x0, #4
 ; CHECK-LD1R-NEXT:    ld1rw { z0.s }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -766,8 +766,8 @@ define <vscale x 2 x float> @ld1rw_float_unpacked2_gep(ptr %valp) {
 define <vscale x 2 x float> @ld1rw_float_unpacked2_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rw_float_unpacked2_gep_out_of_range_up:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    add x8, x0, #256
 ; CHECK-LD1R-NEXT:    ptrue p0.d
+; CHECK-LD1R-NEXT:    add x8, x0, #256
 ; CHECK-LD1R-NEXT:    ld1rw { z0.d }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -786,8 +786,8 @@ define <vscale x 2 x float> @ld1rw_float_unpacked2_gep_out_of_range_up(ptr %valp
 define <vscale x 2 x float> @ld1rw_float_unpacked2_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rw_float_unpacked2_gep_out_of_range_down:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    sub x8, x0, #4
 ; CHECK-LD1R-NEXT:    ptrue p0.d
+; CHECK-LD1R-NEXT:    sub x8, x0, #4
 ; CHECK-LD1R-NEXT:    ld1rw { z0.d }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -843,8 +843,8 @@ define <vscale x 2 x double> @ld1rd_double_gep(ptr %valp) {
 define <vscale x 2 x double> @ld1rd_double_gep_out_of_range_up(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rd_double_gep_out_of_range_up:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    add x8, x0, #512
 ; CHECK-LD1R-NEXT:    ptrue p0.d
+; CHECK-LD1R-NEXT:    add x8, x0, #512
 ; CHECK-LD1R-NEXT:    ld1rd { z0.d }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -863,8 +863,8 @@ define <vscale x 2 x double> @ld1rd_double_gep_out_of_range_up(ptr %valp) {
 define <vscale x 2 x double> @ld1rd_double_gep_out_of_range_down(ptr %valp) {
 ; CHECK-LD1R-LABEL: ld1rd_double_gep_out_of_range_down:
 ; CHECK-LD1R:       // %bb.0:
-; CHECK-LD1R-NEXT:    sub x8, x0, #8
 ; CHECK-LD1R-NEXT:    ptrue p0.d
+; CHECK-LD1R-NEXT:    sub x8, x0, #8
 ; CHECK-LD1R-NEXT:    ld1rd { z0.d }, p0/z, [x8]
 ; CHECK-LD1R-NEXT:    ret
 ;
@@ -1250,8 +1250,8 @@ define <vscale x 8 x half> @dup_ld1rh_half_passthruzero_nxv8f16(<vscale x 8 x i1
 ;
 ; CHECK-NO-LD1R-LABEL: dup_ld1rh_half_passthruzero_nxv8f16:
 ; CHECK-NO-LD1R:       // %bb.0:
-; CHECK-NO-LD1R-NEXT:    ldr h1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.h, #0 // =0x0
+; CHECK-NO-LD1R-NEXT:    ldr h1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.h, p0/m, h1
 ; CHECK-NO-LD1R-NEXT:    ret
     %ld = load half, ptr %addr
@@ -1266,8 +1266,8 @@ define <vscale x 4 x float> @dup_ld1rs_float_passthruzero_nxv4f32(<vscale x 4 x 
 ;
 ; CHECK-NO-LD1R-LABEL: dup_ld1rs_float_passthruzero_nxv4f32:
 ; CHECK-NO-LD1R:       // %bb.0:
-; CHECK-NO-LD1R-NEXT:    ldr s1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.s, #0 // =0x0
+; CHECK-NO-LD1R-NEXT:    ldr s1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.s, p0/m, s1
 ; CHECK-NO-LD1R-NEXT:    ret
     %ld = load float, ptr %addr
@@ -1282,8 +1282,8 @@ define <vscale x 2 x double> @dup_ld1rd_double_passthruzero_nxv2f64(<vscale x 2 
 ;
 ; CHECK-NO-LD1R-LABEL: dup_ld1rd_double_passthruzero_nxv2f64:
 ; CHECK-NO-LD1R:       // %bb.0:
-; CHECK-NO-LD1R-NEXT:    ldr d1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.d, #0 // =0x0
+; CHECK-NO-LD1R-NEXT:    ldr d1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.d, p0/m, d1
 ; CHECK-NO-LD1R-NEXT:    ret
     %ld = load double, ptr %addr
@@ -1298,8 +1298,8 @@ define <vscale x 4 x half> @dup_ld1rh_half_passthruzero_nxv4f16(<vscale x 4 x i1
 ;
 ; CHECK-NO-LD1R-LABEL: dup_ld1rh_half_passthruzero_nxv4f16:
 ; CHECK-NO-LD1R:       // %bb.0:
-; CHECK-NO-LD1R-NEXT:    ldr h1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.h, #0 // =0x0
+; CHECK-NO-LD1R-NEXT:    ldr h1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.h, p0/m, h1
 ; CHECK-NO-LD1R-NEXT:    ret
     %ld = load half, ptr %addr
@@ -1314,8 +1314,8 @@ define <vscale x 2 x half> @dup_ld1rh_half_passthruzero_nxv2f16(<vscale x 2 x i1
 ;
 ; CHECK-NO-LD1R-LABEL: dup_ld1rh_half_passthruzero_nxv2f16:
 ; CHECK-NO-LD1R:       // %bb.0:
-; CHECK-NO-LD1R-NEXT:    ldr h1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.h, #0 // =0x0
+; CHECK-NO-LD1R-NEXT:    ldr h1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.h, p0/m, h1
 ; CHECK-NO-LD1R-NEXT:    ret
     %ld = load half, ptr %addr
@@ -1330,8 +1330,8 @@ define <vscale x 2 x float> @dup_ld1rs_float_passthruzero_nxv2f32(<vscale x 2 x 
 ;
 ; CHECK-NO-LD1R-LABEL: dup_ld1rs_float_passthruzero_nxv2f32:
 ; CHECK-NO-LD1R:       // %bb.0:
-; CHECK-NO-LD1R-NEXT:    ldr s1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.s, #0 // =0x0
+; CHECK-NO-LD1R-NEXT:    ldr s1, [x0]
 ; CHECK-NO-LD1R-NEXT:    mov z0.s, p0/m, s1
 ; CHECK-NO-LD1R-NEXT:    ret
     %ld = load float, ptr %addr
@@ -1411,81 +1411,78 @@ define <vscale x 2 x double> @negtest_dup_ld1rd_double_passthru_nxv2f64(<vscale 
 
 
 ; Check that a load consumed by a scalable splat prefers a replicating load.
-define i8* @avoid_preindex_load(i8* %src, <vscale x 2 x i64>* %out) {
+define ptr @avoid_preindex_load(ptr %src, ptr %out) {
 ; CHECK-LABEL: avoid_preindex_load:
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    ptrue p0.d
-; CHECK-NEXT:    add x8, x0, #1
 ; CHECK-NEXT:    ld1rsb { z0.d }, p0/z, [x0, #1]
-; CHECK-NEXT:    mov x0, x8
+; CHECK-NEXT:    add x0, x0, #1
 ; CHECK-NEXT:    st1d { z0.d }, p0, [x1]
 ; CHECK-NEXT:    ret
-  %ptr = getelementptr inbounds i8, i8* %src, i64 1
-  %tmp = load i8, i8* %ptr, align 4
+  %ptr = getelementptr inbounds i8, ptr %src, i64 1
+  %tmp = load i8, ptr %ptr, align 4
   %ext = sext i8 %tmp to i64
   %ins = insertelement <vscale x 2 x i64> undef, i64 %ext, i32 0
   %dup = shufflevector <vscale x 2 x i64> %ins, <vscale x 2 x i64> undef, <vscale x 2 x i32> zeroinitializer
-  store <vscale x 2 x i64> %dup, <vscale x 2 x i64>* %out
-  ret i8* %ptr
+  store <vscale x 2 x i64> %dup, ptr %out
+  ret ptr %ptr
 }
 
 ; Check that a load consumed by a scalable splat prefers a replicating
 ; load over a pre-indexed load.
-define i8* @avoid_preindex_load_dup(i8* %src, <vscale x 2 x i1> %pg, <vscale x 2 x i64>* %out) {
+define ptr @avoid_preindex_load_dup(ptr %src, <vscale x 2 x i1> %pg, ptr %out) {
 ; CHECK-LABEL: avoid_preindex_load_dup:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    add x8, x0, #1
 ; CHECK-NEXT:    ld1rsb { z0.d }, p0/z, [x0, #1]
-; CHECK-NEXT:    mov x0, x8
 ; CHECK-NEXT:    ptrue p0.d
+; CHECK-NEXT:    add x0, x0, #1
 ; CHECK-NEXT:    st1d { z0.d }, p0, [x1]
 ; CHECK-NEXT:    ret
-  %ptr = getelementptr inbounds i8, i8* %src, i64 1
-  %tmp = load i8, i8* %ptr, align 4
+  %ptr = getelementptr inbounds i8, ptr %src, i64 1
+  %tmp = load i8, ptr %ptr, align 4
   %ext = sext i8 %tmp to i64
   %dup = call <vscale x 2 x i64> @llvm.aarch64.sve.dup.nxv2i64(<vscale x 2 x i64> undef, <vscale x 2 x i1> %pg, i64 %ext)
-  store <vscale x 2 x i64> %dup, <vscale x 2 x i64>* %out
-  ret i8* %ptr
+  store <vscale x 2 x i64> %dup, ptr %out
+  ret ptr %ptr
 }
 
 ; Same as avoid_preindex_load_dup, but with zero passthru.
-define i8* @avoid_preindex_load_dup_passthru_zero(i8* %src, <vscale x 2 x i1> %pg, <vscale x 2 x i64>* %out) {
+define ptr @avoid_preindex_load_dup_passthru_zero(ptr %src, <vscale x 2 x i1> %pg, ptr %out) {
 ; CHECK-LABEL: avoid_preindex_load_dup_passthru_zero:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    add x8, x0, #1
 ; CHECK-NEXT:    ld1rsb { z0.d }, p0/z, [x0, #1]
-; CHECK-NEXT:    mov x0, x8
 ; CHECK-NEXT:    ptrue p0.d
+; CHECK-NEXT:    add x0, x0, #1
 ; CHECK-NEXT:    st1d { z0.d }, p0, [x1]
 ; CHECK-NEXT:    ret
-  %ptr = getelementptr inbounds i8, i8* %src, i64 1
-  %tmp = load i8, i8* %ptr, align 4
+  %ptr = getelementptr inbounds i8, ptr %src, i64 1
+  %tmp = load i8, ptr %ptr, align 4
   %ext = sext i8 %tmp to i64
   %dup = call <vscale x 2 x i64> @llvm.aarch64.sve.dup.nxv2i64(<vscale x 2 x i64> zeroinitializer, <vscale x 2 x i1> %pg, i64 %ext)
-  store <vscale x 2 x i64> %dup, <vscale x 2 x i64>* %out
-  ret i8* %ptr
+  store <vscale x 2 x i64> %dup, ptr %out
+  ret ptr %ptr
 }
 
 ; If a dup has a non-undef passthru, stick with the pre-indexed load.
-define i8* @preindex_load_dup_passthru(<vscale x 2 x i64> %passthru, i8* %src, <vscale x 2 x i1> %pg, <vscale x 2 x i64>* %out) {
+define ptr @preindex_load_dup_passthru(<vscale x 2 x i64> %passthru, ptr %src, <vscale x 2 x i1> %pg, ptr %out) {
 ; CHECK-LABEL: preindex_load_dup_passthru:
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    ldrsb x8, [x0, #1]!
-; CHECK-NEXT:    ptrue p1.d
 ; CHECK-NEXT:    mov z0.d, p0/m, x8
-; CHECK-NEXT:    st1d { z0.d }, p1, [x1]
+; CHECK-NEXT:    ptrue p0.d
+; CHECK-NEXT:    st1d { z0.d }, p0, [x1]
 ; CHECK-NEXT:    ret
-  %ptr = getelementptr inbounds i8, i8* %src, i64 1
-  %tmp = load i8, i8* %ptr, align 4
+  %ptr = getelementptr inbounds i8, ptr %src, i64 1
+  %tmp = load i8, ptr %ptr, align 4
   %ext = sext i8 %tmp to i64
   %dup = call <vscale x 2 x i64> @llvm.aarch64.sve.dup.nxv2i64(<vscale x 2 x i64> %passthru, <vscale x 2 x i1> %pg, i64 %ext)
-  store <vscale x 2 x i64> %dup, <vscale x 2 x i64>* %out
-  ret i8* %ptr
+  store <vscale x 2 x i64> %dup, ptr %out
+  ret ptr %ptr
 }
 
 ; Show that a second user of the load prevents the replicating load
 ; check which would ordinarily inhibit indexed loads from firing.
-define i8* @preidx8sext64_instead_of_ld1r(i8* %src, <vscale x 2 x i64>* %out, i64* %dst) {
+define ptr @preidx8sext64_instead_of_ld1r(ptr %src, ptr %out, ptr %dst) {
 ; CHECK-LABEL: preidx8sext64_instead_of_ld1r:
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    ldrsb x8, [x0, #1]!
@@ -1494,14 +1491,14 @@ define i8* @preidx8sext64_instead_of_ld1r(i8* %src, <vscale x 2 x i64>* %out, i6
 ; CHECK-NEXT:    st1d { z0.d }, p0, [x1]
 ; CHECK-NEXT:    str x8, [x2]
 ; CHECK-NEXT:    ret
-  %ptr = getelementptr inbounds i8, i8* %src, i64 1
-  %tmp = load i8, i8* %ptr, align 4
+  %ptr = getelementptr inbounds i8, ptr %src, i64 1
+  %tmp = load i8, ptr %ptr, align 4
   %ext = sext i8 %tmp to i64
   %ins = insertelement <vscale x 2 x i64> undef, i64 %ext, i32 0
   %dup = shufflevector <vscale x 2 x i64> %ins, <vscale x 2 x i64> undef, <vscale x 2 x i32> zeroinitializer
-  store <vscale x 2 x i64> %dup, <vscale x 2 x i64>* %out
-  store i64 %ext, i64* %dst
-  ret i8* %ptr
+  store <vscale x 2 x i64> %dup, ptr %out
+  store i64 %ext, ptr %dst
+  ret ptr %ptr
 }
 
 

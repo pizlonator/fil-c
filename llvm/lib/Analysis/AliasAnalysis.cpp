@@ -29,7 +29,6 @@
 #include "llvm/Analysis/CaptureTracking.h"
 #include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/MemoryLocation.h"
-#include "llvm/Analysis/ObjCARCAliasAnalysis.h"
 #include "llvm/Analysis/ScalarEvolutionAliasAnalysis.h"
 #include "llvm/Analysis/ScopedNoAliasAA.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
@@ -47,7 +46,6 @@
 #include "llvm/Support/AtomicOrdering.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CommandLine.h"
-#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iterator>
@@ -72,6 +70,8 @@ static cl::opt<bool> EnableAATrace("aa-trace", cl::Hidden, cl::init(false));
 #else
 static const bool EnableAATrace = false;
 #endif
+
+AAResults::AAResults(const TargetLibraryInfo &TLI) : TLI(TLI) {}
 
 AAResults::AAResults(AAResults &&Arg)
     : TLI(Arg.TLI), AAs(std::move(Arg.AAs)), AADeps(std::move(Arg.AADeps)) {}
@@ -423,42 +423,6 @@ raw_ostream &llvm::operator<<(raw_ostream &OS, AliasResult AR) {
   return OS;
 }
 
-raw_ostream &llvm::operator<<(raw_ostream &OS, ModRefInfo MR) {
-  switch (MR) {
-  case ModRefInfo::NoModRef:
-    OS << "NoModRef";
-    break;
-  case ModRefInfo::Ref:
-    OS << "Ref";
-    break;
-  case ModRefInfo::Mod:
-    OS << "Mod";
-    break;
-  case ModRefInfo::ModRef:
-    OS << "ModRef";
-    break;
-  }
-  return OS;
-}
-
-raw_ostream &llvm::operator<<(raw_ostream &OS, MemoryEffects ME) {
-  for (IRMemLocation Loc : MemoryEffects::locations()) {
-    switch (Loc) {
-    case IRMemLocation::ArgMem:
-      OS << "ArgMem: ";
-      break;
-    case IRMemLocation::InaccessibleMem:
-      OS << "InaccessibleMem: ";
-      break;
-    case IRMemLocation::Other:
-      OS << "Other: ";
-      break;
-    }
-    OS << ME.getModRef(Loc) << ", ";
-  }
-  return OS;
-}
-
 //===----------------------------------------------------------------------===//
 // Helper method implementation
 //===----------------------------------------------------------------------===//
@@ -672,9 +636,7 @@ ModRefInfo AAResults::callCapturesBefore(const Instruction *I,
     // Only look at the no-capture or byval pointer arguments.  If this
     // pointer were passed to arguments that were neither of these, then it
     // couldn't be no-capture.
-    if (!(*CI)->getType()->isPointerTy() ||
-        (!Call->doesNotCapture(ArgNo) && ArgNo < Call->arg_size() &&
-         !Call->isByValArgument(ArgNo)))
+    if (!(*CI)->getType()->isPointerTy() || !Call->doesNotCapture(ArgNo))
       continue;
 
     AliasResult AR =
@@ -864,6 +826,14 @@ bool llvm::isIdentifiedFunctionLocal(const Value *V) {
   return isa<AllocaInst>(V) || isNoAliasCall(V) || isNoAliasOrByValArgument(V);
 }
 
+bool llvm::isBaseOfObject(const Value *V) {
+  // TODO: We can handle other cases here
+  // 1) For GC languages, arguments to functions are often required to be
+  //    base pointers.
+  // 2) Result of allocation routines are often base pointers.  Leverage TLI.
+  return (isa<AllocaInst>(V) || isa<GlobalVariable>(V));
+}
+
 bool llvm::isEscapeSource(const Value *V) {
   if (auto *CB = dyn_cast<CallBase>(V))
     return !isIntrinsicReturningPointerAliasingArgumentWithoutCapturing(CB,
@@ -883,6 +853,11 @@ bool llvm::isEscapeSource(const Value *V) {
   if (isa<IntToPtrInst>(V))
     return true;
 
+  // Same for inttoptr constant expressions.
+  if (auto *CE = dyn_cast<ConstantExpr>(V))
+    if (CE->getOpcode() == Instruction::IntToPtr)
+      return true;
+
   return false;
 }
 
@@ -896,7 +871,7 @@ bool llvm::isNotVisibleOnUnwind(const Value *Object,
 
   // Byval goes out of scope on unwind.
   if (auto *A = dyn_cast<Argument>(Object))
-    return A->hasByValAttr();
+    return A->hasByValAttr() || A->hasAttribute(Attribute::DeadOnUnwind);
 
   // A noalias return is not accessible from any other code. If the pointer
   // does not escape prior to the unwind, then the caller cannot access the
@@ -907,4 +882,32 @@ bool llvm::isNotVisibleOnUnwind(const Value *Object,
   }
 
   return false;
+}
+
+// We don't consider globals as writable: While the physical memory is writable,
+// we may not have provenance to perform the write.
+bool llvm::isWritableObject(const Value *Object,
+                            bool &ExplicitlyDereferenceableOnly) {
+  ExplicitlyDereferenceableOnly = false;
+
+  // TODO: Alloca might not be writable after its lifetime ends.
+  // See https://github.com/llvm/llvm-project/issues/51838.
+  if (isa<AllocaInst>(Object))
+    return true;
+
+  if (auto *A = dyn_cast<Argument>(Object)) {
+    // Also require noalias, otherwise writability at function entry cannot be
+    // generalized to writability at other program points, even if the pointer
+    // does not escape.
+    if (A->hasAttribute(Attribute::Writable) && A->hasNoAliasAttr()) {
+      ExplicitlyDereferenceableOnly = true;
+      return true;
+    }
+
+    return A->hasByValAttr();
+  }
+
+  // TODO: Noalias shouldn't imply writability, this should check for an
+  // allocator function instead.
+  return isNoAliasCall(Object);
 }

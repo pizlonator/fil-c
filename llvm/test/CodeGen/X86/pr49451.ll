@@ -15,14 +15,13 @@ define void @func_6(i8 %uc_8, i64 %uli_10) nounwind {
 ; X86-NEXT:    xorl %edx, %edx
 ; X86-NEXT:    xorl %ebx, %ebx
 ; X86-NEXT:    # implicit-def: $si
-; X86-NEXT:    .p2align 4, 0x90
+; X86-NEXT:    .p2align 4
 ; X86-NEXT:  .LBB0_1: # %for.body612
 ; X86-NEXT:    # =>This Inner Loop Header: Depth=1
 ; X86-NEXT:    testb %dl, %dl
 ; X86-NEXT:    je .LBB0_2
 ; X86-NEXT:  # %bb.3: # %if.end1401
 ; X86-NEXT:    # in Loop: Header=BB0_1 Depth=1
-; X86-NEXT:    testb %dl, %dl
 ; X86-NEXT:    addl %eax, %esi
 ; X86-NEXT:    movw %si, s_2
 ; X86-NEXT:    movw %bx, s_0
@@ -38,14 +37,13 @@ define void @func_6(i8 %uc_8, i64 %uli_10) nounwind {
 ; X64-NEXT:    movl $23090, %eax # imm = 0x5A32
 ; X64-NEXT:    xorl %ecx, %ecx
 ; X64-NEXT:    # implicit-def: $dx
-; X64-NEXT:    .p2align 4, 0x90
+; X64-NEXT:    .p2align 4
 ; X64-NEXT:  .LBB0_1: # %for.body612
 ; X64-NEXT:    # =>This Inner Loop Header: Depth=1
 ; X64-NEXT:    testb %cl, %cl
 ; X64-NEXT:    je .LBB0_2
 ; X64-NEXT:  # %bb.3: # %if.end1401
 ; X64-NEXT:    # in Loop: Header=BB0_1 Depth=1
-; X64-NEXT:    testb %cl, %cl
 ; X64-NEXT:    addl %esi, %edx
 ; X64-NEXT:    movw %dx, s_2(%rip)
 ; X64-NEXT:    leal -23090(%rax), %edi

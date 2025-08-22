@@ -20,6 +20,8 @@ add_custom_command(OUTPUT "${version_inc}"
                            "-DLLVM_SOURCE_DIR=${llvm_source_dir}"
                            "-DFLANG_SOURCE_DIR=${flang_source_dir}"
                            "-DHEADER_FILE=${version_inc}"
+                           "-DLLVM_FORCE_VC_REVISION=${LLVM_FORCE_VC_REVISION}"
+                           "-DLLVM_FORCE_VC_REPOSITORY=${LLVM_FORCE_VC_REPOSITORY}"
                            -P "${generate_vcs_version_script}")
 
 # Mark the generated header as being generated.
@@ -32,15 +34,19 @@ if(FLANG_VENDOR)
     PROPERTIES COMPILE_DEFINITIONS "FLANG_VENDOR=\"${FLANG_VENDOR} \"")
 endif()
 
-
 add_flang_library(FortranCommon
   Fortran.cpp
   Fortran-features.cpp
   default-kinds.cpp
   idioms.cpp
+  LangOptions.cpp
+  OpenMP-utils.cpp
   Version.cpp
   ${version_inc}
 
   LINK_COMPONENTS
   Support
+
+  MLIR_LIBS
+  MLIRIR
 )

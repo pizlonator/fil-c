@@ -40,12 +40,10 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/YAMLTraits.h"
 #include "llvm/Support/raw_ostream.h"
-#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <tuple>
 #include <vector>
 
 using namespace llvm;
@@ -900,7 +898,7 @@ YAMLDebugSubsection::fromCodeViewSubection(const StringsAndChecksumsRef &SC,
 std::vector<YAMLDebugSubsection>
 llvm::CodeViewYAML::fromDebugS(ArrayRef<uint8_t> Data,
                                const StringsAndChecksumsRef &SC) {
-  BinaryStreamReader Reader(Data, support::little);
+  BinaryStreamReader Reader(Data, llvm::endianness::little);
   uint32_t Magic;
 
   ExitOnError Err("Invalid .debug$S section!");

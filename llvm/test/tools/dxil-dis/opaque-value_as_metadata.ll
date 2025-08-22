@@ -6,9 +6,11 @@ target triple = "dxil-unknown-shadermodel6.7-library"
 
 @CBV = external constant %"$Globals"
 
-define void @main() {
+define void @main() #0 {
   ret void
 }
+
+attributes #0 = { "hlsl.export" }
 
 !llvm.ident = !{!0}
 !dx.version = !{!1}
@@ -19,7 +21,7 @@ define void @main() {
 !0 = !{!"clang version 15.0.0"}
 !1 = !{i32 1, i32 0}
 !2 = !{i32 1, i32 7}
-!3 = !{!"ps", i32 6, i32 0}
+!3 = !{!"lib", i32 6, i32 7}
 !4 = !{null, null, !5, null}
 !5 = !{!6}
 ; CHECK-DAG:!{{[0-9]+}} = !{i32 0, %"$Globals"* @CBV

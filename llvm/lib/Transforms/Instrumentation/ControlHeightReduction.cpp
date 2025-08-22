@@ -28,12 +28,12 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/MDBuilder.h"
+#include "llvm/IR/Module.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/ProfDataUtils.h"
 #include "llvm/Support/BranchProbability.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
@@ -280,8 +280,7 @@ class CHRScope {
 
  private:
    CHRScope(ArrayRef<RegInfo> RegInfosIn, ArrayRef<CHRScope *> SubsIn)
-       : RegInfos(RegInfosIn.begin(), RegInfosIn.end()),
-         Subs(SubsIn.begin(), SubsIn.end()), BranchInsertPoint(nullptr) {}
+       : RegInfos(RegInfosIn), Subs(SubsIn), BranchInsertPoint(nullptr) {}
 };
 
 class CHR {
@@ -1469,7 +1468,7 @@ static void hoistValue(Value *V, Instruction *HoistPoint, Region *R,
     for (Value *Op : I->operands()) {
       hoistValue(Op, HoistPoint, R, HoistStopMap, HoistedSet, TrivialPHIs, DT);
     }
-    I->moveBefore(HoistPoint);
+    I->moveBefore(HoistPoint->getIterator());
     HoistedSet.insert(I);
     CHR_DEBUG(dbgs() << "hoistValue " << *I << "\n");
   }
@@ -1593,8 +1592,8 @@ static void insertTrivialPHIs(CHRScope *Scope,
         // Insert a trivial phi for I (phi [&I, P0], [&I, P1], ...) at
         // ExitBlock. Replace I with the new phi in UI unless UI is another
         // phi at ExitBlock.
-        PHINode *PN = PHINode::Create(I.getType(), pred_size(ExitBlock), "",
-                                      &ExitBlock->front());
+        PHINode *PN = PHINode::Create(I.getType(), pred_size(ExitBlock), "");
+        PN->insertBefore(ExitBlock->begin());
         for (BasicBlock *Pred : predecessors(ExitBlock)) {
           PN->addIncoming(&I, Pred);
         }
@@ -1780,17 +1779,10 @@ void CHR::cloneScopeBlocks(CHRScope *Scope,
 
       // Unreachable predecessors will not be cloned and will not have an edge
       // to the cloned block. As such, also remove them from any phi nodes.
-      // To avoid iterator invalidation, first collect the dead predecessors
-      // from the first phi node, and then perform the actual removal.
-      if (auto *FirstPN = dyn_cast<PHINode>(NewBB->begin())) {
-        SmallVector<BasicBlock *> DeadPreds;
-        for (BasicBlock *Pred : FirstPN->blocks())
-          if (!DT.isReachableFromEntry(Pred))
-            DeadPreds.push_back(Pred);
-        for (PHINode &PN : make_early_inc_range(NewBB->phis()))
-          for (BasicBlock *Pred : DeadPreds)
-            PN.removeIncomingValue(Pred);
-      }
+      for (PHINode &PN : make_early_inc_range(NewBB->phis()))
+        PN.removeIncomingValueIf([&](unsigned Idx) {
+          return !DT.isReachableFromEntry(PN.getIncomingBlock(Idx));
+        });
     }
 
   // Place the cloned blocks right after the original blocks (right before the
@@ -1870,6 +1862,7 @@ void CHR::fixupBranchesAndSelects(CHRScope *Scope,
       ++NumCHRedBranches;
     }
   }
+  assert(NumCHRedBranches > 0);
   Stats.NumBranchesDelta += NumCHRedBranches - 1;
   Stats.WeightedNumBranchesDelta += (NumCHRedBranches - 1) * ProfileCount;
   ORE.emit([&]() {
@@ -1885,8 +1878,7 @@ void CHR::fixupBranchesAndSelects(CHRScope *Scope,
       static_cast<uint32_t>(CHRBranchBias.scale(1000)),
       static_cast<uint32_t>(CHRBranchBias.getCompl().scale(1000)),
   };
-  MDBuilder MDB(F.getContext());
-  MergedBR->setMetadata(LLVMContext::MD_prof, MDB.createBranchWeights(Weights));
+  setBranchWeights(*MergedBR, Weights, /*IsExpected=*/false);
   CHR_DEBUG(dbgs() << "CHR branch bias " << Weights[0] << ":" << Weights[1]
             << "\n");
 }

@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "MCTargetDesc/BPFMCFixups.h"
 #include "MCTargetDesc/BPFMCTargetDesc.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/MC/MCCodeEmitter.h"
@@ -19,7 +20,6 @@
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/Support/Endian.h"
 #include "llvm/Support/EndianStream.h"
 #include <cassert>
 #include <cstdint>
@@ -95,6 +95,8 @@ unsigned BPFMCCodeEmitter::getMachineOpValue(const MCInst &MI,
     Fixups.push_back(MCFixup::create(0, Expr, FK_PCRel_4));
   else if (MI.getOpcode() == BPF::LD_imm64)
     Fixups.push_back(MCFixup::create(0, Expr, FK_SecRel_8));
+  else if (MI.getOpcode() == BPF::JMPL)
+    Fixups.push_back(MCFixup::create(0, Expr, (MCFixupKind)BPF::FK_BPF_PCRel_4));
   else
     // bb label
     Fixups.push_back(MCFixup::create(0, Expr, FK_PCRel_2));
@@ -113,8 +115,8 @@ void BPFMCCodeEmitter::encodeInstruction(const MCInst &MI,
                                          const MCSubtargetInfo &STI) const {
   unsigned Opcode = MI.getOpcode();
   raw_svector_ostream OS(CB);
-  support::endian::Writer OSE(OS,
-                              IsLittleEndian ? support::little : support::big);
+  support::endian::Writer OSE(OS, IsLittleEndian ? llvm::endianness::little
+                                                 : llvm::endianness::big);
 
   if (Opcode == BPF::LD_imm64 || Opcode == BPF::LD_pseudo) {
     uint64_t Value = getBinaryCodeForInstr(MI, Fixups, STI);

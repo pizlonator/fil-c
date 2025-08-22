@@ -97,13 +97,14 @@ private:
 /// operands, by speculatively folding operations. When combined with dead-code
 /// analysis, this becomes sparse conditional constant propagation (SCCP).
 class SparseConstantPropagation
-    : public SparseDataFlowAnalysis<Lattice<ConstantValue>> {
+    : public SparseForwardDataFlowAnalysis<Lattice<ConstantValue>> {
 public:
-  using SparseDataFlowAnalysis::SparseDataFlowAnalysis;
+  using SparseForwardDataFlowAnalysis::SparseForwardDataFlowAnalysis;
 
-  void visitOperation(Operation *op,
-                      ArrayRef<const Lattice<ConstantValue> *> operands,
-                      ArrayRef<Lattice<ConstantValue> *> results) override;
+  LogicalResult
+  visitOperation(Operation *op,
+                 ArrayRef<const Lattice<ConstantValue> *> operands,
+                 ArrayRef<Lattice<ConstantValue> *> results) override;
 
   void setToEntryState(Lattice<ConstantValue> *lattice) override;
 };

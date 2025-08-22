@@ -12,6 +12,7 @@
 #include <memory>
 
 namespace mlir {
+class DialectRegistry;
 class Pass;
 class LLVMTypeConverter;
 class RewritePatternSet;
@@ -22,7 +23,10 @@ class RewritePatternSet;
 /// Collect a set of patterns to convert memory-related operations from the
 /// MemRef dialect to the LLVM dialect.
 void populateFinalizeMemRefToLLVMConversionPatterns(
-    LLVMTypeConverter &converter, RewritePatternSet &patterns);
+    const LLVMTypeConverter &converter, RewritePatternSet &patterns);
+
+void registerConvertMemRefToLLVMInterface(DialectRegistry &registry);
+
 } // namespace mlir
 
 #endif // MLIR_CONVERSION_MEMREFTOLLVM_MEMREFTOLLVM_H

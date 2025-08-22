@@ -65,12 +65,12 @@ public:
     return ObjCRuntimeVersions::eAppleObjC_V2;
   }
 
-  size_t GetByteOffsetForIvar(CompilerType &parent_qual_type,
+  size_t GetByteOffsetForIvar(CompilerType &parent_ast_type,
                               const char *ivar_name) override;
 
   void UpdateISAToDescriptorMapIfNeeded() override;
 
-  ClassDescriptorSP GetClassDescriptor(ValueObject &in_value) override;
+  ClassDescriptorSP GetClassDescriptor(ValueObject &valobj) override;
 
   ClassDescriptorSP GetClassDescriptorFromISA(ObjCISA isa) override;
 
@@ -105,6 +105,8 @@ public:
   bool IsSharedCacheImageLoaded(uint16_t image_index);
 
   std::optional<uint64_t> GetSharedCacheImageHeaderVersion();
+
+  StructuredData::ObjectSP GetLanguageSpecificData(SymbolContext sc) override;
 
 protected:
   lldb::BreakpointResolverSP

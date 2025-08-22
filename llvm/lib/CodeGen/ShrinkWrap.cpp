@@ -83,7 +83,6 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include <cassert>
-#include <cstdint>
 #include <memory>
 
 using namespace llvm;
@@ -139,7 +138,7 @@ class ShrinkWrap : public MachineFunctionPass {
   MachineOptimizationRemarkEmitter *ORE = nullptr;
 
   /// Frequency of the Entry block.
-  uint64_t EntryFreq = 0;
+  BlockFrequency EntryFreq;
 
   /// Current opcode for frame setup.
   unsigned FrameSetupOpcode = ~0u;
@@ -161,9 +160,11 @@ class ShrinkWrap : public MachineFunctionPass {
   /// Current MachineFunction.
   MachineFunction *MachineFunc = nullptr;
 
-  /// Is `true` for block numbers where we can guarantee no stack access
-  /// or computation of stack-relative addresses on any CFG path including
-  /// the block itself.
+  /// Is `true` for the block numbers where we assume possible stack accesses
+  /// or computation of stack-relative addresses on any CFG path including the
+  /// block itself. Is `false` for basic blocks where we can guarantee the
+  /// opposite. False positives won't lead to incorrect analysis results,
+  /// therefore this approach is fair.
   BitVector StackAddressUsedBlockInfo;
 
   /// Check if \p MI uses or defines a callee-saved register or
@@ -223,12 +224,12 @@ class ShrinkWrap : public MachineFunctionPass {
   /// Initialize the pass for \p MF.
   void init(MachineFunction &MF) {
     RCI.runOnMachineFunction(MF);
-    MDT = &getAnalysis<MachineDominatorTree>();
-    MPDT = &getAnalysis<MachinePostDominatorTree>();
+    MDT = &getAnalysis<MachineDominatorTreeWrapperPass>().getDomTree();
+    MPDT = &getAnalysis<MachinePostDominatorTreeWrapperPass>().getPostDomTree();
     Save = nullptr;
     Restore = nullptr;
-    MBFI = &getAnalysis<MachineBlockFrequencyInfo>();
-    MLI = &getAnalysis<MachineLoopInfo>();
+    MBFI = &getAnalysis<MachineBlockFrequencyInfoWrapperPass>().getMBFI();
+    MLI = &getAnalysis<MachineLoopInfoWrapperPass>().getLI();
     ORE = &getAnalysis<MachineOptimizationRemarkEmitterPass>().getORE();
     EntryFreq = MBFI->getEntryFreq();
     const TargetSubtargetInfo &Subtarget = MF.getSubtarget();
@@ -259,10 +260,10 @@ public:
 
   void getAnalysisUsage(AnalysisUsage &AU) const override {
     AU.setPreservesAll();
-    AU.addRequired<MachineBlockFrequencyInfo>();
-    AU.addRequired<MachineDominatorTree>();
-    AU.addRequired<MachinePostDominatorTree>();
-    AU.addRequired<MachineLoopInfo>();
+    AU.addRequired<MachineBlockFrequencyInfoWrapperPass>();
+    AU.addRequired<MachineDominatorTreeWrapperPass>();
+    AU.addRequired<MachinePostDominatorTreeWrapperPass>();
+    AU.addRequired<MachineLoopInfoWrapperPass>();
     AU.addRequired<MachineOptimizationRemarkEmitterPass>();
     MachineFunctionPass::getAnalysisUsage(AU);
   }
@@ -286,10 +287,10 @@ char ShrinkWrap::ID = 0;
 char &llvm::ShrinkWrapID = ShrinkWrap::ID;
 
 INITIALIZE_PASS_BEGIN(ShrinkWrap, DEBUG_TYPE, "Shrink Wrap Pass", false, false)
-INITIALIZE_PASS_DEPENDENCY(MachineBlockFrequencyInfo)
-INITIALIZE_PASS_DEPENDENCY(MachineDominatorTree)
-INITIALIZE_PASS_DEPENDENCY(MachinePostDominatorTree)
-INITIALIZE_PASS_DEPENDENCY(MachineLoopInfo)
+INITIALIZE_PASS_DEPENDENCY(MachineBlockFrequencyInfoWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(MachineDominatorTreeWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(MachinePostDominatorTreeWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(MachineLoopInfoWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(MachineOptimizationRemarkEmitterPass)
 INITIALIZE_PASS_END(ShrinkWrap, DEBUG_TYPE, "Shrink Wrap Pass", false, false)
 
@@ -374,12 +375,7 @@ bool ShrinkWrap::useOrDefCSROrFI(const MachineInstr &MI, RegScavenger *RS,
 template <typename ListOfBBs, typename DominanceAnalysis>
 static MachineBasicBlock *FindIDom(MachineBasicBlock &Block, ListOfBBs BBs,
                                    DominanceAnalysis &Dom, bool Strict = true) {
-  MachineBasicBlock *IDom = &Block;
-  for (MachineBasicBlock *BB : BBs) {
-    IDom = Dom.findNearestCommonDominator(IDom, BB);
-    if (!IDom)
-      break;
-  }
+  MachineBasicBlock *IDom = Dom.findNearestCommonDominator(iterator_range(BBs));
   if (Strict && IDom == &Block)
     return nullptr;
   return IDom;
@@ -409,8 +405,7 @@ hasDirtyPred(const DenseSet<const MachineBasicBlock *> &ReachableByDirty,
 /// Derives the list of all the basic blocks reachable from MBB.
 static void markAllReachable(DenseSet<const MachineBasicBlock *> &Visited,
                              const MachineBasicBlock &MBB) {
-  SmallVector<MachineBasicBlock *, 4> Worklist(MBB.succ_begin(),
-                                               MBB.succ_end());
+  SmallVector<MachineBasicBlock *, 4> Worklist(MBB.successors());
   Visited.insert(&MBB);
   while (!Worklist.empty()) {
     MachineBasicBlock *SuccMBB = Worklist.pop_back_val();
@@ -438,8 +433,7 @@ static bool
 isSaveReachableThroughClean(const MachineBasicBlock *SavePoint,
                             ArrayRef<MachineBasicBlock *> CleanPreds) {
   DenseSet<const MachineBasicBlock *> Visited;
-  SmallVector<MachineBasicBlock *, 4> Worklist(CleanPreds.begin(),
-                                               CleanPreds.end());
+  SmallVector<MachineBasicBlock *, 4> Worklist(CleanPreds);
   while (!Worklist.empty()) {
     MachineBasicBlock *CleanBB = Worklist.pop_back_val();
     if (CleanBB == SavePoint)
@@ -640,7 +634,7 @@ bool ShrinkWrap::postShrinkWrapping(bool HasCandidate, MachineFunction &MF,
       FindIDom<>(**DirtyPreds.begin(), DirtyPreds, *MDT, false);
 
   while (NewSave && (hasDirtyPred(ReachableByDirty, *NewSave) ||
-                     EntryFreq < MBFI->getBlockFreq(NewSave).getFrequency() ||
+                     EntryFreq < MBFI->getBlockFreq(NewSave) ||
                      /*Entry freq has been observed more than a loop block in
                         some cases*/
                      MLI->getLoopFor(NewSave)))
@@ -668,15 +662,15 @@ bool ShrinkWrap::postShrinkWrapping(bool HasCandidate, MachineFunction &MF,
   Save = NewSave;
   Restore = NewRestore;
 
-  MDT->runOnMachineFunction(MF);
-  MPDT->runOnMachineFunction(MF);
+  MDT->recalculate(MF);
+  MPDT->recalculate(MF);
 
   assert((MDT->dominates(Save, Restore) && MPDT->dominates(Restore, Save)) &&
          "Incorrect save or restore point due to dominance relations");
   assert((!MLI->getLoopFor(Save) && !MLI->getLoopFor(Restore)) &&
          "Unexpected save or restore point in a loop");
-  assert((EntryFreq >= MBFI->getBlockFreq(Save).getFrequency() &&
-          EntryFreq >= MBFI->getBlockFreq(Restore).getFrequency()) &&
+  assert((EntryFreq >= MBFI->getBlockFreq(Save) &&
+          EntryFreq >= MBFI->getBlockFreq(Restore)) &&
          "Incorrect save or restore point based on block frequency");
   return true;
 }
@@ -878,21 +872,21 @@ bool ShrinkWrap::performShrinkWrapping(
     return false;
   }
 
-  LLVM_DEBUG(dbgs() << "\n ** Results **\nFrequency of the Entry: " << EntryFreq
-                    << '\n');
+  LLVM_DEBUG(dbgs() << "\n ** Results **\nFrequency of the Entry: "
+                    << EntryFreq.getFrequency() << '\n');
 
   const TargetFrameLowering *TFI =
       MachineFunc->getSubtarget().getFrameLowering();
   do {
     LLVM_DEBUG(dbgs() << "Shrink wrap candidates (#, Name, Freq):\nSave: "
                       << printMBBReference(*Save) << ' '
-                      << MBFI->getBlockFreq(Save).getFrequency()
+                      << printBlockFreq(*MBFI, *Save)
                       << "\nRestore: " << printMBBReference(*Restore) << ' '
-                      << MBFI->getBlockFreq(Restore).getFrequency() << '\n');
+                      << printBlockFreq(*MBFI, *Restore) << '\n');
 
     bool IsSaveCheap, TargetCanUseSaveAsPrologue = false;
-    if (((IsSaveCheap = EntryFreq >= MBFI->getBlockFreq(Save).getFrequency()) &&
-         EntryFreq >= MBFI->getBlockFreq(Restore).getFrequency()) &&
+    if (((IsSaveCheap = EntryFreq >= MBFI->getBlockFreq(Save)) &&
+         EntryFreq >= MBFI->getBlockFreq(Restore)) &&
         ((TargetCanUseSaveAsPrologue = TFI->canUseAsPrologue(*Save)) &&
          TFI->canUseAsEpilogue(*Restore)))
       break;
@@ -948,6 +942,9 @@ bool ShrinkWrap::runOnMachineFunction(MachineFunction &MF) {
 
   bool Changed = false;
 
+  // Initially, conservatively assume that stack addresses can be used in each
+  // basic block and change the state only for those basic blocks for which we
+  // were able to prove the opposite.
   StackAddressUsedBlockInfo.resize(MF.getNumBlockIDs(), true);
   bool HasCandidate = performShrinkWrapping(RPOT, RS.get());
   StackAddressUsedBlockInfo.clear();
@@ -984,6 +981,7 @@ bool ShrinkWrap::isShrinkWrapEnabled(const MachineFunction &MF) {
            !(MF.getFunction().hasFnAttribute(Attribute::SanitizeAddress) ||
              MF.getFunction().hasFnAttribute(Attribute::SanitizeThread) ||
              MF.getFunction().hasFnAttribute(Attribute::SanitizeMemory) ||
+             MF.getFunction().hasFnAttribute(Attribute::SanitizeType) ||
              MF.getFunction().hasFnAttribute(Attribute::SanitizeHWAddress));
   // If EnableShrinkWrap is set, it takes precedence on whatever the
   // target sets. The rational is that we assume we want to test

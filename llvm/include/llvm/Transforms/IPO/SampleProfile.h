@@ -17,11 +17,19 @@
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/CommandLine.h"
 #include <string>
 
 namespace llvm {
 
 class Module;
+
+extern cl::opt<int> SampleHotCallSiteThreshold;
+extern cl::opt<int> SampleColdCallSiteThreshold;
+extern cl::opt<int> ProfileInlineGrowthLimit;
+extern cl::opt<int> ProfileInlineLimitMin;
+extern cl::opt<int> ProfileInlineLimitMax;
+extern cl::opt<bool> SortProfiledSCC;
 
 namespace vfs {
 class FileSystem;
@@ -33,7 +41,9 @@ public:
   SampleProfileLoaderPass(
       std::string File = "", std::string RemappingFile = "",
       ThinOrFullLTOPhase LTOPhase = ThinOrFullLTOPhase::None,
-      IntrusiveRefCntPtr<vfs::FileSystem> FS = nullptr);
+      IntrusiveRefCntPtr<vfs::FileSystem> FS = nullptr,
+      bool DisableSampleProfileInlining = false,
+      bool UseFlattenedProfile = false);
 
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM);
 
@@ -42,6 +52,8 @@ private:
   std::string ProfileRemappingFileName;
   const ThinOrFullLTOPhase LTOPhase;
   IntrusiveRefCntPtr<vfs::FileSystem> FS;
+  bool DisableSampleProfileInlining;
+  bool UseFlattenedProfile;
 };
 
 } // end namespace llvm

@@ -1,4 +1,4 @@
-# RUN: %PYTHON %s 2>&1 | FileCheck %s
+# RUN: env MLIR_RUNNER_UTILS=%mlir_runner_utils MLIR_C_RUNNER_UTILS=%mlir_c_runner_utils %PYTHON %s 2>&1 | FileCheck %s
 # REQUIRES: host-supports-jit
 import gc, sys, os, tempfile
 from mlir.ir import *
@@ -6,6 +6,20 @@ from mlir.passmanager import *
 from mlir.execution_engine import *
 from mlir.runtime import *
 
+try:
+    from ml_dtypes import bfloat16, float8_e5m2
+
+    HAS_ML_DTYPES = True
+except ModuleNotFoundError:
+    HAS_ML_DTYPES = False
+
+
+MLIR_RUNNER_UTILS = os.getenv(
+    "MLIR_RUNNER_UTILS", "../../../../lib/libmlir_runner_utils.so"
+)
+MLIR_C_RUNNER_UTILS = os.getenv(
+    "MLIR_C_RUNNER_UTILS", "../../../../lib/libmlir_c_runner_utils.so"
+)
 
 # Log everything to stderr and flush so that we have a unified stream to match
 # errors/info emitted by MLIR to stderr.
@@ -67,7 +81,7 @@ run(testInvalidModule)
 
 def lowerToLLVM(module):
     pm = PassManager.parse(
-        "builtin.module(convert-complex-to-llvm,finalize-memref-to-llvm,convert-func-to-llvm,reconcile-unrealized-casts)"
+        "builtin.module(convert-complex-to-llvm,finalize-memref-to-llvm,convert-func-to-llvm,convert-arith-to-llvm,convert-cf-to-llvm,reconcile-unrealized-casts)"
     )
     pm.run(module.operation)
     return module
@@ -243,6 +257,87 @@ func.func private @some_callback_into_python(memref<2x2xf32>) -> () attributes {
 
 
 run(testRankedMemRefCallback)
+
+
+# Test callback with a ranked memref with non-zero offset.
+# CHECK-LABEL: TEST: testRankedMemRefWithOffsetCallback
+def testRankedMemRefWithOffsetCallback():
+    # Define a callback function that takes a ranked memref, converts it to a numpy array and prints it.
+    @ctypes.CFUNCTYPE(
+        None,
+        ctypes.POINTER(
+            make_nd_memref_descriptor(1, np.ctypeslib.as_ctypes_type(np.float32))
+        ),
+    )
+    def callback(a):
+        arr = ranked_memref_to_numpy(a)
+        log("Inside Callback: ")
+        log(arr)
+
+    with Context():
+        # The module takes a subview of the argument memref and calls the callback with it
+        module = Module.parse(
+            r"""
+func.func @callback_memref(%arg0: memref<5xf32>) attributes {llvm.emit_c_interface} {
+  %base_buffer, %offset, %sizes, %strides = memref.extract_strided_metadata %arg0 : memref<5xf32> -> memref<f32>, index, index, index
+  %reinterpret_cast = memref.reinterpret_cast %base_buffer to offset: [3], sizes: [2], strides: [1] : memref<f32> to memref<2xf32, strided<[1], offset: 3>>
+  %cast = memref.cast %reinterpret_cast : memref<2xf32, strided<[1], offset: 3>> to memref<?xf32, strided<[?], offset: ?>>
+  call @some_callback_into_python(%cast) : (memref<?xf32, strided<[?], offset: ?>>) -> ()
+  return
+}
+func.func private @some_callback_into_python(memref<?xf32, strided<[?], offset: ?>>) attributes {llvm.emit_c_interface}
+"""
+        )
+        execution_engine = ExecutionEngine(lowerToLLVM(module))
+        execution_engine.register_runtime("some_callback_into_python", callback)
+        inp_arr = np.array([0, 0, 0, 1, 2], np.float32)
+        # CHECK: Inside Callback:
+        # CHECK{LITERAL}: [1. 2.]
+        execution_engine.invoke(
+            "callback_memref",
+            ctypes.pointer(ctypes.pointer(get_ranked_memref_descriptor(inp_arr))),
+        )
+
+
+run(testRankedMemRefWithOffsetCallback)
+
+
+# Test callback with an unranked memref with non-zero offset
+# CHECK-LABEL: TEST: testUnrankedMemRefWithOffsetCallback
+def testUnrankedMemRefWithOffsetCallback():
+    # Define a callback function that takes an unranked memref, converts it to a numpy array and prints it.
+    @ctypes.CFUNCTYPE(None, ctypes.POINTER(UnrankedMemRefDescriptor))
+    def callback(a):
+        arr = unranked_memref_to_numpy(a, np.float32)
+        log("Inside callback: ")
+        log(arr)
+
+    with Context():
+        # The module takes a subview of the argument memref, casts it to an unranked memref and
+        # calls the callback with it.
+        module = Module.parse(
+            r"""
+func.func @callback_memref(%arg0: memref<5xf32>) attributes {llvm.emit_c_interface} {
+    %base_buffer, %offset, %sizes, %strides = memref.extract_strided_metadata %arg0 : memref<5xf32> -> memref<f32>, index, index, index
+    %reinterpret_cast = memref.reinterpret_cast %base_buffer to offset: [3], sizes: [2], strides: [1] : memref<f32> to memref<2xf32, strided<[1], offset: 3>>
+    %cast = memref.cast %reinterpret_cast : memref<2xf32, strided<[1], offset: 3>> to memref<*xf32>
+    call @some_callback_into_python(%cast) : (memref<*xf32>) -> ()
+    return
+}
+func.func private @some_callback_into_python(memref<*xf32>) attributes {llvm.emit_c_interface}
+"""
+        )
+        execution_engine = ExecutionEngine(lowerToLLVM(module))
+        execution_engine.register_runtime("some_callback_into_python", callback)
+        inp_arr = np.array([1, 2, 3, 4, 5], np.float32)
+        # CHECK: Inside callback:
+        # CHECK{LITERAL}: [4. 5.]
+        execution_engine.invoke(
+            "callback_memref",
+            ctypes.pointer(ctypes.pointer(get_ranked_memref_descriptor(inp_arr))),
+        )
+
+run(testUnrankedMemRefWithOffsetCallback)
 
 
 #  Test addition of two memrefs.
@@ -440,6 +535,90 @@ def testComplexUnrankedMemrefAdd():
 run(testComplexUnrankedMemrefAdd)
 
 
+# Test bf16 memrefs
+# CHECK-LABEL: TEST: testBF16Memref
+def testBF16Memref():
+    with Context():
+        module = Module.parse(
+            """
+    module  {
+      func.func @main(%arg0: memref<1xbf16>,
+                      %arg1: memref<1xbf16>) attributes { llvm.emit_c_interface } {
+        %0 = arith.constant 0 : index
+        %1 = memref.load %arg0[%0] : memref<1xbf16>
+        memref.store %1, %arg1[%0] : memref<1xbf16>
+        return
+      }
+    } """
+        )
+
+        arg1 = np.array([0.5]).astype(bfloat16)
+        arg2 = np.array([0.0]).astype(bfloat16)
+
+        arg1_memref_ptr = ctypes.pointer(
+            ctypes.pointer(get_ranked_memref_descriptor(arg1))
+        )
+        arg2_memref_ptr = ctypes.pointer(
+            ctypes.pointer(get_ranked_memref_descriptor(arg2))
+        )
+
+        execution_engine = ExecutionEngine(lowerToLLVM(module))
+        execution_engine.invoke("main", arg1_memref_ptr, arg2_memref_ptr)
+
+        # test to-numpy utility
+        x = ranked_memref_to_numpy(arg2_memref_ptr[0])
+        assert len(x) == 1
+        assert x[0] == 0.5
+
+
+if HAS_ML_DTYPES:
+    run(testBF16Memref)
+else:
+    log("TEST: testBF16Memref")
+
+
+# Test f8E5M2 memrefs
+# CHECK-LABEL: TEST: testF8E5M2Memref
+def testF8E5M2Memref():
+    with Context():
+        module = Module.parse(
+            """
+    module  {
+      func.func @main(%arg0: memref<1xf8E5M2>,
+                      %arg1: memref<1xf8E5M2>) attributes { llvm.emit_c_interface } {
+        %0 = arith.constant 0 : index
+        %1 = memref.load %arg0[%0] : memref<1xf8E5M2>
+        memref.store %1, %arg1[%0] : memref<1xf8E5M2>
+        return
+      }
+    } """
+        )
+
+        arg1 = np.array([0.5]).astype(float8_e5m2)
+        arg2 = np.array([0.0]).astype(float8_e5m2)
+
+        arg1_memref_ptr = ctypes.pointer(
+            ctypes.pointer(get_ranked_memref_descriptor(arg1))
+        )
+        arg2_memref_ptr = ctypes.pointer(
+            ctypes.pointer(get_ranked_memref_descriptor(arg2))
+        )
+
+        execution_engine = ExecutionEngine(lowerToLLVM(module))
+        execution_engine.invoke("main", arg1_memref_ptr, arg2_memref_ptr)
+
+        # test to-numpy utility
+        x = ranked_memref_to_numpy(arg2_memref_ptr[0])
+        assert len(x) == 1
+        assert x[0] == 0.5
+
+
+if HAS_ML_DTYPES:
+    run(testF8E5M2Memref)
+else:
+    log("TEST: testF8E5M2Memref")
+
+
 #  Test addition of two 2d_memref
 # CHECK-LABEL: TEST: testDynamicMemrefAdd2D
 def testDynamicMemrefAdd2D():
@@ -540,8 +719,8 @@ def testSharedLibLoad():
             ]
         else:
             shared_libs = [
-                "../../../../lib/libmlir_runner_utils.so",
-                "../../../../lib/libmlir_c_runner_utils.so",
+                MLIR_RUNNER_UTILS,
+                MLIR_C_RUNNER_UTILS,
             ]
 
         execution_engine = ExecutionEngine(
@@ -583,8 +762,8 @@ def testNanoTime():
             ]
         else:
             shared_libs = [
-                "../../../../lib/libmlir_runner_utils.so",
-                "../../../../lib/libmlir_c_runner_utils.so",
+                MLIR_RUNNER_UTILS,
+                MLIR_C_RUNNER_UTILS,
             ]
 
         execution_engine = ExecutionEngine(

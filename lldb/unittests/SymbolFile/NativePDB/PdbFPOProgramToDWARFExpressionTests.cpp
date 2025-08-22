@@ -10,10 +10,10 @@
 
 #include "Plugins/SymbolFile/NativePDB/PdbFPOProgramToDWARFExpression.h"
 
-#include "lldb/Core/StreamBuffer.h"
 #include "lldb/Utility/ArchSpec.h"
 #include "lldb/Utility/DataBufferHeap.h"
 #include "lldb/Utility/DataExtractor.h"
+#include "lldb/Utility/StreamBuffer.h"
 #include "lldb/Utility/StreamString.h"
 #include "llvm/DebugInfo/DIContext.h"
 #include "llvm/DebugInfo/DWARF/DWARFExpression.h"
@@ -43,7 +43,7 @@ CheckValidProgramTranslation(llvm::StringRef fpo_program,
       .print(os, llvm::DIDumpOptions(), nullptr);
 
   // actual check
-  ASSERT_EQ(expected_dwarf_expression, os.str());
+  ASSERT_EQ(expected_dwarf_expression, result);
 }
 
 TEST(PDBFPOProgramToDWARFExpressionTests, SingleAssignmentRegisterRef) {

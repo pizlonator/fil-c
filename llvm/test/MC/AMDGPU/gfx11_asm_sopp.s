@@ -1,4 +1,4 @@
-// RUN: llvm-mc -arch=amdgcn -mcpu=gfx1100 -show-encoding %s | FileCheck --check-prefix=GFX11 %s
+// RUN: llvm-mc -triple=amdgcn -mcpu=gfx1100 -show-encoding %s | FileCheck --check-prefix=GFX11 %s
 
 //===----------------------------------------------------------------------===//
 // s_waitcnt
@@ -430,3 +430,6 @@ s_wait_event 0x3141
 
 s_wait_event 0xc1d1
 // GFX11: s_wait_event 0xc1d1 ; encoding: [0xd1,0xc1,0x8b,0xbf]
+
+s_endpgm_ordered_ps_done
+// GFX11: s_endpgm_ordered_ps_done ; encoding: [0x00,0x00,0xb2,0xbf]

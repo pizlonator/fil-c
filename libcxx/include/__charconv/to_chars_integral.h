@@ -11,20 +11,22 @@
 #define _LIBCPP___CHARCONV_TO_CHARS_INTEGRAL_H
 
 #include <__algorithm/copy_n.h>
+#include <__assert>
 #include <__bit/countl.h>
 #include <__charconv/tables.h>
 #include <__charconv/to_chars_base_10.h>
 #include <__charconv/to_chars_result.h>
 #include <__charconv/traits.h>
 #include <__config>
+#include <__cstddef/ptrdiff_t.h>
 #include <__system_error/errc.h>
 #include <__type_traits/enable_if.h>
 #include <__type_traits/integral_constant.h>
+#include <__type_traits/is_integral.h>
 #include <__type_traits/is_same.h>
 #include <__type_traits/make_32_64_or_128_bit.h>
 #include <__type_traits/make_unsigned.h>
 #include <__utility/unreachable.h>
-#include <cstddef>
 #include <cstdint>
 #include <limits>
 
@@ -69,7 +71,7 @@ __to_chars_itoa(char* __first, char* __last, _Tp __value, false_type) {
     return {__last, errc::value_too_large};
 }
 
-#  ifndef _LIBCPP_HAS_NO_INT128
+#  if _LIBCPP_HAS_INT128
 template <>
 inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI to_chars_result
 __to_chars_itoa(char* __first, char* __last, __uint128_t __value, false_type) {
@@ -222,23 +224,23 @@ struct _LIBCPP_HIDDEN __integral<16> {
 
 } // namespace __itoa
 
-template <unsigned _Base, typename _Tp, typename enable_if<(sizeof(_Tp) >= sizeof(unsigned)), int>::type = 0>
+template <unsigned _Base, typename _Tp, __enable_if_t<(sizeof(_Tp) >= sizeof(unsigned)), int> = 0>
 _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI int __to_chars_integral_width(_Tp __value) {
   return __itoa::__integral<_Base>::__width(__value);
 }
 
-template <unsigned _Base, typename _Tp, typename enable_if<(sizeof(_Tp) < sizeof(unsigned)), int>::type = 0>
+template <unsigned _Base, typename _Tp, __enable_if_t<(sizeof(_Tp) < sizeof(unsigned)), int> = 0>
 _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI int __to_chars_integral_width(_Tp __value) {
   return std::__to_chars_integral_width<_Base>(static_cast<unsigned>(__value));
 }
 
-template <unsigned _Base, typename _Tp, typename enable_if<(sizeof(_Tp) >= sizeof(unsigned)), int>::type = 0>
+template <unsigned _Base, typename _Tp, __enable_if_t<(sizeof(_Tp) >= sizeof(unsigned)), int> = 0>
 _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI to_chars_result
 __to_chars_integral(char* __first, char* __last, _Tp __value) {
   return __itoa::__integral<_Base>::__to_chars(__first, __last, __value);
 }
 
-template <unsigned _Base, typename _Tp, typename enable_if<(sizeof(_Tp) < sizeof(unsigned)), int>::type = 0>
+template <unsigned _Base, typename _Tp, __enable_if_t<(sizeof(_Tp) < sizeof(unsigned)), int> = 0>
 _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI to_chars_result
 __to_chars_integral(char* __first, char* __last, _Tp __value) {
   return std::__to_chars_integral<_Base>(__first, __last, static_cast<unsigned>(__value));
@@ -246,7 +248,7 @@ __to_chars_integral(char* __first, char* __last, _Tp __value) {
 
 template <typename _Tp>
 _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI int __to_chars_integral_width(_Tp __value, unsigned __base) {
-  _LIBCPP_ASSERT_UNCATEGORIZED(__value >= 0, "The function requires a non-negative value.");
+  _LIBCPP_ASSERT_INTERNAL(__value >= 0, "The function requires a non-negative value.");
 
   unsigned __base_2 = __base * __base;
   unsigned __base_3 = __base_2 * __base;
@@ -300,7 +302,7 @@ __to_chars_integral(char* __first, char* __last, _Tp __value, int __base, false_
   return {__last, errc(0)};
 }
 
-template <typename _Tp, typename enable_if<is_integral<_Tp>::value, int>::type = 0>
+template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
 inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI to_chars_result
 to_chars(char* __first, char* __last, _Tp __value) {
   using _Type = __make_32_64_or_128_bit_t<_Tp>;
@@ -308,7 +310,7 @@ to_chars(char* __first, char* __last, _Tp __value) {
   return std::__to_chars_itoa(__first, __last, static_cast<_Type>(__value), is_signed<_Tp>());
 }
 
-template <typename _Tp, typename enable_if<is_integral<_Tp>::value, int>::type = 0>
+template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
 inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI to_chars_result
 to_chars(char* __first, char* __last, _Tp __value, int __base) {
   _LIBCPP_ASSERT_UNCATEGORIZED(2 <= __base && __base <= 36, "base not in [2, 36]");

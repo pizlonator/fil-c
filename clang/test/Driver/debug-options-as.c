@@ -2,7 +2,6 @@
 
 // Check to make sure clang is somewhat picky about -g options.
 // (Delived from debug-options.c)
-// rdar://10383444
 // RUN: %clang -### -c -save-temps -integrated-as -g %s 2>&1 \
 // RUN:   | FileCheck -check-prefix=SAVE %s
 //
@@ -20,15 +19,28 @@
 // GGDB0-NOT: -debug-info-kind=
 
 // Check to make sure clang with -g on a .s file gets passed.
-// rdar://9275556
-// RUN: %clang -### -c -integrated-as -g -x assembler %s 2>&1 \
+// This requires a target that defaults to DWARF.
+// RUN: %clang -### --target=x86_64-linux-gnu -c -integrated-as -g -x assembler %s 2>&1 \
 // RUN:   | FileCheck %s
 //
 // CHECK: "-cc1as"
 // CHECK: "-debug-info-kind=constructor"
 
+// Check that a plain -g, without any -gdwarf, for a MSVC target, doesn't
+// trigger producing DWARF output.
+// RUN: %clang -### --target=x86_64-windows-msvc -c -integrated-as -g -x assembler %s 2>&1 \
+// RUN:   | FileCheck -check-prefix=MSVC %s
+//
+// MSVC: "-cc1as"
+// MSVC-NOT: "-debug-info-kind=constructor"
+
+// Check that clang-cl with the -Z7 option works the same, not triggering
+// any DWARF output.
+//
+// RUN: %clang_cl -### --target=x86_64-pc-windows-msvc -c -Z7 -x assembler -- %s 2>&1 \
+// RUN:   | FileCheck -check-prefix=MSVC %s
+
 // Check to make sure clang with -g on a .s file gets passed -dwarf-debug-producer.
-// rdar://12955296
 // RUN: %clang -### -c -integrated-as -g -x assembler %s 2>&1 \
 // RUN:   | FileCheck -check-prefix=P %s
 //
@@ -52,11 +64,11 @@
 // GDWARF64_OFF-NOT: "-gdwarf64"
 
 // Check that an error is reported if -gdwarf64 cannot be used.
-// RUN: %clang -### -c -gdwarf64 -gdwarf-2 -target x86_64 -integrated-as -x assembler %s 2>&1 \
+// RUN: not %clang -### -c -gdwarf64 -gdwarf-2 --target=x86_64 -integrated-as -x assembler %s 2>&1 \
 // RUN:   | FileCheck -check-prefix=GDWARF64_VER %s
-// RUN: %clang -### -c -gdwarf64 -gdwarf-4 -target i386-linux-gnu %s 2>&1 \
+// RUN: not %clang -### -c -gdwarf64 -gdwarf-4 --target=i386-linux-gnu %s 2>&1 \
 // RUN:   | FileCheck -check-prefix=GDWARF64_32ARCH %s
-// RUN: %clang -### -c -gdwarf64 -gdwarf-4 -target x86_64-apple-darwin %s 2>&1 \
+// RUN: not %clang -### -c -gdwarf64 -gdwarf-4 -target x86_64-apple-darwin %s 2>&1 \
 // RUN:   | FileCheck -check-prefix=GDWARF64_ELF %s
 //
 // GDWARF64_VER:  error: invalid argument '-gdwarf64' only allowed with 'DWARFv3 or greater'

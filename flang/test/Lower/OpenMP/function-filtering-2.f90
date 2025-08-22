@@ -1,34 +1,45 @@
-! RUN: %flang_fc1 -fopenmp -emit-llvm %s -o - | FileCheck --check-prefixes=LLVM-HOST %s
-! RUN: %flang_fc1 -fopenmp -emit-mlir %s -o - | FileCheck --check-prefix=MLIR-HOST %s
-! RUN: %flang_fc1 -fopenmp -fopenmp-is-target-device -emit-llvm %s -o - | FileCheck --check-prefixes=LLVM-DEVICE %s
-! RUN: %flang_fc1 -fopenmp -fopenmp-is-target-device -emit-mlir %s -o - | FileCheck --check-prefix=MLIR-DEVICE %s
+! RUN: %flang_fc1 -fopenmp -fopenmp-version=52 -flang-experimental-hlfir -emit-llvm %s -o - | FileCheck --check-prefixes=LLVM,LLVM-HOST %s
+! RUN: %flang_fc1 -fopenmp -fopenmp-version=52 -emit-hlfir %s -o - | FileCheck --check-prefix=MLIR %s
+! RUN: %if amdgpu-registered-target %{ %flang_fc1 -triple amdgcn-amd-amdhsa -fopenmp -fopenmp-version=52 -fopenmp-is-target-device -flang-experimental-hlfir -emit-llvm %s -o - | FileCheck --check-prefixes=LLVM,LLVM-DEVICE %s %}
+! RUN: %if amdgpu-registered-target %{ %flang_fc1 -triple amdgcn-amd-amdhsa -fopenmp -fopenmp-version=52 -fopenmp-is-target-device -emit-hlfir %s -o - | FileCheck --check-prefix=MLIR %s %}
+! RUN: bbc -fopenmp -fopenmp-version=52 -emit-hlfir %s -o - | FileCheck --check-prefixes=MLIR-HOST,MLIR-ALL %s
+! RUN: %if amdgpu-registered-target %{ bbc -target amdgcn-amd-amdhsa -fopenmp -fopenmp-version=52 -fopenmp-is-target-device -emit-hlfir %s -o - | FileCheck --check-prefixes=MLIR-DEVICE,MLIR-ALL %s %}
 
-! MLIR-HOST: func.func @{{.*}}implicit_invocation(
-! MLIR-DEVICE: func.func @{{.*}}implicit_invocation() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
-! LLVM-HOST: define {{.*}} @{{.*}}implicit_invocation{{.*}}(
-! LLVM-DEVICE: define {{.*}} @{{.*}}implicit_invocation{{.*}}(
+! MLIR: func.func @{{.*}}implicit_invocation() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
+! MLIR: return
+! LLVM: define {{.*}} @{{.*}}implicit_invocation{{.*}}(
 subroutine implicit_invocation()
 end subroutine implicit_invocation
 
-! MLIR-HOST: func.func @{{.*}}declaretarget(
-! MLIR-DEVICE: func.func @{{.*}}declaretarget() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
-! LLVM-HOST: define {{.*}} @{{.*}}declaretarget{{.*}}(
-! LLVM-DEVICE: define {{.*}} @{{.*}}declaretarget{{.*}}(
+! MLIR: func.func @{{.*}}declaretarget() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
+! MLIR: return
+! LLVM: define {{.*}} @{{.*}}declaretarget{{.*}}(
 subroutine declaretarget()
 !$omp declare target to(declaretarget) device_type(nohost)
     call implicit_invocation()
 end subroutine declaretarget
 
-! MLIR-HOST: func.func @{{.*}}no_declaretarget(
-! MLIR-DEVICE: func.func @{{.*}}no_declaretarget() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
-! LLVM-HOST: define {{.*}} @{{.*}}no_declaretarget{{.*}}(
-! LLVM-DEVICE: define {{.*}} @{{.*}}no_declaretarget{{.*}}(
+! MLIR: func.func @{{.*}}declaretarget_enter() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (enter)>}
+! MLIR: return
+! LLVM: define {{.*}} @{{.*}}declaretarget_enter{{.*}}(
+subroutine declaretarget_enter()
+!$omp declare target enter(declaretarget_enter) device_type(nohost)
+    call implicit_invocation()
+end subroutine declaretarget_enter
+
+! MLIR: func.func @{{.*}}no_declaretarget() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
+! MLIR: return
+! LLVM: define {{.*}} @{{.*}}no_declaretarget{{.*}}(
 subroutine no_declaretarget()
 end subroutine no_declaretarget
 
 ! MLIR-HOST: func.func @{{.*}}main(
-! MLIR-DEVICE: func.func @{{.*}}main_omp_outline{{.*}}() attributes {omp.declare_target = #omp.declaretarget<device_type = (host), capture_clause = (to)>, omp.outline_parent_name = "_QQmain"} 
+! MLIR-DEVICE-NOT: func.func @{{.*}}main(
+! MLIR-ALL: return
+
 ! LLVM-HOST: define {{.*}} @{{.*}}main{{.*}}(
+! LLVM-HOST: {{.*}} @{{.*}}__omp_offloading{{.*}}main_{{.*}}(
+! LLVM-DEVICE-NOT: {{.*}} @{{.*}}main{{.*}}(
 ! LLVM-DEVICE: define {{.*}} @{{.*}}__omp_offloading{{.*}}main_{{.*}}(
 program main
 !$omp target

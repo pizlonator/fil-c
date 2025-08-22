@@ -33,7 +33,6 @@ namespace {
 using ::testing::AllOf;
 using ::testing::Contains;
 using ::testing::ElementsAre;
-using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::Not;
 using ::testing::UnorderedElementsAre;
@@ -108,7 +107,8 @@ protected:
 
     IncludeInserter Inserter(MainFile, /*Code=*/"", format::getLLVMStyle(),
                              CDB.getCompileCommand(MainFile)->Directory,
-                             &Clang->getPreprocessor().getHeaderSearchInfo());
+                             &Clang->getPreprocessor().getHeaderSearchInfo(),
+                             QuotedHeaders, AngledHeaders);
     for (const auto &Inc : Inclusions)
       Inserter.addExisting(Inc);
     auto Inserted = ToHeaderFile(Preferred);
@@ -128,7 +128,8 @@ protected:
 
     IncludeInserter Inserter(MainFile, /*Code=*/"", format::getLLVMStyle(),
                              CDB.getCompileCommand(MainFile)->Directory,
-                             &Clang->getPreprocessor().getHeaderSearchInfo());
+                             &Clang->getPreprocessor().getHeaderSearchInfo(),
+                             QuotedHeaders, AngledHeaders);
     auto Edit = Inserter.insert(VerbatimHeader, Directive);
     Action.EndSourceFile();
     return Edit;
@@ -140,6 +141,8 @@ protected:
   std::string Subdir = testPath("sub");
   std::string SearchDirArg = (llvm::Twine("-I") + Subdir).str();
   IgnoringDiagConsumer IgnoreDiags;
+  std::vector<std::function<bool(llvm::StringRef)>> QuotedHeaders;
+  std::vector<std::function<bool(llvm::StringRef)>> AngledHeaders;
   std::unique_ptr<CompilerInstance> Clang;
 };
 
@@ -292,10 +295,22 @@ TEST_F(HeadersTest, IncludeDirective) {
                                    directive(tok::pp_include_next)));
 }
 
+TEST_F(HeadersTest, SearchPath) {
+  FS.Files["foo/bar.h"] = "x";
+  FS.Files["foo/bar/baz.h"] = "y";
+  CDB.ExtraClangFlags.push_back("-Ifoo/bar");
+  CDB.ExtraClangFlags.push_back("-Ifoo/bar/..");
+  EXPECT_THAT(collectIncludes().SearchPathsCanonical,
+              ElementsAre(Subdir, testPath("foo/bar"), testPath("foo")));
+}
+
 TEST_F(HeadersTest, InsertInclude) {
   std::string Path = testPath("sub/bar.h");
   FS.Files[Path] = "";
   EXPECT_EQ(calculate(Path), "\"bar.h\"");
+
+  AngledHeaders.push_back([](auto Path) { return true; });
+  EXPECT_EQ(calculate(Path), "<bar.h>");
 }
 
 TEST_F(HeadersTest, DoNotInsertIfInSameFile) {
@@ -318,6 +333,17 @@ TEST_F(HeadersTest, ShortenIncludesInSearchPath) {
   EXPECT_EQ(calculate(BarHeader), "\"sub/bar.h\"");
 }
 
+TEST_F(HeadersTest, ShortenIncludesInSearchPathBracketed) {
+  AngledHeaders.push_back([](auto Path) { return true; });
+  std::string BarHeader = testPath("sub/bar.h");
+  EXPECT_EQ(calculate(BarHeader), "<bar.h>");
+
+  SearchDirArg = (llvm::Twine("-I") + Subdir + "/..").str();
+  CDB.ExtraClangFlags = {SearchDirArg.c_str()};
+  BarHeader = testPath("sub/bar.h");
+  EXPECT_EQ(calculate(BarHeader), "<sub/bar.h>");
+}
+
 TEST_F(HeadersTest, ShortenedIncludeNotInSearchPath) {
   std::string BarHeader =
       llvm::sys::path::convert_to_slash(testPath("sub-2/bar.h"));
@@ -330,6 +356,10 @@ TEST_F(HeadersTest, PreferredHeader) {
 
   std::string BazHeader = testPath("sub/baz.h");
   EXPECT_EQ(calculate(BarHeader, BazHeader), "\"baz.h\"");
+
+  AngledHeaders.push_back([](auto Path) { return true; });
+  std::string BiffHeader = testPath("sub/biff.h");
+  EXPECT_EQ(calculate(BarHeader, BiffHeader), "<biff.h>");
 }
 
 TEST_F(HeadersTest, DontInsertDuplicatePreferred) {
@@ -362,7 +392,8 @@ TEST_F(HeadersTest, PreferInserted) {
 TEST(Headers, NoHeaderSearchInfo) {
   std::string MainFile = testPath("main.cpp");
   IncludeInserter Inserter(MainFile, /*Code=*/"", format::getLLVMStyle(),
-                           /*BuildDir=*/"", /*HeaderSearchInfo=*/nullptr);
+                           /*BuildDir=*/"", /*HeaderSearchInfo=*/nullptr,
+                           /*QuotedHeaders=*/{}, /*AngledHeaders=*/{});
 
   auto HeaderPath = testPath("sub/bar.h");
   auto Inserting = HeaderFile{HeaderPath, /*Verbatim=*/false};

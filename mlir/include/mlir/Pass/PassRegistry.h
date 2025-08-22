@@ -44,6 +44,9 @@ using PassAllocatorFunction = std::function<std::unique_ptr<Pass>()>;
 // PassRegistry
 //===----------------------------------------------------------------------===//
 
+/// Prints the passes that were previously registered and stored in passRegistry
+void printRegisteredPasses();
+
 /// Structure to group information about a passes and pass pipelines (argument
 /// to invoke via mlir-opt, description, pass pipeline builder).
 class PassRegistryEntry {
@@ -105,6 +108,10 @@ public:
       std::function<void(function_ref<void(const detail::PassOptions &)>)>
           optHandler)
       : PassRegistryEntry(arg, description, builder, std::move(optHandler)) {}
+
+  /// Returns the pass pipeline info for the specified pass pipeline or null if
+  /// unknown.
+  static const PassPipelineInfo *lookup(StringRef pipelineArg);
 };
 
 /// A structure to represent the information for a derived pass class.
@@ -114,6 +121,9 @@ public:
   /// PassRegistration or registerPass.
   PassInfo(StringRef arg, StringRef description,
            const PassAllocatorFunction &allocator);
+
+  /// Returns the pass info for the specified pass class or null if unknown.
+  static const PassInfo *lookup(StringRef passArg);
 };
 
 //===----------------------------------------------------------------------===//

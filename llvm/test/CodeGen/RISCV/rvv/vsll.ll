@@ -3,6 +3,7 @@
 ; RUN:   -verify-machineinstrs | FileCheck %s
 ; RUN: sed 's/iXLen/i64/g' %s | llc -mtriple=riscv64 -mattr=+v \
 ; RUN:   -verify-machineinstrs | FileCheck %s
+
 declare <vscale x 1 x i8> @llvm.riscv.vsll.nxv1i8.nxv1i8(
   <vscale x 1 x i8>,
   <vscale x 1 x i8>,
@@ -2103,6 +2104,22 @@ entry:
     <vscale x 1 x i8> %0,
     iXLen 1,
     iXLen %1)
+
+  ret <vscale x 1 x i8> %a
+}
+
+define <vscale x 1 x i8> @intrinsic_vsll_1_tu_nxv1i8_nxv1i8_i8(<vscale x 1 x i8> %0, <vscale x 1 x i8> %1, iXLen %2) nounwind {
+; CHECK-LABEL: intrinsic_vsll_1_tu_nxv1i8_nxv1i8_i8:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    vsetvli zero, a0, e8, mf8, tu, ma
+; CHECK-NEXT:    vadd.vv v8, v9, v9
+; CHECK-NEXT:    ret
+entry:
+  %a = call <vscale x 1 x i8> @llvm.riscv.vsll.nxv1i8(
+    <vscale x 1 x i8> %0,
+    <vscale x 1 x i8> %1,
+    iXLen 1,
+    iXLen %2)
 
   ret <vscale x 1 x i8> %a
 }

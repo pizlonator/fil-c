@@ -20,6 +20,7 @@
 using namespace lldb;
 using namespace lldb_private;
 
+namespace {
 class TestArmv7Disassembly : public testing::Test {
 public:
   static void SetUpTestCase();
@@ -42,6 +43,7 @@ void TestArmv7Disassembly::SetUpTestCase() {
 void TestArmv7Disassembly::TearDownTestCase() {
   DisassemblerLLVMC::Terminate();
 }
+} // namespace
 
 TEST_F(TestArmv7Disassembly, TestCortexFPDisass) {
   ArchSpec arch("armv7em--");
@@ -62,8 +64,9 @@ TEST_F(TestArmv7Disassembly, TestCortexFPDisass) {
 
   DisassemblerSP disass_sp;
   Address start_addr(0x100);
-  disass_sp = Disassembler::DisassembleBytes(arch, nullptr, nullptr, start_addr,
-                                 &data, sizeof (data), num_of_instructions, false);
+  disass_sp = Disassembler::DisassembleBytes(
+      arch, nullptr, nullptr, nullptr, nullptr, start_addr, &data, sizeof(data),
+      num_of_instructions, false);
 
   // If we failed to get a disassembler, we can assume it is because
   // the llvm we linked against was not built with the ARM target,

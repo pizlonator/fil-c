@@ -12,6 +12,8 @@ set(LLVM_LINK_COMPONENTS
 
 add_clang_unittest(ClangReplInterpreterExceptionTests
   InterpreterExceptionTest.cpp
+
+  EXPORT_SYMBOLS
   )
 
 llvm_update_compile_flags(ClangReplInterpreterExceptionTests)

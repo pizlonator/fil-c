@@ -13,7 +13,7 @@
 #include "CrashHandlerFixture.h"
 #include "tools.h"
 #include "../../runtime/terminator.h"
-#include "flang/Runtime/io-api.h"
+#include "flang/Runtime/io-api-consts.h"
 #include "flang/Runtime/transformational.h"
 #include <gtest/gtest.h>
 
@@ -43,25 +43,15 @@ TEST(TestTerminator, CheckFailedLocationTest) {
 }
 
 TEST(TestTerminator, CheckFailedTest) {
-  static Fortran::runtime::Terminator t;
+  static Fortran::runtime::Terminator t("someFileName");
   ASSERT_DEATH(t.CheckFailed("predicate"),
-      "RUNTIME_CHECK\\(predicate\\) failed at \\(null\\)\\(0\\)");
+      "RUNTIME_CHECK\\(predicate\\) failed at someFileName\\(0\\)");
 }
 
 //------------------------------------------------------------------------------
 /// Test misuse of io api
 //------------------------------------------------------------------------------
 struct TestIOCrash : CrashHandlerFixture {};
-
-TEST(TestIOCrash, FormatDescriptorWriteMismatchTest) {
-  static constexpr int bufferSize{4};
-  static char buffer[bufferSize];
-  static const char *format{"(A4)"};
-  auto *cookie{IONAME(BeginInternalFormattedOutput)(
-      buffer, bufferSize, format, std::strlen(format))};
-  ASSERT_DEATH(IONAME(OutputLogical)(cookie, true),
-      "Data edit descriptor 'A' may not be used with a LOGICAL data item");
-}
 
 TEST(TestIOCrash, InvalidFormatCharacterTest) {
   static constexpr int bufferSize{1};

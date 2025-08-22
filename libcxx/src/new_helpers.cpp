@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <cstdlib>
+#include <__verbose_abort>
 #include <new>
 
 namespace std { // purposefully not versioned
@@ -18,10 +18,10 @@ const nothrow_t nothrow{};
 #ifndef LIBSTDCXX
 
 void __throw_bad_alloc() {
-#  ifndef _LIBCPP_HAS_NO_EXCEPTIONS
+#  if _LIBCPP_HAS_EXCEPTIONS
   throw bad_alloc();
 #  else
-  std::abort();
+  _LIBCPP_VERBOSE_ABORT("bad_alloc was thrown in -fno-exceptions mode");
 #  endif
 }
 

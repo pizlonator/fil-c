@@ -189,6 +189,21 @@ TEST(ASTMatchersTestCUDA, HasAttrCUDA) {
                                   hasAttr(clang::attr::CUDAGlobal)));
 }
 
+TEST_P(ASTMatchersTest, ExportDecl) {
+  if (!GetParam().isCXX20OrLater()) {
+    return;
+  }
+  const std::string moduleHeader = "module;export module ast_matcher_test;";
+  EXPECT_TRUE(matches(moduleHeader + "export void foo();",
+                      exportDecl(has(functionDecl()))));
+  EXPECT_TRUE(matches(moduleHeader + "export { void foo(); int v; }",
+                      exportDecl(has(functionDecl()))));
+  EXPECT_TRUE(matches(moduleHeader + "export { void foo(); int v; }",
+                      exportDecl(has(varDecl()))));
+  EXPECT_TRUE(matches(moduleHeader + "export namespace aa { void foo(); }",
+                      exportDecl(has(namespaceDecl()))));
+}
+
 TEST_P(ASTMatchersTest, ValueDecl) {
   if (!GetParam().isCXX()) {
     // FIXME: Fix this test in non-C++ language modes.
@@ -471,6 +486,19 @@ TEST_P(ASTMatchersTest, CXXOperatorCallExpr) {
   EXPECT_TRUE(notMatches("int t = 5 << 2;", OpCall));
 }
 
+TEST_P(ASTMatchersTest, FoldExpr) {
+  if (!GetParam().isCXX() || !GetParam().isCXX17OrLater()) {
+    return;
+  }
+
+  EXPECT_TRUE(matches("template <typename... Args> auto sum(Args... args) { "
+                      "return (0 + ... + args); }",
+                      cxxFoldExpr()));
+  EXPECT_TRUE(matches("template <typename... Args> auto sum(Args... args) { "
+                      "return (args + ...); }",
+                      cxxFoldExpr()));
+}
+
 TEST_P(ASTMatchersTest, ThisPointerType) {
   if (!GetParam().isCXX()) {
     return;
@@ -526,6 +554,21 @@ TEST_P(ASTMatchersTest, DeclRefExpr) {
                          "  bool b = y.x();"
                          "}",
                          Reference));
+}
+
+TEST_P(ASTMatchersTest, DependentScopeDeclRefExpr) {
+  if (!GetParam().isCXX() || GetParam().hasDelayedTemplateParsing()) {
+    // FIXME: Fix this test to work with delayed template parsing.
+    return;
+  }
+
+  EXPECT_TRUE(matches("template <class T> class X : T { void f() { T::v; } };",
+                      dependentScopeDeclRefExpr()));
+
+  EXPECT_TRUE(
+      matches("template <typename T> struct S { static T Foo; };"
+              "template <typename T> void declToImport() { (void)S<T>::Foo; }",
+              dependentScopeDeclRefExpr()));
 }
 
 TEST_P(ASTMatchersTest, CXXMemberCallExpr) {
@@ -602,7 +645,7 @@ TEST_P(ASTMatchersTest, MemberExpr_MatchesVariable) {
                       "class X : T { void f() { this->T::v; } };",
                       cxxDependentScopeMemberExpr()));
   EXPECT_TRUE(matches("template <class T> class X : T { void f() { T::v; } };",
-                      cxxDependentScopeMemberExpr()));
+                      dependentScopeDeclRefExpr()));
   EXPECT_TRUE(matches("template <class T> void x() { T t; t.v; }",
                       cxxDependentScopeMemberExpr()));
 }
@@ -986,6 +1029,17 @@ TEST_P(ASTMatchersTest, ChooseExpr) {
                       chooseExpr()));
 }
 
+TEST_P(ASTMatchersTest, ConvertVectorExpr) {
+  EXPECT_TRUE(matches(
+      "typedef double vector4double __attribute__((__vector_size__(32)));"
+      "typedef float  vector4float  __attribute__((__vector_size__(16)));"
+      "vector4float vf;"
+      "void f() { (void)__builtin_convertvector(vf, vector4double); }",
+      convertVectorExpr()));
+  EXPECT_TRUE(notMatches("void f() { (void)__builtin_choose_expr(1, 2, 3); }",
+                         convertVectorExpr()));
+}
+
 TEST_P(ASTMatchersTest, GNUNullExpr) {
   if (!GetParam().isCXX()) {
     return;
@@ -1198,7 +1252,7 @@ TEST_P(ASTMatchersTest, CastExpression_MatchesImplicitCasts) {
 }
 
 TEST_P(ASTMatchersTest, CastExpr_DoesNotMatchNonCasts) {
-  if (GetParam().Language == Lang_C89 || GetParam().Language == Lang_C99) {
+  if (GetParam().isC()) {
     // This does have a cast in C
     EXPECT_TRUE(matches("char c = '0';", implicitCastExpr()));
   } else {
@@ -1401,8 +1455,8 @@ TEST_P(ASTMatchersTest,
     return;
   }
   StringRef code = "namespace std {"
-                   "template <typename> class initializer_list {"
-                   "  public: initializer_list() noexcept {}"
+                   "template <typename E> class initializer_list {"
+                   "  public: const E *a, *b;"
                    "};"
                    "}"
                    "struct A {"
@@ -1560,6 +1614,20 @@ TEST_P(ASTMatchersTest, DependentSizedArrayType) {
                  dependentSizedArrayType()));
 }
 
+TEST_P(ASTMatchersTest, DependentSizedExtVectorType) {
+  if (!GetParam().isCXX()) {
+    return;
+  }
+  EXPECT_TRUE(matches("template<typename T, int Size>"
+                      "class vector {"
+                      "  typedef T __attribute__((ext_vector_type(Size))) type;"
+                      "};",
+                      dependentSizedExtVectorType()));
+  EXPECT_TRUE(
+      notMatches("int a[42]; int b[] = { 2, 3 }; void f() { int c[b[0]]; }",
+                 dependentSizedExtVectorType()));
+}
+
 TEST_P(ASTMatchersTest, IncompleteArrayType) {
   EXPECT_TRUE(matches("int a[] = { 2, 3 };", incompleteArrayType()));
   EXPECT_TRUE(matches("void f(int a[]) {}", incompleteArrayType()));
@@ -1638,7 +1706,7 @@ TEST_P(ASTMatchersTest, FunctionProtoType) {
 }
 
 TEST_P(ASTMatchersTest, FunctionProtoType_C) {
-  if (!GetParam().isC()) {
+  if (!GetParam().isCOrEarlier(17)) {
     return;
   }
   EXPECT_TRUE(notMatches("void f();", functionProtoType()));
@@ -1813,6 +1881,20 @@ TEST_P(ASTMatchersTest, TypedefType) {
                                                 namesType(typedefType()))))));
 }
 
+TEST_P(ASTMatchersTest, MacroQualifiedType) {
+  EXPECT_TRUE(matches(
+      R"(
+        #define CDECL __attribute__((cdecl))
+        typedef void (CDECL *X)();
+      )",
+      typedefDecl(hasType(pointerType(pointee(macroQualifiedType()))))));
+  EXPECT_TRUE(notMatches(
+      R"(
+        typedef void (__attribute__((cdecl)) *Y)();
+      )",
+      typedefDecl(hasType(pointerType(pointee(macroQualifiedType()))))));
+}
+
 TEST_P(ASTMatchersTest, TemplateSpecializationType) {
   if (!GetParam().isCXX()) {
     return;
@@ -1828,6 +1910,35 @@ TEST_P(ASTMatchersTest, DeducedTemplateSpecializationType) {
   EXPECT_TRUE(
       matches("template <typename T> class A{ public: A(T) {} }; A a(1);",
               deducedTemplateSpecializationType()));
+}
+
+TEST_P(ASTMatchersTest, DependentNameType) {
+  if (!GetParam().isCXX()) {
+    return;
+  }
+
+  EXPECT_TRUE(matches(
+      R"(
+        template <typename T> struct declToImport {
+          typedef typename T::type dependent_name;
+        };
+      )",
+      dependentNameType()));
+}
+
+TEST_P(ASTMatchersTest, DependentTemplateSpecializationType) {
+  if (!GetParam().isCXX()) {
+    return;
+  }
+
+  EXPECT_TRUE(matches(
+      R"(
+        template<typename T> struct A;
+        template<typename T> struct declToImport {
+          typename A<T>::template B<T> a;
+        };
+      )",
+      dependentTemplateSpecializationType()));
 }
 
 TEST_P(ASTMatchersTest, RecordType) {
@@ -1976,8 +2087,6 @@ TEST_P(ASTMatchersTest,
 template <typename T>
 class VerifyAncestorHasChildIsEqual : public BoundNodesCallback {
 public:
-  bool run(const BoundNodes *Nodes) override { return false; }
-
   bool run(const BoundNodes *Nodes, ASTContext *Context) override {
     const T *Node = Nodes->getNodeAs<T>("");
     return verify(*Nodes, *Context, Node);
@@ -2161,18 +2270,6 @@ TEST_P(ASTMatchersTest, ReferenceTypeLocTest_BindsToAnyRvalueReferenceTypeLoc) {
   EXPECT_TRUE(matches("float&& r = 3.0;", matcher));
 }
 
-TEST_P(
-    ASTMatchersTest,
-    TemplateSpecializationTypeLocTest_BindsToTemplateSpecializationExplicitInstantiation) {
-  if (!GetParam().isCXX()) {
-    return;
-  }
-  EXPECT_TRUE(
-      matches("template <typename T> class C {}; template class C<int>;",
-              classTemplateSpecializationDecl(
-                  hasName("C"), hasTypeLoc(templateSpecializationTypeLoc()))));
-}
-
 TEST_P(ASTMatchersTest,
        TemplateSpecializationTypeLocTest_BindsToVarDeclTemplateSpecialization) {
   if (!GetParam().isCXX()) {
@@ -2269,6 +2366,8 @@ TEST_P(ASTMatchersTest, LambdaCaptureTest_BindsToCaptureOfVarDecl) {
       matches("int main() { int cc; auto f = [=](){ return cc; }; }", matcher));
   EXPECT_TRUE(
       matches("int main() { int cc; auto f = [&](){ return cc; }; }", matcher));
+  EXPECT_TRUE(matches(
+      "void f(int a) { int cc[a]; auto f = [&](){ return cc;}; }", matcher));
 }
 
 TEST_P(ASTMatchersTest, LambdaCaptureTest_BindsToCaptureWithInitializer) {
@@ -2328,6 +2427,80 @@ TEST_P(ASTMatchersTest, LambdaCaptureTest_BindsToCaptureOfReferenceType) {
                        "  int a;"
                        "  f(a);"
                        "}", matcher));
+}
+
+TEST_P(ASTMatchersTest, IsDerivedFromRecursion) {
+  if (!GetParam().isCXX11OrLater())
+    return;
+
+  // Check we don't crash on cycles in the traversal and inheritance hierarchy.
+  // Clang will normally enforce there are no cycles, but matchers opted to
+  // traverse primary template for dependent specializations, spuriously
+  // creating the cycles.
+  DeclarationMatcher matcher = cxxRecordDecl(isDerivedFrom("X"));
+  EXPECT_TRUE(notMatches(R"cpp(
+      template <typename T1, typename T2>
+      struct M;
+
+      template <typename T1>
+      struct M<T1, void> {};
+
+      template <typename T1, typename T2>
+      struct L : M<T1, T2> {};
+
+      template <typename T1, typename T2>
+      struct M : L<M<T1, T2>, M<T1, T2>> {};
+  )cpp",
+                         matcher));
+
+  // Check the running time is not exponential. The number of subojects to
+  // traverse grows as fibonacci numbers even though the number of bases to
+  // traverse is quadratic.
+  // The test will hang if implementation of matchers traverses all subojects.
+  EXPECT_TRUE(notMatches(R"cpp(
+    template <class T> struct A0 {};
+    template <class T> struct A1 : A0<T> {};
+    template <class T> struct A2 : A1<T>, A0<T> {};
+    template <class T> struct A3 : A2<T>, A1<T> {};
+    template <class T> struct A4 : A3<T>, A2<T> {};
+    template <class T> struct A5 : A4<T>, A3<T> {};
+    template <class T> struct A6 : A5<T>, A4<T> {};
+    template <class T> struct A7 : A6<T>, A5<T> {};
+    template <class T> struct A8 : A7<T>, A6<T> {};
+    template <class T> struct A9 : A8<T>, A7<T> {};
+    template <class T> struct A10 : A9<T>, A8<T> {};
+    template <class T> struct A11 : A10<T>, A9<T> {};
+    template <class T> struct A12 : A11<T>, A10<T> {};
+    template <class T> struct A13 : A12<T>, A11<T> {};
+    template <class T> struct A14 : A13<T>, A12<T> {};
+    template <class T> struct A15 : A14<T>, A13<T> {};
+    template <class T> struct A16 : A15<T>, A14<T> {};
+    template <class T> struct A17 : A16<T>, A15<T> {};
+    template <class T> struct A18 : A17<T>, A16<T> {};
+    template <class T> struct A19 : A18<T>, A17<T> {};
+    template <class T> struct A20 : A19<T>, A18<T> {};
+    template <class T> struct A21 : A20<T>, A19<T> {};
+    template <class T> struct A22 : A21<T>, A20<T> {};
+    template <class T> struct A23 : A22<T>, A21<T> {};
+    template <class T> struct A24 : A23<T>, A22<T> {};
+    template <class T> struct A25 : A24<T>, A23<T> {};
+    template <class T> struct A26 : A25<T>, A24<T> {};
+    template <class T> struct A27 : A26<T>, A25<T> {};
+    template <class T> struct A28 : A27<T>, A26<T> {};
+    template <class T> struct A29 : A28<T>, A27<T> {};
+    template <class T> struct A30 : A29<T>, A28<T> {};
+    template <class T> struct A31 : A30<T>, A29<T> {};
+    template <class T> struct A32 : A31<T>, A30<T> {};
+    template <class T> struct A33 : A32<T>, A31<T> {};
+    template <class T> struct A34 : A33<T>, A32<T> {};
+    template <class T> struct A35 : A34<T>, A33<T> {};
+    template <class T> struct A36 : A35<T>, A34<T> {};
+    template <class T> struct A37 : A36<T>, A35<T> {};
+    template <class T> struct A38 : A37<T>, A36<T> {};
+    template <class T> struct A39 : A38<T>, A37<T> {};
+    template <class T> struct A40 : A39<T>, A38<T> {};
+)cpp",
+                         matcher));
 }
 
 TEST(ASTMatchersTestObjC, ObjCMessageCalees) {
@@ -2627,8 +2800,11 @@ TEST(MatchFinderAPI, MatchesDynamic) {
 
 static std::vector<TestClangConfig> allTestClangConfigs() {
   std::vector<TestClangConfig> all_configs;
-  for (TestLanguage lang : {Lang_C89, Lang_C99, Lang_CXX03, Lang_CXX11,
-                            Lang_CXX14, Lang_CXX17, Lang_CXX20}) {
+  for (TestLanguage lang : {
+#define TESTLANGUAGE(lang, version, std_flag, version_index)                   \
+  Lang_##lang##version,
+#include "clang/Testing/TestLanguage.def"
+       }) {
     TestClangConfig config;
     config.Language = lang;
 
@@ -2652,8 +2828,11 @@ static std::vector<TestClangConfig> allTestClangConfigs() {
   return all_configs;
 }
 
-INSTANTIATE_TEST_SUITE_P(ASTMatchersTests, ASTMatchersTest,
-                         testing::ValuesIn(allTestClangConfigs()));
+INSTANTIATE_TEST_SUITE_P(
+    ASTMatchersTests, ASTMatchersTest, testing::ValuesIn(allTestClangConfigs()),
+    [](const testing::TestParamInfo<TestClangConfig> &Info) {
+      return Info.param.toShortString();
+    });
 
 } // namespace ast_matchers
 } // namespace clang

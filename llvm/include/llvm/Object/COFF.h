@@ -35,8 +35,10 @@ template <typename T> class ArrayRef;
 
 namespace object {
 
+class Arm64XRelocRef;
 class BaseRelocRef;
 class DelayImportDirectoryEntryRef;
+class DynamicRelocRef;
 class ExportDirectoryEntryRef;
 class ImportDirectoryEntryRef;
 class ImportedSymbolRef;
@@ -48,6 +50,8 @@ using delay_import_directory_iterator =
 using export_directory_iterator = content_iterator<ExportDirectoryEntryRef>;
 using imported_symbol_iterator = content_iterator<ImportedSymbolRef>;
 using base_reloc_iterator = content_iterator<BaseRelocRef>;
+using dynamic_reloc_iterator = content_iterator<DynamicRelocRef>;
+using arm64x_reloc_iterator = content_iterator<Arm64XRelocRef>;
 
 /// The DOS compatible header at the front of all PE/COFF executables.
 struct dos_header {
@@ -379,13 +383,17 @@ public:
   }
 
   bool isCommon() const {
-    return (isExternal() || isSection()) &&
-           getSectionNumber() == COFF::IMAGE_SYM_UNDEFINED && getValue() != 0;
+    return isExternal() && getSectionNumber() == COFF::IMAGE_SYM_UNDEFINED &&
+           getValue() != 0;
   }
 
   bool isUndefined() const {
     return isExternal() && getSectionNumber() == COFF::IMAGE_SYM_UNDEFINED &&
            getValue() == 0;
+  }
+
+  bool isEmptySectionDeclaration() const {
+    return isSection() && getSectionNumber() == COFF::IMAGE_SYM_UNDEFINED;
   }
 
   bool isWeakExternal() const {
@@ -743,14 +751,25 @@ struct chpe_metadata {
   support::ulittle32_t ExtraRFETableSize;
   support::ulittle32_t __os_arm64x_dispatch_fptr;
   support::ulittle32_t AuxiliaryIATCopy;
+
+  // Added in CHPE metadata v2
+  support::ulittle32_t AuxiliaryDelayloadIAT;
+  support::ulittle32_t AuxiliaryDelayloadIATCopy;
+  support::ulittle32_t HybridImageInfoBitfield;
 };
+
+enum chpe_range_type { Arm64 = 0, Arm64EC = 1, Amd64 = 2 };
 
 struct chpe_range_entry {
   support::ulittle32_t StartOffset;
   support::ulittle32_t Length;
-};
 
-enum chpe_range_type { CHPE_RANGE_ARM64, CHPE_RANGE_ARM64EC, CHPE_RANGE_AMD64 };
+  // The two low bits of StartOffset contain a range type.
+  static constexpr uint32_t TypeMask = 3;
+
+  uint32_t getStart() const { return StartOffset & ~TypeMask; }
+  uint16_t getType() const { return StartOffset & TypeMask; }
+};
 
 struct chpe_code_range_entry {
   support::ulittle32_t StartRva;
@@ -826,6 +845,37 @@ struct debug_h_header {
   support::ulittle16_t HashAlgorithm;
 };
 
+struct coff_dynamic_reloc_table {
+  support::ulittle32_t Version;
+  support::ulittle32_t Size;
+};
+
+struct coff_dynamic_relocation32 {
+  support::ulittle32_t Symbol;
+  support::ulittle32_t BaseRelocSize;
+};
+
+struct coff_dynamic_relocation64 {
+  support::ulittle64_t Symbol;
+  support::ulittle32_t BaseRelocSize;
+};
+
+struct coff_dynamic_relocation32_v2 {
+  support::ulittle32_t HeaderSize;
+  support::ulittle32_t FixupInfoSize;
+  support::ulittle32_t Symbol;
+  support::ulittle32_t SymbolGroup;
+  support::ulittle32_t Flags;
+};
+
+struct coff_dynamic_relocation64_v2 {
+  support::ulittle32_t HeaderSize;
+  support::ulittle32_t FixupInfoSize;
+  support::ulittle64_t Symbol;
+  support::ulittle32_t SymbolGroup;
+  support::ulittle32_t Flags;
+};
+
 class COFFObjectFile : public ObjectFile {
 private:
   COFFObjectFile(MemoryBufferRef Object);
@@ -855,6 +905,7 @@ private:
   // Either coff_load_configuration32 or coff_load_configuration64.
   const void *LoadConfig = nullptr;
   const chpe_metadata *CHPEMetadata = nullptr;
+  const coff_dynamic_reloc_table *DynamicRelocTable = nullptr;
 
   Expected<StringRef> getString(uint32_t offset) const;
 
@@ -874,6 +925,7 @@ private:
   Error initDebugDirectoryPtr();
   Error initTLSDirectoryPtr();
   Error initLoadConfigPtr();
+  Error initDynamicRelocPtr(uint32_t SectionIndex, uint32_t SectionOffset);
 
 public:
   static Expected<std::unique_ptr<COFFObjectFile>>
@@ -980,6 +1032,9 @@ public:
   }
 
   const chpe_metadata *getCHPEMetadata() const { return CHPEMetadata; }
+  const coff_dynamic_reloc_table *getDynamicRelocTable() const {
+    return DynamicRelocTable;
+  }
 
   StringRef getRelocationTypeName(uint16_t Type) const;
 
@@ -1039,6 +1094,7 @@ public:
   Expected<SubtargetFeatures> getFeatures() const override {
     return SubtargetFeatures();
   }
+  std::unique_ptr<MemoryBuffer> getHybridObjectView() const;
 
   import_directory_iterator import_directory_begin() const;
   import_directory_iterator import_directory_end() const;
@@ -1048,6 +1104,8 @@ public:
   export_directory_iterator export_directory_end() const;
   base_reloc_iterator base_reloc_begin() const;
   base_reloc_iterator base_reloc_end() const;
+  dynamic_reloc_iterator dynamic_reloc_begin() const;
+  dynamic_reloc_iterator dynamic_reloc_end() const;
   const debug_directory *debug_directory_begin() const {
     return DebugDirectoryBegin;
   }
@@ -1060,6 +1118,7 @@ public:
       delay_import_directories() const;
   iterator_range<export_directory_iterator> export_directories() const;
   iterator_range<base_reloc_iterator> base_relocs() const;
+  iterator_range<dynamic_reloc_iterator> dynamic_relocs() const;
   iterator_range<const debug_directory *> debug_directories() const {
     return make_range(debug_directory_begin(), debug_directory_end());
   }
@@ -1289,10 +1348,67 @@ private:
   uint32_t Index;
 };
 
+class DynamicRelocRef {
+public:
+  DynamicRelocRef() = default;
+  DynamicRelocRef(const void *Header, const COFFObjectFile *Owner)
+      : Obj(Owner), Header(reinterpret_cast<const uint8_t *>(Header)) {}
+
+  bool operator==(const DynamicRelocRef &Other) const;
+  void moveNext();
+  uint32_t getType() const;
+  void getContents(ArrayRef<uint8_t> &Ref) const;
+
+  arm64x_reloc_iterator arm64x_reloc_begin() const;
+  arm64x_reloc_iterator arm64x_reloc_end() const;
+  iterator_range<arm64x_reloc_iterator> arm64x_relocs() const;
+
+private:
+  Error validate() const;
+
+  const COFFObjectFile *Obj;
+  const uint8_t *Header;
+
+  friend class COFFObjectFile;
+};
+
+class Arm64XRelocRef {
+public:
+  Arm64XRelocRef() = default;
+  Arm64XRelocRef(const coff_base_reloc_block_header *Header, uint32_t Index = 0)
+      : Header(Header), Index(Index) {}
+
+  bool operator==(const Arm64XRelocRef &Other) const;
+  void moveNext();
+
+  COFF::Arm64XFixupType getType() const {
+    return COFF::Arm64XFixupType((getReloc() >> 12) & 3);
+  }
+  uint32_t getRVA() const { return Header->PageRVA + (getReloc() & 0xfff); }
+  uint8_t getSize() const;
+  uint64_t getValue() const;
+
+private:
+  const support::ulittle16_t &getReloc(uint32_t Offset = 0) const {
+    return reinterpret_cast<const support::ulittle16_t *>(Header +
+                                                          1)[Index + Offset];
+  }
+
+  uint16_t getArg() const { return getReloc() >> 14; }
+  uint8_t getEntrySize() const;
+  Error validate(const COFFObjectFile *Obj) const;
+
+  const coff_base_reloc_block_header *Header;
+  uint32_t Index;
+
+  friend class DynamicRelocRef;
+};
+
 class ResourceSectionRef {
 public:
   ResourceSectionRef() = default;
-  explicit ResourceSectionRef(StringRef Ref) : BBS(Ref, support::little) {}
+  explicit ResourceSectionRef(StringRef Ref)
+      : BBS(Ref, llvm::endianness::little) {}
 
   Error load(const COFFObjectFile *O);
   Error load(const COFFObjectFile *O, const SectionRef &S);

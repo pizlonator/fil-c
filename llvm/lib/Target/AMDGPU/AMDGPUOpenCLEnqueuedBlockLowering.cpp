@@ -31,6 +31,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "AMDGPUOpenCLEnqueuedBlockLowering.h"
 #include "AMDGPU.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallString.h"
@@ -48,11 +49,16 @@ using namespace llvm;
 namespace {
 
 /// Lower enqueued blocks.
-class AMDGPUOpenCLEnqueuedBlockLowering : public ModulePass {
+class AMDGPUOpenCLEnqueuedBlockLowering {
+public:
+  bool run(Module &M);
+};
+
+class AMDGPUOpenCLEnqueuedBlockLoweringLegacy : public ModulePass {
 public:
   static char ID;
 
-  explicit AMDGPUOpenCLEnqueuedBlockLowering() : ModulePass(ID) {}
+  explicit AMDGPUOpenCLEnqueuedBlockLoweringLegacy() : ModulePass(ID) {}
 
 private:
   bool runOnModule(Module &M) override;
@@ -60,19 +66,32 @@ private:
 
 } // end anonymous namespace
 
-char AMDGPUOpenCLEnqueuedBlockLowering::ID = 0;
+char AMDGPUOpenCLEnqueuedBlockLoweringLegacy::ID = 0;
 
-char &llvm::AMDGPUOpenCLEnqueuedBlockLoweringID =
-    AMDGPUOpenCLEnqueuedBlockLowering::ID;
+char &llvm::AMDGPUOpenCLEnqueuedBlockLoweringLegacyID =
+    AMDGPUOpenCLEnqueuedBlockLoweringLegacy::ID;
 
-INITIALIZE_PASS(AMDGPUOpenCLEnqueuedBlockLowering, DEBUG_TYPE,
+INITIALIZE_PASS(AMDGPUOpenCLEnqueuedBlockLoweringLegacy, DEBUG_TYPE,
                 "Lower OpenCL enqueued blocks", false, false)
 
-ModulePass* llvm::createAMDGPUOpenCLEnqueuedBlockLoweringPass() {
-  return new AMDGPUOpenCLEnqueuedBlockLowering();
+ModulePass *llvm::createAMDGPUOpenCLEnqueuedBlockLoweringLegacyPass() {
+  return new AMDGPUOpenCLEnqueuedBlockLoweringLegacy();
 }
 
-bool AMDGPUOpenCLEnqueuedBlockLowering::runOnModule(Module &M) {
+bool AMDGPUOpenCLEnqueuedBlockLoweringLegacy::runOnModule(Module &M) {
+  AMDGPUOpenCLEnqueuedBlockLowering Impl;
+  return Impl.run(M);
+}
+
+PreservedAnalyses
+AMDGPUOpenCLEnqueuedBlockLoweringPass::run(Module &M, ModuleAnalysisManager &) {
+  AMDGPUOpenCLEnqueuedBlockLowering Impl;
+  if (Impl.run(M))
+    return PreservedAnalyses::none();
+  return PreservedAnalyses::all();
+}
+
+bool AMDGPUOpenCLEnqueuedBlockLowering::run(Module &M) {
   DenseSet<Function *> Callers;
   auto &C = M.getContext();
   bool Changed = false;
@@ -92,9 +111,9 @@ bool AMDGPUOpenCLEnqueuedBlockLowering::runOnModule(Module &M) {
       auto RuntimeHandle = (F.getName() + ".runtime_handle").str();
       if (!HandleTy) {
         Type *Int32 = Type::getInt32Ty(C);
-        HandleTy = StructType::create(
-            C, {Type::getInt8Ty(C)->getPointerTo(0), Int32, Int32},
-            "block.runtime.handle.t");
+        HandleTy =
+            StructType::create(C, {PointerType::getUnqual(C), Int32, Int32},
+                               "block.runtime.handle.t");
       }
 
       auto *GV = new GlobalVariable(

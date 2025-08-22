@@ -6,10 +6,10 @@ define dso_local ptr @foo(i32 noundef zeroext %arg, ptr nocapture noundef readon
 ; CHECK-LABEL: foo:
 ; CHECK:       # %bb.0: # %bb
 ; CHECK-NEXT:    rlwinm r3, r3, 31, 17, 28
-; CHECK-NEXT:    ldx r4, r4, r3
-; CHECK-NEXT:    clrldi r3, r4, 56
-; CHECK-NEXT:    add r3, r5, r3
-; CHECK-NEXT:    std r4, 0(r5)
+; CHECK-NEXT:    ldx r3, r4, r3
+; CHECK-NEXT:    clrldi r4, r3, 56
+; CHECK-NEXT:    std r3, 0(r5)
+; CHECK-NEXT:    add r3, r5, r4
 ; CHECK-NEXT:    blr
 bb:
   %i = lshr i32 %arg, 1
@@ -26,8 +26,8 @@ bb:
 define void @pr68783(i32 %x, ptr %p) {
 ; CHECK-LABEL: pr68783:
 ; CHECK:       # %bb.0:
-; CHECK-NEXT:    li r5, 0
 ; CHECK-NEXT:    rlwinm r3, r3, 31, 24, 31
+; CHECK-NEXT:    li r5, 0
 ; CHECK-NEXT:    sth r5, 4(r4)
 ; CHECK-NEXT:    stw r3, 0(r4)
 ; CHECK-NEXT:    blr

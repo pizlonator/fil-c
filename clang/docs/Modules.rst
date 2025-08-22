@@ -152,7 +152,7 @@ first include path that would refer to the current file. ``#include_next`` is
 interpreted as if the current file had been found in that path.
 If this search finds a file named by a module map, the ``#include_next``
 directive is translated into an import, just like for a ``#include``
-directive.``
+directive.
 
 Module maps
 -----------
@@ -587,6 +587,9 @@ c11
 
 c17
   C17 support is available.
+
+c23
+  C23 support is available.
 
 freestanding
   A freestanding environment is available.

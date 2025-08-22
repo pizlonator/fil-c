@@ -6,13 +6,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "clang/Analysis/CFG.h"
 #include "CFGBuildResult.h"
 #include "clang/AST/Decl.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Analysis/Analyses/IntervalPartition.h"
 #include "clang/Analysis/AnalysisDeclContext.h"
-#include "clang/Analysis/CFG.h"
 #include "clang/Analysis/FlowSensitive/DataflowWorklist.h"
 #include "clang/Tooling/Tooling.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <algorithm>
 #include <string>
@@ -193,7 +195,6 @@ TEST(CFG, ElementRefIterator) {
   // Reverse, non-const version
   Index = MainBlockSize;
   for (CFGBlock::CFGElementRef ElementRef : MainBlock->rrefs()) {
-    llvm::errs() << Index << '\n';
     EXPECT_EQ(ElementRef.getParent(), MainBlock);
     EXPECT_EQ(ElementRef.getIndexInBlock(), Index);
     EXPECT_TRUE(ElementRef->getAs<CFGStmt>());
@@ -244,6 +245,8 @@ TEST(CFG, ElementRefIterator) {
 TEST(CFG, Worklists) {
   const char *Code = "int f(bool cond) {\n"
                      "  int a = 5;\n"
+                     "  while (a < 6)\n"
+                     "    ++a;\n"
                      "  if (cond)\n"
                      "    a += 1;\n"
                      "  return a;\n"
@@ -270,6 +273,22 @@ TEST(CFG, Worklists) {
     EXPECT_EQ(ForwardNodes.size(), ReferenceOrder.size());
     EXPECT_TRUE(std::equal(ReferenceOrder.begin(), ReferenceOrder.end(),
                            ForwardNodes.begin()));
+  }
+
+  {
+    using ::testing::ElementsAreArray;
+    std::optional<WeakTopologicalOrdering> WTO = getIntervalWTO(*CFG);
+    ASSERT_TRUE(WTO);
+    WTOCompare WCmp(*WTO);
+    WTODataflowWorklist WTOWorklist(*CFG, WCmp);
+    for (const auto *B : *CFG)
+      WTOWorklist.enqueueBlock(B);
+
+    std::vector<const CFGBlock *> WTONodes;
+    while (const CFGBlock *B = WTOWorklist.dequeue())
+      WTONodes.push_back(B);
+
+    EXPECT_THAT(WTONodes, ElementsAreArray(*WTO));
   }
 
   std::reverse(ReferenceOrder.begin(), ReferenceOrder.end());

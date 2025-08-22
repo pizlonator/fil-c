@@ -126,6 +126,9 @@ class MockGDBServerResponder:
         if packet[0] == "m":
             addr, length = [int(x, 16) for x in packet[1:].split(",")]
             return self.readMemory(addr, length)
+        if packet[0] == "x":
+            addr, length = [int(x, 16) for x in packet[1:].split(",")]
+            return self.x(addr, length)
         if packet[0] == "M":
             location, encoded_data = packet[1:].split(":")
             addr, length = [int(x, 16) for x in location.split(",")]
@@ -196,6 +199,9 @@ class MockGDBServerResponder:
             return self.vFile(packet)
         if packet.startswith("vRun;"):
             return self.vRun(packet)
+        if packet.startswith("qLaunchGDBServer;"):
+            _, host = packet.partition(";")[2].split(":")
+            return self.qLaunchGDBServer(host)
         if packet.startswith("qLaunchSuccess"):
             return self.qLaunchSuccess()
         if packet.startswith("QEnvironment:"):
@@ -264,6 +270,9 @@ class MockGDBServerResponder:
     def readMemory(self, addr, length):
         return "00" * length
 
+    def x(self, addr, length):
+        return ""
+
     def writeMemory(self, addr, data_hex):
         return "OK"
 
@@ -328,6 +337,9 @@ class MockGDBServerResponder:
 
     def vRun(self, packet):
         return ""
+
+    def qLaunchGDBServer(self, host):
+        raise self.UnexpectedPacketException()
 
     def qLaunchSuccess(self):
         return ""

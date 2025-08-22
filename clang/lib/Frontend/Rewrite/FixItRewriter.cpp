@@ -21,8 +21,8 @@
 #include "clang/Edit/Commit.h"
 #include "clang/Edit/EditsReceiver.h"
 #include "clang/Frontend/FrontendDiagnostic.h"
-#include "clang/Rewrite/Core/RewriteBuffer.h"
 #include "clang/Rewrite/Core/Rewriter.h"
+#include "llvm/ADT/RewriteBuffer.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
@@ -33,6 +33,7 @@
 #include <utility>
 
 using namespace clang;
+using llvm::RewriteBuffer;
 
 FixItRewriter::FixItRewriter(DiagnosticsEngine &Diags, SourceManager &SourceMgr,
                              const LangOptions &LangOpts,
@@ -93,7 +94,8 @@ bool FixItRewriter::WriteFixedFiles(
   }
 
   for (iterator I = buffer_begin(), E = buffer_end(); I != E; ++I) {
-    const FileEntry *Entry = Rewrite.getSourceMgr().getFileEntryForID(I->first);
+    OptionalFileEntryRef Entry =
+        Rewrite.getSourceMgr().getFileEntryRefForID(I->first);
     int fd;
     std::string Filename =
         FixItOpts->RewriteFilename(std::string(Entry->getName()), fd);
@@ -198,10 +200,8 @@ void FixItRewriter::HandleDiagnostic(DiagnosticsEngine::Level DiagLevel,
 /// Emit a diagnostic via the adapted diagnostic client.
 void FixItRewriter::Diag(SourceLocation Loc, unsigned DiagID) {
   // When producing this diagnostic, we temporarily bypass ourselves,
-  // clear out any current diagnostic, and let the downstream client
-  // format the diagnostic.
+  // and let the downstream client format the diagnostic.
   Diags.setClient(Client, false);
-  Diags.Clear();
   Diags.Report(Loc, DiagID);
   Diags.setClient(this, false);
 }

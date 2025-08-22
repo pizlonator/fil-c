@@ -37,18 +37,18 @@ int pass_inalloca_overaligned() {
 
 // CHECK-LABEL: define dso_local noundef i32 @"?pass_inalloca_overaligned@@Y{{.*}}"
 // CHECK: [[TMP:%[^ ]*]] = alloca %struct.OverAligned, align 64
-// CHECK: call ptr @llvm.stacksave()
+// CHECK: call ptr @llvm.stacksave.p0()
 // CHECK: alloca inalloca <{ %struct.NonTrivial, ptr }>
 
 // Construct OverAligned into TMP.
 // CHECK: call x86_thiscallcc noundef ptr @"??0OverAligned@@QAE@XZ"(ptr {{[^,]*}} [[TMP]])
 
 // Construct NonTrivial into the GEP.
-// CHECK: [[GEP:%[^ ]*]] = getelementptr inbounds <{ %struct.NonTrivial, ptr }>, ptr %{{.*}}, i32 0, i32 0
+// CHECK: [[GEP:%[^ ]*]] = getelementptr inbounds nuw <{ %struct.NonTrivial, ptr }>, ptr %{{.*}}, i32 0, i32 0
 // CHECK: call x86_thiscallcc noundef ptr @"??0NonTrivial@@QAE@XZ"(ptr {{[^,]*}} [[GEP]])
 
 // Store the address of an OverAligned temporary into the struct.
-// CHECK: getelementptr inbounds <{ %struct.NonTrivial, ptr }>, ptr %{{.*}}, i32 0, i32 1
+// CHECK: getelementptr inbounds nuw <{ %struct.NonTrivial, ptr }>, ptr %{{.*}}, i32 0, i32 1
 // CHECK: store ptr [[TMP]], ptr %{{.*}}, align 4
 // CHECK: call noundef i32 @"?receive_inalloca_overaligned@@Y{{.*}}"(ptr inalloca(<{ %struct.NonTrivial, ptr }>) %argmem)
 

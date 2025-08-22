@@ -1,4 +1,4 @@
-; RUN: llc < %s -march=avr | FileCheck %s
+; RUN: llc < %s -mtriple=avr | FileCheck %s
 
 define i8 @count_trailing_zeros(i8) unnamed_addr {
 entry-block:
@@ -28,10 +28,9 @@ declare i8 @llvm.cttz.i8(i8)
 ; CHECK: mov    {{.*}}[[SCRATCH]], {{.*}}[[RESULT]]
 ; CHECK: swap   {{.*}}[[SCRATCH]]
 ; CHECK: add    {{.*}}[[SCRATCH]], {{.*}}[[RESULT]]
-; CHECK: andi   {{.*}}[[SCRATCH]], 15
 ; CHECK: mov    {{.*}}[[RESULT]], {{.*}}[[SCRATCH]]
+; CHECK: andi   {{.*}}[[RESULT]], 15
 ; CHECK: ret
 ; CHECK: [[END_BB]]:
-; CHECK: ldi    {{.*}}[[SCRATCH]], 8
-; CHECK: mov    {{.*}}[[RESULT]], {{.*}}[[SCRATCH]]
+; CHECK: ldi    {{.*}}[[RESULT]], 8
 ; CHECK: ret

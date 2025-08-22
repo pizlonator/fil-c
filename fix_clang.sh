@@ -34,5 +34,5 @@ set -x
 # zlib.
 if test $OS = linux
 then
-    patchelf --set-rpath '$ORIGIN/../lib' build/bin/clang-17
+    patchelf --set-rpath '$ORIGIN/../lib' build/bin/clang-20
 fi

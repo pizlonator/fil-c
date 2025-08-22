@@ -9,11 +9,11 @@
 #include "mlir/Dialect/Linalg/TransformOps/GPUHeuristics.h"
 
 #include "mlir/Dialect/GPU/IR/GPUDialect.h"
-#include "mlir/Support/MathExtras.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cmath>
 #include <numeric>
@@ -24,14 +24,14 @@ using namespace mlir;
 #define DBGS() (llvm::dbgs() << "[" DEBUG_TYPE "]: ")
 #define LDBG(X) LLVM_DEBUG(DBGS() << X << "\n")
 
-static Attribute linearIdX(MLIRContext *ctx) {
-  return gpu::GPULinearIdMappingAttr::get(ctx, gpu::LinearId::DimX);
+static Attribute linearId0(MLIRContext *ctx) {
+  return gpu::GPUThreadMappingAttr::get(ctx, gpu::MappingId::LinearDim0);
 }
-static Attribute linearIdY(MLIRContext *ctx) {
-  return gpu::GPULinearIdMappingAttr::get(ctx, gpu::LinearId::DimY);
+static Attribute linearId1(MLIRContext *ctx) {
+  return gpu::GPUThreadMappingAttr::get(ctx, gpu::MappingId::LinearDim1);
 }
-static Attribute linearIdZ(MLIRContext *ctx) {
-  return gpu::GPULinearIdMappingAttr::get(ctx, gpu::LinearId::DimZ);
+static Attribute linearId2(MLIRContext *ctx) {
+  return gpu::GPUThreadMappingAttr::get(ctx, gpu::MappingId::LinearDim2);
 }
 
 transform::gpu::CopyMappingInfo::CopyMappingInfo(MLIRContext *ctx,
@@ -76,10 +76,10 @@ transform::gpu::CopyMappingInfo::CopyMappingInfo(MLIRContext *ctx,
       llvm::map_range(llvm::zip(copySizes, this->numThreads), [](auto &&pair) {
         int64_t size, numThreads;
         std::tie(size, numThreads) = pair;
-        return mlir::ceilDiv(size, numThreads);
+        return llvm::divideCeilSigned(size, numThreads);
       }));
-  SmallVector<Attribute> allThreadMappings{linearIdZ(ctx), linearIdY(ctx),
-                                           linearIdX(ctx)};
+  SmallVector<Attribute> allThreadMappings{linearId2(ctx), linearId1(ctx),
+                                           linearId0(ctx)};
 
   // Set the thread mapping.
   this->threadMapping =
@@ -222,7 +222,7 @@ transform::gpu::CopyMappingInfo::inferNumThreadsImpl(
   // Scale the most minor size to account for the chosen vector size and
   // maximize the number of threads without exceeding the total number of
   // threads.
-  SmallVector<int64_t> scaledSizes{sizes};
+  SmallVector<int64_t> scaledSizes(sizes);
   scaledSizes.back() /= desiredVectorSize;
   if (scaledSizes.back() > totalNumThreads) {
     LDBG("--Too few threads given the required vector size -> FAIL");

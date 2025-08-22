@@ -391,9 +391,9 @@ define i64 @lsl_i64(i64 %a) {
 define zeroext i8 @lsrv_i8(i8 %a, i8 %b) {
 ; CHECK-LABEL: lsrv_i8:
 ; CHECK:       ; %bb.0:
-; CHECK-NEXT:    and w8, w1, #0xff
-; CHECK-NEXT:    and w9, w0, #0xff
-; CHECK-NEXT:    lsr w8, w9, w8
+; CHECK-NEXT:    and w8, w0, #0xff
+; CHECK-NEXT:    and w9, w1, #0xff
+; CHECK-NEXT:    lsr w8, w8, w9
 ; CHECK-NEXT:    and w8, w8, #0xff
 ; CHECK-NEXT:    uxtb w0, w8
 ; CHECK-NEXT:    ret
@@ -458,9 +458,9 @@ define i32 @lsr_sext_i8_i32(i8 %b) {
 define zeroext i16 @lsrv_i16(i16 %a, i16 %b) {
 ; CHECK-LABEL: lsrv_i16:
 ; CHECK:       ; %bb.0:
-; CHECK-NEXT:    and w8, w1, #0xffff
-; CHECK-NEXT:    and w9, w0, #0xffff
-; CHECK-NEXT:    lsr w8, w9, w8
+; CHECK-NEXT:    and w8, w0, #0xffff
+; CHECK-NEXT:    and w9, w1, #0xffff
+; CHECK-NEXT:    lsr w8, w8, w9
 ; CHECK-NEXT:    and w8, w8, #0xffff
 ; CHECK-NEXT:    uxth w0, w8
 ; CHECK-NEXT:    ret
@@ -517,9 +517,9 @@ define i64 @lsr_i64(i64 %a) {
 define zeroext i8 @asrv_i8(i8 %a, i8 %b) {
 ; CHECK-LABEL: asrv_i8:
 ; CHECK:       ; %bb.0:
-; CHECK-NEXT:    and w8, w1, #0xff
-; CHECK-NEXT:    sxtb w9, w0
-; CHECK-NEXT:    asr w8, w9, w8
+; CHECK-NEXT:    sxtb w8, w0
+; CHECK-NEXT:    and w9, w1, #0xff
+; CHECK-NEXT:    asr w8, w8, w9
 ; CHECK-NEXT:    and w8, w8, #0xff
 ; CHECK-NEXT:    uxtb w0, w8
 ; CHECK-NEXT:    ret
@@ -582,9 +582,9 @@ define i32 @asr_sext_i8_i32(i8 %b) {
 define zeroext i16 @asrv_i16(i16 %a, i16 %b) {
 ; CHECK-LABEL: asrv_i16:
 ; CHECK:       ; %bb.0:
-; CHECK-NEXT:    and w8, w1, #0xffff
-; CHECK-NEXT:    sxth w9, w0
-; CHECK-NEXT:    asr w8, w9, w8
+; CHECK-NEXT:    sxth w8, w0
+; CHECK-NEXT:    and w9, w1, #0xffff
+; CHECK-NEXT:    asr w8, w8, w9
 ; CHECK-NEXT:    and w8, w8, #0xffff
 ; CHECK-NEXT:    uxth w0, w8
 ; CHECK-NEXT:    ret
@@ -681,7 +681,7 @@ define i64 @shl_zext_zero(i32 %a) {
 ; CHECK-LABEL: shl_zext_zero:
 ; CHECK:       ; %bb.0:
 ; CHECK-NEXT:    ; kill: def $w0 killed $w0 def $x0
-; CHECK-NEXT:    ubfx x0, x0, #0, #32
+; CHECK-NEXT:    lsr w0, w0, #0
 ; CHECK-NEXT:    ret
   %1 = zext i32 %a to i64
   %2 = shl i64 %1, 0
@@ -692,7 +692,7 @@ define i64 @lshr_zext_zero(i32 %a) {
 ; CHECK-LABEL: lshr_zext_zero:
 ; CHECK:       ; %bb.0:
 ; CHECK-NEXT:    ; kill: def $w0 killed $w0 def $x0
-; CHECK-NEXT:    ubfx x0, x0, #0, #32
+; CHECK-NEXT:    lsr w0, w0, #0
 ; CHECK-NEXT:    ret
   %1 = zext i32 %a to i64
   %2 = lshr i64 %1, 0
@@ -703,7 +703,7 @@ define i64 @ashr_zext_zero(i32 %a) {
 ; CHECK-LABEL: ashr_zext_zero:
 ; CHECK:       ; %bb.0:
 ; CHECK-NEXT:    ; kill: def $w0 killed $w0 def $x0
-; CHECK-NEXT:    ubfx x0, x0, #0, #32
+; CHECK-NEXT:    lsr w0, w0, #0
 ; CHECK-NEXT:    ret
   %1 = zext i32 %a to i64
   %2 = ashr i64 %1, 0

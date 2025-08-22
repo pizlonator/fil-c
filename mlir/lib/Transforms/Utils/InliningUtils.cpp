@@ -25,22 +25,37 @@
 
 using namespace mlir;
 
-/// Remap locations from the inlined blocks with CallSiteLoc locations with the
-/// provided caller location.
+/// Remap all locations reachable from the inlined blocks with CallSiteLoc
+/// locations with the provided caller location.
 static void
 remapInlinedLocations(iterator_range<Region::iterator> inlinedBlocks,
                       Location callerLoc) {
-  DenseMap<Location, Location> mappedLocations;
-  auto remapOpLoc = [&](Operation *op) {
-    auto it = mappedLocations.find(op->getLoc());
-    if (it == mappedLocations.end()) {
-      auto newLoc = CallSiteLoc::get(op->getLoc(), callerLoc);
-      it = mappedLocations.try_emplace(op->getLoc(), newLoc).first;
+  DenseMap<Location, LocationAttr> mappedLocations;
+  auto remapLoc = [&](Location loc) {
+    auto [it, inserted] = mappedLocations.try_emplace(loc);
+    // Only query the attribute uniquer once per callsite attribute.
+    if (inserted) {
+      auto newLoc = CallSiteLoc::get(loc, callerLoc);
+      it->getSecond() = newLoc;
     }
-    op->setLoc(it->second);
+    return it->second;
   };
-  for (auto &block : inlinedBlocks)
-    block.walk(remapOpLoc);
+
+  AttrTypeReplacer attrReplacer;
+  attrReplacer.addReplacement(
+      [&](LocationAttr loc) -> std::pair<LocationAttr, WalkResult> {
+        return {remapLoc(loc), WalkResult::skip()};
+      });
+
+  for (Block &block : inlinedBlocks) {
+    for (BlockArgument &arg : block.getArguments())
+      if (LocationAttr newLoc = remapLoc(arg.getLoc()))
+        arg.setLoc(newLoc);
+
+    for (Operation &op : block)
+      attrReplacer.recursivelyReplaceElementsIn(&op, /*replaceAttrs=*/false,
+                                                /*replaceLocs=*/true);
+  }
 }
 
 static void remapInlinedOperands(iterator_range<Region::iterator> inlinedBlocks,
@@ -97,10 +112,22 @@ void InlinerInterface::handleTerminator(Operation *op, Block *newDest) const {
 /// Handle the given inlined terminator by replacing it with a new operation
 /// as necessary.
 void InlinerInterface::handleTerminator(Operation *op,
-                                        ArrayRef<Value> valuesToRepl) const {
+                                        ValueRange valuesToRepl) const {
   auto *handler = getInterfaceFor(op);
   assert(handler && "expected valid dialect handler");
   handler->handleTerminator(op, valuesToRepl);
+}
+
+/// Returns true if the inliner can assume a fast path of not creating a
+/// new block, if there is only one block.
+bool InlinerInterface::allowSingleBlockOptimization(
+    iterator_range<Region::iterator> inlinedBlocks) const {
+  if (inlinedBlocks.empty()) {
+    return true;
+  }
+  auto *handler = getInterfaceFor(inlinedBlocks.begin()->getParentOp());
+  assert(handler && "expected valid dialect handler");
+  return handler->allowSingleBlockOptimization(inlinedBlocks);
 }
 
 Value InlinerInterface::handleArgument(OpBuilder &builder, Operation *call,
@@ -166,7 +193,7 @@ static void handleArgumentImpl(InlinerInterface &interface, OpBuilder &builder,
   SmallVector<DictionaryAttr> argAttrs(
       callable.getCallableRegion()->getNumArguments(),
       builder.getDictionaryAttr({}));
-  if (ArrayAttr arrayAttr = callable.getCallableArgAttrs()) {
+  if (ArrayAttr arrayAttr = callable.getArgAttrsAttr()) {
     assert(arrayAttr.size() == argAttrs.size());
     for (auto [idx, attr] : llvm::enumerate(arrayAttr))
       argAttrs[idx] = cast<DictionaryAttr>(attr);
@@ -191,7 +218,7 @@ static void handleResultImpl(InlinerInterface &interface, OpBuilder &builder,
   // Unpack the result attributes if there are any.
   SmallVector<DictionaryAttr> resAttrs(results.size(),
                                        builder.getDictionaryAttr({}));
-  if (ArrayAttr arrayAttr = callable.getCallableResAttrs()) {
+  if (ArrayAttr arrayAttr = callable.getResAttrsAttr()) {
     assert(arrayAttr.size() == resAttrs.size());
     for (auto [idx, attr] : llvm::enumerate(arrayAttr))
       resAttrs[idx] = cast<DictionaryAttr>(attr);
@@ -279,8 +306,10 @@ inlineRegionImpl(InlinerInterface &interface, Region *src, Block *inlineBlock,
     interface.processInlinedCallBlocks(call, newBlocks);
   interface.processInlinedBlocks(newBlocks);
 
+  bool singleBlockFastPath = interface.allowSingleBlockOptimization(newBlocks);
+
   // Handle the case where only a single block was inlined.
-  if (std::next(newBlocks.begin()) == newBlocks.end()) {
+  if (singleBlockFastPath && std::next(newBlocks.begin()) == newBlocks.end()) {
     // Run the result attribute handler on the terminator operands.
     Operation *firstBlockTerminator = firstNewBlock->getTerminator();
     builder.setInsertionPoint(firstBlockTerminator);
@@ -289,8 +318,7 @@ inlineRegionImpl(InlinerInterface &interface, Region *src, Block *inlineBlock,
                        firstBlockTerminator->getOperands());
 
     // Have the interface handle the terminator of this block.
-    interface.handleTerminator(firstBlockTerminator,
-                               llvm::to_vector<6>(resultsToReplace));
+    interface.handleTerminator(firstBlockTerminator, resultsToReplace);
     firstBlockTerminator->erase();
 
     // Merge the post insert block into the cloned entry block.
@@ -434,7 +462,7 @@ LogicalResult mlir::inlineCall(InlinerInterface &interface,
   if (src->empty())
     return failure();
   auto *entryBlock = &src->front();
-  ArrayRef<Type> callableResultTypes = callable.getCallableResults();
+  ArrayRef<Type> callableResultTypes = callable.getResultTypes();
 
   // Make sure that the number of arguments and results matchup between the call
   // and the region.

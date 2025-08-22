@@ -17,7 +17,10 @@ add_llvm_component_library(LLVMFrontendOpenMP
   TargetParser
   TransformUtils
   Analysis
+  Demangle
   MC
   Scalar
   BitReader
+  FrontendOffloading
+  FrontendAtomic
   )

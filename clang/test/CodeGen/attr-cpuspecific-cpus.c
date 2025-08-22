@@ -43,6 +43,7 @@ ATTR(cpu_specific(icelake_client)) void CPU(void){}
 ATTR(cpu_specific(tigerlake)) void CPU(void){}
 ATTR(cpu_specific(alderlake)) void CPU(void){}
 ATTR(cpu_specific(sapphirerapids)) void CPU(void){}
+ATTR(cpu_specific(diamondrapids)) void CPU(void){}
 
 // ALIAS CPUs
 ATTR(cpu_specific(pentium_iii_no_xmm_regs)) void CPU0(void){}
@@ -80,3 +81,9 @@ ATTR(cpu_specific(grandridge)) void CPU31(void){}
 ATTR(cpu_specific(graniterapids)) void CPU32(void){}
 ATTR(cpu_specific(emeraldrapids)) void CPU33(void){}
 ATTR(cpu_specific(graniterapids_d)) void CPU34(void){}
+ATTR(cpu_specific(arrowlake)) void CPU35(void){}
+ATTR(cpu_specific(arrowlake_s)) void CPU36(void){}
+ATTR(cpu_specific(lunarlake)) void CPU37(void){}
+ATTR(cpu_specific(gracemont)) void CPU38(void){}
+ATTR(cpu_specific(pantherlake)) void CPU39(void){}
+ATTR(cpu_specific(clearwaterforest)) void CPU40(void){}

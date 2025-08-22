@@ -6,7 +6,19 @@ context of LLVM releases. It is updated on a best effort basis.
 At the moment the MLIR community does not qualify the LLVM release branch
 specifically, it is a snapshot of the MLIR development at the time of the release.
 
-\[TOC\]
+[TOC]
+
+## LLVM 20
+
+All the MLIR runners other than `mlir-cpu-runner` have been removed, as their functionality has been merged into it, and it has been renamed to `mlir-runner`.
+
+## LLVM 18
+
+### Properties: beyond attributes
+
+See LLVM 17 notes below. The Dialect option `let usePropertiesForAttributes = 1;` is
+now the default. You can set it to 0 to revert to the previous behavior. This will be
+removed in LLVM 19.
 
 ## LLVM 17
 

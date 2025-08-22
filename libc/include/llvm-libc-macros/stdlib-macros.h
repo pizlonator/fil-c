@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __LLVM_LIBC_MACROS_STDLIB_MACROS_H
-#define __LLVM_LIBC_MACROS_STDLIB_MACROS_H
+#ifndef LLVM_LIBC_MACROS_STDLIB_MACROS_H
+#define LLVM_LIBC_MACROS_STDLIB_MACROS_H
 
 #ifndef NULL
 #define __need_NULL
@@ -17,6 +17,11 @@
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
-#define RAND_MAX 32767
+#ifndef MB_CUR_MAX
+// We only support the "C" locale right now, so this is a constant byte.
+#define MB_CUR_MAX 1
+#endif // MB_CUR_MAX
 
-#endif // __LLVM_LIBC_MACROS_STDLIB_MACROS_H
+#define RAND_MAX 2147483647
+
+#endif // LLVM_LIBC_MACROS_STDLIB_MACROS_H

@@ -12,7 +12,6 @@
 #include "lldb/Core/Disassembler.h"
 #include "lldb/Core/DumpRegisterValue.h"
 #include "lldb/Core/Module.h"
-#include "lldb/Core/StreamFile.h"
 #include "lldb/Core/Value.h"
 #include "lldb/Symbol/TypeList.h"
 #include "lldb/Symbol/TypeSystem.h"
@@ -96,8 +95,9 @@ ThreadPlanAssemblyTracer::ThreadPlanAssemblyTracer(Thread &thread)
 
 Disassembler *ThreadPlanAssemblyTracer::GetDisassembler() {
   if (!m_disassembler_sp)
-    m_disassembler_sp = Disassembler::FindPlugin(
-        m_process.GetTarget().GetArchitecture(), nullptr, nullptr);
+    m_disassembler_sp =
+        Disassembler::FindPlugin(m_process.GetTarget().GetArchitecture(),
+                                 nullptr, nullptr, nullptr, nullptr);
   return m_disassembler_sp.get();
 }
 
@@ -140,8 +140,7 @@ void ThreadPlanAssemblyTracer::Log() {
   Address pc_addr;
   bool addr_valid = false;
   uint8_t buffer[16] = {0}; // Must be big enough for any single instruction
-  addr_valid = m_process.GetTarget().GetSectionLoadList().ResolveLoadAddress(
-      pc, pc_addr);
+  addr_valid = m_process.GetTarget().ResolveLoadAddress(pc, pc_addr);
 
   pc_addr.Dump(stream, &GetThread(), Address::DumpStyleResolvedDescription,
                Address::DumpStyleModuleWithFileAddress);

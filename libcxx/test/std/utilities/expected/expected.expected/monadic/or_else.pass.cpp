@@ -22,6 +22,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "../../types.h"
+
 struct LVal {
   constexpr std::expected<int, int> operator()(int&) { return 1; }
   std::expected<int, int> operator()(const int&)  = delete;
@@ -83,12 +85,17 @@ concept has_or_else =
     requires(E&& e, F&& f) {
       { std::forward<E>(e).or_else(std::forward<F>(f)) };
     };
-
+// clang-format off
 // [LWG 3877] https://cplusplus.github.io/LWG/issue3877, check constraint failing but not compile error inside the function body.
 static_assert(!has_or_else<const std::expected<std::unique_ptr<int>, int>&, int()>);
 static_assert(!has_or_else<const std::expected<std::unique_ptr<int>, int>&&, int()>);
 
-// clang-format off
+// [LWG 3983] https://cplusplus.github.io/LWG/issue3938, check std::expected monadic ops well-formed with move-only error_type.
+static_assert(has_or_else<std::expected<int, MoveOnlyErrorType>&, std::expected<int, int>(MoveOnlyErrorType &)>);
+static_assert(has_or_else<const std::expected<int, MoveOnlyErrorType>&, std::expected<int, int>(const MoveOnlyErrorType &)>);
+static_assert(has_or_else<std::expected<int, MoveOnlyErrorType>&&, std::expected<int, int>(MoveOnlyErrorType&&)>);
+static_assert(has_or_else<const std::expected<int, MoveOnlyErrorType>&&, std::expected<int, int>(const MoveOnlyErrorType&&)>);
+
 constexpr void test_val_types() {
   // Test & overload
   {
@@ -171,13 +178,44 @@ struct NonConst {
 constexpr void test_sfinae() {
   std::expected<int, NonConst> e{1};
   auto l = [](auto&& x) { return x.non_const(); };
-  e.or_else(l);
-  std::move(e).or_else(l);
+  (void)e.or_else(l);
+  (void)std::move(e).or_else(l);
+}
+
+constexpr void test_move_only_error_type() {
+  // Test &
+  {
+      std::expected<int, MoveOnlyErrorType> e;
+      auto l = [](MoveOnlyErrorType&) { return std::expected<int, int>{}; };
+      (void)e.or_else(l);
+  }
+
+  // Test const&
+  {
+      const std::expected<int, MoveOnlyErrorType> e;
+      auto l = [](const MoveOnlyErrorType&) { return std::expected<int, int>{}; };
+      (void)e.or_else(l);
+  }
+
+  // Test &&
+  {
+      std::expected<int, MoveOnlyErrorType> e;
+      auto l = [](MoveOnlyErrorType&&) { return std::expected<int, int>{}; };
+      (void)std::move(e).or_else(l);
+  }
+
+  // Test const&&
+  {
+      const std::expected<int, MoveOnlyErrorType> e;
+      auto l = [](const MoveOnlyErrorType&&) { return std::expected<int, int>{}; };
+      (void)std::move(e).or_else(l);
+  }
 }
 
 constexpr bool test() {
   test_sfinae();
   test_val_types();
+  test_move_only_error_type();
 
   std::expected<int, int> e(1);
   const auto& ce = e;
@@ -187,10 +225,10 @@ constexpr bool test() {
     return std::expected<int, int>();
   };
 
-  e.or_else(never_called);
-  std::move(e).or_else(never_called);
-  ce.or_else(never_called);
-  std::move(ce).or_else(never_called);
+  (void)e.or_else(never_called);
+  (void)std::move(e).or_else(never_called);
+  (void)ce.or_else(never_called);
+  (void)std::move(ce).or_else(never_called);
   return true;
 }
 

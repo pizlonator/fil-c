@@ -98,7 +98,8 @@ public:
       return false;
     const auto *T = TL.getTypePtr();
     return TraverseTypeLoc(TL.getNamedTypeLoc(),
-                           T->getKeyword() != ETK_None || T->getQualifier());
+                           T->getKeyword() != ElaboratedTypeKeyword::None ||
+                               T->getQualifier());
   }
 
   bool VisitDeclRefExpr(DeclRefExpr *S) {
@@ -434,8 +435,7 @@ void UseTrailingReturnTypeCheck::check(const MatchFinder::MatchResult &Result) {
   if (!TSI)
     return;
 
-  FunctionTypeLoc FTL =
-      TSI->getTypeLoc().IgnoreParens().getAs<FunctionTypeLoc>();
+  auto FTL = TSI->getTypeLoc().IgnoreParens().getAs<FunctionTypeLoc>();
   if (!FTL) {
     // FIXME: This may happen if we have __attribute__((...)) on the function.
     // We abort for now. Remove this when the function type location gets

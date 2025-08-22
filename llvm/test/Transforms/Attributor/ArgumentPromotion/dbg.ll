@@ -21,7 +21,9 @@ define internal void @test(ptr %X) !dbg !2 {
 %struct.pair = type { i32, i32 }
 
 define internal void @test_byval(ptr byval(%struct.pair) %P) {
-; CHECK-LABEL: define {{[^@]+}}@test_byval() {
+; CHECK: Function Attrs: memory(readwrite, argmem: none)
+; CHECK-LABEL: define {{[^@]+}}@test_byval
+; CHECK-SAME: () #[[ATTR0:[0-9]+]] {
 ; CHECK-NEXT:    call void @sink(i32 noundef 0)
 ; CHECK-NEXT:    ret void
 ;
@@ -59,10 +61,21 @@ define void @caller(ptr %Y, ptr %P) {
 !5 = !DIFile(filename: "test.c", directory: "")
 !6 = !DILocation(line: 9, scope: !2)
 ;.
-; CHECK: [[META0:![0-9]+]] = !{i32 2, !"Debug Info Version", i32 3}
-; CHECK: [[META1:![0-9]+]] = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: !2, producer: "clang version 3.5.0 ", isOptimized: false, runtimeVersion: 0, emissionKind: LineTablesOnly)
-; CHECK: [[META2:![0-9]+]] = !DIFile(filename: "test.c", directory: "")
-; CHECK: [[DBG3]] = distinct !DISubprogram(name: "test", scope: null, file: !2, line: 3, scopeLine: 3, virtualIndex: 6, flags: DIFlagPrototyped, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !1)
-; CHECK: [[META4:![0-9]+]] = !DILocation(line: 8, scope: !3)
-; CHECK: [[META5:![0-9]+]] = !DILocation(line: 9, scope: !3)
+; TUNIT: attributes #[[ATTR0]] = { memory(readwrite, argmem: none) }
+;.
+; CGSCC: attributes #[[ATTR0]] = { memory(readwrite, argmem: none) }
+;.
+; TUNIT: [[META0:![0-9]+]] = !{i32 2, !"Debug Info Version", i32 3}
+; TUNIT: [[META1:![0-9]+]] = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: [[META2:![0-9]+]], producer: "{{.*}}clang version {{.*}} ", isOptimized: false, runtimeVersion: 0, emissionKind: LineTablesOnly)
+; TUNIT: [[META2]] = !DIFile(filename: "test.c", directory: "")
+; TUNIT: [[DBG3]] = distinct !DISubprogram(name: "test", scope: null, file: [[META2]], line: 3, scopeLine: 3, virtualIndex: 6, flags: DIFlagPrototyped, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: [[META1]])
+; TUNIT: [[DBG4]] = !DILocation(line: 8, scope: [[DBG3]])
+; TUNIT: [[DBG5]] = !DILocation(line: 9, scope: [[DBG3]])
+;.
+; CGSCC: [[META0:![0-9]+]] = !{i32 2, !"Debug Info Version", i32 3}
+; CGSCC: [[META1:![0-9]+]] = distinct !DICompileUnit(language: DW_LANG_C_plus_plus, file: [[META2:![0-9]+]], producer: "{{.*}}clang version {{.*}} ", isOptimized: false, runtimeVersion: 0, emissionKind: LineTablesOnly)
+; CGSCC: [[META2]] = !DIFile(filename: "test.c", directory: "")
+; CGSCC: [[DBG3]] = distinct !DISubprogram(name: "test", scope: null, file: [[META2]], line: 3, scopeLine: 3, virtualIndex: 6, flags: DIFlagPrototyped, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: [[META1]])
+; CGSCC: [[DBG4]] = !DILocation(line: 8, scope: [[DBG3]])
+; CGSCC: [[DBG5]] = !DILocation(line: 9, scope: [[DBG3]])
 ;.

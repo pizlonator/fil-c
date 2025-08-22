@@ -80,11 +80,11 @@
 #include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/InitializePasses.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/Local.h"
 
 using namespace llvm;
 
@@ -200,7 +200,7 @@ StoreInst *MergedLoadStoreMotion::canSinkFromBlock(BasicBlock *BB1,
         CastInst::isBitOrNoopPointerCastable(
             Store0->getValueOperand()->getType(),
             Store1->getValueOperand()->getType(),
-            Store0->getModule()->getDataLayout()))
+            Store0->getDataLayout()))
       return Store1;
   }
   return nullptr;
@@ -217,8 +217,8 @@ PHINode *MergedLoadStoreMotion::getPHIOperand(BasicBlock *BB, StoreInst *S0,
   if (Opd1 == Opd2)
     return nullptr;
 
-  auto *NewPN = PHINode::Create(Opd1->getType(), 2, Opd2->getName() + ".sink",
-                                &BB->front());
+  auto *NewPN = PHINode::Create(Opd1->getType(), 2, Opd2->getName() + ".sink");
+  NewPN->insertBefore(BB->begin());
   NewPN->applyMergedLocation(S0->getDebugLoc(), S1->getDebugLoc());
   NewPN->addIncoming(Opd1, S0->getParent());
   NewPN->addIncoming(Opd2, S1->getParent());
@@ -256,7 +256,8 @@ void MergedLoadStoreMotion::sinkStoresAndGEPs(BasicBlock *BB, StoreInst *S0,
   BasicBlock::iterator InsertPt = BB->getFirstInsertionPt();
   // Intersect optional metadata.
   S0->andIRFlags(S1);
-  S0->dropUnknownNonDebugMetadata();
+
+  combineMetadataForCSE(S0, S1, true);
   S0->applyMergedLocation(S0->getDebugLoc(), S1->getDebugLoc());
   S0->mergeDIAssignID(S1);
 
@@ -269,7 +270,7 @@ void MergedLoadStoreMotion::sinkStoresAndGEPs(BasicBlock *BB, StoreInst *S0,
 
   // Create the new store to be inserted at the join point.
   StoreInst *SNew = cast<StoreInst>(S0->clone());
-  SNew->insertBefore(&*InsertPt);
+  SNew->insertBefore(InsertPt);
   // New PHI operand? Use it.
   if (PHINode *NewPN = getPHIOperand(BB, S0, S1))
     SNew->setOperand(0, NewPN);
@@ -280,7 +281,7 @@ void MergedLoadStoreMotion::sinkStoresAndGEPs(BasicBlock *BB, StoreInst *S0,
     auto *GEP0 = cast<GetElementPtrInst>(Ptr0);
     auto *GEP1 = cast<GetElementPtrInst>(Ptr1);
     Instruction *GEPNew = GEP0->clone();
-    GEPNew->insertBefore(SNew);
+    GEPNew->insertBefore(SNew->getIterator());
     GEPNew->applyMergedLocation(GEP0->getDebugLoc(), GEP1->getDebugLoc());
     SNew->setOperand(1, GEPNew);
     GEP0->replaceAllUsesWith(GEPNew);
@@ -377,52 +378,6 @@ bool MergedLoadStoreMotion::run(Function &F, AliasAnalysis &AA) {
       Changed |= mergeStores(&BB);
   return Changed;
 }
-
-namespace {
-class MergedLoadStoreMotionLegacyPass : public FunctionPass {
-  const bool SplitFooterBB;
-public:
-  static char ID; // Pass identification, replacement for typeid
-  MergedLoadStoreMotionLegacyPass(bool SplitFooterBB = false)
-      : FunctionPass(ID), SplitFooterBB(SplitFooterBB) {
-    initializeMergedLoadStoreMotionLegacyPassPass(
-        *PassRegistry::getPassRegistry());
-  }
-
-  ///
-  /// Run the transformation for each function
-  ///
-  bool runOnFunction(Function &F) override {
-    if (skipFunction(F))
-      return false;
-    MergedLoadStoreMotion Impl(SplitFooterBB);
-    return Impl.run(F, getAnalysis<AAResultsWrapperPass>().getAAResults());
-  }
-
-private:
-  void getAnalysisUsage(AnalysisUsage &AU) const override {
-    if (!SplitFooterBB)
-      AU.setPreservesCFG();
-    AU.addRequired<AAResultsWrapperPass>();
-    AU.addPreserved<GlobalsAAWrapperPass>();
-  }
-};
-
-char MergedLoadStoreMotionLegacyPass::ID = 0;
-} // anonymous namespace
-
-///
-/// createMergedLoadStoreMotionPass - The public interface to this file.
-///
-FunctionPass *llvm::createMergedLoadStoreMotionPass(bool SplitFooterBB) {
-  return new MergedLoadStoreMotionLegacyPass(SplitFooterBB);
-}
-
-INITIALIZE_PASS_BEGIN(MergedLoadStoreMotionLegacyPass, "mldst-motion",
-                      "MergedLoadStoreMotion", false, false)
-INITIALIZE_PASS_DEPENDENCY(AAResultsWrapperPass)
-INITIALIZE_PASS_END(MergedLoadStoreMotionLegacyPass, "mldst-motion",
-                    "MergedLoadStoreMotion", false, false)
 
 PreservedAnalyses
 MergedLoadStoreMotionPass::run(Function &F, FunctionAnalysisManager &AM) {

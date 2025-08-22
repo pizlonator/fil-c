@@ -28,6 +28,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sle), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_sextinreg_lhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -63,20 +64,28 @@ body:             |
     ; LOWER-NEXT: {{  $}}
     ; LOWER-NEXT: %reg0:_(s64) = COPY $x0
     ; LOWER-NEXT: %cmp_lhs:_(s64) = G_SEXT_INREG %reg0, 8
+    ; LOWER-NEXT: %reg1:_(s64) = COPY $x1
+    ; LOWER-NEXT: %cmp1:_(s32) = G_ICMP intpred(sge), %cmp_lhs(s64), %reg1
     ; LOWER-NEXT: %add:_(s64) = G_ADD %cmp_lhs, %reg0
     ; LOWER-NEXT: %cmp2:_(s32) = G_ICMP intpred(sge), %cmp_lhs(s64), %add
     ; LOWER-NEXT: $w0 = COPY %cmp2(s32)
-    ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ; LOWER-NEXT: $w1 = COPY %cmp1(s32)
+    ; LOWER-NEXT: RET_ReallyLR implicit $w0, implicit $w1
+    ;
     ; SELECT-LABEL: name: dont_swap_more_than_one_use
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
     ; SELECT-NEXT: %reg0:gpr64 = COPY $x0
     ; SELECT-NEXT: %cmp_lhs:gpr64 = SBFMXri %reg0, 0, 7
+    ; SELECT-NEXT: %reg1:gpr64 = COPY $x1
+    ; SELECT-NEXT: [[SUBSXrr:%[0-9]+]]:gpr64 = SUBSXrr %cmp_lhs, %reg1, implicit-def $nzcv
+    ; SELECT-NEXT: %cmp1:gpr32 = CSINCWr $wzr, $wzr, 11, implicit $nzcv
     ; SELECT-NEXT: %add:gpr64 = ADDXrr %cmp_lhs, %reg0
-    ; SELECT-NEXT: [[SUBSXrr:%[0-9]+]]:gpr64 = SUBSXrr %cmp_lhs, %add, implicit-def $nzcv
+    ; SELECT-NEXT: [[SUBSXrr1:%[0-9]+]]:gpr64 = SUBSXrr %cmp_lhs, %add, implicit-def $nzcv
     ; SELECT-NEXT: %cmp2:gpr32 = CSINCWr $wzr, $wzr, 11, implicit $nzcv
     ; SELECT-NEXT: $w0 = COPY %cmp2
-    ; SELECT-NEXT: RET_ReallyLR implicit $w0
+    ; SELECT-NEXT: $w1 = COPY %cmp1
+    ; SELECT-NEXT: RET_ReallyLR implicit $w0, implicit $w1
     %reg0:_(s64) = COPY $x0
     %cmp_lhs:_(s64) = G_SEXT_INREG %reg0, 8
     %reg1:_(s64) = COPY $x1
@@ -86,7 +95,8 @@ body:             |
     %cmp2:_(s32) = G_ICMP intpred(sge), %cmp_lhs(s64), %add
 
     $w0 = COPY %cmp2(s32)
-    RET_ReallyLR implicit $w0
+    $w1 = COPY %cmp1(s32)
+    RET_ReallyLR implicit $w0, implicit $w1
 
 ...
 ---
@@ -108,6 +118,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sge), %cmp_lhs(s64), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_legal_arith_immed_on_rhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -144,6 +155,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sle), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_non_arith_immed_on_rhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -181,6 +193,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sle), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_and_lhs_0xFF
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -220,6 +233,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sle), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_and_lhs_0xFFFF
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -259,6 +273,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sle), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_and_lhs_0xFFFFFFFF
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -301,6 +316,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sge), %cmp_lhs(s64), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_and_lhs_wrong_mask
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -340,6 +356,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sgt), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_shl_lhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -378,6 +395,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sgt), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_ashr_lhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -416,6 +434,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(sgt), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_lshr_lhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -456,6 +475,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(slt), %cmp_lhs(s64), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_shift_s64_cst_too_large
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -500,6 +520,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(slt), %cmp_lhs(s32), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_shift_s32_cst_too_large
     ; SELECT: liveins: $w0, $w1
     ; SELECT-NEXT: {{  $}}
@@ -544,6 +565,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(ne), %cmp_lhs(s64), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_cmn_lhs_no_folding_opportunities
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -588,6 +610,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(ne), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_cmn_lhs
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -640,6 +663,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(eq), %cmp_lhs(s64), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_cmn_lhs_when_rhs_more_profitable
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -648,7 +672,7 @@ body:             |
     ; SELECT-NEXT: %shl:gpr64 = UBFMXri %reg0, 1, 0
     ; SELECT-NEXT: %reg1:gpr64 = COPY $x1
     ; SELECT-NEXT: %sext_in_reg:gpr64 = SBFMXri %reg1, 0, 0
-    ; SELECT-NEXT: %cmp_rhs:gpr64 = SUBSXrs %zero, %sext_in_reg, 131, implicit-def $nzcv
+    ; SELECT-NEXT: %cmp_rhs:gpr64 = SUBSXrs %zero, %sext_in_reg, 131, implicit-def dead $nzcv
     ; SELECT-NEXT: [[ADDSXrr:%[0-9]+]]:gpr64 = ADDSXrr %shl, %cmp_rhs, implicit-def $nzcv
     ; SELECT-NEXT: %cmp:gpr32 = CSINCWr $wzr, $wzr, 1, implicit $nzcv
     ; SELECT-NEXT: $w0 = COPY %cmp
@@ -694,6 +718,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(slt), %cmp_lhs(s64), %cmp_rhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: dont_swap_rhs_with_supported_extend
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}
@@ -746,6 +771,7 @@ body:             |
     ; LOWER-NEXT: %cmp:_(s32) = G_ICMP intpred(slt), %cmp_rhs(s64), %cmp_lhs
     ; LOWER-NEXT: $w0 = COPY %cmp(s32)
     ; LOWER-NEXT: RET_ReallyLR implicit $w0
+    ;
     ; SELECT-LABEL: name: swap_rhs_with_supported_extend
     ; SELECT: liveins: $x0, $x1
     ; SELECT-NEXT: {{  $}}

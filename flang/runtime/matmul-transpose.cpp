@@ -23,6 +23,7 @@
 #include "flang/Runtime/matmul-transpose.h"
 #include "terminator.h"
 #include "tools.h"
+#include "flang/Common/optional.h"
 #include "flang/Runtime/c-or-cpp.h"
 #include "flang/Runtime/cpp-type.h"
 #include "flang/Runtime/descriptor.h"
@@ -52,21 +53,60 @@ using namespace Fortran::runtime;
 //    DO 2 I = 1, NROWS
 //     DO 2 K = 1, N
 //   2  RES(I,J) = RES(I,J) + X(K,I)*Y(K,J) ! loop-invariant last term
-template <TypeCategory RCAT, int RKIND, typename XT, typename YT>
-inline static void MatrixTransposedTimesMatrix(
+template <TypeCategory RCAT, int RKIND, typename XT, typename YT,
+    bool X_HAS_STRIDED_COLUMNS, bool Y_HAS_STRIDED_COLUMNS>
+inline static RT_API_ATTRS void MatrixTransposedTimesMatrix(
     CppTypeFor<RCAT, RKIND> *RESTRICT product, SubscriptValue rows,
     SubscriptValue cols, const XT *RESTRICT x, const YT *RESTRICT y,
-    SubscriptValue n) {
+    SubscriptValue n, std::size_t xColumnByteStride = 0,
+    std::size_t yColumnByteStride = 0) {
   using ResultType = CppTypeFor<RCAT, RKIND>;
 
   std::memset(product, 0, rows * cols * sizeof *product);
   for (SubscriptValue j{0}; j < cols; ++j) {
     for (SubscriptValue i{0}; i < rows; ++i) {
       for (SubscriptValue k{0}; k < n; ++k) {
-        ResultType x_ki = static_cast<ResultType>(x[i * n + k]);
-        ResultType y_kj = static_cast<ResultType>(y[j * n + k]);
+        ResultType x_ki;
+        if constexpr (!X_HAS_STRIDED_COLUMNS) {
+          x_ki = static_cast<ResultType>(x[i * n + k]);
+        } else {
+          x_ki = static_cast<ResultType>(reinterpret_cast<const XT *>(
+              reinterpret_cast<const char *>(x) + i * xColumnByteStride)[k]);
+        }
+        ResultType y_kj;
+        if constexpr (!Y_HAS_STRIDED_COLUMNS) {
+          y_kj = static_cast<ResultType>(y[j * n + k]);
+        } else {
+          y_kj = static_cast<ResultType>(reinterpret_cast<const YT *>(
+              reinterpret_cast<const char *>(y) + j * yColumnByteStride)[k]);
+        }
         product[j * rows + i] += x_ki * y_kj;
       }
+    }
+  }
+}
+
+template <TypeCategory RCAT, int RKIND, typename XT, typename YT>
+inline static RT_API_ATTRS void MatrixTransposedTimesMatrixHelper(
+    CppTypeFor<RCAT, RKIND> *RESTRICT product, SubscriptValue rows,
+    SubscriptValue cols, const XT *RESTRICT x, const YT *RESTRICT y,
+    SubscriptValue n, Fortran::common::optional<std::size_t> xColumnByteStride,
+    Fortran::common::optional<std::size_t> yColumnByteStride) {
+  if (!xColumnByteStride) {
+    if (!yColumnByteStride) {
+      MatrixTransposedTimesMatrix<RCAT, RKIND, XT, YT, false, false>(
+          product, rows, cols, x, y, n);
+    } else {
+      MatrixTransposedTimesMatrix<RCAT, RKIND, XT, YT, false, true>(
+          product, rows, cols, x, y, n, 0, *yColumnByteStride);
+    }
+  } else {
+    if (!yColumnByteStride) {
+      MatrixTransposedTimesMatrix<RCAT, RKIND, XT, YT, true, false>(
+          product, rows, cols, x, y, n, *xColumnByteStride);
+    } else {
+      MatrixTransposedTimesMatrix<RCAT, RKIND, XT, YT, true, true>(
+          product, rows, cols, x, y, n, *xColumnByteStride, *yColumnByteStride);
     }
   }
 }
@@ -85,25 +125,47 @@ inline static void MatrixTransposedTimesMatrix(
 //   DO 2 I = 1, NROWS
 //    DO 2 K = 1, N
 //   2 RES(I) = RES(I) + X(K,I)*Y(K)
-template <TypeCategory RCAT, int RKIND, typename XT, typename YT>
-inline static void MatrixTransposedTimesVector(
+template <TypeCategory RCAT, int RKIND, typename XT, typename YT,
+    bool X_HAS_STRIDED_COLUMNS>
+inline static RT_API_ATTRS void MatrixTransposedTimesVector(
     CppTypeFor<RCAT, RKIND> *RESTRICT product, SubscriptValue rows,
-    SubscriptValue n, const XT *RESTRICT x, const YT *RESTRICT y) {
+    SubscriptValue n, const XT *RESTRICT x, const YT *RESTRICT y,
+    std::size_t xColumnByteStride = 0) {
   using ResultType = CppTypeFor<RCAT, RKIND>;
   std::memset(product, 0, rows * sizeof *product);
   for (SubscriptValue i{0}; i < rows; ++i) {
     for (SubscriptValue k{0}; k < n; ++k) {
-      ResultType x_ki = static_cast<ResultType>(x[i * n + k]);
+      ResultType x_ki;
+      if constexpr (!X_HAS_STRIDED_COLUMNS) {
+        x_ki = static_cast<ResultType>(x[i * n + k]);
+      } else {
+        x_ki = static_cast<ResultType>(reinterpret_cast<const XT *>(
+            reinterpret_cast<const char *>(x) + i * xColumnByteStride)[k]);
+      }
       ResultType y_k = static_cast<ResultType>(y[k]);
       product[i] += x_ki * y_k;
     }
   }
 }
 
+template <TypeCategory RCAT, int RKIND, typename XT, typename YT>
+inline static RT_API_ATTRS void MatrixTransposedTimesVectorHelper(
+    CppTypeFor<RCAT, RKIND> *RESTRICT product, SubscriptValue rows,
+    SubscriptValue n, const XT *RESTRICT x, const YT *RESTRICT y,
+    Fortran::common::optional<std::size_t> xColumnByteStride) {
+  if (!xColumnByteStride) {
+    MatrixTransposedTimesVector<RCAT, RKIND, XT, YT, false>(
+        product, rows, n, x, y);
+  } else {
+    MatrixTransposedTimesVector<RCAT, RKIND, XT, YT, true>(
+        product, rows, n, x, y, *xColumnByteStride);
+  }
+}
+
 // Implements an instance of MATMUL for given argument types.
 template <bool IS_ALLOCATING, TypeCategory RCAT, int RKIND, typename XT,
     typename YT>
-inline static void DoMatmulTranspose(
+inline static RT_API_ATTRS void DoMatmulTranspose(
     std::conditional_t<IS_ALLOCATING, Descriptor, const Descriptor> &result,
     const Descriptor &x, const Descriptor &y, Terminator &terminator) {
   int xRank{x.rank()};
@@ -149,19 +211,39 @@ inline static void DoMatmulTranspose(
   const SubscriptValue rows{extent[0]};
   const SubscriptValue cols{extent[1]};
   if constexpr (RCAT != TypeCategory::Logical) {
-    if (x.IsContiguous() && y.IsContiguous() &&
+    if (x.IsContiguous(1) && y.IsContiguous(1) &&
         (IS_ALLOCATING || result.IsContiguous())) {
-      // Contiguous numeric matrices
+      // Contiguous numeric matrices (maybe with columns
+      // separated by a stride).
+      Fortran::common::optional<std::size_t> xColumnByteStride;
+      if (!x.IsContiguous()) {
+        // X's columns are strided.
+        SubscriptValue xAt[2]{};
+        x.GetLowerBounds(xAt);
+        xAt[1]++;
+        xColumnByteStride = x.SubscriptsToByteOffset(xAt);
+      }
+      Fortran::common::optional<std::size_t> yColumnByteStride;
+      if (!y.IsContiguous()) {
+        // Y's columns are strided.
+        SubscriptValue yAt[2]{};
+        y.GetLowerBounds(yAt);
+        yAt[1]++;
+        yColumnByteStride = y.SubscriptsToByteOffset(yAt);
+      }
       if (resRank == 2) { // M*M -> M
-        MatrixTransposedTimesMatrix<RCAT, RKIND, XT, YT>(
+        // TODO: use BLAS-3 GEMM for supported types.
+        MatrixTransposedTimesMatrixHelper<RCAT, RKIND, XT, YT>(
             result.template OffsetElement<WriteResult>(), rows, cols,
-            x.OffsetElement<XT>(), y.OffsetElement<YT>(), n);
+            x.OffsetElement<XT>(), y.OffsetElement<YT>(), n, xColumnByteStride,
+            yColumnByteStride);
         return;
       }
       if (xRank == 2) { // M*V -> V
-        MatrixTransposedTimesVector<RCAT, RKIND, XT, YT>(
+        // TODO: use BLAS-2 GEMM for supported types.
+        MatrixTransposedTimesVectorHelper<RCAT, RKIND, XT, YT>(
             result.template OffsetElement<WriteResult>(), rows, n,
-            x.OffsetElement<XT>(), y.OffsetElement<YT>());
+            x.OffsetElement<XT>(), y.OffsetElement<YT>(), xColumnByteStride);
         return;
       }
       // else V*M -> V (not allowed because TRANSPOSE() is only defined for rank
@@ -244,58 +326,55 @@ inline static void DoMatmulTranspose(
   }
 }
 
-// Maps the dynamic type information from the arguments' descriptors
-// to the right instantiation of DoMatmul() for valid combinations of
-// types.
-template <bool IS_ALLOCATING> struct MatmulTranspose {
+template <bool IS_ALLOCATING, TypeCategory XCAT, int XKIND, TypeCategory YCAT,
+    int YKIND>
+struct MatmulTransposeHelper {
   using ResultDescriptor =
       std::conditional_t<IS_ALLOCATING, Descriptor, const Descriptor>;
-  template <TypeCategory XCAT, int XKIND> struct MM1 {
-    template <TypeCategory YCAT, int YKIND> struct MM2 {
-      void operator()(ResultDescriptor &result, const Descriptor &x,
-          const Descriptor &y, Terminator &terminator) const {
-        if constexpr (constexpr auto resultType{
-                          GetResultType(XCAT, XKIND, YCAT, YKIND)}) {
-          if constexpr (Fortran::common::IsNumericTypeCategory(
-                            resultType->first) ||
-              resultType->first == TypeCategory::Logical) {
-            return DoMatmulTranspose<IS_ALLOCATING, resultType->first,
-                resultType->second, CppTypeFor<XCAT, XKIND>,
-                CppTypeFor<YCAT, YKIND>>(result, x, y, terminator);
-          }
-        }
-        terminator.Crash("MATMUL-TRANSPOSE: bad operand types (%d(%d), %d(%d))",
-            static_cast<int>(XCAT), XKIND, static_cast<int>(YCAT), YKIND);
-      }
-    };
-    void operator()(ResultDescriptor &result, const Descriptor &x,
-        const Descriptor &y, Terminator &terminator, TypeCategory yCat,
-        int yKind) const {
-      ApplyType<MM2, void>(yCat, yKind, terminator, result, x, y, terminator);
-    }
-  };
-  void operator()(ResultDescriptor &result, const Descriptor &x,
+  RT_API_ATTRS void operator()(ResultDescriptor &result, const Descriptor &x,
       const Descriptor &y, const char *sourceFile, int line) const {
     Terminator terminator{sourceFile, line};
     auto xCatKind{x.type().GetCategoryAndKind()};
     auto yCatKind{y.type().GetCategoryAndKind()};
     RUNTIME_CHECK(terminator, xCatKind.has_value() && yCatKind.has_value());
-    ApplyType<MM1, void>(xCatKind->first, xCatKind->second, terminator, result,
-        x, y, terminator, yCatKind->first, yCatKind->second);
+    RUNTIME_CHECK(terminator, xCatKind->first == XCAT);
+    RUNTIME_CHECK(terminator, yCatKind->first == YCAT);
+    if constexpr (constexpr auto resultType{
+                      GetResultType(XCAT, XKIND, YCAT, YKIND)}) {
+      return DoMatmulTranspose<IS_ALLOCATING, resultType->first,
+          resultType->second, CppTypeFor<XCAT, XKIND>, CppTypeFor<YCAT, YKIND>>(
+          result, x, y, terminator);
+    }
+    terminator.Crash("MATMUL-TRANSPOSE: bad operand types (%d(%d), %d(%d))",
+        static_cast<int>(XCAT), XKIND, static_cast<int>(YCAT), YKIND);
   }
 };
 } // namespace
 
 namespace Fortran::runtime {
 extern "C" {
-void RTNAME(MatmulTranspose)(Descriptor &result, const Descriptor &x,
-    const Descriptor &y, const char *sourceFile, int line) {
-  MatmulTranspose<true>{}(result, x, y, sourceFile, line);
-}
-void RTNAME(MatmulTransposeDirect)(const Descriptor &result,
-    const Descriptor &x, const Descriptor &y, const char *sourceFile,
-    int line) {
-  MatmulTranspose<false>{}(result, x, y, sourceFile, line);
-}
+RT_EXT_API_GROUP_BEGIN
+
+#define MATMUL_INSTANCE(XCAT, XKIND, YCAT, YKIND) \
+  void RTDEF(MatmulTranspose##XCAT##XKIND##YCAT##YKIND)(Descriptor & result, \
+      const Descriptor &x, const Descriptor &y, const char *sourceFile, \
+      int line) { \
+    MatmulTransposeHelper<true, TypeCategory::XCAT, XKIND, TypeCategory::YCAT, \
+        YKIND>{}(result, x, y, sourceFile, line); \
+  }
+
+#define MATMUL_DIRECT_INSTANCE(XCAT, XKIND, YCAT, YKIND) \
+  void RTDEF(MatmulTransposeDirect##XCAT##XKIND##YCAT##YKIND)( \
+      Descriptor & result, const Descriptor &x, const Descriptor &y, \
+      const char *sourceFile, int line) { \
+    MatmulTransposeHelper<false, TypeCategory::XCAT, XKIND, \
+        TypeCategory::YCAT, YKIND>{}(result, x, y, sourceFile, line); \
+  }
+
+#define MATMUL_FORCE_ALL_TYPES 0
+
+#include "flang/Runtime/matmul-instances.inc"
+
+RT_EXT_API_GROUP_END
 } // extern "C"
 } // namespace Fortran::runtime

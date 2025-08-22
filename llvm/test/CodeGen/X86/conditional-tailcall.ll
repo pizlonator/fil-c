@@ -295,16 +295,6 @@ define zeroext i1 @pr31257(ptr nocapture readonly dereferenceable(8) %s) minsize
 ; CHECK32-NEXT:    cmpl $10, %ebp # encoding: [0x83,0xfd,0x0a]
 ; CHECK32-NEXT:    jmp .LBB3_8 # encoding: [0xeb,A]
 ; CHECK32-NEXT:    # fixup A - offset: 1, value: .LBB3_8-1, kind: FK_PCRel_1
-; CHECK32-NEXT:  .LBB3_12: # %sw.bb22
-; CHECK32-NEXT:    # in Loop: Header=BB3_1 Depth=1
-; CHECK32-NEXT:    movzbl (%eax), %ebx # encoding: [0x0f,0xb6,0x18]
-; CHECK32-NEXT:    addl $-48, %ebx # encoding: [0x83,0xc3,0xd0]
-; CHECK32-NEXT:    cmpl $10, %ebx # encoding: [0x83,0xfb,0x0a]
-; CHECK32-NEXT:    movl %esi, %ebx # encoding: [0x89,0xf3]
-; CHECK32-NEXT:    jb .LBB3_11 # encoding: [0x72,A]
-; CHECK32-NEXT:    # fixup A - offset: 1, value: .LBB3_11-1, kind: FK_PCRel_1
-; CHECK32-NEXT:    jmp .LBB3_13 # encoding: [0xeb,A]
-; CHECK32-NEXT:    # fixup A - offset: 1, value: .LBB3_13-1, kind: FK_PCRel_1
 ; CHECK32-NEXT:  .LBB3_10: # %sw.bb14
 ; CHECK32-NEXT:    # in Loop: Header=BB3_1 Depth=1
 ; CHECK32-NEXT:    movzbl (%eax), %ebx # encoding: [0x0f,0xb6,0x18]
@@ -315,6 +305,16 @@ define zeroext i1 @pr31257(ptr nocapture readonly dereferenceable(8) %s) minsize
 ; CHECK32-NEXT:    movl %esi, %ebx # encoding: [0x89,0xf3]
 ; CHECK32-NEXT:    jae .LBB3_9 # encoding: [0x73,A]
 ; CHECK32-NEXT:    # fixup A - offset: 1, value: .LBB3_9-1, kind: FK_PCRel_1
+; CHECK32-NEXT:    jmp .LBB3_11 # encoding: [0xeb,A]
+; CHECK32-NEXT:    # fixup A - offset: 1, value: .LBB3_11-1, kind: FK_PCRel_1
+; CHECK32-NEXT:  .LBB3_12: # %sw.bb22
+; CHECK32-NEXT:    # in Loop: Header=BB3_1 Depth=1
+; CHECK32-NEXT:    movzbl (%eax), %ebx # encoding: [0x0f,0xb6,0x18]
+; CHECK32-NEXT:    addl $-48, %ebx # encoding: [0x83,0xc3,0xd0]
+; CHECK32-NEXT:    cmpl $10, %ebx # encoding: [0x83,0xfb,0x0a]
+; CHECK32-NEXT:    movl %esi, %ebx # encoding: [0x89,0xf3]
+; CHECK32-NEXT:    jae .LBB3_13 # encoding: [0x73,A]
+; CHECK32-NEXT:    # fixup A - offset: 1, value: .LBB3_13-1, kind: FK_PCRel_1
 ; CHECK32-NEXT:  .LBB3_11: # %for.inc
 ; CHECK32-NEXT:    # in Loop: Header=BB3_1 Depth=1
 ; CHECK32-NEXT:    incl %eax # encoding: [0x40]
@@ -483,10 +483,10 @@ define zeroext i1 @pr31257(ptr nocapture readonly dereferenceable(8) %s) minsize
 ; WIN64-NEXT:  # %bb.6: # %sw.bb
 ; WIN64-NEXT:    # in Loop: Header=BB3_1 Depth=1
 ; WIN64-NEXT:    cmpl $45, %r9d # encoding: [0x41,0x83,0xf9,0x2d]
-; WIN64-NEXT:    je .LBB3_10 # encoding: [0x74,A]
-; WIN64-NEXT:    # fixup A - offset: 1, value: .LBB3_10-1, kind: FK_PCRel_1
-; WIN64-NEXT:    jmp .LBB3_8 # encoding: [0xeb,A]
+; WIN64-NEXT:    jne .LBB3_8 # encoding: [0x75,A]
 ; WIN64-NEXT:    # fixup A - offset: 1, value: .LBB3_8-1, kind: FK_PCRel_1
+; WIN64-NEXT:    jmp .LBB3_10 # encoding: [0xeb,A]
+; WIN64-NEXT:    # fixup A - offset: 1, value: .LBB3_10-1, kind: FK_PCRel_1
 ; WIN64-NEXT:  .LBB3_7: # %sw.bb14
 ; WIN64-NEXT:    # in Loop: Header=BB3_1 Depth=1
 ; WIN64-NEXT:    movzbl (%rcx), %r9d # encoding: [0x44,0x0f,0xb6,0x09]

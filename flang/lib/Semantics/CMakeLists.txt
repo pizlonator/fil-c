@@ -2,6 +2,7 @@ add_flang_library(FortranSemantics
   assignment.cpp
   attr.cpp
   canonicalize-acc.cpp
+  canonicalize-directives.cpp
   canonicalize-do.cpp
   canonicalize-omp.cpp
   check-acc-structure.cpp
@@ -30,12 +31,14 @@ add_flang_library(FortranSemantics
   definable.cpp
   expression.cpp
   mod-file.cpp
+  openmp-modifiers.cpp
   pointer-assignment.cpp
   program-tree.cpp
   resolve-labels.cpp
   resolve-directives.cpp
   resolve-names-utils.cpp
   resolve-names.cpp
+  rewrite-directives.cpp
   rewrite-parse-tree.cpp
   runtime-type-info.cpp
   scope.cpp

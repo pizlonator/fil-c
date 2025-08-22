@@ -18,9 +18,9 @@
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/SparseMultiSet.h"
-#include "llvm/ADT/SparseSet.h"
 #include "llvm/ADT/identity.h"
-#include "llvm/CodeGen/LivePhysRegs.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/CodeGen/LiveRegUnits.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/ScheduleDAG.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
@@ -77,24 +77,19 @@ namespace llvm {
   struct PhysRegSUOper {
     SUnit *SU;
     int OpIdx;
-    unsigned Reg;
+    unsigned RegUnit;
 
-    PhysRegSUOper(SUnit *su, int op, unsigned R): SU(su), OpIdx(op), Reg(R) {}
+    PhysRegSUOper(SUnit *su, int op, unsigned R)
+        : SU(su), OpIdx(op), RegUnit(R) {}
 
-    unsigned getSparseSetIndex() const { return Reg; }
+    unsigned getSparseSetIndex() const { return RegUnit; }
   };
 
   /// Use a SparseMultiSet to track physical registers. Storage is only
   /// allocated once for the pass. It can be cleared in constant time and reused
   /// without any frees.
-  using Reg2SUnitsMap =
+  using RegUnit2SUnitsMap =
       SparseMultiSet<PhysRegSUOper, identity<unsigned>, uint16_t>;
-
-  /// Use SparseSet as a SparseMap by relying on the fact that it never
-  /// compares ValueT's, only unsigned keys. This allows the set to be cleared
-  /// between scheduling regions in constant time as long as ValueT does not
-  /// require a destructor.
-  using VReg2SUnitMap = SparseSet<VReg2SUnit, VirtReg2IndexFunctor>;
 
   /// Track local uses of virtual registers. These uses are gathered by the DAG
   /// builder and may be consulted by the scheduler to avoid iterating an entire
@@ -165,8 +160,8 @@ namespace llvm {
     /// iterate upward through the instructions. This is allocated here instead
     /// of inside BuildSchedGraph to avoid the need for it to be initialized and
     /// destructed for each block.
-    Reg2SUnitsMap Defs;
-    Reg2SUnitsMap Uses;
+    RegUnit2SUnitsMap Defs;
+    RegUnit2SUnitsMap Uses;
 
     /// Tracks the last instruction(s) in this region defining each virtual
     /// register. There may be multiple current definitions for a register with
@@ -175,7 +170,7 @@ namespace llvm {
     /// Tracks the last instructions in this region using each virtual register.
     VReg2SUnitOperIdxMultiMap CurrentVRegUses;
 
-    AAResults *AAForDep = nullptr;
+    mutable std::optional<BatchAAResults> AAForDep;
 
     /// Remember a generic side-effecting instruction as we proceed.
     /// No other SU ever gets scheduled around it (except in the special
@@ -190,10 +185,29 @@ namespace llvm {
     /// applicable).
     using SUList = std::list<SUnit *>;
 
+    /// The direction that should be used to dump the scheduled Sequence.
+    enum DumpDirection {
+      TopDown,
+      BottomUp,
+      Bidirectional,
+      NotSet,
+    };
+
+    void setDumpDirection(DumpDirection D) { DumpDir = D; }
+
   protected:
+    DumpDirection DumpDir = NotSet;
+
     /// A map from ValueType to SUList, used during DAG construction, as
     /// a means of remembering which SUs depend on which memory locations.
     class Value2SUsMap;
+
+    /// Returns a (possibly null) pointer to the current BatchAAResults.
+    BatchAAResults *getAAForDep() const {
+      if (AAForDep.has_value())
+        return &AAForDep.value();
+      return nullptr;
+    }
 
     /// Reduces maps in FIFO order, by N SUs. This is better than turning
     /// every Nth memory SU into BarrierChain in buildSchedGraph(), since
@@ -250,7 +264,7 @@ namespace llvm {
     MachineInstr *FirstDbgValue = nullptr;
 
     /// Set of live physical registers for updating kill flags.
-    LivePhysRegs LiveRegs;
+    LiveRegUnits LiveRegs;
 
   public:
     explicit ScheduleDAGInstrs(MachineFunction &mf,

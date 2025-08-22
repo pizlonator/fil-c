@@ -9,14 +9,13 @@
 #ifndef LLVM_LIBC_SRC_SIGNAL_SIGNAL_H
 #define LLVM_LIBC_SRC_SIGNAL_SIGNAL_H
 
-#include <signal.h>
+#include "hdr/types/sighandler_t.h"
+#include "src/__support/macros/config.h"
 
-namespace __llvm_libc {
-
-using sighandler_t = __sighandler_t;
+namespace LIBC_NAMESPACE_DECL {
 
 sighandler_t signal(int signum, sighandler_t handler);
 
-} // namespace __llvm_libc
+} // namespace LIBC_NAMESPACE_DECL
 
 #endif // LLVM_LIBC_SRC_SIGNAL_SIGNAL_H

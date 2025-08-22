@@ -20,6 +20,7 @@
 using namespace lldb;
 using namespace lldb_private;
 
+namespace {
 class TestArm64Disassembly : public testing::Test {
 public:
   static void SetUpTestCase();
@@ -42,6 +43,7 @@ void TestArm64Disassembly::SetUpTestCase() {
 void TestArm64Disassembly::TearDownTestCase() {
   DisassemblerLLVMC::Terminate();
 }
+} // namespace
 
 TEST_F(TestArm64Disassembly, TestArmv81Instruction) {
   ArchSpec arch("arm64-apple-ios");
@@ -54,8 +56,9 @@ TEST_F(TestArm64Disassembly, TestArmv81Instruction) {
 
   DisassemblerSP disass_sp;
   Address start_addr(0x100);
-  disass_sp = Disassembler::DisassembleBytes(arch, nullptr, nullptr, start_addr,
-                                 &data, sizeof (data), num_of_instructions, false);
+  disass_sp = Disassembler::DisassembleBytes(
+      arch, nullptr, nullptr, nullptr, nullptr, start_addr, &data, sizeof(data),
+      num_of_instructions, false);
 
   // If we failed to get a disassembler, we can assume it is because
   // the llvm we linked against was not built with the ARM target,

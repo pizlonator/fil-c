@@ -10,7 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "clang/Basic/DiagnosticFrontend.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/LangOptions.h"
 #include "clang/Config/config.h" // C_INCLUDE_DIRS
@@ -18,8 +17,6 @@
 #include "clang/Lex/HeaderSearch.h"
 #include "clang/Lex/HeaderSearchOptions.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/SmallString.h"
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -76,12 +73,6 @@ public:
   void AddSystemHeaderPrefix(StringRef Prefix, bool IsSystemHeader) {
     SystemHeaderPrefixes.emplace_back(std::string(Prefix), IsSystemHeader);
   }
-
-  /// Add the necessary paths to support a gnu libstdc++.
-  /// Returns true if the \p Base path was found, false if it does not exist.
-  bool AddGnuCPlusPlusIncludePaths(StringRef Base, StringRef ArchDir,
-                                   StringRef Dir32, StringRef Dir64,
-                                   const llvm::Triple &triple);
 
   /// Add the necessary paths to support a MinGW libstdc++.
   void AddMinGWCPlusPlusIncludePaths(StringRef Base,
@@ -147,15 +138,15 @@ bool InitHeaderSearch::AddUnmappedPath(const Twine &Path, IncludeDirGroup Group,
   StringRef MappedPathStr = Path.toStringRef(MappedPathStorage);
 
   // If use system headers while cross-compiling, emit the warning.
-  if (HasSysroot && (MappedPathStr.startswith("/usr/include") ||
-                     MappedPathStr.startswith("/usr/local/include"))) {
+  if (HasSysroot && (MappedPathStr.starts_with("/usr/include") ||
+                     MappedPathStr.starts_with("/usr/local/include"))) {
     Headers.getDiags().Report(diag::warn_poison_system_directories)
         << MappedPathStr;
   }
 
   // Compute the DirectoryLookup type.
   SrcMgr::CharacteristicKind Type;
-  if (Group == Quoted || Group == Angled || Group == IndexHeaderMap) {
+  if (Group == Quoted || Group == Angled) {
     Type = SrcMgr::C_User;
   } else if (Group == ExternCSystem) {
     Type = SrcMgr::C_ExternCSystem;
@@ -173,12 +164,11 @@ bool InitHeaderSearch::AddUnmappedPath(const Twine &Path, IncludeDirGroup Group,
   // Check to see if this is an apple-style headermap (which are not allowed to
   // be frameworks).
   if (!isFramework) {
-    if (auto FE = FM.getFile(MappedPathStr)) {
+    if (auto FE = FM.getOptionalFileRef(MappedPathStr)) {
       if (const HeaderMap *HM = Headers.CreateHeaderMap(*FE)) {
         // It is a headermap, add it to the search path.
-        IncludePath.emplace_back(
-            Group, DirectoryLookup(HM, Type, Group == IndexHeaderMap),
-            UserEntryIdx);
+        IncludePath.emplace_back(Group, DirectoryLookup(HM, Type),
+                                 UserEntryIdx);
         return true;
       }
     }
@@ -188,27 +178,6 @@ bool InitHeaderSearch::AddUnmappedPath(const Twine &Path, IncludeDirGroup Group,
     llvm::errs() << "ignoring nonexistent directory \""
                  << MappedPathStr << "\"\n";
   return false;
-}
-
-bool InitHeaderSearch::AddGnuCPlusPlusIncludePaths(StringRef Base,
-                                                   StringRef ArchDir,
-                                                   StringRef Dir32,
-                                                   StringRef Dir64,
-                                                   const llvm::Triple &triple) {
-  // Add the base dir
-  bool IsBaseFound = AddPath(Base, CXXSystem, false);
-
-  // Add the multilib dirs
-  llvm::Triple::ArchType arch = triple.getArch();
-  bool is64bit = arch == llvm::Triple::ppc64 || arch == llvm::Triple::x86_64;
-  if (is64bit)
-    AddPath(Base + "/" + ArchDir + "/" + Dir64, CXXSystem, false);
-  else
-    AddPath(Base + "/" + ArchDir + "/" + Dir32, CXXSystem, false);
-
-  // Add the backward dir
-  AddPath(Base + "/backward", CXXSystem, false);
-  return IsBaseFound;
 }
 
 void InitHeaderSearch::AddMinGWCPlusPlusIncludePaths(StringRef Base,
@@ -231,10 +200,6 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
 
   if (HSOpts.UseStandardSystemIncludes) {
     switch (os) {
-    case llvm::Triple::CloudABI:
-    case llvm::Triple::NaCl:
-    case llvm::Triple::ELFIAMCU:
-      break;
     case llvm::Triple::Win32:
       if (triple.getEnvironment() != llvm::Triple::Cygnus)
         break;
@@ -272,51 +237,6 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
   }
 
   switch (os) {
-  case llvm::Triple::CloudABI: {
-    // <sysroot>/<triple>/include
-    SmallString<128> P = StringRef(HSOpts.ResourceDir);
-    llvm::sys::path::append(P, "../../..", triple.str(), "include");
-    AddPath(P, System, false);
-    break;
-  }
-
-  case llvm::Triple::Haiku:
-    AddPath("/boot/system/non-packaged/develop/headers", System, false);
-    AddPath("/boot/system/develop/headers/os", System, false);
-    AddPath("/boot/system/develop/headers/os/app", System, false);
-    AddPath("/boot/system/develop/headers/os/arch", System, false);
-    AddPath("/boot/system/develop/headers/os/device", System, false);
-    AddPath("/boot/system/develop/headers/os/drivers", System, false);
-    AddPath("/boot/system/develop/headers/os/game", System, false);
-    AddPath("/boot/system/develop/headers/os/interface", System, false);
-    AddPath("/boot/system/develop/headers/os/kernel", System, false);
-    AddPath("/boot/system/develop/headers/os/locale", System, false);
-    AddPath("/boot/system/develop/headers/os/mail", System, false);
-    AddPath("/boot/system/develop/headers/os/media", System, false);
-    AddPath("/boot/system/develop/headers/os/midi", System, false);
-    AddPath("/boot/system/develop/headers/os/midi2", System, false);
-    AddPath("/boot/system/develop/headers/os/net", System, false);
-    AddPath("/boot/system/develop/headers/os/opengl", System, false);
-    AddPath("/boot/system/develop/headers/os/storage", System, false);
-    AddPath("/boot/system/develop/headers/os/support", System, false);
-    AddPath("/boot/system/develop/headers/os/translation", System, false);
-    AddPath("/boot/system/develop/headers/os/add-ons/graphics", System, false);
-    AddPath("/boot/system/develop/headers/os/add-ons/input_server", System, false);
-    AddPath("/boot/system/develop/headers/os/add-ons/mail_daemon", System, false);
-    AddPath("/boot/system/develop/headers/os/add-ons/registrar", System, false);
-    AddPath("/boot/system/develop/headers/os/add-ons/screen_saver", System, false);
-    AddPath("/boot/system/develop/headers/os/add-ons/tracker", System, false);
-    AddPath("/boot/system/develop/headers/os/be_apps/Deskbar", System, false);
-    AddPath("/boot/system/develop/headers/os/be_apps/NetPositive", System, false);
-    AddPath("/boot/system/develop/headers/os/be_apps/Tracker", System, false);
-    AddPath("/boot/system/develop/headers/3rdparty", System, false);
-    AddPath("/boot/system/develop/headers/bsd", System, false);
-    AddPath("/boot/system/develop/headers/glibc", System, false);
-    AddPath("/boot/system/develop/headers/posix", System, false);
-    AddPath("/boot/system/develop/headers",  System, false);
-    break;
-  case llvm::Triple::RTEMS:
-    break;
   case llvm::Triple::Win32:
     switch (triple.getEnvironment()) {
     default: llvm_unreachable("Include management is handled in the driver.");
@@ -331,16 +251,7 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
     break;
   }
 
-  switch (os) {
-  case llvm::Triple::CloudABI:
-  case llvm::Triple::RTEMS:
-  case llvm::Triple::NaCl:
-  case llvm::Triple::ELFIAMCU:
-    break;
-  default:
-    AddPath("/usr/include", ExternCSystem, false);
-    break;
-  }
+  AddPath("/usr/include", ExternCSystem, false);
 }
 
 void InitHeaderSearch::AddDefaultCPlusPlusIncludePaths(
@@ -365,13 +276,6 @@ void InitHeaderSearch::AddDefaultCPlusPlusIncludePaths(
       break;
     }
     break;
-  case llvm::Triple::DragonFly:
-    AddPath("/usr/include/c++/5.0", CXXSystem, false);
-    break;
-  case llvm::Triple::Minix:
-    AddGnuCPlusPlusIncludePaths("/usr/gnu/include/c++/4.4.3",
-                                "", "", "", triple);
-    break;
   default:
     break;
   }
@@ -381,17 +285,25 @@ bool InitHeaderSearch::ShouldAddDefaultIncludePaths(
     const llvm::Triple &triple) {
   switch (triple.getOS()) {
   case llvm::Triple::AIX:
+  case llvm::Triple::DragonFly:
+  case llvm::Triple::ELFIAMCU:
   case llvm::Triple::Emscripten:
   case llvm::Triple::FreeBSD:
+  case llvm::Triple::Fuchsia:
+  case llvm::Triple::Haiku:
+  case llvm::Triple::Hurd:
+  case llvm::Triple::Linux:
+  case llvm::Triple::LiteOS:
+  case llvm::Triple::NaCl:
   case llvm::Triple::NetBSD:
   case llvm::Triple::OpenBSD:
   case llvm::Triple::PS4:
   case llvm::Triple::PS5:
-  case llvm::Triple::Fuchsia:
-  case llvm::Triple::Hurd:
-  case llvm::Triple::Linux:
+  case llvm::Triple::RTEMS:
   case llvm::Triple::Solaris:
+  case llvm::Triple::UEFI:
   case llvm::Triple::WASI:
+  case llvm::Triple::ZOS:
     return false;
 
   case llvm::Triple::Win32:
@@ -401,7 +313,7 @@ bool InitHeaderSearch::ShouldAddDefaultIncludePaths(
     break;
 
   case llvm::Triple::UnknownOS:
-    if (triple.isWasm())
+    if (triple.isWasm() || triple.isAppleMachO())
       return false;
     break;
 
@@ -432,6 +344,7 @@ void InitHeaderSearch::AddDefaultIncludePaths(
         AddPath("/System/DriverKit/System/Library/Frameworks", System, true);
       } else {
         AddPath("/System/Library/Frameworks", System, true);
+        AddPath("/System/Library/SubFrameworks", System, true);
         AddPath("/Library/Frameworks", System, true);
       }
     }
@@ -573,7 +486,7 @@ void InitHeaderSearch::Realize(const LangOptions &Lang) {
   unsigned NumQuoted = SearchList.size();
 
   for (auto &Include : IncludePath)
-    if (Include.Group == Angled || Include.Group == IndexHeaderMap)
+    if (Include.Group == Angled)
       SearchList.push_back(Include);
 
   RemoveDuplicates(SearchList, NumQuoted, Verbose);
@@ -598,9 +511,8 @@ void InitHeaderSearch::Realize(const LangOptions &Lang) {
   unsigned NonSystemRemoved = RemoveDuplicates(SearchList, NumQuoted, Verbose);
   NumAngled -= NonSystemRemoved;
 
-  bool DontSearchCurDir = false;  // TODO: set to true if -I- is set?
   Headers.SetSearchPaths(extractLookups(SearchList), NumQuoted, NumAngled,
-                         DontSearchCurDir, mapToUserEntries(SearchList));
+                         mapToUserEntries(SearchList));
 
   Headers.SetSystemHeaderPrefixes(SystemHeaderPrefixes);
 

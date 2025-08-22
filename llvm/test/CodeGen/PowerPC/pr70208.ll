@@ -5,16 +5,16 @@ define <4 x i64> @widget(<8 x i16> %call) {
 ; CHECK-LABEL: widget:
 ; CHECK:       # %bb.0:
 ; CHECK-NEXT:    addis 3, 2, .LCPI0_0@toc@ha
-; CHECK-NEXT:    addis 4, 2, .LCPI0_1@toc@ha
-; CHECK-NEXT:    xxlxor 37, 37, 37
+; CHECK-NEXT:    xxlxor 32, 32, 32
 ; CHECK-NEXT:    addi 3, 3, .LCPI0_0@toc@l
 ; CHECK-NEXT:    lxvd2x 0, 0, 3
-; CHECK-NEXT:    addi 3, 4, .LCPI0_1@toc@l
-; CHECK-NEXT:    lxvd2x 1, 0, 3
+; CHECK-NEXT:    addis 3, 2, .LCPI0_1@toc@ha
+; CHECK-NEXT:    addi 3, 3, .LCPI0_1@toc@l
 ; CHECK-NEXT:    xxswapd 35, 0
-; CHECK-NEXT:    xxswapd 32, 1
-; CHECK-NEXT:    vperm 4, 5, 2, 3
-; CHECK-NEXT:    vperm 3, 5, 2, 0
+; CHECK-NEXT:    lxvd2x 0, 0, 3
+; CHECK-NEXT:    vperm 4, 0, 2, 3
+; CHECK-NEXT:    xxswapd 37, 0
+; CHECK-NEXT:    vperm 3, 0, 2, 5
 ; CHECK-NEXT:    vmr 2, 4
 ; CHECK-NEXT:    blr
   %bitcast = bitcast <8 x i16> %call to <16 x i8>

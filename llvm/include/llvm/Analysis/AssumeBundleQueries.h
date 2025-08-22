@@ -21,7 +21,6 @@ namespace llvm {
 class AssumptionCache;
 class DominatorTree;
 class Instruction;
-class Value;
 
 /// Index of elements in the operand bundle.
 /// If the element exist it is guaranteed to be what is specified in this enum
@@ -142,7 +141,7 @@ constexpr StringRef IgnoreBundleTag = "ignore";
 ///
 /// the argument to the call of llvm.assume may still be useful even if the
 /// function returned true.
-bool isAssumeWithEmptyBundle(AssumeInst &Assume);
+bool isAssumeWithEmptyBundle(const AssumeInst &Assume);
 
 /// Return a valid Knowledge associated to the Use U if its Attribute kind is
 /// in AttrKinds.

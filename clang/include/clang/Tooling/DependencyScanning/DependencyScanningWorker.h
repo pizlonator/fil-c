@@ -56,6 +56,8 @@ public:
 
   virtual void handleModuleDependency(ModuleDeps MD) = 0;
 
+  virtual void handleDirectModuleDependency(ModuleID MD) = 0;
+
   virtual void handleContextHash(std::string Hash) = 0;
 };
 
@@ -102,6 +104,8 @@ public:
 
   bool shouldEagerLoadModules() const { return EagerLoadModules; }
 
+  llvm::vfs::FileSystem &getVFS() const { return *BaseFS; }
+
 private:
   std::shared_ptr<PCHContainerOperations> PCHContainerOps;
   /// The file system to be used during the scan.
@@ -114,7 +118,7 @@ private:
   llvm::IntrusiveRefCntPtr<DependencyScanningWorkerFilesystem> DepFS;
   ScanningOutputFormat Format;
   /// Whether to optimize the modules' command-line arguments.
-  bool OptimizeArgs;
+  ScanningOptimizations OptimizeArgs;
   /// Whether to set up command-lines to load PCM files eagerly.
   bool EagerLoadModules;
 };

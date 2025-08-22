@@ -26,16 +26,18 @@ resume:                                           ; preds = %loop
   br label %loop
 
 cleanup:                                          ; preds = %loop
-  %0 = call i1 @llvm.coro.end(ptr %hdl, i1 false)
+  %0 = call i1 @llvm.coro.end(ptr %hdl, i1 false, token none)
   unreachable
 }
 
 define i32 @main() {
 ; CHECK-LABEL: @main(
 ; CHECK-NEXT:  entry:
-; CHECK-NEXT:    call void @print(i32 4)
-; CHECK-NEXT:    call void @print(i32 5), !noalias !0
-; CHECK-NEXT:    call void @print(i32 6), !noalias !3
+; CHECK-NEXT:    tail call void @print(i32 4)
+; CHECK-NEXT:    tail call void @llvm.experimental.noalias.scope.decl(metadata [[META0:![0-9]+]])
+; CHECK-NEXT:    tail call void @print(i32 5), !noalias [[META0]]
+; CHECK-NEXT:    tail call void @llvm.experimental.noalias.scope.decl(metadata [[META3:![0-9]+]])
+; CHECK-NEXT:    tail call void @print(i32 6), !noalias [[META3]]
 ; CHECK-NEXT:    ret i32 0
 ;
 entry:
@@ -70,20 +72,20 @@ resume:                                           ; preds = %loop
   br label %loop
 
 cleanup:                                          ; preds = %loop
-  %0 = call i1 @llvm.coro.end(ptr %hdl, i1 false)
+  %0 = call i1 @llvm.coro.end(ptr %hdl, i1 false, token none)
   unreachable
 }
 
-declare token @llvm.coro.id.retcon(i32, i32, i8*, i8*, i8*, i8*)
-declare i8* @llvm.coro.begin(token, i8*)
+declare token @llvm.coro.id.retcon(i32, i32, ptr, ptr, ptr, ptr)
+declare ptr @llvm.coro.begin(token, ptr)
 declare i1 @llvm.coro.suspend.retcon.i1(...)
-declare i1 @llvm.coro.end(i8*, i1)
-declare i8* @llvm.coro.prepare.retcon(i8*)
+declare i1 @llvm.coro.end(ptr, i1, token)
+declare ptr @llvm.coro.prepare.retcon(ptr)
 
-declare i8* @prototype(i8*, i1 zeroext)
-declare {i8*,i8*} @g_prototype(i8*, i1 zeroext)
+declare ptr @prototype(ptr, i1 zeroext)
+declare {ptr,ptr} @g_prototype(ptr, i1 zeroext)
 
-declare noalias i8* @allocate(i32 %size)
-declare void @deallocate(i8* %ptr)
+declare noalias ptr @allocate(i32 %size)
+declare void @deallocate(ptr %ptr)
 
 declare void @print(i32)

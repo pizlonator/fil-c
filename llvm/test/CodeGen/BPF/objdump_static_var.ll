@@ -1,5 +1,5 @@
-; RUN: llc -march=bpfel -filetype=obj -o - %s | llvm-objdump --no-print-imm-hex -d - | FileCheck --check-prefix=CHECK %s
-; RUN: llc -march=bpfeb -filetype=obj -o - %s | llvm-objdump --no-print-imm-hex -d - | FileCheck --check-prefix=CHECK %s
+; RUN: llc -mtriple=bpfel -mcpu=v1 -filetype=obj -o - %s | llvm-objdump --no-print-imm-hex --mcpu=v1 -d - | FileCheck --check-prefix=CHECK %s
+; RUN: llc -mtriple=bpfeb -mcpu=v1 -filetype=obj -o - %s | llvm-objdump --no-print-imm-hex --mcpu=v1 -d - | FileCheck --check-prefix=CHECK %s
 
 ; src:
 ;   static volatile long a = 2;

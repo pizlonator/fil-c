@@ -109,6 +109,8 @@ def Vrgather     : RISCVVConstraint<!or(VS2Constraint.Value,
                                         VMConstraint.Value)>;
 def Vcompress    : RISCVVConstraint<!or(VS2Constraint.Value,
                                         VS1Constraint.Value)>;
+def Sha2Constraint : RISCVVConstraint<!or(VS2Constraint.Value,
+                                          VS1Constraint.Value)>;
 
 // The following opcode names match those given in Table 19.1 in the
 // RISC-V User-level ISA specification ("RISC-V base opcode map").
@@ -153,8 +155,25 @@ def OPC_BRANCH    : RISCVOpcode<"BRANCH",    0b1100011>;
 def OPC_JALR      : RISCVOpcode<"JALR",      0b1100111>;
 def OPC_JAL       : RISCVOpcode<"JAL",       0b1101111>;
 def OPC_SYSTEM    : RISCVOpcode<"SYSTEM",    0b1110011>;
-def OPC_OP_P      : RISCVOpcode<"OP_P",      0b1110111>;
+def OPC_OP_VE     : RISCVOpcode<"OP_VE",     0b1110111>;
 def OPC_CUSTOM_3  : RISCVOpcode<"CUSTOM_3",  0b1111011>;
+
+class EltDeps<bit vl, bit mask> {
+  bit VL = vl;
+  bit Mask = mask;
+}
+
+def EltDepsNone      : EltDeps<vl=0, mask=0>;
+def EltDepsVL        : EltDeps<vl=1, mask=0>;
+def EltDepsVLMask    : EltDeps<vl=1, mask=1>;
+
+class EEW <bits<2> val> {
+  bits<2> Value = val;
+}
+def EEW1     : EEW<0>;
+def EEWSEWx1 : EEW<1>;
+def EEWSEWx2 : EEW<2>;
+def EEWSEWx4 : EEW<3>;
 
 class RVInstCommon<dag outs, dag ins, string opcodestr, string argstr,
                    list<dag> pattern, InstFormat format> : Instruction {
@@ -212,6 +231,27 @@ class RVInstCommon<dag outs, dag ins, string opcodestr, string argstr,
   // to the correct CSR.
   bit UsesVXRM = 0;
   let TSFlags{20} =  UsesVXRM;
+
+  // Indicates whther these instructions can partially overlap between source
+  // registers and destination registers according to the vector spec.
+  // 0 -> not a vector pseudo
+  // 1 -> default value for vector pseudos. not widening or narrowing.
+  // 2 -> narrowing case
+  // 3 -> widening case
+  bits<2> TargetOverlapConstraintType = 0;
+  let TSFlags{22-21} = TargetOverlapConstraintType;
+
+  // Most vector instructions are elementwise, but some may depend on the value
+  // of VL (e.g. vslide1down.vx), and others may depend on the VL and mask
+  // (e.g. vredsum.vs, viota.m). Mark these instructions so that peepholes avoid
+  // changing their VL and/or mask.
+  EltDeps ElementsDependOn = EltDepsNone;
+  let TSFlags{23} = ElementsDependOn.VL;
+  let TSFlags{24} = ElementsDependOn.Mask;
+
+  // Indicates the EEW of a vector instruction's destination operand.
+  EEW DestEEW = EEWSEWx1;
+  let TSFlags{26-25} = DestEEW.Value;
 }
 
 class RVInst<dag outs, dag ins, string opcodestr, string argstr,
@@ -224,6 +264,22 @@ class RVInst<dag outs, dag ins, string opcodestr, string argstr,
   // to build the decode table.
   field bits<32> SoftFail = 0;
   let Size = 4;
+}
+
+class RVInst48<dag outs, dag ins, string opcodestr, string argstr,
+               list<dag> pattern, InstFormat format>
+    : RVInstCommon<outs, ins, opcodestr, argstr, pattern, format> {
+  field bits<48> Inst;
+  field bits<48> SoftFail = 0;
+  let Size = 6;
+}
+
+class RVInst64<dag outs, dag ins, string opcodestr, string argstr,
+               list<dag> pattern, InstFormat format>
+    : RVInstCommon<outs, ins, opcodestr, argstr, pattern, format> {
+  field bits<64> Inst;
+  field bits<64> SoftFail = 0;
+  let Size = 8;
 }
 
 // Pseudo instructions
@@ -241,8 +297,8 @@ class PseudoQuietFCMP<DAGOperand Ty>
 }
 
 // Pseudo load instructions.
-class PseudoLoad<string opcodestr, RegisterClass rdty = GPR>
-    : Pseudo<(outs rdty:$rd), (ins bare_symbol:$addr), [], opcodestr, "$rd, $addr"> {
+class PseudoLoad<string opcodestr>
+    : Pseudo<(outs GPR:$rd), (ins bare_symbol:$addr), [], opcodestr, "$rd, $addr"> {
   let hasSideEffects = 0;
   let mayLoad = 1;
   let mayStore = 0;
@@ -250,7 +306,7 @@ class PseudoLoad<string opcodestr, RegisterClass rdty = GPR>
   let isAsmParserOnly = 1;
 }
 
-class PseudoFloatLoad<string opcodestr, RegisterClass rdty = GPR>
+class PseudoFloatLoad<string opcodestr, RegisterClass rdty>
     : Pseudo<(outs GPR:$tmp, rdty:$rd), (ins bare_symbol:$addr), [], opcodestr, "$rd, $addr, $tmp"> {
   let hasSideEffects = 0;
   let mayLoad = 1;
@@ -270,20 +326,51 @@ class PseudoStore<string opcodestr, RegisterClass rsty = GPR>
 }
 
 // Instruction formats are listed in the order they appear in the RISC-V
-// instruction set manual (R, I, S, B, U, J) with sub-formats (e.g. RVInstR4,
-// RVInstRAtomic) sorted alphabetically.
+// instruction set manual (R, R4, I, S, B, U, J).
 
-class RVInstR<bits<7> funct7, bits<3> funct3, RISCVOpcode opcode, dag outs,
-              dag ins, string opcodestr, string argstr>
+// Common base class for R format instructions. Bits {31-25} should be set by
+// the subclasses.
+class RVInstRBase<bits<3> funct3, RISCVOpcode opcode, dag outs,
+                  dag ins, string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
   bits<5> rs2;
   bits<5> rs1;
   bits<5> rd;
 
-  let Inst{31-25} = funct7;
   let Inst{24-20} = rs2;
   let Inst{19-15} = rs1;
   let Inst{14-12} = funct3;
+  let Inst{11-7} = rd;
+  let Inst{6-0} = opcode.Value;
+}
+
+class RVInstR<bits<7> funct7, bits<3> funct3, RISCVOpcode opcode, dag outs,
+              dag ins, string opcodestr, string argstr>
+    : RVInstRBase<funct3, opcode, outs, ins, opcodestr, argstr> {
+  let Inst{31-25} = funct7;
+}
+
+class RVInstRAtomic<bits<5> funct5, bit aq, bit rl, bits<3> funct3,
+                    RISCVOpcode opcode, dag outs, dag ins, string opcodestr,
+                    string argstr>
+    : RVInstRBase<funct3, opcode, outs, ins, opcodestr, argstr> {
+  let Inst{31-27} = funct5;
+  let Inst{26} = aq;
+  let Inst{25} = rl;
+}
+
+class RVInstRFrm<bits<7> funct7, RISCVOpcode opcode, dag outs, dag ins,
+                 string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
+  bits<5> rs2;
+  bits<5> rs1;
+  bits<3> frm;
+  bits<5> rd;
+
+  let Inst{31-25} = funct7;
+  let Inst{24-20} = rs2;
+  let Inst{19-15} = rs1;
+  let Inst{14-12} = frm;
   let Inst{11-7} = rd;
   let Inst{6-0} = opcode.Value;
 }
@@ -323,83 +410,51 @@ class RVInstR4Frm<bits<2> funct2, RISCVOpcode opcode, dag outs, dag ins,
   let Inst{6-0} = opcode.Value;
 }
 
-class RVInstRAtomic<bits<5> funct5, bit aq, bit rl, bits<3> funct3,
-                    RISCVOpcode opcode, dag outs, dag ins, string opcodestr,
-                    string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
-  bits<5> rs2;
+// Common base class for I format instructions. Bits {31-20} should be set by
+// the subclasses.
+class RVInstIBase<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
+                  string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
   bits<5> rs1;
   bits<5> rd;
 
-  let Inst{31-27} = funct5;
-  let Inst{26} = aq;
-  let Inst{25} = rl;
-  let Inst{24-20} = rs2;
   let Inst{19-15} = rs1;
   let Inst{14-12} = funct3;
-  let Inst{11-7} = rd;
-  let Inst{6-0} = opcode.Value;
-}
-
-class RVInstRFrm<bits<7> funct7, RISCVOpcode opcode, dag outs, dag ins,
-                 string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
-  bits<5> rs2;
-  bits<5> rs1;
-  bits<3> frm;
-  bits<5> rd;
-
-  let Inst{31-25} = funct7;
-  let Inst{24-20} = rs2;
-  let Inst{19-15} = rs1;
-  let Inst{14-12} = frm;
   let Inst{11-7} = rd;
   let Inst{6-0} = opcode.Value;
 }
 
 class RVInstI<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,
               string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
+    : RVInstIBase<funct3, opcode, outs, ins, opcodestr, argstr> {
   bits<12> imm12;
-  bits<5> rs1;
-  bits<5> rd;
 
   let Inst{31-20} = imm12;
-  let Inst{19-15} = rs1;
-  let Inst{14-12} = funct3;
-  let Inst{11-7} = rd;
-  let Inst{6-0} = opcode.Value;
 }
 
 class RVInstIShift<bits<5> imm11_7, bits<3> funct3, RISCVOpcode opcode,
                    dag outs, dag ins, string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
+    : RVInstIBase<funct3, opcode, outs, ins, opcodestr, argstr> {
   bits<6> shamt;
-  bits<5> rs1;
-  bits<5> rd;
 
   let Inst{31-27} = imm11_7;
   let Inst{26} = 0;
   let Inst{25-20} = shamt;
-  let Inst{19-15} = rs1;
-  let Inst{14-12} = funct3;
-  let Inst{11-7} = rd;
-  let Inst{6-0} = opcode.Value;
 }
 
 class RVInstIShiftW<bits<7> imm11_5, bits<3> funct3, RISCVOpcode opcode,
                     dag outs, dag ins, string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
+    : RVInstIBase<funct3, opcode, outs, ins, opcodestr, argstr> {
   bits<5> shamt;
-  bits<5> rs1;
-  bits<5> rd;
 
   let Inst{31-25} = imm11_5;
   let Inst{24-20} = shamt;
-  let Inst{19-15} = rs1;
-  let Inst{14-12} = funct3;
-  let Inst{11-7} = rd;
-  let Inst{6-0} = opcode.Value;
+}
+
+class RVInstIUnary<bits<12> imm12, bits<3> funct3, RISCVOpcode opcode,
+                   dag outs, dag ins, string opcodestr, string argstr>
+    : RVInstIBase<funct3, opcode, outs, ins, opcodestr, argstr> {
+  let Inst{31-20} = imm12;
 }
 
 class RVInstS<bits<3> funct3, RISCVOpcode opcode, dag outs, dag ins,

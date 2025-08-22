@@ -14,13 +14,11 @@
 #include "MCTargetDesc/MipsAsmBackend.h"
 #include "MCTargetDesc/MipsABIInfo.h"
 #include "MCTargetDesc/MipsFixupKinds.h"
-#include "MCTargetDesc/MipsMCExpr.h"
 #include "MCTargetDesc/MipsMCTargetDesc.h"
-#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/MC/MCAsmBackend.h"
 #include "llvm/MC/MCAssembler.h"
 #include "llvm/MC/MCContext.h"
-#include "llvm/MC/MCDirectives.h"
 #include "llvm/MC/MCELFObjectWriter.h"
 #include "llvm/MC/MCFixupKindInfo.h"
 #include "llvm/MC/MCObjectWriter.h"
@@ -28,7 +26,6 @@
 #include "llvm/MC/MCTargetOptions.h"
 #include "llvm/MC/MCValue.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/Format.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -281,7 +278,7 @@ void MipsAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
   bool microMipsLEByteOrder = needsMMLEByteOrder((unsigned) Kind);
 
   for (unsigned i = 0; i != NumBytes; ++i) {
-    unsigned Idx = Endian == support::little
+    unsigned Idx = Endian == llvm::endianness::little
                        ? (microMipsLEByteOrder ? calculateMMLEIndex(i) : i)
                        : (FullSize - 1 - i);
     CurVal |= (uint64_t)((uint8_t)Data[Offset + Idx]) << (i*8);
@@ -293,7 +290,7 @@ void MipsAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
 
   // Write out the fixed up bytes back to the code/data bits.
   for (unsigned i = 0; i != NumBytes; ++i) {
-    unsigned Idx = Endian == support::little
+    unsigned Idx = Endian == llvm::endianness::little
                        ? (microMipsLEByteOrder ? calculateMMLEIndex(i) : i)
                        : (FullSize - 1 - i);
     Data[Offset + Idx] = (uint8_t)((CurVal >> (i*8)) & 0xff);
@@ -519,7 +516,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
   assert(unsigned(Kind - FirstTargetFixupKind) < getNumFixupKinds() &&
           "Invalid kind!");
 
-  if (Endian == support::little)
+  if (Endian == llvm::endianness::little)
     return LittleEndianInfos[Kind - FirstTargetFixupKind];
   return BigEndianInfos[Kind - FirstTargetFixupKind];
 }
@@ -544,7 +541,9 @@ bool MipsAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
 
 bool MipsAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
                                            const MCFixup &Fixup,
-                                           const MCValue &Target) {
+                                           const MCValue &Target,
+                                           const uint64_t,
+                                           const MCSubtargetInfo *STI) {
   if (Fixup.getKind() >= FirstLiteralRelocationKind)
     return true;
   const unsigned FixupKind = Fixup.getKind();
@@ -595,10 +594,30 @@ bool MipsAsmBackend::isMicroMips(const MCSymbol *Sym) const {
   return false;
 }
 
+namespace {
+
+class WindowsMipsAsmBackend : public MipsAsmBackend {
+public:
+  WindowsMipsAsmBackend(const Target &T, const MCRegisterInfo &MRI,
+                        const MCSubtargetInfo &STI)
+      : MipsAsmBackend(T, MRI, STI.getTargetTriple(), STI.getCPU(), false) {}
+
+  std::unique_ptr<MCObjectTargetWriter>
+  createObjectTargetWriter() const override {
+    return createMipsWinCOFFObjectWriter();
+  }
+};
+
+} // end anonymous namespace
+
 MCAsmBackend *llvm::createMipsAsmBackend(const Target &T,
                                          const MCSubtargetInfo &STI,
                                          const MCRegisterInfo &MRI,
                                          const MCTargetOptions &Options) {
+  const Triple &TheTriple = STI.getTargetTriple();
+  if (TheTriple.isOSWindows() && TheTriple.isOSBinFormatCOFF())
+    return new WindowsMipsAsmBackend(T, MRI, STI);
+
   MipsABIInfo ABI = MipsABIInfo::computeTargetABI(STI.getTargetTriple(),
                                                   STI.getCPU(), Options);
   return new MipsAsmBackend(T, MRI, STI.getTargetTriple(), STI.getCPU(),

@@ -3,11 +3,11 @@
 # RUN: llvm-mc -dwarf-version=4 -filetype=obj -triple x86_64-unknown-linux %p/Inputs/dwarf4-types-dwarf5-types-main.s -o %tmain.o
 # RUN: llvm-mc -dwarf-version=5 -filetype=obj -triple x86_64-unknown-linux %p/Inputs/dwarf4-types-dwarf5-types-helper.s -o %thelper.o
 # RUN: %clang %cflags %tmain.o %thelper.o -o %t.exe -Wl,-q
-# RUN: llvm-bolt %t.exe -o %t.bolt --update-debug-sections
+# RUN: llvm-bolt %t.exe -o %t.bolt --update-debug-sections --debug-thread-count=4 --cu-processing-batch-size=4
 # RUN: llvm-dwarfdump --show-form --verbose --debug-info %t.bolt | FileCheck --check-prefix=POSTCHECK %s
 # RUN: llvm-dwarfdump --show-form --verbose --debug-types %t.bolt | FileCheck --check-prefix=POSTCHECKTU %s
 
-# Check BOLT handles DWARF4/5 with fdebug-types.
+## Check BOLT handles DWARF4/5 with fdebug-types.
 
 # POSTCHECK: version = 0x0005
 # POSTCHECK: DW_TAG_type_unit
@@ -42,9 +42,9 @@
 # POSTCHECK: version = 0x0005
 # POSTCHECK: DW_TAG_compile_unit
 # POSTCHECK: DW_TAG_subprogram
-# POSTCHECK: DW_AT_type [DW_FORM_ref4] (cu + 0x0048 => {0x{{[0-9a-f]+}}} "int")
+# POSTCHECK: DW_AT_type [DW_FORM_ref4] (cu + 0x004b => {0x{{[0-9a-f]+}}} "int")
 # POSTCHECK: DW_TAG_variable
-# POSTCHECK: DW_AT_type [DW_FORM_ref4] (cu + 0x004c => {0x{{[0-9a-f]+}}} "Foo2a")
+# POSTCHECK: DW_AT_type [DW_FORM_ref4] (cu + 0x004f => {0x{{[0-9a-f]+}}} "Foo2a")
 # POSTCHECK: DW_TAG_base_type
 # POSTCHECK: DW_TAG_structure_type
 # POSTCHECK: DW_AT_signature [DW_FORM_ref_sig8]  (0x104ec427d2ebea6f)

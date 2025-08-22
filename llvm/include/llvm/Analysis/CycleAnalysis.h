@@ -17,15 +17,9 @@
 
 #include "llvm/IR/CycleInfo.h"
 #include "llvm/IR/PassManager.h"
-#include "llvm/IR/SSAContext.h"
 #include "llvm/Pass.h"
 
 namespace llvm {
-extern template class GenericCycleInfo<SSAContext>;
-extern template class GenericCycle<SSAContext>;
-
-using CycleInfo = GenericCycleInfo<SSAContext>;
-using Cycle = CycleInfo::CycleT;
 
 /// Legacy analysis pass which computes a \ref CycleInfo.
 class CycleInfoWrapperPass : public FunctionPass {
@@ -65,14 +59,18 @@ public:
   // TODO: verify analysis?
 };
 
-/// Printer pass for the \c DominatorTree.
 class CycleInfoPrinterPass : public PassInfoMixin<CycleInfoPrinterPass> {
   raw_ostream &OS;
 
 public:
   explicit CycleInfoPrinterPass(raw_ostream &OS);
-
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
+  static bool isRequired() { return true; }
+};
+
+struct CycleInfoVerifierPass : public PassInfoMixin<CycleInfoVerifierPass> {
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
+  static bool isRequired() { return true; }
 };
 
 } // end namespace llvm

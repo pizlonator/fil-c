@@ -6,12 +6,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/DebugInfo/GSYM/InlineInfo.h"
 #include "llvm/DebugInfo/GSYM/FileEntry.h"
 #include "llvm/DebugInfo/GSYM/FileWriter.h"
 #include "llvm/DebugInfo/GSYM/GsymReader.h"
-#include "llvm/DebugInfo/GSYM/InlineInfo.h"
 #include "llvm/Support/DataExtractor.h"
-#include <algorithm>
 #include <inttypes.h>
 
 using namespace llvm;
@@ -263,4 +262,15 @@ llvm::Error InlineInfo::encode(FileWriter &O, uint64_t BaseAddr) const {
     O.writeULEB(0);
   }
   return Error::success();
+}
+
+static uint64_t GetTotalNumChildren(const InlineInfo &II) {
+  uint64_t NumChildren = II.Children.size();
+  for (const auto &Child : II.Children)
+    NumChildren += GetTotalNumChildren(Child);
+  return NumChildren;
+}
+
+bool InlineInfo::operator<(const InlineInfo &RHS) const {
+  return GetTotalNumChildren(*this) < GetTotalNumChildren(RHS);
 }

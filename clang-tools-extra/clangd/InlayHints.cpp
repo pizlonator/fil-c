@@ -6,13 +6,15 @@
 //
 //===----------------------------------------------------------------------===//
 #include "InlayHints.h"
+#include "../clang-tidy/utils/DesignatedInitializers.h"
 #include "AST.h"
 #include "Config.h"
-#include "HeuristicResolver.h"
 #include "ParsedAST.h"
+#include "Protocol.h"
 #include "SourceCode.h"
 #include "clang/AST/ASTDiagnostic.h"
 #include "clang/AST/Decl.h"
+#include "clang/AST/DeclBase.h"
 #include "clang/AST/DeclarationName.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/ExprCXX.h"
@@ -22,16 +24,24 @@
 #include "clang/AST/Type.h"
 #include "clang/Basic/Builtins.h"
 #include "clang/Basic/OperatorKinds.h"
+#include "clang/Basic/SourceLocation.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Sema/HeuristicResolver.h"
 #include "llvm/ADT/DenseSet.h"
-#include "llvm/ADT/ScopeExit.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
+#include "llvm/ADT/identity.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/SaveAndRestore.h"
 #include "llvm/Support/ScopedPrinter.h"
 #include "llvm/Support/raw_ostream.h"
+#include <algorithm>
+#include <iterator>
 #include <optional>
 #include <string>
 
@@ -41,169 +51,6 @@ namespace {
 
 // For now, inlay hints are always anchored at the left or right of their range.
 enum class HintSide { Left, Right };
-
-// Helper class to iterate over the designator names of an aggregate type.
-//
-// For an array type, yields [0], [1], [2]...
-// For aggregate classes, yields null for each base, then .field1, .field2, ...
-class AggregateDesignatorNames {
-public:
-  AggregateDesignatorNames(QualType T) {
-    if (!T.isNull()) {
-      T = T.getCanonicalType();
-      if (T->isArrayType()) {
-        IsArray = true;
-        Valid = true;
-        return;
-      }
-      if (const RecordDecl *RD = T->getAsRecordDecl()) {
-        Valid = true;
-        FieldsIt = RD->field_begin();
-        FieldsEnd = RD->field_end();
-        if (const auto *CRD = llvm::dyn_cast<CXXRecordDecl>(RD)) {
-          BasesIt = CRD->bases_begin();
-          BasesEnd = CRD->bases_end();
-          Valid = CRD->isAggregate();
-        }
-        OneField = Valid && BasesIt == BasesEnd && FieldsIt != FieldsEnd &&
-                   std::next(FieldsIt) == FieldsEnd;
-      }
-    }
-  }
-  // Returns false if the type was not an aggregate.
-  operator bool() { return Valid; }
-  // Advance to the next element in the aggregate.
-  void next() {
-    if (IsArray)
-      ++Index;
-    else if (BasesIt != BasesEnd)
-      ++BasesIt;
-    else if (FieldsIt != FieldsEnd)
-      ++FieldsIt;
-  }
-  // Print the designator to Out.
-  // Returns false if we could not produce a designator for this element.
-  bool append(std::string &Out, bool ForSubobject) {
-    if (IsArray) {
-      Out.push_back('[');
-      Out.append(std::to_string(Index));
-      Out.push_back(']');
-      return true;
-    }
-    if (BasesIt != BasesEnd)
-      return false; // Bases can't be designated. Should we make one up?
-    if (FieldsIt != FieldsEnd) {
-      llvm::StringRef FieldName;
-      if (const IdentifierInfo *II = FieldsIt->getIdentifier())
-        FieldName = II->getName();
-
-      // For certain objects, their subobjects may be named directly.
-      if (ForSubobject &&
-          (FieldsIt->isAnonymousStructOrUnion() ||
-           // std::array<int,3> x = {1,2,3}. Designators not strictly valid!
-           (OneField && isReservedName(FieldName))))
-        return true;
-
-      if (!FieldName.empty() && !isReservedName(FieldName)) {
-        Out.push_back('.');
-        Out.append(FieldName.begin(), FieldName.end());
-        return true;
-      }
-      return false;
-    }
-    return false;
-  }
-
-private:
-  bool Valid = false;
-  bool IsArray = false;
-  bool OneField = false; // e.g. std::array { T __elements[N]; }
-  unsigned Index = 0;
-  CXXRecordDecl::base_class_const_iterator BasesIt;
-  CXXRecordDecl::base_class_const_iterator BasesEnd;
-  RecordDecl::field_iterator FieldsIt;
-  RecordDecl::field_iterator FieldsEnd;
-};
-
-// Collect designator labels describing the elements of an init list.
-//
-// This function contributes the designators of some (sub)object, which is
-// represented by the semantic InitListExpr Sem.
-// This includes any nested subobjects, but *only* if they are part of the same
-// original syntactic init list (due to brace elision).
-// In other words, it may descend into subobjects but not written init-lists.
-//
-// For example: struct Outer { Inner a,b; }; struct Inner { int x, y; }
-//              Outer o{{1, 2}, 3};
-// This function will be called with Sem = { {1, 2}, {3, ImplicitValue} }
-// It should generate designators '.a:' and '.b.x:'.
-// '.a:' is produced directly without recursing into the written sublist.
-// (The written sublist will have a separate collectDesignators() call later).
-// Recursion with Prefix='.b' and Sem = {3, ImplicitValue} produces '.b.x:'.
-void collectDesignators(const InitListExpr *Sem,
-                        llvm::DenseMap<SourceLocation, std::string> &Out,
-                        const llvm::DenseSet<SourceLocation> &NestedBraces,
-                        std::string &Prefix) {
-  if (!Sem || Sem->isTransparent())
-    return;
-  assert(Sem->isSemanticForm());
-
-  // The elements of the semantic form all correspond to direct subobjects of
-  // the aggregate type. `Fields` iterates over these subobject names.
-  AggregateDesignatorNames Fields(Sem->getType());
-  if (!Fields)
-    return;
-  for (const Expr *Init : Sem->inits()) {
-    auto Next = llvm::make_scope_exit([&, Size(Prefix.size())] {
-      Fields.next();       // Always advance to the next subobject name.
-      Prefix.resize(Size); // Erase any designator we appended.
-    });
-    // Skip for a broken initializer or if it is a "hole" in a subobject that
-    // was not explicitly initialized.
-    if (!Init || llvm::isa<ImplicitValueInitExpr>(Init))
-      continue;
-
-    const auto *BraceElidedSubobject = llvm::dyn_cast<InitListExpr>(Init);
-    if (BraceElidedSubobject &&
-        NestedBraces.contains(BraceElidedSubobject->getLBraceLoc()))
-      BraceElidedSubobject = nullptr; // there were braces!
-
-    if (!Fields.append(Prefix, BraceElidedSubobject != nullptr))
-      continue; // no designator available for this subobject
-    if (BraceElidedSubobject) {
-      // If the braces were elided, this aggregate subobject is initialized
-      // inline in the same syntactic list.
-      // Descend into the semantic list describing the subobject.
-      // (NestedBraces are still correct, they're from the same syntactic list).
-      collectDesignators(BraceElidedSubobject, Out, NestedBraces, Prefix);
-      continue;
-    }
-    Out.try_emplace(Init->getBeginLoc(), Prefix);
-  }
-}
-
-// Get designators describing the elements of a (syntactic) init list.
-// This does not produce designators for any explicitly-written nested lists.
-llvm::DenseMap<SourceLocation, std::string>
-getDesignators(const InitListExpr *Syn) {
-  assert(Syn->isSyntacticForm());
-
-  // collectDesignators needs to know which InitListExprs in the semantic tree
-  // were actually written, but InitListExpr::isExplicit() lies.
-  // Instead, record where braces of sub-init-lists occur in the syntactic form.
-  llvm::DenseSet<SourceLocation> NestedBraces;
-  for (const Expr *Init : Syn->inits())
-    if (auto *Nested = llvm::dyn_cast<InitListExpr>(Init))
-      NestedBraces.insert(Nested->getLBraceLoc());
-
-  // Traverse the semantic form to find the designators.
-  // We use their SourceLocation to correlate with the syntactic form later.
-  llvm::DenseMap<SourceLocation, std::string> Designators;
-  std::string EmptyPrefix;
-  collectDesignators(Syn->isSemanticForm() ? Syn : Syn->getSemanticForm(),
-                     Designators, NestedBraces, EmptyPrefix);
-  return Designators;
-}
 
 void stripLeadingUnderscores(StringRef &Name) { Name = Name.ltrim('_'); }
 
@@ -273,7 +120,7 @@ std::string summarizeExpr(const Expr *E) {
       return getSimpleName(E->getMember()).str();
     }
     std::string
-    VisitDependentScopeMemberExpr(const DependentScopeDeclRefExpr *E) {
+    VisitDependentScopeDeclRefExpr(const DependentScopeDeclRefExpr *E) {
       return getSimpleName(E->getDeclName()).str();
     }
     std::string VisitCXXFunctionalCastExpr(const CXXFunctionalCastExpr *E) {
@@ -286,7 +133,7 @@ std::string summarizeExpr(const Expr *E) {
     // Step through implicit nodes that clang doesn't classify as such.
     std::string VisitCXXMemberCallExpr(const CXXMemberCallExpr *E) {
       // Call to operator bool() inside if (X): dispatch to X.
-      if (E->getNumArgs() == 0 &&
+      if (E->getNumArgs() == 0 && E->getMethodDecl() &&
           E->getMethodDecl()->getDeclName().getNameKind() ==
               DeclarationName::CXXConversionFunctionName &&
           E->getSourceRange() ==
@@ -405,22 +252,47 @@ std::string summarizeExpr(const Expr *E) {
 // Determines if any intermediate type in desugaring QualType QT is of
 // substituted template parameter type. Ignore pointer or reference wrappers.
 bool isSugaredTemplateParameter(QualType QT) {
-  static auto PeelWrappers = [](QualType QT) {
+  static auto PeelWrapper = [](QualType QT) {
     // Neither `PointerType` nor `ReferenceType` is considered as sugared
     // type. Peel it.
-    QualType Next;
-    while (!(Next = QT->getPointeeType()).isNull())
-      QT = Next;
-    return QT;
+    QualType Peeled = QT->getPointeeType();
+    return Peeled.isNull() ? QT : Peeled;
   };
+
+  // This is a bit tricky: we traverse the type structure and find whether or
+  // not a type in the desugaring process is of SubstTemplateTypeParmType.
+  // During the process, we may encounter pointer or reference types that are
+  // not marked as sugared; therefore, the desugar function won't apply. To
+  // move forward the traversal, we retrieve the pointees using
+  // QualType::getPointeeType().
+  //
+  // However, getPointeeType could leap over our interests: The QT::getAs<T>()
+  // invoked would implicitly desugar the type. Consequently, if the
+  // SubstTemplateTypeParmType is encompassed within a TypedefType, we may lose
+  // the chance to visit it.
+  // For example, given a QT that represents `std::vector<int *>::value_type`:
+  //  `-ElaboratedType 'value_type' sugar
+  //    `-TypedefType 'vector<int *>::value_type' sugar
+  //      |-Typedef 'value_type'
+  //      `-SubstTemplateTypeParmType 'int *' sugar class depth 0 index 0 T
+  //        |-ClassTemplateSpecialization 'vector'
+  //        `-PointerType 'int *'
+  //          `-BuiltinType 'int'
+  // Applying `getPointeeType` to QT results in 'int', a child of our target
+  // node SubstTemplateTypeParmType.
+  //
+  // As such, we always prefer the desugared over the pointee for next type
+  // in the iteration. It could avoid the getPointeeType's implicit desugaring.
   while (true) {
-    QualType Desugared =
-        PeelWrappers(QT->getLocallyUnqualifiedSingleStepDesugaredType());
-    if (Desugared == QT)
-      break;
-    if (Desugared->getAs<SubstTemplateTypeParmType>())
+    if (QT->getAs<SubstTemplateTypeParmType>())
       return true;
-    QT = Desugared;
+    QualType Desugared = QT->getLocallyUnqualifiedSingleStepDesugaredType();
+    if (Desugared != QT)
+      QT = Desugared;
+    else if (auto Peeled = PeelWrapper(Desugared); Peeled != QT)
+      QT = Peeled;
+    else
+      break;
   }
   return false;
 }
@@ -459,6 +331,84 @@ QualType maybeDesugar(ASTContext &AST, QualType QT) {
 
   return QT;
 }
+
+// Given a callee expression `Fn`, if the call is through a function pointer,
+// try to find the declaration of the corresponding function pointer type,
+// so that we can recover argument names from it.
+// FIXME: This function is mostly duplicated in SemaCodeComplete.cpp; unify.
+static FunctionProtoTypeLoc getPrototypeLoc(Expr *Fn) {
+  TypeLoc Target;
+  Expr *NakedFn = Fn->IgnoreParenCasts();
+  if (const auto *T = NakedFn->getType().getTypePtr()->getAs<TypedefType>()) {
+    Target = T->getDecl()->getTypeSourceInfo()->getTypeLoc();
+  } else if (const auto *DR = dyn_cast<DeclRefExpr>(NakedFn)) {
+    const auto *D = DR->getDecl();
+    if (const auto *const VD = dyn_cast<VarDecl>(D)) {
+      Target = VD->getTypeSourceInfo()->getTypeLoc();
+    }
+  }
+
+  if (!Target)
+    return {};
+
+  // Unwrap types that may be wrapping the function type
+  while (true) {
+    if (auto P = Target.getAs<PointerTypeLoc>()) {
+      Target = P.getPointeeLoc();
+      continue;
+    }
+    if (auto A = Target.getAs<AttributedTypeLoc>()) {
+      Target = A.getModifiedLoc();
+      continue;
+    }
+    if (auto P = Target.getAs<ParenTypeLoc>()) {
+      Target = P.getInnerLoc();
+      continue;
+    }
+    break;
+  }
+
+  if (auto F = Target.getAs<FunctionProtoTypeLoc>()) {
+    // In some edge cases the AST can contain a "trivial" FunctionProtoTypeLoc
+    // which has null parameters. Avoid these as they don't contain useful
+    // information.
+    if (llvm::all_of(F.getParams(), llvm::identity<ParmVarDecl *>()))
+      return F;
+  }
+
+  return {};
+}
+
+ArrayRef<const ParmVarDecl *>
+maybeDropCxxExplicitObjectParameters(ArrayRef<const ParmVarDecl *> Params) {
+  if (!Params.empty() && Params.front()->isExplicitObjectParameter())
+    Params = Params.drop_front(1);
+  return Params;
+}
+
+template <typename R>
+std::string joinAndTruncate(const R &Range, size_t MaxLength) {
+  std::string Out;
+  llvm::raw_string_ostream OS(Out);
+  llvm::ListSeparator Sep(", ");
+  for (auto &&Element : Range) {
+    OS << Sep;
+    if (Out.size() + Element.size() >= MaxLength) {
+      OS << "...";
+      break;
+    }
+    OS << Element;
+  }
+  OS.flush();
+  return Out;
+}
+
+struct Callee {
+  // Only one of Decl or Loc is set.
+  // Loc is for calls through function pointers.
+  const FunctionDecl *Decl = nullptr;
+  FunctionProtoTypeLoc Loc;
+};
 
 class InlayHintVisitor : public RecursiveASTVisitor<InlayHintVisitor> {
 public:
@@ -499,33 +449,85 @@ public:
       return true;
     }
 
-    processCall(E->getConstructor(), {E->getArgs(), E->getNumArgs()});
+    Callee Callee;
+    Callee.Decl = E->getConstructor();
+    if (!Callee.Decl)
+      return true;
+    processCall(Callee, E->getParenOrBraceRange().getEnd(),
+                {E->getArgs(), E->getNumArgs()});
     return true;
+  }
+
+  // Carefully recurse into PseudoObjectExprs, which typically incorporate
+  // a syntactic expression and several semantic expressions.
+  bool TraversePseudoObjectExpr(PseudoObjectExpr *E) {
+    Expr *SyntacticExpr = E->getSyntacticForm();
+    if (isa<CallExpr>(SyntacticExpr))
+      // Since the counterpart semantics usually get the identical source
+      // locations as the syntactic one, visiting those would end up presenting
+      // confusing hints e.g., __builtin_dump_struct.
+      // Thus, only traverse the syntactic forms if this is written as a
+      // CallExpr. This leaves the door open in case the arguments in the
+      // syntactic form could possibly get parameter names.
+      return RecursiveASTVisitor<InlayHintVisitor>::TraverseStmt(SyntacticExpr);
+    // We don't want the hints for some of the MS property extensions.
+    // e.g.
+    // struct S {
+    //   __declspec(property(get=GetX, put=PutX)) int x[];
+    //   void PutX(int y);
+    //   void Work(int y) { x = y; } // Bad: `x = y: y`.
+    // };
+    if (isa<BinaryOperator>(SyntacticExpr))
+      return true;
+    // FIXME: Handle other forms of a pseudo object expression.
+    return RecursiveASTVisitor<InlayHintVisitor>::TraversePseudoObjectExpr(E);
   }
 
   bool VisitCallExpr(CallExpr *E) {
     if (!Cfg.InlayHints.Parameters)
       return true;
 
-    // Do not show parameter hints for operator calls written using operator
-    // syntax or user-defined literals. (Among other reasons, the resulting
-    // hints can look awkard, e.g. the expression can itself be a function
+    bool IsFunctor = isFunctionObjectCallExpr(E);
+    // Do not show parameter hints for user-defined literals or
+    // operator calls except for operator(). (Among other reasons, the resulting
+    // hints can look awkward, e.g. the expression can itself be a function
     // argument and then we'd get two hints side by side).
-    if (isa<CXXOperatorCallExpr>(E) || isa<UserDefinedLiteral>(E))
+    if ((isa<CXXOperatorCallExpr>(E) && !IsFunctor) ||
+        isa<UserDefinedLiteral>(E))
       return true;
 
     auto CalleeDecls = Resolver->resolveCalleeOfCallExpr(E);
     if (CalleeDecls.size() != 1)
       return true;
-    const FunctionDecl *Callee = nullptr;
+
+    Callee Callee;
     if (const auto *FD = dyn_cast<FunctionDecl>(CalleeDecls[0]))
-      Callee = FD;
+      Callee.Decl = FD;
     else if (const auto *FTD = dyn_cast<FunctionTemplateDecl>(CalleeDecls[0]))
-      Callee = FTD->getTemplatedDecl();
-    if (!Callee)
+      Callee.Decl = FTD->getTemplatedDecl();
+    else if (FunctionProtoTypeLoc Loc = getPrototypeLoc(E->getCallee()))
+      Callee.Loc = Loc;
+    else
       return true;
 
-    processCall(Callee, {E->getArgs(), E->getNumArgs()});
+    // N4868 [over.call.object]p3 says,
+    // The argument list submitted to overload resolution consists of the
+    // argument expressions present in the function call syntax preceded by the
+    // implied object argument (E).
+    //
+    // As well as the provision from P0847R7 Deducing This [expr.call]p7:
+    // ...If the function is an explicit object member function and there is an
+    // implied object argument ([over.call.func]), the list of provided
+    // arguments is preceded by the implied object argument for the purposes of
+    // this correspondence...
+    llvm::ArrayRef<const Expr *> Args = {E->getArgs(), E->getNumArgs()};
+    // We don't have the implied object argument through a function pointer
+    // either.
+    if (const CXXMethodDecl *Method =
+            dyn_cast_or_null<CXXMethodDecl>(Callee.Decl))
+      if (IsFunctor || Method->hasCXXExplicitFunctionObjectParameter())
+        Args = Args.drop_front(1);
+    processCall(Callee, E->getRParenLoc(), Args);
     return true;
   }
 
@@ -629,10 +631,15 @@ public:
 
   bool VisitLambdaExpr(LambdaExpr *E) {
     FunctionDecl *D = E->getCallOperator();
-    if (!E->hasExplicitResultType())
-      addReturnTypeHint(D, E->hasExplicitParameters()
-                               ? D->getFunctionTypeLoc().getRParenLoc()
-                               : E->getIntroducerRange().getEnd());
+    if (!E->hasExplicitResultType()) {
+      SourceLocation TypeHintLoc;
+      if (!E->hasExplicitParameters())
+        TypeHintLoc = E->getIntroducerRange().getEnd();
+      else if (auto FTL = D->getFunctionTypeLoc())
+        TypeHintLoc = FTL.getRParenLoc();
+      if (TypeHintLoc.isValid())
+        addReturnTypeHint(D, TypeHintLoc);
+    }
     return true;
   }
 
@@ -651,7 +658,8 @@ public:
         // For structured bindings, print canonical types. This is important
         // because for bindings that use the tuple_element protocol, the
         // non-canonical types would be "tuple_element<I, A>::type".
-        if (auto Type = Binding->getType(); !Type.isNull())
+        if (auto Type = Binding->getType();
+            !Type.isNull() && !Type->isDependentType())
           addTypeHint(Binding->getLocation(), Type.getCanonicalType(),
                       /*Prefix=*/": ");
       }
@@ -713,14 +721,15 @@ public:
     // This is the one we will ultimately attach designators to.
     // It may have subobject initializers inlined without braces. The *semantic*
     // form of the init-list has nested init-lists for these.
-    // getDesignators will look at the semantic form to determine the labels.
+    // getUnwrittenDesignators will look at the semantic form to determine the
+    // labels.
     assert(Syn->isSyntacticForm() && "RAV should not visit implicit code!");
     if (!Cfg.InlayHints.Designators)
       return true;
     if (Syn->isIdiomaticZeroInitializer(AST.getLangOpts()))
       return true;
     llvm::DenseMap<SourceLocation, std::string> Designators =
-        getDesignators(Syn);
+        tidy::utils::getUnwrittenDesignators(Syn);
     for (const Expr *Init : Syn->inits()) {
       if (llvm::isa<DesignatedInitExpr>(Init))
         continue;
@@ -737,25 +746,43 @@ public:
 private:
   using NameVec = SmallVector<StringRef, 8>;
 
-  void processCall(const FunctionDecl *Callee,
+  void processCall(Callee Callee, SourceLocation RParenOrBraceLoc,
                    llvm::ArrayRef<const Expr *> Args) {
-    if (!Cfg.InlayHints.Parameters || Args.size() == 0 || !Callee)
+    assert(Callee.Decl || Callee.Loc);
+
+    if ((!Cfg.InlayHints.Parameters && !Cfg.InlayHints.DefaultArguments) ||
+        Args.size() == 0)
       return;
 
     // The parameter name of a move or copy constructor is not very interesting.
-    if (auto *Ctor = dyn_cast<CXXConstructorDecl>(Callee))
-      if (Ctor->isCopyOrMoveConstructor())
-        return;
+    if (Callee.Decl)
+      if (auto *Ctor = dyn_cast<CXXConstructorDecl>(Callee.Decl))
+        if (Ctor->isCopyOrMoveConstructor())
+          return;
 
+    SmallVector<std::string> FormattedDefaultArgs;
+    bool HasNonDefaultArgs = false;
+
+    ArrayRef<const ParmVarDecl *> Params, ForwardedParams;
     // Resolve parameter packs to their forwarded parameter
-    auto ForwardedParams = resolveForwardingParameters(Callee);
+    SmallVector<const ParmVarDecl *> ForwardedParamsStorage;
+    if (Callee.Decl) {
+      Params = maybeDropCxxExplicitObjectParameters(Callee.Decl->parameters());
+      ForwardedParamsStorage = resolveForwardingParameters(Callee.Decl);
+      ForwardedParams =
+          maybeDropCxxExplicitObjectParameters(ForwardedParamsStorage);
+    } else {
+      Params = maybeDropCxxExplicitObjectParameters(Callee.Loc.getParams());
+      ForwardedParams = {Params.begin(), Params.end()};
+    }
 
     NameVec ParameterNames = chooseParameterNames(ForwardedParams);
 
     // Exclude setters (i.e. functions with one argument whose name begins with
     // "set"), and builtins like std::move/forward/... as their parameter name
     // is also not likely to be interesting.
-    if (isSetter(Callee, ParameterNames) || isSimpleBuiltin(Callee))
+    if (Callee.Decl &&
+        (isSetter(Callee.Decl, ParameterNames) || isSimpleBuiltin(Callee.Decl)))
       return;
 
     for (size_t I = 0; I < ParameterNames.size() && I < Args.size(); ++I) {
@@ -767,15 +794,43 @@ private:
       }
 
       StringRef Name = ParameterNames[I];
-      bool NameHint = shouldHintName(Args[I], Name);
-      bool ReferenceHint =
-          shouldHintReference(Callee->getParamDecl(I), ForwardedParams[I]);
+      const bool NameHint =
+          shouldHintName(Args[I], Name) && Cfg.InlayHints.Parameters;
+      const bool ReferenceHint =
+          shouldHintReference(Params[I], ForwardedParams[I]) &&
+          Cfg.InlayHints.Parameters;
 
-      if (NameHint || ReferenceHint) {
+      const bool IsDefault = isa<CXXDefaultArgExpr>(Args[I]);
+      HasNonDefaultArgs |= !IsDefault;
+      if (IsDefault) {
+        if (Cfg.InlayHints.DefaultArguments) {
+          const auto SourceText = Lexer::getSourceText(
+              CharSourceRange::getTokenRange(Params[I]->getDefaultArgRange()),
+              AST.getSourceManager(), AST.getLangOpts());
+          const auto Abbrev =
+              (SourceText.size() > Cfg.InlayHints.TypeNameLimit ||
+               SourceText.contains("\n"))
+                  ? "..."
+                  : SourceText;
+          if (NameHint)
+            FormattedDefaultArgs.emplace_back(
+                llvm::formatv("{0}: {1}", Name, Abbrev));
+          else
+            FormattedDefaultArgs.emplace_back(llvm::formatv("{0}", Abbrev));
+        }
+      } else if (NameHint || ReferenceHint) {
         addInlayHint(Args[I]->getSourceRange(), HintSide::Left,
                      InlayHintKind::Parameter, ReferenceHint ? "&" : "",
                      NameHint ? Name : "", ": ");
       }
+    }
+
+    if (!FormattedDefaultArgs.empty()) {
+      std::string Hint =
+          joinAndTruncate(FormattedDefaultArgs, Cfg.InlayHints.TypeNameLimit);
+      addInlayHint(SourceRange{RParenOrBraceLoc}, HintSide::Left,
+                   InlayHintKind::DefaultArgument,
+                   HasNonDefaultArgs ? ", " : "", Hint, "");
     }
   }
 
@@ -890,7 +945,7 @@ private:
     if (!SourcePrefix.consume_back(ParamName))
       return false;
     SourcePrefix = SourcePrefix.rtrim(IgnoreChars);
-    return SourcePrefix.endswith("/*");
+    return SourcePrefix.ends_with("/*");
   }
 
   // If "E" spells a single unqualified identifier, return that name.
@@ -909,7 +964,7 @@ private:
     return {};
   }
 
-  NameVec chooseParameterNames(SmallVector<const ParmVarDecl *> Parameters) {
+  NameVec chooseParameterNames(ArrayRef<const ParmVarDecl *> Parameters) {
     NameVec ParameterNames;
     for (const auto *P : Parameters) {
       if (isExpandedFromParameterPack(P)) {
@@ -945,7 +1000,7 @@ private:
       if (auto *Def = Callee->getDefinition()) {
         auto I = std::distance(Callee->param_begin(),
                                llvm::find(Callee->parameters(), P));
-        if (I < Callee->getNumParams()) {
+        if (I < (int)Callee->getNumParams()) {
           return Def->getParamDecl(I);
         }
       }
@@ -984,6 +1039,7 @@ private:
       CHECK_KIND(Type, DeducedTypes);
       CHECK_KIND(Designator, Designators);
       CHECK_KIND(BlockEnd, BlockEnd);
+      CHECK_KIND(DefaultArgument, DefaultArguments);
 #undef CHECK_KIND
     }
 
@@ -993,8 +1049,9 @@ private:
       return;
     bool PadLeft = Prefix.consume_front(" ");
     bool PadRight = Suffix.consume_back(" ");
-    Results.push_back(InlayHint{LSPPos, (Prefix + Label + Suffix).str(), Kind,
-                                PadLeft, PadRight, LSPRange});
+    Results.push_back(InlayHint{LSPPos,
+                                /*label=*/{(Prefix + Label + Suffix).str()},
+                                Kind, PadLeft, PadRight, LSPRange});
   }
 
   // Get the range of the main file that *exactly* corresponds to R.
@@ -1109,6 +1166,12 @@ private:
     Position HintEnd = sourceLocToPosition(
         SM, RBraceLoc.getLocWithOffset(HintRangeText.size()));
     return Range{HintStart, HintEnd};
+  }
+
+  static bool isFunctionObjectCallExpr(CallExpr *E) noexcept {
+    if (auto *CallExpr = dyn_cast<CXXOperatorCallExpr>(E))
+      return CallExpr->getOperator() == OverloadedOperatorKind::OO_Call;
+    return false;
   }
 
   std::vector<InlayHint> &Results;

@@ -1,5 +1,5 @@
 ! Test allocatable assignments
-! RUN: bbc --use-desc-for-alloc=false -emit-fir %s -o - | FileCheck %s
+! RUN: bbc --use-desc-for-alloc=false -emit-fir -hlfir=false %s -o - | FileCheck %s
 
 module alloc_assign
   type t
@@ -181,7 +181,7 @@ subroutine test_dyn_char_scalar(x, n)
 ! CHECK:  %[[c0_i32:.*]] = arith.constant 0 : i32
 ! CHECK:  %[[VAL_2B:.*]] = arith.cmpi sgt, %[[VAL_2A]], %[[c0_i32]] : i32
 ! CHECK:  %[[VAL_2:.*]] = arith.select %[[VAL_2B]], %[[VAL_2A]], %[[c0_i32]] : i32
-! CHECK:  %[[VAL_3:.*]] = fir.address_of(@_QQcl.48656C6C6F20776F726C6421) : !fir.ref<!fir.char<1,12>>
+! CHECK:  %[[VAL_3:.*]] = fir.address_of(@_QQclX48656C6C6F20776F726C6421) : !fir.ref<!fir.char<1,12>>
 ! CHECK:  %[[VAL_4:.*]] = arith.constant 12 : index
 ! CHECK:  %[[VAL_5:.*]] = fir.load %[[VAL_0]] : !fir.ref<!fir.box<!fir.heap<!fir.char<1,?>>>>
 ! CHECK:  %[[VAL_6:.*]] = fir.box_addr %[[VAL_5]] : (!fir.box<!fir.heap<!fir.char<1,?>>>) -> !fir.heap<!fir.char<1,?>>
@@ -678,7 +678,7 @@ subroutine test_scalar_rhs(x, y)
   ! CHECK: } else {
   ! CHECK: %[[error_msg_addr:.*]] = fir.address_of(@[[error_message:.*]]) : !fir.ref<!fir.char<1,76>>
   ! CHECK: %[[msg_addr_cast:.*]] = fir.convert %[[error_msg_addr]] : (!fir.ref<!fir.char<1,76>>) -> !fir.ref<i8>
-  ! CHECK: %{{.*}} = fir.call @_FortranAReportFatalUserError(%[[msg_addr_cast]], %{{.*}}, %{{.*}}) {{.*}}: (!fir.ref<i8>, !fir.ref<i8>, i32) -> none
+  ! CHECK: fir.call @_FortranAReportFatalUserError(%[[msg_addr_cast]], %{{.*}}, %{{.*}}) {{.*}}: (!fir.ref<i8>, !fir.ref<i8>, i32) -> ()
   ! CHECK-NOT: allocmem
   ! CHECK: }
   x = y
@@ -736,8 +736,8 @@ subroutine test_cst_char(x, c)
   character(10), allocatable  :: x(:)
   character(12) :: c(20)
 ! CHECK:         %[[VAL_2:.*]]:2 = fir.unboxchar %[[VAL_1]] : (!fir.boxchar<1>) -> (!fir.ref<!fir.char<1,?>>, index)
-! CHECK:         %[[VAL_3:.*]] = arith.constant 12 : index
 ! CHECK:         %[[VAL_4:.*]] = fir.convert %[[VAL_2]]#0 : (!fir.ref<!fir.char<1,?>>) -> !fir.ref<!fir.array<20x!fir.char<1,12>>>
+! CHECK:         %[[VAL_3:.*]] = arith.constant 12 : index
 ! CHECK:         %[[VAL_5:.*]] = arith.constant 20 : index
 ! CHECK:         %[[VAL_6:.*]] = arith.constant 20 : index
 ! CHECK:         %[[VAL_7:.*]] = fir.shape %[[VAL_5]] : (index) -> !fir.shape<1>
@@ -1049,7 +1049,7 @@ subroutine test_derived_with_init(x, y)
 ! CHECK:    %[[VAL_11:.*]] = fir.allocmem !fir.type<_QMalloc_assignFtest_derived_with_initTt{a:!fir.box<!fir.heap<!fir.array<?xi32>>>}> {uniq_name = ".auto.alloc"}
 ! CHECK:    %[[VAL_12:.*]] = fir.embox %[[VAL_11]] : (!fir.heap<!fir.type<_QMalloc_assignFtest_derived_with_initTt{a:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> !fir.box<!fir.heap<!fir.type<_QMalloc_assignFtest_derived_with_initTt{a:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>>
 ! CHECK:    %[[VAL_15:.*]] = fir.convert %[[VAL_12]] : (!fir.box<!fir.heap<!fir.type<_QMalloc_assignFtest_derived_with_initTt{a:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>>) -> !fir.box<none>
-! CHECK:    fir.call @_FortranAInitialize(%[[VAL_15]], %{{.*}}, %{{.*}}) {{.*}}: (!fir.box<none>, !fir.ref<i8>, i32) -> none
+! CHECK:    fir.call @_FortranAInitialize(%[[VAL_15]], %{{.*}}, %{{.*}}) {{.*}}: (!fir.box<none>, !fir.ref<i8>, i32) -> ()
 ! CHECK:    fir.result %[[VAL_11]] : !fir.heap<!fir.type<_QMalloc_assignFtest_derived_with_initTt{a:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>
 ! CHECK:  } else {
 ! CHECK:    fir.result %{{.*}} : !fir.heap<!fir.type<_QMalloc_assignFtest_derived_with_initTt{a:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>

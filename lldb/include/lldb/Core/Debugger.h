@@ -19,9 +19,9 @@
 #include "lldb/Core/FormatEntity.h"
 #include "lldb/Core/IOHandler.h"
 #include "lldb/Core/SourceManager.h"
-#include "lldb/Core/StreamFile.h"
 #include "lldb/Core/UserSettingsController.h"
 #include "lldb/Host/HostThread.h"
+#include "lldb/Host/StreamFile.h"
 #include "lldb/Host/Terminal.h"
 #include "lldb/Target/ExecutionContext.h"
 #include "lldb/Target/Platform.h"
@@ -40,6 +40,7 @@
 #include "lldb/lldb-types.h"
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/DynamicLibrary.h"
@@ -52,7 +53,7 @@
 
 namespace llvm {
 class raw_ostream;
-class ThreadPool;
+class ThreadPoolInterface;
 } // namespace llvm
 
 namespace lldb_private {
@@ -78,17 +79,9 @@ class Debugger : public std::enable_shared_from_this<Debugger>,
                  public UserID,
                  public Properties {
 public:
-  /// Broadcaster event bits definitions.
-  enum {
-    eBroadcastBitProgress = (1 << 0),
-    eBroadcastBitWarning = (1 << 1),
-    eBroadcastBitError = (1 << 2),
-    eBroadcastSymbolChange = (1 << 3),
-  };
-
   using DebuggerList = std::vector<lldb::DebuggerSP>;
 
-  static ConstString GetStaticBroadcasterClass();
+  static llvm::StringRef GetStaticBroadcasterClass();
 
   /// Get the public broadcaster for this debugger.
   Broadcaster &GetBroadcaster() { return m_broadcaster; }
@@ -241,10 +234,6 @@ public:
 
   void ClearIOHandlers();
 
-  bool GetCloseInputOnEOF() const;
-
-  void SetCloseInputOnEOF(bool b);
-
   bool EnableLog(llvm::StringRef channel,
                  llvm::ArrayRef<const char *> categories,
                  llvm::StringRef log_file, uint32_t log_options,
@@ -291,7 +280,15 @@ public:
 
   bool SetTerminalWidth(uint64_t term_width);
 
+  uint64_t GetTerminalHeight() const;
+
+  bool SetTerminalHeight(uint64_t term_height);
+
   llvm::StringRef GetPrompt() const;
+
+  llvm::StringRef GetPromptAnsiPrefix() const;
+
+  llvm::StringRef GetPromptAnsiSuffix() const;
 
   void SetPrompt(llvm::StringRef p);
   void SetPrompt(const char *) = delete;
@@ -320,6 +317,12 @@ public:
   llvm::StringRef GetAutosuggestionAnsiPrefix() const;
 
   llvm::StringRef GetAutosuggestionAnsiSuffix() const;
+
+  llvm::StringRef GetRegexMatchAnsiPrefix() const;
+
+  llvm::StringRef GetRegexMatchAnsiSuffix() const;
+
+  bool GetShowDontUsePoHint() const;
 
   bool GetUseSourceCache() const;
 
@@ -364,6 +367,10 @@ public:
   bool GetNotifyVoid() const;
 
   const std::string &GetInstanceName() { return m_instance_name; }
+
+  bool GetShowInlineDiagnostics() const;
+
+  bool SetShowInlineDiagnostics(bool);
 
   bool LoadPlugin(const FileSpec &spec, Status &error);
 
@@ -419,55 +426,55 @@ public:
   /// hand, use INTERRUPT_REQUESTED so this gets done consistently.
   ///
   /// \param[in] formatv
-  /// A formatv string for the interrupt message.  If the elements of the 
+  /// A formatv string for the interrupt message.  If the elements of the
   /// message are expensive to compute, you can use the no-argument form of
-  /// InterruptRequested, then make up the report using REPORT_INTERRUPTION. 
-  /// 
+  /// InterruptRequested, then make up the report using REPORT_INTERRUPTION.
+  ///
   /// \return
   ///  A boolean value, if \b true an interruptible operation should interrupt
   ///  itself.
   template <typename... Args>
-  bool InterruptRequested(const char *cur_func, 
-                          const char *formatv, Args &&... args) {
+  bool InterruptRequested(const char *cur_func, const char *formatv,
+                          Args &&...args) {
     bool ret_val = InterruptRequested();
     if (ret_val) {
       if (!formatv)
         formatv = "Unknown message";
       if (!cur_func)
         cur_func = "<UNKNOWN>";
-      ReportInterruption(InterruptionReport(cur_func, 
-                                            llvm::formatv(formatv, 
-                                            std::forward<Args>(args)...)));
+      ReportInterruption(InterruptionReport(
+          cur_func, llvm::formatv(formatv, std::forward<Args>(args)...)));
     }
     return ret_val;
   }
-  
-  
+
   /// This handy define will keep you from having to generate a report for the
   /// interruption by hand.  Use this except in the case where the arguments to
   /// the message description are expensive to compute.
-#define INTERRUPT_REQUESTED(debugger, ...) \
-    (debugger).InterruptRequested(__func__, __VA_ARGS__)
+#define INTERRUPT_REQUESTED(debugger, ...)                                     \
+  (debugger).InterruptRequested(__func__, __VA_ARGS__)
 
   // This form just queries for whether to interrupt, and does no reporting:
   bool InterruptRequested();
-  
+
   // FIXME: Do we want to capture a backtrace at the interruption point?
   class InterruptionReport {
   public:
-    InterruptionReport(std::string function_name, std::string description) :
-        m_function_name(std::move(function_name)), 
-        m_description(std::move(description)),
-        m_interrupt_time(std::chrono::system_clock::now()),
-        m_thread_id(llvm::get_threadid()) {}
-        
-    InterruptionReport(std::string function_name, 
-        const llvm::formatv_object_base &payload);
+    InterruptionReport(std::string function_name, std::string description)
+        : m_function_name(std::move(function_name)),
+          m_description(std::move(description)),
+          m_interrupt_time(std::chrono::system_clock::now()),
+          m_thread_id(llvm::get_threadid()) {}
 
-  template <typename... Args>
-  InterruptionReport(std::string function_name,
-              const char *format, Args &&... args) :
-    InterruptionReport(function_name, llvm::formatv(format, std::forward<Args>(args)...)) {}
+    InterruptionReport(std::string function_name,
+                       const llvm::formatv_object_base &payload);
+
+    template <typename... Args>
+    InterruptionReport(std::string function_name, const char *format,
+                       Args &&...args)
+        : InterruptionReport(
+              function_name,
+              llvm::formatv(format, std::forward<Args>(args)...)) {}
 
     std::string m_function_name;
     std::string m_description;
@@ -475,14 +482,13 @@ public:
     const uint64_t m_thread_id;
   };
   void ReportInterruption(const InterruptionReport &report);
-#define REPORT_INTERRUPTION(debugger, ...) \
-    (debugger).ReportInterruption(Debugger::InterruptionReport(__func__, \
-                                                        __VA_ARGS__))
+#define REPORT_INTERRUPTION(debugger, ...)                                     \
+  (debugger).ReportInterruption(                                               \
+      Debugger::InterruptionReport(__func__, __VA_ARGS__))
 
   static DebuggerList DebuggersRequestingInterruption();
 
 public:
-  
   // This is for use in the command interpreter, when you either want the
   // selected target, or if no target is present you want to prime the dummy
   // target with entities that will be copied over to new targets.
@@ -493,8 +499,8 @@ public:
     return m_broadcaster_manager_sp;
   }
 
-  /// Shared thread poll. Use only with ThreadPoolTaskGroup.
-  static llvm::ThreadPool &GetThreadPool();
+  /// Shared thread pool. Use only with ThreadPoolTaskGroup.
+  static llvm::ThreadPoolInterface &GetThreadPool();
 
   /// Report warning events.
   ///
@@ -562,9 +568,24 @@ public:
 
   static void ReportSymbolChange(const ModuleSpec &module_spec);
 
+  /// DEPRECATED: We used to only support one Destroy callback. Now that we
+  /// support Add and Remove, you should only remove callbacks that you added.
+  /// Use Add and Remove instead.
+  ///
+  /// Clear all previously added callbacks and only add the given one.
   void
   SetDestroyCallback(lldb_private::DebuggerDestroyCallback destroy_callback,
                      void *baton);
+
+  /// Add a callback for when the debugger is destroyed. Return a token, which
+  /// can be used to remove said callback. Multiple callbacks can be added by
+  /// calling this function multiple times, and will be invoked in FIFO order.
+  lldb::callback_token_t
+  AddDestroyCallback(lldb_private::DebuggerDestroyCallback destroy_callback,
+                     void *baton);
+
+  /// Remove the specified callback. Return true if successful.
+  bool RemoveDestroyCallback(lldb::callback_token_t token);
 
   /// Manually start the global event handler thread. It is useful to plugins
   /// that directly use the \a lldb_private namespace and want to use the
@@ -587,6 +608,7 @@ protected:
   friend class CommandInterpreter;
   friend class REPL;
   friend class Progress;
+  friend class ProgressManager;
 
   /// Report progress events.
   ///
@@ -617,13 +639,13 @@ protected:
   ///   debugger identifier that this progress should be delivered to. If this
   ///   optional parameter does not have a value, the progress will be
   ///   delivered to all debuggers.
-  static void ReportProgress(uint64_t progress_id, std::string title,
-                             std::string details, uint64_t completed,
-                             uint64_t total,
-                             std::optional<lldb::user_id_t> debugger_id);
+  static void
+  ReportProgress(uint64_t progress_id, std::string title, std::string details,
+                 uint64_t completed, uint64_t total,
+                 std::optional<lldb::user_id_t> debugger_id,
+                 uint32_t progress_category_bit = lldb::eBroadcastBitProgress);
 
-  static void ReportDiagnosticImpl(DiagnosticEventData::Type type,
-                                   std::string message,
+  static void ReportDiagnosticImpl(lldb::Severity severity, std::string message,
                                    std::optional<lldb::user_id_t> debugger_id,
                                    std::once_flag *once);
 
@@ -723,8 +745,19 @@ protected:
   lldb::TargetSP m_dummy_target_sp;
   Diagnostics::CallbackID m_diagnostics_callback_id;
 
-  lldb_private::DebuggerDestroyCallback m_destroy_callback = nullptr;
-  void *m_destroy_callback_baton = nullptr;
+  std::mutex m_destroy_callback_mutex;
+  lldb::callback_token_t m_destroy_callback_next_token = 0;
+  struct DestroyCallbackInfo {
+    DestroyCallbackInfo() {}
+    DestroyCallbackInfo(lldb::callback_token_t token,
+                        lldb_private::DebuggerDestroyCallback callback,
+                        void *baton)
+        : token(token), callback(callback), baton(baton) {}
+    lldb::callback_token_t token;
+    lldb_private::DebuggerDestroyCallback callback;
+    void *baton;
+  };
+  llvm::SmallVector<DestroyCallbackInfo, 2> m_destroy_callbacks;
 
   uint32_t m_interrupt_requested = 0; ///< Tracks interrupt requests
   std::mutex m_interrupt_mutex;

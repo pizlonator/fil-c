@@ -25,7 +25,7 @@
 
 namespace llvm {
 
-class LLVM_EXTERNAL_VISIBILITY Any {
+class LLVM_ABI Any {
 
   // The `Typeid<T>::Id` static data member below is a globally unique
   // identifier for the type `T`. It is explicitly marked with default
@@ -134,12 +134,6 @@ private:
 // .bss is zero-initialized).
 // See also https://github.com/llvm/llvm-project/issues/62270
 template <typename T> char Any::TypeId<T>::Id = 1;
-
-template <typename T>
-LLVM_DEPRECATED("Use any_cast(Any*) != nullptr instead", "any_cast")
-bool any_isa(const Any &Value) {
-  return Value.isa<T>();
-}
 
 template <class T> T any_cast(const Any &Value) {
   assert(Value.isa<T>() && "Bad any cast!");

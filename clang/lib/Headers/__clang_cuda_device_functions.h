@@ -502,8 +502,8 @@ __DEVICE__ unsigned int __pm0(void) { return __nvvm_read_ptx_sreg_pm0(); }
 __DEVICE__ unsigned int __pm1(void) { return __nvvm_read_ptx_sreg_pm1(); }
 __DEVICE__ unsigned int __pm2(void) { return __nvvm_read_ptx_sreg_pm2(); }
 __DEVICE__ unsigned int __pm3(void) { return __nvvm_read_ptx_sreg_pm3(); }
-__DEVICE__ int __popc(int __a) { return __nv_popc(__a); }
-__DEVICE__ int __popcll(long long __a) { return __nv_popcll(__a); }
+__DEVICE__ int __popc(unsigned int __a) { return __nv_popc(__a); }
+__DEVICE__ int __popcll(unsigned long long __a) { return __nv_popcll(__a); }
 __DEVICE__ float __powf(float __a, float __b) {
   return __nv_fast_powf(__a, __b);
 }
@@ -529,6 +529,20 @@ __DEVICE__ void __threadfence(void) { __nvvm_membar_gl(); }
 __DEVICE__ void __threadfence_block(void) { __nvvm_membar_cta(); };
 __DEVICE__ void __threadfence_system(void) { __nvvm_membar_sys(); };
 __DEVICE__ void __trap(void) { __asm__ __volatile__("trap;"); }
+__DEVICE__ unsigned short
+__usAtomicCAS(unsigned short *__p, unsigned short __cmp, unsigned short __v) {
+  return __nvvm_atom_cas_gen_us(__p, __cmp, __v);
+}
+__DEVICE__ unsigned short __usAtomicCAS_block(unsigned short *__p,
+                                              unsigned short __cmp,
+                                              unsigned short __v) {
+  return __nvvm_atom_cta_cas_gen_us(__p, __cmp, __v);
+}
+__DEVICE__ unsigned short __usAtomicCAS_system(unsigned short *__p,
+                                               unsigned short __cmp,
+                                               unsigned short __v) {
+  return __nvvm_atom_sys_cas_gen_us(__p, __cmp, __v);
+}
 __DEVICE__ unsigned int __uAtomicAdd(unsigned int *__p, unsigned int __v) {
   return __nvvm_atom_add_gen_i((int *)__p, __v);
 }

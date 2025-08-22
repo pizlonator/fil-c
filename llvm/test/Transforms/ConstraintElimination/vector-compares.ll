@@ -13,20 +13,17 @@ define void @test_vector_iv(i32 %x, i1 %c) {
 ; CHECK-NEXT:    br i1 [[C_1]], label [[LOOP:%.*]], label [[BB2]]
 ; CHECK:       loop:
 ; CHECK-NEXT:    [[IV:%.*]] = phi <4 x i8> [ zeroinitializer, [[PRE]] ], [ [[IV_NEXT:%.*]], [[LOOP]] ]
-; CHECK-NEXT:    [[T_1:%.*]] = icmp ule i32 [[X]], 10
 ; CHECK-NEXT:    call void @use(i1 true)
-; CHECK-NEXT:    [[F_1:%.*]] = icmp ugt i32 [[X]], 10
 ; CHECK-NEXT:    call void @use(i1 false)
 ; CHECK-NEXT:    [[C_2:%.*]] = icmp ule i32 [[X]], 9
 ; CHECK-NEXT:    call void @use(i1 [[C_2]])
 ; CHECK-NEXT:    [[C_3:%.*]] = icmp ugt i32 [[X]], 9
 ; CHECK-NEXT:    call void @use(i1 [[C_3]])
-; CHECK-NEXT:    [[IV_NEXT]] = add nuw nsw <4 x i8> [[IV]], <i8 1, i8 1, i8 1, i8 1>
+; CHECK-NEXT:    [[IV_NEXT]] = add nuw nsw <4 x i8> [[IV]], splat (i8 1)
 ; CHECK-NEXT:    [[E:%.*]] = extractelement <4 x i8> [[IV_NEXT]], i8 2
 ; CHECK-NEXT:    [[EC:%.*]] = icmp eq i8 [[E]], 100
 ; CHECK-NEXT:    br i1 [[EC]], label [[EXIT:%.*]], label [[LOOP]]
 ; CHECK:       exit:
-; CHECK-NEXT:    [[C_4:%.*]] = icmp ule i32 [[X]], 10
 ; CHECK-NEXT:    call void @use(i1 true)
 ; CHECK-NEXT:    ret void
 ; CHECK:       bb2:

@@ -26,13 +26,13 @@ using namespace lldb_private;
 using namespace llvm;
 using namespace llgs_tests;
 
-#ifdef SendMessage
-#undef SendMessage
-#endif
+static std::chrono::seconds GetDefaultTimeout() {
+  return std::chrono::seconds{10};
+}
 
 TestClient::TestClient(std::unique_ptr<Connection> Conn) {
   SetConnection(std::move(Conn));
-  SetPacketTimeout(std::chrono::seconds(10));
+  SetPacketTimeout(GetDefaultTimeout());
 }
 
 TestClient::~TestClient() {
@@ -59,10 +59,13 @@ Expected<std::unique_ptr<TestClient>> TestClient::launch(StringRef Log) {
 }
 
 Expected<std::unique_ptr<TestClient>> TestClient::launch(StringRef Log, ArrayRef<StringRef> InferiorArgs) {
-  return launchCustom(Log, {}, InferiorArgs);
+  return launchCustom(Log, false, {}, InferiorArgs);
 }
 
-Expected<std::unique_ptr<TestClient>> TestClient::launchCustom(StringRef Log, ArrayRef<StringRef> ServerArgs, ArrayRef<StringRef> InferiorArgs) {
+Expected<std::unique_ptr<TestClient>>
+TestClient::launchCustom(StringRef Log, bool disable_stdio,
+                         ArrayRef<StringRef> ServerArgs,
+                         ArrayRef<StringRef> InferiorArgs) {
   const ArchSpec &arch_spec = HostInfo::GetArchitecture();
   Args args;
   args.AppendArgument(LLDB_SERVER);
@@ -84,7 +87,7 @@ Expected<std::unique_ptr<TestClient>> TestClient::launchCustom(StringRef Log, Ar
   const std::string &LocalhostIP = *LocalhostIPOrErr;
 
   Status status;
-  TCPSocket listen_socket(true, false);
+  TCPSocket listen_socket(true);
   status = listen_socket.Listen(LocalhostIP + ":0", 5);
   if (status.Fail())
     return status.ToError();
@@ -111,12 +114,17 @@ Expected<std::unique_ptr<TestClient>> TestClient::launchCustom(StringRef Log, Ar
   // Accept().
   Info.SetMonitorProcessCallback(&ProcessLaunchInfo::NoOpMonitorCallback);
 
+  if (disable_stdio)
+    Info.GetFlags().Set(lldb::eLaunchFlagDisableSTDIO);
   status = Host::LaunchProcess(Info);
   if (status.Fail())
     return status.ToError();
 
   Socket *accept_socket;
-  listen_socket.Accept(accept_socket);
+  if (llvm::Error E =
+          listen_socket.Accept(2 * GetDefaultTimeout(), accept_socket)
+              .takeError())
+    return E;
   auto Conn = std::make_unique<ConnectionFileDescriptor>(accept_socket);
   auto Client = std::unique_ptr<TestClient>(new TestClient(std::move(Conn)));
 

@@ -53,7 +53,6 @@ vec3 f5(vec3 value) {
   }};
 }
 
-// rdar://problem/8154689
 void f6(void) {
   int x;
   long ids[] = { (long) &x };  
@@ -186,25 +185,6 @@ void nonzeroMemsetf64(void) {
   // CHECK-NOT: store
   // CHECK-NOT: memcpy
   // CHECK: call void @llvm.memset.p0.i32(ptr {{.*}}, i8 68, i32 56, i1 false)
-}
-
-void nonzeroPaddedUnionMemset(void) {
-  union U { char c; int i; };
-  union U arr[9] = { 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, };
-  // CHECK-LABEL: @nonzeroPaddedUnionMemset(
-  // CHECK-NOT: store
-  // CHECK-NOT: memcpy
-  // CHECK: call void @llvm.memset.p0.i32(ptr {{.*}}, i8 -16, i32 36, i1 false)
-}
-
-void nonzeroNestedMemset(void) {
-  union U { char c; int i; };
-  struct S { union U u; short i; };
-  struct S arr[5] = { { {0xF0}, 0xF0F0 }, { {0xF0}, 0xF0F0 }, { {0xF0}, 0xF0F0 }, { {0xF0}, 0xF0F0 }, { {0xF0}, 0xF0F0 }, };
-  // CHECK-LABEL: @nonzeroNestedMemset(
-  // CHECK-NOT: store
-  // CHECK-NOT: memcpy
-  // CHECK: call void @llvm.memset.p0.i32(ptr {{.*}}, i8 -16, i32 40, i1 false)
 }
 
 // PR9257

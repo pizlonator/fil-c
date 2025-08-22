@@ -307,7 +307,7 @@ void run_tests(int size)
 // make a random test set of the chosen size: 
   vector<element_t> buf(length); 
   element_t* buffer = &buf[0]; 
-  element_t* buffer_end = &buf[length]; 
+  element_t* buffer_end = &buf[length - 1] + 1; // HACK to make this work in new libc++ with hardening enabled
   initialize(buffer, buffer + size);            // elements 
   initialize(buffer + size, buffer_end);        // duplicate elements 
   my_random_shuffle(buffer, buffer_end); 

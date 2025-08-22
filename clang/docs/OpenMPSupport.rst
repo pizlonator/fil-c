@@ -13,20 +13,19 @@
 .. contents::
    :local:
 
+==============
 OpenMP Support
 ==============
 
-Clang fully supports OpenMP 4.5. Clang supports offloading to X86_64, AArch64,
-PPC64[LE] and has `basic support for Cuda devices`_.
-
-* #pragma omp declare simd: :part:`Partial`.  We support parsing/semantic
-  analysis + generation of special attributes for X86 target, but still
-  missing the LLVM pass for vectorization.
+Clang fully supports OpenMP 4.5, almost all of 5.0 and most of 5.1/2.
+Clang supports offloading to X86_64, AArch64, PPC64[LE], NVIDIA GPUs (all models) and AMD GPUs (all models).
 
 In addition, the LLVM OpenMP runtime `libomp` supports the OpenMP Tools
 Interface (OMPT) on x86, x86_64, AArch64, and PPC64 on Linux, Windows, and macOS.
+OMPT is also supported for NVIDIA and AMD GPUs.
 
-For the list of supported features from OpenMP 5.0 see `OpenMP implementation details`_.
+For the list of supported features from OpenMP 5.0 and 5.1
+see `OpenMP implementation details`_ and `OpenMP 51 implementation details`_.
 
 General improvements
 ====================
@@ -35,17 +34,6 @@ General improvements
   collapse clause by replacing the expensive remainder operation with
   multiplications and additions.
 
-- The default schedules for the `distribute` and `for` constructs in a
-  parallel region and in SPMD mode have changed to ensure coalesced
-  accesses. For the `distribute` construct, a static schedule is used
-  with a chunk size equal to the number of threads per team (default
-  value of threads or as specified by the `thread_limit` clause if
-  present). For the `for` construct, the schedule is static with chunk
-  size of one.
-
-- Simplified SPMD code generation for `distribute parallel for` when
-  the new default schedules are applicable.
-
 - When using the collapse clause on a loop nest the default behavior
   is to automatically extend the representation of the loop counter to
   64 bits for the cases where the sizes of the collapsed loops are not
@@ -53,24 +41,9 @@ General improvements
   at most 32 bits, compile your program with the
   `-fopenmp-optimistic-collapse`.
 
-.. _basic support for Cuda devices:
 
-Cuda devices support
-====================
-
-Directives execution modes
---------------------------
-
-Clang code generation for target regions supports two modes: the SPMD and
-non-SPMD modes. Clang chooses one of these two modes automatically based on the
-way directives and clauses on those directives are used. The SPMD mode uses a
-simplified set of runtime functions thus increasing performance at the cost of
-supporting some OpenMP features. The non-SPMD mode is the most generic mode and
-supports all currently available OpenMP features. The compiler will always
-attempt to use the SPMD mode wherever possible. SPMD mode will not be used if:
-
-   - The target region contains user code (other than OpenMP-specific
-     directives) in between the `target` and the `parallel` directives.
+GPU devices support
+===================
 
 Data-sharing modes
 ------------------
@@ -81,8 +54,9 @@ performance and can be activated using the `-fopenmp-cuda-mode` flag. In
 `Generic` mode all local variables that can be shared in the parallel regions
 are stored in the global memory. In `Cuda` mode local variables are not shared
 between the threads and it is user responsibility to share the required data
-between the threads in the parallel regions.
-
+between the threads in the parallel regions. Often, the optimizer is able to
+reduce the cost of `Generic` mode to the level of `Cuda` mode, but the flag,
+as well as other assumption flags, can be used for tuning.
 
 Features not supported or with limited support for Cuda devices
 ---------------------------------------------------------------
@@ -94,9 +68,6 @@ Features not supported or with limited support for Cuda devices
 - User-defined reductions are supported only for trivial types.
 
 - Nested parallelism: inner parallel regions are executed sequentially.
-
-- Automatic translation of math functions in target regions to device-specific
-  math functions is not implemented yet.
 
 - Debug information for OpenMP target regions is supported, but sometimes it may
   be required to manually specify the address class of the inspected variables.
@@ -120,9 +91,9 @@ implementation.
 +==============================+==============================================================+==========================+=======================================================================+
 | loop                         | support != in the canonical loop form                        | :good:`done`             | D54441                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| loop                         | #pragma omp loop (directive)                                 | :part:`worked on`        |                                                                       |
+| loop                         | #pragma omp loop (directive)                                 | :part:`partial`          | D145823 (combined forms)                                              |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| loop                         | #pragma omp loop bind                                        | :part:`worked on`        |                                                                       |
+| loop                         | #pragma omp loop bind                                        | :part:`worked on`        | D144634 (needs review)                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | loop                         | collapse imperfectly nested loop                             | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -138,9 +109,9 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | memory management            | allocate directive and allocate clause                       | :good:`done`             | r355614,r335952                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| OMPD                         | OMPD interfaces                                              | :part:`not upstream`     | https://github.com/OpenMPToolsInterface/LLVM-openmp/tree/ompd-tests   |
+| OMPD                         | OMPD interfaces                                              | :good:`done`             | https://reviews.llvm.org/D99914   (Supports only HOST(CPU) and Linux  |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| OMPT                         | OMPT interfaces                                              | :part:`mostly done`      |                                                                       |
+| OMPT                         | OMPT interfaces (callback support)                           | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | thread affinity              | thread affinity                                              | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -148,7 +119,7 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | task                         | task affinity                                                | :part:`not upstream`     | https://github.com/jklinkenberg/openmp/tree/task-affinity             |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| task                         | clause: depend on the taskwait construct                     | :part:`mostly done`      | D113540 (regular codegen only)                                        |
+| task                         | clause: depend on the taskwait construct                     | :good:`done`             | D113540 (regular codegen only)                                        |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | task                         | depend objects and detachable tasks                          | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -170,7 +141,7 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | infer target functions from initializers                     | :part:`worked on`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | infer target variables from initializers                     | :part:`done`             | D146418                                                               |
+| device                       | infer target variables from initializers                     | :good:`done`             | D146418                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | OMP_TARGET_OFFLOAD environment variable                      | :good:`done`             | D50522                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -196,7 +167,7 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | allow access to the reference count (omp_target_is_present)  | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | requires directive                                           | :part:`partial`          |                                                                       |
+| device                       | requires directive                                           | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | clause: unified_shared_memory                                | :good:`done`             | D52625,D52359                                                         |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -208,7 +179,9 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | clause: dynamic_allocators                                   | :part:`unclaimed parts`  | D53079                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | user-defined mappers                                         | :part:`worked on`        | D56326,D58638,D58523,D58074,D60972,D59474                             |
+| device                       | user-defined mappers                                         | :good:`done`             | D56326,D58638,D58523,D58074,D60972,D59474                             |
++------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
+| device                       | map array-section with implicit mapper                       | :good:`done`             |  https://github.com/llvm/llvm-project/pull/101101                     |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | mapping lambda expression                                    | :good:`done`             | D51107                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -216,13 +189,11 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | support close modifier on map clause                         | :good:`done`             | D55719,D55892                                                         |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | teams construct on the host device                           | :part:`done`             | r371553                                                               |
+| device                       | teams construct on the host device                           | :good:`done`             | r371553                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | support non-contiguous array sections for target update      | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | pointer attachment                                           | :none:`unclaimed`        |                                                                       |
-+------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | map clause reordering based on map types                     | :none:`unclaimed`        |                                                                       |
+| device                       | pointer attachment                                           | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | atomic                       | hints for the atomic construct                               | :good:`done`             | D51233                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -234,9 +205,9 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | array shaping                                                | :good:`done`             | D74144                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | library shutdown (omp_pause_resource[_all])                  | :none:`unclaimed parts`  | D55078                                                                |
+| misc                         | library shutdown (omp_pause_resource[_all])                  | :good:`done`             | D55078                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | metadirectives                                               | :part:`worked on`        | D91944                                                                |
+| misc                         | metadirectives                                               | :part:`mostly done`      | D91944                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | conditional modifier for lastprivate clause                  | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -244,9 +215,9 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | depobj directive and depobj dependency kind                  | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | user-defined function variants                               | :part:`worked on`        | D67294, D64095, D71847, D71830, D109635                               |
+| misc                         | user-defined function variants                               | :good:`done`.            | D67294, D64095, D71847, D71830, D109635                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | pointer/reference to pointer based array reductions          | :none:`unclaimed`        |                                                                       |
+| misc                         | pointer/reference to pointer based array reductions          | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | prevent new type definitions in clauses                      | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -254,11 +225,13 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 
 
+.. _OpenMP 51 implementation details:
+
 OpenMP 5.1 Implementation Details
 =================================
 
 The following table provides a quick overview over various OpenMP 5.1 features
-and their implementation status, as defined in the technical report 8 (TR8).
+and their implementation status.
 Please post on the
 `Discourse forums (Runtimes - OpenMP category)`_ for more
 information or if you want to help with the
@@ -269,7 +242,7 @@ implementation.
 +==============================+==============================================================+==========================+=======================================================================+
 | atomic                       | 'compare' clause on atomic construct                         | :good:`done`             | D120290, D120007, D118632, D120200, D116261, D118547, D116637         |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| atomic                       | 'fail' clause on atomic construct                            | :part:`worked on`        |                                                                       |
+| atomic                       | 'fail' clause on atomic construct                            | :part:`worked on`        | D123235 (in progress)                                                 |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | base language                | C++ attribute specifier syntax                               | :good:`done`             | D105648                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -279,7 +252,7 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | 'present' in defaultmap clause                               | :good:`done`             | D92427                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | map clause reordering reordering based on 'present' modifier | :none:`unclaimed`        |                                                                       |
+| device                       | map clause reordering based on 'present' modifier            | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | device-specific environment variables                        | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -289,7 +262,7 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | new async target memory copy routines                        | :good:`done`             | D136103                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | thread_limit clause on target construct                      | :none:`worked on`        |                                                                       |
+| device                       | thread_limit clause on target construct                      | :part:`partial`          | D141540 (offload), D152054 (host, in progress)                        |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | has_device_addr clause on target construct                   | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -297,11 +270,11 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | indirect clause on declare target directive                  | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | allow virtual functions calls for mapped object on device    | :none:`unclaimed`        |                                                                       |
+| device                       | allow virtual functions calls for mapped object on device    | :part:`partial`          |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | device                       | interop construct                                            | :part:`partial`          | parsing/sema done: D98558, D98834, D98815                             |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| device                       | assorted routines for querying interoperable properties      | :none:`unclaimed`        |                                                                       |
+| device                       | assorted routines for querying interoperable properties      | :part:`partial`          | D106674                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | loop                         | Loop tiling transformation                                   | :good:`done`             | D76342                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -309,43 +282,51 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | loop                         | 'reproducible'/'unconstrained' modifiers in 'order' clause   | :part:`partial`          | D127855                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| memory management            | alignment for allocate directive and clause                  | :part:`worked on`        |                                                                       |
+| memory management            | alignment for allocate directive and clause                  | :good:`done`             | D115683                                                               |
++------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
+| memory management            | 'allocator' modifier for allocate clause                     | :good:`done`             | https://github.com/llvm/llvm-project/pull/114883                      |
++------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
+| memory management            | 'align' modifier for allocate clause                         | :good:`done`             | https://github.com/llvm/llvm-project/pull/121814                      |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | memory management            | new memory management routines                               | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | memory management            | changes to omp_alloctrait_key enum                           | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| memory model                 | seq_cst clause on flush construct                            | :none:`unclaimed`        |                                                                       |
+| memory model                 | seq_cst clause on flush construct                            | :good:`done`             | https://github.com/llvm/llvm-project/pull/114072                      |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | 'omp_all_memory' keyword and use in 'depend' clause          | :good:`done`             | D125828, D126321                                                      |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | error directive                                              | :none:`unclaimed`        |                                                                       |
+| misc                         | error directive                                              | :good:`done`             | D139166                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | scope construct                                              | :none:`unclaimed`        |                                                                       |
+| misc                         | scope construct                                              | :good:`done`             | D157933, https://github.com/llvm/llvm-project/pull/109197             |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | routines for controlling and querying team regions           | :none:`unclaimed`        |                                                                       |
+| misc                         | routines for controlling and querying team regions           | :part:`partial`          | D95003 (libomp only)                                                  |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | changes to ompt_scope_endpoint_t enum                        | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | omp_display_env routine                                      | :none:`unclaimed`        |                                                                       |
+| misc                         | omp_display_env routine                                      | :good:`done`             | D74956                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | extended OMP_PLACES syntax                                   | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | OMP_NUM_TEAMS and OMP_TEAMS_THREAD_LIMIT env vars            | :good:`done`             | D138769                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | 'target_device' selector in context specifier                | :none:`unclaimed`        |                                                                       |
+| misc                         | 'target_device' selector in context specifier                | :none:`worked on`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | begin/end declare variant                                    | :good:`done`             | D71179                                                                |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | misc                         | dispatch construct and function variant argument adjustment  | :part:`worked on`        | D99537, D99679                                                        |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | assume and assumes directives                                | :part:`worked on`        |                                                                       |
+| misc                         | assumes directives                                           | :part:`worked on`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | nothing directive                                            | :part:`worked on`        |                                                                       |
+| misc                         | assume directive                                             | :good:`done`             |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | masked construct and related combined constructs             | :part:`worked on`        | D99995, D100514                                                       |
+| misc                         | nothing directive                                            | :good:`done`             | D123286                                                               |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| misc                         | default(firstprivate) & default(private)                     | :part:`partial`          | firstprivate done: D75591                                             |
+| misc                         | masked construct and related combined constructs             | :good:`done`             | D99995, D100514, PR-121741(parallel_masked_taskloop)                  |
+|                              |                                                              |                          | PR-121746(parallel_masked_task_loop_simd),PR-121914(masked_taskloop)  |
+|                              |                                                              |                          | PR-121916(masked_taskloop_simd)                                       |
++------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
+| misc                         | default(firstprivate) & default(private)                     | :good:`done`             | D75591 (firstprivate), D125912 (private)                              |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | other                        | deprecating master construct                                 | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
@@ -355,14 +336,134 @@ implementation.
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | OMPT                         | new barrier state values added to ompt_state_t enum          | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| OMPT                         | new 'emi' callbacks for external monitoring interfaces       | :none:`unclaimed`        |                                                                       |
+| OMPT                         | new 'emi' callbacks for external monitoring interfaces       | :good:`done`             |                                                                       |
++------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
+| OMPT                         | device tracing interface                                     | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
 | task                         | 'strict' modifier for taskloop construct                     | :none:`unclaimed`        |                                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| task                         | inoutset in depend clause                                    | :none:`unclaimed`        |                                                                       |
+| task                         | inoutset in depend clause                                    | :good:`done`             | D97085, D118383                                                       |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
-| task                         | nowait clause on taskwait                                    | :part:`worked on`        |                                                                       |
+| task                         | nowait clause on taskwait                                    | :part:`partial`          | parsing/sema done: D131830, D141531                                   |
 +------------------------------+--------------------------------------------------------------+--------------------------+-----------------------------------------------------------------------+
+
+
+.. _OpenMP 6.0 implementation details:
+
+OpenMP 6.0 Implementation Details
+=================================
+
+The following table provides a quick overview over various OpenMP 6.0 features
+and their implementation status. Please post on the
+`Discourse forums (Runtimes - OpenMP category)`_ for more
+information or if you want to help with the
+implementation.
+
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+|Feature                                                      | C/C++ Status              |  Fortran Status           | Reviews                                                                  |
++=============================================================+===========================+===========================+==========================================================================+
+| free-agent threads                                          | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Recording of task graphs                                    | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Parallel inductions                                         | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| init_complete for scan directive                            | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Loop transformation constructs                              | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| work distribute construct                                   | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| task_iteration                                              | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| memscope clause for atomic and flush                        | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| transparent clause (hull tasks)                             | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| rule-based compound directives                              | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| C23, C++23                                                  | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Fortran 2023                                                | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| decl attribute for declarative directives                   | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| C attribute syntax                                          | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| pure directives in DO CONCURRENT                            | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Optional argument for all clauses                           | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Function references for locator list items                  | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| All clauses accept directive name modifier                  | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Extensions to depobj construct                              | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Extensions to atomic construct                              | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Private reductions                                          | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Self maps                                                   | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Release map type for declare mapper                         | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Extensions to interop construct                             | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| no_openmp_constructs                                        | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| safe_sync and progress with identifier and API              | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| OpenMP directives in concurrent loop regions                | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| atomics constructs on concurrent loop regions               | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Loop construct with DO CONCURRENT                           | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| device_type clause for target construct                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| nowait for ancestor target directives                       | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| New API for devices' num_teams/thread_limit                 | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Host and device environment variables                       | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| num_threads ICV and clause accepts list                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Numeric names for environment variables                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Increment between places for OMP_PLACES                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| OMP_AVAILABLE_DEVICES envirable                             | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Traits for default device envirable                         | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Optionally omit array length expression                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Canonical loop sequences                                    | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Clarifications to Fortran map semantics                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| default clause at target construct                          | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| ref count update use_device_{ptr, addr}                     | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Clarifications to implicit reductions                       | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| ref modifier for map clauses                                | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| map-type modifiers in arbitrary position                    | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| atomic constructs in loop region                            | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Lift nesting restriction on concurrent loop                 | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| priority clause for target constructs                       | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| changes to target_data construct                            | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
+| Non-const do_not_sync for nowait/nogroup                    | :none:`unclaimed`         | :none:`unclaimed`         |                                                                          |
++-------------------------------------------------------------+---------------------------+---------------------------+--------------------------------------------------------------------------+
 
 OpenMP Extensions
 =================
@@ -382,6 +483,12 @@ considered for standardization. Please post on the
 +------------------------------+-----------------------------------------------------------------------------------+--------------------------+--------------------------------------------------------+
 | device extension             | `'ompx_hold' map type modifier                                                    | :good:`prototyped`       | D106509, D106510                                       |
 |                              | <https://openmp.llvm.org/docs/openacc/OpenMPExtensions.html#ompx-hold>`_          |                          |                                                        |
++------------------------------+-----------------------------------------------------------------------------------+--------------------------+--------------------------------------------------------+
+| device extension             | `'ompx_bare' clause on 'target teams' construct                                   | :good:`prototyped`       | #66844, #70612                                         |
+|                              | <https://www.osti.gov/servlets/purl/2205717>`_                                    |                          |                                                        |
++------------------------------+-----------------------------------------------------------------------------------+--------------------------+--------------------------------------------------------+
+| device extension             | Multi-dim 'num_teams' and 'thread_limit' clause on 'target teams ompx_bare'       | :good:`partial`          | #99732, #101407, #102715                               |
+|                              | construct                                                                         |                          |                                                        |
 +------------------------------+-----------------------------------------------------------------------------------+--------------------------+--------------------------------------------------------+
 
 .. _Discourse forums (Runtimes - OpenMP category): https://discourse.llvm.org/c/runtimes/openmp/35

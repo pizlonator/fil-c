@@ -78,7 +78,11 @@ struct TestEmulateNarrowTypePass
           IntegerType::get(ty.getContext(), arithComputeBitwidth));
     });
 
-    memref::populateMemRefNarrowTypeEmulationConversions(typeConverter);
+    // With the type converter enabled, we are effectively unable to write
+    // negative tests. This is a workaround specifically for negative tests.
+    if (!disableMemrefTypeConversion)
+      memref::populateMemRefNarrowTypeEmulationConversions(typeConverter);
+
     ConversionTarget target(*ctx);
     target.addDynamicallyLegalOp<func::FuncOp>([&typeConverter](Operation *op) {
       return typeConverter.isLegal(cast<func::FuncOp>(op).getFunctionType());
@@ -89,8 +93,7 @@ struct TestEmulateNarrowTypePass
     target.addDynamicallyLegalOp<func::CallOp, func::ReturnOp>(opLegalCallback);
     target.addDynamicallyLegalDialect<
         arith::ArithDialect, vector::VectorDialect, memref::MemRefDialect,
-        affine::AffineDialect>(
-        [&typeConverter](Operation *op) { return typeConverter.isLegal(op); });
+        affine::AffineDialect>(opLegalCallback);
 
     RewritePatternSet patterns(ctx);
 
@@ -110,6 +113,11 @@ struct TestEmulateNarrowTypePass
   Option<unsigned> arithComputeBitwidth{
       *this, "arith-compute-bitwidth",
       llvm::cl::desc("arith computation bit width"), llvm::cl::init(4)};
+
+  Option<bool> disableMemrefTypeConversion{
+      *this, "skip-memref-type-conversion",
+      llvm::cl::desc("disable memref type conversion (to test failures)"),
+      llvm::cl::init(false)};
 };
 } // namespace
 

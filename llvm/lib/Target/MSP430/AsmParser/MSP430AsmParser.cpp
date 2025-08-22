@@ -15,7 +15,6 @@
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCInstBuilder.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCParser/MCAsmLexer.h"
 #include "llvm/MC/MCParser/MCParsedAsmOperand.h"
@@ -26,7 +25,6 @@
 #include "llvm/MC/MCValue.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Support/MathExtras.h"
 
 #define DEBUG_TYPE "msp430-asm-parser"
 
@@ -40,17 +38,16 @@ class MSP430AsmParser : public MCTargetAsmParser {
   MCAsmParser &Parser;
   const MCRegisterInfo *MRI;
 
-  bool MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
+  bool matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                OperandVector &Operands, MCStreamer &Out,
                                uint64_t &ErrorInfo,
                                bool MatchingInlineAsm) override;
 
-  bool parseRegister(MCRegister &RegNo, SMLoc &StartLoc,
-                     SMLoc &EndLoc) override;
-  OperandMatchResultTy tryParseRegister(MCRegister &RegNo, SMLoc &StartLoc,
-                                        SMLoc &EndLoc) override;
+  bool parseRegister(MCRegister &Reg, SMLoc &StartLoc, SMLoc &EndLoc) override;
+  ParseStatus tryParseRegister(MCRegister &Reg, SMLoc &StartLoc,
+                               SMLoc &EndLoc) override;
 
-  bool ParseInstruction(ParseInstructionInfo &Info, StringRef Name,
+  bool parseInstruction(ParseInstructionInfo &Info, StringRef Name,
                         SMLoc NameLoc, OperandVector &Operands) override;
 
   ParseStatus parseDirective(AsmToken DirectiveID) override;
@@ -102,12 +99,12 @@ class MSP430Operand : public MCParsedAsmOperand {
   } Kind;
 
   struct Memory {
-    unsigned Reg;
+    MCRegister Reg;
     const MCExpr *Offset;
   };
   union {
     const MCExpr *Imm;
-    unsigned      Reg;
+    MCRegister    Reg;
     StringRef     Tok;
     Memory        Mem;
   };
@@ -117,11 +114,11 @@ class MSP430Operand : public MCParsedAsmOperand {
 public:
   MSP430Operand(StringRef Tok, SMLoc const &S)
       : Kind(k_Tok), Tok(Tok), Start(S), End(S) {}
-  MSP430Operand(KindTy Kind, unsigned Reg, SMLoc const &S, SMLoc const &E)
+  MSP430Operand(KindTy Kind, MCRegister Reg, SMLoc const &S, SMLoc const &E)
       : Kind(Kind), Reg(Reg), Start(S), End(E) {}
   MSP430Operand(MCExpr const *Imm, SMLoc const &S, SMLoc const &E)
       : Kind(k_Imm), Imm(Imm), Start(S), End(E) {}
-  MSP430Operand(unsigned Reg, MCExpr const *Expr, SMLoc const &S,
+  MSP430Operand(MCRegister Reg, MCExpr const *Expr, SMLoc const &S,
                 SMLoc const &E)
       : Kind(k_Mem), Mem({Reg, Expr}), Start(S), End(E) {}
 
@@ -184,12 +181,12 @@ public:
     return Tok;
   }
 
-  unsigned getReg() const override {
+  MCRegister getReg() const override {
     assert(Kind == k_Reg && "Invalid access!");
     return Reg;
   }
 
-  void setReg(unsigned RegNo) {
+  void setReg(MCRegister RegNo) {
     assert(Kind == k_Reg && "Invalid access!");
     Reg = RegNo;
   }
@@ -198,9 +195,9 @@ public:
     return std::make_unique<MSP430Operand>(Str, S);
   }
 
-  static std::unique_ptr<MSP430Operand> CreateReg(unsigned RegNum, SMLoc S,
+  static std::unique_ptr<MSP430Operand> CreateReg(MCRegister Reg, SMLoc S,
                                                   SMLoc E) {
-    return std::make_unique<MSP430Operand>(k_Reg, RegNum, S, E);
+    return std::make_unique<MSP430Operand>(k_Reg, Reg, S, E);
   }
 
   static std::unique_ptr<MSP430Operand> CreateImm(const MCExpr *Val, SMLoc S,
@@ -208,20 +205,19 @@ public:
     return std::make_unique<MSP430Operand>(Val, S, E);
   }
 
-  static std::unique_ptr<MSP430Operand> CreateMem(unsigned RegNum,
-                                                  const MCExpr *Val,
-                                                  SMLoc S, SMLoc E) {
-    return std::make_unique<MSP430Operand>(RegNum, Val, S, E);
+  static std::unique_ptr<MSP430Operand>
+  CreateMem(MCRegister Reg, const MCExpr *Val, SMLoc S, SMLoc E) {
+    return std::make_unique<MSP430Operand>(Reg, Val, S, E);
   }
 
-  static std::unique_ptr<MSP430Operand> CreateIndReg(unsigned RegNum, SMLoc S,
-                                                  SMLoc E) {
-    return std::make_unique<MSP430Operand>(k_IndReg, RegNum, S, E);
+  static std::unique_ptr<MSP430Operand> CreateIndReg(MCRegister Reg, SMLoc S,
+                                                     SMLoc E) {
+    return std::make_unique<MSP430Operand>(k_IndReg, Reg, S, E);
   }
 
-  static std::unique_ptr<MSP430Operand> CreatePostIndReg(unsigned RegNum, SMLoc S,
-                                                  SMLoc E) {
-    return std::make_unique<MSP430Operand>(k_PostIndReg, RegNum, S, E);
+  static std::unique_ptr<MSP430Operand> CreatePostIndReg(MCRegister Reg,
+                                                         SMLoc S, SMLoc E) {
+    return std::make_unique<MSP430Operand>(k_PostIndReg, Reg, S, E);
   }
 
   SMLoc getStartLoc() const override { return Start; }
@@ -253,7 +249,7 @@ public:
 };
 } // end anonymous namespace
 
-bool MSP430AsmParser::MatchAndEmitInstruction(SMLoc Loc, unsigned &Opcode,
+bool MSP430AsmParser::matchAndEmitInstruction(SMLoc Loc, unsigned &Opcode,
                                               OperandVector &Operands,
                                               MCStreamer &Out,
                                               uint64_t &ErrorInfo,
@@ -287,33 +283,31 @@ bool MSP430AsmParser::MatchAndEmitInstruction(SMLoc Loc, unsigned &Opcode,
 }
 
 // Auto-generated by TableGen
-static unsigned MatchRegisterName(StringRef Name);
-static unsigned MatchRegisterAltName(StringRef Name);
+static MCRegister MatchRegisterName(StringRef Name);
+static MCRegister MatchRegisterAltName(StringRef Name);
 
-bool MSP430AsmParser::parseRegister(MCRegister &RegNo, SMLoc &StartLoc,
+bool MSP430AsmParser::parseRegister(MCRegister &Reg, SMLoc &StartLoc,
                                     SMLoc &EndLoc) {
-  switch (tryParseRegister(RegNo, StartLoc, EndLoc)) {
-  case MatchOperand_ParseFail:
+  ParseStatus Res = tryParseRegister(Reg, StartLoc, EndLoc);
+  if (Res.isFailure())
     return Error(StartLoc, "invalid register name");
-  case MatchOperand_Success:
+  if (Res.isSuccess())
     return false;
-  case MatchOperand_NoMatch:
+  if (Res.isNoMatch())
     return true;
-  }
 
-  llvm_unreachable("unknown match result type");
+  llvm_unreachable("unknown parse status");
 }
 
-OperandMatchResultTy MSP430AsmParser::tryParseRegister(MCRegister &RegNo,
-                                                       SMLoc &StartLoc,
-                                                       SMLoc &EndLoc) {
+ParseStatus MSP430AsmParser::tryParseRegister(MCRegister &Reg, SMLoc &StartLoc,
+                                              SMLoc &EndLoc) {
   if (getLexer().getKind() == AsmToken::Identifier) {
     auto Name = getLexer().getTok().getIdentifier().lower();
-    RegNo = MatchRegisterName(Name);
-    if (RegNo == MSP430::NoRegister) {
-      RegNo = MatchRegisterAltName(Name);
-      if (RegNo == MSP430::NoRegister)
-        return MatchOperand_NoMatch;
+    Reg = MatchRegisterName(Name);
+    if (Reg == MSP430::NoRegister) {
+      Reg = MatchRegisterAltName(Name);
+      if (Reg == MSP430::NoRegister)
+        return ParseStatus::NoMatch;
     }
 
     AsmToken const &T = getParser().getTok();
@@ -321,10 +315,10 @@ OperandMatchResultTy MSP430AsmParser::tryParseRegister(MCRegister &RegNo,
     EndLoc = T.getEndLoc();
     getLexer().Lex(); // eat register token
 
-    return MatchOperand_Success;
+    return ParseStatus::Success;
   }
 
-  return MatchOperand_ParseFail;
+  return ParseStatus::Failure;
 }
 
 bool MSP430AsmParser::parseJccInstruction(ParseInstructionInfo &Info,
@@ -388,7 +382,7 @@ bool MSP430AsmParser::parseJccInstruction(ParseInstructionInfo &Info,
   return false;
 }
 
-bool MSP430AsmParser::ParseInstruction(ParseInstructionInfo &Info,
+bool MSP430AsmParser::parseInstruction(ParseInstructionInfo &Info,
                                        StringRef Name, SMLoc NameLoc,
                                        OperandVector &Operands) {
   // Drop .w suffix
@@ -548,8 +542,8 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeMSP430AsmParser() {
 #define GET_MATCHER_IMPLEMENTATION
 #include "MSP430GenAsmMatcher.inc"
 
-static unsigned convertGR16ToGR8(unsigned Reg) {
-  switch (Reg) {
+static MCRegister convertGR16ToGR8(MCRegister Reg) {
+  switch (Reg.id()) {
   default:
     llvm_unreachable("Unknown GR16 register");
   case MSP430::PC:  return MSP430::PCB;
@@ -578,7 +572,7 @@ unsigned MSP430AsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
   if (!Op.isReg())
     return Match_InvalidOperand;
 
-  unsigned Reg = Op.getReg();
+  MCRegister Reg = Op.getReg();
   bool isGR16 =
       MSP430MCRegisterClasses[MSP430::GR16RegClassID].contains(Reg);
 

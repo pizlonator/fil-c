@@ -60,7 +60,6 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/CodeMoverUtils.h"
 #include "llvm/Transforms/Utils/LoopPeel.h"
@@ -1411,7 +1410,7 @@ private:
     }
 
     // Walk through all uses in FC1. For each use, find the reaching def. If the
-    // def is located in FC0 then it is is not safe to fuse.
+    // def is located in FC0 then it is not safe to fuse.
     for (BasicBlock *BB : FC1.L->blocks())
       for (Instruction &I : *BB)
         for (auto &Op : I.operands())
@@ -1473,12 +1472,13 @@ private:
 
     for (Instruction *I : HoistInsts) {
       assert(I->getParent() == FC1.Preheader);
-      I->moveBefore(FC0.Preheader->getTerminator());
+      I->moveBefore(*FC0.Preheader,
+                    FC0.Preheader->getTerminator()->getIterator());
     }
     // insert instructions in reverse order to maintain dominance relationship
     for (Instruction *I : reverse(SinkInsts)) {
       assert(I->getParent() == FC1.Preheader);
-      I->moveBefore(&*FC1.ExitBlock->getFirstInsertionPt());
+      I->moveBefore(*FC1.ExitBlock, FC1.ExitBlock->getFirstInsertionPt());
     }
   }
 
@@ -1491,7 +1491,7 @@ private:
   ///   2. The successors of the guard have the same flow into/around the loop.
   /// If the compare instructions are identical, then the first successor of the
   /// guard must go to the same place (either the preheader of the loop or the
-  /// NonLoopBlock). In other words, the the first successor of both loops must
+  /// NonLoopBlock). In other words, the first successor of both loops must
   /// both go into the loop (i.e., the preheader) or go around the loop (i.e.,
   /// the NonLoopBlock). The same must be true for the second successor.
   bool haveIdenticalGuards(const FusionCandidate &FC0,
@@ -1624,7 +1624,7 @@ private:
     // first, or undef otherwise. This is sound as exiting the first implies the
     // second will exit too, __without__ taking the back-edge. [Their
     // trip-counts are equal after all.
-    // KB: Would this sequence be simpler to just just make FC0.ExitingBlock go
+    // KB: Would this sequence be simpler to just make FC0.ExitingBlock go
     // to FC1.Header? I think this is basically what the three sequences are
     // trying to accomplish; however, doing this directly in the CFG may mean
     // the DT/PDT becomes invalid
@@ -1662,7 +1662,7 @@ private:
       if (SE.isSCEVable(PHI->getType()))
         SE.forgetValue(PHI);
       if (PHI->hasNUsesOrMore(1))
-        PHI->moveBefore(&*FC0.Header->getFirstInsertionPt());
+        PHI->moveBefore(FC0.Header->getFirstInsertionPt());
       else
         PHI->eraseFromParent();
     }
@@ -1671,7 +1671,7 @@ private:
     // exiting the first and jumping to the header of the second does not break
     // the SSA property of the phis originally in the first loop. See also the
     // comment above.
-    Instruction *L1HeaderIP = &FC1.Header->front();
+    BasicBlock::iterator L1HeaderIP = FC1.Header->begin();
     for (PHINode *LCPHI : OriginalFC0PHIs) {
       int L1LatchBBIdx = LCPHI->getBasicBlockIndex(FC1.Latch);
       assert(L1LatchBBIdx >= 0 &&
@@ -1679,10 +1679,11 @@ private:
 
       Value *LCV = LCPHI->getIncomingValue(L1LatchBBIdx);
 
-      PHINode *L1HeaderPHI = PHINode::Create(
-          LCV->getType(), 2, LCPHI->getName() + ".afterFC0", L1HeaderIP);
+      PHINode *L1HeaderPHI =
+          PHINode::Create(LCV->getType(), 2, LCPHI->getName() + ".afterFC0");
+      L1HeaderPHI->insertBefore(L1HeaderIP);
       L1HeaderPHI->addIncoming(LCV, FC0.Latch);
-      L1HeaderPHI->addIncoming(UndefValue::get(LCV->getType()),
+      L1HeaderPHI->addIncoming(PoisonValue::get(LCV->getType()),
                                FC0.ExitingBlock);
 
       LCPHI->setIncomingValue(L1LatchBBIdx, L1HeaderPHI);
@@ -1727,7 +1728,9 @@ private:
     // mergeLatch may remove the only block in FC1.
     SE.forgetLoop(FC1.L);
     SE.forgetLoop(FC0.L);
-    SE.forgetLoopDispositions();
+    // Forget block dispositions as well, so that there are no dangling
+    // pointers to erased/free'ed blocks.
+    SE.forgetBlockAndLoopDispositions();
 
     // Move instructions from FC0.Latch to FC1.Latch.
     // Note: mergeLatch requires an updated DT.
@@ -1944,7 +1947,7 @@ private:
       if (SE.isSCEVable(PHI->getType()))
         SE.forgetValue(PHI);
       if (PHI->hasNUsesOrMore(1))
-        PHI->moveBefore(&*FC0.Header->getFirstInsertionPt());
+        PHI->moveBefore(FC0.Header->getFirstInsertionPt());
       else
         PHI->eraseFromParent();
     }
@@ -1953,7 +1956,7 @@ private:
     // exiting the first and jumping to the header of the second does not break
     // the SSA property of the phis originally in the first loop. See also the
     // comment above.
-    Instruction *L1HeaderIP = &FC1.Header->front();
+    BasicBlock::iterator L1HeaderIP = FC1.Header->begin();
     for (PHINode *LCPHI : OriginalFC0PHIs) {
       int L1LatchBBIdx = LCPHI->getBasicBlockIndex(FC1.Latch);
       assert(L1LatchBBIdx >= 0 &&
@@ -1961,8 +1964,9 @@ private:
 
       Value *LCV = LCPHI->getIncomingValue(L1LatchBBIdx);
 
-      PHINode *L1HeaderPHI = PHINode::Create(
-          LCV->getType(), 2, LCPHI->getName() + ".afterFC0", L1HeaderIP);
+      PHINode *L1HeaderPHI =
+          PHINode::Create(LCV->getType(), 2, LCPHI->getName() + ".afterFC0");
+      L1HeaderPHI->insertBefore(L1HeaderIP);
       L1HeaderPHI->addIncoming(LCV, FC0.Latch);
       L1HeaderPHI->addIncoming(UndefValue::get(LCV->getType()),
                                FC0.ExitingBlock);
@@ -2020,7 +2024,9 @@ private:
     // mergeLatch may remove the only block in FC1.
     SE.forgetLoop(FC1.L);
     SE.forgetLoop(FC0.L);
-    SE.forgetLoopDispositions();
+    // Forget block dispositions as well, so that there are no dangling
+    // pointers to erased/free'ed blocks.
+    SE.forgetBlockAndLoopDispositions();
 
     // Move instructions from FC0.Latch to FC1.Latch.
     // Note: mergeLatch requires an updated DT.
@@ -2069,7 +2075,7 @@ PreservedAnalyses LoopFusePass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &ORE = AM.getResult<OptimizationRemarkEmitterAnalysis>(F);
   auto &AC = AM.getResult<AssumptionAnalysis>(F);
   const TargetTransformInfo &TTI = AM.getResult<TargetIRAnalysis>(F);
-  const DataLayout &DL = F.getParent()->getDataLayout();
+  const DataLayout &DL = F.getDataLayout();
 
   // Ensure loops are in simplifed form which is a pre-requisite for loop fusion
   // pass. Added only for new PM since the legacy PM has already added

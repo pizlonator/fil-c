@@ -51,9 +51,13 @@ def HasVIS3 : Predicate<"Subtarget->isVIS3()">,
 // point instructions.
 def HasHardQuad : Predicate<"Subtarget->hasHardQuad()">;
 
-// HasLeonCASA - This is true when the target processor supports the CASA
-// instruction
+// HasLeonCASA - This is true when the target processor supports the Leon CASA
+// instruction.
 def HasLeonCASA : Predicate<"Subtarget->hasLeonCasa()">;
+
+// HasCASA - This is true when the target processor supports CASA instruction.
+def HasCASA : Predicate<"Subtarget->hasLeonCasa() || Subtarget->isV9()">,
+              AssemblerPredicate<(any_of LeonCASA, FeatureV9)>;
 
 // HasPWRPSR - This is true when the target processor supports partial
 // writes to the PSR register that only affects the ET field.
@@ -113,7 +117,7 @@ def SETHIimm_not : PatLeaf<(i32 imm), [{
 
 // Addressing modes.
 def ADDRrr : ComplexPattern<iPTR, 2, "SelectADDRrr", [], []>;
-def ADDRri : ComplexPattern<iPTR, 2, "SelectADDRri", [frameindex], []>;
+def ADDRri : ComplexPattern<iPTR, 2, "SelectADDRri", [], []>;
 
 // Constrained operands for the shift operations.
 class ShiftAmtImmAsmOperand<int Bits> : AsmOperandClass {
@@ -183,6 +187,26 @@ def MembarTag : Operand<i32> {
   let ParserMatchClass = SparcMembarTagAsmOperand;
 }
 
+def SparcASITagAsmOperand : AsmOperandClass {
+  let Name = "ASITag";
+  let ParserMethod = "parseASITag";
+}
+
+def ASITag : Operand<i32> {
+  let PrintMethod = "printASITag";
+  let ParserMatchClass = SparcASITagAsmOperand;
+}
+
+def SparcPrefetchTagAsmOperand : AsmOperandClass {
+  let Name = "PrefetchTag";
+  let ParserMethod = "parsePrefetchTag";
+}
+
+def PrefetchTag : Operand<i32> {
+  let PrintMethod = "printPrefetchTag";
+  let ParserMatchClass = SparcPrefetchTagAsmOperand;
+}
+
 // Branch targets have OtherVT type.
 def brtarget : Operand<OtherVT> {
   let EncoderMethod = "getBranchTargetOpValue";
@@ -207,7 +231,8 @@ def calltarget : Operand<i32> {
   let ParserMatchClass = SparcCallTargetAsmOperand;
 }
 
-def simm13Op : Operand<i32> {
+def simm13Op : Operand<iPTR> {
+  let OperandType = "OPERAND_IMMEDIATE";
   let DecoderMethod = "DecodeSIMM13";
   let EncoderMethod = "getSImm13OpValue";
 }
@@ -255,7 +280,7 @@ def SPbpicc : SDNode<"SPISD::BPICC", SDTSPbrcc, [SDNPHasChain, SDNPInGlue]>;
 def SPbpxcc : SDNode<"SPISD::BPXCC", SDTSPbrcc, [SDNPHasChain, SDNPInGlue]>;
 def SPbrfcc : SDNode<"SPISD::BRFCC", SDTSPbrcc, [SDNPHasChain, SDNPInGlue]>;
 def SPbrfccv9 : SDNode<"SPISD::BRFCC_V9", SDTSPbrcc, [SDNPHasChain, SDNPInGlue]>;
-def SPbrreg : SDNode<"SPISD::BR_REG", SDTSPbrreg, [SDNPHasChain, SDNPInGlue]>;
+def SPbrreg : SDNode<"SPISD::BR_REG", SDTSPbrreg, [SDNPHasChain]>;
 
 def SPhi    : SDNode<"SPISD::Hi", SDTIntUnaryOp>;
 def SPlo    : SDNode<"SPISD::Lo", SDTIntUnaryOp>;
@@ -268,7 +293,7 @@ def SPxtof  : SDNode<"SPISD::XTOF", SDTSPXTOF>;
 def SPselecticc : SDNode<"SPISD::SELECT_ICC", SDTSPselectcc, [SDNPInGlue]>;
 def SPselectxcc : SDNode<"SPISD::SELECT_XCC", SDTSPselectcc, [SDNPInGlue]>;
 def SPselectfcc : SDNode<"SPISD::SELECT_FCC", SDTSPselectcc, [SDNPInGlue]>;
-def SPselectreg : SDNode<"SPISD::SELECT_REG", SDTSPselectreg, [SDNPInGlue]>;
+def SPselectreg : SDNode<"SPISD::SELECT_REG", SDTSPselectreg>;
 
 //  These are target-independent nodes, but have target-specific formats.
 def SDT_SPCallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,
@@ -287,8 +312,7 @@ def call          : SDNode<"SPISD::CALL", SDT_SPCall,
                             SDNPVariadic]>;
 
 def tailcall      : SDNode<"SPISD::TAIL_CALL", SDT_SPCall,
-                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
-                            SDNPVariadic]>;
+                           [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 def SDT_SPRet     : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
 def retglue       : SDNode<"SPISD::RET_GLUE", SDT_SPRet,
@@ -421,18 +445,25 @@ multiclass Load<string OpcStr, bits<6> Op3Val, SDPatternOperator OpNode,
 
 // TODO: Instructions of the LoadASI class are currently asm only; hooking up
 // CodeGen's address spaces to use these is a future task.
-class LoadASI<string OpcStr, bits<6> Op3Val, RegisterClass RC> :
-  F3_1_asi<3, Op3Val, (outs RC:$rd), (ins (MEMrr $rs1, $rs2):$addr, i8imm:$asi),
-                !strconcat(OpcStr, "a [$addr] $asi, $rd"),
-                []>;
+multiclass LoadASI<string OpcStr, bits<6> Op3Val, RegisterClass RC> {
+  def rr  : F3_1_asi<3, Op3Val, (outs RC:$rd), (ins (MEMrr $rs1, $rs2):$addr, ASITag:$asi),
+                     !strconcat(OpcStr, "a [$addr] $asi, $rd"),
+                     []>;
+
+  let Predicates = [HasV9], Uses = [ASR3] in
+  def ri  : F3_2<3, Op3Val, (outs RC:$rd), (ins (MEMri $rs1, $simm13):$addr),
+                 !strconcat(OpcStr, "a [$addr] %asi, $rd"),
+                 []>;
+}
 
 // LoadA multiclass - As above, but also define alternate address space variant
 multiclass LoadA<string OpcStr, bits<6> Op3Val, bits<6> LoadAOp3Val,
                  SDPatternOperator OpNode, RegisterClass RC, ValueType Ty,
                  InstrItinClass itin = NoItinerary> :
              Load<OpcStr, Op3Val, OpNode, RC, Ty, itin> {
-  def Arr  : LoadASI<OpcStr, LoadAOp3Val, RC>;
+  defm A   : LoadASI<OpcStr, LoadAOp3Val, RC>;
 }
+
 
 // The LDSTUB instruction is supported for asm only.
 // It is unlikely that general-purpose code could make use of it.
@@ -442,8 +473,12 @@ def LDSTUBrr : F3_1<3, 0b001101, (outs IntRegs:$rd), (ins (MEMrr $rs1, $rs2):$ad
 def LDSTUBri : F3_2<3, 0b001101, (outs IntRegs:$rd), (ins (MEMri $rs1, $simm13):$addr),
                     "ldstub [$addr], $rd", []>;
 def LDSTUBArr : F3_1_asi<3, 0b011101, (outs IntRegs:$rd),
-                         (ins (MEMrr $rs1, $rs2):$addr, i8imm:$asi),
+                         (ins (MEMrr $rs1, $rs2):$addr, ASITag:$asi),
                          "ldstuba [$addr] $asi, $rd", []>;
+let Predicates = [HasV9], Uses = [ASR3] in
+def LDSTUBAri : F3_2<3, 0b011101, (outs IntRegs:$rd),
+                         (ins (MEMri $rs1, $simm13):$addr),
+                         "ldstuba [$addr] %asi, $rd", []>;
 
 // Store multiclass - Define both Reg+Reg/Reg+Imm patterns in one shot.
 multiclass Store<string OpcStr, bits<6> Op3Val, SDPatternOperator OpNode,
@@ -462,17 +497,24 @@ multiclass Store<string OpcStr, bits<6> Op3Val, SDPatternOperator OpNode,
 
 // TODO: Instructions of the StoreASI class are currently asm only; hooking up
 // CodeGen's address spaces to use these is a future task.
-class StoreASI<string OpcStr, bits<6> Op3Val, RegisterClass RC,
-               InstrItinClass itin = IIC_st> :
-  F3_1_asi<3, Op3Val, (outs), (ins (MEMrr $rs1, $rs2):$addr, RC:$rd, i8imm:$asi),
+multiclass StoreASI<string OpcStr, bits<6> Op3Val, RegisterClass RC,
+               InstrItinClass itin = IIC_st> {
+  def rr : F3_1_asi<3, Op3Val, (outs), (ins (MEMrr $rs1, $rs2):$addr, RC:$rd, ASITag:$asi),
            !strconcat(OpcStr, "a $rd, [$addr] $asi"),
            [],
            itin>;
 
+  let Predicates = [HasV9], Uses = [ASR3] in
+  def ri : F3_2<3, Op3Val, (outs), (ins (MEMri $rs1, $simm13):$addr, RC:$rd),
+           !strconcat(OpcStr, "a $rd, [$addr] %asi"),
+           [],
+           itin>;
+}
+
 multiclass StoreA<string OpcStr, bits<6> Op3Val, bits<6> StoreAOp3Val,
                   SDPatternOperator OpNode, RegisterClass RC, ValueType Ty> :
              Store<OpcStr, Op3Val, OpNode, RC, Ty> {
-  def Arr : StoreASI<OpcStr, StoreAOp3Val, RC>;
+  defm A   : StoreASI<OpcStr, StoreAOp3Val, RC>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -587,18 +629,21 @@ defm LD   : LoadA<"ld",   0b000000, 0b010000, load,        IntRegs, i32>;
 defm LDD : LoadA<"ldd", 0b000011, 0b010011, load, IntPair, v2i32, IIC_ldd>;
 
 // Section B.2 - Load Floating-point Instructions, p. 92
-defm LDF   : Load<"ld",  0b100000, load,    FPRegs,  f32, IIC_iu_or_fpu_instr>;
-def LDFArr : LoadASI<"ld",  0b110000, FPRegs>,
-             Requires<[HasV9]>;
+defm LDF     : Load<"ld",  0b100000, load,    FPRegs,  f32, IIC_iu_or_fpu_instr>;
+defm LDDF    : Load<"ldd", 0b100011, load,    DFPRegs, f64, IIC_ldd>;
 
-defm LDDF   : Load<"ldd", 0b100011, load,    DFPRegs, f64, IIC_ldd>;
-def LDDFArr : LoadASI<"ldd", 0b110011, DFPRegs>,
-              Requires<[HasV9]>;
-defm LDQF  : LoadA<"ldq", 0b100010, 0b110010, load, QFPRegs, f128>,
-             Requires<[HasV9, HasHardQuad]>;
+let DecoderNamespace = "SparcV9", Predicates = [HasV9] in {
+  defm LDFA    : LoadASI<"ld",  0b110000, FPRegs>;
+  defm LDDFA   : LoadASI<"ldd", 0b110011, DFPRegs>;
+  defm LDQF    : LoadA<"ldq", 0b100010, 0b110010, load, QFPRegs, f128>,
+                 Requires<[HasHardQuad]>;
+}
 
-defm LDC   : Load<"ld", 0b110000, load, CoprocRegs, i32>;
-defm LDDC   : Load<"ldd", 0b110011, load, CoprocPair, v2i32, IIC_ldd>;
+// Coprocessor instructions were removed in v9.
+let DecoderNamespace = "SparcV8", Predicates = [HasNoV9] in {
+  defm LDC    : Load<"ld", 0b110000, load, CoprocRegs, i32>;
+  defm LDDC   : Load<"ldd", 0b110011, load, CoprocPair, v2i32, IIC_ldd>;
+}
 
 let Defs = [CPSR] in {
   let rd = 0 in {
@@ -641,50 +686,54 @@ defm STD   : StoreA<"std", 0b000111, 0b010111, store, IntPair, v2i32>;
 
 // Section B.5 - Store Floating-point Instructions, p. 97
 defm STF    : Store<"st",  0b100100, store,         FPRegs,  f32>;
-def STFArr  : StoreASI<"st",  0b110100, FPRegs>,
-              Requires<[HasV9]>;
 defm STDF   : Store<"std", 0b100111, store,         DFPRegs, f64, IIC_std>;
-def STDFArr : StoreASI<"std", 0b110111, DFPRegs>,
-              Requires<[HasV9]>;
-defm STQF   : StoreA<"stq", 0b100110, 0b110110, store, QFPRegs, f128>,
-              Requires<[HasV9, HasHardQuad]>;
 
-defm STC   : Store<"st", 0b110100, store, CoprocRegs, i32>;
-defm STDC   : Store<"std", 0b110111, store, CoprocPair, v2i32, IIC_std>;
+let DecoderNamespace = "SparcV9", Predicates = [HasV9] in {
+  defm STFA  : StoreASI<"st",  0b110100, FPRegs>;
+  defm STDFA : StoreASI<"std", 0b110111, DFPRegs>;
+  defm STQF  : StoreA<"stq", 0b100110, 0b110110, store, QFPRegs, f128>,
+              Requires<[HasHardQuad]>;
+}
+
+// Coprocessor instructions were removed in v9.
+let DecoderNamespace = "SparcV8", Predicates = [HasNoV9] in {
+  defm STC   : Store<"st", 0b110100, store, CoprocRegs, i32>;
+  defm STDC   : Store<"std", 0b110111, store, CoprocPair, v2i32, IIC_std>;
+}
 
 let rd = 0 in {
-  let Defs = [CPSR] in {
-    def STCSRrr : F3_1<3, 0b110101, (outs (MEMrr $rs1, $rs2):$addr), (ins),
+  let mayStore = 1, Uses = [CPSR] in {
+    def STCSRrr : F3_1<3, 0b110101, (outs), (ins (MEMrr $rs1, $rs2):$addr),
                        "st %csr, [$addr]", [], IIC_st>;
-    def STCSRri : F3_2<3, 0b110101, (outs (MEMri $rs1, $simm13):$addr), (ins),
+    def STCSRri : F3_2<3, 0b110101, (outs), (ins (MEMri $rs1, $simm13):$addr),
                        "st %csr, [$addr]", [], IIC_st>;
   }
-  let Defs = [CPQ] in {
-    def STDCQrr : F3_1<3, 0b110110, (outs (MEMrr $rs1, $rs2):$addr), (ins),
+  let mayStore = 1, Uses = [CPQ] in {
+    def STDCQrr : F3_1<3, 0b110110, (outs), (ins (MEMrr $rs1, $rs2):$addr),
                        "std %cq, [$addr]", [], IIC_std>;
-    def STDCQri : F3_2<3, 0b110110, (outs (MEMri $rs1, $simm13):$addr), (ins),
+    def STDCQri : F3_2<3, 0b110110, (outs), (ins (MEMri $rs1, $simm13):$addr),
                        "std %cq, [$addr]", [], IIC_std>;
   }
 }
 
 let rd = 0 in {
-  let Defs = [FSR] in {
-    def STFSRrr : F3_1<3, 0b100101, (outs (MEMrr $rs1, $rs2):$addr), (ins),
+  let mayStore = 1, Uses = [FSR] in {
+    def STFSRrr : F3_1<3, 0b100101, (outs), (ins (MEMrr $rs1, $rs2):$addr),
 		   "st %fsr, [$addr]", [], IIC_st>;
-    def STFSRri : F3_2<3, 0b100101, (outs (MEMri $rs1, $simm13):$addr), (ins),
+    def STFSRri : F3_2<3, 0b100101, (outs), (ins (MEMri $rs1, $simm13):$addr),
 		   "st %fsr, [$addr]", [], IIC_st>;
   }
-  let Defs = [FQ] in {
-    def STDFQrr : F3_1<3, 0b100110, (outs (MEMrr $rs1, $rs2):$addr), (ins),
+  let mayStore = 1, Defs = [FQ] in {
+    def STDFQrr : F3_1<3, 0b100110, (outs), (ins (MEMrr $rs1, $rs2):$addr),
 		   "std %fq, [$addr]", [], IIC_std>;
-    def STDFQri : F3_2<3, 0b100110, (outs (MEMri $rs1, $simm13):$addr), (ins),
+    def STDFQri : F3_2<3, 0b100110, (outs), (ins (MEMri $rs1, $simm13):$addr),
 		   "std %fq, [$addr]", [], IIC_std>;
   }
 }
-let rd = 1, Defs = [FSR] in {
-  def STXFSRrr : F3_1<3, 0b100101, (outs (MEMrr $rs1, $rs2):$addr), (ins),
+let rd = 1, mayStore = 1, Uses = [FSR] in {
+  def STXFSRrr : F3_1<3, 0b100101, (outs), (ins (MEMrr $rs1, $rs2):$addr),
 		 "stx %fsr, [$addr]", []>, Requires<[HasV9]>;
-  def STXFSRri : F3_2<3, 0b100101, (outs (MEMri $rs1, $simm13):$addr), (ins),
+  def STXFSRri : F3_2<3, 0b100101, (outs), (ins (MEMri $rs1, $simm13):$addr),
 		 "stx %fsr, [$addr]", []>, Requires<[HasV9]>;
 }
 
@@ -694,14 +743,19 @@ let Constraints = "$val = $rd" in {
   def SWAPrr : F3_1<3, 0b001111,
                  (outs IntRegs:$rd), (ins (MEMrr $rs1, $rs2):$addr, IntRegs:$val),
                  "swap [$addr], $rd",
-                 [(set i32:$rd, (atomic_swap_32 ADDRrr:$addr, i32:$val))]>;
+                 [(set i32:$rd, (atomic_swap_i32 ADDRrr:$addr, i32:$val))]>;
   def SWAPri : F3_2<3, 0b001111,
                  (outs IntRegs:$rd), (ins (MEMri $rs1, $simm13):$addr, IntRegs:$val),
                  "swap [$addr], $rd",
-                 [(set i32:$rd, (atomic_swap_32 ADDRri:$addr, i32:$val))]>;
+                 [(set i32:$rd, (atomic_swap_i32 ADDRri:$addr, i32:$val))]>;
   def SWAPArr : F3_1_asi<3, 0b011111,
-                 (outs IntRegs:$rd), (ins (MEMrr $rs1, $rs2):$addr, i8imm:$asi, IntRegs:$val),
+                 (outs IntRegs:$rd), (ins (MEMrr $rs1, $rs2):$addr, ASITag:$asi, IntRegs:$val),
                  "swapa [$addr] $asi, $rd",
+                 [/*FIXME: pattern?*/]>;
+let Predicates = [HasV9], Uses = [ASR3] in
+  def SWAPAri : F3_2<3, 0b011111,
+                 (outs IntRegs:$rd), (ins (MEMri $rs1, $simm13):$addr, IntRegs:$val),
+                 "swapa [$addr] %asi, $rd",
                  [/*FIXME: pattern?*/]>;
 }
 
@@ -771,13 +825,6 @@ defm SRA : F3_S<"sra", 0b100111, 0, sra, i32, shift_imm5, IntRegs>;
 // Section B.13 - Add Instructions, p. 108
 defm ADD   : F3_12<"add", 0b000000, add, IntRegs, i32, simm13Op>;
 
-// "LEA" forms of add (patterns to make tblgen happy)
-let Predicates = [Is32Bit], isCodeGenOnly = 1 in
-  def LEA_ADDri   : F3_2<2, 0b000000,
-                     (outs IntRegs:$rd), (ins (MEMri $rs1, $simm13):$addr),
-                     "add ${addr:arith}, $rd",
-                     [(set iPTR:$rd, ADDRri:$addr)]>;
-
 let Defs = [ICC] in
   defm ADDCC  : F3_12<"addcc", 0b010000, addc, IntRegs, i32, simm13Op>;
 
@@ -792,23 +839,14 @@ defm SUB    : F3_12  <"sub"  , 0b000100, sub, IntRegs, i32, simm13Op>;
 let Uses = [ICC], Defs = [ICC] in
   defm SUBE   : F3_12  <"subxcc" , 0b011100, sube, IntRegs, i32, simm13Op>;
 
-let Defs = [ICC] in
+let Defs = [ICC], hasPostISelHook = true in
   defm SUBCC  : F3_12  <"subcc", 0b010100, subc, IntRegs, i32, simm13Op>;
 
 let Uses = [ICC] in
   defm SUBC   : F3_12np <"subx", 0b001100>;
 
-// cmp (from Section A.3) is a specialized alias for subcc
-let Defs = [ICC], rd = 0 in {
-  def CMPrr   : F3_1<2, 0b010100,
-                     (outs), (ins IntRegs:$rs1, IntRegs:$rs2),
-                     "cmp $rs1, $rs2",
-                     [(SPcmpicc i32:$rs1, i32:$rs2)]>;
-  def CMPri   : F3_2<2, 0b010100,
-                     (outs), (ins IntRegs:$rs1, simm13Op:$simm13),
-                     "cmp $rs1, $simm13",
-                     [(SPcmpicc i32:$rs1, (i32 simm13:$simm13))]>;
-}
+def : Pat<(SPcmpicc i32:$lhs, i32:$rhs), (SUBCCrr $lhs, $rhs)>;
+def : Pat<(SPcmpicc i32:$lhs, (i32 simm13:$rhs)), (SUBCCri $lhs, imm:$rhs)>;
 
 // Section B.18 - Multiply Instructions, p. 113
 let Defs = [Y] in {
@@ -998,6 +1036,17 @@ let Uses = [O6],
     let Inst{29-0} = disp;
   }
 
+  // call with trailing imm argument.
+  // The imm argument is discarded.
+  let isAsmParserOnly = 1 in {
+    def CALLi : InstSP<(outs), (ins calltarget:$disp, i32imm:$imm),
+                    "call $disp, $imm", []> {
+      bits<30> disp;
+      let op = 1;
+      let Inst{29-0} = disp;
+    }
+  }
+
   // indirect calls: special cases of JMPL.
   let isCodeGenOnly = 1, rd = 15 in {
     def CALLrr : F3_1<2, 0b111000,
@@ -1010,6 +1059,15 @@ let Uses = [O6],
                       "call $addr",
                       [(call ADDRri:$addr)],
                       IIC_jmp_or_call>;
+  }
+
+  let isAsmParserOnly = 1, rd = 15 in {
+    def CALLrri : F3_1<2, 0b111000,
+                      (outs), (ins (MEMrr $rs1, $rs2):$addr, i32imm:$imm),
+                      "call $addr, $imm", []>;
+    def CALLrii : F3_2<2, 0b111000,
+                      (outs), (ins (MEMri $rs1, $simm13):$addr, i32imm:$imm),
+                      "call $addr, $imm", []>;
   }
 }
 
@@ -1121,14 +1179,6 @@ let Predicates = [HasNoV9] in {
     def RDTBR : F3_1<2, 0b101011,
 		     (outs IntRegs:$rd), (ins),
 		     "rd %tbr, $rd", []>;
-}
-
-// PC don't exist on the SparcV8, only the V9.
-let Predicates = [HasV9] in {
-  let rs2 = 0, rs1 = 5 in
-    def RDPC : F3_1<2, 0b101000,
-		     (outs IntRegs:$rd), (ins),
-		     "rd %pc, $rd", []>;
 }
 
 // Section B.29 - Write State Register Instructions
@@ -1667,36 +1717,20 @@ let Predicates = [HasV9], rd = 15, rs1 = 0b00000 in
                 (ins simm13Op:$simm13),
                  "sir $simm13", []>;
 
-// The CAS instruction, unlike other instructions, only comes in a
-// form which requires an ASI be provided. The ASI value hardcoded
-// here is ASI_PRIMARY, the default unprivileged ASI for SparcV9.
-let Predicates = [HasV9], Constraints = "$swap = $rd", asi = 0b10000000 in
-  def CASrr: F3_1_asi<3, 0b111100,
-                (outs IntRegs:$rd), (ins IntRegs:$rs1, IntRegs:$rs2,
-                                     IntRegs:$swap),
-                 "cas [$rs1], $rs2, $rd",
-                 [(set i32:$rd,
-                     (atomic_cmp_swap_32 iPTR:$rs1, i32:$rs2, i32:$swap))]>;
-
-
-// CASA is supported as an instruction on some LEON3 and all LEON4 processors.
-// This version can be automatically lowered from C code, selecting ASI 10
-let Predicates = [HasLeonCASA], Constraints = "$swap = $rd", asi = 0b00001010 in
-  def CASAasi10: F3_1_asi<3, 0b111100,
-                (outs IntRegs:$rd), (ins IntRegs:$rs1, IntRegs:$rs2,
-                                     IntRegs:$swap),
-                 "casa [$rs1] 10, $rs2, $rd",
-                 [(set i32:$rd,
-                     (atomic_cmp_swap_32 iPTR:$rs1, i32:$rs2, i32:$swap))]>;
-
-// CASA supported on some LEON3 and all LEON4 processors. Same pattern as
-// CASrr, above, but with a different ASI. This version is supported for
-// inline assembly lowering only.
-let Predicates = [HasLeonCASA], Constraints = "$swap = $rd" in
+// CASA supported on all V9, some LEON3 and all LEON4 processors.
+let Predicates = [HasCASA], Constraints = "$swap = $rd" in
   def CASArr: F3_1_asi<3, 0b111100,
                 (outs IntRegs:$rd), (ins IntRegs:$rs1, IntRegs:$rs2,
-                                     IntRegs:$swap, i8imm:$asi),
+                                     IntRegs:$swap, ASITag:$asi),
                  "casa [$rs1] $asi, $rs2, $rd", []>;
+
+// On the other hand, CASA that takes its ASI from a register
+// is only supported on V9 processors.
+let Predicates = [HasV9], Uses = [ASR3], Constraints = "$swap = $rd" in
+  def CASAri: F3_1_cas_asi<3, 0b111100,
+                (outs IntRegs:$rd), (ins IntRegs:$rs1, IntRegs:$rs2,
+                                     IntRegs:$swap),
+                 "casa [$rs1] %asi, $rs2, $rd", []>;
 
 // TODO: Add DAG sequence to lower these instructions. Currently, only provided
 // as inline assembler-supported instructions.
@@ -1762,11 +1796,18 @@ let Predicates = [HasV9], rs1 = 0, rs2 = 0 in {
 // Section A.42 - Prefetch Data
 let Predicates = [HasV9] in {
   def PREFETCHr : F3_1<3, 0b101101,
-                   (outs), (ins (MEMrr $rs1, $rs2):$addr, shift_imm5:$rd),
+                   (outs), (ins (MEMrr $rs1, $rs2):$addr, PrefetchTag:$rd),
                    "prefetch [$addr], $rd", []>;
   def PREFETCHi : F3_2<3, 0b101101,
-                   (outs), (ins (MEMri $rs1, $simm13):$addr, shift_imm5:$rd),
+                   (outs), (ins (MEMri $rs1, $simm13):$addr, PrefetchTag:$rd),
                    "prefetch [$addr], $rd", []>;
+  def PREFETCHAr : F3_1_asi<3, 0b111101, (outs),
+                    (ins (MEMrr $rs1, $rs2):$addr, ASITag:$asi, PrefetchTag:$rd),
+                    "prefetcha [$addr] $asi, $rd", []>;
+  let Uses = [ASR3] in
+  def PREFETCHAi : F3_2<3, 0b111101, (outs),
+                    (ins (MEMri $rs1, $simm13):$addr, PrefetchTag:$rd),
+                    "prefetcha [$addr] %asi, $rd", []>;
 }
 
 
@@ -1777,6 +1818,15 @@ let rs2 = 0 in
   def RDPR : F3_1<2, 0b101010,
                  (outs IntRegs:$rd), (ins PRRegs:$rs1),
                  "rdpr $rs1, $rd", []>;
+
+// Special case %fq as the register is also used in V8
+// (albeit with different instructions and encoding).
+// This allows us to reuse the register definition and
+// the "%fq" designation while giving it a different encoding.
+let Uses = [FQ], rs1 = 15, rs2 = 0 in
+  def RDFQ : F3_1<2, 0b101010,
+                 (outs IntRegs:$rd), (ins),
+                 "rdpr %fq, $rd", []>;
 }
 
 // Section A.62 - Write Privileged Register Instructions
@@ -1802,6 +1852,12 @@ def : Pat<(i32 simm13:$val),
 def : Pat<(i32 imm:$val),
           (ORri (SETHIi (HI22 imm:$val)), (LO10 imm:$val))>;
 
+// Frame index.
+def to_tframeindex : SDNodeXForm<frameindex, [{
+  return CurDAG->getTargetFrameIndex(N->getIndex(), N->getValueType(0));
+}]>;
+def : Pat<(i32 (frameindex:$ptr)), (ADDri (i32 (to_tframeindex $ptr)), (i32 0))>;
+def : Pat<(i64 (frameindex:$ptr)), (ADDri (i64 (to_tframeindex $ptr)), (i64 0))>;
 
 // Global addresses, constant pool entries
 let Predicates = [Is32Bit] in {
@@ -1868,12 +1924,21 @@ def : Pat<(i32 (atomic_load_32 ADDRrr:$src)), (LDrr ADDRrr:$src)>;
 def : Pat<(i32 (atomic_load_32 ADDRri:$src)), (LDri ADDRri:$src)>;
 
 // atomic_store val, addr -> store val, addr
-def : Pat<(atomic_store_8 ADDRrr:$dst, i32:$val), (STBrr ADDRrr:$dst, $val)>;
-def : Pat<(atomic_store_8 ADDRri:$dst, i32:$val), (STBri ADDRri:$dst, $val)>;
-def : Pat<(atomic_store_16 ADDRrr:$dst, i32:$val), (STHrr ADDRrr:$dst, $val)>;
-def : Pat<(atomic_store_16 ADDRri:$dst, i32:$val), (STHri ADDRri:$dst, $val)>;
-def : Pat<(atomic_store_32 ADDRrr:$dst, i32:$val), (STrr ADDRrr:$dst, $val)>;
-def : Pat<(atomic_store_32 ADDRri:$dst, i32:$val), (STri ADDRri:$dst, $val)>;
+def : Pat<(atomic_store_8 i32:$val, ADDRrr:$dst), (STBrr ADDRrr:$dst, $val)>;
+def : Pat<(atomic_store_8 i32:$val, ADDRri:$dst), (STBri ADDRri:$dst, $val)>;
+def : Pat<(atomic_store_16 i32:$val, ADDRrr:$dst), (STHrr ADDRrr:$dst, $val)>;
+def : Pat<(atomic_store_16 i32:$val, ADDRri:$dst), (STHri ADDRri:$dst, $val)>;
+def : Pat<(atomic_store_32 i32:$val, ADDRrr:$dst), (STrr ADDRrr:$dst, $val)>;
+def : Pat<(atomic_store_32 i32:$val, ADDRri:$dst), (STri ADDRri:$dst, $val)>;
+
+let Predicates = [HasV9] in
+def : Pat<(atomic_cmp_swap_i32 iPTR:$rs1, i32:$rs2, i32:$swap),
+          (CASArr $rs1, $rs2, $swap, 0x80)>;
+
+// Same pattern as CASArr above, but with a different ASI.
+let Predicates = [HasLeonCASA] in
+def : Pat<(atomic_cmp_swap_i32 iPTR:$rs1, i32:$rs2, i32:$swap),
+          (CASArr $rs1, $rs2, $swap, 0x0A)>;
 
 // A register pair with zero upper half.
 // The upper part is done with ORrr instead of `COPY G0`

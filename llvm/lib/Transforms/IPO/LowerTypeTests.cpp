@@ -118,10 +118,16 @@ static cl::opt<std::string> ClWriteSummary(
     cl::desc("Write summary to given YAML file after running pass"),
     cl::Hidden);
 
-static cl::opt<bool>
+static cl::opt<DropTestKind>
     ClDropTypeTests("lowertypetests-drop-type-tests",
-                    cl::desc("Simply drop type test assume sequences"),
-                    cl::Hidden, cl::init(false));
+                    cl::desc("Simply drop type test sequences"),
+                    cl::values(clEnumValN(DropTestKind::None, "none",
+                                          "Do not drop any type tests"),
+                               clEnumValN(DropTestKind::Assume, "assume",
+                                          "Drop type test assume sequences"),
+                               clEnumValN(DropTestKind::All, "all",
+                                          "Drop all type test sequences")),
+                    cl::Hidden, cl::init(DropTestKind::None));
 
 bool BitSetInfo::containsGlobalOffset(uint64_t Offset) const {
   if (Offset < ByteOffset)
@@ -381,8 +387,7 @@ struct ScopedSaveAliaseesAndUsed {
     appendToCompilerUsed(M, CompilerUsed);
 
     for (auto P : FunctionAliases)
-      P.first->setAliasee(
-          ConstantExpr::getBitCast(P.second, P.first->getType()));
+      P.first->setAliasee(P.second);
 
     for (auto P : ResolverIFuncs) {
       // This does not preserve pointer casts that may have been stripped by the
@@ -400,7 +405,7 @@ class LowerTypeTestsModule {
   const ModuleSummaryIndex *ImportSummary;
   // Set when the client has invoked this to simply drop all type test assume
   // sequences.
-  bool DropTypeTests;
+  DropTestKind DropTypeTests;
 
   Triple::ArchType Arch;
   Triple::OSType OS;
@@ -411,16 +416,19 @@ class LowerTypeTestsModule {
   // selectJumpTableArmEncoding may decide to use Thumb in either case.
   bool CanUseArmJumpTable = false, CanUseThumbBWJumpTable = false;
 
+  // Cache variable used by hasBranchTargetEnforcement().
+  int HasBranchTargetEnforcement = -1;
+
   // The jump table type we ended up deciding on. (Usually the same as
   // Arch, except that 'arm' and 'thumb' are often interchangeable.)
   Triple::ArchType JumpTableArch = Triple::UnknownArch;
 
   IntegerType *Int1Ty = Type::getInt1Ty(M.getContext());
   IntegerType *Int8Ty = Type::getInt8Ty(M.getContext());
-  PointerType *Int8PtrTy = Type::getInt8PtrTy(M.getContext());
+  PointerType *Int8PtrTy = PointerType::getUnqual(M.getContext());
   ArrayType *Int8Arr0Ty = ArrayType::get(Type::getInt8Ty(M.getContext()), 0);
   IntegerType *Int32Ty = Type::getInt32Ty(M.getContext());
-  PointerType *Int32PtrTy = PointerType::getUnqual(Int32Ty);
+  PointerType *Int32PtrTy = PointerType::getUnqual(M.getContext());
   IntegerType *Int64Ty = Type::getInt64Ty(M.getContext());
   IntegerType *IntPtrTy = M.getDataLayout().getIntPtrType(M.getContext(), 0);
 
@@ -468,6 +476,9 @@ class LowerTypeTestsModule {
 
   Function *WeakInitializerFn = nullptr;
 
+  GlobalVariable *GlobalAnnotation;
+  DenseSet<Value *> FunctionAnnotations;
+
   bool shouldExportConstantsAsAbsoluteSymbols();
   uint8_t *exportTypeId(StringRef TypeId, const TypeIdLowering &TIL);
   TypeIdLowering importTypeId(StringRef TypeId);
@@ -492,6 +503,7 @@ class LowerTypeTestsModule {
                                        ArrayRef<GlobalTypeMember *> Globals);
   Triple::ArchType
   selectJumpTableArmEncoding(ArrayRef<GlobalTypeMember *> Functions);
+  bool hasBranchTargetEnforcement();
   unsigned getJumpTableEntrySize();
   Type *getJumpTableEntryType();
   void createJumpTableEntry(raw_ostream &AsmOS, raw_ostream &ConstraintOS,
@@ -528,11 +540,15 @@ class LowerTypeTestsModule {
   /// replace each use, which is a direct function call.
   void replaceDirectCalls(Value *Old, Value *New);
 
+  bool isFunctionAnnotation(Value *V) const {
+    return FunctionAnnotations.contains(V);
+  }
+
 public:
   LowerTypeTestsModule(Module &M, ModuleAnalysisManager &AM,
                        ModuleSummaryIndex *ExportSummary,
                        const ModuleSummaryIndex *ImportSummary,
-                       bool DropTypeTests);
+                       DropTestKind DropTypeTests);
 
   bool lower();
 
@@ -755,9 +771,9 @@ Value *LowerTypeTestsModule::lowerTypeTestCall(Metadata *TypeId, CallInst *CI,
   // also conveniently gives us a bit offset to use during the load from
   // the bitset.
   Value *OffsetSHR =
-      B.CreateLShr(PtrOffset, ConstantExpr::getZExt(TIL.AlignLog2, IntPtrTy));
+      B.CreateLShr(PtrOffset, B.CreateZExt(TIL.AlignLog2, IntPtrTy));
   Value *OffsetSHL = B.CreateShl(
-      PtrOffset, ConstantExpr::getZExt(
+      PtrOffset, B.CreateZExt(
                      ConstantExpr::getSub(
                          ConstantInt::get(Int8Ty, DL.getPointerSizeInBits(0)),
                          TIL.AlignLog2),
@@ -869,7 +885,7 @@ void LowerTypeTestsModule::buildBitSetsFromGlobalVariables(
     // Multiply by 2 to account for padding elements.
     Constant *CombinedGlobalIdxs[] = {ConstantInt::get(Int32Ty, 0),
                                       ConstantInt::get(Int32Ty, I * 2)};
-    Constant *CombinedGlobalElemPtr = ConstantExpr::getGetElementPtr(
+    Constant *CombinedGlobalElemPtr = ConstantExpr::getInBoundsGetElementPtr(
         NewInit->getType(), CombinedGlobal, CombinedGlobalIdxs);
     assert(GV->getType()->getAddressSpace() == 0);
     GlobalAlias *GAlias =
@@ -962,7 +978,6 @@ LowerTypeTestsModule::importTypeId(StringRef TypeId) {
                                       Int8Arr0Ty);
     if (auto *GV = dyn_cast<GlobalVariable>(C))
       GV->setVisibility(GlobalValue::HiddenVisibility);
-    C = ConstantExpr::getBitCast(C, Int8PtrTy);
     return C;
   };
 
@@ -1100,15 +1115,13 @@ void LowerTypeTestsModule::importFunction(
     replaceCfiUses(F, FDecl, isJumpTableCanonical);
 
   // Set visibility late because it's used in replaceCfiUses() to determine
-  // whether uses need to to be replaced.
+  // whether uses need to be replaced.
   F->setVisibility(Visibility);
 }
 
 void LowerTypeTestsModule::lowerTypeTestCalls(
     ArrayRef<Metadata *> TypeIds, Constant *CombinedGlobalAddr,
     const DenseMap<GlobalTypeMember *, uint64_t> &GlobalLayout) {
-  CombinedGlobalAddr = ConstantExpr::getBitCast(CombinedGlobalAddr, Int8PtrTy);
-
   // For each type identifier in this disjoint set...
   for (Metadata *TypeId : TypeIds) {
     // Build the bitset.
@@ -1196,6 +1209,20 @@ static const unsigned kARMJumpTableEntrySize = 4;
 static const unsigned kARMBTIJumpTableEntrySize = 8;
 static const unsigned kARMv6MJumpTableEntrySize = 16;
 static const unsigned kRISCVJumpTableEntrySize = 8;
+static const unsigned kLOONGARCH64JumpTableEntrySize = 8;
+
+bool LowerTypeTestsModule::hasBranchTargetEnforcement() {
+  if (HasBranchTargetEnforcement == -1) {
+    // First time this query has been called. Find out the answer by checking
+    // the module flags.
+    if (const auto *BTE = mdconst::extract_or_null<ConstantInt>(
+          M.getModuleFlag("branch-target-enforcement")))
+      HasBranchTargetEnforcement = (BTE->getZExtValue() != 0);
+    else
+      HasBranchTargetEnforcement = 0;
+  }
+  return HasBranchTargetEnforcement;
+}
 
 unsigned LowerTypeTestsModule::getJumpTableEntrySize() {
   switch (JumpTableArch) {
@@ -1209,19 +1236,22 @@ unsigned LowerTypeTestsModule::getJumpTableEntrySize() {
   case Triple::arm:
     return kARMJumpTableEntrySize;
   case Triple::thumb:
-    if (CanUseThumbBWJumpTable)
-      return kARMJumpTableEntrySize;
-    else
-      return kARMv6MJumpTableEntrySize;
-  case Triple::aarch64:
-    if (const auto *BTE = mdconst::extract_or_null<ConstantInt>(
-            M.getModuleFlag("branch-target-enforcement")))
-      if (BTE->getZExtValue())
+    if (CanUseThumbBWJumpTable) {
+      if (hasBranchTargetEnforcement())
         return kARMBTIJumpTableEntrySize;
+      return kARMJumpTableEntrySize;
+    } else {
+      return kARMv6MJumpTableEntrySize;
+    }
+  case Triple::aarch64:
+    if (hasBranchTargetEnforcement())
+      return kARMBTIJumpTableEntrySize;
     return kARMJumpTableEntrySize;
   case Triple::riscv32:
   case Triple::riscv64:
     return kRISCVJumpTableEntrySize;
+  case Triple::loongarch64:
+    return kLOONGARCH64JumpTableEntrySize;
   default:
     report_fatal_error("Unsupported architecture for jump tables");
   }
@@ -1251,10 +1281,8 @@ void LowerTypeTestsModule::createJumpTableEntry(
   } else if (JumpTableArch == Triple::arm) {
     AsmOS << "b $" << ArgIndex << "\n";
   } else if (JumpTableArch == Triple::aarch64) {
-    if (const auto *BTE = mdconst::extract_or_null<ConstantInt>(
-          Dest->getParent()->getModuleFlag("branch-target-enforcement")))
-      if (BTE->getZExtValue())
-        AsmOS << "bti c\n";
+    if (hasBranchTargetEnforcement())
+      AsmOS << "bti c\n";
     AsmOS << "b $" << ArgIndex << "\n";
   } else if (JumpTableArch == Triple::thumb) {
     if (!CanUseThumbBWJumpTable) {
@@ -1281,11 +1309,16 @@ void LowerTypeTestsModule::createJumpTableEntry(
             << ".balign 4\n"
             << "1: .word $" << ArgIndex << " - (0b + 4)\n";
     } else {
+      if (hasBranchTargetEnforcement())
+        AsmOS << "bti\n";
       AsmOS << "b.w $" << ArgIndex << "\n";
     }
   } else if (JumpTableArch == Triple::riscv32 ||
              JumpTableArch == Triple::riscv64) {
     AsmOS << "tail $" << ArgIndex << "@plt\n";
+  } else if (JumpTableArch == Triple::loongarch64) {
+    AsmOS << "pcalau12i $$t0, %pc_hi20($" << ArgIndex << ")\n"
+          << "jirl $$r0, $$t0, %pc_lo12($" << ArgIndex << ")\n";
   } else {
     report_fatal_error("Unsupported architecture for jump tables");
   }
@@ -1304,7 +1337,8 @@ void LowerTypeTestsModule::buildBitSetsFromFunctions(
     ArrayRef<Metadata *> TypeIds, ArrayRef<GlobalTypeMember *> Functions) {
   if (Arch == Triple::x86 || Arch == Triple::x86_64 || Arch == Triple::arm ||
       Arch == Triple::thumb || Arch == Triple::aarch64 ||
-      Arch == Triple::riscv32 || Arch == Triple::riscv64)
+      Arch == Triple::riscv32 || Arch == Triple::riscv64 ||
+      Arch == Triple::loongarch64)
     buildBitSetsFromFunctionsNative(TypeIds, Functions);
   else if (Arch == Triple::wasm32 || Arch == Triple::wasm64)
     buildBitSetsFromFunctionsWASM(TypeIds, Functions);
@@ -1356,8 +1390,11 @@ void LowerTypeTestsModule::replaceWeakDeclarationWithJumpTablePtr(
   // (all?) targets. Switch to a runtime initializer.
   SmallSetVector<GlobalVariable *, 8> GlobalVarUsers;
   findGlobalVariableUsersOf(F, GlobalVarUsers);
-  for (auto *GV : GlobalVarUsers)
+  for (auto *GV : GlobalVarUsers) {
+    if (GV == GlobalAnnotation)
+      continue;
     moveInitializerToModuleConstructor(GV);
+  }
 
   // Can not RAUW F with an expression that uses F. Replace with a temporary
   // placeholder first.
@@ -1446,9 +1483,19 @@ void LowerTypeTestsModule::createJumpTable(
   SmallVector<Value *, 16> AsmArgs;
   AsmArgs.reserve(Functions.size() * 2);
 
-  for (GlobalTypeMember *GTM : Functions)
+  // Check if all entries have the NoUnwind attribute.
+  // If all entries have it, we can safely mark the
+  // cfi.jumptable as NoUnwind, otherwise, direct calls
+  // to the jump table will not handle exceptions properly
+  bool areAllEntriesNounwind = true;
+  for (GlobalTypeMember *GTM : Functions) {
+    if (!llvm::cast<llvm::Function>(GTM->getGlobal())
+             ->hasFnAttribute(llvm::Attribute::NoUnwind)) {
+      areAllEntriesNounwind = false;
+    }
     createJumpTableEntry(AsmOS, ConstraintOS, JumpTableArch, AsmArgs,
                          cast<Function>(GTM->getGlobal()));
+  }
 
   // Align the whole table by entry size.
   F->setAlignment(Align(getJumpTableEntrySize()));
@@ -1461,19 +1508,27 @@ void LowerTypeTestsModule::createJumpTable(
   if (JumpTableArch == Triple::arm)
     F->addFnAttr("target-features", "-thumb-mode");
   if (JumpTableArch == Triple::thumb) {
-    F->addFnAttr("target-features", "+thumb-mode");
-    if (CanUseThumbBWJumpTable) {
-      // Thumb jump table assembly needs Thumb2. The following attribute is
-      // added by Clang for -march=armv7.
-      F->addFnAttr("target-cpu", "cortex-a8");
+    if (hasBranchTargetEnforcement()) {
+      // If we're generating a Thumb jump table with BTI, add a target-features
+      // setting to ensure BTI can be assembled.
+      F->addFnAttr("target-features", "+thumb-mode,+pacbti");
+    } else {
+      F->addFnAttr("target-features", "+thumb-mode");
+      if (CanUseThumbBWJumpTable) {
+        // Thumb jump table assembly needs Thumb2. The following attribute is
+        // added by Clang for -march=armv7.
+        F->addFnAttr("target-cpu", "cortex-a8");
+      }
     }
   }
   // When -mbranch-protection= is used, the inline asm adds a BTI. Suppress BTI
   // for the function to avoid double BTI. This is a no-op without
   // -mbranch-protection=.
-  if (JumpTableArch == Triple::aarch64) {
-    F->addFnAttr("branch-target-enforcement", "false");
-    F->addFnAttr("sign-return-address", "none");
+  if (JumpTableArch == Triple::aarch64 || JumpTableArch == Triple::thumb) {
+    if (F->hasFnAttribute("branch-target-enforcement"))
+      F->removeFnAttr("branch-target-enforcement");
+    if (F->hasFnAttribute("sign-return-address"))
+      F->removeFnAttr("sign-return-address");
   }
   if (JumpTableArch == Triple::riscv32 || JumpTableArch == Triple::riscv64) {
     // Make sure the jump table assembly is not modified by the assembler or
@@ -1485,8 +1540,13 @@ void LowerTypeTestsModule::createJumpTable(
   // -fcf-protection=.
   if (JumpTableArch == Triple::x86 || JumpTableArch == Triple::x86_64)
     F->addFnAttr(Attribute::NoCfCheck);
-  // Make sure we don't emit .eh_frame for this function.
-  F->addFnAttr(Attribute::NoUnwind);
+
+  // Make sure we don't emit .eh_frame for this function if it isn't needed.
+  if (areAllEntriesNounwind)
+    F->addFnAttr(Attribute::NoUnwind);
+
+  // Make sure we do not inline any calls to the cfi.jumptable.
+  F->addFnAttr(Attribute::NoInline);
 
   BasicBlock *BB = BasicBlock::Create(M.getContext(), "entry", F);
   IRBuilder<> IRB(BB);
@@ -1604,8 +1664,8 @@ void LowerTypeTestsModule::buildBitSetsFromFunctionsNative(
                        ".cfi.jumptable", &M);
   ArrayType *JumpTableType =
       ArrayType::get(getJumpTableEntryType(), Functions.size());
-  auto JumpTable =
-      ConstantExpr::getPointerCast(JumpTableFn, JumpTableType->getPointerTo(0));
+  auto JumpTable = ConstantExpr::getPointerCast(
+      JumpTableFn, PointerType::getUnqual(M.getContext()));
 
   lowerTypeTestCalls(TypeIds, JumpTable, GlobalLayout);
 
@@ -1618,12 +1678,10 @@ void LowerTypeTestsModule::buildBitSetsFromFunctionsNative(
       Function *F = cast<Function>(Functions[I]->getGlobal());
       bool IsJumpTableCanonical = Functions[I]->isJumpTableCanonical();
 
-      Constant *CombinedGlobalElemPtr = ConstantExpr::getBitCast(
-          ConstantExpr::getInBoundsGetElementPtr(
-              JumpTableType, JumpTable,
-              ArrayRef<Constant *>{ConstantInt::get(IntPtrTy, 0),
-                                   ConstantInt::get(IntPtrTy, I)}),
-          F->getType());
+      Constant *CombinedGlobalElemPtr = ConstantExpr::getInBoundsGetElementPtr(
+          JumpTableType, JumpTable,
+          ArrayRef<Constant *>{ConstantInt::get(IntPtrTy, 0),
+                               ConstantInt::get(IntPtrTy, I)});
 
       const bool IsExported = Functions[I]->isExported();
       if (!IsJumpTableCanonical) {
@@ -1776,9 +1834,10 @@ void LowerTypeTestsModule::buildBitSetsFromDisjointSet(
 /// Lower all type tests in this module.
 LowerTypeTestsModule::LowerTypeTestsModule(
     Module &M, ModuleAnalysisManager &AM, ModuleSummaryIndex *ExportSummary,
-    const ModuleSummaryIndex *ImportSummary, bool DropTypeTests)
+    const ModuleSummaryIndex *ImportSummary, DropTestKind DropTypeTests)
     : M(M), ExportSummary(ExportSummary), ImportSummary(ImportSummary),
-      DropTypeTests(DropTypeTests || ClDropTypeTests) {
+      DropTypeTests(ClDropTypeTests > DropTypeTests ? ClDropTypeTests
+                                                    : DropTypeTests) {
   assert(!(ExportSummary && ImportSummary));
   Triple TargetTriple(M.getTargetTriple());
   Arch = TargetTriple.getArch();
@@ -1797,6 +1856,16 @@ LowerTypeTestsModule::LowerTypeTestsModule(
   }
   OS = TargetTriple.getOS();
   ObjectFormat = TargetTriple.getObjectFormat();
+
+  // Function annotation describes or applies to function itself, and
+  // shouldn't be associated with jump table thunk generated for CFI.
+  GlobalAnnotation = M.getGlobalVariable("llvm.global.annotations");
+  if (GlobalAnnotation && GlobalAnnotation->hasInitializer()) {
+    const ConstantArray *CA =
+        cast<ConstantArray>(GlobalAnnotation->getInitializer());
+    for (Value *Op : CA->operands())
+      FunctionAnnotations.insert(Op);
+  }
 }
 
 bool LowerTypeTestsModule::runForTesting(Module &M, ModuleAnalysisManager &AM) {
@@ -1807,8 +1876,8 @@ bool LowerTypeTestsModule::runForTesting(Module &M, ModuleAnalysisManager &AM) {
   if (!ClReadSummary.empty()) {
     ExitOnError ExitOnErr("-lowertypetests-read-summary: " + ClReadSummary +
                           ": ");
-    auto ReadSummaryFile =
-        ExitOnErr(errorOrToExpected(MemoryBuffer::getFile(ClReadSummary)));
+    auto ReadSummaryFile = ExitOnErr(errorOrToExpected(
+        MemoryBuffer::getFile(ClReadSummary, /*IsText=*/true)));
 
     yaml::Input In(ReadSummaryFile->getBuffer());
     In >> Summary;
@@ -1820,7 +1889,7 @@ bool LowerTypeTestsModule::runForTesting(Module &M, ModuleAnalysisManager &AM) {
           M, AM,
           ClSummaryAction == PassSummaryAction::Export ? &Summary : nullptr,
           ClSummaryAction == PassSummaryAction::Import ? &Summary : nullptr,
-          /*DropTypeTests*/ false)
+          /*DropTypeTests=*/DropTestKind::None)
           .lower();
 
   if (!ClWriteSummary.empty()) {
@@ -1856,8 +1925,12 @@ void LowerTypeTestsModule::replaceCfiUses(Function *Old, Value *New,
     if (isa<BlockAddress, NoCFIValue>(U.getUser()))
       continue;
 
-    // Skip direct calls to externally defined or non-dso_local functions
+    // Skip direct calls to externally defined or non-dso_local functions.
     if (isDirectCall(U) && (Old->isDSOLocal() || !IsJumpTableCanonical))
+      continue;
+
+    // Skip function annotation.
+    if (isFunctionAnnotation(U.getUser()))
       continue;
 
     // Must handle Constants specially, we cannot call replaceUsesOfWith on a
@@ -1883,7 +1956,8 @@ void LowerTypeTestsModule::replaceDirectCalls(Value *Old, Value *New) {
   Old->replaceUsesWithIf(New, isDirectCall);
 }
 
-static void dropTypeTests(Module &M, Function &TypeTestFunc) {
+static void dropTypeTests(Module &M, Function &TypeTestFunc,
+                          bool ShouldDropAll) {
   for (Use &U : llvm::make_early_inc_range(TypeTestFunc.uses())) {
     auto *CI = cast<CallInst>(U.getUser());
     // Find and erase llvm.assume intrinsics for this llvm.type.test call.
@@ -1893,9 +1967,13 @@ static void dropTypeTests(Module &M, Function &TypeTestFunc) {
     // If the assume was merged with another assume, we might have a use on a
     // phi (which will feed the assume). Simply replace the use on the phi
     // with "true" and leave the merged assume.
+    //
+    // If ShouldDropAll is set, then we  we need to update any remaining uses,
+    // regardless of the instruction type.
     if (!CI->use_empty()) {
-      assert(
-          all_of(CI->users(), [](User *U) -> bool { return isa<PHINode>(U); }));
+      assert(ShouldDropAll || all_of(CI->users(), [](User *U) -> bool {
+               return isa<PHINode>(U);
+             }));
       CI->replaceAllUsesWith(ConstantInt::getTrue(M.getContext()));
     }
     CI->eraseFromParent();
@@ -1904,18 +1982,19 @@ static void dropTypeTests(Module &M, Function &TypeTestFunc) {
 
 bool LowerTypeTestsModule::lower() {
   Function *TypeTestFunc =
-      M.getFunction(Intrinsic::getName(Intrinsic::type_test));
+      Intrinsic::getDeclarationIfExists(&M, Intrinsic::type_test);
 
-  if (DropTypeTests) {
+  if (DropTypeTests != DropTestKind::None) {
+    bool ShouldDropAll = DropTypeTests == DropTestKind::All;
     if (TypeTestFunc)
-      dropTypeTests(M, *TypeTestFunc);
+      dropTypeTests(M, *TypeTestFunc, ShouldDropAll);
     // Normally we'd have already removed all @llvm.public.type.test calls,
     // except for in the case where we originally were performing ThinLTO but
     // decided not to in the backend.
     Function *PublicTypeTestFunc =
-        M.getFunction(Intrinsic::getName(Intrinsic::public_type_test));
+        Intrinsic::getDeclarationIfExists(&M, Intrinsic::public_type_test);
     if (PublicTypeTestFunc)
-      dropTypeTests(M, *PublicTypeTestFunc);
+      dropTypeTests(M, *PublicTypeTestFunc, ShouldDropAll);
     if (TypeTestFunc || PublicTypeTestFunc) {
       // We have deleted the type intrinsics, so we no longer have enough
       // information to reason about the liveness of virtual function pointers
@@ -1936,7 +2015,7 @@ bool LowerTypeTestsModule::lower() {
     return false;
 
   Function *ICallBranchFunnelFunc =
-      M.getFunction(Intrinsic::getName(Intrinsic::icall_branch_funnel));
+      Intrinsic::getDeclarationIfExists(&M, Intrinsic::icall_branch_funnel);
   if ((!TypeTestFunc || TypeTestFunc->use_empty()) &&
       (!ICallBranchFunnelFunc || ICallBranchFunnelFunc->use_empty()) &&
       !ExportSummary && !ImportSummary)
@@ -1958,10 +2037,9 @@ bool LowerTypeTestsModule::lower() {
       // have the same name, but it's not the one we are looking for.
       if (F.hasLocalLinkage())
         continue;
-      if (ImportSummary->cfiFunctionDefs().count(std::string(F.getName())))
+      if (ImportSummary->cfiFunctionDefs().count(F.getName()))
         Defs.push_back(&F);
-      else if (ImportSummary->cfiFunctionDecls().count(
-                   std::string(F.getName())))
+      else if (ImportSummary->cfiFunctionDecls().count(F.getName()))
         Decls.push_back(&F);
     }
 
@@ -2010,18 +2088,21 @@ bool LowerTypeTestsModule::lower() {
     CfiFunctionLinkage Linkage;
     MDNode *FuncMD; // {name, linkage, type[, type...]}
   };
-  DenseMap<StringRef, ExportedFunctionInfo> ExportedFunctions;
+  MapVector<StringRef, ExportedFunctionInfo> ExportedFunctions;
   if (ExportSummary) {
-    // A set of all functions that are address taken by a live global object.
-    DenseSet<GlobalValue::GUID> AddressTaken;
-    for (auto &I : *ExportSummary)
-      for (auto &GVS : I.second.SummaryList)
-        if (GVS->isLive())
-          for (const auto &Ref : GVS->refs())
-            AddressTaken.insert(Ref.getGUID());
-
     NamedMDNode *CfiFunctionsMD = M.getNamedMetadata("cfi.functions");
     if (CfiFunctionsMD) {
+      // A set of all functions that are address taken by a live global object.
+      DenseSet<GlobalValue::GUID> AddressTaken;
+      for (auto &I : *ExportSummary)
+        for (auto &GVS : I.second.SummaryList)
+          if (GVS->isLive())
+            for (const auto &Ref : GVS->refs()) {
+              AddressTaken.insert(Ref.getGUID());
+              for (auto &RefGVS : Ref.getSummaryList())
+                if (auto Alias = dyn_cast<AliasSummary>(RefGVS.get()))
+                  AddressTaken.insert(Alias->getAliaseeGUID());
+            }
       for (auto *FuncMD : CfiFunctionsMD->operands()) {
         assert(FuncMD->getNumOperands() >= 2);
         StringRef FunctionName =

@@ -65,12 +65,13 @@ void InitializeDbgHelpIfNeeded() {
   HMODULE dbghelp = LoadLibraryA("dbghelp.dll");
   CHECK(dbghelp && "failed to load dbghelp.dll");
 
-#define DBGHELP_IMPORT(name)                                                  \
-  do {                                                                        \
-    name =                                                                    \
-        reinterpret_cast<decltype(::name) *>(GetProcAddress(dbghelp, #name)); \
-    CHECK(name != nullptr);                                                   \
-  } while (0)
+#  define DBGHELP_IMPORT(name)                     \
+    do {                                           \
+      name = reinterpret_cast<decltype(::name) *>( \
+          (void *)GetProcAddress(dbghelp, #name)); \
+      CHECK(name != nullptr);                      \
+    } while (0)
+
   DBGHELP_IMPORT(StackWalk64);
   DBGHELP_IMPORT(SymCleanup);
   DBGHELP_IMPORT(SymFromAddr);
@@ -175,9 +176,7 @@ const char *WinSymbolizerTool::Demangle(const char *name) {
     return name;
 }
 
-const char *Symbolizer::PlatformDemangle(const char *name) {
-  return name;
-}
+const char *Symbolizer::PlatformDemangle(const char *name) { return nullptr; }
 
 namespace {
 struct ScopedHandle {
@@ -233,7 +232,7 @@ bool SymbolizerProcess::StartSymbolizerSubprocess() {
     CHECK(!internal_strchr(arg, '"') && "quotes in args unsupported");
     CHECK(arglen > 0 && arg[arglen - 1] != '\\' &&
           "args ending in backslash and empty args unsupported");
-    command_line.append("\"%s\" ", arg);
+    command_line.AppendF("\"%s\" ", arg);
   }
   VReport(3, "Launching symbolizer command: %s\n", command_line.data());
 

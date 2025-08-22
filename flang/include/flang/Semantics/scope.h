@@ -61,7 +61,7 @@ class Scope {
 public:
   ENUM_CLASS(Kind, Global, IntrinsicModules, Module, MainProgram, Subprogram,
       BlockData, DerivedType, BlockConstruct, Forall, OtherConstruct,
-      ImpliedDos)
+      OpenACCConstruct, ImpliedDos, OtherClause)
   using ImportKind = common::ImportKind;
 
   // Create the Global scope -- the root of the scope tree
@@ -138,6 +138,8 @@ public:
   const_iterator cend() const { return symbols_.cend(); }
 
   // Return symbols in declaration order (the iterators above are in name order)
+  // When a generic procedure interface shadows a derived type or specific
+  // procedure, only the generic's symbol appears in the output.
   SymbolVector GetSymbols() const;
   MutableSymbolVector GetSymbols();
 
@@ -225,6 +227,7 @@ public:
   ImportKind GetImportKind() const;
   // Names appearing in IMPORT statements in this scope
   std::set<SourceName> importNames() const { return importNames_; }
+  bool CanImport(const SourceName &) const;
 
   // Set the kind of imports from host into this scope.
   // Return an error message for incompatible kinds.
@@ -249,9 +252,6 @@ public:
   // The range of the source of this and nested scopes.
   const parser::CharBlock &sourceRange() const { return sourceRange_; }
   void AddSourceRange(parser::CharBlock);
-  // Find the smallest scope under this one that contains source
-  const Scope *FindScope(parser::CharBlock) const;
-  Scope *FindScope(parser::CharBlock);
 
   // Attempts to find a match for a derived type instance
   const DeclTypeSpec *FindInstantiatedDerivedType(const DerivedTypeSpec &,
@@ -301,7 +301,6 @@ private:
   // or Symbol& points to one in there.
   static Symbols<1024> allSymbols;
 
-  bool CanImport(const SourceName &) const;
   const DeclTypeSpec &MakeLengthlessType(DeclTypeSpec &&);
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &, const Scope &);

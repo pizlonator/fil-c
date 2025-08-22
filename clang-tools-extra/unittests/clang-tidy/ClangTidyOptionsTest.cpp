@@ -81,7 +81,6 @@ TEST(ParseConfiguration, ValidConfiguration) {
           "HeaderFileExtensions: [\"\",\"h\",\"hh\",\"hpp\",\"hxx\"]\n"
           "ImplementationFileExtensions: [\"c\",\"cc\",\"cpp\",\"cxx\"]\n"
           "HeaderFilterRegex: \".*\"\n"
-          "AnalyzeTemporaryDtors: true\n"
           "User: some.user",
           "Options"));
   EXPECT_TRUE(!!Options);
@@ -115,7 +114,6 @@ TEST(ParseConfiguration, MergeConfigurations) {
       HeaderFileExtensions: ["h","hh"]
       ImplementationFileExtensions: ["c","cc"]
       HeaderFilterRegex: "filter1"
-      AnalyzeTemporaryDtors: true
       User: user1
       ExtraArgs: ['arg1', 'arg2']
       ExtraArgsBefore: ['arg-before1', 'arg-before2']
@@ -130,7 +128,6 @@ TEST(ParseConfiguration, MergeConfigurations) {
       HeaderFileExtensions: ["hpp","hxx"]
       ImplementationFileExtensions: ["cpp","cxx"]
       HeaderFilterRegex: "filter2"
-      AnalyzeTemporaryDtors: false
       User: user2
       ExtraArgs: ['arg3', 'arg4']
       ExtraArgsBefore: ['arg-before3', 'arg-before4']
@@ -419,13 +416,6 @@ TEST(ValidConfiguration, ValidEnumOptions) {
 
   CHECK_VAL(TestCheck.getIntLocal<Colours>("Valid"), Colours::Red);
   CHECK_VAL(TestCheck.getIntGlobal<Colours>("GlobalValid"), Colours::Violet);
-
-  CHECK_VAL(
-      TestCheck.getIntLocal<Colours>("ValidWrongCase", /*IgnoreCase*/ true),
-      Colours::Red);
-  CHECK_VAL(TestCheck.getIntGlobal<Colours>("GlobalValidWrongCase",
-                                            /*IgnoreCase*/ true),
-            Colours::Violet);
 
   EXPECT_FALSE(TestCheck.getIntLocal<Colours>("ValidWrongCase").has_value());
   EXPECT_FALSE(TestCheck.getIntLocal<Colours>("NearMiss").has_value());

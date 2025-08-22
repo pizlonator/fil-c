@@ -20,6 +20,10 @@
 #include <optional>
 #include <string>
 
+#ifdef SendMessage
+#undef SendMessage
+#endif
+
 #if LLDB_SERVER_IS_DEBUGSERVER
 #define LLGS_TEST(x) DISABLED_ ## x
 #define DS_TEST(x) x
@@ -48,8 +52,9 @@ public:
   /// using this for generic tests, as the two stubs have different
   /// command-line interfaces.
   static llvm::Expected<std::unique_ptr<TestClient>>
-  launchCustom(llvm::StringRef Log, llvm::ArrayRef<llvm::StringRef> ServerArgs, llvm::ArrayRef<llvm::StringRef> InferiorArgs);
-
+  launchCustom(llvm::StringRef Log, bool disable_stdio,
+               llvm::ArrayRef<llvm::StringRef> ServerArgs,
+               llvm::ArrayRef<llvm::StringRef> InferiorArgs);
 
   ~TestClient() override;
   llvm::Error SetInferior(llvm::ArrayRef<std::string> inferior_args);

@@ -6,6 +6,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This test fails because Clang no longer enables -fdelayed-template-parsing
+// by default on Windows with C++20 (#69431).
+// XFAIL: msvc && (clang-18 || clang-19 || clang-20)
+
 // <math.h>
 
 #include <math.h>
@@ -99,7 +103,7 @@ Ambiguous scalbn(Ambiguous, Ambiguous){ return Ambiguous(); }
 Ambiguous tgamma(Ambiguous){ return Ambiguous(); }
 Ambiguous trunc(Ambiguous){ return Ambiguous(); }
 
-template <class T, class = decltype(::abs(std::declval<T>()))>
+template <class T, class = decltype(::abs(T()))>
 std::true_type has_abs_imp(int);
 template <class T>
 std::false_type has_abs_imp(...);

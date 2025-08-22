@@ -174,7 +174,7 @@ TableGen has two kinds of string literals:
 
 .. productionlist::
    TokString: '"' (non-'"' characters and escapes) '"'
-   TokCode: "[{" (shortest text not containing "}]") "}]"
+   TokCode: "[{" (text not containing "}]") "}]"
 
 A :token:`TokCode` is nothing more than a multi-line string literal
 delimited by ``[{`` and ``}]``. It can break across lines and the
@@ -202,10 +202,10 @@ TableGen has the following reserved keywords, which cannot be used as
 identifiers::
 
    assert     bit           bits          class         code
-   dag        def           else          false         foreach
-   defm       defset        defvar        field         if
-   in         include       int           let           list
-   multiclass string        then          true
+   dag        def           dump          else          false
+   foreach    defm          defset        defvar        field
+   if         in            include       int           let
+   list       multiclass    string        then          true
 
 .. warning::
   The ``field`` reserved word is deprecated, except when used with the
@@ -223,12 +223,13 @@ TableGen provides "bang operators" that have a wide variety of uses:
                : !div         !empty       !eq          !exists      !filter
                : !find        !foldl       !foreach     !ge          !getdagarg
                : !getdagname  !getdagop    !gt          !head        !if
-               : !interleave  !isa         !le          !listconcat  !listremove
-               : !listsplat   !logtwo      !lt          !mul         !ne
-               : !not         !or          !range       !setdagarg   !setdagname
-               : !setdagop    !shl         !size        !sra         !srl
-               : !strconcat   !sub         !subst       !substr      !tail
-               : !tolower     !toupper     !xor
+               : !initialized !interleave  !isa         !le          !listconcat
+               : !listflatten !listremove  !listsplat   !logtwo      !lt
+               : !mul         !ne          !not         !or          !range
+               : !repr        !setdagarg   !setdagname  !setdagop    !shl
+               : !size        !sra         !srl         !strconcat   !sub
+               : !subst       !substr      !tail        !tolower     !toupper
+               : !xor
 
 The ``!cond`` operator has a slightly different
 syntax compared to other bang operators, so it is defined separately:
@@ -555,7 +556,7 @@ previous case, if the *right-hand-side* operand is an undefined name or a
 global name, it is treated as a verbatim string of characters. The
 left-hand-side operand is treated normally.
 
-Values can have a trailing paste operator, in which case the left-hand-side 
+Values can have a trailing paste operator, in which case the left-hand-side
 operand is concatenated to an empty string.
 
 `Appendix B: Paste Operator Examples`_ presents examples of the behavior of
@@ -570,8 +571,8 @@ files.
 .. productionlist::
    TableGenFile: (`Statement` | `IncludeDirective`
             :| `PreprocessorDirective`)*
-   Statement: `Assert` | `Class` | `Def` | `Defm` | `Defset` | `Defvar`
-            :| `Foreach` | `If` | `Let` | `MultiClass`
+   Statement: `Assert` | `Class` | `Def` | `Defm` | `Defset` | `Deftype`
+            :| `Defvar` | `Dump`  | `Foreach` | `If` | `Let` | `MultiClass`
 
 The following sections describe each of these top-level statements.
 
@@ -661,7 +662,7 @@ The argument values can be specified in two forms:
   argument with name ``a`` and ``a1`` will be assigned to the argument with
   name ``b``.
 
-Required arguments can alse be specified as named argument.
+Required arguments can also be specified as named argument.
 
 Note that the argument can only be specified once regardless of the way (named
 or positional) to specify and positional arguments should be put before named
@@ -1215,6 +1216,20 @@ set.
 Anonymous records created inside initialization expressions using the
 ``ClassID<...>`` syntax are not collected in the set.
 
+``deftype`` --- define a type
+--------------------------------
+
+A ``deftype`` statement defines a type. The type can be used throughout the
+statements that follow the definition.
+
+.. productionlist::
+   Deftype: "deftype" `TokIdentifier` "=" `Type` ";"
+
+The identifier on the left of the ``=`` is defined to be a type name
+whose actual type is given by the type expression on the right of the ``=``.
+
+Currently, only primitive types and type aliases are supported to be the source
+type and `deftype` statements can only appear at the top level.
 
 ``defvar`` --- define a variable
 --------------------------------
@@ -1274,6 +1289,29 @@ be nested.
 
 This loop defines records named ``R0``, ``R1``, ``R2``, and ``R3``, along
 with ``F0``, ``F1``, ``F2``, and ``F3``.
+
+``dump`` --- print messages to stderr
+-------------------------------------
+
+A ``dump`` statement prints the input string to standard error
+output. It is intended for debugging purpose.
+
+* At top level, the message is printed immediately.
+
+* Within a record/class/multiclass, `dump` gets evaluated at each
+  instantiation point of the containing record.
+
+.. productionlist::
+   Dump: "dump"  `string` ";"
+
+For example, it can be used in combination with `!repr` to investigate
+the values passed to a multiclass:
+
+.. code-block:: text
+
+  multiclass MC<dag s> {
+    dump "s = " # !repr(s);
+  }
 
 
 ``if`` --- select statements based on a test
@@ -1609,7 +1647,8 @@ and non-0 as true.
 ``!and(``\ *a*\ ``,`` *b*\ ``, ...)``
     This operator does a bitwise AND on *a*, *b*, etc., and produces the
     result. A logical AND can be performed if all the arguments are either
-    0 or 1.
+    0 or 1. This operator is short-circuit to 0 when the left-most operand
+    is 0.
 
 ``!cast<``\ *type*\ ``>(``\ *a*\ ``)``
     This operator performs a cast on *a* and produces the result.
@@ -1777,6 +1816,10 @@ and non-0 as true.
   ``int``. If the result is not 0, the *then* expression is produced; otherwise
   the *else* expression is produced.
 
+``!initialized(``\ *a*\ ``)``
+  This operator produces 1 if *a* is not the uninitialized value (``?``) and 0
+  otherwise.
+
 ``!interleave(``\ *list*\ ``,`` *delim*\ ``)``
     This operator concatenates the items in the *list*, interleaving the
     *delim* string between each pair, and produces the resulting string.
@@ -1794,6 +1837,12 @@ and non-0 as true.
 ``!listconcat(``\ *list1*\ ``,`` *list2*\ ``, ...)``
     This operator concatenates the list arguments *list1*, *list2*, etc., and
     produces the resulting list. The lists must have the same element type.
+
+``!listflatten(``\ *list*\ ``)``
+    This operator flattens a list of lists *list* and produces a list with all
+    elements of the constituent lists concatenated. If *list* is of type
+    ``list<list<X>>`` the resulting list is of type ``list<X>``. If *list*'s
+    element type is not a list, the result is *list* itself.
 
 ``!listremove(``\ *list1*\ ``,`` *list2*\ ``)``
     This operator returns a copy of *list1* removing all elements that also occur in
@@ -1829,16 +1878,31 @@ and non-0 as true.
 ``!or(``\ *a*\ ``,`` *b*\ ``, ...)``
     This operator does a bitwise OR on *a*, *b*, etc., and produces the
     result. A logical OR can be performed if all the arguments are either
-    0 or 1.
+    0 or 1. This operator is short-circuit to -1 (all ones) the left-most
+    operand is -1.
 
-``!range([``\ *a*\ ``,``] *b*\ ``)``
-    This operator produces half-open range sequence ``[a : b)`` as ``list<int>``.
-    *a* is ``0`` by default. ``!range(4)`` is equivalent to ``!range(0, 4)``.
-    The result is `[0, 1, 2, 3]`.
-    If *a* ``>=`` *b*, then the result is `[]<list<int>>`.
+``!range([``\ *start*\ ``,]`` *end*\ ``[,``\ *step*\ ``])``
+    This operator produces half-open range sequence ``[start : end : step)`` as
+    ``list<int>``. *start* is ``0`` and *step* is ``1`` by default. *step* can
+    be negative and cannot be 0. If *start* ``<`` *end* and *step* is negative,
+    or *start* ``>`` *end* and *step* is positive, the result is an empty list
+    ``[]<list<int>>``.
+
+    For example:
+
+    * ``!range(4)`` is equivalent to ``!range(0, 4, 1)`` and the result is
+      `[0, 1, 2, 3]`.
+    * ``!range(1, 4)`` is equivalent to ``!range(1, 4, 1)`` and the result is
+      `[1, 2, 3]`.
+    * The result of ``!range(0, 4, 2)`` is `[0, 2]`.
+    * The results of ``!range(0, 4, -1)`` and ``!range(4, 0, 1)`` are empty.
 
 ``!range(``\ *list*\ ``)``
     Equivalent to ``!range(0, !size(list))``.
+
+``!repr(``\ *value*\ ``)``
+    Represents *value* as a string. String format for the value is not
+    guaranteed to be stable. Intended for debugging purposes only.
 
 ``!setdagarg(``\ *dag*\ ``,``\ *key*\ ``,``\ *arg*\ ``)``
     This operator produces a DAG node with the same operator and arguments as

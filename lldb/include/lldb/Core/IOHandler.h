@@ -9,7 +9,6 @@
 #ifndef LLDB_CORE_IOHANDLER_H
 #define LLDB_CORE_IOHANDLER_H
 
-#include "lldb/Core/ValueObjectList.h"
 #include "lldb/Host/Config.h"
 #include "lldb/Utility/CompletionRequest.h"
 #include "lldb/Utility/Flags.h"
@@ -328,7 +327,7 @@ public:
   IOHandlerEditline(Debugger &debugger, IOHandler::Type type,
                     const char *editline_name, // Used for saving history files
                     llvm::StringRef prompt, llvm::StringRef continuation_prompt,
-                    bool multi_line, bool color_prompts,
+                    bool multi_line, bool color,
                     uint32_t line_number_start, // If non-zero show line numbers
                                                 // starting at
                                                 // 'line_number_start'
@@ -340,7 +339,7 @@ public:
                     const lldb::StreamFileSP &error_sp, uint32_t flags,
                     const char *editline_name, // Used for saving history files
                     llvm::StringRef prompt, llvm::StringRef continuation_prompt,
-                    bool multi_line, bool color_prompts,
+                    bool multi_line, bool color,
                     uint32_t line_number_start, // If non-zero show line numbers
                                                 // starting at
                                                 // 'line_number_start'
@@ -403,7 +402,7 @@ public:
 
   void SetInterruptExits(bool b) { m_interrupt_exits = b; }
 
-  const StringList *GetCurrentLines() const { return m_current_lines_ptr; }
+  StringList GetCurrentLines() const;
 
   uint32_t GetCurrentLineIndex() const;
 
@@ -432,7 +431,7 @@ protected:
   uint32_t m_base_line_number; // If non-zero, then show line numbers in prompt
   uint32_t m_curr_line_idx;
   bool m_multi_line;
-  bool m_color_prompts;
+  bool m_color;
   bool m_interrupt_exits;
   std::string m_line_buffer;
 };

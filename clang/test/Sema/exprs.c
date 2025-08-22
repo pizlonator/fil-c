@@ -40,16 +40,14 @@ _Complex double test1(void) {
 }
 
 _Complex double test2(void) {
-  return 1.0if;    // expected-warning {{imaginary constants are a GNU extension}}
+  return 1.0if;    // expected-warning {{imaginary constants are a C2y extension}}
 }
 
-// rdar://6097308
 void test3(void) {
   int x;
   (__extension__ x) = 10;
 }
 
-// rdar://6162726
 void test4(void) {
       static int var;
       var =+ 5;  // expected-warning {{use of unary operator that may be intended as compound assignment (+=)}}
@@ -59,13 +57,12 @@ void test4(void) {
 
       var =+5;  // no warning when the subexpr of the unary op has no space before it.
       var =-5;
-  
+
 #define FIVE 5
       var=-FIVE;  // no warning with macros.
       var=-FIVE;
 }
 
-// rdar://6319320
 void test5(int *X, float *P) {
   (float*)X = P;   // expected-error {{assignment to cast is illegal, lvalue casts are not supported}}
 #define FOO ((float*) X)
@@ -81,8 +78,6 @@ void test7(int *P, _Complex float Gamma) {
    P = (P-42) + Gamma*4;  // expected-error {{invalid operands to binary expression ('int *' and '_Complex float')}}
 }
 
-
-// rdar://6095061
 int test8(void) {
   int i;
   __builtin_choose_expr (0, 42, i) = 10;
@@ -126,7 +121,6 @@ int test12b(const char *X) {
   return sizeof(X == "foo"); // no-warning
 }
 
-// rdar://6719156
 void test13(
             void (^P)(void)) { // expected-error {{blocks support disabled - compile with -fblocks}}
   P();
@@ -150,7 +144,6 @@ test15_t test15(void) {
   return (test15_t)0 + (test15_t)0;  // expected-error {{invalid operands to binary expression ('test15_t' (aka 'unsigned long *') and 'test15_t')}}
 }
 
-// rdar://7446395
 void test16(float x) { x == ((void*) 0); }  // expected-error {{invalid operands to binary expression}}
 
 // PR6004
@@ -159,7 +152,7 @@ void test17(int x) {
   x = x % 0;  // expected-warning {{remainder by zero is undefined}}
   x /= 0;  // expected-warning {{division by zero is undefined}}
   x %= 0;  // expected-warning {{remainder by zero is undefined}}
-  
+
   x = sizeof(x/0);  // no warning.
 }
 
@@ -195,7 +188,6 @@ void test19(void) {
                      // expected-note {{consider using __builtin_trap}}
   *(int_AS256 *)0 = 0;                               // Ok.
 
-  // rdar://9269271
   int x = *(int *)0;                                                                          // expected-warning {{indirection of non-volatile null pointer}} \
                      // expected-note {{consider using __builtin_trap}}
   int x2 = *(volatile int *)0;                                                                // Ok.
@@ -213,7 +205,7 @@ int test20(int x) {
                  // expected-note {{remove constant to silence this warning}}
 
   return x && sizeof(int) == 4;  // no warning, RHS is logical op.
-  
+
   // no warning, this is an idiom for "true" in old C style.
   return x && (signed char)1;
 

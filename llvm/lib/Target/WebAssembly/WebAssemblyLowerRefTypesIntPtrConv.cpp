@@ -19,6 +19,7 @@
 #include "WebAssemblySubtarget.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/Pass.h"
+#include <set>
 
 using namespace llvm;
 
@@ -71,8 +72,8 @@ bool WebAssemblyLowerRefTypesIntPtrConv::runOnFunction(Function &F) {
     I->replaceAllUsesWith(U);
 
     Function *TrapIntrin =
-        Intrinsic::getDeclaration(F.getParent(), Intrinsic::debugtrap);
-    CallInst::Create(TrapIntrin, {}, "", &*I);
+        Intrinsic::getOrInsertDeclaration(F.getParent(), Intrinsic::debugtrap);
+    CallInst::Create(TrapIntrin, {}, "", I->getIterator());
 
     worklist.insert(&*I);
   }

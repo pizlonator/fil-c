@@ -69,16 +69,16 @@ define void @ham() {
 ; CHECK-NEXT:    movq _global@GOTPCREL(%rip), %rdx
 ; CHECK-NEXT:    movq _global2@GOTPCREL(%rip), %rsi
 ; CHECK-NEXT:    xorl %eax, %eax
-; CHECK-NEXT:    cmpl $10, %eax
-; CHECK-NEXT:    jle LBB3_2
-; CHECK-NEXT:    .p2align 4, 0x90
+; CHECK-NEXT:    testb %cl, %cl
+; CHECK-NEXT:    je LBB3_2
+; CHECK-NEXT:    .p2align 4
 ; CHECK-NEXT:  LBB3_6: ## %bb2
 ; CHECK-NEXT:    ## =>This Loop Header: Depth=1
 ; CHECK-NEXT:    ## Child Loop BB3_7 Depth 2
 ; CHECK-NEXT:    movl (%rdx), %edi
 ; CHECK-NEXT:    leal (%rdi,%rax), %r8d
 ; CHECK-NEXT:    movslq %r8d, %r8
-; CHECK-NEXT:    .p2align 4, 0x90
+; CHECK-NEXT:    .p2align 4
 ; CHECK-NEXT:  LBB3_7: ## %bb6
 ; CHECK-NEXT:    ## Parent Loop BB3_6 Depth=1
 ; CHECK-NEXT:    ## => This Inner Loop Header: Depth=2
@@ -90,11 +90,11 @@ define void @ham() {
 ; CHECK-NEXT:  ## %bb.8: ## %bb9
 ; CHECK-NEXT:    ## in Loop: Header=BB3_6 Depth=1
 ; CHECK-NEXT:    addq $4, %rax
-; CHECK-NEXT:    cmpl $10, %eax
-; CHECK-NEXT:    jg LBB3_6
+; CHECK-NEXT:    testb %cl, %cl
+; CHECK-NEXT:    jne LBB3_6
 ; CHECK-NEXT:  LBB3_2: ## %bb3.preheader
 ; CHECK-NEXT:    xorl %ecx, %ecx
-; CHECK-NEXT:    .p2align 4, 0x90
+; CHECK-NEXT:    .p2align 4
 ; CHECK-NEXT:  LBB3_3: ## %bb3
 ; CHECK-NEXT:    ## =>This Loop Header: Depth=1
 ; CHECK-NEXT:    ## Child Loop BB3_4 Depth 2
@@ -102,7 +102,7 @@ define void @ham() {
 ; CHECK-NEXT:    addq $4, %rcx
 ; CHECK-NEXT:    movl %eax, %esi
 ; CHECK-NEXT:    subl %edx, %esi
-; CHECK-NEXT:    .p2align 4, 0x90
+; CHECK-NEXT:    .p2align 4
 ; CHECK-NEXT:  LBB3_4: ## %bb4
 ; CHECK-NEXT:    ## Parent Loop BB3_3 Depth=1
 ; CHECK-NEXT:    ## => This Inner Loop Header: Depth=2

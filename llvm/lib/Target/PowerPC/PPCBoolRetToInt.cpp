@@ -38,20 +38,19 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Statistic.h"
+#include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/Argument.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
-#include "llvm/IR/OperandTraits.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Use.h"
 #include "llvm/IR/User.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Pass.h"
-#include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/Support/Casting.h"
 #include <cassert>
 
@@ -95,26 +94,23 @@ class PPCBoolRetToInt : public FunctionPass {
     Type *IntTy = ST->isPPC64() ? Type::getInt64Ty(V->getContext())
                                 : Type::getInt32Ty(V->getContext());
 
-    if (auto *C = dyn_cast<Constant>(V))
-      return ConstantExpr::getZExt(C, IntTy);
     if (auto *P = dyn_cast<PHINode>(V)) {
       // Temporarily set the operands to 0. We'll fix this later in
       // runOnUse.
       Value *Zero = Constant::getNullValue(IntTy);
       PHINode *Q =
-        PHINode::Create(IntTy, P->getNumIncomingValues(), P->getName(), P);
+        PHINode::Create(IntTy, P->getNumIncomingValues(), P->getName(), P->getIterator());
       for (unsigned i = 0; i < P->getNumOperands(); ++i)
         Q->addIncoming(Zero, P->getIncomingBlock(i));
       return Q;
     }
 
-    auto *A = dyn_cast<Argument>(V);
-    auto *I = dyn_cast<Instruction>(V);
-    assert((A || I) && "Unknown value type");
-
-    auto InstPt =
-      A ? &*A->getParent()->getEntryBlock().begin() : I->getNextNode();
-    return new ZExtInst(V, IntTy, "", InstPt);
+    IRBuilder IRB(V->getContext());
+    if (auto *I = dyn_cast<Instruction>(V))
+      IRB.SetInsertPoint(I->getNextNode());
+    else
+      IRB.SetInsertPoint(&Func->getEntryBlock(), Func->getEntryBlock().begin());
+    return IRB.CreateZExt(V, IntTy);
   }
 
   typedef SmallPtrSet<const PHINode *, 8> PHINodeSet;
@@ -196,6 +192,7 @@ class PPCBoolRetToInt : public FunctionPass {
 
     auto &TM = TPC->getTM<PPCTargetMachine>();
     ST = TM.getSubtargetImpl(F);
+    Func = &F;
 
     PHINodeSet PromotablePHINodes = getPromotablePHINodes(F);
     B2IMap Bool2IntMap;
@@ -264,7 +261,8 @@ class PPCBoolRetToInt : public FunctionPass {
     Value *IntRetVal = BoolToIntMap[U];
     Type *Int1Ty = Type::getInt1Ty(U->getContext());
     auto *I = cast<Instruction>(U.getUser());
-    Value *BackToBool = new TruncInst(IntRetVal, Int1Ty, "backToBool", I);
+    Value *BackToBool =
+        new TruncInst(IntRetVal, Int1Ty, "backToBool", I->getIterator());
     U.set(BackToBool);
 
     return true;
@@ -277,6 +275,7 @@ class PPCBoolRetToInt : public FunctionPass {
 
 private:
   const PPCSubtarget *ST;
+  Function *Func;
 };
 
 } // end anonymous namespace

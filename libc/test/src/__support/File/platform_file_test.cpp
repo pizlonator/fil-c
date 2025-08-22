@@ -9,14 +9,14 @@
 #include "src/__support/File/file.h"
 #include "test/UnitTest/Test.h"
 
-#include <stdio.h> // For SEEK_* macros
+#include "hdr/stdio_macros.h" // For SEEK_* macros
 
-using File = __llvm_libc::File;
+using File = LIBC_NAMESPACE::File;
 constexpr char TEXT[] = "Hello, File";
 constexpr size_t TEXT_SIZE = sizeof(TEXT) - 1; // Ignore the null terminator
 
 LIBC_INLINE File *openfile(const char *file_name, const char *mode) {
-  auto error_or_file = __llvm_libc::openfile(file_name, mode);
+  auto error_or_file = LIBC_NAMESPACE::openfile(file_name, mode);
   return error_or_file.has_value() ? error_or_file.value() : nullptr;
 }
 
@@ -103,7 +103,8 @@ TEST(LlvmLibcPlatformFileTest, CreateAppendSeekAndReadBack) {
   constexpr size_t APPEND_TEXT_SIZE = sizeof(APPEND_TEXT) - 1;
   ASSERT_EQ(file->write(APPEND_TEXT, APPEND_TEXT_SIZE).value, APPEND_TEXT_SIZE);
 
-  ASSERT_EQ(file->seek(-APPEND_TEXT_SIZE, SEEK_END).value(), 0);
+  ASSERT_EQ(file->seek(-static_cast<off_t>(APPEND_TEXT_SIZE), SEEK_END).value(),
+            0);
   char data[APPEND_TEXT_SIZE + 1];
   ASSERT_EQ(file->read(data, APPEND_TEXT_SIZE).value, APPEND_TEXT_SIZE);
   data[APPEND_TEXT_SIZE] = '\0';
@@ -200,9 +201,4 @@ TEST(LlvmLibcPlatformFileTest, IncorrectOperation) {
   ASSERT_FALSE(file->iseof());
   ASSERT_TRUE(file->error());
   ASSERT_EQ(file->close(), 0);
-}
-
-TEST(LlvmLibcPlatformFileTest, StdOutStdErrSmokeTest) {
-  EXPECT_FALSE(__llvm_libc::stdout == nullptr);
-  EXPECT_FALSE(__llvm_libc::stderr == nullptr);
 }

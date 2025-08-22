@@ -40,7 +40,7 @@ std::unique_ptr<TargetMachine> createTargetMachine(bool EnableIPRA) {
   Options.EnableIPRA = EnableIPRA;
   return std::unique_ptr<TargetMachine>(
       T->createTargetMachine("X86", "", "", Options, std::nullopt, std::nullopt,
-                             CodeGenOpt::Aggressive));
+                             CodeGenOptLevel::Aggressive));
 }
 
 typedef std::function<void(bool)> TargetOptionsTest;
@@ -51,9 +51,8 @@ static void targetOptionsTest(bool EnableIPRA) {
   if (!TM)
     GTEST_SKIP();
   legacy::PassManager PM;
-  LLVMTargetMachine *LLVMTM = static_cast<LLVMTargetMachine *>(TM.get());
 
-  TargetPassConfig *TPC = LLVMTM->createPassConfig(PM);
+  TargetPassConfig *TPC = TM->createPassConfig(PM);
   (void)TPC;
 
   ASSERT_TRUE(TM->Options.EnableIPRA == EnableIPRA);

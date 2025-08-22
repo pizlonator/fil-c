@@ -24,13 +24,13 @@ define void @osfx(ptr %this) comdat personality ptr @__CxxFrameHandler3 {
 ; CHECK-NEXT:    sub x9, sp, #32
 ; CHECK-NEXT:    and sp, x9, #0xffffffffffffffe0
 ; CHECK-NEXT:    mov x19, sp
-; CHECK-NEXT:    mov x1, #-2
-; CHECK-NEXT:    add x8, x19, #0
+; CHECK-NEXT:    mov x1, #-2 // =0xfffffffffffffffe
 ; CHECK-NEXT:    mov x20, x0
+; CHECK-NEXT:    add x8, x19, #0
+; CHECK-NEXT:    stur x1, [x29, #24]
 ; CHECK-NEXT:    lsr x21, x8, #3
 ; CHECK-NEXT:    adrp x8, osfx
 ; CHECK-NEXT:    add x8, x8, :lo12:osfx
-; CHECK-NEXT:    stur x1, [x29, #24]
 ; CHECK-NEXT:    str x8, [x0]
 ; CHECK-NEXT:    str wzr, [x21]
 ; CHECK-NEXT:    ldr x0, [x0]
@@ -40,7 +40,8 @@ define void @osfx(ptr %this) comdat personality ptr @__CxxFrameHandler3 {
 ; CHECK-NEXT:  // %bb.1: // %invoke.cont12
 ; CHECK-NEXT:    str wzr, [x20]
 ; CHECK-NEXT:    str wzr, [x21]
-; CHECK-NEXT:  .LBB0_2: // %try.cont
+; CHECK-NEXT:  .LBB0_2: // Block address taken
+; CHECK-NEXT:    // %try.cont
 ; CHECK-NEXT:  $ehgcr_0_2:
 ; CHECK-NEXT:    .seh_startepilogue
 ; CHECK-NEXT:    sub sp, x29, #24

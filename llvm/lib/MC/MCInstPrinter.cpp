@@ -43,7 +43,7 @@ StringRef MCInstPrinter::getOpcodeName(unsigned Opcode) const {
   return MII.getName(Opcode);
 }
 
-void MCInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg) const {
+void MCInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg) {
   llvm_unreachable("Target should implement this");
 }
 
@@ -170,14 +170,6 @@ const char *MCInstPrinter::matchAliasPatterns(const MCInst *MI,
   return M.AsmStrings.data() + AsmStrOffset;
 }
 
-/// Utility functions to make adding mark ups simpler.
-StringRef MCInstPrinter::markup(StringRef s) const {
-  if (getUseMarkup())
-    return s;
-  else
-    return "";
-}
-
 // For asm-style hex (e.g. 0ffh) the first digit always has to be a number.
 static bool needsLeadingZero(uint64_t Value)
 {
@@ -230,4 +222,59 @@ format_object<uint64_t> MCInstPrinter::formatHex(uint64_t Value) const {
       return format("%" PRIx64 "h", Value);
   }
   llvm_unreachable("unsupported print style");
+}
+
+MCInstPrinter::WithMarkup MCInstPrinter::markup(raw_ostream &OS, Markup S) {
+  return WithMarkup(*this, OS, S, getUseMarkup(), getUseColor());
+}
+
+MCInstPrinter::WithMarkup::WithMarkup(MCInstPrinter &IP, raw_ostream &OS,
+                                      Markup M, bool EnableMarkup,
+                                      bool EnableColor)
+    : IP(IP), OS(OS), EnableMarkup(EnableMarkup), EnableColor(EnableColor) {
+  if (EnableColor) {
+    raw_ostream::Colors Color = raw_ostream::Colors::RESET;
+    switch (M) {
+    case Markup::Immediate:
+      Color = raw_ostream::RED;
+      break;
+    case Markup::Register:
+      Color = raw_ostream::CYAN;
+      break;
+    case Markup::Target:
+      Color = raw_ostream::YELLOW;
+      break;
+    case Markup::Memory:
+      Color = raw_ostream::GREEN;
+      break;
+    }
+    IP.ColorStack.push_back(Color);
+    OS.changeColor(Color);
+  }
+
+  if (EnableMarkup) {
+    switch (M) {
+    case Markup::Immediate:
+      OS << "<imm:";
+      break;
+    case Markup::Register:
+      OS << "<reg:";
+      break;
+    case Markup::Target:
+      OS << "<target:";
+      break;
+    case Markup::Memory:
+      OS << "<mem:";
+      break;
+    }
+  }
+}
+
+MCInstPrinter::WithMarkup::~WithMarkup() {
+  if (EnableMarkup)
+    OS << '>';
+  if (!EnableColor)
+    return;
+  IP.ColorStack.pop_back();
+  OS << IP.ColorStack.back();
 }

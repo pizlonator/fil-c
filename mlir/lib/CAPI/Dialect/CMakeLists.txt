@@ -1,3 +1,12 @@
+add_mlir_upstream_c_api_library(MLIRCAPIAMDGPU
+  AMDGPU.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRAMDGPUDialect
+)
+
 add_mlir_upstream_c_api_library(MLIRCAPIArith
   Arith.cpp
 
@@ -29,6 +38,15 @@ add_mlir_upstream_c_api_library(MLIRCAPIControlFlow
   LINK_LIBS PUBLIC
   MLIRCAPIIR
   MLIRControlFlowDialect
+)
+
+add_mlir_upstream_c_api_library(MLIRCAPIEmitC
+  EmitC.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIREmitCDialect
 )
 
 add_mlir_upstream_c_api_library(MLIRCAPIMath
@@ -63,6 +81,15 @@ add_mlir_upstream_c_api_library(MLIRCAPIGPU
   MLIRPass
 )
 
+add_mlir_upstream_c_api_library(MLIRCAPIIRDL
+  IRDL.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRIRDL
+)
+
 add_mlir_upstream_c_api_library(MLIRCAPILLVM
   LLVM.cpp
 
@@ -95,6 +122,34 @@ add_mlir_upstream_c_api_library(MLIRCAPIMLProgram
   MLIRCAPIIR
   MLIRMLProgramDialect
 )
+
+add_mlir_upstream_c_api_library(MLIRCAPINVGPU
+  NVGPU.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRNVGPUDialect
+)
+
+add_mlir_upstream_c_api_library(MLIRCAPINVVM
+  NVVM.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRNVVMDialect
+)
+
+add_mlir_upstream_c_api_library(MLIRCAPIROCDL
+  ROCDL.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRROCDLDialect
+)
+
 
 add_mlir_upstream_c_api_library(MLIRCAPISCF
   SCF.cpp
@@ -134,6 +189,15 @@ add_mlir_upstream_c_api_library(MLIRCAPIFunc
   MLIRFuncDialect
 )
 
+add_mlir_upstream_c_api_library(MLIRCAPISPIRV
+  SPIRV.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRSPIRVDialect
+)
+
 add_mlir_upstream_c_api_library(MLIRCAPITensor
   Tensor.cpp
 
@@ -152,6 +216,15 @@ add_mlir_upstream_c_api_library(MLIRCAPITransformDialect
   MLIRTransformDialect
 )
 
+add_mlir_upstream_c_api_library(MLIRCAPITransformDialectTransforms
+  TransformInterpreter.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIRTransformDialectTransforms
+)
+
 add_mlir_upstream_c_api_library(MLIRCAPIQuant
   Quant.cpp
 
@@ -159,6 +232,15 @@ add_mlir_upstream_c_api_library(MLIRCAPIQuant
   LINK_LIBS PUBLIC
   MLIRCAPIIR
   MLIRQuantDialect
+)
+
+add_mlir_upstream_c_api_library(MLIRCAPIOpenMP
+  OpenMP.cpp
+
+  PARTIAL_SOURCES_INTENDED
+  LINK_LIBS PUBLIC
+  MLIRCAPIIR
+  MLIROpenMPDialect
 )
 
 add_mlir_upstream_c_api_library(MLIRCAPIPDL

@@ -309,7 +309,7 @@ ParseResult Parser::parseAttributeDict(NamedAttrList &attributes) {
     else
       return emitWrongTokenError("expected attribute name");
 
-    if (nameId->size() == 0)
+    if (nameId->empty())
       return emitError("expected valid attribute name");
 
     if (!seenKeys.insert(*nameId).second)
@@ -424,8 +424,7 @@ Attribute Parser::parseDecOrHexAttr(Type type, bool isNegative) {
   if (auto floatType = dyn_cast<FloatType>(type)) {
     std::optional<APFloat> result;
     if (failed(parseFloatFromIntegerLiteral(result, tok, isNegative,
-                                            floatType.getFloatSemantics(),
-                                            floatType.getWidth())))
+                                            floatType.getFloatSemantics())))
       return Attribute();
     return FloatAttr::get(floatType, *result);
   }
@@ -658,36 +657,11 @@ TensorLiteralParser::getFloatAttrElements(SMLoc loc, FloatType eltTy,
   for (const auto &signAndToken : storage) {
     bool isNegative = signAndToken.first;
     const Token &token = signAndToken.second;
-
-    // Handle hexadecimal float literals.
-    if (token.is(Token::integer) && token.getSpelling().startswith("0x")) {
-      std::optional<APFloat> result;
-      if (failed(p.parseFloatFromIntegerLiteral(result, token, isNegative,
-                                                eltTy.getFloatSemantics(),
-                                                eltTy.getWidth())))
-        return failure();
-
-      floatValues.push_back(*result);
-      continue;
-    }
-
-    // Check to see if any decimal integers or booleans were parsed.
-    if (!token.is(Token::floatliteral))
-      return p.emitError()
-             << "expected floating-point elements, but parsed integer";
-
-    // Build the float values from tokens.
-    auto val = token.getFloatingPointValue();
-    if (!val)
-      return p.emitError("floating point value too large for attribute");
-
-    APFloat apVal(isNegative ? -*val : *val);
-    if (!eltTy.isF64()) {
-      bool unused;
-      apVal.convert(eltTy.getFloatSemantics(), APFloat::rmNearestTiesToEven,
-                    &unused);
-    }
-    floatValues.push_back(apVal);
+    std::optional<APFloat> result;
+    if (failed(p.parseFloatFromLiteral(result, token, isNegative,
+                                       eltTy.getFloatSemantics())))
+      return failure();
+    floatValues.push_back(*result);
   }
   return success();
 }
@@ -735,8 +709,7 @@ DenseElementsAttr TensorLiteralParser::getHexAttr(SMLoc loc, ShapedType type) {
     return nullptr;
   }
 
-  if (llvm::support::endian::system_endianness() ==
-      llvm::support::endianness::big) {
+  if (llvm::endianness::native == llvm::endianness::big) {
     // Convert endianess in big-endian(BE) machines. `rawData` is
     // little-endian(LE) because HEX in raw data of dense element attribute
     // is always LE format. It is converted into BE here to be used in BE
@@ -906,32 +879,14 @@ ParseResult DenseArrayElementParser::parseIntegerElement(Parser &p) {
 
 ParseResult DenseArrayElementParser::parseFloatElement(Parser &p) {
   bool isNegative = p.consumeIf(Token::minus);
-
   Token token = p.getToken();
-  std::optional<APFloat> result;
-  auto floatType = cast<FloatType>(type);
-  if (p.consumeIf(Token::integer)) {
-    // Parse an integer literal as a float.
-    if (p.parseFloatFromIntegerLiteral(result, token, isNegative,
-                                       floatType.getFloatSemantics(),
-                                       floatType.getWidth()))
-      return failure();
-  } else if (p.consumeIf(Token::floatliteral)) {
-    // Parse a floating point literal.
-    std::optional<double> val = token.getFloatingPointValue();
-    if (!val)
-      return failure();
-    result = APFloat(isNegative ? -*val : *val);
-    if (!type.isF64()) {
-      bool unused;
-      result->convert(floatType.getFloatSemantics(),
-                      APFloat::rmNearestTiesToEven, &unused);
-    }
-  } else {
-    return p.emitError("expected integer or floating point literal");
-  }
-
-  append(result->bitcastToAPInt());
+  std::optional<APFloat> fromIntLit;
+  if (failed(
+          p.parseFloatFromLiteral(fromIntLit, token, isNegative,
+                                  cast<FloatType>(type).getFloatSemantics())))
+    return failure();
+  p.consumeToken();
+  append(fromIntLit->bitcastToAPInt());
   return success();
 }
 
@@ -1226,6 +1181,7 @@ Attribute Parser::parseStridedLayoutAttr() {
 ///                         `[` integer-literal `]<` attribute-value `>`
 ///
 Attribute Parser::parseDistinctAttr(Type type) {
+  SMLoc loc = getToken().getLoc();
   consumeToken(Token::kw_distinct);
   if (parseToken(Token::l_square, "expected '[' after 'distinct'"))
     return {};
@@ -1270,7 +1226,7 @@ Attribute Parser::parseDistinctAttr(Type type) {
     DistinctAttr distinctAttr = DistinctAttr::create(referencedAttr);
     it = distinctAttrs.try_emplace(*value, distinctAttr).first;
   } else if (it->getSecond().getReferencedAttr() != referencedAttr) {
-    emitError("referenced attribute does not match previous definition: ")
+    emitError(loc, "referenced attribute does not match previous definition: ")
         << it->getSecond().getReferencedAttr();
     return {};
   }

@@ -18,13 +18,12 @@
 
 using namespace mlir;
 
-LogicalResult mlir::convertFromAttribute(int64_t &storage,
-                                         ::mlir::Attribute attr,
-                                         ::mlir::InFlightDiagnostic *diag) {
+LogicalResult
+mlir::convertFromAttribute(int64_t &storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
   auto valueAttr = dyn_cast<IntegerAttr>(attr);
   if (!valueAttr) {
-    if (diag)
-      *diag << "expected IntegerAttr for key `value`";
+    emitError() << "expected IntegerAttr for key `value`";
     return failure();
   }
   storage = valueAttr.getValue().getSExtValue();
@@ -34,36 +33,105 @@ Attribute mlir::convertToAttribute(MLIRContext *ctx, int64_t storage) {
   return IntegerAttr::get(IntegerType::get(ctx, 64), storage);
 }
 
+LogicalResult
+mlir::convertFromAttribute(int32_t &storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  auto valueAttr = dyn_cast<IntegerAttr>(attr);
+  if (!valueAttr) {
+    emitError() << "expected IntegerAttr for key `value`";
+    return failure();
+  }
+  storage = valueAttr.getValue().getSExtValue();
+  return success();
+}
+Attribute mlir::convertToAttribute(MLIRContext *ctx, int32_t storage) {
+  return IntegerAttr::get(IntegerType::get(ctx, 32), storage);
+}
+
+LogicalResult
+mlir::convertFromAttribute(std::string &storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  auto valueAttr = dyn_cast<StringAttr>(attr);
+  if (!valueAttr)
+    return emitError()
+           << "expected string property to come from string attribute";
+  storage = valueAttr.getValue().str();
+  return success();
+}
+Attribute mlir::convertToAttribute(MLIRContext *ctx,
+                                   const std::string &storage) {
+  return StringAttr::get(ctx, storage);
+}
+
+LogicalResult
+mlir::convertFromAttribute(bool &storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  auto valueAttr = dyn_cast<BoolAttr>(attr);
+  if (!valueAttr)
+    return emitError()
+           << "expected string property to come from string attribute";
+  storage = valueAttr.getValue();
+  return success();
+}
+Attribute mlir::convertToAttribute(MLIRContext *ctx, bool storage) {
+  return BoolAttr::get(ctx, storage);
+}
+
 template <typename DenseArrayTy, typename T>
-LogicalResult convertDenseArrayFromAttr(MutableArrayRef<T> storage,
-                                        ::mlir::Attribute attr,
-                                        ::mlir::InFlightDiagnostic *diag,
-                                        StringRef denseArrayTyStr) {
+LogicalResult
+convertDenseArrayFromAttr(MutableArrayRef<T> storage, Attribute attr,
+                          function_ref<InFlightDiagnostic()> emitError,
+                          StringRef denseArrayTyStr) {
   auto valueAttr = dyn_cast<DenseArrayTy>(attr);
   if (!valueAttr) {
-    if (diag)
-      *diag << "expected " << denseArrayTyStr << " for key `value`";
+    emitError() << "expected " << denseArrayTyStr << " for key `value`";
     return failure();
   }
   if (valueAttr.size() != static_cast<int64_t>(storage.size())) {
-    if (diag)
-      *diag << "size mismatch in attribute conversion: " << valueAttr.size()
-            << " vs " << storage.size();
+    emitError() << "size mismatch in attribute conversion: " << valueAttr.size()
+                << " vs " << storage.size();
     return failure();
   }
   llvm::copy(valueAttr.asArrayRef(), storage.begin());
   return success();
 }
-LogicalResult mlir::convertFromAttribute(MutableArrayRef<int64_t> storage,
-                                         ::mlir::Attribute attr,
-                                         ::mlir::InFlightDiagnostic *diag) {
-  return convertDenseArrayFromAttr<DenseI64ArrayAttr>(storage, attr, diag,
+LogicalResult
+mlir::convertFromAttribute(MutableArrayRef<int64_t> storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  return convertDenseArrayFromAttr<DenseI64ArrayAttr>(storage, attr, emitError,
                                                       "DenseI64ArrayAttr");
 }
-LogicalResult mlir::convertFromAttribute(MutableArrayRef<int32_t> storage,
-                                         Attribute attr,
-                                         InFlightDiagnostic *diag) {
-  return convertDenseArrayFromAttr<DenseI32ArrayAttr>(storage, attr, diag,
+LogicalResult
+mlir::convertFromAttribute(MutableArrayRef<int32_t> storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  return convertDenseArrayFromAttr<DenseI32ArrayAttr>(storage, attr, emitError,
+                                                      "DenseI32ArrayAttr");
+}
+
+template <typename DenseArrayTy, typename T>
+LogicalResult
+convertDenseArrayFromAttr(SmallVectorImpl<T> &storage, Attribute attr,
+                          function_ref<InFlightDiagnostic()> emitError,
+                          StringRef denseArrayTyStr) {
+  auto valueAttr = dyn_cast<DenseArrayTy>(attr);
+  if (!valueAttr) {
+    emitError() << "expected " << denseArrayTyStr << " for key `value`";
+    return failure();
+  }
+  storage.resize_for_overwrite(valueAttr.size());
+  llvm::copy(valueAttr.asArrayRef(), storage.begin());
+  return success();
+}
+LogicalResult
+mlir::convertFromAttribute(SmallVectorImpl<int64_t> &storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  return convertDenseArrayFromAttr<DenseI64ArrayAttr>(storage, attr, emitError,
+                                                      "DenseI64ArrayAttr");
+}
+LogicalResult
+mlir::convertFromAttribute(SmallVectorImpl<int32_t> &storage, Attribute attr,
+                           function_ref<InFlightDiagnostic()> emitError) {
+  return convertDenseArrayFromAttr<DenseI32ArrayAttr>(storage, attr, emitError,
                                                       "DenseI32ArrayAttr");
 }
 

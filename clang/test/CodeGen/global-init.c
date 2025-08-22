@@ -33,7 +33,7 @@ struct ManyFields {
   int f;
 };
 
-// CHECK: global %struct.ManyFields { i32 1, i32 2, i32 0, i8 0, i32 0, i32 0 }
+// CHECK: global { i32, i32, i32, i8, [3 x i8], i32, i32 } { i32 1, i32 2, i32 0, i8 0, [3 x i8] zeroinitializer, i32 0, i32 0 }
 struct ManyFields FewInits = {1, 2};
 
 
@@ -49,10 +49,14 @@ struct K {
 // CHECK: @yuv_types ={{.*}} global [4 x [6 x i8]] {{\[}}[6 x i8] c"4:0:0\00", [6 x i8] c"4:2:0\00", [6 x i8] c"4:2:2\00", [6 x i8] c"4:4:4\00"]
 char yuv_types[4][6]= {"4:0:0","4:2:0","4:2:2","4:4:4"};
 
+unsigned long long x = -1000;
+// CHECK: @x ={{.*}} global i64 -1000
+unsigned long long uint_max = 4294967295u;
+// CHECK: @uint_max ={{.*}} global i64 4294967295
+
 
 // NOTE: tentative definitions are processed at the end of the translation unit.
 
 // This shouldn't be emitted as common because it has an explicit section.
-// rdar://7119244
 // CHECK: @b ={{.*}} global i32 0, section "foo"
 int b __attribute__((section("foo")));
