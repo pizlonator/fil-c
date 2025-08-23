@@ -23,7 +23,7 @@ Fil-C introduces memory safety at the core of C and C++:
   logic to access the capability.
 
 - All allocations are *garbage collected* using
-  [FUGC](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/libpas/src/libpas/fugc.c) (Fil's
+  [FUGC](https://github.com/pizlonator/fil-c/blob/deluge/libpas/src/libpas/fugc.c) (Fil's
   Unbelievable Garbage Collector). FUGC is a concurrent, real time, accurate garbage collector.
   Threads are never suspended for GC. Freeing an object causes its capability to have zero bounds,
   which prevents all future access. FUGC will redirect all object pointers to free objects to the free
@@ -58,11 +58,11 @@ Fil-C introduces memory safety at the core of C and C++:
 
 Quick links:
 
-- [Work-in-progress document describing Fil-C's GIMSO semantics](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/gimso_semantics.md).
+- [Work-in-progress document describing Fil-C's GIMSO semantics](https://github.com/pizlonator/fil-c/blob/deluge/gimso_semantics.md).
 
-- [Examples of Fil-C catching memory safety issues](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md).
+- [Examples of Fil-C catching memory safety issues](https://github.com/pizlonator/fil-c/blob/deluge/invisicaps_by_example.md).
 
-- [Releases (Linux/X86_64 binaries)](https://github.com/pizlonator/llvm-project-deluge/releases).
+- [Releases (Linux/X86_64 binaries)](https://github.com/pizlonator/fil-c/releases).
 
 Fil-C is already powerful enough to run a [memory-safe curl](https://github.com/pizlonator/deluded-curl-8.5.0)
 and a [memory-safe OpenSSH (both client and server)](https://github.com/pizlonator/deluded-openssh-portable)
@@ -72,7 +72,7 @@ on top of a [memory-safe OpenSSL](https://github.com/pizlonator/deluded-openssl-
 [memory-safe CPython](https://github.com/pizlonator/pizlonated-cpython) (which required some changes
 and even [found a bug](https://github.com/python/cpython/issues/118534)),
 [memory-safe SQLite](https://github.com/pizlonator/pizlonated-sqlite),
-[memory-safe libcxx and libcxxabi](https://github.com/pizlonator/llvm-project-deluge/tree/deluge),
+[memory-safe libcxx and libcxxabi](https://github.com/pizlonator/fil-c/tree/deluge),
 [memory-safe musl](https://github.com/pizlonator/deluded-musl) (Fil-C's current libc),
 [memory-safe ICU](https://github.com/pizlonator/pizlonated-icu), as well as other programs (the list
 is growing all the time).
@@ -91,7 +91,7 @@ as does this:
 Where the `pizfix` is the Fil-C staging environment for *pizlonated* programs (programs that now
 successfully compile with Fil-C). The only unsafety in Fil-C is in libpizlo (the runtime library),
 which exposes all of the API that musl needs (low-level
-[syscall and thread primitives](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/libpas/src/libpas/filc_runtime.c#2901),
+[syscall and thread primitives](https://github.com/pizlonator/fil-c/blob/deluge/libpas/src/libpas/filc_runtime.c#2901),
 which themselves perform comprehensive safety checking).
 
 Fil-C is currently 1.5x slower than normal C in good cases, and about 4x slower in the worst cases.
@@ -111,9 +111,9 @@ First I'll tell you how to download or build Fil-C and then I'll tell you how to
 
 ### Using a Fil-C Release
 
-You can download a Fil-C binary release from [https://github.com/pizlonator/llvm-project-deluge/releases](https://github.com/pizlonator/llvm-project-deluge/releases).
+You can download a Fil-C binary release from [https://github.com/pizlonator/fil-c/releases](https://github.com/pizlonator/fil-c/releases).
 
-Then, in the filc-0.668.8-linux-x86_64 directory, run:
+Then, in the filc-0.670-pre-linux-x86_64 directory, run:
 
     ./setup.sh
 
@@ -122,7 +122,7 @@ This gives you a simple Fil-C setup with compiler, runtime, a musl-based libc an
 ### Building Fil-C From Source
 
 Fil-C currently only works on Linux/X86_64. Upon getting Fil-C from
-https://github.com/pizlonator/llvm-project-deluge.git, and making sure you're on the `deluge` branch,
+https://github.com/pizlonator/fil-c.git, and making sure you're on the `deluge` branch,
 simply do:
 
     ./build_all.sh
@@ -191,7 +191,7 @@ that your linker will understand. Some caveats:
 - Fil-C currently relies on you *not* installing the compiler. You have to use it directly from the
   build directory created by the build_all.sh script.
 
-- The [`llvm::FilPizlonatorPass`](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/llvm/lib/Transforms/Instrumentation/FilPizlonator.cpp)
+- The [`llvm::FilPizlonatorPass`](https://github.com/pizlonator/fil-c/blob/deluge/llvm/lib/Transforms/Instrumentation/FilPizlonator.cpp)
   uses assert() as its error checking for now, so you must compile llvm with assertions enabled (the
   build_all.sh script does this).
 
@@ -265,7 +265,7 @@ space overhead of InvisiCaps is nowhere near 2x.
 
 ## Fil's Unbelievable Garbage Collector
 
-[FUGC](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/libpas/src/libpas/fugc.c)
+[FUGC](https://github.com/pizlonator/fil-c/blob/deluge/libpas/src/libpas/fugc.c)
 is a semi-novel algorithm. For those well-versed in concurrent GC design, it'll sound almost like
 old hat - but the sort of old hat you enjoy wearing.
 
@@ -351,7 +351,7 @@ safe signal delivery; Fil-C makes it possible to use signal handling in a practi
 a common feature of virtual machines that support multiple threads and accurate garbage collection,
 though usually, they are only used to stop the world rather than to request asynchronous activity from all
 threads. See [here](https://foojay.io/today/the-inner-workings-of-safepoints/) for a write-up about
-how OpenJDK does it. The Fil-C implementation is in [`filc_runtime.c`](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/libpas/src/libpas/filc_runtime.c).
+how OpenJDK does it. The Fil-C implementation is in [`filc_runtime.c`](https://github.com/pizlonator/fil-c/blob/deluge/libpas/src/libpas/filc_runtime.c).
 
 Here's the basic flow of the FUGC collector loop:
 
@@ -384,7 +384,7 @@ iterations.
 
 Additionally, FUGC relies on a sweeping algorithm based on bitvector SIMD. This makes sweeping insanely
 fast compared to marking. This is made thanks to the
-[Verse heap config](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/libpas/src/libpas/verse_heap.h)
+[Verse heap config](https://github.com/pizlonator/fil-c/blob/deluge/libpas/src/libpas/verse_heap.h)
 that I added to
 [libpas](https://github.com/WebKit/WebKit/blob/main/Source/bmalloc/libpas/Documentation.md). FUGC
 typically spends <5% of its time sweeping.

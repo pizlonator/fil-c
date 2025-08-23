@@ -2,7 +2,7 @@ Fil-C achieves memory safety by introducing a *garbage in, memory safety out* (G
 
 But what are those rules, and what are the semantics that Fil-C's pass ascribes to LLVM IR? This document describes these GIMSO semantics.
 
-[This document shows examples of these semantics in action.](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md)
+[This document shows examples of these semantics in action.](https://github.com/pizlonator/fil-c/blob/deluge/invisicaps_by_example.md)
 
 # Pointers In Flight 
 

@@ -375,7 +375,7 @@ Next, the prologue of `Jf_insert_sorted`, which is the implementation of `insert
 
 We're saving a bunch of callee save registers using `push`, then setting up some stack space by `sub`ing from `%rsp` (the stack pointer).
 
-The last two instructions - the `cmp` and `jae` - are checking if we've overflowed the stack. Here, `%rdi` is the first argument in the normal `X86_64` calling convention, which Fil-C uses to pass around the thread pointer. ([Issue 16: Turn the thread pointer into a proper pinned register](https://github.com/pizlonator/llvm-project-deluge/issues/16)). The full signature of a pizlonated function is:
+The last two instructions - the `cmp` and `jae` - are checking if we've overflowed the stack. Here, `%rdi` is the first argument in the normal `X86_64` calling convention, which Fil-C uses to pass around the thread pointer. ([Issue 16: Turn the thread pointer into a proper pinned register](https://github.com/pizlonator/fil-c/issues/16)). The full signature of a pizlonated function is:
 
     struct pizlonated_return_value {
         bool has_exception;
@@ -398,7 +398,7 @@ Next let's look a the Pizderson frame setup:
         2298:       0f 11 44 24 38          movups %xmm0,0x38(%rsp)
         229d:       0f 11 44 24 48          movups %xmm0,0x48(%rsp)
 
-Pizderson frames allow for not-too-hilariously-expensive accurate GC with minimal compiler support and a dead-simple runtime interface (i.e. how the runtime scans the stack). Pizderson frames are like [Henderson frames](https://dl.acm.org/doi/10.1145/512429.512449) except they only support non-moving GC, which means that pointers in locals can still be register-allocated. ([Issue 17: Implement real accurate stack scanning](https://github.com/pizlonator/llvm-project-deluge/issues/17))
+Pizderson frames allow for not-too-hilariously-expensive accurate GC with minimal compiler support and a dead-simple runtime interface (i.e. how the runtime scans the stack). Pizderson frames are like [Henderson frames](https://dl.acm.org/doi/10.1145/512429.512449) except they only support non-moving GC, which means that pointers in locals can still be register-allocated. ([Issue 17: Implement real accurate stack scanning](https://github.com/pizlonator/fil-c/issues/17))
 
 Here's the struct layout of a Fil-C Pizderson frame:
 
@@ -433,7 +433,7 @@ Finally, we initialize the `lowers`.
         2298:       0f 11 44 24 38          movups %xmm0,0x38(%rsp)
         229d:       0f 11 44 24 48          movups %xmm0,0x48(%rsp)
 
-In Fil-C runtime and compiler jargon, the `lower` is a particular representation of the capability, where we point just above the `filc_object` (i.e. the capability object), which also happens to be the lower bounds. If you see accesses at negative constant offsets as big as -16, then those are likely to be `filc_object` accesses. Since this function doesn't yet have any pointers that need to be tracked by GC, this is just initialized to zero. Whenever a pointer value is produced, it'll be stored into somewhere in this `lowers` array. ([Issue 18: Optimize how the compiler emits stores to the filc_frame lowers array](https://github.com/pizlonator/llvm-project-deluge/issues/18))
+In Fil-C runtime and compiler jargon, the `lower` is a particular representation of the capability, where we point just above the `filc_object` (i.e. the capability object), which also happens to be the lower bounds. If you see accesses at negative constant offsets as big as -16, then those are likely to be `filc_object` accesses. Since this function doesn't yet have any pointers that need to be tracked by GC, this is just initialized to zero. Whenever a pointer value is produced, it'll be stored into somewhere in this `lowers` array. ([Issue 18: Optimize how the compiler emits stores to the filc_frame lowers array](https://github.com/pizlonator/fil-c/issues/18))
 
 Next, we process `insert_sorted`'s arguments, i.e. `struct list** list_head, int value`:
 
@@ -465,7 +465,7 @@ And finally we're loading the arguments:
 
 Seems like one of the arguments (`int value`) is immediately spilled to `0x8(%rsp)`. Notice that there are three loads total. This is because there is a *second* buffer for the arguments' capabilities. Since `struct list** list_head` is a pointer, we load its `lower` from that buffer (at offset `0x180`).
 
-Fil-C's calling convention allows for maximally sloppy function pointer casts. If the callsite's signature disagrees with the callee's signature, then stuff just tends to work. It's not clear that this is a requirement of Fil-C, and even if it was, this thread-local buffer for arguments (and return values, as we'll see later) is hilariously inefficient. ([Issue 22: The Fil-C calling convention should be optimized](https://github.com/pizlonator/llvm-project-deluge/issues/22))
+Fil-C's calling convention allows for maximally sloppy function pointer casts. If the callsite's signature disagrees with the callee's signature, then stuff just tends to work. It's not clear that this is a requirement of Fil-C, and even if it was, this thread-local buffer for arguments (and return values, as we'll see later) is hilariously inefficient. ([Issue 22: The Fil-C calling convention should be optimized](https://github.com/pizlonator/fil-c/issues/22))
 
 # Calling `malloc`
 
@@ -519,7 +519,7 @@ Then we do the function call check. This checks that the function pointer we're 
         232f:       48 39 c8                cmp    %rcx,%rax
         2332:       0f 85 e7 03 00 00       jne    271f <Jf_insert_sorted+0x4bf>
 
-This is a super gross check! ([Issue 19: InvisiCaps 2.0: Remove flag bits from the aux ptr, never have null aux pointers, and stop using the low bits of lowers for atomicity tricks](https://github.com/pizlonator/llvm-project-deluge/issues/19)).
+This is a super gross check! ([Issue 19: InvisiCaps 2.0: Remove flag bits from the aux ptr, never have null aux pointers, and stop using the low bits of lowers for atomicity tricks](https://github.com/pizlonator/fil-c/issues/19)).
 
 Let's break it down. First we have to check that we don't have the null capability:
 
@@ -553,7 +553,7 @@ And comparing it to the function pointer:
         232f:       48 39 c8                cmp    %rcx,%rax
         2332:       0f 85 e7 03 00 00       jne    271f <Jf_insert_sorted+0x4bf>
 
-This ensures that the function pointer really points at the function. ([Issue 20: Function capabilities returned from pizlonated getters are never offset](https://github.com/pizlonator/llvm-project-deluge/issues/20))
+This ensures that the function pointer really points at the function. ([Issue 20: Function capabilities returned from pizlonated getters are never offset](https://github.com/pizlonator/fil-c/issues/20))
 
 Finally we make the call and extract the return value:
 
@@ -588,7 +588,7 @@ So, our first check is that `malloc` isn't "throwing an exception", which really
 - Phase #2 of unwinding for `_Unwind_RaiseException`, or
 - Forced unwinding `_Unwind_ForcedUnwind`.
 
-All C functions support the latter, so even C code has to defend against this. ([Issue 21: Implement Fil-C's unwinding in terms of native unwinding](https://github.com/pizlonator/llvm-project-deluge/issues/21))
+All C functions support the latter, so even C code has to defend against this. ([Issue 21: Implement Fil-C's unwinding in terms of native unwinding](https://github.com/pizlonator/fil-c/issues/21))
 
 After that, we check that it indeed returned a value:
 
@@ -604,7 +604,7 @@ The last instruction stores the `node` into the Pizderson frame:
 
         2362:       48 89 74 24 38          mov    %rsi,0x38(%rsp)
 
-It's pretty incredible that it takes so much work to call `malloc`. So much of this could be optimized away. But even separately from general function call optimizations, the compiler could special-case `malloc`. ([Issue 23: Turn malloc calls into direct calls into the GC allocator](https://github.com/pizlonator/llvm-project-deluge/issues/23))
+It's pretty incredible that it takes so much work to call `malloc`. So much of this could be optimized away. But even separately from general function call optimizations, the compiler could special-case `malloc`. ([Issue 23: Turn malloc calls into direct calls into the GC allocator](https://github.com/pizlonator/fil-c/issues/23))
 
 # Storing the `value`
 
@@ -641,7 +641,7 @@ Then we check that `node`'s capability is not readonly:
         2375:       f6 46 fe 06             testb  $0x6,-0x2(%rsi)
         2379:       0f 85 af 02 00 00       jne    262e <Jf_insert_sorted+0x3ce>
 
-Note that if we fix [Issue 23](https://github.com/pizlonator/llvm-project-deluge/issues/23) then we won't have to do most of these checks, since we'll know that the allocator returned a valid object that isn't readonly. But anyways, next we materialize `&node->value` and check that it's above lower bound:
+Note that if we fix [Issue 23](https://github.com/pizlonator/fil-c/issues/23) then we won't have to do most of these checks, since we'll know that the allocator returned a valid object that isn't readonly. But anyways, next we materialize `&node->value` and check that it's above lower bound:
 
         237f:       48 8d 47 08             lea    0x8(%rdi),%rax
         2383:       48 39 f0                cmp    %rsi,%rax
@@ -684,7 +684,7 @@ The first instruction duplicates the capability of `list_head` into the Pizderso
 
         23a0:       4c 89 64 24 40          mov    %r12,0x40(%rsp)
 
-This enables the GC to track the object. Note that this is superfluous, since the Fil-C calling convention requires that arguments are tracked by the caller. ([Issue 18](https://github.com/pizlonator/llvm-project-deluge/issues/18))
+This enables the GC to track the object. Note that this is superfluous, since the Fil-C calling convention requires that arguments are tracked by the caller. ([Issue 18](https://github.com/pizlonator/fil-c/issues/18))
 
 Next we check that `list_head` has a valid capability:
 
@@ -705,14 +705,14 @@ Then stash the origin we'll use for the pollcheck that's in the loop (I'll expla
 
         23b5:       4c 8d 1d 9c 26 00 00    lea    0x269c(%rip),%r11        # 4a58 <Jgo_.str+0x48>
 
-This is totally pointless; we're taking up a perfectly good register for now good reason. ([Issue 24: LLVM does a bad job of register allocation for origins](https://github.com/pizlonator/llvm-project-deluge/issues/24))
+This is totally pointless; we're taking up a perfectly good register for now good reason. ([Issue 24: LLVM does a bad job of register allocation for origins](https://github.com/pizlonator/fil-c/issues/24))
 
 Then we stash a mask we'll use a lot:
 
         23bc:       48 ba ff ff ff ff ff    movabs $0xffffffffffff,%rdx
         23c3:       ff 00 00 
 
-We wouldn't need this mask if we removed the flags from the aux pointer in InvisiCaps. ([Issue 19](https://github.com/pizlonator/llvm-project-deluge/issues/19))
+We wouldn't need this mask if we removed the flags from the aux pointer in InvisiCaps. ([Issue 19](https://github.com/pizlonator/fil-c/issues/19))
 
 Then we check that `list_head` is pointer-aligned:
 
@@ -778,7 +778,7 @@ Then we load `next_ptr`'s aux pointer and check if it's not null:
         23ec:       48 21 d0                and    %rdx,%rax
         23ef:       0f 84 ba 00 00 00       je     24af <Jf_insert_sorted+0x24f>
 
-Checking if aux is not null wouldn't be necessary if we fixed InvisiCaps. ([Issue 19](https://github.com/pizlonator/llvm-project-deluge/issues/19)) We'll need the aux pointer to load `*next_ptr`'s capability.
+Checking if aux is not null wouldn't be necessary if we fixed InvisiCaps. ([Issue 19](https://github.com/pizlonator/fil-c/issues/19)) We'll need the aux pointer to load `*next_ptr`'s capability.
 
 Next we load the `lower` for `*next_ptr` from its aux (`%rax` is the base of the aux allocation and `%rbp` is the offset) and check that it doesn't have the *atomic box* bit set:
 
@@ -786,7 +786,7 @@ Next we load the `lower` for `*next_ptr` from its aux (`%rax` is the base of the
         23f9:       41 f6 c7 01             test   $0x1,%r15b
         23fd:       75 67                   jne    2466 <Jf_insert_sorted+0x206>
 
-This check wouldn't be necessary if we fixed InvisiCaps. ([Issue 19](https://github.com/pizlonator/llvm-project-deluge/issues/19))
+This check wouldn't be necessary if we fixed InvisiCaps. ([Issue 19](https://github.com/pizlonator/fil-c/issues/19))
 
 Now we load `*next_ptr`'s pointer value, and stash its capability in the Pizderson frame:
 
@@ -828,7 +828,7 @@ It's only at this point that we save the `*next_ptr`'s capability into the Pizde
 
         2438:       4c 89 7c 24 50          mov    %r15,0x50(%rsp)
 
-This is not the optimal place to schedule this store, since it's only needed for the pollcheck. ([Issue 18](https://github.com/pizlonator/llvm-project-deluge/issues/18))
+This is not the optimal place to schedule this store, since it's only needed for the pollcheck. ([Issue 18](https://github.com/pizlonator/fil-c/issues/18))
 
 Finally we check if `(*next_ptr)->value > value`, and if it is, we exit the loop:
 
@@ -840,7 +840,7 @@ Now we do the pollcheck. Fil-C's GC uses safepointing to synchronize with the mu
         2446:       f6 43 08 0e             testb  $0xe,0x8(%rbx)
         244a:       75 24                   jne    2470 <Jf_insert_sorted+0x210>
 
-Note that there are lots of ways to optimize this check. ([Issue 25: Optimize pollchecks](https://github.com/pizlonator/llvm-project-deluge/issues/25))
+Note that there are lots of ways to optimize this check. ([Issue 25: Optimize pollchecks](https://github.com/pizlonator/fil-c/issues/25))
 
 Now, `&(*next_ptr)->next`, which happens to be exactly equal to `*next_ptr`, becomes the new `next_ptr`. Here's the code that makes that happen:
 
@@ -848,7 +848,7 @@ Now, `&(*next_ptr)->next`, which happens to be exactly equal to `*next_ptr`, bec
         2451:       4d 89 f5                mov    %r14,%r13
         2454:       4d 89 fc                mov    %r15,%r12
 
-Note that we're again saving `*next_ptr` (i.e. the new `next_ptr`) into the Pizderson frame, which is dumb. ([Issue 18](https://github.com/pizlonator/llvm-project-deluge/issues/18))
+Note that we're again saving `*next_ptr` (i.e. the new `next_ptr`) into the Pizderson frame, which is dumb. ([Issue 18](https://github.com/pizlonator/fil-c/issues/18))
 
 Recall that at the top of the loop, `next_ptr` was in `%r13` (the pointer value) and `%r12` (the capability).
 
@@ -910,7 +910,7 @@ Finally we save `%r8` and `%r9` (a copy of `node` and its capability) to callee 
         247e:       4c 89 c5                mov    %r8,%rbp
         2481:       4d 89 cd                mov    %r9,%r13
 
-Note that it's silly that this code has to do so much work to save registers. It's likely that the fact that `filc_pollcheck_slow` clobbers volatile registers also prevents the register allocator from doing everything that it would like, since this save-restore logic is almost certainly due to the [greedy register allocator](https://blog.llvm.org/2011/09/greedy-register-allocation-in-llvm-30.html) doing live-range-splitting, and that algorithm has a limit on how much of that it will do. So, making slow paths not clobber registers would reduce code size and free up greedy's splitting budget, which could improve register allocation overall. ([Issue 27: Slow path calls to the runtime should use a calling convention that preserves all (or most) registers](https://github.com/pizlonator/llvm-project-deluge/issues/27))
+Note that it's silly that this code has to do so much work to save registers. It's likely that the fact that `filc_pollcheck_slow` clobbers volatile registers also prevents the register allocator from doing everything that it would like, since this save-restore logic is almost certainly due to the [greedy register allocator](https://blog.llvm.org/2011/09/greedy-register-allocation-in-llvm-30.html) doing live-range-splitting, and that algorithm has a limit on how much of that it will do. So, making slow paths not clobber registers would reduce code size and free up greedy's splitting budget, which could improve register allocation overall. ([Issue 27: Slow path calls to the runtime should use a calling convention that preserves all (or most) registers](https://github.com/pizlonator/fil-c/issues/27))
 
 Then we call the pollcheck, restore everything clobbered by it, and jump back into the loop:
 
@@ -935,7 +935,7 @@ The next slow path code is for the case that the aux ptr of `next_ptr` was NULL:
         24c7:       74 08                   je     24d1 <Jf_insert_sorted+0x271>
         24c9:       e9 4a 01 00 00          jmp    2618 <Jf_insert_sorted+0x3b8>
 
-It's a bug that this path even exists. ([Issue 19](https://github.com/pizlonator/llvm-project-deluge/issues/19)) Here, we do some of the same work as when we loaded `next_ptr`'s aux pointer. But, we know that the `lower` is NULL. So, we load the `*next_ptr`'s pointer value:
+It's a bug that this path even exists. ([Issue 19](https://github.com/pizlonator/fil-c/issues/19)) Here, we do some of the same work as when we loaded `next_ptr`'s aux pointer. But, we know that the `lower` is NULL. So, we load the `*next_ptr`'s pointer value:
 
         24af:       4d 8b 75 00             mov    0x0(%r13),%r14
 
@@ -1079,7 +1079,7 @@ So, we start by checking that `node`'s pointer is pointer-aligned.
         24d1:       41 f6 c0 07             test   $0x7,%r8b
         24d5:       0f 85 63 01 00 00       jne    263e <Jf_insert_sorted+0x3de>
 
-We wouldn't have to check that if we special-cased malloc. ([Issue 23](https://github.com/pizlonator/llvm-project-deluge/issues/23))
+We wouldn't have to check that if we special-cased malloc. ([Issue 23](https://github.com/pizlonator/fil-c/issues/23))
 
 Then we check that `node` is above its lower bound.
 
@@ -1094,7 +1094,7 @@ And we check if `node` isn't free.
 
 This is interesting - we could have instead checked the upper bound for `&node->next`, but at this point we would have already checked the upper bound for `&node->value`, which is higher. So all we really have to do is that the object hasn't been freed (we are obligated to observe it being freed across pollchecks), which is cheaper than checking the upper bound (it's just a bit test).
 
-Of course, maybe this isn't actually cheaper than checking the upper bounds? ([Issue 26: Emitting a is-not-free check instead of an upper bounds check is often a pessimization](https://github.com/pizlonator/llvm-project-deluge/issues/26))
+Of course, maybe this isn't actually cheaper than checking the upper bounds? ([Issue 26: Emitting a is-not-free check instead of an upper bounds check is often a pessimization](https://github.com/pizlonator/fil-c/issues/26))
 
 Note that now, `%rax` holds the aux pointer (including its flags) for `node`.
 
@@ -1349,7 +1349,7 @@ If it is NULL, then we fall through to this code, which initializes the aux poin
         25f9:       48 8b 4c 24 18          mov    0x18(%rsp),%rcx
         25fe:       e9 08 ff ff ff          jmp    250b <Jf_insert_sorted+0x2ab>
 
-Most of this code is saving and restoring registers, which isn't needed if we used the right calling convention for this slow path. ([Issue 27](https://github.com/pizlonator/llvm-project-deluge/issues/27))
+Most of this code is saving and restoring registers, which isn't needed if we used the right calling convention for this slow path. ([Issue 27](https://github.com/pizlonator/fil-c/issues/27))
 
 Let's break down what's happening here. First, we save `%rcx` since we'll need it after the call returns and `%rcx` is a volatile register.
 
@@ -1480,7 +1480,7 @@ And then there's another store barrier slow path, this time for `node->next = *n
         2709:       48 8b 74 24 08          mov    0x8(%rsp),%rsi
         270e:       e9 11 fe ff ff          jmp    2524 <Jf_insert_sorted+0x2c4>
 
-Lots of the code for these slow paths would go away if we used the right calling convention for runtime calls. ([Issue 27](https://github.com/pizlonator/llvm-project-deluge/issues/27))
+Lots of the code for these slow paths would go away if we used the right calling convention for runtime calls. ([Issue 27](https://github.com/pizlonator/fil-c/issues/27))
 
 # Check Failures
 
@@ -1568,26 +1568,26 @@ And finally there's the case where `malloc` didn't return a value; that one chec
 
 Fil-C can compile C in a way that makes the code memory-safe. This post shows how Fil-C is very comprehensive in the checking it emits. Analyzing that code shows lots of room for improvement. I filed the following issues by doing this exercise:
 
-- [Issue 16: Turn the thread pointer into a proper pinned register](https://github.com/pizlonator/llvm-project-deluge/issues/16)
+- [Issue 16: Turn the thread pointer into a proper pinned register](https://github.com/pizlonator/fil-c/issues/16)
 
-- [Issue 17: Implement real accurate stack scanning](https://github.com/pizlonator/llvm-project-deluge/issues/17)
+- [Issue 17: Implement real accurate stack scanning](https://github.com/pizlonator/fil-c/issues/17)
 
-- [Issue 18: Optimize how the compiler emits stores to the filc_frame lowers array](https://github.com/pizlonator/llvm-project-deluge/issues/18)
+- [Issue 18: Optimize how the compiler emits stores to the filc_frame lowers array](https://github.com/pizlonator/fil-c/issues/18)
 
-- [Issue 19: InvisiCaps 2.0: Remove flag bits from the aux ptr, never have null aux pointers, and stop using the low bits of lowers for atomicity tricks](https://github.com/pizlonator/llvm-project-deluge/issues/19)
+- [Issue 19: InvisiCaps 2.0: Remove flag bits from the aux ptr, never have null aux pointers, and stop using the low bits of lowers for atomicity tricks](https://github.com/pizlonator/fil-c/issues/19)
 
-- [Issue 20: Function capabilities returned from pizlonated getters are never offset](https://github.com/pizlonator/llvm-project-deluge/issues/20)
+- [Issue 20: Function capabilities returned from pizlonated getters are never offset](https://github.com/pizlonator/fil-c/issues/20)
 
-- [Issue 21: Implement Fil-C's unwinding in terms of native unwinding](https://github.com/pizlonator/llvm-project-deluge/issues/21)
+- [Issue 21: Implement Fil-C's unwinding in terms of native unwinding](https://github.com/pizlonator/fil-c/issues/21)
 
-- [Issue 22: The Fil-C calling convention should be optimized](https://github.com/pizlonator/llvm-project-deluge/issues/22)
+- [Issue 22: The Fil-C calling convention should be optimized](https://github.com/pizlonator/fil-c/issues/22)
 
-- [Issue 23: Turn malloc calls into direct calls into the GC allocator](https://github.com/pizlonator/llvm-project-deluge/issues/23)
+- [Issue 23: Turn malloc calls into direct calls into the GC allocator](https://github.com/pizlonator/fil-c/issues/23)
 
-- [Issue 24: LLVM does a bad job of register allocation for origins](https://github.com/pizlonator/llvm-project-deluge/issues/24)
+- [Issue 24: LLVM does a bad job of register allocation for origins](https://github.com/pizlonator/fil-c/issues/24)
 
-- [Issue 25: Optimize pollchecks](https://github.com/pizlonator/llvm-project-deluge/issues/25)
+- [Issue 25: Optimize pollchecks](https://github.com/pizlonator/fil-c/issues/25)
 
-- [Issue 26: Emitting a is-not-free check instead of an upper bounds check is often a pessimization](https://github.com/pizlonator/llvm-project-deluge/issues/26)
+- [Issue 26: Emitting a is-not-free check instead of an upper bounds check is often a pessimization](https://github.com/pizlonator/fil-c/issues/26)
 
-- [Issue 27: Slow path calls to the runtime should use a calling convention that preserves all (or most) registers](https://github.com/pizlonator/llvm-project-deluge/issues/27)
+- [Issue 27: Slow path calls to the runtime should use a calling convention that preserves all (or most) registers](https://github.com/pizlonator/fil-c/issues/27)

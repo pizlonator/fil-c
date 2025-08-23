@@ -1,4 +1,4 @@
-This document describes how [Fil-C](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md)'s pointers work. Fil-C is totally memory safe even though it gives you almost all of the power you'd expect from C, including sophisticated uses of pointers. Fil-C pointers achieve memory safety using a capability model called *invisicaps*, which have these properties:
+This document describes how [Fil-C](https://github.com/pizlonator/fil-c/blob/deluge/Manifesto.md)'s pointers work. Fil-C is totally memory safe even though it gives you almost all of the power you'd expect from C, including sophisticated uses of pointers. Fil-C pointers achieve memory safety using a capability model called *invisicaps*, which have these properties:
 
 - Pointers appear to have their native size. Fil-C currently only works on 64-bit systems, so pointers appear to be 64-bit.
 
@@ -6,11 +6,11 @@ This document describes how [Fil-C](https://github.com/pizlonator/llvm-project-d
 
 The capability is invisible because other than via Fil-C reflection operations (compiler intrinsics and runtime functions unique to Fil-C), there is no way for a Fil-C program to see the capability. It's always there, but you cannot find it if you access memory.
 
-Invisicaps offer a similar programming model to SoftBound and CHERI. However, unlike CHERI, which uses wide pointers (`sizeof(void*)` is 16 or more) to store the capability, Fil-C's capabilities are invisible in the address space and do not affect pointer size. And unlike SoftBound, Fil-C's capabilities have a complete story for atomics (you cannot break invisicap protections by racing, and atomic pointer loads/stores really are atomic). [This document is a work-in-progress description of Fil-C's semantics.](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/gimso_semantics.md)
+Invisicaps offer a similar programming model to SoftBound and CHERI. However, unlike CHERI, which uses wide pointers (`sizeof(void*)` is 16 or more) to store the capability, Fil-C's capabilities are invisible in the address space and do not affect pointer size. And unlike SoftBound, Fil-C's capabilities have a complete story for atomics (you cannot break invisicap protections by racing, and atomic pointer loads/stores really are atomic). [This document is a work-in-progress description of Fil-C's semantics.](https://github.com/pizlonator/fil-c/blob/deluge/gimso_semantics.md)
 
 I'll show you how that works with a bunch of example programs. In these programs I'll use the Fil-C header `<stdfil.h>`, which you only need to `#include` if you want to mess with Fil-C's guts.
 
-All examples are compiled with `build/bin/clang -O -g` from my Fil-C working directory. If you want to try these examples yourself, [you can grab a recent binary release for Linux/X86_64](https://github.com/pizlonator/llvm-project-deluge/releases).
+All examples are compiled with `build/bin/clang -O -g` from my Fil-C working directory. If you want to try these examples yourself, [you can grab a recent binary release for Linux/X86_64](https://github.com/pizlonator/fil-c/releases).
 
 # Simple Allocation
 

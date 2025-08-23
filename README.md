@@ -1,4 +1,4 @@
-# Fil-C 0.668.8
+# Fil-C 0.670-pre
 
 Fil-C is a fanatically compatible memory-safe implementation of C and C++. Lots
 of software compiles and runs with Fil-C with zero or minimal changes. All
@@ -7,6 +7,29 @@ combination of concurrent garbage collection and invisible capabilities (each
 pointer in memory has a corresponding capability, not visible to the C address
 space). Every fundamental C operation (as seen in LLVM IR) is checked against
 the capability. Fil-C has no `unsafe` escape hatch of any kind.
+
+Fil-C is special because:
+
+- Fil-C really achieves full safety with no escape hatches. There is no
+  `unsafe` keyword in Fil-C that could be used to turn off protections. It's
+  not even possible to link to unsafe code.
+
+- Fil-C's capability-based approach achieves a similar level of safety to
+  hardware capabilities like [CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/),
+  except that it runs on stock hardware (X86_64, currently).
+
+- Fil-C is engineered to prevent memory safety bugs from being used for
+  exploitation rather than just simply flagging them often enough to find bugs.
+  This makes Fil-C different from [AddressSanitizer](https://github.com/google/sanitizers/wiki/addresssanitizer),
+  HWAsan, or [MTE](https://developer.arm.com/documentation/108035/0100/Introduction-to-the-Memory-Tagging-Extension),
+  which can all be bypassed by attackers. The key difference that makes this
+  possible is that Fil-C is capability based (so each pointer knows what range
+  of memory it may access, and how it may access it) rather than tag based
+  (where pointer accesses are allowed if they hit valid memory).
+
+- From a language user standpoint, Fil-C is just C and C++. It's more likely
+  than not that your favorite C or C++ program or library compiles in Fil-C
+  with zero changes.
 
 ## License
 
@@ -78,19 +101,19 @@ and C++ exceptions.
 
 You can learn more about Fil-C by reading these docs:
 
-- [The Fil-C manifesto](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/Manifesto.md).
+- [The Fil-C manifesto](https://github.com/pizlonator/fil-c/blob/deluge/Manifesto.md).
 
-- [Releases (Linux/X86_64 binaries)](https://github.com/pizlonator/llvm-project-deluge/releases).
+- [Releases (Linux/X86_64 binaries)](https://github.com/pizlonator/fil-c/releases).
 
-- [Fil-C capabilities by example](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/invisicaps_by_example.md).
+- [Fil-C capabilities by example](https://github.com/pizlonator/fil-c/blob/deluge/invisicaps_by_example.md).
 
-- [Garbage-In, Memory Safety Out Semantics](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/gimso_semantics.md).
+- [Garbage-In, Memory Safety Out Semantics](https://github.com/pizlonator/fil-c/blob/deluge/gimso_semantics.md).
 
-- [Explanation of Disassembly of a Simple Fil-C Program](https://github.com/pizlonator/llvm-project-deluge/blob/deluge/test43.md).
+- [Explanation of Disassembly of a Simple Fil-C Program](https://github.com/pizlonator/fil-c/blob/deluge/test43.md).
 
 You can also e-mail me: pizlo@mac.com
 
 Follow me on [Twitter](https://x.com/filpizlo).
 
-File issues at [GH](https://github.com/pizlonator/llvm-project-deluge/issues).
+File issues at [GH](https://github.com/pizlonator/fil-c/issues).
 

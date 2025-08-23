@@ -28,7 +28,7 @@
 set -e
 set -x
 
-build_name=filc-0.668.8-$OS-$ARCH
+build_name=filc-0.670-pre-$OS-$ARCH
 
 rm -rf $build_name
 
