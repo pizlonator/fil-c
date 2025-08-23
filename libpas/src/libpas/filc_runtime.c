@@ -2881,6 +2881,8 @@ static uintptr_t ptr_table_encode_holding_lock(
             }
 
             new_array->num_entries = ptr_table->array->num_entries;
+            pas_store_store_fence();
+            filc_store_barrier(my_thread, filc_object_for_special_payload(new_array));
             ptr_table->array = new_array;
         }
 
