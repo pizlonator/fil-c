@@ -178,7 +178,7 @@ static void check_user_sigaction(filc_ptr ptr, filc_access_kind access_kind)
    It registers it with the global thread list. But once the thread is started, it will dispose itself
    once done, and remove it from the list. So, it's necessary to track threads after creating them
    somehow, unless it's a thread that cannot be disposed. */
-filc_thread* filc_thread_create_with_manual_tracking(void)
+filc_thread* filc_thread_create_with_manual_tracking(filc_thread* my_thread)
 {
     static const bool verbose = false;
     if (sizeof(filc_thread) > FILC_THREAD_ALLOCATOR_OFFSET) {
@@ -245,6 +245,7 @@ filc_thread* filc_thread_create_with_manual_tracking(void)
 
     /* The rest of the fields are initialized to zero already. */
 
+    filc_store_barrier(my_thread, filc_object_for_special_payload(thread));
     filc_thread_list_lock_lock();
     thread->next_thread = filc_first_thread;
     thread->prev_thread = NULL;
@@ -464,7 +465,7 @@ void filc_initialize(void)
     filc_object_array_construct(&filc_global_variable_roots);
     filc_object_array_construct(&filc_global_variable_root_ptrs);
 
-    filc_thread* thread = filc_thread_create_with_manual_tracking();
+    filc_thread* thread = filc_thread_create_with_manual_tracking(NULL);
     thread->has_started = true;
     thread->has_stopped = false;
     thread->thread = pthread_self();
@@ -2822,7 +2823,9 @@ filc_ptr_table* filc_ptr_table_create(filc_thread* my_thread)
     result->free_indices_capacity = 10;
     result->free_indices = bmalloc_allocate(sizeof(uintptr_t) * result->free_indices_capacity);
     result->num_free_indices = 0;
-    result->array = filc_ptr_table_array_create(my_thread, 10);
+    filc_ptr_table_array* array = filc_ptr_table_array_create(my_thread, 10);
+    filc_store_barrier(my_thread, filc_object_for_special_payload(array));
+    result->array = array;
 
     if (PAS_ENABLE_TESTING)
         pas_atomic_exchange_add_uintptr(&num_ptrtables, 1);
@@ -5906,6 +5909,7 @@ filc_ptr filc_call_ifunc(filc_thread* my_thread, const filc_origin* passed_origi
     filc_push_native_frame(my_thread, &native_frame);
 
     filc_ptr result = filc_call_user_ptr_void(my_thread, ifunc);
+    filc_store_barrier(my_thread, filc_ptr_object(result));
     filc_global_variable_roots_lock_lock();
     filc_object_array_push(&filc_global_variable_root_ptrs, filc_ptr_object(result));
     filc_global_variable_roots_lock_unlock();
@@ -11776,7 +11780,7 @@ bool filc_native_zthread_create2(filc_thread* my_thread, filc_ptr callback_ptr, 
         "cannot create threads before global constructors have started being run.");
     PAS_ASSERT(filc_did_clear_deferred_global_ctors);
     filc_check_function_call(callback_ptr);
-    filc_thread* thread = filc_thread_create_with_manual_tracking();
+    filc_thread* thread = filc_thread_create_with_manual_tracking(my_thread);
     filc_thread_track_object(my_thread, filc_object_for_special_payload(thread));
     pas_system_mutex_lock(&thread->lock);
     /* I don't see how this could ever happen. */

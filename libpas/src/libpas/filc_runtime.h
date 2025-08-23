@@ -1567,7 +1567,7 @@ PAS_API void filc_initialize(void);
 PAS_API size_t filc_add_size(size_t a, size_t b);
 PAS_API size_t filc_mul_size(size_t a, size_t b);
 
-PAS_API filc_thread* filc_thread_create_with_manual_tracking(void);
+PAS_API filc_thread* filc_thread_create_with_manual_tracking(filc_thread* my_thread);
 
 PAS_API void filc_thread_destruct(filc_thread* thread);
 
