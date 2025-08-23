@@ -41,9 +41,9 @@ projects/usermusl/COPYRIGHT in the source distribution). The libc++/libc++abi
 are covered by LLVM-LICENSE.txt.
 
 You can fetch the compiler, runtime, libc++/libc++abi, and libc (musl) source
-from https://github.com/pizlonator/llvm-project-deluge. The source distribution
-also includes many programs that have been ported to Fil-C in the projects/
-directory, and they have a variety of licenses.
+from https://github.com/pizlonator/fil-c. The source distribution also includes
+many programs that have been ported to Fil-C in the projects/ directory, and
+they have a variety of licenses.
 
 ## Requirements
 
