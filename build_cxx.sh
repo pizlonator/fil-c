@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2023-2024 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2023-2025 Epic Games, Inc. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,7 +28,14 @@
 set -e
 set -x
 
-(cd build && ninja runtimes-clean && ninja runtimes)
+NINJAFLAGS=
+NINJARUNTIMEFLAGS=
+if test -e clang-build-overrides.sh
+then
+    . ./clang-build-overrides.sh
+fi
+
+(cd build && ninja $NINJAFLAGS runtimes-clean && ninja $NINJARUNTIMEFLAGS runtimes)
 ./install-cxx-$OS.sh
 ./fix_clang.sh
 
