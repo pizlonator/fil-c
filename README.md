@@ -72,7 +72,7 @@ Lots of software packages work in Fil-C with zero or minimal changes, including
 big ones like openssl, CPython, SQLite, and many others.
 
 Fil-C has full support for C and C++ plus almost all of the extensions that
-clang 17 supports. Fil-C has excellent support for atomics and SIMD intrinsics,
+clang 20 supports. Fil-C has excellent support for atomics and SIMD intrinsics,
 for example.
 
 Fil-C catches all of the stuff that makes memory safety in C hard, like:
