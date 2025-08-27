@@ -51,9 +51,6 @@ extern "C" {
 #error "Cannot use <stdfil.h> from Yolo-C"
 #endif
 
-/* only for times */
-typedef long clock_t;
-
 /* You shouldn't use the filc_bool type or rely on its existence; I just need it to hack around C++
    being incompatible with C in this regard. */
 #ifdef __cplusplus
