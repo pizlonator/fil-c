@@ -1,0 +1,27 @@
+
+separate_arguments (out UNIX_COMMAND PROGRAM SEPARATE_ARGS "xx a b c")
+if (out)
+  message (SEND_ERROR "unexpected result with nonexistent program")
+endif()
+
+get_filename_component(cmake_command "${CMAKE_COMMAND}" ABSOLUTE)
+cmake_path (GET cmake_command FILENAME cmake_exe)
+cmake_path (GET cmake_command PARENT_PATH cmake_dir)
+
+set (ENV{PATH} "${cmake_dir}")
+
+separate_arguments (out UNIX_COMMAND PROGRAM SEPARATE_ARGS "${cmake_exe} a b c")
+list (LENGTH out length)
+if (length EQUAL 0)
+  message(FATAL_ERROR "existent program not found")
+endif()
+if (NOT length EQUAL 4)
+  message(FATAL_ERROR "unexpected arguments")
+endif()
+list(POP_FRONT out cmake)
+if (NOT cmake STREQUAL "${cmake_dir}/${cmake_exe}")
+  message (SEND_ERROR "bad path for program: '${cmake}' instead of '${cmake_dir}/${cmake_exe}'")
+endif()
+if (NOT out STREQUAL "a;b;c")
+  message (SEND_ERROR "bad path for args: '${out}' instead of 'a;b;c'")
+endif()
