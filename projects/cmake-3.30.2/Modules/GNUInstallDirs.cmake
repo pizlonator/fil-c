@@ -296,9 +296,9 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR OR (_libdir_set
     elseif(NOT DEFINED __system_type_for_install)
       # not debian, alpine, arch, or conda so rely on CMAKE_SIZEOF_VOID_P:
       if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-        set(_LIBDIR_DEFAULT "lib64")
+        set(_LIBDIR_DEFAULT "lib")
         if(DEFINED _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX)
-          set(__LAST_LIBDIR_DEFAULT "lib64")
+          set(__LAST_LIBDIR_DEFAULT "lib")
         endif()
       endif()
     endif()
