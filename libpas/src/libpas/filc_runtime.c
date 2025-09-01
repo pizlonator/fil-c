@@ -6067,6 +6067,14 @@ filc_ptr_array filc_deferred_global_ctors = FILC_PTR_ARRAY_INITIALIZER;
 
 static void run_global_ctor(filc_thread* my_thread, filc_ptr global_ctor)
 {
+    static const bool verbose = false;
+
+    if (verbose) {
+        pas_log("Running global ctor ");
+        filc_ptr_dump(global_ctor, pas_log_stream);
+        pas_log("\n");
+    }
+    
     if (!filc_run_global_ctors) {
         /* NOTE: This is an internal flag that is only useful for debugging, and it's quite dangerous
            in the sense that it's likely to put whatever program you're running into a weird (but

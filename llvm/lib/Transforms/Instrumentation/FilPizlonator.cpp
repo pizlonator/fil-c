@@ -29,6 +29,7 @@
 
 #include <llvm/Analysis/CFG.h>
 #include <llvm/Demangle/Demangle.h>
+#include <llvm/IR/Comdat.h>
 #include <llvm/IR/DebugInfo.h>
 #include <llvm/IR/InlineAsm.h>
 #include <llvm/IR/Module.h>
@@ -1255,6 +1256,8 @@ class Pizlonator {
   std::unordered_set<Value*> Getters;
   std::unordered_map<Function*, Function*> FunctionToHiddenFunction;
   std::unordered_map<Function*, Constant*> FunctionToLower;
+
+  std::unordered_map<GlobalValue*, Comdat*> GlobalToComdat;
 
   std::string FunctionName;
   Function* OldF { nullptr };
@@ -7536,7 +7539,7 @@ class Pizlonator {
     }
   }
   
-  void undefineAvailableExternally() {
+  void lockDownLinkage() {
     for (GlobalVariable& G : M.globals()) {
       if (G.getLinkage() == GlobalValue::AvailableExternallyLinkage) {
         G.setInitializer(nullptr);
@@ -7549,9 +7552,26 @@ class Pizlonator {
         F.setIsMaterializable(false);
       }
     }
-    /* FIXME: Should be able to do something for these. */
-    for (GlobalAlias& G : M.aliases())
+
+    for (GlobalValue& G : M.global_values()) {
+      /* FIXME: Should be able to do something for AvailableExternally GlobalAliases and IFuncs. */
       assert(G.getLinkage() != GlobalValue::AvailableExternallyLinkage);
+
+      /* FIXME: Should be possible to handle apppending linkage eventually. */
+      assert(G.getLinkage() != GlobalValue::AppendingLinkage ||
+             G.getName() == "llvm.global_ctors" ||
+             G.getName() == "llvm.global_dtors" ||
+             G.getName() == "llvm.used" ||
+             G.getName() == "llvm.compiler.used");
+
+      /* FIXME: Don't even know what this is? */
+      assert(G.getLinkage() != GlobalValue::CommonLinkage);
+
+      if (G.getLinkage() == GlobalValue::LinkOnceODRLinkage)
+        G.setLinkage(GlobalValue::LinkOnceAnyLinkage);
+      else if (G.getLinkage() == GlobalValue::WeakODRLinkage)
+        G.setLinkage(GlobalValue::WeakAnyLinkage);
+    }
   }
 
   void expandConstantExprOperands(Instruction* I) {
@@ -8430,7 +8450,7 @@ public:
     if (verbose)
       errs() << "Module with indirectbr lowered:\n" << M << "\n";
     
-    undefineAvailableExternally();
+    lockDownLinkage();
     removeIrrelevantIntrinsics();
     expandConstantExprs();
     inferPointerAsIntLaundering();
@@ -8518,6 +8538,22 @@ public:
       assert(DSO->isDeclaration());
       DSO->replaceAllUsesWith(RawNull);
       DSO->eraseFromParent();
+    }
+
+    for (GlobalObject& G : M.global_objects()) {
+      if (Comdat* OldComdat = G.getComdat()) {
+        assert(G.getLinkage() == GlobalValue::LinkOnceAnyLinkage ||
+               G.getLinkage() == GlobalValue::WeakAnyLinkage);
+        std::string str = ("pizlonatedC_" + OldComdat->getName()).str();
+        Comdat* NewComdat = M.getOrInsertComdat(str);
+        NewComdat->setSelectionKind(OldComdat->getSelectionKind());
+        GlobalToComdat[&G] = NewComdat;
+      } else if (G.hasLinkOnceLinkage()) {
+        std::string str = ("pizlonatedMC_" + G.getName()).str();
+        Comdat* NewComdat = M.getOrInsertComdat(str);
+        NewComdat->setSelectionKind(Comdat::Any);
+        GlobalToComdat[&G] = NewComdat;
+      }
     }
     
     for (GlobalVariable &G : M.globals()) {
@@ -8693,11 +8729,27 @@ public:
         errs() << "Handling global: " << G->getName() << "\n";
       Function* NewF = Function::Create(PizlonatedGetterTy, G->getLinkage(), G->getAddressSpace(),
                                         "pizlonated_" + G->getName(), &M);
+      if (GlobalToComdat.count(G))
+        NewF->setComdat(GlobalToComdat[G]);
       NewF->setVisibility(G->getVisibility());
       GlobalToGetter[G] = NewF;
       Getters.insert(NewF);
       ToDelete.push_back(G);
     };
+
+    auto PutImplIntoComdat = [&] (GlobalValue* OrigG, GlobalObject* NewG) {
+      assert(NewG->getLinkage() == GlobalValue::InternalLinkage ||
+             NewG->getLinkage() == GlobalValue::PrivateLinkage);
+      
+      if (!GlobalToComdat.count(OrigG))
+        return;
+
+      NewG->setLinkage(OrigG->getLinkage());
+      NewG->setVisibility(OrigG->getVisibility());
+      NewG->setDSOLocal(OrigG->isDSOLocal());
+      NewG->setComdat(GlobalToComdat[OrigG]);
+    };
+    
     for (GlobalVariable* G : Globals)
       HandleGlobal(G);
     for (GlobalAlias* G : Aliases)
@@ -8712,14 +8764,28 @@ public:
         continue;
       HandleGlobal(F);
       if (!F->isDeclaration()) {
+        // Couple of things going on here.
+        //
+        // - If the global is in a comdat, then we need to preserve the comdat.
+        // - If the global has fancy linkage like linkonce_odr, then we need to put the hidden
+        //   function in linkonce_odr, too.
+        // - It's most likely better in that case to create a comdat if there isn't one already, and
+        //   put the hidden function in that comdat, using whatever linkage the global had.
+        //
+        // Otherwise, we end up in situations where we inline references to the hidden function and
+        // then the hidden function gets duplicated even if the global was linkonce.
+        
         Function* NewF = Function::Create(
           PizlonatedFuncTy,
           GlobalValue::InternalLinkage, F->getAddressSpace(),
-          "Jf_" + F->getName(), &M);
+          "pizlonatedFI_" + F->getName(), &M);
         FunctionToHiddenFunction[F] = NewF;
 
+        PutImplIntoComdat(F, NewF);
+
         GlobalVariable* NewObjectG = new GlobalVariable(
-          M, ObjectTy, true, GlobalValue::InternalLinkage, nullptr, "Jfo_" + F->getName());
+          M, ObjectTy, true, GlobalValue::InternalLinkage, nullptr, "pizlonatedFO_" + F->getName());
+        PutImplIntoComdat(F, NewObjectG);
         Constant* LowerAndUpper =
           ConstantExpr::getGetElementPtr(ObjectTy, NewObjectG, ConstantInt::get(IntPtrTy, 1));
         uint16_t ObjectFlags =
@@ -8814,12 +8880,15 @@ public:
       
       if (G->isThreadLocal()) {
         Function* SlowF = Function::Create(ThreadLocalEnsureTy, GlobalValue::PrivateLinkage,
-                                           G->getAddressSpace(), "filc_getter_slow", &M);
+                                           G->getAddressSpace(), "pizlonatedGS_" + G->getName(), &M);
+        PutImplIntoComdat(G, SlowF);
         SlowF->addFnAttr(Attribute::NoInline);
       
         GlobalVariable* NewG = new GlobalVariable(
           M, RawPtrTy, false, G->getLinkage(), G->isDeclaration() ? nullptr : RawNull,
-          "filc_tptr_" + G->getName(), nullptr, G->getThreadLocalMode());
+          "pizlonatedTP_" + G->getName(), nullptr, G->getThreadLocalMode());
+        if (GlobalToComdat.count(G))
+          NewG->setComdat(GlobalToComdat[G]);
 
         assert(!MyThread);
         MyThread = SlowF->getArg(0);
@@ -8863,8 +8932,9 @@ public:
       }
 
       Function* SlowF = Function::Create(PizlonatedGetterTy, GlobalValue::PrivateLinkage,
-                                         G->getAddressSpace(), "filc_getter_slow", &M);
+                                         G->getAddressSpace(), "pizlonatedGS_" + G->getName(), &M);
       SlowF->addFnAttr(Attribute::NoInline);
+      PutImplIntoComdat(G, SlowF);
       
       Constant* NewC = paddedConstant(
         constantToRestConstantWithPtrPlaceholders(G->getInitializer()));
@@ -8882,7 +8952,8 @@ public:
         ArrayType* AuxTy = ArrayType::get(RawPtrTy, CSize / WordSize);
         AuxG = new GlobalVariable(
           M, AuxTy, IsConstant, GlobalValue::InternalLinkage, ConstantAggregateZero::get(AuxTy),
-          "Jga_" + G->getName());
+          "pizlonatedDA_" + G->getName());
+        PutImplIntoComdat(G, AuxG);
         AuxPtr = AuxG;
       } else {
         AuxG = nullptr;
@@ -8904,7 +8975,8 @@ public:
       StructType* ObjectGTy = StructType::get(C, ObjectGTyFields);
 
       GlobalVariable* NewDataG = new GlobalVariable(
-        M, ObjectGTy, IsConstant, GlobalValue::InternalLinkage, nullptr, "Jgo_" + G->getName());
+        M, ObjectGTy, IsConstant, GlobalValue::InternalLinkage, nullptr, "pizlonatedDO_" + G->getName());
+      PutImplIntoComdat(G, NewDataG);
 
       uint16_t ObjectFlags = ObjectFlagGlobal;
       if (AuxG)
@@ -8936,7 +9008,8 @@ public:
       
       GlobalVariable* NewPtrG = new GlobalVariable(
         M, FlightPtrTy, false, GlobalValue::PrivateLinkage, FlightNull,
-        "filc_gptr_" + G->getName());
+        "pizlonatedGP_" + G->getName());
+      PutImplIntoComdat(G, NewPtrG);
       NewPtrG->setAlignment(Align(FlightPtrAlign));
       
       BasicBlock* RootBB = BasicBlock::Create(C, "filc_global_getter_root", NewF);
@@ -9312,7 +9385,8 @@ public:
 
       GlobalVariable* NewPtrG = new GlobalVariable(
         M, FlightPtrTy, false, GlobalValue::PrivateLinkage, FlightNull,
-        "filc_gptr_" + G->getName());
+        "pizlonatedGP_" + G->getName());
+      PutImplIntoComdat(G, NewPtrG);
       NewPtrG->setAlignment(Align(FlightPtrAlign));
       
       BasicBlock* RootBB = BasicBlock::Create(C, "filc_global_ifunc_getter_root", NewF);
