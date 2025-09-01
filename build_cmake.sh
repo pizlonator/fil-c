@@ -42,8 +42,8 @@ PATH=$PWD/../../../pizfix/bin:$PATH ./bootstrap \
     --docdir=/share/doc/cmake-3.30.2 \
     CC=$PWD/../../../build/bin/clang \
     CXX=$PWD/../../../build/bin/clang++ \
-    CFLAGS="-O2 -g" \
-    CXXFLAGS="-O2 -g"
+    CFLAGS="-O2" \
+    CXXFLAGS="-O2"
 
 # This is a terrible hack indeed
 find . -name "*.make" -type f -exec sed -i 's/-isystem \/usr\/include//g' {} +
