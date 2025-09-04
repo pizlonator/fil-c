@@ -1,0 +1,9 @@
+#if __GNUC_PREREQ (13, 0)
+#  define USE_RINT_BUILTIN 1
+#  define USE_RINTF_BUILTIN 1
+#else
+#  define USE_RINT_BUILTIN 0
+#  define USE_RINTF_BUILTIN 0
+#endif
+#define USE_RINTL_BUILTIN 0
+#define USE_RINTF128_BUILTIN 0

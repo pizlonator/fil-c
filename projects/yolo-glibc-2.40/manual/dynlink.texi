@@ -1,0 +1,1105 @@
+@node Dynamic Linker
+@c @node Dynamic Linker, Internal Probes, Threads, Top
+@c %MENU% Loading programs and shared objects.
+@chapter Dynamic Linker
+@cindex dynamic linker
+@cindex dynamic loader
+
+The @dfn{dynamic linker} is responsible for loading dynamically linked
+programs and their dependencies (in the form of shared objects).  The
+dynamic linker in @theglibc{} also supports loading shared objects (such
+as plugins) later at run time.
+
+Dynamic linkers are sometimes called @dfn{dynamic loaders}.
+
+@menu
+* Dynamic Linker Invocation::   Explicit invocation of the dynamic linker.
+* Dynamic Linker Introspection::    Interfaces for querying mapping information.
+* Dynamic Linker Hardening::    Avoiding unexpected issues with dynamic linking.
+@end menu
+
+@node Dynamic Linker Invocation
+@section Dynamic Linker Invocation
+
+@cindex program interpreter
+When a dynamically linked program starts, the operating system
+automatically loads the dynamic linker along with the program.
+@Theglibc{} also supports invoking the dynamic linker explicitly to
+launch a program.  This command uses the implied dynamic linker
+(also sometimes called the @dfn{program interpreter}):
+
+@smallexample
+sh -c 'echo "Hello, world!"'
+@end smallexample
+
+This command specifies the dynamic linker explicitly:
+
+@smallexample
+ld.so /bin/sh -c 'echo "Hello, world!"'
+@end smallexample
+
+Note that @command{ld.so} does not search the @env{PATH} environment
+variable, so the full file name of the executable needs to be specified.
+
+The @command{ld.so} program supports various options.  Options start
+@samp{--} and need to come before the program that is being launched.
+Some of the supported options are listed below.
+
+@table @code
+@item --list-diagnostics
+Print system diagnostic information in a machine-readable format.
+@xref{Dynamic Linker Diagnostics}.
+@end table
+
+@menu
+* Dynamic Linker Diagnostics::   Obtaining system diagnostic information.
+@end menu
+
+@node Dynamic Linker Diagnostics
+@subsection Dynamic Linker Diagnostics
+@cindex diagnostics (dynamic linker)
+
+The @samp{ld.so --list-diagnostics} produces machine-readable
+diagnostics output.  This output contains system data that affects the
+behavior of @theglibc{}, and potentially application behavior as well.
+
+The exact set of diagnostic items can change between releases of
+@theglibc{}.  The output format itself is not expected to change
+radically.
+
+The following table shows some example lines that can be written by the
+diagnostics command.
+
+@table @code
+@item dl_pagesize=0x1000
+The system page size is 4096 bytes.
+
+@item env[0x14]="LANG=en_US.UTF-8"
+This item indicates that the 21st environment variable at process
+startup contains a setting for @code{LANG}.
+
+@item env_filtered[0x22]="DISPLAY"
+The 35th environment variable is @code{DISPLAY}.  Its value is not
+included in the output for privacy reasons because it is not recognized
+as harmless by the diagnostics code.
+
+@item path.prefix="/usr"
+This means that @theglibc{} was configured with @code{--prefix=/usr}.
+
+@item path.system_dirs[0x0]="/lib64/"
+@itemx path.system_dirs[0x1]="/usr/lib64/"
+The built-in dynamic linker search path contains two directories,
+@code{/lib64} and @code{/usr/lib64}.
+@end table
+
+@menu
+* Dynamic Linker Diagnostics Format::  Format of ld.so output.
+* Dynamic Linker Diagnostics Values::  Data contain in ld.so output.
+@end menu
+
+@node Dynamic Linker Diagnostics Format
+@subsubsection Dynamic Linker Diagnostics Format
+
+As seen above, diagnostic lines assign values (integers or strings) to a
+sequence of labeled subscripts, separated by @samp{.}.  Some subscripts
+have integer indices associated with them.  The subscript indices are
+not necessarily contiguous or small, so an associative array should be
+used to store them.  Currently, all integers fit into the 64-bit
+unsigned integer range.  Every access path to a value has a fixed type
+(string or integer) independent of subscript index values.  Likewise,
+whether a subscript is indexed does not depend on previous indices (but
+may depend on previous subscript labels).
+
+A syntax description in ABNF (RFC 5234) follows.  Note that
+@code{%x30-39} denotes the range of decimal digits.  Diagnostic output
+lines are expected to match the @code{line} production.
+
+@c ABNF-START
+@smallexample
+HEXDIG = %x30-39 / %x61-6f ; lowercase a-f only
+ALPHA = %x41-5a / %x61-7a / %x7f ; letters and underscore
+ALPHA-NUMERIC = ALPHA / %x30-39 / "_"
+DQUOTE = %x22 ; "
+
+; Numbers are always hexadecimal and use a 0x prefix.
+hex-value-prefix = %x30 %x78
+hex-value = hex-value-prefix 1*HEXDIG
+
+; Strings use octal escape sequences and \\, \".
+string-char = %x20-21 / %x23-5c / %x5d-7e ; printable but not "\
+string-quoted-octal = %x30-33 2*2%x30-37
+string-quoted = "\" ("\" / DQUOTE / string-quoted-octal)
+string-value = DQUOTE *(string-char / string-quoted) DQUOTE
+
+value = hex-value / string-value
+
+label = ALPHA *ALPHA-NUMERIC
+index = "[" hex-value "]"
+subscript = label [index]
+
+line = subscript *("." subscript) "=" value
+@end smallexample
+
+@node Dynamic Linker Diagnostics Values
+@subsubsection Dynamic Linker Diagnostics Values
+
+As mentioned above, the set of diagnostics may change between
+@theglibc{} releases.  Nevertheless, the following table documents a few
+common diagnostic items.  All numbers are in hexadecimal, with a
+@samp{0x} prefix.
+
+@table @code
+@item dl_dst_lib=@var{string}
+The @code{$LIB} dynamic string token expands to @var{string}.
+
+@cindex HWCAP (diagnostics)
+@item dl_hwcap=@var{integer}
+@itemx dl_hwcap2=@var{integer}
+The HWCAP and HWCAP2 values, as returned for @code{getauxval}, and as
+used in other places depending on the architecture.
+
+@cindex page size (diagnostics)
+@item dl_pagesize=@var{integer}
+The system page size is @var{integer} bytes.
+
+@item dl_platform=@var{string}
+The @code{$PLATFORM} dynamic string token expands to @var{string}.
+
+@item dso.libc=@var{string}
+This is the soname of the shared @code{libc} object that is part of
+@theglibc{}.  On most architectures, this is @code{libc.so.6}.
+
+@item env[@var{index}]=@var{string}
+@itemx env_filtered[@var{index}]=@var{string}
+An environment variable from the process environment.  The integer
+@var{index} is the array index in the environment array.  Variables
+under @code{env} include the variable value after the @samp{=} (assuming
+that it was present), variables under @code{env_filtered} do not.
+
+@item path.prefix=@var{string}
+This indicates that @theglibc{} was configured using
+@samp{--prefix=@var{string}}.
+
+@item path.sysconfdir=@var{string}
+@Theglibc{} was configured (perhaps implicitly) with
+@samp{--sysconfdir=@var{string}} (typically @code{/etc}).
+
+@item path.system_dirs[@var{index}]=@var{string}
+These items list the elements of the built-in array that describes the
+default library search path.  The value @var{string} is a directory file
+name with a trailing @samp{/}.
+
+@item path.rtld=@var{string}
+This string indicates the application binary interface (ABI) file name
+of the run-time dynamic linker.
+
+@item version.release="stable"
+@itemx version.release="development"
+The value @code{"stable"} indicates that this build of @theglibc{} is
+from a release branch.  Releases labeled as @code{"development"} are
+unreleased development versions.
+
+@cindex version (diagnostics)
+@item version.version="@var{major}.@var{minor}"
+@itemx version.version="@var{major}.@var{minor}.9000"
+@Theglibc{} version.  Development releases end in @samp{.9000}.
+
+@cindex auxiliary vector (diagnostics)
+@item auxv[@var{index}].a_type=@var{type}
+@itemx auxv[@var{index}].a_val=@var{integer}
+@itemx auxv[@var{index}].a_val_string=@var{string}
+An entry in the auxiliary vector (specific to Linux).  The values
+@var{type} (an integer) and @var{integer} correspond to the members of
+@code{struct auxv}.  If the value is a string, @code{a_val_string} is
+used instead of @code{a_val}, so that values have consistent types.
+
+The @code{AT_HWCAP} and @code{AT_HWCAP2} values in this output do not
+reflect adjustment by @theglibc{}.
+
+@item uname.sysname=@var{string}
+@itemx uname.nodename=@var{string}
+@itemx uname.release=@var{string}
+@itemx uname.version=@var{string}
+@itemx uname.machine=@var{string}
+@itemx uname.domain=@var{string}
+These Linux-specific items show the values of @code{struct utsname}, as
+reported by the @code{uname} function.  @xref{Platform Type}.
+
+@item aarch64.cpu_features.@dots{}
+These items are specific to the AArch64 architectures.  They report data
+@theglibc{} uses to activate conditionally supported features such as
+BTI and MTE, and to select alternative function implementations.
+
+@item aarch64.processor[@var{index}].@dots{}
+These are additional items for the AArch64 architecture and are
+described below.
+
+@item aarch64.processor[@var{index}].requested=@var{kernel-cpu}
+The kernel is told to run the subsequent probing on the CPU numbered
+@var{kernel-cpu}.  The values @var{kernel-cpu} and @var{index} can be
+distinct if there are gaps in the process CPU affinity mask.  This line
+is not included if CPU affinity mask information is not available.
+
+@item aarch64.processor[@var{index}].observed=@var{kernel-cpu}
+This line reports the kernel CPU number @var{kernel-cpu} on which the
+probing code initially ran.  If the CPU number cannot be obtained,
+this line is not printed.
+
+@item aarch64.processor[@var{index}].observed_node=@var{node}
+This reports the observed NUMA node number, as reported by the
+@code{getcpu} system call.  If this information cannot be obtained, this
+line is not printed.
+
+@item aarch64.processor[@var{index}].midr_el1=@var{value}
+The value of the @code{midr_el1} system register on the processor
+@var{index}.  This line is only printed if the kernel indicates that
+this system register is supported.
+
+@item aarch64.processor[@var{index}].dczid_el0=@var{value}
+The value of the @code{dczid_el0} system register on the processor
+@var{index}.
+
+@cindex CPUID (diagnostics)
+@item x86.cpu_features.@dots{}
+These items are specific to the i386 and x86-64 architectures.  They
+reflect supported CPU features and information on cache geometry, mostly
+collected using the CPUID instruction.
+
+@item x86.processor[@var{index}].@dots{}
+These are additional items for the i386 and x86-64 architectures, as
+described below.  They mostly contain raw data from the CPUID
+instruction.  The probes are performed for each active CPU for the
+@code{ld.so} process, and data for different probed CPUs receives a
+uniqe @var{index} value.  Some CPUID data is expected to differ from CPU
+core to CPU core.  In some cases, CPUs are not correctly initialized and
+indicate the presence of different feature sets.
+
+@item x86.processor[@var{index}].requested=@var{kernel-cpu}
+The kernel is told to run the subsequent probing on the CPU numbered
+@var{kernel-cpu}.  The values @var{kernel-cpu} and @var{index} can be
+distinct if there are gaps in the process CPU affinity mask.  This line
+is not included if CPU affinity mask information is not available.
+
+@item x86.processor[@var{index}].observed=@var{kernel-cpu}
+This line reports the kernel CPU number @var{kernel-cpu} on which the
+probing code initially ran.  If the CPU number cannot be obtained,
+this line is not printed.
+
+@item x86.processor[@var{index}].observed_node=@var{node}
+This reports the observed NUMA node number, as reported by the
+@code{getcpu} system call.  If this information cannot be obtained, this
+line is not printed.
+
+@item x86.processor[@var{index}].cpuid_leaves=@var{count}
+This line indicates that @var{count} distinct CPUID leaves were
+encountered.  (This reflects internal @code{ld.so} storage space, it
+does not directly correspond to @code{CPUID} enumeration ranges.)
+
+@item x86.processor[@var{index}].ecx_limit=@var{value}
+The CPUID data extraction code uses a brute-force approach to enumerate
+subleaves (see the @samp{.subleaf_eax} lines below).  The last
+@code{%rcx} value used in a CPUID query on this probed CPU was
+@var{value}.
+
+@item x86.processor[@var{index}].cpuid.eax[@var{query_eax}].eax=@var{eax}
+@itemx x86.processor[@var{index}].cpuid.eax[@var{query_eax}].ebx=@var{ebx}
+@itemx x86.processor[@var{index}].cpuid.eax[@var{query_eax}].ecx=@var{ecx}
+@itemx x86.processor[@var{index}].cpuid.eax[@var{query_eax}].edx=@var{edx}
+These lines report the register contents after executing the CPUID
+instruction with @samp{%rax == @var{query_eax}} and @samp{%rcx == 0} (a
+@dfn{leaf}).  For the first probed CPU (with a zero @var{index}), only
+leaves with non-zero register contents are reported.  For subsequent
+CPUs, only leaves whose register contents differs from the previously
+probed CPUs (with @var{index} one less) are reported.
+
+Basic and extended leaves are reported using the same syntax.  This
+means there is a large jump in @var{query_eax} for the first reported
+extended leaf.
+
+@item x86.processor[@var{index}].cpuid.subleaf_eax[@var{query_eax}].ecx[@var{query_ecx}].eax=@var{eax}
+@itemx x86.processor[@var{index}].cpuid.subleaf_eax[@var{query_eax}].ecx[@var{query_ecx}].ebx=@var{ebx}
+@itemx x86.processor[@var{index}].cpuid.subleaf_eax[@var{query_eax}].ecx[@var{query_ecx}].ecx=@var{ecx}
+@itemx x86.processor[@var{index}].cpuid.subleaf_eax[@var{query_eax}].ecx[@var{query_ecx}].edx=@var{edx}
+This is similar to the leaves above, but for a @dfn{subleaf}.  For
+subleaves, the CPUID instruction is executed with @samp{%rax ==
+@var{query_eax}} and @samp{%rcx == @var{query_ecx}}, so the result
+depends on both register values.  The same rules about filtering zero
+and identical results apply.
+
+@item x86.processor[@var{index}].cpuid.subleaf_eax[@var{query_eax}].ecx[@var{query_ecx}].until_ecx=@var{ecx_limit}
+Some CPUID results are the same regardless the @var{query_ecx} value.
+If this situation is detected, a line with the @samp{.until_ecx}
+selector ins included, and this indicates that the CPUID register
+contents is the same for @code{%rcx} values between @var{query_ecx}
+and @var{ecx_limit} (inclusive).
+
+@item x86.processor[@var{index}].cpuid.subleaf_eax[@var{query_eax}].ecx[@var{query_ecx}].ecx_query_mask=0xff
+This line indicates that in an @samp{.until_ecx} range, the CPUID
+instruction preserved the lowested 8 bits of the input @code{%rcx} in
+the output @code{%rcx} registers.  Otherwise, the subleaves in the range
+have identical values.  This special treatment is necessary to report
+compact range information in case such copying occurs (because the
+subleaves would otherwise be all different).
+
+@item x86.processor[@var{index}].xgetbv.ecx[@var{query_ecx}]=@var{result}
+This line shows the 64-bit @var{result} value in the @code{%rdx:%rax}
+register pair after executing the XGETBV instruction with @code{%rcx}
+set to @var{query_ecx}.  Zero values and values matching the previously
+probed CPU are omitted.  Nothing is printed if the system does not
+support the XGETBV instruction.
+@end table
+
+@node Dynamic Linker Introspection
+@section Dynamic Linker Introspection
+
+@Theglibc{} provides various functions for querying information from the
+dynamic linker.
+
+@deftypefun {int} dlinfo (void *@var{handle}, int @var{request}, void *@var{arg})
+@safety{@mtsafe{}@asunsafe{@asucorrupt{}}@acunsafe{@acucorrupt{}}}
+@standards{GNU, dlfcn.h}
+This function returns information about @var{handle} in the memory
+location @var{arg}, based on @var{request}.  The @var{handle} argument
+must be a pointer returned by @code{dlopen} or @code{dlmopen}; it must
+not have been closed by @code{dlclose}.
+
+On success, @code{dlinfo} returns 0 for most request types; exceptions
+are noted below.  If there is an error, the function returns @math{-1},
+and @code{dlerror} can be used to obtain a corresponding error message.
+
+The following operations are defined for use with @var{request}:
+
+@vtable @code
+@item RTLD_DI_LINKMAP
+The corresponding @code{struct link_map} pointer for @var{handle} is
+written to @code{*@var{arg}}.  The @var{arg} argument must be the
+address of an object of type @code{struct link_map *}.
+
+@item RTLD_DI_LMID
+The namespace identifier of @var{handle} is written to
+@code{*@var{arg}}.  The @var{arg} argument must be the address of an
+object of type @code{Lmid_t}.
+
+@item RTLD_DI_ORIGIN
+The value of the @code{$ORIGIN} dynamic string token for @var{handle} is
+written to the character array starting at @var{arg} as a
+null-terminated string.
+
+This request type should not be used because it is prone to buffer
+overflows.
+
+@item RTLD_DI_SERINFO
+@itemx RTLD_DI_SERINFOSIZE
+These requests can be used to obtain search path information for
+@var{handle}.  For both requests, @var{arg} must point to a
+@code{Dl_serinfo} object.  The @code{RTLD_DI_SERINFOSIZE} request must
+be made first; it updates the @code{dls_size} and @code{dls_cnt} members
+of the @code{Dl_serinfo} object.  The caller should then allocate memory
+to store at least @code{dls_size} bytes and pass that buffer to a
+@code{RTLD_DI_SERINFO} request.  This second request fills the
+@code{dls_serpath} array.  The number of array elements was returned in
+the @code{dls_cnt} member in the initial @code{RTLD_DI_SERINFOSIZE}
+request.  The caller is responsible for freeing the allocated buffer.
+
+This interface is prone to buffer overflows in multi-threaded processes
+because the required size can change between the
+@code{RTLD_DI_SERINFOSIZE} and @code{RTLD_DI_SERINFO} requests.
+
+@item RTLD_DI_TLS_DATA
+This request writes the address of the TLS block (in the current thread)
+for the shared object identified by @var{handle} to @code{*@var{arg}}.
+The argument @var{arg} must be the address of an object of type
+@code{void *}.  A null pointer is written if the object does not have
+any associated TLS block.
+
+@item RTLD_DI_TLS_MODID
+This request writes the TLS module ID for the shared object @var{handle}
+to @code{*@var{arg}}.  The argument @var{arg} must be the address of an
+object of type @code{size_t}.  The module ID is zero if the object
+does not have an associated TLS block.
+
+@item RTLD_DI_PHDR
+This request writes the address of the program header array to
+@code{*@var{arg}}.  The argument @var{arg} must be the address of an
+object of type @code{const ElfW(Phdr) *} (that is,
+@code{const Elf32_Phdr *} or @code{const Elf64_Phdr *}, as appropriate
+for the current architecture).  For this request, the value returned by
+@code{dlinfo} is the number of program headers in the program header
+array.
+@end vtable
+
+The @code{dlinfo} function is a GNU extension.
+@end deftypefun
+
+The remainder of this section documents the @code{_dl_find_object}
+function and supporting types and constants.
+
+@deftp {Data Type} {struct dl_find_object}
+@standards{GNU, dlfcn.h}
+This structure contains information about a main program or loaded
+object.  The @code{_dl_find_object} function uses it to return
+result data to the caller.
+
+@table @code
+@item unsigned long long int dlfo_flags
+Currently unused and always 0.
+
+@item void *dlfo_map_start
+The start address of the inspected mapping.  This information comes from
+the program header, so it follows its convention, and the address is not
+necessarily page-aligned.
+
+@item void *dlfo_map_end
+The end address of the mapping.
+
+@item struct link_map *dlfo_link_map
+This member contains a pointer to the link map of the object.
+
+@item void *dlfo_eh_frame
+This member contains a pointer to the exception handling data of the
+object.  See @code{DLFO_EH_SEGMENT_TYPE} below.
+
+@end table
+
+This structure is a GNU extension.
+@end deftp
+
+@deftypevr Macro int DLFO_STRUCT_HAS_EH_DBASE
+@standards{GNU, dlfcn.h}
+On most targets, this macro is defined as @code{0}.  If it is defined to
+@code{1}, @code{struct dl_find_object} contains an additional member
+@code{dlfo_eh_dbase} of type @code{void *}.  It is the base address for
+@code{DW_EH_PE_datarel} DWARF encodings to this location.
+
+This macro is a GNU extension.
+@end deftypevr
+
+@deftypevr Macro int DLFO_STRUCT_HAS_EH_COUNT
+@standards{GNU, dlfcn.h}
+On most targets, this macro is defined as @code{0}.  If it is defined to
+@code{1}, @code{struct dl_find_object} contains an additional member
+@code{dlfo_eh_count} of type @code{int}.  It is the number of exception
+handling entries in the EH frame segment identified by the
+@code{dlfo_eh_frame} member.
+
+This macro is a GNU extension.
+@end deftypevr
+
+@deftypevr Macro int DLFO_EH_SEGMENT_TYPE
+@standards{GNU, dlfcn.h}
+On targets using DWARF-based exception unwinding, this macro expands to
+@code{PT_GNU_EH_FRAME}.  This indicates that @code{dlfo_eh_frame} in
+@code{struct dl_find_object} points to the @code{PT_GNU_EH_FRAME}
+segment of the object.  On targets that use other unwinding formats, the
+macro expands to the program header type for the unwinding data.
+
+This macro is a GNU extension.
+@end deftypevr
+
+@deftypefun {int} _dl_find_object (void *@var{address}, struct dl_find_object *@var{result})
+@standards{GNU, dlfcn.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+On success, this function returns 0 and writes about the object
+surrounding the address to @code{*@var{result}}.  On failure, -1 is
+returned.
+
+The @var{address} can be a code address or data address.  On
+architectures using function descriptors, no attempt is made to decode
+the function descriptor.  Depending on how these descriptors are
+implemented, @code{_dl_find_object} may return the object that defines
+the function descriptor (and not the object that contains the code
+implementing the function), or fail to find any object at all.
+
+On success @var{address} is greater than or equal to
+@code{@var{result}->dlfo_map_start} and less than
+@code{@var{result}->dlfo_map_end}, that is, the supplied code address is
+located within the reported mapping.
+
+This function returns a pointer to the unwinding information for the
+object that contains the program code @var{address} in
+@code{@var{result}->dlfo_eh_frame}.  If the platform uses DWARF
+unwinding information, this is the in-memory address of the
+@code{PT_GNU_EH_FRAME} segment.  See @code{DLFO_EH_SEGMENT_TYPE} above.
+In case @var{address} resides in an object that lacks unwinding information,
+the function still returns 0, but sets @code{@var{result}->dlfo_eh_frame}
+to a null pointer.
+
+@code{_dl_find_object} itself is thread-safe.  However, if the
+application invokes @code{dlclose} for the object that contains
+@var{address} concurrently with @code{_dl_find_object} or after the call
+returns, accessing the unwinding data for that object or the link map
+(through @code{@var{result}->dlfo_link_map}) is not safe.  Therefore, the
+application needs to ensure by other means (e.g., by convention) that
+@var{address} remains a valid code address while the unwinding
+information is processed.
+
+This function is a GNU extension.
+@end deftypefun
+
+@node Dynamic Linker Hardening
+@section Avoiding Unexpected Issues With Dynamic Linking
+
+This section details recommendations for increasing application
+robustness, by avoiding potential issues related to dynamic linking.
+The recommendations have two main aims: reduce the involvement of the
+dynamic linker in application execution after process startup, and
+restrict the application to a dynamic linker feature set whose behavior
+is more easily understood.
+
+Key aspects of limiting dynamic linker usage after startup are: no use
+of the @code{dlopen} function, disabling lazy binding, and using the
+static TLS model.  More easily understood dynamic linker behavior
+requires avoiding name conflicts (symbols and sonames) and highly
+customizable features like the audit subsystem.
+
+Note that while these steps can be considered a form of application
+hardening, they do not guard against potential harm from accidental or
+deliberate loading of untrusted or malicious code.  There is only
+limited overlap with traditional security hardening for applications
+running on GNU systems.
+
+@subsection Restricted Dynamic Linker Features
+
+Avoiding certain dynamic linker features can increase predictability of
+applications and reduce the risk of running into dynamic linker defects.
+
+@itemize @bullet
+@item
+Do not use the functions @code{dlopen}, @code{dlmopen}, or
+@code{dlclose}.  Dynamic loading and unloading of shared objects
+introduces substantial complications related to symbol and thread-local
+storage (TLS) management.
+
+@item
+Without the @code{dlopen} function, @code{dlsym} and @code{dlvsym}
+cannot be used with shared object handles.  Minimizing the use of both
+functions is recommended.  If they have to be used, only the
+@code{RTLD_DEFAULT} pseudo-handle should be used.
+
+@item
+Use the local-exec or initial-exec TLS models.  If @code{dlopen} is not
+used, there are no compatibility concerns for initial-exec TLS.  This
+TLS model avoids most of the complexity around TLS access.  In
+particular, there are no TLS-related run-time memory allocations after
+process or thread start.
+
+If shared objects are expected to be used more generally, outside the
+hardened, feature-restricted context, lack of compatibility between
+@code{dlopen} and initial-exec TLS could be a concern.  In that case,
+the second-best alternative is to use global-dynamic TLS with GNU2 TLS
+descriptors, for targets that fully implement them, including the fast
+path for access to TLS variables defined in the initially loaded set of
+objects.  Like initial-exec TLS, this avoids memory allocations after
+thread creation, but only if the @code{dlopen} function is not used.
+
+@item
+Do not use lazy binding.  Lazy binding may require run-time memory
+allocation, is not async-signal-safe, and introduces considerable
+complexity.
+
+@item
+Make dependencies on shared objects explicit.  Do not assume that
+certain libraries (such as @code{libc.so.6}) are always loaded.
+Specifically, if a main program or shared object references a symbol,
+create an ELF @code{DT_NEEDED} dependency on that shared object, or on
+another shared object that is documented (or otherwise guaranteed) to
+have the required explicit dependency.  Referencing a symbol without a
+matching link dependency results in underlinking, and underlinked
+objects cannot always be loaded correctly: Initialization of objects may
+not happen in the required order.
+
+@item
+Do not create dependency loops between shared objects (@code{libA.so.1}
+depending on @code{libB.so.1} depending on @code{libC.so.1} depending on
+@code{libA.so.1}).  @Theglibc{} has to initialize one of the objects in
+the cycle first, and the choice of that object is arbitrary and can
+change over time.  The object which is initialized first (and other
+objects involved in the cycle) may not run correctly because not all of
+its dependencies have been initialized.
+
+Underlinking (see above) can hide the presence of cycles.
+
+@item
+Limit the creation of indirect function (IFUNC) resolvers.  These
+resolvers run during relocation processing, when @theglibc{} is not in
+a fully consistent state.  If you write your own IFUNC resolvers, do
+not depend on external data or function references in those resolvers.
+
+@item
+Do not use the audit functionality (@code{LD_AUDIT}, @code{DT_AUDIT},
+@code{DT_DEPAUDIT}).  Its callback and hooking capabilities introduce a
+lot of complexity and subtly alter dynamic linker behavior in corner
+cases even if the audit module is inactive.
+
+@item
+Do not use symbol interposition.  Without symbol interposition, the
+exact order in which shared objects are searched are less relevant.
+
+Exceptions to this rule are copy relocations (see the next item), and
+vague linkage, as used by the C++ implementation (see below).
+
+@item
+One potential source of symbol interposition is a combination of static
+and dynamic linking, namely linking a static archive into multiple
+dynamic shared objects.  For such scenarios, the static library should
+be converted into its own dynamic shared object.
+
+A different approach to this situation uses hidden visibility for
+symbols in the static library, but this can cause problems if the
+library does not expect that multiple copies of its code coexist within
+the same process, with no or partial sharing of state.
+
+@item
+If you use shared objects that are linked with @option{-Wl,-Bsymbolic}
+(or equivalent) or use protected visibility, the code for the main
+program must be built as @option{-fpic} or @option{-fPIC} to avoid
+creating copy relocations (and the main program must not use copy
+relocations for other reasons).  Using @option{-fpie} or @option{-fPIE}
+is not an alternative to PIC code in this context.
+
+@item
+Be careful about explicit section annotations.  Make sure that the
+target section matches the properties of the declared entity (e.g., no
+writable objects in @code{.text}).
+
+@item
+Ensure that all assembler or object input files have the recommended
+security markup, particularly for non-executable stack.
+
+@item
+Avoid using non-default linker flags and features.  In particular, do
+not use the @code{DT_PREINIT_ARRAY} dynamic tag, and do not flag
+objects as @code{DF_1_INITFIRST}.  Do not change the default linker
+script of BFD ld.  Do not override ABI defaults, such as the dynamic
+linker path (with @option{--dynamic-linker}).
+
+@item
+Some features of @theglibc{} indirectly depend on run-time code loading
+and @code{dlopen}.  Use @code{iconv_open} with built-in converters only
+(such as @code{UTF-8}).  Do not use NSS functionality such as
+@code{getaddrinfo} or @code{getpwuid_r} unless the system is configured
+for built-in NSS service modules only (see below).
+@end itemize
+
+Several considerations apply to ELF constructors and destructors.
+
+@itemize @bullet
+@item
+The dynamic linker does not take constructor and destructor priorities
+into account when determining their execution order.  Priorities are
+only used by the link editor for ordering execution within a
+completely linked object.  If a dynamic shared object needs to be
+initialized before another object, this can be expressed with a
+@code{DT_NEEDED} dependency on the object that needs to be initialized
+earlier.
+
+@item
+The recommendations to avoid cyclic dependencies and symbol
+interposition make it less likely that ELF objects are accessed before
+their ELF constructors have run.  However, using @code{dlsym} and
+@code{dlvsym}, it is still possible to access uninitialized facilities
+even with these restrictions in place.  (Of course, access to
+uninitialized functionality is also possible within a single shared
+object or the main executable, without resorting to explicit symbol
+lookup.)  Consider using dynamic, on-demand initialization instead.  To
+deal with access after de-initialization, it may be necessary to
+implement special cases for that scenario, potentially with degraded
+functionality.
+
+@item
+Be aware that when ELF destructors are executed, it is possible to
+reference already-deconstructed shared objects.  This can happen even in
+the absence of @code{dlsym} and @code{dlvsym} function calls, for
+example if client code using a shared object has registered callbacks or
+objects with another shared object.  The ELF destructor for the client
+code is executed before the ELF destructor for the shared objects that
+it uses, based on the expected dependency order.
+
+@item
+If @code{dlopen} and @code{dlmopen} are not used, @code{DT_NEEDED}
+dependency information is complete, and lazy binding is disabled, the
+execution order of ELF destructors is expected to be the reverse of the
+ELF constructor order.  However, two separate dependency sort operations
+still occur.  Even though the listed preconditions should ensure that
+both sorts produce the same ordering, it is recommended not to depend on
+the destructor order being the reverse of the constructor order.
+@end itemize
+
+The following items provide C++-specific guidance for preparing
+applications.  If another programming language is used and it uses these
+toolchain features targeted at C++ to implement some language
+constructs, these restrictions and recommendations still apply in
+analogous ways.
+
+@itemize @bullet
+@item
+C++ inline functions, templates, and other constructs may need to be
+duplicated into multiple shared objects using vague linkage, resulting
+in symbol interposition.  This type of symbol interposition is
+unproblematic, as long as the C++ one definition rule (ODR) is followed,
+and all definitions in different translation units are equivalent
+according to the language C++ rules.
+
+@item
+Be aware that under C++ language rules, it is unspecified whether
+evaluating a string literal results in the same address for each
+evaluation.  This also applies to anonymous objects of static storage
+duration that GCC creates, for example to implement the compound
+literals C++ extension.  As a result, comparing pointers to such
+objects, or using them directly as hash table keys, may give unexpected
+results.
+
+By default, variables of block scope of static storage have consistent
+addresses across different translation units, even if defined in
+functions that use vague linkage.
+
+@item
+Special care is needed if a C++ project uses symbol visibility or
+symbol version management (for example, the GCC @samp{visibility}
+attribute, the GCC @option{-fvisibility} option, or a linker version
+script with the linker option @option{--version-script}).  It is
+necessary to ensure that the symbol management remains consistent with
+how the symbols are used.  Some C++ constructs are implemented with
+the help of ancillary symbols, which can make complicated to achieve
+consistency.  For example, an inline function that is always inlined
+into its callers has no symbol footprint for the function itself, but
+if the function contains a variable of static storage duration, this
+variable may result in the creation of one or more global symbols.
+For correctness, such symbols must be visible and bound to the same
+object in all other places where the inline function may be called.
+This requirement is not met if the symbol visibility is set to hidden,
+or if symbols are assigned a textually different symbol version
+(effectively creating two distinct symbols).
+
+Due to the complex interaction between ELF symbol management and C++
+symbol generation, it is recommended to use C++ language features for
+symbol management, in particular inline namespaces.
+
+@item
+The toolchain and dynamic linker have multiple mechanisms that bypass
+the usual symbol binding procedures.  This means that the C++ one
+definition rule (ODR) still holds even if certain symbol-based isolation
+mechanisms are used, and object addresses are not shared across
+translation units with incompatible type definitions.
+
+This does not matter if the original (language-independent) advice
+regarding symbol interposition is followed.  However, as the advice may
+be difficult to implement for C++ applications, it is recommended to
+avoid ODR violations across the entire process image.  Inline namespaces
+can be helpful in this context because they can be used to create
+distinct ELF symbols while maintaining source code compatibility at the
+C++ level.
+
+@item
+Be aware that as a special case of interposed symbols, symbols with the
+@code{STB_GNU_UNIQUE} binding type do not follow the usual ELF symbol
+namespace isolation rules: such symbols bind across @code{RTLD_LOCAL}
+boundaries.  Furthermore, symbol versioning is ignored for such symbols;
+they are bound by symbol name only.  All their definitions and uses must
+therefore be compatible.  Hidden visibility still prevents the creation
+of @code{STB_GNU_UNIQUE} symbols and can achieve isolation of
+incompatible definitions.
+
+@item
+C++ constructor priorities only affect constructor ordering within one
+shared object.  Global constructor order across shared objects is
+consistent with ELF dependency ordering if there are no ELF dependency
+cycles.
+
+@item
+C++ exception handling and run-time type information (RTTI), as
+implemented in the GNU toolchain, is not address-significant, and
+therefore is not affected by the symbol binding behaviour of the dynamic
+linker.  This means that types of the same fully-qualified name (in
+non-anonymous namespaces) are always considered the same from an
+exception-handling or RTTI perspective.  This is true even if the type
+information object or vtable has hidden symbol visibility, or the
+corresponding symbols are versioned under different symbol versions, or
+the symbols are not bound to the same objects due to the use of
+@code{RTLD_LOCAL} or @code{dlmopen}.
+
+This can cause issues in applications that contain multiple incompatible
+definitions of the same type.  Inline namespaces can be used to create
+distinct symbols at the ELF layer, avoiding this type of issue.
+
+@item
+C++ exception handling across multiple @code{dlmopen} namespaces may
+not work, particular with the unwinder in GCC versions before 12.
+Current toolchain versions are able to process unwinding tables across
+@code{dlmopen} boundaries.  However, note that type comparison is
+name-based, not address-based (see the previous item), so exception
+types may still be matched in unexpected ways.  An important special
+case of exception handling, invoking destructors for variables of block
+scope, is not impacted by this RTTI type-sharing.  Likewise, regular
+virtual member function dispatch for objects is unaffected (but still
+requires that the type definitions match in all directly involved
+translation units).
+
+Once more, inline namespaces can be used to create distinct ELF symbols
+for different types.
+
+@item
+Although the C++ standard requires that destructors for global objects
+run in the opposite order of their constructors, the Itanium C++ ABI
+requires a different destruction order in some cases.  As a result, do
+not depend on the precise destructor invocation order in applications
+that use @code{dlclose}.
+
+@item
+Registering destructors for later invocation allocates memory and may
+silently fail if insufficient memory is available.  As a result, the
+destructor is never invoked.  This applies to all forms of destructor
+registration, with the exception of thread-local variables (see the next
+item).  To avoid this issue, ensure that such objects merely have
+trivial destructors, avoiding the need for registration, and deallocate
+resources using a different mechanism (for example, from an ELF
+destructor).
+
+@item
+A similar issue exists for @code{thread_local} variables with thread
+storage duration of types that have non-trivial destructors.  However,
+in this case, memory allocation failure during registration leads to
+process termination.  If process termination is not acceptable, use
+@code{thread_local} variables with trivial destructors only.
+Functions for per-thread cleanup can be registered using
+@code{pthread_key_create} (globally for all threads) and activated
+using @code{pthread_setspecific} (on each thread).  Note that a
+@code{pthread_key_create} call may still fail (and
+@code{pthread_create} keys are a limited resource in @theglibc{}), but
+this failure can be handled without terminating the process.
+@end itemize
+
+@subsection Producing Matching Binaries
+
+This subsection recommends tools and build flags for producing
+applications that meet the recommendations of the previous subsection.
+
+@itemize @bullet
+@item
+Use BFD ld (@command{bfd.ld}) from GNU binutils to produce binaries,
+invoked through a compiler driver such as @command{gcc}.  The version
+should be not too far ahead of what was current when the version of
+@theglibc{} was first released.
+
+@item
+Do not use a binutils release that is older than the one used to build
+@theglibc{} itself.
+
+@item
+Compile with @option{-ftls-model=initial-exec} to force the initial-exec
+TLS model.
+
+@item
+Link with @option{-Wl,-z,now} to disable lazy binding.
+
+@item
+Link with @option{-Wl,-z,relro} to enable RELRO (which is the default on
+most targets).
+
+@item
+Specify all direct shared objects dependencies using @option{-l} options
+to avoid underlinking.  Rely on @code{.so} files (which can be linker
+scripts) and searching with the @option{-l} option.  Do not specify the
+file names of shared objects on the linker command line.
+
+@item
+Consider using @option{-Wl,-z,defs} to treat underlinking as an error
+condition.
+
+@item
+When creating a shared object (linked with @option{-shared}), use
+@option{-Wl,-soname,lib@dots{}} to set a soname that matches the final
+installed name of the file.
+
+@item
+Do not use the @option{-rpath} linker option.  (As explained below, all
+required shared objects should be installed into the default search
+path.)
+
+@item
+Use @option{-Wl,--error-rwx-segments} and @option{-Wl,--error-execstack} to
+instruct the link editor to fail the link if the resulting final object
+would have read-write-execute segments or an executable stack.  Such
+issues usually indicate that the input files are not marked up
+correctly.
+
+@item
+Ensure that for each @code{LOAD} segment in the ELF program header, file
+offsets, memory sizes, and load addresses are multiples of the largest
+page size supported at run time.  Similarly, the start address and size
+of the @code{GNU_RELRO} range should be multiples of the page size.
+
+Avoid creating gaps between @code{LOAD} segments.  The difference
+between the load addresses of two subsequent @code{LOAD} segments should
+be the size of the first @code{LOAD} segment.  (This may require linking
+with @option{-Wl,-z,noseparate-code}.)
+
+This may not be possible to achieve with the currently available link
+editors.
+
+@item
+If the multiple-of-page-size criterion for the @code{GNU_RELRO} region
+cannot be achieved, ensure that the process memory image right before
+the start of the region does not contain executable or writable memory.
+@c https://sourceware.org/pipermail/libc-alpha/2022-May/138638.html
+@end itemize
+
+@subsection Checking Binaries
+
+In some cases, if the previous recommendations are not followed, this
+can be determined from the produced binaries.  This section contains
+suggestions for verifying aspects of these binaries.
+
+@itemize @bullet
+@item
+To detect underlinking, examine the dynamic symbol table, for example
+using @samp{readelf -sDW}.  If the symbol is defined in a shared object
+that uses symbol versioning, it must carry a symbol version, as in
+@samp{pthread_kill@@GLIBC_2.34}.
+
+@item
+Examine the dynamic segment with @samp{readelf -dW} to check that all
+the required @code{NEEDED} entries are present.  (It is not necessary to
+list indirect dependencies if these dependencies are guaranteed to
+remain during the evolution of the explicitly listed direct
+dependencies.)
+
+@item
+The @code{NEEDED} entries should not contain full path names including
+slashes, only @code{sonames}.
+
+@item
+For a further consistency check, collect all shared objects referenced
+via @code{NEEDED} entries in dynamic segments, transitively, starting at
+the main program.  Then determine their dynamic symbol tables (using
+@samp{readelf -sDW}, for example).  Ideally, every symbol should be
+defined at most once, so that symbol interposition does not happen.
+
+If there are interposed data symbols, check if the single interposing
+definition is in the main program.  In this case, there must be a copy
+relocation for it.  (This only applies to targets with copy relocations.)
+
+Function symbols should only be interposed in C++ applications, to
+implement vague linkage.  (See the discussion in the C++ recommendations
+above.)
+
+@item
+Using the previously collected @code{NEEDED} entries, check that the
+dependency graph does not contain any cycles.
+
+@item
+The dynamic segment should also mention @code{BIND_NOW} on the
+@code{FLAGS} line or @code{NOW} on the @code{FLAGS_1} line (one is
+enough).
+
+@item
+Ensure that only static TLS relocations (thread-pointer relative offset
+locations) are used, for example @code{R_AARCH64_TLS_TPREL} and
+@code{X86_64_TPOFF64}.  As the second-best option, and only if
+compatibility with non-hardened applications using @code{dlopen} is
+needed, GNU2 TLS descriptor relocations can be used (for example,
+@code{R_AARCH64_TLSDESC} or @code{R_X86_64_TLSDESC}).
+
+@item
+There should not be references to the traditional TLS function symbols
+@code{__tls_get_addr}, @code{__tls_get_offset},
+@code{__tls_get_addr_opt} in the dynamic symbol table (in the
+@samp{readelf -sDW} output).  Supporting global dynamic TLS relocations
+(such as @code{R_AARCH64_TLS_DTPMOD}, @code{R_AARCH64_TLS_DTPREL},
+@code{R_X86_64_DTPMOD64}, @code{R_X86_64_DTPOFF64}) should not be used,
+either.
+
+@item
+Likewise, the functions @code{dlopen}, @code{dlmopen}, @code{dlclose}
+should not be referenced from the dynamic symbol table.
+
+@item
+For shared objects, there should be a @code{SONAME} entry that matches
+the file name (the base name, i.e., the part after the slash).  The
+@code{SONAME} string must not contain a slash @samp{/}.
+
+@item
+For all objects, the dynamic segment (as shown by @samp{readelf -dW})
+should not contain @code{RPATH} or @code{RUNPATH} entries.
+
+@item
+Likewise, the dynamic segment should not show any @code{AUDIT},
+@code{DEPAUDIT}, @code{AUXILIARY}, @code{FILTER}, or
+@code{PREINIT_ARRAY} tags.
+
+@item
+If the dynamic segment contains a (deprecated) @code{HASH} tag, it
+must also contain a @code{GNU_HASH} tag.
+
+@item
+The @code{INITFIRST} flag (undeer @code{FLAGS_1}) should not be used.
+
+@item
+The program header must not have @code{LOAD} segments that are writable
+and executable at the same time.
+
+@item
+All produced objects should have a @code{GNU_STACK} program header that
+is not marked as executable.  (However, on some newer targets, a
+non-executable stack is the default, so the @code{GNU_STACK} program
+header is not required.)
+@end itemize
+
+@subsection Run-time Considerations
+
+In addition to preparing program binaries in a recommended fashion, the
+run-time environment should be set up in such a way that problematic
+dynamic linker features are not used.
+
+@itemize @bullet
+@item
+Install shared objects using their sonames in a default search path
+directory (usually @file{/usr/lib64}).  Do not use symbolic links.
+@c This is currently not standard practice.
+
+@item
+The default search path must not contain objects with duplicate file
+names or sonames.
+
+@item
+Do not use environment variables (@code{LD_@dots{}} variables such as
+@code{LD_PRELOAD} or @code{LD_LIBRARY_PATH}, or @code{GLIBC_TUNABLES})
+to change default dynamic linker behavior.
+
+@item
+Do not install shared objects in non-default locations.  (Such locations
+are listed explicitly in the configuration file for @command{ldconfig},
+usually @file{/etc/ld.so.conf}, or in files included from there.)
+
+@item
+In relation to the previous item, do not install any objects it
+@code{glibc-hwcaps} subdirectories.
+
+@item
+Do not configure dynamically-loaded NSS service modules, to avoid
+accidental internal use of the @code{dlopen} facility.  The @code{files}
+and @code{dns} modules are built in and do not rely on @code{dlopen}.
+
+@item
+Do not truncate and overwrite files containing programs and shared
+objects in place, while they are used.  Instead, write the new version
+to a different path and use @code{rename} to replace the
+already-installed version.
+
+@item
+Be aware that during a component update procedure that involves multiple
+object files (shared objects and main programs), concurrently starting
+processes may observe an inconsistent combination of object files (some
+already updated, some still at the previous version).  For example,
+this can happen during an update of @theglibc{} itself.
+@end itemize
+
+@c FIXME these are undocumented:
+@c dladdr
+@c dladdr1
+@c dlclose
+@c dlerror
+@c dlmopen
+@c dlopen
+@c dlsym
+@c dlvsym

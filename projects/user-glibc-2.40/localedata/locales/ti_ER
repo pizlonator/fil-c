@@ -1,0 +1,253 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Tigrigna language locale for Eritrea.
+%
+% build with: localedef -f UTF-8 -i ti_ER ti_ER
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+LC_IDENTIFICATION
+%
+title      "Tigrigna language locale for Eritrea."
+source     "Ge'ez Frontier Foundation"
+address    "7802 Solomon Seal Dr., Springfield, VA 22152, USA"
+contact    ""
+email      "locales@geez.org"
+tel        ""
+fax        ""
+language   "Tigrinya"
+territory  "Eritrea"
+revision   "0.20"
+date       "2003-07-05"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_TIME
+END LC_IDENTIFICATION
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Ethiopic Specific Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_COLLATE
+copy "am_ET"
+END LC_COLLATE
+
+LC_CTYPE
+copy "ti_ET"
+END LC_CTYPE
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Eritrea Specific Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+
+LC_MONETARY
+%
+int_curr_symbol       "ERN "
+currency_symbol       "Nfk"
+mon_decimal_point     "."
+mon_thousands_sep     ","
+mon_grouping          3
+positive_sign         ""
+negative_sign         "-"
+int_frac_digits       0
+frac_digits           0
+p_cs_precedes         1
+p_sep_by_space        1
+n_cs_precedes         1
+n_sep_by_space        1
+p_sign_posn           1
+n_sign_posn           1
+%
+END LC_MONETARY
+
+
+LC_NUMERIC
+%
+% This is the POSIX Locale definition for the LC_NUMERIC category.
+%
+decimal_point         "."
+thousands_sep         ""
+grouping              -1
+%
+END LC_NUMERIC
+
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+
+LC_TELEPHONE
+%
+% This is the ISO_IEC TR14652 Locale definition for the LC_TELEPHONE category.
+%
+tel_dom_fmt    "%a-%l"
+tel_int_fmt    "+%c %a %l"
+int_prefix     "291"
+int_select     "00"
+%
+END LC_TELEPHONE
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Tigrigna/ER Specific Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_ADDRESS
+%
+% This is the ISO_IEC TR14652 Locale definition for the LC_ADDRESS category.
+%
+postal_fmt    "%z%c%T%s%b%e%r"
+country_name  "ኤርትራ"
+country_post  "ERI"
+country_ab2   "ER"
+country_ab3   "ERI"
+country_num   232
+country_car  "ER"
+% country_isbn  unknown, Need ISO 2108
+lang_name     "ትግርኛ"
+lang_ab       "ti"
+lang_term     "tir"
+lang_lib      "tir"
+%
+END LC_ADDRESS
+
+
+LC_MESSAGES
+yesexpr "^[+1yYእ]"
+noexpr  "^[-0nNነ]"
+yesstr  "እወ"
+nostr   "ነኖእ"
+END LC_MESSAGES
+
+
+LC_NAME
+%
+% This is the ISO_IEC TR14652 Locale definition for the LC_NAME category.
+%
+name_fmt    "%d%t%g%t%m%t%f"
+name_gen    ""
+name_mr     "ኣቶ"             % "አይተ" is informal
+name_mrs    "ወ//ሮ"
+name_miss   "ወ//ሪት"
+name_ms     "ወ//ሪት"
+%
+END LC_NAME
+
+
+LC_TIME
+%
+% Abbreviated weekday names (%a)
+%
+abday    "ሰንበ";/
+         "ሰኑይ";/
+         "ሰሉስ";/
+         "ረቡዕ";/
+         "ሓሙስ";/
+         "ዓርቢ";/
+         "ቀዳም"
+%
+% Full weekday names (%A)
+%
+day      "ሰንበት";/
+         "ሰኑይ";/
+         "ሰሉስ";/
+         "ረቡዕ";/
+         "ሓሙስ";/
+         "ዓርቢ";/
+         "ቀዳም"
+%
+% Abbreviated month names (%b)
+%
+abmon    "ጥሪ ";/
+         "ለካቲ";/
+         "መጋቢ";/
+         "ሚያዝ";/
+         "ግንቦ";/
+         "ሰነ ";/
+         "ሓምለ";/
+         "ነሓሰ";/
+         "መስከ";/
+         "ጥቅም";/
+         "ሕዳር";/
+         "ታሕሳ"
+%
+% Full month names (%B)
+%
+mon      "ጥሪ";/
+         "ለካቲት";/
+         "መጋቢት";/
+         "ሚያዝያ";/
+         "ግንቦት";/
+         "ሰነ";/
+         "ሓምለ";/
+         "ነሓሰ";/
+         "መስከረም";/
+         "ጥቅምቲ";/
+         "ሕዳር";/
+         "ታሕሳስ"
+%
+% Equivalent of AM PM
+%
+am_pm    "ንጉሆ ሰዓተ";/
+         "ድሕር ሰዓት"
+%
+% Appropriate date representation (%x)
+%
+d_fmt   "%d//%m//%Y"
+%
+% Appropriate time representation (%X)
+%
+t_fmt "%l:%M:%S %p"
+%
+% Appropriate AM/PM time representation (%r)
+%
+t_fmt_ampm "%l:%M:%S %p"
+%
+% Appropriate date and time representation (%c)
+%	"%A፡ %B %e መዓልቲ %Y %r %Z
+%
+d_t_fmt  "%A፡ %B %e መዓልቲ %Y %r %Z"
+%
+% Appropriate date representation (date(1))
+%	"%A፡ %B %e መዓልቲ %r %Z %Y ዓ/ም
+%
+date_fmt "%A፡ %B %e መዓልቲ %r %Z %Y ዓ//ም"
+%
+week 7;19971130;1
+first_weekday 2
+END LC_TIME

@@ -1,0 +1,165 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+LC_IDENTIFICATION
+title "Georgian language locale for Georgia"
+source ""
+address ""
+contact "Pablo Saratxaga"
+email "srtxg@chanae.alphanet.ch"
+tel ""
+fax ""
+language "Georgian"
+territory "Georgia"
+revision "0.6"
+date "2001-01-26"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_MONETARY
+END LC_IDENTIFICATION
+
+LC_ADDRESS
+postal_fmt "%d%N%f%N%d%N%b%N%s %h 5e %r%N%C%z %T%N%c%N"
+country_name "საქართველო"
+% country_post "GE" for Georgia ?
+country_ab2 "GE"
+country_ab3 "GEO"
+country_num 268
+country_car "GE"
+country_isbn "99928"
+lang_name    "ქართული"
+lang_ab      "ka"
+lang_term    "kat"
+lang_lib     "geo"
+END LC_ADDRESS
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_CTYPE
+copy "en_DK"
+END LC_CTYPE
+
+LC_MONETARY
+int_curr_symbol      "GEL "
+currency_symbol      "₾"
+mon_decimal_point    ","
+mon_thousands_sep    "."
+mon_grouping         3
+positive_sign        ""
+negative_sign        "-"
+int_frac_digits      2
+frac_digits          2
+p_cs_precedes        1
+p_sep_by_space       0
+n_cs_precedes        1
+n_sep_by_space       0
+p_sign_posn          1
+n_sign_posn          1
+END LC_MONETARY
+
+LC_NUMERIC
+decimal_point        ","
+thousands_sep        "."
+grouping             3
+END LC_NUMERIC
+
+LC_TIME
+abday	/
+"კვი";/
+"ორშ";/
+"სამ";/
+"ოთხ";/
+"ხუთ";/
+"პარ";/
+"შაბ"
+day	/
+"კვირა";/
+"ორშაბათი";/
+"სამშაბათი";/
+"ოთხშაბათი";/
+"ხუთშაბათი";/
+"პარასკევი";/
+"შაბათი"
+abmon	/
+"იან";/
+"თებ";/
+"მარ";/
+"აპრ";/
+"მაი";/
+"ივნ";/
+"ივლ";/
+"აგვ";/
+"სექ";/
+"ოქტ";/
+"ნოე";/
+"დეკ"
+mon	/
+"იანვარი";/
+"თებერვალი";/
+"მარტი";/
+"აპრილი";/
+"მაისი";/
+"ივნისი";/
+"ივლისი";/
+"აგვისტო";/
+"სექტემბერი";/
+"ოქტომბერი";/
+"ნოემბერი";/
+"დეკემბერი"
+
+%"%Y ÜÊÈÑ %d %B"
+d_t_fmt  "%Y წლის %d %B, %T"
+date_fmt "%Y წლის %d %B, %T %Z"
+d_fmt    "%m//%d//%Y"
+t_fmt    "%T"
+am_pm    "";""
+t_fmt_ampm  ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYkKxXკ]"
+noexpr  "^[-0nNaAა]"
+yesstr  "კი"
+nostr   "არა"
+END LC_MESSAGES
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+tel_int_fmt "+%c %a %l"
+% FIXME Find tel_dom_fmt
+int_select "8~10"
+int_prefix "995"
+END LC_TELEPHONE
+
+LC_NAME
+% FIXME
+copy "en_DK"
+END LC_NAME

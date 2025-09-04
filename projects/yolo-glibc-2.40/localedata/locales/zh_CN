@@ -1,0 +1,189 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Chinese language locale for the Peoples Republic of China
+%
+% This work is based on ISO PDTR 14652, Unicode 3.0, locale definition
+% file for zh_CN revision 1.0 (hashao@china.com, 1999-04-28) and
+% charmap file for GBK version 1.0 (sean.chen@turbolinux.com).
+%
+% The file is designed to work with multiple charsets.  To ease the
+% maintance and adding support for new charsets, all characters are
+% in UCS notation and presented in Unicode order.
+%
+% Changelog:
+% Tue Jul 25 2000 Yong Li <rigel863@hotmail.com>
+% - first version for glibc 2.2
+
+LC_IDENTIFICATION
+title      "Chinese locale for Peoples Republic of China"
+source     ""
+address    ""
+contact    ""
+email      "bug-glibc-locales@gnu.org"
+tel        ""
+fax        ""
+language   "Chinese"
+territory  "China"
+revision   "0.1"
+date       "2000-07-25"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+
+LC_CTYPE
+% This is a copy of the "i18n" LC_CTYPE with the following modifications:
+% - Additional classes: hanzi
+
+copy "i18n"
+
+translit_start
+include  "translit_combining";""
+translit_end
+
+class	"hanzi"; /
+%	<U3400>..<U4DBF>;/
+	<U4E00>..<U9FA5>;/
+	<UF92C>;<UF979>;<UF995>;<UF9E7>;<UF9F1>;<UFA0C>;<UFA0D>;<UFA0E>;/
+	<UFA0F>;<UFA11>;<UFA13>;<UFA14>;<UFA18>;<UFA1F>;<UFA20>;<UFA21>;/
+	<UFA23>;<UFA24>;<UFA27>;<UFA28>;<UFA29>
+END LC_CTYPE
+
+% ISO 14651 collation sequence
+LC_COLLATE
+copy "iso14651_t1_pinyin"
+END LC_COLLATE
+
+
+LC_MONETARY
+int_curr_symbol           "CNY "
+currency_symbol           "￥"
+mon_decimal_point         "."
+mon_thousands_sep         ","
+mon_grouping              3
+positive_sign             ""
+negative_sign             "-"
+int_frac_digits           2
+frac_digits               2
+p_cs_precedes             1
+p_sep_by_space            0
+n_cs_precedes             1
+n_sep_by_space            0
+int_p_cs_precedes         1
+int_p_sep_by_space        0
+int_n_cs_precedes         1
+int_n_sep_by_space        0
+p_sign_posn               4
+n_sign_posn               4
+int_p_sign_posn           1
+int_n_sign_posn           1
+END LC_MONETARY
+
+LC_NUMERIC
+decimal_point             "."
+thousands_sep             ","
+grouping                  3
+END LC_NUMERIC
+
+LC_TIME
+abday 	"日";"一";"二";"三";"四";"五";"六"
+
+day 	"星期日";/
+	"星期一";/
+	"星期二";/
+	"星期三";/
+	"星期四";/
+	"星期五";/
+	"星期六"
+
+abmon	"1月";"2月";/
+	"3月";"4月";/
+	"5月";"6月";/
+	"7月";"8月";/
+	"9月";"10月";/
+	"11月";"12月"
+
+mon	"一月";"二月";"三月";/
+	"四月";"五月";"六月";/
+	"七月";"八月";"九月";/
+	"十月";"十一月";"十二月"
+
+d_t_fmt "%Y年%m月%d日 %A %H时%M分%S秒"
+
+d_fmt   "%Y年%m月%d日"
+
+t_fmt   "%H时%M分%S秒"
+
+am_pm   "上午";"下午"
+
+t_fmt_ampm "%p %I时%M分%S秒"
+
+date_fmt       "%Y年 %m月 %d日 %A %H:%M:%S %Z"
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYｙＹ是]"
+noexpr  "^[-0nNｎＮ不否]"
+yesstr  "是"
+nostr   "不是"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+tel_int_fmt	"+%c %a %l"
+tel_dom_fmt	"0%a %l"
+int_select	"00"
+int_prefix	"86"
+END LC_TELEPHONE
+
+LC_NAME
+name_fmt	"%f%t%g%t%d"
+name_gen	""
+name_miss	"小姐"
+name_mr		"先生"
+name_mrs	"太太"
+name_ms		"女士"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt	"%c%N%T%N%s %h %e %r%N%b%N%d%N%f%N%a%N"
+country_name	"中华人民共和国"
+%country_post	"FIXME"
+country_ab2	"CN"
+country_ab3	"CHN"
+country_num	156
+country_car "CHN"
+country_isbn	7
+lang_name	"中文"
+lang_ab		"zh"
+lang_term	"zho"
+lang_lib	"chi"
+END LC_ADDRESS
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT

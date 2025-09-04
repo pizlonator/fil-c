@@ -1,0 +1,9 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/alpha.
+
+# PIE builds fail on binutils 2.37 and earlier, see:
+# https://sourceware.org/bugzilla/show_bug.cgi?id=28672
+printf "%s\n" "#define PIE_UNSUPPORTED 1" >>confdefs.h
+
+# work around problem with autoconf and empty lines at the end of files
+

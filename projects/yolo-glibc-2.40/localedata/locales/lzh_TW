@@ -1,0 +1,219 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Literary Chinese locale for the Republic of China
+%
+% build with: localedef -f UTF-8 -i lzh_TW lzh_TW
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_IDENTIFICATION
+title        "Literary Chinese locale for the Republic of China"
+source       ""
+address      ""
+contact      ""
+email        "bug-glibc-locales@gnu.org"
+tel          ""
+fax          ""
+language     "Literary Chinese"
+territory    "Taiwan"
+revision     "0.1"
+date         "2013-06-02"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "i18n"
+class	"hanzi"; /
+<U3007>;/
+<U3400>..<U4DBF>;/
+<U4E00>..<U9FA5>;/
+<UF900>..<UFA6A>;/
+<U00020000>..<U0002A6D6>;/
+<U0002F800>..<U0002FA1D>
+END LC_CTYPE
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_TIME
+mon           "一月";/
+     "二月";/
+     "三月";/
+     "四月";/
+     "五月";/
+     "六月";/
+     "七月";/
+     "八月";/
+     "九月";/
+     "十月";/
+     "十一月";/
+     "十二月"
+abmon         " 一 ";/
+       " 二 ";/
+       " 三 ";/
+       " 四 ";/
+       " 五 ";/
+       " 六 ";/
+       " 七 ";/
+       " 八 ";/
+       " 九 ";/
+       " 十 ";/
+       "十一";/
+       "十二"
+day           "週日";/
+     "週一";/
+     "週二";/
+     "週三";/
+     "週四";/
+     "週五";/
+     "週六"
+abday         "日";/
+       "一";/
+       "二";/
+       "三";/
+       "四";/
+       "五";/
+       "六"
+d_t_fmt       "%OC%Oy年%B%Od日 (%A) %OH時%OM分%OS秒"
+d_fmt         "%OC%Oy年%B%Od日"
+t_fmt         "%OH時%OM分%OS秒"
+am_pm         "朝";"暮"
+t_fmt_ampm    "%p %OI時%OM分%OS秒"
+date_fmt      "公曆 %C%Oy年 %B %Oe日 %A %OH時%OM分%OS秒"
+alt_digits    "〇";/
+            "一";/
+            "二";/
+            "三";/
+            "四";/
+            "五";/
+            "六";/
+            "七";/
+            "八";/
+            "九";/
+            "十";/
+            "十一";/
+            "十二";/
+            "十三";/
+            "十四";/
+            "十五";/
+            "十六";/
+            "十七";/
+            "十八";/
+            "十九";/
+            "廿";/
+            "廿一";/
+            "廿二";/
+            "廿三";/
+            "廿四";/
+            "廿五";/
+            "廿六";/
+            "廿七";/
+            "廿八";/
+            "廿九";/
+            "卅";/
+            "卅一"
+%
+week 7;19971130;1
+
+era "+:2:1913//01//01:+*:民國:%EC%Ey年";/
+    "+:1:1912//01//01:1912//12//31:民國:%EC元年";/
+    "+:1:1911//12//31:-*:民前:%EC%Ey年"
+END LC_TIME
+
+LC_NUMERIC
+decimal_point "."
+thousands_sep ","
+grouping      4
+END LC_NUMERIC
+
+LC_MONETARY
+currency_symbol    "NT$"
+int_curr_symbol    "TWD "
+mon_decimal_point  "."
+mon_thousands_sep  ","
+mon_grouping       4
+positive_sign      ""
+negative_sign      "-"
+frac_digits        2
+int_frac_digits    2
+p_cs_precedes      1
+p_sep_by_space     0
+n_cs_precedes      1
+n_sep_by_space     0
+p_sign_posn        1
+n_sign_posn        1
+int_p_cs_precedes  1
+int_p_sep_by_space 0
+int_n_cs_precedes  1
+int_n_sep_by_space 0
+int_p_sign_posn    1
+int_n_sign_posn    1
+END LC_MONETARY
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_MESSAGES
+% ^[+1yYｙＹ是]
+yesexpr "^[+1yYｙＹ是]"
+% ^[-0nNｎＮ非]
+noexpr  "^[-0nNｎＮ非]"
+END LC_MESSAGES
+
+LC_NAME
+name_fmt  "%f%d%t%g"
+name_gen  "君"
+name_miss "女"
+name_mr   "子"
+name_mrs  "氏"
+name_ms   "娘"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt   "%c%N%T%N%s %h %e %r%N%b%N%d%N%f%N%a%N"
+country_name "中華民國"
+country_post "TW"
+country_ab2  "TW"
+country_ab3  "TWN"
+country_num  158
+country_car "RC"
+country_isbn 957
+lang_name    "漢語文言"
+lang_term    "lzh"
+lang_lib     "lzh"
+END LC_ADDRESS
+
+LC_TELEPHONE
+tel_int_fmt "+%c-%a-%l"
+tel_dom_fmt "%A-%l"
+int_select  "00"
+int_prefix  "886"
+END LC_TELEPHONE

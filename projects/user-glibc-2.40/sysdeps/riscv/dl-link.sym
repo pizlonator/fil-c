@@ -1,0 +1,18 @@
+#include <stddef.h>
+#include <sysdep.h>
+#include <link.h>
+
+DL_SIZEOF_RG            sizeof(struct La_riscv_regs)
+DL_SIZEOF_RV            sizeof(struct La_riscv_retval)
+
+DL_OFFSET_RG_A0         offsetof(struct La_riscv_regs, lr_reg)
+#ifndef __riscv_float_abi_soft
+DL_OFFSET_RG_FA0        offsetof(struct La_riscv_regs, lr_fpreg)
+#endif
+DL_OFFSET_RG_RA         offsetof(struct La_riscv_regs, lr_ra)
+DL_OFFSET_RG_SP         offsetof(struct La_riscv_regs, lr_sp)
+
+DL_OFFSET_RV_A0         offsetof(struct La_riscv_retval, lrv_a0)
+#ifndef __riscv_float_abi_soft
+DL_OFFSET_RV_FA0        offsetof(struct La_riscv_retval, lrv_fa0)
+#endif

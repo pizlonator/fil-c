@@ -1,0 +1,43 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for assembler line separator" >&5
+printf %s "checking for assembler line separator... " >&6; }
+if test ${libc_cv_asm_line_sep+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.s <<EOF
+nop ; is_old_puffin
+EOF
+if { ac_try='${CC-cc} -c $ASFLAGS conftest.s 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+  libc_cv_asm_line_sep='!'
+else
+  if test -z "$enable_hacker_mode"; then
+    echo "*** You need a newer assembler to compile glibc"
+    rm -f conftest*
+    exit 1
+  fi
+  libc_cv_asm_line_sep=';'
+fi
+rm -f conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_line_sep" >&5
+printf "%s\n" "$libc_cv_asm_line_sep" >&6; }
+printf "%s\n" "#define ASM_LINE_SEP $libc_cv_asm_line_sep" >>confdefs.h
+
+
+printf "%s\n" "#define HIDDEN_VAR_NEEDS_DYNAMIC_RELOC 1" >>confdefs.h
+
+
+# PIE builds fail on binutils 2.37 and earlier, see:
+# https://sourceware.org/bugzilla/show_bug.cgi?id=28672
+printf "%s\n" "#define PIE_UNSUPPORTED 1" >>confdefs.h
+
+# work around problem with autoconf and empty lines at the end of files
+

@@ -1,0 +1,67 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+# Local preconfigure fragment for sysdeps/riscv
+
+case "$machine" in
+riscv*)
+    xlen=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __riscv_xlen \(.*\)/\1/p'`
+    flen=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __riscv_flen \(.*\)/\1/p'`
+    float_abi=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __riscv_float_abi_\([^ ]*\) .*/\1/p'`
+    atomic=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | grep '#define __riscv_atomic' | cut -d' ' -f2`
+
+    case "$xlen" in
+    64 | 32)
+	;;
+    *)
+	as_fn_error 1 "Unable to determine XLEN" "$LINENO" 5
+	;;
+    esac
+
+    case "$flen" in
+    64)
+	float_machine=rvd
+	with_fp_cond=1
+	;;
+    32)
+	as_fn_error 1 "glibc does not yet support systems with the F but not D extensions" "$LINENO" 5
+	;;
+    "")
+	with_fp_cond=0
+	;;
+    *)
+	as_fn_error 1 "Unable to determine FLEN" "$LINENO" 5
+	;;
+    esac
+
+    case "$float_abi" in
+    soft)
+	abi_flen=0
+	;;
+    single)
+	as_fn_error 1 "glibc does not yet support the single floating-point ABI" "$LINENO" 5
+	;;
+    double)
+	abi_flen=64
+	;;
+    *)
+	as_fn_error 1 "Unable to determine floating-point ABI" "$LINENO" 5
+	;;
+    esac
+
+    case "$atomic" in
+    __riscv_atomic)
+	;;
+    *)
+	as_fn_error 1 "glibc requires the A extension" "$LINENO" 5
+	;;
+    esac
+
+    base_machine=riscv
+    machine=riscv/rv$xlen/$float_machine
+
+    printf "%s\n" "#define RISCV_ABI_XLEN $xlen" >>confdefs.h
+
+    printf "%s\n" "#define RISCV_ABI_FLEN $abi_flen" >>confdefs.h
+
+    ;;
+esac
+

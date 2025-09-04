@@ -1,0 +1,217 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Blin language locale for Eritrea.
+%
+% Blin terms are provided by Tekie Alibekit with coordination of the
+% Blin Language and Culture Association in Norway.  Prepared and contributed
+% to glibc by Daniel Yacob <locales@geez.org>
+%
+% build with: localedef -f UTF-8 -i byn_ER byn_ER
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+LC_IDENTIFICATION
+title      "Blin language locale for Eritrea"
+source     "Ge'ez Frontier Foundation"
+address    "7802 Solomon Seal Dr., Springfield, VA 22152, USA"
+contact    ""
+email      "locales@geez.org"
+tel        ""
+fax        ""
+language   "Blin"
+territory  "Eritrea"
+revision   "0.21"
+date       "2003-11-01"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_TIME
+END LC_IDENTIFICATION
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Ethiopic Specifc Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_COLLATE
+copy "ti_ER"
+END LC_COLLATE
+
+LC_CTYPE
+copy "ti_ER"
+END LC_CTYPE
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Eritrea Specifc Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_MEASUREMENT
+copy "ti_ER"
+END LC_MEASUREMENT
+
+LC_MONETARY
+copy "ti_ER"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "ti_ER"
+END LC_NUMERIC
+
+LC_PAPER
+copy "ti_ER"
+END LC_PAPER
+
+LC_TELEPHONE
+copy "ti_ER"
+END LC_TELEPHONE
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Blin Specific Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_MESSAGES
+copy "ti_ER"
+END LC_MESSAGES
+
+LC_NAME
+copy "ti_ER"
+END LC_NAME
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Blin/ER Specific Data:
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_ADDRESS
+%
+% This is the ISO_IEC TR14652 Locale definition for the LC_ADDRESS category.
+%
+postal_fmt    "%z%c%T%s%b%e%r"
+country_name  "ኤርትራ"
+country_post  "ERI"
+country_ab2   "ER"
+country_ab3   "ERI"
+country_num   232
+country_car  "ER"
+% country_isbn  unknown, Need ISO 2108
+lang_name     "ብሊን"
+lang_ab       ""
+lang_term     "byn"
+lang_lib      "byn"
+%
+END LC_ADDRESS
+
+
+LC_TIME
+%
+% Abbreviated weekday names (%a)
+%
+abday    "ሰ//ቅ";/
+         "ሰኑ";/
+         "ሰሊጝ";/
+         "ለጓ";/
+         "ኣምድ";/
+         "ኣርብ";/
+         "ሰ//ሽ"
+%
+% Full weekday names (%A)
+%
+day      "ሰንበር ቅዳዅ";/
+         "ሰኑ";/
+         "ሰሊጝ";/
+         "ለጓ ወሪ ለብዋ";/
+         "ኣምድ";/
+         "ኣርብ";/
+         "ሰንበር ሽጓዅ"
+%
+% Abbreviated month names (%b)
+%
+abmon    "ልደት";/
+         "ካብኽ";/
+         "ክብላ";/
+         "ፋጅኺ";/
+         "ክቢቅ";/
+         "ም//ት";/
+         "ኰር";/
+         "ማርያ";/
+         "ያኸኒ";/
+         "መተሉ";/
+         "ም//ም";/
+         "ተሕሳ"
+%
+% Full month names (%B)
+%
+mon      "ልደትሪ";/
+         "ካብኽብቲ";/
+         "ክብላ";/
+         "ፋጅኺሪ";/
+         "ክቢቅሪ";/
+         "ምኪኤል ትጓ̅ኒሪ";/
+         "ኰርኩ";/
+         "ማርያም ትሪ";/
+         "ያኸኒ መሳቅለሪ";/
+         "መተሉ";/
+         "ምኪኤል መሽወሪ";/
+         "ተሕሳስሪ"
+%
+%
+% Equivalent of AM PM
+%
+am_pm    "ፋዱስ ጃብ";/
+         "ፋዱስ ደምቢ"
+%
+% Appropriate date representation (%x)
+%
+d_fmt   "%d//%m//%Y"
+%
+% Appropriate time representation (%X)
+%
+t_fmt "%l:%M:%S %p"
+%
+% Appropriate AM/PM time representation (%r)
+%
+t_fmt_ampm "%l:%M:%S %p"
+%
+% Appropriate date and time representation (%c)
+%	"%A፡ %B %e ዮም %Y %r %Z
+%
+d_t_fmt    "%A፡ %B %e ግርጋ %Y %r %Z"
+%
+% Appropriate date representation (date(1))
+%	"%A፡ %B %e ዮም %r %Z %Y ዓ/ም
+%
+date_fmt    "%A፡ %B %e ግርጋ %r %Z %Y ኣድ"
+%
+week 7;19971130;1
+first_weekday 2
+END LC_TIME

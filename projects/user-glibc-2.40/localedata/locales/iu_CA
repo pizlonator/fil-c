@@ -1,0 +1,137 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+LC_IDENTIFICATION
+title "Inuktitut language locale for Nunavut, Canada"
+source ""
+address ""
+contact "Pablo Saratxaga"
+email "pablo@mandriva.com"
+tel ""
+fax ""
+language "Inuktitut"
+territory "Canada"
+revision "0.1"
+date "2001-05-04"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_ADDRESS
+END LC_IDENTIFICATION
+
+LC_ADDRESS
+postal_fmt    "%a%N%f%N%d%N%b%N%h %s %e %r%N%T %z%N%c%N"
+% "Canada" in Inuktitut: (https://iu.wikipedia.org/wiki/%E1%91%B2%E1%93%87%E1%91%95)
+country_name "ᑲᓇᑕ"
+country_post "CA"
+country_ab2 "CA"
+country_ab3 "CAN"
+country_num 124
+country_car    "CDN"
+% FIXME country_isbn for Canada/inuktitut ?
+lang_name "ᐃᓄᒃᑎᑐᑦ"
+lang_ab      "iu"
+lang_term    "iku"
+lang_lib     "iku"
+END LC_ADDRESS
+
+%%%%%%%%%%%%%
+%
+% TODO: LC_COLLATE, LC_TIME, LC_MESSAGES
+%
+%%%%%%%%%%%%
+
+
+LC_COLLATE
+% FIXME: is that order correct ?
+copy "en_CA"
+END LC_COLLATE
+
+LC_CTYPE
+copy "en_CA"
+END LC_CTYPE
+
+LC_MONETARY
+copy "en_CA"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "en_CA"
+END LC_NUMERIC
+
+LC_TELEPHONE
+copy "en_CA"
+END LC_TELEPHONE
+
+LC_TIME
+abday       "ᓈ";"ᓇ";/
+            "ᓕ";"ᐱ";/
+            "ᕿ";"ᐅ";/
+            "ᓯ"
+day         "ᓈᑦᑎᖑᔭᕐᕕᒃ";/
+            "ᓇᒡᒐᔾᔭᐅ";/
+            "ᓇᒡᒐᔾᔭᐅᓕᖅᑭᑦ";/
+            "ᐱᖓᓲᓕᖅᓯᐅᑦ";/
+            "ᕿᑎᖅᑰᑦ";/
+            "ᐅᓪᓗᕈᓘᑐᐃᓇᖅ";/
+            "ᓯᕙᑖᕕᒃ"
+abmon       "ᔮᓄ";"ᕕᕗ";/
+            "ᒪᔅ";"ᐃᐳ";/
+            "ᒪᐃ";"ᔪᓂ";/
+            "ᔪᓚ";"ᐊᒋ";/
+            "ᓯᑎ";"ᐊᑦ";/
+            "ᓄᕕ";"ᑎᓯ"
+mon         "ᔮᓄᐊᓕ";/
+            "ᕕᕗᐊᓕ";/
+            "ᒪᔅᓯ";/
+            "ᐃᐳᓗ";/
+            "ᒪᐃ";/
+            "ᔪᓂ";/
+            "ᔪᓚᐃ";/
+            "ᐊᒋᓯ";/
+            "ᓯᑎᕙ";/
+            "ᐊᑦᑐᕙ";/
+            "ᓄᕕᕙ";/
+            "ᑎᓯᕝᕙ"
+d_t_fmt     "%a %d %b %Y %r"
+date_fmt    "%a %d %b %Y %r %Z"
+d_fmt       "%m//%d//%y"
+t_fmt       "%r"
+am_pm       "AM";"PM"
+t_fmt_ampm  "%I:%M:%S %p"
+week 7;19971130;1
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYsS]"
+noexpr  "^[-0nN]"
+END LC_MESSAGES
+
+LC_PAPER
+copy "en_CA"
+END LC_PAPER
+
+% FIXME
+LC_NAME
+copy "en_CA"
+END LC_NAME
+
+LC_MEASUREMENT
+copy "en_CA"
+END LC_MEASUREMENT

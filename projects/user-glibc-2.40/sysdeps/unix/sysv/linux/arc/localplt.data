@@ -1,0 +1,6 @@
+libc.so: realloc
+libc.so: malloc
+libc.so: calloc
+libc.so: free
+# At -Os, a struct assignment in libgcc-static pulls this in
+libc.so: memcpy ?

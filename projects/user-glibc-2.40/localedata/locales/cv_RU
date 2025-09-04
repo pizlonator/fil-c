@@ -1,0 +1,163 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Chuvash (Russian Federation) locale
+
+LC_IDENTIFICATION
+title      "Chuvash locale for Russia"
+source     "Olga Smirnova"
+address    ""
+contact    ""
+email      "mistresssilvara@hotmail.com"
+tel        ""
+fax        ""
+language   "Chuvash"
+territory  "Russia"
+revision   "1.0"
+date       "2019-03-23"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "ru_RU"
+END LC_CTYPE
+
+LC_NUMERIC
+copy "ru_RU"
+END LC_NUMERIC
+
+LC_TIME
+day     "вырсарникун";/
+        "тунтикун";/
+        "ытларикун";/
+        "юнкун";/
+        "кӗҫнерникун";/
+        "эрнекун";/
+        "шӑматкун"
+abday   "вр";/
+        "тн";/
+        "ыт";/
+        "юн";/
+        "кҫ";/
+        "эр";/
+        "шм"
+mon     "кӑрлач";/
+        "нарӑс";/
+        "пуш";/
+        "ака";/
+        "ҫу";/
+        "ҫӗртме";/
+        "утӑ";/
+        "ҫурла";/
+        "авӑн";/
+        "юпа";/
+        "чӳк";/
+        "раштав"
+abmon   "кӑр";/
+        "нар";/
+        "пуш";/
+        "ака";/
+        "ҫӑв";/
+        "ҫрт";/
+        "утӑ";/
+        "ҫур";/
+        "авн";/
+        "юпа";/
+        "чӳк";/
+        "ршт"
+d_t_fmt "%a, %d, %b %Y %T"
+d_fmt     "%d.%m.%Y"
+t_fmt     "%T"
+am_pm     "";""
+t_fmt_ampm ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_COLLATE
+% There is no collation information for Chuvash in CLDR.
+copy "iso14651_t1"
+
+collating-symbol <cyra-breve>
+collating-symbol <cyre-breve>
+collating-symbol <cyrs-desc>
+collating-symbol <cyru-dblacute>
+
+reorder-after <S0430> % а
+<cyra-breve>
+reorder-after <S0435> % е
+<cyre-breve>
+reorder-after <S0441> % с
+<cyrs-desc>
+reorder-after <S0443> % у
+<cyru-dblacute>
+
+<U04D0>	<cyra-breve>;<BASE>;<CAP>;<U04D0> % Ӑ
+<U04D1>	<cyra-breve>;<BASE>;<MIN>;<U04D1> % ӑ
+<U04D6>	<cyre-breve>;<BASE>;<CAP>;<U04D6> % Ӗ
+<U04D7>	<cyre-breve>;<BASE>;<MIN>;<U04D7> % ӗ
+<U04AA>	<cyrs-desc>;<BASE>;<CAP>;<U04AA> % Ҫ
+<U04AB>	<cyrs-desc>;<BASE>;<MIN>;<U04AB> % ҫ
+<U04F2>	<cyru-dblacute>;<BASE>;<CAP>;<U04F2> % Ӳ
+<U04F3>	<cyru-dblacute>;<BASE>;<MIN>;<U04F3> % ӳ
+reorder-end
+END LC_COLLATE
+
+LC_PAPER
+copy "ru_RU"
+END LC_PAPER
+
+LC_TELEPHONE
+copy "ru_RU"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "ru_RU"
+END LC_MEASUREMENT
+
+LC_MESSAGES
+yesexpr "^[yYиИ]"
+noexpr  "^[nNҫҪсС]"
+yesstr  "ия"
+nostr   "ҫук"
+END LC_MESSAGES
+
+LC_NAME
+copy "ru_RU"
+END LC_NAME
+
+LC_MONETARY
+copy "ru_RU"
+END LC_MONETARY
+
+LC_ADDRESS
+postal_fmt    "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_ab2 "RU"
+country_ab3 "RUS"
+country_num 643
+country_car    "RUS"
+% Чӑвашла
+lang_name    "чӑваш"
+lang_ab      "cv"
+lang_term    "chv"
+lang_lib     "chv"
+END LC_ADDRESS

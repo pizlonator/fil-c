@@ -1,0 +1,95 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/s390/s390-64.
+
+# Minimal checking for static PIE support in ld.
+# Compare to ld testcase/bugzilla:
+# <binutils-source>/ld/testsuite/ld-elf/pr22263-1.rd
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for s390-specific static PIE requirements" >&5
+printf %s "checking for s390-specific static PIE requirements... " >&6; }
+if { as_var=\
+libc_cv_s390x_staticpie_req_runtime; eval test \${$as_var+y}; }
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)   cat > conftest1.c <<EOF
+__thread int * foo;
+
+void
+bar (void)
+{
+  *foo = 1;
+}
+
+void bar2 (void);
+void* bar2_ifunc (void) __asm__ ("bar2");
+__asm__ (".type bar2, %gnu_indirect_function");
+void* bar2_ifunc (void) { return 0; }
+EOF
+  cat > conftest2.c <<EOF
+extern __thread int *foo;
+extern void bar (void);
+extern void bar2 (void);
+static int x;
+
+int
+main ()
+{
+  foo = &x;
+  bar2 ();
+  return 0;
+}
+EOF
+  libc_cv_s390x_staticpie_req_runtime=no
+  # Check if the static linker does not generate dynamic TLS relocs in PIE
+  # (binutils PR ld/22263), if it accepts --no-dynamic-linker
+  # (by using -static-pie), and if it adds a DT_JMPREL pointing to .rela.iplt
+  # with static pie.
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -fPIE -c conftest1.c -o conftest1.o'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -fPIE -c conftest2.c -o conftest2.o'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -static-pie -nostartfiles -nostdlib -fPIE -o conftest conftest1.o conftest2.o'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && { ac_try='! LC_ALL=C $READELF -Wr conftest | grep R_390_TLS_TPOFF >&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && { ac_try='LC_ALL=C $READELF -Wd conftest | grep JMPREL >&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+    libc_cv_s390x_staticpie_req_runtime=yes
+  fi
+  rm -rf conftest.* ;;
+esac
+fi
+eval ac_res=\$\
+libc_cv_s390x_staticpie_req_runtime
+	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf "%s\n" "$ac_res" >&6; }
+
+if test $libc_cv_s390x_staticpie_req_runtime = yes; then
+   # Some kernels might fail with /proc/sys/kernel/randomize_va_space set to 0
+   # due not enough space for a brk call.  However, there is no reliable way to
+   # test it.
+   printf "%s\n" "#define SUPPORT_STATIC_PIE 1" >>confdefs.h
+
+fi
+

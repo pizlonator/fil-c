@@ -1,0 +1,190 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Chinese language locale for Taiwan R.O.C.
+%
+% Original Author:
+%    Ming-Che Chuang
+% 	PPE of NTU, Taiwan, ROC
+%
+% Currently Maintained by:
+%    Yuan-Chung Cheng
+%	platin@ms31.hinet.net
+%    Tung-Han Hsieh
+%	thhsieh@linux.org.tw
+%
+% Reference:	http://wwwold.dkuug.dk/JTC1/SC22/WG20/docs/n690.pdf
+
+LC_IDENTIFICATION
+title      "Chinese locale for Taiwan R.O.C."
+source     ""
+address    ""
+contact    ""
+email      "bug-glibc-locales@gnu.org"
+tel        ""
+fax        ""
+language   "Chinese"
+territory  "Taiwan"
+revision   "0.2"
+date       "2000-08-02"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "zh_CN"
+END LC_CTYPE
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_MONETARY
+int_curr_symbol         "TWD "
+currency_symbol         "NT$"
+mon_decimal_point       "."
+mon_thousands_sep       ","
+mon_grouping            3
+positive_sign           ""
+negative_sign           "-"
+int_frac_digits         2
+frac_digits             2
+p_cs_precedes           1
+p_sep_by_space          0
+n_cs_precedes           1
+n_sep_by_space          0
+int_p_cs_precedes       1
+int_p_sep_by_space      0
+int_n_cs_precedes       1
+int_n_sep_by_space      0
+p_sign_posn             1
+n_sign_posn             1
+int_p_sign_posn         1
+int_n_sign_posn         1
+END LC_MONETARY
+
+LC_NUMERIC
+decimal_point           "."
+thousands_sep           ","
+grouping                3
+END LC_NUMERIC
+
+LC_TIME
+% day: Sun, Mon, Tue, Wed, Thr, Fri, Sat
+abday	"日";"一";"二";"三";/
+	"四";"五";"六"
+
+day	"週日";/
+	"週一";/
+	"週二";/
+	"週三";/
+	"週四";/
+	"週五";/
+	"週六"
+
+% month: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec.
+abmon	" 1月";" 2月";/
+	" 3月";" 4月";/
+	" 5月";" 6月";/
+	" 7月";" 8月";/
+	" 9月";"10月";/
+	"11月";"12月"
+
+mon	"一月";"二月";"三月";/
+	"四月";"五月";"六月";/
+	"七月";"八月";"九月";/
+	"十月";"十一月";"十二月"
+
+% d_t_fmt: "%Y<y>%m<m>%d<d> (%A) %H<hr>%M<m>%S<s>"
+d_t_fmt "西元%Y年%m月%d日 (%A) %H時/
+%M分%S秒"
+
+date_fmt "西元%Y年%m月%d日 (%A) %H時/
+%M分%S秒 %Z"
+
+d_fmt	"西元%Y年%m月%d日"
+
+t_fmt	"%H時%M分%S秒"
+
+am_pm	"上午";"下午"
+
+% t_fmt_ampm: "%p %I<h>%M<m>%S<s>"
+t_fmt_ampm  "%p %I時%M分%S秒"
+week 7;19971130;1
+
+era "+:2:1913//01//01:+*:民國:%EC%Ey年";/
+    "+:1:1912//01//01:1912//12//31:民國:%EC元年";/
+    "+:1:1911//12//31:-*:民前:%EC%Ey年"
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYｙＹ是]"
+noexpr  "^[-0nNｎＮ不否]"
+% 是
+yesstr  "是"
+% 不是
+nostr   "不是"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+tel_int_fmt	"+%c-%a-%l"
+tel_dom_fmt	"%A-%l"
+int_select	"00"
+int_prefix	"886"
+END LC_TELEPHONE
+
+LC_NAME
+name_fmt	"%f%t%g%t%d"
+
+name_gen	""
+name_miss	"小姐"
+name_mr		"先生"
+name_mrs	"太太"
+name_ms		"女士"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt	"%c%N%T%N%s %h %e %r%N%b%N%d%N%f%N%a%N"
+
+% Reference:	http://www.un.org/Depts/unsd/methods/m49alpha.htm
+%		http://www.isbn.spk-berlin.de/html/prefix.htm
+country_name	"中華民國"
+country_post	"TW"
+country_ab2	"TW"
+country_ab3	"TWN"
+country_num	158
+country_car "RC"
+country_isbn	957
+
+% Reference:	http://lcweb.loc.gov/standards/iso639-2/langhome.html
+lang_name	"中文"
+lang_ab		"zh"
+lang_term	"zho"
+lang_lib	"chi"
+END LC_ADDRESS
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT

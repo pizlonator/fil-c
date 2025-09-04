@@ -1,0 +1,144 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+LC_IDENTIFICATION
+title      "Latgalian locale for Latvia"
+source     "Latvian Standard LVS 24:1993"
+address    ""
+contact    "laka@laka.lv"
+email      "bug-glibc-locales@gnu.org"
+tel        ""
+fax        ""
+language   "Latgalian"
+territory  "Latvia"
+revision   "1.0"
+date       "2024-02-24"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_COLLATE
+copy "lv_LV"
+END LC_COLLATE
+
+LC_CTYPE
+copy "lv_LV"
+END LC_CTYPE
+
+LC_MONETARY
+copy "lv_LV"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "lv_LV"
+END LC_NUMERIC
+
+% Months, LVS 24:1993 6.3.3.
+% janvars, februars, marts, apreļs, majs, juņs, juļs, augusts, septembris, oktobris, novembris, decembris
+% LV:  jan, feb, mar, apr, mai, jūn, jūl, aug, sep, okt, nov, dec
+% LTG: jan, feb, mar, apr, maj, juņ, juļ, aug, sep, okt, nov, dec
+
+% Dienas, LVS 24:1993 6.3.1.
+% pyrmūdīne, ūtardīne, trešdīne, catūrtdīne, pīktdīne, sastdīne, svātdīne
+% LV:  P, O, T, C, Pk, S, Sv
+% LTG: P, Ū, T, C, Pk, S, Sv
+% LV:  Pr, Ot, Tr, Ce, Pk, Se, Sv
+% LTG: Pr, Ūt, Tr, Ca, Pk, Sa, Sv
+
+LC_TIME
+abday    "Sv";"P ";/
+         "Ū ";"T ";/
+         "C ";"Pk";/
+         "S "
+day      "svātdīne";/
+         "pyrmūdīne";/
+         "ūtardīne";/
+         "trešdīne";/
+         "catūrtdīne";/
+         "pīktdīne";/
+         "sastdīne"
+abmon    "jan";"feb";/
+         "mar";"apr";/
+         "maj";"juņ";/
+         "juļ";"aug";/
+         "sep";"okt";/
+         "nov";"dec"
+mon      "janvars";/
+         "februars";/
+         "marts";/
+         "apreļs";/
+         "majs";/
+         "juņs";/
+         "juļs";/
+         "augusts";/
+         "septembris";/
+         "oktobris";/
+         "novembris";/
+         "decembris"
+
+% otrdiena, 1993. gada  5. janvāris, plkst. 17 un 15 minūtes
+d_t_fmt  "%A, %Y. goda %e. %B, plkst. %H : %M"
+% Pk, 1993. 17. dec
+% 1993.06.17
+d_fmt    "%Y.%m.%d."
+% 18:59:32
+t_fmt    "%T"
+am_pm    "";""
+t_fmt_ampm  ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1JjYy]"
+noexpr  "^[-0Nn]"
+yesstr  "jā"
+nostr   "nā"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+copy "lv_LV"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_NAME
+copy "lv_LV"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt    "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "Latvija"
+country_ab2 "LV"
+country_ab3 "LVA"
+country_num 428
+country_car "LV"
+% latgaliešu valoda
+lang_name    "latgalīšu"
+lang_term    "ltg"
+lang_lib    "ltg"
+END LC_ADDRESS

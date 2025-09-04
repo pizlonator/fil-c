@@ -1,0 +1,249 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Kabyle language locale for Algeria
+
+LC_IDENTIFICATION
+title      "Kabyle language locale for Algeria"
+source     ""
+contact    ""
+email      "belkacem77@gmail.com"
+language   "Kabyle"
+territory  "Algeria"
+revision   "1.0"
+date       "2016-07-06"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "i18n"
+
+translit_start
+include "translit_combining";""
+translit_end
+END LC_CTYPE
+
+LC_COLLATE
+% The latin amazigh alphabet is:
+%
+% a ɛ b b* c č d ḍ e f g g* ğ h ḥ i j k k* l m n q q* gam gam* r ṛ s ṣ t ṭ u w x x* y z ẓ
+%
+% (What are the letters followed by a *???)
+%
+% CLDR does not yet have collation rules for this language.
+%
+
+% Looking at the above alphabet and the previously existing collation
+% rules in glibc for this language, I implement this in the following way:
+%
+% &A<ɛ<<<Ɛ
+% &C<č<<<Č
+% &D<ḍ<<<Ḍ
+% &G<ğ<<<Ğ
+% &H<ḥ<<<Ḥ
+% &Q<ɣ<<<Ɣ
+% &R<ṛ<<<Ṛ
+% &S<ṣ<<<Ṣ
+% &T<ṭ<<<Ṭ
+% &Z<ẓ<<<Ẓ
+
+copy "iso14651_t1"
+
+collating-symbol <open-e>
+collating-symbol <c-caron>
+collating-symbol <d-dot-below>
+collating-symbol <g-breve>
+collating-symbol <h-dot-below>
+collating-symbol <latin-gamma>
+collating-symbol <r-dot-below>
+collating-symbol <s-dot-below>
+collating-symbol <t-dot-below>
+collating-symbol <z-dot-below>
+
+reorder-after <AFTER-A>
+<open-e>
+reorder-after <AFTER-C>
+<c-caron>
+reorder-after <AFTER-D>
+<d-dot-below>
+reorder-after <AFTER-G>
+<g-breve>
+reorder-after <AFTER-H>
+<h-dot-below>
+reorder-after <AFTER-Q>
+<latin-gamma>
+reorder-after <AFTER-R>
+<r-dot-below>
+reorder-after <AFTER-S>
+<s-dot-below>
+reorder-after <AFTER-T>
+<t-dot-below>
+reorder-after <AFTER-Z>
+<z-dot-below>
+
+<U025B> <open-e>;<BASE>;<MIN>;IGNORE % ɛ
+<U0190> <open-e>;<BASE>;<CAP>;IGNORE % Ɛ
+<U010D> <c-caron>;<BASE>;<MIN>;IGNORE % č
+<U010C> <c-caron>;<BASE>;<CAP>;IGNORE % Č
+<U1E0D> <d-dot-below>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ḍ
+<U1E0C> <d-dot-below>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ḍ
+<U011F> <g-breve>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ğ
+<U011E> <g-breve>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ğ
+<U1E25> <h-dot-below>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ḥ
+<U1E24> <h-dot-below>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ḥ
+<U0263> <latin-gamma>;<BASE>;<MIN>;IGNORE % ɣ
+<U0194> <latin-gamma>;<BASE>;<CAP>;IGNORE % Ɣ
+<U1E5B> <r-dot-below>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ṛ
+<U1E5A> <r-dot-below>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ṛ
+<U1E63> <s-dot-below>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ṣ
+<U1E62> <s-dot-below>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ṣ
+<U1E6D> <t-dot-below>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ṭ
+<U1E6C> <t-dot-below>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ṭ
+<U1E93> <z-dot-below>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ẓ
+<U1E92> <z-dot-below>;"<BASE><BASE>";"<CAP><MIN>";IGNORE % Ẓ
+
+reorder-end
+
+END LC_COLLATE
+
+LC_TIME
+mon "Yennayer";/
+    "Fuṛar";/
+    "Meɣres";/
+    "Yebrir";/
+    "Mayyu";/
+    "Yunyu";/
+    "Yulyu";/
+    "ɣuct";/
+    "Ctembeṛ";/
+    "Tubeṛ";/
+    "Wambeṛ";/
+    "Dujembeṛ"
+abmon "Yen";/
+      "Fur";/
+      "Meɣ";/
+      "Yeb";/
+      "May";/
+      "Yun";/
+      "Yul";/
+      "ɣuc";/
+      "Cte";/
+      "Tub";/
+      "Wam";/
+      "Duj"
+day "Acer";/
+    "Arim";/
+    "Aram";/
+    "Ahad";/
+    "Amhad";/
+    "Sem";/
+    "Sed"
+abday "Ace";/
+      "Ari";/
+      "Ara";/
+      "Aha";/
+      "Amh";/
+      "Sem";/
+      "Sed"
+%
+% Appropriate date and time representation
+d_t_fmt       "%a %d %b %Y %T"
+%
+% Appropriate date and time representation for date(1)
+date_fmt      "%a %d %b %Y %T %Z"
+% Appropriate date representation
+d_fmt         "%d//%m//%Y"
+% Appropriate time representation
+t_fmt         "%T"
+% Appropriate 12 h time representation
+t_fmt_ampm    "%I:%M:%S %p"
+%
+% Strings for AM/PM
+%
+am_pm "FT";"MD"
+week 7;19971130;1
+first_weekday 7
+first_workday 1
+END LC_TIME
+
+LC_NUMERIC
+decimal_point ","
+thousands_sep ""
+grouping      3
+END LC_NUMERIC
+
+LC_MONETARY
+currency_symbol    "DA"
+int_curr_symbol    "DZD "
+mon_decimal_point  ","
+mon_thousands_sep  ""
+mon_grouping       3
+positive_sign      ""
+negative_sign      "-"
+frac_digits        2
+int_frac_digits    2
+p_cs_precedes      0
+p_sep_by_space     1
+n_cs_precedes      0
+n_sep_by_space     1
+p_sign_posn        1
+n_sign_posn        1
+END LC_MONETARY
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_MESSAGES
+yesexpr "^[+1yYiI]"
+noexpr  "^[-0nNuUaA]"
+yesstr "Ih"
+nostr  "Uhu"
+END LC_MESSAGES
+
+LC_NAME
+name_fmt  "%d%t%g%t%m%t%f"
+name_miss "Tamsiwt"
+name_mr   "Mas"
+name_mrs  "Massa"
+name_ms   "Massa"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt   "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "Lezzayer"
+country_ab2  "DZ"
+country_ab3  "DZA"
+country_num  012
+country_car  "DZ"
+lang_name    "Taqbaylit"
+lang_term    "kab"
+lang_lib     "kab"
+END LC_ADDRESS
+
+LC_TELEPHONE
+copy "ar_DZ"
+END LC_TELEPHONE

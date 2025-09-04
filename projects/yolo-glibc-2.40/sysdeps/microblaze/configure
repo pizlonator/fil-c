@@ -1,0 +1,12 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/microblaze.
+
+printf "%s\n" "#define HIDDEN_VAR_NEEDS_DYNAMIC_RELOC 1" >>confdefs.h
+
+
+# gcc 11.2.1 and earlier crash with an internal compiler error, see:
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103613
+printf "%s\n" "#define PIE_UNSUPPORTED 1" >>confdefs.h
+
+# work around problem with autoconf and empty lines at the end of files
+

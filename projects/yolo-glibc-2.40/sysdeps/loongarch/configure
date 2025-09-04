@@ -1,0 +1,153 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/loongarch/elf.
+
+printf "%s\n" "#define HIDDEN_VAR_NEEDS_DYNAMIC_RELOC 1" >>confdefs.h
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ${CC-cc} is sufficient to build static PIE on LoongArch" >&5
+printf %s "checking if ${CC-cc} is sufficient to build static PIE on LoongArch... " >&6; }
+if test ${libc_cv_static_pie_on_loongarch+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+  cat > conftest.S <<\EOF
+.global _start
+.type _start, @function
+_start:
+  li.w $a7, 93
+  li.w $a0, 0
+  syscall 0
+
+.data
+x:
+  .word 0
+  /* This should produce an R_LARCH_RELATIVE in the static PIE.  */
+  .dword _start
+EOF
+
+  libc_cv_static_pie_on_loongarch=no
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -static-pie -nostdlib -fPIE -o conftest conftest.S'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && { ac_try='LC_ALL=C $READELF -Wr conftest | grep -q R_LARCH_RELATIVE'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && ! { ac_try='LC_ALL=C $READELF -Wl conftest | grep -q INTERP'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+    libc_cv_static_pie_on_loongarch=yes
+  fi
+  rm -rf conftest*  ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_static_pie_on_loongarch" >&5
+printf "%s\n" "$libc_cv_static_pie_on_loongarch" >&6; }
+
+if test "$libc_cv_static_pie_on_loongarch" = yes; then
+  printf "%s\n" "#define SUPPORT_STATIC_PIE 1" >>confdefs.h
+
+fi
+
+  # Check if gcc supports option -mcmodel=medium.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $CC supports option -mcmodel=medium" >&5
+printf %s "checking whether $CC supports option -mcmodel=medium... " >&6; }
+if test ${libc_cv_loongarch_cmodel_medium+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+  if { ac_try='${CC-cc} -c $CFLAGS -mcmodel=medium /dev/null 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+    libc_cv_loongarch_cmodel_medium=yes
+  else
+    libc_cv_loongarch_cmodel_medium=no
+  fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_loongarch_cmodel_medium" >&5
+printf "%s\n" "$libc_cv_loongarch_cmodel_medium" >&6; }
+config_vars="$config_vars
+have-cmodel-medium = $libc_cv_loongarch_cmodel_medium"
+
+# Check if asm support vector instructions.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for vector support in assembler" >&5
+printf %s "checking for vector support in assembler... " >&6; }
+if test ${libc_cv_loongarch_vec_asm+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.s <<\EOF
+        vld  $vr0, $sp, 0
+EOF
+if { ac_try='${CC-cc} -c $CFLAGS conftest.s -o conftest 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+  libc_cv_loongarch_vec_asm=yes
+else
+  libc_cv_loongarch_vec_asm=no
+fi
+rm -f conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_loongarch_vec_asm" >&5
+printf "%s\n" "$libc_cv_loongarch_vec_asm" >&6; }
+if test $libc_cv_loongarch_vec_asm = no; then
+  as_fn_error $? "binutils version is too old, use 2.41 or newer version" "$LINENO" 5
+fi
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for vector support in compiler" >&5
+printf %s "checking for vector support in compiler... " >&6; }
+if test ${libc_cv_loongarch_vec_com+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+void foo (void)
+{
+  asm volatile ("vldi \$vr0, 1" ::: "\$vr0");
+  asm volatile ("xvldi \$xr0, 1" ::: "\$xr0");
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_loongarch_vec_com=yes
+else case e in #(
+  e) libc_cv_loongarch_vec_com=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_loongarch_vec_com" >&5
+printf "%s\n" "$libc_cv_loongarch_vec_com" >&6; }
+if test "$libc_cv_loongarch_vec_com" = yes ;
+then
+  printf "%s\n" "#define HAVE_LOONGARCH_VEC_COM 1" >>confdefs.h
+
+fi
+config_vars="$config_vars
+loongarch-vec-com = $libc_cv_loongarch_vec_com"
+

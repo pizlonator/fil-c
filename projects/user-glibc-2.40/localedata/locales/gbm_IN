@@ -1,0 +1,177 @@
+comment_char    %
+escape_char     /
+% Garhwali language locale for India.
+% Contributed by Kusum Rawat <rawatkusum801@gmail.com>
+% Rajesh Ranjan <rajeshkajha@yahoo.com>, Chandan Kumar <chandankumar.093047@gmail.com>
+
+LC_IDENTIFICATION
+title      "Garhwali language locale for India"
+source     ""
+address    ""
+contact    ""
+email      "bhashaghar@gmail.com"
+tel        ""
+fax        ""
+language   "Garhwali"
+territory  "India"
+revision   "1.0"
+date       "2016-01-17"
+%
+category  "i18n:2012";LC_IDENTIFICATION
+category  "i18n:2012";LC_CTYPE
+category  "i18n:2012";LC_COLLATE
+category  "i18n:2012";LC_TIME
+category  "i18n:2012";LC_NUMERIC
+category  "i18n:2012";LC_MONETARY
+category  "i18n:2012";LC_MESSAGES
+category  "i18n:2012";LC_PAPER
+category  "i18n:2012";LC_NAME
+category  "i18n:2012";LC_ADDRESS
+category  "i18n:2012";LC_TELEPHONE
+
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "hi_IN"
+END LC_CTYPE
+
+LC_COLLATE
+copy "hi_IN"
+END LC_COLLATE
+
+LC_MONETARY
+copy "hi_IN"
+END LC_MONETARY
+
+
+LC_NUMERIC
+copy "hi_IN"
+END LC_NUMERIC
+
+
+LC_TIME
+% This is the POSIX Locale definition for the LC_TIME category.
+% These are generated based on XML base Locale definition file
+% for IBM Class for Unicode/Java
+%
+% Abbreviated weekday names (%a)
+abday	"अत";/
+        "सोम";/
+        "मंगल";/
+        "बुध";/
+        "भुप";/
+        "शुक";/
+        "छन"
+%
+% Full weekday names (%A)
+day     "अतवार";/
+        "सोमवार";/
+        "मंगलवार";/
+        "बुधवार";/
+        "भुपयार";/
+        "शुकार";/
+        "छनछर"
+%
+% Abbreviated month names (%b)
+abmon    "जन";/
+         "फर";/
+         "मार्च";/
+         "अप्रै";/
+         "मए";/
+         "जून";/
+         "जुल";/
+         "अग";/
+         "सित";/
+         "अक्टू";/
+         "नव";/
+         "दिस"
+%
+% Full month names (%B)
+mon    "जनवअर";/
+       "फरवअर";/
+       "मार्च";/
+       "अप्रैल";/
+       "मए";/
+       "जून";/
+       "जुलऐ";/
+       "अगस्त";/
+       "सितंबर";/
+       "अक्टूबर";/
+       "नवंबर";/
+       "दिसंबर"
+%
+% Equivalent of AM PM
+am_pm     "पूर्वाह्न";/
+          "अपराह्न"
+%
+% Appropriate date and time representation
+% %A %d %b %Y%I:%M:%S  %Z
+d_t_fmt     "%A %d %b/
+ %Y %I:%M:/
+%S %p %Z"
+%
+% Appropriate date representation
+% %A %d %b %Y
+d_fmt       "%A %d %b/
+ %Y"
+%
+% Appropriate time representation
+% %I:%M:%S  %Z
+t_fmt       "%I:%M:%S/
+  %Z"
+%
+% Appropriate 12 h time representation (%r)
+t_fmt_ampm  "%I:%M:%S/
+ %p %Z"
+%
+date_fmt       "%a %b %e/
+ %H:%M:%S /
+%Z %Y"
+END LC_TIME
+
+
+LC_MESSAGES
+yesexpr "^[yY].*"
+noexpr  "^[nN].*"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_NAME
+% This is the ISO_IEC TR14652 Locale definition for the
+% LC_NAME category.
+%
+name_fmt    "%p%t%f%t%g"
+name_gen    ""
+name_mr     "श्रीमान"
+name_mrs    "श्रीमयत"
+name_miss   "कुँवइर"
+name_ms     "कुँवअर"
+END LC_NAME
+
+LC_ADDRESS
+% This is the ISO_IEC TR14652 Locale definition for the
+% LC_ADDRESS
+postal_fmt  "%z%c%T%s%b%e%r"
+country_name "भारत"
+country_ab2 "IN"
+country_ab3 "IND"
+country_num 356
+country_car "IND"
+lang_name   "गढ़वळि"
+lang_ab     ""
+lang_term   "gbm"
+lang_lib    "gbm"
+END LC_ADDRESS
+
+
+LC_TELEPHONE
+copy "hi_IN"
+END LC_TELEPHONE
+
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT

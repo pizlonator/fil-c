@@ -1,0 +1,18 @@
+#include <stddef.h>
+#include <sysdep.h>
+#include <link.h>
+
+DL_SIZEOF_RG            sizeof(struct La_loongarch_regs)
+DL_SIZEOF_RV            sizeof(struct La_loongarch_retval)
+
+DL_OFFSET_RG_A0         offsetof(struct La_loongarch_regs, lr_reg)
+#ifndef __loongarch_soft_float
+DL_OFFSET_RG_VEC0       offsetof(struct La_loongarch_regs, lr_vec)
+#endif
+DL_OFFSET_RG_RA         offsetof(struct La_loongarch_regs, lr_ra)
+DL_OFFSET_RG_SP         offsetof(struct La_loongarch_regs, lr_sp)
+
+DL_OFFSET_RV_A0         offsetof(struct La_loongarch_retval, lrv_a0)
+#ifndef __loongarch_soft_float
+DL_OFFSET_RV_VEC0       offsetof(struct La_loongarch_retval, lrv_vec0)
+#endif

@@ -1,0 +1,223 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+
+printf "%s\n" "#define NO_RTLD_HIDDEN 1" >>confdefs.h
+
+
+if test -n "$sysheaders"; then
+  OLD_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking Hurd header version" >&5
+printf %s "checking Hurd header version... " >&6; }
+if test ${libc_cv_hurd_version+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <hurd/version.h>
+int
+main (void)
+{
+
+#define NEED_VERSION 20020609
+#if HURD_INTERFACE_VERSION < NEED_VERSION
+# error Hurd version too old: HURD_INTERFACE_VERSION < NEED_VERSION
+#endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"
+then :
+  libc_cv_hurd_version=ok
+else case e in #(
+  e) libc_cv_hurd_version=bad ;;
+esac
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_hurd_version" >&5
+printf "%s\n" "$libc_cv_hurd_version" >&6; }
+if test "x$libc_cv_hurd_version" != xok; then
+  as_fn_error $? "Hurd headers not installed or too old" "$LINENO" 5
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for egrep -e" >&5
+printf %s "checking for egrep -e... " >&6; }
+if test ${ac_cv_path_EGREP_TRADITIONAL+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if test -z "$EGREP_TRADITIONAL"; then
+  ac_path_EGREP_TRADITIONAL_found=false
+  # Loop through the user's path and test for each of PROGNAME-LIST
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_prog in grep ggrep
+   do
+    for ac_exec_ext in '' $ac_executable_extensions; do
+      ac_path_EGREP_TRADITIONAL="$as_dir$ac_prog$ac_exec_ext"
+      as_fn_executable_p "$ac_path_EGREP_TRADITIONAL" || continue
+# Check for GNU ac_path_EGREP_TRADITIONAL and select it if it is found.
+  # Check for GNU $ac_path_EGREP_TRADITIONAL
+case `"$ac_path_EGREP_TRADITIONAL" --version 2>&1` in #(
+*GNU*)
+  ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL" ac_path_EGREP_TRADITIONAL_found=:;;
+#(
+*)
+  ac_count=0
+  printf %s 0123456789 >"conftest.in"
+  while :
+  do
+    cat "conftest.in" "conftest.in" >"conftest.tmp"
+    mv "conftest.tmp" "conftest.in"
+    cp "conftest.in" "conftest.nl"
+    printf "%s\n" 'EGREP_TRADITIONAL' >> "conftest.nl"
+    "$ac_path_EGREP_TRADITIONAL" -E 'EGR(EP|AC)_TRADITIONAL$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
+    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
+    as_fn_arith $ac_count + 1 && ac_count=$as_val
+    if test $ac_count -gt ${ac_path_EGREP_TRADITIONAL_max-0}; then
+      # Best one so far, save it but keep looking for a better one
+      ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL"
+      ac_path_EGREP_TRADITIONAL_max=$ac_count
+    fi
+    # 10*(2^10) chars as input seems more than enough
+    test $ac_count -gt 10 && break
+  done
+  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
+esac
+
+      $ac_path_EGREP_TRADITIONAL_found && break 3
+    done
+  done
+  done
+IFS=$as_save_IFS
+  if test -z "$ac_cv_path_EGREP_TRADITIONAL"; then
+    :
+  fi
+else
+  ac_cv_path_EGREP_TRADITIONAL=$EGREP_TRADITIONAL
+fi
+
+    if test "$ac_cv_path_EGREP_TRADITIONAL"
+then :
+  ac_cv_path_EGREP_TRADITIONAL="$ac_cv_path_EGREP_TRADITIONAL -E"
+else case e in #(
+  e) if test -z "$EGREP_TRADITIONAL"; then
+  ac_path_EGREP_TRADITIONAL_found=false
+  # Loop through the user's path and test for each of PROGNAME-LIST
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_prog in egrep
+   do
+    for ac_exec_ext in '' $ac_executable_extensions; do
+      ac_path_EGREP_TRADITIONAL="$as_dir$ac_prog$ac_exec_ext"
+      as_fn_executable_p "$ac_path_EGREP_TRADITIONAL" || continue
+# Check for GNU ac_path_EGREP_TRADITIONAL and select it if it is found.
+  # Check for GNU $ac_path_EGREP_TRADITIONAL
+case `"$ac_path_EGREP_TRADITIONAL" --version 2>&1` in #(
+*GNU*)
+  ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL" ac_path_EGREP_TRADITIONAL_found=:;;
+#(
+*)
+  ac_count=0
+  printf %s 0123456789 >"conftest.in"
+  while :
+  do
+    cat "conftest.in" "conftest.in" >"conftest.tmp"
+    mv "conftest.tmp" "conftest.in"
+    cp "conftest.in" "conftest.nl"
+    printf "%s\n" 'EGREP_TRADITIONAL' >> "conftest.nl"
+    "$ac_path_EGREP_TRADITIONAL" 'EGR(EP|AC)_TRADITIONAL$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
+    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
+    as_fn_arith $ac_count + 1 && ac_count=$as_val
+    if test $ac_count -gt ${ac_path_EGREP_TRADITIONAL_max-0}; then
+      # Best one so far, save it but keep looking for a better one
+      ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL"
+      ac_path_EGREP_TRADITIONAL_max=$ac_count
+    fi
+    # 10*(2^10) chars as input seems more than enough
+    test $ac_count -gt 10 && break
+  done
+  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
+esac
+
+      $ac_path_EGREP_TRADITIONAL_found && break 3
+    done
+  done
+  done
+IFS=$as_save_IFS
+  if test -z "$ac_cv_path_EGREP_TRADITIONAL"; then
+    as_fn_error $? "no acceptable egrep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
+  fi
+else
+  ac_cv_path_EGREP_TRADITIONAL=$EGREP_TRADITIONAL
+fi
+ ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_EGREP_TRADITIONAL" >&5
+printf "%s\n" "$ac_cv_path_EGREP_TRADITIONAL" >&6; }
+ EGREP_TRADITIONAL=$ac_cv_path_EGREP_TRADITIONAL
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for proc_getchildren_rusage in process.defs" >&5
+printf %s "checking for proc_getchildren_rusage in process.defs... " >&6; }
+if test ${libc_cv_hurd_rpc_proc_getchildren_rusage+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <hurd/process.defs>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP_TRADITIONAL "proc_getchildren_rusage" >/dev/null 2>&1
+then :
+  libc_cv_hurd_rpc_proc_getchildren_rusage=yes
+else case e in #(
+  e) libc_cv_hurd_rpc_proc_getchildren_rusage=no ;;
+esac
+fi
+rm -rf conftest*
+ ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_hurd_rpc_proc_getchildren_rusage" >&5
+printf "%s\n" "$libc_cv_hurd_rpc_proc_getchildren_rusage" >&6; }
+if test $libc_cv_hurd_rpc_proc_getchildren_rusage = yes; then
+  printf "%s\n" "#define HAVE_HURD_PROC_GETCHILDREN_RUSAGE 1" >>confdefs.h
+
+fi
+
+
+if test -n "$sysheaders"; then
+  CPPFLAGS=$OLD_CPPFLAGS
+fi
+
+# Hurd has libpthread as a separate library.
+pthread_in_libc=no
+

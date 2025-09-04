@@ -1,0 +1,85 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/riscv/elf.
+
+# Check if static linker supports R_RISCV_ALIGN
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for R_RISCV_ALIGN linker relaxation support" >&5
+printf %s "checking for R_RISCV_ALIGN linker relaxation support... " >&6; }
+if test ${libc_cv_riscv_r_align+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)   cat > conftest.S <<EOF
+.align 3
+foo:
+  li a0,42
+  ret
+EOF
+  libc_cv_riscv_r_align=no
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -nostdlib -nostartfiles $no_ssp -shared -fPIC -o contests.o conftest.S'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+    libc_cv_riscv_r_align=yes
+  fi
+  rm -rf conftest.* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_riscv_r_align" >&5
+printf "%s\n" "$libc_cv_riscv_r_align" >&6; }
+config_vars="$config_vars
+riscv-r-align = $libc_cv_riscv_r_align"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if the toolchain is sufficient to build static PIE on RISC-V" >&5
+printf %s "checking if the toolchain is sufficient to build static PIE on RISC-V... " >&6; }
+if test ${libc_cv_static_pie_on_riscv+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+  cat > conftest1.S <<\EOF
+    .globl _start
+    .type   _start, @function
+_start:
+    nop
+
+    .data
+    /* This should produce an R_RISCV_RELATIVE in the static PIE.  */
+    .dword      _start
+EOF
+
+  libc_cv_static_pie_on_riscv=no
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -static-pie -nostdlib -fPIE -o conftest1 conftest1.S'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && { ac_try='LC_ALL=C $READELF -Wr conftest1 | grep -q R_RISCV_RELATIVE'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } \
+     && ! { ac_try='LC_ALL=C $READELF -Wl conftest1 | grep -q INTERP'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+    libc_cv_static_pie_on_riscv=yes
+  fi
+  rm -rf conftest*  ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_static_pie_on_riscv" >&5
+printf "%s\n" "$libc_cv_static_pie_on_riscv" >&6; }
+
+if test "$libc_cv_static_pie_on_riscv" = yes; then
+  printf "%s\n" "#define SUPPORT_STATIC_PIE 1" >>confdefs.h
+
+fi
+

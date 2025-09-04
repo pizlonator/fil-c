@@ -1,0 +1,181 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Ossetian Language Locale for Russia
+% Language: os
+% Territory: RU
+% Revision: 1.0
+% Date: 2011-05-06
+% Application: general
+% Users: general
+%
+% Based on ru_RU, cv_RU, da_DK
+% Modifed by:
+%    Soslan Khubulov <soslanx@gmail.com>
+%
+
+LC_IDENTIFICATION
+title      "Ossetian locale for Russia"
+source     ""
+address    ""
+contact    ""
+email      "bug-glibc-locales@gnu.org"
+tel        ""
+fax        ""
+language   "Ossetic"
+territory  "Russia"
+revision   "1.0"
+date       "2000-06-29"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_COLLATE
+% There is no collation information for Ossetian in CLDR.
+% I just adapt the collation rules which I found here to the
+% updated iso14651_t1_common file.
+copy "iso14651_t1"
+
+collating-symbol <ae>
+
+reorder-after <S0430> % CYRILLIC SMALL LETTER A
+<ae>
+
+<U04D5> <ae>;"<BASE><BASE>";"<MIN><MIN>";IGNORE % ӕ CYRILLIC SMALL LIGATURE A IE
+<U04D4> <ae>;"<BASE><BASE>";"<CAP><CAP>";IGNORE % Ӕ CYRILLIC CAPITAL LIGATURE A IE
+<U00E6> <ae>;"<BASE><VRNT1>";"<MIN><MIN>";IGNORE % æ LATIN SMALL LETTER AE
+<U00C6> <ae>;"<BASE><VRNT1>";"<CAP><CAP>";IGNORE % Æ LATIN CAPITAL LETTER AE
+reorder-end
+END LC_COLLATE
+
+LC_CTYPE
+copy "i18n"
+
+translit_start
+include  "translit_combining";""
+translit_end
+
+END LC_CTYPE
+
+LC_MESSAGES
+yesexpr "^[+1yYуУ]"
+noexpr  "^[-0nNнН]"
+yesstr  "уойы"
+nostr   "нӕйы"
+END LC_MESSAGES
+
+LC_MONETARY
+copy "ru_RU"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "ru_RU"
+END LC_NUMERIC
+
+LC_TIME
+abday "Хцб";"Крс";/
+      "Дцг";"Æрт";/
+      "Цпр";"Мрб";/
+      "Сбт"
+day "Хуыцаубон";/
+    "Къуырисæр";/
+    "Дыццæг";/
+    "Æртыццæг";/
+    "Цыппæрæм";/
+    "Майрæмбон";/
+    "Сабат"
+
+abmon   "Янв";/
+"Фев";/
+"Мар";/
+"Апр";/
+"Май";/
+"Июн";/
+"Июл";/
+"Авг";/
+"Сен";/
+"Окт";/
+"Ноя";/
+"Дек"
+
+alt_mon "Январь";/
+"Февраль";/
+"Мартъи";/
+"Апрель";/
+"Май";/
+"Июнь";/
+"Июль";/
+"Август";/
+"Сентябрь";/
+"Октябрь";/
+"Ноябрь";/
+"Декабрь"
+
+mon     "январы";/
+"февралы";/
+"мартъийы";/
+"апрелы";/
+"майы";/
+"июны";/
+"июлы";/
+"августы";/
+"сентябры";/
+"октябры";/
+"ноябры";/
+"декабры"
+d_t_fmt   "%a %d %b %Y %T"
+date_fmt  "%a %d %b %Y %T %Z"
+d_fmt     "%d.%m.%Y"
+t_fmt     "%T"
+am_pm     "";""
+t_fmt_ampm ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_PAPER
+copy "ru_RU"
+END LC_PAPER
+
+LC_TELEPHONE
+copy "ru_RU"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "ru_RU"
+END LC_MEASUREMENT
+
+LC_NAME
+copy "ru_RU"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt    "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "Уӕрӕсе"
+country_ab2 "RU"
+country_ab3 "RUS"
+country_num 643
+country_car "RUS"
+lang_name   "ирон"
+lang_ab      "os"
+lang_term    "oss"
+lang_lib    "oss"
+END LC_ADDRESS

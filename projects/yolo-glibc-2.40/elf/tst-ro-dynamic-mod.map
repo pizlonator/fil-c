@@ -1,0 +1,16 @@
+SECTIONS
+{
+ . = SIZEOF_HEADERS;
+ .dynamic : { *(.dynamic) } :text :dynamic
+ .rodata : { *(.data*) *(.bss*) } :text
+ /DISCARD/ : {
+  *(.note.gnu.property)
+ }
+ .note : { *(.note.*) } :text :note
+}
+PHDRS
+{
+ text PT_LOAD FLAGS(5) FILEHDR PHDRS;
+ dynamic PT_DYNAMIC FLAGS(4);
+ note PT_NOTE FLAGS(4);
+}

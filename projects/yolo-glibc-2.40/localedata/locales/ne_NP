@@ -1,0 +1,182 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Nepali language locale for Nepal.
+
+LC_IDENTIFICATION
+title      "Nepali language locale for Nepal"
+source     "Madan Puraskar Pustakalaya"
+address    "Rato Bangala, Patan Dhoka,Lalitpur,Nepal"
+contact    ""
+email      "info@mpp.org.np"
+tel        ""
+fax        ""
+language   "Nepali"
+territory  "Nepal"
+revision   "1.1"
+date       "2003-05-12"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "i18n"
+
+translit_start
+include  "translit_combining";""
+translit_end
+END LC_CTYPE
+
+LC_COLLATE
+% Copy the template from ISO/IEC 14651
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_MONETARY
+% This is the POSIX Locale definition the LC_MONETARY category.
+% These are generated based on XML base Locale definition file
+% for IBM Class for Unicode/Java
+%
+int_curr_symbol       "NPR "
+currency_symbol       "रू"
+mon_decimal_point     "."
+mon_thousands_sep     ","
+mon_grouping          3
+positive_sign         ""
+negative_sign         "-"
+int_frac_digits       2
+frac_digits           2
+p_cs_precedes         1
+p_sep_by_space        1
+n_cs_precedes         1
+n_sep_by_space        1
+p_sign_posn           1
+n_sign_posn           1
+%
+END LC_MONETARY
+
+
+LC_NUMERIC
+% This is the POSIX Locale definition for the LC_NUMERIC  category.
+%
+decimal_point          "."
+thousands_sep          ","
+grouping               3
+%
+END LC_NUMERIC
+
+
+LC_TIME
+abday       "आइत";/
+            "सोम";/
+            "मङ्गल";/
+            "बुध";/
+            "बिही";/
+            "शुक्र";/
+            "शनि"
+day         "आइतबार";/
+            "सोमबार";/
+            "मङ्गलबार";/
+            "बुधबार";/
+            "बिहीबार";/
+            "शुक्रबार";/
+            "शनिबार"
+abmon       "जन";/
+            "फेब्रुअरी";/
+            "मार्च";/
+            "अप्रिल";/
+            "मे";/
+            "जुन";/
+            "जुलाई";/
+            "अगस्ट";/
+            "सेप्टेम्बर";/
+            "अक्टोबर";/
+            "नोभेम्बर";/
+            "डिसेम्बर"
+mon         "जनवरी";/
+            "फेब्रुअरी";/
+            "मार्च";/
+            "अप्रिल";/
+            "मे";/
+            "जुन";/
+            "जुलाई";/
+            "अगस्ट";/
+            "सेप्टेम्बर";/
+            "अक्टोबर";/
+            "नोभेम्बर";/
+            "डिसेम्बर"
+am_pm       "पूर्वाह्न";/
+            "अपराह्न"
+d_t_fmt     "%Y %B %d %I:%M:%S %p"
+date_fmt    "%Y %B %d %I:%M:%S %p %Z"
+d_fmt       "%y//%-m//%-d"
+t_fmt       "%H:%M:%S"
+t_fmt_ampm  "%I:%M:%S %p"
+week 7;19971130;1
+END LC_TIME
+
+
+LC_MESSAGES
+yesexpr "^[+1yY]"
+noexpr  "^[-0nN]"
+yesstr  "हो"
+nostr   "होइन"
+END LC_MESSAGES
+
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+
+LC_NAME
+name_fmt  "%p%t%g%t%m%t%f"
+name_gen  "ज्यू"
+name_mr   "श्रीमान्"
+name_mrs  "श्रीमती"
+name_miss "सुश्री"
+END LC_NAME
+
+
+LC_ADDRESS
+postal_fmt	 "%f%N%h%s%N%T"
+country_name "नेपाल"
+country_ab2 "NP"
+country_ab3 "NPL"
+country_num 524
+country_car    "NEP"
+lang_name    "नेपाली"
+lang_ab      "ne"
+lang_term    "nep"
+lang_lib    "nep"
+END LC_ADDRESS
+
+
+LC_TELEPHONE
+tel_int_fmt    "+%c %a%t%l"
+int_prefix     "977"
+int_select     "00"
+END LC_TELEPHONE
+
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT

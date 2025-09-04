@@ -1,0 +1,197 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Syriac language locale
+%
+% build with: localedef -f UTF-8 -i syr syr
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Syriac Language Locale
+% Source: Emil Soleyman-Zomalan
+% Address:
+% Contact: Emil Soleyman-Zomalan
+% Email: emil@soleyman.com
+% Tel:
+% Fax:
+% Language: syr
+% Territory:
+% Revision: 0.2
+% Date: 2021-01-15
+% Application: general
+% Users: general
+% License: Public Domain
+
+LC_IDENTIFICATION
+title      "Syriac language locale"
+source     "Emil Soleyman-Zomalan"
+address    ""
+contact    ""
+email      "emil@soleyman.com"
+tel        ""
+fax        ""
+language   "Syriac"
+territory  ""
+revision   "0.2"
+date       "2021-01-15"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "i18n"
+
+translit_start
+include "translit_combining";""
+translit_end
+END LC_CTYPE
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_MONETARY
+int_curr_symbol   "XDR "
+currency_symbol   "<U00A4>"
+mon_decimal_point "."
+mon_thousands_sep ","
+mon_grouping      3
+positive_sign     ""
+negative_sign     "-"
+int_frac_digits   2
+frac_digits       2
+p_cs_precedes     1
+p_sep_by_space    1
+n_cs_precedes     1
+n_sep_by_space    1
+p_sign_posn       1
+n_sign_posn       1
+END LC_MONETARY
+
+LC_NUMERIC
+decimal_point     "."
+thousands_sep     ","
+grouping          3
+END LC_NUMERIC
+
+LC_TIME
+% Syriac does not have abbreviations for month names. As a result,
+% "abmon" is similar to "mon"
+
+%
+% Abbreviated weekday names (%a)
+%
+abday    "<U0710>";/
+         "<U0712>";/
+         "<U0713>";/
+         "<U0715>";/
+         "<U0717>";/
+         "<U0725>";/
+         "<U072B>"
+%
+% Full weekday names (%A)
+%
+day      "<U071A><U0715> <U0712><U072B><U0712><U0710>";/
+         "<U072C><U072A><U071D><U0722> <U0712><U072B><U0712><U0710>";/
+         "<U072C><U0720><U072C> <U0712><U072B><U0712><U0710>";/
+         "<U0710><U072A><U0712><U0725> <U0712><U072B><U0712><U0710>";/
+         "<U071A><U0721><U072B> <U0712><U072B><U0712><U0710>";/
+         "<U0725><U072A><U0718><U0712><U072C><U0710>";/
+         "<U072B><U0712><U072C><U0710>"
+%
+% Abbreviated month names (%b)
+%
+abmon    "<U070F><U071F><U0722> <U070F><U0712>";/
+         "<U072B><U0712><U071B>";/
+         "<U0710><U0715><U072A>";/
+         "<U0722><U071D><U0723><U0722>";/
+         "<U0710><U071D><U072A>";/
+         "<U071A><U0719><U071D><U072A><U0722>";/
+         "<U072C><U0721><U0718><U0719>";/
+         "<U0710><U0712>";/
+         "<U0710><U071D><U0720><U0718><U0720>";/
+         "<U070F><U072C><U072B> <U070F><U0710>";/
+         "<U070F><U072C><U072B> <U070F><U0712>";/
+         "<U070F><U071F><U0722> <U070F><U0710>"
+%
+% Full month names (%B)
+%
+mon      "<U071F><U0722><U0718><U0722> <U0710><U071A><U072A><U071D><U0710>";/
+         "<U072B><U0712><U071B>";/
+         "<U0710><U0715><U072A>";/
+         "<U0722><U071D><U0723><U0722>";/
+         "<U0710><U071D><U072A>";/
+         "<U071A><U0719><U071D><U072A><U0722>";/
+         "<U072C><U0721><U0718><U0719>";/
+         "<U0710><U0712>";/
+         "<U0710><U071D><U0720><U0718><U0720>";/
+         "<U072C><U072B><U072A><U071D><U0722> <U0729><U0715><U0721><U071D><U0710>";/
+         "<U072C><U072B><U072A><U071D><U0722> <U0710><U071A><U072A><U071D><U0710>";/
+         "<U071F><U0722><U0718><U0722> <U0729><U0715><U0721><U071D><U0710>"
+
+
+d_t_fmt  "%H:%M:%S %Y %b %d %a"
+date_fmt "%Z %H:%M:%S %Y %b %d %a"
+d_fmt   "%d//%m//%Y"
+t_fmt   "%H:%M:%S"
+am_pm   "<U0729>.<U071B>";"<U0712>.<U071B>"
+t_fmt_ampm  "%I:%M:%S %P"
+week 7;19971130;1
+first_workday 1
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yY<U0717>]"
+noexpr  "^[-0nN<U0720>]"
+yesstr  "<U0717><U0710>"
+nostr   "<U0720><U0710>"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_NAME
+name_fmt    "%d%t%s%t%g%t%m%t%f"
+name_gen    ""
+name_miss   "<U0721><U071D><U0729><U072A><U072C><U0710>"
+name_ms     "<U0721><U071D><U0729><U072A><U072C><U0710>"
+name_mrs    "<U0721><U071D><U0729><U072A><U072C><U0710>"
+name_mr     "<U0721><U071D><U0729><U072A><U0710>"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt   "%f%N%a%N%d%N%b%N%s %h %e %r%N%%z %T%N%c%N"
+lang_name   "<U0723><U0718><U072A><U071D><U071D><U0710>"
+lang_term   "syr"
+lang_lib    "syr"
+END LC_ADDRESS
+
+LC_TELEPHONE
+tel_int_fmt "+%c %a%t%l"
+int_select  "00"
+END LC_TELEPHONE

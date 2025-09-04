@@ -1,0 +1,190 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Tamazight language locale for Morocco
+% Contributed by OUBOUALI Hakim <hakim.oubouali.skr@gmail.com>
+% and Yassine Aït-El-Mouden <yaitelmouden@outlook.com>
+
+LC_IDENTIFICATION
+title      "Tamazight language locale for Morocco"
+source     ""
+contact    "OUBOUALI Hakim"
+email      "hakim.oubouali@etu.cyu.fr"
+language   "Moroccan Tamazight"
+territory  "Morocco"
+revision   "1.0"
+date       "2020-10-18"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+
+
+LC_CTYPE
+copy "i18n"
+
+translit_start
+include "translit_combining";""
+translit_end
+END LC_CTYPE
+
+LC_COLLATE
+
+% Copy the template from ISO/IEC 14651
+copy "iso14651_t1"
+
+END LC_COLLATE
+
+
+LC_TIME
+day     "ⴰⵙⴰⵎⴰⵙ";/
+        "ⴰⵢⵏⵏⴰⵙ";/
+        "ⴰⵢⵙⵉⵏⴰⵙ";/
+        "ⴰⴽⵕⴰⵙ";/
+        "ⴰⴽⵡⴰⵙ";/
+        "ⴰⵙⵉⵎⵡⴰⵙ";/
+        "ⴰⵙⵉⴹⵢⴰⵙ"
+
+abday   "ⴰⵙⴰ";/
+        "ⴰⵢⵏ";/
+        "ⴰⵙⵏ";/
+        "ⴰⴽⵕ";/
+        "ⴰⴽⵡ";/
+        "ⴰⵙⵎ";/
+        "ⴰⵙⴹ"
+
+mon     "ⵉⵏⵏⴰⵢⵔ";/
+        "ⴱⵕⴰⵢⵕ";/
+        "ⵎⴰⵕⵚ";/
+        "ⵉⴱⵔⵉⵔ";/
+        "ⵎⴰⵢⵢⵓ";/
+        "ⵢⵓⵏⵢⵓ";/
+        "ⵢⵓⵍⵢⵓⵣ";/
+        "ⵖⵓⵛⵜ";/
+        "ⵛⵓⵜⴰⵏⴱⵉⵔ";/
+        "ⴽⵟⵓⴱⵕ";/
+        "ⵏⵓⵡⴰⵏⴱⵉⵔ";/
+        "ⴷⵓⵊⴰⵏⴱⵉⵔ"
+
+abmon   "ⵉⵏⵏ";/
+        "ⵉⴱⵔ";/
+        "ⵎⵕⵚ";/
+        "Apr";/
+        "ⵎⴰⵢ";/
+        "ⵢⵓⵏ";/
+        "ⵢⵓⵍ";/
+        "ⵖⵓⵛ";/
+        "ⵛⵓⵜ";/
+        "ⴽⵟⵓ";/
+        "ⵏⵓⵡ";/
+        "ⴷⵓⵊ"
+%
+% Appropriate date and time representation
+d_t_fmt       "%a %d %b %Y %T"
+%
+% Appropriate date and time representation for date(1)
+date_fmt      "%a %d %b %Y %T %Z"
+% Appropriate date representation
+d_fmt         "%d//%m//%Y"
+% Appropriate time representation
+t_fmt         "%T"
+% Appropriate 12 h time representation
+t_fmt_ampm    "%I:%M:%S %p"
+%
+% Strings for AM/PM
+%
+am_pm "ⵏ ⵜⵉⴼⴰⵡⵜ";"ⵏ ⵜⴷⴳⴳⵯⴰⵜ"
+week 7;19971130;1
+first_weekday 7
+first_workday 1
+END LC_TIME
+
+LC_NUMERIC
+decimal_point ","
+thousands_sep ""
+grouping      3
+END LC_NUMERIC
+
+LC_MONETARY
+% This is the POSIX Locale definition the LC_MONETARY category.
+% These are generated based on XML base Locale definition file
+% for IBM Class for Unicode/Java
+%
+int_curr_symbol       "MAD "
+currency_symbol       "ⴷ.ⵎ"
+mon_decimal_point     "."
+mon_thousands_sep     ","
+mon_grouping          3
+positive_sign         ""
+negative_sign         "-"
+int_frac_digits       3
+frac_digits           3
+p_cs_precedes         1
+p_sep_by_space        1
+n_cs_precedes         1
+n_sep_by_space        1
+p_sign_posn           1
+n_sign_posn           2
+%
+END LC_MONETARY
+
+LC_MESSAGES
+yesexpr "^[+1yYiI]"
+noexpr  "^[-0nNuUaA]"
+yesstr "ⵢⴰⵀ"
+nostr  "ⵓⵀⵓ"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_NAME
+name_fmt  "%d%t%g%t%m%t%f"
+name_miss "ⵜⴰⵎⵙⵉⵡⵜ"
+name_mr   "ⵎⴰⵙⵙ"
+name_mrs  "ⵎⴰⵙⵙⴰ"
+name_ms   "ⵎⴰⵙⵙⴰ"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt   "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵓⵎⵔⵔⵓⴽ"
+country_ab2  "MA"
+country_ab3  "MAR"
+country_num  504
+country_car  "MA"
+lang_name    "ⵜⴰⵎⴰⵣⵉⵖⵜ"
+lang_term    "zgh"
+lang_lib     "zgh"
+END LC_ADDRESS
+
+LC_TELEPHONE
+% This is the ISO_IEC TR14652 Locale definition for the
+%
+tel_int_fmt "+%c ;%a ;%l"
+int_prefix  "212"
+int_select  "00"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "ar_MA"
+END LC_MEASUREMENT

@@ -1,0 +1,50 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+# Local preconfigure fragment for sysdeps/loongarch
+
+case "$machine" in
+loongarch*)
+
+    abi=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __loongarch_\(lp64\|ilp32\).*/\1/p'`
+    float_abi=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __loongarch_\(soft\|single\|double\)_float.*/\1/p'`
+
+    with_fp_cond="!defined __loongarch_soft_float"
+
+    case "$float_abi" in
+    soft)
+	abi_flen=0
+	;;
+    single)
+	as_fn_error 1 "glibc does not yet support the single floating-point ABI!!" "$LINENO" 5
+	;;
+    double)
+	abi_flen=64
+	;;
+    *)
+	as_fn_error 1 "Unable to determine floating-point ABI!!" "$LINENO" 5
+	;;
+    esac
+
+    case "$abi" in
+    ilp32)
+	as_fn_error 1 "loongarch does not yet support ilp32 ABI!!" "$LINENO" 5
+	;;
+    lp64)
+	grlen=64
+	machine=loongarch/lp64
+	;;
+    *)
+	as_fn_error 1 "Unable to determine GRLEN!!" "$LINENO" 5
+	;;
+    esac
+
+    printf "%s\n" "#define LOONGARCH_ABI_GRLEN $grlen" >>confdefs.h
+
+    printf "%s\n" "#define LOONGARCH_ABI_FRLEN $abi_flen" >>confdefs.h
+
+
+    base_machine=loongarch
+    mtls_descriptor=desc
+    ;;
+esac
+
+

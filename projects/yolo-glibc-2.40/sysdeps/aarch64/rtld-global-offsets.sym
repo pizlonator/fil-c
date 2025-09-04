@@ -1,0 +1,10 @@
+#define SHARED 1
+
+#include <ldsodefs.h>
+
+#define GLRO_offsetof(name) offsetof (struct rtld_global_ro, _##name)
+
+-- Offsets of _rtld_global_ro in libc.so
+
+GLRO_DL_HWCAP_OFFSET	GLRO_offsetof (dl_hwcap)
+GLRO_DL_HWCAP2_OFFSET	GLRO_offsetof (dl_hwcap2)

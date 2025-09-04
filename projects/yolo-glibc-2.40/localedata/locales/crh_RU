@@ -1,0 +1,183 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+LC_IDENTIFICATION
+title		"Crimean Tatar language locale for Russia"
+source		""
+address		""
+contact		""
+email		""
+tel		""
+fax		""
+language	"Crimean Tatar"
+territory	"Russian Federation"
+revision	"0.1"
+date		"2009-08-16"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_NAME
+END LC_IDENTIFICATION
+
+LC_COLLATE
+copy "iso14651_t1"
+
+% title case for digraphs
+collating-symbol <TIT>
+
+collating-symbol <crh-gh>
+collating-symbol <crh-q>
+collating-symbol <crh-j>
+collating-symbol <crh-ng>
+collating-element <crh-gy> from "гъ"
+collating-element <crh-Gy> from "Гъ"
+collating-element <crh-GY> from "ГЪ"
+collating-element <crh-ky> from "къ"
+collating-element <crh-Ky> from "Къ"
+collating-element <crh-KY> from "КЪ"
+collating-element <crh-dz> from "дж"
+collating-element <crh-Dz> from "Дж"
+collating-element <crh-DZ> from "ДЖ"
+collating-element <crh-ny> from "нъ"
+collating-element <crh-Ny> from "Нъ"
+collating-element <crh-NY> from "НЪ"
+
+reorder-after <CAP>
+<TIT>
+reorder-after <S0433>
+<crh-gh>
+reorder-after <S043A>
+<crh-q>
+reorder-after <S043D>
+<crh-ng>
+reorder-after <S0447>
+<crh-j>
+
+<crh-GY> <crh-gh>;<BASE>;<CAP>;IGNORE
+<crh-Gy> <crh-gh>;<BASE>;<TIT>;IGNORE
+<crh-gy> <crh-gh>;<BASE>;<MIN>;IGNORE
+<crh-DZ> <crh-j>;<BASE>;<CAP>;IGNORE
+<crh-Dz> <crh-j>;<BASE>;<TIT>;IGNORE
+<crh-dz> <crh-j>;<BASE>;<MIN>;IGNORE
+<crh-NY> <crh-ng>;<BASE>;<CAP>;IGNORE
+<crh-Ny> <crh-ng>;<BASE>;<TIT>;IGNORE
+<crh-ny> <crh-ng>;<BASE>;<MIN>;IGNORE
+<crh-KY> <crh-q>;<BASE>;<CAP>;IGNORE
+<crh-Ky> <crh-q>;<BASE>;<TIT>;IGNORE
+<crh-ky> <crh-q>;<BASE>;<MIN>;IGNORE
+
+reorder-end
+
+END LC_COLLATE
+
+LC_CTYPE
+copy "ru_RU"
+END LC_CTYPE
+
+LC_MESSAGES
+yesexpr "^[+1yYэЭ]"
+noexpr  "^[-0nNёЁ]"
+yesstr  "эбет"
+nostr   "ёкъ"
+END LC_MESSAGES
+
+LC_MONETARY
+copy "ru_RU"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "ru_RU"
+END LC_NUMERIC
+
+LC_TIME
+day     "базар";/
+        "базарэртеси";/
+        "салы";/
+        "чаршенбе";/
+        "джумаакъшамы";/
+        "джума";/
+        "джумаэртеси"
+abday   "Баз";/
+        "Бзэ";/
+        "Сал";/
+        "Чар";/
+        "Джма";/
+        "Джу";/
+        "Джмэ"
+mon     "январь";/
+        "февраль";/
+        "март";/
+        "апрель";/
+        "майыс";/
+        "июнь";/
+        "июль";/
+        "август";/
+        "сентябрь";/
+        "октябрь";/
+        "ноябрь";/
+        "декабрь"
+abmon   "янв";/
+        "фев";/
+        "мар";/
+        "апр";/
+        "май";/
+        "июн";/
+        "июл";/
+        "авг";/
+        "сен";/
+        "окт";/
+        "ноя";/
+        "дек"
+d_t_fmt "%a %Y %b %d %T"
+d_fmt     "%d.%m.%Y"
+t_fmt     "%T"
+am_pm     "";""
+t_fmt_ampm ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_ADDRESS
+postal_fmt    "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "Русие Федерациясы"
+country_ab2 "RU"
+country_ab3 "RUS"
+country_num 643
+country_car    "RUS"
+lang_name   "къырымтатар тили"
+lang_term    "crh"
+lang_lib    "crh"
+END LC_ADDRESS
+
+LC_TELEPHONE
+copy "ru_RU"
+END LC_TELEPHONE
+
+LC_NAME
+copy "ru_RU"
+END LC_NAME
+

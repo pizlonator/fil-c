@@ -1,0 +1,199 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Moksha Language Locale for Russia
+% Source:
+% Contact: Pavel Malashkin
+% Email: <2odissey@gmail.com>
+% Language: mdf
+% Territory: RU
+% Revision: 0.1
+% Date: 2024-01-18
+% Application: general
+% Users: general
+
+%
+% TODO: check LC_COLLATE
+%
+% needed extra cyrillic chars:  Ә <U+04D8>, ә <U+04D9>
+%
+% Note: Moksha adopted latin alphabet should gradually
+% replace cyrillic alphabet
+
+LC_IDENTIFICATION
+title "Moksha language locale for Russia"
+source "Pavel Malashkin"
+address ""
+contact "Pavel Malashkin"
+email "2odissey@gmail.com"
+tel ""
+fax ""
+language "Moksha"
+territory "Russia"
+revision "0.1"
+date "2024-01-18"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+END LC_IDENTIFICATION
+
+LC_COLLATE
+
+% There is no collation information for Moksha in CLDR.
+%
+% Moksha Cyrillic alphabet
+%
+% А а  Б б  В в  Г г  Д д  Е е  Ё ё  Ж ж
+% З з  И и  Й й  К к  Л л  М м  Н н  О о
+% П п  Р р  С с  Т т  У у  Ф ф  Х х  Ц ц
+% Ч ч  Ш ш  Щ щ  Ъ ъ  Ы ы  Ь ь  Э э  Ю ю
+% Я я  Ӑ ӑ  Ӓ ӓ
+%
+%  Note: letter Ъ ъ has been replaced with letter Ӑ ӑ (A with breeve)
+%        for represent the mid central vowel [ə]
+%
+%  Note: for represent near-open front unrounded vowel [æ]
+%        use letter Ӓ ӓ (A with diaeresis)
+
+copy "iso14651_t1"
+
+collating-symbol <cyrillic-a-with-breeve>
+collating-symbol <cyrillic-a-with-diaeresis>
+
+% Ӑ after Я
+reorder-after <S044F> % Cyrillic Small Letter Ya (я)
+<cyrillic-a-with-breeve>
+<cyrillic-a-with-diaeresis>
+
+ӑ <cyrillic-a-with-breeve>;<BASE>;<MIN>;IGNORE
+Ӑ <cyrillic-a-with-breeve>;<BASE>;<CAP>;IGNORE
+ӓ <cyrillic-a-with-diaeresis>;<BASE>;<MIN>;IGNORE
+Ӓ <cyrillic-a-with-diaeresis>;<BASE>;<CAP>;IGNORE
+
+reorder-end
+
+END LC_COLLATE
+
+LC_CTYPE
+copy "ru_RU"
+END LC_CTYPE
+
+LC_MESSAGES
+yesexpr "^[+1yYдД]"
+noexpr  "^[-0nNаА]"
+yesstr  "да" % да
+nostr   "аш" % аш
+END LC_MESSAGES
+
+% Use Russian monetary standards only for cyrillic locale
+LC_MONETARY
+copy "ru_RU"
+END LC_MONETARY
+
+% Use Russian numeric standards
+LC_NUMERIC
+copy "ru_RU"
+END LC_NUMERIC
+
+LC_TIME
+% day - The full names of the week days:
+% https://sourceware.org/bugzilla/show_bug.cgi?id=31530#c6
+% https://en.wiktionary.org/wiki/Appendix:Days_of_the_week
+day     "Недляши";/
+        "Атяньжи";/
+        "Шавши";/
+        "Вержи";/
+        "Шуваланя";/
+        "Пяденця";/
+        "Ёткши"
+% abday - The abbreviations for the week days:
+abday   "Нед";/
+        "Атя";/
+        "Шав";/
+        "Вер";/
+        "Шув";/
+        "Пяд";/
+        "Ётк"
+mon     "январь";/
+        "февраль";/
+        "март";/
+        "апрель";/
+        "май";/
+        "июнь";/
+        "июль";/
+        "август";/
+        "сентябрь";/
+        "октябрь";/
+        "ноябрь";/
+        "декабрь"
+abmon   "янв";/
+        "фев";/
+        "мар";/
+        "апр";/
+        "май";/
+        "июн";/
+        "июл";/
+        "авг";/
+        "сен";/
+        "окт";/
+        "ноя";/
+        "дек"
+d_t_fmt   "%a %d %b %Y %T"
+date_fmt  "%a %d %b %Y %T %Z"
+d_fmt     "%d.%m.%Y"
+t_fmt     "%T"
+am_pm     "";""
+t_fmt_ampm ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+copy "ru_RU"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_NAME
+copy "ru_RU"
+END LC_NAME
+
+LC_ADDRESS
+% Use Russian postal format
+postal_fmt "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+% https://mdf.wikipedia.org/wiki/%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F_%D0%BC%D0%B0%D1%81%D1%82%D0%BE%D1%80 : Россия мастор
+country_name "Россия мастор"
+country_ab2 "RU"
+country_ab3 "RUS"
+country_num 643
+country_car    "RUS"
+% https://mdf.wikipedia.org/wiki/%D0%9C%D0%BE%D0%BA%D1%88%D0%B5%D0%BD%D1%8C_%D0%BA%D1%8F%D0%BB%D1%8C : Мокшень кяль
+lang_name    "Мокшень кяль"
+% ISO 639 language abbreviations:
+% 639-1 2 letter, 639-2 3 letter terminology
+lang_ab     ""
+lang_term   "mdf"
+lang_lib    "mdf"
+END LC_ADDRESS

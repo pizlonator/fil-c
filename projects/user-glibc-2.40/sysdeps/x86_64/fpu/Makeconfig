@@ -1,0 +1,175 @@
+# Generate libmvec.mk for libmvec ABI tests.
+
+# Copyright (C) 2021-2024 Free Software Foundation, Inc.
+# This file is part of the GNU C Library.
+
+# The GNU C Library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+
+# The GNU C Library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with the GNU C Library; if not, see
+# <https://www.gnu.org/licenses/>.
+
+-include $(common-objpfx)libmvec.mk
+postclean-generated += libmvec.mk
+
+# Define for both math and mathvec directories.
+libmvec-funcs = \
+  acos \
+  acosh \
+  asin \
+  asinh \
+  atan \
+  atan2 \
+  atanh \
+  cbrt \
+  cos \
+  cosh \
+  erf \
+  erfc \
+  exp \
+  exp10 \
+  exp2 \
+  expm1 \
+  hypot \
+  log \
+  log10 \
+  log1p \
+  log2 \
+  pow \
+  sin \
+  sincos \
+  sinh \
+  tan \
+  tanh \
+
+# Define libmvec function for benchtests directory.
+libmvec-bench-funcs = \
+  acos \
+  acosh \
+  asin \
+  asinh \
+  atan \
+  atan2 \
+  atanh \
+  cbrt \
+  cos \
+  cosh \
+  erf \
+  erfc \
+  exp \
+  exp10 \
+  exp2 \
+  expm1 \
+  hypot \
+  log \
+  log10 \
+  log1p \
+  log2 \
+  pow \
+  sin \
+  sinh \
+  tan \
+  tanh \
+
+bench-libmvec-double = \
+  $(addprefix double-vlen1-, $(libmvec-bench-funcs)) \
+  $(addprefix double-vlen2-, $(libmvec-bench-funcs)) \
+  $(addprefix double-vlen4-, $(libmvec-bench-funcs)) \
+  $(addprefix double-vlen4-avx2-, $(libmvec-bench-funcs)) \
+  $(addprefix double-vlen8-, $(libmvec-bench-funcs)) \
+
+bench-libmvec-float = \
+  $(addsuffix f, $(addprefix float-vlen1-, $(libmvec-bench-funcs))) \
+  $(addsuffix f, $(addprefix float-vlen4-, $(libmvec-bench-funcs))) \
+  $(addsuffix f, $(addprefix float-vlen8-, $(libmvec-bench-funcs))) \
+  $(addsuffix f, $(addprefix float-vlen8-avx2-, $(libmvec-bench-funcs))) \
+  $(addsuffix f, $(addprefix float-vlen16-, $(libmvec-bench-funcs))) \
+
+# The base libmvec ABI tests.
+libmvec-abi-func-tests = \
+  $(addprefix test-double-libmvec-,$(libmvec-funcs)) \
+  $(addsuffix f,$(addprefix test-float-libmvec-,$(libmvec-funcs)))
+
+# The AVX libmvec ABI tests.
+libmvec-abi-func-avx-tests = \
+  $(addsuffix -avx,$(libmvec-abi-func-tests))
+#
+# The AVX2 libmvec ABI tests.
+libmvec-abi-func-avx2-tests = \
+  $(addsuffix -avx2,$(libmvec-abi-func-tests))
+#
+# The AVX512F libmvec ABI tests.
+libmvec-abi-func-avx512f-tests = \
+  $(addsuffix -avx512f,$(libmvec-abi-func-tests))
+
+$(common-objpfx)libmvec.mk: $(common-objpfx)config.make
+	(echo "ifeq (\$$(subdir)\$$(build-mathvec),mathyes)"; \
+	 echo; \
+	 echo "extra-test-objs += \\"; \
+	 for i in "" "-avx" "-avx2" "-avx512f"; do \
+	   echo "  test-libmvec$$i.o \\"; \
+	 done; \
+	 echo "# extra-test-objs"; \
+	 echo; \
+	 for i in "" "-avx" "-avx2" "-avx512f"; do \
+	   for t in $(libmvec-abi-func-tests); do \
+	     echo "\$$(objpfx)$$t$$i: \\"; \
+	     echo "  \$$(objpfx)$$t$$i.o \\"; \
+	     echo "  \$$(objpfx)test-libmvec$$i.o \$$(libmvec)"; \
+	     echo; \
+	   done; \
+	 done; \
+	 for t in $(libmvec-funcs); do \
+	   echo "CFLAGS-test-double-libmvec-$$t.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags)"; \
+	   echo "CFLAGS-test-double-libmvec-$$t-avx.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags) \\"; \
+	   echo "  \$$(double-vlen4-arch-ext-cflags)"; \
+	   echo "CFLAGS-test-double-libmvec-$$t-avx2.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags) \\"; \
+	   echo "  \$$(double-vlen4-arch-ext2-cflags)"; \
+	   echo "CFLAGS-test-double-libmvec-$$t-avx512f.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags) \\"; \
+	   echo "  \$$(double-vlen8-arch-ext-cflags)"; \
+	   echo; \
+	   echo "CFLAGS-test-float-libmvec-$${t}f.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags)"; \
+	   echo "CFLAGS-test-float-libmvec-$${t}f-avx.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags) \\"; \
+	   echo "  \$$(float-vlen8-arch-ext-cflags)"; \
+	   echo "CFLAGS-test-float-libmvec-$${t}f-avx2.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags) \\"; \
+	   echo "  \$$(float-vlen8-arch-ext2-cflags)"; \
+	   echo "CFLAGS-test-float-libmvec-$${t}f-avx512f.c = \\"; \
+	   echo "  \$$(libmvec-abi-test-cflags) \\"; \
+	   echo "  \$$(float-vlen16-arch-ext-cflags)"; \
+	   echo; \
+	 done; \
+	 echo "endif"; \
+	 echo "ifeq (\$$(subdir),benchtests)"; \
+	 for t in $(libmvec-bench-funcs); do \
+	   echo "CFLAGS-bench-double-vlen4-$$t.c = \\"; \
+	   echo "  \$$(double-vlen4-arch-ext-cflags)"; \
+	   echo "CFLAGS-bench-double-vlen4-avx2-$$t.c = \\"; \
+	   echo "  \$$(double-vlen4-arch-ext2-cflags)"; \
+	   echo "CFLAGS-bench-double-vlen8-$$t.c = \\"; \
+	   echo "  \$$(double-vlen8-arch-ext-cflags)"; \
+	   echo; \
+	   echo "CFLAGS-bench-float-vlen8-$${t}f.c = \\"; \
+	   echo "  \$$(float-vlen8-arch-ext-cflags)"; \
+	   echo "CFLAGS-bench-float-vlen8-avx2-$${t}f.c = \\"; \
+	   echo "  \$$(float-vlen8-arch-ext2-cflags)"; \
+	   echo "CFLAGS-bench-float-vlen16-$${t}f.c = \\"; \
+	   echo "  \$$(float-vlen16-arch-ext-cflags)"; \
+	   echo; \
+	 done; \
+	 echo "endif") > $@T
+	mv -f $@T $@

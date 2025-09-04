@@ -1,0 +1,46 @@
+GLIBC_PROVIDES[]dnl See aclocal.m4 in the top level source directory.
+# Local preconfigure fragment for sysdeps/loongarch
+
+case "$machine" in
+loongarch*)
+
+    abi=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __loongarch_\(lp64\|ilp32\).*/\1/p'`
+    float_abi=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | sed -n 's/^#define __loongarch_\(soft\|single\|double\)_float.*/\1/p'`
+
+    with_fp_cond="!defined __loongarch_soft_float"
+
+    case "$float_abi" in
+    soft)
+	abi_flen=0
+	;;
+    single)
+	AC_MSG_ERROR([glibc does not yet support the single floating-point ABI!!], 1)
+	;;
+    double)
+	abi_flen=64
+	;;
+    *)
+	AC_MSG_ERROR([Unable to determine floating-point ABI!!], 1)
+	;;
+    esac
+
+    case "$abi" in
+    ilp32)
+	AC_MSG_ERROR([loongarch does not yet support ilp32 ABI!!], 1)
+	;;
+    lp64)
+	grlen=64
+	machine=loongarch/lp64
+	;;
+    *)
+	AC_MSG_ERROR([Unable to determine GRLEN!!], 1)
+	;;
+    esac
+
+    AC_DEFINE_UNQUOTED([LOONGARCH_ABI_GRLEN], [$grlen])
+    AC_DEFINE_UNQUOTED([LOONGARCH_ABI_FRLEN], [$abi_flen])
+
+    base_machine=loongarch
+    ;;
+esac
+

@@ -1,0 +1,9 @@
+DEFAULT		GLIBC_2.36
+
+%if LOONGARCH_ABI_GRLEN == 64 && LOONGARCH_ABI_FRLEN == 64
+ld=ld-linux-loongarch-lp64d.so.1
+%elif LOONGARCH_ABI_GRLEN == 64 && LOONGARCH_ABI_FRLEN == 0
+ld=ld-linux-loongarch-lp64s.so.1
+%else
+%error cannot determine ABI
+%endif

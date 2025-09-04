@@ -1,0 +1,250 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/unix/sysv/linux/powerpc/powerpc64/.
+
+test -n "$libc_cv_slibdir" ||
+case "$prefix" in
+/usr | /usr/)
+  libc_cv_slibdir='/lib64'
+  libc_cv_rtlddir='/lib64'
+  if test "$libdir" = '${exec_prefix}/lib'; then
+    libdir='${exec_prefix}/lib64';
+    # Locale data can be shared between 32-bit and 64-bit libraries.
+    libc_cv_complocaledir='${exec_prefix}/lib/locale'
+  fi
+  ;;
+esac
+
+# Define default-abi according to compiler flags.
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for egrep -e" >&5
+printf %s "checking for egrep -e... " >&6; }
+if test ${ac_cv_path_EGREP_TRADITIONAL+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if test -z "$EGREP_TRADITIONAL"; then
+  ac_path_EGREP_TRADITIONAL_found=false
+  # Loop through the user's path and test for each of PROGNAME-LIST
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_prog in grep ggrep
+   do
+    for ac_exec_ext in '' $ac_executable_extensions; do
+      ac_path_EGREP_TRADITIONAL="$as_dir$ac_prog$ac_exec_ext"
+      as_fn_executable_p "$ac_path_EGREP_TRADITIONAL" || continue
+# Check for GNU ac_path_EGREP_TRADITIONAL and select it if it is found.
+  # Check for GNU $ac_path_EGREP_TRADITIONAL
+case `"$ac_path_EGREP_TRADITIONAL" --version 2>&1` in #(
+*GNU*)
+  ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL" ac_path_EGREP_TRADITIONAL_found=:;;
+#(
+*)
+  ac_count=0
+  printf %s 0123456789 >"conftest.in"
+  while :
+  do
+    cat "conftest.in" "conftest.in" >"conftest.tmp"
+    mv "conftest.tmp" "conftest.in"
+    cp "conftest.in" "conftest.nl"
+    printf "%s\n" 'EGREP_TRADITIONAL' >> "conftest.nl"
+    "$ac_path_EGREP_TRADITIONAL" -E 'EGR(EP|AC)_TRADITIONAL$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
+    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
+    as_fn_arith $ac_count + 1 && ac_count=$as_val
+    if test $ac_count -gt ${ac_path_EGREP_TRADITIONAL_max-0}; then
+      # Best one so far, save it but keep looking for a better one
+      ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL"
+      ac_path_EGREP_TRADITIONAL_max=$ac_count
+    fi
+    # 10*(2^10) chars as input seems more than enough
+    test $ac_count -gt 10 && break
+  done
+  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
+esac
+
+      $ac_path_EGREP_TRADITIONAL_found && break 3
+    done
+  done
+  done
+IFS=$as_save_IFS
+  if test -z "$ac_cv_path_EGREP_TRADITIONAL"; then
+    :
+  fi
+else
+  ac_cv_path_EGREP_TRADITIONAL=$EGREP_TRADITIONAL
+fi
+
+    if test "$ac_cv_path_EGREP_TRADITIONAL"
+then :
+  ac_cv_path_EGREP_TRADITIONAL="$ac_cv_path_EGREP_TRADITIONAL -E"
+else case e in #(
+  e) if test -z "$EGREP_TRADITIONAL"; then
+  ac_path_EGREP_TRADITIONAL_found=false
+  # Loop through the user's path and test for each of PROGNAME-LIST
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_prog in egrep
+   do
+    for ac_exec_ext in '' $ac_executable_extensions; do
+      ac_path_EGREP_TRADITIONAL="$as_dir$ac_prog$ac_exec_ext"
+      as_fn_executable_p "$ac_path_EGREP_TRADITIONAL" || continue
+# Check for GNU ac_path_EGREP_TRADITIONAL and select it if it is found.
+  # Check for GNU $ac_path_EGREP_TRADITIONAL
+case `"$ac_path_EGREP_TRADITIONAL" --version 2>&1` in #(
+*GNU*)
+  ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL" ac_path_EGREP_TRADITIONAL_found=:;;
+#(
+*)
+  ac_count=0
+  printf %s 0123456789 >"conftest.in"
+  while :
+  do
+    cat "conftest.in" "conftest.in" >"conftest.tmp"
+    mv "conftest.tmp" "conftest.in"
+    cp "conftest.in" "conftest.nl"
+    printf "%s\n" 'EGREP_TRADITIONAL' >> "conftest.nl"
+    "$ac_path_EGREP_TRADITIONAL" 'EGR(EP|AC)_TRADITIONAL$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
+    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
+    as_fn_arith $ac_count + 1 && ac_count=$as_val
+    if test $ac_count -gt ${ac_path_EGREP_TRADITIONAL_max-0}; then
+      # Best one so far, save it but keep looking for a better one
+      ac_cv_path_EGREP_TRADITIONAL="$ac_path_EGREP_TRADITIONAL"
+      ac_path_EGREP_TRADITIONAL_max=$ac_count
+    fi
+    # 10*(2^10) chars as input seems more than enough
+    test $ac_count -gt 10 && break
+  done
+  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
+esac
+
+      $ac_path_EGREP_TRADITIONAL_found && break 3
+    done
+  done
+  done
+IFS=$as_save_IFS
+  if test -z "$ac_cv_path_EGREP_TRADITIONAL"; then
+    as_fn_error $? "no acceptable egrep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
+  fi
+else
+  ac_cv_path_EGREP_TRADITIONAL=$EGREP_TRADITIONAL
+fi
+ ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_EGREP_TRADITIONAL" >&5
+printf "%s\n" "$ac_cv_path_EGREP_TRADITIONAL" >&6; }
+ EGREP_TRADITIONAL=$ac_cv_path_EGREP_TRADITIONAL
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler is using the PowerPC64 ELFv2 ABI" >&5
+printf %s "checking whether the compiler is using the PowerPC64 ELFv2 ABI... " >&6; }
+if test ${libc_cv_ppc64_elfv2_abi+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if _CALL_ELF == 2
+                      yes
+                     #endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP_TRADITIONAL "yes" >/dev/null 2>&1
+then :
+  libc_cv_ppc64_elfv2_abi=yes
+else case e in #(
+  e) libc_cv_ppc64_elfv2_abi=no ;;
+esac
+fi
+rm -rf conftest*
+ ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ppc64_elfv2_abi" >&5
+printf "%s\n" "$libc_cv_ppc64_elfv2_abi" >&6; }
+if test $libc_cv_ppc64_elfv2_abi = yes; then
+  config_vars="$config_vars
+default-abi = 64-v2"
+  # For shlib-versions.
+  printf "%s\n" "#define HAVE_ELFV2_ABI 1" >>confdefs.h
+
+else
+  config_vars="$config_vars
+default-abi = 64-v1"
+  # Compiler that do not support ELFv2 ABI does not define _CALL_ELF
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler defines _CALL_ELF" >&5
+printf %s "checking whether the compiler defines _CALL_ELF... " >&6; }
+if test ${libc_cv_ppc64_def_call_elf+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef _CALL_ELF
+                         yes
+                       #endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP_TRADITIONAL "yes" >/dev/null 2>&1
+then :
+  libc_cv_ppc64_def_call_elf=yes
+else case e in #(
+  e) libc_cv_ppc64_def_call_elf=no ;;
+esac
+fi
+rm -rf conftest*
+ ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ppc64_def_call_elf" >&5
+printf "%s\n" "$libc_cv_ppc64_def_call_elf" >&6; }
+  if test $libc_cv_ppc64_def_call_elf = no; then
+    libc_extra_cppflags="$libc_extra_cppflags -D_CALL_ELF=1"
+  fi
+fi
+# Set minimum kernel version for ppc64le.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking the machine type to set minimum kernel version" >&5
+printf %s "checking the machine type to set minimum kernel version... " >&6; }
+if test ${libc_cv_ppc64_le+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+                      yes
+                     #endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP_TRADITIONAL "yes" >/dev/null 2>&1
+then :
+  arch_minimum_kernel=3.10.0
+else case e in #(
+  e) libc_cv_ppc64_le=no ;;
+esac
+fi
+rm -rf conftest*
+ ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ppc64_le" >&5
+printf "%s\n" "$libc_cv_ppc64_le" >&6; }
+

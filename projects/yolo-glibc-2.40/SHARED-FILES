@@ -1,0 +1,222 @@
+# Files shared with other projects.  Pass a file path to the
+# get_glibc_shared_code() function in the python library
+# scripts/glibc_shared_code.py to get a dict object with this information.  See
+# the library sources for more information.
+
+# The headers on most of these files indicate that glibc is the canonical
+# source for these files, although in many cases there seem to be useful
+# changes in the gnulib versions that could be merged back in. Not all gnulib
+# files contain such a header and it is not always consistent in its format, so
+# it would be useful to make sure that all gnulib files that are using glibc as
+# upstream have a greppable header.
+#
+# These files are quite hard to find without a header to grep for and each file
+# has to be compared manually so this list is likely incomplete or may contain
+# errors.
+gnulib:
+  argp/argp-ba.c
+  argp/argp-ba.c
+  argp/argp-eexst.c
+  argp/argp-fmtstream.c
+  argp/argp-fmtstream.h
+  argp/argp-fs-xinl.c
+  argp/argp-help.c
+  argp/argp-namefrob.h
+  argp/argp-parse.c
+  argp/argp-pv.c
+  argp/argp-pvh.c
+  argp/argp-xinl.c
+  argp/argp.h
+  dirent/alphasort.c
+  dirent/scandir.c
+  # Merged from gnulib 2021-09-21
+  include/intprops.h
+  # Merged from gnulib 2021-09-21
+  include/regex.h
+  locale/programs/3level.h
+  # Merged from gnulib 2014-6-23
+  malloc/obstack.c
+  # Merged from gnulib 2014-6-23
+  malloc/obstack.h
+  # Merged from gnulib 2014-07-10
+  misc/error.c
+  misc/error.h
+  misc/getpass.c
+  misc/mkdtemp.c
+  # Merged from gnulib 2021-09-21
+  misc/sys/cdefs.h
+  posix/fnmatch_loop.c
+  # Intended to be the same. Gnulib copy contains glibc changes.
+  posix/getopt.c
+  # Intended to be the same. Gnulib copy contains glibc changes.
+  posix/getopt1.c
+  # Intended to be the same. Gnulib copy contains glibc changes.
+  posix/getopt_int.h
+  posix/glob.c
+  # Merged from gnulib 2021-09-21
+  posix/regcomp.c
+  # Merged from gnulib 2021-09-21
+  posix/regex.c
+  # Merged from gnulib 2021-09-21
+  posix/regex.h
+  # Merged from gnulib 2021-09-21
+  posix/regex_internal.c
+  # Merged from gnulib 2021-09-21
+  posix/regex_internal.h
+  # Merged from gnulib 2021-09-21
+  posix/regexec.c
+  posix/spawn.c
+  posix/spawn_faction_addclose.c
+  posix/spawn_faction_adddup2.c
+  posix/spawn_faction_addopen.c
+  posix/spawn_faction_destroy.c
+  posix/spawn_faction_init.c
+  posix/spawn_int.h
+  posix/spawnattr_destroy.c
+  posix/spawnattr_getdefault.c
+  posix/spawnattr_getflags.c
+  posix/spawnattr_getpgroup.c
+  posix/spawnattr_getschedparam.c
+  posix/spawnattr_getschedpolicy.c
+  posix/spawnattr_getsigmask.c
+  posix/spawnattr_init.c
+  posix/spawnattr_setdefault.c
+  posix/spawnattr_setflags.c
+  posix/spawnattr_setpgroup.c
+  posix/spawnattr_setschedparam.c
+  posix/spawnattr_setschedpolicy.c
+  posix/spawnattr_setsigmask.c
+  posix/spawnp.c
+  stdlib/atoll.c
+  stdlib/getsubopt.c
+  stdlib/setenv.c
+  stdlib/strtoll.c
+  stdlib/strtoul.c
+  # Merged from gnulib 2014-6-26, needs merge back
+  string/memchr.c
+  string/memcmp.c
+  string/memmem.c
+  string/mempcpy.c
+  string/memrchr.c
+  string/rawmemchr.c
+  string/stpcpy.c
+  string/stpncpy.c
+  string/str-two-way.h
+  string/strcasestr.c
+  string/strcspn.c
+  string/strdup.c
+  string/strndup.c
+  string/strpbrk.c
+  string/strsignal.c
+  string/strstr.c
+  string/strtok_r.c
+  string/strverscmp.c
+  # Merged from gnulib 2024-04-08 (gnulib commit 3238349628)
+  stdio-common/tmpdir.c
+  stdio-common/tmpdir.h
+  sysdeps/generic/pty-private.h
+  sysdeps/generic/siglist.h
+  sysdeps/posix/euidaccess.c
+  sysdeps/posix/gai_strerror.c
+  sysdeps/posix/getcwd.c
+  sysdeps/posix/pwrite.c
+  sysdeps/posix/spawni.c
+  # Merged from gnulib 2024-04-08 (gnulib commit 3238349628)
+  sysdeps/posix/tempname.c
+  # Merged from gnulib 2014-6-27
+  time/mktime.c
+  time/mktime-internal.h
+  time/strptime.c
+  time/timegm.c
+
+# The last merge was 2014-12-11 and merged gettext 0.19.3 into glibc with a
+# patch submitted to the gettext mailing list for changes that could be merged
+# back.
+#
+# This commit was omitted from the merge as it does not appear to be compatible
+# with how glibc expects things to work:
+#
+# commit 279b57fc367251666f00e8e2b599b83703451afb
+# Author: Bruno Haible <bruno@clisp.org>
+# Date:   Fri Jun 14 12:03:49 2002 +0000
+#
+#     Make absolute pathnames inside $LANGUAGE work.
+gettext:
+  intl/bindtextdom.c
+  intl/dcgettext.c
+  intl/dcigettext.c
+  intl/dcngettext.c
+  intl/dgettext.c
+  intl/dngettext.c
+  intl/explodename.c
+  intl/finddomain.c
+  intl/gettext.c
+  intl/gettextP.h
+  intl/gmo.h
+  intl/hash-string.c
+  intl/hash-string.h
+  intl/l10nflist.c
+  intl/loadinfo.h
+  intl/loadmsgcat.c
+  intl/locale.alias
+  intl/localealias.c
+  intl/ngettext.c
+  intl/plural-exp.c
+  intl/plural-exp.h
+  intl/plural.y
+  intl/textdomain.c
+
+# The following files are shared with the upstream Unicode project and must be
+# updated regularly to stay in sync with the upstream unicode releases.
+#
+# Merged from Unicode 15.1.0 release.
+unicode:
+  localedata/unicode-gen/UnicodeData.txt
+  localedata/unicode-gen/unicode-license.txt
+  localedata/unicode-gen/DerivedCoreProperties.txt
+  localedata/unicode-gen/EastAsianWidth.txt
+  localedata/unicode-gen/HangulSyllableType.txt
+
+# The following files are shared with the upstream tzcode project and must be
+# updated regularly to stay in sync with the upstream releases.
+#
+# Currently synced to TZDB 2024a, announced and distributed here:
+#	https://mm.icann.org/pipermail/tz-announce/2024-February/000081.html
+#	https://data.iana.org/time-zones/releases/tzdb-2024a.tar.lz
+tzcode:
+  timezone/private.h
+  timezone/tzfile.h
+  timezone/tzselect.ksh
+  timezone/version
+  timezone/zdump.c
+  timezone/zic.c
+
+# The following files are shared with the upstream tzdata project but is not
+# synchronized regularly. The data files themselves are used only for testing
+# purposes and their data is never used to generate any output. We synchronize
+# them only to stay on top of newer data that might help with testing.
+#
+# Currently synced to tzcode 2009i, announced and distributed here:
+#	https://mm.icann.org/pipermail/tz/2009-June/040697.html
+#	https://data.iana.org/time-zones/releases/tzdata2009i.tar.gz
+tzdata:
+  timezone/africa
+  timezone/antarctica
+  timezone/asia
+  timezone/australasia
+  timezone/europe
+  timezone/northamerica
+  timezone/southamerica
+  timezone/pacificnew
+  timezone/etcetera
+  timezone/factory
+  timezone/backward
+  timezone/systemv
+  timezone/solar87
+  timezone/solar88
+  timezone/solar89
+  timezone/iso3166.tab
+  timezone/zone.tab
+  timezone/leapseconds
+  # This is yearistype.sh in the parent project
+  timezone/yearistype

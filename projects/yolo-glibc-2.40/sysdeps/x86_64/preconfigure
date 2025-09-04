@@ -1,0 +1,45 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local preconfigure fragment for sysdeps/x86_64
+
+test -n "$base_machine" || case "$machine" in
+x86_64)
+  base_machine=x86_64
+  # Check if we are building for x32.
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $CC compiles in -mx32 mode by default" >&5
+printf %s "checking whether $CC compiles in -mx32 mode by default... " >&6; }
+if test ${libc_cv_x32+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifndef __ILP32__
+# error not x32
+#endif
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_x32=yes
+else $as_nop
+  libc_cv_x32=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x32" >&5
+printf "%s\n" "$libc_cv_x32" >&6; }
+  if test $libc_cv_x32 = yes; then
+    machine=x86_64/x32
+  else
+    machine=x86_64/64
+  fi
+  ;;
+esac
+

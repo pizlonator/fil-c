@@ -1,0 +1,205 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/x86_64.
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -mprefer-vector-width=128" >&5
+printf %s "checking -mprefer-vector-width=128... " >&6; }
+if test ${libc_cv_cc_mprefer_vector_width+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if { ac_try='${CC-cc} -mprefer-vector-width=128 -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_cc_mprefer_vector_width=yes
+else case e in #(
+  e) libc_cv_cc_mprefer_vector_width=no ;;
+esac
+fi
+ ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_mprefer_vector_width" >&5
+printf "%s\n" "$libc_cv_cc_mprefer_vector_width" >&6; }
+config_vars="$config_vars
+config-cflags-mprefer-vector-width = $libc_cv_cc_mprefer_vector_width"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker that supports -z mark-plt" >&5
+printf %s "checking for linker that supports -z mark-plt... " >&6; }
+libc_linker_feature=no
+cat > conftest.c <<EOF
+int _start (void) { return 42; }
+EOF
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,-z,mark-plt -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-z,mark-plt -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: -z mark-plt ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
+  fi
+fi
+rm -f conftest*
+if test $libc_linker_feature = yes; then
+  libc_cv_z_mark_plt=yes
+else
+  libc_cv_z_mark_plt=no
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5
+printf "%s\n" "$libc_linker_feature" >&6; }
+config_vars="$config_vars
+have-z-mark-plt = $libc_cv_z_mark_plt"
+
+if test x"$build_mathvec" = xnotset; then
+  build_mathvec=yes
+fi
+
+if test $enable_cet != no; then
+  # Check if CET can be enabled.
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether CET can be enabled" >&5
+printf %s "checking whether CET can be enabled... " >&6; }
+if test ${libc_cv_x86_cet_available+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+#if !defined __CET__ || __CET__ != 3
+# error CET isn't available.
+#endif
+EOF
+		 if { ac_try='${CC-cc} -c $CFLAGS -fcf-protection -include cet.h conftest.c 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+		   libc_cv_x86_cet_available=yes
+		 else
+		   libc_cv_x86_cet_available=no
+		 fi
+		 rm -rf conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x86_cet_available" >&5
+printf "%s\n" "$libc_cv_x86_cet_available" >&6; }
+  if test $libc_cv_x86_cet_available != yes; then
+    as_fn_error $? "$CC doesn't support CET" "$LINENO" 5
+  fi
+fi
+if test $enable_cet != no; then
+  # Check if assembler supports CET.
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether assembler supports CET" >&5
+printf %s "checking whether assembler supports CET... " >&6; }
+if test ${libc_cv_x86_cet_as+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.s <<EOF
+	incsspd %ecx
+EOF
+		 if { ac_try='${CC-cc} -c $CFLAGS conftest.s -o conftest.o 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+		   libc_cv_x86_cet_as=yes
+		 else
+		   libc_cv_x86_cet_as=no
+		 fi
+		 rm -rf conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x86_cet_as" >&5
+printf "%s\n" "$libc_cv_x86_cet_as" >&6; }
+  if test $libc_cv_x86_cet_as = no; then
+    as_fn_error $? "$AS doesn't support CET" "$LINENO" 5
+  fi
+fi
+if test $enable_cet = yes; then
+  printf "%s\n" "#define DEFAULT_DL_X86_CET_CONTROL cet_elf_property" >>confdefs.h
+
+elif test $enable_cet = permissive; then
+  printf "%s\n" "#define DEFAULT_DL_X86_CET_CONTROL cet_permissive" >>confdefs.h
+
+fi
+config_vars="$config_vars
+enable-cet = $enable_cet"
+
+# Check if -mamx-tile works properly.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether -mamx-tile works properly" >&5
+printf %s "checking whether -mamx-tile works properly... " >&6; }
+if test ${libc_cv_x86_have_amx_tile+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+#include <x86intrin.h>
+EOF
+	       libc_cv_x86_have_amx_tile=no
+	       if { ac_try='${CC-cc} -E $CFLAGS -mamx-tile conftest.c > conftest.i'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+		 if grep -q __builtin_ia32_ldtilecfg conftest.i; then
+		   libc_cv_x86_have_amx_tile=yes
+	         fi
+	       fi
+	       rm -rf conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x86_have_amx_tile" >&5
+printf "%s\n" "$libc_cv_x86_have_amx_tile" >&6; }
+config_vars="$config_vars
+have-mamx-tile = $libc_cv_x86_have_amx_tile"
+
+# Check if -mapxf is enabled.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether -mapxf is enabled" >&5
+printf %s "checking whether -mapxf is enabled... " >&6; }
+if test ${libc_cv_x86_have_apx+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+#ifndef __APX_F__
+# error APX isn't enabled
+#endif
+EOF
+	       libc_cv_x86_have_apx=no
+	       if { ac_try='${CC-cc} -c $CFLAGS conftest.c -o conftest.o 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+		   libc_cv_x86_have_apx=yes
+	       fi
+	       rm -rf conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x86_have_apx" >&5
+printf "%s\n" "$libc_cv_x86_have_apx" >&6; }
+if test $libc_cv_x86_have_apx = yes; then
+  printf "%s\n" "#define HAVE_X86_APX 1" >>confdefs.h
+
+fi
+config_vars="$config_vars
+have-x86-apx = $libc_cv_x86_have_apx"
+
+test -n "$critic_missing" && as_fn_error $? "
+*** $critic_missing" "$LINENO" 5
+

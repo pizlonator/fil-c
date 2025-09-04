@@ -1,0 +1,209 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+LC_IDENTIFICATION
+title "Armenian language locale for Armenia"
+source "http:////www.freenet.am//armscii"
+%	Eugene Sevinian <sevinian@crdlx2.yerphi.am> completed
+%	LC_MONETARY and LC_TIME
+address ""
+contact "Pablo Saratxaga"
+email "pablo@mandrakesoft.com"
+tel ""
+fax ""
+language "Armenian"
+territory "Armenia"
+revision "0.4"
+date "2001-01-26"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_ADDRESS
+END LC_IDENTIFICATION
+
+
+% IMORTANT NOTE:
+%
+%    Dictionaries, spelling checkers and other linguistic systems, as
+%    well as operating environments distinguishing human languages and
+%    locale identification should take into consideration the existence
+%    of 4 mutually incomprehensible forms (dialects) of the Armenian
+%    language: Eastern, Western, Grabar and Middle. Table 3 presents two
+%    forms of suggested mnemonic tags: MIME-style (RFC-1766) and
+%    Windows-style 3-letter abbreviations.
+%
+%    Table 3. Language tags
+%
+%               Mime-style name  3-letter code   Full name
+%                   hy-eastern   AME      Armenian Eastern
+%                   hy-western   AMW      Armenian Western
+%                   hy-grabar    AMG      Armenian Grabar
+%                   hy-middle    AMM      Armenian Middle
+%
+% That will affect LC_TIME and LC_MESSAGES; as well as any translation
+% of programs. the locale names will probably be hy@eastern, hy@western,
+% hy@grabar, and hy@middle in Linux (eg, as you pass them to LANG variable).
+
+%%%%%%%%%%%%%
+%
+% TODO: check LC_MESSAGES
+%	see IMPORTANT NOTE above.
+%
+%%%%%%%%%%%%
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_CTYPE
+copy "i18n"
+
+translit_start
+include "translit_combining";""
+translit_end
+END LC_CTYPE
+
+LC_MONETARY
+int_curr_symbol      "AMD "
+currency_symbol      "֏"
+mon_decimal_point    "."
+mon_thousands_sep    ","
+mon_grouping         3
+positive_sign        ""
+negative_sign        "-"
+int_frac_digits      2
+frac_digits          2
+p_cs_precedes        1
+p_sep_by_space       0
+n_cs_precedes        1
+n_sep_by_space       0
+p_sign_posn          1
+n_sign_posn          1
+END LC_MONETARY
+
+LC_NUMERIC
+decimal_point        "."
+thousands_sep        ","
+grouping             3
+END LC_NUMERIC
+
+LC_TIME
+
+abday       "Կրկ";/
+            "Երկ";/
+            "Երք";/
+            "Չրք";/
+            "Հնգ";/
+            "Ուր";/
+            "Շբթ"
+day         "Կիրակի";/
+            "Երկուշաբթի";/
+            "Երեքշաբթի";/
+            "Չորեքշաբթի";/
+            "Հինգշաբթի";/
+            "Ուրբաթ";/
+            "Շաբաթ"
+abmon       "Հնվ";/
+            "Փտր";/
+            "Մար";/
+            "Ապր";/
+            "Մայ";/
+            "Հնս";/
+            "Հլս";/
+            "Օգս";/
+            "Սեպ";/
+            "Հոկ";/
+            "Նմբ";/
+            "Դեկ"
+alt_mon     "հունվար";/
+            "փետրվար";/
+            "մարտ";/
+            "ապրիլ";/
+            "մայիս";/
+            "հունիս";/
+            "հուլիս";/
+            "օգոստոս";/
+            "սեպտեմբեր";/
+            "հոկտեմբեր";/
+            "նոյեմբեր";/
+            "դեկտեմբեր"
+mon         "հունվարի";/
+            "փետրվարի";/
+            "մարտի";/
+            "ապրիլի";/
+            "մայիսի";/
+            "հունիսի";/
+            "հուլիսի";/
+            "օգոստոսի";/
+            "սեպտեմբերի";/
+            "հոկտեմբերի";/
+            "նոյեմբերի";/
+            "դեկտեմբերի"
+d_t_fmt     "%a %d %b %Y %r"
+date_fmt    "%a %d %b %Y %r %Z"
+d_fmt       "%m//%d//%y"
+t_fmt       "%r"
+am_pm       "";""
+t_fmt_ampm  ""
+week 7;19971130;1
+first_weekday 2
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYsSաԱ]"
+noexpr  "^[-0nNոՈ]"
+yesstr  "այո"
+nostr   "ոչ"
+END LC_MESSAGES
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+tel_int_fmt "+%c %a %l"
+% FIXME Find tel_dom_fmt
+int_select "00"
+int_prefix "374"
+END LC_TELEPHONE
+
+LC_ADDRESS
+postal_fmt "%d%N%f%N%d%N%b%N%s %h 5e %r%N%C%z %T%N%c%N"
+country_name "Հայաստան"
+country_post "AM"
+country_ab2 "AM"
+country_ab3 "ARM"
+country_num 051
+country_car "AM"
+country_isbn "978-9939,978-99930,978-99941"
+lang_name "հայերեն"
+lang_ab      "hy"
+lang_term    "hye"
+lang_lib     "arm"
+END LC_ADDRESS
+
+LC_NAME
+name_fmt    "%d%t%g%t%m%t%f"
+name_miss   "օրիորդ"
+name_mr     "պրն"
+name_mrs    "տկն"
+END LC_NAME

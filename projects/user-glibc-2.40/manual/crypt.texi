@@ -1,0 +1,154 @@
+@node Cryptographic Functions, Debugging Support, System Configuration, Top
+@chapter Cryptographic Functions
+@c %MENU% A few functions to support cryptographic applications
+
+@Theglibc{} includes only one type of special-purpose cryptographic
+functions; these allow use of a source of cryptographically strong
+pseudorandom numbers, if such a source is provided by the operating
+system.  Programs that need general-purpose cryptography should use
+a dedicated cryptography library, such as
+@uref{https://www.gnu.org/software/libgcrypt/,,libgcrypt}.
+
+@menu
+* Unpredictable Bytes::         Randomness for cryptographic purposes.
+@end menu
+
+@node Unpredictable Bytes
+@section Generating Unpredictable Bytes
+@cindex randomness source
+@cindex random numbers, cryptographic
+@cindex pseudo-random numbers, cryptographic
+@cindex cryptographic random number generator
+@cindex deterministic random bit generator
+@cindex CRNG
+@cindex CSPRNG
+@cindex DRBG
+
+Cryptographic applications often need random data that will be as
+difficult as possible for a hostile eavesdropper to guess.
+The pseudo-random number generators provided by @theglibc{}
+(@pxref{Pseudo-Random Numbers}) are not suitable for this purpose.
+They produce output that is @emph{statistically} random, but fails to
+be @emph{unpredictable}.  Cryptographic applications require a
+@dfn{cryptographic random number generator} (CRNG), also known as a
+@dfn{cryptographically strong pseudo-random number generator} (CSPRNG)
+or a @dfn{deterministic random bit generator} (DRBG).
+
+Currently, @theglibc{} does not provide a cryptographic random number
+generator, but it does provide functions that read cryptographically
+strong random data from a @dfn{randomness source} supplied by the
+operating system.  This randomness source is a CRNG at heart, but it
+also continually ``re-seeds'' itself from physical sources of
+randomness, such as electronic noise and clock jitter.  This means
+applications do not need to do anything to ensure that the random
+numbers it produces are different on each run.
+
+The catch, however, is that these functions will only produce
+relatively short random strings in any one call.  Often this is not a
+problem, but applications that need more than a few kilobytes of
+cryptographically strong random data should call these functions once
+and use their output to seed a CRNG.
+
+Most applications should use @code{getentropy}.  The @code{getrandom}
+function is intended for low-level applications which need additional
+control over blocking behavior.
+
+@deftypefun int getentropy (void *@var{buffer}, size_t @var{length})
+@standards{GNU, sys/random.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+
+This function writes exactly @var{length} bytes of random data to the
+array starting at @var{buffer}.  @var{length} can be no more than 256.
+On success, it returns zero.  On failure, it returns @math{-1}, and
+@code{errno} is set to indicate the problem.  Some of the possible
+errors are listed below.
+
+@table @code
+@item ENOSYS
+The operating system does not implement a randomness source, or does
+not support this way of accessing it.  (For instance, the system call
+used by this function was added to the Linux kernel in version 3.17.)
+
+@item EFAULT
+The combination of @var{buffer} and @var{length} arguments specifies
+an invalid memory range.
+
+@item EIO
+@var{length} is larger than 256, or the kernel entropy pool has
+suffered a catastrophic failure.
+@end table
+
+A call to @code{getentropy} can only block when the system has just
+booted and the randomness source has not yet been initialized.
+However, if it does block, it cannot be interrupted by signals or
+thread cancellation.  Programs intended to run in very early stages of
+the boot process may need to use @code{getrandom} in non-blocking mode
+instead, and be prepared to cope with random data not being available
+at all.
+
+The @code{getentropy} function is declared in the header file
+@file{sys/random.h}.  It is derived from OpenBSD.
+@end deftypefun
+
+@deftypefun ssize_t getrandom (void *@var{buffer}, size_t @var{length}, unsigned int @var{flags})
+@standards{GNU, sys/random.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+
+This function writes up to @var{length} bytes of random data to the
+array starting at @var{buffer}.  The @var{flags} argument should be
+either zero, or the bitwise OR of some of the following flags:
+
+@table @code
+@item GRND_RANDOM
+Use the @file{/dev/random} (blocking) source instead of the
+@file{/dev/urandom} (non-blocking) source to obtain randomness.
+
+If this flag is specified, the call may block, potentially for quite
+some time, even after the randomness source has been initialized.  If it
+is not specified, the call can only block when the system has just
+booted and the randomness source has not yet been initialized.
+
+@item GRND_NONBLOCK
+Instead of blocking, return to the caller immediately if no data is
+available.
+
+@item GRND_INSECURE
+Write random data that may not be cryptographically secure.
+@end table
+
+Unlike @code{getentropy}, the @code{getrandom} function is a
+cancellation point, and if it blocks, it can be interrupted by
+signals.
+
+On success, @code{getrandom} returns the number of bytes which have
+been written to the buffer, which may be less than @var{length}.  On
+error, it returns @math{-1}, and @code{errno} is set to indicate the
+problem.  Some of the possible errors are:
+
+@table @code
+@item ENOSYS
+The operating system does not implement a randomness source, or does
+not support this way of accessing it.  (For instance, the system call
+used by this function was added to the Linux kernel in version 3.17.)
+
+@item EAGAIN
+No random data was available and @code{GRND_NONBLOCK} was specified in
+@var{flags}.
+
+@item EFAULT
+The combination of @var{buffer} and @var{length} arguments specifies
+an invalid memory range.
+
+@item EINTR
+The system call was interrupted.  During the system boot process, before
+the kernel randomness pool is initialized, this can happen even if
+@var{flags} is zero.
+
+@item EINVAL
+The @var{flags} argument contains an invalid combination of flags.
+@end table
+
+The @code{getrandom} function is declared in the header file
+@file{sys/random.h}.  It is a GNU extension.
+
+@end deftypefun

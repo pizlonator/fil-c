@@ -1,0 +1,197 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+LC_IDENTIFICATION
+title      "Bangla language locale for Bangladesh"
+source     "Ankur Group, http:////www.ankurbangla.org, http:////www.bengalinux.org"
+address    "Dhaka, Bangladesh"
+contact    "Taneem Ahmed, Jamil Ahmed"
+email      "taneem@bengalinux.org, jamil@bengalinux.org"
+tel        ""
+fax        ""
+language   "Bangla"
+territory  "Bangladesh"
+revision   "0.5"
+date       "2007-01-10"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_MEASUREMENT
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_NAME
+END LC_IDENTIFICATION
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_CTYPE
+copy "i18n"
+
+% Bangla uses the alternate digits U+09E6..U+09EF
+outdigit <U09E6>..<U09EF>
+
+% This is used in the scanf family of functions to read Bangla numbers
+% using "%Id" and such.
+map to_inpunct; /
+  (<U0030>,<U09E6>); /
+  (<U0031>,<U09E7>); /
+  (<U0032>,<U09E8>); /
+  (<U0033>,<U09E9>); /
+  (<U0034>,<U09EA>); /
+  (<U0035>,<U09EB>); /
+  (<U0036>,<U09EC>); /
+  (<U0037>,<U09ED>); /
+  (<U0038>,<U09EE>); /
+  (<U0039>,<U09EF>);
+
+translit_start
+include "translit_combining";""
+translit_end
+END LC_CTYPE
+
+LC_MONETARY
+%this is the taka sign
+currency_symbol      "৳"
+int_curr_symbol      "BDT "
+mon_decimal_point    "."
+mon_thousands_sep    ","
+mon_grouping         3;2
+positive_sign        ""
+negative_sign        "-"
+int_frac_digits      2
+frac_digits          2
+p_cs_precedes        1
+p_sep_by_space       1
+n_cs_precedes        1
+n_sep_by_space       1
+p_sign_posn          1
+n_sign_posn          1
+END LC_MONETARY
+
+
+LC_NUMERIC
+decimal_point        "."
+thousands_sep        ","
+grouping             3;2
+END LC_NUMERIC
+
+LC_TIME
+abday       "রবি"; /
+            "সোম";/
+            "মঙ্গল";/
+            "বুধ";/
+            "বৃহঃ";/
+            "শুক্র";/
+            "শনি"
+
+day         "রবিবার";/
+            "সোমবার";/
+            "মঙ্গলবার";/
+            "বুধবার";/
+            "বৃহস্পতিবার";/
+            "শুক্রবার";/
+            "শনিবার"
+
+%janu febru march apri may jun jul aug septe octo nove dece
+abmon       "জানু";/
+            "ফেব";/
+            "মার্চ";/
+            "এপ্রিল";/
+            "মে";/
+            "জুন";/
+            "জুলাই";/
+            "আগস্ট";/
+            "সেপ্টেম্বর";/
+            "অক্টোবর";/
+            "নভেম্বর";/
+            "ডিসেম্বর"
+
+mon         "জানুয়ারী";/
+            "ফেব্রুয়ারী";/
+            "মার্চ";/
+            "এপ্রিল";/
+            "মে";/
+            "জুন";/
+            "জুলাই";/
+            "আগস্ট";/
+            "সেপ্টেম্বর";/
+            "অক্টোবর";/
+            "নভেম্বর";/
+            "ডিসেম্বর"
+
+am_pm       "পূর্বাহ্ণ";"অপরাহ্ণ"
+d_t_fmt     "%A %d %b %Y %I:%M:%S %p"
+date_fmt    "%A %d %b %Y %I:%M:%S %p %Z"
+d_fmt       "%-d//%-m//%y"
+t_fmt       "%I:%M:%S %p %Z"
+t_fmt_ampm  "%I:%M:%S %p %Z"
+week 7;19971130;1
+first_weekday 6
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYহ]"
+noexpr  "^[-0nNন]"
+yesstr  "হ্যাঁ"
+nostr   "না"
+END LC_MESSAGES
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+tel_int_fmt   "+%c %a %l"
+tel_dom_fmt   "%a %l"
+int_select    "00"
+int_prefix    "880"
+END LC_TELEPHONE
+
+LC_NAME
+%           [profession] Given_Name [middle_name] Family_Name
+name_fmt    "%p%t%f%t%m%t%g"
+name_gen    ""
+%jonab
+name_mr     "জনাব"
+%begom
+name_mrs    "বেগম"
+name_ms     "বেগম"
+name_miss   "বেগম"
+END LC_NAME
+
+
+LC_ADDRESS
+postal_fmt      "%a%N%f%N%d%N%b%N%h %s %e %r%N%T %z%N%c%N"
+country_name    "বাংলাদেশ"
+country_ab2     "BD"
+country_ab3     "BGD"
+lang_ab      "bn"
+lang_term    "ben"
+lang_lib       "ben"
+%lang_ab3_term   "ben"
+lang_name    "বাংলা"
+% todo
+%country_post   ""
+country_num     050
+country_car    "BD"
+%country_isbn   ""
+END LC_ADDRESS

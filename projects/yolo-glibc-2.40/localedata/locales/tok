@@ -1,0 +1,154 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Toki Pona Language Locale
+% Source: Toki Pona Dictionary
+% Address:
+% Contact: Janet Blackquill
+% Email: uhhadd@gmail.com
+% Tel:
+% Fax:
+% Language: tok
+% Territory:
+% Revision: 1.0
+% Date: 2022-01-28
+% Application: general
+% Users: general
+% License: Public Domain
+
+LC_IDENTIFICATION
+title      "Toki Pona language locale"
+source     ""
+address    ""
+contact    ""
+email      ""
+tel        ""
+fax        ""
+language   "Toki Pona"
+territory  ""
+revision   "1.0"
+date       "2022-01-28"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "i18n"
+END LC_CTYPE
+
+LC_COLLATE
+
+copy "iso14651_t1"
+
+END LC_COLLATE
+
+LC_MONETARY
+int_curr_symbol     "XDR "
+currency_symbol     "¤"
+mon_decimal_point   ","
+mon_thousands_sep   " "
+mon_grouping        3
+positive_sign       ""
+negative_sign       "-"
+int_frac_digits     2
+frac_digits         2
+p_cs_precedes       1
+p_sep_by_space      1
+n_cs_precedes       1
+n_sep_by_space      1
+p_sign_posn         1
+n_sign_posn         1
+END LC_MONETARY
+
+LC_NUMERIC
+decimal_point "."
+thousands_sep " "
+grouping      -1
+END LC_NUMERIC
+
+LC_TIME
+abday	"suno esun #7";/
+	"suno esun #1";"suno esun #2";/
+	"suno esun #3";"suno esun #4";/
+	"suno esun #5";"suno esun #6"
+day	"tenpo suno esun nanpa 7";/
+	"tenpo suno esun nanpa 1";/
+	"tenpo suno esun nanpa 2";/
+	"tenpo suno esun nanpa 3";/
+	"tenpo suno esun nanpa 4";/
+	"tenpo suno esun nanpa 5";/
+	"tenpo suno esun nanpa 6"
+abmon	"mun #1";"mun #2";"mun #3";"mun #4";"mun #5";"mun #6";"mun #7";"mun #8";"mun #9";"mun #10";"mun #11";"mun #12"
+mon	"tenpo mun nanpa 1";/
+	"tenpo mun nanpa 2";/
+	"tenpo mun nanpa 3";/
+	"tenpo mun nanpa 4";/
+	"tenpo mun nanpa 5";/
+	"tenpo mun nanpa 6";/
+	"tenpo mun nanpa 7";/
+	"tenpo mun nanpa 8";/
+	"tenpo mun nanpa 9";/
+	"tenpo mun nanpa 10";/
+	"tenpo mun nanpa 11";/
+	"tenpo mun nanpa 12"
+am_pm "pi open suno";"pi pini suno"
+t_fmt_ampm "%I:%M:%S %p"
+d_t_fmt  "#%Y)#%m)#%d tenpo %T"
+date_fmt "#%Y)#%m)#%d tenpo %T lon %z"
+d_fmt   "#%Y)#%m)#%d"
+t_fmt   "%H:%M:%S"
+week 7;19971130;1
+END LC_TIME
+
+LC_MESSAGES
+yesexpr "^[+1yYwW]"
+noexpr  "^[-0nNaA]"
+yesstr  "wile"
+nostr   "ala"
+END LC_MESSAGES
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_TELEPHONE
+tel_int_fmt "+%c %a%t%l"
+int_select  "00"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_NAME
+name_fmt    "%d%t%g%t%m%t%f"
+name_mr     "jan"
+name_mrs    "jan"
+name_ms     "jan"
+name_gen    "jan"
+name_miss   "jan"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt   "%f%N%a%N%d%N%b%N%s %h %e %r%N%%z %T%N%c%N"
+lang_name    "toki pona"
+lang_term    "tok"
+END LC_ADDRESS

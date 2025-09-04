@@ -1,0 +1,174 @@
+# Copyright (C) 2016-2024 Free Software Foundation, Inc.
+# This file is part of the GNU C Library.
+
+# The GNU C Library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+
+# The GNU C Library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with the GNU C Library; if not, see
+# <https://www.gnu.org/licenses/>.
+
+# Allowed attributes for tunables:
+#
+# type: Defaults to STRING
+# minval: Optional minimum acceptable value
+# maxval: Optional maximum acceptable value
+# default: Optional default value (if not specified it will be 0 or "")
+# env_alias: An alias environment variable
+
+glibc {
+  malloc {
+    check {
+      type: INT_32
+      minval: 0
+      maxval: 3
+      env_alias: MALLOC_CHECK_
+    }
+    top_pad {
+      type: SIZE_T
+      env_alias: MALLOC_TOP_PAD_
+      default: 131072
+    }
+    perturb {
+      type: INT_32
+      minval: 0
+      maxval: 0xff
+      env_alias: MALLOC_PERTURB_
+    }
+    mmap_threshold {
+      type: SIZE_T
+      env_alias: MALLOC_MMAP_THRESHOLD_
+    }
+    trim_threshold {
+      type: SIZE_T
+      env_alias: MALLOC_TRIM_THRESHOLD_
+    }
+    mmap_max {
+      type: INT_32
+      env_alias: MALLOC_MMAP_MAX_
+      minval: 0
+    }
+    arena_max {
+      type: SIZE_T
+      env_alias: MALLOC_ARENA_MAX
+      minval: 1
+    }
+    arena_test {
+      type: SIZE_T
+      env_alias: MALLOC_ARENA_TEST
+      minval: 1
+    }
+    tcache_max {
+      type: SIZE_T
+    }
+    tcache_count {
+      type: SIZE_T
+    }
+    tcache_unsorted_limit {
+      type: SIZE_T
+    }
+    mxfast {
+      type: SIZE_T
+      minval: 0
+    }
+    hugetlb {
+      type: SIZE_T
+      minval: 0
+    }
+  }
+
+  elision {
+    enable {
+      type: INT_32
+      minval: 0
+      maxval: 1
+    }
+    skip_lock_busy {
+      type: INT_32
+      default: 3
+      minval: 0
+    }
+    skip_lock_internal_abort {
+      type: INT_32
+      default: 3
+      minval: 0
+    }
+    skip_lock_after_retries {
+      type: INT_32
+      default: 3
+      minval: 0
+    }
+    tries {
+      type: INT_32
+      default: 3
+      minval: 0
+    }
+    skip_trylock_internal_abort {
+      type: INT_32
+      default: 3
+      minval: 0
+    }
+  }
+
+  rtld {
+    nns {
+      type: SIZE_T
+      minval: 1
+      maxval: 16
+      default: 4
+    }
+    optional_static_tls {
+      type: SIZE_T
+      minval: 0
+      default: 512
+    }
+    enable_secure {
+      type: INT_32
+      minval: 0
+      maxval: 1
+      default: 0
+    }
+  }
+
+  mem {
+    tagging {
+      type: INT_32
+      minval: 0
+      maxval: 255
+    }
+    decorate_maps {
+      type: INT_32
+      minval: 0
+      maxval: 1
+    }
+  }
+
+  rtld {
+    dynamic_sort {
+      type: INT_32
+      minval: 1
+      maxval: 2
+      default: 2
+    }
+  }
+
+  gmon {
+    minarcs {
+      type: INT_32
+      minval: 50
+      default: 50
+    }
+    maxarcs {
+      type: INT_32
+      minval: 50
+      default: 1048576
+    }
+  }
+}
