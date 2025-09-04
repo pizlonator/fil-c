@@ -112,7 +112,7 @@ typedef union
   void (*f) (void);
   struct dict_struct *e;
   char *s;
-  intptr_t l;
+  void *l;
 } pcu;
 
 typedef struct dict_struct
@@ -125,7 +125,7 @@ typedef struct dict_struct
 } dict_type;
 
 int internal_wanted;
-intptr_t *internal_mode;
+void **internal_mode;
 
 int warning;
 
@@ -135,8 +135,8 @@ string_type *tos;
 unsigned int idx = 0; /* Pos in input buffer */
 string_type *ptr; /* and the buffer */
 
-intptr_t istack[STACK];
-intptr_t *isp = &istack[0];
+void *istack[STACK];
+void **isp = &istack[0];
 
 dict_type *root;
 
@@ -1096,7 +1096,7 @@ skip_past_newline (void)
 static void
 maybecatstr (void)
 {
-  if (internal_wanted == *internal_mode)
+  if (internal_wanted == (intptr_t)*internal_mode)
     {
       catstr (tos - 1, tos);
     }
@@ -1109,7 +1109,7 @@ maybecatstr (void)
 static void
 catstrif (void)
 {
-  int cond = isp[0];
+  int cond = (intptr_t)isp[0];
   isp--;
   icheck_range ();
   if (cond)
@@ -1328,19 +1328,19 @@ add_intrinsic (char *name, void (*func) (void))
 }
 
 static void
-add_variable (char *name, intptr_t *loc)
+add_variable (char *name, void **loc)
 {
   dict_type *new_d = newentry (name);
   pcu p = { push_variable };
   add_to_definition (new_d, p);
-  p.l = (intptr_t) loc;
+  p.l = loc;
   add_to_definition (new_d, p);
   p.f = 0;
   add_to_definition (new_d, p);
 }
 
 static void
-add_intrinsic_variable (const char *name, intptr_t *loc)
+add_intrinsic_variable (const char *name, void **loc)
 {
   add_variable (xstrdup (name), loc);
 }
@@ -1399,7 +1399,7 @@ compile (char *string)
 		     function */
 		  p.f = push_number;
 		  add_to_definition (ptr, p);
-		  p.l = atol (word);
+		  p.l = (void *) atol (word);
 		  add_to_definition (ptr, p);
 		  free (word);
 		  break;
@@ -1424,7 +1424,7 @@ compile (char *string)
 	  string = nextword (string, &word);
 	  if (!string)
 	    continue;
-	  intptr_t *loc = xmalloc (sizeof (intptr_t));
+	  void **loc = xmalloc (sizeof (void *));
 	  *loc = 0;
 	  add_variable (word, loc);
 	  string = nextword (string, &word);
@@ -1440,7 +1440,7 @@ compile (char *string)
 static void
 bang (void)
 {
-  *(intptr_t *) ((isp[0])) = isp[-1];
+  *(void **) ((isp[0])) = isp[-1];
   isp -= 2;
   icheck_range ();
   pc++;
@@ -1449,7 +1449,7 @@ bang (void)
 static void
 atsign (void)
 {
-  isp[0] = *(intptr_t *) (isp[0]);
+  isp[0] = *(void **) (isp[0]);
   pc++;
 }
 
@@ -1465,7 +1465,7 @@ stdout_ (void)
 {
   isp++;
   icheck_range ();
-  *isp = 1;
+  *isp = (void *) 1;
   pc++;
 }
 
@@ -1474,19 +1474,19 @@ stderr_ (void)
 {
   isp++;
   icheck_range ();
-  *isp = 2;
+  *isp = (void *) 2;
   pc++;
 }
 
 static void
 print (void)
 {
-  if (*isp == 1)
+  if (*isp == (void *) 1)
     write_buffer (tos, stdout);
-  else if (*isp == 2)
+  else if (*isp == (void *) 2)
     write_buffer (tos, stderr);
   else
-    fprintf (stderr, "print: illegal print destination `%" PRIdPTR "'\n", *isp);
+    fprintf (stderr, "print: illegal print destination `%" PRIdPTR "'\n", (intptr_t) *isp);
   isp--;
   tos--;
   icheck_range ();
@@ -1575,7 +1575,7 @@ main (int ac, char *av[])
   add_intrinsic ("strip_trailing_newlines", strip_trailing_newlines);
   add_intrinsic ("collapse_whitespace", collapse_whitespace);
 
-  internal_mode = xmalloc (sizeof (intptr_t));
+  internal_mode = xmalloc (sizeof (void *));
   *internal_mode = 0;
   add_intrinsic_variable ("internalmode", internal_mode);
 

@@ -4086,4 +4086,18 @@ Warnings::issue_warning<64, true>(const Symbol* sym,
 				  size_t relnum, off_t reloffset) const;
 #endif
 
+#if defined(HAVE_TARGET_32_LITTLE) || defined(HAVE_TARGET_32_BIG)
+template
+Sized_symbol<32>::Value_type Symbol_table::compute_final_value<32>(
+    Sized_symbol<32> const*,
+    Symbol_table::Compute_final_value_status*) const;
+#endif
+
+#if defined(HAVE_TARGET_64_LITTLE) || defined(HAVE_TARGET_64_BIG)
+template
+Sized_symbol<64>::Value_type Symbol_table::compute_final_value<64>(
+    Sized_symbol<64> const*,
+    Symbol_table::Compute_final_value_status*) const;
+#endif
+
 } // End namespace gold.

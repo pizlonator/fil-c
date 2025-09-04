@@ -71,6 +71,10 @@ function will be called to print an error message and terminate execution.
 
 #include <stddef.h>
 
+#ifdef HAVE_SBRK
+#undef HAVE_SBRK
+#endif
+
 #if VMS
 #include <stdlib.h>
 #include <unixlib.h>

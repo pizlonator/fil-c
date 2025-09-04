@@ -37,7 +37,7 @@ if HAVE_LD_VERSION_SCRIPT
 if HAVE_SOLARIS_LD
   libsframe_version_script = -Wl,-M -Wl,$(srcdir)/libsframe.ver
 else
-  libsframe_version_script = -Wl,--version-script=$(srcdir)/libsframe.ver
+  libsframe_version_script = --version-script=$(srcdir)/libsframe.ver
 endif
 endif
 

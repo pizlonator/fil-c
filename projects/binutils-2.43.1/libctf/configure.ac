@@ -257,11 +257,11 @@ AC_CACHE_CHECK([for linker versioning flags], [ac_cv_libctf_version_script],
   [echo 'FOO { global: mai*; local: ctf_fo*; };' > conftest.ver
    old_LDFLAGS="$LDFLAGS"
    old_CFLAGS="$CFLAGS"
-   LDFLAGS="$LDFLAGS -shared -Wl,--version-script=conftest.ver"
+   LDFLAGS="$LDFLAGS -shared --version-script=conftest.ver"
    CFLAGS="$CFLAGS -fPIC"
    AC_LINK_IFELSE([AC_LANG_SOURCE([[int ctf_foo (void) { return 0; }
 				    int main (void) { return ctf_foo(); }]])],
-		  [ac_cv_libctf_version_script="-Wl,--version-script"],
+		  [ac_cv_libctf_version_script="--version-script"],
 		  [])
    LDFLAGS="$old_LDFLAGS"
 

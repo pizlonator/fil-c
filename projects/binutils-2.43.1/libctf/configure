@@ -16964,7 +16964,7 @@ else
   echo 'FOO { global: mai*; local: ctf_fo*; };' > conftest.ver
    old_LDFLAGS="$LDFLAGS"
    old_CFLAGS="$CFLAGS"
-   LDFLAGS="$LDFLAGS -shared -Wl,--version-script=conftest.ver"
+   LDFLAGS="$LDFLAGS -shared --version-script=conftest.ver"
    CFLAGS="$CFLAGS -fPIC"
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -16972,7 +16972,7 @@ int ctf_foo (void) { return 0; }
 				    int main (void) { return ctf_foo(); }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_libctf_version_script="-Wl,--version-script"
+  ac_cv_libctf_version_script="--version-script"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext

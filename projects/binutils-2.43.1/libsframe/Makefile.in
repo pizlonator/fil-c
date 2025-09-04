@@ -529,7 +529,7 @@ INCDIR = $(srcdir)/../include
 AM_CPPFLAGS = -I$(srcdir) -I$(srcdir)/../include -I$(srcdir)/../libctf
 AM_CFLAGS = @ac_libsframe_warn_cflags@
 libsframe_version_info = -version-info `grep -v '^\#' $(srcdir)/libtool-version`
-@HAVE_LD_VERSION_SCRIPT_TRUE@@HAVE_SOLARIS_LD_FALSE@libsframe_version_script = -Wl,--version-script=$(srcdir)/libsframe.ver
+@HAVE_LD_VERSION_SCRIPT_TRUE@@HAVE_SOLARIS_LD_FALSE@libsframe_version_script = --version-script=$(srcdir)/libsframe.ver
 # libsframe does not restrict the set of exported symbols.  So, if linker does
 # not support symbol versioning, there is no need to fall back on libtool's
 # -export-symbols option.
