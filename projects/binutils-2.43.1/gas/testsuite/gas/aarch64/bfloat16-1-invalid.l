@@ -1,0 +1,11 @@
+.*: Assembler messages:
+.*: Error: selected processor does not support `bfadd z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfmax z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfmaxnm z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfmin z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfminnm z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfmul z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfsub z0.h,p0/m,z0.h,z0.h'
+.*: Error: selected processor does not support `bfclamp z3.h,z4.h,z16.h'
+.*: Error: selected processor does not support `bfmla z3.h,z16.h,z6.h\[7\]'
+.*: Error: selected processor does not support `bfmls z3.h,z16.h,z6.h\[7\]'

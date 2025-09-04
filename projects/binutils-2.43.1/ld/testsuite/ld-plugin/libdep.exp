@@ -1,0 +1,124 @@
+# Expect script for ld-plugin LIBDEP tests
+#   Copyright (C) 2024 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# These tests require the plugin API.
+if { ![check_plugin_api_available] } {
+    return
+}
+
+# Check to see if the C compiler works
+# FIXME: This is being lazy, we could create assembler equivalents instead.
+if { ![check_compiler_available] } {
+    return
+}
+
+proc run_test { } {
+    global CC_FOR_TARGET
+    global srcdir
+    global subdir
+    global ar
+    global ld
+    global libdep
+    global base_dir
+    
+    set testname "libdep test"
+    
+    # Create temporary directories if they do not already exist.
+    file mkdir -p libdep-a libdep-b
+
+    # Delete old versions of the files we are about to build, just in case.
+    file delete libdep-a/a.o libdep-a/liba.a libdep-b/b.o libdep-b/libc.a libdep-main.o
+
+    # Build object files.
+    if {![ld_compile $CC_FOR_TARGET $srcdir/$subdir/libdep-a.c libdep-a/a.o]} {
+	fail "$testname: could not compile source file 1"
+	return
+    }
+    if {![ld_compile $CC_FOR_TARGET $srcdir/$subdir/libdep-b.c libdep-b/b.o]} {
+	fail "$testname: could not compile source file 2"
+	return
+    }
+    if {![ld_compile $CC_FOR_TARGET $srcdir/$subdir/libdep-main.c libdep-main.o]} {
+	fail "$testname: could not compile source file 3"
+	return
+    }
+
+    # Create static archives from the objects.
+
+    # For the first archive we add a libdep element that loads the second library.
+    if {![ar_simple_create $ar {--record-libdeps "-Llibdep-b -lc"} libdep-a/liba.a libdep-a/a.o]} {
+	fail "$testname: could not create archive 1"
+	return
+    }
+
+    # For the second archive we choose a name - libc.a - that is likely to clash
+    # with a system library.  This will help to check that the library loaded by
+    # following the libdep element in the first library is the one that we expect.
+    if {![ar_simple_create $ar {} libdep-b/libc.a libdep-b/b.o]} {
+	fail "$testname: could not create archive 2"
+	return
+    }
+
+    # Find the libdep plugin.
+    # Use libtool to find the path to the plugin rather
+    # than worrying about run paths or anything like that.
+    catch "exec $base_dir/libtool --config" lt_config
+    verbose "Full lt config: $lt_config" 2
+    # Look for "objdir=.libs"
+    regexp -line "^objdir=.*$" "$lt_config" lt_objdir
+    verbose "lt_objdir line is '$lt_objdir'" 2
+    set lt_objdir [regsub "objdir=" "$lt_objdir" ""]
+
+    if { [ file exists "$base_dir/$lt_objdir/libdep.so" ] } {
+	set libdep_plugin "$base_dir/$lt_objdir/libdep.so"
+    } else {
+	# FIXME: Check in the system bfd-plugin directory ?
+	fail "$testname - could not locate libdep plugin"
+	return
+    }
+
+    verbose "Full plugin path: $libdep_plugin" 1
+    
+    # Link the main object file with the liba.a library.
+    # Use the libdep plugin to read the __.LIBDEP element in the liba.a library
+    # and so bring in the libdep-b.o object file from the libc.a library.
+    # Failure to locate the libc.a library, or loading the wrong libc.a library
+    # will result in an unresolved reference error.
+    set exec_output [run_host_cmd "$ld" "-plugin $libdep_plugin -o libdep.exe libdep-main.o -L libdep-a -la -e 0"]
+    set exec_output [prune_warnings $exec_output]
+
+    set expected_output "got deps for library libdep-a/liba.a: -Llibdep-b -lc"
+    
+    if ![string match $expected_output $exec_output] then {
+	fail "$testname: did not get expected output from the linker"
+	return
+    }
+
+    regsub -all "$expected_output" $exec_output "\\1" exec_output
+
+    if {![string match "" $exec_output]} {
+	fail "$testname: unexpected output from linker: $exec_output"
+	return
+    }
+
+    pass "$testname"
+}
+
+run_test

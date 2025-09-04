@@ -1,0 +1,176 @@
+# Expect script for LoongArch ELF linker tests
+#   Copyright (C) 2021-2024 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if [istarget "loongarch64-*-*"] {
+    run_dump_test "jmp_op"
+    run_dump_test "macro_op"
+    run_dump_test "syscall"
+    run_dump_test "disas-jirl"
+    run_dump_test "local-ifunc-reloc"
+    run_dump_test "anno-sym"
+    run_dump_test "pcala64"
+    run_dump_test "overflow_s_10_5"
+    run_dump_test "overflow_s_10_12"
+    run_dump_test "overflow_s_10_16"
+    run_dump_test "overflow_s_10_16_s2"
+    run_dump_test "overflow_s_0_5_10_16_s2"
+    run_dump_test "overflow_s_0_10_10_16_s2"
+    run_dump_test "overflow_s_5_20"
+    run_dump_test "overflow_u_10_12"
+    run_dump_test "overflow_u"
+    run_dump_test "underflow_s_10_5"
+    run_dump_test "underflow_s_10_12"
+    run_dump_test "underflow_s_10_16"
+    run_dump_test "underflow_s_10_16_s2"
+    run_dump_test "underflow_s_0_5_10_16_s2"
+    run_dump_test "underflow_s_0_10_10_16_s2"
+    run_dump_test "underflow_s_5_20"
+    run_dump_test "tls-le-norelax"
+    run_dump_test "tls-le-relax"
+    run_dump_test "relax-medium-call"
+    run_dump_test "relax-medium-call-1"
+}
+
+if [istarget "loongarch32-*-*"] {
+    run_dump_test "jmp_op"
+    run_dump_test "macro_op_32"
+    run_dump_test "syscall"
+    run_dump_test "disas-jirl-32"
+}
+
+if [istarget "loongarch64-*-*"] {
+  if [check_shared_lib_support] {
+    run_ld_link_tests \
+	[list \
+	    [list \
+		"64_pcrel" \
+		"-e 0x0 -z relro" "" \
+		"" \
+		{64_pcrel.s} \
+		[list \
+		    [list objdump -D 64_pcrel.d] \
+		] \
+		"64_pcrel" \
+	    ] \
+	]
+  }
+
+  # loongarch*-elf target do not support -shared option
+  if [check_shared_lib_support] {
+    run_ld_link_tests \
+	[list \
+	     [list \
+		  "data plt" \
+		  "-shared" "" \
+		  "" \
+		  {data-plt.s} \
+		  {} \
+		  "data-plt.so" \
+	     ] \
+	]
+
+    if [file exist "tmpdir/data-plt.so"] {
+      set objdump_output [run_host_cmd "objdump" "-d tmpdir/data-plt.so"]
+      if { [ regexp "<a@plt>" $objdump_output] } {
+	fail "data plt"
+      } {
+	pass "data plt"
+      }
+    }
+  }
+
+  run_ld_link_tests \
+      [list \
+	  [list \
+	      "medium code model call" \
+	      "-e 0x0" "" \
+	      "" \
+	      {medium-call.s} \
+	      {} \
+	      "medium-call" \
+	  ] \
+	  [list \
+	      "abi1_max_imm" \
+	      "-e 0x0" "" \
+	      "" \
+	      {abi1_max_imm.s} \
+	      [list \
+		  [list objdump -D abi1_max_imm.dd] \
+	      ] \
+	      "abi1_max_imm" \
+	  ] \
+      ]
+}
+
+if [istarget "loongarch64-*-*"] {
+  if [check_shared_lib_support] {
+    run_dump_test "desc-ie"
+    run_dump_test "desc-ie-reloc"
+    run_dump_test "tlsdesc-dso"
+    run_dump_test "tlsdesc-dso-reloc"
+    run_dump_test "desc-norelax"
+    run_dump_test "desc-relax"
+    run_dump_test "data-got"
+    run_dump_test "reloc_le_with_shared"
+    run_dump_test "reloc_ler_with_shared"
+    run_dump_test "reloc_abs_with_shared"
+    run_dump_test "r_larch_32_elf64"
+    run_dump_test "ifunc-reloc"
+    run_dump_test "protected-func"
+    run_dump_test "relr-addend"
+    run_dump_test "relr-align"
+    run_dump_test "relr-data-shared"
+    run_dump_test "relr-discard-shared"
+    run_dump_test "relr-got-shared"
+    run_dump_test "relr-text-shared"
+    run_dump_test "abssym_shared"
+  }
+
+  if [check_pie_support] {
+    run_dump_test "pie_discard"
+    run_dump_test "relr-data-pie"
+    run_dump_test "relr-discard-pie"
+    run_dump_test "relr-got-pie"
+    run_dump_test "relr-got-start"
+    run_dump_test "relr-text-pie"
+    run_dump_test "abssym_pie"
+  }
+
+  run_dump_test "max_imm_b16"
+  run_dump_test "max_imm_b21"
+  run_dump_test "max_imm_b26"
+  run_dump_test "max_imm_pcrel20"
+  run_dump_test "overflow_b16"
+  run_dump_test "overflow_b21"
+  run_dump_test "overflow_b26"
+  run_dump_test "overflow_pcrel20"
+  run_dump_test "underflow_b16"
+  run_dump_test "underflow_b21"
+  run_dump_test "underflow_b26"
+  run_dump_test "underflow_pcrel20"
+  run_dump_test "desc-le-norelax"
+  run_dump_test "desc-le-relax"
+  run_dump_test "ie-le-norelax"
+  run_dump_test "ie-le-relax"
+  run_dump_test "tlsdesc_abs"
+  run_dump_test "tlsdesc_extreme"
+}
+

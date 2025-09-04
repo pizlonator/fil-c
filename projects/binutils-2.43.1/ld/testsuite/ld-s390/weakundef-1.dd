@@ -1,0 +1,15 @@
+tmpdir/weakundef-1:     file format elf64-s390
+
+Disassembly of section .text:
+
+.* <foo>:
+.*:	c0 10 00 00 00 1c [	 ]*larl	%r1,200000038 <d>
+.*:	c0 10 00 00 00 1d [	 ]*larl	%r1,200000040 <wd>
+.*:	e3 10 00 00 00 71 [	 ]*lay	%r1,0
+.*:	c0 f4 00 00 00 01 [	 ]*jg	.*
+.*:	c0 f4 00 00 00 01 [	 ]*jg	.*
+.*:	c0 f4 00 00 00 01 [	 ]*jg	.*
+.*:	c0 f4 00 00 00 01 [	 ]*jg	.*
+.*:	c0 f4 00 00 00 01 [	 ]*jg	.*
+.*:	c0 04 00 00 00 00 [	 ]*jgnop	.*
+.*:	07 07 [	 ]*nopr	%r7

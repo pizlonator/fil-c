@@ -1,0 +1,74 @@
+# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if { ![is_elf_format] } then {
+    return
+}
+
+# common tests
+if  { ([istarget "aarch64-*-*"]) } then {
+
+    global ASFLAGS
+    set old_ASFLAGS "$ASFLAGS"
+
+    run_list_test "ginsn-arith-1" "--scfi=experimental -ali --warn"
+    run_list_test "ginsn-cofi-1" "--scfi=experimental -ali --warn"
+    run_list_test "ginsn-ldst-1" "--scfi=experimental -march=armv8-a+memtag -ali --warn"
+    run_list_test "ginsn-misc-1" "--scfi=experimental -march=armv8-a+memtag -ali --warn"
+
+    run_list_test "scfi-diag-1" "--scfi=experimental"
+    run_list_test "scfi-diag-2" "--scfi=experimental"
+    run_list_test "scfi-diag-3" "--scfi=experimental"
+
+    run_list_test "scfi-unsupported-1" "--scfi=experimental"
+    run_list_test "scfi-unsupported-2" "--scfi=experimental"
+
+    run_dump_test "scfi-callee-saved-fp-1"
+    run_list_test "scfi-callee-saved-fp-1" "--scfi=experimental --warn"
+    run_dump_test "scfi-callee-saved-fp-2"
+    run_list_test "scfi-callee-saved-fp-2" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-ldrp-1"
+    run_list_test "scfi-ldrp-1" "--scfi=experimental --warn"
+    run_dump_test "scfi-ldrp-2"
+    run_list_test "scfi-ldrp-2" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-strp-1"
+    run_list_test "scfi-strp-1" "--scfi=experimental --warn"
+    run_dump_test "scfi-strp-2"
+    run_list_test "scfi-strp-2" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-ldstnap-1"
+    run_list_test "scfi-ldstnap-1" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-cb-1"
+    run_list_test "scfi-cb-1" "--scfi=experimental --warn"
+    run_dump_test "scfi-cond-br-1"
+    run_list_test "scfi-cond-br-1" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-cfg-1"
+    run_list_test "scfi-cfg-1" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-cfg-2"
+    run_list_test "scfi-cfg-2" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-cfg-3"
+    run_list_test "scfi-cfg-3" "--scfi=experimental --warn"
+
+    run_dump_test "scfi-cfg-4"
+    run_list_test "scfi-cfg-4" "--scfi=experimental --warn"
+
+}

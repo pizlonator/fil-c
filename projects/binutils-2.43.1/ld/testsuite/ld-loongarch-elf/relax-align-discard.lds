@@ -1,0 +1,4 @@
+SECTIONS
+{
+  /DISCARD/ : { *(.another.*) }
+}

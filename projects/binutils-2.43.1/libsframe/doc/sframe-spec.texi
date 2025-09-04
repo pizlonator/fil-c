@@ -1,0 +1,916 @@
+\input texinfo       @c                    -*- Texinfo -*-
+@setfilename sframe-spec.info
+@settitle The SFrame Format
+
+@copying
+Copyright @copyright{} 2021-2024 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License, Version 3 or any
+later version published by the Free Software Foundation.  A copy of the
+license is included in the section entitled ``GNU General Public
+License''.
+
+@end copying
+
+@dircategory Software development
+@direntry
+* SFrame: (sframe-spec).         The Simple Frame format.
+@end direntry
+
+@titlepage
+@title The SFrame Format
+@subtitle Version 2
+@author Indu Bhagat
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+@contents
+
+@ifnottex
+@node Top
+@top The SFrame format
+
+This manual describes version 2 of the SFrame file format.  SFrame stands for
+Simple Frame.  The SFrame format keeps track of the minimal necessary
+information needed for generating stack traces:
+
+@itemize @minus
+@item
+Canonical Frame Address (CFA).
+@item
+Frame Pointer (FP).
+@item
+Return Address (RA).
+@end itemize
+
+The reason for existence of the SFrame format is to provide a simple, fast and
+low-overhead mechanism to generate stack traces.
+
+@menu
+* Introduction::
+* SFrame Section::
+* ABI/arch-specific Definition::
+
+Appendices
+* Generating Stack Traces using SFrame::
+
+* Index::
+@end menu
+
+@end ifnottex
+
+@node Introduction
+@chapter Introduction
+@cindex Introduction
+
+@menu
+* Overview::
+* Changes from Version 1 to Version 2::
+@end menu
+
+@node Overview
+@section Overview
+@cindex Overview
+
+The SFrame stack trace information is provided in a loaded section, known as the
+@code{.sframe} section.  When available, the @code{.sframe} section appears in
+a new segment of its own, PT_GNU_SFRAME.
+
+The SFrame format is currently supported only for select ABIs, namely, AMD64
+and AAPCS64.
+
+A portion of the SFrame format follows an unaligned on-disk representation.
+Some data structures, however, (namely the SFrame header and the SFrame
+function descriptor entry) have elements at their natural boundaries.  All data
+structures are packed, unless otherwise stated.
+
+The contents of the SFrame section are stored in the target endianness, i.e.,
+in the endianness of the system on which the section is targeted to be used.
+An SFrame section reader may use the magic number in the SFrame header to
+identify the endianness of the SFrame section.
+
+Addresses in this specification are expressed in bytes.
+
+The rest of this specification describes the current version of the format,
+@code{SFRAME_VERSION_2}, in detail.  Additional sections outline the major
+changes made to each previously published version of the SFrame stack trace
+format.
+
+The associated API to decode, probe and encode the SFrame section, provided via
+@code{libsframe}, is not accompanied here at this time.  This will be added
+later.
+
+This document is intended to be in sync with the C code in @file{sframe.h}.
+Please report discrepancies between the two, if any.
+
+@node Changes from Version 1 to Version 2
+@section Changes from Version 1 to Version 2
+@cindex Changes from Version 1 to Version 2
+
+The following is a list of the changes made to the SFrame stack trace format
+since Version 1 was published.
+
+@itemize @bullet
+@item
+Add an unsigned 8-bit integral field to the SFrame function descriptor entry to
+encode the size of the repetitive code blocks.  Such code blocks, e.g, pltN
+entries, use an SFrame function descriptor entry of type
+SFRAME_FDE_TYPE_PCMASK.
+@item
+Add an unsigned 16-bit integral field to the SFrame function descriptor entry
+to serve as padding.  This helps ensure natural alignment for the members of
+the data structure.
+@item
+The above two imply that each SFrame function descriptor entry has a fixed size
+of 20 bytes instead of its size of 17 bytes in SFrame format version 1.
+@end itemize
+
+SFrame version 1 is now obsolete and should not be used.
+
+@node SFrame Section
+@chapter SFrame Section
+@cindex SFrame Section
+
+The SFrame section consists of an SFrame header, starting with a preamble, and
+two other sub-sections, namely the SFrame function descriptor entry (SFrame
+FDE) sub-section, and the SFrame frame row entry (SFrame FRE) sub-section.
+
+@menu
+* SFrame Preamble::
+* SFrame Header::
+* SFrame Function Descriptor Entries::
+* SFrame Frame Row Entries::
+@end menu
+
+@node SFrame Preamble
+@section SFrame Preamble
+@cindex SFrame preamble
+
+The preamble is a 32-bit packed structure; the only part of the SFrame section
+whose format cannot vary between versions.
+
+@example
+typedef struct sframe_preamble
+@{
+  uint16_t sfp_magic;
+  uint8_t sfp_version;
+  uint8_t sfp_flags;
+@} ATTRIBUTE_PACKED sframe_preamble;
+@end example
+
+Every element of the SFrame preamble is naturally aligned.
+
+All values are stored in the endianness of the target system for which the
+SFrame section is intended.  Further details:
+
+@multitable {Offset} {@code{uint16_t}} {@code{sfp_version}} {The magic number for SFrame section: 0xdee2.}
+@headitem Offset @tab Type @tab Name @tab Description
+@item 0x00
+@tab @code{uint16_t}
+@tab @code{sfp_magic}
+@tab The magic number for SFrame section: 0xdee2.  Defined as a macro @code{SFRAME_MAGIC}.
+@tindex SFRAME_MAGIC
+
+@item 0x02
+@tab @code{uint8_t}
+@tab @code{sfp_version}
+@tab The version number of this SFrame section.  @xref{SFrame Version}, for the
+set of valid values.  Current version is
+@code{SFRAME_VERSION_2}.
+
+@item 0x03
+@tab @code{uint8_t}
+@tab @code{sfp_flags}
+@tab Flags (section-wide) for this SFrame section.  @xref{SFrame Flags}, for the
+set of valid values.
+@end multitable
+
+@menu
+* SFrame Magic Number and Endianness::
+* SFrame Version::
+* SFrame Flags::
+@end menu
+
+@node SFrame Magic Number and Endianness
+@subsection SFrame Magic Number and Endianness
+
+@cindex endianness
+@cindex SFrame magic number
+SFrame sections are stored in the target endianness of the system that consumes
+them.  A consumer library reading or writing SFrame sections should detect
+foreign-endianness by inspecting the SFrame magic number in the
+@code{sfp_magic} field in the SFrame header.  It may then provide means to
+endian-flip the SFrame section as necessary.
+
+@node SFrame Version
+@subsection SFrame Version
+
+The version of the SFrame format can be determined by inspecting
+@code{sfp_version}.  The following versions are currently valid:
+
+@tindex SFRAME_VERSION_1
+@cindex SFrame versions
+@multitable {SFRAME_VERSION_2} {Number} {Current version, under development.}
+@headitem Version Name @tab Number @tab Description
+@item @code{SFRAME_VERSION_1}
+@tab 1 @tab First version, obsolete.
+@item @code{SFRAME_VERSION_2}
+@tab 2 @tab Current version, under development.
+@end multitable
+
+This document describes @code{SFRAME_VERSION_2}.
+
+@node SFrame Flags
+@subsection SFrame Flags
+@cindex SFrame Flags
+
+The preamble contains bitflags in its @code{sfp_flags} field that
+describe various section-wide properties.
+
+The following flags are currently defined.
+
+@multitable {@code{SFRAME_F_FRAME_POINTER}} {Versions} {Value} {Function Descriptor Entries}
+@headitem Flag @tab Versions @tab Value @tab Meaning
+@tindex SFRAME_F_FDE_SORTED
+@item @code{SFRAME_F_FDE_SORTED} @tab All @tab 0x1 @tab Function Descriptor
+Entries are sorted on PC.
+@tindex SFRAME_F_FRAME_POINTER
+@item @code{SFRAME_F_FRAME_POINTER} @tab All @tab 0x2
+@tab All functions in the object file preserve frame pointer.
+@end multitable
+
+The purpose of SFRAME_F_FRAME_POINTER flag is to facilitate stack tracers to
+reliably fallback on the frame pointer based stack tracing method, if SFrame
+information is not present for some function in the SFrame section.
+
+Further flags may be added in future.
+
+@node SFrame Header
+@section SFrame Header
+@cindex SFrame header
+
+The SFrame header is the first part of an SFrame section.  It begins with the
+SFrame preamble.  All parts of it other than the preamble
+(@pxref{SFrame Preamble}) can vary between SFrame file versions.  It contains
+things that apply to the section as a whole, and offsets to the various other
+sub-sections defined in the format.  As with the rest of the SFrame section,
+all values are stored in the endianness of the target system.
+
+The two sub-sections tile the SFrame section: each section runs from the offset
+given until the start of the next section.  An explicit length is given for the
+last sub-section, the SFrame Frame Row Entry (SFrame FRE) sub-section.
+
+@example
+typedef struct sframe_header
+@{
+  sframe_preamble sfh_preamble;
+  uint8_t sfh_abi_arch;
+  int8_t sfh_cfa_fixed_fp_offset;
+  int8_t sfh_cfa_fixed_ra_offset;
+  uint8_t sfh_auxhdr_len;
+  uint32_t sfh_num_fdes;
+  uint32_t sfh_num_fres;
+  uint32_t sfh_fre_len;
+  uint32_t sfh_fdeoff;
+  uint32_t sfh_freoff;
+@} ATTRIBUTE_PACKED sframe_header;
+@end example
+
+Every element of the SFrame header is naturally aligned.
+
+The sub-section offsets, namely @code{sfh_fdeoff} and @code{sfh_freoff}, in the
+SFrame header are relative to the @emph{end} of the SFrame header; they are
+each an offset in bytes into the SFrame section where the SFrame FDE
+sub-section and the SFrame FRE sub-section respectively start.
+
+The SFrame section contains @code{sfh_num_fdes} number of fixed-length array
+elements in the SFrame FDE sub-section.  Each array element is of type SFrame
+function descriptor entry; each providing a high-level function description for
+the purpose of stack tracing.  More details in a subsequent section.
+@xref{SFrame Function Descriptor Entries}.
+
+Next, the SFrame FRE sub-section, starting at offset @code{sfh_fre_off},
+describes the stack trace information for each function, using a total of
+@code{sfh_num_fres} number of variable-length array elements.  Each array
+element is of type SFrame frame row entry.
+@xref{SFrame Frame Row Entries}.
+
+SFrame header allows specifying explicitly the fixed offsets from CFA, if any,
+from which FP or RA may be recovered.  For example, in AMD64, the stack offset
+of the return address is @code{CFA - 8}.  Since these offsets are expected to
+be in close vicinity to the CFA in most ABIs, @code{sfh_cfa_fixed_fp_offset}
+and @code{sfh_cfa_fixed_ra_offset} are limited to signed 8-bit integers.
+
+@cindex Provisions for future ABIs
+The SFrame format has made some provisions for supporting more
+ABIs/architectures in the future.  One of them is the concept of the auxiliary
+SFrame header.  Bytes in the auxiliary SFrame header may be used to convey
+further ABI-specific information.  The @code{sframe_header} structure provides
+an unsigned 8-bit integral field to denote the size (in bytes) of an auxiliary
+SFrame header.  The auxiliary SFrame header follows right after the
+@code{sframe_header} structure.  As for the calculation of the sub-section
+offsets, namely @code{sfh_fdeoff} and @code{sfh_freoff}, the @emph{end} of
+SFrame header must be the end of the auxiliary SFrame header, if the latter is
+present.
+
+Putting it all together:
+
+@multitable {Offset} {@code{uint32_t}} {@code{sfh_cfa_fixed_fp_offset}} {The number of SFrame FREs in the}
+@headitem Offset @tab Type @tab Name @tab Description
+@item 0x00
+@tab @code{sframe_ @* preamble}
+@tab @code{sfh_preamble}
+@tab The SFrame preamble. @xref{SFrame Preamble}.
+
+@item 0x04
+@tab @code{uint8_t}
+@tab @code{sfh_abi_arch}
+@tab The ABI/arch identifier.  @xref{SFrame ABI/arch Identifier}.
+
+@item 0x05
+@tab @code{int8_t}
+@tab @code{sfh_cfa_fixed_fp_offset}
+@tab The CFA fixed FP offset, if any.
+
+@item 0x06
+@tab @code{int8_t}
+@tab @code{sfh_cfa_fixed_ra_offset}
+@tab The CFA fixed RA offset, if any.
+
+@item 0x07
+@tab @code{uint8_t}
+@tab @code{sfh_auxhdr_len}
+@tab Size in bytes of the auxiliary header that follows the
+@code{sframe_header} structure.
+
+@item 0x08
+@tab @code{uint32_t}
+@tab @code{sfh_num_fdes}
+@tab The number of SFrame FDEs in the section.
+
+@item 0x0c
+@tab @code{uint32_t}
+@tab @code{sfh_num_fres}
+@tab The number of SFrame FREs in the section.
+
+@item 0x10
+@tab @code{uint32_t}
+@tab @code{sfh_fre_len}
+@tab The length in bytes of the SFrame FRE sub-section.
+
+@item 0x14
+@tab @code{uint32_t}
+@tab @code{sfh_fdeoff}
+@tab The offset in bytes to the SFrame FDE sub-section.
+
+@item 0x18
+@tab @code{uint32_t}
+@tab @code{sfh_freoff}
+@tab The offset in bytes to the SFrame FRE sub-section.
+
+@end multitable
+
+@menu
+* SFrame ABI/arch Identifier::
+@end menu
+
+@node SFrame ABI/arch Identifier
+@subsection SFrame ABI/arch Identifier
+@cindex SFrame ABI/arch Identifier
+
+SFrame header identifies the ABI/arch of the target system for which the
+executable and hence, the stack trace information contained in the SFrame
+section, is intended.  There are currently three identifiable ABI/arch values
+in the format.
+
+@multitable {SFRAME_ABI_AARCH64_ENDIAN_LITTLE} {Value} {@code{AARCH64 little-endian}}
+@headitem ABI/arch Identifier @tab Value @tab Description
+
+@tindex SFRAME_ABI_AARCH64_ENDIAN_BIG
+@item @code{SFRAME_ABI_AARCH64_ENDIAN_BIG}
+@tab 1 @tab AARCH64 big-endian
+
+@tindex SFRAME_ABI_AARCH64_ENDIAN_LITTLE
+@item @code{SFRAME_ABI_AARCH64_ENDIAN_LITTLE}
+@tab 2 @tab AARCH64 little-endian
+
+@tindex SFRAME_ABI_AMD64_ENDIAN_LITTLE
+@item @code{SFRAME_ABI_AMD64_ENDIAN_LITTLE}
+@tab 3 @tab AMD64 little-endian
+
+@end multitable
+
+The presence of an explicit identification of ABI/arch in SFrame may allow
+stack trace generators to make certain ABI/arch-specific decisions.
+
+@node SFrame Function Descriptor Entries
+@section SFrame FDE
+@cindex SFrame FDE
+
+The SFrame function descriptor entry sub-section is an array of the
+fixed-length SFrame function descriptor entries (SFrame FDEs).  Each SFrame FDE
+is a packed structure which contains information to describe a function's stack
+trace information at a high-level.
+
+The array of SFrame FDEs is sorted on the @code{sfde_func_start_address} if
+the SFrame section header flag @code{sfp_flags} has @code{SFRAME_F_FDE_SORTED}
+set.  Typically (as is the case with GNU ld) a linked object or executable
+will have the @code{SFRAME_F_FDE_SORTED} set.  This makes the job of a stack
+tracer easier as it may then employ binary search schemes to look for the
+pertinent SFrame FDE.
+
+@example
+typedef struct sframe_func_desc_entry
+@{
+  int32_t sfde_func_start_address;
+  uint32_t sfde_func_size;
+  uint32_t sfde_func_start_fre_off;
+  uint32_t sfde_func_num_fres;
+  uint8_t sfde_func_info;
+  uint8_t sfde_func_rep_size;
+  uint16_t sfde_func_padding2;
+@} ATTRIBUTE_PACKED sframe_func_desc_entry;
+@end example
+
+Every element of the SFrame function descriptor entry is naturally aligned.
+
+@code{sfde_func_start_fre_off} is the offset to the first SFrame FRE for the
+function.  This offset is relative to the @emph{end of the SFrame FDE}
+sub-section (unlike the sub-section offsets in the SFrame header, which are
+relative to the @emph{end} of the SFrame header).
+
+@code{sfde_func_info} is the SFrame FDE "info word", containing information on
+the FRE type and the FDE type for the function @xref{The SFrame FDE Info Word}.
+
+@cindex Provisions for future ABIs
+Apart from the @code{sfde_func_padding2}, the SFrame FDE has some currently
+unused bits in the SFrame FDE info word, @xref{The SFrame FDE Info Word}, that
+may be used for the purpose of extending the SFrame file format specification
+for future ABIs.
+
+Following table describes each component of the SFrame FDE structure:
+
+@multitable {Offset} {@code{uint32_t}} {@code{sfde_func_start_fre_off}} {Signed 32-bit integral field denoting the}
+@headitem Offset @tab Type @tab Name @tab Description
+@item 0x00
+@tab @code{int32_t}
+@tab @code{sfde_func_start_address}
+@tab Signed 32-bit integral field denoting the virtual memory address of the
+described function.
+
+@item 0x04
+@tab @code{uint32_t}
+@tab @code{sfde_func_size}
+@tab Unsigned 32-bit integral field specifying the size of the function in
+bytes.
+
+@item 0x08
+@tab @code{uint32_t}
+@tab @code{sfde_func_start_fre_off}
+@tab Unsigned 32-bit integral field specifying the offset in bytes of the
+function's first SFrame FRE in the SFrame section.
+
+@item 0x0c
+@tab @code{uint32_t}
+@tab @code{sfde_func_num_fres}
+@tab Unsigned 32-bit integral field specifying the total number of SFrame FREs
+used for the function.
+
+@item 0x10
+@tab @code{uint8_t}
+@tab @code{sfde_func_info}
+@tab Unsigned 8-bit integral field specifying the SFrame FDE info word.
+@xref{The SFrame FDE Info Word}.
+
+@item 0x11
+@tab @code{uint8_t}
+@tab @code{sfde_func_rep_size}
+@tab Unsigned 8-bit integral field specifying the size of the repetitive code
+block for which an SFrame FDE of type SFRAME_FDE_TYPE_PCMASK is used.  For
+example, in AMD64, the size of a pltN entry is 16 bytes.
+
+@item 0x12
+@tab @code{uint16_t}
+@tab @code{sfde_func_padding2}
+@tab Padding of 2 bytes.  Currently unused bytes.
+
+@end multitable
+
+@menu
+* The SFrame FDE Info Word::
+* The SFrame FDE Types::
+* The SFrame FRE Types::
+@end menu
+
+@cindex The SFrame FDE Info Word
+@node The SFrame FDE Info Word
+@subsection The SFrame FDE Info Word
+
+The info word is a bitfield split into three parts.  From MSB to LSB:
+
+@multitable {Bit offset} {@code{pauth_key}} {Specify which key is used for signing the return addresses}
+@headitem Bit offset @tab Name @tab Description
+@item 7--6
+@tab @code{unused}
+@tab Unused bits.
+
+@item 5
+@tab @code{pauth_key}
+@tab (For AARCH64) Specify which key is used for signing the return addresses
+in the SFrame FDE.  Two possible values: @*
+SFRAME_AARCH64_PAUTH_KEY_A (0), or @*
+SFRAME_AARCH64_PAUTH_KEY_B (1). @*
+Ununsed in AMD64.
+
+@item 4
+@tab @code{fdetype}
+@tab Specify the SFrame FDE type.  Two possible values: @*
+SFRAME_FDE_TYPE_PCMASK (1), or @*
+SFRAME_FDE_TYPE_PCINC (0). @*
+@xref{The SFrame FDE Types}.
+
+@item 0--3
+@tab @code{fretype}
+@tab Choice of three SFrame FRE types. @xref{The SFrame FRE Types}.
+@end multitable
+
+@node The SFrame FDE Types
+@subsection The SFrame FDE Types
+@tindex SFRAME_FDE_TYPE_PCMASK
+@tindex SFRAME_FDE_TYPE_PCINC
+
+The SFrame format defines two types of FDE entries.  The choice of which SFrame
+FDE type to use is made based on the instruction patterns in the relevant
+program stub.
+
+An SFrame FDE of type @code{SFRAME_FDE_TYPE_PCINC} is an indication that the PCs in the
+FREs should be treated as increments in bytes.  This is used fo the the bulk of
+the executable code of a program, which contains instructions with no specific
+pattern.
+
+In contrast, an SFrame FDE of type @code{SFRAME_FDE_TYPE_PCMASK} is an
+indication that the PCs in the FREs should be treated as masks.  This type is
+useful for the cases where a small pattern of instructions in a program stub is
+used repeatedly for a specific functionality.  Typical usecases are pltN
+entries and trampolines.
+
+@multitable {SFRAME_FDE_TYPE_PCMASK} {Value} {Unwinders perform a Unwinders perform a}
+@headitem Name of SFrame FDE type @tab Value @tab Description
+
+@item SFRAME_FDE_TYPE_PCINC
+@tab 0 @tab Stacktracers perform a @*
+(PC >= FRE_START_ADDR) to look up a matching FRE.
+
+@item SFRAME_FDE_TYPE_PCMASK
+@tab 1 @tab  Stacktracers perform a @*
+(PC % REP_BLOCK_SIZE @*
+ >= FRE_START_ADDR)
+to look up a matching FRE.  REP_BLOCK_SIZE is the size in bytes of the
+repeating block of program instructions and is encoded via
+@code{sfde_func_rep_size} in the SFrame FDE.
+
+@end multitable
+
+@node The SFrame FRE Types
+@subsection The SFrame FRE Types
+
+A real world application can have functions of size big and small.  SFrame
+format defines three types of SFrame FRE entries to effeciently encode the
+stack trace information for such a variety of function sizes.  These
+representations vary in the number of bits needed to encode the start address
+offset in the SFrame FRE.
+
+The following constants are defined and used to identify the SFrame FRE types:
+
+@multitable {SFRAME_FRE_TYPE_ADDR1} {@code{Value}} {The start address offset (in bytes) of the}
+@headitem Name @tab Value @tab Description
+
+@tindex SFRAME_FRE_TYPE_ADDR1
+@item @code{SFRAME_FRE_TYPE_ADDR1}
+@tab 0
+@tab The start address offset (in bytes) of the SFrame FRE is an unsigned
+8-bit value.
+
+@tindex SFRAME_FRE_TYPE_ADDR2
+@item @code{SFRAME_FRE_TYPE_ADDR2}
+@tab 1
+@tab The start address offset (in bytes) of the SFrame FRE is an unsigned
+16-bit value.
+
+@tindex SFRAME_FRE_TYPE_ADDR4
+@item @code{SFRAME_FRE_TYPE_ADDR4}
+@tab 2
+@tab The start address offset (in bytes) of the SFrame FRE is an unsigned
+32-bit value.
+@end multitable
+
+A single function must use the same type of SFrame FRE throughout.  The
+identifier to reflect the chosen SFrame FRE type is stored in the
+@code{fretype} bits in the SFrame FDE info word,
+@xref{The SFrame FDE Info Word}.
+
+@node SFrame Frame Row Entries
+@section SFrame FRE
+@cindex SFrame FRE
+
+The SFrame frame row entry sub-section contains the core of the stack trace
+information.  An SFrame frame row entry (FRE) is a self-sufficient record
+containing SFrame stack trace information for a range of contiguous
+(instruction) addresses, starting at the specified offset from the start of the
+function.
+
+Each SFrame FRE encodes the stack offsets to recover the CFA, FP and RA (where
+applicable) for the respective instruction addresses.  To encode this
+information, each SFrame FRE is followed by S*N bytes, where:
+
+@itemize @minus
+@item
+@code{S} is the size of a stack offset for the FRE, and
+@item
+@code{N} is the number of stack offsets in the FRE
+@end itemize
+
+The entities @code{S}, @code{N} are encoded in the SFrame FRE info word, via
+the @code{fre_offset_size} and the @code{fre_offset_count} respectively.  More
+information about the precise encoding and range of values for @code{S} and
+@code{N} is provided later in the @xref{The SFrame FRE Info Word}.
+
+@cindex Provisions for future ABIs
+It is important to underline here that although the canonical interpretation
+of these bytes is as stack offsets (to recover CFA, FP and RA), these bytes
+@emph{may} be used by future ABIs/architectures to convey other information on
+a per SFrame FRE basis.
+
+In summary, SFrame file format, by design, supports a variable number of stack
+offsets at the tail end of each SFrame FRE.  To keep the SFrame file
+format specification flexible yet extensible, the interpretation of the stack
+offsets is ABI/arch-specific.  The precise interpretation of the FRE stack
+offsets in the currently supported ABIs/architectures is covered in the
+ABI/arch-specific definition of the SFrame file format,
+@xref{ABI/arch-specific Definition}.
+
+Next, the definitions of the three SFrame FRE types are as follows:
+
+@example
+typedef struct sframe_frame_row_entry_addr1
+@{
+  uint8_t sfre_start_address;
+  sframe_fre_info sfre_info;
+@} ATTRIBUTE_PACKED sframe_frame_row_entry_addr1;
+@end example
+
+@example
+typedef struct sframe_frame_row_entry_addr2
+@{
+  uint16_t sfre_start_address;
+  sframe_fre_info sfre_info;
+@} ATTRIBUTE_PACKED sframe_frame_row_entry_addr2;
+@end example
+
+@example
+typedef struct sframe_frame_row_entry_addr4
+@{
+  uint32_t sfre_start_address;
+  sframe_fre_info sfre_info;
+@} ATTRIBUTE_PACKED sframe_frame_row_entry_addr4;
+@end example
+
+For ensuring compactness, SFrame frame row entries are stored unaligned on
+disk.  Appropriate mechanisms need to be employed, as necessary, by the
+serializing and deserializing entities, if unaligned accesses need to be
+avoided.
+
+@code{sfre_start_address} is an unsigned 8-bit/16-bit/32-bit integral field
+identifies the start address of the range of program counters, for which the
+SFrame FRE applies.  The value encoded in the @code{sfre_start_address} field
+is the offset in bytes of the start address of the SFrame FRE, from the start
+address of the function.
+
+Further SFrame FRE types may be added in future.
+
+@menu
+* The SFrame FRE Info Word::
+@end menu
+
+@cindex The SFrame FRE Info Word
+@node The SFrame FRE Info Word
+@subsection The SFrame FRE Info Word
+
+The SFrame FRE info word is a bitfield split into four parts.  From MSB to LSB:
+
+@multitable {Bit offset} {@code{fre_cfa_base_reg_id}} {Size of stack offsets in bytes.  Valid values}
+@headitem Bit offset @tab Name @tab Description
+@item 7
+@tab @code{fre_mangled_ra_p}
+@tab Indicate whether the return address is mangled with any authorization bits (signed RA).
+
+@item 5-6
+@tab @code{fre_offset_size}
+@tab Size of stack offsets in bytes.  Valid values are: @*
+SFRAME_FRE_OFFSET_1B, @*
+SFRAME_FRE_OFFSET_2B, and @*
+SFRAME_FRE_OFFSET_4B.
+
+@item 1-4
+@tab @code{fre_offset_count}
+@tab A max value of 15 is allowed.  Typically, a value of upto 3 is sufficient
+for most ABIs to track all three of CFA, FP and RA.
+
+@item 0
+@tab @code{fre_cfa_base_reg_id}
+@tab Distinguish between SP or FP based CFA recovery.
+
+@end multitable
+
+@multitable {SFRAME_FRE_OFFSET_4B} {@code{Value}} {All stack offsets following the fixed-length}
+@headitem Name @tab Value @tab Description
+
+@tindex SFRAME_FRE_OFFSET_1B
+@item @code{SFRAME_FRE_OFFSET_1B}
+@tab 0
+@tab All stack offsets following the fixed-length FRE structure are 1 byte
+long.
+
+@tindex SFRAME_FRE_OFFSET_2B
+@item @code{SFRAME_FRE_OFFSET_2B}
+@tab 1
+@tab All stack offsets following the fixed-length FRE structure are 2 bytes
+long.
+
+@tindex SFRAME_FRE_OFFSET_4B
+@item @code{SFRAME_FRE_OFFSET_4B}
+@tab 2
+@tab All stack offsets following the fixed-length FRE structure are 4 bytes
+long.
+
+@end multitable
+
+@node ABI/arch-specific Definition
+@chapter ABI/arch-specific Definition
+@cindex ABI/arch-specific Definition
+
+This section covers the ABI/arch-specific definition of the SFrame file format.
+
+Currently, the only part of the SFrame file format definition that is
+ABI/arch-specific is the interpretation of the variable number of bytes at the
+tail end of each SFrame FRE.  Currently, these bytes are only used for
+representing stack offsets (for all the currently supported ABIs).  It is
+recommended to peruse this section along with @xref{SFrame Frame Row Entries}
+for clarity of context.
+
+Future ABIs must specify the algorithm for identifying the appropriate SFrame
+FRE stack offsets in this chapter.  This should inevitably include the
+blueprint for interpreting the variable number of bytes at the tail end of the
+SFrame FRE for the specific ABI/arch. Any further provisions, e.g., using the
+auxiliary SFrame header, etc., if used, must also be outlined here.
+
+@menu
+* AMD64::
+* AArch64::
+@end menu
+
+@node AMD64
+@section AMD64
+
+Irrespective of the ABI, the first stack offset is always used to locate the
+CFA, by interpreting it as: CFA = @code{BASE_REG} + offset1.  The
+identification of the @code{BASE_REG} is done by using the
+@code{fre_cfa_base_reg_id} field in the SFrame FRE info word.
+
+In AMD64, the return address (RA) is always saved on stack when a function
+call is executed.  Further, AMD64 ABI mandates that the RA be saved at a
+@code{fixed offset} from the CFA when entering a new function.  This means
+that the RA does not need to be tracked per SFrame FRE.  The fixed offset is
+encoded in the SFrame file format in the field @code{sfh_cfa_fixed_ra_offset}
+in the SFrame header.  @xref{SFrame Header}.
+
+Hence, the second stack offset (in the SFrame FRE), when present, will be used
+to locate the FP, by interpreting it as: FP = CFA + offset2.
+
+Hence, in summary:
+
+@multitable {Offset ID} {Interpretation in AMD64 in AMD64}
+@headitem Offset ID @tab Interpretation in AMD64
+@item 1 @tab CFA = @code{BASE_REG} + offset1
+@item 2 @tab FP = CFA + offset2
+@end multitable
+
+@node AArch64
+@section AArch64
+
+Irrespective of the ABI, the first stack offset is always used to locate the
+CFA, by interpreting it as: CFA = @code{BASE_REG} + offset1.  The
+identification of the @code{BASE_REG} is done by using the
+@code{fre_cfa_base_reg_id} field in the SFrame FRE info word.
+
+In AARCH64, the AAPCS64 standard specifies that the Frame Record saves both FP
+and LR (a.k.a the RA).  However, the standard does not mandate the precise
+location in the function where the frame record is created, if at all.  Hence
+the need to track RA in the SFrame stack trace format.  As RA is being tracked
+in this ABI, the second stack offset is always used to locate the RA, by
+interpreting it as: RA = CFA + offset2. The third stack offset will be used to
+locate the FP, by interpreting it as: FP = CFA + offset3.
+
+Given the nature of things, the number of stack offsets seen on AARCH64 per
+SFrame FRE is either 1 or 3.
+
+Hence, in summary:
+
+@multitable {Offset ID} {Interpretation in AArch64 in X}
+@headitem Offset ID @tab Interpretation in AArch64
+@item 1 @tab CFA = @code{BASE_REG} + offset1
+@item 2 @tab RA = CFA + offset2
+@item 3 @tab FP = CFA + offset3
+@end multitable
+
+@node Generating Stack Traces using SFrame
+@appendix Generating Stack Traces using SFrame
+
+Using some C-like pseudocode, this section highlights how SFrame provides a
+simple, fast and low-overhead mechanism to generate stack traces.  Needless to
+say that for generating accurate and useful stack traces, several other aspects
+will need attention: finding and decoding bits of SFrame section(s) in the
+program binary, symbolization of addresses, to name a few.
+
+In the current context, a @code{frame} is the abstract construct that
+encapsulates the following information:
+@itemize @minus
+@item
+program counter (PC),
+@item
+stack pointer (SP), and
+@item
+frame pointer (FP)
+@end itemize
+
+With that said, establishing the first @code{frame} should be trivial:
+
+@example
+    // frame 0
+    frame->pc = current_IP;
+    frame->sp = get_reg_value (REG_SP);
+    frame->fp = get_reg_value (REG_FP);
+@end example
+
+where @code{REG_SP} and @code{REG_FP} are are ABI-designated stack pointer and
+frame pointer registers respectively.
+
+Next, given frame N, generating stack trace needs us to get frame N+1.  This
+can be done as follows:
+
+@example
+     // Get the PC, SP, and FP for frame N.
+     pc = frame->pc;
+     sp = frame->sp;
+     fp = frame->fp;
+     // Populate frame N+1.
+     int err = get_next_frame (&next_frame, pc, sp, fp);
+@end example
+
+where given the values of the program counter, stack pointer and frame pointer
+from frame N, @code{get_next_frame} populates the provided @code{next_frame}
+object and returns the error code, if any. In the following pseudocode for
+@code{get_next_frame}, the @code{sframe_*} functions fetch information from the
+SFrame section.
+
+@example
+    fre = sframe_find_fre (pc);
+    if (fre)
+        // Whether the base register for CFA tracking is REG_FP.
+        base_reg_val = sframe_fre_base_reg_fp_p (fre) ? fp : sp;
+        // Get the CFA stack offset from the FRE.
+        cfa_offset = sframe_fre_get_cfa_offset (fre);
+        // Get the fixed RA offset or FRE stack offset as applicable.
+        ra_offset = sframe_fre_get_ra_offset (fre);
+        // Get the fixed FP offset or FRE stack offset as applicable.
+        fp_offset = sframe_fre_get_fp_offset (fre);
+
+        cfa = base_reg_val + cfa_offset;
+        next_frame->sp = cfa;
+
+        ra_stack_loc = cfa + ra_offset;
+        // Get the address stored in the stack location.
+        next_frame->pc = read_value (ra_stack_loc);
+
+        if (fp_offset is VALID)
+            fp_stack_loc = cfa + fp_offset;
+            // Get the value stored in the stack location.
+            next_frame->fp = read_value (fp_stack_loc);
+        else
+            // Continue to use the value of fp as it has not
+            // been clobbered by the current frame yet.
+            next_frame->fp = fp;
+    else
+        ret = ERR_NO_SFRAME_FRE;
+@end example
+
+@node Index
+@unnumbered Index
+
+@syncodeindex tp cp
+@printindex cp
+
+@bye
