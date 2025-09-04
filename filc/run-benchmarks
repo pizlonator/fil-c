@@ -27,7 +27,7 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BASE_BENCHMARK_NAME = "PizBench9013"
+BASE_BENCHMARK_NAME = "PizBench9014"
 $benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 10
@@ -437,6 +437,11 @@ $benchmarks << Benchmark.new(
 
 $benchmarks << Benchmark.new(
     "bin/zsh",
+    "benchmarkData/richards.sh",
+    [])
+
+$benchmarks << Benchmark.new(
+    "bin/bash",
     "benchmarkData/richards.sh",
     [])
 
