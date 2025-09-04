@@ -75,6 +75,7 @@ test ! -d projects/pizfix
 ./build_cmake.sh
 ./build_coreutils.sh
 ./build_bash.sh
+./build_binutils.sh
 ./build_benchmarks.sh
 
 test ! -d projects/pizfix
