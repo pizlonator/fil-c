@@ -1,0 +1,5 @@
+unset a
+cat <<EOF >/dev/null
+${a=NO}
+EOF
+echo $a BUG

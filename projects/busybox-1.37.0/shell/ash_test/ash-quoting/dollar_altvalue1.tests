@@ -1,0 +1,16 @@
+f() { for i; do echo "|$i|"; done; }
+x=a
+
+echo Unquoted b c d
+f ${x:+b c d}
+echo Unquoted "'b c' d"
+f ${x:+'b c' d}
+echo Unquoted '"b c" d'
+f ${x:+"b c" d}
+
+echo Quoted b c d
+f "${x:+b c d}"
+echo Quoted "'b c' d"
+f "${x:+'b c' d}"
+echo Quoted '"b c" d'
+f "${x:+"b c" d}"

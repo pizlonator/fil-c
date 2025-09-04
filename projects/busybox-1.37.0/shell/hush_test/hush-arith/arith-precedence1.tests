@@ -1,0 +1,15 @@
+exec 2>&1
+# bash documentation says that precedence order is:
+#  ...
+#  expr ? expr1 : expr2
+#  = *= /= %= += -= <<= >>= &= ^= |=
+#  exprA , exprB
+# but in practice, the rules for expr1 and expr2 are different:
+# assignments and commas in expr1 have higher precedence than :?,
+# but in expr2 they haven't:
+# "v ? 1,2 : 3,4" is parsed as "(v ? (1,2) : 3),4"
+# "v ? a=2 : b=4" is parsed as "(v ? (a=1) : b)=4" (thus, this is a syntax error)
+echo 4:$((0 ? 1,2 : 3,4))
+echo 4:$((1 ? 1,2 : 3,4))
+echo 4:"$((0 ? 1,2 : 3,4))"
+echo 4:"$((1 ? 1,2 : 3,4))"

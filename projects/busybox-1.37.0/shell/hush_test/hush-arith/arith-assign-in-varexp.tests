@@ -1,0 +1,8 @@
+exec 2>&1
+a='b=10'
+b=3
+# The variables should evaluate left-to-right,
+# thus b is set to 10 _before_ addition
+echo 20:$((a + b))
+echo "a=$a"
+echo "b=$b"

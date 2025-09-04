@@ -1,0 +1,8 @@
+>tempfile0.tmp
+>tempfile1.tmp
+>tempfile9.tmp
+# The [...] is interpreted as: "any of the chars 0, -, and 9"
+echo tempfile[0"$((-9))"].tmp
+# The [...] is [0-9], interpreted as: "any digit"
+echo tempfile[0$((-9))].tmp
+rm tempfile?.tmp

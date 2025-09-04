@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# Copyright 2022 by Roger Knecht <rknecht@pm.me>
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh -v
+
+# testing "description" "command" "result" "infile" "stdin"
+
+testing "tree error opening dir" \
+	"tree tree.tempdir" \
+	"\
+tree.tempdir [error opening dir]\n\
+\n\
+0 directories, 0 files\n" \
+	"" ""
+
+mkdir -p tree2.tempdir
+touch tree2.tempdir/testfile
+
+optional UNICODE_SUPPORT
+
+testing "tree single file" \
+	"cd tree2.tempdir && tree" \
+	"\
+.\n\
+└── testfile\n\
+\n\
+0 directories, 1 files\n" \
+	"" ""
+
+mkdir -p tree3.tempdir/test1 \
+	 tree3.tempdir/test2/a \
+	 tree3.tempdir/test2/b \
+	 tree3.tempdir/test3/c \
+	 tree3.tempdir/test3/d
+
+touch tree3.tempdir/test2/a/testfile1 \
+	tree3.tempdir/test2/a/testfile2 \
+	tree3.tempdir/test2/a/testfile3 \
+	tree3.tempdir/test2/b/testfile4 \
+	tree3.tempdir/test3/c/testfile5 \
+	tree3.tempdir/test3/d/testfile6 \
+	tree3.tempdir/test3/d/.testfile7
+
+(cd tree3.tempdir/test2/a && ln -s ../b/testfile4 .)
+(cd tree3.tempdir/test2/b && ln -s ../../test3 .)
+
+testing "tree nested directories and files" \
+	"cd tree3.tempdir && tree" \
+	"\
+.\n\
+├── test1\n\
+├── test2\n\
+│   ├── a\n\
+│   │   ├── testfile1\n\
+│   │   ├── testfile2\n\
+│   │   ├── testfile3\n\
+│   │   └── testfile4 -> ../b/testfile4\n\
+│   └── b\n\
+│       ├── test3 -> ../../test3\n\
+│       └── testfile4\n\
+└── test3\n\
+    ├── c\n\
+    │   └── testfile5\n\
+    └── d\n\
+        └── testfile6\n\
+\n\
+7 directories, 8 files\n" \
+	"" ""
+#note: tree v2.0.1 says "8 directories, 7 files":
+#it counts "test3 -> ../../test3" as a directory, even though it does not follow this symlink
+
+testing "tree multiple directories" \
+	"tree tree2.tempdir tree3.tempdir" \
+	"\
+tree2.tempdir\n\
+└── testfile\n\
+tree3.tempdir\n\
+├── test1\n\
+├── test2\n\
+│   ├── a\n\
+│   │   ├── testfile1\n\
+│   │   ├── testfile2\n\
+│   │   ├── testfile3\n\
+│   │   └── testfile4 -> ../b/testfile4\n\
+│   └── b\n\
+│       ├── test3 -> ../../test3\n\
+│       └── testfile4\n\
+└── test3\n\
+    ├── c\n\
+    │   └── testfile5\n\
+    └── d\n\
+        └── testfile6\n\
+\n\
+7 directories, 9 files\n" \
+	"" ""
+#note: tree v2.0.1 says "8 directories, 7 files" (not "8 files", probably a/testfile4 -> ../b/testfile4 and b/testfile4 are counted as one file, not 2?)
+
+rm -rf tree.tempdir tree2.tempdir tree3.tempdir
+
+exit $FAILCOUNT

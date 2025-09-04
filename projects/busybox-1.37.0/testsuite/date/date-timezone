@@ -1,0 +1,32 @@
+# FEATURE: CONFIG_FEATURE_TIMEZONE
+
+# 'Z' is UTC
+dt=$(TZ=UTC0 busybox date -d '1999-1-2 3:4:5Z')
+dt=$(echo "$dt" | cut -b1-19)
+test x"$dt" = x"Sat Jan  2 03:04:05"
+
+# '+0600' is six hours ahead of UTC
+dt=$(TZ=UTC0 busybox date -d '1999-1-2 3:4:5 +0600')
+dt=$(echo "$dt" | cut -b1-19)
+test x"$dt" = x"Fri Jan  1 21:04:05"
+
+# '-0600' is six hours behind UTC
+dt=$(TZ=UTC0 busybox date -d '1999-1-2 3:4:5 -0600')
+dt=$(echo "$dt" | cut -b1-19)
+test x"$dt" = x"Sat Jan  2 09:04:05"
+
+# before dst is switched on
+dt=$(TZ=GMT0BST,M3.5.0/1,M10.5.0/2 busybox date -d '2021-03-28 00:59:59 +0000')
+test x"$dt" = x"Sun Mar 28 00:59:59 GMT 2021"
+
+# after dst is switched on
+dt=$(TZ=GMT0BST,M3.5.0/1,M10.5.0/2 busybox date -d '2021-03-28 01:00:01 +0000')
+test x"$dt" = x"Sun Mar 28 02:00:01 BST 2021"
+
+# before dst is switched off
+dt=$(TZ=GMT0BST,M3.5.0/1,M10.5.0/2 busybox date -d '2021-10-31 00:00:01 +0000')
+test x"$dt" = x"Sun Oct 31 01:00:01 BST 2021"
+
+# after dst is switched off: back to 01:00:01 but with different TZ
+dt=$(TZ=GMT0BST,M3.5.0/1,M10.5.0/2 busybox date -d '2021-10-31 01:00:01 +0000')
+test x"$dt" = x"Sun Oct 31 01:00:01 GMT 2021"

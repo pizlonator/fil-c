@@ -1,0 +1,6 @@
+# "exit" in trap should not use last command's exitcode,
+# but exitcode on entering the trap.
+(trap "echo Trapped; exit" EXIT
+ (exit 1)
+)
+echo One:$?

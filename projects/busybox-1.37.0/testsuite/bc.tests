@@ -1,0 +1,324 @@
+#!/bin/sh
+# Copyright 2018 by Denys Vlasenko
+# Licensed under GPLv2 or later, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "command" "expected result" "file input" "stdin"
+
+testing "bc comment" \
+	"bc" \
+	"3\n" \
+	"" "1 /* comment */ + 2"
+
+testing "bc /*/ is not a closed comment" \
+	"bc" \
+	"4\n" \
+	"" "1 /*/ + 2 */ + 3"
+
+# this needs interactive testing
+testing "bc comment with \"" \
+	"bc" \
+	"3\n" \
+	"" "1 /* \" */ + 2"
+
+# this needs interactive testing
+testing "bc \"string/*\" is not a comment" \
+	"bc" \
+	"string/*9\n" \
+	"" "\"string/*\";9"
+
+testing "bc comment 3: unterminated #comment" \
+	"bc" \
+	"" \
+	"" "#foo"  # no trailing newline
+
+testing "bc backslash 1" \
+	"bc" \
+	"3\n" \
+	"" "1 \\\\\n + 2"
+
+testing "bc string 1" \
+	"bc" \
+	"STR\n" \
+	"" "\"STR\n\""
+
+testing "bc read() 4<EOF>" \
+	"bc input" \
+	"4\n" \
+	"read();halt" "4"
+
+testing "bc read()^2" \
+	"bc input" \
+	"16\n" \
+	"read()^2;halt" "4\n"
+
+testing "bc read()*read()" \
+	"bc input" \
+	"20\n" \
+	"read()*read();halt" "4\n5"
+
+testing "bc if 0 else" \
+	"bc" \
+	"2\n9\n" \
+	"" "if (0) 1 else 2; 9"
+
+testing "bc if 1 else" \
+	"bc" \
+	"1\n9\n" \
+	"" "if (1) 1 else 2; 9"
+
+testing "bc if 1 if 1 else else" \
+	"bc" \
+	"1\n9\n" \
+	"" "if (1) if (1) 1 else 2 else 3; 9"
+
+testing "bc if 0 else if 1" \
+	"bc" \
+	"2\n9\n" \
+	"" "if (0) 1 else if (1) 2; 9"
+
+testing "bc for (;;)" \
+	"bc" \
+	"2\n3\n2\n9\n" \
+	"" "i=2; for (;;) { 2; if(--i==0) break; 3; }; 9"
+
+testing "bc for (;cond;)" \
+	"bc" \
+	"1\n2\n3\n9\n" \
+	"" "i=0; for(;i<3;)++i; 9"
+
+testing "bc for (;cond;upd)" \
+	"bc" \
+	"1\n2\n3\n9\n" \
+	"" "i=1; for(;i<4;i++)i; 9"
+
+testing "bc for (init;cond;upd)" \
+	"bc" \
+	"1\n2\n3\n9\n" \
+	"" "for(i=1;i<4;i++)i; 9"
+
+testing "bc for (;;) {break}" \
+	"bc" \
+	"2\n9\n" \
+	"" "for (;;) {2;break}; 9"
+
+testing "bc define {return}" \
+	"bc" \
+	"0\n9\n" \
+	"" "define w() {return}\nw();9"
+
+testing "bc define auto" \
+	"bc" \
+	"8\n9\n" \
+	"" "define w() { auto z; return 8; }; w(); 9"
+
+testing "bc define auto array same name" \
+	"bc" \
+	"8\n9\n" \
+	"" "define w(x) { auto x[]; return x; }; w(8); 9"
+
+testing "bc define with body on next line" \
+	"bc" \
+	"8\n9\n" \
+	"" "define w()\n{ auto z; return 8; }\nw()\n9"
+
+testing "bc void function" \
+	"bc" \
+	"void9\n" \
+	"" "define void w() {print \"void\"}\nw()\n9"
+
+# Extra POSIX compat - GNU bc does not allow this
+testing "bc function named 'void'" \
+	"bc" \
+	"void0\n9\n" \
+	"" "define void() {print \"void\"}\nvoid()\n9"
+
+# Extra POSIX compat - GNU bc does not allow this
+testing "bc variable named 'void'" \
+	"bc" \
+	"6\n9\n" \
+	"" "void=6\nvoid\n9"
+
+testing "bc if(cond)<NL>" \
+	"bc" \
+	"9\n" \
+	"" "if(0)\n3\n9"
+
+testing "bc if(cond) stmt else<NL>" \
+	"bc" \
+	"4\n9\n" \
+	"" "if(0)3 else\n4\n9"
+
+testing "bc while(cond)<NL>" \
+	"bc" \
+	"8\n7\n6\n5\n4\n3\n2\n1\n9\n" \
+	"" "i=9;while(--i)\ni\n9"
+
+testing "bc ifz does not match if keyword" \
+	"bc" \
+	"1\n2\n2\n3\n" \
+	"" "ifz=1;ifz\n++ifz;ifz++\nifz"
+
+# had parse error on "f()-N"
+testing "bc -l 'e(0)-2'" \
+	"bc -l" \
+	"-1.00000000000000000000\n" \
+	"" "e(0)-2"
+
+testing "bc (!a&&b)" \
+	"bc" \
+	"0\n" \
+	"" "(!a&&b)"
+
+# check that dc code is not messing this up (no NUL printing!)
+testing "bc print \"\"" \
+	"bc" \
+	"" \
+	"" "print \"\""
+
+testing "bc print 1,2,3" \
+	"bc" \
+	"123" \
+	"" "print 1,2,3"
+
+testing "bc length" \
+	"bc" \
+	"1\n3\n1\n3\n3\n" \
+	"" "length(0); length(100); length(0.01); length(0.00120); length(0.012-0.012);"
+
+testing "bc { print 1 }" \
+	"bc" \
+	"1" \
+	"" "{ print 1 }"
+
+testing "bc comparison 1" \
+	"bc" \
+	"1\n" \
+	"" "-10 < -9"
+
+testing "bc nested loops and breaks" \
+	"bc" \
+	"\
+11
+21
+31
+22
+12
+99
+" \
+	"" "\
+if(1) {
+	11
+	while(1) {
+		21
+		while(1) {
+			31
+			break
+			32
+		}
+		22
+		break
+		23
+	}
+	12
+} else {
+	88
+}
+99
+"
+
+testing "bc continue in if" \
+	"bc" \
+	"\
+11
+21
+11
+31
+99
+" \
+	"" "\
+i=2
+while(i--) {
+	11
+	if(i) {
+		21
+		continue
+		22
+	} else {
+		31
+		continue
+	32
+	}
+	12
+}
+99
+"
+
+testing "bc continue in for" \
+	"bc" \
+	"\
+1
+77
+2
+99
+" \
+	"" "\
+for(i=1; i<3; i++) {
+    i
+    if(i==2) continue
+    77
+}
+99
+"
+
+testing "bc ibase" \
+	"bc" \
+	"99\n1295\n1224\n" \
+	"" "a=ZZ;a;ibase=36;a=ZZ;a;ibase=Z;a=ZZ;a"
+
+testing "bc parsing of numbers" \
+	"bc 2>&1 | bc 2>&1 | md5sum 2>&1" \
+	"465d8c01308d0863b6f5669e8a1c69fb  -\n" \
+	"" '
+for (b = 2; b <= 16; ++b) {
+	if (b == 10) continue
+	obase = 10
+	print "ibase = A; ibase = ", b, "\n"
+	obase = b
+	for (i = 0; i <= 65536; ++i) {
+		i
+		print "0.", i, "\n"
+		print "1.", i, "\n"
+		print i, ".", i, "\n"
+	}
+}'
+
+testing "bc printing of numbers" \
+	"bc 2>&1 | bc 2>&1 | md5sum 2>&1" \
+	"d884b35d251ca096410712743aeafb9e  -\n" \
+	"" '
+for (b = 2; b <= 101; ++b) {
+	if (b == 10) continue
+	s = b * b
+	print "obase = ", b, "\n"
+	for (i = 0; i <= s; ++i) {
+		i
+		print "0.", i, "\n"
+		print "1.", i, "\n"
+		print i, ".", i, "\n"
+	}
+	2189432174861923048671023498128347619023487610234689172304.192748960128745108927461089237469018723460
+}'
+
+for f in bc*.bc; do
+	r="`basename "$f" .bc`_results.txt"
+	test -f "$r" || continue
+	# testing "test name" "command" "expected result" "file input" "stdin"
+	testing "bc -lq $f" \
+		"{ { bc -lq $f 2>&1; echo E:\$? >&2; } | diff -u - $r; echo E:\$?; } 2>&1" \
+		"E:0\nE:0\n" \
+		"" ""
+done
+
+exit $FAILCOUNT

@@ -1,0 +1,33 @@
+# simplest case
+cat <(echo "hello 1")
+
+# can have more than one
+cat <(echo "hello 2") <(echo "hello 3")
+
+# doesn't work in quotes
+echo "<(echo \"hello 0\")"
+
+# process substitution can be nested inside command substitution
+echo $(cat <(echo "hello 4"))
+
+# example from http://wiki.bash-hackers.org/syntax/expansion/proc_subst
+# process substitutions can be passed to a function as parameters or
+# variables
+f() {
+	cat "$1" >"$x"
+}
+x=>(tr '[:lower:]' '[:upper:]') f <(echo 'hi there')
+
+# process substitution can be combined with redirection on exec
+rm -f err
+# save stderr
+exec 4>&2
+# copy stderr to a file
+exec 2> >(tee err)
+echo "hello error" >&2
+sync
+# restore stderr
+exec 2>&4
+cat err
+rm -f err
+echo "hello stderr" >&2

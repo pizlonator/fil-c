@@ -1,0 +1,131 @@
+#!/bin/sh
+
+. ./.config || exit 1
+
+target="$1"
+custom_loc="$2"
+applet_loc="$3"
+
+test "$target" || exit 1
+test "$SED" || SED=sed
+test "$DD" || DD=dd
+
+if [ x"$CONFIG_FEATURE_SH_EMBEDDED_SCRIPTS" != x"y" ]
+then
+	printf '#define NUM_SCRIPTS 0\n' >"$target"
+	exit 0
+fi
+
+# Some people were bitten by their system lacking a (proper) od
+od -v -b </dev/null >/dev/null
+if test $? != 0; then
+	echo 'od tool is not installed or cannot accept "-v -b" options'
+	exit 1
+fi
+
+bzip2 </dev/null >/dev/null
+if test $? != 0; then
+	echo 'bzip2 is not installed'
+	exit 1
+fi
+
+custom_scripts=""
+if [ -d "$custom_loc" ]
+then
+	custom_scripts=$(cd $custom_loc; ls * 2>/dev/null)
+fi
+all_scripts=$($srctree/applets/busybox.mkscripts)
+
+# all_scripts includes applet scripts and custom scripts, sort them out
+applet_scripts=""
+for i in $all_scripts
+do
+    found=0
+	for j in $custom_scripts
+	do
+		if [ "$i" = "$j" ]
+		then
+			found=1
+			break;
+		fi
+	done
+	if [ $found -eq 0 ]
+	then
+		# anything that isn't a custom script is an applet script
+		applet_scripts="$applet_scripts $i"
+	fi
+done
+
+# we know the custom scripts are present but applet scripts might have
+# become detached from their configuration
+for i in $applet_scripts
+do
+	#if [ ! -f "$applet_loc/$i" -a ! -f "$custom_loc/$i" ]
+	if [ ! -f "$applet_loc/$i" ]
+	then
+		echo "missing applet script $i"
+		exit 1
+	fi
+done
+
+n=$(echo $custom_scripts $applet_scripts | wc -w)
+nall=$(echo $all_scripts | wc -w)
+
+if [ $n -ne $nall ]
+then
+	echo "script mismatch $n != $nall"
+	exit 1
+fi
+
+concatenate_scripts() {
+	for i in $custom_scripts
+	do
+		cat $custom_loc/$i
+		printf '\000'
+	done
+	for i in $applet_scripts
+	do
+		cat $applet_loc/$i
+		printf '\000'
+	done
+}
+
+exec >"$target.$$"
+
+if [ $n -ne 0 ]
+then
+	printf '#ifdef DEFINE_SCRIPT_DATA\n'
+	printf 'const uint16_t applet_numbers[] = {\n'
+	for i in $custom_scripts $applet_scripts
+	do
+		# TODO support applets with names including invalid characters
+		printf '\tAPPLET_NO_%s,\n' $i
+	done
+	printf '};\n'
+	printf '#else\n'
+	printf 'extern const uint16_t applet_numbers[];\n'
+	printf '#endif\n'
+fi
+
+printf "\n"
+printf '#define NUM_SCRIPTS %d\n' $n
+printf "\n"
+
+if [ $n -ne 0 ]
+then
+	printf '#define UNPACKED_SCRIPTS_LENGTH '
+	concatenate_scripts | wc -c
+
+	printf '#define PACKED_SCRIPTS \\\n'
+	concatenate_scripts | bzip2 -1 | $DD bs=2 skip=1 2>/dev/null | \
+	od -v -b \
+	| grep -v '^ ' \
+	| $SED -e 's/^[^ ]*//' \
+		-e 's/ //g' \
+		-e '/^$/d' \
+		-e 's/\(...\)/0\1,/g' \
+		-e 's/$/ \\/'
+	printf '\n'
+fi
+
+mv -- "$target.$$" "$target"

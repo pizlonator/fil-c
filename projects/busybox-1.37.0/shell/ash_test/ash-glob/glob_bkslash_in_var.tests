@@ -1,0 +1,10 @@
+mkdir testdir.TMP
+>testdir.TMP/name
+a="test*.TMP/\name_doesnt_exist"
+b="test*.TMP/\name"
+printf "Unquoted non-matching glob in var:'%s'\n" $a
+printf "Unquoted matching glob in var:    '%s'\n" $b
+printf "Quoted non-matching glob in var:  '%s'\n" "$a"
+printf "Quoted matching glob in var:      '%s'\n" "$b"
+rm -f testdir.TMP/name
+rmdir testdir.TMP

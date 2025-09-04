@@ -1,0 +1,5 @@
+# reject invalid vars
+# (set argv0 to "SHELL" to avoid "/path/to/shell: blah" in error messages)
+"$THIS_SH" -c 'echo ${1q}' SHELL
+"$THIS_SH" -c 'echo ${&}' SHELL
+#"$THIS_SH" -c 'echo ${$}' SHELL -- this is valid as it's the same as $$

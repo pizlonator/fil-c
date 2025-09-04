@@ -1,0 +1,15 @@
+v='*.z'
+[[ a.z = *.z ]]; echo 1:YES:$?
+[[ a.z == $v ]]; echo 2:YES:$?
+
+# wildcards can match a slash
+[[ a/b = a*b ]]; echo 3:YES:$?
+[[ a/b == a?b ]]; echo 4:YES:$?
+
+# wildcards can match a leading dot
+[[ a/.b = a/*b ]]; echo 5:YES:$?
+[[ a/.b == a/?b ]]; echo 6:YES:$?
+
+# wildcards can be escaped
+[[ abc = a*c ]]; echo 7:YES:$?
+[[ abc == a\*c ]]; echo 8:no:$?

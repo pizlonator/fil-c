@@ -1,0 +1,6 @@
+a=b
+a=${a:+$a }c
+echo "1:'$a'"
+a=b
+a="${a:+$a }c"
+echo "2:'$a'"

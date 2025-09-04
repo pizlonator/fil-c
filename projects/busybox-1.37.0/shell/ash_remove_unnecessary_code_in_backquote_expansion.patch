@@ -1,0 +1,135 @@
+From: Herbert Xu <herbert@xxxxxxxxxxxxxxxxxxx>
+Date: Thu, 19 Apr 2018 18:16:12 +0800
+
+> ash originally had support for omitting the fork when expanding a
+> builtin in backquotes.  dash has gradually been removing this support,
+> most recently in commit 66b614e29038e31745c4a5d296f64f8d64f5c377
+> ("[EVAL] Remove unused EV_BACKCMD flag").
+>
+> Some traces still remain, however.  Remove:
+>
+> - the buf and nleft elements of the backcmd structure;
+> - a misleading comment regarding handling of builtins.
+>
+> Signed-off-by: Ron Yorston <rmy@xxxxxxxxxxxx>
+
+Unfortunately we may need this at some point in the future due
+to changes in POSIX.  So let's keep it around for now until we
+get things such as `jobs -p` to work.
+
+*************************************
+
+From: Ron Yorston <rmy@xxxxxxxxxxxx>
+Date: Thu, 19 Apr 2018 17:18:47 +0100
+
+>Unfortunately we may need this at some point in the future due
+>to changes in POSIX.  So let's keep it around for now until we
+>get things such as `jobs -p` to work.
+
+As you wish.
+
+Something even more trivial I noticed later:  the TRACE at the end of
+expbackq incorrectly refers to the function as evalbackq.
+
+*************************************
+
+Date: Tue, 10 Apr 2018 13:23:35 +0100
+From: Ron Yorston <rmy@pobox.com>
+To: busybox@busybox.net
+Subject: [PATCH] ash: remove unnecessary code in backquote expansion
+
+Some traces remain of ash's ancient support for omitting the fork when
+expanding a builtin command in backquotes.
+
+Remove:
+
+- the buf and nleft elements of the backcmd structure;
+- a misleading comment regarding handling of builtins.
+
+I've submitted a similar patch to dash.
+
+Signed-off-by: Ron Yorston <rmy@pobox.com>
+---
+ shell/ash.c | 37 +++++++++----------------------------
+ 1 file changed, 9 insertions(+), 28 deletions(-)
+
+diff --git a/shell/ash.c b/shell/ash.c
+index 45c747dbc..6f1458722 100644
+--- a/shell/ash.c
++++ b/shell/ash.c
+@@ -6356,15 +6356,12 @@ exptilde(char *startp, char *p, int flags)
+ }
+ 
+ /*
+- * Execute a command inside back quotes.  If it's a builtin command, we
+- * want to save its output in a block obtained from malloc.  Otherwise
+- * we fork off a subprocess and get the output of the command via a pipe.
+- * Should be called with interrupts off.
++ * Execute a command inside back quotes.  We fork off a subprocess and
++ * get the output of the command via a pipe.  Should be called with
++ * interrupts off.
+  */
+ struct backcmd {                /* result of evalbackcmd */
+ 	int fd;                 /* file descriptor to read from */
+-	int nleft;              /* number of chars in buffer */
+-	char *buf;              /* buffer */
+ 	struct job *jp;         /* job structure for command */
+ };
+ 
+@@ -6394,8 +6391,6 @@ evalbackcmd(union node *n, struct backcmd *result)
+ 	struct job *jp;
+ 
+ 	result->fd = -1;
+-	result->buf = NULL;
+-	result->nleft = 0;
+ 	result->jp = NULL;
+ 	if (n == NULL) {
+ 		goto out;
+@@ -6432,8 +6427,7 @@ evalbackcmd(union node *n, struct backcmd *result)
+ 	result->jp = jp;
+ 
+  out:
+-	TRACE(("evalbackcmd done: fd=%d buf=0x%x nleft=%d jp=0x%x\n",
+-		result->fd, result->buf, result->nleft, result->jp));
++	TRACE(("evalbackcmd done: fd=%d jp=0x%x\n", result->fd, result->jp));
+ }
+ 
+ /*
+@@ -6445,7 +6439,6 @@ expbackq(union node *cmd, int flag)
+ 	struct backcmd in;
+ 	int i;
+ 	char buf[128];
+-	char *p;
+ 	char *dest;
+ 	int startloc;
+ 	int syntax = flag & EXP_QUOTED ? DQSYNTAX : BASESYNTAX;
+@@ -6457,24 +6450,12 @@ expbackq(union node *cmd, int flag)
+ 	evalbackcmd(cmd, &in);
+ 	popstackmark(&smark);
+ 
+-	p = in.buf;
+-	i = in.nleft;
+-	if (i == 0)
+-		goto read;
+-	for (;;) {
+-		memtodest(p, i, syntax, flag & QUOTES_ESC);
+- read:
+-		if (in.fd < 0)
+-			break;
+-		i = nonblock_immune_read(in.fd, buf, sizeof(buf));
+-		TRACE(("expbackq: read returns %d\n", i));
+-		if (i <= 0)
+-			break;
+-		p = buf;
+-	}
+-
+-	free(in.buf);
+ 	if (in.fd >= 0) {
++		while ((i = nonblock_immune_read(in.fd, buf, sizeof(buf))) > 0) {
++			TRACE(("expbackq: read returns %d\n", i));
++			memtodest(buf, i, syntax, flag & QUOTES_ESC);
++		}
++
+ 		close(in.fd);
+ 		back_exitstatus = waitforjob(in.jp);
+ 	}

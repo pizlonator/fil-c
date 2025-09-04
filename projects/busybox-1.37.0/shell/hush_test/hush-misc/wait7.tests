@@ -1,0 +1,7 @@
+sleep 1 && echo "Background1" &
+pid=$!
+sleep 3 && echo "Background2: BUG!" &
+# Shouldn't wait for 2nd bkgd:
+wait $pid
+kill $!
+echo Ok:$?

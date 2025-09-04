@@ -1,0 +1,279 @@
+#!/bin/sh
+# Copyright 2008 by Denys Vlasenko
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "commands" "expected result" "file input" "stdin"
+
+input="$(printf '\001\002\003\nABC\xfe')"
+
+little_endian=false
+{ printf '\0\1' | od -s | grep -q 256; } && little_endian=true
+readonly little_endian
+
+$little_endian || SKIP=1
+testing "od (little-endian)" \
+        "od" \
+"\
+0000000 001001 005003 041101 177103
+0000010
+" \
+	"" "$input"
+SKIP=
+
+optional !DESKTOP
+testing "od -a (!DESKTOP)" \
+        "od -a" \
+"\
+0000000 nul soh stx etx eot enq ack bel  bs  ht  lf  vt  ff  cr  so  si
+0000020 dle dc1 dc2 dc3 dc4 nak syn etb can  em sub esc  fs  gs  rs  us
+0000040   p   q   r   s   t   u   v   w   x   y   z   {   |   }   ~ del
+0000060  80  81  82  83  84  85  86  87  88  89  8a  8b  8c  8d  8e  8f
+0000100  f0  f1  f2  f3  f4  f5  f6  f7  f8  f9  fa  fb  fc  fd  fe  ff
+0000120
+" \
+	"" \
+"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"\
+"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"\
+"\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"\
+"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f"\
+"\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"
+SKIP=
+# ^^^ a bit incorrect handling of ctrl ("lf" should be "nl") and high bytes.
+# vvv this output is correct.
+optional DESKTOP
+testing "od -a (DESKTOP)" \
+        "od -a" \
+"\
+0000000 nul soh stx etx eot enq ack bel  bs  ht  nl  vt  ff  cr  so  si
+0000020 dle dc1 dc2 dc3 dc4 nak syn etb can  em sub esc  fs  gs  rs  us
+0000040   p   q   r   s   t   u   v   w   x   y   z   {   |   }   ~ del
+0000060 nul soh stx etx eot enq ack bel  bs  ht  nl  vt  ff  cr  so  si
+0000100   p   q   r   s   t   u   v   w   x   y   z   {   |   }   ~ del
+0000120
+" \
+	"" \
+"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"\
+"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"\
+"\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"\
+"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f"\
+"\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"
+SKIP=
+
+testing "od -B" \
+        "od -B" \
+"\
+0000000 001001 005003 041101 177103
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -o (little-endian)" \
+        "od -o" \
+"\
+0000000 001001 005003 041101 177103
+0000010
+" \
+	"" "$input"
+SKIP=
+
+testing "od -b" \
+        "od -b" \
+"\
+0000000 001 002 003 012 101 102 103 376
+0000010
+" \
+	"" "$input"
+SKIP=
+
+testing "od -c" \
+        "od -c" \
+"\
+0000000 001 002 003  \\\\n   A   B   C 376
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -d (little-endian)" \
+        "od -d" \
+"\
+0000000   513  2563 16961 65091
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -D (little-endian)" \
+        "od -D" \
+"\
+0000000  167969281 4265820737
+0000010
+" \
+	"" "$input"
+SKIP=
+
+optional !DESKTOP  #DESKTOP: unrecognized option: e
+$little_endian || SKIP=1
+testing "od -e (!DESKTOP little-endian)" \
+        "od -e" \
+"\
+0000000   -1.61218556514036e+300
+0000010
+" \
+	"" "$input"
+SKIP=
+
+optional !DESKTOP  #DESKTOP: unrecognized option: F
+$little_endian || SKIP=1
+testing "od -F (!DESKTOP little-endian)" \
+        "od -F" \
+"\
+0000000   -1.61218556514036e+300
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -f (little-endian)" \
+        "od -f" \
+"\
+0000000   6.3077975e-33  -6.4885867e+37
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -H (little-endian)" \
+        "od -H" \
+"\
+0000000 0a030201 fe434241
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -X (little-endian)" \
+        "od -X" \
+"\
+0000000 0a030201 fe434241
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -h (little-endian)" \
+        "od -h" \
+"\
+0000000 0201 0a03 4241 fe43
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -x (little-endian)" \
+        "od -x" \
+"\
+0000000 0201 0a03 4241 fe43
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -i (little-endian)" \
+        "od -i" \
+"\
+0000000   167969281   -29146559
+0000010
+" \
+	"" "$input"
+SKIP=
+
+$little_endian || SKIP=1
+testing "od -O (little-endian)" \
+        "od -O" \
+"\
+0000000 01200601001 37620641101
+0000010
+" \
+	"" "$input"
+SKIP=
+
+# 32-bit?
+printf '00000000' | od -l | grep -q '808464432 *808464432' && SKIP=1 #yes, skip
+$little_endian || SKIP=1
+testing "od -I (little-endian)" \
+        "od -I" \
+"\
+0000000  -125183517527965183
+0000010
+" \
+	"" "$input"
+testing "od -L (little-endian)" \
+        "od -L" \
+"\
+0000000  -125183517527965183
+0000010
+" \
+	"" "$input"
+testing "od -l (little-endian)" \
+        "od -l" \
+"\
+0000000  -125183517527965183
+0000010
+" \
+	"" "$input"
+SKIP=
+
+optional DESKTOP
+testing "od -b" \
+	"od -b" \
+"\
+0000000 110 105 114 114 117
+0000005
+" \
+	"" "HELLO"
+SKIP=
+
+optional DESKTOP
+testing "od -f" \
+	"od -f" \
+"\
+0000000   0.0000000e+00   0.0000000e+00
+0000010
+" \
+	"" "\x00\x00\x00\x00\x00\x00\x00\x00"
+SKIP=
+
+optional DESKTOP LONG_OPTS
+testing "od -b --traditional" \
+	"od -b --traditional" \
+"\
+0000000 110 105 114 114 117
+0000005
+" \
+	"" "HELLO"
+SKIP=
+
+optional DESKTOP LONG_OPTS
+testing "od -b --traditional FILE" \
+	"od -b --traditional input" \
+"\
+0000000 110 105 114 114 117
+0000005
+" \
+	"HELLO" ""
+SKIP=
+
+exit $FAILCOUNT

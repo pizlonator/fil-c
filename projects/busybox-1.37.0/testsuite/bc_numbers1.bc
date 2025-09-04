@@ -1,0 +1,23 @@
+ibase=G
+define f() {
+a00=00;a01=01;a02=02;a03=03;a04=04;a05=05;a06=06;a07=07;a08=08;a09=09;a0a=0A;a0b=0B;a0c=0C;a0d=0D;a0e=0E;a0f=0F
+a10=10;a11=11;a12=12;a13=13;a14=14;a15=15;a16=16;a17=17;a18=18;a19=19;a1a=1A;a1b=1B;a1c=1C;a1d=1D;a1e=1E;a1f=1F
+a20=20;a21=21;a22=22;a23=23;a24=24;a25=25;a26=26;a27=27;a28=28;a29=29;a2a=2A;a2b=2B;a2c=2C;a2d=2D;a2e=2E;a2f=2F
+a30=30;a31=31;a32=32;a33=33;a34=34;a35=35;a36=36;a37=37;a38=38;a39=39;a3a=3A;a3b=3B;a3c=3C;a3d=3D;a3e=3E;a3f=3F
+a40=40;a41=41;a42=42;a43=43;a44=44;a45=45;a46=46;a47=47;a48=48;a49=49;a4a=4A;a4b=4B;a4c=4C;a4d=4D;a4e=4E;a4f=4F
+a50=50;a51=51;a52=52;a53=53;a54=54;a55=55;a56=56;a57=57;a58=58;a59=59;a5a=5A;a5b=5B;a5c=5C;a5d=5D;a5e=5E;a5f=5F
+a60=60;a61=61;a62=62;a63=63;a64=64;a65=65;a66=66;a67=67;a68=68;a69=69;a6a=6A;a6b=6B;a6c=6C;a6d=6D;a6e=6E;a6f=6F
+a70=70;a71=71;a72=72;a73=73;a74=74;a75=75;a76=76;a77=77;a78=78;a79=79;a7a=7A;a7b=7B;a7c=7C;a7d=7D;a7e=7E;a7f=7F
+a80=80;a81=81;a82=82;a83=83;a84=84;a85=85;a86=86;a87=87;a88=88;a89=89;a8a=8A;a8b=8B;a8c=8C;a8d=8D;a8e=8E;a8f=8F
+a90=90;a91=91;a92=92;a93=93;a94=94;a95=95;a96=96;a97=97;a98=98;a99=99;a9a=9A;a9b=9B;a9c=9C;a9d=9D;a9e=9E;a9f=9F
+aa0=A0;aa1=A1;aa2=A2;aa3=A3;aa4=A4;aa5=A5;aa6=A6;aa7=A7;aa8=A8;aa9=A9;aaa=AA;aab=AB;aac=AC;aad=AD;aae=AE;aaf=AF
+ab0=B0;ab1=B1;ab2=B2;ab3=B3;ab4=B4;ab5=B5;ab6=B6;ab7=B7;ab8=B8;ab9=B9;aba=BA;abb=BB;abc=BC;abd=BD;abe=BE;abf=BF
+ac0=C0;ac1=C1;ac2=C2;ac3=C3;ac4=C4;ac5=C5;ac6=C6;ac7=C7;ac8=C8;ac9=C9;aca=CA;acb=CB;acc=CC;acd=CD;ace=CE;acf=CF
+ad0=D0;ad1=D1;ad2=D2;ad3=D3;ad4=D4;ad5=D5;ad6=D6;ad7=D7;ad8=D8;ad9=D9;ada=DA;adb=DB;adc=DC;add=DD;ade=DE;adf=DF
+ae0=E0;ae1=E1;ae2=E2;ae3=E3;ae4=E4;ae5=E5;ae6=E6;ae7=E7;ae8=E8;ae9=E9;aea=EA;aeb=EB;aec=EC;aed=ED;aee=EE;aef=EF
+af0=F0;af1=F1;af2=F2;af3=F3;af4=F4;af5=F5;af6=F6;af7=F7;af8=F8;af9=F9;afa=FA;afb=FB;afc=FC;afd=FD;afe=FE;aff=FF
+# this tests "index encoding" in bc.c: are numbers after 0xfc encoded correctly?
+af0;af1;af2;af3;af4;af5;af6;af7;af8;af9;afa;afb;afc;afd;afe;aff
+}
+f()
+halt

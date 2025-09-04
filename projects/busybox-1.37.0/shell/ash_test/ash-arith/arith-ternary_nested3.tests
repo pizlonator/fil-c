@@ -1,0 +1,6 @@
+exec 2>&1
+x='@'
+a=2
+# After processing nested ?:, outermost ?: should still remember to NOT evaluate a*=2
+echo 42:$((1?0?41:42:(a*=2)))
+echo "a=2:$a"

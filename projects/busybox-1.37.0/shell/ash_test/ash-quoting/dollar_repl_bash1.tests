@@ -1,0 +1,12 @@
+f() { for i; do echo "|$i|"; done; }
+v=xx
+
+f ${v/'x'/"y z"}
+f ${v/"x"/'y z'}
+f "${v/'x'/"y z"}"
+f "${v/"x"/'y z'}"
+
+f ${v//'x'/"y z"}
+f ${v//"x"/'y z'}
+f "${v//'x'/"y z"}"
+f "${v//"x"/'y z'}"

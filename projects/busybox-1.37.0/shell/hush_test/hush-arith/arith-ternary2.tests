@@ -1,0 +1,7 @@
+exec 2>&1
+a='b=+err+'
+b=5
+# The not-taken branch should not parse variables
+echo 6:$((0 ? a : ++b))
+echo "a=$a"
+echo "b=$b"

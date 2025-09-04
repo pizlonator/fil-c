@@ -1,0 +1,16 @@
+# Note: bash would need:
+#shopt -s expand_aliases
+# to enable aliases in non-interactive mode
+alias BEGIN={ END=}
+BEGIN
+	cat <<- EOF > /dev/null
+		$(:)
+	EOF
+END
+
+: <<- EOF &&
+	$(:)
+EOF
+BEGIN
+	echo Ok
+END

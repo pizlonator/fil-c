@@ -1,0 +1,5 @@
+exec 2>&1
+a=0
+# The not-taken branch should not evaluate
+echo 42:$((1 ? 42 : (a+=2)))
+echo "a=$a"

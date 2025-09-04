@@ -1,0 +1,3 @@
+# FEATURE: CONFIG_FEATURE_DD_IBS_OBS
+
+test "$(echo I WANT | busybox dd count=3 iflag=count_bytes 2>/dev/null)" = "I W"

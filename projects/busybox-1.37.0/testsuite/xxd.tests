@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# Copyright 2020 by Denys Vlasenko <vda.linux@googlemail.com>
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "description" "command" "result" "infile" "stdin"
+testing 'xxd -p with one NUL' \
+	'xxd -p' \
+	"\
+00
+" \
+	'' \
+	'\0'
+
+testing 'xxd -p with 30 NULs' \
+	'xxd -p' \
+	"\
+000000000000000000000000000000000000000000000000000000000000
+" \
+	'' \
+	'\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0'
+
+testing 'xxd -p with 31 NULs' \
+	'xxd -p' \
+	"\
+000000000000000000000000000000000000000000000000000000000000
+00
+" \
+	'' \
+	'\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0'
+
+testing 'xxd -p -r' \
+	'xxd -p -r' \
+	'01234567765432100123456776543210' \
+	'' \
+	'30313233343536373736353433323130 30313233343536373736353433323130'
+
+testing 'xxd -r skips leading whitespace and truncates at two spaces' \
+	'xxd -r' \
+	'0123456789:;<=>?@' \
+	'' "\
+   00000000: 3031 3233 3435 3637 3839 3a3b 3c3d 3e3f  0123456789:;<=>?
+	00000010: 40                                       @
+"
+
+testing 'xxd -p -r skips one bad char, truncates at two bad chars' \
+	'xxd -p -r' \
+	'01' \
+	'' "\
+30 !31 !!32
+"
+
+testing 'xxd -p -r ignores the nibble with 2nd char bad' \
+	'xxd -p -r' \
+	'3C6' \
+	'' "\
+33 3!4 3!!5
+36
+"
+
+exit $FAILCOUNT

@@ -1,0 +1,111 @@
+Embedded Shell Scripts in BusyBox
+=================================
+
+BusyBox allows applets to be implemented as shell scripts.  Since
+this obviously requires a shell to interpret the scripts the feature
+depends on having a shell built into the binary.  Either ash or hush
+will do.  If both are present ash will be used.  Support for embedded
+scripts also has to be enabled.
+
+It's unlikely that your applet will be implemented as a pure shell
+script:  it will probably need some external commands.  If these are
+to be provided by BusyBox you'll need to ensure they're enabled too.
+
+There are two ways to include scripts in BusyBox:  the quick-and-dirty
+custom script and the full-featured scripted applet.
+
+Custom Scripts
+--------------
+
+When embedded script support is enabled the BusyBox build process
+assumes that any files in the directory 'embed' at the top level of
+the source tree are scripts to be embedded.
+
+The embed directory isn't present in the BusyBox source tree and
+BusyBox itself will never put anything there:  it's entirely for the
+use of third parties.
+
+Adding a custom script is as simple as running the following sequence
+of commands in the BusyBox source directory:
+
+   mkdir embed
+   echo 'echo foo' >embed/foo
+   make defconfig
+   make
+
+The resulting binary includes the new applet foo!
+
+Custom scripts have limited opportunities for configuration:  the only
+control developers have is to put them in the embed directory, or not.
+Everything else takes default values.  For more control you need the
+additional features provided by scripted applets.
+
+Scripted Applets
+----------------
+
+Suppose we want to make a shell script version of the sample applet
+from the New Applet HOWTO.  First we'd have to write a script (vaguely)
+equivalent to the C code:
+
+   return $(($RANDOM%256))
+
+This should be placed in the file applets_sh/mu in the source tree.
+
+Next we need the configuration data.  This is very similar to the example
+code for the native applet:
+
+//config:config MU
+//config:	bool "MU"
+//config:	default y
+//config:	help
+//config:	Returns an indeterminate value.
+
+//applet:IF_MU(APPLET_SCRIPTED(mu, scripted, BB_DIR_USR_BIN, BB_SUID_DROP, mu))
+
+//usage:#define mu_trivial_usage
+//usage:	"[-abcde] FILE..."
+//usage:#define mu_full_usage
+//usage:	"Returns an indeterminate value\n"
+//usage:     "\n	-a	First function"
+//usage:     "\n	-b	Second function"
+
+The only difference is that the applet is specified as being of type
+APPLET_SCRIPTED.  It would also be useful to include details of any
+dependencies the script has.  No external commands are used by our mu
+script, but it does depend on optional shell features.  We can ensure
+these are selected by adding this to the configuration:
+
+//config:config MU_DEPENDENCIES
+//config:	bool "Enable dependencies for mu"
+//config:	default y
+//config:	depends on MU
+//config:	select ASH_RANDOM_SUPPORT
+//config:	select FEATURE_SH_MATH
+//config:	help
+//config:	mu is implemented as a shell script. It requires support
+//config:	for $RANDOM and arithmetic.
+
+The configuration data should be placed in a C file in an appropriate
+subdirectory.  There isn't any C code, though!  In this case the file
+could be miscutils/mu.c.
+
+Scripted applets are just as configurable as applets written in C.
+They can be enabled or disabled using the configuration menu; their
+install directory can be specified and their usage messages are stored
+along with those of all other applets.
+
+Additional Notes
+----------------
+
+The source for embedded scripts can be displayed by running:
+
+   busybox --show SCRIPT
+
+This can be disabled by turning off FEATURE_SHOW_SCRIPT in the
+configuration, though it won't prevent a determined user from
+extracting the source code.
+
+It can be argued that embedded scripts are linked into the BusyBox
+binary and are therefore not subject to the 'mere aggregation'
+exception in the GPL.  If this is the case embedded scripts should
+have a licence compatible with BusyBox's GPL v2-only licence.

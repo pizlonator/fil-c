@@ -1,0 +1,44 @@
+define x() {
+"x"
+return ( 1 )
+}
+define y() {
+"y"
+return (2)
+}
+define z() {
+"z"
+return (3)
+}
+
+if ( x() == y() ) {1}
+1
+if ( x() <= y() ) {2}
+if ( y() >= x() ) {3}
+if ( x() != y() ) {4}
+if ( x() < y() ) {5}
+if ( y() > x() ) {6}
+
+if ( x() == z() ) {11}
+11
+if ( x() <= z() ) {12}
+if ( z() >= x() ) {13}
+if ( x() != z() ) {14}
+if ( x() < z() ) {15}
+if ( z() > x() ) {16}
+
+x = -10
+while (x <= 0) {
+	x
+	if (x == -5) break;
+	x += 1
+}
+
+define u() {
+	auto a[];
+	return a[0]
+}
+
+u()
+
+if (x == -4) x else x - 4

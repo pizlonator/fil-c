@@ -1,0 +1,20 @@
+{
+echo "#!$THIS_SH"
+echo 'procdir=/proc/$$'
+#echo 'echo "  /proc/N/exe:  $(basename $(readlink $procdir/exe))"'
+echo 'echo "  /proc/N/comm: $(cat $procdir/comm)"'
+} >SCRIPT.sh
+chmod 755 SCRIPT.sh
+
+# comm field was wrong if CONFIG_FEATURE_PREFER_APPLETS=y
+echo './SCRIPT.sh:'
+./SCRIPT.sh
+
+# comm field was wrong if CONFIG_FEATURE_PREFER_APPLETS=y
+echo 'exec ./SCRIPT.sh:'
+(exec ./SCRIPT.sh)
+
+echo 'sh ./SCRIPT.sh:'
+$THIS_SH ./SCRIPT.sh
+
+rm SCRIPT.sh

@@ -1,0 +1,8 @@
+# The bug was only happening with <<REDIR;CMD form below:
+M='AAAAAAAAAAAAAAAAA'
+fff(){
+date <<000; echo Y
+${D?$M$M$M$M$M$M}
+000
+}
+fff

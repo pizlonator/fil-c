@@ -1,0 +1,10 @@
+# "return" in trap sets $? after trap...
+# ...but not a nested one!
+g() { echo Nested; return 22; }
+trap "echo TERM;false;g" term
+f() {
+	(kill $$) &
+	sleep 1
+}
+f
+echo Zero:$?

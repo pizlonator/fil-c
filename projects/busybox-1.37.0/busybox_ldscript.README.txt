@@ -1,0 +1,47 @@
+/* Add SORT_BY_ALIGNMENT to linker script (found in busybox_unstripped.out):
+##  .rodata : { *(.rodata SORT_BY_ALIGNMENT(.rodata.*) .gnu.linkonce.r.*) }
+##  .data   : { *(.data SORT_BY_ALIGNMENT(.data.*) .gnu.linkonce.d.*) }
+##  .bss    : { *(.bss SORT_BY_ALIGNMENT(.bss.*) .gnu.linkonce.b.*) }
+## This will eliminate most of the padding (~3kb).
+## Hmm, "ld --sort-section alignment" should do it too.
+##
+## There is a ld hack which is meant to decrease disk usage
+## at the cost of more RAM usage (??!!) in standard ld script:
+##  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1)); . = DATA_SEGMENT_ALIGN (0x1000, 0x1000);
+## Replace it with:
+##  . = ALIGN (0x1000); . = DATA_SEGMENT_ALIGN (0x1000, 0x1000);
+## to unconditionally align .data to the next page boundary,
+## instead of "next page, plus current offset in this page"
+*/
+
+/* To reduce the number of VMAs each bbox process has,
+## move *(.bss SORT_BY_ALIGNMENT(.bss.*) ...)
+## part from .bss : {...} block to .data : { ... } block.
+## (This usually increases .data section by only one page).
+## Result:
+##
+##    text data  bss     dec    hex filename
+## 1050792  560 7580 1058932 102874 busybox.bss
+## 1050792 8149    0 1058941 10287d busybox.nobss
+##
+## $ exec busybox.bss pmap $$
+## 0000000008048000    1028K r-xp  /path/to/busybox.bss
+## 0000000008149000       8K rw-p  /path/to/busybox.bss
+## 000000000814b000       4K rw-p    [ anon ]  <---- this VMA is eliminated
+## 00000000085f5000       4K ---p  [heap]
+## 00000000085f6000       4K rw-p  [heap]
+## 00000000f7778000       8K rw-p    [ anon ]
+## 00000000f777a000      12K r--p  [vvar]
+## 00000000f777d000       8K r-xp  [vdso]
+## 00000000ff7e9000     132K rw-p  [stack]
+##
+## $ exec busybox.nobss pmap $$
+## 0000000008048000    1028K r-xp  /path/to/busybox.nobss
+## 0000000008149000      12K rw-p  /path/to/busybox.nobss
+## 00000000086f0000       4K ---p  [heap]
+## 00000000086f1000       4K rw-p  [heap]
+## 00000000f7783000       8K rw-p    [ anon ]
+## 00000000f7785000      12K r--p  [vvar]
+## 00000000f7788000       8K r-xp  [vdso]
+## 00000000ffac0000     132K rw-p  [stack]
+*/

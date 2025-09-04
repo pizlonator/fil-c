@@ -1,0 +1,46 @@
+#!/bin/sh
+# Copyright 2021 by Ron Yorston
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "commands" "expected result" "file input" "stdin"
+
+testing "rev works" \
+	"rev input" \
+"\
+1 enil
+
+3 enil
+" \
+	"line 1\n\nline 3\n" \
+	""
+
+testing "rev file with missing newline" \
+	"rev input" \
+"\
+1 enil
+
+3 enil" \
+	"line 1\n\nline 3" \
+	""
+
+testing "rev file with NUL character" \
+	"rev input" \
+"\
+nil
+3 enil
+" \
+	"lin\000e 1\n\nline 3\n" \
+	""
+
+testing "rev file with long line" \
+	"rev input" \
+"\
++--------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------
+cba
+" \
+	"---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+--------------+\nabc\n" \
+	""
+
+exit $FAILCOUNT

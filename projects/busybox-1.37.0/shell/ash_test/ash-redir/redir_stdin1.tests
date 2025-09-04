@@ -1,0 +1,7 @@
+#Testing that stdin redirect is restored
+echo read2 | $THIS_SH -c 'read r <redir_stdin1.tests
+echo $r
+read r
+echo $r
+'
+echo Ok:$?

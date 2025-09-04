@@ -1,0 +1,106 @@
+define printarray(a[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a[i]
+	}
+}
+
+define a2(a[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a[i] = a[i] * a[i]
+	}
+
+	printarray(a[], len)
+}
+
+define a4(a__[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a__[i] = a__[i] * a__[i]
+	}
+
+	printarray(a__[], len)
+}
+
+define a6(*a__[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a__[i] = a__[i] * a__[i]
+	}
+
+	printarray(a__[], len)
+}
+
+define a1(*a[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a[i] = i
+	}
+
+	a2(a[], len)
+
+	printarray(a[], len)
+}
+
+define a3(*a__[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a__[i] = i
+	}
+
+	a4(a__[], len)
+
+	printarray(a__[], len)
+}
+
+define a5(*a__[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a__[i] = i
+	}
+
+	a2(a__[], len)
+
+	printarray(a__[], len)
+}
+
+define a7(*a__[], len) {
+
+	auto i
+
+	for (i = 0; i < len; ++i) {
+		a__[i] = i
+	}
+
+	a6(a__[], len)
+
+	printarray(a__[], len)
+}
+
+len = 16
+
+a1(a[], len)
+printarray(a[], len)
+a3(a[], len)
+printarray(a[], len)
+a5(a[], len)
+printarray(a[], len)
+a7(a[], len)
+printarray(a[], len)
+
+halt

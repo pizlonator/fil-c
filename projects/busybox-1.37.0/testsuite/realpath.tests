@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# Realpath tests.
+# Copyright 2006 by Natanael Copa <n@tanael.org>
+# Copyright 2021 by Ron Yorston <rmy@pobox.com>
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+unset LC_ALL
+unset LC_MESSAGES
+unset LANG
+unset LANGUAGE
+
+TESTDIR=realpath_testdir
+TESTLINK1="link1"
+TESTLINK2="link2"
+
+# create the dir and test files
+mkdir -p "./$TESTDIR"
+ln -s "./$TESTDIR/not_file" "./$TESTLINK1"
+ln -s "./$TESTDIR/not_file/not_dir" "./$TESTLINK2"
+
+# shell's $PWD may leave symlinks unresolved.
+# "pwd" may be a built-in and have the same problem.
+# External pwd _can't_ have that problem (current dir on Unix is physical).
+pwd=`which pwd`
+pwd=`$pwd`
+testing "realpath on non-existent absolute path 1" "realpath /not_file" "/not_file\n" "" ""
+testing "realpath on non-existent absolute path 2" "realpath /not_file/" "/not_file\n" "" ""
+testing "realpath on non-existent absolute path 3" "realpath //not_file" "/not_file\n" "" ""
+testing "realpath on non-existent absolute path 4" "realpath /not_dir/not_file 2>&1" "realpath: /not_dir/not_file: No such file or directory\n" "" ""
+
+testing "realpath on non-existent local file 1" "realpath $TESTDIR/not_file" "$pwd/$TESTDIR/not_file\n" "" ""
+testing "realpath on non-existent local file 2" "realpath $TESTDIR/not_dir/not_file 2>&1" "realpath: $TESTDIR/not_dir/not_file: No such file or directory\n" "" ""
+
+testing "realpath on link to non-existent file 1" "realpath $TESTLINK1" "$pwd/$TESTDIR/not_file\n" "" ""
+testing "realpath on link to non-existent file 2" "realpath $TESTLINK2 2>&1" "realpath: $TESTLINK2: No such file or directory\n" "" ""
+testing "realpath on link to non-existent file 3" "realpath ./$TESTLINK1" "$pwd/$TESTDIR/not_file\n" "" ""
+testing "realpath on link to non-existent file 4" "realpath ./$TESTLINK2 2>&1" "realpath: ./$TESTLINK2: No such file or directory\n" "" ""
+
+# clean up
+rm -r "$TESTLINK1" "$TESTLINK2" "$TESTDIR"
+
+exit $((FAILCOUNT <= 255 ? FAILCOUNT : 255))

@@ -1,0 +1,437 @@
+Why an applet can't be NOFORK or NOEXEC?
+
+Why can't be NOFORK:
+interactive: may wait for user input, ^C has to work
+spawner: "tool PROG ARGS" which changes program state and execs - must fork
+changes state: e.g. environment, signal handlers
+leaks: does not free allocated memory or opened fds
+	alloc+xfunc: xmalloc, then xfunc - leaks memory if xfunc dies
+	open+xfunc: opens fd, then calls xfunc - fd is leaked if xfunc dies
+talks to network/serial/etc: it's not known how long the delay can be,
+	it's reasonable to expect it might be many seconds
+	(even if usually it is not), so ^C has to work
+runner: sometimes may run for long(ish) time, and/or works with network:
+	^C has to work (cat BIGFILE, chmod -R, ftpget, nc)
+
+"runners" can become eligible after shell is taught ^C to interrupt NOFORKs,
+need to be inspected that they do not fall into alloc+xfunc, open+xfunc,
+leak categories.
+
+Why can't be NOEXEC:
+suid: runs under different uid - must fork+exec
+if it's important that /proc/PID/cmdline and comm are correct.
+	("pkill sh" killing itself before it kills real "sh" is no fun)
+
+Why shouldn't be NOFORK/NOEXEC:
+rare: not started often enough to bother optimizing (example: poweroff)
+daemon: runs indefinitely; these are also always fit "rare" category
+longterm: often runs for a long time (many seconds), execing makes
+	memory footprint smaller
+complex: no immediately obvious reason why NOFORK wouldn't work,
+	but does some non-obvoius operations (example: fuser, lsof, losetup);
+	detailed audit often turns out that it's a leaker
+hardware: performs unusual hardware ops which may take long,
+	or even hang due to hardware or firmware bugs
+
+Interesting example of "interactive" applet which is nevertheless can be
+(and is) NOEXEC is "rm". Yes, "rm -i" is interactive - but it's not that typical
+for users to keep it waiting for many minutes, whereas running "rm" in shell
+is very typical, and speeding up this common use via NOEXEC is useful.
+IOW: rm is "interactive", but not "longterm".
+
+Interesting example of an applet which can be NOFORK but if not,
+then should not be NOEXEC, is "usleep". As NOFORK, it amount to simply
+nanosleep()ing in the calling program (usually shell). No memory wasted.
+But if ran as NOEXEC, it would create a potentially long-term process,
+which would be taking more memory because it did not exec
+and did not free much of the copied memory of the parent
+(COW helps with this only as long as parent doesn't modify its memory).
+
+
+[ - NOFORK
+[[ - NOFORK
+acpid - daemon
+add-shell - noexec. leaks: open+xfunc
+addgroup - noexec. leaks
+adduser - noexec. leaks
+adjtimex - NOFORK
+ar - runner
+arch - NOFORK
+arp - talks to network: arp -n queries DNS
+arping - longterm
+ash - interactive, longterm
+awk - noexec. runner
+base64 - runner
+basename - NOFORK
+beep - longterm: beep -r 999999999
+blkdiscard - noexec. leaks: open+xioctl
+blkid - noexec
+blockdev - noexec. leaks fd
+bootchartd - daemon
+brctl - noexec
+bunzip2 - runner
+bzcat - runner
+bzip2 - runner
+cal - noexec. can be runner: cal -n9999
+cat - runner: cat HUGEFILE
+chat - longterm (when used as intended - talking to modem over stdin/out)
+chattr - noexec. runner
+chgrp - noexec. runner
+chmod - noexec. runner
+chown - noexec. runner
+chpasswd - longterm? (list of "user:password"s from stdin)
+chpst - noexec. spawner
+chroot - noexec. spawner
+chrt - noexec. spawner
+chvt - noexec. leaks: get_console_fd_or_die() may open a new fd, or return one of stdio fds
+cksum - noexec. runner
+clear - NOFORK
+cmp - runner
+comm - runner
+conspy - interactive, longterm
+cp - noexec. sometimes runner
+cpio - runner
+crond - daemon
+crontab - longterm (runs $EDITOR), leaks: open+xasprintf
+cryptpw - noexec. changes state: with --password-fd=N, moves N to stdin
+cttyhack - noexec. spawner
+cut - noexec. runner
+date - noexec. nofork candidate(needs to stop messing up env, free xasprintf result, not use xfuncs after xasprintf)
+dc - longterm (eats stdin if no params)
+dd - noexec. runner
+deallocvt - noexec. leaks: get_console_fd_or_die() may open a new fd, or return one of stdio fds
+delgroup - noexec. leaks
+deluser - noexec. leaks
+depmod - longterm(ish)
+devmem - hardware (access to device memory may hang)
+df - noexec. leaks: nested allocs
+dhcprelay - daemon
+diff - runner
+dirname - NOFORK
+dmesg - runner
+dnsd - daemon
+dnsdomainname - noexec. talks to network (may query DNS)
+dos2unix - noexec. runner
+dpkg - runner
+du - runner
+dumpkmap - noexec. leaks: get_console_fd_or_die() may open a new fd, or return one of stdio fds
+dumpleases - noexec. leaks: open+xread
+echo - NOFORK
+ed - interactive, longterm
+egrep - longterm runner ("CMD | egrep ..."  may run indefinitely, better to exec to conserve memory)
+eject - hardware, leaks: open+ioctl_or_perror_and_die, changes state (moves fds)
+env - noexec. spawner, changes state (env)
+envdir - noexec. spawner
+envuidgid - noexec. spawner
+expand - runner
+expr - noexec. leaks: nested allocs
+factor - longterm (eats stdin if no params)
+fakeidentd - daemon
+false - NOFORK
+fatattr - noexec. leaks: open+xioctl, complex
+fbset - hardware, leaks: open+xfunc
+fbsplash - runner, longterm
+fdflush - hardware, leaks: open+ioctl_or_perror_and_die
+fdformat - hardware, longterm
+fdisk - interactive, longterm
+fgconsole - noexec. leaks: get_console_fd_or_die() may open a new fd, or return one of stdio fds
+fgrep - longterm runner ("CMD | fgrep ..."  may run indefinitely, better to exec to conserve memory)
+find - noexec. runner
+findfs - suid
+flash_eraseall - hardware
+flash_lock - hardware
+flash_unlock - hardware
+flashcp - hardware
+flock - spawner, changes state (file locks), let's play safe and not be noexec
+fold - noexec. runner
+free - NOFORK
+freeramdisk - noexec. leaks: open+ioctl_or_perror_and_die
+fsck - interactive, longterm
+fsck.minix - needs ^C
+fsfreeze - noexec. leaks: open+xioctl
+fstrim - noexec. leaks: open+xioctl, find_block_device -> readdir+xstrdup
+fsync - NOFORK
+ftpd - daemon
+ftpget - runner
+ftpput - runner
+fuser - complex
+getopt - noexec. leaks: many allocs
+getty - interactive, longterm
+grep - longterm runner ("CMD | grep ..."  may run indefinitely, better to exec to conserve memory)
+groups - noexec
+gunzip - runner
+gzip - runner
+halt - rare
+hd - noexec. runner
+hdparm - hardware
+head - noexec. runner
+hexdump - noexec. runner
+hexedit - interactive, longterm
+hostid - NOFORK
+hostname - noexec. talks to network (hostname -d may query DNS)
+httpd - daemon
+hush - interactive, longterm
+hwclock - hardware (xioctl(RTC_RD_TIME))
+i2cdetect - hardware
+i2cdump - hardware
+i2cget - hardware
+i2cset - hardware
+id - noexec
+ifconfig - hardware? (mem_start NN io_addr NN irq NN), leaks: xsocket+ioctl_or_perror_and_die
+ifenslave - noexec. leaks: xsocket+bb_perror_msg_and_die
+ifplugd - daemon
+inetd - daemon
+init - daemon
+inotifyd - daemon
+insmod - noexec
+install - runner
+ionice - noexec. spawner
+iostat - longterm: "iostat 1" runs indefinitely
+ip - noexec
+ipaddr - noexec
+ipcalc - noexec. ipcalc -h talks to network
+ipcrm - noexec
+ipcs - noexec
+iplink - noexec
+ipneigh - noexec
+iproute - noexec
+iprule - noexec
+iptunnel - noexec
+kbd_mode - noexec. leaks: xopen_nonblocking+xioctl
+kill - NOFORK
+killall - NOFORK
+killall5 - NOFORK
+klogd - daemon
+last - runner (I've got 1300 lines of output when tried it)
+less - interactive, longterm
+link - NOFORK
+linux32 - noexec. spawner
+linux64 - noexec. spawner
+linuxrc - daemon
+ln - noexec
+loadfont - noexec. leaks: config_open+bb_error_msg_and_die("map format")
+loadkmap - noexec. leaks: get_console_fd_or_die() may open a new fd, or return one of stdio fds
+logger - runner
+login - suid, interactive, longterm
+logname - NOFORK
+losetup - noexec. complex
+lpd - daemon
+lpq - runner
+lpr - runner
+ls - noexec. runner
+lsattr - noexec. runner
+lsmod - noexec
+lsof - complex
+lspci - noexec. too rare to bother for nofork
+lsscsi - noexec. too rare to bother for nofork
+lsusb - noexec. too rare to bother for nofork
+lzcat - runner
+lzma - runner
+lzop - runner
+lzopcat - runner
+makedevs - noexec
+makemime - runner
+man - spawner, interactive, longterm
+md5sum - noexec. runner
+mdev - daemon
+mesg - NOFORK
+microcom - interactive, longterm
+minips - noexec
+mkdir - NOFORK
+mkdosfs - needs ^C
+mke2fs - needs ^C
+mkfifo - noexec
+mkfs.ext2 - needs ^C
+mkfs.minix - needs ^C
+mkfs.vfat - needs ^C
+mknod - noexec
+mkpasswd - noexec. changes state: with --password-fd=N, moves N to stdin
+mkswap - needs ^C
+mktemp - noexec. leaks: xstrdup+concat_path_file
+modinfo - noexec
+modprobe - noexec
+more - interactive, longterm
+mount - suid
+mountpoint - noexec. leaks: option -n "print dev name": find_block_device -> readdir+xstrdup
+mpstat - longterm: "mpstat 1" runs indefinitely
+mt - hardware
+mv - noexec. sometimes runner
+nameif - noexec. openlog(), leaks: config_open2+ioctl_or_perror_and_die
+nbd-client - noexec
+nc - runner
+netstat - longterm with -c (continuous listing)
+nice - noexec. spawner
+nl - runner
+nmeter - longterm
+nohup - noexec. spawner
+nproc - NOFORK
+ntpd - daemon
+nuke - noexec
+od - runner
+openvt - longterm: spawns a child and waits for it
+partprobe - noexec. leaks: open+ioctl_or_perror_and_die(BLKRRPART)
+passwd - suid
+paste - noexec. runner
+patch - needs ^C
+pgrep - must fork+exec to get correct /proc/PID/cmdline and comm field
+pidof - must fork+exec to get correct /proc/PID/cmdline and comm field
+ping - suid, longterm
+ping6 - suid, longterm
+pipe_progress - longterm
+pivot_root - NOFORK
+pkill - must fork+exec to get correct /proc/PID/cmdline and comm field
+pmap - noexec candidate, leaks: open+xstrdup
+popmaildir - runner
+poweroff - rare
+powertop - interactive, longterm
+printenv - NOFORK
+printf - NOFORK
+ps - noexec
+pscan - talks to network
+pstree - noexec
+pwd - NOFORK
+pwdx - NOFORK
+raidautorun - noexec. very simple. leaks: open+xioctl
+rdate - talks to network
+rdev - noexec. leaks: find_block_device -> readdir+xstrdup
+readlink - NOFORK
+readprofile - reads /boot/System.map and /proc/profile, better to free more memory by execing?
+realpath - NOFORK
+reboot - rare
+reformime - runner
+remove-shell - noexec. leaks: open+xfunc
+renice - noexec. nofork candidate(uses getpwnam, is that ok?)
+reset - noexec. spawner (execs "stty")
+resize - noexec. changes state (signal handlers)
+resume - noexec
+rev - runner
+rm - noexec. rm -i interactive
+rmdir - NOFORK
+rmmod - noexec
+route - talks to network (may query DNS to convert IPs to names)
+rpm - runner
+rpm2cpio - runner
+rtcwake - longterm: puts system to sleep, optimizing this for speed is pointless
+run-init - spawner, rare, changes state (oh yes), execing may be important to free binary's inode
+run-parts - longterm
+runlevel - noexec. can be nofork if "endutxent()" is called unconditionally, but too rare to bother?
+runsv - daemon
+runsvdir - daemon
+rx - runner
+script - longterm: pumps script output from slave pty
+scriptreplay - longterm: plays back "script" saved output, sleeping as necessary.
+sed - runner
+sendmail - runner
+seq - noexec. runner
+setarch - noexec. spawner
+setconsole - noexec
+setfattr - noexec
+setfont - noexec. leaks a lot of stuff
+setkeycodes - noexec
+setlogcons - noexec
+setpriv - spawner, changes state, let's play safe and not be noexec
+setserial - noexec
+setsid - spawner, uses fork_or_rexec() [not audited to work in noexec], let's play safe and not be noexec
+setuidgid - noexec. spawner
+sha1sum - noexec. runner
+sha256sum - noexec. runner
+sha3sum - noexec. runner
+sha512sum - noexec. runner
+showkey - interactive, longterm
+shred - runner
+shuf - noexec. runner
+slattach - longterm (may sleep forever), uses bb_common_bufsiz1
+sleep - longterm. Could be nofork, if not the problem of "killall sleep" not killing it.
+smemcap - runner
+softlimit - noexec. spawner
+sort - noexec. runner
+split - runner
+ssl_client - longterm
+start-stop-daemon - not noexec: uses bb_common_bufsiz1
+stat - noexec. nofork candidate(needs fewer allocs)
+strings - runner
+stty - noexec. nofork candidate: has no allocs or opens except xmove_fd(xopen("-F DEVICE"),STDIN). tcsetattr(STDIN) is not a problem: it would work the same across processes sharing this fd
+su - suid, spawner
+sulogin - noexec. spawner
+sum - runner
+sv - noexec. needs ^C (uses usleep(420000))
+svc - noexec. needs ^C (uses usleep(420000))
+svlogd - daemon
+swapoff - longterm: may cause memory pressure, execing is beneficial
+swapon - rare
+switch_root - spawner, rare, changes state (oh yes), execing may be important to free binary's inode
+sync - NOFORK
+sysctl - noexec. leaks: xstrdup+xmalloc_read
+syslogd - daemon
+tac - noexec. runner
+tail - runner
+tar - runner
+taskset - noexec. spawner
+tcpsvd - daemon
+tee - runner
+telnet - interactive, longterm
+telnetd - daemon
+test - NOFORK
+tftp - runner
+tftpd - daemon
+time - spawner, longterm, changes state (signals)
+timeout - spawner, longterm, changes state (signals)
+top - interactive, longterm
+touch - NOFORK
+tr - runner
+traceroute - suid, longterm
+traceroute6 - suid, longterm
+true - NOFORK
+truncate - NOFORK
+tty - NOFORK
+ttysize - NOFORK
+tunctl - noexec
+tune2fs - noexec. leaks: open+xfunc
+ubiattach - hardware
+ubidetach - hardware
+ubimkvol - hardware
+ubirename - hardware
+ubirmvol - hardware
+ubirsvol - hardware
+ubiupdatevol - hardware
+udhcpc - daemon
+udhcpd - daemon
+udpsvd - daemon
+uevent - daemon
+umount - noexec. leaks: nested xmalloc
+uname - NOFORK
+uncompress - runner
+unexpand - runner
+uniq - runner
+unix2dos - noexec. runner
+unlink - NOFORK
+unlzma - runner
+unlzop - runner
+unxz - runner
+unzip - runner
+uptime - noexec. nofork candidate(is getutxent ok?)
+users - noexec. nofork candidate(is getutxent ok?)
+usleep - NOFORK. But what about "killall usleep"?
+uudecode - runner
+uuencode - runner
+vconfig - noexec. leaks: xsocket+ioctl_or_perror_and_die
+vi - interactive, longterm
+vlock - suid
+volname - hardware (reads CDROM, this can take long-ish if need to spin up)
+w - noexec. nofork candidate(is getutxent ok?)
+wall - suid
+watch - longterm
+watchdog - daemon
+wc - runner
+wget - longterm
+which - NOFORK
+who - noexec. nofork candidate(is getutxent ok?)
+whoami - NOFORK
+whois - talks to network
+xargs - noexec. spawner
+xxd - noexec. runner
+xz - runner
+xzcat - runner
+yes - noexec. runner
+zcat - runner
+zcip - daemon

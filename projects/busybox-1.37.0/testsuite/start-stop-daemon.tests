@@ -1,0 +1,56 @@
+#!/bin/sh
+# Copyright 2008 by Denys Vlasenko
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "cmd" "expected result" "file input" "stdin"
+
+testing "start-stop-daemon -x without -a" \
+	'start-stop-daemon -S -x true 2>&1; echo $?' \
+	"0\n" \
+	"" ""
+
+testing "start-stop-daemon -x with -d on existing directory" \
+	'start-stop-daemon -S -d /tmp -x true 2>&1; echo $?' \
+	"0\n" \
+	"" ""
+
+testing "start-stop-daemon -x with -d on existing and check dir" \
+	'output=$(start-stop-daemon -S -d /tmp -x pwd); echo $output' \
+	"/tmp\n" \
+	"" ""
+
+testing "start-stop-daemon -x with --chdir on existing and check dir" \
+	'output=$(start-stop-daemon -S --chdir /tmp -x pwd); echo $output' \
+	"/tmp\n" \
+	"" ""
+
+testing "start-stop-daemon -a without -x" \
+	'start-stop-daemon -S -a false 2>&1; echo $?' \
+	"1\n" \
+	"" ""
+
+testing "start-stop-daemon without -x and -a" \
+	'start-stop-daemon -S false 2>&1; echo $?' \
+	"1\n" \
+	"" ""
+
+testing "start-stop-daemon -x with -d on non-existing directory" \
+	'start-stop-daemon -S -d /non-existent -x true > /dev/null 2>&1; echo $?' \
+	"1\n" \
+	"" ""
+
+# This runs /bin/false with argv[0..2] of { "qwerty", "false", NULL }.
+#
+# Unfortunately, this does not actually check argv[0] correctness,
+# but at least it checks that pathname to exec() is correct
+#
+# NB: this fails if /bin/false is a busybox symlink:
+# busybox looks at argv[0] and says "qwerty: applet not found"
+testing "start-stop-daemon with both -x and -a" \
+	'start-stop-daemon -S -x /bin/false -a qwerty false 2>&1; echo $?' \
+	"1\n" \
+	"" ""
+
+exit $FAILCOUNT

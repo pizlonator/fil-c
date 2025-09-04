@@ -1,0 +1,85 @@
+#!/bin/sh
+
+# Copyright 2018 by Denys Vlasenko <vda.linux@googlemail.com>
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "description" "command" "result" "infile" "stdin"
+testing 'hexdump -C with four NULs' \
+	'hexdump -C' \
+	"\
+00000000  00 00 00 00                                       |....|
+00000004
+" \
+	'' \
+	'\0\0\0\0'
+
+testing "hexdump does not think last padded block matches any full block" \
+	"hexdump -e '1/1 \"%02x|\"1/1 \"%02x!\\n\"'" \
+	"\
+00|00!
+*
+00|  !
+" \
+	'' \
+	'\0\0\0\0\0\0\0\0\0\0\0'
+
+testing "hexdump thinks last full block can match" \
+	"hexdump -e '1/1 \"%02x|\"1/1 \"%02x!\\n\"'" \
+	"\
+00|00!
+*
+" \
+	'' \
+	'\0\0\0\0\0\0\0\0\0\0\0\0'
+
+testing "hexdump -e %3_u" \
+	"hexdump -e '16/1 \" %3_u\" \"\n\"'" \
+	"\
+ nul soh stx etx eot enq ack bel  bs  ht  lf  vt  ff  cr  so  si
+ dle dc1 dc2 dc3 dc4 nak syn etb can  em sub esc  fs  gs  rs  us
+   p   q   r   s   t   u   v   w   x   y   z   {   |   }   ~ del
+  80  81  82  83  84  85  86  87  88  89  8a  8b  8c  8d  8e  8f
+  f0  f1  f2  f3  f4  f5  f6  f7  f8  f9  fa  fb  fc  fd  fe  ff
+" \
+	"" \
+"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"\
+"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"\
+"\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"\
+"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f"\
+"\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"\
+
+testing "hexdump -e /1 %d" \
+	"hexdump -e '16/1 \" %4d\" \"\n\"'" \
+	"\
+    0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15
+   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31
+  112  113  114  115  116  117  118  119  120  121  122  123  124  125  126  127
+ -128 -127 -126 -125 -124 -123 -122 -121 -120 -119 -118 -117 -116 -115 -114 -113
+  -16  -15  -14  -13  -12  -11  -10   -9   -8   -7   -6   -5   -4   -3   -2   -1
+" \
+	"" \
+"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"\
+"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"\
+"\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"\
+"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f"\
+"\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"\
+
+testing "hexdump -e /2 %d" \
+	"hexdump -e '8/2 \" %6d\" \"\n\"'" \
+	"\
+    256    770   1284   1798   2312   2826   3340   3854
+   4368   4882   5396   5910   6424   6938   7452   7966
+  29040  29554  30068  30582  31096  31610  32124  32638
+ -32384 -31870 -31356 -30842 -30328 -29814 -29300 -28786
+  -3600  -3086  -2572  -2058  -1544  -1030   -516     -2
+" \
+	"" \
+"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"\
+"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"\
+"\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"\
+"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f"\
+"\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"\
+
+exit $FAILCOUNT

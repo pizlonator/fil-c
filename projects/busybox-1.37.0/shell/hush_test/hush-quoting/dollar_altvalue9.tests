@@ -1,0 +1,17 @@
+f() { for i; do echo "|$i|"; done; }
+
+echo Unquoted 1:
+x='1 2'; f a${x:+ 'x y' $x ''  "$x" `echo A B` "`echo C D`" z}b
+echo Quoted 1:
+x='1 2'; f "a${x:+ 'x y' $x ''  "$x" `echo A B` "`echo C D`" z}b"
+
+echo Unquoted 2:
+x='1 2'; f a${x:+'x y' $x ''  "$x" `echo A B` "`echo C D`" z }b
+echo Quoted 2:
+x='1 2'; f "a${x:+ 'x y' $x ''  "$x" `echo A B` "`echo C D`" z }b"
+
+#echo Unquoted 3:
+#e=
+#x='1 2'; f a${x:+'x y' $x ''  "$x" $e $e "$e" $e `echo A B` "`echo C D`" z }b
+#echo Quoted 3:
+#x='1 2'; f "a${x:+ 'x y' $x ''  "$x" $e $e "$e" $e `echo A B` "`echo C D`" z }b"

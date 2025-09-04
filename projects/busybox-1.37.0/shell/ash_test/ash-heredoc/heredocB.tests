@@ -1,0 +1,12 @@
+while read line1; do
+	read line2 <&3
+	echo $line1 - $line2
+done <<EOF1 3<<EOF2
+one
+two
+three
+EOF1
+alpha
+beta
+gamma
+EOF2

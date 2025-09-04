@@ -1,0 +1,10 @@
+cd /proc/$$
+exec 5>/dev/null
+exec 4>/dev/null
+exec 3>/dev/null
+ls -1 fd/5
+ls -1 fd/4
+ls -1 fd/3
+exec 5>&-
+test -e fd/5 && echo BUG
+echo One:$?

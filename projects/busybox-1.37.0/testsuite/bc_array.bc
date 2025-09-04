@@ -1,0 +1,35 @@
+#! /usr/bin/bc -q
+
+define z(a[]) {
+	for (i = 0; i < l; ++i) {
+		a[i]
+	}
+}
+
+define x(a[]) {
+
+	for (i = 0; i < l; ++i) {
+		a[i] = -i
+	}
+
+	z(a[])
+}
+
+for (i = 0; i < 101; ++i) {
+	a[i] = i
+}
+
+a[104] = 204
+
+l = length(a[])
+
+for (i = 0; i <= l; ++i) {
+	a[i]
+}
+
+z(a[])
+x(a[])
+z(a[])
+l
+
+halt

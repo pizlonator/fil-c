@@ -1,0 +1,12 @@
+# malformed regex
+[[ a =~ * ]]; echo 1:ERR2:$?
+
+[[ a/b =~ a.b ]]; echo 2:YES:$?
+[[ a/b =~ /*b ]]; echo 3:YES:$?
+
+v='[]b.-]'
+[[ a/.b] =~ $v ]]; echo 4:YES:$?
+
+v=']b.-'
+[[ a/.b] =~ $v ]]; echo 5:no:$?
+[[ a/.b] =~ [$v] ]]; echo 6:YES:$?

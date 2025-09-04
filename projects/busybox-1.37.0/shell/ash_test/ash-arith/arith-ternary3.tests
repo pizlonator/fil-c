@@ -1,0 +1,4 @@
+exec 2>&1
+# "EXPR ?..." should check _evaluated_ EXPR,
+# not its last value
+echo 42:$((1 < 1 ? -1 : 1 > 1 ? 1 : 42))

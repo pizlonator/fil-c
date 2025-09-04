@@ -1,0 +1,13 @@
+# regex should accept '+' operator
+[[ abcdef =~ a[b-z]+ ]]; echo 1:YES:$?
+
+# newline matches by "match any" patterns
+v='
+'
+[[ "$v" =~ . ]]; echo 2:YES:$?
+[[ "$v" =~ "[$v]" ]]; echo 3:no:$? # hmm bash does return 1... why?
+[[ "$v" =~ [^a] ]]; echo 4:YES:$?
+# should work even without quotes:
+[[ $v =~ . ]]; echo 2u:YES:$?
+[[ $v =~ [$v] ]]; echo 3u:YES:$?
+[[ $v =~ [^a] ]]; echo 4u:YES:$?

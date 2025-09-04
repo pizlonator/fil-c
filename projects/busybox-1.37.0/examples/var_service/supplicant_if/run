@@ -1,0 +1,22 @@
+#!/bin/sh
+
+exec 2>&1
+exec </dev/null
+
+pwd="$PWD"
+
+if="${PWD##*/dhcp_}"
+
+echo "* Upping iface $if"
+# "or sleep" idiom prevents rapid respawning if iface does not exist
+ip link set dev "$if" up || exec sleep 5
+
+##echo "* Powersave disable on $if"
+##iw dev "$if" set power_save off
+
+echo "* Starting wpa_supplicant on $if [$$]"
+exec \
+env - PATH="$PATH" \
+softlimit \
+setuidgid root \
+wpa_supplicant -i "$if" -c "$pwd/wpa_supplicant.conf" -d

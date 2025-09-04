@@ -1,0 +1,7 @@
+e=''
+[[ a && b ]]	&& echo 1:YES
+[[ a && '' ]]	|| echo 2:no
+[[ a || b ]]	&& echo 3:YES
+[[ '' || b ]]	&& echo 4:YES
+[[ "" || "$e" ]]	|| echo 5:no
+[[ "" || $e ]]	|| echo 6:no

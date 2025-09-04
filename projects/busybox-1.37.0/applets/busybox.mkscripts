@@ -1,0 +1,16 @@
+#!/bin/sh
+# Make busybox scripted applet list file.
+
+# input $1: full path to Config.h
+# input $2: full path to applets.h
+# output (stdout): list of pathnames that should be linked to busybox
+
+export LC_ALL=POSIX
+export LC_CTYPE=POSIX
+
+CONFIG_H=${1:-include/autoconf.h}
+APPLETS_H=${2:-include/applets.h}
+$HOSTCC -E -DMAKE_SCRIPTS -include $CONFIG_H $APPLETS_H |
+  awk '/^[ \t]*SCRIPT/{
+	print $2
+  }'

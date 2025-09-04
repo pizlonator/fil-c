@@ -1,0 +1,8 @@
+#skip lines: make "line number within function" differ from overall line number
+#skip lines
+f() {
+	echo "In function: LINENO=$LINENO"
+}
+echo "Start LINENO=$LINENO, calling function"
+f
+echo "After function: LINENO=$LINENO"

@@ -1,0 +1,33 @@
+f() { echo start:; for i; do echo "|$i|"; done; echo end; }
+x=a
+
+echo "Unquoted '':"
+f ${x:+''}
+f ${x:+'' }
+f ${x:+ ''}
+f ${x:+ '' }
+f ${x:+'' ''}
+
+echo
+echo 'Unquoted "":'
+f ${x:+""}
+f ${x:+"" }
+f ${x:+ ""}
+f ${x:+ "" }
+f ${x:+"" ""}
+
+echo
+echo "Quoted '':"
+f "${x:+''}"
+f "${x:+'' }"
+f "${x:+ ''}"
+f "${x:+ '' }"
+f "${x:+'' ''}"
+
+echo
+echo 'Quoted "":'
+f "${x:+""}"
+f "${x:+"" }"
+f "${x:+ ""}"
+f "${x:+ "" }"
+f "${x:+"" ""}"

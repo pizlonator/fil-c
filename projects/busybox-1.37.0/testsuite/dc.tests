@@ -1,0 +1,142 @@
+#!/bin/sh
+# Copyright 2015 by Bernhard Reutner-Fischer
+# Licensed under GPLv2 or later, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "command" "expected result" "file input" "stdin"
+
+testing "dc basic syntax (stdin, multiple args)" \
+	"dc" \
+	"30\n" \
+	"" "10 20+p"
+
+testing "dc basic syntax (argv, single arg)" \
+	"dc -e'10 20+p'" \
+	"30\n" \
+	"" ""
+
+testing "dc basic syntax (argv, multiple args)" \
+	"dc -e10 -e20+p" \
+	"30\n" \
+	"" ""
+
+testing "dc complex with spaces (single arg)" \
+	"dc -e'8 8 * 2 2 + / p'" \
+	"16\n" \
+	"" ""
+
+testing "dc complex without spaces (single arg)" \
+	"dc -e'8 8*2 2+/p'" \
+	"16\n" \
+	"" ""
+
+testing "dc complex with spaces (multiple args)" \
+	"dc -e8 -e8 -e\* -e2 -e2 -e+ -e/ -ep" \
+	"16\n" \
+	"" ""
+
+testing "dc complex without spaces (multiple args)" \
+	"dc -e8 -e8\*2 -e2+/p" \
+	"16\n" \
+	"" ""
+
+optional FEATURE_DC_BIG
+# All tests below depend on FEATURE_DC_BIG
+
+testing "dc: x should execute strings" \
+	"dc -e'[40 2 +] x f'" \
+	"42\n" \
+	"" ""
+
+testing "dc: x should not execute or pop non-strings" \
+	"dc -e'42 x f'" \
+	"42\n" \
+	"" ""
+
+testing "dc: x should work with strings created from a" \
+	"dc -e'42 112 a x'" \
+	"42\n" \
+	"" ""
+
+testing "dc: p should print invalid escapes" \
+	"dc -e '[\q] p'" \
+	"\\q\n" \
+	"" ""
+
+testing "dc: p should print trailing backslashes" \
+	"dc -e '[q\] p'" \
+	"q\\\\\n" \
+	"" ""
+
+testing "dc: p should parse/print single backslashes" \
+	"dc -e '[\] p'" \
+	"\\\\\n" \
+	"" ""
+
+testing "dc: p should print single backslash strings" \
+	"dc -e '92 a p'" \
+	"\\\\\n" \
+	"" ""
+
+testing "dc read" \
+	"dc -finput" \
+	"2\n9\n1\n" \
+	"1?2\nf" "9\n"
+
+testing "dc read string" \
+	"dc -finput" \
+	"2\nstr\n1\n" \
+	"1?2\nf" "[str]\n"
+
+testing "dc '>a' (conditional execute string) 1" \
+	"dc" \
+	"1\n9\n" \
+	"" "[1p]sa [2p]sb 1 2>a\n9p"
+
+testing "dc '>a' (conditional execute string) 2" \
+	"dc" \
+	"9\n" \
+	"" "[1p]sa [2p]sb 2 1>a\n9p"
+
+testing "dc '>aeb' (conditional execute string with else)" \
+	"dc" \
+	"2\n9\n" \
+	"" "[1p]sa [2p]sb 2 1>aeb\n9p"
+
+testing "dc space can be a register" \
+	"dc" \
+	"2\n9\n" \
+	"" "[2p]s \n[3p]\nl x\n9p"
+
+testing "dc newline can be a register" \
+	"dc" \
+	"2\n9\n" \
+	"" "[2p]s\n[3p]l\nx\n9p"
+
+testing "dc Z (length) for numbers" \
+	"dc" \
+	"1\n1\n3\n1\n3\n1\n" \
+	"" "0Zp\n0.000Zp\n100Zp\n0.01Zp\n0.00120Zp\n0.0012 0.0012 - Zp\n"
+
+for f in dc_*.dc; do
+	r="`basename "$f" .dc`_results.txt"
+	test -f "$r" || continue
+	# testing "test name" "command" "expected result" "file input" "stdin"
+	testing "dc $f" \
+		"{ { dc $f 2>&1; echo E:\$? >&2; } | diff -u - $r; echo E:\$?; } 2>&1" \
+		"E:0\nE:0\n" \
+		"" ""
+done
+
+for f in dcx_*.dc; do
+	r="`basename "$f" .dc`_results.txt"
+	test -f "$r" || continue
+	# testing "test name" "command" "expected result" "file input" "stdin"
+	testing "dc -x $f" \
+		"{ { dc -x $f 2>&1; echo E:\$? >&2; } | diff -u - $r; echo E:\$?; } 2>&1" \
+		"E:0\nE:0\n" \
+		"" ""
+done
+
+exit $FAILCOUNT

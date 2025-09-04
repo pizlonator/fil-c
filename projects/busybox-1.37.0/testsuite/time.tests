@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# Copyright 2024 by Denys Vlasenko <vda.linux@googlemail.com>
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "description" "arguments" "result" "infile" "stdin"
+
+testing "time -f trailing backslash" \
+	"time -f 'abc\' sleep 0 2>&1" \
+	'abc?\sleep\n' '' ''
+#	^^^^^^^^^^^^^^ this is what GNU time version 1.9 prints
+
+testing "time -f trailing percent" \
+	"time -f 'abc%' sleep 0 2>&1" \
+	'abc?' '' ''
+
+testing "time -f undefined backslash" \
+	"time -f 'abc\^def' sleep 0 2>&1" \
+	'abc?\^def\n' '' ''
+
+testing "time -f undefined percent" \
+	"time -f 'abc%^def' sleep 0 2>&1" \
+	'abc?^def\n' '' ''
+
+testing "time -f backslash tab and newline" \
+	"time -f 'abc\ndef\txyz' sleep 0 2>&1" \
+	'abc
+def	xyz
+' '' ''
+
+testing "time -f percent percent" \
+	"time -f 'abc%%def' sleep 0 2>&1" \
+	'abc%def\n' '' ''
+
+exit $FAILCOUNT

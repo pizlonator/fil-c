@@ -1,0 +1,3 @@
+# assignment still happens despite redirect error
+true;  a=$(echo b) >/does/not/exist; echo $?
+echo "Done: a=$a"

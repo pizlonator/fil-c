@@ -1,0 +1,8 @@
+# "return" in trap sets $? after trap
+trap "echo TERM;return 11" term
+f() {
+	(sleep 1; kill $$) &
+	until (exit 42) do (exit 42); done
+}
+f
+echo 11:$?

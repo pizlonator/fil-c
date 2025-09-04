@@ -1,0 +1,13 @@
+v='*.z'
+[[ a.z = *.z ]]; echo 1:YES:$?
+[[ a.z = "*".z ]]; echo 2:no:$?
+[[ a.z == $v ]]; echo 3:YES:$?
+
+# Buggy:
+# the problem is that expansion rules of LHS and RHS of ~=
+# should not be the same: in RHS, "$v" and "*" should escape metas
+# (currently "$v" does not),
+# but in LHS, they should _not_ do that
+# (currently "*" does). Thus these cases fail:
+#[[ a.z == "$v" ]]; echo 4:no:$?	# BUG: "$v" expands to *.z
+#[[ "*".z == ?.z ]]; echo 5:YES:$?	# BUG: "*" expands to \*

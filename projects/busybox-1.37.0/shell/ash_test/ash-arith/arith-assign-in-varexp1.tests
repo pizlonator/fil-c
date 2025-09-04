@@ -1,0 +1,9 @@
+exec 2>&1
+a='x=1'
+b='x=2'
+c='x=3'
+# The variables should evaluate immediately when they encountered,
+# not when they go into an operation. Here, order of evaluation
+# of names to numbers should be a,b,c - not b,c,a:
+echo 7:$((a+b*c))
+echo "x=$x"

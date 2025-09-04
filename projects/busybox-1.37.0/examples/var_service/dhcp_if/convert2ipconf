@@ -1,0 +1,73 @@
+#!/bin/sh
+# convert:
+
+# dhcptype=5
+# serverid=172.16.42.102
+# lease=97200
+# interface=eth0
+# ip=172.16.42.177
+# subnet=255.255.255.0
+# mask=24
+# broadcast=172.16.22.255
+# router=172.16.42.98
+# dns=10.34.32.125 10.32.63.5 10.34.255.7 10.11.255.27
+# domain=lab.example.com example.com
+# ntpsrv=10.34.32.125 10.34.255.7
+
+# into:
+
+#let cfg=cfg+1
+#if[$cfg]=...; ip[$cfg]=...; ipmask[$cfg]=.../...; gw[$cfg]=...; net[$cfg]=... dns[$cfg]=...
+
+#exec >/dev/null
+#exec >"$0.out"  # debug
+exec 2>&1
+
+test "$interface" || exit 1
+test "$ip" || exit 1
+
+# some servers do not return subnet option.
+# guess it for standard private networks.
+if ! test "$mask"; then
+	case "$ip" in
+	10.*)
+		echo "mask assumed 8 for ip=$ip"
+		mask=8;;
+	#172.16-31.x.x
+	172.1[6789].*)
+		echo "mask assumed 12 for ip=$ip"
+		mask=12;;
+	172.2[0123456789].*)
+		echo "mask assumed 12 for ip=$ip"
+		mask=12;;
+	172.3[01].*)
+		echo "mask assumed 12 for ip=$ip"
+		mask=12;;
+	192.168.*)
+		echo "mask assumed 16 for ip=$ip"
+		mask=16;;
+	esac
+fi
+
+# some servers do not return router option.
+# assume DHCP server is the router.
+if ! test "$router"; then
+	if test "$serverid"; then
+		router="$serverid"
+		echo "No 'router' from the server, assuming 'serverid' is the router: $serverid"
+	fi
+fi
+
+{
+echo "let cfg=cfg+1"
+test "$interface"	&& echo "if[\$cfg]='$interface'"
+test "$ip"		&& echo "ip[\$cfg]='$ip'"
+test "$ip" && test "$mask" \
+			&& echo "ipmask[\$cfg]='$ip/$mask'"
+test "$router"		&& echo "gw[\$cfg]='$router'"
+test "$dns"		&& echo "dns[\$cfg]='$dns'"
+# TODO: I never saw a dhcp server which correctly announces
+# which subnet(s) is/are available thru advertised router
+# Assume 0/0
+echo "net[\$cfg]='0/0'"
+} >"$1"

@@ -1,0 +1,39 @@
+#!/bin/sh
+MIMFILE="Mimfile"
+if [ $# -ge 2 ] && [ "$1" = "-f" ]
+then
+	MIMFILE="$2"
+	shift 2
+fi
+exec <"$MIMFILE" || exit 1
+{
+	INCASE=false
+	while read -r REPLY
+	do
+		case $REPLY in
+		*:)
+			if ! $INCASE
+			then
+				printf '[ $# -eq 0 ] && set -- "%s"
+TARGET="$1"
+shift
+case "$TARGET" in
+' "${REPLY%:}"
+			else
+				printf ';;\n'
+			fi
+			printf '%s)\n' "${REPLY%:}"
+			INCASE=true
+			;;
+		"") ;;
+		*) printf '%s\n' "${REPLY##[ 	]}";;
+		esac
+	done
+	$INCASE && printf ';;\n'
+	printf '*)
+echo "Unknown command $TARGET"
+exit 1
+;;
+esac
+'
+} | sh -s "$@"

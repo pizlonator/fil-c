@@ -1,0 +1,9 @@
+# "return" in trap should not use last command's exitcode,
+# but exitcode on entering the trap.
+trap "echo TERM;return" term
+f() {
+	(sleep 1; kill $$) &
+	until (exit 42) do (exit 42); done
+}
+f
+echo 42:$?

@@ -1,0 +1,35 @@
+# no output -- default state
+echo ___
+trap
+
+# assign some traps
+echo ___
+trap "a" EXIT INT USR1 USR2
+
+# show them all
+echo ___
+trap
+
+# show them by command substitution
+echo ___
+echo $(trap)
+
+# show them by pipe
+echo ___
+trap | cat
+
+# show them by process substitution
+echo ___
+cat <(trap)
+
+# clear one
+echo ___
+trap 0 INT
+echo ___
+trap
+
+# clear another
+echo ___
+trap "-" USR1
+echo ___
+trap

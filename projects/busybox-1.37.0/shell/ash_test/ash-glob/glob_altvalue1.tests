@@ -1,0 +1,13 @@
+x=x
+
+echo 1u: ${x:+glob_altvalue1.t*}
+echo 2u: ${x:+'glob_altvalue1.t*'}
+echo 3u: ${x:+"glob_altvalue1.t*"}
+echo 4u: ${x:+glob_altvalue1.t\*}
+##echo 5u: ${x:+"glob_altvalue1.t\*"}
+
+echo 1q: "${x:+glob_altvalue1.t*}"
+echo 2q: "${x:+'glob_altvalue1.t*'}"
+echo 3q: "${x:+"glob_altvalue1.t*"}"
+##echo 4q: "${x:+glob_altvalue1.t\*}"
+##echo 5q: "${x:+"glob_altvalue1.t\*"}"

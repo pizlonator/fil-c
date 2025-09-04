@@ -1,0 +1,7 @@
+$THIS_SH -c '
+cleanup() { set +e; false; }
+set -e
+trap cleanup EXIT
+echo Start
+'
+echo Ok:$?

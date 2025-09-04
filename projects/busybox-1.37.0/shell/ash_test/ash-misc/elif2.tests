@@ -1,0 +1,8 @@
+if true; then
+    echo "THEN"
+elif echo "ELIF false"; false; then
+    echo "ELIF THEN"
+else
+    echo "ELSE"
+fi
+echo "Ok:$?"

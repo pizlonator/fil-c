@@ -1,0 +1,39 @@
+#!/bin/sh
+# Copyright 2021 by Ron Yorston
+# Licensed under GPLv2, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "commands" "expected result" "file input" "stdin"
+
+testing "nl numbers all lines" \
+	"nl -b a input" \
+"\
+     1	line 1
+     2	
+     3	line 3
+" \
+	"line 1\n\nline 3\n" \
+	""
+
+testing "nl numbers non-empty lines" \
+	"nl -b t input" \
+"\
+     1	line 1
+       
+     2	line 3
+" \
+	"line 1\n\nline 3\n" \
+	""
+
+testing "nl numbers no lines" \
+	"nl -b n input" \
+"\
+       line 1
+       
+       line 3
+" \
+	"line 1\n\nline 3\n" \
+	""
+
+exit $FAILCOUNT

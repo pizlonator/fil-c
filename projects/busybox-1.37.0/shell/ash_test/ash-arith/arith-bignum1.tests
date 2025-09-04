@@ -1,0 +1,17 @@
+exec 2>&1
+# If the number does not fit in 64 bits, bash uses truncated 64-bit value
+# (essentially, it does not check for overflow in "n = n * base + digit"
+# calculation).
+echo 18 digits: $((999999999999999999))
+echo 19 digits: $((9999999999999999999))
+echo 20 digits: $((99999999999999999999))
+echo 18 digits- $((-999999999999999999))
+echo 19 digits- $((-9999999999999999999))
+echo 20 digits- $((-99999999999999999999))
+echo "Hex base#:"
+printf '16 digits: %016x\n' $((16#9876543210abcedf))
+printf '17 digits: %016x\n' $((16#9876543210abcedfc))
+printf '18 digits: %016x\n' $((16#9876543210abcedfcc))
+printf '16 digits: %016x\n' $((-16#9876543210abcedf))
+printf '17 digits: %016x\n' $((-16#9876543210abcedfc))
+printf '18 digits: %016x\n' $((-16#9876543210abcedfcc))

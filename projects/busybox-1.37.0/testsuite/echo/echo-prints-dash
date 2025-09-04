@@ -1,0 +1,2 @@
+# FEATURE: CONFIG_DESKTOP
+test "`busybox echo - | od -t x1 | head -n 1`" = "0000000 2d 0a"

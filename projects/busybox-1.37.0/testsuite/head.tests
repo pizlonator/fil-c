@@ -1,0 +1,43 @@
+#!/bin/sh
+# Copyright 2018 Thomas De Schampheleire <thomas.de_schampheleire@nokia.com>
+# Licensed under GPLv2 or later, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+# testing "test name" "command" "expected result" "file input" "stdin"
+
+cat <<EOF > head.input
+line 1
+line 2
+line 3
+line 4
+line 5
+line 6
+line 7
+line 8
+line 9
+line 10
+line 11
+line 12
+EOF
+
+testing "head (without args)" \
+	"head head.input" \
+	"line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\n" \
+	"" ""
+
+testing "head -n <positive number>" \
+	"head -n 2 head.input" \
+	"line 1\nline 2\n" \
+	"" ""
+
+optional FEATURE_FANCY_HEAD
+testing "head -n <negative number>" \
+	"head -n -9 head.input" \
+	"line 1\nline 2\nline 3\n" \
+	"" ""
+SKIP=
+
+rm head.input
+
+exit $FAILCOUNT

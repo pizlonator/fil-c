@@ -1,0 +1,8 @@
+v="x/x"
+# The second / is quoted, should not be treated as separator
+echo a${v/'/'}b
+# The second / is escaped, should not be treated as separator
+echo a${v/\/}b
+
+echo "a${v/'/'}b"
+echo "a${v/\/}b"

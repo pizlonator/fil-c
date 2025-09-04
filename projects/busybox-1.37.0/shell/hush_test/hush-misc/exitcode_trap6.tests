@@ -1,0 +1,10 @@
+# "exit" in trap should not use last command's exitcode,
+# but exitcode on entering the trap.
+# Nested trap should not interfere with this.
+$THIS_SH -c '
+ trap "echo INT" int
+ trap "kill -int $$;exit" term
+ kill $$ &
+ (sleep 1; exit 42)
+'
+echo 42:$?

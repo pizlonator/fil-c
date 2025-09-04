@@ -1,0 +1,25 @@
+#
+# For a description of the syntax of this configuration file,
+# see docs/Kconfig-language.txt.
+#
+
+menu "Process Utilities"
+
+config FEATURE_FAST_TOP
+	bool "Faster /proc scanning code (+100 bytes)"
+	default n  # all "fast or small" options default to small
+	help
+	This option makes top and ps ~20% faster (or 20% less CPU hungry),
+	but code size is slightly bigger.
+
+config FEATURE_SHOW_THREADS
+	bool "Support thread display in ps/pstree/top"
+	default y
+	depends on PS || TOP || PSTREE
+	help
+	Enables the ps -T option, showing of threads in pstree,
+	and 'h' command in top.
+
+INSERT
+
+endmenu

@@ -1,0 +1,110 @@
+#!/bin/sh
+
+# SUSv3 compliant sort tests.
+# Public Domain, David Leonard 2022
+
+. ./testing.sh
+
+#       name cmd expected ./input stdin
+testing "" "tsort"       "a\n" "" "a a\n"
+testing "" "tsort -"     "a\n" "" "a a\n"
+testing "" "tsort input" "a\n" "a a\n" ""
+testing "tsort input (w/o eol)" "tsort input" "a\n" "a a" ""
+testing "" "tsort /dev/null" "" "" ""
+
+testing "tsort empty" tsort "" "" ""
+testing "tsort blank" tsort "" "" "\n"
+testing "tsort blanks" tsort "" "" "\n\n \t\n "
+
+# simple inputs having exactly one solution
+testing "tsort 1-edge" tsort "a\nb\n" "" "a b\n"
+testing "tsort 2-edge" tsort "a\nb\nc\n" "" "a b b c\n"
+
+
+# The following test helper accommodates future variable output because, as
+# tsort is allowed to emit any total ordering that satisfies its input,
+# should the implementation changes, these tests will remain valid.
+#
+# The idea is to verify that:
+# - each input word is present EXACTLY ONCE in tsort's output
+# - for each input pair 'a b', the occurrence of 'a' APPEARS BEFORE 'b'
+# - the exit code is 0
+
+tsort_test () {
+	fail=
+	name="$1"; shift
+	args="$*"
+	if [ $VERBOSE ]; then
+		echo "============"
+		echo "echo \"$args\" | tsort >actual"
+	fi
+	echo "$args" | tsort >actual
+	ec=$?
+	if [ $ec -ne 0 ]; then
+		fail "tsort exit $ec, expected 0"
+	fi
+	while [ $# -ne 0 ]; do
+		a=$1; shift
+		b=$1; shift
+		aline=$(grep -nxF "$a" <actual | cut -d: -f1)
+		bline=$(grep -nxF "$b" <actual | cut -d: -f1)
+		case $aline in
+			"") fail "word $a missing from output ($args)";;
+			*" "*) fail "word $a duplicated ($args)";;
+		esac
+		case $bline in
+			"") fail "word $b missing from output ($args)";;
+			*" "*) fail "word $b duplicated ($args)";;
+		esac
+		if [ $aline -gt $bline ]; then
+			fail "$a appears after $b ($args)"
+		fi
+	done
+	if [ $fail ] && [ $VERBOSE ]; then
+		echo "exit $ec, actual:"
+		cat actual
+	fi
+	rm actual
+	report "$name"
+}
+
+# Test that erroneous input causes an unsuccessful exit code
+# we don't test the output error message
+tsort_test_err () {
+	fail=
+	name="$1"; shift
+	echo "$*" | tsort >/dev/null 2>/dev/null
+	ec=$?
+	if [ $ec -eq 0 ]; then
+		fail "$name: unexpected exit 0 ($*)"
+	fi
+	report "$name"
+}
+
+fail () {
+	[ $VERBOSE ] && echo "ERROR: $*"
+	fail=1
+}
+
+report () {
+	if [ $fail ]; then
+		FAILCOUNT=$(($FAILCOUNT + 1))
+		echo "FAIL: $*"
+	else
+		echo "PASS: $*"
+	fi
+}
+
+tsort_test "tsort empty2"
+tsort_test "tsort singleton"    a a
+tsort_test "tsort simple"       a b b c
+tsort_test "tsort 2singleton"   a a b b
+tsort_test "tsort medium"       a b a b b c
+tsort_test "tsort std.example"  a b c c d e g g f g e f h h
+tsort_test "tsort prefixes"     a aa aa aaa aaaa aaaaa a aaaaa
+
+tsort_test_err "tsort odd"      a
+tsort_test_err "tsort odd2"     a b c
+tsort_test_err "tsort cycle"    a b b a
+
+exit $FAILCOUNT

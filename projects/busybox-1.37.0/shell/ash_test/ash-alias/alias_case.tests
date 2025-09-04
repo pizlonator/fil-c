@@ -1,0 +1,8 @@
+# Note: bash would need:
+#shopt -s expand_aliases
+# to enable aliases in non-interactive mode
+alias a="case x in " b=x
+a
+b) echo BAD;;
+*) echo Ok;;
+esac
