@@ -1,0 +1,909 @@
+@c GNU Version-sort ordering documentation
+
+@c Copyright (C) 2019--2024 Free Software Foundation, Inc.
+
+@c Permission is granted to copy, distribute and/or modify this document
+@c under the terms of the GNU Free Documentation License, Version 1.3 or
+@c any later version published by the Free Software Foundation; with no
+@c Invariant Sections, no Front-Cover Texts, and no Back-Cover
+@c Texts.  A copy of the license is included in the ``GNU Free
+@c Documentation License'' file as part of this distribution.
+
+@c Written by Assaf Gordon
+
+@node Version sort ordering
+@chapter Version sort ordering
+
+
+
+@node Version sort overview
+@section Version sort overview
+
+@dfn{Version sort} puts items such as file names and lines of
+text in an order that feels natural to people, when the text
+contains a mixture of letters and digits.
+
+Lexicographic sorting usually does not produce the order that one expects
+because comparisons are made on a character-by-character basis.
+
+Compare the sorting of the following items:
+
+@example
+Lexicographic sort:          Version Sort:
+
+a1                           a1
+a120                         a2
+a13                          a13
+a2                           a120
+@end example
+
+Version sort functionality in GNU Coreutils is available in the @samp{ls -v},
+@samp{ls --sort=version}, @samp{sort -V}, and
+@samp{sort --version-sort} commands.
+
+
+
+@node Using version sort in GNU Coreutils
+@subsection Using version sort in GNU Coreutils
+
+Two GNU Coreutils programs use version sort: @command{ls} and @command{sort}.
+
+To list files in version sort order, use @command{ls}
+with the @option{-v} or @option{--sort=version} option:
+
+@example
+default sort:              version sort:
+
+$ ls -1                    $ ls -1 -v
+a1                         a1
+a100                       a1.4
+a1.13                      a1.13
+a1.4                       a1.40
+a1.40                      a2
+a2                         a100
+@end example
+
+To sort text files in version sort order, use @command{sort} with
+the @option{-V} or @option{--version-sort} option:
+
+@example
+$ cat input
+b3
+b11
+b1
+b20
+
+
+lexicographic order:       version sort order:
+
+$ sort input               $ sort -V input
+b1                         b1
+b11                        b3
+b20                        b11
+b3                         b20
+@end example
+
+To sort a specific field in a file, use @option{-k/--key} with
+@samp{V} type sorting, which is often combined with @samp{b} to
+ignore leading blanks in the field:
+
+@example
+$ cat input2
+100   b3   apples
+2000  b11  oranges
+3000  b1   potatoes
+4000  b20  bananas
+$ sort -k 2bV,2 input2
+3000  b1   potatoes
+100   b3   apples
+2000  b11  oranges
+4000  b20  bananas
+@end example
+
+@node Version sort and natural sort
+@subsection Version sort and natural sort
+
+In GNU Coreutils, the name @dfn{version sort} was chosen because it is based
+on Debian GNU/Linux's algorithm of sorting packages' versions.
+
+Its goal is to answer questions like
+``Which package is newer, @file{firefox-60.7.2} or @file{firefox-60.12.3}?''
+
+In Coreutils this algorithm was slightly modified to work on more
+general input such as textual strings and file names
+(see @ref{Differences from Debian version sort}).
+
+In other contexts, such as other programs and other programming
+languages, a similar sorting functionality is called
+@uref{https://en.wikipedia.org/wiki/Natural_sort_order,natural sort}.
+
+
+@node Variations in version sort order
+@subsection Variations in version sort order
+
+Currently there is no standard for version sort.
+
+That is: there is no one correct way or universally agreed-upon way to
+order items. Each program and each programming language can decide its
+own ordering algorithm and call it ``version sort'', ``natural sort'',
+or other names.
+
+See @ref{Other version/natural sort implementations} for many examples of
+differing sorting possibilities, each with its own rules and variations.
+
+If you find a bug in the Coreutils implementation of version-sort, please
+report it.  @xref{Reporting version sort bugs}.
+
+
+@node Version sort implementation
+@section Version sort implementation
+
+GNU Coreutils version sort is based on the ``upstream version''
+part of
+@uref{https://www.debian.org/doc/debian-policy/ch-controlfields.html#version,
+Debian's versioning scheme}.
+
+This section describes the GNU Coreutils sort ordering rules.
+
+The next section (@ref{Differences from Debian version
+sort}) describes some differences between GNU Coreutils
+and Debian version sort.
+
+
+@node Version-sort ordering rules
+@subsection Version-sort ordering rules
+
+The version sort ordering rules are:
+
+@enumerate
+@item
+The strings are compared from left to right.
+
+@item
+First the initial part of each string consisting entirely of non-digit
+bytes is determined.
+
+@enumerate A
+@item
+These two parts (either of which may be empty) are compared lexically.
+If a difference is found it is returned.
+
+@item
+The lexical comparison is a lexicographic comparison of byte strings,
+except that:
+
+@enumerate a
+@item
+ASCII letters sort before other bytes.
+@item
+A tilde sorts before anything, even an empty string.
+@end enumerate
+@end enumerate
+
+@item
+Then the initial part of the remainder of each string that contains
+all the leading digits is determined. The numerical values represented by
+these two parts are compared, and any difference found is returned as
+the result of the comparison.
+
+@enumerate A
+@item
+For these purposes an empty string (which can only occur at the end of
+one or both version strings being compared) counts as zero.
+
+@item
+Because the numerical value is used, non-identical strings can compare
+equal.  For example, @samp{123} compares equal to @samp{00123}, and
+the empty string compares equal to @samp{0}.
+@end enumerate
+
+@item
+These two steps (comparing and removing initial non-digit strings and
+initial digit strings) are repeated until a difference is found or
+both strings are exhausted.
+@end enumerate
+
+Consider the version-sort comparison of two file names:
+@file{foo07.7z} and @file{foo7a.7z}. The two strings will be broken
+down to the following parts, and the parts compared respectively from
+each string:
+
+@example
+foo  @r{vs}  foo   @r{(rule 2, non-digits)}
+07   @r{vs}  7     @r{(rule 3, digits)}
+.    @r{vs}  a.    @r{(rule 2)}
+7    @r{vs}  7     @r{(rule 3)}
+z    @r{vs}  z     @r{(rule 2)}
+@end example
+
+Comparison flow based on above algorithm:
+
+@enumerate
+@item
+The first parts (@samp{foo}) are identical.
+
+@item
+The second parts (@samp{07} and @samp{7}) are compared numerically,
+and compare equal.
+
+@item
+The third parts (@samp{.} vs @samp{a.}) are compared
+lexically by ASCII value (rule 2.B).
+
+@item
+The first byte of the first string (@samp{.}) is compared
+to the first byte of the second string (@samp{a}).
+
+@item
+Rule 2.B.a says letters sorts before non-letters.
+Hence, @samp{a} comes before @samp{.}.
+
+@item
+The returned result is that @file{foo7a.7z} comes before @file{foo07.7z}.
+@end enumerate
+
+Result when using sort:
+
+@example
+$ cat input3
+foo07.7z
+foo7a.7z
+$ sort -V input3
+foo7a.7z
+foo07.7z
+@end example
+
+See @ref{Differences from Debian version sort} for
+additional rules that extend the Debian algorithm in Coreutils.
+
+
+@node Version sort is not the same as numeric sort
+@subsection Version sort is not the same as numeric sort
+
+Consider the following text file:
+
+@example
+$ cat input4
+8.10
+8.5
+8.1
+8.01
+8.010
+8.100
+8.49
+
+Numerical Sort:                   Version Sort:
+
+$ sort -n input4                  $ sort -V input4
+8.01                              8.01
+8.010                             8.1
+8.1                               8.5
+8.10                              8.010
+8.100                             8.10
+8.49                              8.49
+8.5                               8.100
+@end example
+
+Numeric sort (@samp{sort -n}) treats the entire string as a single numeric
+value, and compares it to other values. For example, @samp{8.1}, @samp{8.10} and
+@samp{8.100} are numerically equivalent, and are ordered together. Similarly,
+@samp{8.49} is numerically less than @samp{8.5}, and appears before first.
+
+Version sort (@samp{sort -V}) first breaks down the string into digit and
+non-digit parts, and only then compares each part (see annotated
+example in @ref{Version-sort ordering rules}).
+
+Comparing the string @samp{8.1} to @samp{8.01}, first the
+@samp{8}s are compared (and are identical), then the
+dots (@samp{.}) are compared and are identical, and lastly the
+remaining digits are compared numerically (@samp{1} and @samp{01}) --
+which are numerically equal.  Hence, @samp{8.01} and @samp{8.1}
+are grouped together.
+
+Similarly, comparing @samp{8.5} to @samp{8.49} -- the @samp{8}
+and @samp{.} parts are identical, then the numeric values @samp{5} and
+@samp{49} are compared. The resulting @samp{5} appears before @samp{49}.
+
+This sorting order (where @samp{8.5} comes before @samp{8.49}) is common when
+assigning versions to computer programs (while perhaps not intuitive
+or ``natural'' for people).
+
+@node Version sort punctuation
+@subsection Version sort punctuation
+
+Punctuation is sorted by ASCII order (rule 2.B).
+
+@example
+$ touch 1.0.5_src.tar.gz 1.0_src.tar.gz
+$ ls -v -1
+1.0.5_src.tar.gz
+1.0_src.tar.gz
+@end example
+
+Why is @file{1.0.5_src.tar.gz} listed before @file{1.0_src.tar.gz}?
+
+Based on the version-sort ordering rules, the strings are broken down
+into the following parts:
+
+@example
+          1   @r{vs}  1               @r{(rule 3, all digits)}
+          .   @r{vs}  .               @r{(rule 2, all non-digits)}
+          0   @r{vs}  0               @r{(rule 3)}
+          .   @r{vs}  _src.tar.gz     @r{(rule 2)}
+          5   @r{vs}  empty string    @r{(no more bytes in the file name)}
+_src.tar.gz   @r{vs}  empty string
+@end example
+
+The fourth parts (@samp{.} and @samp{_src.tar.gz}) are compared
+lexically by ASCII order. The @samp{.} (ASCII value 46) is
+less than @samp{_} (ASCII value 95) -- and should be listed before it.
+
+Hence, @file{1.0.5_src.tar.gz} is listed first.
+
+If a different byte appears instead of the underscore (for
+example, percent sign @samp{%} ASCII value 37, which is less
+than dot's ASCII value of 46), that file will be listed first:
+
+@example
+$ touch   1.0.5_src.tar.gz     1.0%zzzzz.gz
+1.0%zzzzz.gz
+1.0.5_src.tar.gz
+@end example
+
+The same reasoning applies to the following example, as @samp{.} with
+ASCII value 46 is less than @samp{/} with ASCII value 47:
+
+@example
+$ cat input5
+3.0/
+3.0.5
+$ sort -V input5
+3.0.5
+3.0/
+@end example
+
+
+@node Punctuation vs letters
+@subsection Punctuation vs letters
+
+Rule 2.B.a says letters sort before non-letters
+(after breaking down a string to digit and non-digit parts).
+
+@example
+$ cat input6
+a%
+az
+$ sort -V input6
+az
+a%
+@end example
+
+The input strings consist entirely of non-digits, and based on the
+above algorithm have only one part, all non-digits
+(@samp{a%} vs @samp{az}).
+
+Each part is then compared lexically,
+byte-by-byte; @samp{a} compares identically in both
+strings.
+
+Rule 2.B.a says a letter like @samp{z} sorts before
+a non-letter like @samp{%} -- hence @samp{az} appears first (despite
+@samp{z} having ASCII value of 122, much larger than @samp{%}
+with ASCII value 37).
+
+@node The tilde @samp{~}
+@subsection The tilde @samp{~}
+
+Rule 2.B.b says the tilde @samp{~} (ASCII 126) sorts
+before other bytes, and before an empty string.
+
+@example
+$ cat input7
+1
+1%
+1.2
+1~
+~
+$ sort -V input7
+~
+1~
+1
+1%
+1.2
+@end example
+
+The sorting algorithm starts by breaking down the string into
+non-digit (rule 2) and digit parts (rule 3).
+
+In the above input file, only the last line in the input file starts
+with a non-digit (@samp{~}). This is the first part. All other lines
+in the input file start with a digit -- their first non-digit part is
+empty.
+
+Based on rule 2.B.b, tilde @samp{~} sorts before other bytes
+and before the empty string -- hence it comes before all other strings,
+and is listed first in the sorted output.
+
+The remaining lines (@samp{1}, @samp{1%}, @samp{1.2}, @samp{1~})
+follow similar logic: The digit part is extracted (1 for all strings)
+and compares equal. The following extracted parts for the remaining
+input lines are: empty part, @samp{%}, @samp{.}, @samp{~}.
+
+Tilde sorts before all others, hence the line @samp{1~} appears next.
+
+The remaining lines (@samp{1}, @samp{1%}, @samp{1.2}) are sorted based
+on previously explained rules.
+
+@node Version sort ignores locale
+@subsection Version sort ignores locale
+
+In version sort, Unicode characters are compared byte-by-byte according
+to their binary representation, ignoring their Unicode value or the
+current locale.
+
+Most commonly, Unicode characters are encoded as UTF-8 bytes; for
+example, GREEK SMALL LETTER ALPHA (U+03B1, @samp{α}) is encoded as the
+UTF-8 sequence @samp{0xCE 0xB1}).  The encoding is compared
+byte-by-byte, e.g., first @samp{0xCE} (decimal value 206) then
+@samp{0xB1} (decimal value 177).
+
+@example
+$ touch aa az "a%" "aα"
+$ ls -1 -v
+aa
+az
+a%
+aα
+@end example
+
+Ignoring the first letter (@samp{a}) which is identical in all
+strings, the compared values are:
+
+@samp{a} and @samp{z} are letters, and sort before
+all other non-digits.
+
+Then, percent sign @samp{%} (ASCII value 37) is compared to the
+first byte of the UTF-8 sequence of @samp{α}, which is 0xCE or 206). The
+value 37 is smaller, hence @samp{a%} is listed before @samp{aα}.
+
+@node Differences from Debian version sort
+@section Differences from Debian version sort
+
+GNU Coreutils version sort differs slightly from the
+official Debian algorithm, in order to accommodate more general usage
+and file name listing.
+
+
+@node Hyphen-minus and colon
+@subsection Hyphen-minus @samp{-} and colon @samp{:}
+
+In Debian's version string syntax the version consists of three parts:
+@example
+[epoch:]upstream_version[-debian_revision]
+@end example
+The @samp{epoch} and @samp{debian_revision} parts are optional.
+
+Example of such version strings:
+
+@example
+60.7.2esr-1~deb9u1
+52.9.0esr-1~deb9u1
+1:2.3.4-1+b2
+327-2
+1:1.0.13-3
+2:1.19.2-1+deb9u5
+@end example
+
+If the @samp{debian_revision part} is not present,
+hyphens @samp{-} are not allowed.
+If epoch is not present, colons @samp{:} are not allowed.
+
+If these parts are present, hyphen and/or colons can appear only once
+in valid Debian version strings.
+
+In GNU Coreutils, such restrictions are not reasonable (a file name can
+have many hyphens, a line of text can have many colons).
+
+As a result, in GNU Coreutils hyphens and colons are treated exactly
+like all other punctuation, i.e., they are sorted after
+letters.  @xref{Version sort punctuation}.
+
+In Debian, these characters are treated differently than in Coreutils:
+a version string with hyphen will sort before similar strings without
+hyphens.
+
+Compare:
+
+@example
+$ touch 1ab-cd 1abb
+$ ls -v -1
+1abb
+1ab-cd
+$ if dpkg --compare-versions 1abb lt 1ab-cd
+> then echo sorted
+> else echo out of order
+> fi
+out of order
+@end example
+
+For further details, see @ref{Comparing two strings using Debian's
+algorithm} and @uref{https://bugs.gnu.org/35939,GNU Bug 35939}.
+
+@node Special priority in GNU Coreutils version sort
+@subsection Special priority in GNU Coreutils version sort
+
+In GNU Coreutils version sort, the following items have
+special priority and sort before all other strings (listed in order):
+
+@enumerate
+@item The empty string
+
+@item The string @samp{.} (a single dot, ASCII 46)
+
+@item The string @samp{..} (two dots)
+
+@item Strings starting with dot (@samp{.}) sort before
+strings starting with any other byte.
+@end enumerate
+
+Example:
+
+@example
+$ printf '%s\n' a "" b "." c  ".."  ".d20" ".d3"  | sort -V
+.
+..
+.d3
+.d20
+a
+b
+c
+@end example
+
+These priorities make perfect sense for @samp{ls -v}: The special
+files dot @samp{.} and dot-dot @samp{..} will be listed
+first, followed by any hidden files (files starting with a dot),
+followed by non-hidden files.
+
+For @samp{sort -V} these priorities might seem arbitrary. However,
+because the sorting code is shared between the @command{ls} and @command{sort}
+program, the ordering rules are the same.
+
+@node Special handling of file extensions
+@subsection Special handling of file extensions
+
+GNU Coreutils version sort implements specialized handling
+of strings that look like file names with extensions.
+This enables slightly more natural ordering of file
+names.
+
+The following additional rules apply when comparing two strings where
+both begin with non-@samp{.}.  They also apply when comparing two
+strings where both begin with @samp{.} but neither is @samp{.} or @samp{..}.
+
+@enumerate
+@item
+A suffix (i.e., a file extension) is defined as: a dot, followed by an
+ASCII letter or tilde, followed by zero or more ASCII letters, digits,
+or tildes; all repeated zero or more times, and ending at string end.
+This is equivalent to matching the extended regular expression
+@code{(\.[A-Za-z~][A-Za-z0-9~]*)*$} in the C locale.
+The longest such match is used, except that a suffix is not
+allowed to match an entire nonempty string.
+
+@item
+The suffixes are temporarily removed, and the strings are compared
+without them, using version sort (see @ref{Version-sort ordering
+rules}) without special priority (see @ref{Special priority in GNU
+Coreutils version sort}).
+
+@item
+If the suffix-less strings do not compare equal, this comparison
+result is used and the suffixes are effectively ignored.
+
+@item
+If the suffix-less strings compare equal, the suffixes are restored
+and the entire strings are compared using version sort.
+@end enumerate
+
+Examples for rule 1:
+
+@itemize
+@item
+@samp{hello-8.txt}: the suffix is @samp{.txt}
+
+@item
+@samp{hello-8.2.txt}: the suffix is @samp{.txt}
+(@samp{.2} is not included because the dot is not followed by a letter)
+
+@item
+@samp{hello-8.0.12.tar.gz}: the suffix is @samp{.tar.gz} (@samp{.0.12}
+is not included)
+
+@item
+@samp{hello-8.2}: no suffix (suffix is an empty string)
+
+@item
+@samp{hello.foobar65}: the suffix is @samp{.foobar65}
+
+@item
+@samp{gcc-c++-10.8.12-0.7rc2.fc9.tar.bz2}: the suffix is
+@samp{.fc9.tar.bz2} (@samp{.7rc2} is not included as it begins with a digit)
+
+@item
+@samp{.autom4te.cfg}: the suffix is the entire string.
+@end itemize
+
+Examples for rule 2:
+
+@itemize
+@item
+Comparing @samp{hello-8.txt} to @samp{hello-8.2.12.txt}, the
+@samp{.txt} suffix is temporarily removed from both strings.
+
+@item
+Comparing @samp{foo-10.3.tar.gz} to @samp{foo-10.tar.xz}, the suffixes
+@samp{.tar.gz} and @samp{.tar.xz} are temporarily removed from the
+strings.
+@end itemize
+
+Example for rule 3:
+
+@itemize
+@item
+Comparing @samp{hello.foobar65} to @samp{hello.foobar4}, the suffixes
+(@samp{.foobar65} and @samp{.foobar4}) are temporarily removed. The
+remaining strings are identical (@samp{hello}). The suffixes are then
+restored, and the entire strings are compared (@samp{hello.foobar4} comes
+first).
+@end itemize
+
+Examples for rule 4:
+
+@itemize
+@item
+When comparing the strings @samp{hello-8.2.txt} and @samp{hello-8.10.txt}, the
+suffixes (@samp{.txt}) are temporarily removed. The remaining strings
+(@samp{hello-8.2} and @samp{hello-8.10}) are compared as previously described
+(@samp{hello-8.2} comes first).
+@slanted{(In this case the suffix removal algorithm
+does not have a noticeable effect on the resulting order.)}
+@end itemize
+
+@b{How does the suffix-removal algorithm effect ordering results?}
+
+Consider the comparison of hello-8.txt and hello-8.2.txt.
+
+Without the suffix-removal algorithm, the strings will be broken down
+to the following parts:
+
+@example
+hello-  @r{vs}  hello-  @r{(rule 2, all non-digits)}
+8       @r{vs}  8       @r{(rule 3, all digits)}
+.txt    @r{vs}  .       @r{(rule 2)}
+empty   @r{vs}  2
+empty   @r{vs}  .txt
+@end example
+
+The comparison of the third parts (@samp{.} vs
+@samp{.txt}) will determine that the shorter string comes first --
+resulting in @file{hello-8.2.txt} appearing first.
+
+Indeed this is the order in which Debian's @command{dpkg} compares the strings.
+
+A more natural result is that @file{hello-8.txt} should come before
+@file{hello-8.2.txt}, and this is where the suffix-removal comes into play:
+
+The suffixes (@samp{.txt}) are removed, and the remaining strings are
+broken down into the following parts:
+
+@example
+hello-  @r{vs}  hello-  @r{(rule 2, all non-digits)}
+8       @r{vs}  8       @r{(rule 3, all digits)}
+empty   @r{vs}  .       @r{(rule 2)}
+empty   @r{vs}  2
+@end example
+
+As empty strings sort before non-empty strings, the result is @samp{hello-8}
+being first.
+
+A real-world example would be listing files such as:
+@file{gcc_10.fc9.tar.gz}
+and @file{gcc_10.8.12.7rc2.fc9.tar.bz2}: Debian's algorithm would list
+@file{gcc_10.8.12.7rc2.fc9.tar.bz2} first, while @samp{ls -v} will list
+@file{gcc_10.fc9.tar.gz} first.
+
+These priorities make sense for @samp{ls -v}:
+Versioned files will be listed in a more natural order.
+
+For @samp{sort -V} these priorities might seem arbitrary. However,
+because the sorting code is shared between the @command{ls} and @command{sort}
+program, the ordering rules are the same.
+
+
+@node Comparing two strings using Debian's algorithm
+@subsection Comparing two strings using Debian's algorithm
+
+The Debian program @command{dpkg} (available on all Debian and Ubuntu
+installations) can compare two strings using the @option{--compare-versions}
+option.
+
+To use it, create a helper shell function (simply copy & paste the
+following snippet to your shell command-prompt):
+
+@example
+compver() @{
+  if dpkg --compare-versions "$1" lt "$2"
+  then printf '%s\n' "$1" "$2"
+  else printf '%s\n' "$2" "$1"
+  fi
+@}
+@end example
+
+Then compare two strings by calling @command{compver}:
+
+@example
+$ compver 8.49 8.5
+8.5
+8.49
+@end example
+
+Note that @command{dpkg} will warn if the strings have invalid syntax:
+
+@example
+$ compver "foo07.7z" "foo7a.7z"
+dpkg: warning: version 'foo07.7z' has bad syntax:
+               version number does not start with digit
+dpkg: warning: version 'foo7a.7z' has bad syntax:
+               version number does not start with digit
+foo7a.7z
+foo07.7z
+$ compver "3.0/" "3.0.5"
+dpkg: warning: version '3.0/' has bad syntax:
+               invalid character in version number
+3.0.5
+3.0/
+@end example
+
+To illustrate the different handling of hyphens between Debian and
+Coreutils algorithms (see
+@ref{Hyphen-minus and colon}):
+
+@example
+$ compver abb ab-cd 2>/dev/null     $ printf 'abb\nab-cd\n' | sort -V
+ab-cd                               abb
+abb                                 ab-cd
+@end example
+
+To illustrate the different handling of file extension: (see @ref{Special
+handling of file extensions}):
+
+@example
+$ compver hello-8.txt hello-8.2.txt 2>/dev/null
+hello-8.2.txt
+hello-8.txt
+$ printf '%s\n' hello-8.txt hello-8.2.txt | sort -V
+hello-8.txt
+hello-8.2.txt
+@end example
+
+
+@node Advanced version sort topics
+@section Advanced Topics
+
+
+@node Reporting version sort bugs
+@subsection Reporting version sort bugs
+
+If you suspect a bug in GNU Coreutils version sort (i.e., in the
+output of @samp{ls -v} or @samp{sort -V}), please first check the following:
+
+@enumerate
+@item
+Is the result consistent with Debian's own ordering (using @command{dpkg}, see
+@ref{Comparing two strings using Debian's algorithm})? If it is, then this
+is not a bug -- please do not report it.
+
+@item
+If the result differs from Debian's, is it explained by one of the
+sections in @ref{Differences from Debian version sort}? If it is,
+then this is not a bug -- please do not report it.
+
+@item
+If you have a question about specific ordering which is not explained
+here, please write to @email{coreutils@@gnu.org}, and provide a
+concise example that will help us diagnose the issue.
+
+@item
+If you still suspect a bug which is not explained by the above, please
+write to @email{bug-coreutils@@gnu.org} with a concrete example of the
+suspected incorrect output, with details on why you think it is
+incorrect.
+
+@end enumerate
+
+@node Other version/natural sort implementations
+@subsection Other version/natural sort implementations
+
+As previously mentioned, there are multiple variations on
+version/natural sort, each with its own rules. Some examples are:
+
+@itemize
+
+@item
+Natural Sorting variants in
+@uref{https://rosettacode.org/wiki/Natural_sorting,Rosetta Code}.
+
+@item
+Python's @uref{https://pypi.org/project/natsort/,natsort package}
+(includes detailed description of their sorting rules:
+@uref{https://natsort.readthedocs.io/en/master/howitworks.html,
+natsort -- how it works}).
+
+@item
+Ruby's @uref{https://github.com/github/version_sorter,version_sorter}.
+
+@item
+Perl has multiple packages for natural and version sorts
+(each likely with its own rules and nuances):
+@uref{https://metacpan.org/pod/Sort::Naturally,Sort::Naturally},
+@uref{https://metacpan.org/pod/Sort::Versions,Sort::Versions},
+@uref{https://metacpan.org/pod/CPAN::Version,CPAN::Version}.
+
+@item
+PHP has a built-in function
+@uref{https://www.php.net/manual/en/function.natsort.php,natsort}.
+
+@item
+NodeJS's @uref{https://www.npmjs.com/package/natural-sort,natural-sort package}.
+
+@item
+In zsh, the
+@uref{http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Qualifiers,
+glob modifier} @samp{*(n)} will expand to files in natural sort order.
+
+@item
+When writing C programs, the GNU libc library (@samp{glibc})
+provides the
+@uref{https://man7.org/linux/man-pages/man3/strverscmp.3.html,
+strverscmp(3)} function to compare two strings, and
+@uref{https://man7.org/linux/man-pages/man3/versionsort.3.html,versionsort(3)}
+function to compare two directory entries (despite the names, they are
+not identical to GNU Coreutils version sort ordering).
+
+@item
+Using Debian's sorting algorithm in:
+
+@itemize
+@item
+python: @uref{https://stackoverflow.com/a/4957741,
+Stack Overflow Example #4957741}.
+
+@item
+NodeJS: @uref{https://www.npmjs.com/package/deb-version-compare,
+deb-version-compare}.
+@end itemize
+
+@end itemize
+
+
+@node Related source code
+@subsection Related source code
+
+@itemize
+
+@item
+Debian's code which splits a version string into
+@code{epoch/upstream_version/debian_revision} parts:
+@uref{https://git.dpkg.org/cgit/dpkg/dpkg.git/tree/lib/dpkg/parsehelp.c#n191,
+parsehelp.c:parseversion()}.
+
+@item
+Debian's code which performs the @code{upstream_version} comparison:
+@uref{https://git.dpkg.org/cgit/dpkg/dpkg.git/tree/lib/dpkg/version.c#n140,
+version.c}.
+
+@item
+Gnulib code (used by GNU Coreutils) which performs the version comparison:
+@uref{https://git.savannah.gnu.org/cgit/gnulib.git/tree/lib/filevercmp.c,
+filevercmp.c}.
+@end itemize

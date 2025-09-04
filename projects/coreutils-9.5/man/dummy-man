@@ -1,0 +1,73 @@
+#!/bin/sh
+# Poor man's placeholder for help2man invocation on systems lacking perl,
+# or when cross compiling.
+# It just copies the distributed man pages.
+
+set -e; set -u
+
+fatal_ ()
+{
+  printf '%s: %s\n' "$0" "$*" >&2
+  exit 1
+}
+
+basename_ ()
+{
+  printf '%s\n' "$1" | sed 's,.*/,,'
+}
+
+output=
+source="GNU coreutils"
+while test $# -gt 0; do
+  case $1 in
+    # Help2man options we recognize and handle.
+    --output=*) output=`expr x"$1" : x'--output=\(.*\)'`;;
+    --output) shift; output=$1;;
+    --include=*) include=`expr x"$1" : x'--include=\(.*\)'`;;
+    --include) shift; include=$1;;
+    --source=*) source=`expr x"$1" : x'--source=\(.*\)'`;;
+    --source) shift; source=$1;;
+    # Recognize (as no-op) other help2man options that might be used
+    # in the makefile.
+    --info-page=*);;
+    -*) fatal_ "invalid or unrecognized help2man option '$1'";;
+    --) shift; break;;
+     *) break;;
+  esac
+  shift
+done
+
+test $# -gt 0 || fatal_ "missing argument"
+test $# -le 1 || fatal_ "too many non-option arguments"
+
+dist_man=$(printf '%s\n' "$include" | sed 's/\.x$/.1/')
+test -f "$dist_man" && cp "$dist_man" "$output" && exit || :
+
+baseout=`basename_ "$output"`
+sed 's/^/WARNING: /' >&2 <<END
+Did not generate or find default '$baseout' man page.
+Creating a stub man page instead.
+END
+
+progname=`basename_ "$1"`
+bs='\'
+
+cat >"$output" <<END
+.TH "$progname" 1 "$source" "User Commands"
+.SH NAME
+$progname $bs- a $source program
+.SH DESCRIPTION
+.B OOPS!
+We were unable to create a proper manual page for
+.B $progname.
+For concise option descriptions, run
+.IP
+.B env $progname --help
+.PP
+The full documentation for
+.B $progname
+is maintained as a Texinfo manual, which should be accessible
+on your system via the command
+.IP
+.B info $bs(aq(coreutils) $progname invocation$bs(aq
+END
