@@ -1,0 +1,1225 @@
+.\"	$OpenBSD: mg.1,v 1.128 2023/03/29 07:29:17 op Exp $
+.\" This file is in the public domain.
+.\"
+.Dd $Mdocdate: Aug 9 2023 $
+.Dt MG 1
+.Os
+.Sh NAME
+.Nm mg
+.Nd emacs-like text editor
+.Sh SYNOPSIS
+.Nm mg
+.Op Fl hnR
+.Op Fl b Ar file
+.Op Fl f Ar mode
+.Op Fl u Ar file
+.Op + Ns Ar number
+.Op Ar
+.Sh DESCRIPTION
+.Nm
+is intended to be a small, fast, and portable editor for
+people who can't (or don't want to) run emacs for one
+reason or another, or are not familiar with the
+.Xr vi 1
+editor.
+It is compatible with emacs because there shouldn't
+be any reason to learn more editor types than emacs or
+.Xr vi 1 .
+.Pp
+This man page documents all features of
+.Nm ,
+but depending on how
+.Nm
+was built features like cscope and
+.Xr ctags 1
+support may be disabled.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It + Ns Ar number
+Go to the line specified by number (do not insert
+a space between the
+.Sq +
+sign and the number).
+If a negative number is specified, the line number counts
+backwards from the end of the file i.e. +-1 will be the last
+line of the file, +-2 will be second last, and so on.
+.It Fl b Ar file
+Turn on batch mode and execute the
+.Nm
+commands found in the specified
+.Ar file
+and then terminate.
+.It Fl f Ar mode
+Run the
+.Ar mode
+command for all buffers created from
+arguments on the command line, including the
+scratch buffer and all files.
+.It Fl h
+Show usage text and exit.
+.It Fl n
+Turn off backup file generation.
+.It Fl R
+Files specified on the command line will be opened read-only.
+.It Fl u Ar file
+Use
+.Ar file
+as the startup file, instead of the default
+.Pa ~/.mg .
+.El
+.Sh WINDOWS AND BUFFERS
+When a file is loaded into
+.Nm ,
+it is stored in a
+.Em buffer .
+This buffer may be displayed on the screen in more than one window.
+At present, windows may only be split horizontally, so each window is
+delineated by a modeline at the bottom.
+If changes are made to a buffer, it will be reflected in all open windows.
+.Pp
+If a file is changed outside
+.Nm
+and its buffer is about to be changed,
+.Nm
+prompts if the change should go ahead (y), not go ahead (n) or if the buffer
+should be reverted (r) to the latest file on disk.
+.Pp
+If a buffer name begins and ends with an asterisk, the buffer is considered
+throwaway; i.e. the user will not be prompted to save changes when
+the buffer is killed.
+.Sh POINT AND MARK
+The current cursor location in
+.Nm
+is called the
+.Em point
+(or
+.Em dot ) .
+It is possible to define a window-specific region of text by setting a second
+location, called the
+.Em mark .
+The
+.Em region
+is the text between point and mark inclusive.
+Deleting the character at the mark position leaves
+the mark at the point of deletion.
+.Pp
+Note: The point and mark are window-specific in
+.Nm ,
+not buffer-specific, as in other emacs flavours.
+.Sh BACKUP FILES
+Backup files have a
+.Sq ~
+character appended to the file name and
+are created in the current working directory by default.
+Whether to create backup files or not can be toggled with the
+.Ic make-backup-files
+command.
+The backup file location can either be in the current
+working directory, or all backups can be moved to a
+.Pa ~/.mg.d
+directory where files retain their path name to retain uniqueness.
+Use the
+.Ic backup-to-home-directory
+command to alternate between these two locations.
+Further, if any application creates backup files in
+.Pa /tmp ,
+these can be left with the
+.Ic leave-tmpdir-backups
+command.
+.Sh TAGS
+.Nm
+supports tag files created by
+.Xr ctags 1 ,
+allowing the user to quickly locate various object definitions.
+Note though that emacs uses etags, not ctags.
+.Sh CSCOPE
+.Nm
+supports navigating source code using cscope.
+However,
+.Nm
+requires cscope and cscope-indexer executables to be present in
+.Ev $PATH
+for it to work.
+.Sh GZIP
+.Nm
+is capable of opening gzipped text files, e.g.
+.Pa foo.txt.gz
+in read-only mode.  To do so it relies on the
+.Nm gunzip
+program being present in
+.Ev $PATH .
+.Sh DEFAULT KEY BINDINGS
+Normal editing commands are very similar to GNU Emacs.
+In the following examples, C-x means Control-x, and M-x means Meta-x,
+where the Meta key may be either a special key on the keyboard
+or the ALT key; otherwise ESC followed by the key X works as well.
+.Pp
+.Bl -tag -width xxxxxxxxxxxx -offset indent -compact
+.It C-@, C-SPC
+set-mark-command
+.It C-a, Home
+beginning-of-line
+.It C-b, Left
+backward-char
+.It C-c s c
+cscope-find-functions-calling-this-function
+.It C-c s d
+cscope-find-global-definition
+.It C-c s e
+cscope-find-egrep-pattern
+.It C-c s f
+cscope-find-this-file
+.It C-c s i
+cscope-find-files-including-file
+.It C-c s n
+cscope-next-symbol
+.It C-c s p
+cscope-prev-symbol
+.It C-c s s
+cscope-find-this-symbol
+.It C-c s t
+cscope-find-this-text-string
+.It C-d, Delete
+delete-char
+.It C-e, End
+end-of-line
+.It C-f, Right
+forward-char
+.It C-g
+keyboard-quit
+.It C-h C-h
+help-help
+.It C-h a
+apropos
+.It C-h b
+describe-bindings
+.It C-h c
+describe-key-briefly
+.It C-h t
+tutorial
+.It C-h q
+quick-help
+.It C-j
+newline-and-indent
+.It C-k
+kill-line
+.It C-l
+recenter
+.It RET
+newline
+.It C-n, Down
+next-line
+.It C-o
+open-line
+.It C-p, Up
+previous-line
+.It C-q
+quoted-insert
+.It C-r
+isearch-backward
+.It C-s
+isearch-forward
+.It C-t
+transpose-chars
+.It C-u
+universal-argument
+.It C-v
+scroll-up
+.It C-w
+kill-region
+.It C-x C-b
+list-buffers
+.It C-x C-c
+save-buffers-kill-emacs
+.It C-x C-f
+find-file
+.It C-x C-j
+dired-jump
+.It C-x C-g
+keyboard-quit
+.It C-x C-l
+downcase-region
+.It C-x C-o
+delete-blank-lines
+.It C-x C-q
+toggle-read-only
+.It C-x C-r
+find-file-read-only
+.It C-x C-s
+save-buffer
+.It C-x C-u
+upcase-region
+.It C-x C-v
+find-alternate-file
+.It C-x C-w
+write-file
+.It C-x C-x
+exchange-point-and-mark
+.It C-x (
+start-kbd-macro
+.It C-x \&)
+end-kbd-macro
+.It C-x 0
+delete-window
+.It C-x 1
+delete-other-windows
+.It C-x 2
+split-window-vertically
+.It C-x 4 C-f
+find-file-other-window
+.It C-x 4 C-g
+keyboard-quit
+.It C-x 4 b
+switch-to-buffer-other-window
+.It C-x 4 f
+find-file-other-window
+.It C-x =
+what-cursor-position
+.It C-x ^
+enlarge-window
+.It C-x `
+next-error
+.It C-x b
+switch-to-buffer
+.It C-x d
+dired
+.It C-x e
+call-last-kbd-macro
+.It C-x f
+set-fill-column
+.It C-x g
+goto-line
+.It C-x h
+mark-whole-buffer
+.It C-x i
+insert-file
+.It C-x k
+kill-buffer
+.It C-x n
+other-window
+.It C-x o
+other-window
+.It C-x p
+previous-window
+.It C-x s
+save-some-buffers
+.It C-x u
+undo
+.It C-y
+yank
+.It C-z
+suspend-emacs
+.It M-C-v
+scroll-other-window
+.It M-SPC
+just-one-space
+.It M-!
+shell-command
+.It M-.
+find-tag
+.It M-*, M-,
+pop-tag-mark
+.It M-%
+query-replace
+.It M-<, C-PgUp
+beginning-of-buffer
+.It M->, C-PgDn
+end-of-buffer
+.It M-\e
+delete-horizontal-space
+.It M-^
+join-line
+.It M-b, C-left, M-left
+backward-word
+.It M-c
+capitalize-word
+.It M-d
+kill-word
+.It M-f, C-right, M-right
+forward-word
+.It M-h
+mark-paragraph
+.It M-l
+downcase-word
+.It M-m
+back-to-indentation
+.It M-q
+fill-paragraph
+.It M-r
+search-backward
+.It M-s
+search-forward
+.It M-t
+transpose-words
+.It M-u
+upcase-word
+.It M-v
+scroll-down
+.It M-w
+copy-region-as-kill
+.It M-x
+execute-extended-command
+.It M-z
+zap-to-char
+.It M-{, C-down
+backward-paragraph
+.It M-|
+shell-command-on-region
+.It M-}, C-up
+forward-paragraph
+.It M-~
+not-modified
+.It M-DEL
+backward-kill-word
+.It C-_
+undo
+.It )
+blink-and-insert
+.It DEL
+delete-backward-char
+.El
+.Pp
+For a complete description of
+.Nm
+commands, see
+.Sx MG COMMANDS .
+To see the active keybindings at any time, type
+.Dq M-x describe-bindings .
+.Sh MG COMMANDS
+Commands are invoked by
+.Dq M-x ,
+or by binding to a key.
+Many commands take an optional numerical parameter,
+.Va n .
+This parameter is set either by
+M-<n> (where
+.Va n
+is the numerical argument) before the command, or by
+one or more invocations of the universal argument, usually bound to C-u.
+When invoked in this manner, the value of the numeric parameter to
+be passed is displayed in the minibuffer before the M-x.
+One common use of the parameter is in mode toggles (e.g.\&
+make-backup-files).
+If no parameter is supplied, the mode is toggled to its
+alternate state.
+If a positive parameter is supplied, the mode is forced to on.
+Otherwise, it is forced to off.
+.\"
+.Bl -tag -width xxxxx
+.It Ic apply-macro-to-region-lines
+Applies the keyboard macro to each line in the region.
+.It Ic apropos
+Help Apropos.
+Prompt the user for a string, open the *help* buffer,
+and list all
+.Nm
+commands that contain that string.
+.It Ic audible-bell
+Toggle the audible system bell.
+.It Ic auto-execute
+Register an
+.Ic auto-execute hook ;
+that is, specify a filename pattern
+(conforming to the shell's filename globbing rules) and an associated
+function to execute when a file matching the specified pattern
+is read into a buffer.
+.It Ic auto-fill-mode
+Toggle auto-fill mode (sometimes called
+.Ic mail-mode )
+in the current buffer,
+where text inserted past the fill column is automatically wrapped
+to a new line.
+Can be set globally with
+.Ic set-default-mode .
+.It Ic auto-indent-mode
+Toggle indent mode in the current buffer,
+where indentation is preserved after a newline.
+Can be set globally with
+.Ic set-default-mode .
+.It Ic back-to-indentation
+Move the dot to the first non-whitespace character on the current line.
+.It Ic backup-to-home-directory
+Save backup copies to a
+.Pa ~/.mg.d
+directory instead of working directory.
+Requires
+.Ic make-backup-files
+to be on.
+.It Ic backward-char
+Move cursor backwards one character.
+.It Ic backward-kill-word
+Kill text backwards by
+.Va n
+words.
+.It Ic backward-paragraph
+Move cursor backwards
+.Va n
+paragraphs.
+Paragraphs are delimited by <NL><NL> or <NL><TAB> or <NL><SPACE>.
+.It Ic backward-word
+Move cursor backwards by the specified number of words.
+.It Ic beginning-of-buffer
+Move cursor to the top of the buffer.
+If set, keep mark's position, otherwise set at current position.
+A numeric argument
+.Va n
+will move n/10th of the way from the top.
+.It Ic beginning-of-line
+Move cursor to the beginning of the line.
+.It Ic blink-and-insert
+Self-insert a character, then search backwards and blink its
+matching delimiter.
+For delimiters other than
+parenthesis, brackets, and braces, the character itself
+is used as its own match.
+Can be used in the startup file with the
+.Ic global-set-key
+command.
+.It Ic bsmap-mode
+Toggle bsmap mode, where DEL and C-h are swapped.  This may be needed on
+some systems if the backspace key doesn't work correctly.
+.It Ic c-mode
+Toggle a KNF-compliant mode for editing C program files.
+.It Ic call-last-kbd-macro
+Invoke the keyboard macro.
+.It Ic capitalize-word
+Capitalize
+.Va n
+words; i.e. convert the first character of the word to
+upper case, and subsequent letters to lower case.
+.It Ic cd
+Change the global working directory.
+See also
+.Ic global-wd-mode .
+.It Ic column-number-mode
+Toggle whether the column number is displayed in the modeline.
+Enabled by default.
+.It Ic copy-region-as-kill
+Copy all of the characters in the region to the kill buffer,
+clearing the mark afterwards.
+This is a bit like a
+.Ic kill-region
+followed by a
+.Ic yank .
+.It Ic count-matches
+Count the number of lines matching the supplied regular expression.
+.It Ic count-non-matches
+Count the number of lines not matching the supplied regular expression.
+.It Ic cscope-find-this-symbol
+List the matches for the given symbol.
+.It Ic cscope-find-global-definition
+List global definitions for the given literal.
+.It Ic cscope-find-called-functions
+List functions called from the given function.
+.It Ic cscope-find-functions-calling-this-function
+List functions calling the given function.
+.It Ic cscope-find-this-text-string
+List locations matching the given text string.
+.It Ic cscope-find-egrep-pattern
+List locations matching the given extended regular expression pattern.
+.It Ic cscope-find-this-file
+List filenames matching the given filename.
+.It Ic cscope-find-files-including-file
+List files that #include the given filename.
+.It Ic cscope-next-symbol
+Navigate to the next match.
+.It Ic cscope-prev-symbol
+Navigate to the previous match.
+.It Ic cscope-next-file
+Navigate to the next file.
+.It Ic cscope-prev-file
+Navigate to the previous file.
+.It Ic cscope-create-list-of-files-to-index
+Create cscope's List and Index in the given directory.
+.It Ic define-key
+Prompts the user for a named keymap (mode),
+a key, and an
+.Nm
+command, then creates a keybinding in the appropriate
+map.
+.It Ic delete-backward-char
+Delete backwards
+.Va n
+characters.
+Like delete-char, this actually does a kill if presented
+with an argument.
+.It Ic delete-blank-lines
+Delete blank lines around dot.
+If dot is sitting on a blank line, this command
+deletes all the blank lines above and below the current line.
+Otherwise, it deletes all of the blank lines after the current line.
+.It Ic delete-char
+Delete
+.Va n
+characters forward.
+If any argument is present, it kills rather than deletes,
+saving the result in the kill buffer.
+.It Ic delete-horizontal-space
+Delete any whitespace around the dot.
+.It Ic delete-leading-space
+Delete leading whitespace on the current line.
+.It Ic delete-trailing-space
+Delete trailing whitespace on the current line.
+.It Ic delete-matching-lines
+Delete all lines after dot that contain a string matching
+the supplied regular expression.
+.It Ic delete-non-matching-lines
+Delete all lines after dot that don't contain a string matching
+the supplied regular expression.
+.It Ic delete-other-windows
+Make the current window the only window visible on the screen.
+.It Ic delete-window
+Delete current window.
+.It Ic describe-bindings
+List all global and local keybindings, putting the result in
+the *help* buffer.
+.It Ic describe-key-briefly
+Read a key from the keyboard, and look it up in the keymap.
+Display the name of the function currently bound to the key.
+.It Ic diff-buffer-with-file
+View the differences between buffer and its associated file.
+.It Ic digit-argument
+Process a numerical argument for keyboard-invoked functions.
+.It Ic dired-jump
+Open a dired buffer containing the current buffer's directory location.
+.It Ic display-help-mode
+Toggle permanent display of short help text in status area.  Enabled by
+default.
+.It Ic display-time-mode
+Toggle whether the current time is displayed in the modeline.
+.It Ic downcase-region
+Set all characters in the region to lower case.
+.It Ic downcase-word
+Set characters to lower case, starting at the dot, and ending
+.Va n
+words away.
+.It Ic emacs-version
+Return an
+.Nm
+version string.
+.It Ic end-kbd-macro
+Stop defining a keyboard macro.
+.It Ic end-of-buffer
+Move cursor to the end of the buffer.
+If set, keep mark's position, otherwise set at current position.
+A numeric argument
+.Va n
+will move n/10th of the way from the end.
+.It Ic end-of-line
+Move cursor to the end of the line.
+.It Ic end-or-call-last-kbd-macro
+Stop defining a keyboard macro, or if macro definition is not in
+progress, call the last keyboard macro.
+.It Ic enlarge-window
+Enlarge the current window by shrinking either the window above
+or below it.
+.It Ic eval-current-buffer
+Evaluate the current buffer as a series of
+.Nm
+commands.
+Useful for testing
+.Nm
+startup files.
+.It Ic eval-expression
+Get one line from the user, and run it.
+Useful for testing expressions in
+.Nm
+startup files.
+.It Ic exchange-point-and-mark
+Swap the values of "dot" and "mark" in the current window.
+Return an error if no mark is set.
+.It Ic execute-extended-command
+Invoke an extended command; i.e. M-x.
+Call the message line routine to read in the command name and apply
+autocompletion to it.
+When it comes back, look the name up in the symbol table and run the
+command if it is found, passing arguments as necessary.
+Print an error if there is anything wrong.
+.It Ic fill-paragraph
+Justify a paragraph, wrapping text at the current fill column.
+.It Ic find-file
+Select a file for editing.
+First check if the file can be found
+in another buffer; if it is there, just switch to that buffer.
+If the file cannot be found, create a new buffer, read in the
+file from disk, and switch to the new buffer.
+.It Ic find-file-read-only
+Same as find-file, except the new buffer is set to read-only.
+.It Ic find-alternate-file
+Replace the current file with an alternate one.
+Semantics for finding the replacement file are the same as
+find-file, except the current buffer is killed before the switch.
+If the kill fails, or is aborted, revert to the original file.
+.It Ic find-file-other-window
+Opens the specified file in a second buffer.
+Splits the current window if necessary.
+.It Ic find-tag
+Jump to definition of tag at dot.
+.It Ic forward-char
+Move cursor forwards (or backwards, if
+.Va n
+is negative)
+.Va n
+characters.
+Returns an error if the end of buffer is reached.
+.It Ic forward-paragraph
+Move forward
+.Va n
+paragraphs.
+Paragraphs are delimited by <NL><NL> or <NL><TAB> or <NL><SPACE>.
+.It Ic forward-word
+Move the cursor forward by the specified number of words.
+.It Ic global-set-key
+Bind a key in the global (fundamental) key map.
+.It Ic global-unset-key
+Unbind a key from the global (fundamental) key map; i.e. set it to 'rescan'.
+.It Ic global-wd-mode
+Toggle global working-directory mode.
+When enabled,
+.Nm
+defaults to opening files (and executing commands like compile and grep)
+relative to the global working directory.
+When disabled, a working directory is set for each buffer.
+.It Ic goto-line
+Go to a specific line.
+If an argument is present, then
+it is the line number, else prompt for a line number to use.
+.It Ic help-help
+Prompts for one of (a)propos, (b)indings, des(c)ribe key briefly.
+.It Ic insert
+Insert a string, mainly for use from macros.
+.It Ic insert-buffer
+Insert the contents of another buffer at dot.
+.It Ic insert-file
+Insert a file into the current buffer at dot.
+.It Ic insert-with-wrap
+Insert the bound character with word wrap.
+Check to see if we're past the fill column, and if so,
+justify this line.
+.It Ic isearch-backward
+Use incremental searching, initially in the reverse direction.
+isearch ignores any explicit arguments.
+If invoked during macro definition or evaluation, the non-incremental
+search-backward is invoked instead.
+.It Ic isearch-forward
+Use incremental searching, initially in the forward direction.
+isearch ignores any explicit arguments.
+If invoked during macro definition or evaluation, the non-incremental
+search-forward is invoked instead.
+.It Ic join-line
+Join the current line to the previous.
+If called with an argument,
+join the next line to the current one.
+.It Ic just-one-space
+Delete any whitespace around dot, then insert a space.
+.It Ic keyboard-quit
+Abort the current action.
+.It Ic kill-buffer
+Dispose of a buffer, by name.
+If the buffer name does not start and end with an asterisk,
+prompt the user if the buffer
+has been changed.
+.It Ic kill-line
+Kill line.
+If called without an argument, it kills from dot to the end
+of the line, unless it is at the end of the line, when it kills the
+newline.
+If called with an argument of 0, it kills from the start of the
+line to dot.
+If called with a positive argument, it kills from dot
+forward over that number of newlines.
+If called with a negative argument
+it kills any text before dot on the current line, then it kills back
+abs(n) lines.
+.It Ic kill-paragraph
+Delete
+.Va n
+paragraphs starting with the current one.
+.It Ic kill-region
+Kill the currently defined region.
+.It Ic kill-word
+Delete forward
+.Va n
+words.
+.It Ic leave-tmpdir-backups
+Modifies the behaviour of
+.Ic backup-to-home-directory .
+Backup files that would normally reside in
+.Pa /tmp
+are left there and not moved to the
+.Pa ~/.mg.d
+directory.
+.It Ic line-number-mode
+Toggle whether the line number is displayed in the modeline.
+.It Ic list-buffers
+Display the list of available buffers.
+The first column in the output indicates which buffer is active with a '>'
+character.
+The second column indicates which buffers are modified.
+The third column indicates which buffers are read-only.
+The remaining columns are self-explanatory.
+.It Ic load
+Prompt the user for a filename, and then execute commands
+from that file.
+.It Ic local-set-key
+Bind a key mapping in the local (topmost) mode.
+.It Ic local-unset-key
+Unbind a key mapping in the local (topmost) mode.
+.It Ic make-backup-files
+Toggle generation of backup files.
+Enabled by default.
+.It Ic make-directory
+Prompt the user for a path or directory name which is then created.
+.It Ic mark-paragraph
+Mark
+.Va n
+paragraphs.
+.It Ic mark-whole-buffer
+Marks whole buffer as a region by putting dot at the beginning and mark
+at the end of buffer.
+.It Ic meta-key-mode
+When disabled, the meta key can be used to insert extended-ascii (8-bit)
+characters.
+When enabled, the meta key acts as usual.
+.It Ic negative-argument
+Process a negative argument for keyboard-invoked functions.
+.It Ic newline
+Insert a newline into the current buffer.
+.It Ic newline-and-indent
+Insert a newline, then enough tabs and spaces to duplicate the indentation
+of the previous line, respecting
+.Ic no-tab-mode
+and the buffer tab width.
+.It Ic next-line
+Move forward
+.Va n
+lines.
+.It Ic no-tab-mode
+Toggle notab mode.
+In this mode, spaces are inserted rather than tabs.
+This can be set globally with
+.Ic set-default-mode .
+.It Ic not-modified
+Turn off the modified flag in the current buffer.
+.It Ic open-line
+Open up some blank space.
+Essentially, insert
+.Va n
+newlines, then back up over them.
+.It Ic other-window
+The command to make the next (down the screen) window the current
+window.
+There are no real errors, although the command does nothing if
+there is only 1 window on the screen.
+.It Ic overwrite-mode
+Toggle overwrite mode in the current buffer,
+where typing overwrites existing characters rather than inserting them.
+Can be set globally with
+.Ic set-default-mode .
+.It Ic prefix-region
+Inserts a prefix string before each line of a region.
+The prefix string is settable by using
+.Ic set-prefix-string
+or this command with a prefix argument.
+.It Ic previous-line
+Move backwards
+.Va n
+lines.
+.It Ic previous-window
+This command makes the previous (up the screen) window the
+current window.
+There are no errors, although the command does not do
+a lot if there is only 1 window.
+.It Ic pop-tag-mark
+Return to position where
+.Ic find-tag
+was previously invoked.
+.It Ic push-shell
+Suspend
+.Nm
+and switch to alternate screen, if available.
+.It Ic pwd
+Display current (global) working directory in the status area.
+.It Ic query-replace
+Query Replace.
+Search and replace strings selectively, prompting after each match.
+.It Ic quick-help
+Toggle quick help buffer.
+.It Ic replace-regexp
+Replace regular expression globally without individual prompting.
+.It Ic replace-string
+Replace string globally without individual prompting.
+.It Ic query-replace-regexp
+Replace strings selectively.
+Does a search and replace operation using regular
+expressions for both patterns.
+.It Ic quoted-insert
+Insert the next character verbatim into the current buffer; i.e. ignore
+any function bound to that key.
+.It Ic re-search-again
+Perform a regular expression search again, using the same search
+string and direction as the last search command.
+.It Ic re-search-backward
+Search backwards using a regular expression.
+Get a search string from the user, and search, starting at dot
+and proceeding toward the front of the buffer.
+If found, dot is left
+pointing at the first character of the pattern [the last character that
+was matched].
+.It Ic re-search-forward
+Search forward using a regular expression.
+Get a search string from the user and search for it starting at dot.
+If found, move dot to just after the matched characters.
+display does all
+the hard stuff.
+If not found, it just prints a message.
+.It Ic recenter
+Reposition dot in the current window.
+By default, the dot is centered.
+If given a positive argument (n), the display is repositioned to line
+n.
+If
+.Va n
+is negative, it is that line from the bottom.
+.It Ic redraw-display
+Refresh the display.
+Recomputes all window sizes in case something has changed.
+.It Ic revert-buffer
+Revert the current buffer to the latest file on disk.
+.It Ic save-buffer
+Save the contents of the current buffer if it has been changed,
+optionally creating a backup copy.
+.It Ic save-buffers-kill-emacs
+Offer to save modified buffers and quit
+.Nm .
+.It Ic save-some-buffers
+Look through the list of buffers, offering to save any buffer that
+has been changed.
+Buffers that are not associated with files (such
+as *scratch*, *grep*, *compile*) are ignored.
+.It Ic scroll-down
+Scroll backwards
+.Va n
+pages.
+A two-line overlap between pages is
+assumed.
+If given a repeat argument, scrolls back lines, not pages.
+.It Ic scroll-one-line-down
+Scroll the display down
+.Va n
+lines without changing the cursor position.
+.It Ic scroll-one-line-up
+Scroll the display
+.Va n
+lines up without moving the cursor position.
+.It Ic scroll-other-window
+Scroll the next window in the window list window forward
+.Va n
+pages.
+.It Ic scroll-up
+Scroll forward one page.
+A two-line overlap between pages is
+assumed.
+If given a repeat argument, scrolls back lines, not pages.
+.It Ic search-again
+Search again, using the same search string and direction as the last
+search command.
+.It Ic search-backward
+Reverse search.
+Get a search string from the user, and search, starting
+at dot and proceeding toward the front of the buffer.
+If found, dot is
+left pointing at the first character of the pattern (the last character
+that was matched).
+.It Ic search-forward
+Search forward.
+Get a search string from the user, and search for it
+starting at dot.
+If found, dot gets moved to just after the matched
+characters, if not found, print a message.
+.It Ic self-insert-command
+Insert a character.
+.It Ic sentence-end-double-space
+Toggle double or single spaces for end of sentences.
+Double is the default.
+Currently only affects
+.Ic fill-paragraph .
+.It Ic set-case-fold-search
+Set case-fold searching, causing case not to matter
+in regular expression searches.
+This is the default.
+.It Ic set-case-replace
+Preserve the case of the replaced string.
+This is the default.
+.It Ic set-default-mode
+Append the supplied mode to the list of default modes
+used by subsequent buffer creation.
+Built in modes include: fill, indent, notab, and overwrite.
+.It Ic set-fill-column
+Prompt the user for a fill column.
+Used by
+.Ic auto-fill-mode .
+.It Ic set-mark-command
+Sets the mark in the current window to the current dot location.
+.It Ic set-prefix-string
+Sets the prefix string to be used by the
+.Ic prefix-region
+command.
+.It set-tab-width
+Set the tab width for the current buffer, or the default for new buffers
+if called with a prefix argument or from the startup file.
+.It Ic shell-command
+Execute external command from mini-buffer.
+.It Ic shell-command-on-region
+Provide the text in region to the shell command as input.
+.It Ic shrink-window
+Shrink current window by one line.
+The window immediately below is expanded to pick up the slack.
+If only one window is present, this command has no effect.
+.It Ic split-window-vertically
+Split the current window.
+A window smaller than 3 lines cannot be split.
+.It Ic start-kbd-macro
+Start defining a keyboard macro.
+Macro definition is ended by invoking end-kbd-macro.
+.It Ic suspend-emacs
+Suspend
+.Nm
+and switch back to alternate screen, if in use.
+.It Ic switch-to-buffer
+Prompt and switch to a new buffer in the current window.
+.It Ic switch-to-buffer-other-window
+Switch to buffer in another window.
+.It Ic toggle-read-only
+Toggle the read-only flag on the current buffer.
+.It Ic toggle-read-only-all
+Toggle the read-only flag on all non-ephemeral buffers.
+A simple toggle that switches a global read-only flag either on
+or off.
+.It Ic transpose-chars
+Transpose the two characters in front of and under dot,
+then move forward one character.
+Treat newline characters the same as any other.
+.It Ic transpose-paragraphs
+Transpose adjacent paragraphs.
+If multiple iterations are requested, the current paragraph will
+be moved
+.Va n
+paragraphs forward.
+.It Ic transpose-words
+Transpose adjacent words.
+.It Ic tutorial
+Bring up
+.Nm
+tutorial, if available on system.
+.It Ic undo
+Undo the most recent action.
+If invoked again without an intervening command,
+move the undo pointer to the previous action and undo it.
+.It Ic undo-boundary
+Add an undo boundary.
+This is not usually done interactively.
+.It Ic undo-boundary-toggle
+Toggle whether undo boundaries are generated.
+Undo boundaries are often disabled before operations that should
+be considered atomically undoable.
+.It Ic undo-enable
+Toggle whether undo information is kept.
+.It Ic undo-list
+Show the undo records for the current buffer in a new buffer.
+.It Ic universal-argument
+Repeat the next command 4 times.
+Usually bound to C-u.
+This command may be stacked; e.g.\&
+C-u C-u C-f moves the cursor forward 16 characters.
+.It Ic upcase-region
+Upper case region.
+Change all of the lower case characters in the region to
+upper case.
+.It Ic upcase-word
+Move the cursor forward by the specified number of words.
+As it moves, convert any characters to upper case.
+.It Ic visible-bell
+Toggle the visible bell.
+If this toggle is on, the modeline will flash.
+.It Ic visit-tags-table
+Load tags file to be used for subsequent find-tag.
+.It Ic what-cursor-position
+Display a bunch of useful information about the current location of
+dot.
+The character under the cursor (in octal), the current line, row,
+and column, and approximate position of the cursor in the file (as a
+percentage) is displayed.
+The column position assumes an infinite
+position display; it does not truncate just because the screen does.
+.It Ic write-file
+Ask for a file name and write the contents of the current buffer to
+that file.
+Update the remembered file name and clear the buffer
+changed flag.
+.It Ic yank
+Yank text from kill-buffer.
+Unlike emacs, the
+.Nm
+kill buffer consists only
+of the most recent kill.
+It is not a ring.
+.It Ic zap-to-char
+Ask for a character and delete text from the current cursor position
+until the next instance of that character, including it.
+.It Ic zap-up-to-char
+Like zap-to-char but doesn't delete the target character.
+.El
+.Sh MG DIRED KEY BINDINGS
+Specific key bindings are available in dired mode.
+.Pp
+.Bl -tag -width xxxxxxxxxxxxxxxxxx -offset indent -compact
+.It DEL
+dired-unmark-backward
+.It RET, e, f and C-m
+dired-find-file
+.It SPC, n
+dired-next-line
+.It !
+dired-shell-command
+.It +
+dired-create-directory
+.It a
+dired-find-alternate-file
+.It c
+dired-do-copy
+.It d and C-d
+dired-flag-file-deletion
+.It g
+dired-revert
+.It j
+dired-goto-file
+.It o
+dired-find-file-other-window
+.It p
+dired-previous-line
+.It q
+quit-window
+.It r
+dired-do-rename
+.It u
+dired-unmark
+.It x
+dired-do-flagged-delete
+.It C-v
+dired-scroll-down
+.It M-v
+dired-scroll-up
+.El
+.Sh MG DIRED COMMANDS
+The following are a list of the commands specific to dired mode:
+.Bl -tag -width Ds
+.It Ic dired-create-directory
+Create a directory.
+.It Ic dired-do-copy
+Copy the file listed on the current line of the dired buffer.
+.It Ic dired-do-flagged-delete
+Delete the files that have been flagged for deletion.
+.It Ic dired-do-rename
+Rename the file listed on the current line of the dired buffer.
+.It Ic dired-find-alternate-file
+Replace the current dired buffer with an alternate one as specified
+by the position of the cursor in the dired buffer.
+.It Ic dired-find-file
+Open the file on the current line of the dired buffer.
+If the cursor is on a directory it will be opened in dired mode.
+.It Ic dired-flag-file-deletion
+Flag the file listed on the current line for deletion.
+This is indicated in the buffer by putting a D at the left margin.
+No files are actually deleted until the function
+.Ic dired-do-flagged-delete
+is executed.
+.It Ic dired-find-file-other-window
+Open the file on the current line of the dired buffer in a
+different window.
+.It Ic dired-goto-file
+Move the cursor to a file name in the dired buffer.
+.It Ic dired-next-line
+Move the cursor to the next line.
+.It Ic dired-other-window
+This function works just like dired, except that it puts the
+dired buffer in another window.
+.It Ic dired-previous-line
+Move the cursor to the previous line.
+.It Ic dired-revert
+Refresh the dired buffer while retaining any flags.
+.It Ic dired-scroll-down
+Scroll down the dired buffer.
+.It Ic dired-scroll-up
+Scroll up the dired buffer.
+.It Ic dired-shell-command
+Pipe the file under the current cursor position through a shell command.
+.It Ic dired-unmark
+Remove the deletion flag for the file on the current line.
+.It Ic dired-unmark-backward
+Remove the deletion flag from the file listed on the previous line
+of the dired buffer, then move up to that line.
+.It Ic quit-window
+Close the current dired buffer.
+.El
+.Sh CONFIGURATION FILES
+There are two configuration files,
+.Pa .mg
+and
+.Pa .mg-$TERM .
+Here,
+.Ev $TERM
+represents the name of the terminal type; e.g. if the terminal type
+is set to
+.Dq vt100 ,
+.Nm
+will use
+.Pa .mg-vt100
+as a startup file.
+The terminal type startup file is used first.
+.Pp
+The startup file format is a list of commands, one per line, as used for
+interactive evaluation.
+Strings that are normally entered by the user at any subsequent prompts
+may be specified after the command name; e.g.:
+.Bd -literal -offset indent
+global-set-key ")" self-insert-command
+global-set-key "\e^x\e^f" find-file
+global-set-key "\ee[Z" backward-char
+set-default-mode fill
+set-fill-column 72
+auto-execute *.c c-mode
+.Ed
+.Pp
+Comments can be added to the startup files by placing
+.Sq ;\&
+or
+.Sq #
+as the first character of a line.
+.Sh FILES
+.Bl -tag -width /usr/share/doc/mg/tutorial -compact
+.It Pa ~/.mg
+normal startup file
+.It Pa ~/.mg-$TERM
+terminal-specific startup file
+.It Pa ~/.mg.d
+alternative backup file location
+.It Pa /usr/share/doc/mg/tutorial
+concise tutorial
+.El
+.Sh SEE ALSO
+.Xr ctags 1 ,
+.Xr vi 1
+.Sh CAVEATS
+Since it is written completely in C, there is currently no
+language in which extensions can be written;
+however, keys can be rebound and certain parameters can be changed
+in startup files.
+.Pp
+In order to use 8-bit characters (such as German umlauts), the Meta key
+needs to be disabled via the
+.Ic meta-key-mode
+command.
+.Pp
+Multi-byte character sets, such as UTF-8, are not supported.
