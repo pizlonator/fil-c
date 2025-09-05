@@ -27,7 +27,7 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BASE_BENCHMARK_NAME = "PizBench9014"
+BASE_BENCHMARK_NAME = "PizBench9015"
 $benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 10
@@ -444,6 +444,20 @@ $benchmarks << Benchmark.new(
     "bin/bash",
     "benchmarkData/richards.sh",
     [])
+
+$benchmarks << Benchmark.new(
+    "bin/lz4",
+    "< benchmarkData/libcrypto.3.dylib > benchmarkOutput/libcrypto.3.dylib.lz4",
+    [
+        "diff -n benchmarkOutput/libcrypto.3.dylib.lz4 benchmarkData/libcrypto.3.dylib.lz4"
+    ])
+
+$benchmarks << Benchmark.new(
+    "bin/lz4",
+    "-d < benchmarkData/libcrypto.3.dylib.lz4 > benchmarkOutput/libcrypto.3.dylib",
+    [
+        "diff -n benchmarkOutput/libcrypto.3.dylib benchmarkData/libcrypto.3.dylib"
+    ])
 
 $plugins.each {
     | plugin |
