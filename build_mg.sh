@@ -28,9 +28,9 @@
 set -e
 set -x
 
-cd projects/mg
+cd projects/mg-3.7
 extract_source
 CC="$CCPREFIX$PWD/../../../build/bin/clang -O -g" ./configure --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
-$MAKE install
+$MAKE -j $NCPU install
 

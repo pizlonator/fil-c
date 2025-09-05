@@ -33,4 +33,4 @@ extract_source
 CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make -j $NCPU install
-ln -s pkgconf $PWD/../../../pizfix/bin/pkg-config
+ln -fs pkgconf $PWD/../../../pizfix/bin/pkg-config
