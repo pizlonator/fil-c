@@ -101,6 +101,7 @@ struct filc_rest_ptr_pair;
 struct filc_signal_handler;
 struct filc_signal_queue_chunk;
 struct filc_signal_queue_chunk_header;
+struct filc_stack_aux;
 struct filc_thread;
 struct filc_uintptr_ptr_hash_map_entry;
 struct filc_weak;
@@ -157,6 +158,7 @@ typedef struct filc_rest_ptr_pair filc_rest_ptr_pair;
 typedef struct filc_signal_handler filc_signal_handler;
 typedef struct filc_signal_queue_chunk filc_signal_queue_chunk;
 typedef struct filc_signal_queue_chunk_header filc_signal_queue_chunk_header;
+typedef struct filc_stack_aux filc_stack_aux;
 typedef struct filc_thread filc_thread;
 typedef struct filc_uintptr_ptr_hash_map_entry filc_uintptr_ptr_hash_map_entry;
 typedef struct filc_weak filc_weak;
@@ -458,6 +460,31 @@ struct filc_alignment_header {
     uintptr_t encoded_finalizer;
 };
 
+struct filc_stack_aux {
+    size_t num_lowers;
+    void* lowers[];
+};
+
+/* Say we have a nonescaping alloca. Let's consider the two cases: it gets a stack_aux, or its lowers
+   are replicated to the frame's lowers, and it gets a naked stack aux.
+
+   And let's consider what happens if you setjmp/longjmp.
+
+   We're happy with either the semantics that the pointers on the stack return to the values they had
+   before the setjmp, or that they keep the value they had just before the longjmp.
+
+   Whatever the lowers end up being set to for those stack allocations when you return out of the
+   setjmp need to have been marked by GC.
+
+   And ideally, we won't end up with pointer-capability tearing, where the pointer's intval refers to
+   some value from just before the longjmp but the pointer's lower gets set to a value from just before
+   the setjmp.
+
+   So confusing!
+
+   This suggests that the best answer for now is: if a function does setjmp, then we turn off the
+   nonescaping alloca optimization! */
+
 struct filc_cc_cursor {
     size_t offset;
     size_t size;
@@ -525,6 +552,10 @@ struct filc_function_origin {
     
        FIXME: We could use a bespoke weak set for this purpose and it would be faster! */
     bool has_setjmps;
+
+    /* Tells how many of the lowers are actually pointers to stack-allocated auxes. If we have any
+       then they are at the end of the lowers, but just below the setjmp lower, if there is one. */
+    unsigned num_stack_auxes;
 };
 
 /* Given an origin, you can get the combined function/filename/line/column like so:
@@ -2081,6 +2112,28 @@ static inline const filc_function_origin* filc_origin_node_as_function_origin(
 PAS_API const filc_function_origin* filc_origin_get_function_origin(const filc_origin* origin);
 
 PAS_API const filc_origin* filc_origin_next_inline(const filc_origin* origin);
+
+static inline unsigned filc_function_origin_stack_aux_end_index(const filc_function_origin* origin)
+{
+    unsigned end = origin->base.num_lowers_ish;
+    PAS_ASSERT(end < UINT_MAX);
+    if (origin->has_setjmps)
+        end--;
+    return end;
+}
+
+static inline unsigned filc_function_origin_stack_aux_begin_index(const filc_function_origin* origin)
+{
+    return filc_function_origin_stack_aux_end_index(origin) - origin->num_stack_auxes;
+}
+
+static inline bool filc_function_origin_lower_index_is_stack_aux(const filc_function_origin* origin,
+                                                                 unsigned index)
+{
+    PAS_ASSERT(index < origin->base.num_lowers_ish);
+    return index >= filc_function_origin_stack_aux_begin_index(origin)
+        && index < filc_function_origin_stack_aux_end_index(origin);
+}
 
 /* This dumps just the origin itself, not its entire inline stack. */
 PAS_API void filc_origin_dump_self(const filc_origin* origin, pas_stream* stream);
@@ -3812,6 +3865,13 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_access_check_fail(
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_alignment_contradiction(
     filc_ptr ptr, const filc_optimized_alignment_contradiction_origin* contradiction_origin);
 
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_stack_access_check_fail(
+    intptr_t offset, size_t size, const filc_optimized_access_check_origin* check_origin);
+
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_stack_alignment_contradiction(
+    intptr_t offset, size_t size,
+    const filc_optimized_alignment_contradiction_origin* contradiction_origin);
+
 /* FIXME: 64-bit mask is just barely enough. */
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_masked_access_check_fail(
     filc_ptr ptr, uint64_t mask, size_t size, filc_access_kind access_kind,
@@ -4000,6 +4060,30 @@ filc_aux_base_and_ptr filc_finish_memmove_small_5(filc_thread* my_thread, filc_p
    never be worth it. */
 void filc_memmove(filc_thread* my_thread, filc_ptr dst, filc_ptr src, size_t count,
                   const filc_origin* origin);
+
+void filc_memmove_already_checked_stack_to_heap(
+    filc_thread* my_thread, filc_ptr dst, void* src_payload, void* src_aux, size_t size,
+    const filc_origin* origin);
+
+void filc_memmove_stack_to_heap(
+    filc_thread* my_thread, filc_ptr dst, void* src_payload, void* src_aux,
+    filc_stack_aux* src_stack_aux, size_t size, const filc_origin* origin);
+
+void filc_memmove_already_checked_heap_to_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, filc_ptr src, size_t size);
+
+void filc_memmove_heap_to_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, filc_stack_aux* dst_stack_aux,
+    filc_ptr src, size_t size, const filc_origin* origin);
+
+void filc_memmove_already_checked_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, void* src_payload, void* src_aux,
+    size_t size);
+
+void filc_memmove_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, filc_stack_aux* dst_stack_aux,
+    void* src_payload, void* src_aux, filc_stack_aux* src_stack_aux, size_t size,
+    const filc_origin* origin);
 
 /* There are multiple reasons for these promote/demote things not exiting:
    

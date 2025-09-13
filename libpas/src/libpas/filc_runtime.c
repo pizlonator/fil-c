@@ -3753,6 +3753,18 @@ filc_ptr filc_native_zptr_contents_to_new_string(filc_thread* my_thread, filc_pt
     return result;
 }
 
+static const char* fix_ptr_name(const char* ptr_name)
+{
+    if (!ptr_name)
+        return "";
+    pas_allocation_config allocation_config;
+    bmalloc_initialize_allocation_config(&allocation_config);
+    pas_string_stream stream;
+    pas_string_stream_construct(&stream, &allocation_config);
+    pas_string_stream_printf(&stream, "%s ", ptr_name);
+    return pas_string_stream_take_string(&stream);
+}
+
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_check_aligned_access_fail(
     filc_ptr ptr, size_t bytes, size_t alignment, filc_access_kind kind, const char* ptr_name)
 {
@@ -3760,16 +3772,7 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_check_aligned_access_fail(
 
     PAS_ASSERT(bytes);
 
-    if (!ptr_name)
-        ptr_name = "";
-    else {
-        pas_allocation_config allocation_config;
-        bmalloc_initialize_allocation_config(&allocation_config);
-        pas_string_stream stream;
-        pas_string_stream_construct(&stream, &allocation_config);
-        pas_string_stream_printf(&stream, "%s ", ptr_name);
-        ptr_name = pas_string_stream_take_string(&stream);
-    }
+    ptr_name = fix_ptr_name(ptr_name);
 
     FILC_CHECK(
         pas_is_aligned((uintptr_t)filc_ptr_ptr(ptr), alignment),
@@ -3962,19 +3965,53 @@ PAS_NO_RETURN static void optimized_check_fail_impl(filc_panic_context* panic_co
     filc_finish_panicking(panic_context, "thwarted a futile attempt to violate memory safety.");
 }
 
+static const char* optimized_access_text(const filc_optimized_access_check_origin* check_origin)
+{
+    if (check_origin->size) {
+        if (check_origin->needs_write)
+            return "write";
+        return "read";
+    }
+    return "access";
+}
+
+static PAS_NO_RETURN void finish_optimized_access_check_fail(
+    filc_panic_context* panic_context, const filc_optimized_access_check_origin* check_origin)
+{
+    filc_panic_context_printf(panic_context, "\n");
+    filc_panic_context_printf(panic_context, "    expected");
+    if (check_origin->size) {
+        filc_panic_context_printf(panic_context, " %zu %sbytes",
+                                  (size_t)check_origin->size,
+                                  check_origin->needs_write ? "writable " : "");
+    } else if (check_origin->needs_write)
+        filc_panic_context_printf(panic_context, " writable capability");
+    else
+        filc_panic_context_printf(panic_context, " valid capability");
+    PAS_ASSERT(check_origin->alignment >= 1);
+    PAS_ASSERT(check_origin->alignment <= FILC_WORD_SIZE);
+    PAS_ASSERT(pas_is_power_of_2(check_origin->alignment));
+    PAS_ASSERT(check_origin->alignment_offset < check_origin->alignment);
+    if (check_origin->alignment > 1) {
+        filc_panic_context_printf(panic_context, " with ptr aligned to %zu bytes",
+                                  (size_t)check_origin->alignment);
+        if (check_origin->alignment_offset) {
+            filc_panic_context_printf(panic_context, " at offset %zu",
+                                      (size_t)check_origin->alignment_offset);
+        }
+    }
+    filc_panic_context_printf(panic_context, ".\n");
+    optimized_check_fail_impl(panic_context,
+                              check_origin->scheduled_origin,
+                              check_origin->semantic_origins);
+}
+
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_access_check_fail(
     filc_ptr ptr, const filc_optimized_access_check_origin* check_origin)
 {
     filc_panic_context* panic_context = filc_start_panicking();
     filc_panic_context_printf(panic_context, "filc safety error: ");
-    const char* access_text;
-    if (check_origin->size) {
-        if (check_origin->needs_write)
-            access_text = "write";
-        else
-            access_text = "read";
-    } else
-        access_text = "access";
+    const char* access_text = optimized_access_text(check_origin);
     if (!filc_ptr_object(ptr)) {
         filc_panic_context_printf(panic_context, "cannot %s pointer with null object.\n",
                                   access_text);
@@ -4005,41 +4042,21 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_access_check_fail(
         PAS_ASSERT(!"Should not be reached");
     filc_panic_context_printf(panic_context, "    pointer: ");
     filc_ptr_dump(ptr, filc_panic_context_stream(panic_context));
-    filc_panic_context_printf(panic_context, "\n");
-    filc_panic_context_printf(panic_context, "    expected");
-    if (check_origin->size) {
-        filc_panic_context_printf(panic_context, " %zu %sbytes",
-                                  (size_t)check_origin->size,
-                                  check_origin->needs_write ? "writable " : "");
-    } else if (check_origin->needs_write)
-        filc_panic_context_printf(panic_context, " writable capability");
-    else
-        filc_panic_context_printf(panic_context, " valid capability");
-    PAS_ASSERT(check_origin->alignment >= 1);
-    PAS_ASSERT(check_origin->alignment <= FILC_WORD_SIZE);
-    PAS_ASSERT(pas_is_power_of_2(check_origin->alignment));
-    PAS_ASSERT(check_origin->alignment_offset < check_origin->alignment);
-    if (check_origin->alignment > 1) {
-        filc_panic_context_printf(panic_context, " with ptr aligned to %zu bytes",
-                                  (size_t)check_origin->alignment);
-        if (check_origin->alignment_offset) {
-            filc_panic_context_printf(panic_context, " at offset %zu",
-                                      (size_t)check_origin->alignment_offset);
-        }
-    }
-    filc_panic_context_printf(panic_context, ".\n");
-    optimized_check_fail_impl(panic_context,
-                              check_origin->scheduled_origin,
-                              check_origin->semantic_origins);
+    finish_optimized_access_check_fail(panic_context, check_origin);
 }
 
-PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_alignment_contradiction(
-    filc_ptr ptr, const filc_optimized_alignment_contradiction_origin* contradiction_origin)
+static filc_panic_context* start_optimized_alignment_contradiction(void)
 {
     filc_panic_context* panic_context = filc_start_panicking();
     filc_panic_context_printf(panic_context, "filc safety error: alignment contradiction.\n");
     filc_panic_context_printf(panic_context, "    pointer: ");
-    filc_ptr_dump(ptr, filc_panic_context_stream(panic_context));
+    return panic_context;
+}
+
+static PAS_NO_RETURN void finish_optimized_alignment_contradiction(
+    filc_panic_context* panic_context,
+    const filc_optimized_alignment_contradiction_origin* contradiction_origin)
+{
     filc_panic_context_printf(panic_context, "\n");
     filc_panic_context_printf(panic_context, "required alignments:\n");
     /* Gotta have at least two alignments for there to have been a contradiction! */
@@ -4055,6 +4072,57 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_alignment_contradiction(
     optimized_check_fail_impl(panic_context,
                               contradiction_origin->scheduled_origin,
                               contradiction_origin->semantic_origins);
+}
+
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_alignment_contradiction(
+    filc_ptr ptr, const filc_optimized_alignment_contradiction_origin* contradiction_origin)
+{
+    filc_panic_context* panic_context = start_optimized_alignment_contradiction();
+    filc_ptr_dump(ptr, filc_panic_context_stream(panic_context));
+    finish_optimized_alignment_contradiction(panic_context, contradiction_origin);
+}
+
+static void stack_ptr_dump(pas_stream* stream, intptr_t offset, size_t size)
+{
+    pas_stream_printf(stream, "stack_optimized(offset=%ld,size=%zu)", (long)offset, size);
+}
+
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_stack_access_check_fail(
+    intptr_t offset, size_t size,
+    const filc_optimized_access_check_origin* check_origin)
+{
+    filc_panic_context* panic_context = filc_start_panicking();
+    filc_panic_context_printf(panic_context, "filc safety error: ");
+    const char* access_text = optimized_access_text(check_origin);
+    if (check_origin->size && offset < 0) {
+        filc_panic_context_printf(panic_context, "cannot %s pointer with ptr < lower.\n",
+                                  access_text);
+    } else if (check_origin->size && (size_t)offset >= size) {
+        filc_panic_context_printf(panic_context, "cannot %s pointer with ptr >= upper.\n",
+                                  access_text);
+    } else if (check_origin->size > size - (size_t)offset) {
+        filc_panic_context_printf(panic_context, "cannot %s %zu bytes when upper - ptr = %zu.\n",
+                                  access_text,
+                                  (size_t)check_origin->size,
+                                  (size_t)(size - (size_t)offset));
+    } else if (!pas_is_aligned((uintptr_t)offset + (uintptr_t)check_origin->alignment_offset,
+                               check_origin->alignment))
+        filc_panic_context_printf(panic_context, "alignment requirement of %u bytes not met.\n",
+                                  (unsigned)check_origin->alignment);
+    else
+        PAS_ASSERT(!"Should not be reached");
+    filc_panic_context_printf(panic_context, "    pointer: ");
+    stack_ptr_dump(filc_panic_context_stream(panic_context), offset, size);
+    finish_optimized_access_check_fail(panic_context, check_origin);
+}
+
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_optimized_stack_alignment_contradiction(
+    intptr_t offset, size_t size,
+    const filc_optimized_alignment_contradiction_origin* contradiction_origin)
+{
+    filc_panic_context* panic_context = start_optimized_alignment_contradiction();
+    stack_ptr_dump(filc_panic_context_stream(panic_context), offset, size);
+    finish_optimized_alignment_contradiction(panic_context, contradiction_origin);
 }
 
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_masked_access_check_fail(
@@ -4545,7 +4613,8 @@ PAS_ALWAYS_INLINE static void memmove_aux_loop(
         PAS_TESTING_ASSERT(pas_is_aligned(current_dst_start_offset, FILC_WORD_SIZE));
         PAS_TESTING_ASSERT(pas_is_aligned(current_dst_end_offset, FILC_WORD_SIZE));
         PAS_TESTING_ASSERT(pas_is_aligned(current_src_start_offset, FILC_WORD_SIZE));
-        if (has_dst_aux && PAS_UNLIKELY(filc_current_marking_state)) {
+        if (has_dst_aux && PAS_UNLIKELY(filc_current_marking_state)
+            && dst_memory_kind == filc_heap_memory) {
             bool do_barrier = true;
             memmove_aux_loop_body(my_thread, &dst_aux_ptr, src_aux_ptr,
                                   current_dst_start_offset, current_src_start_offset,
@@ -5370,6 +5439,256 @@ static PAS_ALWAYS_INLINE void copy_heap_to_stack_already_checked(
                           dst_end_offset, NULL, src_object, filc_small_size, dst_word_alignment_mode,
                           src_word_alignment_mode, count_word_alignment_mode, filc_stack_memory,
                           filc_heap_memory, exit_allowed, passed_origin);
+}
+
+static PAS_ALWAYS_INLINE void copy_stack_to_stack_already_checked(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, void* src_payload, void* src_aux,
+    size_t count, filc_word_alignment_mode dst_word_alignment_mode,
+    filc_word_alignment_mode src_word_alignment_mode,
+    filc_word_alignment_mode count_word_alignment_mode,
+    filc_exit_allowed_mode exit_allowed,
+    const filc_origin* passed_origin)
+{
+    if (count_word_alignment_mode)
+        filc_memmove_small_word(dst_payload, src_payload, count);
+    else
+        filc_memmove_small(dst_payload, src_payload, count);
+
+    char* src_aux_ptr = src_word_alignment_mode ? src_aux
+        : (char*)pas_round_down_to_power_of_2((uintptr_t)src_aux, FILC_WORD_SIZE);
+    char* dst_aux_ptr = dst_word_alignment_mode ? dst_aux
+        : (char*)pas_round_down_to_power_of_2((uintptr_t)dst_aux, FILC_WORD_SIZE);
+    size_t src_start_offset = (char*)src_aux - src_aux_ptr;
+    size_t dst_start_offset = (char*)dst_aux - dst_aux_ptr;
+    size_t dst_end_offset = dst_start_offset + count;
+    memmove_aux_with_ptrs(my_thread, dst_aux_ptr, src_aux_ptr, dst_start_offset, src_start_offset,
+                          dst_end_offset, NULL, NULL, filc_small_size, dst_word_alignment_mode,
+                          src_word_alignment_mode, count_word_alignment_mode, filc_stack_memory,
+                          filc_stack_memory, exit_allowed, passed_origin);
+}
+
+void filc_memmove_already_checked_stack_to_heap(
+    filc_thread* my_thread, filc_ptr dst, void* src_payload, void* src_aux, size_t size,
+    const filc_origin* origin)
+{
+    copy_stack_to_heap_already_checked(
+        my_thread, dst, src_payload, src_aux, size, filc_not_word_aligned, filc_not_word_aligned,
+        filc_not_word_aligned, filc_exit_allowed, origin);
+}
+
+static inline void* stack_ptr_lower(void* payload, void* aux, filc_stack_aux* stack_aux)
+{
+    uintptr_t offset = (char*)aux - (char*)stack_aux->lowers;
+    return (char*)payload - offset;
+}
+
+static inline void* stack_ptr_upper(void* payload, void* aux, filc_stack_aux* stack_aux)
+{
+    return (char*)stack_ptr_lower(payload, aux, stack_aux) + FILC_WORD_SIZE * stack_aux->num_lowers;
+}
+
+static char* explicit_stack_ptr_to_new_str(void* payload, void* aux, filc_stack_aux* stack_aux)
+{
+    pas_allocation_config allocation_config;
+    pas_string_stream stream;
+    bmalloc_initialize_allocation_config(&allocation_config);
+    pas_string_stream_construct(&stream, &allocation_config);
+    pas_string_stream_printf(
+        &stream, "%p,%p,%p,aux=%p,stack", payload, stack_ptr_lower(payload, aux, stack_aux),
+        stack_ptr_upper(payload, aux, stack_aux), stack_aux->lowers);
+    return pas_string_stream_take_string(&stream);
+}
+
+static void check_stack_access_with_name(
+    void* payload, void* aux, filc_stack_aux* stack_aux, size_t size, filc_access_kind access_kind,
+    const char* name)
+{
+    FILC_CHECK(
+        payload >= stack_ptr_lower(payload, aux, stack_aux),
+        NULL,
+        "cannot %s %spointer with ptr < lower (%sptr = %s)",
+        filc_access_kind_get_string(access_kind), fix_ptr_name(name), fix_ptr_name(name),
+        explicit_stack_ptr_to_new_str(payload, aux, stack_aux));
+    FILC_CHECK(
+        payload < stack_ptr_upper(payload, aux, stack_aux),
+        NULL,
+        "cannot %s %spointer with ptr >= upper (%sptr = %s)",
+        filc_access_kind_get_string(access_kind), fix_ptr_name(name), fix_ptr_name(name),
+        explicit_stack_ptr_to_new_str(payload, aux, stack_aux));
+    FILC_CHECK(
+        size <= (uintptr_t)((char*)stack_ptr_upper(payload, aux, stack_aux) - (char*)payload),
+        NULL,
+        "cannot %s %zu bytes when upper - ptr = %zu (%sptr = %s)",
+        filc_access_kind_get_string(access_kind), size,
+        (size_t)((char*)stack_ptr_upper(payload, aux, stack_aux) - (char*)payload),
+        fix_ptr_name(name), explicit_stack_ptr_to_new_str(payload, aux, stack_aux));
+}
+
+static PAS_NEVER_INLINE void memmove_stack_to_heap_fail(filc_ptr dst, void* src_payload, void* src_aux,
+                                                        filc_stack_aux* src_stack_aux, size_t size,
+                                                        const filc_origin* passed_origin)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+
+    fix_origin(passed_origin);
+
+    FILC_DEFINE_FRAME("memmove");
+    filc_push_frame(my_thread, frame);
+
+    filc_check_access_with_name(dst, size, filc_write_access, "destination");
+    check_stack_access_with_name(
+        src_payload, src_aux, src_stack_aux, size, filc_read_access, "source");
+
+    PAS_UNREACHABLE();
+}
+
+#define CHECK_STACK_BOUNDS_FAST(payload, aux, stack_aux, size, fail) do { \
+        void* my_aux = (aux); \
+        filc_stack_aux* my_stack_aux = (stack_aux); \
+        if (my_aux < (void*)my_stack_aux->lowers || \
+            my_aux >= (void*)(my_stack_aux->lowers + my_stack_aux->num_lowers) || \
+            (size) > (size_t)((char*)(my_stack_aux->lowers + my_stack_aux->num_lowers) - \
+                              (char*)my_aux)) \
+            fail; \
+    } while (false)
+
+void filc_memmove_stack_to_heap(
+    filc_thread* my_thread, filc_ptr dst, void* src_payload, void* src_aux,
+    filc_stack_aux* src_stack_aux, size_t size, const filc_origin* origin)
+{
+    if (!size)
+        return;
+    
+    filc_object* dst_object = filc_ptr_object(dst);
+
+    if (!dst_object)
+        memmove_stack_to_heap_fail(dst, src_payload, src_aux, src_stack_aux, size, origin);
+
+    char* dst_start = filc_ptr_ptr(dst);
+
+    char* dst_lower = (char*)filc_object_lower(dst_object);
+    char* dst_upper = (char*)filc_object_upper(dst_object);
+
+    CHECK_BOUNDS_FAST(
+        dst_start, dst_lower, dst_upper, size,
+        memmove_stack_to_heap_fail(dst, src_payload, src_aux, src_stack_aux, size, origin));
+    CHECK_STACK_BOUNDS_FAST(
+        src_payload, src_aux, src_stack_aux, size,
+        memmove_stack_to_heap_fail(dst, src_payload, src_aux, src_stack_aux, size, origin));
+    CHECK_WRITE_FAST(
+        dst_object,
+        memmove_stack_to_heap_fail(dst, src_payload, src_aux, src_stack_aux, size, origin));
+
+    copy_stack_to_heap_already_checked(
+        my_thread, dst, src_payload, src_aux, size, filc_not_word_aligned, filc_not_word_aligned,
+        filc_not_word_aligned, filc_exit_allowed, origin);
+}
+
+void filc_memmove_already_checked_heap_to_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, filc_ptr src, size_t size)
+{
+    copy_heap_to_stack_already_checked(
+        my_thread, dst_payload, dst_aux, src, size, filc_not_word_aligned, filc_not_word_aligned,
+        filc_not_word_aligned, filc_exit_not_allowed, NULL);
+}
+
+static PAS_NEVER_INLINE void memmove_heap_to_stack_fail(void* dst_payload, void* dst_aux,
+                                                        filc_stack_aux* dst_stack_aux, filc_ptr src,
+                                                        size_t size, const filc_origin* passed_origin)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+
+    fix_origin(passed_origin);
+
+    FILC_DEFINE_FRAME("memmove");
+    filc_push_frame(my_thread, frame);
+
+    check_stack_access_with_name(
+        dst_payload, dst_aux, dst_stack_aux, size, filc_write_access, "destination");
+    filc_check_access_with_name(src, size, filc_read_access, "source");
+
+    PAS_UNREACHABLE();
+}
+
+void filc_memmove_heap_to_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, filc_stack_aux* dst_stack_aux,
+    filc_ptr src, size_t size, const filc_origin* origin)
+{
+    if (!size)
+        return;
+    
+    filc_object* src_object = filc_ptr_object(src);
+
+    if (!src_object)
+        memmove_heap_to_stack_fail(dst_payload, dst_aux, dst_stack_aux, src, size, origin);
+
+    char* src_start = filc_ptr_ptr(src);
+
+    char* src_lower = (char*)filc_object_lower(src_object);
+    char* src_upper = (char*)filc_object_upper(src_object);
+
+    CHECK_BOUNDS_FAST(
+        src_start, src_lower, src_upper, size,
+        memmove_heap_to_stack_fail(dst_payload, dst_aux, dst_stack_aux, src, size, origin));
+    CHECK_STACK_BOUNDS_FAST(
+        dst_payload, dst_aux, dst_stack_aux, size,
+        memmove_heap_to_stack_fail(dst_payload, dst_aux, dst_stack_aux, src, size, origin));
+
+    copy_heap_to_stack_already_checked(
+        my_thread, dst_payload, dst_aux, src, size, filc_not_word_aligned, filc_not_word_aligned,
+        filc_not_word_aligned, filc_exit_not_allowed, NULL);
+}
+
+void filc_memmove_already_checked_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, void* src_payload, void* src_aux,
+    size_t size)
+{
+    copy_stack_to_stack_already_checked(
+        my_thread, dst_payload, dst_aux, src_payload, src_aux, size, filc_not_word_aligned,
+        filc_not_word_aligned, filc_not_word_aligned, filc_exit_not_allowed, NULL);
+}
+
+static PAS_NEVER_INLINE void memmove_stack_fail(void* dst_payload, void* dst_aux,
+                                                filc_stack_aux* dst_stack_aux,
+                                                void* src_payload, void* src_aux,
+                                                filc_stack_aux* src_stack_aux,
+                                                size_t size, const filc_origin* passed_origin)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+
+    fix_origin(passed_origin);
+
+    FILC_DEFINE_FRAME("memmove");
+    filc_push_frame(my_thread, frame);
+
+    check_stack_access_with_name(
+        dst_payload, dst_aux, dst_stack_aux, size, filc_write_access, "destination");
+    check_stack_access_with_name(
+        src_payload, src_aux, src_stack_aux, size, filc_read_access, "source");
+
+    PAS_UNREACHABLE();
+}
+
+void filc_memmove_stack(
+    filc_thread* my_thread, void* dst_payload, void* dst_aux, filc_stack_aux* dst_stack_aux,
+    void* src_payload, void* src_aux, filc_stack_aux* src_stack_aux, size_t size,
+    const filc_origin* origin)
+{
+    if (!size)
+        return;
+
+    CHECK_STACK_BOUNDS_FAST(
+        dst_payload, dst_aux, dst_stack_aux, size,
+        memmove_stack_fail(dst_payload, dst_aux, dst_stack_aux, src_payload, src_aux, src_stack_aux,
+                           size, origin));
+    CHECK_STACK_BOUNDS_FAST(
+        src_payload, src_aux, src_stack_aux, size,
+        memmove_stack_fail(dst_payload, dst_aux, dst_stack_aux, src_payload, src_aux, src_stack_aux,
+                           size, origin));
+
+    copy_stack_to_stack_already_checked(
+        my_thread, dst_payload, dst_aux, src_payload, src_aux, size, filc_not_word_aligned,
+        filc_not_word_aligned, filc_not_word_aligned, filc_exit_not_allowed, NULL);
 }
 
 filc_ptr filc_promote_already_checked_stack_to_heap_without_exiting(
@@ -6919,6 +7238,9 @@ filc_jmp_buf* filc_jmp_buf_create(filc_thread* my_thread, filc_jmp_buf_kind kind
     const filc_function_origin* function_origin = filc_origin_get_function_origin(frame->origin);
     PAS_ASSERT(function_origin);
     PAS_ASSERT(function_origin->base.num_lowers_ish < UINT_MAX);
+    PAS_ASSERT(!function_origin->num_stack_auxes); /* We currently don't support the nonescaping
+                                                      alloca optimization for functions that do
+                                                      setjmp, yet. */
     
     filc_jmp_buf* result = (filc_jmp_buf*)filc_object_special_payload_with_manual_tracking(
         filc_allocate_special(my_thread,

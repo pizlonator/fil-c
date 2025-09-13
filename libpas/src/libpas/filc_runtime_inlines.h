@@ -483,12 +483,37 @@ static PAS_ALWAYS_INLINE void filc_thread_mark_roots(filc_thread* my_thread,
         const filc_function_origin* function_origin = filc_origin_get_function_origin(frame->origin);
         PAS_ASSERT(function_origin);
         if (verbose) {
-            pas_log("Marking roots for ");
+            pas_log("Marking roots in frame %p for ", frame);
             filc_origin_dump_all_inline(frame->origin, "; ", pas_log_stream);
-            pas_log("\n");
+            pas_log(" with num_lowers_ish = %u, has_setjmps = %s, num_stack_auxes = %u\n",
+                    function_origin->base.num_lowers_ish,
+                    function_origin->has_setjmps ? "yes" : "no",
+                    function_origin->num_stack_auxes);
         }
         PAS_ASSERT(function_origin->base.num_lowers_ish < UINT_MAX);
         for (index = function_origin->base.num_lowers_ish; index--;) {
+            if (verbose)
+                pas_log("Marking lower[%zu] = %p\n", index, frame->lowers[index]);
+            if (filc_function_origin_lower_index_is_stack_aux(function_origin, index)) {
+                filc_stack_aux* stack_aux = (filc_stack_aux*)frame->lowers[index];
+                if (!stack_aux) {
+                    if (verbose)
+                        pas_log("Skipping null stack aux\n");
+                    continue;
+                }
+                if (verbose) {
+                    pas_log("Marking stack aux %p with num_lowers = %zu\n",
+                            stack_aux, stack_aux->num_lowers);
+                }
+                PAS_ASSERT(stack_aux->num_lowers < UINT_MAX);
+                size_t aux_index;
+                for (aux_index = stack_aux->num_lowers; aux_index--;) {
+                    if (verbose)
+                        pas_log("Marking thread root in stack aux %p\n", stack_aux->lowers[aux_index]);
+                    marker.mark(stack, filc_object_for_lower(stack_aux->lowers[aux_index]));
+                }
+                continue;
+            }
             if (verbose)
                 pas_log("Marking thread root %p\n", frame->lowers[index]);
             marker.mark(stack, filc_object_for_lower(frame->lowers[index]));

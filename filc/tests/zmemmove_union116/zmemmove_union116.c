@@ -144,8 +144,10 @@ int main()
     for (index = 4; index-->2;)
         ZASSERT(x.b[index] == index + 42);
     ZASSERT(!strcmp(x.str2, "hello"));
-    for (index = 4; index--;)
+    for (index = 4; index--;) {
+        zprintf("x.c[%zu] = %d\n", index, x.c[index]);
         ZASSERT(x.c[index] == index + 666);
+    }
     ZASSERT(!strcmp(x.str3, "world"));
     for (index = 2; index--;)
         ZASSERT(x.d[index] == index + 100);

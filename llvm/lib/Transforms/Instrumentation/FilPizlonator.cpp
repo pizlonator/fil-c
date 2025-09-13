@@ -68,9 +68,6 @@ static cl::opt<bool> optimizeChecks(
 static cl::opt<bool> propagateChecksBackward(
   "filc-propagate-checks-backward", cl::desc("Perform backward propagation of checks"),
   cl::Hidden, cl::init(true));
-static cl::opt<bool> useAsmForOffsets(
-  "filc-use-asm-for-offset", cl::desc("Use inline assembly to compute offsets"),
-  cl::Hidden, cl::init(false));
 
 // This has to match the FilC runtime.
 
@@ -173,10 +170,13 @@ enum class ConstexprOpcode {
 };
 
 enum class MemoryKind {
+  Invalid,
   CC,
   GlobalInit,
   ThreadLocalInit,
-  Heap
+  Heap,
+  LocalExplicit,
+  LocalNaked
 };
 
 struct ValuePtr {
@@ -852,6 +852,8 @@ struct ChecksWithDIOrBottom {
   ChecksWithDIOrBottom(): Bottom(true) {}
 };
 
+// Used for cases where we require a known offset, and so if we can't get one, we don't return the
+// underlying pointer (i.e. HighP might be a GEP).
 struct PtrAndOffset {
   Value* HighP { nullptr };
   int64_t Offset { 0 };
@@ -859,6 +861,36 @@ struct PtrAndOffset {
   PtrAndOffset() = default;
 
   PtrAndOffset(Value* HighP, int64_t Offset): HighP(HighP), Offset(Offset) {}
+};
+
+enum class PtrRandomness {
+  /* Not random accessed (we can deduce the offset statically). */
+  NotRandom,
+
+  /* Random accessed (we do not know the offset statically). */
+  Random
+};
+
+// Used for cases where we require the underlying pointer, and so we might not be able to produce an
+// offset.
+struct PtrAndRandom {
+  Value* P { nullptr };
+  PtrRandomness R { PtrRandomness::NotRandom };
+  int64_t Offset;
+
+  PtrAndRandom() = default;
+
+  PtrAndRandom(Value* P, PtrRandomness R, int64_t Offset): P(P), R(R), Offset(Offset) { }
+
+  PtrAndRandom plus(int64_t Offset) const {
+    PtrAndRandom Result = *this;
+    Result.Offset += Offset;
+    if ((int32_t)Result.Offset != Result.Offset) {
+      Result.R = PtrRandomness::Random;
+      Result.Offset = 0;
+    }
+    return Result;
+  }
 };
 
 struct GEPKey {
@@ -998,15 +1030,6 @@ void EraseIf(VectorT& V, const FuncT& F) {
   V.resize(DstIndex);
 }
 
-struct AuxBaseAndPtr {
-  AllocaInst* Var { nullptr };
-  Value* BaseP { nullptr };
-  Value* P { nullptr };
-
-  AuxBaseAndPtr() = default;
-  AuxBaseAndPtr(AllocaInst* Var, Value* BaseP, Value* P): Var(Var), BaseP(BaseP), P(P) {}
-};
-
 enum class CapabilityInferenceState {
   Bottom,
   Definite,
@@ -1118,6 +1141,200 @@ struct ArgInfo {
   }
 };
 
+enum class PointerKind {
+  // It's just a regular heap pointer.
+  Escaping,
+
+  // It's a pointer to something that doesn't escape, but that gets random accessed, so we need to
+  // have an explicit filc_stack_aux for it. This means that the filc_stack_aux itself will escape
+  // from LLVM IR's perspective, but at least it's a stack allocation, not a heap allocation.
+  LocalExplicit,
+
+  // It's a pointer to something that doesn't escape, and does not get random accessed. So, we do have
+  // a stack aux for it, but it's "naked" (has no header, isn't tracked). This means that all stores to
+  // this alloca need to replicate to the lowers array.
+  LocalNaked
+};
+
+raw_ostream& operator<<(raw_ostream& OS, PointerKind PK) {
+  switch (PK) {
+  case PointerKind::Escaping:
+    OS << "Escaping";
+    return OS;
+  case PointerKind::LocalExplicit:
+    OS << "LocalExplicit";
+    return OS;
+  case PointerKind::LocalNaked:
+    OS << "LocalNaked";
+    return OS;
+  }
+  llvm_unreachable("Bad PointerKind");
+  return OS;
+}
+
+PointerKind mergePointerKinds(PointerKind A, PointerKind B) {
+  switch (A) {
+  case PointerKind::Escaping:
+    return PointerKind::Escaping;
+  case PointerKind::LocalExplicit:
+    if (B == PointerKind::Escaping)
+      return PointerKind::Escaping;
+    return PointerKind::LocalExplicit;
+  case PointerKind::LocalNaked:
+    return B;
+  }
+  llvm_unreachable("Bad PointerKind");
+  return PointerKind::Escaping;
+}
+
+enum LifetimeMarkerKind {
+  Start,
+  End
+};
+
+struct LifetimeMarker {
+  AllocaInst* AI { nullptr };
+  LifetimeMarkerKind LMK { LifetimeMarkerKind::Start };
+
+  LifetimeMarker() = default;
+
+  LifetimeMarker(AllocaInst* AI, LifetimeMarkerKind LMK): AI(AI), LMK(LMK) { }
+
+  explicit operator bool() const {
+    return !!AI;
+  }
+};
+
+enum class LifetimeState {
+  // We haven't decided what the state of this thing is yet.
+  Undetermined,
+  
+  // We know it's live.
+  Live,
+  
+  // It could be dead, or maybe it could be live. We don't want to assume it's live. Better kill it.
+  Zombie
+};
+
+raw_ostream& operator<<(raw_ostream& OS, LifetimeState LS) {
+  switch (LS) {
+  case LifetimeState::Undetermined:
+    OS << "Undetermined";
+    return OS;
+  case LifetimeState::Live:
+    OS << "Live";
+    return OS;
+  case LifetimeState::Zombie:
+    OS << "Zombie";
+    return OS;
+  }
+  llvm_unreachable("Bad LifetimeState");
+  return OS;
+}
+
+LifetimeState mergeLifetimeState(LifetimeState A, LifetimeState B) {
+  switch (A) {
+  case LifetimeState::Undetermined:
+    return B;
+  case LifetimeState::Live:
+    if (B != LifetimeState::Undetermined)
+      return B;
+    return LifetimeState::Live;
+  case LifetimeState::Zombie:
+    return LifetimeState::Zombie;
+  }
+  llvm_unreachable("Bad LifetimeState");
+  return LifetimeState::Zombie;
+}
+
+enum class FrameEntryKind {
+  Invalid,
+  Ignored,
+  Lower,
+  LowerFromStackAux,
+  ExplicitStackAux
+};
+
+struct FrameEntry {
+  FrameEntryKind FEK { FrameEntryKind::Invalid };
+  size_t Index { SIZE_MAX };
+
+  FrameEntry() = default;
+
+  FrameEntry(FrameEntryKind FEK, size_t Index): FEK(FEK), Index(Index) { }
+};
+
+struct LocalAllocaData {
+  bool Explicit;
+  AllocaInst* OrigAI { nullptr };
+  AllocaInst* Payload { nullptr };
+  AllocaInst* AuxAlloca { nullptr };
+  Instruction* Aux { nullptr };
+  uint64_t Size { UINT64_MAX };
+};
+
+struct PtrOperandData {
+  PointerKind PK { PointerKind::Escaping };
+  AllocaInst* AuxBaseVar { nullptr };
+  LocalAllocaData LAD;
+  PtrAndRandom PAR;
+
+  PtrOperandData() = default;
+};
+
+struct MemoryAccessData {
+  Value* P { nullptr };
+  Value* AuxP { nullptr };
+  Value* AuxBaseP { nullptr };
+  MemoryKind MK { MemoryKind::Invalid };
+  AllocaInst* OrigAI { nullptr };
+  int64_t LocalOffset { INT64_MIN };
+  uint64_t Size { UINT64_MAX };
+
+  MemoryAccessData() { }
+
+  MemoryAccessData(Value* P, Value* AuxP, Value* AuxBaseP, MemoryKind MK):
+    P(P), AuxP(AuxP), AuxBaseP(AuxBaseP), MK(MK) {
+    validate();
+  }
+
+  void validate() const {
+    assert(P);
+    assert(AuxP);
+    assert(AuxBaseP);
+    assert(MK == MemoryKind::Heap || MK == MemoryKind::LocalExplicit || MK == MemoryKind::LocalNaked
+           || MK == MemoryKind::CC || MK == MemoryKind::GlobalInit
+           || MK == MemoryKind::ThreadLocalInit);
+    if (MK == MemoryKind::LocalNaked) {
+      assert(OrigAI);
+      assert(LocalOffset != INT64_MIN);
+      assert(Size != UINT64_MAX);
+    } else {
+      assert(!OrigAI);
+      assert(LocalOffset == INT64_MIN);
+      assert(Size == UINT64_MAX);
+    }
+  }
+
+  MemoryAccessData plus(Value* P, Value* AuxP, int64_t Offset) {
+    MemoryAccessData Result = *this;
+    Result.P = P;
+    Result.AuxP = AuxP;
+    if (MK == MemoryKind::LocalNaked) {
+      assert(Result.LocalOffset != INT64_MIN);
+      Result.LocalOffset += Offset;
+      assert((int32_t)Result.LocalOffset == Result.LocalOffset);
+    } else
+      assert(Result.LocalOffset == INT64_MIN);
+    return Result;
+  }
+};
+
+struct FullMemoryAccessData {
+  PtrOperandData POD;
+  MemoryAccessData MAD;
+};
+
 class Pizlonator {
   static constexpr unsigned TargetAS = 0;
   
@@ -1177,6 +1394,8 @@ class Pizlonator {
   FunctionCallee FreeWithChecks;
   FunctionCallee OptimizedAlignmentContradiction;
   FunctionCallee OptimizedAccessCheckFail;
+  FunctionCallee OptimizedStackAlignmentContradiction;
+  FunctionCallee OptimizedStackAccessCheckFail;
   FunctionCallee MaskedAccessCheckFail;
   FunctionCallee CheckFunctionCallFail;
   FunctionCallee CheckClosureFail;
@@ -1189,6 +1408,12 @@ class Pizlonator {
   FunctionCallee FinishMemmoveSmall3;
   FunctionCallee FinishMemmoveSmall4;
   FunctionCallee FinishMemmoveSmall5;
+  FunctionCallee MemmoveAlreadyCheckedStackToHeap;
+  FunctionCallee MemmoveStackToHeap;
+  FunctionCallee MemmoveAlreadyCheckedHeapToStack;
+  FunctionCallee MemmoveHeapToStack;
+  FunctionCallee MemmoveAlreadyCheckedStack;
+  FunctionCallee MemmoveStack;
   FunctionCallee GlobalInitializationStart;
   FunctionCallee GlobalInitializationEnd;
   FunctionCallee CallIfunc;
@@ -1223,6 +1448,8 @@ class Pizlonator {
 
   Constant* CurrentMarkingState;
 
+  std::unordered_map<AllocaInst*, PointerKind> AllocaKinds;
+
   std::unordered_set<CombinedDI> CombinedDIs;
   std::unordered_map<std::pair<const CombinedDI*, const CombinedDI*>,
                      const CombinedDI*> CombinedDIMaker;
@@ -1243,7 +1470,8 @@ class Pizlonator {
   std::unordered_map<OptimizedAlignmentContradictionOriginKey,
                      GlobalVariable*> OptimizedAlignmentContradictionOrigins;
   std::unordered_map<Value*, AllocaInst*> CanonicalPtrAuxBaseVars;
-  std::unordered_map<Instruction*, std::vector<AllocaInst*>> AuxBaseVarOperands;
+  std::unordered_map<AllocaInst*, LocalAllocaData> LocalAllocaDatas;
+  std::unordered_map<Instruction*, std::vector<PtrOperandData>> PtrOperandDatas;
   bool AuxBaseVarCreationAllowed { false };
 
   std::vector<GlobalVariable*> Globals;
@@ -1285,8 +1513,10 @@ class Pizlonator {
 
   Value* MyThread { nullptr };
 
-  std::unordered_map<ValuePtr, size_t> FrameIndexMap;
-  size_t FrameSize;
+  // SIZE_MAX entries mean: do not record
+  std::unordered_map<ValuePtr, FrameEntry> FrameIndexMap;
+  size_t FrameSize { SIZE_MAX };
+  size_t NumStackAuxes { SIZE_MAX };
   Value* Frame;
 
   std::vector<Instruction*> ToErase;
@@ -1339,6 +1569,7 @@ class Pizlonator {
     bool CanThrow = !OldF->doesNotThrow();
 
     assert(FrameSize < UINT_MAX);
+    assert(NumStackAuxes < UINT_MAX);
     
     Constant* C = ConstantStruct::get(
       FunctionOriginTy,
@@ -1348,7 +1579,7 @@ class Pizlonator {
             OldF->getSubprogram() ? getString(OldF->getSubprogram()->getFilename()) : RawNull,
             ConstantInt::get(Int32Ty, FrameSize) }),
         Personality, ConstantInt::get(Int8Ty, CanThrow), ConstantInt::get(Int8Ty, CanCatch),
-        ConstantInt::get(Int8Ty, HasSetjmps) });
+        ConstantInt::get(Int8Ty, HasSetjmps), ConstantInt::get(Int32Ty, NumStackAuxes) });
     GlobalVariable* Result = new GlobalVariable(
       M, FunctionOriginTy, true, GlobalVariable::PrivateLinkage, C, "filc_function_origin");
     FunctionOrigins[FOK] = Result;
@@ -1797,25 +2028,36 @@ class Pizlonator {
   }
 
   Value* loadPtr(
-    Value* P, Value* BaseAuxP, Value* AuxP, bool isVolatile, Align A, AtomicOrdering AO,
-    MemoryKind MK, Instruction* InsertBefore) {
-    if (MK != MemoryKind::Heap) {
+    MemoryAccessData MAD, bool isVolatile, Align A, AtomicOrdering AO, Instruction* InsertBefore) {
+    assert(MAD.MK == MemoryKind::CC ||
+           MAD.MK == MemoryKind::Heap ||
+           MAD.MK == MemoryKind::LocalExplicit ||
+           MAD.MK == MemoryKind::LocalNaked);
+    if (MAD.MK == MemoryKind::LocalExplicit || MAD.MK == MemoryKind::LocalNaked) {
+      // If we've proved that the memory doesn't escape then we can drop all of the atomic flags. Might
+      // as well do that now.
+      //
+      // Note we cannot do that for volatile. Instead, we take volatile to mean that the memory
+      // escapes.
+      AO = AtomicOrdering::NotAtomic;
+    }
+    if (MAD.MK != MemoryKind::Heap) {
       assert(!isVolatile);
       assert(AO == AtomicOrdering::NotAtomic);
     }
     Value* BaseAuxPIsNull;
     BasicBlock* OriginalB = InsertBefore->getParent();
-    if (MK == MemoryKind::Heap) {
+    if (MAD.MK == MemoryKind::Heap) {
       Instruction* BaseAuxPIsNullInst = new ICmpInst(
-        InsertBefore, ICmpInst::ICMP_EQ, BaseAuxP, RawNull, "filc_base_aux_ptr_is_null");
+        InsertBefore, ICmpInst::ICMP_EQ, MAD.AuxBaseP, RawNull, "filc_base_aux_ptr_is_null");
       BaseAuxPIsNullInst->setDebugLoc(InsertBefore->getDebugLoc());
       BaseAuxPIsNull = BaseAuxPIsNullInst;
     } else
       BaseAuxPIsNull = ConstantInt::getBool(Int1Ty, false);
     Instruction* NotNullCase = SplitBlockAndInsertIfElse(BaseAuxPIsNull, InsertBefore, false);
     Instruction* LowerAsIntLoad = new LoadInst(
-      IntPtrTy, AuxP, "filc_load_lower", isVolatile, Align(WordSize),
-      MK == MemoryKind::Heap ? getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO) : AO,
+      IntPtrTy, MAD.AuxP, "filc_load_lower", isVolatile, Align(WordSize),
+      MAD.MK == MemoryKind::Heap ? getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO) : AO,
       SyncScope::System, NotNullCase);
     LowerAsIntLoad->setDebugLoc(InsertBefore->getDebugLoc());
     PHINode* LowerAsInt = PHINode::Create(IntPtrTy, 2, "filc_lower_as_int_phi", InsertBefore);
@@ -1828,13 +2070,13 @@ class Pizlonator {
         LowerAsInt, RawPtrTy, "filc_lower_as_ptr", Where);
       LowerToPtr->setDebugLoc(InsertBefore->getDebugLoc());
       Instruction* RawPtrLoad = new LoadInst(
-        RawPtrTy, P, "filc_atomic_case_load_raw_ptr", isVolatile, std::max(A, Align(WordSize)), AO,
+        RawPtrTy, MAD.P, "filc_atomic_case_load_raw_ptr", isVolatile, std::max(A, Align(WordSize)), AO,
         SyncScope::System, Where);
       RawPtrLoad->setDebugLoc(InsertBefore->getDebugLoc());
       return createFlightPtr(LowerToPtr, RawPtrLoad, Where);
     };
     
-    if (MK == MemoryKind::Heap) {
+    if (MAD.MK == MemoryKind::Heap) {
       Instruction* Masked = BinaryOperator::Create(
         Instruction::And, LowerAsInt, ConstantInt::get(IntPtrTy, AtomicBoxBit),
         "filc_lower_atomic_box_bit", InsertBefore);
@@ -1883,20 +2125,8 @@ class Pizlonator {
     return FinishCreatingFlight(InsertBefore);
   }
 
-  Value* loadPtr(
-    Value* P, AuxBaseAndPtr Aux, bool isVolatile, Align A, AtomicOrdering AO, MemoryKind MK,
-    Instruction* InsertBefore) {
-    return loadPtr(P, Aux.BaseP, Aux.P, isVolatile, A, AO, MK, InsertBefore);
-  }
-
-  Value* loadPtr(Value* P, Value* BaseAuxP, Value* AuxP, Instruction* InsertBefore) {
-    return loadPtr(
-      P, BaseAuxP, AuxP, false, Align(WordSize), AtomicOrdering::NotAtomic, MemoryKind::Heap,
-      InsertBefore);
-  }
-
-  Value* loadPtr(Value* P, AuxBaseAndPtr Aux, Instruction* InsertBefore) {
-    return loadPtr(P, Aux.BaseP, Aux.P, InsertBefore);
+  Value* loadPtr(MemoryAccessData MAD, Instruction* InsertBefore) {
+    return loadPtr(MAD, false, Align(WordSize), AtomicOrdering::NotAtomic, InsertBefore);
   }
 
   void storeBarrierForLower(Value* Lower, Instruction* InsertBefore) {
@@ -1924,34 +2154,54 @@ class Pizlonator {
   }
   
   void storePtr(
-    Value* V, Value* P, Value* AuxP, bool isVolatile, Align A, AtomicOrdering AO, MemoryKind MK,
+    Value* V, MemoryAccessData MAD, bool isVolatile, Align A, AtomicOrdering AO,
     Instruction* InsertBefore) {
-    if (MK != MemoryKind::Heap) {
+    assert(MAD.MK == MemoryKind::CC ||
+           MAD.MK == MemoryKind::GlobalInit ||
+           MAD.MK == MemoryKind::ThreadLocalInit ||
+           MAD.MK == MemoryKind::Heap ||
+           MAD.MK == MemoryKind::LocalExplicit ||
+           MAD.MK == MemoryKind::LocalNaked);
+
+    if (MAD.MK == MemoryKind::LocalExplicit || MAD.MK == MemoryKind::LocalNaked)
+      AO = AtomicOrdering::NotAtomic;
+
+    if (MAD.MK != MemoryKind::Heap) {
       assert(!isVolatile);
       assert(AO == AtomicOrdering::NotAtomic);
     }
 
-    if (MK == MemoryKind::Heap && (AO != AtomicOrdering::NotAtomic || isVolatile)) {
-      CallInst::Create(StorePtrAtomicWithPtrPairOutline, { MyThread, P, AuxP, V }, "", InsertBefore)
+    if (MAD.MK == MemoryKind::Heap && (AO != AtomicOrdering::NotAtomic || isVolatile)) {
+      CallInst::Create(
+        StorePtrAtomicWithPtrPairOutline, { MyThread, MAD.P, MAD.AuxP, V }, "", InsertBefore)
         ->setDebugLoc(InsertBefore->getDebugLoc());
       return;
     }
     
-    if (MK == MemoryKind::Heap || MK == MemoryKind::ThreadLocalInit)
+    if (MAD.MK == MemoryKind::Heap || MAD.MK == MemoryKind::ThreadLocalInit)
       storeBarrierForValue(V, InsertBefore);
 
     (new StoreInst(
-      flightPtrLower(V, InsertBefore), AuxP, isVolatile, std::max(A, Align(WordSize)),
-      MK == MemoryKind::Heap ? getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO) : AO,
+      flightPtrLower(V, InsertBefore), MAD.AuxP, isVolatile, std::max(A, Align(WordSize)),
+      MAD.MK == MemoryKind::Heap ? getMergedAtomicOrdering(AtomicOrdering::Monotonic, AO) : AO,
       SyncScope::System, InsertBefore))->setDebugLoc(InsertBefore->getDebugLoc());
     (new StoreInst(
-      flightPtrPtr(V, InsertBefore), P, isVolatile, std::max(A, Align(WordSize)), AO,
+      flightPtrPtr(V, InsertBefore), MAD.P, isVolatile, std::max(A, Align(WordSize)), AO,
       SyncScope::System, InsertBefore))->setDebugLoc(InsertBefore->getDebugLoc());
+
+    // Note that we have to defend ourselves against crashing the compiler in case we are emitting a
+    // totally invalid store (a store that is known to be out of bounds, or isn't aligned). But we
+    // don't have to emit correct code in that case, since this path is unreachable in that case.
+    if (MAD.MK == MemoryKind::LocalNaked && MAD.LocalOffset >= 0
+        && static_cast<uint64_t>(MAD.LocalOffset) < MAD.Size) {
+      FrameEntry FE = FrameIndexMap[ValuePtr(MAD.OrigAI, MAD.LocalOffset / WordSize)];
+      assert(FE.FEK == FrameEntryKind::LowerFromStackAux);
+      recordLowerAtIndex(flightPtrLower(V, InsertBefore), FE.Index, InsertBefore);
+    }
   }
 
-  void storePtr(Value* V, Value* P, Value* AuxP, Instruction* InsertBefore) {
-    storePtr(V, P, AuxP, false, Align(WordSize), AtomicOrdering::NotAtomic, MemoryKind::Heap,
-             InsertBefore);
+  void storePtr(Value* V, MemoryAccessData MAD, Instruction* InsertBefore) {
+    storePtr(V, MAD, false, Align(WordSize), AtomicOrdering::NotAtomic, InsertBefore);
   }
 
   // This happens to work just as well for raw types and flight types, and that's important.
@@ -2008,14 +2258,13 @@ class Pizlonator {
   }
 
   Value* loadValueRecurseAfterCheck(
-    Type* T, Value* P, Value* BaseAuxP, Value* AuxP,
-    bool isVolatile, Align A, AtomicOrdering AO, SyncScope::ID SS, MemoryKind MK,
+    Type* T, MemoryAccessData MAD, bool isVolatile, Align A, AtomicOrdering AO, SyncScope::ID SS,
     Instruction* InsertBefore) {
     A = std::min(DL.getABITypeAlign(T), A);
     
     if (!hasPtrs(T)) {
       return new LoadInst(
-        toFlightType(T), P, "filc_load", isVolatile, lowAlign(T, A, AO), AO, SS, InsertBefore);
+        toFlightType(T), MAD.P, "filc_load", isVolatile, lowAlign(T, A, AO), AO, SS, InsertBefore);
     }
     
     if (isa<FunctionType>(T)) {
@@ -2031,22 +2280,24 @@ class Pizlonator {
     assert(T != FlightPtrTy);
 
     if (T == RawPtrTy)
-      return loadPtr(P, BaseAuxP, AuxP, isVolatile, A, AO, MK, InsertBefore);
+      return loadPtr(MAD, isVolatile, A, AO, InsertBefore);
 
     assert(!isa<PointerType>(T));
 
     if (StructType* ST = dyn_cast<StructType>(T)) {
       Value* Result = UndefValue::get(toFlightType(T));
+      const StructLayout* SL = DL.getStructLayout(ST);
       for (unsigned Index = ST->getNumElements(); Index--;) {
         Type* InnerT = ST->getElementType(Index);
         Value *InnerP = GetElementPtrInst::Create(
-          ST, P, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
+          ST, MAD.P, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
           "filc_InnerP_struct", InsertBefore);
         Value* InnerAuxP = GetElementPtrInst::Create(
-          ST, AuxP, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
+          ST, MAD.AuxP, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
           "filc_InnerAuxP_struct", InsertBefore);
         Value* V = loadValueRecurseAfterCheck(
-          InnerT, InnerP, BaseAuxP, InnerAuxP, isVolatile, A, AO, SS, MK, InsertBefore);
+          InnerT, MAD.plus(InnerP, InnerAuxP, SL->getElementOffset(Index).getFixedValue()), isVolatile,
+          A, AO, SS, InsertBefore);
         Result = InsertValueInst::Create(Result, V, Index, "filc_insert_struct", InsertBefore);
       }
       return Result;
@@ -2055,15 +2306,17 @@ class Pizlonator {
     if (ArrayType* AT = dyn_cast<ArrayType>(T)) {
       Value* Result = UndefValue::get(toFlightType(AT));
       assert(static_cast<unsigned>(AT->getNumElements()) == AT->getNumElements());
+      Type* ET = AT->getElementType();
+      size_t ESize = DL.getTypeAllocSize(ET);
       for (unsigned Index = static_cast<unsigned>(AT->getNumElements()); Index--;) {
         Value *InnerP = GetElementPtrInst::Create(
-          AT, P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          AT, MAD.P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerP_array", InsertBefore);
         Value *InnerAuxP = GetElementPtrInst::Create(
-          AT, AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          AT, MAD.AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerAuxP_array", InsertBefore);
         Value* V = loadValueRecurseAfterCheck(
-          AT->getElementType(), InnerP, BaseAuxP, InnerAuxP, isVolatile, A, AO, SS, MK, InsertBefore);
+          ET, MAD.plus(InnerP, InnerAuxP, Index * ESize), isVolatile, A, AO, SS, InsertBefore);
         Result = InsertValueInst::Create(Result, V, Index, "filc_insert_array", InsertBefore);
       }
       return Result;
@@ -2071,15 +2324,17 @@ class Pizlonator {
       
     if (FixedVectorType* VT = dyn_cast<FixedVectorType>(T)) {
       Value* Result = UndefValue::get(toFlightType(VT));
+      Type* ET = VT->getElementType();
+      size_t ESize = DL.getTypeAllocSize(ET);
       for (unsigned Index = VT->getElementCount().getFixedValue(); Index--;) {
         Value *InnerP = GetElementPtrInst::Create(
-          VT, P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          VT, MAD.P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerP_vector", InsertBefore);
         Value *InnerAuxP = GetElementPtrInst::Create(
-          VT, AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          VT, MAD.AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerAuxP_vector", InsertBefore);
         Value* V = loadValueRecurseAfterCheck(
-          VT->getElementType(), InnerP, BaseAuxP, InnerAuxP, isVolatile, A, AO, SS, MK, InsertBefore);
+          ET, MAD.plus(InnerP, InnerAuxP, Index * ESize), isVolatile, A, AO, SS, InsertBefore);
         Result = InsertElementInst::Create(
           Result, V, ConstantInt::get(IntPtrTy, Index), "filc_insert_vector", InsertBefore);
       }
@@ -2095,22 +2350,13 @@ class Pizlonator {
     return nullptr;
   }
 
-  Value* loadValueRecurseAfterCheck(
-    Type* T, Value* P, AuxBaseAndPtr Aux,
-    bool isVolatile, Align A, AtomicOrdering AO, SyncScope::ID SS, MemoryKind MK,
-    Instruction* InsertBefore) {
-    return loadValueRecurseAfterCheck(
-      T, P, Aux.BaseP, Aux.P, isVolatile, A, AO, SS, MK, InsertBefore);
-  }
-  
   void storeValueRecurseAfterCheck(
-    Type* T, Value* V, Value* P, Value* AuxP,
-    bool isVolatile, Align A, AtomicOrdering AO, SyncScope::ID SS, MemoryKind MK,
-    Instruction* InsertBefore) {
+    Type* T, Value* V, MemoryAccessData MAD, bool isVolatile, Align A, AtomicOrdering AO,
+    SyncScope::ID SS, Instruction* InsertBefore) {
     A = std::min(DL.getABITypeAlign(T), A);
     
     if (!hasPtrs(T)) {
-      new StoreInst(V, P, isVolatile, lowAlign(T, A, AO), AO, SS, InsertBefore);
+      new StoreInst(V, MAD.P, isVolatile, lowAlign(T, A, AO), AO, SS, InsertBefore);
       return;
     }
     
@@ -2127,58 +2373,66 @@ class Pizlonator {
     assert(T != FlightPtrTy);
 
     if (T == RawPtrTy) {
-      storePtr(V, P, AuxP, isVolatile, A, AO, MK, InsertBefore);
+      storePtr(V, MAD, isVolatile, A, AO, InsertBefore);
       return;
     }
 
     assert(!isa<PointerType>(T));
 
     if (StructType* ST = dyn_cast<StructType>(T)) {
+      const StructLayout* SL = DL.getStructLayout(ST);
       for (unsigned Index = ST->getNumElements(); Index--;) {
         Type* InnerT = ST->getElementType(Index);
         Value *InnerP = GetElementPtrInst::Create(
-          ST, P, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
+          ST, MAD.P, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
           "filc_InnerP_struct", InsertBefore);
         Value *InnerAuxP = GetElementPtrInst::Create(
-          ST, AuxP, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
+          ST, MAD.AuxP, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, Index) },
           "filc_InnerAuxP_struct", InsertBefore);
         Value* InnerV = ExtractValueInst::Create(
           toFlightType(InnerT), V, { Index }, "filc_extract_struct", InsertBefore);
         storeValueRecurseAfterCheck(
-          InnerT, InnerV, InnerP, InnerAuxP, isVolatile, A, AO, SS, MK, InsertBefore);
+          InnerT, InnerV, MAD.plus(InnerP, InnerAuxP, SL->getElementOffset(Index).getFixedValue()),
+          isVolatile, A, AO, SS, InsertBefore);
       }
       return;
     }
       
     if (ArrayType* AT = dyn_cast<ArrayType>(T)) {
       assert(static_cast<unsigned>(AT->getNumElements()) == AT->getNumElements());
+      Type* ET = AT->getElementType();
+      size_t ESize = DL.getTypeAllocSize(ET);
       for (unsigned Index = static_cast<unsigned>(AT->getNumElements()); Index--;) {
         Value *InnerP = GetElementPtrInst::Create(
-          AT, P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          AT, MAD.P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerP_array", InsertBefore);
         Value *InnerAuxP = GetElementPtrInst::Create(
-          AT, AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          AT, MAD.AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerAuxP_array", InsertBefore);
         Value* InnerV = ExtractValueInst::Create(
           toFlightType(AT->getElementType()), V, { Index }, "filc_extract_array", InsertBefore);
         storeValueRecurseAfterCheck(
-          AT->getElementType(), InnerV, InnerP, InnerAuxP, isVolatile, A, AO, SS, MK, InsertBefore);
+          AT->getElementType(), InnerV, MAD.plus(InnerP, InnerAuxP, Index * ESize), isVolatile, A, AO,
+          SS, InsertBefore);
       }
       return;
     }
       
     if (FixedVectorType* VT = dyn_cast<FixedVectorType>(T)) {
+      Type* ET = VT->getElementType();
+      size_t ESize = DL.getTypeAllocSize(ET);
       for (unsigned Index = VT->getElementCount().getFixedValue(); Index--;) {
         Value *InnerP = GetElementPtrInst::Create(
-          VT, P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          VT, MAD.P, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerP_vector", InsertBefore);
         Value *InnerAuxP = GetElementPtrInst::Create(
-          VT, AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
+          VT, MAD.AuxP, { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(IntPtrTy, Index) },
           "filc_InnerAuxP_vector", InsertBefore);
         Value* InnerV = ExtractElementInst::Create(
           V, ConstantInt::get(IntPtrTy, Index), "filc_extract_vector", InsertBefore);
         storeValueRecurseAfterCheck(
-          VT->getElementType(), InnerV, InnerP, InnerAuxP, isVolatile, A, AO, SS, MK, InsertBefore);
+          VT->getElementType(), InnerV, MAD.plus(InnerP, InnerAuxP, Index * ESize), isVolatile, A, AO,
+          SS, InsertBefore);
       }
       return;
     }
@@ -2287,9 +2541,67 @@ class Pizlonator {
     return 0;
   }
 
+  PointerKind pointerKindDirect(Value* V) {
+    if (AllocaInst* AI = dyn_cast<AllocaInst>(V)) {
+      assert(AllocaKinds.count(AI));
+      return AllocaKinds[AI];
+    }
+    return PointerKind::Escaping;
+  }
+
+  PointerKind underlyingPointerKind(Value* V) {
+    return pointerKindDirect(underlyingPtr(V).P);
+  }
+
+  bool allocaHasSizeForUs(AllocaInst* AI) {
+    std::optional<TypeSize> AllocaSize = AI->getAllocationSize(DL);
+    if (!AllocaSize)
+      return false;
+    if (AllocaSize->isScalable())
+      return false;
+    uint64_t Result = AllocaSize->getFixedValue();
+    return (int64_t)Result >= 0 && (int32_t)Result == (int64_t)Result;
+  }
+
+  size_t originalAllocaSize(AllocaInst* AI) {
+    std::optional<TypeSize> AllocaSize = AI->getAllocationSize(DL);
+    assert(AllocaSize);
+    assert(!AllocaSize->isScalable());
+    return AllocaSize->getFixedValue();
+  }
+
+  size_t alignedAllocaSize(AllocaInst* AI) {
+    return (originalAllocaSize(AI) + GCMinAlign - 1) & -GCMinAlign;
+  }
+
+  size_t countPtrsForAlloca(AllocaInst* AI) {
+    return alignedAllocaSize(AI) / WordSize;
+  }
+  
+  size_t countPtrsForValue(Value* V) {
+    // FIXME: We should not be dealing with GEPs here at all.
+    Value* UP = underlyingPtr(V).P;
+    switch (pointerKindDirect(UP)) {
+    case PointerKind::Escaping:
+      return countPtrs(V->getType());
+    case PointerKind::LocalExplicit:
+      return 0;
+    case PointerKind::LocalNaked:
+      if (UP == V)
+        return countPtrsForAlloca(cast<AllocaInst>(V));
+      return 0;
+    }
+    llvm_unreachable("Bad pointer kind");
+    return 0;
+  }
+
   void computeFrameIndexMap(const std::vector<BasicBlock*>& Blocks) {
+    assert(FrameSize == SIZE_MAX);
+    assert(NumStackAuxes == SIZE_MAX);
+    
     FrameIndexMap.clear();
     FrameSize = NumSpecialFrameObjects;
+    NumStackAuxes = 0;
     HasSetjmps = false;
     UsesVastartOrZargs = false;
     SetjmpSetFrameIndex = SIZE_MAX;
@@ -2297,6 +2609,8 @@ class Pizlonator {
     assert(!Blocks.empty());
 
     auto LiveCast = [&] (Value* V) -> Value* {
+      if (underlyingPointerKind(V) != PointerKind::Escaping)
+        return nullptr;
       if (isa<Instruction>(V))
         return V;
       if (Argument* A = dyn_cast<Argument>(V)) {
@@ -2324,6 +2638,18 @@ class Pizlonator {
           Instruction* I = &*It;
           if (verbose)
             errs() << "Liveness dealing with: " << *I << "\n";
+
+          if (LifetimeMarker LM = analyzeLifetimeMarker(I)) {
+            switch (LM.LMK) {
+            case LifetimeMarkerKind::Start:
+              Live.erase(LM.AI);
+              break;
+            case LifetimeMarkerKind::End:
+              Live.insert(LM.AI);
+              break;
+            }
+            continue;
+          }
 
           Live.erase(I);
           
@@ -2370,25 +2696,41 @@ class Pizlonator {
       
       for (auto It = BB->rbegin(); It != BB->rend(); ++It) {
         Instruction* I = &*It;
-        
-        Live.erase(I);
 
-        size_t NumIPtrs = countPtrs(I->getType());
-        if (NumIPtrs) {
-          for (Value* LV : Live) {
-            size_t NumVIPtrs = countPtrs(LV->getType());
-            for (size_t LVPtrIndex = NumVIPtrs; LVPtrIndex--;) {
-              for (size_t IPtrIndex = NumIPtrs; IPtrIndex--;) {
-                Interference[ValuePtr(I, IPtrIndex)].insert(ValuePtr(LV, LVPtrIndex));
-                Interference[ValuePtr(LV, LVPtrIndex)].insert(ValuePtr(I, IPtrIndex));
+        Instruction* Defined = nullptr;
+        if (LifetimeMarker LM = analyzeLifetimeMarker(I)) {
+          if (LM.LMK == LifetimeMarkerKind::Start) {
+            Live.erase(LM.AI);
+            Defined = LM.AI;
+          }
+        } else {
+          Live.erase(I);
+          Defined = I;
+        }
+
+        if (Defined) {
+          size_t NumIPtrs = countPtrsForValue(Defined);
+          if (NumIPtrs) {
+            for (Value* LV : Live) {
+              size_t NumVIPtrs = countPtrsForValue(LV);
+              for (size_t LVPtrIndex = NumVIPtrs; LVPtrIndex--;) {
+                for (size_t IPtrIndex = NumIPtrs; IPtrIndex--;) {
+                  Interference[ValuePtr(Defined, IPtrIndex)].insert(ValuePtr(LV, LVPtrIndex));
+                  Interference[ValuePtr(LV, LVPtrIndex)].insert(ValuePtr(Defined, IPtrIndex));
+                }
               }
             }
           }
         }
 
-        for (Value* V : I->operand_values()) {
-          if (Value* LV = LiveCast(V))
-            Live.insert(LV);
+        if (LifetimeMarker LM = analyzeLifetimeMarker(I)) {
+          if (LM.LMK == LifetimeMarkerKind::End)
+            Live.insert(LM.AI);
+        } else {
+          for (Value* V : I->operand_values()) {
+            if (Value* LV = LiveCast(V))
+              Live.insert(LV);
+          }
         }
       }
     }
@@ -2407,6 +2749,22 @@ class Pizlonator {
       }
     }
 
+    // All indices for a value interfere with one another.
+    for (Argument& A : OldF->args()) {
+      for (size_t PtrIndex = countPtrs(A.getType()); PtrIndex--;) {
+        for (size_t APtrIndex = countPtrs(A.getType()); APtrIndex--;)
+          Interference[ValuePtr(&A, PtrIndex)].insert(ValuePtr(&A, APtrIndex));
+      }
+    }
+    for (BasicBlock* BB : Blocks) {
+      for (Instruction& I : *BB) {
+        for (size_t PtrIndex = countPtrsForValue(&I); PtrIndex--;) {
+          for (size_t APtrIndex = countPtrsForValue(&I); APtrIndex--;)
+            Interference[ValuePtr(&I, PtrIndex)].insert(ValuePtr(&I, APtrIndex));
+        }
+      }
+    }
+
     // Make this deterministic by having a known order in which we process stuff.
     std::vector<ValuePtr> Order;
     for (Argument& A : OldF->args()) {
@@ -2415,8 +2773,14 @@ class Pizlonator {
     }
     for (BasicBlock* BB : Blocks) {
       for (Instruction& I : *BB) {
-        for (size_t PtrIndex = countPtrs(I.getType()); PtrIndex--;)
-          Order.push_back(ValuePtr(&I, PtrIndex));
+        Value* UP = underlyingPtr(&I).P;
+        PointerKind PK = pointerKindDirect(UP);
+        if ((PK == PointerKind::LocalNaked || PK == PointerKind::LocalExplicit) && UP != &I)
+          FrameIndexMap[ValuePtr(&I, 0)] = FrameEntry(FrameEntryKind::Ignored, 0);
+        else {
+          for (size_t PtrIndex = countPtrsForValue(&I); PtrIndex--;)
+            Order.push_back(ValuePtr(&I, PtrIndex));
+        }
       }
     }
 
@@ -2425,13 +2789,20 @@ class Pizlonator {
       for (size_t FrameIndex = NumSpecialFrameObjects; ; FrameIndex++) {
         bool Ok = true;
         for (ValuePtr AIP : Adjacency) {
-          if (FrameIndexMap.count(AIP) && FrameIndexMap[AIP] == FrameIndex) {
+          if (FrameIndexMap.count(AIP) && FrameIndexMap[AIP].Index == FrameIndex) {
             Ok = false;
             break;
           }
         }
         if (Ok) {
-          FrameIndexMap[IP] = FrameIndex;
+          FrameEntryKind FEK;
+          PointerKind PK = pointerKindDirect(IP.V);
+          assert(PK == PointerKind::Escaping || PK == PointerKind::LocalNaked);
+          if (PK == PointerKind::LocalNaked)
+            FEK = FrameEntryKind::LowerFromStackAux;
+          else
+            FEK = FrameEntryKind::Lower;
+          FrameIndexMap[IP] = FrameEntry(FEK, FrameIndex);
           FrameSize = std::max(FrameSize, FrameIndex + 1);
           break;
         }
@@ -2460,6 +2831,76 @@ class Pizlonator {
     }
     if (UsesVastartOrZargs)
       SnapshottedArgsFrameIndex = FrameSize++;
+
+    std::unordered_map<AllocaInst*, std::unordered_set<AllocaInst*>> StackAuxInterference;
+
+    for (size_t BlockIndex = Blocks.size(); BlockIndex--;) {
+      BasicBlock* BB = Blocks[BlockIndex];
+      std::unordered_set<AllocaInst*> Live;
+      for (Value* V : LiveAtTail[BB]) {
+        if (pointerKindDirect(V) == PointerKind::LocalExplicit)
+          Live.insert(cast<AllocaInst>(V));
+      }
+      
+      for (auto It = BB->rbegin(); It != BB->rend(); ++It) {
+        Instruction* I = &*It;
+        
+        if (LifetimeMarker LM = analyzeLifetimeMarker(I)) {
+          if (LM.LMK == LifetimeMarkerKind::Start) {
+            Live.erase(LM.AI);
+            for (AllocaInst* LAI : Live) {
+              StackAuxInterference[LM.AI].insert(LAI);
+              StackAuxInterference[LAI].insert(LM.AI);
+            }
+          }
+        }
+
+        if (LifetimeMarker LM = analyzeLifetimeMarker(I)) {
+          if (LM.LMK == LifetimeMarkerKind::End)
+            Live.insert(LM.AI);
+        }
+      }
+    }
+
+    if (verbose)
+      errs() << "Before explicit stack aux allocation, FrameSize = " << FrameSize << "\n";
+    
+    std::vector<AllocaInst*> StackAuxOrder;
+    for (BasicBlock* BB : Blocks) {
+      for (Instruction& I : *BB) {
+        if (pointerKindDirect(&I) == PointerKind::LocalExplicit)
+          StackAuxOrder.push_back(cast<AllocaInst>(&I));
+      }
+    }
+
+    for (AllocaInst* AI : StackAuxOrder) {
+      const std::unordered_set<AllocaInst*>& Adjacency = StackAuxInterference[AI];
+      for (size_t FrameIndex = FrameSize; ; FrameIndex++) {
+        bool Ok = true;
+        for (AllocaInst* AAI : Adjacency) {
+          if (FrameIndexMap.count(ValuePtr(AAI, 0))
+              && FrameIndexMap[ValuePtr(AAI, 0)].Index == FrameIndex) {
+            Ok = false;
+            break;
+          }
+        }
+        if (Ok) {
+          if (verbose) {
+            errs() << "For explicit local " << AI->getName() << " using lowers index " << FrameIndex
+                   << "\n";
+          }
+          FrameIndexMap[ValuePtr(AI, 0)] = FrameEntry(FrameEntryKind::ExplicitStackAux, FrameIndex);
+          NumStackAuxes = std::max(NumStackAuxes, FrameIndex + 1 - FrameSize);
+          break;
+        }
+      }
+    }
+
+    FrameSize += NumStackAuxes;
+    if (verbose) {
+      errs() << "After explicit stack aux allocation, NumStackAuxes = " << NumStackAuxes
+             << ", FrameSize = " << FrameSize << "\n";
+    }
 
     for (BasicBlock* BB : Blocks) {
       for (Instruction& I : *BB) {
@@ -2493,6 +2934,8 @@ class Pizlonator {
   }
 
   void recordLowerAtIndex(Value* Lower, size_t FrameIndex, Instruction* InsertBefore) {
+    if (verbose)
+      errs() << "Recording lower at " << FrameIndex << "\n";
     (new StoreInst(Lower, recordedLowerPtrAtIndex(FrameIndex, InsertBefore), InsertBefore))
       ->setDebugLoc(InsertBefore->getDebugLoc());
   }
@@ -2506,9 +2949,18 @@ class Pizlonator {
 
     if (T == RawPtrTy) {
       assert(FrameIndexMap.count(ValuePtr(ValueKey, PtrIndex)));
-      size_t FrameIndex = FrameIndexMap[ValuePtr(ValueKey, PtrIndex)];
-      assert(FrameIndex >= NumSpecialFrameObjects);
-      recordLowerAtIndex(flightPtrLower(V, InsertBefore), FrameIndex, InsertBefore);
+      FrameEntry FE = FrameIndexMap[ValuePtr(ValueKey, PtrIndex)];
+      switch (FE.FEK) {
+      case FrameEntryKind::Ignored:
+        break;
+      case FrameEntryKind::Lower:
+        assert(FE.Index >= NumSpecialFrameObjects);
+        recordLowerAtIndex(flightPtrLower(V, InsertBefore), FE.Index, InsertBefore);
+        break;
+      default:
+        llvm_unreachable("Invalid FrameEntryKind");
+        break;
+      }
       PtrIndex++;
       return;
     }
@@ -2726,22 +3178,60 @@ class Pizlonator {
     (new StoreInst(Origin, OriginPtr, InsertBefore))->setDebugLoc(InsertBefore->getDebugLoc());
   }
 
-  AuxBaseAndPtr auxPtrForOperand(Value* P, Instruction* I, unsigned OperandIdx,
-                                 Instruction* InsertBefore) {
-    assert(AuxBaseVarOperands.count(I));
-    assert(OperandIdx < AuxBaseVarOperands[I].size());
-    AllocaInst* AuxBaseVar = AuxBaseVarOperands[I][OperandIdx];
-    assert(AuxBaseVar);
-    if (verbose) {
-      errs() << "For " << *I << " and operand index " << OperandIdx << " got AuxBaseVar = "
-             << *AuxBaseVar << "\n";
+  FullMemoryAccessData accessDataForOperand(Value* P, Instruction* I, unsigned OperandIdx,
+                                            Instruction* InsertBefore) {
+    if (verbose)
+      errs() << "Looking at " << *I << " and operand index " << OperandIdx << "\n";
+    assert(PtrOperandDatas.count(I));
+    assert(OperandIdx < PtrOperandDatas[I].size());
+    FullMemoryAccessData FMAD;
+    FMAD.POD = PtrOperandDatas[I][OperandIdx];
+    FMAD.MAD.P = flightPtrPtr(P, InsertBefore);
+    Value* Offset;
+    if (FMAD.POD.PK == PointerKind::Escaping) {
+      if (verbose) {
+        errs() << "For " << *I << " and operand index " << OperandIdx << " got AuxBaseVar = "
+               << *FMAD.POD.AuxBaseVar << "\n";
+      }
+      Instruction* AuxBasePI = new LoadInst(
+        RawPtrTy, FMAD.POD.AuxBaseVar, "filc_aux_base_ptr", InsertBefore);
+      AuxBasePI->setDebugLoc(InsertBefore->getDebugLoc());
+      FMAD.MAD.AuxBaseP = AuxBasePI;
+      FMAD.MAD.MK = MemoryKind::Heap;
+      Offset = flightPtrOffset(P, InsertBefore);
+    } else {
+      if (verbose) {
+        errs() << "For " << *I << " and operand index " << OperandIdx << " got OrigAI  = "
+               << *FMAD.POD.LAD.OrigAI << "\n";
+      }
+      FMAD.MAD.AuxBaseP = FMAD.POD.LAD.Aux;
+      if (FMAD.POD.PK == PointerKind::LocalExplicit) {
+        FMAD.MAD.MK = MemoryKind::LocalExplicit;
+        Instruction* PayloadAsInt = new PtrToIntInst(
+          FMAD.POD.LAD.Payload, IntPtrTy, "filc_local_payload_as_int", InsertBefore);
+        PayloadAsInt->setDebugLoc(InsertBefore->getDebugLoc());
+        Instruction* OffsetI = BinaryOperator::Create(
+          Instruction::Sub, flightPtrPtrAsInt(P, InsertBefore), PayloadAsInt, "filc_local_ptr_offset",
+          InsertBefore);
+        OffsetI->setDebugLoc(OffsetI->getDebugLoc());
+        Offset = OffsetI;
+      } else {
+        assert(FMAD.POD.PK == PointerKind::LocalNaked);
+        assert(FMAD.POD.PAR.R == PtrRandomness::NotRandom);
+        FMAD.MAD.OrigAI = FMAD.POD.LAD.OrigAI;
+        FMAD.MAD.MK = MemoryKind::LocalNaked;
+        FMAD.MAD.LocalOffset = FMAD.POD.PAR.Offset;
+        FMAD.MAD.Size = FMAD.POD.LAD.Size;
+        assert(!(FMAD.MAD.Size % WordSize));
+        Offset = ConstantInt::get(IntPtrTy, FMAD.MAD.LocalOffset);
+      }
     }
-    Instruction* AuxBaseP = new LoadInst(RawPtrTy, AuxBaseVar, "filc_aux_base_ptr", InsertBefore);
-    AuxBaseP->setDebugLoc(InsertBefore->getDebugLoc());
-    Instruction* AuxP = GetElementPtrInst::Create(
-      Int8Ty, AuxBaseP, flightPtrOffset(P, InsertBefore), "filc_aux_ptr", InsertBefore);
-    AuxP->setDebugLoc(InsertBefore->getDebugLoc());
-    return AuxBaseAndPtr(AuxBaseVar, AuxBaseP, AuxP);
+    Instruction* AuxPI = GetElementPtrInst::Create(
+      Int8Ty, FMAD.MAD.AuxBaseP, Offset, "filc_aux_ptr", InsertBefore);
+    AuxPI->setDebugLoc(InsertBefore->getDebugLoc());
+    FMAD.MAD.AuxP = AuxPI;
+    FMAD.MAD.validate();
+    return FMAD;
   }
 
   void emitChecks(std::vector<AccessCheckWithDI> Checks, Instruction* Inst) {
@@ -2754,24 +3244,20 @@ class Pizlonator {
     for (size_t Index = 0; Index < Checks.size();) {
       Value* CanonicalPtr = Checks[Index].CanonicalPtr;
       Value* FlightPtr = lowerConstantValue(CanonicalPtr, Inst);
+      Value* UnderlyingPtr = underlyingPtr(CanonicalPtr).P;
+      PointerKind PK = pointerKindDirect(UnderlyingPtr);
+      LocalAllocaData LAD;
+      if (PK != PointerKind::Escaping) {
+        AllocaInst* AI = cast<AllocaInst>(UnderlyingPtr);
+        assert(LocalAllocaDatas.count(AI));
+        LAD = LocalAllocaDatas[AI];
+      }
 
       auto ptrWithOffset = [&] (int64_t Offset, Instruction* InsertBefore) {
         assert((int32_t)Offset == Offset);
         assert(FlightPtr);
         
-        if (!useAsmForOffsets)
-          return flightPtrWithOffset(FlightPtr, ConstantInt::get(IntPtrTy, Offset), InsertBefore);
-        
-        Value* FlightP = flightPtrPtr(FlightPtr, InsertBefore);
-        std::ostringstream buf;
-        buf << "leaq " << Offset << "($1), $0";
-        FunctionCallee Asm = InlineAsm::get(
-          FunctionType::get(RawPtrTy, { RawPtrTy }, false),
-          buf.str(), "=r,r,~{dirflag},~{fpsr},~{flags}",
-          /*hasSideEffects=*/false);
-        Instruction* OffsetP = CallInst::Create(Asm, { FlightP }, "filc_lea", InsertBefore);
-        OffsetP->setDebugLoc(Inst->getDebugLoc());
-        return flightPtrWithPtr(FlightPtr, OffsetP, InsertBefore);
+        return flightPtrWithOffset(FlightPtr, ConstantInt::get(IntPtrTy, Offset), InsertBefore);
       };
       
       int64_t Alignment = 0;
@@ -2856,11 +3342,27 @@ class Pizlonator {
           }
         }
 
+        if (PK == PointerKind::Escaping) {
+          CallInst::Create(
+            OptimizedAlignmentContradiction,
+            { FlightPtr,
+              optimizedAlignmentContradictionOrigin(Alignments, Inst->getDebugLoc(), RangeDI) },
+            "", Inst)->setDebugLoc(Inst->getDebugLoc());
+          continue;
+        }
+
+        Instruction* PayloadAsInt = new PtrToIntInst(
+          LAD.Payload, IntPtrTy, "filc_local_payload_as_int", Inst);
+        PayloadAsInt->setDebugLoc(Inst->getDebugLoc());
+        Instruction* Offset = BinaryOperator::Create(
+          Instruction::Sub, flightPtrPtrAsInt(FlightPtr, Inst), PayloadAsInt, "filc_local_offset",
+          Inst);
+        Offset->setDebugLoc(Inst->getDebugLoc());
         CallInst::Create(
-          OptimizedAlignmentContradiction, {
-            FlightPtr,
-            optimizedAlignmentContradictionOrigin(Alignments, Inst->getDebugLoc(), RangeDI) }, "",
-          Inst)->setDebugLoc(Inst->getDebugLoc());
+          OptimizedStackAlignmentContradiction,
+          { Offset, ConstantInt::get(IntPtrTy, LAD.Size),
+            optimizedAlignmentContradictionOrigin(Alignments, Inst->getDebugLoc(), RangeDI) },
+          "", Inst)->setDebugLoc(Inst->getDebugLoc());
         continue;
       }
 
@@ -2905,20 +3407,41 @@ class Pizlonator {
       if (HasRangeCheck) {
         RangeFailB = BasicBlock::Create(C, "filc_range_fail_block", NewF);
         Instruction* RangeFailTerm = new UnreachableInst(C, RangeFailB);
-        CallInst::Create(
-          OptimizedAccessCheckFail,
-          { ptrWithOffset(LowerBoundOffset, RangeFailTerm),
-            optimizedAccessCheckOrigin(
-              HasUpperBound ? UpperBoundOffset - LowerBoundOffset : 0, Alignment,
-              PositiveModulo(AlignmentOffset - LowerBoundOffset, Alignment),
-              NeedsWritable, Inst->getDebugLoc(), RangeDI) },
-          "", RangeFailTerm)->setDebugLoc(Inst->getDebugLoc());
+        if (PK == PointerKind::Escaping) {
+          CallInst::Create(
+            OptimizedAccessCheckFail,
+            { ptrWithOffset(LowerBoundOffset, RangeFailTerm),
+              optimizedAccessCheckOrigin(
+                HasUpperBound ? UpperBoundOffset - LowerBoundOffset : 0, Alignment,
+                PositiveModulo(AlignmentOffset - LowerBoundOffset, Alignment),
+                NeedsWritable, Inst->getDebugLoc(), RangeDI) },
+            "", RangeFailTerm)->setDebugLoc(Inst->getDebugLoc());
+        } else {
+          Instruction* PayloadAsInt = new PtrToIntInst(
+            LAD.Payload, IntPtrTy, "filc_local_payload_as_int", RangeFailTerm);
+          PayloadAsInt->setDebugLoc(Inst->getDebugLoc());
+          Instruction* Offset = BinaryOperator::Create(
+            Instruction::Sub,
+            flightPtrPtrAsInt(ptrWithOffset(LowerBoundOffset, RangeFailTerm), RangeFailTerm),
+            PayloadAsInt, "filc_local_offset", RangeFailTerm);
+          Offset->setDebugLoc(Inst->getDebugLoc());
+          CallInst::Create(
+            OptimizedStackAccessCheckFail,
+            { Offset, ConstantInt::get(IntPtrTy, LAD.Size),
+              optimizedAccessCheckOrigin(
+                HasUpperBound ? UpperBoundOffset - LowerBoundOffset : 0, Alignment,
+                PositiveModulo(AlignmentOffset - LowerBoundOffset, Alignment),
+                NeedsWritable, Inst->getDebugLoc(), RangeDI) },
+            "", RangeFailTerm)->setDebugLoc(Inst->getDebugLoc());
+        }
       }
 
       for (size_t SubIndex = BeginIndex; SubIndex < EndIndex; ++SubIndex) {
         AccessCheckWithDI AC = Checks[SubIndex];
         switch (AC.CK) {
         case CheckKind::ValidObject: {
+          if (PK != PointerKind::Escaping)
+            break;
           ICmpInst* NullObject = new ICmpInst(
             Inst, ICmpInst::ICMP_EQ, flightPtrLower(FlightPtr, Inst), RawNull,
             "filc_null_access_object");
@@ -2952,6 +3475,8 @@ class Pizlonator {
         }
 
         case CheckKind::CanWrite: {
+          if (PK != PointerKind::Escaping)
+            break;
           assert(NeedsWritable);
           BinaryOperator* Masked = BinaryOperator::Create(
             Instruction::And, flagsForLower(flightPtrLower(FlightPtr, Inst), Inst),
@@ -2968,6 +3493,8 @@ class Pizlonator {
         }
 
         case CheckKind::NotFree: {
+          if (PK != PointerKind::Escaping)
+            break;
           assert(HasFreeCheck);
           if ((HasLowerBound && HasUpperBound) || NeedsWritable)
             break;
@@ -2988,7 +3515,16 @@ class Pizlonator {
           assert(HasLowerBound);
           assert(HasUpperBound);
           assert(UpperBoundOffset > LowerBoundOffset);
-          Value* Upper = upperForLower(flightPtrLower(FlightPtr, Inst), Inst);
+          Value* Upper;
+          if (PK == PointerKind::Escaping)
+            Upper = upperForLower(flightPtrLower(FlightPtr, Inst), Inst);
+          else {
+            assert(LAD.Size != UINT64_MAX);
+            Instruction* GEP = GetElementPtrInst::Create(
+              Int8Ty, LAD.Payload, { ConstantInt::get(IntPtrTy, LAD.Size) }, "filc_stack_upper", Inst);
+            GEP->setDebugLoc(Inst->getDebugLoc());
+            Upper = GEP;
+          }
           Value* Ptr = flightPtrPtr(ptrWithOffset(LowerBoundOffset, Inst), Inst);
           Instruction* IsBelowUpper;
           if (UpperBoundOffset - LowerBoundOffset == Alignment
@@ -3020,9 +3556,14 @@ class Pizlonator {
 
         case CheckKind::LowerBound: {
           assert(HasLowerBound);
+          Value* Lower;
+          if (PK == PointerKind::Escaping)
+            Lower = flightPtrLower(FlightPtr, Inst);
+          else
+            Lower = LAD.Payload;
           Instruction* IsBelowLower = new ICmpInst(
             Inst, ICmpInst::ICMP_ULT, flightPtrPtr(ptrWithOffset(LowerBoundOffset, Inst), Inst),
-            flightPtrLower(FlightPtr, Inst), "filc_ptr_below_lower");
+            Lower, "filc_ptr_below_lower");
           IsBelowLower->setDebugLoc(Inst->getDebugLoc());
           SplitBlockAndInsertIfThen(
             expectFalse(IsBelowLower, Inst), Inst, false, nullptr, nullptr, nullptr, RangeFailB);
@@ -3030,6 +3571,8 @@ class Pizlonator {
         }
 
         case CheckKind::GetAuxPtr: {
+          if (PK != PointerKind::Escaping)
+            break;
           AllocaInst* AuxBaseVar = canonicalPtrAuxBaseVar(CanonicalPtr);
           (new StoreInst(auxPtrForLower(flightPtrLower(FlightPtr, Inst), Inst), AuxBaseVar,
                          Inst))->setDebugLoc(Inst->getDebugLoc());
@@ -3037,6 +3580,8 @@ class Pizlonator {
         }
 
         case CheckKind::EnsureAuxPtr: {
+          if (PK != PointerKind::Escaping)
+            break;
           AllocaInst* AuxBaseVar = canonicalPtrAuxBaseVar(CanonicalPtr);
           Instruction* AuxBase = new LoadInst(RawPtrTy, AuxBaseVar, "filc_get_aux_ptr", Inst);
           AuxBase->setDebugLoc(Inst->getDebugLoc());
@@ -3204,6 +3749,27 @@ class Pizlonator {
     llvm_unreachable("Should not get here.");
   }
 
+  PtrAndRandom underlyingPtr(Value* P) {
+    PtrAndRandom PAR(P, PtrRandomness::NotRandom, 0);
+    while (GetElementPtrInst* GEP = dyn_cast<GetElementPtrInst>(PAR.P)) {
+      PAR.P = GEP->getPointerOperand();
+      APInt OffsetAP(64, 0, false);
+      if (GEP->accumulateConstantOffset(DLBefore, OffsetAP))
+        PAR.Offset += OffsetAP.getZExtValue();
+      else
+        PAR.R = PtrRandomness::Random;
+    }
+    if ((int32_t)PAR.Offset != PAR.Offset)
+      PAR.R = PtrRandomness::Random;
+    if (PAR.R == PtrRandomness::Random)
+      PAR.Offset = 0;
+    return PAR;
+  }
+
+  PtrAndRandom underlyingPtr(PtrAndOffset PAO) {
+    return underlyingPtr(PAO.HighP).plus(PAO.Offset);
+  }
+
   PtrAndOffset canonicalizePtr(Value* HighP) {
     Value* OriginalHighP = HighP;
     int64_t Offset = 0;
@@ -3333,7 +3899,7 @@ class Pizlonator {
       return;
     }
 
-    if (isOptMemmoveCall(I)) {
+    if (isInlineableMemmoveCall(I)) {
       CallBase* CI = cast<CallBase>(I);
       size_t Count = cast<ConstantInt>(CI->getArgOperand(2))->getZExtValue();
       bool CouldHavePtrs = Count >= WordSize;
@@ -3381,32 +3947,63 @@ class Pizlonator {
       FT->getParamType(2) == IntPtrTy;
   }
 
-  bool isCallToOptMemmove(CallBase* CI) {
+  bool isCallToRecognizableMemmove(CallBase* CI) {
     if (Function* F = dyn_cast<Function>(CI->getCalledOperand())) {
       FunctionType* FT = CI->getFunctionType();
-      if ((F->isIntrinsic() && (F->getIntrinsicID() == Intrinsic::memcpy ||
-                                F->getIntrinsicID() == Intrinsic::memcpy_inline ||
-                                F->getIntrinsicID() == Intrinsic::memmove)) ||
-          ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
-           && isMemmoveFT(FT))) {
-        if (ConstantInt* C = dyn_cast<ConstantInt>(CI->getArgOperand(2))) {
-          if (C->getBitWidth() <= 64) {
-            size_t Count = C->getZExtValue();
-            // This returns false for zero-length memmoves. We shouldn't see those ever, but if we
-            // did then we don't want to optimize them since the optimizations strongly (but subtly)
-            // assume that the count is not zero. Also return zero for any count that might
-            // overflow.
-            return Count && (uint32_t)(int32_t)Count == Count;
-          }
+      return ((F->isIntrinsic()
+               && (F->getIntrinsicID() == Intrinsic::memcpy ||
+                   F->getIntrinsicID() == Intrinsic::memcpy_inline ||
+                   F->getIntrinsicID() == Intrinsic::memmove)) ||
+              ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
+               && isMemmoveFT(FT)));
+    }
+    return false;
+  }
+
+  bool isCallToNonescapingMemmove(CallBase* CI) {
+    if (!isCallToRecognizableMemmove(CI))
+      return false;
+    if (IntrinsicInst* II = dyn_cast<IntrinsicInst>(CI)) {
+      assert(II->getIntrinsicID() == Intrinsic::memcpy ||
+             II->getIntrinsicID() == Intrinsic::memcpy_inline ||
+             II->getIntrinsicID() == Intrinsic::memmove);
+      return isa<ConstantInt>(CI->getArgOperand(3))
+        && cast<ConstantInt>(CI->getArgOperand(3))->isZero();
+    }
+    return true;
+  }
+
+  bool isCallToInlineableMemmove(CallBase* CI) {
+    if (isCallToNonescapingMemmove(CI)) {
+      if (ConstantInt* C = dyn_cast<ConstantInt>(CI->getArgOperand(2))) {
+        if (C->getBitWidth() <= 64) {
+          size_t Count = C->getZExtValue();
+          // This returns false for zero-length memmoves. We shouldn't see those ever, but if we
+          // did then we don't want to optimize them since the optimizations strongly (but subtly)
+          // assume that the count is not zero. Also return zero for any count that might
+          // overflow.
+          return Count && (uint32_t)(int32_t)Count == Count;
         }
       }
     }
     return false;
   }
 
-  bool isOptMemmoveCall(Instruction* I) {
+  bool isRecognizableMemmoveCall(Instruction* I) {
     if (CallBase* CI = dyn_cast<CallBase>(I))
-      return isCallToOptMemmove(CI);
+      return isCallToRecognizableMemmove(CI);
+    return false;
+  }
+
+  bool isNonescapingMemmoveCall(Instruction* I) {
+    if (CallBase* CI = dyn_cast<CallBase>(I))
+      return isCallToNonescapingMemmove(CI);
+    return false;
+  }
+
+  bool isInlineableMemmoveCall(Instruction* I) {
+    if (CallBase* CI = dyn_cast<CallBase>(I))
+      return isCallToInlineableMemmove(CI);
     return false;
   }
 
@@ -3532,7 +4129,7 @@ class Pizlonator {
       return;
     }
 
-    if (isOptMemmoveCall(I)) {
+    if (isInlineableMemmoveCall(I)) {
       CallBase* CI = cast<CallBase>(I);
       // FIXME: This callback situation is confusing and imperfect.
       // FIXME: We actually know more about the alignment than what we're passing here.
@@ -3593,12 +4190,35 @@ class Pizlonator {
     });
   }
 
-  void captureAuxBaseVars(const std::vector<Instruction*>& Instructions) {
+  void capturePointerOperands(const std::vector<Instruction*>& Instructions) {
     AuxBaseVarCreationAllowed = true;
     for (Instruction* I : Instructions) {
-      forEachCanonicalPtrOperand(I, [&] (PtrAndOffset PAO) {
-        AuxBaseVarOperands[I].push_back(canonicalPtrAuxBaseVar(PAO.HighP));
-      });
+      auto DealWithPtr = [&] (PtrAndOffset PAO) {
+        PtrOperandData POD;
+        POD.PAR = underlyingPtr(PAO);
+        POD.PK = pointerKindDirect(POD.PAR.P);
+        if (POD.PK == PointerKind::Escaping)
+          POD.AuxBaseVar = canonicalPtrAuxBaseVar(PAO.HighP);
+        else {
+          AllocaInst* AI = cast<AllocaInst>(POD.PAR.P);
+          assert(LocalAllocaDatas.count(AI));
+          POD.LAD = LocalAllocaDatas[AI];
+          if (POD.PK == PointerKind::LocalNaked)
+            assert(POD.PAR.R == PtrRandomness::NotRandom);
+        }
+        PtrOperandDatas[I].push_back(POD);
+      };
+
+      // The forEachChecks path won't consider non-opt memmoves, but our memmove lowering for stack
+      // locals needs us to consider the non-opt ones. YUCK!
+      if (isRecognizableMemmoveCall(I)) {
+        CallBase* CI = cast<CallBase>(I);
+        DealWithPtr(canonicalizePtr(CI->getArgOperand(0)));
+        DealWithPtr(canonicalizePtr(CI->getArgOperand(1)));
+        continue;
+      }
+      
+      forEachCanonicalPtrOperand(I, DealWithPtr);
     }
     AuxBaseVarCreationAllowed = false;
   }
@@ -4779,8 +5399,8 @@ class Pizlonator {
       switch (AI.AK) {
       case ArgKind::Direct:
         Result = loadValueRecurseAfterCheck(
-          ArgT, PayloadPtr, AuxAlloca, AuxPtr, false, DL.getABITypeAlign(ArgT),
-          AtomicOrdering::NotAtomic, SyncScope::System, MemoryKind::CC, InsertBefore);
+          ArgT, MemoryAccessData(PayloadPtr, AuxPtr, AuxAlloca, MemoryKind::CC), false,
+          DL.getABITypeAlign(ArgT), AtomicOrdering::NotAtomic, SyncScope::System, InsertBefore);
         break;
       case ArgKind::ByVal:
         Result = CallInst::Create(
@@ -4867,8 +5487,8 @@ class Pizlonator {
       switch (AI.AK) {
       case ArgKind::Direct: {
         storeValueRecurseAfterCheck(
-          ArgT, Vs[Index], PayloadPtr, AuxPtr, false, DL.getABITypeAlign(ArgT),
-          AtomicOrdering::NotAtomic, SyncScope::System, MemoryKind::CC, InsertBefore);
+          ArgT, Vs[Index], MemoryAccessData(PayloadPtr, AuxPtr, AuxAlloca, MemoryKind::CC), false,
+          DL.getABITypeAlign(ArgT), AtomicOrdering::NotAtomic, SyncScope::System, InsertBefore);
         break;
       }
       case ArgKind::ByVal: {
@@ -5490,9 +6110,16 @@ class Pizlonator {
         getOrigin(II->getDebugLoc()) },
       "", FailTerm);
   }
-
+  
+  static constexpr unsigned InlineMemmoveDstSizeLimit = 40;
+  
   void emitOptMemmove(Value* Dst, Value* Src, size_t Count, Instruction* I) {
-    if (Count <= 40) {
+    FullMemoryAccessData DstFMAD = accessDataForOperand(Dst, I, 0, I);
+    FullMemoryAccessData SrcFMAD = accessDataForOperand(Src, I, 1, I);
+    
+    if (Count <= InlineMemmoveDstSizeLimit
+        || DstFMAD.MAD.MK == MemoryKind::LocalNaked
+        || SrcFMAD.MAD.MK == MemoryKind::LocalNaked) {
       // Let's consider the number of ptr words that have to be loaded and stored for different
       // counts.
       //
@@ -5704,8 +6331,6 @@ class Pizlonator {
         "", I)->setDebugLoc(I->getDebugLoc());
 
       // Copy the lowers.
-      AuxBaseAndPtr DstAux = auxPtrForOperand(Dst, I, 0, I);
-      AuxBaseAndPtr SrcAux = auxPtrForOperand(Src, I, 1, I);
       std::vector<AllocaInst*> LowerAllocas;
       for (size_t Index = (Count + 7) / 8; Index--;) {
         AllocaInst* Alloca = new AllocaInst(
@@ -5749,7 +6374,8 @@ class Pizlonator {
       SplitBlockAndInsertIfThenElse(AllNull, I, &AllNullTerm, &NonNullTerm);
       BasicBlock* AllNullB = AllNullTerm->getParent();
       Instruction* SrcAuxIsNull = new ICmpInst(
-        BeforeNullCheck, ICmpInst::ICMP_EQ, SrcAux.BaseP, RawNull, "filc_memmove_src_aux_is_null");
+        BeforeNullCheck, ICmpInst::ICMP_EQ, SrcFMAD.MAD.AuxBaseP, RawNull,
+        "filc_memmove_src_aux_is_null");
       SrcAuxIsNull->setDebugLoc(I->getDebugLoc());
       SplitBlockAndInsertIfThen(
         SrcAuxIsNull, BeforeNullCheck, false, nullptr, nullptr, nullptr, AllNullB);
@@ -5801,34 +6427,40 @@ class Pizlonator {
             IntPtrTy, SrcAuxP, "filc_memmove_load_lower", false, Align(WordSize),
             AtomicOrdering::Monotonic, SyncScope::System, Before);
           Load->setDebugLoc(I->getDebugLoc());
-          Instruction* Masked = BinaryOperator::Create(
-            Instruction::And, Load, ConstantInt::get(IntPtrTy, AtomicBoxBit),
-            "filc_memmove_lower_atomic_box_bit", Before);
-          Masked->setDebugLoc(I->getDebugLoc());
-          Instruction* IsNotBox = new ICmpInst(
-            Before, ICmpInst::ICMP_EQ, Masked, ConstantInt::get(IntPtrTy, 0),
-            "filc_memmove_lower_is_not_box");
-          IsNotBox->setDebugLoc(I->getDebugLoc());
-          Instruction* NotBoxTerm;
-          Instruction* BoxTerm;
-          SplitBlockAndInsertIfThenElse(expectTrue(IsNotBox, Before), Before, &NotBoxTerm, &BoxTerm);
-          (new StoreInst(Load, LowerAllocas[Index], NotBoxTerm))->setDebugLoc(I->getDebugLoc());
-          Instruction* BoxAsInt = BinaryOperator::Create(
-            Instruction::And, Load, ConstantInt::get(IntPtrTy, ~AtomicBoxBit),
-            "filc_memmove_box_as_int", BoxTerm);
-          BoxAsInt->setDebugLoc(I->getDebugLoc());
-          Instruction* Box = new IntToPtrInst(BoxAsInt, RawPtrTy, "filc_memmove_box", BoxTerm);
-          Box->setDebugLoc(I->getDebugLoc());
-          Instruction* LowerFromBoxLoad = new LoadInst(
-            IntPtrTy, flightPtrLowerPtr(Box, BoxTerm), "filc_memmove_lower_from_box", false,
-            Align(WordSize), AtomicOrdering::Monotonic, SyncScope::System, BoxTerm);
-          LowerFromBoxLoad->setDebugLoc(I->getDebugLoc());
-          (new StoreInst(LowerFromBoxLoad, LowerAllocas[Index], BoxTerm))
-            ->setDebugLoc(I->getDebugLoc());
+          if (SrcFMAD.MAD.MK == MemoryKind::Heap) {
+            Instruction* Masked = BinaryOperator::Create(
+              Instruction::And, Load, ConstantInt::get(IntPtrTy, AtomicBoxBit),
+              "filc_memmove_lower_atomic_box_bit", Before);
+            Masked->setDebugLoc(I->getDebugLoc());
+            Instruction* IsNotBox = new ICmpInst(
+              Before, ICmpInst::ICMP_EQ, Masked, ConstantInt::get(IntPtrTy, 0),
+              "filc_memmove_lower_is_not_box");
+            IsNotBox->setDebugLoc(I->getDebugLoc());
+            Instruction* NotBoxTerm;
+            Instruction* BoxTerm;
+            SplitBlockAndInsertIfThenElse(expectTrue(IsNotBox, Before), Before, &NotBoxTerm, &BoxTerm);
+            (new StoreInst(Load, LowerAllocas[Index], NotBoxTerm))->setDebugLoc(I->getDebugLoc());
+            Instruction* BoxAsInt = BinaryOperator::Create(
+              Instruction::And, Load, ConstantInt::get(IntPtrTy, ~AtomicBoxBit),
+              "filc_memmove_box_as_int", BoxTerm);
+            BoxAsInt->setDebugLoc(I->getDebugLoc());
+            Instruction* Box = new IntToPtrInst(BoxAsInt, RawPtrTy, "filc_memmove_box", BoxTerm);
+            Box->setDebugLoc(I->getDebugLoc());
+            Instruction* LowerFromBoxLoad = new LoadInst(
+              IntPtrTy, flightPtrLowerPtr(Box, BoxTerm), "filc_memmove_lower_from_box", false,
+              Align(WordSize), AtomicOrdering::Monotonic, SyncScope::System, BoxTerm);
+            LowerFromBoxLoad->setDebugLoc(I->getDebugLoc());
+            (new StoreInst(LowerFromBoxLoad, LowerAllocas[Index], BoxTerm))
+              ->setDebugLoc(I->getDebugLoc());
+          } else {
+            assert(SrcFMAD.MAD.MK == MemoryKind::LocalExplicit ||
+                   SrcFMAD.MAD.MK == MemoryKind::LocalNaked);
+            (new StoreInst(Load, LowerAllocas[Index], Before))->setDebugLoc(I->getDebugLoc());
+          }
         };
-        LoadLower(SrcAux.P, 0, AlignedTerm);
+        LoadLower(SrcFMAD.MAD.AuxP, 0, AlignedTerm);
         Instruction* SrcAuxPInt =
-          new PtrToIntInst(SrcAux.P, IntPtrTy, "filc_memmove_src_aux_int", MisalignedTerm);
+          new PtrToIntInst(SrcFMAD.MAD.AuxP, IntPtrTy, "filc_memmove_src_aux_int", MisalignedTerm);
         SrcAuxPInt->setDebugLoc(I->getDebugLoc());
         Instruction* SrcRoundedDownInt = BinaryOperator::Create(
           Instruction::And, SrcAuxPInt, ConstantInt::get(IntPtrTy, -WordSize),
@@ -5838,7 +6470,7 @@ class Pizlonator {
           SrcRoundedDownInt, RawPtrTy, "filc_memmove_src_aux_rounded_down", MisalignedTerm);
         SrcRoundedDown->setDebugLoc(I->getDebugLoc());
         PHINode* BaseSrc = PHINode::Create(RawPtrTy, 2, "filc_memmove_src_aux_base", BeforeNullCheck);
-        BaseSrc->addIncoming(SrcAux.P, AlignedTerm->getParent());
+        BaseSrc->addIncoming(SrcFMAD.MAD.AuxP, AlignedTerm->getParent());
         BaseSrc->addIncoming(SrcRoundedDown, MisalignedTerm->getParent());
         BaseSrc->setDebugLoc(I->getDebugLoc());
         for (size_t Index = 1; Index < Count / WordSize; ++Index) {
@@ -5870,66 +6502,74 @@ class Pizlonator {
       Instruction* StoreLowersTerm = StoreLowersB->getTerminator();
       Instruction* StoreExtraTerm = StoreExtraB->getTerminator();
       assert(StoreLowersTerm != StoreExtraTerm);
-      Instruction* DstAuxIsNull = new ICmpInst(
-        AllNullTerm, ICmpInst::ICMP_EQ, DstAux.BaseP, RawNull, "filc_memmove_dst_aux_is_null");
-      DstAuxIsNull->setDebugLoc(I->getDebugLoc());
-      SplitBlockAndInsertIfThen(
-        DstAuxIsNull, AllNullTerm, false, nullptr, nullptr, nullptr, DoneB);
-      DstAuxIsNull = new ICmpInst(
-        NonNullTerm, ICmpInst::ICMP_EQ, DstAux.BaseP, RawNull, "filc_memmove_dst_aux_is_null");
-      DstAuxIsNull->setDebugLoc(I->getDebugLoc());
-      Instruction* SlowTerm = SplitBlockAndInsertIfThen(DstAuxIsNull, NonNullTerm, false);
-      BasicBlock* SlowB = SlowTerm->getParent();
-      std::vector<Value*> Args;
-      FunctionCallee Callee;
-      switch (LowerAllocas.size()) {
-      case 1:
-        Callee = FinishMemmoveSmall1;
-        break;
-      case 2:
-        Callee = FinishMemmoveSmall2;
-        break;
-      case 3:
-        Callee = FinishMemmoveSmall3;
-        break;
-      case 4:
-        Callee = FinishMemmoveSmall4;
-        break;
-      case 5:
-        Callee = FinishMemmoveSmall5;
-        break;
-      default:
-        llvm_unreachable("Bad value of LowerAllocas.size()");
-        break;
+      Instruction* SlowAuxP = nullptr;
+      if (DstFMAD.MAD.MK == MemoryKind::Heap) {
+        Instruction* DstAuxIsNull = new ICmpInst(
+          AllNullTerm, ICmpInst::ICMP_EQ, DstFMAD.MAD.AuxBaseP, RawNull,
+          "filc_memmove_dst_aux_is_null");
+        DstAuxIsNull->setDebugLoc(I->getDebugLoc());
+        SplitBlockAndInsertIfThen(
+          DstAuxIsNull, AllNullTerm, false, nullptr, nullptr, nullptr, DoneB);
+        DstAuxIsNull = new ICmpInst(
+          NonNullTerm, ICmpInst::ICMP_EQ, DstFMAD.MAD.AuxBaseP, RawNull,
+          "filc_memmove_dst_aux_is_null");
+        DstAuxIsNull->setDebugLoc(I->getDebugLoc());
+        Instruction* SlowTerm = SplitBlockAndInsertIfThen(DstAuxIsNull, NonNullTerm, false);
+        BasicBlock* SlowB = SlowTerm->getParent();
+        storeOrigin(getOrigin(I->getDebugLoc()), SlowTerm);
+        std::vector<Value*> Args;
+        FunctionCallee Callee;
+        switch (LowerAllocas.size()) {
+        case 1:
+          Callee = FinishMemmoveSmall1;
+          break;
+        case 2:
+          Callee = FinishMemmoveSmall2;
+          break;
+        case 3:
+          Callee = FinishMemmoveSmall3;
+          break;
+        case 4:
+          Callee = FinishMemmoveSmall4;
+          break;
+        case 5:
+          Callee = FinishMemmoveSmall5;
+          break;
+        default:
+          llvm_unreachable("Bad value of LowerAllocas.size()");
+          break;
+        }
+        Args.push_back(MyThread);
+        Args.push_back(Dst);
+        for (AllocaInst* LowerAlloca : LowerAllocas) {
+          Instruction* Load = new LoadInst(RawPtrTy, LowerAlloca, "filc_memmove_load_lower", SlowTerm);
+          Load->setDebugLoc(I->getDebugLoc());
+          Args.push_back(Load);
+        }
+        Instruction* Slow = CallInst::Create(Callee, Args, "filc_memmove_slow", SlowTerm);
+        Slow->setDebugLoc(I->getDebugLoc());
+        Instruction* SlowAuxBase = ExtractValueInst::Create(
+          RawPtrTy, Slow, { 0 }, "filc_memmove_slow_aux_base", SlowTerm);
+        SlowAuxBase->setDebugLoc(I->getDebugLoc());
+        SlowAuxP = ExtractValueInst::Create(
+          RawPtrTy, Slow, { 1 }, "filc_memmove_slow_aux_ptr", SlowTerm);
+        SlowAuxP->setDebugLoc(I->getDebugLoc());
+        assert(DstFMAD.POD.PK == PointerKind::Escaping);
+        assert(DstFMAD.MAD.MK == MemoryKind::Heap);
+        (new StoreInst(SlowAuxBase, DstFMAD.POD.AuxBaseVar, SlowTerm))->setDebugLoc(I->getDebugLoc());
+        ReplaceInstWithInst(SlowTerm, BranchInst::Create(StoreExtraB));
+        LoadInst* MarkingState = new LoadInst(Int32Ty, CurrentMarkingState,
+                                              "filc_memmove_marking_state", NonNullTerm);
+        MarkingState->setDebugLoc(I->getDebugLoc());
+        ICmpInst* IsNotMarking = new ICmpInst(
+          NonNullTerm, ICmpInst::ICMP_EQ, MarkingState, ConstantInt::get(Int32Ty, 0),
+          "filc_memmove_is_not_marking");
+        IsNotMarking->setDebugLoc(I->getDebugLoc());
+        SplitBlockAndInsertIfElse(
+          IsNotMarking, NonNullTerm, false, nullptr, nullptr, nullptr, SlowB);
       }
-      Args.push_back(MyThread);
-      Args.push_back(Dst);
-      for (AllocaInst* LowerAlloca : LowerAllocas) {
-        Instruction* Load = new LoadInst(RawPtrTy, LowerAlloca, "filc_memmove_load_lower", SlowTerm);
-        Load->setDebugLoc(I->getDebugLoc());
-        Args.push_back(Load);
-      }
-      Instruction* Slow = CallInst::Create(Callee, Args, "filc_memmove_slow", SlowTerm);
-      Slow->setDebugLoc(I->getDebugLoc());
-      Instruction* SlowAuxBase = ExtractValueInst::Create(
-        RawPtrTy, Slow, { 0 }, "filc_memmove_slow_aux_base", SlowTerm);
-      SlowAuxBase->setDebugLoc(I->getDebugLoc());
-      Instruction* SlowAuxP = ExtractValueInst::Create(
-        RawPtrTy, Slow, { 1 }, "filc_memmove_slow_aux_ptr", SlowTerm);
-      SlowAuxP->setDebugLoc(I->getDebugLoc());
-      (new StoreInst(SlowAuxBase, DstAux.Var, SlowTerm))->setDebugLoc(I->getDebugLoc());
-      ReplaceInstWithInst(SlowTerm, BranchInst::Create(StoreExtraB));
-      LoadInst* MarkingState = new LoadInst(Int32Ty, CurrentMarkingState,
-                                            "filc_memmove_marking_state", NonNullTerm);
-      MarkingState->setDebugLoc(I->getDebugLoc());
-      ICmpInst* IsNotMarking = new ICmpInst(
-        NonNullTerm, ICmpInst::ICMP_EQ, MarkingState, ConstantInt::get(Int32Ty, 0),
-        "filc_memmove_is_not_marking");
-      IsNotMarking->setDebugLoc(I->getDebugLoc());
-      SplitBlockAndInsertIfElse(
-        IsNotMarking, NonNullTerm, false, nullptr, nullptr, nullptr, SlowB);
       Instruction* DstAuxPInt =
-        new PtrToIntInst(DstAux.P, IntPtrTy, "filc_memmove_dst_aux_int", StoreLowersTerm);
+        new PtrToIntInst(DstFMAD.MAD.AuxP, IntPtrTy, "filc_memmove_dst_aux_int", StoreLowersTerm);
       DstAuxPInt->setDebugLoc(I->getDebugLoc());
       Instruction* DstRoundedDownInt = BinaryOperator::Create(
         Instruction::And, DstAuxPInt, ConstantInt::get(IntPtrTy, -WordSize),
@@ -5951,7 +6591,8 @@ class Pizlonator {
       }
       PHINode* DstBasePhi = PHINode::Create(RawPtrTy, 2, "filc_memmove_dst_base", StoreExtraTerm);
       DstBasePhi->addIncoming(DstRoundedDown, DstRoundedDown->getParent());
-      DstBasePhi->addIncoming(SlowAuxP, SlowAuxP->getParent());
+      if (SlowAuxP)
+        DstBasePhi->addIncoming(SlowAuxP, SlowAuxP->getParent());
       Instruction* NeedExtra = new ICmpInst(
         StoreExtraTerm, ICmpInst::ICMP_UGT, DstPhase,
         ConstantInt::get(IntPtrTy, (WordSize - (Count & (WordSize - 1))) & (WordSize - 1)),
@@ -5964,8 +6605,58 @@ class Pizlonator {
       BaseGEP->setDebugLoc(I->getDebugLoc());
       (new StoreInst(RawNull, BaseGEP, false, Align(WordSize), AtomicOrdering::Monotonic,
                      SyncScope::System, ReallyStoreExtraTerm))->setDebugLoc(I->getDebugLoc());
+      if (DstFMAD.MAD.MK == MemoryKind::LocalNaked) {
+        assert(!(DstFMAD.MAD.Size % WordSize));
+        assert(DstFMAD.MAD.LocalOffset != INT64_MIN);
+        assert(DstFMAD.MAD.OrigAI);
+        for (int64_t Offset = std::max(static_cast<int64_t>(0), DstFMAD.MAD.LocalOffset) & -WordSize;
+             Offset < static_cast<int64_t>(
+               (std::min(static_cast<int64_t>(DstFMAD.MAD.Size),
+                         DstFMAD.MAD.LocalOffset + static_cast<int64_t>(Count))
+                + WordSize - 1)
+               & -WordSize);
+             Offset += WordSize) {
+          assert(Offset >= 0);
+          assert(!(Offset % WordSize));
+          assert(static_cast<uint64_t>(Offset) < DstFMAD.POD.LAD.Size);
+          size_t Index = Offset / WordSize;
+          GetElementPtrInst* GEP = GetElementPtrInst::Create(
+            RawPtrTy, DstFMAD.MAD.AuxBaseP, { ConstantInt::get(IntPtrTy, Index) },
+            "filc_memmove_naked_gc_aux_gep", I);
+          GEP->setDebugLoc(I->getDebugLoc());
+          LoadInst* Load = new LoadInst(RawPtrTy, GEP, "filc_memmove_naked_gc_aux_load", I);
+          Load->setDebugLoc(I->getDebugLoc());
+          FrameEntry FE = FrameIndexMap[ValuePtr(DstFMAD.MAD.OrigAI, Index)];
+          assert(FE.FEK == FrameEntryKind::LowerFromStackAux);
+          recordLowerAtIndex(Load, FE.Index, I);
+        }
+      }
       return;
     }
+    if (DstFMAD.MAD.MK == MemoryKind::LocalExplicit) {
+      if (SrcFMAD.MAD.MK == MemoryKind::LocalExplicit) {
+        CallInst::Create(
+          MemmoveAlreadyCheckedStack,
+          { MyThread, flightPtrPtr(Dst, I), DstFMAD.MAD.AuxP, flightPtrPtr(Src, I), SrcFMAD.MAD.AuxP,
+            ConstantInt::get(IntPtrTy, Count) }, "", I)->setDebugLoc(I->getDebugLoc());
+        return;
+      }
+      assert(SrcFMAD.MAD.MK == MemoryKind::Heap);
+      CallInst::Create(
+        MemmoveAlreadyCheckedHeapToStack,
+        { MyThread, flightPtrPtr(Dst, I), DstFMAD.MAD.AuxP, Src, ConstantInt::get(IntPtrTy, Count) },
+        "", I)->setDebugLoc(I->getDebugLoc());
+      return;
+    }
+    assert(DstFMAD.MAD.MK == MemoryKind::Heap);
+    if (SrcFMAD.MAD.MK == MemoryKind::LocalExplicit) {
+      CallInst::Create(
+        MemmoveAlreadyCheckedStackToHeap,
+        { MyThread, Dst, flightPtrPtr(Src, I), SrcFMAD.MAD.AuxP, ConstantInt::get(IntPtrTy, Count),
+          getOrigin(I->getDebugLoc()) }, "", I)->setDebugLoc(I->getDebugLoc());
+      return;
+    }
+    assert(SrcFMAD.MAD.MK == MemoryKind::Heap);
     FunctionCallee MemmoveFunc;
     if (Count <= MaxBytesBetweenPollchecks)
       MemmoveFunc = MemmoveAlreadyCheckedSmall;
@@ -5985,10 +6676,43 @@ class Pizlonator {
     Value* Dst = CI->getArgOperand(0);
     Value* Src = CI->getArgOperand(1);
     Value* Count = CI->getArgOperand(2);
-    if (isOptMemmoveCall(I)) {
+    if (isInlineableMemmoveCall(I)) {
       emitOptMemmove(Dst, Src, cast<ConstantInt>(Count)->getZExtValue(), I);
       return;
     }
+
+    FullMemoryAccessData DstFMAD = accessDataForOperand(Dst, I, 0, I);
+    FullMemoryAccessData SrcFMAD = accessDataForOperand(Src, I, 1, I);
+
+    if (DstFMAD.MAD.MK == MemoryKind::LocalExplicit) {
+      if (SrcFMAD.MAD.MK == MemoryKind::LocalExplicit) {
+        CallInst::Create(
+          MemmoveStack,
+          { MyThread, flightPtrPtr(Dst, I), DstFMAD.MAD.AuxP, DstFMAD.POD.LAD.AuxAlloca,
+            flightPtrPtr(Src, I), SrcFMAD.MAD.AuxP, SrcFMAD.POD.LAD.AuxAlloca,
+            Count, getOrigin(I->getDebugLoc()) },
+          "", I)->setDebugLoc(I->getDebugLoc());
+        return;
+      }
+      assert(SrcFMAD.MAD.MK == MemoryKind::Heap);
+      CallInst::Create(
+        MemmoveHeapToStack,
+        { MyThread, flightPtrPtr(Dst, I), DstFMAD.MAD.AuxP, DstFMAD.POD.LAD.AuxAlloca, Src,
+          Count, getOrigin(I->getDebugLoc()) },
+        "", I)->setDebugLoc(I->getDebugLoc());
+      return;
+    }
+    assert(DstFMAD.MAD.MK == MemoryKind::Heap);
+    if (SrcFMAD.MAD.MK == MemoryKind::LocalExplicit) {
+      CallInst::Create(
+        MemmoveStackToHeap,
+        { MyThread, Dst, flightPtrPtr(Src, I), SrcFMAD.MAD.AuxP, SrcFMAD.POD.LAD.AuxAlloca,
+          Count, getOrigin(I->getDebugLoc()) },
+        "", I)->setDebugLoc(I->getDebugLoc());
+      return;
+    }
+    assert(SrcFMAD.MAD.MK == MemoryKind::Heap);
+    
     CallInst::Create(
       Memmove,
       { MyThread, Dst, Src, makeIntPtr(Count, I), getOrigin(I->getDebugLoc()) },
@@ -6024,7 +6748,51 @@ class Pizlonator {
       }
 
       case Intrinsic::lifetime_start:
-      case Intrinsic::lifetime_end:
+      case Intrinsic::lifetime_end: {
+        AllocaInst* AI = cast<AllocaInst>(II->getArgOperand(1));
+        assert(LocalAllocaDatas.count(AI));
+        LocalAllocaData LAD = LocalAllocaDatas[AI];
+        FrameEntry FE;
+        if (LAD.Explicit) {
+          assert(FrameIndexMap.count(ValuePtr(AI, 0)));
+          FE = FrameIndexMap[ValuePtr(AI, 0)];
+          assert(FE.FEK == FrameEntryKind::ExplicitStackAux);
+          assert(FE.Index != SIZE_MAX);
+          if (verbose)
+            errs() << "Using frame index " << FE.Index << "\n";
+        }
+        if (LAD.Explicit && II->getIntrinsicID() == Intrinsic::lifetime_end)
+          recordLowerAtIndex(RawNull, FE.Index, II);
+        CallInst::Create(
+          II->getFunctionType(), II->getCalledOperand(),
+          { ConstantInt::get(IntPtrTy, LAD.Size), LAD.Payload },
+          "", II)->setDebugLoc(II->getDebugLoc());
+        CallInst::Create(
+          II->getFunctionType(), II->getCalledOperand(),
+          { ConstantInt::get(IntPtrTy, LAD.Size), LAD.AuxAlloca },
+          "", II)->setDebugLoc(II->getDebugLoc());
+        if (II->getIntrinsicID() == Intrinsic::lifetime_start) {
+          if (LAD.Explicit) {
+            assert(!(LAD.Size % WordSize));
+            (new StoreInst(ConstantInt::get(IntPtrTy, LAD.Size / WordSize), LAD.AuxAlloca, II))
+              ->setDebugLoc(II->getDebugLoc());
+            recordLowerAtIndex(LAD.AuxAlloca, FE.Index, II);
+          }
+          CallInst::Create(
+            RealMemset,
+            { LAD.Payload, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, LAD.Size),
+              ConstantInt::getFalse(Int1Ty) },
+            "", II)->setDebugLoc(II->getDebugLoc());
+          CallInst::Create(
+            RealMemset,
+            { LAD.Aux, ConstantInt::get(Int8Ty, 0), ConstantInt::get(IntPtrTy, LAD.Size),
+              ConstantInt::getFalse(Int1Ty) },
+            "", II)->setDebugLoc(II->getDebugLoc());
+        }
+        II->eraseFromParent();
+        return true;
+      }
+        
       case Intrinsic::stacksave:
       case Intrinsic::stackrestore:
       case Intrinsic::assume:
@@ -6044,18 +6812,16 @@ class Pizlonator {
       case Intrinsic::vastart:
         assert(UsesVastartOrZargs);
         lowerConstantOperand(II->getArgOperandUse(0), I);
-        storePtr(SnapshottedArgsPtrForVastart, flightPtrPtr(II->getArgOperand(0), II),
-                 auxPtrForOperand(II->getArgOperand(0), II, 0, II).P, II);
+        storePtr(SnapshottedArgsPtrForVastart,
+                 accessDataForOperand(II->getArgOperand(0), II, 0, II).MAD, II);
         II->eraseFromParent();
         return true;
         
       case Intrinsic::vacopy: {
         lowerConstantOperand(II->getArgOperandUse(0), I);
         lowerConstantOperand(II->getArgOperandUse(1), I);
-        Value* Load = loadPtr(flightPtrPtr(II->getArgOperand(1), II),
-                              auxPtrForOperand(II->getArgOperand(1), II, 1, II), II);
-        storePtr(Load, flightPtrPtr(II->getArgOperand(0), II),
-                 auxPtrForOperand(II->getArgOperand(0), II, 0, II).P, II);
+        Value* Load = loadPtr(accessDataForOperand(II->getArgOperand(1), II, 1, II).MAD, II);
+        storePtr(Load, accessDataForOperand(II->getArgOperand(0), II, 0, II).MAD, II);
         II->eraseFromParent();
         return true;
       }
@@ -6220,8 +6986,8 @@ class Pizlonator {
             "filc_jmp_buf_create", CI);
           Create->setDebugLoc(CI->getDebugLoc());
           Value* UserJmpBuf = CI->getArgOperand(0);
-          storePtr(flightPtrForPayload(Create, CI), flightPtrPtr(UserJmpBuf, CI),
-                   auxPtrForOperand(UserJmpBuf, CI, 0, CI).P, CI);
+          storePtr(flightPtrForPayload(Create, CI), accessDataForOperand(UserJmpBuf, CI, 0, CI).MAD,
+                   CI);
           Instruction* Set = new LoadInst(
             RawPtrTy, recordedLowerPtrAtIndex(SetjmpSetFrameIndex, CI), "filc_setjmp_set", CI);
           Set->setDebugLoc(CI->getDebugLoc());
@@ -6903,8 +7669,8 @@ class Pizlonator {
       Type *T = LI->getType();
       Value* HighP = LI->getPointerOperand();
       Value* Result = loadValueRecurseAfterCheck(
-        T, flightPtrPtr(HighP, LI), auxPtrForOperand(HighP, LI, 0, LI), LI->isVolatile(),
-        LI->getAlign(), LI->getOrdering(), LI->getSyncScopeID(), MemoryKind::Heap, LI);
+        T, accessDataForOperand(HighP, LI, 0, LI).MAD, LI->isVolatile(),
+        LI->getAlign(), LI->getOrdering(), LI->getSyncScopeID(), LI);
       LI->replaceAllUsesWith(Result);
       LI->eraseFromParent();
       return;
@@ -6913,9 +7679,8 @@ class Pizlonator {
     if (StoreInst* SI = dyn_cast<StoreInst>(I)) {
       Value* HighP = SI->getPointerOperand();
       storeValueRecurseAfterCheck(
-        InstTypes[SI], SI->getValueOperand(), flightPtrPtr(HighP, SI),
-        auxPtrForOperand(HighP, SI, 0, SI).P, SI->isVolatile(), SI->getAlign(),
-        SI->getOrdering(), SI->getSyncScopeID(), MemoryKind::Heap, SI);
+        InstTypes[SI], SI->getValueOperand(), accessDataForOperand(HighP, SI, 0, SI).MAD,
+        SI->isVolatile(), SI->getAlign(), SI->getOrdering(), SI->getSyncScopeID(), SI);
       SI->eraseFromParent();
       return;
     }
@@ -7194,8 +7959,8 @@ class Pizlonator {
         RawPtrTy, Call, { 1 }, "filc_ptr_pair_aux_ptr", VI);
       P->setDebugLoc(VI->getDebugLoc());
       Value* Load = loadValueRecurseAfterCheck(
-        CanonicalT, P, AuxP, AuxP, false, DL.getABITypeAlign(CanonicalT),
-        AtomicOrdering::NotAtomic, SyncScope::System, MemoryKind::Heap, VI);
+        CanonicalT, MemoryAccessData(P, AuxP, AuxP, MemoryKind::Heap), false,
+        DL.getABITypeAlign(CanonicalT), AtomicOrdering::NotAtomic, SyncScope::System, VI);
       VI->replaceAllUsesWith(Load);
       VI->eraseFromParent();
       return;
@@ -7977,6 +8742,323 @@ class Pizlonator {
     M.setModuleInlineAsm(NewModuleAsm.str());
   }
 
+  LifetimeMarker analyzeLifetimeMarker(Value* V) {
+    LifetimeIntrinsic* LI = dyn_cast<LifetimeIntrinsic>(V);
+    if (!LI)
+      return LifetimeMarker();
+
+    AllocaInst* AI = dyn_cast<AllocaInst>(LI->getArgOperand(1));
+    if (!AI)
+      return LifetimeMarker();
+
+    if (!allocaHasSizeForUs(AI))
+      return LifetimeMarker();
+
+    ConstantInt* MarkerSize = dyn_cast<ConstantInt>(LI->getArgOperand(0));
+    if (!MarkerSize)
+      return LifetimeMarker();
+
+    int64_t MarkerSizeInt = MarkerSize->getSExtValue();
+    if (MarkerSizeInt != -1 && static_cast<uint64_t>(MarkerSizeInt) != originalAllocaSize(AI))
+      return LifetimeMarker();
+
+    switch (LI->getIntrinsicID()) {
+    case Intrinsic::lifetime_start:
+      return LifetimeMarker(AI, LifetimeMarkerKind::Start);
+    case Intrinsic::lifetime_end:
+      return LifetimeMarker(AI, LifetimeMarkerKind::End);
+    default:
+      llvm_unreachable("Bad lifetime marker");
+      return LifetimeMarker();
+    }
+  }
+
+  void findNonescapingAllocasInFunction(Function& F) {
+    if (F.isDeclaration())
+      return;
+
+    if (verbose) {
+      errs() << "Finding nonescaping allocas in:\n";
+      errs() << F;
+    }
+
+    if (F.callsFunctionThatReturnsTwice()) {
+      // Punt on this analysis because we currently don't have a story for how we would soundly handle
+      // GC of pointers inside of nonescaping allocas if you longjmped.
+      //
+      // Note that it's the kind of thing that maybe just works or is easy to fix. I just didn't want
+      // to get bogged down by this case when implementing the nonescaping alloca optimization.
+      for (BasicBlock& BB : F) {
+        for (Instruction& I : BB) {
+          if (AllocaInst* AI = dyn_cast<AllocaInst>(&I))
+            AllocaKinds[AI] = PointerKind::Escaping;
+        }
+      }
+      if (verbose)
+        errs() << "Giving up due to call to functions that returns twice\n.";
+      return;
+    }
+
+    std::unordered_set<AllocaInst*> Allocas;
+
+    for (BasicBlock& BB : F) {
+      for (Instruction& I : BB) {
+        if (AllocaInst* AI = dyn_cast<AllocaInst>(&I)) {
+          // Non-static allocas might reexecute any number of times, so I don't think they can
+          // qualify for this analysis. With enough effort, they could probably be made to. But then
+          // we'd have other problems, like having to find a way to detect stack overflow.
+          //
+          // FIXME: Is the size limit I'm picking for the largest alloca we'll escape analyze sensible?
+          // Maybe it should be a smaller size?
+          if (verbose) {
+            errs() << "Considering " << AI->getName() << "\n";
+            errs() << "    Is static: " << AI->isStaticAlloca() << "\n";
+            errs() << "    Has size for us: " << allocaHasSizeForUs(AI) << "\n";
+            if (allocaHasSizeForUs(AI))
+              errs() << "    Size: " << originalAllocaSize(AI) << "\n";
+          }
+          if (AI->isStaticAlloca() && allocaHasSizeForUs(AI)
+              && originalAllocaSize(AI) <= MaxBytesBetweenPollchecks) {
+            bool HasLifetimeStart = false;
+            bool HasLifetimeEnd = false;
+            for (User* U : AI->users()) {
+              if (verbose)
+                errs() << "    Considering user: " << *U << "\n";
+              if (LifetimeMarker LM = analyzeLifetimeMarker(U)) {
+                if (verbose)
+                  errs() << "    Is lifetime marker.\n";
+                assert(LM.AI == AI);
+                switch (LM.LMK) {
+                case LifetimeMarkerKind::Start:
+                  HasLifetimeStart = true;
+                  break;
+                case LifetimeMarkerKind::End:
+                  HasLifetimeEnd = true;
+                  break;
+                }
+              }
+            }
+            // We are only going to optimize static allocas that have a lifetime start and a lifetime
+            // end intrinsic!
+            if (HasLifetimeStart && HasLifetimeEnd) {
+              if (verbose)
+                errs() << "Going to try to see if " << AI->getName() << " is nonescaping.\n";
+              AllocaKinds[AI] = PointerKind::LocalNaked;
+              Allocas.insert(AI);
+              continue;
+            }
+          }
+
+          if (verbose)
+            errs() << "Assuming that " << AI->getName() << " is escaping.\n";
+          AllocaKinds[AI] = PointerKind::Escaping;
+        }
+      }
+    }
+
+    // Do our own stack lifetime analysis. We do this, instead of using StackLifetime, because when we
+    // go to transform the nonescaping allocas we need to preserve the stack lifetime markers across
+    // the pizlonation lowering. To do that, we have to confine ourselves to understanding just exactly
+    // those lifetime markers that we would then know how to pizlonate.
+    //
+    // Also, I kinda suspect this lifetime analysis is faster. And it's less code. Vive
+    // l'interprétation abstraite!
+
+    std::unordered_map<BasicBlock*, std::unordered_map<AllocaInst*, LifetimeState>> LifetimeAtTail;
+    for (BasicBlock& BB : F) {
+      LifetimeState LS;
+      if (!BB.getTerminator()->getNumSuccessors())
+        LS = LifetimeState::Zombie;
+      else
+        LS = LifetimeState::Undetermined;
+      for (AllocaInst* AI : Allocas)
+        LifetimeAtTail[&BB][AI] = LS;
+    }
+    
+    auto ExecuteLifetime = [&] (std::unordered_map<AllocaInst*, LifetimeState>& Lifetime,
+                                Instruction* I) {
+      LifetimeMarker LM = analyzeLifetimeMarker(I);
+      if (!LM)
+        return;
+      assert(Lifetime.count(LM.AI) == Allocas.count(LM.AI));
+      if (!Lifetime.count(LM.AI))
+        return;
+      switch (LM.LMK) {
+      case LifetimeMarkerKind::Start:
+        Lifetime[LM.AI] = LifetimeState::Zombie;
+        break;
+      case LifetimeMarkerKind::End:
+        Lifetime[LM.AI] = LifetimeState::Live;
+        break;
+      }
+    };
+    
+    std::vector<BasicBlock*> Blocks;
+    for (BasicBlock& BB : F)
+      Blocks.push_back(&BB);
+    bool Changed = true;
+    while (Changed) {
+      Changed = false;
+      for (size_t Index = Blocks.size(); Index--;) {
+        BasicBlock* BB = Blocks[Index];
+        std::unordered_map<AllocaInst*, LifetimeState> Lifetime = LifetimeAtTail[BB];
+        if (verbose) {
+          errs() << "Liveness at tail of " << BB->getName() << ":";
+          for (auto& Pair : Lifetime)
+            errs() << " " << Pair.first->getName() << "=" << Pair.second;
+          errs() << "\n";
+        }
+        for (auto It = BB->rbegin(); It != BB->rend(); ++It) {
+          Instruction* I = &*It;
+          ExecuteLifetime(Lifetime, I);
+        }
+        if (verbose) {
+          errs() << "Liveness at head of " << BB->getName() << ":";
+          for (auto& Pair : Lifetime)
+            errs() << " " << Pair.first->getName() << "=" << Pair.second;
+          errs() << "\n";
+        }
+        if (pred_empty(BB)) {
+          for (auto& Pair : Lifetime) {
+            AllocaInst* AI = Pair.first;
+            LifetimeState LS = Pair.second;
+            if (LS == LifetimeState::Live)
+              AllocaKinds[AI] = PointerKind::Escaping;
+          }
+        }
+        for (BasicBlock* PBB : predecessors(BB)) {
+          for (auto& Pair : Lifetime) {
+            AllocaInst* AI = Pair.first;
+            LifetimeState LS = Pair.second;
+            LifetimeState MergedLS = mergeLifetimeState(LifetimeAtTail[PBB][AI], LS);
+            if (MergedLS != LifetimeAtTail[PBB][AI]) {
+              Changed = true;
+              LifetimeAtTail[PBB][AI] = MergedLS;
+            }
+          }
+        }
+      }
+    }
+
+    auto mergeKind = [&] (Value* P, PointerKind Kind) -> bool {
+      P = underlyingPtr(P).P;
+      AllocaInst* AI = dyn_cast<AllocaInst>(P);
+      if (!AI)
+        return false;
+      if (!Allocas.count(AI))
+        return false;
+      PointerKind OldKind = AllocaKinds[AI];
+      PointerKind NewKind = mergePointerKinds(OldKind, Kind);
+      if (OldKind == NewKind)
+        return false;
+      AllocaKinds[AI] = NewKind;
+      return true;
+    };
+
+    std::vector<CallBase*> MemmovesToReconsider;
+    for (BasicBlock& BB : F) {
+      std::unordered_map<AllocaInst*, LifetimeState> Lifetime = LifetimeAtTail[&BB];
+      for (auto It = BB.rbegin(); It != BB.rend(); ++It) {
+        Instruction* I = &*It;
+        if (verbose)
+          errs() << "Escaping analysis considering " << *I << "\n";
+        
+        if (isa<LifetimeIntrinsic>(I)) {
+          ExecuteLifetime(Lifetime, I);
+          continue;
+        }
+        
+        for (Value* V : I->operands()) {
+          PtrAndRandom PAR = underlyingPtr(V);
+          AllocaInst* AI = dyn_cast<AllocaInst>(PAR.P);
+          if (AI && Allocas.count(AI)) {
+            if (AllocaKinds[AI] != PointerKind::Escaping && Lifetime[AI] != LifetimeState::Live) {
+              if (verbose)
+                errs() << "Escaping " << AI->getName() << " because it's used and not live.\n";
+              AllocaKinds[AI] = PointerKind::Escaping;
+            } else if (PAR.R == PtrRandomness::Random) {
+              if (verbose)
+                errs() << "Making explicit " << AI->getName() << " because it's random accessed.\n";
+              AllocaKinds[AI] = mergePointerKinds(AllocaKinds[AI], PointerKind::LocalExplicit);
+            }
+          }
+        }
+        
+        if (isa<GetElementPtrInst>(I))
+          continue;
+
+        if (isInlineableMemmoveCall(I)) {
+          MemmovesToReconsider.push_back(cast<CallBase>(I));
+          continue;
+        }
+
+        if (isNonescapingMemmoveCall(I)) {
+          if (verbose) {
+            errs() << "Making explicit " << cast<CallBase>(I)->getArgOperand(0)->getName() << " and "
+                   << cast<CallBase>(I)->getArgOperand(1)->getName() << " because they're random "
+                   << "accessed.\n";
+          }
+          mergeKind(cast<CallBase>(I)->getArgOperand(0), PointerKind::LocalExplicit);
+          mergeKind(cast<CallBase>(I)->getArgOperand(1), PointerKind::LocalExplicit);
+          continue;
+        }
+
+        if (LoadInst* LI = dyn_cast<LoadInst>(I)) {
+          if (!LI->isVolatile())
+            continue;
+        }
+        
+        if (StoreInst* SI = dyn_cast<StoreInst>(I)) {
+          if (!SI->isVolatile()) {
+            if (verbose)
+              errs() << "Escaping " << SI->getValueOperand()->getName() << " because it's stored.\n";
+            mergeKind(SI->getValueOperand(), PointerKind::Escaping);
+            continue;
+          }
+        }
+
+        // FIXME: We could include AtomicRMW and CAS instructions here.
+        
+        for (Value* V : I->operands()) {
+          if (verbose)
+            errs() << "Escaping " << V->getName() << " because it's used in a shady way.\n";
+          mergeKind(V, PointerKind::Escaping);
+        }
+      }
+    }
+
+    Changed = true;
+    while (Changed) {
+      Changed = false;
+      for (CallBase* CI : MemmovesToReconsider) {
+        // If the destination does not escape, then we can emit inline code for memmoves, and so
+        // it's fine if the memmove operands are naked.
+        if (underlyingPointerKind(CI->getArgOperand(0)) != PointerKind::Escaping)
+          continue;
+        // If the destination does escape but the size of the memmove is small enough for us to emit
+        // the slow path code, then it's fine if the memmove operands are naked.
+        if (cast<ConstantInt>(CI->getArgOperand(2))->getZExtValue() <= InlineMemmoveDstSizeLimit)
+          continue;
+        // We're memmoving to an escaping destination with a size that the inline memmove slow path
+        // cannot handle on the destination side. So, force the source to be explicit. This is still
+        // nonescaping, but it just means that the alloca really is stack allocated.
+        Changed |= mergeKind(CI->getArgOperand(1), PointerKind::LocalExplicit);
+      }
+    }
+
+    if (verbose) {
+      errs() << "Escape analysis result:";
+      for (auto& Pair : AllocaKinds)
+        errs() << " " << Pair.first->getName() << "=" << Pair.second;
+      errs() << "\n";
+    }
+  }
+
+  void findNonescapingAllocas() {
+    for (Function& F : M.functions())
+      findNonescapingAllocasInFunction(F);
+  }
+
   void removeIrrelevantIntrinsics() {
     for (Function& F : M) {
       if (F.isDeclaration())
@@ -7992,8 +9074,6 @@ class Pizlonator {
             continue;
           bool ShouldErase = false;
           switch (Callee->getIntrinsicID()) {
-          case Intrinsic::lifetime_start:
-          case Intrinsic::lifetime_end:
           case Intrinsic::stackrestore:
           case Intrinsic::assume:
           case Intrinsic::dbg_declare:
@@ -8027,6 +9107,45 @@ class Pizlonator {
     }
   }
 
+  void removeLifetimeIntrinsics() {
+    for (Function& F : M) {
+      if (F.isDeclaration())
+        continue;
+      for (BasicBlock& BB : F) {
+        std::vector<Instruction*> ToErase;
+        for (Instruction& I : BB) {
+          CallBase* CI = dyn_cast<CallBase>(&I);
+          if (!CI)
+            continue;
+          Function* Callee = dyn_cast<Function>(CI->getCalledOperand());
+          if (!Callee || !Callee->isIntrinsic())
+            continue;
+          bool ShouldErase = false;
+          switch (Callee->getIntrinsicID()) {
+          case Intrinsic::lifetime_start:
+          case Intrinsic::lifetime_end:
+            if (LifetimeMarker LM = analyzeLifetimeMarker(CI)) {
+              assert(AllocaKinds.count(LM.AI));
+              if (AllocaKinds[LM.AI] != PointerKind::Escaping)
+                break;
+            }
+            ShouldErase = true;
+            break;
+          default:
+            break;
+          }
+          if (ShouldErase) {
+            if (InvokeInst* II = dyn_cast<InvokeInst>(CI))
+              BranchInst::Create(II->getNormalDest(), CI)->setDebugLoc(CI->getDebugLoc());
+            ToErase.push_back(CI);
+          }
+        }
+        for (Instruction* I : ToErase)
+          I->eraseFromParent();
+      }
+    }
+  }
+
   void lazifyAllocasInFunction(Function& F) {
     if (F.isDeclaration())
       return;
@@ -8035,6 +9154,9 @@ class Pizlonator {
 
     for (Instruction& I : F.getEntryBlock()) {
       if (AllocaInst* AI = dyn_cast<AllocaInst>(&I)) {
+        if (AllocaKinds[AI] != PointerKind::Escaping)
+          continue;
+        
         // For now, don't bother with AllocaInsts that flow into PHINodes. Pretty sure that doesn't
         // happen and it would be annoying to deal with.
         bool FoundPhi = false;
@@ -8124,10 +9246,11 @@ class Pizlonator {
       }
     }
 
-    auto CloneAI = [] (AllocaInst* AI, Instruction* InsertBefore) -> AllocaInst* {
+    auto CloneAI = [&] (AllocaInst* AI, Instruction* InsertBefore) -> AllocaInst* {
       AllocaInst* Result = new AllocaInst(
         AI->getAllocatedType(), AI->getAddressSpace(), AI->getArraySize(), AI->getAlign(),
         "filc_lazy_clone_" + AI->getName(), InsertBefore);
+      AllocaKinds[Result] = PointerKind::Escaping;
       Result->setDebugLoc(InsertBefore->getDebugLoc());
       return Result;
     };
@@ -8421,6 +9544,8 @@ public:
     
     lockDownLinkage();
     removeIrrelevantIntrinsics();
+    findNonescapingAllocas();
+    removeLifetimeIntrinsics();
     expandConstantExprs();
     inferPointerAsIntLaundering();
 
@@ -8454,7 +9579,7 @@ public:
     FlightPtrTy = StructType::create({ RawPtrTy, RawPtrTy }, "filc_flight_ptr");
     OriginNodeTy = StructType::create({ RawPtrTy, RawPtrTy, Int32Ty }, "filc_origin_node");
     FunctionOriginTy = StructType::create(
-      { OriginNodeTy, RawPtrTy, Int8Ty, Int8Ty, Int8Ty }, "filc_function_origin");
+      { OriginNodeTy, RawPtrTy, Int8Ty, Int8Ty, Int8Ty, Int32Ty }, "filc_function_origin");
     OriginTy = StructType::create({ RawPtrTy, Int32Ty, Int32Ty }, "filc_origin");
     InlineFrameTy = StructType::create({ OriginNodeTy, OriginTy }, "filc_inline_frame");
     OriginWithEHTy = StructType::create(
@@ -8601,6 +9726,10 @@ public:
       "filc_optimized_alignment_contradiction", VoidTy, FlightPtrTy, RawPtrTy);
     OptimizedAccessCheckFail = M.getOrInsertFunction(
       "filc_optimized_access_check_fail", VoidTy, FlightPtrTy, RawPtrTy);
+    OptimizedStackAlignmentContradiction = M.getOrInsertFunction(
+      "filc_optimized_stack_alignment_contradiction", VoidTy, IntPtrTy, IntPtrTy, RawPtrTy);
+    OptimizedStackAccessCheckFail = M.getOrInsertFunction(
+      "filc_optimized_stack_access_check_fail", VoidTy, IntPtrTy, IntPtrTy, RawPtrTy);
     MaskedAccessCheckFail = M.getOrInsertFunction(
       "filc_masked_access_check_fail", VoidTy, FlightPtrTy, Int64Ty, IntPtrTy, Int32Ty, RawPtrTy);
     Memset = M.getOrInsertFunction(
@@ -8624,6 +9753,25 @@ public:
     FinishMemmoveSmall5 = M.getOrInsertFunction(
       "filc_finish_memmove_small_5",
       PtrPairTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
+    MemmoveAlreadyCheckedStackToHeap = M.getOrInsertFunction(
+      "filc_memmove_already_checked_stack_to_heap",
+      VoidTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, IntPtrTy, RawPtrTy);
+    MemmoveStackToHeap = M.getOrInsertFunction(
+      "filc_memmove_stack_to_heap",
+      VoidTy, RawPtrTy, FlightPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy, RawPtrTy);
+    MemmoveAlreadyCheckedHeapToStack = M.getOrInsertFunction(
+      "filc_memmove_already_checked_heap_to_stack",
+      VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, FlightPtrTy, IntPtrTy);
+    MemmoveHeapToStack = M.getOrInsertFunction(
+      "filc_memmove_heap_to_stack",
+      VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, FlightPtrTy, IntPtrTy, RawPtrTy);
+    MemmoveAlreadyCheckedStack = M.getOrInsertFunction(
+      "filc_memmove_already_checked_stack",
+      VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy);
+    MemmoveStack = M.getOrInsertFunction(
+      "filc_memmove_stack",
+      VoidTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy, IntPtrTy,
+      RawPtrTy);
     GlobalInitializationStart = M.getOrInsertFunction(
       "filc_global_initialization_start", Int1Ty, RawPtrTy, RawPtrTy, RawPtrTy, RawPtrTy);
     GlobalInitializationEnd = M.getOrInsertFunction(
@@ -8691,6 +9839,8 @@ public:
 
     cast<Function>(OptimizedAlignmentContradiction.getCallee())->addFnAttr(Attribute::NoReturn);
     cast<Function>(OptimizedAccessCheckFail.getCallee())->addFnAttr(Attribute::NoReturn);
+    cast<Function>(OptimizedStackAlignmentContradiction.getCallee())->addFnAttr(Attribute::NoReturn);
+    cast<Function>(OptimizedStackAccessCheckFail.getCallee())->addFnAttr(Attribute::NoReturn);
 
     CurrentMarkingState = M.getOrInsertGlobal("filc_current_marking_state", Int32Ty);
 
@@ -8879,8 +10029,8 @@ public:
         Return->getOperandUse(0) = Lower;
         Value* Const = constantToFlightValue(G->getInitializer(), Return);
         storeValueRecurseAfterCheck(
-          G->getValueType(), Const, Lower, AuxP, false, Align(Alignment), AtomicOrdering::NotAtomic,
-          SyncScope::System, MemoryKind::ThreadLocalInit, Return);
+          G->getValueType(), Const, MemoryAccessData(Lower, AuxP, AuxP, MemoryKind::ThreadLocalInit),
+          false, Align(Alignment), AtomicOrdering::NotAtomic, SyncScope::System, Return);
         new StoreInst(Lower, NewG, Return);
 
         MyThread = NewF->getArg(0);
@@ -9055,8 +10205,9 @@ public:
       } else {
         Value* C = constantToFlightValue(G->getInitializer(), Return);
         storeValueRecurseAfterCheck(
-          G->getInitializer()->getType(), C, NewDataPayloadC, AuxPtr, false, Align(Alignment),
-          AtomicOrdering::NotAtomic, SyncScope::System, MemoryKind::GlobalInit, Return);
+          G->getInitializer()->getType(), C,
+          MemoryAccessData(NewDataPayloadC, AuxPtr, AuxPtr, MemoryKind::GlobalInit), false,
+          Align(Alignment), AtomicOrdering::NotAtomic, SyncScope::System, Return);
       }
       
       CallInst::Create(GlobalInitializationEnd, { MyThread }, "", Return);
@@ -9108,7 +10259,8 @@ public:
         InstTypes.clear();
         InstTypeVectors.clear();
         CanonicalPtrAuxBaseVars.clear();
-        AuxBaseVarOperands.clear();
+        PtrOperandDatas.clear();
+        LocalAllocaDatas.clear();
 
         SmallVector<std::pair<const BasicBlock*, const BasicBlock*>> BackEdges;
         FindFunctionBackedges(*F, BackEdges);
@@ -9131,8 +10283,16 @@ public:
         scheduleChecks(Blocks, BackEdgePreds);
         // Snapshot the instructions before we do crazy stuff.
         std::vector<Instruction*> Instructions;
+        std::vector<AllocaInst*> LocalAllocas;
         for (BasicBlock* BB : Blocks) {
           for (Instruction& I : *BB) {
+            PointerKind PK = pointerKindDirect(&I);
+            if (PK != PointerKind::Escaping) {
+              assert(PK == PointerKind::LocalExplicit || PK == PointerKind::LocalNaked);
+              assert(BB == Blocks[0]);
+              LocalAllocas.push_back(cast<AllocaInst>(&I));
+              continue;
+            }
             Instructions.push_back(&I);
             captureTypesIfNecessary(&I);
           }
@@ -9167,6 +10327,38 @@ public:
         Instruction* InsertionPoint = &*Blocks[0]->getFirstInsertionPt();
         SplitBlock(RootB, InsertionPoint);
         Instruction* AllocaInsertionPoint = RootB->getTerminator();
+
+        for (AllocaInst* AI : LocalAllocas) {
+          PointerKind PK = pointerKindDirect(AI);
+          assert(PK != PointerKind::Escaping);
+          assert(PK == PointerKind::LocalExplicit || PK == PointerKind::LocalNaked);
+          LocalAllocaData LAD;
+          LAD.Explicit = PK == PointerKind::LocalExplicit;
+          LAD.OrigAI = AI;
+          LAD.Size = alignedAllocaSize(AI);
+          if (verbose)
+            errs() << "LAD size for " << AI->getName() << " = " << LAD.Size << "\n";
+          assert(!(LAD.Size % WordSize));
+          LAD.Payload = new AllocaInst(
+            Int8Ty, 0, ConstantInt::get(IntPtrTy, LAD.Size),
+            Align(std::max(GCMinAlign,
+                           std::max(DL.getABITypeAlign(AI->getAllocatedType()).value(),
+                                    AI->getAlign().value()))),
+            "filc_local_payload", AllocaInsertionPoint);
+          LAD.Payload->setDebugLoc(AI->getDebugLoc());
+          LAD.AuxAlloca = new AllocaInst(
+            Int8Ty, 0, ConstantInt::get(IntPtrTy, LAD.Size + (LAD.Explicit ? WordSize : 0)),
+            Align(WordSize), "filc_local_aux", AllocaInsertionPoint);
+          LAD.AuxAlloca->setDebugLoc(AI->getDebugLoc());
+          if (LAD.Explicit) {
+            LAD.Aux = GetElementPtrInst::Create(
+              RawPtrTy, LAD.AuxAlloca, { ConstantInt::get(IntPtrTy, 1) }, "filc_aux_lowers",
+              AI);
+            LAD.Aux->setDebugLoc(AI->getDebugLoc());
+          } else
+            LAD.Aux = LAD.AuxAlloca;
+          LocalAllocaDatas[AI] = LAD;
+        }
 
         ReturnB = BasicBlock::Create(C, "filc_return_block", NewF);
         if (F->getReturnType() != VoidTy) {
@@ -9290,12 +10482,24 @@ public:
             recordLowers(I, I->getNextNode());
         }
         assert(Phis.empty());
-        captureAuxBaseVars(Instructions);
+        capturePointerOperands(Instructions);
         for (Instruction* I : Instructions)
+          emitChecksForInst(I);
+        for (Instruction* I : LocalAllocas)
           emitChecksForInst(I);
         erase_if(Instructions, [&] (Instruction* I) { return earlyLowerInstruction(I); });
         for (Instruction* I : Instructions)
           lowerInstruction(I);
+
+        for (AllocaInst* AI : LocalAllocas) {
+          LocalAllocaData LAD = LocalAllocaDatas[AI];
+          AI->replaceAllUsesWith(
+            createFlightPtr(
+              ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, 0xfee1dead), RawPtrTy),
+              LAD.Payload, AI));
+          AI->eraseFromParent();
+        }
+        
         MyThread = nullptr;
 
         Function* GetterF = GlobalToGetter[OldF];
@@ -9315,6 +10519,9 @@ public:
 
         if (verbose)
           errs() << "New function after getter optimization: " << *NewF << "\n";
+
+        FrameSize = SIZE_MAX;
+        NumStackAuxes = SIZE_MAX;
       }
       
       FunctionName = "<internal>";
