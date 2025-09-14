@@ -1,0 +1,3742 @@
+This is eshell.info, produced by makeinfo version 6.8 from eshell.texi.
+
+This manual is for Eshell, the Emacs shell.
+
+   Copyright © 1999–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual”, and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+INFO-DIR-SECTION Emacs misc features
+START-INFO-DIR-ENTRY
+* Eshell: (eshell).             A command shell implemented in Emacs Lisp.
+END-INFO-DIR-ENTRY
+
+
+File: eshell.info,  Node: Top,  Next: Introduction,  Up: (dir)
+
+Eshell
+******
+
+Eshell is a shell-like command interpreter implemented in Emacs Lisp.
+It invokes no external processes except for those requested by the user.
+It is intended to be an alternative to the IELM (*note (emacs)Lisp
+Interaction::) REPL(1) for Emacs _and_ with an interface similar to
+command shells such as ‘bash’, ‘zsh’, ‘rc’, or ‘4dos’.
+
+   This manual is for Eshell, the Emacs shell.
+
+   Copyright © 1999–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual”, and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+* Menu:
+
+* Introduction::             A brief introduction to the Emacs Shell.
+* Entry Points::
+* Commands::
+* Expansion::
+* Input/Output::
+* Interaction::
+* Extension modules::
+* Bugs and ideas::              Known problems, and future ideas.
+* GNU Free Documentation License:: The license for this documentation.
+* Concept Index::
+* Function and Variable Index::
+* Command Index::
+* Key Index::
+
+   ---------- Footnotes ----------
+
+   (1) Short for “Read-Eval-Print Loop”.
+
+
+File: eshell.info,  Node: Introduction,  Next: Entry Points,  Prev: Top,  Up: Top
+
+1 Introduction
+**************
+
+* Menu:
+
+* Contributors to Eshell::
+
+1.1 What is Eshell?
+===================
+
+Eshell is a “command shell” written in Emacs Lisp.  Everything it does,
+it uses Emacs’s facilities to do.  This means that Eshell is as portable
+as Emacs itself.  It also means that cooperation with Lisp code is
+natural and seamless.
+
+   What is a command shell?  To properly understand the role of a shell,
+it’s necessary to visualize what a computer does for you.  Basically, a
+computer is a tool; in order to use that tool, you must tell it what to
+do—or give it “commands.” These commands take many forms, such as
+clicking with a mouse on certain parts of the screen.  But that is only
+one form of command input.
+
+   By far the most versatile way to express what you want the computer
+to do is by using an abbreviated language called “script”.  In script,
+instead of telling the computer, “list my files, please”, one writes a
+standard abbreviated command word—‘ls’.  Typing ‘ls’ in a command shell
+is a script way of telling the computer to list your files.(1)
+
+   The real flexibility of this approach is apparent only when you
+realize that there are many, many different ways to list files.  Perhaps
+you want them sorted by name, sorted by date, in reverse order, or
+grouped by type.  Most graphical browsers have simple ways to express
+this.  But what about showing only a few files, or only files that meet
+a certain criteria?  In very complex and specific situations, the
+request becomes too difficult to express using a mouse or pointing
+device.  It is just these kinds of requests that are easily solved using
+a command shell.
+
+   For example, what if you want to list every Word file on your hard
+drive, larger than 100 kilobytes in size, and which hasn’t been looked
+at in over six months?  That is a good candidate list for deletion, when
+you go to clean up your hard drive.  But have you ever tried asking your
+computer for such a list?  There is no way to do it!  At least, not
+without using a command shell.
+
+   The role of a command shell is to give you more control over what
+your computer does for you.  Not everyone needs this amount of control,
+and it does come at a cost: Learning the necessary script commands to
+express what you want done.  A complicated query, such as the example
+above, takes time to learn.  But if you find yourself using your
+computer frequently enough, it is more than worthwhile in the long run.
+Any tool you use often deserves the time spent learning to master it.
+(2)
+
+* Menu:
+
+* Contributors to Eshell::      People who have helped out!
+
+   ---------- Footnotes ----------
+
+   (1) This is comparable to viewing the contents of a folder using a
+graphical display.
+
+   (2) For the understandably curious, here is what that command looks
+like: But don’t let it fool you; once you know what’s going on, it’s
+easier than it looks: ‘ls -lt **/*.doc(Lk+100aM+6)’.
+
+
+File: eshell.info,  Node: Contributors to Eshell,  Up: Introduction
+
+1.2 Contributors to Eshell
+==========================
+
+Contributions to Eshell are welcome.  I have limited time to work on
+this project, but I will gladly add any code you contribute to me to
+this package.
+
+   The following persons have made contributions to Eshell.
+
+   • John Wiegley is the original author of Eshell.
+
+   • Eli Zaretskii made it possible for Eshell to run without requiring
+     asynchronous subprocess support.  This is important for MS-DOS,
+     which does not have such support.
+
+   • Miles Bader contributed many fixes during the port to Emacs 21.
+
+   • Stefan Monnier fixed the things which bothered him, which of course
+     made things better for all.
+
+   • Gerd Moellmann also helped to contribute bug fixes during the
+     initial integration with Emacs 21.
+
+   • Alex Schroeder contributed code for interactively querying the user
+     before overwriting files.
+
+   Apart from these, a lot of people have sent suggestions, ideas,
+requests, bug reports and encouragement.  Thanks a lot!  Without you
+there would be no new releases of Eshell.
+
+
+File: eshell.info,  Node: Entry Points,  Next: Commands,  Prev: Introduction,  Up: Top
+
+2 Entry Points
+**************
+
+Eshell provides several different ways to start it, depending on the
+situation.
+
+* Menu:
+
+* Interactive Shell::
+* One-Off Commands::
+* Scripts::
+
+
+File: eshell.info,  Node: Interactive Shell,  Next: One-Off Commands,  Up: Entry Points
+
+2.1 Interactive Shell
+=====================
+
+The most common way to use Eshell is via an interactive shell.  You can
+start this via the ‘eshell’ command:
+
+ -- Command: eshell &optional arg
+     Start a new interactive Eshell session, or switch to an already
+     active session.  The exact behavior depends on the value of ARG
+     (interactively, the prefix argument):
+
+     ‘nil’ or omitted
+          Start or switch to the default Eshell session.  This is the
+          behavior when typing ‘M-x eshell <RET>’.
+
+     a number
+          Start or switch to the Eshell session with the specified
+          number (e.g. ‘*eshell*<2>’).
+
+     anything else
+          Start a new Eshell session, no matter if another one already
+          exists.
+
+
+File: eshell.info,  Node: One-Off Commands,  Next: Scripts,  Prev: Interactive Shell,  Up: Entry Points
+
+2.2 One-Off Commands
+====================
+
+You can also run individual Eshell commands from anywhere within Emacs:
+
+ -- Command: eshell-command command &optional to-current-buffer
+     Execute the Eshell command string COMMAND and show the output in a
+     buffer.  If TO-CURRENT-BUFFER is non-‘nil’ (interactively, with the
+     prefix argument), then insert output into the current buffer at
+     point.
+
+     When the command ends with ‘&’, Eshell will evaluate the command
+     asynchronously.  Otherwise, it will wait until the command has
+     finished execution.
+
+ -- Function: eshell-command-result command &optional status-var
+     Execute the Eshell command string COMMAND and return the result,
+     like using the variable ‘$$’ in an interactive session (*note
+     Variables::).  If STATUS-VAR is a symbol, this function will set it
+     to the exit status of the command (like using the variable ‘$?’ in
+     an interactive session).
+
+
+File: eshell.info,  Node: Scripts,  Prev: One-Off Commands,  Up: Entry Points
+
+2.3 Scripts
+===========
+
+Like other shells, you can create Eshell “scripts”.  An Eshell script is
+simply a file containing a sequence of commands that will be executed as
+though you entered them one at a time in an interactive Eshell session.
+You can invoke these scripts from within Eshell with ‘source’, which
+will run the script in a subshell.  If you wish to run a script in your
+_current_ Eshell environment, use the ‘.’ command instead.
+
+   Like with aliases (*note Aliases::), Eshell scripts can accept any
+number of arguments.  Within the script, you can refer to these with the
+special variables ‘$0’, ‘$1’, ..., ‘$9’, and ‘$*’.
+
+   You can also invoke Eshell scripts from outside of Eshell:
+
+ -- Function: eshell-execute-file file &optional args destination
+     Execute the Eshell commands contained in FILE, passing an optional
+     list of ARGS to the script.  If DESTINATION is ‘t’, write the
+     command output to the current buffer.  If ‘nil’, don’t write the
+     output anywhere.  For any other value, output to the corresponding
+     Eshell target (*note Redirection::).
+
+ -- Function: eshell-batch-file
+     This function lets you make an Eshell script file executable from
+     outside of Emacs by adding it to the script’s interpreter directive
+     like this:
+
+          #!/usr/bin/env -S emacs --batch -f eshell-batch-file
+
+     As with other ways of invoking Eshell scripts, you can pass extra
+     arguments to the script on the command line.
+
+
+File: eshell.info,  Node: Commands,  Next: Expansion,  Prev: Entry Points,  Up: Top
+
+3 Commands
+**********
+
+In a command shell, everything is done by invoking commands.  This
+chapter covers command invocations in Eshell, including the command
+history and invoking commands in a script file.
+
+   Unlike regular system shells, Eshell never invokes kernel functions
+directly, such as ‘exec(3)’.  Instead, it uses the Lisp functions
+available in the Emacs Lisp library.  It does this by transforming the
+input line into a callable Lisp form.(1)
+
+* Menu:
+
+* Invocation::
+* Arguments::
+* Built-ins::
+* Variables::
+* Aliases::
+* Remote Access::
+* Control Flow::
+
+   ---------- Footnotes ----------
+
+   (1) To see the Lisp form that will be invoked, type this as the
+Eshell prompt: ‘eshell-parse-command 'echo hello'’
+
+
+File: eshell.info,  Node: Invocation,  Next: Arguments,  Up: Commands
+
+3.1 Invocation
+==============
+
+Eshell is both a command shell and an Emacs Lisp REPL.  As a result, you
+can invoke commands in two different ways: in “command form” or in “Lisp
+form”.
+
+   You can use the semicolon (‘;’) to separate multiple command
+invocations on a single line, executing each in turn.  You can also
+separate commands with ‘&&’ or ‘||’.  When using ‘&&’, Eshell will
+execute the second command only if the first succeeds (i.e. has an exit
+status of 0); with ‘||’, Eshell will execute the second command only if
+the first fails.
+
+   A command invocation followed by an ampersand (‘&’) will be run in
+the background.  Eshell has no job control, so you can not suspend or
+background the current process, or bring a background process into the
+foreground.  That said, background processes invoked from Eshell can be
+controlled the same way as any other background process in Emacs.
+
+   If a command exits abnormally, Eshell will display its exit code in
+the next prompt.
+
+3.1.1 Command form
+------------------
+
+Command form looks much the same as in other shells.  A command consists
+of arguments separated by spaces; the first argument is the command to
+run, with any subsequent arguments being passed to that command.
+
+     ~ $ echo hello
+     hello
+
+   The command can be either an Elisp function or an external command.
+Eshell looks for the command in the following order:
+
+  1. As a command alias (*note Aliases::)
+
+  2. As a built-in command (*note Built-ins::)
+
+  3. As an external program
+
+  4. As an ordinary Lisp function
+
+   If you would prefer to use ordinary Lisp functions over external
+programs, set the option ‘eshell-prefer-lisp-functions’ to ‘t’.  This
+will swap the lookup order of the last two items.  You can also force
+Eshell to look for a command as an external program by prefixing its
+name with ‘*’, like ‘*COMMAND’ (*note Built-ins::).
+
+   You can also group command forms together into a subcommand with
+curly braces (‘{}’).  This lets you use the output of a subcommand as an
+argument to another command, or within control flow statements (*note
+Control Flow::).
+
+     ~ $ echo {echo hello; echo there}
+     hellothere
+
+3.1.2 Lisp form
+---------------
+
+Lisp form looks like ordinary Emacs Lisp code, because that’s what it
+is.  As a result, you can use any syntax normally available to an Emacs
+Lisp program (*note (elisp)Top::).
+
+     ~ $ (format "hello, %s" user-login-name)
+     hello, user
+
+   In addition, you can _combine_ command forms and Lisp forms together
+into single statements, letting you use whatever form is the most
+convenient for expressing your intentions.
+
+     ~ $ ls *.patch > (format-time-string "%F.log")
+
+   This command writes a list of all files matching the glob pattern
+‘*.patch’ (*note Globbing::) to a file named ‘CURRENT-DATE.log’ (*note
+Redirection::).
+
+
+File: eshell.info,  Node: Arguments,  Next: Built-ins,  Prev: Invocation,  Up: Commands
+
+3.2 Arguments
+=============
+
+Ordinarily, Eshell parses arguments in command form as either strings or
+numbers, depending on what the parser thinks they look like.  To specify
+an argument of some other data type, you can use a Lisp form (*note
+Invocation::):
+
+     ~ $ echo (list 1 2 3)
+     (1 2 3)
+
+   When calling external commands (and many built-in Eshell commands,
+too) Eshell will flatten the arguments the command receives, so passing
+a list as an argument will “spread” the elements into multiple
+arguments:
+
+     ~ $ printnl (list 1 2) 3
+     1
+     2
+     3
+
+3.2.1 Quoting and escaping
+--------------------------
+
+As with other shells, you can escape special characters and spaces by
+prefixing the character with a backslash (‘\’), or by surrounding the
+string with apostrophes (‘''’) or double quotes (‘""’).  This is needed
+especially for file names with special characters like pipe (‘|’) or
+square brackets (‘[’ or ‘]’), which could be part of remote file names.
+
+   When you escape a character with ‘\’ outside of any quotes, the
+result is the literal character immediately following it.  For example,
+‘\$10’ means the literal string ‘$10’.
+
+   Inside of double quotes, most characters have no special meaning.
+However, ‘\’, ‘"’, and ‘$’ are still special; to escape them, use
+backslash as above.  Thus, if the value of the variable ANSWER is ‘42’,
+then ‘"The answer is: \"$ANSWER\""’ returns the string ‘The answer is:
+"42"’.  However, when escaping characters with no special meaning, the
+result is the full ‘\C’ sequence.  For example, ‘"foo\bar"’ means the
+literal string ‘foo\bar’.
+
+   Additionally, when escaping a newline, the whole escape sequence is
+removed by the parser.  This lets you continue commands across multiple
+lines:
+
+     ~ $ echo "foo\
+     bar"
+     foobar
+
+   Inside apostrophes, escaping works differently.  All characters
+between the apostrophes have their literal meaning except ‘'’, which
+ends the quoted string.  To insert a literal apostrophe, you can use
+‘''’, so ‘'It''s me'’ means the literal string ‘It's me’.
+
+   When using expansions (*note Expansion::) in an Eshell command, the
+result may potentially be of any data type.  To ensure that the result
+is always a string, the expansion can be surrounded by double quotes.
+
+3.2.2 Special argument types
+----------------------------
+
+In addition to strings and numbers, Eshell supports a number of special
+argument types.  These let you refer to various other Emacs Lisp data
+types, such as lists or buffers.
+
+‘#'LISP-FORM’
+     This refers to the quoted Emacs Lisp form LISP-FORM.  Though this
+     looks similar to the “sharp quote” syntax for functions (*note
+     (elisp)Special Read Syntax::), it instead corresponds to ‘quote’
+     and can be used for any quoted form.(1)
+
+‘`LISP-FORM’
+     This refers to the backquoted Emacs Lisp form LISP-FORM (*note
+     (elisp)Backquote::).  As in Emacs Lisp, you can use ‘,’ and ‘,@’ to
+     refer to non-constant values.
+
+‘#<buffer NAME>’
+‘#<NAME>’
+     Return the buffer named NAME.  This is equivalent to
+     ‘$(get-buffer-create "NAME")’ (*note (elisp)Creating Buffers::).
+
+‘#<marker POSITION BUFFER-OR-NAME>’
+     Return a marker at POSITION in the buffer BUFFER-OR-NAME.
+     BUFFER-OR-NAME can either be a string naming a buffer or an actual
+     buffer object.  This is roughly equivalent to creating a new marker
+     and calling ‘$(set-marker marker POSITION BUFFER-OR-NAME)’ (*note
+     (elisp)Moving Markers::).
+
+‘#<process NAME>’
+     Return the process named NAME.  This is equivalent to
+     ‘$(get-process "NAME")’ (*note (elisp)Process Information::).
+
+   ---------- Footnotes ----------
+
+   (1) Eshell would interpret a bare apostrophe (‘'’) as the start of a
+single-quoted string.
+
+
+File: eshell.info,  Node: Built-ins,  Next: Variables,  Prev: Arguments,  Up: Commands
+
+3.3 Built-in Commands
+=====================
+
+Eshell provides a number of built-in commands, many of them implementing
+common command-line utilities, but enhanced for Eshell.  (These built-in
+commands are just ordinary Lisp functions whose names begin with
+‘eshell/’.)  In order to call the external variant of a built-in command
+‘foo’, you could call ‘*foo’.  Usually, this should not be necessary; if
+the Eshell version of a command doesn’t support a particular option, it
+will automatically invoke the external command for you.
+
+   Some built-in Eshell commands provide enhanced versions of regular
+Emacs Lisp functions.  If you want to call the regular Emacs Lisp
+version, you can write your command in Lisp form (*note Invocation::).
+To call the regular version in command form, you can use ‘funcall’ or
+‘apply’, e.g. ‘funcall #'compile "make all"’ (*note (elisp)Calling
+Functions::).
+
+   You can check what will be applied by the ‘which’ command:
+
+     ~ $ which ls
+     eshell/ls is a compiled Lisp function in `em-ls.el'
+     ~ $ which *ls
+     /bin/ls
+
+   If you want to discard a given built-in command, you could declare an
+alias (*note Aliases::).  For example:
+
+     ~ $ alias ls '*ls $@*'
+     ~ $ which ls
+     ls is an alias, defined as "*ls $@*"
+     ~ $ alias compile 'apply #''compile $*'
+     ~ $ which compile
+     ls is an alias, defined as "apply #'compile $*"
+
+   Some of the built-in commands have different behavior from their
+external counterparts, and some have no external counterpart.  Most of
+these will print a usage message when given the ‘--help’ option.
+
+   In some cases, a built-in command’s behavior can be configured via
+user settings, some of which are mentioned below.  For example, certain
+commands have two user settings to allow them to overwrite files without
+warning and to ensure that they always prompt before overwriting files.
+If both settings are non-‘nil’, the commands always prompt.  If both
+settings are ‘nil’ (the default), the commands signal an error.
+
+   Several commands observe the value of ‘eshell-default-target-is-dot’.
+If non-‘nil’, then the default target for the commands ‘cp’, ‘mv’, and
+‘ln’ is the current directory.
+
+   A few commands are wrappers for more niche Emacs features, and can be
+loaded as part of the ‘eshell-xtra’ module.  *Note Extra built-in
+commands::.
+
+* Menu:
+
+* List of Built-ins::
+* Defining New Built-ins::
+
+
+File: eshell.info,  Node: List of Built-ins,  Next: Defining New Built-ins,  Up: Built-ins
+
+3.3.1 List of Built-in Commands
+-------------------------------
+
+‘. FILE [ARGUMENT]...’
+     Source an Eshell script named FILE in the current environment,
+     passing any ARGUMENTS to the script (*note Scripts::).  This is not
+     to be confused with the command ‘source’, which sources a file in a
+     subshell environment.
+
+‘addpath’
+‘addpath [-b] DIRECTORY...’
+     Adds each specified DIRECTORY to the ‘$PATH’ environment variable.
+     By default, this adds the directories to the end of ‘$PATH’, in the
+     order they were passed on the command line; by passing ‘-b’ or
+     ‘--begin’, Eshell will instead add the directories to the
+     beginning.
+
+     With no directories, print the list of directories currently stored
+     in ‘$PATH’.
+
+‘alias’
+‘alias NAME [COMMAND]’
+     Define an alias named NAME and expanding to COMMAND, adding it to
+     the aliases file (*note Aliases::).  If COMMAND is omitted, delete
+     the alias named NAME.  With no arguments at all, list all the
+     currently-defined aliases.
+
+‘basename FILENAME’
+     Return FILENAME without its directory.
+
+‘cat FILE...’
+     Concatenate the contents of FILEs to standard output.  If in a
+     pipeline, or if any of the files is not a regular file, directory,
+     or symlink, then this command reverts to the system’s definition of
+     ‘cat’.
+
+‘cd’
+‘cd DIRECTORY’
+‘cd -[N]’
+‘cd =[REGEXP]’
+     Change the current working directory.  This command can take
+     several forms:
+
+     ‘cd’
+          Change to the user’s home directory.
+
+     ‘cd DIRECTORY’
+          Change to the specified DIRECTORY.
+
+     ‘cd -’
+          Change back to the previous working directory (this is the
+          same as ‘cd $-’).
+
+     ‘cd -N’
+          Change to the directory in the NTH slot of the directory
+          stack.
+
+     ‘cd =’
+          Show the directory ring.  Each line is numbered.
+
+     ‘cd =REGEXP’
+          Search the directory ring for a directory matching the regular
+          expression REGEXP and change to that directory.
+
+     If ‘eshell-cd-shows-directory’ is non-‘nil’, ‘cd’ will report the
+     directory it changes to.  If ‘eshell-list-files-after-cd’ is
+     non-‘nil’, then ‘ls’ is called with any remaining arguments after
+     changing directories.
+
+‘clear [SCROLLBACK]’
+     Scrolls the contents of the Eshell window out of sight, leaving a
+     blank window.  If SCROLLBACK is non-‘nil’, the scrollback contents
+     are cleared instead, as with ‘clear-scrollback’.
+
+‘clear-scrollback’
+     Clear the scrollback contents of the Eshell window.  Unlike the
+     command ‘clear’, this command deletes content in the Eshell buffer.
+
+‘compile [-p | -i] [-m MODE-NAME] COMMAND...’
+     Run an external command, sending its output to a compilation buffer
+     if the command would output to the screen and is not part of a
+     pipeline or subcommand.
+
+     With the ‘-p’ or ‘--plain’ options, always send the output to the
+     Eshell buffer; similarly, with ‘-i’ or ‘--interactive’, always send
+     the output to a compilation buffer.  You can also set the mode of
+     the compilation buffer with ‘-m MODE-NAME’ or ‘--mode MODE-NAME’.
+
+     ‘compile’ is particularly useful when defining aliases, so that
+     interactively, the output shows up in a compilation buffer, but you
+     can still pipe the output elsewhere if desired.  For example, if
+     you have a grep-like command on your system, you might define an
+     alias for it like so: ‘alias mygrep 'compile --mode=grep-mode --
+     mygrep $*'’.
+
+‘cp [OPTION...] SOURCE DEST’
+‘cp [OPTION...] SOURCE... DIRECTORY’
+     Copy the file SOURCE to DEST or SOURCE into DIRECTORY.
+
+     If ‘eshell-cp-overwrite-files’ is non-‘nil’, then ‘cp’ will
+     overwrite files without warning.  If ‘eshell-cp-interactive-query’
+     is non-‘nil’, then ‘cp’ will ask before overwriting anything.
+
+     ‘cp’ accepts the following options:
+
+     ‘-a’, ‘--archive’
+          Equivalent to ‘--no-dereference --preserve --recursive’.
+
+     ‘-d’, ‘--no-dereference’
+          Don’t dereference symbolic links when copying; instead, copy
+          the link itself.
+
+     ‘-f’, ‘--force’
+          Never prompt for confirmation before copying a file.
+
+     ‘-i’, ‘--interactive’
+          Prompt for confirmation before copying a file if the target
+          already exists.
+
+     ‘-n’, ‘--preview’
+          Run the command, but don’t copy anything.  This is useful if
+          you want to preview what would be removed when calling ‘cp’.
+
+     ‘-p’, ‘--preserve’
+          Attempt to preserve file attributes when copying.
+
+     ‘-r’, ‘-R’, ‘--recursive’
+          Copy any specified directories and their contents recursively.
+
+     ‘-v’, ‘--verbose’
+          Print the name of each file before copying it.
+
+‘date [SPECIFIED-TIME [ZONE]]’
+     Print the current local time as a human-readable string.  This
+     command is an alias to the Emacs Lisp function
+     ‘current-time-string’ (*note (elisp)Time of Day::).
+
+‘diff [OPTION]... OLD NEW’
+     Compare the files OLD and NEW using Emacs’s internal ‘diff’ (not to
+     be confused with ‘ediff’).  *Note (emacs)Comparing Files::.
+
+     If ‘eshell-plain-diff-behavior’ is non-‘nil’, then this command
+     does not use Emacs’s internal ‘diff’.  This is the same as using
+     ‘alias diff '*diff $@*'’.
+
+‘dirname FILENAME’
+     Return the directory component of FILENAME.
+
+‘dirs’
+     Prints the directory stack.  Directories can be added or removed
+     from the stack using the commands ‘pushd’ and ‘popd’, respectively.
+
+‘du [OPTION]... FILE...’
+     Summarize disk usage for each file, recursing into directories.
+
+     ‘du’ accepts the following options:
+
+     ‘-a’, ‘--all’
+          Print sizes for files, not just directories.
+
+     ‘--block-size=SIZE’
+          Print sizes as number of blocks of size SIZE.
+
+     ‘-b’, ‘--bytes’
+          Print file sizes in bytes.
+
+     ‘-c’, ‘--total’
+          Print a grand total of the sizes at the end.
+
+     ‘-d’, ‘--max-depth=DEPTH’
+          Only print sizes for directories (or files with ‘--all’) that
+          are DEPTH or fewer levels below the command line arguments.
+
+     ‘-h’, ‘--human-readable’
+          Print sizes in human-readable format, with binary prefixes (so
+          1 KB is 1024 bytes).
+
+     ‘-H’, ‘--si’
+          Print sizes in human-readable format, with decimal prefixes
+          (so 1 KB is 1000 bytes).
+
+     ‘-k’, ‘--kilobytes’
+          Print file sizes in kilobytes (like ‘--block-size=1024’).
+
+     ‘-L’, ‘--dereference’
+          Follow symbolic links when traversing files.
+
+     ‘-m’, ‘--megabytes’
+          Print file sizes in megabytes (like ‘--block-size=1048576’).
+
+     ‘-s’, ‘--summarize’
+          Don’t recurse into subdirectories (like ‘--max-depth=0’).
+
+     ‘-x’, ‘--one-file-system’
+          Skip any directories that reside on different filesystems.
+
+‘echo [-n | -N] [ARG]...’
+     Prints the value of each ARG.  By default, this prints in a
+     Lisp-friendly fashion (so that the value is useful to a Lisp
+     command using the result of ‘echo’ as an argument).  If a single
+     argument is passed, ‘echo’ prints that; if multiple arguments are
+     passed, it prints a list of all the arguments; otherwise, it prints
+     the empty string.
+
+     If ‘eshell-plain-echo-behavior’ is non-‘nil’, ‘echo’ will try to
+     behave more like a plain shell’s ‘echo’, printing each argument as
+     a string, separated by a space.
+
+     You can control whether ‘echo’ outputs a trailing newline using
+     ‘-n’ to disable the trailing newline (the default behavior) or ‘-N’
+     to enable it (the default when ‘eshell-plain-echo-behavior’ is
+     non-‘nil’).
+
+‘env [VAR=VALUE]... [COMMAND]...’
+     With no arguments, print the current environment variables.  If you
+     pass arguments to this command, then ‘env’ will execute the
+     arguments as a command.  If you pass any initial arguments of the
+     form ‘VAR=VALUE’, ‘env’ will first set VAR to VALUE before running
+     the command.
+
+‘eshell-debug [error | form | process]...’
+     Toggle debugging information for Eshell itself.  You can pass this
+     command one or more of the following arguments:
+
+        • ‘error’, to enable/disable Eshell trapping errors when
+          evaluating commands;
+
+        • ‘form’, to show/hide Eshell command form manipulation in the
+          buffer ‘*eshell last cmd*’; or
+
+        • ‘process’, to show/hide external process events in the buffer
+          ‘*eshell last cmd*’.
+
+‘exit’
+     Exit Eshell and save the history.  By default, this command kills
+     the Eshell buffer, but if ‘eshell-kill-on-exit’ is ‘nil’, then the
+     buffer is merely buried instead.
+
+‘export [NAME=VALUE]...’
+     Set environment variables using input like Bash’s ‘export’, as in
+     ‘export VAR1=VAL1 VAR2=VAL2 ...’.
+
+‘funcall FUNCTION [ARG]...’
+     Call FUNCTION with the specified arguments (FUNCTION may be a
+     symbol or a string naming a Lisp function).  This command is useful
+     when you want to call an ordinary Lisp function using Eshell’s
+     command form (*note Invocation::), even if there may be an external
+     program of the same name.
+
+‘grep [ARG]...’
+‘agrep [ARG]...’
+‘egrep [ARG]...’
+‘fgrep [ARG]...’
+‘rgrep [ARG]...’
+‘glimpse [ARG]...’
+     The ‘grep’ commands are compatible with GNU ‘grep’, but open a
+     compilation buffer in ‘grep-mode’ instead.  *Note (emacs)Grep
+     Searching::.
+
+     If ‘eshell-plain-grep-behavior’ is non-‘nil’, then these commands
+     do not use open a compilation buffer, instead printing output to
+     Eshell’s buffer.  This is the same as using ‘alias grep '*grep
+     $@*'’, though this setting applies to all of the built-in commands
+     for which you would need to create a separate alias.
+
+‘history [N]’
+‘history [-arw] [FILENAME]’
+     Prints Eshell’s input history.  With a numeric argument N, this
+     command prints the N most recent items in the history.
+     Alternately, you can specify the following options:
+
+     ‘-a’, ‘--append’
+          Append new history items to the history file.
+
+     ‘-r’, ‘--read’
+          Read history items from the history file and append them to
+          the current shell’s history.
+
+     ‘-w’, ‘--write’
+          Write the current history list to the history file.
+
+‘info [MANUAL [ITEM]...]’
+     Browse the available Info documentation.  With no arguments, browse
+     the top-level menu.  Otherwise, show the manual for MANUAL,
+     selecting the menu entry for ITEM.
+
+     This command is the same as the external ‘info’ command, but uses
+     Emacs’s internal Info reader.  *Note (emacs)Misc Help::.
+
+‘jobs’
+     List subprocesses of the Emacs process, if any, using the function
+     ‘list-processes’.
+
+‘kill [-SIGNAL] [PID | PROCESS]’
+     Kill processes.  Takes a PID or a process object and an optional
+     SIGNAL specifier which can either be a number or a signal name.
+
+‘listify [ARG]...’
+     Return the arguments as a single list.  With a single argument,
+     return it as-is if it’s already a list, or otherwise wrap it in a
+     list.  With multiple arguments, return a list of all of them.
+
+‘ln [OPTION]... TARGET [LINK-NAME]’
+‘ln [OPTION]... TARGET... DIRECTORY’
+     Create a link to the specified TARGET named LINK-NAME or create
+     links to multiple TARGETS in DIRECTORY.
+
+     If ‘eshell-ln-overwrite-files’ is non-‘nil’, ‘ln’ will overwrite
+     files without warning.  If ‘eshell-ln-interactive-query’ is
+     non-‘nil’, then ‘ln’ will ask before overwriting files.
+
+     ‘ln’ accepts the following options:
+
+     ‘-f’, ‘--force’
+          Never prompt for confirmation before linking a target.
+
+     ‘-i’, ‘--interactive’
+          Prompt for confirmation before linking to an item if the
+          source already exists.
+
+     ‘-n’, ‘--preview’
+          Run the command, but don’t move anything.  This is useful if
+          you want to preview what would be linked when calling ‘ln’.
+
+     ‘-s’, ‘--symbolic’
+          Make symbolic links instead of hard links.
+
+     ‘-v’, ‘--verbose’
+          Print the name of each file before linking it.
+
+‘locate ARG...’
+     Alias to Emacs’s ‘locate’ function, which simply runs the external
+     ‘locate’ command and parses the results.  *Note (emacs)Dired and
+     Find::.
+
+     If ‘eshell-plain-locate-behavior’ is non-‘nil’, then Emacs’s
+     internal ‘locate’ is not used.  This is the same as using ‘alias
+     locate '*locate $@*'’.
+
+‘ls [OPTION]... [FILE]...’
+     List information about each FILE, including the contents of any
+     specified directories.  If FILE is unspecified, list the contents
+     of the current directory.
+
+     The user option ‘eshell-ls-initial-args’ contains a list of
+     arguments to include with any call to ‘ls’.  For example, you can
+     include the option ‘-h’ to always use a more human-readable format.
+
+     If ‘eshell-ls-use-colors’ is non-‘nil’, the contents of a directory
+     is color-coded according to file type and status.  These colors and
+     the regexps used to identify their corresponding files can be
+     customized via ‘M-x customize-group <RET> eshell-ls <RET>’.
+
+     ‘ls’ supports the following options:
+
+     ‘-a’, ‘--all’
+          List all files, including ones starting with ‘.’.
+
+     ‘-A’, ‘--almost-all’
+          Like ‘--all’, but don’t list the current directory (‘.’) or
+          the parent directory (‘..’).
+
+     ‘-c’, ‘--by-ctime’
+          Sort files by last status change time, with newest files
+          first.
+
+     ‘-C’
+          List entries by columns.
+
+     ‘-d’, ‘--directory’
+          List directory entries instead of their contents.
+
+     ‘-h’, ‘--human-readable’
+          Print sizes in human-readable format, with binary prefixes (so
+          1 KB is 1024 bytes).
+
+     ‘-H’, ‘--si’
+          Print sizes in human-readable format, with decimal prefixes
+          (so 1 KB is 1000 bytes).
+
+     ‘-IPATTERN’, ‘--ignore=PATTERN’
+          Don’t list directory entries matching PATTERN.
+
+     ‘-k’, ‘--kilobytes’
+          Print sizes as 1024-byte kilobytes.
+
+     ‘-l’
+          Use a long listing format showing details for each file.  The
+          user option ‘eshell-ls-date-format’ determines how the date is
+          displayed when using this option.  The date is produced using
+          the function ‘format-time-string’ (*note (elisp)Time
+          Parsing::).
+
+     ‘-L’, ‘--dereference’
+          Follow symbolic links when listing entries.
+
+     ‘-n’, ‘--numeric-uid-gid’
+          Show UIDs and GIDs numerically, instead of using their names.
+
+     ‘-r’, ‘--reverse’
+          Reverse order when sorting.
+
+     ‘-R’, ‘--recursive’
+          List subdirectories recursively.
+
+     ‘-s’, ‘--size’
+          Show the size of each file in blocks.
+
+     ‘-S’
+          Sort by file size, with largest files first.  The user option
+          ‘eshell-ls-default-blocksize’ determines the default blocksize
+          used when displaying file sizes with this option.
+
+     ‘-t’
+          Sort by modification time, with newest files first.
+
+     ‘-u’
+          Sort by last access time, with newest files first.
+
+     ‘-U’
+          Do not sort results.  Instead, list entries in their directory
+          order.
+
+     ‘-x’
+          List entries by lines instead of by columns.
+
+     ‘-X’
+          Sort alphabetically by file extension.
+
+     ‘-1’
+          List one file per line.
+
+‘make [ARG]...’
+     Run ‘make’ through ‘compile’ when run asynchronously (e.g., ‘make
+     &’).  *Note (emacs)Compilation::.  Otherwise call the external
+     ‘make’ command.
+
+‘man [ARG]...’
+     Display Man pages using the Emacs ‘man’ command.  *Note (emacs)Man
+     Page::.
+
+‘mkdir [-p] DIRECTORY...’
+     Make new directories.  With ‘-p’ or ‘--parents’, automatically make
+     any necessary parent directories as well.
+
+‘mv [OPTION]... SOURCE DEST’
+‘mv [OPTION]... SOURCE... DIRECTORY’
+     Rename the file SOURCE to DEST or move SOURCE into DIRECTORY.
+
+     If ‘eshell-mv-overwrite-files’ is non-‘nil’, ‘mv’ will overwrite
+     files without warning.  If ‘eshell-mv-interactive-query’ is
+     non-‘nil’, ‘mv’ will prompt before overwriting anything.
+
+     ‘mv’ accepts the following options:
+
+     ‘-f’, ‘--force’
+          Never prompt for confirmation before moving an item.
+
+     ‘-i’, ‘--interactive’
+          Prompt for confirmation before moving an item if the target
+          already exists.
+
+     ‘-n’, ‘--preview’
+          Run the command, but don’t move anything.  This is useful if
+          you want to preview what would be moved when calling ‘mv’.
+
+     ‘-v’, ‘--verbose’
+          Print the name of each item before moving it.
+
+‘occur REGEXP [NLINES]’
+     Alias to Emacs’s ‘occur’.  *Note (emacs)Other Repeating Search::.
+
+‘popd’
+‘popd +N’
+     Pop a directory from the directory stack and switch to a another
+     place in the stack.  This command can take the following forms:
+
+     ‘popd’
+          Remove the current directory from the directory stack and
+          change to the directory beneath it.
+
+     ‘popd +N’
+          Remove the current directory from the directory stack and
+          change to the NTH directory in the stack (counting from zero).
+
+‘printnl [ARG]...’
+     Print all the ARGs separated by newlines.
+
+‘pushd’
+‘pushd DIRECTORY’
+‘pushd +N’
+     Push the current directory onto the directory stack, then change to
+     another directory.  This command can take the following forms:
+
+     ‘pushd’
+          Swap the current directory with the directory on the top of
+          the stack.  If ‘eshell-pushd-tohome’ is non-‘nil’, push the
+          current directory onto the stack and change to the user’s home
+          directory (like ‘pushd ~’).
+
+     ‘pushd DIRECTORY’
+          Push the current directory onto the stack and change to
+          DIRECTORY.  If ‘eshell-pushd-dunique’ is non-‘nil’, then only
+          unique directories will be added to the stack.
+
+     ‘pushd +N’
+          Change to the NTH directory in the directory stack (counting
+          from zero), and “rotate” the stack by moving any elements
+          before the NTH to the bottom.  If ‘eshell-pushd-dextract’ is
+          non-‘nil’, then ‘pushd +N’ will instead pop the Nth directory
+          to the top of the stack.
+
+‘pwd’
+     Prints the current working directory.
+
+‘rm [OPTION]... ITEM...’
+     Removes files, buffers, processes, or Emacs Lisp symbols, depending
+     on the type of each ITEM.
+
+     If ‘eshell-rm-interactive-query’ is non-‘nil’, ‘rm’ will prompt
+     before removing anything.  If ‘eshell-rm-removes-directories’ is
+     non-‘nil’, then ‘rm’ can also remove directories.  Otherwise,
+     ‘rmdir’ is required.
+
+     ‘rm’ accepts the following options:
+
+     ‘-f’, ‘--force’
+          Never prompt for confirmation before removing an item.
+
+     ‘-i’, ‘--interactive’
+          Prompt for confirmation before removing each item.
+
+     ‘-n’, ‘--preview’
+          Run the command, but don’t remove anything.  This is useful if
+          you want to preview what would be removed when calling ‘rm’.
+
+     ‘-r’, ‘-R’, ‘--recursive’
+          Remove any specified directories and their contents
+          recursively.
+
+     ‘-v’, ‘--verbose’
+          Print the name of each item before removing it.
+
+‘rmdir DIRECTORY...’
+     Removes directories if they are empty.
+
+‘set [VAR VALUE]...’
+     Set variable values, using the function ‘set’ like a command (*note
+     (elisp)Setting Variables::).  The value of VAR can be a symbol, in
+     which case it refers to a Lisp variable, or a string, referring to
+     an environment variable (*note Arguments::).
+
+‘setq [SYMBOL VALUE]...’
+     Set variable values, using the function ‘setq’ like a command
+     (*note (elisp)Setting Variables::).
+
+‘source FILE [ARGUMENT]...’
+     Source an Eshell script named FILE in a subshell environment,
+     passing any ARGUMENTs to the script (*note Scripts::).  This is not
+     to be confused with the command ‘.’, which sources a file in the
+     current environment.
+
+‘time COMMAND...’
+     Show the time elapsed during the execution of COMMAND.
+
+‘umask [-S]’
+‘umask MODE’
+     View the default file permissions for newly created files and
+     directories.  If you pass ‘-S’ or ‘--symbolic’, view the mode
+     symbolically.  With MODE, set the default permissions to this
+     value.
+
+‘unset [VAR]...’
+     Unset one or more variables.  As with ‘set’, the value of VAR can
+     be a symbol, in which case it refers to a Lisp variable, or a
+     string, referring to an environment variable.
+
+‘wait [PROCESS]...’
+     Wait until each specified PROCESS has exited.
+
+‘which COMMAND...’
+     For each COMMAND, identify what kind of command it is and its
+     location.
+
+‘whoami’
+     Print the current user.  This Eshell version of ‘whoami’ is
+     connection-aware, so for remote directories, it will print the user
+     associated with that connection.
+
+
+File: eshell.info,  Node: Defining New Built-ins,  Prev: List of Built-ins,  Up: Built-ins
+
+3.3.2 Defining New Built-in Commands
+------------------------------------
+
+While Eshell can run Lisp functions directly as commands, it may be more
+convenient to provide a special built-in command for Eshell.  Built-in
+commands are just ordinary Lisp functions designed to be called from
+Eshell.  When defining an Eshell-specific version of an existing
+function, you can give that function a name starting with ‘eshell/’ so
+that Eshell knows to use it.
+
+ -- Macro: eshell-eval-using-options name macro-args options body...
+     This macro processes a list of MACRO-ARGS for the command NAME
+     using a set of command line OPTIONS.  If the arguments are parsed
+     successfully, it will store the resulting values in local symbols
+     and execute BODY; any remaining arguments will be available in the
+     locally let-bound variable ‘args’.  The return value is the value
+     of the last form in BODY.
+
+     If an unknown option was passed in MACRO-ARGS and an external
+     command was specified (see below), this macro will start a process
+     for that command and throw the tag ‘eshell-external’ with the new
+     process as its value.
+
+     OPTIONS should be a list beginning with one or more elements of the
+     following form, with each element representing a particular
+     command-line switch:
+
+          (SHORT LONG VALUE SYMBOL HELP-STRING)
+
+     SHORT
+          This element, if non-‘nil’, should be a character to be used
+          as a short switch, like ‘-SHORT’.  At least one of this
+          element and LONG must be non-‘nil’.
+
+     LONG
+          This element, if non-‘nil’, should be a string to be used as a
+          long switch, like ‘--LONG’.
+
+     VALUE
+          This element is the value associated with the option.  It can
+          be either:
+
+          ‘t’
+               The option needs a value to be specified after the
+               switch.
+
+          ‘nil’
+               The option is given the value ‘t’.
+
+          anything else
+               The option is given the specified value.
+
+     SYMBOL
+          This element is the Lisp symbol that will be bound to VALUE.
+          If SYMBOL is ‘nil’, specifying this switch will instead call
+          ‘eshell-show-usage’, and so is appropriate for an option like
+          ‘--help’.
+
+     HELP-STRING
+          This element is a documentation string for the option, which
+          will be displayed when ‘eshell-show-usage’ is invoked.
+
+     After the list of command-line switch elements, OPTIONS can include
+     additional keyword arguments to control how
+     ‘eshell-eval-using-options’ behaves.  Some of these take arguments,
+     while others don’t.  The recognized keywords are:
+
+     ‘:external STRING’
+          Specify STRING as an external command to run if there are
+          unknown switches in MACRO-ARGS.
+
+     ‘:usage STRING’
+          Set STRING as the initial part of the command’s documentation
+          string.  It appears before the options are listed.
+
+     ‘:post-usage STRING’
+          Set STRING to be the (optional) trailing part of the command’s
+          documentation string.  It appears after the list of options,
+          but before the final part of the documentation about the
+          associated external command, if there is one.
+
+     ‘:show-usage’
+          If present, then show the usage message if the command is
+          called with no arguments.
+
+     ‘:preserve-args’
+          Normally, ‘eshell-eval-using-options’ flattens the list of
+          arguments in MACRO-ARGS and converts each to a string.  If
+          this keyword is present, avoid doing that, instead preserving
+          the original arguments.  This is useful for commands which
+          want to accept arbitrary Lisp objects.
+
+     ‘:parse-leading-options-only’
+          If present, do not parse dash or switch arguments after the
+          first positional argument.  Instead, treat them as positional
+          arguments themselves.
+
+     For example, you could handle a subset of the options for the ‘ls’
+     command like this:
+
+          (eshell-eval-using-options
+           "ls" macro-args
+           '((?a  nil      nil show-all       "show all files")
+             (?I  "ignore" t   ignore-pattern "ignore files matching pattern")
+             (nil "help"   nil nil            "show this help message")
+           :external "ls"
+           :usage "[OPTION]... [FILE]...
+            List information about FILEs (the current directory by default).")
+           ;; List the files in ARGS somehow...
+           )
+
+
+File: eshell.info,  Node: Variables,  Next: Aliases,  Prev: Built-ins,  Up: Commands
+
+3.4 Variables
+=============
+
+Since Eshell is a combination of an Emacs REPL and a command shell, it
+can refer to variables from two different sources: ordinary Emacs Lisp
+variables, as well as environment variables.  By default, when using a
+variable in Eshell, it will first look in the list of built-in
+variables, then in the list of environment variables, and finally in the
+list of Lisp variables.  If you would prefer to use Lisp variables over
+environment variables, you can set ‘eshell-prefer-lisp-variables’ to
+‘t’.
+
+   You can set variables in a few different ways.  To set a Lisp
+variable, you can use the command ‘setq NAME VALUE’, which works much
+like its Lisp counterpart (*note (elisp)Setting Variables::).  To set an
+environment variable, use ‘export NAME=VALUE’.  You can also use ‘set
+VARIABLE VALUE’, which sets a Lisp variable if VARIABLE is a symbol, or
+an environment variable if it’s a string (*note Arguments::).  Finally,
+you can temporarily set environment variables for a single command with
+‘NAME=VALUE COMMAND ...’.  This is equivalent to:
+
+     {
+       export NAME=VALUE
+       COMMAND ...
+     }
+
+3.4.1 Built-in variables
+------------------------
+
+Eshell knows a few built-in variables:
+
+‘$PWD’
+‘$+’
+     This variable always contains the current working directory.
+
+‘$OLDPWD’
+‘$-’
+     This variable always contains the previous working directory (the
+     current working directory from before the last ‘cd’ command).  When
+     using ‘$-’, you can also access older directories in the directory
+     ring via subscripting, e.g. ‘$-[1]’ refers to the working directory
+     _before_ the previous one.
+
+‘$PATH’
+     This specifies the directories to search for executable programs.
+     Its value is a string, separated by ‘":"’ for Unix and GNU systems,
+     and ‘";"’ for MS systems.  This variable is connection-aware, so
+     whenever you change the current directory to a different host
+     (*note (emacs)Remote Files::), the value will automatically update
+     to reflect the search path on that host.
+
+‘$UID’
+     This returns the effective UID for the current user.  This variable
+     is connection-aware, so when the current directory is remote, its
+     value will be UID for the user associated with that remote
+     connection.
+
+‘$GID’
+     This returns the effective GID for the current user.  Like ‘$UID’,
+     this variable is connection-aware, so when the current directory is
+     remote, its value will be GID for the user associated with that
+     remote connection.
+
+‘$_’
+     This refers to the last argument of the last command.  With a
+     subscript, you can access any argument of the last command.  For
+     example, ‘$_[1]’ refers to the second argument of the last command
+     (excluding the command name itself).  To get all arguments of the
+     last command, you can use an index range like ‘$_[..]’ (*note
+     Dollars Expansion::).
+
+‘$$’
+     This is the result of the last command.  For external commands, it
+     is ‘t’ if the exit code was 0 or ‘nil’ otherwise.
+
+‘$?’
+     This variable contains the exit code of the last command.  If the
+     last command was a Lisp function, it is 0 for successful completion
+     or 1 otherwise.  If ‘eshell-lisp-form-nil-is-failure’ is non-‘nil’,
+     then a command with a Lisp form, like ‘(COMMAND ARGS...)’, that
+     returns ‘nil’ will set this variable to 2.
+
+‘$COLUMNS’
+‘$LINES’
+     These variables tell the number of columns and lines, respectively,
+     that are currently visible in the Eshell window.  They are both
+     copied to the environment, so external commands invoked from Eshell
+     can consult them to do the right thing.
+
+‘$INSIDE_EMACS’
+     This variable indicates to external commands that they are being
+     invoked from within Emacs so they can adjust their behavior if
+     necessary.  By default, its value is ‘EMACS-VERSION,eshell’.  Other
+     parts of Emacs, such as Tramp, may add extra information to this
+     value.
+
+‘$PAGER’
+     This variable indicates the pager that commands should use when
+     they wish to paginate long output.  Its value is that of
+     ‘comint-pager’ if non-‘nil’; otherwise, it uses the value of
+     ‘$PAGER’ from the ‘process-environment’.
+
+   *Note Aliases::, for the built-in variables ‘$*’, ‘$1’, ‘$2’, ..., in
+alias definitions.
+
+
+File: eshell.info,  Node: Aliases,  Next: Remote Access,  Prev: Variables,  Up: Commands
+
+3.5 Aliases
+===========
+
+Aliases are commands that expand to a longer input line.  For example,
+‘ll’ is a common alias for ‘ls -l’.  To define this alias in Eshell, you
+can use the command invocation ‘alias ll 'ls -l $@*'’; with this
+defined, running ‘ll foo’ in Eshell will actually run ‘ls -l foo’.
+Aliases defined (or deleted) by the ‘alias’ command are automatically
+written to the file named by ‘eshell-aliases-file’, which you can also
+edit directly.  After doing so, use ‘M-x eshell-read-aliases-list’ to
+load the edited aliases.
+
+   Note that unlike aliases in Bash, arguments must be handled
+explicitly.  Within aliases, you can use the special variables ‘$*’,
+‘$0’, ‘$1’, ‘$2’, etc. to refer to the arguments passed to the alias.
+
+‘$*’
+     This expands to the list of arguments passed to the alias.  For
+     example, if you run ‘my-alias 1 2 3’, then ‘$*’ would be the list
+     ‘(1 2 3)’.  Note that since this variable is a list, using ‘$*’ in
+     an alias will pass this list as a single argument to the aliased
+     command.  Therefore, when defining an alias, you should usually use
+     ‘$@*’ to pass all arguments along, splicing them into your argument
+     list (*note Dollars Expansion::).
+
+‘$0’
+     This expands to the name of the alias currently being executed.
+
+‘$1, $2, ..., $9’
+     These variables expand to the nth argument (starting at 1) passed
+     to the alias.  This lets you selectively use an alias’s arguments,
+     so ‘alias mcd 'mkdir $1 && cd $1'’ would cause ‘mcd foo’ to create
+     and switch to a directory called ‘foo’.
+
+
+File: eshell.info,  Node: Remote Access,  Next: Control Flow,  Prev: Aliases,  Up: Commands
+
+3.6 Remote Access
+=================
+
+Since Eshell uses Emacs facilities for most of its functionality, you
+can access remote hosts transparently.  To connect to a remote host,
+simply ‘cd’ into it:
+
+     ~ $ cd /ssh:user@remote:
+     /ssh:user@remote:~ $
+
+   Additionally, built-in Eshell commands (*note Built-ins::) and
+ordinary Lisp functions accept remote file names, so you can access them
+even without explicitly connecting first.  For example, to print the
+contents of a remote file, you could type ‘cat
+/ssh:user@remote:~/output.log’.  However, this means that when using
+built-in commands or Lisp functions from a remote directory, you must be
+careful about specifying absolute file names: ‘cat /var/output.log’ will
+always print the contents of your _local_ ‘/var/output.log’, even from a
+remote directory.  If you find this behavior annoying, you can enable
+the optional electric forward slash module (*note Electric forward
+slash::).
+
+   When running commands, you can also make them explicitly remote by
+prefixing the command name with a remote identifier, e.g.
+‘/ssh:user@remote:whoami’.  This runs the command ‘whoami’ over the SSH
+connection for ‘user@remote’, no matter your current directory.  If you
+want to explicitly run a command on your _local_ machine even when in a
+remote directory, you can prefix the command name with ‘/local:’, like
+‘/local:whoami’.  In either case, you can also specify the absolute path
+to the program, e.g. ‘/ssh:user@remote:/usr/bin/whoami’.  If you need to
+refer to a program whose file name would be interpreted as an
+explicitly-remote command, you can use ‘/:’ to quote the name, e.g.
+‘/:/ssh:user@remote:whoami’ (*note (emacs)Quoted File Names::).  To
+disable explicitly-remote commands entirely, you can set the option
+‘eshell-explicit-remote-commands’ to ‘nil’.
+
+
+File: eshell.info,  Node: Control Flow,  Prev: Remote Access,  Up: Commands
+
+3.7 Control Flow
+================
+
+Because Eshell commands can not (easily) be combined with Lisp forms,
+Eshell provides command-oriented control flow statements for
+convenience.
+
+   Most of Eshell’s control flow statements accept a CONDITIONAL.  This
+can take a few different forms.  If CONDITIONAL is a dollar expansion,
+the condition is satisfied if the result is a non-‘nil’ value.  If
+CONDITIONAL is a ‘{ SUBCOMMAND }’ or ‘(LISP FORM)’, the condition is
+satisfied if the command’s exit status is 0.
+
+‘if CONDITIONAL { TRUE-COMMANDS }’
+‘if CONDITIONAL { TRUE-COMMANDS } { FALSE-COMMANDS }’
+     Evaluate TRUE-COMMANDS if CONDITIONAL is satisfied; otherwise,
+     evaluate FALSE-COMMANDS.
+
+‘unless CONDITIONAL { FALSE-COMMANDS }’
+‘unless CONDITIONAL { FALSE-COMMANDS } { TRUE-COMMANDS }’
+     Evaluate FALSE-COMMANDS if CONDITIONAL is not satisfied; otherwise,
+     evaluate TRUE-COMMANDS.
+
+‘while CONDITIONAL { COMMANDS }’
+     Repeatedly evaluate COMMANDS so long as CONDITIONAL is satisfied.
+
+‘until CONDITIONAL { COMMANDS }’
+     Repeatedly evaluate COMMANDS until CONDITIONAL is satisfied.
+
+‘for VAR in LIST... { COMMANDS }’
+     Iterate over each element of LIST, storing the element in VAR and
+     evaluating COMMANDS.  If LIST is not a list, treat it as a list of
+     one element.  If you specify multiple LISTS, this will iterate over
+     each of them in turn.
+
+
+File: eshell.info,  Node: Expansion,  Next: Input/Output,  Prev: Commands,  Up: Top
+
+4 Expansion
+***********
+
+Expansion in a command shell is somewhat like macro expansion in macro
+parsers (such as ‘cpp’ and ‘m4’), but in a command shell, they are less
+often used for constants, and usually for using variables and string
+manipulation.(1)  For example, ‘$VAR’ on a line expands to the value of
+the variable VAR when the line is executed.  Expansions are usually
+passed as arguments, but may also be used as commands.(2)
+
+   You can concatenate expansions with regular string arguments or even
+other expansions.  In the simplest case, when the expansion returns a
+string value, this is equivalent to ordinary string concatenation; for
+example, ‘${echo "foo"}bar’ returns ‘foobar’.  The exact behavior
+depends on the types of each value being concatenated:
+
+both strings
+     Concatenate both values together.
+
+one or both numbers
+     Concatenate the string representation of each value, converting
+     back to a number if possible.
+
+one or both (non-‘nil’) lists
+     Concatenate “adjacent” elements of each value (possibly converting
+     back to a number as above).  For example, ‘$(list "a" "b")c’
+     returns ‘("a" "bc")’.
+
+anything else
+     Concatenate the string representation of each value.
+
+* Menu:
+
+* Dollars Expansion::
+* Globbing::
+* Argument Predication and Modification::
+
+   ---------- Footnotes ----------
+
+   (1) Eshell has no string-manipulation expansions because the Elisp
+library already provides many functions for this.
+
+   (2) E.g., entering just ‘$VAR’ at the prompt is equivalent to
+entering the value of VAR at the prompt.
+
+
+File: eshell.info,  Node: Dollars Expansion,  Next: Globbing,  Up: Expansion
+
+4.1 Dollars Expansion
+=====================
+
+Like in many other shells, you can use ‘$’ expansions to insert various
+values into your Eshell invocations.  While Eshell’s ‘$’ expansion
+syntax has some similarities to the syntax from other shells, there are
+also many differences.  Don’t let these similarities lull you into a
+false sense of familiarity.
+
+   When using command form (*note Invocation::), Eshell will ignore any
+leading ‘nil’ values, so if FOO is ‘nil’, ‘$FOO echo hello’ is
+equivalent to ‘echo hello’.
+
+‘$VAR’
+     Expands to the value bound to VAR.  This is the main way to use
+     variables in command invocations.
+
+‘$"VAR"’
+‘$'VAR'’
+     Expands to the value bound to VAR.  This is useful to disambiguate
+     the variable name when concatenating it with another value, such as
+     ‘$"VAR"-suffix’.
+
+‘$(LISP)’
+     Expands to the result of evaluating the S-expression ‘(LISP)’.  On
+     its own, this is identical to just ‘(LISP)’, but with the ‘$’, it
+     can be used inside double quotes or within a longer string, such as
+     ‘/some/path/$(LISP).txt’.
+
+‘${COMMAND}’
+     Returns the output of ‘COMMAND’, which can be any valid Eshell
+     command invocation, and may even contain expansions.  Similar to
+     ‘$(LISP)’, this is identical to ‘{COMMAND}’ when on its own, but
+     the ‘$’ allows it to be used inside double quotes or as part of a
+     string.
+
+     Normally, the output is split line-by-line, returning a list (or
+     the first element if there’s only one line of output); if
+     ‘eshell-convert-numeric-arguments’ is non-‘nil’ and every line of
+     output looks like a number, convert each line to a number.
+     However, when this expansion is surrounded by double quotes, it
+     returns the output as a single string instead.
+
+‘$<COMMAND>’
+     As with ‘${COMMAND}’, evaluates the Eshell command invocation
+     ‘COMMAND’, but writes the output to a temporary file and returns
+     the file name.
+
+‘$EXPR[I...]’
+     Expands to the Ith element of the result of EXPR, an expression in
+     one of the above forms listed here.  If multiple indices are
+     supplied, this will return a list containing the elements for each
+     index.  The exact behavior depends on the type of EXPR’s value:
+
+     a sequence
+          Expands to the element at the (zero-based) index I of the
+          sequence (*note (elisp)Sequences Arrays Vectors::).  If I is
+          negative, I counts from the end, so -1 refers to the last
+          element of the sequence.
+
+          If I is a range like ‘START..END’, this expands to a
+          subsequence from the indices START to END, where END is
+          excluded(1).  START and/or END can also be omitted, which is
+          equivalent to the start and/or end of the entire list.  For
+          example, ‘$EXPR[-2..]’ expands to the last two values of EXPR.
+
+     a string
+          Split the string at whitespace, and then expand to the Ith
+          element of the resulting sequence.  As above, I can be a range
+          like ‘START..END’.
+
+     an alist
+          If I is a non-numeric value, expand to the value associated
+          with the key ‘"I"’ in the alist.  For example, if VAR is
+          ‘(("dog" . "fido") ("cat" . "felix"))’, then ‘$VAR[dog]’
+          expands to ‘"fido"’.  Otherwise, this behaves as with
+          sequences; e.g., ‘$VAR[0]’ expands to ‘("dog" . "fido")’.
+          *Note Association Lists: (elisp)Association List Type.
+
+     anything else
+          Signals an error.
+
+     Multiple sets of indices can also be specified.  For example, if
+     VAR is ‘((1 2) (3 4))’, then ‘$VAR[0][1]’ will expand to ‘2’, i.e.
+     the second element of the first list member (all indices are
+     zero-based).
+
+‘$EXPR[REGEXP I...]’
+     As above (when EXPR expands to a string), but use REGEXP to split
+     the string.  REGEXP can be any form other than a number.  For
+     example, ‘$VAR[: 0]’ will return the first element of a
+     colon-delimited string.
+
+‘$#EXPR’
+     This is the “length operator”.  It expands to the length of the
+     result of EXPR, an expression in one of the above forms.  For
+     example, ‘$#VAR’ returns the length of the variable VAR and
+     ‘$#VAR[0]’ returns the length of the first element of VAR.  Again,
+     signals an error if the result of EXPR is not a string or a
+     sequence.
+
+‘$@EXPR’
+     This is the “splice operator”.  It “splices” the elements of EXPR
+     (an expression of one of the above forms) into the resulting list
+     of arguments, much like the ‘,@’ marker in Emacs Lisp (*note
+     (elisp)Backquote::).  The elements of EXPR become arguments at the
+     same level as the other arguments around it.  For example, if
+     NUMBERS is the list ‘(1 2 3)’, then:
+
+          ~ $ echo 0 $numbers
+          (0
+           (1 2 3))
+          ~ $ echo 0 $@numbers
+          (0 1 2 3)
+
+   ---------- Footnotes ----------
+
+   (1) This behavior is different from ranges in Bash (where both the
+start and end are included in the range), but matches the behavior of
+similar Emacs Lisp functions, like ‘substring’ (*note (elisp)Creating
+Strings::).
+
+
+File: eshell.info,  Node: Globbing,  Next: Argument Predication and Modification,  Prev: Dollars Expansion,  Up: Expansion
+
+4.2 Globbing
+============
+
+Eshell’s globbing syntax is very similar to that of Zsh (*note
+(zsh)Filename Generation::).  Users coming from Bash can still use
+Bash-style globbing, as there are no incompatibilities.
+
+   Globs are case sensitive by default, except on MS-DOS/MS-Windows
+systems.  You can control this behavior via the
+‘eshell-glob-case-insensitive’ option.
+
+   By default, Eshell expands the results of a glob as a sublist into
+the list of arguments.  You can change this to splice the results
+in-place by setting ‘eshell-glob-splice-results’ to a non-‘nil’ value.
+If you want to splice a glob in-place for just one use, you can use a
+subcommand form like ‘$@{listify MY-GLOB}’.  (Conversely, you can
+explicitly expand a glob as a sublist via ‘${listify MY-GLOB}’.)
+
+   You can further customize the syntax and behavior of globbing in
+Eshell via the Customize group ‘eshell-glob’ (*note (emacs)Easy
+Customization::).
+
+‘*’
+     Matches any string (including the empty string).  For example,
+     ‘*.el’ matches any file with the ‘.el’ extension.
+
+‘?’
+     Matches any single character.  For example, ‘?at’ matches ‘cat’ and
+     ‘bat’, but not ‘goat’.
+
+‘**/’
+     Matches zero or more subdirectories in a file name.  For example,
+     ‘**/foo.el’ matches ‘foo.el’, ‘bar/foo.el’, ‘bar/baz/foo.el’, etc.
+     Note that this cannot be combined with any other patterns in the
+     same file name segment, so while ‘foo/**/bar.el’ is allowed,
+     ‘foo**/bar.el’ is not.
+
+‘***/’
+     Like ‘**/’, but follows symlinks as well.
+
+‘[ ... ]’
+     Defines a “character set” (*note (emacs)Regexps::).  A character
+     set matches characters between the two brackets; for example,
+     ‘[ad]’ matches ‘a’ and ‘d’.  You can also include ranges of
+     characters in the set by separating the start and end with ‘-’.
+     Thus, ‘[a-z]’ matches any lower-case ASCII letter.  Note that,
+     unlike in Zsh, character ranges are interpreted in the Unicode
+     codepoint order, not in the locale-dependent collation order.
+
+     Additionally, you can include “character classes” in a character
+     set.  A ‘[:’ and balancing ‘:]’ enclose a character class inside a
+     character set.  For instance, ‘[[:alnum:]]’ matches any letter or
+     digit.  *Note (elisp)Char Classes::, for a list of character
+     classes.
+
+‘[^ ... ]’
+     Defines a “complemented character set”.  This behaves just like a
+     character set, but matches any character _except_ the ones
+     specified.
+
+‘( ... )’
+     Defines a “group”.  A group matches the pattern between ‘(’ and
+     ‘)’.  Note that a group can only match a single file name
+     component, so a ‘/’ inside a group will signal an error.
+
+‘X|Y’
+     Inside of a group, matches either X or Y.  For example, ‘e(m|sh)-*’
+     matches any file beginning with ‘em-’ or ‘esh-’.
+
+‘X#’
+     Matches zero or more copies of the glob pattern X.  For example,
+     ‘fo#.el’ matches ‘f.el’, ‘fo.el’, ‘foo.el’, etc.
+
+‘X##’
+     Matches one or more copies of the glob pattern X.  Thus, ‘fo#.el’
+     matches ‘fo.el’, ‘foo.el’, ‘fooo.el’, etc.
+
+‘X~Y’
+     Matches anything that matches the pattern X but not Y.  For
+     example, ‘[[:digit:]]#~4?’ matches ‘1’ and ‘12’, but not ‘42’.
+     Note that unlike in Zsh, only a single ‘~’ operator can be used in
+     a pattern, and it cannot be inside of a group like ‘(X~Y)’.
+
+
+File: eshell.info,  Node: Argument Predication and Modification,  Prev: Globbing,  Up: Expansion
+
+4.3 Argument Predication and Modification
+=========================================
+
+Eshell supports “argument predication”, to filter elements of a glob,
+and “argument modification”, to manipulate argument values.  These are
+similar to glob qualifiers in Zsh (*note (zsh)Glob Qualifiers::).
+
+   Predicates and modifiers are introduced with ‘(FILTERS)’ after any
+list argument, where FILTERS is a list of predicates or modifiers.  For
+example, ‘*(.)’ expands to all regular files in the current directory
+and ‘*(^@:U^u0)’ expands to all non-symlinks not owned by ‘root’,
+upper-cased.
+
+   Some predicates and modifiers accept string parameters, such as
+‘*(u'USER')’, which matches all files owned by USER.  These parameters
+must be surrounded by delimiters; you can use any of the following pairs
+of delimiters: ‘"..."’, ‘'...'’, ‘/.../’, ‘|...|’, ‘(...)’, ‘[...]’,
+‘<...>’, or ‘{...}’.
+
+   You can customize the syntax and behavior of predicates and modifiers
+in Eshell via the Customize group ‘eshell-pred’ (*note (emacs)Easy
+Customization::).
+
+* Menu:
+
+* Argument Predicates::
+* Argument Modifiers::
+
+
+File: eshell.info,  Node: Argument Predicates,  Next: Argument Modifiers,  Up: Argument Predication and Modification
+
+4.3.1 Argument Predicates
+-------------------------
+
+You can use argument predicates to filter lists of file names based on
+various properties of those files.  This is most useful when combined
+with globbing, but can be used on any list of files names.  Eshell
+supports the following argument predicates:
+
+‘/’
+     Matches directories.
+
+‘.’ (Period)
+     Matches regular files.
+
+‘@’
+     Matches symbolic links.
+
+‘=’
+     Matches sockets.
+
+‘p’
+     Matches named pipes.
+
+‘%’
+     Matches block or character devices.
+
+‘%b’
+     Matches block devices.
+
+‘%c’
+     Matches character devices.
+
+‘*’
+     Matches regular files that can be executed by the current user.
+
+‘r’
+‘A’
+‘R’
+     Matches files that are readable by their owners (‘r’), their groups
+     (‘A’), or the world (‘R’).
+
+‘w’
+‘I’
+‘W’
+     Matches files that are writable by their owners (‘w’), their groups
+     (‘I’), or the world (‘W’).
+
+‘x’
+‘E’
+‘X’
+     Matches files that are executable by their owners (‘x’), their
+     groups (‘E’), or the world (‘X’).
+
+‘s’
+     Matches files with the setuid flag set.
+
+‘S’
+     Matches files with the setgid flag set.
+
+‘t’
+     Matches files with the sticky bit set.
+
+‘U’
+     Matches files owned by the current effective user ID.
+
+‘G’
+     Matches files owned by the current effective group ID.
+
+‘l‘[+-]’N’
+     Matches files with N links.  With ‘+’ (or ‘-’), matches files with
+     more than (or less than) N links, respectively.
+
+‘uUID’
+‘u'USER-NAME'’
+     Matches files owned by user ID UID or user name USER-NAME.
+
+‘gGID’
+‘g'GROUP-NAME'’
+     Matches files owned by group ID GID or group name GROUP-NAME.
+
+‘a‘[UNIT]’‘[+-]’N’
+‘a‘[+-]’'FILE'’
+     Matches files last accessed exactly N days ago.  With ‘+’ (or ‘-’),
+     matches files accessed more than (or less than) N days ago,
+     respectively.
+
+     With UNIT, N is a quantity in that unit of time, so ‘aw-1’ matches
+     files last accessed within one week.  UNIT can be ‘M’ (30-day
+     months), ‘w’ (weeks), ‘h’ (hours), ‘m’ (minutes), or ‘s’ (seconds).
+
+     If FILE is specified instead, compare against the modification time
+     of ‘file’.  Thus, ‘a-'hello.txt'’ matches all files accessed after
+     ‘hello.txt’ was last accessed.
+
+‘m‘[UNIT]’‘[+-]’N’
+‘m‘[+-]’'FILE'’
+     Like ‘a’, but examines modification time.
+
+‘c‘[UNIT]’‘[+-]’N’
+‘c‘[+-]’'FILE'’
+     Like ‘a’, but examines status change time.
+
+‘L‘[UNIT]’‘[+-]’N’
+     Matches files exactly N bytes in size.  With ‘+’ (or ‘-’), matches
+     files larger than (or smaller than) N bytes, respectively.
+
+     With UNIT, N is a quantity in that unit of size, so ‘Lm+5’ matches
+     files larger than 5 MiB in size.  UNIT can be one of the following
+     (case-insensitive) characters: ‘m’ (megabytes), ‘k’ (kilobytes), or
+     ‘p’ (512-byte blocks).
+
+   The ‘^’ and ‘-’ operators are not argument predicates themselves, but
+they modify the behavior of all subsequent predicates.  ‘^’ inverts the
+meaning of subsequent predicates, so ‘*(^RWX)’ expands to all files
+whose permissions disallow the world from accessing them in any way
+(i.e., reading, writing to, or modifying them).  When examining a
+symbolic link, ‘-’ applies the subsequent predicates to the link’s
+target instead of the link itself.
+
+
+File: eshell.info,  Node: Argument Modifiers,  Prev: Argument Predicates,  Up: Argument Predication and Modification
+
+4.3.2 Argument Modifiers
+------------------------
+
+You can use argument modifiers to manipulate argument values.  For
+example, you can sort lists, remove duplicate values, capitalize words,
+etc.  All argument modifiers are prefixed by ‘:’, so
+‘$exec-path(:h:u:x/^\/home/)’ lists all of the unique parent directories
+of the elements in ‘exec-path’, excluding those in ‘/home’.
+
+‘E’
+     Re-evaluates the value as an Eshell argument.  For example, if FOO
+     is ‘"${echo hi}"’, then the result of ‘$foo(:E)’ is ‘hi’.
+
+‘L’
+     Converts the value to lower case.
+
+‘U’
+     Converts the value to upper case.
+
+‘C’
+     Capitalizes the value.
+
+‘h’
+     Treating the value as a file name, gets the directory name (the
+     “head”).  For example, ‘foo/bar/baz.el(:h)’ expands to ‘foo/bar/’.
+
+‘t’
+     Treating the value as a file name, gets the base name (the “tail”).
+     For example, ‘foo/bar/baz.el(:t)’ expands to ‘baz.el’.
+
+‘e’
+     Treating the value as a file name, gets the final extension of the
+     file, excluding the dot.  For example, ‘foo.tar.gz(:e)’ expands to
+     ‘gz’.
+
+‘r’
+     Treating the value as a file name, gets the file name excluding the
+     final extension.  For example, ‘foo/bar/baz.tar.gz(:r)’ expands to
+     ‘foo/bar/baz.tar’.
+
+‘q’
+     Marks that the value should be interpreted by Eshell literally, so
+     that any special characters like ‘$’ no longer have any special
+     meaning.
+
+‘s/PATTERN/REPLACE/’
+     Replaces the first instance of the regular expression PATTERN with
+     REPLACE.  Signals an error if no match is found.
+
+     As with other modifiers taking string parameters, you can use
+     different delimiters to separate PATTERN and REPLACE, such as
+     ‘s'...'...'’, ‘s[...][...]’, or even ‘s[...]/.../’.
+
+‘gs/PATTERN/REPLACE/’
+     Replaces all instances of the regular expression PATTERN with
+     REPLACE.
+
+‘i/PATTERN/’
+     Filters a list of values to include only the elements matching the
+     regular expression PATTERN.
+
+‘x/PATTERN/’
+     Filters a list of values to exclude all the elements matching the
+     regular expression PATTERN.
+
+‘S’
+‘S/PATTERN/’
+     Splits the value using the regular expression PATTERN as a
+     delimiter.  If PATTERN is omitted, split on spaces.
+
+‘j’
+‘j/DELIM/’
+     Joins a list of values, inserting the string DELIM between each
+     value.  If DELIM is omitted, use a single space as the delimiter.
+
+‘o’
+     Sorts a list of strings in ascending lexicographic order, comparing
+     pairs of characters according to their character codes (*note
+     (elisp)Text Comparison::).
+
+‘O’
+     Sorts a list of strings in descending lexicographic order.
+
+‘u’
+     Removes any duplicate elements from a list of values.
+
+‘R’
+     Reverses the order of a list of values.
+
+
+File: eshell.info,  Node: Input/Output,  Next: Interaction,  Prev: Expansion,  Up: Top
+
+5 Input/Output
+**************
+
+Since Eshell does not communicate with a terminal like most command
+shells, IO is a little different.
+
+* Menu:
+
+* Visual Commands::
+* Redirection::
+* Pipelines::
+
+
+File: eshell.info,  Node: Visual Commands,  Next: Redirection,  Up: Input/Output
+
+5.1 Visual Commands
+===================
+
+If you try to run programs from within Eshell that are not
+line-oriented, such as programs that use ncurses, you will just get
+garbage output, since the Eshell buffer is not a terminal emulator.
+Eshell solves this problem by running such programs in Emacs’s terminal
+emulator.
+
+   Programs that need a terminal to display output properly are referred
+to in this manual as “visual commands”, because they are not simply
+line-oriented.  You must tell Eshell which commands are visual, by
+adding them to ‘eshell-visual-commands’; for commands that are visual
+for only certain _sub_-commands – e.g., ‘git log’ but not ‘git status’ –
+use ‘eshell-visual-subcommands’; and for commands that are visual only
+when passed certain options, use ‘eshell-visual-options’.
+
+   Caution: Some tools such as Git use the pager ‘less’ by default to
+paginate their output but call it with its ‘-F’ option.  This option
+causes ‘less’ to echo the output instead of paginating it if the output
+is less than one page long.  This causes undesirable behavior if, e.g.,
+‘git diff’, is defined as a visual subcommand.  It’ll work if the output
+is big enough and fail if it is less than one page long.  If that occurs
+to you, search for configuration options for calling ‘less’ without the
+‘-F’ option.  For Git, you can do that using ‘git config --global
+core.pager 'less -+F'’.
+
+   If you want the buffers created by visual programs killed when the
+program exits, customize the variable
+‘eshell-destroy-buffer-when-process-dies’ to a non-‘nil’ value; the
+default is ‘nil’.
+
+
+File: eshell.info,  Node: Redirection,  Next: Pipelines,  Prev: Visual Commands,  Up: Input/Output
+
+5.2 Redirection
+===============
+
+Redirection in Eshell is similar to that of other command shells.  You
+can use the output redirection operators ‘>’ and ‘>>’, but there is not
+yet any support for input redirection.  In the cases below, FD specifies
+the file descriptor to redirect; if not specified, file descriptor 1
+(standard output) will be used by default.
+
+‘> DEST’
+‘FD> DEST’
+     Redirect output to DEST, overwriting its contents with the new
+     output.
+
+‘>> DEST’
+‘FD>> DEST’
+     Redirect output to DEST, appending it to the existing contents of
+     DEST.
+
+‘>>> DEST’
+‘FD>>> DEST’
+     Redirect output to DEST, inserting it at the current mark if DEST
+     is a buffer, at the beginning of the file if DEST is a file, or
+     otherwise behaving the same as ‘>>’.
+
+‘&> DEST’
+‘>& DEST’
+     Redirect both standard output and standard error to DEST,
+     overwriting its contents with the new output.
+
+‘&>> DEST’
+‘>>& DEST’
+     Redirect both standard output and standard error to DEST, appending
+     it to the existing contents of DEST.
+
+‘&>>> DEST’
+‘>>>& DEST’
+     Redirect both standard output and standard error to DEST, inserting
+     it like with ‘>>> DEST’.
+
+‘>&OTHER-FD’
+‘FD>&OTHER-FD’
+     Duplicate the file descriptor OTHER-FD to FD (or 1 if unspecified).
+     The order in which this is used is significant, so
+
+          COMMAND > FILE 2>&1
+
+     redirects both standard output and standard error to FILE, whereas
+
+          COMMAND 2>&1 > FILE
+
+     only redirects standard output to FILE (and sends standard error to
+     the display via standard output’s original handle).
+
+   Eshell supports redirecting output to several different types of
+targets:
+
+   • files, including virtual targets (see below);
+
+   • buffers (*note (elisp)Buffers::);
+
+   • markers (*note (elisp)Markers::);
+
+   • processes (*note (elisp)Processes::); and
+
+   • symbols (*note (elisp)Symbols::).
+
+5.2.1 Virtual Targets
+---------------------
+
+Virtual targets are mapping of device names to functions.  Eshell comes
+with four virtual devices:
+
+‘/dev/null’
+     Does nothing with the output passed to it.
+
+‘/dev/eshell’
+     Writes the text passed to it to the display.
+
+‘/dev/kill’
+     Adds the text passed to it to the kill ring.
+
+‘/dev/clip’
+     Adds the text passed to it to the clipboard.
+
+   You can, of course, define your own virtual targets.  These are
+entries in ‘eshell-virtual-targets’ with the form ‘(FILENAME
+OUTPUT-FUNCTION PASS-MODE)’.  The first element, FILENAME, is the device
+name, usually of the form ‘"/dev/NAME"’.  The second, OUTPUT-FUNCTION,
+should be a function: Eshell will repeatedly call it with the redirected
+output.  This argument can also be an ‘eshell-generic-target’ instance.
+In this case, Eshell will repeatedly call the generic function
+‘eshell-output-object-to-target’ with the output; once the redirection
+has completed, Eshell will then call the generic function
+‘eshell-close-target’, passing non-‘nil’ if the redirected command
+succeeded.
+
+   If PASS-MODE is non-‘nil’, then Eshell will pass the redirection mode
+as an argument to ‘output-function’ as a symbol: ‘overwrite’ for ‘>’,
+‘append’ for ‘>>’, or ‘insert’ for ‘>>>’.  In this case,
+‘output-function’ should return the real output function (either an
+ordinary function or an ‘eshell-generic-target’ as described above).
+
+ -- Function: eshell-function-target-create output-function &optional
+          close-function
+     Create a new virtual target for Eshell that repeatedly calls
+     OUTPUT-FUNCTION with the redirected output, as described above.  If
+     CLOSE-FUNCTION is non-‘nil’, Eshell will call it when closing the
+     target, passing non-‘nil’ if the redirected command succeeded.
+
+
+File: eshell.info,  Node: Pipelines,  Prev: Redirection,  Up: Input/Output
+
+5.3 Pipelines
+=============
+
+As with most other shells, Eshell supports pipelines to pass the output
+of one command the input of the next command.  You can send the standard
+output of one command to the standard input of another using the ‘|’
+operator.  For example,
+
+     ~ $ echo hello | rev
+     olleh
+
+   To send both the standard output and standard error of a command to
+another command’s input, you can use the ‘|&’ operator.
+
+5.3.1 Running Shell Pipelines Natively
+--------------------------------------
+
+When constructing shell pipelines that will move a lot of data, it is a
+good idea to bypass Eshell’s own pipelining support and use the
+operating system shell’s instead.  This is especially relevant when
+executing commands on a remote machine using Eshell’s Tramp integration:
+using the remote shell’s pipelining avoids copying the data which will
+flow through the pipeline to local Emacs buffers and then right back
+again.
+
+   Eshell recognizes a special syntax to make it easier to convert
+pipelines so as to bypass Eshell’s pipelining.  Prefixing at least one
+‘|’, ‘<’ or ‘>’ with an asterisk marks a command as intended for the
+operating system shell.  To make it harder to invoke this functionality
+accidentally, it is also required that the asterisk be preceded by
+whitespace or located at the start of input.  For example,
+
+      cat *.ogg *| my-cool-decoder >file
+
+   Executing this command will not copy all the data in the *.ogg files,
+nor the decoded data, into Emacs buffers, as would normally happen.
+
+   The command is interpreted as extending up to the next ‘|’ character
+which is not preceded by an unescaped asterisk following whitespace, or
+the end of the input if there is no such character.  Thus, all ‘<’ and
+‘>’ redirections occurring before the next asterisk-unprefixed ‘|’ are
+implicitly prefixed with (whitespace and) asterisks.  An exception is
+that Eshell-specific redirects right at the end of the command are
+excluded.  This allows input like this:
+
+      foo *| baz >#<buffer quux>
+
+which is equivalent to input like this:
+
+      sh -c "foo | baz" >#<buffer quux>
+
+
+File: eshell.info,  Node: Interaction,  Next: Extension modules,  Prev: Input/Output,  Up: Top
+
+6 Interaction
+*************
+
+As an interactive shell, Eshell contains many features for helping to
+interact with your command environment.  In addition, since Eshell is a
+part of Emacs, all of the usual Emacs commands work within Eshell as
+well.
+
+* Menu:
+
+* Navigation::
+* Completion::
+* History::
+
+
+File: eshell.info,  Node: Navigation,  Next: Completion,  Up: Interaction
+
+6.1 Navigation
+==============
+
+‘C-c C-n’
+‘C-c C-p’
+     Move point to the beginning of the input for the next or previous
+     prompt.  With a prefix argument, move to the n-th next or previous
+     prompt.
+
+‘C-c C-r’
+‘C-M-l’
+     Move point to the start of the previous command’s output and
+     display it at the top of the window.  With a prefix argument, this
+     also narrows the region to the last command’s output.
+
+
+File: eshell.info,  Node: Completion,  Next: History,  Prev: Navigation,  Up: Interaction
+
+6.2 Completion
+==============
+
+Eshell uses the pcomplete package for programmable completion, similar
+to that of other command shells.  Argument completion differs depending
+on the preceding command: for example, possible completions for ‘rmdir’
+are only directories, while ‘rm’ completions can be directories _and_
+files.  Eshell provides predefined completions for the built-in
+functions and some common external commands, and you can define your own
+for any command.
+
+   Eshell completion also works for Lisp forms and glob patterns.  If
+the point is on a Lisp form, then <TAB> will behave similarly to
+completion in ‘elisp-mode’ and ‘lisp-interaction-mode’.  For glob
+patterns, the pattern will be removed from the input line, and replaced
+by the completion.
+
+   If you want to see the entire list of possible completions (e.g.,
+when it’s below the ‘completion-cycle-threshold’), press ‘M-?’.
+
+6.2.1 pcomplete
+---------------
+
+Pcomplete, short for programmable completion, is the completion library
+originally written for Eshell, but usable for command completion(1) in
+other modes.
+
+   Completions are defined as functions (with ‘defun’) named
+‘pcomplete/COMMAND’, where ‘COMMAND’ is the name of the command for
+which this function provides completions; you can also name the function
+‘pcomplete/MAJOR-MODE/COMMAND’ to define completions for a specific
+major mode.
+
+   ---------- Footnotes ----------
+
+   (1) Command completion, as opposed to code completion, which is
+beyond the scope of pcomplete.
+
+
+File: eshell.info,  Node: History,  Prev: Completion,  Up: Interaction
+
+6.3 History
+===========
+
+The ‘history’ command shows all commands kept in the history ring as
+numbered list.  If the history ring contains ‘eshell-history-size’
+commands, those numbers change after every command invocation, therefore
+the ‘history’ command shall be applied before using the expansion
+mechanism with history numbers.
+
+   The n-th entry of the history ring can be applied with the ‘!n’
+command.  If ‘n’ is negative, the entry is counted from the end of the
+history ring.
+
+   When history event designators are enabled (by adding
+‘eshell-expand-history-references’ to ‘eshell-expand-input-functions’),
+‘!foo’ expands to the last command beginning with ‘foo’, and ‘!?foo’ to
+the last command containing ‘foo’.  The n-th argument of the last
+command beginning with ‘foo’ is accessible by ‘!foo:n’.
+
+   The history is loaded to the history ring from the file
+‘eshell-history-file-name’ at the start of every session, and saved to
+that file at the end of every session.  The default history saving
+behavior is to overwrite the history file with the whole history ring of
+the session.  If ‘eshell-history-append’ is non-‘nil’, the history will
+instead be saved by appending new entries from the session to the
+history file, which could prevent potential history loss with multiple
+Eshell sessions.  Unlike other shells, such as Bash, Eshell cannot
+currently be configured to control the size of the history file.  In
+particular, when ‘eshell-history-append’ is non-‘nil’, the size of the
+file will keep increasing, and the recommended way to truncate the file
+is to run the ‘history -w’ command in an Eshell session.
+
+   Since the default buffer navigation and searching key-bindings are
+still present in the Eshell buffer, the commands for history navigation
+and searching are bound to different keys:
+
+‘M-r’
+‘M-s’
+     History I-search.
+
+‘M-p’
+‘M-n’
+     Previous and next history line.  If there is anything on the input
+     line when you run these commands, they will instead jump to the
+     previous or next line that begins with that string.
+
+
+File: eshell.info,  Node: Extension modules,  Next: Bugs and ideas,  Prev: Interaction,  Up: Top
+
+7 Extension modules
+*******************
+
+Eshell provides a facility for defining extension modules so that they
+can be disabled and enabled without having to unload and reload them,
+and to provide a common parent Customize group for the modules.(1)
+
+* Menu:
+
+* Optional modules::
+* Writing a module::
+
+   ---------- Footnotes ----------
+
+   (1) ERC provides a similar module facility.
+
+
+File: eshell.info,  Node: Optional modules,  Next: Writing a module,  Up: Extension modules
+
+7.1 Optional modules
+====================
+
+In addition to the various modules enabled by default (documented
+above), Eshell provides several other modules which are _not_ enabled by
+default.  If you want to enable these, you can add them to
+‘eshell-modules-list’.
+
+* Menu:
+
+* Key rebinding::
+* Smart scrolling::
+* Electric forward slash::
+* Tramp extensions::
+* Extra built-in commands::
+
+
+File: eshell.info,  Node: Key rebinding,  Next: Smart scrolling,  Up: Optional modules
+
+7.1.1 Key rebinding
+-------------------
+
+This module allows for special keybindings that only take effect while
+the point is in a region of input text.  The default keybindings mimic
+the bindings used in other shells when the user is editing new input
+text.  To enable this module, add ‘eshell-rebind’ to
+‘eshell-modules-list’.
+
+   For example, it binds ‘C-u’ to kill the current input text and ‘C-w’
+to ‘backward-kill-word’.  If the history module is enabled, it also
+binds ‘C-p’ and ‘C-n’ to move through the input history.
+
+   If ‘eshell-confine-point-to-input’ is non-‘nil’, this module prevents
+certain commands from causing the point to leave the input area, such as
+‘backward-word’, ‘previous-line’, etc.
+
+
+File: eshell.info,  Node: Smart scrolling,  Next: Electric forward slash,  Prev: Key rebinding,  Up: Optional modules
+
+7.1.2 Smart scrolling
+---------------------
+
+This module combines the facility of normal, modern shells with some of
+the edit/review concepts inherent in the design of Plan 9’s 9term.  To
+enable it, add ‘eshell-smart’ to ‘eshell-modules-list’.
+
+   • When you invoke a command, it is assumed that you want to read the
+     output of that command.
+
+   • If the output is not what you wanted, it is assumed that you will
+     want to edit, and then resubmit a refined version of that command.
+
+   • If the output is valid, pressing any self-inserting character key
+     will jump to end of the buffer and insert that character, in order
+     to begin entry of a new command.
+
+   • If you show an intention to edit the previous command – by moving
+     around within it – then the next self-inserting characters will
+     insert *there*, instead of at the bottom of the buffer.
+
+   • If you show an intention to review old commands, such as ‘M-p’ or
+     ‘M-r’, point will jump to the bottom of the buffer before invoking
+     that command.
+
+   • If none of the above has happened yet (i.e. your point is just
+     sitting on the previous command), you can use ‘SPC’ and ‘BACKSPACE’
+     (or ‘Delete’) to page forward and backward _through the output of
+     the last command only_.  It will constrain the movement of the
+     point and window so that the maximum amount of output is always
+     displayed at all times.
+
+   • While output is being generated from a command, the window will be
+     constantly reconfigured (until it would otherwise make no
+     difference) in order to always show you the most output from the
+     command possible.  This happens if you change window sizes, scroll,
+     etc.
+
+
+File: eshell.info,  Node: Electric forward slash,  Next: Tramp extensions,  Prev: Smart scrolling,  Up: Optional modules
+
+7.1.3 Electric forward slash
+----------------------------
+
+To help with supplying absolute file name arguments to remote commands,
+you can add the ‘eshell-elecslash’ module to ‘eshell-modules-list’.
+Then, typing ‘/’ as the first character of a command line argument will
+automatically insert the Tramp prefix ‘/method:host:’.  If this is not
+what you want (e.g. because you want to refer to a local file), you can
+type another ‘/’ to undo the automatic insertion.  Typing ‘~/’ also
+inserts the Tramp prefix.  The automatic insertion applies only when
+‘default-directory’ is remote and the command is a Lisp function.  In
+particular, typing arguments to external commands doesn’t insert the
+prefix.
+
+   The result is that in most cases of supplying absolute file name
+arguments to commands you should see the Tramp prefix inserted
+automatically only when that’s what you’d reasonably expect.  This frees
+you from having to keep track of whether commands are Lisp functions or
+external when typing command line arguments.  For example, suppose you
+execute
+
+      cd /ssh:root@example.com:
+      find /etc -name "*gnu*"
+
+and in reviewing the output of the command, you identify a file
+‘/etc/gnugnu’ that should be moved somewhere else.  So you type
+
+      mv /etc/gnugnu /tmp
+
+But since ‘mv’ refers to the local Lisp function ‘eshell/mv’, not a
+remote shell command, to say this is to request that the local file
+‘/etc/gnugnu’ be moved into the local ‘/tmp’ directory.  After you add
+‘eshell-elecslash’ to ‘eshell-modules-list’, then when you type the
+above ‘mv’ invocation you will get the following input, which is what
+you intended:
+
+      mv /ssh:root@example.com:/etc/gnugnu /ssh:root@example.com:/tmp
+
+   The code that determines whether or not the Tramp prefix should be
+inserted uses simple heuristics.  A limitation of the current
+implementation is that it inspects whether only the command at the very
+beginning of input is a Lisp function or external program.  Thus when
+chaining commands with the operators ‘&&’, ‘||’, ‘|’ and ‘;’, the
+electric forward slash is active only within the first command.
+
+
+File: eshell.info,  Node: Tramp extensions,  Next: Extra built-in commands,  Prev: Electric forward slash,  Up: Optional modules
+
+7.1.4 Tramp extensions
+----------------------
+
+This module adds built-in commands that use Tramp to handle running
+other commands as different users, replacing the corresponding external
+commands.  To enable it, add ‘eshell-tramp’ to ‘eshell-modules-list’.
+
+‘su [- | -l] [USER]’
+     Uses TRAMP’s ‘su’ method (*note (tramp)Inline methods::) to change
+     the current user to USER (or root if unspecified).  With ‘-’, ‘-l’,
+     or ‘--login’, provide a login environment.
+
+‘sudo [-u USER] [-s | COMMAND...]’
+‘doas [-u USER] [-s | COMMAND...]’
+     Uses TRAMP’s ‘sudo’ or ‘doas’ method (*note (tramp)Inline
+     methods::) to run COMMAND as root via ‘sudo’ or ‘doas’.  When
+     specifying ‘-u USER’ or ‘--user USER’, run the command as USER
+     instead.  With ‘-s’ or ‘--shell’, start a shell instead of running
+     COMMAND.
+
+
+File: eshell.info,  Node: Extra built-in commands,  Prev: Tramp extensions,  Up: Optional modules
+
+7.1.5 Extra built-in commands
+-----------------------------
+
+This module provides several extra built-in commands documented below,
+primarily for working with lists of strings in Eshell.  To enable it,
+add ‘eshell-xtra’ to ‘eshell-modules-list’.
+
+‘count ITEM SEQ [OPTION]...’
+     A wrapper around the function ‘cl-count’ (*note (cl)Searching
+     Sequences::).  This command can be used for comparing lists of
+     strings.
+
+‘expr STR [SEPARATOR] [ARG]...’
+     An implementation of ‘expr’ using the Calc package.  *Note
+     (calc)Top::.
+
+‘ff DIRECTORY PATTERN’
+     Shorthand for the function ‘find-name-dired’ (*note (emacs)Dired
+     and Find::).
+
+‘gf DIRECTORY REGEXP’
+     Shorthand for the function ‘find-grep-dired’ (*note (emacs)Dired
+     and Find::).
+
+‘intersection LIST1 LIST2 [OPTION]...’
+     A wrapper around the function ‘cl-intersection’ (*note (cl)Lists as
+     Sets::).  This command can be used for comparing lists of strings.
+
+‘mismatch SEQ1 SEQ2 [OPTION]...’
+     A wrapper around the function ‘cl-mismatch’ (*note (cl)Searching
+     Sequences::).  This command can be used for comparing lists of
+     strings.
+
+‘set-difference LIST1 LIST2 [OPTION]...’
+     A wrapper around the function ‘cl-set-difference’ (*note (cl)Lists
+     as Sets::).  This command can be used for comparing lists of
+     strings.
+
+‘set-exclusive-or LIST1 LIST2 [OPTION]...’
+     A wrapper around the function ‘cl-set-exclusive-or’ (*note
+     (cl)Lists as Sets::).  This command can be used for comparing lists
+     of strings.
+
+‘substitute NEW OLD SEQ [OPTION]...’
+     A wrapper around the function ‘cl-substitute’ (*note (cl)Sequence
+     Functions::).  This command can be used for comparing lists of
+     strings.
+
+‘union LIST1 LIST2 [OPTION]...’
+     A wrapper around the function ‘cl-union’ (*note (cl)Lists as
+     Sets::).  This command can be used for comparing lists of strings.
+
+
+File: eshell.info,  Node: Writing a module,  Prev: Optional modules,  Up: Extension modules
+
+7.2 Writing a module
+====================
+
+An Eshell module is defined the same as any other library but with two
+additional requirements: first, the module’s source file should be named
+‘em-NAME.el’; second, the module must define an autoloaded Customize
+group (*note (elisp)Customization::) with ‘eshell-module’ as the parent
+group.  In order to properly autoload this group, you should wrap its
+definition with ‘progn’ as follows:
+
+     ;;;###autoload
+     (progn
+     (defgroup eshell-my-module nil
+       "My module lets you do very cool things in Eshell."
+       :tag "My module"
+       :group 'eshell-module))
+
+   Even if you don’t have any Customize options in your module, you
+should still define the group so that Eshell can include your module in
+the Customize interface for ‘eshell-modules-list’.
+
+
+File: eshell.info,  Node: Bugs and ideas,  Next: GNU Free Documentation License,  Prev: Extension modules,  Up: Top
+
+8 Bugs and ideas
+****************
+
+If you find a bug or misfeature, don’t hesitate to report it, by using
+‘M-x report-emacs-bug’.  The same applies to feature requests.  It is
+best to discuss one thing at a time.  If you find several unrelated
+bugs, please report them separately.
+
+   Below is a list of some known problems with Eshell version 2.4.2,
+which is the version included with Emacs 22.
+
+Differentiate between aliases and functions
+
+     Allow for a Bash-compatible syntax, such as:
+
+          alias arg=blah
+          function arg () { blah $@* }
+
+Pcomplete sometimes gets stuck
+
+     You press <TAB>, but no completions appear, even though the
+     directory has matching files.  This behavior is rare.
+
+‘grep python $<rpm -qa>’ doesn’t work, but using ‘*grep’ does
+
+     This happens because the ‘grep’ Lisp function returns immediately,
+     and then the asynchronous ‘grep’ process expects to examine the
+     temporary file, which has since been deleted.
+
+Backspace doesn’t scroll back after continuing (in smart mode)
+
+     Hitting space during a process invocation, such as ‘make’, will
+     cause it to track the bottom of the output; but backspace no longer
+     scrolls back.
+
+Menu support was removed, but never put back
+
+If an interactive process is currently running, ‘M-!’ doesn’t work
+
+Use a timer instead of ‘sleep-for’ when killing child processes
+
+Piping to a Lisp function is not supported
+
+     Make it so that the Lisp command on the right of the pipe is
+     repeatedly called with the input strings as arguments.  This will
+     require changing ‘eshell-do-pipelines’ to handle non-process
+     targets.
+
+Input redirection is not supported
+
+     See the above entry.
+
+Problem running ‘less’ without arguments on Windows
+
+     The result in the Eshell buffer is:
+
+          Spawning child process: invalid argument
+
+     Also a new ‘less’ buffer was created with nothing in it...
+     (presumably this holds the output of ‘less’).
+
+     If ‘less.exe’ is invoked from the Eshell command line, the expected
+     output is written to the buffer.
+
+     Note that this happens on NT-Emacs 20.6.1 on Windows 2000.  The
+     term.el package and the supplied shell both use the ‘cmdproxy’
+     program for running shells.
+
+Implement ‘-r’, ‘-n’ and ‘-s’ switches for ‘cp’
+
+‘mv DIR FILE.tar’ does not remove directories
+
+     This is because the tar option –remove-files doesn’t do so.  Should
+     it be Eshell’s job?
+
+Bind ‘standard-output’ and ‘standard-error’
+
+     This would be so that if a Lisp function calls ‘print’, everything
+     will happen as it should (albeit slowly).
+
+Make sure syntax table is correct in Eshell mode
+
+     So that ‘M-<DEL>’ acts in a predictable manner, etc.
+
+Allow all Eshell buffers to share the same history and list-dir
+
+Split up parsing of text after ‘$’ in ‘esh-var.el’
+
+     Make it similar to the way that ‘esh-arg.el’ is structured.  Then
+     add parsing of ‘$[?\n]’.
+
+After pressing ‘M-<RET>’, redisplay before running the next command
+
+Argument predicates and modifiers should work anywhere in a path
+
+          /usr/local/src/editors/vim $ vi **/CVS(/)/Root(.)  Invalid regexp:
+          "Unmatched ( or \\("
+
+     With ‘zsh’, the glob above expands to all files named ‘Root’ in
+     directories named ‘CVS’.
+
+Typing ‘echo ${locate locate}/bin<TAB>’ results in a Lisp error
+
+     Perhaps it should interpolate all permutations, and make that the
+     globbing result, since otherwise hitting return here will result in
+     “(list of filenames)/bin”, which is never valuable.  Thus, one
+     could ‘cat’ only C backup files by using ‘ls ${identity *.c}~’.  In
+     that case, having an alias command name ‘glob’ for ‘identity’ would
+     be useful.
+
+Once symbolic mode is supported for ‘umask’, implement ‘chmod’ in Lisp
+
+Create ‘eshell-expand-file-name’
+
+     This would use a data table to transform things such as ‘~+’,
+     ‘...’, etc.
+
+Abstract ‘em-smart.el’ into ‘smart-scroll.el’
+
+     It only really needs: to be hooked onto the output filter and the
+     pre-command hook, and to have the input-end and input-start
+     markers.  And to know whether the last output group was
+     “successful.”
+
+Allow for fully persisting the state of Eshell
+
+     This would include: variables, history, buffer, input, dir stack,
+     etc.
+
+Implement D as an argument predicate
+
+     It means that files beginning with a dot should be included in the
+     glob match.
+
+A comma in a predicate list should mean OR
+
+     At the moment, this is not supported.
+
+‘(+ <RET> <SPC> <TAB>’ does not cause ‘indent-according-to-mode’ to occur
+
+Create ‘eshell-auto-accumulate-list’
+
+     This is a list of commands for which, if the user presses ‘RET’,
+     the text is staged as the next Eshell command, rather than being
+     sent to the current interactive process.
+
+Display file and line number if an error occurs in a script
+
+‘wait’ doesn’t work with process ids at the moment
+
+Enable the direct-to-process input code in ‘em-term.el’
+
+Problem with repeating ‘echo ${find /tmp}’
+
+     With smart display active, if ‘RET’ is held down, after a while it
+     can’t keep up anymore and starts outputting blank lines.  It only
+     happens if an asynchronous process is involved...
+
+     I think the problem is that ‘eshell-send-input’ is resetting the
+     input target location, so that if the asynchronous process is not
+     done by the time the next ‘RET’ is received, the input processor
+     thinks that the input is meant for the process; which, when smart
+     display is enabled, will be the text of the last command line!
+     That is a bug in itself.
+
+     In holding down ‘RET’ while an asynchronous process is running,
+     there will be a point in between termination of the process, and
+     the running of ‘eshell-post-command-hook’, which would cause
+     ‘eshell-send-input’ to call ‘eshell-copy-old-input’, and then
+     process that text as a command to be run after the process.
+     Perhaps there should be a way of killing pending input between the
+     death of the process, and the ‘post-command-hook’.
+
+Allow for a more aggressive smart display mode
+
+     Perhaps toggled by a command, that makes each output block a smart
+     display block.
+
+Create more meta variables
+
+     ‘$!’
+          The reason for the failure of the last disk command, or the
+          text of the last Lisp error.
+
+     ‘$=’
+          A special associate array, which can take references of the
+          form ‘$=[REGEXP]’.  It indexes into the directory ring.
+
+Support zsh’s “Parameter Expansion” syntax, i.e., ‘${NAME:-VAL}’
+
+Create a mode ‘eshell-browse’
+
+     It would treat the Eshell buffer as an outline.  Collapsing the
+     outline hides all of the output text.  Collapsing again would show
+     only the first command run in each directory
+
+Allow other revisions of a file to be referenced using ‘file{rev}’
+
+     This would be expanded by ‘eshell-expand-file-name’ (see above).
+
+Print “You have new mail” when the “Mail” icon is turned on
+
+Implement ‘M-|’ for Eshell
+
+Implement input redirection
+
+     If it’s a Lisp function, input redirection implies ‘xargs’ (in a
+     way...).  If input redirection is added, also update the
+     ‘file-name-quote-list’, and the delimiter list.
+
+In ‘eshell-eval-using-options’, allow a ‘:complete’ tag
+
+     It would be used to provide completion rules for that command.
+     Then the macro will automagically define the completion function.
+
+For ‘eshell-command-on-region’, apply redirections to the result
+
+     So that ‘+ > 'blah’ would cause the result of the ‘+’ (using input
+     from the current region) to be inserting into the symbol ‘blah’.
+
+     If an external command is being invoked, the input is sent as
+     standard input, as if a ‘cat <region> |’ had been invoked.
+
+     If a Lisp command, or an alias, is invoked, then if the line has no
+     newline characters, it is divided by whitespace and passed as
+     arguments to the Lisp function.  Otherwise, it is divided at the
+     newline characters.  Thus, invoking ‘+’ on a series of numbers will
+     add them; ‘min’ would display the smallest figure, etc.
+
+Write ‘eshell-script-mode’ as a minor mode
+
+     It would provide syntax, abbrev, highlighting and indenting support
+     like ‘emacs-lisp-mode’ and ‘shell-mode’.
+
+In the history mechanism, finish the Bash-style support
+
+     This means ‘!n’, ‘!#’, ‘!:%’, and ‘!:1-’ as separate from ‘!:1*’.
+
+Support the -n command line option for ‘history’
+
+Implement ‘fc’ in Lisp
+
+Specifying a frame as a redirection target should imply the currently active window’s buffer
+
+Implement ‘>FUNC-OR-FUNC-LIST’
+
+     This would allow for an “output translators”, that take a function
+     to modify output with, and a target.  Devise a syntax that works
+     well with pipes, and can accommodate multiple functions (i.e.,
+     ‘>'(upcase regexp-quote)’ or ‘>'upcase’).
+
+Allow Eshell to read/write to/from standard input and output
+
+     This would be optional, rather than always using the Eshell buffer.
+     This would allow it to be run from the command line (perhaps).
+
+Write a ‘help’ command
+
+     It would call subcommands with ‘--help’, or ‘-h’ or ‘/?’, as
+     appropriate.
+
+Implement ‘stty’ in Lisp
+
+Support ‘rc’’s matching operator, e.g., ‘~ (LIST) REGEXP’
+
+Implement ‘bg’ and ‘fg’ as editors of ‘eshell-process-list’
+
+     Using ‘bg’ on a process that is already in the background does
+     nothing.  Specifying redirection targets replaces (or adds) to the
+     list current being used.
+
+Have ‘jobs’ print only the processes for the current shell
+
+How can Eshell learn if a background process has requested input?
+
+Make a customizable syntax table for redirects
+
+     This way, the user could change it to use rc syntax: ‘>[2=1]’.
+
+Copy ANSI code handling from ‘term.el’ into ‘em-term.el’
+
+     Make it possible for the user to send char-by-char to the
+     underlying process.  Ultimately, I should be able to move away from
+     using term.el altogether, since everything but the ANSI code
+     handling is already part of Eshell.  Then, things would work
+     correctly on MS-Windows as well (which doesn’t have ‘/bin/sh’,
+     although ‘term.el’ tries to use it).
+
+Make the shell spawning commands be visual
+
+     That is, make (‘su’, ‘bash’, ‘ssh’, etc.) be part of
+     ‘eshell-visual-commands’.  The only exception is if the shell is
+     being used to invoke a single command.  Then, the behavior should
+     be based on what that command is.
+
+Create a smart viewing command named ‘open’
+
+     This would search for some way to open its argument (similar to
+     opening a file in the Windows Explorer).
+
+Alias ‘read’ to be the same as ‘open’, only read-only
+
+Write a ‘tail’ command which uses ‘view-file’
+
+     It would move point to the end of the buffer, and then turns on
+     auto-revert mode in that buffer at frequent intervals—and a ‘head’
+     alias which assumes an upper limit of ‘eshell-maximum-line-length’
+     characters per line.
+
+Make ‘dgrep’ load ‘dired’, mark everything, then invoke ‘dired-do-search’
+
+Write ‘mesh.c’
+
+     This would run Emacs with the appropriate arguments to invoke
+     Eshell only.  That way, it could be listed as a login shell.
+
+Use an intangible ‘PS2’ string for multi-line input prompts
+
+Auto-detect when a command is visual, by checking ‘TERMCAP’ usage
+
+The first keypress after ‘M-x watson’ triggers
+     ‘eshell-send-input’
+
+Make ‘/’ more electric
+
+     so that it automatically expands and corrects file names, beyond
+     what the ‘em-elecslash’ module is able to do.  Or make file name
+     completion for Pcomplete auto-expand ‘/u/i/std<TAB>’ to
+     ‘/usr/include/std<TAB>’.
+
+Write the ‘pushd’ stack to disk along with ‘last-dir-ring’
+
+Add options to ‘eshell/cat’ which would allow it to sort and uniq
+
+Implement ‘wc’ in Lisp
+
+     Add support for counting sentences, paragraphs, pages, etc.
+
+Once piping is added, implement ‘sort’ and ‘uniq’ in Lisp
+
+Implement ‘touch’ in Lisp
+
+Implement ‘comm’ in Lisp
+
+Implement an ‘epatch’ command in Lisp
+
+     This would call ‘ediff-patch-file’, or ‘ediff-patch-buffer’,
+     depending on its argument.
+
+Have an option such that ‘ls -l’ generates a dired buffer
+
+Write a version of ‘xargs’ based on command rewriting
+
+     That is, ‘find X | xargs Y’ would be indicated using ‘Y ${find X}’.
+     Maybe ‘eshell-do-pipelines’ could be changed to perform this
+     on-thy-fly rewriting.
+
+Write an alias for ‘less’ that brings up a ‘view-mode’ buffer
+
+     Such that the user can press <SPC> and <DEL>, and then ‘q’ to
+     return to Eshell.  It would be equivalent to: ‘X > #<buffer Y>;
+     view-buffer #<buffer Y>’.
+
+Make ‘eshell-mode’ as much a full citizen as ‘shell-mode’
+
+     Everywhere in Emacs where ‘shell-mode’ is specially noticed, add
+     ‘eshell-mode’ there.
+
+Permit the umask to be selectively set on a ‘cp’ target
+
+‘M-<RET>’ during a long command (using smart display) doesn’t work
+
+     Since it keeps the cursor up where the command was invoked.
+
+
+File: eshell.info,  Node: GNU Free Documentation License,  Next: Concept Index,  Prev: Bugs and ideas,  Up: Top
+
+Appendix A GNU Free Documentation License
+*****************************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <https://fsf.org/>
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document “free” in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of “copyleft”, which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     “Document”, below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as “you”.  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A “Modified Version” of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A “Secondary Section” is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document’s overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The “Invariant Sections” are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The “Cover Texts” are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A “Transparent” copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     “Transparent” is called “Opaque”.
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The “Title Page” means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, “Title
+     Page” means the text near the most prominent appearance of the
+     work’s title, preceding the beginning of the body of the text.
+
+     The “publisher” means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section “Entitled XYZ” means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     “Acknowledgements”, “Dedications”, “Endorsements”, or “History”.)
+     To “Preserve the Title” of such a section when you modify the
+     Document means that it remains a section “Entitled XYZ” according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document’s license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document’s
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled “History”, Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled “History” in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          “History” section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled “Acknowledgements” or “Dedications”,
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled “Endorsements”.  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          “Endorsements” or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version’s
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled “Endorsements”, provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties—for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of
+     a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     “History” in the various original documents, forming one section
+     Entitled “History”; likewise combine any sections Entitled
+     “Acknowledgements”, and any sections Entitled “Dedications”.  You
+     must delete all sections Entitled “Endorsements.”
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an “aggregate” if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation’s users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document’s Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled “Acknowledgements”,
+     “Dedications”, or “History”, the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly and
+     finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from you
+     under this License.  If your rights have been terminated and not
+     permanently reinstated, receipt of a copy of some or all of the
+     same material does not give you any rights to use it.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <https://www.gnu.org/licenses/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License “or any later version” applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.  If the Document specifies that a proxy can
+     decide which future versions of this License can be used, that
+     proxy’s public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+  11. RELICENSING
+
+     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A “Massive Multiauthor Collaboration” (or “MMC”) contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     “Incorporate” means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is “eligible for relicensing” if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the “with...Texts.” line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: eshell.info,  Node: Concept Index,  Next: Function and Variable Index,  Prev: GNU Free Documentation License,  Up: Top
+
+Concept Index
+*************
+
+ [index ]
+* Menu:
+
+* argument modification:                 Argument Predication and Modification.
+                                                              (line   6)
+* argument predication:                  Argument Predication and Modification.
+                                                              (line   6)
+* author, how to reach:                  Bugs and ideas.      (line   6)
+* authors:                               Contributors to Eshell.
+                                                              (line   6)
+* batch scripts:                         Scripts.             (line  26)
+* bugs, how to report them:              Bugs and ideas.      (line   6)
+* bugs, known:                           Bugs and ideas.      (line   6)
+* character classes, in Eshell glob patterns: Globbing.       (line  43)
+* character sets, in Eshell glob patterns: Globbing.          (line  43)
+* command invocation, from anywhere:     One-Off Commands.    (line   6)
+* command lookup order:                  Invocation.          (line  36)
+* complemented character sets, in Eshell glob patterns: Globbing.
+                                                              (line  58)
+* contributors:                          Contributors to Eshell.
+                                                              (line   6)
+* directories, changing:                 List of Built-ins.   (line  39)
+* directory stack, adding to:            List of Built-ins.   (line 491)
+* directory stack, listing:              List of Built-ins.   (line 151)
+* directory stack, removing from:        List of Built-ins.   (line 475)
+* email to the author:                   Bugs and ideas.      (line   6)
+* Eshell, starting:                      Entry Points.        (line   6)
+* Eshell, what it is:                    Introduction.        (line  13)
+* event designators:                     History.             (line  16)
+* FAQ:                                   Bugs and ideas.      (line   6)
+* groups, in Eshell glob patterns:       Globbing.            (line  63)
+* interactive session:                   Interactive Shell.   (line   6)
+* known bugs:                            Bugs and ideas.      (line   6)
+* length operator, in variable expansion: Dollars Expansion.  (line  96)
+* order of looking for commands:         Invocation.          (line  36)
+* problems, list of common:              Bugs and ideas.      (line   6)
+* processes, listing:                    List of Built-ins.   (line 292)
+* processes, signaling:                  List of Built-ins.   (line 296)
+* processes, waiting for:                List of Built-ins.   (line 580)
+* remote access:                         Remote Access.       (line   6)
+* reporting bugs and ideas:              Bugs and ideas.      (line   6)
+* scripts:                               Scripts.             (line   6)
+* splice operator, in variable expansion: Dollars Expansion.  (line 104)
+* starting Eshell:                       Entry Points.        (line   6)
+* what is Eshell?:                       Introduction.        (line  13)
+
+
+File: eshell.info,  Node: Function and Variable Index,  Next: Command Index,  Prev: Concept Index,  Up: Top
+
+Function and Variable Index
+***************************
+
+ [index ]
+* Menu:
+
+* $$:                                    Variables.           (line  74)
+* $*:                                    Aliases.             (line  19)
+* $+:                                    Variables.           (line  34)
+* $-:                                    Variables.           (line  38)
+* $0:                                    Aliases.             (line  28)
+* $1, $2, ..., $9:                       Aliases.             (line  31)
+* $?:                                    Variables.           (line  78)
+* $COLUMNS:                              Variables.           (line  85)
+* $GID:                                  Variables.           (line  60)
+* $INSIDE_EMACS:                         Variables.           (line  92)
+* $LINES:                                Variables.           (line  85)
+* $OLDPWD:                               Variables.           (line  38)
+* $PAGER:                                Variables.           (line  99)
+* $PATH:                                 Variables.           (line  46)
+* $PWD:                                  Variables.           (line  34)
+* $UID:                                  Variables.           (line  54)
+* $_:                                    Variables.           (line  66)
+* eshell:                                Interactive Shell.   (line   9)
+* eshell-aliases-file:                   Aliases.             (line   6)
+* eshell-batch-file:                     Scripts.             (line  26)
+* eshell-cd-shows-directory:             List of Built-ins.   (line  67)
+* eshell-close-target:                   Redirection.         (line  88)
+* eshell-command:                        One-Off Commands.    (line   8)
+* eshell-command-result:                 One-Off Commands.    (line  18)
+* eshell-confine-point-to-input:         Key rebinding.       (line  16)
+* eshell-convert-numeric-arguments:      Dollars Expansion.   (line  39)
+* eshell-cp-interactive-query:           List of Built-ins.   (line 102)
+* eshell-cp-overwrite-files:             List of Built-ins.   (line 102)
+* eshell-default-target-is-dot:          Built-ins.           (line  49)
+* eshell-destroy-buffer-when-process-dies: Visual Commands.   (line  30)
+* eshell-eval-using-options:             Defining New Built-ins.
+                                                              (line  13)
+* eshell-execute-file:                   Scripts.             (line  19)
+* eshell-expand-history-references:      History.             (line  16)
+* eshell-explicit-remote-commands:       Remote Access.       (line  25)
+* eshell-function-target-create:         Redirection.         (line 106)
+* eshell-generic-target:                 Redirection.         (line  88)
+* eshell-glob-case-insensitive:          Globbing.            (line  10)
+* eshell-glob-splice-results:            Globbing.            (line  14)
+* eshell-history-append:                 History.             (line  22)
+* eshell-history-file-name:              History.             (line  22)
+* eshell-history-size:                   History.             (line   6)
+* eshell-kill-on-exit:                   List of Built-ins.   (line 237)
+* eshell-lisp-form-nil-is-failure:       Variables.           (line  78)
+* eshell-list-files-after-cd:            List of Built-ins.   (line  67)
+* eshell-ln-interactive-query:           List of Built-ins.   (line 310)
+* eshell-ln-overwrite-files:             List of Built-ins.   (line 310)
+* eshell-ls-date-format:                 List of Built-ins.   (line 389)
+* eshell-ls-default-blocksize:           List of Built-ins.   (line 411)
+* eshell-ls-initial-args:                List of Built-ins.   (line 347)
+* eshell-ls-use-colors:                  List of Built-ins.   (line 351)
+* eshell-modules-list:                   Optional modules.    (line   6)
+* eshell-mv-interactive-query:           List of Built-ins.   (line 452)
+* eshell-mv-overwrite-files:             List of Built-ins.   (line 452)
+* eshell-output-object-to-target:        Redirection.         (line  88)
+* eshell-plain-diff-behavior:            List of Built-ins.   (line 144)
+* eshell-plain-echo-behavior:            List of Built-ins.   (line 207)
+* eshell-plain-grep-behavior:            List of Built-ins.   (line 262)
+* eshell-plain-locate-behavior:          List of Built-ins.   (line 338)
+* eshell-prefer-lisp-functions:          Invocation.          (line  47)
+* eshell-prefer-lisp-variables:          Variables.           (line   6)
+* eshell-pushd-dextract:                 List of Built-ins.   (line 508)
+* eshell-pushd-dunique:                  List of Built-ins.   (line 503)
+* eshell-pushd-tohome:                   List of Built-ins.   (line 497)
+* eshell-read-aliases-list:              Aliases.             (line   6)
+* eshell-rm-interactive-query:           List of Built-ins.   (line 522)
+* eshell-rm-removes-directories:         List of Built-ins.   (line 522)
+* eshell-virtual-targets:                Redirection.         (line  88)
+* eshell-visual-commands:                Visual Commands.     (line  12)
+* eshell-visual-options:                 Visual Commands.     (line  12)
+* eshell-visual-subcommands:             Visual Commands.     (line  12)
+
+
+File: eshell.info,  Node: Command Index,  Next: Key Index,  Prev: Function and Variable Index,  Up: Top
+
+Command Index
+*************
+
+ [index ]
+* Menu:
+
+* .:                                     Scripts.             (line   6)
+* . <1>:                                 List of Built-ins.   (line   6)
+* addpath:                               List of Built-ins.   (line  12)
+* agrep:                                 List of Built-ins.   (line 253)
+* alias:                                 List of Built-ins.   (line  23)
+* basename:                              List of Built-ins.   (line  30)
+* cat:                                   List of Built-ins.   (line  33)
+* cd:                                    List of Built-ins.   (line  39)
+* clear:                                 List of Built-ins.   (line  72)
+* clear-scrollback:                      List of Built-ins.   (line  77)
+* compile:                               List of Built-ins.   (line  81)
+* count:                                 Extra built-in commands.
+                                                              (line  10)
+* cp:                                    List of Built-ins.   (line  98)
+* date:                                  List of Built-ins.   (line 135)
+* diff:                                  List of Built-ins.   (line 140)
+* dirname:                               List of Built-ins.   (line 148)
+* dirs:                                  List of Built-ins.   (line 151)
+* doas:                                  Tramp extensions.    (line  16)
+* du:                                    List of Built-ins.   (line 155)
+* echo:                                  List of Built-ins.   (line 199)
+* egrep:                                 List of Built-ins.   (line 254)
+* env:                                   List of Built-ins.   (line 216)
+* eshell-debug:                          List of Built-ins.   (line 223)
+* exit:                                  List of Built-ins.   (line 236)
+* export:                                List of Built-ins.   (line 241)
+* expr:                                  Extra built-in commands.
+                                                              (line  15)
+* ff:                                    Extra built-in commands.
+                                                              (line  19)
+* fgrep:                                 List of Built-ins.   (line 255)
+* funcall:                               List of Built-ins.   (line 245)
+* gf:                                    Extra built-in commands.
+                                                              (line  23)
+* glimpse:                               List of Built-ins.   (line 257)
+* grep:                                  List of Built-ins.   (line 252)
+* history:                               List of Built-ins.   (line 268)
+* history <1>:                           History.             (line   6)
+* info:                                  List of Built-ins.   (line 284)
+* intersection:                          Extra built-in commands.
+                                                              (line  27)
+* jobs:                                  List of Built-ins.   (line 292)
+* kill:                                  List of Built-ins.   (line 296)
+* listify:                               List of Built-ins.   (line 300)
+* ln:                                    List of Built-ins.   (line 305)
+* locate:                                List of Built-ins.   (line 333)
+* ls:                                    List of Built-ins.   (line 342)
+* make:                                  List of Built-ins.   (line 435)
+* man:                                   List of Built-ins.   (line 440)
+* mismatch:                              Extra built-in commands.
+                                                              (line  31)
+* mkdir:                                 List of Built-ins.   (line 444)
+* mv:                                    List of Built-ins.   (line 448)
+* occur:                                 List of Built-ins.   (line 472)
+* popd:                                  List of Built-ins.   (line 475)
+* printnl:                               List of Built-ins.   (line 488)
+* pushd:                                 List of Built-ins.   (line 491)
+* pwd:                                   List of Built-ins.   (line 515)
+* rgrep:                                 List of Built-ins.   (line 256)
+* rm:                                    List of Built-ins.   (line 518)
+* rmdir:                                 List of Built-ins.   (line 546)
+* set:                                   List of Built-ins.   (line 549)
+* set-difference:                        Extra built-in commands.
+                                                              (line  36)
+* set-exclusive-or:                      Extra built-in commands.
+                                                              (line  41)
+* setq:                                  List of Built-ins.   (line 555)
+* source:                                Scripts.             (line   6)
+* source <1>:                            List of Built-ins.   (line 559)
+* su:                                    Tramp extensions.    (line  10)
+* substitute:                            Extra built-in commands.
+                                                              (line  46)
+* sudo:                                  Tramp extensions.    (line  15)
+* time:                                  List of Built-ins.   (line 565)
+* umask:                                 List of Built-ins.   (line 568)
+* union:                                 Extra built-in commands.
+                                                              (line  51)
+* unset:                                 List of Built-ins.   (line 575)
+* wait:                                  List of Built-ins.   (line 580)
+* which:                                 List of Built-ins.   (line 583)
+* whoami:                                List of Built-ins.   (line 587)
+
+
+File: eshell.info,  Node: Key Index,  Prev: Command Index,  Up: Top
+
+Key Index
+*********
+
+ [index ]
+* Menu:
+
+* C-c C-n:                               Navigation.           (line  6)
+* C-c C-p:                               Navigation.           (line  6)
+* C-c C-r:                               Navigation.           (line 12)
+* C-M-l:                                 Navigation.           (line 12)
+* C-n:                                   Key rebinding.        (line 12)
+* C-p:                                   Key rebinding.        (line 12)
+* C-u:                                   Key rebinding.        (line 12)
+* C-w:                                   Key rebinding.        (line 12)
+* M-?:                                   Completion.           (line 20)
+* M-n:                                   History.              (line 43)
+* M-p:                                   History.              (line 43)
+* M-r:                                   History.              (line 39)
+* M-s:                                   History.              (line 39)
+* TAB:                                   Completion.           (line 14)
+
+
+
+Tag Table:
+Node: Top902
+Ref: Top-Footnote-12447
+Node: Introduction2493
+Ref: Introduction-Footnote-15247
+Ref: Introduction-Footnote-25337
+Node: Contributors to Eshell5541
+Node: Entry Points6696
+Node: Interactive Shell6963
+Node: One-Off Commands7815
+Node: Scripts8887
+Node: Commands10479
+Ref: Commands-Footnote-111177
+Node: Invocation11300
+Node: Arguments14263
+Ref: Arguments-Footnote-118150
+Node: Built-ins18249
+Node: List of Built-ins20804
+Node: Defining New Built-ins43134
+Node: Variables47869
+Node: Aliases52440
+Node: Remote Access54194
+Node: Control Flow56163
+Node: Expansion57663
+Ref: Expansion-Footnote-159127
+Ref: Expansion-Footnote-259248
+Node: Dollars Expansion59359
+Ref: Dollars Expansion-Footnote-164525
+Node: Globbing64752
+Node: Argument Predication and Modification68475
+Node: Argument Predicates69742
+Node: Argument Modifiers73411
+Node: Input/Output76451
+Node: Visual Commands76735
+Node: Redirection78478
+Node: Pipelines82452
+Node: Interaction84686
+Node: Navigation85083
+Node: Completion85604
+Ref: Completion-Footnote-187146
+Node: History87245
+Node: Extension modules89470
+Ref: Extension modules-Footnote-189908
+Node: Optional modules89956
+Node: Key rebinding90444
+Node: Smart scrolling91291
+Node: Electric forward slash93166
+Node: Tramp extensions95482
+Node: Extra built-in commands96514
+Node: Writing a module98592
+Node: Bugs and ideas99517
+Node: GNU Free Documentation License113303
+Node: Concept Index138665
+Node: Function and Variable Index141901
+Node: Command Index147266
+Node: Key Index153267
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

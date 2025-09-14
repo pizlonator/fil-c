@@ -1,0 +1,2568 @@
+This is erc.info, produced by makeinfo version 6.8 from erc.texi.
+
+This manual is for ERC 5.6.0.30.1 as distributed with Emacs 30.1.
+
+   Copyright © 2005–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual,” and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+     All Emacs Lisp code contained in this document may be used,
+     distributed, and modified without restriction.
+INFO-DIR-SECTION Emacs network features
+START-INFO-DIR-ENTRY
+* ERC: (erc).                   Powerful and extensible IRC client for Emacs.
+END-INFO-DIR-ENTRY
+
+
+File: erc.info,  Node: Top,  Next: Introduction,  Up: (dir)
+
+ERC
+***
+
+This manual is for ERC 5.6.0.30.1 as distributed with Emacs 30.1.
+
+   Copyright © 2005–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual,” and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+     All Emacs Lisp code contained in this document may be used,
+     distributed, and modified without restriction.
+
+* Menu:
+
+* Introduction::                What is ERC?
+* Getting Started::             Quick Start guide to using ERC.
+* Keystroke Summary::           Keystrokes used in ERC buffers.
+* Modules::                     Available modules for ERC.
+* Advanced Usage::              Cool ways of using ERC.
+* Getting Help and Reporting Bugs::
+* History::                     The history of ERC.
+* GNU Free Documentation License::  The license for this documentation.
+* Concept Index::               Search for terms.
+
+ — The Detailed Node Listing —
+
+Getting Started
+
+* Sample Session::              Example of connecting to the ‘#emacs’ channel
+* Special Features::            Differences from standalone IRC clients
+
+Advanced Usage
+
+* Connecting::                  Ways of connecting to an IRC server.
+* SASL::                        Authenticating via SASL.
+* Sample Configuration::        An example configuration file.
+* Integrations::                Integrations available for ERC.
+* Options::                     Options that are available for ERC.
+
+
+
+File: erc.info,  Node: Introduction,  Next: Getting Started,  Prev: Top,  Up: Top
+
+1 Introduction
+**************
+
+ERC is a powerful, modular, and extensible IRC client for Emacs.  It has
+been included in Emacs since 2006 (*note History::) and is also
+available on GNU ELPA.
+
+   IRC is short for Internet Relay Chat.  When using IRC, you can
+communicate with other users on the same IRC network.  There are many
+different networks—if you search for “IRC networks” in your favorite
+search engine, you will find up-to-date lists of IRC networks catering
+to various interests and topics.
+
+   To use IRC, you need an IRC client such as ERC. Using the client, you
+connect to an IRC server.  Once you’ve done that, you will have access
+to all available channels on that server’s network.  A channel is
+basically a chat room, and what you type in a channel will be shown to
+all other users in that channel.  You can be in several channels at the
+same time—ERC will show each channel in its own buffer.
+
+   IRC channel names always begin with a ‘#’ character.  For example,
+the Emacs channel on Libera.Chat is ‘#emacs’, and the ERC channel is
+‘#erc’.  Do not confuse them with the hashtags used on many social media
+platforms.
+
+   You can also send private messages to other IRC users on the same
+network, even if they are not in the same channels as you.
+
+   ERC comes with the following capabilities enabled by default.
+
+   • Flood control
+   • Timestamps
+   • Join channels automatically
+   • Buttonize URLs, nicknames, and other text
+   • Wrap long lines
+   • Highlight or remove IRC control characters
+   • Highlight pals, fools, and other keywords
+   • Detect netsplits
+   • Complete nicknames and commands in a programmable fashion
+   • Make displayed lines read-only
+   • Input history
+   • Track channel activity in the mode-line
+
+
+File: erc.info,  Node: Getting Started,  Next: Keystroke Summary,  Prev: Introduction,  Up: Top
+
+2 Getting Started
+*****************
+
+The command ‘M-x erc’ will start ERC and prompt for the server to
+connect to.  If you’re unsure of which server or network to connect to,
+we suggest starting with “irc.libera.chat”.  There you will find the
+‘#emacs’ channels where you can chat with other Emacs users, and if
+you’re having trouble with ERC, you can join the ‘#erc’ channel and ask
+for help there.
+
+   At some point in your ERC journey, you’ll inevitably want to change
+how the client looks and behaves.  As with other Emacs applications, the
+typical place to store your settings is your ‘init.el’.  If you would
+rather use the Customize interface, a good place to start is by running
+‘M-x customize-group <RET> erc <RET>’.  In particular, ERC comes with
+lots of modules that may be enabled or disabled; to select which ones
+you want, do ‘M-x customize-variable <RET> erc-modules <RET>’.
+
+* Menu:
+
+* Sample Session::              Example of connecting to the #emacs channel
+* Special Features::            Differences from standalone IRC clients
+
+
+File: erc.info,  Node: Sample Session,  Next: Special Features,  Up: Getting Started
+
+2.1 Sample Session
+==================
+
+This example ERC session describes how to connect to the ‘#emacs’
+channel on Libera.Chat.  Also worth checking out is Libera’s own
+introductory guide to IRC, <https://libera.chat/guides/basics>, which
+presents a more comprehensive overview without instructions specific to
+ERC.
+
+   • Connect to Libera.Chat
+
+     Run ‘M-x erc <RET>’.  Use ‘irc.libera.chat’ for the server and
+     ‘6667’ for the port.  Choose a nickname, and hit <y> when asked if
+     you’d prefer to connect over TLS.
+
+   • Get used to the interface
+
+     Switch to the ‘Libera.Chat’ buffer if you’re not already there.
+     ERC calls this a “server buffer”, and it must exist for the
+     duration of the session.  You will likely see some messages about
+     “ident”, authentication, and the like, followed by information
+     describing the current server and the network.
+
+   • Join the #emacs channel
+
+     In the server buffer, type ‘/join #emacs <RET>’ at the prompt.  ERC
+     will create a new buffer called ‘#emacs’.  If you’ve already
+     configured ERC, you may need to switch to it manually.  Once there,
+     you will see the channel’s “topic” in the buffer’s header line
+     (*note (elisp)Header Lines::) and a list of people currently in the
+     channel.  If you can’t see the full topic, mouse over it or type
+     ‘/topic <RET>’ at the prompt.
+
+   • Register your nickname with Libera.Chat
+
+     In order to access essential network features, like speaking in
+     certain channels and participating in private conversations, you’ll
+     likely have to “register” your nickname.  To do so, switch to the
+     ‘Libera.Chat’ buffer and type ‘/msg NickServ register ‘<password>’
+     ‘<email>’ <RET>’, replacing ‘<password>’ and ‘<email>’ with your
+     desired account password and contact email (both sans quotes).  The
+     server should tell you that the operation was successful.  See the
+     official Libera.Chat docs if you encounter problems.
+
+     In addition to creating an account, this process also
+     “authenticates” you to the network’s “account services” system for
+     the duration of the session.  In other words, you’re now logged in.
+     However, when you connect in the future, you’ll need to
+     authenticate again by providing the same credentials somehow.  When
+     you’re finished with this walk through, see “Next Steps”, below, to
+     learn some ways to do that.
+
+   • Talk to people in the channel
+
+     Switch back to the ‘#emacs’ buffer and type a message at the
+     prompt, hitting ‘RET’ once satisfied.  Everyone in the channel will
+     now see your message.
+
+   • Open a query buffer to talk to someone
+
+     If you want to talk with someone in private, type ‘/query ‘<nick>’
+     <RET>’, replacing ‘<nick>’ with the their nickname.  As before,
+     with the server buffer, if this new “query buffer” doesn’t appear
+     in the current window, you may have to switch to it.  Regardless,
+     its name should match ‘<nick>’.  Once there, type something at the
+     prompt and hit ‘RET’, and the other party will see it.
+
+     Keep in mind that if either party isn’t authenticated, you may not
+     be able to converse at all.  Also, depending on the network,
+     certain social conventions may apply to the practice of direct
+     messaging.  As a general rule, queries should usually be reserved
+     for personal matters rather than technical help, which can often
+     benefit (and benefit _from_) a larger audience.
+
+   • Next steps
+
+     Try joining another channel, such as ‘#erc’, where ERC users and
+     developers hang out (*note Official IRC channels:: for more on the
+     history of ‘#emacs’).  For ideas on various options to customize,
+     *note Sample Configuration::.  To learn how ERC can authenticate
+     you to the network automatically whenever you connect, *note
+     SASL::.  As always, if you encounter problems, *note Getting Help
+     and Reporting Bugs::.
+
+
+File: erc.info,  Node: Special Features,  Prev: Sample Session,  Up: Getting Started
+
+2.2 Special Features
+====================
+
+ERC has some features that distinguish it from some IRC clients.
+
+   • multiple channels and multiple servers
+
+     Every channel is put in a separate buffer.  Several IRC servers may
+     be connected to at the same time.
+
+   • private message separation
+
+     Private conversations are treated as channels, and are put into
+     separate buffers in Emacs.  We call these “query buffers”.
+
+   • highlighting
+
+     Some occurrences of words can be highlighted, which makes it easier
+     to track different kinds of conversations.
+
+   • notification
+
+     ERC can notify you that certain users are online.
+
+   • channel tracking
+
+     Channels can be hidden and conversation continue in the background.
+     You are notified when something is said in such a channel that is
+     not currently visible.  This makes it easy to get Real Work done
+     while still maintaining an IRC presence.
+
+   • nick completion
+
+     ERC can complete words upon hitting ‘TAB’, which eases the writing
+     of nicknames in messages.
+
+   • history
+
+     Past actions are kept in history rings for future use.  To navigate
+     a history ring, hit ‘M-p’ to go backwards and ‘M-n’ to go forwards.
+
+   • multiple languages
+
+     Different channels and servers may have different language
+     encodings.
+
+     multiple languages.  Please contact the Emacs developers if you are
+     interested in helping with the translation effort.
+
+   • user scripting
+
+     Users can load scripts (e.g., auto greeting scripts) when ERC
+     starts up.
+
+     It is also possible to make custom IRC commands, if you know a
+     little Emacs Lisp.  Just make an Emacs Lisp function and call it
+     ‘erc-cmd-NEWCOMMAND’, where ‘NEWCOMMAND’ is the name of the new
+     command in capital letters.
+
+   • auto reconnect
+
+     If the connection goes away at some point, ERC will try to
+     reconnect automatically.  If it fails to reconnect, and you want to
+     try to manually reestablish the connection at some later point,
+     switch to an ERC buffer and run the ‘/RECONNECT’ command.
+
+
+File: erc.info,  Node: Keystroke Summary,  Next: Modules,  Prev: Getting Started,  Up: Top
+
+3 Keys Used in ERC
+******************
+
+This is a summary of keystrokes available in every ERC buffer.
+
+‘C-a or <home> (erc-bol)’
+     Go to beginning of line or end of prompt.
+
+‘<RET> (erc-send-current-line)’
+     Send the current line
+
+‘<TAB> (completion-at-point or erc-button-next)’
+     If at prompt, complete the current word.  Otherwise, move to the
+     next link or button.
+
+‘M-<TAB> (ispell-complete-word)’
+     Complete the given word, using ispell.
+
+‘C-c C-a (erc-bol)’
+     Go to beginning of line or end of prompt.
+
+‘C-c C-b (erc-switch-to-buffer)’
+     Use ‘read-buffer’ to prompt for a ERC buffer to switch to.
+
+‘C-c C-c (erc-toggle-interpret-controls)’
+     Toggle interpretation of control sequences in messages.
+
+‘C-c C-d (erc-input-action)’
+     Interactively input a user action and send it to IRC.
+
+‘C-c C-e (erc-toggle-ctcp-autoresponse)’
+     Toggle automatic CTCP replies (like VERSION and PING).
+
+‘C-c C-f (erc-toggle-flood-control)’
+     Toggle use of flood control on sent messages.
+
+‘C-c <TAB> (erc-invite-only-mode)’
+     Turn on the invite only mode (+i) for the current channel.
+
+‘C-c C-j (erc-join-channel)’
+     Join channel.  If point is at the beginning of a channel name, use
+     that as default.
+
+‘C-c C-k (erc-go-to-log-matches-buffer)’
+     Interactively open an erc-log-matches buffer
+
+‘C-c C-l (erc-save-buffer-in-logs)’
+     Append buffer contents to the log file, if logging is enabled.
+
+‘C-c C-n (erc-channel-names)’
+     Run "/names #channel" in the current channel.
+
+‘C-c C-o (erc-get-channel-mode-from-keypress)’
+     Read a key sequence and call the corresponding channel mode
+     function.  After doing ‘C-c C-o’, type in a channel mode letter.
+
+     ‘C-g’ means quit.  ‘RET’ lets you type more than one mode at a
+     time.  If ‘l’ is pressed, ‘erc-set-channel-limit’ gets called.  If
+     ‘k’ is pressed, ‘erc-set-channel-key’ gets called.  Anything else
+     will be sent to ‘erc-toggle-channel-mode’.
+
+‘C-c C-p (erc-part-from-channel)’
+     Part from the current channel and prompt for a reason.
+
+‘C-c C-q (erc-quit-server)’
+     Disconnect from current server after prompting for reason.
+
+‘C-c C-r (erc-remove-text-properties-region)’
+     Clears the region (start,end) in object from all colors, etc.
+
+‘C-c C-t (erc-set-topic)’
+     Prompt for a topic for the current channel.
+
+‘C-c C-u (erc-kill-input)’
+     Kill current input line using ‘erc-bol’ followed by ‘kill-line’.
+
+
+File: erc.info,  Node: Modules,  Next: Advanced Usage,  Prev: Keystroke Summary,  Up: Top
+
+4 Modules
+*********
+
+One way to add functionality to ERC is to customize which of its many
+modules are loaded.
+
+   You can do this by typing ‘C-h v erc-modules <RET>’ and clicking
+‘customize’ near the bottom of the resulting help buffer, where it says
+“You can _customize_ this variable.” When removing a module outside of
+Customize, you may wish to ensure it’s disabled by invoking its
+associated minor-mode toggle with a nonpositive prefix argument, for
+example, ‘C-u - M-x erc-spelling-mode <RET>’.  Additionally, if you plan
+on loading third-party modules that perform atypical setup on
+activation, you may need to arrange for calling ‘erc-update-modules’ in
+your init file.  Examples of such setup might include registering an
+‘erc-before-connect’ hook, advising ‘erc-open’, and modifying
+‘erc-modules’ itself.  On Emacs 29 and greater, you can also run
+‘erc-update-modules’ indirectly, via ‘(setopt erc-modules erc-modules)’.
+
+   The following is a list of available modules.
+
+‘autoaway’
+     Set away status automatically
+
+‘autojoin’
+     Join channels automatically
+
+‘bufbar’
+     List buffers belonging to a connection in a side window; part of
+     Custom group ‘erc-status-sidebar’
+
+‘button’
+     Buttonize URLs, nicknames, and other text
+
+‘capab-identify’
+     Mark unidentified users on freenode and other servers supporting
+     CAPAB.
+
+‘command-indicator’
+     Echo command lines for “slash commands”, like ‘/JOIN #erc’ and
+     ‘/HELP join’
+
+‘completion (aka pcomplete)’
+     Complete nicknames and commands (programmable)
+
+‘fill’
+     Wrap long lines
+
+‘identd’
+     Launch an identd server on port 8113
+
+‘irccontrols’
+     Highlight or remove IRC control characters
+
+‘keep-place’
+     Remember your position in buffers
+
+‘log’
+     Save buffers in logs
+
+‘match’
+     Highlight pals, fools, and other keywords
+
+‘menu’
+     Display a menu in ERC buffers
+
+‘netsplit’
+     Detect netsplits
+
+‘nicks’
+     Automatically colorize nicks
+
+‘nickbar’
+     List participating nicks for the current target buffer in a side
+     window; part of Custom group ‘erc-speedbar’
+
+‘noncommands’
+     Don’t display non-IRC commands after evaluation
+
+‘notify’
+     Notify when the online status of certain users changes
+
+‘notifications’
+     Send you a notification when you get a private message, or your
+     nickname is mentioned
+
+‘page’
+     Process CTCP PAGE requests from IRC
+
+‘querypoll’
+     Update query participant data by continually polling the server
+
+‘readonly’
+     Make displayed lines read-only
+
+‘replace’
+     Replace text in messages
+
+‘ring’
+     Enable an input history
+
+‘sasl’
+     Enable SASL authentication
+
+‘scrolltobottom’
+     Scroll to the bottom of the buffer
+
+‘services’
+     Identify to Nickserv (IRC Services) automatically
+
+‘smiley’
+     Convert smileys to pretty icons
+
+‘sound’
+     Play sounds when you receive CTCP SOUND requests
+
+‘spelling’
+     Check spelling of messages
+
+‘stamp’
+     Add timestamps to messages
+
+‘track’
+     Track channel activity in the mode-line
+
+‘truncate’
+     Truncate buffers to a certain size
+
+‘unmorse’
+     Translate morse code in messages
+
+Auxiliary Modules
+-----------------
+
+For various reasons, the following modules aren’t currently listed in
+the Custom interface for ‘erc-modules’, but feel free to add them
+explicitly.  They may be managed by another module or considered more
+useful when toggled interactively or just deemed experimental.
+
+‘fill-wrap’
+     Wrap long lines using ‘visual-line-mode’
+
+‘keep-place-indicator’
+     Remember your place in buffers with a visible reminder; activated
+     interactively or via something like ‘erc-join-hook’
+
+‘services-regain’
+     Automatically ask NickServ to reclaim your nick when reconnecting;
+     experimental as of ERC 5.6
+
+Required Modules
+----------------
+
+Note that some modules are essential to core IRC operations and thus not
+listed above.  You can nevertheless still remove these, but doing so
+demands special precautions to avoid degrading the user experience.  At
+present, the only such module is ‘networks’, whose library ERC always
+loads anyway.
+
+Local Modules
+-------------
+
+All modules operate as minor modes under the hood, and some newer ones
+may be defined as buffer-local.  These so-called “local modules” are a
+work in progress and their behavior and interface are subject to change.
+As of ERC 5.5, the only practical differences are as follows:
+
+  1. “Control variables,” like ‘erc-sasl-mode’, retain their values
+     across IRC sessions and override ‘erc-module’ membership when
+     influencing module activation.
+  2. Removing a local module from ‘erc-modules’ via Customize not only
+     disables its mode but also kills its control variable in all ERC
+     buffers.
+  3. “Mode toggles,” like ‘erc-sasl-mode’ and the complementary
+     ‘erc-sasl-enable’/‘erc-sasl-disable’ pairing, behave differently
+     than their global counterparts.
+
+   In target buffers, a local module’s activation state survives
+“reassociation” by default, but modules themselves always have the final
+say.  For example, a module may reset all instances of itself in its
+network context upon reconnecting.  Moreover, the value of a mode
+variable may be meaningless in buffers that its module has no interest
+in.  For example, the value of ‘erc-sasl-mode’ doesn’t matter in target
+buffers and may even remain non-‘nil’ after SASL has been disabled for
+the current connection (and vice versa).
+
+   When it comes to server buffers, a module’s activation state only
+persists for sessions revived via the automatic reconnection mechanism
+or a manual ‘/reconnect’ issued at the prompt.  In other words, this
+doesn’t apply to sessions revived by an entry-point command, such as
+‘erc-tls’, because such commands always ensure a clean slate by looking
+only to ‘erc-modules’.  Although a session revived in this manner may
+indeed harvest other information from a previous server buffer, it
+simply doesn’t care which modules might have been active during that
+connection.
+
+   Lastly, a local mode’s toggle command, like ‘erc-sasl-mode’, only
+affects the current buffer, but its “non-mode” cousins, like
+‘erc-sasl-enable’ and ‘erc-sasl-disable’, operate on all buffers
+belonging to their connection (when called interactively).  And unlike
+global toggles, none of these ever mutates ‘erc-modules’.
+
+Loading
+-------
+
+ERC loads internal modules in alphabetical order and third-party modules
+as they appear in ‘erc-modules’.  When defining your own module, take
+care to ensure ERC can find it.  An easy way to do that is by mimicking
+the example in the doc string for ‘define-erc-module’ (also shown
+below).  For historical reasons, ERC falls back to ‘require’ing
+features.  For example, if some module ‘my-module’ in ‘erc-modules’
+lacks a corresponding ‘erc-my-module-mode’ command, ERC will attempt to
+load the library ‘erc-my-module’ prior to connecting.  If this fails,
+ERC signals an error.  Users defining personal modules in an init file
+should ‘(provide 'erc-my-module)’ somewhere to placate ERC. Dynamically
+generating modules on the fly is not supported.
+
+   Some older built-in modules have a second name along with a second
+minor-mode toggle, which is just a function alias for its primary
+counterpart.  For practical reasons, ERC does not define a corresponding
+variable alias because contending with indirect variables complicates
+bookkeeping tasks, such as persisting module state across IRC sessions.
+New modules should definitely avoid defining aliases without a good
+reason.
+
+   Some packages have been known to autoload a module’s definition
+instead of its minor-mode command, which severs the link between the
+library and the module.  This means that enabling the mode by invoking
+its command toggle isn’t enough to load its defining library.  As such,
+packages should only supply module-related autoload cookies with an
+actual ‘autoload’ form for their module’s minor-mode command, like so:
+
+     ;;;###autoload(autoload 'erc-my-module-mode "erc-my-module" nil t)
+     (define-erc-module my-module nil
+       "My doc string."
+       ((add-hook 'erc-insert-post-hook #'erc-my-module-on-insert-post))
+       ((remove-hook 'erc-insert-post-hook #'erc-my-module-on-insert-post)))
+
+As implied earlier, packages can usually omit such cookies entirely so
+long as their module’s prefixed name matches that of its defining
+library and the library’s provided feature.
+
+   Finally, packages have also been observed to run ‘erc-update-modules’
+in top-level forms, forcing ERC to take special precautions to avoid
+recursive invocations.  Another unfortunate practice is mutating
+‘erc-modules’ itself upon loading ‘erc’, possibly by way of an autoload.
+Doing this tricks Customize into displaying the widget for ‘erc-modules’
+incorrectly, with built-in modules moved from the predefined checklist
+to the user-provided free-form area.
+
+
+File: erc.info,  Node: Advanced Usage,  Next: Getting Help and Reporting Bugs,  Prev: Modules,  Up: Top
+
+5 Advanced Usage
+****************
+
+* Menu:
+
+* Connecting::                  Ways of connecting to an IRC server.
+* SASL::                        Authenticating via SASL.
+* Sample Configuration::        An example configuration file.
+* Integrations::                Integrations available for ERC.
+* Options::                     Options that are available for ERC.
+
+— Detailed Node Listing —
+
+Integrations
+
+* URL::                         Opening IRC URLs in ERC.
+* SOCKS::                       Connecting to IRC with a SOCKS proxy.
+* auth-source::                 Retrieving auth-source entries with ERC.
+* display-buffer::              Controlling how ERC displays buffers.
+
+
+
+File: erc.info,  Node: Connecting,  Next: SASL,  Up: Advanced Usage
+
+5.1 Connecting to an IRC Server
+===============================
+
+The easiest way to connect to an IRC server is to call ‘M-x erc’.  If
+you want to assign this function to a keystroke, the following will help
+you figure out its parameters.
+
+ -- Function: erc
+     Select connection parameters and run ERC.  Non-interactively, it
+     takes the following keyword arguments.
+
+        • SERVER
+        • PORT
+        • NICK
+        • USER
+        • PASSWORD
+        • FULL-NAME
+        • ID
+
+     For example, calling the command like so
+
+          (erc :server "irc.libera.chat" :full-name "J. Random Hacker")
+
+     sets SERVER and FULL-NAME directly while leaving the rest up to
+     functions like ‘erc-compute-port’.  Note that some arguments can’t
+     be specified interactively.  ID, in particular, is rarely needed
+     (*note Network Identifier::).
+
+To connect securely over an encrypted TLS connection, use ‘M-x erc-tls’.
+
+ -- Function: erc-tls
+     Select connection parameters and run ERC over TLS.
+     Non-interactively, it takes the following keyword arguments.
+
+        • SERVER
+        • PORT
+        • NICK
+        • USER
+        • PASSWORD
+        • FULL-NAME
+        • ID
+        • CLIENT-CERTIFICATE
+
+     That is, if called in the following manner
+
+          (erc-tls :server "irc.libera.chat" :full-name "J. Random Hacker")
+
+     the command will set SERVER and FULL-NAME accordingly, while
+     helpers, like ‘erc-compute-nick’, will determine other parameters,
+     and some, like ‘client-certificate’, will just be ‘nil’.
+
+     To use a certificate with ‘erc-tls’, specify the optional
+     CLIENT-CERTIFICATE keyword argument, whose value should be as
+     described in the documentation of ‘open-network-stream’: if
+     non-‘nil’, it should either be a list where the first element is
+     the file name of the private key corresponding to a client
+     certificate and the second element is the file name of the client
+     certificate itself to use when connecting over TLS, or ‘t’, which
+     means that ‘auth-source’ will be queried for the private key and
+     the certificate.  Authenticating using a TLS client certificate is
+     also referred to as “CertFP” (Certificate Fingerprint)
+     authentication by various IRC networks.
+
+     Examples of use:
+
+          (erc-tls :server "irc.libera.chat" :port 6697
+                   :client-certificate
+                   '("/home/bandali/my-cert.key"
+                     "/home/bandali/my-cert.crt"))
+
+          (erc-tls :server "irc.libera.chat" :port 6697
+                   :client-certificate
+                   `(,(expand-file-name "~/cert-libera.key")
+                     ,(expand-file-name "~/cert-libera.crt")))
+
+          (erc-tls :server "irc.libera.chat" :port 6697
+                   :client-certificate t)
+
+     In the case of ‘:client-certificate t’, you will need to add a line
+     like the following to your authinfo file (for example,
+     ‘~/.authinfo.gpg’):
+
+          machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+
+     *Note (auth)Help for users::, for more on the ‘.authinfo’/‘.netrc’
+     backend of ‘auth-source’.  For other uses of auth-source throughout
+     ERC, *note ERC’s auth-source integration: auth-source.
+
+Server
+------
+
+ -- Function: erc-compute-server &optional server
+     Return an IRC server name.
+
+     This tries a progressively greater number of default methods until
+     a non-‘nil’ value is found.
+
+        • SERVER (the argument passed to this function)
+        • The ‘erc-server’ option
+        • The value of the IRCSERVER environment variable
+        • The ‘erc-default-server’ variable
+
+ -- User Option: erc-server
+     IRC server to use if one is not provided.
+
+Port
+----
+
+ -- Function: erc-compute-port &optional port
+     Return a port for an IRC server.
+
+     This tries a progressively greater number of default methods until
+     a non-‘nil’ value is found.
+
+        • PORT (the argument passed to this function)
+        • The ‘erc-port’ option
+        • The ‘erc-default-port’ variable
+
+ -- User Option: erc-port
+     IRC port to use if not specified.
+
+     This can be either a string or a number.
+
+Nick
+----
+
+ -- Function: erc-compute-nick &optional nick
+     Return user’s IRC nick.
+
+     This tries a progressively greater number of default methods until
+     a non-‘nil’ value is found.
+
+        • NICK (the argument passed to this function)
+        • The ‘erc-nick’ option
+        • The value of the IRCNICK environment variable
+        • The result from the ‘user-login-name’ function
+
+ -- User Option: erc-nick
+     Nickname to use if one is not provided.
+
+     This can be either a string, or a list of strings.  In the latter
+     case, if the first nick in the list is already in use, other nicks
+     are tried in the list order.
+
+ -- User Option: erc-show-speaker-membership-status
+     A boolean for including a channel member’s “status prefix” in their
+     display name when they speak.
+
+ -- User Option: erc-nick-uniquifier
+     The string to append to the nick if it is already in use.
+
+ -- User Option: erc-try-new-nick-p
+     If the nickname you chose isn’t available, and this option is
+     non-‘nil’, ERC should automatically attempt to connect with another
+     nickname.
+
+     You can manually set another nickname with the /NICK command.
+
+User
+----
+
+ -- Function: erc-compute-user &optional user
+     Determine a suitable value to send as the first argument of the
+     opening ‘USER’ IRC command by consulting the following sources:
+
+        • USER, the argument passed to this function
+        • The option ‘erc-email-userid’, assuming ‘erc-anonymous-login’
+          is non-‘nil’
+        • The result of calling the function ‘user-login-name’
+
+ -- User Option: erc-email-userid
+     A permanent username value to send for all connections.  It should
+     be a string abiding by the rules of the network.
+
+Password
+--------
+
+This parameter was traditionally meant to specify a “server password” to
+be sent along with the IRC ‘PASS’ command.  However, such passwords
+aren’t widely used.  Instead, networks typically expect them, when
+present, to convey other authentication information.  In the case of
+account-services (a.k.a., “NickServ”) credentials, this typically
+involves a special syntax, such as ‘myuser:mypass’.  IRC bouncers often
+do something similar but include a pre-configured network-ID component,
+for example, ‘bncuser/mynet:bncpass’.
+
+   In general, if you have _not_ been asked by your network or bouncer
+to specify a repurposed server password, you should instead consider
+setting up ‘services’ or, preferably, ‘sasl’, both ERC modules (*note
+Modules::).  In addition to performing network-account authentication,
+these obviate the need for this parameter completely, although both can
+optionally borrow it for their own purposes.  (*Note SASL in ERC: SASL.)
+
+ -- User Option: erc-prompt-for-password
+     If non-‘nil’ (the default), ‘M-x erc’ and ‘M-x erc-tls’ prompt for
+     a server password.  This only affects interactive invocations of
+     ‘erc’ and ‘erc-tls’.
+
+If you prefer, you can set this option to ‘nil’ and use the auth-source
+facility to retrieve a server password, although hitting ‘RET’ at the
+prompt may achieve the same effect.  *Note ERC’s auth-source
+integration: auth-source, for more.
+
+Full name
+---------
+
+ -- Function: erc-compute-full-name &optional full-name
+     Return user’s full name.
+
+     This tries a progressively greater number of default methods until
+     a non-‘nil’ value is found.
+
+        • FULL-NAME (the argument passed to this function)
+        • The ‘erc-user-full-name’ option
+        • The value of the IRCNAME environment variable
+        • The result from the ‘user-full-name’ function
+
+ -- User Option: erc-user-full-name
+     User full name.
+
+     This can be either a string or a function to call.
+
+ID
+--
+
+ERC uses an abstract designation, called “network context identifier”,
+for referring to a connection internally.  While normally derived from a
+combination of logical and physical connection parameters, an ID can
+also be explicitly provided via an entry-point command (like ‘erc-tls’).
+Use this in rare situations where ERC would otherwise have trouble
+discerning between connections.
+
+   One such situation might arise when using multiple connections to the
+same network with the same nick but different (nonstandard) ‘device’
+identifiers, which some bouncers may support.  Another might be when
+mimicking the experience offered by popular standalone clients, which
+normally offer “named” persistent configurations with server buffers
+reflecting those names.  Yet another use case might involve third-party
+code needing to identify a connection unequivocally, but in a
+human-friendly way suitable for UI components.
+
+   When providing an ID as an entry-point argument, strings and symbols
+make the most sense, but any reasonably printable object is acceptable.
+
+
+File: erc.info,  Node: SASL,  Next: Sample Configuration,  Prev: Connecting,  Up: Advanced Usage
+
+5.2 Authenticating via SASL
+===========================
+
+If you’ve used SASL elsewhere, you can probably skip to the examples
+below.  Otherwise, if you haven’t already registered with your network,
+please do so now, referring to the network’s own instructions for
+details.  If you’re new to IRC and using a bouncer, know that you
+probably won’t be needing this for the client-to-bouncer connection.
+
+   When you’re ready to get started, add ‘sasl’ to ‘erc-modules’, like
+you would any other module.  If unsure which “mechanism” to choose,
+stick with the default of ‘PLAIN’.  Then try ‘C-u M-x erc-tls <RET>’,
+and give your account name for the ‘user’ parameter and your account
+password for the ‘server password’.
+
+ -- User Option: erc-sasl-mechanism
+     The name of an SASL subprotocol type as a _lowercase_ symbol.  The
+     value can be one of the following:
+
+     ‘plain’ or ‘scram’ (“password-based”)
+          Here, “password” refers to your account password, which is
+          usually your ‘NickServ’ password.  To make this work,
+          customize ‘erc-sasl-user’ and ‘erc-sasl-password’ or specify
+          the ‘:user’ and ‘:password’ keyword arguments when invoking
+          ‘erc-tls’.
+
+     ‘external’ (via client TLS certificate)
+          This works in conjunction with the ‘:client-certificate’
+          keyword offered by ‘erc-tls’.  Just ensure you’ve registered
+          your fingerprint with the network beforehand.  The fingerprint
+          is usually a SHA1 or SHA256 digest in either "normalized" or
+          "openssl" forms.  The first is lowercase without delims
+          (‘deadbeef’) and the second uppercase with colon seps
+          (‘DE:AD:BE:EF’).  These days, there’s usually a ‘CERT ADD’
+          command offered by NickServ that can register you
+          automatically if you issue it while connected with a client
+          cert.  *Note client-certificate::.
+
+          Additional considerations:
+            1. Most IRCds will allow you to authenticate with a client
+               cert but without the hassle of SASL (meaning you may not
+               need this module).
+            2. Technically, EXTERNAL merely indicates that an
+               out-of-band mode of authentication is in effect (being
+               deferred to), so depending on the specific application or
+               service, there’s a remote chance your server has
+               something else in mind.
+
+     ‘ecdsa-nist256p-challenge’
+          This mechanism is quite complicated and currently requires the
+          external ‘openssl’ executable, so please use something else if
+          at all possible.  Ignoring that, specify your key file (e.g.,
+          ‘~/pki/mykey.pem’) as the value of ‘erc-sasl-password’, and
+          then configure your network settings.  On servers running
+          Atheme services, you can add your public key with ‘NickServ’
+          like so:
+
+               ERC> /msg NickServ set property \
+                    pubkey AgGZmlYTUjJlea/BVz7yrjJ6gysiAPaQxzeUzTH4hd5j
+
+          (You may be able to omit the ‘property’ subcommand.)
+
+ -- User Option: erc-sasl-user
+     This should be your network account username, typically the same
+     one registered with nickname services.  Specify this when your
+     NickServ login differs from the ‘:user’ you’re connecting with.
+     *Note username parameter::.
+
+ -- User Option: erc-sasl-password
+     As noted elsewhere, the entry-point ‘:password’ param was
+     originally intended for traditional “server passwords,” but these
+     aren’t really used any more (*note password parameter::).  As such,
+     this option defaults to borrowing that parameter for its own uses,
+     thus allowing you to call ‘erc-tls’ with ‘:password’ set to your
+     NickServ password.
+
+     You can also set this to a nonemtpy string, and ERC will send that
+     when needed, no questions asked.  Or, if you’d rather use
+     auth-source, set ‘erc-sasl-auth-source-function’ to a function, and
+     ERC will perform an auth-source query instead.  In all cases, ERC
+     will prompt you for input as a last resort.
+
+     Lastly, if your mechanism is ‘ecdsa-nist256p-challenge’, this
+     option should instead hold the file name of your key.
+
+ -- User Option: erc-sasl-auth-source-function
+     This is nearly identical to the other ERC ‘auth-source’ function
+     options (*note auth-source functions::) except that the default
+     value here is ‘nil’, meaning you have to set it to something like
+     ‘erc-auth-source-search’ for queries to be performed.  For
+     convenience, this module provides the following as a possible
+     value:
+
+      -- Function: erc-sasl-auth-source-password-as-host &rest plist
+          Setting ‘erc-sasl-auth-source-function’ to this function tells
+          ERC to use ‘erc-sasl-password’ for the ‘:host’ field when
+          querying auth-source, even if its value is the default
+          ‘:password’, in which case ERC knows to “resolve” it to
+          ‘erc-session-password’ and use that as long as it’s non-‘nil’.
+          Otherwise, ERC just defers to ‘erc-auth-source-search’ to
+          determine the ‘:host’, along with everything else.
+
+     As long as this option specifies a function, ERC will pass it the
+     “resolved” value of ‘erc-sasl-user’ for the auth-source ‘:user’
+     param.
+
+ -- User Option: erc-sasl-authzid
+     In the rarest of circumstances, a network may want you to specify a
+     specific role or assume an alternate identity.  In most cases, this
+     happens because the server is buggy or misconfigured.  If you
+     suspect such a thing, please contact your network operator.
+     Otherwise, just leave this set to ‘nil’.
+
+Examples
+--------
+
+   • Defaults
+
+          (erc-tls :server "irc.libera.chat" :port 6697
+                   :nick "aph"
+                   :user "APHacker"
+                   :password "changeme")
+
+     Here, after adding ‘sasl’ to ‘erc-modules’ via the Customize
+     interface, you authenticate to Libera.Chat using the ‘PLAIN’
+     mechanism and your NickServ credentials, ‘APHacker’ and ‘changeme’.
+
+   • External
+
+          (setopt erc-sasl-mechanism 'external)
+
+          (erc-tls :server "irc.libera.chat" :port 6697 :nick "aph"
+                   :client-certificate
+                   '("/home/aph/my.key" "/home/aph/my.crt"))
+
+     You decide to switch things up and try out the ‘EXTERNAL’
+     mechanism.  You follow your network’s instructions for telling
+     NickServ about your client-certificate’s fingerprint, and you
+     authenticate successfully.
+
+   • Multiple networks
+
+          # ~/.authinfo.gpg
+
+          machine irc.libera.chat key /home/aph/my.key cert /home/aph/my.crt
+          machine Example.Net login alyssa password sEcReT
+          machine Example.Net login aph-bot password sesame
+
+          ;; init.el
+
+          (defun my-erc-up (network)
+            (interactive "Snetwork: ")
+            (require 'erc-sasl)
+            (or (let ((erc-modules (cons 'sasl erc-modules)))
+                  (pcase network
+                    ('libera
+                     (let ((erc-sasl-mechanism 'external))
+                       (erc-tls :server "irc.libera.chat"
+                                :client-certificate t)))
+                    ('example
+                     (let ((erc-sasl-auth-source-function
+                            #'erc-sasl-auth-source-password-as-host))
+                       (erc-tls :server "irc.example.net"
+                                :user "alyssa"
+                                :password "Example.Net")))))
+                ;; Non-SASL
+                (call-interactively #'erc-tls)))
+
+     You’ve started storing your credentials with auth-source and have
+     decided to try SASL on another network as well.  But there’s a
+     catch: this network doesn’t support ‘EXTERNAL’.  You use
+     ‘let’-binding to work around this and successfully authenticate to
+     both networks.  (Note that this example assumes you’ve removed
+     ‘sasl’ from ‘erc-modules’ globally and have instead opted to add it
+     locally when connecting to preconfigured networks.)
+
+Troubleshooting
+---------------
+
+First and foremost, please know that ERC’s SASL offering is currently
+limited by a lack of support for proper IRCv3 capability negotiation.
+In most cases, this shouldn’t affect your ability to authenticate.
+
+   If you’re struggling, remember that your SASL password is almost
+always your NickServ password.  When in doubt, try restoring all SASL
+options to their defaults and calling ‘erc-tls’ with ‘:user’ set to your
+NickServ account name and ‘:password’ to your NickServ password.  If
+you’re still having trouble, please contact us (*note Getting Help and
+Reporting Bugs::).
+
+   As you try out different settings, keep in mind that it’s best to
+create a fresh session for every change, for example, by calling
+‘erc-tls’ from scratch.  More experienced users may be able to get away
+with cycling ‘erc-sasl-mode’ and issuing a ‘/reconnect’, but that’s
+generally not recommended.  Whatever the case, you’ll probably want to
+temporarily disable ‘erc-server-auto-reconnect’ while experimenting.
+
+
+File: erc.info,  Node: Sample Configuration,  Next: Integrations,  Prev: SASL,  Up: Advanced Usage
+
+5.3 Sample Configuration
+========================
+
+Here is an example configuration for ERC.  *Don’t panic* if you aren’t
+familiar with ‘use-package’ or have no interest in learning it.  For our
+purposes, it’s just a means of presenting configuration details in a
+tidy, standardized format.  If it helps, just pretend it’s some
+make-believe, pseudo configuration language.  And while the syntax below
+is easy enough to intuit and adapt to your setup, you may wish to keep
+the following in mind:
+
+   • Each ‘use-package’ “declaration” focuses on a library “feature”,
+     which is just a symbol you’d normally ‘require’ in your config.
+
+   • Emacs loads anything in a ‘:config’ section _after_ loading
+     whatever library ‘provide’s the declaration’s feature.
+
+   • Everything in a ‘:custom’ or ‘:custom-face’ section is basically
+     something you’d find in your ‘custom-file’.
+
+   • For more info, *note (elisp)Named Features::, or *note
+     (use-package)Top::.
+
+The following would typically go in your init file.  Experienced users
+may opt to keep any non-settings, like commands and functions, in a
+dedicated ‘~/.emacs.d/.ercrc.el’.  Whatever the case, please keep in
+mind that you can replace nearly all of the following with Custom
+settings (*note Sample configuration via Customize::).
+
+     ;;; My ERC configuration -*- lexical-binding: t -*-
+
+     (use-package erc
+       :config
+       ;; Prefer SASL to NickServ, colorize nicknames, and show side panels
+       ;; with joined channels and members
+       (setopt erc-modules
+               (seq-union '(sasl nicks bufbar nickbar scrolltobottom)
+                          erc-modules))
+
+       :custom
+       ;; Protect me from accidentally sending excess lines.
+       (erc-inhibit-multiline-input t)
+       (erc-send-whitespace-lines t)
+       (erc-ask-about-multiline-input t)
+       ;; Scroll all windows to prompt when submitting input.
+       (erc-scrolltobottom-all t)
+
+       ;; Reconnect automatically using a fancy strategy.
+       (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
+       (erc-server-reconnect-timeout 30)
+
+       ;; Show new buffers in the current window instead of a split.
+       (erc-interactive-display 'buffer)
+
+       ;; Insert a newline when I hit <RET> at the prompt, and prefer
+       ;; something more deliberate for actually sending messages.
+       :bind (:map erc-mode-map
+                   ("RET" . nil)
+                   ("C-c C-c" . #'erc-send-current-line))
+
+       ;; Emphasize buttonized text in notices.
+       :custom-face (erc-notice-face ((t (:slant italic :weight unspecified)))))
+
+     (use-package erc-sasl
+       ;; Since my account name is the same as my nick, free me from having
+       ;; to hit C-u before M-x erc to trigger a username prompt.
+       :custom (erc-sasl-user :nick))
+
+     (use-package erc-join
+       ;; Join #emacs and #erc whenever I connect to Libera.Chat.
+       :custom (erc-autojoin-channels-alist '((Libera.Chat "#emacs" "#erc"))))
+
+     (use-package erc-fill
+       :custom
+       ;; Prefer one message per line without continuation indicators.
+       (erc-fill-function #'erc-fill-wrap)
+       (erc-fill-static-center 18)
+
+       :bind (:map erc-fill-wrap-mode-map ("C-c =" . #'erc-fill-wrap-nudge)))
+
+     (use-package erc-track
+       ;; Prevent JOINs and PARTs from lighting up the mode-line.
+       :config (setopt erc-track-faces-priority-list
+                       (remq 'erc-notice-face erc-track-faces-priority-list))
+
+       :custom (erc-track-priority-faces-only 'all))
+
+     (use-package erc-goodies
+       ;; Turn on read indicators when joining channels.
+       :hook (erc-join . my-erc-enable-keep-place-indicator-on-join))
+
+     (defvar my-erc-read-indicator-channels '("#emacs")
+       "Channels in which to show a `keep-place-indicator'.")
+
+     (defun my-erc-enable-keep-place-indicator-on-join ()
+       "Enable read indicators for certain queries or channels."
+       (when (member (erc-default-target) my-erc-read-indicator-channels)
+         (erc-keep-place-indicator-mode +1)))
+
+     ;; Handy commands from the Emacs Wiki.
+     (defun erc-cmd-TRACK (&optional target)
+       "Start tracking TARGET or that of current buffer."
+       (setq erc-track-exclude
+             (delete (or target (erc-default-target) (current-buffer))
+                     erc-track-exclude)))
+
+     (defun erc-cmd-UNTRACK (&optional target)
+       "Stop tracking TARGET or that of current buffer."
+       (setq erc-track-exclude
+             (cl-pushnew (or target (erc-default-target) (current-buffer))
+                         erc-track-exclude
+                         :test #'equal)))
+
+
+Those familiar with ‘use-package’ may have noticed the lack of ‘:defer’
+keyword args.  This was done to conserve space, but you can just pretend
+that this user has enabled ‘use-package-always-defer’ elsewhere.
+
+Via Customize
+-------------
+
+As mentioned, Customize users can accomplish nearly all of the above via
+the Customize interface.  Start by running ‘M-x customize-group <RET>
+erc <RET>’, and search for “Modules” with ‘C-s modules <RET>’.  Toggle
+open the flyout menu to reveal the full “widget” panel, a web-form-like
+interface for “Erc Modules”.  Tick the boxes for ‘bufbar’, ‘nickbar’,
+‘nicks’, ‘sasl’, and ‘scrolltobottom’.
+
+   Next, search for the phrases “Erc Ask About Multiline Input”, “Erc
+Inhibit Multiline Input”, and “Erc Send Whitespace Lines”.  These are
+the print names of three boolean options that control how ERC treats
+prompt input containing line breaks.  When visiting each option’s
+section, twirl open its triangle icon to reveal its widget UI, and click
+its ‘[Toggle]’ button to set its value to ‘t’.  While going about this,
+you may find it helpful to glance at the descriptions just in case you
+want to disable them later.  When finished, hit ‘C-x C-s’ or click
+‘[Apply and Save]’ atop the buffer.
+
+   Now do the same for another couple options, this time having to do
+with automatic reconnection.  But instead of searching for their print
+names, try running ‘M-x customize-option <RET> ‘<option>’ <RET>’,
+replacing ‘<option>’ with:
+
+   • ‘erc-server-reconnect-function’, a function
+   • ‘erc-server-reconnect-timeout’, a number
+
+(If it helps, hit <TAB> for completion.)  As you may have noticed, when
+customizing options individually, each buffer displays but a single
+option’s widget.  When you get to the buffer for “Erc Server Reconnect
+Function”, you’ll see that ‘[Toggle]’ has been replaced with ‘[Value
+Menu]’ and that clicking it reveals three choices in a pop-up window.
+Enter ‘1’ to select ‘erc-server-delayed-check-reconnect’ before
+<TAB>’ing over to ‘[State]’ and hitting <RET>.  Enter ‘1’ again, this
+time to persists your changes.
+
+   For the final option, ‘erc-server-reconnect-timeout’, you’ll
+encounter a text field (instead of a button), which works like those in
+a typical web form.  Enter ‘30’ and hit ‘C-x C-s’ to save.  Just for
+fun, click the group link for ‘Erc Server’ at the bottom of the buffer.
+You could just as well have set the last two options from this “custom
+group” buffer alone, which very much resembles the one for the ‘Erc’
+group, which is actually the “parent” of this group (note the
+“breadcrumb” for group ‘Erc’ atop the buffer).  Indeed, you can always
+get back here by running ‘M-x customize-group <RET> erc-server <RET>’
+from almost anywhere in Emacs.
+
+   To make sure you’ve got this, try quickly customizing the option
+‘erc-interactive-display’, which lives in the ‘Erc Buffers’ group (‘M-x
+customize-group <RET> erc-buffers <RET>’).  As its doc string explains,
+the option controls where new buffers show up when you do ‘M-x erc-tls
+<RET>’ or issue certain “slash commands”, like ‘/JOIN #emacs-beginners
+<RET>’, at ERC’s prompt.  Change its value to the symbol ‘buffer’ by
+choosing ‘Use current window’ (item ‘5’) from the option’s ‘[Value
+Menu]’.  Don’t forget to save.
+
+   If you need more practice, try enabling the boolean option
+‘erc-scrolltobottom-all’, which lives in the ‘Erc Display’ group (‘M-x
+customize-group <RET> erc-display <RET>’).  When enabled, this option
+tells the ‘scrolltobottom’ module to adjust all ERC windows instead of
+just the one you’re currently typing in.
+
+   Now it’s time to set some key bindings for ‘erc-mode-map’, a
+major-mode keymap active in all ERC buffers.  In general, it’s best to
+do this part either entirely or in conjunction with some lisp code in
+you init file.  However, to keep things “simple”, we’ll do it all in
+customization buffers.  To get started, hit ‘M-x customize-group <RET>
+erc-hooks <RET>’ and search for “Erc Mode Hook”.  In the widget form,
+click ‘[INS]’, and paste the following into the value field in place of
+the default text.
+
+     (lambda ()
+       (keymap-set erc-mode-map "RET" nil)
+       (keymap-set erc-mode-map "C-c C-c" 'erc-send-current-line))
+
+Don’t worry about the line breaks.  Emacs is smart enough to handle
+those.  When you’re ready, click ‘[Apply and Save]’.
+
+   Next, try tweaking the face ERC uses to stylize server messages that
+say things like “SoAndSo has joined channel #chan”.  Type ‘M-x
+customize-face <RET> erc-notice-face <RET>’.  Click the “link”-looking
+button at the very bottom that says something like “Show All
+Attributes”.  Untick ‘Weight’ and tick ‘Slant’.  Then, in the latter’s
+‘[Value Menu]’, enter ‘0’ for ‘italic’.  Hit ‘C-x C-s’ to save.
+
+   Time for some more involved configuring.  From now on, if something
+isn’t applicable to your setup, just skip ahead.  Also, note that if
+you’ve installed ERC from GNU ELPA, you may need to load libraries for
+groups and options you’d like to customize before Emacs can create a
+customization buffer.  For example, to do this for the group ‘erc-sasl’,
+run ‘M-: (require 'erc-sasl) <RET>’.
+
+   Speaking of SASL, those already authenticating with it may have
+noticed that connecting interactively requires running ‘C-u M-x erc-tls
+<RET>’ in order to receive a “User” prompt for your account name.
+However, if your nickname happens to be the same as your account name,
+you can avoid the leading ‘C-u’ by customizing the option
+‘erc-sasl-user’ to the keyword symbol ‘:nick’.  At the time of writing,
+you’d hit ‘2’ when prompted by the option’s ‘[Value menu]’.  Hit ‘C-x
+C-s’ to save your changes.
+
+   One of ERC’s most configured options lives in ‘erc-join’, and it
+determines the channels you join upon connecting.  To make it work for
+you, customize the option ‘erc-autojoin-channels-alist’.  In the
+customization widget, hit ‘[INS]’ to create a new entry.  In the
+‘Network:’ field, type ‘Libera.Chat’.  Under ‘Channels:’, hit ‘[INS]’
+again, this time to create a field to enter a channel name, and enter
+‘#emacs’.  Now, find and click on the lowermost ‘[INS]’, and this time
+enter ‘#erc’ in the ‘Name:’ field.  Save your changes.
+
+   If you’re new to ERC, you may not be familiar with the various ways
+it can “fill” message text by inserting line breaks.  The most modern
+fill style is called ‘fill-wrap’, and it’s available by customizing
+‘erc-fill-function’ to ‘erc-fill-wrap’, which appears as ‘Dynamic
+word-wrap’ in the option’s ‘[Value Menu]’.  After setting this, change
+the related option ‘erc-fill-static-center’ to the integer ‘18’.  Save
+your changes.  As a bonus exercise, try binding the key ‘C-c =’ to the
+function ‘erc-fill-wrap-nudge’ in the minor-mode keymap
+‘erc-fill-wrap-mode-map’ (hint: the minor mode’s hook is called
+‘erc-fill-wrap-mode-hook’, and it’s not a member of any customization
+group).
+
+   ERC users tend to be picky about the mode line.  If you find that
+you’d rather not see changes when people join and leave channels,
+customize the option ‘erc-track-faces-priority-list’.  When visiting its
+customization buffer, you’ll notice it’s quite busy.  Ignore everything
+and type ‘C-s erc-notice-face <RET>’.  Click the ‘[DEL]’ button at the
+beginning of the line you end up on, and save your changes.  Next,
+customize the related option ‘erc-track-priority-faces-only’ to the
+‘[Value Menu]’ choice ‘all’.  Once again, save your changes.
+
+   Let’s say you’d like to enable a “local module” (ERC’s version of a
+local minor mode) in a specific channel.  One way to do that is by
+running some code to activate the module if the channel’s name matches.
+Try that now by customizing the option ‘erc-join-hook’.  Add the
+following in the value field before saving your changes:
+
+     (lambda ()
+       (require 'erc-goodies)
+       (when (equal (erc-default-target) "#emacs")
+         (erc-keep-place-indicator-mode +1)))
+
+   Lastly, if you really want the two “slash commands” defined at the
+end of the previous section, you can put them in any file listed in
+‘erc-startup-file-list’, such as ‘~/.emacs.d/.ercrc.el’.  Make sure to
+put ‘(require 'erc-track)’ near the top of the file.  These will allow
+you to type ‘/TRACK <RET>’ and ‘/UNTRACK <RET>’ in channels and query
+buffers to tell ERC whether to show activity from these buffers in the
+mode line.
+
+
+File: erc.info,  Node: Integrations,  Next: Options,  Prev: Sample Configuration,  Up: Advanced Usage
+
+5.4 Integrations
+================
+
+* Menu:
+
+* auth-source::                 Retrieving auth-source entries with ERC.
+* display-buffer::              Controlling how ERC displays buffers.
+
+5.4.1 URL
+---------
+
+For anything to work, you’ll want to set ‘url-irc-function’ to
+‘url-irc-erc’.  As a rule of thumb, libraries relying directly on
+‘url-retrieve’ should be fine out the box from Emacs 29.1 onward.  On
+older versions of Emacs, you may need to ‘(require 'erc)’ beforehand.
+*Note (url)Retrieving URLs::.
+
+   For other apps and libraries, such as those relying on the
+higher-level ‘browse-url’, you’ll oftentimes be asked to specify a
+pattern, sometimes paired with a function that accepts a string URL as a
+first argument.  For example, with EWW, you may need to tack something
+like ‘"\\|\\`irc6?s?:"’ onto the end of ‘eww-use-browse-url’.  But with
+‘gnus-button-alist’, you’ll need a function as well:
+
+       '("\\birc6?s?://[][a-z0-9.,@_:+%?&/#-]+" 0 t browse-url-irc 0)
+
+Users on Emacs 28 and below may need to use ‘browse-url’ instead.
+
+5.4.2 SOCKS
+-----------
+
+People wanting to connect to IRC through a SOCKS proxy are most likely
+interested in doing so over TOR (The Onion Router).  If that’s _not_
+you, please adapt these instructions accordingly.  Otherwise, keep in
+mind that support for Tor is experimental and thus insufficient for
+safeguarding a user’s identity and location, especially in the case of
+targeted individuals.
+
+   ERC’s preferred Tor setup works by accessing a local Tor service
+through the built-in ‘socks.el’ library that ships with Emacs.  Other
+means of accessing Tor, such as via ‘torsocks’, are not supported.
+Before getting started, check that your Tor service is up and running.
+You can do that with the following command:
+
+     curl --proxy socks5h://localhost:9050 https://check.torproject.org | \
+       grep 'Congratulations'
+
+   Networks and servers differ in how they expose Tor endpoints.  In all
+cases, you’ll want to first set the option ‘socks-server’ to something
+appropriate, like ‘("tor" "127.0.0.1" 9050 5)’.  For some networks,
+setting ‘erc-server-connect-function’ to ‘socks-open-network-stream’
+might be enough.  Others, like ‘Libera.Chat’, involve additional setup.
+At the time of writing, connecting to that network requires both TLS and
+a permitted SASL mechanism, like ‘EXTERNAL’ (*note SASL::), as shown in
+the following example:
+
+     (require 'erc)
+     (require 'socks)
+
+     (defun my-erc-open-socks-tls-stream (&rest args)
+       (let ((socks-username "")
+             (socks-password "")
+             (socks-server '("tor" "localhost" 9050 5)))
+         (apply #'erc-open-socks-tls-stream args)))
+
+     (let* ((erc-modules (cons 'sasl erc-modules))
+            (erc-sasl-mechanism 'external)
+            (erc-server-connect-function #'my-erc-open-socks-tls-stream))
+       (erc-tls
+        :server "libera75jm6of4wxpxt4aynol3xjmbtxgfyjpu34ss4d7r7q2v5zrpyd.onion"
+        :port 6697
+        :nick "jrh"
+        :user "jrandomhacker"
+        :full-name "J. Random Hacker"
+        :client-certificate (list "/home/jrh/key.pem" "/home/jrh/cert.pem")))
+
+Here, the user-provided ‘my-erc-open-socks-tls-stream’ ensures that the
+preferred values for ‘socks-server’ and friends will be available when
+reconnecting.  If you plan on using SOCKS with ERC exclusively, you can
+just set those options and variables globally and bind
+‘erc-server-connect-function’ to ‘erc-open-socks-tls-stream’ instead.
+
+
+File: erc.info,  Node: auth-source,  Next: display-buffer,  Up: Integrations
+
+5.4.3 auth-source
+-----------------
+
+You can configure ERC to use the built-in auth-source library for
+looking up passwords.  *Note auth-source: (auth)Top, for general info on
+setting up various backends, but keep in mind that some of these may not
+be compatible.  Those currently supported are netrc, plstore, json,
+secrets, and pass.  To get started with the default backend, netrc, put
+a line like the following in your ‘~/.authinfo.gpg’ (or any file named
+in the option ‘auth-sources’):
+
+     machine irc.example.net login mynick password sEcReT
+
+Server Passwords
+................
+
+When retrieving passwords to accompany the IRC ‘PASS’ command (*note
+password parameter::), ERC asks auth-source to match the SERVER
+parameter of ‘erc-tls’ against each entry’s ‘host’ field
+(‘machine irc.example.net’ in the above example).  Unfortunately,
+specifying a network, like ‘Libera.Chat’, or a specific network server,
+like ‘platinum.libera.chat’, won’t normally work for looking up a server
+password because that information isn’t available during opening
+introductions.  (Actually, ERC _can_ find entries with arbitrary ‘host’
+values for any context, including server passwords, but that requires
+customizing the more advanced options below.)
+
+   If ERC can’t find a suitable server password, it will just skip the
+IRC ‘PASS’ command altogether, something users may want when using
+CertFP or engaging NickServ via ERC’s ‘services’ module.  If that
+appeals to you, consider customizing the option
+‘erc-auth-source-server-function’ to ‘nil’ to skip server-password
+lookup for all servers.  Note that some networks and IRCds may accept
+account-services authentication via server password.  Also, some ERC
+modules may commandeer the ‘erc-tls’ PASSWORD parameter for their own
+ends, which likely don’t involve a server password.
+
+The ‘services’ module
+.....................
+
+You can use auth-source to authenticate to account services the
+traditional way through a bot called ‘NickServ’.  To do so, add
+‘services’ to ‘erc-modules’ and set the option
+‘erc-use-auth-source-for-nickserv-password’ to ‘t’.  After that, expect
+the ‘user’ parameter in relevant auth-source queries to be your current
+nickname.
+
+   Most of the time, a query’s precise contextual details (such as
+whether a nick was granted or forcibly assigned) shouldn’t affect how
+you define entries in your backend.  However, if something isn’t quite
+working, you may want to investigate the interplay between the option
+‘erc-nickserv-identify-mode’ and account services.  In particular, if
+you find yourself facing nicks suffixed with an ‘erc-nick-uniquifier’
+(the infamous ‘`’), check that the network’s entry in
+‘erc-nickserv-alist’ is up to date, and do let us know if something’s
+off (*note Getting Help and Reporting Bugs::).  Of course, if you’ve had
+your fill of fiddling with this module, consider switching to SASL for
+what’s likely a more consistent auth-source experience.  (*Note SASL::.)
+
+Default query behavior
+......................
+
+When preparing entries for your backend, it may help to get a feel for
+how ERC and its modules conduct searches, especially when exploring a
+new context, such as channel keys.  Overall, though, ERC tries to be
+consistent in performing queries across various authentication contexts.
+Here’s what to expect with respect to the ‘host’ field, which, by
+default, most heavily influences the fate of a query:
+
+  1. entries featuring custom identifiers and networks are matched first
+     (*note Network Identifier::)
+  2. followed by network-specific servers
+  3. and, finally, dialed endpoints (typically the SERVER argument
+     passed to ‘erc-tls’)
+
+The following netrc-style entries appear in order of precedence:
+
+     machine Libera/cellphone login MyNick password sEcReT
+     machine Libera.Chat login MyNick password sEcReT
+     machine zirconium.libera.chat login MyNick password sEcReT
+     machine irc.libera.chat login MyNick password sEcReT
+
+Remember that field labels vary per backend, so ‘machine’ (in netrc’s
+case) maps to auth-source’s generalized notion of a host, hence the
+‘:host’ keyword parameter to ‘auth-source-search’.  Also, be sure to
+mind the syntax of your chosen backend medium.  For example, always
+quote channel names in a netrc file.
+
+   Lastly, if this all seems overly nuanced or just plain doesn’t appeal
+to you, please see options ‘erc-auth-source-services-function’ and
+friends, described just below.
+
+Custom query functions
+......................
+
+These let you query auth-source your way.  Most users can simply ignore
+the passed-in arguments and get by with something like the following:
+
+     (defun my-fancy-auth-source-func (&rest _)
+       (let* ((host (read-string "host: " nil nil "default"))
+              (pass (auth-source-pick-first-password :host host)))
+         (if (and pass (string-search "libera" host))
+             (concat "MyNick:" pass)
+           pass)))
+
+ -- User Option: erc-auth-source-server-function
+ -- User Option: erc-auth-source-services-function
+ -- User Option: erc-auth-source-join-function
+
+     ERC calls these functions with keyword arguments recognized by
+     ‘auth-source-search’, namely, those deemed most relevant to the
+     current context, if any.  For example, when identifying to
+     services, ‘:user’ contains your current nickname.  Generalized
+     parameter names, like ‘:user’ and ‘:host’, are always preferred
+     over backend specific ones, like ‘:login’ or ‘:machine’.  In
+     return, ERC expects a string if the search succeeds or ‘nil’ if it
+     fails.
+
+     The default value for all three options is the function
+     ‘erc-auth-source-search’.  It tries to merge relevant contextual
+     parameters with those provided or discovered from the logical
+     connection or the underlying transport.
+
+     For using auth-source along with SASL, *note SASL auth-source
+     function::.
+
+Channel keys
+............
+
+ERC also consults ‘auth-source’ to find “keys” that may be required by
+certain channels you join.  When modifying a traditional ‘auth-source’
+entry for this purpose, put the channel name in the ‘user’ field (for
+example, ‘login "#fsf"’, in netrc’s case).  The actual key goes in the
+‘password’ (or ‘secret’) field.
+
+Troubleshooting
+---------------
+
+By default, ERC queries ‘auth-source’ for channel keys and server
+passwords (*note auth-source Server Password::), as well as other,
+module-specific credentials.  In general, if you’re having trouble
+calling ‘auth-source-search’ in a custom query function, like
+‘erc-auth-source-server-function’, try temporarily setting the variable
+‘auth-source-debug’ to ‘t’ and checking ‘*Messages*’ periodically for
+insights into how ‘auth-source’ is operating.
+
+   If you’re using a GPG-encrypted file and find that customizing one of
+the function-valued query options doesn’t solve your problem, explore
+options ‘epg-pinentry-mode’ and ‘epg-debug’ in the ‘epg’ Custom group
+(*note (epa)GnuPG Pinentry::).  Additionally, keep an eye out for an
+‘*Error*’ buffer, which may contain more specific clues about your
+situation.  If you use the libsecrets integration (*note (auth)Secret
+Service API::) with something like GNOME Keyring, you may need to check
+the “remember” box in the passphrase popup dialog to avoid being
+prompted for confirmation every time you run ERC. If it doesn’t work at
+first, try logging out.  And when in doubt, try using the Emacs command
+‘secrets-show-secrets’ to browse the ‘Login’ keyring.  There should be a
+‘GnuPG/stored-by’ entry with a value of ‘GnuPG Pinentry’ or similar.
+
+
+File: erc.info,  Node: display-buffer,  Prev: auth-source,  Up: Integrations
+
+5.4.4 display-buffer
+--------------------
+
+ERC supports the “action” interface used by ‘display-buffer’ and friends
+from ‘window.el’.  *Note (elisp)Displaying Buffers::, for specifics.
+When ERC displays a new or “reassociated” buffer, it consults its
+various buffer-display options, such as ‘erc-buffer-display’, to decide
+whether and how the buffer ought to appear in a window.  Exactly which
+one it consults depends on the context in which the buffer is being
+manifested.
+
+   For some buffer-display options, the context is pretty cut and dry.
+For instance, in the case of ‘erc-receive-query-display’, you’re
+receiving a query from someone you haven’t yet chatted with in the
+current session.  For other options, like ‘erc-interactive-display’, the
+precise context varies.  For example, you might be opening a query
+buffer with the command ‘/QUERY bob <RET>’ or joining a new channel with
+‘/JOIN #chan <RET>’.  Power users wishing to distinguish between such
+nuanced contexts or just exercise more control over buffer-display
+behavior generally can elect to override these options by setting one or
+more to a “‘display-buffer’-like” function that accepts a BUFFER and an
+ACTION argument.
+
+Examples
+........
+
+In this first example, a user-provided buffer-display function displays
+new server buffers in the current window when issuing an ‘M-x erc-tls
+<RET>’ and in a split window for all other interactve contexts covered
+by the option ‘erc-interactive-display’, like clicking an ‘irc://’-style
+URL (*note URL::).
+
+     (defun my-erc-interactive-display-buffer (buffer action)
+       "Pop to BUFFER when running \\[erc-tls], clicking a link, etc."
+       (when-let ((alist (cdr action))
+                  (found (alist-get 'erc-interactive-display alist)))
+         (if (eq found 'erc-tls)
+             (pop-to-buffer-same-window buffer action)
+           (pop-to-buffer buffer action))))
+
+     (setopt erc-interactive-display #'my-erc-interactive-display-buffer)
+
+Observe that ERC supplies the names of buffer-display options as ACTION
+alist keys and pairs them with contextual constants, like the symbols
+‘erc-tls’ or ‘url’, the full lineup of which are listed below.
+
+   In this second example, for Emacs 29 and above, the user writes three
+predicates that somewhat resemble the “‘display-buffer’-like” function
+above.  These too look for ACTION alist keys sharing the names of ERC’s
+buffer-display options (and, in one case, a module’s minor mode).
+
+     (defun my-erc-disp-entry-p (_ action)
+       (memq (cdr (or (assq 'erc-buffer-display action)
+                      (assq 'erc-interactive-display action)))
+             '(erc-tls url)))
+
+     (defun my-erc-disp-query-p (_ action)
+       (or (eq (cdr (assq 'erc-interactive-display action)) '/QUERY)
+           (and (eq (cdr (assq 'erc-receive-query-display action)) 'PRIVMSG)
+                (member (erc-default-target) '("bob" "alice")))))
+
+     (defun my-erc-disp-chan-p (_ action)
+       (or (assq 'erc-autojoin-mode action)
+           (and (eq (cdr (assq 'erc-buffer-display action)) 'JOIN)
+                (member (erc-default-target) '("#emacs" "#fsf")))))
+
+You’ll notice we ignore the BUFFER parameter of these predicates because
+ERC ensures that BUFFER is already current (which is why we can freely
+call ‘erc-default-target’).  Note also that we cheat a little by
+treating the ACTION parameter like an alist when it’s really a cons of
+one or more functions and an alist.
+
+To complement our predicates, we set all three buffer-display options
+referenced in their ACTION-alist lookups to ‘display-buffer’.  This
+tells ERC to defer to that function in the display contexts covered by
+these options.
+
+     (setopt erc-buffer-display #'display-buffer
+             erc-interactive-display #'display-buffer
+             erc-receive-query-display #'display-buffer
+             ;;
+             erc-auto-reconnect-display 'bury)
+
+The last option above just tells ERC to avoid any buffer-display
+machinery when auto-reconnecting.  (For historical reasons, ERC’s
+buffer-display options use the term “bury” to mean “ignore” rather than
+‘bury-buffer’.)
+
+   Finally, we compose our predicates into ‘buffer-match-p’ conditions
+and pair them with various well known ‘display-buffer’ action functions
+and action-alist members.
+
+     (setopt display-buffer-alist
+
+             ;; Create new frame with M-x erc-tls RET or (erc-tls ...)
+             '(((and (major-mode . erc-mode) my-erc-disp-entry-p)
+                display-buffer-pop-up-frame
+                (reusable-frames . visible))
+
+               ;; Show important chans and queries in a split.
+               ((and (major-mode . erc-mode)
+                     (or my-erc-disp-chan-p my-erc-disp-query-p))
+                display-buffer-pop-up-window)
+
+               ;; Ignore everything else.
+               ((major-mode . erc-mode)
+                display-buffer-no-window
+                (allow-no-window . t))))
+
+Of course, we could just as well set our buffer-display options to one
+or more homespun functions instead of bothering with
+‘display-buffer-alist’ at all (in what would make for a more complicated
+version of our first example).  But perhaps we already have a growing
+menagerie of similar predicates and like to keep everything in one place
+in our ‘init.el’.
+
+Action alist items
+..................
+
+Option-based keys:
+     All keys are symbols, as are values, unless otherwise noted.
+
+        • ‘erc-buffer-display’
+             − ‘JOIN’
+             − ‘NOTICE’
+             − ‘PRIVMSG’
+             − ‘erc’ (entry point called non-interactively)
+             − ‘erc-tls’
+
+        • ‘erc-interactive-display’
+             − ‘/QUERY’
+             − ‘/JOIN’
+             − ‘/RECONNECT’
+             − ‘url’ (hyperlink clicked)
+             − ‘erc’ (entry point called interactively)
+             − ‘erc-tls’
+
+        • ‘erc-receive-query-display’
+             − ‘NOTICE’
+             − ‘PRIVMSG’
+
+        • ‘erc-auto-reconnect-display’
+             − something non-‘nil’
+
+Module-based (minor-mode) keys:
+
+        • ‘erc-autojoin-mode’
+             − channel name as a string, e.g., ‘"#chan"’
+
+
+File: erc.info,  Node: Options,  Prev: Integrations,  Up: Advanced Usage
+
+5.5 Options
+===========
+
+This section is extremely incomplete.  For now, the easiest way to check
+out all the available options for ERC is to do ‘M-x customize-group
+<RET> erc <RET>’.
+
+ -- User Option: erc-hide-list
+     If non, ‘nil’, this is a list of IRC message types to hide, e.g.:
+
+          (setq erc-hide-list '("JOIN" "PART" "QUIT"))
+
+ -- User Option: erc-network-hide-list
+     If non, ‘nil’, this is a list of IRC networks and message types to
+     hide, e.g.:
+
+          (setq erc-network-hide-list (("Libera.Chat" "JOIN" "PART" "QUIT")
+          ("OFTC" "JOIN" "PART""))
+
+ -- User Option: erc-channel-hide-list
+     If non, ‘nil’, this is a list of IRC channels and message types to
+     hide, e.g.:
+
+          (setq erc-channel-hide-list (("#erc" "JOIN" "PART" "QUIT")
+          ("#emacs" "NICK"))
+
+ -- User Option: erc-lurker-hide-list
+     Like ‘erc-hide-list’, but only applies to messages sent by lurkers.
+     The function ‘erc-lurker-p’ determines whether a given nickname is
+     considered a lurker.
+
+
+File: erc.info,  Node: Getting Help and Reporting Bugs,  Next: History,  Prev: Advanced Usage,  Up: Top
+
+6 Getting Help and Reporting Bugs
+*********************************
+
+After you have read this guide, if you still have questions about ERC,
+or if you have bugs to report, there are several places you can go.
+
+   • <https://www.emacswiki.org/emacs/ERC> is the emacswiki.org page for
+     ERC.  Anyone may add tips, hints, etc. to it.  If you do so, please
+     help keep it up to date.
+
+   • You can ask questions about using ERC on the Emacs mailing list,
+     <https://lists.gnu.org/mailman/listinfo/help-gnu-emacs>, as well as
+     on ERC’s own low-volume list,
+     <https://lists.gnu.org/mailman/listinfo/emacs-erc>.
+
+   • You can visit the IRC Libera.Chat channel ‘#emacs’.  Many of the
+     contributors are frequently around and willing to answer your
+     questions.  You can also try the relatively quiet ‘#erc’, on the
+     same network, for more involved questions.
+
+   • You can check GNU ELPA between Emacs releases to see if a newer
+     version is available that might contain a fix for your issue:
+     <https://elpa.gnu.org/packages/erc.html>.
+
+     To upgrade, run ‘M-x list-packages <RET>’.  In the ‘*Packages*’
+     (‘package-menu-mode’) buffer, click the ‘erc’ package link for the
+     desired version.  If unsure, or if the version column is too narrow
+     to tell, try the bottom-most candidate.  In the resulting
+     ‘help-mode’ buffer, confirm the version and click ‘Install’.  Make
+     sure to restart Emacs before reconnecting to IRC, and don’t forget
+     that you can roll back to the previous version by running ‘M-x
+     package-delete <RET>’.  *Note (emacs)Packages::, for more
+     information.
+
+     Note that a bug affecting Emacs’s packaging machinery may prevent
+     the above method from working on Emacs versions 29 and below.
+     Users on 29 can try running ‘C-u M-x package-install <RET>’
+     instead.  Users on 28 and below can click on the _installed_ ‘erc’
+     line item in the ‘*Packages*’ buffer instead of the newest one, and
+     then, in the resulting ‘help-mode’ buffer, find and activate the
+     button for the newest version, which should appear in the summary
+     item ‘Other versions’.
+
+     In the rare instance you need an emergency fix or have volunteered
+     to test an edge feature between ERC releases, you can try adding
+     ‘("devel" . "https://elpa.gnu.org/devel/")’ to ‘package-archives’
+     prior to performing the steps above.  For this, you’ll want to
+     instead select a “snapshot” version from the menu.  Please be aware
+     that when going this route, the latest changes may not yet be
+     available and you run the risk of incurring other bugs and
+     encountering unstable features.
+
+   • To report a bug in ERC, use ‘M-x erc-bug’.
+
+
+File: erc.info,  Node: History,  Next: GNU Free Documentation License,  Prev: Getting Help and Reporting Bugs,  Up: Top
+
+7 History
+*********
+
+ERC was originally written by Alexander L. Belikoff and Sergey Berezin.
+They stopped development around December 1999.  Their last released
+version was ERC 2.0.
+
+   P.S.: If one of the original developers of ERC reads this, we’d like
+to receive additional information for this file and hear comments in
+general.
+
+   • 2001
+
+     In June 2001, Mario Lang and Alex Schroeder took over development
+     and created a ERC Project at
+     <https://sourceforge.net/projects/erc>.
+
+     In reaction to a mail about the new ERC development effort, Sergey
+     Berezin said, “First of all, I’m glad that my version of ERC is
+     being used out there.  The thing is, I do not have free time and
+     enough incentive anymore to work on ERC, so I would be happy if you
+     guys take over the project entirely.”
+
+     So we happily hacked away on ERC, and soon after (September 2001)
+     released the next "stable" version, 2.1.
+
+     Most of the development of the new ERC happened on ‘#emacs’ on
+     irc.openprojects.net.  Over time, many people contributed code,
+     ideas, bugfixes, and a lot of alpha/beta/gamma testing.
+
+     See the ‘CREDITS’ file for a list of contributors.
+
+   • 2003
+
+     ERC 3.0 was released.
+
+   • 2004
+
+     ERC 4.0 was released.
+
+   • 2005
+
+     ERC 5.0 was released.  Michael Olson became the release manager and
+     eventually the maintainer.
+
+     After some discussion between him and the Emacs developers, it was
+     decided to include ERC in Emacs.
+
+   • 2006
+
+     ERC 5.1 was released.  It was subsequently included in Emacs 22.
+
+     ERC became an official GNU project, and development moved to
+     <https://sv.gnu.org/projects/erc>.  We switched to using GNU Arch
+     as our revision control system.  Our mailing list address changed
+     as well.
+
+   • 2007
+
+     We switched to using git for our version control system.
+
+   • 2009+
+
+     Since about 2009, ERC is no longer developed as a separate project,
+     but is maintained as part of Emacs.
+
+Official IRC channels
+---------------------
+
+The official channels for GNU Emacs and ERC lived on the Freenode IRC
+network until June 2021, when they—along with the official IRC channels
+of the GNU Project, the Free Software Foundation, and many other free
+software communities—relocated to the Libera.Chat network in the
+aftermath of changes in governance and policies of Freenode in May and
+June 2021.  GNU and FSF’s announcements about this are at
+<https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html>,
+<https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html>, and
+<https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html>.
+
+
+File: erc.info,  Node: GNU Free Documentation License,  Next: Concept Index,  Prev: History,  Up: Top
+
+Appendix A GNU Free Documentation License
+*****************************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <https://fsf.org/>
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document “free” in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of “copyleft”, which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     “Document”, below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as “you”.  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A “Modified Version” of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A “Secondary Section” is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document’s overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The “Invariant Sections” are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The “Cover Texts” are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A “Transparent” copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     “Transparent” is called “Opaque”.
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The “Title Page” means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, “Title
+     Page” means the text near the most prominent appearance of the
+     work’s title, preceding the beginning of the body of the text.
+
+     The “publisher” means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section “Entitled XYZ” means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     “Acknowledgements”, “Dedications”, “Endorsements”, or “History”.)
+     To “Preserve the Title” of such a section when you modify the
+     Document means that it remains a section “Entitled XYZ” according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document’s license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document’s
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled “History”, Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled “History” in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          “History” section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled “Acknowledgements” or “Dedications”,
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled “Endorsements”.  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          “Endorsements” or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version’s
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled “Endorsements”, provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties—for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of
+     a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     “History” in the various original documents, forming one section
+     Entitled “History”; likewise combine any sections Entitled
+     “Acknowledgements”, and any sections Entitled “Dedications”.  You
+     must delete all sections Entitled “Endorsements.”
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an “aggregate” if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation’s users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document’s Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled “Acknowledgements”,
+     “Dedications”, or “History”, the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly and
+     finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from you
+     under this License.  If your rights have been terminated and not
+     permanently reinstated, receipt of a copy of some or all of the
+     same material does not give you any rights to use it.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <https://www.gnu.org/licenses/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License “or any later version” applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.  If the Document specifies that a proxy can
+     decide which future versions of this License can be used, that
+     proxy’s public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+  11. RELICENSING
+
+     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A “Massive Multiauthor Collaboration” (or “MMC”) contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     “Incorporate” means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is “eligible for relicensing” if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the “with...Texts.” line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: erc.info,  Node: Concept Index,  Prev: GNU Free Documentation License,  Up: Top
+
+Index
+*****
+
+ [index ]
+* Menu:
+
+* advanced topics:                       Advanced Usage.      (line   6)
+* auth-source:                           auth-source.         (line   6)
+* auxiliary modules:                     Modules.             (line 137)
+* bugs, reporting:                       Getting Help and Reporting Bugs.
+                                                              (line   6)
+* configuration, sample:                 Sample Configuration.
+                                                              (line   6)
+* configuration, via customize:          Sample Configuration.
+                                                              (line 124)
+* connecting:                            Connecting.          (line   6)
+* display-buffer:                        display-buffer.      (line   6)
+* erc:                                   Connecting.          (line  10)
+* erc-auth-source-search:                auth-source.         (line 121)
+* erc-compute-full-name:                 Connecting.          (line 209)
+* erc-compute-nick:                      Connecting.          (line 129)
+* erc-compute-port:                      Connecting.          (line 111)
+* erc-compute-server:                    Connecting.          (line  94)
+* erc-compute-user:                      Connecting.          (line 164)
+* erc-sasl-auth-source-password-as-host: SASL.                (line  96)
+* erc-tls:                               Connecting.          (line  33)
+* help, getting:                         Getting Help and Reporting Bugs.
+                                                              (line   6)
+* history ring:                          Special Features.    (line  39)
+* history, of ERC:                       History.             (line   6)
+* integrations:                          Integrations.        (line   6)
+* keystrokes:                            Keystroke Summary.   (line   6)
+* local modules:                         Modules.             (line 165)
+* module loading:                        Modules.             (line 208)
+* modules:                               Modules.             (line   6)
+* modules, autoaway:                     Modules.             (line  24)
+* modules, autojoin:                     Modules.             (line  27)
+* modules, bufbar:                       Modules.             (line  30)
+* modules, button:                       Modules.             (line  34)
+* modules, capab-identify:               Modules.             (line  37)
+* modules, command-indicator:            Modules.             (line  41)
+* modules, completion:                   Modules.             (line  45)
+* modules, fill:                         Modules.             (line  48)
+* modules, fill-wrap:                    Modules.             (line 142)
+* modules, identd:                       Modules.             (line  51)
+* modules, irccontrols:                  Modules.             (line  54)
+* modules, keep-place:                   Modules.             (line  57)
+* modules, keep-place-indicator:         Modules.             (line 145)
+* modules, log:                          Modules.             (line  60)
+* modules, match:                        Modules.             (line  63)
+* modules, menu:                         Modules.             (line  66)
+* modules, netsplit:                     Modules.             (line  69)
+* modules, nickbar:                      Modules.             (line  75)
+* modules, nicks:                        Modules.             (line  72)
+* modules, noncommands:                  Modules.             (line  79)
+* modules, notifications:                Modules.             (line  85)
+* modules, notify:                       Modules.             (line  82)
+* modules, page:                         Modules.             (line  89)
+* modules, pcomplete:                    Modules.             (line  45)
+* modules, querypoll:                    Modules.             (line  92)
+* modules, readonly:                     Modules.             (line  95)
+* modules, replace:                      Modules.             (line  98)
+* modules, ring:                         Modules.             (line 101)
+* modules, sasl:                         Modules.             (line 104)
+* modules, scrolltobottom:               Modules.             (line 107)
+* modules, services:                     Modules.             (line 110)
+* modules, services-regain:              Modules.             (line 149)
+* modules, smiley:                       Modules.             (line 113)
+* modules, sound:                        Modules.             (line 116)
+* modules, spelling:                     Modules.             (line 119)
+* modules, stamp:                        Modules.             (line 122)
+* modules, track:                        Modules.             (line 125)
+* modules, truncate:                     Modules.             (line 128)
+* modules, unmorse:                      Modules.             (line 131)
+* official IRC channels:                 History.             (line  72)
+* options:                               Options.             (line   6)
+* password, server:                      Connecting.          (line 177)
+* query buffers:                         Special Features.    (line  13)
+* required modules:                      Modules.             (line 156)
+* SASL:                                  SASL.                (line   6)
+* settings:                              Getting Started.     (line   6)
+* SOCKS:                                 Integrations.        (line  34)
+* URL:                                   Integrations.        (line  14)
+* username parameter:                    Connecting.          (line 164)
+
+
+
+Tag Table:
+Node: Top1042
+Node: Introduction2986
+Node: Getting Started4867
+Node: Sample Session6049
+Node: Special Features10257
+Node: Keystroke Summary12487
+Node: Modules15142
+Ref: Auxiliary Modules18538
+Ref: Required Modules19205
+Ref: Local Modules19543
+Ref: Module Loading21863
+Node: Advanced Usage24465
+Node: Connecting25255
+Ref: client-certificate26927
+Ref: username parameter30845
+Ref: password parameter31440
+Ref: server password31440
+Ref: Network Identifier33487
+Node: SASL34573
+Ref: SASL auth-source function39071
+Node: Sample Configuration44142
+Ref: Sample configuration via Customize49193
+Node: Integrations57820
+Ref: URL58113
+Ref: SOCKS59013
+Node: auth-source61481
+Ref: auth-source Server Password62120
+Ref: auth-source functions66635
+Ref: auth-source Troubleshooting68006
+Node: display-buffer69405
+Node: Options75846
+Node: Getting Help and Reporting Bugs76969
+Ref: Upgrading77977
+Node: History79889
+Ref: Official IRC channels82052
+Node: GNU Free Documentation License82727
+Node: Concept Index108079
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

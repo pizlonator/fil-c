@@ -1,0 +1,2562 @@
+This is use-package.info, produced by makeinfo version 6.8 from
+use-package.texi.
+
+This manual is for use-package 2.4.5 as distributed with Emacs 30.1.
+
+   Copyright © 2022–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual”, and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+INFO-DIR-SECTION Emacs misc features
+START-INFO-DIR-ENTRY
+* use-package: (use-package). Declarative package configuration for Emacs.
+END-INFO-DIR-ENTRY
+
+
+File: use-package.info,  Node: Top,  Next: Basic Concepts,  Up: (dir)
+
+use-package User Manual
+***********************
+
+The ‘use-package’ macro allows you to set up package customization in
+your init file in a declarative way.  It takes care of many things for
+you that would otherwise require a lot of repetitive boilerplate code.
+It can help with common customization, such as binding keys, setting up
+hooks, customizing user options and faces, autoloading, and more.  It
+also helps you keep Emacs startup fast, even when you use many (even
+hundreds) of packages.
+
+   Note that use-package is not a package manager.  Although use-package
+does have the useful capability to interface with the Emacs package
+manager, its primary purpose is help with the configuration and loading
+of packages, not with managing their download, upgrades, and
+installation.
+
+   This manual is for use-package 2.4.5 as distributed with Emacs 30.1.
+
+   Copyright © 2022–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual”, and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+* Menu:
+
+* Basic Concepts::              Basic concepts of use-package.
+* Getting Started::             A gentle introduction to use-package.
+* Loading Packages::            How and when packages are loaded.
+* Configuring Packages::        Package configuration keywords.
+* Installing packages::         Ensuring packages are available.
+* Byte-compiling::              Byte-compiling your init file.
+* Troubleshooting::             What to do when there’s trouble.
+
+Appendices
+* Keyword extensions::          Adding new use-package keywords.
+* History::                     History and acknowledgments.
+* GNU Free Documentation License::  The license for this manual.
+
+Index
+* Index::
+
+
+File: use-package.info,  Node: Basic Concepts,  Next: Getting Started,  Prev: Top,  Up: Top
+
+1 Basic Concepts
+****************
+
+use-package provides the ‘use-package’ macro, that simplifies the
+customization and use of packages in Emacs.  It was created for a few
+basic reasons, each of which drove the design.  Understanding these
+reasons may help make some of those decisions clearer:
+
+  1. Allow gathering all the configuration details of a package into one
+     place, making it easier to copy, disable, or move it elsewhere in
+     the init file.
+
+  2. Reduce duplication and repetitive boilerplate, capturing several
+     common practices as mere keywords both easy and intuitive to use.
+
+  3. Make startup time of Emacs as short as possible, without
+     sacrificing the quantity of add-on packages used.
+
+  4. Ensure that errors encountered during startup disable only the
+     package(s) raising the error(s), and as little else as possible,
+     leaving Emacs as close to fully functional as possible.
+
+  5. Allow byte-compiling your init file, so that any warnings or errors
+     you see at startup are meaningful.  In this way, even if
+     byte-compilation is not used for speed (see item 3 above), it can
+     still be used as a sanity check.
+
+   It is worth noting that use-package is not intended to replace the
+standard customization command ‘M-x customize’ (*note (emacs)Easy
+Customization::).  On the contrary, it is designed to work together with
+it, for things that Customize cannot do.
+
+
+File: use-package.info,  Node: Getting Started,  Next: Loading Packages,  Prev: Basic Concepts,  Up: Top
+
+2 Getting Started
+*****************
+
+This chapter provides instructions and examples for quickly getting
+started with use-package.  In this manual, we say that each call to the
+‘use-package’ macro in your init file is a “declaration”, to highlight
+the declarative nature of its syntax.
+
+   To unconditionally load a package named ‘foo’, add the following
+declaration to your init file:
+
+     (use-package foo)
+
+This declaration is equivalent to using ‘require’ (*note (elisp)Named
+Features::), with some use-package specific error handling added in.
+Just like ‘require’, it needs the package ‘foo’ to be installed and
+available via your ‘load-path’ (*note Installing packages::).
+
+   To evaluate some Lisp _before_ the ‘foo’ package is loaded, use the
+‘:init’ keyword:
+
+     (use-package foo
+       :init
+       (setq foo-variable t))
+
+   Similarly, ‘:config’ can be used to execute code _after_ a package is
+loaded.  In cases where loading is done lazily (*note Loading
+Packages::), this execution is deferred until after the loading actually
+occurs.  As you might expect, you can use ‘:init’ and ‘:config’
+together:
+
+     (use-package foo
+       :init
+       (setq foo-variable t)
+       :config
+       (foo-mode 1))
+
+   The above declarations will load the ‘foo’ package immediately.  In
+most cases, this is not necessary or desirable, as that will slow down
+Emacs startup.  Instead, you should try to set things up so that
+packages are only loaded when they are actually needed (this is known as
+“autoloading”).  If you have installed a package from GNU ELPA that
+provides its own autoloads, it is often enough to say:
+
+     (use-package foo
+       :defer t)
+
+This will avoid loading the package.  Now, when you run any autoloaded
+command, the package ‘foo’ is loaded automatically.  (Which commands
+from a package are marked to auto-load by default is the decision of the
+package authors.)
+
+   In some cases, you might need or want to provide your own autoloads.
+The more complex example below autoloads the commands ‘isearch-moccur’
+and ‘isearch-all’ from the package ‘color-moccur.el’, and binds keys
+both globally and in ‘isearch-mode-map’.  When one of these two commands
+are used, the package will be loaded.  At that point, ‘moccur-edit’ is
+also loaded, to allow editing of the ‘moccur’ buffer.
+
+     (use-package color-moccur
+       :commands (isearch-moccur isearch-all)
+       :bind (("M-s O" . moccur)
+              :map isearch-mode-map
+              ("M-o" . isearch-moccur)
+              ("M-O" . isearch-moccur-all))
+       :init
+       (setq isearch-lazy-highlight t)
+       :config
+       (use-package moccur-edit))
+
+   Some packages will suggest ready-made ‘use-package’ declarations that
+you can use.  Where possible, it is a good idea to copy them, and use
+that as a starting point.
+
+   That should be enough to get you started!
+
+
+File: use-package.info,  Node: Loading Packages,  Next: Configuring Packages,  Prev: Getting Started,  Up: Top
+
+3 Loading Packages
+******************
+
+Before use-package can load an Emacs Lisp package, it must be available
+in a directory on your ‘load-path’.  When you install packages using the
+built-in ‘install-package’ command, it will do this automatically for
+you.  Packages shipped with Emacs (built-in packages) are always
+available.
+
+   Some packages have more than one library.  In those cases, you might
+need more than one ‘use-package’ declaration to make sure the package is
+properly loaded.  For complex configurations, you might also need more
+than one declaration for a package with the same name.
+
+   use-package can interface with ‘package.el’ to install packages on
+Emacs start.  *Note Installing packages::, for details.
+
+* Menu:
+
+* Loading basics::              How and when packages are loaded.
+* Deferring loading::           Loading packages later.
+* Forcing loading::             Loading packages immediately.
+* Conditional loading::         Loading packages conditionally.
+* Loading sequentially::        Loading packages in sequence.
+* The emacs package::    Customizing built-in variables.
+* Load dependencies::           Don’t load without dependencies.
+* Manual installation::         Loading manually installed packages.
+
+
+File: use-package.info,  Node: Loading basics,  Next: Deferring loading,  Up: Loading Packages
+
+3.1 How and when use-package loads packages
+===========================================
+
+The call to the ‘use-package’ macro will load a package either
+immediately, or when the package is first used (via autoloading).  In
+the simplest case, a ‘use-package’ declaration loads a package when it
+is evaluated.(1)  If the declaration is in your init file, this happens
+automatically each time Emacs is started.
+
+   For example, the declaration below immediately loads the library
+‘foo’, just like ‘require’ would:
+
+     (use-package foo)
+
+If the library ‘foo’ is not available in your ‘load-path’, the
+declaration logs a warning to the ‘*Messages*’ buffer.
+
+   Note that a “package” is different from an Emacs Lisp “library”.  The
+above declaration tells use-package to load the _library_ ‘foo.el’,
+which in the overwhelming majority of cases also resides in a _package_
+named ‘foo’.  But the package ‘foo’ might also contain a library named
+‘foo-extra.el’.  If that library is not loaded automatically, you will
+need a separate ‘use-package’ declaration to make sure that it is loaded
+when needed.  This manual will often use the terms “package” and
+“library” interchangeably, as this distinction does not usually matter,
+but you should keep it in mind for the cases when it does.
+
+   The details of how and when you should load a package might differ
+from one package to another.  When in doubt, refer to the package
+documentation for details.
+
+   ---------- Footnotes ----------
+
+   (1) This happens both at run-time and at compile-time.  *Note
+Byte-compiling::.
+
+
+File: use-package.info,  Node: Deferring loading,  Next: Forcing loading,  Prev: Loading basics,  Up: Loading Packages
+
+3.2 Deferring package loading
+=============================
+
+In the examples we have seen so far, use-package loads packages every
+time you start Emacs, even if that package is never used.  That will
+make starting Emacs slower.  use-package therefore allows setting things
+up in such a way that packages are only loaded when some of the
+package’s commands is first used (either with ‘M-x’ or via some key
+binding).  This is based on autoloading, a full description of which is
+outside the scope of this manual.  *Note (elisp)Autoload::, for the full
+story.
+
+   Some ‘use-package’ keywords provide autoload “triggers” that cause a
+package to be loaded when certain events occur.  For example, the
+‘:hook’ keyword sets up a trigger that fires when the specified hook is
+run, and then loads the package automatically.  The other trigger
+keywords, all of which are described later in this manual, are
+‘:commands’, ‘:bind’, ‘:bind*’, ‘:bind-keymap’, ‘:bind-keymap*’,
+‘:mode’, and ‘:interpreter’.
+
+The ‘:defer’ keyword
+--------------------
+
+If you did not specify any autoloading keyword, use-package will fall
+back to loading the package immediately (typically when Emacs is
+starting up).  This can be overridden using the ‘:defer’ keyword.  It
+takes one boolean argument: a non-‘nil’ value means to stop this package
+from being immediately loaded.  Here is an example of using ‘:defer’ to
+postpone loading the package ‘foo’:
+
+     (use-package foo
+       :defer t)
+
+   Using ‘:defer t’ by itself like this is rarely useful.  Typically,
+you would only use it together with a keyword like ‘:config’ (*note Lisp
+Configuration::), or ‘:ensure’ (*note Installing packages::).
+
+Defer loading until idle for N seconds
+--------------------------------------
+
+You can also give a numeric argument N to ‘:defer’ to specify that a
+package should be loaded (if it hasn’t already) after Emacs has been
+idle for N seconds.  For example, use the following to make use-package
+load ‘foo’ after 30 seconds of idle time:
+
+     (use-package foo
+       :defer 30)
+
+When to use ‘:defer’
+--------------------
+
+When using autoloading keywords, there is no need to also use ‘:defer’.
+It doesn’t hurt to add it in this case, perhaps for extra clarity, but
+it is redundant.
+
+   You should use ‘:defer’ to force deferred loading, in cases when
+use-package isn’t creating any autoloads for you.  For example, you
+might know that some other package will already do something to cause
+your package to load at the appropriate time.  This is usually the case
+when you install a package using ‘package-install’, as packages
+installed in this way normally always have their own autoloads already
+set up.
+
+Making ‘:defer t’ the default
+-----------------------------
+
+If you customize the user option ‘use-package-always-defer’ to
+non-‘nil’, the ‘use-package’ macro will behave as if ‘:defer t’ is
+always specified.  This can be overridden for individual declarations
+using either ‘:defer nil’ or ‘:demand t’ (*note Forcing loading::).
+
+
+File: use-package.info,  Node: Forcing loading,  Next: Conditional loading,  Prev: Deferring loading,  Up: Loading Packages
+
+3.3 Forcing package to load immediately
+=======================================
+
+The presence of autoloading trigger keywords can be overridden using
+‘:demand t’, which forces the package to load immediately.  Thus, even
+if you use an autoloading keyword such as ‘:bind’ (*note Key
+bindings::), adding ‘:demand’ will force loading to occur immediately.
+It will also avoid creating an autoload for the bound key, as it would
+be redundant.
+
+   If you specify both ‘:demand t’ and ‘:defer t’, the ‘:defer’ keyword
+will take precedence.
+
+
+File: use-package.info,  Node: Conditional loading,  Next: Loading sequentially,  Prev: Forcing loading,  Up: Loading Packages
+
+3.4 Loading packages conditionally
+==================================
+
+The ‘:if’, ‘:when’, and ‘:unless’ keywords predicates the loading and
+initialization of packages.  They all accept one argument, an Emacs Lisp
+form that is evaluated at run-time.
+
+   If the argument of the ‘:if’ keyword evaluates to non-‘nil’, the
+package will be loaded and initialized.  The ‘:when’ keyword is provided
+as an alias for ‘:if’.  Finally, the ‘:unless’ keyword is the inverse of
+‘:if’, such that ‘:unless foo’ means the same thing as ‘:if (not foo)’.
+
+   For example, if you only want to load ‘foo’ in graphical Emacs
+sessions, you could use the following:
+
+     (use-package foo
+       :if (display-graphic-p))
+
+Some common use cases
+---------------------
+
+Here are some common cases for conditional loading, and how to achieve
+them.
+
+   • Operating system
+
+     The following example loads a package only on GNU/Linux.  See the
+     docstring of ‘system-type’ for other valid values.
+
+          :if (eq system-type 'gnu/linux)
+
+   • Window system
+
+     The example below loads a package only on macOS and X.  See the
+     docstring of ‘window-system’ for valid values.
+
+          :if (memq window-system '(ns x))
+
+   • Installed package
+
+     The following example loads a package only when the ‘foo’ package
+     is installed.
+
+          :if (package-installed-p 'foo)
+
+   • Libraries in ‘load-path’
+
+     The example below loads a package only when ‘foo.el’ is available
+     in your ‘load-path’ (for example, if you installed that file
+     manually):
+
+          :if (locate-library "foo.el")
+
+Making conditional loading affect ‘:preface’ and ‘:ensure’
+----------------------------------------------------------
+
+If you need to make a use-package form conditional so that the condition
+occurs before even ‘:ensure’ (*note Install package::) or ‘:preface’
+(*note Preface keyword::), use ‘when’ around the ‘use-package’ form
+itself.  For example:
+
+     (when (memq window-system '(mac ns))
+       (use-package foo
+         :ensure t))
+
+
+File: use-package.info,  Node: Loading sequentially,  Next: The emacs package,  Prev: Conditional loading,  Up: Loading Packages
+
+3.5 Loading packages in sequence
+================================
+
+Sometimes it only makes sense to configure a package after another one
+has been loaded, because certain variables or functions are not in scope
+until that time.  This can be achieved with the ‘:after’ keyword, which
+allows a fairly rich description of the exact conditions when loading
+should occur.  The ‘:after’ keyword takes as argument either a symbol
+indicating the package name, a list of such symbols, or a list of
+selectors (see below).
+
+   Here is an example of using the GNU ELPA packages ‘hydra’, ‘ivy’, and
+‘ivy-hydra’.  Note that ‘ivy-hydra’ will always be loaded last:
+
+     (use-package hydra)
+
+     (use-package ivy)
+
+     (use-package ivy-hydra
+       :after (ivy hydra))
+
+   In this case, because the declarations are evaluated in the order
+they occur, the use of ‘:after’ is not strictly necessary.  However, if
+‘hydra’ and ‘ivy’ were to be autoloaded, using ‘:after’ guarantees that
+‘ivy-hydra’ is not loaded until it is actually needed.  By using
+‘:after’, the above code will also work even if the order of the
+declaration changes.  This means that moving things around in your init
+file is less likely to break things.
+
+Using ‘:after’ selectors
+------------------------
+
+The ‘:after’ keyword also accepts a list of selectors.  By default,
+‘:after (foo bar)’ is the same as ‘:after (:all foo bar)’, meaning that
+loading of the given package will not happen until both ‘foo’ and ‘bar’
+have been loaded.  Here are some of the other possibilities:
+
+:after (foo bar)
+:after (:all foo bar)
+:after (:any foo bar)
+:after (:all (:any foo bar) (:any baz quux))
+:after (:any (:all foo bar) (:all baz quux))
+
+   When you nest selectors, such as in
+‘(:any (:all foo bar) (:all baz quux))’, it means that the package will
+be loaded when either both ‘foo’ and ‘bar’ have been loaded, or when
+both ‘baz’ and ‘quux’ have been loaded.
+
+   Pay attention when setting ‘use-package-always-defer’ to a non-‘nil’
+value, and also using the ‘:after’ keyword.  In that case, you will need
+to specify how the declared package is to be loaded: for example, by
+some ‘:bind’ (*note Global keybindings::).  If you are not using one of
+the keywords that registers autoloads, such as ‘:bind’ or ‘:hook’ (*note
+Hooks::), and your package manager does not provide autoloads, it is
+possible that your package will never be loaded if you do not add
+‘:demand t’ to those declarations.
+
+
+File: use-package.info,  Node: The emacs package,  Next: Load dependencies,  Prev: Loading sequentially,  Up: Loading Packages
+
+3.6 Customizing built-in variables
+==================================
+
+Some users want to put all their customizations in use-package
+declarations, even for variables, hooks, and options that are always
+available, without loading any package.(1)
+
+   For that purpose, you can use the no-op ‘emacs’ package:
+
+     (use-package emacs
+       :init
+       (setq custom-file "~/.emacs.d/emacs-custom.el")
+       (load custom-file)
+       (setq frame-title-format "%b")
+       :custom
+       (use-short-answers t))
+
+   This declaration takes advantage of the fact that ‘(featurep 'emacs)’
+always returns true, and has no special meaning beyond that.  It simply
+provides a way to organize your customizations, without loading
+anything.
+
+   ---------- Footnotes ----------
+
+   (1) In other words, they are either preloaded in Emacs or defined in
+Emacs’s C sources.
+
+
+File: use-package.info,  Node: Load dependencies,  Next: Manual installation,  Prev: The emacs package,  Up: Loading Packages
+
+3.7 Prevent loading if dependencies are missing
+===============================================
+
+While the ‘:after’ keyword delays loading until the dependencies are
+loaded, the somewhat simpler ‘:requires’ keyword _never_ loads the
+package if the dependencies are not available when the ‘use-package’
+declaration is evaluated.  In this context, “available” means that ‘foo’
+is available if ‘(featurep 'foo)’ evaluates to a non-‘nil’ value.  For
+example:
+
+     (use-package abbrev
+       :requires foo)
+
+This is the same as:
+
+     (use-package abbrev
+       :if (featurep 'foo))
+
+   As a convenience, a list of such packages may be specified:
+
+     (use-package abbrev
+       :requires (foo bar baz))
+
+   For more complex logic, such as that supported by ‘:after’, simply
+use ‘:if’ and the appropriate Lisp expression.
+
+
+File: use-package.info,  Node: Manual installation,  Prev: Load dependencies,  Up: Loading Packages
+
+3.8 Manually installed package
+==============================
+
+When installing packages manually, without Emacs’s built-in package
+manager (‘package.el’), it will obviously not help you set up autoloads
+or add it to your ‘load-path’.  You must do it yourself.  However,
+use-package makes this more convenient.
+
+* Menu:
+
+* Load path::                   Using a custom ‘load-path’.
+* Manual autoloads::            Setting up autoloads manually.
+
+
+File: use-package.info,  Node: Load path,  Next: Manual autoloads,  Up: Manual installation
+
+3.8.1 Setting a custom ‘load-path’
+----------------------------------
+
+When installing packages manually, you must make sure its libraries are
+available on your ‘load-path’.  *Note (emacs)Lisp Libraries::, for more
+details about package loading.
+
+   The ‘:load-path’ keyword provides a convenient way to add directories
+to your load path.  It takes as argument a symbol, a function, a string
+or a list of strings.  If a directory is specified as a relative file
+name, it is expanded relative to ‘user-emacs-directory’.
+
+   For example:
+
+     (use-package org
+       :load-path "site-lisp/org/lisp/"
+       :commands org-mode)
+
+   When using a symbol or a function to provide a dynamically generated
+list of directories, you must inform the byte-compiler of this
+definition, so that the value is available at byte-compilation time.
+This is done by using the special form ‘eval-and-compile’ (as opposed to
+‘eval-when-compile’, *note (elisp)Eval During Compile::).  Furthermore,
+this value is fixed to the value it had during compilation.  If the
+operation is costly, you do not have to repeat it again on each startup.
+For example:
+
+     (eval-and-compile
+       (defun ess-site-load-path ()
+         (shell-command-to-string "find ~ -path ess/lisp")))
+
+     (use-package ess-site
+       :load-path (lambda () (list (ess-site-load-path)))
+       :commands R)
+
+
+File: use-package.info,  Node: Manual autoloads,  Prev: Load path,  Up: Manual installation
+
+3.8.2 Setting up autoloads manually
+-----------------------------------
+
+Packages often document how to set up its autoloads when it is being
+manually installed.  If it does, follow those instructions.  Otherwise,
+you might want to set them up manually.
+
+   To autoload an interactive command, use the ‘:commands’ keyword,
+which takes either a symbol or a list of symbols as its argument.  It
+creates autoloads for those commands (which defers loading of the module
+until those commands are used).
+
+   The ‘:autoload’ keyword takes the same arguments as ‘:commands’, but
+is used to autoload non-interactive functions.  Here is an example:
+
+     (use-package org-crypt
+       :autoload org-crypt-use-before-save-magic)
+
+
+File: use-package.info,  Node: Configuring Packages,  Next: Installing packages,  Prev: Loading Packages,  Up: Top
+
+4 Configuring Packages
+**********************
+
+This chapter describes the various keywords provided by ‘use-package’
+that help you configure packages.
+
+* Menu:
+
+* Lisp Configuration::          Using Lisp to configure packages.
+* Key bindings::                Making your own keybindings.
+* Hooks::                       Adding functions to hooks.
+* Modes and interpreters::      Enabling modes automatically.
+* Magic handlers::              Using regexps to enable modes.
+* User options::                Setting user options.
+* Faces::                       Customizing faces.
+* Hiding minor modes::          Tidying up the mode line.
+
+
+File: use-package.info,  Node: Lisp Configuration,  Next: Key bindings,  Up: Configuring Packages
+
+4.1 Using Lisp code for configuring packages
+============================================
+
+The most general way to add customizations are the ‘:preface’, ‘:init’,
+and ‘:config’ keywords.  They all accept one or more Emacs Lisp forms,
+up to the next keyword, that are evaluated in order.  This lets you add
+arbitrary Lisp code to your ‘use-package’ declarations.
+
+   The only difference between these keywords is when they are
+evaluated.
+
+* Menu:
+
+* Preface keyword::             Evaluate code before anything else.
+* Init keyword::                Evaluate code before loading package.
+* Config keyword::              Evaluate code after loading package.
+* Best practices::              When to use ‘:config’, ‘:init’, and ‘:preface’.
+
+
+File: use-package.info,  Node: Preface keyword,  Next: Init keyword,  Up: Lisp Configuration
+
+4.1.1 ‘:preface’ is evaluated first
+-----------------------------------
+
+The ‘:preface’ section is evaluated before anything else, except
+‘:disabled’ and ‘:ensure’.  It can be used to establish function and
+variable definitions that will:
+
+  1. Make the byte-compiler happy: it will not complain about functions
+     whose definitions are unknown.
+
+  2. Define functions and variables that will be used in an ‘:if’ test.
+
+   Note that whatever is specified within ‘:preface’ is evaluated both
+at load time and at byte-compilation time, in order to ensure that
+definitions are seen by both the Lisp evaluator and the byte-compiler.
+Therefore, you should avoid having any side-effects in your ‘:preface’
+forms, and restrict them to symbol declarations and definitions.
+
+
+File: use-package.info,  Node: Init keyword,  Next: Config keyword,  Prev: Preface keyword,  Up: Lisp Configuration
+
+4.1.2 ‘:init’ is evaluated before loading package
+-------------------------------------------------
+
+The ‘:init’ section is evaluated just before the package is loaded.
+Note that the ‘:init’ form is run unconditionally – even if the package
+happens to not exist on your system.  You must therefore remember to
+restrict ‘:init’ code to what would succeed either way; put the rest in
+the ‘:config’ section.  ‘:init’ also always happens before package load,
+whether ‘:config’ has been deferred or not.
+
+
+File: use-package.info,  Node: Config keyword,  Next: Best practices,  Prev: Init keyword,  Up: Lisp Configuration
+
+4.1.3 ‘:config’ is evaluated after loading package
+--------------------------------------------------
+
+The ‘:config’ section is evaluated after the package has been loaded.
+If the package is loaded immediately, this happens immediately after
+that, but if loading is done lazily (*note Loading Packages::), this is
+deferred until after the package has been loaded.
+
+   In general, you should keep ‘:init’ forms as simple and quick as
+possible, and put as much as you can get away with into the ‘:config’
+section.  That way, deferred loading can help your Emacs start as
+quickly as possible.
+
+
+File: use-package.info,  Node: Best practices,  Prev: Config keyword,  Up: Lisp Configuration
+
+4.1.4 When to use ‘:preface’, ‘:config’ and ‘:init’?
+----------------------------------------------------
+
+Where possible, it is better to avoid ‘:preface’, ‘:config’ and ‘:init’.
+Instead, prefer autoloading keywords such as ‘:bind’ (*note Key
+bindings::), ‘:hook’ (*note Hooks::), and ‘:mode’ (*note Modes and
+interpreters::), as they will take care of setting up autoloads for you
+without any need for boilerplate code.  For example, consider the
+following declaration:
+
+     (use-package foo
+       :init
+       (add-hook 'some-hook 'foo-mode))
+
+This has two problems.  First, it will unconditionally load the package
+‘foo’ on startup, which will make things slower.  You can fix this by
+adding ‘:defer t’:
+
+     (use-package foo
+       :defer t
+       :init
+       (add-hook 'some-hook 'foo-mode))
+
+This is better, as ‘foo’ is now only loaded when it is actually needed
+(that is, when the hook ‘some-hook’ is run).
+
+   The second problem is that there is a lot of boilerplate that you
+have to write.  In this case, it might not be so bad, but avoiding that
+was what use-package was made to allow.  The better option in this case
+is therefore to use ‘:hook’ (*note Hooks::), which also implies
+‘:defer t’.  The above is thereby reduced down to:
+
+     (use-package foo
+       :hook some-hook)
+
+   Now use-package will set up autoloading for you, and your Emacs
+startup time will not suffer one bit.
+
+
+File: use-package.info,  Node: Key bindings,  Next: Hooks,  Prev: Lisp Configuration,  Up: Configuring Packages
+
+4.2 Key bindings
+================
+
+One common thing to do when loading a package is to bind keys to
+commands within that module.  Without use-package, this would be done
+using a combination of ‘keymap-local-set’, ‘keymap-global-set’ and
+various autoloads.  With use-package, you can simplify this using the
+‘:bind’ keyword, as described in this section.
+
+* Menu:
+
+* Global keybindings::          Bindings you can use anywhere.
+* Binding in keymaps::          Bindings for particular modes.
+* Binding to a keymap::         Binding a key to a keymap.
+* Binding to repeat-maps::      Binding repeating keys.
+* Displaying keybindings::      Displaying personal key bindings.
+
+
+File: use-package.info,  Node: Global keybindings,  Next: Binding in keymaps,  Up: Key bindings
+
+4.2.1 Global keybindings
+------------------------
+
+To bind keys globally, the ‘:bind’ keyword takes as its argument either
+a single cons or a list of conses.  Each cons has the form
+‘(KEY . COMMAND)’, where KEY is a string indicating the key to bind, and
+COMMAND is the name of a command (a symbol).  The syntax for the keys is
+similar to the syntax used by the ‘kbd’ function (see *note (emacs)Init
+Rebinding::, for more information).
+
+Using ‘:bind’ with a single cons
+--------------------------------
+
+Here is an example of using a single cons:
+
+     (use-package ace-jump-mode
+       :bind ("C-." . ace-jump-mode))
+
+This does two things: first, it creates an autoload for the
+‘ace-jump-mode’ command and defers loading of the ‘ace-jump-mode’
+package until you actually use it.  Second, it binds the key ‘C-.’ to
+that command globally.
+
+Using ‘:bind’ with a list of conses
+-----------------------------------
+
+Here is an example of using ‘:bind’ with a list of conses:
+
+     (use-package hi-lock
+       :bind (("M-o l" . highlight-lines-matching-regexp)
+              ("M-o r" . highlight-regexp)
+              ("M-o w" . highlight-phrase)))
+
+This binds the three key sequences to the corresponding commands.
+
+Using special keys
+------------------
+
+Inside key strings, special keys like ‘TAB’ or ‘F1’–‘F12’ have to be
+written inside angle brackets, e.g., ‘"C-<up>"’.  Standalone special
+keys (and some combinations) can be written in square brackets,
+e.g. ‘[tab]’ instead of ‘"<tab>"’.
+
+   Examples:
+
+     (use-package helm
+       :bind (("M-x" . helm-M-x)
+              ("M-<f5>" . helm-find-files)
+              ([f10] . helm-buffers-list)
+              ([S-f10] . helm-recentf)))
+
+Remapping commands
+------------------
+
+Remapping of commands with ‘:bind’ and ‘bind-key’ works as expected,
+because when the binding is a vector, it is passed straight to
+‘define-key’.  *Note (elisp)Remapping Commands::, for more information
+about command remapping.  For example, the following declaration will
+rebind ‘fill-paragraph’ (bound to ‘M-q’ by default) to ‘unfill-toggle’:
+
+     (use-package unfill
+       :bind ([remap fill-paragraph] . unfill-toggle))
+
+What ‘:bind’ does behind the scenes
+-----------------------------------
+
+To understand what ‘:bind’ does behind the scenes, it might be useful to
+consider an example:
+
+     (use-package ace-jump-mode
+       :bind ("C-." . ace-jump-mode))
+
+This could be expressed in a much more verbose way with the ‘:commands’
+and ‘:init’ keywords:
+
+     (use-package ace-jump-mode
+       :commands ace-jump-mode
+       :init
+       (bind-key "C-." 'ace-jump-mode))
+
+Without using even the ‘:commands’ keyword, we could also write the
+above like so:
+
+     (use-package ace-jump-mode
+       :defer t
+       :init
+       (autoload 'ace-jump-mode "ace-jump-mode" nil t)
+       (bind-key "C-." 'ace-jump-mode))
+
+   Although these three forms are all equivalent, the first form is
+usually the best, as it will save some typing.
+
+
+File: use-package.info,  Node: Binding in keymaps,  Next: Binding to a keymap,  Prev: Global keybindings,  Up: Key bindings
+
+4.2.2 Key bindings in local keymaps
+-----------------------------------
+
+Slightly different from binding a key to a keymap, is binding a key
+_within_ a local keymap that only exists after the package is loaded.
+‘use-package’ supports this with a ‘:map’ modifier, taking the local
+keymap to bind to:
+
+     (use-package helm
+       :bind (:map helm-command-map
+              ("C-c h" . helm-execute-persistent-action)))
+
+The effect of this is to wait until ‘helm’ has loaded, and then to bind
+the key sequence ‘C-c h’ to ‘helm-execute-persistent-action’ within
+Helm’s local keymap, ‘helm-command-map’.
+
+   Multiple uses of ‘:map’ may be specified.  Any binding occurring
+before the first use of ‘:map’ are applied to the global keymap:
+
+     (use-package term
+       :bind (("C-c t" . term)
+              :map term-mode-map
+              ("M-p" . term-send-up)
+              ("M-n" . term-send-down)
+              :map term-raw-map
+              ("M-o" . other-window)
+              ("M-p" . term-send-up)
+              ("M-n" . term-send-down)))
+
+
+File: use-package.info,  Node: Binding to a keymap,  Next: Binding to repeat-maps,  Prev: Binding in keymaps,  Up: Key bindings
+
+4.2.3 Binding to keymaps
+------------------------
+
+Normally ‘:bind’ expects that commands are functions that will be
+autoloaded from the given package.  However, this does not work if one
+of those commands is actually a keymap, since keymaps are not functions,
+and cannot be autoloaded using the built-in ‘autoload’ function.
+
+   To handle this case, ‘use-package’ offers a special, limited variant
+of ‘:bind’ called ‘:bind-keymap’.  The only difference is that the
+“commands” bound to by ‘:bind-keymap’ must be keymaps defined in the
+package, rather than interactive functions.  This is handled behind the
+scenes by generating custom code that loads the package containing the
+keymap, and then re-executes your keypress after the first load, to
+reinterpret that keypress as a prefix key.
+
+   For example:
+
+     (use-package foo
+       :bind-keymap ("C-c p" . foo-command-map))
+
+
+File: use-package.info,  Node: Binding to repeat-maps,  Next: Displaying keybindings,  Prev: Binding to a keymap,  Up: Key bindings
+
+4.2.4 Binding to repeat-maps
+----------------------------
+
+A special case of binding within a local keymap is when that keymap is
+used by ‘repeat-mode’ (*note (emacs)Repeating::).  These keymaps are
+usually defined specifically for this.  Using the ‘:repeat-map’ keyword,
+and passing it a name for the map it defines, will bind all the
+following keys inside that map, and (by default) set the ‘repeat-map’
+property of each bound command to that map.
+
+   The following example creates a keymap called
+‘git-gutter+-repeat-map’, makes four bindings in it, then sets the
+‘repeat-map’ property of each bound command (‘git-gutter+-next-hunk’,
+‘git-gutter+-previous-hunk’, ‘git-gutter+-stage-hunks’, and
+‘git-gutter+-revert-hunk’) to that keymap.
+
+     (use-package git-gutter+
+       :bind
+       (:repeat-map git-gutter+-repeat-map
+        ("n" . git-gutter+-next-hunk)
+        ("p" . git-gutter+-previous-hunk)
+        ("s" . git-gutter+-stage-hunks)
+        ("r" . git-gutter+-revert-hunk)))
+
+   Specifying ‘:exit’ inside the scope of ‘:repeat-map’ will prevent the
+‘repeat-map’ property from being set, so that the command can be used
+from within the repeat map, but after using it the repeat map will no
+longer be available.  This is useful for commands often used at the end
+of a series of repeated commands.  Example:
+
+     (use-package git-gutter+
+       :bind
+       (:repeat-map my/git-gutter+-repeat-map
+        ("n" . git-gutter+-next-hunk)
+        ("p" . git-gutter+-previous-hunk)
+        ("s" . git-gutter+-stage-hunks)
+        ("r" . git-gutter+-revert-hunk)
+        :exit
+        ("c" . magit-commit-create)
+        ("C" . magit-commit)
+        ("b" . magit-blame)))
+
+   Specifying ‘:continue’ _forces_ setting the ‘repeat-map’ property
+(just like _not_ specifying ‘:exit’), so the above snippet is equivalent
+to:
+
+     (use-package git-gutter+
+       :bind
+       (:repeat-map my/git-gutter+-repeat-map
+        :exit
+        ("c" . magit-commit-create)
+        ("C" . magit-commit)
+        ("b" . magit-blame)
+        :continue
+        ("n" . git-gutter+-next-hunk)
+        ("p" . git-gutter+-previous-hunk)
+        ("s" . git-gutter+-stage-hunks)
+        ("r" . git-gutter+-revert-hunk)))
+
+
+File: use-package.info,  Node: Displaying keybindings,  Prev: Binding to repeat-maps,  Up: Key bindings
+
+4.2.5 Displaying personal keybindings
+-------------------------------------
+
+The ‘:bind’ keyword uses the ‘bind-keys’ macro from the ‘bind-key.el’
+library to set up keybindings.  It keeps track of all keybindings you
+make, so that you can display them separately from the default
+keybindings.
+
+   Use ‘M-x describe-personal-keybindings’ to see all keybindings you’ve
+set using either the ‘:bind’ keyword or the ‘bind-keys’ macro.
+
+
+File: use-package.info,  Node: Hooks,  Next: Modes and interpreters,  Prev: Key bindings,  Up: Configuring Packages
+
+4.3 Hooks
+=========
+
+The ‘:hook’ keyword allows adding functions to hooks.  It takes one
+argument of the form HOOKS, specifying one or more functions to add to
+one or more hooks.  For the purposes of ‘:hook’, the name of hook
+variables should always exclude the ‘-hook’ suffix.  It is appended
+automatically for you, to save some typing.
+
+   For example, consider the following ‘use-package’ declaration that
+sets up autoloads for ‘company-mode’ from the ‘company’ package, and
+adds ‘company-mode’ to ‘prog-mode-hook’:
+
+     (use-package company
+       :commands company-mode
+       :init
+       (add-hook 'prog-mode-hook #'company-mode))
+
+   Using ‘:hook’, this can be simplified to:
+
+     (use-package company
+       :hook (prog-mode . company-mode))
+
+   Here, ‘:hook’ will automatically set up autoloads for the
+‘company-mode’ command, so there is no need to use ‘:commands’.
+
+   The ‘:hook’ keyword will also assume that the name of the function
+you want to add is the same as the package name with ‘-mode’ appended to
+it.  Taking this into account, you can simplify the above to the
+equivalent:
+
+     (use-package company
+       :hook prog-mode)
+
+   You can also provide a list of hooks.  When multiple hooks should be
+applied, the following examples are all equivalent:
+
+     (use-package company
+       :hook (prog-mode text-mode))
+
+     (use-package company
+       :hook ((prog-mode text-mode) . company-mode))
+
+     (use-package company
+       :hook ((prog-mode . company-mode)
+              (text-mode . company-mode)))
+
+     (use-package company
+       :commands company-mode
+       :init
+       (add-hook 'prog-mode-hook #'company-mode)
+       (add-hook 'text-mode-hook #'company-mode))
+
+   One common mistake when using ‘:hook’ is to forget to omit the
+‘-hook’ suffix, which, as already explained, is appended automatically.
+Therefore, the following will not work, as it attempts to add a function
+to non-existent ‘prog-mode-hook-hook’:
+
+     ;; DOES NOT WORK
+     (use-package ace-jump-mode
+       :hook (prog-mode-hook . ace-jump-mode))
+
+   If you do not like this behavior, you can customize the user option
+‘use-package-hook-name-suffix’ to ‘nil’.  The value of this variable is
+‘"-hook"’ by default.
+
+   The use of ‘:hook’, as with ‘:bind’, ‘:mode’, ‘:interpreter’, etc.,
+causes the functions being hooked to implicitly be read as ‘:commands’.
+This means that they will establish interactive ‘autoload’ definitions
+for that module, if not already defined as functions), and so ‘:defer t’
+is also implied by ‘:hook’.
+
+
+File: use-package.info,  Node: Modes and interpreters,  Next: Magic handlers,  Prev: Hooks,  Up: Configuring Packages
+
+4.4 Modes and interpreters
+==========================
+
+Similar to ‘:bind’, you can use ‘:mode’ and ‘:interpreter’ to establish
+a deferred binding within the ‘auto-mode-alist’ and
+‘interpreter-mode-alist’ variables (*note (elisp)Auto Major Mode::).
+The specifier to either keyword can be a cons cell, a list of cons
+cells, or a string or regexp.
+
+   The following example reproduces the default ‘ruby-mode’
+configuration, exactly as it is in Emacs out-of-the-box.  That mode is
+enabled automatically when a file whose name matches the regexp
+‘"\\.rb\\'"’ (a file with the ‘.rb’ extension), or when the first line
+of the file (known as the “shebang”) matches the string ‘"ruby"’:
+
+     (use-package ruby-mode
+       :mode "\\.rb\\'"
+       :interpreter "ruby")
+
+   The default ‘python-mode’ configuration can be reproduced using the
+declaration below.  Note that the package that should be loaded differs
+from the mode name in this case, so we must use a cons:
+
+     ;; The package is "python" but the mode is "python-mode":
+     (use-package python
+       :mode ("\\.py\\'" . python-mode)
+       :interpreter ("python" . python-mode))
+
+   Both the ‘:mode’ and ‘:interpreter’ keywords also accept a list of
+regexps:
+
+     (use-package foo
+       ;; Equivalent to "\\(ba[rz]\\)\\'":
+       :mode ("\\.bar\\'" "\\.baz\\'")
+       ;; Equivalent to "\\(foo[ab]\\)":
+       :interpreter ("fooa" "foob"))
+
+
+File: use-package.info,  Node: Magic handlers,  Next: User options,  Prev: Modes and interpreters,  Up: Configuring Packages
+
+4.5 Magic handlers
+==================
+
+Similar to ‘:mode’ and ‘:interpreter’, you can also use ‘:magic’ and
+‘:magic-fallback’ to cause certain function to be run if the beginning
+of a file matches a given regular expression, as if these regular
+expressions were added to ‘magic-mode-alist’ and
+‘magic-fallback-mode-alist’ (*note (elisp)Auto Major Mode::).  The
+difference between ‘:magic’ and ‘:magic-fallback’, is that the latter
+has a lower priority than ‘:mode’.
+
+   Here is an example:
+
+     (use-package pdf-tools
+       :magic ("%PDF" . pdf-view-mode)
+       :config
+       (pdf-tools-install :no-query))
+
+   This registers an autoloaded command for ‘pdf-view-mode’, defers
+loading of ‘pdf-tools’, and runs ‘pdf-view-mode’ if the beginning of a
+buffer matches the string ‘"%PDF"’.
+
+
+File: use-package.info,  Node: User options,  Next: Faces,  Prev: Magic handlers,  Up: Configuring Packages
+
+4.6 User options
+================
+
+In Emacs, you normally set customizable variables (user options) using
+the ‘M-x customize’ interface (*note (emacs)Easy Customization::).  We
+recommend this method for most users.  However, it is also possible to
+set them in your ‘use-package’ declarations by using the ‘:custom’
+keyword.
+
+     (use-package comint
+       :defer t
+       :custom
+       (comint-buffer-maximum-size 20000 "Increase comint buffer size.")
+       (comint-prompt-read-only t "Make the prompt read only."))
+
+   This is better than using ‘setq’ in a ‘:config’ block, as
+customizable variables might have some code associated with it that
+Emacs will execute when you assign values to them.  (In Emacs 29 and
+later, there is also the new ‘setopt’ macro that does this for you.)
+
+   Note that the values customized using ‘:custom’ are _not_ saved in
+the standard Emacs ‘custom-file’ (*note (emacs)Saving Customizations::).
+You should therefore set each user option using either the ‘:custom’
+keyword _or_ ‘M-x customize-option’ command; the latter will save
+customized values in the Emacs ‘custom-file’.  Do not use both for the
+same variable, as this risks having conflicting values in your
+use-package declaration and your ‘custom-file’, which can lead to
+problems that are both tricky and tedious to debug.
+
+   Also note that if you use ‘:custom’ in a file that you byte-compile,
+you could have some unexpected results if you later load or ‘require’
+‘use-package’ (e.g., due to lazy loading): the value of the
+corresponding user options could be reset back to their initial values.
+We therefore recommend against byte-compiling files that use
+‘use-package’ with ‘:custom’ settings.
+
+
+File: use-package.info,  Node: Faces,  Next: Hiding minor modes,  Prev: User options,  Up: Configuring Packages
+
+4.7 Faces
+=========
+
+The ‘:custom-face’ keyword allows customization of package’s faces.
+Example:
+
+     (use-package eruby-mode
+       :custom-face
+       (eruby-standard-face ((t (:slant italic)))))
+
+     (use-package example
+       :custom-face
+       (example-1-face ((t (:foreground "LightPink"))))
+       (example-2-face ((t (:foreground "LightGreen"))) face-defspec-spec))
+
+     (use-package zenburn-theme
+       :preface
+       (setq my/zenburn-colors-alist
+             '((fg . "#DCDCCC") (bg . "#1C1C1C") (cyan . "#93E0E3")))
+       :custom-face
+       (region ((t (:background ,(alist-get my/zenburn-colors-alist 'cyan)))))
+       :config
+       (load-theme 'zenburn t))
+
+
+File: use-package.info,  Node: Hiding minor modes,  Prev: Faces,  Up: Configuring Packages
+
+4.8 Hiding minor modes with diminish and delight
+================================================
+
+‘use-package’ supports the ‘diminish’ and ‘delight’ packages, both of
+which make it possible to remove or change minor mode strings in your
+mode-line.  Which one to use is up to you, but you should normally only
+use one or the other – never both.(1)  To use either of them, you must
+first install the corresponding package from GNU ELPA.
+
+* Menu:
+
+* Diminish::                    Hiding minor modes with Diminish.
+* Delight::                     Hiding minor modes with Delight.
+
+   ---------- Footnotes ----------
+
+   (1) When in doubt, you might as well use ‘diminish’.
+
+
+File: use-package.info,  Node: Diminish,  Next: Delight,  Up: Hiding minor modes
+
+4.8.1 Diminish
+--------------
+
+When diminish(1) is installed, you can use the ‘:diminish’ keyword.  If
+‘diminish’ is not installed, the ‘:diminish’ keyword does nothing.
+
+   First, add the following declaration to the beginning of your init
+file.
+
+     (use-package diminish :ensure t)
+
+The optional ‘:ensure t’ makes sure the package is installed if it isn’t
+already (*note Installing packages::).
+
+   The ‘:diminish’ keyword takes as its argument either a minor mode
+symbol, a cons of the symbol and its replacement string, or just a
+replacement string, in which case the minor mode symbol is guessed to be
+the package name with ‘-mode’ appended at the end:
+
+     (use-package abbrev
+       :diminish abbrev-mode
+       :config
+       (if (file-exists-p abbrev-file-name)
+           (quietly-read-abbrev-file)))
+
+   ---------- Footnotes ----------
+
+   (1) The ‘diminish’ package is installable from GNU ELPA.
+
+
+File: use-package.info,  Node: Delight,  Prev: Diminish,  Up: Hiding minor modes
+
+4.8.2 Delight
+-------------
+
+When ‘delight’(1) is installed, you can use the ‘:delight’ keyword.  If
+‘delight’ is not installed, the ‘:delight’ keyword does nothing.
+
+   First, add the following declaration to the beginning of your init
+file.
+
+     (use-package delight :ensure t)
+
+The optional ‘:ensure t’ makes sure the package is installed if it isn’t
+already (*note Installing packages::).
+
+   The ‘:delight’ keyword takes as its argument a minor mode symbol, a
+replacement string, or quoted mode line data (in which case the minor
+mode symbol is assumed to be the package name with ‘-mode’ appended at
+the end), both of these, or several lists of both.  *Note (elisp)Mode
+Line Data::.  If no arguments are provided, the default mode name is
+hidden completely.
+
+   For example, the following hides everything for the ‘foo-mode’ minor
+mode in the ‘foo’ package:
+
+     (use-package foo
+       :delight)
+
+   If the mode name doesn’t match the package name with ‘-mode’
+appended, provide a symbol instead.  For example, the following hides
+‘auto-revert-mode’ from the mode line:
+
+     ;; Don't show anything for auto-revert-mode, which doesn't match
+     ;; its package name.
+     (use-package autorevert
+       :delight auto-revert-mode)
+
+   You can also use arbitrary Lisp code as argument of ‘:delight’.  For
+example, to replace ‘foo-mode’ with the value of the current buffer:
+
+     (use-package foo
+       :delight '(:eval buffer-file-name))
+
+   Here is an example of hiding several built-in minor modes:
+
+     ;; Completely hide visual-line-mode and change auto-fill-mode to " AF".
+     (use-package emacs
+       :delight
+       (auto-fill-function " AF")
+       (visual-line-mode))
+
+   ---------- Footnotes ----------
+
+   (1) The ‘delight’ package is installable from GNU ELPA.
+
+
+File: use-package.info,  Node: Installing packages,  Next: Byte-compiling,  Prev: Configuring Packages,  Up: Top
+
+5 Installing packages automatically
+***********************************
+
+The standard Emacs package manager is documented in the Emacs manual
+(*note (emacs)Package Installation::).  The ‘use-package’ macro provides
+the ‘:ensure’ and ‘:pin’ keywords that interface with that package
+manager to automatically install packages.  The ‘:vc’ keyword may be
+used to control how package sources are downloaded; e.g., from remote
+hosts (*note (emacs)Fetching Package Sources::).  This is particularly
+useful if you use your init file on more than one system.
+
+* Menu:
+
+* Install package::
+* Pinning packages::
+* Other package managers::
+
+
+File: use-package.info,  Node: Install package,  Next: Pinning packages,  Up: Installing packages
+
+5.1 Installing package
+======================
+
+The ‘:ensure’ keyword makes use-package ask the Emacs package manager to
+install a package if it is not already present on your system.
+
+   For example:
+
+     (use-package magit
+       :ensure t)
+
+   If you need to install a different package from the one named by
+‘use-package’, you can use a symbol:
+
+     (use-package tex
+       :ensure auctex)
+
+   You can customize the user option ‘use-package-always-ensure’ to a
+non-‘nil’ value if you want this behavior to be global for all packages:
+
+     (require 'use-package-ensure)
+     (setq use-package-always-ensure t)
+
+You can override the above setting for a single package by adding
+‘:ensure nil’ to its declaration.
+
+   The ‘:vc’ keyword can be used to control how packages are downloaded
+and/or installed.  More specifically, it allows one to fetch and update
+packages directly from a version control system.  This is especially
+convenient when wanting to install a package that is not on any package
+archive.
+
+   The keyword accepts the same arguments as specified in *note
+(emacs)Fetching Package Sources::, except that a name need not
+explicitly be given: it is inferred from the declaration.  The accepted
+property list is augmented by a ‘:rev’ keyword, which has the same shape
+as the ‘REV’ argument to ‘package-vc-install’.  Notably – even when not
+specified – ‘:rev’ defaults to checking out the last release of the
+package.  You can use ‘:rev :newest’ to check out the latest commit.
+Note that currently, you cannot upgrade built-in packages using ‘:vc’.
+
+   For example,
+
+     (use-package bbdb
+       :vc (:url "https://git.savannah.nongnu.org/git/bbdb.git"
+            :rev :newest))
+
+   would try – by invoking ‘package-vc-install’ – to install the latest
+commit of the package ‘foo’ from the specified remote.
+
+   Alternatively, the ‘use-package-vc-prefer-newest’ user option exists
+to always prefer the latest commit.
+
+   The ‘:vc’ keyword can also be used for local packages, by combining
+it with ‘:load-path’ (*note Load path::):
+
+     ;; Use a local copy of BBDB instead of the one from GNU ELPA.
+     (use-package bbdb
+       :vc t
+       :load-path "/path/to/bbdb/dir/")
+
+   The above dispatches to ‘package-vc-install-from-checkout’.
+
+
+File: use-package.info,  Node: Pinning packages,  Next: Other package managers,  Prev: Install package,  Up: Installing packages
+
+5.2 Pinning packages using ‘:pin’
+=================================
+
+use-package can “pin” a package to a specific archive using the ‘:pin’
+keyword.(1)  This allows you to mix and match packages from different
+archives.  The primary use-case for this is preferring to install
+packages from GNU ELPA or NonGNU ELPA (indicated by ‘gnu’ and ‘nongnu’,
+respectively), while installing specific packages from third-party
+archives.
+
+   For example:
+
+     (use-package company
+       :ensure t
+       :pin gnu)   ; GNU ELPA
+
+   Unfortunately, the third-party archive MELPA uses a versioning scheme
+based on dates, which means that packages from that archive are always
+preferred.  If you are using that archive, we strongly encourage you to
+customize ‘use-package-always-pin’ to ‘nongnu’.  This guarantees that
+you are using a version of that package that has been specifically
+marked for release by its developer, and not a development snapshot.
+
+   If you want to manually keep a package updated and ignore upstream
+updates, you can pin it to ‘manual’.  This will work as long as you have
+not customized a repository to use that name in the ‘package-archives’
+variable.
+
+   Example:
+
+     (use-package org
+       :ensure t
+       ;; ignore org-mode from upstream and use a manually installed version
+       :pin manual)
+
+   ‘use-package’ signals an error if you try to pin a package to an
+archive that is not configured using ‘package-archives’ (except from the
+special ‘manual’ archive).
+
+   ---------- Footnotes ----------
+
+   (1) The ‘:pin’ keyword has no effect on Emacs versions older than
+24.4.
+
+
+File: use-package.info,  Node: Other package managers,  Prev: Pinning packages,  Up: Installing packages
+
+5.3 Non-standard package managers
+=================================
+
+By default, use-package assumes that you are using the Emacs built-in
+‘package.el’ package manager.  We expect that most users will find that
+it is capable enough, even for advanced use cases.
+
+   However, some users might prefer to use a third-party package manager
+for a specific circumstance or use case.  By setting the user option
+‘use-package-ensure-function’ to the name of a function, you can direct
+‘:ensure’ to use a different package manager for installing packages.
+
+   For more details, please see the documentation of the package manager
+you are using.  If you run into any bugs, it is often best to report
+them directly to the developers of that package manager.
+
+
+File: use-package.info,  Node: Byte-compiling,  Next: Troubleshooting,  Prev: Installing packages,  Up: Top
+
+6 Byte-compiling your init file
+*******************************
+
+Some users might want to byte-compile their init file to make Emacs
+startup faster.  This is not recommended in most cases, as the speed-up
+is usually too small to be worth it, and it can lead to confusion if the
+byte-compiled files are out-of-date.  If you still want to do it, this
+chapter explains how to do that.
+
+   ‘use-package’ always loads every library that it can while a file is
+being byte-compiled.  This helps silence spurious warnings about unknown
+variables and functions.
+
+   However, there are times when this is just not enough.  For those
+times, use the ‘:defines’ and ‘:functions’ keywords to introduce dummy
+variable and function declarations solely for the sake of silencing
+byte-compiler warnings.  For example:
+
+     (use-package texinfo
+       :defines texinfo-section-list
+       :commands texinfo-mode
+       :init
+       (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
+
+   If you need to silence a missing function warning, you can use
+‘:functions’:
+
+     (use-package ruby-mode
+       :mode "\\.rb\\'"
+       :interpreter "ruby"
+       :functions inf-ruby-keys
+       :config
+       (defun my-ruby-mode-hook ()
+         (require 'inf-ruby)
+         (inf-ruby-keys))
+       (add-hook 'ruby-mode-hook 'my-ruby-mode-hook))
+
+   Normally, ‘use-package’ will load each package at compile time before
+compiling the configuration, to ensure that any necessary symbols are in
+scope to satisfy the byte-compiler.  At times this can cause problems,
+since a package may have special loading requirements, and all that you
+want to use ‘use-package’ for is to add a configuration to the
+‘eval-after-load’ hook.  In such cases, use the ‘:no-require’ keyword:
+
+     (use-package foo
+       :no-require t
+       :config
+       (message "Evaluate this immediately after loading `foo'"))
+
+
+File: use-package.info,  Node: Troubleshooting,  Next: Keyword extensions,  Prev: Byte-compiling,  Up: Top
+
+7 Troubleshooting
+*****************
+
+If an error occurs while initializing or configuring a package, this
+will not stop your Emacs from loading.  Instead, ‘use-package’ captures
+the error and reports it in a special ‘*Warnings*’ popup buffer, so that
+you can debug the situation in an otherwise functional Emacs.
+
+   If you are having trouble when starting Emacs, you can pass Emacs the
+‘--debug-init’ command line flag.  *Note (emacs)Initial Options::.  To
+get even more information when using that flag, add the following to
+your init file (these options are documented below):
+
+     (when init-file-debug
+       (setq use-package-verbose t
+             use-package-expand-minimally nil
+             use-package-compute-statistics t
+             debug-on-error t))
+
+   Since ‘use-package’ is a macro, the first step when you need to dig
+deeper is usually to see what Emacs Lisp code your declaration expands
+to.  You can either use the command ‘M-x pp-macroexpand-last-sexp’, or
+wrap the use-package declaration in ‘macroexpand’ and evaluate it.  It
+is a good idea to include their output in any bugs you file for
+use-package.
+
+* Menu:
+
+* Troubleshooting Options::
+* Gathering Statistics::
+* Disabling a package::
+
+
+File: use-package.info,  Node: Troubleshooting Options,  Next: Gathering Statistics,  Up: Troubleshooting
+
+7.1 Options that help when troubleshooting
+==========================================
+
+By default, use-package will attempts to catch and report errors that
+occur during expansion of use-package declarations in your init file.
+Customize the user option ‘use-package-expand-minimally’ to a non-‘nil’
+value to disable this checking.
+
+   This behavior may be overridden locally using the ‘:catch’ keyword.
+If ‘t’ or ‘nil’, it enables or disables catching errors at load time.
+It can also be a function taking two arguments: the keyword being
+processed at the time the error was encountered, and the error object
+(as generated by ‘condition-case’).  For example:
+
+     (use-package example
+       ;; Note that errors are never trapped in the preface, since
+       ;; doing so would hide definitions from the byte-compiler.
+       :preface (message "I'm here at byte-compile and load time")
+       :init (message "I'm always here at startup")
+       :config
+       (message "I'm always here after the package is loaded")
+       (error "oops")
+       ;; Don't try to (require 'example), this is just an example!
+       :no-require t
+       :catch (lambda (keyword err)
+                (message (error-message-string err))))
+
+   Evaluating the above form will print these messages:
+
+I'm here at byte-compile and load time
+I'm always here at startup
+Configuring package example...
+I'm always here after the package is loaded
+oops
+
+
+File: use-package.info,  Node: Gathering Statistics,  Next: Disabling a package,  Prev: Troubleshooting Options,  Up: Troubleshooting
+
+7.2 Gathering Statistics
+========================
+
+When a package is loaded, and if you have ‘use-package-verbose’ set to
+‘t’, or if the package takes longer than 0.1 seconds to load, you will
+see a message to indicate this loading activity in the ‘*Messages*’
+buffer.  The same will happen for configuration, or ‘:config’ blocks,
+that take longer than 0.1 seconds to execute.
+
+   If you’d like to see a summary how many packages you’ve loaded, what
+stage of initialization they’ve reached, and how much aggregate time
+they’ve spent (roughly), you can customize the user option
+‘use-package-compute-statistics’ to a non-‘nil’ value.  Then reload your
+packages, normally by restarting Emacs, to make sure that use-package
+can gather statistics for all your packages.
+
+   Run the command ‘M-x use-package-report’ to see the results.  The
+buffer displayed is a tabulated list.  To sort rows based on a
+particular column, move point to it and type ‘S’, or click the column
+name at the top of the buffer on graphical displays.
+
+   To reset all statistics that use-package has gathered for the current
+Emacs invocation, run the command ‘M-x use-package-reset-statistics’.
+
+   Note that if you are setting ‘use-package-compute-statistics’
+directly in your init file, and not with ‘customize’, you must do this
+after loading ‘use-package’, but before any ‘use-package’ forms.
+
+
+File: use-package.info,  Node: Disabling a package,  Prev: Gathering Statistics,  Up: Troubleshooting
+
+7.3 Disabling a package
+=======================
+
+The ‘:disabled’ keyword inhibits loading a package, and all its
+customizations.  It is equivalent to commenting out or deleting the
+definition.
+
+   You could use this, for example, to temporarily disable a package
+that you’re having difficulties with, or to avoid loading a package that
+you’re not currently using.
+
+   This example disables the ‘foo’ package:
+
+     (use-package foo
+       :disabled)
+
+   When byte-compiling your init file, use-package omits disabled
+declarations from the output entirely, in order to make Emacs startup
+faster.
+
+
+File: use-package.info,  Node: Keyword extensions,  Next: History,  Prev: Troubleshooting,  Up: Top
+
+Appendix A Keyword extensions
+*****************************
+
+use-package is based on an extensible framework that makes it easy for
+package authors to add new keywords, or modify the behavior of existing
+keywords.
+
+   Some keyword extensions are included with ‘use-package’, and can be
+optionally enabled.
+
+* Menu:
+
+* use-package-ensure-system-package::
+* Creating an extension::
+
+
+File: use-package.info,  Node: use-package-ensure-system-package,  Next: Creating an extension,  Up: Keyword extensions
+
+A.1 :use-package-ensure-system-package
+======================================
+
+The ‘:ensure-system-package’ keyword allows you to ensure certain
+executables are available on your system alongside your package
+declarations.(1)
+
+   To use this extension, add this immediately after loading
+‘use-package’:
+
+     (use-package use-package-ensure-system-package)
+
+   Now you can use the ‘:ensure-system-package’ keyword.  Here’s an
+example usage:
+
+     (use-package foo
+       :ensure-system-package foo)
+
+   This will expect a global binary package to exist called ‘foo’.  If
+it does not, it will use your system package manager to attempt an
+install of a binary by the same name asynchronously.  This requires the
+GNU ELPA package ‘system-packages’
+(https://gitlab.com/jabranham/system-packages), so for this to work you
+must install that first.
+
+   One way of making sure it is installed is with ‘use-package’ together
+with ‘:ensure’.
+
+     (use-package system-packages
+       :ensure t)
+
+   For example, on a Debian GNU/Linux system, this would call ‘apt-get
+install foo’.
+
+   If the package is named differently than the binary, you can use a
+cons in the form of ‘(binary . package-name)’.  For example:
+
+     (use-package foo
+       :ensure-system-package
+       (foocmd . foo))
+
+   On a Debian GNU/Linux system, this would call ‘apt install foo’ if
+Emacs could not locate the executable ‘foocmd’.(2)
+
+   ‘:ensure-system-package’ can also take a cons where the ‘cdr’ is a
+string that will get called by ‘(async-shell-command)’ to install if it
+isn’t found.  This does not depend on any external package.
+
+     (use-package tern
+       :ensure-system-package (tern . "npm i -g tern"))
+
+   To install several packages, you can pass in a list of conses:
+
+     (use-package ruby-mode
+       :ensure-system-package
+       ((rubocop     . "gem install rubocop")
+        (ruby-lint   . "gem install ruby-lint")
+        (ripper-tags . "gem install ripper-tags")
+        (pry         . "gem install pry")))
+
+   Finally, in case the package dependency does not provide a global
+executable, you can ensure that packages exist by checking the presence
+of a file by providing a string like so:
+
+     (use-package dash-at-point
+       :if (eq system-type 'darwin)
+       :ensure-system-package
+       ("/Applications/Dash.app" . "brew cask install dash"))
+
+   ‘:ensure-system-package’ will use ‘system-packages-install’ to
+install system packages, except where a custom command has been
+specified, in which case it will be executed verbatim by
+‘async-shell-command’.
+
+   The user options ‘system-packages-package-manager’ and
+‘system-packages-use-sudo’ are honored, but not for custom commands.
+Custom commands should include the call to sudo in the command if
+needed.
+
+   ---------- Footnotes ----------
+
+   (1) On macOS, your ‘exec-path’ might be different if you are starting
+Emacs as a GUI app instead of from a shell.  If you find that Emacs on
+macOS cannot find some executables that you know are already installed,
+you could try the ‘exec-path-from-shell’
+(https://github.com/purcell/exec-path-from-shell) package.
+
+   (2) For manual testing, you could use the ‘executable-find’ function,
+which is what ‘system-packages’ uses internally.
+
+
+File: use-package.info,  Node: Creating an extension,  Prev: use-package-ensure-system-package,  Up: Keyword extensions
+
+A.2 How to create an extension keyword
+======================================
+
+This section describes how to create a new keyword.
+
+  1. Add the keyword.
+
+     The first step is to add your keyword at the right place in
+     ‘use-package-keywords’.  This list determines the order in which
+     things will happen in the expanded code.  You should never change
+     this order, but it gives you a framework within which to decide
+     when your keyword should fire.
+
+  2. Create a normalizer.
+
+     The job of the normalizer is take a list of arguments (possibly
+     ‘nil’), and turn it into the single argument (which could still be
+     a list) that should appear in the final property list used by
+     ‘use-package’.
+
+     Define a normalizer for your keyword by defining a function named
+     after the keyword, for example:
+
+          (defun use-package-normalize/:pin (name-symbol keyword args)
+            (use-package-only-one (symbol-name keyword) args
+              (lambda (label arg)
+                (cond
+                 ((stringp arg) arg)
+                 ((symbolp arg) (symbol-name arg))
+                 (t
+                  (use-package-error
+                   ":pin wants an archive name (a string)"))))))
+
+  3. Create a handler.
+
+     Once you have a normalizer, you must create a handler for the
+     keyword.
+
+     Handlers can affect the handling of keywords in two ways.  First,
+     they can modify the ‘state’ plist before recursively processing the
+     remaining keywords, to influence keywords that pay attention to the
+     state (one example is the state keyword ‘:deferred’, not to be
+     confused with the ‘use-package’ keyword ‘:defer’).  Then, once the
+     remaining keywords have been handled and their resulting forms
+     returned, the handlers may manipulate, extend, or just ignore those
+     forms.
+
+     The task of each handler is to return a _list of forms_
+     representing code to be inserted.  It does not need to be a ‘progn’
+     list, as this is handled automatically in other places.  Thus it is
+     common to see the idiom of using ‘use-package-concat’ to add new
+     functionality before or after a code body, so that only the minimum
+     code necessary is emitted as the result of a ‘use-package’
+     expansion.
+
+     This is an example handler:
+
+          (defun use-package-handler/:pin (name-symbol keyword archive-name rest state)
+            (let ((body (use-package-process-keywords name-symbol rest state)))
+              ;; This happens at macro expansion time, not when the expanded code is
+              ;; compiled or evaluated.
+              (if (null archive-name)
+                  body
+                (use-package-pin-package name-symbol archive-name)
+                (use-package-concat
+                 body
+                 `((push '(,name-symbol . ,archive-name)
+                         package-pinned-packages))))))
+
+  4. Test it.
+
+     After the keyword has been inserted into ‘use-package-keywords’,
+     and a normalizer and a handler has been defined, you can now test
+     the keyword by seeing how usages of the keyword will expand.  For
+     this, use ‘M-x pp-macroexpand-last-sexp’ with the cursor set
+     immediately after the ‘(use-package ...)’ expression.
+
+
+File: use-package.info,  Node: History,  Next: GNU Free Documentation License,  Prev: Keyword extensions,  Up: Top
+
+Appendix B History and acknowledgments
+**************************************
+
+use-package was written by John Wiegley.  Its development started in
+2012, and it got merged into Emacs in 2022, in preparation of the
+release of Emacs 29.1.
+
+   Dozens of people have contributed to use-package over the years with
+bug reports, documentation and code.  They are too many to list here,
+but we thank them all for their contributions.
+
+   This Texinfo manual was written by Stefan Kangas, as a significant
+rewrite of the old use-package manual and ‘README’.
+
+
+File: use-package.info,  Node: GNU Free Documentation License,  Next: Index,  Prev: History,  Up: Top
+
+Appendix C GNU Free Documentation License
+*****************************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <https://fsf.org/>
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document “free” in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of “copyleft”, which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     “Document”, below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as “you”.  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A “Modified Version” of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A “Secondary Section” is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document’s overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The “Invariant Sections” are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The “Cover Texts” are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A “Transparent” copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     “Transparent” is called “Opaque”.
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The “Title Page” means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, “Title
+     Page” means the text near the most prominent appearance of the
+     work’s title, preceding the beginning of the body of the text.
+
+     The “publisher” means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section “Entitled XYZ” means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     “Acknowledgements”, “Dedications”, “Endorsements”, or “History”.)
+     To “Preserve the Title” of such a section when you modify the
+     Document means that it remains a section “Entitled XYZ” according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document’s license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document’s
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled “History”, Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled “History” in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          “History” section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled “Acknowledgements” or “Dedications”,
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled “Endorsements”.  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          “Endorsements” or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version’s
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled “Endorsements”, provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties—for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of
+     a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     “History” in the various original documents, forming one section
+     Entitled “History”; likewise combine any sections Entitled
+     “Acknowledgements”, and any sections Entitled “Dedications”.  You
+     must delete all sections Entitled “Endorsements.”
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an “aggregate” if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation’s users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document’s Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled “Acknowledgements”,
+     “Dedications”, or “History”, the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly and
+     finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from you
+     under this License.  If your rights have been terminated and not
+     permanently reinstated, receipt of a copy of some or all of the
+     same material does not give you any rights to use it.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <https://www.gnu.org/licenses/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License “or any later version” applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.  If the Document specifies that a proxy can
+     decide which future versions of this License can be used, that
+     proxy’s public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+  11. RELICENSING
+
+     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A “Massive Multiauthor Collaboration” (or “MMC”) contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     “Incorporate” means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is “eligible for relicensing” if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the “with...Texts.” line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: use-package.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
+
+Index
+*****
+
+ [index ]
+* Menu:
+
+* :after:                                Loading sequentially. (line  6)
+* :all, (with :after):                   Loading sequentially. (line 35)
+* :any, (with :after):                   Loading sequentially. (line 35)
+* :autoload:                             Manual autoloads.     (line 10)
+* :bind:                                 Global keybindings.   (line  6)
+* :bind, and function keys:              Global keybindings.   (line 41)
+* :bind, and remapping of commands:      Global keybindings.   (line 57)
+* :bind, internals:                      Global keybindings.   (line 69)
+* :bind-keymap:                          Binding to a keymap.  (line  6)
+* :catch:                                Troubleshooting Options.
+                                                               (line 11)
+* :commands:                             Manual autoloads.     (line 10)
+* :config:                               Config keyword.       (line  6)
+* :continue, inside :repeat-map and :bind: Binding to repeat-maps.
+                                                               (line 45)
+* :custom:                               User options.         (line  6)
+* :custom-face:                          Faces.                (line  6)
+* :defer:                                Deferring loading.    (line 26)
+* :defer, with a numeric argument:       Deferring loading.    (line 43)
+* :defines:                              Byte-compiling.       (line 16)
+* :delight:                              Delight.              (line  6)
+* :demand:                               Forcing loading.      (line  6)
+* :diminish:                             Diminish.             (line  6)
+* :disabled:                             Disabling a package.  (line  6)
+* :ensure:                               Install package.      (line  6)
+* :ensure-system-package:                use-package-ensure-system-package.
+                                                               (line  6)
+* :exit, inside :repeat-map and :bind:   Binding to repeat-maps.
+                                                               (line 27)
+* :functions:                            Byte-compiling.       (line 16)
+* :hook:                                 Hooks.                (line  6)
+* :if:                                   Conditional loading.  (line  6)
+* :init:                                 Init keyword.         (line  6)
+* :interpreter:                          Modes and interpreters.
+                                                               (line  6)
+* :load-path:                            Load path.            (line 10)
+* :magic:                                Magic handlers.       (line  6)
+* :magic-fallback:                       Magic handlers.       (line  6)
+* :map, inside :bind:                    Binding in keymaps.   (line  6)
+* :mode:                                 Modes and interpreters.
+                                                               (line  6)
+* :no-require:                           Byte-compiling.       (line 40)
+* :pin:                                  Pinning packages.     (line  6)
+* :preface:                              Preface keyword.      (line  6)
+* :repeat-map, inside :bind:             Binding to repeat-maps.
+                                                               (line  6)
+* :requires:                             Load dependencies.    (line  6)
+* :unless:                               Conditional loading.  (line  6)
+* :vc:                                   Install package.      (line 29)
+* :when:                                 Conditional loading.  (line  6)
+* auto-mode-alist customization:         Modes and interpreters.
+                                                               (line  6)
+* autoloading packages:                  Deferring loading.    (line  6)
+* autoloads for packages, setting up manually: Manual autoloads.
+                                                               (line 10)
+* binding commands used at end of repeat series: Binding to repeat-maps.
+                                                               (line 27)
+* binding function keys with :bind:      Global keybindings.   (line 41)
+* binding keys for package commands:     Key bindings.         (line  6)
+* binding keys to keymaps:               Binding to a keymap.  (line  6)
+* byte-compiling your init file:         Byte-compiling.       (line  6)
+* conditional loading:                   Conditional loading.  (line  6)
+* conditional loading before :preface or :ensure: Conditional loading.
+                                                               (line 59)
+* configure package using Lisp forms:    Lisp Configuration.   (line  6)
+* configure packages using use-package:  Configuring Packages. (line  6)
+* custom load-path for loading a package: Load path.           (line  6)
+* customization of faces:                Faces.                (line  6)
+* customization of variables:            User options.         (line  6)
+* customize package configuration:       Configuring Packages. (line  6)
+* customizing built-in variables:        The emacs package.    (line  6)
+* debugging use-package:                 Troubleshooting.      (line  6)
+* defer loading by default:              Deferring loading.    (line 69)
+* deferring loading of package:          Deferring loading.    (line  6)
+* describe-personal-keybindings:         Displaying keybindings.
+                                                               (line  6)
+* disable package:                       Disabling a package.  (line  6)
+* display your keybindings:              Displaying keybindings.
+                                                               (line  6)
+* expanding macro, for troubleshooting:  Troubleshooting.      (line 22)
+* extending use-package keywords:        Keyword extensions.   (line  6)
+* extension keywords:                    Creating an extension.
+                                                               (line  6)
+* faces, setting:                        Faces.                (line  6)
+* forcing immediate loading:             Forcing loading.      (line  6)
+* gathering use-package statistics:      Gathering Statistics. (line  6)
+* global keybindings:                    Global keybindings.   (line  6)
+* hiding minor modes:                    Hiding minor modes.   (line  6)
+* hooks:                                 Hooks.                (line  6)
+* installing package from specific archive: Pinning packages.  (line  6)
+* installing packages from archives:     Install package.      (line  6)
+* installing using non-standard package managers: Other package managers.
+                                                               (line  6)
+* interpreter-mode-alist customization:  Modes and interpreters.
+                                                               (line  6)
+* key bindings for package commands:     Key bindings.         (line  6)
+* keybinding for repeat-mode keymaps:    Binding to repeat-maps.
+                                                               (line  6)
+* keyword extension:                     Keyword extensions.   (line  6)
+* lazy loading by default:               Deferring loading.    (line 69)
+* lazy loading of packages:              Deferring loading.    (line  6)
+* list of selectors, for :after:         Loading sequentially. (line 35)
+* load-path, add directories for loading a package: Load path. (line  6)
+* loading a package after other packages: Loading sequentially.
+                                                               (line  6)
+* loading conditions:                    Conditional loading.  (line  6)
+* loading lazily:                        Deferring loading.    (line  6)
+* loading packages with use-package:     Loading Packages.     (line  6)
+* local keybindings:                     Binding in keymaps.   (line  6)
+* magic-mode-alist customization:        Magic handlers.       (line  6)
+* manual update of packages:             Pinning packages.     (line 26)
+* multiple hooks:                        Hooks.                (line 37)
+* non-standard package managers:         Other package managers.
+                                                               (line  6)
+* options for troubleshooting:           Troubleshooting Options.
+                                                               (line  6)
+* package autoloads, setting up manually: Manual autoloads.    (line 10)
+* package loading at byte-compilation time, prevent: Byte-compiling.
+                                                               (line 40)
+* package managers, other than package.el: Other package managers.
+                                                               (line  6)
+* package vs library:                    Loading basics.       (line 20)
+* pinning a package to archive:          Pinning packages.     (line  6)
+* prevent a package from loading at compile-time: Byte-compiling.
+                                                               (line 40)
+* prevent loading package if dependencies are missing: Load dependencies.
+                                                               (line  6)
+* quick-start instructions:              Getting Started.      (line  6)
+* reasons for developing use-package:    Basic Concepts.       (line 11)
+* remapping commands with :bind:         Global keybindings.   (line 57)
+* repeat-mode and use-package, using:    Binding to repeat-maps.
+                                                               (line  6)
+* reporting bugs:                        Troubleshooting.      (line 22)
+* setting up major modes:                Modes and interpreters.
+                                                               (line  6)
+* silence byte-compilation warnings:     Byte-compiling.       (line 16)
+* tips for using :preface, :config, :init: Best practices.     (line  6)
+* triggers, for loading packages:        Deferring loading.    (line 15)
+* troubleshooting use-package:           Troubleshooting.      (line  6)
+* troubleshooting, options that help:    Troubleshooting Options.
+                                                               (line  6)
+* usage statistics for use-package:      Gathering Statistics. (line  6)
+* use-package-always-defer:              Deferring loading.    (line 69)
+* use-package-always-defer, with :after: Loading sequentially. (line 51)
+* use-package-always-ensure:             Install package.      (line 20)
+* use-package-always-pin:                Pinning packages.     (line 19)
+* use-package-compute-statistics:        Gathering Statistics. (line 12)
+* use-package-ensure-function:           Other package managers.
+                                                               (line 10)
+* use-package-expand-minimally:          Troubleshooting Options.
+                                                               (line  6)
+* use-package-hook-name-suffix:          Hooks.                (line 65)
+* use-package-report:                    Gathering Statistics. (line 19)
+* use-package-reset-statistics:          Gathering Statistics. (line 24)
+* use-package-vc-prefer-newest:          Install package.      (line 53)
+* use-package-verbose:                   Gathering Statistics. (line  6)
+* user options, setting:                 User options.         (line  6)
+* variable customizations:               User options.         (line  6)
+
+
+
+Tag Table:
+Node: Top937
+Node: Basic Concepts3192
+Node: Getting Started4711
+Node: Loading Packages7761
+Node: Loading basics9134
+Ref: Loading basics-Footnote-110775
+Node: Deferring loading10859
+Node: Forcing loading14114
+Node: Conditional loading14799
+Node: Loading sequentially17058
+Node: The emacs package19748
+Ref: The emacs package-Footnote-120652
+Node: Load dependencies20746
+Node: Manual installation21731
+Node: Load path22292
+Node: Manual autoloads23769
+Node: Configuring Packages24595
+Node: Lisp Configuration25353
+Node: Preface keyword26217
+Node: Init keyword27109
+Node: Config keyword27758
+Node: Best practices28483
+Node: Key bindings30042
+Node: Global keybindings30841
+Node: Binding in keymaps34006
+Node: Binding to a keymap35213
+Node: Binding to repeat-maps36251
+Node: Displaying keybindings38649
+Node: Hooks39213
+Node: Modes and interpreters41979
+Node: Magic handlers43550
+Node: User options44518
+Node: Faces46391
+Node: Hiding minor modes47194
+Ref: Hiding minor modes-Footnote-147917
+Node: Diminish47978
+Ref: Diminish-Footnote-148939
+Node: Delight49004
+Ref: Delight-Footnote-150870
+Node: Installing packages50934
+Node: Install package51695
+Node: Pinning packages54132
+Ref: Pinning packages-Footnote-155832
+Node: Other package managers55912
+Node: Byte-compiling56780
+Node: Troubleshooting58800
+Node: Troubleshooting Options60151
+Node: Gathering Statistics61707
+Node: Disabling a package63273
+Node: Keyword extensions63986
+Node: use-package-ensure-system-package64474
+Ref: use-package-ensure-system-package-Footnote-167469
+Ref: use-package-ensure-system-package-Footnote-267794
+Node: Creating an extension67925
+Node: History71358
+Node: GNU Free Documentation License72031
+Node: Index97383
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

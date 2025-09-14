@@ -1,0 +1,1006 @@
+This is eww.info, produced by makeinfo version 6.8 from eww.texi.
+
+This file documents the GNU Emacs Web Wowser (EWW) package.
+
+   Copyright © 2014–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual,” and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License.”
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+INFO-DIR-SECTION Emacs misc features
+START-INFO-DIR-ENTRY
+* EWW: (eww).      Emacs Web Wowser
+END-INFO-DIR-ENTRY
+
+
+File: eww.info,  Node: Top,  Next: Overview,  Up: (dir)
+
+EWW
+***
+
+This file documents the GNU Emacs Web Wowser (EWW) package.
+
+   Copyright © 2014–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual,” and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License.”
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+* Menu:
+
+* Overview::
+* Basics::
+* Advanced::
+* Command Line::
+
+Appendices
+* History and Acknowledgments::
+* GNU Free Documentation License::  The license for this documentation.
+
+Indices
+* Key Index::
+* Variable Index::
+* Lisp Function Index::
+* Concept Index::
+
+
+File: eww.info,  Node: Overview,  Next: Basics,  Prev: Top,  Up: Top
+
+1 Overview
+**********
+
+“EWW”, the Emacs Web Wowser, is a web browser for GNU Emacs that
+provides a simple, no-frills experience that focuses on readability.  It
+loads, parses, and displays web pages using “shr.el”.  It can display
+images inline, if Emacs was built with image support, but there is no
+support for CSS or JavaScript.
+
+   To use EWW, you need to use an Emacs built with ‘libxml2’ support.
+
+
+File: eww.info,  Node: Basics,  Next: Advanced,  Prev: Overview,  Up: Top
+
+2 Basic Usage
+*************
+
+You can open a URL or search the web with the command ‘M-x eww’.  If the
+input doesn’t look like a URL or domain name the web will be searched
+via ‘eww-search-prefix’.  The default search engine is DuckDuckGo
+(https://duckduckgo.com).  If you want to open a file either prefix the
+file name with ‘file://’ or use the command ‘M-x eww-open-file’.
+
+   If you invoke ‘eww’ or ‘eww-open-file’ with a prefix argument, as in
+‘C-u M-x eww’, they will create a new EWW buffer instead of reusing the
+default one, which is normally called ‘*eww*’.
+
+   If loading the URL was successful the buffer ‘*eww*’ is opened and
+the web page is rendered in it.  You can leave EWW by pressing ‘q’ or
+exit the browser by calling ‘eww-quit’.  To reload the web page hit ‘g’
+(‘eww-reload’).
+
+   Pressing ‘w’ when point is on a link will call
+‘shr-maybe-probe-and-copy-url’, which copies this link’s URL to the kill
+ring.  If point is not on a link, pressing ‘w’ calls
+‘eww-copy-page-url’, which will copy the current page’s URL to the kill
+ring instead.
+
+   The ‘A’ command (‘eww-copy-alternate-url’) copies the URL of an
+alternate link on the current page into the kill ring.  If the page
+specifies multiple alternate links, this command prompts for one of them
+in the minibuffer, with completion.  Alternate links are references that
+an HTML page may include to point to other documents that act as its
+alternative representations.  Notably, HTML pages can use alternate
+links to point to their translated versions and to RSS feeds.  Alternate
+links appear in the ‘<head>’ section of HTML pages as ‘<link>’ elements
+with ‘rel’ attribute equal to ‘``alternate''’; they are part of the
+page’s metadata and are not visible in its rendered content.
+
+   The ‘M-<RET>’ command (‘eww-open-in-new-buffer’) opens the URL at
+point in a new EWW buffer, akin to opening a link in a new “tab” in
+other browsers.  If invoked with prefix argument, the command will not
+make the new buffer the current one.  When ‘global-tab-line-mode’ is
+enabled, this buffer is displayed in the tab on the window tab line.
+When ‘tab-bar-mode’ is enabled, a new tab is created on the frame tab
+bar.
+
+   The ‘R’ command (‘eww-readable’) will attempt to determine which part
+of the document contains the “readable” text, and will only display this
+part.  This usually gets rid of menus and the like.
+
+   When called interactively, this command toggles the display of the
+readable parts.  With a positive prefix argument, this command always
+displays the readable parts, and with a zero or negative prefix, it
+always displays the full page.
+
+   If you want EWW to render a certain page in “readable” mode by
+default, you can add a regular expression matching its URL to
+‘eww-readable-urls’.  Each entry can either be a regular expression in
+string form or a cons cell of the form ‘(REGEXP . READABILITY)’.  If
+READABILITY is non-‘nil’, this behaves the same as the string form;
+otherwise, URLs matching REGEXP will never be displayed in readable mode
+by default.  For example, you can use this to make all pages default to
+readable mode, except for a few outliers:
+
+     (setq eww-readable-urls '(("https://example\\.com/" . nil)
+                               ".*"))
+
+   The ‘F’ command (‘eww-toggle-fonts’) toggles whether to use
+variable-pitch fonts or not.  This sets the ‘shr-use-fonts’ variable.
+
+   The ‘M-C’ command (‘eww-toggle-colors’) toggles whether to use
+HTML-specified colors or not.  This sets the ‘shr-use-colors’ variable.
+
+   The ‘M-I’ command (‘eww-toggle-images’, capital letter i) toggles
+whether to display images or not.  This also sets the
+‘shr-inhibit-images’ variable.
+
+   A URL can be downloaded with ‘d’ (‘eww-download’).  This will
+download the link under point if there is one, or else the URL of the
+current page.  The file will be written to the directory specified by
+‘eww-download-directory’ (default: ‘~/Downloads/’, if it exists;
+otherwise as specified by the ‘DOWNLOAD’ XDG directory)).
+
+   EWW remembers the URLs you have visited to allow you to go back and
+forth between them.  By pressing ‘l’ (‘eww-back-url’) you go to the
+previous URL.  You can go forward again with ‘r’ (‘eww-forward-url’).
+If you want an overview of your browsing history press ‘H’
+(‘eww-list-histories’) to open the history buffer ‘*eww history*’.  The
+history is lost when EWW is quit.  If you want to remember websites you
+can use bookmarks.
+
+   By default, when browsing to a new page from a “historical” one (i.e.
+a page loaded by navigating back via ‘eww-back-url’), EWW will first
+delete any history entries newer than the current page.  This is the
+same behavior as most other web browsers.  You can change this by
+customizing ‘eww-before-browse-history-function’ to another value.  For
+example, setting it to ‘ignore’ will preserve the existing history
+entries and simply prepend the new page to the history list.
+
+   Along with the URLs visited, EWW also remembers both the rendered
+page (as it appears in the buffer) and its source.  This can take a
+considerable amount of memory, so EWW discards the history entries to
+keep their number within a set limit, as specified by
+‘eww-history-limit’; the default being 50.  This variable could also be
+set to ‘nil’ to allow for the history list to grow indefinitely.
+
+   PDFs are viewed inline, by default, with ‘doc-view-mode’, but this
+can be customized by using the mailcap (*note (emacs-mime)mailcap::)
+mechanism, in particular ‘mailcap-mime-data’.
+
+   EWW allows you to “bookmark” URLs.  Simply hit ‘b’
+(‘eww-add-bookmark’) to store a bookmark for the current website.  You
+can view stored bookmarks with ‘B’ (‘eww-list-bookmarks’).  This will
+open the bookmark buffer ‘*eww bookmarks*’.
+
+   To get summary of currently opened EWW buffers, press ‘S’
+(‘eww-list-buffers’).  The ‘*eww buffers*’ buffer allows you to quickly
+kill, flip through and switch to specific EWW buffer.  To switch EWW
+buffers through a minibuffer prompt, press ‘s’ (‘eww-switch-to-buffer’).
+
+   Although EWW and shr.el do their best to render webpages in GNU Emacs
+some websites use features which can not be properly represented or are
+not implemented (e.g., JavaScript).  If you have trouble viewing a
+website with EWW then hit ‘&’ (‘eww-browse-with-external-browser’)
+inside the EWW buffer to open the website in the external browser
+specified by ‘browse-url-secondary-browser-function’.  Some content
+types, such as video or audio content, do not make sense to display in
+GNU Emacs at all.  You can tell EWW to open specific content
+automatically in an external browser by customizing
+‘eww-use-external-browser-for-content-type’.
+
+
+File: eww.info,  Node: Advanced,  Next: Command Line,  Prev: Basics,  Up: Top
+
+3 Advanced
+**********
+
+EWW normally uses ‘url-retrieve’ to fetch the HTML before rendering it,
+and ‘url-retrieve-synchronously’ when the value of
+‘eww-retrieve-command’ is ‘sync’.  It can sometimes be convenient to use
+an external program to do this, and ‘eww-retrieve-command’ should then
+be a list that specifies a command and the parameters.  For instance, to
+use the Chromium browser, you could say something like this:
+
+     (setq eww-retrieve-command
+           '("chromium" "--headless" "--dump-dom"))
+
+   The command should return the HTML on standard output, and the data
+should use UTF-8 as the charset.
+
+   You can view the source of a website with ‘v’ (‘eww-view-source’).
+This will open a new buffer ‘*eww-source*’ and insert the source.  The
+buffer will be set to ‘html-mode’ if available.
+
+   EWW handles cookies through the *note url package: (url)Top. package.
+You can list existing cookies with ‘C’ (‘url-cookie-list’).  For details
+about the Cookie handling *Note (url)Cookies::.
+
+   Many HTML pages have images embedded in them, and EWW will download
+most of these by default.  When fetching images, cookies can be sent and
+received, and these can be used to track users.  To control when to send
+cookies when retrieving these images, the ‘shr-cookie-policy’ variable
+can be used.  The default value, ‘same-origin’, means that EWW will only
+send cookies when fetching images that originate from the same source as
+the HTML page.  ‘nil’ means “never send cookies when retrieving these
+images” and ‘t’ means “always send cookies when retrieving these
+images”.
+
+   When following links in EWW, URLs that match the ‘eww-use-browse-url’
+regexp will be passed to ‘browse-url’ instead of EWW handling them
+itself.  The action can be further customized by altering
+‘browse-url-handlers’.
+
+   The header line of the EWW buffer can be changed by customizing
+‘eww-header-line-format’.  The format replaces ‘%t’ with the title of
+the website and ‘%u’ with the URL.
+
+   The ‘D’ command (‘eww-toggle-paragraph-direction’) toggles the
+paragraphs direction between left-to-right and right-to-left text.  This
+can be useful on web pages that display right-to-left test (like Arabic
+and Hebrew), but where the web pages don’t explicitly state the
+directionality.
+
+   Loading random images from the web can be problematic due to their
+size or content.  By customizing ‘shr-max-image-proportion’ you can set
+the maximal image proportion in relation to the window they are
+displayed in.  E.g., 0.7 means an image is allowed to take up 70% of the
+width and height.  If Emacs supports image scaling, then larger images
+are scaled down.  You can block specific images completely by
+customizing ‘shr-blocked-images’.
+
+   You can control image display by customizing ‘shr-inhibit-images’.
+If this variable is ‘nil’, display the “ALT” text of images instead.
+
+   EWW (or rather its HTML renderer ‘shr’) uses the colors declared in
+the HTML page, but adjusts them if needed to keep a certain minimum
+contrast.  If that is still too low for you, you can customize the
+variables ‘shr-color-visible-distance-min’ and
+‘shr-color-visible-luminance-min’ to get a better contrast.
+
+   By default, the max width used when rendering is 120 characters, but
+this can be adjusted by changing the ‘shr-max-width’ variable.  If a
+specified width is preferred no matter what the width of the window is,
+‘shr-width’ can be set.  If both variables are ‘nil’, the window width
+will always be used.
+
+   The HTML attribute ‘aria-hidden’ is meant to tell screen readers to
+ignore a tag’s contents.  You can customize the variable
+‘shr-discard-aria-hidden’ to tell ‘shr’ to ignore such tags.  This can
+be useful when using a screen reader on the output of ‘shr’ (e.g., on
+EWW buffer text).  It can be useful even when not using a screen reader,
+since web authors often put this attribute on non-essential decorative
+elements.
+
+   In addition to maintaining the history at run-time, EWW will also
+save the partial state of its buffers (the URIs and the titles of the
+pages visited) in the desktop file if one is used.  *Note (emacs)Saving
+Emacs Sessions::.
+
+   EWW history may sensibly contain multiple entries for the same page
+URI.  At run-time, these entries may still have different associated
+point positions or the actual Web page contents.  The latter, however,
+tend to be overly large to preserve in the desktop file, so they get
+omitted, thus rendering the respective entries entirely equivalent.  By
+default, such duplicate entries are not saved.  Setting
+‘eww-desktop-remove-duplicates’ to ‘nil’ will force EWW to save them
+anyway.
+
+   Restoring EWW buffers’ contents may prove to take too long to finish.
+When the ‘eww-restore-desktop’ variable is set to ‘nil’ (the default),
+EWW will not try to reload the last visited Web page when the buffer is
+restored from the desktop file, thus allowing for faster Emacs start-up
+times.  When set to ‘t’, restoring the buffers will also initiate the
+reloading of such pages.
+
+   The EWW buffer restored from the desktop file but not yet reloaded
+will contain a prompt, as specified by the ‘eww-restore-reload-prompt’
+variable.  The value of this variable will be passed through
+‘substitute-command-keys’ upon each use, thus allowing for the use of
+the usual substitutions, such as ‘\[eww-reload]’ for the current key
+binding of the ‘eww-reload’ command.
+
+   If the ‘eww-auto-rename-buffer’ user option is non-‘nil’, EWW buffers
+will be renamed after rendering a document.  If this is ‘title’, rename
+based on the title of the document.  If this is ‘url’, rename based on
+the URL of the document.  This can also be a user-defined function,
+which is called with no parameters in the EWW buffer, and should return
+a string.
+
+   EWW runs the URLs through ‘eww-url-transformers’ before using them.
+This user option is a list of functions, where each function is called
+with the URL as the parameter, and should return the (possibly)
+transformed URL. By default, this variable contains
+‘eww-remove-tracking’, which removes the common ‘utm_’ trackers from
+links.
+
+   If Emacs has been built with xwidget support, EWW can use that to
+display ‘<video>’ elements.  However, this support is still
+experimental, and on some systems doesn’t work (and even worse) may
+crash your Emacs, so this feature is off by default.  If you wish to
+switch it on, set ‘shr-use-xwidgets-for-media’ to a non-‘nil’ value.
+
+
+File: eww.info,  Node: Command Line,  Next: History and Acknowledgments,  Prev: Advanced,  Up: Top
+
+4 Command Line Usage
+********************
+
+It can be convenient to start eww directly from the command line.  The
+‘eww-browse’ function can be used for that:
+
+     emacs -f eww-browse https://gnu.org
+
+   This also allows registering Emacs as a MIME handler for the
+‘"text/x-uri"’ media type.  How to do that varies between systems, but
+typically you’d register the handler to call ‘"emacs -f eww-browse %u"’.
+
+
+File: eww.info,  Node: History and Acknowledgments,  Next: GNU Free Documentation License,  Prev: Command Line,  Up: Top
+
+Appendix A History and Acknowledgments
+**************************************
+
+EWW was originally written by Lars Ingebrigtsen, known for his work on
+Gnus.  He started writing an Emacs HTML rendering library, ‘shr.el’, to
+read blogs in Gnus.  He eventually added a web browser front end and
+HTML form support.  Which resulted in EWW, the Emacs Web Wowser.  EWW
+was announced on 16 June 2013:
+<https://lars.ingebrigtsen.no/2013/06/16/eww/>.
+
+   EWW was then moved from the Gnus repository to GNU Emacs and several
+developers started contributing to it as well.
+
+
+File: eww.info,  Node: GNU Free Documentation License,  Next: Key Index,  Prev: History and Acknowledgments,  Up: Top
+
+B GNU Free Documentation License
+********************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <https://fsf.org/>
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document “free” in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of “copyleft”, which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     “Document”, below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as “you”.  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A “Modified Version” of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A “Secondary Section” is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document’s overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The “Invariant Sections” are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The “Cover Texts” are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A “Transparent” copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     “Transparent” is called “Opaque”.
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The “Title Page” means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, “Title
+     Page” means the text near the most prominent appearance of the
+     work’s title, preceding the beginning of the body of the text.
+
+     The “publisher” means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section “Entitled XYZ” means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     “Acknowledgements”, “Dedications”, “Endorsements”, or “History”.)
+     To “Preserve the Title” of such a section when you modify the
+     Document means that it remains a section “Entitled XYZ” according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document’s license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document’s
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled “History”, Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled “History” in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          “History” section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled “Acknowledgements” or “Dedications”,
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled “Endorsements”.  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          “Endorsements” or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version’s
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled “Endorsements”, provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties—for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of
+     a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     “History” in the various original documents, forming one section
+     Entitled “History”; likewise combine any sections Entitled
+     “Acknowledgements”, and any sections Entitled “Dedications”.  You
+     must delete all sections Entitled “Endorsements.”
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an “aggregate” if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation’s users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document’s Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled “Acknowledgements”,
+     “Dedications”, or “History”, the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly and
+     finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from you
+     under this License.  If your rights have been terminated and not
+     permanently reinstated, receipt of a copy of some or all of the
+     same material does not give you any rights to use it.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <https://www.gnu.org/licenses/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License “or any later version” applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.  If the Document specifies that a proxy can
+     decide which future versions of this License can be used, that
+     proxy’s public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+  11. RELICENSING
+
+     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A “Massive Multiauthor Collaboration” (or “MMC”) contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     “Incorporate” means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is “eligible for relicensing” if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the “with...Texts.” line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: eww.info,  Node: Key Index,  Next: Variable Index,  Prev: GNU Free Documentation License,  Up: Top
+
+Key Index
+*********
+
+ [index ]
+* Menu:
+
+* &:                                     Basics.              (line 120)
+* A:                                     Basics.              (line  27)
+* b:                                     Basics.              (line 110)
+* B:                                     Basics.              (line 110)
+* C:                                     Advanced.            (line  23)
+* d:                                     Basics.              (line  77)
+* F:                                     Basics.              (line  67)
+* g:                                     Basics.              (line  16)
+* H:                                     Basics.              (line  83)
+* l:                                     Basics.              (line  83)
+* M-C:                                   Basics.              (line  70)
+* M-I:                                   Basics.              (line  73)
+* M-RET:                                 Basics.              (line  38)
+* q:                                     Basics.              (line  16)
+* R:                                     Basics.              (line  46)
+* r:                                     Basics.              (line  83)
+* s:                                     Basics.              (line 115)
+* S:                                     Basics.              (line 115)
+* v:                                     Advanced.            (line  19)
+* w:                                     Basics.              (line  16)
+
+
+File: eww.info,  Node: Variable Index,  Next: Lisp Function Index,  Prev: Key Index,  Up: Top
+
+Variable Index
+**************
+
+After eww has rendered the data in the buffer, ‘eww-after-render-hook’
+is called.  It can be used to alter the contents, for instance.
+
+ [index ]
+* Menu:
+
+* browse-url-secondary-browser-function: Basics.              (line 120)
+* eww-after-render-hook:                 Variable Index.      (line   6)
+* eww-auto-rename-buffer:                Advanced.            (line 111)
+* eww-before-browse-history-function:    Basics.              (line  91)
+* eww-desktop-remove-duplicates:         Advanced.            (line  88)
+* eww-download-directory:                Basics.              (line  77)
+* eww-header-line-format:                Advanced.            (line  42)
+* eww-history-limit:                     Basics.              (line  99)
+* eww-readable-urls:                     Basics.              (line  55)
+* eww-restore-desktop:                   Advanced.            (line  97)
+* eww-restore-reload-prompt:             Advanced.            (line 104)
+* eww-search-prefix:                     Basics.              (line   6)
+* eww-url-transformers:                  Advanced.            (line 118)
+* eww-use-browse-url:                    Advanced.            (line  37)
+* eww-use-external-browser-for-content-type: Basics.          (line 120)
+* shr-allowed-images:                    Advanced.            (line  52)
+* shr-blocked-images:                    Advanced.            (line  52)
+* shr-color-visible-distance-min:        Advanced.            (line  63)
+* shr-color-visible-luminance-min:       Advanced.            (line  63)
+* shr-cookie-policy:                     Advanced.            (line  27)
+* shr-discard-aria-hidden:               Advanced.            (line  75)
+* shr-inhibit-images:                    Basics.              (line  73)
+* shr-inhibit-images <1>:                Advanced.            (line  60)
+* shr-max-image-proportion:              Advanced.            (line  52)
+* shr-max-width:                         Advanced.            (line  69)
+* shr-use-colors:                        Basics.              (line  70)
+* shr-use-fonts:                         Basics.              (line  67)
+* shr-use-xwidgets-for-media:            Advanced.            (line 125)
+* shr-width:                             Advanced.            (line  69)
+
+
+File: eww.info,  Node: Lisp Function Index,  Next: Concept Index,  Prev: Variable Index,  Up: Top
+
+Function Index
+**************
+
+ [index ]
+* Menu:
+
+* eww:                                   Basics.              (line   6)
+* eww-add-bookmark:                      Basics.              (line 110)
+* eww-back-url:                          Basics.              (line  83)
+* eww-browse-with-external-browser:      Basics.              (line 120)
+* eww-copy-alternate-url:                Basics.              (line  27)
+* eww-copy-page-url:                     Basics.              (line  16)
+* eww-download:                          Basics.              (line  77)
+* eww-forward-url:                       Basics.              (line  83)
+* eww-list-bookmarks:                    Basics.              (line 110)
+* eww-list-buffers:                      Basics.              (line 115)
+* eww-list-histories:                    Basics.              (line  83)
+* eww-open-file:                         Basics.              (line   6)
+* eww-open-in-new-buffer:                Basics.              (line  38)
+* eww-quit:                              Basics.              (line  16)
+* eww-readable:                          Basics.              (line  46)
+* eww-reload:                            Basics.              (line  16)
+* eww-retrieve-command:                  Advanced.            (line   6)
+* eww-switch-to-buffer:                  Basics.              (line 115)
+* eww-toggle-colors:                     Basics.              (line  70)
+* eww-toggle-fonts:                      Basics.              (line  67)
+* eww-toggle-images:                     Basics.              (line  73)
+* eww-toggle-paragraph-direction:        Advanced.            (line  46)
+* eww-view-source:                       Advanced.            (line  19)
+* shr-maybe-probe-and-copy-url:          Basics.              (line  16)
+* url-cookie-list:                       Advanced.            (line  23)
+
+
+File: eww.info,  Node: Concept Index,  Prev: Lisp Function Index,  Up: Top
+
+Concept Index
+*************
+
+ [index ]
+* Menu:
+
+* aria-hidden, HTML attribute:           Advanced.            (line  75)
+* Bookmarks:                             Basics.              (line 110)
+* Contrast:                              Advanced.            (line  63)
+* Cookies:                               Advanced.            (line  23)
+* Desktop Support:                       Advanced.            (line  83)
+* Download:                              Basics.              (line  77)
+* eww:                                   Basics.              (line   6)
+* External Browser:                      Basics.              (line 120)
+* Header:                                Advanced.            (line  42)
+* History:                               Basics.              (line  83)
+* Image Display:                         Basics.              (line  73)
+* Image Display <1>:                     Advanced.            (line  52)
+* Multiple Buffers:                      Basics.              (line 115)
+* paragraph direction:                   Advanced.            (line  46)
+* PDF:                                   Basics.              (line 106)
+* Saving Sessions:                       Advanced.            (line  83)
+* utm:                                   Advanced.            (line 118)
+* video:                                 Advanced.            (line 125)
+* Viewing Source:                        Advanced.            (line  19)
+* Web Browsing:                          Basics.              (line   6)
+
+
+
+Tag Table:
+Node: Top873
+Node: Overview1898
+Node: Basics2386
+Node: Advanced9439
+Node: Command Line16178
+Node: History and Acknowledgments16704
+Node: GNU Free Documentation License17393
+Node: Key Index42743
+Node: Variable Index44354
+Node: Lisp Function Index46761
+Node: Concept Index48740
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

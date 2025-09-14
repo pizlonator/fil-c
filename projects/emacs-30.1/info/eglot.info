@@ -1,0 +1,2059 @@
+This is eglot.info, produced by makeinfo version 6.8 from eglot.texi.
+
+This manual is for Eglot, the Emacs LSP client.
+
+   Copyright © 2022–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual”, and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+INFO-DIR-SECTION Emacs misc features
+START-INFO-DIR-ENTRY
+* Eglot: (eglot).             Language Server Protocol client for Emacs.
+END-INFO-DIR-ENTRY
+
+
+File: eglot.info,  Node: Top,  Next: Quick Start,  Up: (dir)
+
+Eglot
+*****
+
+Eglot is the Emacs client for the “Language Server Protocol” (LSP).  The
+name “Eglot” is an acronym that stands for “Emacs polyGLOT”.  (1)  Eglot
+provides infrastructure and a set of commands for enriching the source
+code editing capabilities of Emacs via LSP.  LSP is a standardized
+communications protocol between source code editors (such as Emacs) and
+language servers—programs external to Emacs which analyze the source
+code on behalf of Emacs.  The protocol allows Emacs to receive various
+source code services from the server, such as description and location
+of function calls, types of variables, class definitions, syntactic
+errors, etc.  This way, Emacs doesn’t need to implement the
+language-specific parsing and analysis capabilities in its own code, but
+is still capable of providing sophisticated editing features that rely
+on such capabilities, such as automatic code completion, go-to
+definition of function/class, documentation of symbol at-point,
+refactoring, on-the-fly diagnostics, and more.
+
+   Eglot itself is completely language-agnostic, but it can support any
+programming language for which there is a language server and an Emacs
+major mode.
+
+   This manual documents how to configure, use, and customize Eglot.
+
+   This manual is for Eglot, the Emacs LSP client.
+
+   Copyright © 2022–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual”, and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License”.
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+* Menu:
+
+* Quick Start::                 For the impatient.
+* Eglot and LSP Servers::       How to work with language servers.
+* Using Eglot::                 Important Eglot commands and variables.
+* Customizing Eglot::           Eglot customization and advanced features.
+* Advanced server configuration::  Fine-tune a specific language server
+* Extending Eglot::             Writing Eglot extensions in Elisp
+* Troubleshooting Eglot::       Troubleshooting and reporting bugs.
+* GNU Free Documentation License::  The license for this manual.
+* Index::
+
+   ---------- Footnotes ----------
+
+   (1) A “polyglot” is a person who is able to use several languages.
+
+
+File: eglot.info,  Node: Quick Start,  Next: Eglot and LSP Servers,  Prev: Top,  Up: Top
+
+1 Quick Start
+*************
+
+This chapter provides concise instructions for setting up and using
+Eglot with your programming project in common usage scenarios.  For more
+detailed instructions regarding Eglot setup, *note Eglot and LSP
+Servers::.  *Note Using Eglot::, for detailed description of using
+Eglot, and see *note Customizing Eglot::, for adapting Eglot to less
+common use patterns.
+
+   Here’s how to start using Eglot with your programming project:
+
+  1. Select and install a language server.
+
+     Eglot comes pre-configured for many popular language servers, see
+     the value of ‘eglot-server-programs’.  If the server(s) mentioned
+     there satisfy your needs for the programming language(s) with which
+     you want to use Eglot, you just need to make sure those servers are
+     installed on your system and Eglot can find them.
+
+     Alternatively, install one or more servers of your choice and tell
+     Eglot where to find them.  To do that, you may add to the value of
+     ‘eglot-server-programs’, as described in *note Setting Up LSP
+     Servers:: or have Eglot prompt you about it (*note Eglot
+     Commands::).
+
+  2. Turn on Eglot for your project.
+
+     To start using Eglot for a project, type ‘M-x eglot <RET>’ in a
+     buffer visiting any file that belongs to the project.  This starts
+     the language server configured for the programming language of that
+     buffer, and causes Eglot to start “managing” file-visiting buffers
+     related to that programming language.  This includes files that are
+     already visited at the time the ‘eglot’ command is invoked, as well
+     as any files visited after this invocation.
+
+     The notion of a “project” used by Eglot is the same Emacs uses
+     (*note (emacs)Projects::): in the simplest case, the “project” is
+     the single file you are editing, but it can also be all the files
+     in a single directory or a directory tree under some version
+     control system, such as Git.
+
+     There are alternate ways of starting Eglot; see *note Starting
+     Eglot:: for details.
+
+  3. Use Eglot.
+
+     Most Eglot facilities are integrated into Emacs features, such as
+     ElDoc, Flymake, Xref, and Imenu.  However, Eglot also provides
+     commands of its own, mainly to perform tasks by the language
+     server, such as ‘M-x eglot-rename’ (to rename an identifier across
+     the entire project), ‘M-x eglot-format’ (to reformat and reindent
+     code), and some others.  *Note Eglot Commands::, for the detailed
+     list of Eglot commands.
+
+  4. That’s it!
+
+
+File: eglot.info,  Node: Eglot and LSP Servers,  Next: Using Eglot,  Prev: Quick Start,  Up: Top
+
+2 Eglot and LSP Servers
+***********************
+
+This chapter describes how to set up Eglot for your needs, and how to
+start it.
+
+* Menu:
+
+* Setting Up LSP Servers::   How to configure LSP servers for your needs.
+* Starting Eglot::              Ways of starting Eglot for your project.
+* Shutting Down LSP Servers::
+
+
+File: eglot.info,  Node: Setting Up LSP Servers,  Next: Starting Eglot,  Up: Eglot and LSP Servers
+
+2.1 Setting Up LSP Servers
+==========================
+
+For Eglot to be useful, it must first be combined with a suitable
+language server.  Usually, that means running the server program locally
+as a child process of Emacs (*note (elisp)Processes::) and communicating
+with it via the standard input and output streams.
+
+   The language server program must be installed separately, and is not
+further discussed in this manual; refer to the documentation of the
+particular server(s) you want to install.
+
+   To use a language server, Eglot must know how to start it and which
+programming languages each server supports.  This information is
+commonly provided by the variable ‘eglot-server-programs’.
+
+ -- Variable: eglot-server-programs
+     This variable associates major modes with names and command-line
+     arguments of the language server programs corresponding to the
+     programming language of each major mode.  It provides all the
+     information that Eglot needs to know about the programming language
+     of the source you are editing.
+
+     The value of the variable is an alist, whose elements are of the
+     form ‘(MAJOR-MODE . SERVER)’.
+
+     The MAJOR-MODE of the alist elements can be either a symbol of an
+     Emacs major mode or a list of the form ‘(MODE :language-id ID)’,
+     with MODE being a major-mode symbol and ID a string that identifies
+     the language to the server (if Eglot cannot by itself convert the
+     major-mode to the language identifier string required by the
+     server).  In addition, MAJOR-MODE can be a list of several major
+     modes specified in one of the above forms – this means a running
+     instance of the associated server is responsible for files of
+     multiple major modes or languages in the project.
+
+     The SERVER part of the alist elements can be one of the following:
+
+     ‘(PROGRAM ARGS...)’
+          This says to invoke PROGRAM with zero or more arguments ARGS;
+          the program is expected to communicate with Emacs via the
+          standard input and standard output streams.
+
+     ‘(PROGRAM ARGS... :initializationOptions OPTIONS...)’
+          PROGRAM is invoked with ARGS but OPTIONS specifies how to
+          construct the ‘:initializationOptions’ JSON object to pass the
+          server on during the LSP handshake (*note Advanced server
+          configuration::).
+
+     ‘(HOST PORT ARGS...)’
+          Here HOST is a string and PORT is a positive integer
+          specifying a TCP connection to a remote server.  The ARGS are
+          passed to ‘open-network-stream’, e.g. if the connection needs
+          to use encryption or other non-default parameters (*note
+          (elisp)Network::).
+
+     ‘(PROGRAM ARGS... :autoport MOREARGS...)’
+          PROGRAM is started with a command line constructed from ARGS
+          followed by an available server port and the rest of arguments
+          in MOREARGS; Eglot then establishes a TCP connection with the
+          server via that port on the local host.
+
+     ‘FUNCTION’
+          This should be a function of a single argument: non-‘nil’ if
+          the connection was requested interactively (e.g., by the
+          ‘eglot’ command), otherwise ‘nil’.  The function should return
+          a value of any of the forms described above.  This allows
+          interaction with the user for determining the program to start
+          and its command-line arguments.
+
+   Eglot comes with a fairly complete set of associations of major-modes
+to popular language servers predefined.  If you need to add server
+associations to the default list, use ‘add-to-list’.  For example, if
+there is a hypothetical language server program ‘fools’ for the language
+‘Foo’ which is supported by an Emacs major-mode ‘foo-mode’, you can add
+it to the alist like this:
+
+     (with-eval-after-load 'eglot
+       (add-to-list 'eglot-server-programs
+                    '(foo-mode . ("fools" "--stdio"))))
+
+   This will invoke the program ‘fools’ with the command-line argument
+‘--stdio’ in support of editing source files for which Emacs turns on
+‘foo-mode’, and will communicate with the program via the standard
+streams.  As usual with invoking programs, the executable file ‘fools’
+should be in one of the directories mentioned by the ‘exec-path’
+variable (*note (elisp)Subprocess Creation::), for Eglot to be able to
+find it.
+
+   Sometimes, multiple servers are acceptable alternatives for handling
+a given major-mode.  In those cases, you may combine the helper function
+‘eglot-alternatives’ with the functional form of
+‘eglot-server-programs’.
+
+     (with-eval-after-load 'eglot
+       (add-to-list 'eglot-server-programs
+                    `(foo-mode . ,(eglot-alternatives
+                                    '(("fools" "--stdio")
+                                      ("phewls" "--fast"))))))
+
+   If you have ‘fools’ and ‘phewls’ installed, the function produced by
+‘eglot-alternatives’ will prompt for the server to use in ‘foo-mode’
+buffers.  Else it will use whichever is available.
+
+
+File: eglot.info,  Node: Starting Eglot,  Next: Shutting Down LSP Servers,  Prev: Setting Up LSP Servers,  Up: Eglot and LSP Servers
+
+2.2 Starting Eglot
+==================
+
+The most common way to start Eglot is to simply visit a source file of a
+given language and use the command ‘M-x eglot’.  This starts the
+language server suitable for the visited file’s major-mode, and attempts
+to connect to it.  If the connection to the language server is
+successful, you will see the ‘[eglot:PROJECT]’ indicator on the mode
+line which reflects the server that was started.  If the server program
+couldn’t be started or connection to it failed, you will see an error
+message; in that case, try to troubleshoot the problem as described in
+*note Troubleshooting Eglot::.  Once a language server was successfully
+started and Eglot connected to it, you can immediately start using the
+Emacs features supported by Eglot, as described in *note Eglot
+Features::.
+
+   A single Eglot session for a certain major-mode usually serves all
+the buffers under that mode which visit files from the same project, so
+you don’t need to invoke ‘M-x eglot’ again when you visit another file
+from the same project which is edited using the same major-mode.  This
+is because Eglot uses the Emacs project infrastructure, as described in
+*note Eglot and Buffers::, and this knows about files that belong to the
+same project.  Thus, after starting an Eglot session for some buffer,
+that session is automatically reused when visiting files in the same
+project with the same major-mode.
+
+   Alternatively, you could configure Eglot to start automatically for
+one or more major-modes from the respective mode hooks.  Here’s an
+example for a hypothetical ‘foo-mode’:
+
+      (add-hook 'foo-mode-hook 'eglot-ensure)
+
+The function ‘eglot-ensure’ will start an Eglot session for each buffer
+in which ‘foo-mode’ is turned on, if there isn’t already an Eglot
+session that handles the buffer.  Note that this variant of starting an
+Eglot session is non-interactive, so it should be used only when you are
+confident that Eglot can be started reliably for any file which may be
+visited with the major-mode in question.
+
+   Note that it’s often difficult to establish this confidence fully, so
+it may be wise to use the interactive command ‘eglot’ instead.  You only
+need to invoke it once per project, as all other files visited within
+the same project will automatically be managed with no further user
+intervention needed.
+
+   When Eglot connects to a language server for the first time in an
+Emacs session, it runs the hook ‘eglot-connect-hook’ (*note Eglot
+Variables::).
+
+
+File: eglot.info,  Node: Shutting Down LSP Servers,  Prev: Starting Eglot,  Up: Eglot and LSP Servers
+
+2.3 Shutting Down LSP Servers
+=============================
+
+When Eglot is turned on, it arranges for turning itself off
+automatically if the language server process terminates.  Turning off
+Eglot means that it shuts down the server connection, ceases its
+management of all the buffers that use the server connection which was
+terminated, deactivates its minor mode, and restores the original values
+of the Emacs variables that Eglot changed when it was turned on.  *Note
+Eglot and Buffers::, for more details of what Eglot management of a
+buffer entails.
+
+   You can also shut down a language server manually, by using the
+command ‘M-x eglot-shutdown’.  This prompts for the server (unless
+there’s only one connection and it’s used in the current buffer), and
+then shuts it down.  By default, it also kills the server’s events
+buffer (*note Troubleshooting Eglot::), but a prefix argument prevents
+that.
+
+   Alternatively, you can customize the variable ‘eglot-autoshutdown’ to
+a non-‘nil’ value, in which case Eglot will automatically shut down the
+language server process when the last buffer served by that language
+server is killed.  The default of this variable is ‘nil’, so that
+visiting another file would automatically activate Eglot even when the
+project which started Eglot with the server no longer has any buffer
+associated with it.  This default allows you to start a server only once
+in each Emacs session.
+
+
+File: eglot.info,  Node: Using Eglot,  Next: Customizing Eglot,  Prev: Eglot and LSP Servers,  Up: Top
+
+3 Using Eglot
+*************
+
+This chapter describes in detail the features that Eglot provides and
+how it does that.  It also provides reference sections for Eglot
+commands and variables.
+
+* Menu:
+
+* Eglot Features::
+* Eglot and Buffers::
+* Eglot Commands::
+* Eglot Variables::
+
+
+File: eglot.info,  Node: Eglot Features,  Next: Eglot and Buffers,  Up: Using Eglot
+
+3.1 Eglot Features
+==================
+
+While Eglot is enabled in a buffer, it is said to be “managing” it,
+using LSP and the specific capabilities of the language server to
+activate and enhance modern IDE features in Emacs.  Some of these
+features are provided via other Emacs packages, and some via Eglot
+directly (*note Eglot Commands::).
+
+   Here’s an overview of the main features that Eglot provides:
+
+   • At-point documentation: when point is at or near a symbol or an
+     identifier, the information about the symbol/identifier, such as
+     the signature of a function or class method and server-generated
+     diagnostics, is made available via the ElDoc package (*note
+     (emacs)Programming Language Doc::).  This allows major modes to
+     provide extensive help and documentation about the program
+     identifiers.
+
+   • On-the-fly diagnostic annotations, via the Flymake package (*note
+     (flymake)Top::).  Eglot’s Flymake backend replaces other Flymake
+     backends while it is managing a buffer, and enhances diagnostics
+     with interactive server-suggested fixes (so-called “code actions”,
+     *note Eglot Commands::)
+
+   • Finding definitions and uses of identifiers, via Xref (*note
+     (emacs)Xref::).  Eglot provides a backend for the Xref capabilities
+     which uses the language-server understanding of the program source.
+     In particular, it eliminates the need to generate tags tables
+     (*note (emacs)Tags tables::) for languages which are only supported
+     by the ‘etags’ backend.
+
+   • Buffer navigation by name of function, class, method, etc., via
+     Imenu (*note (emacs)Imenu::).  Eglot provides its own variant of
+     ‘imenu-create-index-function’, which generates the index for the
+     buffer based on language-server program source analysis.
+
+   • Enhanced completion of symbol at point by the ‘completion-at-point’
+     command (*note (emacs)Symbol Completion::).  This uses the
+     language-server’s parser data for the completion candidates.
+
+   • Automatic reformatting of source code as you type it.  This is
+     similar to what the ‘eglot-format’ command does (see below), but is
+     activated automatically as you type.
+
+   • If a completion package such as ‘company-mode’, a popular
+     third-party completion package (or any other completion package),
+     is installed, Eglot enhances it by providing completion candidates
+     based on the language-server analysis of the source code.
+     (‘company-mode’ can be installed from GNU ELPA.)
+
+   • If ‘yasnippet’, a popular third-party package for automatic
+     insertion of code templates (snippets), is installed, and the
+     language server supports snippet completion candidates, Eglot
+     arranges for the completion package to instantiate these snippets
+     using ‘yasnippet’.  (‘yasnippet’ can be installed from GNU ELPA.)
+
+   • If the popular third-party package ‘markdown-mode’ is installed,
+     and the server provides at-point documentation formatted as
+     Markdown in addition to plain text, Eglot arranges for the ElDoc
+     package to enrich this text with fontifications and other nice
+     formatting before displaying it to the user.  This makes the
+     documentation shown by ElDoc look nicer on display.
+
+   • In addition to enabling and enhancing other features and packages,
+     Eglot also provides a number of user commands based on the
+     capabilities of language servers.  Examples include renaming
+     symbols with ‘eglot-rename’ and asking to automatically correct
+     problems with ‘eglot-code-actions’.  *Note Eglot Commands::.
+
+   Not all servers support the full set of LSP capabilities, but most of
+them support enough to enable the basic set of features mentioned above.
+
+   Conversely, some servers offer capabilities for which no equivalent
+Emacs package exists yet, and so Eglot cannot (yet) expose these
+capabilities to Emacs users.  However, *Note Extending Eglot::.
+
+   Finally, it’s worth noting that, by default, Eglot generally turns on
+all features that it _can_ turn on.  It’s possible to opt out of some
+features via user options (*note Customizing Eglot::) and a hook that
+runs after Eglot starts managing a buffer (*note Eglot and Buffers::).
+
+
+File: eglot.info,  Node: Eglot and Buffers,  Next: Eglot Commands,  Prev: Eglot Features,  Up: Using Eglot
+
+3.2 Buffers, Projects, and Eglot
+================================
+
+One of the main strong points of using a language server is that a
+language server has a broad view of the program: it considers more than
+just the single source file you are editing.  Ideally, the language
+server should know about all the source files of your program which are
+written in the language supported by the server.  In the language-server
+parlance, the set of the source files of a program is known as a
+“workspace”.  The Emacs equivalent of a workspace is a “project” (*note
+(emacs)Projects::).  Eglot fully supports Emacs projects, and considers
+the file in whose buffer Eglot is turned on as belonging to a project.
+In the simplest case, that file is the entire project, i.e. your project
+consists of a single file.  But there are other more complex projects:
+
+   • A single-directory project: several source files in a single common
+     directory.
+
+   • A VC project: source files in a directory hierarchy under some VCS,
+     e.g. a VCS repository (*note (emacs)Version Control::).
+
+   • An EDE project: source files in a directory hierarchy managed via
+     the Emacs Development Environment (*note (emacs)EDE::).
+
+   Eglot uses Emacs’s project management infrastructure to figure out
+which files and buffers belong to what project, so any kind of project
+supported by that infrastructure is automatically supported by Eglot.
+
+   When Eglot starts a server program, it does so in the project’s root
+directory, which is usually the top-level directory of the project’s
+directory hierarchy.  This ensures the language server has the same
+comprehensive view of the project’s files as you do.
+
+   For example, if you visit the file ‘~/projects/fooey/lib/x.foo’ and
+‘x.foo’ belongs to a project rooted at ‘~/projects/fooey’ (perhaps
+because a ‘.git’ directory exists there), then ‘M-x eglot’ causes the
+server program to start with that root as the current working directory.
+The server then will analyze not only the file ‘lib/x.foo’ you visited,
+but likely also all the other ‘*.foo’ files under the ‘~/projects/fooey’
+directory.
+
+   In some cases, additional information specific to a given project
+will need to be provided to the language server when starting it.  The
+variable ‘eglot-workspace-configuration’ (*note Customizing Eglot::)
+exists for that purpose.  It specifies the parameters and their values
+to communicate to each language server which needs that.
+
+   When Eglot is active for a project, it performs several background
+activities on behalf of the project and its buffers:
+
+   • All of the project’s file-visiting buffers under the same
+     major-mode are served by a single language-server connection.  (If
+     the project uses several programming languages, there will usually
+     be a separate server connection for each group of files written in
+     the same language and using the same Emacs major-mode.)  Eglot adds
+     the ‘[eglot:PROJECT]’ indication to the mode line of each such
+     buffer, where SERVER is the name of the server and PROJECT
+     identifies the project by its root directory.  Clicking the mouse
+     on the Eglot mode-line indication activates a menu with
+     server-specific items.
+
+   • For each buffer in which Eglot is active, it notifies the language
+     server that Eglot is “managing” the file visited by that buffer.
+     This tells the language server that the file’s contents on disk may
+     no longer be up-to-date due to unsaved edits.  Eglot reports to the
+     server any changes in the text of each managed buffer, to make the
+     server aware of unsaved changes.  This includes your editing of the
+     buffer and also changes done automatically by other Emacs features
+     and commands.  Killing a buffer relinquishes its management by
+     Eglot and notifies the server that the file on disk is up-to-date.
+
+   • Eglot turns on a special minor mode in each buffer it manages.
+     This minor mode ensures the server is notified about files Eglot
+     manages, and also arranges for other Emacs features supported by
+     Eglot (*note Eglot Features::) to receive information from the
+     language server, by changing the settings of these features.
+     Unlike other minor-modes, this special minor mode is not activated
+     manually by the user, but automatically, as the result of starting
+     an Eglot session for the buffer.  However, this minor mode provides
+     a hook variable ‘eglot-managed-mode-hook’ that can be used to
+     customize the Eglot management of the buffer.  This hook is run
+     both when the minor mode is turned on and when it’s turned off; use
+     the function ‘eglot-managed-p’ to tell if current buffer is still
+     being managed or not.  When Eglot stops managing the buffer, this
+     minor mode is turned off, and all the settings that Eglot changed
+     are restored to their original values.
+
+   • When you visit a file under the same project, whether an existing
+     or a new file, its buffer is automatically added to the set of
+     buffers managed by Eglot, and the server which supports the
+     buffer’s major-mode is notified about that.  Thus, visiting a
+     non-existent file ‘/home/joe/projects/fooey/lib/y.foo’ in the above
+     example will notify the server of the ‘*.foo’ files’ language that
+     a new file was added to the project, even before the file appears
+     on disk.  The special Eglot minor mode is also turned on
+     automatically in the buffer visiting the file.
+
+
+File: eglot.info,  Node: Eglot Commands,  Next: Eglot Variables,  Prev: Eglot and Buffers,  Up: Using Eglot
+
+3.3 Eglot Commands
+==================
+
+This section provides a reference for the most commonly used Eglot
+commands:
+
+‘M-x eglot’
+     This command adds the current buffer and the file it visits to the
+     group of buffers and files managed by Eglot on behalf of a suitable
+     language server.  If a language server for the buffer’s
+     ‘major-mode’ (*note (emacs)Major Modes::) is not yet running, it
+     will be started; otherwise the buffer and its file will be added to
+     those managed by an existing server session.
+
+     The command attempts to figure out the buffer’s major mode and the
+     suitable language server; in case it fails, it might prompt for the
+     major mode to use and for the server program to start.  If invoked
+     with ‘C-u’, it always prompts for the server program, and if
+     invoked with ‘C-u C-u’, it also prompts for the major mode.
+
+     If the language server is successfully started and contacted, this
+     command arranges for any other buffers belonging to the same
+     project and using the same major mode to use the same
+     language-server session.  That includes any buffers created by
+     visiting files after this command succeeds to connect to a language
+     server.
+
+     All the Emacs features that are capable of using Eglot services
+     (*note Eglot Features::) are automatically configured by this
+     command to start using the language server via Eglot.  To customize
+     which Emacs features will be configured to use Eglot, use the
+     ‘eglot-stay-out-of’ option (*note Customizing Eglot::).
+
+‘M-x eglot-reconnect’
+     This command shuts down the current connection to the language
+     server and immediately restarts it using the same options used
+     originally.  This can sometimes be useful to unclog a partially
+     malfunctioning server connection.
+
+‘M-x eglot-shutdown’
+     This command shuts down a language server.  It prompts for a
+     language server to shut down (unless there’s only one server
+     session, and it manages the current buffer).  Then the command
+     shuts down the server and stops managing the buffers the server was
+     used for.  Emacs features (*note Eglot Features::) that Eglot
+     configured to work with the language server are restored back to
+     their original configuration.
+
+     Normally, this command kills the buffers used for communicating
+     with the language server, but if invoked with a prefix argument
+     ‘C-u’, the command doesn’t kill those buffers, allowing them to be
+     used for diagnostics and problem reporting (*note Troubleshooting
+     Eglot::).
+
+‘M-x eglot-shutdown-all’
+     This command shuts down all the language servers active in the
+     current Emacs session.  As with ‘eglot-shutdown’, invoking this
+     command with a prefix argument avoids killing the buffers used for
+     communications with the language servers.
+
+‘M-x eglot-rename’
+     This command renames the program symbol (a.k.a. “identifier”) at
+     point to another name.  It prompts for the new name of the symbol,
+     and then modifies all the files in the project which are managed by
+     the language server of the current buffer to implement the
+     renaming.
+
+‘M-x eglot-format’
+     This command reformats the active region according to the
+     language-server rules.  If no region is active, it reformats the
+     entire current buffer.
+
+‘M-x eglot-format-buffer’
+     This command reformats the current buffer, in the same manner as
+     ‘eglot-format’ does.
+
+‘M-x eglot-code-actions’
+‘M-x eglot-code-action-organize-imports’
+‘M-x eglot-code-action-quickfix’
+‘M-x eglot-code-action-extract’
+‘M-x eglot-code-action-inline’
+‘M-x eglot-code-action-rewrite’
+     These commands allow you to invoke the so-called “code actions”:
+     requests for the language server to provide editing commands for
+     correcting, refactoring or beautifying your code.  These commands
+     may affect more than one visited file belonging to the project.
+
+     The command ‘eglot-code-actions’ asks the server if there are any
+     code actions for any point in the buffer or contained in the active
+     region.  If there are, you have the choice to execute one of them
+     via the minibuffer.
+
+     A common use of code actions is fixing the Flymake error
+     diagnostics issued by Eglot (*note (flymake)Top::).  Clicking on a
+     diagnostic with ‘mouse-2’ invokes ‘eglot-code-actions-at-mouse’
+     which pops up a menu of available code actions.  The variable
+     ‘eglot-diagnostics-map’ can be used to control the mouse binding.
+
+     Other commands execute a specific code action.  For example,
+     ‘eglot-code-action-organize-imports’ rearranges the program’s
+     “imports”—declarations of modules whose capabilities the program
+     uses.
+
+‘M-x eglot-inlay-hints-mode’
+     This command toggles LSP “inlay hints” on and off for the current
+     buffer.  Inlay hints are small text annotations to specific parts
+     of the whole buffer, not unlike diagnostics, but designed to help
+     readability instead of indicating problems.  For example, a C++
+     language server can serve hints about positional parameter names in
+     function calls and a variable’s automatically deduced type.  Inlay
+     hints help the user not have to remember these things by heart.
+
+   The following Eglot commands are used less commonly, mostly for
+diagnostic and troubleshooting purposes:
+
+‘M-x eglot-events-buffer’
+     This command pops up the events buffer used for communication with
+     the language server of the current buffer.
+
+‘M-x eglot-stderr-buffer’
+     This command pops up the buffer with the debug info printed by the
+     language server to its standard error stream.
+
+‘M-x eglot-forget-pending-continuations’
+     Forget pending requests for the server of the current buffer.
+
+‘M-x eglot-signal-didChangeConfiguration’
+     This command updates the language server configuration according to
+     the current value of the variable ‘eglot-workspace-configuration’
+     (*note Customizing Eglot::).
+
+‘M-x eglot-clear-status’
+     Clear the last JSONRPC error for the server of the current buffer.
+     Eglot keeps track of erroneous situations encountered by the server
+     in its mode-line indication so that the user may inspect the
+     communication leading up to it (*note Troubleshooting Eglot::).  If
+     the situation is deemed uninteresting or temporary, this command
+     can be used to “forget” the error.  Note that the command ‘M-x
+     eglot-reconnect’ can sometimes be used to unclog a temporarily
+     malfunctioning server.
+
+   As described in *note Eglot Features:: most features associated with
+Eglot are actually provided by other Emacs packages and features, and
+Eglot only enhances them by allowing them to use the information coming
+from the language servers.  For completeness, here’s the list of
+commands of those other packages that are very commonly used in
+Eglot-managed buffers:
+
+‘M-x eldoc’
+     Ask the ElDoc system for help at point.
+
+‘M-x flymake-show-buffer-diagnostics’
+     Ask Flymake system to display diagnostics for the current buffer.
+
+‘M-x flymake-show-project-diagnostics’
+     Ask Flymake to list diagnostics for all the files in the current
+     project.
+
+‘M-x xref-find-definitions’
+     Ask Xref to go the definition of the identifier at point.
+
+‘M-x imenu’
+     Let the user navigate the program source code using buffer index,
+     categorizing program elements by syntactic class (class, method,
+     variable, etc.)  and offering completion.
+
+‘M-x completion-at-point’
+     Request completion of the symbol at point.
+
+
+File: eglot.info,  Node: Eglot Variables,  Prev: Eglot Commands,  Up: Using Eglot
+
+3.4 Eglot Variables
+===================
+
+This section provides a reference for the Eglot user options.
+
+‘eglot-autoreconnect’
+     This option controls the ability to reconnect automatically to the
+     language server when Eglot detects that the server process
+     terminated unexpectedly.  The default value ‘3’ means to attempt
+     reconnection only if the previous successful connection lasted for
+     more than that number of seconds; a different positive value
+     changes the minimal length of the connection to trigger
+     reconnection.  A value of ‘t’ means always reconnect automatically,
+     and ‘nil’ means never reconnect (in which case you will need to
+     reconnect manually using ‘M-x eglot’).
+
+‘eglot-connect-timeout’
+     This specifies the number of seconds before connection attempt to a
+     language server times out.  The value of ‘nil’ means never time
+     out.  The default is 30 seconds.
+
+‘eglot-sync-connect’
+     This setting is mainly important for connections which are slow to
+     establish.  Whereas the variable ‘eglot-connect-timeout’ controls
+     how long to wait for, this variable controls whether to block
+     Emacs’s user interface while waiting.  The default value is ‘3’; a
+     positive value means block for that many seconds, then wait for the
+     connection in the background.  The value of ‘t’ means block during
+     the whole waiting period.  The value of ‘nil’ or ‘0’ means don’t
+     block at all during the waiting period.
+
+‘eglot-events-buffer-config’
+     This configures the size and format of the Eglot events buffer.
+     *Note eglot-events-buffer: Eglot Commands, for how to access that
+     buffer.  If the value is changed, the connection should be
+     restarted using ‘M-x eglot-reconnect’ for the new value to take
+     effect.  *Note Troubleshooting Eglot::, for when this could be
+     useful.
+
+‘eglot-autoshutdown’
+     If this is non-‘nil’, Eglot shuts down a language server when the
+     last buffer managed by it is killed.  *Note Shutting Down LSP
+     Servers::.  The default is ‘nil’; if you want to shut down a
+     server, use ‘M-x eglot-shutdown’ (*note Eglot Commands::).
+
+‘eglot-confirm-server-edits’
+     Various Eglot commands and code actions result in the language
+     server sending editing commands to Emacs.  If this option’s value
+     is non-‘nil’, Eglot will ask for confirmation before performing
+     edits proposed by the language server.  This option’s value can be
+     crafted to require this confirmation for specific commands or only
+     when the edit affects files not yet visited by the user.  Consult
+     this option’s docstring for more information.
+
+‘eglot-ignored-server-capabilities’
+     This variable’s value is a list of language server capabilities
+     that Eglot should not use.  The default is ‘nil’: Eglot uses all of
+     the capabilities supported by each server.
+
+‘eglot-extend-to-xref’
+     If this is non-‘nil’, and ‘M-.’ (‘xref-find-definitions’) lands you
+     in a file outside of your project, such as a system-installed
+     library or header file, transiently consider that file as managed
+     by the same language server.  That file is still outside your
+     project (i.e., ‘project-find-file’ won’t find it), but Eglot and
+     the server will consider it to be part of the workspace.  The
+     default is ‘nil’.
+
+‘eglot-mode-map’
+     This variable is the keymap for binding Eglot-related command.  It
+     is in effect only as long as the buffer is managed by Eglot.  By
+     default, it is empty, with the single exception: ‘C-h .’ is
+     remapped to invoke ‘eldoc-doc-buffer’.  You can bind additional
+     commands in this map.  For example:
+
+            (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
+            (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
+            (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
+            (define-key eglot-mode-map (kbd "<f6>") 'xref-find-definitions)
+
+   Additional variables, which are relevant for customizing the server
+connections, are documented in *note Customizing Eglot::.
+
+
+File: eglot.info,  Node: Customizing Eglot,  Next: Advanced server configuration,  Prev: Using Eglot,  Up: Top
+
+4 Customizing Eglot
+*******************
+
+Eglot itself has a relatively small number of customization options.  A
+large part of customizing Eglot to your needs and preferences should
+actually be done via options of the Emacs packages and features which
+Eglot supports and enhances (*note Eglot Features::).  For example:
+
+   • To configure the face used for server-derived errors and warnings,
+     customize the Flymake faces ‘flymake-error’ and ‘flymake-warning’.
+
+   • To configure the amount of space taken up by documentation in the
+     echo area, customize the ElDoc variable
+     ‘eldoc-echo-area-use-multiline-p’.
+
+   • To completely change how ElDoc displays the at-point documentation
+     destination, customize the ElDoc variable
+     ‘eldoc-display-functions’.
+
+   For this reason, this manual describes only how to customize Eglot’s
+own operation, which mainly has to do with the server connections and
+the server features to be used by Eglot.
+
+‘eglot-server-programs’
+     This variable determines which language server to start for each
+     supported major mode, and how to invoke that server’s program.
+     *Note Setting Up LSP Servers::, for the details.
+
+‘eglot-strict-mode’
+     This is ‘nil’ by default, meaning that Eglot is generally lenient
+     about non-conforming servers.  If you need to debug a server, set
+     this to ‘(disallow-non-standard-keys enforce-required-keys)’.
+
+‘eglot-server-initialized-hook’
+     A hook run after the server object is successfully initialized
+     (which includes launching the process) but before any LSP
+     communication is attempted.  Each function receives a
+     ‘eglot-lsp-server’ instance as argument.
+
+‘eglot-connect-hook’
+     A hook run after the LSP connection to the server is successfully
+     established.  Each function receives a ‘eglot-lsp-server’ instance
+     as argument.  *Note Starting Eglot::.
+
+‘eglot-managed-mode-hook’
+     A hook run after Eglot started or stopped managing a buffer.  *Note
+     Eglot and Buffers::, for details of its usage.
+
+‘eglot-stay-out-of’
+     This variable’s value lists Emacs features that Eglot shouldn’t
+     automatically try to manage on the user’s behalf.  It is useful,
+     for example, when you need to use non-LSP Flymake or Company
+     back-ends.  To have Eglot stay away from some Emacs feature, add
+     that feature’s symbol or a regexp that will match a symbol’s name
+     to the list: for example, the symbol ‘xref’ to leave Xref alone, or
+     the string ‘company’ to stay away from your Company customizations.
+     Here’s an example:
+
+          (add-to-list 'eglot-stay-out-of 'flymake)
+
+     Note that you can still configure the excluded Emacs features
+     manually to use Eglot in your ‘eglot-managed-mode-hook’ or via some
+     other mechanism.
+
+‘eglot-report-progress’
+     Set this variable to true if you’d like progress notifications
+     coming from the language server to be handled as Emacs’s progress
+     reporting facilities.
+
+
+File: eglot.info,  Node: Advanced server configuration,  Next: Extending Eglot,  Prev: Customizing Eglot,  Up: Top
+
+5 Advanced server configuration
+*******************************
+
+Though many language servers work well out-of-the-box, most allow
+fine-grained control of their operation via specific configuration
+options that are transmitted over the LSP protocol and vary from server
+to server.  A small number of servers require such special configuration
+to work acceptably, or even to work at all.
+
+   After having setup a server executable program in
+‘eglot-server-programs’ (*note Setting Up LSP Servers::) and ensuring
+Eglot can invoke it, you may want to take advantage of some of these
+options.  You should first distinguish two main kinds of server
+configuration:
+
+   • Project-specific, applying to a specific project;
+
+   • User-specific, applying to all projects the server is used for.
+
+   When you have decided which kind you need, the following sections
+teach how Eglot’s user variables can be used to achieve it:
+
+* Menu:
+
+* Project-specific configuration::
+* User-specific configuration::
+* JSONRPC objects in Elisp::
+
+   It’s important to note that not all servers allow both kinds of
+configuration, nor is it guaranteed that user options can be copied over
+to project options, and vice-versa.  When in doubt, consult your
+language server’s documentation.
+
+   It’s also worth noting that some language servers can read these
+settings from configuration files in the user’s ‘HOME’ directory or in a
+project’s directory.  For example, the ‘pylsp’ Python server reads the
+file ‘~/.config/pycodestyle’ for user configuration.  The ‘clangd’ C/C++
+server reads both ‘~/.config/clangd/config.yaml’ for user configuration
+and ‘.clangd’ for project configuration.  It may be advantageous to use
+these mechanisms instead of Eglot’s, as this will probably work with
+other LSP clients and may be easier to debug than options riding on the
+LSP wire.
+
+
+File: eglot.info,  Node: Project-specific configuration,  Next: User-specific configuration,  Up: Advanced server configuration
+
+5.1 Project-specific configuration
+==================================
+
+To set project-specific settings, which the LSP specification calls
+“workspace configuration”, the variable ‘eglot-workspace-configuration’
+may be used.
+
+   This variable is a directory-local variable (*note Per-directory
+Local Variables: (emacs)Directory Variables.).  It’s important to
+recognize that this variable really only makes sense when set
+directory-locally.  It usually does not make sense to set it
+file-locally or in a major-mode hook.
+
+   The most common way to set ‘eglot-workspace-configuration ’ is using
+a ‘.dir-locals.el’ file in the root of your project.  If you can’t do
+that, you may also set it from Elisp code via the
+‘dir-locals-set-class-variables’ function.  (*note (elisp)Directory
+Local Variables::).
+
+   However you choose to set it, the variable’s value is a plist (*note
+(elisp)Property Lists::) with the following format:
+
+      (:SERVER1 PLIST1 :SERVER2 PLIST2 ...)
+
+Here, :SERVER1 and :SERVER2 are keywords whose names identify the LSP
+language servers to target.  Consult server documentation to find out
+what name to use.  PLIST1 and PLIST2 are plists of options, possibly
+nesting other plists.
+
+   When experimenting with workspace settings, you can use the command
+‘M-x eglot-show-workspace-configuration’ to inspect and debug the value
+of this variable in its final JSON form, ready to be sent to the server
+(*note JSONRPC objects in Elisp::).  This helper command works even
+before actually connecting to the server.
+
+   These variable’s value doesn’t take effect immediately.  That happens
+upon establishing the connection, in response to an explicit query from
+the server, or when issuing the command ‘M-x
+eglot-signal-didChangeConfiguration’ which notifies the server during an
+ongoing Eglot session.
+
+5.1.1 Examples
+--------------
+
+For some users, setting ‘eglot-workspace-configuration’ is a somewhat
+daunting task.  One of the reasons is having to manage the general Elisp
+syntax of per-mode directory-local variables, which uses alists (*note
+(elisp)Association Lists::), and the specific syntax of Eglot’s
+variable, which uses plists.  Some examples are useful.
+
+   Let’s say you want to configure two language servers to be used in a
+project written in a combination of the Python and Go languages.  You
+want to use the ‘pylsp’ and ‘gopls’ languages servers.  In the
+documentation of the servers in question (or in some other editor’s
+configuration file, or in some blog article), you find the following
+configuration options in informal dotted-notation syntax:
+
+     pylsp.plugins.jedi_completion.include_params: true
+     pylsp.plugins.jedi_completion.fuzzy: true
+     pylsp.pylint.enabled: false
+     gopls.usePlaceholders: true
+
+   To apply this to Eglot, and assuming you chose the ‘.dir-locals.el’
+file method, the contents of that file could be:
+
+     ((nil
+       . ((eglot-workspace-configuration
+           . (:pylsp (:plugins (:jedi_completion (:include_params t
+                                                  :fuzzy t)
+                                :pylint (:enabled :json-false)))
+              :gopls (:usePlaceholders t)))))
+      (python-base-mode . ((indent-tabs-mode . nil)))
+      (go-mode          . ((indent-tabs-mode . t))))
+
+This sets the value of ‘eglot-workspace-configuration’ in all the
+buffers inside the project; each server will use only the section of the
+parameters intended for that server, and ignore the rest.  Note how
+alists are used for associating Emacs mode names with alists associating
+variable names with variable values.  Then notice how plists are used
+inside the value of ‘eglot-workspace-configuration’.
+
+   This following form may also be used:
+
+     ((python-base-mode
+       . ((eglot-workspace-configuration
+           . (:pylsp (:plugins (:jedi_completion (:include_params t
+                                                  :fuzzy t)
+                                :pylint (:enabled :json-false)))))
+          (indent-tabs-mode . nil)))
+      (go-mode
+       . ((eglot-workspace-configuration
+           . (:gopls (:usePlaceholders t)))
+          (indent-tabs-mode . t))))
+
+This sets up the value of ‘eglot-workspace-configuration’ separately
+depending on the major mode of each of that project’s buffers.
+‘python-base-mode’ buffers will have the variable set to ‘(:pylsp
+(:plugins ...))’.  ‘go-mode’ buffers will have the variable set to
+‘(:gopls (:usePlaceholders t))’.
+
+   Some servers will issue workspace configuration for specific files
+inside your project.  For example, if you know ‘gopls’ is asking about
+specific files in the ‘src/imported’ subdirectory and you want to set a
+different option for ‘gopls.usePlaceholders’ , you may use something
+like:
+
+     ((python-base-mode
+       . ((eglot-workspace-configuration
+           . (:pylsp (:plugins (:jedi_completion (:include_params t
+                                                  :fuzzy t)
+                                :pylint (:enabled :json-false)))))
+          (indent-tabs-mode nil)))
+      (go-mode
+       . ((eglot-workspace-configuration
+           . (:gopls (:usePlaceholders t)))
+          (indent-tabs-mode t)))
+      ("src/imported"
+        . ((eglot-workspace-configuration
+           . (:gopls (:usePlaceholders nil))))))
+
+   Finally, if one needs to determine the workspace configuration based
+on some dynamic context, ‘eglot-workspace-configuration’ can be set to a
+function.  The function is called with the ‘eglot-lsp-server’ instance
+of the connected server (if any) and with ‘default-directory’ set to the
+root of the project.  The function should return a plist suitable for
+use as the variable’s value.
+
+
+File: eglot.info,  Node: User-specific configuration,  Next: JSONRPC objects in Elisp,  Prev: Project-specific configuration,  Up: Advanced server configuration
+
+5.2 User-specific configuration
+===============================
+
+This kind of configuration applies to all projects the server is used
+for.  Here, there are a number of ways to do this inside Eglot.
+
+   A common way is to pass command-line options to the server invocation
+via ‘eglot-server-programs’.  Let’s say we want to configure where the
+‘clangd’ server reads its ‘compile_commands.json’ from.  This can be
+done like so:
+
+     (with-eval-after-load 'eglot
+       (add-to-list 'eglot-server-programs
+                    `(c++-mode . ("clangd" "--compile-commands-dir=/tmp"))))
+
+
+Another way is to have Eglot pass a JSON object to the server during the
+LSP handshake.  This is done using the ‘:initializationOptions’ syntax
+of ‘eglot-server-programs’:
+
+     (with-eval-after-load 'eglot
+       (add-to-list 'eglot-server-programs
+                    `(c++-mode . ("clangd" :initializationOptions
+                                           (:compilationDatabasePath "/tmp")))))
+
+The argument ‘(:compilationDatabasePath "/tmp")’ is Emacs’s
+representation in plist format of a simple JSON object
+‘{"compilationDatabasePath": "/tmp"}’.  To learn how to represent more
+deeply nested options in this format, *note JSONRPC objects in Elisp::.
+
+   In this case, the two examples achieve exactly the same, but notice
+how the option’s name has changed between them.
+
+   Finally there is another way to do user-specific configuration of
+language servers, which may be used if the methods above are not
+supported.  It consists of _globally_ setting
+‘eglot-workspace-configuration’, a variable originally intended for
+project-specific configuration.  This has the same effect as giving all
+your projects a certain default configuration, as described in *note
+Project-specific configuration::.  Here is an example:
+
+     (setq-default eglot-workspace-configuration
+                   '(:pylsp (:plugins (:jedi_completion (:include_params t
+                                                         :fuzzy t)
+                                       :pylint (:enabled :json-false)))
+                     :gopls (:usePlaceholders t)))
+
+   Note that the global value of ‘eglot-workspace-configuration’ is
+always overridden if a directory-local value is detected.
+
+
+File: eglot.info,  Node: JSONRPC objects in Elisp,  Prev: User-specific configuration,  Up: Advanced server configuration
+
+5.3 JSONRPC objects in Elisp
+============================
+
+Emacs’s preferred way of representing JSON is via Lisp lists.  In Eglot,
+the syntax of this list is the simplest possible (the one with fewer
+parenthesis), a plist (*note (elisp)Property Lists::).
+
+   The plist may be arbitrarily complex, and generally containing other
+keyword-value property sub-plists corresponding to JSON sub-objects.
+
+   For representing the JSON leaf values ‘true’, ‘false’, ‘null’ and
+‘{}’, you can use the Lisp values ‘t’, ‘:json-false’, ‘nil’, and
+‘eglot-{}’, respectively.  JSON arrays are represented as Elisp vectors
+surrounded by square brackets (*note (elisp)Vectors::).
+
+   For example, the plist
+
+     (:pylsp (:plugins (:jedi_completion (:include_params t
+                                          :fuzzy t
+                                          :cache_for ["pandas" "numpy"])
+                        :pylint (:enabled :json-false)))
+      :gopls (:usePlaceholders t))
+
+is serialized by Eglot to the following JSON text:
+
+     {
+       "pylsp": {
+         "plugins": {
+           "jedi_completion": {
+             "include_params": true,
+             "fuzzy": true,
+             "cache_for": [ "pandas", "numpy" ]
+           },
+           "pylint": {
+             "enabled": false
+           }
+         }
+       },
+       "gopls": {
+         "usePlaceholders": true
+       }
+     }
+
+
+File: eglot.info,  Node: Extending Eglot,  Next: Troubleshooting Eglot,  Prev: Advanced server configuration,  Up: Top
+
+6 Extending Eglot
+*****************
+
+Sometimes it may be useful to extend existing Eglot functionality using
+Elisp its public methods.  A good example of when this need may arise is
+adding support for a custom LSP protocol extension only implemented by a
+specific server.
+
+   The best source of documentation for this is probably Eglot source
+code itself, particularly the section marked “API”.
+
+   Most of the functionality is implemented with Common-Lisp style
+generic functions (*note (eieio)Generics::) that can be easily extended
+or overridden.  The Eglot code itself is an example on how to do this.
+
+   The following is a relatively simple example that adds support for
+the ‘inactiveRegions’ experimental feature introduced in version 17 of
+the ‘clangd’ C/C++ language server++.
+
+   Summarily, the feature works by first having the server detect the
+Eglot’s advertisement of the ‘inactiveRegions’ client capability during
+startup, whereupon the language server will report a list of regions of
+inactive code for each buffer.  This is usually code surrounded by C/C++
+‘#ifdef’ macros that the preprocessor removes based on compile-time
+information.
+
+   The language server reports the regions by periodically sending a
+‘textDocument/inactiveRegions’ notification for each managed buffer
+(*note Eglot and Buffers::).  Normally, unknown server notifications are
+ignored by Eglot, but we’re going change that.
+
+   Both the announcement of the client capability and the handling of
+the new notification is done by adding methods to generic functions.
+
+   • The first method extends ‘eglot-client-capabilities’ using a simple
+     heuristic to detect if current server is ‘clangd’ and enables the
+     ‘inactiveRegion’ capability.
+
+          (cl-defmethod eglot-client-capabilities :around (server)
+            (let ((base (cl-call-next-method)))
+              (when (cl-find "clangd" (process-command
+                                        (jsonrpc--process server))
+                             :test #'string-match)
+                (setf (cl-getf (cl-getf base :textDocument)
+                               :inactiveRegionsCapabilities)
+                      '(:inactiveRegions t)))
+              base))
+
+     Notice we use an internal function of the ‘jsonrpc.el’ library, and
+     a regexp search to detect ‘clangd’.  An alternative would be to
+     define a new EIEIO subclass of ‘eglot-lsp-server’, maybe called
+     ‘eglot-clangd’, so that the method would be simplified:
+
+          (cl-defmethod eglot-client-capabilities :around ((_s eglot-clangd))
+            (let ((base (cl-call-next-method)))
+              (setf (cl-getf (cl-getf base :textDocument)
+                               :inactiveRegionsCapabilities)
+                      '(:inactiveRegions t))))
+
+     However, this would require that users tweak ‘eglot-server-program’
+     to tell Eglot instantiate such sub-classes instead of the generic
+     ‘eglot-lsp-server’ (*note Setting Up LSP Servers::).  For the
+     purposes of this particular demonstration, we’re going to use the
+     more hacky regexp route which doesn’t require that.
+
+     Note, however, that detecting server versions before announcing new
+     capabilities is generally not needed, as both server and client are
+     required by LSP to ignore unknown capabilities advertised by their
+     counterparts.
+
+   • The second method implements ‘eglot-handle-notification’ to process
+     the server notification for the LSP method
+     ‘textDocument/inactiveRegions’.  For each region received it
+     creates an overlay applying the ‘shadow’ face to the region.
+     Overlays are recreated every time a new notification of this kind
+     is received.
+
+     To learn about how ‘clangd’’s special JSONRPC notification message
+     is structured in detail you could consult that server’s
+     documentation.  Another possibility is to evaluate the first
+     capability-announcing method, reconnect to the server and peek in
+     the events buffer (*note eglot-events-buffer: Eglot Commands.).
+     You could find something like:
+
+          [server-notification] Mon Sep  4 01:10:04 2023:
+          (:jsonrpc "2.0" :method "textDocument/inactiveRegions" :params
+                    (:textDocument
+                     (:uri "file:///path/to/file.cpp")
+                     :regions
+                     [(:start (:character 0 :line 18)
+                       :end (:character 58 :line 19))
+                      (:start (:character 0 :line 36)
+                       :end (:character 1 :line 38))]))
+
+     This reveals that the ‘textDocument/inactiveRegions’ notification
+     contains a ‘:textDocument’ property to designate the managed buffer
+     and an array of LSP regions under the ‘:regions’ property.  Notice
+     how the message (originally in JSON format), is represented as
+     Elisp plists (*note JSONRPC objects in Elisp::).
+
+     The Eglot generic function machinery will automatically destructure
+     the incoming message, so these two properties can simply be added
+     to the new method’s lambda list as ‘&key’ arguments.  Also, the
+     ‘eglot-uri-to-path’ and ‘eglot-range-region’ may be used to easily
+     parse the LSP ‘:uri’ and ‘:start ... :end ...’ objects to obtain
+     Emacs objects for file names and positions.
+
+     The remainder of the implementation consists of standard Elisp
+     techniques to loop over arrays, manage buffers and overlays.
+
+          (cl-defmethod eglot-handle-notification
+            (_server (_method (eql textDocument/inactiveRegions))
+                     &key regions textDocument &allow-other-keys)
+            (if-let* ((path (expand-file-name (eglot-uri-to-path
+                                               (cl-getf textDocument :uri))))
+                      (buffer (find-buffer-visiting path)))
+                (with-current-buffer buffer
+                  (remove-overlays nil nil 'inactive-code t)
+                  (cl-loop
+                   for r across regions
+                   for (beg . end) = (eglot-range-region r)
+                   for ov = (make-overlay beg end)
+                   do
+                   (overlay-put ov 'face 'shadow)
+                   (overlay-put ov 'inactive-code t)))))
+
+   After evaluating these two additions and reconnecting to the ‘clangd’
+language server (version 17), the result will be that all the inactive
+code in the buffer will be nicely grayed out using the LSP server
+knowledge about current compile time preprocessor defines.
+
+
+File: eglot.info,  Node: Troubleshooting Eglot,  Next: GNU Free Documentation License,  Prev: Extending Eglot,  Up: Top
+
+7 Troubleshooting Eglot
+***********************
+
+This chapter documents commands and variables that can be used to
+troubleshoot Eglot problems.  It also provides guidelines for reporting
+Eglot bugs in a way that facilitates their resolution.
+
+   When you encounter problems with Eglot, try first using the commands
+‘M-x eglot-events-buffer’ and ‘M-x eglot-stderr-buffer’.  They pop up
+special buffers that can be used to inspect the communications between
+the Eglot and language server.  In many cases, this will indicate the
+problems or at least provide a hint.
+
+* Menu:
+
+* Performance::
+* Getting the latest version::
+* Reporting bugs::
+
+
+File: eglot.info,  Node: Performance,  Next: Getting the latest version,  Up: Troubleshooting Eglot
+
+7.1 Performance
+===============
+
+A common and easy-to-fix cause of performance problems in Eglot
+(especially in older versions) is its events buffer, since it represents
+additional work that Eglot must do (*note eglot-events-buffer: Eglot
+Commands.).  If you find Eglot is operating correctly but slowly, try to
+customize the variable ‘eglot-events-buffer-config’ (*note Eglot
+Variables::) and set its ‘:size’ property to 0.  This will disable
+recording any events and may speed things up.
+
+   In other situations, the cause of poor performance lies in the
+language server itself.  Servers use aggressive caching and other
+techniques to improve their performance.  Often, this can be tweaked by
+changing the server configuration (*note Advanced server
+configuration::).
+
+
+File: eglot.info,  Node: Getting the latest version,  Next: Reporting bugs,  Prev: Performance,  Up: Troubleshooting Eglot
+
+7.2 Getting the latest version
+==============================
+
+To install the latest Eglot in an Emacs version that does not bundle
+Eglot, use ‘M-x package-install’.
+
+   Often, a newer Eglot version exists that has fixed a longstanding
+bug, has more LSP features, or just better supports a particular
+language server.  Recent Eglot versions can self-update via the command
+‘M-x eglot-upgrade-eglot’.  This will replace any currently installed
+version with the newest one available from the ELPA archives configured
+in ‘package-archives’.
+
+   You can also update Eglot through other methods, such as
+‘use-package’ (*note (use-package)Installing packages::),
+‘package-install’, ‘list-packages’ or the newer ‘package-upgrade’ (*note
+(emacs)Packages::).  However, do read the docstrings of the command you
+intend to use before you use it, as some of them may not work in exactly
+the same way across Emacs versions, meaning your configuration may be
+not portable.
+
+
+File: eglot.info,  Node: Reporting bugs,  Prev: Getting the latest version,  Up: Troubleshooting Eglot
+
+7.3 Reporting bugs
+==================
+
+If you think you have found a bug, we want to hear about it.  Before
+reporting a bug, keep in mind that interaction with language servers
+represents a large quantity of unknown variables.  Therefore, it is
+generally both _difficult_ and _absolutely essential_ that the
+maintainers reproduce bugs exactly as they happened to you, the user.
+
+   To report an Eglot bug, send e-mail to <bug-gnu-emacs@gnu.org>.
+
+   To understand how to write this email, get acquainted with Emacs’s
+bug reporting guidelines (*note (emacs)Bugs::).  Then, follow this
+Eglot-specific checklist:
+
+  1. Include the transcript of JSONRPC events obtained from the buffer
+     popped up by ‘M-x eglot-events-buffer’.  You may narrow down the
+     transcript if you are sure of where the problematic exchange is,
+     but it’s safer to include the whole transcript, either attached or
+     inline.
+
+  2. If Emacs signaled an error (an error message was seen or heard),
+     make sure to repeat the process after turning on ‘debug-on-error’
+     via ‘M-x toggle-debug-on-error’.  This normally produces a
+     backtrace of the error that should also be attached to the bug
+     report.
+
+  3. Include a description of how the maintainer should obtain, install,
+     and configure the language server you used.  Maintainers usually
+     have access to GNU/Linux systems, though not necessarily the
+     distribution that you may be using.  If possible, try to replicate
+     the problem with the C/C++ or Python servers, as these are very
+     easy to install.
+
+  4. Describe how to setup a _minimal_ project directory where Eglot
+     should be started for the problem to happen.  Describe each file’s
+     name and its contents.  Alternatively, you can supply the address
+     of a public Git repository.
+
+  5. Include versions of the software used.  The Emacs version can be
+     obtained with ‘M-x emacs-version’.
+
+     We welcome bug reports about all Eglot versions, but it is helpful
+     to first check if the problem isn’t already fixed in the latest
+     version (*note Getting the latest version::).
+
+     It’s also essential to include the version of ELPA packages that
+     are explicitly or implicitly loaded.  The optional but popular
+     Company or Markdown packages are distributed as GNU ELPA packages,
+     not to mention Eglot itself in some situations.  Some major modes
+     (Go, Rust, etc.)  are provided by ELPA packages.  It’s sometimes
+     easy to miss these, since they are usually implicitly loaded when
+     visiting a file in that language.
+
+     ELPA packages usually live in ‘~/.emacs.d/elpa’ (or what is in
+     ‘package-user-dir’).  Including a listing of files in that
+     directory is a way to tell the maintainers about ELPA package
+     versions.
+
+  6. Include a recipe to replicate the problem with _a clean Emacs run_.
+     The invocation ‘emacs -Q -f package-initialize’ starts Emacs with
+     no configuration and initializes the ELPA packages.  A very minimal
+     ‘.emacs’ initialization file (10 lines or less) is also acceptable
+     and good means to describe changes to variables.
+
+     There is usually no need to include ‘require’ statements in the
+     recipe, as Eglot’s functionality uses autoloads.
+
+     Likewise, there is rarely the need to use things like ‘use-package’
+     or ‘eglot-ensure’.  This just makes the recipe harder to follow.
+     Prefer setting variables with ‘setq’ and adding to hooks with
+     ‘add-hook’.  Prefer starting Eglot with ‘M-x eglot’.
+
+  7. Make sure to double check all the above elements and re-run the
+     recipe to see that the problem is reproducible.  Following the
+     recipe should produce event transcript and error backtraces that
+     are very similar to the ones you included.  If the problem only
+     happens sometimes, mention this in your report.
+
+   Please keep in mind that some problems reported against Eglot may
+actually be bugs in the language server or the Emacs feature/package
+that used Eglot to communicate with the language server.  Eglot is, in
+many cases, just a frontend to that functionality.
+
+
+File: eglot.info,  Node: GNU Free Documentation License,  Next: Index,  Prev: Troubleshooting Eglot,  Up: Top
+
+Appendix A GNU Free Documentation License
+*****************************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <https://fsf.org/>
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document “free” in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of “copyleft”, which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     “Document”, below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as “you”.  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A “Modified Version” of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A “Secondary Section” is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document’s overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The “Invariant Sections” are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The “Cover Texts” are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A “Transparent” copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     “Transparent” is called “Opaque”.
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The “Title Page” means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, “Title
+     Page” means the text near the most prominent appearance of the
+     work’s title, preceding the beginning of the body of the text.
+
+     The “publisher” means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section “Entitled XYZ” means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     “Acknowledgements”, “Dedications”, “Endorsements”, or “History”.)
+     To “Preserve the Title” of such a section when you modify the
+     Document means that it remains a section “Entitled XYZ” according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document’s license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document’s
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled “History”, Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled “History” in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          “History” section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled “Acknowledgements” or “Dedications”,
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled “Endorsements”.  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          “Endorsements” or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version’s
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled “Endorsements”, provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties—for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of
+     a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     “History” in the various original documents, forming one section
+     Entitled “History”; likewise combine any sections Entitled
+     “Acknowledgements”, and any sections Entitled “Dedications”.  You
+     must delete all sections Entitled “Endorsements.”
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an “aggregate” if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation’s users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document’s Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled “Acknowledgements”,
+     “Dedications”, or “History”, the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly and
+     finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from you
+     under this License.  If your rights have been terminated and not
+     permanently reinstated, receipt of a copy of some or all of the
+     same material does not give you any rights to use it.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <https://www.gnu.org/licenses/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License “or any later version” applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.  If the Document specifies that a proxy can
+     decide which future versions of this License can be used, that
+     proxy’s public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+  11. RELICENSING
+
+     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A “Massive Multiauthor Collaboration” (or “MMC”) contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     “Incorporate” means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is “eligible for relicensing” if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the “with...Texts.” line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: eglot.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
+
+Index
+*****
+
+ [index ]
+* Menu:
+
+* activating Eglot for a project:        Starting Eglot.      (line   6)
+* buffers managed by Eglot:              Eglot and Buffers.   (line   6)
+* bug reports:                           Reporting bugs.      (line   6)
+* code actions:                          Eglot Commands.      (line  79)
+* command-line arguments:                User-specific configuration.
+                                                              (line   6)
+* commands, Eglot:                       Eglot Commands.      (line   6)
+* customizing Eglot:                     Customizing Eglot.   (line   6)
+* documentation using Eglot:             Eglot Commands.      (line 151)
+* eglot:                                 Starting Eglot.      (line   6)
+* eglot-autoreconnect:                   Eglot Variables.     (line   8)
+* eglot-autoshutdown:                    Eglot Variables.     (line  42)
+* eglot-confirm-server-edits:            Eglot Variables.     (line  48)
+* eglot-connect-hook:                    Customizing Eglot.   (line  42)
+* eglot-connect-timeout:                 Eglot Variables.     (line  19)
+* eglot-ensure:                          Starting Eglot.      (line  29)
+* eglot-events-buffer-config:            Eglot Variables.     (line  34)
+* eglot-extend-to-xref:                  Eglot Variables.     (line  62)
+* eglot-ignored-server-capabilities:     Eglot Variables.     (line  57)
+* eglot-managed-mode-hook:               Eglot and Buffers.   (line  74)
+* eglot-managed-p:                       Eglot and Buffers.   (line  74)
+* eglot-menu:                            Eglot and Buffers.   (line  53)
+* eglot-mode-map:                        Eglot Variables.     (line  71)
+* eglot-report-progress:                 Customizing Eglot.   (line  67)
+* eglot-server-initialized-hook:         Customizing Eglot.   (line  36)
+* eglot-server-programs:                 Setting Up LSP Servers.
+                                                              (line  19)
+* eglot-show-workspace-configuration:    Project-specific configuration.
+                                                              (line  32)
+* eglot-shutdown:                        Shutting Down LSP Servers.
+                                                              (line  15)
+* eglot-stay-out-of:                     Customizing Eglot.   (line  51)
+* eglot-strict-mode:                     Customizing Eglot.   (line  31)
+* eglot-sync-connect:                    Eglot Variables.     (line  24)
+* eglot-workspace-configuration:         Project-specific configuration.
+                                                              (line   6)
+* eglot-workspace-configuration <1>:     User-specific configuration.
+                                                              (line  36)
+* eldoc, and Eglot:                      Eglot Commands.      (line 151)
+* features in buffers supported by Eglot: Eglot Features.     (line   6)
+* finding definitions of identifiers using Eglot: Eglot Commands.
+                                                              (line 161)
+* flymake, and Eglot:                    Eglot Commands.      (line 154)
+* imenu navigation using Eglot:          Eglot Commands.      (line 164)
+* initializationOptions:                 User-specific configuration.
+                                                              (line   6)
+* inlay hints:                           Eglot Commands.      (line 106)
+* language server for Eglot:             Setting Up LSP Servers.
+                                                              (line   6)
+* language server protocol:              Top.                 (line   6)
+* LSP:                                   Top.                 (line   6)
+* LSP server for Eglot, setting up:      Setting Up LSP Servers.
+                                                              (line   6)
+* M-x eglot:                             Eglot Commands.      (line   9)
+* M-x eglot-clear-status:                Eglot Commands.      (line 134)
+* M-x eglot-code-action-extract:         Eglot Commands.      (line  82)
+* M-x eglot-code-action-inline:          Eglot Commands.      (line  83)
+* M-x eglot-code-action-organize-imports: Eglot Commands.     (line  80)
+* M-x eglot-code-action-quickfix:        Eglot Commands.      (line  81)
+* M-x eglot-code-action-rewrite:         Eglot Commands.      (line  84)
+* M-x eglot-code-actions:                Eglot Commands.      (line  79)
+* M-x eglot-events-buffer:               Eglot Commands.      (line 118)
+* M-x eglot-forget-pending-continuations: Eglot Commands.     (line 126)
+* M-x eglot-format:                      Eglot Commands.      (line  70)
+* M-x eglot-format-buffer:               Eglot Commands.      (line  75)
+* M-x eglot-inlay-hints-mode:            Eglot Commands.      (line 106)
+* M-x eglot-reconnect:                   Eglot Commands.      (line  36)
+* M-x eglot-rename:                      Eglot Commands.      (line  63)
+* M-x eglot-shutdown:                    Eglot Commands.      (line  42)
+* M-x eglot-shutdown-all:                Eglot Commands.      (line  57)
+* M-x eglot-signal-didChangeConfiguration: Eglot Commands.    (line 129)
+* M-x eglot-stderr-buffer:               Eglot Commands.      (line 122)
+* mode-line indication of language server: Eglot and Buffers. (line  53)
+* mouse clicks on mode-line, and Eglot:  Eglot and Buffers.   (line  53)
+* on-the-fly diagnostics using Eglot:    Eglot Commands.      (line 154)
+* performance problems, with Eglot:      Performance.         (line   6)
+* progress:                              Customizing Eglot.   (line  67)
+* projects and Eglot:                    Eglot and Buffers.   (line   6)
+* quick start:                           Quick Start.         (line   6)
+* setting up LSP server for Eglot:       Setting Up LSP Servers.
+                                                              (line   6)
+* shutting down LSP server:              Shutting Down LSP Servers.
+                                                              (line   6)
+* starting Eglot:                        Starting Eglot.      (line   6)
+* symbol completion using Eglot:         Eglot Commands.      (line 169)
+* troubleshooting Eglot:                 Troubleshooting Eglot.
+                                                              (line   6)
+* upgrading Eglot:                       Getting the latest version.
+                                                              (line   6)
+* variables, Eglot:                      Eglot Variables.     (line   6)
+* workspace:                             Eglot and Buffers.   (line   6)
+* workspace configuration:               Project-specific configuration.
+                                                              (line   6)
+* xref, and Eglot:                       Eglot Commands.      (line 161)
+
+
+
+Tag Table:
+Node: Top902
+Ref: Top-Footnote-13511
+Node: Quick Start3586
+Node: Eglot and LSP Servers6267
+Node: Setting Up LSP Servers6684
+Node: Starting Eglot11923
+Node: Shutting Down LSP Servers14597
+Node: Using Eglot16147
+Node: Eglot Features16532
+Node: Eglot and Buffers20927
+Node: Eglot Commands26633
+Node: Eglot Variables34541
+Node: Customizing Eglot38883
+Node: Advanced server configuration42074
+Node: Project-specific configuration44080
+Node: User-specific configuration50000
+Node: JSONRPC objects in Elisp52454
+Node: Extending Eglot53992
+Node: Troubleshooting Eglot60734
+Node: Performance61505
+Node: Getting the latest version62387
+Node: Reporting bugs63501
+Node: GNU Free Documentation License67800
+Node: Index93160
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

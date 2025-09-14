@@ -1,0 +1,1090 @@
+This is vtable.info, produced by makeinfo version 6.8 from vtable.texi.
+
+This file documents the GNU vtable.el package.
+
+   Copyright © 2022–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual,” and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License.”
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+INFO-DIR-SECTION Emacs misc features
+START-INFO-DIR-ENTRY
+* vtable: (vtable).     Variable Pitch Tables.
+END-INFO-DIR-ENTRY
+
+
+File: vtable.info,  Node: Top,  Next: Introduction,  Up: (dir)
+
+vtable
+******
+
+This file documents the GNU vtable.el package.
+
+   Copyright © 2022–2025 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover Texts
+     being “A GNU Manual,” and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     “GNU Free Documentation License.”
+
+     (a) The FSF’s Back-Cover Text is: “You have the freedom to copy and
+     modify this GNU manual.”
+
+* Menu:
+
+* Introduction::        Introduction and examples.
+* Concepts::            vtable concepts.
+* Making A Table::      The main interface function.
+* Commands::            vtable commands.
+* Interface Functions:: Interface functions.
+
+Appendices
+* GNU Free Documentation License::  The license for this documentation.
+
+Indices
+* Index::
+
+
+File: vtable.info,  Node: Introduction,  Next: Concepts,  Prev: Top,  Up: Top
+
+1 Introduction and Tutorial
+***************************
+
+Most modes that display tabular data in Emacs use ‘tabulated-list-mode’,
+but it has some limitations: It assumes that the text it’s displaying is
+monospaced, which makes it difficult to mix fonts and images in a single
+list.  The “vtable” (“variable pitch tables”) package tackles this
+instead.
+
+   ‘tabulated-list-mode’ is a major mode, and assumes that it controls
+the entire buffer.  A vtable doesn’t assume that—you can have a vtable
+in the middle of other data, or have several vtables in the same buffer.
+
+   Here’s just about the simplest vtable that can be created:
+
+     (make-vtable
+      :objects '(("Foo" 1034)
+                 ("Gazonk" 45)))
+
+   By default, vtable uses the ‘vtable’ face (which inherits from the
+‘variable-pitch’ face), and right-aligns columns that have only
+numerical data (and left-aligns the rest).
+
+   You’d normally want to name the columns:
+
+     (make-vtable
+      :columns '("Name" "ID")
+      :objects '(("Foo" 1034)
+                 ("Gazonk" 45)))
+
+   Clicking on the column names will sort the table based on the data in
+each column (which, in this example, corresponds to an element in a
+list).
+
+   By default, the data is displayed “as is”, that is, the way ‘(format
+"%s" ...)’ would display it, but you can override that.
+
+     (make-vtable
+      :columns '("Name" "ID")
+      :objects '(("Foo" 1034)
+                 ("Gazonk" 45))
+      :formatter (lambda (value column &rest _)
+                   (if (= column 1)
+                       (file-size-human-readable value)
+                     value)))
+
+   In this case, that ‘1034’ will be displayed as ‘1k’—but will still
+sort after ‘45’, because sorting is done on the actual data, and not the
+displayed data.
+
+   Alternatively, instead of having a general formatter for the table,
+you can put the formatter in the column definition:
+
+     (make-vtable
+      :columns '("Name"
+                 (:name "ID" :formatter file-size-human-readable))
+      :objects '(("Foo" 1034)
+                 ("Gazonk" 45)))
+
+   The data doesn’t have to be simple lists—you can give any type of
+object to vtable, but then you also have to write a function that
+returns the data for each column.  For instance, here’s a very simple
+version of ‘M-x list-buffers’:
+
+     (make-vtable
+      :columns '("Name" "Size" "File")
+      :objects (buffer-list)
+      :actions '("k" kill-buffer
+                 "RET" display-buffer)
+      :getter (lambda (object column vtable)
+                (pcase (vtable-column vtable column)
+                  ("Name" (buffer-name object))
+                  ("Size" (buffer-size object))
+                  ("File" (or (buffer-file-name object) "")))))
+
+   OBJECTS in this case is a list of buffers.  To get the data to be
+displayed, vtable calls the “getter” function, which is called for each
+column of every object, and which should return the data that will
+eventually be displayed.
+
+   Also note the “actions”: These are simple commands that will be
+called with the object under point.  So hitting ‘<RET>’ on a line will
+result in ‘display-buffer’ being called with a buffer object as the
+parameter.  (You can also supply a keymap to be used, but then you have
+to write commands that call ‘vtable-current-object’ to get at the
+object.)
+
+   Note that the actions aren’t called with the data displayed in the
+buffer—they’re called with the original objects.
+
+   Finally, here’s an example that uses just about all the features:
+
+     (make-vtable
+      :columns `(( :name "Thumb" :width "500px"
+                   :displayer
+                   ,(lambda (value max-width table)
+                      (propertize "*" 'display
+                                  (create-image value nil nil
+                                                :max-width max-width))))
+                 (:name "Size" :width 10
+                        :formatter file-size-human-readable)
+                 (:name "Time" :width 10 :primary ascend)
+                 "Name")
+      :objects-function (lambda ()
+                          (directory-files "/tmp/" t "\\.jpg\\'"))
+      :actions '("RET" find-file)
+      :getter (lambda (object column table)
+                (pcase (vtable-column table column)
+                  ("Name" (file-name-nondirectory object))
+                  ("Thumb" object)
+                  ("Size" (file-attribute-size (file-attributes object)))
+                  ("Time" (format-time-string
+                           "%F" (file-attribute-modification-time
+                                 (file-attributes object))))))
+      :separator-width 5
+      :keymap (define-keymap
+                "q" #'kill-buffer))
+
+   This vtable implements a simple image browser that displays image
+thumbnails (that change sizes dynamically depending on the width of the
+column), human-readable file sizes, date and file name.  The separator
+width is 5 typical characters wide.  Hitting ‘<RET>’ on a line will open
+the image in a new window, and hitting ‘q’ will kill a buffer.
+
+
+File: vtable.info,  Node: Concepts,  Next: Making A Table,  Prev: Introduction,  Up: Top
+
+2 Concepts
+**********
+
+A vtable lists data about a number of “objects”.  Each object can be a
+list or a vector, but it can also be anything else.
+
+   To get the “value” for a particular column, the “getter” function is
+called on the object.  If no getter function is defined, the default is
+to try to index the object as a sequence.  In any case, we end up with a
+value that is then used for sorting.
+
+   This value is then “formatted” via a “formatter” function, which is
+called with the “value” as the argument.  The formatter commonly makes
+the value more reader friendly.
+
+   Finally, the formatted value is passed to the “displayer” function,
+which is responsible for putting the table face on the formatted value,
+and also ensuring that it’s not wider than the column width.  The
+displayer will commonly truncate too-long strings and scale image sizes.
+
+   All these three transforms, the getter, the formatter and the display
+functions, can be defined on a per-column basis, and also on a per-table
+basis.  (The per-column transform takes precedence over the per-table
+transform.)
+
+   User commands that are defined on a table does not work on the
+displayed data.  Instead they are called with the original object as the
+argument.
+
+
+File: vtable.info,  Node: Making A Table,  Next: Commands,  Prev: Concepts,  Up: Top
+
+3 Making A Table
+****************
+
+The interface function for making (and optionally inserting a table into
+a buffer) is ‘make-vtable’.  It returns a table object.
+
+   The keyword parameters are described below.
+
+   There are many callback interface functions possible in
+‘make-vtable’, and many of them take a OBJECT argument (an object from
+the ‘:objects’ list), a column index argument (an integer starting at
+zero), and a table argument (the object returned by ‘make-vtable’).
+
+‘:objects’
+     This is a list of objects to be displayed.  It should either be a
+     list of strings (which will then be displayed as a single-column
+     table), or a list where each element is a sequence containing a
+     mixture of strings, numbers, and other objects that can be
+     displayed “simply”.
+
+     In the latter case, if ‘:columns’ is non-‘nil’ and there’s more
+     elements in the sequence than there is in ‘:columns’, only the
+     ‘:columns’ first elements are displayed.
+
+‘:objects-function’
+     It’s often convenient to generate the objects dynamically (for
+     instance, to make reversion work automatically).  In that case,
+     this should be a function (which will be called with no arguments),
+     and should return a value as accepted as an ‘:objects’ list.
+
+‘:columns’
+     This is a list where each element is either a string (the column
+     name), a plist of keyword/values (to make a ‘vtable-column’
+     object), or a full ‘vtable-column’ object.  A ‘vtable-column’
+     object has the following slots:
+
+     ‘name’
+          The name of the column.
+
+     ‘width’
+          The width of the column.  This can be one of the following:
+
+          a number N
+          a string of the form ‘Nex’
+               The width of N ‘x’ characters in the table’s face.
+
+          a string of the form ‘Npx’
+               N pixels.
+
+          a string of the form ‘N%’
+               N percent of the window’s width.
+
+     ‘min-width’
+          This uses the same format as ‘width’, but specifies the
+          minimum width (and overrides ‘width’ if ‘width’ is smaller
+          than this.
+
+     ‘max-width’
+          This uses the same format as ‘width’, but specifies the
+          maximum width (and overrides ‘width’ if ‘width’ is larger than
+          this.  ‘min-width’/‘max-width’ can be useful if ‘width’ is
+          given as a percentage of the window width, and you want to
+          ensure that the column doesn’t grow pointlessly large or
+          unreadably narrow.
+
+     ‘primary’
+          Whether this is the primary column—this will be used for
+          initial sorting.  This should be either ‘ascend’ or ‘descend’
+          to say in which order the table should be sorted.
+
+     ‘getter’
+          If present, this function will be called to return the column
+          value.
+
+           -- Function: column-getter object table
+               It’s called with two parameters: the object and the
+               table.
+
+     ‘formatter’
+          If present, this function will be called to format the value.
+
+           -- Function: column-formatter value
+               It’s called with one parameter: the column value.
+
+     ‘displayer’
+          If present, this function will be called to prepare the
+          formatted value for display.  This function should return a
+          string with the table face applied, and also limit the width
+          of the string to the display width.
+
+           -- Function: column-displayer fvalue max-width table
+               FVALUE is the formatted value; MAX-WIDTH is the maximum
+               width (in pixels), and TABLE is the table.
+
+     ‘align’
+          Should be either ‘right’ or ‘left’.  If not specified,
+          numerical values will be flushed to the right, and all other
+          values will be flushed to the left.
+
+‘:getter’
+     If given, this is a function that should return the values to use
+     in the table, and will be called once for each element in the table
+     (unless overridden by a column getter function).
+
+      -- Function: getter object index table
+          For a simple object (like a sequence), this function will
+          typically just return the element corresponding to the column
+          index (zero-based), but the function can do any computation it
+          wants.  If it’s more convenient to write the function based on
+          column names rather than the column index, the ‘vtable-column’
+          function can be used to map from index to name.
+
+‘:formatter’
+     If present, this is a function that should format the value, and it
+     will be called on all values in the table (unless overridden by a
+     column formatter).
+
+      -- Function: formatter value index table
+          This function is called with three parameters: the value (as
+          returned by the getter); the column index, and the table.  It
+          can return any value.
+
+          This can be used to (for instance) format numbers in a
+          human-readable form.
+
+‘:displayer’
+     Before displaying an element, it’s passed to the displaying
+     function (if any).
+
+      -- Function: displayer fvalue index max-width table
+          This is called with four arguments: the formatted value of the
+          element (as returned by the formatter function); the column
+          index; the display width (in pixels); and the table.
+
+          This function should return a string with the table face
+          applied, and truncated to the display width.
+
+          This can be used to (for instance) change the size of images
+          that are displayed in the table.
+
+‘:use-header-line’
+     If non-‘nil’ (which is the default), display the column names on
+     the header line.  This is the most common use case, but if there’s
+     other text in the buffer before the table, or there are several
+     tables in the same buffer, then this should be ‘nil’.
+
+‘:face’
+     The face to be used.  This defaults to ‘vtable’.  This face doesn’t
+     override the faces in the data, or the faces supplied by the getter
+     and formatter functions.
+
+‘:row-colors’
+     If present, this should be a list of color names to be used as the
+     background color on the rows.  If there are fewer colors here than
+     there are rows, the rows will be repeated.  The most common use
+     case here is to have alternating background colors on the rows, so
+     this would usually be a list of two colors.  This can also be a
+     list of faces to be used.
+
+‘:column-colors’
+     If present, this should be a list of color names to be used as the
+     background color on the columns.  If there are fewer colors here
+     than there are columns, the colors will be repeated.  The most
+     common use case here is to have alternating background colors on
+     the columns, so this would usually be a list of two colors.  This
+     can also be a list of faces to be used.  If both ‘:row-colors’ and
+     ‘:column-colors’ is present, the colors will be “blended” to
+     produce the final colors in the table.
+
+‘:actions’
+     This uses the same syntax as ‘define-keymap’, but doesn’t refer to
+     commands directly.  Instead each key is bound to a command that
+     picks out the current object, and then calls the function specified
+     with that as the argument.
+
+‘:keymap’
+     This is a keymap used on the table.  The commands here are called
+     as usual, and if they’re supposed to work on the object displayed
+     on the current line, they can use the ‘vtable-current-object’
+     function (*note Interface Functions::) to determine what that
+     object is.
+
+‘:separator-width’
+     The width of the blank space between columns.  If not specified, it
+     defaults to 1.
+
+‘:divider-width’
+‘:divider’
+     You can have a divider inserted between the columns.  This can
+     either be specified by using ‘:divider’, which should be a string
+     to be displayed between the columns, or ‘:divider-width’, which
+     specifies the width of the space to be used as the divider, in
+     units of characters of the face used to display the table.  If not
+     specified, ‘:divider’ defaults to ‘nil’, but specifying
+     ‘:divider-width’ effectively sets the divider to a whitespace
+     string of that width.
+
+‘:sort-by’
+     This should be a list of tuples, and specifies how the table is to
+     be sorted.  Each tuple should consist of an integer (the column
+     index) and either ‘ascend’ or ‘descend’.
+
+     The table is first sorted by the first element in this list, and
+     then the next, until the end is reached.
+
+‘:ellipsis’
+     By default, when shortening displayed values, an ellipsis will be
+     shown.  If this is ‘nil’, no ellipsis is shown.  (The text to use
+     as the ellipsis is determined by the ‘truncate-string-ellipsis’
+     function.)
+
+‘:insert’
+     By default, ‘make-vtable’ will insert the table at point.  If this
+     is ‘nil’, nothing is inserted, but the vtable object is returned,
+     and you can insert it later with the ‘vtable-insert’ function.
+
+   ‘make-table’ returns a ‘vtable’ object.  You can access the slots in
+that object by using accessor functions that have names based on the
+keywords described above.  For instance, to access the face, use
+‘vtable-face’.
+
+
+File: vtable.info,  Node: Commands,  Next: Interface Functions,  Prev: Making A Table,  Up: Top
+
+4 Commands
+**********
+
+When point is placed on a vtable, the following keys are bound:
+
+‘S’
+     Sort the table by the current column
+     (‘vtable-sort-by-current-column’).  Note that the table is sorted
+     according to the data returned by the getter function (*note Making
+     A Table::), not by how it’s displayed in the buffer.  Columns that
+     have only numerical data are sorted as numbers, the rest are sorted
+     as strings.
+
+‘{’
+     Make the current column narrower (‘vtable-narrow-current-column’).
+
+‘}’
+     Make the current column wider (‘vtable-widen-current-column’).
+
+‘M-<left>’
+     Move to the previous column (‘vtable-previous-column’).
+
+‘M-<right>’
+     Move to the next column (‘vtable-next-column’).
+
+‘g’
+     Regenerate the table (‘vtable-revert-command’).  This command
+     mostly makes sense if the table has a ‘:objects-function’ that can
+     fetch new data.
+
+
+File: vtable.info,  Node: Interface Functions,  Next: GNU Free Documentation License,  Prev: Commands,  Up: Top
+
+5 Interface Functions
+*********************
+
+If you need to write a mode based on vtable, you will have to interact
+with the table in various ways—for instance, you’ll need to write
+commands that updates an object and then displays the result.  This
+chapter describes functions for such interaction.
+
+ -- Function: vtable-current-table
+     This function returns the table under point.
+
+ -- Function: vtable-current-object
+     This function returns the object on the current line.  (Note that
+     this is the original object, not the characters displayed in the
+     buffer.)
+
+ -- Function: vtable-current-column
+     This function returns the column index of the column under point.
+
+ -- Function: vtable-goto-table table
+     Move point to the start of TABLE and return the position.  If TABLE
+     can’t be found in the current buffer, don’t move point and return
+     ‘nil’.
+
+ -- Function: vtable-goto-object object
+     Move point to the start of the line where OBJECT is displayed in
+     the current table and return the position.  If OBJECT can’t be
+     found, don’t move point and return ‘nil’.
+
+ -- Function: vtable-goto-column index
+     Move point to the start of the INDEXth column.  (The first column
+     is numbered zero.)
+
+ -- Function: vtable-beginning-of-table
+     Move to the beginning of the current table.
+
+ -- Function: vtable-end-of-table
+     Move to the end of the current table.
+
+ -- Function: vtable-remove-object table object
+     Remove OBJECT from TABLE.  This also updates the displayed table.
+
+ -- Function: vtable-insert-object table object &optional location
+          before
+     Insert OBJECT into TABLE.  LOCATION should be an object in the
+     table, the new object is inserted after this object, or before it
+     if BEFORE is non-‘nil’.  If LOCATION is ‘nil’, OBJECT is appended
+     to TABLE, or prepended if BEFORE is non-‘nil’.
+
+     LOCATION can also be an integer, a zero-based index into the table.
+     In this case, OBJECT is inserted at that index.  If the index is
+     out of range, OBJECT is prepended to TABLE if the index is too
+     small, or appended if it is too large.  In this case, BEFORE is
+     ignored.
+
+     This also updates the displayed table.
+
+ -- Function: vtable-update-object table object &optional old-object
+     Update OBJECT’s representation in TABLE.  Optional argument
+     OLD-OBJECT, if non-‘nil’, means to replace OLD-OBJECT with OBJECT
+     and redisplay the associated row in the table.  In either case, if
+     the existing object is not found in the table (being compared with
+     ‘equal’), signal an error.
+
+     This has the same effect as calling ‘vtable-remove-object’ and then
+     ‘vtable-insert-object’, but is more efficient.
+
+     Note a limitation: if the table’s buffer is not in a visible
+     window, or if its window has changed width since it was updated,
+     updating the table is not possible, and an error is signaled.
+
+ -- Function: vtable-column table index
+     Return the column name of the INDEXth column in TABLE.
+
+
+File: vtable.info,  Node: GNU Free Documentation License,  Next: Index,  Prev: Interface Functions,  Up: Top
+
+6 GNU Free Documentation License
+********************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <https://fsf.org/>
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document “free” in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of “copyleft”, which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     “Document”, below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as “you”.  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A “Modified Version” of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A “Secondary Section” is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document’s overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The “Invariant Sections” are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The “Cover Texts” are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A “Transparent” copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     “Transparent” is called “Opaque”.
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The “Title Page” means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, “Title
+     Page” means the text near the most prominent appearance of the
+     work’s title, preceding the beginning of the body of the text.
+
+     The “publisher” means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section “Entitled XYZ” means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     “Acknowledgements”, “Dedications”, “Endorsements”, or “History”.)
+     To “Preserve the Title” of such a section when you modify the
+     Document means that it remains a section “Entitled XYZ” according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document’s license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document’s
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled “History”, Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled “History” in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          “History” section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled “Acknowledgements” or “Dedications”,
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled “Endorsements”.  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          “Endorsements” or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version’s
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled “Endorsements”, provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties—for example, statements of peer review or that the text has
+     been approved by an organization as the authoritative definition of
+     a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     “History” in the various original documents, forming one section
+     Entitled “History”; likewise combine any sections Entitled
+     “Acknowledgements”, and any sections Entitled “Dedications”.  You
+     must delete all sections Entitled “Endorsements.”
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an “aggregate” if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation’s users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document’s Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled “Acknowledgements”,
+     “Dedications”, or “History”, the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly and
+     finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from you
+     under this License.  If your rights have been terminated and not
+     permanently reinstated, receipt of a copy of some or all of the
+     same material does not give you any rights to use it.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <https://www.gnu.org/licenses/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License “or any later version” applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.  If the Document specifies that a proxy can
+     decide which future versions of this License can be used, that
+     proxy’s public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+  11. RELICENSING
+
+     “Massive Multiauthor Collaboration Site” (or “MMC Site”) means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A “Massive Multiauthor Collaboration” (or “MMC”) contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     “CC-BY-SA” means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     “Incorporate” means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is “eligible for relicensing” if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the “with...Texts.” line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: vtable.info,  Node: Index,  Prev: GNU Free Documentation License,  Up: Top
+
+Index
+*****
+
+ [index ]
+* Menu:
+
+* column-displayer:                      Making A Table.      (line  93)
+* column-formatter:                      Making A Table.      (line  84)
+* column-getter:                         Making A Table.      (line  77)
+* displayer:                             Making A Table.      (line 132)
+* displayer of a vtable:                 Concepts.            (line  18)
+* formatter:                             Making A Table.      (line 120)
+* formatter of a vtable:                 Concepts.            (line  14)
+* getter:                                Making A Table.      (line 107)
+* getter of a vtable:                    Concepts.            (line   9)
+* make-vtable:                           Making A Table.      (line   6)
+* vtable:                                Concepts.            (line   6)
+* vtable commands:                       Commands.            (line   6)
+* vtable-beginning-of-table:             Interface Functions. (line  36)
+* vtable-column:                         Interface Functions. (line  74)
+* vtable-current-column:                 Interface Functions. (line  19)
+* vtable-current-object:                 Interface Functions. (line  14)
+* vtable-current-table:                  Interface Functions. (line  11)
+* vtable-end-of-table:                   Interface Functions. (line  39)
+* vtable-goto-column:                    Interface Functions. (line  32)
+* vtable-goto-object:                    Interface Functions. (line  27)
+* vtable-goto-table:                     Interface Functions. (line  22)
+* vtable-insert:                         Making A Table.      (line 214)
+* vtable-insert-object:                  Interface Functions. (line  45)
+* vtable-narrow-current-column:          Commands.            (line  16)
+* vtable-next-column:                    Commands.            (line  25)
+* vtable-previous-column:                Commands.            (line  22)
+* vtable-remove-object:                  Interface Functions. (line  42)
+* vtable-revert-command:                 Commands.            (line  28)
+* vtable-sort-by-current-column:         Commands.            (line   8)
+* vtable-update-object:                  Interface Functions. (line  60)
+* vtable-widen-current-column:           Commands.            (line  19)
+
+
+
+Tag Table:
+Node: Top877
+Node: Introduction1982
+Node: Concepts7192
+Node: Making A Table8553
+Node: Commands18223
+Node: Interface Functions19271
+Node: GNU Free Documentation License22469
+Node: Index47810
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:
