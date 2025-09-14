@@ -81,6 +81,7 @@ test ! -d projects/pizfix
 ./build_perl.sh
 ./build_git.sh
 ./build_m4.sh
+./build_emacs.sh
 ./build_benchmarks.sh
 
 test ! -d projects/pizfix
