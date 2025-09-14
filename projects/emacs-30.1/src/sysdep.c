@@ -1956,22 +1956,7 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
 static bool
 init_sigsegv (void)
 {
-  struct sigaction sa;
-  stack_t ss;
-
-  ss.ss_sp = sigsegv_stack;
-  ss.ss_size = sizeof (sigsegv_stack);
-  ss.ss_flags = 0;
-  if (sigaltstack (&ss, NULL) < 0)
-    return 0;
-
-  sigfillset (&sa.sa_mask);
-  sa.sa_sigaction = handle_sigsegv;
-  sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
-  if (sigaction (SIGSEGV, &sa, &old_sigsegv_handler) < 0)
-    return 0;
-
-  return 1;
+  return 0;
 }
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */

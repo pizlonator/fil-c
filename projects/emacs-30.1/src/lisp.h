@@ -1149,7 +1149,10 @@ INLINE struct Lisp_Symbol * ATTRIBUTE_NO_SANITIZE_UNDEFINED
 XBARE_SYMBOL (Lisp_Object a)
 {
   eassert (BARE_SYMBOL_P (a));
-  intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol, struct Lisp_Symbol);
+  struct Lisp_Symbol *s = XUNTAG (a, Lisp_Symbol, struct Lisp_Symbol);
+  uintptr_t i = (uintptr_t) s;
+  if (i >= sizeof (lispsym))
+    return s;
   void *p = (char *) lispsym + i;
   return p;
 }
@@ -1174,6 +1177,8 @@ make_lisp_symbol_internal (struct Lisp_Symbol *sym)
      Do not use eassert here, so that builtin symbols like Qnil compile to
      constants; this is needed for some circa-2024 GCCs even with -O2.  */
   char *symoffset = (char *) ((char *) sym - (char *) lispsym);
+  if ((uintptr_t) symoffset >= sizeof(lispsym))
+    return TAG_PTR_INITIALLY (Lisp_Symbol, sym);
   Lisp_Object a = TAG_PTR_INITIALLY (Lisp_Symbol, symoffset);
   return a;
 }
@@ -4505,7 +4510,6 @@ extern void mark_memory (void const *start, void const *end);
 INLINE void
 flush_stack_call_func (void (*func) (void *arg), void *arg)
 {
-  __builtin_unwind_init ();
   flush_stack_call_func1 (func, arg);
   /* Work around GCC sibling call optimization making
      '__builtin_unwind_init' ineffective (bug#65727).

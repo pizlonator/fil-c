@@ -73,6 +73,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <malloc.h>
 #endif
 
+#include <stdfil.h>
+
 #if (defined ENABLE_CHECKING \
      && defined HAVE_VALGRIND_VALGRIND_H && !defined USE_VALGRIND)
 # define USE_VALGRIND 1
@@ -1006,6 +1008,8 @@ lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
 {
   register void *val;
 
+  zerror("unexpected call to lisp_malloc");
+
   MALLOC_BLOCK_INPUT;
 
 #ifdef GC_MALLOC_CHECK
@@ -1199,6 +1203,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 {
   void *base, *val;
   struct ablocks *abase;
+
+  zerror("unexpected call to lisp_align_malloc");
 
   eassert (nbytes <= BLOCK_BYTES);
 
@@ -1485,26 +1491,31 @@ make_interval (void)
 
   MALLOC_BLOCK_INPUT;
 
-  if (interval_free_list)
-    {
-      val = interval_free_list;
-      ASAN_UNPOISON_INTERVAL (val);
-      interval_free_list = INTERVAL_PARENT (interval_free_list);
-    }
+  if ((true))
+    val = zgc_alloc (sizeof (struct interval));
   else
     {
-      if (interval_block_index == INTERVAL_BLOCK_SIZE)
+      if (interval_free_list)
 	{
-	  struct interval_block *newi
-	    = lisp_malloc (sizeof *newi, false, MEM_TYPE_NON_LISP);
-
-	  newi->next = interval_block;
-	  ASAN_POISON_INTERVAL_BLOCK (newi);
-	  interval_block = newi;
-	  interval_block_index = 0;
+	  val = interval_free_list;
+	  ASAN_UNPOISON_INTERVAL (val);
+	  interval_free_list = INTERVAL_PARENT (interval_free_list);
 	}
-      val = &interval_block->intervals[interval_block_index++];
-      ASAN_UNPOISON_INTERVAL (val);
+      else
+	{
+	  if (interval_block_index == INTERVAL_BLOCK_SIZE)
+	    {
+	      struct interval_block *newi
+		= lisp_malloc (sizeof *newi, false, MEM_TYPE_NON_LISP);
+	      
+	      newi->next = interval_block;
+	      ASAN_POISON_INTERVAL_BLOCK (newi);
+	      interval_block = newi;
+	      interval_block_index = 0;
+	    }
+	  val = &interval_block->intervals[interval_block_index++];
+	  ASAN_UNPOISON_INTERVAL (val);
+	}
     }
 
   MALLOC_UNBLOCK_INPUT;
@@ -1880,33 +1891,38 @@ allocate_string (void)
 
   MALLOC_BLOCK_INPUT;
 
-  /* If the free-list is empty, allocate a new string_block, and
-     add all the Lisp_Strings in it to the free-list.  */
-  if (string_free_list == NULL)
+  if ((true))
+    s = zgc_alloc (sizeof (struct Lisp_String));
+  else
     {
-      struct string_block *b = lisp_malloc (sizeof *b, false, MEM_TYPE_STRING);
-      int i;
-
-      b->next = string_blocks;
-      string_blocks = b;
-
-      for (i = STRING_BLOCK_SIZE - 1; i >= 0; --i)
+      /* If the free-list is empty, allocate a new string_block, and
+	 add all the Lisp_Strings in it to the free-list.  */
+      if (string_free_list == NULL)
 	{
-	  s = b->strings + i;
-	  /* Every string on a free list should have NULL data pointer.  */
-	  s->u.s.data = NULL;
-	  NEXT_FREE_LISP_STRING (s) = string_free_list;
-	  string_free_list = s;
+	  struct string_block *b = lisp_malloc (sizeof *b, false, MEM_TYPE_STRING);
+	  int i;
+	  
+	  b->next = string_blocks;
+	  string_blocks = b;
+	  
+	  for (i = STRING_BLOCK_SIZE - 1; i >= 0; --i)
+	    {
+	      s = b->strings + i;
+	      /* Every string on a free list should have NULL data pointer.  */
+	      s->u.s.data = NULL;
+	      NEXT_FREE_LISP_STRING (s) = string_free_list;
+	      string_free_list = s;
+	    }
+	  ASAN_POISON_STRING_BLOCK (b);
 	}
-      ASAN_POISON_STRING_BLOCK (b);
+      
+      check_string_free_list ();
+      
+      /* Pop a Lisp_String off the free-list.  */
+      s = string_free_list;
+      ASAN_UNPOISON_STRING (s);
+      string_free_list = NEXT_FREE_LISP_STRING (s);
     }
-
-  check_string_free_list ();
-
-  /* Pop a Lisp_String off the free-list.  */
-  s = string_free_list;
-  ASAN_UNPOISON_STRING (s);
-  string_free_list = NEXT_FREE_LISP_STRING (s);
 
   MALLOC_UNBLOCK_INPUT;
 
@@ -1955,68 +1971,76 @@ allocate_string_data (struct Lisp_String *s,
 
   MALLOC_BLOCK_INPUT;
 
-  if (nbytes > LARGE_STRING_BYTES || immovable)
+  if ((true))
     {
-      size_t size = FLEXSIZEOF (struct sblock, data, needed);
-
-#ifdef DOUG_LEA_MALLOC
-      if (!mmap_lisp_allowed_p ())
-        mallopt (M_MMAP_MAX, 0);
-#endif
-
-      b = lisp_malloc (size + GC_STRING_EXTRA, clearit, MEM_TYPE_NON_LISP);
-      ASAN_POISON_SBLOCK_DATA (b, size);
-
-#ifdef DOUG_LEA_MALLOC
-      if (!mmap_lisp_allowed_p ())
-        mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-#endif
-
-      data = b->data;
-      b->next = large_sblocks;
-      b->next_free = data;
-      large_sblocks = b;
+      data = zgc_alloc (needed);
+      data->string = s;
     }
   else
     {
-      b = current_sblock;
-
-      if (b == NULL
-	  || (SBLOCK_SIZE - GC_STRING_EXTRA
-	      < (char *) b->next_free - (char *) b + needed))
+      if (nbytes > LARGE_STRING_BYTES || immovable)
 	{
-	  /* Not enough room in the current sblock.  */
-	  b = lisp_malloc (SBLOCK_SIZE, false, MEM_TYPE_NON_LISP);
-	  ASAN_POISON_SBLOCK_DATA (b, SBLOCK_SIZE);
-
-	  data = b->data;
-	  b->next = NULL;
-	  b->next_free = data;
-
-	  if (current_sblock)
-	    current_sblock->next = b;
-	  else
-	    oldest_sblock = b;
-	  current_sblock = b;
-	}
-
-      data = b->next_free;
-
-      if (clearit)
-	{
-#if GC_ASAN_POISON_OBJECTS
-	  /* We are accessing SDATA_DATA (data) before it gets
-	   * normally unpoisoned, so do it manually.  */
-	  __asan_unpoison_memory_region (SDATA_DATA (data), nbytes);
+	  size_t size = FLEXSIZEOF (struct sblock, data, needed);
+	  
+#ifdef DOUG_LEA_MALLOC
+	  if (!mmap_lisp_allowed_p ())
+	    mallopt (M_MMAP_MAX, 0);
 #endif
-	  memset (SDATA_DATA (data), 0, nbytes);
+	  
+	  b = lisp_malloc (size + GC_STRING_EXTRA, clearit, MEM_TYPE_NON_LISP);
+	  ASAN_POISON_SBLOCK_DATA (b, size);
+	  
+#ifdef DOUG_LEA_MALLOC
+	  if (!mmap_lisp_allowed_p ())
+	    mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+#endif
+	  
+	  data = b->data;
+	  b->next = large_sblocks;
+	  b->next_free = data;
+	  large_sblocks = b;
 	}
-    }
+      else
+	{
+	  b = current_sblock;
+	  
+	  if (b == NULL
+	      || (SBLOCK_SIZE - GC_STRING_EXTRA
+		  < (char *) b->next_free - (char *) b + needed))
+	    {
+	      /* Not enough room in the current sblock.  */
+	      b = lisp_malloc (SBLOCK_SIZE, false, MEM_TYPE_NON_LISP);
+	      ASAN_POISON_SBLOCK_DATA (b, SBLOCK_SIZE);
+	      
+	      data = b->data;
+	      b->next = NULL;
+	      b->next_free = data;
+	      
+	      if (current_sblock)
+		current_sblock->next = b;
+	      else
+		oldest_sblock = b;
+	      current_sblock = b;
+	    }
+	  
+	  data = b->next_free;
+	  
+	  if (clearit)
+	    {
+#if GC_ASAN_POISON_OBJECTS
+	      /* We are accessing SDATA_DATA (data) before it gets
+	       * normally unpoisoned, so do it manually.  */
+	      __asan_unpoison_memory_region (SDATA_DATA (data), nbytes);
+#endif
+	      memset (SDATA_DATA (data), 0, nbytes);
+	    }
+	}
 
-  ASAN_PREPARE_LIVE_SDATA (data, nbytes);
-  data->string = s;
-  b->next_free = (sdata *) ((char *) data + needed + GC_STRING_EXTRA);
-  eassert ((uintptr_t) b->next_free % alignof (sdata) == 0);
+      ASAN_PREPARE_LIVE_SDATA (data, nbytes);
+      data->string = s;
+      b->next_free = (sdata *) ((char *) data + needed + GC_STRING_EXTRA);
+      eassert ((uintptr_t) b->next_free % alignof (sdata) == 0);
+    }
 
   MALLOC_UNBLOCK_INPUT;
 
@@ -2677,6 +2701,7 @@ pin_string (Lisp_Object string)
 
 #define FLOAT_BLOCK(fptr) \
   (eassert (!pdumper_object_p (fptr)),                                  \
+   zerror("Unexpected call to FLOAT_BLOCK"),                            \
    ((struct float_block *) (((uintptr_t) (fptr)) & ~(BLOCK_ALIGN - 1))))
 
 #define FLOAT_INDEX(fptr) \
@@ -2738,27 +2763,32 @@ make_float (double float_value)
 
   MALLOC_BLOCK_INPUT;
 
-  if (float_free_list)
-    {
-      XSETFLOAT (val, float_free_list);
-      ASAN_UNPOISON_FLOAT (float_free_list);
-      float_free_list = float_free_list->u.chain;
-    }
+  if ((true))
+    XSETFLOAT (val, zgc_alloc (sizeof (struct Lisp_Float)));
   else
     {
-      if (float_block_index == FLOAT_BLOCK_SIZE)
+      if (float_free_list)
 	{
-	  struct float_block *new
-	    = lisp_align_malloc (sizeof *new, MEM_TYPE_FLOAT);
-	  new->next = float_block;
-	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
-	  ASAN_POISON_FLOAT_BLOCK (new);
-	  float_block = new;
-	  float_block_index = 0;
+	  XSETFLOAT (val, float_free_list);
+	  ASAN_UNPOISON_FLOAT (float_free_list);
+	  float_free_list = float_free_list->u.chain;
 	}
-      ASAN_UNPOISON_FLOAT (&float_block->floats[float_block_index]);
-      XSETFLOAT (val, &float_block->floats[float_block_index]);
-      float_block_index++;
+      else
+	{
+	  if (float_block_index == FLOAT_BLOCK_SIZE)
+	    {
+	      struct float_block *new
+		= lisp_align_malloc (sizeof *new, MEM_TYPE_FLOAT);
+	      new->next = float_block;
+	      memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
+	      ASAN_POISON_FLOAT_BLOCK (new);
+	      float_block = new;
+	      float_block_index = 0;
+	    }
+	  ASAN_UNPOISON_FLOAT (&float_block->floats[float_block_index]);
+	  XSETFLOAT (val, &float_block->floats[float_block_index]);
+	  float_block_index++;
+	}
     }
 
   MALLOC_UNBLOCK_INPUT;
@@ -2789,6 +2819,7 @@ make_float (double float_value)
 
 #define CONS_BLOCK(fptr) \
   (eassert (!pdumper_object_p (fptr)),                                  \
+   zerror("unexpected call to CONS_BLOCK"),                             \
    ((struct cons_block *) ((uintptr_t) (fptr) & ~(BLOCK_ALIGN - 1))))
 
 #define CONS_INDEX(fptr) \
@@ -2862,27 +2893,32 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 
   MALLOC_BLOCK_INPUT;
 
-  if (cons_free_list)
-    {
-      ASAN_UNPOISON_CONS (cons_free_list);
-      XSETCONS (val, cons_free_list);
-      cons_free_list = cons_free_list->u.s.u.chain;
-    }
+  if ((true))
+    XSETCONS (val, zgc_alloc (sizeof (struct Lisp_Cons)));
   else
     {
-      if (cons_block_index == CONS_BLOCK_SIZE)
+      if (cons_free_list)
 	{
-	  struct cons_block *new
-	    = lisp_align_malloc (sizeof *new, MEM_TYPE_CONS);
-	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
-	  ASAN_POISON_CONS_BLOCK (new);
-	  new->next = cons_block;
-	  cons_block = new;
-	  cons_block_index = 0;
+	  ASAN_UNPOISON_CONS (cons_free_list);
+	  XSETCONS (val, cons_free_list);
+	  cons_free_list = cons_free_list->u.s.u.chain;
 	}
-      ASAN_UNPOISON_CONS (&cons_block->conses[cons_block_index]);
-      XSETCONS (val, &cons_block->conses[cons_block_index]);
-      cons_block_index++;
+      else
+	{
+	  if (cons_block_index == CONS_BLOCK_SIZE)
+	    {
+	      struct cons_block *new
+		= lisp_align_malloc (sizeof *new, MEM_TYPE_CONS);
+	      memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
+	      ASAN_POISON_CONS_BLOCK (new);
+	      new->next = cons_block;
+	      cons_block = new;
+	      cons_block_index = 0;
+	    }
+	  ASAN_UNPOISON_CONS (&cons_block->conses[cons_block_index]);
+	  XSETCONS (val, &cons_block->conses[cons_block_index]);
+	  cons_block_index++;
+	}
     }
 
   MALLOC_UNBLOCK_INPUT;
@@ -3613,30 +3649,35 @@ allocate_vectorlike (ptrdiff_t len, bool clearit)
 
   MALLOC_BLOCK_INPUT;
 
-#ifdef DOUG_LEA_MALLOC
-  if (!mmap_lisp_allowed_p ())
-    mallopt (M_MMAP_MAX, 0);
-#endif
-
-  if (nbytes <= VBLOCK_BYTES_MAX)
-    {
-      p = allocate_vector_from_block (vroundup (nbytes));
-      if (clearit)
-	memclear (p, nbytes);
-    }
+  if ((true))
+    p = zgc_alloc (nbytes);
   else
     {
-      struct large_vector *lv = lisp_malloc (large_vector_offset + nbytes,
-					     clearit, MEM_TYPE_VECTORLIKE);
-      lv->next = large_vectors;
-      large_vectors = lv;
-      p = large_vector_vec (lv);
-    }
+#ifdef DOUG_LEA_MALLOC
+      if (!mmap_lisp_allowed_p ())
+	mallopt (M_MMAP_MAX, 0);
+#endif
+
+      if (nbytes <= VBLOCK_BYTES_MAX)
+	{
+	  p = allocate_vector_from_block (vroundup (nbytes));
+	  if (clearit)
+	    memclear (p, nbytes);
+	}
+      else
+	{
+	  struct large_vector *lv = lisp_malloc (large_vector_offset + nbytes,
+						 clearit, MEM_TYPE_VECTORLIKE);
+	  lv->next = large_vectors;
+	  large_vectors = lv;
+	  p = large_vector_vec (lv);
+	}
 
 #ifdef DOUG_LEA_MALLOC
-  if (!mmap_lisp_allowed_p ())
-    mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+      if (!mmap_lisp_allowed_p ())
+	mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
+    }
 
   tally_consing (nbytes);
   vector_cells_consed += len;
@@ -3957,27 +3998,32 @@ Its value is void, and its function definition and property list are nil.  */)
 
   MALLOC_BLOCK_INPUT;
 
-  if (symbol_free_list)
-    {
-      ASAN_UNPOISON_SYMBOL (symbol_free_list);
-      XSETSYMBOL (val, symbol_free_list);
-      symbol_free_list = symbol_free_list->u.s.next;
-    }
+  if ((true))
+    XSETSYMBOL (val, zgc_alloc (sizeof (struct Lisp_Symbol)));
   else
     {
-      if (symbol_block_index == SYMBOL_BLOCK_SIZE)
+      if (symbol_free_list)
 	{
-	  struct symbol_block *new
-	    = lisp_malloc (sizeof *new, false, MEM_TYPE_SYMBOL);
-	  ASAN_POISON_SYMBOL_BLOCK (new);
-	  new->next = symbol_block;
-	  symbol_block = new;
-	  symbol_block_index = 0;
+	  ASAN_UNPOISON_SYMBOL (symbol_free_list);
+	  XSETSYMBOL (val, symbol_free_list);
+	  symbol_free_list = symbol_free_list->u.s.next;
 	}
+      else
+	{
+	  if (symbol_block_index == SYMBOL_BLOCK_SIZE)
+	    {
+	      struct symbol_block *new
+		= lisp_malloc (sizeof *new, false, MEM_TYPE_SYMBOL);
+	      ASAN_POISON_SYMBOL_BLOCK (new);
+	      new->next = symbol_block;
+	      symbol_block = new;
+	      symbol_block_index = 0;
+	    }
 
-      ASAN_UNPOISON_SYMBOL (&symbol_block->symbols[symbol_block_index]);
-      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
-      symbol_block_index++;
+	  ASAN_UNPOISON_SYMBOL (&symbol_block->symbols[symbol_block_index]);
+	  XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
+	  symbol_block_index++;
+	}
     }
 
   MALLOC_UNBLOCK_INPUT;
@@ -4434,6 +4480,8 @@ memory_full (size_t nbytes)
 void
 refill_memory_reserve (void)
 {
+  if ((true))
+    return;
 #if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
   if (spare_memory[0] == 0)
     spare_memory[0] = malloc (SPARE_MEMORY);
@@ -6503,6 +6551,8 @@ watch_gc_cons_percentage (Lisp_Object symbol, Lisp_Object newval,
 void
 maybe_garbage_collect (void)
 {
+  if ((true))
+    return;
   if (bump_consing_until_gc (gc_cons_threshold, Vgc_cons_percentage) < 0)
     garbage_collect ();
 }
@@ -6513,6 +6563,9 @@ static inline bool mark_stack_empty_p (void);
 void
 garbage_collect (void)
 {
+  if ((true))
+    return;
+
   Lisp_Object tail, buffer;
   char stack_top_variable;
   bool message_p;
