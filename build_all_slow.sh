@@ -82,6 +82,7 @@ test ! -d projects/pizfix
 ./build_git.sh
 ./build_m4.sh
 ./build_emacs.sh
+./build_vim.sh
 ./build_benchmarks.sh
 
 test ! -d projects/pizfix
