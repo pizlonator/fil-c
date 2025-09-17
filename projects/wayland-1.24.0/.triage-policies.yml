@@ -1,0 +1,33 @@
+# This is a set of bugbot commands for issues and merge requests - setting any of the
+# bugbot::foo labels will trigger gitlab-triage to run with this ruleset (well, the
+# one we have on the main branch at the time)
+#
+# Note that for adding labels, the label must first created in the project.
+resource_rules:
+  issues:
+    rules:
+      - name: "Close bugs that aren't Wayland bugs"
+        conditions:
+          labels:
+            - "bugbot::not-wayland"
+        actions:
+          remove_labels:
+            - "bugbot::not-wayland"
+          comment: |
+            Thank you for the report, but your issue does not look like it would belong here. Sorry.
+
+            This repository is for the Wayland protocol specification and the
+            low-level C library that deals with the protocol.
+
+            This issue here is a bug not with the protocol itself but with either
+            - your compositor or desktop environment's implementation of the Wayland protocol and surrounding functionality,
+            - the individual application that triggers this issue, or
+            - the kernel driver used by your hardware
+
+            Please file the issue against your compositor/desktop environment, the application
+            or the kernel drivers instead, whichever seems more likely to you. If you are not sure,
+            file an issue against the application.
+          status: "close"
+  merge_requests:
+    rules:
+      []
