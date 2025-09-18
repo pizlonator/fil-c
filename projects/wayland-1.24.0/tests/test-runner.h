@@ -30,32 +30,54 @@
 #endif
 
 #include <unistd.h>
+#include <stdlib.h>
 
 struct test {
 	const char *name;
 	void (*run)(void);
 	int must_fail;
+	struct test *next;
 } __attribute__ ((aligned (16)));
 
-#define TEST(name)							\
-	static void name(void);						\
-									\
-	const struct test test##name					\
-		 __attribute__ ((used, section ("test_section"))) = {	\
-		#name, name, 0						\
-	};								\
-									\
-	static void name(void)
+extern struct test *first_test;
 
-#define FAIL_TEST(name)							\
-	static void name(void);						\
+#define TEST(passed_name)						\
+	static void passed_name(void);					\
 									\
-	const struct test test##name					\
-		 __attribute__ ((used, section ("test_section"))) = {	\
-		#name, name, 1						\
-	};								\
+	static void							\
+	register_test_##passed_name(void) __attribute__((constructor));	\
 									\
-	static void name(void)
+	static void							\
+	register_test_##passed_name(void)				\
+	{								\
+		struct test* test = malloc(sizeof(struct test));	\
+		test->name = #passed_name;				\
+		test->run = passed_name;				\
+		test->must_fail = 0;					\
+		test->next = first_test;				\
+		first_test = test;					\
+	}								\
+									\
+	static void passed_name(void)
+
+#define FAIL_TEST(passed_name)						\
+	static void passed_name(void);					\
+									\
+	static void							\
+	register_test_##passed_name(void) __attribute__((constructor));	\
+									\
+	static void							\
+	register_test_##passed_name(void)				\
+	{								\
+		struct test* test = malloc(sizeof(struct test));	\
+		test->name = #passed_name;				\
+		test->run = passed_name;				\
+		test->must_fail = 1;					\
+		test->next = first_test;				\
+		first_test = test;					\
+	}								\
+									\
+	static void passed_name(void)
 
 int
 count_open_fds(void);

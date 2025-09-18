@@ -63,14 +63,14 @@ static int timeouts_enabled = 1;
 /* set to one if the output goes to the terminal */
 static int is_atty = 0;
 
-extern const struct test __start_test_section, __stop_test_section;
+struct test *first_test = NULL;
 
 static const struct test *
 find_test(const char *name)
 {
 	const struct test *t;
 
-	for (t = &__start_test_section; t < &__stop_test_section; t++)
+        for (t = first_test; t; t = t->next)
 		if (strcmp(t->name, name) == 0)
 			return t;
 
@@ -87,7 +87,7 @@ usage(const char *name, int status)
 		"only that test without forking.  Available tests:\n\n",
 		name);
 
-	for (t = &__start_test_section; t < &__stop_test_section; t++)
+        for (t = first_test; t; t = t->next)
 		fprintf(stderr, "  %s\n", t->name);
 
 	fprintf(stderr, "\n");
@@ -356,7 +356,8 @@ int main(int argc, char *argv[])
 	set_xdg_runtime_dir();
 
 	pass = 0;
-	for (t = &__start_test_section; t < &__stop_test_section; t++) {
+        total = 0;
+        for (t = first_test; t; t = t->next, total++) {
 		int success = 0;
 
 		pid = fork();
@@ -405,7 +406,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "----------------------------------------\n");
 	}
 
-	total = &__stop_test_section - &__start_test_section;
 	fprintf(stderr, "%d tests, %d pass, %d fail\n",
 		total, pass, total - pass);
 
