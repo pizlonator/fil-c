@@ -29,7 +29,10 @@ libc {
     sigemptyset; sigfillset; siggetmask; siginterrupt; sigisemptyset;
     sigismember; siglongjmp; signal; sigorset; sigpause; sigpending;
     sigprocmask; sigreturn; sigsetmask; sigstack; sigsuspend; sigvec;
-    sigwait; ssignal;
+    sigwait; ssignal; sigdelsetyolo;
+
+    libc_internal_signals;
+    num_libc_internal_signals;
   }
   GLIBC_2.1 {
     # helper functions

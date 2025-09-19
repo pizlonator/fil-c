@@ -68,3 +68,10 @@ __libc_allocate_rtsig (int high)
   return high ? current_rtmin++ : current_rtmax--;
 #endif
 }
+
+int libc_internal_signals[2] = {
+    SIGCANCEL,
+    SIGSETXID
+};
+
+unsigned num_libc_internal_signals = 2;

@@ -35,3 +35,16 @@ sigdelset (sigset_t *set, int signo)
   return 0;
 }
 libc_hidden_def (sigdelset)
+
+int
+sigdelsetyolo (sigset_t *set, int signo)
+{
+  if (set == NULL || signo <= 0 || signo >= NSIG)
+    {
+      __set_errno (EINVAL);
+      return -1;
+    }
+
+  __sigdelset (set, signo);
+  return 0;
+}

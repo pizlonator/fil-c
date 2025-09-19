@@ -24,13 +24,6 @@
 void
 __pthread_exit (void *value)
 {
-  {
-    struct unwind_link *unwind_link = __libc_unwind_link_get ();
-    if (unwind_link == NULL)
-      __libc_fatal (LIBGCC_S_SO
-                    " must be installed for pthread_exit to work\n");
-  }
-
   THREAD_SETMEM (THREAD_SELF, result, value);
 
   __do_cancel ();

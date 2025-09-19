@@ -191,7 +191,7 @@ libm {
     __yn_finite; __ynf_finite; __ynl_finite;
     __lgamma_r_finite; __lgammaf_r_finite; __lgammal_r_finite;
     __log_finite; __logf_finite; __logl_finite;
-    __log10_finite; __log10f_finite; __log10l_finite;
+    __log10_finite; __log10f_finite;
     __log2_finite; __log2f_finite; __log2l_finite;
     __pow_finite; __powf_finite; __powl_finite;
     __remainder_finite; __remainderf_finite; __remainderl_finite;
@@ -652,5 +652,21 @@ libm {
     log2p1f64x; log2p1f128;
     log10p1f64x; log10p1f128;
     logp1f64x; logp1f128;
+
+    # For Fil-C
+    __ieee754_expl;
+    __ieee754_fmodl;
+    __ieee754_ilogbl;
+    __ieee754_scalbl;
+    __ieee754_exp10l;
+    __ieee754_exp2l;
+    __ieee754_log10l;
+    __log10l_finite;
+    __ieee754_log2l;
+    __log2l_finite;
+    __ieee754_logl;
+    __logl_finite;
+    __ieee754_powl;
+    __ieee754_remainderl;
   }
 }

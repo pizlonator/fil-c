@@ -291,7 +291,7 @@ CFLAGS-read.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-i
 CFLAGS-write.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-close.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-lseek64.c += $(config-cflags-wno-ignored-attributes)
-CFLAGS-tst-read-zero.c += $(no-fortify-source),-D_FORTIFY_SOURCE=$(supported-fortify)
+CFLAGS-tst-read-zero.c += $(no-fortify-source) -D_FORTIFY_SOURCE=$(supported-fortify)
 
 CFLAGS-test-stat.c += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 CFLAGS-test-lfs.c += -D_LARGEFILE64_SOURCE

@@ -72,6 +72,12 @@ libc {
     sem_post;
     sem_trywait;
     sem_wait;
+    yolo_futex_wake;
+    yolo_futex_wait;
+    yolo_futex_timedwait;
+    yolo_futex_unlock_pi;
+    yolo_futex_lock_pi;
+    yolo_futex_requeue;
   }
   GLIBC_2.1 {
     pthread_attr_getguardsize;

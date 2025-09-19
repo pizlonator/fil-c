@@ -206,6 +206,7 @@ extern int sigaddset (sigset_t *__set, int __signo) __THROW __nonnull ((1));
 
 /* Remove SIGNO from SET.  */
 extern int sigdelset (sigset_t *__set, int __signo) __THROW __nonnull ((1));
+extern int sigdelsetyolo (sigset_t *__set, int __signo) __THROW __nonnull ((1));
 
 /* Return 1 if SIGNO is in SET, 0 if not.  */
 extern int sigismember (const sigset_t *__set, int __signo)
@@ -389,6 +390,9 @@ extern int __libc_current_sigrtmax (void) __THROW;
 
 /* System-specific extensions.  */
 #include <bits/signal_ext.h>
+
+extern int libc_internal_signals[];
+extern unsigned num_libc_internal_signals;
 
 __END_DECLS
 

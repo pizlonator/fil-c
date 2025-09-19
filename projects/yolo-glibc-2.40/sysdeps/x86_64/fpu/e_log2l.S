@@ -86,4 +86,3 @@ ENTRY(__log2l_finite)
 	fyl2xp1			// log(x)
 	ret
 END (__log2l_finite)
-libm_alias_finite (__log2l_finite, __log2l)

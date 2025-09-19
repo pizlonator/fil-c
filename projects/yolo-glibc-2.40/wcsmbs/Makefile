@@ -264,7 +264,7 @@ CFLAGS-wcstod_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstold_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstof128_l.c += $(strtox-CFLAGS)
 CFLAGS-wcstof_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
-CPPFLAGS-tst-wchar-h.c += $(no-fortify-source),-D_FORTIFY_SOURCE=2
+CPPFLAGS-tst-wchar-h.c += $(no-fortify-source) -D_FORTIFY_SOURCE=2
 
 CFLAGS-wcschr.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-wmemchr.c += $(config-cflags-wno-ignored-attributes)

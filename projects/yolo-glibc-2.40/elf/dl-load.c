@@ -33,6 +33,9 @@
 #include <sys/types.h>
 #include <gnu/lib-names.h>
 
+#undef LIBC_SO
+#define LIBC_SO "libyolocimpl.so"
+
 /* Type for the buffer we put the ELF header and hopefully the program
    header.  This buffer does not really have to be too large.  In most
    cases the program header follows the ELF header directly.  If this

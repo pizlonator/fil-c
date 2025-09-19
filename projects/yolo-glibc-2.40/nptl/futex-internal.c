@@ -21,6 +21,7 @@
 #include <time.h>
 #include <futex-internal.h>
 #include <kernel-features.h>
+#include <futex_calls.h>
 
 #ifndef __ASSUME_TIME64_SYSCALLS
 static int
@@ -203,3 +204,67 @@ __futex_lock_pi64 (int *futex_word, clockid_t clockid,
       futex_fatal_error ();
     }
 }
+
+static int
+yolo_priv_to_lll (int priv)
+{
+  return priv ? LLL_PRIVATE : LLL_SHARED;
+}
+
+void
+yolo_futex_wake (volatile int *addr, int cnt, int priv)
+{
+  futex_wake ((unsigned int*)addr, cnt, yolo_priv_to_lll (priv));
+}
+
+void
+yolo_futex_wait (volatile int *addr, int val, int priv)
+{
+  futex_wait ((unsigned int*)addr, val, yolo_priv_to_lll (priv));
+}
+
+int
+yolo_futex_timedwait (volatile int *addr, int val, int clock_id,
+                      const struct timespec *timeout, int priv)
+{
+  struct __timespec64 timeout64;
+  if (timeout)
+    {
+      timeout64.tv_sec = timeout->tv_sec;
+      timeout64.tv_nsec = timeout->tv_nsec;
+    }
+  return __futex_abstimed_wait64 ((unsigned int*)addr, val, clock_id,
+                                  timeout ? &timeout64 : NULL,
+                                  yolo_priv_to_lll (priv));
+}
+
+int
+yolo_futex_unlock_pi (volatile int *addr, int priv)
+{
+  return futex_unlock_pi ((unsigned int*)addr, yolo_priv_to_lll (priv));
+}
+
+int yolo_futex_lock_pi(volatile int *addr, int priv,
+                       const struct timespec *timeout)
+{
+  struct __timespec64 timeout64;
+  if (timeout)
+    {
+      timeout64.tv_sec = timeout->tv_sec;
+      timeout64.tv_nsec = timeout->tv_nsec;
+    }
+  return __futex_lock_pi64 ((int *) addr, CLOCK_REALTIME,
+                            timeout ? &timeout64 : NULL,
+                            yolo_priv_to_lll (priv));
+}
+
+int yolo_futex_requeue(volatile int *addr, int priv, int wake_count,
+                       int requeue_count, volatile int *addr2)
+{
+  return lll_futex_syscall (5, addr,
+                            __lll_private_flag (FUTEX_REQUEUE,
+                                                yolo_priv_to_lll (priv)),
+                            wake_count, requeue_count, addr2);
+}
+
+

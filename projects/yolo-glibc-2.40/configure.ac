@@ -1527,7 +1527,7 @@ dnl If not, then don't use it.
 dnl Note that _FORTIFY_SOURCE may have been set through FLAGS too.
 dnl _FORTIFY_SOURCE value will be selectively disabled for function that can't
 dnl support it
-no_fortify_source="-Wp,-U_FORTIFY_SOURCE"
+no_fortify_source="-U_FORTIFY_SOURCE"
 fortify_source="${no_fortify_source}"
 
 AC_CACHE_CHECK([for maximum supported _FORTIFY_SOURCE level],
@@ -1546,7 +1546,7 @@ AS_CASE([$enable_fortify_source],
         [libc_cv_fortify_source=no])
 
 AS_IF([test "$libc_cv_fortify_source" = yes],
-      [fortify_source="${fortify_source},-D_FORTIFY_SOURCE=${enable_fortify_source}"]
+      [fortify_source="${fortify_source} -D_FORTIFY_SOURCE=${enable_fortify_source}"]
       )
 
 AC_SUBST(enable_fortify_source)

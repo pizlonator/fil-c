@@ -29,6 +29,7 @@ headers := \
   bits/struct_rwlock.h \
   pthread.h \
   semaphore.h \
+  futex_calls.h \
   # headers
 
 extra-libs := libpthread
