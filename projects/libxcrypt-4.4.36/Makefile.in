@@ -99,7 +99,7 @@ build_triplet = @build@
 host_triplet = @host@
 @ENABLE_XCRYPT_COMPAT_FILES_TRUE@am__append_1 = xcrypt.h
 noinst_PROGRAMS = lib/gen-des-tables$(EXEEXT)
-@HAVE_VSCRIPT_TRUE@am__append_2 = $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
+@HAVE_VSCRIPT_TRUE@am__append_2 = -Wc,--version-script=$(builddir)/libcrypt.map
 
 # Install libxcrypt.a symlink to libcrypt.a file.
 @ENABLE_STATIC_TRUE@@ENABLE_XCRYPT_COMPAT_FILES_TRUE@am__append_3 = \
