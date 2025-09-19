@@ -1,0 +1,26 @@
+.TH libinput-analyze-buttons "1"
+.SH NAME
+libinput\-analyze\-buttons \- analyze the button states of a recording
+.SH SYNOPSIS
+.B libinput analyze buttons [\-\-help] [options] \fIrecording.yml\fI
+.SH DESCRIPTION
+.PP
+The
+.B "libinput analyze buttons"
+tool analyzes a recording made with
+.B "libinput record"
+and prints information about the button states.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-threshold=<ms>
+Color any delta time less than the threshold in red.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

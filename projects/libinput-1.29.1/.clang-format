@@ -1,0 +1,82 @@
+AlignAfterOpenBracket: Align
+# This option we want but it's frequently broken and causes bad
+# misalignment. The canary is wheel_click_count_parser, if that works
+# we can actually enable it.
+# AlignArrayOfStructures: Left
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: true
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+  AlignCaseColons: false
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: false
+BinPackParameters: OnePerLine
+BraceWrapping:
+  AfterFunction: true
+BreakAfterReturnType: All
+BreakBeforeBraces: Custom
+BreakStringLiterals: false
+ColumnLimit: 88
+ContinuationIndentWidth: 8
+Cpp11BracedListStyle: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^(<|")config\.h(>|")'
+    Priority:        0
+    SortPriority:    0
+  - Regex:           '^<.*'
+    Priority:        1
+    SortPriority:    0
+  - Regex:           '^"util-.*'
+    Priority:        2
+    SortPriority:    0
+  - Regex:           '.*'
+    Priority:        3
+    SortPriority:    0
+IndentCaseLabels: false
+IndentGotoLabels: false
+IndentWidth: 8
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Right
+ReflowComments: true
+RemoveEmptyLinesInUnwrappedLines: true
+RemoveParentheses: MultipleParentheses
+RemoveSemicolon: true
+SkipMacroDefinitionBody: true
+SortIncludes: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeParens: ControlStatementsExceptControlMacros
+SpacesInContainerLiterals: true
+SpacesInParens: Custom
+TabWidth: 8
+UseTab: ForContinuationAndIndentation
+
+ForEachMacros:
+  - ARRAY_FOR_EACH
+  - list_for_each
+  - list_for_each_safe
+  - tp_for_each_touch
+  - range_for_each
+  - litest_log_group
+  - litest_with_logcapture
+  - litest_with_parameters
+  - litest_with_event_frame
+  - udev_list_entry_foreach
+# END_TEST is defined as something that enforces a line break
+Macros: [ "CASE_RETURN_STRING(s)=case s: return s", "START_TEST(s)=static void s(void)", "END_TEST=enum foo;"]

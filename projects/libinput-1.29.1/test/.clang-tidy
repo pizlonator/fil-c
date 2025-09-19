@@ -1,0 +1,6 @@
+# optin.core.FloatLoopCounter: doubles in for loops - it's fine in the tests
+# optin.performance.Padding: not a performance concern in the tests
+InheritParentConfig: true
+Checks: >
+  -clang-analyzer-security.FloatLoopCounter,
+  -clang-analyzer-optin.performance.Padding,

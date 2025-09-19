@@ -1,0 +1,31 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+  - id: no-commit-to-branch
+    args: ['--branch', 'main']
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.12.2
+  hooks:
+  - id: ruff-check
+    args: ['--ignore=E741,E501', '--extend-exclude=subprojects', '.']
+  - id: ruff-format
+    args: ['--check', '--diff']
+- repo: https://gitlab.freedesktop.org/freedesktop/ci-templates.git
+  rev: e195d80f35b45cc73668be3767b923fd76c70ed5
+  hooks:
+  - id: check-commits
+  - id: generate-template
+- repo: local
+  hooks:
+  - id: run-sed-script
+    name: Check for whitespace errors
+    entry: ./.gitlab-ci/whitespace-check.py
+    language: system
+- repo: https://github.com/pre-commit/mirrors-clang-format
+  rev: v20.1.6
+  hooks:
+  - id: clang-format
+    types_or: [c]

@@ -1,0 +1,14 @@
+# Touchpad is not a clickpad but INPUT_PROP_BUTTONPAD is set
+[Synaptics ALPS0001:00 0911:5288 Touchpad]
+MatchUdevType=touchpad
+MatchName=ALPS0001:00 0911:5288 Touchpad
+MatchDMIModalias=dmi:*svn3LogicGroup:*:pnGravitonN15i-K2*:*
+AttrInputProp=-INPUT_PROP_BUTTONPAD
+AttrEventCode=+BTN_RIGHT
+
+[PCTel PCT2342:00 0911:5288 Touchpad]
+MatchUdevType=touchpad
+MatchName=PCT2342:00 0911:5288 Touchpad
+MatchDMIModalias=dmi:*svn3LogicGroup:pnGravitonN15i:*
+AttrInputProp=-INPUT_PROP_BUTTONPAD
+AttrEventCode=+BTN_RIGHT

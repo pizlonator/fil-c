@@ -1,0 +1,52 @@
+.TH libinput-list-devices "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-list\-devices \- list local devices as recognized by libinput and
+default values of their configuration
+.SH SYNOPSIS
+.B libinput list\-devices [\-\-help]
+.PP
+.B libinput list\-devices \fI/dev/input/event0\fB [\fI/dev/input/event1\fB...]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput list\-devices"
+tool creates a libinput context on the default seat "seat0" and lists
+devices recognized by libinput. Each device shows available configurations
+the respective default configuration setting.
+.PP
+For options that allow more settings than "enabled/disabled", all available ones
+are listed. The default setting is prefixed by an asterisk (*).
+.PP
+If one or more event node paths are given, only those devices are listed.
+By default all devices recognized by libinput are listed.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-verbose
+Use verbose output
+.SH NOTES
+.PP
+libinput\-list\-devices only lists available configuration options for
+a feature. In some cases a device may support a specific feature but
+does not expose configuration for it, e.g. when using the
+device without that particular feature does not make sense.
+A lack of a configuration option thus does not
+necessarily mean that this feature does not work.
+.PP
+A device may be recognized by libinput but not handled by the X.Org libinput
+driver or the Wayland compositor.
+.PP
+An xorg.conf(5) configuration entry or Wayland compositor setting may have
+changed configurations on a device. The
+.B "libinput list\-devices"
+tool only shows the device's default configuration, not the current
+configuration.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

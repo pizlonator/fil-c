@@ -1,0 +1,7 @@
+# optin.core.unix.Malloc: disabled so we can use __attribute__((cleanup)) without leak complaints
+# optin.core.EnumCastOutOfRange: disabled because we use a lot of "wrong" enum values for testing
+#                                and internally and don't want those values leak into the public API
+Checks: >
+  -clang-analyzer-unix.Malloc,
+  -clang-analyzer-optin.core.EnumCastOutOfRange
+WarningsAsErrors: true

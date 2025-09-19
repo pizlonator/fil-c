@@ -1,0 +1,234 @@
+# This is a set of bugbot commands for issues and merge requests - setting any of the
+# bugbot::foo labels will trigger gitlab-triage to run with this ruleset (well, the
+# one we have on the main branch at the time)
+#
+# Note that for adding labels, the label must first created in the project.
+
+# Re-used in issues and mrs
+.close_needinfo: &close_needinfo
+  name: "Close stale needinfo bugs"
+  conditions:
+    labels:
+      - "bugbot::needinfo-timeout"
+  actions:
+    remove_labels:
+      - "bugbot::needinfo-timeout"
+    comment: |
+      I'm closing this bug because some information we requested a while ago was never supplied and
+      we're not able to continue without this information.
+      Please feel free to re-open.
+    status: "close"
+
+.remind_needinfo: &remind_needinfo
+  name: "Remind users of needinfo bugs"
+  conditions:
+    labels:
+      - "bugbot::needinfo-reminder"
+  actions:
+    labels:
+      - "waiting on reporter"
+    remove_labels:
+      - "bugbot::needinfo-reminder"
+    comment: |
+      Hi. This is a friendly reminder that the maintainers are waiting on some information by
+      you (or maybe someone cc'd on this bug). If the information is not provided we may not
+      be able to proceed with this issue or merge request. Please check the recent comments, thanks.
+
+.help_needed: &help_needed
+  name: "Remind users help is needed"
+  conditions:
+    labels:
+      - "bugbot::help-needed"
+  actions:
+    labels:
+      - "help needed"
+    remove_labels:
+      - "bugbot::help-needed"
+    comment: |
+      Hi. This issue or merge request needs help. This simply means that for
+      the foreseeable future, the maintainers will not have time to work on
+      this.
+
+      If this is a request for a new feature, then the feature is unlikely to
+      be implemented unless you or another contributor files a merge request.
+      If a merge request already exists maybe it needs finishing which often
+      involves adding documentation or tests.
+
+      If this is an issue affecting a specific device then it is unlikely to be
+      fixed. This may be because it requires specific hardware to reproduce or
+      it may be that the use case is niche enough that the maintainers do not
+      have time to implement it.
+
+      In short, to resolve this issue or get this merge request into libinput
+      help is needed.
+
+.libinput_record: &libinput_record
+  name: "Request libinput record output"
+  conditions:
+    labels:
+      - "bugbot::libinput-record"
+  actions:
+    remove_labels:
+      - "bugbot::libinput-record"
+    comment: |
+      Looks like we may need some extra information. Please **attach** (do not paste) the full output
+      of `libinput record` and `libinput debug-events --verbose` (if you haven't yet).
+      The [documentation](https://wayland.freedesktop.org/libinput/doc/latest/tools.html#libinput-record-and-libinput-replay)
+      has some information on what we're looking for to be able to triage bugs.
+
+.hid_recorder: &hid_recorder
+  name: "Request hid-recorder output"
+  conditions:
+    labels:
+      - "bugbot::hid-recorder"
+  actions:
+    remove_labels:
+      - "bugbot::hid-recorder"
+    comment: |
+      Looks like we may need some extra information that isn't yet available in this issue.
+      Please **attach** (do not paste) the output of [`hid-recorder`](https://github.com/hidutils/hid-recorder/)
+      for this device (run `sudo hid-recorder` without argument and it will let you pick the device).
+      This should show the data the kernel receives from the device and may provide a hint on what's going on here.
+
+.udev_hid_bpf: &udev_hid_bpf
+  name: "Punt to udev-hid-bpf"
+  conditions:
+    labels:
+      - "bugbot::udev-hid-bpf"
+  actions:
+    remove_labels:
+      - "bugbot::udev-hid-bpf"
+    comment: |
+      This issue looks like it could or should be fixed with [udev-hid-bpf](https://gitlab.freedesktop.org/libevdev/udev-hid-bpf/).
+      udev-hid-bpf is a collection of BPF programs that modify the HID Report Descriptor and/or HID Reports from the device,
+      making it possible to change the properties of a device and/or the events to make them compatible with the
+      expectations the kernel and userspace has of such devices.
+
+      Please see the [udev-hid-bpf documentation](https://libevdev.pages.freedesktop.org/udev-hid-bpf/) for details
+      and/or in particular the [udev-hid-bpf tutorial](https://libevdev.pages.freedesktop.org/udev-hid-bpf/tutorial.html)
+      if you need to enable a new device.
+    status: "close"
+
+resource_rules:
+  issues:
+    rules:
+      - name: "Close kernel bugs"
+        conditions:
+          labels:
+            - "bugbot::kernel"
+        actions:
+          labels:
+            - "kernel"
+          remove_labels:
+            - "bugbot::kernel"
+          comment: |
+            This bug looks like a kernel issue and it cannot be fixed
+            in libinput directly. I'm closing this bug but do feel free
+            to continue discussing the issue here.
+
+            Kernel bugs are usually best sent to the [`linux-input` list](https://lore.kernel.org/linux-input/).
+          status: "close"
+      - name: "Expect a merge request"
+        conditions:
+          labels:
+            - "bugbot::expect-mr"
+        actions:
+          remove_labels:
+            - "bugbot::expect-mr"
+          comment: |
+            I'm closing this bug in anticipation of a merge request that fixes this issue.
+
+            If you are a new contributor, please see
+            [the freedesktop.org wiki](https://gitlab.freedesktop.org/freedesktop/freedesktop/-/wikis/home)
+            on how to get permissions to fork a project and file a merge request.
+
+            The [libinput documentation](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html)
+            also has more details on how to get started.
+          status: "close"
+      - name: "Point to 60-evdev.hwdb"
+        conditions:
+          labels:
+            - "bugbot::evdev-hwdb"
+        actions:
+          remove_labels:
+            - "bugbot::evdev-hwdb"
+          comment: |
+            Looks like this issue may be solved with a device-specific entry in systemd's hwdb.
+
+            You should have a /usr/lib/udev/hwdb.d/60-evdev.hwdb file which includes those quirks. Please see
+            the top of the file for instructions and follow those. Once the quirk is confirmed working
+            this issue (or parts thereof) should be fixed and you can submit a pull request to the
+            [systemd](https://github.com/systemd/systemd/) repository to get that quirk included.
+            Please link to the systemd issue here, thanks.
+
+            I'm closing this issue now, if the hwdb entry does not fix this issue here, please re-open.
+          status: "close"
+      - name: "Close bug for reopening"
+        conditions:
+          labels:
+            - "bugbot::close"
+        actions:
+          remove_labels:
+            - "bugbot::close"
+          comment: |
+            I'm temporarily closing this bug. The bug may not be fixed yet (see any comments above)
+            and we **want you to reopen it when/if it becomes actionable again**.
+
+            This process may feel unfamiliar but unfortunately closing/re-opening is the only action
+            all GitLab users are permitted to do. So we close it, you re-open it when whatever
+            above has been addressed and then we know we need to look at it again.
+            This issue may be closed more than once in a similar fashion but I only leave this
+            comment once since now you understand how it works. :smile:
+
+            For a detailed explanation on the how and why of this process please see
+            the [Closed Issues wiki page](https://gitlab.freedesktop.org/libinput/libinput/-/wikis/Closed-Issues).
+          status: "close"
+      - *udev_hid_bpf
+      - *libinput_record
+      - *hid_recorder
+      - *close_needinfo
+      - *remind_needinfo
+      - *help_needed
+  merge_requests:
+    rules:
+      - name: "Remind contributor of commit rules"
+        conditions:
+          labels:
+            - "bugbot::commit-rules"
+        actions:
+          remove_labels:
+            - "bugbot::commit-rules"
+          comment: |
+            Hi. Looks like the pipeline failed because one or more of the commits in this MR do not meet our requirements.
+            Most commonly this the format of the commit message itself. The "Test summary" above has the details.
+
+            Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
+            and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
+            that explain how to amend and force-push to this repo.
+      - name: "Remind contributor that info needs to be in commit messages"
+        conditions:
+          labels:
+            - "bugbot::info-in-commit-message"
+        actions:
+          remove_labels:
+            - "bugbot::info-in-commit-message"
+          comment: |
+            Hi. Thanks for the merge request. I'm here to request that you add
+            some documentation about this merge request to the
+            **commit message** (or messages). You may have already written some
+            in the merge request description and in many cases it's fine to
+            copy/paste that into the commit message(s).
+
+            The reason is simple: once merged, no-one really looks at this this
+            page here anymore. The git log on the other hand is what developers
+            will use to understand the code so the information must be quickly
+            accessible via git.
+
+            Please see [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
+            that explain how to amend and force-push to this repo.
+      - *udev_hid_bpf
+      - *libinput_record
+      - *hid_recorder
+      - *close_needinfo
+      - *remind_needinfo
+      - *help_needed
