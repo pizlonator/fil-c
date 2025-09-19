@@ -35,6 +35,7 @@
 #include "gmarshal-internal.h"
 
 #include "strinfo.c"
+#include <inttypes.h>
 
 /**
  * GSettings:
@@ -738,7 +739,7 @@ g_settings_class_init (GSettingsClass *class)
                   G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
                   G_STRUCT_OFFSET (GSettingsClass, changed),
                   NULL, NULL, NULL, G_TYPE_NONE,
-                  1, G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
+                  1, (GType) ((uintptr_t)G_TYPE_STRING | (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
 
   /**
    * GSettings::change-event:
@@ -795,7 +796,7 @@ g_settings_class_init (GSettingsClass *class)
                   G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
                   G_STRUCT_OFFSET (GSettingsClass, writable_changed),
                   NULL, NULL, NULL, G_TYPE_NONE,
-                  1, G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
+                  1, (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 
   /**
    * GSettings::writable-change-event:

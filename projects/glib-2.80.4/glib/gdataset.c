@@ -140,7 +140,7 @@ static GDataset     *g_dataset_cached = NULL; /* should this be
 G_ALWAYS_INLINE static inline GData *
 g_datalist_lock_and_get (GData **datalist)
 {
-  guintptr ptr;
+  gpointer ptr;
 
   g_pointer_bit_lock_and_get ((void **) datalist, DATALIST_LOCK_BIT, &ptr);
   return G_DATALIST_CLEAN_POINTER (ptr);

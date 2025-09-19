@@ -25,6 +25,7 @@
 
 #include  <glib.h>
 #include <gobject/gobject-visibility.h>
+#include <inttypes.h>
 
 G_BEGIN_DECLS
 
@@ -270,7 +271,7 @@ G_BEGIN_DECLS
  *
  * Returns: %TRUE is @type is fundamental
  */
-#define G_TYPE_IS_FUNDAMENTAL(type)             ((type) <= G_TYPE_FUNDAMENTAL_MAX)
+#define G_TYPE_IS_FUNDAMENTAL(type)             ((type) <= (GType) G_TYPE_FUNDAMENTAL_MAX)
 /**
  * G_TYPE_IS_DERIVED:
  * @type: A #GType value
@@ -281,7 +282,7 @@ G_BEGIN_DECLS
  *
  * Returns: %TRUE if @type is derived
  */
-#define G_TYPE_IS_DERIVED(type)                 ((type) > G_TYPE_FUNDAMENTAL_MAX)
+#define G_TYPE_IS_DERIVED(type)                 ((type) > (GType) G_TYPE_FUNDAMENTAL_MAX)
 /**
  * G_TYPE_IS_INTERFACE:
  * @type: A #GType value
@@ -421,13 +422,7 @@ G_BEGIN_DECLS
  * A numerical value which represents the unique identifier of a registered
  * type.
  */
-#if     GLIB_SIZEOF_VOID_P > GLIB_SIZEOF_SIZE_T
-typedef guintptr                        GType;
-#elif     GLIB_SIZEOF_SIZE_T != GLIB_SIZEOF_LONG || !defined (G_CXX_STD_VERSION)
-typedef gsize                           GType;
-#else   /* for historic reasons, C++ on non-Morello/CHERI systems links against gulong GTypes */
-typedef gulong                          GType;
-#endif
+typedef struct _GTypeOpaque             *GType;
 typedef struct _GValue                  GValue;
 typedef union  _GTypeCValue             GTypeCValue;
 typedef struct _GTypePlugin             GTypePlugin;

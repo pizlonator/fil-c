@@ -80,13 +80,13 @@ DEPRECATED_MSG_STR = 'The token "{}" is deprecated; use "{}" instead'
 VA_ARG_STR = \
     '  arg{:d} = ({:s}) va_arg (args_copy, {:s});'
 STATIC_CHECK_STR = \
-    '(param_types[{:d}] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && '
+    '((uintptr_t) param_types[{:d}] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && '
 BOX_TYPED_STR = \
-    '    arg{idx:d} = {box_func} (param_types[{idx:d}] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg{idx:d});'
+    '    arg{idx:d} = {box_func} ((GType) ((uintptr_t) param_types[{idx:d}] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg{idx:d});'
 BOX_UNTYPED_STR = \
     '    arg{idx:d} = {box_func} (arg{idx:d});'
 UNBOX_TYPED_STR = \
-    '    {unbox_func} (param_types[{idx:d}] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg{idx:d});'
+    '    {unbox_func} ((GType) ((uintptr_t) param_types[{idx:d}] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg{idx:d});'
 UNBOX_UNTYPED_STR = \
     '    {unbox_func} (arg{idx:d});'
 

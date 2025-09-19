@@ -503,7 +503,7 @@ gpointer
  *
  * Since: 2.30
  **/
-gintptr
+gpointer
 (g_atomic_pointer_add) (volatile void *atomic,
                         gssize         val)
 {
@@ -534,7 +534,7 @@ gintptr
  *
  * Since: 2.30
  **/
-guintptr
+gpointer
 (g_atomic_pointer_and) (volatile void *atomic,
                         gsize          val)
 {
@@ -565,7 +565,7 @@ guintptr
  *
  * Since: 2.30
  **/
-guintptr
+gpointer
 (g_atomic_pointer_or) (volatile void *atomic,
                        gsize          val)
 {
@@ -596,7 +596,7 @@ guintptr
  *
  * Since: 2.30
  **/
-guintptr
+gpointer
 (g_atomic_pointer_xor) (volatile void *atomic,
                         gsize          val)
 {

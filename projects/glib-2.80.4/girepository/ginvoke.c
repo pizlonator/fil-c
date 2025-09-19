@@ -30,6 +30,7 @@
 
 #include <girepository/girepository.h>
 #include "girffi.h"
+#include <inttypes.h>
 
 /**
  * value_to_ffi_type:
@@ -50,48 +51,48 @@ value_to_ffi_type (const GValue *gvalue, void **value)
   GType type = g_type_fundamental (G_VALUE_TYPE (gvalue));
   g_assert (type != G_TYPE_INVALID);
 
-  switch (type)
+  switch ((uintptr_t) type)
     {
-    case G_TYPE_BOOLEAN:
-    case G_TYPE_CHAR:
-    case G_TYPE_INT:
+    case (uintptr_t) G_TYPE_BOOLEAN:
+    case (uintptr_t) G_TYPE_CHAR:
+    case (uintptr_t) G_TYPE_INT:
       rettype = &ffi_type_sint;
       *value = (void *) &(gvalue->data[0].v_int);
       break;
-    case G_TYPE_UCHAR:
-    case G_TYPE_UINT:
+    case (uintptr_t) G_TYPE_UCHAR:
+    case (uintptr_t) G_TYPE_UINT:
       rettype = &ffi_type_uint;
       *value = (void *) &(gvalue->data[0].v_uint);
       break;
-    case G_TYPE_STRING:
-    case G_TYPE_OBJECT:
-    case G_TYPE_BOXED:
-    case G_TYPE_POINTER:
-    case G_TYPE_PARAM:
+    case (uintptr_t) G_TYPE_STRING:
+    case (uintptr_t) G_TYPE_OBJECT:
+    case (uintptr_t) G_TYPE_BOXED:
+    case (uintptr_t) G_TYPE_POINTER:
+    case (uintptr_t) G_TYPE_PARAM:
       rettype = &ffi_type_pointer;
       *value = (void *) &(gvalue->data[0].v_pointer);
       break;
-    case G_TYPE_FLOAT:
+    case (uintptr_t) G_TYPE_FLOAT:
       rettype = &ffi_type_float;
       *value = (void *) &(gvalue->data[0].v_float);
       break;
-    case G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_DOUBLE:
       rettype = &ffi_type_double;
       *value = (void *) &(gvalue->data[0].v_double);
       break;
-    case G_TYPE_LONG:
+    case (uintptr_t) G_TYPE_LONG:
       rettype = &ffi_type_slong;
       *value = (void *) &(gvalue->data[0].v_long);
       break;
-    case G_TYPE_ULONG:
+    case (uintptr_t) G_TYPE_ULONG:
       rettype = &ffi_type_ulong;
       *value = (void *) &(gvalue->data[0].v_ulong);
       break;
-    case G_TYPE_INT64:
+    case (uintptr_t) G_TYPE_INT64:
       rettype = &ffi_type_sint64;
       *value = (void *) &(gvalue->data[0].v_int64);
       break;
-    case G_TYPE_UINT64:
+    case (uintptr_t) G_TYPE_UINT64:
       rettype = &ffi_type_uint64;
       *value = (void *) &(gvalue->data[0].v_uint64);
       break;
@@ -130,46 +131,46 @@ g_value_to_ffi_return_type (const GValue *gvalue,
 
   *value = (void *) &(ffi_value->v_long);
 
-  switch (type) {
-  case G_TYPE_CHAR:
+  switch ((uintptr_t) type) {
+  case (uintptr_t) G_TYPE_CHAR:
     rettype = &ffi_type_sint8;
     break;
-  case G_TYPE_UCHAR:
+  case (uintptr_t) G_TYPE_UCHAR:
     rettype = &ffi_type_uint8;
     break;
-  case G_TYPE_BOOLEAN:
-  case G_TYPE_INT:
+  case (uintptr_t) G_TYPE_BOOLEAN:
+  case (uintptr_t) G_TYPE_INT:
     rettype = &ffi_type_sint;
     break;
-  case G_TYPE_UINT:
+  case (uintptr_t) G_TYPE_UINT:
     rettype = &ffi_type_uint;
     break;
-  case G_TYPE_STRING:
-  case G_TYPE_OBJECT:
-  case G_TYPE_BOXED:
-  case G_TYPE_POINTER:
-  case G_TYPE_PARAM:
+  case (uintptr_t) G_TYPE_STRING:
+  case (uintptr_t) G_TYPE_OBJECT:
+  case (uintptr_t) G_TYPE_BOXED:
+  case (uintptr_t) G_TYPE_POINTER:
+  case (uintptr_t) G_TYPE_PARAM:
     rettype = &ffi_type_pointer;
     break;
-  case G_TYPE_FLOAT:
+  case (uintptr_t) G_TYPE_FLOAT:
     rettype = &ffi_type_float;
     *value = (void *) &(ffi_value->v_float);
     break;
-  case G_TYPE_DOUBLE:
+  case (uintptr_t) G_TYPE_DOUBLE:
     rettype = &ffi_type_double;
     *value = (void *) &(ffi_value->v_double);
     break;
-  case G_TYPE_LONG:
+  case (uintptr_t) G_TYPE_LONG:
     rettype = &ffi_type_slong;
     break;
-  case G_TYPE_ULONG:
+  case (uintptr_t) G_TYPE_ULONG:
     rettype = &ffi_type_ulong;
     break;
-  case G_TYPE_INT64:
+  case (uintptr_t) G_TYPE_INT64:
     rettype = &ffi_type_sint64;
     *value = (void *) &(ffi_value->v_int64);
     break;
-  case G_TYPE_UINT64:
+  case (uintptr_t) G_TYPE_UINT64:
     rettype = &ffi_type_uint64;
     *value = (void *) &(ffi_value->v_uint64);
     break;
@@ -198,50 +199,50 @@ static void
 g_value_from_ffi_value (GValue           *gvalue,
                         const GIArgument *value)
 {
-  switch (g_type_fundamental (G_VALUE_TYPE (gvalue))) {
-  case G_TYPE_INT:
+  switch ((uintptr_t) g_type_fundamental (G_VALUE_TYPE (gvalue))) {
+  case (uintptr_t) G_TYPE_INT:
       g_value_set_int (gvalue, (gint)value->v_long);
       break;
-  case G_TYPE_FLOAT:
+  case (uintptr_t) G_TYPE_FLOAT:
       g_value_set_float (gvalue, (gfloat)value->v_float);
       break;
-  case G_TYPE_DOUBLE:
+  case (uintptr_t) G_TYPE_DOUBLE:
       g_value_set_double (gvalue, (gdouble)value->v_double);
       break;
-  case G_TYPE_BOOLEAN:
+  case (uintptr_t) G_TYPE_BOOLEAN:
       g_value_set_boolean (gvalue, (gboolean)value->v_long);
       break;
-  case G_TYPE_STRING:
+  case (uintptr_t) G_TYPE_STRING:
       g_value_set_string (gvalue, (char*)value->v_pointer);
       break;
-  case G_TYPE_CHAR:
+  case (uintptr_t) G_TYPE_CHAR:
       g_value_set_schar (gvalue, (char)value->v_long);
       break;
-  case G_TYPE_UCHAR:
+  case (uintptr_t) G_TYPE_UCHAR:
       g_value_set_uchar (gvalue, (guchar)value->v_ulong);
       break;
-  case G_TYPE_UINT:
+  case (uintptr_t) G_TYPE_UINT:
       g_value_set_uint (gvalue, (guint)value->v_ulong);
       break;
-  case G_TYPE_POINTER:
+  case (uintptr_t) G_TYPE_POINTER:
       g_value_set_pointer (gvalue, (gpointer)value->v_pointer);
       break;
-  case G_TYPE_LONG:
+  case (uintptr_t) G_TYPE_LONG:
       g_value_set_long (gvalue, (glong)value->v_long);
       break;
-  case G_TYPE_ULONG:
+  case (uintptr_t) G_TYPE_ULONG:
       g_value_set_ulong (gvalue, (gulong)value->v_ulong);
       break;
-  case G_TYPE_INT64:
+  case (uintptr_t) G_TYPE_INT64:
       g_value_set_int64 (gvalue, (gint64)value->v_int64);
       break;
-  case G_TYPE_UINT64:
+  case (uintptr_t) G_TYPE_UINT64:
       g_value_set_uint64 (gvalue, (guint64)value->v_uint64);
       break;
-  case G_TYPE_BOXED:
+  case (uintptr_t) G_TYPE_BOXED:
       g_value_set_boxed (gvalue, (gpointer)value->v_pointer);
       break;
-  case G_TYPE_PARAM:
+  case (uintptr_t) G_TYPE_PARAM:
       g_value_set_param (gvalue, (gpointer)value->v_pointer);
       break;
   default:

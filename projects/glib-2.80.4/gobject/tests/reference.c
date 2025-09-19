@@ -46,7 +46,7 @@ test_type_query (void)
   GTypeQuery query;
 
   g_type_query (G_TYPE_ENUM, &query);
-  g_assert_cmpint (query.type, ==, G_TYPE_ENUM);
+  g_assert_cmpint ((uintptr_t) query.type, ==, (uintptr_t) G_TYPE_ENUM);
   g_assert_cmpstr (query.type_name, ==, "GEnum");
   g_assert_cmpint (query.class_size, ==, sizeof (GEnumClass));
   g_assert_cmpint (query.instance_size, ==, 0);

@@ -200,17 +200,17 @@ main (gint   argc,
     show_nodes (root, 0, iindent);
   if (gen_froots)
     {
-      root = ~0;
-      for (i = 0; i <= G_TYPE_FUNDAMENTAL_MAX; i += G_TYPE_MAKE_FUNDAMENTAL (1))
+        root = (GType) ~0;
+        for (i = 0; i <= G_TYPE_FUNDAMENTAL_MAX; i += (gint) G_TYPE_MAKE_FUNDAMENTAL (1))
 	{
-	  const gchar *name = g_type_name (i);
-          GType sibling = i + G_TYPE_MAKE_FUNDAMENTAL (1);
+          const gchar *name = g_type_name ((GType) i);
+          GType sibling = (GType) (i + (gint) G_TYPE_MAKE_FUNDAMENTAL (1));
 
-          if (sibling > G_TYPE_FUNDAMENTAL_MAX || g_type_name (sibling) == NULL)
+          if (sibling > (GType) G_TYPE_FUNDAMENTAL_MAX || g_type_name (sibling) == NULL)
             sibling = 0;
 	  
 	  if (name)
-	    show_nodes (i, sibling, iindent);
+	    show_nodes ((GType) i, sibling, iindent);
 	}
     }
   

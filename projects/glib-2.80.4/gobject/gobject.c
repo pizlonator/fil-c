@@ -5447,10 +5447,10 @@ _weak_ref_lock (GWeakRef *weak_ref, GObject **out_object)
 
   if (out_object)
     {
-      guintptr ptr;
+      gpointer ptr;
 
       g_pointer_bit_lock_and_get (&weak_ref->priv.p, WEAK_REF_LOCK_BIT, &ptr);
-      *out_object = _weak_ref_clean_pointer ((gpointer) ptr);
+      *out_object = _weak_ref_clean_pointer (ptr);
     }
   else
     g_pointer_bit_lock (&weak_ref->priv.p, WEAK_REF_LOCK_BIT);

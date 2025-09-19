@@ -192,7 +192,7 @@ gi_registered_type_info_is_boxed (GIRegisteredTypeInfo *info)
   GIBaseInfo *base_info = GI_BASE_INFO (info);
   const RegisteredTypeBlob *blob;
 
-  g_return_val_if_fail (GI_IS_REGISTERED_TYPE_INFO (info), G_TYPE_INVALID);
+  g_return_val_if_fail (GI_IS_REGISTERED_TYPE_INFO (info), FALSE);
 
   blob = (const RegisteredTypeBlob *) &base_info->typelib->data[base_info->offset];
 

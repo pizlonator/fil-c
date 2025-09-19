@@ -176,7 +176,7 @@ test_dynamic_type_query (void)
 
   g_type_query (DYNAMIC_OBJECT_TYPE, &query_result);
 
-  g_assert_cmpuint (query_result.type, !=, 0);
+  g_assert_cmpuint ((uintptr_t) query_result.type, !=, 0);
   g_assert_cmpstr (query_result.type_name, ==, "DynamicObject");
   g_assert_cmpuint (query_result.class_size, >=, sizeof (DynamicObjectClass));
   g_assert_cmpuint (query_result.instance_size, >=, sizeof (DynamicObject));

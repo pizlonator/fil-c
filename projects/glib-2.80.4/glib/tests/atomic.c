@@ -182,13 +182,13 @@ test_types (void)
   gu2 = (guintptr) g_atomic_pointer_add (&gu, 5);
   g_assert_cmpuint (gu2, ==, 0);
   g_assert_cmpuint (gu, ==, 5);
-  gu2 = g_atomic_pointer_and (&gu, 6);
+  gu2 = (guintptr) g_atomic_pointer_and (&gu, 6);
   g_assert_cmpuint (gu2, ==, 5);
   g_assert_cmpuint (gu, ==, 4);
-  gu2 = g_atomic_pointer_or (&gu, 8);
+  gu2 = (guintptr) g_atomic_pointer_or (&gu, 8);
   g_assert_cmpuint (gu2, ==, 4);
   g_assert_cmpuint (gu, ==, 12);
-  gu2 = g_atomic_pointer_xor (&gu, 4);
+  gu2 = (guintptr) g_atomic_pointer_xor (&gu, 4);
   g_assert_cmpuint (gu2, ==, 12);
   g_assert_cmpuint (gu, ==, 8);
   vp_str2 = g_atomic_pointer_exchange (&vp_str, str);
@@ -362,16 +362,17 @@ G_GNUC_END_IGNORE_DEPRECATIONS
   g_assert_true (res);
   g_assert_cmpuint (gu, ==, 0);
   g_assert_cmpuint ((guintptr) cp, ==, 0);
+#pragma clang diagnostic ignored "-Wbad-function-cast"
   gu2 = (guintptr) g_atomic_pointer_add (&gu, 5);
   g_assert_cmpuint (gu2, ==, 0);
   g_assert_cmpuint (gu, ==, 5);
-  gu2 = g_atomic_pointer_and (&gu, 6);
+  gu2 = (guintptr) g_atomic_pointer_and (&gu, 6);
   g_assert_cmpuint (gu2, ==, 5);
   g_assert_cmpuint (gu, ==, 4);
-  gu2 = g_atomic_pointer_or (&gu, 8);
+  gu2 = (guintptr) g_atomic_pointer_or (&gu, 8);
   g_assert_cmpuint (gu2, ==, 4);
   g_assert_cmpuint (gu, ==, 12);
-  gu2 = g_atomic_pointer_xor (&gu, 4);
+  gu2 = (guintptr) g_atomic_pointer_xor (&gu, 4);
   g_assert_cmpuint (gu2, ==, 12);
   g_assert_cmpuint (gu, ==, 8);
   vp2 = g_atomic_pointer_exchange (&gu, NULL);

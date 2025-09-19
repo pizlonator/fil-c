@@ -48,7 +48,7 @@ void      g_pointer_bit_lock              (volatile void *address,
 GLIB_AVAILABLE_IN_2_80
 void      g_pointer_bit_lock_and_get      (gpointer address,
                                            guint lock_bit,
-                                           guintptr *out_ptr);
+                                           gpointer *out_ptr);
 
 GLIB_AVAILABLE_IN_ALL
 gboolean  g_pointer_bit_trylock           (volatile void *address,

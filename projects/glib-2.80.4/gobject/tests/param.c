@@ -508,12 +508,12 @@ test_param_spec_gtype (void)
   g_value_set_gtype (&value, G_TYPE_INT);
   g_assert_false (g_param_value_is_valid (pspec, &value));
   g_assert_true (g_param_value_validate (pspec, &value));
-  g_assert_cmpint (g_value_get_gtype (&value), ==, G_TYPE_PARAM);
+  g_assert_cmpint ((uintptr_t) g_value_get_gtype (&value), ==, (uintptr_t) G_TYPE_PARAM);
 
   g_value_set_gtype (&value, G_TYPE_PARAM_INT);
   g_assert_true (g_param_value_is_valid (pspec, &value));
   g_assert_false (g_param_value_validate (pspec, &value));
-  g_assert_cmpint (g_value_get_gtype (&value), ==, G_TYPE_PARAM_INT);
+  g_assert_cmpint ((uintptr_t) g_value_get_gtype (&value), ==, (uintptr_t) G_TYPE_PARAM_INT);
 
   g_param_spec_unref (pspec);
 }

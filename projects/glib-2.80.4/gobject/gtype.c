@@ -362,15 +362,15 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 /* --- type nodes --- */
 static GHashTable       *static_type_nodes_ht = NULL;
 static TypeNode		*static_fundamental_type_nodes[(G_TYPE_FUNDAMENTAL_MAX >> G_TYPE_FUNDAMENTAL_SHIFT) + 1] = { NULL, };
-static GType		 static_fundamental_next = G_TYPE_RESERVED_USER_FIRST;
+static GType		 static_fundamental_next = (GType) G_TYPE_RESERVED_USER_FIRST;
 
 static inline TypeNode*
 lookup_type_node_I (GType utype)
 {
-  if (utype > G_TYPE_FUNDAMENTAL_MAX)
-    return (TypeNode*) (utype & ~TYPE_ID_MASK);
+  if (utype > (GType) G_TYPE_FUNDAMENTAL_MAX)
+    return (TypeNode*) ((uintptr_t) utype & ~(uintptr_t) TYPE_ID_MASK);
   else
-    return static_fundamental_type_nodes[utype >> G_TYPE_FUNDAMENTAL_SHIFT];
+    return static_fundamental_type_nodes[(uintptr_t) utype >> G_TYPE_FUNDAMENTAL_SHIFT];
 }
 
 /**
@@ -414,7 +414,7 @@ type_node_any_new_W (TypeNode             *pnode,
   if (!pnode)					      /* offset fundamental types */
     {
       node = G_STRUCT_MEMBER_P (node, SIZEOF_FUNDAMENTAL_INFO);
-      static_fundamental_type_nodes[ftype >> G_TYPE_FUNDAMENTAL_SHIFT] = node;
+      static_fundamental_type_nodes[(uintptr_t) ftype >> G_TYPE_FUNDAMENTAL_SHIFT] = node;
       type = ftype;
 
 #if ENABLE_VALGRIND
@@ -424,7 +424,7 @@ type_node_any_new_W (TypeNode             *pnode,
   else
     type = GPOINTER_TO_TYPE (node);
   
-  g_assert ((type & TYPE_ID_MASK) == 0);
+  g_assert (((uintptr_t) type & (uintptr_t) TYPE_ID_MASK) == 0);
   
   node->n_supers = n_supers;
   if (!pnode)
@@ -523,11 +523,11 @@ type_node_fundamental_new_W (GType                 ftype,
   GTypeFundamentalInfo *finfo;
   TypeNode *node;
 
-  g_assert ((ftype & TYPE_ID_MASK) == 0);
-  g_assert (ftype <= G_TYPE_FUNDAMENTAL_MAX);
+  g_assert (((uintptr_t) ftype & (uintptr_t) TYPE_ID_MASK) == 0);
+  g_assert (ftype <= (GType) G_TYPE_FUNDAMENTAL_MAX);
 
-  if (ftype >> G_TYPE_FUNDAMENTAL_SHIFT == static_fundamental_next)
-    static_fundamental_next++;
+  if ((uintptr_t) ftype >> G_TYPE_FUNDAMENTAL_SHIFT == (uintptr_t) static_fundamental_next)
+    static_fundamental_next = (GType) ((uintptr_t) static_fundamental_next + 1);
 
   node = type_node_any_new_W (NULL, ftype, name, NULL, type_flags);
 
@@ -878,7 +878,7 @@ check_type_info_I (TypeNode        *pnode,
   GTypeFundamentalInfo *finfo = type_node_fundamental_info_I (lookup_type_node_I (ftype));
   gboolean is_interface = ftype == G_TYPE_INTERFACE;
   
-  g_assert (ftype <= G_TYPE_FUNDAMENTAL_MAX && !(ftype & TYPE_ID_MASK));
+  g_assert (ftype <= (GType) G_TYPE_FUNDAMENTAL_MAX && !((uintptr_t) ftype & (uintptr_t) TYPE_ID_MASK));
   
   /* check instance members */
   if (!(finfo->type_flags & G_TYPE_FLAG_INSTANTIATABLE) &&
@@ -1518,17 +1518,17 @@ type_iface_add_prerequisite_W (TypeNode *iface,
   if (NODE_IS_IFACE (prerequisite_node))
     {
       dependants = iface_node_get_dependants_array_L (prerequisite_node);
-      n_dependants = dependants ? dependants[0] : 0;
+      n_dependants = dependants ? (guint) dependants[0] : 0;
       n_dependants += 1;
       dependants = g_renew (GType, dependants, n_dependants + 1);
       dependants[n_dependants] = NODE_TYPE (iface);
-      dependants[0] = n_dependants;
+      dependants[0] = (GType) n_dependants;
       iface_node_set_dependants_array_W (prerequisite_node, dependants);
     }
   
   /* we need to notify all dependants */
   dependants = iface_node_get_dependants_array_L (iface);
-  n_dependants = dependants ? dependants[0] : 0;
+  n_dependants = dependants ? (guint) dependants[0] : 0;
   for (i = 1; i <= n_dependants; i++)
     type_iface_add_prerequisite_W (lookup_type_node_I (dependants[i]), prerequisite_node);
 }
@@ -2718,8 +2718,8 @@ g_type_register_fundamental (GType                       type_id,
   
   if (!check_type_name_I (type_name))
     return 0;
-  if ((type_id & TYPE_ID_MASK) ||
-      type_id > G_TYPE_FUNDAMENTAL_MAX)
+  if (((uintptr_t) type_id & (uintptr_t) TYPE_ID_MASK) ||
+      type_id > (GType) G_TYPE_FUNDAMENTAL_MAX)
     {
       g_critical ("attempt to register fundamental type '%s' with invalid type id (%" G_GUINTPTR_FORMAT ")",
 		  type_name,
@@ -4102,8 +4102,8 @@ g_type_fundamental_next (void)
   G_READ_LOCK (&type_rw_lock);
   type = static_fundamental_next;
   G_READ_UNLOCK (&type_rw_lock);
-  type = G_TYPE_MAKE_FUNDAMENTAL (type);
-  return type <= G_TYPE_FUNDAMENTAL_MAX ? type : 0;
+  type = G_TYPE_MAKE_FUNDAMENTAL ((uintptr_t) type);
+  return type <= (GType) G_TYPE_FUNDAMENTAL_MAX ? type : 0;
 }
 
 /**

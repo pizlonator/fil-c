@@ -45,6 +45,7 @@
 
 #include "glibintl.h"
 #include "gmarshal-internal.h"
+#include <inttypes.h>
 
 /**
  * GDBusProxy:
@@ -565,7 +566,7 @@ g_dbus_proxy_class_init (GDBusProxyClass *klass)
                                                      G_TYPE_NONE,
                                                      2,
                                                      G_TYPE_VARIANT,
-                                                     G_TYPE_STRV | G_SIGNAL_TYPE_STATIC_SCOPE);
+                                                     (GType) ((uintptr_t) G_TYPE_STRV | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
   g_signal_set_va_marshaller (signals[PROPERTIES_CHANGED_SIGNAL],
                               G_TYPE_FROM_CLASS (klass),
                               _g_cclosure_marshal_VOID__VARIANT_BOXEDv);

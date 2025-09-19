@@ -20,6 +20,7 @@
 
 #include <glib-object.h>
 #include "gmarshal-internal.h"
+#include <inttypes.h>
 
 #ifdef G_ENABLE_DEBUG
 #define g_marshal_value_peek_boolean(v)  g_value_get_boolean (v)
@@ -496,7 +497,7 @@ _g_cclosure_marshal_BOOLEAN__STRINGv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   va_end (args_copy);
 
@@ -515,7 +516,7 @@ _g_cclosure_marshal_BOOLEAN__STRINGv (GClosure *closure,
   v_return = callback (data1,
                        arg0,
                        data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
 
   g_value_set_boolean (return_value, v_return);
@@ -739,8 +740,8 @@ _g_cclosure_marshal_INT__BOXEDv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
-    arg0 = g_boxed_copy (param_types[0] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg0);
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+    arg0 = g_boxed_copy ((GType) ((uintptr_t) param_types[0] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg0);
   va_end (args_copy);
 
   g_return_if_fail (return_value != NULL);
@@ -760,8 +761,8 @@ _g_cclosure_marshal_INT__BOXEDv (GClosure *closure,
   v_return = callback (data1,
                        arg0,
                        data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
-    g_boxed_free (param_types[0] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg0);
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[0] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg0);
 
   g_value_set_int (return_value, v_return);
 }
@@ -913,8 +914,8 @@ _g_cclosure_marshal_VOID__BOOLEAN_BOXEDv (GClosure *closure,
   va_copy (args_copy, args);
   arg0 = (gboolean) va_arg (args_copy, gboolean);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    arg1 = g_boxed_copy (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    arg1 = g_boxed_copy ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
   va_end (args_copy);
 
 
@@ -934,8 +935,8 @@ _g_cclosure_marshal_VOID__BOOLEAN_BOXEDv (GClosure *closure,
             arg0,
             arg1,
             data2);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    g_boxed_free (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
 }
 
 /* VOID:ENUM,OBJECT */
@@ -1467,13 +1468,13 @@ _g_cclosure_marshal_VOID__OBJECT_OBJECT_STRING_STRING_VARIANTv (GClosure *closur
   if (arg1 != NULL)
     arg1 = g_object_ref (arg1);
   arg2 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     arg2 = g_strdup (arg2);
   arg3 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[3] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
+  if (((uintptr_t) param_types[3] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
     arg3 = g_strdup (arg3);
   arg4 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[4] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg4 != NULL)
+  if (((uintptr_t) param_types[4] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg4 != NULL)
     arg4 = g_variant_ref_sink (arg4);
   va_end (args_copy);
 
@@ -1501,11 +1502,11 @@ _g_cclosure_marshal_VOID__OBJECT_OBJECT_STRING_STRING_VARIANTv (GClosure *closur
     g_object_unref (arg0);
   if (arg1 != NULL)
     g_object_unref (arg1);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     g_free (arg2);
-  if ((param_types[3] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
+  if (((uintptr_t) param_types[3] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
     g_free (arg3);
-  if ((param_types[4] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg4 != NULL)
+  if (((uintptr_t) param_types[4] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg4 != NULL)
     g_variant_unref (arg4);
 }
 
@@ -1582,11 +1583,11 @@ _g_cclosure_marshal_VOID__OBJECT_OBJECT_VARIANT_BOXEDv (GClosure *closure,
   if (arg1 != NULL)
     arg1 = g_object_ref (arg1);
   arg2 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     arg2 = g_variant_ref_sink (arg2);
   arg3 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[3] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
-    arg3 = g_boxed_copy (param_types[3] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg3);
+  if (((uintptr_t) param_types[3] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
+    arg3 = g_boxed_copy ((GType) ((uintptr_t) param_types[3] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg3);
   va_end (args_copy);
 
 
@@ -1612,10 +1613,10 @@ _g_cclosure_marshal_VOID__OBJECT_OBJECT_VARIANT_BOXEDv (GClosure *closure,
     g_object_unref (arg0);
   if (arg1 != NULL)
     g_object_unref (arg1);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     g_variant_unref (arg2);
-  if ((param_types[3] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
-    g_boxed_free (param_types[3] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg3);
+  if (((uintptr_t) param_types[3] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg3 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[3] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg3);
 }
 
 /* VOID:OBJECT,VARIANT */
@@ -1680,7 +1681,7 @@ _g_cclosure_marshal_VOID__OBJECT_VARIANTv (GClosure *closure,
   if (arg0 != NULL)
     arg0 = g_object_ref (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     arg1 = g_variant_ref_sink (arg1);
   va_end (args_copy);
 
@@ -1703,7 +1704,7 @@ _g_cclosure_marshal_VOID__OBJECT_VARIANTv (GClosure *closure,
             data2);
   if (arg0 != NULL)
     g_object_unref (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     g_variant_unref (arg1);
 }
 
@@ -1772,7 +1773,7 @@ _g_cclosure_marshal_VOID__POINTER_INT_STRINGv (GClosure *closure,
   arg0 = (gpointer) va_arg (args_copy, gpointer);
   arg1 = (gint) va_arg (args_copy, gint);
   arg2 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     arg2 = g_strdup (arg2);
   va_end (args_copy);
 
@@ -1794,7 +1795,7 @@ _g_cclosure_marshal_VOID__POINTER_INT_STRINGv (GClosure *closure,
             arg1,
             arg2,
             data2);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     g_free (arg2);
 }
 
@@ -1857,7 +1858,7 @@ _g_cclosure_marshal_VOID__STRING_BOOLEANv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gboolean) va_arg (args_copy, gboolean);
   va_end (args_copy);
@@ -1879,7 +1880,7 @@ _g_cclosure_marshal_VOID__STRING_BOOLEANv (GClosure *closure,
             arg0,
             arg1,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
 }
 
@@ -1942,11 +1943,11 @@ _g_cclosure_marshal_VOID__STRING_BOXEDv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    arg1 = g_boxed_copy (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    arg1 = g_boxed_copy ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
   va_end (args_copy);
 
 
@@ -1966,10 +1967,10 @@ _g_cclosure_marshal_VOID__STRING_BOXEDv (GClosure *closure,
             arg0,
             arg1,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    g_boxed_free (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
 }
 
 /* VOID:STRING,BOXED,BOXED */
@@ -2035,14 +2036,14 @@ _g_cclosure_marshal_VOID__STRING_BOXED_BOXEDv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    arg1 = g_boxed_copy (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    arg1 = g_boxed_copy ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
   arg2 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
-    arg2 = g_boxed_copy (param_types[2] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg2);
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+    arg2 = g_boxed_copy ((GType) ((uintptr_t) param_types[2] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg2);
   va_end (args_copy);
 
 
@@ -2063,12 +2064,12 @@ _g_cclosure_marshal_VOID__STRING_BOXED_BOXEDv (GClosure *closure,
             arg1,
             arg2,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    g_boxed_free (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
-    g_boxed_free (param_types[2] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg2);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[2] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg2);
 }
 
 /* VOID:STRING,INT64,INT64 */
@@ -2134,7 +2135,7 @@ _g_cclosure_marshal_VOID__STRING_INT64_INT64v (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gint64) va_arg (args_copy, gint64);
   arg2 = (gint64) va_arg (args_copy, gint64);
@@ -2158,7 +2159,7 @@ _g_cclosure_marshal_VOID__STRING_INT64_INT64v (GClosure *closure,
             arg1,
             arg2,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
 }
 
@@ -2229,13 +2230,13 @@ _g_cclosure_marshal_VOID__STRING_STRING_STRING_FLAGSv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     arg1 = g_strdup (arg1);
   arg2 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     arg2 = g_strdup (arg2);
   arg3 = (guint) va_arg (args_copy, guint);
   va_end (args_copy);
@@ -2259,11 +2260,11 @@ _g_cclosure_marshal_VOID__STRING_STRING_STRING_FLAGSv (GClosure *closure,
             arg2,
             arg3,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     g_free (arg1);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     g_free (arg2);
 }
 
@@ -2330,13 +2331,13 @@ _g_cclosure_marshal_VOID__STRING_STRING_VARIANTv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     arg1 = g_strdup (arg1);
   arg2 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     arg2 = g_variant_ref_sink (arg2);
   va_end (args_copy);
 
@@ -2358,11 +2359,11 @@ _g_cclosure_marshal_VOID__STRING_STRING_VARIANTv (GClosure *closure,
             arg1,
             arg2,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     g_free (arg1);
-  if ((param_types[2] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
+  if (((uintptr_t) param_types[2] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg2 != NULL)
     g_variant_unref (arg2);
 }
 
@@ -2425,10 +2426,10 @@ _g_cclosure_marshal_VOID__STRING_VARIANTv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_strdup (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     arg1 = g_variant_ref_sink (arg1);
   va_end (args_copy);
 
@@ -2449,9 +2450,9 @@ _g_cclosure_marshal_VOID__STRING_VARIANTv (GClosure *closure,
             arg0,
             arg1,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_free (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
     g_variant_unref (arg1);
 }
 
@@ -2602,11 +2603,11 @@ _g_cclosure_marshal_VOID__VARIANT_BOXEDv (GClosure *closure,
 
   va_copy (args_copy, args);
   arg0 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     arg0 = g_variant_ref_sink (arg0);
   arg1 = (gpointer) va_arg (args_copy, gpointer);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    arg1 = g_boxed_copy (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    arg1 = g_boxed_copy ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
   va_end (args_copy);
 
 
@@ -2626,8 +2627,8 @@ _g_cclosure_marshal_VOID__VARIANT_BOXEDv (GClosure *closure,
             arg0,
             arg1,
             data2);
-  if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+  if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
     g_variant_unref (arg0);
-  if ((param_types[1] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
-    g_boxed_free (param_types[1] & ~G_SIGNAL_TYPE_STATIC_SCOPE, arg1);
+  if (((uintptr_t) param_types[1] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg1 != NULL)
+    g_boxed_free ((GType) ((uintptr_t) param_types[1] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), arg1);
 }

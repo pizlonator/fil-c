@@ -118,10 +118,10 @@ test_interface_prerequisite (void)
 
   g_free (prereqs);
 
-  g_assert_cmpint (g_type_interface_instantiatable_prerequisite (baa_get_type ()), ==, G_TYPE_INVALID);
-  g_assert_cmpint (g_type_interface_instantiatable_prerequisite (boo_get_type ()), ==, G_TYPE_INVALID);
+  g_assert_cmpint ((uintptr_t) g_type_interface_instantiatable_prerequisite (baa_get_type ()), ==, (uintptr_t) G_TYPE_INVALID);
+  g_assert_cmpint ((uintptr_t) g_type_interface_instantiatable_prerequisite (boo_get_type ()), ==, (uintptr_t) G_TYPE_INVALID);
 
-  g_assert_cmpint (g_type_interface_instantiatable_prerequisite (bozo_get_type ()), ==, G_TYPE_INITIALLY_UNOWNED);
+  g_assert_cmpint ((uintptr_t) g_type_interface_instantiatable_prerequisite (bozo_get_type ()), ==, (uintptr_t) G_TYPE_INITIALLY_UNOWNED);
 }
 
 typedef struct {
@@ -222,11 +222,11 @@ test_query (void)
 
   g_test_message ("Invalid types can’t be queried.");
   g_type_query (G_TYPE_INVALID, &results);
-  g_assert_cmpuint (results.type, ==, 0);
+  g_assert_cmpuint ((uintptr_t) results.type, ==, 0);
 
   g_test_message ("Unclassed types can’t be queried.");
   g_type_query (G_TYPE_INT64, &results);
-  g_assert_cmpuint (results.type, ==, 0);
+  g_assert_cmpuint ((uintptr_t) results.type, ==, 0);
 }
 
 int

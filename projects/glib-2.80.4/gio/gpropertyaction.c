@@ -26,6 +26,7 @@
 #include "gsettings-mapping.h"
 #include "gaction.h"
 #include "glibintl.h"
+#include <inttypes.h>
 
 /**
  * GPropertyAction:
@@ -258,22 +259,22 @@ g_property_action_determine_type (GParamSpec *pspec)
   if (G_TYPE_IS_ENUM (pspec->value_type))
     return G_VARIANT_TYPE_STRING;
 
-  switch (pspec->value_type)
+  switch ((uintptr_t) pspec->value_type)
     {
-    case G_TYPE_BOOLEAN:
+    case (uintptr_t) G_TYPE_BOOLEAN:
       return G_VARIANT_TYPE_BOOLEAN;
 
-    case G_TYPE_INT:
+    case (uintptr_t) G_TYPE_INT:
       return G_VARIANT_TYPE_INT32;
 
-    case G_TYPE_UINT:
+    case (uintptr_t) G_TYPE_UINT:
       return G_VARIANT_TYPE_UINT32;
 
-    case G_TYPE_DOUBLE:
-    case G_TYPE_FLOAT:
+    case (uintptr_t) G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_FLOAT:
       return G_VARIANT_TYPE_DOUBLE;
 
-    case G_TYPE_STRING:
+    case (uintptr_t) G_TYPE_STRING:
       return G_VARIANT_TYPE_STRING;
 
     default:

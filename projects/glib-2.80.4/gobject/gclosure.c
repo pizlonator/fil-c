@@ -1206,15 +1206,15 @@ value_to_ffi_type (const GValue *gvalue,
       *tmpval_used = FALSE;
     }
 
-  switch (type)
+  switch ((uintptr_t) type)
     {
-    case G_TYPE_BOOLEAN:
-    case G_TYPE_CHAR:
-    case G_TYPE_INT:
+    case (uintptr_t) G_TYPE_BOOLEAN:
+    case (uintptr_t) G_TYPE_CHAR:
+    case (uintptr_t) G_TYPE_INT:
       rettype = &ffi_type_sint;
       *value = (gpointer)&(gvalue->data[0].v_int);
       break;
-    case G_TYPE_ENUM:
+    case (uintptr_t) G_TYPE_ENUM:
       /* enums are stored in v_long even though they are integers, which makes
        * marshalling through libffi somewhat complicated.  They need to be
        * marshalled as signed ints, but we need to use a temporary int sized
@@ -1227,49 +1227,49 @@ value_to_ffi_type (const GValue *gvalue,
       *value = enum_tmpval;
       *tmpval_used = TRUE;
       break;
-    case G_TYPE_FLAGS:
+    case (uintptr_t) G_TYPE_FLAGS:
       g_assert (enum_tmpval != NULL);
       rettype = &ffi_type_uint;
       *enum_tmpval = g_value_get_flags (gvalue);
       *value = enum_tmpval;
       *tmpval_used = TRUE;
       break;
-    case G_TYPE_UCHAR:
-    case G_TYPE_UINT:
+    case (uintptr_t) G_TYPE_UCHAR:
+    case (uintptr_t) G_TYPE_UINT:
       rettype = &ffi_type_uint;
       *value = (gpointer)&(gvalue->data[0].v_uint);
       break;
-    case G_TYPE_STRING:
-    case G_TYPE_OBJECT:
-    case G_TYPE_BOXED:
-    case G_TYPE_PARAM:
-    case G_TYPE_POINTER:
-    case G_TYPE_INTERFACE:
-    case G_TYPE_VARIANT:
+    case (uintptr_t) G_TYPE_STRING:
+    case (uintptr_t) G_TYPE_OBJECT:
+    case (uintptr_t) G_TYPE_BOXED:
+    case (uintptr_t) G_TYPE_PARAM:
+    case (uintptr_t) G_TYPE_POINTER:
+    case (uintptr_t) G_TYPE_INTERFACE:
+    case (uintptr_t) G_TYPE_VARIANT:
       rettype = &ffi_type_pointer;
       *value = (gpointer)&(gvalue->data[0].v_pointer);
       break;
-    case G_TYPE_FLOAT:
+    case (uintptr_t) G_TYPE_FLOAT:
       rettype = &ffi_type_float;
       *value = (gpointer)&(gvalue->data[0].v_float);
       break;
-    case G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_DOUBLE:
       rettype = &ffi_type_double;
       *value = (gpointer)&(gvalue->data[0].v_double);
       break;
-    case G_TYPE_LONG:
+    case (uintptr_t) G_TYPE_LONG:
       rettype = &ffi_type_slong;
       *value = (gpointer)&(gvalue->data[0].v_long);
       break;
-    case G_TYPE_ULONG:
+    case (uintptr_t) G_TYPE_ULONG:
       rettype = &ffi_type_ulong;
       *value = (gpointer)&(gvalue->data[0].v_ulong);
       break;
-    case G_TYPE_INT64:
+    case (uintptr_t) G_TYPE_INT64:
       rettype = &ffi_type_sint64;
       *value = (gpointer)&(gvalue->data[0].v_int64);
       break;
-    case G_TYPE_UINT64:
+    case (uintptr_t) G_TYPE_UINT64:
       rettype = &ffi_type_uint64;
       *value = (gpointer)&(gvalue->data[0].v_uint64);
       break;
@@ -1291,66 +1291,66 @@ value_from_ffi_type (GValue *gvalue, gpointer *value)
   type = G_VALUE_TYPE (gvalue);
 
 restart:
-  switch (g_type_fundamental (type))
+  switch ((uintptr_t) g_type_fundamental (type))
     {
-    case G_TYPE_INT:
+    case (uintptr_t) G_TYPE_INT:
       g_value_set_int (gvalue, (gint) *int_val);
       break;
-    case G_TYPE_FLOAT:
+    case (uintptr_t) G_TYPE_FLOAT:
       g_value_set_float (gvalue, *(gfloat*)value);
       break;
-    case G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_DOUBLE:
       g_value_set_double (gvalue, *(gdouble*)value);
       break;
-    case G_TYPE_BOOLEAN:
+    case (uintptr_t) G_TYPE_BOOLEAN:
       g_value_set_boolean (gvalue, (gboolean) *int_val);
       break;
-    case G_TYPE_STRING:
+    case (uintptr_t) G_TYPE_STRING:
       g_value_take_string (gvalue, *(gchar**)value);
       break;
-    case G_TYPE_CHAR:
+    case (uintptr_t) G_TYPE_CHAR:
       g_value_set_schar (gvalue, (gint8) *int_val);
       break;
-    case G_TYPE_UCHAR:
+    case (uintptr_t) G_TYPE_UCHAR:
       g_value_set_uchar (gvalue, (guchar) *int_val);
       break;
-    case G_TYPE_UINT:
+    case (uintptr_t) G_TYPE_UINT:
       g_value_set_uint (gvalue, (guint) *int_val);
       break;
-    case G_TYPE_POINTER:
+    case (uintptr_t) G_TYPE_POINTER:
       g_value_set_pointer (gvalue, *(gpointer*)value);
       break;
-    case G_TYPE_LONG:
+    case (uintptr_t) G_TYPE_LONG:
       g_value_set_long (gvalue, (glong) *int_val);
       break;
-    case G_TYPE_ULONG:
+    case (uintptr_t) G_TYPE_ULONG:
       g_value_set_ulong (gvalue, (gulong) *int_val);
       break;
-    case G_TYPE_INT64:
+    case (uintptr_t) G_TYPE_INT64:
       g_value_set_int64 (gvalue, (gint64) *int_val);
       break;
-    case G_TYPE_UINT64:
+    case (uintptr_t) G_TYPE_UINT64:
       g_value_set_uint64 (gvalue, (guint64) *int_val);
       break;
-    case G_TYPE_BOXED:
+    case (uintptr_t) G_TYPE_BOXED:
       g_value_take_boxed (gvalue, *(gpointer*)value);
       break;
-    case G_TYPE_ENUM:
+    case (uintptr_t) G_TYPE_ENUM:
       g_value_set_enum (gvalue, (gint) *int_val);
       break;
-    case G_TYPE_FLAGS:
+    case (uintptr_t) G_TYPE_FLAGS:
       g_value_set_flags (gvalue, (guint) *int_val);
       break;
-    case G_TYPE_PARAM:
+    case (uintptr_t) G_TYPE_PARAM:
       g_value_take_param (gvalue, *(gpointer*)value);
       break;
-    case G_TYPE_OBJECT:
+    case (uintptr_t) G_TYPE_OBJECT:
       g_value_take_object (gvalue, *(gpointer*)value);
       break;
-    case G_TYPE_VARIANT:
+    case (uintptr_t) G_TYPE_VARIANT:
       g_value_take_variant (gvalue, *(gpointer*)value);
       break;
-    case G_TYPE_INTERFACE:
+    case (uintptr_t) G_TYPE_INTERFACE:
       type = g_type_interface_instantiatable_prerequisite (type);
       if (type)
         goto restart;
@@ -1383,53 +1383,53 @@ va_to_ffi_type (GType gtype,
   GType type = g_type_fundamental (gtype);
   g_assert (type != G_TYPE_INVALID);
 
-  switch (type)
+  switch ((uintptr_t) type)
     {
-    case G_TYPE_BOOLEAN:
-    case G_TYPE_CHAR:
-    case G_TYPE_INT:
-    case G_TYPE_ENUM:
+    case (uintptr_t) G_TYPE_BOOLEAN:
+    case (uintptr_t) G_TYPE_CHAR:
+    case (uintptr_t) G_TYPE_INT:
+    case (uintptr_t) G_TYPE_ENUM:
       rettype = &ffi_type_sint;
       storage->_gint = va_arg (*va, gint);
       break;
-    case G_TYPE_UCHAR:
-    case G_TYPE_UINT:
-    case G_TYPE_FLAGS:
+    case (uintptr_t) G_TYPE_UCHAR:
+    case (uintptr_t) G_TYPE_UINT:
+    case (uintptr_t) G_TYPE_FLAGS:
       rettype = &ffi_type_uint;
       storage->_guint = va_arg (*va, guint);
       break;
-    case G_TYPE_STRING:
-    case G_TYPE_OBJECT:
-    case G_TYPE_BOXED:
-    case G_TYPE_PARAM:
-    case G_TYPE_POINTER:
-    case G_TYPE_INTERFACE:
-    case G_TYPE_VARIANT:
+    case (uintptr_t) G_TYPE_STRING:
+    case (uintptr_t) G_TYPE_OBJECT:
+    case (uintptr_t) G_TYPE_BOXED:
+    case (uintptr_t) G_TYPE_PARAM:
+    case (uintptr_t) G_TYPE_POINTER:
+    case (uintptr_t) G_TYPE_INTERFACE:
+    case (uintptr_t) G_TYPE_VARIANT:
       rettype = &ffi_type_pointer;
       storage->_gpointer = va_arg (*va, gpointer);
       break;
-    case G_TYPE_FLOAT:
+    case (uintptr_t) G_TYPE_FLOAT:
       /* Float args are passed as doubles in varargs */
       rettype = &ffi_type_float;
       storage->_float = (float)va_arg (*va, double);
       break;
-    case G_TYPE_DOUBLE:
+    case (uintptr_t) G_TYPE_DOUBLE:
       rettype = &ffi_type_double;
       storage->_double = va_arg (*va, double);
       break;
-    case G_TYPE_LONG:
+    case (uintptr_t) G_TYPE_LONG:
       rettype = &ffi_type_slong;
       storage->_glong = va_arg (*va, glong);
       break;
-    case G_TYPE_ULONG:
+    case (uintptr_t) G_TYPE_ULONG:
       rettype = &ffi_type_ulong;
       storage->_gulong = va_arg (*va, gulong);
       break;
-    case G_TYPE_INT64:
+    case (uintptr_t) G_TYPE_INT64:
       rettype = &ffi_type_sint64;
       storage->_gint64 = va_arg (*va, gint64);
       break;
-    case G_TYPE_UINT64:
+    case (uintptr_t) G_TYPE_UINT64:
       rettype = &ffi_type_uint64;
       storage->_guint64 = va_arg (*va, guint64);
       break;
@@ -1621,7 +1621,7 @@ g_cclosure_marshal_generic_va (GClosure *closure,
   /* Box non-primitive arguments */
   for (i = 0; i < n_params; i++)
     {
-      GType type = param_types[i]  & ~G_SIGNAL_TYPE_STATIC_SCOPE;
+      GType type = (GType) ((uintptr_t) param_types[i]  & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
       GType fundamental = G_TYPE_FUNDAMENTAL (type);
 
       atypes[i+1] = va_to_ffi_type (type,
@@ -1629,7 +1629,7 @@ g_cclosure_marshal_generic_va (GClosure *closure,
 				    &storage[i]);
       args[i+1] = &storage[i];
 
-      if ((param_types[i]  & G_SIGNAL_TYPE_STATIC_SCOPE) == 0)
+      if (((uintptr_t) param_types[i]  & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0)
 	{
 	  if (fundamental == G_TYPE_STRING && storage[i]._gpointer != NULL)
 	    storage[i]._gpointer = g_strdup (storage[i]._gpointer);
@@ -1654,10 +1654,10 @@ g_cclosure_marshal_generic_va (GClosure *closure,
   /* Unbox non-primitive arguments */
   for (i = 0; i < n_params; i++)
     {
-      GType type = param_types[i]  & ~G_SIGNAL_TYPE_STATIC_SCOPE;
+      GType type = (GType) ((uintptr_t) param_types[i]  & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
       GType fundamental = G_TYPE_FUNDAMENTAL (type);
 
-      if ((param_types[i]  & G_SIGNAL_TYPE_STATIC_SCOPE) == 0)
+      if (((uintptr_t) param_types[i]  & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0)
 	{
 	  if (fundamental == G_TYPE_STRING && storage[i]._gpointer != NULL)
 	    g_free (storage[i]._gpointer);

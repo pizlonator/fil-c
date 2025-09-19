@@ -590,7 +590,7 @@ test_signal_group_properties (void)
                 "target", &target,
                 "target-type", &gtype,
                 NULL);
-  g_assert_cmpint (gtype, ==, signal_target_get_type ());
+  g_assert_cmpint ((uintptr_t) gtype, ==, (uintptr_t) signal_target_get_type ());
   g_assert_null (target);
 
   target = g_object_new (signal_target_get_type (), NULL);

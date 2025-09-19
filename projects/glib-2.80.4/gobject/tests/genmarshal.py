@@ -500,7 +500,7 @@ class TestGenmarshal(unittest.TestCase):
 
               va_copy (args_copy, args);
               arg0 = (gpointer) va_arg (args_copy, gpointer);
-              if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+              if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
                 arg0 = g_variant_ref_sink (arg0);
               va_end (args_copy);
 
@@ -520,7 +520,7 @@ class TestGenmarshal(unittest.TestCase):
               callback (data1,
                         arg0,
                         data2);
-              if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+              if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
                 g_variant_unref (arg0);
             }}
             """
@@ -642,7 +642,7 @@ class TestGenmarshal(unittest.TestCase):
 
               va_copy (args_copy, args);
               arg0 = (gpointer) va_arg (args_copy, gpointer);
-              if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+              if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
                 arg0 = g_strdup (arg0);
               va_end (args_copy);
 
@@ -662,7 +662,7 @@ class TestGenmarshal(unittest.TestCase):
               callback (data1,
                         arg0,
                         data2);
-              if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+              if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
                 g_free (arg0);
             }}
             """
@@ -785,7 +785,7 @@ class TestGenmarshal(unittest.TestCase):
 
               va_copy (args_copy, args);
               arg0 = (gpointer) va_arg (args_copy, gpointer);
-              if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+              if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
                 arg0 = g_param_spec_ref (arg0);
               va_end (args_copy);
 
@@ -805,7 +805,7 @@ class TestGenmarshal(unittest.TestCase):
               callback (data1,
                         arg0,
                         data2);
-              if ((param_types[0] & G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
+              if (((uintptr_t) param_types[0] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0 && arg0 != NULL)
                 g_param_spec_unref (arg0);
             }}
             """

@@ -37,6 +37,7 @@
 #include "gobject.h"
 #include "genums.h"
 #include "gobject_trace.h"
+#include <inttypes.h>
 
 
 #define REPORT_BUG      "please report occurrence circumstances to https://gitlab.gnome.org/GNOME/glib/issues/new"
@@ -1618,8 +1619,8 @@ g_signal_newv (const gchar       *signal_name,
   g_return_val_if_fail (G_TYPE_IS_INSTANTIATABLE (itype) || G_TYPE_IS_INTERFACE (itype), 0);
   if (n_params)
     g_return_val_if_fail (param_types != NULL, 0);
-  g_return_val_if_fail ((return_type & G_SIGNAL_TYPE_STATIC_SCOPE) == 0, 0);
-  if (return_type == (G_TYPE_NONE & ~G_SIGNAL_TYPE_STATIC_SCOPE))
+  g_return_val_if_fail (((uintptr_t) return_type & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE) == 0, 0);
+  if (return_type == (GType) ((uintptr_t) G_TYPE_NONE & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE))
     g_return_val_if_fail (accumulator == NULL, 0);
   if (!accumulator)
     g_return_val_if_fail (accu_data == NULL, 0);
@@ -1661,7 +1662,7 @@ g_signal_newv (const gchar       *signal_name,
       return 0;
     }
   for (i = 0; i < n_params; i++)
-    if (!G_TYPE_IS_VALUE (param_types[i] & ~G_SIGNAL_TYPE_STATIC_SCOPE))
+    if (!G_TYPE_IS_VALUE ((GType) ((uintptr_t) param_types[i] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE)))
       {
 	g_critical (G_STRLOC ": parameter %d of type '%s' for signal \"%s::%s\" is not a value type",
 		    i + 1, type_debug_name (param_types[i]), type_debug_name (itype), name);
@@ -1669,7 +1670,7 @@ g_signal_newv (const gchar       *signal_name,
 	SIGNAL_UNLOCK ();
 	return 0;
       }
-  if (return_type != G_TYPE_NONE && !G_TYPE_IS_VALUE (return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE))
+  if (return_type != G_TYPE_NONE && !G_TYPE_IS_VALUE ((GType) ((uintptr_t) return_type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE)))
     {
       g_critical (G_STRLOC ": return value of type '%s' for signal \"%s::%s\" is not a value type",
 		  type_debug_name (return_type), type_debug_name (itype), name);
@@ -1728,7 +1729,7 @@ g_signal_newv (const gchar       *signal_name,
   else if (n_params == 1 && return_type == G_TYPE_NONE)
     {
 #define ADD_CHECK(__type__) \
-      else if (g_type_is_a (param_types[0] & ~G_SIGNAL_TYPE_STATIC_SCOPE, G_TYPE_ ##__type__))         \
+      else if (g_type_is_a ((GType) ((uintptr_t) param_types[0] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE), G_TYPE_ ##__type__)) \
 	{                                                                \
 	  builtin_c_marshaller = g_cclosure_marshal_VOID__ ## __type__;  \
 	  builtin_va_marshaller = g_cclosure_marshal_VOID__ ## __type__ ##v;     \
@@ -2178,8 +2179,8 @@ g_signal_chain_from_overridden_handler (gpointer instance,
       for (i = 0; i < node->n_params; i++)
         {
           gchar *error;
-          GType ptype = node->param_types[i] & ~G_SIGNAL_TYPE_STATIC_SCOPE;
-          gboolean static_scope = node->param_types[i] & G_SIGNAL_TYPE_STATIC_SCOPE;
+          GType ptype = (GType) ((uintptr_t) node->param_types[i] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
+          gboolean static_scope = (uintptr_t) node->param_types[i] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE;
 
           SIGNAL_UNLOCK ();
           G_VALUE_COLLECT_INIT (param_values + i, ptype,
@@ -2222,8 +2223,8 @@ g_signal_chain_from_overridden_handler (gpointer instance,
         {
           GValue return_value = G_VALUE_INIT;
           gchar *error = NULL;
-          GType rtype = signal_return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE;
-          gboolean static_scope = signal_return_type & G_SIGNAL_TYPE_STATIC_SCOPE;
+          GType rtype = (GType) ((uintptr_t) signal_return_type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
+          gboolean static_scope = (uintptr_t) signal_return_type & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE;
 
           g_value_init (&return_value, rtype);
 
@@ -3378,8 +3379,8 @@ signal_emit_valist_unlocked (gpointer instance,
 	  GValue *return_accu, accu = G_VALUE_INIT;
 	  GType instance_type = G_TYPE_FROM_INSTANCE (instance);
 	  GValue emission_return = G_VALUE_INIT;
-          GType rtype = node_copy.return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE;
-	  gboolean static_scope = node_copy.return_type & G_SIGNAL_TYPE_STATIC_SCOPE;
+          GType rtype = (GType) ((uintptr_t) node_copy.return_type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
+	  gboolean static_scope = (uintptr_t) node_copy.return_type & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE;
 
 	  if (rtype == G_TYPE_NONE)
 	    return_accu = NULL;
@@ -3448,7 +3449,7 @@ signal_emit_valist_unlocked (gpointer instance,
 	      gchar *error = NULL;
               for (i = 0; i < node_copy.n_params; i++)
 		{
-                  GType ptype = node_copy.param_types[i] & ~G_SIGNAL_TYPE_STATIC_SCOPE;
+                  GType ptype = (GType) ((uintptr_t) node_copy.param_types[i] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
 		  G_VALUE_COLLECT_SKIP (ptype, var_args);
 		}
 
@@ -3491,8 +3492,8 @@ signal_emit_valist_unlocked (gpointer instance,
   for (i = 0; i < node_copy.n_params; i++)
     {
       gchar *error;
-      GType ptype = node_copy.param_types[i] & ~G_SIGNAL_TYPE_STATIC_SCOPE;
-      gboolean static_scope = node_copy.param_types[i] & G_SIGNAL_TYPE_STATIC_SCOPE;
+      GType ptype = (GType) ((uintptr_t) node_copy.param_types[i] & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
+      gboolean static_scope = (uintptr_t) node_copy.param_types[i] & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE;
 
       G_VALUE_COLLECT_INIT (param_values + i, ptype,
 			    var_args,
@@ -3524,8 +3525,8 @@ signal_emit_valist_unlocked (gpointer instance,
     {
       GValue return_value = G_VALUE_INIT;
       gchar *error = NULL;
-      GType rtype = node_copy.return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE;
-      gboolean static_scope = node_copy.return_type & G_SIGNAL_TYPE_STATIC_SCOPE;
+      GType rtype = (GType) ((uintptr_t) node_copy.return_type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE);
+      gboolean static_scope = (uintptr_t) node_copy.return_type & (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE;
       
       g_value_init (&return_value, rtype);
 
@@ -3645,7 +3646,7 @@ maybe_init_accumulator_unlocked (SignalNode *node,
         return accumulator_value;
 
       g_value_init (accumulator_value,
-                    node->return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE);
+                    (GType) ((uintptr_t) node->return_type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
       return accumulator_value;
     }
 
@@ -4002,7 +4003,7 @@ signal_emit_unlocked_R (SignalNode   *node,
       SIGNAL_UNLOCK ();
       if (node->return_type != G_TYPE_NONE && !accumulator)
 	{
-	  g_value_init (&accu, node->return_type & ~G_SIGNAL_TYPE_STATIC_SCOPE);
+	  g_value_init (&accu, (GType) ((uintptr_t) node->return_type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
 	  need_unset = TRUE;
 	}
       g_closure_invoke (class_closure,
@@ -4082,7 +4083,7 @@ type_debug_name (GType type)
 {
   if (type)
     {
-      const char *name = g_type_name (type & ~G_SIGNAL_TYPE_STATIC_SCOPE);
+      const char *name = g_type_name ((GType) ((uintptr_t) type & ~(uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
       return name ? name : "<unknown>";
     }
   else

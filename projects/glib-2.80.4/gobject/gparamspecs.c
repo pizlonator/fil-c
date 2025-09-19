@@ -1735,7 +1735,7 @@ _g_param_spec_types_init (void)
       sizeof (GParamSpecValueArray),	/* instance_size */
       0,				/* n_preallocs */
       param_value_array_init,		/* instance_init */
-      0xdeadbeef,			/* value_type, assigned further down */
+      (GType) 0xdeadbeef,		/* value_type, assigned further down */
       param_value_array_finalize,	/* finalize */
       param_value_array_set_default,	/* value_set_default */
       param_value_array_validate,	/* value_validate */
@@ -1792,7 +1792,7 @@ _g_param_spec_types_init (void)
       sizeof (GParamSpecGType),	/* instance_size */
       0,			/* n_preallocs */
       param_gtype_init,		/* instance_init */
-      0xdeadbeef,		/* value_type, assigned further down */
+      (GType) 0xdeadbeef,	/* value_type, assigned further down */
       NULL,			/* finalize */
       param_gtype_set_default,	/* value_set_default */
       param_gtype_validate,	/* value_validate */

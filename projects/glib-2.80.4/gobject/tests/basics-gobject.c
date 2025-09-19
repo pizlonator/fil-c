@@ -100,7 +100,7 @@ test_object_test_iface_init (gpointer giface,
   TestIfaceClass *iface = giface;
 
   g_assert (iface_data == GUINT_TO_POINTER (42));
-  g_assert_cmpint (G_TYPE_FROM_INTERFACE (iface), ==, TEST_TYPE_IFACE);
+  g_assert_cmpint ((uintptr_t) G_TYPE_FROM_INTERFACE (iface), ==, (uintptr_t) TEST_TYPE_IFACE);
 
   /* assert iface_base_init() was already called */
   g_assert_cmpuint (iface_base_init_count, >, 0);
