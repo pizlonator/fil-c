@@ -36,7 +36,7 @@
 #include <register-atfork.h>
 #include <dso_handle.h>
 #include <register-atfork.h>
-
+#include <stdfil.h>
 
 /* Hide the symbol so that no definition but the one locally in the
    executable or DSO is used.  */
@@ -48,7 +48,7 @@ attribute_hidden
 __pthread_atfork (void (*prepare) (void), void (*parent) (void),
 		  void (*child) (void))
 {
-  return __register_atfork (prepare, parent, child, __dso_handle);
+  return __register_atfork (prepare, parent, child, NULL);
 }
 #ifndef __pthread_atfork
 extern int pthread_atfork (void (*prepare) (void), void (*parent) (void),

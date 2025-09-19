@@ -19,17 +19,13 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Create FILE with protections MODE.  */
 int
 __creat64 (const char *file, mode_t mode)
 {
-#if defined __OFF_T_MATCHES_OFF64_T && defined __NR_creat
-  return SYSCALL_CANCEL (creat, file, mode);
-#else
-  /* We need to pass O_LARGEFILE.  */
-  return __open64 (file, O_WRONLY | O_CREAT | O_TRUNC, mode);
-#endif
+  return zsys_open (file, O_WRONLY | O_CREAT | O_TRUNC, mode);
 }
 weak_alias (__creat64, creat64)
 

@@ -35,7 +35,7 @@ __tcgetattr (int fd, struct termios *termios_p)
   struct __kernel_termios k_termios;
   int retval;
 
-  retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios);
+  retval = zsys_ioctl (fd, TCGETS, &k_termios);
 
   if (__glibc_likely (retval == 0))
     {

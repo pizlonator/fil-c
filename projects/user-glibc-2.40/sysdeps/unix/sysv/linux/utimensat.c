@@ -21,6 +21,7 @@
 #include <sysdep.h>
 #include <time.h>
 #include <kernel-features.h>
+#include <pizlonated_syscalls.h>
 
 /* Helper function defined for easy reusage of the code which calls utimensat
    and utimensat_time64 syscall.  */
@@ -28,42 +29,7 @@ int
 __utimensat64_helper (int fd, const char *file,
                       const struct __timespec64 tsp64[2], int flags)
 {
-#ifndef __NR_utimensat_time64
-# define __NR_utimensat_time64 __NR_utimensat
-#endif
-
-#ifdef __ASSUME_TIME64_SYSCALLS
-  return INLINE_SYSCALL_CALL (utimensat_time64, fd, file, &tsp64[0], flags);
-#else
-  /* For UTIME_NOW and UTIME_OMIT the value of tv_sec field is ignored.  */
-# define TS_SPECIAL(ts) \
-  ((ts).tv_nsec == UTIME_NOW || (ts).tv_nsec == UTIME_OMIT)
-
-  bool need_time64 = tsp64 != NULL
-		     && ((!TS_SPECIAL (tsp64[0])
-			  && !in_int32_t_range (tsp64[0].tv_sec))
-			 || (!TS_SPECIAL (tsp64[1])
-			     && !in_int32_t_range (tsp64[1].tv_sec)));
-  if (need_time64)
-    {
-      int r = INLINE_SYSCALL_CALL (utimensat_time64, fd, file, &tsp64[0],
-				   flags);
-      if (r == 0 || errno != ENOSYS)
-	return r;
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  struct timespec tsp32[2], *ptsp32 = NULL;
-  if (tsp64)
-    {
-      tsp32[0] = valid_timespec64_to_timespec (tsp64[0]);
-      tsp32[1] = valid_timespec64_to_timespec (tsp64[1]);
-      ptsp32 = tsp32;
-    }
-
-  return INLINE_SYSCALL_CALL (utimensat, fd, file, ptsp32, flags);
-#endif
+  return zsys_utimensat (fd, file, tsp64, flags);
 }
 libc_hidden_def (__utimensat64_helper)
 

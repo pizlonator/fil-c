@@ -19,16 +19,13 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Create a directory named PATH with protections MODE.  */
 int
 __mkdir (const char *path, mode_t mode)
 {
-#ifdef __NR_mkdir
-  return INLINE_SYSCALL_CALL (mkdir,  path, mode);
-#else
-  return INLINE_SYSCALL_CALL (mkdirat, AT_FDCWD, path, mode);
-#endif
+  return zsys_mkdir (path, mode);
 }
 
 libc_hidden_def (__mkdir)

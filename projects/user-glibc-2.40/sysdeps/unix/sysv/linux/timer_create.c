@@ -27,6 +27,7 @@
 #include "kernel-posix-timers.h"
 #include "kernel-posix-cpu-timers.h"
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 int
 ___timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
@@ -58,8 +59,7 @@ ___timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 	  }
 
 	kernel_timer_t ktimerid;
-	if (INLINE_SYSCALL_CALL (timer_create, syscall_clockid, evp,
-				 &ktimerid) == -1)
+	if (zsys_timer_create (syscall_clockid, evp, &ktimerid) == -1)
 	  return -1;
 
 	*timerid = kernel_timer_to_timerid (ktimerid);
@@ -108,19 +108,15 @@ ___timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 
 	/* Create the event structure for the kernel timer.  */
 	struct sigevent sev =
-	  { .sigev_value.sival_ptr = newp,
+	  { .sigev_value.sival_ptr = (void *) zptrtable_encode(__timer_ptrtable, newp),
 	    .sigev_signo = SIGTIMER,
 	    .sigev_notify = SIGEV_SIGNAL | SIGEV_THREAD_ID,
 	    ._sigev_un = { ._pad = { [0] = __timer_helper_tid } } };
 
 	/* Create the timer.  */
-	int res;
-	res = INTERNAL_SYSCALL_CALL (timer_create, syscall_clockid, &sev,
-				     &newp->ktimerid);
-	if (INTERNAL_SYSCALL_ERROR_P (res))
+        if (zsys_timer_create (syscall_clockid, &sev, &newp->ktimerid) < 0)
 	  {
 	    free (newp);
-	    __set_errno (INTERNAL_SYSCALL_ERRNO (res));
 	    return -1;
 	  }
 

@@ -23,7 +23,7 @@ __pthread_tryjoin_np (pthread_t threadid, void **thread_return)
 {
   /* Return right away if the thread hasn't terminated yet.  */
   struct pthread *pd = (struct pthread *) threadid;
-  if (pd->tid != 0)
+  if (pd->dead == 0)
     return EBUSY;
 
   /* If pd->tid == 0 then lll_wait_tid will not block on futex

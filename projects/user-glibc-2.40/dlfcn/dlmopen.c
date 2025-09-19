@@ -23,67 +23,14 @@
 #include <unistd.h>
 #include <ldsodefs.h>
 #include <shlib-compat.h>
-
-struct dlmopen_args
-{
-  /* Namespace ID.  */
-  Lmid_t nsid;
-  /* The arguments for dlopen_doit.  */
-  const char *file;
-  int mode;
-  /* The return value of dlopen_doit.  */
-  void *new;
-  /* Address of the caller.  */
-  const void *caller;
-};
-
-static void
-dlmopen_doit (void *a)
-{
-  struct dlmopen_args *args = (struct dlmopen_args *) a;
-
-  /* Non-shared code has no support for multiple namespaces.  */
-  if (args->nsid != LM_ID_BASE)
-    {
-# ifdef SHARED
-      /* If trying to open the link map for the main executable the namespace
-	 must be the main one.  */
-      if (args->file == NULL)
-# endif
-	_dl_signal_error (EINVAL, NULL, NULL, N_("invalid namespace"));
-
-      /* It makes no sense to use RTLD_GLOBAL when loading a DSO into
-	 a namespace other than the base namespace.  */
-      if (__glibc_unlikely (args->mode & RTLD_GLOBAL))
-	_dl_signal_error (EINVAL, NULL, NULL, N_("invalid mode"));
-    }
-
-  args->new = GLRO(dl_open) (args->file ?: "", args->mode | __RTLD_DLOPEN,
-			     args->caller,
-			     args->nsid, __libc_argc, __libc_argv, __environ);
-}
-
-static void *
-dlmopen_implementation (Lmid_t nsid, const char *file, int mode,
-			void *dl_caller)
-{
-  struct dlmopen_args args;
-  args.nsid = nsid;
-  args.file = file;
-  args.mode = mode;
-  args.caller = dl_caller;
-
-  return _dlerror_run (dlmopen_doit, &args) ? NULL : args.new;
-}
+#include <stdfil.h>
 
 #ifdef SHARED
 void *
 ___dlmopen (Lmid_t nsid, const char *file, int mode)
 {
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlmopen (nsid, file, mode, RETURN_ADDRESS (0));
-  else
-    return dlmopen_implementation (nsid, file, mode, RETURN_ADDRESS (0));
+  zerror("dlmopen not yet supported.");
+  return NULL;
 }
 versioned_symbol (libc, ___dlmopen, dlmopen, GLIBC_2_34);
 
@@ -95,7 +42,8 @@ compat_symbol (libdl, ___dlmopen, dlmopen, GLIBC_2_3_4);
 void *
 __dlmopen (Lmid_t nsid, const char *file, int mode, void *dl_caller)
 {
-  return dlmopen_implementation (nsid, file, mode, RETURN_ADDRESS (0));
+  zerror("dlmopen not yet supported.");
+  return NULL;
 }
 
 void *

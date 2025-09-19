@@ -20,15 +20,12 @@
 #include <fcntl.h>
 #include <sysdep.h>
 #include <errno.h>
+#include <pizlonated_syscalls.h>
 
 int
 __renameat (int oldfd, const char *old, int newfd, const char *new)
 {
-#ifdef __NR_renameat
-  return INLINE_SYSCALL_CALL (renameat, oldfd, old, newfd, new);
-#else
-  return INLINE_SYSCALL_CALL (renameat2, oldfd, old, newfd, new, 0);
-#endif
+  return zsys_renameat (oldfd, old, newfd, new);
 }
 libc_hidden_def (__renameat)
 weak_alias (__renameat, renameat)

@@ -20,17 +20,12 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 int
 __mknodat (int fd, const char *path, mode_t mode, dev_t dev)
 {
-  /* The user-exported dev_t is 64-bit while the kernel interface is
-     32-bit.  */
-  unsigned int k_dev = dev;
-  if (k_dev != dev)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
-
-  return INLINE_SYSCALL_CALL (mknodat, fd, path, mode, k_dev);
+  return zsys_mknodat (fd, path, mode, dev);
 }
 libc_hidden_def (__mknodat)
 weak_alias (__mknodat, mknodat)

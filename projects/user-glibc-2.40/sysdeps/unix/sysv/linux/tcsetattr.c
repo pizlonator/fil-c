@@ -26,6 +26,7 @@
    kernel is not the same as we use in the libc.  Therefore we must
    translate it here.  */
 #include <kernel_termios.h>
+#include <pizlonated_syscalls.h>
 
 
 /* This is a gross hack around a kernel bug.  If the cfsetispeed functions
@@ -75,7 +76,7 @@ __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
   memcpy (&k_termios.c_cc[0], &termios_p->c_cc[0],
 	  __KERNEL_NCCS * sizeof (cc_t));
 
-  return INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
+  return zsys_ioctl (fd, cmd, &k_termios);
 }
 weak_alias (__tcsetattr, tcsetattr)
 libc_hidden_def (tcsetattr)

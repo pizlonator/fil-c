@@ -19,6 +19,7 @@
 #include <stddef.h>
 #include <ipc_priv.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Return an identifier for an shared memory segment of at least size SIZE
    which is associated with KEY.  */
@@ -26,9 +27,5 @@
 int
 shmget (key_t key, size_t size, int shmflg)
 {
-#ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  return INLINE_SYSCALL_CALL (shmget, key, size, shmflg, NULL);
-#else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_shmget, key, size, shmflg, NULL);
-#endif
+  return zsys_shmget (key, size, shmflg);
 }

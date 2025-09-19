@@ -143,24 +143,8 @@ futex_supports_pshared (int pshared)
 static __always_inline int
 futex_wait (unsigned int *futex_word, unsigned int expected, int private)
 {
-  int err = lll_futex_timed_wait (futex_word, expected, NULL, private);
-  switch (err)
-    {
-    case 0:
-    case -EAGAIN:
-    case -EINTR:
-      return -err;
-
-    case -ETIMEDOUT: /* Cannot have happened as we provided no timeout.  */
-    case -EFAULT: /* Must have been caused by a glibc or application bug.  */
-    case -EINVAL: /* Either due to wrong alignment or due to the timeout not
-		     being normalized.  Must have been caused by a glibc or
-		     application bug.  */
-    case -ENOSYS: /* Must have been caused by a glibc bug.  */
-    /* No other errors are documented at this time.  */
-    default:
-      futex_fatal_error ();
-    }
+  zsys_futex_wait ((volatile int *) futex_word, expected, __lll_zsys_private_arg (private));
+  return 0;
 }
 
 /* Like futex_wait but does not provide any indication why we stopped waiting.

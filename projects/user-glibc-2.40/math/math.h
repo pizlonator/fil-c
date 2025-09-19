@@ -863,6 +863,8 @@ extern int signgam;
 # error "Unsupported _FloatN or _FloatNx types for <math.h>."
 #endif
 
+#pragma clang diagnostic ignored "-Wabsolute-value"
+
 /* Depending on the type of TG_ARG, call an appropriately suffixed
    version of FUNC with arguments (including parentheses) ARGS.
    Suffixed functions may not exist for long double if it has the same

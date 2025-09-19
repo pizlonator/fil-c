@@ -28,6 +28,8 @@
 #include <libm-alias-double.h>
 #include <fix-fp-int-convert-overflow.h>
 
+#pragma clang diagnostic ignored "-Wincompatible-library-redeclaration"
+
 long long int
 __llround (double x)
 {

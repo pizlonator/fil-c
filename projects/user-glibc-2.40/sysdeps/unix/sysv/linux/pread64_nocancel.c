@@ -19,10 +19,11 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 #include <not-cancel.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __pread64_nocancel (int fd, void *buf, size_t count, off64_t offset)
 {
-  return INLINE_SYSCALL_CALL (pread64, fd, buf, count, SYSCALL_LL64_PRW (offset));
+  return zsys_pread (fd, buf, count, offset);
 }
 hidden_def (__pread64_nocancel)

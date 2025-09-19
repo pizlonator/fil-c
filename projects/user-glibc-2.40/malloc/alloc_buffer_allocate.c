@@ -27,8 +27,8 @@ __libc_alloc_buffer_allocate (size_t size, void **pptr)
   if (*pptr == NULL)
     return (struct alloc_buffer)
       {
-        .__alloc_buffer_current = __ALLOC_BUFFER_INVALID_POINTER,
-        .__alloc_buffer_end = __ALLOC_BUFFER_INVALID_POINTER
+          .__alloc_buffer_current = (char *) __ALLOC_BUFFER_INVALID_POINTER,
+          .__alloc_buffer_end = (char *) __ALLOC_BUFFER_INVALID_POINTER
       };
   else
     return alloc_buffer_create (*pptr, size);

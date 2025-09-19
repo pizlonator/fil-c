@@ -18,17 +18,12 @@
 #include <sys/socket.h>
 #include <sysdep-cancel.h>
 #include <socketcall.h>
+#include <pizlonated_syscalls.h>
 
 int
 __libc_accept (int fd, __SOCKADDR_ARG addr, socklen_t *len)
 {
-#ifdef __ASSUME_ACCEPT_SYSCALL
-  return SYSCALL_CANCEL (accept, fd, addr.__sockaddr__, len);
-#elif defined __ASSUME_ACCEPT4_SYSCALL
-  return SYSCALL_CANCEL (accept4, fd, addr.__sockaddr__, len, 0);
-#else
-  return SOCKETCALL_CANCEL (accept, fd, addr.__sockaddr__, len);
-#endif
+  return zsys_accept (fd, addr.__sockaddr__, len);
 }
 weak_alias (__libc_accept, accept)
 libc_hidden_def (accept)

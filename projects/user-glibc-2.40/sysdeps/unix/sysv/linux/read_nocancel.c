@@ -19,10 +19,11 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 #include <not-cancel.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __read_nocancel (int fd, void *buf, size_t nbytes)
 {
-  return INLINE_SYSCALL_CALL (read, fd, buf, nbytes);
+  return zsys_read (fd, buf, nbytes);
 }
 hidden_def (__read_nocancel)

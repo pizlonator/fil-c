@@ -58,7 +58,7 @@ void __nptl_free_stacks (size_t limit) attribute_hidden;
 static inline size_t
 __nptl_tls_static_size_for_stack (void)
 {
-  return roundup (GLRO (dl_tls_static_size), GLRO (dl_tls_static_align));
+  return 0; /* FIXME: Maybe this should actually give an accurate answer? */
 }
 
 #endif /* _NPTL_STACK_H */

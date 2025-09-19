@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sysdep.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 /* Add this redirection so the strong_alias for __RLIM_T_MATCHES_RLIM64_T
    linking getrlimit64 to {__}getrlimit does not throw a type error.  */
@@ -36,7 +37,7 @@
 int
 __getrlimit64 (enum __rlimit_resource resource, struct rlimit64 *rlimits)
 {
-  return INLINE_SYSCALL_CALL (prlimit64, 0, resource, NULL, rlimits);
+  return zsys_getrlimit(resource, rlimits);
 }
 libc_hidden_def (__getrlimit64)
 

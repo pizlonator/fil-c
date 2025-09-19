@@ -195,7 +195,7 @@ inst_zonedir = $(install_root)$(zonedir)
 # Where to install the compiled binary locale archive and compiled
 # binary locale files.
 ifndef complocaledir
-complocaledir = $(libdir)/locale
+complocaledir = /lib/locale
 endif
 inst_complocaledir = $(install_root)$(complocaledir)
 
@@ -272,7 +272,7 @@ inst_vardbdir = $(install_root)$(vardbdir)
 # other than there, so the zoneinfo directory contains only universal data,
 # localizing the configuration data elsewhere.
 ifndef localtime-file
-localtime-file = $(sysconfdir)/localtime
+localtime-file = /etc/localtime
 endif
 
 # What to use for leap second specifications in compiling the default
@@ -381,13 +381,13 @@ LDFLAGS.so += $(relro-LDFLAGS)
 LDFLAGS-rtld += $(relro-LDFLAGS)
 
 # Linker options to enable and disable DT_RELR.
-ifeq ($(have-dt-relr),yes)
-dt-relr-ldflag = -Wl,-z,pack-relative-relocs
-no-dt-relr-ldflag = -Wl,-z,nopack-relative-relocs
-else
+#ifeq ($(have-dt-relr),yes)
+#dt-relr-ldflag = -Wl,-z,pack-relative-relocs
+#no-dt-relr-ldflag = -Wl,-z,nopack-relative-relocs
+#else
 dt-relr-ldflag =
 no-dt-relr-ldflag =
-endif
+#endif
 
 ifeq (no,$(build-pie-default))
 pie-default = $(no-pie-ccflag)
@@ -433,15 +433,12 @@ link-extra-libs-tests = $(libsupport)
 ifndef +link-pie
 +link-pie-before-inputs = $(if $($(@F)-no-pie),$(no-pie-ldflag),-pie) \
 	     $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
-	     -Wl,-O1 -nostdlib -nostartfiles \
+	     -Wl,-O1 -nodefaultlibs -normalcrt \
 	     $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
 	     $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
-	     $(firstword $(CRT-$(@F)) $(csu-objpfx)S$(start-installed-name)) \
 	     $(+preinit) $(+prectorS)
 +link-pie-before-libc = -o $@ $(+link-pie-before-inputs) \
-	     $(filter-out $(addprefix $(csu-objpfx),start.o \
-						    S$(start-installed-name))\
-			  $(+preinit) $(link-extra-libs) \
+	     $(filter-out $(+preinit) $(link-extra-libs) \
 			  $(common-objpfx)libc% $(+postinit),$^) \
 	     $(link-extra-libs)
 +link-pie-after-libc = $(+postctorS) $(+postinit)
@@ -463,16 +460,13 @@ endef
 endif
 # Command for statically linking programs with the C library.
 ifndef +link-static
-+link-static-before-inputs = -nostdlib -nostartfiles -static \
++link-static-before-inputs = -nodefaultlibs -normalcrt -static \
 	      $(if $($(@F)-no-pie),$(no-pie-ldflag),$(static-pie-ldflag)) \
 	      $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(static-pie-dt-relr-ldflag)) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F))  \
-	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(real-static-start-installed-name)) \
 	      $(+preinit) $(+prectorT)
 +link-static-before-libc = -o $@ $(+link-static-before-inputs) \
-	      $(filter-out $(addprefix $(csu-objpfx),start.o \
-						     $(start-installed-name))\
-			   $(+preinit) $(link-extra-libs-static) \
+	      $(filter-out $(+preinit) $(link-extra-libs-static) \
 			   $(common-objpfx)libc% $(+postinit),$^) \
 	      $(link-extra-libs-static)
 +link-static-after-libc = $(+postctorT) $(+postinit)
@@ -500,15 +494,12 @@ ifeq (yes,$(build-pie-default))
 +link-tests-after-inputs = $(link-libc-tests) $(+link-pie-after-libc)
 +link-printers-tests = $(+link-pie-printers-tests)
 else  # not build-pie-default
-+link-before-inputs = -nostdlib -nostartfiles $(no-pie-ldflag) \
++link-before-inputs = -nodefaultlibs -normalcrt $(no-pie-ldflag) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
 	      $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
-	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(start-installed-name)) \
 	      $(+preinit) $(+prector)
 +link-before-libc = -o $@ $(+link-before-inputs) \
-	      $(filter-out $(addprefix $(csu-objpfx),start.o \
-						     $(start-installed-name))\
-			   $(+preinit) $(link-extra-libs) \
+	      $(filter-out $(+preinit) $(link-extra-libs) \
 			   $(common-objpfx)libc% $(+postinit),$^) \
 	      $(link-extra-libs)
 +link-after-libc = $(+postctor) $(+postinit)
@@ -540,15 +531,12 @@ endif  # build-shared
 endif  # +link
 
 # Command for linking test programs with crt1.o from glibc 2.0.
-+link-2.0-before-inputs = -nostdlib -nostartfiles $(no-pie-ldflag) \
++link-2.0-before-inputs = -nodefaultlibs -normalcrt $(no-pie-ldflag) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
 	      $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
-	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(start-name-2.0)) \
 	      $(+preinit) $(+prector)
 +link-2.0-before-libc = -o $@ $(+link-2.0-before-inputs) \
-	      $(filter-out $(addprefix $(csu-objpfx),start.o \
-						     $(start-name-2.0))\
-			   $(+preinit) $(link-extra-libs) \
+	      $(filter-out $(+preinit) $(link-extra-libs) \
 			   $(common-objpfx)libc% $(+postinit),$^) \
 	      $(link-extra-libs)
 +link-after-libc = $(+postctor) $(+postinit)
@@ -574,8 +562,8 @@ CFLAGS-printers-tests := -O0 -ggdb3 -DIS_IN_build $(no-fortify-source)
 
 ifeq (yes,$(build-shared))
 # These indicate whether to link using the built ld.so or the installed one.
-installed-rtld-LDFLAGS = -Wl,-dynamic-linker=$(rtlddir)/$(rtld-installed-name)
-built-rtld-LDFLAGS = -Wl,-dynamic-linker=$(elf-objpfx)ld.so
+installed-rtld-LDFLAGS = 
+built-rtld-LDFLAGS = 
 
 ifndef rtld-LDFLAGS
 rtld-LDFLAGS = $(installed-rtld-LDFLAGS)
@@ -620,9 +608,7 @@ link-test-modules-rpath-link =
 endif  # build-hardcoded-path-in-tests
 
 link-libc-between-gnulib = $(common-objpfx)libc.so$(libc.so-version) \
-			   $(common-objpfx)$(patsubst %,$(libtype.oS),c) \
-			   -Wl,--as-needed $(elf-objpfx)ld.so \
-			   -Wl,--no-as-needed
+			   $(common-objpfx)$(patsubst %,$(libtype.oS),c)
 link-libc = $(link-libc-between-gnulib) $(gnulib)
 
 link-libc-tests-after-rpath-link = $(gnulib-tests) $(link-libc-between-gnulib) $(gnulib-tests)
@@ -705,39 +691,39 @@ ifneq ($(have-cc-with-libunwind),yes)
 else
   libunwind = -lunwind
 endif
-libgcc_eh := -Wl,--as-needed -lgcc_s $(libunwind) -Wl,--no-as-needed
+libgcc_eh := 
 gnulib-arch =
-gnulib = -lgcc $(gnulib-arch)
-gnulib-tests := -lgcc $(libgcc_eh)
+gnulib = $(gnulib-arch)
+gnulib-tests := $(libgcc_eh)
 static-gnulib-arch =
 # By default, elf/static-stubs.o, instead of -lgcc_eh, is used to
 # statically link programs.  When --disable-shared is used, we use
 # -lgcc_eh since elf/static-stubs.o isn't sufficient.
 ifeq (yes,$(build-shared))
-static-gnulib = -lgcc $(static-gnulib-arch)
+static-gnulib = $(static-gnulib-arch)
 else
-static-gnulib = -lgcc -lgcc_eh $(static-gnulib-arch)
+static-gnulib = $(static-gnulib-arch)
 endif
-static-gnulib-tests := -lgcc -lgcc_eh $(libunwind)
-libc.so-gnulib := -lgcc
+static-gnulib-tests := $(libunwind)
+libc.so-gnulib := 
 endif
-+preinit = $(addprefix $(csu-objpfx),crti.o)
-+postinit = $(addprefix $(csu-objpfx),crtn.o)
-+prector = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtbegin.o`
-+postctor = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtend.o`
++preinit = 
++postinit = 
++prector = 
++postctor = 
 # Variants of the two previous definitions for linking PIE programs.
-+prectorS = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtbeginS.o`
-+postctorS = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtendS.o`
++prectorS = 
++postctorS = 
 # Variants of the two previous definitions for statically linking programs.
-static-prector = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtbeginT.o`
-static-postctor = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtend.o`
+static-prector = 
+static-postctor = 
 ifeq (yes,$(enable-static-pie))
 # Static PIE must use PIE variants.
-+prectorT = $(if $($(@F)-no-pie),$(static-prector),$(+prectorS))
-+postctorT = $(if $($(@F)-no-pie),$(static-postctor),$(+postctorS))
++prectorT = 
++postctorT = 
 else
-+prectorT = $(static-prector)
-+postctorT =$(static-postctor)
++prectorT = 
++postctorT = 
 endif
 csu-objpfx = $(common-objpfx)csu/
 elf-objpfx = $(common-objpfx)elf/

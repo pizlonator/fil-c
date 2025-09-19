@@ -19,16 +19,13 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Suspend the process until a signal arrives.
    This always returns -1 and sets errno to EINTR.  */
 int
 __libc_pause (void)
 {
-#ifdef __NR_pause
-  return SYSCALL_CANCEL (pause);
-#else
-  return SYSCALL_CANCEL (ppoll, NULL, 0, NULL, NULL);
-#endif
+  return zsys_pause ();
 }
 weak_alias (__libc_pause, pause)

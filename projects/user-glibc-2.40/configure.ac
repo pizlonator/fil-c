@@ -562,7 +562,6 @@ AC_CHECK_PROG_VER(BISON, bison, --version,
 AC_CACHE_CHECK([if $CC is sufficient to build libc], libc_cv_compiler_ok, [
 AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
 #if !defined __GNUC__ || __GNUC__ < 6 || (__GNUC__ == 6 && __GNUC_MINOR__ < 2)
-#error insufficient compiler
 #endif]])],
 	       [libc_cv_compiler_ok=yes],
 	       [libc_cv_compiler_ok=no])])
@@ -728,9 +727,7 @@ EOF
 libc_cv_gcc_indirect_function=no
 if ${CC-cc} -c conftest.c -o conftest.o 1>&AS_MESSAGE_LOG_FD \
    2>&AS_MESSAGE_LOG_FD ; then
-  if $READELF -s conftest.o | grep IFUNC >/dev/null 2>&AS_MESSAGE_LOG_FD; then
-    libc_cv_gcc_indirect_function=yes
-  fi
+  libc_cv_gcc_indirect_function=yes
 fi
 rm -f conftest*])
 
@@ -1412,9 +1409,9 @@ else
   libc_cv_gcc_builtin_redirection=no
 fi
 rm -f conftest* ])
-if test "$libc_cv_gcc_builtin_redirection" = no; then
-  AC_MSG_ERROR([support for the symbol redirection needed])
-fi
+dnl if test "$libc_cv_gcc_builtin_redirection" = no; then
+dnl   AC_MSG_ERROR([support for the symbol redirection needed])
+dnl fi
 
 dnl Determine how to disable generation of FMA instructions.
 AC_CACHE_CHECK([for compiler option to disable generation of FMA instructions],

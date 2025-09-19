@@ -22,23 +22,12 @@
 #include <sysdep.h>
 #include <errno.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 off64_t
 __lseek64 (int fd, off64_t offset, int whence)
 {
-#ifdef __NR_llseek
-# define __NR__llseek __NR_llseek
-#endif
-
-#ifdef __NR__llseek
-  loff_t res;
-  int rc = INLINE_SYSCALL_CALL (_llseek, fd,
-				(long) (((uint64_t) (offset)) >> 32),
-				(long) offset, &res, whence);
-  return rc ?: res;
-#else
-  return INLINE_SYSCALL_CALL (lseek, fd, offset, whence);
-#endif
+  return zsys_lseek (fd, offset, whence);
 }
 
 #ifdef  __OFF_T_MATCHES_OFF64_T

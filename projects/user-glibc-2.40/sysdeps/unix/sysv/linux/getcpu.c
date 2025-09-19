@@ -19,15 +19,12 @@
 #include <sched.h>
 #include <sysdep.h>
 #include <sysdep-vdso.h>
+#include <pizlonated_syscalls.h>
 
 int
 __getcpu (unsigned int *cpu, unsigned int *node)
 {
-#ifdef HAVE_GETCPU_VSYSCALL
-  return INLINE_VSYSCALL (getcpu, 3, cpu, node, NULL);
-#else
-  return INLINE_SYSCALL_CALL (getcpu, cpu, node, NULL);
-#endif
+  return zsys_getcpu (cpu, node);
 }
 weak_alias (__getcpu, getcpu)
 libc_hidden_def (__getcpu)

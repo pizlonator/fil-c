@@ -19,15 +19,12 @@
 #include <sys/socket.h>
 #include <sysdep-cancel.h>
 #include <socketcall.h>
+#include <pizlonated_syscalls.h>
 
 static int
 __recvmsg_syscall (int fd, struct msghdr *msg, int flags)
 {
-#ifdef __ASSUME_RECVMSG_SYSCALL
-  return SYSCALL_CANCEL (recvmsg, fd, msg, flags);
-#else
-  return SOCKETCALL_CANCEL (recvmsg, fd, msg, flags);
-#endif
+  return zsys_recvmsg (fd, msg, flags);
 }
 
 ssize_t

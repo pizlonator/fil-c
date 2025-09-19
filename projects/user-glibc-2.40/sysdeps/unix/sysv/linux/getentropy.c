@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Write LENGTH bytes of randomness starting at BUFFER.  Return 0 on
    success and -1 on failure.  */
@@ -42,7 +43,7 @@ getentropy (void *buffer, size_t length)
   while (buffer < end)
     {
       /* NB: No cancellation point.  */
-      ssize_t bytes = INLINE_SYSCALL_CALL (getrandom, buffer, end - buffer, 0);
+      ssize_t bytes = zsys_getrandom (buffer, end - buffer, 0);
       if (bytes < 0)
         {
           if (errno == EINTR)

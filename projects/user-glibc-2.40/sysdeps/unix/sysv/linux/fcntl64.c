@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 #ifndef __NR_fcntl64
 # define __NR_fcntl64 __NR_fcntl
@@ -36,19 +37,7 @@
 int
 __libc_fcntl64 (int fd, int cmd, ...)
 {
-  va_list ap;
-  void *arg;
-
-  va_start (ap, cmd);
-  arg = va_arg (ap, void *);
-  va_end (ap);
-
-  cmd = FCNTL_ADJUST_CMD (cmd);
-
-  if (cmd == F_SETLKW || cmd == F_SETLKW64 || cmd == F_OFD_SETLKW)
-    return SYSCALL_CANCEL (fcntl64, fd, cmd, arg);
-
-  return __fcntl64_nocancel_adjusted (fd, cmd, arg);
+  return *(int *) zcall (zsys_fcntl, zargs ());
 }
 libc_hidden_def (__libc_fcntl64)
 weak_alias (__libc_fcntl64, __fcntl64)

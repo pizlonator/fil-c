@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sysdep.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 /* Add this redirection so the strong_alias for __RLIM_T_MATCHES_RLIM64_T
    linking setrlimit64 to {__}setrlimit does not throw a type error.  */
@@ -37,7 +38,7 @@
 int
 __setrlimit64 (enum __rlimit_resource resource, const struct rlimit64 *rlimits)
 {
-  return INLINE_SYSCALL_CALL (prlimit64, 0, resource, rlimits, NULL);
+  return zsys_setrlimit(resource, rlimits);
 }
 /* Alpha defines a versioned setrlimit{64}.  */
 #ifndef USE_VERSIONED_RLIMIT
@@ -50,6 +51,6 @@ strong_alias (__setrlimit64, __setrlimit)
 weak_alias (__setrlimit64, setrlimit)
 # endif
 # ifdef SHARED
-__hidden_ver1 (__setrlimit64, __GI___setrlimit, __setrlimit64);
+__hidden_ver1 (__setrlimit64, __GI___setrlimit, __setrlimit64, "");
 # endif
 #endif

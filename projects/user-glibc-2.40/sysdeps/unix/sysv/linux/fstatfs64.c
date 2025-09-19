@@ -24,15 +24,13 @@
 #undef __fstatfs
 #undef fstatfs
 
+#include <pizlonated_syscalls.h>
+
 /* Return information about the filesystem on which FD resides.  */
 int
 __fstatfs64 (int fd, struct statfs64 *buf)
 {
-#ifdef __NR_fstatfs64
-  return INLINE_SYSCALL_CALL (fstatfs64, fd, sizeof (*buf), buf);
-#else
-  return INLINE_SYSCALL_CALL (fstatfs, fd, buf);
-#endif
+  return zsys_fstatfs (fd, buf);
 }
 weak_alias (__fstatfs64, fstatfs64)
 

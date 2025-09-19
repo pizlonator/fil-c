@@ -19,11 +19,12 @@
 #include <unistd.h>
 #include <sys/uio.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __readv (int fd, const struct iovec *iov, int iovcnt)
 {
-  return SYSCALL_CANCEL (readv, fd, iov, iovcnt);
+  return zsys_readv (fd, iov, iovcnt);
 }
 libc_hidden_def (__readv)
 weak_alias (__readv, readv)

@@ -18,16 +18,13 @@
 #include <errno.h>
 #include <unistd.h>
 #include <setxid.h>
+#include <pizlonated_syscalls.h>
 
 
 int
 __setresuid (uid_t ruid, uid_t euid, uid_t suid)
 {
-#ifdef __NR_setresuid32
-  return INLINE_SETXID_SYSCALL (setresuid32, 3, ruid, euid, suid);
-#else
-  return INLINE_SETXID_SYSCALL (setresuid, 3, ruid, euid, suid);
-#endif
+  return zsys_setresuid (ruid, euid, suid);
 }
 libc_hidden_def (__setresuid)
 #ifndef __setresuid

@@ -283,19 +283,11 @@ extern __thread struct __locale_data *const *_nl_current_##category \
   ((uint32_t) (*_nl_current_##category)->values[_NL_ITEM_INDEX (item)].word)
 
 /* This is used in lc-CATEGORY.c to define _nl_current_CATEGORY.  The symbol
-   _nl_current_CATEGORY_used is set to a value unequal to zero to mark this
-   category as used.  On S390 the used relocation to load the symbol address
-   can only handle even addresses.  */
+   _nl_current_CATEGORY_used is defined to mark this category as used. */
 #define _NL_CURRENT_DEFINE(category) \
   __thread struct __locale_data *const *_nl_current_##category \
     attribute_hidden = &_nl_global_locale.__locales[category]; \
-  asm (".globl " __SYMBOL_PREFIX "_nl_current_" #category "_used\n" \
-       _NL_CURRENT_DEFINE_ABS (_nl_current_##category##_used, 2));
-#ifdef HAVE_ASM_SET_DIRECTIVE
-# define _NL_CURRENT_DEFINE_ABS(sym, val) ".set " #sym ", " #val
-#else
-# define _NL_CURRENT_DEFINE_ABS(sym, val) #sym " = " #val
-#endif
+  char _nl_current_##category##_used;
 
 #else
 

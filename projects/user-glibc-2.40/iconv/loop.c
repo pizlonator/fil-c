@@ -57,6 +57,8 @@
 #include <stddef.h>
 #include <libc-diag.h>
 
+#pragma clang diagnostic ignored "-Wstring-plus-int"
+
 #undef FCTNAME2
 #define FCTNAME(name) name
 

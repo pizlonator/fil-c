@@ -20,6 +20,7 @@
 #include <stdarg.h>
 
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Open FILE with access OFLAG.  Interpret relative paths relative to
    the directory associated with FD.  If OFLAG includes O_CREAT or
@@ -27,16 +28,7 @@
 int
 __libc_openat64 (int fd, const char *file, int oflag, ...)
 {
-  mode_t mode = 0;
-  if (__OPEN_NEEDS_MODE (oflag))
-    {
-      va_list arg;
-      va_start (arg, oflag);
-      mode = va_arg (arg, mode_t);
-      va_end (arg);
-    }
-
-  return SYSCALL_CANCEL (openat, fd, file, oflag | O_LARGEFILE, mode);
+  return *(int *) zcall (zsys_openat, zargs ());
 }
 
 strong_alias (__libc_openat64, __openat64)

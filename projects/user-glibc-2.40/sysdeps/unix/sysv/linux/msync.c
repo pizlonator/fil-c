@@ -18,9 +18,10 @@
 
 #include <sys/mman.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 int
 msync (void *addr, size_t length, int flags)
 {
-  return SYSCALL_CANCEL (msync, addr, length, flags);
+  return zsys_msync (addr, length, flags);
 }

@@ -128,15 +128,6 @@ heapify (void *base, size_t size, size_t n, enum swap_type_t swap_type,
 static enum swap_type_t
 get_swap_type (void *const pbase, size_t size)
 {
-  if ((size & (sizeof (uint32_t) - 1)) == 0
-      && ((uintptr_t) pbase) % __alignof__ (uint32_t) == 0)
-    {
-      if (size == sizeof (uint32_t))
-	return SWAP_WORDS_32;
-      else if (size == sizeof (uint64_t)
-	       && ((uintptr_t) pbase) % __alignof__ (uint64_t) == 0)
-	return SWAP_WORDS_64;
-    }
   return SWAP_BYTES;
 }
 

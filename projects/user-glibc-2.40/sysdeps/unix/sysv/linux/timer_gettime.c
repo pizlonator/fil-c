@@ -22,30 +22,14 @@
 #include <kernel-features.h>
 #include "kernel-posix-timers.h"
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 #if !TIMER_T_WAS_INT_COMPAT
 int
 ___timer_gettime64 (timer_t timerid, struct __itimerspec64 *value)
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
-
-# ifndef __NR_timer_gettime64
-#  define __NR_timer_gettime64 __NR_timer_gettime
-# endif
-  int ret = INLINE_SYSCALL_CALL (timer_gettime64, ktimerid, value);
-# ifndef __ASSUME_TIME64_SYSCALLS
-  if (ret == 0 || errno != ENOSYS)
-    return ret;
-
-  struct itimerspec its32;
-  ret = INLINE_SYSCALL_CALL (timer_gettime, ktimerid, &its32);
-  if (ret == 0)
-    {
-      value->it_interval = valid_timespec_to_timespec64 (its32.it_interval);
-      value->it_value = valid_timespec_to_timespec64 (its32.it_value);
-    }
-# endif
-  return ret;
+  return zsys_timer_gettime (ktimerid, value);
 }
 
 # if __TIMESIZE == 64
@@ -88,7 +72,7 @@ ___timer_gettime_new (timer_t timerid, struct itimerspec *value)
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
 
-  return INLINE_SYSCALL_CALL (timer_gettime, ktimerid, value);
+  return zsys_timer_gettime (ktimerid, value);
 }
 versioned_symbol (libc, ___timer_gettime_new, timer_gettime, GLIBC_2_34);
 libc_hidden_ver (___timer_gettime_new, __timer_gettime_new)

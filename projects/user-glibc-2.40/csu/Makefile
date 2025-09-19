@@ -33,29 +33,18 @@ routines = \
   init-first \
   libc-start \
   libc-tls \
-  sysdep \
   version \
   # routines
 aux	 = errno
-elide-routines.os = libc-tls
-csu-dummies = $(filter-out $(start-installed-name),crt1.o Mcrt1.o)
-extra-objs = \
-  $(csu-dummies) \
-  $(start-installed-name) \
-  $(start-name-2.0) \
-  S$(start-installed-name) \
-  g$(start-installed-name) \
-  start.o \
-  # extra-objs
+elide-routines.os = 
+csu-dummies = 
+extra-objs = 
 omit-deps = $(patsubst %.o,%,$(start-installed-name) g$(start-installed-name) \
 			     b$(start-installed-name) $(csu-dummies) \
 			     S$(start-installed-name) \
 			     r$(start-installed-name) \
 			     gr$(start-installed-name))
 install-lib = \
-  $(csu-dummies) \
-  $(start-installed-name) \
-  g$(start-installed-name) \
   # install-lib
 
 # No tests are allowed in the csu/ subdirectory because the startup
@@ -85,52 +74,14 @@ CFLAGS-.os += $(call elide-stack-protector,.os,$(filter-out \
 
 ifeq (yes,$(build-shared))
 extra-objs += \
-  S$(start-installed-name) \
   gmon-start.os \
   # extra-objs
 ifneq ($(start-installed-name),$(static-start-installed-name))
 extra-objs += gmon-start.o
 endif
-install-lib += S$(start-installed-name)
 generated += start.os
 else
 extra-objs += gmon-start.o
-endif
-
-ifeq (yes,$(enable-static-pie))
-extra-objs += \
-  gr$(start-installed-name) \
-  r$(start-installed-name) \
-  # extra-objs
-install-lib += \
-  gr$(start-installed-name) \
-  r$(start-installed-name) \
-  # install-lib
-endif
-
-ifneq ($(start-installed-name),$(static-start-installed-name))
-extra-objs += \
-  $(static-start-installed-name) \
-  g$(static-start-installed-name) \
-  # extra-objs
-omit-deps += $(patsubst %.o,%,$(static-start-installed-name) \
-			     g$(static-start-installed-name))
-install-lib += \
-  $(static-start-installed-name) \
-  g$(static-start-installed-name) \
-  # install-lib
-ifeq (yes,$(enable-static-pie))
-extra-objs += \
-  gr$(static-start-installed-name) \
-  r$(static-start-installed-name) \
-  # extra-objs
-omit-deps += $(patsubst %.o,%,r$(static-start-installed-name) \
-			     gr$(static-start-installed-name))
-install-lib += \
-  gr$(static-start-installed-name) \
-  r$(static-start-installed-name) \
-  # install-lib
-endif
 endif
 
 before-compile += $(objpfx)abi-tag.h
@@ -142,10 +93,7 @@ gen-as-const-headers += rtld-sizes.sym
 # These are the special initializer/finalizer files.  They are always the
 # first and last file in the link.  crti.o ... crtn.o define the global
 # "functions" _init and _fini to run the .init and .fini sections.
-crtstuff = \
-  crti \
-  crtn \
-  # crtstuff
+crtstuff = 
 
 install-lib += $(crtstuff:=.o)
 extra-objs += $(crtstuff:=.o)

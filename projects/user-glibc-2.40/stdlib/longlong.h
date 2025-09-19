@@ -110,6 +110,10 @@ extern const UQItype __clz_tab[256] attribute_hidden;
    for the CPUs below!
    (E.g. WE32100, IBM360.)  */
 
+#ifndef NO_ASM
+#define NO_ASM 1
+#endif
+
 #if defined (__GNUC__) && !defined (NO_ASM)
 
 /* We sometimes need to clobber "cc" with gcc2, but that would not be

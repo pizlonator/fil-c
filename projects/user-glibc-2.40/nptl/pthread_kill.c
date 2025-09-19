@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <pthreadP.h>
 #include <shlib-compat.h>
+#include <pizlonated_runtime.h>
 
 /* Sends SIGNO to THREADID.  If the thread is about to exit or has
    already exited on the kernel side, return NO_TID.  Otherwise return
@@ -28,21 +29,6 @@ static int
 __pthread_kill_implementation (pthread_t threadid, int signo, int no_tid)
 {
   struct pthread *pd = (struct pthread *) threadid;
-  if (pd == THREAD_SELF)
-    {
-      /* Use the actual TID from the kernel, so that it refers to the
-         current thread even if called after vfork.  There is no
-         signal blocking in this case, so that the signal is delivered
-         immediately, before __pthread_kill_internal returns: a signal
-         sent to the thread itself needs to be delivered
-         synchronously.  (It is unclear if Linux guarantees the
-         delivery of all pending signals after unblocking in the code
-         below.  POSIX only guarantees delivery of a single signal,
-         which may not be the right one.)  */
-      pid_t tid = INTERNAL_SYSCALL_CALL (gettid);
-      int ret = INTERNAL_SYSCALL_CALL (tgkill, __getpid (), tid, signo);
-      return INTERNAL_SYSCALL_ERROR_P (ret) ? INTERNAL_SYSCALL_ERRNO (ret) : 0;
-    }
 
   /* Block all signals, as required by pd->exit_lock.  */
   internal_sigset_t old_mask;
@@ -59,8 +45,10 @@ __pthread_kill_implementation (pthread_t threadid, int signo, int no_tid)
     ret = no_tid;
   else
     {
-      ret = INTERNAL_SYSCALL_CALL (tgkill, __getpid (), pd->tid, signo);
-      ret = INTERNAL_SYSCALL_ERROR_P (ret) ? INTERNAL_SYSCALL_ERRNO (ret) : 0;
+      if (zthread_kill (pd->zthread, signo))
+        ret = 0;
+      else
+        ret = errno;
     }
 
   __libc_lock_unlock (pd->exit_lock);

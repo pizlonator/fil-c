@@ -18,23 +18,13 @@
 #include <errno.h>
 #include <unistd.h>
 #include <setxid.h>
+#include <pizlonated_syscalls.h>
 
 
 int
 setegid (gid_t gid)
 {
-  int result;
-
-  if (gid == (gid_t) ~0)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
-
-#ifdef __NR_setresgid32
-  result = INLINE_SETXID_SYSCALL (setresgid32, 3, -1, gid, -1);
-#else
-  result = INLINE_SETXID_SYSCALL (setresgid, 3, -1, gid, -1);
-#endif
-
-  return result;
+  return zsys_setegid (gid);
 }
 #ifndef setegid
 libc_hidden_def (setegid)

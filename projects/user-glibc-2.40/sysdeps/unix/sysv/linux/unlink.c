@@ -19,15 +19,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Remove the link named NAME.  */
 int
 __unlink (const char *name)
 {
-#ifdef __NR_unlink
-  return INLINE_SYSCALL_CALL (unlink, name);
-#else
-  return INLINE_SYSCALL_CALL (unlinkat, AT_FDCWD, name, 0);
-#endif
+  return zsys_unlink (name);
 }
 weak_alias (__unlink, unlink)

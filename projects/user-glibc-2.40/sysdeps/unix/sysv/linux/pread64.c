@@ -18,11 +18,12 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __libc_pread64 (int fd, void *buf, size_t count, off64_t offset)
 {
-  return SYSCALL_CANCEL (pread64, fd, buf, count, SYSCALL_LL64_PRW (offset));
+  return zsys_pread (fd, buf, count, offset);
 }
 
 weak_alias (__libc_pread64, __pread64)

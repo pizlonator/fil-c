@@ -542,13 +542,6 @@ extern char *basename (const char *__filename) __THROW __nonnull ((1));
 # endif
 #endif
 
-#if __GNUC_PREREQ (3,4)
-# if __USE_FORTIFY_LEVEL > 0 && defined __fortify_function
-/* Functions with security checks.  */
-#  include <bits/string_fortified.h>
-# endif
-#endif
-
 __END_DECLS
 
 #endif /* string.h  */

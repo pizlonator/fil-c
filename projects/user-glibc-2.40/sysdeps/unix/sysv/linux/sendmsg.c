@@ -20,15 +20,12 @@
 #include <sysdep-cancel.h>
 #include <socketcall.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __libc_sendmsg (int fd, const struct msghdr *msg, int flags)
 {
-# ifdef __ASSUME_SENDMSG_SYSCALL
-  return SYSCALL_CANCEL (sendmsg, fd, msg, flags);
-# else
-  return SOCKETCALL_CANCEL (sendmsg, fd, msg, flags);
-# endif
+  return zsys_sendmsg (fd, msg, flags);
 }
 weak_alias (__libc_sendmsg, sendmsg)
 weak_alias (__libc_sendmsg, __sendmsg)

@@ -23,8 +23,7 @@ int
 __epoll_pwait2_time64 (int fd, struct epoll_event *ev, int maxev,
 		       const struct __timespec64 *tmo, const sigset_t *s)
 {
-  /* The syscall only supports 64-bit time_t.  */
-  return SYSCALL_CANCEL (epoll_pwait2, fd, ev, maxev, tmo, s, __NSIG_BYTES);
+  return zsys_epoll_pwait2 (fd, ev, maxev, tmo, s);
 }
 #if __TIMESIZE != 64
 libc_hidden_def (__epoll_pwait2_time64)

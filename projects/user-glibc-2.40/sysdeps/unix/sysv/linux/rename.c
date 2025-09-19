@@ -20,16 +20,11 @@
 #include <fcntl.h>
 #include <sysdep.h>
 #include <errno.h>
+#include <pizlonated_syscalls.h>
 
 /* Rename the file OLD to NEW.  */
 int
 rename (const char *old, const char *new)
 {
-#if defined (__NR_rename)
-  return INLINE_SYSCALL_CALL (rename, old, new);
-#elif defined (__NR_renameat)
-  return INLINE_SYSCALL_CALL (renameat, AT_FDCWD, old, AT_FDCWD, new);
-#else
-  return INLINE_SYSCALL_CALL (renameat2, AT_FDCWD, old, AT_FDCWD, new, 0);
-#endif
+  return zsys_rename (old, new);
 }

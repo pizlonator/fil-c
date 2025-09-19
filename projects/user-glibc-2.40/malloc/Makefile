@@ -195,7 +195,7 @@ install-lib := libmcheck.a
 non-lib.a := libmcheck.a
 
 # Additional libraries.
-extra-libs = libmemusage libc_malloc_debug
+extra-libs = 
 extra-libs-others = $(extra-libs)
 
 # Helper objects for some tests.

@@ -140,7 +140,6 @@ __kernel_tanl (long double x, long double y, int iy)
         uninitialized although in the cases where it is used it has
         always been set.  */
       DIAG_PUSH_NEEDS_COMMENT;
-      DIAG_IGNORE_NEEDS_COMMENT (4.8, "-Wmaybe-uninitialized");
       if (sign < 0)
 	w = -w;
       DIAG_POP_NEEDS_COMMENT;

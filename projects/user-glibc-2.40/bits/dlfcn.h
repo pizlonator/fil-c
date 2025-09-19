@@ -57,7 +57,7 @@
 __BEGIN_DECLS
 
 /* This function calls the profiling functions.  */
-extern void _dl_mcount_wrapper_check (void *__selfpc) __THROW;
+static inline void _dl_mcount_wrapper_check (void *__selfpc) { }
 
 __END_DECLS
 

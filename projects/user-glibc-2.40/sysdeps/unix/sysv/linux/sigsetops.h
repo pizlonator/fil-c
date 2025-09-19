@@ -37,7 +37,7 @@ __sigword (int sig)
 /* Linux sig* functions only handle up to __NSIG_WORDS words instead of
    full _SIGSET_NWORDS sigset size.  The signal numbers are 1-based, and
    bit 0 of a signal mask is for signal 1.  */
-#define __NSIG_WORDS (ALIGN_UP ((_NSIG - 1), ULONG_WIDTH) / ULONG_WIDTH)
+#define __NSIG_WORDS _SIGSET_NWORDS
 _Static_assert (__NSIG_WORDS <= _SIGSET_NWORDS,
 		"__NSIG_WORDS > _SIGSET_WORDS");
 

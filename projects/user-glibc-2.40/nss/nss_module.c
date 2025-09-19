@@ -34,6 +34,8 @@
 #include <string.h>
 #include <pointer_guard.h>
 
+#pragma clang diagnostic ignored "-Wstring-plus-int"
+
 /* Suffix after .so of NSS service modules.  This is a bit of magic,
    but we assume LIBNSS_FILES_SO looks like "libnss_files.so.2" and we
    want a pointer to the ".2" part.  We have no API to extract this

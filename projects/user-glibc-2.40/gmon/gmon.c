@@ -422,9 +422,6 @@ write_gmon (void)
 
     /* Get load_address to profile PIE.  */
     u_long load_address = 0;
-#ifdef PIC
-    __dl_iterate_phdr (callback, &load_address);
-#endif
 
     /* write PC histogram: */
     write_hist (fd, load_address);

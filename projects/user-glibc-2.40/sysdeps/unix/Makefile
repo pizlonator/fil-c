@@ -86,7 +86,7 @@ endif
 
 # This is the end of the pipeline for compiling the syscall stubs.
 # The stdin is assembler with cpp using sysdep.h macros.
-compile-syscall = $(COMPILE.S) -o $@ -x assembler-with-cpp - \
+compile-syscall = $(COMPILE.c) -o $@ -x c - \
 			       $(compile-mkdep-flags)
 
 ifndef avoid-generated
@@ -97,7 +97,7 @@ $(common-objpfx)sysd-syscalls: $(..)sysdeps/unix/make-syscalls.sh \
 	for dir in $(+sysdep_dirs); do \
 	  test -f $$dir/syscalls.list && \
 	  { sysdirs='$(sysdirs)' \
-	    asm_CPP='$(COMPILE.S) -E -x assembler-with-cpp' \
+	    c_CPP='$(COMPILE.c) -E -x c' \
 	    $(SHELL) $(dir $<)$(notdir $<) $$dir || exit 1; }; \
 	  test $$dir = $(..)sysdeps/unix && break; \
 	done > $@T

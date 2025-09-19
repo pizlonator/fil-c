@@ -21,11 +21,24 @@
 #include <unwind.h>
 #include <sysdep.h>
 #include <pointer_guard.h>
+#include <stdfil.h>
+#include <stdbool.h>
+
+static inline bool __attribute__ ((unused))
+_jmpbuf_unwinds (void)
+{
+  zerror("cannot do _JMPBUF_UNWINDS");
+  return false;
+}
 
 /* Test if longjmp to JMPBUF would unwind the frame
    containing a local variable at ADDRESS.  */
-#define _JMPBUF_UNWINDS(jmpbuf, address, demangle) \
-  ((void *) (address) < (void *) demangle ((jmpbuf)[JB_RSP]))
+#define _JMPBUF_UNWINDS(jmpbuf, address, demangle) ({    \
+      (void) (address);                                  \
+      (void) (demangle);                                 \
+      (void) (jmpbuf);                                   \
+      _jmpbuf_unwinds ();                                \
+    })
 
 #define _JMPBUF_CFA_UNWINDS_ADJ(_jmpbuf, _context, _adj) \
   _JMPBUF_UNWINDS_ADJ (_jmpbuf, \
@@ -35,9 +48,9 @@
 static inline uintptr_t __attribute__ ((unused))
 _jmpbuf_sp (__jmp_buf regs)
 {
-  uintptr_t sp = regs[JB_RSP];
-  PTR_DEMANGLE (sp);
-  return sp;
+  /* It's weird but true that zget_jmp_buf_frame works on regs, since regs is also an array, and
+     is guaranteed to be the first thing in the jmp_buf. */
+  return (uintptr_t) zget_jmp_buf_frame (regs);
 }
 
 #define _JMPBUF_UNWINDS_ADJ(_jmpbuf, _address, _adj) \

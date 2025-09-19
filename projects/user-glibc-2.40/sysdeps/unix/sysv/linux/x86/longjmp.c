@@ -18,22 +18,3 @@
 
 #include <sysdeps/x86/longjmp.c>
 
-#include <pthreadP.h>
-#include <jmp_buf-ssp.h>
-
-#ifdef __x86_64__
-# define SHADOW_STACK_POINTER_SIZE 8
-#else
-# define SHADOW_STACK_POINTER_SIZE 4
-#endif
-
-/* Assert that the priv field in struct pthread_unwind_buf has space
-   to store shadow stack pointer.  */
-_Static_assert ((offsetof (struct pthread_unwind_buf, priv)
-                <= SHADOW_STACK_POINTER_OFFSET)
-               && ((offsetof (struct pthread_unwind_buf, priv)
-                    + sizeof (((struct pthread_unwind_buf *) 0)->priv))
-                   >= (SHADOW_STACK_POINTER_OFFSET
-                       + SHADOW_STACK_POINTER_SIZE)),
-               "Shadow stack pointer is not within private storage "
-               "of pthread_unwind_buf.");

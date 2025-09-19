@@ -36,16 +36,4 @@
  * present, but it is presumed absent.  */
 #define DEFAULT_STACK_PERMS (PF_R|PF_W|PF_X)
 
-/* Access to the stack pointer.  The macros are used in alloca_account
-   for which they need to act as barriers as well, hence the additional
-   (unnecessary) parameters.  */
-#define stackinfo_get_sp() \
-  ({ register void * p__ __asm__(RSP_REG); \
-     asm volatile("" : "=r" (p__)); \
-     p__; })
-#define stackinfo_sub_sp(ptr) \
-  ({ ptrdiff_t d__;						\
-     asm volatile ("sub %%" RSP_REG " , %0" : "=r" (d__) : "0" (ptr));	\
-     d__; })
-
 #endif	/* stackinfo.h */

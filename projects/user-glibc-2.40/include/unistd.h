@@ -145,8 +145,6 @@ libc_hidden_proto (__getresuid)
 libc_hidden_proto (__getresgid)
 libc_hidden_proto (__setresuid)
 libc_hidden_proto (__setresgid)
-extern __pid_t __vfork (void);
-libc_hidden_proto (__vfork)
 extern int __ttyname_r (int __fd, char *__buf, size_t __buflen);
 libc_hidden_proto (__ttyname_r)
 extern __pid_t _Fork (void);

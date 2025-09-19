@@ -19,6 +19,7 @@
 #if PTHREAD_IN_LIBC
 # include <shlib-compat.h>
 # include <sys/cdefs.h>
+# include <sched.h>
 
 /* This file is used to keep specific symbol versions occupied, so
    that ld does not generate weak symbol version definitions.  */
@@ -28,6 +29,7 @@ attribute_compat_text_section
 __attribute_used__
 __libanl_version_placeholder_1 (void)
 {
+  sched_yield ();
 }
 
 compat_symbol (libanl, __libanl_version_placeholder_1,

@@ -21,42 +21,14 @@
 #include <sys/types.h>
 #include <sysdep.h>
 #include <tv32-compat.h>
+#include <pizlonated_syscalls.h>
 
 int
 __setitimer64 (__itimer_which_t which,
                const struct __itimerval64 *restrict new_value,
                struct __itimerval64 *restrict old_value)
 {
-#if __KERNEL_OLD_TIMEVAL_MATCHES_TIMEVAL64
-  return INLINE_SYSCALL_CALL (setitimer, which, new_value, old_value);
-#else
-  struct __itimerval32 new_value_32;
-
-  if (! in_int32_t_range (new_value->it_interval.tv_sec)
-      || ! in_int32_t_range (new_value->it_value.tv_sec))
-    {
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-  new_value_32.it_interval
-    = valid_timeval64_to_timeval32 (new_value->it_interval);
-  new_value_32.it_value
-    = valid_timeval64_to_timeval32 (new_value->it_value);
-
-  if (old_value == NULL)
-    return INLINE_SYSCALL_CALL (setitimer, which, &new_value_32, NULL);
-
-  struct __itimerval32 old_value_32;
-  if (INLINE_SYSCALL_CALL (setitimer, which, &new_value_32, &old_value_32)
-      == -1)
-    return -1;
-
-  old_value->it_interval
-     = valid_timeval32_to_timeval64 (old_value_32.it_interval);
-  old_value->it_value
-     = valid_timeval32_to_timeval64 (old_value_32.it_value);
-  return 0;
-#endif
+  return zsys_setitimer (which, new_value, old_value);
 }
 
 #if __TIMESIZE != 64

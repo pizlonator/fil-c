@@ -301,9 +301,9 @@ others-noinstall += \
 others += $(LINKS_DSO_PROGRAM)
 others-noinstall += $(LINKS_DSO_PROGRAM)
 
-others += test-run-command
-others-static += test-run-command
-others-noinstall += test-run-command
+others += 
+others-static += 
+others-noinstall += 
 LDLIBS-test-run-command = $(libsupport)
 
 $(objpfx)test-container : $(libsupport)

@@ -21,6 +21,7 @@
 #include <string.h>
 #include <time.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 
 /* Change the access time of the file associated with FD to TSP[0] and
@@ -31,10 +32,7 @@
 int
 __futimens64 (int fd, const struct __timespec64 tsp64[2])
 {
-  if (fd < 0)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EBADF);
-
-  return __utimensat64_helper (fd, NULL, &tsp64[0], 0);
+  return zsys_futimens (fd, tsp64);
 }
 
 #if __TIMESIZE != 64

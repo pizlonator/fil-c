@@ -1821,7 +1821,7 @@ symbol `%s' has the same encoding as"), (*eptr)->name);
 
   /* Now determine whether the UNDEFINED entry is needed and if yes,
      whether it was defined.  */
-  collate->undefined.used_in_level = need_undefined ? ~0ul : 0;
+  collate->undefined.used_in_level = need_undefined ? ~0u : 0;
   if (collate->undefined.file == NULL)
     {
       if (need_undefined)

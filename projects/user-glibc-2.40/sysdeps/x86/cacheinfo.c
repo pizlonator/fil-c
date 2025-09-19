@@ -71,18 +71,4 @@ __cache_sysconf (int name)
   return -1;
 }
 
-# ifdef SHARED
-/* NB: In libc.a, cacheinfo.h is included in libc-start.c.  In libc.so,
-   cacheinfo.h is included here and call init_cacheinfo by initializing
-   a dummy function pointer via IFUNC relocation after CPU features in
-   ld.so have been initialized by DL_PLATFORM_INIT or IFUNC relocation.  */
-# include <cacheinfo.h>
-# include <ifunc-init.h>
-
-extern void __x86_cacheinfo (void) attribute_hidden;
-void (*const __x86_cacheinfo_p) (void) attribute_hidden
-  = __x86_cacheinfo;
-
-__ifunc (__x86_cacheinfo, __x86_cacheinfo, NULL, void, init_cacheinfo);
-# endif
 #endif

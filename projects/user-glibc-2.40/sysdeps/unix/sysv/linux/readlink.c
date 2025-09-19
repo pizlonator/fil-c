@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Read the contents of the symbolic link PATH into no more than
    LEN bytes of BUF.  The contents are not null-terminated.
@@ -26,10 +27,6 @@
 ssize_t
 __readlink (const char *path, char *buf, size_t len)
 {
-#ifdef __NR_readlink
-  return INLINE_SYSCALL_CALL (readlink, path, buf, len);
-#else
-  return INLINE_SYSCALL_CALL (readlinkat, AT_FDCWD, path, buf, len);
-#endif
+  return zsys_readlink (path, buf, len);
 }
 weak_alias (__readlink, readlink)

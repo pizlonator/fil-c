@@ -20,52 +20,13 @@
 #include <ldsodefs.h>
 #include <shlib-compat.h>
 #include <stddef.h>
-
-struct dlsym_args
-{
-  /* The arguments to dlsym_doit.  */
-  void *handle;
-  const char *name;
-  void *who;
-
-  /* The return value of dlsym_doit.  */
-  void *sym;
-};
-
-static void
-dlsym_doit (void *a)
-{
-  struct dlsym_args *args = (struct dlsym_args *) a;
-
-  args->sym = _dl_sym (args->handle, args->name, args->who);
-}
-
-static void *
-dlsym_implementation (void *handle, const char *name, void *dl_caller)
-{
-  struct dlsym_args args;
-  args.who = dl_caller;
-  args.handle = handle;
-  args.name = name;
-
-  /* Protect against concurrent loads and unloads.  */
-  __rtld_lock_lock_recursive (GL(dl_load_lock));
-
-  void *result = (_dlerror_run (dlsym_doit, &args) ? NULL : args.sym);
-
-  __rtld_lock_unlock_recursive (GL(dl_load_lock));
-
-  return result;
-}
+#include <pizlonated_syscalls.h>
 
 #ifdef SHARED
 void *
 ___dlsym (void *handle, const char *name)
 {
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlsym (handle, name, RETURN_ADDRESS (0));
-  else
-    return dlsym_implementation (handle, name, RETURN_ADDRESS (0));
+  return zsys_dlsym (handle, name);
 }
 versioned_symbol (libc, ___dlsym, dlsym, GLIBC_2_34);
 
@@ -74,17 +35,10 @@ compat_symbol (libdl, ___dlsym, dlsym, GLIBC_2_0);
 # endif
 
 #else /* !SHARED */
-/* Also used with _dlfcn_hook.  */
-void *
-__dlsym (void *handle, const char *name, void *dl_caller)
-{
-  return dlsym_implementation (handle, name, dl_caller);
-}
-
 void *
 ___dlsym (void *handle, const char *name)
 {
-  return __dlsym (handle, name, RETURN_ADDRESS (0));
+  return zsys_dlsym (handle, name);
 }
 weak_alias (___dlsym, dlsym)
 #endif /* !SHARED */

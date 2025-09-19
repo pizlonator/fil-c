@@ -18,16 +18,13 @@
 #include <errno.h>
 #include <unistd.h>
 #include <setxid.h>
+#include <pizlonated_syscalls.h>
 
 
 int
 __setgid (gid_t gid)
 {
-#ifdef __NR_setgid32
-  return INLINE_SETXID_SYSCALL (setgid32, 1, gid);
-#else
-  return INLINE_SETXID_SYSCALL (setgid, 1, gid);
-#endif
+  return zsys_setgid (gid);
 }
 #ifndef __setgid
 weak_alias (__setgid, setgid)

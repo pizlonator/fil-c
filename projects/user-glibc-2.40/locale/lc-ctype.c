@@ -27,6 +27,36 @@ _NL_CURRENT_DEFINE (LC_CTYPE);
    the variables used by the ctype.h macros.  */
 
 
+#include <shlib-compat.h>
+#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_3)
+  /* We must use the exported names to access these so we are sure to
+     be accessing the main executable's copy if it has COPY relocs.  */
+
+  extern const unsigned short int *__ctype_b; /* Characteristics.  */
+  extern const __int32_t *__ctype_tolower; /* Case conversions.  */
+  extern const __int32_t *__ctype_toupper; /* Case conversions.  */
+
+  extern const uint32_t *__ctype32_b;
+  extern const uint32_t *__ctype32_toupper;
+  extern const uint32_t *__ctype32_tolower;
+
+  /* We need the .symver declarations these macros generate so that
+     our references are explicitly bound to the versioned symbol names
+     rather than the unadorned names that are not exported.  When the
+     linker sees these bound to local symbols (as the unexported names are)
+     then it doesn't generate a proper relocation to the global symbols.
+     We need those relocations so that a versioned definition with a COPY
+     reloc in an executable will override the libc.so definition.  */
+
+compat_symbol_reference (libc, __ctype_b, __ctype_b, GLIBC_2_0);
+compat_symbol_reference (libc, __ctype_tolower, __ctype_tolower, GLIBC_2_0);
+compat_symbol_reference (libc, __ctype_toupper, __ctype_toupper, GLIBC_2_0);
+compat_symbol_reference (libc, __ctype32_b, __ctype32_b, GLIBC_2_0);
+compat_symbol_reference (libc, __ctype32_tolower, __ctype32_tolower,
+			  GLIBC_2_2);
+compat_symbol_reference (libc, __ctype32_toupper, __ctype32_toupper,
+			 GLIBC_2_2);
+#endif
 
 void
 _nl_postload_ctype (void)
@@ -72,36 +102,7 @@ _nl_postload_ctype (void)
 		      (void *) _nl_global_locale.__ctype_tolower);
     }
 
-#include <shlib-compat.h>
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_3)
-  /* We must use the exported names to access these so we are sure to
-     be accessing the main executable's copy if it has COPY relocs.  */
-
-  extern const unsigned short int *__ctype_b; /* Characteristics.  */
-  extern const __int32_t *__ctype_tolower; /* Case conversions.  */
-  extern const __int32_t *__ctype_toupper; /* Case conversions.  */
-
-  extern const uint32_t *__ctype32_b;
-  extern const uint32_t *__ctype32_toupper;
-  extern const uint32_t *__ctype32_tolower;
-
-  /* We need the .symver declarations these macros generate so that
-     our references are explicitly bound to the versioned symbol names
-     rather than the unadorned names that are not exported.  When the
-     linker sees these bound to local symbols (as the unexported names are)
-     then it doesn't generate a proper relocation to the global symbols.
-     We need those relocations so that a versioned definition with a COPY
-     reloc in an executable will override the libc.so definition.  */
-
-compat_symbol_reference (libc, __ctype_b, __ctype_b, GLIBC_2_0);
-compat_symbol_reference (libc, __ctype_tolower, __ctype_tolower, GLIBC_2_0);
-compat_symbol_reference (libc, __ctype_toupper, __ctype_toupper, GLIBC_2_0);
-compat_symbol_reference (libc, __ctype32_b, __ctype32_b, GLIBC_2_0);
-compat_symbol_reference (libc, __ctype32_tolower, __ctype32_tolower,
-			  GLIBC_2_2);
-compat_symbol_reference (libc, __ctype32_toupper, __ctype32_toupper,
-			 GLIBC_2_2);
-
   __ctype_b = current (uint16_t, CLASS, 128);
   __ctype_toupper = current (int32_t, TOUPPER, 128);
   __ctype_tolower = current (int32_t, TOLOWER, 128);

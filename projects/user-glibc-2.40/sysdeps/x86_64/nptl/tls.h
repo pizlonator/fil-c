@@ -29,6 +29,7 @@
 # include <libc-pointer-arith.h> /* For cast_to_integer.  */
 # include <kernel-features.h>
 # include <dl-dtv.h>
+# include <pizlonated_runtime.h>
 
 /* Replacement type for __m128 since this file is included by ld.so,
    which is compiled with -mno-sse.  It must not change the alignment
@@ -142,21 +143,14 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 # define TLS_INIT_TP(thrdescr) \
   ({ void *_thrdescr = (thrdescr);					      \
      tcbhead_t *_head = _thrdescr;					      \
-     int _result;							      \
 									      \
      _head->tcb = _thrdescr;						      \
      /* For now the thread descriptor is at the same address.  */	      \
      _head->self = _thrdescr;						      \
 									      \
      /* It is a simple syscall to set the %fs value for the thread.  */	      \
-     asm volatile ("syscall"						      \
-		   : "=a" (_result)					      \
-		   : "0" ((unsigned long int) __NR_arch_prctl),		      \
-		     "D" ((unsigned long int) ARCH_SET_FS),		      \
-		     "S" (_thrdescr)					      \
-		   : "memory", "cc", "r11", "cx");			      \
-									      \
-    _result == 0;							      \
+     zthread_set_self_cookie (_thrdescr);                                     \
+     true;                                                                    \
   })
 
 # define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd)
@@ -174,16 +168,7 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
    assignments like
 	pthread_descr self = thread_self();
    do not get optimized away.  */
-# if __GNUC_PREREQ (6, 0)
-#  define THREAD_SELF \
-  (*(struct pthread *__seg_fs *) offsetof (struct pthread, header.self))
-# else
-#  define THREAD_SELF \
-  ({ struct pthread *__self;						      \
-     asm ("mov %%fs:%c1,%0" : "=r" (__self)				      \
-	  : "i" (offsetof (struct pthread, header.self)));	 	      \
-     __self;})
-# endif
+# define THREAD_SELF ((struct pthread *) zthread_self_cookie ())
 
 /* Magic for libthread_db to know how to do THREAD_SELF.  */
 # define DB_THREAD_SELF_INCLUDE  <sys/reg.h> /* For the FS constant.  */
@@ -205,25 +190,6 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 # define THREAD_COPY_POINTER_GUARD(descr) \
   ((descr)->header.pointer_guard					      \
    = THREAD_GETMEM (THREAD_SELF, header.pointer_guard))
-
-
-/* Get and set the global scope generation counter in the TCB head.  */
-# define THREAD_GSCOPE_FLAG_UNUSED 0
-# define THREAD_GSCOPE_FLAG_USED   1
-# define THREAD_GSCOPE_FLAG_WAIT   2
-# define THREAD_GSCOPE_RESET_FLAG() \
-  do									      \
-    { int __res;							      \
-      asm volatile ("xchgl %0, %%fs:%P1"				      \
-		    : "=r" (__res)					      \
-		    : "i" (offsetof (struct pthread, header.gscope_flag)),    \
-		      "0" (THREAD_GSCOPE_FLAG_UNUSED));			      \
-      if (__res == THREAD_GSCOPE_FLAG_WAIT)				      \
-	lll_futex_wake (&THREAD_SELF->header.gscope_flag, 1, LLL_PRIVATE);    \
-    }									      \
-  while (0)
-# define THREAD_GSCOPE_SET_FLAG() \
-  THREAD_SETMEM (THREAD_SELF, header.gscope_flag, THREAD_GSCOPE_FLAG_USED)
 
 #endif /* __ASSEMBLER__ */
 

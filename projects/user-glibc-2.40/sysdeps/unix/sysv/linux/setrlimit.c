@@ -22,6 +22,8 @@
 
 #if !__RLIM_T_MATCHES_RLIM64_T
 
+#error "Should not get here"
+
 /* The compatibility symbol is meant to match the old __NR_getrlimit syscall
    (with broken RLIM_INFINITY definition).  It should be provided iff
    __NR_getrlimit and __NR_ugetrlimit are both defined.  */

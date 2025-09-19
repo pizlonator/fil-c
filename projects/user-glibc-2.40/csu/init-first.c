@@ -46,27 +46,10 @@ _init_first (int argc, char **argv, char **envp)
 {
 #endif
 
-  /* Make sure we don't initialize twice.  */
-#ifdef SHARED
-  if (__libc_initial)
-    {
-      /* Set the FPU control word to the proper default value if the
-	 kernel would use a different value.  */
-      if (__fpu_control != GLRO(dl_fpu_control))
-	__setfpucw (__fpu_control);
-    }
-#endif
-
   /* Save the command-line arguments.  */
   __libc_argc = argc;
   __libc_argv = argv;
   __environ = envp;
-
-#ifndef SHARED
-  /* First the initialization which normally would be done by the
-     dynamic linker.  */
-  _dl_non_dynamic_init ();
-#endif
 
   __init_misc (argc, argv, envp);
 }

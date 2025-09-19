@@ -66,6 +66,8 @@
 #include <wchar.h>
 #include <shlib-compat.h>
 
+#pragma clang diagnostic ignored "-Wgnu-variable-sized-type-not-at-end"
+
 /*
  * Ops vector for AF_UNIX based rpc service handle
  */

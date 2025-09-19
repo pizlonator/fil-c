@@ -67,8 +67,8 @@ struct posix_spawn_args
   char *const *envp;
   int xflags;
   bool use_clone3;
-  int err;
   int pidfd;
+  int err_pipe[2];
 };
 
 /* Older version requires that shell script without shebang definition
@@ -105,6 +105,8 @@ __spawni_child (void *arguments)
   struct posix_spawn_args *args = arguments;
   const posix_spawnattr_t *restrict attr = args->attr;
   const posix_spawn_file_actions_t *file_actions = args->fa;
+
+  ZASSERT (!__close_nocancel (args->err_pipe[0]));
 
   /* The child must ensure that no signal handler is enabled because it
      shares memory with parent, so all signal dispositions must be either
@@ -265,9 +267,18 @@ __spawni_child (void *arguments)
 	    case spawn_do_closefrom:
 	      {
 		int lowfd = action->action.closefrom_action.from;
-	        int r = INLINE_SYSCALL_CALL (close_range, lowfd, ~0U, 0);
-		if (r != 0 && !__closefrom_fallback (lowfd, false))
-		  goto fail;
+                if (lowfd < args->err_pipe[1])
+                  {
+                    if (zsys_close_range (lowfd, args->err_pipe[1] - 1, 0) != 0)
+                      goto fail;
+                    if (zsys_close_range (args->err_pipe[1] + 1, ~0U, 0) != 0)
+                      goto fail;
+                  }
+                else
+                  {
+                    if (zsys_close_range (lowfd, ~0U, 0) != 0)
+                      goto fail;
+                  }
 	      } break;
 
 	    case spawn_do_tcsetpgrp:
@@ -290,6 +301,8 @@ __spawni_child (void *arguments)
   else
     internal_sigprocmask (SIG_SETMASK, &args->oldmask, NULL);
 
+  ZASSERT (!__fcntl (args->err_pipe[1], F_SETFD, FD_CLOEXEC));
+
   args->exec (args->file, args->argv, args->envp);
 
   /* This is compatibility function required to enable posix_spawn run
@@ -298,12 +311,17 @@ __spawni_child (void *arguments)
   maybe_script_execute (args);
 
 fail:
+  ;
   /* errno should have an appropriate non-zero value; otherwise,
      there's a bug in glibc or the kernel.  For lack of an error code
      (EINTERNALBUG) describing that, use ECHILD.  Another option would
      be to set args->err to some negative sentinel and have the parent
      abort(), but that seems needlessly harsh.  */
-  args->err = errno ? : ECHILD;
+  int errno_to_send = errno;
+  if (!errno_to_send)
+    errno_to_send = ECHILD;
+  ZASSERT (__write (args->err_pipe[1], &errno_to_send, sizeof (errno_to_send))
+           == sizeof(errno_to_send));
   _exit (SPAWN_ERROR);
 }
 
@@ -316,11 +334,12 @@ __spawnix (int *pid, const char *file,
 	   char *const envp[], int xflags,
 	   int (*exec) (const char *, char *const *, char *const *))
 {
-  pid_t new_pid;
+  pid_t new_pid = 0;
   struct posix_spawn_args args;
-  int ec;
+  int ec = 0;
 
   bool use_pidfd = xflags & SPAWN_XFLAGS_RET_PIDFD;
+  ZASSERT (!use_pidfd);
 
   /* For CLONE_PIDFD, older kernels might not fail with unsupported flags or
      some versions might not support waitid (P_PIDFD).  So to avoid the need
@@ -348,31 +367,12 @@ __spawnix (int *pid, const char *file,
 	return errno;
       }
 
-  int prot = (PROT_READ | PROT_WRITE
-	     | ((GL (dl_stack_flags) & PF_X) ? PROT_EXEC : 0));
-
-  /* Add a slack area for child's stack.  */
-  size_t argv_size = (argc * sizeof (void *)) + 512;
-  /* We need at least a few pages in case the compiler's stack checking is
-     enabled.  In some configs, it is known to use at least 24KiB.  We use
-     32KiB to be "safe" from anything the compiler might do.  Besides, the
-     extra pages won't actually be allocated unless they get used.
-     It also acts the slack for spawn_closefrom (including MIPS64 getdents64
-     where it might use about 1k extra stack space).  */
-  argv_size += (32 * 1024);
-  size_t stack_size = ALIGN_UP (argv_size, GLRO(dl_pagesize));
-  void *stack = __mmap (NULL, stack_size, prot,
-			MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
-  if (__glibc_unlikely (stack == MAP_FAILED))
-    return errno;
-
   /* Disable asynchronous cancellation.  */
   int state;
   __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
 
   /* Child must set args.err to something non-negative - we rely on
      the parent and child sharing VM.  */
-  args.err = 0;
   args.file = file;
   args.exec = exec;
   args.fa = file_actions;
@@ -382,97 +382,48 @@ __spawnix (int *pid, const char *file,
   args.envp = envp;
   args.pidfd = 0;
   args.xflags = xflags;
+  if (__pipe (args.err_pipe))
+    {
+      ec = errno;
+      __pthread_setcancelstate (state, NULL);
+      return ec;
+    }
 
+  bool set_cgroup = attrp ? (attrp->__flags & POSIX_SPAWN_SETCGROUP) : false;
+  ZASSERT (!set_cgroup);
+  
   internal_signal_block_all (&args.oldmask);
 
-  /* The clone flags used will create a new child that will run in the same
-     memory space (CLONE_VM) and the execution of calling thread will be
-     suspend until the child calls execve or _exit.
-
-     Also since the calling thread execution will be suspend, there is not
-     need for CLONE_SETTLS.  Although parent and child share the same TLS
-     namespace, there will be no concurrent access for TLS variables (errno
-     for instance).  */
-  bool set_cgroup = attrp ? (attrp->__flags & POSIX_SPAWN_SETCGROUP) : false;
-  struct clone_args clone_args =
+  int fork_result = zsys_fork ();
+  if (fork_result < 0)
     {
-      /* Unsupported flags like CLONE_CLEAR_SIGHAND will be cleared up by
-	 __clone_internal_fallback.  */
-      .flags = (set_cgroup ? CLONE_INTO_CGROUP : 0)
-	       | (use_pidfd ? CLONE_PIDFD : 0)
-	       | CLONE_CLEAR_SIGHAND
-	       | CLONE_VM
-	       | CLONE_VFORK,
-      .exit_signal = SIGCHLD,
-      .stack = (uintptr_t) stack,
-      .stack_size = stack_size,
-      .cgroup = (set_cgroup ? attrp->__cgroup : 0),
-      .pidfd = use_pidfd ? (uintptr_t) &args.pidfd : 0,
-      /* This is require for clone fallback, where pidfd is returned
-	 on parent_tid.  */
-      .parent_tid = use_pidfd ? (uintptr_t) &args.pidfd : 0,
-    };
-#ifdef HAVE_CLONE3_WRAPPER
-  args.use_clone3 = true;
-  new_pid = __clone3 (&clone_args, sizeof (clone_args), __spawni_child,
-		      &args);
-  /* clone3 was added in 5.3 and CLONE_CLEAR_SIGHAND in 5.5.  */
-  if (new_pid == -1 && (errno == ENOSYS || errno == EINVAL))
-#endif
-    {
-      args.use_clone3 = false;
-      if (!set_cgroup)
-	new_pid = __clone_internal_fallback (&clone_args, __spawni_child,
-					     &args);
-      else
-	{
-	  /* No fallback for POSIX_SPAWN_SETCGROUP if clone3 is not
-	     supported.  */
-	  new_pid = -1;
-#ifdef HAVE_CLONE3_WRAPPER
-	  if (errno == ENOSYS)
-#endif
-	    errno = ENOTSUP;
-	}
+      ec = errno;
+      __close_nocancel (args.err_pipe[0]);
+      __close_nocancel (args.err_pipe[1]);
     }
-
-  /* It needs to collect the case where the auxiliary process was created
-     but failed to execute the file (due either any preparation step or
-     for execve itself).  */
-  if (new_pid > 0)
+  else if (!fork_result)
     {
-      /* Also, it handles the unlikely case where the auxiliary process was
-	 terminated before calling execve as if it was successfully.  The
-	 args.err is set to 0 as default and changed to a positive value
-	 only in case of failure, so in case of premature termination
-	 due a signal args.err will remain zeroed and it will be up to
-	 caller to actually collect it.  */
-      ec = args.err;
-      if (ec > 0)
-	{
-	  /* There still an unlikely case where the child is cancelled after
-	     setting args.err, due to a positive error value.  Also there is
-	     possible pid reuse race (where the kernel allocated the same pid
-	     to an unrelated process).  Unfortunately due synchronization
-	     issues where the kernel might not have the process collected
-	     the waitpid below can not use WNOHANG.  */
-	  __waitid (use_pidfd ? P_PIDFD : P_PID,
-		    use_pidfd ? args.pidfd : new_pid,
-		    NULL,
-		    WEXITED);
-	  /* For pidfd we need to also close the file descriptor for the case
-	     where execve fails.  */
-	  if (use_pidfd)
-	    __close_nocancel_nostatus (args.pidfd);
-	}
+      __spawni_child (&args);
+      ZASSERT (!"Should not be reached");
     }
   else
-    ec = errno;
+    new_pid = fork_result;
 
-  __munmap (stack, stack_size);
+  ZASSERT(!!new_pid == !ec);
+
+  __close_nocancel (args.err_pipe[1]);
+
+  if (new_pid) {
+    ZASSERT (!ec);
+    int read_result = __read(args.err_pipe[0], &ec, sizeof(ec));
+    if (read_result == sizeof(ec))
+      __waitid (P_PID, new_pid, NULL, WEXITED);
+  }
+
+  __close_nocancel (args.err_pipe[0]);
 
   if ((ec == 0) && (pid != NULL))
-    *pid = use_pidfd ? args.pidfd : new_pid;
+    *pid = new_pid;
 
   internal_signal_restore_set (&args.oldmask);
 

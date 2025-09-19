@@ -61,34 +61,7 @@ unwind_stop (int version, _Unwind_Action actions,
 				    adj))
     do_longjump = 1;
 
-  if (__glibc_unlikely (curp != NULL))
-    {
-      /* Handle the compatibility stuff.  Execute all handlers
-	 registered with the old method which would be unwound by this
-	 step.  */
-      struct _pthread_cleanup_buffer *oldp = buf->priv.data.cleanup;
-      void *cfa = (void *) (_Unwind_Ptr) _Unwind_GetCFA (context);
-
-      if (curp != oldp && (do_longjump || FRAME_LEFT (cfa, curp, adj)))
-	{
-	  do
-	    {
-	      /* Pointer to the next element.  */
-	      struct _pthread_cleanup_buffer *nextp = curp->__prev;
-
-	      /* Call the handler.  */
-	      curp->__routine (curp->__arg);
-
-	      /* To the next.  */
-	      curp = nextp;
-	    }
-	  while (curp != oldp
-		 && (do_longjump || FRAME_LEFT (cfa, curp, adj)));
-
-	  /* Mark the current element as handled.  */
-	  THREAD_SETMEM (self, cleanup, curp);
-	}
-    }
+  ZASSERT(!curp);
 
   DIAG_PUSH_NEEDS_COMMENT;
 #if __GNUC_PREREQ (7, 0)

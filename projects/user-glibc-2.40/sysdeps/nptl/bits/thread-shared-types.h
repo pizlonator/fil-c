@@ -103,7 +103,7 @@ struct __pthread_cond_s
 };
 
 typedef unsigned int __tss_t;
-typedef unsigned long int __thrd_t;
+typedef void* __thrd_t;
 
 typedef struct
 {

@@ -22,24 +22,14 @@
 #include <stdarg.h>
 #include <sysdep-cancel.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 /* Open FILE with access OFLAG.  If O_CREAT or O_TMPFILE is in OFLAG,
    a third argument is the file protection.  */
 int
 __libc_open64 (const char *file, int oflag, ...)
 {
-  int mode = 0;
-
-  if (__OPEN_NEEDS_MODE (oflag))
-    {
-      va_list arg;
-      va_start (arg, oflag);
-      mode = va_arg (arg, int);
-      va_end (arg);
-    }
-
-  return SYSCALL_CANCEL (openat, AT_FDCWD, file, oflag | O_LARGEFILE,
-			 mode);
+  return *(int *) zcall (zsys_open, zargs ());
 }
 
 strong_alias (__libc_open64, __open64)

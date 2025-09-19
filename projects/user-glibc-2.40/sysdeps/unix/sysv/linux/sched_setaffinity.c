@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 
 extern int __sched_setaffinity_new (pid_t, size_t, const cpu_set_t *);
@@ -30,9 +31,7 @@ libc_hidden_proto (__sched_setaffinity_new)
 int
 __sched_setaffinity_new (pid_t pid, size_t cpusetsize, const cpu_set_t *cpuset)
 {
-  int result = INLINE_SYSCALL (sched_setaffinity, 3, pid, cpusetsize, cpuset);
-
-  return result;
+  return zsys_sched_setaffinity (pid, cpusetsize, cpuset);
 }
 libc_hidden_def (__sched_setaffinity_new)
 versioned_symbol (libc, __sched_setaffinity_new, sched_setaffinity,

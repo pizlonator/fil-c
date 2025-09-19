@@ -20,56 +20,14 @@
 #include <ldsodefs.h>
 #include <shlib-compat.h>
 #include <stddef.h>
-
-struct dlvsym_args
-{
-  /* The arguments to dlvsym_doit.  */
-  void *handle;
-  const char *name;
-  const char *version;
-  void *who;
-
-  /* The return values of dlvsym_doit.  */
-  void *sym;
-};
-
-static void
-dlvsym_doit (void *a)
-{
-  struct dlvsym_args *args = (struct dlvsym_args *) a;
-
-  args->sym = _dl_vsym (args->handle, args->name, args->version, args->who);
-}
-
-static void *
-dlvsym_implementation (void *handle, const char *name, const char *version,
-		       void *dl_caller)
-{
-  struct dlvsym_args args;
-  args.who = dl_caller;
-  args.handle = handle;
-  args.name = name;
-  args.version = version;
-
-  /* Protect against concurrent loads and unloads.  */
-  __rtld_lock_lock_recursive (GL(dl_load_lock));
-
-  void *result = (_dlerror_run (dlvsym_doit, &args) ? NULL : args.sym);
-
-  __rtld_lock_unlock_recursive (GL(dl_load_lock));
-
-  return result;
-}
+#include <stdfil.h>
+#include <pizlonated_syscalls.h>
 
 #ifdef SHARED
 void *
 ___dlvsym (void *handle, const char *name, const char *version)
 {
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlvsym (handle, name, version,
-					 RETURN_ADDRESS (0));
-  else
-    return dlvsym_implementation (handle, name, version, RETURN_ADDRESS (0));
+  return zsys_dlvsym (handle, name, version);
 }
 versioned_symbol (libc, ___dlvsym, dlvsym, GLIBC_2_34);
 
@@ -82,7 +40,7 @@ compat_symbol (libdl, ___dlvsym, dlvsym, GLIBC_2_1);
 void *
 __dlvsym (void *handle, const char *name, const char *version, void *dl_caller)
 {
-  return dlvsym_implementation (handle, name, version, dl_caller);
+  return zsys_dlvsym (handle, name, version);
 }
 
 void *

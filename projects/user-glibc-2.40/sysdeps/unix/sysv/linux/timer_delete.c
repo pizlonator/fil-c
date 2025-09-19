@@ -22,12 +22,13 @@
 #include "kernel-posix-timers.h"
 #include <pthreadP.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 int
 ___timer_delete (timer_t timerid)
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
-  int res = INLINE_SYSCALL_CALL (timer_delete, ktimerid);
+  int res = zsys_timer_delete (ktimerid);
 
   if (res == 0)
     {

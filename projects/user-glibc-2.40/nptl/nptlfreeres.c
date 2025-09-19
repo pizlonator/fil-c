@@ -26,5 +26,4 @@ void
 __libpthread_freeres (void)
 {
   call_function_static_weak (__default_pthread_attr_freeres);
-  __nptl_free_stacks (0);
 }

@@ -18,57 +18,11 @@
 #include <sys/select.h>
 #include <sysdep-cancel.h>
 
-static int
-pselect64_syscall (int nfds, fd_set *readfds, fd_set *writefds,
-		   fd_set *exceptfds, const struct __timespec64 *timeout,
-		   const sigset_t *sigmask)
-{
-#ifndef __NR_pselect6_time64
-# define __NR_pselect6_time64 __NR_pselect6
-#endif
-  /* NB: This is required by ARGIFY used in x32 internal_syscallN.  */
-  __syscall_ulong_t data[2] =
-    {
-      (uintptr_t) sigmask, __NSIG_BYTES
-    };
-  return SYSCALL_CANCEL (pselect6_time64, nfds, readfds, writefds, exceptfds,
-			 timeout, data);
-}
-
 int
 __pselect64 (int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	     const struct __timespec64 *timeout, const sigset_t *sigmask)
 {
-  /* The Linux kernel can in some situations update the timeout value.
-     We do not want that so use a local variable.  */
-  struct __timespec64 tval;
-  if (timeout != NULL)
-    {
-      tval = *timeout;
-      timeout = &tval;
-    }
-
-  /* Note: the system call expects 7 values but on most architectures
-     we can only pass in 6 directly.  If there is an architecture with
-     support for more parameters a new version of this file needs to
-     be created.  */
-#ifdef __ASSUME_TIME64_SYSCALLS
-  return pselect64_syscall (nfds, readfds, writefds, exceptfds, timeout,
-			    sigmask);
-#else
-  bool need_time64 = timeout != NULL && !in_int32_t_range (timeout->tv_sec);
-  if (need_time64)
-    {
-      int r = pselect64_syscall (nfds, readfds, writefds, exceptfds, timeout,
-				 sigmask);
-      if (r == 0 || errno != ENOSYS)
-	return r;
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  return __pselect32 (nfds, readfds, writefds, exceptfds, timeout, sigmask);
-#endif
+  return zsys_pselect (nfds, readfds, writefds, exceptfds, timeout, sigmask);
 }
 
 #if __TIMESIZE != 64

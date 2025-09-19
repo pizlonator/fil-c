@@ -16,7 +16,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef SHARED
 # define ARCH_SETUP_IREL() apply_irel ()
 # define ARCH_APPLY_IREL()
 # ifdef __CET__
@@ -71,4 +70,3 @@ get_cet_feature (void)
 # else
 #  define ARCH_SETUP_TLS()	__libc_setup_tls ()
 # endif
-#endif /* !SHARED */

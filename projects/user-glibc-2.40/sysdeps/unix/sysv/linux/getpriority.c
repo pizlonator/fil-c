@@ -21,6 +21,7 @@
 
 #include <sysdep.h>
 #include <sys/syscall.h>
+#include <pizlonated_syscalls.h>
 
 /* The return value of getpriority syscall is biased by this value
    to avoid returning negative values.  */
@@ -34,12 +35,7 @@
 int
 __getpriority (enum __priority_which which, id_t who)
 {
-  int res;
-
-  res = INLINE_SYSCALL (getpriority, 2, (int) which, who);
-  if (res >= 0)
-    res = PZERO - res;
-  return res;
+  return zsys_getpriority (which, who);
 }
 libc_hidden_def (__getpriority)
 weak_alias (__getpriority, getpriority)

@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <sysdep-cancel.h>
 #include <not-cancel.h>
+#include <pizlonated_syscalls.h>
 
 #ifndef __NR_fcntl64
 # define __NR_fcntl64 __NR_fcntl
@@ -33,16 +34,7 @@
 int
 __fcntl64_nocancel (int fd, int cmd, ...)
 {
-  va_list ap;
-  void *arg;
-
-  va_start (ap, cmd);
-  arg = va_arg (ap, void *);
-  va_end (ap);
-
-  cmd = FCNTL_ADJUST_CMD (cmd);
-
-  return __fcntl64_nocancel_adjusted (fd, cmd, arg);
+  return *(int *) zcall (zsys_fcntl, zargs ());
 }
 hidden_def (__fcntl64_nocancel)
 
@@ -52,13 +44,12 @@ __fcntl64_nocancel_adjusted (int fd, int cmd, void *arg)
   if (cmd == F_GETOWN)
     {
       struct f_owner_ex fex;
-      int res = INTERNAL_SYSCALL_CALL (fcntl64, fd, F_GETOWN_EX, &fex);
-      if (!INTERNAL_SYSCALL_ERROR_P (res))
+      int res = zsys_fcntl (fd, F_GETOWN_EX, &fex);
+      if (!res)
 	return fex.type == F_OWNER_GID ? -fex.pid : fex.pid;
 
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE
-        (INTERNAL_SYSCALL_ERRNO (res));
+      return res;
     }
 
-  return INLINE_SYSCALL_CALL (fcntl64, fd, cmd, (void *) arg);
+  return zsys_fcntl (fd, cmd, arg);
 }

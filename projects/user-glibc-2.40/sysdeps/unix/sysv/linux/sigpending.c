@@ -18,11 +18,12 @@
 #include <signal.h>
 #include <sysdep.h>
 #include <sigsetops.h>
+#include <pizlonated_syscalls.h>
 
 /* Change the set of blocked signals to SET,
    wait until a signal arrives, and restore the set of blocked signals.  */
 int
 sigpending (sigset_t *set)
 {
-  return INLINE_SYSCALL_CALL (rt_sigpending, set, __NSIG_BYTES);
+  return zsys_sigpending (set);
 }

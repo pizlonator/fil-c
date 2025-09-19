@@ -18,16 +18,13 @@
 
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Change the protections of FILE to MODE.  */
 int
 __chmod (const char *file, mode_t mode)
 {
-#ifdef __NR_chmod
-  return INLINE_SYSCALL_CALL (chmod, file, mode);
-#else
-  return INLINE_SYSCALL_CALL (fchmodat, AT_FDCWD, file, mode);
-#endif
+  return zsys_chmod (file, mode);
 }
 
 libc_hidden_def (__chmod)

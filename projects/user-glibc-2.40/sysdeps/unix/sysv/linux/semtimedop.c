@@ -19,52 +19,14 @@
 #include <ipc_priv.h>
 #include <sysdep.h>
 #include <errno.h>
-
-static int
-semtimedop_syscall (int semid, struct sembuf *sops, size_t nsops,
-		    const struct __timespec64 *timeout)
-{
-#ifdef __NR_semtimedop_time64
-  return INLINE_SYSCALL_CALL (semtimedop_time64, semid, sops, nsops, timeout);
-#elif defined __ASSUME_DIRECT_SYSVIPC_SYSCALLS && defined __NR_semtimedop
-  return INLINE_SYSCALL_CALL (semtimedop, semid, sops, nsops, timeout);
-#else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_semtimedop, semid,
-			      SEMTIMEDOP_IPC_ARGS (nsops, sops, timeout));
-#endif
-}
+#include <pizlonated_syscalls.h>
 
 /* Perform user-defined atomic operation of array of semaphores.  */
 int
 __semtimedop64 (int semid, struct sembuf *sops, size_t nsops,
 		const struct __timespec64 *timeout)
 {
-#ifdef __ASSUME_TIME64_SYSCALLS
-  return semtimedop_syscall (semid, sops, nsops, timeout);
-#else
-  bool need_time64 = timeout != NULL && !in_int32_t_range (timeout->tv_sec);
-  if (need_time64)
-    {
-      int r = semtimedop_syscall (semid, sops, nsops, timeout);
-      if (r == 0 || errno != ENOSYS)
-	return r;
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  struct timespec ts32, *pts32 = NULL;
-  if (timeout != NULL)
-    {
-      ts32 = valid_timespec64_to_timespec (*timeout);
-      pts32 = &ts32;
-    }
-# ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  return INLINE_SYSCALL_CALL (semtimedop, semid, sops, nsops, pts32);
-# else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_semtimedop, semid,
-			      SEMTIMEDOP_IPC_ARGS (nsops, sops, pts32));
-# endif
-#endif
+  return zsys_semtimedop (semid, sops, nsops, timeout);
 }
 #if __TIMESIZE != 64
 libc_hidden_def (__semtimedop64)

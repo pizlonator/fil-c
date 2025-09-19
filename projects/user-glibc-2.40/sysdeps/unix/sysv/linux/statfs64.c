@@ -24,15 +24,13 @@
 #undef __statfs
 #undef statfs
 
+#include <pizlonated_syscalls.h>
+
 /* Return information about the filesystem on which FILE resides.  */
 int
 __statfs64 (const char *file, struct statfs64 *buf)
 {
-#ifdef __NR_statfs64
-  return INLINE_SYSCALL_CALL (statfs64, file, sizeof (*buf), buf);
-#else
-  return INLINE_SYSCALL_CALL (statfs, file, buf);
-#endif
+  return zsys_statfs (file, buf);
 }
 weak_alias (__statfs64, statfs64)
 

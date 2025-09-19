@@ -19,25 +19,13 @@
 #include <dlfcn.h>
 #include <ldsodefs.h>
 #include <shlib-compat.h>
+#include <stdfil.h>
 
 int
 __dladdr1 (const void *address, Dl_info *info, void **extra, int flags)
 {
-#ifdef SHARED
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dladdr1 (address, info, extra, flags);
-#endif
-
-  switch (flags)
-    {
-    default:			/* Make this an error?  */
-    case 0:
-      return _dl_addr (address, info, NULL, NULL);
-    case RTLD_DL_SYMENT:
-      return _dl_addr (address, info, NULL, (const ElfW(Sym) **) extra);
-    case RTLD_DL_LINKMAP:
-      return _dl_addr (address, info, (struct link_map **) extra, NULL);
-    }
+  zerror ("dladdr1 not yet supported.");
+  return 0;
 }
 versioned_symbol (libc, __dladdr1, dladdr1, GLIBC_2_34);
 

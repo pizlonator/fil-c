@@ -777,15 +777,6 @@ extern int setresgid (__gid_t __rgid, __gid_t __egid, __gid_t __sgid)
    and the process ID of the new process to the old process.  */
 extern __pid_t fork (void) __THROWNL;
 
-#if (defined __USE_XOPEN_EXTENDED && !defined __USE_XOPEN2K8) \
-    || defined __USE_MISC
-/* Clone the calling process, but without copying the whole address space.
-   The calling process is suspended until the new process exits or is
-   replaced by a call to `execve'.  Return -1 for errors, 0 to the new process,
-   and the process ID of the new process to the old process.  */
-extern __pid_t vfork (void) __THROW;
-#endif /* Use misc or XPG < 7. */
-
 #ifdef __USE_GNU
 /* This is similar to fork, however it does not run the atfork handlers
    neither reinitialize any internal locks in multithread case.

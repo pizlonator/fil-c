@@ -18,22 +18,19 @@
 
 #include <sys/epoll.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 libc_hidden_proto (epoll_create)
 
 int
 epoll_create (int size)
 {
-#ifdef __NR_epoll_create
-  return INLINE_SYSCALL_CALL (epoll_create, size);
-#else
   if (size <= 0)
     {
       __set_errno (EINVAL);
       return -1;
     }
 
-  return INLINE_SYSCALL_CALL (epoll_create1, 0);
-#endif
+  return zsys_epoll_create1 (0);
 }
 libc_hidden_def (epoll_create)

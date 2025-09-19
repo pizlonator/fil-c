@@ -41,13 +41,11 @@ TUNABLE_CALLBACK (set_mutex_spin_count) (tunable_val_t *valp)
 static void
 TUNABLE_CALLBACK (set_stack_cache_size) (tunable_val_t *valp)
 {
-  __nptl_stack_cache_maxsize = valp->numval;
 }
 
 static void
 TUNABLE_CALLBACK (set_stack_hugetlb) (tunable_val_t *valp)
 {
-  __nptl_stack_hugetlb = (int32_t) valp->numval;
 }
 
 void
@@ -55,8 +53,4 @@ __pthread_tunables_init (void)
 {
   TUNABLE_GET (mutex_spin_count, int32_t,
                TUNABLE_CALLBACK (set_mutex_spin_count));
-  TUNABLE_GET (stack_cache_size, size_t,
-               TUNABLE_CALLBACK (set_stack_cache_size));
-  TUNABLE_GET (stack_hugetlb, int32_t,
-	       TUNABLE_CALLBACK (set_stack_hugetlb));
 }

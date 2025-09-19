@@ -84,6 +84,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <scratch_buffer.h>
 #include <inet/net-internal.h>
 
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+
 /* Former AI_IDN_ALLOW_UNASSIGNED and AI_IDN_USE_STD3_ASCII_RULES
    flags, now ignored.  */
 #define DEPRECATED_AI_IDN 0x300

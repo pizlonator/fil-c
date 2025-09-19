@@ -100,11 +100,11 @@ emit_weak_aliases()
 	else
 	  source="${strong}_${vcount}"
 	  vcount=`expr $vcount + 1`
-	  echo "	 echo 'strong_alias ($strong, $source)'; \\"
+	  echo "	 echo 'strong_alias ($strong, $source);'; \\"
 	fi
-	echo "	 echo 'versioned_symbol (libc, $source, $base, $ver)'; \\"
+	echo "	 echo 'versioned_symbol (libc, $source, $base, $ver);'; \\"
 	echo "	 echo '#else'; \\"
-	echo "	 echo 'weak_alias ($strong, $base)'; \\"
+	echo "	 echo 'weak_alias ($strong, $base);'; \\"
 	echo "	 echo '#endif'; \\"
 	;;
       *@*)
@@ -127,19 +127,19 @@ emit_weak_aliases()
 	else
 	  source="${strong}_${vcount}"
 	  vcount=`expr $vcount + 1`
-	  echo "	 echo 'strong_alias ($strong, $source)'; \\"
+	  echo "	 echo 'strong_alias ($strong, $source);'; \\"
 	fi
-	echo "	 echo 'compat_symbol (libc, $source, $base, $ver)'; \\"
+	echo "	 echo 'compat_symbol (libc, $source, $base, $ver);'; \\"
 	echo "	 echo '#endif'; \\"
 	;;
       !*)
 	name=`echo $name | sed 's/.//'`
-	echo "	 echo 'strong_alias ($strong, $name)'; \\"
-	echo "	 echo 'hidden_def ($name)'; \\"
+	echo "	 echo 'strong_alias ($strong, $name);'; \\"
+	echo "	 echo 'strong_alias ($name, __GI_$name);'; \\"
 	;;
       *)
-	echo "	 echo 'weak_alias ($strong, $name)'; \\"
-	echo "	 echo 'hidden_weak ($name)'; \\"
+	echo "	 echo 'weak_alias ($strong, $name);'; \\"
+	echo "	 echo 'strong_alias ($name, __GI_$name);'; \\"
 	;;
     esac
   done
@@ -157,7 +157,7 @@ while read file srcfile caller syscall args strong weak; do
   callnum=-
   eval `{ echo "#include <sysdep.h>";
 	echo "callnum=SYS_ify ($syscall)"; } |
-	  $asm_CPP -D__OPTIMIZE__ - |
+	  $c_CPP -D__OPTIMIZE__ - |
 	  sed -n -e "/^callnum=.*$syscall/d" \
 		 -e "/^\(callnum=\)[ 	]*\(.*\)/s//\1'\2'/p"`
   ;;
@@ -265,14 +265,13 @@ while read file srcfile caller syscall args strong weak; do
   x*)
   echo "\
 	\$(make-target-directory)
-	(echo '#define SYSCALL_NAME $syscall'; \\
-	 echo '#define SYSCALL_NARGS $nargs'; \\
-	 echo '#define SYSCALL_ULONG_ARG_1 $ulong_arg_1'; \\
-	 echo '#define SYSCALL_ULONG_ARG_2 $ulong_arg_2'; \\
-	 echo '#define SYSCALL_SYMBOL $strong'; \\
-	 echo '#define SYSCALL_NOERRNO $noerrno'; \\
-	 echo '#define SYSCALL_ERRVAL $errval'; \\
-	 echo '#include <syscall-template.S>'; \\"
+	(echo '#include <pizlonated_syscalls.h>'; \\
+	 echo 'void $strong(void)'; \\
+	 echo '{'; \\
+	 echo '  zreturn(zcall(zsys_$syscall, zargs()));'; \\
+	 echo '}'; \\
+	 echo '#include <libc-symbols.h>'; \\
+	 echo 'strong_alias($strong, __GI_$strong);'; \\"
   ;;
   esac
 

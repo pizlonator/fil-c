@@ -18,11 +18,12 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __libc_pwrite64 (int fd, const void *buf, size_t count, off64_t offset)
 {
-  return SYSCALL_CANCEL (pwrite64, fd, buf, count, SYSCALL_LL64_PRW (offset));
+  return zsys_pwrite (fd, buf, count, offset);
 }
 
 weak_alias (__libc_pwrite64, __pwrite64)

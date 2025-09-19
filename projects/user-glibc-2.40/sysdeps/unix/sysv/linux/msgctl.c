@@ -21,149 +21,17 @@
 #include <shlib-compat.h>
 #include <errno.h>
 #include <linux/posix_types.h>  /* For __kernel_mode_t.  */
+#include <pizlonated_syscalls.h>
 
 /* POSIX states ipc_perm mode should have type of mode_t.  */
 _Static_assert (sizeof ((struct msqid_ds){0}.msg_perm.mode)
 		== sizeof (mode_t),
 		"sizeof (msqid_ds.msg_perm.mode) != sizeof (mode_t)");
 
-#if __IPC_TIME64 == 0
-typedef struct msqid_ds msgctl_arg_t;
-#else
-# include <struct_kernel_msqid64_ds.h>
-
-static void
-msqid64_to_kmsqid64 (const struct __msqid64_ds *msqid64,
-		     struct kernel_msqid64_ds *kmsqid)
-{
-  kmsqid->msg_perm       = msqid64->msg_perm;
-  kmsqid->msg_stime      = msqid64->msg_stime;
-  kmsqid->msg_stime_high = msqid64->msg_stime >> 32;
-  kmsqid->msg_rtime      = msqid64->msg_rtime;
-  kmsqid->msg_rtime_high = msqid64->msg_rtime >> 32;
-  kmsqid->msg_ctime      = msqid64->msg_ctime;
-  kmsqid->msg_ctime_high = msqid64->msg_ctime >> 32;
-  kmsqid->msg_cbytes     = msqid64->msg_cbytes;
-  kmsqid->msg_qnum       = msqid64->msg_qnum;
-  kmsqid->msg_qbytes     = msqid64->msg_qbytes;
-  kmsqid->msg_lspid      = msqid64->msg_lspid;
-  kmsqid->msg_lrpid      = msqid64->msg_lrpid;
-}
-
-static void
-kmsqid64_to_msqid64 (const struct kernel_msqid64_ds *kmsqid,
-		     struct __msqid64_ds *msqid64)
-{
-  msqid64->msg_perm   = kmsqid->msg_perm;
-  msqid64->msg_stime  = kmsqid->msg_stime
-		        | ((__time64_t) kmsqid->msg_stime_high << 32);
-  msqid64->msg_rtime  = kmsqid->msg_rtime
-		        | ((__time64_t) kmsqid->msg_rtime_high << 32);
-  msqid64->msg_ctime  = kmsqid->msg_ctime
-		        | ((__time64_t) kmsqid->msg_ctime_high << 32);
-  msqid64->msg_cbytes = kmsqid->msg_cbytes;
-  msqid64->msg_qnum   = kmsqid->msg_qnum;
-  msqid64->msg_qbytes = kmsqid->msg_qbytes;
-  msqid64->msg_lspid  = kmsqid->msg_lspid;
-  msqid64->msg_lrpid  = kmsqid->msg_lrpid;
-}
-
-typedef struct kernel_msqid64_ds msgctl_arg_t;
-#endif
-
-static int
-msgctl_syscall (int msqid, int cmd, msgctl_arg_t *buf)
-{
-#ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  return INLINE_SYSCALL_CALL (msgctl, msqid, cmd | __IPC_64, buf);
-#else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_msgctl, msqid, cmd | __IPC_64, 0,
-			      buf);
-#endif
-}
-
 int
 __msgctl64 (int msqid, int cmd, struct __msqid64_ds *buf)
 {
-#if IPC_CTL_NEED_TRANSLATION
-# if __IPC_TIME64
-  struct kernel_msqid64_ds ksemid, *arg = NULL;
-# else
-  msgctl_arg_t *arg;
-# endif
-
-  /* Some applications pass the __IPC_64 flag in cmd, to invoke
-     previously unsupported commands back when there was no EINVAL
-     error checking in glibc.  Mask the flag for the switch statements
-     below.  msgctl_syscall adds back the __IPC_64 flag for the actual
-     system call.  */
-  cmd &= ~__IPC_64;
-
-  switch (cmd)
-    {
-    case IPC_RMID:
-      arg = NULL;
-      break;
-
-    case IPC_SET:
-    case IPC_STAT:
-    case MSG_STAT:
-    case MSG_STAT_ANY:
-# if __IPC_TIME64
-      if (buf != NULL)
-	{
-	  msqid64_to_kmsqid64 (buf, &ksemid);
-	  arg = &ksemid;
-	}
-#  ifdef __ASSUME_SYSVIPC_BROKEN_MODE_T
-      if (cmd == IPC_SET)
-	arg->msg_perm.mode *= 0x10000U;
-#  endif
-# else
-      arg = buf;
-# endif
-      break;
-
-    case IPC_INFO:
-    case MSG_INFO:
-      /* This is a Linux extension where kernel returns a 'struct msginfo'
-	 instead.  */
-      arg = (__typeof__ (arg)) buf;
-      break;
-
-    default:
-      __set_errno (EINVAL);
-      return -1;
-    }
-
-  int ret = msgctl_syscall (msqid, cmd, arg);
-  if (ret < 0)
-    return ret;
-
-  switch (cmd)
-    {
-    case IPC_STAT:
-    case MSG_STAT:
-    case MSG_STAT_ANY:
-# ifdef __ASSUME_SYSVIPC_BROKEN_MODE_T
-      arg->msg_perm.mode >>= 16;
-# else
-      /* Old Linux kernel versions might not clear the mode padding.  */
-      if (sizeof ((struct msqid_ds){0}.msg_perm.mode)
-          != sizeof (__kernel_mode_t))
-	arg->msg_perm.mode &= 0xFFFF;
-# endif
-
-# if __IPC_TIME64
-      kmsqid64_to_msqid64 (arg, buf);
-# endif
-    }
-
-  return ret;
-
-#else /* !IPC_CTL_NEED_TRANSLATION */
-  return msgctl_syscall (msqid, cmd, buf);
-#endif
+  return zsys_msgctl (msqid, cmd, buf);
 }
 #if __TIMESIZE != 64
 libc_hidden_def (__msgctl64)

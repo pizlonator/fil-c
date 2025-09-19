@@ -17,13 +17,14 @@
 
 #include <sys/uio.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 #ifdef __ASSUME_PREADV
 
 ssize_t
 preadv64 (int fd, const struct iovec *vector, int count, off64_t offset)
 {
-  return SYSCALL_CANCEL (preadv, fd, vector, count, LO_HI_LONG (offset));
+  return zsys_preadv (fd, vector, count, offset);
 }
 #else
 static ssize_t __atomic_preadv64_replacement (int, const struct iovec *,

@@ -666,7 +666,7 @@ int __pthread_attr_extension (struct pthread_attr *attr) attribute_hidden
 #ifdef SHARED
 # define PTHREAD_STATIC_FN_REQUIRE(name)
 #else
-# define PTHREAD_STATIC_FN_REQUIRE(name) __asm (".globl " #name);
+# define PTHREAD_STATIC_FN_REQUIRE(name) __asm (".filc_globl " #name);
 #endif
 
 /* Make a deep copy of the attribute *SOURCE in *TARGET.  *TARGET is

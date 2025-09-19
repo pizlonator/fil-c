@@ -18,22 +18,11 @@
 
 #include <dlerror.h>
 
-/* This pointer is either NULL, dl_action_result_malloc_failed (), or
-   has been allocated using malloc by the namespace that also contains
-   this instance of the thread-local variable.  */
-__thread struct dl_action_result *__libc_dlerror_result attribute_tls_model_ie;
+__thread char *__libc_dlerror_result_string
+  attribute_tls_model_ie;
 
 /* Called during thread shutdown to free resources.  */
 void
 __libc_dlerror_result_free (void)
 {
-  if (__libc_dlerror_result != NULL)
-    {
-      if (__libc_dlerror_result != dl_action_result_malloc_failed)
-        {
-          dl_action_result_errstring_free (__libc_dlerror_result);
-          free (__libc_dlerror_result);
-        }
-      __libc_dlerror_result = NULL;
-    }
 }

@@ -20,19 +20,14 @@
 #include <unistd.h>
 #include <sysdep.h>
 #include <abort-instr.h>
+#include <pizlonated_syscalls.h>
 
 
 void
 _exit (int status)
 {
-  while (1)
-    {
-      INLINE_SYSCALL (exit_group, 1, status);
-
-#ifdef ABORT_INSTRUCTION
-      ABORT_INSTRUCTION;
-#endif
-    }
+#pragma clang diagnostic ignored "-Winvalid-noreturn"
+  return zsys_exit_hard (status);
 }
 libc_hidden_def (_exit)
 rtld_hidden_def (_exit)

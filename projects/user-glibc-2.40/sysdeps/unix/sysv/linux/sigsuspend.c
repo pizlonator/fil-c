@@ -17,13 +17,14 @@
 
 #include <signal.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Change the set of blocked signals to SET,
    wait until a signal arrives, and restore the set of blocked signals.  */
 int
 __sigsuspend (const sigset_t *set)
 {
-  return SYSCALL_CANCEL (rt_sigsuspend, set, __NSIG_BYTES);
+  return zsys_sigsuspend (set);
 }
 libc_hidden_def (__sigsuspend)
 weak_alias (__sigsuspend, sigsuspend)

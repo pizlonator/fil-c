@@ -20,47 +20,13 @@
 #include <time.h>
 #include <sys/poll.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 int
 __ppoll64 (struct pollfd *fds, nfds_t nfds, const struct __timespec64 *timeout,
            const sigset_t *sigmask)
 {
-  /* The Linux kernel can in some situations update the timeout value.
-     We do not want that so use a local variable.  */
-  struct __timespec64 tval;
-  if (timeout != NULL)
-    {
-      tval = *timeout;
-      timeout = &tval;
-    }
-
-#ifndef __NR_ppoll_time64
-# define __NR_ppoll_time64 __NR_ppoll
-#endif
-
-#ifdef __ASSUME_TIME64_SYSCALLS
-  return SYSCALL_CANCEL (ppoll_time64, fds, nfds, timeout, sigmask,
-			 __NSIG_BYTES);
-#else
-  int ret;
-  bool need_time64 = timeout != NULL && !in_int32_t_range (timeout->tv_sec);
-  if (need_time64)
-    {
-      ret = SYSCALL_CANCEL (ppoll_time64, fds, nfds, timeout, sigmask,
-			    __NSIG_BYTES);
-      if (ret == 0 || errno != ENOSYS)
-	return ret;
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  struct timespec ts32;
-  if (timeout != NULL)
-    ts32 = valid_timespec64_to_timespec (*timeout);
-
-  return SYSCALL_CANCEL (ppoll, fds, nfds, timeout ? &ts32 : NULL, sigmask,
-			 __NSIG_BYTES);
-#endif
+  return zsys_ppoll (fds, nfds, timeout, sigmask);
 }
 
 #if __TIMESIZE != 64

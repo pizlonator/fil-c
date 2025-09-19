@@ -431,7 +431,6 @@ __ieee754_lgammal_r (long double x, int *signgamp)
      in warnings that it may be used uninitialized although in the
      cases where it is used it has always been set.  */
   DIAG_PUSH_NEEDS_COMMENT;
-  DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wmaybe-uninitialized");
   if (se & 0x8000)
     r = nadj - r;
   DIAG_POP_NEEDS_COMMENT;

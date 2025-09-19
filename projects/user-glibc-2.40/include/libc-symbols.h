@@ -20,6 +20,8 @@
 #ifndef _LIBC_SYMBOLS_H
 #define _LIBC_SYMBOLS_H	1
 
+#pragma clang diagnostic ignored "-Wunused-function"
+
 /* This file is included implicitly in the compilation of every source file,
    using -include.  It includes config.h.  */
 
@@ -215,26 +217,17 @@
 #else
 # define __sec_comment "\n\t#"
 #endif
-#define link_warning(symbol, msg) \
-  __make_section_unallocated (".gnu.warning." #symbol) \
-  static const char __evoke_link_warning_##symbol[]	\
-    __attribute__ ((used, section (".gnu.warning." #symbol __sec_comment))) \
-    = msg;
+#define link_warning(symbol, msg)
 
 /* A canned warning for sysdeps/stub functions.  */
-#define	stub_warning(name) \
-  __make_section_unallocated (".gnu.glibc-stub." #name) \
-  link_warning (name, #name " is not implemented and will always fail")
+#define	stub_warning(name)
 
 /* Warning for linking functions calling dlopen into static binaries.  */
 #ifdef SHARED
 #define static_link_warning(name)
 #else
 #define static_link_warning(name) static_link_warning1(name)
-#define static_link_warning1(name) \
-  link_warning(name, "Using '" #name "' in statically linked applications \
-requires at runtime the shared libraries from the glibc version used \
-for linking")
+#define static_link_warning1(name)
 #endif
 
 /* Declare SYMBOL to be TYPE (`function' or `object') of SIZE bytes
@@ -251,19 +244,8 @@ for linking")
    .type C_SYMBOL_NAME (symbol), %object ASM_LINE_SEP \
    .size C_SYMBOL_NAME (symbol), s_size ASM_LINE_SEP
 #else /* Not __ASSEMBLER__.  */
-# ifdef HAVE_ASM_SET_DIRECTIVE
-#  define declare_object_symbol_alias_1(symbol, original, size) \
-     asm (".global " __SYMBOL_PREFIX # symbol "\n" \
-	  ".type " __SYMBOL_PREFIX # symbol ", %object\n" \
-	  ".set " __SYMBOL_PREFIX #symbol ", " __SYMBOL_PREFIX original "\n" \
-	  ".size " __SYMBOL_PREFIX #symbol ", " #size "\n");
-# else
-#  define declare_object_symbol_alias_1(symbol, original, size) \
-     asm (".global " __SYMBOL_PREFIX # symbol "\n" \
-	  ".type " __SYMBOL_PREFIX # symbol ", %object\n" \
-	  __SYMBOL_PREFIX #symbol " = " __SYMBOL_PREFIX original "\n" \
-	  ".size " __SYMBOL_PREFIX #symbol ", " #size "\n");
-# endif /* HAVE_ASM_SET_DIRECTIVE */
+# define declare_object_symbol_alias_1(symbol, original, size) \
+     asm (".filc_alias " __SYMBOL_PREFIX original ", " __SYMBOL_PREFIX #symbol);
 #endif /* __ASSEMBLER__ */
 
 
@@ -364,12 +346,7 @@ for linking")
 
 /* Used to disable stack protection in sensitive places, like ifunc
    resolvers and early static TLS init.  */
-#ifdef HAVE_CC_NO_STACK_PROTECTOR
-# define inhibit_stack_protector \
-    __attribute__ ((__optimize__ ("-fno-stack-protector")))
-#else
-# define inhibit_stack_protector
-#endif
+#define inhibit_stack_protector
 
 /* The following macros are used for PLT bypassing within libc.so
    (and if needed other libraries similarly).
@@ -453,46 +430,38 @@ for linking")
   __hidden_proto (name, , __GI_##name, ##attrs)
 #  define hidden_proto_alias(name, alias, attrs...) \
   __hidden_proto_alias (name, , alias, ##attrs)
-#  define hidden_tls_proto(name, attrs...) \
-  __hidden_proto (name, __thread, __GI_##name, ##attrs)
+#  define hidden_tls_proto_not_implemented(name, attrs...) /* I don't think I'll need this. */
 #  define __hidden_proto(name, thread, internal, attrs...)	     \
-  extern thread __typeof (name) name __asm__ (__hidden_asmname (#internal)) \
-  __hidden_proto_hiddenattr (attrs);
+  __asm(".filc_rename " #name ", " __hidden_asmname (#internal));
 #  define __hidden_proto_alias(name, thread, internal, attrs...)	     \
   extern thread __typeof (name) internal __hidden_proto_hiddenattr (attrs);
 #  define __hidden_asmname(name) \
   __hidden_asmname1 (__USER_LABEL_PREFIX__, name)
 #  define __hidden_asmname1(prefix, name) __hidden_asmname2(prefix, name)
 #  define __hidden_asmname2(prefix, name) #prefix name
-#  define __hidden_ver1(local, internal, name) \
-  __hidden_ver2 (, local, internal, name)
-#  define __hidden_ver2(thread, local, internal, name)			\
-  extern thread __typeof (name) __EI_##name \
-    __asm__(__hidden_asmname (#internal));  \
-  extern thread __typeof (name) __EI_##name \
-    __attribute__((alias (__hidden_asmname (#local))))	\
-    __attribute_copy__ (name)
-#  define hidden_ver(local, name)	__hidden_ver1(local, __GI_##name, name);
-#  define hidden_def(name)		__hidden_ver1(__GI_##name, name, name);
+#  define __hidden_ver1(local, internal, name, weak) \
+  __hidden_ver2 (, local, internal, name, weak)
+#  define __hidden_ver2(thread, local, internal, name, weak)			\
+  __asm(".filc_" weak "alias " __hidden_asmname (#local) ", " __hidden_asmname (#internal))
+#  define hidden_ver(local, name)	__hidden_ver1(local, __GI_##name, name, "");
+#  define hidden_def(name)		__hidden_ver1(__GI_##name, name, name, "");
 #  define hidden_def_alias(name, internal) \
   strong_alias (name, internal)
 #  define hidden_data_def(name)		hidden_def(name)
 #  define hidden_data_def_alias(name, alias) hidden_def_alias(name, alias)
-#  define hidden_tls_def(name)				\
-  __hidden_ver2 (__thread, __GI_##name, name, name);
+#  define hidden_tls_def_not_implemented(name) /* I don't think I'll need this. */
 #  define hidden_weak(name) \
-	__hidden_ver1(__GI_##name, name, name) __attribute__((weak));
+  __hidden_ver1(__GI_##name, name, name, "weak_");
 #  define hidden_data_weak(name)	hidden_weak(name)
 #  define hidden_nolink(name, lib, version) \
   __hidden_nolink1 (__GI_##name, __EI_##name, name, VERSION_##lib##_##version)
 #  define __hidden_nolink1(local, internal, name, version) \
   __hidden_nolink2 (local, internal, name, version)
 #  define __hidden_nolink2(local, internal, name, version) \
-  extern __typeof (name) internal __attribute__ ((alias (#local)))	\
-    __attribute_copy__ (name);						\
+  __asm(".filc_alias " #local ", " #internal); \
   __hidden_nolink3 (local, internal, #name "@" #version)
 #  define __hidden_nolink3(local, internal, vername) \
-  __asm__ (".symver " #internal ", " vername);
+  __asm(".filc_symver " #internal ", " vername);
 # else
 /* For assembly, we need to do the opposite of what we do in C:
    in assembly gcc __REDIRECT stuff is not in place, so functions
@@ -677,14 +646,15 @@ for linking")
   }
 
 #ifdef HAVE_GCC_IFUNC
-# define __ifunc_args(type_name, name, expr, init, ...)			\
-  extern __typeof (type_name) name __attribute__			\
-			      ((ifunc (#name "_ifunc")));		\
+# define __ifunc_args(type_name, name, expr, init, ...)                        \
+  extern __typeof (type_name) name __attribute__                       \
+                             ((ifunc (#name "_ifunc")));               \
   __ifunc_resolver (type_name, name, expr, init, static, __VA_ARGS__)
 
 # define __ifunc_args_hidden(type_name, name, expr, init, ...)		\
   __ifunc_args (type_name, name, expr, init, __VA_ARGS__)
 #else
+#error "DO NOT have GCC ifunc"
 /* Gcc does not support __attribute__ ((ifunc (...))).  Use the old behaviour
    as fallback.  But keep in mind that the debug information for the ifunc
    resolver functions is not correct.  It contains the ifunc'ed function as
@@ -808,13 +778,8 @@ for linking")
 /* Add the compiler optimization to inhibit loop transformation to library
    calls.  This is used to avoid recursive calls in memset and memmove
    default implementations.  */
-#ifdef HAVE_CC_INHIBIT_LOOP_TO_LIBCALL
-# define inhibit_loop_to_libcall \
-    __attribute__ ((__optimize__ ("-fno-tree-loop-distribute-patterns")))
-#else
-# define inhibit_loop_to_libcall
-#endif
-
+#define inhibit_loop_to_libcall
+
 /* These macros facilitate sharing source files with gnulib.
 
    They are here instead of sys/cdefs.h because they should not be

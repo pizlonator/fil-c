@@ -15,8 +15,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef SHARED
-
 /* Mark symbols hidden in static PIE for early self relocation to work.  */
 # if BUILD_PIE_DEFAULT
 #  pragma GCC visibility push(hidden)
@@ -27,9 +25,6 @@
 # include <ldsodefs.h>
 # include <cpu-features.c>
 
-extern struct cpu_features _dl_x86_cpu_features;
+# define ARCH_INIT_CPU_FEATURES() init_cpu_features (&GLRO(dl_x86_cpu_features))
 
-# define ARCH_INIT_CPU_FEATURES() init_cpu_features (&_dl_x86_cpu_features)
-
-#endif /* !SHARED */
 #include <csu/libc-start.c>

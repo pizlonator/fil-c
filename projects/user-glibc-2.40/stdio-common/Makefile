@@ -133,12 +133,12 @@ routines_no_fortify += \
 
 aux := \
   errlist \
-  errlist-data \
+  errlist-data-gen \
   errname \
   fxprintf \
   printf-parsemb \
   printf-parsewc \
-  siglist \
+  siglist-gen \
   # aux
 
 tests := \
@@ -287,13 +287,6 @@ tests-container += \
   tst-popen3
   # tests-container
 
-generated += \
-  errlist-data-aux-shared.S \
-  errlist-data-aux.S \
-  siglist-aux-shared.S \
-  siglist-aux.S \
-  # generated
-
 tests-internal = \
   tst-grouping_iterator \
   # tests-internal
@@ -346,41 +339,6 @@ endif # $(run-built-tests)
 tests-special += $(objpfx)tst-errno-manual.out
 
 include ../Rules
-
-# The errlist.c is built in two phases because compiler might reorder the
-# compat_symbol directive prior the object itself and on binutils older
-# than 2.29 it might generate object sizes different than the expected ones.
-$(objpfx)errlist-data-aux-shared.S: errlist-data-gen.c
-	$(make-target-directory)
-	$(compile-command.c) $(pic-cppflags) $(pic-ccflag) $(no-stack-protector) -S
-
-$(objpfx)errlist-data-aux.S: errlist-data-gen.c
-	$(make-target-directory)
-	$(compile-command.c) $(pie-default) $(no-stack-protector) -S
-
-ifndef no_deps
--include $(objpfx)errlist-data-aux.S.d $(objpfx)errlist-data-aux-shared.S.d
-endif
-
-$(objpfx)errlist-data.os: $(objpfx)errlist-data-aux-shared.S
-$(addprefix $(objpfx)errlist-data, $(object-suffixes-noshared)): \
-  $(objpfx)errlist-data-aux.S
-
-$(objpfx)siglist-aux-shared.S: siglist-gen.c
-	$(make-target-directory)
-	$(compile-command.c) $(pic-cppflags) $(pic-ccflag) $(no-stack-protector) -S
-
-$(objpfx)siglist-aux.S: siglist-gen.c
-	$(make-target-directory)
-	$(compile-command.c) $(pie-default) $(no-stack-protector) -S
-
-ifndef no_deps
--include $(objpfx)siglist-aux.S.d $(objpfx)siglist-aux-shared.S.d
-endif
-
-$(objpfx)siglist.os: $(objpfx)siglist-aux-shared.S
-$(addprefix $(objpfx)siglist, $(object-suffixes-noshared)): \
-  $(objpfx)siglist-aux.S
 
 ifeq ($(run-built-tests),yes)
 LOCALES := \

@@ -101,8 +101,8 @@ struct alloc_buffer
      avoid issues undefined subtractions if the buffer covers more
      than half of the address space (which would result in differences
      which could not be represented as a ptrdiff_t value).  */
-  uintptr_t __alloc_buffer_current;
-  uintptr_t __alloc_buffer_end;
+  char* __alloc_buffer_current;
+  char* __alloc_buffer_end;
 };
 
 enum
@@ -125,8 +125,8 @@ libc_hidden_proto (__libc_alloc_buffer_create_failure)
 static inline struct alloc_buffer
 alloc_buffer_create (void *start, size_t size)
 {
-  uintptr_t current = (uintptr_t) start;
-  uintptr_t end = (uintptr_t) start + size;
+  char *current = (char *) start;
+  char *end = (char *) start + size;
   if (end < current)
     __libc_alloc_buffer_create_failure (start, size);
   return (struct alloc_buffer) { current, end };
@@ -153,8 +153,8 @@ struct alloc_buffer alloc_buffer_allocate (size_t size, void **pptr)
 static inline void __attribute__ ((nonnull (1)))
 alloc_buffer_mark_failed (struct alloc_buffer *buf)
 {
-  buf->__alloc_buffer_current = __ALLOC_BUFFER_INVALID_POINTER;
-  buf->__alloc_buffer_end = __ALLOC_BUFFER_INVALID_POINTER;
+  buf->__alloc_buffer_current = (char*)__ALLOC_BUFFER_INVALID_POINTER;
+  buf->__alloc_buffer_end = (char*)__ALLOC_BUFFER_INVALID_POINTER;
 }
 
 /* Return the remaining number of bytes in the buffer.  */
@@ -168,7 +168,7 @@ alloc_buffer_size (const struct alloc_buffer *buf)
 static inline bool __attribute__ ((nonnull (1)))
 alloc_buffer_has_failed (const struct alloc_buffer *buf)
 {
-  return buf->__alloc_buffer_current == __ALLOC_BUFFER_INVALID_POINTER;
+  return buf->__alloc_buffer_current == (char*)__ALLOC_BUFFER_INVALID_POINTER;
 }
 
 /* Add a single byte to the buffer (consuming the space for this
@@ -254,11 +254,11 @@ __alloc_buffer_alloc (struct alloc_buffer *buf, size_t size, size_t align)
   if (size == 1 && align == 1)
     return alloc_buffer_alloc_bytes (buf, size);
 
-  uintptr_t current = buf->__alloc_buffer_current;
-  uintptr_t aligned = roundup (current, align);
-  uintptr_t new_current = aligned + size;
+  char *current = buf->__alloc_buffer_current;
+  char *aligned = (char *) roundup ((uintptr_t) current, align);
+  char *new_current = aligned + size;
   if (aligned >= current        /* No overflow in align step.  */
-      && new_current >= size    /* No overflow in size computation.  */
+      && new_current >= (char *) size    /* No overflow in size computation.  */
       && new_current <= buf->__alloc_buffer_end) /* Room in buffer.  */
     {
       buf->__alloc_buffer_current = new_current;
@@ -288,8 +288,8 @@ __alloc_buffer_next (struct alloc_buffer *buf, size_t align)
   if (align == 1)
     return (const void *) buf->__alloc_buffer_current;
 
-  uintptr_t current = buf->__alloc_buffer_current;
-  uintptr_t aligned = roundup (current, align);
+  char *current = buf->__alloc_buffer_current;
+  char *aligned = (char *) roundup ((uintptr_t) current, align);
   if (aligned >= current        /* No overflow in align step.  */
       && aligned <= buf->__alloc_buffer_end) /* Room in buffer.  */
     {

@@ -19,30 +19,12 @@
 #include <pthreadP.h>
 #include <sysdep.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 int
 __pthread_sigmask (int how, const sigset_t *newmask, sigset_t *oldmask)
 {
-  sigset_t local_newmask;
-
-  /* The only thing we have to make sure here is that SIGCANCEL and
-     SIGSETXID is not blocked.  */
-  if (newmask != NULL
-      && (__glibc_unlikely (__sigismember (newmask, SIGCANCEL))
-         || __glibc_unlikely (__sigismember (newmask, SIGSETXID))))
-    {
-      local_newmask = *newmask;
-      clear_internal_signals (&local_newmask);
-      newmask = &local_newmask;
-    }
-
-  /* We know that realtime signals are available if NPTL is used.  */
-  int result = INTERNAL_SYSCALL_CALL (rt_sigprocmask, how, newmask,
-				      oldmask, __NSIG_BYTES);
-
-  return (INTERNAL_SYSCALL_ERROR_P (result)
-	  ? INTERNAL_SYSCALL_ERRNO (result)
-	  : 0);
+  return ((zsys_sigprocmask (how, newmask, oldmask) < 0) ? errno : 0);
 }
 libc_hidden_def (__pthread_sigmask)
 

@@ -32,10 +32,7 @@ __memswap (void *__restrict p1, void *__restrict p2, size_t n)
       p2 = __mempcpy (p2, tmp, SWAP_GENERIC_SIZE);
       n -= SWAP_GENERIC_SIZE;
     }
-  while (n > 0)
-    {
-      unsigned char t = ((unsigned char *)p1)[--n];
-      ((unsigned char *)p1)[n] = ((unsigned char *)p2)[n];
-      ((unsigned char *)p2)[n] = t;
-    }
+  memcpy (tmp, p1, n);
+  memcpy (p1, p2, n);
+  memcpy (p2, tmp, n);
 }

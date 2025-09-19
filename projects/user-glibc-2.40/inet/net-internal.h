@@ -105,8 +105,6 @@ __deadline_is_infinite (struct deadline deadline)
  * A GCC bug has been filed here:
  *    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91691
  */
-DIAG_PUSH_NEEDS_COMMENT;
-DIAG_IGNORE_NEEDS_COMMENT (9, "-Wmaybe-uninitialized");
 
 /* Return true if the current time is at the deadline or past it.  */
 static inline bool
@@ -131,8 +129,6 @@ __deadline_first (struct deadline left, struct deadline right)
   else
     return right;
 }
-
-DIAG_POP_NEEDS_COMMENT;
 
 /* Add TV to the current time and return it.  Returns a special
    infinite absolute deadline on overflow.  */

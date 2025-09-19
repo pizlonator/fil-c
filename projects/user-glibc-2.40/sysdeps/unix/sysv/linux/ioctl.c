@@ -20,26 +20,12 @@
 #include <sys/ioctl.h>
 #include <sysdep.h>
 #include <internal-ioctl.h>
+#include <pizlonated_syscalls.h>
 
 int
 __ioctl (int fd, unsigned long int request, ...)
 {
-  va_list args;
-  va_start (args, request);
-  void *arg = va_arg (args, void *);
-  va_end (args);
-
-  int r;
-  if (!__ioctl_arch (&r, fd, request, arg))
-    {
-      r = INTERNAL_SYSCALL_CALL (ioctl, fd, request, arg);
-      if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (r)))
-	{
-	  __set_errno (-r);
-	  return -1;
-	}
-    }
-  return r;
+  return *(int *) zcall (zsys_ioctl, zargs ());
 }
 libc_hidden_def (__ioctl)
 weak_alias (__ioctl, ioctl)

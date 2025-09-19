@@ -20,16 +20,13 @@
 #include <sysdep.h>
 #include <socketcall.h>
 #include <socket-constants-time64.h>
+#include <pizlonated_syscalls.h>
 
 static int
 getsockopt_syscall (int fd, int level, int optname, void *optval,
 		    socklen_t *len)
 {
-#ifdef __ASSUME_GETSOCKOPT_SYSCALL
-  return INLINE_SYSCALL (getsockopt, 5, fd, level, optname, optval, len);
-#else
-  return SOCKETCALL (getsockopt, fd, level, optname, optval, len);
-#endif
+  return zsys_getsockopt (fd, level, optname, optval, len);
 }
 
 #ifndef __ASSUME_TIME64_SYSCALLS

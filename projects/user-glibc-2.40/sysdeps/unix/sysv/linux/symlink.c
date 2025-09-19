@@ -19,15 +19,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Make a link to FROM called TO.  */
 int
 __symlink (const char *from, const char *to)
 {
-#ifdef __NR_symlink
-  return INLINE_SYSCALL_CALL (symlink, from, to);
-#else
-  return INLINE_SYSCALL_CALL (symlinkat, from, AT_FDCWD, to);
-#endif
+  return zsys_symlink (from, to);
 }
 weak_alias (__symlink, symlink)

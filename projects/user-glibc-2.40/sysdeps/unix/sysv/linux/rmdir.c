@@ -19,15 +19,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Remove the directory PATH.  */
 int
 __rmdir (const char *path)
 {
-#ifdef __NR_rmdir
-  return INLINE_SYSCALL_CALL (rmdir, path);
-#else
-  return INLINE_SYSCALL_CALL (unlinkat, AT_FDCWD, path, AT_REMOVEDIR);
-#endif
+  return zsys_rmdir (path);
 }
 weak_alias (__rmdir, rmdir)

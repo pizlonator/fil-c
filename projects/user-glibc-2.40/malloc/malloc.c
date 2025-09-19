@@ -3292,6 +3292,9 @@ tcache_thread_shutdown (void)
 void *
 __libc_malloc (size_t bytes)
 {
+  if ((true))
+    return zgc_alloc(bytes);
+  
   mstate ar_ptr;
   void *victim;
 
@@ -3357,6 +3360,11 @@ libc_hidden_def (__libc_malloc)
 void
 __libc_free (void *mem)
 {
+  if ((true)) {
+    zgc_free(mem);
+    return;
+  }
+  
   mstate ar_ptr;
   mchunkptr p;                          /* chunk corresponding to mem */
 
@@ -3405,6 +3413,9 @@ libc_hidden_def (__libc_free)
 void *
 __libc_realloc (void *oldmem, size_t bytes)
 {
+  if ((true))
+    return zgc_realloc(oldmem, bytes);
+  
   mstate ar_ptr;
   INTERNAL_SIZE_T nb;         /* padded request size */
 
@@ -3541,6 +3552,9 @@ libc_hidden_def (__libc_realloc)
 void *
 __libc_memalign (size_t alignment, size_t bytes)
 {
+  if ((true))
+    return zgc_aligned_alloc(alignment, bytes);
+  
   if (!__malloc_initialized)
     ptmalloc_init ();
 
@@ -3554,6 +3568,9 @@ void *
 weak_function
 aligned_alloc (size_t alignment, size_t bytes)
 {
+  if ((true))
+    return zgc_aligned_alloc(alignment, bytes);
+  
   if (!__malloc_initialized)
     ptmalloc_init ();
 
@@ -3664,22 +3681,30 @@ _mid_memalign (size_t alignment, size_t bytes, void *address)
 void *
 __libc_valloc (size_t bytes)
 {
+  size_t pagesize = GLRO (dl_pagesize);
+
+  if ((true))
+    return zgc_aligned_alloc(pagesize, bytes);
+  
   if (!__malloc_initialized)
     ptmalloc_init ();
 
   void *address = RETURN_ADDRESS (0);
-  size_t pagesize = GLRO (dl_pagesize);
   return _mid_memalign (pagesize, bytes, address);
 }
 
 void *
 __libc_pvalloc (size_t bytes)
 {
+  size_t pagesize = GLRO (dl_pagesize);
+
+  if ((true))
+    return zgc_aligned_alloc(pagesize, bytes);
+  
   if (!__malloc_initialized)
     ptmalloc_init ();
 
   void *address = RETURN_ADDRESS (0);
-  size_t pagesize = GLRO (dl_pagesize);
   size_t rounded_bytes;
   /* ALIGN_UP with overflow check.  */
   if (__glibc_unlikely (__builtin_add_overflow (bytes,
@@ -3697,6 +3722,17 @@ __libc_pvalloc (size_t bytes)
 void *
 __libc_calloc (size_t n, size_t elem_size)
 {
+  ptrdiff_t bytes;
+  
+  if (__glibc_unlikely (__builtin_mul_overflow (n, elem_size, &bytes)))
+    {
+       __set_errno (ENOMEM);
+       return NULL;
+    }
+
+  if ((true))
+    return zgc_alloc(bytes);
+
   mstate av;
   mchunkptr oldtop;
   INTERNAL_SIZE_T sz, oldtopsize;
@@ -3704,13 +3740,6 @@ __libc_calloc (size_t n, size_t elem_size)
   unsigned long clearsize;
   unsigned long nclears;
   INTERNAL_SIZE_T *d;
-  ptrdiff_t bytes;
-
-  if (__glibc_unlikely (__builtin_mul_overflow (n, elem_size, &bytes)))
-    {
-       __set_errno (ENOMEM);
-       return NULL;
-    }
 
   sz = bytes;
 
@@ -5206,6 +5235,12 @@ mtrim (mstate av, size_t pad)
 int
 __malloc_trim (size_t s)
 {
+  if ((true)) {
+    zgc_request_and_wait();
+    zscavenge_synchronously();
+    return 1;
+  }
+  
   int result = 0;
 
   if (!__malloc_initialized)
@@ -5247,6 +5282,11 @@ musable (void *mem)
 size_t
 __malloc_usable_size (void *m)
 {
+  if ((true)) {
+    if (!zhasvalidcap(m) || !zinbounds(m))
+      return 0;
+    return (char*)zgetupper(m) - (char*)m;
+  }
   if (m == NULL)
     return 0;
   return musable (m);
@@ -5374,6 +5414,9 @@ __libc_mallinfo (void)
 void
 __malloc_stats (void)
 {
+  if ((true))
+    return;
+  
   int i;
   mstate ar_ptr;
   unsigned int in_use_b = mp_.mmapped_mem, system_b = in_use_b;
@@ -5557,6 +5600,9 @@ do_set_hugetlb (size_t value)
 int
 __libc_mallopt (int param_number, int value)
 {
+  if ((true))
+    return 1;
+  
   mstate av = &main_arena;
   int res = 1;
 
@@ -5781,6 +5827,11 @@ malloc_printerr (const char *str)
 int
 __posix_memalign (void **memptr, size_t alignment, size_t size)
 {
+  if ((true)) {
+    *memptr = zgc_aligned_alloc(alignment, size);
+    return 0;
+  }
+  
   void *mem;
 
   if (!__malloc_initialized)
@@ -5812,6 +5863,9 @@ weak_alias (__posix_memalign, posix_memalign)
 int
 __malloc_info (int options, FILE *fp)
 {
+  if ((true))
+    return 0;
+  
   /* For now, at least.  */
   if (options != 0)
     return EINVAL;

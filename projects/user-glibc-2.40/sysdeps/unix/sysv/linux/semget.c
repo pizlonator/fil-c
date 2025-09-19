@@ -19,6 +19,7 @@
 #include <ipc_priv.h>
 #include <sysdep.h>
 #include <errno.h>
+#include <pizlonated_syscalls.h>
 
 /* Return identifier for array of NSEMS semaphores associated with
    KEY.  */
@@ -26,9 +27,5 @@
 int
 semget (key_t key, int nsems, int semflg)
 {
-#ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  return INLINE_SYSCALL_CALL (semget, key, nsems, semflg);
-#else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_semget, key, nsems, semflg, NULL);
-#endif
+  return zsys_semget (key, nsems, semflg);
 }

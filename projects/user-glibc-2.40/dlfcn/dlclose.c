@@ -23,12 +23,8 @@
 int
 __dlclose (void *handle)
 {
-#ifdef SHARED
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlclose (handle);
-#endif
-
-  return _dlerror_run (GLRO (dl_close), handle) ? -1 : 0;
+  /* FIXME: We could, and should, implement dlclosing eventually. */
+  return 0;
 }
 versioned_symbol (libc, __dlclose, dlclose, GLIBC_2_34);
 

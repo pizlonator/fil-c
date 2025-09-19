@@ -25,6 +25,7 @@
 #include <time.h>
 #include <sys/sysmacros.h>
 #include <internal-stat.h>
+#include <pizlonated_syscalls.h>
 
 #if __TIMESIZE == 64 \
      && (__WORDSIZE == 32 \
@@ -144,21 +145,7 @@ int
 __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
 		    int flag)
 {
-  int r;
-
-#if FSTATAT_USE_STATX
-  r = fstatat64_time64_statx (fd, file, buf, flag);
-# ifndef __ASSUME_STATX
-  if (r == -ENOSYS)
-    r = fstatat64_time64_stat (fd, file, buf, flag);
-# endif
-#else
-  r = fstatat64_time64_stat (fd, file, buf, flag);
-#endif
-
-  return INTERNAL_SYSCALL_ERROR_P (r)
-	 ? INLINE_SYSCALL_ERROR_RETURN_VALUE (-r)
-	 : 0;
+  return zsys_fstatat (fd, file, buf, flag);
 }
 #if __TIMESIZE != 64
 hidden_def (__fstatat64_time64)

@@ -19,15 +19,13 @@
 #include <dlfcn.h>
 #include <ldsodefs.h>
 #include <shlib-compat.h>
+#include <stdfil.h>
 
 int
 __dladdr (const void *address, Dl_info *info)
 {
-#ifdef SHARED
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dladdr (address, info);
-#endif
-  return _dl_addr (address, info, NULL, NULL);
+  zerror ("dladdr not yet supported.");
+  return 0;
 }
 versioned_symbol (libc, __dladdr, dladdr, GLIBC_2_34);
 

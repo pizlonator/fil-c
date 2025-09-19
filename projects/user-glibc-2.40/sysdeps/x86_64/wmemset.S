@@ -1,1 +1,0 @@
-/* Implemented in memset.S.  */

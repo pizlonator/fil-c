@@ -33,6 +33,7 @@
 #include <array_length.h>
 #include <dl-minimal-malloc.h>
 #include <dl-symbol-redir-ifunc.h>
+#include <stdfil.h>
 
 #define TUNABLES_INTERNAL 1
 #include "dl-tunables.h"
@@ -123,7 +124,7 @@ static bool
 tunable_parse_num (const char *strval, size_t len, tunable_num_t *val)
 {
   char *endptr = NULL;
-  uint64_t numval = _dl_strtoul (strval, &endptr);
+  uint64_t numval = strtoul (strval, &endptr, 10);
   if (endptr != strval + len)
     return false;
   *val = (tunable_num_t) numval;
@@ -242,11 +243,11 @@ parse_tunables_string (const char *valstring, struct tunable_toset_t *tunables)
 static void
 parse_tunable_print_error (const struct tunable_toset_t *toset)
 {
-  _dl_error_printf ("WARNING: ld.so: invalid GLIBC_TUNABLES value `%.*s' "
-		    "for option `%s': ignored.\n",
-		    (int) toset->len,
-		    toset->value,
-		    toset->t->name);
+  zprintf ("WARNING: libc: invalid GLIBC_TUNABLES value `%.*s' "
+           "for option `%s': ignored.\n",
+           (int) toset->len,
+           toset->value,
+           toset->t->name);
 }
 
 static void
@@ -255,8 +256,8 @@ parse_tunables (const char *valstring)
   struct tunable_toset_t tunables[tunables_list_size] = { 0 };
   if (parse_tunables_string (valstring, tunables) == -1)
     {
-      _dl_error_printf (
-        "WARNING: ld.so: invalid GLIBC_TUNABLES `%s': ignored.\n", valstring);
+      zprintf (
+        "WARNING: libc: invalid GLIBC_TUNABLES `%s': ignored.\n", valstring);
       return;
     }
 
@@ -362,34 +363,34 @@ __tunables_print (void)
       const tunable_t *cur = &tunable_list[i];
       if (cur->type.type_code == TUNABLE_TYPE_STRING
 	  && cur->val.strval.str == NULL)
-	_dl_printf ("%s:\n", cur->name);
+       zprintf ("%s:\n", cur->name);
       else
 	{
-	  _dl_printf ("%s: ", cur->name);
+	  zprintf ("%s: ", cur->name);
 	  switch (cur->type.type_code)
 	    {
 	    case TUNABLE_TYPE_INT_32:
-	      _dl_printf ("%d (min: %d, max: %d)\n",
-			  (int) cur->val.numval,
-			  (int) cur->type.min,
-			  (int) cur->type.max);
+	      zprintf ("%d (min: %d, max: %d)\n",
+                       (int) cur->val.numval,
+                       (int) cur->type.min,
+                       (int) cur->type.max);
 	      break;
 	    case TUNABLE_TYPE_UINT_64:
-	      _dl_printf ("0x%lx (min: 0x%lx, max: 0x%lx)\n",
-			  (long int) cur->val.numval,
-			  (long int) cur->type.min,
-			  (long int) cur->type.max);
+	      zprintf ("0x%lx (min: 0x%lx, max: 0x%lx)\n",
+                       (long int) cur->val.numval,
+                       (long int) cur->type.min,
+                       (long int) cur->type.max);
 	      break;
 	    case TUNABLE_TYPE_SIZE_T:
-	      _dl_printf ("0x%zx (min: 0x%zx, max: 0x%zx)\n",
-			  (size_t) cur->val.numval,
-			  (size_t) cur->type.min,
-			  (size_t) cur->type.max);
+	      zprintf ("0x%zx (min: 0x%zx, max: 0x%zx)\n",
+                       (size_t) cur->val.numval,
+                       (size_t) cur->type.min,
+                       (size_t) cur->type.max);
 	      break;
 	    case TUNABLE_TYPE_STRING:
-	      _dl_printf ("%.*s\n",
-			  (int) cur->val.strval.len,
-			  cur->val.strval.str);
+	      zprintf ("%.*s\n",
+                       (int) cur->val.strval.len,
+                       cur->val.strval.str);
 	      break;
 	    default:
 	      __builtin_unreachable ();

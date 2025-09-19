@@ -19,15 +19,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 int
 __access (const char *file, int type)
 {
-#ifdef __NR_access
-  return INLINE_SYSCALL_CALL (access, file, type);
-#else
-  return INLINE_SYSCALL_CALL (faccessat, AT_FDCWD, file, type);
-#endif
+  return zsys_access (file, type);
 }
 libc_hidden_def (__access)
 weak_alias (__access, access)

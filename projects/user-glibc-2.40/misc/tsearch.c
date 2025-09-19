@@ -95,7 +95,7 @@
    visible and always allocated by malloc.  The user provides the key
    pointer and so that can point anywhere and doesn't have to be
    aligned.  */
-#define USE_MALLOC_LOW_BIT 1
+//#define USE_MALLOC_LOW_BIT 1
 
 #ifndef USE_MALLOC_LOW_BIT
 typedef struct node_t

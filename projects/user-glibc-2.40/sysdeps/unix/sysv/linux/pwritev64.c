@@ -17,13 +17,14 @@
 
 #include <sys/uio.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 #ifdef __ASSUME_PWRITEV
 
 ssize_t
 pwritev64 (int fd, const struct iovec *vector, int count, off64_t offset)
 {
-  return SYSCALL_CANCEL (pwritev, fd, vector, count, LO_HI_LONG (offset));
+  return zsys_pwritev (fd, vector, count, offset);
 }
 #else
 static ssize_t __atomic_pwritev64_replacement (int, const struct iovec *,

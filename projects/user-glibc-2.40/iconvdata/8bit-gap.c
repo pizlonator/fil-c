@@ -20,6 +20,8 @@
 #include <dlfcn.h>
 #include <stdint.h>
 
+#pragma clang diagnostic ignored "-Wgnu-designator"
+
 struct gap
 {
   uint16_t start;

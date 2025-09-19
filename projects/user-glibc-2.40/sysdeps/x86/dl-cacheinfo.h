@@ -698,8 +698,7 @@ get_common_cache_info (long int *shared_ptr, long int * shared_per_thread_ptr, u
                           int count_mask;
 
                           /* Compute count mask.  */
-                          asm ("bsr %1, %0"
-                               : "=r" (count_mask) : "g" (threads_l2));
+                          count_mask = __builtin_clz(threads_l2) ^ 31;
                           count_mask = ~(-1 << (count_mask + 1));
                           threads_l2 = (shipped - 1) & count_mask;
                           count &= ~0x1;
@@ -715,8 +714,7 @@ get_common_cache_info (long int *shared_ptr, long int * shared_per_thread_ptr, u
                             = (level == 2 ? threads_l2 : threads_l3);
 
                           /* Compute count mask.  */
-                          asm ("bsr %1, %0"
-                               : "=r" (count_mask) : "g" (threads_core));
+                          count_mask = __builtin_clz(threads_core) ^ 31;
                           count_mask = ~(-1 << (count_mask + 1));
                           threads_core = (shipped - 1) & count_mask;
                           if (level == 2)

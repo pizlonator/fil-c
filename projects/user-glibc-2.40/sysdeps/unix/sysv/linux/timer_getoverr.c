@@ -20,12 +20,13 @@
 #include <sysdep.h>
 #include "kernel-posix-timers.h"
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 int
 ___timer_getoverrun (timer_t timerid)
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
-  return INLINE_SYSCALL_CALL (timer_getoverrun, ktimerid);
+  return zsys_timer_getoverrun (ktimerid);
 }
 versioned_symbol (libc, ___timer_getoverrun, timer_getoverrun, GLIBC_2_34);
 libc_hidden_ver (___timer_getoverrun, __timer_getoverrun)

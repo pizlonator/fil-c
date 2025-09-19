@@ -51,12 +51,7 @@ __mmap64 (void *addr, size_t len, int prot, int flags, int fd, off64_t offset)
     return (void *) INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
 
   MMAP_PREPARE (addr, len, prot, flags, fd, offset);
-#ifdef __NR_mmap2
-  return (void *) MMAP_CALL (mmap2, addr, len, prot, flags, fd,
-			     (off_t) (offset / MMAP2_PAGE_UNIT));
-#else
-  return (void *) MMAP_CALL (mmap, addr, len, prot, flags, fd, offset);
-#endif
+  return zsys_mmap (addr, len, prot, flags, fd, offset);
 }
 weak_alias (__mmap64, mmap64)
 libc_hidden_def (__mmap64)

@@ -19,12 +19,13 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Wait for pending output to be written on FD.  */
 int
 __libc_tcdrain (int fd)
 {
   /* With an argument of 1, TCSBRK for output to be drain.  */
-  return SYSCALL_CANCEL (ioctl, fd, TCSBRK, 1);
+  return zsys_ioctl (fd, TCSBRK, 1);
 }
 weak_alias (__libc_tcdrain, tcdrain)

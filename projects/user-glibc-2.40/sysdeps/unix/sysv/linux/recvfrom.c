@@ -18,18 +18,13 @@
 #include <sys/socket.h>
 #include <sysdep-cancel.h>
 #include <socketcall.h>
+#include <pizlonated_syscalls.h>
 
 ssize_t
 __libc_recvfrom (int fd, void *buf, size_t len, int flags,
 		 __SOCKADDR_ARG addr, socklen_t *addrlen)
 {
-#ifdef __ASSUME_RECVFROM_SYSCALL
-  return SYSCALL_CANCEL (recvfrom, fd, buf, len, flags, addr.__sockaddr__,
-                         addrlen);
-#else
-  return SOCKETCALL_CANCEL (recvfrom, fd, buf, len, flags, addr.__sockaddr__,
-			    addrlen);
-#endif
+  return zsys_recvfrom (fd, buf, len, flags, addr.__sockaddr__, addrlen);
 }
 weak_alias (__libc_recvfrom, recvfrom)
 weak_alias (__libc_recvfrom, __recvfrom)

@@ -503,7 +503,7 @@ ifeq ($(build-shared),yes)
 map-file = $(firstword $($(@F:.so=-map)) \
 		       $(addprefix $(common-objpfx), \
 				   $(filter $(@F:.so=.map),$(version-maps))))
-load-map-file = $(map-file:%=-Wl,--version-script=%)
+load-map-file = $(map-file:%=--version-script=%)
 endif
 
 # Compiler arguments to use to link a shared object with libc and
@@ -512,7 +512,6 @@ endif
 link-libc-args = -Wl,--start-group \
 		 $(libc-for-link) \
 		 $(common-objpfx)libc_nonshared.a \
-		 -Wl,--as-needed $(elf-objpfx)ld.so -Wl,--no-as-needed \
 		 -Wl,--end-group
 
 # The corresponding shared libc to use.  This may be modified for a
@@ -523,7 +522,7 @@ libc-for-link = $(common-objpfx)libc.so
 # not just commands, they cannot use target-specific variables so need
 # to name both possible libc.so objects.
 link-libc-deps = $(common-objpfx)libc.so $(common-objpfx)linkobj/libc.so \
-		 $(common-objpfx)libc_nonshared.a $(elf-objpfx)ld.so
+		 $(common-objpfx)libc_nonshared.a
 
 # Pattern rule to build a shared object from an archive of PIC objects.
 # This must come after the installation rules so Make doesn't try to
@@ -536,7 +535,7 @@ lib%.so: lib%_pic.a $(+preinit) $(+postinit) $(link-libc-deps)
 	$(call after-link,$@)
 
 define build-shlib-helper
-$(LINK.o) -shared -static-libgcc -Wl,-O1 $(sysdep-LDFLAGS) \
+$(LINK.o) -shared -Wl,-O1 $(sysdep-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) $(rtld-LDFLAGS) \
 	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  $(extra-B-$(@F:lib%.so=%).so) -B$(csu-objpfx) \
@@ -582,25 +581,21 @@ endef
 build-module-helper-objlist = \
 	$(patsubst %_pic.a,$(whole-archive) %_pic.a $(no-whole-archive),\
 		   $(filter-out %.lds $(map-file) $(+preinit) $(+postinit) \
-				$(elf-objpfx)sofini.os \
 				$(link-libc-deps),$^))
 
 build-module-objlist = $(build-module-helper-objlist) $(LDLIBS-$(@F:%.so=%).so)
 build-shlib-objlist = $(build-module-helper-objlist) \
-		      $(LDLIBS-$(@F:lib%.so=%).so) \
-		      $(filter $(elf-objpfx)sofini.os,$^)
+		      $(LDLIBS-$(@F:lib%.so=%).so)
 
 # Don't try to use -lc when making libc.so itself.
 # Also omits crti.o and crtn.o, which we do not want
 # since we define our own `.init' section specially.
-LDFLAGS-c.so = -nostdlib -nostartfiles
+LDFLAGS-c.so = -nodefaultlibs
 # But we still want to link libc.so against $(libc.so-gnulib).
 LDLIBS-c.so += $(libc.so-gnulib)
-# Give libc.so an entry point and make it directly runnable itself.
-LDFLAGS-c.so += -e __libc_main
 # Pre-link the objects of libc_pic.a for .gnu.glibc-stub.* processing.
 $(common-objpfx)libc_pic.os: $(common-objpfx)libc_pic.a
-	$(LINK.o) -nostdlib -nostartfiles -r -o $@ \
+	$(LINK.o) -nodefaultlibs -r -o $@ \
 	$(LDFLAGS-c_pic.os) $(whole-archive) $^ -o $@
 
 # Generate a list of -R options to excise .gnu.glibc-stub.* sections.
@@ -642,17 +637,11 @@ $(common-objpfx)linkobj/libc.so: link-libc-deps = # empty
 
 # Use our own special initializer and finalizer files for the libc.so
 # libraries.
-$(common-objpfx)libc.so: $(common-objpfx)libc_pic.os$(libc_pic_clean) \
-			 $(elf-objpfx)sofini.os \
-			 $(elf-objpfx)interp.os \
-			 $(elf-objpfx)ld.so
+$(common-objpfx)libc.so: $(common-objpfx)libc_pic.a
 	$(build-shlib)
 	$(call after-link,$@)
 
-$(common-objpfx)linkobj/libc.so: $(common-objpfx)linkobj/libc_pic.a \
-			 $(elf-objpfx)sofini.os \
-			 $(elf-objpfx)interp.os \
-			 $(elf-objpfx)ld.so
+$(common-objpfx)linkobj/libc.so: $(common-objpfx)linkobj/libc_pic.a
 	$(build-shlib)
 	$(call after-link,$@)
 
@@ -992,7 +981,7 @@ install: $(inst_slibdir)/libc.so$(libc.so-version)
 $(common-objpfx)format.lds: $(common-objpfx)config.make \
 			    $(common-objpfx)config.h $(..)Makerules
 	$(LINK.o) -shared -nostdlib -nostartfiles \
-		  -x assembler /dev/null -o $@.so
+		  /dev/null -o $@.so
 	$(OBJDUMP) -f $@.so | sed -n 's/.*file format \(.*\)/OUTPUT_FORMAT(\1)/;T;p' > $@
 	rm -f $@.so
 common-generated += format.lds
@@ -1016,7 +1005,7 @@ $(inst_libdir)/libc.so: $(common-objpfx)format.lds \
 	 cat $<; \
 	 echo 'GROUP ( $(slibdir)/libc.so$(libc.so-version)' \
 	      '$(libdir)/$(patsubst %,$(libtype.oS),$(libprefix)$(libc-name))'\
-	      ' AS_NEEDED (' $(rtlddir)/$(rtld-installed-name) ') )' \
+	      ' )' \
 	) > $@.new
 	mv -f $@.new $@
 

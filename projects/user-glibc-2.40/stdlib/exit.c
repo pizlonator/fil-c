@@ -22,6 +22,7 @@
 #include <libc-lock.h>
 #include <set-freeres.h>
 #include "exit.h"
+#include <pizlonated_syscalls.h>
 
 /* Initialize the flag that indicates exit function processing
    is complete. See concurrency notes in stdlib/exit.h where
@@ -128,7 +129,8 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
   if (run_list_atexit)
     call_function_static_weak (_IO_cleanup);
 
-  _exit (status);
+#pragma clang diagnostic ignored "-Winvalid-noreturn"
+  zsys_exit_soft (status);
 }
 
 

@@ -3,7 +3,7 @@ sysdep_routines += ioperm iopl
 endif
 
 ifeq ($(subdir),stdlib)
-sysdep_routines += __start_context allocate-shadow-stack
+sysdep_routines += allocate-shadow-stack
 endif
 
 ifeq ($(subdir),csu)

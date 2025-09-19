@@ -51,6 +51,8 @@
 #include <libc-lock.h>
 #include <shlib-compat.h>
 
+#pragma clang diagnostic ignored "-Wparentheses-equality"
+
 #define KEY_TIMEOUT	5	/* per-try timeout in seconds */
 #define KEY_NRETRY	12	/* number of retries */
 

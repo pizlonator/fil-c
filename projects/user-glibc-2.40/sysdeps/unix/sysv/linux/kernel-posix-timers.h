@@ -19,6 +19,7 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <stdfil.h>
 
 
 /* Nonzero if the system calls are not available.  */
@@ -42,6 +43,8 @@ extern struct timer *__timer_active_sigev_thread attribute_hidden;
 
 /* Lock for __timer_active_sigev_thread.  */
 extern pthread_mutex_t __timer_active_sigev_thread_lock attribute_hidden;
+
+extern zptrtable *__timer_ptrtable attribute_hidden;
 
 extern __typeof (timer_create) __timer_create;
 libc_hidden_proto (__timer_create)

@@ -23,6 +23,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 
 int
@@ -30,13 +31,12 @@ __pthread_getaffinity_np (pthread_t th, size_t cpusetsize, cpu_set_t *cpuset)
 {
   const struct pthread *pd = (const struct pthread *) th;
 
-  int res = INTERNAL_SYSCALL_CALL (sched_getaffinity, pd->tid,
-				   MIN (INT_MAX, cpusetsize), cpuset);
-  if (INTERNAL_SYSCALL_ERROR_P (res))
-    return INTERNAL_SYSCALL_ERRNO (res);
-
-  /* Clean the rest of the memory the kernel didn't do.  */
-  memset ((char *) cpuset + res, '\0', cpusetsize - res);
+  int saved_errno = errno;
+  int res = zsys_sched_getaffinity (pd->tid, MIN (INT_MAX, cpusetsize), cpuset);
+  int result_errno = errno;
+  errno = saved_errno;
+  if (res < 0)
+    return result_errno;
 
   return 0;
 }

@@ -37,6 +37,8 @@
 #include <printf_buffer.h>
 #include <printf_buffer_to_file.h>
 
+#pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+
 /* This code is shared between the standard stdio implementation found
    in GNU C library and the libio implementation originally found in
    GNU libg++.

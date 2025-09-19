@@ -21,6 +21,7 @@
 #include <stap-probe.h>
 #include <time.h>
 #include <futex-internal.h>
+#include <stdfil.h>
 
 static void
 cleanup (void *arg)
@@ -29,7 +30,7 @@ cleanup (void *arg)
      fail for any reason but the thread not having done that yet so
      there is no reason for a loop.  */
   struct pthread *self = THREAD_SELF;
-  atomic_compare_exchange_weak_acquire (&arg, &self, NULL);
+  atomic_compare_and_exchange_bool_acq ((void **) arg, NULL, self);
 }
 
 int
@@ -71,11 +72,19 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
 
   /* Wait for the thread to finish.  If it is already locked something
      is wrong.  There can only be one waiter.  */
-  else if (__glibc_unlikely (atomic_compare_exchange_weak_acquire (&pd->joinid,
-								   &self,
-								   NULL)))
-    /* There is already somebody waiting for the thread.  */
-    return EINVAL;
+  else
+    {
+      for (;;)
+        {
+          struct pthread* joinid = pd->joinid;
+          if (joinid != NULL && joinid != (struct pthread *)1)
+            return EINVAL;
+          if (!atomic_compare_and_exchange_bool_acq (&pd->joinid,
+                                                     self,
+                                                     joinid))
+            break;
+        }
+    }
 
   /* BLOCK waits either indefinitely or based on an absolute time.  POSIX also
      states a cancellation point shall occur for pthread_join, and we use the
@@ -90,8 +99,8 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
 
       /* We need acquire MO here so that we synchronize with the
          kernel's store to 0 when the clone terminates. (see above)  */
-      pid_t tid;
-      while ((tid = atomic_load_acquire (&pd->tid)) != 0)
+      int dead;
+      while ((dead = atomic_load_acquire (&pd->dead)) == 0)
         {
          /* The kernel notifies a process which uses CLONE_CHILD_CLEARTID via
 	    futex wake-up when the clone terminates.  The memory location
@@ -100,7 +109,7 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
 	    does not use the private futex operations for futex wake-up when
 	    the clone terminates.  */
 	  int ret = __futex_abstimed_wait_cancelable64 (
-	    (unsigned int *) &pd->tid, tid, clockid, abstime, LLL_SHARED);
+	    (unsigned int *) &pd->dead, dead, clockid, abstime, LLL_PRIVATE);
 	  if (ret == ETIMEDOUT || ret == EOVERFLOW)
 	    {
 	      result = ret;

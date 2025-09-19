@@ -28,6 +28,7 @@
 #include <sys/mman.h>
 #include <sys/sysinfo.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 static int
 __get_nprocs_sched (void)
@@ -40,8 +41,7 @@ __get_nprocs_sched (void)
 
   /* This cannot use malloc because it is used on malloc initialization.  */
   __cpu_mask cpu_bits[cpu_bits_size / sizeof (__cpu_mask)];
-  int r = INTERNAL_SYSCALL_CALL (sched_getaffinity, 0, cpu_bits_size,
-				 cpu_bits);
+  int r = zsys_sched_getaffinity (0, cpu_bits_size, cpu_bits);
   if (r > 0)
     return CPU_COUNT_S (r, (cpu_set_t*) cpu_bits);
   else if (r == -EINVAL)

@@ -30,6 +30,8 @@ struct timer *__timer_active_sigev_thread;
 /* Lock for _timer_active_sigev_thread.  */
 pthread_mutex_t __timer_active_sigev_thread_lock = PTHREAD_MUTEX_INITIALIZER;
 
+zptrtable *__timer_ptrtable;
+
 struct thread_start_data
 {
   void (*thrfunc) (sigval_t);
@@ -70,7 +72,8 @@ timer_helper_thread (void *arg)
       while (__sigwaitinfo (&sigtimer_set, &si) < 0);
       if (si.si_code == SI_TIMER)
 	{
-	  struct timer *tk = (struct timer *) si.si_ptr;
+	  struct timer *tk = (struct timer *)
+            zptrtable_decode(__timer_ptrtable, (uintptr_t) si.si_ptr);
 
 	  /* Check the timer is still used and will not go away
 	     while we are reading the values here.  */
@@ -125,6 +128,8 @@ __timer_fork_subprocess (void)
 void
 __timer_start_helper_thread (void)
 {
+  __timer_ptrtable = zptrtable_new();
+  
   /* The helper thread needs only very little resources
      and should go away automatically when canceled.  */
   pthread_attr_t attr;

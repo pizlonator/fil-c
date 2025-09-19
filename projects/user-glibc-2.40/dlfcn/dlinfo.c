@@ -22,88 +22,14 @@
 #include <libintl.h>
 #include <dl-tls.h>
 #include <shlib-compat.h>
-
-struct dlinfo_args
-{
-  void *handle;
-  int request;
-  void *arg;
-
-  /* This is the value that is returned from dlinfo if no error is
-     signaled.  */
-  int result;
-};
-
-static void
-dlinfo_doit (void *argsblock)
-{
-  struct dlinfo_args *const args = argsblock;
-  struct link_map *l = args->handle;
-
-  switch (args->request)
-    {
-    case RTLD_DI_CONFIGADDR:
-    default:
-      args->result = -1;
-      _dl_signal_error (0, NULL, NULL, N_("unsupported dlinfo request"));
-      break;
-
-    case RTLD_DI_LMID:
-      *(Lmid_t *) args->arg = l->l_ns;
-      break;
-
-    case RTLD_DI_LINKMAP:
-      *(struct link_map **) args->arg = l;
-      break;
-
-    case RTLD_DI_SERINFO:
-      _dl_rtld_di_serinfo (l, args->arg, false);
-      break;
-    case RTLD_DI_SERINFOSIZE:
-      _dl_rtld_di_serinfo (l, args->arg, true);
-      break;
-
-    case RTLD_DI_ORIGIN:
-      strcpy (args->arg, l->l_origin);
-      break;
-
-    case RTLD_DI_TLS_MODID:
-      *(size_t *) args->arg = 0;
-      *(size_t *) args->arg = l->l_tls_modid;
-      break;
-
-    case RTLD_DI_TLS_DATA:
-      {
-	void *data = NULL;
-	if (l->l_tls_modid != 0)
-	  data = GLRO(dl_tls_get_addr_soft) (l);
-	*(void **) args->arg = data;
-	break;
-      }
-
-    case RTLD_DI_PHDR:
-      *(const ElfW(Phdr) **) args->arg = l->l_phdr;
-      args->result = l->l_phnum;
-      break;
-    }
-}
-
-static int
-dlinfo_implementation (void *handle, int request, void *arg)
-{
-  struct dlinfo_args args = { handle, request, arg };
-  _dlerror_run (&dlinfo_doit, &args);
-  return args.result;
-}
+#include <stdfil.h>
 
 #ifdef SHARED
 int
 ___dlinfo (void *handle, int request, void *arg)
 {
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlinfo (handle, request, arg);
-  else
-    return dlinfo_implementation (handle, request, arg);
+  zerror ("dlinfo not yet supported.");
+  return -1;
 }
 versioned_symbol (libc, ___dlinfo, dlinfo, GLIBC_2_34);
 
@@ -115,7 +41,8 @@ compat_symbol (libc, ___dlinfo, dlinfo, GLIBC_2_3_3);
 int
 __dlinfo (void *handle, int request, void *arg)
 {
-  return dlinfo_implementation (handle, request, arg);
+  zerror ("dlinfo not yet supported.");
+  return -1;
 }
 weak_alias (__dlinfo, dlinfo)
 #endif

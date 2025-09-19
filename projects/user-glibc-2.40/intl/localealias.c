@@ -338,6 +338,8 @@ read_alias_file (const char *fname, int fname_len)
 			    {
 			      map[i].alias += new_pool - string_space;
 			      map[i].value += new_pool - string_space;
+                              map[i].alias = zmkptr (new_pool, (uintptr_t) map[i].alias);
+                              map[i].value = zmkptr (new_pool, (uintptr_t) map[i].value);
 			    }
 			}
 

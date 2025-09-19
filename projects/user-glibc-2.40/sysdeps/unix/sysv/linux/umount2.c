@@ -18,11 +18,12 @@
 
 #include <sys/mount.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 int
 __umount2 (const char *special_file, int flags)
 {
-  return INLINE_SYSCALL_CALL (umount2, special_file, flags);
+  return zsys_umount2 (special_file, flags);
 }
 libc_hidden_def (__umount2)
 

@@ -98,13 +98,6 @@ install: subdir_install
 # Explicit dependency so that `make install-headers' works
 install-headers: install-headers-nosubdir
 
-# Make sure that the dynamic linker is installed before libc.
-$(inst_slibdir)/libc-$(version).so: elf/ldso_install
-
-.PHONY: elf/ldso_install
-elf/ldso_install:
-	$(MAKE) -C $(@D) $(@F)
-
 # Create links for shared libraries using the `ldconfig' program if possible.
 # Ignore the error if we cannot update /etc/ld.so.cache.
 ifeq (no,$(cross-compiling))

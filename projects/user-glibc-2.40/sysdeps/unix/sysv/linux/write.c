@@ -18,12 +18,13 @@
 
 #include <unistd.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Write NBYTES of BUF to FD.  Return the number written, or -1.  */
 ssize_t
 __libc_write (int fd, const void *buf, size_t nbytes)
 {
-  return SYSCALL_CANCEL (write, fd, buf, nbytes);
+  return zsys_write (fd, buf, nbytes);
 }
 libc_hidden_def (__libc_write)
 

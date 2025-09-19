@@ -19,22 +19,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Duplicate FD to FD2, closing the old FD2 and making FD2 be
    open the same file as FD is.  Return FD2 or -1.  */
 int
 __dup2 (int fd, int fd2)
 {
-#ifdef __NR_dup2
-  return INLINE_SYSCALL_CALL (dup2, fd, fd2);
-#else
-  /* For the degenerate case, check if the fd is valid (by trying to
-     get the file status flags) and return it, or else return EBADF.  */
-  if (fd == fd2)
-    return __libc_fcntl (fd, F_GETFL, 0) < 0 ? -1 : fd;
-
-  return INLINE_SYSCALL_CALL (dup3, fd, fd2, 0);
-#endif
+  return zsys_dup2 (fd, fd2);
 }
 libc_hidden_def (__dup2)
 weak_alias (__dup2, dup2)

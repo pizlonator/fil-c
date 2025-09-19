@@ -20,13 +20,14 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 int
 __waitid (idtype_t idtype, id_t id, siginfo_t *infop, int options)
 {
   /* The unused fifth argument is a `struct rusage *' that we could
      pass if we were using waitid to simulate wait3/wait4.  */
-  return SYSCALL_CANCEL (waitid, idtype, id, infop, options, NULL);
+  return zsys_waitid (idtype, id, infop, options);
 }
 weak_alias (__waitid, waitid)
 strong_alias (__waitid, __libc_waitid)

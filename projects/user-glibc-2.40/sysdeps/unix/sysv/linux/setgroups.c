@@ -19,6 +19,7 @@
 #include <grp.h>
 #include <setxid.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 
 /* Set the group set for the current user to GROUPS (N of them).  For
@@ -27,10 +28,6 @@
 int
 setgroups (size_t n, const gid_t *groups)
 {
-#ifdef __NR_setgroups32
-  return INLINE_SETXID_SYSCALL (setgroups32, 2, n, groups);
-#else
-  return INLINE_SETXID_SYSCALL (setgroups, 2, n, groups);
-#endif
+  return zsys_setgroups (n, groups);
 }
 libc_hidden_def (setgroups)

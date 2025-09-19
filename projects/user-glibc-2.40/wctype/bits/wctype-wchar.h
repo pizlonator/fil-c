@@ -35,7 +35,8 @@
 
 /* Scalar type that can hold values which represent locale-specific
    character classifications.  */
-typedef unsigned long int wctype_t;
+struct __wctype_opaque_struct;
+typedef struct __wctype_opaque_struct *wctype_t;
 
 # ifndef _ISwbit
 /* The characteristics are stored always in network byte order (big

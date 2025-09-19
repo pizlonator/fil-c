@@ -20,15 +20,15 @@
 #include <sys/uio.h>
 #include <stdbool.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 static bool
 writev_for_fatal (int fd, const struct iovec *iov, size_t niov, size_t total)
 {
   ssize_t cnt;
   do
-    cnt = INTERNAL_SYSCALL_CALL (writev, fd, iov, niov);
-  while (INTERNAL_SYSCALL_ERROR_P (cnt)
-         && INTERNAL_SYSCALL_ERRNO (cnt) == EINTR);
+    cnt = zsys_writev (fd, iov, niov);
+  while (cnt < 0 && errno == EINTR);
   return cnt == total;
 }
 #define WRITEV_FOR_FATAL	writev_for_fatal

@@ -290,19 +290,8 @@ typedef void (*receiver_fct) (int, const char *, const char *);
    user interface to run-time dynamic linking.  */
 
 
-#ifndef SHARED
-# define EXTERN extern
-# define GL(name) _##name
-#else
-# define EXTERN
-# if IS_IN (rtld)
-#  define GL(name) _rtld_local._##name
-# else
-#  define GL(name) _rtld_global._##name
-# endif
-struct rtld_global
-{
-#endif
+#define EXTERN extern
+#define GL(name) _##name
   /* Don't change the order of the following elements.  'dl_loaded'
      must remain the first element.  Forever.  */
 
@@ -397,7 +386,7 @@ struct rtld_global
 #ifdef SHARED
   /* Used to store the audit information for the link map of the
      dynamic loader.  */
-  struct auditstate _dl_rtld_auditstate[DL_NNS];
+  EXTERN struct auditstate _dl_rtld_auditstate[DL_NNS];
 #endif
 
 #if !PTHREAD_IN_LIBC && defined SHARED \
@@ -498,36 +487,8 @@ struct rtld_global
   EXTERN struct __pthread **_dl_pthread_threads;
   __libc_rwlock_define (EXTERN, _dl_pthread_threads_lock)
 #endif
-#ifdef SHARED
-};
-# define __rtld_global_attribute__
-# if IS_IN (rtld)
-#  ifdef HAVE_SDATA_SECTION
-#   define __rtld_local_attribute__ \
-	    __attribute__ ((visibility ("hidden"), section (".sdata")))
-#   undef __rtld_global_attribute__
-#   define __rtld_global_attribute__ __attribute__ ((section (".sdata")))
-#  else
-#   define __rtld_local_attribute__ __attribute__ ((visibility ("hidden")))
-#  endif
-extern struct rtld_global _rtld_local __rtld_local_attribute__;
-#  undef __rtld_local_attribute__
-# endif
-extern struct rtld_global _rtld_global __rtld_global_attribute__;
-# undef __rtld_global_attribute__
-#endif
 
-#ifndef SHARED
-# define GLRO(name) _##name
-#else
-# if IS_IN (rtld)
-#  define GLRO(name) _rtld_local_ro._##name
-# else
-#  define GLRO(name) _rtld_global_ro._##name
-# endif
-struct rtld_global_ro
-{
-#endif
+#define GLRO(name) _##name
 
   /* If nonzero the appropriate debug information is printed.  */
   EXTERN int _dl_debug_mask;
@@ -652,46 +613,6 @@ struct rtld_global_ro
   EXTERN enum dso_sort_algorithm _dl_dso_sort_algo;
 
 #ifdef SHARED
-  /* We add a function table to _rtld_global which is then used to
-     call the function instead of going through the PLT.  The result
-     is that we can avoid exporting the functions and we do not jump
-     PLT relocations in libc.so.  */
-  void (*_dl_debug_printf) (const char *, ...)
-       __attribute__ ((__format__ (__printf__, 1, 2)));
-  void (*_dl_mcount) (ElfW(Addr) frompc, ElfW(Addr) selfpc);
-  lookup_t (*_dl_lookup_symbol_x) (const char *, struct link_map *,
-				   const ElfW(Sym) **, struct r_scope_elem *[],
-				   const struct r_found_version *, int, int,
-				   struct link_map *);
-  void *(*_dl_open) (const char *file, int mode, const void *caller_dlopen,
-		     Lmid_t nsid, int argc, char *argv[], char *env[]);
-  void (*_dl_close) (void *map);
-  /* libdl in a secondary namespace (after dlopen) must use
-     _dl_catch_error from the main namespace, so it has to be
-     exported in some way.  */
-  int (*_dl_catch_error) (const char **objname, const char **errstring,
-			  bool *mallocedp, void (*operate) (void *),
-			  void *args);
-  /* libdl in a secondary namespace must use free from the base
-     namespace.  */
-  void (*_dl_error_free) (void *);
-  void *(*_dl_tls_get_addr_soft) (struct link_map *);
-
-  /* Called from __libc_shared to deallocate malloc'ed memory.  */
-  void (*_dl_libc_freeres) (void);
-
-  /* Implementation of _dl_find_object.  The public entry point is in
-     libc, and this is patched by __rtld_static_init to support static
-     dlopen.  */
-  int (*_dl_find_object) (void *, struct dl_find_object *);
-
-  /* Dynamic linker operations used after static dlopen.  */
-  const struct dlfcn_hook *_dl_dlfcn_hook;
-
-  /* List of auditing interfaces.  */
-  struct audit_ifaces *_dl_audit;
-  unsigned int _dl_naudit;
-};
 # define __rtld_global_attribute__
 # if IS_IN (rtld)
 #  define __rtld_local_attribute__ __attribute__ ((visibility ("hidden")))
@@ -703,7 +624,7 @@ extern struct rtld_global_ro _rtld_global_ro
 # else
 /* We cheat a bit here.  We declare the variable as as const even
    though it is at startup.  */
-extern const struct rtld_global_ro _rtld_global_ro
+extern struct rtld_global_ro _rtld_global_ro
     attribute_relro __rtld_global_attribute__;
 # endif
 # undef __rtld_global_attribute__
@@ -1165,12 +1086,12 @@ void __tls_pre_init_tp (void) attribute_hidden;
    initialization of the thread library.  */
 void __tls_init_tp (void) attribute_hidden;
 
-#ifndef SHARED
 /* Set up the TCB for statically linked applications.  This is called
    early during startup because we always use TLS (for errno and the
    stack protector, among other things).  */
 void __libc_setup_tls (void);
 
+#ifndef SHARED
 # if ENABLE_STATIC_PIE
 /* Relocate static executable with PIE.  */
 extern void _dl_relocate_static_pie (void) attribute_hidden;

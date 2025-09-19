@@ -22,22 +22,12 @@
 #include <stdarg.h>
 
 #include <not-cancel.h>
+#include <pizlonated_syscalls.h>
 
 int
 __open64_nocancel (const char *file, int oflag, ...)
 {
-  int mode = 0;
-
-  if (__OPEN_NEEDS_MODE (oflag))
-    {
-      va_list arg;
-      va_start (arg, oflag);
-      mode = va_arg (arg, int);
-      va_end (arg);
-    }
-
-  return INLINE_SYSCALL_CALL (openat, AT_FDCWD, file, oflag | O_LARGEFILE,
-			      mode);
+  return *(int *) zcall (zsys_open, zargs ());
 }
 
 hidden_def (__open64_nocancel)

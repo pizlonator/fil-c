@@ -25,14 +25,11 @@
 
 #include <sysdep.h>
 #include <sys/syscall.h>
+#include <pizlonated_syscalls.h>
 
-
-/* If we compile the file for use in ld.so we don't need the feature
-   that getcwd() allocates the buffers itself.  */
-#if IS_IN (rtld)
-# define NO_ALLOCATION	1
+#ifdef NO_ALLOCATION
+#undef NO_ALLOCATION
 #endif
-
 
 /* The "proc" filesystem provides an easy method to retrieve the value.
    For each process, the corresponding directory contains a symbolic link
@@ -48,7 +45,6 @@ char *
 __getcwd (char *buf, size_t size)
 {
   char *path;
-  char *result;
 
 #ifndef NO_ALLOCATION
   size_t alloc_size = size;
@@ -77,14 +73,10 @@ __getcwd (char *buf, size_t size)
 
   int retval;
 
-  retval = INLINE_SYSCALL (getcwd, 2, path, alloc_size);
+  retval = zsys_getcwd (path, alloc_size) ? 1 : -1;
   if (retval > 0 && path[0] == '/')
     {
 #ifndef NO_ALLOCATION
-      if (buf == NULL && size == 0)
-	/* Ensure that the buffer is only as large as necessary.  */
-	buf = realloc (path, (size_t) retval);
-
       if (buf == NULL)
 	/* Either buf was NULL all along, or `realloc' failed but
 	   we still have the original string.  */
@@ -99,22 +91,7 @@ __getcwd (char *buf, size_t size)
      generic implementation right away.  */
   if (retval >= 0 || errno == ENAMETOOLONG)
     {
-#ifndef NO_ALLOCATION
-      if (buf == NULL && size == 0)
-	{
-	  free (path);
-	  path = NULL;
-	}
-#endif
-
-      result = __getcwd_generic (path, size);
-
-#ifndef NO_ALLOCATION
-      if (result == NULL && buf == NULL && size != 0)
-	free (path);
-#endif
-
-      return result;
+      ZASSERT (!"Should not get here");
     }
 
   /* It should never happen that the `getcwd' syscall failed because

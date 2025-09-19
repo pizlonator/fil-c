@@ -27,44 +27,44 @@
 ld=ld.so.1
 
 # The -ldl interface (see <dlfcn.h>) is the same on all platforms.
-libdl=2
+libdl=6662
 
 # So far the -lutil interface is the same on all platforms, except for the
 # `struct utmp' format, which depends on libc.
-libutil=1
+libutil=6661
 
 # Version number 2 is used on other systems for the BIND 4.9.5 resolver
 # interface.
-libresolv=2
+libresolv=6662
 
 # Interface revision of nss_* modules.  This must match NSS_SHLIB_REVISION
 # in nss/nsswitch.h, which determines the library names used for service
 # names given in /etc/nsswitch.conf.
-libnss_files=2
-libnss_dns=2
-libnss_compat=2
-libnss_ldap=2
-libnss_hesiod=2
-libnss_db=2
+libnss_files=6662
+libnss_dns=6662
+libnss_compat=6662
+libnss_ldap=6662
+libnss_hesiod=6662
+libnss_db=6662
 
 # Version for libnsl with YP and NIS+ functions.
-libnsl=1
+libnsl=6661
 
 # The gross patch for programs assuming broken locale implementations.
-libBrokenLocale=1
+libBrokenLocale=6661
 
 # The real-time library from POSIX.1b.
-librt=1
+librt=6661
 
 # The asynchronous name lookup library.
-libanl=1
+libanl=6661
 
 # This defines the libgcc soname version this glibc is to load for
 # asynchronous cancellation to work correctly.
-libgcc_s=1
+libgcc_s=6661
 
 # The vector math library
-libmvec=1
+libmvec=6661
 
 # The malloc debug library
-libc_malloc_debug=0
+libc_malloc_debug=6660

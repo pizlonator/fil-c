@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 #ifndef __NR_ftruncate64
 # define __NR_ftruncate64 __NR_ftruncate
@@ -26,8 +27,7 @@
 int
 __ftruncate64 (int fd, off64_t length)
 {
-  return INLINE_SYSCALL_CALL (ftruncate64, fd,
-			      __ALIGNMENT_ARG SYSCALL_LL64 (length));
+  return zsys_ftruncate (fd, length);
 }
 weak_alias (__ftruncate64, ftruncate64)
 

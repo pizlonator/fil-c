@@ -19,12 +19,13 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 #include <not-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Close the file descriptor FD.  */
 int
 __close (int fd)
 {
-  return SYSCALL_CANCEL (close, fd);
+  return zsys_close (fd);
 }
 libc_hidden_def (__close)
 strong_alias (__close, __libc_close)

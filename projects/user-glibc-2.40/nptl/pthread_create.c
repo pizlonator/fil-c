@@ -43,6 +43,9 @@
 
 #include <stap-probe.h>
 
+#include <pizlonated_runtime.h>
+#include <pizlonated_syscalls.h>
+
 
 /* Globally enabled events.  */
 extern td_thr_events_t __nptl_threads_events;
@@ -56,40 +59,8 @@ libc_hidden_proto (__nptl_last_event)
 struct pthread *__nptl_last_event;
 libc_hidden_data_def (__nptl_last_event)
 
-#ifdef SHARED
-/* This variable is used to access _rtld_global from libthread_db.  If
-   GDB loads libpthread before ld.so, it is not possible to resolve
-   _rtld_global directly during libpthread initialization.  */
-struct rtld_global *__nptl_rtld_global = &_rtld_global;
-#endif
-
 /* Version of the library, used in libthread_db to detect mismatches.  */
 const char __nptl_version[] = VERSION;
-
-/* This performs the initialization necessary when going from
-   single-threaded to multi-threaded mode for the first time.  */
-static void
-late_init (void)
-{
-  struct sigaction sa;
-  __sigemptyset (&sa.sa_mask);
-
-  /* Install the handle to change the threads' uid/gid.  Use
-     SA_ONSTACK because the signal may be sent to threads that are
-     running with custom stacks.  (This is less likely for
-     SIGCANCEL.)  */
-  sa.sa_sigaction = __nptl_setxid_sighandler;
-  sa.sa_flags = SA_ONSTACK | SA_SIGINFO | SA_RESTART;
-  (void) __libc_sigaction (SIGSETXID, &sa, NULL);
-
-  /* The parent process might have left the signals blocked.  Just in
-     case, unblock it.  We reuse the signal mask in the sigaction
-     structure.  It is already cleared.  */
-  __sigaddset (&sa.sa_mask, SIGCANCEL);
-  __sigaddset (&sa.sa_mask, SIGSETXID);
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &sa.sa_mask,
-			 NULL, __NSIG_BYTES);
-}
 
 /* Code to allocate and deallocate a stack.  */
 #include "allocatestack.c"
@@ -228,11 +199,10 @@ late_init (void)
    be set to true iff the thread actually started up but before calling
    the user code (*PD->start_routine).  */
 
-static int _Noreturn start_thread (void *arg);
+static void * start_thread (void *arg);
 
 static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
-			  bool *stopped_start, void *stackaddr,
-			  size_t stacksize, bool *thread_ran)
+			  bool *stopped_start, bool *thread_ran)
 {
   /* Determine whether the newly created threads has to be started
      stopped since we have to set the scheduling parameters or set the
@@ -248,54 +218,7 @@ static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
   if (__glibc_unlikely (*stopped_start))
     lll_lock (pd->lock, LLL_PRIVATE);
 
-  /* We rely heavily on various flags the CLONE function understands:
-
-     CLONE_VM, CLONE_FS, CLONE_FILES
-	These flags select semantics with shared address space and
-	file descriptors according to what POSIX requires.
-
-     CLONE_SIGHAND, CLONE_THREAD
-	This flag selects the POSIX signal semantics and various
-	other kinds of sharing (itimers, POSIX timers, etc.).
-
-     CLONE_SETTLS
-	The sixth parameter to CLONE determines the TLS area for the
-	new thread.
-
-     CLONE_PARENT_SETTID
-	The kernels writes the thread ID of the newly created thread
-	into the location pointed to by the fifth parameters to CLONE.
-
-	Note that it would be semantically equivalent to use
-	CLONE_CHILD_SETTID but it is be more expensive in the kernel.
-
-     CLONE_CHILD_CLEARTID
-	The kernels clears the thread ID of a thread that has called
-	sys_exit() in the location pointed to by the seventh parameter
-	to CLONE.
-
-     The termination signal is chosen to be zero which means no signal
-     is sent.  */
-  const int clone_flags = (CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SYSVSEM
-			   | CLONE_SIGHAND | CLONE_THREAD
-			   | CLONE_SETTLS | CLONE_PARENT_SETTID
-			   | CLONE_CHILD_CLEARTID
-			   | 0);
-
-  TLS_DEFINE_INIT_TP (tp, pd);
-
-  struct clone_args args =
-    {
-      .flags = clone_flags,
-      .pidfd = (uintptr_t) &pd->tid,
-      .parent_tid = (uintptr_t) &pd->tid,
-      .child_tid = (uintptr_t) &pd->tid,
-      .stack = (uintptr_t) stackaddr,
-      .stack_size = stacksize,
-      .tls = (uintptr_t) tp,
-    };
-  int ret = __clone_internal (&args, &start_thread, pd);
-  if (__glibc_unlikely (ret == -1))
+  if (!zthread_create2(start_thread, pd, &pd->zthread, &pd->tid))
     return errno;
 
   /* It's started now, so if we fail below, we'll have to let it clean itself
@@ -333,10 +256,13 @@ static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
 }
 
 /* Local function to start thread and handle cleanup.  */
-static int _Noreturn
+static void *
 start_thread (void *arg)
 {
   struct pthread *pd = arg;
+
+  zthread_set_self_cookie (pd);
+  pd->tid = zthread_self_id();
 
   /* We are either in (a) or (b), and in either case we either own PD already
      (2) or are about to own PD (1), and so our only restriction would be that
@@ -368,26 +294,6 @@ start_thread (void *arg)
 
   /* Initialize pointers to locale data.  */
   __ctype_init ();
-
-  /* Name the thread stack if kernel supports it.  */
-  name_stack_maps (pd, true);
-
-  /* Register rseq TLS to the kernel.  */
-  {
-    bool do_rseq = THREAD_GETMEM (pd, flags) & ATTR_FLAG_DO_RSEQ;
-    if (!rseq_register_current_thread (pd, do_rseq) && do_rseq)
-      __libc_fatal ("Fatal glibc error: rseq registration failed\n");
-  }
-
-#ifndef __ASSUME_SET_ROBUST_LIST
-  if (__nptl_set_robust_list_avail)
-#endif
-    {
-      /* This call should never fail because the initial call in init.c
-	 succeeded.  */
-      INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
-			     sizeof (struct robust_list_head));
-    }
 
   /* This is where the try/finally block should be created.  For
      compilers without that support we do use setjmp.  */
@@ -505,8 +411,7 @@ start_thread (void *arg)
      computing the signal mask, to save stack space.  */
   internal_sigfillset (&pd->sigmask);
   internal_sigdelset (&pd->sigmask, SIGSETXID);
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_BLOCK, &pd->sigmask, NULL,
-			 __NSIG_BYTES);
+  ZASSERT (!zsys_sigprocmask (SIG_BLOCK, &pd->sigmask, NULL));
 
   /* Tell __pthread_kill_internal that this thread is about to exit.
      If there is a __pthread_kill_internal in progress, this delays
@@ -549,56 +454,31 @@ start_thread (void *arg)
     }
 #endif
 
-  if (!pd->user_stack)
-    advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
-			pd->guardsize);
-
-  if (__glibc_unlikely (pd->cancelhandling & SETXID_BITMASK))
-    {
-      /* Some other thread might call any of the setXid functions and expect
-	 us to reply.  In this case wait until we did that.  */
-      do
-	/* XXX This differs from the typical futex_wait_simple pattern in that
-	   the futex_wait condition (setxid_futex) is different from the
-	   condition used in the surrounding loop (cancelhandling).  We need
-	   to check and document why this is correct.  */
-	futex_wait_simple (&pd->setxid_futex, 0, FUTEX_PRIVATE);
-      while (pd->cancelhandling & SETXID_BITMASK);
-
-      /* Reset the value so that the stack can be reused.  */
-      pd->setxid_futex = 0;
-    }
-
   /* If the thread is detached free the TCB.  */
-  if (IS_DETACHED (pd))
+  bool was_detached = false;
+  for (;;)
+    {
+      struct pthread* joinid = pd->joinid;
+      was_detached = joinid == pd;
+      if (!atomic_compare_and_exchange_bool_acq (&pd->joinid,
+                                                 (struct pthread *) ((char *) joinid + 1),
+                                                 joinid))
+        break;
+    }
+  if (was_detached) {
     /* Free the TCB.  */
     __nptl_free_tcb (pd);
-
-  /* Remove the associated name from the thread stack.  */
-  name_stack_maps (pd, false);
+    goto really_done;
+  }
 
 out:
-  /* We cannot call '_exit' here.  '_exit' will terminate the process.
-
-     The 'exit' implementation in the kernel will signal when the
-     process is really dead since 'clone' got passed the CLONE_CHILD_CLEARTID
-     flag.  The 'tid' field in the TCB will be set to zero.
-
-     rseq TLS is still registered at this point.  Rely on implicit
-     unregistration performed by the kernel on thread teardown.  This is not a
-     problem because the rseq TLS lives on the stack, and the stack outlives
-     the thread.  If TCB allocation is ever changed, additional steps may be
-     required, such as performing explicit rseq unregistration before
-     reclaiming the rseq TLS area memory.  It is NOT sufficient to block
-     signals because the kernel may write to the rseq area even without
-     signals.
-
-     The exit code is zero since in case all threads exit by calling
-     'pthread_exit' the exit status must be 0 (zero).  */
-  while (1)
-    INTERNAL_SYSCALL_CALL (exit, 0);
-
+  pd->tid = 0;
+  pd->dead = 1;
+  futex_wake (&pd->dead, -1, FUTEX_PRIVATE);
+really_done:
+  zthread_exit (0);
   /* NOTREACHED */
+  return NULL;
 }
 
 
@@ -624,14 +504,10 @@ int
 __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 		      void *(*start_routine) (void *), void *arg)
 {
-  void *stackaddr = NULL;
-  size_t stacksize = 0;
-
   /* Avoid a data race in the multi-threaded case, and call the
      deferred initialization only once.  */
   if (__libc_single_threaded_internal)
     {
-      late_init ();
       __libc_single_threaded_internal = 0;
       /* __libc_single_threaded can be accessed through copy relocations, so
 	 it requires to update the external copy.  */
@@ -652,7 +528,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
     }
 
   struct pthread *pd = NULL;
-  int err = allocate_stack (iattr, &pd, &stackaddr, &stacksize);
+  int err = allocate_stack (iattr, &pd);
   int retval = 0;
 
   if (__glibc_unlikely (err != 0))
@@ -688,11 +564,6 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
   struct pthread *self = THREAD_SELF;
   pd->flags = ((iattr->flags & ~(ATTR_FLAG_SCHED_SET | ATTR_FLAG_POLICY_SET))
 	       | (self->flags & (ATTR_FLAG_SCHED_SET | ATTR_FLAG_POLICY_SET)));
-
-  /* Inherit rseq registration state.  Without seccomp filters, rseq
-     registration will either always fail or always succeed.  */
-  if ((int) THREAD_GETMEM_VOLATILE (self, rseq_area.cpu_id) >= 0)
-    pd->flags |= ATTR_FLAG_DO_RSEQ;
 
   /* Initialize the field for the ID of the thread which is waiting
      for us.  This is a self-reference in case the thread is created
@@ -801,8 +672,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 
       /* We always create the thread stopped at startup so we can
 	 notify the debugger.  */
-      retval = create_thread (pd, iattr, &stopped_start, stackaddr,
-			      stacksize, &thread_ran);
+      retval = create_thread (pd, iattr, &stopped_start, &thread_ran);
       if (retval == 0)
 	{
 	  /* We retain ownership of PD until (a) (see CONCURRENCY NOTES
@@ -833,8 +703,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 	}
     }
   else
-    retval = create_thread (pd, iattr, &stopped_start, stackaddr,
-			    stacksize, &thread_ran);
+    retval = create_thread (pd, iattr, &stopped_start, &thread_ran);
 
   /* Return to the previous signal mask, after creating the new
      thread.  */
@@ -945,11 +814,7 @@ __pthread_create_2_0 (pthread_t *newthread, const pthread_attr_t *attr,
 compat_symbol (libpthread, __pthread_create_2_0, pthread_create,
 	       GLIBC_2_0);
 #endif
-
-/* Information for libthread_db.  */
 
-#include "../nptl_db/db_info.c"
-
 /* If pthread_create is present, libgcc_eh.a and libsupc++.a expects some other POSIX thread
    functions to be present as well.  */
 PTHREAD_STATIC_FN_REQUIRE (__pthread_mutex_lock)

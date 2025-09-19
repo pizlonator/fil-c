@@ -19,11 +19,12 @@
 
 #include <unistd.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Make all changes done to FD actually appear on disk.  */
 int
 fsync (int fd)
 {
-  return SYSCALL_CANCEL (fsync, fd);
+  return zsys_fsync (fd);
 }
 libc_hidden_def (fsync)

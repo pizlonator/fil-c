@@ -18,6 +18,7 @@
 
 #include <unistd.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Create a one-way communication channel (__pipe).
    If successful, two file descriptors are stored in PIPEDES;
@@ -26,7 +27,7 @@
 int
 __pipe (int __pipedes[2])
 {
-  return INLINE_SYSCALL_CALL (pipe2, (int *) __pipedes, 0);
+  return zsys_pipe (__pipedes);
 }
 libc_hidden_def (__pipe)
 weak_alias (__pipe, pipe)

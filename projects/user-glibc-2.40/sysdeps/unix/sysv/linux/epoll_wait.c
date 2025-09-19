@@ -22,13 +22,10 @@
 #include <sys/epoll.h>
 
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 int
 epoll_wait (int epfd, struct epoll_event *events, int maxevents, int timeout)
 {
-#ifdef __NR_epoll_wait
-  return SYSCALL_CANCEL (epoll_wait, epfd, events, maxevents, timeout);
-#else
-  return epoll_pwait (epfd, events, maxevents, timeout, NULL);
-#endif
+  return zsys_epoll_wait (epfd, events, maxevents, timeout);
 }

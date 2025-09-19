@@ -20,38 +20,13 @@
 #include <time.h>
 #include <shlib-compat.h>
 #include <kernel-features.h>
+#include <pizlonated_syscalls.h>
 
 /* Set CLOCK to value TP.  */
 int
 __clock_settime64 (clockid_t clock_id, const struct __timespec64 *tp)
 {
-  /* Make sure the time cvalue is OK.  */
-  if (! valid_nanoseconds (tp->tv_nsec))
-    {
-      __set_errno (EINVAL);
-      return -1;
-    }
-
-#ifndef __NR_clock_settime64
-# define __NR_clock_settime64 __NR_clock_settime
-#endif
-  int ret = INLINE_SYSCALL_CALL (clock_settime64, clock_id, tp);
-
-#ifndef __ASSUME_TIME64_SYSCALLS
-  if (ret == 0 || errno != ENOSYS)
-    return ret;
-
-  if (! in_int32_t_range (tp->tv_sec))
-    {
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  struct timespec ts32 = valid_timespec64_to_timespec (*tp);
-  ret = INLINE_SYSCALL_CALL (clock_settime, clock_id, &ts32);
-#endif
-
-  return ret;
+  return zsys_clock_settime (clock_id, tp);
 }
 
 #if __TIMESIZE != 64

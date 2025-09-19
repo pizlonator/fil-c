@@ -9,6 +9,6 @@
 #endif
 
 
-#include_next <config.h>
+#include <config.h>
 
 #endif

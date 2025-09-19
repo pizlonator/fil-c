@@ -32,6 +32,7 @@
 #include <sysdep.h>
 #include <time.h>
 #include <unistd.h>
+#include <pizlonated_syscalls.h>
 
 #include "netlinkaccess.h"
 
@@ -229,8 +230,9 @@ out_fail:
 void
 __netlink_close (struct netlink_handle *h)
 {
-  /* Don't modify errno.  */
-  INTERNAL_SYSCALL_CALL (close, h->fd);
+  int saved_errno = errno;
+  zsys_close (h->fd);
+  errno = saved_errno;
 }
 
 

@@ -36,9 +36,8 @@ typedef struct __jmp_buf_tag jmp_buf[1];
 extern int setjmp (jmp_buf __env) __THROWNL;
 
 /* Store the calling environment in ENV, also saving the
-   signal mask if SAVEMASK is nonzero.  Return 0.
-   This is the internal name for `sigsetjmp'.  */
-extern int __sigsetjmp (struct __jmp_buf_tag __env[1], int __savemask) __THROWNL;
+   signal mask if SAVEMASK is nonzero.  Return 0.  */
+extern int sigsetjmp (struct __jmp_buf_tag __env[1], int __savemask) __THROWNL;
 
 /* Store the calling environment in ENV, not saving the signal mask.
    Return 0.  */
@@ -68,10 +67,6 @@ extern void _longjmp (struct __jmp_buf_tag __env[1], int __val)
    The `__mask_was_saved' flag determines whether
    or not `longjmp' will restore the signal mask.  */
 typedef struct __jmp_buf_tag sigjmp_buf[1];
-
-/* Store the calling environment in ENV, also saving the
-   signal mask if SAVEMASK is nonzero.  Return 0.  */
-# define sigsetjmp(env, savemask)	__sigsetjmp (env, savemask)
 
 /* Jump to the environment saved in ENV, making the
    sigsetjmp call there return VAL, or 1 if VAL is 0.

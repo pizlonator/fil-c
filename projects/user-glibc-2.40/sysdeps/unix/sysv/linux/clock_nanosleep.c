@@ -23,6 +23,7 @@
 #include "kernel-posix-cpu-timers.h"
 
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 /* We can simply use the syscall.  The CPU clocks are not supported
    with this function.  */
@@ -31,44 +32,7 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags,
 			  const struct __timespec64 *req,
 			  struct __timespec64 *rem)
 {
-  if (clock_id == CLOCK_THREAD_CPUTIME_ID)
-    return EINVAL;
-  if (clock_id == CLOCK_PROCESS_CPUTIME_ID)
-    clock_id = PROCESS_CLOCK;
-
-  /* If the call is interrupted by a signal handler or encounters an error,
-     it returns a positive value similar to errno.  */
-
-#ifndef __NR_clock_nanosleep_time64
-# define __NR_clock_nanosleep_time64 __NR_clock_nanosleep
-#endif
-
-  int r;
-#ifdef __ASSUME_TIME64_SYSCALLS
-  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags, req,
-			       rem);
-#else
-  if (!in_int32_t_range (req->tv_sec))
-    {
-      r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags,
-				   req, rem);
-      if (r == -ENOSYS)
-	r = -EOVERFLOW;
-    }
-  else
-    {
-      struct timespec tr32;
-      struct timespec ts32 = valid_timespec64_to_timespec (*req);
-      r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep, clock_id, flags, &ts32,
-				   &tr32);
-      if (INTERNAL_SYSCALL_ERROR_P (r))
-	{
-	  if (r == -EINTR && rem != NULL && (flags & TIMER_ABSTIME) == 0)
-	    *rem = valid_timespec_to_timespec64 (tr32);
-	}
-    }
-#endif
-  return -r;
+  return zsys_clock_nanosleep (clock_id, flags, req, rem);
 }
 
 #if __TIMESIZE != 64

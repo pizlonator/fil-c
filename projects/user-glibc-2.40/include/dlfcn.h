@@ -49,7 +49,7 @@ extern char **__libc_argv attribute_hidden;
    RTLD_LAZY is not a big difference in performance, but RTLD_NOW has
    better error handling semantics for the library.  */
 #define __libc_dlopen(name) \
-  __libc_dlopen_mode (name, RTLD_NOW | __RTLD_DLOPEN)
+  __libc_dlopen_mode (name, RTLD_NOW)
 extern void *__libc_dlopen_mode  (const char *__name, int __mode)
   attribute_hidden;
 extern void *__libc_dlsym   (void *__map, const char *__name)
@@ -87,12 +87,6 @@ extern void *_dl_sym (void *handle, const char *name, void *who)
    NULL.  */
 extern void *_dl_vsym (void *handle, const char *name, const char *version,
 		       void *who) attribute_hidden;
-
-/* Helper function for <dlfcn.h> functions.  Runs the OPERATE function via
-   _dl_catch_error.  Returns zero for success, nonzero for failure; and
-   arranges for `dlerror' to return the error details.
-   ARGS is passed as argument to OPERATE.  */
-extern int _dlerror_run (void (*operate) (void *), void *args) attribute_hidden;
 
 /* This structure is used to make the outer (statically linked)
    implementation of dlopen and related functions to the inner libc

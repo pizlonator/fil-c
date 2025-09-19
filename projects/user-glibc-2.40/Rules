@@ -225,7 +225,7 @@ binaries-shared-notests = $(filter-out $(binaries-pie) $(binaries-static), \
 ifneq "$(strip $(binaries-shared-notests))" ""
 $(addprefix $(objpfx),$(binaries-shared-notests)): %: %.o \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link)
 endif
 
@@ -233,7 +233,7 @@ ifneq "$(strip $(binaries-shared-tests))" ""
 $(addprefix $(objpfx),$(binaries-shared-tests)): %: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-tests)
 endif
 
@@ -242,7 +242,7 @@ ifneq "$(strip $(binaries-shared-2.0-tests))" ""
 $(addprefix $(objpfx),$(binaries-shared-2.0-tests)): %: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-2.0-tests)
 endif
 
@@ -251,7 +251,7 @@ $(addprefix $(objpfx),$(binaries-mcheck-tests)): %-mcheck: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
   $(common-objpfx)malloc/libmcheck.a \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-tests)
 endif
 
@@ -259,7 +259,7 @@ ifneq "$(strip $(binaries-malloc-check-tests))" ""
 $(addprefix $(objpfx),$(binaries-malloc-check-tests)): %-malloc-check: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-tests)
 endif
 
@@ -267,7 +267,7 @@ ifneq "$(strip $(binaries-malloc-hugetlb1-tests))" ""
 $(addprefix $(objpfx),$(binaries-malloc-hugetlb1-tests)): %-malloc-hugetlb1: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-tests)
 endif
 
@@ -275,7 +275,7 @@ ifneq "$(strip $(binaries-malloc-hugetlb2-tests))" ""
 $(addprefix $(objpfx),$(binaries-malloc-hugetlb2-tests)): %-malloc-hugetlb2: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-tests)
 endif
 
@@ -283,21 +283,21 @@ ifneq "$(strip $(binaries-pie-tests))" ""
 $(addprefix $(objpfx),$(binaries-pie-tests)): %: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-pie-tests)
 endif
 
 ifneq "$(strip $(binaries-pie-notests))" ""
 $(addprefix $(objpfx),$(binaries-pie-notests)): %: %.o \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-pie)
 endif
 
 ifneq "$(strip $(binaries-static-notests))" ""
 $(addprefix $(objpfx),$(binaries-static-notests)): %: %.o \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc-static))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-static)
 endif
 
@@ -305,7 +305,7 @@ ifneq "$(strip $(binaries-static-tests))" ""
 $(addprefix $(objpfx),$(binaries-static-tests)): %: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc-static-tests))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-static-tests)
 endif
 
@@ -380,7 +380,7 @@ ifneq "$(strip $(tests-printers))" ""
 # Static pattern rule for building the test programs for the pretty printers.
 $(tests-printers-programs): %: %.o $(tests-printers-libs) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc-static-tests))) \
-  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+  $(+preinit) $(+postinit)
 	$(+link-printers-tests)
 
 # Add the paths to the generated constants file and test_common_printers.py

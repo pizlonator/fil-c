@@ -18,21 +18,14 @@
 
 #include <errno.h>
 #include <time.h>
+#include <pizlonated_syscalls.h>
 
 /* Change the access time of the file associated with FD to TVP[0] and
    the modification time of FILE to TVP[1].  */
 int
 __futimes64 (int fd, const struct __timeval64 tvp64[2])
 {
-  /* The utimensat system call expects timespec not timeval.  */
-  struct __timespec64 ts64[2];
-  if (tvp64 != NULL)
-    {
-      ts64[0] = timeval64_to_timespec64 (tvp64[0]);
-      ts64[1] = timeval64_to_timespec64 (tvp64[1]);
-    }
-
-  return __utimensat64_helper (fd, NULL, tvp64 ? &ts64[0] : NULL, 0);
+  return zsys_futimes (fd, tvp64);
 }
 
 #if __TIMESIZE != 64

@@ -17,8 +17,3 @@
 
 #include <sysdeps/x86/get-cpuid-feature-leaf.c>
 
-#ifdef __LP64__
-_Static_assert (FEATURE_1_OFFSET == 72, "FEATURE_1_OFFSET != 72");
-#else
-_Static_assert (FEATURE_1_OFFSET == 40, "FEATURE_1_OFFSET != 40");
-#endif

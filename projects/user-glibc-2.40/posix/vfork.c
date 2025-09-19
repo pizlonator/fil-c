@@ -17,14 +17,5 @@
 
 #include <errno.h>
 #include <unistd.h>
+#include <stdfil.h>
 
-/* If we don't have vfork, fork is close enough.  */
-
-__pid_t
-__vfork (void)
-{
-  return __fork ();
-}
-libc_hidden_def (__vfork)
-
-weak_alias (__vfork, vfork)

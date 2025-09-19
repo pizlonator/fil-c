@@ -17,51 +17,13 @@
 
 #include <signal.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 int
 __sigtimedwait64 (const sigset_t *set, siginfo_t *info,
 		  const struct __timespec64 *timeout)
 {
-#ifndef __NR_rt_sigtimedwait_time64
-# define __NR_rt_sigtimedwait_time64 __NR_rt_sigtimedwait
-#endif
-
-  int result;
-#ifdef __ASSUME_TIME64_SYSCALLS
-  result = SYSCALL_CANCEL (rt_sigtimedwait_time64, set, info, timeout,
-			   __NSIG_BYTES);
-#else
-  bool need_time64 = timeout != NULL && !in_int32_t_range (timeout->tv_sec);
-  if (need_time64)
-    {
-      result = SYSCALL_CANCEL (rt_sigtimedwait_time64, set, info, timeout,
-			       __NSIG_BYTES);
-      if (result == 0 || errno != ENOSYS)
-	return result;
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-  else
-    {
-      struct timespec ts32, *pts32 = NULL;
-      if (timeout != NULL)
-	{
-	  ts32 = valid_timespec64_to_timespec (*timeout);
-	  pts32 = &ts32;
-	}
-      result = SYSCALL_CANCEL (rt_sigtimedwait, set, info, pts32,
-			       __NSIG_BYTES);
-    }
-#endif
-
-  /* The kernel generates a SI_TKILL code in si_code in case tkill is
-     used.  tkill is transparently used in raise().  Since having
-     SI_TKILL as a code is useful in general we fold the results
-     here.  */
-  if (result != -1 && info != NULL && info->si_code == SI_TKILL)
-    info->si_code = SI_USER;
-
-  return result;
+  return zsys_sigtimedwait (set, info, timeout);
 }
 #if __TIMESIZE != 64
 libc_hidden_def (__sigtimedwait64)

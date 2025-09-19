@@ -22,15 +22,12 @@
 #include <sys/syscall.h>
 #include <socketcall.h>
 #include <kernel-features.h>
+#include <pizlonated_syscalls.h>
 
 int
 __sendmmsg (int fd, struct mmsghdr *vmessages, unsigned int vlen, int flags)
 {
-#ifdef __ASSUME_SENDMMSG_SYSCALL
-  return SYSCALL_CANCEL (sendmmsg, fd, vmessages, vlen, flags);
-#else
-  return SOCKETCALL_CANCEL (sendmmsg, fd, vmessages, vlen, flags);
-#endif
+  return zsys_sendmmsg(fd, vmessages, vlen, flags);
 }
 libc_hidden_def (__sendmmsg)
 weak_alias (__sendmmsg, sendmmsg)

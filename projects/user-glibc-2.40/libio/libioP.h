@@ -528,7 +528,7 @@ extern const struct _IO_jump_t __io_vtables[] attribute_hidden;
 #ifdef SHARED
 # define libio_static_fn_required(name)
 #else
-# define libio_static_fn_required(name) __asm (".globl " #name);
+# define libio_static_fn_required(name) __asm (".filc_globl " #name);
 #endif
 
 extern int _IO_do_write (FILE *, const char *, size_t);

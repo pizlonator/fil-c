@@ -19,10 +19,11 @@
 #include <signal.h>
 #include <sys/signalfd.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 
 int
 signalfd (int fd, const sigset_t *mask, int flags)
 {
-  return INLINE_SYSCALL (signalfd4, 4, fd, mask, __NSIG_BYTES, flags);
+  return zsys_signalfd (fd, mask, flags);
 }

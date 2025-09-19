@@ -22,6 +22,7 @@
 
 #include <sysdep-cancel.h>
 #include <sys/syscall.h>
+#include <pizlonated_syscalls.h>
 
 /* Wait for events on an epoll instance "epfd". Returns the number of
    triggered events returned in "events" buffer. Or -1 in case of
@@ -37,7 +38,6 @@ int epoll_pwait (int epfd, struct epoll_event *events,
 		 int maxevents, int timeout,
 		 const sigset_t *set)
 {
-  return SYSCALL_CANCEL (epoll_pwait, epfd, events, maxevents,
-			 timeout, set, __NSIG_BYTES);
+  return zsys_epoll_pwait (epfd, events, maxevents, timeout, set);
 }
 libc_hidden_def (epoll_pwait)

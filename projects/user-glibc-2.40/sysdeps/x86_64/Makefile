@@ -13,14 +13,6 @@ ifeq ($(subdir),csu)
 gen-as-const-headers += link-defines.sym
 endif
 
-ifeq ($(subdir),gmon)
-sysdep_routines += _mcount
-# We cannot compile _mcount.S with -pg because that would create
-# recursive calls when ENTRY is used.  Just copy the normal static
-# object.
-sysdep_noprof += _mcount
-endif
-
 ifeq ($(subdir),string)
 sysdep_routines += \
   strcasecmp_l-nonascii \
@@ -219,18 +211,6 @@ gen-as-const-headers += tlsdesc.sym rtld-offsets.sym
 endif
 
 ifeq ($(subdir),wcsmbs)
-
-sysdep_routines += \
-  wcpcpy-generic \
-  wcpncpy-generic \
-  wcscat-generic \
-  wcscpy-generic \
-  wcsncat-generic \
-  wcsncmp-generic \
-  wcsncpy-generic \
-  wcsnlen-generic \
-# sysdep_routines
-
 tests += \
   tst-rsi-wcslen \
 # tests

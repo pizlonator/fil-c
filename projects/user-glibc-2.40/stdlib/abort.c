@@ -22,6 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <internal-signals.h>
+#include <stdfil.h>
 
 /* Try to get a machine dependent instruction which will make the
    program crash.  This is used in case everything else fails.  */
@@ -35,84 +36,11 @@
 struct abort_msg_s *__abort_msg;
 libc_hidden_def (__abort_msg)
 
-/* We must avoid to run in circles.  Therefore we remember how far we
-   already got.  */
-static int stage;
-
-/* We should be prepared for multiple threads trying to run abort.  */
-__libc_lock_define_initialized_recursive (static, lock);
-
-
 /* Cause an abnormal program termination with core-dump.  */
 void
 abort (void)
 {
-  struct sigaction act;
-
-  /* First acquire the lock.  */
-  __libc_lock_lock_recursive (lock);
-
-  /* Now it's for sure we are alone.  But recursive calls are possible.  */
-
-  /* Unblock SIGABRT.  */
-  if (stage == 0)
-    {
-      ++stage;
-      internal_sigset_t sigs;
-      internal_sigemptyset (&sigs);
-      internal_sigaddset (&sigs, SIGABRT);
-      internal_sigprocmask (SIG_UNBLOCK, &sigs, NULL);
-    }
-
-  /* Send signal which possibly calls a user handler.  */
-  if (stage == 1)
-    {
-      /* This stage is special: we must allow repeated calls of
-	 `abort' when a user defined handler for SIGABRT is installed.
-	 This is risky since the `raise' implementation might also
-	 fail but I don't see another possibility.  */
-      int save_stage = stage;
-
-      stage = 0;
-      __libc_lock_unlock_recursive (lock);
-
-      raise (SIGABRT);
-
-      __libc_lock_lock_recursive (lock);
-      stage = save_stage + 1;
-    }
-
-  /* There was a handler installed.  Now remove it.  */
-  if (stage == 2)
-    {
-      ++stage;
-      memset (&act, '\0', sizeof (struct sigaction));
-      act.sa_handler = SIG_DFL;
-      __sigfillset (&act.sa_mask);
-      act.sa_flags = 0;
-      __sigaction (SIGABRT, &act, NULL);
-    }
-
-  /* Try again.  */
-  if (stage == 3)
-    {
-      ++stage;
-      raise (SIGABRT);
-    }
-
-  /* Now try to abort using the system specific command.  */
-  if (stage == 4)
-    {
-      ++stage;
-      ABORT_INSTRUCTION;
-    }
-
-  /* If we can't signal ourselves and the abort instruction failed, exit.  */
-  if (stage == 5)
-    {
-      ++stage;
-      _exit (127);
-    }
+  zerror ("abort(3) called.");
 
   /* If even this fails try to use the provided instruction to crash
      or otherwise make sure we never return.  */

@@ -18,69 +18,16 @@
 #include <sys/socket.h>
 #include <sysdep.h>
 #include <socketcall.h>
-
-static int
-recvmmsg_syscall (int fd, struct mmsghdr *vmessages, unsigned int vlen,
-		  int flags, struct __timespec64 *timeout)
-{
-#ifndef __NR_recvmmsg_time64
-# define __NR_recvmmsg_time64 __NR_recvmmsg
-#endif
-  int r = SYSCALL_CANCEL (recvmmsg_time64, fd, vmessages, vlen, flags,
-			  timeout);
-#ifndef __ASSUME_TIME64_SYSCALLS
-  if (r >= 0 || errno != ENOSYS)
-    return r;
-
-  struct timespec ts32, *pts32 = NULL;
-  if (timeout != NULL)
-    {
-      if (! in_int32_t_range (timeout->tv_sec))
-	{
-	  __set_errno (EINVAL);
-	  return -1;
-	}
-      ts32 = valid_timespec64_to_timespec (*timeout);
-      pts32 = &ts32;
-    }
-
-# ifdef __ASSUME_RECVMMSG_SYSCALL
-  r = SYSCALL_CANCEL (recvmmsg, fd, vmessages, vlen, flags, pts32);
-# else
-  r = SOCKETCALL_CANCEL (recvmmsg, fd, vmessages, vlen, flags, pts32);
-# endif
-  if (r >= 0)
-    {
-      if (timeout != NULL)
-        *timeout = valid_timespec_to_timespec64 (ts32);
-    }
-#endif
-  return r;
-}
+#include <pizlonated_syscalls.h>
 
 int
 __recvmmsg64 (int fd, struct mmsghdr *vmessages, unsigned int vlen, int flags,
 	      struct __timespec64 *timeout)
 {
-#if __TIMESIZE != 64
-  socklen_t csize[IOV_MAX];
-  if (vlen > IOV_MAX)
-    vlen = IOV_MAX;
-  for (int i = 0; i < vlen; i++)
-    csize[i] = vmessages[i].msg_hdr.msg_controllen;
-#endif
-
-  int r = recvmmsg_syscall (fd, vmessages, vlen, flags, timeout);
-#if __TIMESIZE != 64
-  if (r > 0)
-    {
-      for (int i=0; i < r; i++)
-        __convert_scm_timestamps (&vmessages[i].msg_hdr, csize[i]);
-    }
-#endif
-  return r;
+  return zsys_recvmmsg(fd, vmessages, vlen, flags, timeout);
 }
 #if __TIMESIZE != 64
+#error "wtf"
 libc_hidden_def (__recvmmsg64)
 
 int

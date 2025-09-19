@@ -19,23 +19,10 @@
 #include <sched.h>
 #include <sysdep.h>
 #include <sysdep-vdso.h>
-
-static int
-vsyscall_sched_getcpu (void)
-{
-  unsigned int cpu;
-  int r = -1;
-#ifdef HAVE_GETCPU_VSYSCALL
-  r = INLINE_VSYSCALL (getcpu, 3, &cpu, NULL, NULL);
-#else
-  r = INLINE_SYSCALL_CALL (getcpu, &cpu, NULL, NULL);
-#endif
-  return r == -1 ? r : cpu;
-}
+#include <pizlonated_syscalls.h>
 
 int
 sched_getcpu (void)
 {
-  int cpu_id = THREAD_GETMEM_VOLATILE (THREAD_SELF, rseq_area.cpu_id);
-  return __glibc_likely (cpu_id >= 0) ? cpu_id : vsyscall_sched_getcpu ();
+  return zsys_sched_getcpu ();
 }

@@ -25,8 +25,7 @@ include ../Makeconfig
 headers	:= setjmp.h bits/setjmp.h bits/setjmp2.h \
 	   bits/types/struct___jmp_buf_tag.h
 
-routines	:= setjmp sigjmp bsd-setjmp bsd-_setjmp \
-		   longjmp __longjmp jmp-unwind
+routines	:= longjmp
 
 tests		:= tst-setjmp jmpbug bug269-setjmp tst-setjmp-fp \
 		   tst-sigsetjmp tst-setjmp-static

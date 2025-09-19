@@ -23,6 +23,8 @@
 #include <support/timespec.h>
 #include <intprops.h>
 
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+
 struct timespec
 dtotimespec (double sec)
 {

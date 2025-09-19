@@ -30,27 +30,40 @@ ___pthread_detach (pthread_t th)
     /* Not a valid thread handle.  */
     return ESRCH;
 
-  int result = 0;
-
-  /* Mark the thread as detached.  */
-  if (atomic_compare_and_exchange_bool_acq (&pd->joinid, pd, NULL))
+  for (;;)
     {
-      /* There are two possibilities here.  First, the thread might
-	 already be detached.  In this case we return EINVAL.
-	 Otherwise there might already be a waiter.  The standard does
-	 not mention what happens in this case.  */
-      if (IS_DETACHED (pd))
-	result = EINVAL;
-    }
-  else
-    /* Check whether the thread terminated meanwhile.  In this case we
-       will just free the TCB.  */
-    if ((pd->cancelhandling & EXITING_BITMASK) != 0)
-      /* Note that the code in __free_tcb makes sure each thread
-	 control block is freed only once.  */
-      __nptl_free_tcb (pd);
+      struct pthread *joinid = pd->joinid;
+      /* Here are the possibilities:
+         
+         - joinid == NULL.
+         
+           The thread was joinable. We'll just make it detached instead. Nothing else to do.
+         
+         - joinid == 1.
+           
+           The thread was joinable and is now done executing, but has not deleted pd. So, we have to
+           join it.
+         
+         - joinid == pd or joinid == pd + 1.
+         
+           The thread was already detached. Glibc semantics say that we return EINVAL.
+           
+         - Any other case.
+         
+           The thread is already being joined. Glibc semantics say that we just return 0. */
 
-  return result;
+      if (joinid == (struct pthread *) 1)
+        return __pthread_join(th, NULL);
+
+      if (joinid == pd || joinid == (struct pthread *) ((char*)pd + 1))
+        return EINVAL;
+
+      if (joinid != NULL)
+        return 0;
+
+      if (!atomic_compare_and_exchange_bool_acq (&pd->joinid, pd, NULL))
+        return 0;
+    }
 }
 versioned_symbol (libc, ___pthread_detach, pthread_detach, GLIBC_2_34);
 libc_hidden_ver (___pthread_detach, __pthread_detach)

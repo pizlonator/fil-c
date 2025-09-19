@@ -298,10 +298,7 @@ clntudp_call (/* client handle */
      condition.  The same warning is also disabled in
      inet/net-internal.h because in some other configurations GCC
      gives the warning in an inline function.  */
-  DIAG_PUSH_NEEDS_COMMENT;
-  DIAG_IGNORE_NEEDS_COMMENT (10, "-Wmaybe-uninitialized");
   struct deadline total_deadline; /* Determined once by overall timeout.  */
-  DIAG_POP_NEEDS_COMMENT;
   struct deadline response_deadline; /* Determined anew for each query.  */
 
   /* Choose the timeout value.  For non-sending usage (xargs == NULL),

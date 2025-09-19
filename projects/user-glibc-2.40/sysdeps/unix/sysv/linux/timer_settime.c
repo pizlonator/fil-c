@@ -22,6 +22,7 @@
 #include <kernel-features.h>
 #include "kernel-posix-timers.h"
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 #if !TIMER_T_WAS_INT_COMPAT
 int
@@ -30,42 +31,7 @@ ___timer_settime64 (timer_t timerid, int flags,
                    struct __itimerspec64 *ovalue)
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
-
-# ifdef __ASSUME_TIME64_SYSCALLS
-#  ifndef __NR_timer_settime64
-#   define __NR_timer_settime64 __NR_timer_settime
-#  endif
-  return INLINE_SYSCALL_CALL (timer_settime64, ktimerid, flags, value,
-                              ovalue);
-# else
-#  ifdef __NR_timer_settime64
-  int ret = INLINE_SYSCALL_CALL (timer_settime64, ktimerid, flags, value,
-                                 ovalue);
-  if (ret == 0 || errno != ENOSYS)
-    return ret;
-#  endif
-  struct itimerspec its32, oits32;
-
-  if (! in_int32_t_range ((value->it_value).tv_sec)
-      || ! in_int32_t_range ((value->it_interval).tv_sec))
-    {
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-
-  its32.it_interval = valid_timespec64_to_timespec (value->it_interval);
-  its32.it_value = valid_timespec64_to_timespec (value->it_value);
-
-  int retval = INLINE_SYSCALL_CALL (timer_settime, ktimerid, flags,
-                                    &its32, ovalue ? &oits32 : NULL);
-  if (retval == 0 && ovalue)
-    {
-      ovalue->it_interval = valid_timespec_to_timespec64 (oits32.it_interval);
-      ovalue->it_value = valid_timespec_to_timespec64 (oits32.it_value);
-    }
-
-  return retval;
-# endif
+  return zsys_timer_settime (ktimerid, flags, value, ovalue);
 }
 
 # if __TIMESIZE == 64
@@ -116,7 +82,7 @@ ___timer_settime_new (timer_t timerid, int flags,
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
 
-  return INLINE_SYSCALL_CALL (timer_settime, ktimerid, flags, value, ovalue);
+  return zsys_timer_settime (ktimerid, flags, value, ovalue);
 }
 versioned_symbol (libc, ___timer_settime_new, timer_settime, GLIBC_2_34);
 libc_hidden_ver (___timer_settime_new, __timer_settime_new)

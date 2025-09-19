@@ -20,13 +20,14 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 /* Write up to LENGTH bytes of randomness starting at BUFFER.
    Return the number of bytes written, or -1 on error.  */
 ssize_t
 __getrandom (void *buffer, size_t length, unsigned int flags)
 {
-  return SYSCALL_CANCEL (getrandom, buffer, length, flags);
+  return zsys_getrandom (buffer, length, flags);
 }
 libc_hidden_def (__getrandom)
 weak_alias (__getrandom, getrandom)

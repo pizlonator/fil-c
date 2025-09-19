@@ -172,6 +172,10 @@ struct pthread
      therefore stack) used' flag.  */
   pid_t tid;
 
+  void* zthread;
+
+  int dead;
+
   /* List of robust mutexes the thread is holding.  */
 #if __PTHREAD_MUTEX_HAVE_PREV
   void *robust_prev;
@@ -347,7 +351,8 @@ struct pthread
      in normal operation.  */
   struct pthread *joinid;
   /* Check whether a thread is detached.  */
-#define IS_DETACHED(pd) ((pd)->joinid == (pd))
+#define IS_DETACHED(pd) ((pd)->joinid == (pd) || \
+                         (pd)->joinid == (struct pthread *) ((char *) (pd) + 1))
 
   /* The result of the thread function.  */
   void *result;

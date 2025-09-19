@@ -20,58 +20,18 @@
 #include <errno.h>
 #include <time.h>
 
-#include <sysdep-vdso.h>
 #include <shlib-compat.h>
-#include <kernel-features.h>
+#include <pizlonated_syscalls.h>
 
 /* Get resolution of clock.  */
 int
 __clock_getres64 (clockid_t clock_id, struct __timespec64 *res)
 {
-  int r;
-
-#ifndef __NR_clock_getres_time64
-# define __NR_clock_getres_time64 __NR_clock_getres
-#endif
-
-#ifdef HAVE_CLOCK_GETRES64_VSYSCALL
-  r = INLINE_VSYSCALL (clock_getres_time64, 2, clock_id, res);
-#else
-  r = INLINE_SYSCALL_CALL (clock_getres_time64, clock_id, res);
-#endif
-  if (r == 0 || errno != ENOSYS)
-    return r;
-
-#ifndef __ASSUME_TIME64_SYSCALLS
-  /* Fallback code that uses 32-bit support.  */
-  struct timespec ts32;
-# ifdef HAVE_CLOCK_GETRES_VSYSCALL
-  r = INLINE_VSYSCALL (clock_getres, 2, clock_id, &ts32);
-# else
-  r = INLINE_SYSCALL_CALL (clock_getres, clock_id, &ts32);
-# endif
-  if (r == 0 && res != NULL)
-    *res = valid_timespec_to_timespec64 (ts32);
-#endif
-
-  return r;
+  return zsys_clock_getres (clock_id, res);
 }
 
 #if __TIMESIZE != 64
-libc_hidden_def (__clock_getres64)
-
-int
-__clock_getres (clockid_t clock_id, struct timespec *res)
-{
-  struct __timespec64 ts64;
-  int retval;
-
-  retval = __clock_getres64 (clock_id, &ts64);
-  if (retval == 0 && res != NULL)
-    *res = valid_timespec64_to_timespec (ts64);
-
-  return retval;
-}
+#error "Time is 64-bit bruh"
 #endif
 libc_hidden_def (__clock_getres)
 

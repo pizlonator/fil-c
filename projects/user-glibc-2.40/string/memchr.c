@@ -22,6 +22,7 @@
 #include <string-fzi.h>
 #include <string-shift.h>
 #include <string.h>
+#include <stdfil.h>
 
 #undef memchr
 
@@ -51,7 +52,7 @@ __memchr (void const *s, int c_in, size_t n)
   op_t repeated_c = repeat_bytes (c_in);
   /* Compute the address of the last byte taking in consideration possible
      overflow.  */
-  const char *lbyte = sadd (s_int, n - 1);
+  const char *lbyte = zmkptr ((void *) s, (uintptr_t) sadd (s_int, n - 1));
   /* And also the address of the word containing the last byte. */
   const op_t *lword = (const op_t *) PTR_ALIGN_DOWN (lbyte, sizeof (op_t));
 

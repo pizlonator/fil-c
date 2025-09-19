@@ -180,7 +180,6 @@ __follow_path (char **tablepath, char **tableptr, struct ib_request *ibreq,
   /* Since tableptr is only set here, and it's set when tablepath is NULL,
      which it is initially defined as, we know it will always be set here.  */
   DIAG_PUSH_NEEDS_COMMENT;
-  DIAG_IGNORE_NEEDS_COMMENT (4.7, "-Wmaybe-uninitialized");
 
   if (*tableptr == NULL)
     return NIS_NOTFOUND;

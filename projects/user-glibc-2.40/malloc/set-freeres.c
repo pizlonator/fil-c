@@ -136,7 +136,6 @@ __libc_freeres (void)
       _IO_cleanup ();
 
       /* We run the resource freeing after IO cleanup.  */
-      call_function_static_weak (__dl_libc_freemem);
       call_function_static_weak (__hdestroy);
       call_function_static_weak (__gconv_cache_freemem);
       call_function_static_weak (__gconv_conf_freemem);
@@ -185,10 +184,6 @@ __libc_freeres (void)
 #endif
 
       call_function_static_weak (__libc_dlerror_result_free);
-
-#ifdef SHARED
-      GLRO (dl_libc_freeres) ();
-#endif
 
       call_free_static_weak (__libc_fgetgrent_freemem_ptr);
       call_free_static_weak (__libc_fgetsgent_freeres_ptr);

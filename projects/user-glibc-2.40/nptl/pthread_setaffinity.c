@@ -20,6 +20,7 @@
 #include <sysdep.h>
 #include <sys/types.h>
 #include <shlib-compat.h>
+#include <pizlonated_syscalls.h>
 
 
 int
@@ -27,14 +28,14 @@ __pthread_setaffinity_new (pthread_t th, size_t cpusetsize,
 			   const cpu_set_t *cpuset)
 {
   const struct pthread *pd = (const struct pthread *) th;
-  int res;
 
-  res = INTERNAL_SYSCALL_CALL (sched_setaffinity, pd->tid, cpusetsize,
-			       cpuset);
-
-  return (INTERNAL_SYSCALL_ERROR_P (res)
-	  ? INTERNAL_SYSCALL_ERRNO (res)
-	  : 0);
+  int saved_errno = errno;
+  int res = zsys_sched_setaffinity (pd->tid, cpusetsize, cpuset);
+  int result_errno = errno;
+  errno = saved_errno;
+  if (res < 0)
+    return result_errno;
+  return 0;
 }
 versioned_symbol (libc, __pthread_setaffinity_new,
 		  pthread_setaffinity_np, GLIBC_2_34);

@@ -20,10 +20,11 @@
 
 #include <sysdep.h>
 #include <sys/syscall.h>
+#include <pizlonated_syscalls.h>
 
 /* Call kernel with additional two arguments the syscall requires.  */
 int
 reboot (int howto)
 {
-  return INLINE_SYSCALL (reboot, 3, (int) 0xfee1dead, 672274793, howto);
+  return zsys_reboot (howto);
 }
