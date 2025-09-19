@@ -7,6 +7,7 @@
 #include <libevdev/libevdev.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <check.h>
 
@@ -17,16 +18,24 @@ struct libevdev_test {
 	const char *name;
 	Suite* (*setup)(void);
 	bool needs_root_privileges;
+	const struct libevdev_test *next_test;
 } __attribute__((aligned(16)));
 
-#define _TEST_SUITE(name, root_privs) \
-	static Suite* (name##_setup)(void); \
-	static const struct libevdev_test _test \
-	__attribute__((used)) \
-	__attribute__((section ("test_section"))) = { \
-		#name, name##_setup, root_privs \
-	}; \
-	static Suite* (name##_setup)(void)
+extern const struct libevdev_test *first_test;
+
+#define _TEST_SUITE(passed_name, root_privs) \
+	static Suite* (passed_name##_setup)(void); \
+        static void register_##passed_name(void) __attribute__((constructor)); \
+        static void register_##passed_name(void) \
+        { \
+            struct libevdev_test* test = malloc(sizeof(struct libevdev_test)); \
+            test->name = #passed_name; \
+            test->setup = passed_name##_setup; \
+            test->needs_root_privileges = root_privs; \
+            test->next_test = first_test; \
+            first_test = test; \
+        } \
+	static Suite* (passed_name##_setup)(void)
 
 #define TEST_SUITE(name) \
 	_TEST_SUITE(name, false)

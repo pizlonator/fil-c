@@ -69,7 +69,7 @@ device_nodes_exist(void)
 	return true;
 }
 
-extern const struct libevdev_test __start_test_section, __stop_test_section;
+const struct libevdev_test *first_test;
 
 int main(void)
 {
@@ -77,7 +77,7 @@ int main(void)
 	const struct rlimit corelimit = {0, 0};
 	int failed;
 
-	for (t = &__start_test_section; t < &__stop_test_section; t++) {
+	for (t = first_test; t; t = t->next_test) {
 		if (t->needs_root_privileges) {
 			if (getenv("LIBEVDEV_SKIP_ROOT_TESTS"))
 				return 77;
@@ -104,7 +104,7 @@ int main(void)
 	libevdev_set_log_function(test_logfunc_abort_on_error, NULL);
 
 	SRunner *sr = srunner_create(NULL);
-	for (t = &__start_test_section; t < &__stop_test_section; t++) {
+	for (t = first_test; t; t = t->next_test) {
 		srunner_add_suite(sr, t->setup());
 	}
 
