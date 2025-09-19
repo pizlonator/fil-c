@@ -1,0 +1,20 @@
+[constants]
+ndk_path = '/opt/android-ndk'
+toolchain = ndk_path / 'toolchains/llvm/prebuilt/linux-x86_64'
+
+[host_machine]
+system = 'android'
+cpu_family = 'aarch64'
+cpu = 'aarch64'
+endian = 'little'
+
+[properties]
+sys_root = toolchain / 'sysroot'
+c_ld = 'gold'
+cpp_ld = 'gold'
+
+[binaries]
+c =     toolchain / 'bin/aarch64-linux-android31-clang'
+cpp =   toolchain / 'bin/aarch64-linux-android31-clang++'
+ar =    toolchain / 'bin/llvm-ar'
+strip = toolchain / 'bin/llvm-strip'
