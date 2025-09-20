@@ -176,7 +176,7 @@ private_lib = static_library(
 )
 
 symbols_file = 'libseat/libseat.syms'
-symbols_flag = '-Wl,--version-script,@0@/@1@'.format(meson.current_source_dir(), symbols_file)
+symbols_flag = '--version-script=@0@/@1@'.format(meson.current_source_dir(), symbols_file)
 lib = library(
 	'seat', # This results in the library being called 'libseat'
 	[ 'libseat/libseat.c', 'libseat/backend/noop.c' ],

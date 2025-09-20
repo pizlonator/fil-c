@@ -52,6 +52,7 @@
  */
 
 struct weston_test_entry *first_test;
+size_t num_tests;
 
 struct weston_test_run_info {
 	char name[512];
