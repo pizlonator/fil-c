@@ -56,11 +56,25 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdfil.h>
 
 #define memclear(s) memset(&s, 0, sizeof(s))
 
-#define U642VOID(x) ((void *)(unsigned long)(x))
-#define VOID2U64(x) ((uint64_t)(unsigned long)(x))
+/* FIXME: These DRM ioctls are a safety escape hatch, since we're passing a buffer to the kernel that
+   has pointers in it.
+
+   I don't think there's any avoiding this. */
+static zexact_ptrtable* ptrtable;
+
+static void create_ptrtable(void) __attribute__((constructor));
+static void create_ptrtable(void)
+{
+    ptrtable = zexact_ptrtable_new();
+}
+
+#define U642VOID(x) ((void *)zexact_ptrtable_decode(ptrtable, (unsigned long)(x)))
+#define VOID2U64(x) ((uint64_t)zexact_ptrtable_encode(ptrtable, (x)))
+#define VOID2U64_ONEWAY(x) ((uint64_t)(unsigned long)(x))
 
 static inline int DRM_IOCTL(int fd, unsigned long cmd, void *arg)
 {
@@ -362,7 +376,7 @@ drm_public int drmModeDirtyFB(int fd, uint32_t bufferId,
 
 	memclear(dirty);
 	dirty.fb_id = bufferId;
-	dirty.clips_ptr = VOID2U64(clips);
+	dirty.clips_ptr = VOID2U64_ONEWAY(clips);
 	dirty.num_clips = num_clips;
 
 	return DRM_IOCTL(fd, DRM_IOCTL_MODE_DIRTYFB, &dirty);
@@ -415,7 +429,7 @@ drm_public int drmModeSetCrtc(int fd, uint32_t crtcId, uint32_t bufferId,
 	crtc.y             = y;
 	crtc.crtc_id       = crtcId;
 	crtc.fb_id         = bufferId;
-	crtc.set_connectors_ptr = VOID2U64(connectors);
+	crtc.set_connectors_ptr = VOID2U64_ONEWAY(connectors);
 	crtc.count_connectors = count;
 	if (mode) {
 	  memcpy(&crtc.mode, mode, sizeof(struct drm_mode_modeinfo));
@@ -515,7 +529,7 @@ _drmModeGetConnector(int fd, uint32_t connector_id, int probe)
 	conn.connector_id = connector_id;
 	if (!probe) {
 		conn.count_modes = 1;
-		conn.modes_ptr = VOID2U64(&stack_mode);
+		conn.modes_ptr = VOID2U64_ONEWAY(&stack_mode);
 	}
 
 	if (drmIoctl(fd, DRM_IOCTL_MODE_GETCONNECTOR, &conn))
@@ -539,7 +553,7 @@ retry:
 			goto err_allocs;
 	} else {
 		conn.count_modes = 1;
-		conn.modes_ptr = VOID2U64(&stack_mode);
+		conn.modes_ptr = VOID2U64_ONEWAY(&stack_mode);
 	}
 
 	if (conn.count_encoders) {
@@ -1006,9 +1020,9 @@ drm_public int drmModeCrtcGetGamma(int fd, uint32_t crtc_id, uint32_t size,
 	memclear(l);
 	l.crtc_id = crtc_id;
 	l.gamma_size = size;
-	l.red = VOID2U64(red);
-	l.green = VOID2U64(green);
-	l.blue = VOID2U64(blue);
+	l.red = VOID2U64_ONEWAY(red);
+	l.green = VOID2U64_ONEWAY(green);
+	l.blue = VOID2U64_ONEWAY(blue);
 
 	return DRM_IOCTL(fd, DRM_IOCTL_MODE_GETGAMMA, &l);
 }
@@ -1022,9 +1036,9 @@ drm_public int drmModeCrtcSetGamma(int fd, uint32_t crtc_id, uint32_t size,
 	memclear(l);
 	l.crtc_id = crtc_id;
 	l.gamma_size = size;
-	l.red = VOID2U64(red);
-	l.green = VOID2U64(green);
-	l.blue = VOID2U64(blue);
+	l.red = VOID2U64_ONEWAY(red);
+	l.green = VOID2U64_ONEWAY(green);
+	l.blue = VOID2U64_ONEWAY(blue);
 
 	return DRM_IOCTL(fd, DRM_IOCTL_MODE_SETGAMMA, &l);
 }
@@ -1105,7 +1119,7 @@ drm_public int drmModePageFlip(int fd, uint32_t crtc_id, uint32_t fb_id,
 	memclear(flip);
 	flip.fb_id = fb_id;
 	flip.crtc_id = crtc_id;
-	flip.user_data = VOID2U64(user_data);
+	flip.user_data = VOID2U64_ONEWAY(user_data);
 	flip.flags = flags;
 
 	return DRM_IOCTL(fd, DRM_IOCTL_MODE_PAGE_FLIP, &flip);
@@ -1120,7 +1134,7 @@ drm_public int drmModePageFlipTarget(int fd, uint32_t crtc_id, uint32_t fb_id,
 	memclear(flip_target);
 	flip_target.fb_id = fb_id;
 	flip_target.crtc_id = crtc_id;
-	flip_target.user_data = VOID2U64(user_data);
+	flip_target.user_data = VOID2U64_ONEWAY(user_data);
 	flip_target.flags = flags;
 	flip_target.sequence = target_vblank;
 
@@ -1603,11 +1617,11 @@ drm_public int drmModeAtomicCommit(int fd, const drmModeAtomicReqPtr req,
 	}
 
 	atomic.flags = flags;
-	atomic.objs_ptr = VOID2U64(objs_ptr);
-	atomic.count_props_ptr = VOID2U64(count_props_ptr);
-	atomic.props_ptr = VOID2U64(props_ptr);
-	atomic.prop_values_ptr = VOID2U64(prop_values_ptr);
-	atomic.user_data = VOID2U64(user_data);
+	atomic.objs_ptr = VOID2U64_ONEWAY(objs_ptr);
+	atomic.count_props_ptr = VOID2U64_ONEWAY(count_props_ptr);
+	atomic.props_ptr = VOID2U64_ONEWAY(props_ptr);
+	atomic.prop_values_ptr = VOID2U64_ONEWAY(prop_values_ptr);
+	atomic.user_data = VOID2U64_ONEWAY(user_data);
 
 	ret = DRM_IOCTL(fd, DRM_IOCTL_MODE_ATOMIC, &atomic);
 
@@ -1693,7 +1707,7 @@ drmModeListLessees(int fd)
 	if (!ret)
 		return NULL;
 
-	list.lessees_ptr = VOID2U64(&ret->lessees[0]);
+	list.lessees_ptr = VOID2U64_ONEWAY(&ret->lessees[0]);
 	if (DRM_IOCTL(fd, DRM_IOCTL_MODE_LIST_LESSEES, &list)) {
 		drmFree(ret);
 		return NULL;
@@ -1720,7 +1734,7 @@ drmModeGetLease(int fd)
 	if (!ret)
 		return NULL;
 
-	get.objects_ptr = VOID2U64(&ret->objects[0]);
+	get.objects_ptr = VOID2U64_ONEWAY(&ret->objects[0]);
 	if (DRM_IOCTL(fd, DRM_IOCTL_MODE_GET_LEASE, &get)) {
 		drmFree(ret);
 		return NULL;
