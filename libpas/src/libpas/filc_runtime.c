@@ -7503,7 +7503,6 @@ void filc_native_zset_errno(filc_thread* my_thread, int errno_value)
 
 void filc_set_dlerror(const char* error, const char* context)
 {
-    PAS_ASSERT(error);
     filc_thread* my_thread = filc_get_my_thread();
     if (filc_dump_errnos) {
         pas_log("[%d] Setting dlerror! message = %s, context = %s\n",
