@@ -1119,7 +1119,7 @@ drm_public int drmModePageFlip(int fd, uint32_t crtc_id, uint32_t fb_id,
 	memclear(flip);
 	flip.fb_id = fb_id;
 	flip.crtc_id = crtc_id;
-	flip.user_data = VOID2U64_ONEWAY(user_data);
+	flip.user_data = VOID2U64(user_data);
 	flip.flags = flags;
 
 	return DRM_IOCTL(fd, DRM_IOCTL_MODE_PAGE_FLIP, &flip);
@@ -1134,7 +1134,7 @@ drm_public int drmModePageFlipTarget(int fd, uint32_t crtc_id, uint32_t fb_id,
 	memclear(flip_target);
 	flip_target.fb_id = fb_id;
 	flip_target.crtc_id = crtc_id;
-	flip_target.user_data = VOID2U64_ONEWAY(user_data);
+	flip_target.user_data = VOID2U64(user_data);
 	flip_target.flags = flags;
 	flip_target.sequence = target_vblank;
 
@@ -1621,7 +1621,7 @@ drm_public int drmModeAtomicCommit(int fd, const drmModeAtomicReqPtr req,
 	atomic.count_props_ptr = VOID2U64_ONEWAY(count_props_ptr);
 	atomic.props_ptr = VOID2U64_ONEWAY(props_ptr);
 	atomic.prop_values_ptr = VOID2U64_ONEWAY(prop_values_ptr);
-	atomic.user_data = VOID2U64_ONEWAY(user_data);
+	atomic.user_data = VOID2U64(user_data);
 
 	ret = DRM_IOCTL(fd, DRM_IOCTL_MODE_ATOMIC, &atomic);
 

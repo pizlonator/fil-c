@@ -183,7 +183,7 @@ map_entry_is_free(union map_entry entry)
 static inline void *
 map_entry_get_data(union map_entry entry)
 {
-	return (void *)(entry.next & ~(uintptr_t)0x3);
+	return (void *)((uintptr_t)entry.data & ~(uintptr_t)0x3);
 }
 
 static inline uint32_t
