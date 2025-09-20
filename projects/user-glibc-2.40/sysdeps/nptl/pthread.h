@@ -769,9 +769,9 @@ extern int __REDIRECT_NTHNL (__sigsetjmp_cancel,
 			     __sigsetjmp) __attribute_returns_twice__;
 #else
 # define __sigsetjmp_cancel(env, savemask) \
-  __sigsetjmp ((struct __jmp_buf_tag *) (void *) (env), (savemask))
-extern int __sigsetjmp (struct __jmp_buf_tag __env[1],
-			int __savemask) __THROWNL;
+  sigsetjmp ((struct __jmp_buf_tag *) (void *) (env), (savemask))
+extern int sigsetjmp (struct __jmp_buf_tag __env[1],
+                      int __savemask) __THROWNL;
 #endif
 
 
