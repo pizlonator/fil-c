@@ -18,14 +18,14 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sysdep-cancel.h>
+#include <pizlonated_syscalls.h>
 
 
 /* Reserve storage for the data of the file associated with FD.  */
 int
 fallocate64 (int fd, int mode, __off64_t offset, __off64_t len)
 {
-  return SYSCALL_CANCEL (fallocate, fd, mode,
-			 SYSCALL_LL64 (offset), SYSCALL_LL64 (len));
+  return zsys_fallocate (fd, mode, offset, len);
 }
 
 #ifdef __OFF_T_MATCHES_OFF64_T

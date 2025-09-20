@@ -499,6 +499,7 @@ addSig "int", "zsys_timer_getoverrun", "int"
 addSig "int", "zsys_timer_settime", "int", "int", "filc_ptr", "filc_ptr"
 addSig "int", "zsys_timer_delete", "int"
 addSig "int", "zsys_timer_gettime", "int", "filc_ptr"
+addSig "int", "zsys_fallocate", "int", "int", "long", "long"
 
 addSig "filc_ptr", "zthread_self"
 addSig "unsigned", "zthread_get_id", "filc_ptr"

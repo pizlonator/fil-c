@@ -54,7 +54,7 @@ test_store_properties (void)
 
   store = g_list_store_new (G_TYPE_MENU_ITEM);
   g_object_get (store, "item-type", &item_type, NULL);
-  g_assert_cmpint (item_type, ==, G_TYPE_MENU_ITEM);
+  g_assert_cmpint ((uintptr_t) item_type, ==, (uintptr_t) G_TYPE_MENU_ITEM);
 
   g_clear_object (&store);
 }

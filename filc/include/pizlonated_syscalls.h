@@ -382,6 +382,7 @@ int zsys_timer_getoverrun(int timer);
 int zsys_timer_settime(int timer, int flags, const void* val, void* old);
 int zsys_timer_delete(int timer);
 int zsys_timer_gettime(int timer, void* value);
+int zsys_fallocate(int fd, int mode, long offset, long len);
 
 #ifdef __cplusplus
 }

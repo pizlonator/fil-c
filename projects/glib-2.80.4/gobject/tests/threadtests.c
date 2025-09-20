@@ -516,7 +516,7 @@ test_threaded_g_pointer_bit_unlock_and_set (void)
   GObject *obj;
   gpointer plock;
   gpointer ptr;
-  guintptr ptr2;
+  gpointer ptr2;
   gpointer mangled_obj;
 
 #if defined(__GNUC__)
@@ -551,7 +551,7 @@ test_threaded_g_pointer_bit_unlock_and_set (void)
 
   plock = obj;
   g_pointer_bit_lock_and_get (&plock, 0, &ptr2);
-  g_assert_true ((gpointer) ptr2 == plock);
+  g_assert_true (ptr2 == plock);
   g_assert_true (plock != obj);
   g_atomic_pointer_set (&plock, mangled_obj);
   g_pointer_bit_unlock_and_set (&plock, 0, obj, 0);

@@ -564,6 +564,10 @@ long zsys_syscall(long n, ...)
         callee = zsys_renameat2;
         break;
 
+    case 434 /* SYS_pidfd_open */:
+        callee = zsys_pidfd_open;
+        break;
+
 	/* FIXME: Implement more syscalls! */
 
     default:

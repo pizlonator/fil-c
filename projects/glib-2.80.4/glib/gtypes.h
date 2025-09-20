@@ -245,7 +245,7 @@ typedef const gchar *   (*GTranslateFunc)       (const gchar   *str,
 
 /* Arch specific stuff for speed
  */
-#if defined (__GNUC__) && (__GNUC__ >= 2) && defined (__OPTIMIZE__)
+#if defined (__GNUC__) && (__GNUC__ >= 2) && defined (__OPTIMIZE__) && !defined(__FILC__)
 
 #  if __GNUC__ >= 4 && defined (__GNUC_MINOR__) && __GNUC_MINOR__ >= 3
 #    define GUINT32_SWAP_LE_BE(val) ((guint32) __builtin_bswap32 ((guint32) (val)))

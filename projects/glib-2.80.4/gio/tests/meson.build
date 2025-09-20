@@ -940,7 +940,9 @@ if not meson.is_cross_build()
 
   ld = find_program('ld', required : false)
 
-  if build_machine.system() != 'linux'
+  if true
+    why_no_external_data = 'Fil-C'
+  elif build_machine.system() != 'linux'
     why_no_external_data = 'only works on Linux'
   elif not objcopy.found()
     why_no_external_data = 'objcopy not found'

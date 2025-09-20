@@ -11929,6 +11929,11 @@ int filc_native_zsys_timer_gettime(filc_thread* my_thread, int timer, filc_ptr v
                                            (struct itimerspec*)filc_ptr_ptr(val_ptr)));
 }
 
+int filc_native_zsys_fallocate(filc_thread* my_thread, int fd, int mode, long offset, long len)
+{
+    return FILC_SYSCALL(my_thread, fallocate(fd, mode, offset, len));
+}
+
 filc_ptr filc_native_zthread_self(filc_thread* my_thread)
 {
     static const bool verbose = false;
