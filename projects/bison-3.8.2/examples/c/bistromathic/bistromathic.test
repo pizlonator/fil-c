@@ -1,0 +1,368 @@
+#! /bin/sh
+
+# Copyright (C) 2020-2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Users may customize the behavior of readline, which might break our
+# expected results.
+INPUTRC=/dev/null
+export INPUTRC
+
+# Beware of portability issues of readline when not feeding it from a
+# terminal.
+#
+# With recent versions of GNU Readline, input "1+2*3\n" gives
+# "> 1+2*3\n7\n> \n"
+#
+# macOS' version does not display the prompt and does not repeat stdin
+# on stdout, so input "1+2*3\n" gives "7\n" as output.  Let's try to
+# cope with this.
+#
+# On OpenBSD 6.5 the prompt is displayed, but the input is not
+# repeated (!).  So input "1+2*3\n" gives "> 7\n> \n" as output.
+#
+# On AIX, you get some escaping sequence before the prompt:
+# "<ESC>[?1034h> 1+2*3".  It appears to pass the terminfo capability
+# "smm", to put the terminal in "meta mode": as if the user had hit
+# META.
+
+echo >perfect '> 0
+0
+> '
+
+echo >ok '0'
+echo '0' | prog >effective
+
+echo "checking for readline output..."
+if diff perfect effective; then
+    # Alles ist gut.
+    strip_prompt=false
+elif diff ok effective; then
+    strip_prompt=true
+else
+    skip "this is not the GNU Readline we expect"
+fi
+
+
+cat >input <<EOF
+1+2*3
+EOF
+run 0 '> 1+2*3
+7
+> '
+
+cat >input <<EOF
+(1+2) * 3
+EOF
+run 0  '> (1+2) * 3
+9
+> '
+run -noerr 0 '> (1+2) * 3
+9
+> ' -p
+
+cat >input <<EOF
+a = 256
+sqrt (a)
+EOF
+run 0 '> a = 256
+256
+> sqrt (a)
+16
+> '
+
+cat >input <<EOF
+a = .16
+b = 10 ^ 2
+sqrt (a * b)
+EOF
+run 0 '> a = .16
+0.16
+> b = 10 ^ 2
+100
+> sqrt (a * b)
+4
+> '
+
+cat >input <<EOF
+*
+EOF
+run 0 '> *
+> ''
+err: 1.1: syntax error: expected end of file or - or ( or exit or number or function etc., before *
+err:     1 | *
+err:       | ^'
+
+# Underline long errors.
+cat >input <<EOF
+123 123456
+EOF
+run 0 '> 123 123456
+> ''
+err: 1.5-10: syntax error: expected end of file or + or - or * or / or ^ before number
+err:     1 | 123 123456
+err:       |     ^~~~~~'
+
+cat >input <<EOF
+1 + 2 * * 3
+EOF
+run 0 '> 1 + 2 * * 3
+> ''
+err: 1.9: syntax error: expected - or ( or number or function or variable before *
+err:     1 | 1 + 2 * * 3
+err:       |         ^'
+
+cat >input <<EOF
+1 / 0
+EOF
+run 0 '> 1 / 0
+> ''
+err: 1.1-5: error: division by zero'
+
+
+## ---------------- ##
+## Error recovery.  ##
+## ---------------- ##
+
+cat >input <<EOF
+((1 ++ 2) ** 3)
+(1 ++ 2) + (3 ** 4)
+EOF
+run 0 '> ((1 ++ 2) ** 3)
+666
+> (1 ++ 2) + (3 ** 4)
+1332
+> ''
+err: 1.6: syntax error: expected - or ( or number or function or variable before +
+err:     1 | ((1 ++ 2) ** 3)
+err:       |      ^
+err: 2.5: syntax error: expected - or ( or number or function or variable before +
+err:     2 | (1 ++ 2) + (3 ** 4)
+err:       |     ^
+err: 2.16: syntax error: expected - or ( or number or function or variable before *
+err:     2 | (1 ++ 2) + (3 ** 4)
+err:       |                ^'
+
+# The rule "( error )" should work even if there are no tokens between "(" and ")".
+cat >input <<EOF
+()
+EOF
+run 0 '> ()
+666
+> ''
+err: 1.2: syntax error: expected - or ( or number or function or variable before )
+err:     1 | ()
+err:       |  ^'
+
+
+cat >input <<EOF
+100% + 10
+EOF
+run 0 '> 100% + 10
+> ''
+err: 1.4: syntax error: invalid character: %'
+
+# Traces.  This allows to check the location of the error.  If we
+# forget to map YYerror to YYUNDEF, error recovery enters an endless
+# loop with this input.
+cat >input <<EOF
+(+_)
+EOF
+run 0 '> (+_)
+666
+> ''
+err: Starting parse
+err: Entering state 0
+err: Stack now 0
+err: Reading a token
+err: Next token is token ( (1.1: )
+err: Shifting token ( (1.1: )
+err: Entering state 2
+err: Stack now 0 2
+err: Return for a new token:
+err: Reading a token
+err: Next token is token + (1.2: )
+err: LAC: initial context established for +
+err: LAC: checking lookahead +: Err
+err: LAC: checking lookahead end of file: Err
+err: LAC: checking lookahead +: Err
+err: LAC: checking lookahead -: S1
+err: LAC: checking lookahead *: Err
+err: LAC: checking lookahead /: Err
+err: LAC: checking lookahead ^: Err
+err: LAC: checking lookahead (: S2
+err: LAC: checking lookahead ): Err
+err: LAC: checking lookahead =: Err
+err: LAC: checking lookahead exit: Err
+err: LAC: checking lookahead number: S4
+err: LAC: checking lookahead function: S5
+err: LAC: checking lookahead variable: S6
+err: LAC: checking lookahead NEG: Err
+err: 1.2: syntax error: expected - or ( or number or function or variable before +
+err:     1 | (+_)
+err:       |  ^
+err: LAC: initial context discarded due to error recovery
+err: Shifting token error (1.2: )
+err: Entering state 10
+err: Stack now 0 2 10
+err: Next token is token + (1.2: )
+err: LAC: initial context established for +
+err: LAC: checking lookahead +: Err
+err: Error: discarding token + (1.2: )
+err: Error: popping token error (1.2: )
+err: Stack now 0 2
+err: LAC: initial context discarded due to error recovery
+err: Shifting token error (1.2: )
+err: Entering state 10
+err: Stack now 0 2 10
+err: Return for a new token:
+err: 1.3: syntax error: invalid character: _
+err: Reading a token
+err: Error: popping token error (1.2: )
+err: Stack now 0 2
+err: Shifting token error (1.2-3: )
+err: Entering state 10
+err: Stack now 0 2 10
+err: Next token is token invalid token (1.3: )
+err: LAC: initial context established for invalid token
+err: LAC: checking lookahead invalid token: Always Err
+err: Error: discarding token invalid token (1.3: )
+err: Error: popping token error (1.2-3: )
+err: Stack now 0 2
+err: LAC: initial context discarded due to error recovery
+err: Shifting token error (1.2-3: )
+err: Entering state 10
+err: Stack now 0 2 10
+err: Return for a new token:
+err: Reading a token
+err: Next token is token ) (1.4: )
+err: Shifting token ) (1.4: )
+err: Entering state 20
+err: Stack now 0 2 10 20
+err: Reducing stack by rule XX (line XXX):
+err:    $1 = token ( (1.1: )
+err:    $2 = token error (1.2-3: )
+err:    $3 = token ) (1.4: )
+err: -> $$ = nterm exp (1.1-4: 666)
+err: Entering state 8
+err: Stack now 0 8
+err: Return for a new token:
+err: Reading a token
+err: Now at end of input.
+err: LAC: initial context established for end of file
+err: LAC: checking lookahead end of file: R2 G7 S14
+err: Reducing stack by rule XX (line XXX):
+err:    $1 = nterm exp (1.1-4: 666)
+err: -> $$ = nterm input (1.1-4: )
+err: Entering state 7
+err: Stack now 0 7
+err: Now at end of input.
+err: Shifting token end of file (1.5: )
+err: LAC: initial context discarded due to shift
+err: Entering state 14
+err: Stack now 0 7 14
+err: Stack now 0 7 14
+err: Cleanup: popping token end of file (1.5: )
+err: Cleanup: popping nterm input (1.1-4: )' -p
+
+
+
+## ------------ ##
+## Completion.  ##
+## ------------ ##
+
+# From now on, the differences between versions of GNU Readline are
+# too painful to try to cope with.
+if $strip_prompt; then
+  echo "SKIP: this is not the GNU Readline we expect"
+  exit $status
+fi
+
+# On Windows10/MSYS2 the ^G coming from <tab> completion is not
+# emitted the same way
+# (https://lists.gnu.org/r/bug-bison/2020-05/msg00076.html).
+echo "checking for kernel name... $(uname -s)"
+case $(uname -s) in
+  (MSYS*)
+    echo "SKIP: this is Windows/MSYS"
+    exit $status
+    ;;
+esac
+
+
+# Check completion after an operator.
+sed -e 's/\\t/	/g' >input <<EOF
+(1+\t\t
+EOF
+# Nuke the possible trailing white spaces in the effective output.
+# This is to cope with some readlines that pad all the suggestions
+# with white spaces (for alignment), including the last one on a line.
+#
+# See for instance <https://trac.macports.org/ticket/59927#comment:48>
+# and its test-suite.log:
+# <https://trac.macports.org/attachment/ticket/59927/bison-3.7.6-test-10.13.test-suite.log>
+run -t 0 '> (1+
+(       -       atan    cos     exp     ln      number  sin     sqrt
+> (1+
+>
+err: 1.4: syntax error: expected - or ( or number or function or variable before end of file
+err:     1 | (1+
+err:       |    ^'
+
+# Check the completion of a word.
+sed -e 's/\\t/	/g' >input <<EOF
+(at\t\t
+EOF
+run 0 '> (atan ( ''
+> ''
+err: 1.9: syntax error: expected - or ( or number or function or variable before end of file
+err:     1 | (atan ( ''
+err:       |         ^'
+
+# Check the completion at the very beginning.
+sed -e 's/\\t/	/g' >input <<EOF
+e\t\t
+EOF
+run -n 0 '> e
+end of file  exit         exp          ''
+> e
+0
+> ''
+err: '
+
+# Check that completion prints valid locations even when there is an error.
+sed -e 's/\\t/	/g' >input <<EOF
+1++\t
+EOF
+run -n 0 '> 1++ ''
+> ''
+err: 1.3: syntax error: expected - or ( or number or function or variable before +
+err:     1 | 1++ ''
+err:       |   ^
+'
+
+# And even when the error was recovered from.
+sed -e 's/\\t/	/g' >input <<EOF
+(1++2) + 3 +\t\t
+EOF
+run -n 0 '> (1++2) + 3 +  ''
+> ''
+err: 1.4: syntax error: expected - or ( or number or function or variable before +
+err:     1 | (1++2) + 3 +  ''
+err:       |    ^
+err: 1.15: syntax error: expected - or ( or number or function or variable before end of file
+err:     1 | (1++2) + 3 +  ''
+err:       |               ^
+'

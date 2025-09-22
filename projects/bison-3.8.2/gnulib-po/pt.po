@@ -1,0 +1,523 @@
+# Translation of gnulib messages to Portuguese
+# Copyright (C) 1996, 2014 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnulib package.
+#
+# António João Serras Rendas <arendas@mail.telepac.pt>, 1996.
+# Américo Monteiro <a_monteiro@netcabo.pt>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnulib 3.0.0.6062.a6b16\n"
+"Report-Msgid-Bugs-To: bug-gnulib@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2014-11-29 14:28-0000\n"
+"Last-Translator: Luís Oliveira <luismbo@gmail.com>\n"
+"Language-Team: Portuguese <translation-team-pt@lists.sourceforge.net>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 1.6.10\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/argmatch.c:132
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr ""
+
+#: lib/argmatch.c:133
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr ""
+
+#: lib/argmatch.c:152 lib/argmatch.h:223
+msgid "Valid arguments are:"
+msgstr ""
+
+#: lib/bitset/stats.c:183
+#, c-format
+msgid "%u bitset_allocs, %u freed (%.2f%%).\n"
+msgstr ""
+
+#: lib/bitset/stats.c:186
+#, c-format
+msgid "%u bitset_sets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:189
+#, c-format
+msgid "%u bitset_resets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:192
+#, c-format
+msgid "%u bitset_tests, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:196
+#, c-format
+msgid "%u bitset_lists\n"
+msgstr ""
+
+#: lib/bitset/stats.c:198
+msgid "count log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:201
+msgid "size log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:204
+msgid "density histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:216
+#, c-format
+msgid ""
+"Bitset statistics:\n"
+"\n"
+msgstr ""
+
+#: lib/bitset/stats.c:219
+#, c-format
+msgid "Accumulated runs = %u\n"
+msgstr ""
+
+#: lib/bitset/stats.c:261 lib/bitset/stats.c:266
+msgid "cannot read stats file"
+msgstr ""
+
+#: lib/bitset/stats.c:263
+#, c-format
+msgid "bad stats file size\n"
+msgstr ""
+
+#: lib/bitset/stats.c:287 lib/bitset/stats.c:289
+msgid "cannot write stats file"
+msgstr ""
+
+#: lib/bitset/stats.c:292
+msgid "cannot open stats file for writing"
+msgstr ""
+
+#: lib/closeout.c:122
+msgid "write error"
+msgstr "erro de escrita"
+
+#: lib/error.c:195
+msgid "Unknown system error"
+msgstr "Erro de sistema desconhecido"
+
+#: lib/execute.c:348 lib/spawn-pipe.c:597 lib/wait-process.c:291
+#: lib/wait-process.c:365
+#, c-format
+msgid "%s subprocess failed"
+msgstr ""
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: opção '-W %s' é ambígua\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: opção '%s' é ambígua; possibilidades:"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: opção não reconhecida '%c%s'\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: opção '%c%s' não permite um argumento\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: opção '--%s' requer um argumento\n"
+
+#: lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: opção inválida -- '%c'\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: opção requer um argumento -- %c\n"
+
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "memória esgotada"
+
+#: lib/openat-die.c:38
+#, c-format
+msgid "unable to record current working directory"
+msgstr "incapaz de registar o directório de trabalho actual"
+
+#: lib/openat-die.c:57
+#, c-format
+msgid "failed to return to initial working directory"
+msgstr "falha ao regressar ao directório de trabalho inicial"
+
+#: lib/os2-spawn.c:46
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr ""
+
+#: lib/os2-spawn.c:83
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr ""
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:355
+msgid "`"
+msgstr ""
+
+#: lib/quotearg.c:356
+msgid "'"
+msgstr ""
+
+#: lib/spawn-pipe.c:217 lib/spawn-pipe.c:220 lib/spawn-pipe.c:459
+#: lib/spawn-pipe.c:462
+#, c-format
+msgid "cannot create pipe"
+msgstr ""
+
+#: lib/timevar.c:316
+msgid "Execution times (seconds)"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU user"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU system"
+msgstr ""
+
+#: lib/timevar.c:318
+#, fuzzy
+msgid "wall clock"
+msgstr "Despertador"
+
+#: lib/unicodeio.c:102
+msgid "iconv function not usable"
+msgstr ""
+
+#: lib/unicodeio.c:104
+msgid "iconv function not available"
+msgstr ""
+
+#: lib/unicodeio.c:111
+msgid "character out of range"
+msgstr ""
+
+#: lib/unicodeio.c:198
+#, c-format
+msgid "cannot convert U+%04X to local character set"
+msgstr ""
+
+#: lib/unicodeio.c:200
+#, c-format
+msgid "cannot convert U+%04X to local character set: %s"
+msgstr ""
+
+#: lib/wait-process.c:232 lib/wait-process.c:264 lib/wait-process.c:326
+#, c-format
+msgid "%s subprocess"
+msgstr ""
+
+#: lib/wait-process.c:283 lib/wait-process.c:355
+#, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr ""
+
+#, fuzzy
+#~| msgid ""
+#~| "\n"
+#~| "Report bugs to: %s\n"
+#~ msgid "Report bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Reporte problemas para: %s\n"
+
+#~ msgid "Report %s bugs to: %s\n"
+#~ msgstr "Reporte problemas com %s para: %s\n"
+
+#~ msgid "ARGP_HELP_FMT: %s value is less than or equal to %s"
+#~ msgstr "ARGP_HELP_FMT: valor %s é menos que ou igual a %s"
+
+#~ msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
+#~ msgstr "%.*s: ARGP_HELP_FMT parâmetro requer um valor"
+
+#~ msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+#~ msgstr "%.*s: ARGP_HELP_FMT parâmetro deve ser positivo"
+
+#~ msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
+#~ msgstr "%.*s: ARGP_HELP_FMT parâmetro desconhecido"
+
+#~ msgid "Garbage in ARGP_HELP_FMT: %s"
+#~ msgstr "Lixo em ARGP_HELP_FMT: %s"
+
+#~ msgid ""
+#~ "Mandatory or optional arguments to long options are also mandatory or "
+#~ "optional for any corresponding short options."
+#~ msgstr ""
+#~ "Os argumentos obrigatórios ou opcionais para as opções longas são também "
+#~ "obrigatórios ou opcionais para qualquer opção curta correspondente."
+
+#~ msgid "Usage:"
+#~ msgstr "Utilização:"
+
+#~ msgid "  or: "
+#~ msgstr "  ou: "
+
+#~ msgid " [OPTION...]"
+#~ msgstr " [OPÇÃO...]"
+
+#~ msgid "Try `%s --help' or `%s --usage' for more information.\n"
+#~ msgstr "Tente '%s --help' ou '%s --usage' para mais informação.\n"
+
+#~ msgid "Report bugs to %s.\n"
+#~ msgstr "Reporte bugs para %s.\n"
+
+#~ msgid "give this help list"
+#~ msgstr "dá esta lista de ajuda"
+
+#~ msgid "give a short usage message"
+#~ msgstr "dá uma mensagem curta de utilização"
+
+#~ msgid "NAME"
+#~ msgstr "NOME"
+
+#~ msgid "set the program name"
+#~ msgstr "define o nome do programa"
+
+#~ msgid "SECS"
+#~ msgstr "SEGS"
+
+#~ msgid "hang for SECS seconds (default 3600)"
+#~ msgstr "pára por SEGS segundos (predefinição 3600)"
+
+#~ msgid "print program version"
+#~ msgstr "escreve a versão do programa"
+
+#~ msgid "(PROGRAM ERROR) No version known!?"
+#~ msgstr "(ERRO DO PROGRAMA) Nenhuma versão conhecida!?"
+
+#~ msgid "%s: Too many arguments\n"
+#~ msgstr "%s: Demasiados argumentos\n"
+
+#~ msgid "(PROGRAM ERROR) Option should have been recognized!?"
+#~ msgstr "(ERRO DO PROGRAMA) A opção deveria ter sido reconhecida!?"
+
+#~ msgid "program error"
+#~ msgstr "erro de programa"
+
+#~ msgid "System error"
+#~ msgstr "Erro de sistema"
+
+#~ msgid "Unknown error"
+#~ msgstr "Erro desconhecido"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: opção '--%s' não permite um argumento\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: opção não reconhecida '--%s'\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: opção '-W %s' não permite um argumento\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: opção '-W %s' requer um argumento\n"
+
+#~ msgid "Success"
+#~ msgstr "Com sucesso"
+
+#~ msgid "No match"
+#~ msgstr "Nenhuma equivalência"
+
+#~ msgid "Invalid regular expression"
+#~ msgstr "Expressão regular inválida"
+
+#~ msgid "Invalid collation character"
+#~ msgstr "Caractere de colação inválido"
+
+#~ msgid "Invalid character class name"
+#~ msgstr "Nome de classe de caracteres inválido"
+
+#~ msgid "Trailing backslash"
+#~ msgstr "Backslash de arrasto"
+
+#~ msgid "Invalid back reference"
+#~ msgstr "Referência de retorno inválida"
+
+#~ msgid "Unmatched [ or [^"
+#~ msgstr "[ ou [^ não equivalente"
+
+#~ msgid "Unmatched ( or \\("
+#~ msgstr "( ou \\( não equivalente"
+
+#~ msgid "Unmatched \\{"
+#~ msgstr "\\{ não equivalente"
+
+#~ msgid "Invalid content of \\{\\}"
+#~ msgstr "Conteúdo de \\{\\} inválido"
+
+#~ msgid "Invalid range end"
+#~ msgstr "Final de alcance inválido"
+
+#~ msgid "Memory exhausted"
+#~ msgstr "Memória esgotada"
+
+#~ msgid "Invalid preceding regular expression"
+#~ msgstr "Expressão regular precedente inválida"
+
+#~ msgid "Premature end of regular expression"
+#~ msgstr "Final prematuro da expressão regular"
+
+#~ msgid "Regular expression too big"
+#~ msgstr "Expressão regular muito grande"
+
+#~ msgid "Unmatched ) or \\)"
+#~ msgstr ") ou \\) não emparelhado"
+
+#~ msgid "No previous regular expression"
+#~ msgstr "Nenhuma expressão regular prévia"
+
+#~ msgid "Hangup"
+#~ msgstr "Pendurar"
+
+#~ msgid "Interrupt"
+#~ msgstr "Interromper"
+
+#~ msgid "Quit"
+#~ msgstr "Sair"
+
+#~ msgid "Illegal instruction"
+#~ msgstr "Instrução ilegal"
+
+#~ msgid "Trace/breakpoint trap"
+#~ msgstr "Acompanhar/armadilha de ponto de ruptura"
+
+#~ msgid "Aborted"
+#~ msgstr "Abortado"
+
+#~ msgid "Floating point exception"
+#~ msgstr "Excepção de vírgula flutuante"
+
+#~ msgid "Killed"
+#~ msgstr "Morto"
+
+#~ msgid "Bus error"
+#~ msgstr "Erro do bus"
+
+#~ msgid "Segmentation fault"
+#~ msgstr "Falha de segmentação"
+
+#~ msgid "Broken pipe"
+#~ msgstr "Pipe quebrado"
+
+#~ msgid "Terminated"
+#~ msgstr "Terminado"
+
+#~ msgid "Urgent I/O condition"
+#~ msgstr "Condição I/O urgente"
+
+#~ msgid "Stopped (signal)"
+#~ msgstr "Parado (sinal)"
+
+#~ msgid "Stopped"
+#~ msgstr "Parado"
+
+#~ msgid "Continued"
+#~ msgstr "Continuado"
+
+#~ msgid "Child exited"
+#~ msgstr "Processo filho terminado"
+
+#~ msgid "Stopped (tty input)"
+#~ msgstr "Parado (entrada tty)"
+
+#~ msgid "Stopped (tty output)"
+#~ msgstr "Parado (saída tty)"
+
+#~ msgid "I/O possible"
+#~ msgstr "Possível I/O"
+
+#~ msgid "CPU time limit exceeded"
+#~ msgstr "Limite de tempo de CPU excedido"
+
+#~ msgid "File size limit exceeded"
+#~ msgstr "Limite de tamanho de ficheiro excedido"
+
+#~ msgid "Virtual timer expired"
+#~ msgstr "Temporizador virtual expirado"
+
+#~ msgid "Profiling timer expired"
+#~ msgstr "Temporizador de perfil expirado"
+
+#~ msgid "Window changed"
+#~ msgstr "Janela alterada"
+
+#~ msgid "User defined signal 1"
+#~ msgstr "Sinal 1 definido pelo utilizador"
+
+#~ msgid "User defined signal 2"
+#~ msgstr "Sinal 2 definido pelo utilizador"
+
+#~ msgid "EMT trap"
+#~ msgstr "Armadilha EMT"
+
+#~ msgid "Bad system call"
+#~ msgstr "Má chamada do sistema"
+
+#~ msgid "Stack fault"
+#~ msgstr "Falha do Stack"
+
+#~ msgid "Information request"
+#~ msgstr "Requisito de informação"
+
+#~ msgid "Power failure"
+#~ msgstr "Falha de energia"
+
+#~ msgid "Resource lost"
+#~ msgstr "Recurso perdido"
+
+#~ msgid "Real-time signal %d"
+#~ msgstr "Sinal de tempo real %d"
+
+#~ msgid "Unknown signal %d"
+#~ msgstr "Sinal desconhecido %d"
+
+#~ msgid "unknown stream"
+#~ msgstr "fluxo desconhecido"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: opção ilegal -- %c\n"

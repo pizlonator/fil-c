@@ -1,0 +1,61 @@
+# Copyright (C) 2012-2015, 2018-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Valgrind suppression file for Bison.
+
+# Travis Trusty, 2018-09-07.
+{
+   libstdcxx_init
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+   fun:call_init.part.0
+   fun:call_init
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.19.so
+}
+
+# Linux prague 4.1.2-2-ARCH #1 SMP PREEMPT Wed Jul 15 08:30:32 UTC 2015
+# x86_64 GNU/Linux
+{
+   Probably exception handling from G++ 5.1.
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:pool
+   fun:__static_initialization_and_destruction_0
+   fun:_GLOBAL__sub_I_eh_alloc.cc
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/usr/lib/ld-2.21.so
+}
+
+# Linux seattle 2.6.32-5-amd64 #1 SMP Thu Mar 22 17:26:33 UTC 2012
+# x86_64 GNU/Linux
+{
+   index
+   Memcheck:Cond
+   fun:index
+   fun:expand_dynamic_string_token
+   fun:_dl_map_object
+   fun:map_doit
+   fun:_dl_catch_error
+   fun:do_preload
+   fun:dl_main
+   fun:_dl_sysdep_start
+   fun:_dl_start
+   obj:/lib/ld-2.11.3.so
+}

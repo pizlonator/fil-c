@@ -1,0 +1,1645 @@
+# Chinese simplified translation for bison.
+# Copyright (C) 2011 Free Software Foundation, Inc.
+# This file is distributed under the same license as the bison package.
+# Wylmer Wang <wantinghard@gmail.com>, 2011.
+# Ji ZhengYu <zhengyuji@gmail.com>, 2011.
+# Mingye Wang <arthur200126@gmail.com>, 2015.
+msgid ""
+msgstr ""
+"Project-Id-Version: bison 3.0.4\n"
+"Report-Msgid-Bugs-To: bug-bison@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2015-08-27 16:52+0800\n"
+"Last-Translator: Mingye Wang <arthur200126@gmail.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.8.4\n"
+
+#: examples/c/bistromathic/parse.y:152 examples/java/calc/Calc.y:83
+msgid "number"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:154
+msgid "function"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:155
+msgid "variable"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:194
+msgid "error: division by zero"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:372
+#, fuzzy, c-format
+msgid "syntax error: invalid character: %c"
+msgstr "无效字符"
+
+#: examples/c/bistromathic/parse.y:389
+#, fuzzy
+msgid "%@: syntax error"
+msgstr "致命错误"
+
+#: examples/c/bistromathic/parse.y:390
+msgid "%@: syntax error: unexpected %u"
+msgstr ""
+
+#. TRANSLATORS: '%@' is a location in a file, '%u' is an
+#. "unexpected token", and '%0e', '%1e'... are expected tokens
+#. at this point.
+#.
+#. For instance on the expression "1 + * 2", you'd get
+#.
+#. 1.5: syntax error: expected - or ( or number or function or variable before *
+#: examples/c/bistromathic/parse.y:398
+msgid "%@: syntax error: expected %0e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:399
+msgid "%@: syntax error: expected %0e or %1e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:400
+msgid "%@: syntax error: expected %0e or %1e or %2e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:401
+msgid "%@: syntax error: expected %0e or %1e or %2e or %3e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:402
+msgid "%@: syntax error: expected %0e or %1e or %2e or %3e or %4e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:403
+msgid ""
+"%@: syntax error: expected %0e or %1e or %2e or %3e or %4e or %5e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:404
+msgid ""
+"%@: syntax error: expected %0e or %1e or %2e or %3e or %4e or %5e etc., "
+"before %u"
+msgstr ""
+
+#: examples/java/calc/Calc.y:81
+#, fuzzy
+msgid "end of line"
+msgstr "于文件结尾缺少 %s"
+
+#: src/complain.c:153
+msgid "S/R conflicts (enabled by default)"
+msgstr ""
+
+#: src/complain.c:154
+msgid "R/R conflicts (enabled by default)"
+msgstr ""
+
+#: src/complain.c:155 src/getargs.c:226
+msgid "generate conflict counterexamples"
+msgstr ""
+
+#: src/complain.c:156
+msgid "string aliases not attached to a symbol"
+msgstr ""
+
+#: src/complain.c:157
+msgid "obsolete constructs"
+msgstr ""
+
+#: src/complain.c:158
+#, fuzzy, c-format
+msgid "empty rules without %empty"
+msgstr "空的规则而无 %%empty"
+
+#: src/complain.c:159
+msgid "unset or unused midrule values"
+msgstr ""
+
+#: src/complain.c:160
+#, fuzzy
+msgid "useless precedence and associativity"
+msgstr "对于 %s 无作用的优先性与顺序关联性"
+
+#: src/complain.c:161
+msgid "incompatibilities with POSIX Yacc"
+msgstr ""
+
+#: src/complain.c:162
+msgid "all other warnings (enabled by default)"
+msgstr ""
+
+#: src/complain.c:163
+msgid "all the warnings except 'counterexamples', 'dangling-alias' and 'yacc'"
+msgstr ""
+
+#: src/complain.c:164
+msgid "turn off warnings in CATEGORY"
+msgstr ""
+
+#: src/complain.c:165
+msgid "turn off all the warnings"
+msgstr ""
+
+#: src/complain.c:166
+msgid "treat warnings as errors"
+msgstr ""
+
+#: src/complain.c:192
+msgid "Warning categories include:"
+msgstr ""
+
+#: src/complain.c:297
+msgid "warning"
+msgstr "警告"
+
+#: src/complain.c:299
+msgid "error"
+msgstr "错误"
+
+#: src/complain.c:301
+msgid "fatal error"
+msgstr "致命错误"
+
+#: src/complain.c:501
+msgid "note"
+msgstr ""
+
+#: src/complain.c:594
+#, c-format
+msgid "POSIX Yacc does not support %s"
+msgstr ""
+
+#: src/complain.c:603
+#, c-format
+msgid "deprecated directive: %s, use %s"
+msgstr "已弃用的指令：%s，应使用 %s"
+
+#: src/complain.c:616
+#, fuzzy, c-format
+msgid "duplicate directive"
+msgstr "已弃用的指令：%s"
+
+#: src/complain.c:618
+#, fuzzy, c-format
+msgid "duplicate directive: %s"
+msgstr "已弃用的指令：%s"
+
+#: src/complain.c:619 src/complain.c:628 src/reader.c:156 src/symtab.c:330
+#: src/symtab.c:339 src/symtab.c:569
+msgid "previous declaration"
+msgstr "上次声明"
+
+#: src/complain.c:627
+#, c-format
+msgid "only one %s allowed per rule"
+msgstr "每个规则只允许一个 %s"
+
+#: src/complain.c:647
+#, fuzzy
+msgid "syntax error"
+msgstr "致命错误"
+
+#: src/complain.c:648
+msgid "unexpected %0$s"
+msgstr ""
+
+#: src/complain.c:649
+msgid "expected %1$s before %0$s"
+msgstr ""
+
+#: src/complain.c:650
+msgid "expected %1$s or %2$s before %0$s"
+msgstr ""
+
+#: src/complain.c:651
+msgid "expected %1$s or %2$s or %3$s before %0$s"
+msgstr ""
+
+#: src/complain.c:652
+msgid "expected %1$s or %2$s or %3$s or %4$s before %0$s"
+msgstr ""
+
+#: src/conflicts.c:88
+#, fuzzy, c-format
+msgid "Conflict between rule %d and token %s resolved as shift"
+msgstr "    在规则 %d 与字组 %s 之间的冲突以偏移来解决"
+
+#: src/conflicts.c:98
+#, fuzzy, c-format
+msgid "Conflict between rule %d and token %s resolved as reduce"
+msgstr "    在规则 %d 与字组 %s 之间的冲突以归约来解决"
+
+#: src/conflicts.c:107
+#, fuzzy, c-format
+msgid "Conflict between rule %d and token %s resolved as an error"
+msgstr "    在规则 %d 与字组 %s 之间的冲突以视为错误来解决"
+
+#: src/conflicts.c:610
+#, c-format
+msgid "State %d "
+msgstr "状态 %d"
+
+#: src/conflicts.c:613
+#, c-format
+msgid "conflicts: %d shift/reduce, %d reduce/reduce\n"
+msgstr "冲突：%d 项偏移/归约，%d 项归约/归约\n"
+
+#: src/conflicts.c:616
+#, c-format
+msgid "conflicts: %d shift/reduce\n"
+msgstr "冲突：%d 项偏移/归约\n"
+
+#: src/conflicts.c:618
+#, c-format
+msgid "conflicts: %d reduce/reduce\n"
+msgstr "冲突：%d 项归约/归约\n"
+
+#: src/conflicts.c:661
+#, fuzzy, c-format
+msgid "shift/reduce conflicts for rule %d: %d found, %d expected"
+msgstr "偏移/归约冲突：找到 %d 项，预期为 %d 项"
+
+#: src/conflicts.c:667
+#, fuzzy, c-format
+msgid "reduce/reduce conflicts for rule %d: %d found, %d expected"
+msgstr "归约/归约冲突：找到 %d 项，预期为 %d 项"
+
+#: src/conflicts.c:685
+#, c-format
+msgid "%%expect-rr applies only to GLR parsers"
+msgstr "%%expect-rr 只适合 GLR 解析器"
+
+#: src/conflicts.c:705
+#, c-format
+msgid "shift/reduce conflicts: %d found, %d expected"
+msgstr "偏移/归约冲突：找到 %d 项，预期为 %d 项"
+
+#: src/conflicts.c:714
+#, c-format
+msgid "%d shift/reduce conflict"
+msgid_plural "%d shift/reduce conflicts"
+msgstr[0] "%d 项偏移/归约冲突"
+
+#: src/conflicts.c:734
+#, c-format
+msgid "reduce/reduce conflicts: %d found, %d expected"
+msgstr "归约/归约冲突：找到 %d 项，预期为 %d 项"
+
+#: src/conflicts.c:743
+#, c-format
+msgid "%d reduce/reduce conflict"
+msgid_plural "%d reduce/reduce conflicts"
+msgstr[0] "%d 项归约/归约冲突"
+
+#: src/conflicts.c:755
+msgid ""
+"rerun with option '-Wcounterexamples' to generate conflict counterexamples"
+msgstr ""
+
+#: src/counterexample.c:122 src/counterexample.c:124
+msgid "Example"
+msgstr ""
+
+#: src/counterexample.c:122
+msgid "First example"
+msgstr ""
+
+#: src/counterexample.c:124
+msgid "Second example"
+msgstr ""
+
+#: src/counterexample.c:126
+#, fuzzy
+msgid "Shift derivation"
+msgstr "上次声明"
+
+#: src/counterexample.c:126
+#, fuzzy
+msgid "First reduce derivation"
+msgstr "上次声明"
+
+#: src/counterexample.c:128
+#, fuzzy
+msgid "Reduce derivation"
+msgstr "上次声明"
+
+#: src/counterexample.c:128
+#, fuzzy
+msgid "Second reduce derivation"
+msgstr "上次声明"
+
+#: src/counterexample.c:1293 src/counterexample.c:1297
+#, fuzzy, c-format
+msgid "shift/reduce conflict on token %s"
+msgstr "%d 项偏移/归约冲突"
+
+#: src/counterexample.c:1298 src/counterexample.c:1340
+msgid ":"
+msgstr ""
+
+#: src/counterexample.c:1328 src/counterexample.c:1336
+#, fuzzy, c-format
+msgid "reduce/reduce conflict on token %s"
+msgid_plural "reduce/reduce conflict on tokens %s"
+msgstr[0] "%d 项归约/归约冲突"
+
+#: src/files.c:144
+#, c-format
+msgid "%s: cannot open"
+msgstr "%s：无法打开"
+
+#: src/files.c:160
+#, c-format
+msgid "input/output error"
+msgstr "输入/输出错误"
+
+#: src/files.c:163
+#, c-format
+msgid "cannot close file"
+msgstr "无法关闭文件"
+
+#: src/files.c:510
+#, c-format
+msgid "refusing to overwrite the input file %s"
+msgstr "拒绝覆盖输入文件 %s"
+
+#: src/files.c:518
+#, c-format
+msgid "conflicting outputs to file %s"
+msgstr "到文件 %s 的输出冲突"
+
+#: src/fixits.c:122
+#, fuzzy, c-format
+msgid "%s: cannot backup"
+msgstr "%s：无法打开"
+
+#: src/getargs.c:186
+msgid "colorize the output"
+msgstr ""
+
+#: src/getargs.c:187
+msgid "don't colorize the output"
+msgstr ""
+
+#: src/getargs.c:188
+msgid "colorize if the output device is a tty"
+msgstr ""
+
+#. TRANSLATORS: Use the same translation for WHEN as in the
+#. --color=WHEN help message.
+#: src/getargs.c:209
+msgid "WHEN can be one of the following:"
+msgstr ""
+
+#: src/getargs.c:222
+msgid "describe the states"
+msgstr ""
+
+#: src/getargs.c:223
+msgid "complete the core item sets with their closure"
+msgstr ""
+
+#: src/getargs.c:224
+msgid "explicitly associate lookahead tokens to items"
+msgstr ""
+
+#: src/getargs.c:225
+#, fuzzy
+msgid "describe shift/reduce conflicts solving"
+msgstr "%d 项偏移/归约冲突"
+
+#: src/getargs.c:227
+msgid "include all the above information"
+msgstr ""
+
+#: src/getargs.c:228
+msgid "disable the report"
+msgstr ""
+
+#. TRANSLATORS: Use the same translation for THINGS as in the
+#. --report=THINGS help message.
+#: src/getargs.c:251
+msgid "THINGS is a list of comma separated words that can include:"
+msgstr ""
+
+#: src/getargs.c:314
+msgid "TRACES is a list of comma separated words that can include:"
+msgstr ""
+
+#: src/getargs.c:326
+msgid "show errors with carets"
+msgstr ""
+
+#: src/getargs.c:327
+msgid "show machine-readable fixes"
+msgstr ""
+
+#: src/getargs.c:328
+msgid "do not generate any file"
+msgstr ""
+
+#: src/getargs.c:329
+msgid "all of the above"
+msgstr ""
+
+#: src/getargs.c:330
+msgid "disable all of the above"
+msgstr ""
+
+#. TRANSLATORS: Use the same translation for FEATURES as in the
+#. --feature=FEATURES help message.
+#: src/getargs.c:352
+msgid "FEATURES is a list of comma separated words that can include:"
+msgstr ""
+
+#: src/getargs.c:367
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "请尝试运行 %s --help 来获取更多信息。\n"
+
+#: src/getargs.c:376
+#, c-format
+msgid "Usage: %s [OPTION]... FILE\n"
+msgstr "用法：%s [选项]... 文件\n"
+
+#: src/getargs.c:377
+#, fuzzy
+msgid ""
+"Generate a deterministic LR or generalized LR (GLR) parser employing\n"
+"LALR(1), IELR(1), or canonical LR(1) parser tables.\n"
+"\n"
+msgstr ""
+"产生确定性 LR 或一般化 LR (GLR) 剖析器会用到\n"
+"LALR(1)，IELR(1)，或规范的 LR(1) 剖析器表格。 IELR(1) 和\n"
+"规范的 LR(1) 支持是实验性质。\n"
+"\n"
+
+#: src/getargs.c:383
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr "长选项的强制参数对短选项也是强制的。\n"
+
+#: src/getargs.c:386
+msgid "The same is true for optional arguments.\n"
+msgstr "可选项也是如此。\n"
+
+#: src/getargs.c:391
+#, fuzzy
+msgid ""
+"Operation Modes:\n"
+"  -h, --help                 display this help and exit\n"
+"  -V, --version              output version information and exit\n"
+"      --print-localedir      output directory containing locale-dependent "
+"data\n"
+"                             and exit\n"
+"      --print-datadir        output directory containing skeletons and XSLT\n"
+"                             and exit\n"
+"  -u, --update               apply fixes to the source grammar file and "
+"exit\n"
+"  -f, --feature[=FEATURES]   activate miscellaneous features\n"
+"\n"
+msgstr ""
+"\n"
+"作业模式：\n"
+"  -h, --help                 显示这份说明然后离开\n"
+"  -V, --version              输出版本信息然后离开\n"
+"      --print-localedir      输出包含语区依存的数据目录\n"
+"      --print-datadir        输出包含架构和 XSLT 的目录\n"
+"  -y, --yacc                 仿真 POSIX Yacc\n"
+"  -W, --warnings[=分类]      报告属于该分类的警告\n"
+"  -f, --feature[=特色]       启用杂项特色\n"
+"\n"
+
+#: src/getargs.c:407
+msgid ""
+"Diagnostics:\n"
+"  -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n"
+"      --color[=WHEN]         whether to colorize the diagnostics\n"
+"      --style=FILE           specify the CSS FILE for colorizer diagnostics\n"
+"\n"
+msgstr ""
+
+#: src/getargs.c:421
+#, fuzzy, c-format
+msgid ""
+"Tuning the Parser:\n"
+"  -L, --language=LANGUAGE          specify the output programming language\n"
+"  -S, --skeleton=FILE              specify the skeleton to use\n"
+"  -t, --debug                      instrument the parser for tracing\n"
+"                                   same as '-Dparse.trace'\n"
+"      --locations                  enable location support\n"
+"  -D, --define=NAME[=VALUE]        similar to '%define NAME VALUE'\n"
+"  -F, --force-define=NAME[=VALUE]  override '%define NAME VALUE'\n"
+"  -p, --name-prefix=PREFIX         prepend PREFIX to the external symbols\n"
+"                                   deprecated by '-Dapi.prefix={PREFIX}'\n"
+"  -l, --no-lines                   don't generate '#line' directives\n"
+"  -k, --token-table                include a table of token names\n"
+"  -y, --yacc                       emulate POSIX Yacc\n"
+msgstr ""
+"剖析器：\n"
+"  -L, --language=语言              指定输出编程语言\n"
+"  -S, --skeleton=文件              指定使用的架构\n"
+"  -t, --debug                      提供剖析器用于调试\n"
+"                                   如同 -Dparse.trace\n"
+"      --locations                  启用位置支持\n"
+"  -D, --define=名称[=值]           类似于 %define 名称「值」\n"
+"  -F, --force-define=名称[=值]     强制变更 %define 名称「值」\n"
+"  -p, --name-prefix=前缀           前置前缀为外部符号\n"
+"                                   由 -Dapi.prefix=前缀 所取代\n"
+"  -l, --no-lines                   不产生 #line 指令\n"
+"  -k, --token-table                包含字组名称的表格\n"
+
+#: src/getargs.c:438
+#, fuzzy
+msgid ""
+"Output Files:\n"
+"  -H, --header=[FILE]           also produce a header file\n"
+"  -d                            likewise but cannot specify FILE (for POSIX "
+"Yacc)\n"
+"  -r, --report=THINGS           also produce details on the automaton\n"
+"      --report-file=FILE        write report to FILE\n"
+"  -v, --verbose                 same as '--report=state'\n"
+"  -b, --file-prefix=PREFIX      specify a PREFIX for output files\n"
+"  -o, --output=FILE             leave output to FILE\n"
+"  -g, --graph[=FILE]            also output a graph of the automaton\n"
+"      --html[=FILE]             also output an HTML report of the automaton\n"
+"  -x, --xml[=FILE]              also output an XML report of the automaton\n"
+"  -M, --file-prefix-map=OLD=NEW replace prefix OLD with NEW when writing "
+"file paths\n"
+"                                in output files\n"
+msgstr ""
+"输出：\n"
+"      --defines[=文件]       也产生标头档\n"
+"  -d                         但是同样无法指定文件 (用于 POSIX Yacc)\n"
+"  -r, --report=事件          也于自动作业时产生细节\n"
+"      --report-file=文件     写入报告到文件\n"
+"  -v, --verbose              如同 --report=状态\n"
+"  -b, --file-prefix=前缀     指定输出文件的前缀\n"
+"  -o, --output=文件          留下输出到文件\n"
+"  -g, --graph[=文件]         也输出图形的自动设备\n"
+"  -x, --xml[=文件]           也输出自动作业的 XML 报告\n"
+"                             (XML 结构描述为实验性质)\n"
+
+#: src/getargs.c:458
+#, c-format
+msgid "Report bugs to <%s>.\n"
+msgstr "将错误通报给 <%s>。\n"
+
+#: src/getargs.c:459
+#, c-format
+msgid "%s home page: <%s>.\n"
+msgstr "%s 首页：<%s>。\n"
+
+#: src/getargs.c:460
+#, fuzzy
+msgid "General help using GNU software: <https://www.gnu.org/gethelp/>.\n"
+msgstr "使用 GNU 软件的一般说明：<http://www.gnu.org/gethelp/>。\n"
+
+#. TRANSLATORS: Replace LANG_CODE in this URL with your language code to
+#. form one of the URLs at https://translationproject.org/team/.
+#. Otherwise, replace the entire URL with your translation team's
+#. email address.
+#: src/getargs.c:474
+#, fuzzy
+msgid "Report translation bugs to <https://translationproject.org/team/>.\n"
+msgstr "报告翻译错误给 <http://translationproject.org/team/zh_CN.html>。\n"
+
+#: src/getargs.c:477
+msgid "For complete documentation, run: info bison.\n"
+msgstr "要取得完整文档请运行：info bison。\n"
+
+#: src/getargs.c:495
+msgid "Written by Robert Corbett and Richard Stallman.\n"
+msgstr "由 Robert Corbett 和 Richard Stallman 编写。\n"
+
+#: src/getargs.c:499
+#, c-format
+msgid "Copyright (C) %d Free Software Foundation, Inc.\n"
+msgstr "版权所有 (C) %d Free Software Foundation, Inc.\n"
+
+#: src/getargs.c:502
+msgid ""
+"This is free software; see the source for copying conditions.  There is NO\n"
+"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+msgstr ""
+"这是自由软件；请参考源代码的版权声明。本软件不提供任何保证，甚至不会包括\n"
+"可售性或适用于任何特定目的的保证。\n"
+
+#: src/getargs.c:524
+#, c-format
+msgid "multiple skeleton declarations are invalid"
+msgstr "多重架构声明无效"
+
+#: src/getargs.c:541
+#, c-format
+msgid "%s: invalid language"
+msgstr "%s：无效的语言"
+
+#: src/getargs.c:544
+msgid "multiple language declarations are invalid"
+msgstr "多语言声明是无效的"
+
+#: src/getargs.c:760
+#, fuzzy, c-format
+msgid "invalid argument for %s: %s"
+msgstr "%2$s 的参数 %1$s 无效"
+
+#: src/getargs.c:868
+#, fuzzy, c-format
+msgid "deprecated option: %s, use %s"
+msgstr "已弃用的指令：%s，应使用 %s"
+
+#: src/getargs.c:902
+#, fuzzy, c-format
+msgid "missing operand"
+msgstr "%s：缺少算子"
+
+#: src/getargs.c:904
+#, c-format
+msgid "extra operand %s"
+msgstr "额外算子 %s"
+
+#: src/gram.c:222
+msgid "Grammar"
+msgstr "语法"
+
+#: src/graphviz.c:46
+#, c-format
+msgid ""
+"// Generated by %s.\n"
+"// Report bugs to <%s>.\n"
+"// Home page: <%s>.\n"
+"\n"
+msgstr ""
+"// 由 %s 生成。\n"
+"// 向 <%s> 报告问题。\n"
+"// 主页：<%s>。\n"
+"\n"
+
+#: src/i18n-strings.c:35
+#, fuzzy
+msgid "end of file"
+msgstr "于文件结尾缺少 %s"
+
+#: src/i18n-strings.c:36
+#, fuzzy
+msgid "invalid token"
+msgstr "无效字符"
+
+#: src/location.c:138 src/scan-gram.l:957
+#, c-format
+msgid "line number overflow"
+msgstr "行号溢出"
+
+#: src/location.c:140
+#, c-format
+msgid "column number overflow"
+msgstr "列号溢出"
+
+#: src/location.c:143
+#, fuzzy, c-format
+msgid "byte number overflow"
+msgstr "行号溢出"
+
+#. TRANSLATORS: This is used when a line is too long, and is
+#. displayed truncated.  Use an ellipsis appropriate for your
+#. language, remembering that "…" (U+2026 HORIZONTAL ELLIPSIS)
+#. sometimes misdisplays and that "..." (three ASCII periods) is a
+#. safer choice in some locales.
+#: src/location.c:242
+msgid "..."
+msgstr ""
+
+#: src/main.c:172
+msgid "rule useless in parser due to conflicts"
+msgstr "由于冲突，解析器中的规则不起作用"
+
+#: src/main.c:274
+#, c-format
+msgid "fix-its can be applied.  Rerun with option '--update'."
+msgstr ""
+
+#: src/muscle-tab.c:528
+#, c-format
+msgid "%%define variable %s redefined"
+msgstr "%%define 变量 %s 被重新定义"
+
+#: src/muscle-tab.c:531 src/symtab.c:350
+msgid "previous definition"
+msgstr "上次定义"
+
+#: src/muscle-tab.c:590 src/muscle-tab.c:691 src/muscle-tab.c:750
+#, c-format
+msgid "%s: undefined %%define variable %s"
+msgstr "%s：未定义的 %%define 变量 %s"
+
+#: src/muscle-tab.c:624
+#, fuzzy, c-format
+msgid "%%define variable '%s' requires '{...}' values"
+msgstr "%%define 变量 %s 被重新定义"
+
+#: src/muscle-tab.c:629
+#, fuzzy, c-format
+msgid "%%define variable '%s' requires keyword values"
+msgstr "%%define 变量 %s 被重新定义"
+
+#: src/muscle-tab.c:634
+#, fuzzy, c-format
+msgid "%%define variable '%s' requires '\"...\"' values"
+msgstr "%%define 变量 %s 被重新定义"
+
+#: src/muscle-tab.c:685
+#, c-format
+msgid "invalid value for %%define Boolean variable %s"
+msgstr "无效的值用于 %%define 布尔变量 %s"
+
+#: src/muscle-tab.c:738
+#, c-format
+msgid "invalid value for %%define variable %s: %s"
+msgstr "无效的值用于 %%define 变量 %s：%s"
+
+#: src/muscle-tab.c:742
+#, c-format
+msgid "accepted value: %s"
+msgstr "被接受的值：%s"
+
+#: src/parse-gram.y:168
+msgid "string"
+msgstr ""
+
+#: src/parse-gram.y:169
+msgid "translatable string"
+msgstr ""
+
+#: src/parse-gram.y:214
+#, fuzzy
+msgid "[identifier]"
+msgstr "无效标识符：%s"
+
+#: src/parse-gram.y:215
+#, fuzzy
+msgid "character literal"
+msgstr "空的字符实字"
+
+#: src/parse-gram.y:217
+msgid "epilogue"
+msgstr ""
+
+#: src/parse-gram.y:219
+#, fuzzy
+msgid "identifier"
+msgstr "无效标识符：%s"
+
+#: src/parse-gram.y:220
+#, fuzzy
+msgid "identifier:"
+msgstr "无效标识符：%s"
+
+#: src/parse-gram.y:225
+msgid "<tag>"
+msgstr ""
+
+#: src/parse-gram.y:250
+#, fuzzy
+msgid "integer literal"
+msgstr "空的字符实字"
+
+#: src/parse-gram.y:780
+#, c-format
+msgid "character literals cannot be nonterminals"
+msgstr ""
+
+#: src/parse-gram.y:786
+#, c-format
+msgid "character literals cannot be used together with %s"
+msgstr ""
+
+#: src/parse-gram.y:789
+#, fuzzy, c-format
+msgid "definition of %s"
+msgstr "重新定义 %s 的用户字组数目"
+
+#: src/parse-gram.y:940
+#, c-format
+msgid "missing identifier in parameter declaration"
+msgstr "参数声明中缺少识别符"
+
+#: src/parse-gram.y:1062
+#, fuzzy, c-format
+msgid "invalid version requirement: %s"
+msgstr "无效引用：%s"
+
+#: src/parse-gram.y:1073
+#, c-format
+msgid "require bison %s, but have %s"
+msgstr ""
+
+#: src/print-graph.c:62 src/print.c:352
+#, c-format
+msgid "State %d"
+msgstr "状态 %d"
+
+#: src/print-xml.c:574
+#, c-format
+msgid "%s failed with status %d"
+msgstr ""
+
+#: src/print.c:143
+#, c-format
+msgid "shift, and go to state %d\n"
+msgstr "偏移，并进入状态 %d\n"
+
+#: src/print.c:145
+#, c-format
+msgid "go to state %d\n"
+msgstr "转到状态 %d\n"
+
+#: src/print.c:180
+msgid "error (nonassociative)\n"
+msgstr "错误 (非相联的)\n"
+
+#: src/print.c:202
+#, c-format
+msgid "accept"
+msgstr "接受"
+
+#: src/print.c:204
+#, c-format
+msgid "reduce using rule %d (%s)"
+msgstr "使用规则 %d 以归约 (%s)"
+
+#: src/print.c:242 src/print.c:316
+msgid "$default"
+msgstr "$default"
+
+#: src/print.c:378
+msgid "Terminals, with rules where they appear"
+msgstr "终结语词，附有它们出现处的规则"
+
+#: src/print.c:405
+msgid "Nonterminals, with rules where they appear"
+msgstr "非终结语词，附有它们出现处的规则"
+
+#: src/print.c:431
+#, fuzzy
+msgid "on left:"
+msgstr " 于左侧："
+
+#: src/print.c:440
+#, fuzzy
+msgid "on right:"
+msgstr " 于右侧："
+
+#: src/print.c:462
+msgid "Rules useless in parser due to conflicts"
+msgstr "由于冲突，解析器中的规则不起作用"
+
+#: src/reader.c:151
+#, c-format
+msgid "result type clash on merge function %s: <%s> != <%s>"
+msgstr "结果类型抵触发生于合并函数 %s：<%s>!=<%s>"
+
+#: src/reader.c:226
+#, c-format
+msgid "duplicated symbol name for %s ignored"
+msgstr "重复的符号名称用于 %s 被忽略"
+
+#: src/reader.c:262
+#, c-format
+msgid "rule given for %s, which is a token"
+msgstr "用于 %s 这项字组的规则"
+
+#: src/reader.c:321
+#, c-format
+msgid "type clash on default action: <%s> != <%s>"
+msgstr "类型与缺省动作相抵触：<%s> != <%s>"
+
+#: src/reader.c:345
+#, c-format
+msgid "empty rule for typed nonterminal, and no action"
+msgstr "空白规则用于赋予类型的非终结语词，以及没有动作"
+
+#: src/reader.c:389
+#, c-format
+msgid "unused value: $%d"
+msgstr "未使用的值：$%d"
+
+#: src/reader.c:391
+#, c-format
+msgid "unset value: $$"
+msgstr "未设置的值：$$"
+
+#: src/reader.c:401
+#, c-format
+msgid "%%empty on non-empty rule"
+msgstr "%%empty 于非空的规则"
+
+#: src/reader.c:411
+#, c-format
+msgid "empty rule without %%empty"
+msgstr "空的规则而无 %%empty"
+
+#: src/reader.c:427
+#, c-format
+msgid "token for %%prec is not defined: %s"
+msgstr "用于 %%prec 的字组未定义：%s"
+
+#: src/reader.c:432
+#, c-format
+msgid "only midrule actions can be typed: %s"
+msgstr ""
+
+#: src/reader.c:559 src/reader.c:581 src/reader.c:652
+#, c-format
+msgid "%s affects only GLR parsers"
+msgstr "%s 只影响 GLR 解析器"
+
+#: src/reader.c:562
+#, c-format
+msgid "%s must be followed by positive number"
+msgstr "%s 后面只能跟正数"
+
+#: src/reader.c:617
+#, c-format
+msgid "POSIX Yacc does not support typed midrule actions"
+msgstr ""
+
+#: src/reader.c:717
+#, c-format
+msgid "rule is too long"
+msgstr "规则过长"
+
+#: src/reader.c:923
+#, c-format
+msgid "the start symbol %s is undefined"
+msgstr "起始符号 %s 未定义"
+
+#: src/reader.c:933
+#, c-format
+msgid "the start symbol %s is a token"
+msgstr "起始符号 %s 是一项字组"
+
+#: src/reader.c:951
+#, c-format
+msgid "no rules in the input grammar"
+msgstr "输入语法中没有规则"
+
+#: src/reduce.c:225
+msgid "rule useless in grammar"
+msgstr "语法中的规则无效"
+
+#: src/reduce.c:281
+#, c-format
+msgid "nonterminal useless in grammar: %s"
+msgstr "非终结语词在文法中无用：%s"
+
+#: src/reduce.c:322
+msgid "Nonterminals useless in grammar"
+msgstr "非终结语词在文法中无用"
+
+#: src/reduce.c:334
+msgid "Terminals unused in grammar"
+msgstr "终端机在文法中未使用"
+
+#: src/reduce.c:343
+msgid "Rules useless in grammar"
+msgstr "语法中的规则无效"
+
+#: src/reduce.c:356
+#, c-format
+msgid "%d nonterminal useless in grammar"
+msgid_plural "%d nonterminals useless in grammar"
+msgstr[0] "%d 项非终结语词在文法中无用"
+
+#: src/reduce.c:361
+#, c-format
+msgid "%d rule useless in grammar"
+msgid_plural "%d rules useless in grammar"
+msgstr[0] "%d 项规则在文法中无用"
+
+#: src/reduce.c:392
+#, c-format
+msgid "start symbol %s does not derive any sentence"
+msgstr "启始符号 %s 不衍生任何句子"
+
+#: src/scan-code.l:160
+#, c-format
+msgid "stray '%s'"
+msgstr "零星的 %s"
+
+#: src/scan-code.l:332
+#, c-format
+msgid "refers to: %c%s at %s"
+msgstr "参考：%c%s 于 %s"
+
+#: src/scan-code.l:356
+#, c-format
+msgid "possibly meant: %c"
+msgstr "可能指：%c"
+
+#: src/scan-code.l:365
+#, c-format
+msgid ", hiding %c"
+msgstr "，隐藏 %c"
+
+#: src/scan-code.l:373
+#, c-format
+msgid " at %s"
+msgstr " 位于 %s"
+
+#: src/scan-code.l:377
+#, fuzzy, c-format
+msgid ", cannot be accessed from midrule action at $%d"
+msgstr "，无法从 位于 $%d 的 mid-rule 动作访问"
+
+#: src/scan-code.l:416 src/scan-gram.l:879
+#, c-format
+msgid "integer out of range: %s"
+msgstr "整数超出范围：%s"
+
+#: src/scan-code.l:505
+#, c-format
+msgid "invalid reference: %s"
+msgstr "无效引用：%s"
+
+#: src/scan-code.l:512
+#, c-format
+msgid "syntax error after '%c', expecting integer, letter, '_', '[', or '$'"
+msgstr "语法错误发生于 %c 之后，预期为整数、字母、'_'、'[' 或 '$'"
+
+#: src/scan-code.l:518
+#, c-format
+msgid "symbol not found in production before $%d: %.*s"
+msgstr "在 $%d 之前的结果中找不到符号：%.*s"
+
+#: src/scan-code.l:523
+#, c-format
+msgid "symbol not found in production: %.*s"
+msgstr "在结果中找不到符号：%.*s"
+
+#: src/scan-code.l:537
+#, c-format
+msgid "misleading reference: %s"
+msgstr "误导的参考：%s"
+
+#: src/scan-code.l:552
+#, c-format
+msgid "ambiguous reference: %s"
+msgstr "模棱两可的参考：%s"
+
+#: src/scan-code.l:588
+#, c-format
+msgid "explicit type given in untyped grammar"
+msgstr "在未定类型文法中给定明确的类型"
+
+#: src/scan-code.l:643
+#, c-format
+msgid "$$ for the midrule at $%d of %s has no declared type"
+msgstr "$$ 对于在 %2$s 中 $%1$d 的中段没有任何声明类型"
+
+#: src/scan-code.l:649
+#, c-format
+msgid "$$ of %s has no declared type"
+msgstr "%s 中的 $$ 没有任何声明类型"
+
+#: src/scan-code.l:675
+#, c-format
+msgid "$%s of %s has no declared type"
+msgstr "%2$s 中的 $%1$s 没有任何声明类型"
+
+#: src/scan-code.l:698
+#, c-format
+msgid "multiple occurrences of $%d with api.value.automove"
+msgstr ""
+
+#: src/scan-gram.l:93
+#, c-format
+msgid "invalid number after \\-escape: %s"
+msgstr "无效数字于 \\-转义之后：%s"
+
+#: src/scan-gram.l:214
+#, c-format
+msgid "stray ',' treated as white space"
+msgstr "零星的 ',' 将视为空白"
+
+#: src/scan-gram.l:309
+#, c-format
+msgid "invalid directive: %s"
+msgstr "无效的指令：%s"
+
+#: src/scan-gram.l:331
+#, c-format
+msgid "invalid identifier: %s"
+msgstr "无效标识符：%s"
+
+#: src/scan-gram.l:385
+msgid "invalid character"
+msgid_plural "invalid characters"
+msgstr[0] "无效字符"
+
+#: src/scan-gram.l:405
+#, c-format
+msgid "invalid null character"
+msgstr "无效的空字符"
+
+#: src/scan-gram.l:463
+#, c-format
+msgid "unexpected identifier in bracketed name: %s"
+msgstr "中括号内未预期的识别名称：%s"
+
+#: src/scan-gram.l:487
+#, c-format
+msgid "an identifier expected"
+msgstr "应有一个标识符"
+
+#: src/scan-gram.l:494
+msgid "invalid character in bracketed name"
+msgid_plural "invalid characters in bracketed name"
+msgstr[0] "中括号内无效字符"
+
+#: src/scan-gram.l:567 src/scan-gram.l:582
+#, c-format
+msgid "POSIX Yacc does not support string literals"
+msgstr ""
+
+#: src/scan-gram.l:605
+#, c-format
+msgid "empty character literal"
+msgstr "空的字符实字"
+
+#: src/scan-gram.l:611
+#, c-format
+msgid "extra characters in character literal"
+msgstr "额外字符于字符实字"
+
+#: src/scan-gram.l:690
+#, c-format
+msgid "invalid character after \\-escape: %s"
+msgstr "\\-转义符号之后的无效字符：%s"
+
+#: src/scan-gram.l:872
+#, c-format
+msgid "POSIX Yacc does not support hexadecimal literals"
+msgstr ""
+
+#: src/scan-gram.l:1010
+#, c-format
+msgid "missing %s at end of file"
+msgstr "于文件结尾缺少 %s"
+
+#: src/scan-gram.l:1021
+#, c-format
+msgid "missing %s at end of line"
+msgstr " 于列尾缺少 %s"
+
+#: src/scan-skel.l:158
+#, c-format
+msgid "unclosed %s directive in skeleton"
+msgstr "在架构中有未关闭的 %s 指令"
+
+#: src/scan-skel.l:269
+#, c-format
+msgid "too few arguments for %s directive in skeleton"
+msgstr "在架构中的 %s 指令参数太少"
+
+#: src/scan-skel.l:276
+#, c-format
+msgid "too many arguments for %s directive in skeleton"
+msgstr "在架构中的 %s 指令参数太多"
+
+#: src/symtab.c:129
+#, c-format
+msgid "POSIX Yacc forbids dashes in symbol names: %s"
+msgstr "POSIX Yacc 禁止符号名中有破折号：%s"
+
+#: src/symtab.c:329
+#, c-format
+msgid "%s redeclaration for %s"
+msgstr "%s 重复声明了 %s"
+
+#: src/symtab.c:338
+#, c-format
+msgid "%s redeclaration for <%s>"
+msgstr "%s 重复声明了 <%s>"
+
+#: src/symtab.c:347
+#, fuzzy, c-format
+msgid "symbol %s redeclared as a token"
+msgstr "符号 %s 重复声明"
+
+#: src/symtab.c:348
+#, fuzzy, c-format
+msgid "symbol %s redeclared as a nonterminal"
+msgstr "符号 %s 重复声明"
+
+#: src/symtab.c:388
+#, fuzzy, c-format
+msgid ""
+"symbol %s is used, but is not defined as a token and has no rules; did you "
+"mean %s?"
+msgstr "符号 %s 已使用过，但是并未定义为字组也没有规则"
+
+#: src/symtab.c:398
+#, c-format
+msgid "symbol %s is used, but is not defined as a token and has no rules"
+msgstr "符号 %s 已使用过，但是并未定义为字组也没有规则"
+
+#: src/symtab.c:537
+#, c-format
+msgid "POSIX yacc reserves %%type to nonterminals"
+msgstr ""
+
+#: src/symtab.c:567
+#, c-format
+msgid "symbol %s redeclared"
+msgstr "符号 %s 重复声明"
+
+#: src/symtab.c:591
+#, c-format
+msgid "nonterminals cannot be given a token code"
+msgstr ""
+
+#: src/symtab.c:594
+#, fuzzy, c-format
+msgid "redefining code of token %s"
+msgstr "重新定义 %s 的用户字组数目"
+
+#: src/symtab.c:597
+#, fuzzy, c-format
+msgid "code of token %s too large"
+msgstr "重新定义 %s 的用户字组数目"
+
+#: src/symtab.c:634
+#, c-format
+msgid "string literal %s not attached to a symbol"
+msgstr ""
+
+#: src/symtab.c:662
+#, c-format
+msgid "useless %s for type <%s>"
+msgstr "%s 对于类型 <%s> 无作用"
+
+#: src/symtab.c:667
+#, c-format
+msgid "type <%s> is used, but is not associated to any symbol"
+msgstr "类型 <%s> 已使用过，但是并未与任何符号相关联"
+
+#: src/symtab.c:712
+#, c-format
+msgid "nonterminals cannot be given a string alias"
+msgstr ""
+
+#: src/symtab.c:715
+#, c-format
+msgid "symbol %s used more than once as a literal string"
+msgstr "符号 %s 超过一次使用为实字字串"
+
+#: src/symtab.c:718
+#, c-format
+msgid "symbol %s given more than one literal string"
+msgstr "符号 %s 给定了超过一个实字字串"
+
+#: src/symtab.c:752
+#, c-format
+msgid "code %d reassigned to token %s"
+msgstr ""
+
+#: src/symtab.c:755
+#, c-format
+msgid "previous declaration for %s"
+msgstr "%s 的前一个声明"
+
+#: src/symtab.c:1083
+#, c-format
+msgid "token number too large"
+msgstr ""
+
+#: src/symtab.c:1332
+#, c-format
+msgid "useless precedence and associativity for %s"
+msgstr "对于 %s 无作用的优先性与顺序关联性"
+
+#: src/symtab.c:1335
+#, c-format
+msgid "useless precedence for %s"
+msgstr "对于 %s 无作用的优先性"
+
+#: src/symtab.c:1339
+#, c-format
+msgid "useless associativity for %s, use %%precedence"
+msgstr "对于 %s 无作用的顺序关联性，使用 %%precedence"
+
+#, c-format
+#~ msgid "bison (GNU Bison) %s"
+#~ msgstr "bison (GNU Bison) %s"
+
+#, c-format
+#~ msgid "multiple %s declarations"
+#~ msgstr "多次 %s 定义"
+
+#, c-format
+#~ msgid "too many symbols in input grammar (limit is %d)"
+#~ msgstr "输入语法中的符号过多(限制为 %d)"
+
+#~ msgid "user token number %d redeclaration for %s"
+#~ msgstr "用户字组数字 %d 被重复声明为 %s"
+
+#, fuzzy
+#~ msgid "eliminate useless chain rules"
+#~ msgstr "非终结语词在文法中无用：%s"
+
+#~ msgid "deprecated directive, use %s"
+#~ msgstr "已弃用的指令：%s"
+
+#, fuzzy
+#~ msgid ""
+#~ "Warning categories include:\n"
+#~ "  'conflicts-sr'      S/R conflicts (enabled by default)\n"
+#~ "  'conflicts-rr'      R/R conflicts (enabled by default)\n"
+#~ "  'deprecated'        obsolete constructs\n"
+#~ "  'empty-rule'        empty rules without %empty\n"
+#~ "  'midrule-values'    unset or unused midrule values\n"
+#~ "  'precedence'        useless precedence and associativity\n"
+#~ "  'yacc'              incompatibilities with POSIX Yacc\n"
+#~ "  'other'             all other warnings (enabled by default)\n"
+#~ "  'all'               all the warnings except 'yacc'\n"
+#~ "  'no-CATEGORY'       turn off warnings in CATEGORY\n"
+#~ "  'none'              turn off all the warnings\n"
+#~ "  'error[=CATEGORY]'  treat warnings as errors\n"
+#~ msgstr ""
+#~ "警告分类包含：\n"
+#~ "  'midrule-values'    未设置或未使用的中段值\n"
+#~ "  'yacc'              与 POSIX Yacc 不兼容\n"
+#~ "  'conflicts-sr'      S/R 冲突 (缺省启用)\n"
+#~ "  'conflicts-rr'      R/R 冲突 (缺省启用)\n"
+#~ "  'deprecated'        淘汰的建构\n"
+#~ "  'empty-rule'        空的规则而不具有 %empty\n"
+#~ "  'precedence'        无用的优先性与顺序关联性\n"
+#~ "  'other'             所有其他警告 (缺省启用)\n"
+#~ "  'all'               所有警告\n"
+#~ "  'no-CATEGORY'       在分类中关闭警告\n"
+#~ "  'none'              关闭所有警告\n"
+#~ "  'error[=CATEGORY]'  将警告当作错误\n"
+
+#~ msgid ""
+#~ "THINGS is a list of comma separated words that can include:\n"
+#~ "  'state'        describe the states\n"
+#~ "  'itemset'      complete the core item sets with their closure\n"
+#~ "  'lookahead'    explicitly associate lookahead tokens to items\n"
+#~ "  'solved'       describe shift/reduce conflicts solving\n"
+#~ "  'all'          include all the above information\n"
+#~ "  'none'         disable the report\n"
+#~ msgstr ""
+#~ "THINGS 是以逗号所分隔的字词清单，其中可以包含：\n"
+#~ "  'state'        描述状态\n"
+#~ "  'itemset'      完成核心项目集合并附有它们的结束\n"
+#~ "  'lookahead'    明确地将预估字组关联到项目\n"
+#~ "  'solved'       描述正在解决的偏移/归约冲突\n"
+#~ "  'all'          包含所有以上的信息\n"
+#~ "  'none'         停用报告\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "FEATURES is a list of comma separated words that can include:\n"
+#~ "  'caret', 'diagnostics-show-caret'\n"
+#~ "    show errors with carets\n"
+#~ "  'fixit', 'diagnostics-parseable-fixits'\n"
+#~ "    show machine-readable fixes\n"
+#~ "  'syntax-only'\n"
+#~ "    do not generate any file\n"
+#~ "  'all'\n"
+#~ "    all of the above\n"
+#~ "  'none'\n"
+#~ "    disable all of the above\n"
+#~ "  "
+#~ msgstr ""
+#~ "FEATURE 是逗号分隔的字词清单可以包含：\n"
+#~ "  'caret'        以插字符号显示错误\n"
+#~ "  'all'          以上全部\n"
+#~ "  'none'         停用以上全部\n"
+#~ "  "
+
+#~ msgid "ambiguous argument %s for %s"
+#~ msgstr "%2$s 的参数 %1$s 不明确"
+
+#~ msgid "Valid arguments are:"
+#~ msgstr "有效参数为："
+
+#~ msgid "write error"
+#~ msgstr "写入错误"
+
+#~ msgid "Unknown system error"
+#~ msgstr "未知系统错误"
+
+#, fuzzy
+#~| msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgid "%s: option '%s%s' is ambiguous\n"
+#~ msgstr "%s：选项 -W %s 是模棱两可的\n"
+
+#, fuzzy
+#~| msgid "%s: option '%s' is ambiguous; possibilities:"
+#~ msgid "%s: option '%s%s' is ambiguous; possibilities:"
+#~ msgstr "%s：选项 %s 是模棱两可的；可能性："
+
+#, fuzzy
+#~| msgid "%s: unrecognized option '%c%s'\n"
+#~ msgid "%s: unrecognized option '%s%s'\n"
+#~ msgstr "%s：无法识别的选项“%c%s”\n"
+
+#, fuzzy
+#~| msgid "%s: option '%c%s' doesn't allow an argument\n"
+#~ msgid "%s: option '%s%s' doesn't allow an argument\n"
+#~ msgstr "%s：“%c%s”选项不允许有参数\n"
+
+#, fuzzy
+#~| msgid "%s: option '--%s' requires an argument\n"
+#~ msgid "%s: option '%s%s' requires an argument\n"
+#~ msgstr "%s：“--%s”选项需要一个参数\n"
+
+#~ msgid "%s: invalid option -- '%c'\n"
+#~ msgstr "%s：无效选项 -- “%c”\n"
+
+#~ msgid "%s: option requires an argument -- '%c'\n"
+#~ msgstr "%s：选项需要一个参数 -- “%c”\n"
+
+#~ msgid "memory exhausted"
+#~ msgstr "内存耗尽"
+
+#~ msgid "cannot create pipe"
+#~ msgstr "无法创建管道"
+
+#~ msgid "%s subprocess failed"
+#~ msgstr "%s 子进程失败"
+
+#~ msgid "`"
+#~ msgstr "“"
+
+#~ msgid "'"
+#~ msgstr "”"
+
+#, fuzzy
+#~| msgid ""
+#~| "\n"
+#~| "Execution times (seconds)\n"
+#~ msgid "Execution times (seconds)"
+#~ msgstr ""
+#~ "\n"
+#~ "执行时间(秒)\n"
+
+#~ msgid "_open_osfhandle failed"
+#~ msgstr "_open_osfhandle 失败"
+
+#~ msgid "cannot restore fd %d: dup2 failed"
+#~ msgstr "无法恢复文件描述符 %d：dup2 失败"
+
+#~ msgid "%s subprocess"
+#~ msgstr "%s 子进程"
+
+#~ msgid "%s subprocess got fatal signal %d"
+#~ msgstr "%s 子进程收到致命信号 %d"
+
+#~ msgid "%u bitset_allocs, %u freed (%.2f%%).\n"
+#~ msgstr "%u bitset_allocs，%u 已释放 (%.2f%%)。\n"
+
+#~ msgid "%u bitset_sets, %u cached (%.2f%%)\n"
+#~ msgstr "%u bitset_sets，%u 已缓存 (%.2f%%)\n"
+
+#~ msgid "%u bitset_resets, %u cached (%.2f%%)\n"
+#~ msgstr "%u bitset_resets，%u 已缓存 (%.2f%%)\n"
+
+#~ msgid "%u bitset_tests, %u cached (%.2f%%)\n"
+#~ msgstr "%u bitset_tests，%u 已缓存 (%.2f%%)\n"
+
+#~ msgid "%u bitset_lists\n"
+#~ msgstr "%u bitset_lists\n"
+
+#~ msgid "count log histogram\n"
+#~ msgstr "计算日志长条图\n"
+
+#~ msgid "size log histogram\n"
+#~ msgstr "调整日志长条图大小\n"
+
+#~ msgid "density histogram\n"
+#~ msgstr "密度直方图\n"
+
+#~ msgid ""
+#~ "Bitset statistics:\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Bitset 统计：\n"
+#~ "\n"
+
+#~ msgid "Accumulated runs = %u\n"
+#~ msgstr "累计运行 = %u\n"
+
+#~ msgid "cannot read stats file"
+#~ msgstr "无法读取统计文件"
+
+#~ msgid "bad stats file size\n"
+#~ msgstr "不当的统计文件大小\n"
+
+#~ msgid "cannot write stats file"
+#~ msgstr "无法写入统计文件"
+
+#~ msgid "cannot open stats file for writing"
+#~ msgstr "无法打开统计文件用于写入"
+
+#~ msgid "symbol %s redefined"
+#~ msgstr "符号 %s 重复定义"
+
+#~ msgid "removing of '%s' failed"
+#~ msgstr "移除 %s 时失败"
+
+#~ msgid "creation of a temporary file failed"
+#~ msgstr "临时文件的创建失败"
+
+#~ msgid "saving stdin failed"
+#~ msgstr "保存标准输入时失败"
+
+#~ msgid "saving stdout failed"
+#~ msgstr "保存标准输出时失败"
+
+#~ msgid "opening of tmpfile failed"
+#~ msgstr "打开临时文件失败"
+
+#~ msgid "redirecting bison's stdout to the temporary file failed"
+#~ msgstr "将 bison 的标准输出重导至临时文件时失败"
+
+#~ msgid "redirecting m4's stdin from the temporary file failed"
+#~ msgstr "将 m4 的标准输入重导自临时文件时失败"
+
+#~ msgid "opening of a temporary file failed"
+#~ msgstr "打开临时文件失败"
+
+#~ msgid "redirecting m4's stdout to a temporary file failed"
+#~ msgstr "重新导向 m4 的标准输出到临时文件时失败"
+
+#~ msgid "subsidiary program '%s' interrupted"
+#~ msgstr "附加程序 %s 被中断"
+
+#~ msgid "subsidiary program '%s' not found"
+#~ msgstr "找不到附加程序 %s"
+
+#~ msgid "redirecting bison's stdin from the temporary file failed"
+#~ msgstr "从临时文件重新导向 bison 的标准输入时失败"
+
+#~ msgid " type %d is %s\n"
+#~ msgstr " 类型 %d 为 %s\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s：“--%s”选项不允许有参数\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s：无法识别的选项“--%s”\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s：“-W %s”选项不允许有参数\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s：“-W %s”选项需要一个参数\n"
+
+#~ msgid " TOTAL                 :"
+#~ msgstr " 总计                 ："
+
+#~ msgid "time in %s: %ld.%06ld (%ld%%)\n"
+#~ msgstr "%s 中的时间：%ld.%06ld (%ld%%)\n"
+
+#~ msgid "empty"
+#~ msgstr "空"
+
+#~ msgid ""
+#~ "undefined %%define variable `%s' passed to muscle_percent_define_get_loc"
+#~ msgstr "将未定义的 %%define 变量“%s” 传递给了 muscle_percent_define_get_loc"
+
+#~ msgid ""
+#~ "undefined %%define variable `%s' passed to "
+#~ "muscle_percent_define_get_syncline"
+#~ msgstr ""
+#~ "将未定义的 %%define 变量“%s”传递给了 muscle_percent_define_get_syncline"
+
+#~ msgid ""
+#~ "undefined %%define variable `%s' passed to muscle_percent_define_flag_if"
+#~ msgstr ""
+#~ "将未定义的 %%define 变量 “%s” 传递给了 muscle_percent_define_flag_if"
+
+#~ msgid ""
+#~ "undefined %%define variable `%s' passed to "
+#~ "muscle_percent_define_check_values"
+#~ msgstr ""
+#~ "将未定义的 %%define 变量 “%s” 传递给了 muscle_percent_define_check_values"
+
+#~ msgid "state %d"
+#~ msgstr "状态 %d"
+
+#~ msgid "use of YYFAIL, which is deprecated and will be removed"
+#~ msgstr "使用了 YYFAIL，它已经废弃并将被移除"
+
+#~ msgid "invalid $ value: $%d"
+#~ msgstr "无效的 $ 值：$%d"

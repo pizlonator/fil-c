@@ -1,0 +1,934 @@
+# translation of gnulib-2.0.0.3462.e9796.ru.po to Russian
+# Copyright (C) 2005, 2010 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnulib package.
+#
+# Sergey Poznyakoff <gray@gnu.org>, 2003,2004,2005.
+# Yuri Kozlov <yuray@komyakino.ru>, 2010, 2011, 2019.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnulib 4.0.0.2567\n"
+"Report-Msgid-Bugs-To: bug-gnulib@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2019-05-21 18:46+0300\n"
+"Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
+"Language-Team: Russian <gnu@d07.ru>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 2.0\n"
+
+#: lib/argmatch.c:132
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr "неверный аргумент %s для %s"
+
+#: lib/argmatch.c:133
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "неоднозначный аргумент %s для %s"
+
+#: lib/argmatch.c:152 lib/argmatch.h:223
+msgid "Valid arguments are:"
+msgstr "Верные аргументы:"
+
+#: lib/bitset/stats.c:183
+#, c-format
+msgid "%u bitset_allocs, %u freed (%.2f%%).\n"
+msgstr "%u bitset_allocs, %u освобождено (%.2f%%).\n"
+
+#: lib/bitset/stats.c:186
+#, c-format
+msgid "%u bitset_sets, %u cached (%.2f%%)\n"
+msgstr "%u bitset_sets, %u кэшировано (%.2f%%)\n"
+
+#: lib/bitset/stats.c:189
+#, c-format
+msgid "%u bitset_resets, %u cached (%.2f%%)\n"
+msgstr "%u bitset_resets, %u кэшировано (%.2f%%)\n"
+
+#: lib/bitset/stats.c:192
+#, c-format
+msgid "%u bitset_tests, %u cached (%.2f%%)\n"
+msgstr "%u bitset_tests, %u кэшировано (%.2f%%)\n"
+
+#: lib/bitset/stats.c:196
+#, c-format
+msgid "%u bitset_lists\n"
+msgstr "%u bitset_lists\n"
+
+#: lib/bitset/stats.c:198
+msgid "count log histogram\n"
+msgstr "количественная логарифмическая гистограмма\n"
+
+#: lib/bitset/stats.c:201
+msgid "size log histogram\n"
+msgstr "размерная логарифмическая гистограмма\n"
+
+#: lib/bitset/stats.c:204
+msgid "density histogram\n"
+msgstr "гистограмма плотности\n"
+
+#: lib/bitset/stats.c:216
+#, c-format
+msgid ""
+"Bitset statistics:\n"
+"\n"
+msgstr ""
+"Статистика bitset:\n"
+"\n"
+
+#: lib/bitset/stats.c:219
+#, c-format
+msgid "Accumulated runs = %u\n"
+msgstr "Накопленных запусков = %u\n"
+
+#: lib/bitset/stats.c:261 lib/bitset/stats.c:266
+msgid "cannot read stats file"
+msgstr "невозможно прочитать файл stats"
+
+#: lib/bitset/stats.c:263
+#, c-format
+msgid "bad stats file size\n"
+msgstr "некорректный размер файла stats\n"
+
+#: lib/bitset/stats.c:287 lib/bitset/stats.c:289
+msgid "cannot write stats file"
+msgstr "невозможно записать файл stats"
+
+#: lib/bitset/stats.c:292
+msgid "cannot open stats file for writing"
+msgstr "невозможно открыть файл stats для записи"
+
+#: lib/closeout.c:122
+msgid "write error"
+msgstr "ошибка записи"
+
+#: lib/error.c:195
+msgid "Unknown system error"
+msgstr "Неизвестная системная ошибка"
+
+#: lib/execute.c:348 lib/spawn-pipe.c:597 lib/wait-process.c:291
+#: lib/wait-process.c:365
+#, c-format
+msgid "%s subprocess failed"
+msgstr "подпроцесс %s завершился с ошибкой"
+
+#: lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: двусмысленный параметр «%s%s»\n"
+
+#: lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: двусмысленный параметр «%s%s»; возможные варианты:"
+
+#: lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: нераспознанный параметр «%s%s»\n"
+
+#: lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: для параметра «%s%s» нельзя использовать аргумент\n"
+
+#: lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: для параметра «%s%s» требуется аргумент\n"
+
+#: lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: неправильный параметр -- «%c»\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: для параметра требуется аргумент -- «%c»\n"
+
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "закончилась память"
+
+#: lib/openat-die.c:38
+#, c-format
+msgid "unable to record current working directory"
+msgstr "не удалось запомнить текущий рабочий каталог"
+
+#: lib/openat-die.c:57
+#, c-format
+msgid "failed to return to initial working directory"
+msgstr "не удалось вернуться в первоначальный рабочий каталог"
+
+#: lib/os2-spawn.c:46
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr "_open_osfhandle завершилась неудачно"
+
+#: lib/os2-spawn.c:83
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr "не удалось восстановить fd %d: dup2 завершилась неудачно"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:355
+msgid "`"
+msgstr "«"
+
+#: lib/quotearg.c:356
+msgid "'"
+msgstr "»"
+
+#: lib/spawn-pipe.c:217 lib/spawn-pipe.c:220 lib/spawn-pipe.c:459
+#: lib/spawn-pipe.c:462
+#, c-format
+msgid "cannot create pipe"
+msgstr "не удалось создать канал"
+
+#: lib/timevar.c:316
+msgid "Execution times (seconds)"
+msgstr "Время выполнения (секунд)"
+
+#: lib/timevar.c:318
+msgid "CPU user"
+msgstr "пользовательское время на ЦП"
+
+#: lib/timevar.c:318
+msgid "CPU system"
+msgstr "системное время на ЦП"
+
+#: lib/timevar.c:318
+msgid "wall clock"
+msgstr "настенные часы"
+
+#: lib/unicodeio.c:102
+msgid "iconv function not usable"
+msgstr "функция iconv неприменима"
+
+#: lib/unicodeio.c:104
+msgid "iconv function not available"
+msgstr "функция iconv недоступна"
+
+#: lib/unicodeio.c:111
+msgid "character out of range"
+msgstr "символ вне допустимого диапазона"
+
+#: lib/unicodeio.c:198
+#, c-format
+msgid "cannot convert U+%04X to local character set"
+msgstr "невозможно преобразовать U+%04X в локальную кодировку"
+
+#: lib/unicodeio.c:200
+#, c-format
+msgid "cannot convert U+%04X to local character set: %s"
+msgstr "невозможно преобразовать U+%04X в локальную кодировку: %s"
+
+#: lib/wait-process.c:232 lib/wait-process.c:264 lib/wait-process.c:326
+#, c-format
+msgid "%s subprocess"
+msgstr "подпроцесс %s"
+
+#: lib/wait-process.c:283 lib/wait-process.c:355
+#, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr "подпроцесс %s получил сигнал завершения %d"
+
+#~ msgid "Packaged by %s (%s)\n"
+#~ msgstr "Упакован %s (%s)\n"
+
+#~ msgid "Packaged by %s\n"
+#~ msgstr "Упакован %s\n"
+
+#~ msgid "(C)"
+#~ msgstr "©"
+
+#~ msgid ""
+#~ "License GPLv3+: GNU GPL version 3 or later <%s>.\n"
+#~ "This is free software: you are free to change and redistribute it.\n"
+#~ "There is NO WARRANTY, to the extent permitted by law.\n"
+#~ msgstr ""
+#~ "Лицензия GPLv3+: GNU GPL версии 3 или новее <%s>.\n"
+#~ "Это свободное ПО: вы можете изменять и распространять его.\n"
+#~ "Нет НИКАКИХ ГАРАНТИЙ в пределах действующего законодательства.\n"
+
+#~ msgid "Written by %s.\n"
+#~ msgstr "Автор программы: %s.\n"
+
+#~ msgid "Written by %s and %s.\n"
+#~ msgstr "Авторы программы: %s и %s.\n"
+
+#~ msgid "Written by %s, %s, and %s.\n"
+#~ msgstr "Авторы программы: %s, %s и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr ""
+#~ "Авторы программы: %s, %s, %s\n"
+#~ "и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr ""
+#~ "Авторы программы: %s, %s, %s,\n"
+#~ "%s и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, and %s.\n"
+#~ msgstr ""
+#~ "Авторы программы: %s, %s, %s,\n"
+#~ "%s, %s и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, and %s.\n"
+#~ msgstr ""
+#~ "Авторы программы: %s, %s, %s,\n"
+#~ "%s, %s, %s и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr ""
+#~ "Авторы программы: %s, %s, %s,\n"
+#~ "%s, %s, %s, %s\n"
+#~ "и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr ""
+#~ "Авторы программы:  %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s и %s.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, %s, and others.\n"
+#~ msgstr ""
+#~ "Авторы программы: %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, %s и другие.\n"
+
+#~ msgid "Report bugs to: %s\n"
+#~ msgstr "Об ошибках сообщайте по адресу: %s\n"
+
+#~ msgid "Report %s bugs to: %s\n"
+#~ msgstr "Об ошибках в %s сообщайте по адресу: %s\n"
+
+#~ msgid "%s home page: <%s>\n"
+#~ msgstr "Домашняя страница %s: <%s>\n"
+
+#~ msgid "General help using GNU software: <%s>\n"
+#~ msgstr "Справка по работе с программами GNU: <%s>\n"
+
+#~ msgid "ARGP_HELP_FMT: %s value is less than or equal to %s"
+#~ msgstr "ARGP_HELP_FMT: значение %s меньше или равно %s"
+
+#~ msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
+#~ msgstr "%.*s: параметр ARGP_HELP_FMT требует значения"
+
+#~ msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
+#~ msgstr "%.*s: неизвестный параметр ARGP_HELP_FMT"
+
+#~ msgid "Garbage in ARGP_HELP_FMT: %s"
+#~ msgstr "Мусор в ARGP_HELP_FMT: %s"
+
+#~ msgid ""
+#~ "Mandatory or optional arguments to long options are also mandatory or "
+#~ "optional for any corresponding short options."
+#~ msgstr ""
+#~ "Обязательные или необязательные аргументы к длинным именам параметров "
+#~ "остаются таковыми и к соответствующим коротким параметрам."
+
+#~ msgid "Usage:"
+#~ msgstr "Использование:"
+
+#~ msgid "  or: "
+#~ msgstr "  или: "
+
+#~ msgid " [OPTION...]"
+#~ msgstr " [ПАРАМЕТР...]"
+
+#~ msgid "Try '%s --help' or '%s --usage' for more information.\n"
+#~ msgstr ""
+#~ "Попробуйте «%s --help» или «%s --usage» для получения более подробного "
+#~ "описания.\n"
+
+#~ msgid "Report bugs to %s.\n"
+#~ msgstr "Об ошибках сообщай по адресу %s.\n"
+
+#~ msgid "give this help list"
+#~ msgstr "показать эту справку"
+
+#~ msgid "give a short usage message"
+#~ msgstr "показать короткую справку по использованию"
+
+#~ msgid "NAME"
+#~ msgstr "ИМЯ"
+
+#~ msgid "set the program name"
+#~ msgstr "задать имя программы"
+
+#~ msgid "SECS"
+#~ msgstr "СЕКУНД"
+
+#~ msgid "hang for SECS seconds (default 3600)"
+#~ msgstr "остановиться на заданное число СЕКУНД (по умолчанию 3600)"
+
+#~ msgid "print program version"
+#~ msgstr "показать номер версии программы"
+
+#~ msgid "(PROGRAM ERROR) No version known!?"
+#~ msgstr "(ОШИБКА ПРОГРАММЫ) Версия неизвестна!?"
+
+#~ msgid "%s: Too many arguments\n"
+#~ msgstr "%s: слишком много аргументов\n"
+
+#~ msgid "(PROGRAM ERROR) Option should have been recognized!?"
+#~ msgstr "(ОШИБКА ПРОГРАММЫ) Параметр должен был быть распознан!?"
+
+#~ msgid "program error"
+#~ msgstr "программная ошибка"
+
+#~ msgid "stack overflow"
+#~ msgstr "переполнение стека"
+
+#~ msgid "cannot find a temporary directory, try setting $TMPDIR"
+#~ msgstr "не удалось найти временный каталог, попробуйте задать $TMPDIR"
+
+#~ msgid "cannot create a temporary directory using template \"%s\""
+#~ msgstr "не удалось создать временный каталог с помощью шаблона «%s»"
+
+#~ msgid "cannot remove temporary file %s"
+#~ msgstr "не удалось удалить временный файл %s"
+
+#~ msgid "cannot remove temporary directory %s"
+#~ msgstr "не удалось удалить временный каталог %s"
+
+#~ msgid "error closing file"
+#~ msgstr "ошибка закрытия файла"
+
+#~ msgid "preserving permissions for %s"
+#~ msgstr "сохраняются права доступа для %s"
+
+#~ msgid "error while opening %s for reading"
+#~ msgstr "ошибка при открытии файла %s для чтения"
+
+#~ msgid "cannot open backup file %s for writing"
+#~ msgstr "не удалось открыть файл резервной копии %s для записи"
+
+#~ msgid "error reading %s"
+#~ msgstr "ошибка чтения %s"
+
+#~ msgid "error writing %s"
+#~ msgstr "ошибка записи %s"
+
+#~ msgid "error after reading %s"
+#~ msgstr "ошибка после чтения %s"
+
+#~ msgid "fdopen() failed"
+#~ msgstr "ошибка при выполнении fdopen()"
+
+#~ msgid "C# compiler not found, try installing mono"
+#~ msgstr "Не найден компилятор C#, попробуйте установить mono"
+
+#~ msgid "C# virtual machine not found, try installing mono"
+#~ msgstr "Не найдена виртуальная машина C#, попробуйте установить mono"
+
+#~ msgid "unbalanced ["
+#~ msgstr "несбалансированная ["
+
+#~ msgid "invalid character class"
+#~ msgstr "неправильный класс символов"
+
+#~ msgid "character class syntax is [[:space:]], not [:space:]"
+#~ msgstr "синтаксис класса символов: [[:space:]], а не [:space:]"
+
+#~ msgid "unfinished \\ escape"
+#~ msgstr "незавершённая \\ экранирующая последовательность"
+
+#~ msgid "invalid content of \\{\\}"
+#~ msgstr "неправильное содержимое в \\{\\}"
+
+#~ msgid "regular expression too big"
+#~ msgstr "регулярное выражение слишком большое"
+
+#~ msgid "unbalanced ("
+#~ msgstr "несбалансированная ("
+
+#~ msgid "no syntax specified"
+#~ msgstr "не указан синтаксис"
+
+#~ msgid "unbalanced )"
+#~ msgstr "несбалансированная )"
+
+#~ msgid "regular empty file"
+#~ msgstr "пустой обычный файл"
+
+#~ msgid "regular file"
+#~ msgstr "обычный файл"
+
+#~ msgid "directory"
+#~ msgstr "каталог"
+
+#~ msgid "symbolic link"
+#~ msgstr "символьная ссылка"
+
+#~ msgid "message queue"
+#~ msgstr "очередь сообщений"
+
+#~ msgid "semaphore"
+#~ msgstr "семафор"
+
+#~ msgid "shared memory object"
+#~ msgstr "объект общей памяти"
+
+#~ msgid "typed memory object"
+#~ msgstr "объект типизированной памяти"
+
+#~ msgid "block special file"
+#~ msgstr "блочный специальный файл"
+
+#~ msgid "character special file"
+#~ msgstr "символьный специальный файл"
+
+#~ msgid "contiguous data"
+#~ msgstr "непрерывные данные"
+
+#~ msgid "fifo"
+#~ msgstr "файл-очередь"
+
+#~ msgid "door"
+#~ msgstr "дверь"
+
+#~ msgid "multiplexed block special file"
+#~ msgstr "мультиплексный блочный специальный файл"
+
+#~ msgid "multiplexed character special file"
+#~ msgstr "мультиплексный символьный специальный файл"
+
+#~ msgid "multiplexed file"
+#~ msgstr "мультиплексный файл"
+
+#~ msgid "named file"
+#~ msgstr "именованный файл"
+
+#~ msgid "network special file"
+#~ msgstr "сетевой специальный файл"
+
+#~ msgid "migrated file with data"
+#~ msgstr "переносной файл с данными"
+
+#~ msgid "migrated file without data"
+#~ msgstr "переносной файл без данных"
+
+#~ msgid "port"
+#~ msgstr "порт"
+
+#~ msgid "socket"
+#~ msgstr "сокет"
+
+#~ msgid "whiteout"
+#~ msgstr "замазка"
+
+#~ msgid "weird file"
+#~ msgstr "странный файл"
+
+#~ msgid "Address family for hostname not supported"
+#~ msgstr "Адресное семейство не поддерживается для имени узла"
+
+#~ msgid "Temporary failure in name resolution"
+#~ msgstr "Временная ошибка при определении имени"
+
+#~ msgid "Bad value for ai_flags"
+#~ msgstr "Неверное значение для ai_flags"
+
+#~ msgid "Non-recoverable failure in name resolution"
+#~ msgstr "Невосстановимая ошибка при определении имени"
+
+#~ msgid "ai_family not supported"
+#~ msgstr "ai_family не поддерживается"
+
+#~ msgid "Memory allocation failure"
+#~ msgstr "Ошибка при выделении памяти"
+
+#~ msgid "No address associated with hostname"
+#~ msgstr "С именем узла не связано ни одного адреса"
+
+#~ msgid "Name or service not known"
+#~ msgstr "Неизвестное имя или служба"
+
+#~ msgid "Servname not supported for ai_socktype"
+#~ msgstr "Servname не поддерживается для ai_socktype"
+
+#~ msgid "ai_socktype not supported"
+#~ msgstr "ai_socktype не поддерживается"
+
+#~ msgid "System error"
+#~ msgstr "Системная ошибка"
+
+#~ msgid "Argument buffer too small"
+#~ msgstr "Слишком маленький буфер, указанный в аргументе"
+
+#~ msgid "Processing request in progress"
+#~ msgstr "Выполняется обработка запроса"
+
+#~ msgid "Request canceled"
+#~ msgstr "Запрос отменён"
+
+#~ msgid "Request not canceled"
+#~ msgstr "Запрос не отменён"
+
+#~ msgid "All requests done"
+#~ msgstr "Все запросы выполнены"
+
+#~ msgid "Interrupted by a signal"
+#~ msgstr "Прервано по сигналу"
+
+#~ msgid "Parameter string not correctly encoded"
+#~ msgstr "Строковый параметр неправильно закодирован"
+
+#~ msgid "Unknown error"
+#~ msgstr "Неизвестная ошибка"
+
+#~ msgid "invalid source_version argument to compile_java_class"
+#~ msgstr "неверный аргумент source_version для compile_java_class"
+
+#~ msgid "invalid target_version argument to compile_java_class"
+#~ msgstr "неверный аргумент target_version для compile_java_class"
+
+#~ msgid "failed to create \"%s\""
+#~ msgstr "не удалось создать «%s»"
+
+#~ msgid "error while writing \"%s\" file"
+#~ msgstr "ошибка записи в файл «%s»"
+
+#~ msgid "Java compiler not found, try installing gcj or set $JAVAC"
+#~ msgstr ""
+#~ "Не найден компилятор Java, попробуйте установить gcj или задать $JAVAC"
+
+#~ msgid "Java virtual machine not found, try installing gij or set $JAVA"
+#~ msgstr ""
+#~ "Не найдена виртуальная машина Java, попробуйте установить gcj или задать "
+#~ "$JAVA"
+
+#~ msgid "%s subprocess I/O error"
+#~ msgstr "ошибка вв/вывода подпроцесса %s"
+
+#~ msgid "cannot stat %s"
+#~ msgstr "не удалось выполнить stat для %s"
+
+#~ msgid "cannot change permissions of %s"
+#~ msgstr "невозможно изменить права доступа %s"
+
+#~ msgid "cannot create directory %s"
+#~ msgstr "невозможно создать каталог %s"
+
+#~ msgid "Failed to open /dev/zero for read"
+#~ msgstr "Не удалось открыть /dev/zero на чтение"
+
+#~ msgid "creation of reading thread failed"
+#~ msgstr "не удалось создать нить для чтения"
+
+#~ msgid "cannot set up nonblocking I/O to %s subprocess"
+#~ msgstr "не удалось настроить неблокированный ввод-вывод в подпроцессе %s"
+
+#~ msgid "communication with %s subprocess failed"
+#~ msgstr "не удалось связаться с подпроцессом %s"
+
+#~ msgid "write to %s subprocess failed"
+#~ msgstr "не удалось записать в подпроцесс %s"
+
+#~ msgid "read from %s subprocess failed"
+#~ msgstr "не удалось прочитать из подпроцесса %s"
+
+#~ msgid "subprocess %s terminated with exit code %d"
+#~ msgstr "подпроцесс %s завершился с кодом выхода %d"
+
+#~ msgid "creation of threads failed"
+#~ msgstr "не удалось создать нити"
+
+#~ msgid "%s subprocess terminated with exit code %d"
+#~ msgstr "подпроцесс %s завершился с кодом выхода %d"
+
+#~ msgid "Success"
+#~ msgstr "Успешно"
+
+#~ msgid "No match"
+#~ msgstr "Нет совпадений"
+
+#~ msgid "Invalid regular expression"
+#~ msgstr "Неверное регулярное выражение"
+
+#~ msgid "Invalid collation character"
+#~ msgstr "Неверный символ сравнения"
+
+#~ msgid "Invalid character class name"
+#~ msgstr "Неверное имя класса символов"
+
+#~ msgid "Trailing backslash"
+#~ msgstr "Конечная обратная косая черта"
+
+#~ msgid "Invalid back reference"
+#~ msgstr "Неверная обратная ссылка"
+
+#~ msgid "Unmatched [, [^, [:, [., or [="
+#~ msgstr "Непарная [, [^, [:, [. или [="
+
+#~ msgid "Unmatched ( or \\("
+#~ msgstr "Непарная ( или \\("
+
+#~ msgid "Unmatched \\{"
+#~ msgstr "Непарная \\{"
+
+#~ msgid "Invalid content of \\{\\}"
+#~ msgstr "Недопустимое содержимое в \\{\\}"
+
+#~ msgid "Invalid range end"
+#~ msgstr "Неверный конец диапазона"
+
+#~ msgid "Memory exhausted"
+#~ msgstr "Закончилась память"
+
+#~ msgid "Invalid preceding regular expression"
+#~ msgstr "Недопустимое предшествующее регулярное выражение"
+
+#~ msgid "Premature end of regular expression"
+#~ msgstr "Преждевременное завершение регулярного выражения"
+
+#~ msgid "Regular expression too big"
+#~ msgstr "Слишком большое регулярное выражение"
+
+#~ msgid "Unmatched ) or \\)"
+#~ msgstr "Непарная ) или \\)"
+
+#~ msgid "No previous regular expression"
+#~ msgstr "Отсутствует предыдущее регулярное выражение"
+
+#~ msgid "^[yY]"
+#~ msgstr "^[ДдYy]"
+
+#~ msgid "^[nN]"
+#~ msgstr "^[НнNn]"
+
+#~ msgid "setting permissions for %s"
+#~ msgstr "задание прав доступа для %s"
+
+#~ msgid "Hangup"
+#~ msgstr "Обрыв терминальной линии"
+
+#~ msgid "Interrupt"
+#~ msgstr "Прерывание"
+
+#~ msgid "Quit"
+#~ msgstr "Аварийное прерывание"
+
+#~ msgid "Illegal instruction"
+#~ msgstr "Недопустимая инструкция"
+
+#~ msgid "Trace/breakpoint trap"
+#~ msgstr "Прерывание на контрольной точке"
+
+#~ msgid "Aborted"
+#~ msgstr "Прервано"
+
+#~ msgid "Floating point exception"
+#~ msgstr "Ошибка операции с плавающей точкой"
+
+#~ msgid "Killed"
+#~ msgstr "Уничтожение"
+
+#~ msgid "Bus error"
+#~ msgstr "Ошибка шины"
+
+#~ msgid "Segmentation fault"
+#~ msgstr "Нарушение сегментирования"
+
+#~ msgid "Broken pipe"
+#~ msgstr "Обрыв канала"
+
+#~ msgid "Alarm clock"
+#~ msgstr "Сигнал по таймеру"
+
+#~ msgid "Terminated"
+#~ msgstr "Завершение"
+
+#~ msgid "Urgent I/O condition"
+#~ msgstr "Срочная операция ввода-вывода"
+
+#~ msgid "Stopped (signal)"
+#~ msgstr "Останов (сигнал)"
+
+#~ msgid "Stopped"
+#~ msgstr "Останов"
+
+#~ msgid "Continued"
+#~ msgstr "Возобновление"
+
+#~ msgid "Child exited"
+#~ msgstr "Потомок завершил работу"
+
+#~ msgid "Stopped (tty input)"
+#~ msgstr "Останов (ввод с терминала)"
+
+#~ msgid "Stopped (tty output)"
+#~ msgstr "Останов (вывод с терминала)"
+
+#~ msgid "I/O possible"
+#~ msgstr "Возможен ввод-вывод"
+
+#~ msgid "CPU time limit exceeded"
+#~ msgstr "Превышен предел по процессорному времени"
+
+#~ msgid "File size limit exceeded"
+#~ msgstr "Превышен предел размера файла"
+
+#~ msgid "Virtual timer expired"
+#~ msgstr "Виртуальное время истекло"
+
+#~ msgid "Profiling timer expired"
+#~ msgstr "Время профилирования истекло"
+
+#~ msgid "Window changed"
+#~ msgstr "Окно изменено"
+
+#~ msgid "User defined signal 1"
+#~ msgstr "Определяемый пользователем сигнал 1"
+
+#~ msgid "User defined signal 2"
+#~ msgstr "Определяемый пользователем сигнал 2"
+
+#~ msgid "EMT trap"
+#~ msgstr "Ловушка EMT"
+
+#~ msgid "Bad system call"
+#~ msgstr "Неправильный системный вызов"
+
+#~ msgid "Stack fault"
+#~ msgstr "Ошибка работы со стеком"
+
+#~ msgid "Information request"
+#~ msgstr "Запрос информации"
+
+#~ msgid "Power failure"
+#~ msgstr "Отказ питания"
+
+#~ msgid "Resource lost"
+#~ msgstr "Ресурс потерян"
+
+#~ msgid "error writing to a closed pipe or socket"
+#~ msgstr "ошибка записи в закрытый канал или сокет"
+
+#~ msgid "Real-time signal %d"
+#~ msgstr "Сигнал реального времени %d"
+
+#~ msgid "Unknown signal %d"
+#~ msgstr "Неизвестный сигнал %d"
+
+#~ msgid "invalid user"
+#~ msgstr "неверный пользователь"
+
+#~ msgid "invalid group"
+#~ msgstr "неверная группа"
+
+#~ msgid "invalid spec"
+#~ msgstr "неверный spec"
+
+#~ msgid "unable to display error message"
+#~ msgstr "невозможно показать сообщение об ошибке"
+
+#~ msgid "failed to set file descriptor text/binary mode"
+#~ msgstr ""
+#~ "не удалось изменить текстовый/двоичный режим у файлового дескриптора"
+
+#~ msgid "stdin"
+#~ msgstr "stdin"
+
+#~ msgid "stdout"
+#~ msgstr "stdout"
+
+#~ msgid "stderr"
+#~ msgstr "stderr"
+
+#~ msgid "unknown stream"
+#~ msgstr "неизвестный поток"
+
+#~ msgid "failed to reopen %s with mode %s"
+#~ msgstr "не удалось повторно открыть %s в режиме %s"
+
+#~ msgid "string comparison failed"
+#~ msgstr "сравнение строк завершилось неудачно"
+
+#~ msgid "Set LC_ALL='C' to work around the problem."
+#~ msgstr "Чтобы обойти эту проблему, установите LC_ALL='C'."
+
+#~ msgid "The strings compared were %s and %s."
+#~ msgstr "Сравнивались строки %s %s."
+
+#~ msgid "cannot perform formatted output"
+#~ msgstr "невозможно выполнить форматированный вывод"
+
+#~ msgid "standard file descriptors"
+#~ msgstr "стандартные файловые дескрипторы"
+
+#~ msgid "invalid %s%s argument '%s'"
+#~ msgstr "неверный аргумент %s%s в «%s»"
+
+#~ msgid "invalid suffix in %s%s argument '%s'"
+#~ msgstr "недопустимый суффикс в аргументе %s%s для «%s»"
+
+#~ msgid "%s%s argument '%s' too large"
+#~ msgstr "аргумент %s%s слишком велик для «%s»"
+
+#~ msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
+#~ msgstr "Домашняя страница %s: <https://www.gnu.org/software/%s/>\n"
+
+#~ msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+#~ msgstr "%.*s: значение параметра ARGP_HELP_FMT должно быть положительным"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: для параметра «--%s» аргумент не разрешён\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: нераспознанный параметр «--%s»\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: у параметра «-W %s» не может быть аргумента\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: для параметра «-W %s» требуется аргумент\n"
+
+#~ msgid "Franc,ois Pinard"
+#~ msgstr "Френсис Пинард (Franc,ois Pinard)"

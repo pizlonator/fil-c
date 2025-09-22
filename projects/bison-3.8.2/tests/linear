@@ -1,0 +1,111 @@
+#! /usr/bin/env ruby
+
+# Build a grammar whose LALR(1) parser has a given number of states.
+# Useful to test edge cases (e.g., 256 and 257 states, etc.).
+
+# Copyright (C) 2020-2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Written by Akim Demaille.
+
+class Linear
+  def initialize(states)
+    @states = states - 4
+    @cols = Math.sqrt(@states).to_i
+    @lines = @states / @cols
+    @rest = @states % @cols
+
+    @n = @lines * (@cols - 1) + (@rest == 0 ? 1 : @rest == 1 ? 2 : @rest)
+  end
+
+  def nterms
+    last = @lines + ([0, 1].include?(@rest) ? 0 : 1)
+    (0...last).map { |i| "t#{i}" }.join(' ')
+  end
+
+  def rules
+    res = (0...@lines).map { |i| "t#{i}:#{' N' * (@cols - 1)}" }.join("\n")
+    case @rest
+    when 0
+      res += ' N'
+    when 1
+      res += ' N N'
+    else
+      res += "\nt#{@lines}:#{" N" * @rest}"
+    end
+    res
+  end
+
+  def to_s
+    puts <<~EOF
+      // states: #{@states}
+      // cols: #{@cols}
+      // lines: #{@lines}
+      // rest: #{@rest}
+      // n: #{@n}
+
+      %code {
+        #include <stdio.h>
+        #include <stdlib.h>
+
+        static int yylex (void);
+        static void yyerror (const char *msg);
+       }
+
+      %debug
+      %define api.value.type union
+      %define parse.lac full
+      %define parse.error verbose
+      %printer { fprintf (yyo, "%ld", $$); } <long>
+      %token <long> N
+
+      %%
+
+      exp: #{nterms}
+
+      #{rules}
+
+      %%
+
+      static
+      int yylex (void)
+      {
+        static long count = 0;
+        if (count++ < #{@n})
+          {
+            yylval.N = count;
+            return N;
+          }
+        else
+          return 0;
+      }
+
+      static
+      void yyerror (const char *msg)
+      {
+        fprintf (stderr, "%s\\n", msg);
+      }
+
+      int
+      main (void)
+      {
+        yydebug = !!getenv ("YYDEBUG");
+        return yyparse ();
+      }
+      EOF
+  end
+end
+
+puts Linear.new(ARGV[0].to_i).to_s

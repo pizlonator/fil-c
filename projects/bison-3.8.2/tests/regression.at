@@ -1,0 +1,1910 @@
+# Bison Regressions.                               -*- Autotest -*-
+
+# Copyright (C) 2001-2015, 2018-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[Regression tests.]])
+
+
+## ------------------ ##
+## Trivial grammars.  ##
+## ------------------ ##
+
+AT_SETUP([Trivial grammars])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[[%{
+]AT_YYERROR_DECLARE_EXTERN[
+]AT_YYLEX_DECLARE_EXTERN[
+#define YYSTYPE int *
+%}
+
+%define parse.error verbose
+
+%%
+
+program: 'x';
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-o input.c input.y])
+AT_COMPILE([input.o])
+AT_COMPILE([input.o], [-DYYDEBUG -c input.c])
+
+AT_CLEANUP
+
+
+
+## ----------------- ##
+## YYSTYPE typedef.  ##
+## ----------------- ##
+
+AT_SETUP([YYSTYPE typedef])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[[%{
+]AT_YYERROR_DECLARE_EXTERN[
+]AT_YYLEX_DECLARE_EXTERN[
+typedef union { char const *val; } YYSTYPE;
+%}
+
+%type <val> program
+
+%%
+
+program: { $$ = ""; };
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-o input.c input.y])
+AT_COMPILE([input.o])
+
+AT_CLEANUP
+
+
+
+## ------------------------------------- ##
+## Early token definitions with --yacc.  ##
+## ------------------------------------- ##
+
+
+AT_SETUP([Early token definitions with --yacc])
+
+# Found in GCJ: they expect the tokens to be defined before the user
+# prologue, so that they can use the token definitions in it.
+
+AT_BISON_OPTION_PUSHDEFS([%yacc])
+
+# Not AT_DATA_GRAMMAR, which uses %code, which is not supported by Yacc.
+AT_DATA([input.y],
+[[%{
+]AT_YYERROR_DECLARE_EXTERN[
+]AT_YYLEX_DECLARE_EXTERN[
+%}
+
+%union
+{
+  int val;
+};
+%{
+#ifndef MY_TOKEN
+# error "MY_TOKEN not defined."
+#endif
+%}
+%token MY_TOKEN
+%%
+exp: MY_TOKEN;
+%%
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([--yacc -o input.c input.y])
+AT_COMPILE([input.o])
+
+AT_CLEANUP
+
+
+
+## ---------------------------------------- ##
+## Early token definitions without --yacc.  ##
+## ---------------------------------------- ##
+
+
+AT_SETUP([Early token definitions without --yacc])
+
+# Found in GCJ: they expect the tokens to be defined before the user
+# prologue, so that they can use the token definitions in it.
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[[%{
+]AT_YYERROR_DECLARE_EXTERN[
+]AT_YYLEX_DECLARE_EXTERN[
+void print_my_token (void);
+%}
+
+%union
+{
+  int val;
+};
+%{
+#include <stdio.h>
+void
+print_my_token (void)
+{
+  enum yytokentype tok1 = MY_TOKEN;
+  yytoken_kind_t   tok2 = MY_TOKEN;
+  printf ("%d, %d\n", tok1, tok2);
+}
+%}
+%token MY_TOKEN
+%%
+exp: MY_TOKEN;
+%%
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-o input.c input.y])
+AT_COMPILE([input.o])
+
+AT_CLEANUP
+
+
+
+## ---------------- ##
+## Braces parsing.  ##
+## ---------------- ##
+
+
+AT_SETUP([Braces parsing])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA([input.y],
+[[/* Bison used to swallow the character after '}'. */
+
+%%
+exp: { tests = {{{{{{{{{{}}}}}}}}}}; };
+%%
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-v -o input.c input.y])
+
+AT_CHECK([grep 'tests = {{{{{{{{{{}}}}}}}}}};' input.c], 0, [ignore])
+
+AT_CLEANUP
+
+
+## ------------------- ##
+## Rule Line Numbers.  ##
+## ------------------- ##
+
+AT_SETUP([Rule Line Numbers])
+
+AT_KEYWORDS([report])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA([input.y],
+[[%%
+expr:
+'a'
+
+{
+
+}
+
+'b'
+
+{
+
+}
+
+|
+
+
+{
+
+
+}
+
+'c'
+
+{
+
+};
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-o input.c -v input.y])
+
+# Check the contents of the report.
+AT_CHECK([cat input.output], [],
+[[Grammar
+
+    0 $accept: expr $end
+
+    1 $@1: %empty
+
+    2 expr: 'a' $@1 'b'
+
+    3 $@2: %empty
+
+    4 expr: $@2 'c'
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    'a' (97) 2
+    'b' (98) 2
+    'c' (99) 4
+    error (256)
+
+
+Nonterminals, with rules where they appear
+
+    $accept (6)
+        on left: 0
+    expr (7)
+        on left: 2 4
+        on right: 0
+    $@1 (8)
+        on left: 1
+        on right: 2
+    $@2 (9)
+        on left: 3
+        on right: 4
+
+
+State 0
+
+    0 $accept: . expr $end
+
+    'a'  shift, and go to state 1
+
+    $default  reduce using rule 3 ($@2)
+
+    expr  go to state 2
+    $@2   go to state 3
+
+
+State 1
+
+    2 expr: 'a' . $@1 'b'
+
+    $default  reduce using rule 1 ($@1)
+
+    $@1  go to state 4
+
+
+State 2
+
+    0 $accept: expr . $end
+
+    $end  shift, and go to state 5
+
+
+State 3
+
+    4 expr: $@2 . 'c'
+
+    'c'  shift, and go to state 6
+
+
+State 4
+
+    2 expr: 'a' $@1 . 'b'
+
+    'b'  shift, and go to state 7
+
+
+State 5
+
+    0 $accept: expr $end .
+
+    $default  accept
+
+
+State 6
+
+    4 expr: $@2 'c' .
+
+    $default  reduce using rule 4 (expr)
+
+
+State 7
+
+    2 expr: 'a' $@1 'b' .
+
+    $default  reduce using rule 2 (expr)
+]])
+
+AT_CLEANUP
+
+
+
+## ---------------------- ##
+## Mixing %token styles.  ##
+## ---------------------- ##
+
+
+AT_SETUP([Mixing %token styles])
+
+# Taken from the documentation.
+AT_DATA([input.y],
+[[%token  <operator>  OR      "||"
+%token  <operator>  LE 134  "<="
+%left  OR  "<="
+%%
+exp: %empty;
+%%
+]])
+
+AT_BISON_CHECK([-v -Wall -o input.c input.y], 0, [],
+[[input.y:3.1-5: warning: useless precedence and associativity for "||" [-Wprecedence]
+input.y:3.1-5: warning: useless precedence and associativity for "<=" [-Wprecedence]
+]])
+
+AT_CLEANUP
+
+
+
+## ------------------- ##
+## Token definitions.  ##
+## ------------------- ##
+
+m4_pushdef([AT_TEST],
+[AT_SETUP([Token definitions: $1])
+
+AT_BISON_OPTION_PUSHDEFS([$1])
+
+
+# Clang chokes on some of our comments, because it tries to "parse"
+# some documentation directives in the comments:
+#
+# input.c:131:48: error: '\a' command does not have a valid word argument [-Werror,-Wdocumentation]
+#     SPECIAL = 261                  /* "\\'?\"\a\b\f\n\r\t\v\001\201\001\201??!"  */
+#                                              ~~^
+AT_DATA_GRAMMAR([input.y],
+[%{
+#if defined __clang__ && 10 <= __clang_major__
+# pragma clang diagnostic ignored "-Wdocumentation"
+#endif
+
+]AT_YYERROR_DECLARE[
+]AT_YYLEX_DECLARE[
+%}
+[$1
+%token MYEOF 0 "end of file"
+%token 'a' "a"  // Bison managed, when fed with '%token 'f' "f"' to #define 'f'!
+%token B_TOKEN "b"
+%token C_TOKEN 'c'
+%token 'd' D_TOKEN
+%token SPECIAL "\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"
+%token SPECIAL "\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"
+%%
+exp: ]AT_ERROR_VERBOSE_IF(["\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"], ["∃¬∩∪∀"])[;
+%%
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE(["a"])[
+]AT_MAIN_DEFINE[
+]])
+
+# Checking the warning message guarantees that the trigraph "??!" isn't
+# unnecessarily escaped here even though it would need to be if encoded in a
+# C-string literal.  Also notice that unnecessary escaping, such as "\?", from
+# the user specification is eliminated.
+AT_BISON_CHECK([-fcaret -o input.c input.y], [[0]], [[]],
+[[input.y:26.8-14: warning: symbol SPECIAL redeclared [-Wother]
+   26 | %token SPECIAL "\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"
+      |        ^~~~~~~
+input.y:25.8-14: note: previous declaration
+   25 | %token SPECIAL "\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"
+      |        ^~~~~~~
+input.y:26.16-63: warning: symbol "\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!" used more than once as a literal string [-Wother]
+   26 | %token SPECIAL "\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]])
+
+AT_COMPILE([input])
+
+# Checking the error message here guarantees that yytname, which does contain
+# C-string literals, does have the trigraph escaped correctly.  Thus, the
+# symbol name reported by the parser is exactly the same as that reported by
+# Bison itself.
+AT_PARSER_CHECK([input], 1, [],
+[[syntax error, unexpected a, expecting ]AT_ERROR_VERBOSE_IF([["\\\'\?\"\a\b\f\n\r\t\v\001\201\x001\x000081??!"]], [[∃¬∩∪∀]])[
+]])
+
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP
+])
+
+AT_TEST([%define parse.error detailed])
+AT_TEST([%define parse.error verbose])
+
+m4_popdef([AT_TEST])
+
+## -------------------- ##
+## Characters Escapes.  ##
+## -------------------- ##
+
+
+AT_SETUP([Characters Escapes])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[%{
+]AT_YYERROR_DECLARE_EXTERN[
+]AT_YYLEX_DECLARE_EXTERN[
+%}
+[%%
+exp:
+  '\'' "\'"
+| '\"' "\""
+| '"'  "'" /* Pacify font-lock-mode: ". */
+;
+]])
+
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-o input.c input.y])
+AT_COMPILE([input.o])
+AT_CLEANUP
+
+
+
+## -------------- ##
+## Web2c Report.  ##
+## -------------- ##
+
+# The generation of the reduction was once wrong in Bison, and made it
+# miss some reductions.  In the following test case, the reduction on
+# 'undef_id_tok' in state 1 was missing.  This is stripped down from
+# the actual web2c.y.
+
+AT_SETUP([Web2c Report])
+
+AT_KEYWORDS([report])
+
+AT_DATA([input.y],
+[[%token        undef_id_tok const_id_tok
+
+%start CONST_DEC_PART
+
+%%
+CONST_DEC_PART:
+         CONST_DEC_LIST
+        ;
+
+CONST_DEC_LIST:
+          CONST_DEC
+        | CONST_DEC_LIST CONST_DEC
+        ;
+
+CONST_DEC:
+          { } undef_id_tok '=' const_id_tok ';'
+        ;
+%%
+]])
+
+AT_BISON_CHECK([-v input.y])
+AT_CHECK([cat input.output], 0,
+[[Grammar
+
+    0 $accept: CONST_DEC_PART $end
+
+    1 CONST_DEC_PART: CONST_DEC_LIST
+
+    2 CONST_DEC_LIST: CONST_DEC
+    3               | CONST_DEC_LIST CONST_DEC
+
+    4 $@1: %empty
+
+    5 CONST_DEC: $@1 undef_id_tok '=' const_id_tok ';'
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    ';' (59) 5
+    '=' (61) 5
+    error (256)
+    undef_id_tok (258) 5
+    const_id_tok (259) 5
+
+
+Nonterminals, with rules where they appear
+
+    $accept (7)
+        on left: 0
+    CONST_DEC_PART (8)
+        on left: 1
+        on right: 0
+    CONST_DEC_LIST (9)
+        on left: 2 3
+        on right: 1 3
+    CONST_DEC (10)
+        on left: 5
+        on right: 2 3
+    $@1 (11)
+        on left: 4
+        on right: 5
+
+
+State 0
+
+    0 $accept: . CONST_DEC_PART $end
+
+    $default  reduce using rule 4 ($@1)
+
+    CONST_DEC_PART  go to state 1
+    CONST_DEC_LIST  go to state 2
+    CONST_DEC       go to state 3
+    $@1             go to state 4
+
+
+State 1
+
+    0 $accept: CONST_DEC_PART . $end
+
+    $end  shift, and go to state 5
+
+
+State 2
+
+    1 CONST_DEC_PART: CONST_DEC_LIST .
+    3 CONST_DEC_LIST: CONST_DEC_LIST . CONST_DEC
+
+    undef_id_tok  reduce using rule 4 ($@1)
+    $default      reduce using rule 1 (CONST_DEC_PART)
+
+    CONST_DEC  go to state 6
+    $@1        go to state 4
+
+
+State 3
+
+    2 CONST_DEC_LIST: CONST_DEC .
+
+    $default  reduce using rule 2 (CONST_DEC_LIST)
+
+
+State 4
+
+    5 CONST_DEC: $@1 . undef_id_tok '=' const_id_tok ';'
+
+    undef_id_tok  shift, and go to state 7
+
+
+State 5
+
+    0 $accept: CONST_DEC_PART $end .
+
+    $default  accept
+
+
+State 6
+
+    3 CONST_DEC_LIST: CONST_DEC_LIST CONST_DEC .
+
+    $default  reduce using rule 3 (CONST_DEC_LIST)
+
+
+State 7
+
+    5 CONST_DEC: $@1 undef_id_tok . '=' const_id_tok ';'
+
+    '='  shift, and go to state 8
+
+
+State 8
+
+    5 CONST_DEC: $@1 undef_id_tok '=' . const_id_tok ';'
+
+    const_id_tok  shift, and go to state 9
+
+
+State 9
+
+    5 CONST_DEC: $@1 undef_id_tok '=' const_id_tok . ';'
+
+    ';'  shift, and go to state 10
+
+
+State 10
+
+    5 CONST_DEC: $@1 undef_id_tok '=' const_id_tok ';' .
+
+    $default  reduce using rule 5 (CONST_DEC)
+]])
+
+AT_CLEANUP
+
+
+## --------------- ##
+## Web2c Actions.  ##
+## --------------- ##
+
+# The generation of the mapping 'state -> action' was once wrong in
+# extremely specific situations.  web2c.y exhibits this situation.
+# Below is a stripped version of the grammar.  It looks like one can
+# simplify it further, but just don't: it is tuned to exhibit a bug,
+# which disappears when applying sane grammar transformations.
+#
+# It used to be wrong on yydefact only:
+#
+# static const yytype_uint8 yydefact[] =
+#  {
+# -       2,     0,     1,     0,     0,     2,     3,     2,     5,     4,
+# +       2,     0,     1,     0,     0,     0,     3,     2,     5,     4,
+#         0,     0
+#  };
+#
+# but let's check all the tables.
+
+
+AT_SETUP([Web2c Actions])
+
+AT_KEYWORDS([report])
+
+AT_DATA([input.y],
+[[%%
+statement:  struct_stat;
+struct_stat:  %empty | if else;
+if: "if" "const" "then" statement;
+else: "else" statement;
+%%
+]])
+
+AT_BISON_CHECK([-v -o input.c input.y])
+
+# Check only the tables.
+[sed -n 's/  *$//;/^static const.*\[\] =/,/^}/p;/#define YY.*NINF/p' input.c >tables.c]
+
+AT_CHECK([[cat tables.c]], 0,
+[[static const yytype_int8 yytranslate[] =
+{
+       0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
+       5,     6
+};
+static const yytype_int8 yyrline[] =
+{
+       0,     2,     2,     3,     3,     4,     5
+};
+static const char *const yytname[] =
+{
+  "\"end of file\"", "error", "\"invalid token\"", "\"if\"", "\"const\"",
+  "\"then\"", "\"else\"", "$accept", "statement", "struct_stat", "if",
+  "else", YY_NULLPTR
+};
+#define YYPACT_NINF (-8)
+#define YYTABLE_NINF (-1)
+static const yytype_int8 yypact[] =
+{
+      -2,    -1,     4,    -8,     0,     2,    -8,    -2,    -8,    -2,
+      -8,    -8
+};
+static const yytype_int8 yydefact[] =
+{
+       3,     0,     0,     2,     0,     0,     1,     3,     4,     3,
+       6,     5
+};
+static const yytype_int8 yypgoto[] =
+{
+      -8,    -7,    -8,    -8,    -8
+};
+static const yytype_int8 yydefgoto[] =
+{
+       0,     2,     3,     4,     8
+};
+static const yytype_int8 yytable[] =
+{
+      10,     1,    11,     5,     6,     0,     7,     9
+};
+static const yytype_int8 yycheck[] =
+{
+       7,     3,     9,     4,     0,    -1,     6,     5
+};
+static const yytype_int8 yystos[] =
+{
+       0,     3,     8,     9,    10,     4,     0,     6,    11,     5,
+       8,     8
+};
+static const yytype_int8 yyr1[] =
+{
+       0,     7,     8,     9,     9,    10,    11
+};
+static const yytype_int8 yyr2[] =
+{
+       0,     2,     1,     0,     2,     4,     2
+};
+]])
+
+AT_CLEANUP
+
+
+## ---------------- ##
+## Useless Tokens.  ##
+## ---------------- ##
+
+# In some extreme situations, with lots of useless tokens, Bison was
+# numbering them incorrectly, which resulted in a broken grammar.
+# <https://lists.gnu.org/r/bison-patches/2021-03/msg00001.html>
+# commit a774839ca873d1082f79ba3c4eecc1e242a28ce1.
+#
+# To track this failure, compare the tables between an incorrect
+# version of Bison (e.g., 3.7.5), and a correct one:
+#
+# LC_ALL=C /usr/local/stow/bison-3.7.5/bin/bison input.y -o old.c &&
+# LC_ALL=C                                 bison input.y -o new.c &&
+# sed -n 's/  *$//;/^static const.*\[\] =/,/^}/p' old.c >old.tables &&
+# sed -n 's/  *$//;/^static const.*\[\] =/,/^}/p' new.c >new.tables &&
+# diff old.tables new.tables
+#
+# The following Ruby script normalizes token and nterm names.
+#
+# #! /usr/bin/env ruby
+#
+# require 'strscan'
+#
+# tokens = {}
+# nterms = {}
+#
+# ARGV.each do |file|
+#   s = StringScanner.new File.read(file)
+#   while !s.eos?
+#     $stdout <<
+#       case
+#       when s.scan(/%\w+/)
+#         s.matched
+#       when s.scan(/[A-Z_0-9]+/)
+#         tokens[s.matched] ||= 'T%02d' % tokens.size
+#       when s.scan(/[a-z_0-9]+/)
+#         nterms[s.matched] ||= 'n%02d' % nterms.size
+#       when s.scan(/.|\n/)
+#         s.matched
+#       else
+#         raise "error: #{s.rest}"
+#       end
+#   end
+# end
+
+AT_SETUP([Useless Tokens])
+
+AT_DATA([input.y],
+[[%token
+  T00 T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 T11 T12 T13 T14 T15 T16
+  T17 T18 T19 T20 T21 T22 T23 T24 T25 T26 T27 T28 T29 T30 T31 T32 T33
+  T34 T35 T36 T37 T38 T39 T40 T41 T42 T43 T44 T45 T46 T47 T48 T49 T50
+  T51 T52 T53 T54 T55 T56 T57 T58 T59 T60 T61 T62 T63 T64 T65 T66 T67
+  T68 T69 T70 T71 T72 T73 T74 T75 T76 T77 T78 T79 T80 T81 T82 T83 T84
+  T85 T86 T87 T88 T89 T90
+
+%%
+
+n00: T00 n01;
+n01: T77 T88 n02 T89;
+n02: n03 n02 | %empty;
+n03: T16 T88 n04 T89 | T79 T88 n05 T89 | T78 T88 n06 T89 | T81 T88 n07 T89 | T82 T88 n05 T89 | T83 T88 n05 T89 | T84 T88 n05 T89 | T80 T88 n08 T89 | n09;
+n04: n10 n04 | %empty;
+n05: T58 | T61;
+n06: n10
+n07: n05 | n11;
+n08: n12;
+n09: T30 T88 n05 T89;
+n11: n13 n11 | %empty;
+n13: T85 T88 n05 T89 | T86 T88 n08 T89;
+n10: n05;
+n14: %empty;
+n15: n16 T90 n15;
+n16: n17;
+n18: T58;
+n17: T07 T88 n19 T89;
+n19: n20;
+n20: n21 n20;
+n21: T13 T88 n22 T89;
+n22: n23;
+n24: n25;
+n25: n26 T90 n25 | n27 T90 n25;
+n26: n28;
+n28: T58;
+n29: n30 T90 n29;
+n30: T02 T88 n05 T89;
+n31: T04 T88 n32 T89;
+n33: n32;
+n32: n27 T90 n32;
+n27: T03 T88 n34 T89;
+n35: n36;
+n36: T05 T88 n34 T89 | n36 T06 T88 n34 T89;
+n34: n29 n33 n37;
+n37: T16 T88 n38 T89 T90;
+n38: n10 n38;
+n39: n05 | T58 T88 n05 T89;
+n40: n39;
+n41: n40 n41;
+n42: T48;
+n43: n42;
+n44: T59;
+n45: n44;
+n23: T59;
+n46: T60;
+n47: T60;
+n48: n05;
+n49: n05;
+n50: n49;
+n51: n49;
+n52: n05;
+n12: n05 n12 | %empty;
+n53: n05;
+n54: n05;
+n55: T15 T88 n05 T89;
+n56: T58;
+n57: n56;
+n58: T58;
+n59: T13 T88 n22 T89;
+n60: T75 T88 n22 T89;
+n61: T18 T88 n05 T89;
+n62: T76 T88 n46 T89;
+n63: n05 n63;
+n64: T14 T88 n22 T89;
+n65: T10 T88 n42 T89;
+n66: n05 n66;
+n67: T08 T88 n05 T89;
+n68: T11 T88 n42 T89;
+n69: T17 T88 n05 T89;
+n70: n71 n70;
+n71: T16 T88 n72 T89;
+n72: n10 n72;
+n73: T24 T88 n48 T89;
+n74: T12 T88 n05 T89;
+n75: T09 T88 n05 T89;
+n76: n05 n76;
+n77: T64 T88 n78 T89;
+n78: n79 n78;
+n79: T66 T88 n05 n40 T89;
+n80: n05 n80;
+n81: n82 n81;
+n82: T69 T88 n22 T89;
+n83: T47 T88 n05 T89;
+n84: T46 T88 T89;
+]])
+
+AT_BISON_CHECK([-Wno-other -o input.c input.y])
+
+# Check only the tables.
+[sed -n 's/  *$//;/^static const.*\[\] =/,/^}/p;/#define YY.*NINF/p' input.c >tables.c]
+
+AT_CHECK([[cat tables.c]], 0,
+[[static const yytype_int8 yytranslate[] =
+{
+       0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
+      55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
+      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
+      75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93
+};
+static const yytype_int8 yyrline[] =
+{
+       0,    11,    11,    12,    13,    13,    14,    14,    14,    14,
+      14,    14,    14,    14,    14,    15,    15,    16,    16,    17,
+      18,    18,    19,    20,    21,    21,    22,    22,    23,    63,
+      63
+};
+static const char *const yytname[] =
+{
+  "\"end of file\"", "error", "\"invalid token\"", "T00", "T01", "T02",
+  "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10", "T11", "T12",
+  "T13", "T14", "T15", "T16", "T17", "T18", "T19", "T20", "T21", "T22",
+  "T23", "T24", "T25", "T26", "T27", "T28", "T29", "T30", "T31", "T32",
+  "T33", "T34", "T35", "T36", "T37", "T38", "T39", "T40", "T41", "T42",
+  "T43", "T44", "T45", "T46", "T47", "T48", "T49", "T50", "T51", "T52",
+  "T53", "T54", "T55", "T56", "T57", "T58", "T59", "T60", "T61", "T62",
+  "T63", "T64", "T65", "T66", "T67", "T68", "T69", "T70", "T71", "T72",
+  "T73", "T74", "T75", "T76", "T77", "T78", "T79", "T80", "T81", "T82",
+  "T83", "T84", "T85", "T86", "T87", "T88", "T89", "T90", "$accept", "n00",
+  "n01", "n02", "n03", "n04", "n05", "n06", "n07", "n08", "n09", "n11",
+  "n13", "n10", "n12", YY_NULLPTR
+};
+#define YYPACT_NINF (-78)
+#define YYTABLE_NINF (-1)
+static const yytype_int8 yypact[] =
+{
+      -2,   -77,    11,   -73,   -78,   -78,   -19,   -71,   -69,   -68,
+     -67,   -66,   -65,   -64,   -63,   -62,   -61,   -19,   -78,   -49,
+     -49,   -49,   -49,   -49,   -51,   -49,   -49,   -49,   -78,   -78,
+     -78,   -78,   -60,   -78,   -49,   -59,   -58,   -78,   -57,   -49,
+     -56,   -78,   -52,   -48,   -78,   -50,   -78,   -72,   -47,   -46,
+     -45,   -78,   -78,   -78,   -78,   -78,   -78,   -78,   -49,   -49,
+     -78,   -78,   -78,   -78,   -78,   -44,   -43,   -78,   -78
+};
+static const yytype_int8 yydefact[] =
+{
+       0,     0,     0,     0,     2,     1,     5,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     5,    14,    16,
+       0,     0,     0,    30,    25,     0,     0,     0,     3,     4,
+      17,    18,     0,    28,    16,     0,     0,    19,     0,    30,
+       0,    22,     0,     0,    20,     0,    21,    25,     0,     0,
+       0,     6,    15,    23,     8,     7,    29,    13,     0,    30,
+       9,    24,    10,    11,    12,     0,     0,    26,    27
+};
+static const yytype_int8 yypgoto[] =
+{
+     -78,   -78,   -78,     2,   -78,    -4,   -18,   -78,   -78,   -15,
+     -78,     3,   -78,    30,    13
+};
+static const yytype_int8 yydefgoto[] =
+{
+       0,     2,     4,    16,    17,    32,    33,    36,    45,    40,
+      18,    46,    47,    34,    41
+};
+static const yytype_int8 yytable[] =
+{
+       7,     1,    35,     3,    38,    39,    44,    48,    49,    50,
+      30,     5,    30,    31,     8,    31,    42,    43,     6,    29,
+      19,    39,    20,    21,    22,    23,    24,    25,    26,    27,
+      52,    28,    51,    53,    54,    55,    57,    42,    43,    58,
+      65,    39,    60,    59,    66,    62,    63,    64,    67,    68,
+      61,    37,    56,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     9,    10,    11,    12,    13,    14,    15
+};
+static const yytype_int8 yycheck[] =
+{
+      19,     3,    20,    80,    22,    23,    24,    25,    26,    27,
+      61,     0,    61,    64,    33,    64,    88,    89,    91,    17,
+      91,    39,    91,    91,    91,    91,    91,    91,    91,    91,
+      34,    92,    92,    92,    92,    92,    92,    88,    89,    91,
+      58,    59,    92,    91,    59,    92,    92,    92,    92,    92,
+      47,    21,    39,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    81,    82,    83,    84,    85,    86,    87
+};
+static const yytype_int8 yystos[] =
+{
+       0,     3,    95,    80,    96,     0,    91,    19,    33,    81,
+      82,    83,    84,    85,    86,    87,    97,    98,   104,    91,
+      91,    91,    91,    91,    91,    91,    91,    91,    92,    97,
+      61,    64,    99,   100,   107,   100,   101,   107,   100,   100,
+     103,   108,    88,    89,   100,   102,   105,   106,   100,   100,
+     100,    92,    99,    92,    92,    92,   108,    92,    91,    91,
+      92,   105,    92,    92,    92,   100,   103,    92,    92
+};
+static const yytype_int8 yyr1[] =
+{
+       0,    94,    95,    96,    97,    97,    98,    98,    98,    98,
+      98,    98,    98,    98,    98,    99,    99,   100,   100,   101,
+     102,   102,   103,   104,   105,   105,   106,   106,   107,   108,
+     108
+};
+static const yytype_int8 yyr2[] =
+{
+       0,     2,     2,     4,     2,     0,     4,     4,     4,     4,
+       4,     4,     4,     4,     1,     2,     0,     1,     1,     1,
+       1,     1,     1,     4,     2,     0,     4,     4,     1,     2,
+       0
+};
+]])
+
+AT_CLEANUP
+
+
+
+## ------------------------- ##
+## yycheck Bound Violation.  ##
+## ------------------------- ##
+
+
+# _AT_DATA_DANCER_Y(BISON-OPTIONS)
+# --------------------------------
+# The following grammar, taken from Andrew Suffield's GPL'd implementation
+# of DGMTP, the Dancer Generic Message Transport Protocol, used to violate
+# yycheck's bounds where issuing a verbose error message.  Keep this test
+# so that possible bound checking compilers could check all the skeletons.
+m4_define([_AT_DATA_DANCER_Y],
+[AT_DATA_GRAMMAR([dancer.y],
+[[%code provides
+{
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+}
+$1
+%token ARROW INVALID NUMBER STRING DATA
+%verbose
+%define parse.error verbose
+/* Grammar follows */
+%%
+line: header body
+   ;
+
+header: '<' from ARROW to '>' type ':'
+   | '<' ARROW to '>' type ':'
+   | ARROW to type ':'
+   | type ':'
+   | '<' '>'
+   ;
+
+from: DATA
+   | STRING
+   | INVALID
+   ;
+
+to: DATA
+   | STRING
+   | INVALID
+   ;
+
+type: DATA
+   | STRING
+   | INVALID
+   ;
+
+body: %empty
+   | body member
+   ;
+
+member: STRING
+   | DATA
+   | '+' NUMBER
+   | '-' NUMBER
+   | NUMBER
+   | INVALID
+   ;
+%%
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE([":"])[
+]AT_MAIN_DEFINE[
+]])
+])# _AT_DATA_DANCER_Y
+
+
+# AT_CHECK_DANCER(BISON-OPTIONS)
+# ------------------------------
+# Generate the grammar, compile it, run it.
+m4_define([AT_CHECK_DANCER],
+[AT_SETUP([Dancer $1])
+AT_BISON_OPTION_PUSHDEFS([$1])
+_AT_DATA_DANCER_Y([$1])
+AT_FULL_COMPILE([dancer])
+AT_PARSER_CHECK([dancer], 1, [],
+[syntax error, unexpected ':'
+])
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP
+])
+
+AT_CHECK_DANCER()
+AT_CHECK_DANCER([%glr-parser])
+AT_CHECK_DANCER([%skeleton "lalr1.cc"])
+
+
+## ------------------------------------------ ##
+## Diagnostic that expects two alternatives.  ##
+## ------------------------------------------ ##
+
+
+# _AT_DATA_EXPECT2_Y(BISON-OPTIONS)
+# --------------------------------
+m4_define([_AT_DATA_EXPECT2_Y],
+[AT_DATA_GRAMMAR([expect2.y],
+[%{
+static int yylex (AT_LALR1_CC_IF([int *], [void]));
+AT_LALR1_CC_IF([[#include <cstdlib>]],
+[[
+]AT_YYERROR_DECLARE])[
+%}
+$1
+%define parse.error verbose
+%token A 1000
+%token B
+
+%%
+program: %empty
+ | program e ';'
+ | program error ';';
+
+e: e '+' t | t;
+t: A | B;
+
+%%
+]AT_YYERROR_DEFINE[
+]AT_LALR1_CC_IF(
+[int
+yyparse ()
+{
+  yy::parser parser;
+  return parser.parse ();
+}
+])[
+
+#include <assert.h>
+static int
+yylex (]AT_LALR1_CC_IF([int *lval], [void])[)
+{
+  static int const tokens[] =
+    {
+      1000, '+', '+', -1
+    };
+  static size_t toknum;
+  ]AT_LALR1_CC_IF([*lval = 0; /* Pacify GCC.  */])[
+  assert (toknum < sizeof tokens / sizeof *tokens);
+  return tokens[toknum++];
+}
+]AT_MAIN_DEFINE[
+]])
+])# _AT_DATA_EXPECT2_Y
+
+
+# AT_CHECK_EXPECT2(BISON-OPTIONS)
+# -------------------------------
+# Generate the grammar, compile it, run it.
+m4_define([AT_CHECK_EXPECT2],
+[AT_SETUP([Expecting two tokens $1])
+AT_BISON_OPTION_PUSHDEFS([$1])
+_AT_DATA_EXPECT2_Y([$1])
+AT_FULL_COMPILE([expect2])
+AT_PARSER_CHECK([expect2], 1, [],
+[syntax error, unexpected '+', expecting A or B
+])
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP
+])
+
+AT_CHECK_EXPECT2()
+AT_CHECK_EXPECT2([%glr-parser])
+AT_CHECK_EXPECT2([%skeleton "lalr1.cc"])
+
+
+
+## --------------------------------------------- ##
+## Braced code in declaration in rules section.  ##
+## --------------------------------------------- ##
+
+AT_SETUP([Braced code in declaration in rules section])
+
+# Bison once mistook braced code in a declaration in the rules section to be a
+# rule action.
+AT_BISON_OPTION_PUSHDEFS([%debug])
+AT_DATA_GRAMMAR([input.y],
+[[%{
+]AT_YYERROR_DECLARE[
+]AT_YYLEX_DECLARE[
+%}
+%debug
+%define parse.error verbose
+%%
+
+start:
+  {
+    printf ("Bison would once convert this action to a midrule because of the"
+            " subsequent braced code.\n");
+  }
+  ;
+
+%destructor { fprintf (stderr, "DESTRUCTOR\n"); } 'a';
+%printer { fprintf (yyo, "PRINTER"); } 'a';
+
+%%
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE(["a"])[
+]AT_MAIN_DEFINE[
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([-o input.c input.y])
+AT_COMPILE([input])
+AT_PARSER_CHECK([input --debug], 1,
+[[Bison would once convert this action to a midrule because of the subsequent braced code.
+]],
+[[Starting parse
+Entering state 0
+Stack now 0
+Reducing stack by rule 1 (line 20):
+-> $$ = nterm start ()
+Entering state 1
+Stack now 0 1
+Reading a token
+Next token is token 'a' (PRINTER)
+syntax error, unexpected 'a', expecting end of file
+Error: popping nterm start ()
+Stack now 0
+Cleanup: discarding lookahead token 'a' (PRINTER)
+DESTRUCTOR
+Stack now 0
+]])
+
+AT_CLEANUP
+
+
+
+## --------------------------------- ##
+## String alias declared after use.  ##
+## --------------------------------- ##
+
+AT_SETUP([String alias declared after use])
+
+# Bison once incorrectly asserted that the symbol number for either a token or
+# its alias was the highest symbol number so far at the point of the alias
+# declaration.  That was true unless the declaration appeared after their first
+# uses and other tokens appeared in between.
+
+AT_DATA([input.y],
+[[%%
+start: 'a' "A" 'b';
+%token 'a' "A";
+]])
+
+AT_BISON_CHECK([-o input.c input.y])
+
+AT_CLEANUP
+
+
+
+## -------------------------------- ##
+## Extra lookahead sets in report.  ##
+## -------------------------------- ##
+
+AT_SETUP([[Extra lookahead sets in report]])
+
+# Bison prints each reduction's lookahead set only next to the associated
+# state's one item that (1) is associated with the same rule as the reduction
+# and (2) has its dot at the end of its RHS.  Previously, Bison also
+# erroneously printed the lookahead set next to all of the state's other items
+# associated with the same rule.  This bug affected only the '.output' file and
+# not the generated parser source code.
+
+AT_DATA([[input.y]],
+[[%%
+start: a | 'a' a 'a' ;
+a: 'a' ;
+]])
+
+AT_BISON_CHECK([[--report=all input.y]])
+AT_CHECK([[sed -n '/^State 1$/,/^State 2$/p' input.output]], [[0]],
+[[State 1
+
+    2 start: 'a' . a 'a'
+    3 a: . 'a'
+    3  | 'a' .  [$end]
+
+    'a'  shift, and go to state 4
+
+    $default  reduce using rule 3 (a)
+
+    a  go to state 5
+
+
+State 2
+]])
+
+AT_CLEANUP
+
+
+
+## ---------------------------------------- ##
+## Token number in precedence declaration.  ##
+## ---------------------------------------- ##
+
+AT_SETUP([[Token number in precedence declaration]])
+
+# POSIX says token numbers can be declared in %left, %right, and %nonassoc, but
+# we lost this in Bison 1.50.
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[[%code {
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+}
+%define parse.error verbose
+%token TK_ALIAS 3 "tok alias"
+%right END 0
+%left TK1 1 TK2 2 "tok alias"
+
+%%
+
+start:
+    TK1 sr_conflict "tok alias"
+  | start %prec END
+  ;
+sr_conflict:
+  TK2
+  | TK2 "tok alias"
+  ;
+
+%%
+
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE([{ 1, 2, 3, 0 }])[
+]AT_MAIN_DEFINE[
+]])
+
+AT_BISON_CHECK([[-Wall -o input.c input.y]], [[0]],,
+[[input.y:24.5-19: warning: rule useless in parser due to conflicts [-Wother]
+input.y:28.5-19: warning: rule useless in parser due to conflicts [-Wother]
+input.y:18.1-5: warning: useless precedence and associativity for TK1 [-Wprecedence]
+]])
+AT_COMPILE([[input]])
+AT_PARSER_CHECK([[input]])
+AT_BISON_OPTION_POPDEFS
+
+AT_CLEANUP
+
+
+
+## --------------------------- ##
+## parse-gram.y: LALR = IELR.  ##
+## --------------------------- ##
+
+# If parse-gram.y's LALR and IELR parser tables ever begin to differ, we
+# need to fix parse-gram.y or start using IELR.
+
+AT_SETUP([[parse-gram.y: LALR = IELR]])
+
+# Avoid tests/bison's dark magic by processing a local copy of the
+# grammar.  Avoid differences in synclines by telling bison that the
+# output files have the same name.
+[cp $abs_top_srcdir/src/parse-gram.y input.y]
+AT_BISON_CHECK([[-o input.c -Dlr.type=lalr input.y]])
+[mv input.c lalr.c]
+AT_CAPTURE_FILE([lalr.c])
+AT_BISON_CHECK([[-o input.c -Dlr.type=ielr input.y]])
+[mv input.c ielr.c]
+AT_CAPTURE_FILE([ielr.c])
+AT_CHECK([[diff lalr.c ielr.c]], [[0]])
+
+AT_CLEANUP
+
+
+
+## -------------------------------------------- ##
+## parse.error=verbose and YYSTACK_USE_ALLOCA.  ##
+## -------------------------------------------- ##
+
+AT_SETUP([[parse.error=verbose and YYSTACK_USE_ALLOCA]])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[[%code {
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+  #define YYSTACK_USE_ALLOCA 1
+}
+
+%define parse.error verbose
+
+%%
+
+start: check syntax_error syntax_error ;
+
+check:
+{
+  if (128 < sizeof yymsgbuf)
+    {
+      fprintf (stderr,
+               "The initial size of yymsgbuf in yyparse has increased\n"
+               "since this test group was last updated.  As a result,\n"
+               "this test group may no longer manage to induce a\n"
+               "reallocation of the syntax error message buffer.\n"
+               "This test group must be adjusted to produce a longer\n"
+               "error message.\n");
+      YYABORT;
+    }
+}
+;
+
+// Induce a syntax error message whose total length is more than
+// sizeof yymsgbuf in yyparse.  Each token here is 64 bytes.
+syntax_error:
+  "123456789112345678921234567893123456789412345678951234567896123A"
+| "123456789112345678921234567893123456789412345678951234567896123B"
+| error 'a' 'b' 'c'
+;
+
+%%
+
+]AT_YYERROR_DEFINE[
+  /* Induce two syntax error messages (which requires full error
+     recovery by shifting 3 tokens) in order to detect any loss of the
+     reallocated buffer.  */
+]AT_YYLEX_DEFINE(["abc"])[
+]AT_MAIN_DEFINE[
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([[-o input.c input.y]])
+AT_COMPILE([[input]])
+AT_PARSER_CHECK([[input]], [[1]], [],
+[[syntax error, unexpected 'a', expecting 123456789112345678921234567893123456789412345678951234567896123A or 123456789112345678921234567893123456789412345678951234567896123B
+syntax error, unexpected end of file, expecting 123456789112345678921234567893123456789412345678951234567896123A or 123456789112345678921234567893123456789412345678951234567896123B
+]])
+
+AT_CLEANUP
+
+
+
+## ------------------------------ ##
+## parse.error=verbose overflow.  ##
+## ------------------------------ ##
+
+# Imagine the case where YYSTACK_ALLOC_MAXIMUM = YYSIZE_MAXIMUM and an
+# invocation of yysyntax_error has caused yymsg_alloc to grow to exactly
+# YYSTACK_ALLOC_MAXIMUM (perhaps because the normal doubling of size had
+# to be clipped to YYSTACK_ALLOC_MAXIMUM).  In an old version of yacc.c,
+# a subsequent invocation of yysyntax_error that overflows during its
+# size calculation would return YYSIZE_MAXIMUM to yyparse.  Then,
+# yyparse would invoke yyerror using the old contents of yymsg.
+
+AT_SETUP([[parse.error=verbose overflow]])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA_GRAMMAR([input.y],
+[[%code {
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+
+  /* This prevents this test case from having to induce error messages
+     large enough to overflow size_t.  */
+  #define YYSIZE_T unsigned char
+
+  /* Bring in malloc and set EXIT_SUCCESS so yacc.c doesn't try to
+     provide a malloc prototype using our YYSIZE_T.  */
+  #include <stdlib.h>
+  #ifndef EXIT_SUCCESS
+  # define EXIT_SUCCESS 0
+  #endif
+
+  /* Max depth is usually much smaller than YYSTACK_ALLOC_MAXIMUM, and
+     we don't want gcc to warn everywhere this constant would be too big
+     to make sense for our YYSIZE_T.  */
+  #define YYMAXDEPTH 100
+}
+
+%define parse.error verbose
+
+%%
+
+start: syntax_error1 check syntax_error2 check syntax_error3;
+
+// Induce a syntax error message whose total length causes yymsg in
+// yyparse to be reallocated to size YYSTACK_ALLOC_MAXIMUM, which
+// should be 255.  Each token here is 64 bytes.
+syntax_error1:
+  "123456789112345678921234567893123456789412345678951234567896123A"
+| "123456789112345678921234567893123456789412345678951234567896123B"
+| "123456789112345678921234567893123456789412345678951234567896123C"
+| error 'a' 'b' 'c'
+;
+
+check:
+{
+  if (yymsg_alloc != YYSTACK_ALLOC_MAXIMUM
+      || YYSTACK_ALLOC_MAXIMUM != YYSIZE_MAXIMUM
+      || YYSIZE_MAXIMUM != 255)
+    {
+      fprintf (stderr,
+               "The assumptions of this test group are no longer\n"
+               "valid, so it may no longer catch the error it was\n"
+               "designed to catch.  Specifically, the following\n"
+               "values should all be 255:\n\n");
+      fprintf (stderr, "  yymsg_alloc = %d\n", yymsg_alloc);
+      fprintf (stderr, "  YYSTACK_ALLOC_MAXIMUM = %d\n",
+               YYSTACK_ALLOC_MAXIMUM);
+      fprintf (stderr, "  YYSIZE_MAXIMUM = %d\n", YYSIZE_MAXIMUM);
+      YYABORT;
+    }
+}
+;
+
+// We used to overflow memory here because the first four "expected"
+// tokens plus rest of the error message is greater that 255 bytes.
+// However there are *five* expected tokens here, so anyway we will
+// *not* display these tokens.  So the message fits, no overflow.
+syntax_error2:
+  "123456789112345678921234567893123456789412345678951234567896123A"
+| "123456789112345678921234567893123456789412345678951234567896123B"
+| "123456789112345678921234567893123456789412345678951234567896123C"
+| "123456789112345678921234567893123456789412345678951234567896123D"
+| "123456789112345678921234567893123456789412345678951234567896123E"
+| error 'd' 'e' 'f'
+;
+
+
+// Now overflow.
+syntax_error3:
+  "123456789112345678921234567893123456789412345678951234567896123A"
+| "123456789112345678921234567893123456789412345678951234567896123B"
+| "123456789112345678921234567893123456789412345678951234567896123C"
+| "123456789112345678921234567893123456789412345678951234567896123D"
+;
+
+%%
+
+]AT_YYERROR_DEFINE[
+  /* Induce two syntax error messages (which requires full error
+     recovery by shifting 3 tokens).  */
+]AT_YYLEX_DEFINE(["abcdef"])[
+int
+main (void)
+{
+  /* Push parsers throw away the message buffer between tokens, so skip
+     this test under maintainer-push-check.  */
+  if (YYPUSH)
+    return 77;
+  return yyparse ();
+}
+]])
+
+AT_BISON_CHECK([[-o input.c input.y]])
+
+# gcc warns about tautologies and fallacies involving comparisons for
+# unsigned char.  However, it doesn't produce these same warnings for
+# size_t and many other types when the warnings would seem to make just
+# as much sense.  We ignore the warnings.
+[CFLAGS="$NO_WERROR_CFLAGS"]
+AT_COMPILE([[input]])
+
+AT_PARSER_CHECK([[input]], [[2]], [],
+[[syntax error, unexpected 'a', expecting 123456789112345678921234567893123456789412345678951234567896123A or 123456789112345678921234567893123456789412345678951234567896123B or 123456789112345678921234567893123456789412345678951234567896123C
+syntax error, unexpected 'd'
+syntax error
+memory exhausted
+]])
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP
+
+
+
+## ------------------------ ##
+## LAC: Exploratory stack.  ##
+## ------------------------ ##
+
+AT_SETUP([[LAC: Exploratory stack]])
+AT_KEYWORDS([lac])
+
+m4_pushdef([AT_LAC_CHECK], [
+
+AT_BISON_OPTION_PUSHDEFS([%debug $1])
+
+AT_DATA_GRAMMAR([input.y],
+[AT_LANG_CASE(
+[d], [[%define api.symbol.prefix {SYM_}
+]],
+[java], [[%code imports {
+  import java.io.IOException;
+}
+
+%code lexer {
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE(["bbbbc"])[
+};
+]],
+[[%code {
+#include <stdio.h> /* printf */
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+}
+]])[
+%debug
+]$1[
+%define parse.error verbose
+%token 'c'
+%expect 21
+%%
+
+// default reductions in inconsistent states
+// v   v v   v v v v   v v v v v v v
+S: A B A A B A A A A B A A A A A A A B C C A A A A A A A A A A A A B ;
+//       ^                     ^                               ^
+// LAC reallocs
+
+A: 'a' | %empty { ]AT_JAVA_IF([System.out.print], [printf])[ ("inconsistent default reduction\n"); } ;
+B: 'b' ;
+C: %empty { ]AT_JAVA_IF([System.out.print], [printf])[ ("consistent default reduction\n"); } ;
+
+%%
+]AT_JAVA_IF([], [[
+  ]AT_YYERROR_DEFINE[
+  ]AT_YYLEX_DEFINE(["bbbbc"])[
+]])[
+
+]AT_MAIN_DEFINE[
+]])
+
+AT_FULL_COMPILE([[input]], [], [], [],
+                [[-Dparse.lac=full]AT_C_IF([ \
+                 -Dparse.lac.es-capacity-initial=1 \
+                 -Dparse.lac.memory-trace=full])])
+
+AT_PARSER_CHECK([[input --debug > stdout.txt 2> stderr.txt]], [[1]])
+
+# Make sure syntax error doesn't forget that 'a' is expected.  It would
+# be forgotten without lookahead correction.
+AT_CHECK([[grep 'syntax error,' stderr.txt]], [[0]],
+[[syntax error, unexpected 'c', expecting 'a' or 'b'
+]])
+
+# Check number of default reductions in inconsistent states to be sure
+# syntax error is detected before unnecessary reductions are performed.
+AT_PERL_CHECK([[-0777 -ne 'print s/inconsistent default reduction//g;' stdout.txt]],
+              [[0]], [[14]])
+
+# Check number of default reductions in consistent states to be sure
+# it is performed before the syntax error is detected.
+AT_PERL_CHECK([[-0777 -ne 'print s/\bconsistent default reduction//g;' stdout.txt]],
+              [[0]], [[2]])
+
+]AT_C_IF([[
+  # Check number of reallocs to be sure reallocated memory isn't somehow
+  # lost between LAC invocations.
+  AT_PERL_CHECK([[-0777 -ne 'print s/\(realloc//g;' < stderr.txt]], [[0]], [[3]])
+]])[
+
+AT_BISON_OPTION_POPDEFS
+])
+
+# C.
+AT_LAC_CHECK([[%define api.push-pull pull]])
+AT_LAC_CHECK([[%define api.push-pull pull %define api.pure]])
+AT_LAC_CHECK([[%define api.push-pull both]])
+AT_LAC_CHECK([[%define api.push-pull both %define api.pure]])
+
+# C++.
+AT_LAC_CHECK([[%skeleton "lalr1.cc"]])
+
+# D.
+# FIXME: does not work.  lalr1.d cannot work with literal chars,
+# and AT_YYLEX_DEFINE(d) is incorrect.
+# AT_LAC_CHECK([[%skeleton "lalr1.d"]])
+
+# Java.
+AT_LAC_CHECK([[%skeleton "lalr1.java"]])
+
+m4_popdef([AT_LAC_CHECK])
+
+AT_CLEANUP
+
+
+
+## ------------------------ ##
+## LAC: Memory exhaustion.  ##
+## ------------------------ ##
+
+AT_SETUP([[LAC: Memory exhaustion]])
+AT_KEYWORDS([lac])
+
+m4_pushdef([AT_LAC_CHECK],
+[AT_BISON_OPTION_PUSHDEFS([%debug])
+AT_DATA_GRAMMAR([input.y],
+[[%code {
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+  #define YYMAXDEPTH 8
+}
+%debug
+%define parse.error verbose
+%expect 8
+%%
+
+S: A A A A A A A A A ;
+A: %empty | 'a' ;
+
+%%
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE(["$1"])[
+]AT_MAIN_DEFINE[
+]])
+
+AT_FULL_COMPILE([input], [], [], [],
+                [[-Dparse.lac=full -Dparse.lac.es-capacity-initial=1]])
+AT_COMPILE([[input]])
+AT_BISON_OPTION_POPDEFS
+])
+
+# Check for memory exhaustion during parsing.
+AT_LAC_CHECK([])
+AT_PARSER_CHECK([[input --debug]], [[2]], [],
+[[Starting parse
+Entering state 0
+Stack now 0
+Reading a token
+Now at end of input.
+LAC: initial context established for "end of file"
+LAC: checking lookahead "end of file": R2 G3 R2 G5 R2 G6 R2 G7 R2 G8 R2 G9 R2 G10 R2 G11 R2 (max size exceeded)
+memory exhausted
+Cleanup: discarding lookahead token "end of file" ()
+Stack now 0
+]])
+
+# Induce an immediate syntax error with an undefined token, and check
+# for memory exhaustion while building syntax error message.
+AT_LAC_CHECK([z], [[0]])
+AT_PARSER_CHECK([[input --debug]], [[2]], [],
+[[Starting parse
+Entering state 0
+Stack now 0
+Reading a token
+Next token is token "invalid token" ()
+LAC: initial context established for "invalid token"
+LAC: checking lookahead "invalid token": Always Err
+Constructing syntax error message
+LAC: checking lookahead "end of file": R2 G3 R2 G5 R2 G6 R2 G7 R2 G8 R2 G9 R2 G10 R2 G11 R2 (max size exceeded)
+syntax error
+memory exhausted
+Cleanup: discarding lookahead token "invalid token" ()
+Stack now 0
+]])
+
+m4_popdef([AT_LAC_CHECK])
+
+AT_CLEANUP
+
+
+## ---------------------- ##
+## Lex and parse params.  ##
+## ---------------------- ##
+
+# AT_TEST(SKELETON)
+# -----------------
+# Check that the identifier of the params is properly fetched
+# even when there are trailing blanks.
+
+m4_pushdef([AT_TEST],
+[AT_SETUP([[Lex and parse params: $1]])
+
+## FIXME: Improve parsing of parse-param.
+AT_BISON_OPTION_PUSHDEFS([%locations %skeleton "$1" %parse-param { int x } %parse-param { int y }])
+
+AT_DATA_GRAMMAR([input.y],
+[[%header
+%locations
+%skeleton "$1"
+%union { int ival; }
+%parse-param { int x }
+// Spaces, tabs, and new lines.
+%parse-param { @&t@
+@tb@ int y@tb@ @&t@
+         @&t@
+ @&t@
+}
+
+%{
+#include <stdio.h> /* printf. */
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE[
+%}
+
+%%
+exp: 'a' { printf ("x: %d, y: %d\n", x, y); };
+%%
+]AT_YYERROR_DEFINE[
+]AT_YYLEX_DEFINE(["a"])[
+
+]AT_CXX_IF(
+[int
+yyparse (int x, int y)
+{
+  yy::parser parser(x, y);
+  return parser.parse ();
+}
+])[
+
+int
+main (void)
+{
+  return yyparse(1, 2);
+}
+]])
+
+AT_FULL_COMPILE([input])
+AT_PARSER_CHECK([input], 0, [[x: 1, y: 2
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_CLEANUP
+])
+
+## FIXME: test Java, and iterate over skeletons.
+AT_TEST([yacc.c])
+AT_TEST([glr.c])
+AT_TEST([lalr1.cc])
+AT_TEST([glr.cc])
+AT_TEST([glr2.cc])
+
+m4_popdef([AT_TEST])
+
+
+## ----------------------- ##
+## stdio.h is not needed.  ##
+## ----------------------- ##
+
+# At some point, by accident, yy_location_print_ was using fprintf and
+# FILE which are from stdio.h, which we do not require.
+AT_SETUP([[stdio.h is not needed]])
+
+AT_BISON_OPTION_PUSHDEFS
+
+AT_DATA_GRAMMAR([input.y],
+[[%locations
+%code
+{
+  static int yylex (void) { return 0; }
+  static void yyerror (const char* msg) { (void) msg; }
+}
+%%
+exp: {}
+%%
+]AT_MAIN_DEFINE[
+]])
+
+AT_FULL_COMPILE([input])
+
+AT_BISON_OPTION_POPDEFS
+
+AT_CLEANUP

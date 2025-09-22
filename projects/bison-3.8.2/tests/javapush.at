@@ -1,0 +1,237 @@
+# Checking Java Push Parsing.                            -*- Autotest -*-
+
+# Copyright (C) 2013-2015, 2018-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# The Java push parser tests are intended primarily
+# to verify that the sequence of states that the parser
+# traverses is the same as a pull parser would traverse.
+
+##################################################
+# Provide a way to generate data with and without push parsing
+# so  it is possible to capture the output for comparison
+# (except the "trivial" tests).
+# Use "both" rather than "push" so we can also set it to "pull" to
+# get the "experr" data.
+
+m4_define([PUSHPULLFLAG],[-Dapi.push-pull=both])
+
+# AT_CHECK_JAVA_GREP(FILE, [LINE], [COUNT=1])
+# -------------------------------------------
+# Check that FILE contains exactly COUNT lines matching ^LINE$
+# with grep.  Unquoted so that COUNT can be a shell expression.
+m4_define([AT_CHECK_JAVA_GREP],
+[AT_CHECK_UNQUOTED([grep -c '^$2$' $1], [ignore], [m4_default([$3], [1])
+])])
+
+
+##################################################
+
+AT_BANNER([[Java Push Parsing Tests]])
+
+# Define a single copy of the trivial parser grammar.
+# This is missing main(), so two versions
+# are instantiated with different main() procedures.
+m4_define([AT_TRIVIAL_GRAMMAR],
+[[
+%define api.parser.class {YYParser}
+%define parse.error verbose
+%define parse.trace
+
+%code imports {
+import java.io.*;
+import java.util.*;
+}
+
+%%
+
+start: 'a' 'b' 'c' ;
+
+%%
+]])
+
+# Define common code across to be included in
+# class Main for the trivial parser tests.
+m4_define([AT_TRIVIAL_COMMON],[[
+  static class YYerror implements YYParser.Lexer
+  {
+    public Object getLVal() {return null;}
+    public int yylex () throws java.io.IOException { return 0; }
+    public void yyerror (String msg) { System.err.println(msg); }
+  }
+
+  static YYParser parser = null;
+  static YYerror yyerror = null;
+  static int teststate = -1;
+
+  static void setup()
+    throws IOException
+  {
+      yyerror = new YYerror();
+      parser = new YYParser(yyerror);
+      parser.setDebugLevel(1);
+      teststate = -1;
+  }
+
+  static String[] teststatename
+    = new String[]{"YYACCEPT","YYABORT","YYERROR","UNKNOWN","YYPUSH_MORE"};
+
+  static void check(int teststate, int expected, String msg)
+  {
+    System.err.println("teststate="+teststatename[teststate]
+                       +"; expected="+teststatename[expected]);
+    if (teststate != expected)
+        {
+            System.err.println("unexpected state: "+msg);
+            System.exit(1);
+        }
+  }
+]])
+
+m4_define([AT_TRIVIAL_PARSER],[[
+  ]AT_TRIVIAL_GRAMMAR[
+
+  public class Main
+  {
+
+  ]AT_TRIVIAL_COMMON[
+
+  static public void main (String[] args)
+    throws IOException
+  {
+      setup();
+
+      teststate = parser.push_parse('a', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('a', null)");
+
+      setup();
+
+      teststate = parser.push_parse('a', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('a', null)");
+      teststate = parser.push_parse('b', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('b', null)");
+      teststate = parser.push_parse('c', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('c', null)");
+      teststate = parser.push_parse('\0', null);
+      check(teststate,YYParser.YYACCEPT,"push_parse('\\0', null)");
+
+      /* Reuse the parser instance and cause a failure */
+      teststate = parser.push_parse('b', null);
+      check(teststate,YYParser.YYABORT,"push_parse('b', null)");
+
+      System.exit(0);
+  }
+
+}
+]])
+
+m4_define([AT_TRIVIAL_PARSER_INITIAL_ACTION],[[
+  ]AT_TRIVIAL_GRAMMAR[
+
+  public class Main
+  {
+
+  ]AT_TRIVIAL_COMMON[
+
+  static public void main (String[] args)
+    throws IOException
+  {
+      setup();
+
+      teststate = parser.push_parse('a', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('a', null)");
+      teststate = parser.push_parse('b', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('b', null)");
+      teststate = parser.push_parse('c', null);
+      check(teststate,YYParser.YYPUSH_MORE,"push_parse('c', null)");
+      teststate = parser.push_parse('\0', null);
+      check(teststate,YYParser.YYACCEPT,"push_parse('\\0', null)");
+
+      System.exit(0);
+  }
+
+}
+]])
+
+## ----------------------------------------------------- ##
+## Trivial Push Parser with api.push-pull verification.  ##
+## ----------------------------------------------------- ##
+
+AT_SETUP([Trivial Push Parser with api.push-pull verification])
+AT_BISON_OPTION_PUSHDEFS
+
+AT_DATA([[input.y]],
+[[%language "Java"
+]AT_TRIVIAL_PARSER[
+]])
+
+# Verify that the proper procedure(s) are generated for each case.
+AT_BISON_CHECK([[-Dapi.push-pull=pull -o Main.java input.y]])
+AT_CHECK_JAVA_GREP([[Main.java]],
+                   [[.*public boolean parse().*]],
+                   [1])
+# If BISON_USE_PUSH_FOR_PULL is set, then we have one occurrence of
+# this function, otherwise it should not be there.
+AT_CHECK_JAVA_GREP([[Main.java]],
+        [[.*public int push_parse(int yylextoken, Object yylexval).*]],
+        [${BISON_USE_PUSH_FOR_PULL-0}])
+
+AT_BISON_CHECK([[-Dapi.push-pull=both -o Main.java input.y]])
+AT_CHECK_JAVA_GREP([[Main.java]],
+                   [[.*public boolean parse().*]],
+                   [1])
+AT_CHECK_JAVA_GREP([[Main.java]],
+        [[.*public int push_parse(int yylextoken, Object yylexval).*]],
+        [1])
+
+AT_BISON_CHECK([[-Dapi.push-pull=push -o Main.java input.y]])
+AT_CHECK_JAVA_GREP([[Main.java]],
+                   [[.*public boolean parse().*]],
+                   [0])
+AT_CHECK_JAVA_GREP([[Main.java]],
+        [[.*public int push_parse(int yylextoken, Object yylexval).*]],
+        [1])
+
+AT_JAVA_COMPILE([[Main.java]])
+AT_JAVA_PARSER_CHECK([Main], 0, [], [stderr-nolog])
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP
+
+
+## ------------------------------------------ ##
+## Trivial Push Parser with %initial-action.  ##
+## ------------------------------------------ ##
+
+AT_SETUP([Trivial Push Parser with %initial-action])
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA([[input.y]],
+[[%language "Java"
+%initial-action {
+System.err.println("Initial action invoked");
+}
+]AT_TRIVIAL_PARSER_INITIAL_ACTION[
+]])
+AT_BISON_OPTION_POPDEFS
+AT_BISON_CHECK([[-Dapi.push-pull=push -o Main.java input.y]])
+AT_CHECK_JAVA_GREP([[Main.java]],
+  [[System.err.println("Initial action invoked");]])
+AT_JAVA_COMPILE([[Main.java]])
+AT_JAVA_PARSER_CHECK([Main], 0, [], [stderr-nolog])
+# Verify that initial action is called exactly once.
+AT_CHECK_JAVA_GREP(
+        [[stderr]],
+        [[Initial action invoked]],
+        [1])
+AT_CLEANUP

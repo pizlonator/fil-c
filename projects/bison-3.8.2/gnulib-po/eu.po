@@ -1,0 +1,545 @@
+# translation of coreutils-5.2.1.po to Euskara
+# Basque translation of 5.2.1.
+# Copyright (C) 2004 Free Software Foundation, Inc.
+# This file is distributed under the same license as the Coreutils-5.2.1 package.
+# Mikel Olasagasti <hey_neken@mundurat.net>, 2004.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: coreutils-5.2.1\n"
+"Report-Msgid-Bugs-To: bug-gnulib@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2005-01-04 20:27+0100\n"
+"Last-Translator: Mikel Olasagasti <hey_neken@mundurat.net>\n"
+"Language-Team: Basque <translation-team-eu@lists.sourceforge.net>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
+
+#: lib/argmatch.c:132
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr "%s baliogabeko argumentua da %s-(r)entzat"
+
+#: lib/argmatch.c:133
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "%s argumentu anbiguoa da %s-(r)entzat"
+
+#: lib/argmatch.c:152 lib/argmatch.h:223
+msgid "Valid arguments are:"
+msgstr "Baliozko argumentuak hauek dira:"
+
+#: lib/bitset/stats.c:183
+#, c-format
+msgid "%u bitset_allocs, %u freed (%.2f%%).\n"
+msgstr ""
+
+#: lib/bitset/stats.c:186
+#, c-format
+msgid "%u bitset_sets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:189
+#, c-format
+msgid "%u bitset_resets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:192
+#, c-format
+msgid "%u bitset_tests, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:196
+#, c-format
+msgid "%u bitset_lists\n"
+msgstr ""
+
+#: lib/bitset/stats.c:198
+msgid "count log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:201
+msgid "size log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:204
+msgid "density histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:216
+#, c-format
+msgid ""
+"Bitset statistics:\n"
+"\n"
+msgstr ""
+
+#: lib/bitset/stats.c:219
+#, c-format
+msgid "Accumulated runs = %u\n"
+msgstr ""
+
+#: lib/bitset/stats.c:261 lib/bitset/stats.c:266
+#, fuzzy
+msgid "cannot read stats file"
+msgstr "ezin da %s esteka sortu"
+
+#: lib/bitset/stats.c:263
+#, c-format
+msgid "bad stats file size\n"
+msgstr ""
+
+#: lib/bitset/stats.c:287 lib/bitset/stats.c:289
+#, fuzzy
+msgid "cannot write stats file"
+msgstr "ezin da %s esteka sortu"
+
+#: lib/bitset/stats.c:292
+#, fuzzy
+msgid "cannot open stats file for writing"
+msgstr "errepikatu arte"
+
+#: lib/closeout.c:122
+msgid "write error"
+msgstr "idazketa errorea"
+
+#: lib/error.c:195
+msgid "Unknown system error"
+msgstr "Sistema-errore ezezaguna"
+
+#: lib/execute.c:348 lib/spawn-pipe.c:597 lib/wait-process.c:291
+#: lib/wait-process.c:365
+#, fuzzy, c-format
+msgid "%s subprocess failed"
+msgstr "baliogabea"
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: '%s' aukera anbiguoa da\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: '%s' aukera anbiguoa da\n"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: '%c%s' aukera ezezaguna\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: '%c%s' aukerak ez du argumenturik onartzen\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: '%s' aukerak argumentu bat behar du\n"
+
+#: lib/getopt.c:621
+#, fuzzy, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: -- %c aukera baliogabea\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: aukerak --%c argumentu bat behar du\n"
+
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "memoria agortuta"
+
+#: lib/openat-die.c:38
+#, fuzzy, c-format
+msgid "unable to record current working directory"
+msgstr "Inprimatu Fitxategi-izena - e e"
+
+#: lib/openat-die.c:57
+#, fuzzy, c-format
+msgid "failed to return to initial working directory"
+msgstr "Inprimatu Fitxategi-izena - e e"
+
+#: lib/os2-spawn.c:46
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr ""
+
+#: lib/os2-spawn.c:83
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr ""
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:355
+msgid "`"
+msgstr "`"
+
+#: lib/quotearg.c:356
+msgid "'"
+msgstr "'"
+
+#: lib/spawn-pipe.c:217 lib/spawn-pipe.c:220 lib/spawn-pipe.c:459
+#: lib/spawn-pipe.c:462
+#, fuzzy, c-format
+msgid "cannot create pipe"
+msgstr "ezin da %s esteka sortu"
+
+#: lib/timevar.c:316
+msgid "Execution times (seconds)"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU user"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU system"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "wall clock"
+msgstr ""
+
+#: lib/unicodeio.c:102
+msgid "iconv function not usable"
+msgstr ""
+
+#: lib/unicodeio.c:104
+msgid "iconv function not available"
+msgstr ""
+
+#: lib/unicodeio.c:111
+msgid "character out of range"
+msgstr "karakterea barrutitik kanpora"
+
+#: lib/unicodeio.c:198
+#, c-format
+msgid "cannot convert U+%04X to local character set"
+msgstr ""
+
+#: lib/unicodeio.c:200
+#, c-format
+msgid "cannot convert U+%04X to local character set: %s"
+msgstr ""
+
+#: lib/wait-process.c:232 lib/wait-process.c:264 lib/wait-process.c:326
+#, fuzzy, c-format
+msgid "%s subprocess"
+msgstr "baliogabea"
+
+#: lib/wait-process.c:283 lib/wait-process.c:355
+#, fuzzy, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr "baliogabea"
+
+#~ msgid "Written by %s.\n"
+#~ msgstr "%s-k idatzia.\n"
+
+#~ msgid "Written by %s and %s.\n"
+#~ msgstr "%s-k eta %s-k idatzia.\n"
+
+#~ msgid "Written by %s, %s, and %s.\n"
+#~ msgstr "%s, %s eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "%s eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, and %s.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "%s, %s eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, and %s.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "%s, %s, %s, eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "%s, %s, %s, %s,%s, eta %s-k idatzia.\n"
+
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, %s, and others.\n"
+#~ msgstr ""
+#~ "%s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, %s,·eta beste batzuk idatzia.\n"
+
+#, fuzzy
+#~ msgid "Report bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Programa-erroreen berri emateko idatzi hona: <%s>.\n"
+
+#, fuzzy
+#~ msgid "Report %s bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Programa-erroreen berri emateko idatzi hona: <%s>.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Mandatory or optional arguments to long options are also mandatory or "
+#~ "optional for any corresponding short options."
+#~ msgstr ""
+#~ "Beharrezkoak diren argumentuak aukera luzeetan, beharrezkoak dira aukera "
+#~ "txikietan ere.\n"
+
+#, fuzzy
+#~ msgid " [OPTION...]"
+#~ msgstr "Erabilera: %s [AUKERA]...\n"
+
+#, fuzzy
+#~ msgid "Try `%s --help' or `%s --usage' for more information.\n"
+#~ msgstr "Saiatu `%s --help' erabiltzen informazio gehiagorako.\n"
+
+#~ msgid "NAME"
+#~ msgstr "IZENA"
+
+#, fuzzy
+#~ msgid "%s: Too many arguments\n"
+#~ msgstr "e"
+
+#, fuzzy
+#~ msgid "program error"
+#~ msgstr "irakurketa errorea"
+
+#, fuzzy
+#~ msgid "error while opening \"%s\" for reading"
+#~ msgstr "errepikatu arte"
+
+#, fuzzy
+#~ msgid "error reading \"%s\""
+#~ msgstr "errorea %s irakurtzen"
+
+#, fuzzy
+#~ msgid "error writing \"%s\""
+#~ msgstr "errorea %s idazten"
+
+#, fuzzy
+#~ msgid "error after reading \"%s\""
+#~ msgstr "errorea %s irakurtzen"
+
+#, fuzzy
+#~ msgid "fdopen() failed"
+#~ msgstr "irekitzeak huts egin du"
+
+#~ msgid "regular empty file"
+#~ msgstr "fitxategi erregular hutsa"
+
+#~ msgid "regular file"
+#~ msgstr "Espresio erregularra"
+
+#~ msgid "directory"
+#~ msgstr "direktorioa"
+
+#, fuzzy
+#~ msgid "block special file"
+#~ msgstr "bloke tamainua"
+
+#, fuzzy
+#~ msgid "character special file"
+#~ msgstr "offset karakterea zero da"
+
+#~ msgid "fifo"
+#~ msgstr "fifo"
+
+#~ msgid "symbolic link"
+#~ msgstr "esteka sinbolikoa"
+
+#~ msgid "socket"
+#~ msgstr "socket-a"
+
+#~ msgid "message queue"
+#~ msgstr "Bidali ilara"
+
+#~ msgid "semaphore"
+#~ msgstr "semaforoa"
+
+#~ msgid "shared memory object"
+#~ msgstr "memoria partekatuaren objektua"
+
+#, fuzzy
+#~ msgid "typed memory object"
+#~ msgstr "memoria partekatuaren objektua"
+
+#~ msgid "weird file"
+#~ msgstr "fitxategi arraroa"
+
+#, fuzzy
+#~ msgid "Address family for hostname not supported"
+#~ msgstr "fifo fitxategiek ez dute euskarririk"
+
+#, fuzzy
+#~ msgid "ai_family not supported"
+#~ msgstr "fifo fitxategiek ez dute euskarririk"
+
+#, fuzzy
+#~ msgid "ai_socktype not supported"
+#~ msgstr "fifo fitxategiek ez dute euskarririk"
+
+#, fuzzy
+#~ msgid "System error"
+#~ msgstr "idazketa errorea"
+
+#, fuzzy
+#~ msgid "Unknown error"
+#~ msgstr "Sistema-errore ezezaguna"
+
+#~ msgid "%s: option `--%s' doesn't allow an argument\n"
+#~ msgstr "%s: '--%s' aukerak ez du argumenturik onartzen\n"
+
+#~ msgid "%s: unrecognized option `--%s'\n"
+#~ msgstr "%s: '--%s' aukera ezezaguna\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: -- %c aukera ilegala\n"
+
+#~ msgid "%s: option `-W %s' is ambiguous\n"
+#~ msgstr "%s: '-W %s' aukera anbiguoa da\n"
+
+#~ msgid "%s: option `-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: '-W.%s' aukerak ez du argumenturik onartzen\n"
+
+#~ msgid "block size"
+#~ msgstr "bloke tamainua"
+
+#~ msgid "%s exists but is not a directory"
+#~ msgstr "%s badago baina ez da direktorio bat"
+
+#~ msgid "cannot change owner and/or group of %s"
+#~ msgstr "ezin da %s-(r)en jabetza eta/edo taldea aldatu"
+
+#~ msgid "cannot create directory %s"
+#~ msgstr "ezin da %s direktorioa sortu"
+
+#, fuzzy
+#~ msgid "cannot chdir to directory %s"
+#~ msgstr "ezin da %s direktoriora aldatu"
+
+#~ msgid "cannot change permissions of %s"
+#~ msgstr "ezin da %s-(r)en baimenak aldatu"
+
+#, fuzzy
+#~ msgid "Failed to open /dev/zero for read"
+#~ msgstr "baimenak errepikatu arte"
+
+#, fuzzy
+#~ msgid "Invalid regular expression"
+#~ msgstr "baliogabea"
+
+#, fuzzy
+#~ msgid "Invalid character class name"
+#~ msgstr "baliogabea"
+
+#, fuzzy
+#~ msgid "Memory exhausted"
+#~ msgstr "memoria agortuta"
+
+#, fuzzy
+#~ msgid "Invalid preceding regular expression"
+#~ msgstr "baliogabea"
+
+#, fuzzy
+#~ msgid "Premature end of regular expression"
+#~ msgstr "in bilatu"
+
+#, fuzzy
+#~ msgid "Regular expression too big"
+#~ msgstr "baliogabea"
+
+#, fuzzy
+#~ msgid "No previous regular expression"
+#~ msgstr "in bilatu"
+
+#~ msgid "^[yY]"
+#~ msgstr "^[bB]"
+
+#~ msgid "^[nN]"
+#~ msgstr "^[eE]"
+
+#~ msgid "invalid user"
+#~ msgstr "baliogabeko erabiltzailea"
+
+#~ msgid "invalid group"
+#~ msgstr "baliogabeko taldea"
+
+#~ msgid "cannot get the login group of a numeric UID"
+#~ msgstr "ezin da UID zenbaki baten saio taldea lortu"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "This is free software.  You may redistribute copies of it under the terms "
+#~ "of\n"
+#~ "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+#~ "There is NO WARRANTY, to the extent permitted by law.\n"
+#~ "\n"
+#~ msgstr ""
+#~ "programa da eta edo - Orokorra Publikoa Lizentzia bider Libre Softwarea "
+#~ "edo e e"
+
+#~ msgid "string comparison failed"
+#~ msgstr "kate konparaketak huts egin du"
+
+#~ msgid "Set LC_ALL='C' to work around the problem."
+#~ msgstr "Ezarri LC_ALL='C' arazo hau une batez konpontzeko"
+
+#~ msgid "The strings compared were %s and %s."
+#~ msgstr "Alderatutako bi kateak %s eta %s izan dira."

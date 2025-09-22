@@ -1,0 +1,3998 @@
+# Bison Reports.                               -*- Autotest -*-
+
+# Copyright (C) 2018-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[Test reports.]])
+
+
+# AT_CHECK_HTML(FILE, EXPECTED-CONTENT)
+# -------------------------------------
+# Old versions of xsltproc emit 'content="text/html; charset=UTF-8"'
+# instead of 'content="text/html;charset=UTF-8"'.
+# <https://trac.macports.org/raw-attachment/ticket/59927/bison-test-results-20210811-95b72.log.xz>
+m4_define([AT_CHECK_HTML],
+[AT_KEYWORDS([html])
+AT_CHECK([sed -e 's|content="text/html; charset=UTF-8"|content="text/html;charset=UTF-8"|g' $1],
+          [],
+          [$2])])
+
+
+## --------- ##
+## Reports.  ##
+## --------- ##
+
+AT_SETUP([Reports])
+
+AT_KEYWORDS([report])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA([input.yy],
+[[%token
+  END  0  "end of file"
+  ASSIGN  ":="
+  INCR    "incr"
+;
+
+%token <std::string> IDENTIFIER "identifier"
+%type <std::string> id
+%token <int> NUMBER "number"
+%type  <int> exp
+
+%%
+%start unit;
+unit: assignments exp  { driver.result = $2; };
+
+assignments:
+  %empty                 {}
+| assignments assignment {};
+
+assignment:
+  id ":=" exp { driver.variables[$id] = $exp; };
+
+id:
+  "identifier";
+
+exp:
+  "incr" exp <int>{ $$ = 1; } <int>{ $$ = 10; } exp   { $$ = $2 + $3 + $4 + $5; }
+| "(" exp ")"   { std::swap ($$, $2); }
+| "identifier"  { $$ = driver.variables[$1]; }
+| "number"      { std::swap ($$, $1); };
+]])
+
+AT_SKIP_IF([[test x"$XSLTPROC" = x]])
+AT_BISON_CHECK([-o input.cc -v --graph=input.gv --html --xml input.yy])
+
+# Check the contents of the report.
+AT_CHECK([cat input.output], [],
+[[Grammar
+
+    0 $accept: unit "end of file"
+
+    1 unit: assignments exp
+
+    2 assignments: %empty
+    3            | assignments assignment
+
+    4 assignment: id ":=" exp
+
+    5 id: "identifier"
+
+    6 @1: %empty
+
+    7 @2: %empty
+
+    8 exp: "incr" exp @1 @2 exp
+    9    | "(" exp ")"
+   10    | "identifier"
+   11    | "number"
+
+
+Terminals, with rules where they appear
+
+    "end of file" (0) 0
+    error (256)
+    ":=" (258) 4
+    "incr" (259) 8
+    "identifier" <std::string> (260) 5 10
+    "number" <int> (261) 11
+    "(" (262) 9
+    ")" (263) 9
+
+
+Nonterminals, with rules where they appear
+
+    $accept (9)
+        on left: 0
+    unit (10)
+        on left: 1
+        on right: 0
+    assignments (11)
+        on left: 2 3
+        on right: 1 3
+    assignment (12)
+        on left: 4
+        on right: 3
+    id <std::string> (13)
+        on left: 5
+        on right: 4
+    exp <int> (14)
+        on left: 8 9 10 11
+        on right: 1 4 8 9
+    @1 <int> (15)
+        on left: 6
+        on right: 8
+    @2 <int> (16)
+        on left: 7
+        on right: 8
+
+
+State 0
+
+    0 $accept: . unit "end of file"
+
+    $default  reduce using rule 2 (assignments)
+
+    unit         go to state 1
+    assignments  go to state 2
+
+
+State 1
+
+    0 $accept: unit . "end of file"
+
+    "end of file"  shift, and go to state 3
+
+
+State 2
+
+    1 unit: assignments . exp
+    3 assignments: assignments . assignment
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 5
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    assignment  go to state 8
+    id          go to state 9
+    exp         go to state 10
+
+
+State 3
+
+    0 $accept: unit "end of file" .
+
+    $default  accept
+
+
+State 4
+
+    8 exp: "incr" . exp @1 @2 exp
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 12
+
+
+State 5
+
+    5 id: "identifier" .
+   10 exp: "identifier" .
+
+    "end of file"  reduce using rule 10 (exp)
+    $default       reduce using rule 5 (id)
+
+
+State 6
+
+   11 exp: "number" .
+
+    $default  reduce using rule 11 (exp)
+
+
+State 7
+
+    9 exp: "(" . exp ")"
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 13
+
+
+State 8
+
+    3 assignments: assignments assignment .
+
+    $default  reduce using rule 3 (assignments)
+
+
+State 9
+
+    4 assignment: id . ":=" exp
+
+    ":="  shift, and go to state 14
+
+
+State 10
+
+    1 unit: assignments exp .
+
+    $default  reduce using rule 1 (unit)
+
+
+State 11
+
+   10 exp: "identifier" .
+
+    $default  reduce using rule 10 (exp)
+
+
+State 12
+
+    8 exp: "incr" exp . @1 @2 exp
+
+    $default  reduce using rule 6 (@1)
+
+    @1  go to state 15
+
+
+State 13
+
+    9 exp: "(" exp . ")"
+
+    ")"  shift, and go to state 16
+
+
+State 14
+
+    4 assignment: id ":=" . exp
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 17
+
+
+State 15
+
+    8 exp: "incr" exp @1 . @2 exp
+
+    $default  reduce using rule 7 (@2)
+
+    @2  go to state 18
+
+
+State 16
+
+    9 exp: "(" exp ")" .
+
+    $default  reduce using rule 9 (exp)
+
+
+State 17
+
+    4 assignment: id ":=" exp .
+
+    $default  reduce using rule 4 (assignment)
+
+
+State 18
+
+    8 exp: "incr" exp @1 @2 . exp
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 19
+
+
+State 19
+
+    8 exp: "incr" exp @1 @2 exp .
+
+    $default  reduce using rule 8 (exp)
+]])
+
+
+# Now generate verbose reports.
+AT_SKIP_IF([[test x"$XSLTPROC" = x]])
+AT_BISON_CHECK([-o input.cc -rall --graph=input.gv --html --xml input.yy])
+
+# Check the contents of the report.
+AT_CHECK([cat input.output], [],
+[[Grammar
+
+    0 $accept: unit "end of file"
+
+    1 unit: assignments exp
+
+    2 assignments: %empty
+    3            | assignments assignment
+
+    4 assignment: id ":=" exp
+
+    5 id: "identifier"
+
+    6 @1: %empty
+
+    7 @2: %empty
+
+    8 exp: "incr" exp @1 @2 exp
+    9    | "(" exp ")"
+   10    | "identifier"
+   11    | "number"
+
+
+Terminals, with rules where they appear
+
+    "end of file" (0) 0
+    error (256)
+    ":=" (258) 4
+    "incr" (259) 8
+    "identifier" <std::string> (260) 5 10
+    "number" <int> (261) 11
+    "(" (262) 9
+    ")" (263) 9
+
+
+Nonterminals, with rules where they appear
+
+    $accept (9)
+        on left: 0
+    unit (10)
+        on left: 1
+        on right: 0
+    assignments (11)
+        on left: 2 3
+        on right: 1 3
+    assignment (12)
+        on left: 4
+        on right: 3
+    id <std::string> (13)
+        on left: 5
+        on right: 4
+    exp <int> (14)
+        on left: 8 9 10 11
+        on right: 1 4 8 9
+    @1 <int> (15)
+        on left: 6
+        on right: 8
+    @2 <int> (16)
+        on left: 7
+        on right: 8
+
+
+State 0
+
+    0 $accept: . unit "end of file"
+    1 unit: . assignments exp
+    2 assignments: %empty .
+    3            | . assignments assignment
+
+    $default  reduce using rule 2 (assignments)
+
+    unit         go to state 1
+    assignments  go to state 2
+
+
+State 1
+
+    0 $accept: unit . "end of file"
+
+    "end of file"  shift, and go to state 3
+
+
+State 2
+
+    1 unit: assignments . exp
+    3 assignments: assignments . assignment
+    4 assignment: . id ":=" exp
+    5 id: . "identifier"
+    8 exp: . "incr" exp @1 @2 exp
+    9    | . "(" exp ")"
+   10    | . "identifier"
+   11    | . "number"
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 5
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    assignment  go to state 8
+    id          go to state 9
+    exp         go to state 10
+
+
+State 3
+
+    0 $accept: unit "end of file" .
+
+    $default  accept
+
+
+State 4
+
+    8 exp: . "incr" exp @1 @2 exp
+    8    | "incr" . exp @1 @2 exp
+    9    | . "(" exp ")"
+   10    | . "identifier"
+   11    | . "number"
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 12
+
+
+State 5
+
+    5 id: "identifier" .  [":="]
+   10 exp: "identifier" .  ["end of file"]
+
+    "end of file"  reduce using rule 10 (exp)
+    $default       reduce using rule 5 (id)
+
+
+State 6
+
+   11 exp: "number" .
+
+    $default  reduce using rule 11 (exp)
+
+
+State 7
+
+    8 exp: . "incr" exp @1 @2 exp
+    9    | . "(" exp ")"
+    9    | "(" . exp ")"
+   10    | . "identifier"
+   11    | . "number"
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 13
+
+
+State 8
+
+    3 assignments: assignments assignment .
+
+    $default  reduce using rule 3 (assignments)
+
+
+State 9
+
+    4 assignment: id . ":=" exp
+
+    ":="  shift, and go to state 14
+
+
+State 10
+
+    1 unit: assignments exp .
+
+    $default  reduce using rule 1 (unit)
+
+
+State 11
+
+   10 exp: "identifier" .
+
+    $default  reduce using rule 10 (exp)
+
+
+State 12
+
+    6 @1: %empty .
+    8 exp: "incr" exp . @1 @2 exp
+
+    $default  reduce using rule 6 (@1)
+
+    @1  go to state 15
+
+
+State 13
+
+    9 exp: "(" exp . ")"
+
+    ")"  shift, and go to state 16
+
+
+State 14
+
+    4 assignment: id ":=" . exp
+    8 exp: . "incr" exp @1 @2 exp
+    9    | . "(" exp ")"
+   10    | . "identifier"
+   11    | . "number"
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 17
+
+
+State 15
+
+    7 @2: %empty .
+    8 exp: "incr" exp @1 . @2 exp
+
+    $default  reduce using rule 7 (@2)
+
+    @2  go to state 18
+
+
+State 16
+
+    9 exp: "(" exp ")" .
+
+    $default  reduce using rule 9 (exp)
+
+
+State 17
+
+    4 assignment: id ":=" exp .
+
+    $default  reduce using rule 4 (assignment)
+
+
+State 18
+
+    8 exp: . "incr" exp @1 @2 exp
+    8    | "incr" exp @1 @2 . exp
+    9    | . "(" exp ")"
+   10    | . "identifier"
+   11    | . "number"
+
+    "incr"        shift, and go to state 4
+    "identifier"  shift, and go to state 11
+    "number"      shift, and go to state 6
+    "("           shift, and go to state 7
+
+    exp  go to state 19
+
+
+State 19
+
+    8 exp: "incr" exp @1 @2 exp .
+
+    $default  reduce using rule 8 (exp)
+]])
+
+
+
+AT_CHECK([cat input.gv], [],
+[[// Generated by GNU Bison ]AT_PACKAGE_VERSION[.
+// Report bugs to <bug-bison@gnu.org>.
+// Home page: <https://www.gnu.org/software/bison/>.
+
+digraph "input.yy"
+{
+  node [fontname = courier, shape = box, colorscheme = paired6]
+  edge [fontname = courier]
+
+  0 [label="State 0\n\l  0 $accept: • unit \"end of file\"\l  1 unit: • assignments exp\l  2 assignments: • %empty\l  3            | • assignments assignment\l"]
+  0 -> 1 [style=dashed label="unit"]
+  0 -> 2 [style=dashed label="assignments"]
+  0 -> "0R2" [style=solid]
+ "0R2" [label="R2", fillcolor=3, shape=diamond, style=filled]
+  1 [label="State 1\n\l  0 $accept: unit • \"end of file\"\l"]
+  1 -> 3 [style=solid label="\"end of file\""]
+  2 [label="State 2\n\l  1 unit: assignments • exp\l  3 assignments: assignments • assignment\l  4 assignment: • id \":=\" exp\l  5 id: • \"identifier\"\l  8 exp: • \"incr\" exp @1 @2 exp\l  9    | • \"(\" exp \")\"\l 10    | • \"identifier\"\l 11    | • \"number\"\l"]
+  2 -> 4 [style=solid label="\"incr\""]
+  2 -> 5 [style=solid label="\"identifier\""]
+  2 -> 6 [style=solid label="\"number\""]
+  2 -> 7 [style=solid label="\"(\""]
+  2 -> 8 [style=dashed label="assignment"]
+  2 -> 9 [style=dashed label="id"]
+  2 -> 10 [style=dashed label="exp"]
+  3 [label="State 3\n\l  0 $accept: unit \"end of file\" •\l"]
+  3 -> "3R0" [style=solid]
+ "3R0" [label="Acc", fillcolor=1, shape=diamond, style=filled]
+  4 [label="State 4\n\l  8 exp: • \"incr\" exp @1 @2 exp\l  8    | \"incr\" • exp @1 @2 exp\l  9    | • \"(\" exp \")\"\l 10    | • \"identifier\"\l 11    | • \"number\"\l"]
+  4 -> 4 [style=solid label="\"incr\""]
+  4 -> 11 [style=solid label="\"identifier\""]
+  4 -> 6 [style=solid label="\"number\""]
+  4 -> 7 [style=solid label="\"(\""]
+  4 -> 12 [style=dashed label="exp"]
+  5 [label="State 5\n\l  5 id: \"identifier\" •  [\":=\"]\l 10 exp: \"identifier\" •  [\"end of file\"]\l"]
+  5 -> "5R5" [style=solid]
+ "5R5" [label="R5", fillcolor=3, shape=diamond, style=filled]
+  5 -> "5R10" [label="[\"end of file\"]", style=solid]
+ "5R10" [label="R10", fillcolor=3, shape=diamond, style=filled]
+  6 [label="State 6\n\l 11 exp: \"number\" •\l"]
+  6 -> "6R11" [style=solid]
+ "6R11" [label="R11", fillcolor=3, shape=diamond, style=filled]
+  7 [label="State 7\n\l  8 exp: • \"incr\" exp @1 @2 exp\l  9    | • \"(\" exp \")\"\l  9    | \"(\" • exp \")\"\l 10    | • \"identifier\"\l 11    | • \"number\"\l"]
+  7 -> 4 [style=solid label="\"incr\""]
+  7 -> 11 [style=solid label="\"identifier\""]
+  7 -> 6 [style=solid label="\"number\""]
+  7 -> 7 [style=solid label="\"(\""]
+  7 -> 13 [style=dashed label="exp"]
+  8 [label="State 8\n\l  3 assignments: assignments assignment •\l"]
+  8 -> "8R3" [style=solid]
+ "8R3" [label="R3", fillcolor=3, shape=diamond, style=filled]
+  9 [label="State 9\n\l  4 assignment: id • \":=\" exp\l"]
+  9 -> 14 [style=solid label="\":=\""]
+  10 [label="State 10\n\l  1 unit: assignments exp •\l"]
+  10 -> "10R1" [style=solid]
+ "10R1" [label="R1", fillcolor=3, shape=diamond, style=filled]
+  11 [label="State 11\n\l 10 exp: \"identifier\" •\l"]
+  11 -> "11R10" [style=solid]
+ "11R10" [label="R10", fillcolor=3, shape=diamond, style=filled]
+  12 [label="State 12\n\l  6 @1: • %empty\l  8 exp: \"incr\" exp • @1 @2 exp\l"]
+  12 -> 15 [style=dashed label="@1"]
+  12 -> "12R6" [style=solid]
+ "12R6" [label="R6", fillcolor=3, shape=diamond, style=filled]
+  13 [label="State 13\n\l  9 exp: \"(\" exp • \")\"\l"]
+  13 -> 16 [style=solid label="\")\""]
+  14 [label="State 14\n\l  4 assignment: id \":=\" • exp\l  8 exp: • \"incr\" exp @1 @2 exp\l  9    | • \"(\" exp \")\"\l 10    | • \"identifier\"\l 11    | • \"number\"\l"]
+  14 -> 4 [style=solid label="\"incr\""]
+  14 -> 11 [style=solid label="\"identifier\""]
+  14 -> 6 [style=solid label="\"number\""]
+  14 -> 7 [style=solid label="\"(\""]
+  14 -> 17 [style=dashed label="exp"]
+  15 [label="State 15\n\l  7 @2: • %empty\l  8 exp: \"incr\" exp @1 • @2 exp\l"]
+  15 -> 18 [style=dashed label="@2"]
+  15 -> "15R7" [style=solid]
+ "15R7" [label="R7", fillcolor=3, shape=diamond, style=filled]
+  16 [label="State 16\n\l  9 exp: \"(\" exp \")\" •\l"]
+  16 -> "16R9" [style=solid]
+ "16R9" [label="R9", fillcolor=3, shape=diamond, style=filled]
+  17 [label="State 17\n\l  4 assignment: id \":=\" exp •\l"]
+  17 -> "17R4" [style=solid]
+ "17R4" [label="R4", fillcolor=3, shape=diamond, style=filled]
+  18 [label="State 18\n\l  8 exp: • \"incr\" exp @1 @2 exp\l  8    | \"incr\" exp @1 @2 • exp\l  9    | • \"(\" exp \")\"\l 10    | • \"identifier\"\l 11    | • \"number\"\l"]
+  18 -> 4 [style=solid label="\"incr\""]
+  18 -> 11 [style=solid label="\"identifier\""]
+  18 -> 6 [style=solid label="\"number\""]
+  18 -> 7 [style=solid label="\"(\""]
+  18 -> 19 [style=dashed label="exp"]
+  19 [label="State 19\n\l  8 exp: \"incr\" exp @1 @2 exp •\l"]
+  19 -> "19R8" [style=solid]
+ "19R8" [label="R8", fillcolor=3, shape=diamond, style=filled]
+}
+]])
+
+
+AT_CHECK([[cat input.xml]], [],
+[[<?xml version="1.0"?>
+
+<bison-xml-report version="]AT_PACKAGE_VERSION[" bug-report="bug-bison@gnu.org" url="https://www.gnu.org/software/bison/">
+
+  <filename>input.yy</filename>
+
+  <grammar>
+    <rules>
+      <rule number="0" usefulness="useful">
+        <lhs>$accept</lhs>
+        <rhs>
+          <symbol>unit</symbol>
+          <symbol>&quot;end of file&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="1" usefulness="useful">
+        <lhs>unit</lhs>
+        <rhs>
+          <symbol>assignments</symbol>
+          <symbol>exp</symbol>
+        </rhs>
+      </rule>
+      <rule number="2" usefulness="useful">
+        <lhs>assignments</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="3" usefulness="useful">
+        <lhs>assignments</lhs>
+        <rhs>
+          <symbol>assignments</symbol>
+          <symbol>assignment</symbol>
+        </rhs>
+      </rule>
+      <rule number="4" usefulness="useful">
+        <lhs>assignment</lhs>
+        <rhs>
+          <symbol>id</symbol>
+          <symbol>&quot;:=&quot;</symbol>
+          <symbol>exp</symbol>
+        </rhs>
+      </rule>
+      <rule number="5" usefulness="useful">
+        <lhs>id</lhs>
+        <rhs>
+          <symbol>&quot;identifier&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="6" usefulness="useful">
+        <lhs>@1</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="7" usefulness="useful">
+        <lhs>@2</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="8" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>&quot;incr&quot;</symbol>
+          <symbol>exp</symbol>
+          <symbol>@1</symbol>
+          <symbol>@2</symbol>
+          <symbol>exp</symbol>
+        </rhs>
+      </rule>
+      <rule number="9" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>&quot;(&quot;</symbol>
+          <symbol>exp</symbol>
+          <symbol>&quot;)&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="10" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>&quot;identifier&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="11" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>&quot;number&quot;</symbol>
+        </rhs>
+      </rule>
+    </rules>
+    <terminals>
+      <terminal symbol-number="0" token-number="0" name="&quot;end of file&quot;" type="" usefulness="useful"/>
+      <terminal symbol-number="1" token-number="256" name="error" type="" usefulness="useful"/>
+      <terminal symbol-number="3" token-number="258" name="&quot;:=&quot;" type="" usefulness="useful"/>
+      <terminal symbol-number="4" token-number="259" name="&quot;incr&quot;" type="" usefulness="useful"/>
+      <terminal symbol-number="5" token-number="260" name="&quot;identifier&quot;" type="std::string" usefulness="useful"/>
+      <terminal symbol-number="6" token-number="261" name="&quot;number&quot;" type="int" usefulness="useful"/>
+      <terminal symbol-number="7" token-number="262" name="&quot;(&quot;" type="" usefulness="useful"/>
+      <terminal symbol-number="8" token-number="263" name="&quot;)&quot;" type="" usefulness="useful"/>
+    </terminals>
+    <nonterminals>
+      <nonterminal symbol-number="9" name="$accept" type="" usefulness="useful"/>
+      <nonterminal symbol-number="10" name="unit" type="" usefulness="useful"/>
+      <nonterminal symbol-number="11" name="assignments" type="" usefulness="useful"/>
+      <nonterminal symbol-number="12" name="assignment" type="" usefulness="useful"/>
+      <nonterminal symbol-number="13" name="id" type="std::string" usefulness="useful"/>
+      <nonterminal symbol-number="14" name="exp" type="int" usefulness="useful"/>
+      <nonterminal symbol-number="15" name="@1" type="int" usefulness="useful"/>
+      <nonterminal symbol-number="16" name="@2" type="int" usefulness="useful"/>
+    </nonterminals>
+  </grammar>
+
+  <automaton>
+
+    <state number="0">
+      <itemset>
+        <item rule-number="0" dot="0"/>
+        <item rule-number="1" dot="0"/>
+        <item rule-number="2" dot="0"/>
+        <item rule-number="3" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="unit" state="1"/>
+          <transition type="goto" symbol="assignments" state="2"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="2" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="1">
+      <itemset>
+        <item rule-number="0" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;end of file&quot;" state="3"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="2">
+      <itemset>
+        <item rule-number="1" dot="1"/>
+        <item rule-number="3" dot="1"/>
+        <item rule-number="4" dot="0"/>
+        <item rule-number="5" dot="0"/>
+        <item rule-number="8" dot="0"/>
+        <item rule-number="9" dot="0"/>
+        <item rule-number="10" dot="0"/>
+        <item rule-number="11" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;incr&quot;" state="4"/>
+          <transition type="shift" symbol="&quot;identifier&quot;" state="5"/>
+          <transition type="shift" symbol="&quot;number&quot;" state="6"/>
+          <transition type="shift" symbol="&quot;(&quot;" state="7"/>
+          <transition type="goto" symbol="assignment" state="8"/>
+          <transition type="goto" symbol="id" state="9"/>
+          <transition type="goto" symbol="exp" state="10"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="3">
+      <itemset>
+        <item rule-number="0" dot="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="accept" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="4">
+      <itemset>
+        <item rule-number="8" dot="0"/>
+        <item rule-number="8" dot="1"/>
+        <item rule-number="9" dot="0"/>
+        <item rule-number="10" dot="0"/>
+        <item rule-number="11" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;incr&quot;" state="4"/>
+          <transition type="shift" symbol="&quot;identifier&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;number&quot;" state="6"/>
+          <transition type="shift" symbol="&quot;(&quot;" state="7"/>
+          <transition type="goto" symbol="exp" state="12"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="5">
+      <itemset>
+        <item rule-number="5" dot="1">
+          <lookaheads>
+            <symbol>&quot;:=&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="10" dot="1">
+          <lookaheads>
+            <symbol>&quot;end of file&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end of file&quot;" rule="10" enabled="true"/>
+          <reduction symbol="$default" rule="5" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="6">
+      <itemset>
+        <item rule-number="11" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="11" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="7">
+      <itemset>
+        <item rule-number="8" dot="0"/>
+        <item rule-number="9" dot="0"/>
+        <item rule-number="9" dot="1"/>
+        <item rule-number="10" dot="0"/>
+        <item rule-number="11" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;incr&quot;" state="4"/>
+          <transition type="shift" symbol="&quot;identifier&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;number&quot;" state="6"/>
+          <transition type="shift" symbol="&quot;(&quot;" state="7"/>
+          <transition type="goto" symbol="exp" state="13"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="8">
+      <itemset>
+        <item rule-number="3" dot="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="3" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="9">
+      <itemset>
+        <item rule-number="4" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;:=&quot;" state="14"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="10">
+      <itemset>
+        <item rule-number="1" dot="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="1" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="11">
+      <itemset>
+        <item rule-number="10" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="10" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="12">
+      <itemset>
+        <item rule-number="6" dot="0"/>
+        <item rule-number="8" dot="2"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="@1" state="15"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="6" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="13">
+      <itemset>
+        <item rule-number="9" dot="2"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;)&quot;" state="16"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="14">
+      <itemset>
+        <item rule-number="4" dot="2"/>
+        <item rule-number="8" dot="0"/>
+        <item rule-number="9" dot="0"/>
+        <item rule-number="10" dot="0"/>
+        <item rule-number="11" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;incr&quot;" state="4"/>
+          <transition type="shift" symbol="&quot;identifier&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;number&quot;" state="6"/>
+          <transition type="shift" symbol="&quot;(&quot;" state="7"/>
+          <transition type="goto" symbol="exp" state="17"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="15">
+      <itemset>
+        <item rule-number="7" dot="0"/>
+        <item rule-number="8" dot="3"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="@2" state="18"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="7" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="16">
+      <itemset>
+        <item rule-number="9" dot="3"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="9" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="17">
+      <itemset>
+        <item rule-number="4" dot="3"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="4" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="18">
+      <itemset>
+        <item rule-number="8" dot="0"/>
+        <item rule-number="8" dot="4"/>
+        <item rule-number="9" dot="0"/>
+        <item rule-number="10" dot="0"/>
+        <item rule-number="11" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;incr&quot;" state="4"/>
+          <transition type="shift" symbol="&quot;identifier&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;number&quot;" state="6"/>
+          <transition type="shift" symbol="&quot;(&quot;" state="7"/>
+          <transition type="goto" symbol="exp" state="19"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="19">
+      <itemset>
+        <item rule-number="8" dot="5"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="8" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+  </automaton>
+</bison-xml-report>
+]])
+
+# Check HTML output.
+AT_CHECK_HTML([input.html],
+[[<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bison="https://www.gnu.org/software/bison/">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <title>input.yy - GNU Bison XML Automaton Report</title>
+    <style type="text/css">
+      body {
+        font-family: "Nimbus Sans L", Arial, sans-serif;
+        font-size: 9pt;
+      }
+      a:link {
+        color: #1f00ff;
+        text-decoration: none;
+      }
+      a:visited {
+        color: #1f00ff;
+        text-decoration: none;
+      }
+      a:hover {
+        color: red;
+      }
+      #menu a {
+        text-decoration: underline;
+      }
+      .i {
+        font-style: italic;
+      }
+      .pre {
+        font-family: monospace;
+        white-space: pre;
+      }
+      ol.decimal {
+        list-style-type: decimal;
+      }
+      ol.lower-alpha {
+        list-style-type: lower-alpha;
+      }
+      .dot {
+        color: #cc0000;
+      }
+      #footer {
+        margin-top: 3.5em;
+        font-size: 7pt;
+      }
+      </style>
+  </head>
+  <body><h1>GNU Bison XML Automaton Report</h1><p>
+    input grammar: <span class="i">input.yy</span></p>
+
+<h3>Table of Contents</h3><ul id="menu"><li><a href="#reductions">Reductions</a><ul class="lower-alpha"><li><a href="#nonterminals_useless_in_grammar">Nonterminals useless in grammar</a></li><li><a href="#terminals_unused_in_grammar">Terminals unused in grammar</a></li><li><a href="#rules_useless_in_grammar">Rules useless in grammar</a></li></ul></li><li><a href="#conflicts">Conflicts</a></li><li><a href="#grammar">Grammar</a><ul class="lower-alpha"><li><a href="#grammar">Itemset</a></li><li><a href="#terminals">Terminal symbols</a></li><li><a href="#nonterminals">Nonterminal symbols</a></li></ul></li><li><a href="#automaton">Automaton</a></li></ul><h2><a name="reductions" id="reductions"></a> Reductions</h2><h3><a name="nonterminals_useless_in_grammar" id="nonterminals_useless_in_grammar"></a> Nonterminals useless in grammar</h3>
+
+<h3><a name="terminals_unused_in_grammar" id="terminals_unused_in_grammar"></a> Terminals unused in grammar</h3>
+
+<h3><a name="rules_useless_in_grammar" id="rules_useless_in_grammar"></a> Rules useless in grammar</h3>
+<h2><a name="conflicts" id="conflicts"></a> Conflicts</h2>
+
+<h2><a name="grammar" id="grammar"></a> Grammar</h2>
+<p class="pre">
+  <a name="rule_0" id="rule_0">  0</a> <span class="i">$accept</span> → <span class="i">unit</span> <b>"end of file"</b>
+
+  <a name="rule_1" id="rule_1">  1</a> <span class="i">unit</span> → <span class="i">assignments</span> <span class="i">exp</span>
+
+  <a name="rule_2" id="rule_2">  2</a> <span class="i">assignments</span> → %empty
+  <a name="rule_3" id="rule_3">  3</a>             | <span class="i">assignments</span> <span class="i">assignment</span>
+
+  <a name="rule_4" id="rule_4">  4</a> <span class="i">assignment</span> → <span class="i">id</span> <b>":="</b> <span class="i">exp</span>
+
+  <a name="rule_5" id="rule_5">  5</a> <span class="i">id</span> → <b>"identifier"</b>
+
+  <a name="rule_6" id="rule_6">  6</a> <span class="i">@1</span> → %empty
+
+  <a name="rule_7" id="rule_7">  7</a> <span class="i">@2</span> → %empty
+
+  <a name="rule_8" id="rule_8">  8</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a name="rule_9" id="rule_9">  9</a>     | <b>"("</b> <span class="i">exp</span> <b>")"</b>
+  <a name="rule_10" id="rule_10"> 10</a>     | <b>"identifier"</b>
+  <a name="rule_11" id="rule_11"> 11</a>     | <b>"number"</b>
+</p>
+
+<h3><a name="terminals" id="terminals"></a> Terminals, with rules where they appear</h3>
+
+<ul>
+  <li><b>"end of file"</b> (0) <a href="#rule_0">0</a></li>
+  <li><b>error</b> (256)</li>
+  <li><b>":="</b> (258) <a href="#rule_4">4</a></li>
+  <li><b>"incr"</b> (259) <a href="#rule_8">8</a></li>
+  <li><b>"identifier"</b> &lt;std::string&gt; (260) <a href="#rule_5">5</a> <a href="#rule_10">10</a></li>
+  <li><b>"number"</b> &lt;int&gt; (261) <a href="#rule_11">11</a></li>
+  <li><b>"("</b> (262) <a href="#rule_9">9</a></li>
+  <li><b>")"</b> (263) <a href="#rule_9">9</a></li>
+</ul>
+
+<h3><a name="nonterminals" id="nonterminals"></a> Nonterminals, with rules where they appear</h3>
+
+<ul>
+  <li><b>$accept</b> (9)
+    <ul>
+      <li>on left: <a href="#rule_0">0</a></li>
+    </ul>
+  </li>
+  <li><b>unit</b> (10)
+    <ul>
+      <li>on left: <a href="#rule_1">1</a></li>
+      <li>on right: <a href="#rule_0">0</a></li>
+    </ul>
+  </li>
+  <li><b>assignments</b> (11)
+    <ul>
+      <li>on left: <a href="#rule_2">2</a> <a href="#rule_3">3</a></li>
+      <li>on right: <a href="#rule_1">1</a> <a href="#rule_3">3</a></li>
+    </ul>
+  </li>
+  <li><b>assignment</b> (12)
+    <ul>
+      <li>on left: <a href="#rule_4">4</a></li>
+      <li>on right: <a href="#rule_3">3</a></li>
+    </ul>
+  </li>
+  <li><b>id</b> &lt;std::string&gt; (13)
+    <ul>
+      <li>on left: <a href="#rule_5">5</a></li>
+      <li>on right: <a href="#rule_4">4</a></li>
+    </ul>
+  </li>
+  <li><b>exp</b> &lt;int&gt; (14)
+    <ul>
+      <li>on left: <a href="#rule_8">8</a> <a href="#rule_9">9</a> <a href="#rule_10">10</a> <a href="#rule_11">11</a></li>
+      <li>on right: <a href="#rule_1">1</a> <a href="#rule_4">4</a> <a href="#rule_8">8</a> <a href="#rule_9">9</a></li>
+    </ul>
+  </li>
+  <li><b>@1</b> &lt;int&gt; (15)
+    <ul>
+      <li>on left: <a href="#rule_6">6</a></li>
+      <li>on right: <a href="#rule_8">8</a></li>
+    </ul>
+  </li>
+  <li><b>@2</b> &lt;int&gt; (16)
+    <ul>
+      <li>on left: <a href="#rule_7">7</a></li>
+      <li>on right: <a href="#rule_8">8</a></li>
+    </ul>
+  </li>
+</ul><h2><a name="automaton" id="automaton"></a> Automaton</h2>
+
+<h3><a name="state_0" id="state_0"></a>State 0</h3>
+
+<p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="dot">•</span> <span class="i">unit</span> <b>"end of file"</b>
+  <a href="#rule_1">  1</a> <span class="i">unit</span> → <span class="dot">•</span> <span class="i">assignments</span> <span class="i">exp</span>
+  <a href="#rule_2">  2</a> <span class="i">assignments</span> → <span class="dot">•</span> %empty
+  <a href="#rule_3">  3</a>             | <span class="dot">•</span> <span class="i">assignments</span> <span class="i">assignment</span>
+
+    $default  <a href="#rule_2">reduce using rule 2</a> (assignments)
+
+    unit         <a href="#state_1">go to state 1</a>
+    assignments  <a href="#state_2">go to state 2</a>
+</p>
+
+<h3><a name="state_1" id="state_1"></a>State 1</h3>
+
+<p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="i">unit</span> <span class="dot">•</span> <b>"end of file"</b>
+
+    "end of file"  <a href="#state_3">shift, and go to state 3</a>
+</p>
+
+<h3><a name="state_2" id="state_2"></a>State 2</h3>
+
+<p class="pre">  <a href="#rule_1">  1</a> <span class="i">unit</span> → <span class="i">assignments</span> <span class="dot">•</span> <span class="i">exp</span>
+  <a href="#rule_3">  3</a> <span class="i">assignments</span> → <span class="i">assignments</span> <span class="dot">•</span> <span class="i">assignment</span>
+  <a href="#rule_4">  4</a> <span class="i">assignment</span> → <span class="dot">•</span> <span class="i">id</span> <b>":="</b> <span class="i">exp</span>
+  <a href="#rule_5">  5</a> <span class="i">id</span> → <span class="dot">•</span> <b>"identifier"</b>
+  <a href="#rule_8">  8</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a href="#rule_9">  9</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+  <a href="#rule_10"> 10</a>     | <span class="dot">•</span> <b>"identifier"</b>
+  <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"number"</b>
+
+    "incr"        <a href="#state_4">shift, and go to state 4</a>
+    "identifier"  <a href="#state_5">shift, and go to state 5</a>
+    "number"      <a href="#state_6">shift, and go to state 6</a>
+    "("           <a href="#state_7">shift, and go to state 7</a>
+
+    assignment  <a href="#state_8">go to state 8</a>
+    id          <a href="#state_9">go to state 9</a>
+    exp         <a href="#state_10">go to state 10</a>
+</p>
+
+<h3><a name="state_3" id="state_3"></a>State 3</h3>
+
+<p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="i">unit</span> <b>"end of file"</b> <span class="dot">•</span>
+
+    $default  accept
+</p>
+
+<h3><a name="state_4" id="state_4"></a>State 4</h3>
+
+<p class="pre">  <a href="#rule_8">  8</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a href="#rule_8">  8</a>     | <b>"incr"</b> <span class="dot">•</span> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a href="#rule_9">  9</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+  <a href="#rule_10"> 10</a>     | <span class="dot">•</span> <b>"identifier"</b>
+  <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"number"</b>
+
+    "incr"        <a href="#state_4">shift, and go to state 4</a>
+    "identifier"  <a href="#state_11">shift, and go to state 11</a>
+    "number"      <a href="#state_6">shift, and go to state 6</a>
+    "("           <a href="#state_7">shift, and go to state 7</a>
+
+    exp  <a href="#state_12">go to state 12</a>
+</p>
+
+<h3><a name="state_5" id="state_5"></a>State 5</h3>
+
+<p class="pre">  <a href="#rule_5">  5</a> <span class="i">id</span> → <b>"identifier"</b> <span class="dot">•</span>  [":="]
+  <a href="#rule_10"> 10</a> <span class="i">exp</span> → <b>"identifier"</b> <span class="dot">•</span>  ["end of file"]
+
+    "end of file"  <a href="#rule_10">reduce using rule 10</a> (exp)
+    $default       <a href="#rule_5">reduce using rule 5</a> (id)
+</p>
+
+<h3><a name="state_6" id="state_6"></a>State 6</h3>
+
+<p class="pre">  <a href="#rule_11"> 11</a> <span class="i">exp</span> → <b>"number"</b> <span class="dot">•</span>
+
+    $default  <a href="#rule_11">reduce using rule 11</a> (exp)
+</p>
+
+<h3><a name="state_7" id="state_7"></a>State 7</h3>
+
+<p class="pre">  <a href="#rule_8">  8</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a href="#rule_9">  9</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+  <a href="#rule_9">  9</a>     | <b>"("</b> <span class="dot">•</span> <span class="i">exp</span> <b>")"</b>
+  <a href="#rule_10"> 10</a>     | <span class="dot">•</span> <b>"identifier"</b>
+  <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"number"</b>
+
+    "incr"        <a href="#state_4">shift, and go to state 4</a>
+    "identifier"  <a href="#state_11">shift, and go to state 11</a>
+    "number"      <a href="#state_6">shift, and go to state 6</a>
+    "("           <a href="#state_7">shift, and go to state 7</a>
+
+    exp  <a href="#state_13">go to state 13</a>
+</p>
+
+<h3><a name="state_8" id="state_8"></a>State 8</h3>
+
+<p class="pre">  <a href="#rule_3">  3</a> <span class="i">assignments</span> → <span class="i">assignments</span> <span class="i">assignment</span> <span class="dot">•</span>
+
+    $default  <a href="#rule_3">reduce using rule 3</a> (assignments)
+</p>
+
+<h3><a name="state_9" id="state_9"></a>State 9</h3>
+
+<p class="pre">  <a href="#rule_4">  4</a> <span class="i">assignment</span> → <span class="i">id</span> <span class="dot">•</span> <b>":="</b> <span class="i">exp</span>
+
+    ":="  <a href="#state_14">shift, and go to state 14</a>
+</p>
+
+<h3><a name="state_10" id="state_10"></a>State 10</h3>
+
+<p class="pre">  <a href="#rule_1">  1</a> <span class="i">unit</span> → <span class="i">assignments</span> <span class="i">exp</span> <span class="dot">•</span>
+
+    $default  <a href="#rule_1">reduce using rule 1</a> (unit)
+</p>
+
+<h3><a name="state_11" id="state_11"></a>State 11</h3>
+
+<p class="pre">  <a href="#rule_10"> 10</a> <span class="i">exp</span> → <b>"identifier"</b> <span class="dot">•</span>
+
+    $default  <a href="#rule_10">reduce using rule 10</a> (exp)
+</p>
+
+<h3><a name="state_12" id="state_12"></a>State 12</h3>
+
+<p class="pre">  <a href="#rule_6">  6</a> <span class="i">@1</span> → <span class="dot">•</span> %empty
+  <a href="#rule_8">  8</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="dot">•</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+
+    $default  <a href="#rule_6">reduce using rule 6</a> (@1)
+
+    @1  <a href="#state_15">go to state 15</a>
+</p>
+
+<h3><a name="state_13" id="state_13"></a>State 13</h3>
+
+<p class="pre">  <a href="#rule_9">  9</a> <span class="i">exp</span> → <b>"("</b> <span class="i">exp</span> <span class="dot">•</span> <b>")"</b>
+
+    ")"  <a href="#state_16">shift, and go to state 16</a>
+</p>
+
+<h3><a name="state_14" id="state_14"></a>State 14</h3>
+
+<p class="pre">  <a href="#rule_4">  4</a> <span class="i">assignment</span> → <span class="i">id</span> <b>":="</b> <span class="dot">•</span> <span class="i">exp</span>
+  <a href="#rule_8">  8</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a href="#rule_9">  9</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+  <a href="#rule_10"> 10</a>     | <span class="dot">•</span> <b>"identifier"</b>
+  <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"number"</b>
+
+    "incr"        <a href="#state_4">shift, and go to state 4</a>
+    "identifier"  <a href="#state_11">shift, and go to state 11</a>
+    "number"      <a href="#state_6">shift, and go to state 6</a>
+    "("           <a href="#state_7">shift, and go to state 7</a>
+
+    exp  <a href="#state_17">go to state 17</a>
+</p>
+
+<h3><a name="state_15" id="state_15"></a>State 15</h3>
+
+<p class="pre">  <a href="#rule_7">  7</a> <span class="i">@2</span> → <span class="dot">•</span> %empty
+  <a href="#rule_8">  8</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="dot">•</span> <span class="i">@2</span> <span class="i">exp</span>
+
+    $default  <a href="#rule_7">reduce using rule 7</a> (@2)
+
+    @2  <a href="#state_18">go to state 18</a>
+</p>
+
+<h3><a name="state_16" id="state_16"></a>State 16</h3>
+
+<p class="pre">  <a href="#rule_9">  9</a> <span class="i">exp</span> → <b>"("</b> <span class="i">exp</span> <b>")"</b> <span class="dot">•</span>
+
+    $default  <a href="#rule_9">reduce using rule 9</a> (exp)
+</p>
+
+<h3><a name="state_17" id="state_17"></a>State 17</h3>
+
+<p class="pre">  <a href="#rule_4">  4</a> <span class="i">assignment</span> → <span class="i">id</span> <b>":="</b> <span class="i">exp</span> <span class="dot">•</span>
+
+    $default  <a href="#rule_4">reduce using rule 4</a> (assignment)
+</p>
+
+<h3><a name="state_18" id="state_18"></a>State 18</h3>
+
+<p class="pre">  <a href="#rule_8">  8</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+  <a href="#rule_8">  8</a>     | <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="dot">•</span> <span class="i">exp</span>
+  <a href="#rule_9">  9</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+  <a href="#rule_10"> 10</a>     | <span class="dot">•</span> <b>"identifier"</b>
+  <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"number"</b>
+
+    "incr"        <a href="#state_4">shift, and go to state 4</a>
+    "identifier"  <a href="#state_11">shift, and go to state 11</a>
+    "number"      <a href="#state_6">shift, and go to state 6</a>
+    "("           <a href="#state_7">shift, and go to state 7</a>
+
+    exp  <a href="#state_19">go to state 19</a>
+</p>
+
+<h3><a name="state_19" id="state_19"></a>State 19</h3>
+
+<p class="pre">  <a href="#rule_8">  8</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span> <span class="dot">•</span>
+
+    $default  <a href="#rule_8">reduce using rule 8</a> (exp)
+</p>
+
+<div id="footer"><hr />This document was generated using
+      <a href="https://www.gnu.org/software/bison/" title="GNU Bison">
+      GNU Bison ]AT_PACKAGE_VERSION[</a>
+      XML Automaton Report.<br />
+      Verbatim copying and distribution of this entire page is
+      permitted in any medium, provided this notice is preserved.</div></body>
+</html>
+]])
+
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP
+
+
+dnl Disable because aborts on some architectures.  Not scheduled for 3.8 anyway.
+dnl <https://lists.gnu.org/r/bug-bison/2021-08/msg00027.html>
+dnl
+dnl ## -------------------- ##
+dnl ## Multistart reports.  ##
+dnl ## -------------------- ##
+dnl
+dnl AT_SETUP([Multistart reports])
+dnl
+dnl AT_KEYWORDS([multistart report])
+dnl
+dnl AT_BISON_OPTION_PUSHDEFS
+dnl AT_DATA([input.yy],
+dnl [[%token
+dnl   END  0  "end of file"
+dnl   ASSIGN  ":="
+dnl   INCR    "incr"
+dnl ;
+dnl
+dnl %token <std::string> IDENTIFIER "identifier"
+dnl %type <std::string> id
+dnl %token <int> NUMBER "number"
+dnl %type  <int> exp
+dnl
+dnl %%
+dnl %start unit assignments exp;
+dnl unit: assignments exp  { driver.result = $2; };
+dnl
+dnl assignments:
+dnl   %empty                 {}
+dnl | assignments assignment {};
+dnl
+dnl assignment:
+dnl   id ":=" exp { driver.variables[$id] = $exp; };
+dnl
+dnl id:
+dnl   "identifier";
+dnl
+dnl exp:
+dnl   "incr" exp <int>{ $$ = 1; } <int>{ $$ = 10; } exp   { $$ = $2 + $3 + $4 + $5; }
+dnl | "(" exp ")"   { std::swap ($$, $2); }
+dnl | "identifier"  { $$ = driver.variables[$1]; }
+dnl | "number"      { std::swap ($$, $1); };
+dnl ]])
+dnl
+dnl AT_BISON_CHECK([-o input.cc -rall --graph=input.gv --xml input.yy])
+dnl
+dnl # Check the contents of the report.
+dnl AT_CHECK([cat input.output], [],
+dnl [[Grammar
+dnl
+dnl     0 $accept: YY_PARSE_unit unit "end of file"
+dnl     1        | YY_PARSE_assignments assignments "end of file"
+dnl     2        | YY_PARSE_exp exp "end of file"
+dnl
+dnl     3 unit: assignments exp
+dnl
+dnl     4 assignments: %empty
+dnl     5            | assignments assignment
+dnl
+dnl     6 assignment: id ":=" exp
+dnl
+dnl     7 id: "identifier"
+dnl
+dnl     8 @1: %empty
+dnl
+dnl     9 @2: %empty
+dnl
+dnl    10 exp: "incr" exp @1 @2 exp
+dnl    11    | "(" exp ")"
+dnl    12    | "identifier"
+dnl    13    | "number"
+dnl
+dnl
+dnl Terminals, with rules where they appear
+dnl
+dnl     "end of file" (0) 0 1 2
+dnl     error (256)
+dnl     ":=" (258) 6
+dnl     "incr" (259) 10
+dnl     "identifier" <std::string> (260) 7 12
+dnl     "number" <int> (261) 13
+dnl     YY_PARSE_unit (262) 0
+dnl     YY_PARSE_assignments (263) 1
+dnl     YY_PARSE_exp (264) 2
+dnl     "(" (265) 11
+dnl     ")" (266) 11
+dnl
+dnl
+dnl Nonterminals, with rules where they appear
+dnl
+dnl     $accept (12)
+dnl         on left: 0 1 2
+dnl     unit (13)
+dnl         on left: 3
+dnl         on right: 0
+dnl     assignments (14)
+dnl         on left: 4 5
+dnl         on right: 1 3 5
+dnl     assignment (15)
+dnl         on left: 6
+dnl         on right: 5
+dnl     id <std::string> (16)
+dnl         on left: 7
+dnl         on right: 6
+dnl     exp <int> (17)
+dnl         on left: 10 11 12 13
+dnl         on right: 2 3 6 10 11
+dnl     @1 <int> (18)
+dnl         on left: 8
+dnl         on right: 10
+dnl     @2 <int> (19)
+dnl         on left: 9
+dnl         on right: 10
+dnl
+dnl
+dnl State 0
+dnl
+dnl     0 $accept: . YY_PARSE_unit unit "end of file"
+dnl     1        | . YY_PARSE_assignments assignments "end of file"
+dnl     2        | . YY_PARSE_exp exp "end of file"
+dnl
+dnl     YY_PARSE_unit         shift, and go to state 1
+dnl     YY_PARSE_assignments  shift, and go to state 2
+dnl     YY_PARSE_exp          shift, and go to state 3
+dnl
+dnl
+dnl State 1
+dnl
+dnl     0 $accept: YY_PARSE_unit . unit "end of file"
+dnl     3 unit: . assignments exp
+dnl     4 assignments: %empty .
+dnl     5            | . assignments assignment
+dnl
+dnl     $default  reduce using rule 4 (assignments)
+dnl
+dnl     unit         go to state 4
+dnl     assignments  go to state 5
+dnl
+dnl
+dnl State 2
+dnl
+dnl     1 $accept: YY_PARSE_assignments . assignments "end of file"
+dnl     4 assignments: %empty .
+dnl     5            | . assignments assignment
+dnl
+dnl     $default  reduce using rule 4 (assignments)
+dnl
+dnl     assignments  go to state 6
+dnl
+dnl
+dnl State 3
+dnl
+dnl     2 $accept: YY_PARSE_exp . exp "end of file"
+dnl    10 exp: . "incr" exp @1 @2 exp
+dnl    11    | . "(" exp ")"
+dnl    12    | . "identifier"
+dnl    13    | . "number"
+dnl
+dnl     "incr"        shift, and go to state 7
+dnl     "identifier"  shift, and go to state 8
+dnl     "number"      shift, and go to state 9
+dnl     "("           shift, and go to state 10
+dnl
+dnl     exp  go to state 11
+dnl
+dnl
+dnl State 4
+dnl
+dnl     0 $accept: YY_PARSE_unit unit . "end of file"
+dnl
+dnl     "end of file"  shift, and go to state 12
+dnl
+dnl
+dnl State 5
+dnl
+dnl     3 unit: assignments . exp
+dnl     5 assignments: assignments . assignment
+dnl     6 assignment: . id ":=" exp
+dnl     7 id: . "identifier"
+dnl    10 exp: . "incr" exp @1 @2 exp
+dnl    11    | . "(" exp ")"
+dnl    12    | . "identifier"
+dnl    13    | . "number"
+dnl
+dnl     "incr"        shift, and go to state 7
+dnl     "identifier"  shift, and go to state 13
+dnl     "number"      shift, and go to state 9
+dnl     "("           shift, and go to state 10
+dnl
+dnl     assignment  go to state 14
+dnl     id          go to state 15
+dnl     exp         go to state 16
+dnl
+dnl
+dnl State 6
+dnl
+dnl     1 $accept: YY_PARSE_assignments assignments . "end of file"
+dnl     5 assignments: assignments . assignment
+dnl     6 assignment: . id ":=" exp
+dnl     7 id: . "identifier"
+dnl
+dnl     "end of file"  shift, and go to state 17
+dnl     "identifier"   shift, and go to state 18
+dnl
+dnl     assignment  go to state 14
+dnl     id          go to state 15
+dnl
+dnl
+dnl State 7
+dnl
+dnl    10 exp: . "incr" exp @1 @2 exp
+dnl    10    | "incr" . exp @1 @2 exp
+dnl    11    | . "(" exp ")"
+dnl    12    | . "identifier"
+dnl    13    | . "number"
+dnl
+dnl     "incr"        shift, and go to state 7
+dnl     "identifier"  shift, and go to state 8
+dnl     "number"      shift, and go to state 9
+dnl     "("           shift, and go to state 10
+dnl
+dnl     exp  go to state 19
+dnl
+dnl
+dnl State 8
+dnl
+dnl    12 exp: "identifier" .
+dnl
+dnl     $default  reduce using rule 12 (exp)
+dnl
+dnl
+dnl State 9
+dnl
+dnl    13 exp: "number" .
+dnl
+dnl     $default  reduce using rule 13 (exp)
+dnl
+dnl
+dnl State 10
+dnl
+dnl    10 exp: . "incr" exp @1 @2 exp
+dnl    11    | . "(" exp ")"
+dnl    11    | "(" . exp ")"
+dnl    12    | . "identifier"
+dnl    13    | . "number"
+dnl
+dnl     "incr"        shift, and go to state 7
+dnl     "identifier"  shift, and go to state 8
+dnl     "number"      shift, and go to state 9
+dnl     "("           shift, and go to state 10
+dnl
+dnl     exp  go to state 20
+dnl
+dnl
+dnl State 11
+dnl
+dnl     2 $accept: YY_PARSE_exp exp . "end of file"
+dnl
+dnl     "end of file"  shift, and go to state 21
+dnl
+dnl
+dnl State 12
+dnl
+dnl     0 $accept: YY_PARSE_unit unit "end of file" .
+dnl
+dnl     $default  accept
+dnl
+dnl
+dnl State 13
+dnl
+dnl     7 id: "identifier" .  [":="]
+dnl    12 exp: "identifier" .  ["end of file"]
+dnl
+dnl     "end of file"  reduce using rule 12 (exp)
+dnl     $default       reduce using rule 7 (id)
+dnl
+dnl
+dnl State 14
+dnl
+dnl     5 assignments: assignments assignment .
+dnl
+dnl     $default  reduce using rule 5 (assignments)
+dnl
+dnl
+dnl State 15
+dnl
+dnl     6 assignment: id . ":=" exp
+dnl
+dnl     ":="  shift, and go to state 22
+dnl
+dnl
+dnl State 16
+dnl
+dnl     3 unit: assignments exp .
+dnl
+dnl     $default  reduce using rule 3 (unit)
+dnl
+dnl
+dnl State 17
+dnl
+dnl     1 $accept: YY_PARSE_assignments assignments "end of file" .
+dnl
+dnl     $default  accept
+dnl
+dnl
+dnl State 18
+dnl
+dnl     7 id: "identifier" .
+dnl
+dnl     $default  reduce using rule 7 (id)
+dnl
+dnl
+dnl State 19
+dnl
+dnl     8 @1: %empty .
+dnl    10 exp: "incr" exp . @1 @2 exp
+dnl
+dnl     $default  reduce using rule 8 (@1)
+dnl
+dnl     @1  go to state 23
+dnl
+dnl
+dnl State 20
+dnl
+dnl    11 exp: "(" exp . ")"
+dnl
+dnl     ")"  shift, and go to state 24
+dnl
+dnl
+dnl State 21
+dnl
+dnl     2 $accept: YY_PARSE_exp exp "end of file" .
+dnl
+dnl     $default  accept
+dnl
+dnl
+dnl State 22
+dnl
+dnl     6 assignment: id ":=" . exp
+dnl    10 exp: . "incr" exp @1 @2 exp
+dnl    11    | . "(" exp ")"
+dnl    12    | . "identifier"
+dnl    13    | . "number"
+dnl
+dnl     "incr"        shift, and go to state 7
+dnl     "identifier"  shift, and go to state 8
+dnl     "number"      shift, and go to state 9
+dnl     "("           shift, and go to state 10
+dnl
+dnl     exp  go to state 25
+dnl
+dnl
+dnl State 23
+dnl
+dnl     9 @2: %empty .
+dnl    10 exp: "incr" exp @1 . @2 exp
+dnl
+dnl     $default  reduce using rule 9 (@2)
+dnl
+dnl     @2  go to state 26
+dnl
+dnl
+dnl State 24
+dnl
+dnl    11 exp: "(" exp ")" .
+dnl
+dnl     $default  reduce using rule 11 (exp)
+dnl
+dnl
+dnl State 25
+dnl
+dnl     6 assignment: id ":=" exp .
+dnl
+dnl     $default  reduce using rule 6 (assignment)
+dnl
+dnl
+dnl State 26
+dnl
+dnl    10 exp: . "incr" exp @1 @2 exp
+dnl    10    | "incr" exp @1 @2 . exp
+dnl    11    | . "(" exp ")"
+dnl    12    | . "identifier"
+dnl    13    | . "number"
+dnl
+dnl     "incr"        shift, and go to state 7
+dnl     "identifier"  shift, and go to state 8
+dnl     "number"      shift, and go to state 9
+dnl     "("           shift, and go to state 10
+dnl
+dnl     exp  go to state 27
+dnl
+dnl
+dnl State 27
+dnl
+dnl    10 exp: "incr" exp @1 @2 exp .
+dnl
+dnl     $default  reduce using rule 10 (exp)
+dnl ]])
+dnl
+dnl
+dnl
+dnl AT_CHECK([cat input.gv], [],
+dnl [[// Generated by GNU Bison ]AT_PACKAGE_VERSION[.
+dnl // Report bugs to <bug-bison@gnu.org>.
+dnl // Home page: <https://www.gnu.org/software/bison/>.
+dnl
+dnl digraph "input.yy"
+dnl {
+dnl   node [fontname = courier, shape = box, colorscheme = paired6]
+dnl   edge [fontname = courier]
+dnl
+dnl   0 [label="State 0\n\l  0 $accept: • YY_PARSE_unit unit \"end of file\"\l  1        | • YY_PARSE_assignments assignments \"end of file\"\l  2        | • YY_PARSE_exp exp \"end of file\"\l"]
+dnl   0 -> 1 [style=solid label="YY_PARSE_unit"]
+dnl   0 -> 2 [style=solid label="YY_PARSE_assignments"]
+dnl   0 -> 3 [style=solid label="YY_PARSE_exp"]
+dnl   1 [label="State 1\n\l  0 $accept: YY_PARSE_unit • unit \"end of file\"\l  3 unit: • assignments exp\l  4 assignments: • %empty\l  5            | • assignments assignment\l"]
+dnl   1 -> 4 [style=dashed label="unit"]
+dnl   1 -> 5 [style=dashed label="assignments"]
+dnl   1 -> "1R4" [style=solid]
+dnl  "1R4" [label="R4", fillcolor=3, shape=diamond, style=filled]
+dnl   2 [label="State 2\n\l  1 $accept: YY_PARSE_assignments • assignments \"end of file\"\l  4 assignments: • %empty\l  5            | • assignments assignment\l"]
+dnl   2 -> 6 [style=dashed label="assignments"]
+dnl   2 -> "2R4" [style=solid]
+dnl  "2R4" [label="R4", fillcolor=3, shape=diamond, style=filled]
+dnl   3 [label="State 3\n\l  2 $accept: YY_PARSE_exp • exp \"end of file\"\l 10 exp: • \"incr\" exp @1 @2 exp\l 11    | • \"(\" exp \")\"\l 12    | • \"identifier\"\l 13    | • \"number\"\l"]
+dnl   3 -> 7 [style=solid label="\"incr\""]
+dnl   3 -> 8 [style=solid label="\"identifier\""]
+dnl   3 -> 9 [style=solid label="\"number\""]
+dnl   3 -> 10 [style=solid label="\"(\""]
+dnl   3 -> 11 [style=dashed label="exp"]
+dnl   4 [label="State 4\n\l  0 $accept: YY_PARSE_unit unit • \"end of file\"\l"]
+dnl   4 -> 12 [style=solid label="\"end of file\""]
+dnl   5 [label="State 5\n\l  3 unit: assignments • exp\l  5 assignments: assignments • assignment\l  6 assignment: • id \":=\" exp\l  7 id: • \"identifier\"\l 10 exp: • \"incr\" exp @1 @2 exp\l 11    | • \"(\" exp \")\"\l 12    | • \"identifier\"\l 13    | • \"number\"\l"]
+dnl   5 -> 7 [style=solid label="\"incr\""]
+dnl   5 -> 13 [style=solid label="\"identifier\""]
+dnl   5 -> 9 [style=solid label="\"number\""]
+dnl   5 -> 10 [style=solid label="\"(\""]
+dnl   5 -> 14 [style=dashed label="assignment"]
+dnl   5 -> 15 [style=dashed label="id"]
+dnl   5 -> 16 [style=dashed label="exp"]
+dnl   6 [label="State 6\n\l  1 $accept: YY_PARSE_assignments assignments • \"end of file\"\l  5 assignments: assignments • assignment\l  6 assignment: • id \":=\" exp\l  7 id: • \"identifier\"\l"]
+dnl   6 -> 17 [style=solid label="\"end of file\""]
+dnl   6 -> 18 [style=solid label="\"identifier\""]
+dnl   6 -> 14 [style=dashed label="assignment"]
+dnl   6 -> 15 [style=dashed label="id"]
+dnl   7 [label="State 7\n\l 10 exp: • \"incr\" exp @1 @2 exp\l 10    | \"incr\" • exp @1 @2 exp\l 11    | • \"(\" exp \")\"\l 12    | • \"identifier\"\l 13    | • \"number\"\l"]
+dnl   7 -> 7 [style=solid label="\"incr\""]
+dnl   7 -> 8 [style=solid label="\"identifier\""]
+dnl   7 -> 9 [style=solid label="\"number\""]
+dnl   7 -> 10 [style=solid label="\"(\""]
+dnl   7 -> 19 [style=dashed label="exp"]
+dnl   8 [label="State 8\n\l 12 exp: \"identifier\" •\l"]
+dnl   8 -> "8R12" [style=solid]
+dnl  "8R12" [label="R12", fillcolor=3, shape=diamond, style=filled]
+dnl   9 [label="State 9\n\l 13 exp: \"number\" •\l"]
+dnl   9 -> "9R13" [style=solid]
+dnl  "9R13" [label="R13", fillcolor=3, shape=diamond, style=filled]
+dnl   10 [label="State 10\n\l 10 exp: • \"incr\" exp @1 @2 exp\l 11    | • \"(\" exp \")\"\l 11    | \"(\" • exp \")\"\l 12    | • \"identifier\"\l 13    | • \"number\"\l"]
+dnl   10 -> 7 [style=solid label="\"incr\""]
+dnl   10 -> 8 [style=solid label="\"identifier\""]
+dnl   10 -> 9 [style=solid label="\"number\""]
+dnl   10 -> 10 [style=solid label="\"(\""]
+dnl   10 -> 20 [style=dashed label="exp"]
+dnl   11 [label="State 11\n\l  2 $accept: YY_PARSE_exp exp • \"end of file\"\l"]
+dnl   11 -> 21 [style=solid label="\"end of file\""]
+dnl   12 [label="State 12\n\l  0 $accept: YY_PARSE_unit unit \"end of file\" •\l"]
+dnl   12 -> "12R0" [style=solid]
+dnl  "12R0" [label="Acc", fillcolor=1, shape=diamond, style=filled]
+dnl   13 [label="State 13\n\l  7 id: \"identifier\" •  [\":=\"]\l 12 exp: \"identifier\" •  [\"end of file\"]\l"]
+dnl   13 -> "13R7" [style=solid]
+dnl  "13R7" [label="R7", fillcolor=3, shape=diamond, style=filled]
+dnl   13 -> "13R12" [label="[\"end of file\"]", style=solid]
+dnl  "13R12" [label="R12", fillcolor=3, shape=diamond, style=filled]
+dnl   14 [label="State 14\n\l  5 assignments: assignments assignment •\l"]
+dnl   14 -> "14R5" [style=solid]
+dnl  "14R5" [label="R5", fillcolor=3, shape=diamond, style=filled]
+dnl   15 [label="State 15\n\l  6 assignment: id • \":=\" exp\l"]
+dnl   15 -> 22 [style=solid label="\":=\""]
+dnl   16 [label="State 16\n\l  3 unit: assignments exp •\l"]
+dnl   16 -> "16R3" [style=solid]
+dnl  "16R3" [label="R3", fillcolor=3, shape=diamond, style=filled]
+dnl   17 [label="State 17\n\l  1 $accept: YY_PARSE_assignments assignments \"end of file\" •\l"]
+dnl   17 -> "17R1" [style=solid]
+dnl  "17R1" [label="Acc", fillcolor=1, shape=diamond, style=filled]
+dnl   18 [label="State 18\n\l  7 id: \"identifier\" •\l"]
+dnl   18 -> "18R7" [style=solid]
+dnl  "18R7" [label="R7", fillcolor=3, shape=diamond, style=filled]
+dnl   19 [label="State 19\n\l  8 @1: • %empty\l 10 exp: \"incr\" exp • @1 @2 exp\l"]
+dnl   19 -> 23 [style=dashed label="@1"]
+dnl   19 -> "19R8" [style=solid]
+dnl  "19R8" [label="R8", fillcolor=3, shape=diamond, style=filled]
+dnl   20 [label="State 20\n\l 11 exp: \"(\" exp • \")\"\l"]
+dnl   20 -> 24 [style=solid label="\")\""]
+dnl   21 [label="State 21\n\l  2 $accept: YY_PARSE_exp exp \"end of file\" •\l"]
+dnl   21 -> "21R2" [style=solid]
+dnl  "21R2" [label="Acc", fillcolor=1, shape=diamond, style=filled]
+dnl   22 [label="State 22\n\l  6 assignment: id \":=\" • exp\l 10 exp: • \"incr\" exp @1 @2 exp\l 11    | • \"(\" exp \")\"\l 12    | • \"identifier\"\l 13    | • \"number\"\l"]
+dnl   22 -> 7 [style=solid label="\"incr\""]
+dnl   22 -> 8 [style=solid label="\"identifier\""]
+dnl   22 -> 9 [style=solid label="\"number\""]
+dnl   22 -> 10 [style=solid label="\"(\""]
+dnl   22 -> 25 [style=dashed label="exp"]
+dnl   23 [label="State 23\n\l  9 @2: • %empty\l 10 exp: \"incr\" exp @1 • @2 exp\l"]
+dnl   23 -> 26 [style=dashed label="@2"]
+dnl   23 -> "23R9" [style=solid]
+dnl  "23R9" [label="R9", fillcolor=3, shape=diamond, style=filled]
+dnl   24 [label="State 24\n\l 11 exp: \"(\" exp \")\" •\l"]
+dnl   24 -> "24R11" [style=solid]
+dnl  "24R11" [label="R11", fillcolor=3, shape=diamond, style=filled]
+dnl   25 [label="State 25\n\l  6 assignment: id \":=\" exp •\l"]
+dnl   25 -> "25R6" [style=solid]
+dnl  "25R6" [label="R6", fillcolor=3, shape=diamond, style=filled]
+dnl   26 [label="State 26\n\l 10 exp: • \"incr\" exp @1 @2 exp\l 10    | \"incr\" exp @1 @2 • exp\l 11    | • \"(\" exp \")\"\l 12    | • \"identifier\"\l 13    | • \"number\"\l"]
+dnl   26 -> 7 [style=solid label="\"incr\""]
+dnl   26 -> 8 [style=solid label="\"identifier\""]
+dnl   26 -> 9 [style=solid label="\"number\""]
+dnl   26 -> 10 [style=solid label="\"(\""]
+dnl   26 -> 27 [style=dashed label="exp"]
+dnl   27 [label="State 27\n\l 10 exp: \"incr\" exp @1 @2 exp •\l"]
+dnl   27 -> "27R10" [style=solid]
+dnl  "27R10" [label="R10", fillcolor=3, shape=diamond, style=filled]
+dnl }
+dnl ]])
+dnl
+dnl
+dnl AT_CHECK([[cat input.xml]], [],
+dnl [[<?xml version="1.0"?>
+dnl
+dnl <bison-xml-report version="]AT_PACKAGE_VERSION[" bug-report="bug-bison@gnu.org" url="https://www.gnu.org/software/bison/">
+dnl
+dnl   <filename>input.yy</filename>
+dnl
+dnl   <grammar>
+dnl     <rules>
+dnl       <rule number="0" usefulness="useful">
+dnl         <lhs>$accept</lhs>
+dnl         <rhs>
+dnl           <symbol>YY_PARSE_unit</symbol>
+dnl           <symbol>unit</symbol>
+dnl           <symbol>&quot;end of file&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="1" usefulness="useful">
+dnl         <lhs>$accept</lhs>
+dnl         <rhs>
+dnl           <symbol>YY_PARSE_assignments</symbol>
+dnl           <symbol>assignments</symbol>
+dnl           <symbol>&quot;end of file&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="2" usefulness="useful">
+dnl         <lhs>$accept</lhs>
+dnl         <rhs>
+dnl           <symbol>YY_PARSE_exp</symbol>
+dnl           <symbol>exp</symbol>
+dnl           <symbol>&quot;end of file&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="3" usefulness="useful">
+dnl         <lhs>unit</lhs>
+dnl         <rhs>
+dnl           <symbol>assignments</symbol>
+dnl           <symbol>exp</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="4" usefulness="useful">
+dnl         <lhs>assignments</lhs>
+dnl         <rhs>
+dnl           <empty/>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="5" usefulness="useful">
+dnl         <lhs>assignments</lhs>
+dnl         <rhs>
+dnl           <symbol>assignments</symbol>
+dnl           <symbol>assignment</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="6" usefulness="useful">
+dnl         <lhs>assignment</lhs>
+dnl         <rhs>
+dnl           <symbol>id</symbol>
+dnl           <symbol>&quot;:=&quot;</symbol>
+dnl           <symbol>exp</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="7" usefulness="useful">
+dnl         <lhs>id</lhs>
+dnl         <rhs>
+dnl           <symbol>&quot;identifier&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="8" usefulness="useful">
+dnl         <lhs>@1</lhs>
+dnl         <rhs>
+dnl           <empty/>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="9" usefulness="useful">
+dnl         <lhs>@2</lhs>
+dnl         <rhs>
+dnl           <empty/>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="10" usefulness="useful">
+dnl         <lhs>exp</lhs>
+dnl         <rhs>
+dnl           <symbol>&quot;incr&quot;</symbol>
+dnl           <symbol>exp</symbol>
+dnl           <symbol>@1</symbol>
+dnl           <symbol>@2</symbol>
+dnl           <symbol>exp</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="11" usefulness="useful">
+dnl         <lhs>exp</lhs>
+dnl         <rhs>
+dnl           <symbol>&quot;(&quot;</symbol>
+dnl           <symbol>exp</symbol>
+dnl           <symbol>&quot;)&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="12" usefulness="useful">
+dnl         <lhs>exp</lhs>
+dnl         <rhs>
+dnl           <symbol>&quot;identifier&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl       <rule number="13" usefulness="useful">
+dnl         <lhs>exp</lhs>
+dnl         <rhs>
+dnl           <symbol>&quot;number&quot;</symbol>
+dnl         </rhs>
+dnl       </rule>
+dnl     </rules>
+dnl     <terminals>
+dnl       <terminal symbol-number="0" token-number="0" name="&quot;end of file&quot;" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="1" token-number="256" name="error" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="3" token-number="258" name="&quot;:=&quot;" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="4" token-number="259" name="&quot;incr&quot;" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="5" token-number="260" name="&quot;identifier&quot;" type="std::string" usefulness="useful"/>
+dnl       <terminal symbol-number="6" token-number="261" name="&quot;number&quot;" type="int" usefulness="useful"/>
+dnl       <terminal symbol-number="7" token-number="262" name="YY_PARSE_unit" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="8" token-number="263" name="YY_PARSE_assignments" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="9" token-number="264" name="YY_PARSE_exp" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="10" token-number="265" name="&quot;(&quot;" type="" usefulness="useful"/>
+dnl       <terminal symbol-number="11" token-number="266" name="&quot;)&quot;" type="" usefulness="useful"/>
+dnl     </terminals>
+dnl     <nonterminals>
+dnl       <nonterminal symbol-number="12" name="$accept" type="" usefulness="useful"/>
+dnl       <nonterminal symbol-number="13" name="unit" type="" usefulness="useful"/>
+dnl       <nonterminal symbol-number="14" name="assignments" type="" usefulness="useful"/>
+dnl       <nonterminal symbol-number="15" name="assignment" type="" usefulness="useful"/>
+dnl       <nonterminal symbol-number="16" name="id" type="std::string" usefulness="useful"/>
+dnl       <nonterminal symbol-number="17" name="exp" type="int" usefulness="useful"/>
+dnl       <nonterminal symbol-number="18" name="@1" type="int" usefulness="useful"/>
+dnl       <nonterminal symbol-number="19" name="@2" type="int" usefulness="useful"/>
+dnl     </nonterminals>
+dnl   </grammar>
+dnl
+dnl   <automaton>
+dnl
+dnl     <state number="0">
+dnl       <itemset>
+dnl         <item rule-number="0" dot="0"/>
+dnl         <item rule-number="1" dot="0"/>
+dnl         <item rule-number="2" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="YY_PARSE_unit" state="1"/>
+dnl           <transition type="shift" symbol="YY_PARSE_assignments" state="2"/>
+dnl           <transition type="shift" symbol="YY_PARSE_exp" state="3"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="1">
+dnl       <itemset>
+dnl         <item rule-number="0" dot="1"/>
+dnl         <item rule-number="3" dot="0"/>
+dnl         <item rule-number="4" dot="0"/>
+dnl         <item rule-number="5" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="goto" symbol="unit" state="4"/>
+dnl           <transition type="goto" symbol="assignments" state="5"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="4" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="2">
+dnl       <itemset>
+dnl         <item rule-number="1" dot="1"/>
+dnl         <item rule-number="4" dot="0"/>
+dnl         <item rule-number="5" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="goto" symbol="assignments" state="6"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="4" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="3">
+dnl       <itemset>
+dnl         <item rule-number="2" dot="1"/>
+dnl         <item rule-number="10" dot="0"/>
+dnl         <item rule-number="11" dot="0"/>
+dnl         <item rule-number="12" dot="0"/>
+dnl         <item rule-number="13" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;incr&quot;" state="7"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="8"/>
+dnl           <transition type="shift" symbol="&quot;number&quot;" state="9"/>
+dnl           <transition type="shift" symbol="&quot;(&quot;" state="10"/>
+dnl           <transition type="goto" symbol="exp" state="11"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="4">
+dnl       <itemset>
+dnl         <item rule-number="0" dot="2"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;end of file&quot;" state="12"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="5">
+dnl       <itemset>
+dnl         <item rule-number="3" dot="1"/>
+dnl         <item rule-number="5" dot="1"/>
+dnl         <item rule-number="6" dot="0"/>
+dnl         <item rule-number="7" dot="0"/>
+dnl         <item rule-number="10" dot="0"/>
+dnl         <item rule-number="11" dot="0"/>
+dnl         <item rule-number="12" dot="0"/>
+dnl         <item rule-number="13" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;incr&quot;" state="7"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="13"/>
+dnl           <transition type="shift" symbol="&quot;number&quot;" state="9"/>
+dnl           <transition type="shift" symbol="&quot;(&quot;" state="10"/>
+dnl           <transition type="goto" symbol="assignment" state="14"/>
+dnl           <transition type="goto" symbol="id" state="15"/>
+dnl           <transition type="goto" symbol="exp" state="16"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="6">
+dnl       <itemset>
+dnl         <item rule-number="1" dot="2"/>
+dnl         <item rule-number="5" dot="1"/>
+dnl         <item rule-number="6" dot="0"/>
+dnl         <item rule-number="7" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;end of file&quot;" state="17"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="18"/>
+dnl           <transition type="goto" symbol="assignment" state="14"/>
+dnl           <transition type="goto" symbol="id" state="15"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="7">
+dnl       <itemset>
+dnl         <item rule-number="10" dot="0"/>
+dnl         <item rule-number="10" dot="1"/>
+dnl         <item rule-number="11" dot="0"/>
+dnl         <item rule-number="12" dot="0"/>
+dnl         <item rule-number="13" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;incr&quot;" state="7"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="8"/>
+dnl           <transition type="shift" symbol="&quot;number&quot;" state="9"/>
+dnl           <transition type="shift" symbol="&quot;(&quot;" state="10"/>
+dnl           <transition type="goto" symbol="exp" state="19"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="8">
+dnl       <itemset>
+dnl         <item rule-number="12" dot="1"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="12" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="9">
+dnl       <itemset>
+dnl         <item rule-number="13" dot="1"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="13" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="10">
+dnl       <itemset>
+dnl         <item rule-number="10" dot="0"/>
+dnl         <item rule-number="11" dot="0"/>
+dnl         <item rule-number="11" dot="1"/>
+dnl         <item rule-number="12" dot="0"/>
+dnl         <item rule-number="13" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;incr&quot;" state="7"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="8"/>
+dnl           <transition type="shift" symbol="&quot;number&quot;" state="9"/>
+dnl           <transition type="shift" symbol="&quot;(&quot;" state="10"/>
+dnl           <transition type="goto" symbol="exp" state="20"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="11">
+dnl       <itemset>
+dnl         <item rule-number="2" dot="2"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;end of file&quot;" state="21"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="12">
+dnl       <itemset>
+dnl         <item rule-number="0" dot="3"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="accept" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="13">
+dnl       <itemset>
+dnl         <item rule-number="7" dot="1">
+dnl           <lookaheads>
+dnl             <symbol>&quot;:=&quot;</symbol>
+dnl           </lookaheads>
+dnl         </item>
+dnl         <item rule-number="12" dot="1">
+dnl           <lookaheads>
+dnl             <symbol>&quot;end of file&quot;</symbol>
+dnl           </lookaheads>
+dnl         </item>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="&quot;end of file&quot;" rule="12" enabled="true"/>
+dnl           <reduction symbol="$default" rule="7" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="14">
+dnl       <itemset>
+dnl         <item rule-number="5" dot="2"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="5" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="15">
+dnl       <itemset>
+dnl         <item rule-number="6" dot="1"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;:=&quot;" state="22"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="16">
+dnl       <itemset>
+dnl         <item rule-number="3" dot="2"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="3" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="17">
+dnl       <itemset>
+dnl         <item rule-number="1" dot="3"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="accept" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="18">
+dnl       <itemset>
+dnl         <item rule-number="7" dot="1"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="7" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="19">
+dnl       <itemset>
+dnl         <item rule-number="8" dot="0"/>
+dnl         <item rule-number="10" dot="2"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="goto" symbol="@1" state="23"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="8" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="20">
+dnl       <itemset>
+dnl         <item rule-number="11" dot="2"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;)&quot;" state="24"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="21">
+dnl       <itemset>
+dnl         <item rule-number="2" dot="3"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="accept" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="22">
+dnl       <itemset>
+dnl         <item rule-number="6" dot="2"/>
+dnl         <item rule-number="10" dot="0"/>
+dnl         <item rule-number="11" dot="0"/>
+dnl         <item rule-number="12" dot="0"/>
+dnl         <item rule-number="13" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;incr&quot;" state="7"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="8"/>
+dnl           <transition type="shift" symbol="&quot;number&quot;" state="9"/>
+dnl           <transition type="shift" symbol="&quot;(&quot;" state="10"/>
+dnl           <transition type="goto" symbol="exp" state="25"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="23">
+dnl       <itemset>
+dnl         <item rule-number="9" dot="0"/>
+dnl         <item rule-number="10" dot="3"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="goto" symbol="@2" state="26"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="9" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="24">
+dnl       <itemset>
+dnl         <item rule-number="11" dot="3"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="11" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="25">
+dnl       <itemset>
+dnl         <item rule-number="6" dot="3"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="6" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="26">
+dnl       <itemset>
+dnl         <item rule-number="10" dot="0"/>
+dnl         <item rule-number="10" dot="4"/>
+dnl         <item rule-number="11" dot="0"/>
+dnl         <item rule-number="12" dot="0"/>
+dnl         <item rule-number="13" dot="0"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions>
+dnl           <transition type="shift" symbol="&quot;incr&quot;" state="7"/>
+dnl           <transition type="shift" symbol="&quot;identifier&quot;" state="8"/>
+dnl           <transition type="shift" symbol="&quot;number&quot;" state="9"/>
+dnl           <transition type="shift" symbol="&quot;(&quot;" state="10"/>
+dnl           <transition type="goto" symbol="exp" state="27"/>
+dnl         </transitions>
+dnl         <errors/>
+dnl         <reductions/>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl
+dnl     <state number="27">
+dnl       <itemset>
+dnl         <item rule-number="10" dot="5"/>
+dnl       </itemset>
+dnl       <actions>
+dnl         <transitions/>
+dnl         <errors/>
+dnl         <reductions>
+dnl           <reduction symbol="$default" rule="10" enabled="true"/>
+dnl         </reductions>
+dnl       </actions>
+dnl       <solved-conflicts/>
+dnl     </state>
+dnl   </automaton>
+dnl </bison-xml-report>
+dnl ]])
+dnl
+dnl if test x"$XSLTPROC" != x""; then
+dnl   AT_CHECK([[$XSLTPROC \
+dnl              `]]AT_SET_ENV[[ bison --print-datadir`/xslt/xml2xhtml.xsl \
+dnl              input.xml >input.html]])
+dnl   AT_CHECK_HTML([input.html],
+dnl [[<?xml version="1.0" encoding="UTF-8"?>
+dnl <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+dnl <html xmlns="http://www.w3.org/1999/xhtml" xmlns:bison="https://www.gnu.org/software/bison/">
+dnl   <head>
+dnl     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+dnl     <title>input.yy - GNU Bison XML Automaton Report</title>
+dnl     <style type="text/css">
+dnl       body {
+dnl         font-family: "Nimbus Sans L", Arial, sans-serif;
+dnl         font-size: 9pt;
+dnl       }
+dnl       a:link {
+dnl         color: #1f00ff;
+dnl         text-decoration: none;
+dnl       }
+dnl       a:visited {
+dnl         color: #1f00ff;
+dnl         text-decoration: none;
+dnl       }
+dnl       a:hover {
+dnl         color: red;
+dnl       }
+dnl       #menu a {
+dnl         text-decoration: underline;
+dnl       }
+dnl       .i {
+dnl         font-style: italic;
+dnl       }
+dnl       .pre {
+dnl         font-family: monospace;
+dnl         white-space: pre;
+dnl       }
+dnl       ol.decimal {
+dnl         list-style-type: decimal;
+dnl       }
+dnl       ol.lower-alpha {
+dnl         list-style-type: lower-alpha;
+dnl       }
+dnl       .dot {
+dnl         color: #cc0000;
+dnl       }
+dnl       #footer {
+dnl         margin-top: 3.5em;
+dnl         font-size: 7pt;
+dnl       }
+dnl       </style>
+dnl   </head>
+dnl   <body><h1>GNU Bison XML Automaton Report</h1><p>
+dnl     input grammar: <span class="i">input.yy</span></p>
+dnl
+dnl <h3>Table of Contents</h3><ul id="menu"><li><a href="#reductions">Reductions</a><ul class="lower-alpha"><li><a href="#nonterminals_useless_in_grammar">Nonterminals useless in grammar</a></li><li><a href="#terminals_unused_in_grammar">Terminals unused in grammar</a></li><li><a href="#rules_useless_in_grammar">Rules useless in grammar</a></li></ul></li><li><a href="#conflicts">Conflicts</a></li><li><a href="#grammar">Grammar</a><ul class="lower-alpha"><li><a href="#grammar">Itemset</a></li><li><a href="#terminals">Terminal symbols</a></li><li><a href="#nonterminals">Nonterminal symbols</a></li></ul></li><li><a href="#automaton">Automaton</a></li></ul><h2><a name="reductions" id="reductions"></a> Reductions</h2><h3><a name="nonterminals_useless_in_grammar" id="nonterminals_useless_in_grammar"></a> Nonterminals useless in grammar</h3>
+dnl
+dnl <h3><a name="terminals_unused_in_grammar" id="terminals_unused_in_grammar"></a> Terminals unused in grammar</h3>
+dnl
+dnl <h3><a name="rules_useless_in_grammar" id="rules_useless_in_grammar"></a> Rules useless in grammar</h3>
+dnl <h2><a name="conflicts" id="conflicts"></a> Conflicts</h2>
+dnl
+dnl <h2><a name="grammar" id="grammar"></a> Grammar</h2>
+dnl <p class="pre">
+dnl   <a name="rule_0" id="rule_0">  0</a> <span class="i">$accept</span> → <b>YY_PARSE_unit</b> <span class="i">unit</span> <b>"end of file"</b>
+dnl   <a name="rule_1" id="rule_1">  1</a>         | <b>YY_PARSE_assignments</b> <span class="i">assignments</span> <b>"end of file"</b>
+dnl   <a name="rule_2" id="rule_2">  2</a>         | <b>YY_PARSE_exp</b> <span class="i">exp</span> <b>"end of file"</b>
+dnl
+dnl   <a name="rule_3" id="rule_3">  3</a> <span class="i">unit</span> → <span class="i">assignments</span> <span class="i">exp</span>
+dnl
+dnl   <a name="rule_4" id="rule_4">  4</a> <span class="i">assignments</span> → %empty
+dnl   <a name="rule_5" id="rule_5">  5</a>             | <span class="i">assignments</span> <span class="i">assignment</span>
+dnl
+dnl   <a name="rule_6" id="rule_6">  6</a> <span class="i">assignment</span> → <span class="i">id</span> <b>":="</b> <span class="i">exp</span>
+dnl
+dnl   <a name="rule_7" id="rule_7">  7</a> <span class="i">id</span> → <b>"identifier"</b>
+dnl
+dnl   <a name="rule_8" id="rule_8">  8</a> <span class="i">@1</span> → %empty
+dnl
+dnl   <a name="rule_9" id="rule_9">  9</a> <span class="i">@2</span> → %empty
+dnl
+dnl   <a name="rule_10" id="rule_10"> 10</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a name="rule_11" id="rule_11"> 11</a>     | <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a name="rule_12" id="rule_12"> 12</a>     | <b>"identifier"</b>
+dnl   <a name="rule_13" id="rule_13"> 13</a>     | <b>"number"</b>
+dnl </p>
+dnl
+dnl <h3><a name="terminals" id="terminals"></a> Terminals, with rules where they appear</h3>
+dnl
+dnl <ul>
+dnl   <li><b>"end of file"</b> (0) <a href="#rule_0">0</a> <a href="#rule_1">1</a> <a href="#rule_2">2</a></li>
+dnl   <li><b>error</b> (256)</li>
+dnl   <li><b>":="</b> (258) <a href="#rule_6">6</a></li>
+dnl   <li><b>"incr"</b> (259) <a href="#rule_10">10</a></li>
+dnl   <li><b>"identifier"</b> &lt;std::string&gt; (260) <a href="#rule_7">7</a> <a href="#rule_12">12</a></li>
+dnl   <li><b>"number"</b> &lt;int&gt; (261) <a href="#rule_13">13</a></li>
+dnl   <li><b>YY_PARSE_unit</b> (262) <a href="#rule_0">0</a></li>
+dnl   <li><b>YY_PARSE_assignments</b> (263) <a href="#rule_1">1</a></li>
+dnl   <li><b>YY_PARSE_exp</b> (264) <a href="#rule_2">2</a></li>
+dnl   <li><b>"("</b> (265) <a href="#rule_11">11</a></li>
+dnl   <li><b>")"</b> (266) <a href="#rule_11">11</a></li>
+dnl </ul>
+dnl
+dnl <h3><a name="nonterminals" id="nonterminals"></a> Nonterminals, with rules where they appear</h3>
+dnl
+dnl <ul>
+dnl   <li><b>$accept</b> (12)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_0">0</a> <a href="#rule_1">1</a> <a href="#rule_2">2</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>unit</b> (13)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_3">3</a></li>
+dnl       <li>on right: <a href="#rule_0">0</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>assignments</b> (14)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_4">4</a> <a href="#rule_5">5</a></li>
+dnl       <li>on right: <a href="#rule_1">1</a> <a href="#rule_3">3</a> <a href="#rule_5">5</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>assignment</b> (15)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_6">6</a></li>
+dnl       <li>on right: <a href="#rule_5">5</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>id</b> &lt;std::string&gt; (16)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_7">7</a></li>
+dnl       <li>on right: <a href="#rule_6">6</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>exp</b> &lt;int&gt; (17)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_10">10</a> <a href="#rule_11">11</a> <a href="#rule_12">12</a> <a href="#rule_13">13</a></li>
+dnl       <li>on right: <a href="#rule_2">2</a> <a href="#rule_3">3</a> <a href="#rule_6">6</a> <a href="#rule_10">10</a> <a href="#rule_11">11</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>@1</b> &lt;int&gt; (18)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_8">8</a></li>
+dnl       <li>on right: <a href="#rule_10">10</a></li>
+dnl     </ul>
+dnl   </li>
+dnl   <li><b>@2</b> &lt;int&gt; (19)
+dnl     <ul>
+dnl       <li>on left: <a href="#rule_9">9</a></li>
+dnl       <li>on right: <a href="#rule_10">10</a></li>
+dnl     </ul>
+dnl   </li>
+dnl </ul><h2><a name="automaton" id="automaton"></a> Automaton</h2>
+dnl
+dnl <h3><a name="state_0" id="state_0"></a>State 0</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="dot">•</span> <b>YY_PARSE_unit</b> <span class="i">unit</span> <b>"end of file"</b>
+dnl   <a href="#rule_1">  1</a>         | <span class="dot">•</span> <b>YY_PARSE_assignments</b> <span class="i">assignments</span> <b>"end of file"</b>
+dnl   <a href="#rule_2">  2</a>         | <span class="dot">•</span> <b>YY_PARSE_exp</b> <span class="i">exp</span> <b>"end of file"</b>
+dnl
+dnl     YY_PARSE_unit         <a href="#state_1">shift, and go to state 1</a>
+dnl     YY_PARSE_assignments  <a href="#state_2">shift, and go to state 2</a>
+dnl     YY_PARSE_exp          <a href="#state_3">shift, and go to state 3</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_1" id="state_1"></a>State 1</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <b>YY_PARSE_unit</b> <span class="dot">•</span> <span class="i">unit</span> <b>"end of file"</b>
+dnl   <a href="#rule_3">  3</a> <span class="i">unit</span> → <span class="dot">•</span> <span class="i">assignments</span> <span class="i">exp</span>
+dnl   <a href="#rule_4">  4</a> <span class="i">assignments</span> → <span class="dot">•</span> %empty
+dnl   <a href="#rule_5">  5</a>             | <span class="dot">•</span> <span class="i">assignments</span> <span class="i">assignment</span>
+dnl
+dnl     $default  <a href="#rule_4">reduce using rule 4</a> (assignments)
+dnl
+dnl     unit         <a href="#state_4">go to state 4</a>
+dnl     assignments  <a href="#state_5">go to state 5</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_2" id="state_2"></a>State 2</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_1">  1</a> <span class="i">$accept</span> → <b>YY_PARSE_assignments</b> <span class="dot">•</span> <span class="i">assignments</span> <b>"end of file"</b>
+dnl   <a href="#rule_4">  4</a> <span class="i">assignments</span> → <span class="dot">•</span> %empty
+dnl   <a href="#rule_5">  5</a>             | <span class="dot">•</span> <span class="i">assignments</span> <span class="i">assignment</span>
+dnl
+dnl     $default  <a href="#rule_4">reduce using rule 4</a> (assignments)
+dnl
+dnl     assignments  <a href="#state_6">go to state 6</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_3" id="state_3"></a>State 3</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_2">  2</a> <span class="i">$accept</span> → <b>YY_PARSE_exp</b> <span class="dot">•</span> <span class="i">exp</span> <b>"end of file"</b>
+dnl   <a href="#rule_10"> 10</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_12"> 12</a>     | <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_13"> 13</a>     | <span class="dot">•</span> <b>"number"</b>
+dnl
+dnl     "incr"        <a href="#state_7">shift, and go to state 7</a>
+dnl     "identifier"  <a href="#state_8">shift, and go to state 8</a>
+dnl     "number"      <a href="#state_9">shift, and go to state 9</a>
+dnl     "("           <a href="#state_10">shift, and go to state 10</a>
+dnl
+dnl     exp  <a href="#state_11">go to state 11</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_4" id="state_4"></a>State 4</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <b>YY_PARSE_unit</b> <span class="i">unit</span> <span class="dot">•</span> <b>"end of file"</b>
+dnl
+dnl     "end of file"  <a href="#state_12">shift, and go to state 12</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_5" id="state_5"></a>State 5</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_3">  3</a> <span class="i">unit</span> → <span class="i">assignments</span> <span class="dot">•</span> <span class="i">exp</span>
+dnl   <a href="#rule_5">  5</a> <span class="i">assignments</span> → <span class="i">assignments</span> <span class="dot">•</span> <span class="i">assignment</span>
+dnl   <a href="#rule_6">  6</a> <span class="i">assignment</span> → <span class="dot">•</span> <span class="i">id</span> <b>":="</b> <span class="i">exp</span>
+dnl   <a href="#rule_7">  7</a> <span class="i">id</span> → <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_10"> 10</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_12"> 12</a>     | <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_13"> 13</a>     | <span class="dot">•</span> <b>"number"</b>
+dnl
+dnl     "incr"        <a href="#state_7">shift, and go to state 7</a>
+dnl     "identifier"  <a href="#state_13">shift, and go to state 13</a>
+dnl     "number"      <a href="#state_9">shift, and go to state 9</a>
+dnl     "("           <a href="#state_10">shift, and go to state 10</a>
+dnl
+dnl     assignment  <a href="#state_14">go to state 14</a>
+dnl     id          <a href="#state_15">go to state 15</a>
+dnl     exp         <a href="#state_16">go to state 16</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_6" id="state_6"></a>State 6</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_1">  1</a> <span class="i">$accept</span> → <b>YY_PARSE_assignments</b> <span class="i">assignments</span> <span class="dot">•</span> <b>"end of file"</b>
+dnl   <a href="#rule_5">  5</a> <span class="i">assignments</span> → <span class="i">assignments</span> <span class="dot">•</span> <span class="i">assignment</span>
+dnl   <a href="#rule_6">  6</a> <span class="i">assignment</span> → <span class="dot">•</span> <span class="i">id</span> <b>":="</b> <span class="i">exp</span>
+dnl   <a href="#rule_7">  7</a> <span class="i">id</span> → <span class="dot">•</span> <b>"identifier"</b>
+dnl
+dnl     "end of file"  <a href="#state_17">shift, and go to state 17</a>
+dnl     "identifier"   <a href="#state_18">shift, and go to state 18</a>
+dnl
+dnl     assignment  <a href="#state_14">go to state 14</a>
+dnl     id          <a href="#state_15">go to state 15</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_7" id="state_7"></a>State 7</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_10"> 10</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_10"> 10</a>     | <b>"incr"</b> <span class="dot">•</span> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_12"> 12</a>     | <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_13"> 13</a>     | <span class="dot">•</span> <b>"number"</b>
+dnl
+dnl     "incr"        <a href="#state_7">shift, and go to state 7</a>
+dnl     "identifier"  <a href="#state_8">shift, and go to state 8</a>
+dnl     "number"      <a href="#state_9">shift, and go to state 9</a>
+dnl     "("           <a href="#state_10">shift, and go to state 10</a>
+dnl
+dnl     exp  <a href="#state_19">go to state 19</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_8" id="state_8"></a>State 8</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_12"> 12</a> <span class="i">exp</span> → <b>"identifier"</b> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_12">reduce using rule 12</a> (exp)
+dnl </p>
+dnl
+dnl <h3><a name="state_9" id="state_9"></a>State 9</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_13"> 13</a> <span class="i">exp</span> → <b>"number"</b> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_13">reduce using rule 13</a> (exp)
+dnl </p>
+dnl
+dnl <h3><a name="state_10" id="state_10"></a>State 10</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_10"> 10</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_11"> 11</a>     | <b>"("</b> <span class="dot">•</span> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_12"> 12</a>     | <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_13"> 13</a>     | <span class="dot">•</span> <b>"number"</b>
+dnl
+dnl     "incr"        <a href="#state_7">shift, and go to state 7</a>
+dnl     "identifier"  <a href="#state_8">shift, and go to state 8</a>
+dnl     "number"      <a href="#state_9">shift, and go to state 9</a>
+dnl     "("           <a href="#state_10">shift, and go to state 10</a>
+dnl
+dnl     exp  <a href="#state_20">go to state 20</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_11" id="state_11"></a>State 11</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_2">  2</a> <span class="i">$accept</span> → <b>YY_PARSE_exp</b> <span class="i">exp</span> <span class="dot">•</span> <b>"end of file"</b>
+dnl
+dnl     "end of file"  <a href="#state_21">shift, and go to state 21</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_12" id="state_12"></a>State 12</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <b>YY_PARSE_unit</b> <span class="i">unit</span> <b>"end of file"</b> <span class="dot">•</span>
+dnl
+dnl     $default  accept
+dnl </p>
+dnl
+dnl <h3><a name="state_13" id="state_13"></a>State 13</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_7">  7</a> <span class="i">id</span> → <b>"identifier"</b> <span class="dot">•</span>  [":="]
+dnl   <a href="#rule_12"> 12</a> <span class="i">exp</span> → <b>"identifier"</b> <span class="dot">•</span>  ["end of file"]
+dnl
+dnl     "end of file"  <a href="#rule_12">reduce using rule 12</a> (exp)
+dnl     $default       <a href="#rule_7">reduce using rule 7</a> (id)
+dnl </p>
+dnl
+dnl <h3><a name="state_14" id="state_14"></a>State 14</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_5">  5</a> <span class="i">assignments</span> → <span class="i">assignments</span> <span class="i">assignment</span> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_5">reduce using rule 5</a> (assignments)
+dnl </p>
+dnl
+dnl <h3><a name="state_15" id="state_15"></a>State 15</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_6">  6</a> <span class="i">assignment</span> → <span class="i">id</span> <span class="dot">•</span> <b>":="</b> <span class="i">exp</span>
+dnl
+dnl     ":="  <a href="#state_22">shift, and go to state 22</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_16" id="state_16"></a>State 16</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_3">  3</a> <span class="i">unit</span> → <span class="i">assignments</span> <span class="i">exp</span> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_3">reduce using rule 3</a> (unit)
+dnl </p>
+dnl
+dnl <h3><a name="state_17" id="state_17"></a>State 17</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_1">  1</a> <span class="i">$accept</span> → <b>YY_PARSE_assignments</b> <span class="i">assignments</span> <b>"end of file"</b> <span class="dot">•</span>
+dnl
+dnl     $default  accept
+dnl </p>
+dnl
+dnl <h3><a name="state_18" id="state_18"></a>State 18</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_7">  7</a> <span class="i">id</span> → <b>"identifier"</b> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_7">reduce using rule 7</a> (id)
+dnl </p>
+dnl
+dnl <h3><a name="state_19" id="state_19"></a>State 19</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_8">  8</a> <span class="i">@1</span> → <span class="dot">•</span> %empty
+dnl   <a href="#rule_10"> 10</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="dot">•</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl
+dnl     $default  <a href="#rule_8">reduce using rule 8</a> (@1)
+dnl
+dnl     @1  <a href="#state_23">go to state 23</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_20" id="state_20"></a>State 20</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_11"> 11</a> <span class="i">exp</span> → <b>"("</b> <span class="i">exp</span> <span class="dot">•</span> <b>")"</b>
+dnl
+dnl     ")"  <a href="#state_24">shift, and go to state 24</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_21" id="state_21"></a>State 21</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_2">  2</a> <span class="i">$accept</span> → <b>YY_PARSE_exp</b> <span class="i">exp</span> <b>"end of file"</b> <span class="dot">•</span>
+dnl
+dnl     $default  accept
+dnl </p>
+dnl
+dnl <h3><a name="state_22" id="state_22"></a>State 22</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_6">  6</a> <span class="i">assignment</span> → <span class="i">id</span> <b>":="</b> <span class="dot">•</span> <span class="i">exp</span>
+dnl   <a href="#rule_10"> 10</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_12"> 12</a>     | <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_13"> 13</a>     | <span class="dot">•</span> <b>"number"</b>
+dnl
+dnl     "incr"        <a href="#state_7">shift, and go to state 7</a>
+dnl     "identifier"  <a href="#state_8">shift, and go to state 8</a>
+dnl     "number"      <a href="#state_9">shift, and go to state 9</a>
+dnl     "("           <a href="#state_10">shift, and go to state 10</a>
+dnl
+dnl     exp  <a href="#state_25">go to state 25</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_23" id="state_23"></a>State 23</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_9">  9</a> <span class="i">@2</span> → <span class="dot">•</span> %empty
+dnl   <a href="#rule_10"> 10</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="dot">•</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl
+dnl     $default  <a href="#rule_9">reduce using rule 9</a> (@2)
+dnl
+dnl     @2  <a href="#state_26">go to state 26</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_24" id="state_24"></a>State 24</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_11"> 11</a> <span class="i">exp</span> → <b>"("</b> <span class="i">exp</span> <b>")"</b> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_11">reduce using rule 11</a> (exp)
+dnl </p>
+dnl
+dnl <h3><a name="state_25" id="state_25"></a>State 25</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_6">  6</a> <span class="i">assignment</span> → <span class="i">id</span> <b>":="</b> <span class="i">exp</span> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_6">reduce using rule 6</a> (assignment)
+dnl </p>
+dnl
+dnl <h3><a name="state_26" id="state_26"></a>State 26</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_10"> 10</a> <span class="i">exp</span> → <span class="dot">•</span> <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span>
+dnl   <a href="#rule_10"> 10</a>     | <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="dot">•</span> <span class="i">exp</span>
+dnl   <a href="#rule_11"> 11</a>     | <span class="dot">•</span> <b>"("</b> <span class="i">exp</span> <b>")"</b>
+dnl   <a href="#rule_12"> 12</a>     | <span class="dot">•</span> <b>"identifier"</b>
+dnl   <a href="#rule_13"> 13</a>     | <span class="dot">•</span> <b>"number"</b>
+dnl
+dnl     "incr"        <a href="#state_7">shift, and go to state 7</a>
+dnl     "identifier"  <a href="#state_8">shift, and go to state 8</a>
+dnl     "number"      <a href="#state_9">shift, and go to state 9</a>
+dnl     "("           <a href="#state_10">shift, and go to state 10</a>
+dnl
+dnl     exp  <a href="#state_27">go to state 27</a>
+dnl </p>
+dnl
+dnl <h3><a name="state_27" id="state_27"></a>State 27</h3>
+dnl
+dnl <p class="pre">  <a href="#rule_10"> 10</a> <span class="i">exp</span> → <b>"incr"</b> <span class="i">exp</span> <span class="i">@1</span> <span class="i">@2</span> <span class="i">exp</span> <span class="dot">•</span>
+dnl
+dnl     $default  <a href="#rule_10">reduce using rule 10</a> (exp)
+dnl </p>
+dnl
+dnl <div id="footer"><hr />This document was generated using
+dnl       <a href="https://www.gnu.org/software/bison/" title="GNU Bison">
+dnl       GNU Bison ]AT_PACKAGE_VERSION[</a>
+dnl       XML Automaton Report.<br />
+dnl       Verbatim copying and distribution of this entire page is
+dnl       permitted in any medium, provided this notice is preserved.</div></body>
+dnl </html>
+dnl ]])
+dnl fi
+dnl
+dnl AT_BISON_OPTION_POPDEFS
+dnl AT_CLEANUP
+
+
+## ------------------------ ##
+## Reports with conflicts.  ##
+## ------------------------ ##
+
+AT_SETUP([Reports with conflicts])
+
+AT_KEYWORDS([cex report])
+
+# We need UTF-8 support for correct screen-width computation of UTF-8
+# characters.  Skip the test if not available.
+locale=`locale -a | $EGREP '^en_US\.(UTF-8|utf8)$' | sed 1q`
+AT_SKIP_IF([[test x = x"$locale"]])
+
+AT_SKIP_IF([[test x"$XSLTPROC" = x]])
+
+AT_BISON_OPTION_PUSHDEFS
+AT_DATA([input.y],
+[[%left "+"
+%%
+exp
+: exp "⊕" exp
+| exp "+" exp
+| exp "+" exp
+| "number"
+| "Ñùṃéℝô"
+]])
+
+AT_CHECK([LC_ALL="$locale" bison -fno-caret -o input.cc -rall -Wcex --graph=input.gv --html --xml input.y], [], [],
+[[input.y: warning: 3 shift/reduce conflicts [-Wconflicts-sr]
+input.y: warning: 3 reduce/reduce conflicts [-Wconflicts-rr]
+input.y: warning: shift/reduce conflict on token "⊕" [-Wcounterexamples]
+  Example: exp "+" exp • "⊕" exp
+  Shift derivation
+    exp
+    ↳ 2: exp "+" exp
+                 ↳ 1: exp • "⊕" exp
+  Reduce derivation
+    exp
+    ↳ 1: exp                "⊕" exp
+         ↳ 2: exp "+" exp •
+input.y: warning: reduce/reduce conflict on tokens $end, "+", "⊕" [-Wcounterexamples]
+  Example: exp "+" exp •
+  First reduce derivation
+    exp
+    ↳ 2: exp "+" exp •
+  Second reduce derivation
+    exp
+    ↳ 3: exp "+" exp •
+input.y: warning: shift/reduce conflict on token "⊕" [-Wcounterexamples]
+  Example: exp "+" exp • "⊕" exp
+  Shift derivation
+    exp
+    ↳ 2: exp "+" exp
+                 ↳ 1: exp • "⊕" exp
+  Reduce derivation
+    exp
+    ↳ 1: exp                "⊕" exp
+         ↳ 3: exp "+" exp •
+input.y: warning: shift/reduce conflict on token "⊕" [-Wcounterexamples]
+  Example: exp "⊕" exp • "⊕" exp
+  Shift derivation
+    exp
+    ↳ 1: exp "⊕" exp
+                 ↳ 1: exp • "⊕" exp
+  Reduce derivation
+    exp
+    ↳ 1: exp                "⊕" exp
+         ↳ 1: exp "⊕" exp •
+input.y: warning: shift/reduce conflict on token "+" [-Wcounterexamples]
+  Example: exp "⊕" exp • "+" exp
+  Shift derivation
+    exp
+    ↳ 1: exp "⊕" exp
+                 ↳ 2: exp • "+" exp
+  Reduce derivation
+    exp
+    ↳ 2: exp                "+" exp
+         ↳ 1: exp "⊕" exp •
+input.y: warning: shift/reduce conflict on token "+" [-Wcounterexamples]
+  Example: exp "⊕" exp • "+" exp
+  Shift derivation
+    exp
+    ↳ 1: exp "⊕" exp
+                 ↳ 3: exp • "+" exp
+  Reduce derivation
+    exp
+    ↳ 2: exp                "+" exp
+         ↳ 1: exp "⊕" exp •
+input.y:6.3-13: warning: rule useless in parser due to conflicts [-Wother]
+]])
+
+# Check the contents of the report.
+# FIXME: Avoid trailing white spaces.
+AT_CHECK([sed -e 's/ *$//' input.output], [],
+[[Rules useless in parser due to conflicts
+
+    3 exp: exp "+" exp
+
+
+State 7 conflicts: 1 shift/reduce, 3 reduce/reduce
+State 8 conflicts: 2 shift/reduce
+
+
+Grammar
+
+    0 $accept: exp $end
+
+    1 exp: exp "⊕" exp
+    2    | exp "+" exp
+    3    | exp "+" exp
+    4    | "number"
+    5    | "Ñùṃéℝô"
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    error (256)
+    "+" (258) 2 3
+    "⊕" (259) 1
+    "number" (260) 4
+    "Ñùṃéℝô" (261) 5
+
+
+Nonterminals, with rules where they appear
+
+    $accept (7)
+        on left: 0
+    exp (8)
+        on left: 1 2 3 4 5
+        on right: 0 1 2 3
+
+
+State 0
+
+    0 $accept: • exp $end
+    1 exp: • exp "⊕" exp
+    2    | • exp "+" exp
+    3    | • exp "+" exp
+    4    | • "number"
+    5    | • "Ñùṃéℝô"
+
+    "number"  shift, and go to state 1
+    "Ñùṃéℝô"  shift, and go to state 2
+
+    exp  go to state 3
+
+
+State 1
+
+    4 exp: "number" •
+
+    $default  reduce using rule 4 (exp)
+
+
+State 2
+
+    5 exp: "Ñùṃéℝô" •
+
+    $default  reduce using rule 5 (exp)
+
+
+State 3
+
+    0 $accept: exp • $end
+    1 exp: exp • "⊕" exp
+    2    | exp • "+" exp
+    3    | exp • "+" exp
+
+    $end  shift, and go to state 4
+    "+"   shift, and go to state 5
+    "⊕"   shift, and go to state 6
+
+
+State 4
+
+    0 $accept: exp $end •
+
+    $default  accept
+
+
+State 5
+
+    1 exp: • exp "⊕" exp
+    2    | • exp "+" exp
+    2    | exp "+" • exp
+    3    | • exp "+" exp
+    3    | exp "+" • exp
+    4    | • "number"
+    5    | • "Ñùṃéℝô"
+
+    "number"  shift, and go to state 1
+    "Ñùṃéℝô"  shift, and go to state 2
+
+    exp  go to state 7
+
+
+State 6
+
+    1 exp: • exp "⊕" exp
+    1    | exp "⊕" • exp
+    2    | • exp "+" exp
+    3    | • exp "+" exp
+    4    | • "number"
+    5    | • "Ñùṃéℝô"
+
+    "number"  shift, and go to state 1
+    "Ñùṃéℝô"  shift, and go to state 2
+
+    exp  go to state 8
+
+
+State 7
+
+    1 exp: exp • "⊕" exp
+    2    | exp • "+" exp
+    2    | exp "+" exp •  [$end, "+", "⊕"]
+    3    | exp • "+" exp
+    3    | exp "+" exp •  [$end, "+", "⊕"]
+
+    "⊕"  shift, and go to state 6
+
+    $end      reduce using rule 2 (exp)
+    $end      [reduce using rule 3 (exp)]
+    "+"       reduce using rule 2 (exp)
+    "+"       [reduce using rule 3 (exp)]
+    "⊕"       [reduce using rule 2 (exp)]
+    "⊕"       [reduce using rule 3 (exp)]
+    $default  reduce using rule 2 (exp)
+
+    Conflict between rule 2 and token "+" resolved as reduce (%left "+").
+
+    shift/reduce conflict on token "⊕":
+        2 exp: exp "+" exp •
+        1 exp: exp • "⊕" exp
+      Example: exp "+" exp • "⊕" exp
+      Shift derivation
+        exp
+        ↳ 2: exp "+" exp
+                     ↳ 1: exp • "⊕" exp
+      Reduce derivation
+        exp
+        ↳ 1: exp                "⊕" exp
+             ↳ 2: exp "+" exp •
+
+    reduce/reduce conflict on tokens $end, "+", "⊕":
+        2 exp: exp "+" exp •
+        3 exp: exp "+" exp •
+      Example: exp "+" exp •
+      First reduce derivation
+        exp
+        ↳ 2: exp "+" exp •
+      Second reduce derivation
+        exp
+        ↳ 3: exp "+" exp •
+
+    shift/reduce conflict on token "⊕":
+        3 exp: exp "+" exp •
+        1 exp: exp • "⊕" exp
+      Example: exp "+" exp • "⊕" exp
+      Shift derivation
+        exp
+        ↳ 2: exp "+" exp
+                     ↳ 1: exp • "⊕" exp
+      Reduce derivation
+        exp
+        ↳ 1: exp                "⊕" exp
+             ↳ 3: exp "+" exp •
+
+
+
+State 8
+
+    1 exp: exp • "⊕" exp
+    1    | exp "⊕" exp •  [$end, "+", "⊕"]
+    2    | exp • "+" exp
+    3    | exp • "+" exp
+
+    "+"  shift, and go to state 5
+    "⊕"  shift, and go to state 6
+
+    "+"       [reduce using rule 1 (exp)]
+    "⊕"       [reduce using rule 1 (exp)]
+    $default  reduce using rule 1 (exp)
+
+    shift/reduce conflict on token "⊕":
+        1 exp: exp "⊕" exp •
+        1 exp: exp • "⊕" exp
+      Example: exp "⊕" exp • "⊕" exp
+      Shift derivation
+        exp
+        ↳ 1: exp "⊕" exp
+                     ↳ 1: exp • "⊕" exp
+      Reduce derivation
+        exp
+        ↳ 1: exp                "⊕" exp
+             ↳ 1: exp "⊕" exp •
+
+    shift/reduce conflict on token "+":
+        1 exp: exp "⊕" exp •
+        2 exp: exp • "+" exp
+      Example: exp "⊕" exp • "+" exp
+      Shift derivation
+        exp
+        ↳ 1: exp "⊕" exp
+                     ↳ 2: exp • "+" exp
+      Reduce derivation
+        exp
+        ↳ 2: exp                "+" exp
+             ↳ 1: exp "⊕" exp •
+
+    shift/reduce conflict on token "+":
+        1 exp: exp "⊕" exp •
+        3 exp: exp • "+" exp
+      Example: exp "⊕" exp • "+" exp
+      Shift derivation
+        exp
+        ↳ 1: exp "⊕" exp
+                     ↳ 3: exp • "+" exp
+      Reduce derivation
+        exp
+        ↳ 2: exp                "+" exp
+             ↳ 1: exp "⊕" exp •
+
+]])
+
+
+
+
+AT_CHECK([cat input.gv], [],
+[[// Generated by GNU Bison ]AT_PACKAGE_VERSION[.
+// Report bugs to <bug-bison@gnu.org>.
+// Home page: <https://www.gnu.org/software/bison/>.
+
+digraph "input.y"
+{
+  node [fontname = courier, shape = box, colorscheme = paired6]
+  edge [fontname = courier]
+
+  0 [label="State 0\n\l  0 $accept: • exp $end\l  1 exp: • exp \"⊕\" exp\l  2    | • exp \"+\" exp\l  3    | • exp \"+\" exp\l  4    | • \"number\"\l  5    | • \"Ñùṃéℝô\"\l"]
+  0 -> 1 [style=solid label="\"number\""]
+  0 -> 2 [style=solid label="\"Ñùṃéℝô\""]
+  0 -> 3 [style=dashed label="exp"]
+  1 [label="State 1\n\l  4 exp: \"number\" •\l"]
+  1 -> "1R4" [style=solid]
+ "1R4" [label="R4", fillcolor=3, shape=diamond, style=filled]
+  2 [label="State 2\n\l  5 exp: \"Ñùṃéℝô\" •\l"]
+  2 -> "2R5" [style=solid]
+ "2R5" [label="R5", fillcolor=3, shape=diamond, style=filled]
+  3 [label="State 3\n\l  0 $accept: exp • $end\l  1 exp: exp • \"⊕\" exp\l  2    | exp • \"+\" exp\l  3    | exp • \"+\" exp\l"]
+  3 -> 4 [style=solid label="$end"]
+  3 -> 5 [style=solid label="\"+\""]
+  3 -> 6 [style=solid label="\"⊕\""]
+  4 [label="State 4\n\l  0 $accept: exp $end •\l"]
+  4 -> "4R0" [style=solid]
+ "4R0" [label="Acc", fillcolor=1, shape=diamond, style=filled]
+  5 [label="State 5\n\l  1 exp: • exp \"⊕\" exp\l  2    | • exp \"+\" exp\l  2    | exp \"+\" • exp\l  3    | • exp \"+\" exp\l  3    | exp \"+\" • exp\l  4    | • \"number\"\l  5    | • \"Ñùṃéℝô\"\l"]
+  5 -> 1 [style=solid label="\"number\""]
+  5 -> 2 [style=solid label="\"Ñùṃéℝô\""]
+  5 -> 7 [style=dashed label="exp"]
+  6 [label="State 6\n\l  1 exp: • exp \"⊕\" exp\l  1    | exp \"⊕\" • exp\l  2    | • exp \"+\" exp\l  3    | • exp \"+\" exp\l  4    | • \"number\"\l  5    | • \"Ñùṃéℝô\"\l"]
+  6 -> 1 [style=solid label="\"number\""]
+  6 -> 2 [style=solid label="\"Ñùṃéℝô\""]
+  6 -> 8 [style=dashed label="exp"]
+  7 [label="State 7\n\l  1 exp: exp • \"⊕\" exp\l  2    | exp • \"+\" exp\l  2    | exp \"+\" exp •  [$end, \"+\", \"⊕\"]\l  3    | exp • \"+\" exp\l  3    | exp \"+\" exp •  [$end, \"+\", \"⊕\"]\l"]
+  7 -> 6 [style=solid label="\"⊕\""]
+  7 -> "7R2d" [label="[\"⊕\"]", style=solid]
+ "7R2d" [label="R2", fillcolor=5, shape=diamond, style=filled]
+  7 -> "7R2" [style=solid]
+ "7R2" [label="R2", fillcolor=3, shape=diamond, style=filled]
+  7 -> "7R3d" [label="[$end, \"+\", \"⊕\"]", style=solid]
+ "7R3d" [label="R3", fillcolor=5, shape=diamond, style=filled]
+  8 [label="State 8\n\l  1 exp: exp • \"⊕\" exp\l  1    | exp \"⊕\" exp •  [$end, \"+\", \"⊕\"]\l  2    | exp • \"+\" exp\l  3    | exp • \"+\" exp\l"]
+  8 -> 5 [style=solid label="\"+\""]
+  8 -> 6 [style=solid label="\"⊕\""]
+  8 -> "8R1d" [label="[\"+\", \"⊕\"]", style=solid]
+ "8R1d" [label="R1", fillcolor=5, shape=diamond, style=filled]
+  8 -> "8R1" [style=solid]
+ "8R1" [label="R1", fillcolor=3, shape=diamond, style=filled]
+}
+]])
+
+
+AT_CHECK([[cat input.xml]], [],
+[[<?xml version="1.0"?>
+
+<bison-xml-report version="]AT_PACKAGE_VERSION[" bug-report="bug-bison@gnu.org" url="https://www.gnu.org/software/bison/">
+
+  <filename>input.y</filename>
+
+  <grammar>
+    <rules>
+      <rule number="0" usefulness="useful">
+        <lhs>$accept</lhs>
+        <rhs>
+          <symbol>exp</symbol>
+          <symbol>$end</symbol>
+        </rhs>
+      </rule>
+      <rule number="1" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>exp</symbol>
+          <symbol>&quot;⊕&quot;</symbol>
+          <symbol>exp</symbol>
+        </rhs>
+      </rule>
+      <rule number="2" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>exp</symbol>
+          <symbol>&quot;+&quot;</symbol>
+          <symbol>exp</symbol>
+        </rhs>
+      </rule>
+      <rule number="3" usefulness="useless-in-parser">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>exp</symbol>
+          <symbol>&quot;+&quot;</symbol>
+          <symbol>exp</symbol>
+        </rhs>
+      </rule>
+      <rule number="4" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>&quot;number&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="5" usefulness="useful">
+        <lhs>exp</lhs>
+        <rhs>
+          <symbol>&quot;Ñùṃéℝô&quot;</symbol>
+        </rhs>
+      </rule>
+    </rules>
+    <terminals>
+      <terminal symbol-number="0" token-number="0" name="$end" type="" usefulness="useful"/>
+      <terminal symbol-number="1" token-number="256" name="error" type="" usefulness="useful"/>
+      <terminal symbol-number="3" token-number="258" name="&quot;+&quot;" type="" usefulness="useful" prec="1" assoc="left"/>
+      <terminal symbol-number="4" token-number="259" name="&quot;⊕&quot;" type="" usefulness="useful"/>
+      <terminal symbol-number="5" token-number="260" name="&quot;number&quot;" type="" usefulness="useful"/>
+      <terminal symbol-number="6" token-number="261" name="&quot;Ñùṃéℝô&quot;" type="" usefulness="useful"/>
+    </terminals>
+    <nonterminals>
+      <nonterminal symbol-number="7" name="$accept" type="" usefulness="useful"/>
+      <nonterminal symbol-number="8" name="exp" type="" usefulness="useful"/>
+    </nonterminals>
+  </grammar>
+
+  <automaton>
+
+    <state number="0">
+      <itemset>
+        <item rule-number="0" dot="0"/>
+        <item rule-number="1" dot="0"/>
+        <item rule-number="2" dot="0"/>
+        <item rule-number="3" dot="0"/>
+        <item rule-number="4" dot="0"/>
+        <item rule-number="5" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;number&quot;" state="1"/>
+          <transition type="shift" symbol="&quot;Ñùṃéℝô&quot;" state="2"/>
+          <transition type="goto" symbol="exp" state="3"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="1">
+      <itemset>
+        <item rule-number="4" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="4" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="2">
+      <itemset>
+        <item rule-number="5" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="5" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="3">
+      <itemset>
+        <item rule-number="0" dot="1"/>
+        <item rule-number="1" dot="1"/>
+        <item rule-number="2" dot="1"/>
+        <item rule-number="3" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="$end" state="4"/>
+          <transition type="shift" symbol="&quot;+&quot;" state="5"/>
+          <transition type="shift" symbol="&quot;⊕&quot;" state="6"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="4">
+      <itemset>
+        <item rule-number="0" dot="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="accept" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="5">
+      <itemset>
+        <item rule-number="1" dot="0"/>
+        <item rule-number="2" dot="0"/>
+        <item rule-number="2" dot="2"/>
+        <item rule-number="3" dot="0"/>
+        <item rule-number="3" dot="2"/>
+        <item rule-number="4" dot="0"/>
+        <item rule-number="5" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;number&quot;" state="1"/>
+          <transition type="shift" symbol="&quot;Ñùṃéℝô&quot;" state="2"/>
+          <transition type="goto" symbol="exp" state="7"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="6">
+      <itemset>
+        <item rule-number="1" dot="0"/>
+        <item rule-number="1" dot="2"/>
+        <item rule-number="2" dot="0"/>
+        <item rule-number="3" dot="0"/>
+        <item rule-number="4" dot="0"/>
+        <item rule-number="5" dot="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;number&quot;" state="1"/>
+          <transition type="shift" symbol="&quot;Ñùṃéℝô&quot;" state="2"/>
+          <transition type="goto" symbol="exp" state="8"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="7">
+      <itemset>
+        <item rule-number="1" dot="1"/>
+        <item rule-number="2" dot="1"/>
+        <item rule-number="2" dot="3">
+          <lookaheads>
+            <symbol>$end</symbol>
+            <symbol>&quot;+&quot;</symbol>
+            <symbol>&quot;⊕&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="3" dot="1"/>
+        <item rule-number="3" dot="3">
+          <lookaheads>
+            <symbol>$end</symbol>
+            <symbol>&quot;+&quot;</symbol>
+            <symbol>&quot;⊕&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;⊕&quot;" state="6"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$end" rule="2" enabled="true"/>
+          <reduction symbol="$end" rule="3" enabled="false"/>
+          <reduction symbol="&quot;+&quot;" rule="2" enabled="true"/>
+          <reduction symbol="&quot;+&quot;" rule="3" enabled="false"/>
+          <reduction symbol="&quot;⊕&quot;" rule="2" enabled="false"/>
+          <reduction symbol="&quot;⊕&quot;" rule="3" enabled="false"/>
+          <reduction symbol="$default" rule="2" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts>
+        <resolution rule="2" symbol="&quot;+&quot;" type="reduce">%left &quot;+&quot;</resolution>
+      </solved-conflicts>
+    </state>
+
+    <state number="8">
+      <itemset>
+        <item rule-number="1" dot="1"/>
+        <item rule-number="1" dot="3">
+          <lookaheads>
+            <symbol>$end</symbol>
+            <symbol>&quot;+&quot;</symbol>
+            <symbol>&quot;⊕&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="2" dot="1"/>
+        <item rule-number="3" dot="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;+&quot;" state="5"/>
+          <transition type="shift" symbol="&quot;⊕&quot;" state="6"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;+&quot;" rule="1" enabled="false"/>
+          <reduction symbol="&quot;⊕&quot;" rule="1" enabled="false"/>
+          <reduction symbol="$default" rule="1" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+  </automaton>
+</bison-xml-report>
+]])
+
+
+AT_CHECK_HTML([input.html],
+[[<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bison="https://www.gnu.org/software/bison/">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <title>input.y - GNU Bison XML Automaton Report</title>
+    <style type="text/css">
+      body {
+        font-family: "Nimbus Sans L", Arial, sans-serif;
+        font-size: 9pt;
+      }
+      a:link {
+        color: #1f00ff;
+        text-decoration: none;
+      }
+      a:visited {
+        color: #1f00ff;
+        text-decoration: none;
+      }
+      a:hover {
+        color: red;
+      }
+      #menu a {
+        text-decoration: underline;
+      }
+      .i {
+        font-style: italic;
+      }
+      .pre {
+        font-family: monospace;
+        white-space: pre;
+      }
+      ol.decimal {
+        list-style-type: decimal;
+      }
+      ol.lower-alpha {
+        list-style-type: lower-alpha;
+      }
+      .dot {
+        color: #cc0000;
+      }
+      #footer {
+        margin-top: 3.5em;
+        font-size: 7pt;
+      }
+      </style>
+  </head>
+  <body><h1>GNU Bison XML Automaton Report</h1><p>
+    input grammar: <span class="i">input.y</span></p>
+
+<h3>Table of Contents</h3><ul id="menu"><li><a href="#reductions">Reductions</a><ul class="lower-alpha"><li><a href="#nonterminals_useless_in_grammar">Nonterminals useless in grammar</a></li><li><a href="#terminals_unused_in_grammar">Terminals unused in grammar</a></li><li><a href="#rules_useless_in_grammar">Rules useless in grammar</a></li><li><a href="#rules_useless_in_parser">Rules useless in parser due to conflicts</a></li></ul></li><li><a href="#conflicts">Conflicts</a></li><li><a href="#grammar">Grammar</a><ul class="lower-alpha"><li><a href="#grammar">Itemset</a></li><li><a href="#terminals">Terminal symbols</a></li><li><a href="#nonterminals">Nonterminal symbols</a></li></ul></li><li><a href="#automaton">Automaton</a></li></ul><h2><a name="reductions" id="reductions"></a> Reductions</h2><h3><a name="nonterminals_useless_in_grammar" id="nonterminals_useless_in_grammar"></a> Nonterminals useless in grammar</h3>
+
+<h3><a name="terminals_unused_in_grammar" id="terminals_unused_in_grammar"></a> Terminals unused in grammar</h3>
+
+<h3><a name="rules_useless_in_grammar" id="rules_useless_in_grammar"></a> Rules useless in grammar</h3>
+<h2><a name="rules_useless_in_parser" id="rules_useless_in_parser"></a> Rules useless in parser due to conflicts</h2>
+<p class="pre">
+  <a href="#rule_3">  3</a> <span class="i">exp</span> → <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+</p>
+
+<h2><a name="conflicts" id="conflicts"></a> Conflicts</h2>
+
+<p class="pre"><a href="#state_7">State 7</a> conflicts: 1 shift/reduce, 3 reduce/reduce
+<a href="#state_8">State 8</a> conflicts: 2 shift/reduce
+
+
+</p><h2><a name="grammar" id="grammar"></a> Grammar</h2>
+<p class="pre">
+  <a name="rule_0" id="rule_0">  0</a> <span class="i">$accept</span> → <span class="i">exp</span> <b>$end</b>
+
+  <a name="rule_1" id="rule_1">  1</a> <span class="i">exp</span> → <span class="i">exp</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a name="rule_2" id="rule_2">  2</a>     | <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a name="rule_3" id="rule_3">  3</a>     | <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a name="rule_4" id="rule_4">  4</a>     | <b>"number"</b>
+  <a name="rule_5" id="rule_5">  5</a>     | <b>"Ñùṃéℝô"</b>
+</p>
+
+<h3><a name="terminals" id="terminals"></a> Terminals, with rules where they appear</h3>
+
+<ul>
+  <li><b>$end</b> (0) <a href="#rule_0">0</a></li>
+  <li><b>error</b> (256)</li>
+  <li><b>"+"</b> (258) <a href="#rule_2">2</a> <a href="#rule_3">3</a></li>
+  <li><b>"⊕"</b> (259) <a href="#rule_1">1</a></li>
+  <li><b>"number"</b> (260) <a href="#rule_4">4</a></li>
+  <li><b>"Ñùṃéℝô"</b> (261) <a href="#rule_5">5</a></li>
+</ul>
+
+<h3><a name="nonterminals" id="nonterminals"></a> Nonterminals, with rules where they appear</h3>
+
+<ul>
+  <li><b>$accept</b> (7)
+    <ul>
+      <li>on left: <a href="#rule_0">0</a></li>
+    </ul>
+  </li>
+  <li><b>exp</b> (8)
+    <ul>
+      <li>on left: <a href="#rule_1">1</a> <a href="#rule_2">2</a> <a href="#rule_3">3</a> <a href="#rule_4">4</a> <a href="#rule_5">5</a></li>
+      <li>on right: <a href="#rule_0">0</a> <a href="#rule_1">1</a> <a href="#rule_2">2</a> <a href="#rule_3">3</a></li>
+    </ul>
+  </li>
+</ul><h2><a name="automaton" id="automaton"></a> Automaton</h2>
+
+<h3><a name="state_0" id="state_0"></a>State 0</h3>
+
+<p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="dot">•</span> <span class="i">exp</span> <b>$end</b>
+  <a href="#rule_1">  1</a> <span class="i">exp</span> → <span class="dot">•</span> <span class="i">exp</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="dot">•</span> <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="dot">•</span> <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_4">  4</a>     | <span class="dot">•</span> <b>"number"</b>
+  <a href="#rule_5">  5</a>     | <span class="dot">•</span> <b>"Ñùṃéℝô"</b>
+
+    "number"  <a href="#state_1">shift, and go to state 1</a>
+    "Ñùṃéℝô"  <a href="#state_2">shift, and go to state 2</a>
+
+    exp  <a href="#state_3">go to state 3</a>
+</p>
+
+<h3><a name="state_1" id="state_1"></a>State 1</h3>
+
+<p class="pre">  <a href="#rule_4">  4</a> <span class="i">exp</span> → <b>"number"</b> <span class="dot">•</span>
+
+    $default  <a href="#rule_4">reduce using rule 4</a> (exp)
+</p>
+
+<h3><a name="state_2" id="state_2"></a>State 2</h3>
+
+<p class="pre">  <a href="#rule_5">  5</a> <span class="i">exp</span> → <b>"Ñùṃéℝô"</b> <span class="dot">•</span>
+
+    $default  <a href="#rule_5">reduce using rule 5</a> (exp)
+</p>
+
+<h3><a name="state_3" id="state_3"></a>State 3</h3>
+
+<p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="i">exp</span> <span class="dot">•</span> <b>$end</b>
+  <a href="#rule_1">  1</a> <span class="i">exp</span> → <span class="i">exp</span> <span class="dot">•</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="i">exp</span> <span class="dot">•</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="i">exp</span> <span class="dot">•</span> <b>"+"</b> <span class="i">exp</span>
+
+    $end  <a href="#state_4">shift, and go to state 4</a>
+    "+"   <a href="#state_5">shift, and go to state 5</a>
+    "⊕"   <a href="#state_6">shift, and go to state 6</a>
+</p>
+
+<h3><a name="state_4" id="state_4"></a>State 4</h3>
+
+<p class="pre">  <a href="#rule_0">  0</a> <span class="i">$accept</span> → <span class="i">exp</span> <b>$end</b> <span class="dot">•</span>
+
+    $default  accept
+</p>
+
+<h3><a name="state_5" id="state_5"></a>State 5</h3>
+
+<p class="pre">  <a href="#rule_1">  1</a> <span class="i">exp</span> → <span class="dot">•</span> <span class="i">exp</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="dot">•</span> <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="i">exp</span> <b>"+"</b> <span class="dot">•</span> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="dot">•</span> <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="i">exp</span> <b>"+"</b> <span class="dot">•</span> <span class="i">exp</span>
+  <a href="#rule_4">  4</a>     | <span class="dot">•</span> <b>"number"</b>
+  <a href="#rule_5">  5</a>     | <span class="dot">•</span> <b>"Ñùṃéℝô"</b>
+
+    "number"  <a href="#state_1">shift, and go to state 1</a>
+    "Ñùṃéℝô"  <a href="#state_2">shift, and go to state 2</a>
+
+    exp  <a href="#state_7">go to state 7</a>
+</p>
+
+<h3><a name="state_6" id="state_6"></a>State 6</h3>
+
+<p class="pre">  <a href="#rule_1">  1</a> <span class="i">exp</span> → <span class="dot">•</span> <span class="i">exp</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a href="#rule_1">  1</a>     | <span class="i">exp</span> <b>"⊕"</b> <span class="dot">•</span> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="dot">•</span> <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="dot">•</span> <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_4">  4</a>     | <span class="dot">•</span> <b>"number"</b>
+  <a href="#rule_5">  5</a>     | <span class="dot">•</span> <b>"Ñùṃéℝô"</b>
+
+    "number"  <a href="#state_1">shift, and go to state 1</a>
+    "Ñùṃéℝô"  <a href="#state_2">shift, and go to state 2</a>
+
+    exp  <a href="#state_8">go to state 8</a>
+</p>
+
+<h3><a name="state_7" id="state_7"></a>State 7</h3>
+
+<p class="pre">  <a href="#rule_1">  1</a> <span class="i">exp</span> → <span class="i">exp</span> <span class="dot">•</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="i">exp</span> <span class="dot">•</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_2">  2</a>     | <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span> <span class="dot">•</span>  [$end, "+", "⊕"]
+  <a href="#rule_3">  3</a>     | <span class="i">exp</span> <span class="dot">•</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="i">exp</span> <b>"+"</b> <span class="i">exp</span> <span class="dot">•</span>  [$end, "+", "⊕"]
+
+    "⊕"  <a href="#state_6">shift, and go to state 6</a>
+
+    $end      <a href="#rule_2">reduce using rule 2</a> (exp)
+    $end      [<a href="#rule_3">reduce using rule 3</a> (exp)]
+    "+"       <a href="#rule_2">reduce using rule 2</a> (exp)
+    "+"       [<a href="#rule_3">reduce using rule 3</a> (exp)]
+    "⊕"       [<a href="#rule_2">reduce using rule 2</a> (exp)]
+    "⊕"       [<a href="#rule_3">reduce using rule 3</a> (exp)]
+    $default  <a href="#rule_2">reduce using rule 2</a> (exp)
+
+    Conflict between <a href="#rule_2">rule 2</a> and token "+" resolved as reduce (%left "+").
+</p>
+
+<h3><a name="state_8" id="state_8"></a>State 8</h3>
+
+<p class="pre">  <a href="#rule_1">  1</a> <span class="i">exp</span> → <span class="i">exp</span> <span class="dot">•</span> <b>"⊕"</b> <span class="i">exp</span>
+  <a href="#rule_1">  1</a>     | <span class="i">exp</span> <b>"⊕"</b> <span class="i">exp</span> <span class="dot">•</span>  [$end, "+", "⊕"]
+  <a href="#rule_2">  2</a>     | <span class="i">exp</span> <span class="dot">•</span> <b>"+"</b> <span class="i">exp</span>
+  <a href="#rule_3">  3</a>     | <span class="i">exp</span> <span class="dot">•</span> <b>"+"</b> <span class="i">exp</span>
+
+    "+"  <a href="#state_5">shift, and go to state 5</a>
+    "⊕"  <a href="#state_6">shift, and go to state 6</a>
+
+    "+"       [<a href="#rule_1">reduce using rule 1</a> (exp)]
+    "⊕"       [<a href="#rule_1">reduce using rule 1</a> (exp)]
+    $default  <a href="#rule_1">reduce using rule 1</a> (exp)
+</p>
+
+<div id="footer"><hr />This document was generated using
+      <a href="https://www.gnu.org/software/bison/" title="GNU Bison">
+      GNU Bison ]AT_PACKAGE_VERSION[</a>
+      XML Automaton Report.<br />
+      Verbatim copying and distribution of this entire page is
+      permitted in any medium, provided this notice is preserved.</div></body>
+</html>
+]])
+
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP

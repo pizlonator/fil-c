@@ -1,0 +1,1565 @@
+# Simple calculator.                         -*- Autotest -*-
+
+# Copyright (C) 2000-2015, 2018-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+## ---------------------------------------------------- ##
+## Compile the grammar described in the documentation.  ##
+## ---------------------------------------------------- ##
+
+
+m4_pushdef([AT_CALC_MAIN],  [AT_LANG_DISPATCH([$0], $@)])
+m4_pushdef([AT_CALC_YYLEX], [AT_LANG_DISPATCH([$0], $@)])
+
+# -------------- #
+# AT_DATA_CALC.  #
+# -------------- #
+
+
+# _AT_DATA_CALC_Y($1, $2, $3, [BISON-DIRECTIVES])
+# -----------------------------------------------
+# Produce 'calc.y' and, if %header was specified, 'calc-lex.c' or
+# 'calc-lex.cc'.
+#
+# Don't call this macro directly, because it contains some occurrences
+# of '$1' etc. which will be interpreted by m4.  So you should call it
+# with $1, $2, and $3 as arguments, which is what AT_DATA_CALC_Y does.
+#
+# When %header is not passed, generate a single self-contained file.
+# Otherwise, generate three: calc.y with the parser, calc-lex.c with
+# the scanner, and calc-main.c with "main()".  This is in order to
+# stress the use of the generated parser header.  To avoid code
+# duplication, AT_CALC_YYLEX and AT_CALC_MAIN contain the body of these
+# two later files.
+m4_pushdef([_AT_DATA_CALC_Y],
+[m4_if([$1$2$3], $[1]$[2]$[3], [],
+       [m4_fatal([$0: Invalid arguments: $@])])dnl
+AT_LANG_DISPATCH([$0], $@)])
+
+
+
+## ----------- ##
+## Calc in C.  ##
+## ----------- ##
+
+# AT_CALC_MAIN(c).
+m4_define([AT_CALC_MAIN(c)],
+[[#include <assert.h>
+#include <stdlib.h> /* exit */
+#include <string.h> /* strcmp */
+#include <unistd.h>
+
+]AT_CXX_IF([[
+namespace
+{
+  /* A C++ ]AT_NAME_PREFIX[parse that simulates the C signature.  */
+  int
+  ]AT_NAME_PREFIX[parse (]AT_PARAM_IF([semantic_value *result, int *count, int *nerrs]))[
+  {
+    ]AT_NAME_PREFIX[::parser parser]AT_PARAM_IF([ (result, count, nerrs)])[;
+  #if ]AT_API_PREFIX[DEBUG
+    parser.set_debug_level (1);
+  #endif
+    return parser.parse ();
+  }
+}
+]])[
+
+/* Value of the last computation.  */
+semantic_value global_result = 0;
+/* Total number of computations.  */
+int global_count = 0;
+/* Total number of errors.  */
+int global_nerrs = 0;
+
+#ifndef EX_NOINPUT
+# define EX_NOINPUT 66
+#endif
+
+static FILE *
+open_file (const char *file)
+{
+  FILE *res = (file && *file && strcmp (file, "-")) ? fopen (file, "r") : stdin;
+  if (!res)
+    {
+      perror (file);
+      exit (EX_NOINPUT);
+    }
+  return res;
+}
+
+/* A C main function.  */
+int
+main (int argc, const char **argv)
+{]AT_PARAM_IF([[
+  semantic_value result = 0;
+  int count = 0;
+  int nerrs = 0;]])[
+  int status = 0;
+
+  /* This used to be alarm (10), but that isn't enough time for a July
+     1995 vintage DEC Alphastation 200 4/100 system, according to
+     Nelson H. F. Beebe.  100 seconds was enough for regular users,
+     but the Hydra build farm, which is heavily loaded needs more.  */
+
+  alarm (200);
+
+]AT_CXX_IF([], [AT_DEBUG_IF([  ]AT_NAME_PREFIX[debug = 1;])])[
+
+  {
+    int i;
+    for (i = 1; i < argc; ++i)
+      {
+]AT_MULTISTART_IF([[
+        if (!strcmp (argv[i], "--exp") && i+1 < argc)
+          {
+            input = open_file (argv[i+1]);
+            ignore_eol = 1;
+            ]AT_NAME_PREFIX[parse_exp_t res = ]AT_NAME_PREFIX[parse_exp ();
+            printf ("exp => %d (status: %d, errors: %d)\n",
+                    res.yystatus == 0 ? res.yyvalue : 0, res.yystatus, res.yynerrs);
+            status = res.yystatus;
+            ++i;
+          }
+        else if (!strcmp (argv[i], "--num") && i+1 < argc)
+          {
+            input = open_file (argv[i+1]);
+            ignore_eol = 1;
+            ]AT_NAME_PREFIX[parse_NUM_t res = ]AT_NAME_PREFIX[parse_NUM ();
+            printf ("NUM => %d (status: %d, errors: %d)\n",
+                    res.yystatus == 0 ? res.yyvalue : 0, res.yystatus, res.yynerrs);
+            status = res.yystatus;
+            ++i;
+          }
+        else]])[
+          {
+            input = open_file (argv[i]);
+            status = ]AT_NAME_PREFIX[parse (]AT_PARAM_IF([[&result, &count, &nerrs]])[);
+          }
+        if (input != stdin && fclose (input))
+          perror ("fclose");
+      }
+  }
+]AT_PARAM_IF([[
+  assert (global_result == result); (void) result;
+  assert (global_count  == count);  (void) count;
+  assert (global_nerrs  == nerrs);  (void) nerrs;
+  printf ("final: %d %d %d\n", global_result, global_count, global_nerrs);]])[
+  return status;
+}
+]])
+
+
+# AT_CALC_YYLEX(c).
+m4_define([AT_CALC_YYLEX(c)],
+[[#include <ctype.h>
+
+]AT_YYLEX_DECLARE_EXTERN[
+
+]AT_LOCATION_IF([
+static AT_YYLTYPE last_yylloc;
+])[
+static int
+get_char (]AT_YYLEX_FORMALS[)
+{
+  int res = getc (input);
+  ]AT_USE_LEX_ARGS[;
+]AT_LOCATION_IF([
+  last_yylloc = AT_LOC;
+  if (res == '\n')
+    {
+      AT_LOC_LAST_LINE++;
+      AT_LOC_LAST_COLUMN = 1;
+    }
+  else
+    AT_LOC_LAST_COLUMN++;
+])[
+  return res;
+}
+
+static void
+unget_char (]AT_YYLEX_PRE_FORMALS[ int c)
+{
+  ]AT_USE_LEX_ARGS[;
+]AT_LOCATION_IF([
+  /* Wrong when C == '\n'. */
+  AT_LOC = last_yylloc;
+])[
+  ungetc (c, input);
+}
+
+static int
+read_integer (]AT_YYLEX_FORMALS[)
+{
+  int c = get_char (]AT_YYLEX_ARGS[);
+  int res = 0;
+
+  ]AT_USE_LEX_ARGS[;
+  while (isdigit (c))
+    {
+      res = 10 * res + (c - '0');
+      c = get_char (]AT_YYLEX_ARGS[);
+    }
+
+  unget_char (]AT_YYLEX_PRE_ARGS[ c);
+
+  return res;
+}
+
+
+/*---------------------------------------------------------------.
+| Lexical analyzer returns an integer on the stack and the token |
+| NUM, or the ASCII character read if not a number.  Skips all   |
+| blanks and tabs, returns 0 for EOF.                            |
+`---------------------------------------------------------------*/
+
+]AT_YYLEX_PROTOTYPE[
+{
+  int c;
+  /* Skip white spaces.  */
+  do
+    {
+]AT_LOCATION_IF([
+      AT_LOC_FIRST_COLUMN = AT_LOC_LAST_COLUMN;
+      AT_LOC_FIRST_LINE   = AT_LOC_LAST_LINE;
+])[
+    }
+  while ((c = get_char (]AT_YYLEX_ARGS[)) == ' '
+         || c == '\t'
+         || (ignore_eol && c == '\n'));
+
+  /* Process numbers.   */
+  if (isdigit (c))
+    {
+      unget_char (]AT_YYLEX_PRE_ARGS[ c);
+      ]AT_VAL[.]AT_VALUE_UNION_IF([NUM], [ival])[ = read_integer (]AT_YYLEX_ARGS[);
+      return ]AT_TOKEN([NUM])[;
+    }
+
+  /* Return end-of-file.  */
+  if (c == EOF)
+    return ]AT_TOKEN([CALC_EOF])[;
+
+  /* An explicit error raised by the scanner. */
+  if (c == '#')
+    {]AT_LOCATION_IF([
+      fprintf (stderr, "%d.%d: ",
+               AT_LOC_FIRST_LINE, AT_LOC_FIRST_COLUMN);])[
+      fputs ("syntax error: invalid character: '#'\n", stderr);
+      return ]AT_TOKEN(AT_API_PREFIX[][error])[;
+    }
+
+  /* Return single chars. */
+  return c;
+}
+]])
+
+
+m4_define([_AT_DATA_CALC_Y(c)],
+[AT_DATA_GRAMMAR([calc.y.tmp],
+[[/* Infix notation calculator--calc */
+]$4[
+%code requires
+{
+]AT_LOCATION_TYPE_SPAN_IF([[
+  typedef struct
+  {
+    int l;
+    int c;
+  } Point;
+
+  typedef struct
+  {
+    Point first;
+    Point last;
+  } Span;
+
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+  do                                                                    \
+    if (N)                                                              \
+      {                                                                 \
+        (Current).first = YYRHSLOC (Rhs, 1).first;                      \
+        (Current).last  = YYRHSLOC (Rhs, N).last;                       \
+      }                                                                 \
+    else                                                                \
+      {                                                                 \
+        (Current).first = (Current).last = YYRHSLOC (Rhs, 0).last;      \
+      }                                                                 \
+  while (0)
+
+]AT_C_IF(
+[[#include <stdio.h>
+void location_print (FILE *o, Span s);
+#define LOCATION_PRINT location_print
+]])[
+
+]])[
+  /* Exercise pre-prologue dependency to %union.  */
+  typedef int semantic_value;
+}
+
+]AT_VALUE_UNION_IF([],
+[[/* Exercise %union. */
+%union
+{
+  semantic_value ival;
+};]])[
+%printer { ]AT_CXX_IF([[yyo << $$]],
+                      [[fprintf (yyo, "%d", $$)]])[; } <]AT_VALUE_UNION_IF([int], [ival])[>;
+
+%code provides
+{
+  #include <stdio.h>
+  /* The input.  */
+  extern FILE *input;
+  /* Whether \n is a blank.  */
+  extern int ignore_eol;
+  extern semantic_value global_result;
+  extern int global_count;
+  extern int global_nerrs;
+}
+
+%code
+{
+  #include <assert.h>
+  #include <string.h>
+  #define USE(Var)
+
+  FILE *input;
+  int ignore_eol = 0;
+  static int power (int base, int exponent);
+
+  ]AT_YYERROR_DECLARE[
+  ]AT_YYLEX_DECLARE_EXTERN[
+
+  ]AT_TOKEN_TRANSLATE_IF([[
+#define N_
+    static
+    const char *
+    _ (const char *cp)
+    {
+      if (strcmp (cp, "end of input") == 0)
+        return "end of file";
+      else if (strcmp (cp, "number") == 0)
+        return "nombre";
+      else
+        return cp;
+    }
+  ]])[
+}
+
+]AT_LOCATION_TYPE_SPAN_IF([[
+%initial-action
+{
+  @$.first.l = @$.first.c = 1;
+  @$.last = @$.first;
+}]])[
+
+/* Bison Declarations */
+%token CALC_EOF 0 ]AT_TOKEN_TRANSLATE_IF([_("end of file")], ["end of input"])[
+%token <]AT_VALUE_UNION_IF([int], [ival])[> NUM   "number"
+%type  <]AT_VALUE_UNION_IF([int], [ival])[> exp
+
+%nonassoc '='   /* comparison          */
+%left '-' '+'
+%left '*' '/'
+%precedence NEG /* negation--unary minus */
+%right '^'      /* exponentiation        */
+
+/* Grammar follows */
+%%
+input:
+  line
+| input line         { ]AT_PARAM_IF([++*count; ++global_count;])[ }
+;
+
+line:
+  '\n'
+| exp '\n'           { ]AT_PARAM_IF([*result = global_result = $1;], [USE ($1);])[ }
+;
+
+exp:
+  NUM
+| exp '=' exp
+  {
+    if ($1 != $3)]AT_LANG_CASE(
+      [c], [[
+      {
+        char buf[1024];
+        snprintf (buf, sizeof buf, "error: %d != %d", $1, $3);]AT_YYERROR_ARG_LOC_IF([[
+        yyerror (&@$, ]AT_PARAM_IF([result, count, nerrs, ])[buf);]], [[
+        {
+          YYLTYPE old_yylloc = yylloc;
+          yylloc = @$;
+          yyerror (]AT_PARAM_IF([result, count, nerrs, ])[buf);
+          yylloc = old_yylloc;
+        }
+        ]])[
+      }]],
+      [c++], [[
+      {
+        char buf[1024];
+        snprintf (buf, sizeof buf, "error: %d != %d", $1, $3);
+        ]AT_GLR_IF([[yyparser.]])[error (]AT_LOCATION_IF([[@$, ]])[buf);
+      }]])[
+    $$ = $1;
+  }
+| exp '+' exp        { $$ = $1 + $3; }
+| exp '-' exp        { $$ = $1 - $3; }
+| exp '*' exp        { $$ = $1 * $3; }
+| exp '/' exp
+  {
+    if ($3 == 0)]AT_LANG_CASE(
+      [c], [[
+      {]AT_YYERROR_ARG_LOC_IF([[
+        yyerror (&@3, ]AT_PARAM_IF([result, count, nerrs, ])["error: null divisor");]], [[
+        {
+          YYLTYPE old_yylloc = yylloc;
+          yylloc = @3;
+          yyerr][or (]AT_PARAM_IF([result, count, nerrs, ])["error: null divisor");
+          yylloc = old_yylloc;
+        }
+        ]])[
+      }]],
+      [c++], [[
+      {
+        ]AT_GLR_IF([[yyparser.]])[err][or (]AT_LOCATION_IF([[@3, ]])["error: null divisor");
+      }]])[
+    else
+      $$ = $1 / $3;
+  }
+| '-' exp  %prec NEG { $$ = -$2; }
+| exp '^' exp        { $$ = power ($1, $3); }
+| '(' exp ')'        { $$ = $2; }
+| '(' error ')'      { $$ = 1111; yyerrok; }
+| '-' error          { $$ = 0; YYERROR; }
+| '!' '!'            { $$ = 0; YYERROR; }
+| '!' '+'            { $$ = 0; YYACCEPT; }
+| '!' '-'            { $$ = 0; YYABORT; }]AT_C_IF([[
+| '!' '*'            { $$ = 0; YYNOMEM; }]])[
+;
+%%
+
+int
+power (int base, int exponent)
+{
+  int res = 1;
+  assert (0 <= exponent);
+  for (/* Niente */; exponent; --exponent)
+    res *= base;
+  return res;
+}
+
+]AT_LOCATION_TYPE_SPAN_IF([AT_CXX_IF([[
+#include <iostream>
+namespace
+{
+  std::ostream&
+  operator<< (std::ostream& o, const Span& s)
+  {
+    o << s.first.l << '.' << s.first.c;
+    if (s.first.l != s.last.l)
+      o << '-' << s.last.l << '.' << s.last.c - 1;
+    else if (s.first.c != s.last.c - 1)
+      o << '-' << s.last.c - 1;
+    return o;
+  }
+}
+]], [[
+void
+location_print (FILE *o, Span s)
+{
+  fprintf (o, "%d.%d", s.first.l, s.first.c);
+  if (s.first.l != s.last.l)
+    fprintf (o, "-%d.%d", s.last.l, s.last.c - 1);
+  else if (s.first.c != s.last.c - 1)
+    fprintf (o, "-%d", s.last.c - 1);
+}
+]])])[
+]AT_YYERROR_DEFINE[
+]AT_HEADER_IF([],
+[AT_CALC_YYLEX
+AT_CALC_MAIN])])
+
+# Remove the generated prototypes.
+AT_CHECK(
+  [AT_YACC_IF([[
+    if "$POSIXLY_CORRECT_IS_EXPORTED"; then
+      sed -e '/\/\* !POSIX \*\//d' calc.y.tmp >calc.y
+    else
+      mv calc.y.tmp calc.y
+    fi
+  ]],
+  [[mv calc.y.tmp calc.y]])
+])
+
+AT_HEADER_IF([AT_DATA_SOURCE([[calc-lex.]AT_LANG_EXT],
+[[#include "calc.]AT_LANG_HDR["
+
+]AT_CALC_YYLEX])
+AT_DATA_SOURCE([[calc-main.]AT_LANG_EXT],
+[[#include "calc.]AT_LANG_HDR["
+
+]AT_CALC_MAIN])
+])
+])# _AT_DATA_CALC_Y(c)
+
+
+
+## ------------- ##
+## Calc in C++.  ##
+## ------------- ##
+
+m4_copy([AT_CALC_MAIN(c)], [AT_CALC_MAIN(c++)])
+m4_copy([AT_CALC_YYLEX(c)], [AT_CALC_YYLEX(c++)])
+m4_copy([_AT_DATA_CALC_Y(c)], [_AT_DATA_CALC_Y(c++)])
+
+
+## ----------- ##
+## Calc in D.  ##
+## ----------- ##
+
+# AT_YYLEX_RETURN_VAL
+# -------------------
+# Produce the return value for yylex().
+m4_define([AT_YYLEX_RETURN_VAL],
+[return dnl
+AT_TOKEN_CTOR_IF(
+  [[Symbol.]AT_TOKEN_PREFIX[$1](m4_ifval([$2], [$2])[]AT_LOCATION_IF([m4_ifval([$2], [, ])[location]])[);]],
+  [[Symbol(TokenKind.]AT_TOKEN_PREFIX[$1]m4_ifval([$2], [, $2])[]AT_LOCATION_IF([[, location]])[);]])]
+)
+
+# AT_CALC_MAIN(d).
+m4_define([AT_CALC_MAIN(d)],
+[[int main (string[] args)
+{]AT_PARAM_IF([[
+  semantic_value result = 0;
+  int count = 0;]])[
+
+  File input = args.length == 2 ? File (args[1], "r") : stdin;
+  auto l = calcLexer (input);
+  auto p = new YYParser (l);]AT_DEBUG_IF([[
+  p.setDebugLevel (1);]])[
+  return !p.parse();
+}
+]])
+
+m4_define([AT_CALC_YYLEX(d)],
+[[import std.range.primitives;
+import std.stdio;
+
+auto calcLexer(R)(R range)
+if (isInputRange!R && is (ElementType!R : dchar))
+{
+  return new CalcLexer!R(range);
+}
+
+auto calcLexer (File f)
+{
+  import std.algorithm : map, joiner;
+  import std.utf : byDchar;
+
+  return f.byChunk(1024)        // avoid making a syscall roundtrip per char
+          .map!(chunk => cast(char[]) chunk) // because byChunk returns ubyte[]
+          .joiner               // combine chunks into a single virtual range of char
+          .calcLexer;           // forward to other overload
+}
+
+class CalcLexer(R) : Lexer
+if (isInputRange!R && is (ElementType!R : dchar))
+{
+  R input;
+
+  this(R r) { input = r; }
+
+  ]AT_YYERROR_DEFINE[
+]AT_LOCATION_IF([[
+  Location location;
+]])[
+  int parseInt ()
+  {
+    auto res = 0;
+    import std.uni : isNumber;
+    while (input.front.isNumber)
+    {
+      res = res * 10 + (input.front - '0');]AT_LOCATION_IF([[
+      location.end.column += 1;]])[
+      input.popFront;
+    }
+    return res;
+  }
+
+  Symbol yylex ()
+  {]AT_LOCATION_IF([[
+    location.step();]])[
+
+    import std.uni : isWhite, isNumber;
+
+    // Skip initial spaces
+    while (!input.empty && input.front != '\n' && isWhite (input.front))
+    {
+      input.popFront;]AT_LOCATION_IF([[
+      location.end.column += 1;]])[
+    }]AT_LOCATION_IF([[
+    location.step();]])[
+
+    // EOF.
+    if (input.empty)
+      ]AT_YYLEX_RETURN_VAL([EOF])[
+    // Numbers.
+    if (input.front.isNumber)
+      ]AT_YYLEX_RETURN_VAL([NUM], [parseInt])[
+
+    // Individual characters
+    auto c = input.front;]AT_LOCATION_IF([[
+    if (c == '\n')
+    {
+      location.end.line += 1;
+      location.end.column = 1;
+    }
+    else
+      location.end.column += 1;]])[
+    input.popFront;
+
+    // An explicit error raised by the scanner. */
+    if (c == '#')
+    {
+      stderr.writeln (]AT_LOCATION_IF([location, ": ", ])["syntax error: invalid character: '#'");
+      ]AT_YYLEX_RETURN_VAL([YYerror])[
+    }
+
+    switch (c)
+    {
+      case '+':  ]AT_YYLEX_RETURN_VAL([PLUS])[
+      case '-':  ]AT_YYLEX_RETURN_VAL([MINUS])[
+      case '*':  ]AT_YYLEX_RETURN_VAL([STAR])[
+      case '/':  ]AT_YYLEX_RETURN_VAL([SLASH])[
+      case '(':  ]AT_YYLEX_RETURN_VAL([LPAR])[
+      case ')':  ]AT_YYLEX_RETURN_VAL([RPAR])[
+      case '\n': ]AT_YYLEX_RETURN_VAL([EOL])[
+      case '=':  ]AT_YYLEX_RETURN_VAL([EQUAL])[
+      case '^':  ]AT_YYLEX_RETURN_VAL([POW])[
+      case '!':  ]AT_YYLEX_RETURN_VAL([NOT])[
+      default:   ]AT_YYLEX_RETURN_VAL([YYUNDEF])[
+    }
+  }
+}
+]])
+
+m4_define([_AT_DATA_CALC_Y(d)],
+[AT_DATA_GRAMMAR([calc.y],
+[[/* Infix notation calculator--calc */
+]$4[
+%code imports {
+  alias semantic_value = int;
+}
+/* Exercise %union. */
+]AT_UNION_IF([[]], [[%union
+{
+  semantic_value ival;
+};]])[
+%printer { yyo.write($$); } <]AT_UNION_IF([[int]], [[ival]])[>;
+
+%code {
+]AT_TOKEN_TRANSLATE_IF([[
+  static string _(string s)
+  {
+    switch (s)
+    {
+      case "end of input":
+        return "end of file";
+      case "number":
+        return "nombre";
+      default:
+        return s;
+    }
+  }
+]])[
+}
+
+/* Bison Declarations */
+%token EOF 0 ]AT_TOKEN_TRANSLATE_IF([_("end of file")], ["end of input"])[
+%token <]AT_UNION_IF([[int]], [[ival]])[> NUM   "number"
+%type  <]AT_UNION_IF([[int]], [[ival]])[> exp
+
+%token EQUAL  "="
+       MINUS  "-"
+       PLUS   "+"
+       STAR   "*"
+       SLASH  "/"
+       POW    "^"
+       EOL    "'\\n'"
+       LPAR   "("
+       RPAR   ")"
+       NOT    "!"
+
+%nonassoc "="   /* comparison          */
+%left "-" "+"
+%left "*" "/"
+%precedence NEG /* negation--unary minus */
+%right "^"      /* exponentiation        */
+
+/* Grammar follows */
+%%
+input:
+  line
+| input line         { ]AT_PARAM_IF([++*count; ++global_count;])[ }
+;
+
+line:
+  EOL
+| exp EOL            { ]AT_PARAM_IF([*result = global_result = $1;])[ }
+;
+
+exp:
+  NUM
+| exp "=" exp
+  {
+    if ($1 != $3)
+      yyerror (]AT_LOCATION_IF([[@$, ]])[format ("error: %d != %d", $1, $3));
+    $$ = $1;
+  }
+| exp "+" exp        { $$ = $1 + $3; }
+| exp "-" exp        { $$ = $1 - $3; }
+| exp "*" exp        { $$ = $1 * $3; }
+| exp "/" exp
+  {
+    if ($3 == 0)
+      yyerror (]AT_LOCATION_IF([[@3, ]])["error: null divisor");
+    else
+      $$ = $1 / $3;
+  }
+| "-" exp  %prec NEG { $$ = -$2; }
+| exp "^" exp        { $$ = power ($1, $3); }
+| "(" exp ")"        { $$ = $2; }
+| "(" error ")"      { $$ = 1111; yyerrok(); }
+| "-" error          { $$ = 0; return YYERROR; }
+| "!" "!"            { $$ = 0; return YYERROR; }
+| "!" "+"            { $$ = 0; return YYACCEPT; }
+| "!" "-"            { $$ = 0; return YYABORT; }
+;
+%%
+
+int
+power (int base, int exponent)
+{
+  int res = 1;
+  assert (0 <= exponent);
+  for (/* Niente */; exponent; --exponent)
+    res *= base;
+  return res;
+}
+
+]AT_CALC_YYLEX[
+]AT_CALC_MAIN])
+])# _AT_DATA_CALC_Y(d)
+
+
+
+## -------------- ##
+## Calc in Java.  ##
+## -------------- ##
+
+m4_define([AT_CALC_MAIN(java)],
+[[public static void main (String[] args) throws IOException
+  {]AT_LEXPARAM_IF([[
+    Calc p = new Calc (System.in);]], [[
+    CalcLexer l = new CalcLexer (System.in);
+    Calc p = new Calc (l);]])AT_DEBUG_IF([[
+    p.setDebugLevel (1);]])[
+    boolean success = p.parse ();
+    if (!success)
+      System.exit (1);
+  }
+]])
+
+m4_define([AT_CALC_YYLEX(java)],
+[AT_LEXPARAM_IF([[%code lexer {]],
+                [[%code epilogue { class CalcLexer implements Calc.Lexer {]])[
+  StreamTokenizer st;]AT_LOCATION_IF([[
+  PositionReader reader;]])[
+
+  public ]AT_LEXPARAM_IF([[YYLexer]], [[CalcLexer]])[ (InputStream is)
+  {]AT_LOCATION_IF([[
+    reader = new PositionReader (new InputStreamReader (is));
+    st = new StreamTokenizer (reader);]], [[
+    st = new StreamTokenizer (new InputStreamReader (is));]])[
+    st.resetSyntax ();
+    st.eolIsSignificant (true);
+    st.wordChars ('0', '9');
+  }
+
+]AT_LOCATION_IF([[
+  Position start = new Position (1, 0);
+  Position end = new Position (1, 0);
+
+  public Position getStartPos () {
+    return new Position (start);
+  }
+
+  public Position getEndPos () {
+    return new Position (end);
+  }
+
+]])[
+  ]AT_YYERROR_DEFINE[
+
+  Integer yylval;
+
+  public Object getLVal () {
+    return yylval;
+  }
+
+  public int yylex() throws IOException {;]AT_LOCATION_IF([[
+    start.set(reader.getPosition());]])[
+    int tkind = st.nextToken();]AT_LOCATION_IF([[
+    end.set(reader.getPosition());]])[
+    switch (tkind)
+      {
+      case StreamTokenizer.TT_EOF:
+        return CALC_EOF;
+      case StreamTokenizer.TT_EOL:;]AT_LOCATION_IF([[
+        end.line += 1;
+        end.column = 0;]])[
+        return (int) '\n';
+      case StreamTokenizer.TT_WORD:
+        yylval = Integer.parseInt(st.sval);]AT_LOCATION_IF([[
+        end.set(reader.getPreviousPosition());]])[
+        return NUM;
+      case ' ': case '\t':
+        return yylex();
+      case '#':
+        System.err.println(]AT_LOCATION_IF([[start + ": " + ]])["syntax error: invalid character: '#'");
+        return YYerror;
+      default:
+        return tkind;
+      }
+  }
+]AT_LEXPARAM_IF([], [[}]])[
+};
+]])
+
+m4_define([_AT_DATA_CALC_Y(java)],
+[AT_DATA_GRAMMAR([Calc.y],
+[[/* Infix notation calculator--calc */
+%define api.prefix {Calc}
+%define api.parser.class {Calc}
+%define public
+
+]$4[
+
+%code imports {]AT_LOCATION_IF([[
+  import java.io.BufferedReader;]])[
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.io.InputStreamReader;
+  import java.io.Reader;
+  import java.io.StreamTokenizer;
+}
+
+%code {
+  ]AT_CALC_MAIN[
+
+  ]AT_TOKEN_TRANSLATE_IF([[
+    static String i18n(String s)
+    {
+      if (s.equals ("end of input"))
+        return "end of file";
+      else if (s.equals ("number"))
+        return "nombre";
+      else
+        return s;
+    }
+  ]])[
+}
+
+/* Bison Declarations */
+%token CALC_EOF 0 ]AT_TOKEN_TRANSLATE_IF([_("end of file")], ["end of input"])[
+%token <Integer> NUM "number"
+%type  <Integer> exp
+
+%nonassoc '='       /* comparison            */
+%left '-' '+'
+%left '*' '/'
+%precedence NEG     /* negation--unary minus */
+%right '^'          /* exponentiation        */
+
+/* Grammar follows */
+%%
+input:
+  line
+| input line
+;
+
+line:
+  '\n'
+| exp '\n'
+;
+
+exp:
+  NUM
+| exp '=' exp
+  {
+    if ($1.intValue () != $3.intValue ())
+      yyerror (]AT_LOCATION_IF([[@$, ]])["error: " + $1 + " != " + $3);
+  }
+| exp '+' exp        { $$ = $1 + $3; }
+| exp '-' exp        { $$ = $1 - $3; }
+| exp '*' exp        { $$ = $1 * $3; }
+| exp '/' exp
+  {
+    if ($3.intValue () == 0)
+      yyerror (]AT_LOCATION_IF([[@3, ]])["error: null divisor");
+    else
+      $$ = $1 / $3;
+  }
+| '-' exp  %prec NEG { $$ = -$2; }
+| exp '^' exp        { $$ = (int) Math.pow ($1, $3); }
+| '(' exp ')'        { $$ = $2; }
+| '(' error ')'      { $$ = 1111; }
+| '-' error          { $$ = 0; return YYERROR; }
+| '!' '!'            { $$ = 0; return YYERROR; }
+| '!' '+'            { $$ = 0; return YYACCEPT; }
+| '!' '-'            { $$ = 0; return YYABORT; }
+;
+]AT_CALC_YYLEX[
+]AT_LOCATION_IF([[
+%%
+]AT_JAVA_POSITION_DEFINE])[
+]])
+])# _AT_DATA_JAVA_CALC_Y
+
+
+
+
+## ------------------ ##
+## Calculator tests.  ##
+## ------------------ ##
+
+
+# AT_DATA_CALC_Y([BISON-OPTIONS])
+# -------------------------------
+# Produce 'calc.y' and, if %header was specified, 'calc-lex.c' or
+# 'calc-lex.cc'.
+m4_define([AT_DATA_CALC_Y],
+[_AT_DATA_CALC_Y($[1], $[2], $[3], [$1])
+])
+
+
+# _AT_CHECK_CALC(CALC-OPTIONS, INPUT, [STDOUT], [NUM-STDERR-LINES])
+# -----------------------------------------------------------------
+# Run 'calc' on INPUT and expect no STDOUT nor STDERR.
+#
+# If BISON-OPTIONS contains '%debug' but not '%glr-parser', then
+# NUM-STDERR-LINES is the number of expected lines on stderr.
+# Currently this is ignored, though, since the output format is fluctuating.
+#
+# We don't count GLR's traces yet, since its traces are somewhat
+# different from LALR's.  Likewise for D.
+#
+# The push traces are the same, except for "Return for a new token", don't
+# count them.
+m4_define([_AT_CHECK_CALC],
+[AT_DATA([[input]],
+[$2
+])
+echo "input:"
+sed -e 's/^/  | /' <input
+AT_JAVA_IF(
+  [AT_JAVA_PARSER_CHECK([Calc $1 < input], 0, [m4_ifvaln(m4_quote($3), [$3])], [stderr])],
+  [AT_PARSER_CHECK([calc $1 input],        0, [m4_ifvaln(m4_quote($3), [$3])], [stderr])])
+AT_LANG_MATCH([c\|c++\|java],
+  [AT_GLR_IF([],
+    [AT_CHECK([$EGREP -c -v 'Return for a new token:|LAC:' stderr],
+              [ignore],
+              [m4_n([AT_DEBUG_IF([$4], [0])])])])])
+])
+
+
+# _AT_CHECK_CALC_ERROR($1 = BISON-OPTIONS, $2 = EXIT-STATUS, $3 = INPUT,
+#                      $4 = [STDOUT],
+#                      $5 = [NUM-STDERR-LINES],
+#                      $6 = [CUSTOM-ERROR-MESSAGE])
+#                      $7 = [CALC-OPTIONS])
+# ----------------------------------------------------------------------
+# Run 'calc' on INPUT, and expect a 'syntax error' message.
+#
+# If INPUT starts with a slash, it is used as absolute input file name,
+# otherwise as contents.
+#
+# NUM-STDERR-LINES is the number of expected lines on stderr.
+# If BISON-OPTIONS contains '%debug' but not '%glr', then NUM-STDERR-LINES
+# is the number of expected lines on stderr.
+#
+# CUSTOM-ERROR-MESSAGE is the expected error message when parse.error
+# is 'custom' and locations are enabled.  Other expected formats are
+# computed from it.
+m4_define([_AT_CHECK_CALC_ERROR],
+[m4_bmatch([$3], [^/],
+  [AT_JAVA_IF(
+    [AT_JAVA_PARSER_CHECK([Calc $7 < $3], $2, [m4_ifvaln(m4_quote($4), [$4])], [stderr])],
+    [AT_PARSER_CHECK([calc $7 $3],        $2, [m4_ifvaln(m4_quote($4), [$4])], [stderr])])],
+  [AT_DATA([[input]],
+[[$3
+]])
+  echo "input:"
+  sed -e 's/^/  | /' <input
+  AT_JAVA_IF(
+    [AT_JAVA_PARSER_CHECK([Calc $7 < input], $2, [m4_ifvaln(m4_quote($4), [$4])], [stderr])],
+    [AT_PARSER_CHECK([calc $7 input],        $2, [m4_ifvaln(m4_quote($4), [$4])], [stderr])])
+])
+
+# Normalize the observed and expected error messages, depending upon the
+# options.
+# 1. Remove the traces from observed.
+sed '
+/ \$[[0-9$]]* = /d
+/^Cleanup:/d
+/^Discarding/d
+/^Entering/d
+/^Error:/d
+/^LAC:/d
+/^Next/d
+/^Now/d
+/^Reading/d
+/^Reducing/d
+/^Return/d
+/^Shifting/d
+/^Stack/d
+/^Starting/d
+/^state/d
+/^yydestructor:/d
+' stderr >at-stderr
+mv at-stderr stderr
+
+# 2. Create the reference error message.
+AT_DATA([[expout]],
+[m4_n([$6])])
+
+# 3. If locations are not used, remove them.
+AT_YYERROR_SEES_LOC_IF([],
+[[sed 's/^[-0-9.]*: //' expout >at-expout
+mv at-expout expout]])
+
+# 4. If parse.error is not custom, turn the expected message to
+# the traditional one.
+AT_ERROR_CUSTOM_IF([], [
+AT_PERL_REQUIRE([[-pi -e 'use strict;
+  s{syntax error on token \[(.*?)\] \(expected: (.*)\)}
+  {
+    my $unexp = $][1;
+    my @exps = $][2 =~ /\[(.*?)\]/g;]AT_D_IF([[
+    # In the case of D, there are no single quotes around the symbols.
+    $unexp =~ s/'"'(.)'"'/$][1/g;
+    s/'"'(.)'"'/$][1/g for @exps;]])[
+    ($][#exps && $][#exps < 4)
+    ? "syntax error, unexpected $unexp, expecting @{[join(\" or \", @exps)]}"
+    : "syntax error, unexpected $unexp";
+  }eg
+' expout]])
+])
+
+# 5. If parse.error is simple, strip the', unexpected....' part.
+AT_ERROR_SIMPLE_IF(
+[[sed 's/syntax error, .*$/syntax error/' expout >at-expout
+mv at-expout expout]])
+
+# 6. Actually check.
+AT_CHECK([cat stderr], 0, [expout])
+])
+
+
+# AT_CHECK_SPACES([FILES])
+# ------------------------
+# Make sure we did not introduce bad spaces.  Checked here because all
+# the skeletons are (or should be) exercised here.
+m4_define([AT_CHECK_SPACES],
+[AT_PERL_CHECK([-ne '
+  chomp;
+  print "$ARGV:$.: {$_}\n"
+    if (# No starting/ending empty lines.
+        (eof || $. == 1) && /^\s*$/
+        # No trailing space.
+        || /\s$/
+        # No tabs.
+        || /\t/
+        )' $1
+])
+])
+
+
+# AT_CHECK_JAVA_GREP(FILE, [LINE], [COUNT=1])
+# -------------------------------------------
+# Check that FILE contains exactly COUNT lines matching ^LINE$
+# with grep.  Unquoted so that COUNT can be a shell expression.
+m4_define([AT_CHECK_JAVA_GREP],
+[AT_CHECK_UNQUOTED([grep -c '^$2$' $1], [ignore], [m4_default([$3], [1])
+])])
+
+
+# AT_CHECK_CALC([BISON-OPTIONS], [COMPILER-OPTIONS])
+# --------------------------------------------------
+# Start a testing chunk which compiles 'calc' grammar with
+# BISON-OPTIONS, and performs several tests over the parser.
+m4_define([AT_CHECK_CALC],
+[m4_ifval([$3], [m4_fatal([$0: expected at most two arguments])])
+
+# We use integers to avoid dependencies upon the precision of doubles.
+AT_SETUP([Calculator $1 $2])
+
+AT_BISON_OPTION_PUSHDEFS([$1])
+
+AT_DATA_CALC_Y([$1])
+AT_FULL_COMPILE(AT_JAVA_IF([[Calc]], [[calc]]), AT_HEADER_IF([[lex], [main]], [[], []]), [$2], [-Wno-deprecated])
+
+AT_YACC_C_IF(
+  [# No direct calls to malloc/free.
+  AT_CHECK([[$EGREP '(malloc|free) *\(' calc.[ch] | $EGREP -v 'INFRINGES ON USER NAME SPACE']],
+           [1])])
+
+AT_PUSH_IF([AT_JAVA_IF(
+ [# Verify that this is a push parser.
+  AT_CHECK_JAVA_GREP([[Calc.java]],
+                     [[.*public void push_parse_initialize ().*]])])])
+
+AT_CHECK_SPACES([AT_JAVA_IF([Calc], [calc]).AT_LANG_EXT AT_HEADER_IF([AT_JAVA_IF([Calc], [calc]).AT_LANG_HDR])])
+
+# Test the precedences.
+# The Java traces do not show the clean up sequence at the end,
+# since it does not support %destructor.
+_AT_CHECK_CALC([],
+[[1 + 2 * 3 = 7
+1 + 2 * -3 = -5
+
+-1^2 = -1
+(-1)^2 = 1
+
+---1 = -1
+
+1 - 2 - 3 = -4
+1 - (2 - 3) = 2
+
+2^2^3 = 256
+(2^2)^3 = 64]],
+[AT_PARAM_IF([final: 64 12 0])],
+               [AT_JAVA_IF([1014], [1017])])
+
+# Some syntax errors.
+_AT_CHECK_CALC_ERROR([$1], [1], [1 2],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [15],
+                     [AT_JAVA_IF([1.3-1.4], [1.3])[: syntax error on token [number] (expected: ['='] ['-'] ['+'] ['*'] ['/'] ['^'] ['\n'])]])
+_AT_CHECK_CALC_ERROR([$1], [1], [1//2],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [20],
+                     [AT_JAVA_IF([1.3-1.4], [1.3])[: syntax error on token ['/'] (expected: [number] ['-'] ['('] ['!'])]])
+_AT_CHECK_CALC_ERROR([$1], [1], [error],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [5],
+                     [AT_JAVA_IF([1.1-1.2], [1.1])[: syntax error on token [invalid token] (expected: [number] ['-'] ['\n'] ['('] ['!'])]])
+_AT_CHECK_CALC_ERROR([$1], [1], [1 = 2 = 3],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [30],
+                     [AT_LAC_IF(
+                       [AT_JAVA_IF([1.7-1.8], [1.7])[: syntax error on token ['='] (expected: ['-'] ['+'] ['*'] ['/'] ['^'] ['\n'])]],
+                       [AT_JAVA_IF([1.7-1.8], [1.7])[: syntax error on token ['='] (expected: ['-'] ['+'] ['*'] ['/'] ['^'])]])])
+_AT_CHECK_CALC_ERROR([$1], [1],
+                     [
++1],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [20],
+                     [AT_JAVA_IF([2.1-2.2], [2.1])[: syntax error on token ['+'] (expected: ]AT_TOKEN_TRANSLATE_IF([[[end of file]]], [[[end of input]]])[ [number] ['-'] ['\n'] ['('] ['!'])]])
+# Exercise error messages with EOF: work on an empty file.
+_AT_CHECK_CALC_ERROR([$1], [1], [/dev/null],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [4],
+                     [[1.1: syntax error on token ]AT_TOKEN_TRANSLATE_IF([[[end of file]]], [[[end of input]]])[ (expected: [number] ['-'] ['\n'] ['('] ['!'])]])
+
+# Exercise the error token: without it, we die at the first error,
+# hence be sure to
+#
+# - have several errors which exercise different shift/discardings
+#   - (): nothing to pop, nothing to discard
+#   - (1 + 1 + 1 +): a lot to pop, nothing to discard
+#   - (* * *): nothing to pop, a lot to discard
+#   - (1 + 2 * *): some to pop and discard
+#
+# - test the action associated to 'error'
+#
+# - check the lookahead that triggers an error is not discarded
+#   when we enter error recovery.  Below, the lookahead causing the
+#   first error is ")", which is needed to recover from the error and
+#   produce the "0" that triggers the "0 != 1" error.
+#
+_AT_CHECK_CALC_ERROR([$1], [0],
+                     [() + (1 + 1 + 1 +) + (* * *) + (1 * 2 * *) = 1],
+                     [AT_PARAM_IF([final: 4444 0 5])],
+                     [250],
+[AT_JAVA_IF([1.2-1.3], [1.2])[: syntax error on token [')'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.18-1.19], [1.18])[: syntax error on token [')'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.23-1.24], [1.23])[: syntax error on token ['*'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.41-1.42], [1.41])[: syntax error on token ['*'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.1-1.47], [1.1-46])[: error: 4444 != 1]])
+
+# The same, but this time exercising explicitly triggered syntax errors.
+# POSIX says the lookahead causing the error should not be discarded.
+_AT_CHECK_CALC_ERROR([$1], [0], [(!!) + (1 2) = 1],
+                     [AT_PARAM_IF([final: 2222 0 2])],
+                     [102],
+[AT_JAVA_IF([1.11-1.12], [1.11])[: syntax error on token [number] (expected: ['='] ['-'] ['+'] ['*'] ['/'] ['^'] [')'])
+]AT_JAVA_IF([1.1-1.17], [1.1-16])[: error: 2222 != 1]])
+
+_AT_CHECK_CALC_ERROR([$1], [0], [(- *) + (1 2) = 1],
+                     [AT_PARAM_IF([final: 2222 0 3])],
+                     [113],
+[AT_JAVA_IF([1.4-1.5], [1.4])[: syntax error on token ['*'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.12-1.13], [1.12])[: syntax error on token [number] (expected: ['='] ['-'] ['+'] ['*'] ['/'] ['^'] [')'])
+]AT_JAVA_IF([1.1-1.18], [1.1-17])[: error: 2222 != 1]])
+
+# Check that yyerrok works properly: second error is not reported,
+# third and fourth are.  Parse status is successful.
+_AT_CHECK_CALC_ERROR([$1], [0], [(* *) + (*) + (*)],
+                     [AT_PARAM_IF([final: 3333 0 3])],
+                     [113],
+[AT_JAVA_IF([1.2-1.3], [1.2])[: syntax error on token ['*'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.10-1.11], [1.10])[: syntax error on token ['*'] (expected: [number] ['-'] ['('] ['!'])
+]AT_JAVA_IF([1.16-1.17], [1.16])[: syntax error on token ['*'] (expected: [number] ['-'] ['('] ['!'])]])
+
+
+# Special actions.
+# ----------------
+# !+ => YYACCEPT, !- => YYABORT, !! => YYERROR, !* => YYNOMEM.
+
+# YYACCEPT.
+# Java lacks the traces at the end for cleaning the stack
+# -Stack now 0 8 20
+# -Cleanup: popping token '+' (1.1: )
+# -Cleanup: popping nterm exp (1.1: 7)
+_AT_CHECK_CALC([], [1 + 2 * 3 + !+ ++],
+               [AT_PARAM_IF([final: 0 0 0])],
+               [AT_JAVA_IF([77], [80])])
+# YYABORT.
+_AT_CHECK_CALC_ERROR([$1], [1], [1 + 2 * 3 + !- ++],
+                     [AT_PARAM_IF([final: 0 0 0])],
+                     [102])
+AT_C_IF(
+[# YYNOMEM.
+_AT_CHECK_CALC_ERROR([$1], [2], [1 + 2 * 3 + !* ++],
+                     [AT_PARAM_IF([final: 0 0 1])],
+                     [102],
+                     [1.14: memory exhausted])])
+
+
+# YYerror.
+# --------
+# Check that returning YYerror from the scanner properly enters
+# error-recovery without issuing a second error message.
+
+_AT_CHECK_CALC_ERROR([$1], [0], [(#) + (#) = 2222],
+                     [AT_PARAM_IF([final: 2222 0 0])],
+                     [102],
+[[1.2: syntax error: invalid character: '#'
+1.8: syntax error: invalid character: '#']])
+
+_AT_CHECK_CALC_ERROR([$1], [0], [(1 + #) = 1111],
+                     [AT_PARAM_IF([final: 1111 0 0])],
+                     [102],
+[[1.6: syntax error: invalid character: '#']])
+
+_AT_CHECK_CALC_ERROR([$1], [0], [(# + 1) = 1111],
+                     [AT_PARAM_IF([final: 1111 0 0])],
+                     [102],
+[[1.2: syntax error: invalid character: '#']])
+
+_AT_CHECK_CALC_ERROR([$1], [0], [(1 + # + 1) = 1111],
+                     [AT_PARAM_IF([final: 1111 0 0])],
+                     [102],
+[[1.6: syntax error: invalid character: '#']])
+
+_AT_CHECK_CALC_ERROR([$1], [0], [(1 + 1) / (1 - 1)],
+                     [AT_PARAM_IF([final: 2 0 1])],
+                     [102],
+[AT_JAVA_IF([1.11-1.18], [1.11-17])[: error: null divisor]])
+
+# Multiple start symbols.
+AT_MULTISTART_IF([
+_AT_CHECK_CALC([--num], [[123]],
+               [[NUM => 123 (status: 0, errors: 0)]],
+               [AT_JAVA_IF([1014], [1017])])
+_AT_CHECK_CALC_ERROR([$1], [1], [1 + 2 * 3],
+                     [NUM => 0 (status: 1, errors: 1)],
+                     [102],
+                     [[1.3: syntax error, unexpected '+', expecting end of file]],
+                     [--num])
+
+_AT_CHECK_CALC([--exp], [[1 + 2 * 3]],
+               [[exp => 7 (status: 0, errors: 0)]],
+               [AT_JAVA_IF([1014], [1017])])
+])
+
+
+AT_BISON_OPTION_POPDEFS
+
+AT_CLEANUP
+])# AT_CHECK_CALC
+
+
+
+
+# ----------------- #
+# LALR Calculator.  #
+# ----------------- #
+
+AT_BANNER([[LALR(1) Calculator.]])
+
+# AT_CHECK_CALC_LALR([BISON-OPTIONS])
+# -----------------------------------
+# Start a testing chunk which compiles 'calc' grammar with
+# BISON-OPTIONS, and performs several tests over the parser.
+m4_define([AT_CHECK_CALC_LALR],
+[AT_CHECK_CALC($@)])
+
+AT_CHECK_CALC_LALR([%define parse.trace])
+
+AT_CHECK_CALC_LALR([%header])
+AT_CHECK_CALC_LALR([%debug %locations])
+AT_CHECK_CALC_LALR([%locations %define api.location.type {Span}])
+
+AT_CHECK_CALC_LALR([%name-prefix "calc"])
+AT_CHECK_CALC_LALR([%verbose])
+AT_CHECK_CALC_LALR([%yacc])
+AT_CHECK_CALC_LALR([%define parse.error detailed])
+AT_CHECK_CALC_LALR([%define parse.error verbose])
+
+AT_CHECK_CALC_LALR([%define api.pure full %locations])
+AT_CHECK_CALC_LALR([%define api.push-pull both %define api.pure full %locations])
+AT_CHECK_CALC_LALR([%define parse.error detailed %locations])
+
+AT_CHECK_CALC_LALR([%define parse.error detailed %locations %header %define api.prefix {calc} %verbose %yacc])
+AT_CHECK_CALC_LALR([%define parse.error detailed %locations %header %name-prefix "calc" %define api.token.prefix {TOK_} %verbose %yacc])
+
+AT_CHECK_CALC_LALR([%debug])
+AT_CHECK_CALC_LALR([%define parse.error detailed %debug %locations %header %name-prefix "calc" %verbose %yacc])
+AT_CHECK_CALC_LALR([%define parse.error detailed %debug %locations %header %define api.prefix {calc} %verbose %yacc])
+
+AT_CHECK_CALC_LALR([%define api.pure full %define parse.error detailed %debug %locations %header %name-prefix "calc" %verbose %yacc])
+AT_CHECK_CALC_LALR([%define api.push-pull both %define api.pure full %define parse.error detailed %debug %locations %header %define api.prefix {calc} %verbose %yacc])
+
+AT_CHECK_CALC_LALR([%define api.pure %define parse.error detailed %debug %locations %header %define api.prefix {calc} %verbose %yacc %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+AT_CHECK_CALC_LALR([%no-lines %define api.pure %define parse.error detailed %debug %locations %header %define api.prefix {calc} %verbose %yacc %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_LALR([%no-lines %define api.pure %define parse.error verbose %debug %locations %header %define api.prefix {calc} %verbose %yacc %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_LALR([%no-lines %define api.pure %define parse.error verbose %debug %locations %defines %define api.prefix {calc} %verbose %yacc %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+# parse.error custom.
+AT_CHECK_CALC_LALR([%define parse.error custom])
+AT_CHECK_CALC_LALR([%define parse.error custom %locations %define api.prefix {calc}])
+AT_CHECK_CALC_LALR([%define parse.error custom %locations %define api.prefix {calc} %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_LALR([%define parse.error custom %locations %define api.prefix {calc} %parse-param {semantic_value *result}{int *count}{int *nerrs} %define api.push-pull both %define api.pure full])
+AT_CHECK_CALC_LALR([%define parse.error custom %locations %define api.prefix {calc} %parse-param {semantic_value *result}{int *count}{int *nerrs} %define api.push-pull both %define api.pure full %define parse.lac full])
+
+# multistart.
+AT_CHECK_CALC_LALR([%start input exp NUM %define api.value.type union])
+AT_CHECK_CALC_LALR([%start input exp NUM %define api.value.type union %locations %define parse.error detailed])
+
+
+# ---------------- #
+# GLR Calculator.  #
+# ---------------- #
+
+AT_BANNER([[GLR Calculator.]])
+
+m4_define([AT_CHECK_CALC_GLR],
+[AT_CHECK_CALC([%glr-parser] $@)])
+
+AT_CHECK_CALC_GLR()
+
+AT_CHECK_CALC_GLR([%header])
+AT_CHECK_CALC_GLR([%locations])
+AT_CHECK_CALC_GLR([%locations %define api.location.type {Span}])
+AT_CHECK_CALC_GLR([%name-prefix "calc"])
+AT_CHECK_CALC_GLR([%define api.prefix {calc}])
+AT_CHECK_CALC_GLR([%verbose])
+AT_CHECK_CALC_GLR([%define parse.error verbose])
+
+AT_CHECK_CALC_GLR([%define api.pure %locations])
+AT_CHECK_CALC_GLR([%define parse.error verbose %locations])
+
+AT_CHECK_CALC_GLR([%define parse.error custom %locations %header %name-prefix "calc" %verbose])
+AT_CHECK_CALC_GLR([%define parse.error custom %locations %header %name-prefix "calc" %verbose %define api.pure])
+AT_CHECK_CALC_GLR([%define parse.error detailed %locations %header %name-prefix "calc" %verbose])
+AT_CHECK_CALC_GLR([%define parse.error verbose %locations %header %name-prefix "calc" %verbose])
+
+AT_CHECK_CALC_GLR([%define parse.error custom %locations %header %name-prefix "calc" %verbose])
+
+AT_CHECK_CALC_GLR([%debug])
+AT_CHECK_CALC_GLR([%define parse.error verbose %debug %locations %header %name-prefix "calc" %verbose])
+AT_CHECK_CALC_GLR([%define parse.error verbose %debug %locations %header %define api.prefix {calc} %define api.token.prefix {TOK_} %verbose])
+
+AT_CHECK_CALC_GLR([%define api.pure %define parse.error verbose %debug %locations %header %name-prefix "calc" %verbose])
+
+AT_CHECK_CALC_GLR([%define api.pure %define parse.error verbose %debug %locations %header %name-prefix "calc" %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_GLR([%define api.pure %define parse.error verbose %debug %locations %header %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+AT_CHECK_CALC_GLR([%no-lines %define api.pure %define parse.error verbose %debug %locations %header %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+
+# ---------------------- #
+# LALR1 C++ Calculator.  #
+# ---------------------- #
+
+AT_BANNER([[LALR(1) C++ Calculator.]])
+
+# First let's try using %skeleton
+AT_CHECK_CALC([%skeleton "lalr1.cc" %header])
+
+m4_define([AT_CHECK_CALC_LALR1_CC],
+[AT_CHECK_CALC([%language "C++" $1], [$2])])
+
+AT_CHECK_CALC_LALR1_CC([])
+AT_CHECK_CALC_LALR1_CC([%locations])
+AT_CHECK_CALC_LALR1_CC([%locations], [$NO_EXCEPTIONS_CXXFLAGS])
+AT_CHECK_CALC_LALR1_CC([%locations %define api.location.type {Span}])
+AT_CHECK_CALC_LALR1_CC([%header %locations %define parse.error verbose %name-prefix "calc" %verbose])
+
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.error verbose %define api.prefix {calc} %verbose])
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.error verbose %debug %name-prefix "calc" %verbose])
+
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.error verbose %debug %define api.prefix {calc} %verbose])
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.error verbose %debug %define api.prefix {calc} %define api.token.prefix {TOK_} %verbose])
+
+AT_CHECK_CALC_LALR1_CC([%header %locations %define parse.error verbose %debug %name-prefix "calc" %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+AT_CHECK_CALC_LALR1_CC([%define parse.error verbose %debug %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_LALR1_CC([%header %locations %define parse.error verbose %debug %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+AT_CHECK_CALC_LALR1_CC([%header %locations %define api.location.file none])
+AT_CHECK_CALC_LALR1_CC([%header %locations %define api.location.file "my-location.hh"])
+
+AT_CHECK_CALC_LALR1_CC([%no-lines %header %locations %define api.location.file "my-location.hh"])
+
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.lac full %define parse.error verbose])
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.lac full %define parse.error detailed])
+AT_CHECK_CALC_LALR1_CC([%locations %define parse.lac full %define parse.error detailed %define parse.trace])
+
+AT_CHECK_CALC_LALR1_CC([%define parse.error custom])
+AT_CHECK_CALC_LALR1_CC([%define parse.error custom %locations %define api.prefix {calc} %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_LALR1_CC([%define parse.error custom %locations %define api.prefix {calc} %parse-param {semantic_value *result}{int *count}{int *nerrs} %define parse.lac full])
+
+# -------------------- #
+# GLR C++ Calculator.  #
+# -------------------- #
+
+AT_BANNER([[GLR C++ Calculator.]])
+
+# Again, we try also using %skeleton.
+AT_CHECK_CALC([%skeleton "glr.cc"])
+AT_CHECK_CALC([%skeleton "glr2.cc"])
+
+m4_define([AT_CHECK_CALC_GLR_CC],
+[AT_CHECK_CALC([%language "C++" %glr-parser] $@) # glr.cc
+AT_CHECK_CALC([%skeleton "glr2.cc"] $@)
+])
+
+AT_CHECK_CALC_GLR_CC([])
+AT_CHECK_CALC_GLR_CC([%locations])
+AT_CHECK_CALC_GLR_CC([%locations %define api.location.type {Span}])
+AT_CHECK_CALC_GLR_CC([%header %define parse.error verbose %name-prefix "calc" %verbose])
+AT_CHECK_CALC_GLR_CC([%define parse.error verbose %define api.prefix {calc} %verbose])
+
+AT_CHECK_CALC_GLR_CC([%debug])
+
+# parse.error.
+AT_CHECK_CALC_GLR_CC([%define parse.error detailed %debug %name-prefix "calc" %verbose])
+AT_CHECK_CALC_GLR_CC([%define parse.error verbose %debug %name-prefix "calc" %verbose])
+AT_CHECK_CALC([%skeleton "glr2.cc" %define parse.error custom %debug %name-prefix "calc" %verbose]) # Only glr2.cc.
+
+AT_CHECK_CALC_GLR_CC([%define parse.error verbose %debug %name-prefix "calc" %define api.token.prefix {TOK_} %verbose])
+
+AT_CHECK_CALC_GLR_CC([%locations %header %define parse.error verbose %debug %name-prefix "calc" %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+AT_CHECK_CALC_GLR_CC([%locations %header %define parse.error verbose %debug %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+AT_CHECK_CALC_GLR_CC([%no-lines %locations %header %define parse.error verbose %debug %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+
+# -------------------- #
+# LALR1 D Calculator.  #
+# -------------------- #
+
+AT_BANNER([[LALR(1) D Calculator.]])
+
+# First let's try using %skeleton
+AT_CHECK_CALC([%skeleton "lalr1.d"])
+
+m4_define([AT_CHECK_CALC_LALR1_D],
+[AT_CHECK_CALC([%language "D" $1], [$2])])
+
+AT_CHECK_CALC_LALR1_D([])
+AT_CHECK_CALC_LALR1_D([%locations])
+#AT_CHECK_CALC_LALR1_D([%locations %define api.location.type {Span}])
+AT_CHECK_CALC_LALR1_D([%define parse.error detailed %define api.prefix {calc} %verbose])
+
+AT_CHECK_CALC_LALR1_D([%debug])
+
+AT_CHECK_CALC_LALR1_D([%define parse.error custom])
+AT_CHECK_CALC_LALR1_D([%locations %define parse.error custom])
+AT_CHECK_CALC_LALR1_D([%locations %define parse.error detailed])
+AT_CHECK_CALC_LALR1_D([%locations %define parse.error simple])
+AT_CHECK_CALC_LALR1_D([%define parse.error detailed %debug %verbose])
+AT_CHECK_CALC_LALR1_D([%define parse.error detailed %debug %define api.symbol.prefix {SYMB_} %define api.token.prefix {TOK_} %verbose])
+
+AT_CHECK_CALC_LALR1_D([%locations %define parse.lac full %define parse.error detailed])
+AT_CHECK_CALC_LALR1_D([%locations %define parse.lac full %define parse.error custom])
+AT_CHECK_CALC_LALR1_D([%locations %define parse.lac full %define parse.error detailed %define parse.trace])
+
+#AT_CHECK_CALC_LALR1_D([%locations %define parse.error detailed %debug %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+#AT_CHECK_CALC_LALR1_D([%locations %define parse.error detailed %debug %define api.prefix {calc} %verbose %parse-param {semantic_value *result}{int *count}{int *nerrs}])
+
+AT_CHECK_CALC_LALR1_D([%define api.token.constructor %locations %define parse.error custom %define api.value.type union])
+AT_CHECK_CALC_LALR1_D([%define api.token.constructor %locations %define parse.error detailed])
+AT_CHECK_CALC_LALR1_D([%define api.push-pull both])
+AT_CHECK_CALC_LALR1_D([%define parse.trace %define parse.error custom %locations %define api.push-pull both %define parse.lac full])
+
+# ----------------------- #
+# LALR1 Java Calculator.  #
+# ----------------------- #
+
+AT_BANNER([[LALR(1) Java Calculator.]])
+
+m4_define([AT_CHECK_CALC_LALR1_JAVA],
+[AT_CHECK_CALC([%language "Java" $1], [$2])])
+
+AT_CHECK_CALC_LALR1_JAVA
+AT_CHECK_CALC_LALR1_JAVA([%define parse.error custom])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.error detailed])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.error verbose])
+AT_CHECK_CALC_LALR1_JAVA([%locations %define parse.error custom])
+AT_CHECK_CALC_LALR1_JAVA([%locations %define parse.error detailed])
+AT_CHECK_CALC_LALR1_JAVA([%locations %define parse.error verbose])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.trace %define parse.error verbose])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.trace %define parse.error verbose %locations %lex-param {InputStream is}])
+
+AT_CHECK_CALC_LALR1_JAVA([%define api.push-pull both])
+AT_CHECK_CALC_LALR1_JAVA([%define api.push-pull both %define parse.error detailed %locations])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.trace %define parse.error custom %locations %lex-param {InputStream is} %define api.push-pull both])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.trace %define parse.error verbose %locations %lex-param {InputStream is} %define api.push-pull both])
+
+# parse.lac.
+AT_CHECK_CALC_LALR1_JAVA([%define parse.trace %define parse.error custom %locations %define parse.lac full])
+AT_CHECK_CALC_LALR1_JAVA([%define parse.trace %define parse.error custom %locations %define api.push-pull both %define parse.lac full])
+
+
+m4_popdef([AT_CALC_MAIN])
+m4_popdef([AT_CALC_YYLEX])

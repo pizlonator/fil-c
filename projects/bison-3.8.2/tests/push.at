@@ -1,0 +1,283 @@
+# Checking Push Parsing.                            -*- Autotest -*-
+
+# Copyright (C) 2007, 2009-2015, 2018-2021 Free Software Foundation,
+# Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[Push Parsing Tests]])
+
+## -------------------------------- ##
+## Memory Leak for Early Deletion.  ##
+## -------------------------------- ##
+
+AT_SETUP([[Memory Leak for Early Deletion]])
+
+# Requires Valgrind.
+AT_BISON_OPTION_PUSHDEFS([%define api.push-pull push])
+AT_DATA_GRAMMAR([[input.y]],
+[[
+%{
+  #include <assert.h>
+  #include <stdio.h>
+  #define YYINITDEPTH 1
+]AT_YYERROR_DECLARE[
+%}
+
+%define api.pure
+%define api.push-pull push
+
+%%
+
+start: 'a' 'b' 'c' ;
+
+%%
+
+]AT_YYERROR_DEFINE[
+
+int
+main (void)
+{
+  yypstate *ps;
+
+  /* Make sure we don't try to free ps->yyss in this case.  */
+  ps = yypstate_new ();
+  yypstate_delete (ps);
+
+  /* yypstate_delete used to leak ps->yyss if the stack was reallocated but the
+     parse did not return on success, syntax error, or memory exhaustion.  */
+  ps = yypstate_new ();
+  assert (yypush_parse (ps, 'a', YY_NULLPTR) == YYPUSH_MORE);
+  yypstate_delete (ps);
+
+  ps = yypstate_new ();
+  assert (yypush_parse (ps, 'a', YY_NULLPTR) == YYPUSH_MORE);
+  assert (yypush_parse (ps, 'b', YY_NULLPTR) == YYPUSH_MORE);
+  yypstate_delete (ps);
+
+  return 0;
+}
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([[-o input.c input.y]])
+AT_COMPILE([[input]])
+AT_PARSER_CHECK([[input]])
+
+AT_CLEANUP
+
+## --------------------------- ##
+## Multiple impure instances.  ##
+## --------------------------- ##
+
+AT_SETUP([[Multiple impure instances]])
+
+m4_pushdef([AT_MULTIPLE_IMPURE_INSTANCES_CHECK], [
+AT_BISON_OPTION_PUSHDEFS([%define api.push-pull $1])
+AT_DATA_GRAMMAR([[input.y]],
+[[
+%{
+  #include <assert.h>
+  #include <stdio.h>
+]AT_YYERROR_DECLARE[
+]m4_if([$1], [[both]], [AT_YYLEX_DECLARE([])])[
+%}
+
+%define api.push-pull ]$1[
+
+%%
+
+start: ;
+
+%%
+]AT_YYERROR_DEFINE[
+]m4_if([$1], [[both]], [AT_YYLEX_DEFINE])[
+
+int
+main (void)
+{
+  int i;
+  for (i = 0; i < 2; ++i)
+    {
+      yypstate *ps = yypstate_new ();
+      assert (ps);
+      assert (yypstate_new () == YY_NULLPTR);
+      ]m4_if([$1], [[both]], [[assert (yyparse () == 2)]])[;
+      yychar = 0;
+      assert (yypush_parse (ps) == 0);
+      assert (yypstate_new () == YY_NULLPTR);
+      ]m4_if([$1], [[both]], [[assert (yyparse () == 2)]])[;
+      yypstate_delete (ps);
+    }
+
+  return 0;
+}
+]])
+
+AT_BISON_CHECK([[-o input.c input.y]])
+AT_COMPILE([[input]])
+AT_PARSER_CHECK([[input]])
+AT_BISON_OPTION_POPDEFS
+])
+
+AT_MULTIPLE_IMPURE_INSTANCES_CHECK([[both]])
+AT_MULTIPLE_IMPURE_INSTANCES_CHECK([[push]])
+
+m4_popdef([AT_MULTIPLE_IMPURE_INSTANCES_CHECK])
+
+AT_CLEANUP
+
+## ----------------------- ##
+## Unsupported Skeletons.  ##
+## ----------------------- ##
+
+AT_SETUP([[Unsupported Skeletons]])
+
+AT_BISON_OPTION_PUSHDEFS([%define api.push-pull push])
+AT_DATA([[input.y]],
+[[%glr-parser
+%define api.push-pull push
+%%
+start: ;
+]])
+AT_BISON_OPTION_POPDEFS
+
+AT_BISON_CHECK([[input.y]], [[1]], [],
+[[input.y:2.1-26: error: %define variable 'api.push-pull' is not used
+]])
+
+AT_CLEANUP
+
+
+## -------------- ##
+## Pstate reuse.  ##
+## -------------- ##
+
+AT_SETUP([[Pstate reuse]])
+
+# Make sure that when a single pstate is used for multiple successive
+# parses, no state from a previous run leaks into the following one.
+#
+# See https://lists.gnu.org/r/bug-bison/2021-03/msg00000.html.
+
+AT_BISON_OPTION_PUSHDEFS([%define api.push-pull push])
+AT_DATA_GRAMMAR([[input.y]],
+[[%code top {
+  #include <stdlib.h>
+  #include <string.h>
+
+  static char *string_concat (char *a, char *b);
+  ]AT_YYERROR_DECLARE[
+}
+
+%define parse.trace
+%define api.pure full
+%define api.push-pull push
+%expect 0
+
+%union {
+  char *sval;
+};
+%destructor { free ($$); } <sval>
+%printer { fprintf (yyo, "%s", $$); } <sval>
+
+%token <sval> RAW
+%token EOL
+
+%type <sval> text
+
+%%
+
+line
+  : text EOL  { printf ("text: %s\n", $1); free ($1); YYACCEPT; };
+
+text
+  : RAW       { $$ = $1; }
+  | text RAW  { $$ = string_concat ($1, $2); }
+  ;
+
+%%
+]AT_YYERROR_DEFINE[
+
+static char *
+string_concat (char *a, char *b)
+{
+  size_t la = strlen (a);
+  size_t lb = strlen (b);
+  char *res = YY_CAST (char *, malloc (la + lb + 1));
+  strcpy (res, a);
+  strcpy (res + la, b);
+  free (a);
+  free (b);
+  return res;
+}
+
+static int
+push (yypstate *ps, yytoken_kind_t kind, const char *str)
+{
+  YYSTYPE lval;
+  lval.sval = str ? strdup (str) :  YY_NULLPTR;
+  switch (yypush_parse (ps, kind, &lval))
+    {
+    case 0:
+      return 0;
+    case YYPUSH_MORE:
+      // parsing incomplete, but valid; parser not reset
+      return 0;
+    case 1:
+      // YYABORT or syntax invalid; parser is reset
+      fprintf (stderr, "invalid input, but no error was thrown\n");
+      return 1;
+    case 2:
+      // memory exhaustion; parser is reset
+      fprintf (stderr, "memory exhaustion during yypush_parse\n");
+      return 1;
+    }
+  return 1;
+}
+
+int
+main (void)
+{
+  yydebug = !!getenv ("YYDEBUG");
+  yypstate *ps = yypstate_new ();
+
+#define PUSH(Kind, Val)                         \
+  do {                                          \
+    if (push (ps, Kind, Val))                   \
+      return 1;                                 \
+  } while (0)
+
+  PUSH (RAW, "te");
+  PUSH (RAW, "xt");
+  PUSH (EOL,  YY_NULLPTR);
+
+  PUSH (RAW, "te");
+  PUSH (RAW, "xt");
+  PUSH (EOL,  YY_NULLPTR);
+
+  yypstate_delete (ps);
+
+  return 0;
+}
+]])
+
+AT_FULL_COMPILE([input])
+AT_CHECK([./input], 0,
+[[text: text
+text: text
+]])
+
+AT_BISON_OPTION_POPDEFS
+AT_CLEANUP

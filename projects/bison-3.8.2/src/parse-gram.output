@@ -1,0 +1,2306 @@
+Terminals unused in grammar
+
+    "="
+
+
+Grammar
+
+    0 $accept: input $end
+
+    1 input: prologue_declarations "%%" grammar epilogue.opt
+
+    2 prologue_declarations: %empty
+    3                      | prologue_declarations prologue_declaration
+
+    4 prologue_declaration: grammar_declaration
+    5                     | "%{...%}"
+    6                     | "%<flag>"
+    7                     | "%define" variable value
+    8                     | "%header" string.opt
+    9                     | "%error-verbose"
+   10                     | "%expect" "integer literal"
+   11                     | "%expect-rr" "integer literal"
+   12                     | "%file-prefix" "string"
+   13                     | "%glr-parser"
+   14                     | "%initial-action" "{...}"
+   15                     | "%language" "string"
+   16                     | "%name-prefix" "string"
+   17                     | "%no-lines"
+   18                     | "%nondeterministic-parser"
+   19                     | "%output" "string"
+
+   20 $@1: %empty
+
+   21 prologue_declaration: "%param" $@1 params
+   22                     | "%pure-parser"
+   23                     | "%require" "string"
+   24                     | "%skeleton" "string"
+   25                     | "%token-table"
+   26                     | "%verbose"
+   27                     | "%yacc"
+   28                     | error ";"
+   29                     | ";"
+
+   30 params: params "{...}"
+   31       | "{...}"
+
+   32 grammar_declaration: symbol_declaration
+   33                    | "%start" symbols.1
+   34                    | code_props_type "{...}" generic_symlist
+   35                    | "%default-prec"
+   36                    | "%no-default-prec"
+   37                    | "%code" "{...}"
+   38                    | "%code" "identifier" "{...}"
+
+   39 code_props_type: "%destructor"
+   40                | "%printer"
+
+   41 union_name: %empty
+   42           | "identifier"
+
+   43 grammar_declaration: "%union" union_name "{...}"
+
+   44 $@2: %empty
+
+   45 symbol_declaration: "%nterm" $@2 nterm_decls
+
+   46 $@3: %empty
+
+   47 symbol_declaration: "%token" $@3 token_decls
+
+   48 $@4: %empty
+
+   49 symbol_declaration: "%type" $@4 symbol_decls
+   50                   | precedence_declarator token_decls_for_prec
+
+   51 precedence_declarator: "%left"
+   52                      | "%right"
+   53                      | "%nonassoc"
+   54                      | "%precedence"
+
+   55 string.opt: %empty
+   56           | "string"
+
+   57 tag.opt: %empty
+   58        | "<tag>"
+
+   59 generic_symlist: generic_symlist_item
+   60                | generic_symlist generic_symlist_item
+
+   61 generic_symlist_item: symbol
+   62                     | tag
+
+   63 tag: "<tag>"
+   64    | "<*>"
+   65    | "<>"
+
+   66 nterm_decls: token_decls
+
+   67 token_decls: token_decl.1
+   68            | "<tag>" token_decl.1
+   69            | token_decls "<tag>" token_decl.1
+
+   70 token_decl.1: token_decl
+   71             | token_decl.1 token_decl
+
+   72 token_decl: id int.opt alias
+
+   73 int.opt: %empty
+   74        | "integer literal"
+
+   75 alias: %empty
+   76      | string_as_id
+   77      | "translatable string"
+
+   78 token_decls_for_prec: token_decl_for_prec.1
+   79                     | "<tag>" token_decl_for_prec.1
+   80                     | token_decls_for_prec "<tag>" token_decl_for_prec.1
+
+   81 token_decl_for_prec.1: token_decl_for_prec
+   82                      | token_decl_for_prec.1 token_decl_for_prec
+
+   83 token_decl_for_prec: id int.opt
+   84                    | string_as_id
+
+   85 symbol_decls: symbols.1
+   86             | "<tag>" symbols.1
+   87             | symbol_decls "<tag>" symbols.1
+
+   88 symbols.1: symbol
+   89          | symbols.1 symbol
+
+   90 grammar: rules_or_grammar_declaration
+   91        | grammar rules_or_grammar_declaration
+
+   92 rules_or_grammar_declaration: rules
+   93                             | grammar_declaration ";"
+   94                             | error ";"
+
+   95 $@5: %empty
+
+   96 rules: id_colon named_ref.opt $@5 ":" rhses.1
+
+   97 rhses.1: rhs
+   98        | rhses.1 "|" rhs
+   99        | rhses.1 ";"
+
+  100 rhs: %empty
+  101    | rhs symbol named_ref.opt
+  102    | rhs tag.opt "{...}" named_ref.opt
+  103    | rhs "%?{...}"
+  104    | rhs "%empty"
+  105    | rhs "%prec" symbol
+  106    | rhs "%dprec" "integer literal"
+  107    | rhs "%merge" "<tag>"
+  108    | rhs "%expect" "integer literal"
+  109    | rhs "%expect-rr" "integer literal"
+
+  110 named_ref.opt: %empty
+  111              | "[identifier]"
+
+  112 variable: "identifier"
+
+  113 value: %empty
+  114      | "identifier"
+  115      | "string"
+  116      | "{...}"
+
+  117 id: "identifier"
+  118   | "character literal"
+
+  119 id_colon: "identifier:"
+
+  120 symbol: id
+  121       | string_as_id
+
+  122 string_as_id: "string"
+
+  123 epilogue.opt: %empty
+  124             | "%%" "epilogue"
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    error (256) 28 94
+    "string" <char*> (258) 12 15 16 19 23 24 56 115 122
+    "translatable string" <char*> (259) 77
+    "%token" (260) 47
+    "%nterm" (261) 45
+    "%type" (262) 49
+    "%destructor" (263) 39
+    "%printer" (264) 40
+    "%left" (265) 51
+    "%right" (266) 52
+    "%nonassoc" (267) 53
+    "%precedence" (268) 54
+    "%prec" (269) 105
+    "%dprec" (270) 106
+    "%merge" (271) 107
+    "%code" (272) 37 38
+    "%default-prec" (273) 35
+    "%define" (274) 7
+    "%error-verbose" <uniqstr> (275) 9
+    "%expect" (276) 10 108
+    "%expect-rr" (277) 11 109
+    "%file-prefix" <uniqstr> (278) 12
+    "%<flag>" <uniqstr> (279) 6
+    "%glr-parser" (280) 13
+    "%header" (281) 8
+    "%initial-action" (282) 14
+    "%language" (283) 15
+    "%name-prefix" <uniqstr> (284) 16
+    "%no-default-prec" (285) 36
+    "%no-lines" (286) 17
+    "%nondeterministic-parser" (287) 18
+    "%output" (288) 19
+    "%pure-parser" <uniqstr> (289) 22
+    "%require" (290) 23
+    "%skeleton" (291) 24
+    "%start" (292) 33
+    "%token-table" (293) 25
+    "%verbose" (294) 26
+    "%yacc" (295) 27
+    "{...}" <char*> (296) 14 30 31 34 37 38 43 102 116
+    "%?{...}" <char*> (297) 103
+    "[identifier]" <uniqstr> (298) 111
+    "character literal" <unsigned char> (299) 118
+    ":" (300) 96
+    "epilogue" <char*> (301) 124
+    "=" (302)
+    "identifier" <uniqstr> (303) 38 42 112 114 117
+    "identifier:" <uniqstr> (304) 119
+    "%%" (305) 1 124
+    "|" (306) 98
+    "%{...%}" <char*> (307) 5
+    ";" (308) 28 29 93 94 99
+    "<tag>" <uniqstr> (309) 58 63 68 69 79 80 86 87 107
+    "<*>" (310) 64
+    "<>" (311) 65
+    "integer literal" <int> (312) 10 11 74 106 108 109
+    "%param" <param_type> (313) 21
+    "%union" (314) 43
+    "%empty" (315) 104
+
+
+Nonterminals, with rules where they appear
+
+    $accept (61)
+        on left: 0
+    input (62)
+        on left: 1
+        on right: 0
+    prologue_declarations (63)
+        on left: 2 3
+        on right: 1 3
+    prologue_declaration (64)
+        on left: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 21 22 23 24 25 26 27 28 29
+        on right: 3
+    $@1 (65)
+        on left: 20
+        on right: 21
+    params (66)
+        on left: 30 31
+        on right: 21 30
+    grammar_declaration (67)
+        on left: 32 33 34 35 36 37 38 43
+        on right: 4 93
+    code_props_type <code_props_type> (68)
+        on left: 39 40
+        on right: 34
+    union_name (69)
+        on left: 41 42
+        on right: 43
+    symbol_declaration (70)
+        on left: 45 47 49 50
+        on right: 32
+    $@2 (71)
+        on left: 44
+        on right: 45
+    $@3 (72)
+        on left: 46
+        on right: 47
+    $@4 (73)
+        on left: 48
+        on right: 49
+    precedence_declarator <assoc> (74)
+        on left: 51 52 53 54
+        on right: 50
+    string.opt <char*> (75)
+        on left: 55 56
+        on right: 8
+    tag.opt <uniqstr> (76)
+        on left: 57 58
+        on right: 102
+    generic_symlist <symbol_list*> (77)
+        on left: 59 60
+        on right: 34 60
+    generic_symlist_item <symbol_list*> (78)
+        on left: 61 62
+        on right: 59 60
+    tag <uniqstr> (79)
+        on left: 63 64 65
+        on right: 62
+    nterm_decls <symbol_list*> (80)
+        on left: 66
+        on right: 45
+    token_decls <symbol_list*> (81)
+        on left: 67 68 69
+        on right: 47 66 69
+    token_decl.1 <symbol_list*> (82)
+        on left: 70 71
+        on right: 67 68 69 71
+    token_decl <symbol*> (83)
+        on left: 72
+        on right: 70 71
+    int.opt <int> (84)
+        on left: 73 74
+        on right: 72 83
+    alias <symbol*> (85)
+        on left: 75 76 77
+        on right: 72
+    token_decls_for_prec <symbol_list*> (86)
+        on left: 78 79 80
+        on right: 50 80
+    token_decl_for_prec.1 <symbol_list*> (87)
+        on left: 81 82
+        on right: 78 79 80 82
+    token_decl_for_prec <symbol*> (88)
+        on left: 83 84
+        on right: 81 82
+    symbol_decls <symbol_list*> (89)
+        on left: 85 86 87
+        on right: 49 87
+    symbols.1 <symbol_list*> (90)
+        on left: 88 89
+        on right: 33 85 86 87 89
+    grammar (91)
+        on left: 90 91
+        on right: 1 91
+    rules_or_grammar_declaration (92)
+        on left: 92 93 94
+        on right: 90 91
+    rules (93)
+        on left: 96
+        on right: 92
+    $@5 (94)
+        on left: 95
+        on right: 96
+    rhses.1 (95)
+        on left: 97 98 99
+        on right: 96 98 99
+    rhs (96)
+        on left: 100 101 102 103 104 105 106 107 108 109
+        on right: 97 98 101 102 103 104 105 106 107 108 109
+    named_ref.opt <named_ref*> (97)
+        on left: 110 111
+        on right: 96 101 102
+    variable <uniqstr> (98)
+        on left: 112
+        on right: 7
+    value <value_type> (99)
+        on left: 113 114 115 116
+        on right: 7
+    id <symbol*> (100)
+        on left: 117 118
+        on right: 72 83 120
+    id_colon <symbol*> (101)
+        on left: 119
+        on right: 96
+    symbol <symbol*> (102)
+        on left: 120 121
+        on right: 61 88 89 101 105
+    string_as_id <symbol*> (103)
+        on left: 122
+        on right: 76 84 121
+    epilogue.opt (104)
+        on left: 123 124
+        on right: 1
+
+
+State 0
+
+    0 $accept: . input $end
+    1 input: . prologue_declarations "%%" grammar epilogue.opt
+    2 prologue_declarations: %empty .
+    3                      | . prologue_declarations prologue_declaration
+
+    $default  reduce using rule 2 (prologue_declarations)
+
+    input                  go to state 1
+    prologue_declarations  go to state 2
+
+
+State 1
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 3
+
+
+State 2
+
+    1 input: prologue_declarations . "%%" grammar epilogue.opt
+    3 prologue_declarations: prologue_declarations . prologue_declaration
+    4 prologue_declaration: . grammar_declaration
+    5                     | . "%{...%}"
+    6                     | . "%<flag>"
+    7                     | . "%define" variable value
+    8                     | . "%header" string.opt
+    9                     | . "%error-verbose"
+   10                     | . "%expect" "integer literal"
+   11                     | . "%expect-rr" "integer literal"
+   12                     | . "%file-prefix" "string"
+   13                     | . "%glr-parser"
+   14                     | . "%initial-action" "{...}"
+   15                     | . "%language" "string"
+   16                     | . "%name-prefix" "string"
+   17                     | . "%no-lines"
+   18                     | . "%nondeterministic-parser"
+   19                     | . "%output" "string"
+   21                     | . "%param" $@1 params
+   22                     | . "%pure-parser"
+   23                     | . "%require" "string"
+   24                     | . "%skeleton" "string"
+   25                     | . "%token-table"
+   26                     | . "%verbose"
+   27                     | . "%yacc"
+   28                     | . error ";"
+   29                     | . ";"
+   32 grammar_declaration: . symbol_declaration
+   33                    | . "%start" symbols.1
+   34                    | . code_props_type "{...}" generic_symlist
+   35                    | . "%default-prec"
+   36                    | . "%no-default-prec"
+   37                    | . "%code" "{...}"
+   38                    | . "%code" "identifier" "{...}"
+   39 code_props_type: . "%destructor"
+   40                | . "%printer"
+   43 grammar_declaration: . "%union" union_name "{...}"
+   45 symbol_declaration: . "%nterm" $@2 nterm_decls
+   47                   | . "%token" $@3 token_decls
+   49                   | . "%type" $@4 symbol_decls
+   50                   | . precedence_declarator token_decls_for_prec
+   51 precedence_declarator: . "%left"
+   52                      | . "%right"
+   53                      | . "%nonassoc"
+   54                      | . "%precedence"
+
+    error                       shift, and go to state 4
+    "%token"                    shift, and go to state 5
+    "%nterm"                    shift, and go to state 6
+    "%type"                     shift, and go to state 7
+    "%destructor"               shift, and go to state 8
+    "%printer"                  shift, and go to state 9
+    "%left"                     shift, and go to state 10
+    "%right"                    shift, and go to state 11
+    "%nonassoc"                 shift, and go to state 12
+    "%precedence"               shift, and go to state 13
+    "%code"                     shift, and go to state 14
+    "%default-prec"             shift, and go to state 15
+    "%define"                   shift, and go to state 16
+    "%error-verbose"            shift, and go to state 17
+    "%expect"                   shift, and go to state 18
+    "%expect-rr"                shift, and go to state 19
+    "%file-prefix"              shift, and go to state 20
+    "%<flag>"                   shift, and go to state 21
+    "%glr-parser"               shift, and go to state 22
+    "%header"                   shift, and go to state 23
+    "%initial-action"           shift, and go to state 24
+    "%language"                 shift, and go to state 25
+    "%name-prefix"              shift, and go to state 26
+    "%no-default-prec"          shift, and go to state 27
+    "%no-lines"                 shift, and go to state 28
+    "%nondeterministic-parser"  shift, and go to state 29
+    "%output"                   shift, and go to state 30
+    "%pure-parser"              shift, and go to state 31
+    "%require"                  shift, and go to state 32
+    "%skeleton"                 shift, and go to state 33
+    "%start"                    shift, and go to state 34
+    "%token-table"              shift, and go to state 35
+    "%verbose"                  shift, and go to state 36
+    "%yacc"                     shift, and go to state 37
+    "%%"                        shift, and go to state 38
+    "%{...%}"                   shift, and go to state 39
+    ";"                         shift, and go to state 40
+    "%param"                    shift, and go to state 41
+    "%union"                    shift, and go to state 42
+
+    prologue_declaration   go to state 43
+    grammar_declaration    go to state 44
+    code_props_type        go to state 45
+    symbol_declaration     go to state 46
+    precedence_declarator  go to state 47
+
+
+State 3
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 4
+
+   28 prologue_declaration: error . ";"
+
+    ";"  shift, and go to state 48
+
+
+State 5
+
+   46 $@3: %empty .
+   47 symbol_declaration: "%token" . $@3 token_decls
+
+    $default  reduce using rule 46 ($@3)
+
+    $@3  go to state 49
+
+
+State 6
+
+   44 $@2: %empty .
+   45 symbol_declaration: "%nterm" . $@2 nterm_decls
+
+    $default  reduce using rule 44 ($@2)
+
+    $@2  go to state 50
+
+
+State 7
+
+   48 $@4: %empty .
+   49 symbol_declaration: "%type" . $@4 symbol_decls
+
+    $default  reduce using rule 48 ($@4)
+
+    $@4  go to state 51
+
+
+State 8
+
+   39 code_props_type: "%destructor" .
+
+    $default  reduce using rule 39 (code_props_type)
+
+
+State 9
+
+   40 code_props_type: "%printer" .
+
+    $default  reduce using rule 40 (code_props_type)
+
+
+State 10
+
+   51 precedence_declarator: "%left" .
+
+    $default  reduce using rule 51 (precedence_declarator)
+
+
+State 11
+
+   52 precedence_declarator: "%right" .
+
+    $default  reduce using rule 52 (precedence_declarator)
+
+
+State 12
+
+   53 precedence_declarator: "%nonassoc" .
+
+    $default  reduce using rule 53 (precedence_declarator)
+
+
+State 13
+
+   54 precedence_declarator: "%precedence" .
+
+    $default  reduce using rule 54 (precedence_declarator)
+
+
+State 14
+
+   37 grammar_declaration: "%code" . "{...}"
+   38                    | "%code" . "identifier" "{...}"
+
+    "{...}"       shift, and go to state 52
+    "identifier"  shift, and go to state 53
+
+
+State 15
+
+   35 grammar_declaration: "%default-prec" .
+
+    $default  reduce using rule 35 (grammar_declaration)
+
+
+State 16
+
+    7 prologue_declaration: "%define" . variable value
+  112 variable: . "identifier"
+
+    "identifier"  shift, and go to state 54
+
+    variable  go to state 55
+
+
+State 17
+
+    9 prologue_declaration: "%error-verbose" .
+
+    $default  reduce using rule 9 (prologue_declaration)
+
+
+State 18
+
+   10 prologue_declaration: "%expect" . "integer literal"
+
+    "integer literal"  shift, and go to state 56
+
+
+State 19
+
+   11 prologue_declaration: "%expect-rr" . "integer literal"
+
+    "integer literal"  shift, and go to state 57
+
+
+State 20
+
+   12 prologue_declaration: "%file-prefix" . "string"
+
+    "string"  shift, and go to state 58
+
+
+State 21
+
+    6 prologue_declaration: "%<flag>" .
+
+    $default  reduce using rule 6 (prologue_declaration)
+
+
+State 22
+
+   13 prologue_declaration: "%glr-parser" .
+
+    $default  reduce using rule 13 (prologue_declaration)
+
+
+State 23
+
+    8 prologue_declaration: "%header" . string.opt
+   55 string.opt: %empty .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   56           | . "string"
+
+    "string"  shift, and go to state 59
+
+    $default  reduce using rule 55 (string.opt)
+
+    string.opt  go to state 60
+
+
+State 24
+
+   14 prologue_declaration: "%initial-action" . "{...}"
+
+    "{...}"  shift, and go to state 61
+
+
+State 25
+
+   15 prologue_declaration: "%language" . "string"
+
+    "string"  shift, and go to state 62
+
+
+State 26
+
+   16 prologue_declaration: "%name-prefix" . "string"
+
+    "string"  shift, and go to state 63
+
+
+State 27
+
+   36 grammar_declaration: "%no-default-prec" .
+
+    $default  reduce using rule 36 (grammar_declaration)
+
+
+State 28
+
+   17 prologue_declaration: "%no-lines" .
+
+    $default  reduce using rule 17 (prologue_declaration)
+
+
+State 29
+
+   18 prologue_declaration: "%nondeterministic-parser" .
+
+    $default  reduce using rule 18 (prologue_declaration)
+
+
+State 30
+
+   19 prologue_declaration: "%output" . "string"
+
+    "string"  shift, and go to state 64
+
+
+State 31
+
+   22 prologue_declaration: "%pure-parser" .
+
+    $default  reduce using rule 22 (prologue_declaration)
+
+
+State 32
+
+   23 prologue_declaration: "%require" . "string"
+
+    "string"  shift, and go to state 65
+
+
+State 33
+
+   24 prologue_declaration: "%skeleton" . "string"
+
+    "string"  shift, and go to state 66
+
+
+State 34
+
+   33 grammar_declaration: "%start" . symbols.1
+   88 symbols.1: . symbol
+   89          | . symbols.1 symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    symbols.1     go to state 70
+    id            go to state 71
+    symbol        go to state 72
+    string_as_id  go to state 73
+
+
+State 35
+
+   25 prologue_declaration: "%token-table" .
+
+    $default  reduce using rule 25 (prologue_declaration)
+
+
+State 36
+
+   26 prologue_declaration: "%verbose" .
+
+    $default  reduce using rule 26 (prologue_declaration)
+
+
+State 37
+
+   27 prologue_declaration: "%yacc" .
+
+    $default  reduce using rule 27 (prologue_declaration)
+
+
+State 38
+
+    1 input: prologue_declarations "%%" . grammar epilogue.opt
+   32 grammar_declaration: . symbol_declaration
+   33                    | . "%start" symbols.1
+   34                    | . code_props_type "{...}" generic_symlist
+   35                    | . "%default-prec"
+   36                    | . "%no-default-prec"
+   37                    | . "%code" "{...}"
+   38                    | . "%code" "identifier" "{...}"
+   39 code_props_type: . "%destructor"
+   40                | . "%printer"
+   43 grammar_declaration: . "%union" union_name "{...}"
+   45 symbol_declaration: . "%nterm" $@2 nterm_decls
+   47                   | . "%token" $@3 token_decls
+   49                   | . "%type" $@4 symbol_decls
+   50                   | . precedence_declarator token_decls_for_prec
+   51 precedence_declarator: . "%left"
+   52                      | . "%right"
+   53                      | . "%nonassoc"
+   54                      | . "%precedence"
+   90 grammar: . rules_or_grammar_declaration
+   91        | . grammar rules_or_grammar_declaration
+   92 rules_or_grammar_declaration: . rules
+   93                             | . grammar_declaration ";"
+   94                             | . error ";"
+   96 rules: . id_colon named_ref.opt $@5 ":" rhses.1
+  119 id_colon: . "identifier:"
+
+    error               shift, and go to state 74
+    "%token"            shift, and go to state 5
+    "%nterm"            shift, and go to state 6
+    "%type"             shift, and go to state 7
+    "%destructor"       shift, and go to state 8
+    "%printer"          shift, and go to state 9
+    "%left"             shift, and go to state 10
+    "%right"            shift, and go to state 11
+    "%nonassoc"         shift, and go to state 12
+    "%precedence"       shift, and go to state 13
+    "%code"             shift, and go to state 14
+    "%default-prec"     shift, and go to state 15
+    "%no-default-prec"  shift, and go to state 27
+    "%start"            shift, and go to state 34
+    "identifier:"       shift, and go to state 75
+    "%union"            shift, and go to state 42
+
+    grammar_declaration           go to state 76
+    code_props_type               go to state 45
+    symbol_declaration            go to state 46
+    precedence_declarator         go to state 47
+    grammar                       go to state 77
+    rules_or_grammar_declaration  go to state 78
+    rules                         go to state 79
+    id_colon                      go to state 80
+
+
+State 39
+
+    5 prologue_declaration: "%{...%}" .
+
+    $default  reduce using rule 5 (prologue_declaration)
+
+
+State 40
+
+   29 prologue_declaration: ";" .
+
+    $default  reduce using rule 29 (prologue_declaration)
+
+
+State 41
+
+   20 $@1: %empty .
+   21 prologue_declaration: "%param" . $@1 params
+
+    $default  reduce using rule 20 ($@1)
+
+    $@1  go to state 81
+
+
+State 42
+
+   41 union_name: %empty .  ["{...}"]
+   42           | . "identifier"
+   43 grammar_declaration: "%union" . union_name "{...}"
+
+    "identifier"  shift, and go to state 82
+
+    $default  reduce using rule 41 (union_name)
+
+    union_name  go to state 83
+
+
+State 43
+
+    3 prologue_declarations: prologue_declarations prologue_declaration .
+
+    $default  reduce using rule 3 (prologue_declarations)
+
+
+State 44
+
+    4 prologue_declaration: grammar_declaration .
+
+    $default  reduce using rule 4 (prologue_declaration)
+
+
+State 45
+
+   34 grammar_declaration: code_props_type . "{...}" generic_symlist
+
+    "{...}"  shift, and go to state 84
+
+
+State 46
+
+   32 grammar_declaration: symbol_declaration .
+
+    $default  reduce using rule 32 (grammar_declaration)
+
+
+State 47
+
+   50 symbol_declaration: precedence_declarator . token_decls_for_prec
+   78 token_decls_for_prec: . token_decl_for_prec.1
+   79                     | . "<tag>" token_decl_for_prec.1
+   80                     | . token_decls_for_prec "<tag>" token_decl_for_prec.1
+   81 token_decl_for_prec.1: . token_decl_for_prec
+   82                      | . token_decl_for_prec.1 token_decl_for_prec
+   83 token_decl_for_prec: . id int.opt
+   84                    | . string_as_id
+  117 id: . "identifier"
+  118   | . "character literal"
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 85
+
+    token_decls_for_prec   go to state 86
+    token_decl_for_prec.1  go to state 87
+    token_decl_for_prec    go to state 88
+    id                     go to state 89
+    string_as_id           go to state 90
+
+
+State 48
+
+   28 prologue_declaration: error ";" .
+
+    $default  reduce using rule 28 (prologue_declaration)
+
+
+State 49
+
+   47 symbol_declaration: "%token" $@3 . token_decls
+   67 token_decls: . token_decl.1
+   68            | . "<tag>" token_decl.1
+   69            | . token_decls "<tag>" token_decl.1
+   70 token_decl.1: . token_decl
+   71             | . token_decl.1 token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 91
+
+    token_decls   go to state 92
+    token_decl.1  go to state 93
+    token_decl    go to state 94
+    id            go to state 95
+
+
+State 50
+
+   45 symbol_declaration: "%nterm" $@2 . nterm_decls
+   66 nterm_decls: . token_decls
+   67 token_decls: . token_decl.1
+   68            | . "<tag>" token_decl.1
+   69            | . token_decls "<tag>" token_decl.1
+   70 token_decl.1: . token_decl
+   71             | . token_decl.1 token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 91
+
+    nterm_decls   go to state 96
+    token_decls   go to state 97
+    token_decl.1  go to state 93
+    token_decl    go to state 94
+    id            go to state 95
+
+
+State 51
+
+   49 symbol_declaration: "%type" $@4 . symbol_decls
+   85 symbol_decls: . symbols.1
+   86             | . "<tag>" symbols.1
+   87             | . symbol_decls "<tag>" symbols.1
+   88 symbols.1: . symbol
+   89          | . symbols.1 symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 98
+
+    symbol_decls  go to state 99
+    symbols.1     go to state 100
+    id            go to state 71
+    symbol        go to state 72
+    string_as_id  go to state 73
+
+
+State 52
+
+   37 grammar_declaration: "%code" "{...}" .
+
+    $default  reduce using rule 37 (grammar_declaration)
+
+
+State 53
+
+   38 grammar_declaration: "%code" "identifier" . "{...}"
+
+    "{...}"  shift, and go to state 101
+
+
+State 54
+
+  112 variable: "identifier" .
+
+    $default  reduce using rule 112 (variable)
+
+
+State 55
+
+    7 prologue_declaration: "%define" variable . value
+  113 value: %empty .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+  114      | . "identifier"
+  115      | . "string"
+  116      | . "{...}"
+
+    "string"      shift, and go to state 102
+    "{...}"       shift, and go to state 103
+    "identifier"  shift, and go to state 104
+
+    $default  reduce using rule 113 (value)
+
+    value  go to state 105
+
+
+State 56
+
+   10 prologue_declaration: "%expect" "integer literal" .
+
+    $default  reduce using rule 10 (prologue_declaration)
+
+
+State 57
+
+   11 prologue_declaration: "%expect-rr" "integer literal" .
+
+    $default  reduce using rule 11 (prologue_declaration)
+
+
+State 58
+
+   12 prologue_declaration: "%file-prefix" "string" .
+
+    $default  reduce using rule 12 (prologue_declaration)
+
+
+State 59
+
+   56 string.opt: "string" .
+
+    $default  reduce using rule 56 (string.opt)
+
+
+State 60
+
+    8 prologue_declaration: "%header" string.opt .
+
+    $default  reduce using rule 8 (prologue_declaration)
+
+
+State 61
+
+   14 prologue_declaration: "%initial-action" "{...}" .
+
+    $default  reduce using rule 14 (prologue_declaration)
+
+
+State 62
+
+   15 prologue_declaration: "%language" "string" .
+
+    $default  reduce using rule 15 (prologue_declaration)
+
+
+State 63
+
+   16 prologue_declaration: "%name-prefix" "string" .
+
+    $default  reduce using rule 16 (prologue_declaration)
+
+
+State 64
+
+   19 prologue_declaration: "%output" "string" .
+
+    $default  reduce using rule 19 (prologue_declaration)
+
+
+State 65
+
+   23 prologue_declaration: "%require" "string" .
+
+    $default  reduce using rule 23 (prologue_declaration)
+
+
+State 66
+
+   24 prologue_declaration: "%skeleton" "string" .
+
+    $default  reduce using rule 24 (prologue_declaration)
+
+
+State 67
+
+  122 string_as_id: "string" .
+
+    $default  reduce using rule 122 (string_as_id)
+
+
+State 68
+
+  118 id: "character literal" .
+
+    $default  reduce using rule 118 (id)
+
+
+State 69
+
+  117 id: "identifier" .
+
+    $default  reduce using rule 117 (id)
+
+
+State 70
+
+   33 grammar_declaration: "%start" symbols.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   89 symbols.1: symbols.1 . symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 33 (grammar_declaration)
+
+    id            go to state 71
+    symbol        go to state 106
+    string_as_id  go to state 73
+
+
+State 71
+
+  120 symbol: id .
+
+    $default  reduce using rule 120 (symbol)
+
+
+State 72
+
+   88 symbols.1: symbol .
+
+    $default  reduce using rule 88 (symbols.1)
+
+
+State 73
+
+  121 symbol: string_as_id .
+
+    $default  reduce using rule 121 (symbol)
+
+
+State 74
+
+   94 rules_or_grammar_declaration: error . ";"
+
+    ";"  shift, and go to state 107
+
+
+State 75
+
+  119 id_colon: "identifier:" .
+
+    $default  reduce using rule 119 (id_colon)
+
+
+State 76
+
+   93 rules_or_grammar_declaration: grammar_declaration . ";"
+
+    ";"  shift, and go to state 108
+
+
+State 77
+
+    1 input: prologue_declarations "%%" grammar . epilogue.opt
+   32 grammar_declaration: . symbol_declaration
+   33                    | . "%start" symbols.1
+   34                    | . code_props_type "{...}" generic_symlist
+   35                    | . "%default-prec"
+   36                    | . "%no-default-prec"
+   37                    | . "%code" "{...}"
+   38                    | . "%code" "identifier" "{...}"
+   39 code_props_type: . "%destructor"
+   40                | . "%printer"
+   43 grammar_declaration: . "%union" union_name "{...}"
+   45 symbol_declaration: . "%nterm" $@2 nterm_decls
+   47                   | . "%token" $@3 token_decls
+   49                   | . "%type" $@4 symbol_decls
+   50                   | . precedence_declarator token_decls_for_prec
+   51 precedence_declarator: . "%left"
+   52                      | . "%right"
+   53                      | . "%nonassoc"
+   54                      | . "%precedence"
+   91 grammar: grammar . rules_or_grammar_declaration
+   92 rules_or_grammar_declaration: . rules
+   93                             | . grammar_declaration ";"
+   94                             | . error ";"
+   96 rules: . id_colon named_ref.opt $@5 ":" rhses.1
+  119 id_colon: . "identifier:"
+  123 epilogue.opt: %empty .  [$end]
+  124             | . "%%" "epilogue"
+
+    error               shift, and go to state 74
+    "%token"            shift, and go to state 5
+    "%nterm"            shift, and go to state 6
+    "%type"             shift, and go to state 7
+    "%destructor"       shift, and go to state 8
+    "%printer"          shift, and go to state 9
+    "%left"             shift, and go to state 10
+    "%right"            shift, and go to state 11
+    "%nonassoc"         shift, and go to state 12
+    "%precedence"       shift, and go to state 13
+    "%code"             shift, and go to state 14
+    "%default-prec"     shift, and go to state 15
+    "%no-default-prec"  shift, and go to state 27
+    "%start"            shift, and go to state 34
+    "identifier:"       shift, and go to state 75
+    "%%"                shift, and go to state 109
+    "%union"            shift, and go to state 42
+
+    $end  reduce using rule 123 (epilogue.opt)
+
+    grammar_declaration           go to state 76
+    code_props_type               go to state 45
+    symbol_declaration            go to state 46
+    precedence_declarator         go to state 47
+    rules_or_grammar_declaration  go to state 110
+    rules                         go to state 79
+    id_colon                      go to state 80
+    epilogue.opt                  go to state 111
+
+
+State 78
+
+   90 grammar: rules_or_grammar_declaration .
+
+    $default  reduce using rule 90 (grammar)
+
+
+State 79
+
+   92 rules_or_grammar_declaration: rules .
+
+    $default  reduce using rule 92 (rules_or_grammar_declaration)
+
+
+State 80
+
+   96 rules: id_colon . named_ref.opt $@5 ":" rhses.1
+  110 named_ref.opt: %empty .  [":"]
+  111              | . "[identifier]"
+
+    "[identifier]"  shift, and go to state 112
+
+    $default  reduce using rule 110 (named_ref.opt)
+
+    named_ref.opt  go to state 113
+
+
+State 81
+
+   21 prologue_declaration: "%param" $@1 . params
+   30 params: . params "{...}"
+   31       | . "{...}"
+
+    "{...}"  shift, and go to state 114
+
+    params  go to state 115
+
+
+State 82
+
+   42 union_name: "identifier" .
+
+    $default  reduce using rule 42 (union_name)
+
+
+State 83
+
+   43 grammar_declaration: "%union" union_name . "{...}"
+
+    "{...}"  shift, and go to state 116
+
+
+State 84
+
+   34 grammar_declaration: code_props_type "{...}" . generic_symlist
+   59 generic_symlist: . generic_symlist_item
+   60                | . generic_symlist generic_symlist_item
+   61 generic_symlist_item: . symbol
+   62                     | . tag
+   63 tag: . "<tag>"
+   64    | . "<*>"
+   65    | . "<>"
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 117
+    "<*>"                shift, and go to state 118
+    "<>"                 shift, and go to state 119
+
+    generic_symlist       go to state 120
+    generic_symlist_item  go to state 121
+    tag                   go to state 122
+    id                    go to state 71
+    symbol                go to state 123
+    string_as_id          go to state 73
+
+
+State 85
+
+   79 token_decls_for_prec: "<tag>" . token_decl_for_prec.1
+   81 token_decl_for_prec.1: . token_decl_for_prec
+   82                      | . token_decl_for_prec.1 token_decl_for_prec
+   83 token_decl_for_prec: . id int.opt
+   84                    | . string_as_id
+  117 id: . "identifier"
+  118   | . "character literal"
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    token_decl_for_prec.1  go to state 124
+    token_decl_for_prec    go to state 88
+    id                     go to state 89
+    string_as_id           go to state 90
+
+
+State 86
+
+   50 symbol_declaration: precedence_declarator token_decls_for_prec .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   80 token_decls_for_prec: token_decls_for_prec . "<tag>" token_decl_for_prec.1
+
+    "<tag>"  shift, and go to state 125
+
+    $default  reduce using rule 50 (symbol_declaration)
+
+
+State 87
+
+   78 token_decls_for_prec: token_decl_for_prec.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   82 token_decl_for_prec.1: token_decl_for_prec.1 . token_decl_for_prec
+   83 token_decl_for_prec: . id int.opt
+   84                    | . string_as_id
+  117 id: . "identifier"
+  118   | . "character literal"
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 78 (token_decls_for_prec)
+
+    token_decl_for_prec  go to state 126
+    id                   go to state 89
+    string_as_id         go to state 90
+
+
+State 88
+
+   81 token_decl_for_prec.1: token_decl_for_prec .
+
+    $default  reduce using rule 81 (token_decl_for_prec.1)
+
+
+State 89
+
+   73 int.opt: %empty .  [error, "string", "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "character literal", "identifier", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   74        | . "integer literal"
+   83 token_decl_for_prec: id . int.opt
+
+    "integer literal"  shift, and go to state 127
+
+    $default  reduce using rule 73 (int.opt)
+
+    int.opt  go to state 128
+
+
+State 90
+
+   84 token_decl_for_prec: string_as_id .
+
+    $default  reduce using rule 84 (token_decl_for_prec)
+
+
+State 91
+
+   68 token_decls: "<tag>" . token_decl.1
+   70 token_decl.1: . token_decl
+   71             | . token_decl.1 token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    token_decl.1  go to state 129
+    token_decl    go to state 94
+    id            go to state 95
+
+
+State 92
+
+   47 symbol_declaration: "%token" $@3 token_decls .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   69 token_decls: token_decls . "<tag>" token_decl.1
+
+    "<tag>"  shift, and go to state 130
+
+    $default  reduce using rule 47 (symbol_declaration)
+
+
+State 93
+
+   67 token_decls: token_decl.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   71 token_decl.1: token_decl.1 . token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 67 (token_decls)
+
+    token_decl  go to state 131
+    id          go to state 95
+
+
+State 94
+
+   70 token_decl.1: token_decl .
+
+    $default  reduce using rule 70 (token_decl.1)
+
+
+State 95
+
+   72 token_decl: id . int.opt alias
+   73 int.opt: %empty .  [error, "string", "translatable string", "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "character literal", "identifier", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   74        | . "integer literal"
+
+    "integer literal"  shift, and go to state 127
+
+    $default  reduce using rule 73 (int.opt)
+
+    int.opt  go to state 132
+
+
+State 96
+
+   45 symbol_declaration: "%nterm" $@2 nterm_decls .
+
+    $default  reduce using rule 45 (symbol_declaration)
+
+
+State 97
+
+   66 nterm_decls: token_decls .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   69 token_decls: token_decls . "<tag>" token_decl.1
+
+    "<tag>"  shift, and go to state 130
+
+    $default  reduce using rule 66 (nterm_decls)
+
+
+State 98
+
+   86 symbol_decls: "<tag>" . symbols.1
+   88 symbols.1: . symbol
+   89          | . symbols.1 symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    symbols.1     go to state 133
+    id            go to state 71
+    symbol        go to state 72
+    string_as_id  go to state 73
+
+
+State 99
+
+   49 symbol_declaration: "%type" $@4 symbol_decls .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   87 symbol_decls: symbol_decls . "<tag>" symbols.1
+
+    "<tag>"  shift, and go to state 134
+
+    $default  reduce using rule 49 (symbol_declaration)
+
+
+State 100
+
+   85 symbol_decls: symbols.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   89 symbols.1: symbols.1 . symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 85 (symbol_decls)
+
+    id            go to state 71
+    symbol        go to state 106
+    string_as_id  go to state 73
+
+
+State 101
+
+   38 grammar_declaration: "%code" "identifier" "{...}" .
+
+    $default  reduce using rule 38 (grammar_declaration)
+
+
+State 102
+
+  115 value: "string" .
+
+    $default  reduce using rule 115 (value)
+
+
+State 103
+
+  116 value: "{...}" .
+
+    $default  reduce using rule 116 (value)
+
+
+State 104
+
+  114 value: "identifier" .
+
+    $default  reduce using rule 114 (value)
+
+
+State 105
+
+    7 prologue_declaration: "%define" variable value .
+
+    $default  reduce using rule 7 (prologue_declaration)
+
+
+State 106
+
+   89 symbols.1: symbols.1 symbol .
+
+    $default  reduce using rule 89 (symbols.1)
+
+
+State 107
+
+   94 rules_or_grammar_declaration: error ";" .
+
+    $default  reduce using rule 94 (rules_or_grammar_declaration)
+
+
+State 108
+
+   93 rules_or_grammar_declaration: grammar_declaration ";" .
+
+    $default  reduce using rule 93 (rules_or_grammar_declaration)
+
+
+State 109
+
+  124 epilogue.opt: "%%" . "epilogue"
+
+    "epilogue"  shift, and go to state 135
+
+
+State 110
+
+   91 grammar: grammar rules_or_grammar_declaration .
+
+    $default  reduce using rule 91 (grammar)
+
+
+State 111
+
+    1 input: prologue_declarations "%%" grammar epilogue.opt .
+
+    $default  reduce using rule 1 (input)
+
+
+State 112
+
+  111 named_ref.opt: "[identifier]" .
+
+    $default  reduce using rule 111 (named_ref.opt)
+
+
+State 113
+
+   95 $@5: %empty .
+   96 rules: id_colon named_ref.opt . $@5 ":" rhses.1
+
+    $default  reduce using rule 95 ($@5)
+
+    $@5  go to state 136
+
+
+State 114
+
+   31 params: "{...}" .
+
+    $default  reduce using rule 31 (params)
+
+
+State 115
+
+   21 prologue_declaration: "%param" $@1 params .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   30 params: params . "{...}"
+
+    "{...}"  shift, and go to state 137
+
+    $default  reduce using rule 21 (prologue_declaration)
+
+
+State 116
+
+   43 grammar_declaration: "%union" union_name "{...}" .
+
+    $default  reduce using rule 43 (grammar_declaration)
+
+
+State 117
+
+   63 tag: "<tag>" .
+
+    $default  reduce using rule 63 (tag)
+
+
+State 118
+
+   64 tag: "<*>" .
+
+    $default  reduce using rule 64 (tag)
+
+
+State 119
+
+   65 tag: "<>" .
+
+    $default  reduce using rule 65 (tag)
+
+
+State 120
+
+   34 grammar_declaration: code_props_type "{...}" generic_symlist .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "%param", "%union"]
+   60 generic_symlist: generic_symlist . generic_symlist_item
+   61 generic_symlist_item: . symbol
+   62                     | . tag
+   63 tag: . "<tag>"
+   64    | . "<*>"
+   65    | . "<>"
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 117
+    "<*>"                shift, and go to state 118
+    "<>"                 shift, and go to state 119
+
+    $default  reduce using rule 34 (grammar_declaration)
+
+    generic_symlist_item  go to state 138
+    tag                   go to state 122
+    id                    go to state 71
+    symbol                go to state 123
+    string_as_id          go to state 73
+
+
+State 121
+
+   59 generic_symlist: generic_symlist_item .
+
+    $default  reduce using rule 59 (generic_symlist)
+
+
+State 122
+
+   62 generic_symlist_item: tag .
+
+    $default  reduce using rule 62 (generic_symlist_item)
+
+
+State 123
+
+   61 generic_symlist_item: symbol .
+
+    $default  reduce using rule 61 (generic_symlist_item)
+
+
+State 124
+
+   79 token_decls_for_prec: "<tag>" token_decl_for_prec.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   82 token_decl_for_prec.1: token_decl_for_prec.1 . token_decl_for_prec
+   83 token_decl_for_prec: . id int.opt
+   84                    | . string_as_id
+  117 id: . "identifier"
+  118   | . "character literal"
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 79 (token_decls_for_prec)
+
+    token_decl_for_prec  go to state 126
+    id                   go to state 89
+    string_as_id         go to state 90
+
+
+State 125
+
+   80 token_decls_for_prec: token_decls_for_prec "<tag>" . token_decl_for_prec.1
+   81 token_decl_for_prec.1: . token_decl_for_prec
+   82                      | . token_decl_for_prec.1 token_decl_for_prec
+   83 token_decl_for_prec: . id int.opt
+   84                    | . string_as_id
+  117 id: . "identifier"
+  118   | . "character literal"
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    token_decl_for_prec.1  go to state 139
+    token_decl_for_prec    go to state 88
+    id                     go to state 89
+    string_as_id           go to state 90
+
+
+State 126
+
+   82 token_decl_for_prec.1: token_decl_for_prec.1 token_decl_for_prec .
+
+    $default  reduce using rule 82 (token_decl_for_prec.1)
+
+
+State 127
+
+   74 int.opt: "integer literal" .
+
+    $default  reduce using rule 74 (int.opt)
+
+
+State 128
+
+   83 token_decl_for_prec: id int.opt .
+
+    $default  reduce using rule 83 (token_decl_for_prec)
+
+
+State 129
+
+   68 token_decls: "<tag>" token_decl.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   71 token_decl.1: token_decl.1 . token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 68 (token_decls)
+
+    token_decl  go to state 131
+    id          go to state 95
+
+
+State 130
+
+   69 token_decls: token_decls "<tag>" . token_decl.1
+   70 token_decl.1: . token_decl
+   71             | . token_decl.1 token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    token_decl.1  go to state 140
+    token_decl    go to state 94
+    id            go to state 95
+
+
+State 131
+
+   71 token_decl.1: token_decl.1 token_decl .
+
+    $default  reduce using rule 71 (token_decl.1)
+
+
+State 132
+
+   72 token_decl: id int.opt . alias
+   75 alias: %empty .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "character literal", "identifier", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   76      | . string_as_id
+   77      | . "translatable string"
+  122 string_as_id: . "string"
+
+    "string"               shift, and go to state 67
+    "translatable string"  shift, and go to state 141
+
+    $default  reduce using rule 75 (alias)
+
+    alias         go to state 142
+    string_as_id  go to state 143
+
+
+State 133
+
+   86 symbol_decls: "<tag>" symbols.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   89 symbols.1: symbols.1 . symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 86 (symbol_decls)
+
+    id            go to state 71
+    symbol        go to state 106
+    string_as_id  go to state 73
+
+
+State 134
+
+   87 symbol_decls: symbol_decls "<tag>" . symbols.1
+   88 symbols.1: . symbol
+   89          | . symbols.1 symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    symbols.1     go to state 144
+    id            go to state 71
+    symbol        go to state 72
+    string_as_id  go to state 73
+
+
+State 135
+
+  124 epilogue.opt: "%%" "epilogue" .
+
+    $default  reduce using rule 124 (epilogue.opt)
+
+
+State 136
+
+   96 rules: id_colon named_ref.opt $@5 . ":" rhses.1
+
+    ":"  shift, and go to state 145
+
+
+State 137
+
+   30 params: params "{...}" .
+
+    $default  reduce using rule 30 (params)
+
+
+State 138
+
+   60 generic_symlist: generic_symlist generic_symlist_item .
+
+    $default  reduce using rule 60 (generic_symlist)
+
+
+State 139
+
+   80 token_decls_for_prec: token_decls_for_prec "<tag>" token_decl_for_prec.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   82 token_decl_for_prec.1: token_decl_for_prec.1 . token_decl_for_prec
+   83 token_decl_for_prec: . id int.opt
+   84                    | . string_as_id
+  117 id: . "identifier"
+  118   | . "character literal"
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 80 (token_decls_for_prec)
+
+    token_decl_for_prec  go to state 126
+    id                   go to state 89
+    string_as_id         go to state 90
+
+
+State 140
+
+   69 token_decls: token_decls "<tag>" token_decl.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   71 token_decl.1: token_decl.1 . token_decl
+   72 token_decl: . id int.opt alias
+  117 id: . "identifier"
+  118   | . "character literal"
+
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 69 (token_decls)
+
+    token_decl  go to state 131
+    id          go to state 95
+
+
+State 141
+
+   77 alias: "translatable string" .
+
+    $default  reduce using rule 77 (alias)
+
+
+State 142
+
+   72 token_decl: id int.opt alias .
+
+    $default  reduce using rule 72 (token_decl)
+
+
+State 143
+
+   76 alias: string_as_id .
+
+    $default  reduce using rule 76 (alias)
+
+
+State 144
+
+   87 symbol_decls: symbol_decls "<tag>" symbols.1 .  [error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%define", "%error-verbose", "%expect", "%expect-rr", "%file-prefix", "%<flag>", "%glr-parser", "%header", "%initial-action", "%language", "%name-prefix", "%no-default-prec", "%no-lines", "%nondeterministic-parser", "%output", "%pure-parser", "%require", "%skeleton", "%start", "%token-table", "%verbose", "%yacc", "%%", "%{...%}", ";", "<tag>", "%param", "%union"]
+   89 symbols.1: symbols.1 . symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    $default  reduce using rule 87 (symbol_decls)
+
+    id            go to state 71
+    symbol        go to state 106
+    string_as_id  go to state 73
+
+
+State 145
+
+   96 rules: id_colon named_ref.opt $@5 ":" . rhses.1
+   97 rhses.1: . rhs
+   98        | . rhses.1 "|" rhs
+   99        | . rhses.1 ";"
+  100 rhs: %empty .
+  101    | . rhs symbol named_ref.opt
+  102    | . rhs tag.opt "{...}" named_ref.opt
+  103    | . rhs "%?{...}"
+  104    | . rhs "%empty"
+  105    | . rhs "%prec" symbol
+  106    | . rhs "%dprec" "integer literal"
+  107    | . rhs "%merge" "<tag>"
+  108    | . rhs "%expect" "integer literal"
+  109    | . rhs "%expect-rr" "integer literal"
+
+    $default  reduce using rule 100 (rhs)
+
+    rhses.1  go to state 146
+    rhs      go to state 147
+
+
+State 146
+
+   96 rules: id_colon named_ref.opt $@5 ":" rhses.1 .  [$end, error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%no-default-prec", "%start", "identifier:", "%%", "%union"]
+   98 rhses.1: rhses.1 . "|" rhs
+   99        | rhses.1 . ";"
+
+    "|"  shift, and go to state 148
+    ";"  shift, and go to state 149
+
+    $default  reduce using rule 96 (rules)
+
+
+State 147
+
+   57 tag.opt: %empty .  ["{...}"]
+   58        | . "<tag>"
+   97 rhses.1: rhs .  [$end, error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%no-default-prec", "%start", "identifier:", "%%", "|", ";", "%union"]
+  101 rhs: rhs . symbol named_ref.opt
+  102    | rhs . tag.opt "{...}" named_ref.opt
+  103    | rhs . "%?{...}"
+  104    | rhs . "%empty"
+  105    | rhs . "%prec" symbol
+  106    | rhs . "%dprec" "integer literal"
+  107    | rhs . "%merge" "<tag>"
+  108    | rhs . "%expect" "integer literal"
+  109    | rhs . "%expect-rr" "integer literal"
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "%prec"              shift, and go to state 150
+    "%dprec"             shift, and go to state 151
+    "%merge"             shift, and go to state 152
+    "%expect"            shift, and go to state 153
+    "%expect-rr"         shift, and go to state 154
+    "%?{...}"            shift, and go to state 155
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 156
+    "%empty"             shift, and go to state 157
+
+    "{...}"   reduce using rule 57 (tag.opt)
+    $default  reduce using rule 97 (rhses.1)
+
+    tag.opt       go to state 158
+    id            go to state 71
+    symbol        go to state 159
+    string_as_id  go to state 73
+
+
+State 148
+
+   98 rhses.1: rhses.1 "|" . rhs
+  100 rhs: %empty .
+  101    | . rhs symbol named_ref.opt
+  102    | . rhs tag.opt "{...}" named_ref.opt
+  103    | . rhs "%?{...}"
+  104    | . rhs "%empty"
+  105    | . rhs "%prec" symbol
+  106    | . rhs "%dprec" "integer literal"
+  107    | . rhs "%merge" "<tag>"
+  108    | . rhs "%expect" "integer literal"
+  109    | . rhs "%expect-rr" "integer literal"
+
+    $default  reduce using rule 100 (rhs)
+
+    rhs  go to state 160
+
+
+State 149
+
+   99 rhses.1: rhses.1 ";" .
+
+    $default  reduce using rule 99 (rhses.1)
+
+
+State 150
+
+  105 rhs: rhs "%prec" . symbol
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+
+    id            go to state 71
+    symbol        go to state 161
+    string_as_id  go to state 73
+
+
+State 151
+
+  106 rhs: rhs "%dprec" . "integer literal"
+
+    "integer literal"  shift, and go to state 162
+
+
+State 152
+
+  107 rhs: rhs "%merge" . "<tag>"
+
+    "<tag>"  shift, and go to state 163
+
+
+State 153
+
+  108 rhs: rhs "%expect" . "integer literal"
+
+    "integer literal"  shift, and go to state 164
+
+
+State 154
+
+  109 rhs: rhs "%expect-rr" . "integer literal"
+
+    "integer literal"  shift, and go to state 165
+
+
+State 155
+
+  103 rhs: rhs "%?{...}" .
+
+    $default  reduce using rule 103 (rhs)
+
+
+State 156
+
+   58 tag.opt: "<tag>" .
+
+    $default  reduce using rule 58 (tag.opt)
+
+
+State 157
+
+  104 rhs: rhs "%empty" .
+
+    $default  reduce using rule 104 (rhs)
+
+
+State 158
+
+  102 rhs: rhs tag.opt . "{...}" named_ref.opt
+
+    "{...}"  shift, and go to state 166
+
+
+State 159
+
+  101 rhs: rhs symbol . named_ref.opt
+  110 named_ref.opt: %empty .  [$end, error, "string", "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%prec", "%dprec", "%merge", "%code", "%default-prec", "%expect", "%expect-rr", "%no-default-prec", "%start", "{...}", "%?{...}", "character literal", "identifier", "identifier:", "%%", "|", ";", "<tag>", "%union", "%empty"]
+  111              | . "[identifier]"
+
+    "[identifier]"  shift, and go to state 112
+
+    $default  reduce using rule 110 (named_ref.opt)
+
+    named_ref.opt  go to state 167
+
+
+State 160
+
+   57 tag.opt: %empty .  ["{...}"]
+   58        | . "<tag>"
+   98 rhses.1: rhses.1 "|" rhs .  [$end, error, "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%code", "%default-prec", "%no-default-prec", "%start", "identifier:", "%%", "|", ";", "%union"]
+  101 rhs: rhs . symbol named_ref.opt
+  102    | rhs . tag.opt "{...}" named_ref.opt
+  103    | rhs . "%?{...}"
+  104    | rhs . "%empty"
+  105    | rhs . "%prec" symbol
+  106    | rhs . "%dprec" "integer literal"
+  107    | rhs . "%merge" "<tag>"
+  108    | rhs . "%expect" "integer literal"
+  109    | rhs . "%expect-rr" "integer literal"
+  117 id: . "identifier"
+  118   | . "character literal"
+  120 symbol: . id
+  121       | . string_as_id
+  122 string_as_id: . "string"
+
+    "string"             shift, and go to state 67
+    "%prec"              shift, and go to state 150
+    "%dprec"             shift, and go to state 151
+    "%merge"             shift, and go to state 152
+    "%expect"            shift, and go to state 153
+    "%expect-rr"         shift, and go to state 154
+    "%?{...}"            shift, and go to state 155
+    "character literal"  shift, and go to state 68
+    "identifier"         shift, and go to state 69
+    "<tag>"              shift, and go to state 156
+    "%empty"             shift, and go to state 157
+
+    "{...}"   reduce using rule 57 (tag.opt)
+    $default  reduce using rule 98 (rhses.1)
+
+    tag.opt       go to state 158
+    id            go to state 71
+    symbol        go to state 159
+    string_as_id  go to state 73
+
+
+State 161
+
+  105 rhs: rhs "%prec" symbol .
+
+    $default  reduce using rule 105 (rhs)
+
+
+State 162
+
+  106 rhs: rhs "%dprec" "integer literal" .
+
+    $default  reduce using rule 106 (rhs)
+
+
+State 163
+
+  107 rhs: rhs "%merge" "<tag>" .
+
+    $default  reduce using rule 107 (rhs)
+
+
+State 164
+
+  108 rhs: rhs "%expect" "integer literal" .
+
+    $default  reduce using rule 108 (rhs)
+
+
+State 165
+
+  109 rhs: rhs "%expect-rr" "integer literal" .
+
+    $default  reduce using rule 109 (rhs)
+
+
+State 166
+
+  102 rhs: rhs tag.opt "{...}" . named_ref.opt
+  110 named_ref.opt: %empty .  [$end, error, "string", "%token", "%nterm", "%type", "%destructor", "%printer", "%left", "%right", "%nonassoc", "%precedence", "%prec", "%dprec", "%merge", "%code", "%default-prec", "%expect", "%expect-rr", "%no-default-prec", "%start", "{...}", "%?{...}", "character literal", "identifier", "identifier:", "%%", "|", ";", "<tag>", "%union", "%empty"]
+  111              | . "[identifier]"
+
+    "[identifier]"  shift, and go to state 112
+
+    $default  reduce using rule 110 (named_ref.opt)
+
+    named_ref.opt  go to state 168
+
+
+State 167
+
+  101 rhs: rhs symbol named_ref.opt .
+
+    $default  reduce using rule 101 (rhs)
+
+
+State 168
+
+  102 rhs: rhs tag.opt "{...}" named_ref.opt .
+
+    $default  reduce using rule 102 (rhs)

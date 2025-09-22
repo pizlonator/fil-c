@@ -1,0 +1,736 @@
+# Checking diagnostics.                              -*- Autotest -*-
+
+# Copyright (C) 2019-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[Diagnostics.]])
+
+
+# AT_TEST($1: TITLE, $2: GRAMMAR, $3: EXIT-STATUS, $4: OUTPUT-WITH-STYLE,
+#         $5: EXTRA_ENV, $6: SKIP-IF)
+# -----------------------------------------------------------------------
+# Run Bison on GRAMMAR with debugging style enabled, and expect
+# OUTPUT-WITH-STYLE as diagnostics.
+m4_pushdef([AT_TEST],
+[
+AT_SETUP([$1])
+AT_KEYWORDS([diagnostics])
+
+m4_if(m4_index([$1], [Counterexample]), [-1], [], [AT_KEYWORDS([cex])])
+
+# We need UTF-8 support for correct screen-width computation of UTF-8
+# characters.  Skip the test if not available.
+locale=`locale -a | $EGREP '^en_US\.(UTF-8|utf8)$' | sed 1q`
+AT_SKIP_IF([[test x = x"$locale"]])
+
+m4_ifval([$6],
+[AT_SKIP_IF([$6])])
+
+AT_BISON_OPTION_PUSHDEFS
+
+AT_DATA_GRAMMAR([[input.y]], [$2])
+
+AT_DATA([experr], [$4])
+
+# For some reason, literal ^M in the input are removed and don't end
+# in `input.y`.  So use the two-character ^M represent it, and let
+# Perl insert real CR characters.
+if $EGREP ['\^M|\\[0-9][0-9][0-9]'] input.y experr >/dev/null; then
+  AT_PERL_REQUIRE([-pi -e 's{\^M}{\r}g;s{\\(\d{3}|.)}{$v = $[]1; $v =~ /\A\d+\z/ ? chr($v) : $v}ge' input.y experr])
+fi
+
+AT_CHECK(AT_SET_ENV [LC_ALL="$locale" $5 bison -fcaret --color=debug -Wall,cex input.y], [$3], [], [experr])
+
+# When no style, same messages, but without style.
+# Except for the second display of the counterexample,
+# which is not displayed at all.
+AT_PERL_REQUIRE([-pi -e '
+  s{(</?(-|\w)+>)}{ $[]1 eq "<tag>" ? $[]1 : "" }ge;
+  if (/Example/)
+    {
+      ++$example;
+      $_ = "" if $example % 2 == 0;
+    }
+' experr])
+
+# Cannot use AT_BISON_CHECK easily as we need to change the
+# environment.
+# FIXME: Enhance AT_BISON_CHECK.
+AT_CHECK(AT_SET_ENV [LC_ALL="$locale" $5 bison -fcaret -Wall,cex input.y], [$3], [], [experr])
+
+
+AT_BISON_OPTION_POPDEFS
+
+AT_CLEANUP
+])
+
+
+## ---------- ##
+## Warnings.  ##
+## ---------- ##
+
+AT_TEST([[Warnings]],
+[[%token FOO FOO FOO
+%token FOO  FOO  FOO
+%%
+exp: %empty;
+]],
+[0],
+[[input.y:9.12-14: <warning>warning:</warning> symbol FOO redeclared [<warning>-Wother</warning>]
+    9 | %token FOO <warning>FOO</warning> FOO
+      |            <warning>^~~</warning>
+input.y:9.8-10: <note>note:</note> previous declaration
+    9 | %token <note>FOO</note> FOO FOO
+      |        <note>^~~</note>
+input.y:9.16-18: <warning>warning:</warning> symbol FOO redeclared [<warning>-Wother</warning>]
+    9 | %token FOO FOO <warning>FOO</warning>
+      |                <warning>^~~</warning>
+input.y:9.8-10: <note>note:</note> previous declaration
+    9 | %token <note>FOO</note> FOO FOO
+      |        <note>^~~</note>
+input.y:10.8-10: <warning>warning:</warning> symbol FOO redeclared [<warning>-Wother</warning>]
+   10 | %token <warning>FOO</warning>  FOO  FOO
+      |        <warning>^~~</warning>
+input.y:9.8-10: <note>note:</note> previous declaration
+    9 | %token <note>FOO</note> FOO FOO
+      |        <note>^~~</note>
+input.y:10.13-15: <warning>warning:</warning> symbol FOO redeclared [<warning>-Wother</warning>]
+   10 | %token FOO  <warning>FOO</warning>  FOO
+      |             <warning>^~~</warning>
+input.y:9.8-10: <note>note:</note> previous declaration
+    9 | %token <note>FOO</note> FOO FOO
+      |        <note>^~~</note>
+input.y:10.18-20: <warning>warning:</warning> symbol FOO redeclared [<warning>-Wother</warning>]
+   10 | %token FOO  FOO  <warning>FOO</warning>
+      |                  <warning>^~~</warning>
+input.y:9.8-10: <note>note:</note> previous declaration
+    9 | %token <note>FOO</note> FOO FOO
+      |        <note>^~~</note>
+]])
+
+
+## ------------------------ ##
+## Single point locations.  ##
+## ------------------------ ##
+
+# Single point locations (equal boundaries) are troublesome: it's easy
+# to mess up the opening/closing of style.  They come from the parser,
+# rules with empty rhs.  Their position is therefore debatable
+# (between the previous token and the next one).
+
+AT_TEST([[Single point locations]],
+[[%%
+exp: a b c d e
+a: {}
+b:{
+};
+c:
+d
+:
+e:
+]],
+[0],
+[[input.y:11.4-5: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   11 | a: <warning>{}</warning>
+      |    <warning>^~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:12.3-13.1: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   12 | b:<warning>{</warning>
+      |   <warning>^</warning>
+      |   <fixit-insert>%empty</fixit-insert>
+input.y:14.3: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   14 | c:
+      |   <warning>^</warning>
+      |   <fixit-insert>%empty</fixit-insert>
+input.y:16.2: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   16 | :
+      |  <warning>^</warning>
+      |  <fixit-insert>%empty</fixit-insert>
+input.y:17.3: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   17 | e:
+      |   <warning>^</warning>
+      |   <fixit-insert>%empty</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]])
+
+
+
+## ------------------------------------- ##
+## Line is too short, and then you die.  ##
+## ------------------------------------- ##
+
+# We trust the "#line", since that's what allows us to quote the
+# actual source from which the grammar file was generated.  But #line
+# can also be wrong, and point to a line which is shorter that the bad
+# one.  In which case we can easily forget to close the styling.
+#
+# Be sure to have #line point to a line long enough to open the
+# styling, but not enough to close it.
+
+AT_TEST([[Line is too short, and then you die]],
+[[// Beware that there are 9 lines inserted before (including this one).
+#line 12
+%token foo 123
+%token foo 123123
+%token foo 123
+%%
+exp:
+]],
+[1],
+[[input.y:13.8-10: <warning>warning:</warning> symbol foo redeclared [<warning>-Wother</warning>]
+   13 | %token <warning>foo</warning> 123
+      |        <warning>^~~</warning>
+input.y:12.8-10: <note>note:</note> previous declaration
+   12 | %token <note>foo</note> 123123
+      |        <note>^~~</note>
+input.y:13.12-17: <error>error:</error> redefining code of token foo
+   13 | %token foo <error>123</error>
+      |            <error>^~~~~~</error>
+input.y:14.8-10: <warning>warning:</warning> symbol foo redeclared [<warning>-Wother</warning>]
+   14 | %%
+      |        <warning>^~~</warning>
+input.y:12.8-10: <note>note:</note> previous declaration
+   12 | %token <note>foo</note> 123123
+      |        <note>^~~</note>
+]])
+
+
+## ----------------------- ##
+## Zero-width characters.  ##
+## ----------------------- ##
+
+# We used to open twice the styling for characters that have a
+# zero-width on display (e.g., \005).
+
+AT_TEST([[Zero-width characters]],
+[[%%
+exp: an\005error.
+]],
+[1],
+[[input.y:10.8: <error>error:</error> invalid character: '\\005'
+   10 | exp: an<error>\005</error>error.
+      |        <error>^</error>
+]])
+
+
+## -------------------------------------- ##
+## Tabulations and multibyte characters.  ##
+## -------------------------------------- ##
+
+# Make sure we treat tabulations as eight spaces, and that multibyte
+# characters have correct width.
+
+AT_TEST([[Tabulations and multibyte characters]],
+[[%%
+exp: a b c d e f g
+a: {		}
+b: {            }
+c: {------------}
+d: {éééééééééééé}
+e: {	42	}
+f: {	"฿¥$€₦"	}
+g: {	🐃	}
+]],
+[0],
+[[input.y:11.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   11 | a: <warning>{		}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:12.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   12 | b: <warning>{            }</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:13.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   13 | c: <warning>{------------}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:14.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   14 | d: <warning>{éééééééééééé}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:15.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   15 | e: <warning>{	42	}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:16.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   16 | f: <warning>{	"฿¥$€₦"	}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:17.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   17 | g: <warning>{	🐃	}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]])
+
+
+# Likewise, but currently not portable to AIX and Cygwin.
+# https://lists.gnu.org/r/bug-bison/2020-05/msg00050.html
+# https://lists.gnu.org/r/bug-bison/2020-05/msg00003.html.
+AT_TEST([[Tabulations and multibyte characters]],
+[[%%
+e: {∇⃗×𝐸⃗ = -∂𝐵⃗/∂t}
+]],
+[0],
+[[input.y:10.4-17: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   10 | e: <warning>{∇⃗×𝐸⃗ = -∂𝐵⃗/∂t}</warning>
+      |    <warning>^~~~~~~~~~~~~~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]], [], [uname -a | $EGREP -i 'aix|cygwin'])
+
+
+## --------------- ##
+## Special files.  ##
+## --------------- ##
+
+# Don't try to quote special files.
+# https://lists.gnu.org/r/bug-bison/2019-04/msg00000.html
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90034
+
+AT_TEST([[Special files]],
+[[%%
+exp: a b
+a: {}
+#line 1 "/dev/stdout"
+b: {}
+]],
+[0],
+[[input.y:11.4-5: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   11 | a: <warning>{}</warning>
+      |    <warning>^~</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+/dev/stdout:1.4-5: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+      |    <fixit-insert>%empty</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]])
+
+
+## -------------------- ##
+## Complaints from M4.  ##
+## -------------------- ##
+
+# Complaints issued m4 need complete locations (byte and column) for
+# diagnostics.
+
+AT_TEST([[Complaints from M4]],
+[[%define error1		{e}
+%define error2		{é}
+%%
+exp: %empty;
+]],
+[1],
+[[input.y:9.1-27: <error>error:</error> %define variable 'error1' is not used
+    9 | <error>%define error1		{e}</error>
+      | <error>^~~~~~~~~~~~~~~~~~~~~~~~~~~</error>
+input.y:10.1-27: <error>error:</error> %define variable 'error2' is not used
+   10 | <error>%define error2		{é}</error>
+      | <error>^~~~~~~~~~~~~~~~~~~~~~~~~~~</error>
+]])
+
+
+## ----------------- ##
+## Carriage return.  ##
+## ----------------- ##
+
+# Carriage-return used to count as a newline in the scanner, and not
+# in diagnostics.  Resulting in all kinds of nice bugs.
+
+AT_TEST([[Carriage return]],
+[[^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M^M
+%token "
+%%
+]],
+[1],
+[[input.y:10.8-11.0: <error>error:</error> missing '"' at end of line
+   10 | %token <error>"</error>
+      |        <error>^</error>
+input.y:10.8-11.0: <error>error:</error> expected <expected>character literal</expected> or <expected>identifier</expected> or <expected><tag></expected> before <unexpected>string</unexpected>
+   10 | %token <error>"</error>
+      |        <error>^</error>
+]])
+
+
+## ------- ##
+## CR NL.  ##
+## ------- ##
+
+# Check Windows EOLs.
+
+AT_TEST([[CR NL]],
+[[^M
+%token ^M FOO^M
+%token ^M FOO^M
+%%^M
+exp:^M
+]],
+[0],
+[[input.y:11.9-11: <warning>warning:</warning> symbol FOO redeclared [<warning>-Wother</warning>]
+   11 | %token  <warning>FOO</warning>
+      |         <warning>^~~</warning>
+input.y:10.9-11: <note>note:</note> previous declaration
+   10 | %token  <note>FOO</note>
+      |         <note>^~~</note>
+input.y:13.5: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   13 | exp:
+      |     <warning>^</warning>
+      |     <fixit-insert>%empty</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]])
+
+
+
+## -------------- ##
+## Screen width.  ##
+## -------------- ##
+
+AT_TEST([[Screen width: 200 columns]],
+[[%token ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                                       %error-verbose
+%%
+exp: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+]],
+[0],
+[[input.y:9.36-61: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | %token ABCDEFGHIJKLMNOPQRSTUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+      |                                    <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:9.64-89: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | %token ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+      |                                                                <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:9.92-117: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | %token ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>
+      |                                                                                            <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:10.56-69: <warning>warning:</warning> deprecated directive: '%error-verbose', use '%define parse.error verbose' [<warning>-Wdeprecated</warning>]
+   10 |                                                        <warning>%error-verbose</warning>
+      |                                                        <warning>^~~~~~~~~~~~~~</warning>
+      |                                                        <fixit-insert>%define parse.error verbose</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]],
+[[COLUMNS=200]])
+
+AT_TEST([[Screen width: 80 columns]],
+[[%token ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                                       %error-verbose
+%%
+exp: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+]],
+[0],
+[[input.y:9.36-61: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | %token ABCDEFGHIJKLMNOPQRSTUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>  ABCDEF...
+      |                                    <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEF...
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:9.64-89: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | %token ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  <warning>ABCDEF</warning>...
+      |                                                                <warning>^~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEF...
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:9.92-117: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | ...TUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>
+      |             <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEF...
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:10.56-69: <warning>warning:</warning> deprecated directive: '%error-verbose', use '%define parse.error verbose' [<warning>-Wdeprecated</warning>]
+   10 |                                                        <warning>%error-verbose</warning>
+      |                                                        <warning>^~~~~~~~~~~~~~</warning>
+      |                                                        <fixit-insert>%define parse.error verbose</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]],
+[[COLUMNS=80]])
+
+AT_TEST([[Screen width: 60 columns]],
+[[%token ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ  ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                                       %error-verbose
+%%
+exp: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+]],
+[0],
+[[input.y:9.36-61: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | %token ABCDEFGHIJKLMNOPQRSTUVWXYZ  <warning>ABCDEFGHIJKLMN</warning>...
+      |                                    <warning>^~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMN...
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:9.64-89: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | ...TUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>  ABCDEFGHI...
+      |             <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMN...
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:9.92-117: <warning>warning:</warning> symbol ABCDEFGHIJKLMNOPQRSTUVWXYZ redeclared [<warning>-Wother</warning>]
+    9 | ...TUVWXYZ  <warning>ABCDEFGHIJKLMNOPQRSTUVWXYZ</warning>
+      |             <warning>^~~~~~~~~~~~~~~~~~~~~~~~~~</warning>
+input.y:9.8-33: <note>note:</note> previous declaration
+    9 | %token <note>ABCDEFGHIJKLMNOPQRSTUVWXYZ</note>  ABCDEFGHIJKLMN...
+      |        <note>^~~~~~~~~~~~~~~~~~~~~~~~~~</note>
+input.y:10.56-69: <warning>warning:</warning> deprecated directive: '%error-verbose', use '%define parse.error verbose' [<warning>-Wdeprecated</warning>]
+   10 | ...         <warning>%error-verbose</warning>
+      |             <warning>^~~~~~~~~~~~~~</warning>
+      |             <fixit-insert>%define parse.error verbose</fixit-insert>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]],
+[[COLUMNS=60]])
+
+
+## ------------- ##
+## Suggestions.  ##
+## ------------- ##
+
+# Don't suggest to fix QUX with QUUX and QUUX with QUX...
+AT_TEST([[Suggestions]],
+[[%%
+res: QUX baz
+bar: QUUX
+]],
+[1],
+[[input.y:10.6-8: <error>error:</error> symbol 'QUX' is used, but is not defined as a token and has no rules
+   10 | res: <error>QUX</error> baz
+      |      <error>^~~</error>
+input.y:10.10-12: <error>error:</error> symbol 'baz' is used, but is not defined as a token and has no rules; did you mean 'bar'?
+   10 | res: QUX <error>baz</error>
+      |          <error>^~~</error>
+      |          <fixit-insert>bar</fixit-insert>
+input.y:11.6-9: <error>error:</error> symbol 'QUUX' is used, but is not defined as a token and has no rules
+   11 | bar: <error>QUUX</error>
+      |      <error>^~~~</error>
+]])
+
+
+## ----------------- ##
+## Counterexamples.  ##
+## ----------------- ##
+
+AT_TEST([[Counterexamples]],
+[[%expect 0
+%%
+exp
+: "if" exp "then" exp
+| "if" exp "then" exp "else" exp
+| exp "+" exp
+| "num"
+| empty "a"
+| "a" empty
+
+empty
+: %empty
+]],
+[1],
+[[input.y: <error>error:</error> shift/reduce conflicts: 9 found, 0 expected
+input.y: <warning>warning:</warning> shift/reduce conflict on token "a" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-dot>•</cex-dot> <cex-leaf>"a"</cex-leaf><cex-1></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 6: <cex-dot>•</cex-dot><cex-leaf> "a"</cex-leaf><cex-1><cex-step> empty</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>           ↳ 6: ε</cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-dot>•</cex-dot></cex-1> <cex-leaf>"a"</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 5: <cex-1><cex-step>empty</cex-step></cex-1><cex-leaf>    "a"</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 7: ε<cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "a" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-dot>•</cex-dot> <cex-leaf>"a"</cex-leaf><cex-1></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 6: <cex-dot>•</cex-dot><cex-leaf> "a"</cex-leaf><cex-1><cex-step> empty</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>           ↳ 6: ε</cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-dot>•</cex-dot></cex-1> <cex-leaf>"a"</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 5: <cex-1><cex-step>empty</cex-step></cex-1><cex-leaf>    "a"</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 7: ε<cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "a" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-dot>•</cex-dot> <cex-leaf>"a"</cex-leaf><cex-1></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 6: <cex-dot>•</cex-dot><cex-leaf> "a"</cex-leaf><cex-1><cex-step> empty</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>           ↳ 6: ε</cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-dot>•</cex-dot></cex-1> <cex-leaf>"a"</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 5: <cex-1><cex-step>empty</cex-step></cex-1><cex-leaf>    "a"</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 7: ε<cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "a" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-dot>•</cex-dot> <cex-leaf>"a"</cex-leaf><cex-1></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 6: <cex-dot>•</cex-dot><cex-leaf> "a"</cex-leaf><cex-1><cex-step> empty</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>           ↳ 6: ε</cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-dot>•</cex-dot></cex-1> <cex-leaf>"a"</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 5: <cex-1><cex-step>empty</cex-step></cex-1><cex-leaf>    "a"</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 7: ε<cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "+" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-leaf>exp</cex-leaf> <cex-leaf>"+"</cex-leaf><cex-1> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 3: <cex-leaf>exp</cex-leaf><cex-leaf> "+"</cex-leaf><cex-1><cex-step> exp</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>             ↳ 3: <cex-leaf>exp</cex-leaf><cex-dot> •</cex-dot><cex-leaf> "+"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-leaf>exp</cex-leaf> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot></cex-1> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 3: <cex-1><cex-step>exp</cex-step></cex-1><cex-leaf>                "+"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 3: <cex-leaf>exp</cex-leaf><cex-leaf> "+"</cex-leaf><cex-leaf> exp</cex-leaf><cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "else" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf><cex-1> <cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot> <cex-leaf>"else"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 1: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-1><cex-step> exp</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>                     ↳ 2: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-leaf> exp</cex-leaf><cex-dot> •</cex-dot><cex-leaf> "else"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-1>
+  Example: <cex-0><cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf><cex-1> <cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot></cex-1> <cex-leaf>"else"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 2: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-1><cex-step> exp</cex-step></cex-1><cex-leaf>                        "else"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>                     ↳ 1: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-leaf> exp</cex-leaf><cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "+" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf><cex-1> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 1: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-1><cex-step> exp</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>                     ↳ 3: <cex-leaf>exp</cex-leaf><cex-dot> •</cex-dot><cex-leaf> "+"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot></cex-1> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 3: <cex-1><cex-step>exp</cex-step></cex-1><cex-leaf>                        "+"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 1: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-leaf> exp</cex-leaf><cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "a" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-dot>•</cex-dot> <cex-leaf>"a"</cex-leaf><cex-1></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 6: <cex-dot>•</cex-dot><cex-leaf> "a"</cex-leaf><cex-1><cex-step> empty</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>           ↳ 6: ε</cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-dot>•</cex-dot></cex-1> <cex-leaf>"a"</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 5: <cex-1><cex-step>empty</cex-step></cex-1><cex-leaf>    "a"</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 7: ε<cex-dot> •</cex-dot></cex-step></cex-1>
+input.y: <warning>warning:</warning> shift/reduce conflict on token "+" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"else"</cex-leaf><cex-1> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-1></cex-0>
+  Shift derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 2: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "else"</cex-leaf><cex-1><cex-step> exp</cex-step></cex-1></cex-step></cex-0>
+    <cex-1><cex-step>                                ↳ 3: <cex-leaf>exp</cex-leaf><cex-dot> •</cex-dot><cex-leaf> "+"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-1>
+  Example: <cex-0><cex-1><cex-leaf>"if"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"then"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-leaf>"else"</cex-leaf> <cex-leaf>exp</cex-leaf> <cex-dot>•</cex-dot></cex-1> <cex-leaf>"+"</cex-leaf> <cex-leaf>exp</cex-leaf></cex-0>
+  Reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 3: <cex-1><cex-step>exp</cex-step></cex-1><cex-leaf>                                   "+"</cex-leaf><cex-leaf> exp</cex-leaf></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 2: <cex-leaf>"if"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "then"</cex-leaf><cex-leaf> exp</cex-leaf><cex-leaf> "else"</cex-leaf><cex-leaf> exp</cex-leaf><cex-dot> •</cex-dot></cex-step></cex-1>
+]])
+
+
+AT_TEST([[Deep Counterexamples]],
+[[%expect 0
+%%
+exp: x1 e1 foo1 x1 | y1 e2 bar1 y1
+foo1: foo2
+foo2: foo3
+foo3: x1 foo4
+foo4: "quuux"
+
+bar1: bar2
+bar2: bar3
+bar3: y1 bar4
+bar4: "quuux"
+
+x1: x2
+x2: x3
+x3: "X"
+
+y1: y2
+y2: y3
+y3: "X"
+
+e1:
+e2:
+]],
+[1],
+[[input.y:30.4: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   30 | e1:
+      |    <warning>^</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y:31.4: <warning>warning:</warning> empty rule without %empty [<warning>-Wempty-rule</warning>]
+   31 | e2:
+      |    <warning>^</warning>
+      |    <fixit-insert>%empty</fixit-insert>
+input.y: <error>error:</error> reduce/reduce conflicts: 1 found, 0 expected
+input.y: <warning>warning:</warning> reduce/reduce conflict on token "X" [<warning>-Wcounterexamples</warning>]
+  Example: <cex-0><cex-1><cex-2><cex-3><cex-leaf>"X"</cex-leaf> <cex-dot>•</cex-dot></cex-3></cex-2></cex-1><cex-4></cex-4><cex-5><cex-6><cex-7><cex-8><cex-9><cex-10> <cex-leaf>"X"</cex-leaf></cex-10></cex-9></cex-8><cex-11> <cex-leaf>"quuux"</cex-leaf></cex-11></cex-7></cex-6></cex-5><cex-12><cex-13><cex-14> <cex-leaf>"X"</cex-leaf></cex-14></cex-13></cex-12></cex-0>
+  First reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 1: <cex-1><cex-step>x1</cex-step></cex-1><cex-4><cex-step>                      e1</cex-step></cex-4><cex-5><cex-step>     foo1</cex-step></cex-5><cex-12><cex-step>                                              x1</cex-step></cex-12></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 11: <cex-2><cex-step>x2</cex-step></cex-2></cex-step></cex-1><cex-4><cex-step>                ↳ 1: ε</cex-step></cex-4><cex-5><cex-step> ↳ 3: <cex-6><cex-step>foo2</cex-step></cex-6></cex-step></cex-5><cex-12><cex-step>                                         ↳ 11: <cex-13><cex-step>x2</cex-step></cex-13></cex-step></cex-12>
+    <cex-2><cex-step>           ↳ 12: <cex-3><cex-step>x3</cex-step></cex-3></cex-step></cex-2><cex-6><cex-step>                      ↳ 4: <cex-7><cex-step>foo3</cex-step></cex-7></cex-step></cex-6><cex-13><cex-step>                                          ↳ 12: <cex-14><cex-step>x3</cex-step></cex-14></cex-step></cex-13>
+    <cex-3><cex-step>                 ↳ 13: <cex-leaf>"X"</cex-leaf><cex-dot> •</cex-dot></cex-step></cex-3><cex-7><cex-step>                  ↳ 5: <cex-8><cex-step>x1</cex-step></cex-8><cex-11><cex-step>                    foo4</cex-step></cex-11></cex-step></cex-7><cex-14><cex-step>                     ↳ 13: <cex-leaf>"X"</cex-leaf></cex-step></cex-14>
+    <cex-8><cex-step>                                                   ↳ 11: <cex-9><cex-step>x2</cex-step></cex-9></cex-step></cex-8><cex-11><cex-step>              ↳ 6: <cex-leaf>"quuux"</cex-leaf></cex-step></cex-11>
+    <cex-9><cex-step>                                                         ↳ 12: <cex-10><cex-step>x3</cex-step></cex-10></cex-step></cex-9>
+    <cex-10><cex-step>                                                               ↳ 13: <cex-leaf>"X"</cex-leaf></cex-step></cex-10>
+  Example: <cex-0><cex-1><cex-2><cex-3><cex-leaf>"X"</cex-leaf> <cex-dot>•</cex-dot></cex-3></cex-2></cex-1><cex-4></cex-4><cex-5><cex-6><cex-7><cex-8><cex-9><cex-10> <cex-leaf>"X"</cex-leaf></cex-10></cex-9></cex-8><cex-11> <cex-leaf>"quuux"</cex-leaf></cex-11></cex-7></cex-6></cex-5><cex-12><cex-13><cex-14> <cex-leaf>"X"</cex-leaf></cex-14></cex-13></cex-12></cex-0>
+  Second reduce derivation
+    <cex-0><cex-step>exp</cex-step></cex-0>
+    <cex-0><cex-step>↳ 2: <cex-1><cex-step>y1</cex-step></cex-1><cex-4><cex-step>                      e2</cex-step></cex-4><cex-5><cex-step>     bar1</cex-step></cex-5><cex-12><cex-step>                                               y1</cex-step></cex-12></cex-step></cex-0>
+    <cex-1><cex-step>     ↳ 14: <cex-2><cex-step>y2</cex-step></cex-2></cex-step></cex-1><cex-4><cex-step>                ↳ 2: ε</cex-step></cex-4><cex-5><cex-step> ↳ 7: <cex-6><cex-step>bar2</cex-step></cex-6></cex-step></cex-5><cex-12><cex-step>                                          ↳ 14: <cex-13><cex-step>y2</cex-step></cex-13></cex-step></cex-12>
+    <cex-2><cex-step>           ↳ 15: <cex-3><cex-step>y3</cex-step></cex-3></cex-step></cex-2><cex-6><cex-step>                      ↳ 8: <cex-7><cex-step>bar3</cex-step></cex-7></cex-step></cex-6><cex-13><cex-step>                                           ↳ 15: <cex-14><cex-step>y3</cex-step></cex-14></cex-step></cex-13>
+    <cex-3><cex-step>                 ↳ 16: <cex-leaf>"X"</cex-leaf><cex-dot> •</cex-dot></cex-step></cex-3><cex-7><cex-step>                  ↳ 9: <cex-8><cex-step>y1</cex-step></cex-8><cex-11><cex-step>                    bar4</cex-step></cex-11></cex-step></cex-7><cex-14><cex-step>                      ↳ 16: <cex-leaf>"X"</cex-leaf></cex-step></cex-14>
+    <cex-8><cex-step>                                                   ↳ 14: <cex-9><cex-step>y2</cex-step></cex-9></cex-step></cex-8><cex-11><cex-step>              ↳ 10: <cex-leaf>"quuux"</cex-leaf></cex-step></cex-11>
+    <cex-9><cex-step>                                                         ↳ 15: <cex-10><cex-step>y3</cex-step></cex-10></cex-step></cex-9>
+    <cex-10><cex-step>                                                               ↳ 16: <cex-leaf>"X"</cex-leaf></cex-step></cex-10>
+input.y: <warning>warning:</warning> fix-its can be applied.  Rerun with option '--update'. [<warning>-Wother</warning>]
+]])
+
+m4_popdef([AT_TEST])
+
+
+
+
+## -------------------------------------- ##
+## Indentation with message suppression.  ##
+## -------------------------------------- ##
+
+AT_SETUP([[Indentation with message suppression]])
+
+# https://lists.gnu.org/r/bug-bison/2019-08/msg00002.html
+
+AT_DATA([[input.y]],
+[[%define api.pure
+%pure-parser
+%error-verbose
+%%
+exp : '0'
+]])
+
+AT_BISON_CHECK([[-fcaret -Wno-other input.y]], [0], [],
+[[input.y:2.1-12: warning: deprecated directive: '%pure-parser', use '%define api.pure' [-Wdeprecated]
+    2 | %pure-parser
+      | ^~~~~~~~~~~~
+      | %define api.pure
+input.y:3.1-14: warning: deprecated directive: '%error-verbose', use '%define parse.error verbose' [-Wdeprecated]
+    3 | %error-verbose
+      | ^~~~~~~~~~~~~~
+      | %define parse.error verbose
+]])
+
+AT_CLEANUP

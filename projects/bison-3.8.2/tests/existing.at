@@ -1,0 +1,3263 @@
+# Exercising Bison on actual grammars.                   -*- Autotest -*-
+
+# Copyright (C) 1989-1992, 2000-2005, 2007, 2009-2015, 2018-2021 Free
+# Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[Existing Grammars.]])
+
+# AT_TEST_EXISTING_GRAMMAR(DESCRIPTION,
+#                          DECLS, GRAMMAR, INPUT,
+#                          BISON-STDERR, LAST-STATE, LALR1-DIFF,
+#                          [OTHER-CHECKS],
+#                          [PARSER-EXIT-VALUE],
+#                          [PARSER-STDOUT], [PARSER-STDERR])
+# --------------------------------------------------------------
+m4_define([AT_TEST_EXISTING_GRAMMAR], [_AT_TEST_EXISTING_GRAMMAR([$][1], $@)])
+
+m4_define([_AT_TEST_EXISTING_GRAMMAR],
+[
+dnl See how the parser tables have changed.  As the .output format evolves, the
+dnl diff comments with line numbers might be a pain to maintain.  When that
+dnl time comes, just use sed to drop the line numbers.  For now, as LR(1)
+dnl support is rapidly evolving, let's keep that information to be careful.
+dnl However, we don't do diffs for canonical LR(1) because the diff is huge.
+m4_pushdef([AT_LALR1_DIFF_CHECK],
+[AT_CHECK([[sed 's/^%define lr.type .*$//' input.y > input-lalr.y]])
+AT_BISON_CHECK([[--report=all,no-cex input-lalr.y]], [[0]], [ignore], [ignore])
+AT_DIFF_U_CHECK([[input-lalr.output input.output]], [$1])])
+
+AT_TEST_TABLES_AND_PARSE([$2[: LALR(1)]], [[LALR]], [[last-state]],
+                         [[%define lr.type lalr
+]$3],
+                         [$4], [$5], [$6], [$7],
+                         [AT_LALR1_DIFF_CHECK([$8])$9], [$10], [$11], [$12])
+AT_TEST_TABLES_AND_PARSE([$2[: IELR(1)]], [[IELR]], [[last-state]],
+                         [[%define lr.type ielr
+]$3],
+                         [$4], [$5], [$6], [$7],
+                         [AT_LALR1_DIFF_CHECK([$8])$9], [$10], [$11], [$12])
+AT_TEST_TABLES_AND_PARSE([$2[: Canonical LR(1)]], [[canonical LR]],
+                         [[last-state,no-xml]],
+                         [[%define lr.type canonical-lr
+]$3],
+                         [$4], [$5], [$6], [$7],
+                         [$9], [$10], [$11], [$12])
+
+m4_popdef([AT_LALR1_DIFF_CHECK])
+])
+
+
+
+## ----------------------- ##
+## GNU AWK 3.1.0 Grammar.  ##
+## ----------------------- ##
+
+# We have been careful to strip all the actions excepts the
+# midrule actions.
+#
+# There are 65 SR conflicts.  Bison was once wrong, due to an incorrect
+# computation of nullable.  It reported 485 SR conflicts!
+
+AT_TEST_EXISTING_GRAMMAR([[GNU AWK 3.1.0 Grammar]],
+[[%define parse.error verbose
+
+%token FUNC_CALL NAME REGEXP
+%token ERROR
+%token YNUMBER YSTRING
+%token RELOP APPEND_OP
+%token ASSIGNOP MATCHOP NEWLINE CONCAT_OP
+%token LEX_BEGIN LEX_END LEX_IF LEX_ELSE LEX_RETURN LEX_DELETE
+%token LEX_WHILE LEX_DO LEX_FOR LEX_BREAK LEX_CONTINUE
+%token LEX_PRINT LEX_PRINTF LEX_NEXT LEX_EXIT LEX_FUNCTION
+%token LEX_GETLINE LEX_NEXTFILE
+%token LEX_IN
+%token LEX_AND LEX_OR INCREMENT DECREMENT
+%token LEX_BUILTIN LEX_LENGTH
+
+/* Lowest to highest */
+%right ASSIGNOP
+%right '?' ':'
+%left LEX_OR
+%left LEX_AND
+%left LEX_GETLINE
+%nonassoc LEX_IN
+%left FUNC_CALL LEX_BUILTIN LEX_LENGTH
+%nonassoc ','
+%nonassoc MATCHOP
+%nonassoc RELOP '<' '>' '|' APPEND_OP TWOWAYIO
+%left CONCAT_OP
+%left YSTRING YNUMBER
+%left '+' '-'
+%left '*' '/' '%'
+%right '!' UNARY
+%right '^'
+%left INCREMENT DECREMENT
+%left '$'
+%left '(' ')'
+]],
+[[
+start
+        : opt_nls program opt_nls
+        ;
+
+program
+        : rule
+        | program rule
+        | error
+        | program error
+        | /* empty */
+        ;
+
+rule
+        : LEX_BEGIN {} action
+        | LEX_END {}   action
+        | LEX_BEGIN statement_term
+        | LEX_END statement_term
+        | pattern action
+        | action
+        | pattern statement_term
+        | function_prologue function_body
+        ;
+
+func_name
+        : NAME
+        | FUNC_CALL
+        | lex_builtin
+        ;
+
+lex_builtin
+        : LEX_BUILTIN
+        | LEX_LENGTH
+        ;
+
+function_prologue
+        : LEX_FUNCTION {} func_name '(' opt_param_list r_paren opt_nls
+        ;
+
+function_body
+        : l_brace statements r_brace opt_semi opt_nls
+        | l_brace r_brace opt_semi opt_nls
+        ;
+
+pattern
+        : exp
+        | exp ',' exp
+        ;
+
+regexp
+        /*
+         * In this rule, want_regexp tells yylex that the next thing
+         * is a regexp so it should read up to the closing slash.
+         */
+        : '/' {} REGEXP '/'
+        ;
+
+action
+        : l_brace statements r_brace opt_semi opt_nls
+        | l_brace r_brace opt_semi opt_nls
+        ;
+
+statements
+        : statement
+        | statements statement
+        | error
+        | statements error
+        ;
+
+statement_term
+        : nls
+        | semi opt_nls
+        ;
+
+statement
+        : semi opt_nls
+        | l_brace r_brace
+        | l_brace statements r_brace
+        | if_statement
+        | LEX_WHILE '(' exp r_paren opt_nls statement
+        | LEX_DO opt_nls statement LEX_WHILE '(' exp r_paren opt_nls
+        | LEX_FOR '(' NAME LEX_IN NAME r_paren opt_nls statement
+        | LEX_FOR '(' opt_exp semi opt_nls exp semi opt_nls opt_exp r_paren opt_nls statement
+        | LEX_FOR '(' opt_exp semi opt_nls semi opt_nls opt_exp r_paren opt_nls statement
+        | LEX_BREAK statement_term
+        | LEX_CONTINUE statement_term
+        | print '(' expression_list r_paren output_redir statement_term
+        | print opt_rexpression_list output_redir statement_term
+        | LEX_NEXT statement_term
+        | LEX_NEXTFILE statement_term
+        | LEX_EXIT opt_exp statement_term
+        | LEX_RETURN {} opt_exp statement_term
+        | LEX_DELETE NAME '[' expression_list ']' statement_term
+        | LEX_DELETE NAME  statement_term
+        | exp statement_term
+        ;
+
+print
+        : LEX_PRINT
+        | LEX_PRINTF
+        ;
+
+if_statement
+        : LEX_IF '(' exp r_paren opt_nls statement
+        | LEX_IF '(' exp r_paren opt_nls statement
+             LEX_ELSE opt_nls statement
+        ;
+
+nls
+        : NEWLINE
+        | nls NEWLINE
+        ;
+
+opt_nls
+        : /* empty */
+        | nls
+        ;
+
+input_redir
+        : /* empty */
+        | '<' simp_exp
+        ;
+
+output_redir
+        : /* empty */
+        | '>' exp
+        | APPEND_OP exp
+        | '|' exp
+        | TWOWAYIO exp
+        ;
+
+opt_param_list
+        : /* empty */
+        | param_list
+        ;
+
+param_list
+        : NAME
+        | param_list comma NAME
+        | error
+        | param_list error
+        | param_list comma error
+        ;
+
+/* optional expression, as in for loop */
+opt_exp
+        : /* empty */
+        | exp
+        ;
+
+opt_rexpression_list
+        : /* empty */
+        | rexpression_list
+        ;
+
+rexpression_list
+        : rexp
+        | rexpression_list comma rexp
+        | error
+        | rexpression_list error
+        | rexpression_list error rexp
+        | rexpression_list comma error
+        ;
+
+opt_expression_list
+        : /* empty */
+        | expression_list
+        ;
+
+expression_list
+        : exp
+        | expression_list comma exp
+        | error
+        | expression_list error
+        | expression_list error exp
+        | expression_list comma error
+        ;
+
+/* Expressions, not including the comma operator.  */
+exp     : variable ASSIGNOP {} exp
+        | '(' expression_list r_paren LEX_IN NAME
+        | exp '|' LEX_GETLINE opt_variable
+        | exp TWOWAYIO LEX_GETLINE opt_variable
+        | LEX_GETLINE opt_variable input_redir
+        | exp LEX_AND exp
+        | exp LEX_OR exp
+        | exp MATCHOP exp
+        | regexp
+        | '!' regexp %prec UNARY
+        | exp LEX_IN NAME
+        | exp RELOP exp
+        | exp '<' exp
+        | exp '>' exp
+        | exp '?' exp ':' exp
+        | simp_exp
+        | exp simp_exp %prec CONCAT_OP
+        ;
+
+rexp
+        : variable ASSIGNOP {} rexp
+        | rexp LEX_AND rexp
+        | rexp LEX_OR rexp
+        | LEX_GETLINE opt_variable input_redir
+        | regexp
+        | '!' regexp %prec UNARY
+        | rexp MATCHOP rexp
+        | rexp LEX_IN NAME
+        | rexp RELOP rexp
+        | rexp '?' rexp ':' rexp
+        | simp_exp
+        | rexp simp_exp %prec CONCAT_OP
+        ;
+
+simp_exp
+        : non_post_simp_exp
+        /* Binary operators in order of decreasing precedence.  */
+        | simp_exp '^' simp_exp
+        | simp_exp '*' simp_exp
+        | simp_exp '/' simp_exp
+        | simp_exp '%' simp_exp
+        | simp_exp '+' simp_exp
+        | simp_exp '-' simp_exp
+        | variable INCREMENT
+        | variable DECREMENT
+        ;
+
+non_post_simp_exp
+        : '!' simp_exp %prec UNARY
+        | '(' exp r_paren
+        | LEX_BUILTIN
+          '(' opt_expression_list r_paren
+        | LEX_LENGTH '(' opt_expression_list r_paren
+        | LEX_LENGTH
+        | FUNC_CALL '(' opt_expression_list r_paren
+        | variable
+        | INCREMENT variable
+        | DECREMENT variable
+        | YNUMBER
+        | YSTRING
+        | '-' simp_exp    %prec UNARY
+        | '+' simp_exp    %prec UNARY
+        ;
+
+opt_variable
+        : /* empty */
+        | variable
+        ;
+
+variable
+        : NAME
+        | NAME '[' expression_list ']'
+        | '$' non_post_simp_exp
+        ;
+
+l_brace
+        : '{' opt_nls
+        ;
+
+r_brace
+        : '}' opt_nls
+        ;
+
+r_paren
+        : ')'
+        ;
+
+opt_semi
+        : /* empty */
+        | semi
+        ;
+
+semi
+        : ';'
+        ;
+
+comma   : ',' opt_nls
+        ;
+]],
+
+dnl INPUT
+dnl
+dnl For example, in AWK:
+dnl
+dnl   getline $!4*0;
+dnl
+dnl The grammar below (from GNU AWK 3.1.0) using canonical LR(1) or IELR(1)
+dnl parses it as:
+dnl
+dnl   getline $!(4*0);
+dnl
+dnl That is, they shift '*' immediately and make it part of the getline
+dnl argument.
+dnl
+dnl The grammar below using LALR(1) parses it as a syntax error.  So does
+dnl GNU AWK 3.0.6, 3.1.0, and 3.1.1.  They reduce the full getline expression
+dnl before shifting '*' even though '*' is not a valid lookahead.
+dnl
+dnl GNU AWK 3.1.2, 3.1.3, 3.1.4, and 3.1.5 parse it as:
+dnl
+dnl   (getline $!4)*0;
+dnl
+dnl That is, like the other versions of GNU AWK, they reduce the full getline
+dnl expression before shifting '*'.  However, because of a different LHS on the
+dnl getline rule, '*' actually is a valid lookahead.  Solaris /usr/xpg4/bin/awk
+dnl and the Open Group awk specification seem to agree:
+dnl
+dnl   https://pubs.opengroup.org/onlinepubs/9699919799/utilities/awk.html
+dnl
+dnl /bin/nawk and /bin/awk on Solaris 10 report it as a syntax error, but they
+dnl don't like even 'print $!4;'.
+[[LEX_GETLINE, '$', '!', YNUMBER, '*', YNUMBER, ';']],
+
+dnl BISON-STDERR
+[[input.y:66.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:170.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:175.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:180.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:188.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:202.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:207.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:221.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:300.10: warning: empty rule without %empty [-Wempty-rule]
+input.y:323.10: warning: empty rule without %empty [-Wempty-rule]
+]AT_COND_CASE([[canonical LR]],
+[[input.y: warning: 265 shift/reduce conflicts [-Wconflicts-sr]]],
+[[input.y: warning: 65 shift/reduce conflicts [-Wconflicts-sr]]])[
+input.y: note: rerun with option '-Wcounterexamples' to generate conflict counterexamples
+input.y:39.1-5: warning: useless associativity for FUNC_CALL, use %precedence [-Wprecedence]
+input.y:44.1-5: warning: useless associativity for YNUMBER, use %precedence [-Wprecedence]
+input.y:44.1-5: warning: useless associativity for YSTRING, use %precedence [-Wprecedence]
+input.y:42.1-9: warning: useless precedence and associativity for APPEND_OP [-Wprecedence]
+input.y:33.1-6: warning: useless associativity for ASSIGNOP, use %precedence [-Wprecedence]
+input.y:43.1-5: warning: useless associativity for CONCAT_OP, use %precedence [-Wprecedence]
+input.y:37.1-5: warning: useless precedence and associativity for LEX_GETLINE [-Wprecedence]
+input.y:38.1-9: warning: useless associativity for LEX_IN, use %precedence [-Wprecedence]
+input.y:49.1-5: warning: useless associativity for INCREMENT, use %precedence [-Wprecedence]
+input.y:49.1-5: warning: useless associativity for DECREMENT, use %precedence [-Wprecedence]
+input.y:39.1-5: warning: useless associativity for LEX_BUILTIN, use %precedence [-Wprecedence]
+input.y:39.1-5: warning: useless associativity for LEX_LENGTH, use %precedence [-Wprecedence]
+input.y:40.1-9: warning: useless precedence and associativity for ',' [-Wprecedence]
+input.y:47.1-6: warning: useless associativity for '!', use %precedence [-Wprecedence]
+input.y:47.1-6: warning: useless associativity for UNARY, use %precedence [-Wprecedence]
+input.y:50.1-5: warning: useless associativity for '$', use %precedence [-Wprecedence]
+input.y:51.1-5: warning: useless associativity for '(', use %precedence [-Wprecedence]
+input.y:51.1-5: warning: useless precedence and associativity for ')' [-Wprecedence]
+input.y: warning: fix-its can be applied.  Rerun with option '--update'. [-Wother]
+]],
+
+dnl LAST-STATE
+[AT_COND_CASE([[LALR]], [[319]], [[canonical LR]], [[2358]], [[328]])],
+
+dnl LALR1-DIFF not used for canonical LR(1) because the diff is huge.
+dnl Isocore map from LALR(1) state number to new state number plus descriptions
+dnl of any change in the actions resulting in a change in accepted language:
+dnl   - 24 -> 320
+dnl   - 16 -> 321
+dnl   - 17 -> 322
+dnl   - 20 -> 323
+dnl   - 21 -> 324
+dnl   - 54 -> 325
+dnl   - 56 -> 326: reduce -> shift on '*', '/', and '%'
+dnl   - 58 -> 327: reduce -> shift on '*', '/', and '%'
+dnl   - 61 -> 328: reduce -> shift on '*', '/', and '%'
+[AT_COND_CASE([[LALR]], [],
+[[@@ -747,7 +747,7 @@
+   156         | . '$' non_post_simp_exp
+
+     NAME  shift, and go to state 9
+-    '$'   shift, and go to state 24
++    '$'   shift, and go to state 320
+
+     NAME      [reduce using rule 152 (opt_variable)]
+     '$'       [reduce using rule 152 (opt_variable)]
+@@ -5414,7 +5414,7 @@
+   156         | . '$' non_post_simp_exp
+
+     NAME  shift, and go to state 9
+-    '$'   shift, and go to state 24
++    '$'   shift, and go to state 320
+
+     NAME      [reduce using rule 152 (opt_variable)]
+     '$'       [reduce using rule 152 (opt_variable)]
+@@ -5434,7 +5434,7 @@
+   156         | . '$' non_post_simp_exp
+
+     NAME  shift, and go to state 9
+-    '$'   shift, and go to state 24
++    '$'   shift, and go to state 320
+
+     NAME      [reduce using rule 152 (opt_variable)]
+     '$'       [reduce using rule 152 (opt_variable)]
+@@ -6249,7 +6249,7 @@
+   156         | . '$' non_post_simp_exp
+
+     NAME  shift, and go to state 9
+-    '$'   shift, and go to state 24
++    '$'   shift, and go to state 320
+
+     NAME      [reduce using rule 152 (opt_variable)]
+     '$'       [reduce using rule 152 (opt_variable)]
+@@ -11134,3 +11134,274 @@
+    45 statement: LEX_FOR '(' opt_exp semi opt_nls exp semi opt_nls opt_exp r_paren opt_nls statement .
+
+     $default  reduce using rule 45 (statement)
++
++
++State 320
++
++  139 non_post_simp_exp: . '!' simp_exp
++  140                  | . '(' exp r_paren
++  141                  | . LEX_BUILTIN '(' opt_expression_list r_paren
++  142                  | . LEX_LENGTH '(' opt_expression_list r_paren
++  143                  | . LEX_LENGTH
++  144                  | . FUNC_CALL '(' opt_expression_list r_paren
++  145                  | . variable
++  146                  | . INCREMENT variable
++  147                  | . DECREMENT variable
++  148                  | . YNUMBER
++  149                  | . YSTRING
++  150                  | . '-' simp_exp
++  151                  | . '+' simp_exp
++  154 variable: . NAME
++  155         | . NAME '[' expression_list ']'
++  156         | . '$' non_post_simp_exp
++  156         | '$' . non_post_simp_exp
++
++    FUNC_CALL    shift, and go to state 8
++    NAME         shift, and go to state 9
++    YNUMBER      shift, and go to state 10
++    YSTRING      shift, and go to state 11
++    INCREMENT    shift, and go to state 321
++    DECREMENT    shift, and go to state 322
++    LEX_BUILTIN  shift, and go to state 18
++    LEX_LENGTH   shift, and go to state 19
++    '+'          shift, and go to state 323
++    '-'          shift, and go to state 324
++    '!'          shift, and go to state 325
++    '$'          shift, and go to state 320
++    '('          shift, and go to state 55
++
++    non_post_simp_exp  go to state 62
++    variable           go to state 63
++
++
++State 321
++
++  146 non_post_simp_exp: INCREMENT . variable
++  154 variable: . NAME
++  155         | . NAME '[' expression_list ']'
++  156         | . '$' non_post_simp_exp
++
++    NAME  shift, and go to state 9
++    '$'   shift, and go to state 320
++
++    variable  go to state 50
++
++
++State 322
++
++  147 non_post_simp_exp: DECREMENT . variable
++  154 variable: . NAME
++  155         | . NAME '[' expression_list ']'
++  156         | . '$' non_post_simp_exp
++
++    NAME  shift, and go to state 9
++    '$'   shift, and go to state 320
++
++    variable  go to state 51
++
++
++State 323
++
++  130 simp_exp: . non_post_simp_exp
++  131         | . simp_exp '^' simp_exp
++  132         | . simp_exp '*' simp_exp
++  133         | . simp_exp '/' simp_exp
++  134         | . simp_exp '%' simp_exp
++  135         | . simp_exp '+' simp_exp
++  136         | . simp_exp '-' simp_exp
++  137         | . variable INCREMENT
++  138         | . variable DECREMENT
++  139 non_post_simp_exp: . '!' simp_exp
++  140                  | . '(' exp r_paren
++  141                  | . LEX_BUILTIN '(' opt_expression_list r_paren
++  142                  | . LEX_LENGTH '(' opt_expression_list r_paren
++  143                  | . LEX_LENGTH
++  144                  | . FUNC_CALL '(' opt_expression_list r_paren
++  145                  | . variable
++  146                  | . INCREMENT variable
++  147                  | . DECREMENT variable
++  148                  | . YNUMBER
++  149                  | . YSTRING
++  150                  | . '-' simp_exp
++  151                  | . '+' simp_exp
++  151                  | '+' . simp_exp
++  154 variable: . NAME
++  155         | . NAME '[' expression_list ']'
++  156         | . '$' non_post_simp_exp
++
++    FUNC_CALL    shift, and go to state 8
++    NAME         shift, and go to state 9
++    YNUMBER      shift, and go to state 10
++    YSTRING      shift, and go to state 11
++    INCREMENT    shift, and go to state 16
++    DECREMENT    shift, and go to state 17
++    LEX_BUILTIN  shift, and go to state 18
++    LEX_LENGTH   shift, and go to state 19
++    '+'          shift, and go to state 20
++    '-'          shift, and go to state 21
++    '!'          shift, and go to state 54
++    '$'          shift, and go to state 24
++    '('          shift, and go to state 55
++
++    simp_exp           go to state 326
++    non_post_simp_exp  go to state 35
++    variable           go to state 57
++
++
++State 324
++
++  130 simp_exp: . non_post_simp_exp
++  131         | . simp_exp '^' simp_exp
++  132         | . simp_exp '*' simp_exp
++  133         | . simp_exp '/' simp_exp
++  134         | . simp_exp '%' simp_exp
++  135         | . simp_exp '+' simp_exp
++  136         | . simp_exp '-' simp_exp
++  137         | . variable INCREMENT
++  138         | . variable DECREMENT
++  139 non_post_simp_exp: . '!' simp_exp
++  140                  | . '(' exp r_paren
++  141                  | . LEX_BUILTIN '(' opt_expression_list r_paren
++  142                  | . LEX_LENGTH '(' opt_expression_list r_paren
++  143                  | . LEX_LENGTH
++  144                  | . FUNC_CALL '(' opt_expression_list r_paren
++  145                  | . variable
++  146                  | . INCREMENT variable
++  147                  | . DECREMENT variable
++  148                  | . YNUMBER
++  149                  | . YSTRING
++  150                  | . '-' simp_exp
++  150                  | '-' . simp_exp
++  151                  | . '+' simp_exp
++  154 variable: . NAME
++  155         | . NAME '[' expression_list ']'
++  156         | . '$' non_post_simp_exp
++
++    FUNC_CALL    shift, and go to state 8
++    NAME         shift, and go to state 9
++    YNUMBER      shift, and go to state 10
++    YSTRING      shift, and go to state 11
++    INCREMENT    shift, and go to state 16
++    DECREMENT    shift, and go to state 17
++    LEX_BUILTIN  shift, and go to state 18
++    LEX_LENGTH   shift, and go to state 19
++    '+'          shift, and go to state 20
++    '-'          shift, and go to state 21
++    '!'          shift, and go to state 54
++    '$'          shift, and go to state 24
++    '('          shift, and go to state 55
++
++    simp_exp           go to state 327
++    non_post_simp_exp  go to state 35
++    variable           go to state 57
++
++
++State 325
++
++  130 simp_exp: . non_post_simp_exp
++  131         | . simp_exp '^' simp_exp
++  132         | . simp_exp '*' simp_exp
++  133         | . simp_exp '/' simp_exp
++  134         | . simp_exp '%' simp_exp
++  135         | . simp_exp '+' simp_exp
++  136         | . simp_exp '-' simp_exp
++  137         | . variable INCREMENT
++  138         | . variable DECREMENT
++  139 non_post_simp_exp: . '!' simp_exp
++  139                  | '!' . simp_exp
++  140                  | . '(' exp r_paren
++  141                  | . LEX_BUILTIN '(' opt_expression_list r_paren
++  142                  | . LEX_LENGTH '(' opt_expression_list r_paren
++  143                  | . LEX_LENGTH
++  144                  | . FUNC_CALL '(' opt_expression_list r_paren
++  145                  | . variable
++  146                  | . INCREMENT variable
++  147                  | . DECREMENT variable
++  148                  | . YNUMBER
++  149                  | . YSTRING
++  150                  | . '-' simp_exp
++  151                  | . '+' simp_exp
++  154 variable: . NAME
++  155         | . NAME '[' expression_list ']'
++  156         | . '$' non_post_simp_exp
++
++    FUNC_CALL    shift, and go to state 8
++    NAME         shift, and go to state 9
++    YNUMBER      shift, and go to state 10
++    YSTRING      shift, and go to state 11
++    INCREMENT    shift, and go to state 16
++    DECREMENT    shift, and go to state 17
++    LEX_BUILTIN  shift, and go to state 18
++    LEX_LENGTH   shift, and go to state 19
++    '+'          shift, and go to state 20
++    '-'          shift, and go to state 21
++    '!'          shift, and go to state 54
++    '$'          shift, and go to state 24
++    '('          shift, and go to state 55
++
++    simp_exp           go to state 328
++    non_post_simp_exp  go to state 35
++    variable           go to state 57
++
++
++State 326
++
++  131 simp_exp: simp_exp . '^' simp_exp
++  132         | simp_exp . '*' simp_exp
++  133         | simp_exp . '/' simp_exp
++  134         | simp_exp . '%' simp_exp
++  135         | simp_exp . '+' simp_exp
++  136         | simp_exp . '-' simp_exp
++  151 non_post_simp_exp: '+' simp_exp .  [error, FUNC_CALL, NAME, YNUMBER, YSTRING, RELOP, APPEND_OP, MATCHOP, NEWLINE, LEX_IN, LEX_AND, LEX_OR, INCREMENT, DECREMENT, LEX_BUILTIN, LEX_LENGTH, '?', ':', ',', '<', '>', '|', TWOWAYIO, '+', '-', '!', '$', '(', ')', '@:>@', '{', ';']
++
++    '*'  shift, and go to state 89
++    '/'  shift, and go to state 90
++    '%'  shift, and go to state 91
++    '^'  shift, and go to state 92
++
++    $default  reduce using rule 151 (non_post_simp_exp)
++
++    Conflict between rule 151 and token '+' resolved as reduce ('+' < UNARY).
++    Conflict between rule 151 and token '-' resolved as reduce ('-' < UNARY).
++
++
++State 327
++
++  131 simp_exp: simp_exp . '^' simp_exp
++  132         | simp_exp . '*' simp_exp
++  133         | simp_exp . '/' simp_exp
++  134         | simp_exp . '%' simp_exp
++  135         | simp_exp . '+' simp_exp
++  136         | simp_exp . '-' simp_exp
++  150 non_post_simp_exp: '-' simp_exp .  [error, FUNC_CALL, NAME, YNUMBER, YSTRING, RELOP, APPEND_OP, MATCHOP, NEWLINE, LEX_IN, LEX_AND, LEX_OR, INCREMENT, DECREMENT, LEX_BUILTIN, LEX_LENGTH, '?', ':', ',', '<', '>', '|', TWOWAYIO, '+', '-', '!', '$', '(', ')', '@:>@', '{', ';']
++
++    '*'  shift, and go to state 89
++    '/'  shift, and go to state 90
++    '%'  shift, and go to state 91
++    '^'  shift, and go to state 92
++
++    $default  reduce using rule 150 (non_post_simp_exp)
++
++    Conflict between rule 150 and token '+' resolved as reduce ('+' < UNARY).
++    Conflict between rule 150 and token '-' resolved as reduce ('-' < UNARY).
++
++
++State 328
++
++  131 simp_exp: simp_exp . '^' simp_exp
++  132         | simp_exp . '*' simp_exp
++  133         | simp_exp . '/' simp_exp
++  134         | simp_exp . '%' simp_exp
++  135         | simp_exp . '+' simp_exp
++  136         | simp_exp . '-' simp_exp
++  139 non_post_simp_exp: '!' simp_exp .  [error, FUNC_CALL, NAME, YNUMBER, YSTRING, RELOP, APPEND_OP, MATCHOP, NEWLINE, LEX_IN, LEX_AND, LEX_OR, INCREMENT, DECREMENT, LEX_BUILTIN, LEX_LENGTH, '?', ':', ',', '<', '>', '|', TWOWAYIO, '+', '-', '!', '$', '(', ')', '@:>@', '{', ';']
++
++    '*'  shift, and go to state 89
++    '/'  shift, and go to state 90
++    '%'  shift, and go to state 91
++    '^'  shift, and go to state 92
++
++    $default  reduce using rule 139 (non_post_simp_exp)
++
++    Conflict between rule 139 and token '+' resolved as reduce ('+' < UNARY).
++    Conflict between rule 139 and token '-' resolved as reduce ('-' < UNARY).
+]])],
+
+dnl OTHER-CHECKS
+[],
+
+dnl PARSER-EXIT-VALUE, PARSER-STDOUT, PARSER-STDERR
+dnl In the case of the syntax error, the parser recovers, so it returns 0.
+[[0]],
+[],
+[AT_COND_CASE([[LALR]],
+[[syntax error, unexpected '*', expecting NEWLINE or '{' or ';'
+]])])
+
+## ----------------- ##
+## GNU Cim Grammar.  ##
+## ----------------- ##
+
+# GNU Cim, the GNU Simula 87 Compiler.
+
+# Bison was once wrong, due to an incorrect computation of the RR conflicts.
+# It reported 80 SR && 99 RR conflicts instead of 78/10!!!
+
+AT_TEST_EXISTING_GRAMMAR([[GNU Cim Grammar]],
+[[
+%token
+        HACTIVATE HAFTER /*HAND*/ HARRAY HAT
+        HBEFORE HBEGIN HBOOLEAN
+        HCHARACTER HCLASS /*HCOMMENT*/ HCONC
+        HDELAY HDO
+        HELSE HEND HEQ /*HEQV*/ HEXTERNAL
+        HFOR
+        HGE HGO HGOTO HGT
+        HHIDDEN
+        HIF /*HIMP*/ HIN HINNER HINSPECT HINTEGER HIS
+        HLABEL HLE HLONG HLT
+        HNAME HNE HNEW HNONE /*HNOT*/ HNOTEXT
+        /*HOR*/ HOTHERWISE
+        HPRIOR HPROCEDURE HPROTECTED
+        HQUA
+        HREACTIVATE HREAL HREF
+        HSHORT HSTEP HSWITCH
+        HTEXT HTHEN HTHIS HTO
+        HUNTIL
+        HVALUE HVAR HVIRTUAL
+        HWHEN HWHILE
+
+        HASSIGNVALUE HASSIGNREF
+        /*HDOT*/ HPAREXPSEPARATOR HLABELSEPARATOR HSTATEMENTSEPARATOR
+        HBEGPAR HENDPAR
+        HEQR HNER
+        HADD HSUB HMUL HDIV HINTDIV HEXP
+        HDOTDOTDOT
+
+%token HIDENTIFIER
+%token HBOOLEANKONST HINTEGERKONST HCHARACTERKONST
+%token HREALKONST
+%token HTEXTKONST
+
+
+%right HASSIGN
+%left   HORELSE
+%left   HANDTHEN
+%left   HEQV
+%left   HIMP
+%left   HOR
+%left   HAND
+
+%left   HNOT
+
+%left HVALRELOPERATOR HREFRELOPERATOR HOBJRELOPERATOR
+
+%left   HCONC
+
+%left HTERMOPERATOR
+%left UNEAR
+%left HFACTOROPERATOR
+%left         HPRIMARYOPERATOR
+
+%left   HQUA
+
+%left   HDOT
+
+%start  MAIN_MODULE
+]],
+[[
+/* GRAMATIKK FOR PROGRAM MODULES */
+MAIN_MODULE     :       {}
+                        MODULS
+                |       error HSTATEMENTSEPARATOR MBEE_DECLSTMS
+                ;
+EXT_DECLARATION :       HEXTERNAL
+                        MBEE_TYPE
+                        HPROCEDURE
+                                {}
+                        EXT_LIST
+                |
+                        HEXTERNAL
+                        HIDENTIFIER
+                        HPROCEDURE
+                                {}
+                        HIDENTIFIER {}
+                        EXTERNAL_KIND_ITEM
+                |       HEXTERNAL
+                        HCLASS
+                                {}
+                        EXT_LIST
+
+                ;
+EXTERNAL_KIND_ITEM:     EXT_IDENT
+                        HOBJRELOPERATOR
+                                {}
+                        MBEE_TYPE HPROCEDURE
+                        HIDENTIFIER
+                                {}
+                        HEADING EMPTY_BLOCK
+                                {}
+/*              |
+                        EXT_IDENT
+                                {}
+                        MBEE_REST_EXT_LIST
+                ;
+MBEE_REST_EXT_LIST:     /* EMPTY
+                |       HPAREXPSEPARATOR EXT_KIND_LIST
+                ;
+EXT_KIND_LIST   :       EXT_KIND_ITEM
+                |       EXT_KIND_LIST HPAREXPSEPARATOR EXT_KIND_ITEM
+                ;
+EXT_KIND_ITEM   :       HIDENTIFIER
+                        EXT_IDENT
+                                {}*/
+                ;
+EMPTY_BLOCK     :       /*EMPT*/
+                |       HBEGIN HEND
+                ;
+EXT_LIST        :       EXT_ITEM
+                |       EXT_LIST HPAREXPSEPARATOR EXT_ITEM
+                ;
+EXT_ITEM        :       HIDENTIFIER
+                        EXT_IDENT
+                ;
+EXT_IDENT       :       /* EMPTY */
+                |       HVALRELOPERATOR {}
+                        HTEXTKONST
+                ;
+/* GRAMATIKK FOR TYPER */
+NO_TYPE         :       /*EMPT*/
+                ;
+MBEE_TYPE       :       NO_TYPE
+                |       TYPE
+                ;
+TYPE            :       HREF HBEGPAR
+                        HIDENTIFIER
+                                {}
+                        HENDPAR
+                |       HTEXT
+                |       HBOOLEAN
+                |       HCHARACTER
+                |       HSHORT HINTEGER
+                |       HINTEGER
+                |       HREAL
+                |       HLONG HREAL
+                ;
+
+/* GRAMATIKK FOR DEL AV SETNINGER */
+MBEE_ELSE_PART  :       /*EMPT*/
+/*              |       HELSE
+                        HIF
+                        EXPRESSION
+                        HTHEN   {}
+                        BLOCK   {}
+                        MBEE_ELSE_PART          {}*/
+                |       HELSE   {}
+                        BLOCK
+                ;
+FOR_LIST        :       FOR_LIST_ELEMENT
+                |       FOR_LIST_ELEMENT
+                        HPAREXPSEPARATOR
+                        FOR_LIST
+                ;
+FOR_LIST_ELEMENT:       EXPRESSION
+                        MBEE_F_L_EL_R_PT
+                ;
+MBEE_F_L_EL_R_PT:       /*EMPT*/
+                |       HWHILE
+                        EXPRESSION
+                |       HSTEP
+                        EXPRESSION
+                        HUNTIL
+                        EXPRESSION
+                ;
+GOTO            :       HGO
+                        HTO
+                |       HGOTO
+                ;
+CONN_STATE_R_PT :       WHEN_CLAUSE_LIST
+                |       HDO   {}
+                        BLOCK
+                ;
+WHEN_CLAUSE_LIST:       HWHEN
+                        HIDENTIFIER
+                        HDO    {}
+                        BLOCK
+                |       WHEN_CLAUSE_LIST
+                        HWHEN
+                        HIDENTIFIER
+                        HDO    {}
+                        BLOCK
+                ;
+MBEE_OTWI_CLAUS :       /*EMPT*/
+                |       HOTHERWISE {}
+
+                        BLOCK
+                ;
+ACTIVATOR       :       HACTIVATE
+                |       HREACTIVATE
+                ;
+SCHEDULE        :       /*EMPT*/
+                |       ATDELAY EXPRESSION      {}
+                        PRIOR
+                |       BEFOREAFTER             {}
+                        EXPRESSION
+                ;
+ATDELAY         :       HAT
+                |       HDELAY
+                ;
+BEFOREAFTER     :       HBEFORE
+                |       HAFTER
+                ;
+PRIOR           :       /*EMPT*/
+                |       HPRIOR
+                ;
+/* GRAMATIKK FOR SETNINGER OG DEKLARASJONER */
+MODULSTATEMENT  :       HWHILE
+                        EXPRESSION
+                        HDO     {}
+                        BLOCK
+                |       HIF
+                        EXPRESSION
+                        HTHEN   {}
+                        BLOCK   {}
+                        MBEE_ELSE_PART
+                |       HFOR
+                        HIDENTIFIER
+                        HASSIGN {}
+                        FOR_LIST
+                        HDO     {}
+                        BLOCK
+                |       GOTO
+                        EXPRESSION
+                |       HINSPECT
+                        EXPRESSION              {}
+                        CONN_STATE_R_PT
+                                {}
+                        MBEE_OTWI_CLAUS
+                |       HINNER
+                |       HIDENTIFIER
+                        HLABELSEPARATOR
+                                {}
+                        DECLSTATEMENT
+                |       EXPRESSION_SIMP
+                        HBEGIN
+                                {}
+                        IMPORT_SPEC_MODULE
+                                {}
+                        MBEE_DECLSTMS
+                        HEND
+                |       EXPRESSION_SIMP HBEGIN error HSTATEMENTSEPARATOR
+                        MBEE_DECLSTMS HEND
+                |       EXPRESSION_SIMP HBEGIN error HEND
+                |       EXPRESSION_SIMP
+                |       ACTIVATOR EXPRESSION SCHEDULE
+                |       HBEGIN
+                                {}
+                        MBEE_DECLSTMS
+                        HEND
+                |       MBEE_TYPE HPROCEDURE
+                        HIDENTIFIER
+                                {}
+                        HEADING BLOCK
+                |       HIDENTIFIER
+                        HCLASS
+                        NO_TYPE
+                                {}
+                        IMPORT_SPEC_MODULE
+                        HIDENTIFIER
+                                {}
+                        HEADING
+                        BLOCK
+                |       HCLASS
+                        NO_TYPE
+                        HIDENTIFIER
+                                {}
+                        HEADING
+                        BLOCK
+                |       EXT_DECLARATION
+                |       /*EMPT*/
+                ;
+IMPORT_SPEC_MODULE:
+                ;
+DECLSTATEMENT   :       MODULSTATEMENT
+                |       TYPE
+                        HIDENTIFIER
+                        MBEE_CONSTANT
+                        HPAREXPSEPARATOR
+                                {}
+                        IDENTIFIER_LISTC
+                |       TYPE
+                        HIDENTIFIER
+                        MBEE_CONSTANT
+                |       MBEE_TYPE
+                        HARRAY  {}
+                        ARR_SEGMENT_LIST
+                |       HSWITCH
+                        HIDENTIFIER
+                        HASSIGN {}
+                        SWITCH_LIST
+                ;
+BLOCK           :       DECLSTATEMENT
+                |       HBEGIN MBEE_DECLSTMS HEND
+                |       HBEGIN error HSTATEMENTSEPARATOR MBEE_DECLSTMS HEND
+                |       HBEGIN error HEND
+                ;
+MBEE_DECLSTMS   :       MBEE_DECLSTMSU
+                ;
+MBEE_DECLSTMSU  :       DECLSTATEMENT
+                |       MBEE_DECLSTMSU
+                        HSTATEMENTSEPARATOR
+                        DECLSTATEMENT
+                ;
+MODULS          :       MODULSTATEMENT
+                |       MODULS HSTATEMENTSEPARATOR MODULSTATEMENT
+                ;
+/* GRAMATIKK FOR DEL AV DEKLARASJONER */
+ARR_SEGMENT_LIST:       ARR_SEGMENT
+                |       ARR_SEGMENT_LIST
+                        HPAREXPSEPARATOR
+                        ARR_SEGMENT
+                ;
+ARR_SEGMENT     :       ARRAY_SEGMENT
+                        HBEGPAR
+                        BAUND_PAIR_LIST HENDPAR
+                ;
+ARRAY_SEGMENT   :       ARRAY_SEGMENT_EL        {}
+
+                |       ARRAY_SEGMENT_EL
+                        HPAREXPSEPARATOR
+                        ARRAY_SEGMENT
+                ;
+ARRAY_SEGMENT_EL:       HIDENTIFIER
+                ;
+BAUND_PAIR_LIST :       BAUND_PAIR
+                |       BAUND_PAIR
+                        HPAREXPSEPARATOR
+                        BAUND_PAIR_LIST
+                ;
+BAUND_PAIR      :       EXPRESSION
+                        HLABELSEPARATOR
+                        EXPRESSION
+                ;
+SWITCH_LIST     :       EXPRESSION
+                |       EXPRESSION
+                        HPAREXPSEPARATOR
+                        SWITCH_LIST
+                ;
+HEADING         :       MBEE_FMAL_PAR_P HSTATEMENTSEPARATOR {}
+                        MBEE_MODE_PART  {}
+                        MBEE_SPEC_PART  {}
+                        MBEE_PROT_PART  {}
+                        MBEE_VIRT_PART
+                ;
+MBEE_FMAL_PAR_P :       /*EMPT*/
+                |       FMAL_PAR_PART
+                ;
+FMAL_PAR_PART   :       HBEGPAR NO_TYPE
+                        MBEE_LISTV HENDPAR
+                ;
+MBEE_LISTV      :       /*EMPT*/
+                |       LISTV
+                ;
+LISTV           :       HIDENTIFIER
+                |       FPP_CATEG HDOTDOTDOT
+                |       HIDENTIFIER     {}
+                        HPAREXPSEPARATOR LISTV
+                |       FPP_SPEC
+                |       FPP_SPEC
+                        HPAREXPSEPARATOR LISTV
+                ;
+FPP_HEADING     :       HBEGPAR NO_TYPE
+                        FPP_MBEE_LISTV HENDPAR
+                ;
+FPP_MBEE_LISTV  :       /*EMPT*/
+                |       FPP_LISTV
+                ;
+FPP_LISTV       :       FPP_CATEG HDOTDOTDOT
+                |       FPP_SPEC
+                |       FPP_SPEC
+                        HPAREXPSEPARATOR LISTV
+                ;
+FPP_SPEC        :       FPP_CATEG SPECIFIER HIDENTIFIER
+                |       FPP_CATEG FPP_PROC_DECL_IN_SPEC
+                ;
+FPP_CATEG       :       HNAME HLABELSEPARATOR
+                |       HVALUE HLABELSEPARATOR
+                |       HVAR HLABELSEPARATOR
+                |       /*EMPT*/
+                ;
+FPP_PROC_DECL_IN_SPEC:  MBEE_TYPE HPROCEDURE
+                        HIDENTIFIER
+                                        {}
+                        FPP_HEADING {} { /* Yes, two "final" actions. */ }
+                ;
+IDENTIFIER_LISTV:       HIDENTIFIER
+                |       HDOTDOTDOT
+                |       HIDENTIFIER     {}
+                        HPAREXPSEPARATOR IDENTIFIER_LISTV
+                ;
+MBEE_MODE_PART  :       /*EMPT*/
+                |       MODE_PART
+                ;
+MODE_PART       :       NAME_PART
+                |       VALUE_PART
+                |       VAR_PART
+                |       NAME_PART VALUE_PART
+                |       VALUE_PART NAME_PART
+                |       NAME_PART VAR_PART
+                |       VAR_PART NAME_PART
+                |       VALUE_PART VAR_PART
+                |       VAR_PART VALUE_PART
+                |       VAR_PART NAME_PART VALUE_PART
+                |       NAME_PART VAR_PART VALUE_PART
+                |       NAME_PART VALUE_PART VAR_PART
+                |       VAR_PART VALUE_PART NAME_PART
+                |       VALUE_PART VAR_PART NAME_PART
+                |       VALUE_PART NAME_PART VAR_PART
+                ;
+NAME_PART       :       HNAME           {}
+                        IDENTIFIER_LISTV
+                        HSTATEMENTSEPARATOR
+                ;
+VAR_PART        :       HVAR            {}
+                        IDENTIFIER_LISTV
+                        HSTATEMENTSEPARATOR
+                ;
+VALUE_PART      :       HVALUE          {}
+                        IDENTIFIER_LISTV HSTATEMENTSEPARATOR
+                ;
+MBEE_SPEC_PART  :       /*EMPT*/
+                |       SPEC_PART
+                ;
+SPEC_PART       :       ONE_SPEC
+                |       SPEC_PART ONE_SPEC
+                ;
+ONE_SPEC        :       SPECIFIER IDENTIFIER_LIST HSTATEMENTSEPARATOR
+                |       NO_TYPE HPROCEDURE HIDENTIFIER HOBJRELOPERATOR
+                          {}
+                        PROC_DECL_IN_SPEC HSTATEMENTSEPARATOR
+                |       FPP_PROC_DECL_IN_SPEC HSTATEMENTSEPARATOR
+                |       MBEE_TYPE HPROCEDURE HIDENTIFIER HSTATEMENTSEPARATOR
+                |       MBEE_TYPE HPROCEDURE HIDENTIFIER HPAREXPSEPARATOR
+                        IDENTIFIER_LIST HSTATEMENTSEPARATOR
+                ;
+SPECIFIER       :       TYPE
+                |       MBEE_TYPE
+                        HARRAY
+                |       HLABEL
+                |       HSWITCH
+                ;
+PROC_DECL_IN_SPEC:      MBEE_TYPE HPROCEDURE
+                        HIDENTIFIER
+                                        {}
+                        HEADING
+                                        {}
+                        MBEE_BEGIN_END
+                ;
+MBEE_BEGIN_END  :       /* EMPTY */
+                |       HBEGIN HEND
+                ;
+MBEE_PROT_PART  :       /*EMPT*/
+                |       PROTECTION_PART
+                ;
+PROTECTION_PART :       PROT_SPECIFIER IDENTIFIER_LIST
+                        HSTATEMENTSEPARATOR
+                |       PROTECTION_PART  PROT_SPECIFIER
+                        IDENTIFIER_LIST HSTATEMENTSEPARATOR
+                ;
+PROT_SPECIFIER  :       HHIDDEN
+                |       HPROTECTED
+                |       HHIDDEN
+                        HPROTECTED
+                |       HPROTECTED
+                        HHIDDEN
+                ;
+MBEE_VIRT_PART  :       /*EMPT*/
+                |       VIRTUAL_PART
+                ;
+VIRTUAL_PART    :       HVIRTUAL
+                        HLABELSEPARATOR
+                        MBEE_SPEC_PART
+                ;
+IDENTIFIER_LIST :       HIDENTIFIER
+                |       IDENTIFIER_LIST HPAREXPSEPARATOR
+                        HIDENTIFIER
+                ;
+IDENTIFIER_LISTC:       HIDENTIFIER
+                        MBEE_CONSTANT
+                |       IDENTIFIER_LISTC HPAREXPSEPARATOR
+                        HIDENTIFIER
+                        MBEE_CONSTANT
+                ;
+MBEE_CONSTANT   :       /* EMPTY */
+                |       HVALRELOPERATOR
+                                {}
+                        EXPRESSION
+                ;
+
+/* GRAMATIKK FOR UTTRYKK */
+EXPRESSION      :       EXPRESSION_SIMP
+                |       HIF
+                        EXPRESSION
+                        HTHEN
+                        EXPRESSION
+                        HELSE
+                        EXPRESSION
+                ;
+EXPRESSION_SIMP :       EXPRESSION_SIMP
+                        HASSIGN
+                        EXPRESSION
+                |
+
+                        EXPRESSION_SIMP
+                        HCONC
+                        EXPRESSION_SIMP
+                |       EXPRESSION_SIMP HOR
+                        HELSE
+                        EXPRESSION_SIMP
+                        %prec HORELSE
+                |       EXPRESSION_SIMP HAND
+                        HTHEN
+                        EXPRESSION_SIMP
+                        %prec HANDTHEN
+                |       EXPRESSION_SIMP
+                        HEQV EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HIMP EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HOR EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HAND EXPRESSION_SIMP
+                |       HNOT EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HVALRELOPERATOR
+                        EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HREFRELOPERATOR
+                        EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HOBJRELOPERATOR
+                        EXPRESSION_SIMP
+                |       HTERMOPERATOR
+                        EXPRESSION_SIMP %prec UNEAR
+                |       EXPRESSION_SIMP
+                        HTERMOPERATOR
+                        EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HFACTOROPERATOR
+                        EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HPRIMARYOPERATOR
+                        EXPRESSION_SIMP
+                |       HBEGPAR
+                        EXPRESSION HENDPAR
+                |       HTEXTKONST
+                |       HCHARACTERKONST
+                |       HREALKONST
+                |       HINTEGERKONST
+                |       HBOOLEANKONST
+                |       HNONE
+                |       HIDENTIFIER
+                                {}
+                        MBEE_ARG_R_PT
+                |       HTHIS HIDENTIFIER
+                |       HNEW
+                        HIDENTIFIER
+                        ARG_R_PT
+                |       EXPRESSION_SIMP
+                        HDOT
+                        EXPRESSION_SIMP
+                |       EXPRESSION_SIMP
+                        HQUA HIDENTIFIER
+                ;
+ARG_R_PT        :       /*EMPTY*/
+                |       HBEGPAR
+                        ARGUMENT_LIST HENDPAR
+                ;
+MBEE_ARG_R_PT   :       /*EMPTY*/
+                |       HBEGPAR
+                        ARGUMENT_LIST HENDPAR
+                ;
+ARGUMENT_LIST   :       EXPRESSION
+                |       EXPRESSION
+                        HPAREXPSEPARATOR
+                        ARGUMENT_LIST
+                ;
+]],
+
+dnl INPUT
+[[]],
+
+dnl BISON-STDERR
+[[input.y:128.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:137.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:142.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:161.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:179.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:205.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:213.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:225.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:292.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:294.20: warning: empty rule without %empty [-Wempty-rule]
+input.y:367.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:373.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:387.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:401.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:413.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:443.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:471.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:474.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:489.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:506.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:587.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:591.18: warning: empty rule without %empty [-Wempty-rule]
+]AT_COND_CASE([[canonical LR]],
+[[input.y: warning: 1876 shift/reduce conflicts [-Wconflicts-sr]
+input.y: warning: 144 reduce/reduce conflicts [-Wconflicts-rr]]],
+[[input.y: warning: 78 shift/reduce conflicts [-Wconflicts-sr]
+input.y: warning: 10 reduce/reduce conflicts [-Wconflicts-rr]]])[
+input.y: note: rerun with option '-Wcounterexamples' to generate conflict counterexamples
+input.y:72.1-5: warning: useless associativity for HQUA, use %precedence [-Wprecedence]
+input.y:53.1-6: warning: useless associativity for HASSIGN, use %precedence [-Wprecedence]
+input.y:54.1-5: warning: useless associativity for HORELSE, use %precedence [-Wprecedence]
+input.y:55.1-5: warning: useless associativity for HANDTHEN, use %precedence [-Wprecedence]
+input.y:61.1-5: warning: useless associativity for HNOT, use %precedence [-Wprecedence]
+input.y:68.1-5: warning: useless associativity for UNEAR, use %precedence [-Wprecedence]
+input.y: warning: fix-its can be applied.  Rerun with option '--update'. [-Wother]
+]],
+
+dnl LAST-STATE
+[AT_COND_CASE([[canonical LR]], [[10425]], [[442]])],
+
+dnl LALR1-DIFF not used for canonical LR(1) because the diff is huge.
+[],
+
+dnl OTHER-CHECKS
+[AT_COND_CASE([[canonical LR]], [[]],
+[AT_CHECK([[grep '^State.*conflicts:' input.output]], [[0]],
+[[State 64 conflicts: 14 shift/reduce
+State 164 conflicts: 1 shift/reduce
+State 201 conflicts: 33 shift/reduce, 4 reduce/reduce
+State 206 conflicts: 1 shift/reduce
+State 240 conflicts: 1 shift/reduce
+State 335 conflicts: 9 shift/reduce, 2 reduce/reduce
+State 356 conflicts: 1 shift/reduce
+State 360 conflicts: 9 shift/reduce, 2 reduce/reduce
+State 427 conflicts: 9 shift/reduce, 2 reduce/reduce
+]])])])
+
+## -------------------------------- ##
+## GNU pic (Groff 1.18.1) Grammar.  ##
+## -------------------------------- ##
+
+# GNU pic, part of groff.
+
+# Bison once reported shift/reduce conflicts that it shouldn't have.
+
+AT_TEST_EXISTING_GRAMMAR([[GNU pic (Groff 1.18.1) Grammar]],
+[[%define parse.error verbose
+
+%token LABEL
+%token VARIABLE
+%token NUMBER
+%token TEXT
+%token COMMAND_LINE
+%token DELIMITED
+%token ORDINAL
+%token TH
+%token LEFT_ARROW_HEAD
+%token RIGHT_ARROW_HEAD
+%token DOUBLE_ARROW_HEAD
+%token LAST
+%token UP
+%token DOWN
+%token LEFT
+%token RIGHT
+%token BOX
+%token CIRCLE
+%token ELLIPSE
+%token ARC
+%token LINE
+%token ARROW
+%token MOVE
+%token SPLINE
+%token HEIGHT
+%token RADIUS
+%token WIDTH
+%token DIAMETER
+%token FROM
+%token TO
+%token AT
+%token WITH
+%token BY
+%token THEN
+%token SOLID
+%token DOTTED
+%token DASHED
+%token CHOP
+%token SAME
+%token INVISIBLE
+%token LJUST
+%token RJUST
+%token ABOVE
+%token BELOW
+%token OF
+%token THE
+%token WAY
+%token BETWEEN
+%token AND
+%token HERE
+%token DOT_N
+%token DOT_E
+%token DOT_W
+%token DOT_S
+%token DOT_NE
+%token DOT_SE
+%token DOT_NW
+%token DOT_SW
+%token DOT_C
+%token DOT_START
+%token DOT_END
+%token DOT_X
+%token DOT_Y
+%token DOT_HT
+%token DOT_WID
+%token DOT_RAD
+%token SIN
+%token COS
+%token ATAN2
+%token LOG
+%token EXP
+%token SQRT
+%token K_MAX
+%token K_MIN
+%token INT
+%token RAND
+%token SRAND
+%token COPY
+%token THROUGH
+%token TOP
+%token BOTTOM
+%token UPPER
+%token LOWER
+%token SH
+%token PRINT
+%token CW
+%token CCW
+%token FOR
+%token DO
+%token IF
+%token ELSE
+%token ANDAND
+%token OROR
+%token NOTEQUAL
+%token EQUALEQUAL
+%token LESSEQUAL
+%token GREATEREQUAL
+%token LEFT_CORNER
+%token RIGHT_CORNER
+%token NORTH
+%token SOUTH
+%token EAST
+%token WEST
+%token CENTER
+%token END
+%token START
+%token RESET
+%token UNTIL
+%token PLOT
+%token THICKNESS
+%token FILL
+%token COLORED
+%token OUTLINED
+%token SHADED
+%token ALIGNED
+%token SPRINTF
+%token COMMAND
+
+%left '.'
+
+/* this ensures that plot 17 "%g" parses as (plot 17 "%g") */
+%left PLOT
+%left TEXT SPRINTF
+
+/* give text adjustments higher precedence than TEXT, so that
+box "foo" above ljust == box ("foo" above ljust)
+*/
+
+%left LJUST RJUST ABOVE BELOW
+
+%left LEFT RIGHT
+/* Give attributes that take an optional expression a higher
+precedence than left and right, so that eg 'line chop left'
+parses properly. */
+%left CHOP SOLID DASHED DOTTED UP DOWN FILL COLORED OUTLINED
+%left LABEL
+
+%left VARIABLE NUMBER '(' SIN COS ATAN2 LOG EXP SQRT K_MAX K_MIN INT RAND SRAND LAST
+%left ORDINAL HERE '`'
+
+%left BOX CIRCLE ELLIPSE ARC LINE ARROW SPLINE '[' /* ] */
+
+/* these need to be lower than '-' */
+%left HEIGHT RADIUS WIDTH DIAMETER FROM TO AT THICKNESS
+
+/* these must have higher precedence than CHOP so that 'label %prec CHOP'
+works */
+%left DOT_N DOT_E DOT_W DOT_S DOT_NE DOT_SE DOT_NW DOT_SW DOT_C
+%left DOT_START DOT_END TOP BOTTOM LEFT_CORNER RIGHT_CORNER
+%left UPPER LOWER NORTH SOUTH EAST WEST CENTER START END
+
+%left ','
+%left OROR
+%left ANDAND
+%left EQUALEQUAL NOTEQUAL
+%left '<' '>' LESSEQUAL GREATEREQUAL
+
+%left BETWEEN OF
+%left AND
+
+%left '+' '-'
+%left '*' '/' '%'
+%right '!'
+%right '^'
+]],
+[[
+top:
+        optional_separator
+        | element_list
+        ;
+
+element_list:
+        optional_separator middle_element_list optional_separator
+        ;
+
+middle_element_list:
+        element
+        | middle_element_list separator element
+        ;
+
+optional_separator:
+        /* empty */
+        | separator
+        ;
+
+separator:
+        ';'
+        | separator ';'
+        ;
+
+placeless_element:
+        VARIABLE '=' any_expr
+        | VARIABLE ':' '=' any_expr
+        | UP
+        | DOWN
+        | LEFT
+        | RIGHT
+        | COMMAND_LINE
+        | COMMAND print_args
+        | PRINT print_args
+        | SH
+                {}
+          DELIMITED
+        | COPY TEXT
+        | COPY TEXT THROUGH
+                {}
+          DELIMITED
+                {}
+          until
+        | COPY THROUGH
+                {}
+          DELIMITED
+                {}
+          until
+        | FOR VARIABLE '=' expr TO expr optional_by DO
+                {}
+          DELIMITED
+        | simple_if
+        | simple_if ELSE
+                {}
+          DELIMITED
+        | reset_variables
+        | RESET
+        ;
+
+reset_variables:
+        RESET VARIABLE
+        | reset_variables VARIABLE
+        | reset_variables ',' VARIABLE
+        ;
+
+print_args:
+        print_arg
+        | print_args print_arg
+        ;
+
+print_arg:
+        expr                                                    %prec ','
+        | text
+        | position                                              %prec ','
+        ;
+
+simple_if:
+        IF any_expr THEN
+                {}
+        DELIMITED
+        ;
+
+until:
+        /* empty */
+        | UNTIL TEXT
+        ;
+
+any_expr:
+        expr
+        | text_expr
+        ;
+
+text_expr:
+        text EQUALEQUAL text
+        | text NOTEQUAL text
+        | text_expr ANDAND text_expr
+        | text_expr ANDAND expr
+        | expr ANDAND text_expr
+        | text_expr OROR text_expr
+        | text_expr OROR expr
+        | expr OROR text_expr
+        | '!' text_expr
+        ;
+
+optional_by:
+        /* empty */
+        | BY expr
+        | BY '*' expr
+        ;
+
+element:
+        object_spec
+        | LABEL ':' optional_separator element
+        | LABEL ':' optional_separator position_not_place
+        | LABEL ':' optional_separator place
+        | '{' {} element_list '}'
+                {}
+          optional_element
+        | placeless_element
+        ;
+
+optional_element:
+        /* empty */
+        | element
+        ;
+
+object_spec:
+        BOX
+        | CIRCLE
+        | ELLIPSE
+        | ARC
+        | LINE
+        | ARROW
+        | MOVE
+        | SPLINE
+        | text                                                  %prec TEXT
+        | PLOT expr
+        | PLOT expr text
+        | '['
+                {}
+          element_list ']'
+        | object_spec HEIGHT expr
+        | object_spec RADIUS expr
+        | object_spec WIDTH expr
+        | object_spec DIAMETER expr
+        | object_spec expr                                      %prec HEIGHT
+        | object_spec UP
+        | object_spec UP expr
+        | object_spec DOWN
+        | object_spec DOWN expr
+        | object_spec RIGHT
+        | object_spec RIGHT expr
+        | object_spec LEFT
+        | object_spec LEFT expr
+        | object_spec FROM position
+        | object_spec TO position
+        | object_spec AT position
+        | object_spec WITH path
+        | object_spec WITH position                             %prec ','
+        | object_spec BY expr_pair
+        | object_spec THEN
+        | object_spec SOLID
+        | object_spec DOTTED
+        | object_spec DOTTED expr
+        | object_spec DASHED
+        | object_spec DASHED expr
+        | object_spec FILL
+        | object_spec FILL expr
+        | object_spec SHADED text
+        | object_spec COLORED text
+        | object_spec OUTLINED text
+        | object_spec CHOP
+        | object_spec CHOP expr
+        | object_spec SAME
+        | object_spec INVISIBLE
+        | object_spec LEFT_ARROW_HEAD
+        | object_spec RIGHT_ARROW_HEAD
+        | object_spec DOUBLE_ARROW_HEAD
+        | object_spec CW
+        | object_spec CCW
+        | object_spec text                                      %prec TEXT
+        | object_spec LJUST
+        | object_spec RJUST
+        | object_spec ABOVE
+        | object_spec BELOW
+        | object_spec THICKNESS expr
+        | object_spec ALIGNED
+        ;
+
+text:
+        TEXT
+        | SPRINTF '(' TEXT sprintf_args ')'
+        ;
+
+sprintf_args:
+        /* empty */
+        | sprintf_args ',' expr
+        ;
+
+position:
+        position_not_place
+        | place
+        ;
+
+position_not_place:
+        expr_pair
+        | position '+' expr_pair
+        | position '-' expr_pair
+        | '(' position ',' position ')'
+        | expr between position AND position
+        | expr '<' position ',' position '>'
+        ;
+
+between:
+        BETWEEN
+        | OF THE WAY BETWEEN
+        ;
+
+expr_pair:
+        expr ',' expr
+        | '(' expr_pair ')'
+        ;
+
+place:
+        /* line at A left == line (at A) left */
+        label                                                   %prec CHOP
+        | label corner
+        | corner label
+        | corner OF label
+        | HERE
+        ;
+
+label:
+        LABEL
+        | nth_primitive
+        | label '.' LABEL
+        ;
+
+ordinal:
+        ORDINAL
+        | '`' any_expr TH
+        ;
+
+optional_ordinal_last:
+        LAST
+        | ordinal LAST
+        ;
+
+nth_primitive:
+        ordinal object_type
+        | optional_ordinal_last object_type
+        ;
+
+object_type:
+        BOX
+        | CIRCLE
+        | ELLIPSE
+        | ARC
+        | LINE
+        | ARROW
+        | SPLINE
+        | '[' ']'
+        | TEXT
+        ;
+
+label_path:
+        '.' LABEL
+        | label_path '.' LABEL
+        ;
+
+relative_path:
+        corner                                                  %prec CHOP
+        /* give this a lower precedence than LEFT and RIGHT so that
+           [A: box] with .A left == [A: box] with (.A left) */
+        | label_path                                            %prec TEXT
+        | label_path corner
+        ;
+
+path:
+        relative_path
+        | '(' relative_path ',' relative_path ')'
+                {}
+        /* The rest of these rules are a compatibility sop. */
+        | ORDINAL LAST object_type relative_path
+        | LAST object_type relative_path
+        | ORDINAL object_type relative_path
+        | LABEL relative_path
+        ;
+
+corner:
+        DOT_N
+        | DOT_E
+        | DOT_W
+        | DOT_S
+        | DOT_NE
+        | DOT_SE
+        | DOT_NW
+        | DOT_SW
+        | DOT_C
+        | DOT_START
+        | DOT_END
+        | TOP
+        | BOTTOM
+        | LEFT
+        | RIGHT
+        | UPPER LEFT
+        | LOWER LEFT
+        | UPPER RIGHT
+        | LOWER RIGHT
+        | LEFT_CORNER
+        | RIGHT_CORNER
+        | UPPER LEFT_CORNER
+        | LOWER LEFT_CORNER
+        | UPPER RIGHT_CORNER
+        | LOWER RIGHT_CORNER
+        | NORTH
+        | SOUTH
+        | EAST
+        | WEST
+        | CENTER
+        | START
+        | END
+        ;
+
+expr:
+        VARIABLE
+        | NUMBER
+        | place DOT_X
+        | place DOT_Y
+        | place DOT_HT
+        | place DOT_WID
+        | place DOT_RAD
+        | expr '+' expr
+        | expr '-' expr
+        | expr '*' expr
+        | expr '/' expr
+        | expr '%' expr
+        | expr '^' expr
+        | '-' expr                                              %prec '!'
+        | '(' any_expr ')'
+        | SIN '(' any_expr ')'
+        | COS '(' any_expr ')'
+        | ATAN2 '(' any_expr ',' any_expr ')'
+        | LOG '(' any_expr ')'
+        | EXP '(' any_expr ')'
+        | SQRT '(' any_expr ')'
+        | K_MAX '(' any_expr ',' any_expr ')'
+        | K_MIN '(' any_expr ',' any_expr ')'
+        | INT '(' any_expr ')'
+        | RAND '(' any_expr ')'
+        | RAND '(' ')'
+        | SRAND '(' any_expr ')'
+        | expr '<' expr
+        | expr LESSEQUAL expr
+        | expr '>' expr
+        | expr GREATEREQUAL expr
+        | expr EQUALEQUAL expr
+        | expr NOTEQUAL expr
+        | expr ANDAND expr
+        | expr OROR expr
+        | '!' expr
+        ;
+]],
+
+dnl INPUT
+dnl
+dnl For example, in pic:
+dnl
+dnl   .PS
+dnl   A: circle "A"
+dnl   B: A left
+dnl   circle "B" at B
+dnl   .PE
+dnl
+dnl Even using groff 1.19.2, the 3rd line above is a syntax error.  Change
+dnl "left" to "right", and it still is.  However, add "upper" or "lower" before
+dnl "left or "right" and it's accepted to mean ".nw", ".ne", ".sw", or ".se".
+dnl (There seem to be no aliases for "north" and "south" that can stand alone
+dnl without being followed by "of".)
+[[VARIABLE, '=', LABEL, LEFT, DOT_X]],
+
+dnl BISON-STDERR
+[[input.y:202.20: warning: empty rule without %empty [-Wempty-rule]
+input.y:270.7: warning: empty rule without %empty [-Wempty-rule]
+input.y:292.13: warning: empty rule without %empty [-Wempty-rule]
+input.y:309.18: warning: empty rule without %empty [-Wempty-rule]
+input.y:382.14: warning: empty rule without %empty [-Wempty-rule]
+input.y:471.11-48: warning: rule useless in parser due to conflicts [-Wother]
+input.y:154.1-5: warning: useless associativity for LABEL, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for VARIABLE, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for NUMBER, use %precedence [-Wprecedence]
+input.y:141.1-5: warning: useless associativity for TEXT, use %precedence [-Wprecedence]
+input.y:157.1-5: warning: useless associativity for ORDINAL, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for LAST, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless associativity for UP, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless associativity for DOWN, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for BOX, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for CIRCLE, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for ELLIPSE, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for ARC, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for LINE, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for ARROW, use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for SPLINE, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for HEIGHT, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for RADIUS, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for WIDTH, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for DIAMETER, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for FROM, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for TO, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for AT, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless precedence and associativity for SOLID [-Wprecedence]
+input.y:153.1-5: warning: useless associativity for DOTTED, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless associativity for DASHED, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless associativity for CHOP, use %precedence [-Wprecedence]
+input.y:147.1-5: warning: useless precedence and associativity for LJUST [-Wprecedence]
+input.y:147.1-5: warning: useless precedence and associativity for RJUST [-Wprecedence]
+input.y:147.1-5: warning: useless precedence and associativity for ABOVE [-Wprecedence]
+input.y:147.1-5: warning: useless precedence and associativity for BELOW [-Wprecedence]
+input.y:176.1-5: warning: useless associativity for OF, use %precedence [-Wprecedence]
+input.y:176.1-5: warning: useless associativity for BETWEEN, use %precedence [-Wprecedence]
+input.y:177.1-5: warning: useless associativity for AND, use %precedence [-Wprecedence]
+input.y:157.1-5: warning: useless associativity for HERE, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_N, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_E, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_W, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_S, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_NE, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_SE, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_NW, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_SW, use %precedence [-Wprecedence]
+input.y:166.1-5: warning: useless associativity for DOT_C, use %precedence [-Wprecedence]
+input.y:167.1-5: warning: useless associativity for DOT_START, use %precedence [-Wprecedence]
+input.y:167.1-5: warning: useless associativity for DOT_END, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for SIN, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for COS, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for ATAN2, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for LOG, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for EXP, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for SQRT, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for K_MAX, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for K_MIN, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for INT, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for RAND, use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for SRAND, use %precedence [-Wprecedence]
+input.y:167.1-5: warning: useless associativity for TOP, use %precedence [-Wprecedence]
+input.y:167.1-5: warning: useless associativity for BOTTOM, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for UPPER, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for LOWER, use %precedence [-Wprecedence]
+input.y:167.1-5: warning: useless associativity for LEFT_CORNER, use %precedence [-Wprecedence]
+input.y:167.1-5: warning: useless associativity for RIGHT_CORNER, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for NORTH, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for SOUTH, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for EAST, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for WEST, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for CENTER, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for END, use %precedence [-Wprecedence]
+input.y:168.1-5: warning: useless associativity for START, use %precedence [-Wprecedence]
+input.y:140.1-5: warning: useless associativity for PLOT, use %precedence [-Wprecedence]
+input.y:162.1-5: warning: useless associativity for THICKNESS, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless associativity for FILL, use %precedence [-Wprecedence]
+input.y:153.1-5: warning: useless precedence and associativity for COLORED [-Wprecedence]
+input.y:153.1-5: warning: useless precedence and associativity for OUTLINED [-Wprecedence]
+input.y:141.1-5: warning: useless associativity for SPRINTF, use %precedence [-Wprecedence]
+input.y:137.1-5: warning: useless associativity for '.', use %precedence [-Wprecedence]
+input.y:156.1-5: warning: useless associativity for '(', use %precedence [-Wprecedence]
+input.y:157.1-5: warning: useless associativity for '`', use %precedence [-Wprecedence]
+input.y:159.1-5: warning: useless associativity for '@<:@', use %precedence [-Wprecedence]
+input.y:170.1-5: warning: useless associativity for ',', use %precedence [-Wprecedence]
+input.y:181.1-6: warning: useless associativity for '!', use %precedence [-Wprecedence]
+input.y: warning: fix-its can be applied.  Rerun with option '--update'. [-Wother]
+]],
+
+dnl LAST-STATE
+[AT_COND_CASE([[LALR]], [[422]], [[canonical LR]], [[4833]], [[427]])],
+
+dnl LALR1-DIFF not used for canonical LR(1) because the diff is huge.
+dnl Isocore map from LALR(1) state number to new state number plus descriptions
+dnl of any change in the actions resulting in a change in accepted language:
+dnl   - 102 -> 423: reduce -> shift on LEFT and RIGHT
+dnl   - 237 -> 425
+dnl   - 266 -> 424
+dnl   - 339 -> 426
+dnl   - 383 -> 427
+[AT_COND_CASE([[LALR]], [],
+[[@@ -1249,7 +1249,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -1403,7 +1403,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -1880,7 +1880,7 @@
+
+     text                   go to state 162
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -2073,7 +2073,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -2597,7 +2597,7 @@
+     position_not_place     go to state 99
+     expr_pair              go to state 191
+     place                  go to state 101
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -2758,7 +2758,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -2901,7 +2901,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -3044,7 +3044,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -3282,7 +3282,7 @@
+
+ State 102
+
+-  146 place: label .  [$end, LABEL, VARIABLE, NUMBER, TEXT, ORDINAL, LEFT_ARROW_HEAD, RIGHT_ARROW_HEAD, DOUBLE_ARROW_HEAD, LAST, UP, DOWN, LEFT, RIGHT, HEIGHT, RADIUS, WIDTH, DIAMETER, FROM, TO, AT, WITH, BY, THEN, SOLID, DOTTED, DASHED, CHOP, SAME, INVISIBLE, LJUST, RJUST, ABOVE, BELOW, AND, HERE, DOT_X, DOT_Y, DOT_HT, DOT_WID, DOT_RAD, SIN, COS, ATAN2, LOG, EXP, SQRT, K_MAX, K_MIN, INT, RAND, SRAND, CW, CCW, THICKNESS, FILL, COLORED, OUTLINED, SHADED, ALIGNED, SPRINTF, '(', '`', ',', '>', '+', '-', '!', ';', '}', '@:>@', ')']
++  146 place: label .  [$end, LABEL, VARIABLE, NUMBER, TEXT, ORDINAL, LEFT_ARROW_HEAD, RIGHT_ARROW_HEAD, DOUBLE_ARROW_HEAD, LAST, UP, DOWN, LEFT, RIGHT, HEIGHT, RADIUS, WIDTH, DIAMETER, FROM, TO, AT, WITH, BY, THEN, SOLID, DOTTED, DASHED, CHOP, SAME, INVISIBLE, LJUST, RJUST, ABOVE, BELOW, HERE, DOT_X, DOT_Y, DOT_HT, DOT_WID, DOT_RAD, SIN, COS, ATAN2, LOG, EXP, SQRT, K_MAX, K_MIN, INT, RAND, SRAND, CW, CCW, THICKNESS, FILL, COLORED, OUTLINED, SHADED, ALIGNED, SPRINTF, '(', '`', '+', '-', '!', ';', '}', '@:>@']
+   147      | label . corner
+   153 label: label . '.' LABEL
+   180 corner: . DOT_N
+@@ -3671,7 +3671,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -3830,7 +3830,7 @@
+     text_expr              go to state 239
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -4507,7 +4507,7 @@
+     $default  reduce using rule 89 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -4699,7 +4699,7 @@
+     $default  reduce using rule 91 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -4893,7 +4893,7 @@
+     $default  reduce using rule 95 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -5091,7 +5091,7 @@
+     $default  reduce using rule 93 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -5286,7 +5286,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -5429,7 +5429,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -5572,7 +5572,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -5715,7 +5715,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -6501,7 +6501,7 @@
+
+     expr_pair              go to state 280
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -6659,7 +6659,7 @@
+     $default  reduce using rule 105 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -6851,7 +6851,7 @@
+     $default  reduce using rule 107 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -7043,7 +7043,7 @@
+     $default  reduce using rule 114 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -7290,7 +7290,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -7434,7 +7434,7 @@
+     $default  reduce using rule 109 (object_spec)
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -7845,12 +7845,12 @@
+     position_not_place     go to state 296
+     expr_pair              go to state 100
+     place                  go to state 297
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+     corner                 go to state 106
+-    expr                   go to state 266
++    expr                   go to state 424
+
+
+ State 165
+@@ -8013,7 +8013,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -8198,7 +8198,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -8359,7 +8359,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -8520,7 +8520,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -8681,7 +8681,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -8842,7 +8842,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9003,7 +9003,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9164,7 +9164,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9325,7 +9325,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9486,7 +9486,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9649,7 +9649,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9810,7 +9810,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -9947,7 +9947,7 @@
+
+     $default  reduce using rule 47 (any_expr)
+
+-    between  go to state 237
++    between  go to state 425
+
+
+ State 193
+@@ -10178,7 +10178,7 @@
+
+     expr_pair              go to state 317
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -10324,7 +10324,7 @@
+
+     expr_pair              go to state 318
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -10648,7 +10648,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -10791,7 +10791,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -10934,7 +10934,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11077,7 +11077,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11220,7 +11220,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11363,7 +11363,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11506,7 +11506,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11663,7 +11663,7 @@
+     position_not_place     go to state 99
+     expr_pair              go to state 100
+     place                  go to state 101
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11806,7 +11806,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -11949,7 +11949,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -12092,7 +12092,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -12235,7 +12235,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -12378,7 +12378,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -12521,7 +12521,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -12664,7 +12664,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -12820,12 +12820,12 @@
+     position_not_place     go to state 99
+     expr_pair              go to state 100
+     place                  go to state 101
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+     corner                 go to state 106
+-    expr                   go to state 266
++    expr                   go to state 424
+
+
+ State 238
+@@ -12963,7 +12963,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -13186,7 +13186,7 @@
+     text_expr              go to state 342
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -13345,7 +13345,7 @@
+     text_expr              go to state 344
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -13528,7 +13528,7 @@
+     text_expr              go to state 348
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -13687,7 +13687,7 @@
+     text_expr              go to state 350
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -13830,7 +13830,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -14773,7 +14773,7 @@
+     position_not_place     go to state 99
+     expr_pair              go to state 191
+     place                  go to state 101
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -15100,7 +15100,7 @@
+     text                   go to state 113
+     expr_pair              go to state 365
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -15719,12 +15719,12 @@
+     position_not_place     go to state 99
+     expr_pair              go to state 100
+     place                  go to state 101
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+     corner                 go to state 106
+-    expr                   go to state 266
++    expr                   go to state 424
+
+
+ State 315
+@@ -16150,7 +16150,7 @@
+
+     $default  reduce using rule 239 (expr)
+
+-    between  go to state 237
++    between  go to state 425
+
+     Conflict between rule 239 and token OF resolved as shift ('<' < OF).
+     Conflict between rule 239 and token BETWEEN resolved as shift ('<' < BETWEEN).
+@@ -17260,7 +17260,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -17442,7 +17442,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -17603,7 +17603,7 @@
+     text_expr              go to state 112
+     text                   go to state 113
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -17798,12 +17798,12 @@
+     position_not_place     go to state 99
+     expr_pair              go to state 100
+     place                  go to state 101
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+     corner                 go to state 106
+-    expr                   go to state 266
++    expr                   go to state 424
+
+
+ State 383
+@@ -18097,7 +18097,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -18247,7 +18247,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -18856,7 +18856,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -19013,7 +19013,7 @@
+     '!'           shift, and go to state 94
+
+     place                  go to state 114
+-    label                  go to state 102
++    label                  go to state 423
+     ordinal                go to state 103
+     optional_ordinal_last  go to state 104
+     nth_primitive          go to state 105
+@@ -19115,3 +19115,440 @@
+    29 placeless_element: FOR VARIABLE '=' expr TO expr optional_by DO $@6 DELIMITED .
+
+     $default  reduce using rule 29 (placeless_element)
++
++
++State 423
++
++  146 place: label .  [$end, AND, DOT_X, DOT_Y, DOT_HT, DOT_WID, DOT_RAD, ',', '>', '+', '-', ';', '}', '@:>@', ')']
++  147      | label . corner
++  153 label: label . '.' LABEL
++  180 corner: . DOT_N
++  181       | . DOT_E
++  182       | . DOT_W
++  183       | . DOT_S
++  184       | . DOT_NE
++  185       | . DOT_SE
++  186       | . DOT_NW
++  187       | . DOT_SW
++  188       | . DOT_C
++  189       | . DOT_START
++  190       | . DOT_END
++  191       | . TOP
++  192       | . BOTTOM
++  193       | . LEFT
++  194       | . RIGHT
++  195       | . UPPER LEFT
++  196       | . LOWER LEFT
++  197       | . UPPER RIGHT
++  198       | . LOWER RIGHT
++  199       | . LEFT_CORNER
++  200       | . RIGHT_CORNER
++  201       | . UPPER LEFT_CORNER
++  202       | . LOWER LEFT_CORNER
++  203       | . UPPER RIGHT_CORNER
++  204       | . LOWER RIGHT_CORNER
++  205       | . NORTH
++  206       | . SOUTH
++  207       | . EAST
++  208       | . WEST
++  209       | . CENTER
++  210       | . START
++  211       | . END
++
++    LEFT          shift, and go to state 53
++    RIGHT         shift, and go to state 54
++    DOT_N         shift, and go to state 56
++    DOT_E         shift, and go to state 57
++    DOT_W         shift, and go to state 58
++    DOT_S         shift, and go to state 59
++    DOT_NE        shift, and go to state 60
++    DOT_SE        shift, and go to state 61
++    DOT_NW        shift, and go to state 62
++    DOT_SW        shift, and go to state 63
++    DOT_C         shift, and go to state 64
++    DOT_START     shift, and go to state 65
++    DOT_END       shift, and go to state 66
++    TOP           shift, and go to state 78
++    BOTTOM        shift, and go to state 79
++    UPPER         shift, and go to state 80
++    LOWER         shift, and go to state 81
++    LEFT_CORNER   shift, and go to state 82
++    RIGHT_CORNER  shift, and go to state 83
++    NORTH         shift, and go to state 84
++    SOUTH         shift, and go to state 85
++    EAST          shift, and go to state 86
++    WEST          shift, and go to state 87
++    CENTER        shift, and go to state 88
++    END           shift, and go to state 89
++    START         shift, and go to state 90
++    '.'           shift, and go to state 204
++
++    $default  reduce using rule 146 (place)
++
++    corner  go to state 205
++
++
++State 424
++
++  140 position_not_place: expr . between position AND position
++  141                   | expr . '<' position ',' position '>'
++  142 between: . BETWEEN
++  143        | . OF THE WAY BETWEEN
++  144 expr_pair: expr . ',' expr
++  219 expr: expr . '+' expr
++  220     | expr . '-' expr
++  221     | expr . '*' expr
++  222     | expr . '/' expr
++  223     | expr . '%' expr
++  224     | expr . '^' expr
++  239     | expr . '<' expr
++  240     | expr . LESSEQUAL expr
++  241     | expr . '>' expr
++  242     | expr . GREATEREQUAL expr
++  243     | expr . EQUALEQUAL expr
++  244     | expr . NOTEQUAL expr
++  245     | expr . ANDAND expr
++  246     | expr . OROR expr
++
++    OF            shift, and go to state 220
++    BETWEEN       shift, and go to state 221
++    ANDAND        shift, and go to state 222
++    OROR          shift, and go to state 223
++    NOTEQUAL      shift, and go to state 224
++    EQUALEQUAL    shift, and go to state 225
++    LESSEQUAL     shift, and go to state 226
++    GREATEREQUAL  shift, and go to state 227
++    ','           shift, and go to state 228
++    '<'           shift, and go to state 229
++    '>'           shift, and go to state 230
++    '+'           shift, and go to state 231
++    '-'           shift, and go to state 232
++    '*'           shift, and go to state 233
++    '/'           shift, and go to state 234
++    '%'           shift, and go to state 235
++    '^'           shift, and go to state 236
++
++    between  go to state 425
++
++
++State 425
++
++  134 position: . position_not_place
++  135         | . place
++  136 position_not_place: . expr_pair
++  137                   | . position '+' expr_pair
++  138                   | . position '-' expr_pair
++  139                   | . '(' position ',' position ')'
++  140                   | . expr between position AND position
++  140                   | expr between . position AND position
++  141                   | . expr '<' position ',' position '>'
++  144 expr_pair: . expr ',' expr
++  145          | . '(' expr_pair ')'
++  146 place: . label
++  147      | . label corner
++  148      | . corner label
++  149      | . corner OF label
++  150      | . HERE
++  151 label: . LABEL
++  152      | . nth_primitive
++  153      | . label '.' LABEL
++  154 ordinal: . ORDINAL
++  155        | . '`' any_expr TH
++  156 optional_ordinal_last: . LAST
++  157                      | . ordinal LAST
++  158 nth_primitive: . ordinal object_type
++  159              | . optional_ordinal_last object_type
++  180 corner: . DOT_N
++  181       | . DOT_E
++  182       | . DOT_W
++  183       | . DOT_S
++  184       | . DOT_NE
++  185       | . DOT_SE
++  186       | . DOT_NW
++  187       | . DOT_SW
++  188       | . DOT_C
++  189       | . DOT_START
++  190       | . DOT_END
++  191       | . TOP
++  192       | . BOTTOM
++  193       | . LEFT
++  194       | . RIGHT
++  195       | . UPPER LEFT
++  196       | . LOWER LEFT
++  197       | . UPPER RIGHT
++  198       | . LOWER RIGHT
++  199       | . LEFT_CORNER
++  200       | . RIGHT_CORNER
++  201       | . UPPER LEFT_CORNER
++  202       | . LOWER LEFT_CORNER
++  203       | . UPPER RIGHT_CORNER
++  204       | . LOWER RIGHT_CORNER
++  205       | . NORTH
++  206       | . SOUTH
++  207       | . EAST
++  208       | . WEST
++  209       | . CENTER
++  210       | . START
++  211       | . END
++  212 expr: . VARIABLE
++  213     | . NUMBER
++  214     | . place DOT_X
++  215     | . place DOT_Y
++  216     | . place DOT_HT
++  217     | . place DOT_WID
++  218     | . place DOT_RAD
++  219     | . expr '+' expr
++  220     | . expr '-' expr
++  221     | . expr '*' expr
++  222     | . expr '/' expr
++  223     | . expr '%' expr
++  224     | . expr '^' expr
++  225     | . '-' expr
++  226     | . '(' any_expr ')'
++  227     | . SIN '(' any_expr ')'
++  228     | . COS '(' any_expr ')'
++  229     | . ATAN2 '(' any_expr ',' any_expr ')'
++  230     | . LOG '(' any_expr ')'
++  231     | . EXP '(' any_expr ')'
++  232     | . SQRT '(' any_expr ')'
++  233     | . K_MAX '(' any_expr ',' any_expr ')'
++  234     | . K_MIN '(' any_expr ',' any_expr ')'
++  235     | . INT '(' any_expr ')'
++  236     | . RAND '(' any_expr ')'
++  237     | . RAND '(' ')'
++  238     | . SRAND '(' any_expr ')'
++  239     | . expr '<' expr
++  240     | . expr LESSEQUAL expr
++  241     | . expr '>' expr
++  242     | . expr GREATEREQUAL expr
++  243     | . expr EQUALEQUAL expr
++  244     | . expr NOTEQUAL expr
++  245     | . expr ANDAND expr
++  246     | . expr OROR expr
++  247     | . '!' expr
++
++    LABEL         shift, and go to state 48
++    VARIABLE      shift, and go to state 49
++    NUMBER        shift, and go to state 50
++    ORDINAL       shift, and go to state 51
++    LAST          shift, and go to state 52
++    LEFT          shift, and go to state 53
++    RIGHT         shift, and go to state 54
++    HERE          shift, and go to state 55
++    DOT_N         shift, and go to state 56
++    DOT_E         shift, and go to state 57
++    DOT_W         shift, and go to state 58
++    DOT_S         shift, and go to state 59
++    DOT_NE        shift, and go to state 60
++    DOT_SE        shift, and go to state 61
++    DOT_NW        shift, and go to state 62
++    DOT_SW        shift, and go to state 63
++    DOT_C         shift, and go to state 64
++    DOT_START     shift, and go to state 65
++    DOT_END       shift, and go to state 66
++    SIN           shift, and go to state 67
++    COS           shift, and go to state 68
++    ATAN2         shift, and go to state 69
++    LOG           shift, and go to state 70
++    EXP           shift, and go to state 71
++    SQRT          shift, and go to state 72
++    K_MAX         shift, and go to state 73
++    K_MIN         shift, and go to state 74
++    INT           shift, and go to state 75
++    RAND          shift, and go to state 76
++    SRAND         shift, and go to state 77
++    TOP           shift, and go to state 78
++    BOTTOM        shift, and go to state 79
++    UPPER         shift, and go to state 80
++    LOWER         shift, and go to state 81
++    LEFT_CORNER   shift, and go to state 82
++    RIGHT_CORNER  shift, and go to state 83
++    NORTH         shift, and go to state 84
++    SOUTH         shift, and go to state 85
++    EAST          shift, and go to state 86
++    WEST          shift, and go to state 87
++    CENTER        shift, and go to state 88
++    END           shift, and go to state 89
++    START         shift, and go to state 90
++    '('           shift, and go to state 91
++    '`'           shift, and go to state 92
++    '-'           shift, and go to state 93
++    '!'           shift, and go to state 94
++
++    position               go to state 426
++    position_not_place     go to state 99
++    expr_pair              go to state 100
++    place                  go to state 101
++    label                  go to state 423
++    ordinal                go to state 103
++    optional_ordinal_last  go to state 104
++    nth_primitive          go to state 105
++    corner                 go to state 106
++    expr                   go to state 424
++
++
++State 426
++
++  137 position_not_place: position . '+' expr_pair
++  138                   | position . '-' expr_pair
++  140                   | expr between position . AND position
++
++    AND  shift, and go to state 427
++    '+'  shift, and go to state 197
++    '-'  shift, and go to state 198
++
++
++State 427
++
++  134 position: . position_not_place
++  135         | . place
++  136 position_not_place: . expr_pair
++  137                   | . position '+' expr_pair
++  138                   | . position '-' expr_pair
++  139                   | . '(' position ',' position ')'
++  140                   | . expr between position AND position
++  140                   | expr between position AND . position
++  141                   | . expr '<' position ',' position '>'
++  144 expr_pair: . expr ',' expr
++  145          | . '(' expr_pair ')'
++  146 place: . label
++  147      | . label corner
++  148      | . corner label
++  149      | . corner OF label
++  150      | . HERE
++  151 label: . LABEL
++  152      | . nth_primitive
++  153      | . label '.' LABEL
++  154 ordinal: . ORDINAL
++  155        | . '`' any_expr TH
++  156 optional_ordinal_last: . LAST
++  157                      | . ordinal LAST
++  158 nth_primitive: . ordinal object_type
++  159              | . optional_ordinal_last object_type
++  180 corner: . DOT_N
++  181       | . DOT_E
++  182       | . DOT_W
++  183       | . DOT_S
++  184       | . DOT_NE
++  185       | . DOT_SE
++  186       | . DOT_NW
++  187       | . DOT_SW
++  188       | . DOT_C
++  189       | . DOT_START
++  190       | . DOT_END
++  191       | . TOP
++  192       | . BOTTOM
++  193       | . LEFT
++  194       | . RIGHT
++  195       | . UPPER LEFT
++  196       | . LOWER LEFT
++  197       | . UPPER RIGHT
++  198       | . LOWER RIGHT
++  199       | . LEFT_CORNER
++  200       | . RIGHT_CORNER
++  201       | . UPPER LEFT_CORNER
++  202       | . LOWER LEFT_CORNER
++  203       | . UPPER RIGHT_CORNER
++  204       | . LOWER RIGHT_CORNER
++  205       | . NORTH
++  206       | . SOUTH
++  207       | . EAST
++  208       | . WEST
++  209       | . CENTER
++  210       | . START
++  211       | . END
++  212 expr: . VARIABLE
++  213     | . NUMBER
++  214     | . place DOT_X
++  215     | . place DOT_Y
++  216     | . place DOT_HT
++  217     | . place DOT_WID
++  218     | . place DOT_RAD
++  219     | . expr '+' expr
++  220     | . expr '-' expr
++  221     | . expr '*' expr
++  222     | . expr '/' expr
++  223     | . expr '%' expr
++  224     | . expr '^' expr
++  225     | . '-' expr
++  226     | . '(' any_expr ')'
++  227     | . SIN '(' any_expr ')'
++  228     | . COS '(' any_expr ')'
++  229     | . ATAN2 '(' any_expr ',' any_expr ')'
++  230     | . LOG '(' any_expr ')'
++  231     | . EXP '(' any_expr ')'
++  232     | . SQRT '(' any_expr ')'
++  233     | . K_MAX '(' any_expr ',' any_expr ')'
++  234     | . K_MIN '(' any_expr ',' any_expr ')'
++  235     | . INT '(' any_expr ')'
++  236     | . RAND '(' any_expr ')'
++  237     | . RAND '(' ')'
++  238     | . SRAND '(' any_expr ')'
++  239     | . expr '<' expr
++  240     | . expr LESSEQUAL expr
++  241     | . expr '>' expr
++  242     | . expr GREATEREQUAL expr
++  243     | . expr EQUALEQUAL expr
++  244     | . expr NOTEQUAL expr
++  245     | . expr ANDAND expr
++  246     | . expr OROR expr
++  247     | . '!' expr
++
++    LABEL         shift, and go to state 48
++    VARIABLE      shift, and go to state 49
++    NUMBER        shift, and go to state 50
++    ORDINAL       shift, and go to state 51
++    LAST          shift, and go to state 52
++    LEFT          shift, and go to state 53
++    RIGHT         shift, and go to state 54
++    HERE          shift, and go to state 55
++    DOT_N         shift, and go to state 56
++    DOT_E         shift, and go to state 57
++    DOT_W         shift, and go to state 58
++    DOT_S         shift, and go to state 59
++    DOT_NE        shift, and go to state 60
++    DOT_SE        shift, and go to state 61
++    DOT_NW        shift, and go to state 62
++    DOT_SW        shift, and go to state 63
++    DOT_C         shift, and go to state 64
++    DOT_START     shift, and go to state 65
++    DOT_END       shift, and go to state 66
++    SIN           shift, and go to state 67
++    COS           shift, and go to state 68
++    ATAN2         shift, and go to state 69
++    LOG           shift, and go to state 70
++    EXP           shift, and go to state 71
++    SQRT          shift, and go to state 72
++    K_MAX         shift, and go to state 73
++    K_MIN         shift, and go to state 74
++    INT           shift, and go to state 75
++    RAND          shift, and go to state 76
++    SRAND         shift, and go to state 77
++    TOP           shift, and go to state 78
++    BOTTOM        shift, and go to state 79
++    UPPER         shift, and go to state 80
++    LOWER         shift, and go to state 81
++    LEFT_CORNER   shift, and go to state 82
++    RIGHT_CORNER  shift, and go to state 83
++    NORTH         shift, and go to state 84
++    SOUTH         shift, and go to state 85
++    EAST          shift, and go to state 86
++    WEST          shift, and go to state 87
++    CENTER        shift, and go to state 88
++    END           shift, and go to state 89
++    START         shift, and go to state 90
++    '('           shift, and go to state 91
++    '`'           shift, and go to state 92
++    '-'           shift, and go to state 93
++    '!'           shift, and go to state 94
++
++    position               go to state 402
++    position_not_place     go to state 99
++    expr_pair              go to state 100
++    place                  go to state 101
++    label                  go to state 423
++    ordinal                go to state 103
++    optional_ordinal_last  go to state 104
++    nth_primitive          go to state 105
++    corner                 go to state 106
++    expr                   go to state 424
+]])],
+
+dnl OTHER-CHECKS
+[],
+
+dnl PARSER-EXIT-VALUE, PARSER-STDOUT, PARSER-STDERR
+[AT_COND_CASE([[LALR]], [[1]], [[0]])],
+[],
+[AT_COND_CASE([[LALR]],
+[[syntax error, unexpected LEFT
+]])])

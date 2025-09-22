@@ -1,0 +1,155 @@
+# D features tests.                      -*- Autotest -*-
+
+# Copyright (C) 2020-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[D Features.]])
+
+# AT_CHECK_D_MINIMAL([DIRECTIVES], [PARSER_ACTION], [POSITION_CLASS], [EXTRA_USER_CODE])
+# ----------------------------------------------------------------------
+# Check that a minimal parser with DIRECTIVES compiles in D.
+# Put the D code in YYParser.d.
+m4_define([AT_CHECK_D_MINIMAL],
+[
+AT_DATA([[YYParser.y]], [
+%language "D"
+%token END "end"
+[$1]
+%%
+start: END {$2};
+%%
+[$4]
+void main() {}
+])
+AT_BISON_CHECK([[-Wno-deprecated YYParser.y]])
+AT_CHECK([[grep '[mb]4_' YYParser.y]], [1], [ignore])
+AT_COMPILE_D([[YYParser]])
+])
+
+# AT_CHECK_D_MINIMAL_W_LEXER([1:DIRECTIVES],
+#       [2:YYLEX_ACTION], [3:LEXER_BODY], [4:PARSER_ACTION], [5:VALUE_TYPE],
+#       [6:POSITION_TYPE], [7:LOCATION_TYPE])
+# ---------------------------------------------------------------------
+# Check that a minimal parser with DIRECTIVES and a body for yylex()
+# compiles in D.
+m4_define([AT_CHECK_D_MINIMAL_W_LEXER],
+[AT_CHECK_D_MINIMAL([$1], [], [], [
+
+import std.range.primitives;
+import std.stdio;
+
+auto calcLexer(R)(R range)
+  if (isInputRange!R && is (ElementType!R : dchar))
+{
+  return new CalcLexer!R(range);
+}
+
+auto calcLexer (File f)
+{
+  import std.algorithm : map, joiner;
+  import std.utf : byDchar;
+
+  return f.byChunk(1024)        // avoid making a syscall roundtrip per char
+          .map!(chunk => cast(char[]) chunk) // because byChunk returns ubyte[]
+          .joiner               // combine chunks into a single virtual range of char
+          .calcLexer;           // forward to other overload
+}
+
+class CalcLexer(R) : Lexer
+  if (isInputRange!R && is (ElementType!R : dchar))
+{
+  R input;
+
+  this(R r) {
+    input = r;
+  }
+
+  void yyerror(string s) {}
+
+  Symbol yylex()
+  {
+    $2
+  }
+}
+]
+[
+  $3
+], [$4], [$6])])
+
+# AT_CHECK_D_GREP([LINE], [COUNT=1])
+# -------------------------------------
+# Check that YYParser.d contains exactly COUNT lines matching ^LINE$
+# with grep.
+m4_define([AT_CHECK_D_GREP],
+[AT_CHECK([grep -c '^$1$' YYParser.d], [ignore], [m4_default([$2], [1])
+])])
+
+## -------------------------------------- ##
+## D parser class extends and implements. ##
+## -------------------------------------- ##
+
+AT_SETUP([D parser class extends and implements])
+AT_KEYWORDS([d])
+
+AT_CHECK_D_MINIMAL([])
+AT_CHECK_D_GREP([[class YYParser]])
+
+AT_CHECK_D_MINIMAL([%define api.parser.extends {BaseClass}], [], [], [class BaseClass {}])
+AT_CHECK_D_GREP([[class YYParser : BaseClass]])
+
+AT_CHECK_D_MINIMAL([%define api.parser.extends {Interface}], [], [], [interface Interface {}])
+AT_CHECK_D_GREP([[class YYParser : Interface]])
+
+AT_CHECK_D_MINIMAL(
+[%define api.parser.extends {BaseClass}
+%define api.parser.implements {Interface}], [], [],
+[class BaseClass {}
+interface Interface {}
+])
+AT_CHECK_D_GREP([[class YYParser : BaseClass, Interface]])
+
+AT_CHECK_D_MINIMAL(
+[%define api.parser.extends {BaseClass}
+%define api.parser.implements {Interface1, Interface2}], [], [],
+[class BaseClass {}
+interface Interface1 {}
+interface Interface2 {}
+])
+AT_CHECK_D_GREP([[class YYParser : BaseClass, Interface1, Interface2]])
+
+AT_CLEANUP
+
+## --------------------------------------------- ##
+## D parser class api.token.raw true by default. ##
+## --------------------------------------------- ##
+
+AT_SETUP([D parser class api.token.raw true by default])
+AT_KEYWORDS([d])
+
+AT_CHECK_D_MINIMAL_W_LEXER([
+%define api.token.raw true
+%union { int ival; }], [return Symbol(TokenKind.END);])
+AT_CHECK_D_GREP([[  END = 3,]])
+
+AT_CHECK_D_MINIMAL_W_LEXER([
+%define api.token.raw false
+%union { int ival; }], [return Symbol(TokenKind.END);])
+AT_CHECK_D_GREP([[  END = 258,]])
+
+AT_CHECK_D_MINIMAL_W_LEXER([
+%union { int ival; }], [return Symbol(TokenKind.END);])
+AT_CHECK_D_GREP([[  END = 3,]])
+
+AT_CLEANUP

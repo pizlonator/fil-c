@@ -1,0 +1,97 @@
+# Test suite for GNU Bison.                             -*- Autotest -*-
+
+# Copyright (C) 2000-2004, 2006-2007, 2009-2015, 2018-2021 Free Software
+# Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Basic M4 macros.
+m4_include([m4.at])
+
+# Resistance to user bugs.
+m4_include([input.at])
+
+# Named references.
+m4_include([named-refs.at])
+
+# Output file names.
+m4_include([output.at])
+
+# Bison diagnostics.
+m4_include([diagnostics.at])
+
+# Skeleton support.
+m4_include([skeletons.at])
+
+# The part of the engine that computes FOLLOW etc.
+m4_include([sets.at])
+
+# Grammar reduction.
+m4_include([reduce.at])
+
+# Generated reports.
+m4_include([report.at])
+
+# Conflicts detection and resolution.
+m4_include([conflicts.at])
+
+# Counterexaple generation.
+m4_include([counterexample.at])
+
+# Support for #lines.
+m4_include([synclines.at])
+
+# Generated headers sanity.
+m4_include([headers.at])
+
+# User actions.
+m4_include([actions.at])
+
+# Semantic types support.
+m4_include([types.at])
+
+# Interface with the scanner.
+m4_include([scanner.at])
+
+# Fulling testing (compilation and execution of the parser) on calc.
+m4_include([calc.at])
+
+# Huge artificial grammars.
+# Torturing the stack expansion at runtime.
+m4_include([torture.at])
+
+# Big, real world grammars.
+m4_include([existing.at])
+
+# Some old bugs.
+m4_include([regression.at])
+
+# Push parser.
+m4_include([push.at])
+
+# Parsers in C++.
+m4_include([c++.at])
+
+# Parsers in Java.
+m4_include([java.at])
+m4_include([javapush.at])
+
+# Parsers in D
+m4_include([d.at])
+
+# GLR.
+# C++ types, simplified
+m4_include([cxx-type.at])
+# Regression tests
+m4_include([glr-regression.at])

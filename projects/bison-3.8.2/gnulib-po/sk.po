@@ -1,0 +1,537 @@
+# Slovak translations for GNU textutils
+# Copyright (C) 1996 Free Software Foundation, Inc.
+# Miroslav Vasko <vasko@debian.cz>, 1999
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: textutils 2.0.14\n"
+"Report-Msgid-Bugs-To: bug-gnulib@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2001-06-08 22:10 +02:00\n"
+"Last-Translator: Stanislav Meduna <stano@trillian.eunet.sk>\n"
+"Language-Team: Slovak <sk-i18n@rak.isternet.sk>\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-2\n"
+"Content-Transfer-Encoding: 8-bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+#: lib/argmatch.c:132
+#, fuzzy, c-format
+msgid "invalid argument %s for %s"
+msgstr "chybný argument %s pre `%s'"
+
+#: lib/argmatch.c:133
+#, fuzzy, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "nejednoznaèný argument %s pre `%s'"
+
+#: lib/argmatch.c:152 lib/argmatch.h:223
+msgid "Valid arguments are:"
+msgstr "Platné argumenty sú:"
+
+#: lib/bitset/stats.c:183
+#, c-format
+msgid "%u bitset_allocs, %u freed (%.2f%%).\n"
+msgstr ""
+
+#: lib/bitset/stats.c:186
+#, c-format
+msgid "%u bitset_sets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:189
+#, c-format
+msgid "%u bitset_resets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:192
+#, c-format
+msgid "%u bitset_tests, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:196
+#, c-format
+msgid "%u bitset_lists\n"
+msgstr ""
+
+#: lib/bitset/stats.c:198
+msgid "count log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:201
+msgid "size log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:204
+msgid "density histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:216
+#, c-format
+msgid ""
+"Bitset statistics:\n"
+"\n"
+msgstr ""
+
+#: lib/bitset/stats.c:219
+#, c-format
+msgid "Accumulated runs = %u\n"
+msgstr ""
+
+#: lib/bitset/stats.c:261 lib/bitset/stats.c:266
+#, fuzzy
+msgid "cannot read stats file"
+msgstr "nie je mo¾né vytvori» adresár %s"
+
+#: lib/bitset/stats.c:263
+#, c-format
+msgid "bad stats file size\n"
+msgstr ""
+
+#: lib/bitset/stats.c:287 lib/bitset/stats.c:289
+#, fuzzy
+msgid "cannot write stats file"
+msgstr "nie je mo¾né vytvori» adresár %s"
+
+#: lib/bitset/stats.c:292
+#, fuzzy
+msgid "cannot open stats file for writing"
+msgstr "nie je mo¾né otvori» %s pre èítanie"
+
+#: lib/closeout.c:122
+msgid "write error"
+msgstr "chyba pri zápise"
+
+#: lib/error.c:195
+msgid "Unknown system error"
+msgstr "Neznáma systémová chyba"
+
+#: lib/execute.c:348 lib/spawn-pipe.c:597 lib/wait-process.c:291
+#: lib/wait-process.c:365
+#, fuzzy, c-format
+msgid "%s subprocess failed"
+msgstr "%s: chybný vzor"
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: voµba `%s' nie je jednoznaèná\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: voµba `%s' nie je jednoznaèná\n"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: neznámy prepínaè `%c%s'\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: prepínaè `%c%s' nepovoµuje argument\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: prepínaè `%s' vy¾aduje argument\n"
+
+#: lib/getopt.c:621
+#, fuzzy, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: chybný prepínaè -- %c\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: prepínaè vy¾aduje argument -- %c\n"
+
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "vyèerpaná pamä»"
+
+#: lib/openat-die.c:38
+#, fuzzy, c-format
+msgid "unable to record current working directory"
+msgstr "nie je mo¾né vytvori» adresár %s"
+
+#: lib/openat-die.c:57
+#, fuzzy, c-format
+msgid "failed to return to initial working directory"
+msgstr "nie je mo¾né vytvori» adresár %s"
+
+#: lib/os2-spawn.c:46
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr ""
+
+#: lib/os2-spawn.c:83
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr ""
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:355
+msgid "`"
+msgstr "`"
+
+#: lib/quotearg.c:356
+msgid "'"
+msgstr "'"
+
+#: lib/spawn-pipe.c:217 lib/spawn-pipe.c:220 lib/spawn-pipe.c:459
+#: lib/spawn-pipe.c:462
+#, fuzzy, c-format
+msgid "cannot create pipe"
+msgstr "nie je mo¾né vytvori» adresár %s"
+
+#: lib/timevar.c:316
+msgid "Execution times (seconds)"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU user"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU system"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "wall clock"
+msgstr ""
+
+#: lib/unicodeio.c:102
+#, fuzzy
+msgid "iconv function not usable"
+msgstr "nie je mo¾né vypísa» U+%04X: funkcia iconv nie je pou¾iteµná"
+
+#: lib/unicodeio.c:104
+#, fuzzy
+msgid "iconv function not available"
+msgstr "nie je mo¾né vypísa» U+%04X: funkcia iconv nie je dostupná"
+
+#: lib/unicodeio.c:111
+#, fuzzy
+msgid "character out of range"
+msgstr "U+%04X: znak je mimo rozsah"
+
+#: lib/unicodeio.c:198
+#, c-format
+msgid "cannot convert U+%04X to local character set"
+msgstr "nie je mo¾né konvertova» U+%04X do lokálnej znakovej sady"
+
+#: lib/unicodeio.c:200
+#, fuzzy, c-format
+msgid "cannot convert U+%04X to local character set: %s"
+msgstr "nie je mo¾né konvertova» U+%04X do lokálnej znakovej sady"
+
+#: lib/wait-process.c:232 lib/wait-process.c:264 lib/wait-process.c:326
+#, fuzzy, c-format
+msgid "%s subprocess"
+msgstr "%s: chybný vzor"
+
+#: lib/wait-process.c:283 lib/wait-process.c:355
+#, fuzzy, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr "%s: chybný vzor"
+
+#~ msgid "Written by %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid "Written by %s and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid "Written by %s, %s, and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, %s, and others.\n"
+#~ msgstr "Napísal %s.\n"
+
+#, fuzzy
+#~ msgid "Report bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  Chyby v programe oznamujte na adrese <bug-textutils@gnu.org> (iba\n"
+#~ "anglicky), pripomienky k prekladu zasielajte na adresu <sk@li.org> "
+#~ "(slovensky)."
+
+#, fuzzy
+#~ msgid "Report %s bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  Chyby v programe oznamujte na adrese <bug-textutils@gnu.org> (iba\n"
+#~ "anglicky), pripomienky k prekladu zasielajte na adresu <sk@li.org> "
+#~ "(slovensky)."
+
+#, fuzzy
+#~ msgid " [OPTION...]"
+#~ msgstr "Pou¾itie: %s [PREPÍNAÈ] [SÚBOR]...\n"
+
+#, fuzzy
+#~ msgid "Try `%s --help' or `%s --usage' for more information.\n"
+#~ msgstr "Viac informácií získate príkazom `%s --help'.\n"
+
+#, fuzzy
+#~ msgid "Print program version"
+#~ msgstr "chyba pri èítaní"
+
+#, fuzzy
+#~ msgid "%s: Too many arguments\n"
+#~ msgstr "príli¹ veµa argumentov"
+
+#, fuzzy
+#~ msgid "program error"
+#~ msgstr "chyba pri èítaní"
+
+#, fuzzy
+#~ msgid "error while opening \"%s\" for reading"
+#~ msgstr "nie je mo¾né otvori» %s pre èítanie"
+
+#, fuzzy
+#~ msgid "error reading \"%s\""
+#~ msgstr "chyba pri èítaní %s"
+
+#, fuzzy
+#~ msgid "error writing \"%s\""
+#~ msgstr "chyba pri zápise %s"
+
+#, fuzzy
+#~ msgid "error after reading \"%s\""
+#~ msgstr "chyba pri èítaní %s"
+
+#, fuzzy
+#~ msgid "fdopen() failed"
+#~ msgstr "zlyhalo otvorenie"
+
+#, fuzzy
+#~ msgid "regular empty file"
+#~ msgstr "zlyhalo èítanie"
+
+#, fuzzy
+#~ msgid "regular file"
+#~ msgstr "zlyhalo èítanie"
+
+#, fuzzy
+#~ msgid "directory"
+#~ msgstr "Adresár: "
+
+#, fuzzy
+#~ msgid "block special file"
+#~ msgstr "veµkos» bloku"
+
+#, fuzzy
+#~ msgid "character special file"
+#~ msgstr "pozícia znaku je nula"
+
+#, fuzzy
+#~ msgid "symbolic link"
+#~ msgstr "ioctl na `%s' nie je mo¾né vykona»"
+
+#, fuzzy
+#~ msgid "weird file"
+#~ msgstr "zlyhalo èítanie"
+
+#, fuzzy
+#~ msgid "Address family for hostname not supported"
+#~ msgstr "tento systém nepodporuje rúry"
+
+#, fuzzy
+#~ msgid "ai_family not supported"
+#~ msgstr "tento systém nepodporuje rúry"
+
+#, fuzzy
+#~ msgid "ai_socktype not supported"
+#~ msgstr "tento systém nepodporuje rúry"
+
+#, fuzzy
+#~ msgid "System error"
+#~ msgstr "chyba pri zápise"
+
+#, fuzzy
+#~ msgid "Unknown error"
+#~ msgstr "Neznáma systémová chyba"
+
+#~ msgid "%s: option `--%s' doesn't allow an argument\n"
+#~ msgstr "%s: prepínaè `--%s' nepovoµuje argument\n"
+
+#~ msgid "%s: unrecognized option `--%s'\n"
+#~ msgstr "%s: neznámy prepínaè `--%s'\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: nepovolený prepínaè -- %c\n"
+
+#~ msgid "%s: option `-W %s' is ambiguous\n"
+#~ msgstr "%s: prepínaè `-W %s' nie je jednoznaèný\n"
+
+#~ msgid "%s: option `-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: prepínaè `-W %s' nepovoµuje argument\n"
+
+#~ msgid "block size"
+#~ msgstr "veµkos» bloku"
+
+#~ msgid "%s exists but is not a directory"
+#~ msgstr "%s existuje, ale nie je adresárom"
+
+#~ msgid "cannot change owner and/or group of %s"
+#~ msgstr "nie je mo¾né zmeni» pou¾ívateµa a/alebo skupinu %s"
+
+#~ msgid "cannot create directory %s"
+#~ msgstr "nie je mo¾né vytvori» adresár %s"
+
+#, fuzzy
+#~ msgid "cannot chdir to directory %s"
+#~ msgstr "nie je mo¾né vojs» do adresára, %s"
+
+#~ msgid "cannot change permissions of %s"
+#~ msgstr "nie je mo¾né zmeni» práva %s"
+
+#, fuzzy
+#~ msgid "Failed to open /dev/zero for read"
+#~ msgstr "nie je mo¾né zmeni» práva %s"
+
+#, fuzzy
+#~ msgid "Invalid regular expression"
+#~ msgstr "%s: chybný regulárny výraz: %s"
+
+#, fuzzy
+#~ msgid "Invalid character class name"
+#~ msgstr "chybná trieda znaku `%s'"
+
+#, fuzzy
+#~ msgid "Memory exhausted"
+#~ msgstr "vyèerpaná pamä»"
+
+#, fuzzy
+#~ msgid "Invalid preceding regular expression"
+#~ msgstr "%s: chybný regulárny výraz: %s"
+
+#, fuzzy
+#~ msgid "Premature end of regular expression"
+#~ msgstr "chyba pri vyhµadávaní pomocou regulárneho výrazu"
+
+#, fuzzy
+#~ msgid "Regular expression too big"
+#~ msgstr "%s: chybný regulárny výraz: %s"
+
+#, fuzzy
+#~ msgid "No previous regular expression"
+#~ msgstr "chyba pri vyhµadávaní pomocou regulárneho výrazu"
+
+#~ msgid "^[yY]"
+#~ msgstr "^[yYaAáÁ]"
+
+#~ msgid "^[nN]"
+#~ msgstr "^[nN]"
+
+#~ msgid "invalid user"
+#~ msgstr "neplatný pou¾ívateµ"
+
+#~ msgid "invalid group"
+#~ msgstr "neplatná skupina"
+
+#~ msgid "cannot get the login group of a numeric UID"
+#~ msgstr "nie je mo¾né urèi» skupinu èíselného UID"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "This is free software.  You may redistribute copies of it under the terms "
+#~ "of\n"
+#~ "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+#~ "There is NO WARRANTY, to the extent permitted by law.\n"
+#~ "\n"
+#~ msgstr ""
+#~ "  Tento program je voµné programové vybavenie; mô¾ete ho ¹íri» a "
+#~ "modifikova»\n"
+#~ "podµa podmienok V¹eobecnej verejnej licencie GNU, vydávanej Free "
+#~ "Software\n"
+#~ "Foundation; a to buï verzie 2 tejto licencie alebo (podµa vá¹ho "
+#~ "uvá¾enia),\n"
+#~ "ktorejkoµvek neskor¹ej verzie.\n"
+#~ "\n"
+#~ "  Tento program je roz¹irovaný v nádeji, ¾e bude u¾itoèný, av¹ak BEZ "
+#~ "AKEJKO¥VEK\n"
+#~ "ZÁRUKY; neposkytujú sa ani odvodené záruky PREDAJNOSTI alebo VHODNOSTI "
+#~ "PRE\n"
+#~ "NEJAKÝ KONKRÉTNY ÚÈEL. Ïaµ¹ie podrobnosti nájdete vo V¹eobecnej verejnej\n"
+#~ "licencii GNU.\n"
+#~ "\n"
+#~ "  Kópia V¹eobecnej verejnej licencie GNU mala by» dodaná spolu s týmto\n"
+#~ "programom; pokiaµ sa tak nestalo, napí¹te do Free Software Foundation, "
+#~ "Inc.,\n"
+#~ "59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.\n"
+
+#, fuzzy
+#~ msgid "string comparison failed"
+#~ msgstr "zlyhal stat"
+
+#, fuzzy
+#~ msgid "The strings compared were %s and %s."
+#~ msgstr "nie je mo¾né vytvori» odkaz %s"

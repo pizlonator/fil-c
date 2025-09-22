@@ -1,0 +1,72 @@
+# Basic m4 macros.                               -*- Autotest -*-
+
+# Copyright (C) 2020-2021 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+AT_BANNER([[M4 Macros.]])
+
+
+AT_SETUP([Generating Comments])
+
+AT_DATA([input.y],
+[%%
+exp:
+])
+
+AT_DATA([input.m4],
+[[m4@&t@_include(b4_skeletonsdir/[c.m4])
+
+b4_output_begin([output.txt])
+
+b4_gsub([[abcd]],
+  [a], [b])
+b4_gsub([[abcd]],
+  [a], [b],
+  [b], [c],
+  [c], [d])
+
+_b4_comment([["/* () */"]])
+_b4_comment([["/* (  */"]])
+_b4_comment([["/*  ) */"]])
+_b4_comment([["/* [] */"]])
+
+b4_comment([["/* () */"]])
+b4_comment([["/* (  */"]])
+b4_comment([["/*  ) */"]])
+b4_comment([["/* [] */"]])
+
+b4_output_end([output.txt])
+]])
+
+AT_BISON_CHECK([-S ./input.m4 input.y])
+
+AT_CHECK([cat output.txt], [],
+[[
+[bbcd]
+[dddd]
+
+"/\* () *\/"
+"/\* (  *\/"
+"/\*  ) *\/"
+"/\* [] *\/"
+
+/* "/\* () *\/"  */
+/* "/\* (  *\/"  */
+/* "/\*  ) *\/"  */
+/* "/\* [] *\/"  */
+
+]])
+
+AT_CLEANUP

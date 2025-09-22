@@ -1,0 +1,176 @@
+#! /bin/sh
+
+# Copyright (C) 2005-2015, 2018-2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+SHELL=/bin/sh
+export SHELL
+
+me=$(basename "$1" .test)
+medir=$(dirname "$1" | sed -e 's,.*examples/,,')
+
+# Number of the current test.
+number=1
+
+# Exit status of this script.
+status=0
+
+# top_builddir.
+cwd=$(pwd)
+
+# Whether to strip '> ...' lines from the expected output.
+# See bistromathic.test.
+strip_prompt=false
+
+# If diff supports --strip-trailing-cr, use it, to avoid EOL issues
+# when testing Java programs on Windows.
+echo "checking for diff --strip-trailing-cr..."
+diff_opts=
+if diff --strip-trailing-cr "$1" "$1"; then
+  diff_opts=--strip-trailing-cr
+fi
+echo "checking for diff --strip-trailing-cr... $diff_opts"
+
+# The exercised program.
+abs_medir=$cwd/examples/$medir
+if test -x "$abs_medir/$me"; then
+    prog ()
+    {
+        "$abs_medir/$me" "$@"
+    }
+elif test -f "$abs_medir/$me.class"; then
+    prog ()
+    {
+        "$SHELL" "$cwd/javaexec.sh" -cp "$abs_medir" "$me" "$@"
+    }
+else
+    echo "$me: ERROR: cannot find program to exercise in:"
+    echo "$me: ERROR:   $cwd/examples/$medir/$me"
+    exit 1
+fi
+
+
+# cleanup
+# -------
+cleanup ()
+{
+  status=$?
+  if test -z "$DEBUG"; then
+     cd "$cwd"
+     rm -rf $$.dir
+  fi
+  exit $status
+}
+trap cleanup 0 1 2 13 15
+mkdir $$.dir
+cd $$.dir
+
+
+# skip [MSG]
+# ----------
+# Skip this test.
+skip ()
+{
+  if test x"$1" != x; then
+    echo "SKIP: $1"
+  fi
+  # See Autoconf's doc on 'trap'.
+  (exit 77); exit 77
+}
+
+
+# run [-n, -noerr, -t] EXPECTED-EXIT-STATUS EXPECTED-OUTPUT [PARSER-OPTIONS]
+# --------------------------------------------------------------------------
+# -n: no final end-of-line in expected-output
+# -noerr: ignore stderr, otherwise merge it into effective output.
+# -t: nuke the possible trailing white spaces in the effective output.
+run ()
+{
+  echo=echo
+  noerr=false
+  rstrip=false
+  while true; do
+    case $1 in
+      (-n)     echo=printf; shift;;
+      (-noerr) noerr=true; shift;;
+      (-t)     rstrip=true; shift;;
+      (*)      break;;
+    esac
+  done
+
+  # Expected exit status.
+  sta_exp=$1
+  shift
+
+  # Expected output.
+  $echo "$1" |
+    sed -e 's/Reducing stack by rule .* (line .*):/Reducing stack by rule XX (line XXX):/g' |
+    if $strip_prompt; then
+      # An extra EOL added in bistromathic's main.  Keep that empty line.
+      sed -e '/^> ./d;s/^> $//g'
+    else
+      cat
+    fi >exp
+  shift
+
+  # Effective exit status.
+  sta_eff=0
+
+  prog "$@" - <input >out_eff 2>err_eff || sta_eff=$?
+
+  # Combine effective output and error streams.
+  {
+    if $rstrip; then
+      sed -e 's/ *$//g' out_eff
+    else
+      cat out_eff
+    fi
+    if ! $noerr; then
+       sed -e 's/^/err: /g' \
+           -e 's/Reducing stack by rule .* (line .*):/Reducing stack by rule XX (line XXX):/g' \
+           err_eff
+    fi
+  } >eff
+
+  if test $sta_eff -eq $sta_exp; then
+    if diff $diff_opts eff exp >/dev/null 2>&1; then
+      echo "$me: PASS: $number"
+    else
+      echo "$me: FAIL: $number"
+      echo "$me: input:"
+      sed -e 's/^/  /' input
+      echo "$me: expected output:"
+      sed -e 's/^/  /' exp
+      echo "$me: effective output:"
+      sed -e 's/^/  /' eff
+      echo "$me: diff:"
+      diff $diff_opts -u exp eff | sed -e 's/^/  /'
+      status=1
+    fi
+  else
+    echo "$me: FAIL: $number (expected status: $sta_exp, effective: $sta_eff)"
+    cat err_eff
+    status=1
+  fi
+  number=$(expr $number + 1)
+}
+
+# We have cd'd one level deeper.
+case $1 in
+  /*) . "$1" || status=2;;
+  *)  . "../$1" || status=2;;
+esac
+
+exit $status

@@ -1,0 +1,1417 @@
+# bison Bahasa Melayu (Malay) (ms).
+# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+# This file is distributed under the same license as the bison package.
+# Sharuzzaman Ahmat Raslan <sharuzzaman@gmail.com>, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2015, 2016, 2017, 2018, 2019, 2020, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bison 3.7.90\n"
+"Report-Msgid-Bugs-To: bug-bison@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2021-09-11 20:23+0800\n"
+"Last-Translator: Sharuzzaman Ahmat Raslan <sharuzzaman@gmail.com>\n"
+"Language-Team: Malay <translation-team-ms@lists.sourceforge.net>\n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.0\n"
+
+#: examples/c/bistromathic/parse.y:152 examples/java/calc/Calc.y:83
+msgid "number"
+msgstr "nombor"
+
+#: examples/c/bistromathic/parse.y:154
+msgid "function"
+msgstr "fungsi"
+
+#: examples/c/bistromathic/parse.y:155
+#, fuzzy
+msgid "variable"
+msgstr "%s: pembolehubah %s %%define tidak ditakrifkan"
+
+#: examples/c/bistromathic/parse.y:194
+#, fuzzy
+msgid "error: division by zero"
+msgstr "dibahagi dengan sifar"
+
+#: examples/c/bistromathic/parse.y:372
+#, fuzzy, c-format
+msgid "syntax error: invalid character: %c"
+msgstr ""
+"ralat sintaks selepas '%c', menjangkakan nombor, huruf, '_', '[', atau '$'"
+
+#: examples/c/bistromathic/parse.y:389
+#, fuzzy
+msgid "%@: syntax error"
+msgstr "ralat sintaks"
+
+#: examples/c/bistromathic/parse.y:390
+#, fuzzy
+msgid "%@: syntax error: unexpected %u"
+msgstr "ralat sintaks, tidak menjangka %s"
+
+#. TRANSLATORS: '%@' is a location in a file, '%u' is an
+#. "unexpected token", and '%0e', '%1e'... are expected tokens
+#. at this point.
+#.
+#. For instance on the expression "1 + * 2", you'd get
+#.
+#. 1.5: syntax error: expected - or ( or number or function or variable before *
+#: examples/c/bistromathic/parse.y:398
+msgid "%@: syntax error: expected %0e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:399
+msgid "%@: syntax error: expected %0e or %1e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:400
+msgid "%@: syntax error: expected %0e or %1e or %2e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:401
+msgid "%@: syntax error: expected %0e or %1e or %2e or %3e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:402
+msgid "%@: syntax error: expected %0e or %1e or %2e or %3e or %4e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:403
+msgid ""
+"%@: syntax error: expected %0e or %1e or %2e or %3e or %4e or %5e before %u"
+msgstr ""
+
+#: examples/c/bistromathic/parse.y:404
+msgid ""
+"%@: syntax error: expected %0e or %1e or %2e or %3e or %4e or %5e etc., "
+"before %u"
+msgstr ""
+
+#: examples/java/calc/Calc.y:81
+#, fuzzy
+msgid "end of line"
+msgstr "Potong dari kursor hingga ke akhir baris"
+
+#: src/complain.c:153
+msgid "S/R conflicts (enabled by default)"
+msgstr ""
+
+#: src/complain.c:154
+msgid "R/R conflicts (enabled by default)"
+msgstr ""
+
+#: src/complain.c:155 src/getargs.c:226
+#, fuzzy
+msgid "generate conflict counterexamples"
+msgstr ""
+"Janakan penghurai LALR(1) dan GLR.\n"
+"\n"
+
+#: src/complain.c:156
+msgid "string aliases not attached to a symbol"
+msgstr ""
+
+#: src/complain.c:157
+#, fuzzy
+msgid "obsolete constructs"
+msgstr "kemasukan `%s' usang.  Diabaikan"
+
+#: src/complain.c:158
+#, fuzzy, c-format
+msgid "empty rules without %empty"
+msgstr "hukum kosong tanpa %%empty"
+
+#: src/complain.c:159
+#, fuzzy
+msgid "unset or unused midrule values"
+msgstr ""
+"Kategori amaran termasuk:\n"
+"  `midrule-values'  nilai hukumtengah nyahtetap atau tidak digunakan\n"
+"  `yacc'            tidak serasi dengan POSIX YACC\n"
+"  `all'             semua amaran\n"
+"  `no-CATEGORY'     matikan amaran dalam CATEGORY\n"
+"  `none'            matikan semua amaran\n"
+"  `error'           jadikan amaran sebagai ralat\n"
+"\n"
+
+#: src/complain.c:160
+#, fuzzy
+msgid "useless precedence and associativity"
+msgstr "keutamaan dan pengumpulan tidak berguna untuk %s"
+
+#: src/complain.c:161
+#, fuzzy
+msgid "incompatibilities with POSIX Yacc"
+msgstr ""
+"Kategori amaran termasuk:\n"
+"  `midrule-values'  nilai hukumtengah nyahtetap atau tidak digunakan\n"
+"  `yacc'            tidak serasi dengan POSIX YACC\n"
+"  `all'             semua amaran\n"
+"  `no-CATEGORY'     matikan amaran dalam CATEGORY\n"
+"  `none'            matikan semua amaran\n"
+"  `error'           jadikan amaran sebagai ralat\n"
+"\n"
+
+#: src/complain.c:162
+msgid "all other warnings (enabled by default)"
+msgstr ""
+
+#: src/complain.c:163
+msgid "all the warnings except 'counterexamples', 'dangling-alias' and 'yacc'"
+msgstr ""
+
+#: src/complain.c:164
+#, fuzzy
+msgid "turn off warnings in CATEGORY"
+msgstr ""
+"Kategori amaran termasuk:\n"
+"  `midrule-values'  nilai hukumtengah nyahtetap atau tidak digunakan\n"
+"  `yacc'            tidak serasi dengan POSIX YACC\n"
+"  `all'             semua amaran\n"
+"  `no-CATEGORY'     matikan amaran dalam CATEGORY\n"
+"  `none'            matikan semua amaran\n"
+"  `error'           jadikan amaran sebagai ralat\n"
+"\n"
+
+#: src/complain.c:165
+#, fuzzy
+msgid "turn off all the warnings"
+msgstr ""
+"Kategori amaran termasuk:\n"
+"  `midrule-values'  nilai hukumtengah nyahtetap atau tidak digunakan\n"
+"  `yacc'            tidak serasi dengan POSIX YACC\n"
+"  `all'             semua amaran\n"
+"  `no-CATEGORY'     matikan amaran dalam CATEGORY\n"
+"  `none'            matikan semua amaran\n"
+"  `error'           jadikan amaran sebagai ralat\n"
+"\n"
+
+#: src/complain.c:166
+#, fuzzy
+msgid "treat warnings as errors"
+msgstr ""
+"Kategori amaran termasuk:\n"
+"  `midrule-values'  nilai hukumtengah nyahtetap atau tidak digunakan\n"
+"  `yacc'            tidak serasi dengan POSIX YACC\n"
+"  `all'             semua amaran\n"
+"  `no-CATEGORY'     matikan amaran dalam CATEGORY\n"
+"  `none'            matikan semua amaran\n"
+"  `error'           jadikan amaran sebagai ralat\n"
+"\n"
+
+#: src/complain.c:192
+#, fuzzy
+msgid "Warning categories include:"
+msgstr ""
+"Kategori amaran termasuk:\n"
+"  `midrule-values'  nilai hukumtengah nyahtetap atau tidak digunakan\n"
+"  `yacc'            tidak serasi dengan POSIX YACC\n"
+"  `all'             semua amaran\n"
+"  `no-CATEGORY'     matikan amaran dalam CATEGORY\n"
+"  `none'            matikan semua amaran\n"
+"  `error'           jadikan amaran sebagai ralat\n"
+"\n"
+
+#: src/complain.c:297
+msgid "warning"
+msgstr "amaran"
+
+#: src/complain.c:299
+msgid "error"
+msgstr "ralat"
+
+#: src/complain.c:301
+msgid "fatal error"
+msgstr "ralat maut"
+
+#: src/complain.c:501
+#, fuzzy
+msgid "note"
+msgstr ""
+"  -S, --string[=STRING]   ambil perhatian terhadap STRING pengguna lain\n"
+
+#: src/complain.c:594
+#, c-format
+msgid "POSIX Yacc does not support %s"
+msgstr "POSIX Yacc tidak menyokong %s"
+
+#: src/complain.c:603
+#, fuzzy, c-format
+msgid "deprecated directive: %s, use %s"
+msgstr "pilihan telah luput: %s, guna %s"
+
+#: src/complain.c:616
+#, fuzzy, c-format
+msgid "duplicate directive"
+msgstr "Salinan @E dijumpai.  "
+
+#: src/complain.c:618
+#, fuzzy, c-format
+msgid "duplicate directive: %s"
+msgstr "arahan tidak sah: %s"
+
+#: src/complain.c:619 src/complain.c:628 src/reader.c:156 src/symtab.c:330
+#: src/symtab.c:339 src/symtab.c:569
+msgid "previous declaration"
+msgstr "pengisytiharan terdahulu"
+
+#: src/complain.c:627
+#, c-format
+msgid "only one %s allowed per rule"
+msgstr "hanya satu %s dibenarkan setiap hukum"
+
+#: src/complain.c:647
+msgid "syntax error"
+msgstr "ralat sintaks"
+
+#: src/complain.c:648
+#, fuzzy
+msgid "unexpected %0$s"
+msgstr "%s: %s: akhir fail tidak dijangka\n"
+
+#: src/complain.c:649
+msgid "expected %1$s before %0$s"
+msgstr ""
+
+#: src/complain.c:650
+msgid "expected %1$s or %2$s before %0$s"
+msgstr ""
+
+#: src/complain.c:651
+msgid "expected %1$s or %2$s or %3$s before %0$s"
+msgstr ""
+
+#: src/complain.c:652
+msgid "expected %1$s or %2$s or %3$s or %4$s before %0$s"
+msgstr ""
+
+#: src/conflicts.c:88
+#, fuzzy, c-format
+msgid "Conflict between rule %d and token %s resolved as shift"
+msgstr "    Konflik antara hukum %d dan token %s diselesaikan sebagai pindahan"
+
+#: src/conflicts.c:98
+#, fuzzy, c-format
+msgid "Conflict between rule %d and token %s resolved as reduce"
+msgstr ""
+"    Konflik antara hukum %d dan token %s diselesaikan sebagai pengurangan"
+
+#: src/conflicts.c:107
+#, fuzzy, c-format
+msgid "Conflict between rule %d and token %s resolved as an error"
+msgstr "    Konflik antara hukum %d dan token %s diselesaikan sebagai ralat"
+
+#: src/conflicts.c:610
+#, c-format
+msgid "State %d "
+msgstr "Keadaan %d "
+
+#: src/conflicts.c:613
+#, c-format
+msgid "conflicts: %d shift/reduce, %d reduce/reduce\n"
+msgstr "konflik: %d pemindahan/pengurangan, %d pengurangan/pengurangan\n"
+
+#: src/conflicts.c:616
+#, c-format
+msgid "conflicts: %d shift/reduce\n"
+msgstr "konflik: %d pemindahan/pengurangan\n"
+
+#: src/conflicts.c:618
+#, c-format
+msgid "conflicts: %d reduce/reduce\n"
+msgstr "konflik: %d pengurangan/pengurangan\n"
+
+#: src/conflicts.c:661
+#, fuzzy, c-format
+msgid "shift/reduce conflicts for rule %d: %d found, %d expected"
+msgstr "konflik: %d pemindahan/pengurangan, %d pengurangan/pengurangan"
+
+#: src/conflicts.c:667
+#, fuzzy, c-format
+msgid "reduce/reduce conflicts for rule %d: %d found, %d expected"
+msgstr "konflik: %d pemindahan/pengurangan, %d pengurangan/pengurangan"
+
+#: src/conflicts.c:685
+#, c-format
+msgid "%%expect-rr applies only to GLR parsers"
+msgstr "%%expect-rr hanya berkesan kepada parser GLR"
+
+#: src/conflicts.c:705
+#, c-format
+msgid "shift/reduce conflicts: %d found, %d expected"
+msgstr "konflik: %d pemindahan/pengurangan, %d pengurangan/pengurangan"
+
+#: src/conflicts.c:714
+#, fuzzy, c-format
+msgid "%d shift/reduce conflict"
+msgid_plural "%d shift/reduce conflicts"
+msgstr[0] "jangkaan %d konflik pemindahan/pengurangan"
+
+#: src/conflicts.c:734
+#, c-format
+msgid "reduce/reduce conflicts: %d found, %d expected"
+msgstr "konflik pengurangan/pengurangan: %d dijumpai, %d diharapkan"
+
+#: src/conflicts.c:743
+#, fuzzy, c-format
+msgid "%d reduce/reduce conflict"
+msgid_plural "%d reduce/reduce conflicts"
+msgstr[0] "dijangkakan %d pengurangan/pengurangan konflik"
+
+#: src/conflicts.c:755
+msgid ""
+"rerun with option '-Wcounterexamples' to generate conflict counterexamples"
+msgstr ""
+
+#: src/counterexample.c:122 src/counterexample.c:124
+#, fuzzy
+msgid "Example"
+msgstr "Contoh hello world"
+
+#: src/counterexample.c:122
+#, fuzzy
+msgid "First example"
+msgstr "Contoh hello"
+
+#: src/counterexample.c:124
+#, fuzzy
+msgid "Second example"
+msgstr "setuid(%lu) kedua gagal"
+
+#: src/counterexample.c:126
+#, fuzzy
+msgid "Shift derivation"
+msgstr "pindah, dan pergi ke keadaan %d\n"
+
+#: src/counterexample.c:126
+#, fuzzy
+msgid "First reduce derivation"
+msgstr "dijangkakan %d pengurangan/pengurangan konflik"
+
+#: src/counterexample.c:128
+#, fuzzy
+msgid "Reduce derivation"
+msgstr "konflik: %d pengurangan/pengurangan\n"
+
+#: src/counterexample.c:128
+#, fuzzy
+msgid "Second reduce derivation"
+msgstr "setuid(%lu) kedua gagal"
+
+#: src/counterexample.c:1293 src/counterexample.c:1297
+#, fuzzy, c-format
+msgid "shift/reduce conflict on token %s"
+msgstr "jangkaan %d konflik pemindahan/pengurangan"
+
+#: src/counterexample.c:1298 src/counterexample.c:1340
+msgid ":"
+msgstr ":"
+
+#: src/counterexample.c:1328 src/counterexample.c:1336
+#, fuzzy, c-format
+msgid "reduce/reduce conflict on token %s"
+msgid_plural "reduce/reduce conflict on tokens %s"
+msgstr[0] "dijangkakan %d pengurangan/pengurangan konflik"
+
+#: src/files.c:144
+#, c-format
+msgid "%s: cannot open"
+msgstr "%s: tidak dapat dibuka"
+
+#: src/files.c:160
+#, c-format
+msgid "input/output error"
+msgstr "ralat masukan/keluaran"
+
+#: src/files.c:163
+#, c-format
+msgid "cannot close file"
+msgstr "tidak dapat menutup fail"
+
+#: src/files.c:510
+#, c-format
+msgid "refusing to overwrite the input file %s"
+msgstr "enggan untuk menulisganti fail masukan %s"
+
+#: src/files.c:518
+#, c-format
+msgid "conflicting outputs to file %s"
+msgstr "keluaran berkonflik kepada fail %s"
+
+#: src/fixits.c:122
+#, fuzzy, c-format
+msgid "%s: cannot backup"
+msgstr "tak dapat nyahbackup %s"
+
+#: src/getargs.c:186
+msgid "colorize the output"
+msgstr "warnakan keluaran"
+
+#: src/getargs.c:187
+msgid "don't colorize the output"
+msgstr "jangan warnakan keluaran"
+
+#: src/getargs.c:188
+#, fuzzy
+msgid "colorize if the output device is a tty"
+msgstr "jangan warnakan keluaran"
+
+#. TRANSLATORS: Use the same translation for WHEN as in the
+#. --color=WHEN help message.
+#: src/getargs.c:209
+msgid "WHEN can be one of the following:"
+msgstr ""
+
+#: src/getargs.c:222
+msgid "describe the states"
+msgstr "nyatakan keadaan"
+
+#: src/getargs.c:223
+msgid "complete the core item sets with their closure"
+msgstr "lengkapkan kumpulan perkara asas dengan penutupnya"
+
+#: src/getargs.c:224
+msgid "explicitly associate lookahead tokens to items"
+msgstr "dengan jelas kaitkan token lookahead kepada perkara"
+
+#: src/getargs.c:225
+msgid "describe shift/reduce conflicts solving"
+msgstr ""
+"PERKARA adalah senarai perkataan dipisah koma yang boleh termasuk:\n"
+"  `state'        nyatakan keadaan\n"
+"  `itemset'      lengkapkan perkara asas dengan penutupnya\n"
+"  `lookahead'    dengan jelas kaitkan lookahead kepada perkara\n"
+"  `solved'       nyatakan penyelesaian konflik pemindahan/pengurangan\n"
+"  `all'          masukkan semua maklumat diatas\n"
+"  `none'         matikan laporan"
+
+#: src/getargs.c:227
+msgid "include all the above information"
+msgstr "masukkan semua maklumat diatas"
+
+#: src/getargs.c:228
+msgid "disable the report"
+msgstr "matikan laporan"
+
+#. TRANSLATORS: Use the same translation for THINGS as in the
+#. --report=THINGS help message.
+#: src/getargs.c:251
+msgid "THINGS is a list of comma separated words that can include:"
+msgstr "PERKARA adalah senarai perkataan dipisah koma yang boleh termasuk:"
+
+#: src/getargs.c:314
+msgid "TRACES is a list of comma separated words that can include:"
+msgstr "KESAN adalah senarai perkataan dipisah koma yang boleh termasuk:"
+
+#: src/getargs.c:326
+msgid "show errors with carets"
+msgstr "papar kesilapan dengan carets"
+
+#: src/getargs.c:327
+msgid "show machine-readable fixes"
+msgstr "papar pembetulan boleh dibaca mesin"
+
+#: src/getargs.c:328
+msgid "do not generate any file"
+msgstr "jangan jana sebarang fail"
+
+#: src/getargs.c:329
+msgid "all of the above"
+msgstr "semua di atas"
+
+#: src/getargs.c:330
+msgid "disable all of the above"
+msgstr "lumpuhkan semua di atas"
+
+#. TRANSLATORS: Use the same translation for FEATURES as in the
+#. --feature=FEATURES help message.
+#: src/getargs.c:352
+msgid "FEATURES is a list of comma separated words that can include:"
+msgstr "CIRI-CIRI adalah senarai perkataan dipisah koma yang boleh termasuk:"
+
+#: src/getargs.c:367
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Cuba '%s --help' untuk lebih maklumat.\n"
+
+#: src/getargs.c:376
+#, c-format
+msgid "Usage: %s [OPTION]... FILE\n"
+msgstr "Penggunaan: %s [PILIHAN]... FAIL\n"
+
+#: src/getargs.c:377
+msgid ""
+"Generate a deterministic LR or generalized LR (GLR) parser employing\n"
+"LALR(1), IELR(1), or canonical LR(1) parser tables.\n"
+"\n"
+msgstr ""
+"Menjana penghurai LR berketentuan atau LR umum (GLR) menggunakan\n"
+"LALR(1), IELR(1), atau jadual penguhurai LR(1) berstruktur.\n"
+"\n"
+
+#: src/getargs.c:383
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr ""
+"Hujah wajib kepada pilihan panjang adalah wajib untuk pilihan pendek juga.\n"
+
+#: src/getargs.c:386
+msgid "The same is true for optional arguments.\n"
+msgstr "Perkara yang sama bagi hujah pilihan.\n"
+
+#: src/getargs.c:391
+msgid ""
+"Operation Modes:\n"
+"  -h, --help                 display this help and exit\n"
+"  -V, --version              output version information and exit\n"
+"      --print-localedir      output directory containing locale-dependent "
+"data\n"
+"                             and exit\n"
+"      --print-datadir        output directory containing skeletons and XSLT\n"
+"                             and exit\n"
+"  -u, --update               apply fixes to the source grammar file and "
+"exit\n"
+"  -f, --feature[=FEATURES]   activate miscellaneous features\n"
+"\n"
+msgstr ""
+"Mod Operasi:\n"
+"  -h, --help                 papar bantuan ini dan keluar\n"
+"  -V, --version              keluarkan maklumat versi dan keluar\n"
+"      --print-localedir      keluarkan direktori mengandungi data bergantung "
+"locale\n"
+"                             dan keluar\n"
+"      --print-datadir        keluarkan direktori mengandungi rangka dan "
+"XSLT\n"
+"                             dan keluar\n"
+"  -u, --update               terap pembaikan ke fail tatabahasa sumber dan "
+"keluar\n"
+"  -f, --feature[=FEATURES]   aktifkan ciri-ciri lain\n"
+"\n"
+"\n"
+
+#: src/getargs.c:407
+msgid ""
+"Diagnostics:\n"
+"  -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n"
+"      --color[=WHEN]         whether to colorize the diagnostics\n"
+"      --style=FILE           specify the CSS FILE for colorizer diagnostics\n"
+"\n"
+msgstr ""
+
+#: src/getargs.c:421
+#, c-format
+msgid ""
+"Tuning the Parser:\n"
+"  -L, --language=LANGUAGE          specify the output programming language\n"
+"  -S, --skeleton=FILE              specify the skeleton to use\n"
+"  -t, --debug                      instrument the parser for tracing\n"
+"                                   same as '-Dparse.trace'\n"
+"      --locations                  enable location support\n"
+"  -D, --define=NAME[=VALUE]        similar to '%define NAME VALUE'\n"
+"  -F, --force-define=NAME[=VALUE]  override '%define NAME VALUE'\n"
+"  -p, --name-prefix=PREFIX         prepend PREFIX to the external symbols\n"
+"                                   deprecated by '-Dapi.prefix={PREFIX}'\n"
+"  -l, --no-lines                   don't generate '#line' directives\n"
+"  -k, --token-table                include a table of token names\n"
+"  -y, --yacc                       emulate POSIX Yacc\n"
+msgstr ""
+"Penalaan Penghurai:\n"
+"  -L, --language=BAHASA            nyatakan bahasa pengaturcaraan keluaran\n"
+"  -S, --skeleton=FAIL              nyatakan rangka untuk digunakan\n"
+"  -t, --debug                      sediakan parser untuk pengesanan\n"
+"                                   sama seperti '-Dparse.trace'\n"
+"      --locations                  hidupkan sokongan lokasi\n"
+"  -D, --define=NAME[=VALUE]        serupa dengan '%define NAME VALUE'\n"
+"  -F, --force-define=NAME[=VALUE]  atasi '%define NAME VALUE'\n"
+"  -p, --name-prefix=AWALAN         tambah AWALAN kepada simbol luaran\n"
+"                                   diusangkan oleh '-Dapi.prefix={PREFIX}'\n"
+"  -l, --no-lines                   jangan jana arahan '#line'\n"
+"  -k, --token-table                sertakan jadual nama token\n"
+"  -y, --yacc                       contohi POSIX Yacc\n"
+
+#: src/getargs.c:438
+msgid ""
+"Output Files:\n"
+"  -H, --header=[FILE]           also produce a header file\n"
+"  -d                            likewise but cannot specify FILE (for POSIX "
+"Yacc)\n"
+"  -r, --report=THINGS           also produce details on the automaton\n"
+"      --report-file=FILE        write report to FILE\n"
+"  -v, --verbose                 same as '--report=state'\n"
+"  -b, --file-prefix=PREFIX      specify a PREFIX for output files\n"
+"  -o, --output=FILE             leave output to FILE\n"
+"  -g, --graph[=FILE]            also output a graph of the automaton\n"
+"      --html[=FILE]             also output an HTML report of the automaton\n"
+"  -x, --xml[=FILE]              also output an XML report of the automaton\n"
+"  -M, --file-prefix-map=OLD=NEW replace prefix OLD with NEW when writing "
+"file paths\n"
+"                                in output files\n"
+msgstr ""
+"Fail Keluaran:\n"
+"  -H, --header=[FAIL]           juga hasilkan fail pengepala\n"
+"  -d                            sama juga tetapi tidak boleh menyatakan FAIL "
+"(untuk Yacc POSIX)\n"
+"  -r, --report=PERKARA          juga hasilkan butir terperinci bagi "
+"automaton\n"
+"      --report-file=FAIL        tulis laporan ke FAIL\n"
+"  -v, --verbose                 sama seperti '--report=state'\n"
+"  -b, --file-prefix=AWALAN      nyatakan AWALAN untuk fail keluaran\n"
+"  -o, --output=FAIL             biarkan keluaran kepada FAIL\n"
+"  -g, --graph[=FAIL]            juga hasilkan graf bagi automaton\n"
+"      --html[=FAIL]             juga hasilkan laporan HTML bagi automaton\n"
+"  -x, --xml[=FAIL]              juga hasilkan laporan XML bagi automaton\n"
+"  -M, --file-prefix-map=OLD=NEW ganti prefiks OLD dengan NEW apabila menulis "
+"lokasi fail\n"
+"                                dalam fail keluaran\n"
+
+#: src/getargs.c:458
+#, c-format
+msgid "Report bugs to <%s>.\n"
+msgstr "Laporkan pepijat kepada <%s>.\n"
+
+#: src/getargs.c:459
+#, c-format
+msgid "%s home page: <%s>.\n"
+msgstr "%s laman utama: <%s>.\n"
+
+#: src/getargs.c:460
+msgid "General help using GNU software: <https://www.gnu.org/gethelp/>.\n"
+msgstr ""
+"Bantuan umum menggunakan perisian GNU: <https://www.gnu.org/gethelp/>.\n"
+
+#. TRANSLATORS: Replace LANG_CODE in this URL with your language code to
+#. form one of the URLs at https://translationproject.org/team/.
+#. Otherwise, replace the entire URL with your translation team's
+#. email address.
+#: src/getargs.c:474
+msgid "Report translation bugs to <https://translationproject.org/team/>.\n"
+msgstr ""
+"Lapor pepijat terjemahan kepada <https://translationproject.org/team/>.\n"
+
+#: src/getargs.c:477
+msgid "For complete documentation, run: info bison.\n"
+msgstr "Untuk dokumentasi lengkap, laksanakan: info bison.\n"
+
+#: src/getargs.c:495
+msgid "Written by Robert Corbett and Richard Stallman.\n"
+msgstr "Ditulis oleh Robert Corbett dan Richard Stallman.\n"
+
+#: src/getargs.c:499
+#, c-format
+msgid "Copyright (C) %d Free Software Foundation, Inc.\n"
+msgstr "Hakcipta (C) %d Free Software Foundation, Inc.\n"
+
+#: src/getargs.c:502
+msgid ""
+"This is free software; see the source for copying conditions.  There is NO\n"
+"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+msgstr ""
+"Ini adalah perisian bebas; lihat sumber untuk syarat menyalin.  TIADA\n"
+"jaminan disediakan; tidak juga untuk KEBOLEHDAGANGAN atau KEUPAYAAN UNTUK "
+"SESUATU TUJUAN KHUSUS.\n"
+
+#: src/getargs.c:524
+#, c-format
+msgid "multiple skeleton declarations are invalid"
+msgstr "pelbagai rangka pengisytiharan tidak sah"
+
+#: src/getargs.c:541
+#, c-format
+msgid "%s: invalid language"
+msgstr "%s: bahasa tidak sah"
+
+#: src/getargs.c:544
+msgid "multiple language declarations are invalid"
+msgstr "pelbagai pengisytiharan bahasa adalah tidak sah"
+
+#: src/getargs.c:760
+#, c-format
+msgid "invalid argument for %s: %s"
+msgstr "hujah tidak sah untuk %s: %s"
+
+#: src/getargs.c:868
+#, c-format
+msgid "deprecated option: %s, use %s"
+msgstr "pilihan telah luput: %s, guna %s"
+
+#: src/getargs.c:902
+#, c-format
+msgid "missing operand"
+msgstr "operan hilang"
+
+#: src/getargs.c:904
+#, c-format
+msgid "extra operand %s"
+msgstr "operan tambahan %s"
+
+#: src/gram.c:222
+msgid "Grammar"
+msgstr "Tatabahasa"
+
+#: src/graphviz.c:46
+#, c-format
+msgid ""
+"// Generated by %s.\n"
+"// Report bugs to <%s>.\n"
+"// Home page: <%s>.\n"
+"\n"
+msgstr ""
+"// Dijana oleh %s.\n"
+"// Lapor pepijat ke <%s>.\n"
+"// Laman utama: <%s>.\n"
+"\n"
+
+#: src/i18n-strings.c:35
+msgid "end of file"
+msgstr "tamat fail"
+
+#: src/i18n-strings.c:36
+msgid "invalid token"
+msgstr "token tidak sah"
+
+#: src/location.c:138 src/scan-gram.l:957
+#, c-format
+msgid "line number overflow"
+msgstr "nombor baris melimpah"
+
+#: src/location.c:140
+#, c-format
+msgid "column number overflow"
+msgstr "nombor lajur melimpah"
+
+#: src/location.c:143
+#, c-format
+msgid "byte number overflow"
+msgstr "nombor byte melimpah"
+
+#. TRANSLATORS: This is used when a line is too long, and is
+#. displayed truncated.  Use an ellipsis appropriate for your
+#. language, remembering that "…" (U+2026 HORIZONTAL ELLIPSIS)
+#. sometimes misdisplays and that "..." (three ASCII periods) is a
+#. safer choice in some locales.
+#: src/location.c:242
+msgid "..."
+msgstr "..."
+
+#: src/main.c:172
+msgid "rule useless in parser due to conflicts"
+msgstr "hukum tidak digunakan kerana konflik"
+
+#: src/main.c:274
+#, c-format
+msgid "fix-its can be applied.  Rerun with option '--update'."
+msgstr "pembetulan boleh diterapkan. Ulang laksana dengan pilihan '--update'."
+
+#: src/muscle-tab.c:528
+#, c-format
+msgid "%%define variable %s redefined"
+msgstr "pembolehubah %%define %s ditakrif semula"
+
+#: src/muscle-tab.c:531 src/symtab.c:350
+msgid "previous definition"
+msgstr "definisi terdahulu"
+
+#: src/muscle-tab.c:590 src/muscle-tab.c:691 src/muscle-tab.c:750
+#, c-format
+msgid "%s: undefined %%define variable %s"
+msgstr "%s: pembolehubah %s %%define tidak ditakrifkan"
+
+#: src/muscle-tab.c:624
+#, c-format
+msgid "%%define variable '%s' requires '{...}' values"
+msgstr "pembolehubah '%s' %%define memerlukan nilai '{…}'"
+
+#: src/muscle-tab.c:629
+#, c-format
+msgid "%%define variable '%s' requires keyword values"
+msgstr "pembolehubah '%s' %%define memerlukan nilai kata kunci"
+
+#: src/muscle-tab.c:634
+#, c-format
+msgid "%%define variable '%s' requires '\"...\"' values"
+msgstr "pembolehubah '%s' %%define memerlukan nilai '\"...\"'"
+
+#: src/muscle-tab.c:685
+#, c-format
+msgid "invalid value for %%define Boolean variable %s"
+msgstr "nilai tidak sah untuk %%define pembolehubah Boolean %s"
+
+#: src/muscle-tab.c:738
+#, c-format
+msgid "invalid value for %%define variable %s: %s"
+msgstr "nilai tidak sah untuk %%define pembolehubah %s: %s"
+
+#: src/muscle-tab.c:742
+#, c-format
+msgid "accepted value: %s"
+msgstr "nilai diterima: %s"
+
+#: src/parse-gram.y:168
+msgid "string"
+msgstr "rentetan"
+
+#: src/parse-gram.y:169
+msgid "translatable string"
+msgstr "rentetan boleh diterjemah"
+
+#: src/parse-gram.y:214
+msgid "[identifier]"
+msgstr "[pengecam]"
+
+#: src/parse-gram.y:215
+msgid "character literal"
+msgstr "rentetan aksara"
+
+#: src/parse-gram.y:217
+msgid "epilogue"
+msgstr ""
+
+#: src/parse-gram.y:219
+msgid "identifier"
+msgstr "pengecam"
+
+#: src/parse-gram.y:220
+msgid "identifier:"
+msgstr "pengecam:"
+
+#: src/parse-gram.y:225
+msgid "<tag>"
+msgstr "<tag>"
+
+#: src/parse-gram.y:250
+msgid "integer literal"
+msgstr "literal integer"
+
+#: src/parse-gram.y:780
+#, c-format
+msgid "character literals cannot be nonterminals"
+msgstr "aksara literal tidak boleh bukan-penamat"
+
+#: src/parse-gram.y:786
+#, c-format
+msgid "character literals cannot be used together with %s"
+msgstr "aksara literal tidak boleh digunakan bersama-sama dengan %s"
+
+#: src/parse-gram.y:789
+#, c-format
+msgid "definition of %s"
+msgstr "definisi bagi %s"
+
+#: src/parse-gram.y:940
+#, c-format
+msgid "missing identifier in parameter declaration"
+msgstr "pengecam hilang dalam parameter pengisytiharan"
+
+#: src/parse-gram.y:1062
+#, c-format
+msgid "invalid version requirement: %s"
+msgstr "keperluan versi tidak sah: %s"
+
+#: src/parse-gram.y:1073
+#, c-format
+msgid "require bison %s, but have %s"
+msgstr "memerlukan bison %s, tetapi mempunyai %s"
+
+#: src/print-graph.c:62 src/print.c:352
+#, c-format
+msgid "State %d"
+msgstr "Keadaan %d"
+
+#: src/print-xml.c:574
+#, c-format
+msgid "%s failed with status %d"
+msgstr "%s gagal dengan status %d"
+
+#: src/print.c:143
+#, c-format
+msgid "shift, and go to state %d\n"
+msgstr "pindah, dan pergi ke keadaan %d\n"
+
+#: src/print.c:145
+#, c-format
+msgid "go to state %d\n"
+msgstr "pergi ke keadaan %d\n"
+
+#: src/print.c:180
+msgid "error (nonassociative)\n"
+msgstr "ralat (tidak bergabung)\n"
+
+#: src/print.c:202
+#, c-format
+msgid "accept"
+msgstr "terima"
+
+#: src/print.c:204
+#, c-format
+msgid "reduce using rule %d (%s)"
+msgstr "kurang menggunakan hukum %d (%s)"
+
+#: src/print.c:242 src/print.c:316
+msgid "$default"
+msgstr "$default"
+
+#: src/print.c:378
+msgid "Terminals, with rules where they appear"
+msgstr "Terminal, dengan hukum dimana mereka kelihatan"
+
+#: src/print.c:405
+msgid "Nonterminals, with rules where they appear"
+msgstr "Tidak terminal, dengan hukum dimana mereka kelihatan"
+
+#: src/print.c:431
+msgid "on left:"
+msgstr "pada kiri:"
+
+#: src/print.c:440
+msgid "on right:"
+msgstr "pada kanan:"
+
+#: src/print.c:462
+msgid "Rules useless in parser due to conflicts"
+msgstr "Hukum tidak digunakan dalam penghurai kerana konflik"
+
+#: src/reader.c:151
+#, c-format
+msgid "result type clash on merge function %s: <%s> != <%s>"
+msgstr "jenis hasil bertelingkah pada fungsi gabung %s: <%s> != <%s>"
+
+#: src/reader.c:226
+#, c-format
+msgid "duplicated symbol name for %s ignored"
+msgstr "nama simbol berulang bagi %s diabaikan"
+
+#: src/reader.c:262
+#, c-format
+msgid "rule given for %s, which is a token"
+msgstr "hukum diberi untuk %s, dimana ia adalah token"
+
+#: src/reader.c:321
+#, c-format
+msgid "type clash on default action: <%s> != <%s>"
+msgstr "pertelingkahan jenis pada tindakan default: <%s> != <%s>"
+
+#: src/reader.c:345
+#, c-format
+msgid "empty rule for typed nonterminal, and no action"
+msgstr "hukum kosong untuk bukan terminal ditaip, dan tiada tindakan"
+
+#: src/reader.c:389
+#, c-format
+msgid "unused value: $%d"
+msgstr "nilai tidak digunakan: $%d"
+
+#: src/reader.c:391
+#, c-format
+msgid "unset value: $$"
+msgstr "nyahtetap nilai: $$"
+
+#: src/reader.c:401
+#, c-format
+msgid "%%empty on non-empty rule"
+msgstr "%%empty pada hukum bukan kosong"
+
+#: src/reader.c:411
+#, c-format
+msgid "empty rule without %%empty"
+msgstr "hukum kosong tanpa %%empty"
+
+#: src/reader.c:427
+#, c-format
+msgid "token for %%prec is not defined: %s"
+msgstr "tanda untuk %%prec tidak ditakrifkan: %s"
+
+#: src/reader.c:432
+#, c-format
+msgid "only midrule actions can be typed: %s"
+msgstr "hanya tindakan aturan-tengah boleh dijeniskan: %s"
+
+#: src/reader.c:559 src/reader.c:581 src/reader.c:652
+#, c-format
+msgid "%s affects only GLR parsers"
+msgstr "%s hanya berkesan kepada parser GLR"
+
+#: src/reader.c:562
+#, c-format
+msgid "%s must be followed by positive number"
+msgstr "%s mesti diikuti dengan nombor positif"
+
+#: src/reader.c:617
+#, c-format
+msgid "POSIX Yacc does not support typed midrule actions"
+msgstr "POSIX Yacc tidak menyokong jenis tindakan aturan-tengah"
+
+#: src/reader.c:717
+#, c-format
+msgid "rule is too long"
+msgstr "peraturan terlalu panjang"
+
+#: src/reader.c:923
+#, c-format
+msgid "the start symbol %s is undefined"
+msgstr "simbol permulaan %s tidak ditakrifkan"
+
+#: src/reader.c:933
+#, c-format
+msgid "the start symbol %s is a token"
+msgstr "simbol permulaan %s adalah token"
+
+#: src/reader.c:951
+#, c-format
+msgid "no rules in the input grammar"
+msgstr "tiada hukum dalam masukan tatabahasa"
+
+#: src/reduce.c:225
+msgid "rule useless in grammar"
+msgstr "hukum tidak digunakan tatabahasa"
+
+#: src/reduce.c:281
+#, c-format
+msgid "nonterminal useless in grammar: %s"
+msgstr "bukan terminal tidak berguna dalam tatabahasa: %s"
+
+#: src/reduce.c:322
+msgid "Nonterminals useless in grammar"
+msgstr "Bukan terminal tidak digunakan dalam tatabahasa"
+
+#: src/reduce.c:334
+msgid "Terminals unused in grammar"
+msgstr "Terminal tidak digunakan dalam tatabahasa"
+
+#: src/reduce.c:343
+msgid "Rules useless in grammar"
+msgstr "Hukum tidak berguna dalam tatabahasa"
+
+#: src/reduce.c:356
+#, c-format
+msgid "%d nonterminal useless in grammar"
+msgid_plural "%d nonterminals useless in grammar"
+msgstr[0] "%d bukan terminal tidak digunakan dalam tatabahasa"
+
+#: src/reduce.c:361
+#, c-format
+msgid "%d rule useless in grammar"
+msgid_plural "%d rules useless in grammar"
+msgstr[0] "%d hukum tidak digunakan dalam tatabahasa"
+
+#: src/reduce.c:392
+#, c-format
+msgid "start symbol %s does not derive any sentence"
+msgstr "simbol permulaan %s tidak menghasilkan sebarang perkataan"
+
+#: src/scan-code.l:160
+#, c-format
+msgid "stray '%s'"
+msgstr "'%s' sesat"
+
+#: src/scan-code.l:332
+#, c-format
+msgid "refers to: %c%s at %s"
+msgstr "merujuk kepada: %c%s pada %s"
+
+#: src/scan-code.l:356
+#, c-format
+msgid "possibly meant: %c"
+msgstr "mungkin bermaksud: %c"
+
+#: src/scan-code.l:365
+#, c-format
+msgid ", hiding %c"
+msgstr ", menyembunyikan %c"
+
+#: src/scan-code.l:373
+#, c-format
+msgid " at %s"
+msgstr " pada %s"
+
+#: src/scan-code.l:377
+#, c-format
+msgid ", cannot be accessed from midrule action at $%d"
+msgstr ", tidak boleh dicapai dari tindakan peraturan pertengahan pada $%d"
+
+#: src/scan-code.l:416 src/scan-gram.l:879
+#, c-format
+msgid "integer out of range: %s"
+msgstr "integer diluar julat: %s"
+
+#: src/scan-code.l:505
+#, c-format
+msgid "invalid reference: %s"
+msgstr "rujukan tidak sah: %s"
+
+#: src/scan-code.l:512
+#, c-format
+msgid "syntax error after '%c', expecting integer, letter, '_', '[', or '$'"
+msgstr ""
+"ralat sintaks selepas '%c', menjangkakan nombor, huruf, '_', '[', atau '$'"
+
+#: src/scan-code.l:518
+#, c-format
+msgid "symbol not found in production before $%d: %.*s"
+msgstr "simbol tidak dijumpai di dalam pengeluaran sebelum $%d: %.*s"
+
+#: src/scan-code.l:523
+#, c-format
+msgid "symbol not found in production: %.*s"
+msgstr "simbol tidak dijumpai di dalam pengeluaran: %.*s"
+
+#: src/scan-code.l:537
+#, c-format
+msgid "misleading reference: %s"
+msgstr "rujukan yang mengelirukan: %s"
+
+#: src/scan-code.l:552
+#, c-format
+msgid "ambiguous reference: %s"
+msgstr "rujukan yang tidak jelas: %s"
+
+#: src/scan-code.l:588
+#, c-format
+msgid "explicit type given in untyped grammar"
+msgstr "Jenis tidak tersirat diberikan dalam tatabahasa tanpa jenis"
+
+#: src/scan-code.l:643
+#, c-format
+msgid "$$ for the midrule at $%d of %s has no declared type"
+msgstr ""
+"$$ untuk hukum pertengahan pada $%d bagi %s tidak mempunyai jenis yang "
+"diisytiharkan"
+
+#: src/scan-code.l:649
+#, c-format
+msgid "$$ of %s has no declared type"
+msgstr "$$ dari %s tidak mempunyai jenis yang diisytiharkan"
+
+#: src/scan-code.l:675
+#, c-format
+msgid "$%s of %s has no declared type"
+msgstr "$%s dari %s tidak mempunyai jenis yang diisytiharkan"
+
+#: src/scan-code.l:698
+#, c-format
+msgid "multiple occurrences of $%d with api.value.automove"
+msgstr "pelbagai kewujudan $%d dengan api.value.automove"
+
+#: src/scan-gram.l:93
+#, c-format
+msgid "invalid number after \\-escape: %s"
+msgstr "nombor tidak sah selepas \\-escape: %s"
+
+#: src/scan-gram.l:214
+#, c-format
+msgid "stray ',' treated as white space"
+msgstr "`,' sesat dianggap sebagai ruang putih"
+
+#: src/scan-gram.l:309
+#, c-format
+msgid "invalid directive: %s"
+msgstr "arahan tidak sah: %s"
+
+#: src/scan-gram.l:331
+#, c-format
+msgid "invalid identifier: %s"
+msgstr "pengenalan tidak sah: %s"
+
+#: src/scan-gram.l:385
+msgid "invalid character"
+msgid_plural "invalid characters"
+msgstr[0] "aksara tidak sah"
+
+#: src/scan-gram.l:405
+#, c-format
+msgid "invalid null character"
+msgstr "aksara null tidak sah"
+
+#: src/scan-gram.l:463
+#, c-format
+msgid "unexpected identifier in bracketed name: %s"
+msgstr "pengecam yang tidak dijangka dalam nama kurungan: %s"
+
+#: src/scan-gram.l:487
+#, c-format
+msgid "an identifier expected"
+msgstr "sebuah pengenalan dijangka"
+
+#: src/scan-gram.l:494
+msgid "invalid character in bracketed name"
+msgid_plural "invalid characters in bracketed name"
+msgstr[0] "aksara tidak sah dalam nama kurungan"
+
+#: src/scan-gram.l:567 src/scan-gram.l:582
+#, c-format
+msgid "POSIX Yacc does not support string literals"
+msgstr "POSIX Yacc tidak menyokong rentetan literal"
+
+#: src/scan-gram.l:605
+#, c-format
+msgid "empty character literal"
+msgstr "rentetan aksara kosong"
+
+#: src/scan-gram.l:611
+#, c-format
+msgid "extra characters in character literal"
+msgstr "aksara tambahan dalam kesalahan ejaan"
+
+#: src/scan-gram.l:690
+#, c-format
+msgid "invalid character after \\-escape: %s"
+msgstr "aksara tidak sah selepas \\-escape: %s"
+
+#: src/scan-gram.l:872
+#, c-format
+msgid "POSIX Yacc does not support hexadecimal literals"
+msgstr "POSIX Yacc tidak menyokong rentetan hexadecimal"
+
+#: src/scan-gram.l:1010
+#, c-format
+msgid "missing %s at end of file"
+msgstr "%s hilang pada penghujung fail"
+
+#: src/scan-gram.l:1021
+#, c-format
+msgid "missing %s at end of line"
+msgstr "%s hilang pada penghujung baris"
+
+#: src/scan-skel.l:158
+#, c-format
+msgid "unclosed %s directive in skeleton"
+msgstr "arahan %s tidak ditutup dalam rangka"
+
+#: src/scan-skel.l:269
+#, c-format
+msgid "too few arguments for %s directive in skeleton"
+msgstr "terlalu sedikit hujah untuk arahan %s dalam rangka"
+
+#: src/scan-skel.l:276
+#, c-format
+msgid "too many arguments for %s directive in skeleton"
+msgstr "terlalu banyak hujah untuk arahan %s dalam rangka"
+
+#: src/symtab.c:129
+#, c-format
+msgid "POSIX Yacc forbids dashes in symbol names: %s"
+msgstr "POSIX Yacc tidak membenarkan sengkang dalam nama simbol: %s"
+
+#: src/symtab.c:329
+#, c-format
+msgid "%s redeclaration for %s"
+msgstr "%s pengisytiharan semula untuk %s"
+
+#: src/symtab.c:338
+#, c-format
+msgid "%s redeclaration for <%s>"
+msgstr "%s pengisytiharan semula untuk <%s>"
+
+#: src/symtab.c:347
+#, c-format
+msgid "symbol %s redeclared as a token"
+msgstr "simbol %s ditakrif semula sebagai token"
+
+#: src/symtab.c:348
+#, c-format
+msgid "symbol %s redeclared as a nonterminal"
+msgstr "simbol %s ditakrif semula sebagai bukan terminal"
+
+#: src/symtab.c:388
+#, c-format
+msgid ""
+"symbol %s is used, but is not defined as a token and has no rules; did you "
+"mean %s?"
+msgstr ""
+"simbol %s digunakan, tetapi tidak ditakrifkan sebagai token dan tidak "
+"mempunyai peraturan; adakah anda maksudkan %s?"
+
+#: src/symtab.c:398
+#, c-format
+msgid "symbol %s is used, but is not defined as a token and has no rules"
+msgstr ""
+"simbol %s digunakan, tetapi tidak ditakrifkan sebagai token atau mempunyai "
+"hukum"
+
+#: src/symtab.c:537
+#, c-format
+msgid "POSIX yacc reserves %%type to nonterminals"
+msgstr ""
+
+#: src/symtab.c:567
+#, c-format
+msgid "symbol %s redeclared"
+msgstr "simbol %s ditakrif semula"
+
+#: src/symtab.c:591
+#, c-format
+msgid "nonterminals cannot be given a token code"
+msgstr ""
+
+#: src/symtab.c:594
+#, c-format
+msgid "redefining code of token %s"
+msgstr "mentakrif semula kod bagi token %s"
+
+#: src/symtab.c:597
+#, c-format
+msgid "code of token %s too large"
+msgstr "kod bagi token %s terlalu besar"
+
+#: src/symtab.c:634
+#, c-format
+msgid "string literal %s not attached to a symbol"
+msgstr ""
+
+#: src/symtab.c:662
+#, c-format
+msgid "useless %s for type <%s>"
+msgstr "%s tidak berguna untuk jenis <%s>"
+
+#: src/symtab.c:667
+#, c-format
+msgid "type <%s> is used, but is not associated to any symbol"
+msgstr "jenis <%s> digunakan, tetapi tidak dihubungkan ke sebarang simbol"
+
+#: src/symtab.c:712
+#, c-format
+msgid "nonterminals cannot be given a string alias"
+msgstr ""
+
+#: src/symtab.c:715
+#, c-format
+msgid "symbol %s used more than once as a literal string"
+msgstr "simbol %s digunakan lebih dari sekali sebagai rentetan perkataan"
+
+#: src/symtab.c:718
+#, c-format
+msgid "symbol %s given more than one literal string"
+msgstr "simbol %s diberikan lebih daripada satu rentetan perkataan"
+
+#: src/symtab.c:752
+#, c-format
+msgid "code %d reassigned to token %s"
+msgstr "kod %d diuntukkan semula ke token %s"
+
+#: src/symtab.c:755
+#, c-format
+msgid "previous declaration for %s"
+msgstr "pengisytiharan terdahulu untuk %s"
+
+#: src/symtab.c:1083
+#, c-format
+msgid "token number too large"
+msgstr "nombor token terlalu besar"
+
+#: src/symtab.c:1332
+#, c-format
+msgid "useless precedence and associativity for %s"
+msgstr "keutamaan dan pengumpulan tidak berguna untuk %s"
+
+#: src/symtab.c:1335
+#, c-format
+msgid "useless precedence for %s"
+msgstr "keutamaan tidak berguna untuk %s"
+
+#: src/symtab.c:1339
+#, c-format
+msgid "useless associativity for %s, use %%precedence"
+msgstr "kebolehkumpulan tidak berguna untuk %s, guna %%precendence"

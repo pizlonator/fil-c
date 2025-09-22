@@ -1,0 +1,47 @@
+#! /bin/sh
+
+# Copyright (C) 2020-2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+cat >input <<EOF
+z + q;
+
+T x;
+
+T x = y;
+
+x = y;
+
+T (x) + y;
+
+T (x);
+
+T (y) = z + q;
+
+T (y y) = z + q;
+
+z + q;
+EOF
+run 0 "\
+1.0-5: +(z, q)
+3.0-3: <declare>(T, x)
+5.0-7: <init-declare>(T, x, y)
+7.0-5: =(x, y)
+9.0-9: +(<cast>(x, T), y)
+11.0-5: <OR>(<declare>(T, x), <cast>(x, T))
+13.0-13: <OR>(<init-declare>(T, y, +(z, q)), =(<cast>(y, T), +(z, q)))
+15.0-15: <error>
+17.0-5: +(z, q)
+err: 15.5: syntax error, unexpected identifier, expecting '=' or '+' or ')'"

@@ -1,0 +1,25 @@
+#! /bin/sh
+
+@relocatable_sh@
+if test "@RELOCATABLE@" = yes; then
+  prefix="@prefix@"
+  exec_prefix="@exec_prefix@"
+  bindir="@bindir@"
+  orig_installdir="$bindir" # see Makefile.am's *_SCRIPTS variables
+  func_find_curr_installdir # determine curr_installdir
+  func_find_prefixes
+  relocate () {
+    echo "$1/" \
+    | sed -e "s%^${orig_installprefix}/%${curr_installprefix}/%" \
+    | sed -e 's,/$,,'
+  }
+else
+  relocate () {
+    echo "$1"
+  }
+fi
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=`relocate "@bindir@"`
+exec "$bindir/bison" -y "$@"

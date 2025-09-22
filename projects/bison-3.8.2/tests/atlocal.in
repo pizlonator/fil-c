@@ -1,0 +1,163 @@
+# @configure_input@                                     -*- shell-script -*-
+# Configurable variable values for Bison test suite.
+
+# Copyright (C) 2000-2015, 2018-2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# We need 'testsuite.h' (srcdir/test).
+CPPFLAGS="-I$abs_top_srcdir/tests @CPPFLAGS@"
+
+# Don't just check if $POSIXLY_CORRECT is set, as Bash, when launched
+# as /bin/sh, sets the shell variable POSIXLY_CORRECT to y, but not
+# the environment variable.
+if env | grep '^POSIXLY_CORRECT=' >/dev/null; then
+  POSIXLY_CORRECT_IS_EXPORTED=true
+else
+  POSIXLY_CORRECT_IS_EXPORTED=false
+fi
+
+## ------------------- ##
+## C/C++ Compilation.  ##
+## ------------------- ##
+
+: ${CC='@CC@'}
+: ${CXX='@CXX@'}
+
+# Is the compiler GCC?
+: ${GCC='@GCC@'}
+
+# Sometimes a test group needs to ignore gcc warnings, so it locally
+# sets CFLAGS to this.
+: ${NO_WERROR_CFLAGS='@CFLAGS@  @WARN_CFLAGS@  @WARN_CFLAGS_TEST@'}
+: ${NO_WERROR_CXXFLAGS='@CXXFLAGS@ @WARN_CXXFLAGS@ @WARN_CXXFLAGS_TEST@'}
+: ${WNO_DEPRECATED_CXXFLAGS='@WNO_DEPRECATED_CXXFLAGS@'}
+
+# But most of the time, we want -Werror.
+: ${CFLAGS="$NO_WERROR_CFLAGS  @WERROR_CFLAGS@"}
+: ${CXXFLAGS="$NO_WERROR_CXXFLAGS @WERROR_CXXFLAGS@"}
+
+# If 'exit 77'; skip all C++ tests; otherwise ':'.
+: ${BISON_CXX_WORKS='@BISON_CXX_WORKS@'}
+
+# Compiler flags to disable exception support.
+: ${NO_EXCEPTIONS_CXXFLAGS='@NO_EXCEPTIONS_CXXFLAGS@'}
+
+# Requiring a specific C++ standard.
+: ${CXX98_CXXFLAGS='@CXX98_CXXFLAGS@'}
+: ${CXX03_CXXFLAGS='@CXX03_CXXFLAGS@'}
+: ${CXX11_CXXFLAGS='@CXX11_CXXFLAGS@'}
+: ${CXX14_CXXFLAGS='@CXX14_CXXFLAGS@'}
+: ${CXX17_CXXFLAGS='@CXX17_CXXFLAGS@'}
+: ${CXX20_CXXFLAGS='@CXX20_CXXFLAGS@'}
+: ${CXX2B_CXXFLAGS='@CXX2B_CXXFLAGS@'}
+
+# Whether the compiler supports POSIXLY_CORRECT defined.
+: ${C_COMPILER_POSIXLY_CORRECT='@C_COMPILER_POSIXLY_CORRECT@'}
+: ${CXX_COMPILER_POSIXLY_CORRECT='@CXX_COMPILER_POSIXLY_CORRECT@'}
+
+if $POSIXLY_CORRECT_IS_EXPORTED; then
+  $C_COMPILER_POSIXLY_CORRECT || BISON_C_WORKS=false
+  $CXX_COMPILER_POSIXLY_CORRECT || BISON_CXX_WORKS=false
+fi
+
+# Handle --compile-c-with-cxx here, once CXX and CXXFLAGS are known.
+if "$at_arg_compile_c_with_cxx"; then
+  CC_IS_CXX=1
+  CC=$CXX
+  NO_WERROR_CFLAGS=$NO_WERROR_CXXFLAGS
+  CFLAGS="$CXXFLAGS $WNO_DEPRECATED_CXXFLAGS"
+  BISON_C_WORKS=$BISON_CXX_WORKS
+else
+  CC_IS_CXX=0
+fi
+
+
+## ------- ##
+## Other.  ##
+## ------- ##
+
+# Empty if no D compiler was found.
+: ${DC='@DC@'}
+: ${DCFLAGS='@DCFLAGS@'}
+if test x"$DC" = x; then
+  BISON_DC_WORKS=false
+else
+  BISON_DC_WORKS=true
+fi
+
+# Empty if no javac was found
+: ${CONF_JAVAC='@CONF_JAVAC@'}
+
+# Empty if no Java VM was found
+: ${CONF_JAVA='@CONF_JAVA@'}
+
+# We need egrep and perl.
+: ${EGREP='@EGREP@'}
+: ${PERL='@PERL@'}
+
+# Use simple quotes (lib/quote.c).
+# We have an LC_ALL=C pushed onto us via maint.mk.
+LC_CTYPE=C
+export LC_CTYPE
+
+# Are special link options needed?
+: ${LDFLAGS='@LDFLAGS@'}
+
+# Are special libraries needed?
+: ${LIBS="$abs_top_builddir/lib/libbison.a @LIBS@ @INTLLIBS@"}
+
+# Empty if no xsltproc was found
+: ${XSLTPROC='@XSLTPROC@'}
+
+
+# Some tests expect a precise diff format.  See AT_DIFF_U_CHECK.
+# See https://lists.gnu.org/r/bug-bison/2020-05/msg00049.html.
+cat >conftest.1 <<EOF
+1
+2
+3
+4
+5
+6
+EOF
+
+cat >conftest.2 <<EOF
+1
+22
+3
+4
+55
+6
+EOF
+
+cat >conftest.expected <<EOF
+@@ -1,6 +1,6 @@
+ 1
+-2
++22
+ 3
+ 4
+-5
++55
+ 6
+EOF
+
+diff -u conftest.1 conftest.2 2>/dev/null | sed -n '/^@@/,$p' | sed 's/^ $//' >conftest.diff
+if diff conftest.expected conftest.diff >/dev/null; then
+    DIFF_U_WORKS=true
+else
+    DIFF_U_WORKS=false
+fi
+rm conftest.*

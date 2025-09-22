@@ -1,0 +1,517 @@
+# Terjemahan coreutils untuk Bahasa Melayu.
+# Copyright (C) 2001 Free Software Foundation, Inc.
+# Hasbullah Bin Pit <sebol@ikhlas.com>, 2003.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version:  coreutils 5.0.90\n"
+"Report-Msgid-Bugs-To: bug-gnulib@gnu.org\n"
+"POT-Creation-Date: 2021-09-25 07:43+0200\n"
+"PO-Revision-Date: 2003-08-10 16:00+0800\n"
+"Last-Translator: Hasbullah Bin Pit <sebol@ikhlas.com>\n"
+"Language-Team: Malay <translation-team-ms@lists.sourceforge.net>\n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+#: lib/argmatch.c:132
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr "hujah tidak sah %s bagi %s"
+
+#: lib/argmatch.c:133
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "hujah ambiguous %s bagi %s"
+
+#: lib/argmatch.c:152 lib/argmatch.h:223
+msgid "Valid arguments are:"
+msgstr "Hujah sah adalah:"
+
+#: lib/bitset/stats.c:183
+#, c-format
+msgid "%u bitset_allocs, %u freed (%.2f%%).\n"
+msgstr ""
+
+#: lib/bitset/stats.c:186
+#, c-format
+msgid "%u bitset_sets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:189
+#, c-format
+msgid "%u bitset_resets, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:192
+#, c-format
+msgid "%u bitset_tests, %u cached (%.2f%%)\n"
+msgstr ""
+
+#: lib/bitset/stats.c:196
+#, c-format
+msgid "%u bitset_lists\n"
+msgstr ""
+
+#: lib/bitset/stats.c:198
+msgid "count log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:201
+msgid "size log histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:204
+msgid "density histogram\n"
+msgstr ""
+
+#: lib/bitset/stats.c:216
+#, c-format
+msgid ""
+"Bitset statistics:\n"
+"\n"
+msgstr ""
+
+#: lib/bitset/stats.c:219
+#, c-format
+msgid "Accumulated runs = %u\n"
+msgstr ""
+
+#: lib/bitset/stats.c:261 lib/bitset/stats.c:266
+#, fuzzy
+msgid "cannot read stats file"
+msgstr "tak boleh mencipta pautan %s"
+
+#: lib/bitset/stats.c:263
+#, c-format
+msgid "bad stats file size\n"
+msgstr ""
+
+#: lib/bitset/stats.c:287 lib/bitset/stats.c:289
+#, fuzzy
+msgid "cannot write stats file"
+msgstr "tak boleh mencipta pautan %s"
+
+#: lib/bitset/stats.c:292
+#, fuzzy
+msgid "cannot open stats file for writing"
+msgstr "tak dapat buka %s untuk dibaca"
+
+#: lib/closeout.c:122
+msgid "write error"
+msgstr "ralat menulis"
+
+#: lib/error.c:195
+msgid "Unknown system error"
+msgstr "Ralat sistem yang tidak diketahui"
+
+#: lib/execute.c:348 lib/spawn-pipe.c:597 lib/wait-process.c:291
+#: lib/wait-process.c:365
+#, fuzzy, c-format
+msgid "%s subprocess failed"
+msgstr "fail istimewa blok"
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: opsyen `%s' adalah ambiguous\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: opsyen `%s' adalah ambiguous\n"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: opensyen tidak dikenali `%c%s'\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: opsyen `%c%s' tidak mengizinkan hujah\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: opsyen  `%s' memerlukan hujah\n"
+
+#: lib/getopt.c:621
+#, fuzzy, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: opsyen tidak sah -- %c\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: opsyen memerlukan hujah -- %c\n"
+
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "memori keletihan"
+
+#: lib/openat-die.c:38
+#, fuzzy, c-format
+msgid "unable to record current working directory"
+msgstr "gagal untuk kembali ke direktori kerja pemulaan"
+
+#: lib/openat-die.c:57
+#, c-format
+msgid "failed to return to initial working directory"
+msgstr "gagal untuk kembali ke direktori kerja pemulaan"
+
+#: lib/os2-spawn.c:46
+#, c-format
+msgid "_open_osfhandle failed"
+msgstr ""
+
+#: lib/os2-spawn.c:83
+#, c-format
+msgid "cannot restore fd %d: dup2 failed"
+msgstr ""
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:355
+msgid "`"
+msgstr "`"
+
+#: lib/quotearg.c:356
+msgid "'"
+msgstr "`"
+
+#: lib/spawn-pipe.c:217 lib/spawn-pipe.c:220 lib/spawn-pipe.c:459
+#: lib/spawn-pipe.c:462
+#, fuzzy, c-format
+msgid "cannot create pipe"
+msgstr "tak boleh mencipta pautan %s"
+
+#: lib/timevar.c:316
+msgid "Execution times (seconds)"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU user"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "CPU system"
+msgstr ""
+
+#: lib/timevar.c:318
+msgid "wall clock"
+msgstr ""
+
+#: lib/unicodeio.c:102
+msgid "iconv function not usable"
+msgstr "fungsi iconv tak boleh digunakan"
+
+#: lib/unicodeio.c:104
+msgid "iconv function not available"
+msgstr "fungsi iconv tidak ada"
+
+#: lib/unicodeio.c:111
+msgid "character out of range"
+msgstr "aksara di luar julat"
+
+#: lib/unicodeio.c:198
+#, c-format
+msgid "cannot convert U+%04X to local character set"
+msgstr "tak dapat menukar U+%04X ke set aksara lokal"
+
+#: lib/unicodeio.c:200
+#, c-format
+msgid "cannot convert U+%04X to local character set: %s"
+msgstr "tak dapat menukar U+%04X ke set aksara lokal: %s"
+
+#: lib/wait-process.c:232 lib/wait-process.c:264 lib/wait-process.c:326
+#, fuzzy, c-format
+msgid "%s subprocess"
+msgstr "fail istimewa blok"
+
+#: lib/wait-process.c:283 lib/wait-process.c:355
+#, fuzzy, c-format
+msgid "%s subprocess got fatal signal %d"
+msgstr "fail istimewa blok"
+
+#~ msgid "Written by %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid "Written by %s and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid "Written by %s, %s, and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, and %s.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Written by %s, %s, %s,\n"
+#~ "%s, %s, %s, %s,\n"
+#~ "%s, %s, and others.\n"
+#~ msgstr "Ditulis oleh %s.\n"
+
+#, fuzzy
+#~ msgid "Report bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Lapor pepijat ke <%s>.\n"
+
+#, fuzzy
+#~ msgid "Report %s bugs to: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Lapor pepijat ke <%s>.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Mandatory or optional arguments to long options are also mandatory or "
+#~ "optional for any corresponding short options."
+#~ msgstr ""
+#~ "Hujah mandatori kepada opsyen panjang andalah mandatori bagi opsyen "
+#~ "pendek juga.\n"
+
+#, fuzzy
+#~ msgid " [OPTION...]"
+#~ msgstr "Pengunaan: %s [OPSYEN]...\n"
+
+#, fuzzy
+#~ msgid "Try `%s --help' or `%s --usage' for more information.\n"
+#~ msgstr "Cuba `%s --help' untuk maklumat lanjut .\n"
+
+#~ msgid "NAME"
+#~ msgstr "NAMA"
+
+#, fuzzy
+#~ msgid "%s: Too many arguments\n"
+#~ msgstr "terlalu banyak hujah"
+
+#, fuzzy
+#~ msgid "program error"
+#~ msgstr "ralat membaca"
+
+#, fuzzy
+#~ msgid "error while opening \"%s\" for reading"
+#~ msgstr "tak dapat buka %s untuk dibaca"
+
+#, fuzzy
+#~ msgid "error reading \"%s\""
+#~ msgstr "membaca %s"
+
+#, fuzzy
+#~ msgid "error writing \"%s\""
+#~ msgstr "menulis %s"
+
+#, fuzzy
+#~ msgid "error after reading \"%s\""
+#~ msgstr "membaca %s"
+
+#, fuzzy
+#~ msgid "fdopen() failed"
+#~ msgstr "pembukaan gagal"
+
+#~ msgid "regular empty file"
+#~ msgstr "fail kosong biasa"
+
+#~ msgid "regular file"
+#~ msgstr "fail biasa"
+
+#~ msgid "directory"
+#~ msgstr "direktori"
+
+#~ msgid "block special file"
+#~ msgstr "fail istimewa blok"
+
+#~ msgid "character special file"
+#~ msgstr "fail istimewa aksara"
+
+#~ msgid "fifo"
+#~ msgstr "fifo"
+
+#~ msgid "symbolic link"
+#~ msgstr "pautan simbolik"
+
+#~ msgid "socket"
+#~ msgstr "soket"
+
+#~ msgid "message queue"
+#~ msgstr "giliran mesej"
+
+#~ msgid "shared memory object"
+#~ msgstr "objek memori terkongsi"
+
+#, fuzzy
+#~ msgid "typed memory object"
+#~ msgstr "objek memori terkongsi"
+
+#~ msgid "weird file"
+#~ msgstr "fail pelik"
+
+#, fuzzy
+#~ msgid "Address family for hostname not supported"
+#~ msgstr "fail fifo tidak disokong"
+
+#, fuzzy
+#~ msgid "ai_family not supported"
+#~ msgstr "fail fifo tidak disokong"
+
+#, fuzzy
+#~ msgid "ai_socktype not supported"
+#~ msgstr "fail fifo tidak disokong"
+
+#, fuzzy
+#~ msgid "System error"
+#~ msgstr "ralat menulis"
+
+#, fuzzy
+#~ msgid "Unknown error"
+#~ msgstr "Ralat sistem yang tidak diketahui"
+
+#~ msgid "%s: option `--%s' doesn't allow an argument\n"
+#~ msgstr "%s: opsyen `--%s' tidak mengizinkan hujah\n"
+
+#~ msgid "%s: unrecognized option `--%s'\n"
+#~ msgstr "%s: opensyen tidak dikenali `--%s'\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: opsyen tidak dibenarkan -- %c\n"
+
+#~ msgid "%s: option `-W %s' is ambiguous\n"
+#~ msgstr "%s: opsyen `-W %s' adalah ambiguous\n"
+
+#~ msgid "%s: option `-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: opsyen `-W %s' tidak mengizinkan hujan\n"
+
+#~ msgid "block size"
+#~ msgstr "saiz blok"
+
+#~ msgid "%s exists but is not a directory"
+#~ msgstr "%s wujud tapi ianya bukan direktori"
+
+#~ msgid "cannot change owner and/or group of %s"
+#~ msgstr "tak dapat menukar hakmilik dan/atau kumpulan %s"
+
+#~ msgid "cannot create directory %s"
+#~ msgstr "tak dapat mencipta direktori %s"
+
+#~ msgid "cannot chdir to directory %s"
+#~ msgstr "tak dapat chdir ke direktori %s"
+
+#~ msgid "cannot change permissions of %s"
+#~ msgstr "tak dapat menukar keizinan %s"
+
+#, fuzzy
+#~ msgid "Failed to open /dev/zero for read"
+#~ msgstr "gagal mengekalkan  keizinan bagi %s"
+
+#, fuzzy
+#~ msgid "Invalid regular expression"
+#~ msgstr "%s: ungkapan biasa (regexp) tidak sah: %s"
+
+#, fuzzy
+#~ msgid "Invalid character class name"
+#~ msgstr "aksara tidak sah pada %s pada rentetan mod %s"
+
+#, fuzzy
+#~ msgid "Memory exhausted"
+#~ msgstr "memori keletihan"
+
+#, fuzzy
+#~ msgid "Invalid preceding regular expression"
+#~ msgstr "%s: ungkapan biasa (regexp) tidak sah: %s"
+
+#, fuzzy
+#~ msgid "Premature end of regular expression"
+#~ msgstr "ralat pada carian ungkapan biasa (regexp)"
+
+#, fuzzy
+#~ msgid "Regular expression too big"
+#~ msgstr "%s: ungkapan biasa (regexp) tidak sah: %s"
+
+#, fuzzy
+#~ msgid "No previous regular expression"
+#~ msgstr "ralat pada carian ungkapan biasa (regexp)"
+
+#~ msgid "^[yY]"
+#~ msgstr "^[yY]"
+
+#~ msgid "^[nN]"
+#~ msgstr "^[tT]"
+
+#~ msgid "invalid user"
+#~ msgstr "pengguna tidak sah"
+
+#~ msgid "invalid group"
+#~ msgstr "kumpulan tidak sah"
+
+#~ msgid "cannot get the login group of a numeric UID"
+#~ msgstr "tak boleh mendapatkan kumpulan logmasuk untuk UID numerik"
+
+#~ msgid "string comparison failed"
+#~ msgstr "perbandingan rentetan gagal"
+
+#~ msgid "Set LC_ALL='C' to work around the problem."
+#~ msgstr "Tetapkan LC_ALL='C' untuk mengatasi masalah."
+
+#~ msgid "The strings compared were %s and %s."
+#~ msgstr "Rentetan dibandingkan adalah %s dan %s."

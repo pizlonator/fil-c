@@ -1,0 +1,101 @@
+bison (GNU Bison) 3.8.2
+Written by Robert Corbett and Richard Stallman.
+
+Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Usage: bison [OPTION]... FILE
+Generate a deterministic LR or generalized LR (GLR) parser employing
+LALR(1), IELR(1), or canonical LR(1) parser tables.
+
+Mandatory arguments to long options are mandatory for short options too.
+The same is true for optional arguments.
+
+Operation Modes:
+  -h, --help                 display this help and exit
+  -V, --version              output version information and exit
+      --print-localedir      output directory containing locale-dependent data
+                             and exit
+      --print-datadir        output directory containing skeletons and XSLT
+                             and exit
+  -u, --update               apply fixes to the source grammar file and exit
+  -f, --feature[=FEATURES]   activate miscellaneous features
+
+FEATURES is a list of comma separated words that can include:
+  caret, diagnostics-show-caret
+                    show errors with carets
+  fixit, diagnostics-parseable-fixits
+                    show machine-readable fixes
+  syntax-only       do not generate any file
+  all               all of the above
+  none              disable all of the above
+
+Diagnostics:
+  -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY
+      --color[=WHEN]         whether to colorize the diagnostics
+      --style=FILE           specify the CSS FILE for colorizer diagnostics
+
+Warning categories include:
+  conflicts-sr      S/R conflicts (enabled by default)
+  conflicts-rr      R/R conflicts (enabled by default)
+  counterexamples, cex
+                    generate conflict counterexamples
+  dangling-alias    string aliases not attached to a symbol
+  deprecated        obsolete constructs
+  empty-rule        empty rules without %empty
+  midrule-values    unset or unused midrule values
+  precedence        useless precedence and associativity
+  yacc              incompatibilities with POSIX Yacc
+  other             all other warnings (enabled by default)
+  all               all the warnings except 'counterexamples', 'dangling-alias' and 'yacc'
+  no-CATEGORY       turn off warnings in CATEGORY
+  none              turn off all the warnings
+  error[=CATEGORY]  treat warnings as errors
+
+WHEN can be one of the following:
+  always, yes  colorize the output
+  never, no    don't colorize the output
+  auto, tty    colorize if the output device is a tty
+
+Tuning the Parser:
+  -L, --language=LANGUAGE          specify the output programming language
+  -S, --skeleton=FILE              specify the skeleton to use
+  -t, --debug                      instrument the parser for tracing
+                                   same as '-Dparse.trace'
+      --locations                  enable location support
+  -D, --define=NAME[=VALUE]        similar to '%define NAME VALUE'
+  -F, --force-define=NAME[=VALUE]  override '%define NAME VALUE'
+  -p, --name-prefix=PREFIX         prepend PREFIX to the external symbols
+                                   deprecated by '-Dapi.prefix={PREFIX}'
+  -l, --no-lines                   don't generate '#line' directives
+  -k, --token-table                include a table of token names
+  -y, --yacc                       emulate POSIX Yacc
+
+Output Files:
+  -H, --header=[FILE]           also produce a header file
+  -d                            likewise but cannot specify FILE (for POSIX Yacc)
+  -r, --report=THINGS           also produce details on the automaton
+      --report-file=FILE        write report to FILE
+  -v, --verbose                 same as '--report=state'
+  -b, --file-prefix=PREFIX      specify a PREFIX for output files
+  -o, --output=FILE             leave output to FILE
+  -g, --graph[=FILE]            also output a graph of the automaton
+      --html[=FILE]             also output an HTML report of the automaton
+  -x, --xml[=FILE]              also output an XML report of the automaton
+  -M, --file-prefix-map=OLD=NEW replace prefix OLD with NEW when writing file paths
+                                in output files
+
+THINGS is a list of comma separated words that can include:
+  states            describe the states
+  itemsets          complete the core item sets with their closure
+  lookaheads        explicitly associate lookahead tokens to items
+  solved            describe shift/reduce conflicts solving
+  counterexamples, cex
+                    generate conflict counterexamples
+  all               include all the above information
+  none              disable the report
+
+Report bugs to <bug-bison@gnu.org>.
+GNU Bison home page: <https://www.gnu.org/software/bison/>.
+General help using GNU software: <https://www.gnu.org/gethelp/>.
+For complete documentation, run: info bison.

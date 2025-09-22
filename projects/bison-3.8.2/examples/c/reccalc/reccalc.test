@@ -1,0 +1,59 @@
+#! /bin/sh
+
+# Copyright (C) 2018-2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+(seq 0) >/dev/null 2>&1 || skip "gimme one seq"
+
+cat >input <<EOF
+1+2*3
+EOF
+run 0 '7'
+
+cat >input <<EOF
+(1+2) * 3
+EOF
+run 0 '9'
+run -noerr 0 '9' -p
+
+cat >input <<EOF
+(((1)+(2))*((3)+(4)))
+EOF
+run 0 '21'
+
+# Some really deep computation.
+# for 4, gives 4 + (3 + (2 + (1 + (- (4 * (4 + 1)) / 2)))).
+n=100
+for i in $(seq 0 $n)
+do
+    if [ "$i" -eq 0 ]; then
+        input="- ($n * ($n + 1)) / 2"
+    else
+        input="$i + ($input)"
+    fi
+done
+echo "$input" > input
+run 0 '0'
+
+cat >input <<EOF
+() + ()
+EOF
+run 1 'err: syntax error, unexpected end-of-file, expecting + or - or number or string'
+
+cat >input <<EOF
+1 + $
+EOF
+run 1 'err: syntax error, invalid character: $
+err: syntax error, unexpected end-of-line, expecting + or - or number or string'
