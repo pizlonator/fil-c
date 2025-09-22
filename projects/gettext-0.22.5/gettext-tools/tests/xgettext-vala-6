@@ -1,0 +1,44 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Vala support: printf and format strings.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > xg-vala-6.vala
+"<b>%s</b>".printf(_("Hello 1"));
+_("Explanation: %s").printf(_("Hello 2"));
+Posix.printf(_("Hello 3"));
+Posix.printf(_("Hello 4 %s!"), _("Sir"));
+EOF
+
+${XGETTEXT} --omit-header --no-location -o xg-vala-6.tmp xg-vala-6.vala || Exit 1
+func_filter_POT_Creation_Date xg-vala-6.tmp xg-vala-6.po
+
+cat <<\EOF > xg-vala-6.ok
+msgid "Hello 1"
+msgstr ""
+
+#, c-format
+msgid "Explanation: %s"
+msgstr ""
+
+msgid "Hello 2"
+msgstr ""
+
+msgid "Hello 3"
+msgstr ""
+
+#, c-format
+msgid "Hello 4 %s!"
+msgstr ""
+
+msgid "Sir"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-vala-6.ok xg-vala-6.po
+result=$?
+
+exit $result
