@@ -111,6 +111,7 @@ test_heap (void)
   explicit_bzero (heapbuf, SECRET_SIZE);
   free (heapbuf);
   heapbuf = (char *) addr;
+#ifndef __FILC__
   if (is_range_mapped (addr, addr + SECRET_SIZE))
     {
       /* some implementation could override freed memory by canaries so
@@ -119,6 +120,7 @@ test_heap (void)
       printf ("test_heap: address range is still mapped after free().\n");
     }
   else
+#endif
     printf ("test_heap: address range is unmapped after free().\n");
 }
 

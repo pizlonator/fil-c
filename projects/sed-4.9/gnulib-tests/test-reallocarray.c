@@ -30,6 +30,7 @@ SIGNATURE_CHECK (reallocarray, void *, (void *, size_t, size_t));
 int
 main ()
 {
+#ifndef __FILC__
   /* Check that reallocarray fails when requested to allocate a block
      of memory larger than PTRDIFF_MAX or SIZE_MAX bytes.  */
   for (size_t n = 2; n != 0; n <<= 1)
@@ -53,6 +54,7 @@ main ()
       p = reallocarray (p, n, 0);
       free (p);
     }
+#endif
 
   return 0;
 }

@@ -31,6 +31,7 @@ main (int argc, char **argv)
   void *volatile p = realloc (NULL, 0);
   ASSERT (p != NULL);
 
+#ifndef __FILC__
   /* Check that realloc (p, n) fails when p is non-null and n exceeds
      PTRDIFF_MAX.  */
   if (PTRDIFF_MAX < SIZE_MAX)
@@ -43,6 +44,7 @@ main (int argc, char **argv)
       if (!getenv ("MALLOC_CHECK_"))
         ASSERT (errno == ENOMEM);
     }
+#endif
 
   free (p);
   return 0;

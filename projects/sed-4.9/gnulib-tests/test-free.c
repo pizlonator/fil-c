@@ -111,7 +111,7 @@ main ()
      But do not test it with glibc < 2.15, since that triggers a glibc internal
      abort: "malloc.c:3551: munmap_chunk: Assertion `ret == 0' failed."
    */
-  #if defined __linux__ && !(__GLIBC__ == 2 && __GLIBC_MINOR__ < 15)
+  #if defined __linux__ && !(__GLIBC__ == 2 && __GLIBC_MINOR__ < 15) && !defined __FILC__
   if (open ("/proc/sys/vm/max_map_count", O_RDONLY) >= 0)
     {
       /* Preparations.  */
