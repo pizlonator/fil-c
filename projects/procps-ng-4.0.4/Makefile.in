@@ -1088,7 +1088,7 @@ library_libproc2_la_LIBADD = $(LIB_KPARTS) $(am__append_30) \
 library_libproc2_la_LDFLAGS = \
 	-version-info $(LIBproc2_CURRENT):$(LIBproc2_REVISION):$(LIBproc2_AGE) \
 	-no-undefined \
-	-Wl,--version-script=$(top_srcdir)/library/libproc2.sym
+	--version-script=$(top_srcdir)/library/libproc2.sym
 
 library_libproc2_la_SOURCES = \
 	library/devname.c \
