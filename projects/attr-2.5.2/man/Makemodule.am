@@ -1,0 +1,24 @@
+include man/man1/Makemodule.am
+include man/man3/Makemodule.am
+
+# Support installing symlinks for man pages that cover multiple interfaces.
+install-data-hook:
+	set -e; \
+	cd "$(DESTDIR)$(mandir)"; \
+	for d in $(dist_man_MANS); do \
+		man_section=$${d##*.}; \
+		d=$${d#man/}; \
+		dst=$${d##*/}; \
+		for m in `$(AWK) \
+			'/^\.S[h|H] NAME/ {ok=1; next} ok {print; exit}' $$d \
+			| $(SED) \
+				-e 's/^\.Nm //' -e 's/,/ /g' -e 's/\\-.*//' \
+				-e 's/\\\f[0-9]//g' -e 's/  / /g;q'`; \
+		do \
+			[ "$$m" = "\\" ] && continue; \
+			ln="man$$man_section/$$m.$$man_section"; \
+			[ -e "$$ln" ] && continue; \
+			echo $(LN_S) $$dst $$ln; \
+			$(LN_S) $$dst $$ln; \
+		done; \
+	done

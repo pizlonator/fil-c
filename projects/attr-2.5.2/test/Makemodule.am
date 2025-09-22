@@ -1,0 +1,13 @@
+TESTS = \
+	test/attr.test \
+	test/root/getfattr.test
+
+EXTRA_DIST += \
+	test/README \
+	test/run \
+	test/sort-getfattr-output \
+	$(TESTS)
+
+# Make sure translations don't break tests when matching output.
+AM_TESTS_ENVIRONMENT = PATH="$(abs_top_builddir):$$PATH"; export LC_MESSAGES=C;
+TEST_LOG_COMPILER = $(srcdir)/test/run

@@ -1,0 +1,120 @@
+Cry immediately if we are not running as root.
+
+	$ require_root
+
+	$ mkdir d
+	$ cd d
+
+	$ touch f
+	$ setfattr -n user.test -v test f
+	$ ln -s f l
+	$ setfattr -h -n trusted.test -v test l
+
+This case should be obvious:
+	$ getfattr -m- -d f
+	> # file: f
+	> user.test="test"
+	>
+
+Without -h, we dereference symlinks:
+	$ getfattr -m- -d l
+	> # file: l
+	> user.test="test"
+	>
+
+With -h, we do not dereference symlinks:
+	$ getfattr -m- -hd l
+	> # file: l
+	> trusted.test="test"
+	>
+
+Do the same for symlinks we find in a directory hierarchy:
+	$ getfattr -m- -Rd . | sort-getfattr-output
+	> # file: f
+	> user.test="test"
+	>
+	> # file: l
+	> user.test="test"
+	>
+
+	$ getfattr -m- -Rhd . | sort-getfattr-output
+	> # file: f
+	> user.test="test"
+	>
+	> # file: l
+	> trusted.test="test"
+	>
+
+Make sure we follow symlinks on the command line only when we should:
+	$ ln -s . here
+	$ getfattr -m- -Rd here | sort-getfattr-output
+	> # file: here/f
+	> user.test="test"
+	>
+	> # file: here/l
+	> user.test="test"
+	>
+
+	$ getfattr -m- -Rhd here
+
+	$ getfattr -m- -RLhd here | sort-getfattr-output
+	> # file: here/f
+	> user.test="test"
+	>
+	> # file: here/l
+	> trusted.test="test"
+	>
+
+	$ getfattr -m- -RPhd here
+
+Make sure we recurse into sub-directories:
+	$ mkdir sub
+	$ mv f l sub
+	$ getfattr -m- -Rd . | sort-getfattr-output
+	> # file: sub/f
+	> user.test="test"
+	>
+	> # file: sub/l
+	> user.test="test"
+	>
+
+	$ getfattr -m- -Rhd . | sort-getfattr-output
+	> # file: sub/f
+	> user.test="test"
+	>
+	> # file: sub/l
+	> trusted.test="test"
+	>
+
+Make sure we follow symlinks to directories only when we should:
+	$ mkdir sub2
+	$ ln -s ../sub sub2/to-sub
+	$ getfattr -m- -Rhd sub2
+
+	$ getfattr -m- -RLhd sub2 | sort-getfattr-output
+	> # file: sub2/to-sub/f
+	> user.test="test"
+	>
+	> # file: sub2/to-sub/l
+	> trusted.test="test"
+	>
+
+	$ getfattr -m- -RPhd sub2
+
+Symlink loop detection:
+	$ ln -s .. sub/up
+	$ getfattr -m- -RLhd . | sort-getfattr-output
+	> # file: sub/f
+	> user.test="test"
+	> 
+	> # file: sub/l
+	> trusted.test="test"
+	> 
+	> # file: sub2/to-sub/f
+	> user.test="test"
+	> 
+	> # file: sub2/to-sub/l
+	> trusted.test="test"
+	> 
+	$ cd ..
+	$ rm -rf d

@@ -1,0 +1,13 @@
+Run `make test` in the root source tree to build the tree and run
+FS-independent tests.
+
+Run `cd test; make ext` to run ext specific tests.
+
+Andreas Gruenbacher's tests for the ext2 filesystem extended attributes
+support.  Most of these tests should work for any filesystem type, and
+most are actually used as part of the XFS test suite.  However, those
+tests relating to the exercising of boundary conditions of attribute
+value lengths, etc, are specific to ext2.
+
+		--  nathans@sgi.com
+

@@ -1,0 +1,399 @@
+Tests for extended attributes on file systems.
+
+Execute this test using the `run' script in this directory:
+
+	run attr.text
+
+Try various valid and invalid names
+	
+	$ mkdir d
+	$ cd d
+
+	$ touch f
+	$ setfattr -n user -v value f
+	> setfattr: f: Operation not supported
+	
+	$ setfattr -n user. -v value f
+	> setfattr: f: Invalid argument
+	
+	$ setfattr -n user.name f
+	$ getfattr -d f
+	> # file: f
+	> user.name=""
+	> 
+	
+	$ setfattr -x user.name f
+	$ sh -c 'getfattr -n user.name f && echo zero exit code'
+	> f: user.name: No such attribute
+	
+	$ setfattr -n user.n -v value f
+	$ rm f
+
+
+Editing values
+
+	$ touch f
+	$ setfattr -n user.vvvvvvvvvvvv -v vvvvvvvvvvvv f
+	$ setfattr -n user.wwwwwwww -v wwwwwwww f
+	$ setfattr -n user.xxxx -v xxxx f
+	$ getfattr -d f
+	> # file: f
+	> user.vvvvvvvvvvvv="vvvvvvvvvvvv"
+	> user.wwwwwwww="wwwwwwww"
+	> user.xxxx="xxxx"
+	> 
+	
+	$ setfattr -n user.wwwwwwww -v wwww f
+	$ getfattr -d f
+	> # file: f
+	> user.vvvvvvvvvvvv="vvvvvvvvvvvv"
+	> user.wwwwwwww="wwww"
+	> user.xxxx="xxxx"
+	> 
+	
+	$ setfattr -n user.xxxx -v xxxxxxxx f
+	$ getfattr -d f
+	> # file: f
+	> user.vvvvvvvvvvvv="vvvvvvvvvvvv"
+	> user.wwwwwwww="wwww"
+	> user.xxxx="xxxxxxxx"
+	> 
+	
+	$ rm f
+
+Value encodings
+
+	$ touch f
+	$ setfattr -n user.name -v 0xbabe f
+	$ setfattr -n user.name2 -v 0s3q2+7w== f
+	$ setfattr -n user.name3 -v 0xdeface f
+	$ getfattr -d -e hex f
+	> # file: f
+	> user.name=0xbabe
+	> user.name2=0xdeadbeef
+	> user.name3=0xdeface
+	> 
+	
+	$ getfattr -d -e base64 f
+	> # file: f
+	> user.name=0sur4=
+	> user.name2=0s3q2+7w==
+	> user.name3=0s3vrO
+	> 
+	
+	$ rm f
+
+Everything with one file
+
+	$ touch f
+	$ setfattr -n user.novalue f
+	$ setfattr -n user.somename -v somevalue f
+	$ setfattr -n user.somename -v somevalue f
+	$ setfattr -n user.longername -v longervalue f
+	$ setfattr -n user.short -v value f
+	$ setfattr -n user.novalue-yet f
+	
+	$ getfattr -d f
+	> # file: f
+	> user.longername="longervalue"
+	> user.novalue=""
+	> user.novalue-yet=""
+	> user.short="value"
+	> user.somename="somevalue"
+	> 
+	
+	$ setfattr -n user.novalue-yet -v avalue-now f
+	$ getfattr -d f
+	> # file: f
+	> user.longername="longervalue"
+	> user.novalue=""
+	> user.novalue-yet="avalue-now"
+	> user.short="value"
+	> user.somename="somevalue"
+	> 
+	
+	$ setfattr -x user.noname f
+	> setfattr: f: No such attribute
+	
+	$ setfattr -x user.somename f
+	$ setfattr -x user.short f
+	$ getfattr -d f
+	> # file: f
+	> user.longername="longervalue"
+	> user.novalue=""
+	> user.novalue-yet="avalue-now"
+	> 
+	
+	$ setfattr -x user.longername f
+	$ setfattr -x user.novalue f
+	$ setfattr -x user.novalue-yet f
+	$ getfattr -d f
+	
+	$ rm f
+
+Test extended attribute block sharing
+
+	$ touch f g h
+	$ setfattr -n user.novalue f g h
+	$ getfattr f g h | sort-getfattr-output
+	> # file: f
+	> user.novalue
+	>
+	> # file: g
+	> user.novalue
+	>
+	> # file: h
+	> user.novalue
+	>
+
+	$ setfattr -n user.name -v value f
+	$ getfattr f g h | sort-getfattr-output
+	> # file: f
+	> user.name
+	> user.novalue
+	>
+	> # file: g
+	> user.novalue
+	>
+	> # file: h
+	> user.novalue
+	>
+
+	$ getfattr -d f g h | sort-getfattr-output
+	> # file: f
+	> user.name="value"
+	> user.novalue=""
+	> 
+	> # file: g
+	> user.novalue=""
+	> 
+	> # file: h
+	> user.novalue=""
+	> 
+
+	$ setfattr -n user.name -v value g
+	$ getfattr f g h | sort-getfattr-output
+	> # file: f
+	> user.name
+	> user.novalue
+	> 
+	> # file: g
+	> user.name
+	> user.novalue
+	> 
+	> # file: h
+	> user.novalue
+	>
+
+	$ setfattr -x user.novalue h
+	$ getfattr f g h | sort-getfattr-output
+	> # file: f
+	> user.name
+	> user.novalue
+	>
+	> # file: g
+	> user.name
+	> user.novalue
+	>
+
+	$ rm f g h
+
+Attributes of symlinks vs. the files pointed to
+
+	$ touch f
+	$ ln -s f l
+	$ setfattr -n user.filename -v f l
+	$ setfattr -n user.filename -v l l
+	$ setfattr -h -n user.filename -v l l
+	> setfattr: l: Operation not permitted
+	
+	$ getfattr -d f l | sort-getfattr-output
+	> # file: f
+	> user.filename="l"
+	> 
+	> # file: l
+	> user.filename="l"
+	> 
+
+	$ rm f
+
+Attributes of symlinks vs. the files pointed to in a directory
+
+	$ mkdir src
+	$ touch src/target
+	$ setfattr -n user.color -v blue src/target
+	$ ln -s src symlink
+	$ getfattr -n user.color -h symlink 2>/dev/null
+
+Tests for file name that contain special characters
+
+	$ touch "f "
+	$ setfattr -n user.name -v value "f "
+	$ getfattr -d "f "
+	> # file: f 
+	> user.name="value"
+	>
+
+	$ rm "f "
+
+Tests for empty attribute values
+
+	$ touch f
+	$ setfattr -n user.name -v '' f
+	$ getfattr -d f
+	> # file: f
+	> user.name=""
+	>
+	$ rm f
+
+Tests for attribute names that contains special characters
+
+	$ touch f
+	$ setfattr -n "user.sp ace" -v value f
+	$ setfattr -n "user.special " -v value f
+	$ getfattr f
+	> # file: f
+	> user.sp ace
+	> user.special 
+	>
+
+	$ getfattr -d f
+	> # file: f
+	> user.sp ace="value"
+	> user.special ="value"
+	>
+
+	$ setfattr -x "user.sp ace" f
+	$ setfattr -n "user.sp ace" -v value f
+	$ setfattr -x "user.sp ace" f
+	$ setfattr -x "user.special	" f
+	$ rm f
+
+	$ cd ..
+	$ rm -rf d
+
+Tests for proper path recursion reported by Tony Ernst <tee@sgi.com> bnc#457660
+
+	$ mkdir -p 1/2/3
+	$ setfattr -n "user.9" 1
+	$ setfattr -n "user.a" 1
+	$ setfattr -n "user.9" 1/2
+	$ setfattr -n "user.a" 1/2
+	$ setfattr -n "user.9" 1/2/3
+	$ setfattr -n "user.a" 1/2/3
+
+	$ getfattr -h -L -R -m '.' -e hex 1 | grep -v selinux | sort-getfattr-output
+	> # file: 1
+	> user.9
+	> user.a
+	>
+	> # file: 1/2
+	> user.9
+	> user.a
+	>
+	> # file: 1/2/3
+	> user.9
+	> user.a
+	>
+
+	$ getfattr -h -P -R -m '.' -e hex 1/2 | grep -v selinux | sort-getfattr-output
+	> # file: 1/2
+	> user.9
+	> user.a
+	>
+	> # file: 1/2/3
+	> user.9
+	> user.a
+	>
+
+	$ rm -R 1
+
+Test for proper recursion of directory structures with -L -P -R
+
+	$ mkdir -p 1/sub
+	$ mkdir 1/link
+	$ touch 1/link/link-file
+	$ touch 1/sub/sub-file
+	$ ln -s `pwd`/1/link 1/sub/link
+	$ setfattr -n "user.a" 1
+	$ setfattr -n "user.a" 1/link/link-file
+	$ setfattr -n "user.a" 1/link
+	$ setfattr -n "user.a" 1/sub/sub-file
+	$ setfattr -n "user.a" 1/sub
+	$ getfattr -P -R 1 | sort-getfattr-output
+	> # file: 1
+	> user.a
+	>
+	> # file: 1/link
+	> user.a
+	>
+	> # file: 1/link/link-file
+	> user.a
+	>
+	> # file: 1/sub
+	> user.a
+	>
+	> # file: 1/sub/link
+	> user.a
+	>
+	> # file: 1/sub/sub-file
+	> user.a
+	>
+
+	$ getfattr -R -P 1/sub | sort-getfattr-output
+	> # file: 1/sub
+	> user.a
+	>
+	> # file: 1/sub/link
+	> user.a
+	>
+	> # file: 1/sub/sub-file
+	> user.a
+	>
+
+	$ getfattr -L -R 1 | sort-getfattr-output
+	> # file: 1
+	> user.a
+	>
+	> # file: 1/link
+	> user.a
+	>
+	> # file: 1/link/link-file
+	> user.a
+	>
+	> # file: 1/sub
+	> user.a
+	>
+	> # file: 1/sub/link
+	> user.a
+	>
+	> # file: 1/sub/link/link-file
+	> user.a
+	>
+	> # file: 1/sub/sub-file
+	> user.a
+	>
+
+	$ getfattr -R 1/sub/link | sort-getfattr-output
+	> # file: 1/sub/link
+	> user.a
+	>
+	> # file: 1/sub/link/link-file
+	> user.a
+	>
+
+	$ getfattr -L -R 1/sub/link | sort-getfattr-output
+	> # file: 1/sub/link
+	> user.a
+	>
+	> # file: 1/sub/link/link-file
+	> user.a
+	>
+
+	$ rm -R 1
+
+Test for large-file support
+
+	$ dd bs=65536 seek=32768 if=/dev/null of=large-file 2>/dev/null ||:
+	$ sh -c 'if test -f large-file; then getfattr large-file; fi'
+	$ rm large-file

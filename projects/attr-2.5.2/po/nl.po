@@ -1,0 +1,248 @@
+# Copyright (C) 2004  Luk Claes <luk.claes@ugent.be>
+# Copyright (C) 2007  Free Software Foundation
+# Copyright (C) 2019  Frans Spiesschaert <Frans.Spiesschaert@yucom.be>
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: attr 2.4.18\n"
+"Report-Msgid-Bugs-To: acl-devel@nongnu.org\n"
+"POT-Creation-Date: 2024-01-13 21:39-0500\n"
+"PO-Revision-Date: 2019-07-17 23:53+0200\n"
+"Last-Translator: Frans Spiesschaert <Frans.Spiesschaert@yucom.be>\n"
+"Language-Team: Debian Dutch l10n Team <debian-l10n-dutch@lists.debian.org>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: libattr/attr_copy_fd.c:80 libattr/attr_copy_fd.c:95
+#: libattr/attr_copy_file.c:78 libattr/attr_copy_file.c:93
+#, c-format
+msgid "listing attributes of %s"
+msgstr "attributen tonen van %s"
+
+#: libattr/attr_copy_fd.c:115 libattr/attr_copy_fd.c:132
+#: libattr/attr_copy_file.c:113 libattr/attr_copy_file.c:130
+#, c-format
+msgid "getting attribute %s of %s"
+msgstr "verkrijgen van attribuut %s van %s"
+
+#: libattr/attr_copy_fd.c:145 libattr/attr_copy_fd.c:164
+#: libattr/attr_copy_file.c:143 libattr/attr_copy_file.c:162
+#, c-format
+msgid "setting attributes for %s"
+msgstr "attributen zetten voor %s"
+
+#: libattr/attr_copy_fd.c:152 libattr/attr_copy_file.c:150
+#, c-format
+msgid "setting attribute %s for %s"
+msgstr "attribuut %s zetten voor %s"
+
+#: tools/attr.c:49
+#, c-format
+msgid ""
+"Usage: %s [-LRSq] -s attrname [-V attrvalue] pathname  # set value\n"
+"       %s [-LRSq] -g attrname pathname                 # get value\n"
+"       %s [-LRSq] -r attrname pathname                 # remove attr\n"
+"       %s [-LRq]  -l pathname                          # list attrs \n"
+"      -s reads a value from stdin and -g writes a value to stdout\n"
+msgstr ""
+"Gebruik: %s [-LRSq] -s attr-naam [-V attr-waarde] padnaam # zet waarde\n"
+"         %s [-LRSq] -g attr-naam padnaam                  # vraag waarde op\n"
+"         %s [-LRSq] -r attr-naam padnaam                  # verwijder attr\n"
+"         %s [-LRq]  -l padnaam                            # toon attrn\n"
+"         -s leest een waarde van stdin en -g schrijft een waarde naar "
+"stdout\n"
+
+#: tools/attr.c:87 tools/attr.c:104 tools/attr.c:113 tools/attr.c:122
+#, c-format
+msgid "Only one of -s, -g, -r, or -l allowed\n"
+msgstr "Slechts één van -s, -g, -r of -l is toegestaan\n"
+
+#: tools/attr.c:95 tools/attr.c:161
+#, c-format
+msgid "-V only allowed with -s\n"
+msgstr "-V is enkel toegestaan met -s\n"
+
+#: tools/attr.c:140
+#, c-format
+msgid "Unrecognized option: %c\n"
+msgstr "Niet herkende optie: %c\n"
+
+#: tools/attr.c:147
+#, c-format
+msgid "A filename to operate on is required\n"
+msgstr "Er is een bestandsnaam vereist\n"
+
+#: tools/attr.c:179
+#, c-format
+msgid "Could not set \"%s\" for %s\n"
+msgstr "Kon \"%s\" niet zetten voor %s\n"
+
+#: tools/attr.c:184
+#, c-format
+msgid "Attribute \"%s\" set to a %d byte value for %s:\n"
+msgstr "Attribuut \"%s\" gezet op een %d-bytewaarde voor %s:\n"
+
+#: tools/attr.c:202
+#, c-format
+msgid "Could not get \"%s\" for %s\n"
+msgstr "Kon \"%s\" niet krijgen voor %s\n"
+
+#: tools/attr.c:207
+#, c-format
+msgid "Attribute \"%s\" had a %d byte value for %s:\n"
+msgstr "Attribuut \"%s\" had een %d-bytewaarde voor %s:\n"
+
+#: tools/attr.c:220
+#, c-format
+msgid "Could not remove \"%s\" for %s\n"
+msgstr "Kon \"%s\" niet verwijderen voor %s\n"
+
+#: tools/attr.c:238
+#, c-format
+msgid "Could not list %s\n"
+msgstr "Kon %s niet tonen\n"
+
+#: tools/attr.c:248
+#, c-format
+msgid "Attribute \"%s\" has a %d byte value for %s\n"
+msgstr "Attribuut \"%s\" heeft een %d-bytewaarde voor %s\n"
+
+#: tools/attr.c:260
+#, c-format
+msgid "At least one of -s, -g, -r, or -l is required\n"
+msgstr "Minstens één van -s, -g, -r of -l is vereist\n"
+
+#: tools/getfattr.c:100 tools/setfattr.c:75
+msgid "No such attribute"
+msgstr "Geen dergelijk attribuut"
+
+#: tools/getfattr.c:265
+#, c-format
+msgid "%s: Removing leading '/' from absolute path names\n"
+msgstr "%s: de leidende '/' in absolute padnamen wordt verwijderd\n"
+
+#: tools/getfattr.c:383
+#, c-format
+msgid "%s %s -- get extended attributes\n"
+msgstr "%s %s -- verkrijg uitgebreide attributen\n"
+
+#: tools/getfattr.c:385 tools/setfattr.c:181
+#, c-format
+msgid "Usage: %s %s\n"
+msgstr "Gebruik: %s %s\n"
+
+#: tools/getfattr.c:388
+#, fuzzy, c-format
+msgid ""
+"  -n, --name=name         get the named extended attribute value\n"
+"  -d, --dump              get all extended attribute values\n"
+"  -e, --encoding=...      encode values (as 'text', 'hex' or 'base64')\n"
+"  -m, --match=pattern     only get attributes with names matching pattern\n"
+"      --only-values       print the bare values only\n"
+"  -h, --no-dereference    do not dereference symbolic links\n"
+"      --one-file-system   skip files on different filesystems\n"
+"      --absolute-names    don't strip leading '/' in pathnames\n"
+"  -R, --recursive         recurse into subdirectories\n"
+"  -L, --logical           logical walk, follow symbolic links\n"
+"  -P  --physical          physical walk, do not follow symbolic links\n"
+"      --version           print version and exit\n"
+"      --help              this help text\n"
+msgstr ""
+"  -n, --name=naam       verkrijg de uitgebreide attribuutwaarde voor naam\n"
+"  -d, --dump            verkrijg alle uitgebreide attribuutwaarden\n"
+"  -e, --encoding=...    codeer waarden (als 'text', 'hex' of 'base64')\n"
+"      --match=patroon   verkrijg enkel attributen met namen die overeenkomen "
+"met het patroon\n"
+"      --only-values     print enkel de waarden\n"
+"  -h, --no-dereference  zoek niet de verwijzing van symbolische koppelingen\n"
+"      --absolute-names  laat de leidende '/' in padnamen staan\n"
+"  -R, --recursive       ga recursief in submappen\n"
+"  -L, --logical         logisch, volg symbolische koppelingen\n"
+"  -P  --physical        fysisch, volg geen symbolische koppelingen\n"
+"      --version         print versie en sluit af\n"
+"      --help            deze helptekst\n"
+
+#: tools/getfattr.c:489
+#, c-format
+msgid "%s: invalid regular expression \"%s\"\n"
+msgstr "%s: ongeldige reguliere expressie \"%s\"\n"
+
+#: tools/getfattr.c:503
+#, c-format
+msgid ""
+"Usage: %s %s\n"
+"Try `%s --help' for more information.\n"
+msgstr ""
+"Gebruik: %s %s\n"
+"Probeer `%s --help' voor meer informatie.\n"
+
+#: tools/setfattr.c:129
+#, c-format
+msgid "%s: %s: No filename found in line %d, aborting\n"
+msgstr "%s: %s: geen bestandsnaam gevonden op regel %d, afbreken\n"
+
+#: tools/setfattr.c:133
+#, c-format
+msgid "%s: No filename found in line %d of standard input, aborting\n"
+msgstr ""
+"%s: geen bestandsnaam gevonden op regel %d van standaardinvoer, afbreken\n"
+
+#: tools/setfattr.c:180
+#, c-format
+msgid "%s %s -- set extended attributes\n"
+msgstr "%s %s -- zet uitgebreide attributen\n"
+
+#: tools/setfattr.c:182
+#, c-format
+msgid "       %s %s\n"
+msgstr "       %s %s\n"
+
+#: tools/setfattr.c:184
+#, c-format
+msgid ""
+"  -n, --name=name         set the value of the named extended attribute\n"
+"  -x, --remove=name       remove the named extended attribute\n"
+"  -v, --value=value       use value as the attribute value\n"
+"  -h, --no-dereference    do not dereference symbolic links\n"
+"      --restore=file      restore extended attributes\n"
+"      --raw               attribute value is not encoded\n"
+"      --version           print version and exit\n"
+"      --help              this help text\n"
+msgstr ""
+"  -n, --name=naam       zet de waarde van het genoemde uitgebreide "
+"attribuut\n"
+"  -x, --remove=naam     verwijder het genoemde uitgebreide attribuut\n"
+"  -v, --value=waarde    gebruik waarde als de attribuutwaarde\n"
+"  -h, --no-dereference  zoek niet naar verwijzingen van symbolische "
+"koppelingen\n"
+"      --restore=bestand herstel uitgebreide attributen\n"
+"      --raw             attribuutwaarde is niet gecodeerd\n"
+"      --version         print versie en sluit af\n"
+"      --help            deze hulptekst\n"
+
+#: tools/setfattr.c:264
+#, c-format
+msgid ""
+"Usage: %s %s\n"
+"       %s %s\n"
+"Try `%s --help' for more information.\n"
+msgstr ""
+"Gebruik: %s %s\n"
+"         %s %s\n"
+"Probeer `%s --help' voor meer informatie.\n"

@@ -1,0 +1,4 @@
+#! /usr/bin/perl -w
+
+undef $/;
+print join("\n\n", sort split(/\n\n/, <>)), "\n\n";

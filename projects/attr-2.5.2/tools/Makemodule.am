@@ -1,0 +1,13 @@
+tools_ldadd = $(LDADD) libattr.la libmisc.la $(LTLIBINTL)
+
+bin_PROGRAMS += attr
+attr_SOURCES = tools/attr.c
+attr_LDADD = $(tools_ldadd)
+
+bin_PROGRAMS += getfattr
+getfattr_SOURCES = tools/getfattr.c
+getfattr_LDADD = $(tools_ldadd)
+
+bin_PROGRAMS += setfattr
+setfattr_SOURCES = tools/setfattr.c
+setfattr_LDADD = $(tools_ldadd)

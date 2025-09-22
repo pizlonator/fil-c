@@ -1,0 +1,30 @@
+lib_LTLIBRARIES += libattr.la
+
+# No other library exports version info, otherwise we'd have to add
+# "libattr_" prefix to all these variables.
+LT_CURRENT = 2
+# The configure script will set this for us automatically.
+#LT_REVISION =
+LT_AGE = 1
+LTVERSION = $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
+
+## Since libattr translates its error messages, we have to link libintl.
+## See the AM_GNU_GETTEXT documentation for details.
+libattr_la_LIBADD = $(LTLIBINTL)
+libattr_la_DEPENDENCIES = \
+	exports
+libattr_la_SOURCES = \
+	libattr/attr_copy_action.c \
+	libattr/attr_copy_check.c \
+	libattr/attr_copy_fd.c \
+	libattr/attr_copy_file.c \
+	libattr/libattr.c \
+	libattr/libattr.h
+if OS_LINUX
+libattr_la_SOURCES += \
+	libattr/syscalls.c
+endif
+libattr_la_CFLAGS = -include libattr/libattr.h
+libattr_la_LDFLAGS = \
+	-Wl,--version-script,$(top_srcdir)/exports \
+	-version-info $(LTVERSION)

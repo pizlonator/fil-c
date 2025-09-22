@@ -1,0 +1,243 @@
+# Copyright (C) 2006  Free Software Foundation, Inc.
+# Copyright (C) 2006  Daniel Nylander <po@danielnylander.se>
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Swedish translation of attr
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: attr 2.4.25-1\n"
+"Report-Msgid-Bugs-To: acl-devel@nongnu.org\n"
+"POT-Creation-Date: 2024-01-13 21:39-0500\n"
+"PO-Revision-Date: 2006-01-21 18:46+0100\n"
+"Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: libattr/attr_copy_fd.c:80 libattr/attr_copy_fd.c:95
+#: libattr/attr_copy_file.c:78 libattr/attr_copy_file.c:93
+#, c-format
+msgid "listing attributes of %s"
+msgstr "listar attribut för %s"
+
+#: libattr/attr_copy_fd.c:115 libattr/attr_copy_fd.c:132
+#: libattr/attr_copy_file.c:113 libattr/attr_copy_file.c:130
+#, c-format
+msgid "getting attribute %s of %s"
+msgstr "hämtar attribut %s för %s"
+
+#: libattr/attr_copy_fd.c:145 libattr/attr_copy_fd.c:164
+#: libattr/attr_copy_file.c:143 libattr/attr_copy_file.c:162
+#, c-format
+msgid "setting attributes for %s"
+msgstr "sätter attribut för %s"
+
+#: libattr/attr_copy_fd.c:152 libattr/attr_copy_file.c:150
+#, c-format
+msgid "setting attribute %s for %s"
+msgstr "sätter attribut %s för %s"
+
+#: tools/attr.c:49
+#, fuzzy, c-format
+msgid ""
+"Usage: %s [-LRSq] -s attrname [-V attrvalue] pathname  # set value\n"
+"       %s [-LRSq] -g attrname pathname                 # get value\n"
+"       %s [-LRSq] -r attrname pathname                 # remove attr\n"
+"       %s [-LRq]  -l pathname                          # list attrs \n"
+"      -s reads a value from stdin and -g writes a value to stdout\n"
+msgstr ""
+"Användning: %s [-LRSq] -s attrnamn [-V attrvärde] sökväg  # sätt värde\n"
+"       %s [-LRSq] -g attrnamn sökväg                   # hämta värde\n"
+"       %s [-LRSq] -r attrnamn sökväg                   # ta bort attr\n"
+"      -s läser ett värde från standard in och -g skriver ett värde till "
+"standard ut\n"
+
+#: tools/attr.c:87 tools/attr.c:104 tools/attr.c:113 tools/attr.c:122
+#, fuzzy, c-format
+msgid "Only one of -s, -g, -r, or -l allowed\n"
+msgstr "Endast en av -s, -g eller -r tillåts\n"
+
+#: tools/attr.c:95 tools/attr.c:161
+#, c-format
+msgid "-V only allowed with -s\n"
+msgstr "-V tillåts endast med -s\n"
+
+#: tools/attr.c:140
+#, c-format
+msgid "Unrecognized option: %c\n"
+msgstr "Okänd flagga: %c\n"
+
+#: tools/attr.c:147
+#, c-format
+msgid "A filename to operate on is required\n"
+msgstr "Ett filnamn att operera på krävs\n"
+
+#: tools/attr.c:179
+#, c-format
+msgid "Could not set \"%s\" for %s\n"
+msgstr "Kunde inte sätta \"%s\" för %s\n"
+
+#: tools/attr.c:184
+#, c-format
+msgid "Attribute \"%s\" set to a %d byte value for %s:\n"
+msgstr "Attribut \"%s\" satt till ett %d bytevärde  för %s:\n"
+
+#: tools/attr.c:202
+#, c-format
+msgid "Could not get \"%s\" for %s\n"
+msgstr "Kunde inte hämta \"%s\" för %s\n"
+
+#: tools/attr.c:207
+#, c-format
+msgid "Attribute \"%s\" had a %d byte value for %s:\n"
+msgstr "Attribut \"%s\" har ett %d bytevärde för %s:\n"
+
+#: tools/attr.c:220
+#, c-format
+msgid "Could not remove \"%s\" for %s\n"
+msgstr "Kunde inte ta bort \"%s\" för %s\n"
+
+#: tools/attr.c:238
+#, fuzzy, c-format
+msgid "Could not list %s\n"
+msgstr "Kunde inte sätta \"%s\" för %s\n"
+
+#: tools/attr.c:248
+#, fuzzy, c-format
+msgid "Attribute \"%s\" has a %d byte value for %s\n"
+msgstr "Attribut \"%s\" har ett %d bytevärde för %s:\n"
+
+#: tools/attr.c:260
+#, fuzzy, c-format
+msgid "At least one of -s, -g, -r, or -l is required\n"
+msgstr "Åtminstone en av -s, -g eller -r krävs\n"
+
+#: tools/getfattr.c:100 tools/setfattr.c:75
+msgid "No such attribute"
+msgstr "Inget sådant attribut"
+
+#: tools/getfattr.c:265
+#, c-format
+msgid "%s: Removing leading '/' from absolute path names\n"
+msgstr "%s: Ta bort inledande \"/\" från absoluta sökvägar\n"
+
+#: tools/getfattr.c:383
+#, c-format
+msgid "%s %s -- get extended attributes\n"
+msgstr "%s %s -- hämta utökade attribut\n"
+
+#: tools/getfattr.c:385 tools/setfattr.c:181
+#, c-format
+msgid "Usage: %s %s\n"
+msgstr "Användning: %s %s\n"
+
+#: tools/getfattr.c:388
+#, fuzzy, c-format
+msgid ""
+"  -n, --name=name         get the named extended attribute value\n"
+"  -d, --dump              get all extended attribute values\n"
+"  -e, --encoding=...      encode values (as 'text', 'hex' or 'base64')\n"
+"  -m, --match=pattern     only get attributes with names matching pattern\n"
+"      --only-values       print the bare values only\n"
+"  -h, --no-dereference    do not dereference symbolic links\n"
+"      --one-file-system   skip files on different filesystems\n"
+"      --absolute-names    don't strip leading '/' in pathnames\n"
+"  -R, --recursive         recurse into subdirectories\n"
+"  -L, --logical           logical walk, follow symbolic links\n"
+"  -P  --physical          physical walk, do not follow symbolic links\n"
+"      --version           print version and exit\n"
+"      --help              this help text\n"
+msgstr ""
+"  -n, --name=namn         hämta angivet utökat attributvärde\n"
+"  -d, --dump              hämta alla utökade attributvärden\n"
+"  -e, --encoding=...      koda värden (som \"text\", \"hex\" eller "
+"\"base64\")\n"
+"      --match=mönster     hämta endast attribut med namn som matchar "
+"mönster\n"
+"      --only-values       skriv endast ut värden\n"
+"  -h, --no-dereference    behåll referenser i symboliska länkar\n"
+"      --absolute-names    ta inte bort inledande \"/\" i sökvägar\n"
+"  -R, --recursive         rekursiv in i underkataloger\n"
+"  -L, --logical           logisk gång, följ symboliska länkar\n"
+"  -P  --physical          fysisk gång, följ inte symboliska länkar\n"
+"      --version           skriv ut version och avsluta\n"
+"      --help              den här hjälptexten\n"
+
+#: tools/getfattr.c:489
+#, c-format
+msgid "%s: invalid regular expression \"%s\"\n"
+msgstr "%s: ogiltigt reguljärt uttryck \"%s\"\n"
+
+#: tools/getfattr.c:503
+#, c-format
+msgid ""
+"Usage: %s %s\n"
+"Try `%s --help' for more information.\n"
+msgstr ""
+"Användning: %s %s\n"
+"Försök med \"%s --help\" för mer information.\n"
+
+#: tools/setfattr.c:129
+#, c-format
+msgid "%s: %s: No filename found in line %d, aborting\n"
+msgstr "%s: %s: Inget filnamn hittades på rad %d, avbryter\n"
+
+#: tools/setfattr.c:133
+#, c-format
+msgid "%s: No filename found in line %d of standard input, aborting\n"
+msgstr "%s: Inget filnamn hittades på rad %d i standard in, avbryter\n"
+
+#: tools/setfattr.c:180
+#, c-format
+msgid "%s %s -- set extended attributes\n"
+msgstr "%s %s -- sätt utökade attribut\n"
+
+#: tools/setfattr.c:182
+#, c-format
+msgid "       %s %s\n"
+msgstr ""
+
+#: tools/setfattr.c:184
+#, fuzzy, c-format
+msgid ""
+"  -n, --name=name         set the value of the named extended attribute\n"
+"  -x, --remove=name       remove the named extended attribute\n"
+"  -v, --value=value       use value as the attribute value\n"
+"  -h, --no-dereference    do not dereference symbolic links\n"
+"      --restore=file      restore extended attributes\n"
+"      --raw               attribute value is not encoded\n"
+"      --version           print version and exit\n"
+"      --help              this help text\n"
+msgstr ""
+"  -n, --name=namn         sätt värdet för angivet utökat attribut\n"
+"  -x, --remove=namn       ta bort angivet utökat attribut\n"
+"  -v, --value=värde       använd värde som attributvärde\n"
+"  -h, --no-dereference    behåll referenser i symboliska länkar\n"
+"      --restore=fil       restore extended attributes\n"
+"      --version           print version and exit\n"
+"      --help              this help text\n"
+
+#: tools/setfattr.c:264
+#, fuzzy, c-format
+msgid ""
+"Usage: %s %s\n"
+"       %s %s\n"
+"Try `%s --help' for more information.\n"
+msgstr ""
+"Användning: %s %s\n"
+"Försök med \"%s --help\" för mer information.\n"

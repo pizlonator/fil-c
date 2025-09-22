@@ -1,0 +1,31 @@
+noinst_HEADERS += \
+	include/attributes.h \
+	include/error_context.h \
+	include/libattr.h \
+	include/misc.h \
+	include/nls.h \
+	include/walk_tree.h
+
+
+SUBST_INSTALL_HEADER = \
+	subst_install_header() { \
+	  file=`echo "$$1" | sed -e 's,^.*/,,'`; \
+	  $(SED) -e "s/\<EXPORT\>/extern/" < "$$1" > "include/$$file.t" || exit 1; \
+	  $(MKDIR_P) "$$2" || exit 1; \
+	  $(INSTALL_HEADER) "include/$$file.t" "$$2/$$file" || exit 1; \
+	  $(RM) "include/$$file.t"; \
+	}; \
+	subst_install_header
+
+install-attributes_h: include/attributes.h
+	$(SUBST_INSTALL_HEADER) "$<" "$(DESTDIR)$(pkgincludedir)"
+install-error_context_h: include/error_context.h
+	$(SUBST_INSTALL_HEADER) "$<" "$(DESTDIR)$(pkgincludedir)"
+install-libattr_h: include/libattr.h
+	$(SUBST_INSTALL_HEADER) "$<" "$(DESTDIR)$(pkgincludedir)"
+install-data-local: install-attributes_h install-error_context_h install-libattr_h
+uninstall-local:
+	-rm -f \
+		"$(DESTDIR)$(pkgincludedir)/attributes.h" \
+		"$(DESTDIR)$(pkgincludedir)/error_context.h" \
+		"$(DESTDIR)$(pkgincludedir)/libattr.h"

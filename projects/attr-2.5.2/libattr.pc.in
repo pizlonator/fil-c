@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name:		libattr
+Description:	A library for filesystem extended attribute support
+Version:	@PACKAGE_VERSION@
+Cflags:		-I${includedir}
+Libs:		-L${libdir} -lattr
