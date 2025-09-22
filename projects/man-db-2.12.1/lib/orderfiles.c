@@ -123,7 +123,7 @@ void order_files (const char *dir, gl_list_t *basenamesp)
 		fm.fiemap.fm_flags = 0;
 		fm.fiemap.fm_extent_count = 1;
 
-		if (ioctl (fd, FS_IOC_FIEMAP, (unsigned long) &fm) == 0) {
+		if (ioctl (fd, FS_IOC_FIEMAP, &fm) == 0) {
 			uint64_t *offset = XMALLOC (uint64_t);
 			*offset = fm.extent.fe_physical;
 			/* Borrow the key from basenames; since
