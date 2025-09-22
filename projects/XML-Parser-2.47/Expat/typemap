@@ -10,7 +10,7 @@ INPUT
 T_ENCOBJ
 	if (sv_derived_from($arg, \"XML::Parser::Encinfo\")) {
 	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = ($type) tmp;
+	    $var = zptrtable_decode(Perl_xsub_ptrtable, tmp);
 	}
 	else
 	    croak(\"$var is not of type XML::Parser::Encinfo\")
