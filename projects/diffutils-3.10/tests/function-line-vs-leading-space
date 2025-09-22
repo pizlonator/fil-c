@@ -1,0 +1,65 @@
+#!/bin/sh
+# Demonstrate how -F RE behavior changed after diff-2.9.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+cat <<EOF > in || fail_ "failed to create temporary file"
+procedure AdaCode is
+    procedure Local_Level_1 is
+        procedure Local_Level_2 is
+            procedure Local_Level_3 is
+                procedure Local_Level_4 is
+                    procedure Local_Level_5 is
+                    begin
+                        null;
+                        null;
+                        null;
+                        foo;
+                    end;
+                begin
+                    Local_Level_5;
+                end;
+            begin
+                Local_Level_4;
+            end;
+        begin
+            Local_Level_3;
+        end;
+    begin
+        Local_Level_2;
+    end;
+begin
+    Local_Level_1;
+end;
+EOF
+
+sed s/foo/null/ < in > in2 || fail_ "failed to create temporary file"
+
+# Before diff-2.10, the function line would be truncated like this:
+# @@ -8,7 +8,7 @@                     procedure Local_Leve
+
+cat <<EOF > exp || fail_ "failed to create temporary file"
+@@ -8,7 +8,7 @@ procedure Local_Level_5 is
+                         null;
+                         null;
+                         null;
+-                        foo;
++                        null;
+                     end;
+                 begin
+                     Local_Level_5;
+EOF
+
+fail=0
+
+returns_ 1 diff -u -F '^[[:space:]]*\(function\|procedure\)' in in2 \
+  > out 2> err || fail=1
+
+sed -n '3,$p' out > k && mv k out || fail=1
+
+compare exp out || fail=1
+
+# expect empty stderr
+compare /dev/null err || fail=1
+
+Exit $fail

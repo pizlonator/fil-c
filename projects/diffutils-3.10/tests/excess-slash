@@ -1,0 +1,18 @@
+#!/bin/sh
+# Ensure that no excess slash appears in diff -r output.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+mkdir -p a/f b/f/g || framework_failure_
+echo Only in b/f: g > expected-out || framework_failure_
+
+fail=0
+
+diff -r a b/ > out 2> err && fail=1
+
+# expect no stderr
+compare /dev/null err || fail=1
+
+compare expected-out out || fail=1
+
+Exit $fail

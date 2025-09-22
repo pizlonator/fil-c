@@ -1,0 +1,27 @@
+#!/bin/sh
+# Test --new-file (-N) and --unidirectional-new-file.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+echo a > a || fail=1
+
+echo '0a1
+> a' > exp || fail=1
+
+returns_ 1 diff -N b - < a > out || fail=1
+compare exp out || fail=1
+
+returns_ 1 diff --unidirectional-new-file b - < a > out || fail=1
+compare exp out || fail=1
+
+echo '1d0
+< a' > exp || fail=1
+
+returns_ 1 diff -N - b < a > out || fail=1
+compare exp out || fail=1
+
+returns_ 2 diff --unidirectional-new-file - b < a > out || fail=1
+
+Exit $fail

@@ -1,0 +1,108 @@
+#!/bin/sh
+# This would malfunction in diff-3.4
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+# Some systems lack seq.
+# A limited replacement for seq: handle 1 or 2 args; increment must be 1
+seq()
+{
+  case $# in
+    1) start=1  final=$1;;
+    2) start=$1 final=$2;;
+    *) echo you lose 1>&2; exit 1;;
+  esac
+  awk 'BEGIN{for(i='$start';i<='$final';i++) print i}' < /dev/null
+}
+
+echo a > a || framework_failure_
+echo b > b || framework_failure_
+echo c > c || framework_failure_
+cat <<'EOF' > exp || framework_failure_
+====
+1:1c
+  a
+2:1c
+  b
+3:1c
+  c
+EOF
+
+fail=0
+
+diff3 a b c > out 2> err || fail=1
+compare exp out || fail=1
+compare /dev/null err || fail=1
+
+# Repeat, but with all three files the same:
+diff3 a a a > out 2> err || fail=1
+compare /dev/null out || fail=1
+compare /dev/null err || fail=1
+
+# This would have provoked a nontrivial leak prior to diffutils-3.5,
+# due to the nontrivial list of diff_block structs.
+seq 10 40|sed 's/1$/x/' > d || framework_failure_
+seq 10 40|sed 's/5$/y/' > e || framework_failure_
+seq 10 40|sed 's/8$/z/' > f || framework_failure_
+cat <<'EOF' > exp40 || framework_failure_
+====1
+1:2c
+  1x
+2:2c
+3:2c
+  11
+====2
+1:6c
+3:6c
+  15
+2:6c
+  1y
+====3
+1:9c
+2:9c
+  18
+3:9c
+  1z
+====1
+1:12c
+  2x
+2:12c
+3:12c
+  21
+====2
+1:16c
+3:16c
+  25
+2:16c
+  2y
+====3
+1:19c
+2:19c
+  28
+3:19c
+  2z
+====1
+1:22c
+  3x
+2:22c
+3:22c
+  31
+====2
+1:26c
+3:26c
+  35
+2:26c
+  3y
+====3
+1:29c
+2:29c
+  38
+3:29c
+  3z
+EOF
+
+diff3 d e f > out 2> err
+compare exp40 out || fail=1
+compare /dev/null err || fail=1
+
+Exit $fail

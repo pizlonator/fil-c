@@ -1,0 +1,3133 @@
+2023-05-21  Jim Meyering  <meyering@meta.com>
+
+	version 3.10
+	* NEWS: Record release date.
+
+2023-05-21  Jim Meyering  <meyering@fb.com>
+
+	build: skip the sole perl-requiring test when there is no usable perl
+	* tests/init.cfg (require_perl_): New function, from coreutils.
+	* tests/large-subopt: Use it.
+	Reported by Bruno Haible in
+	https://lists.gnu.org/r/diffutils-devel/2023-05/msg00003.html
+
+2023-05-20  Jim Meyering  <meyering@fb.com>
+
+	build: fix a new syntax-check failure
+	* src/diff.h (robust_output_style): Put DIFF_INLINE and
+	the function name on the same line, so that syntax-check's
+	naive parsing can spot this function.
+	* cfg.mk (_gl_TS_extern): Add DIFF_INLINE.
+
+	build: modernize bootstrap prerequsite tools
+	Following Pádraig Brady's example from coreutils, ...
+	* bootstrap.conf: Add an explicit requirement on m4.
+	Add an explicit requirement on texi2pdf which is often packaged
+	separately to makeinfo and induces a failure far down the
+	distribution phase if not present.
+	Replace the rsync dependency with wget,
+	which gnulib changed to in 2018.
+	Also, add an xz requirement and a version for autopoint.
+
+2023-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+	* src/analyze.c (OFFSET_MAX): New macro, needed for
+	latest gnulib.
+
+	diff: avoid a macro in diff.h
+	* src/diff.h (FILE_BUFFER): Remove.
+	* src/io.c (file_buffer): New static function.  All uses of
+	FILE_BUFFER replaced.
+
+	sdiff: avoid some macros in sdiff.c
+	* src/sdiff.c (PROGRAM_NAME, SDIFF_BUFSIZE):
+	Now constants, not macros.
+
+	diff3: avoid macros in diff3.c
+	* src/diff3.c (PROGRAM_NAME, FILE0, FILE1, FILE2, FILE3, FO, FC)
+	(RANGE_START, RANGE_END): Now constants, not macros.
+
+	cmp: avoid macros in cmp.c
+	* src/cmp.c (PROGRAM_NAME): Now a constant, not a macro.
+	(hard_locale_LC_MESSAGES): Now a function, not a macro.
+	All uses changed.
+
+	diff: avoid macros in diff.c
+	* src/diff.c (PROGRAM_NAME, NONEXISTENT, UNOPENED):
+	Now constants, not macros.
+	(errno_encode, errno_decode): Now functions, rather than
+	macros ERRNO_ENCODE and ERRNO_DECODE.  All uses changed.
+
+	diff: use function for robust_output_style
+	* bootstrap.conf (gnulib_modules): Add extern-inline.
+	* src/diff.h: Use _GL_INLINE_HEADER_BEGIN and _GL_INLINE_HEADER_END.
+	(DIFF_INLINE): New macro.
+	(robust_output_style): Now an inline function, not a macro
+	ROBUST_OUTPUT_STYLE.  All uses changed.
+
+	cmp: don’t give up if fstat fails
+	* src/cmp.c (main, cmp): If fstat fails, simply record the failure
+	and move on, instead of exiting.  Modify other uses of the struct
+	stat to do something reasonable if the status is missing.
+
+	diff3: don’t give up if fstat fails
+	* src/diff3.c (read_diff): Work even if fstat fails,
+	e.g., due to EOVERFLOW.
+
+	diff3: fix race condition involving directories
+	This fixes a TOC-TOU race with "diff3 A B C" when one
+	of its arguments is a directory.
+	* src/diff.c (no_directory): New static var.
+	(NO_DIRECTORY_OPTION): New constant.
+	(longopts): Add ---no-directory.
+	(main): Support it.
+	(compare_files): If ---no-directory is given, do not treat
+	directories specially.
+	* src/diff3.c (main): Do not check whether an argument is
+	a directory.
+	(read_diff): Pass ---no-directory to diff, so that it checks.
+
+2023-05-13  Jim Meyering  <meyering@fb.com>
+
+	maint: suppress new test's doubled-word syntax-check failure
+	* cfg.mk (exclude_file_name_regexp--sc_prohibit_doubled_word):
+	Exempt the new test's use of "in in".
+
+2023-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2023-05-13  Carlo Marcelo Arenas Belón  <carenas@gmail.com>  (tiny change)
+
+	gnulib: fix Y2038 bug (again)
+	AC_SYS_LARGEFILE meaning has changed, need AC_SYS_YEAR2038 as well
+
+	* NEWS: mention this
+	* tests: add test
+	* bootstrap.conf: add year2038
+
+2023-02-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: add 'diff --git' TODO
+	* TODO: Suggest better compatibility with 'git diff -p'.
+	From a suggestion by Linus Torvalds
+	<https://lkml.org/lkml/2023/2/24/797>.
+
+2023-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: update .gitignore
+	.gitignore: Update for some recent changes, and simplify.
+
+	diff: fix bug where -D does not work
+	Problem reported by Robert Webb (bug#61193).
+	* NEWS: Mention this.
+	* src/diff.c (main): Omit stray ‘sizeof’.
+	* tests/ifdef: New test.
+	* tests/Makefile.am (TESTS): Add it.
+
+2023-02-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2023-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: use C23 bool
+	* bootstrap.conf (gnulib_modules): Add stdbool.
+	* src/die.h, src/system.h: Do not include <stdbool.h>.
+
+	diff: prefer nullptr to NULL
+	* bootstrap.conf (gnulib_modules): Add c-nullptr.
+	* src/cmp.c (main):
+	* src/context.c (pr_context_hunk, pr_unidiff_hunk)
+	(mark_ignorable, find_function):
+	* src/diff.c (longopts, main, specify_value, specify_style)
+	(specify_colors_style, compare_files):
+	* src/diff3.c (main, process_diff):
+	* src/dir.c (find_dir_file_pathname):
+	* src/ifdef.c (scan_char_literal):
+	* src/sdiff.c (main):
+	* src/util.c (process_signals, install_signal_handlers)
+	(color_ext_list, color_indicator, indicator_name)
+	(parse_diff_color):
+	Prefer C23-style nullptr to NULL, as nullptr is a bit better.
+
+	doc: update README-hacking
+	* README-hacking: Update for current bootstrap.
+
+	maint: sync bootstrap from Gnulib
+	bootstrap: sync from Gnulib
+
+	build: update gnulib submodule to latest
+	* lib/sh-quote.c.diff: Remove, as Gnulib now has this.
+
+	build: add libraries
+	* src/Makefile.am (LDADD, sdiff_LDADD): Add Gnulib libraries that
+	in theory would be needed on unusual platforms.  In practice,
+	these are typicall empty or are duplicates of other library
+	arguments and so are redundant.
+
+2023-02-04  Jim Meyering  <meyering@fb.com>
+
+	doc: update HACKING
+	* HACKING: Update from grep's HACKING.
+
+2023-02-04  Jim Meyering  <meyering@meta.com>
+
+	maint: prefer https: to git:
+	The idea is to defend against some adversary-in-the-middle attacks.
+	Also prefer git.savannah.gnu.org over its shorter alias, git.sv.gnu.org
+	to avoid a warning e.g., from git clone.
+	Also, drop any final ".git" suffix on the resulting URIs.
+	Inspired by Paul Eggert's nearly identical changes to coreutils.
+
+2023-01-16  Jim Meyering  <meyering@fb.com>
+
+	tests: accommodate newer GNU make's SIGPIPE-ignore
+	* tests/colors: Allow an exit code of not just 141 (SIGPIPE),
+	but also "error": 2.
+	Reported by Tomasz Kłoczko in http://bugs.gnu.org/59905.
+
+2023-01-15  Jim Meyering  <meyering@meta.com>
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.9
+	* NEWS: Record release date.
+
+	build: update gnulib to latest
+
+2023-01-05  Jim Meyering  <meyering@fb.com>
+
+	tests: avoid large-subopt XPASS on systems without perl
+	* tests/large-subopt: Use $PERL, rather than hard-coding "perl".
+	* bootstrap.conf (gnulib_modules): Add "perl" to the list.
+	Reported by Bruno Haible in
+	https://lists.gnu.org/r/diffutils-devel/2023-01/msg00000.html
+
+2023-01-05  Bruno Haible  <bruno@clisp.org>
+
+	tests: avoid a test failure when using Solaris 11.4's old grep
+	* tests/colors (nanosecond_zeros): Use a dumbed-down grep '\.'
+	in place of "grep -F ." to accommodate Solaris 11.4's old versions
+	of grep in the default PATH. Reported here:
+	https://lists.gnu.org/r/diffutils-devel/2023-01/msg00001.html
+
+2023-01-01  Jim Meyering  <meyering@fb.com>
+
+	build: update gnulib to latest
+
+	maint: update copyright dates
+
+2022-12-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: simplify GCC 12 false alarm workaround
+	* src/util.c (print_message_queue): Pacify GCC in a
+	more-straightforward way.
+
+	maint: fix assumption typo
+	Fix a typo I introduced in my August 2021 signal handling fixes.
+	Problem reported by Sam James (Bug#60457).
+	* src/util.c (xsigismember): Don’t assume sigismember cannot return 0.
+
+2022-12-30  Jim Meyering  <meyering@fb.com>
+
+	build: update gnulib to latest
+
+	build: temp?-disable -Wanalyzer-use-of-uninitialized-value
+	* src/util.c (print_message_queue): This function triggers false
+	positive warnings from GCC12, so add pragmas to ignore that new warning
+	in this one function. Required when using either of these:
+	- gcc version 12.2.1 20221121
+	- gcc version 13.0.0 20221229 (experimental)
+
+2022-12-11  Jim Meyering  <meyering@fb.com>
+
+	build: update gnulib to latest
+
+2022-11-12  Jim Meyering  <meyering@fb.com>
+
+	build: update gnulib to latest
+
+2022-02-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: mark up SEE ALSO (Bug#53976)
+
+2022-01-24  Jim Meyering  <meyering@fb.com>
+
+	tests: fix false-failure on systems without valgrind
+	* tests/init.cfg (require_valgrind_): Use exit status of subshell,
+	not that of the "local" declaration.
+
+2022-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2022-01-03  Jim Meyering  <meyering@fb.com>
+
+	maint: avoid new syntax-check failure
+	* cfg.mk (local-checks-to-skip): Add sc_indent, to skip it.
+	Otherwise, "make syntax-check" would fail.
+
+	maint: make update-copyright
+
+	build: update gnulib to latest; also bootstrap and init.sh
+
+2021-10-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: modernize README-{hacking,prereq}
+
+2021-10-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: copy fdl.texi into git
+	This pacifies this notice from ./bootstrap: “Notice from module
+	fdl: Don't use this module! Instead, copy the referenced license
+	file into your version control repository.”
+	* bootstrap.conf (gnulib_modules): Remove fdl.
+	* doc/fdl.texi: New file, taken from Gnulib.
+
+	maint: direct dependency on time_rz now
+	Now that diff calls tzalloc, it depends directly on time_rz.
+	* bootstrap.conf (gnulib_modules): Add time_rz.
+
+	build: update gnulib submodule to latest
+
+2021-10-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: fix timezone bug on Solaris
+	Problem reported by Vladimir Marek (bug#51228).
+	* NEWS: Mention this.
+	* src/context.c (print_context_label): Pass localtz to nstrftime,
+	instead of always passing 0.
+	* src/diff.c (main) [!HAVE_TM_GMTOFF]:
+	Initialize localtz if time_format uses %z.
+	* src/diff.h (localtz): New decl.
+	* tests/Makefile.am (TESTS): Add timezone.
+	* tests/timezone: New test.
+
+2021-08-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff3: port better to MS-Windows
+	* src/diff3.c (enum diff_type): Prefix constants like ADD with
+	"DIFF_" to avoid collisions with unwise system headers.
+
+2021-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: port better to non-POSIX
+	Problem privately reported by Gisle Vanem for MS-Windows.
+	* src/util.c (sig, install_signal_handlers):
+	Don’t assume SIGTSTP, SIGALRM, SIGQUIT.
+	(is_tstp_index): New function, for use in SIGTSTP avoidance.
+
+	maint: prefer attribute.h attributes
+	Prefer the macros used in attribute.h, and _Noreturn,
+	to the by-hand use of __attribute__, as this is more portable.
+	* bootstrap.conf (gnulib_modules): Add attribute.
+	* src/system.h: Include attribute.h.  All uses of
+	attributes changed to use the attribute.h macros.
+	Plus, use _Noreturn.
+	(FALLTHROUGH): Remove; attribute.h now defines this.
+
+	build: update gnulib submodule to latest
+
+	diff: avoid double translation
+	* src/analyze.c (briefly_report): Do not translate here,
+	as ‘message’ translates its format.
+
+	diff: use variable arg list for messages
+	This simplifies the code by using varargs.
+	* bootstrap.conf (gnulib_modules): Add flexmember.
+	(XGETTEXT_OPTIONS): Do not flag message5.
+	* src/util.c: Include flexmember.h, stdarg.h.
+	(struct msg): New members msgid, argbytes.  args is now
+	FLEXIBLE_ARRAY_MEMBER, and does not contain msgid.
+	All uses changed.
+	(message): Now varargs.  Detect number of args by counting '%'s.
+	Use FLEXSIZEOF, to avoid problems on systems with buggy
+	allocators.  Avoid redundant ‘*p = 0’ when *p is already zero
+	after stpcpy.
+	(message5): Remove; all callers changed to use ‘message’.
+	(print_message_queue): Abort if too many args were passed;
+	this cannot happen with current diffutils.
+
+2021-08-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: port better to MS-Windows
+	Problem reported by Gisle Vanem (Bug#36488#30).
+	* src/util.c (xsigaction) [SA_NOCLDSTOP]: Remove; no longer needed.
+	(install_signal_handlers): If the first call to sigaction or
+	signal fails, do not exit; just skip the signal and continue,
+	in case the runtime does not support the signal even though the
+	corresponding SIG* macro is defined.
+
+2021-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: cleanup signal handling just before exit
+	This should fix an unlikely signal handling bug with colored
+	output, and should also fix a Debian FTBFS (Fails To Build From
+	Source) on powerpc64le-linux.  See Bug#34519 and Frédéric
+	Bonnard’s report in:
+	https://bugs.debian.org/922552#19
+	* bootstrap.conf (gnulib_modules): Add raise, sigprocmask.
+	* src/diff.c (main): Call cleanup_signal_handlers before exiting.
+	Don’t bother calling ‘exit’; no longer needed nowadays.
+	* src/util.c (sigprocmask, siginterrupt) [!SA_NOCLDSTOP]:
+	Define to 0 instead of empty, since the results are now used.
+	(sigset_t) [!SA_NOCLDSTOP]: Remove; we now rely on Gnulib.
+	(xsigaction) [SA_NOCLDSTOP]: New function.
+	(xsigaddset, xsigismember, xsignal, xsigprocmask): New functions.
+	(some_signals_caught): New static var.
+	(process_signals): Omit a conditional branch.
+	Don’t bother loading interrupt_signal if stop_signal_count is nonzero.
+	(process_signals, install_signal_handlers):
+	Check for failures from sigprocmask etc.
+	(sig, nsig): Now at top level, since multiple functions need them.
+	(install_signal_handlers): No need for caught_sig array;
+	just use caught_signals.  However, set some_signals_caught.
+	(cleanup_signal_handlers): New function.
+
+2021-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: add integer overflow checking
+	* src/diff.c (option_list, main): Check for integer overflow
+	in some unlikely and hard-to-test cases.
+
+	maint: refactor integer overflow checking
+	Rely on more-modern Gnulib capabilities instead of doing
+	integer overflow checking by hand, in some cases.
+	* lib/cmpbuf.c (buffer_lcm):
+	* src/io.c (slurp, find_identical_ends):
+	Use INT_ADD_WRAPV and INT_MULTIPLY_WRAPV rather than checking
+	overflow by hand.
+	* src/diff3.c (process_diff):
+	* src/dir.c (dir_read):
+	* src/io.c (find_identical_ends, read_files):
+	Use xnmalloc rather than checking overflow by hand.
+	(read_files): Rely on xcalloc to do overflow checking.
+
+	diff: avoid sprintf %s
+	sprintf fails if the result contains more than INT_MAX bytes,
+	so rework the code to avoid usage of sprintf %s where the
+	string might be longer than that.
+	* bootstrap.conf (gnulib_modules): Remove xvasprintf.
+	* src/diff.c (specify_style):
+	* src/util.c (begin_output):
+	Rewrite to avoid sprintf %s.
+	* src/util.c: Do not include xvasprintf.h.
+	(concat): Remove, as it uses sprintf %s.  All uses rewritten.
+
+	diff: use mempcpy
+	* bootstrap.conf (gnulib_modules): Add mempcpy, stpcpy.
+	* src/ifdef.c (do_printf_spec):
+	* src/sdiff.c (expand_name, lf_snarf, temporary_file):
+	* src/util.c (message5):
+	Prefer mempcpy to memcpy plus manual size-updating.
+	Prefer stpcpy to mempcpy plus manual size-spec.
+
+	sdiff: fix unlikely memory leak
+	* src/sdiff.c (temporary_file): Fix memory leak when mkstemp fails.
+	Don’t assume temporary file name length fits in ‘int’.
+
+	diff3: simplify process_diff
+	* src/diff3.c (process_diff): Remove LAST_BLOCK arg, since callers
+	no longer needed it.  All callers changed.  This removes an
+	unnecessary initialization of bptr to NULL.
+
+	maint: modernize IF_LINT for GCC 11.2.1
+	* src/cmp.c (cmp):
+	* src/dir.c (find_dir_file_pathname):
+	* src/sdiff.c (edit):
+	Mention which GCC bug this IF_LINT works around.
+	* src/diff3.c (process_diff):
+	Always initialize to NULL, to avoid problems on mostly-theoretical
+	hosts where accessing uninitialized variables traps.  The next
+	patch will have a better fix for this.
+	* src/ifdef.c (do_printf_spec):
+	No need for IF_LINT in GCC 11.2.1.
+
+	maint: lint → GCC_LINT
+	‘lint’ is for traditional lint and perhaps some other tools;
+	‘GCC_LINT’ is targeted more for what we do.
+	Gnulib accepts either, but we might as well be more accurate.
+	* configure.ac (GCC_LINT): Define this instead of ‘lint’.
+	All uses changed.
+
+	diff: remove printint
+	* src/system.h (printint): Remove.  All uses removed.  This type
+	was only for porting to pre-C89 hosts, and is no longer needed.
+
+	diff: remove INT_MAX limit on -F/-p searches
+	* src/context.c (find_function): Don’t limit function-line
+	searches to INT_MAX bytes, removing a FIXME.
+
+	maint: .gitignore updates
+	* .gitignore: Remove lib/unused-parameter.h.  Add all of m4, since
+	no files there need to be committed; this lets us remove
+	m4/.gitignore and m4/gnulib-cache.m4.  Add *.orig, *.patch, .Tpo,
+	/*.diff, lib/*/ (which lets us remove /lib/sys/), lib/ctype.h,
+	lib/errno.h, lib/float.h, lib/fnmatch.h, lib/getopt-cdefs.h,
+	lib/getopt.h, lib/limits.h, lib/sigsegv.h, lib/stdalign.h,
+	lib/stdarg.h, lib/stdbool.h, lib/stddef.h, lib/stdint.h,
+	lib/stdopen.[ch], vc-dwim-log-*.  Add slashes to autom4te.cache,
+	build-aux.  Remove redundant initial slashes from patterns that
+	also have internal slashes.  Remove plain ABOUT-NLS, since
+	/ABOUT-NLS suffices.  Sort using LC_ALL=C.
+
+	maint: omit unused function if not debugging
+	* src/util.c (debug_script): Compile only if DEBUG.
+
+	maint: remove prepargs
+	* lib/Makefile.am (noinst_HEADERS): Remove prepargs.h.
+	(libdiffutils_a_SOURCES): Remove prepargs.c.
+	* lib/prepargs.c, lib/prepargs.h: Remove.  Hasn’t been
+	needed for many years.
+	* src/diff.c: Do not include prepargs.h.
+
+	maint: zalloc → xzalloc
+	* src/util.c (zalloc): Remove.  All uses replaced
+	by xzalloc, which means the same thing.
+
+2021-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff3: suppress -fanalyzer alarms
+	* src/diff3.c: Add pragma to suppress -Wanalyzer-null-dereference
+	alarms.
+
+	* src/diff.h (find_dir_file_pathname): Add malloc-related
+	attributes, to pacify gcc -Wsuggest-attribute=malloc.
+
+2021-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: remove January workaround for Gnulib issue
+	* configure.ac: Don’t add -Wno-analyzer-null-argument, since
+	the issue is now fixed in Gnulib.
+
+	build: update gnulib submodule to latest
+
+2021-08-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: remove stray init.cfg
+	* init.cfg: Remove.  I guess this file was a stray, since it was a
+	copy of tests/init.cfg when it was checked in, and it hasn’t been
+	maintained since.
+
+	tests: port to valgrind 3.16.0 + GCC 11.2
+	* tests/init.cfg (stderr_fileno_): Reject valgrind if it reports a
+	"Serious error" on a trival use of ‘diff’.  Without this patch, on
+	RHEL 8.4 when I compile diffutils with a GCC 11.2.0 that I built
+	myself, ‘valgrind diff’ spits out messages like WARNING: Serious
+	error when reading debug info / When reading debug info from diff:
+	Ignoring non-Dwarf2/3/4 block in .debug_info’ and this causes the
+	strip-trailing-cr test to fail.  I guess valgrind complains
+	because the valgrind version 3.16.0 that came with RHEL 8.4 cannot
+	grok the debug entries generated by GCC 11.2.0.
+
+2021-08-01  Jim Meyering  <meyering@fb.com>
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.8
+	* NEWS: Record release date.
+
+	build: update gnulib to latest
+
+2021-07-31  Jim Meyering  <meyering@fb.com>
+
+	cmp: avoid reading uninitialized memory
+	[This *is* useful, so reapply. ]
+	When comparing buffers a word at a time, cmp could read up to
+	sizeof (word) - 1 uninitialized bytes.
+	* src/cmp.c (cmp): Set not just a single guaranteed-differing
+	sentinel byte just beyond any final read byte, but also ensure
+	that any following bytes are defined, if those may be read via
+	block_compare's word-at-a-time comparison.  Reported by Bruno Haible
+	in https://lists.gnu.org/r/diffutils-devel/2021-07/msg00003.html
+
+2021-07-28  Bruno Haible  <bruno@clisp.org>
+
+	cmp: avoid reading uninitialized memory
+	One or both of the sentinel bytes were copies of uninitialized values.
+	* src/cmp.c (cmp): Use arbitrary initialized values for the
+	sentinel bytes.
+
+2021-07-28  Jim Meyering  <meyering@fb.com>
+
+	cmp: revert preceding change
+	It did not solve the problem. The next patch does.
+
+2021-07-27  Jim Meyering  <meyering@fb.com>
+
+	cmp: avoid reading uninitialized memory
+	When comparing buffers a word at a time, cmp could read up to
+	sizeof (word) - 1 uninitialized bytes.
+	* src/cmp.c (cmp): Set not just a single guaranteed-differing
+	sentinel byte just beyond any final read byte, but also ensure
+	that any following bytes are defined, if those may be read via
+	block_compare's word-at-a-time comparison.  Reported by Bruno Haible
+	in https://lists.gnu.org/r/diffutils-devel/2021-07/msg00003.html
+
+2021-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2021-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: better --color help
+	* src/diff.c (option_help_msgid): Reword --color help without
+	using the confusing word “default”.  Problem reported
+	by Peter Oliver (Bug#48532).
+
+2021-05-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: fix URL in HACKING
+
+2021-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: pacify compiler re style
+	* src/diff.c (usage): Prefer &"string"[N] to "string" + N.
+	Some compilers complain about the latter, as they worry C++
+	refugees will think it’s string concatnation.
+
+	diff3: avoid signed int overflow
+	* src/diff3.c (main): Avoid signed integer overflow in the very
+	unlikely case of more than INT_MAX incompatible options.  Instead,
+	use one bit to record the presence of each type of incompatible
+	option, and report an error if more than one bit is set.
+
+	maint: don’t bother with -Wno-return-local-addr
+	* configure.ac (WERROR_CFLAGS): Don’t bother with
+	-Wno-return-local-addr as it doesn’t seem to work.
+	Anyway, it’s no longer needed on Ubuntu 20.10.
+
+	maint: disable -Wstack-protector
+	* configure.ac (WERROR_CFLAGS): Disable -Wstack-protector, as it
+	has a false alarm with lib/vasnprintf.c on Ubuntu 20.10 and it’s
+	not worth working around.  Coreutils already disables it.
+
+	diff: plug memory leak in ifdef.c
+	Problem reported by Than (Bug#47362).
+	Fix the bug by using xmalloca instead of vararrays.
+	* bootstrap.conf (gnulib_modules): Add xmalloca; remove vararrays.
+	* configure.ac: Remove AC_C_VARARRAYS.
+	* src/ifdef.c: Include xmalloca.h instead of xalloc.h.
+	(do_printf_spec): Use xmalloca instead of an xmalloc
+	that lacks a corresponding ‘free’ if HAVE_C_VARARRAYS
+	due to a typo in 2017-05-18T05:51:31Z!meyering@fb.com.
+
+	build: update gnulib submodule to latest
+
+2021-01-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: work around GCC -Wreturn-local-addr bug
+	* configure.ac: Do not use -Wreturn-local-addr in Gnulib,
+	to suppress a false alarm in vasnprintf.c.
+
+2021-01-01  Jim Meyering  <meyering@fb.com>
+
+	maint: update all copyright year number ranges
+	Run "make update-copyright" and then...
+	* gnulib: Update to latest with copyright year adjusted.
+	* tests/init.sh: Sync with gnulib to pick up copyright year.
+	* bootstrap: Likewise.
+
+2020-12-05  Jim Meyering  <meyering@fb.com>
+
+	build: require autoconf-2.64
+	* configure.ac: Require 2.64, up from 2.63, to align with gnulib.
+
+2020-03-15  Jim Meyering  <meyering@fb.com>
+
+	build: update gnulib to latest
+
+	doc: adjust formatting to make apropos (man -k) work better
+	* man/Makefile.am $(dist_man1_MANS): Adjust sed substitution
+	to also remove the space after "GNU". This avoids the single
+	leading space on each man page title line.  I'm guessing that
+	interfered with indexing/searching, causing "man -k diff3" to
+	print this: diff3 (1) - (unknown subject).
+	Reported by Dan Jacobon in http://bugs.gnu.org/39769.
+
+2020-01-19  Jim Meyering  <meyering@fb.com>
+
+	doc: correct an ancient "At present"
+	* doc/diffutils.texi (Unified Format): Correct the now
+	seriously outdated "At present" (referring to early 1990s)
+	statement to be more of a historical note.
+	Reported by Roland Illig in http://bugs.gnu.org/39184.
+
+2020-01-05  Jim Meyering  <meyering@fb.com>
+
+	doc: use program name, not "GNU", in the nroff/man header
+	* man/Makefile.am (dist_man1_MANS): Elide "GNU " prefix
+	from the generated prog+one-line-summary, so that help2man
+	uses the program name rather than "GNU" as the nroff "name".
+	Reported by Dan Jacobson in http://bugs.gnu.org/38574.
+
+2020-01-01  Jim Meyering  <meyering@fb.com>
+
+	maint: update all copyright year number ranges
+	Run "make update-copyright" and then...
+	* gnulib: Update to latest with copyright year adjusted.
+	* tests/init.sh: Sync with gnulib to pick up copyright year.
+	* bootstrap: Likewise.
+
+2019-12-29  Jim Meyering  <meyering@fb.com>
+
+	maint: avoid gnulib-tool deprecation warnings, and build failure
+	* bootstrap.conf (gnulib_modules): Use getopt-gnu, rather than
+	obsolete "getopt" module. Use nstrftime in place of strftime.
+	(avoided_gnulib_modules): Do not avoid the "lock" module. That
+	would lead to a build failure due to "glthread/lock.h not found".
+
+	maint: avoid syntax-check failure
+	* po/POTFILES.in: Add argmatch.h; remove xstrtol-error.c
+
+	maint: disable two and reenable many warning options
+	* configure.ac (GNULIB_WARN_CFLAGS): Disable -Wduplicated-branches
+	and -Wreturn-local-addr, due to a couple of false-positive warnings.
+	(WARN_CFLAGS): Reenable many warnings that now (with recent gcc)
+	provoke no false positive.
+
+	maint: avoid gnulib's lock-tests module
+	* bootstrap.conf (avoided_gnulib_modules): Also --avoid=lock-tests
+	to avoid gnulib-related build failure.
+
+2019-12-23  Jim Meyering  <meyering@fb.com>
+
+	build: update gnulib to latest
+	* gnulib: Update submodule to latest.
+	* bootstrap: Copy from gnulib.
+	* tests/init.sh: Likewise.
+
+2019-12-20  Jim Meyering  <meyering@fb.com>
+
+	maint: tweak bootstrap.conf
+	* bootstrap.conf (buildreq): Require at least autoconf 2.62,
+	up from 2.61, just as grep and coreutils do.
+	(bootstrap_post_import_hook): "Copy pkg-config's pkg.m4 ...",
+	copied from grep's bootstrap.conf.
+	(avoided_gnulib_modules): Pull this definition to the top.
+	Formatting.
+
+2019-10-01  Dave Odell  <dmo2118@gmail.com>  (tiny change)
+
+	cmp: add test case for Bug#37558
+	* tests/cmp: New test case (Bug#37558).
+
+2019-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	cmp: fix -l width bug
+	Problem reported by Dave Odell (Bug#37558).
+	* src/cmp.c (cmp): Treat negative ‘bytes’ as infinite, fixing a
+	bug introduced in the 2019-08-27 patch that fixed Bug#35256.
+
+2019-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: don’t mistreat -N in arg as a large number
+	Problem reported by alec (Bug#35256).
+	* NEWS: Mention the fix.
+	* bootstrap.conf (gnulib_modules): Use strtoimax and xstrtoimax,
+	not strtoumax and strtoumax.
+	* src/cmp.c (bytes): Now signed, with -1 representing no limit.
+	All uses changed.
+	* src/cmp.c (specify_ignore_initial, main):
+	* src/diff.c (main):
+	* src/ifdef.c (format_group):
+	* src/sdiff.c (interact):
+	Use strtoimax, not strtoumax.
+
+	build: update gnulib submodule to latest
+
+2019-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: ignore ‘configure’ temporaries
+	* .gitignore: Ignore confdefs*, conftest*.
+
+	maint: avoid Gnulib setlocale module
+	Problem reported for MS-Windows by Richard Gering (Bug#34376).
+	Diffutils doesn’t need any of the Gnulib fixes for setlocale.
+	* bootstrap.conf (gnulib_tool_option_extras):
+	Avoid the setlocale module.
+
+2019-05-24  KO Myung-Hun  <komh@chollian.net>
+
+	tests: init.cfg: use $PATH_SEPARATOR not ':'
+	On OS/2, a path separator is semi-colon ';' not colon ':'.
+	* tests/init.cfg: Replace ':' with $PATH_SEPARATOR.
+
+2019-01-20  Jim Meyering  <meyering@fb.com>
+
+	build: ensure no VLA is used
+	Cause developer builds to fail for any use of a VLA.
+	VLAs (variable length arrays) limit portability.
+	* configure.ac (nw): Remove -Wvla from the list of disabled warnings,
+	thus enabling the warning when configured with --enable-gcc-warnings.
+	(GNULIB_NO_VLA) Define, disabling use of VLAs in gnulib.  This commit
+	is functionally equivalent to coreutils' v8.30-44-gd26dece5d.
+
+	build: update gnulib to latest
+	* gnulib: Update to latest.
+	* po/POTFILES.in: Add lib/xstdopen.c.
+
+2019-01-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: use xstdopen, not stdopen
+	* bootstrap.conf (gnulib_modules):
+	* src/cmp.c, src/diff.c, src/diff3.c, src/sdiff.c (main):
+	Use xstdopen, not stdopen.
+
+	build: update gnulib submodule to latest
+
+2019-01-05  Jim Meyering  <meyering@fb.com>
+
+	maint: convert all TABs to equivalent spaces in indentation
+	Using this file,
+
+	cat > leading-blank.exempt <<\EOF
+	(\.gitmodules|help2man|pre-commit)$
+	(?:^|\/)ChangeLog[^/]*$
+	(?:^|\/)(?:GNU)?[Mm]akefile[^/]*$
+	\.(?:am|mk)$
+	EOF
+
+	run the following command to convert all non-conforming leading white
+	space to be all spaces:
+
+	git ls-files \
+	  | pcregrep -vf leading-blank.exempt \
+	  | xargs pcregrep -l '^ *\t' \
+	  | xargs perl -MText::Tabs -ni -le \
+	    '$m=/^( *\t[ \t]*)(.*)/; print $m ? expand($1) . $2 : $_'
+
+	Since that changed old NEWS, I also ran "make update-NEWS-hash"
+	to update the old_NEWS_hash value in cfg.mk.
+
+2019-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: fix cmp, diff3, sdiff with stdin closed
+	* NEWS: Mention this.
+	* src/cmp.c, src/diff3.c, src/sdiff.c: Include stdopen.h.
+	(main): Call stdopen early.
+	* src/cmp.c (main): Simplify now that we need not worry about
+	stdin being closed.
+	* src/diff.c (main): Translate stdopen diagnostic.
+
+	diff: remove unportable ‘diff -N - f <&-’ feature
+	* NEWS: Mention this.
+	* bootstrap.conf (gnulib_modules): Add stdopen.
+	* doc/diffutils.texi (Comparing Directories):
+	Do not document behavior if stdin is closed.
+	* src/diff.c: Include stdopen.h.
+	(main): Call stdopen early.
+	(compare_files) [__hpux]: Remove recently-introduced
+	special case for HP-UX exec with stdin closed.
+	* tests/new-file: Remove tests of the removed feature.
+
+	build: update gnulib submodule to latest
+
+2019-01-03  Bruno Haible  <bruno@clisp.org>
+
+	diff: recognize file descriptors closed by the parent process on HP-UX
+	* src/diff.c (compare_files): Use fcntl to distinguish a file
+	descriptor closed by the parent process from a file descriptor
+	that references /dev/null.
+
+2019-01-01  Jim Meyering  <meyering@fb.com>
+
+	maint: update all copyright dates via "make update-copyright"
+	* gnulib: Also update submodule for its copyright updates.
+
+2018-12-31  Jim Meyering  <meyering@fb.com>
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.7
+	* NEWS: Record release date.
+
+	maint: distribute new file, init.cfg
+	Otherwise, strip-trailing-cr would fail on a system without valgrind.
+	* tests/Makefile.am (EXTRA_DIST): Include init.cfg.
+
+2018-12-30  Dennis Lambe Jr  <malsyned@malsyned.net>
+
+	diff: adjust ANSI escapes for compatibility with less -R
+	GNU less can display ANSI-colored text with the -R flag, but this
+	support has some limitations. One of them is that if an escape
+	sequence starts on one line and ends on a different line, only the
+	first line will be colored in less.
+
+	As a result, when diff creates colored output with multi-line deletes
+	or adds, less will only color the first line.
+
+	This change resets ANSI color to the default at the end of
+	each line and restarts it at the beginning of the next. It patches
+	normal and context mode. Side-by-side already worked in my testing.
+	* src/context.c (print_context_label, pr_context_hunk): As above.
+	(pr_unidiff_hunk, print_context_header): Likewise.
+	* src/normal.c (print_normal_hunk): Likewise.
+	* tests/colors: Adjust existing tests to accommodate this.
+	* NEWS (Improvements): Mention it.
+	Proposed in http://bugs.gnu.org/31105
+
+2018-12-29  Jim Meyering  <meyering@fb.com>
+
+	tests: fix colors test on systems lacking fractional timestamp support
+	* tests/colors: The .NNNNNNNNN suffix is not printed on some systems.
+	Adapt the test to accommodate those systems.
+
+	tests: strip-trailing-cr: avoid failure with ASAN
+	Valgrind cannot operate on an ASAN-compiled binary.
+	* tests/strip-trailing-cr (valgrind): Define as no-op when diff
+	was compiled with sanitizer support.
+
+2018-12-28  Jim Meyering  <meyering@fb.com>
+
+	tests: add test for --strip-trailing-cr UMR bug
+	* tests/strip-trailing-cr: New file. Test for today's bug fix.
+	* tests/Makefile.am (TESTS): Add it.
+
+	tests: import test infrastructure from coreutils
+	* tests/init.cfg: New file, for require_valgrind_ definition (from coreutils).
+	* tests/Makefile.am (PATH): Don't set stderr_fileno_ here, since it is
+	now initialized in init.cfg.
+
+2018-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+	    Jim Meyering  <jim@meyering.net>
+
+	diff: fix UMR with --strip-trailing-cr
+	Problem reported by Hongxu Chen (Bug#31935).
+	* src/io.c (prepare_text): Strip trailing CR before
+	doing the rest of the analysis.
+	* NEWS: Mention the fix.
+
+2018-12-28  Bruno Haible  <bruno@clisp.org>
+
+	tests: colors: avoid test failure on AIX 7
+	* tests/colors: Splice the argument into the printf format string.
+
+2018-12-27  Bruno Haible  <address@hidden>
+
+	maint: don't use an undocumented Autoconf macro
+	* configure.ac: Use AC_CONFIG_HEADERS instead of AC_CONFIG_HEADER.
+
+2018-12-23  Jim Meyering  <meyering@fb.com>
+
+	build: avoid build failure with --enable-gcc-warnings and latest gcc
+	* src/diff.c (usage): Assert that each line length is no longer than
+	the minimum required size of 4095.  This lets newer gcc (currently
+	9.0.0 20181219) infer that it need not issue this warning:
+	diff.c:1012:19: error: '%.*s' directive output between 0 and 2147483647
+	bytes may exceed minimum required size of 4095
+	[-Werror=format-overflow=]
+	1012 |        printf ("  %.*s", msglen, msg);
+
+	build: update gnulib to latest; and bootstrap and init.sh
+
+	build: make the autoconf-2.63 requirement explicit
+	* configure.ac: AC_PREREQ: Require 2.63, not 2.59. And quote properly.
+	Autoconf-2.63 has been required for some time via gnulib.
+	This merely makes it explicit.
+
+2018-12-20  Jim Meyering  <meyering@fb.com>
+
+	maint: use https: in gnu mirror URL prefix, not http
+	This appears in the generated release announcement message.
+	* cfg.mk (url_dir_list): Use https: prefix, not http:.
+
+2018-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	cmp: fix bug in -b diagnostic
+	Problem reported by mancha (Bug#32249).
+	* src/cmp.c (count_newlines): Restore old value of sentinel.
+	* tests/cmp: Test for the bug.
+
+	build: update gnulib submodule to latest
+
+2018-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: prepend "GNU" to NAME in man pages
+	Requested by RMS.
+	* src/cmp.c, src/diff.c, src/diff3.c, src/sdiff.c:
+	Prepend "GNU" to first comment, so that the man page says "GNU".
+
+2018-04-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sdiff: port to mingw
+	Problem reported by Ross Burton (Bug#31218).
+	* src/sdiff.c (checksigs): Use ‘raise’, not ‘kill’.
+
+2018-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2018-01-14  Jim Meyering  <meyering@fb.com>
+
+	tests: fix quoting error in previous change
+	* tests/colors: Double-quote $PATH.
+
+2018-01-06  Jim Meyering  <meyering@fb.com>
+
+	tests: port tests/colors to some env-munging shell
+	* tests/colors: Also set PATH="$PATH" in env invocation.
+
+	maint: update gnulib and copyright dates for 2018
+	* gnulib: Update to latest.
+	* all files: Run "make update-copyright".
+	* bootstrap: Update from gnulib.
+
+	maint: suppress gcc's new -Wcast-function-type in gnulib
+	* configure.ac (WERROR_CFLAGS): Suppress gcc's new -Wcast-function-type
+	warning in gnulib, because it would trigger on this:
+	sig-handler.h:47:12: error: cast between incompatible function types\
+	  from 'void (* const)(int,  siginfo_t *, void *)' \
+	  {aka 'void (* const)(int,  struct <anonymous> *, void *)'} \
+	  to 'void (*)(int)' [-Werror=cast-function-type]
+	return (sa_handler_t) a->sa_sigaction;
+
+2017-10-22  Jim Meyering  <meyering@fb.com>
+
+	tests: add expected-failing test for minor subopimality
+	In some unusual cases, diff -u prints suboptimal output.
+	* tests/large-subopt: New test script.
+	* tests/Makefile.am (TESTS): Add it.
+	(XFAIL_TESTS): Add it here, too, to record that this test is
+	currently expected to fail.
+	* tests/large-subopt.in1, tests/large-subopt.in2: Inputs derived from
+	those in http://bugs.gnu.org/28796
+
+2017-09-23  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+2017-05-21  Jim Meyering  <meyering@fb.com>
+
+	maint: make the announcement template Cc the devel- list
+	* cfg.mk (announcement_Cc_): Define.
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.6
+	* NEWS: Record release date.
+
+2017-05-19  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+2017-05-18  Jim Meyering  <meyering@fb.com>
+
+	maint: update to work with GCC7's -Werror=implicit-fallthrough=
+	* src/system.h (FALLTHROUGH): Define.
+	Use new FALLTHROUGH macro in place of comments
+	* src/cmp.c: FIXME
+	* src/diff3.c: FIXME
+	* src/ifdef.c: FIXME
+	* src/sdiff.c: FIXME
+	* src/side.c: FIXME
+	* src/util.c: FIXME
+
+	gnulib: update to latest
+
+2017-05-09  Jim Meyering  <meyering@fb.com>
+
+	tests: new-file: closed-stdin: also ensure stdout was empty
+	* tests/new-file: Also require that "out" be empty.
+
+2017-05-06  Jim Meyering  <meyering@fb.com>
+
+	maint: stop using @acronym{...} in texinfo sources
+	* doc/diffutils.texi: Remove all uses of @acronym{...},
+	per recommendation by Karl Berry.
+	* cfg.mk (local-checks-to-skip): Remove exemption, enabling
+	the @acronym{-prohibiting syntax-check rule.
+
+2017-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	cmp: improve EOF diagnostic
+	This improves on yesterday's change, following up on a
+	remark by Jim Meyering (Bug#22816#21).
+	* doc/diffutils.texi (Invoking cmp, cmp Options): Follow POSIX more
+	closely in the documentation of the information appended to the EOF
+	diagnostic.
+	* src/cmp.c (cmp): Be more specific about the shorter file's length
+	and fix some off-by-1 issues in reporting line counts.
+	* tests/cmp: Adjust to match new behavior.
+	Don't assume internal details about stdio buffering.
+
+2017-05-04  Benno Schulenberg  <bensberg@justemail.net>
+
+	diff: describe each --help option with a single string
+	* src/diff.c: To ease translating, fuse four description pieces
+	into two whole ones.  Also reword and rewrap one of them to fit
+	within eighty characters.
+
+2017-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	cmp: report prefix length when one file is shorter
+	Requested by Dan Jacobson (Bug#22816).
+	* NEWS:
+	* doc/diffutils.texi (Invoking cmp, cmp Options): Document this.
+	* src/cmp.c (cmp): Implement it.
+	* tests/Makefile.am (TESTS): Add cmp.
+	* tests/cmp: New file.
+
+2017-05-02  Jim Meyering  <meyering@fb.com>
+
+	tests: add test for latest fix
+	* NEWS (Bug fixes): Describe it.
+	* tests/invalid-re: New test for just-fixed bug.
+	* tests/Makefile.am (TESTS): Add it.
+
+	gnulib: update to latest
+
+2017-04-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: don't crash if regexp is invalid
+	Problem reported by Marcel Böhme in:
+	http://lists.gnu.org/archive/html/bug-diffutils/2017-04/msg00002.html
+	* src/diff.c (add_regexp): Exit if re_compile_pattern fails.
+
+2017-03-24  julama  <julama@fake-box.com>
+
+	tests: avoid false failure for unreadable /proc/cmdline
+	* tests/brief-vs-stat-zero-kernel-lies: Use "test -r" rather than
+	just "test -f".  This avoids a false test failure on a linux system
+	with grsecurity and its GRKERNSEC_PROC_USER option enabled, for which
+	/proc/cmdline is unreadable.  Reported in https://bugs.gnu.org/26155
+
+2017-02-01  Jim Meyering  <meyering@fb.com>
+
+	tests: avoid false failure with some shells on debian, freebsd
+	* tests/colors: Move the TERM=dumb setting into the code run by
+	"returns_", since some shells do not propagate envvar setting through
+	to a use of a function like this.  That would cause this test to fail
+	because results were colorized when they should not have been.
+	Reported by Nelson Beebe.
+
+2017-01-31  Jim Meyering  <meyering@fb.com>
+
+	maint: add "introduced in 3.4" in latest NEWS entry
+	* NEWS: Update.  Also, thanks to Nelson Beebe for reporting this.
+
+	diff: avoid UMR with ---presume-output-tty
+	* src/diff.c (main): Always define presume_output_tty.
+	Otherwise, it would be read uninitialized.
+	Introduced in v3.3-45-g17e2698
+	* NEWS (Bug fixes): Mention it.
+
+	gnulib: update to latest; and update bootstrap and init.sh
+
+	maint: change "time stamp" to "timestamp" globally
+	This avoids a new syntax-check failure.
+	* ChangeLog-2008: Perform that change.
+	* doc/diffutils.texi: Likewise.
+	* NEWS: Likewise.
+	* cfg.mk: Update the old news hash accordingly.
+
+2017-01-01  Jim Meyering  <meyering@fb.com>
+
+	maint: update gnulib and copyright dates for 2017
+	* gnulib: Update to latest.
+	* all files: Run "make update-copyright".
+
+2016-11-08  Jim Meyering  <meyering@fb.com>
+
+	tests: use "returns_" rather than explicit comparison with "$?"
+	* tests/colors: Use "returns_ 1" rather than testing $? = 1
+	* tests/basic: Likewise.
+	* tests/binary: Likewise.
+	* tests/filename-quoting: Likewise.
+	* tests/function-line-vs-leading-space: Likewise.
+	* tests/ignore-matching-lines: Likewise.
+	* tests/label-vs-func: Likewise.
+	* tests/new-file: Likewise.
+	* tests/no-dereference: Likewise.
+	* tests/no-newline-at-eof: Likewise.
+	* tests/stdin: Likewise.
+
+2016-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: fix big performance degradation in 3.4
+	* NEWS, doc/diffutils.texi (Overview): Document this.
+	* src/analyze.c (diff_2_files): Restore too_expensive heuristic,
+	but this time with a floor that is 16 times the old floor.  This
+	should fix Bug#16848, by generating good-quality output for its
+	test case, while not introducing Bug#24715, by running nearly as
+	fast as diff-3.3 for that test case.
+
+	build: update gnulib submodule to latest
+
+2016-10-16  Jim Meyering  <meyering@fb.com>
+
+	maint: use die rather than error
+	Use "die (N, ..." rather than "error (N, ..." whenever N is a nonzero
+	constant.  That lets the compiler know that control never goes beyond
+	that point, and thus makes unnecessary the occasional following
+	"abort ();" or "break;" statement we have historically added to inform
+	static analysis tools of this aspect of "error" semantics.
+	* src/die.h: New file.
+	* src/Makefile.am (noinst_HEADERS): Add it.
+	* src/cmp.c: Use die in place of error whenever the first
+	argument is a nonzero constant.  Also remove any immediately-
+	following call to abort, and include "die.h".
+	* src/diff.c: Likewise.
+	* src/diff3.c: Likewise.
+	* src/sdiff.c: Likewise.
+	* src/util.c: Likewise.
+
+2016-10-02  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+	build: avoid GCC 7's new warnings
+	* src/util.c (get_funky_string): Adjust comment so that GCC 7's
+	-Wimplicit-fallthrough recognizes it.
+	* src/diff3.c (main): Cast boolean MERGE to "int" to avoid this:
+	diff3.c:341:25: error: '~' on a boolean expression \
+	[-Werror=bool-operation]
+
+2016-08-30  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+2016-08-29  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest, to port to upcoming GCC 7
+	This fixes compilation errors when using gcc-7-to-be that were
+	due to missing backslashes in gnulib's intprops.h and an API
+	change in functions like __builtin_add_overflow.  This ports
+	to GCC 7's newer built-in overflow-checking functions.
+
+2016-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: don't assume ptrdiff_t <= long long int
+	* src/system.h (printint, pI): Port to (theoretical) platforms
+	where ptrdiff_t is wider than long long int (Bug#24311).
+
+2016-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: port line numbers to mingw64
+	Problem reported by Peter Rosin (Bug#24311).
+	* src/system.h (printint, pI): New typedef and macro.
+	All uses of 'long int' and "%l" in printf format replaced by
+	'printint' and "%"pI respectively.
+	* src/ifdef.c (do_printf_spec): Don't assume pI is length 1.
+
+2016-08-20  Jim Meyering  <meyering@fb.com>
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.5
+	* NEWS: Record release date.
+
+2016-08-16  Jim Meyering  <meyering@fb.com>
+
+	build: arrange to build with -fno-common, when possible
+	* configure.ac (WERROR_CFLAGS): Add -fno-common, when possible.
+	This would have prevented the duplicate definition of
+	presume_output_tty that was fixed in v3.4-10-gc2dc91f.
+
+2016-08-16  Hanno Böck  <hanno@hboeck.de>
+
+	diff: avoid duplicate definition of presume_output_tty
+	* src/util.c (presume_output_tty): Remove this definition.
+	The other is in diff.h.  Reported in https://bugs.gnu.org/24248
+
+2016-08-14  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+	tests: diff3: work around missing seq on some systems
+	* tests/diff3 (seq): Provide a seq replacement function,
+	since at least AIX, SunOS 5.10, OpenBSD-5.8 lack it.
+	Reported by Assaf Gordon in https://bugs.gnu.org/24227#8
+
+2016-08-13  Jim Meyering  <meyering@fb.com>
+
+	diff3: fix leaks, for real
+	* src/diff3.c (struct diff_block)[lint]: Add member, n2.
+	(free_diff_block, next_to_n2): New functions.
+	* tests/diff3: Add more test coverage.
+
+	maint: require that commit messages be of a certain form
+	* bootstrap.conf (bootstrap_epilogue): Merge from coreutils, so that
+	a local commit hook will now help enforce consistent commit messages.
+	* Makefile.am (check-git-hook-script-sync): New rule, largely copied
+	from coreutils.
+	* scripts/git-hooks/commit-msg: New file, from coreutils, but
+	with adapted list of program names.
+	* scripts/git-hooks/applypatch-msg: New file, from git.
+	* scripts/git-hooks/pre-applypatch: Likewise.
+	* scripts/git-hooks/pre-commit: Likewise.
+
+2016-08-13  Bastian Beischer  <bastian.beischer@rwth-aachen.de>
+
+	diff3: fix heap use-after-free; add minimal diff3 test coverage
+	Commit v3.3-42-g3b74a90, "FIXME: src/diff3: plug a leak" added an
+	invalid use of free, leading to use-after-free in nearly any invocation
+	of diff3.  Revert that commit.
+	* NEWS (Bug fixes): Mention it.
+	* tests/diff3: New file, to add minimal test coverage.
+	* tests/Makefile.am (TESTS): Add it.
+	Reported by Bastian Beischer in http://bugs.gnu.org/24210
+
+2016-08-13  Jim Meyering  <meyering@fb.com>
+
+	build: ignore texinfo build artifacts
+	* .gitignore: Ignore texinfo artifacts in doc/.
+
+	maint: diff3: remove an unreachable statement
+	* src/diff3.c (main): Remove unreachable "return" after exit from main.
+
+2016-08-08  Jim Meyering  <meyering@fb.com>
+
+	diff: disable colorization for TERM=dumb
+	* src/diff.c (main): With --color or --color=auto, when TERM is
+	"dumb", disable colorization.  Suggested by Daniel Colascione.
+	* NEWS (Bug fixes): Mention it.
+	* tests/colors: Add a test that would fail without this change,
+	yet passes with it.
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.4
+	* NEWS: Record release date.
+
+2016-08-06  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+	tests: tweak built_programs definition
+	* tests/Makefile.am (built_programs): Adjust to work around what
+	may be a problem due to interaction between Solaris 10's /bin/sh
+	and an old version of GNU make. Reported by Dagobert Michelsen
+	in https https://bugs.gnu.org/24137.
+
+2016-08-02  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+	tests: skip a /proc/self-dependent test on the Hurd
+	* tests/brief-vs-stat-zero-kernel-lies: The Hurd's /proc/self
+	is not useful, so detect that and skip the test that requires it.
+	Reported by Assaf Gordon in https://debbugs.gnu.org/24121#29
+
+2016-08-01  Jim Meyering  <meyering@fb.com>
+
+	tests/colors: fix portability problem with touch --date
+	* tests/colors (epoch): Don't use GNU touch's --date=$epoch option.
+	Use the portable -t 197001010000.00.
+	Reported by Assaf Gordon in https://debbugs.gnu.org/24121#8
+
+	build: Solaris 9: avoid link failure due to isblank use
+	* bootstrap.conf (gnulib_modules): Add isblank, to avoid a link
+	error on Solaris 9 Sparc.  Reported by Dagobert Michelsen.
+
+	test: improve test infrastructure
+	* tests/envvar-check: New file, copied from grep, with the addition
+	of the EDITOR and GREP_OPTIONS envvar names.
+	* tests/Makefile.am (EXTRA_DIST): Add it.
+	(TESTS_ENVIRONMENT): Revamp, to be more like that of grep.
+
+2016-07-31  Jim Meyering  <meyering@fb.com>
+
+	maint: remove gl/lib/reg*.c.diff; no longer needed
+	* gl/lib/regcomp.c.diff: Remove file, now that gnulib's
+	regcomp.c compiles regex.c with -Wno-unused-parameter.
+	* gl/lib/regex_internal.c.diff: This file induced a change to ensure
+	that the "Idx" type was unsigned and to remove a few "VAR < 0"
+	comparisons.  These days, it is probably fine to stay in sync with
+	gnulib/glibc's copies
+	of these files, so remove these patches, too.
+	* gl/lib/regexec.c.diff: Likewise.
+	Prompted by a report by Assaf Gordon and a suggestion from Paul Eggert.
+
+	tests: colors: fix a portability problem and work around a shell bug
+	* tests/colors (e): Fix a portability bug: use printf '\033'
+	rather than '\e' to generate the required byte sequence, since
+	for some shells (at least dash 0.5.8), the latter doesn't work.
+	Work around a shell bug whereby "local tab=$(printf '\t')"
+	would result in an empty value for "$tab": hoist each "tab"
+	definition up/out of its function to global scope.
+	Reported by Assaf Gordon in http://debbugs.gnu.org/24116#8
+
+2016-07-23  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest; and tests/init.sh
+	* gnulib: Update to latest.
+	* init.sh: Update from gnulib.
+
+2016-05-30  Jim Meyering  <meyering@fb.com>
+
+	maint: arrange for "make distcheck" to work with unreleased automake
+	* dist-check.mk (my-distcheck): Remove all .deps directories
+	before performing the recursive comparison.
+
+2016-05-24  Glenn Morris  <rgm@gnu.org>
+
+	doc: fix a reference to emacs' emerge node
+	* doc/diffutils.texi (Interactive Merging): Correct a reference to
+	emacs' emerge node: s/emerge/Emerge/.
+	This addresses http://debbugs.gnu.org/23613
+
+2016-04-30  Jim Meyering  <meyering@fb.com>
+
+	maint: arrange for better URLs in generated announcement message
+	* cfg.mk (url_dir_list): Define.  I had been correcting the generated
+	URLs by hand, just before the announcement.  This is better.
+
+2016-03-15  Jim Meyering  <meyering@fb.com>
+
+	maint: don't ignore gitlog-to-changelog failure
+	* Makefile.am (gen-ChangeLog): Don't ignore failure of
+	gitlog-to-changelog. This syncs to coreutils' copy of this rule.
+
+2016-03-06  Giuseppe Scrivano  <gscrivano@gnu.org>
+
+	diff: --color: fix an infinite recursion bug
+	* src/diff.h (presume_output_tty): New extern variable.
+	* src/diff.c (PRESUME_OUTPUT_TTY_OPTION): New enum.
+	(group_format_option): Add '-presume-output-tty'.
+	(main): Handle PRESUME_OUTPUT_TTY_OPTION.
+	* src/util.c: New variable `presume_output_tty'.
+	(check_color_output): Handle presume_output_tty.
+	(set_color_context): Call process_signals only when color_context is
+	not RESET_CONTEXT.
+	* tests/colors: Check that diff doesn't crash when interrupted
+	in the middle of a color sequence.
+
+	Reported by Gisle Vanem in http://debbugs.gnu.org/22067
+
+2016-01-31  Jim Meyering  <meyering@fb.com>
+
+	maint: update prereq version of gettext
+	* configure.ac: Increase designated gettext version to 0.19.2
+	* bootstrap.conf (buildreq): Likewise.
+	Remove now-unnecessary code to remove gettext-provided files.
+
+	gnulib: update to latest
+
+2016-01-01  Jim Meyering  <meyering@fb.com>
+
+	FIXME: src/diff3: plug a leak
+
+2016-01-01  Jim Meyering  <meyering@fb.com>
+
+	maint: update copyright year, bootstrap, init.sh
+	Run "make update-copyright" and then...
+
+	* gnulib: Update to latest.
+	* tests/init.sh: Update from gnulib.
+	* bootstrap: Likewise.
+
+2015-12-06  Jim Meyering  <meyering@fb.com>
+
+	diff --brief no longer mistakenly reports diff. with 0-sized /proc/ files
+	Normally, it is safe to assume two regular files are different when
+	their st_size values are different.  However, that assumption may
+	be invalid if either value is zero, as happens with files on Linux
+	/proc and /sys file systems. Since skipping this optimization will
+	usually cost very little (one read syscall, to read zero bytes),
+	it is fine to accommodate those unusual files.
+	* src/analyze.c (diff_2_files): Do not assume regular files differ
+	just because their st_size values differ when one or more is 0.
+	* src/diff.c (compare_files): Likewise.
+	* tests/brief-vs-proc-stat-zero: New test.
+	* tests/Makefile.am: Add it.
+	* NEWS (Bug fixes): Describe it.
+	Reported by Stephan Müller in http://debbugs.gnu.org/21942
+
+	tests: arrange to print any skipped-test explanation to tty, too
+	I noticed that when a test was skipped, the reason was not printed.
+	This fixes it.  In coreutils, this variable is set in init.cfg,
+	but there is no point in putting the definition so far from the
+	code that chooses the file descriptor number in tests/Makefile.am.
+	* tests/Makefile.am (TESTS_ENVIRONMENT) [stderr_fileno_]: Define
+	here (to 9), right next to the companion "9>&2".
+
+2015-11-29  Jim Meyering  <meyering@fb.com>
+
+	build: add gperf to the list of required programs
+	* bootstrap.conf (buildreq): Add gperf to the list.
+	Reported by Stephan Müller in http://debbugs.gnu.org/21945
+
+2015-11-29  Giuseppe Scrivano  <gscrivano@gnu.org>
+
+	tests: Add tests for --color and --palette
+	* tests/colors: New file.
+	* tests/Makefile.am (TESTS): Add colors.
+
+	doc: mention --color and --palette in NEWS
+
+	diff: add --palette
+	* bootstrap (gnulib_modules): Add 'argmatch'.
+	* doc/diffutils.texi: Add documentation for --palette
+	* src/diff.h (set_color_palette): New prototype.
+	* src/diff.c (set_color_palette): New function.
+	(color_palette): New variable.
+	* src/utils.c: Include "argmatch.h".
+	(struct bin_str): New struct.
+	(struct color_ext_type): New struct.
+	(color_indicator): New array.
+	(indicator_name): New array.
+	(indicator_no): New enum.
+	(parse_state): New enum.
+	(put_indicator): New function.
+	(get_funky_string): New function. Copied from coreutils ls.
+	(parse_diff_color):  New function. Copied from coreutils ls
+	"parse_ls_color" function.
+	(set_color_context): Use put_indicator instead of directly
+	outputting the sequence.
+	* po/POTFILES.in: Add 'lib/argmatch.c'
+
+	diff: add support for --color
+	* doc/diffutils.texi (diff Options): Add documentation for --color.
+	Copied from coreutils ls --color.
+	* src/context.c (pr_unidiff_hunk): Set the color context.
+	(print_context_header): Likewise.
+	(pr_context_hunk): Likewise.
+	* src/diff.h (enum colors_style): New enum to record when to use colors.
+	(colors_style): New variable to memorize the argument value.
+	(set_color_context): Add function definition.
+	* src/diff.c: : Define COLOR_OPTION.
+	(specify_colors_style): New function.
+	(longopts): Add --color.
+	(main): Handle --color argument.
+	(option_help_msgid): Add usage string for --color.
+	* src/normal.c (print_normal_hunk): Set the color context.
+	* src/side.c (print_1sdiff_line): Likewise.
+	* src/util.c (print_1_line_nl): New function.
+	(print_1_line): Make it a wrapper of 'print_1_line_nl'.
+	(colors_enabled): New boolean variable.
+	(begin_output): Call check_color_output once the output file is
+	configured.
+	(output_1_line): Periodically call `process_signals'.
+	(caught_signals): New sigset_t.
+	(colors_enabled): New boolean variable.
+	(interrupt_signal): New sig_atomic_t.
+	(stop_signal_count): New sig_atomic_t.
+	(check_color_output): New function.
+	(install_signal_handlers): Likewise. Copied from coreutils ls.
+	(process_signals): Likewise.  Copied from coreutils ls.
+	(set_color_context): New function.
+	(sighandler): Likewise.  Copied from coreutils ls.
+	(stophandler): Likewise.  Copied from coreutils ls.
+
+2015-09-24  Andreas Grünbacher  <agruen@gnu.org>
+
+	diff: Improve help text of option --label
+	* src/diff.c (option_help_msgid): Improve help text of option --label.
+
+2015-09-01  Jim Meyering  <meyering@fb.com>
+
+	build: correct man-page generation rule
+	The PATH was set incorrectly, so that the diff used by
+	help2man was the one from $PATH, rather than the just-built
+	one.
+	* man/Makefile.am (bin_dir): New variable, to...
+	(dist_man1_MANS): ...prepend ../src to PATH, not just "..".
+	Also, add a test to ensure that each $(bin_dir)/$$base is
+	executable, so this doesn't happen again.
+	In http://debbugs.gnu.org/21023, Rodrigo Valiña
+	Gutiérrez reported that diff.1 from the diffutils-3.3 tarball
+	contained no description of the then-new --no-dereference option.
+
+2015-07-10  Jim Meyering  <meyering@fb.com>
+
+	doc: --no-dereference: improve wording/description
+	* doc/diffutils.texi (Comparing Directories): Correct grammar.
+	(diff Options) [--no-dereference]: Say a little more.
+
+2015-01-01  Jim Meyering  <meyering@fb.com>
+
+	maint: update copyright year ranges to include 2015; update gnulib
+
+2014-12-12  KO Myung-Hun  <komh@chollian.net>
+
+	diff: skip test if seek is not possible on OS/2 kLIBC
+	This fixes the problem that 'diff - file' and 'cat file | diff - file'
+	fail due to a seek failure with a message 'diff.exe: -: Invalid seek',
+	because seek does not work on stdin and a pipe on OS/2 kLIBC.
+
+	* src/io.c (sip): Set skip_test to true if seek is not possible on
+	OS/2 kLIBC.
+
+2014-12-09  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest
+
+2014-12-09  KO Myung-Hun  <komh78@gmail.com>
+
+	build: double-quote use of $PATH
+	* man/Makefile.am (dist_man1_MANS): On OS/2, PATH_SEPARATOR is ';',
+	but unquoted, that is interpreted as the shell's statement
+	terminator.  Quote it.
+
+2014-10-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: fix integer overflow problem with --tabsize
+	Reported by Tobias Stoeckmann in: http://bugs.gnu.org/18857
+	* src/diff.c (main): Don't overflow if INTMAX_MAX / 2 < tabsize.
+	* tests/bignum: New file, to test for this bug.
+	* tests/Makefile.am (TESTS): Add it.
+
+2014-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: mention diff -B fix in NEWS
+
+	diff: fix bug with diff -B and incomplete lines
+	Reported by Navin Kabra via Eric Blake in:
+	http://bugs.gnu.org/18402
+	* src/util.c (analyze_hunk): Don't mishandle incomplete
+	lines at end of file.
+	* tests/no-newline-at-eof: Test for the bug.
+
+	diff: fix performance bug with prefix computation
+	* src/io.c (find_identical_ends): Fix performance bug:
+	the test for when the prefix was needed messed up by
+	the 2002-02-28 integer-overflow fixes, causing performance to be
+	worse than it needed to be.
+
+2014-08-23  Jim Meyering  <meyering@fb.com>
+
+	gnulib: update to latest, as well as bootstrap
+
+	maint: update copyright year range in texinfo documentation
+	* doc/diffutils.texi: Update copyright.
+
+2014-04-15  Jim Meyering  <meyering@fb.com>
+
+	maint: update bug-reporting address
+	* README: Change bug-gnu-utils@... to bug-diffutils@gnu.org.
+	* doc/diffutils.texi: Likewise.
+	Reported by Jamie Landeg Jones.
+
+2014-03-26  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	diff: fix two "..." typos in --help output
+	* src/diff.c (option_help_msgid): Remove two "..." typos (Bug#17102).
+
+2014-03-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: improve documentation about reading and stdin
+	See Bug#17075.
+	* doc/diffutils.texi (Comparison): Say that files need not be read.
+	(Invoking diff): Remove confusing remark about 'diff - -'.
+	It's not that useful, and it's not portable anyway.
+
+2014-02-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff, sdiff: minor integer overflow fixes
+	* src/context.c (find_hunk):
+	Simplify, now that 2 * context + 1 cannot overflow.
+	* src/diff.c (main):
+	* src/sdiff.c (interact):
+	Don't rely on undefined behavior on signed integer overflow.
+	* src/diff.c (main): Don't let contexts exceed CONTEXT_MAX.
+	* src/system.h (CONTEXT_MAX): New macro.
+
+	diff: fix bug with -I and overlapping hunks
+	Problem reported by Vincent Lefevre in <http://bugs.gnu.org/16864>.
+	* src/context.c (find_hunk): Threshold is CONTEXT only if
+	the second change is ignorable.
+	* tests/ignore-matching-lines: New test.
+	* tests/Makefile.am (TESTS): Add it.
+
+2014-02-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: remove TOO_EXPENSIVE heuristic
+	Problem reported by Vincent Lefevre in <http://bugs.gnu.org/16848>.
+	The simplest solution is to remove the TOO_EXPENSIVE heuristic
+	that I added to GNU diff in 1993.  Although appropriate for
+	circa-1993 hardware, these days the heuristic seems to be more
+	trouble than it's worth.
+	* NEWS: Document this.
+	* doc/diffutils.texi (Overview): Modernize citations.
+	Remove mention of TOO_EXPENSIVE heuristic.
+	* src/analyze.c (diff_2_files): Adjust to TOO_EXPENSIVE-related
+	API changes in gnulib's diffseq module.
+
+	build: update gnulib submodule to latest
+
+2014-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: exit with status 1, not 2, when binary files differ
+	Problem reported by Vincent Lefevre in <http://bugs.gnu.org/16608>.
+	* NEWS:
+	* doc/diffutils.texi (Binary, Invoking diff): Document this.
+	* src/analyze.c (briefly_report): Return void, not int.
+	All uses changed.  Do not futz with exit status.  Simplify.
+	* tests/binary: Adjust to match new behavior.
+
+2013-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: omit -Wsuggest-attribute=pure for lib
+	* configure.ac (WARN_CFLAGS): Omit -Wsuggest-attribute=pure
+	when compiling the lib subdirectory.  Reported for Fedora 19
+	by Eric Blake in <http://bugs.gnu.org/15463>.
+
+2013-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	cmp, diff, sdiff: tune by using rawmemchr
+	On my platform (AMD Phenom II X4 910e, Fedora 17 x86-64), this sped up
+	'cmp -n 8GiB /dev/full /dev/zero' by a factor of 3.8, and
+	'cmp -sn 8GiB /dev/full /dev/zero' by a factor of 1.8.
+	* bootstrap.conf (gnulib_modules): Add rawmemchr.
+	* src/cmp.c (cmp): Optimize the common case where buffers are the same,
+	by using count_newlines rather than block_compare_and_count.
+	(block_compare_and_count): Remove.
+	(count_newlines): New function.
+	* src/cmp.c (count_newlines):
+	* src/io.c (prepare_text):
+	* src/sdiff.c (lf_copy, lf_skip, lf_snarf):
+	Use rawmemchr instead of memchr, for speed.
+
+2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	cmp: tune 'cmp a b' for GCC x86
+	Performance problem reported by David Balažic in:
+	http://lists.gnu.org/archive/html/bug-diffutils/2013-08/msg00013.html
+	* src/system.h (word): Make it size_t, not uintmax_t.
+	This sped up plain cmp 90% on my tests (GCC 4.8.1, x86).
+
+2013-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2013-05-06  Stefano Lattarini  <stefano.lattarini@gmail.com>
+
+	build: enable 'subdir-objects' automake option
+	The future major Automake version (2.0, ETA at least one year from now)
+	might enable that option unconditionally, so better get prepared in due
+	time.
+
+	* configure.ac (AM_INIT_AUTOMAKE): Adjust.
+	(AM_PROG_CC_C_O): New, required by Automake up to 1.13.x when the
+	'subdir-objects' is in use.
+
+2013-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	build: update gnulib submodule to latest
+
+2013-04-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: fix bug with Asian file names
+	Problem reported by Errembault Philippe in:
+	http://lists.gnu.org/archive/html/bug-diffutils/2013-03/msg00012.html
+	* NEWS: Document this.
+	* src/dir.c (compare_names): Fall back on file_name_cmp if
+	compare_collated returns 0, unless ignoring file name case.
+	(diff_dirs): Don't bother with the O(N**2) stuff unless ignoring
+	file name case.
+	* tests/Makefile.am (TESTS): Add strcoll-0-names.
+	* tests/strcoll-0-names: New file.
+
+	diff: remove unnecessary decl
+	* src/dir.c (compare_names_for_qsort): Remove declaration.
+	Not needed now that we assume C89.
+
+	diff: tune compare_names_for_qsort
+	* src/dir.c (compare_collated): New function.
+	(compare_names): Use it.
+	(compare_names_for_qsort): Use it.  This is a bit more efficient
+	as it can avoid a double invocation of file_name_cmp when
+	file_name_cmp returns zero.
+
+2013-03-30  Jim Meyering  <meyering@fb.com>
+
+	doc: mention new option, --no-dereference in 3.3's NEWS
+	* NEWS (New feeatures): Update 3.3's news to mention --no-dereference.
+	Reported by Denis Excoffier.
+	* Makefile.am (old_NEWS_hash): Update, since this modifies old, and
+	normally-immutable NEWS.
+
+2013-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	tests: port to Solaris 10 /bin/sh
+	* tests/Makefile.am (TESTS_ENVIRONMENT):
+	Use "FOO=val; export FOO" rather than "export FOO=val",
+	as the latter form doesn't work with Solaris /bin/sh.
+	Problem found when trying to run "make check" on Solaris 10.
+
+2013-03-24  Jim Meyering  <meyering@fb.com>
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.3
+	* NEWS: Record release date.
+
+2013-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: fix menu typo
+	* doc/diffutils.texi (Comparing Three Files): Fix out-of-order menu.
+	Bug caught by Texinfo 5.0.
+
+	maint: update build procedure to recent gettext etc.
+	* bootstrap.conf (gnulib_modules): Add vararrays.
+	(needed_gnulib_files, unnecessary_gettext_files): New vars.
+	(bootstrap_post_import_hook): New function, to implement these vars.
+	(excluded_files): Remove; 'bootstrap' no longer supports this.
+	Its function is now performed by unnecessary_gettext_files.
+	(buildreq): Update automake to 1.12.2, to avoid CVE-2012-3386.
+	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump from 0.17 to 0.18.2,
+	to lessen the probability that we'll have outlandishly old files
+	during a build.
+	* m4/vararrays.m4: Remove from repository, as we now use the
+	gnulib version.
+
+2013-03-21  Jim Meyering  <jim@meyering.net>
+
+	build: update gnulib to latest and adapt; update bootstrap, too
+	Blindly updating to the latest from gnulib, bootstrap would
+	fail due to failure of our local patches to apply.  Hence,
+	these first two updates.
+	* gl/lib/regex_internal.c.diff: Update offsets, so this patch
+	applies to the latest from gnulib.
+	* gl/lib/regex_internal.h.diff: Remove file.  No longer needed.
+	* bootstrap: Update from gnulib.
+
+2013-01-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	tests: port to hosts lacking fmt, make -C
+	* tests/Makefile.am (built_programs): Don't assume fmt works.
+	Don't rely on 'make -C', either.
+
+	maint: update .gitignore for recent gnulib
+	* .gitignore: Add tests/*.trs and several *.h and *.sed files in lib,
+
+2013-01-04  Jim Meyering  <jim@meyering.net>
+
+	build: update gnulib submodule to latest
+
+	maint: update all copyright year number ranges
+	Run "make update-copyright".
+
+2012-10-23  Eric Blake  <eblake@redhat.com>
+
+	build: default to --enable-gcc-warnings in a git tree
+	Anyone building from cloned sources can be assumed to have a new
+	enough environment, such that enabling gcc warnings by default will
+	be useful.  Tarballs still default to no warnings, and the default
+	can still be overridden with --disable-gcc-warnings.
+	* configure.ac (gl_gcc_warnings): Set default based on environment.
+
+2012-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doc/diffutils.texi (cmp Options): Document -l format better.
+
+2012-09-10  Jim Meyering  <meyering@redhat.com>
+
+	maint: use xasprintf in place of xmalloc+sprintf
+	* bootstrap.conf (gnulib_modules): Add gnulib's xvasprintf module.
+	* src/util.c: Include "xvasprintf.h".
+	(begin_output): Use xasprintf in place of xmalloc+sprintf.
+
+2012-09-10  Andreas Gruenbacher  <agruen@gnu.org>
+
+	diff: encode file names with special characters
+	* src/util.c (c_escape_char): New function.
+	(c_escape): New function.
+	(begin_output): Escape file names when needed.
+	* src/context.c (print_context_header): New names parameter.
+	(print_context_label): New name parameter.
+	* src/diff.h (print_context_header): Change prototype.
+	* tests/filename-quoting: New file.
+	* NEWS: Document this change.
+
+2012-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: silence GCC warning instead of slowing down
+	* src/dir.c (find_dir_file_pathname): Use 'IF_LINT (volatile)' to
+	silence the gcc warning, rather than using 'volatile', as the
+	warning appears to be bogus.
+
+2012-08-28  Jim Meyering  <meyering@redhat.com>
+
+	diff: avoid possible longjmp-triggered misbehavior
+	* src/dir.c (find_dir_file_pathname): gcc 4.8.0 20120825 reported
+	that a local variable's value might be clobbered.  Declare "match"
+	to be volatile.
+
+	build: update gnulib, bootstrap and init.sh to latest
+
+	maint: avoid new syntax-check failure due to @xref use
+	* doc/diffutils.texi: Change several "; @xref{..." to ".  @xref{...",
+	since @xref should start a sentence.
+
+2012-05-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: remove ms subdirectory
+	diffutils is now designed to build with Cygwin or MinGW.
+	The old DJGPP stuff probably doesn't work anyway.
+	* Makefile.am (SUBDIRS): Remove ms.
+	* NEWS: Document this.
+	* configure.ac (AC_CONFIG_FILES): Remove ms/Makefile.
+	* ms/Makefile.am, ms/README, ms/config.bat, ms/config.sed:
+	* ms/config.site: Remove.
+
+2012-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: update bootstrap from gnulib
+	* bootstrap: Update from gnulib.
+
+	main: port subcommands to mingw
+	Problem reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/bug-gnu-utils/2012-05/msg00013.html>.
+	Approach suggested by Bruno Haible as option (4) in
+	<http://lists.gnu.org/archive/html/bug-gnu-utils/2012-05/msg00036.html>.
+	* bootstrap.conf (gnulib_modules): Add system-quote.
+	* src/diff3.c, src/sdiff.c, src/util.c:
+	Include <system-quote.h>, not <sh-quote.h>.
+	* src/diff3.c (read_diff):
+	* src/sdiff.c (main, edit):
+	* src/util.c (begin_output):
+	Use system_quote_argv, for portability to Mingw.
+	* src/sdiff.c (NUM_SIGS, handler_index_of_SIGINT): Now enum
+	values, not macros; this is cleaner and avoids a GCC warning if
+	!HAVE_WORKING_VFORK.
+	* src/util.c (begin_output) [! HAVE_WORKING_FORK]: Do not use -f,
+	for consistency with the HAVE_WORKING_FORK code.
+
+	maint: update bootstrap from gnulib
+	* bootstrap: Update from gnulib.
+
+	maint: m4/gnulib-cache.m4 is not under version control
+	This is like what coreutils does, and suppresses 'git status' chatter.
+	* .gitignore: Add /m4/gnulib-cache.m4.
+
+	Use binary mode when testing for binary files.
+	This reverts the 2006-01-05 change and modernizes to the current API.
+	Idea suggested by Eli Zaretskii in:
+	http://lists.gnu.org/archive/html/bug-gnu-utils/2012-05/msg00066.html
+	* src/cmp.c (main):
+	* src/diff.c (main, compare_files):
+	Use set_binary_mode rather than SET_BINARY.
+	* src/diff.c (compare_files): Omit unnecessary use of O_BINARY.
+	* src/io.c (sip): Sample unknown files in binary mode, to see
+	whether they are binary.
+	(read_files): Read binary files in binary mode.
+
+	build: update gnulib submodule to latest
+
+2012-05-13  Stefano Lattarini  <stefano.lattarini@gmail.com>
+
+	build: omit obsolete AM_PROG_CC_STDC macro
+	The Automake-provided macro 'AM_PROG_CC_STDC' has been superseded by
+	the Autoconf-provided one 'AC_PROG_CC' since October 2002, and will
+	be removed in the next major automake version.
+	* configure.ac (AM_PROG_CC_STDC): Drop it.
+
+2012-05-05  Jim Meyering  <meyering@redhat.com>
+
+	diff: fix a typo that was always disabling the same_special_file macro
+	* src/system.h (same_special_file): Correct cpp guard expression:
+	s/HAVE_ST_RDEV/HAVE_STRUCT_STAT_ST_RDEV/.  Reported by Eli Zaretskii.
+
+2012-04-17  Jim Meyering  <meyering@redhat.com>
+
+	maint: update bootstrap from gnulib
+	* bootstrap: Update from gnulib.
+
+2012-03-07  Eric Blake  <eblake@redhat.com>
+
+	usage: improve wording of --ignore-matching-lines
+	* src/diff.c (option_help_msgid): Tweak wording.
+
+2012-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: explain -I RE better in --help output
+	* src/diff.c, src/sdiff.c (option_help_msgid): For -I RE,
+	change "whose lines all match" to "all whose lines match" to avoid
+	unintended interpretation.  Reported by Danijel Tasov in
+	<http://bugs.debian.org/648411>.
+
+2012-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sdiff: remove dependency on sigprocmask
+	* bootstrap.conf (gnulib_modules): Remove sigprocmask.
+	* src/sdiff.c (temporary_file): No need to invoke sigprocmask
+	here, since the signal handler merely sets a flag.
+
+2012-02-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: -N, --unidirectional-new-file now compare to "-" too
+	* NEWS: Document this.
+	* doc/diffutils.texi (Comparing Directories): Likewise.
+	Also, document that these options work at the top level.
+	* src/diff.c (compare_files): Treat EBADF like ENOENT, to handle
+	the case where "-" is closed.  Allow the other file to be
+	STDIN_FILENO, in case it's "-".
+	* tests/Makefile.am (TESTS): Add new-file.
+	* tests/new-file: New file.
+
+2012-01-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: quote 'like this' or "like this", not `like this'
+	This is in response to a recent change in the GNU coding standards,
+	which now suggest quoting 'like this' or "like this", instead of
+	`like this' or ``like this''.
+	* HACKING, NEWS, README, README-hacking, TODO, doc/diagmeet.note:
+	* doc/diffutils.texi, ms/config.bat, ms/config.site:
+	* src/analyze.c, src/cmp.c, src/context.c, src/diff.c:
+	* src/diff.h, src/diff3.c, src/dir.c, src/ifdef.c, src/io.c:
+	* src/sdiff.c, src/side.c, src/system.h, src/util.c:
+	* tests/help-version:
+	Quote 'like this' or "like this" in commentary.
+	* cfg.mk (old_NEWS_hash): Adjust to reflect new NEWS quoting.
+	* man/help2man: Update to 1.40.4 version, with quoting fixed as above.
+	* po/en.po: Remove translation involving `, as it's no longer needed.
+	* src/cmp.c (try_help, specify_ignore_initial, usage, main):
+	* src/diff.c (main, try_help, option_help_msgid, specify_value)
+	(compare_files):
+	* src/diff3.c (main, try_help, option_help_msgid, usage)
+	(read_diff):
+	* src/dir.c (compare_names):
+	* src/sdiff.c (try_help, usage, check_child_status, main):
+	* src/util.c (finish_output):
+	* tests/help-version:
+	Quote 'like this' in output.
+
+	build: update gnulib submodule to latest
+
+2012-01-12  Jim Meyering  <meyering@redhat.com>
+
+	build: accommodate newer bootstrap from gnulib
+	* bootstrap.conf (gnulib_tool_option_extras): Add both --symlink
+	and --makefile-name=gnulib.mk.  Also remove now-obsolete $bt/ prefix.
+	* bootstrap: Update from gnulib.
+	* tests/init.sh: Update from gnulib.
+	* lib/Makefile.am: Initialize numerous variables, so that
+	generated code in gnulib.mk may use += to append to them.
+
+	maint: avoid new syntax-check failure
+	* src/diff.c (compare_files): Use STREQ, not strcmp.
+
+2012-01-08  Bruno Haible  <bruno@clisp.org>
+
+	New option --no-dereference.
+	* src/diff.h (no_dereference_symlinks): New variable.
+	* src/diff.c: Include xreadlink.h.
+	(longopts): Add --no-dereference option.
+	(main): Accept --no-dereference option.
+	(option_help_msgid): Mention the --no-dereference option.
+	(compare_files): If no_dereference_symlinks is true, use lstat()
+	instead of stat(). Compare symbolic links by comparing their values.
+	* bootstrap.conf (gnulib_modules): Add lstat, stat, xreadlink.
+	* doc/diffutils.texi (Comparing Directories, diff Options): Mention the
+	--no-dereference option.
+	* tests/no-dereference: New file.
+	* tests/Makefile.am (TESTS): Add it.
+
+2012-01-01  Jim Meyering  <meyering@redhat.com>
+
+	maint: update all copyright year number ranges
+	Run "make update-copyright".
+
+2011-12-14  Jim Meyering  <meyering@redhat.com>
+
+	build: update to latest gnulib and adapt
+	* tests/binary: Reverse arguments to compare to avoid failure of
+	new syntax-check rule.
+	* configure.ac: Use -Wno-format-nonliteral.
+	Mark functions as pure of const, per recommendations enabled by
+	new gcc -W options.  Use _GL_ATTRIBUTE_PURE and _GL_ATTRIBUTE_CONST.
+	* lib/cmpbuf.h (buffer_lcm, block_compare):
+	Apply pure and/or const attributes.
+	* src/cmp.c (block_compare): Likewise.
+	* src/context.c (find_hunk): Likewise.
+	* src/diff.h (lines_differ): Likewise.
+	* src/diff3.c (skipwhite): Likewise.
+	* src/dir.c (dir_loop): Likewise.
+	* src/util.c (find_change, find_reverse_change): Likewise.
+	(translate_line_number): Likewise.
+
+	build: stop distributing gzip'd releases;  xz is enough
+	* configure.ac (AM_INIT_AUTOMAKE): Add no-dist-gzip.
+
+2011-11-29  Jim Meyering  <meyering@redhat.com>
+
+	tests: use "compare exp out", not "compare out exp"
+	Likewise, when an empty file is expected, use "compare /dev/null out",
+	not "compare out /dev/null". I.e., specify the expected/desired contents
+	via the first file name.  Prompted by a suggestion from Bruno Haible
+	in http://thread.gmane.org/gmane.comp.gnu.grep.bugs/4020/focus=29154
+
+	Run these commands:
+
+	  git grep -l -E 'compare [^ ]+ exp' \
+	    |xargs perl -pi -e 's/\b(compare) (\S+) (exp\S*)/$1 $3 $2/'
+	  git grep -l -E 'compare [^ ]+ /dev/null' \
+	    |xargs perl -pi -e 's,\b(compare) (\S+) (/dev/null),$1 $3 $2,'
+
+	But manually convert this one:
+
+	  -compare out exp-$(echo $opt|tr ' ' _)
+	  +compare exp-$(echo $opt|tr ' ' _) out
+
+	and avoid an inappropriate change to cfg.mk.
+
+2011-10-12  Stefano Lattarini  <stefano.lattarini@gmail.com>
+
+	tests: use more portable fd redirection in TESTS_ENVIRONMENT
+	* tests/Makefile.am (TESTS_ENVIRONMENT): Redirection with `exec 9>&2'
+	is not portable to various Korn shells, and to (at least) HP-UX 11
+	/bin/sh.  Use a more portable idiom.
+	See http://thread.gmane.org/gmane.comp.gnu.coreutils.bugs/22488 for
+	lots of discussion.
+
+2011-10-11  Stefano Lattarini  <stefano.lattarini@gmail.com>
+
+	tests: make test runner a script, not a shell function
+	All the test scripts in the diffutils testsuite are shell scripts,
+	so the current definition of TESTS_ENVIRONMENT, which adaptively
+	run tests using either perl or the shell depending on their kind,
+	is an overkill.
+
+	Moreover, this change is required in order for the testsuite to
+	continue to work with the new testsuite harness that is planned
+	to be introduced in Automake 1.12 (which, as of the writing date,
+	is still under development and in late alpha state).
+
+	See also related discussion on bug-coreutils:
+	 <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8887>
+
+	* tests/Makefile.am (TESTS_ENVIRONMENT): Remove definition of the
+	`shell_or_perl_' shell function, which is not required anymore.
+	(LOG_COMPILER): New, define to `$(SHELL)'.
+	* tests/binary: Make executable.
+	* tests/colliding-file-names: Likewise.
+	* tests/excess-slash: Likewise.
+	* tests/no-newline-at-eof: Likewise.
+
+2011-10-04  Claudio Bley  <claudio.bley@gmail.com>
+
+	portability: use SET_BINARY rather than xfreopen (NULL, ...
+	* src/diff.c: Include binary-io.h, not xfreopen.h.
+	(main): Use SET_BINARY (...) rather than xfreopen (NULL, X, ...),
+	because the latter doesn't work on MinGW and crashes using MSVC.
+	* src/cmp.c (main): Likewise.
+
+2011-10-04  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+2011-09-02  Jim Meyering  <meyering@redhat.com>
+
+	post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.2
+	* NEWS: Record release date.
+
+	build: update bootstrap and tests/init.sh from gnulib
+	* bootstrap: Update from gnulib.
+	* tests/init.sh: Likewise.
+
+	build: update gnulib submodule to latest
+
+2011-09-01  Jim Meyering  <meyering@redhat.com>
+
+	doc: diffutils' texi-derived doc may now be in debian's "main" section
+	* NEWS (Packaging): Mention the "no front/back-cover" change.
+
+2011-08-14  Jim Meyering  <meyering@redhat.com>
+
+	maint: avoid new "make sytnax-check" failure.
+	* src/diff.h (find_dir_file_pathname): Mark declaration with "extern"
+	keyword, in order to placate the tight-scope syntax check.
+
+2011-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* src/io.c (find_and_hash_each_line): Refactor for brevity.
+
+2011-08-14  Roland McGrath  <roland@hack.frob.com>
+
+	diff, sdiff: new option --ignore-trailing-space (-Z)
+	Derived from Roland McGrath's patch (dated June 2004!) in:
+	http://lists.gnu.org/archive/html/bug-gnu-utils/2004-07/msg00000.html
+	* NEWS:
+	* doc/diffutils.texi (White Space, Blank Lines)
+	(sdiff Option Summary, diff Options, sdiff Options): Document -Z.
+	* src/diff.h (IGNORE_TRAILING_SPACE)
+	(IGNORE_TAB_EXPANSION_AND_TRAILING_SPACE): New constants, for -Z.
+	* src/diff.c (shortopts, longopts, main, option_help_msgid):
+	* src/sdiff.c (longopts, option_help_msgid, main):
+	* src/io.c (find_and_hash_each_line):
+	* src/util.c (lines_differ, analyze_hunk): Support -Z.
+
+2011-08-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bootstrap.conf (gnulib_modules): Remove timegm.
+	This fixes a problem noted by Andreas Schwab in:
+	http://lists.gnu.org/archive/html/bug-diffutils/2011-08/msg00035.html
+
+2011-08-13  Tim Waugh  <twaugh@redhat.com>
+
+	diff: --ignore-file-name-case now applies at top level too
+	Derived from Tim Waugh's patch in:
+	http://lists.gnu.org/archive/html/bug-diffutils/2011-08/msg00034.html
+	* NEWS, doc/diffutils.texi (diff Options): Document this.
+	* src/diff.c (compare_files): Implement this, by using
+	find_dir_file_pathname.
+	* src/diff.h (find_dir_file_pathname): New decl.
+	* src/dir.c: Include filenamecat.h.
+	(find_dir_file_pathname): New function.
+
+2011-08-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .gitignore: Add lib/unistr, lib/unused-parameter.h.
+
+2011-08-10  Jim Meyering  <meyering@redhat.com>
+
+	post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.1
+	* NEWS: Record release date.
+
+	build: use largefile module and update to latest gnulib
+	* configure.ac: Remove AC_SYS_LARGEFILE, subsumed by ...
+	* bootstrap.conf (gnulib_modules): ...this.  Use largefile module.
+	* gnulib: Update to latest.
+
+2011-08-08  Santiago Vila  <sanvila@unex.es>
+
+	doc: insert comma in --help line for --ignore-space-change (-b)
+	* src/diff.c (option_help_msgid): Insert omitted comma between
+	"-b" and "--ignore-space-change".  (tiny change)
+
+2011-08-04  Jim Meyering  <meyering@redhat.com>
+
+	doc: relax restriction on front-cover and back-cover texts
+	* doc/diffutils.texi (copying): Relax restriction on front-cover
+	and back-cover texts (just as m4 did here:
+	http://git.savannah.gnu.org/cgit/m4.git/commit?id=ee1e92ec).
+	Reported by Santiago Vila.  Fix suggested by Eric Blake.
+
+2011-08-03  Jim Meyering  <meyering@redhat.com>
+
+	tests: update init.sh from gnulib
+	* tests/init.sh: Update from gnulib.
+
+	build: update gnulib submodule to latest
+
+2011-07-03  Jim Meyering  <meyering@redhat.com>
+
+	maint: remove inclusion of unused header, for "make syntax-check"
+	* src/diff3.c: Don't include <inttostr.h>.  Not used.
+	* src/context.c: Likewise.
+
+2011-06-19  Jim Meyering  <meyering@redhat.com>
+
+	build: don't require perl when building from a tarball
+	But do ensure -- in all other circumstances -- that the man/*.1
+	files are rebuilt whenever the version number changes.
+	* configure.ac (SRC_VERSION_C): Define.
+	* man/Makefile.am (dist_man1_MANS): Rename from $(man1_MANS),
+	so that we distribute those pesky man/*.1 files.
+	(EXTRA_DIST): Reflect name change.
+	(MAINTAINERCLEANFILES): Define this, not DISTCLEANFILES,
+	now that these generated files are distributed.
+	($(dist_man1_MANS)): Depend on $(SRC_VERSION_C), so we get the
+	full dependency when not building from a tarball.
+
+2011-06-13  Jim Meyering  <meyering@redhat.com>
+
+	doc: do not distribute generated man/*.1 man files
+	* man/help2man: New file.
+	* man/Makefile.am: Use $(srcdir)/help2man.
+	Convert $(dist_man1_MANS) to $(man1_MANS), to tell automake
+	not to distribute the generated man/*.1 files.  Now they're
+	generated at build-from-tarball time.
+	($(man1_MANS)): Depend on version.c, so that man pages are
+	regenerated whenever the version string changes.
+
+	build: ccache works better without embedded version strings
+	* src/Makefile.am: Generate version.c and version.h and put the
+	new symbol in a tiny library to be used by each program.
+	(LDADD): Add the new library.
+	* src/cmp.c (main): Use Version, not PACKAGE_VERSION, so the .o
+	file does not change with each commit-derived version increment.
+	* src/diff.c (main): Likewise.
+	* src/diff3.c (main): Likewise.
+	* src/sdiff.c (main): Likewise.
+	* src/system.h: Include "version.h".
+	* .gitignore: Add version.[ch]
+
+2011-06-12  Jim Meyering  <meyering@redhat.com>
+
+	doc: ensure each program has a man/*.x file: add "SEE ALSO" references
+	* man/cmp.x: New file.
+	* man/diff3.x: New file.
+	* man/sdiff.x: New file.
+	* man/diff.x: Add xrefs to the other three programs, and to patch.
+	* man/Makefile.am (EXTRA_DIST): List new files.
+	(cmp.1, diff3.1, sdiff.1): Depend on each .x file.
+
+	doc: rename diff.texi to diffutils.texi
+	This makes the .texi basename the same as the package name,
+	which is consistent with most other GNU packages.
+	* doc/diffutils.texi: Rename from...
+	* doc/diff.texi: ...removed.
+	* doc/Makefile.am (info_TEXINFOS): Reflect name change.
+	(diffutils_TEXINFOS): Likewise.
+	* cfg.mk (gendocs_options_): Remove this customization.  It is no
+	longer needed, now that the .texi name matches that of the package.
+	* man/Makefile.am ($(dist_man1_MANS)): Remove now-unnecessary sed
+	filter.
+	* README: Update references to diffutils.texi etc. here, too.
+	* .gitignore: Update here, too.
+	Suggested by Karl Berry.
+
+2011-06-08  Karl Berry  <karl@freefriends.org>
+
+	cmp, diff, diff3, sdiff: edit and align --help text.
+	* cmp.c (option_help_msgid, usage),
+	* diff.c (option_help_msgid, usage),
+	* diff3.c (option_help_msgid, usage),
+	* sdiff.c (option_help_msgid, usage): align descriptions in the --help
+	output and slightly edit content.
+
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: don't use locales after local-specific sorting fails
+	* src/dir.c (compare_names): Don't invoke strcasecmp if
+	locale-specific sorting fails, because POSIX.1-2008 says strcasecmp
+	has unspecified behavior outside the POSIX locale.  See:
+	http://lists.gnu.org/archive/html/bug-diffutils/2011-05/msg00008.html
+
+	bootstrap: Avoid multithreading.
+	* bootstrap.conf (gnulib_tool_option_extras):
+	Add "--avoid=localename --avoid=lock", because we don't want to
+	bring in the multithreading code that recent gnulib changes would
+	otherwise bring in.
+	(excluded_files): Remove m4/lock.m4; no longer needed, now that
+	we use --avoid=lock.
+
+	build: update gnulib submodule to latest
+
+2011-05-23  Karl Berry  <karl@gnu.org>
+
+	maint: update README-hacking
+	* README-hacking: Update a la coreutils for git, etc.
+
+2011-05-23  Jim Meyering  <meyering@redhat.com>
+
+	maint: update gnulib to latest with accompanying tight-scope tweaks
+	* cfg.mk: Include $(srcdir)/dist-check.mk using "-include",
+	to accommodate the new sc_tight_scope rule.
+	(_gl_TS_extern): Define, to tell gnulib's tight_scope rule that
+	headers here mark externs with "XTERN".
+	* gnulib: Update to latest.
+
+2011-05-18  Jim Meyering  <meyering@redhat.com>
+
+	maint: use gnulib's new readme-release module
+	* bootstrap.conf (gnulib_modules): Add readme-release.
+	(bootstrap_epilogue): Add the recommended perl one-liner.
+	* README-release: Remove file; it is now generated from gnulib.
+	* .gitignore: Add it.
+
+	build: update gnulib submodule to latest
+
+	maint: prepare for the tight-scope check
+	* src/diff.h: Mark function declarations with "extern" in
+	preparation for the tight-scope check.
+	(ignore_white_space): Separate enum decl from declaration
+	of this variable.
+	* src/Makefile.am (diff_SOURCES): Move diff.h from here to ...
+	(noinst_HEADERS): ...here.
+	For convenience, since the tight-scope rule uses $(noinst_HEADERS).
+
+	maint: don't use now-removed gnulib "exit" module
+	* bootstrap.conf (gnulib_modules): Remove "exit" module.
+	It no longer exists.
+
+2011-03-26  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+	* .x-sc_space_tab: Remove file.  Instead, ...
+	* cfg.mk (exclude_file_name_regexp--sc_space_tab): ...define this.
+
+	maint: fix typo in unused rule
+	* cfg.mk (config-save): Fix typo: add leading "_" in variable name.
+
+2011-03-18  Jim Meyering  <meyering@redhat.com>
+
+	doc: add a reference to wdiff(1) from diff.1
+	* man/diff.x: New file, to add "SEE ALSO" reference to wdiff(1).
+	* man/Makefile.am (diff.1): Depend on diff.x.
+	($(dist_man1_MANS)): Tell help2man to include diff.x.
+	(EXTRA_DIST): Add diff.x.
+	Suggestion from Dan Jacobson in http://bugs.debian.org/613319
+
+2011-03-18  Eric Blake  <eblake@redhat.com>
+
+	docs: info should mention -L
+	* doc/diff.texi (diff Options): Document -L.
+
+	docs: diff --help should mention -L
+	* src/diff.c (option_help_msgid): Document -L.
+
+2011-02-15  Jim Meyering  <meyering@redhat.com>
+
+	doc: speak of the --test (-a) option, not "the -a or --test option"
+	Convert using this command:
+	perl -pi -e \
+	  's/(\@option{-.}) or (\@option{--.*?}) option/$2 ($1) option/' \
+	  doc/diff.texi
+	Then convert some more with this:
+	perl -pi -e \
+	    's/the (\@option{-.}) or (\@option{--.*?})$/the $2 ($1)/' \
+	  doc/diff.texi
+	Then convert more manually.
+
+	Suggested by Dan Jacobson
+
+2011-01-24  Jim Meyering  <meyering@redhat.com>
+
+	maint: remove all uses of vfork: use fork instead
+	Our use of vfork now provokes warnings from gcc-4.6.0.
+	Also, vfork is no longer even specified by POSIX.1-2008.
+	* src/diff3.c (read_diff): Change each use of vfork to "fork".
+	Remove #ifdef'd code.
+	* src/util.c (begin_output, finish_output): Likewise.
+	* src/sdiff.c (cleanup, main, edit): Likewise.
+	(handler_index_of_SIGPIPE): Remove now-unused definition.
+	* src/system.h: Don't include <vfork.h>.
+	(vfork): Remove definition.
+	* ms/config.site: Remove reference to vfork cache variable.
+
+	tests: avoid newer but less-portable tail option syntax
+	* tests/function-line-vs-leading-space: Use sed -n '3,$p' rather than
+	tail -n+3.  Older versions of tail do not accept that newer syntax.
+	Reported by Sudhakara Peram.
+
+	tests: fix an erroneous test
+	On most systems, like-named files were compared, by luck.
+	However, on others, different-named files would be compared
+	since their names were being treated as equal -- but they had
+	different content, so the test would fail.
+	* tests/colliding-file-names: Use different sets of file names
+	in d1 and d2 so that they cannot accidentally match.
+	Put the same line in each test file.  This is required
+	when files named e.g., abc and ABC are compared.
+	This test was failing on a NixOS 86_64-darwin system.
+
+	build: update gnulib submodule to latest
+
+	tests: fix typo that silently disabled all tests
+	* tests/Makefile.am (TESTS): Fix typo: s/jESTS/TESTS/
+
+2011-01-23  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+	maint: avoid new syntax-check failure
+	* src/diff.c (specify_value): Use !STREQ(...), not strcmp(...) != 0.
+	* src/diff3.c (main): Likewise.
+
+2011-01-03  Jim Meyering  <meyering@redhat.com>
+
+	maint: update copyright year ranges to include 2011
+	Run "make update-copyright", so "make syntax-check" works in 2011.
+
+	build: update gnulib submodule to latest
+
+2010-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	bootstrap: adjust to recent gnulib changes
+	* bootstrap.conf (excluded_files): Do not exclude m4/size_max.m4
+	and m4/xsize.m4 when using an external gettext, since they are
+	now needed by other gnulib modules.
+
+2010-12-16  Jim Meyering  <meyering@redhat.com>
+
+	doc: add contributor guidelines: HACKING
+	* HACKING: New file, copied 99% from the one in grep's repository.
+
+2010-10-09  Jim Meyering  <meyering@redhat.com>
+
+	maint: describe policy on copyright year number ranges
+	* README: Mention coreutils' long-standing policy on use of M-N
+	ranges in copyright year lists.  Requested by Richard Stallman.
+
+2010-09-04  Jim Meyering  <meyering@redhat.com>
+
+	maint: adjust init.sh use to conform
+	* tests/help-version: Use one line: "${srcdir=.}/init.sh"; ...
+	* tests/basic: Likewise.
+	* tests/binary: Likewise.
+	* tests/colliding-file-names: Likewise.
+	* tests/excess-slash: Likewise.
+	* tests/function-line-vs-leading-space: Likewise.
+	* tests/help-version: Likewise.
+	* tests/label-vs-func: Likewise.
+	* tests/no-newline-at-eof: Likewise.
+	* tests/stdin: Likewise.
+
+	maint: avoid shadowing warning
+	* src/dir.c (diff_dirs): Rename shadowed local cmp to "c".
+
+2010-09-03  Jim Meyering  <meyering@redhat.com>
+
+	build: use gettext-h, not gettext
+	* bootstrap.conf (gnulib_modules): Use gettext-h, not gettext.
+	The latter is overkill for a package that uses
+	AM_GNU_GETTEXT([external]...
+
+	build: update build/test tools from gnulib
+	* bootstrap: Update from gnulib.
+	* tests/init.sh: Likewise.
+
+	build: update gnulib submodule to latest
+
+2010-08-14  Jim Meyering  <meyering@redhat.com>
+
+	diff -r: avoid printing excess slashes in concatenated file names
+	* bootstrap.conf (gnulib_modules): Add filenamecat.
+	* src/diff.c: Include "filenamecat.h".
+	(compare_files): Use file_name_concat, rather than dir_file_pathname.
+	* src/util.c (dir_file_pathname): Remove now-unused function.
+	* src/diff.h: Remove its declaration.
+	* tests/excess-slash: New script to test for this.
+	* tests/Makefile.am (TESTS): Add it.
+	Forwarded by Santiago Vila from <bugs.debian.org/586301a>,
+	reported by Jari Aalto.
+
+2010-08-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	diff: avoid spurious diffs when two distinct dir entries compare equal
+	Problem reported by Christoph Anton Mitterer in:
+	http://lists.gnu.org/archive/html/bug-diffutils/2010-08/msg00000.html
+
+	* NEWS: Mention this bug fix.
+	* src/dir.c (compare_names_for_qsort): Fall back on file_name_cmp
+	if two distinct entries in the same directory compare equal.
+	(diff_dirs): Prefer a file_name_cmp match when available.
+	* tests/Makefile.am (TESTS): New test colliding-file-names.
+	* tests/colliding-file-names: New file.
+
+2010-05-09  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+	build: don't define macros that gnulib provides
+	* bootstrap.conf (gnulib_modules): Add signal, stdint.
+	* lib/cmpbuf.c (SA_RESTART, SA_INTERRUPT): Remove definitions.
+	(SIZE_MAX, PTRDIFF_MAX): Likewise.
+	Include <stdint.h>.
+	* src/system.h (WEXITSTATUS, WIFEXITED): Remove definitions.
+	(SA_RESTART, SA_INTERRUPT): Likewise.
+
+	build: rely on gnulib's sigprocmask module
+	* src/sdiff.c: Remove #if-!HAVE_SIGPROCMASK-guarded code.
+	* bootstrap.conf (gnulib_modules): Add sigprocmask.
+
+2010-05-04  Jim Meyering  <meyering@redhat.com>
+
+	doc: README-release: don't mention To:, Cc:, etc announcement headers,
+	now that those are supplied automatically via gnulib's maint.mk.
+	* README-release: sync with coreutils.
+
+	maint: teach web-doc-generating code how to do its job
+	* cfg.mk (gendocs_options): Define, so that gendocs.sh knows
+	the name of our texinfo source file.
+	* gnulib: Update to latest, for new gnu-web-doc-update and maint.mk.
+
+2010-05-03  Jim Meyering  <meyering@redhat.com>
+
+	doc: update release procedure
+	* README-release: Rearrange slightly: post the announcement to
+	Savannah first, so you can include a link to that post in the email.
+	Sync a few details from coreutils' README-release.
+
+	post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 3.0
+	* NEWS: Record release date.
+
+	build: update gnulib submodule to latest
+
+2010-04-30  Jim Meyering  <meyering@redhat.com>
+
+	build: use gnulib's sys_wait module
+	* bootstrap.conf (gnulib_modules): Use gnulib's sys_wait module,
+	now that we assume its presence.
+
+	build: update gnulib submodule to latest
+	* bootstrap: Also update from gnulib.
+	* tests/init.sh: Likewise
+
+	maint: remove now-useless #if HAVE_HEADER_H guards
+	* src/system.h: Include <sys/wait.h> unconditionally,
+	now that gnulib guarantees its presence.
+	* lib/cmpbuf.c: Likewise for <unistd.h> and <inttypes.h>.
+
+2010-04-16  Jim Meyering  <meyering@redhat.com>
+
+	tests: use original no-newline-at-eof test, but with -U1, not -U2
+	* tests/no-newline-at-eof: Revert to the smaller test, but with
+	-U1 rather than -U2, since that actually triggers the bug.
+
+2010-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Followon improvements for the fix for Debian bug 577832.
+	* src/io.c (find_and_hash_each_line): Omit the inserted newline in
+	a simpler way.
+	* tests/no-newline-at-eof: Fix the test case so that it rejects
+	the old, buggy behavior.
+
+2010-04-16  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+	tests: test for the no-newline-at-EOF bug
+	* tests/no-newline-at-eof: New file.
+	* tests/Makefile.am (TESTS): Add it.
+
+2010-04-16  Jim Meyering  <meyering@redhat.com>
+
+	diff: fix a regression when at least one input lacks a newline-at-EOF,
+	and the final hunk plus context-length aligns exactly with the end
+	of the newline-lacking file.  Diff would fail to output the required
+	"\ No newline at end of file" line, thus rendering the output invalid.
+	This bug appears to have been introduced by 2006-05-07
+	commit 58d0483b, "(find_identical_ends): Fix huge performance bug...",
+	at least to the extent that reverting that change fixes the bug.
+	Considering the stated effect of that change and lack of metrics,
+	reverting it is not an option, so here we take a more direct approach.
+
+	Given these inputs,
+
+	    printf '\n1'>a; printf '\n0\n\n1'>b
+
+	and running diff like this:
+
+	    ./diff -U1 a b
+
+	for input file "b", the pointer, files[1].linbuf[4][-1], to
+	the last byte on the final line was mistakenly pointing at the
+	sentinel newline at EOF, rather than at the preceding byte.
+
+	  (gdb) p files[1].linbuf[4][-1]
+	  $3 = 10 '\n'
+
+	Thus, this test in the final print_1_line call:
+
+	  if ((!line_flag || line_flag[0]) && limit[-1] != '\n')
+	    fprintf (out, "\n\\ %s\n", _("No newline at end of file"));
+
+	would fail, because limit[-1] (which is files[1].linbuf[4][-1])
+	was mistakenly '\n', rather than the desired '1'.
+
+	My first thought was simply to adjust the final linbuf[line] setting,
+	at the end of io.c's find_and_hash_each_line function function:
+
+	       if (p == bufend)
+	-       break;
+	+       {
+	+         if (current->missing_newline)
+	+           --linbuf[line];
+	+         break;
+	+       }
+
+	But that would make diff misbehave with this input
+	(same as above, but with a newline appended to "a"),
+
+	    printf '\n1\n'>a; printf '\n0\n\n1'>b
+	    ./diff -U1 a b
+
+	due to the block (100 lines above) that is triggered in that case
+	(but not in the both-files-missing-newline case):
+
+	      if (p == bufend
+	          && current->missing_newline
+	          && ROBUST_OUTPUT_STYLE (output_style))
+	        {
+	          /* This line is incomplete.  If this is significant,
+	             put the line into buckets[-1].  */
+	          if (ignore_white_space < IGNORE_SPACE_CHANGE)
+	            bucket = &buckets[-1];
+
+	          /* Omit the inserted newline when computing linbuf later.  */
+	          p--;
+	          bufend = suffix_begin = p;
+	        }
+
+	Note how "p" is decremented and "bufend" adjusted.
+	When that happens, we certainly don't want to decrement
+	"bufend" yet again.
+
+	Since there is no other way to determine at the end whether "bufend"
+	was already decremented, add a new variable to serve as witness.
+
+	* NEWS (Bug fixes): Mention it.
+	Reported by Timo Juhani Lindfors in http://bugs.debian.org/577832.
+	Forwarded by Santiago Vila.
+
+2010-04-16  Jim Meyering  <meyering@redhat.com>
+
+	tests: update init.sh from gnulib
+	* tests/init.sh: Update from gnulib.
+
+2010-04-08  Jim Meyering  <meyering@redhat.com>
+
+	build: include cfg.mk and dist-check.mk in the distribution tarball
+	* Makefile.am (EXTRA_DIST): Add cfg.mk and dist-check.mk.
+
+	maint: update to latest gnulib
+	* cfg.mk (sc_cross_check_PATH_usage_in_tests): Remove rule,
+	now that it's in gnulib's maint.mk.
+	* gnulib: Update to latest.
+
+2010-04-07  Jim Meyering  <meyering@redhat.com>
+
+	tests: make new PATH-crosschecking syntax-check tighter
+	* cfg.mk (sc_cross_check_PATH_usage_in_tests): Use grep's -x (match
+	entire line) option with -F.
+
+	tests: pull latest help-version from gzip
+	* tests/help-version: Update from gzip.
+	* Makefile.am (TESTS_ENVIRONMENT): Export VERSION,
+	as required for this new help-version script.
+
+	tests: add syntax-check rule to verify that tests use proper PATH
+	* cfg.mk (sc_cross_check_PATH_usage_in_tests): New rule, that is
+	useful only in conjunction with the help-version script.
+
+	tests: use path_prepend_ consistently; remove unnecessary VERBOSE check
+	* tests/basic: Likewise.
+	* tests/binary: Likewise.
+	* tests/function-line-vs-leading-space: Likewise.
+	* tests/label-vs-func: Likewise.
+	* tests/stdin: Likewise.
+
+2010-04-06  Eric Blake  <eblake@redhat.com>
+
+	maint: ignore generated files
+	* .gitignore: Ignore recent gnulib additions.
+
+	maint: update to latest bootstrap
+	* bootstrap: Copy from gnulib/build-aux.
+
+2010-04-05  Jim Meyering  <meyering@redhat.com>
+
+	tests: get latest init.sh from gnulib
+	* tests/init.sh: Update from gnulib.
+
+	build: update gnulib submodule to latest; adapt
+	* cfg.mk (local-checks-to-skip): Add new sc_texinfo_acronym, to skip it.
+
+	diff -F/-p: don't depend on locale-specific white-space definition
+	* src/context.c: Include "c-ctype.h".
+	Use c_isspace, not isspace.
+
+2010-03-18  Jim Meyering  <meyering@redhat.com>
+
+	tests: exercise new behavior of -F RE
+	* tests/function-line-vs-leading-space: New file.
+	* tests/Makefile.am (TESTS): Add it.
+
+2010-03-18  Yannick Moy  <yannick.moy@adacore.com>
+
+	with -F or -p, emit better function lines: no leading white space
+	* src/diff.c (print_context_function): For languages like Ada
+	that allow local functions and procedures, the plain context
+	function line may start with enough blank characters that the
+	function name does not get completely printed in the 40
+	characters limit.  This patch solves this problem by removing
+	these useless initial blank characters.
+	* NEWS (Changes in behavior): Mention this change.
+
+2010-03-17  Jim Meyering  <meyering@redhat.com>
+
+	build: don't require a specific version of help2man
+	* bootstrap.conf (buildreq): Bootstrap can't deal with it,
+	perhaps because the command name contains a digit.
+
+	build: make bootstrap ensure that help2man is available
+	* bootstrap.conf (buildreq): Add help2man.
+
+2010-02-23  Jim Meyering  <meyering@redhat.com>
+
+	tests: test for the "Binary files A and B differ" diagnostic
+	* tests/binary: New script.
+	* tests/Makefile.am (TESTS): Add it.
+
+	revert 2002 change that removed "Binary " from "files A and B differ"
+	With this change, "printf '\0'|diff - /dev/null" now prints
+	"Binary files - and /dev/null differ" once again.
+	This reverts 2002-06-28 commit a352f0980,
+	"(briefly_report): Don't say "Binary files differ", ...".
+	* src/analyze.c (briefly_report): Do include the "Binary " prefix
+	in the diagnostic, when !brief.
+	* NEWS (Changes in behavior): Mention the diagnostic change.
+	Reported by Andreas Hoenen in http://bugs.debian.org/570064.
+
+2010-02-14  Juan Manuel Guerrero  <juan.guerrero@gmx.de>
+
+	avoid compilation failure on systems lacking both fork and vfork
+	* src/sdiff.c [!HAVE_WORKING_FORK && !HAVE_WORKING_VFORK] (main):
+	Pass the right number of arguments to shell_quote_copy.
+	* src/util.c [!HAVE_WORKING_FORK && !HAVE_WORKING_VFORK] (begin_output):
+	Likewise.
+
+2010-02-11  Jim Meyering  <meyering@redhat.com>
+
+	post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 2.9
+	* NEWS: Record release date.
+
+	doc: document the release procedure
+	* README-release: New file.
+
+2010-02-10  Jim Meyering  <meyering@redhat.com>
+
+	maint: change use of "|" to more maintainable "||" (no semantic change)
+	* src/analyze.c (diff_2_files): Using the "||" operator happens to
+	be equivalent to using "|" in this case.  It is also clearer and
+	less prone to inadvertent bug introduction, in case the variable,
+	"changes" were ever to take on a value not in {0,1}.
+	Patch by Tim Waugh, via Mike Frysinger.
+
+	portability: avoid "diff - ..." failure at least on *BSD and Solaris
+	The new "stdin" test was failing on many types of systems.
+	* src/diff.c (compare_files): Guard use of xfreopen (NULL, "rb", ...
+	also with O_BINARY, so as to avoid this unnecessary call on
+	systems where it's not needed (on some it fails with "Bad address".
+
+2010-02-09  Jim Meyering  <meyering@redhat.com>
+
+	tests: honor VERBOSE
+	* tests/basic: Enable "set -x" if $VERBOSE.
+	* tests/help-version: Likewise.
+	* tests/label-vs-func: Likewise.
+	* tests/stdin: Likewise.
+
+2010-02-04  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+	sync with gnulib
+	* gl/lib/regcomp.c.diff: Adjust to apply to the latest in gnulib.
+	* gnulib: Update submodule to latest.
+
+2010-02-04  Jim Meyering  <meyering@redhat.com>
+
+	build: do not override gnulib-provided AM_CFLAGS options
+	Avoid a warning from automake:
+	lib/Makefile.am:23: AM_CFLAGS multiply defined in condition TRUE ...
+	lib/gnulib.mk:30: ... `AM_CFLAGS' previously defined here
+	lib/Makefile.am:18:   `lib/gnulib.mk' included from here
+
+	* lib/Makefile.am (AM_CFLAGS): Append $(WARN_CFLAGS) and
+	$(WERROR_CFLAGS), i.e., use "+=", not "=".
+	This was introduced via 2009-12-17 commit e58efa5b
+	"build: enable warnings and -Werror.",
+	but fortunately is not a bug, because the definition
+	it would have overridden was always empty.
+
+2010-01-17  Jim Meyering  <meyering@redhat.com>
+
+	maint: add to .gitignore
+	* .gitignore: Ignore more.
+
+2010-01-15  Jim Meyering  <meyering@redhat.com>
+
+	doc: add to TODO
+	* TODO: Add an item, suggested by Dan Jacobson.
+
+2010-01-13  Jim Meyering  <meyering@redhat.com>
+
+	tests: ensure that an argument of "-" is treated as standard input
+	* tests/stdin: New test.
+	* tests/Makefile.am (TESTS): Add it.
+
+2010-01-10  Jim Meyering  <meyering@redhat.com>
+
+	tests: now "make distcheck" runs more tests, incl. syntax-check
+	* cfg.mk: Include dist-check.mk, from coreutils.
+	* Makefile.am (distcheck-hook): Define rule, to hook to...
+	* dist-check.mk: New file.
+
+2010-01-09  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib to latest, for fixed syntax-check rule
+
+	maint: record updated NEWS hash
+	* cfg.mk (old_NEWS_hash): Update to account for GFDL change.
+
+	build: update gnulib submodule to latest
+
+	tests: add a test of basic functionality
+	* tests/basic: Start adding tests.
+	* tests/Makefile.am (TESTS): Add it.
+
+	maint: udpate GFDL license to 1.3
+	* doc/diff.texi: Update to use GFDL version 1.3.
+
+2010-01-04  Eric Blake  <ebb9@byu.net>
+
+	build: allow compilation on cygwin
+	* src/Makefile.am (cmp_LDADD): Move LIBICONV...
+	(LDADD): ...into global flags, since all programs need it.
+
+2010-01-03  Jim Meyering  <meyering@redhat.com>
+
+	maint: record update-copyright options for this package
+	* cfg.mk: Next time, just run "make update-copyright".
+
+	tests: prepend ../src, not "." to PATH
+	* tests/help-version: Correct PATH.
+
+2010-01-01  Jim Meyering  <meyering@redhat.com>
+
+	maint: update all FSF copyright year lists to include 2010
+	Use this command:
+	git ls-files |grep -vE '^(\..*|COPYING|gnulib)$' |xargs \
+	env UPDATE_COPYRIGHT_USE_INTERVALS=1 build-aux/update-copyright
+
+2009-12-31  Jim Meyering  <meyering@redhat.com>
+
+	maint: newer gnulib; don't hard-code my GPG key ID
+	* cfg.mk (gpg_key_ID): Remove definition, now that maint.mk automates it.
+	* gnulib: Update to latest.
+
+	tests: exercise diff -p's function-name matching
+	* tests/label-vs-func: New file.
+	* tests/Makefile.am (TESTS): Add label-vs-func.
+	Reported by Simon Arlott <simon@fire.lp0.eu>
+	http://article.gmane.org/gmane.linux.kernel.janitors/14260
+
+	tests: use gnulib's init.sh
+	* tests/Makefile.am (EXTRA_DIST): Add init.sh.
+	Remove test-lib.sh.
+	* tests/init.sh: New file.
+	* tests/test-lib.sh: Remove file.
+	* tests/help-version: Use init.sh, not test-lib.sh.
+
+2009-11-28  Jim Meyering  <meyering@redhat.com>
+
+	maint: don't let trailing spaces in diffs perturb make syntax-check
+	* .x-sc_space_tab: New file.
+
+2009-11-22  Jim Meyering  <meyering@redhat.com>
+
+	build: enable warnings and -Werror.
+	* src/Makefile.am (AM_CFLAGS): Enable warnings and -Werror.
+	Set to this: $(WARN_CFLAGS) $(WERROR_CFLAGS)
+	* lib/Makefile.am (AM_CFLAGS): Similarly, but use this:
+	$(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS)
+	* configure.ac (GNULIB_WARN_CFLAGS): Don't turn off -Wuninitialized.
+
+	build: avoid a warning from gnulib's sh-quote.c
+	* gl/lib/sh-quote.c.diff: New file, to avoid a warning.
+
+	maint: avoid warnings via patched versions of gnulib's regex functions
+	* gl/lib/regcomp.c.diff: New file.
+	* gl/lib/regex_internal.c.diff: Likewise.
+	* gl/lib/regex_internal.h.diff: Likewise.
+	* gl/lib/regexec.c.diff: Likewise.
+
+	build: update gnulib submodule to latest
+
+2009-11-20  Eric Blake  <ebb9@byu.net>
+
+	build: ignore more files
+	* .gitignore: Add config.cache, *.exe.
+
+2009-11-20  Eric Blake  <ebb9@byu.net>
+
+	build: fix test run on cygwin
+	This, plus a gnulib update for xalloc-die-tests, are necessary
+	for make check to pass on cygwin.
+
+	* tests/Makefile.am (built_programs): Ignore $(EXEEXT).
+	* src/Makefile.am (paths.h): Add missing dependency.
+
+2009-11-20  Jim Meyering  <meyering@redhat.com>
+
+	maint: remove vestiges of nanosleep
+	* src/Makefile.am (LDADD): Remove $(LIB_NANOSLEEP), now
+	that we no longer use the nanosleep module.
+	Spotted by Eric Blake.
+
+	maint: don't pull in gnulib's nanosleep unnecessarily
+	* bootstrap.conf (gnulib_modules): Remove nanosleep.  Not needed.
+	Spotted by Eric Blake.
+
+	maint: cfg.mk: remove factored-out ftp host/dir definitions
+	* cfg.mk (gnu_ftp_host-alpha, gnu_ftp_host-beta gnu_ftp_host-stable):
+	(gnu_rel_host, url_dir_list): Remove definitions.  The defaults,
+	now provided by maint.mk, are the same.
+	* gnulib: Update for latest, including those maint.mk additions.
+
+	build: link with now-required libraries
+	* src/Makefile.am (LDADD): Add gnulib-required libraries.
+	(cmp_LDADD): Add $(LIBICONV), for cmp's use of proper_name_utf8.
+
+	maint: lib/xfreopen.c contains translatable strings
+	* po/POTFILES.in: Add lib/xfreopen.c.
+
+	maint: remove hard-coded macro definitions provided by intprops.h
+	* lib/cmpbuf.c: Include "intprops.h" rather than open-coding macros
+	like TYPE_SIGNED and TYPE_MINIMUM.
+
+	maint: add gnulib's announce-gen module
+	* bootstrap.conf (gnulib_modules): Add announce-gen
+
+	build: suppress warnings about bindtextdomain and textdomain
+	* src/system.h (bindtextdomain, textdomain) [!ENABLE_NLS]: Define away.
+
+	build: use more gnulib modules
+	* bootstrap.conf (gnulib_modules): Add mktime, nanosleep, strptime
+	and timegm.
+
+	use xfreopen rather than freopen
+	* src/cmp.c: Include "xfreopen.h".
+	Use xfreopen in place of freopen.
+	* src/diff.c Likewise, and...
+	(main): Set exit_failure to EXIT_TROUBLE, rather than to 2.
+	* src/diff3.c: Likewise.
+	* bootstrap.conf (gnulib_modules): Add xfreopen.
+
+	build: enable many warnings
+	* configure.ac: Add support for --enable-gcc-warnings.
+	* bootstrap.conf (gnulib_modules): Add manywarnings.
+	* Makefile.am (AM_CFLAGS): Add $(WARN_CFLAGS) $(WERROR_CFLAGS)
+
+	build: update gnulib submodule to latest
+
+	maint: add an assertion to suppress clang-detected warning
+	The clang static analyzer reported that a NULL parent could be
+	dereferenced.  However, that cannot happen, because for all callers,
+	the parameter, parent, is always non-NULL at that point.
+	* src/diff.c: Include <assert.h>.
+	Assert that parent is not NULL.
+
+	maint: remove dead assignment from diff3.c
+	* src/diff3.c (make_3way_diff): Remove dead assignment.
+
+2009-11-17  Jim Meyering  <meyering@redhat.com>
+
+	build: update gnulib submodule to latest
+
+	maint: hide build commands behind $(AM_V_GEN)
+	* src/Makefile.am (paths.h): Use $(AM_V_GEN), and split a long line.
+	* man/Makefile.am ($(dist_man1_MANS)): Use $(AM_V_GEN) here, too.
+
+2009-11-16  Jim Meyering  <meyering@redhat.com>
+
+	build: let automake generate better man-installation rules
+	* man/Makefile.am (dist_man1_MANS): Rename from dist_man_MANS,
+	to enable better automake-generated installation rules.
+
+	admin: ignore all of gnulib-tests
+	* .gitignore: Add gnulib-tests
+
+2009-11-16  Eric Blake  <ebb9@byu.net>
+
+	build: avoid link failure when libsigsegv is used
+	* src/Makefile.am (LDADD): Link against LIBSIGSEGV.
+
+2009-11-16  Jim Meyering  <meyering@redhat.com>
+
+	maint: define/use PROGRAM_NAME and AUTHORS; use propername module
+	* bootstrap.conf (gnulib_modules): Add propername.
+	* src/cmp.c (PROGRAM_NAME, AUTHORS): Define.
+	(main): Use them in use of version_etc.
+	* src/diff.c (PROGRAM_NAME, AUTHORS, main): Likewise.
+	* src/diff3.c (PROGRAM_NAME, AUTHORS, main): Likewise.
+	* src/sdiff.c (PROGRAM_NAME, AUTHORS, main): Likewise.
+	* src/system.h: Include "propername.h".
+
+	maint: no longer define *_FILENO constants
+	* src/system.h (STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO):
+	Remove definitions.  Now guaranteed by gnulib.
+
+	maint: bug-diffutils@gnu.org is the new bug-reporting address
+	* configure.ac (AC_INIT): Use bug-diffutils@..., not bug-gnu-utils
+	as the bug-reporting address.
+	* NEWS (Administrivia): Mention this.
+	* src/cmp.c (usage): Remove hard-coded address.
+	Instead, use gnulib's emit_bug_reporting_address function.
+	* src/diff.c (usage, option_help_msgid): Likewise.
+	* src/diff3.c (usage): Likewise.
+	* src/sdiff.c (usage): Likewise.
+
+	sdiff, diff3: exec diff, not $(bindir)/diff
+	* src/Makefile.am (paths.h): Emit a definition of DEFAULT_DIFF_PROGRAM
+	that is simply "diff" (or whatever $(transform) would convert that to,
+	e.g., "gdiff").  This makes it so that tests can work without first
+	installing diff, and so that the binaries do not hard-code $(prefix).
+	* NEWS (Changes in behavior): Mention this.
+
+2009-11-14  Jim Meyering  <meyering@redhat.com>
+
+	tests: add the first script; hook up gnulib-tests
+	* configure.ac (AC_CONFIG_FILES): Add tests/Makefile and
+	gnulib-tests/Makefile.
+	* tests/help-version: New file, from coreutils.
+	* tests/test-lib.sh: Likewise.
+	* tests/Makefile.am: New file, from gzip.
+	* Makefile.am (SUBDIRS): Add tests and gnulib-tests.
+	* tests/t-local.sh: New, empty(for now) file.
+
+2009-11-13  Jim Meyering  <meyering@redhat.com>
+
+	build: require gettext-0.17
+	* configure.ac: Require gettext-0.17; it was released two years ago.
+
+	build: correct gettext configure-time support
+	* configure.ac: Use AM_GNU_GETTEXT([external], [need-ngettext]),
+	rather than AM_GNU_GETTEXT([external], [need-formatstring-macros]).
+	Reported by Martin Jacobs in
+	http://thread.gmane.org/gmane.comp.parsers.bison.bugs/3181
+
+2009-11-12  Jim Meyering  <meyering@redhat.com>
+
+	build: generalize autoheader check
+	* bootstrap: Look for AC_CONFIG_HEADER as well as AC_CONFIG_HEADERS.
+
+2009-11-11  Jim Meyering  <meyering@redhat.com>
+
+	maint: use a git submodule for gnulib
+	* .gitmodules: New file, to track gnulib.
+	* gnulib: New file, created by running this:
+	git submodule add git://git.sv.gnu.org/gnulib.git gnulib
+
+	maint: tell git what it can ignore
+	* .gitignore: Ignore generated files.

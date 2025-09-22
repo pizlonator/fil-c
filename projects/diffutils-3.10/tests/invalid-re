@@ -1,0 +1,18 @@
+#!/bin/sh
+# Ensure we diagnose and fail upon first invalid -I regex.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+echo > a || framework_failure_
+echo b > b || framework_failure_
+echo 'diff: \: Trailing backslash' > exp-err || framework_failure_
+
+# This must fail with an exit status of 2:
+returns_ 2 diff -Ix -I\\ a b > out 2> err || fail=1
+
+compare /dev/null out || fail=1
+compare exp-err err || fail=1
+
+Exit $fail

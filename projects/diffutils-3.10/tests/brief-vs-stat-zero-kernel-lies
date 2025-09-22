@@ -1,0 +1,38 @@
+#!/bin/sh
+# Before diff-3.4, diff --brief could mistakenly declare a difference.
+# For example, when comparing a file like /proc/cmdline (for which the linux
+# kernel reports a st_size of 0 even though it is not an empty file) to a
+# copy of that file's contents residing on a "normal" file system.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+# Skip the test unless we have an appropriate file.
+boot=/proc/cmdline
+test -r $boot || skip_ no $boot file
+sz=$(stat --format %s $boot) || skip_ stat --format %s does not work
+test $sz = 0 || skip_ $boot has nonzero size
+
+# /proc/self is not useful on the Hurd, where it always points to "1",
+# so skip this test when /proc/self does not point to a file whose name is
+# the current process ID.
+readlink /proc/self > pid & pid=$!
+wait $pid
+echo $pid > exp
+compare exp pid || skip_ /proc/self is not useful on this system
+
+# There are two code paths to test: one for non-binary and one for binary files.
+# $boot is non-binary.
+cat $boot > ref || framework_failure_
+diff --brief $boot ref > out 2>&1 || fail=1
+compare /dev/null out || fail=1
+
+# /proc/self/cmdline is a NUL-terminated list of argv values,
+# so construct the expected output here:
+printf 'diff\0--brief\0/proc/self/cmdline\0bin\0' > bin || framework_failure_
+# And run the command that is embedded in that output:
+diff --brief /proc/self/cmdline bin > out 2>&1 || fail=1
+compare /dev/null out || fail=1
+
+Exit $fail

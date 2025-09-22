@@ -1,0 +1,37 @@
+#!/bin/sh
+# --ifdef
+
+# Bug reported by Robert Webb in <http://bugs.gnu.org/61193>.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+cat <<'EOF' >a
+1
+2
+3
+4
+5
+EOF
+
+cat <<'EOF' >b
+1
+4
+5
+EOF
+
+cat <<'EOF' >exp
+1
+#ifndef ZZZ
+2
+3
+#endif /* ! ZZZ */
+4
+5
+EOF
+
+returns_ 1 diff -D ZZZ a b >out 2>err || fail=1
+compare exp out || fail=1
+
+Exit $fail

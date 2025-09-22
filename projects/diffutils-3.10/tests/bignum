@@ -1,0 +1,14 @@
+#!/bin/sh
+# big numbers
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+for tabsize in 2147483648 9223372036854775808; do
+  diff --tabsize=$tabsize /dev/null /dev/null
+  status=$?
+  test $status -eq 0 || test $status -eq 2 || fail=1
+done
+
+Exit $fail

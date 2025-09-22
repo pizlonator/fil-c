@@ -1,0 +1,25 @@
+#!/bin/sh
+# Before diff-3.7, this would provoke a UMR
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+require_valgrind_
+
+printf '\r' > r || framework_failure_
+echo b > b || framework_failure_
+
+# Use valgrind only when no Sanitizer is in use:
+ASAN_OPTIONS=help=true diff --help 2>&1 |grep Sanitizer > /dev/null \
+  && eval 'valgrind() { "$@"; }' \
+  || eval 'valgrind() { env valgrind --quiet --error-exitcode=3 "$@"; }'
+
+for opt in '' u c Dfoo; do
+  returns_ 1 valgrind \
+    diff -a$opt --strip-trailing-cr r b > out 2> err || fail=1
+done
+
+compare /dev/null err || fail=1
+
+Exit $fail

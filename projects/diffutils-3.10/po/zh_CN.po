@@ -1,0 +1,1524 @@
+# Chinese (simplified) translation for diffutils
+# Copyright (C) 2004, 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the diffutils package.
+# Yingxin Zhou <eerd003@dlut.edu.cn>, 2004.
+# Anthony Fok <foka@debian.org>, 2013.
+# Mingye Wang (Arthur2e5) <arthur200126@gmail.com>, 2016.
+# Boyuan Yang <073plan@gmail.com>, 2018, 2021.
+# Wenbin Lv <wenbin816@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: diffutils 3.7.41\n"
+"Report-Msgid-Bugs-To: bug-diffutils@gnu.org\n"
+"POT-Creation-Date: 2023-05-21 01:51-0700\n"
+"PO-Revision-Date: 2022-03-31 17:01+0800\n"
+"Last-Translator: Wenbin Lv <wenbin816@gmail.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: lib/argmatch.c:145
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr "%2$s 的参数 %1$s 无效"
+
+#: lib/argmatch.c:146
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr "%2$s 的参数 %1$s 有歧义"
+
+#: lib/argmatch.c:165 lib/argmatch.h:242
+msgid "Valid arguments are:"
+msgstr "有效的参数为："
+
+#: lib/c-stack.c:186
+msgid "program error"
+msgstr "程序错误"
+
+#: lib/c-stack.c:187
+msgid "stack overflow"
+msgstr "栈溢出"
+
+#: lib/error.c:193
+msgid "Unknown system error"
+msgstr "未知的系统错误"
+
+#: lib/file-type.c:40
+msgid "regular empty file"
+msgstr "普通空文件"
+
+#: lib/file-type.c:40
+msgid "regular file"
+msgstr "普通文件"
+
+#: lib/file-type.c:43
+msgid "directory"
+msgstr "目录"
+
+#: lib/file-type.c:46
+msgid "symbolic link"
+msgstr "符号链接"
+
+#: lib/file-type.c:52
+msgid "message queue"
+msgstr "消息队列"
+
+#: lib/file-type.c:55
+msgid "semaphore"
+msgstr "信号量"
+
+#: lib/file-type.c:58
+msgid "shared memory object"
+msgstr "共享内存对象"
+
+#: lib/file-type.c:61
+msgid "typed memory object"
+msgstr "有类型内存对象"
+
+#: lib/file-type.c:66
+msgid "block special file"
+msgstr "块特殊文件"
+
+#: lib/file-type.c:69
+msgid "character special file"
+msgstr "字符特殊文件"
+
+#: lib/file-type.c:72
+msgid "contiguous data"
+msgstr "连续数据"
+
+#: lib/file-type.c:75
+msgid "fifo"
+msgstr "先进先出文件"
+
+#: lib/file-type.c:78
+msgid "door"
+msgstr "门 (Solaris)"
+
+#: lib/file-type.c:81
+msgid "multiplexed block special file"
+msgstr "复用块特殊文件"
+
+#: lib/file-type.c:84
+msgid "multiplexed character special file"
+msgstr "复用字符特殊文件"
+
+#: lib/file-type.c:87
+msgid "multiplexed file"
+msgstr "复用文件"
+
+#: lib/file-type.c:90
+msgid "named file"
+msgstr "命名文件 (XENIX)"
+
+#: lib/file-type.c:93
+msgid "network special file"
+msgstr "网络特殊文件"
+
+#: lib/file-type.c:96
+msgid "migrated file with data"
+msgstr "含数据迁移文件 (Cray DMF)"
+
+#: lib/file-type.c:99
+msgid "migrated file without data"
+msgstr "不含数据迁移文件 (Cray DMF)"
+
+#: lib/file-type.c:102
+msgid "port"
+msgstr "端口"
+
+#: lib/file-type.c:105
+msgid "socket"
+msgstr "套接字"
+
+#: lib/file-type.c:108
+msgid "whiteout"
+msgstr "whiteout 文件"
+
+#: lib/file-type.c:110
+msgid "weird file"
+msgstr "奇怪的文件"
+
+#: lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: 选项 \"%s%s\" 有歧义\n"
+
+#: lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: 选项 \"%s%s\" 有歧义；可能是："
+
+#: lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: 无法识别的选项 \"%s%s\"\n"
+
+#: lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: 选项 \"%s%s\" 不允许带参数\n"
+
+#: lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: 选项 \"%s%s\" 必须带参数\n"
+
+#: lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: 无效的选项 -- \"%c\"\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: 选项必须带参数 -- \"%c\"\n"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:354
+msgid "`"
+msgstr "\""
+
+#: lib/quotearg.c:355
+msgid "'"
+msgstr "\""
+
+#: lib/regcomp.c:122
+msgid "Success"
+msgstr "成功"
+
+#: lib/regcomp.c:125
+msgid "No match"
+msgstr "无匹配"
+
+#: lib/regcomp.c:128
+msgid "Invalid regular expression"
+msgstr "无效的正则表达式"
+
+#: lib/regcomp.c:131
+msgid "Invalid collation character"
+msgstr "无效的定序字符"
+
+#: lib/regcomp.c:134
+msgid "Invalid character class name"
+msgstr "无效的字符类名称"
+
+#: lib/regcomp.c:137
+msgid "Trailing backslash"
+msgstr "末尾有反斜杠"
+
+#: lib/regcomp.c:140
+msgid "Invalid back reference"
+msgstr "无效的后向引用"
+
+#: lib/regcomp.c:143
+msgid "Unmatched [, [^, [:, [., or [="
+msgstr "未匹配的 [、[^、[:、[. 或 [="
+
+#: lib/regcomp.c:146
+msgid "Unmatched ( or \\("
+msgstr "未匹配的 ( 或 \\("
+
+#: lib/regcomp.c:149
+msgid "Unmatched \\{"
+msgstr "未匹配的 \\{"
+
+#: lib/regcomp.c:152
+msgid "Invalid content of \\{\\}"
+msgstr "\\{\\} 中内容无效"
+
+#: lib/regcomp.c:155
+msgid "Invalid range end"
+msgstr "无效的范围端点"
+
+#: lib/regcomp.c:158
+msgid "Memory exhausted"
+msgstr "内存耗尽"
+
+#: lib/regcomp.c:161
+msgid "Invalid preceding regular expression"
+msgstr "前面的正则表达式无效"
+
+#: lib/regcomp.c:164
+msgid "Premature end of regular expression"
+msgstr "正则表达式过早结束"
+
+#: lib/regcomp.c:167
+msgid "Regular expression too big"
+msgstr "正则表达式过长"
+
+#: lib/regcomp.c:170
+msgid "Unmatched ) or \\)"
+msgstr "未匹配的 ) 或 \\)"
+
+#: lib/regcomp.c:650
+msgid "No previous regular expression"
+msgstr "缺少前一个正则表达式"
+
+#: lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "内存耗尽"
+
+#: lib/xfreopen.c:34
+msgid "stdin"
+msgstr "标准输入"
+
+#: lib/xfreopen.c:35
+msgid "stdout"
+msgstr "标准输出"
+
+#: lib/xfreopen.c:36
+msgid "stderr"
+msgstr "标准错误"
+
+#: lib/xfreopen.c:37
+msgid "unknown stream"
+msgstr "未知的流"
+
+#: lib/xfreopen.c:38
+#, c-format
+msgid "failed to reopen %s with mode %s"
+msgstr "以模式 %2$s 重新打开 %1$s 失败"
+
+#: lib/xstdopen.c:34
+#, c-format
+msgid "standard file descriptors"
+msgstr "标准文件描述符"
+
+#: lib/version-etc.c:73
+#, c-format
+msgid "Packaged by %s (%s)\n"
+msgstr "由 %s (%s) 打包\n"
+
+#: lib/version-etc.c:76
+#, c-format
+msgid "Packaged by %s\n"
+msgstr "由 %s 打包\n"
+
+#. TRANSLATORS: Translate "(C)" to the copyright symbol
+#. (C-in-a-circle), if this symbol is available in the user's
+#. locale.  Otherwise, do not translate "(C)"; leave it as-is.
+#: lib/version-etc.c:83
+msgid "(C)"
+msgstr "©"
+
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: lib/version-etc.c:88
+#, c-format
+msgid ""
+"License GPLv3+: GNU GPL version 3 or later <%s>.\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"许可证 GPLv3+：GNU 通用公共许可证第 3 版或更新版本 <%s>。\n"
+"本软件是自由软件：您可以自由修改和重新发布它。\n"
+"在法律允许的范围内，不提供任何保证。\n"
+
+#. TRANSLATORS: %s denotes an author name.
+#: lib/version-etc.c:105
+#, c-format
+msgid "Written by %s.\n"
+msgstr "由 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:109
+#, c-format
+msgid "Written by %s and %s.\n"
+msgstr "由 %s 和 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:113
+#, c-format
+msgid "Written by %s, %s, and %s.\n"
+msgstr "由 %s、%s 和 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:120
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"由 %s、%s、%s 和\n"
+"%s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:127
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"由 %s、%s、%s、\n"
+"%s 和 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:134
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, and %s.\n"
+msgstr ""
+"由 %s、%s、%s、\n"
+"%s、%s 和 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:142
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, and %s.\n"
+msgstr ""
+"由 %s、%s、%s、\n"
+"%s、%s、%s 和 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:150
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"由 %s、%s、%s、\n"
+"%s、%s、%s、%s 和\n"
+"%s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:159
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"由 %s、%s、%s、\n"
+"%s、%s、%s、%s、\n"
+"%s 和 %s 编写。\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:170
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, %s, and others.\n"
+msgstr ""
+"由 %s、%s、%s、\n"
+"%s、%s、%s、%s、\n"
+"%s、%s 和其他人编写。\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: lib/version-etc.c:249
+#, c-format
+msgid "Report bugs to: %s\n"
+msgstr ""
+"请向 <%s> 报告软件错误。\n"
+"请向 <i18n-zh@googlegroups.com> 报告翻译错误。\n"
+
+#: lib/version-etc.c:251
+#, c-format
+msgid "Report %s bugs to: %s\n"
+msgstr "请向 <%2$s> 报告 %1$s 的错误。\n"
+
+#: lib/version-etc.c:255 lib/version-etc.c:257
+#, c-format
+msgid "%s home page: <%s>\n"
+msgstr "%s 的主页：<%s>\n"
+
+#: lib/version-etc.c:260
+#, c-format
+msgid "General help using GNU software: <%s>\n"
+msgstr "GNU 软件一般性帮助：<%s>\n"
+
+#: src/analyze.c:455 src/diff.c:1478
+#, c-format
+msgid "Files %s and %s differ\n"
+msgstr "文件 %s 和 %s 不同\n"
+
+#: src/analyze.c:456
+#, c-format
+msgid "Binary files %s and %s differ\n"
+msgstr "二进制文件 %s 和 %s 不同\n"
+
+#: src/analyze.c:707 src/diff3.c:1457 src/util.c:1354
+msgid "No newline at end of file"
+msgstr "文件末尾没有换行符"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:45
+msgid "Torbjorn Granlund"
+msgstr "Torbjorn Granlund"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:46
+msgid "David MacKenzie"
+msgstr "David MacKenzie"
+
+#: src/cmp.c:124 src/diff.c:939 src/diff3.c:465 src/sdiff.c:159
+#, c-format
+msgid "Try '%s --help' for more information."
+msgstr "请尝试执行 \"%s --help\" 来获取更多信息。"
+
+#: src/cmp.c:142
+#, c-format
+msgid "invalid --ignore-initial value '%s'"
+msgstr "无效的 --ignore-initial 值 \"%s\""
+
+#: src/cmp.c:152
+#, c-format
+msgid "options -l and -s are incompatible"
+msgstr "选项 -l 和 -s 是互斥的"
+
+#: src/cmp.c:160 src/diff.c:947 src/diff3.c:472 src/sdiff.c:167 src/sdiff.c:314
+#: src/sdiff.c:321 src/sdiff.c:873 src/util.c:952 src/util.c:1052
+#: src/util.c:1059
+msgid "write failed"
+msgstr "写入失败"
+
+#: src/cmp.c:162 src/diff.c:949 src/diff.c:1543 src/diff3.c:474 src/sdiff.c:169
+msgid "standard output"
+msgstr "标准输出"
+
+#: src/cmp.c:166
+msgid "-b, --print-bytes          print differing bytes"
+msgstr "-b, --print-bytes          打印出内容相异的字节"
+
+#: src/cmp.c:167
+msgid "-i, --ignore-initial=SKIP         skip first SKIP bytes of both inputs"
+msgstr "-i, --ignore-initial=跳过         对于两个输入，都跳过前 <跳过> 个字节"
+
+#: src/cmp.c:168
+msgid ""
+"-i, --ignore-initial=SKIP1:SKIP2  skip first SKIP1 bytes of FILE1 and\n"
+"                                      first SKIP2 bytes of FILE2"
+msgstr ""
+"-i, --ignore-initial=跳过1:跳过2  跳过 <文件1> 的前 <跳过1> 个字节和 <文件"
+"2>\n"
+"                                      的前 <跳过2> 个字节"
+
+#: src/cmp.c:170
+msgid ""
+"-l, --verbose              output byte numbers and differing byte values"
+msgstr "-l, --verbose              输出所有相异字节的编号和值"
+
+#: src/cmp.c:171
+msgid "-n, --bytes=LIMIT          compare at most LIMIT bytes"
+msgstr "-n, --bytes=限制          最多比较 <限制> 个字节"
+
+#: src/cmp.c:172
+msgid "-s, --quiet, --silent      suppress all normal output"
+msgstr "-s, --quiet, --silent      禁止所有正常输出"
+
+#: src/cmp.c:173
+msgid "    --help                 display this help and exit"
+msgstr "    --help                 显示此帮助信息并退出"
+
+#: src/cmp.c:174
+msgid "-v, --version              output version information and exit"
+msgstr "-v, --version              显示版本信息并退出"
+
+#: src/cmp.c:183
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\n"
+msgstr "用法：%s [选项]... 文件1 [文件2 [跳过1 [跳过2]]]\n"
+
+#: src/cmp.c:185
+msgid "Compare two files byte by byte."
+msgstr "逐字节比较两个文件。"
+
+#: src/cmp.c:187
+msgid ""
+"The optional SKIP1 and SKIP2 specify the number of bytes to skip\n"
+"at the beginning of each file (zero by default)."
+msgstr "<跳过1> 和 <跳过2> 分别是每个文件要跳过的字节数。"
+
+#: src/cmp.c:190 src/diff.c:1059 src/diff3.c:512 src/sdiff.c:210
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr "长选项的必选参数对于短选项也是必选的。\n"
+
+#: src/cmp.c:196
+msgid ""
+"SKIP values may be followed by the following multiplicative suffixes:\n"
+"kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+"GB 1,000,000,000, G 1,073,741,824, and so on for T, P, E, Z, Y."
+msgstr ""
+"<跳过> 值可以加上以下的乘数后缀：\n"
+"kB=1000、K=1024、MB=1,000,000、M=1,048,576、\n"
+"GB=1,000,000,000、G=1,073,741,824，T、P、E、Z、Y 以此类推。"
+
+#: src/cmp.c:199
+msgid "If a FILE is '-' or missing, read standard input."
+msgstr "如果 <文件> 为 \"-\"，或者没有指定 <文件>，则从标准输入读取。"
+
+#: src/cmp.c:200 src/diff.c:1047 src/sdiff.c:220
+msgid "Exit status is 0 if inputs are the same, 1 if different, 2 if trouble."
+msgstr "如果输入相同，则退出状态为 0；1 表示输入不同；2 表示有错误产生。"
+
+#: src/cmp.c:247
+#, c-format
+msgid "invalid --bytes value '%s'"
+msgstr "无效的 --bytes 值 \"%s\""
+
+#: src/cmp.c:273 src/diff.c:857 src/diff3.c:368 src/sdiff.c:564
+#, c-format
+msgid "missing operand after '%s'"
+msgstr "\"%s\" 后缺少操作对象"
+
+#: src/cmp.c:285 src/diff.c:859 src/diff3.c:370 src/sdiff.c:566
+#, c-format
+msgid "extra operand '%s'"
+msgstr "多余的操作对象 \"%s\""
+
+#: src/cmp.c:521
+#, c-format
+msgid "%s %s differ: byte %s, line %s\n"
+msgstr "%s %s 不同：第 %s 字节（第 %s 行）\n"
+
+#: src/cmp.c:537
+#, c-format
+msgid "%s %s differ: byte %s, line %s is %3o %s %3o %s\n"
+msgstr "%s %s 不同：第 %s 字节（第 %s 行），分别为 %3o %s、%3o %s\n"
+
+#: src/cmp.c:594
+#, c-format
+msgid "cmp: EOF on %s which is empty\n"
+msgstr "cmp: %s 返回了 EOF，且为空\n"
+
+#: src/cmp.c:608
+#, c-format
+msgid "cmp: EOF on %s after byte %s, line %s\n"
+msgstr "cmp: %s 在第 %s 字节（第 %s 行）后返回了 EOF\n"
+
+#: src/cmp.c:609
+#, c-format
+msgid "cmp: EOF on %s after byte %s, in line %s\n"
+msgstr "cmp: %s 在第 %s 字节（第 %s 行中间）后返回了 EOF\n"
+
+#: src/cmp.c:615
+#, c-format
+msgid "cmp: EOF on %s after byte %s\n"
+msgstr "cmp: %s 在第 %s 字节后返回了 EOF\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:50
+msgid "Paul Eggert"
+msgstr "Paul Eggert"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:51
+msgid "Mike Haertel"
+msgstr "Mike Haertel"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:52
+msgid "David Hayes"
+msgstr "David Hayes"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:53
+msgid "Richard Stallman"
+msgstr "Richard Stallman"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:54
+msgid "Len Tower"
+msgstr "Len Tower"
+
+#: src/diff.c:365
+#, c-format
+msgid "invalid context length '%s'"
+msgstr "无效的上下文长度 \"%s\""
+
+#: src/diff.c:487
+#, c-format
+msgid "pagination not supported on this host"
+msgstr "此系统不支持分页"
+
+#: src/diff.c:502 src/diff3.c:348
+#, c-format
+msgid "too many file label options"
+msgstr "过多的文件标签选项"
+
+#: src/diff.c:579
+#, c-format
+msgid "invalid width '%s'"
+msgstr "无效的宽度 \"%s\""
+
+#: src/diff.c:583
+msgid "conflicting width options"
+msgstr "宽度选项有冲突"
+
+#: src/diff.c:608
+#, c-format
+msgid "invalid horizon length '%s'"
+msgstr "无效的视野长度 \"%s\""
+
+#: src/diff.c:664
+#, c-format
+msgid "invalid tabsize '%s'"
+msgstr "无效的制表符宽度 \"%s\""
+
+#: src/diff.c:668
+msgid "conflicting tabsize options"
+msgstr "制表符宽度选项有冲突"
+
+#: src/diff.c:834
+msgid "--from-file and --to-file both specified"
+msgstr "同时指定了选项 --from-file 和 --to-file"
+
+#: src/diff.c:953
+msgid "    --normal                  output a normal diff (the default)"
+msgstr "    --normal                  以正常的 diff 格式输出（默认）"
+
+#: src/diff.c:954
+msgid "-q, --brief                   report only when files differ"
+msgstr "-q, --brief                   仅当文件不同时报告"
+
+#: src/diff.c:955
+msgid "-s, --report-identical-files  report when two files are the same"
+msgstr "-s, --report-identical-files  当两个文件相同时也进行报告"
+
+#: src/diff.c:956
+msgid ""
+"-c, -C NUM, --context[=NUM]   output NUM (default 3) lines of copied context"
+msgstr "-c, -C 数字, --context[=数字]  输出 <数字> 行（默认为 3 行）复制上下文"
+
+#: src/diff.c:957
+msgid ""
+"-u, -U NUM, --unified[=NUM]   output NUM (default 3) lines of unified context"
+msgstr "-u, -U 数字, --unified[=数字]  输出 <数字> 行（默认为 3 行）统一上下文"
+
+#: src/diff.c:958
+msgid "-e, --ed                      output an ed script"
+msgstr "-e, --ed                      以 ed 脚本格式输出"
+
+#: src/diff.c:959
+msgid "-n, --rcs                     output an RCS format diff"
+msgstr "-n, --rcs                     以 RCS diff 格式输出"
+
+#: src/diff.c:960
+msgid "-y, --side-by-side            output in two columns"
+msgstr "-y, --side-by-side            以两栏格式输出"
+
+#: src/diff.c:961
+msgid ""
+"-W, --width=NUM               output at most NUM (default 130) print columns"
+msgstr ""
+"-W, --width=数字              每行宽度最多 <数字> 个（默认为 130 个）字符"
+
+#: src/diff.c:962
+msgid ""
+"    --left-column             output only the left column of common lines"
+msgstr "    --left-column             对于相同的行只输出左栏"
+
+#: src/diff.c:963
+msgid "    --suppress-common-lines   do not output common lines"
+msgstr "    --suppress-common-lines   对于相同的行不进行输出"
+
+#: src/diff.c:965
+msgid "-p, --show-c-function         show which C function each change is in"
+msgstr "-p, --show-c-function         显示每个变更位于哪个 C 函数中"
+
+#: src/diff.c:966
+msgid "-F, --show-function-line=RE   show the most recent line matching RE"
+msgstr "-F, --show-function-line=正则  显示匹配 <正则> 表达式的最近一行"
+
+#: src/diff.c:967
+msgid ""
+"    --label LABEL             use LABEL instead of file name and timestamp\n"
+"                                (can be repeated)"
+msgstr ""
+"    --label 标签              使用 <标签> 替代文件名和时间戳（可以重复）"
+
+#: src/diff.c:970
+msgid "-t, --expand-tabs             expand tabs to spaces in output"
+msgstr "-t, --expand-tabs             将输出中的制表符展开为空格"
+
+#: src/diff.c:971
+msgid "-T, --initial-tab             make tabs line up by prepending a tab"
+msgstr ""
+"-T, --initial-tab             在每行前面加上一个制表符，以使制表符可以对齐"
+
+#: src/diff.c:972
+msgid ""
+"    --tabsize=NUM             tab stops every NUM (default 8) print columns"
+msgstr "    --tabsize=数字            制表符宽度（默认为 8）"
+
+#: src/diff.c:973
+msgid ""
+"    --suppress-blank-empty    suppress space or tab before empty output lines"
+msgstr "    --suppress-blank-empty    去除将要输出的空行之前的空格或制表符"
+
+#: src/diff.c:974
+msgid "-l, --paginate                pass output through 'pr' to paginate it"
+msgstr "-l, --paginate                将输出发送给 \"pr\" 命令进行分页"
+
+#: src/diff.c:976
+msgid ""
+"-r, --recursive                 recursively compare any subdirectories found"
+msgstr "-r, --recursive                 递归比较所有子目录"
+
+#: src/diff.c:977
+msgid "    --no-dereference            don't follow symbolic links"
+msgstr "    --no-dereference            不要跟随符号链接"
+
+#: src/diff.c:978
+msgid "-N, --new-file                  treat absent files as empty"
+msgstr "-N, --new-file                  将不存在的文件视为空文件"
+
+#: src/diff.c:979
+msgid "    --unidirectional-new-file   treat absent first files as empty"
+msgstr "    --unidirectional-new-file   若第一个文件不存在，则视为空文件"
+
+#: src/diff.c:980
+msgid "    --ignore-file-name-case     ignore case when comparing file names"
+msgstr "    --ignore-file-name-case     比较文件名时忽略大小写"
+
+#: src/diff.c:981
+msgid "    --no-ignore-file-name-case  consider case when comparing file names"
+msgstr "    --no-ignore-file-name-case  比较文件名时不忽略大小写"
+
+#: src/diff.c:982
+msgid "-x, --exclude=PAT               exclude files that match PAT"
+msgstr "-x, --exclude=模式              排除与 <模式> 匹配的文件"
+
+#: src/diff.c:983
+msgid ""
+"-X, --exclude-from=FILE         exclude files that match any pattern in FILE"
+msgstr ""
+"-X, --exclude-from=文件         排除与 <文件> 中列出的任意模式匹配的文件"
+
+#: src/diff.c:984
+msgid ""
+"-S, --starting-file=FILE        start with FILE when comparing directories"
+msgstr "-S, --starting-file=文件        比较目录时，从 <文件> 开始比较"
+
+#: src/diff.c:985
+msgid ""
+"    --from-file=FILE1           compare FILE1 to all operands;\n"
+"                                  FILE1 can be a directory"
+msgstr ""
+"    --from-file=文件1           将 <文件1> 和所有操作对象进行比较；\n"
+"                                  <文件1> 可以是目录"
+
+#: src/diff.c:987
+msgid ""
+"    --to-file=FILE2             compare all operands to FILE2;\n"
+"                                  FILE2 can be a directory"
+msgstr ""
+"    --to-file=文件2             将所有操作对象和 <文件2> 进行比较；\n"
+"                                  <文件2> 可以是目录"
+
+#: src/diff.c:990
+msgid ""
+"-i, --ignore-case               ignore case differences in file contents"
+msgstr "-i, --ignore-case               比较文件内容时忽略大小写"
+
+#: src/diff.c:991
+msgid "-E, --ignore-tab-expansion      ignore changes due to tab expansion"
+msgstr "-E, --ignore-tab-expansion      忽略制表符展开造成的变更"
+
+#: src/diff.c:992
+msgid "-Z, --ignore-trailing-space     ignore white space at line end"
+msgstr "-Z, --ignore-trailing-space     忽略行末的空白字符"
+
+#: src/diff.c:993
+msgid ""
+"-b, --ignore-space-change       ignore changes in the amount of white space"
+msgstr "-b, --ignore-space-change       忽略空白字符数不同造成的变更"
+
+#: src/diff.c:994
+msgid "-w, --ignore-all-space          ignore all white space"
+msgstr "-w, --ignore-all-space          忽略所有空白字符"
+
+#: src/diff.c:995
+msgid ""
+"-B, --ignore-blank-lines        ignore changes where lines are all blank"
+msgstr "-B, --ignore-blank-lines        忽略所有行均为空行的变更"
+
+#: src/diff.c:996
+msgid "-I, --ignore-matching-lines=RE  ignore changes where all lines match RE"
+msgstr ""
+"-I, --ignore-matching-lines=正则  忽略所有行均与 <正则> 表达式匹配的变更"
+
+#: src/diff.c:998
+msgid "-a, --text                      treat all files as text"
+msgstr "-a, --text                      将所有文件视为文本文件"
+
+#: src/diff.c:999
+msgid "    --strip-trailing-cr         strip trailing carriage return on input"
+msgstr "    --strip-trailing-cr         去除输入内容行末的回车 (CR) 字符"
+
+#: src/diff.c:1001
+msgid "    --binary                    read and write data in binary mode"
+msgstr "    --binary                    以二进制模式读写数据"
+
+#: src/diff.c:1004
+msgid ""
+"-D, --ifdef=NAME                output merged file with '#ifdef NAME' diffs"
+msgstr ""
+"-D, --ifdef=名称                输出含 \"#ifdef <名称>\" 格式 diff 的合并后的"
+"文件"
+
+#: src/diff.c:1005
+msgid "    --GTYPE-group-format=GFMT   format GTYPE input groups with GFMT"
+msgstr ""
+"    --组类型-group-format=组格式  使用 <组格式> 对 <组类型> 的输入行组进行格"
+"式化"
+
+#: src/diff.c:1006
+msgid "    --line-format=LFMT          format all input lines with LFMT"
+msgstr "    --line-format=行格式        使用 <行格式> 对所有输入行进行格式化"
+
+#: src/diff.c:1007
+msgid "    --LTYPE-line-format=LFMT    format LTYPE input lines with LFMT"
+msgstr ""
+"    --行类型-line-format=行格式  使用 <行格式> 对 <行类型> 的输入行进行格式化"
+
+#: src/diff.c:1008
+msgid ""
+"  These format options provide fine-grained control over the output\n"
+"    of diff, generalizing -D/--ifdef."
+msgstr ""
+"  这些格式化选项提供对 diff 输出的精细控制，是一般化的 -D/--ifdef 选项。"
+
+#: src/diff.c:1010
+msgid "  LTYPE is 'old', 'new', or 'unchanged'.  GTYPE is LTYPE or 'changed'."
+msgstr ""
+"  <行类型> 可以是 \"old\"、\"new\" 或 \"unchanged\"。<组类型> 可以是 <行类型"
+">\n"
+"  的所有选项，或者 \"changed\"。"
+
+#: src/diff.c:1011
+msgid ""
+"  GFMT (only) may contain:\n"
+"    %<  lines from FILE1\n"
+"    %>  lines from FILE2\n"
+"    %=  lines common to FILE1 and FILE2\n"
+"    %[-][WIDTH][.[PREC]]{doxX}LETTER  printf-style spec for LETTER\n"
+"      LETTERs are as follows for new group, lower case for old group:\n"
+"        F  first line number\n"
+"        L  last line number\n"
+"        N  number of lines = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1\n"
+"    %(A=B?T:E)  if A equals B then T else E"
+msgstr ""
+"  （仅有）<组格式> 可以包含：\n"
+"    %<  来自 <文件1> 的行\n"
+"    %>  来自 <文件2> 的行\n"
+"    %=  <文件1> 和 <文件2> 共有的行\n"
+"    %[-][宽度][.[精度]]{doxX}字符  以 printf 风格的说明符打印 <字符> 对应的"
+"值\n"
+"      <字符> 对应的值如下（大写表示新文件的行组，小写表示旧文件的行组）：\n"
+"        F  行组中第一行的行号\n"
+"        L  行组中最后一行的行号\n"
+"        N  行数，等于 L-F+1\n"
+"        E  F-1\n"
+"        M  L+1\n"
+"    %(A=B?T:E)  如果 A 等于 B，则为 T，否则为 E"
+
+#: src/diff.c:1023
+msgid ""
+"  LFMT (only) may contain:\n"
+"    %L  contents of line\n"
+"    %l  contents of line, excluding any trailing newline\n"
+"    %[-][WIDTH][.[PREC]]{doxX}n  printf-style spec for input line number"
+msgstr ""
+"  （仅有）<行格式> 可以包含：\n"
+"    %L  该行的内容\n"
+"    %l  该行的内容，但不包括末尾的换行符\n"
+"    %[-][宽度][.[精度]]{doxX}n  以 printf 风格的说明符打印输入行的行号"
+
+#: src/diff.c:1027
+msgid ""
+"  Both GFMT and LFMT may contain:\n"
+"    %%  %\n"
+"    %c'C'  the single character C\n"
+"    %c'\\OOO'  the character with octal code OOO\n"
+"    C    the character C (other characters represent themselves)"
+msgstr ""
+"  <组格式> 和 <行格式> 均可以包含：\n"
+"    %%        %\n"
+"    %c'C'     单个字符 C\n"
+"    %c'\\OOO'  八进制码 OOO 所代表的字符\n"
+"    C         字符 C（除上述转义外的其他字符代表它们自身）"
+
+#: src/diff.c:1033
+msgid "-d, --minimal            try hard to find a smaller set of changes"
+msgstr "-d, --minimal            尽可能找出最小的差异集"
+
+#: src/diff.c:1034
+msgid "    --horizon-lines=NUM  keep NUM lines of the common prefix and suffix"
+msgstr "    --horizon-lines=数字  保留 <数字> 行共有的前缀和后缀"
+
+#: src/diff.c:1035
+msgid ""
+"    --speed-large-files  assume large files and many scattered small changes"
+msgstr "    --speed-large-files  假设文件很大，且含有很多零散的微小变更"
+
+#: src/diff.c:1036
+msgid ""
+"    --color[=WHEN]       color output; WHEN is 'never', 'always', or "
+"'auto';\n"
+"                           plain --color means --color='auto'"
+msgstr ""
+"    --color[=何时]       使用彩色输出；<何时> 可以是 \"never\"、\"always\"\n"
+"                           或 \"auto\"；仅指定 --color 等价于 --color='auto'"
+
+#: src/diff.c:1038
+msgid ""
+"    --palette=PALETTE    the colors to use when --color is active; PALETTE "
+"is\n"
+"                           a colon-separated list of terminfo capabilities"
+msgstr ""
+"    --palette=调色板     在 --color 选项启用时使用的颜色；<调色板> 是\n"
+"                           以冒号分隔的 terminfo 能力列表"
+
+#: src/diff.c:1041
+msgid "    --help               display this help and exit"
+msgstr "    --help               显示此帮助信息并退出"
+
+#: src/diff.c:1042
+msgid "-v, --version            output version information and exit"
+msgstr "-v, --version            显示版本信息并退出"
+
+#: src/diff.c:1044
+msgid "FILES are 'FILE1 FILE2' or 'DIR1 DIR2' or 'DIR FILE' or 'FILE DIR'."
+msgstr ""
+"<文件列表> 可以是 \"文件1 文件2\"、\"目录1 目录2\"、\"目录 文件\" 或 \"文件 "
+"目录\"。"
+
+#: src/diff.c:1045
+msgid ""
+"If --from-file or --to-file is given, there are no restrictions on FILE(s)."
+msgstr ""
+"如果使用了 --from-file 或 --to-file 选项，<文件列表> 的格式则不受限制。"
+
+#: src/diff.c:1046 src/diff3.c:531 src/sdiff.c:219
+msgid "If a FILE is '-', read standard input."
+msgstr "如果 <文件> 是 \"-\"，则读取标准输入的内容。"
+
+#: src/diff.c:1056
+#, c-format
+msgid "Usage: %s [OPTION]... FILES\n"
+msgstr "用法：%s [选项]... 文件列表\n"
+
+#: src/diff.c:1057
+msgid "Compare FILES line by line."
+msgstr "逐行比较 <文件列表> 中的文件。"
+
+#: src/diff.c:1094
+#, c-format
+msgid "conflicting %s option value '%s'"
+msgstr "%s 选项的值 \"%s\" 有冲突"
+
+#: src/diff.c:1107
+#, c-format
+msgid "conflicting output style options"
+msgstr "输出风格选项有冲突"
+
+#: src/diff.c:1123
+#, c-format
+msgid "invalid color '%s'"
+msgstr "无效的颜色 \"%s\""
+
+#: src/diff.c:1197 src/diff.c:1401
+#, c-format
+msgid "Only in %s: %s\n"
+msgstr "只在 %s 中存在：%s\n"
+
+#: src/diff.c:1325
+msgid "cannot compare '-' to a directory"
+msgstr "无法将 \"-\" 和目录进行比较"
+
+#: src/diff.c:1360
+msgid "-D option not supported with directories"
+msgstr "不支持对目录使用 -D 选项"
+
+#: src/diff.c:1369
+#, c-format
+msgid "Common subdirectories: %s and %s\n"
+msgstr "共同的子目录：%s 和 %s\n"
+
+#: src/diff.c:1411 src/diff.c:1461
+#, c-format
+msgid "File %s is a %s while file %s is a %s\n"
+msgstr "文件 %s 是%s，而文件 %s 是%s\n"
+
+#: src/diff.c:1447
+#, c-format
+msgid "Symbolic links %s and %s differ\n"
+msgstr "符号链接 %s 和 %s 不同\n"
+
+#: src/diff.c:1534
+#, c-format
+msgid "Files %s and %s are identical\n"
+msgstr "文件 %s 和 %s 相同\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff3.c:51
+msgid "Randy Smith"
+msgstr "Randy Smith"
+
+#: src/diff3.c:363
+#, c-format
+msgid "incompatible options"
+msgstr "选项有冲突"
+
+#: src/diff3.c:403
+msgid "'-' specified for more than one input file"
+msgstr "有多个输入文件是 \"-\""
+
+#: src/diff3.c:445 src/diff3.c:1284 src/diff3.c:1683 src/diff3.c:1738
+#: src/sdiff.c:306 src/sdiff.c:843 src/sdiff.c:854
+msgid "read failed"
+msgstr "读取失败"
+
+#: src/diff3.c:478
+msgid "-A, --show-all              output all changes, bracketing conflicts"
+msgstr "-A, --show-all              输出所有变更，并使用尖括号标记冲突"
+
+#: src/diff3.c:480
+msgid ""
+"-e, --ed                    output ed script incorporating changes\n"
+"                                from OLDFILE to YOURFILE into MYFILE"
+msgstr ""
+"-e, --ed                    输出可以将从 <旧文件> 到 <你的文件> 的变更\n"
+"                              整合进 <我的文件> 的 ed 脚本"
+
+#: src/diff3.c:482
+msgid "-E, --show-overlap          like -e, but bracket conflicts"
+msgstr "-E, --show-overlap          类似 -e，但使用尖括号标记冲突"
+
+#: src/diff3.c:483
+msgid ""
+"-3, --easy-only             like -e, but incorporate only nonoverlapping "
+"changes"
+msgstr "-3, --easy-only             类似 -e，但只输出不重叠的变更"
+
+#: src/diff3.c:484
+msgid ""
+"-x, --overlap-only          like -e, but incorporate only overlapping changes"
+msgstr "-x, --overlap-only          类似 -e，但只输出重叠的变更"
+
+#: src/diff3.c:485
+msgid "-X                          like -x, but bracket conflicts"
+msgstr "-X                          类似 -x，但使用尖括号标记冲突"
+
+#: src/diff3.c:486
+msgid "-i                          append 'w' and 'q' commands to ed scripts"
+msgstr "-i                          在 ed 脚本后追加 \"w\" 和 \"q\" 命令"
+
+#: src/diff3.c:488
+msgid ""
+"-m, --merge                 output actual merged file, according to\n"
+"                                -A if no other options are given"
+msgstr ""
+"-m, --merge                 输出实际的合并后的文件，若没有给出其它选项，\n"
+"                                则依据 -A 操作的结果"
+
+#: src/diff3.c:491
+msgid "-a, --text                  treat all files as text"
+msgstr "-a, --text                  将所有文件视为文本文件"
+
+#: src/diff3.c:492
+msgid "    --strip-trailing-cr     strip trailing carriage return on input"
+msgstr "    --strip-trailing-cr     去除输入内容行末的回车 (CR) 字符"
+
+#: src/diff3.c:493
+msgid "-T, --initial-tab           make tabs line up by prepending a tab"
+msgstr ""
+"-T, --initial-tab           在每行前面加上一个制表符，以使制表符可以对齐"
+
+#: src/diff3.c:494
+msgid "    --diff-program=PROGRAM  use PROGRAM to compare files"
+msgstr "    --diff-program=程序     使用 <程序> 来比较文件"
+
+#: src/diff3.c:495
+msgid ""
+"-L, --label=LABEL           use LABEL instead of file name\n"
+"                                (can be repeated up to three times)"
+msgstr "-L, --label=标签            使用 <标签> 替代文件名（可以重复最多三次）"
+
+#: src/diff3.c:498
+msgid "    --help                  display this help and exit"
+msgstr "    --help                 显示此帮助信息并退出"
+
+#: src/diff3.c:499
+msgid "-v, --version               output version information and exit"
+msgstr "-v, --version               显示版本信息并退出"
+
+#: src/diff3.c:508
+#, c-format
+msgid "Usage: %s [OPTION]... MYFILE OLDFILE YOURFILE\n"
+msgstr "用法：%s [选项]... 我的文件 旧文件 你的文件\n"
+
+#: src/diff3.c:510
+msgid "Compare three files line by line."
+msgstr "逐行比较三个文件。"
+
+#: src/diff3.c:520
+msgid ""
+"\n"
+"The default output format is a somewhat human-readable representation of\n"
+"the changes.\n"
+"\n"
+"The -e, -E, -x, -X (and corresponding long) options cause an ed script\n"
+"to be output instead of the default.\n"
+"\n"
+"Finally, the -m (--merge) option causes diff3 to do the merge internally\n"
+"and output the actual merged file.  For unusual input, this is more\n"
+"robust than using ed.\n"
+msgstr ""
+"\n"
+"默认的输出格式将使用可读性尚可的方式表示变更。\n"
+"\n"
+"使用 -e、-E、-x、-X 选项（或对应的长选项）将使用 ed 脚本格式进行输出，\n"
+"而非使用默认格式。\n"
+"\n"
+"另外，-m (--merge) 选项将使得 diff3 在内部完成合并并输出实际的合并后的文"
+"件。\n"
+"对某些不寻常的输入而言，使用此选项将比使用 ed 更具鲁棒性。\n"
+
+#: src/diff3.c:532
+msgid "Exit status is 0 if successful, 1 if conflicts, 2 if trouble."
+msgstr "退出状态为 0 表示成功，1 表示有冲突，2 表示有错误发生。"
+
+#: src/diff3.c:725
+msgid "internal error: screwup in format of diff blocks"
+msgstr "内部错误：diff 块的格式出错"
+
+#: src/diff3.c:1015
+#, c-format
+msgid "%s: diff failed: "
+msgstr "%s: diff 失败："
+
+#: src/diff3.c:1037
+msgid "internal error: invalid diff type in process_diff"
+msgstr "内部错误：process_diff 中的 diff 类型无效"
+
+#: src/diff3.c:1060
+msgid "invalid diff format; invalid change separator"
+msgstr "无效的 diff 格式；无效的变更分隔符"
+
+#: src/diff3.c:1294
+msgid "invalid diff format; incomplete last line"
+msgstr "无效的 diff 格式；最后一行不完整"
+
+#: src/diff3.c:1318 src/sdiff.c:274 src/util.c:1069
+#, c-format
+msgid "subsidiary program '%s' could not be invoked"
+msgstr "无法调用辅助程序 \"%s\""
+
+#: src/diff3.c:1343
+msgid "invalid diff format; incorrect leading line chars"
+msgstr "无效的 diff 格式；错误的行前导字符"
+
+#: src/diff3.c:1416
+msgid "internal error: invalid diff type passed to output"
+msgstr "内部错误：传递了无效的要输出的 diff 类型"
+
+#: src/diff3.c:1685 src/diff3.c:1742
+msgid "input file shrank"
+msgstr "输入文件缩小了"
+
+#: src/dir.c:154
+#, c-format
+msgid "cannot compare file names '%s' and '%s'"
+msgstr "无法比较文件名 \"%s\" 和 \"%s\""
+
+#: src/dir.c:223
+#, c-format
+msgid "%s: recursive directory loop"
+msgstr "%s: 递归目录循环"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/sdiff.c:44
+msgid "Thomas Lord"
+msgstr "Thomas Lord"
+
+#: src/sdiff.c:173
+msgid ""
+"-o, --output=FILE            operate interactively, sending output to FILE"
+msgstr "-o, --output=文件            交互式操作，并将结果写入 <文件>"
+
+#: src/sdiff.c:175
+msgid ""
+"-i, --ignore-case            consider upper- and lower-case to be the same"
+msgstr "-i, --ignore-case            忽略大小写"
+
+#: src/sdiff.c:176
+msgid "-E, --ignore-tab-expansion   ignore changes due to tab expansion"
+msgstr "-E, --ignore-tab-expansion   忽略制表符展开造成的变更"
+
+#: src/sdiff.c:177
+msgid "-Z, --ignore-trailing-space  ignore white space at line end"
+msgstr "-Z, --ignore-trailing-space  忽略行末的空白字符"
+
+#: src/sdiff.c:178
+msgid ""
+"-b, --ignore-space-change    ignore changes in the amount of white space"
+msgstr "-b, --ignore-space-change    忽略空白字符数不同造成的变更"
+
+#: src/sdiff.c:179
+msgid "-W, --ignore-all-space       ignore all white space"
+msgstr "-W, --ignore-all-space       忽略所有空白字符"
+
+#: src/sdiff.c:180
+msgid "-B, --ignore-blank-lines     ignore changes whose lines are all blank"
+msgstr "-B, --ignore-blank-lines     忽略所有行均为空行的变更"
+
+#: src/sdiff.c:181
+msgid "-I, --ignore-matching-lines=RE  ignore changes all whose lines match RE"
+msgstr ""
+"-I, --ignore-matching-lines=正则  忽略所有行均与 <正则> 表达式匹配的变更"
+
+#: src/sdiff.c:182
+msgid "    --strip-trailing-cr      strip trailing carriage return on input"
+msgstr "    --strip-trailing-cr      去除输入内容行末的回车 (CR) 字符"
+
+#: src/sdiff.c:183
+msgid "-a, --text                   treat all files as text"
+msgstr "-a, --text                   将所有文件视为文本文件"
+
+#: src/sdiff.c:185
+msgid ""
+"-w, --width=NUM              output at most NUM (default 130) print columns"
+msgstr ""
+"-W, --width=数字             每行宽度最多 <数字> 个字符（默认为 130 个）"
+
+#: src/sdiff.c:186
+msgid ""
+"-l, --left-column            output only the left column of common lines"
+msgstr "-l, --left-column            对于相同的行只输出左栏"
+
+#: src/sdiff.c:187
+msgid "-s, --suppress-common-lines  do not output common lines"
+msgstr "-s, --suppress-common-lines  对于相同的行不进行输出"
+
+#: src/sdiff.c:189
+msgid "-t, --expand-tabs            expand tabs to spaces in output"
+msgstr "-t, --expand-tabs            将输出中的制表符展开为空格"
+
+#: src/sdiff.c:190
+msgid ""
+"    --tabsize=NUM            tab stops at every NUM (default 8) print columns"
+msgstr "    --tabsize=数字           制表符宽度（默认为 8）"
+
+#: src/sdiff.c:192
+msgid "-d, --minimal                try hard to find a smaller set of changes"
+msgstr "-d, --minimal                尽可能找出最小的差异集"
+
+#: src/sdiff.c:193
+msgid ""
+"-H, --speed-large-files      assume large files, many scattered small changes"
+msgstr "-H, --speed-large-files      假设文件很大，且含有很多零散的微小变更"
+
+#: src/sdiff.c:194
+msgid "    --diff-program=PROGRAM   use PROGRAM to compare files"
+msgstr "    --diff-program=程序      使用 <程序> 来比较文件"
+
+#: src/sdiff.c:196
+msgid "    --help                   display this help and exit"
+msgstr "    --help                   显示此帮助信息并退出"
+
+#: src/sdiff.c:197
+msgid "-v, --version                output version information and exit"
+msgstr "-v, --version                显示版本信息并退出"
+
+#: src/sdiff.c:206
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 FILE2\n"
+msgstr "用法：%s [选项]... 文件1 文件2\n"
+
+#: src/sdiff.c:208
+msgid "Side-by-side merge of differences between FILE1 and FILE2."
+msgstr "以并排显示的方式合并 <文件1> 和 <文件2> 之间的差异。"
+
+#: src/sdiff.c:328
+msgid "cannot interactively merge standard input"
+msgstr "不允许交互式合并标准输入的内容"
+
+#: src/sdiff.c:594
+msgid "both files to be compared are directories"
+msgstr "两个要比较的文件都是目录"
+
+#: src/sdiff.c:817
+msgid ""
+"ed:\tEdit then use both versions, each decorated with a header.\n"
+"eb:\tEdit then use both versions.\n"
+"el or e1:\tEdit then use the left version.\n"
+"er or e2:\tEdit then use the right version.\n"
+"e:\tDiscard both versions then edit a new one.\n"
+"l or 1:\tUse the left version.\n"
+"r or 2:\tUse the right version.\n"
+"s:\tSilently include common lines.\n"
+"v:\tVerbosely include common lines.\n"
+"q:\tQuit.\n"
+msgstr ""
+"ed:\t编辑两个版本的内容，然后使用。两个版本分别加上头部以便识别。\n"
+"eb:\t编辑两个版本的内容，然后使用。\n"
+"el 或 e1:\t编辑左边的版本，然后使用。\n"
+"er 或 e2:\t编辑右边的版本，然后使用。\n"
+"e:\t丢弃两个版本的内容，然后编辑一个新的版本。\n"
+"l 或 1:\t使用左边的版本。\n"
+"r 或 2:\t使用右边的版本。\n"
+"s:\t复制共有的行，且不显示输出\n"
+"v:\t复制共有的行，且显示详细输出\n"
+"q:\t退出。\n"
+
+#: src/util.c:755
+#, c-format
+msgid "unrecognized prefix: %s"
+msgstr "无法识别的前缀：%s"
+
+#: src/util.c:785
+#, c-format
+msgid "unparsable value for --palette"
+msgstr "--palette 的值无法解析"
+
+#~ msgid "invalid %s%s argument '%s'"
+#~ msgstr "无效的 %s%s 参数 “%s”"
+
+#~ msgid "invalid suffix in %s%s argument '%s'"
+#~ msgstr "在 %s%s 的参数 “%s” 中有无效的后缀"
+
+#~ msgid "%s%s argument '%s' too large"
+#~ msgstr "%s %s 参数 “%s” 太大"
+
+#~ msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
+#~ msgstr "%s 主页: <https://www.gnu.org/software/%s/>\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s：选项 “--%s” 不接受参数\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s：选项 “-W %s” 不接受参数\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s：选项 “%s” 需要一个参数\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s：非法选项 -- %c\n"
+
+#~ msgid ""
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "本程序是自由软件;请参看源代码的版权声明。本软件不提供任何保证;\n"
+#~ "即使是商业的或为某一专用目的适用性保证也没有。\n"
+
+#~ msgid "-i SKIP1:SKIP2  --ignore-initial=SKIP1:SKIP2"
+#~ msgstr "-i SKIP1:SKIP2  --ignore-initial=SKIP1:SKIP2"
+
+#~ msgid "-s  --quiet  --silent  Output nothing; yield exit status only."
+#~ msgstr "-s  --quiet  --silent  无任何输出；只产生退出状态。"
+
+#~ msgid "--help  Output this help."
+#~ msgstr "--help  输入本帮助。"
+
+#~ msgid "Report bugs to <bug-gnu-utils@gnu.org>."
+#~ msgstr "请向 <bug-gnu-utils@gnu.org> 报告错误。"
+
+#~ msgid "`-%ld' option is obsolete; use `-%c %ld'"
+#~ msgstr "“-%ld” 选项已过时；请使用 “-%c %ld”"
+
+#~ msgid "`-%ld' option is obsolete; omit it"
+#~ msgstr "“-%ld” 选项已过时；忽略之"
+
+#~ msgid ""
+#~ "-c  -C NUM  --context[=NUM]  Output NUM (default 3) lines of copied "
+#~ "context.\n"
+#~ "-u  -U NUM  --unified[=NUM]  Output NUM (default 3) lines of unified "
+#~ "context.\n"
+#~ "  --label LABEL  Use LABEL instead of file name.\n"
+#~ "  -p  --show-c-function  Show which C function each change is in.\n"
+#~ "  -F RE  --show-function-line=RE  Show the most recent line matching RE."
+#~ msgstr ""
+#~ "-c  -C 行数  --context[=行数]  显示指定<行数>(默认 3 行)copied 格式的上下"
+#~ "文\n"
+#~ "-u  -U 行数  --unified[=行数]  显示指定<行数>(默认 3 行)unified 格式的上下"
+#~ "文\n"
+#~ "   --label 标识                       使用<标识>代替文件名称。\n"
+#~ "   -p  --show-c-function           显示和每个差异有关的 C 函数名称。\n"
+#~ "   -F RE  --show-function-line=RE  显示最接近而符合<正则表示式>的一行。"
+
+#~ msgid ""
+#~ "-y  --side-by-side  Output in two columns.\n"
+#~ "  -W NUM  --width=NUM  Output at most NUM (default 130) print columns.\n"
+#~ "  --left-column  Output only the left column of common lines.\n"
+#~ "  --suppress-common-lines  Do not output common lines."
+#~ msgstr ""
+#~ "-y  --side-by-side         以两列并排的方式显示。\n"
+#~ "  -W NUM  --width=NUM      每行显示最多 NUM (默认 130) 个字符。\n"
+#~ "  --left-column            当有两行相同时只显示左边的一行。\n"
+#~ "  --suppress-common-lines  当有两行相同时不会显示。"
+
+#~ msgid ""
+#~ "--speed-large-files  Assume large files and many scattered small changes."
+#~ msgstr "--speed-large-files     假设文件十分大而且其中含有许多微小的差异。"
+
+#~ msgid "-X  Output overlapping changes, bracketing them."
+#~ msgstr "-X  输出重叠的更改部份，并加上括号。"
+
+#~ msgid "-m  --merge  Output merged file instead of ed script (default -A)."
+#~ msgstr "-m  --merge   显示合并后的文件而不是 ed script (默认加上 -A)。"
+
+#~ msgid "-L LABEL  --label=LABEL  Use LABEL instead of file name."
+#~ msgstr "-L 标识  --label=标识    以<标识>代替文件名称。"
+
+#~ msgid "subsidiary program `%s' not found"
+#~ msgstr "找不到辅助程序 “%s”"
+
+#~ msgid "subsidiary program `%s' failed"
+#~ msgstr "辅助程序 “%s” 调用失败"
+
+#~ msgid "subsidiary program `%s' failed (exit status %d)"
+#~ msgstr "辅助程序 “%s” 调用失败(退出状态：%d)"

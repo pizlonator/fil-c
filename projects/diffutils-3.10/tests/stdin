@@ -1,0 +1,24 @@
+#!/bin/sh
+# Ensure that "-" means "standard input".
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+cat <<EOF > exp || fail=1
+--- -
++++ b
+@@ -1 +1 @@
+-a
++b
+EOF
+
+echo a > a
+echo b > b
+
+returns_ 1 diff -u - b < a > out 2> err || fail=1
+# Remove date and time.
+sed -e 's/^\([-+*][-+*][-+*] [^	]*\)	.*/\1/' out > k; mv k out
+compare exp out || fail=1
+
+Exit $fail

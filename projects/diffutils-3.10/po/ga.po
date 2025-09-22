@@ -1,0 +1,1633 @@
+# Irish translations for diffutils.
+# Copyright (C) 2004 Free Software Foundation, Inc.
+# This file is distributed under the same license as the diffutils package.
+# Kevin Patrick Scannell <scannell@SLU.EDU>, 2004.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: diffutils 2.8.7\n"
+"Report-Msgid-Bugs-To: bug-diffutils@gnu.org\n"
+"POT-Creation-Date: 2023-05-21 01:51-0700\n"
+"PO-Revision-Date: 2004-12-03 13:47-0500\n"
+"Last-Translator: Kevin Patrick Scannell <scannell@SLU.EDU>\n"
+"Language-Team: Irish <ga@li.org>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+#: lib/argmatch.c:145
+#, c-format
+msgid "invalid argument %s for %s"
+msgstr ""
+
+#: lib/argmatch.c:146
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr ""
+
+#: lib/argmatch.c:165 lib/argmatch.h:242
+msgid "Valid arguments are:"
+msgstr ""
+
+#: lib/c-stack.c:186
+msgid "program error"
+msgstr "earráid chláir"
+
+#: lib/c-stack.c:187
+msgid "stack overflow"
+msgstr "cruach thar maoil"
+
+#: lib/error.c:193
+msgid "Unknown system error"
+msgstr "Earráid chórais anaithnid"
+
+#: lib/file-type.c:40
+msgid "regular empty file"
+msgstr "gnáthchomhad folamh"
+
+#: lib/file-type.c:40
+msgid "regular file"
+msgstr "gnáthchomhad"
+
+#: lib/file-type.c:43
+msgid "directory"
+msgstr "comhadlann"
+
+#: lib/file-type.c:46
+msgid "symbolic link"
+msgstr "nasc siombalach"
+
+#: lib/file-type.c:52
+msgid "message queue"
+msgstr "ciú teachtaireachta"
+
+#: lib/file-type.c:55
+msgid "semaphore"
+msgstr "séamafór"
+
+# FARF --KPS
+#: lib/file-type.c:58
+msgid "shared memory object"
+msgstr "comhad comhchuimhne"
+
+#: lib/file-type.c:61
+msgid "typed memory object"
+msgstr "comhad cuimhne le cineál"
+
+#: lib/file-type.c:66
+msgid "block special file"
+msgstr "comhad speisialta den chineál `bloc'"
+
+#: lib/file-type.c:69
+msgid "character special file"
+msgstr "comhad speisialta den chineál `carachtar'"
+
+#: lib/file-type.c:72
+msgid "contiguous data"
+msgstr ""
+
+# `TITA' ?! -KPS
+#: lib/file-type.c:75
+msgid "fifo"
+msgstr "fifo"
+
+#: lib/file-type.c:78
+msgid "door"
+msgstr ""
+
+#: lib/file-type.c:81
+#, fuzzy
+msgid "multiplexed block special file"
+msgstr "comhad speisialta den chineál `bloc'"
+
+#: lib/file-type.c:84
+#, fuzzy
+msgid "multiplexed character special file"
+msgstr "comhad speisialta den chineál `carachtar'"
+
+#: lib/file-type.c:87
+msgid "multiplexed file"
+msgstr ""
+
+#: lib/file-type.c:90
+#, fuzzy
+msgid "named file"
+msgstr "comhad aisteach"
+
+#: lib/file-type.c:93
+#, fuzzy
+msgid "network special file"
+msgstr "comhad speisialta den chineál `bloc'"
+
+#: lib/file-type.c:96
+msgid "migrated file with data"
+msgstr ""
+
+#: lib/file-type.c:99
+msgid "migrated file without data"
+msgstr ""
+
+#: lib/file-type.c:102
+msgid "port"
+msgstr ""
+
+#: lib/file-type.c:105
+msgid "socket"
+msgstr "soicéad"
+
+#: lib/file-type.c:108
+msgid "whiteout"
+msgstr ""
+
+#: lib/file-type.c:110
+msgid "weird file"
+msgstr "comhad aisteach"
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: Tá an rogha `%s' débhríoch\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: Tá an rogha `%s' débhríoch\n"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: rogha anaithnid `%c%s'\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: ní cheadaítear argóint i ndiaidh na rogha `%c%s'\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: ní foláir argóint don rogha `%s'\n"
+
+#: lib/getopt.c:621
+#, fuzzy, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: rogha neamhbhailí -- %c\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, fuzzy, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: ní foláir argóint don rogha -- %c\n"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:354
+msgid "`"
+msgstr ""
+
+#: lib/quotearg.c:355
+msgid "'"
+msgstr ""
+
+#: lib/regcomp.c:122
+msgid "Success"
+msgstr "Bua!"
+
+# #-#-#-#-#  findutils-4.2.6.ga.po (findutils 4.2.6)  #-#-#-#-#
+# ugh.  Not clear what kind of things we're matching -- KPS
+#: lib/regcomp.c:125
+msgid "No match"
+msgstr "Níl a leithéid ann"
+
+#: lib/regcomp.c:128
+msgid "Invalid regular expression"
+msgstr "Slonn ionadaíochta neamhbhailí"
+
+#: lib/regcomp.c:131
+msgid "Invalid collation character"
+msgstr "Carachtar cóimheasa neamhbhailí"
+
+#: lib/regcomp.c:134
+msgid "Invalid character class name"
+msgstr "Aicme charachtair neamhbhailí"
+
+#: lib/regcomp.c:137
+msgid "Trailing backslash"
+msgstr "Cúlslais ag deireadh"
+
+# #-#-#-#-#  sed-4.1.1.ga.po (sed 4.1.1)  #-#-#-#-#
+# coinage - KPS
+#: lib/regcomp.c:140
+msgid "Invalid back reference"
+msgstr "Cúltagairt neamhbhailí"
+
+#: lib/regcomp.c:143
+#, fuzzy
+msgid "Unmatched [, [^, [:, [., or [="
+msgstr "[ nó [^ corr"
+
+#: lib/regcomp.c:146
+msgid "Unmatched ( or \\("
+msgstr "( nó \\( corr"
+
+#: lib/regcomp.c:149
+msgid "Unmatched \\{"
+msgstr "\\{ corr"
+
+#: lib/regcomp.c:152
+msgid "Invalid content of \\{\\}"
+msgstr "Ábhar neamhbhailí idir \\{\\}"
+
+#: lib/regcomp.c:155
+msgid "Invalid range end"
+msgstr "Deireadh raoin neamhbhailí"
+
+#: lib/regcomp.c:158
+msgid "Memory exhausted"
+msgstr "Cuimhne ídithe"
+
+#: lib/regcomp.c:161
+msgid "Invalid preceding regular expression"
+msgstr "Is neamhbhailí an slonn ionadaíochta roimhe seo"
+
+#: lib/regcomp.c:164
+msgid "Premature end of regular expression"
+msgstr "Deireadh le slonn ionadaíochta gan choinne"
+
+#: lib/regcomp.c:167
+msgid "Regular expression too big"
+msgstr "Slonn ionadaíochta rómhór"
+
+#: lib/regcomp.c:170
+msgid "Unmatched ) or \\)"
+msgstr ") nó \\) corr"
+
+#: lib/regcomp.c:650
+msgid "No previous regular expression"
+msgstr "Níl aon slonn ionadaíochta roimhe seo"
+
+#: lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "cuimhne ídithe"
+
+#: lib/xfreopen.c:34
+msgid "stdin"
+msgstr ""
+
+#: lib/xfreopen.c:35
+msgid "stdout"
+msgstr ""
+
+#: lib/xfreopen.c:36
+msgid "stderr"
+msgstr ""
+
+#: lib/xfreopen.c:37
+#, fuzzy
+msgid "unknown stream"
+msgstr "Earráid chórais anaithnid"
+
+#: lib/xfreopen.c:38
+#, c-format
+msgid "failed to reopen %s with mode %s"
+msgstr ""
+
+#: lib/xstdopen.c:34
+#, c-format
+msgid "standard file descriptors"
+msgstr ""
+
+#: lib/version-etc.c:73
+#, c-format
+msgid "Packaged by %s (%s)\n"
+msgstr ""
+
+#: lib/version-etc.c:76
+#, c-format
+msgid "Packaged by %s\n"
+msgstr ""
+
+#. TRANSLATORS: Translate "(C)" to the copyright symbol
+#. (C-in-a-circle), if this symbol is available in the user's
+#. locale.  Otherwise, do not translate "(C)"; leave it as-is.
+#: lib/version-etc.c:83
+msgid "(C)"
+msgstr ""
+
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: lib/version-etc.c:88
+#, c-format
+msgid ""
+"License GPLv3+: GNU GPL version 3 or later <%s>.\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+
+#. TRANSLATORS: %s denotes an author name.
+#: lib/version-etc.c:105
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Le %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:109
+#, c-format
+msgid "Written by %s and %s.\n"
+msgstr "Le %s agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:113
+#, c-format
+msgid "Written by %s, %s, and %s.\n"
+msgstr "Le %s, %s, agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:120
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:127
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"%s, agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:134
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, and %s.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"%s, %s, agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:142
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, and %s.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"%s, %s, %s, agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:150
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:159
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, agus %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:170
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, %s, and others.\n"
+msgstr ""
+"Le %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, %s, agus daoine eile nach iad.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: lib/version-etc.c:249
+#, c-format
+msgid "Report bugs to: %s\n"
+msgstr ""
+
+#: lib/version-etc.c:251
+#, c-format
+msgid "Report %s bugs to: %s\n"
+msgstr ""
+
+#: lib/version-etc.c:255 lib/version-etc.c:257
+#, c-format
+msgid "%s home page: <%s>\n"
+msgstr ""
+
+#: lib/version-etc.c:260
+#, c-format
+msgid "General help using GNU software: <%s>\n"
+msgstr ""
+
+#: src/analyze.c:455 src/diff.c:1478
+#, c-format
+msgid "Files %s and %s differ\n"
+msgstr "Tá difríocht idir na comhaid %s agus %s\n"
+
+#: src/analyze.c:456
+#, fuzzy, c-format
+msgid "Binary files %s and %s differ\n"
+msgstr "Tá difríocht idir na comhaid %s agus %s\n"
+
+#: src/analyze.c:707 src/diff3.c:1457 src/util.c:1354
+msgid "No newline at end of file"
+msgstr "Gan líne nua ag an chomhadchríoch"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:45
+msgid "Torbjorn Granlund"
+msgstr "Torbjorn Granlund"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:46
+msgid "David MacKenzie"
+msgstr ""
+
+#: src/cmp.c:124 src/diff.c:939 src/diff3.c:465 src/sdiff.c:159
+#, fuzzy, c-format
+msgid "Try '%s --help' for more information."
+msgstr "Bain triail as `%s --help' chun tuilleadh eolais a fháil."
+
+#: src/cmp.c:142
+#, fuzzy, c-format
+msgid "invalid --ignore-initial value '%s'"
+msgstr "luach neamhbhailí --ignore-initial `%s'"
+
+#: src/cmp.c:152
+#, c-format
+msgid "options -l and -s are incompatible"
+msgstr "Níl na roghanna -l agus -s comhoiriúnach"
+
+#: src/cmp.c:160 src/diff.c:947 src/diff3.c:472 src/sdiff.c:167 src/sdiff.c:314
+#: src/sdiff.c:321 src/sdiff.c:873 src/util.c:952 src/util.c:1052
+#: src/util.c:1059
+msgid "write failed"
+msgstr "teipeadh ag scríobh"
+
+#: src/cmp.c:162 src/diff.c:949 src/diff.c:1543 src/diff3.c:474 src/sdiff.c:169
+msgid "standard output"
+msgstr "aschur caighdeánach"
+
+#: src/cmp.c:166
+#, fuzzy
+msgid "-b, --print-bytes          print differing bytes"
+msgstr "-b  --print-bytes  Taispeáin na bearta atá difriúla."
+
+#: src/cmp.c:167
+#, fuzzy
+msgid "-i, --ignore-initial=SKIP         skip first SKIP bytes of both inputs"
+msgstr ""
+"-i UIMHIR  --ignore-initial=UIMHIR Gabh thar an chéad UIMHIR beart "
+"ionchurtha."
+
+#: src/cmp.c:168
+#, fuzzy
+msgid ""
+"-i, --ignore-initial=SKIP1:SKIP2  skip first SKIP1 bytes of FILE1 and\n"
+"                                      first SKIP2 bytes of FILE2"
+msgstr "  Gabh thar an chéad SCIP1 beart as COMHAD1 agus SCIP2 as COMHAD2."
+
+#: src/cmp.c:170
+#, fuzzy
+msgid ""
+"-l, --verbose              output byte numbers and differing byte values"
+msgstr ""
+"-l  --verbose  Taispeáin uimhreacha agus luachanna do bhearta uile difriúla."
+
+#: src/cmp.c:171
+#, fuzzy
+msgid "-n, --bytes=LIMIT          compare at most LIMIT bytes"
+msgstr "-n TEOR  --bytes=TEOR  Cuir TEOR beart i gcomparáid, ar a mhéad."
+
+#: src/cmp.c:172
+msgid "-s, --quiet, --silent      suppress all normal output"
+msgstr ""
+
+#: src/cmp.c:173
+msgid "    --help                 display this help and exit"
+msgstr ""
+
+#: src/cmp.c:174
+#, fuzzy
+msgid "-v, --version              output version information and exit"
+msgstr "-v  --version  Taispeáin eolas faoin leagan."
+
+#: src/cmp.c:183
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\n"
+msgstr "Úsáid: %s [ROGHA]... COMHAD1 [COMHAD2 [SCIPEÁIL1 [SCIPEÁIL2]]]\n"
+
+#: src/cmp.c:185
+msgid "Compare two files byte by byte."
+msgstr "Cuir dhá chomhad i gcomparáid, beart le beart."
+
+#: src/cmp.c:187
+#, fuzzy
+msgid ""
+"The optional SKIP1 and SKIP2 specify the number of bytes to skip\n"
+"at the beginning of each file (zero by default)."
+msgstr ""
+"Is éard atá i SCIP1 agus SCIP2 ná líonta na mbeart a scipeáil i ngach comhad."
+
+#: src/cmp.c:190 src/diff.c:1059 src/diff3.c:512 src/sdiff.c:210
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr ""
+
+#: src/cmp.c:196
+msgid ""
+"SKIP values may be followed by the following multiplicative suffixes:\n"
+"kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+"GB 1,000,000,000, G 1,073,741,824, and so on for T, P, E, Z, Y."
+msgstr ""
+"Is féidir na hiarmhíreanna a leanas a chur i ndiaidh SCIP:\n"
+"kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+"GB 1,000,000,000, G 1,073,741,824, srl. do T, P, E, Z, Y."
+
+#: src/cmp.c:199
+#, fuzzy
+msgid "If a FILE is '-' or missing, read standard input."
+msgstr "Mura bhfuil COMHAD ann, nó más `-' é, léigh ón ionchur caighdeánach."
+
+#: src/cmp.c:200 src/diff.c:1047 src/sdiff.c:220
+msgid "Exit status is 0 if inputs are the same, 1 if different, 2 if trouble."
+msgstr "Stádas scortha: 0 más ionann iad, 1 más difriúil, 2 má tá fadhb ann."
+
+#: src/cmp.c:247
+#, fuzzy, c-format
+msgid "invalid --bytes value '%s'"
+msgstr "luach neamhbhailí --bytes `%s'"
+
+#: src/cmp.c:273 src/diff.c:857 src/diff3.c:368 src/sdiff.c:564
+#, fuzzy, c-format
+msgid "missing operand after '%s'"
+msgstr "ní foláir argóint i ndiaidh `%s'"
+
+#: src/cmp.c:285 src/diff.c:859 src/diff3.c:370 src/sdiff.c:566
+#, fuzzy, c-format
+msgid "extra operand '%s'"
+msgstr "oibreann breise `%s'"
+
+#: src/cmp.c:521
+#, c-format
+msgid "%s %s differ: byte %s, line %s\n"
+msgstr "%s %s difriúil: beart %s, líne %s\n"
+
+#: src/cmp.c:537
+#, c-format
+msgid "%s %s differ: byte %s, line %s is %3o %s %3o %s\n"
+msgstr "%s %s difriúil: beart %s, líne %s = %3o %s %3o %s\n"
+
+#: src/cmp.c:594
+#, fuzzy, c-format
+msgid "cmp: EOF on %s which is empty\n"
+msgstr "cmp: EOF ar %s\n"
+
+#: src/cmp.c:608
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s, line %s\n"
+msgstr "%s %s difriúil: beart %s, líne %s\n"
+
+#: src/cmp.c:609
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s, in line %s\n"
+msgstr "%s %s difriúil: beart %s, líne %s\n"
+
+#: src/cmp.c:615
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s\n"
+msgstr "cmp: EOF ar %s\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:50
+msgid "Paul Eggert"
+msgstr ""
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:51
+msgid "Mike Haertel"
+msgstr ""
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:52
+msgid "David Hayes"
+msgstr ""
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:53
+msgid "Richard Stallman"
+msgstr ""
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:54
+msgid "Len Tower"
+msgstr ""
+
+#: src/diff.c:365
+#, fuzzy, c-format
+msgid "invalid context length '%s'"
+msgstr "Fad neamhbhailí comhthéacs `%s'"
+
+#: src/diff.c:487
+#, c-format
+msgid "pagination not supported on this host"
+msgstr "Ní thacaítear leis an uimhriú leathanach ar an óstríomhaire seo"
+
+#: src/diff.c:502 src/diff3.c:348
+#, c-format
+msgid "too many file label options"
+msgstr "an iomarca argóintí do lipéid chomhaid"
+
+#: src/diff.c:579
+#, fuzzy, c-format
+msgid "invalid width '%s'"
+msgstr "leithead neamhbhailí `%s'"
+
+#: src/diff.c:583
+msgid "conflicting width options"
+msgstr "roghanna leithid contrártha"
+
+#: src/diff.c:608
+#, fuzzy, c-format
+msgid "invalid horizon length '%s'"
+msgstr "fad léaslíne neamhbhailí `%s'"
+
+#: src/diff.c:664
+#, fuzzy, c-format
+msgid "invalid tabsize '%s'"
+msgstr "tá an mhéid tháib `%s' neamhbhailí"
+
+#: src/diff.c:668
+msgid "conflicting tabsize options"
+msgstr "Roghanna tábmhéid contrártha"
+
+#: src/diff.c:834
+msgid "--from-file and --to-file both specified"
+msgstr "tugadh --from-file agus --to-file lena chéile"
+
+#: src/diff.c:953
+#, fuzzy
+msgid "    --normal                  output a normal diff (the default)"
+msgstr "--normal  Aschuir diff coitianta."
+
+#: src/diff.c:954
+#, fuzzy
+msgid "-q, --brief                   report only when files differ"
+msgstr "-q  --brief  Ná taispeáin ach difriúil nó nach ea."
+
+#: src/diff.c:955
+#, fuzzy
+msgid "-s, --report-identical-files  report when two files are the same"
+msgstr ""
+"-s  --report-identical-files  Tuairiscigh nuair atá dhá chomhad comhionanna."
+
+#: src/diff.c:956
+msgid ""
+"-c, -C NUM, --context[=NUM]   output NUM (default 3) lines of copied context"
+msgstr ""
+
+#: src/diff.c:957
+#, fuzzy
+msgid ""
+"-u, -U NUM, --unified[=NUM]   output NUM (default 3) lines of unified context"
+msgstr ""
+"-w UIMH --width=UIMH  UIMH colún priontála ar a mhéad (réamhshocrú=130)."
+
+#: src/diff.c:958
+#, fuzzy
+msgid "-e, --ed                      output an ed script"
+msgstr "-e  --ed  Aschuir script `ed'."
+
+#: src/diff.c:959
+#, fuzzy
+msgid "-n, --rcs                     output an RCS format diff"
+msgstr "-n  --rcs  Aschuir diff i gcruth RCS."
+
+#: src/diff.c:960
+msgid "-y, --side-by-side            output in two columns"
+msgstr ""
+
+#: src/diff.c:961
+#, fuzzy
+msgid ""
+"-W, --width=NUM               output at most NUM (default 130) print columns"
+msgstr ""
+"-w UIMH --width=UIMH  UIMH colún priontála ar a mhéad (réamhshocrú=130)."
+
+#: src/diff.c:962
+#, fuzzy
+msgid ""
+"    --left-column             output only the left column of common lines"
+msgstr "-l  --left-column  Ná taispeáin an colún ar dheis más ionann iad."
+
+#: src/diff.c:963
+#, fuzzy
+msgid "    --suppress-common-lines   do not output common lines"
+msgstr "-s  --suppress-common-lines  Ná taispeáin línte atá i bpáirt acu."
+
+#: src/diff.c:965
+msgid "-p, --show-c-function         show which C function each change is in"
+msgstr ""
+
+#: src/diff.c:966
+msgid "-F, --show-function-line=RE   show the most recent line matching RE"
+msgstr ""
+
+#: src/diff.c:967
+msgid ""
+"    --label LABEL             use LABEL instead of file name and timestamp\n"
+"                                (can be repeated)"
+msgstr ""
+
+#: src/diff.c:970
+#, fuzzy
+msgid "-t, --expand-tabs             expand tabs to spaces in output"
+msgstr "-t  --expand-tabs  leathnaigh táib go spásanna san aschur."
+
+#: src/diff.c:971
+#, fuzzy
+msgid "-T, --initial-tab             make tabs line up by prepending a tab"
+msgstr ""
+"-T  --initial-tab  Ailínigh táib trí tháb a chur in ionad spás tosaigh."
+
+#: src/diff.c:972
+#, fuzzy
+msgid ""
+"    --tabsize=NUM             tab stops every NUM (default 8) print columns"
+msgstr "--tabsize=UIMH Tábstop gach UIMH colún (réamhshocrú=8)."
+
+#: src/diff.c:973
+msgid ""
+"    --suppress-blank-empty    suppress space or tab before empty output lines"
+msgstr ""
+
+#: src/diff.c:974
+#, fuzzy
+msgid "-l, --paginate                pass output through 'pr' to paginate it"
+msgstr "-l  --paginate  uimhrigh leathanaigh le `pr'."
+
+#: src/diff.c:976
+#, fuzzy
+msgid ""
+"-r, --recursive                 recursively compare any subdirectories found"
+msgstr "-r  --recursive  Cuir fochomhadlanna i gcomparáid go hathchúrsach."
+
+#: src/diff.c:977
+msgid "    --no-dereference            don't follow symbolic links"
+msgstr ""
+
+#: src/diff.c:978
+#, fuzzy
+msgid "-N, --new-file                  treat absent files as empty"
+msgstr "-N  --new-file  Caith le comhad ar iarraidh mar chomhad folamh."
+
+#: src/diff.c:979
+#, fuzzy
+msgid "    --unidirectional-new-file   treat absent first files as empty"
+msgstr ""
+"--unidirectional-new-file  Más ar iarraidh, caith leis an chéad chomhad\n"
+"                                     mar chomhad folamh."
+
+#: src/diff.c:980
+#, fuzzy
+msgid "    --ignore-file-name-case     ignore case when comparing file names"
+msgstr "--ignore-file-name-case  Ná bí cásíogair le hainmneacha comhaid."
+
+#: src/diff.c:981
+#, fuzzy
+msgid "    --no-ignore-file-name-case  consider case when comparing file names"
+msgstr ""
+"--no-ignore-file-name-case  Bí cásíogair maidir le hainmneacha comhaid."
+
+#: src/diff.c:982
+#, fuzzy
+msgid "-x, --exclude=PAT               exclude files that match PAT"
+msgstr ""
+"-X SLONN --exclude=SLONN Fág comhaid as má tá siad comhoiriúnacha le SLONN."
+
+#: src/diff.c:983
+#, fuzzy
+msgid ""
+"-X, --exclude-from=FILE         exclude files that match any pattern in FILE"
+msgstr ""
+"-X COMHAD --exclude-from=COMHAD Fág comhaid as má tá siad comhoiriúnacha le "
+"haon\n"
+"                                    slonn ionadaíochta as an CHOMHAD."
+
+#: src/diff.c:984
+#, fuzzy
+msgid ""
+"-S, --starting-file=FILE        start with FILE when comparing directories"
+msgstr ""
+"-S COMHAD --starting-file=COMHAD Tosaigh le COMHAD agus comhadlanna á "
+"gcóimheas."
+
+#: src/diff.c:985
+#, fuzzy
+msgid ""
+"    --from-file=FILE1           compare FILE1 to all operands;\n"
+"                                  FILE1 can be a directory"
+msgstr ""
+"--from-file=COMHAD Cuir COMHAD (nó comhadlann) i gcomparáid le gach oibreann."
+
+#: src/diff.c:987
+#, fuzzy
+msgid ""
+"    --to-file=FILE2             compare all operands to FILE2;\n"
+"                                  FILE2 can be a directory"
+msgstr ""
+"--to-file=COMHAD Cuir gach oibreann i gcomparáid le COMHAD (nó comhadlann)."
+
+#: src/diff.c:990
+#, fuzzy
+msgid ""
+"-i, --ignore-case               ignore case differences in file contents"
+msgstr "-i  --ignore-case  Ná bí cásíogair le hinneachar na gcomhad."
+
+#: src/diff.c:991
+#, fuzzy
+msgid "-E, --ignore-tab-expansion      ignore changes due to tab expansion"
+msgstr ""
+"-E  --ignore-tab-expansion  Déan neamhshuim ar athruithe ó leathnú na dtáib."
+
+#: src/diff.c:992
+#, fuzzy
+msgid "-Z, --ignore-trailing-space     ignore white space at line end"
+msgstr "-w  --ignore-all-space  Déan neamhshuim ar spás bán go hiomlán."
+
+#: src/diff.c:993
+#, fuzzy
+msgid ""
+"-b, --ignore-space-change       ignore changes in the amount of white space"
+msgstr "-b  --ignore-space-change  Déan neamhshuim ar mhéid an spáis bán."
+
+#: src/diff.c:994
+#, fuzzy
+msgid "-w, --ignore-all-space          ignore all white space"
+msgstr "-w  --ignore-all-space  Déan neamhshuim ar spás bán go hiomlán."
+
+#: src/diff.c:995
+#, fuzzy
+msgid ""
+"-B, --ignore-blank-lines        ignore changes where lines are all blank"
+msgstr "-B  --ignore-blank-lines  Déan neamhshuim ar línte folmha."
+
+#: src/diff.c:996
+#, fuzzy
+msgid "-I, --ignore-matching-lines=RE  ignore changes where all lines match RE"
+msgstr ""
+"-I SI  --ignore-matching-lines=RE  Déan neamhshuim ar línte atá "
+"comhoiriúnach\n"
+"                                     leis an slonn SI."
+
+#: src/diff.c:998
+#, fuzzy
+msgid "-a, --text                      treat all files as text"
+msgstr "-a  --text  Caith le gach comhad mar théacschomhad."
+
+#: src/diff.c:999
+#, fuzzy
+msgid "    --strip-trailing-cr         strip trailing carriage return on input"
+msgstr ""
+"--strip-trailing-cr  Dealaigh aisfhilleadh carráiste ó gach líne ionchurtha."
+
+#: src/diff.c:1001
+#, fuzzy
+msgid "    --binary                    read and write data in binary mode"
+msgstr "--binary  Léigh agus scríobh sonraí sa mhód dénártha."
+
+#: src/diff.c:1004
+#, fuzzy
+msgid ""
+"-D, --ifdef=NAME                output merged file with '#ifdef NAME' diffs"
+msgstr ""
+"-D AINM  --ifdef=AINM  Taispeáin comhad cumaiscthe chun na diff-aí\n"
+"                                `#ifdef AINM' a léiriú"
+
+#: src/diff.c:1005
+#, fuzzy
+msgid "    --GTYPE-group-format=GFMT   format GTYPE input groups with GFMT"
+msgstr ""
+"--GCINL-group-format=GFMD  Taispeáin grúpaí GCINL ionchuir de réir GFMD."
+
+#: src/diff.c:1006
+#, fuzzy
+msgid "    --line-format=LFMT          format all input lines with LFMT"
+msgstr "--line-format=LFMD  Taispeáin gach líne ionchuir de réir LFMD."
+
+#: src/diff.c:1007
+#, fuzzy
+msgid "    --LTYPE-line-format=LFMT    format LTYPE input lines with LFMT"
+msgstr ""
+"--LCINL-line-format=LFMD   Taispeáin línte LCINL ionchuir de réir LFMD."
+
+#: src/diff.c:1008
+msgid ""
+"  These format options provide fine-grained control over the output\n"
+"    of diff, generalizing -D/--ifdef."
+msgstr ""
+
+#: src/diff.c:1010
+#, fuzzy
+msgid "  LTYPE is 'old', 'new', or 'unchanged'.  GTYPE is LTYPE or 'changed'."
+msgstr "  LCINL = `old', `new', nó `unchanged'.  GCINL = LCINL nó `changed'."
+
+#: src/diff.c:1011
+#, fuzzy
+msgid ""
+"  GFMT (only) may contain:\n"
+"    %<  lines from FILE1\n"
+"    %>  lines from FILE2\n"
+"    %=  lines common to FILE1 and FILE2\n"
+"    %[-][WIDTH][.[PREC]]{doxX}LETTER  printf-style spec for LETTER\n"
+"      LETTERs are as follows for new group, lower case for old group:\n"
+"        F  first line number\n"
+"        L  last line number\n"
+"        N  number of lines = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1\n"
+"    %(A=B?T:E)  if A equals B then T else E"
+msgstr ""
+"  Is éard atá i GFMT ná:\n"
+"    %<  línte as COMHAD1\n"
+"    %>  línte as COMHAD2\n"
+"    %=  línte atá i gCOMHAD1 agus COMHAD2 araon\n"
+"    %[-][LEITHEAD][.[SONRÚ]]{doxX}LITIR  sonrú do litir mar C `printf'\n"
+"      Is LITIR mar a leanas (agus litreacha beaga don ghrúpa `old'):\n"
+"        F  an chéad líne-uimhir\n"
+"        L  an líne-uimhir dheiridh\n"
+"        N  líon na línte = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1"
+
+#: src/diff.c:1023
+#, fuzzy
+msgid ""
+"  LFMT (only) may contain:\n"
+"    %L  contents of line\n"
+"    %l  contents of line, excluding any trailing newline\n"
+"    %[-][WIDTH][.[PREC]]{doxX}n  printf-style spec for input line number"
+msgstr ""
+"  Is éard atá i LFMT ná::\n"
+"    %L  ábhar na líne\n"
+"    %l  ábhar na líne, gan aon líne nua\n"
+"    %[-][LEITHEAD][.[SONRÚ]]{doxX}n  sonrú do líne-uimhir mar C `printf'"
+
+#: src/diff.c:1027
+#, fuzzy
+msgid ""
+"  Both GFMT and LFMT may contain:\n"
+"    %%  %\n"
+"    %c'C'  the single character C\n"
+"    %c'\\OOO'  the character with octal code OOO\n"
+"    C    the character C (other characters represent themselves)"
+msgstr ""
+"  Is féidir na teaghráin a leanas a bheith i GLA nó LLA:\n"
+"    %%  %\n"
+"    %c'C'  an carachtar litriúil C\n"
+"    %c'\\OOO'  an carachtar le cód ochtnártha OOO"
+
+#: src/diff.c:1033
+#, fuzzy
+msgid "-d, --minimal            try hard to find a smaller set of changes"
+msgstr "-d  --minimal  Obair go crua le haghaidh níos lú athruithe."
+
+#: src/diff.c:1034
+#, fuzzy
+msgid "    --horizon-lines=NUM  keep NUM lines of the common prefix and suffix"
+msgstr "--horizon-lines=UIMH  Coinnigh UIMH líne den réimír/iarmhír choiteann."
+
+#: src/diff.c:1035
+#, fuzzy
+msgid ""
+"    --speed-large-files  assume large files and many scattered small changes"
+msgstr ""
+"-H  --speed-large-files  Comhaid móra agus go leor mionathruithe forleata."
+
+#: src/diff.c:1036
+msgid ""
+"    --color[=WHEN]       color output; WHEN is 'never', 'always', or "
+"'auto';\n"
+"                           plain --color means --color='auto'"
+msgstr ""
+
+#: src/diff.c:1038
+msgid ""
+"    --palette=PALETTE    the colors to use when --color is active; PALETTE "
+"is\n"
+"                           a colon-separated list of terminfo capabilities"
+msgstr ""
+
+#: src/diff.c:1041
+msgid "    --help               display this help and exit"
+msgstr ""
+
+#: src/diff.c:1042
+#, fuzzy
+msgid "-v, --version            output version information and exit"
+msgstr "-v  --version  Taispeáin eolas faoin leagan."
+
+#: src/diff.c:1044
+#, fuzzy
+msgid "FILES are 'FILE1 FILE2' or 'DIR1 DIR2' or 'DIR FILE' or 'FILE DIR'."
+msgstr ""
+"COMHAID = `COMHAD1 COMHAD2' nó `COMHADLANN1 COMHADLANN2' nó `COMHADLANN "
+"COMHAD...' nó `COMHAD... COMHADLANN'."
+
+#: src/diff.c:1045
+#, fuzzy
+msgid ""
+"If --from-file or --to-file is given, there are no restrictions on FILE(s)."
+msgstr ""
+"Má tá --from-file nó --to-file tugtha, níl a leithéid de shrian ar COMHAID."
+
+#: src/diff.c:1046 src/diff3.c:531 src/sdiff.c:219
+#, fuzzy
+msgid "If a FILE is '-', read standard input."
+msgstr "Más '-' é an COMHAD, léigh ón ionchur caighdeánach."
+
+#: src/diff.c:1056
+#, c-format
+msgid "Usage: %s [OPTION]... FILES\n"
+msgstr "Úsáid: %s [ROGHA]... COMHAID\n"
+
+#: src/diff.c:1057
+#, fuzzy
+msgid "Compare FILES line by line."
+msgstr "Déan comparáid idir na comhaid, líne ar líne."
+
+#: src/diff.c:1094
+#, fuzzy, c-format
+msgid "conflicting %s option value '%s'"
+msgstr "luach contrártha don rogha %s: `%s'"
+
+#: src/diff.c:1107
+#, c-format
+msgid "conflicting output style options"
+msgstr "roghanna contrártha le haghaidh na stíle aschuir"
+
+#: src/diff.c:1123
+#, fuzzy, c-format
+msgid "invalid color '%s'"
+msgstr "Fad neamhbhailí comhthéacs `%s'"
+
+#: src/diff.c:1197 src/diff.c:1401
+#, c-format
+msgid "Only in %s: %s\n"
+msgstr "I %s amháin: %s\n"
+
+#: src/diff.c:1325
+#, fuzzy
+msgid "cannot compare '-' to a directory"
+msgstr "ní féidir `-' a chur i gcomparáid le comhadlann"
+
+#: src/diff.c:1360
+msgid "-D option not supported with directories"
+msgstr "Níl an rogha -D ar fáil do chomhadlanna"
+
+#: src/diff.c:1369
+#, c-format
+msgid "Common subdirectories: %s and %s\n"
+msgstr "Fochomhadlanna i gcoitianta: %s agus %s\n"
+
+#: src/diff.c:1411 src/diff.c:1461
+#, c-format
+msgid "File %s is a %s while file %s is a %s\n"
+msgstr "Tá comhad %s ina %s ach tá comhad %s ina %s\n"
+
+#: src/diff.c:1447
+#, fuzzy, c-format
+msgid "Symbolic links %s and %s differ\n"
+msgstr "Tá difríocht idir na comhaid %s agus %s\n"
+
+#: src/diff.c:1534
+#, c-format
+msgid "Files %s and %s are identical\n"
+msgstr "Is comhionann iad na comhaid %s agus %s\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff3.c:51
+msgid "Randy Smith"
+msgstr ""
+
+#: src/diff3.c:363
+#, c-format
+msgid "incompatible options"
+msgstr "roghanna neamh-chomhoiriúnacha"
+
+#: src/diff3.c:403
+#, fuzzy
+msgid "'-' specified for more than one input file"
+msgstr "bhí `-' tugtha le haghaidh níos mó ná inchomhad amháin"
+
+#: src/diff3.c:445 src/diff3.c:1284 src/diff3.c:1683 src/diff3.c:1738
+#: src/sdiff.c:306 src/sdiff.c:843 src/sdiff.c:854
+msgid "read failed"
+msgstr "theip ar léamh"
+
+#: src/diff3.c:478
+#, fuzzy
+msgid "-A, --show-all              output all changes, bracketing conflicts"
+msgstr ""
+"-A  --show-all  Taispeáin gach athrú agus cuir coinbhleachtaí idir lúibíní."
+
+#: src/diff3.c:480
+#, fuzzy
+msgid ""
+"-e, --ed                    output ed script incorporating changes\n"
+"                                from OLDFILE to YOURFILE into MYFILE"
+msgstr ""
+"-e  --ed  Scríobh i MOCHOMHAD na hathruithe neamhchumaiscthe ó SEANCHOMHAD "
+"go DOCHOMHAD."
+
+#: src/diff3.c:482
+#, fuzzy
+msgid "-E, --show-overlap          like -e, but bracket conflicts"
+msgstr ""
+"-E  --show-overlap  Taispeáin na hathruithe neamhchumaiscthe agus cuir "
+"coinbhleachtaí idir lúibíní."
+
+#: src/diff3.c:483
+#, fuzzy
+msgid ""
+"-3, --easy-only             like -e, but incorporate only nonoverlapping "
+"changes"
+msgstr "-3  --easy-only  Taispeáin athruithe neamhchumaiscthe forluiteacha."
+
+#: src/diff3.c:484
+#, fuzzy
+msgid ""
+"-x, --overlap-only          like -e, but incorporate only overlapping changes"
+msgstr "-x  --overlap-only  Taispeáin na hathruithe forluiteacha."
+
+#: src/diff3.c:485
+msgid "-X                          like -x, but bracket conflicts"
+msgstr ""
+
+#: src/diff3.c:486
+#, fuzzy
+msgid "-i                          append 'w' and 'q' commands to ed scripts"
+msgstr "-i  Cuir na horduithe `w' agus `q' le scripteanna `ed'."
+
+#: src/diff3.c:488
+msgid ""
+"-m, --merge                 output actual merged file, according to\n"
+"                                -A if no other options are given"
+msgstr ""
+
+#: src/diff3.c:491
+#, fuzzy
+msgid "-a, --text                  treat all files as text"
+msgstr "-a  --text  Caith le gach comhad mar théacschomhad."
+
+#: src/diff3.c:492
+#, fuzzy
+msgid "    --strip-trailing-cr     strip trailing carriage return on input"
+msgstr ""
+"--strip-trailing-cr  Dealaigh aisfhilleadh carráiste ó gach líne ionchurtha."
+
+#: src/diff3.c:493
+#, fuzzy
+msgid "-T, --initial-tab           make tabs line up by prepending a tab"
+msgstr ""
+"-T  --initial-tab  Ailínigh táib trí tháb a chur in ionad spás tosaigh."
+
+#: src/diff3.c:494
+#, fuzzy
+msgid "    --diff-program=PROGRAM  use PROGRAM to compare files"
+msgstr ""
+"--diff-program=CLÁR     Bain úsáid as an CLÁR chun comhaid a chur i "
+"gcomparáid."
+
+#: src/diff3.c:495
+msgid ""
+"-L, --label=LABEL           use LABEL instead of file name\n"
+"                                (can be repeated up to three times)"
+msgstr ""
+
+#: src/diff3.c:498
+msgid "    --help                  display this help and exit"
+msgstr ""
+
+#: src/diff3.c:499
+#, fuzzy
+msgid "-v, --version               output version information and exit"
+msgstr "-v  --version  Taispeáin eolas faoin leagan."
+
+#: src/diff3.c:508
+#, c-format
+msgid "Usage: %s [OPTION]... MYFILE OLDFILE YOURFILE\n"
+msgstr "Úsáid: %s [ROGHA]... MOCHOMHAD SEANCHOMHAD DOCHOMHAD\n"
+
+#: src/diff3.c:510
+msgid "Compare three files line by line."
+msgstr "Cuir trí chomhad i gcomparáid, líne ar líne."
+
+#: src/diff3.c:520
+msgid ""
+"\n"
+"The default output format is a somewhat human-readable representation of\n"
+"the changes.\n"
+"\n"
+"The -e, -E, -x, -X (and corresponding long) options cause an ed script\n"
+"to be output instead of the default.\n"
+"\n"
+"Finally, the -m (--merge) option causes diff3 to do the merge internally\n"
+"and output the actual merged file.  For unusual input, this is more\n"
+"robust than using ed.\n"
+msgstr ""
+
+#: src/diff3.c:532
+msgid "Exit status is 0 if successful, 1 if conflicts, 2 if trouble."
+msgstr "Stádas scortha = 0 (rathúil), 1 (coinbhleachtaí), 2 (trioblóid)."
+
+#: src/diff3.c:725
+msgid "internal error: screwup in format of diff blocks"
+msgstr "earráid inmheánach: formáid de na bloic diff trína chéile"
+
+#: src/diff3.c:1015
+#, c-format
+msgid "%s: diff failed: "
+msgstr "%s: theip ar diff: "
+
+#: src/diff3.c:1037
+msgid "internal error: invalid diff type in process_diff"
+msgstr "earráid inmheánach: cineál neamhbhailí diff san fheidhm process_diff"
+
+#: src/diff3.c:1060
+msgid "invalid diff format; invalid change separator"
+msgstr "formáid diff neamhbhailí; teorantóir neamhbhailí idir athruithe"
+
+#: src/diff3.c:1294
+msgid "invalid diff format; incomplete last line"
+msgstr "formáid neamhbhailí diff; líne deiridh neamhiomlán"
+
+#: src/diff3.c:1318 src/sdiff.c:274 src/util.c:1069
+#, fuzzy, c-format
+msgid "subsidiary program '%s' could not be invoked"
+msgstr "níorbh fhéidir an fochlár `%s' a rith"
+
+#: src/diff3.c:1343
+msgid "invalid diff format; incorrect leading line chars"
+msgstr "formáid neamhbhailí diff; carachtair mhíchearta ag tosach na líne"
+
+#: src/diff3.c:1416
+msgid "internal error: invalid diff type passed to output"
+msgstr ""
+"earráid inmheánach: seachadadh cineál neamhbhailí diff go dtí an aschur"
+
+#: src/diff3.c:1685 src/diff3.c:1742
+msgid "input file shrank"
+msgstr "crapadh an t-inchomhad"
+
+#: src/dir.c:154
+#, fuzzy, c-format
+msgid "cannot compare file names '%s' and '%s'"
+msgstr ""
+"ní féidir na hainmneacha comhaid `%s' agus `%s' a chur i gcomparáid le chéile"
+
+#: src/dir.c:223
+#, c-format
+msgid "%s: recursive directory loop"
+msgstr ""
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/sdiff.c:44
+msgid "Thomas Lord"
+msgstr ""
+
+#: src/sdiff.c:173
+#, fuzzy
+msgid ""
+"-o, --output=FILE            operate interactively, sending output to FILE"
+msgstr ""
+"-o COMHAD --output=COMHAD Mód idirghníomhach, ag scríobh an aschuir i "
+"gCOMHAD."
+
+#: src/sdiff.c:175
+#, fuzzy
+msgid ""
+"-i, --ignore-case            consider upper- and lower-case to be the same"
+msgstr "-i  --ignore-case  Ná bí cásíogair."
+
+#: src/sdiff.c:176
+#, fuzzy
+msgid "-E, --ignore-tab-expansion   ignore changes due to tab expansion"
+msgstr ""
+"-E  --ignore-tab-expansion  Déan neamhshuim ar athruithe ó leathnú na dtáib."
+
+#: src/sdiff.c:177
+#, fuzzy
+msgid "-Z, --ignore-trailing-space  ignore white space at line end"
+msgstr "-w  --ignore-all-space  Déan neamhshuim ar spás bán go hiomlán."
+
+#: src/sdiff.c:178
+#, fuzzy
+msgid ""
+"-b, --ignore-space-change    ignore changes in the amount of white space"
+msgstr "-b  --ignore-space-change  Déan neamhshuim ar mhéid an spáis bán."
+
+#: src/sdiff.c:179
+#, fuzzy
+msgid "-W, --ignore-all-space       ignore all white space"
+msgstr "-W  --ignore-all-space  Déan neamhshuim ar spásanna bán go hiomlán."
+
+#: src/sdiff.c:180
+#, fuzzy
+msgid "-B, --ignore-blank-lines     ignore changes whose lines are all blank"
+msgstr "-B  --ignore-blank-lines  Déan neamhshuim ar línte folmha."
+
+#: src/sdiff.c:181
+#, fuzzy
+msgid "-I, --ignore-matching-lines=RE  ignore changes all whose lines match RE"
+msgstr ""
+"-I SI  --ignore-matching-lines=RE  Déan neamhshuim ar línte atá "
+"comhoiriúnach\n"
+"                                     leis an slonn SI."
+
+#: src/sdiff.c:182
+#, fuzzy
+msgid "    --strip-trailing-cr      strip trailing carriage return on input"
+msgstr ""
+"--strip-trailing-cr  Dealaigh aisfhilleadh carráiste ó gach líne ionchurtha."
+
+#: src/sdiff.c:183
+#, fuzzy
+msgid "-a, --text                   treat all files as text"
+msgstr "-a  --text  Caith le gach comhad mar théacschomhad."
+
+#: src/sdiff.c:185
+#, fuzzy
+msgid ""
+"-w, --width=NUM              output at most NUM (default 130) print columns"
+msgstr ""
+"-w UIMH --width=UIMH  UIMH colún priontála ar a mhéad (réamhshocrú=130)."
+
+#: src/sdiff.c:186
+#, fuzzy
+msgid ""
+"-l, --left-column            output only the left column of common lines"
+msgstr "-l  --left-column  Ná taispeáin an colún ar dheis más ionann iad."
+
+#: src/sdiff.c:187
+#, fuzzy
+msgid "-s, --suppress-common-lines  do not output common lines"
+msgstr "-s  --suppress-common-lines  Ná taispeáin línte atá i bpáirt acu."
+
+#: src/sdiff.c:189
+#, fuzzy
+msgid "-t, --expand-tabs            expand tabs to spaces in output"
+msgstr "-t  --expand-tabs  leathnaigh táib go spásanna san aschur."
+
+#: src/sdiff.c:190
+#, fuzzy
+msgid ""
+"    --tabsize=NUM            tab stops at every NUM (default 8) print columns"
+msgstr "--tabsize=UIMH Tábstop gach UIMH colún (réamhshocrú=8)."
+
+#: src/sdiff.c:192
+#, fuzzy
+msgid "-d, --minimal                try hard to find a smaller set of changes"
+msgstr "-d  --minimal  Obair go crua le haghaidh níos lú athruithe."
+
+#: src/sdiff.c:193
+#, fuzzy
+msgid ""
+"-H, --speed-large-files      assume large files, many scattered small changes"
+msgstr ""
+"-H  --speed-large-files  Comhaid móra agus go leor mionathruithe forleata."
+
+#: src/sdiff.c:194
+#, fuzzy
+msgid "    --diff-program=PROGRAM   use PROGRAM to compare files"
+msgstr ""
+"--diff-program=CLÁR     Bain úsáid as an CLÁR chun comhaid a chur i "
+"gcomparáid."
+
+#: src/sdiff.c:196
+msgid "    --help                   display this help and exit"
+msgstr ""
+
+#: src/sdiff.c:197
+#, fuzzy
+msgid "-v, --version                output version information and exit"
+msgstr "-v  --version  Taispeáin eolas faoin leagan."
+
+#: src/sdiff.c:206
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 FILE2\n"
+msgstr "Úsáid: %s [ROGHA]... COMHAD1 COMHAD2\n"
+
+#: src/sdiff.c:208
+#, fuzzy
+msgid "Side-by-side merge of differences between FILE1 and FILE2."
+msgstr "Cumaisc difríochtaí idir na comhaid, taobh le taobh."
+
+#: src/sdiff.c:328
+msgid "cannot interactively merge standard input"
+msgstr "ní féidir an t-ionchur caighdeánach a chumasc go hidirghníomhach"
+
+#: src/sdiff.c:594
+msgid "both files to be compared are directories"
+msgstr "is comhadlanna iad na comhaid le cur i gcomparáid"
+
+#: src/sdiff.c:817
+#, fuzzy
+msgid ""
+"ed:\tEdit then use both versions, each decorated with a header.\n"
+"eb:\tEdit then use both versions.\n"
+"el or e1:\tEdit then use the left version.\n"
+"er or e2:\tEdit then use the right version.\n"
+"e:\tDiscard both versions then edit a new one.\n"
+"l or 1:\tUse the left version.\n"
+"r or 2:\tUse the right version.\n"
+"s:\tSilently include common lines.\n"
+"v:\tVerbosely include common lines.\n"
+"q:\tQuit.\n"
+msgstr ""
+"ed:\tCuir na leaganacha araon in eagar, agus ceanntásc le gach.\n"
+"eb:\tCuir na leaganacha araon in eagar, agus ansin bain úsáid astu.\n"
+"el:\tCuir an leagan ar clé in eagar, agus ansin bain úsáid as.\n"
+"er:\tCuir an leagan ar dheis in eagar, agus ansin bain úsáid as.\n"
+"e:\tCuir leagan nua in eagar.\n"
+"l:\tBain úsáid as an leagan ar clé.\n"
+"r:\tBain úsáid as an leagan ar dheis.\n"
+"s:\tCuir comhlínte san áireamh go balbh.\n"
+"v:\tCuir comhlínte san áireamh go foclach.\n"
+"q:\tScoir.\n"
+
+#: src/util.c:755
+#, fuzzy, c-format
+msgid "unrecognized prefix: %s"
+msgstr "%s: rogha anaithnid `--%s'\n"
+
+#: src/util.c:785
+#, c-format
+msgid "unparsable value for --palette"
+msgstr ""
+
+#, fuzzy
+#~ msgid "invalid %s%s argument '%s'"
+#~ msgstr "luach neamhbhailí --bytes `%s'"
+
+#, fuzzy
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: ní cheadaítear argóint i ndiaidh na rogha `--%s'\n"
+
+#, fuzzy
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: rogha anaithnid `--%s'\n"
+
+#, fuzzy
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: Tá an rogha `-W %s' débhríoch\n"
+
+#, fuzzy
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: ní cheadaítear argóint i ndiaidh na rogha `-W %s'\n"
+
+#, fuzzy
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: ní foláir argóint don rogha `%s'\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: rogha neamhcheadaithe -- %c\n"
+
+#~ msgid ""
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "Is saorbhogearra an ríomhchlár seo; féach ar an bhunchód le haghaidh\n"
+#~ "coinníollacha cóipeála.  Níl baránta ar bith ann; go fiú níl baránta ann\n"
+#~ "d'INDÍOLTACHT nó FEILIÚNACHT DO FHEIDHM AR LEITH.\n"
+
+#~ msgid "-i SKIP1:SKIP2  --ignore-initial=SKIP1:SKIP2"
+#~ msgstr "-i SCIP1:SCIP2  --ignore-initial=SCIP1:SCIP2"
+
+#~ msgid "-s  --quiet  --silent  Output nothing; yield exit status only."
+#~ msgstr "-s  --quiet  --silent  Ná haschuir rud ar bith; gin stádas scortha."
+
+#~ msgid "--help  Output this help."
+#~ msgstr "--help  Taispeáin an chabhair seo.."
+
+#~ msgid "Report bugs to <bug-gnu-utils@gnu.org>."
+#~ msgstr "Seol tuairiscí fabhtanna chuig <bug-gnu-utils@gnu.org>."
+
+#~ msgid "`-%ld' option is obsolete; use `-%c %ld'"
+#~ msgstr "tá an rogha `-%ld' as feidhm; bain úsáid as `-%c %ld'"
+
+#~ msgid "`-%ld' option is obsolete; omit it"
+#~ msgstr "tá an rogha `-%ld' as feidhm; fág é ar lár"
+
+#~ msgid ""
+#~ "-c  -C NUM  --context[=NUM]  Output NUM (default 3) lines of copied "
+#~ "context.\n"
+#~ "-u  -U NUM  --unified[=NUM]  Output NUM (default 3) lines of unified "
+#~ "context.\n"
+#~ "  --label LABEL  Use LABEL instead of file name.\n"
+#~ "  -p  --show-c-function  Show which C function each change is in.\n"
+#~ "  -F RE  --show-function-line=RE  Show the most recent line matching RE."
+#~ msgstr ""
+#~ "-c  -C UIMHIR --context[=UIMHIR] Taispeáin UIMHIR líne de chomhthéacs\n"
+#~ "                                   cóipeáilte (réamhshocrú = 3).\n"
+#~ "-u  -U UIMHIR --unified[=UIMHIR] Taispeáin UIMHIR líne de chomhthéacs\n"
+#~ "                                   aontaithe (réamhshocrú = 3).\n"
+#~ "  --label LIPÉAD  Bain úsáid as LIPÉAD in ionad ainm comhaid.\n"
+#~ "  -p  --show-c-function  Taispeáin an fheidhm C do gach difríocht.\n"
+#~ "  -F SI  --show-function-line=SI  Taispeáin an líne is déanaí atá\n"
+#~ "                                    comhoiriúnach leis an slonn SI."
+
+#~ msgid ""
+#~ "-y  --side-by-side  Output in two columns.\n"
+#~ "  -W NUM  --width=NUM  Output at most NUM (default 130) print columns.\n"
+#~ "  --left-column  Output only the left column of common lines.\n"
+#~ "  --suppress-common-lines  Do not output common lines."
+#~ msgstr ""
+#~ "-y  --side-by-side  Taispeáin le dhá cholún.\n"
+#~ "  -W UIMH --width=UIMH Taispeáin UIMH carachtar sa líne ar a mhéad,\n"
+#~ "                         (réamhshocrú=130).\n"
+#~ "  --left-column  Ná taispeáin ach an colún ar clé do línte céanna\n"
+#~ "  --suppress-common-lines  Ná taispeáin línte céanna."
+
+#~ msgid ""
+#~ "--speed-large-files  Assume large files and many scattered small changes."
+#~ msgstr ""
+#~ "--speed-large-files   Comhaid móra agus go leor mionathruithe forleata."
+
+#~ msgid "-X  Output overlapping changes, bracketing them."
+#~ msgstr "-X  Taispeáin na hathruithe forluiteacha, idir lúibíní."
+
+#~ msgid "-m  --merge  Output merged file instead of ed script (default -A)."
+#~ msgstr ""
+#~ "-m  --merge  Taispeáin comhad cumaiscthe in ionad script ed (réamhshocrú -"
+#~ "A)."
+
+#~ msgid "-L LABEL  --label=LABEL  Use LABEL instead of file name."
+#~ msgstr "-L LIPÉAD  --label=LIPÉAD  Úsáid LIPÉAD in ionad ainm comhaid."
+
+#~ msgid "subsidiary program `%s' not found"
+#~ msgstr "fochlár `%s' gan aimsiú"
+
+#~ msgid "subsidiary program `%s' failed"
+#~ msgstr "theip ar an fhochlár `%s'"
+
+#~ msgid "subsidiary program `%s' failed (exit status %d)"
+#~ msgstr "theip ar an fhochlár `%s' (stádas scortha %d)"

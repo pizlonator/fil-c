@@ -1,0 +1,13 @@
+#!/bin/sh
+# dates after Y2K38 are safe
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+touch -t 203901010000 in || skip_ 'touch -t 2039... failed'
+
+cmp in in || fail=1
+diff in in || fail=1
+
+Exit $fail

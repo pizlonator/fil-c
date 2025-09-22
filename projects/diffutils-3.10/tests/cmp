@@ -1,0 +1,231 @@
+#!/bin/sh
+# Test 'cmp'.
+
+# Copyright 2017-2023 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+cat <<'EOF' > exp || fail=1
+cmp a a
+0
+cmp a b
+a b differ: char 1, line 1
+1
+cmp a c
+cmp: EOF on c which is empty
+1
+cmp a d
+cmp: d: No such file or directory
+2
+cmp b a
+b a differ: char 1, line 1
+1
+cmp b b
+0
+cmp b c
+cmp: EOF on c which is empty
+1
+cmp b d
+cmp: d: No such file or directory
+2
+cmp c a
+cmp: EOF on c which is empty
+1
+cmp c b
+cmp: EOF on c which is empty
+1
+cmp c c
+0
+cmp c d
+cmp: d: No such file or directory
+2
+cmp d a
+cmp: d: No such file or directory
+2
+cmp d b
+cmp: d: No such file or directory
+2
+cmp d c
+cmp: d: No such file or directory
+2
+cmp d d
+cmp: d: No such file or directory
+2
+cmp -l a a
+0
+cmp -l a b
+1 141 142
+1
+cmp -l a c
+cmp: EOF on c which is empty
+1
+cmp -l a d
+cmp: d: No such file or directory
+2
+cmp -l b a
+1 142 141
+1
+cmp -l b b
+0
+cmp -l b c
+cmp: EOF on c which is empty
+1
+cmp -l b d
+cmp: d: No such file or directory
+2
+cmp -l c a
+cmp: EOF on c which is empty
+1
+cmp -l c b
+cmp: EOF on c which is empty
+1
+cmp -l c c
+0
+cmp -l c d
+cmp: d: No such file or directory
+2
+cmp -l d a
+cmp: d: No such file or directory
+2
+cmp -l d b
+cmp: d: No such file or directory
+2
+cmp -l d c
+cmp: d: No such file or directory
+2
+cmp -l d d
+cmp: d: No such file or directory
+2
+cmp -s a a
+0
+cmp -s a b
+1
+cmp -s a c
+1
+cmp -s a d
+2
+cmp -s b a
+1
+cmp -s b b
+0
+cmp -s b c
+1
+cmp -s b d
+2
+cmp -s c a
+1
+cmp -s c b
+1
+cmp -s c c
+0
+cmp -s c d
+2
+cmp -s d a
+2
+cmp -s d b
+2
+cmp -s d c
+2
+cmp -s d d
+2
+EOF
+
+echo a >a
+echo b >b
+: >c
+rm -f d
+
+for option in '' -l -s; do
+  for i in a b c d; do
+    for j in a b c d; do
+      echo cmp $option $i $j
+      cmp $option $i $j >stdout 2>stderr
+      status=$?
+      cat stderr stdout
+      echo $status
+    done
+  done
+done >out
+
+compare exp out || fail=1
+
+cat <<'EOF' > exp1 || fail=1
+cmp a0 a1
+cmp: EOF on a0 which is empty
+1
+cmp a1 a2
+cmp: EOF on a1 after byte 2, line 1
+1
+cmp a2 a3
+cmp: EOF on a2 after byte 5, in line 2
+1
+cmp -l a0 a1
+cmp: EOF on a0 which is empty
+1
+cmp -l a1 a2
+cmp: EOF on a1 after byte 2
+1
+cmp -l a2 a3
+cmp: EOF on a2 after byte 5
+1
+cmp -s a0 a1
+1
+cmp -s a1 a2
+1
+cmp -s a2 a3
+1
+EOF
+
+printf '' >a0
+printf '1\n' >a1
+printf '1\nfoo' >a2
+printf '1\nfoolery\n' >a3
+
+for option in '' -l -s; do
+  for files in 'a0 a1' 'a1 a2' 'a2 a3'; do
+    echo cmp $option $files
+    cmp $option $files >stdout 2>stderr
+    status=$?
+    cat stderr stdout
+    echo $status
+  done
+done >out1
+
+compare exp1 out1 || fail=1
+
+printf 'bad\n' >bad
+printf 'bug\n' >bug
+echo LC_ALL=C cmp -b bad bug
+LC_ALL=C cmp -b bad bug
+test $? -eq 1 || fail=1
+case `LC_ALL=C cmp -b bad bug` in
+  'bad bug differ: byte 2, line 1 is '*' a '*' u') ;;
+  *) echo 'expected cmp -b to report a and u'; fail=1;;
+esac
+
+printf 'Jackdaws love my big sphinx of quartz!' > j1
+printf 'jackdaws love my big sphinx of quartz.' > j2
+cat <<'EOF' > exp2 || fail=1
+ 1 112 J    152 j
+38  41 !     56 .
+EOF
+cmp -bl j1 j2 > out2
+test $? -eq 1 || fail=1
+compare exp2 out2 || fail=1
+
+Exit $fail

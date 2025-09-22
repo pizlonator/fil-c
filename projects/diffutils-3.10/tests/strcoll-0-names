@@ -1,0 +1,25 @@
+#!/bin/sh
+# Check that diff responds well with two different file names
+# that compare equal with strcoll.  See:
+# http://lists.gnu.org/archive/html/bug-diffutils/2013-03/msg00012.html
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+# These two names compare equal in the en_US.UTF-8 locale
+# in current (2013) versions of glibc.
+# On systems where the names do not compare equal,
+# this diff test should still do the right thing.
+LC_ALL=en_US.UTF-8
+export LC_ALL
+name1='エンドカード1'
+name2='ブックレット1'
+
+mkdir d1 d2 || fail=1
+echo x >d1/"$name1" || fail=1
+echo x >d2/"$name2" || fail=1
+
+# This should report a difference, but on the affected systems
+# diffutils 3.3 does not.
+diff d1 d2 && fail=1
+
+Exit $fail

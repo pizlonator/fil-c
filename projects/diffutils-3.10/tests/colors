@@ -1,0 +1,136 @@
+#!/bin/sh
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+TZ=UTC0
+export TZ
+
+fail=0
+
+echo a > a
+echo b > b
+
+# On systems lacking fractional timestamp support, diff -u does not print
+# a decimal point and 9-digit nanosecond suffix.
+nanosecond_zeros=$(diff -u a b|grep '\.' > /dev/null && echo .000000000)
+
+epoch='1970-01-01 00:00:00'
+touch -t 197001010000.00 a b
+
+e=$(printf '\033')
+tab=$(printf '\t')
+
+gen_exp_u()
+{
+    local epoch_plus="$epoch$nanosecond_zeros +0000"
+    local rs=$(printf "$e[${rs}m")
+    local hd=$(printf "$e[${hd}m")
+    local ad=$(printf "$e[${ad}m")
+    local de=$(printf "$e[${de}m")
+    local ln=$(printf "$e[${ln}m")
+    printf '%s' \
+"$hd--- a$tab$epoch_plus$rs
+$hd+++ b$tab$epoch_plus$rs
+${ln}@@ -1 +1 @@$rs
+$de-a$rs
+$ad+b$rs
+"
+}
+
+gen_exp_c()
+{
+    local epoch_posix_1003_1_2001="Thu Jan  1 00:00:00 1970"
+    local rs=$(printf "$e[${rs}m")
+    local hd=$(printf "$e[${hd}m")
+    local ad=$(printf "$e[${ad}m")
+    local de=$(printf "$e[${de}m")
+    local ln=$(printf "$e[${ln}m")
+    printf '%s' \
+"$hd*** a$tab$epoch_posix_1003_1_2001$rs
+$hd--- b$tab$epoch_posix_1003_1_2001$rs
+***************
+$ln*** 1 ****$rs
+$de! a$rs
+$ln--- 1 ----$rs
+$ad! b$rs
+"
+}
+
+gen_exp_default()
+{
+    printf '%s' \
+"1c1
+< a
+---
+> b
+"
+}
+
+gen_exp_default_colors()
+{
+    local rs=$(printf "$e[${rs}m")
+    local hd=$(printf "$e[${hd}m")
+    local ad=$(printf "$e[${ad}m")
+    local de=$(printf "$e[${de}m")
+    local ln=$(printf "$e[${ln}m")
+    printf '%s' \
+"${ln}1c1$rs
+$de< a$rs
+---
+$ad> b$rs
+"
+}
+
+# Compare with some known outputs
+
+rs=0 hd=1 ad=32 de=31 ln=36
+
+returns_ 1 diff --color=auto a b > out || fail=1
+gen_exp_default > exp || framework_failure_
+compare exp out || fail=1
+
+returns_ 1 env PATH="$PATH" TERM=dumb \
+         diff ---presume-output-tty --color=auto a b > out \
+  || fail=1
+gen_exp_default > exp || framework_failure_
+compare exp out || fail=1
+
+returns_ 1 diff --color=never a b > out || fail=1
+gen_exp_default > exp || framework_failure_
+compare exp out || fail=1
+
+returns_ 1 diff a b > out || fail=1
+gen_exp_default > exp || framework_failure_
+compare exp out || fail=1
+
+returns_ 1 diff --color=always a b > out || fail=1
+gen_exp_default_colors > exp || framework_failure_
+compare exp out || fail=1
+
+returns_ 1 diff -u --color=always a b > out || fail=1
+gen_exp_u > exp || framework_failure_
+compare exp out || fail=1
+
+returns_ 1 diff -c --color=always a b > out || fail=1
+gen_exp_c > exp || framework_failure_
+compare exp out || fail=1
+
+rs=0 hd=33 ad=34 de=35 ln=36
+returns_ 1 diff -u --color=always \
+  --palette="rs=0:hd=33:ad=34:de=35:ln=36" a b > out || fail=1
+gen_exp_u > exp || framework_failure_
+compare exp out || fail=1
+
+# Before the fix in http://debbugs.gnu.org/22067,
+# this test would trigger an infinite loop bug.
+mkfifo fifo
+printf '%1000000s-a' > a
+printf '%1000000s-b' > b
+head -c 10 < fifo > /dev/null &
+diff --color=always ---presume-output-tty a b > fifo
+
+# Depending on version of GNU make (4.3.92-4.4 set SIGPIPE to "ignore"),
+# either of these is acceptable.
+case $? in 2|141) ;; *) fail=1 ;; esac
+
+Exit $fail

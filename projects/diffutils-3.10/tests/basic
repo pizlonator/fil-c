@@ -1,0 +1,42 @@
+#!/bin/sh
+# small examples
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+cat <<EOF > exp- || fail=1
+1c1
+< a
+---
+> b
+EOF
+
+cat <<EOF > exp--u || fail=1
+--- a
++++ b
+@@ -1 +1 @@
+-a
++b
+EOF
+
+cat <<EOF > exp--c || fail=1
+*** a
+--- b
+***************
+*** 1 ****
+! a
+--- 1 ----
+! b
+EOF
+
+echo a > a
+echo b > b
+for opt in '' -u -c; do
+  returns_ 1 diff $opt a b > out 2> err || fail=1
+  # Remove date and time.
+  sed -e 's/^\([-+*][-+*][-+*] [^	]*\)	.*/\1/' out > k; mv k out
+  compare exp-$(echo $opt|tr ' ' _) out || fail=1
+done
+
+Exit $fail

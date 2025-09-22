@@ -1,0 +1,155 @@
+#!/bin/sh
+# Test the --no-dereference option.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+echo 'Simple contents' > regular1
+echo 'Sample contents' > regular2
+echo 'Sample contents' > regular3
+ln -s regular1 symlink1
+ln -s regular1 symlink1bis
+ln -s regular2 symlink2
+ln -s regular3 symlink3
+
+# Non-recursive comparisons.
+
+# Test case 3: Compare regular file with regular file.
+returns_ 1 diff --no-dereference regular1 regular2 > out || fail=1
+cat <<EOF > expected || framework_failure_
+1c1
+< Simple contents
+---
+> Sample contents
+EOF
+compare expected out || fail=1
+
+# Test case 4: Compare regular file with symbolic link.
+returns_ 1 diff --no-dereference regular1 symlink1 > out || fail=1
+cat <<EOF > expected || framework_failure_
+File regular1 is a regular file while file symlink1 is a symbolic link
+EOF
+compare expected out || fail=1
+
+# Test case 5: Compare symbolic link with regular file.
+returns_ 1 diff --no-dereference symlink1 regular1 > out || fail=1
+cat <<EOF > expected || framework_failure_
+File symlink1 is a symbolic link while file regular1 is a regular file
+EOF
+compare expected out || fail=1
+
+# Test case 6: Compare symbolic links with same value.
+diff --no-dereference symlink1 symlink1bis > out || fail=1
+compare /dev/null out || fail=1
+
+# Test case 7: Compare symbolic links with different value and different target
+# contents.
+returns_ 1 diff --no-dereference symlink1 symlink2 > out || fail=1
+cat <<EOF > expected || framework_failure_
+Symbolic links symlink1 and symlink2 differ
+EOF
+compare expected out || fail=1
+
+# Test case 8: Compare symbolic links with different value and same target
+# contents.
+returns_ 1 diff --no-dereference symlink2 symlink3 > out || fail=1
+cat <<EOF > expected || framework_failure_
+Symbolic links symlink2 and symlink3 differ
+EOF
+compare expected out || fail=1
+
+# Recursive comparisons.
+
+# Test case 1: Compare symbolic link with nonexistent file.
+mkdir subdir1a
+mkdir subdir1b
+ln -s nonexistent subdir1a/foo
+ln -s ../regular1 subdir1a/bar
+returns_ 1 diff -r --no-dereference subdir1a subdir1b > out || fail=1
+cat <<EOF > expected || framework_failure_
+Only in subdir1a: bar
+Only in subdir1a: foo
+EOF
+compare expected out || fail=1
+
+# Test case 1: Compare nonexistent file with symbolic link.
+mkdir subdir2a
+mkdir subdir2b
+ln -s nonexistent subdir2b/foo
+ln -s ../regular1 subdir2b/bar
+returns_ 1 diff -r --no-dereference subdir2a subdir2b > out || fail=1
+cat <<EOF > expected || framework_failure_
+Only in subdir2b: bar
+Only in subdir2b: foo
+EOF
+compare expected out || fail=1
+
+# Test case 3: Compare regular file with regular file.
+mkdir subdir3a
+mkdir subdir3b
+cp regular1 subdir3a/foo
+cp regular2 subdir3b/foo
+returns_ 1 diff -r --no-dereference subdir3a subdir3b > out || fail=1
+cat <<EOF > expected || framework_failure_
+diff -r --no-dereference subdir3a/foo subdir3b/foo
+1c1
+< Simple contents
+---
+> Sample contents
+EOF
+compare expected out || fail=1
+
+# Test case 4: Compare regular file with symbolic link.
+mkdir subdir4a
+mkdir subdir4b
+cp regular1 subdir4a/foo
+ln -s ../regular1 subdir4b/foo
+returns_ 1 diff -r --no-dereference subdir4a subdir4b > out || fail=1
+cat <<EOF > expected || framework_failure_
+File subdir4a/foo is a regular file while file subdir4b/foo is a symbolic link
+EOF
+compare expected out || fail=1
+
+# Test case 5: Compare symbolic link with regular file.
+mkdir subdir5a
+mkdir subdir5b
+ln -s ../regular1 subdir5a/foo
+cp regular1 subdir5b/foo
+returns_ 1 diff -r --no-dereference subdir5a subdir5b > out || fail=1
+cat <<EOF > expected || framework_failure_
+File subdir5a/foo is a symbolic link while file subdir5b/foo is a regular file
+EOF
+compare expected out || fail=1
+
+# Test case 6: Compare symbolic links with same value.
+mkdir subdir6a
+mkdir subdir6b
+ln -s ../regular1 subdir6a/foo
+ln -s ../regular1 subdir6b/foo
+diff -r --no-dereference subdir6a subdir6b > out || fail=1
+compare /dev/null out || fail=1
+
+# Test case 7: Compare symbolic links with different value and different target
+# contents.
+mkdir subdir7a
+mkdir subdir7b
+ln -s ../regular1 subdir7a/foo
+ln -s ../regular2 subdir7b/foo
+returns_ 1 diff -r --no-dereference subdir7a subdir7b > out || fail=1
+cat <<EOF > expected || framework_failure_
+Symbolic links subdir7a/foo and subdir7b/foo differ
+EOF
+compare expected out || fail=1
+
+# Test case 8: Compare symbolic links with different value and same target
+# contents.
+mkdir subdir8a
+mkdir subdir8b
+ln -s ../regular2 subdir8a/foo
+ln -s ../regular3 subdir8b/foo
+returns_ 1 diff -r --no-dereference subdir8a subdir8b > out || fail=1
+cat <<EOF > expected || framework_failure_
+Symbolic links subdir8a/foo and subdir8b/foo differ
+EOF
+compare expected out || fail=1
+
+Exit $fail

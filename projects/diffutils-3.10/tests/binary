@@ -1,0 +1,15 @@
+#!/bin/sh
+# small examples
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+printf 'Binary files - and /dev/null differ\n' > out-exp || fail_ setup
+
+fail=0
+
+# diff must exit with status 1, stdout as above, and no stderr.
+printf '\0'| returns_ 1 diff - /dev/null > out 2> err || fail=1
+compare out-exp out || fail=1
+compare /dev/null err || fail=1
+
+Exit $fail

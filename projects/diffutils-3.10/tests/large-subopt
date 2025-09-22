@@ -1,0 +1,27 @@
+#!/bin/sh
+# This test is expected to fail at least with diffutils-3.6.
+# Demonstrate how diff can produce suboptimal output.
+# With these two files, diff -u prints output including this:
+# -2
+# +L: 361
+# +L: 361
+# +2
+# The trouble is that "2" line that is both added and removed.
+# This smaller patch could induce the same change:
+# +L: 361
+# +L: 361
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+require_perl_
+
+fail=0
+
+diff -u \
+  "$abs_top_srcdir/tests/large-subopt.in1" \
+  "$abs_top_srcdir/tests/large-subopt.in2" \
+  | $PERL -n0 -e \
+     '/\n-2\n(\+L: 361\n){2}\+2\n/ and do {$e=1; last}; END{exit !$e}' \
+     && fail=1
+
+Exit $fail

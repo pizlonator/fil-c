@@ -1,0 +1,1601 @@
+# Latvian translation of diffutils.
+# Copyright (C) 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the diffutils package.
+#
+# Rihards Priedītis <rprieditis@gmail.com>, 2009, 2010.
+# Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: diffutils-3.3-pre1\n"
+"Report-Msgid-Bugs-To: bug-diffutils@gnu.org\n"
+"POT-Creation-Date: 2023-05-21 01:51-0700\n"
+"PO-Revision-Date: 2014-04-20 15:28+0300\n"
+"Last-Translator: Rihards Prieditis <rprieditis@gmail.com>\n"
+"Language-Team: Latvian <translation-team-lv@lists.sourceforge.net>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: lib/argmatch.c:145
+#, fuzzy, c-format
+msgid "invalid argument %s for %s"
+msgstr "nederīgs %s%s arguments “%s”"
+
+#: lib/argmatch.c:146
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr ""
+
+#: lib/argmatch.c:165 lib/argmatch.h:242
+#, fuzzy
+msgid "Valid arguments are:"
+msgstr "nederīgs %s%s arguments “%s”"
+
+#: lib/c-stack.c:186
+msgid "program error"
+msgstr "programmas kļūda"
+
+#: lib/c-stack.c:187
+msgid "stack overflow"
+msgstr "steka pārplūšana"
+
+#: lib/error.c:193
+msgid "Unknown system error"
+msgstr "Nezināma sistēmas kļūda"
+
+#: lib/file-type.c:40
+msgid "regular empty file"
+msgstr "parasta tukša datne"
+
+#: lib/file-type.c:40
+msgid "regular file"
+msgstr "parasta datne"
+
+#: lib/file-type.c:43
+msgid "directory"
+msgstr "direktorija"
+
+#: lib/file-type.c:46
+msgid "symbolic link"
+msgstr "simboliskā saite"
+
+#: lib/file-type.c:52
+msgid "message queue"
+msgstr "ziņojumu rinda"
+
+#: lib/file-type.c:55
+msgid "semaphore"
+msgstr "semafors"
+
+#: lib/file-type.c:58
+msgid "shared memory object"
+msgstr "koplietots atmiņas objekts"
+
+#: lib/file-type.c:61
+msgid "typed memory object"
+msgstr "tipa atmiņas objekts"
+
+#: lib/file-type.c:66
+msgid "block special file"
+msgstr "īpaša bloka datne"
+
+#: lib/file-type.c:69
+msgid "character special file"
+msgstr "īpaša rakstzīmes datne"
+
+#: lib/file-type.c:72
+msgid "contiguous data"
+msgstr ""
+
+#: lib/file-type.c:75
+msgid "fifo"
+msgstr "fifo"
+
+#: lib/file-type.c:78
+msgid "door"
+msgstr ""
+
+#: lib/file-type.c:81
+#, fuzzy
+msgid "multiplexed block special file"
+msgstr "īpaša bloka datne"
+
+#: lib/file-type.c:84
+#, fuzzy
+msgid "multiplexed character special file"
+msgstr "īpaša rakstzīmes datne"
+
+#: lib/file-type.c:87
+msgid "multiplexed file"
+msgstr ""
+
+#: lib/file-type.c:90
+#, fuzzy
+msgid "named file"
+msgstr "dīvaina datne"
+
+#: lib/file-type.c:93
+#, fuzzy
+msgid "network special file"
+msgstr "īpaša bloka datne"
+
+#: lib/file-type.c:96
+msgid "migrated file with data"
+msgstr ""
+
+#: lib/file-type.c:99
+msgid "migrated file without data"
+msgstr ""
+
+#: lib/file-type.c:102
+msgid "port"
+msgstr ""
+
+#: lib/file-type.c:105
+msgid "socket"
+msgstr "sokets"
+
+#: lib/file-type.c:108
+msgid "whiteout"
+msgstr ""
+
+#: lib/file-type.c:110
+msgid "weird file"
+msgstr "dīvaina datne"
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: opcija “-W %s” ir divdomīga\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: opcija “%s” nav viennozīmīga, iespējas:"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: neatpazīta opcija “%c%s”\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: opcija “%c%s” neatļauj argumentu\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: opcijai “--%s” nepieciešams arguments\n"
+
+#: lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: nederīga opcija -- “%c”\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: opcijai nepieciešams arguments -- “%c”\n"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:354
+msgid "`"
+msgstr "“"
+
+#: lib/quotearg.c:355
+msgid "'"
+msgstr "”"
+
+#: lib/regcomp.c:122
+msgid "Success"
+msgstr "Veiksmīgi"
+
+#: lib/regcomp.c:125
+msgid "No match"
+msgstr "Nav atbilstību"
+
+#: lib/regcomp.c:128
+msgid "Invalid regular expression"
+msgstr "Nederīga regulārā izteiksme"
+
+#: lib/regcomp.c:131
+msgid "Invalid collation character"
+msgstr "Nederīga salīdzināmā rakstzīme"
+
+#: lib/regcomp.c:134
+msgid "Invalid character class name"
+msgstr "Nederīgs rakstzīmju klases nosaukums"
+
+#: lib/regcomp.c:137
+msgid "Trailing backslash"
+msgstr "Sekojošās otrādās slīpsvītras"
+
+#: lib/regcomp.c:140
+msgid "Invalid back reference"
+msgstr "Nederīga atpakaļ norāde"
+
+#: lib/regcomp.c:143
+#, fuzzy
+msgid "Unmatched [, [^, [:, [., or [="
+msgstr "Nesakrītošs [ vai [^"
+
+#: lib/regcomp.c:146
+msgid "Unmatched ( or \\("
+msgstr "Nesakrītošs ( vai \\("
+
+#: lib/regcomp.c:149
+msgid "Unmatched \\{"
+msgstr "Nesakrītošs \\{"
+
+#: lib/regcomp.c:152
+msgid "Invalid content of \\{\\}"
+msgstr "Nederīgs \\{\\} saturs"
+
+#: lib/regcomp.c:155
+msgid "Invalid range end"
+msgstr "Nederīgas apgabala beigas"
+
+#: lib/regcomp.c:158
+msgid "Memory exhausted"
+msgstr "Atmiņa izsmelta"
+
+#: lib/regcomp.c:161
+msgid "Invalid preceding regular expression"
+msgstr "Nederīga iepriekšējā regulārā izteiksme"
+
+#: lib/regcomp.c:164
+msgid "Premature end of regular expression"
+msgstr "Priekšlaicīgas beigas regulārai izteiksmei"
+
+#: lib/regcomp.c:167
+msgid "Regular expression too big"
+msgstr "Pārāk liela regulārā izteiksme"
+
+#: lib/regcomp.c:170
+msgid "Unmatched ) or \\)"
+msgstr "Nav atbilstoša ) vai \\)"
+
+#: lib/regcomp.c:650
+msgid "No previous regular expression"
+msgstr "Nav iepriekšējas regulārās izteiksmes"
+
+#: lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "atmiņa izsmelta"
+
+#: lib/xfreopen.c:34
+msgid "stdin"
+msgstr "stdin"
+
+#: lib/xfreopen.c:35
+msgid "stdout"
+msgstr "stdout"
+
+#: lib/xfreopen.c:36
+msgid "stderr"
+msgstr "stderr"
+
+#: lib/xfreopen.c:37
+msgid "unknown stream"
+msgstr "nezināma straume"
+
+#: lib/xfreopen.c:38
+#, c-format
+msgid "failed to reopen %s with mode %s"
+msgstr "neizdevās atkārtoti atvērt %s režīmā %s"
+
+#: lib/xstdopen.c:34
+#, c-format
+msgid "standard file descriptors"
+msgstr ""
+
+#: lib/version-etc.c:73
+#, c-format
+msgid "Packaged by %s (%s)\n"
+msgstr "Pakoja %s (%s)\n"
+
+#: lib/version-etc.c:76
+#, c-format
+msgid "Packaged by %s\n"
+msgstr "Pakoja %s\n"
+
+#. TRANSLATORS: Translate "(C)" to the copyright symbol
+#. (C-in-a-circle), if this symbol is available in the user's
+#. locale.  Otherwise, do not translate "(C)"; leave it as-is.
+#: lib/version-etc.c:83
+msgid "(C)"
+msgstr "(C)"
+
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: lib/version-etc.c:88
+#, fuzzy, c-format
+msgid ""
+"License GPLv3+: GNU GPL version 3 or later <%s>.\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"\n"
+"Licence GPLv3+: GNU GPL versija 3 vai vēlāka <http://gnu.org/licenses/gpl."
+"html>.\n"
+"Šī ir brīva programmatūra: jums ir brīvība to mainīt un izplatīt.\n"
+"Tai NAV GARANTIJAS, cik to pieļauj likums.\n"
+"\n"
+
+#. TRANSLATORS: %s denotes an author name.
+#: lib/version-etc.c:105
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Sarakstīja %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:109
+#, c-format
+msgid "Written by %s and %s.\n"
+msgstr "Sarakstīja %s un %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:113
+#, c-format
+msgid "Written by %s, %s, and %s.\n"
+msgstr "Sarakstīja %s, %s un %s\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:120
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s\n"
+"un %s\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:127
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s,\n"
+"%s un %s\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:134
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, and %s.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s,\n"
+"%s, %s un %s\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:142
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, and %s.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s,\n"
+"%s, %s, %s un %s\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:150
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s,\n"
+"%s,%s, %s, %s,\n"
+"un %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:159
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s,\n"
+"%s,%s, %s, %s,\n"
+"%s un %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:170
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, %s, and others.\n"
+msgstr ""
+"Sarakstīja %s, %s, %s,\n"
+"%s,%s, %s, %s,\n"
+"%s, %s un citi.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: lib/version-etc.c:249
+#, fuzzy, c-format
+msgid "Report bugs to: %s\n"
+msgstr ""
+"\n"
+"Ziņojiet par kļūdām uz: %s\n"
+
+#: lib/version-etc.c:251
+#, c-format
+msgid "Report %s bugs to: %s\n"
+msgstr "Ziņojiet %s kļūdas uz: %s\n"
+
+#: lib/version-etc.c:255 lib/version-etc.c:257
+#, c-format
+msgid "%s home page: <%s>\n"
+msgstr "%s mājas lapa: <%s>\n"
+
+#: lib/version-etc.c:260
+#, fuzzy, c-format
+msgid "General help using GNU software: <%s>\n"
+msgstr ""
+"Vispārēja palīdzība, izmantojot GNU programmatūru: <http://www.gnu.org/"
+"gethelp/>\n"
+
+#: src/analyze.c:455 src/diff.c:1478
+#, c-format
+msgid "Files %s and %s differ\n"
+msgstr "Datnes %s un %s atšķiras\n"
+
+#: src/analyze.c:456
+#, c-format
+msgid "Binary files %s and %s differ\n"
+msgstr "Binārās datnes %s un %s atšķiras\n"
+
+#: src/analyze.c:707 src/diff3.c:1457 src/util.c:1354
+msgid "No newline at end of file"
+msgstr "Nav jaunu rindu datnes beigās"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:45
+msgid "Torbjorn Granlund"
+msgstr "Torbjorn Granlund"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:46
+msgid "David MacKenzie"
+msgstr "David MacKenzie"
+
+#: src/cmp.c:124 src/diff.c:939 src/diff3.c:465 src/sdiff.c:159
+#, c-format
+msgid "Try '%s --help' for more information."
+msgstr "Lietojiet “%s --help”, lai uzzinātu vairāk."
+
+#: src/cmp.c:142
+#, c-format
+msgid "invalid --ignore-initial value '%s'"
+msgstr "nederīga --ignore-initial vērtība “%s”"
+
+#: src/cmp.c:152
+#, c-format
+msgid "options -l and -s are incompatible"
+msgstr "opcijas -l un -s nav savstarpēji saderīgas"
+
+#: src/cmp.c:160 src/diff.c:947 src/diff3.c:472 src/sdiff.c:167 src/sdiff.c:314
+#: src/sdiff.c:321 src/sdiff.c:873 src/util.c:952 src/util.c:1052
+#: src/util.c:1059
+msgid "write failed"
+msgstr "rakstīšana neizdevās"
+
+#: src/cmp.c:162 src/diff.c:949 src/diff.c:1543 src/diff3.c:474 src/sdiff.c:169
+msgid "standard output"
+msgstr "standarta izvade"
+
+#: src/cmp.c:166
+msgid "-b, --print-bytes          print differing bytes"
+msgstr "-b, --print-bytes          drukāt atšķirīgos baitus"
+
+#: src/cmp.c:167
+msgid "-i, --ignore-initial=SKIP         skip first SKIP bytes of both inputs"
+msgstr ""
+"-i, --ignore-initial=IZLAIST      izlaists pirmos IZLAIŽAMOS baitus ievadē"
+
+#: src/cmp.c:168
+msgid ""
+"-i, --ignore-initial=SKIP1:SKIP2  skip first SKIP1 bytes of FILE1 and\n"
+"                                      first SKIP2 bytes of FILE2"
+msgstr ""
+"-i, --ignore-initial=IZLAIST1:IZLAIST2 izlaist pirmos IZLAIST1 DATNE1 "
+"baitus\n"
+"                                       un pirmos IZLAIST2 DATNE2 baitus"
+
+#: src/cmp.c:170
+msgid ""
+"-l, --verbose              output byte numbers and differing byte values"
+msgstr ""
+"-l, --verbose              izvadīt baitu numurus un atšķirīgo baitu vērtības"
+
+#: src/cmp.c:171
+msgid "-n, --bytes=LIMIT          compare at most LIMIT bytes"
+msgstr "-n, --bytes=ROBEŽA         salīdzināt līdz ROBEŽAs baitiem"
+
+#: src/cmp.c:172
+msgid "-s, --quiet, --silent      suppress all normal output"
+msgstr "-s, --quiet, --silent      nomākt visu parasto izvadi"
+
+#: src/cmp.c:173
+msgid "    --help                 display this help and exit"
+msgstr "    --help                 parādīt šo palīdzību un iziet"
+
+#: src/cmp.c:174
+msgid "-v, --version              output version information and exit"
+msgstr "-v, --version              izvada informāciju par versiju un iziet"
+
+#: src/cmp.c:183
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\n"
+msgstr "Izmantošana: %s [OPCIJAS]... DATNE1 [DATNE2 [IZLAIST1 [IZLAIST2]]]\n"
+
+#: src/cmp.c:185
+msgid "Compare two files byte by byte."
+msgstr "Salīdzināt divas datnes baitu pa baitam."
+
+#: src/cmp.c:187
+msgid ""
+"The optional SKIP1 and SKIP2 specify the number of bytes to skip\n"
+"at the beginning of each file (zero by default)."
+msgstr ""
+"Neobligātie IZLAIST1 un IZLAIST2 norāda, cik baitus izlaist\n"
+"katras datnes sākumā (pēc noklusējuma nulle)."
+
+#: src/cmp.c:190 src/diff.c:1059 src/diff3.c:512 src/sdiff.c:210
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr ""
+"Parametri, kas ir obligāti garajām opcijām, ir obligāti arī īsajām opcijām.\n"
+
+#: src/cmp.c:196
+msgid ""
+"SKIP values may be followed by the following multiplicative suffixes:\n"
+"kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+"GB 1,000,000,000, G 1,073,741,824, and so on for T, P, E, Z, Y."
+msgstr ""
+"IZLAIST vērtības var sekot vairāki piedēkļi:\n"
+"kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+"GB 1,000,000,000, G 1,073,741,824, un tā tālāk T, P, E, Z, Y."
+
+#: src/cmp.c:199
+msgid "If a FILE is '-' or missing, read standard input."
+msgstr "Ja DATNEI ir “-” vai tā nav, tad lasīt standarta ievadi."
+
+#: src/cmp.c:200 src/diff.c:1047 src/sdiff.c:220
+msgid "Exit status is 0 if inputs are the same, 1 if different, 2 if trouble."
+msgstr ""
+"Izejas status ir 0, ja ievads ir tāds pats, 1, ja tas ir atšķirīgs, 2, ja ir "
+"nepatikšanas."
+
+#: src/cmp.c:247
+#, c-format
+msgid "invalid --bytes value '%s'"
+msgstr "nederīga --bytes vērtība “%s”"
+
+#: src/cmp.c:273 src/diff.c:857 src/diff3.c:368 src/sdiff.c:564
+#, c-format
+msgid "missing operand after '%s'"
+msgstr "trūkst operands pēc “%s”"
+
+#: src/cmp.c:285 src/diff.c:859 src/diff3.c:370 src/sdiff.c:566
+#, c-format
+msgid "extra operand '%s'"
+msgstr "papildu operands “%s”"
+
+#: src/cmp.c:521
+#, c-format
+msgid "%s %s differ: byte %s, line %s\n"
+msgstr "%s %s atšķiras: baits %s, rinda %s\n"
+
+#: src/cmp.c:537
+#, c-format
+msgid "%s %s differ: byte %s, line %s is %3o %s %3o %s\n"
+msgstr "%s %s atšķiras: baits %s, rinda %s ir %3o %s %3o %s\n"
+
+#: src/cmp.c:594
+#, fuzzy, c-format
+msgid "cmp: EOF on %s which is empty\n"
+msgstr "cmp: EOF uz %s\n"
+
+#: src/cmp.c:608
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s, line %s\n"
+msgstr "%s %s atšķiras: baits %s, rinda %s\n"
+
+#: src/cmp.c:609
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s, in line %s\n"
+msgstr "%s %s atšķiras: baits %s, rinda %s\n"
+
+#: src/cmp.c:615
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s\n"
+msgstr "cmp: EOF uz %s\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:50
+msgid "Paul Eggert"
+msgstr "Paul Eggert"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:51
+msgid "Mike Haertel"
+msgstr "Mike Haertel"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:52
+msgid "David Hayes"
+msgstr "David Hayes"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:53
+msgid "Richard Stallman"
+msgstr "Richard Stallman"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:54
+msgid "Len Tower"
+msgstr "Len Tower"
+
+#: src/diff.c:365
+#, c-format
+msgid "invalid context length '%s'"
+msgstr "nederīgs konteksta garums “%s”"
+
+#: src/diff.c:487
+#, c-format
+msgid "pagination not supported on this host"
+msgstr "lapošana netiek atbalstīta uz šī resursdatora"
+
+#: src/diff.c:502 src/diff3.c:348
+#, c-format
+msgid "too many file label options"
+msgstr "pārāk daudz datnes etiķešu opciju"
+
+#: src/diff.c:579
+#, c-format
+msgid "invalid width '%s'"
+msgstr "nederīgs platums “%s”"
+
+#: src/diff.c:583
+msgid "conflicting width options"
+msgstr "konfliktējošas platuma opcijas"
+
+#: src/diff.c:608
+#, c-format
+msgid "invalid horizon length '%s'"
+msgstr "nederīgs horizontālais garums “%s”"
+
+#: src/diff.c:664
+#, c-format
+msgid "invalid tabsize '%s'"
+msgstr "nederīgs tabulācijas izmērs “%s”"
+
+#: src/diff.c:668
+msgid "conflicting tabsize options"
+msgstr "konfliktējošas tabulācijas izmēru opcijas"
+
+#: src/diff.c:834
+msgid "--from-file and --to-file both specified"
+msgstr "--from-file un --to-file abi norādīti"
+
+#: src/diff.c:953
+msgid "    --normal                  output a normal diff (the default)"
+msgstr "    --normal                  izvada parastu diff (noklusējuma)"
+
+#: src/diff.c:954
+msgid "-q, --brief                   report only when files differ"
+msgstr "-q, --brief                   ziņot tikai, ja datnes atšķiras"
+
+#: src/diff.c:955
+msgid "-s, --report-identical-files  report when two files are the same"
+msgstr "-s, --report-identical-files  ziņot, ja divas datnes ir vienādas"
+
+#: src/diff.c:956
+msgid ""
+"-c, -C NUM, --context[=NUM]   output NUM (default 3) lines of copied context"
+msgstr ""
+"-c, -C NUM, --context[=NUM]   izvadīt NUM (noklus. 3) kopētā konteksta rindas"
+
+#: src/diff.c:957
+msgid ""
+"-u, -U NUM, --unified[=NUM]   output NUM (default 3) lines of unified context"
+msgstr ""
+"-u, -U NUM, --unified[=NUM]   izvadīt NUM (noklus. 3) vienotā konteksta "
+"rindas"
+
+#: src/diff.c:958
+msgid "-e, --ed                      output an ed script"
+msgstr "-e, --ed                      izvada ed skriptu"
+
+#: src/diff.c:959
+msgid "-n, --rcs                     output an RCS format diff"
+msgstr "-n, --rcs                     izvada RCS formāta diff"
+
+#: src/diff.c:960
+msgid "-y, --side-by-side            output in two columns"
+msgstr "-y, --side-by-side            izvade divās kolonnās"
+
+#: src/diff.c:961
+msgid ""
+"-W, --width=NUM               output at most NUM (default 130) print columns"
+msgstr ""
+"-W, --width=NUM               izvada līdz NUM (noklusējuma 130) drukas "
+"kolonas"
+
+#: src/diff.c:962
+msgid ""
+"    --left-column             output only the left column of common lines"
+msgstr ""
+"    --left-column             izvadīt tikai kreiso kolonu no kopējām rindām"
+
+#: src/diff.c:963
+msgid "    --suppress-common-lines   do not output common lines"
+msgstr "    --suppress-common-lines   neizvadīt kopējās rindas"
+
+#: src/diff.c:965
+msgid "-p, --show-c-function         show which C function each change is in"
+msgstr "-p, --show-c-function         rādīt, kurās C funkcijās ir izmaiņas"
+
+#: src/diff.c:966
+msgid "-F, --show-function-line=RE   show the most recent line matching RE"
+msgstr "-F, --show-function-line=RE   rādīt visnesenāko rindu, kas atbilst RE"
+
+#: src/diff.c:967
+#, fuzzy
+msgid ""
+"    --label LABEL             use LABEL instead of file name and timestamp\n"
+"                                (can be repeated)"
+msgstr ""
+"    --label ETIĶETE           izmantot ETIĶETI nevis datnes nosaukumu\n"
+"                                (var atkārtot)"
+
+#: src/diff.c:970
+msgid "-t, --expand-tabs             expand tabs to spaces in output"
+msgstr ""
+"-t, --expand-tabs             pārveidot tabulācijas par atstarpēm izvadē"
+
+#: src/diff.c:971
+msgid "-T, --initial-tab             make tabs line up by prepending a tab"
+msgstr ""
+"-T, --initial-tab             pacelt tabulācijas rindu pirms tabulācijas"
+
+#: src/diff.c:972
+msgid ""
+"    --tabsize=NUM             tab stops every NUM (default 8) print columns"
+msgstr ""
+"    --tabsize=NUM             tabulāciju pietura ik NUM drukas "
+"kolonas                                          (noklusējuma ir 8)"
+
+#: src/diff.c:973
+msgid ""
+"    --suppress-blank-empty    suppress space or tab before empty output lines"
+msgstr ""
+"    --suppress-blank-empty    apspiest atstarpes vai tabulācijas pirms "
+"tukšām\n"
+"                                izvades rindām."
+
+#: src/diff.c:974
+msgid "-l, --paginate                pass output through 'pr' to paginate it"
+msgstr "-l, --paginate                izlaist izvadi caur “pr”, lai to lapotu"
+
+#: src/diff.c:976
+msgid ""
+"-r, --recursive                 recursively compare any subdirectories found"
+msgstr ""
+"-r, --recursive                 rekursīvi salīdzina atrastās "
+"apakšdirektorijas"
+
+#: src/diff.c:977
+msgid "    --no-dereference            don't follow symbolic links"
+msgstr "    --no-dereference            nerādīt simboliskās saites"
+
+#: src/diff.c:978
+msgid "-N, --new-file                  treat absent files as empty"
+msgstr "-N, --new-file                  trūkstošas datnes uzskatīt par tukšām"
+
+#: src/diff.c:979
+msgid "    --unidirectional-new-file   treat absent first files as empty"
+msgstr ""
+"    --unidirectional-new-file   trūkstošas pirmās datnes uzskatīt par tukšām"
+
+#: src/diff.c:980
+msgid "    --ignore-file-name-case     ignore case when comparing file names"
+msgstr ""
+"    --ignore-file-name-case     ignorēt reģistru, salīdzinot datņu nosaukumus"
+
+#: src/diff.c:981
+msgid "    --no-ignore-file-name-case  consider case when comparing file names"
+msgstr ""
+"    --no-ignore-file-name-case  neignorēt reģistru, salīdzinot datņu "
+"nosaukumus"
+
+#: src/diff.c:982
+msgid "-x, --exclude=PAT               exclude files that match PAT"
+msgstr "-x, --exclude=ŠABLONS           izslēgt datnes, kuras atbilst ŠABLONAM"
+
+#: src/diff.c:983
+msgid ""
+"-X, --exclude-from=FILE         exclude files that match any pattern in FILE"
+msgstr ""
+"-X, --exclude-from=DATNE        izslēgt datnes, kuras atbilst jebkuram\n"
+"                                  šablonam DATNĒ"
+
+#: src/diff.c:984
+msgid ""
+"-S, --starting-file=FILE        start with FILE when comparing directories"
+msgstr ""
+"-S, --starting-file=DATNE       sākt ar DATNI, kad salīdzina direktorijas"
+
+#: src/diff.c:985
+msgid ""
+"    --from-file=FILE1           compare FILE1 to all operands;\n"
+"                                  FILE1 can be a directory"
+msgstr ""
+"    --from-file=DATNE1          salīdzina DANTE1 ar visiem operandiem;\n"
+"                                  DATNE1 var būt direktorija"
+
+#: src/diff.c:987
+msgid ""
+"    --to-file=FILE2             compare all operands to FILE2;\n"
+"                                  FILE2 can be a directory"
+msgstr ""
+"    --to-file=FILE2             salīdzina visus operandus ar DANTE2;\n"
+"                                  DATNE2 var būt direktorija"
+
+#: src/diff.c:990
+msgid ""
+"-i, --ignore-case               ignore case differences in file contents"
+msgstr ""
+"-i, --ignore-case               ignorē reģistra atšķirības datnes saturā"
+
+#: src/diff.c:991
+msgid "-E, --ignore-tab-expansion      ignore changes due to tab expansion"
+msgstr ""
+"-E, --ignore-tab-expansion      ignorēt izmaiņas dēļ tabulācijas izplešanās"
+
+#: src/diff.c:992
+msgid "-Z, --ignore-trailing-space     ignore white space at line end"
+msgstr "-Z, --ignore-trailing-space     ignorēt visas atstarpes rindu beigās"
+
+#: src/diff.c:993
+msgid ""
+"-b, --ignore-space-change       ignore changes in the amount of white space"
+msgstr "-b, --ignore-space-change       ignorēt izmaiņas dēļ atstarpēm"
+
+#: src/diff.c:994
+msgid "-w, --ignore-all-space          ignore all white space"
+msgstr "-w, --ignore-all-space          ignorēt visas atstarpes"
+
+#: src/diff.c:995
+msgid ""
+"-B, --ignore-blank-lines        ignore changes where lines are all blank"
+msgstr "-B, --ignore-blank-lines        ignorēt izmaiņas tukšajās rindās"
+
+#: src/diff.c:996
+msgid "-I, --ignore-matching-lines=RE  ignore changes where all lines match RE"
+msgstr ""
+"-I, --ignore-matching-lines=RE  ignorēt izmaiņas rindās, kuras sakrīt ar RE"
+
+#: src/diff.c:998
+msgid "-a, --text                      treat all files as text"
+msgstr "-a, --text                      uztvert visas datnes kā teksta datnes"
+
+#: src/diff.c:999
+msgid "    --strip-trailing-cr         strip trailing carriage return on input"
+msgstr ""
+"    --strip-trailing-cr         noņemt atkārtojošos rakstatgriezi ievadē"
+
+#: src/diff.c:1001
+msgid "    --binary                    read and write data in binary mode"
+msgstr "    --binary                    lasīt un rakstīt datus binārajā režīmā"
+
+#: src/diff.c:1004
+msgid ""
+"-D, --ifdef=NAME                output merged file with '#ifdef NAME' diffs"
+msgstr ""
+"-D, --ifdef=NOSAUKUMS           izvadīt sapludināto datni ar\n"
+"                                  “#ifdef NOSAUKUMS” diff"
+
+#: src/diff.c:1005
+msgid "    --GTYPE-group-format=GFMT   format GTYPE input groups with GFMT"
+msgstr "    --GTYPE-group-format=GFMT   formatēt GTYPE ievades grupas ar GFMT"
+
+#: src/diff.c:1006
+msgid "    --line-format=LFMT          format all input lines with LFMT"
+msgstr "    --line-format=LFMT          formatēt visas ievades rindas ar LFMT"
+
+#: src/diff.c:1007
+msgid "    --LTYPE-line-format=LFMT    format LTYPE input lines with LFMT"
+msgstr "    --LTYPE-line-format=LFMT    formatēt LTYPE ievades rindām ar LFMT"
+
+#: src/diff.c:1008
+msgid ""
+"  These format options provide fine-grained control over the output\n"
+"    of diff, generalizing -D/--ifdef."
+msgstr ""
+"  Šīs formāta opcijas sniedz detalizētu kontroli pār diff izvadi,\n"
+"    vispārinot -D/--ifdef."
+
+#: src/diff.c:1010
+msgid "  LTYPE is 'old', 'new', or 'unchanged'.  GTYPE is LTYPE or 'changed'."
+msgstr ""
+"  LTYPE ir “old”, “new” vai “unchanged”.  GTYPE ir LTYPE vai “changed”."
+
+#: src/diff.c:1011
+msgid ""
+"  GFMT (only) may contain:\n"
+"    %<  lines from FILE1\n"
+"    %>  lines from FILE2\n"
+"    %=  lines common to FILE1 and FILE2\n"
+"    %[-][WIDTH][.[PREC]]{doxX}LETTER  printf-style spec for LETTER\n"
+"      LETTERs are as follows for new group, lower case for old group:\n"
+"        F  first line number\n"
+"        L  last line number\n"
+"        N  number of lines = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1\n"
+"    %(A=B?T:E)  if A equals B then T else E"
+msgstr ""
+"  GFMT (tikai) var saturēt:\n"
+"    %<  rindas no DATNE1\n"
+"    %>  rindas no DATNE2\n"
+"    %=  rindas kopīgas DATNE1 un DATNE2\n"
+"    %[-][PLATUMS][.[PREC]]{doxX}BURTS  printf-style specifikācija BURTAM\n"
+"     BURTS ir šāds jaunai grupai, mazais reģistrs vecais grupai:\n"
+"        F  pirmās rindas numurs\n"
+"        L  pēdējās rindas numurs\n"
+"        N  rindu skaits = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1    %(A=B?T:E)  ja A vienāds ar B tad T citādi E"
+
+#: src/diff.c:1023
+msgid ""
+"  LFMT (only) may contain:\n"
+"    %L  contents of line\n"
+"    %l  contents of line, excluding any trailing newline\n"
+"    %[-][WIDTH][.[PREC]]{doxX}n  printf-style spec for input line number"
+msgstr ""
+"  LFMT (tikai) var saturēt:\n"
+"    %L  rindas saturs\n"
+"    %l  rindas saturs, izņemot sekojošās jaunās rindas rakstzīmes\n"
+"    %[-][PLATUMS][.[PREC]]{doxX}n  printf-style specifikācija ievades rindu\n"
+"       numuriem"
+
+#: src/diff.c:1027
+msgid ""
+"  Both GFMT and LFMT may contain:\n"
+"    %%  %\n"
+"    %c'C'  the single character C\n"
+"    %c'\\OOO'  the character with octal code OOO\n"
+"    C    the character C (other characters represent themselves)"
+msgstr ""
+"  Gan GFMT, gan LFMT var saturēt:\n"
+"    %%  %\n"
+"    %c'C'  vienu rakstzīmi C\n"
+"    %c'\\OOO'  rakstzīmi ar oktālo kodu OOO\n"
+"    C    rakstzīme C (vai citas rakstzīmes, kas attēlo pašas sevi)"
+
+#: src/diff.c:1033
+msgid "-d, --minimal            try hard to find a smaller set of changes"
+msgstr "-d, --minimal            ļoti censties atrast mazāku izmaiņu kopu"
+
+#: src/diff.c:1034
+msgid "    --horizon-lines=NUM  keep NUM lines of the common prefix and suffix"
+msgstr ""
+"    --horizon-lines=NUM  uzturēt NUM rindas kopējiem prefiksiem un sufiksiem"
+
+#: src/diff.c:1035
+msgid ""
+"    --speed-large-files  assume large files and many scattered small changes"
+msgstr ""
+"    --speed-large-files  pieņemt, ka datnes ir lielas ar daudz mazām izmaiņām"
+
+#: src/diff.c:1036
+msgid ""
+"    --color[=WHEN]       color output; WHEN is 'never', 'always', or "
+"'auto';\n"
+"                           plain --color means --color='auto'"
+msgstr ""
+
+#: src/diff.c:1038
+msgid ""
+"    --palette=PALETTE    the colors to use when --color is active; PALETTE "
+"is\n"
+"                           a colon-separated list of terminfo capabilities"
+msgstr ""
+
+#: src/diff.c:1041
+msgid "    --help               display this help and exit"
+msgstr "    --help               parādīt šo palīdzību un iziet"
+
+#: src/diff.c:1042
+msgid "-v, --version            output version information and exit"
+msgstr "-v, --version            izvada informāciju par versiju un iziet"
+
+#: src/diff.c:1044
+#, fuzzy
+msgid "FILES are 'FILE1 FILE2' or 'DIR1 DIR2' or 'DIR FILE' or 'FILE DIR'."
+msgstr ""
+"DATNES ir “DATNE1 DATNE2” vai “DIREKTORIJA1 DIREKTORIJA2” vai\n"
+"“DIREKTORIJA DATNE...” vai “DATNE... DIREKTORIJA”"
+
+#: src/diff.c:1045
+msgid ""
+"If --from-file or --to-file is given, there are no restrictions on FILE(s)."
+msgstr ""
+"Ja ir doti --from-file vai --to-file, nav nekādu ierobežojumu uz DATNĒM."
+
+#: src/diff.c:1046 src/diff3.c:531 src/sdiff.c:219
+msgid "If a FILE is '-', read standard input."
+msgstr "Ja DATNE ir “-”, lasīt standarta ievadi."
+
+#: src/diff.c:1056
+#, c-format
+msgid "Usage: %s [OPTION]... FILES\n"
+msgstr "Lietošana: %s [OPCIJAS]... DATNES\n"
+
+#: src/diff.c:1057
+msgid "Compare FILES line by line."
+msgstr "Salīdzina DATNES rindu pa rindai."
+
+#: src/diff.c:1094
+#, c-format
+msgid "conflicting %s option value '%s'"
+msgstr "konfliktējoša %s opcijas vērtība “%s”"
+
+#: src/diff.c:1107
+#, c-format
+msgid "conflicting output style options"
+msgstr "konfliktējoša izvades stila opcijas"
+
+#: src/diff.c:1123
+#, fuzzy, c-format
+msgid "invalid color '%s'"
+msgstr "nederīgs platums “%s”"
+
+#: src/diff.c:1197 src/diff.c:1401
+#, c-format
+msgid "Only in %s: %s\n"
+msgstr "Tikai iekš %s: %s\n"
+
+#: src/diff.c:1325
+msgid "cannot compare '-' to a directory"
+msgstr "nevar salīdzināt “-” ar direktoriju"
+
+#: src/diff.c:1360
+msgid "-D option not supported with directories"
+msgstr "-D opcija nav atbalstīta ar direktorijām"
+
+#: src/diff.c:1369
+#, c-format
+msgid "Common subdirectories: %s and %s\n"
+msgstr "Kopējās apakšdirektorijas: %s un %s\n"
+
+#: src/diff.c:1411 src/diff.c:1461
+#, c-format
+msgid "File %s is a %s while file %s is a %s\n"
+msgstr "Datne %s ir %s kamēr datne %s ir %s\n"
+
+#: src/diff.c:1447
+#, c-format
+msgid "Symbolic links %s and %s differ\n"
+msgstr "Simboliskās saites %s un %s atšķiras\n"
+
+#: src/diff.c:1534
+#, c-format
+msgid "Files %s and %s are identical\n"
+msgstr "Datnes %s un %s ir identiskas\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff3.c:51
+msgid "Randy Smith"
+msgstr "Randy Smith"
+
+#: src/diff3.c:363
+#, c-format
+msgid "incompatible options"
+msgstr "savstarpēji nesaderīgas opcijas"
+
+#: src/diff3.c:403
+msgid "'-' specified for more than one input file"
+msgstr "“-” norādīts vairāk par vienu ievades datni"
+
+#: src/diff3.c:445 src/diff3.c:1284 src/diff3.c:1683 src/diff3.c:1738
+#: src/sdiff.c:306 src/sdiff.c:843 src/sdiff.c:854
+msgid "read failed"
+msgstr "lasīšana neizdevās"
+
+#: src/diff3.c:478
+msgid "-A, --show-all              output all changes, bracketing conflicts"
+msgstr ""
+"-A, --show-all              izvada visas izmaņas, ieliekot iekavās konfliktus"
+
+#: src/diff3.c:480
+msgid ""
+"-e, --ed                    output ed script incorporating changes\n"
+"                                from OLDFILE to YOURFILE into MYFILE"
+msgstr ""
+"-e, --ed                    izvada ed skirpta iekļautās izmaiņas\n"
+"                            no VECĀSDATNES uz JŪSUDATNI iekš MANUDATNI."
+
+#: src/diff3.c:482
+msgid "-E, --show-overlap          like -e, but bracket conflicts"
+msgstr ""
+"-E, --show-overlap          tāpat kā -e, bet ieliekot iekavās konfliktus"
+
+#: src/diff3.c:483
+msgid ""
+"-3, --easy-only             like -e, but incorporate only nonoverlapping "
+"changes"
+msgstr ""
+"-3, --easy-only             līdzīgs -e, bet iekļauj tikai nepārklājošās "
+"izmaiņas"
+
+#: src/diff3.c:484
+msgid ""
+"-x, --overlap-only          like -e, but incorporate only overlapping changes"
+msgstr ""
+"-x, --overlap-only          līdzīgs -e, bet iekļauj tikai pārklājošās "
+"izmaiņas"
+
+#: src/diff3.c:485
+msgid "-X                          like -x, but bracket conflicts"
+msgstr ""
+"-X                          līdzīgs -x, bet ieliekot iekavās konfliktus"
+
+#: src/diff3.c:486
+msgid "-i                          append 'w' and 'q' commands to ed scripts"
+msgstr "-i                          pievieno “w” un “q” komandas ed skriptā"
+
+#: src/diff3.c:488
+msgid ""
+"-m, --merge                 output actual merged file, according to\n"
+"                                -A if no other options are given"
+msgstr ""
+"-m, --merge                 izvada pašu sapludināto datni, vadoties pēc -A,\n"
+"                                ja nav dotu citu opciju"
+
+#: src/diff3.c:491
+msgid "-a, --text                  treat all files as text"
+msgstr "-a, --text                  uztvert visas datnes kā teksta datnes"
+
+#: src/diff3.c:492
+msgid "    --strip-trailing-cr     strip trailing carriage return on input"
+msgstr "    --strip-trailing-cr     noņemt atkārtojošos rakstatgriezi ievadē"
+
+#: src/diff3.c:493
+msgid "-T, --initial-tab           make tabs line up by prepending a tab"
+msgstr "-T, --initial-tab           pacelt tabulācijas rindu pirms tabulācijas"
+
+#: src/diff3.c:494
+msgid "    --diff-program=PROGRAM  use PROGRAM to compare files"
+msgstr ""
+"    --diff-program=PROGRAMMA izmantot PROGRAMMU, lai salīdzinātu divas datnes"
+
+#: src/diff3.c:495
+msgid ""
+"-L, --label=LABEL           use LABEL instead of file name\n"
+"                                (can be repeated up to three times)"
+msgstr ""
+"-L, --label=ETIĶETE         izmantot ETIĶETI nevis datnes nosaukumu\n"
+"                                (var atkārtot)"
+
+#: src/diff3.c:498
+msgid "    --help                  display this help and exit"
+msgstr "    --help                  parādīt šo palīdzību un iziet"
+
+#: src/diff3.c:499
+msgid "-v, --version               output version information and exit"
+msgstr "-v, --version               izvada informāciju par versiju un iziet"
+
+#: src/diff3.c:508
+#, c-format
+msgid "Usage: %s [OPTION]... MYFILE OLDFILE YOURFILE\n"
+msgstr "Izmantošana: %s [OPCIJAS]... MANADATNE VECĀDATNE JŪSUDATNE\n"
+
+#: src/diff3.c:510
+msgid "Compare three files line by line."
+msgstr "Salīdzināt trīs datnes rindiņu pa rindiņai."
+
+#: src/diff3.c:520
+msgid ""
+"\n"
+"The default output format is a somewhat human-readable representation of\n"
+"the changes.\n"
+"\n"
+"The -e, -E, -x, -X (and corresponding long) options cause an ed script\n"
+"to be output instead of the default.\n"
+"\n"
+"Finally, the -m (--merge) option causes diff3 to do the merge internally\n"
+"and output the actual merged file.  For unusual input, this is more\n"
+"robust than using ed.\n"
+msgstr ""
+"\n"
+"Noklusējuma izvades formāts ir daudz maz cilvēkam lasāma izmaiņu "
+"attēlojums.\n"
+"\n"
+"Opcijas -e, -E, -x, -X (un to garie varianti) liek izvadīt ed skriptu, "
+"nevis\n"
+"noklusējuma.\n"
+"\n"
+"Visbeidzot, -m (--merge) opcija liek iekšēji sapludināt diff3 un izvadīt "
+"pašu\n"
+"sapludināto datni. Netipiskām ievadēm, šis ir vēl spēcīgāks paņēmiens, nekā\n"
+"ed izmantošana.\n"
+
+#: src/diff3.c:532
+msgid "Exit status is 0 if successful, 1 if conflicts, 2 if trouble."
+msgstr ""
+"Izejas statuss ir 0, ja tas ir veiksmīgs, 1, ja ir konflikts, 2, ja ir "
+"nepatikšanas."
+
+#: src/diff3.c:725
+msgid "internal error: screwup in format of diff blocks"
+msgstr "iekšējā kļūda: sagāja grīstē diff bloku formāts"
+
+#: src/diff3.c:1015
+#, c-format
+msgid "%s: diff failed: "
+msgstr "%s: diff neizdevās:"
+
+#: src/diff3.c:1037
+msgid "internal error: invalid diff type in process_diff"
+msgstr "iekšējā kļūda: nederīgs diff veids iekš process_diff"
+
+#: src/diff3.c:1060
+msgid "invalid diff format; invalid change separator"
+msgstr "nederīgs diff formāts; nederīgs izmaiņu atdalītājs"
+
+#: src/diff3.c:1294
+msgid "invalid diff format; incomplete last line"
+msgstr "nederīgs diff formāts; nepilnīga pēdējā rinda"
+
+#: src/diff3.c:1318 src/sdiff.c:274 src/util.c:1069
+#, c-format
+msgid "subsidiary program '%s' could not be invoked"
+msgstr "nevarēja izsaukt palīgprogrammu “%s”"
+
+#: src/diff3.c:1343
+msgid "invalid diff format; incorrect leading line chars"
+msgstr "nederīgs diff formāts; nederīgas rindas ievades rakstzīmes"
+
+#: src/diff3.c:1416
+msgid "internal error: invalid diff type passed to output"
+msgstr "iekšējā kļūda: nederīgs uz izvadi padotais diff veids"
+
+#: src/diff3.c:1685 src/diff3.c:1742
+msgid "input file shrank"
+msgstr "ievades datne saruka"
+
+#: src/dir.c:154
+#, c-format
+msgid "cannot compare file names '%s' and '%s'"
+msgstr "nevar salīdzināt datņu nosaukumus “%s” un “%s”"
+
+#: src/dir.c:223
+#, c-format
+msgid "%s: recursive directory loop"
+msgstr "%s: rekursīvs direktorijas cikls"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/sdiff.c:44
+msgid "Thomas Lord"
+msgstr "Thomas Lord"
+
+#: src/sdiff.c:173
+msgid ""
+"-o, --output=FILE            operate interactively, sending output to FILE"
+msgstr ""
+"-o, --output=DATNE           darboties interaktīvi, izvadot izvadu uz DATNI"
+
+#: src/sdiff.c:175
+msgid ""
+"-i, --ignore-case            consider upper- and lower-case to be the same"
+msgstr ""
+"-i, --ignore-case            uzskatīt ka augšējais un apakšējais reģistrs "
+"ir\n"
+"                              viens un tas pats"
+
+#: src/sdiff.c:176
+msgid "-E, --ignore-tab-expansion   ignore changes due to tab expansion"
+msgstr ""
+"-E, --ignore-tab-expansion   ignorēt izmaiņas dēļ tabulācijas izplešanās"
+
+#: src/sdiff.c:177
+msgid "-Z, --ignore-trailing-space  ignore white space at line end"
+msgstr "-Z, --ignore-trailing-space  ignorēt visas atstarpes rindu beigās"
+
+#: src/sdiff.c:178
+msgid ""
+"-b, --ignore-space-change    ignore changes in the amount of white space"
+msgstr "-b, --ignore-space-change    ignorēt izmaiņas dēļ atstarpēm"
+
+#: src/sdiff.c:179
+msgid "-W, --ignore-all-space       ignore all white space"
+msgstr "-W, --ignore-all-space       ignorēt visas atstarpes"
+
+#: src/sdiff.c:180
+msgid "-B, --ignore-blank-lines     ignore changes whose lines are all blank"
+msgstr "-B, --ignore-blank-lines     ignorēt izmaiņas tukšajās rindās"
+
+#: src/sdiff.c:181
+msgid "-I, --ignore-matching-lines=RE  ignore changes all whose lines match RE"
+msgstr ""
+"-I, --ignore-matching-lines=RE  ignorēt izmaiņas rindās, kuras sakrīt ar RE"
+
+#: src/sdiff.c:182
+msgid "    --strip-trailing-cr      strip trailing carriage return on input"
+msgstr "    --strip-trailing-cr     noņemt atkārtojošos rakstatgriezi ievadē"
+
+#: src/sdiff.c:183
+msgid "-a, --text                   treat all files as text"
+msgstr "-a, --text                   uztvert visas datnes kā teksta datnes"
+
+#: src/sdiff.c:185
+msgid ""
+"-w, --width=NUM              output at most NUM (default 130) print columns"
+msgstr ""
+"-w, --width=NUM              izvada līdz NUM (noklusējuma 130) drukas kolonas"
+
+#: src/sdiff.c:186
+msgid ""
+"-l, --left-column            output only the left column of common lines"
+msgstr ""
+"-l, --left-column            izvadīt tikai kreiso kolonu no kopējām rindām"
+
+#: src/sdiff.c:187
+msgid "-s, --suppress-common-lines  do not output common lines"
+msgstr "-s, --suppress-common-lines  neizvadīt kopējās rindas"
+
+#: src/sdiff.c:189
+msgid "-t, --expand-tabs            expand tabs to spaces in output"
+msgstr ""
+"-t, --expand-tabs            pārveidot tabulācijas par atstarpēm izvadē"
+
+#: src/sdiff.c:190
+msgid ""
+"    --tabsize=NUM            tab stops at every NUM (default 8) print columns"
+msgstr ""
+"    --tabsize=NUM            tabulāciju pietura ik NUM drukas "
+"kolonas                                          (noklusējuma ir 8)"
+
+#: src/sdiff.c:192
+msgid "-d, --minimal                try hard to find a smaller set of changes"
+msgstr "-d, --minimal                ļoti censties atrast mazāku izmaiņu kopu"
+
+#: src/sdiff.c:193
+msgid ""
+"-H, --speed-large-files      assume large files, many scattered small changes"
+msgstr ""
+"-H, --speed-large-files      pieņemt, ka datnes ir lielas, daudz mazu izmaiņu"
+
+#: src/sdiff.c:194
+msgid "    --diff-program=PROGRAM   use PROGRAM to compare files"
+msgstr ""
+"    --diff-program=PROGRAMMA izmantot PROGRAMMU, lai salīdzinātu divas datnes"
+
+#: src/sdiff.c:196
+msgid "    --help                   display this help and exit"
+msgstr "    --help                   parādīt šo palīdzību un iziet"
+
+#: src/sdiff.c:197
+msgid "-v, --version                output version information and exit"
+msgstr "-v, --version                izvada informāciju par versiju un iziet"
+
+#: src/sdiff.c:206
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 FILE2\n"
+msgstr "Lietošana: %s [OPCIJAS]... DATNE1 DATNE1\n"
+
+#: src/sdiff.c:208
+msgid "Side-by-side merge of differences between FILE1 and FILE2."
+msgstr "Sānu-pie-sāna datņu DATNE1 un DATNE2 atšķirību sapludināšana."
+
+#: src/sdiff.c:328
+msgid "cannot interactively merge standard input"
+msgstr "nevar interaktīvi sapludināt standarta ievadi"
+
+#: src/sdiff.c:594
+msgid "both files to be compared are directories"
+msgstr "abas salīdzināmās datnes ir direktorijas"
+
+#: src/sdiff.c:817
+msgid ""
+"ed:\tEdit then use both versions, each decorated with a header.\n"
+"eb:\tEdit then use both versions.\n"
+"el or e1:\tEdit then use the left version.\n"
+"er or e2:\tEdit then use the right version.\n"
+"e:\tDiscard both versions then edit a new one.\n"
+"l or 1:\tUse the left version.\n"
+"r or 2:\tUse the right version.\n"
+"s:\tSilently include common lines.\n"
+"v:\tVerbosely include common lines.\n"
+"q:\tQuit.\n"
+msgstr ""
+"ed:\tRediģēt tad izmantot abas versijas, katra izrotāta ar virsrakstu.\n"
+"eb:\tRediģēt un tad izmantot abas versijas.\n"
+"el vai e1:\tRediģēt un tad izmantot kreiso versiju.\n"
+"er vai e2:\tRediģēt un tad izmantot labo versiju.\n"
+"e:\tIgnorēt abas versijas, tad rediģēt jauno.\n"
+"l vai 1:\tIzmantot kreiso versiju.\n"
+"r vai 2:\tIzmantot labo versiju.\n"
+"s:\tKlusi iekļaut kopējās rindas.\n"
+"v:\tDetalizēti iekļaut kopējās rindas.\n"
+"q:\tIziet.\n"
+
+#: src/util.c:755
+#, fuzzy, c-format
+msgid "unrecognized prefix: %s"
+msgstr "%s: neatpazīta opcija “--%s”\n"
+
+#: src/util.c:785
+#, c-format
+msgid "unparsable value for --palette"
+msgstr ""
+
+#~ msgid "invalid %s%s argument '%s'"
+#~ msgstr "nederīgs %s%s arguments “%s”"
+
+#~ msgid "invalid suffix in %s%s argument '%s'"
+#~ msgstr "nederīgs piedēklis %s%s argumentā “%s”"
+
+#~ msgid "%s%s argument '%s' too large"
+#~ msgstr "%s%s arguments “%s” ir pārāk liels"
+
+#, fuzzy
+#~ msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
+#~ msgstr "%s mājas lapa: <http://www.gnu.org/software/%s/>\n"
+
+#, fuzzy
+#~ msgid "                           or 'auto' (the default)"
+#~ msgstr "    --normal                  izvada parastu diff (noklusējuma)"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: opcija “--%s” neatļauj argumentu\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: neatpazīta opcija “--%s”\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: opcija “-W %s” ir divdomīga\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: opcija “-W %s” neatļauj argumentu\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: opcijai “-W %s” nepieciešams arguments\n"
+
+#~ msgid "-i SKIP1:SKIP2  --ignore-initial=SKIP1:SKIP2"
+#~ msgstr "-i IZLAIST1:IZLAIST2  --ignore-initial=IZLAIST1:IZLAIST2"
+
+#~ msgid "-s  --quiet  --silent  Output nothing; yield exit status only."
+#~ msgstr "-s  --quiet  --silent  Izvada neko, izdod tikai izejas stāvokli."
+
+#~ msgid "--help  Output this help."
+#~ msgstr "--help  Izvada šo palīdzību."
+
+#~ msgid ""
+#~ "-c  -C NUM  --context[=NUM]  Output NUM (default 3) lines of copied "
+#~ "context.\n"
+#~ "-u  -U NUM  --unified[=NUM]  Output NUM (default 3) lines of unified "
+#~ "context.\n"
+#~ "  --label LABEL  Use LABEL instead of file name.\n"
+#~ "  -p  --show-c-function  Show which C function each change is in.\n"
+#~ "  -F RE  --show-function-line=RE  Show the most recent line matching RE."
+#~ msgstr ""
+#~ "-c  -C NUM  --context[=NUM]  Izvada NUM (noklusētais 3) rinfas no kopētā "
+#~ "konteksta.\n"
+#~ "-u  -U NUM  --unified[=NUM]  Izvada NUM (noklusētais 3) rinfas no "
+#~ "unificēta konteksta.\n"
+#~ "  --label ETIĶETE  Izmanto ETIĶETES faila nosaukumos.\n"
+#~ "  -p  --show-c-function  Rāda C funkcijas, kurās ir izmaiņas.\n"
+#~ "  -F RE  --show-function-line=RE  Rāda nesenāko skarītošo RE rindu."
+
+#~ msgid ""
+#~ "-y  --side-by-side  Output in two columns.\n"
+#~ "  -W NUM  --width=NUM  Output at most NUM (default 130) print columns.\n"
+#~ "  --left-column  Output only the left column of common lines.\n"
+#~ "  --suppress-common-lines  Do not output common lines."
+#~ msgstr ""
+#~ "-y  --side-by-side  Izvada divas kolonas.\n"
+#~ "  -W NUM  --width=NUM  Izvada līdz NUM (noklusētais 130) drukas kolonas.\n"
+#~ "  --left-column  Izvada tikai kreisās kolonas no kopējām rindām.\n"
+#~ "  --suppress-common-lines  Neizvada kopējās rindas."
+
+#~ msgid ""
+#~ "--speed-large-files  Assume large files and many scattered small changes."
+#~ msgstr ""
+#~ "--speed-large-files  Pieņemt, ka faili ir lieli un satur daudzas mazas "
+#~ "izmaiņas."
+
+#~ msgid "-X  Output overlapping changes, bracketing them."
+#~ msgstr "-X  Izvada pārklājušas izmaiņas, ieliekot iekavās tās."
+
+#~ msgid "-m  --merge  Output merged file instead of ed script (default -A)."
+#~ msgstr ""
+#~ "-m  --merge  Izvada sapludinātu failu nevis ed skriptu (noklusētais ir -"
+#~ "A)."
+
+#~ msgid "-L LABEL  --label=LABEL  Use LABEL instead of file name."
+#~ msgstr ""
+#~ "-L ETIĶETE  --label=ETIĶETE  Izmantot ETIĶETI nevis faila nosaukumu."
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: neatļauta opcija -- %c\n"
+
+#~ msgid ""
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "Šī ir brīva programmatūra; apskaties izejas kodu autortiesību "
+#~ "nosacījumiem.\n"
+#~ "NAV nekāda garantijas; pat TIRGOŠANAS vai DERĪBA KONKRĒTAM MĒRĶIM.\n"
+
+#~ msgid "Report bugs to <bug-gnu-utils@gnu.org>."
+#~ msgstr "Ziņot par kļūdam uz <bug-gnu-utils@gnu.org>."
+
+#~ msgid "`-%ld' option is obsolete; use `-%c %ld'"
+#~ msgstr "`-%ld' opcija ir novecojusi; izmantojiet `-%c %ld'"
+
+#~ msgid "`-%ld' option is obsolete; omit it"
+#~ msgstr "`-%ld' opcija ir novecojusi; nelietojiet to"
+
+#~ msgid "subsidiary program `%s' not found"
+#~ msgstr "netika atrasta palīgprogramma \"%s\""
+
+#~ msgid "subsidiary program `%s' failed"
+#~ msgstr "neizdevās izpildīt palīgprogrammu \"%s\""
+
+#~ msgid "subsidiary program `%s' failed (exit status %d)"
+#~ msgstr "neizdevās izpildīt palīgprogrammu \"%s\" (izejas stauss %d)"

@@ -1,0 +1,31 @@
+#!/bin/sh
+# Show how diff's -p option can mistakenly match a label: in column 1.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+cat <<EOF > exp || fail=1
+@@ -4 +4 @@ label:
+-1;
++2;
+EOF
+
+cat <<EOF > a || fail=1
+func ()
+{
+label:
+1;
+}
+EOF
+
+sed s/1/2/ a > b || fail=1
+returns_ 1 diff -p -u0 a b > out 2> err || fail=1
+
+tail -3 out > k && mv k out || fail=1
+
+compare exp out || fail=1
+
+# expect empty stderr
+compare /dev/null err || fail=1
+
+Exit $fail

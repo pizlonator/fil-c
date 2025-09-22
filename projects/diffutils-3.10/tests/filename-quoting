@@ -1,0 +1,61 @@
+#!/bin/sh
+# filename quoting
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+cat <<EOF > exp- || fail=1
+diff -N -r "a/ " "b/ "
+0a1
+> space
+EOF
+
+cat <<EOF > exp--u || fail=1
+diff -N -r -u "a/ " "b/ "
+--- "a/ "
++++ "b/ "
+@@ -0,0 +1 @@
++space
+EOF
+
+cat <<EOF > exp--c || fail=1
+diff -N -r -c "a/ " "b/ "
+*** "a/ "
+--- "b/ "
+***************
+*** 0 ****
+--- 1 ----
++ space
+EOF
+
+mkdir a b
+echo space > "b/ " || fail=1
+for opt in '' -u -c; do
+  returns_ 1 diff -N -r $opt a b > out 2> err || fail=1
+  # Remove date and time.
+  sed -e 's/^\([-+*][-+*][-+*] [^	]*\)	.*/\1/' out > k; mv k out
+  compare exp-$(echo $opt|tr ' ' _) out || fail=1
+done
+
+rm -f "b/ "
+
+cat <<EOF > exp || fail=1
+--- "a/\t"
++++ "b/\001"
+@@ -1 +1 @@
+-tab
++one
+EOF
+
+tab=$(printf '\t')
+x01=$(printf '\001')
+
+echo tab > "a/$tab"   || fail=1
+echo one > "b/$x01" || fail=1
+returns_ 1 diff -u "a/$tab" "b/$x01" > out 2> err || fail=1
+# Remove date and time.
+sed -e 's/^\([-+*][-+*][-+*] [^	]*\)	.*/\1/' out > k; mv k out
+compare exp out || fail=1
+
+Exit $fail

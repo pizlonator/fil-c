@@ -1,0 +1,14 @@
+#!/bin/sh
+# In diff 3.4 through 3.8, this would output the wrong timezone on Solaris.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ../src
+
+fail=0
+
+echo a >a || fail=1
+case $(LC_ALL=C TZ=EST5 diff -u /dev/null a) in
+  *' -0500'*) ;;
+  *) fail=1 ;;
+esac
+
+Exit $fail

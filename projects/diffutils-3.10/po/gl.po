@@ -1,0 +1,1708 @@
+# Galician translation of GNU diffutils
+# Copyright © 2000, 2001, 2002 Free Software Foundation, Inc.
+# This file is distributed under the same license as the diffutils package.
+# Jacobo Tarrío Barreiro <jtarrio@trasno.net>, 2000, 2001, 2002.
+# Miguel Anxo Bouzada <mbouzada@gmail.com>, 2011.
+# Leandro Regueiro <leandro.regueiro@gmail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU diffutils 3.2\n"
+"Report-Msgid-Bugs-To: bug-diffutils@gnu.org\n"
+"POT-Creation-Date: 2023-05-21 01:51-0700\n"
+"PO-Revision-Date: 2011-10-17 12:43+0100\n"
+"Last-Translator: Leandro Regueiro <leandro.regueiro@gmail.com>\n"
+"Language-Team: Galician <proxecto@trasno.net>\n"
+"Language: gl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+
+#: lib/argmatch.c:145
+#, fuzzy, c-format
+msgid "invalid argument %s for %s"
+msgstr "o argumento «%s» de %s%s é incorrecto"
+
+#: lib/argmatch.c:146
+#, c-format
+msgid "ambiguous argument %s for %s"
+msgstr ""
+
+#: lib/argmatch.c:165 lib/argmatch.h:242
+#, fuzzy
+msgid "Valid arguments are:"
+msgstr "o argumento «%s» de %s%s é incorrecto"
+
+#: lib/c-stack.c:186
+msgid "program error"
+msgstr "erro do programa"
+
+#: lib/c-stack.c:187
+msgid "stack overflow"
+msgstr "desbordamento da pila"
+
+#: lib/error.c:193
+msgid "Unknown system error"
+msgstr "Produciuse un erro descoñecido do sistema"
+
+#: lib/file-type.c:40
+msgid "regular empty file"
+msgstr "ficheiro regular baleiro"
+
+#: lib/file-type.c:40
+msgid "regular file"
+msgstr "ficheiro regular"
+
+#: lib/file-type.c:43
+msgid "directory"
+msgstr "directorio"
+
+#: lib/file-type.c:46
+msgid "symbolic link"
+msgstr "ligazón simbólica"
+
+#: lib/file-type.c:52
+msgid "message queue"
+msgstr "cola de mensaxes"
+
+#: lib/file-type.c:55
+msgid "semaphore"
+msgstr "semáforo"
+
+#: lib/file-type.c:58
+msgid "shared memory object"
+msgstr "obxecto de memoria compartida"
+
+#: lib/file-type.c:61
+msgid "typed memory object"
+msgstr "obxecto de memoria con tipo"
+
+#: lib/file-type.c:66
+msgid "block special file"
+msgstr "ficheiro especial de bloques"
+
+#: lib/file-type.c:69
+msgid "character special file"
+msgstr "ficheiro especial de caracteres"
+
+#: lib/file-type.c:72
+msgid "contiguous data"
+msgstr ""
+
+#: lib/file-type.c:75
+msgid "fifo"
+msgstr "fifo"
+
+#: lib/file-type.c:78
+msgid "door"
+msgstr ""
+
+#: lib/file-type.c:81
+#, fuzzy
+msgid "multiplexed block special file"
+msgstr "ficheiro especial de bloques"
+
+#: lib/file-type.c:84
+#, fuzzy
+msgid "multiplexed character special file"
+msgstr "ficheiro especial de caracteres"
+
+#: lib/file-type.c:87
+msgid "multiplexed file"
+msgstr ""
+
+#: lib/file-type.c:90
+#, fuzzy
+msgid "named file"
+msgstr "ficheiro estraño"
+
+#: lib/file-type.c:93
+#, fuzzy
+msgid "network special file"
+msgstr "ficheiro especial de bloques"
+
+#: lib/file-type.c:96
+msgid "migrated file with data"
+msgstr ""
+
+#: lib/file-type.c:99
+msgid "migrated file without data"
+msgstr ""
+
+#: lib/file-type.c:102
+msgid "port"
+msgstr ""
+
+#: lib/file-type.c:105
+msgid "socket"
+msgstr "socket"
+
+#: lib/file-type.c:108
+msgid "whiteout"
+msgstr ""
+
+#: lib/file-type.c:110
+msgid "weird file"
+msgstr "ficheiro estraño"
+
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: a opción «-W %s» é ambigua\n"
+
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "'%s' está danado. A liña %d na sección Opción é incorrecta"
+
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: non se recoñece a opción «%c%s»\n"
+
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: a opción «%c%s» non permite un argumento\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: a opción «--%s» require un argumento\n"
+
+#: lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: opción incorrecta -- «%c»\n"
+
+#: lib/getopt.c:636 lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: a opción require un argumento -- «%c»\n"
+
+#. TRANSLATORS:
+#. Get translations for open and closing quotation marks.
+#. The message catalog should translate "`" to a left
+#. quotation mark suitable for the locale, and similarly for
+#. "'".  For example, a French Unicode local should translate
+#. these to U+00AB (LEFT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), and U+00BB (RIGHT-POINTING DOUBLE ANGLE
+#. QUOTATION MARK), respectively.
+#.
+#. If the catalog has no translation, we will try to
+#. use Unicode U+2018 (LEFT SINGLE QUOTATION MARK) and
+#. Unicode U+2019 (RIGHT SINGLE QUOTATION MARK).  If the
+#. current locale is not Unicode, locale_quoting_style
+#. will quote 'like this', and clocale_quoting_style will
+#. quote "like this".  You should always include translations
+#. for "`" and "'" even if U+2018 and U+2019 are appropriate
+#. for your locale.
+#.
+#. If you don't know what to put here, please see
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. and use glyphs suitable for your language.
+#: lib/quotearg.c:354
+msgid "`"
+msgstr "«"
+
+#: lib/quotearg.c:355
+msgid "'"
+msgstr "»"
+
+#: lib/regcomp.c:122
+msgid "Success"
+msgstr "Correcto"
+
+#: lib/regcomp.c:125
+msgid "No match"
+msgstr "Non hai coincidencias"
+
+#: lib/regcomp.c:128
+msgid "Invalid regular expression"
+msgstr "Expresión regular incorrecta"
+
+#: lib/regcomp.c:131
+msgid "Invalid collation character"
+msgstr "Carácter de ordenamento incorrecto"
+
+#: lib/regcomp.c:134
+msgid "Invalid character class name"
+msgstr "Nome da clase de caracteres incorrecto"
+
+#: lib/regcomp.c:137
+msgid "Trailing backslash"
+msgstr "Barra invertida ao final"
+
+#: lib/regcomp.c:140
+msgid "Invalid back reference"
+msgstr "Referencia cara a atrás incorrecta"
+
+#: lib/regcomp.c:143
+#, fuzzy
+msgid "Unmatched [, [^, [:, [., or [="
+msgstr "[ ou [^ non emparellado"
+
+#: lib/regcomp.c:146
+msgid "Unmatched ( or \\("
+msgstr "( ou \\( non emparellado"
+
+#: lib/regcomp.c:149
+msgid "Unmatched \\{"
+msgstr "\\{ non emparellado"
+
+#: lib/regcomp.c:152
+msgid "Invalid content of \\{\\}"
+msgstr "O contido entre \\{\\} non é correcto"
+
+#: lib/regcomp.c:155
+msgid "Invalid range end"
+msgstr "Final do rango incorrecto"
+
+#: lib/regcomp.c:158
+msgid "Memory exhausted"
+msgstr "Memoria esgotada"
+
+#: lib/regcomp.c:161
+msgid "Invalid preceding regular expression"
+msgstr "Expresión regular precedente incorrecta"
+
+#: lib/regcomp.c:164
+msgid "Premature end of regular expression"
+msgstr "Final prematura da expresión regular"
+
+#: lib/regcomp.c:167
+msgid "Regular expression too big"
+msgstr "Expresión regular demasiado grande"
+
+#: lib/regcomp.c:170
+msgid "Unmatched ) or \\)"
+msgstr ") ou \\) non emparellado"
+
+#: lib/regcomp.c:650
+msgid "No previous regular expression"
+msgstr "Non hai unha expresión regular anterior"
+
+#: lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "esgotouse a memoria"
+
+#: lib/xfreopen.c:34
+msgid "stdin"
+msgstr "entrada estándar"
+
+#: lib/xfreopen.c:35
+msgid "stdout"
+msgstr "saída estándar"
+
+#: lib/xfreopen.c:36
+msgid "stderr"
+msgstr "saída estándar de erro"
+
+#: lib/xfreopen.c:37
+msgid "unknown stream"
+msgstr "fluxo descoñecido"
+
+#: lib/xfreopen.c:38
+#, c-format
+msgid "failed to reopen %s with mode %s"
+msgstr "produciuse un erro ao volver abrir %s en modo %s"
+
+#: lib/xstdopen.c:34
+#, c-format
+msgid "standard file descriptors"
+msgstr ""
+
+#: lib/version-etc.c:73
+#, c-format
+msgid "Packaged by %s (%s)\n"
+msgstr "Empaquetado por %s (%s)\n"
+
+#: lib/version-etc.c:76
+#, c-format
+msgid "Packaged by %s\n"
+msgstr "Empaquetado por %s\n"
+
+#. TRANSLATORS: Translate "(C)" to the copyright symbol
+#. (C-in-a-circle), if this symbol is available in the user's
+#. locale.  Otherwise, do not translate "(C)"; leave it as-is.
+#: lib/version-etc.c:83
+msgid "(C)"
+msgstr "©"
+
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: lib/version-etc.c:88
+#, fuzzy, c-format
+msgid ""
+"License GPLv3+: GNU GPL version 3 or later <%s>.\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"\n"
+"Licenza GPLv3+: GNU GPL versión 3 ou posterior <http://gnu.org/licenses/gpl."
+"html>.\n"
+"Isto é software libre: vostede é libre para modificalo e redistribuílo.\n"
+"NON HAI GARANTÍA, ata o punto permitido pola lei.\n"
+"\n"
+
+#. TRANSLATORS: %s denotes an author name.
+#: lib/version-etc.c:105
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Escrito por %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:109
+#, c-format
+msgid "Written by %s and %s.\n"
+msgstr "Escrito por %s e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#: lib/version-etc.c:113
+#, c-format
+msgid "Written by %s, %s, and %s.\n"
+msgstr "Escrito por %s, %s e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:120
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:127
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"%s e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:134
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, and %s.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"%s, %s e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:142
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, and %s.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"%s, %s, %s, e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:150
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"and %s.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"%s, %s, %s, %s,\n"
+"e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:159
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, and %s.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"%s, %s, %s, %s,\n"
+"%s e %s.\n"
+
+#. TRANSLATORS: Each %s denotes an author name.
+#. You can use line breaks, estimating that each author name occupies
+#. ca. 16 screen columns and that a screen line has ca. 80 columns.
+#: lib/version-etc.c:170
+#, c-format
+msgid ""
+"Written by %s, %s, %s,\n"
+"%s, %s, %s, %s,\n"
+"%s, %s, and others.\n"
+msgstr ""
+"Escrito por %s, %s, %s\n"
+"%s, %s, %s, %s,\n"
+"%s, %s e outros.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: lib/version-etc.c:249
+#, fuzzy, c-format
+msgid "Report bugs to: %s\n"
+msgstr ""
+"\n"
+"Envíe os informes de erros a: %s\n"
+
+#: lib/version-etc.c:251
+#, c-format
+msgid "Report %s bugs to: %s\n"
+msgstr "Envíe %s informes de erros a: %s\n"
+
+#: lib/version-etc.c:255 lib/version-etc.c:257
+#, c-format
+msgid "%s home page: <%s>\n"
+msgstr "%s páxina web: <%s>\n"
+
+#: lib/version-etc.c:260
+#, fuzzy, c-format
+msgid "General help using GNU software: <%s>\n"
+msgstr "Axuda xeral ao usar software GNU: <http://www.gnu.org/gethelp/>\n"
+
+#: src/analyze.c:455 src/diff.c:1478
+#, c-format
+msgid "Files %s and %s differ\n"
+msgstr "Os ficheiros %s e %s son diferentes\n"
+
+#: src/analyze.c:456
+#, c-format
+msgid "Binary files %s and %s differ\n"
+msgstr "Os ficheiros binarios %s e %s son diferentes\n"
+
+#: src/analyze.c:707 src/diff3.c:1457 src/util.c:1354
+msgid "No newline at end of file"
+msgstr "Non hai un salto de liña na fin da liña"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:45
+msgid "Torbjorn Granlund"
+msgstr "Torbjorn Granlund"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/cmp.c:46
+msgid "David MacKenzie"
+msgstr "David MacKenzie"
+
+#: src/cmp.c:124 src/diff.c:939 src/diff3.c:465 src/sdiff.c:159
+#, fuzzy, c-format
+msgid "Try '%s --help' for more information."
+msgstr "Probe «%s --help» para obter máis información."
+
+#: src/cmp.c:142
+#, fuzzy, c-format
+msgid "invalid --ignore-initial value '%s'"
+msgstr "valor de --ignore-initial «%s» non válido"
+
+#: src/cmp.c:152
+#, c-format
+msgid "options -l and -s are incompatible"
+msgstr "as opcións -l e -s son incompatíbeis"
+
+#: src/cmp.c:160 src/diff.c:947 src/diff3.c:472 src/sdiff.c:167 src/sdiff.c:314
+#: src/sdiff.c:321 src/sdiff.c:873 src/util.c:952 src/util.c:1052
+#: src/util.c:1059
+msgid "write failed"
+msgstr "fallou a escritura"
+
+#: src/cmp.c:162 src/diff.c:949 src/diff.c:1543 src/diff3.c:474 src/sdiff.c:169
+msgid "standard output"
+msgstr "saída estándar"
+
+#: src/cmp.c:166
+#, fuzzy
+msgid "-b, --print-bytes          print differing bytes"
+msgstr "Axustar a resolución de impresión"
+
+#: src/cmp.c:167
+#, fuzzy
+msgid "-i, --ignore-initial=SKIP         skip first SKIP bytes of both inputs"
+msgstr ""
+"-i N     --ignore-initial=N     Omitir os primeiros N bytes de entrada."
+
+#: src/cmp.c:168
+#, fuzzy
+msgid ""
+"-i, --ignore-initial=SKIP1:SKIP2  skip first SKIP1 bytes of FILE1 and\n"
+"                                      first SKIP2 bytes of FILE2"
+msgstr ""
+"  Omitir os primeiros N1 bytes de FICH1 e os primeiros N2 bytes de FICH2."
+
+#: src/cmp.c:170
+#, fuzzy
+msgid ""
+"-l, --verbose              output byte numbers and differing byte values"
+msgstr "-l  --verbose  Amosar os números e valores dos bytes que difiran."
+
+#: src/cmp.c:171
+#, fuzzy
+msgid "-n, --bytes=LIMIT          compare at most LIMIT bytes"
+msgstr "-n LÍMITE  --bytes=LÍMITE  Comparar como moito LÍMITE bytes."
+
+#: src/cmp.c:172
+msgid "-s, --quiet, --silent      suppress all normal output"
+msgstr ""
+
+#: src/cmp.c:173
+msgid "    --help                 display this help and exit"
+msgstr ""
+
+#: src/cmp.c:174
+#, fuzzy
+msgid "-v, --version              output version information and exit"
+msgstr "Mostrar información da versión e saír"
+
+#: src/cmp.c:183
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\n"
+msgstr "Uso: %s [OPCIÓN]... FICH1 [FICH2 [N1 [N2]]]\n"
+
+#: src/cmp.c:185
+msgid "Compare two files byte by byte."
+msgstr "Comparar dous ficheiros byte a byte."
+
+#: src/cmp.c:187
+#, fuzzy
+msgid ""
+"The optional SKIP1 and SKIP2 specify the number of bytes to skip\n"
+"at the beginning of each file (zero by default)."
+msgstr "N1 e N2 son o número de bytes a omitir en cada ficheiro."
+
+#: src/cmp.c:190 src/diff.c:1059 src/diff3.c:512 src/sdiff.c:210
+msgid ""
+"Mandatory arguments to long options are mandatory for short options too.\n"
+msgstr ""
+
+#: src/cmp.c:196
+msgid ""
+"SKIP values may be followed by the following multiplicative suffixes:\n"
+"kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+"GB 1,000,000,000, G 1,073,741,824, and so on for T, P, E, Z, Y."
+msgstr ""
+"Os valores N poden estar seguidos polos seguintes sufixos multiplicativos:\n"
+"kB 1000, K 1024, MB 1.000.000, M 1.048.576,\n"
+"GB 1.000.000.000, G 1.073.741.824, e así para T, P, E, Z e Y."
+
+#: src/cmp.c:199
+#, fuzzy
+msgid "If a FILE is '-' or missing, read standard input."
+msgstr "Se un FICHEIRO é «-» ou non se indica, lese da entrada estándar."
+
+#: src/cmp.c:200 src/diff.c:1047 src/sdiff.c:220
+msgid "Exit status is 0 if inputs are the same, 1 if different, 2 if trouble."
+msgstr ""
+"O estado de saída é 0 se as entradas son iguais, 1 se son diferentes, 2 en "
+"caso de problema."
+
+#: src/cmp.c:247
+#, fuzzy, c-format
+msgid "invalid --bytes value '%s'"
+msgstr "valor de --bytes «%s» non válido"
+
+#: src/cmp.c:273 src/diff.c:857 src/diff3.c:368 src/sdiff.c:564
+#, fuzzy, c-format
+msgid "missing operand after '%s'"
+msgstr "falta un operando despois de «%s»"
+
+#: src/cmp.c:285 src/diff.c:859 src/diff3.c:370 src/sdiff.c:566
+#, fuzzy, c-format
+msgid "extra operand '%s'"
+msgstr "operando «%s» sobrante"
+
+#: src/cmp.c:521
+#, c-format
+msgid "%s %s differ: byte %s, line %s\n"
+msgstr "%s %s son diferentes: byte %s, liña %s\n"
+
+#: src/cmp.c:537
+#, c-format
+msgid "%s %s differ: byte %s, line %s is %3o %s %3o %s\n"
+msgstr "%s %s son diferentes: byte %s, liña %s é %3o %s %3o %s\n"
+
+#: src/cmp.c:594
+#, fuzzy, c-format
+msgid "cmp: EOF on %s which is empty\n"
+msgstr "cmp: Fin de ficheiro en %s\n"
+
+#: src/cmp.c:608
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s, line %s\n"
+msgstr "%s %s son diferentes: byte %s, liña %s\n"
+
+#: src/cmp.c:609
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s, in line %s\n"
+msgstr "%s %s son diferentes: byte %s, liña %s\n"
+
+#: src/cmp.c:615
+#, fuzzy, c-format
+msgid "cmp: EOF on %s after byte %s\n"
+msgstr "cmp: Fin de ficheiro en %s\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:50
+msgid "Paul Eggert"
+msgstr "Paul Eggert"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:51
+msgid "Mike Haertel"
+msgstr "Mike Haertel"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:52
+msgid "David Hayes"
+msgstr "David Hayes"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:53
+msgid "Richard Stallman"
+msgstr "Richard Stallman"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff.c:54
+msgid "Len Tower"
+msgstr "Len Tower"
+
+#: src/diff.c:365
+#, fuzzy, c-format
+msgid "invalid context length '%s'"
+msgstr "lonxitude do contexto «%s» non válida"
+
+#: src/diff.c:487
+#, c-format
+msgid "pagination not supported on this host"
+msgstr "a paxinación non está admitida nesta máquina"
+
+#: src/diff.c:502 src/diff3.c:348
+#, c-format
+msgid "too many file label options"
+msgstr "demasiadas opcións de etiquetas de ficheiro"
+
+#: src/diff.c:579
+#, fuzzy, c-format
+msgid "invalid width '%s'"
+msgstr "largo «%s» non válido"
+
+#: src/diff.c:583
+msgid "conflicting width options"
+msgstr "opcións de largura conflitivas"
+
+#: src/diff.c:608
+#, fuzzy, c-format
+msgid "invalid horizon length '%s'"
+msgstr "lonxitude do horizonte «%s» non válida"
+
+#: src/diff.c:664
+#, fuzzy, c-format
+msgid "invalid tabsize '%s'"
+msgstr "tamaño de tabulación «%s» non válido"
+
+#: src/diff.c:668
+msgid "conflicting tabsize options"
+msgstr "opcións de tamaño de tabulación conflitivas"
+
+#: src/diff.c:834
+msgid "--from-file and --to-file both specified"
+msgstr "Especificáronse --from-file e --to-file ao mesmo tempo"
+
+#: src/diff.c:953
+#, fuzzy
+msgid "    --normal                  output a normal diff (the default)"
+msgstr "Aparencia predefinida no modo normal"
+
+#: src/diff.c:954
+#, fuzzy
+msgid "-q, --brief                   report only when files differ"
+msgstr "-q  --brief  Producir unha saída só se os ficheiros teñen diferencias."
+
+#: src/diff.c:955
+#, fuzzy
+msgid "-s, --report-identical-files  report when two files are the same"
+msgstr ""
+"-s  --report-identical-files  Informar cando dous ficheiros son o mesmo."
+
+#: src/diff.c:956
+msgid ""
+"-c, -C NUM, --context[=NUM]   output NUM (default 3) lines of copied context"
+msgstr ""
+
+#: src/diff.c:957
+#, fuzzy
+msgid ""
+"-u, -U NUM, --unified[=NUM]   output NUM (default 3) lines of unified context"
+msgstr "-w NÚM  --width=NÚM  Amosar como moito NÚM columnas (130 por omisión)."
+
+#: src/diff.c:958
+#, fuzzy
+msgid "-e, --ed                      output an ed script"
+msgstr "Gardar a saída da consola de Script-Fu"
+
+#: src/diff.c:959
+#, fuzzy
+msgid "-n, --rcs                     output an RCS format diff"
+msgstr "-n  --rcs  Producir un diff en formato RCS."
+
+#: src/diff.c:960
+msgid "-y, --side-by-side            output in two columns"
+msgstr ""
+
+#: src/diff.c:961
+#, fuzzy
+msgid ""
+"-W, --width=NUM               output at most NUM (default 130) print columns"
+msgstr "-w NÚM  --width=NÚM  Amosar como moito NÚM columnas (130 por omisión)."
+
+#: src/diff.c:962
+#, fuzzy
+msgid ""
+"    --left-column             output only the left column of common lines"
+msgstr "-l  --left-column  Amosar só a columna da esquerda nas liñas comúns."
+
+#: src/diff.c:963
+#, fuzzy
+msgid "    --suppress-common-lines   do not output common lines"
+msgstr "-s --suppress-common-lines  Non amosar as liñas comúns."
+
+#: src/diff.c:965
+msgid "-p, --show-c-function         show which C function each change is in"
+msgstr ""
+
+#: src/diff.c:966
+msgid "-F, --show-function-line=RE   show the most recent line matching RE"
+msgstr ""
+
+#: src/diff.c:967
+#, fuzzy
+msgid ""
+"    --label LABEL             use LABEL instead of file name and timestamp\n"
+"                                (can be repeated)"
+msgstr ""
+"--from-file=FICH1  Comparar FICH1 con todos os operandos. Pode ser "
+"directorio."
+
+#: src/diff.c:970
+#, fuzzy
+msgid "-t, --expand-tabs             expand tabs to spaces in output"
+msgstr "-t  --expand-tabs  Expandir as tabulacións a espazos na saída."
+
+#: src/diff.c:971
+#, fuzzy
+msgid "-T, --initial-tab             make tabs line up by prepending a tab"
+msgstr ""
+"-T  --initial-tab  Facer que as tabulacións queden aliñadas poñendo outra\n"
+"                     tabulación ao principio da liña."
+
+#: src/diff.c:972
+#, fuzzy
+msgid ""
+"    --tabsize=NUM             tab stops every NUM (default 8) print columns"
+msgstr "--tabsize=NÚM  Tabulacións de NÚM columnas (8 por omisión)."
+
+#: src/diff.c:973
+#, fuzzy
+msgid ""
+"    --suppress-blank-empty    suppress space or tab before empty output lines"
+msgstr ""
+"--suppress-blank-empty  Suprime espazos ou tabuladores antes dunha liña "
+"baleira."
+
+#: src/diff.c:974
+#, fuzzy
+msgid "-l, --paginate                pass output through 'pr' to paginate it"
+msgstr "-l  --paginate  Pasar a saída por «pr» para paxinala."
+
+#: src/diff.c:976
+#, fuzzy
+msgid ""
+"-r, --recursive                 recursively compare any subdirectories found"
+msgstr ""
+"-r  --recursive  Comparar recursivamente os subdirectorios que se atopen."
+
+#: src/diff.c:977
+msgid "    --no-dereference            don't follow symbolic links"
+msgstr ""
+
+#: src/diff.c:978
+#, fuzzy
+msgid "-N, --new-file                  treat absent files as empty"
+msgstr "-N  --new-file  Tratar os ficheiros ausentes como baleiros."
+
+#: src/diff.c:979
+#, fuzzy
+msgid "    --unidirectional-new-file   treat absent first files as empty"
+msgstr ""
+"--unidirectional-new-file  Tratar os ficheiros antigos ausentes como\r\n"
+"a baleiros."
+
+#: src/diff.c:980
+#, fuzzy
+msgid "    --ignore-file-name-case     ignore case when comparing file names"
+msgstr ""
+"--ignore-file-name-case  Ignorar maiúsculas/minúsculas no nome do ficheiro."
+
+#: src/diff.c:981
+#, fuzzy
+msgid "    --no-ignore-file-name-case  consider case when comparing file names"
+msgstr ""
+"--no-ignore-file-name-case  Ter en conta as maiúsculas/minúsculas\r\n"
+"                                ao comparar os nomes dos ficheiros."
+
+#: src/diff.c:982
+#, fuzzy
+msgid "-x, --exclude=PAT               exclude files that match PAT"
+msgstr "-x MOD  --exclude=MOD  Excluír os ficheiros que coinciden co MODelo."
+
+#: src/diff.c:983
+#, fuzzy
+msgid ""
+"-X, --exclude-from=FILE         exclude files that match any pattern in FILE"
+msgstr ""
+"-X FICH  --exclude-from=FICH  Excluír ficheiros que coinciden con algún\r\n"
+"                                modelo do FICHeiro."
+
+#: src/diff.c:984
+#, fuzzy
+msgid ""
+"-S, --starting-file=FILE        start with FILE when comparing directories"
+msgstr ""
+"-S FICH  --starting-file=FICH  Comezar no FICHeiro ao comparar directorios."
+
+#: src/diff.c:985
+#, fuzzy
+msgid ""
+"    --from-file=FILE1           compare FILE1 to all operands;\n"
+"                                  FILE1 can be a directory"
+msgstr ""
+"--from-file=FICH1  Comparar FICH1 con todos os operandos. Pode ser "
+"directorio."
+
+#: src/diff.c:987
+#, fuzzy
+msgid ""
+"    --to-file=FILE2             compare all operands to FILE2;\n"
+"                                  FILE2 can be a directory"
+msgstr ""
+"--to-file=FICH2  Comparar todos os operandos con FICH2. Pode ser un "
+"directorio."
+
+#: src/diff.c:990
+#, fuzzy
+msgid ""
+"-i, --ignore-case               ignore case differences in file contents"
+msgstr ""
+"-i  --ignore-case  Ignorar maiúsculas/minúsculas no contido do ficheiro."
+
+#: src/diff.c:991
+#, fuzzy
+msgid "-E, --ignore-tab-expansion      ignore changes due to tab expansion"
+msgstr ""
+"-E  --ignore-tab-expansion  Ignorar os cambios pola expansión de tabulacións."
+
+#: src/diff.c:992
+#, fuzzy
+msgid "-Z, --ignore-trailing-space     ignore white space at line end"
+msgstr "-w  --ignore-all-space  Ignorar todos os espazos en branco."
+
+#: src/diff.c:993
+#, fuzzy
+msgid ""
+"-b, --ignore-space-change       ignore changes in the amount of white space"
+msgstr "-b  --ignore-space-change  Ignorar os cambios na cantidade de espazos."
+
+#: src/diff.c:994
+#, fuzzy
+msgid "-w, --ignore-all-space          ignore all white space"
+msgstr "Todo visíbel (ignorar patrón)"
+
+#: src/diff.c:995
+#, fuzzy
+msgid ""
+"-B, --ignore-blank-lines        ignore changes where lines are all blank"
+msgstr ""
+"-B  --ignore-blank-lines  Ignorar os cambios que teñan todas as liñas en "
+"branco"
+
+#: src/diff.c:996
+#, fuzzy
+msgid "-I, --ignore-matching-lines=RE  ignore changes where all lines match RE"
+msgstr ""
+"-I EXPR-REG  --ignore-matching-lines=EXPR-REG  Ignorar os cambios nos que "
+"todas as liñas\r\n"
+"                                     conteñan EXPR-REG."
+
+#: src/diff.c:998
+#, fuzzy
+msgid "-a, --text                      treat all files as text"
+msgstr "-a  --text  Tratar todos os ficheiros como texto"
+
+#: src/diff.c:999
+#, fuzzy
+msgid "    --strip-trailing-cr         strip trailing carriage return on input"
+msgstr ""
+"--strip-trailing-cr  Eliminar os retornos de carro á fin das liñas de "
+"entrada."
+
+#: src/diff.c:1001
+#, fuzzy
+msgid "    --binary                    read and write data in binary mode"
+msgstr "--binary  Ler e escribir datos en modo binario."
+
+#: src/diff.c:1004
+#, fuzzy
+msgid ""
+"-D, --ifdef=NAME                output merged file with '#ifdef NAME' diffs"
+msgstr ""
+"-D NOME  -ifdef=NOME  Amosar o ficheiro mesturado con diffs «#ifdef NOME»."
+
+#: src/diff.c:1005
+#, fuzzy
+msgid "    --GTYPE-group-format=GFMT   format GTYPE input groups with GFMT"
+msgstr ""
+"--GTYPE-group-format=GFMT  Similar, mais formatar os grupos de entrada "
+"GTYPE\r\n"
+"                             con GFMT."
+
+#: src/diff.c:1006
+#, fuzzy
+msgid "    --line-format=LFMT          format all input lines with LFMT"
+msgstr ""
+"--line-format=LFMT  Similar, mais formatar todas as liñas de entrada con "
+"LFMT."
+
+#: src/diff.c:1007
+#, fuzzy
+msgid "    --LTYPE-line-format=LFMT    format LTYPE input lines with LFMT"
+msgstr ""
+"--LTYPE-line-format=LFMT  Similar, mais formatar as liñas de entrada "
+"LTYPE\r\n"
+"                            con LFMT."
+
+#: src/diff.c:1008
+msgid ""
+"  These format options provide fine-grained control over the output\n"
+"    of diff, generalizing -D/--ifdef."
+msgstr ""
+
+#: src/diff.c:1010
+#, fuzzy
+msgid "  LTYPE is 'old', 'new', or 'unchanged'.  GTYPE is LTYPE or 'changed'."
+msgstr ""
+"  LTYPE é «old» (antigo), «new» (novo) ou «unchanged» (sen cambios).\r\n"
+"  GTYPE é LTYPE ou «changed» (con cambios)."
+
+#: src/diff.c:1011
+#, fuzzy
+msgid ""
+"  GFMT (only) may contain:\n"
+"    %<  lines from FILE1\n"
+"    %>  lines from FILE2\n"
+"    %=  lines common to FILE1 and FILE2\n"
+"    %[-][WIDTH][.[PREC]]{doxX}LETTER  printf-style spec for LETTER\n"
+"      LETTERs are as follows for new group, lower case for old group:\n"
+"        F  first line number\n"
+"        L  last line number\n"
+"        N  number of lines = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1\n"
+"    %(A=B?T:E)  if A equals B then T else E"
+msgstr ""
+"  GFMT pode conter:\n"
+"    %<  liñas do FICH1\n"
+"    %>  liñas do FICH2\n"
+"    %=  liñas comúns a FICH1 e FICH2\n"
+"    %[-][ANCHO][.[PREC]]{doxX}LETRA  especificación estilo printf para a "
+"LETRA\n"
+"      As LETRAs son como segue para o novo grupo, en minúsculas para o "
+"antigo:\n"
+"        F  número da primeira liña\n"
+"        L  número da última liña\n"
+"        N  número de liñas = L-F+1\n"
+"        E  F-1\n"
+"        M  L+1"
+
+#: src/diff.c:1023
+#, fuzzy
+msgid ""
+"  LFMT (only) may contain:\n"
+"    %L  contents of line\n"
+"    %l  contents of line, excluding any trailing newline\n"
+"    %[-][WIDTH][.[PREC]]{doxX}n  printf-style spec for input line number"
+msgstr ""
+"  LFMT pode conter:\n"
+"    %L  contido da liña\n"
+"    %l  contido da liña, excluíndo os saltos de liña finais\n"
+"    %[-][ANCHO][.[PREC]]{doxX}n  especif. estilo printf do número da liña"
+
+#: src/diff.c:1027
+#, fuzzy
+msgid ""
+"  Both GFMT and LFMT may contain:\n"
+"    %%  %\n"
+"    %c'C'  the single character C\n"
+"    %c'\\OOO'  the character with octal code OOO\n"
+"    C    the character C (other characters represent themselves)"
+msgstr ""
+"  GFMT e LFMT poden conter:\n"
+"    %%  %\n"
+"    %c«C»  o carácter C\n"
+"    %c«\\OOO»  o carácter de código octal OOO"
+
+#: src/diff.c:1033
+#, fuzzy
+msgid "-d, --minimal            try hard to find a smaller set of changes"
+msgstr "-d  --minimal  Procurar atopar o conxunto de cambios máis pequeno."
+
+#: src/diff.c:1034
+#, fuzzy
+msgid "    --horizon-lines=NUM  keep NUM lines of the common prefix and suffix"
+msgstr "--horizon-lines=NUM  Manter NUM liñas do prefixo e sufixo comúns."
+
+#: src/diff.c:1035
+#, fuzzy
+msgid ""
+"    --speed-large-files  assume large files and many scattered small changes"
+msgstr ""
+"-H  --speed-large-files  Asumir ficheiros longos e pequenos cambios "
+"dispersos."
+
+#: src/diff.c:1036
+msgid ""
+"    --color[=WHEN]       color output; WHEN is 'never', 'always', or "
+"'auto';\n"
+"                           plain --color means --color='auto'"
+msgstr ""
+
+#: src/diff.c:1038
+msgid ""
+"    --palette=PALETTE    the colors to use when --color is active; PALETTE "
+"is\n"
+"                           a colon-separated list of terminfo capabilities"
+msgstr ""
+
+#: src/diff.c:1041
+msgid "    --help               display this help and exit"
+msgstr ""
+
+#: src/diff.c:1042
+#, fuzzy
+msgid "-v, --version            output version information and exit"
+msgstr "Mostrar información da versión e saír"
+
+#: src/diff.c:1044
+#, fuzzy
+msgid "FILES are 'FILE1 FILE2' or 'DIR1 DIR2' or 'DIR FILE' or 'FILE DIR'."
+msgstr ""
+"Os FICHEIROS son «FICH1 FICH2», «DIR1 DIR2», «DIR FICH...» ou «FICH... DIR»."
+
+#: src/diff.c:1045
+#, fuzzy
+msgid ""
+"If --from-file or --to-file is given, there are no restrictions on FILE(s)."
+msgstr ""
+"Se se indica --from-file ou --to-file, non hai restricións nos FICHEIROS."
+
+#: src/diff.c:1046 src/diff3.c:531 src/sdiff.c:219
+#, fuzzy
+msgid "If a FILE is '-', read standard input."
+msgstr "Se un FICHEIRO é «-», lese da entrada estándar."
+
+#: src/diff.c:1056
+#, c-format
+msgid "Usage: %s [OPTION]... FILES\n"
+msgstr "Uso: %s [OPCIÓN]... FICHEIROS\n"
+
+#: src/diff.c:1057
+#, fuzzy
+msgid "Compare FILES line by line."
+msgstr "Comparar os ficheiros liña a liña."
+
+#: src/diff.c:1094
+#, fuzzy, c-format
+msgid "conflicting %s option value '%s'"
+msgstr "valor «%1$s» da opción %2$s conflitivo"
+
+#: src/diff.c:1107
+#, c-format
+msgid "conflicting output style options"
+msgstr "opcións de estilo da saída conflitivas"
+
+#: src/diff.c:1123
+#, fuzzy, c-format
+msgid "invalid color '%s'"
+msgstr "lonxitude do contexto «%s» non válida"
+
+#: src/diff.c:1197 src/diff.c:1401
+#, c-format
+msgid "Only in %s: %s\n"
+msgstr "Só en %s: %s\n"
+
+#: src/diff.c:1325
+#, fuzzy
+msgid "cannot compare '-' to a directory"
+msgstr "non se pode comparar «-» cun directorio"
+
+#: src/diff.c:1360
+msgid "-D option not supported with directories"
+msgstr "A opción -D non está admitida con directorios"
+
+#: src/diff.c:1369
+#, c-format
+msgid "Common subdirectories: %s and %s\n"
+msgstr "Subdirectorios comúns: %s e %s\n"
+
+#: src/diff.c:1411 src/diff.c:1461
+#, c-format
+msgid "File %s is a %s while file %s is a %s\n"
+msgstr "O ficheiro %s é un %s mentres que o ficheiro %s é un %s\n"
+
+#: src/diff.c:1447
+#, fuzzy, c-format
+msgid "Symbolic links %s and %s differ\n"
+msgstr "Os ficheiros %s e %s son diferentes\n"
+
+#: src/diff.c:1534
+#, c-format
+msgid "Files %s and %s are identical\n"
+msgstr "Os ficheiros %s e %s son idénticos\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/diff3.c:51
+msgid "Randy Smith"
+msgstr "Randy Smith"
+
+#: src/diff3.c:363
+#, c-format
+msgid "incompatible options"
+msgstr "opcións incompatíbeis"
+
+#: src/diff3.c:403
+#, fuzzy
+msgid "'-' specified for more than one input file"
+msgstr "Especificouse «-» para máis dun ficheiro de entrada"
+
+#: src/diff3.c:445 src/diff3.c:1284 src/diff3.c:1683 src/diff3.c:1738
+#: src/sdiff.c:306 src/sdiff.c:843 src/sdiff.c:854
+msgid "read failed"
+msgstr "fallou a lectura"
+
+#: src/diff3.c:478
+#, fuzzy
+msgid "-A, --show-all              output all changes, bracketing conflicts"
+msgstr ""
+"-a  --show-all  Amosar todos os cambios, cos conflitos entre parénteses."
+
+#: src/diff3.c:480
+#, fuzzy
+msgid ""
+"-e, --ed                    output ed script incorporating changes\n"
+"                                from OLDFILE to YOURFILE into MYFILE"
+msgstr ""
+"-e  --ed  Produce cambios sen mesturar de FICH-ANTIGO a TEU-FICH en MEU-FICH."
+
+#: src/diff3.c:482
+#, fuzzy
+msgid "-E, --show-overlap          like -e, but bracket conflicts"
+msgstr ""
+"-E  --show-overlap  Amosar cambios sen mesturar cos conflitos entre "
+"parénteses."
+
+#: src/diff3.c:483
+#, fuzzy
+msgid ""
+"-3, --easy-only             like -e, but incorporate only nonoverlapping "
+"changes"
+msgstr "-3  --easy-only  Amosar cambios non sobrepostos e non mesturados."
+
+#: src/diff3.c:484
+#, fuzzy
+msgid ""
+"-x, --overlap-only          like -e, but incorporate only overlapping changes"
+msgstr "-x  --overlap-only  Amosar los cambios que se superpoñen."
+
+#: src/diff3.c:485
+msgid "-X                          like -x, but bracket conflicts"
+msgstr ""
+
+#: src/diff3.c:486
+#, fuzzy
+msgid "-i                          append 'w' and 'q' commands to ed scripts"
+msgstr "-i  Engadir as ordes  «w» e «q» aos scripts en ed."
+
+#: src/diff3.c:488
+msgid ""
+"-m, --merge                 output actual merged file, according to\n"
+"                                -A if no other options are given"
+msgstr ""
+
+#: src/diff3.c:491
+#, fuzzy
+msgid "-a, --text                  treat all files as text"
+msgstr "-a  --text  Tratar todos os ficheiros como texto"
+
+#: src/diff3.c:492
+#, fuzzy
+msgid "    --strip-trailing-cr     strip trailing carriage return on input"
+msgstr ""
+"--strip-trailing-cr  Eliminar os retornos de carro á fin das liñas de "
+"entrada."
+
+#: src/diff3.c:493
+#, fuzzy
+msgid "-T, --initial-tab           make tabs line up by prepending a tab"
+msgstr ""
+"-T  --initial-tab  Facer que as tabulacións queden aliñadas poñendo outra\n"
+"                     tabulación ao principio da liña."
+
+#: src/diff3.c:494
+#, fuzzy
+msgid "    --diff-program=PROGRAM  use PROGRAM to compare files"
+msgstr ""
+"--diff-program=PROGRAMA  Empregar o PROGRAMA para comparar os ficheiros."
+
+#: src/diff3.c:495
+msgid ""
+"-L, --label=LABEL           use LABEL instead of file name\n"
+"                                (can be repeated up to three times)"
+msgstr ""
+
+#: src/diff3.c:498
+msgid "    --help                  display this help and exit"
+msgstr ""
+
+#: src/diff3.c:499
+#, fuzzy
+msgid "-v, --version               output version information and exit"
+msgstr "Mostrar información da versión e saír"
+
+#: src/diff3.c:508
+#, c-format
+msgid "Usage: %s [OPTION]... MYFILE OLDFILE YOURFILE\n"
+msgstr "Uso: %s [OPCIÓN]... MEU-FICH ANTIGO-FICH TEU-FICH\n"
+
+#: src/diff3.c:510
+msgid "Compare three files line by line."
+msgstr "Comparar tres ficheiros liña a liña."
+
+#: src/diff3.c:520
+msgid ""
+"\n"
+"The default output format is a somewhat human-readable representation of\n"
+"the changes.\n"
+"\n"
+"The -e, -E, -x, -X (and corresponding long) options cause an ed script\n"
+"to be output instead of the default.\n"
+"\n"
+"Finally, the -m (--merge) option causes diff3 to do the merge internally\n"
+"and output the actual merged file.  For unusual input, this is more\n"
+"robust than using ed.\n"
+msgstr ""
+
+#: src/diff3.c:532
+msgid "Exit status is 0 if successful, 1 if conflicts, 2 if trouble."
+msgstr ""
+"O estado de saída é 0 se é correcto, 1 se hai conflitos, 2 en caso de "
+"problema."
+
+#: src/diff3.c:725
+msgid "internal error: screwup in format of diff blocks"
+msgstr "erro interno: fallo no formato dos bloques diff"
+
+#: src/diff3.c:1015
+#, c-format
+msgid "%s: diff failed: "
+msgstr "%s: diff fallou: "
+
+#: src/diff3.c:1037
+msgid "internal error: invalid diff type in process_diff"
+msgstr "erro interno: tipo de diff non válido en process_diff"
+
+#: src/diff3.c:1060
+msgid "invalid diff format; invalid change separator"
+msgstr "formato de diff non válido; separador de cambios non válido"
+
+#: src/diff3.c:1294
+msgid "invalid diff format; incomplete last line"
+msgstr "formato de diff non válido: última liña incompleta"
+
+#: src/diff3.c:1318 src/sdiff.c:274 src/util.c:1069
+#, fuzzy, c-format
+msgid "subsidiary program '%s' could not be invoked"
+msgstr "non foi posíbel invocar o programa subsidiario «%s»"
+
+#: src/diff3.c:1343
+msgid "invalid diff format; incorrect leading line chars"
+msgstr "formato de diff non válido: caracteres a principio de liña incorrectos"
+
+#: src/diff3.c:1416
+msgid "internal error: invalid diff type passed to output"
+msgstr "erro interno_ tipo de diff non válido pasado á saída"
+
+#: src/diff3.c:1685 src/diff3.c:1742
+msgid "input file shrank"
+msgstr "o ficheiro de entrada minguou"
+
+#: src/dir.c:154
+#, fuzzy, c-format
+msgid "cannot compare file names '%s' and '%s'"
+msgstr "non se poden comparar os ficheiros «%s» e «%s»"
+
+#: src/dir.c:223
+#, c-format
+msgid "%s: recursive directory loop"
+msgstr "%s: bucle de directorio recursivo"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/sdiff.c:44
+msgid "Thomas Lord"
+msgstr "Thomas Lord"
+
+#: src/sdiff.c:173
+#, fuzzy
+msgid ""
+"-o, --output=FILE            operate interactively, sending output to FILE"
+msgstr ""
+"-o FICH  --output=FICH  Operar interactivamente, enviando a saída ao "
+"FICHeiro."
+
+#: src/sdiff.c:175
+#, fuzzy
+msgid ""
+"-i, --ignore-case            consider upper- and lower-case to be the same"
+msgstr ""
+"-i  --ignore-case  Ignorar as diferencias entre maiúsculas e minúsculas."
+
+#: src/sdiff.c:176
+#, fuzzy
+msgid "-E, --ignore-tab-expansion   ignore changes due to tab expansion"
+msgstr ""
+"-E  --ignore-tab-expansion  Ignorar os cambios pola expansión de tabulacións."
+
+#: src/sdiff.c:177
+#, fuzzy
+msgid "-Z, --ignore-trailing-space  ignore white space at line end"
+msgstr "-w  --ignore-all-space  Ignorar todos os espazos en branco."
+
+#: src/sdiff.c:178
+#, fuzzy
+msgid ""
+"-b, --ignore-space-change    ignore changes in the amount of white space"
+msgstr "-b  --ignore-space-change  Ignorar os cambios na cantidade de espazos."
+
+#: src/sdiff.c:179
+#, fuzzy
+msgid "-W, --ignore-all-space       ignore all white space"
+msgstr "Todo visíbel (ignorar patrón)"
+
+#: src/sdiff.c:180
+#, fuzzy
+msgid "-B, --ignore-blank-lines     ignore changes whose lines are all blank"
+msgstr ""
+"-B  --ignore-blank-lines  Ignorar os cambios que teñan todas as liñas en "
+"branco"
+
+#: src/sdiff.c:181
+#, fuzzy
+msgid "-I, --ignore-matching-lines=RE  ignore changes all whose lines match RE"
+msgstr ""
+"-I EXPR-REG  --ignore-matching-lines=EXPR-REG  Ignorar os cambios nos que "
+"todas as liñas\r\n"
+"                                     conteñan EXPR-REG."
+
+#: src/sdiff.c:182
+#, fuzzy
+msgid "    --strip-trailing-cr      strip trailing carriage return on input"
+msgstr ""
+"--strip-trailing-cr  Eliminar os retornos de carro á fin das liñas de "
+"entrada."
+
+#: src/sdiff.c:183
+#, fuzzy
+msgid "-a, --text                   treat all files as text"
+msgstr "-a  --text  Tratar todos os ficheiros como texto"
+
+#: src/sdiff.c:185
+#, fuzzy
+msgid ""
+"-w, --width=NUM              output at most NUM (default 130) print columns"
+msgstr "-w NÚM  --width=NÚM  Amosar como moito NÚM columnas (130 por omisión)."
+
+#: src/sdiff.c:186
+#, fuzzy
+msgid ""
+"-l, --left-column            output only the left column of common lines"
+msgstr "-l  --left-column  Amosar só a columna da esquerda nas liñas comúns."
+
+#: src/sdiff.c:187
+#, fuzzy
+msgid "-s, --suppress-common-lines  do not output common lines"
+msgstr "-s --suppress-common-lines  Non amosar as liñas comúns."
+
+#: src/sdiff.c:189
+#, fuzzy
+msgid "-t, --expand-tabs            expand tabs to spaces in output"
+msgstr "-t  --expand-tabs  Expandir as tabulacións a espazos na saída."
+
+#: src/sdiff.c:190
+#, fuzzy
+msgid ""
+"    --tabsize=NUM            tab stops at every NUM (default 8) print columns"
+msgstr "--tabsize=NÚM  Tabulacións de NÚM columnas (8 por omisión)."
+
+#: src/sdiff.c:192
+#, fuzzy
+msgid "-d, --minimal                try hard to find a smaller set of changes"
+msgstr "-d  --minimal  Procurar atopar o conxunto de cambios máis pequeno."
+
+#: src/sdiff.c:193
+#, fuzzy
+msgid ""
+"-H, --speed-large-files      assume large files, many scattered small changes"
+msgstr ""
+"-H  --speed-large-files  Asumir ficheiros longos e pequenos cambios "
+"dispersos."
+
+#: src/sdiff.c:194
+#, fuzzy
+msgid "    --diff-program=PROGRAM   use PROGRAM to compare files"
+msgstr ""
+"--diff-program=PROGRAMA  Empregar o PROGRAMA para comparar os ficheiros."
+
+#: src/sdiff.c:196
+msgid "    --help                   display this help and exit"
+msgstr ""
+
+#: src/sdiff.c:197
+#, fuzzy
+msgid "-v, --version                output version information and exit"
+msgstr "Mostrar información da versión e saír"
+
+#: src/sdiff.c:206
+#, c-format
+msgid "Usage: %s [OPTION]... FILE1 FILE2\n"
+msgstr "Uso: %s [OPCIÓN]... FICH1 FICH2\n"
+
+#: src/sdiff.c:208
+#, fuzzy
+msgid "Side-by-side merge of differences between FILE1 and FILE2."
+msgstr "Mestura en dúas columnas das diferencias entre os ficheiros."
+
+#: src/sdiff.c:328
+msgid "cannot interactively merge standard input"
+msgstr "non se pode mesturar a entrada estándar interactivamente"
+
+#: src/sdiff.c:594
+msgid "both files to be compared are directories"
+msgstr "ámbolos dous ficheiros a ser comparados son directorios"
+
+#: src/sdiff.c:817
+msgid ""
+"ed:\tEdit then use both versions, each decorated with a header.\n"
+"eb:\tEdit then use both versions.\n"
+"el or e1:\tEdit then use the left version.\n"
+"er or e2:\tEdit then use the right version.\n"
+"e:\tDiscard both versions then edit a new one.\n"
+"l or 1:\tUse the left version.\n"
+"r or 2:\tUse the right version.\n"
+"s:\tSilently include common lines.\n"
+"v:\tVerbosely include common lines.\n"
+"q:\tQuit.\n"
+msgstr ""
+"ed:\tEdita e usa ambas versións, cada unha decorada cunha cabeceira.\n"
+"eb:\tEdita e usa ambas versións.\n"
+"el ou e1:\tEdita e usa a versión esquerda.\n"
+"er ou e2:\tEdita e usa a versión dereita.\n"
+"e:\tEdita unha nova versión.\n"
+"l ou 1:\tUsa a versión esquerda.\n"
+"r ou 2:\tUsa a versión dereita.\n"
+"s:       Inclúe liñas comúns silenciosamente.\n"
+"v:       Inclúe liñas comúns de xeito detallado.\n"
+"q:       Saír.\n"
+
+#: src/util.c:755
+#, fuzzy, c-format
+msgid "unrecognized prefix: %s"
+msgstr "%s: non se recoñece a opción «--%s»\n"
+
+#: src/util.c:785
+#, c-format
+msgid "unparsable value for --palette"
+msgstr ""
+
+#, fuzzy
+#~ msgid "invalid %s%s argument '%s'"
+#~ msgstr "o argumento «%s» de %s%s é incorrecto"
+
+#, fuzzy
+#~ msgid "invalid suffix in %s%s argument '%s'"
+#~ msgstr "sufixo incorrecto %s%s no argumento «%s»"
+
+#, fuzzy
+#~ msgid "%s%s argument '%s' too large"
+#~ msgstr "%s%s argumento «%s» demasiado longo"
+
+#, fuzzy
+#~ msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
+#~ msgstr "%s páxina web: <http://www.gnu.org/software/%s/>\n"
+
+#, fuzzy
+#~ msgid "                           or 'auto' (the default)"
+#~ msgstr "Aparencia predefinida no modo normal"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: a opción «--%s» non permite un argumento\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: non se recoñece a opción «--%s»\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: a opción «-W %s» é ambigua\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: a opción «-W %s» non permite un argumento\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: a opción «-W %s» require un argumento\n"
+
+#~ msgid "-i SKIP1:SKIP2  --ignore-initial=SKIP1:SKIP2"
+#~ msgstr "-i N1:N2  --ignore-initial=N1:N2"
+
+#~ msgid "-s  --quiet  --silent  Output nothing; yield exit status only."
+#~ msgstr "-s  --quiet  --silent  Non producir nada; só dar o estado de saída."
+
+#~ msgid "--help  Output this help."
+#~ msgstr "--help  Amosar esta axuda."
+
+#~ msgid ""
+#~ "-c  -C NUM  --context[=NUM]  Output NUM (default 3) lines of copied "
+#~ "context.\n"
+#~ "-u  -U NUM  --unified[=NUM]  Output NUM (default 3) lines of unified "
+#~ "context.\n"
+#~ "  --label LABEL  Use LABEL instead of file name.\n"
+#~ "  -p  --show-c-function  Show which C function each change is in.\n"
+#~ "  -F RE  --show-function-line=RE  Show the most recent line matching RE."
+#~ msgstr ""
+#~ "-c  -C NÚM  --context[=NÚM]  Amosar NÚM (3 por omisión) liñas de contexto "
+#~ "copiado.\n"
+#~ "-u  -U NÚM  --unified[=NÚM]  Amosar NÚM (3 por omisión) liñas de contexto "
+#~ "unificado.\n"
+#~ "  --label ETIQUETA  Usar a ETIQUETA no canto do nome do ficheiro.\n"
+#~ "  -p  --show-c-function  Amosar en que función C está cada cambio.\n"
+#~ "  -F EXPR-REG  --show-function-line=EXPR-REG  Amosar a liña máis recente "
+#~ "que coincide\n"
+#~ "                                    con EXPR-REG."
+
+#~ msgid ""
+#~ "-y  --side-by-side  Output in two columns.\n"
+#~ "  -W NUM  --width=NUM  Output at most NUM (default 130) print columns.\n"
+#~ "  --left-column  Output only the left column of common lines.\n"
+#~ "  --suppress-common-lines  Do not output common lines."
+#~ msgstr ""
+#~ "-y  --side-by-side  Producir a saída en dúas columnas.\n"
+#~ "  -w NÚM  --width=NÚM  Amosar como moito NÚM (130 por omisión) columnas "
+#~ "de impresión.\n"
+#~ "  --left-column  Amosar só a columna da esquerda nas liñas comúns.\n"
+#~ "  --suppress-common-lines  Non amosar as liñas comúns."
+
+#~ msgid ""
+#~ "--speed-large-files  Assume large files and many scattered small changes."
+#~ msgstr ""
+#~ "--speed-large-files  Asumir ficheiros longos e pequenos cambios dispersos."
+
+#~ msgid "-X  Output overlapping changes, bracketing them."
+#~ msgstr ""
+#~ "-X  Amosar os cambios que se sobrepoñan, poñéndoos entre parénteses."
+
+#~ msgid "-m  --merge  Output merged file instead of ed script (default -A)."
+#~ msgstr ""
+#~ "-m  --merge  Amosar o ficheiro mesturado no canto dun script en ed [-A]."
+
+#~ msgid "-L LABEL  --label=LABEL  Use LABEL instead of file name."
+#~ msgstr ""
+#~ "-L ETIQ  --label=ETIQ  Usar a ETIQueta no canto do nome do ficheiro."
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "ón non permitida -- %c\n"
+
+#~ msgid ""
+#~ "This program comes with NO WARRANTY, to the extent permitted by law.\n"
+#~ "You may redistribute copies of this program\n"
+#~ "under the terms of the GNU General Public License.\n"
+#~ "For more information about these matters, see the files named COPYING."
+#~ msgstr ""
+#~ "én SEN GARANTÍA, ata o permitido pola lei.\n"
+#~ "ír copias deste programa baixo os termos\n"
+#~ "ública Xeral de GNU.\n"
+#~ "áis información sobre estas materias, vexa o ficheiro chamado COPYING."
+
+#~ msgid "Written by Torbjorn Granlund and David MacKenzie."
+#~ msgstr "örn Granlund e David MacKenzie."
+
+#~ msgid "Report bugs to <bug-gnu-utils@gnu.org>."
+#~ msgstr ""
+#~ "\n"
+#~ "ón a <proxecto@trasno.net>."
+
+#~ msgid ""
+#~ "Written by Paul Eggert, Mike Haertel, David Hayes,\n"
+#~ "Richard Stallman, and Len Tower."
+#~ msgstr "\n"
+
+#~ msgid "`-%ld' option is obsolete; use `-%c %ld'"
+#~ msgstr "ón `-%ld' é obsoleta; empregue `-%c %ld'"
+
+#~ msgid "`-%ld' option is obsolete; omit it"
+#~ msgstr "ón `-%ld' é obsoleta; omítaa"
+
+#~ msgid "subsidiary program `%s' not executable"
+#~ msgstr "é executable"
+
+#~ msgid ""
+#~ "SKIP values may be followed by the following multiplicative suffixes:\n"
+#~ msgstr "\n"
+
+#~ msgid "kB 1000, K 1024, MB 1,000,000, M 1,048,576,\n"
+#~ msgstr "\n"
+
+#~ msgid "GB 1,000,000,000, G 1,073,741,824, and so on for T, P, E, Z, Y.\n"
+#~ msgstr "í para T, P, E, Z e Y.\n"
+
+#~ msgid "Report bugs to <bug-gnu-utils@gnu.org>.\n"
+#~ msgstr "\n"
+
+#~ msgid "context length specified twice"
+#~ msgstr "úas veces"
+
+#~ msgid "multiple `--from-file' options"
+#~ msgstr "óns `--from-file' múltiples"
+
+#~ msgid "multiple `--to-file' options"
+#~ msgstr "óns `--to-file' múltiples"
+
+#~ msgid "If a FILE is `-', read standard input.\n"
+#~ msgstr "é `-', lese da entrada estándar.\n"
+
+#~ msgid ": not found\n"
+#~ msgstr "\n"
+
+#~ msgid "conflicting line format"
+#~ msgstr "ña con conflictos"
