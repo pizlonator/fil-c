@@ -30,4 +30,4 @@ set -x
 
 . ./setup_glibc.sh
 ./build_all_slow.sh
-
+./build_glibc_extras.sh
