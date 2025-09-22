@@ -974,7 +974,7 @@ libkmod_libkmod_la_SOURCES = libkmod/libkmod.h \
 	$(am__append_2) $(am__append_3) $(am__append_4)
 libkmod_libkmod_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBKMOD_CURRENT):$(LIBKMOD_REVISION):$(LIBKMOD_AGE) \
-	-Wl,--version-script=$(top_srcdir)/libkmod/libkmod.sym
+	--version-script=$(top_srcdir)/libkmod/libkmod.sym
 
 libkmod_libkmod_la_DEPENDENCIES = \
 	shared/libshared.la \
@@ -986,7 +986,7 @@ libkmod_libkmod_la_LIBADD = \
 
 libkmod_libkmod_internal_la_SOURCES = $(libkmod_libkmod_la_SOURCES)
 libkmod_libkmod_internal_la_LDFLAGS = $(AM_LDFLAGS) \
-	-Wl,--version-script=$(top_srcdir)/libkmod/libkmod.sym
+	--version-script=$(top_srcdir)/libkmod/libkmod.sym
 
 libkmod_libkmod_internal_la_DEPENDENCIES = $(libkmod_libkmod_la_DEPENDENCIES)
 libkmod_libkmod_internal_la_LIBADD = $(libkmod_libkmod_la_LIBADD)
