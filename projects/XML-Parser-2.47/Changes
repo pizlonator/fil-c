@@ -1,0 +1,554 @@
+Revision history for Perl extension XML::Parser.
+
+2.47 2023-12-28 (by Todd Rinaldo)
+    - #84 use $fh instead of $foo
+	- #85 Fix typo in documentation
+	- #89 Devel::CheckLib to from 0.99 -> 1.14
+	- Devel::CheckLibn 1.16
+	- #91 POD fix for verbatim text
+	- #97 Add a LICENSE file
+	- #94 Don't ship Expat/Makefile
+	- Various github workflow improvements. Windows is still not working.
+
+2.46 2019-09-24 (by Todd Rinaldo)
+    - use foreach not for for loops
+    - produce README.md so travis will show up on github
+    - remove use vars and switch to our.
+    - travis-ci testing from 5.8..5.28
+    - Convert XML::Parser to use 3 arg opens with no barewords.
+    - Migrate tracker to github
+    - Switch to XSLoader
+    - Fix a buffer overwrite in parse_stream()
+
+2.44 2015-01-12 (by Todd Rinaldo)
+    - RT 99098 - Revert "Add more useful error message on parse to Expat". It breaks
+      XML::Twig. Calling code will need to do this if it's needed.
+    - RT 100959 - Add use FileHandle to t/astress.t - Make perl 5.10.0 happy.
+
+2.43 2014-12-11 (by Todd Rinaldo)
+    - POD patch to man from Debian via Nicholas Bamber
+    - POD patch from Debian via gregor herrmann.
+    - Add more useful error message on parse to Expat
+    - Fix LWP dependency to be LWP::Useragent
+    - Bump to 2.43 for overdue release to CPAN.
+
+2.42_01 2013-07-12 (by Todd Rinaldo)
+    - Added instructions to README for OSX
+    - XS changes: stop using SvPV(string, PL_na)
+    - Fix documentation typos
+
+2.41 2011-06-01 (by Todd Rinaldo)
+    - Tests are cleaned. promoting to stable. No changes since 2.40_02
+
+2.40_02 2011-05-31 (by Todd Rinaldo)
+    - TODO some tests which fail in Free BSD due to improper expat CVE patch
+      http://www.freebsd.org/cgi/query-pr.cgi?pr=157469
+
+2.40_01 2011-05-24 (by Todd Rinaldo)
+    - better installation instructions
+    - Small spelling patches from Debian package - Thanks Nicholas Bamber
+    - RT 68399 - Upgrade Devel::CheckLib to 0.93 to make it
+      perl 5.14 compliant - qw()
+    - RT 67207 - Stop doing tied on globs - Thanks sprout
+    - RT 31319 - Fix doc links in POD for XML/Parser.pm
+
+2.40  2010-09-16 (by Alexandr Ciornii)
+    - Add windows-1251.enc, ibm866.enc, koi8-r.enc (Russian)
+    - Add windows-1255.enc (Hebrew)
+    - Update iso-8859-7.enc (RT#40712)
+    - Use Devel::CheckLib
+    - Better description of expat packages
+    - Better Perl style in both code and docs
+
+2.36
+    - Fix for Carp::Heavy bugs
+
+2.35   (mostly by Alexandr Ciornii)
+    - Works in 5.10 (Andreas J. Koenig)
+    - Added license in Makefile.PL (Alexandr Ciornii)
+    - Makefile.PL also searches for expat in C:/lib/Expat-2.0.0 (Alexandr Ciornii)
+    - No longer uses variable named 'namespace' in Expat.xs (Jeff Hunter)
+
+2.33
+    - Fixed Tree style (grantm)
+    - Fixed some non-utf8 stuff in DTDs (patch in XML::DOM tarball)
+
+2.32
+    - Memory leak fix (Juerd Waalboer).
+    - Added windows-1252 encoding
+    - Styles moved to separate .pm files to make loading faster and
+      ease maintainence
+    - Don't load IO::Handle unless we really need to
+    
+2.31 Tue Apr  2 13:39:51 EST 2002
+	- Ilya Zakharevich <ilya@math.ohio-state.edu> and
+	  Dave Mitchell <davem@fdgroup.com> both provided patches to
+	  fix problems module had with 5.8.0
+	- Dave Mitchell also made some UTF-8 related fixes to the test suite.
+2.30 Thu Oct  5 12:47:36 EDT 2000
+	- Get rid of ContentStash global. Not that big a deal looking it up
+	  everytime and gets rid of a potential threading problem.
+	- Switch to shareable library version of expat from sourceforge
+	  (i.e. no longer include expat source and require that libexpat
+	   be installed)
+	- Bob Tribit <btribit@traffic.com> demonstrated a fix for problems
+	  in compiling under perl 5.6.0 with 5.005 threading.
+	- Matt Sergeant <matt@sergeant.org> discovered a typo ('IO::Handler'
+	  instead of 'IO::Handle') in Expat.pm that caused IO::Handle objects
+	  to be treated as strings instead of handles.
+	- Matt Sergeant also provided a patch to allow tied handles to work
+	  properly in calls to parse.
+	- Eric Bohlman <ebohlman@netcom.com> reported a failure when
+	  incremental parsing and external parsing were used together.
+	  Need to give explicit package when calling Do_External_Parse
+	  from externalEntityRef  otherwise fails when called through ExpatNB.
+2.29 Sun May 21 21:19:45 EDT 2000
+	- In expat, notation declaration handler registration wasn't
+	  surviving through external entity references.
+	- Chase Tingley <tingley@sundell.net> discovered that text
+	  accumulation in the Stream style wasn't working across processing
+	  instructions and recommended the appropriate fix.
+	- Jochen Wiedmann <jochen.wiedmann@softwareag.com>, noted that
+	  you couldn't use ExpatNB directly because it wasn't setting
+	  the protective _State_ variable. Now doing this in the
+	  parse_more method of ExpatNB.
+	- At the suggestion of Grant Hopwood <hopwoodg@valero.com>, now
+	  calling the env_proxy method on the LWP::UserAgent in the LWP
+	  external entity handler when it's created to set any proxies
+	  from environment variables.
+	- Grant McLean, Matt Sergeant (& others I may have missed) noted that
+	  loading the LWP & URI modules slowed startup of the module, even
+	  if the application didn't need it. The default LWP handler is now
+	  dynamicly loaded (along with LWP & URI modules) the first time an
+	  external entity is referenced. Also provided a NoLWP option to
+	  XML::Parser that forces the file based external entity handler.
+	- Fixed allocation errors in element declaration patches in expat
+	- The Expat base method now works, even before expat starts parsing.
+	- Changed the canonical script to take an optional file argument.
+	- Enno Derksen <enno@att.com> reported that the attlist handler
+	  was not returning NOTATION type attlist information.
+	- Michel Rodriguez <mrodrigu@ieee.org>, noted that the constructor
+	  for XML::Parser objects no longer checked for the existence of
+	  applications installed external entity handlers before installing
+	  the default ones.
+	- Burkhard Meier <burkhard.meier@ixos.de> sent in a fix for
+	  compiler directives in Expat/Makefile.PL for Win32 machines.
+	  A change in 5.6.0 caused the old conditional to fail.
+	- Forgot to document changes to the Entity declaration handler:
+	  there is an additional "IsParam" argument that indicates whether
+	  or not the entity is a parameter entity. This information is
+	  no longer passed on in the name.
+	- Ben Low <ben@snrc.uow.edu.au> reported an undefined macro with
+	  version 5.004_04.
+2.28 Mon Mar 27 21:21:50 EST 2000
+	- Junked local (Expat.xs) declaration parsing and patched expat to
+	  handle XML declarations, element declarations, attlist declarations,
+	  and all entity declarations. By eliminating both shadow buffers and
+	  local declaration parsing in Expat.xs, I've eliminated the two most
+	  common sources of serious bugs in the expat interface.
+	  o thus fixed the segfault and parse position bugs reported by
+	    Ivan Kurmanov <iku@fnmail.com>
+	  o and the doctype bug reported by Kevin Lund
+	    <Kevin.Lund@westgroup.com>
+	  o The element declaration handler no longer receives a string,
+	    but an XML::Parser::ContentModel object that represents the
+	    parsed model, but still looks like a string if referred to as
+	    a string. This class is documented in the XML::Parser::Expat
+	    pod under "XML::Parser::ContentModel Methods".
+	  o The doctype declaration handler no longer receives the internal
+	    subset as a string, but in its place a true or undef value
+	    indicating whether or not there is an internal subset. Also,
+	    it's called prior to processing either the internal or external
+            DTD subset (as suggested by Enno Derksen <enno@att.com>.)
+	  o There is a new DoctypeFin handler that's called after finishing
+	    parsing all of the DOCTYPE declaration, including any internal
+	    or external DTD declarations.
+	  o One bit of lossage is that recognized_string, original_string,
+	    and default_current no longer work inside declaration handlers.
+	- Added a handler that gets called after parsing external entities:
+	  ExternEntFin. Suggested by Jeff Horner <jhorner@netcentral.net>.
+	- parsefile, file_ext_ent_handler, & lwp_ext_ent_handler now all
+	  set the base path. This problem has been raised more than once
+	  and I'm not sure to whom credit should be given.
+	- The file_ext_ent_handler now opens a file handle instead of
+	  reading the entire entity at once.
+	- Merged patches supplied by Larry Wall to (for perl 5.6 and beyond)
+	  tag generated strings as UTF-8, where appropriate.
+	- Fixed a bug in xml_escape reported by Jerry Geiger <jgeiger@rios.de>.
+	  It failed when requesting escaping of perl regex meta-characters.
+	- Laurent Caprani <caprani@pop.multimania.com> reported a bug in the
+	  Proc handler for the Debug style.
+	- <chocolateboy@usa.net> sent in a patch for the element index
+	  mechanism. I was popping the stack too soon in the endElement fcn.
+	- Jim Miner <jfm@winternet.com> sent in a patch to fix a warning in
+	  Expat.pm.
+	- Kurt Starsinic pointed out that the eval used to check for string
+	  versus IO handle was leaving $@ dirty, thereby foiling higher
+	  level exception handlers
+	- An expat question by Paul Prescod <paul@prescod.net> helped me
+	  see that exeptions in the parse call bypass the Expat release method,
+	  causing memory leaks.
+	- Mark D. Anderson <mda@discerning.com> noted that calling
+	  recognized_string from the Final method caused a dump. There are
+	  a bunch of methods that should not be called after parsing has
+	  finished. These now have protective if statements around them.
+	- Updated canonical utility to conform to newer version of Canonical
+	  XML working draft.
+2.27 Sat Sep 25 18:26:44 EDT 1999
+	- Corrected documentation in Parser.pm
+	- Deal with XML_NS and XML_BYTE_ORDER macros in Expat/Makefile.PL
+	- Chris Thorman <chris@thorman.com> noted that "require 'URI::URL.pm'"
+	  in Parser.pm was in error (should be "require 'URI/URL.pm'")
+	- Andrew McNaughton <andrew@scoop.co.nz> noted "use English" and
+	  use of '$&' slowed down regex handling for whole application, so
+	  they were excised from XML::Parser::Expat.
+	- Work around "modification of read-only value" bug in perl 5.004
+	- Enno Derksen <enno@att.com> reported that the Doctype handler
+	  wasn't being called when ParseParamEnt was set.
+	- Now using Version 19990728 of expat, with local patches.
+	- Got rid of shadow buffer
+	  o  thus fixed the error reported by Ashley Sanders
+	     <a.sanders@mcc.ac.uk>
+	  o  and removed ExpatNB limitations that Peter Billam
+             <music@pjb.com.au> noted.
+	- Vadim Konovalov <vkonovalov@lucent.com> had a problem compiling
+	  for multi-threading that was fixed by changing Perl_sv_setsv to
+	  sv_setsv.
+	- Added new Expat method: skip_until(index)
+	- Backward incompatible change to method xml_escape: to get former
+	  behavior use $xp->xml_escape($string, '>', ...)
+	- Added utility, canonical, to samples
+2.26 Sun Jul 25 19:06:41 EDT 1999
+	- Ken Beesley <ken.beesley@xrce.xerox.com> discovered that
+	  declarations in the external subset are not sent to registered
+	  handlers when there is no internal subset.
+	- Fixed parse_dtd to work when entity values or attribute defaults
+	  are so large that they might be broken across multiple calls to
+	  the default handler.
+	- For lwp_ext_ent_handler, use URI::URL instead of URI so that old
+	  5.004 installations will work with it.
+2.25 Fri Jul 23 06:23:43 EDT 1999
+	- Now using Version 1990709 of expat. No local patches.
+	- Numerous people reported a SEGV problem when running t/cdata
+	  on various platforms and versions of perl. The problem was
+	  introduced with the setHandlers change. In some cases an
+	  un-initialized value was being returned.
+	- Added an additional external entity handler, lwp_ext_ent_handler,
+	  that deals with general URIs. It is installed instead of the
+	  "file only" handler if the LWP package is installed.
+2.24  Thu Jul  8 23:05:50 EDT 1999
+	- KangChan Lee <dolphin@comeng.chungnam.ac.kr> supplied the
+	  EUC-KR encoding map.
+	- Enno Derksen <enno@att.com> forwarded reports by Jon Eisenzopf
+	  <eisen@pobox.com> and Stefaan Onderbeke <onderbes@bec.bel.alcatel.be>
+	  about a core dump using XML::DOM. This was due to a bug in the
+	  prolog parsing part of XML::Parser.
+	- Loic Dachary <loic@ceic.com> discovered that changing G_DISCARD to
+	  G_VOID introduced a small memory leak. Changed G_VOID back to
+	  G_DISCARD.
+	- As suggested by Ben Holzman <bholzman@earthlink.net>, the
+	  setHandlers methods of both Parser and Expat now return lists that
+	  consist of type, handler pairs that correspond to the input, but
+	  the handlers returned are the ones that were in effect prior to
+	  the call.
+	- Now using Version 19990626 of expat with a local patch (provided
+	  by James Clark.)
+	- Added option ParseParamEnt. When set to a true value, parameter
+	  entities are parsed and the external DTD is read (unless standalone
+	  set to "Yes" in document).
+2.23 Mon Apr 26 21:30:28 EDT 1999
+	- Fixed a bug in the ExpatNB class reported by Gabe Beged-Dov
+	  <begeddov@jfinity.com>. The ErrorMessage attribute wasn't
+	  being initialized for ExpatNB. This should have been done in
+	  the Expat constructor.
+	- Applied patch provided by Nathan Kurz <nate@valleytel.net> to
+	  fix more perl stack manipulation errors in Expat.xs.
+	- Applied another patch by Nathan to change perl_call_sv flag
+	  from G_DISCARD to G_VOID for callbacks, which helps performance.
+	- Murata Makoto <murata@apsdc.ksp.fujixerox.co.jp> reported a
+	  problem on Win32 platforms that only showed up when UTF-16 was
+	  being used. The needed call to binmode was added to the parsefile
+	  methods.
+	- Added documentation for release method that was added in release
+	  2.20 to Expat pod. (Point raised by <mookie@undef.com>)
+	- Now using Version 19990425 of expat. No local patches.
+	- Added specified_attr method and made ineffective the is_defaulted
+	  method.
+2.22 Sun Apr  4 11:47:25 EDT 1999
+	- Loic Dachary <loic@ceic.com> reported a core dump with a small
+	  file with a comment that wasn't properly closed. Fixed in expat
+	  by updating positionPtr properly in final call of XML_Parse.
+	  (Reported to & acknowledged by James Clark.)
+	- Made more fixes to Expat.xs position calculation.
+	- Loic Dachary <loic@ceic.com> provided patches for fixing a
+	  memory growth problem with large documents. (Garbage collection
+	  wasn't happening frequently enough.)
+	- As suggested by Gabe Beged-Dov <begeddov@jfinity.com>, added
+	  a non-blocking parse mechanism:
+		- Added parse_start method to XML::Parser, which returns a
+		  XML::Parser::ExpatNB object.
+		- Added XML::Parser::ExpatNB class, which is a subclass of
+		  Expat and has the additional methods parse_more & parse_done
+	- Made some performance tweaks as suggested by performance thread
+	  on perl-xml discussion list. [With negligible results]
+	- Tried to clarify Tree style structure in Parser pod
+2.21 Sun Mar 21 17:42:04 EST 1999
+	- Warren Vik <wvik@whitebarn.com> provided patches for a bug
+	  introduced with the is_defaulted method. It manifested itself
+	  by bogusly reporting duplicate attributes.
+	- Now using latest expat from ftp://ftp.jclark.com/pub/test/expat.zip,
+	  Version 19990307. (Plus any patches in Expat/expat.patches.)
+	- As suggested by Tim Bray, added an xml_escape method to
+	  Expat.
+	- Murray Nesbitt <murray@activestate.com> had build problems
+	  on Win32 that were solved by swapping 2 include files in
+	  Expat.xs
+	- Added following Expat namespace methods:
+		new_ns_prefixes
+		expand_ns_prefix
+		current_ns_prefixes
+	- Fixed memory handling in recognized_string method to get rid
+	  of "Attempt to free unreferenced scalar" bug.
+2.20 Sun Feb 28 15:35:52 EST 1999
+	- Fixed miscellaneous bugs in xmlfilter.
+	- In the default external entity handler, prepend the base only
+	  for relative URLs.
+	- Chris Nandor <pudge@pobox.com> provided patches for building
+	  on Macintosh.
+	- As suggested by Matt Sergeant <Matthew.Sergeant@eml.ericsson.se>,
+	  added the finish method to Expat.
+	- Matt also provided a fix to a bug he discovered in the Streams
+	  style.
+	- Fixed a parse position bug reported by Enno Derksen <enno@att.com>
+	  that was affecting both original_string and position_in_context.
+	- Fixed a gross memory leak reported by David Megginson,
+	  <david@megginson.com>: there was a circular reference to the Expat
+	  object and the internal end handler for context was not freeing
+	  element names after they were removed from the context stack.
+	- Now using expat Version 19990109
+	  (Plus any patches in Expat/expat.patches)
+	- Added is_defaulted method to Expat to tell if an attribute
+	  was defaulted. (Requested by Enno Derksen for XML::DOM.)
+	- Matt Sergeant <Matthew.Sergeant@eml.ericcson.se> reported that
+	  the XML::Parser parse methods weren't propagating array context
+	  to the Final handler. Now they are.
+	- Fixed more memory leaks (again reported by David Megginson).
+	  The SVs pointing to the handlers weren't being reclaimed when
+	  the callback vector was freed.
+	- Added the element_index method to Expat.
+2.19 Sun Jan  3 11:23:45 EST 1999
+	- When the recognized string is long enough, expat uses multiple
+	  calls to reportDefault. Fixed recString handler in Expat.xs to
+	  deal with this properly.
+	- Added original_string method to Expat. This returns the untranslated
+	  string (i.e. original encoding) that caused current event.
+	- Alberto Accomazzi <alberto@cfa0.harvard.edu> sent in more patches
+	  for perl5.005_54 incompatibilities.
+	- Alberto also fingered a nasty memory bug in Expat.xs that arose
+	  sometimes when you registered a declaration handler but no
+	  default handler. It would give you a "Not a CODE reference"
+	  error in a place that wasn't using any CODE references.
+	- <schinder@pobox.com> reported a problem with compiling expat
+	  on a Sun 4 due to non-exsitance of memmove on that OS. Provided
+	  a workaround in Makefile.PL
+	- Now using expat Version 19981231 from James Clark's test directory.
+	- Made patch to this version in order to support original_string
+	  (see Expat/expat.patches.)
+	- Added CdataStart and CdataEnd handlers to expat.
+2.18 Sun Dec 27 07:39:23 EST 1998
+	- Alberto Accomazzi <alberto@cfa0.harvard.edu> pointed out that
+	  the DESTROY sub in the new XML::Parser::Encinfo package was
+	  pointing to the wrong package for calling FreeEncoding.
+	- Tarang Kumar Patel <mombasa@ptolemy.arc.nasa.gov> reported
+	  the mis-declaration of an integer as unsigned in the
+	  convert_to_unicode function in Expat.xs.
+	- Glenn R. Kronschnabl <grk@arlut.utexas.edu> reported a problem
+	  with ExternEnt handlers when using parsefile. Turned out to be
+	  an unmatched ENTER; SAVETMPS pair that screwed up the Perl stack.
+	- Tom Hughes <tom@compton.demon.co.uk> reported that the fix I put
+	  in for the swith to PL_sv.. names failed with 5.0005_54, since
+	  these became real variables instead of macros. Switched to just
+	  checking the PATCHLEVEL macro.
+	- Yoshida Masato <yoshidam@inse.co.jp> provided the EUC-JP encodings
+	  (the corresponding XML files are in XML::Encoding 1.01 or later.)
+	- With the advice of MURATA Makoto <murata@apsdc.ksp.fujixerox.co.jp>,
+	  removed the Shift_JIS encoding and replaced it with 4 variations
+	  he provided. He also provided an explanatory message.
+	- Added the recognized_string method to Expat, deprecating
+	  default_current.
+	- Now using expat Version 19981122 from James Clark's test directory
+	  (this fixes another bug with external entity reference handlers)
+	- Added a default external entity handler that only accesses file:
+	  based URLs.
+2.17 Sun Dec 13 17:39:58 EST 1998
+	- Replaced uses of malloc, realloc, and free with New, Renew,
+	  and Safefree respectively
+	- In Expat.pm, fixed methods in_element and within_element to
+	  work correctly with namespaces.
+	- xmlfilter - Substitute quoted equivalents for special characters
+	  in attribute values.
+	- position_in_context was off by one line when position was at
+	  the end of line.
+	- For the context methods in Expat.pm, do the right thing when
+	  the context list is empty.
+	- Added methods xpcroak and xpcarp to Expat.
+	- Alberto Accomazzi <alberto@cfa0.harvard.edu> noted that perl
+	  releases 5.005_5* (the pre 5.006 development versions) won't
+	  accept sv_undef (and related constants) anymore and we have
+	  to switch to PL_sv_...
+	- Alberto also reported a warning in the newer versions of
+	  IO::Handle about input_record_separator not being treated on
+	  a per-handle basis.
+	- Fixed bug that Jon Udell <udell@top.monad.net> reported in
+	  Stream style: Text handler most of the time didn't see proper
+	  context.
+	- Added XML::Parser::Expat::load_encoding function and support
+	  for external encodings.
+2.16 Tue Oct 27 22:27:33 EST 1998
+	- Fixed bug reported by Enno Derksen <enno@att.com>:
+          Now treats parameter entity declarations correctly. The entity
+	  handler sees the name beginning with '%' if it's a parameter
+	  entity declaration.
+	- Nigel Hutchison <nwoh@software-ag.de> pointed out that stream.t
+	  wasn't portable off Unix systems. Replaced with portable version.
+	- Fixed bug reported by Enno Derksen <enno@att.com>:
+	  XML Declaration was firing off both XMLDecl handler *and* Default
+	  handler.
+	- Added option NoExpand to Expat to turn off expansion of entity
+	  references when a default handler is set.
+2.15 Tue Oct 20 14:50:11 EDT 1998
+	- In Expat's parse method, account for undefined previous
+	  record separators.
+	- Simplify a couple of Expat methods.
+	- Re-ordered Changes entries to put latest changes first.
+	- In XML::Parser::new, set Handlers if not already set
+	- New Handler (XMLDecl) for handling XML declarations
+	- New Handler (Doctype) for handling DOCTYPE declarations
+	- New Handler (Entity) for handling ENTITY declarations in
+	  the internal subset.
+	- New Handler (Element) for handling ELEMENT declarations in
+	  the internal subset.
+	- New Handler (Attlist) for handling ATTLIST declarations in
+	  the internal subset.
+	- Documented new handlers
+	- Added t/decl.t to test new handlers
+2.14 Sun Oct 11 22:17:15 EDT 1998
+	- Always use method calls for streams.
+	- Use perl's input_record_separator to find delimiter (i.e. each
+	  "line" is an entire XML doc with delimiter appended)
+	- Deal with line being longer than buffer.
+2.13 Thu Oct  8 16:58:39 EDT 1998
+	- Fixed a major oops in Expat.xs where I was trying to decrement
+	  a refcnt on an unallocated SV, leading to a segment violation.
+	  (Why did this show up on HPUX but not Linux?)
+2.12 Thu Oct  8 00:05:10 EDT 1998
+	- Incorporated fix to t/astress.t from <fletch@phydeaux.org> (Mike
+	  Fletcher).
+	- Change to xmlstats from <dblack@candle.superlink.net> (David
+	  Alan Black)
+	- Access Handlers_Setters in Expat and Handler_Types in Parser
+	  through object reference (following admonition in perltoot
+	  about class data.)
+	- Added Stream_Delimiter option to Expat.
+	- In the parse_stream function in Expat.xs, if we either have a
+	  Stream_Delimiter or if there's no file descriptor, use method
+	  calls instead. For Stream_Delimiter in particular, the function
+	  now uses the getline method so it can check for the delimiter
+	  without consuming stuff past the delimiter from the stream.
+2.11 Sun Oct  4 22:15:53 EDT 1998
+	- Swapped out local patch for expat and swapped in James Clark's
+	  patch.
+	- Pass on all Parser attributes (other than those excluded by
+	  Non_Expat_Options) to the instance of Expat created at parse time.
+	- New method for Expat:  generate_ns_name
+	- Split test.pl into t/*.t and change Makefile.PL so we don't do a
+	  useless descent into Expat subdir for testing.
+	- Stop the numeric warning for eq_name and namespace method.
+2.10 Fri Sep 25 18:36:46 EDT 1998
+	- Uses expat Version 19980924
+	  (with local patch - see Expat/expat/xmlparse/xmlparse.c.diff)
+	- Use newSVpvn when PERL_VERSION >= 5.005
+	- Completed xmlfilter
+	- Added support for namespace processing:
+	    o  Namespaces option to XML::Parser and XML::Parser::Expat
+	    o  Two new methods in Expat:
+		namespace - to return namespace associated with name
+		eq_name   - compare 2 names for equality across namespaces.
+	- Use expat's new SetDefaultHandlerExpand instead of SetDefaultHandler
+	  so that entity expansion may continue even if the default handler
+	  is set.
+	- Moved test.pl back up main level and changed to work with XML::Parser
+	- Added tests for namespaces
+2.09 Fri Sep 18 10:33:38 EDT 1998
+	- Fixed errors that caused -w to fret in XML::Parser.
+	- Fixed depth method in XML::Parser::Expat
+	- There were a few places in Expat.xs where garbage strings may
+	  have been returned due to the expat library giving us zero-length
+	  strings. Fixed by using a local version of newSVpv where length
+	  means length, even when zero.
+	- The default handler setter in Expat.xs, was inappropriately setting
+	  cbv->dflt_sv when there was a null handler.
+2.08 Thu Sep 17 11:47:13 EDT 1998
+	- Make XML::Parser higher-level re-usable parser objects. Old object
+	  now becomes XML::Parser::Expat.
+	- The XML::Parser object now supports the style mechanism very close
+	  to that in the 1.0 version.
+2.07 Wed Sep  9 11:03:43 EDT 1998
+	- Added some samples (xmlcomments & xmlstats)
+	- Now requires 5.004 (due to sv_catpvf)
+	- Changed Makefile.PL to allow automatic manification
+	- Added a test that reads xml spec (to check buffer boundary errors)
+2.06 Tue Sep  1 10:40:41 EDT 1998
+	- Fixed the methods current_line, current_byte, and current_column
+	- Added some tests
+2.05 Mon Aug 31 15:29:42 EDT 1998
+	- Made Makefile.PL changes suggested by Murray Nesbitt
+	  <murray@ActiveState.com> to support building on Win32
+	  and for making PPM binaries.
+	- Added method parse
+	- Changed parsestring and parsefile to use new parse method
+	- Deprecated parsestring method
+	- Improved error handling in the ExternEnt handler
+2.04 Wed Aug 26 13:25:01 EDT 1998
+	- Uses expat Version 1.0 of August 14, 1998
+	- Some document changes
+	- Changed dist section in Makefile.PL
+	- Added ExternEnt handler
+	- Added tests for ExternEnt
+2.03 Fri Aug 21 17:19:26 EDT 1998
+	- Changed InitEncoding to ProtocolEncoding. Default to none.
+	  Pass null string to expat's ParserCreate when there is no
+	  ProtocolEncoding.
+	- Fixed bug in parsefile & parsestring where they were referring
+	  to an ErrorContext *method* instead of a field.
+	- Fixed position_in_context bugs:
+		-- 'last' in do {} while ();
+		-- insert newline before pointer when no following newline
+		   in buffer.
+	- Added some additional tests
+2.02 Thu Aug 20 14:05:08 EDT 1998
+	- Fixed parsefile problem reported by
+	  "Robert Hanson" <robertha@zenweb.com>, using a modification of
+	  his suggested fix.
+	- Responded to problem reported by
+	  Bart Schuller <schuller+perl-xml@lunatech.com>
+	  by pre-expanding parts of the XML_UPD macro to avoid confusing
+	  some versions of gcc.
+	- Changed the constructor to take the option InitEncoding, which
+	  gets passed to the ParserCreate call. When not given, defaults
+	  to UTF-8.
+	- Added method position_in_context
+	- Added Constructor option ErrorContext and added reporting of
+	  errors in context.
+2.01 Wed Aug 19 11:42:42 EDT 1998
+	- Added methods:
+		default_current, base, current_line, current_column,
+		current_byte, context
+	- Added some tests
+	- parsestring and parsefile now croak if they're re-used
+	- Filled in some documentation
+2.00 Mon Aug 17 12:01:33 EDT 1998
+	- repackaged with James Clark's most recent expat
+	- changed to an API closer to expat
+1.00 March 1998 
+	- Larry Wall's original version

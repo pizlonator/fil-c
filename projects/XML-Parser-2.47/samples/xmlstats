@@ -1,0 +1,171 @@
+#!/usr/local/bin/perl -w
+#
+# $Revision: 1.1.1.1 $
+#
+# $Date: 2003-07-27 11:07:11 $
+
+package Elinfo;
+
+sub new {
+    bless {
+        COUNT  => 0,
+        MINLEV => undef,
+        SEEN   => 0,
+        CHARS  => 0,
+        EMPTY  => 1,
+        PTAB   => {},
+        KTAB   => {},
+        ATAB   => {}
+      },
+      shift;
+}
+
+package main;
+
+use English;
+use XML::Parser;
+
+my %elements;
+my $seen = 0;
+my $root;
+
+my $file = shift;
+
+my $subform = '      @<<<<<<<<<<<<<<<      @>>>>';
+die "Can't find file \"$file\""
+  unless -f $file;
+
+my $parser = new XML::Parser( ErrorContext => 2 );
+$parser->setHandlers(
+    Start => \&start_handler,
+    Char  => \&char_handler
+);
+
+$parser->parsefile($file);
+
+set_minlev( $root, 0 );
+
+my $el;
+
+foreach $el ( sort bystruct keys %elements ) {
+    my $ref = $elements{$el};
+    print "\n================\n$el: ", $ref->{COUNT}, "\n";
+    print "Had ",                      $ref->{CHARS}, " bytes of character data\n"
+      if $ref->{CHARS};
+    print "Always empty\n"
+      if $ref->{EMPTY};
+
+    showtab( 'Parents',    $ref->{PTAB}, 0 );
+    showtab( 'Children',   $ref->{KTAB}, 1 );
+    showtab( 'Attributes', $ref->{ATAB}, 0 );
+}
+
+################
+## End of main
+################
+
+sub start_handler {
+    my $p  = shift;
+    my $el = shift;
+
+    my $elinf = $elements{$el};
+
+    if ( not defined($elinf) ) {
+        $elements{$el} = $elinf = new Elinfo;
+        $elinf->{SEEN} = $seen++;
+    }
+
+    $elinf->{COUNT}++;
+
+    my $partab = $elinf->{PTAB};
+
+    my $parent = $p->current_element;
+    if ( defined($parent) ) {
+        $partab->{$parent}++;
+        my $pinf = $elements{$parent};
+
+        # Increment our slot in parent's child table
+        $pinf->{KTAB}->{$el}++;
+        $pinf->{EMPTY} = 0;
+    }
+    else {
+        $root = $el;
+    }
+
+    # Deal with attributes
+
+    my $atab = $elinf->{ATAB};
+
+    while (@_) {
+        my $att = shift;
+
+        $atab->{$att}++;
+        shift;    # Throw away value
+    }
+
+}    # End start_handler
+
+sub char_handler {
+    my ( $p, $data ) = @_;
+    my $inf = $elements{ $p->current_element };
+
+    $inf->{EMPTY} = 0;
+    if ( $data =~ /\S/ ) {
+        $inf->{CHARS} += length($data);
+    }
+}    # End char_handler
+
+sub set_minlev {
+    my ( $el, $lev ) = @_;
+
+    my $elinfo = $elements{$el};
+    if ( !defined( $elinfo->{MINLEV} ) or $elinfo->{MINLEV} > $lev ) {
+        my $newlev = $lev + 1;
+
+        $elinfo->{MINLEV} = $lev;
+        foreach ( keys %{ $elinfo->{KTAB} } ) {
+            set_minlev( $_, $newlev );
+        }
+    }
+}    # End set_minlev
+
+sub bystruct {
+    my $refa = $elements{$a};
+    my $refb = $elements{$b};
+
+    $refa->{MINLEV} <=> $refb->{MINLEV}
+      or $refa->{SEEN} <=> $refb->{SEEN};
+}    # End bystruct
+
+sub showtab {
+    my ( $title, $table, $dosum ) = @_;
+
+    my @list = sort keys %{$table};
+
+    if (@list) {
+        print "\n   $title:\n";
+
+        my $item;
+        my $sum = 0;
+        foreach $item (@list) {
+            my $cnt = $table->{$item};
+            $sum += $cnt;
+            formline( $subform, $item, $cnt );
+            print $ACCUMULATOR, "\n";
+            $ACCUMULATOR = '';
+        }
+
+        if ( $dosum and @list > 1 ) {
+            print "                            =====\n";
+            formline( $subform, '', $sum );
+            print $ACCUMULATOR, "\n";
+            $ACCUMULATOR = '';
+        }
+    }
+
+}    # End showtab
+
+# Tell Emacs that this is really a perl script
+# Local Variables:
+# mode:perl
+# End:

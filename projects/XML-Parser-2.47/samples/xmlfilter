@@ -1,0 +1,308 @@
+#!/usr/local/bin/perl -w
+#
+# $Revision: 1.1.1.1 $
+#
+# $Date: 2003-07-27 11:07:11 $
+
+use XML::Parser;
+
+my $Usage = <<'End_of_Usage;';
+Usage is:
+    xmlfilter [-h] [-nl] [{-+}root] [{-+}el=elname] [{-+}el:elnamepat]
+              [{-+}att:attname] [{-+}att:attname:attvalpat] xmlfile
+
+Prints on standard output the result of filtering the given xmlfile
+for elements according to the switches. A '-' option will drop the
+element from the output; a '+' will keep it. The output should also
+be a well-formed XML document.
+
+    -h		Print this message
+
+    -nl         Emit a newline prior to every start tag.
+
+    [-+]root	Drop (or keep) the root element. Defaults to keep.
+		If the root element were named "foo", then -root
+		would be equivalent to -el=foo. Note that even if
+		you're dropping the root element, it's start and
+		end tag are kept in order that the output remains
+		a well-formed XML document.
+
+    [-+]el=elname
+		Drop (or keep) elements of type elname.
+
+    [-+]el:elnamepat
+		Drop (or keep) element whose type name matches elnamepat.
+
+    [-+]att:attname
+		Drop (or keep) elements which have an attribute = attname.
+
+    [-+]att:attname:attvalpat
+		Drop (or keep) elements which have an attribute = attname
+		and for which the attribute value matches attvalpat.
+End_of_Usage;
+
+my $pass       = 1;
+my $do_newline = 0;
+
+my $attcheck = 0;
+
+my %drop_el;
+my @drop_elpat;
+
+my %keep_el;
+my @keep_elpat;
+
+my %drop_att;
+my %keep_att;
+
+my $always_true = sub { 1; };
+my $root_element = '';
+
+my $in_cdata = 0;
+
+# Process options
+
+while ( defined( $ARGV[0] ) and $ARGV[0] =~ /^[-+]/ ) {
+    my $opt = shift;
+
+    if ( $opt eq '-root' ) {
+        $pass = 0;
+    }
+    elsif ( $opt eq '+root' ) {
+        $pass = 1;
+    }
+    elsif ( $opt eq '-h' ) {
+        print $Usage;
+        exit;
+    }
+    elsif ( $opt eq '-nl' ) {
+        $do_newline = 1;
+    }
+    elsif ( $opt =~ /^([-+])el([:=])(\S*)/ ) {
+        my ( $disp, $kind, $pattern ) = ( $1, $2, $3 );
+        my ( $hashref, $aref );
+
+        if ( $disp eq '-' ) {
+            $hashref = \%drop_el;
+            $aref    = \@drop_elpat;
+        }
+        else {
+            $hashref = \%keep_el;
+            $aref    = \@keep_elpat;
+        }
+
+        if ( $kind eq '=' ) {
+            $hashref->{$pattern} = 1;
+        }
+        else {
+            push( @$aref, $pattern );
+        }
+    }
+    elsif ( $opt =~ /^([-+])att:(\w+)(?::(\S*))?/ ) {
+        my ( $disp, $id, $pattern ) = ( $1, $2, $3 );
+        my $ref = ( $disp eq '-' ) ? \%drop_att : \%keep_att;
+
+        if ( defined($pattern) ) {
+            $pattern =~ s!/!\\/!g;
+            my $sub;
+            eval "\$sub = sub {\$_[0] =~ /$pattern/;};";
+
+            $ref->{$id} = $sub;
+        }
+        else {
+            $ref->{$id} = $always_true;
+        }
+
+        $attcheck = 1;
+    }
+    else {
+        die "Unknown option: $opt\n$Usage";
+    }
+}
+
+my $drop_el_pattern = join( '|', @drop_elpat );
+my $keep_el_pattern = join( '|', @keep_elpat );
+
+my $drop_sub;
+if ($drop_el_pattern) {
+    eval "\$drop_sub = sub {\$_[0] =~ /$drop_el_pattern/;}";
+}
+else {
+    $drop_sub = sub { };
+}
+
+my $keep_sub;
+if ($keep_el_pattern) {
+    eval "\$keep_sub = sub {\$_[0] =~ /$keep_el_pattern/;}";
+}
+else {
+    $keep_sub = sub { };
+}
+
+my $doc = shift;
+
+die "No file specified\n$Usage" unless defined($doc);
+
+my @togglestack = ();
+
+my $p = new XML::Parser(
+    ErrorContext => 2,
+    Handlers     => {
+        Start => \&start_handler,
+        End   => \&end_handler
+    }
+);
+
+if ($pass) {
+    $p->setHandlers(
+        Char       => \&char_handler,
+        CdataStart => \&cdata_start,
+        CdataEnd   => \&cdata_end
+    );
+}
+
+$p->parsefile($doc);
+
+print "</$root_element>\n"
+  unless $pass;
+
+################
+## End of main
+################
+
+sub start_handler {
+    my $xp = shift;
+    my $el = shift;
+
+    unless ($root_element) {
+        $root_element = $el;
+        print "<$el>\n"
+          unless $pass;
+    }
+
+    my ( $elref, $attref, $sub );
+
+    if ($pass) {
+        $elref  = \%drop_el;
+        $attref = \%drop_att;
+        $sub    = $drop_sub;
+    }
+    else {
+        $elref  = \%keep_el;
+        $attref = \%keep_att;
+        $sub    = $keep_sub;
+    }
+
+    if (   defined( $elref->{$el} )
+        or &$sub($el)
+        or check_atts( $attref, @_ ) ) {
+        $pass = !$pass;
+        if ($pass) {
+            $xp->setHandlers(
+                Char       => \&char_handler,
+                CdataStart => \&cdata_start,
+                CdataEnd   => \&cdata_end
+            );
+        }
+        else {
+            $xp->setHandlers(
+                Char       => 0,
+                CdataStart => 0,
+                CdataEnd   => 0
+            );
+        }
+        push( @togglestack, $xp->depth );
+    }
+
+    if ($pass) {
+        print "\n" if $do_newline;
+        print "<$el";
+        while (@_) {
+            my $id  = shift;
+            my $val = shift;
+
+            $val = $xp->xml_escape( $val, "'" );
+            print " $id='$val'";
+        }
+        print ">";
+    }
+}    # End start_handler
+
+sub end_handler {
+    my $xp = shift;
+    my $el = shift;
+
+    if ($pass) {
+        print "</$el>";
+    }
+
+    if ( @togglestack and $togglestack[-1] == $xp->depth ) {
+        $pass = !$pass;
+        if ($pass) {
+            $xp->setHandlers(
+                Char       => \&char_handler,
+                CdataStart => \&cdata_start,
+                CdataEnd   => \&cdata_end
+            );
+        }
+        else {
+            $xp->setHandlers(
+                Char       => 0,
+                CdataStart => 0,
+                CdataEnd   => 0
+            );
+        }
+
+        pop(@togglestack);
+    }
+
+}    # End end_handler
+
+sub char_handler {
+    my ( $xp, $text ) = @_;
+
+    if ( length($text) ) {
+
+        $text = $xp->xml_escape( $text, '>' )
+          unless $in_cdata;
+
+        print $text;
+    }
+}    # End char_handler
+
+sub cdata_start {
+    my $xp = shift;
+
+    print '<![CDATA[';
+    $in_cdata = 1;
+}
+
+sub cdata_end {
+    my $xp = shift;
+
+    print ']]>';
+    $in_cdata = 0;
+}
+
+sub check_atts {
+    return $attcheck unless $attcheck;
+
+    my $ref = shift;
+
+    while (@_) {
+        my $id  = shift;
+        my $val = shift;
+
+        if ( defined( $ref->{$id} ) ) {
+            my $ret = &{ $ref->{$id} }($val);
+            return $ret if $ret;
+        }
+    }
+
+    return 0;
+}    # End check_atts
+
+# Tell Emacs that this is really a perl script
+# Local Variables:
+# mode:perl
+# End:

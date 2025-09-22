@@ -1,0 +1,44 @@
+#!/usr/local/bin/perl -w
+#
+# $Revision: 1.1.1.1 $
+#
+# $Date: 2003-07-27 11:07:11 $
+
+use XML::Parser;
+
+my $file = shift;
+
+die "Can't find file \"$file\""
+  unless -f $file;
+
+my $count = 0;
+
+my $parser = new XML::Parser(
+    ErrorContext  => 2,
+    ParseParamEnt => 0
+);
+
+$parser->setHandlers( Comment => \&comments );
+
+$parser->parsefile($file);
+
+print "Found $count comments.\n";
+
+################
+## End of main
+################
+
+sub comments {
+    my ( $p, $data ) = @_;
+
+    my $line = $p->current_line;
+    $data =~ s/\n/\n\t/g;
+    print "$line:\t<!--$data-->\n";
+    $count++;
+
+}    # End comments
+
+# Tell Emacs that this is really a perl script
+# Local Variables:
+# mode:perl
+# End:

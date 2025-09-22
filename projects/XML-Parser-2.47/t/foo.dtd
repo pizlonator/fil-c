@@ -1,0 +1,20 @@
+<?xml encoding="x-sjis-unicode"?>
+<!ENTITY joy "™D">
+
+<!ATTLIST foo zz CDATA 'here'>
+
+<!ENTITY % bar 'IGNORE'>
+<!ENTITY % foo 'IGNORE'>
+
+<!ENTITY more SYSTEM 'ext2.ent'>
+
+<!ENTITY % ext SYSTEM 'ext.ent'>
+%ext;
+
+<![%bar;[
+<!ATTLIST bar xyz (a|b|c) 'b'>
+]]>
+
+<![%foo;[
+<!ATTLIST foo top CDATA "hello">
+]]>

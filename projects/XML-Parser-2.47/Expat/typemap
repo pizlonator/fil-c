@@ -1,0 +1,24 @@
+#
+##### XML::Parser::Expat typemap
+#
+
+XML_Parser				T_PTR
+Encinfo *				T_ENCOBJ
+
+################################################################
+INPUT
+T_ENCOBJ
+	if (sv_derived_from($arg, \"XML::Parser::Encinfo\")) {
+	    IV tmp = SvIV((SV*)SvRV($arg));
+	    $var = ($type) tmp;
+	}
+	else
+	    croak(\"$var is not of type XML::Parser::Encinfo\")
+################################################################
+OUTPUT
+T_ENCOBJ
+	if ($var) {
+	    sv_setref_pv($arg, \"XML::Parser::Encinfo\", (void*)$var);
+	}
+	else
+	    $arg = &PL_sv_undef;

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?pre_doctype 
+  hello ?>
+<!DOCTYPE ctest SYSTEM "ctest.dtd"
+ [
+  <?in_doctype there ?>
+ ]
+>
+<?pre_r1
+                     testing?><?pre_r2             one two?>
+<ctest xmlns:x="urn:1" xmlns:y="urn:2" version='0.5'>
+  <x:e a="a"/>
+  <foo xmlns='urn:3' z="hello" y:b="there" k="world">
+    <bar/>
+    Here is a PI: <?inside   
+             more pi testing ?>. Like it?
+  </foo>
+  <la y:b='b'  a='tab->(	)    qtab->(&#x9;) junk   '/>
+</ctest>
+<?post_root last stuff?>

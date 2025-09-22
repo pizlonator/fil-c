@@ -1,0 +1,126 @@
+#!/usr/local/bin/perl -w
+#
+# Copyright 1999 Clark Cooper <coopercc@netheaven.com>
+# All rights reserved.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the same terms as Perl itself.
+#
+# $Revision: 1.1.1.1 $
+#
+# $Date: 2003-07-27 11:07:11 $
+#
+#	This program take an XML document (either on standard input or
+#	from a filename supplied as an argument) and generates corresponding
+#	canonical XML document on the standard output. The definition of
+#	"Canonical XML" that I'm using is taken from the working draft
+#	published by W3C on 19-Jan-2000:
+#
+#		http://www.w3.org/TR/2000/WD-xml-c14n-20000119.html
+#
+#	The latest version of this document is at:
+#
+#		http://www.w3.org/TR/xml-c14n
+#
+
+use XML::Parser;
+
+my $indoctype = 0;
+my $inroot    = 0;
+my $p         = new XML::Parser(
+    ErrorContext  => 2,
+    Namespaces    => 1,
+    ParseParamEnt => 1,
+    Handlers      => {
+        Start      => \&sthndl,
+        End        => \&endhndl,
+        Char       => \&chrhndl,
+        Proc       => \&proc,
+        Doctype    => sub { $indoctype = 1 },
+        DoctypeFin => sub { $indoctype = 0 }
+    }
+);
+
+my $file = shift;
+if ( defined $file ) {
+    $p->parsefile($file);
+}
+else {
+    $p->parse(*STDIN);
+}
+
+################
+## End main
+################
+
+sub sthndl {
+    my $xp = shift;
+    my $el = shift;
+
+    $inroot = 1 unless $inroot;
+    my $ns_index = 1;
+
+    my $elns = $xp->namespace($el);
+    if ( defined $elns ) {
+        my $pfx = 'n' . $ns_index++;
+        print "<$pfx:$el xmlns:$pfx=\"$elns\"";
+    }
+    else {
+        print "<$el";
+    }
+
+    if (@_) {
+        for ( my $i = 0; $i < @_; $i += 2 ) {
+            my $nm = $_[$i];
+            my $ns = $xp->namespace($nm);
+            $_[$i] = defined($ns) ? "$ns\01$nm" : "\01$nm";
+        }
+
+        my %atts = @_;
+        my @ids  = sort keys %atts;
+        foreach my $id (@ids) {
+            my ( $ns, $nm ) = split( /\01/, $id );
+            my $val = $xp->xml_escape( $atts{$id}, '"', "\x9", "\xA", "\xD" );
+            if ( length($ns) ) {
+                my $pfx = 'n' . $ns_index++;
+                print " $pfx:$nm=\"$val\" xmlns:$pfx=\"$ns\"";
+            }
+            else {
+                print " $nm=\"$val\"";
+            }
+        }
+    }
+
+    print '>';
+}    # End sthndl
+
+sub endhndl {
+    my ( $xp, $el ) = @_;
+
+    my $nm = $xp->namespace($el) ? "n1:$el" : $el;
+    print "</$nm>";
+    if ( $xp->depth == 0 ) {
+        $inroot = 0;
+        print "\n";
+    }
+}    # End endhndl
+
+sub chrhndl {
+    my ( $xp, $data ) = @_;
+
+    print $xp->xml_escape( $data, '>', "\xD" );
+}    # End chrhndl
+
+sub proc {
+    my ( $xp, $target, $data ) = @_;
+
+    unless ($indoctype) {
+        print "<?$target $data?>";
+        print "\n" unless $inroot;
+    }
+}
+
+# Tell emacs that this is really a perl script
+#Local Variables:
+#mode: perl
+#End:
