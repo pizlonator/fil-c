@@ -1,0 +1,977 @@
+2022-11-13  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.7
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:7:5.
+
+2022-11-13  Colin Watson  <cjwatson@debian.org>
+
+	Make socketpair configure tests compatible with C23
+
+	K&R-style zero-argument function definitions will no longer be
+	permitted.
+
+	* m4/pipeline-socketpair.m4 (PIPELINE_SOCKETPAIR_PIPE,
+	PIPELINE_SOCKETPAIR_MODE): Use `int main(void)`, not `int main()`.
+	* NEWS.md: Document this.
+
+2022-08-12  Colin Watson  <cjwatson@debian.org>
+
+	Update pre-commit hooks
+
+	* .pre-commit-config.yaml (pre-commit-hooks): Update to v4.3.0.
+	(clang-format): Update to v14.0.6.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	Update manual page date
+
+	* man/libpipeline.3 (.Dd): Update to the date of the last substantial
+	modification.  Leaving this as 2010 suggested more antiquity than we
+	need to suggest.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	Update home page URL
+
+	* README.md: Use `https://libpipeline.gitlab.io/libpipeline/`.
+	* lib/libpipeline.pc.in (URL): Likewise.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	web: Update last release
+
+	* web/index.html: Update to 1.5.6.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	web: Fix last-modified date generation
+
+	* .gitlab-ci.yml: Replace `@DATE@` with the current date in
+	`public/index.html`.
+	* web/index.html: Use `@DATE@` template.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	web: Assorted URL updates
+
+	* web/index.html: Update Git URLs to GitLab.  Chase various redirects
+	and/or switch to HTTPS.  Remove old Savannah link.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	Add GitLab Pages site
+
+	* .gitlab-ci.yml (stages): Add deploy.
+	(pages): New job.
+	* web/index.html, web/libpipeline-lightning-talk.odp, web/standard.css,
+	web/white.css: New files.
+
+2022-06-03  Colin Watson  <cjwatson@debian.org>
+
+	Transferred Git repository to new group
+
+	* README.md: Change GitLab URL to
+	https://gitlab.com/libpipeline/libpipeline.
+	* NEWS.md: Document this.
+
+2022-04-28  Colin Watson  <cjwatson@debian.org>
+
+	Add notes to libpipeline(3) of when functions were added
+
+	* man/libpipeline.3 (DESCRIPTION, ENVIRONMENT): Add various "Added in"
+	notes.
+	* NEWS.md: Document this.
+
+2022-04-23  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.6
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:6:5.
+
+2022-04-23  Colin Watson  <cjwatson@debian.org>
+
+	gitlab-ci: Run tests with VERBOSE=1
+
+	This makes it easier to diagnose test failures.
+
+	* .gitlab-ci.yml (build-distcheck:script, build-out-of-tree:script): Set
+	VERBOSE=1.
+
+2022-04-23  Colin Watson  <cjwatson@debian.org>
+
+	Update pre-commit hooks
+
+	* .pre-commit-config.yaml (pre-commit-hooks): Update to v4.2.0.
+	(clang-format): Update to v14.0.1.
+	* lib/pipeline-private.h, lib/pipeline.h: Reformat enum definitions.
+
+2022-04-23  Colin Watson  <cjwatson@debian.org>
+
+	Fix handling of leading whitespace in argstr functions
+
+	Fixes Savannah bug #62355 (in man-db).
+
+	* lib/pipeline.c (argstr_get_word): Skip whitespace at the start of
+	words rather than at the end; leading whitespace otherwise resulted in
+	prematurely returning NULL.
+	* tests/argstr.c (test_argstr_excess_whitespace): New test.
+	(argstr_suite): Call test_argstr_excess_whitespace.
+	* NEWS.md: Document this.
+
+2022-04-23  Colin Watson  <cjwatson@debian.org>
+
+	Simplify static analysis of fatal errors
+
+	The usual idiom for fatal error reporting in libpipeline is `error
+	(FATAL, ...)` (there are a few cases using different exit codes, but
+	they're less common).  Unfortunately, there's no easy way to tell the
+	compiler that this call doesn't return, because `error (0, ...)` *does*
+	return.  As a result, some call sites required extra work to give the
+	compiler this information, which can sometimes make a difference to
+	static analysis.
+
+	To simplify this, add a new `fatal` helper function which always exits
+	`FATAL` (i.e. 2) and never returns.  This is declared with
+	`PIPELINE_ATTR_NORETURN` so that the compiler can straightforwardly know
+	what's going on.
+
+	* bootstrap.conf (gnulib_modules): Add verror.
+	* lib/fatal.c, lib/fatal.h: New files.
+	* lib/Makefile.am (libpipeline_la_SOURCES): Add fatal.c and fatal.h.
+
+	* lib/pipeline.c (pipecmd_new_argstr, pipecmd_exec,
+	pipeline_install_sigchld, pipeline_start, pipeline_wait_all,
+	pipeline_pump): Use fatal.
+
+2022-02-08  Colin Watson  <cjwatson@debian.org>
+
+	Explicitly import Gnulib raise module
+
+	It was already implicitly included, but we explicitly use the raise
+	function in pipecmd_exec and pipeline_wait_all.
+
+	* bootstrap.conf (gnulib_modules): Add raise.
+
+2022-01-16  Colin Watson  <cjwatson@debian.org>
+
+	Update to Gnulib 20220116
+
+	* bootstrap: Sync to Gnulib 1eae0f7ea3c220d054025f2c9211700665f9f4a0.
+	* bootstrap.conf (GNULIB_REVISION): Set to
+	1eae0f7ea3c220d054025f2c9211700665f9f4a0.
+
+2022-01-16  Colin Watson  <cjwatson@debian.org>
+
+	Update pre-commit hooks
+
+	* .pre-commit-config.yaml (pre-commit-hooks): Update to v4.1.0.
+
+2022-01-03  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.5
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:5:5.
+
+2022-01-03  Colin Watson  <cjwatson@debian.org>
+
+	Document recent changes
+
+	* NEWS: Document changes since 1.5.4.
+
+2022-01-03  Colin Watson  <cjwatson@debian.org>
+
+	Remove release.sh
+
+	GitLab CI handles building releases now.
+
+	* release.sh: Remove.
+	* Makefile.am (EXTRA_DIST): Remove release.sh.
+
+2022-01-03  Colin Watson  <cjwatson@debian.org>
+
+	Add release automation
+
+	When a tag is pushed to GitLab, upload the bootstrapped source tarball
+	to the package registry, and create a release in GitLab associated with
+	the tag.
+
+	* .gitlab-ci.yml (stages): Remove test, since it had no jobs.  Add
+	upload and release.
+	(upload, release): New jobs.
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Make NEWS.md list formatting more compact
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Reformat release notes as Markdown
+
+	* NEWS: Move to ...
+	* NEWS.md: ... here.  Reformat as Markdown.
+	* Makefile.am (dist_noinst_DATA): Replace NEWS with NEWS.md.
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Remove superfluous quotes
+
+	* Makefile.am (gen_start_date): Remove superfluous quotes.
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Trim down direct Gnulib dependencies slightly
+
+	* bootstrap.conf (gnulib_modules): Replace signal with signal-h, since
+	we use the corresponding header file directly but not the corresponding
+	function.
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Update to Gnulib 20211231
+
+	* bootstrap: Sync to Gnulib 14db2b71b5bd05b94ec6126617fd32cd5f1016cd.
+	* bootstrap.conf (GNULIB_REVISION): Set to
+	14db2b71b5bd05b94ec6126617fd32cd5f1016cd.
+	(--enable-gcc-warnings): New option, based on code in coreutils.  Use
+	this to enable -fanalyzer only if --enable-gcc-warnings=expensive is
+	used; it's useful but slow.
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Add build-distcheck CI artifact
+
+	This should eventually allow publishing release tarballs built by a CI
+	process rather than on my laptop.
+
+	* .gitlab-ci.yml (variables): Set GIT_DEPTH to 0; we need full history
+	in order to build the ChangeLog file.
+	(build-distcheck:before_script): Add git, needed by gitlog-to-changelog.
+	(build-distcheck:artifacts): Add bootstrapped/*.tar.gz.
+
+2022-01-02  Colin Watson  <cjwatson@debian.org>
+
+	Switch CI image to debian:unstable
+
+	This gives us newer versions of various dependencies such as the
+	autotools.
+
+	* .gitlab-ci.yml (default:image): Switch from gcc to debian:unstable.
+	(pre-commit:before_script): Explicitly install git.
+	(bootstrap:before_script): Explicitly install git and pkg-config.
+
+2022-01-01  Colin Watson  <cjwatson@debian.org>
+
+	Use Gnulib attribute.h properly
+
+	We should be using public names rather than private ones.
+
+	* bootstrap.conf (gnulib_modules): Add attribute.
+	* lib/pipeline.c (pipecmd_get_nargs, pipeline_get_ncommands,
+	pipeline_get_command, pipeline_get_pid, pipeline_peek_size): Use
+	ATTRIBUTE_PURE rather than _GL_ATTRIBUTE_PURE.
+
+2021-11-28  Colin Watson  <cjwatson@debian.org>
+
+	Run pre-commit in GitLab CI
+
+	* .gitlab-ci.yml (stages): Add bootstrap.
+	(pre-commit): New job.
+	(bootstrap): Move to bootstrap stage.
+
+2021-11-07  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.4
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:4:5.
+
+2021-11-07  Colin Watson  <cjwatson@debian.org>
+
+	Ignore the "clang-format" commit for "git blame"
+
+	Developers should apply the following config setting:
+
+	    git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+2021-11-07  Colin Watson  <cjwatson@debian.org>
+
+	Introduce clang-format
+
+	This relieves me of the cognitive burden of having to think about
+	trivial formatting details (especially when reviewing code from others,
+	but also for myself).  In most cases the reformatted code is equivalent
+	or superior in terms of my preferred style to what I wrote myself; there
+	was one exception (in pipeline_dump) where I disabled formatting.
+
+	* .clang-format: New file.
+	* .pre-commit-config.yaml: Add clang-format hook.
+	* lib/*, tests/*: Reformat using clang-format.
+
+2021-11-07  Colin Watson  <cjwatson@debian.org>
+
+	Fix build warnings in tests
+
+	* tests/common.c (temp_dir_setup): Use ck_abort_msg rather than fail.
+	* tests/exec.c (test_exec_process, test_exec_function): Likewise.
+	* tests/read.c (test_read_long_line): Likewise.
+	* tests/redirect.c (test_redirect_files): Likewise.
+
+2021-11-07  Colin Watson  <cjwatson@debian.org>
+
+	Introduce pre-commit
+
+	* .pre-commit-config.yaml: New file.
+	* lib/appendstr.c, tests/pump.c: Remove trailing whitespace.
+
+2021-11-07  Colin Watson  <cjwatson@debian.org>
+
+	Simplify conditional SIGPIPE handling
+
+	* lib/pipeline.c (IS_SIGPIPE): New macro.
+	(pipecmd_exec, pipeline_wait_all): Use IS_SIGPIPE, thereby avoiding
+	needing to put parts of an if/else chain inside #ifdef.
+
+2021-09-19  Colin Watson  <cjwatson@debian.org>
+
+	Update some obsolete Autoconf macros
+
+	* configure.ac: Replace AC_GNU_SOURCE and AC_ISC_POSIX with
+	AC_USE_SYSTEM_EXTENSIONS.  Replace AC_CONFIG_HEADER with
+	AC_CONFIG_HEADERS.
+
+2021-09-19  Colin Watson  <cjwatson@debian.org>
+
+	Stop using obsolete AC_TRY_RUN
+
+	This has been obsolete since Autoconf 2.55.  Use its AC_RUN_IFELSE
+	expansion instead.
+
+	* m4/pipeline-socketpair.m4 (PIPELINE_SOCKETPAIR_PIPE): Expand
+	AC_TRY_RUN calls using AC_RUN_IFELSE.
+
+2021-06-05  Colin Watson  <cjwatson@debian.org>
+
+	Update remaining HTTP URLs to HTTPS
+
+	* COPYING: Update from current contents of
+	https://www.gnu.org/licenses/gpl-3.0.txt (no substantive licensing
+	changes, only updated URLs).
+	* Makefile.am (ACLOCAL_AMFLAGS): Update URL in comment to use HTTPS.
+	* README.md (Installation): Update URLs for pkg-config and check.
+	(Note on GPL versions): Update GNU licence compatibility URL to use
+	HTTPS.
+	* lib/pipeline.c (clearenv): Update dovecot reference; the old URL used
+	HTTP and had gone stale.
+
+2020-11-25  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Gnulib 20201125
+
+	In line with Gnulib, we now require Autoconf 2.64.
+
+	* bootstrap: Sync to Gnulib f2a67f071d170920314c9a3b8de3e85259b4e010.
+	* bootstrap.conf (GNULIB_REVISION): Set to
+	f2a67f071d170920314c9a3b8de3e85259b4e010.
+	(buildreq): Bump required autoconf version to 2.64.
+	* configure.ac (AC_PREREQ): Bump to 2.64.
+	* NEWS: Document this.
+
+2020-11-25  Colin Watson  <cjwatson@debian.org>
+
+	NEWS: Document move to GitLab
+
+2020-11-25  Colin Watson  <cjwatson@debian.org>
+
+	Flesh out README
+
+	* README: Move to ...
+	* README.md: ... here.  Reformat as Markdown.
+	(Using the library): New section, mainly borrowed from the project
+	homepage.
+
+2020-11-25  Colin Watson  <cjwatson@debian.org>
+
+	Document migration to GitLab
+
+	* README: Add link to GitLab repository.
+	(Bug reporting): New section.
+
+2020-11-25  Colin Watson  <cjwatson@debian.org>
+
+	Add .gitlab-ci.yml
+
+2020-08-13  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.3
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:3:5.
+
+2020-08-03  Colin Watson  <cjwatson@debian.org>
+
+	Port tests to the modern Check API
+
+	Fixes Savannah bug #58883.
+
+	* configure.ac: Test for check >= 0.9.10.
+	* tests/argstr.c, tests/basic.c, tests/exec.c, tests/inspect.c,
+	tests/pump.c, tests/read.c, tests/redirect.c: Replace uses of
+	fail_unless and fail_if with appropriate ck_assert_* calls.  In most
+	cases these now use more specific equality etc. tests rather than just
+	passing arbitrary predicates.
+	* README: Document updated dependency.
+	* NEWS: Document this.
+
+2020-07-04  Colin Watson  <cjwatson@debian.org>
+
+	Fix handling of read/write errors
+
+	safe_read and safe_write return size_t and define SAFE_READ_ERROR and
+	SAFE_WRITE_ERROR as error return values.  We had previously been
+	assigning their result to a signed value.  As a result, whether
+	passthrough, pipeline_pump, and get_block would detect read/write errors
+	was implementation-defined.
+
+	* lib/pipeline.c (passthrough, get_block): Assign safe_read return value
+	to a size_t rather than a signed integer type, and check for
+	SAFE_READ_ERROR rather than negative values.
+	(pipeline_pump): Assign safe_write return value to a size_t rather than
+	an ssize_t, and check for SAFE_WRITE_ERROR rather than negative values.
+	* NEWS: Document this.
+
+2020-01-01  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.2
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:2:5.
+	* README: Update copyright dates.
+
+2020-01-01  Colin Watson  <cjwatson@debian.org>
+
+	* NEWS: Document pipeline_start doc change
+
+2020-01-01  Colin Watson  <cjwatson@debian.org>
+
+	pipecmd_exec: Flush stdio in PIPECMD_FUNCTION case
+
+	This fixes a regression in eceb4fc9c1a800739f3876a5c9538376adc77876
+	where we could lose some output from functions that write to standard
+	output but don't explicitly flush.
+
+	* lib/pipeline.c (pipecmd_exec): Flush output streams before exiting in
+	the PIPECMD_FUNCTION case.
+
+2020-01-01  Colin Watson  <cjwatson@debian.org>
+
+	pipeline_start: Document that standard FDs must be open
+
+	Fixes Ubuntu bug #992271.
+
+	* lib/pipeline.h (pipeline_start): Document that FDs 0, 1, and 2 must be
+	open before calling this function.
+	* man/libpipeline.3 (pipeline_start): Likewise.
+
+2019-12-27  Colin Watson  <cjwatson@debian.org>
+
+	Use _exit rather than exit in pipecmd_exec
+
+	This avoids bugs such as functions registered using atexit being called
+	multiple times.
+
+	* lib/pipeline.c (pipecmd_exec): Call _exit rather than exit.
+	* NEWS: Document this.
+
+2019-08-30  Colin Watson  <cjwatson@debian.org>
+
+	Enable many more GCC warnings
+
+	* bootstrap.conf (gnulib_modules): Add manywarnings.<Paste>
+	* configure.ac: Add gl_MANYWARN_ALL_GCC, with some refinements to disable
+	-Wsystem-headers, -Wmissing-field-initializers, and -Winline.
+
+2019-08-30  Colin Watson  <cjwatson@debian.org>
+
+	Add several function attributes suggested by GCC
+
+	* lib/debug.c (vdebug): Mark first argument as a printf format string.
+	* lib/pipeline.c (pipecmd_get_nargs, pipeline_get_ncommands,
+	pipeline_get_command, pipeline_get_pid, pipeline_peek_size): Mark as
+	pure.
+
+2019-08-30  Colin Watson  <cjwatson@debian.org>
+
+	Make several functions static
+
+	* tests/argstr.c (argstr_suite): Make static.
+	* tests/basic.c (basic_suite): Likewise.
+	* tests/exec.c (exec_suite): Likewise.
+	* tests/inspect.c (inspect_suite): Likewise.
+	* tests/pump.c (pump_suite): Likewise.
+	* tests/read.c (read_suite): Likewise.
+	* tests/redirect.c (redirect_suite): Likewise.
+
+2019-08-30  Colin Watson  <cjwatson@debian.org>
+
+	Simplify some GCC attribute handling
+
+	We have to be a little careful, as we can't use Gnulib in the public
+	<pipeline.h> header; but we can rely on it for internal compilation
+	units.
+
+	* lib/pipeline.c (passthrough): Use _GL_UNUSED rather than
+	PIPELINE_ATTR_UNUSED.
+	* tests/basic.c (pre_exec): Likewise.
+	* tests/common.h (MAIN): Likewise.
+	* tests/inspect.c (pid_helper): Likewise.
+	* tests/pump.c (tee_source): Likewise.
+	* lib/pipeline.h (PIPELINE_ATTR_UNUSED): Note that this is unused, but
+	preserved to avoid breaking (even undocumented) API.
+
+2019-01-30  Colin Watson  <cjwatson@debian.org>
+
+	Use HTTPS URL
+
+	* README, lib/libpipeline.pc.in (URL): Update homepage URL to
+	https://nongnu.org/libpipeline/.
+
+2019-01-27  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.1
+
+	* NEWS: Note Gnulib portability improvements.
+
+2019-01-27  Colin Watson  <cjwatson@debian.org>
+
+	Update to Gnulib 20190124
+
+	* bootstrap.conf (GNULIB_REVISION): Set to
+	34881aff4043847f2640d90cf9aa325cc3ad08d6.
+
+2019-01-05  Colin Watson  <cjwatson@debian.org>
+
+	Note requirement of Automake 1.11.2
+
+	AM_PROG_AR was actually introduced in 1.11.2, not 1.11.
+
+	* bootstrap.conf (buildreq): Bump required automake version to 1.11.2.
+	* NEWS: Clarify.
+
+2019-01-05  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Gnulib 20190105
+
+	In line with Gnulib, we now require Autoconf 2.63 and Automake 1.11.
+
+	* bootstrap: Sync to Gnulib d271f868a8df9bbec29049d01e056481b7a1a263.
+	* bootstrap.conf (GNULIB_REVISION): Set to
+	d271f868a8df9bbec29049d01e056481b7a1a263.
+	(buildreq): Bump required autoconf version to 2.63.
+	* configure.ac (AM_INIT_AUTOMAKE): Bump to 1.11.
+	(AM_SILENT_RULES, AM_PROG_AR): Remove conditionals, which were there for
+	Automake 1.10 support.
+	(AC_PREREQ): Bump to 2.63.
+	* NEWS: Document this.
+
+2019-01-05  Colin Watson  <cjwatson@debian.org>
+
+	Use tar --sort=name if available
+
+	* m4/pipeline-tar-sort-name.m4: New file.
+	* configure.ac: Call PIPELINE_TAR_SORT_NAME.
+
+2018-12-24  Colin Watson  <cjwatson@debian.org>
+
+	More (void *) 0 as variadic sentinel
+
+	* tests/basic.c (test_basic_status, test_basic_args,
+	test_basic_pipeline, test_basic_wait_all, test_basic_setenv,
+	test_basic_unsetenv, test_basic_clearenv, test_basic_chdir,
+	test_basic_fchdir, test_basic_pre_exec, test_basic_sequence): Use
+	(void *) rather than NULL as a sentinel for variadic functions.
+	* tests/common.c (temp_dir_teardown): Likewise.
+	* tests/exec.c (test_exec_process): Likewise.
+	* tests/inspect.c (test_inspect_command, test_inspect_pipeline):
+	Likewise.
+	* tests/pump.c (fail_unless_files_equal,
+	test_pump_connect_attaches_correctly, test_pump_tee): Likewise.
+	* tests/redirect.c (test_redirect_files, test_redirect_outfile):
+	Likewise.
+
+2018-12-24  Colin Watson  <cjwatson@debian.org>
+
+	Use (void *) 0 as a variadic sentinel
+
+	NULL is formally incorrect here since the standard allows it to be an
+	integer constant expression.
+
+	* lib/pipeline.c (argstr_get_word, pipecmd_tostring, pipeline_tostring):
+	Use (void *) rather than NULL as a sentinel for variadic functions.
+
+2018-05-29  Colin Watson  <cjwatson@debian.org>
+
+	Avoid gl directory confusion
+
+	* bootstrap.conf (local_gl_dir): Set to 'gnulib-local'.
+
+2018-05-28  Colin Watson  <cjwatson@debian.org>
+
+	Prefer the Gnulib versions of some more files
+
+	* bootstrap.conf (gnulib_extra_files): Remove.  (This has the effect of
+	reverting to bootstrap's default of also copying some files in
+	build-aux/ from Gnulib.)
+
+2018-05-28  Colin Watson  <cjwatson@debian.org>
+
+	Clean up bootstrap configuration slightly
+
+	* bootstrap.conf (gnulib_name, source_base, m4_base): Set these instead
+	of the corresponding options in gnulib_tool_option_extras.
+
+2018-05-28  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Gnulib 20180527
+
+	* bootstrap.conf (GNULIB_URL): Remove.
+	(GNULIB_REVISION): Set to 90f289f249a266b1afb9c63e182f5d979d17df5f.
+	* configure.ac (AM_PROG_AR, LT_INIT): Move below gl_EARLY.
+
+2018-05-27  Colin Watson  <cjwatson@debian.org>
+
+	Switch to bootstrap
+
+	We no longer keep autogenerated files in git.
+
+	* .gitignore: Add **/Makefile.in, /INSTALL, /aclocal.m4, /build-aux,
+	/config.h.in, /configure, /gl, and /gnulib.  Remove gnulib/*.
+	* INSTALL, Makefile.in, aclocal.m4, autogen.sh, build-aux, config.h.in,
+	configure, gnulib, lib/Makefile.in, man/Makefile.in, tests/Makefile.in:
+	Remove.
+	* bootstrap, bootstrap.conf: New files.
+	* Makefile.am (SUBDIRS, EXTRA_DIST, ACLOCAL_AMFLAGS): Refer to gl/
+	rather than gnulib/ (gnulib/ now contains pristine source).
+	(EXTRA_DIST): Replace autogen.sh with bootstrap and bootstrap.conf.
+	Remove gnulib/m4/gnulib-cache.m4 and gnulib/m4/gnulib-tool.m4.
+	* configure.ac (AC_CONFIG_FILES): Refer to gl/ rather than gnulib/.
+	* lib/Makefile.am (libpipeline_la_CPPFLAGS, libpipeline_la_LIBADD):
+	Likewise.
+	* tests/Makefile.am (LIBS, AM_CPPFLAGS): Likewise.
+	* release.sh: Call ./bootstrap rather than ./autogen.sh.
+
+2017-11-14  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.5.0.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 6:0:5.
+
+2017-11-14  Colin Watson  <cjwatson@debian.org>
+
+	Add pipecmd_pre_exec function
+
+	* lib/pipeline-private.h (struct pipecmd): Add pre_exec_func,
+	pre_exec_free_func, and pre_exec_data.
+	* lib/pipeline.c (pipecmd_new, pipecmd_new_function,
+	pipecmd_new_sequencev): Initialise cmd->pre_exec_func,
+	cmd->pre_exec_free_func, and cmd->pre_exec_data.
+	(pipecmd_dup): Copy cmd->pre_exec_func, cmd->pre_exec_free_func, and
+	cmd->pre_exec_data if necessary.
+	(pipecmd_pre_exec): New function.
+	(pipecmd_exec): If cmd->pre_exec_func is set, call it immediately before
+	calling execvp or cmd->func.
+	* lib/pipeline.h (pipecmd_pre_exec): Add prototype.
+	(pipeline_install_post_fork): Cross-reference pipecmd_pre_exec in
+	comment.
+	* man/Makefile.am (FUNCTIONS): Add pipecmd_pre_exec.
+	* man/libpipeline.3 (Functions to build individual commands): Document
+	pipecmd_pre_exec.
+	(Functions to run pipelines and handle signals): Cross-reference
+	pipecmd_pre_exec from pipeline_install_post_fork.
+	* tests/basic.c (test_basic_pre_exec): Test pipecmd_pre_exec.
+	* NEWS: Document this.
+	* README: Update copyright years.
+
+2017-07-10  Colin Watson  <cjwatson@debian.org>
+
+	tests/read.c: Update program_name
+
+2017-07-10  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.4.2.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to 5:2:4.
+
+2017-07-10  Colin Watson  <cjwatson@debian.org>
+
+	Fix EOF detection in get_line
+
+	* lib/pipeline.c (get_line): A short read isn't a reliable way to detect
+	end-of-file.  Instead, keep track of the previous buffer length returned
+	by get_block; if we get the same length twice in a row then that
+	indicates EOF.
+	* tests/reading_long_line.c: Rename to ...
+	* tests/read.c: ... this.  Update build system and test names to match.
+	(slow_line_helper, test_read_readline_slow): New test.
+
+2017-07-10  Colin Watson  <cjwatson@debian.org>
+
+	Various autotools upgrades
+
+	Upgrade to Automake 1.15.1, config.guess 2016-10-02, config.sub
+	2016-11-04, and Libtool 2.4.6-2 (from Debian).
+
+2016-10-13  Colin Watson  <cjwatson@debian.org>
+
+	Add home page URL to README
+
+	Suggested by Christopher Yeleighton.
+
+2015-08-17  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.4.1.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to
+	5:1:4.
+
+2015-08-17  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Automake 1:1.15-3 (from Debian).
+
+2015-08-16  Colin Watson  <cjwatson@debian.org>
+
+	Fix test failure with Check 0.10.0
+
+	Reported by Bruce Dubbs.
+
+	* tests/inspect.c (pid_helper): Set SIGTERM back to SIG_DFL, in case
+	Check installed its own handler for that.
+	* NEWS: Document this.
+
+2015-08-06  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Automake 1.15.
+
+2015-06-18  Colin Watson  <cjwatson@debian.org>
+
+	Various autotools upgrades
+
+	* aclocal.m4: Upgrade to Gettext 0.19.4.
+	* build-aux/ltmain.sh: Upgrade to Libtool 2.4.2-1.11 (from Debian).
+
+2014-10-26  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.4.0.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to
+	5:0:4.
+
+2014-10-26  Colin Watson  <cjwatson@debian.org>
+
+	Remove generated gnulib/lib/fcntl.h, added by accident
+
+	* gnulib/lib/fcntl.h: Remove.
+	* .gitignore: Add gnulib/lib/fcntl.h.
+
+2014-10-24  Colin Watson  <cjwatson@debian.org>
+
+	Add pipecmd_fchdir function
+
+	* lib/pipeline-private.h (struct pipecmd): Add cwd_fd.
+	* lib/pipeline.c (pipecmd_new, pipecmd_new_function,
+	pipecmd_new_sequencev): Initialise cmd->cwd_fd.
+	(pipecmd_dup): Copy cmd->cwd_fd if necessary.
+	(pipecmd_fchdir): New function.
+	(pipecmd_dump, pipecmd_tostring): Serialise cmd->cwd_fd as "(cd <fd
+	%d> && ...)" if necessary.
+	(pipecmd_exec): If cmd->cwd_fd is set, fchdir to it.
+	* lib/pipeline.h (pipecmd_fchdir): Add prototype.
+	* man/Makefile.am (FUNCTIONS): Add pipecmd_fchdir.
+	* man/libpipeline.3 (Functions to build individual commands):
+	Document pipecmd_fchdir.
+	* tests/basic.c (test_basic_fchdir): Test pipecmd_fchdir.
+	* NEWS: Document this.
+
+2014-10-22  Colin Watson  <cjwatson@debian.org>
+
+	NEWS: Document recent Solaris portability changes
+
+2014-10-22  Colin Watson  <cjwatson@debian.org>
+
+	Add a cleaner way to suppress "Terminated" errors in tests
+
+	* lib/pipeline.c (pipecmd_exec, pipeline_wait_all): If
+	PIPELINE_QUIET is set, don't emit an error message when a subprocess
+	is terminated by a signal.
+	* man/libpipeline.3 (ENVIRONMENT): Document this.
+	* tests/inspect.c (test_inspect_pid): Use this rather than assigning
+	to stderr, which is not portable to Solaris.  Reported by Peter
+	Bray.
+
+2014-10-22  Colin Watson  <cjwatson@debian.org>
+
+	autogen.sh: Avoid "export VARIABLE=value" syntax
+
+	Older Solaris shells do not support this.  Patch by Peter Bray.
+
+2014-10-22  Colin Watson  <cjwatson@debian.org>
+
+	gnulib: Import mkdtemp module.
+
+	Suggested by Peter Bray.
+
+2014-09-22  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.3.1.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to
+	4:1:3.
+
+2014-09-22  Colin Watson  <cjwatson@debian.org>
+
+	Fix build on systems with neither setenv nor clearenv
+
+	Fixes Savannah bug #43265.
+
+	* lib/pipeline.c (clearenv): Don't define if defined(HAVE_SETENV),
+	as in that case gnulib will provide this symbol.
+	* lib/pipeline-private.h (clearenv): Likewise.
+	* NEWS: Document this.
+
+2014-09-17  Colin Watson  <cjwatson@debian.org>
+
+	Make sure that the generated shared library has no undefined symbols
+
+	Based on a change found in
+	https://github.com/Alexpux/MSYS2-packages/tree/master/libpipeline.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Add -no-undefined.
+
+2014-09-15  Colin Watson  <cjwatson@debian.org>
+
+	Various autotools upgrades
+
+	* aclocal.m4: Upgrade to pkg-config 0.28 and Gettext 0.19.2.
+	* build-aux/config.sub: Upgrade to 2014-09-11.
+	* build-aux/ltmain.sh: Upgrade to Libtool 2.4.2-1.10 (from Debian).
+
+2014-08-03  Colin Watson  <cjwatson@debian.org>
+
+	Update to config.guess 2014-03-23 and config.sub 2014-05-01.
+
+2014-04-23  Colin Watson  <cjwatson@debian.org>
+
+	Fix test failures on Cygwin.
+
+	Reported by Chris J. Breisch.
+
+	* configure.ac: Define SHELL as a C preprocessor symbol.
+	* tests/basic.c (test_basic_wait_all, test_basic_setenv,
+	test_basic_unsetenv, test_basic_clearenv): Execute SHELL rather than
+	"sh".
+	* tests/exec.c (test_exec_process): Likewise.
+
+	* tests/basic.c (test_basic_args, test_basic_pipeline,
+	test_basic_unsetenv, test_basic_clearenv, test_basic_chdir,
+	test_basic_sequence): Check for pipeline_readline returning NULL.
+	* tests/inspect.c (test_inspect_pid): Likewise.
+	* tests/redirect.c (test_redirect_files): Likewise.
+
+	* NEWS: Document this.
+
+2014-03-26  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.3.0.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to
+	4:0:3.
+
+2014-03-26  Colin Watson  <cjwatson@debian.org>
+
+	* NEWS: Set next version to 1.3.0, due to new API.
+
+	* lib/pipeline.c (pipecmd_dump): Simplify one fprintf to fputs.
+
+	Upgrade to Automake 1:1.14.1-3 (from Debian).
+
+2014-03-26  Colin Watson  <cjwatson@debian.org>
+
+	Add pipecmd_chdir function
+
+	* lib/pipeline-private.h (struct pipecmd): Add cwd.
+	* lib/pipeline.c (pipecmd_new, pipecmd_new_function,
+	pipecmd_new_sequencev): Initialise cmd->cwd.
+	(pipecmd_dup): Copy cmd->cwd if necessary.
+	(pipecmd_chdir): New function.
+	(pipecmd_dump, pipecmd_tostring): Serialise cmd->cwd as "(cd %s &&
+	...)" if necessary.
+	(pipecmd_exec): If cmd->cwd is set, chdir to it.
+	(pipecmd_free): Free cmd->cwd.
+	* lib/pipeline.h (pipecmd_chdir): Add prototype.
+	* man/Makefile.am (FUNCTIONS): Add pipecmd_chdir.
+	* man/libpipeline.3 (Functions to build individual commands):
+	Document pipecmd_chdir.
+	* tests/basic.c (test_basic_chdir): Test pipecmd_chdir.
+	* NEWS: Document this.
+
+2014-02-20  Colin Watson  <cjwatson@debian.org>
+
+	Move Autotools auxiliary build files from tools to build-aux.
+
+	"build-aux" is a more conventional location for the Autotools files.
+
+2014-02-18  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Gnulib 20140202 and Libtool 2.4.2-1.7 (from Debian).
+
+2014-02-06  Colin Watson  <cjwatson@debian.org>
+
+	Upgrade to Automake 1.14.1 and Libtool 2.4.2-1.6 (from Debian).
+
+2013-12-18  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.2.6.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to
+	  3:6:2.
+
+2013-12-18  Colin Watson  <cjwatson@debian.org>
+
+	Fix occasional failure in test_pump_tee
+
+	* tests/pump.c (test_pump_tee): Wait for child processes before
+	testing output.
+	* NEWS: Document this.
+
+2013-12-18  Colin Watson  <cjwatson@debian.org>
+
+	Clarify pipeline_wait's return value
+
+	* man/libpipeline.3 (pipeline_wait): Synchronise description of
+	return value with pipeline.h.
+
+2013-12-03  Colin Watson  <cjwatson@debian.org>
+
+	Version: 1.2.5.
+
+	* lib/Makefile.am (libpipeline_la_LDFLAGS): Bump -version-info to
+	  3:5:2.
+
+2013-12-03  Colin Watson  <cjwatson@debian.org>
+
+	gnulib: Import gnupload module.
+
+2013-12-03  Colin Watson  <cjwatson@debian.org>
+
+	Build with large file support where available
+
+	* gnulib: Import largefile module.
+	* NEWS: Document this.
+
+2013-12-03  Colin Watson  <cjwatson@debian.org>
+
+	Automatically generate ChangeLog from git
+
+	* ChangeLog: Move to ...
+	* ChangeLog-2013: ... here.
+	* Makefile.am (EXTRA_DIST): Add ChangeLog-2013.
+	  (dist-hook): Add gen-ChangeLog.
+	  (gen-ChangeLog): New rule, based on that in coreutils.
+	* gnulib: Import gitlog-to-changelog module.

@@ -1,0 +1,876 @@
+.\" Copyright (C) 2010-2022 Colin Watson.
+.\"
+.\" This file is part of libpipeline.
+.\"
+.\" libpipeline is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or (at
+.\" your option) any later version.
+.\"
+.\" libpipeline is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with libpipeline; if not, write to the Free Software
+.\" Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
+.\" USA.
+.Dd April 28, 2022
+.Os GNU
+.ds volume-operating-system GNU
+.Dt LIBPIPELINE 3
+.Sh NAME
+.Nm libpipeline
+.Nd pipeline manipulation library
+.Sh SYNOPSIS
+.In pipeline.h
+.Sh DESCRIPTION
+.Nm
+is a C library for setting up and running pipelines of processes, without
+needing to involve shell command-line parsing which is often error-prone and
+insecure.
+This relieves programmers of the need to laboriously construct pipelines
+using lower-level primitives such as
+.Ic fork
+and
+.Ic execve .
+.Pp
+The general way to use
+.Nm
+involves constructing a
+.Vt pipeline
+structure and adding one or more
+.Vt pipecmd
+structures to it.
+A
+.Vt pipecmd
+represents a subprocess (or
+.Dq command ) ,
+while a
+.Vt pipeline
+represents a sequence of subprocesses each of whose outputs is connected to
+the next one's input, as in the example
+.Ic ls | grep pattern | less .
+The calling program may adjust certain properties of each command
+independently, such as its environment and
+.Xr nice 3
+priority, as well as properties of the entire pipeline such as its input and
+output and the way signals are handled while executing it.
+The calling program may then start the pipeline, read output from it, wait
+for it to complete, and gather its exit status.
+.Pp
+Strings passed as
+.Vt const char *
+function arguments will be copied by the library.
+.Ss Functions to build individual commands
+.Bl -tag -width 4n -compact
+.It Ft "pipecmd *" Ns Fn pipecmd_new "const char *name"
+.Pp
+Construct a new command representing execution of a program called
+.Va name .
+.Pp
+.It Ft "pipecmd *" Ns Fn pipecmd_new_argv "const char *name" "va_list argv"
+.It Ft "pipecmd *" Ns Fn pipecmd_new_args "const char *name" ...
+.Pp
+Convenience constructors wrapping
+.Fn pipecmd_new
+and
+.Fn pipecmd_arg .
+Construct a new command representing execution of a program called
+.Va name
+with arguments.
+Terminate arguments with
+.Li NULL .
+.Pp
+.It Ft "pipecmd *" Ns Fn pipecmd_new_argstr "const char *argstr"
+.Pp
+Split
+.Va argstr
+on whitespace to construct a command and arguments, honouring shell-style
+single-quoting, double-quoting, and backslashes, but not other shell
+evilness like wildcards, semicolons, or backquotes.
+This is included only to support situations where command arguments are
+encoded into configuration files and the like.
+While it is safer than
+.Xr system 3 ,
+it still involves significant string parsing which is inherently riskier
+than avoiding it altogether.
+Please try to avoid using it in new code.
+.Pp
+.It Vt typedef void pipecmd_function_type (void *) ;
+.It Vt typedef void pipecmd_function_free_type (void *) ;
+.It Xo Ft "pipecmd *" Ns
+.Fo pipecmd_new_function
+.Fa "const char *name"
+.Fa "pipecmd_function_type *func"
+.Fa "pipecmd_function_free_type *free_func"
+.Fa "void *data"
+.Fc
+.Xc
+.Pp
+Construct a new command that calls a given function rather than executing a
+process.
+.Pp
+The data argument is passed as the function's only argument, and will be
+freed before returning using free_func (if
+.No non- Ns Va NULL Ns ).
+.Pp
+.Li pipecmd_*
+functions that deal with arguments cannot be used with the command returned
+by this function.
+.Pp
+.It Xo Ft "pipecmd *" Ns
+.Fn pipecmd_new_sequencev "const char *name" "va_list cmdv"
+.Xc
+.It Ft "pipecmd *" Ns Fn pipecmd_new_sequence "const char *name" ...
+.Pp
+Construct a new command that itself runs a sequence of commands, supplied as
+.Vt "command *"
+arguments following
+.Va name
+and terminated by
+.Li NULL .
+The commands will be executed in forked children; if any exits non-zero then
+it will terminate the sequence, as with "&&" in shell.
+.Pp
+.Li pipecmd_*
+functions that deal with arguments cannot be used with the command returned
+by this function.
+.Pp
+.It Ft "pipecmd *" Ns Fn pipecmd_new_passthrough void
+.Pp
+Return a new command that just passes data from its input to its output.
+.Pp
+.It Ft "pipecmd *" Ns Fn pipecmd_dup "pipecmd *cmd"
+.Pp
+Return a duplicate of a command.
+.Pp
+.It Ft void Fn pipecmd_arg "pipecmd *cmd" "const char *arg"
+.Pp
+Add an argument to a command.
+.Pp
+.It Ft void Fn pipecmd_argf "pipecmd *cmd" "const char *format" ...
+.Pp
+Convenience function to add an argument with printf substitutions.
+.Pp
+.It Ft void Fn pipecmd_argv "pipecmd *cmd" "va_list argv"
+.It Ft void Fn pipecmd_args "pipecmd *cmd" ...
+.Pp
+Convenience functions wrapping
+.Fn pipecmd_arg
+to add multiple arguments at once.
+Terminate arguments with
+.Li NULL .
+.Pp
+.It Ft void Fn pipecmd_argstr "pipecmd *cmd" "const char *argstr"
+.Pp
+Split
+.Va argstr
+on whitespace to add a list of arguments, honouring shell-style
+single-quoting, double-quoting, and backslashes, but not other shell
+evilness like wildcards, semicolons, or backquotes.
+This is included only to support situations where command arguments are
+encoded into configuration files and the like.
+While it is safer than
+.Xr system 3 ,
+it still involves significant string parsing which is inherently riskier
+than avoiding it altogether.
+Please try to avoid using it in new code.
+.Pp
+.It Ft void Fn pipecmd_get_nargs "pipecmd *cmd"
+.Pp
+Return the number of arguments to this command.
+Note that this includes the command name as the first argument, so the
+command
+.Sq echo foo bar
+is counted as having three arguments.
+.Pp
+Added in
+.Nm
+1.1.0.
+.Pp
+.It Ft void Fn pipecmd_nice "pipecmd *cmd" "int value"
+.Pp
+Set the
+.Xr nice 3
+value for this command.
+Defaults to 0.
+Errors while attempting to set the nice value are ignored, aside from
+emitting a debug message.
+.Pp
+.It Ft void Fn pipecmd_discard_err "pipecmd *cmd" "int discard_err"
+.Pp
+If
+.Va discard_err
+is non-zero, redirect this command's standard error to
+.Pa /dev/null .
+Otherwise, and by default, pass it through.
+This is usually a bad idea.
+.Pp
+.It Ft void Fn pipecmd_chdir "pipecmd *cmd" "const char *directory"
+.Pp
+Change the working directory to
+.Va directory
+while running this command.
+.Pp
+Added in
+.Nm
+1.3.0.
+.Pp
+.It Ft void Fn pipecmd_fchdir "pipecmd *cmd" "int directory_fd"
+.Pp
+Change the working directory to the directory given by the open file
+descriptor
+.Va directory_fd
+while running this command.
+.Pp
+Added in
+.Nm
+1.4.0.
+.Pp
+.It Xo Ft void
+.Fn pipecmd_setenv "pipecmd *cmd" "const char *name" "const char *value"
+.Xc
+.Pp
+Set environment variable
+.Va name
+to
+.Va value
+while running this command.
+.Pp
+.It Ft void Fn pipecmd_unsetenv "pipecmd *cmd" "const char *name"
+.Pp
+Unset environment variable
+.Va name
+while running this command.
+.Pp
+.It Ft void Fn pipecmd_clearenv "pipecmd *cmd"
+.Pp
+Clear the environment while running this command.
+(Note that environment operations work in sequence; pipecmd_clearenv
+followed by pipecmd_setenv causes the command to have just a single
+environment variable set.)
+Beware that this may cause unexpected failures, for example if some of the
+contents of the environment are necessary to execute programs at all (say,
+.Li PATH ) .
+.Pp
+Added in
+.Nm
+1.1.0.
+.Pp
+.It Xo Ft void
+.Fo pipecmd_pre_exec
+.Fa "pipecmd *cmd"
+.Fa "pipecmd_function_type *func"
+.Fa "pipecmd_function_free_type *free_func"
+.Fa "void *data"
+.Fc
+.Xc
+.Pp
+Install a pre-exec handler.
+This will be run immediately before executing the command's payload (process
+or function).
+Pass NULL to clear any existing pre-exec handler.
+The data argument is passed as the function's only argument, and will be
+freed before returning using free_func (if non-NULL).
+.Pp
+This is similar to pipeline_install_post_fork, except that is specific to a
+single command rather than installing a global handler, and it runs slightly
+later (immediately before exec rather than immediately after fork).
+.Pp
+Added in
+.Nm
+1.5.0.
+.Pp
+.It Ft void Fn pipecmd_sequence_command "pipecmd *cmd" "pipecmd *child"
+.Pp
+Add a command to a sequence created using
+.Fn pipecmd_new_sequence .
+.Pp
+.It Ft void Fn pipecmd_dump "pipecmd *cmd" "FILE *stream"
+.Pp
+Dump a string representation of a command to stream.
+.Pp
+.It Ft "char *" Ns Fn pipecmd_tostring "pipecmd *cmd"
+.Pp
+Return a string representation of a command.
+The caller should free the result.
+.Pp
+.It Ft void Fn pipecmd_exec "pipecmd *cmd"
+.Pp
+Execute a single command, replacing the current process.
+Never returns, instead exiting non-zero on failure.
+.Pp
+Added in
+.Nm
+1.1.0.
+.Pp
+.It Ft void Fn pipecmd_free "pipecmd *cmd"
+.Pp
+Destroy a command.
+Safely does nothing if
+.Va cmd
+is
+.Li NULL .
+.El
+.Ss Functions to build pipelines
+.Bl -tag -width 4n -compact
+.It Ft "pipeline *" Ns Fn pipeline_new void
+.Pp
+Construct a new pipeline.
+.Pp
+.It Ft "pipeline *" Ns Fn pipeline_new_commandv "pipecmd *cmd1" "va_list cmdv"
+.It Ft "pipeline *" Ns Fn pipeline_new_commands "pipecmd *cmd1" ...
+.Pp
+Convenience constructors wrapping
+.Fn pipeline_new
+and
+.Fn pipeline_command .
+Construct a new pipeline consisting of the given list of commands.
+Terminate commands with
+.Li NULL .
+.Pp
+.It Xo Ft "pipeline *" Ns
+.Fn pipeline_new_command_argv "const char *name" "va_list argv"
+.Xc
+.It Ft "pipeline *" Ns Fn pipeline_new_command_args "const char *name" ...
+.Pp
+Construct a new pipeline and add a single command to it.
+.Pp
+.It Ft "pipeline *" Ns Fn pipeline_join "pipeline *p1" "pipeline *p2"
+.Pp
+Joins two pipelines, neither of which are allowed to be started.
+Discards
+.Fa want_out ,
+.Fa want_outfile ,
+and
+.Fa outfd
+from
+.Va p1 ,
+and
+.Fa want_in ,
+.Fa want_infile ,
+and
+.Fa infd
+from
+.Va p2 .
+.Pp
+.It Ft void Fn pipeline_connect "pipeline *source" "pipeline *sink" ...
+.Pp
+Connect the input of one or more sink pipelines to the output of a source
+pipeline.
+The source pipeline may be started, but in that case
+.Fn pipeline_want_out
+must have been called with a negative
+.Fa fd ;
+otherwise, calls
+.Fn pipeline_want_out source -1 .
+In any event, calls
+.Fn pipeline_want_in sink -1
+on all sinks, none of which are allowed to be started.
+Terminate arguments with
+.Li NULL .
+.Pp
+This is an application-level connection; data may be intercepted between the
+pipelines by the program before calling
+.Fn pipeline_pump ,
+which sets data flowing from the source to the sinks.
+It is primarily useful when more than one sink pipeline is involved, in
+which case the pipelines cannot simply be concatenated into one.
+.Pp
+The result is similar to
+.Xr tee 1 ,
+except that output can be sent to more than two places and can easily be
+sent to multiple processes.
+.Pp
+.It Ft void Fn pipeline_command "pipeline *p" "pipecmd *cmd"
+.Pp
+Add a command to a pipeline.
+.Pp
+.It Xo Ft void
+.Fn pipeline_command_argv "pipeline *p" "const char *name" "va_list argv"
+.Xc
+.It Ft void Fn pipeline_command_args "pipeline *p" "const char *name" ...
+.Pp
+Construct a new command and add it to a pipeline in one go.
+.Pp
+.It Ft void Fn pipeline_command_argstr "pipeline *p" "const char *argstr"
+.Pp
+Construct a new command from a shell-quoted string and add it to a pipeline
+in one go.
+See the comment against
+.Fn pipecmd_new_argstr
+above if you're tempted to use this function.
+.Pp
+.It Ft void Fn pipeline_commandv "pipeline *p" "va_list cmdv"
+.It Ft void Fn pipeline_commands "pipeline *p" ...
+.Pp
+Convenience functions wrapping
+.Fn pipeline_command
+to add multiple commands at once.
+Terminate arguments with
+.Li NULL .
+.Pp
+.It Ft void Fn pipeline_want_in "pipeline *p" "int fd"
+.It Ft void Fn pipeline_want_out "pipeline *p" "int fd"
+.Pp
+Set file descriptors to use as the input and output of the whole pipeline.
+If non-negative,
+.Va fd
+is used directly as a file descriptor.
+If negative,
+.Fn pipeline_start
+will create pipes and store the input writing half and the output reading
+half in the pipeline's
+.Fa infd
+or
+.Fa outfd
+field as appropriate.
+The default is to leave input and output as stdin and stdout unless
+.Fn pipeline_want_infile
+or
+.Fn pipeline_want_outfile
+respectively has been called.
+.Pp
+Calling these functions supersedes any previous call to
+.Fn pipeline_want_infile
+or
+.Fn pipeline_want_outfile
+respectively.
+.Pp
+.It Ft void Fn pipeline_want_infile "pipeline *p" "const char *file"
+.It Ft void Fn pipeline_want_outfile "pipeline *p" "const char *file"
+.Pp
+Set file names to open and use as the input and output of the whole
+pipeline.
+This may be more convenient than supplying file descriptors, and guarantees
+that the files are opened with the same privileges under which the pipeline
+is run.
+.Pp
+Calling these functions (even with
+.Li NULL ,
+which returns to the default of leaving input and output as stdin and
+stdout) supersedes any previous call to
+.Fn pipeline_want_in
+or
+.Fn pipeline_want_outfile
+respectively.
+.Pp
+The given files will be opened when the pipeline is started.
+If an output file does not already exist, it is created (with mode 0666
+modified in the usual way by umask); if it does exist, then it is truncated.
+.Pp
+.It Ft void Fn pipeline_ignore_signals "pipeline *p" "int ignore_signals"
+.Pp
+If
+.Va ignore_signals
+is non-zero, ignore
+.Li SIGINT
+and
+.Li SIGQUIT
+in the calling process while the pipeline is running, like
+.Xr system 3 .
+Otherwise, and by default, leave their dispositions unchanged.
+.Pp
+.It Ft int Fn pipeline_get_ncommands "pipeline *p"
+.Pp
+Return the number of commands in this pipeline.
+.Pp
+.It Ft "pipecmd *" Ns Fn pipeline_get_command "pipeline *p" "int n"
+.Pp
+Return command number
+.Va n
+from this pipeline, counting from zero, or
+.Li NULL
+if
+.Va n
+is out of range.
+.Pp
+.It Xo Ft "pipecmd *" Ns
+.Fn pipeline_set_command "pipeline *p" "int n" "pipecmd *cmd"
+.Xc
+.Pp
+Set command number
+.Va n
+in this pipeline, counting from zero, to
+.Va cmd ,
+and return the previous command in that position.
+Do nothing and return
+.Li NULL
+if
+.Va n
+is out of range.
+.Pp
+.It Ft pid_t Fn pipeline_get_pid "pipeline *p" "int n"
+.Pp
+Return the process ID of command number
+.Va n
+from this pipeline, counting from zero.
+The pipeline must be started.
+Return
+.Li \-1
+if
+.Va n
+is out of range or if the command has already exited and been reaped.
+.Pp
+Added in
+.Nm
+1.2.0.
+.Pp
+.It Ft "FILE *" Ns Fn pipeline_get_infile "pipeline *p"
+.It Ft "FILE *" Ns Fn pipeline_get_outfile "pipeline *p"
+.Pp
+Get streams corresponding to
+.Fa infd
+and
+.Fa outfd
+respectively.
+The pipeline must be started.
+.Pp
+.It Ft void Fn pipeline_dump "pipeline *p" "FILE *stream"
+.Pp
+Dump a string representation of
+.Va p
+to stream.
+.Pp
+.It Ft "char *" Ns Fn pipeline_tostring "pipeline *p"
+.Pp
+Return a string representation of
+.Va p .
+The caller should free the result.
+.Pp
+.It Ft void Fn pipeline_free "pipeline *p"
+.Pp
+Destroy a pipeline and all its commands.
+Safely does nothing if
+.Va p
+is
+.Li NULL .
+May wait for the pipeline to complete if it has not already done so.
+.El
+.Ss Functions to run pipelines and handle signals
+.Bl -tag -width 4n -compact
+.It Vt typedef void pipeline_post_fork_fn (void) ;
+.It Ft void Fn pipeline_install_post_fork "pipeline_post_fork_fn *fn"
+.Pp
+Install a post-fork handler.
+This will be run in any child process immediately after it is forked.
+For instance, this may be used for cleaning up application-specific signal
+handlers.
+Pass
+.Li NULL
+to clear any existing post-fork handler.
+.Pp
+See pipecmd_pre_exec for a similar facility limited to a single command
+rather than global to the calling process.
+.Pp
+.It Ft void Fn pipeline_start "pipeline *p"
+.Pp
+Start the processes in a pipeline.
+Installs this library's
+.Li SIGCHLD
+handler if not already installed.
+Calls
+.Li error (FATAL)
+on error.
+.Pp
+The standard file descriptors (0, 1, and 2) must be open before calling this
+function.
+.Pp
+.It Xo
+.Ft int Fn pipeline_wait_all "pipeline *p" "int **statuses" "int *n_statuses"
+.Xc
+.Pp
+Wait for a pipeline to complete.
+Set
+.No * Ns Va statuses
+to a newly-allocated array of wait statuses, as returned by
+.Xr waitpid 2 ,
+and
+.No * Ns Va n_statuses
+to the length of that array.
+The return value is similar to the exit status that a shell would return,
+with some modifications.
+If the last command exits with a signal (other than
+.Li SIGPIPE ,
+which is considered equivalent to exiting zero), then the return value is
+128 plus the signal number; if the last command exits normally but non-zero,
+then the return value is its exit status; if any other command exits
+non-zero, then the return value is 127; otherwise, the return value is 0.
+This means that the return value is only 0 if all commands in the pipeline
+exit successfully.
+.Pp
+.It Ft int Fn pipeline_wait "pipeline *p"
+.Pp
+Wait for a pipeline to complete and return its combined exit status,
+calculated as for
+.Fn pipeline_wait_all .
+.Pp
+.It Ft int Fn pipeline_run "pipeline *p"
+.Pp
+Start a pipeline, wait for it to complete, and free it, all in one go.
+.Pp
+.It Ft void Fn pipeline_pump "pipeline *p" ...
+.Pp
+Pump data among one or more pipelines connected using
+.Fn pipeline_connect
+until all source pipelines have reached end-of-file and all data has been
+written to all sinks (or failed).
+All relevant pipelines must be supplied: that is, no pipeline that has been
+connected to a source pipeline may be supplied unless that source pipeline
+is also supplied.
+Automatically starts all pipelines if they are not already started, but does
+not wait for them.
+Terminate arguments with
+.Li NULL .
+.El
+.Ss Functions to read output from pipelines
+In general, output is returned as a pointer into a buffer owned by the
+pipeline, which is automatically freed when
+.Fn pipeline_free
+is called.
+This saves the caller from having to explicitly free individual blocks of
+output data.
+.Pp
+.Bl -tag -width 4n -compact
+.It Ft "const char *" Ns Fn pipeline_read "pipeline *p" "size_t *len"
+.Pp
+Read
+.Va len
+bytes of data from the pipeline, returning the data block.
+.Va len
+is updated with the number of bytes read.
+.Pp
+.It Ft "const char *" Ns Fn pipeline_peek "pipeline *p" "size_t *len"
+.Pp
+Look ahead in the pipeline's output for
+.Va len
+bytes of data, returning the data block.
+.Va len
+is updated with the number of bytes read.
+The starting position of the next read or peek is not affected by this call.
+.Pp
+.It Ft size_t Fn pipeline_peek_size "pipeline *p"
+.Pp
+Return the number of bytes of data that can be read using
+.Fn pipeline_read
+or
+.Fn pipeline_peek
+solely from the peek cache, without having to read from the pipeline itself
+(and thus potentially block).
+.Pp
+.It Ft void Fn pipeline_peek_skip "pipeline *p" "size_t len"
+.Pp
+Skip over and discard
+.Va len
+bytes of data from the peek cache.
+Asserts that enough data is available to skip, so you may want to check
+using
+.Fn pipeline_peek_size
+first.
+.Pp
+.It Ft "const char *" Ns Fn pipeline_readline "pipeline *p"
+.Pp
+Read a line of data from the pipeline, returning it.
+.Pp
+.It Ft "const char *" Ns Fn pipeline_peekline "pipeline *p"
+.Pp
+Look ahead in the pipeline's output for a line of data, returning it.
+The starting position of the next read or peek is not affected by this call.
+.El
+.Ss Signal handling
+.Nm
+installs a signal handler for
+.Li SIGCHLD ,
+and collects the exit status of child processes in
+.Fn pipeline_wait .
+Applications using this library must either refrain from changing the
+disposition of
+.Li SIGCHLD
+(in other words, must rely on
+.Nm
+for all child process handling) or else must make sure to restore
+.Nm Ns 's
+.Li SIGCHLD
+handler before calling any of its functions.
+.Pp
+If the
+.Fa ignore_signals
+flag is set in a pipeline (which is the default), then the
+.Li SIGINT
+and
+.Li SIGQUIT
+signals will be ignored in the parent process while child processes are
+running.
+This mirrors the behaviour of
+.Xr system 3 .
+.Pp
+.Nm
+leaves child processes with the default disposition of
+.Li SIGPIPE ,
+namely to terminate the process.
+It ignores
+.Li SIGPIPE
+in the parent process while running
+.Fn pipeline_pump .
+.Ss Reaping of child processes
+.Nm
+installs a
+.Li SIGCHLD
+handler that will attempt to reap child processes which have exited.
+This calls
+.Xr waitpid 2
+with
+.Li \-1 ,
+so it will reap any child process, not merely those created by way of this
+library.
+At present, this means that if the calling program forks other child
+processes which may exit while a pipeline is running, the program is not
+guaranteed to be able to collect exit statuses of those processes.
+.Pp
+You should not rely on this behaviour, and in future it may be modified
+either to reap only child processes created by this library or to provide a
+way to return foreign statuses to the application.
+Please contact the author if you have an example application and would like
+to help design such an interface.
+.Sh ENVIRONMENT
+If the
+.Ev PIPELINE_DEBUG
+environment variable is set to
+.Dq 1 ,
+then
+.Nm
+will emit debugging messages on standard error.
+.Pp
+If the
+.Ev PIPELINE_QUIET
+environment variable is set to any value, then
+.Nm
+will refrain from printing an error message when a subprocess is terminated
+by a signal.
+Added in
+.Nm
+1.4.0.
+.Sh EXAMPLES
+In the following examples, function names starting with
+.Li pipecmd_
+or
+.Li pipeline_
+are real
+.Nm
+functions, while any other function names are pseudocode.
+.Pp
+The simplest case is simple.
+To run a single command, such as
+.Ic mv
+.Pa source
+.Pa dest :
+.Bd -literal -offset indent
+pipeline *p = pipeline_new_command_args ("mv", source, dest, NULL);
+int status = pipeline_run (p);
+.Ed
+.Pp
+.Nm
+is often used to mimic shell pipelines, such as the following example:
+.Pp
+.Dl zsoelim < input-file | tbl | nroff -mandoc -Tutf8
+.Pp
+The code to construct this would be:
+.Bd -literal -offset indent
+pipeline *p;
+int status;
+
+p = pipeline_new ();
+pipeline_want_infile (p, "input-file");
+pipeline_command_args (p, "zsoelim", NULL);
+pipeline_command_args (p, "tbl", NULL);
+pipeline_command_args (p, "nroff", "-mandoc", "-Tutf8", NULL);
+status = pipeline_run (p);
+.Ed
+.Pp
+You might want to construct a command more dynamically:
+.Bd -literal -offset indent
+pipecmd *manconv = pipecmd_new_args ("manconv", "-f", from_code,
+                                     "-t", "UTF-8", NULL);
+if (quiet)
+        pipecmd_arg (manconv, "-q");
+pipeline_command (p, manconv);
+.Ed
+.Pp
+Perhaps you want an environment variable set only while running a certain
+command:
+.Bd -literal -offset indent
+pipecmd *less = pipecmd_new ("less");
+pipecmd_setenv (less, "LESSCHARSET", lesscharset);
+.Ed
+.Pp
+You might find yourself needing to pass the output of one pipeline to
+several other pipelines, in a
+.Dq tee
+arrangement:
+.Bd -literal -offset indent
+pipeline *source, *sink1, *sink2;
+
+source = make_source ();
+sink1 = make_sink1 ();
+sink2 = make_sink2 ();
+pipeline_connect (source, sink1, sink2, NULL);
+/* Pump data among these pipelines until there's nothing left. */
+pipeline_pump (source, sink1, sink2, NULL);
+pipeline_free (sink2);
+pipeline_free (sink1);
+pipeline_free (source);
+.Ed
+.Pp
+Maybe one of your commands is actually an in-process function, rather than
+an external program:
+.Bd -literal -offset indent
+pipecmd *inproc = pipecmd_new_function ("in-process", &func,
+                                        NULL, NULL);
+pipeline_command (p, inproc);
+.Ed
+.Pp
+Sometimes your program needs to consume the output of a pipeline, rather
+than sending it all to some other subprocess:
+.Bd -literal -offset indent
+pipeline *p = make_pipeline ();
+const char *line;
+
+pipeline_want_out (p, -1);
+pipeline_start (p);
+line = pipeline_peekline (p);
+if (!strstr (line, "coding: UTF-8"))
+        printf ("Unicode text follows:\n");
+while (line = pipeline_readline (p))
+        printf ("  %s", line);
+pipeline_free (p);
+.Ed
+.Sh SEE ALSO
+.Xr fork 2 ,
+.Xr execve 2 ,
+.Xr system 3 ,
+.Xr popen 3 .
+.Sh AUTHORS
+.An -nosplit
+Most of
+.Nm
+was written by
+.An Colin Watson Aq cjwatson@debian.org ,
+originally for use in man\-db.
+The initial version was based very loosely on the
+.Fn run_pipeline
+function in GNU groff, written by
+.An James Clark Aq jjc@jclark.com .
+It also contains library code by
+.An Markus Armbruster ,
+and by various contributors to Gnulib.
+.Pp
+.Nm
+is licensed under the GNU General Public License, version 3 or later.
+See the README file for full details.
+.Sh BUGS
+Using this library in a program which runs any other child processes and/or
+installs its own
+.Li SIGCHLD
+handler is unlikely to work.
