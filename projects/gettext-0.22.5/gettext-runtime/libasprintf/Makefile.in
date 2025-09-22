@@ -1324,7 +1324,7 @@ lib_asprintf_EXTRASOURCES = \
 # Limit the set of exported symbols, on those platforms where libtool supports it.
 # Currently this excludes the symbols from gnulib modules, that we have mapped
 # to symbols prefixed with 'libasprintf_' through config.h.
-LIBASPRINTF_EXPORTED_SYMBOLS_REGEX = '^[^l]|^l[^i]|^li[^b]|^lib[^a]|^liba[^s]|^libas[^p]|^libasp[^r]|^libaspr[^i]|^libaspri[^n]|^libasprin[^t]|^libasprint[^f]|^libasprintf[^_]'
+LIBASPRINTF_EXPORTED_SYMBOLS_REGEX = '^pizlonated_([^l]|l[^i]|li[^b]|lib[^a]|liba[^s]|libas[^p]|libasp[^r]|libaspr[^i]|libaspri[^n]|libasprin[^t]|libasprint[^f]|libasprintf[^_])'
 @WOE32_FALSE@WOE32_LIBADD = 
 @WOE32_TRUE@WOE32_LIBADD = libasprintf.res.lo
 libasprintf_la_LIBADD = $(WOE32_LIBADD)

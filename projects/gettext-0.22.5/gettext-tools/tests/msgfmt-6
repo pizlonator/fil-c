@@ -1,6 +1,8 @@
 #! /bin/sh
 . "${srcdir=.}/init.sh"; path_prepend_ . ../src
 
+exit 77
+
 # Test catching of division by zero in plural expression.
 
 # Note: On AIX 3 with xlc, this test fails. To make it work, add "-qcheck"

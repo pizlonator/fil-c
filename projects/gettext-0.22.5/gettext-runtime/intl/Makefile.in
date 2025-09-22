@@ -1892,7 +1892,7 @@ LTV_AGE = 4
 OTHER_LDFLAGS = \
   @LTLIBICONV@ @INTL_MACOSX_LIBS@ $(INTL_WINDOWS_LIBS) @LIB_SETLOCALE_NULL@ @LTLIBTHREAD@ \
   -no-undefined \
-  -export-symbols-regex '^([^_]|_[^l]|_l[^i]|_li[^b]|_lib[^i]|_libi[^n]|_libin[^t]|_libint[^l]|_libintl[^_]).*' \
+  -export-symbols-regex '^pizlonated_([^_]|_[^l]|_l[^i]|_li[^b]|_lib[^i]|_libi[^n]|_libin[^t]|_libint[^l]|_libintl[^_]).*' \
   -version-info $(LTV_CURRENT):$(LTV_REVISION):$(LTV_AGE) \
   -rpath $(libdir)
 

@@ -10176,14 +10176,14 @@ fi
 # so use this general approach.
 lt_cv_sys_global_symbol_to_cdecl="$SED -n"\
 $lt_cdecl_hook\
-" -e 's/^T .* \(.*\)$/extern int \1();/p'"\
-" -e 's/^$symcode$symcode* .* \(.*\)$/extern char \1;/p'"
+" -e 's/^T .* pizlonated_\(.*\)$/extern int \1();/p'"\
+" -e 's/^$symcode$symcode* .* pizlonated_\(.*\)$/extern char \1;/p'"
 
 # Transform an extracted symbol line into symbol name and symbol address
 lt_cv_sys_global_symbol_to_c_name_address="$SED -n"\
 $lt_c_name_hook\
 " -e 's/^: \(.*\) .*$/  {\"\1\", (void *) 0},/p'"\
-" -e 's/^$symcode$symcode* .* \(.*\)$/  {\"\1\", (void *) \&\1},/p'"
+" -e 's/^$symcode$symcode* .* pizlonated_\(.*\)$/  {\"\1\", (void *) \&\1},/p'"
 
 # Transform an extracted symbol line into symbol name with lib prefix and
 # symbol address.
@@ -10191,7 +10191,7 @@ lt_cv_sys_global_symbol_to_c_name_address_lib_prefix="$SED -n"\
 $lt_c_name_lib_hook\
 " -e 's/^: \(.*\) .*$/  {\"\1\", (void *) 0},/p'"\
 " -e 's/^$symcode$symcode* .* \(lib.*\)$/  {\"\1\", (void *) \&\1},/p'"\
-" -e 's/^$symcode$symcode* .* \(.*\)$/  {\"lib\1\", (void *) \&\1},/p'"
+" -e 's/^$symcode$symcode* .* pizlonated_\(.*\)$/  {\"lib\1\", (void *) \&\1},/p'"
 
 # Handle CRLF in mingw tool chain
 opt_cr=
@@ -10270,8 +10270,8 @@ _LT_EOF
       fi
 
       # Make sure that we snagged all the symbols we need.
-      if $GREP ' nm_test_var$' "$nlist" >/dev/null; then
-	if $GREP ' nm_test_func$' "$nlist" >/dev/null; then
+      if $GREP ' pizlonated_nm_test_var$' "$nlist" >/dev/null; then
+	if $GREP ' pizlonated_nm_test_func$' "$nlist" >/dev/null; then
 	  cat <<_LT_EOF > conftest.$ac_ext
 /* Keep this code in sync between libtool.m4, ltmain, lt_system.h, and tests.  */
 #if defined _WIN32 || defined __CYGWIN__ || defined _WIN32_WCE
@@ -10304,7 +10304,7 @@ lt__PROGRAM__LTX_preloaded_symbols[] =
 {
   { "@PROGRAM@", (void *) 0 },
 _LT_EOF
-	  $SED "s/^$symcode$symcode* .* \(.*\)$/  {\"\1\", (void *) \&\1},/" < "$nlist" | $GREP -v main >> conftest.$ac_ext
+	  $SED "s/^$symcode$symcode* .* pizlonated_\(.*\)$/  {\"\1\", (void *) \&\1},/" < "$nlist" | $GREP -v main >> conftest.$ac_ext
 	  cat <<\_LT_EOF >> conftest.$ac_ext
   {0, (void *) 0}
 };
