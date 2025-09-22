@@ -1,0 +1,164 @@
+E2fsprogs 1.46.6 (February 1, 2023)
+=====================================
+
+Updates/Fixes since v1.46.5:
+
+UI and Features
+---------------
+
+Debugfs's ncheck command now allows the inode number to be surrounded by
+angle brackets, to be consistent with other debugfs commands.
+
+Debugfs no longer prints a scary message when debugfs -c (which enables
+"catastrophic mode") is used.  This was intended to allow debugfs to
+operate on very badly corrupted file systems, but it is now sometimes
+used to suppress reading the block and inode bitmaps when they are not
+needed.
+
+Resize2fs will round down the requested new file system size to the
+nearest cluster boundary when resizing bigalloc file systems.
+
+Improve error messages issued by badblocks.
+
+Fuse2fs now supports an offset=<bytes> option which allows operating on
+a file system image which is located starting at the specified offset
+from the beginning of the image.
+
+
+
+Fixes
+-----
+
+Pre-v6.2 Linux kernels had long-standing bug in how the extended
+attribute hash was calculated when there were non-ASCII characters in
+the xattr name, when the hash would be different depending on whether
+the C 'char' type was signed or unsigned.  To address this bug, starting
+with e2fsprogs 1.46.6+ and Linux 6.2+, we will accept either the signed
+or unsigned hash variant, but only set the unsigned hash variant.  Since
+extended attribute names are in practice composed of ASCII characters,
+other than various tests (such as generic/454), most users will
+hopefully not notice this change.
+
+Avoid triggering udev in dumpe2fs and "resize2fs -P" for file systems
+with MMP enabled by opening the device read-only when reading the MMP
+block.
+
+Fix MMP handling so it can notice when another writer has modify the MMP
+block out from under it when stopping a MMP sessions.
+
+Fix tune2fs so it will detect another device stealing the MMP sessions
+while rewriting metadata checksums.
+
+E2fsck will now check to make sure the journal inode does not have the
+encrypt flag set.
+
+Fix a deadlock bug in e2fsck's error handler when there are errors
+trying to write to the file system.
+
+Fix a bug where e2fsck could fail when specifying an undo file and an
+explicit superblock number.
+
+Fix e2image so it won't potentially loop forever for certain invalid
+file systems.
+
+Fix resize2fs to honor the E2FSPROGS_FAKE_TIME environment variable.
+This allows embedded system builders who use resize2fs as part of their
+image build process to create reproducible images.
+
+Fix tune2fs to avoid a crash if the journal replay fails and to make
+sure its exit status is non-zero if there is some failure.
+
+Fix tune2fs, fuse2fs, and debugsfs to update j_tail_sequence when
+replaying the journal.
+
+Add additional bullet-proofing for very badly corrupted file systems.
+Try avoid UBSAN warnings, null pointer derferences, and other memory
+bugs.  (Addresses CVE-2022-1304)
+
+Don't fail when the source directory for mke2fs -d doesn't support
+extended attributese.
+
+Check for and handle malloc() failures when computing the log filename
+in e2fsck and in the libss library.
+
+Fix tune2fs and e2fsck to accept pathames which include '=' characters.
+Previously arguments to tune2fs and e2fsck which included '=' characters
+are presumed to be blkid specifiers such as UUID=xxx or LABEL=yyy.  If a
+specifier is both a valid pathname name and blkid tag name specifier,
+priority is given to a blkid resolved pathname.
+
+Improve tune2fs's error messages.
+
+Fix a bug in tune2fs which could cause it to crash if device goes
+off-line just as it being opened.
+
+Fix the fsck driver so if it is interrupted while running fsck -N it
+doesn't end up kllling all processes on the system.
+
+Fix a crash in badblocks when the user specifies an overly large
+number of blocks tested at a time in read/write or nondestructive
+mode.
+
+Update and clarify's chattr's man page and usage message.  Fix spelling
+typo's in a variety of different man pages and comments.
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Update to autoconf 2.71.
+
+Update flags used to create shared library on Darwin/MacOS.
+
+Speed up e2fsck's clonning of multiply-claimed blocks so it is
+substantially faster on very large file systems.
+
+Add tests/fuzz directory with fuzzers from oss-fuzz.
+
+Add a Github Actions configuration file so that Github will run CI tests
+on Linux, Windows and MacOS on a push to the e2fsprogs github repo.
+
+Make the mtab parsing in ext2fs_check_mount_point() more careful so it
+won't get confused when a block device shows up in the mnt_name field
+for a virtual file system.
+
+Fix the libss's Makefile to create the man page directory before trying
+to install its man page.
+
+Fix various Coverity and compiler warnings.
+
+Make tests more portable on various different OS's and system
+configurations (e.g., with SELinux enabled, MacOS, and Windows)
+
+Use mallinfo2() instead of mallinfo() where avilable, since mallinfo()
+is deprecated on newer glibc versions.
+
+E2fsck will no longer do a full scan of disconnected directory when
+trying to print the parent directory, which is pointless and can slow
+down e2fsck if there are a large number of disconnected directories.
+
+Debugfs will now print the extended attribute's e_hash field.
+
+Fix the setup-schroot script to work on non-Linux platforms.
+
+Fix ext2fs_compare_generic_bmap() so it correctly compares all of the
+bits in the bitmap, and so that it works correctly when comparing a
+bitarray bitmap with a rbtree-based bitmap.  (Fortunately, none of the
+programs in e2fsprogs uses bitmap comparison functions.)
+
+Fix memory leaks on error paths.
+
+Add support for the configure option --enable-largefile so that
+e2fsprogs can utilize largefile support for the MUSL C library.
+
+Add an note that the dict library code has been modified, as required by
+the Kazlib license.
+
+Synchronized changes from Android's AOSP e2fsprogs tree.
+
+Updated config.guess and config.sub with newer versions from the FSF.
+
+Add Friulian translation.
+
+Update Chinese, Czech, Dutch, French, German, Malay, Polish, Serbian,
+Spanish, Swedish, and Ukrainian translations.

@@ -1,0 +1,206 @@
+#! /usr/bin/make -f
+
+# export DH_VERBOSE=1
+
+export DEB_BUILD_MAINT_OPTIONS ?= hardening=+all
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+# be paranoid
+export LC_ALL ?= C
+
+ifeq ($(DEB_HOST_ARCH_OS), hurd)
+SKIP_FUSE2FS=yes
+endif
+
+ifeq ($(DEB_HOST_ARCH_OS), linux)
+export deb_systemdsystemunitdir = $(shell pkg-config --variable=systemdsystemunitdir systemd | sed s,^/,,)
+export deb_udevudevdir = $(shell pkg-config pkg-config --variable=udevdir udev | sed s,^/,,)
+endif
+
+ifneq ($(filter pkg.e2fsprogs.no-fuse2fs,$(DEB_BUILD_PROFILES)),)
+SKIP_FUSE2FS=yes
+endif
+
+ifneq (,$(filter-out parallel=1,$(filter parallel=%,$(DEB_BUILD_OPTIONS))))
+    NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    JOBS = -j$(NUMJOBS)
+endif
+
+COMERR_VERSION ?= $(shell grep ELF_VERSION lib/et/Makefile.in | cut '-d ' -f3)
+SS_VERSION ?= $(shell grep ELF_VERSION lib/ss/Makefile.in | cut '-d ' -f3)
+
+topdir		?= $(shell pwd)
+tmpdir		?= ${topdir}/debian/tmp
+udebdir		?= ${topdir}/debian/e2fsprogs-udeb
+stdbuilddir	?= ${topdir}/debian/BUILD-STD
+
+INSTALL ?= install
+INSTALL_PROGRAM ?= $(INSTALL) -p -m 0755
+
+ifneq (,$(findstring update-symbols,$(DEB_BUILD_OPTIONS)))
+SYMBOL_LIBS := libext2fst64 libcomerr2 libss2
+endif
+
+CFLAGS_SHLIB = $(CFLAGS)
+CFLAGS_STLIB = $(CFLAGS)
+LDFLAGS_SHLIB = $(LDFLAGS)
+LDFLAGS_STATIC = $(filter-out -fPIE -fpie -pie,$(LDFLAGS))
+
+BACKTRACE_CONF_FLAGS ?= $(shell if debian/scripts/test-backtrace ; then echo --disable-backtrace ; fi)
+
+COMMON_CONF_FLAGS = --enable-elf-shlibs --disable-ubsan \
+	--disable-addrsan --disable-threadsan --disable-e2initrd-helper \
+	--disable-fsck --disable-libblkid --disable-libuuid --disable-uuidd \
+	--infodir=/usr/share/info  --enable-symlink-install \
+	--with-multiarch=$(DEB_HOST_MULTIARCH) \
+	$(BACKTRACE_CONF_FLAGS) ${EXTRA_CONF_FLAGS}
+
+ifneq ($(SKIP_FUSE2FS),)
+COMMON_CONF_FLAGS +=  --disable-fuse2fs
+endif
+
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+CC ?= $(DEB_HOST_GNU_TYPE)-gcc
+COMMON_CONF_FLAGS += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+endif
+
+# work around Debian Bug #1070042
+ifeq ($(DEB_HOST_ARCH),mips64el)
+COMMON_CONF_FLAGS += --without-libarchive
+endif
+
+%:
+	dh $@ -B${stdbuilddir}
+
+override_dh_autoreconf:
+
+override_dh_auto_configure:
+	mkdir -p ${stdbuilddir}
+	cd ${stdbuilddir} && AWK=/usr/bin/awk \
+		../../configure ${COMMON_CONF_FLAGS}
+
+override_dh_auto_build:
+	$(MAKE) -C ${stdbuilddir} V=1 $(JOBS) all
+ifeq (,$(filter pkg.e2fsprogs.no-static,$(DEB_BUILD_PROFILES)))
+	$(MAKE) -C ${stdbuilddir}/e2fsck V=1 e2fsck.static
+endif
+	if ! test -d debian/orig-gmo ; then \
+		mkdir debian/orig-gmo ; \
+		mv po/*.gmo po/*.po debian/orig-gmo ; \
+		cp debian/orig-gmo/*.po po ; \
+	fi
+	$(MAKE) -C ${stdbuilddir}/po V=1 update-gmo
+
+	$(MAKE) -C ${stdbuilddir}/doc V=1 libext2fs.html
+	$(MAKE) -C ${stdbuilddir}/lib/et V=1 com_err.info com_err.html
+	cat $(shell /bin/ls -1 ./doc/RelNotes/*.txt | tac) | \
+		gzip -9n > ${stdbuilddir}/NEWS.gz
+
+override_dh_auto_clean:
+	if test -d debian/orig-gmo ; then \
+		rm -f po/*.gmo po/*.po ; \
+		mv debian/orig-gmo/* po ; \
+		rmdir debian/orig-gmo ; \
+	fi
+	rm -rf ${stdbuilddir}
+
+override_dh_auto_install:
+	mkdir -p ${tmpdir}/sbin
+	$(MAKE) -C ${stdbuilddir} V=1 install DESTDIR=${tmpdir} \
+		INSTALL_PROGRAM="${INSTALL_PROGRAM}" LDCONFIG=true
+  # static libs and .h files
+	$(MAKE) -C ${stdbuilddir} V=1 install-libs DESTDIR=${tmpdir} LDCONFIG=true
+
+ifeq (,$(filter pkg.e2fsprogs.no-static,$(DEB_BUILD_PROFILES)))
+  # statically-linked fsck
+	${INSTALL_PROGRAM} ${stdbuilddir}/e2fsck/e2fsck.static ${tmpdir}/sbin
+	(cd debian/tmp/usr/share/man/man8 ; cp e2fsck.8 e2fsck.static.8)
+endif
+
+ifeq ($(DEB_HOST_ARCH_OS), hurd)
+	${INSTALL} -m 0644 misc/mke2fs-hurd.conf ${tmpdir}/etc/mke2fs.conf
+endif
+
+override_dh_install:
+	dh_install -p e2fsprogs --sourcedir=${stdbuilddir} NEWS.gz \
+		usr/share/doc/e2fsprogs
+	dh_install
+	dh_missing --fail-missing
+
+ifeq (,$(filter noudeb,$(DEB_BUILD_PROFILES)))
+override_dh_lintian:
+	dh_lintian
+	$(INSTALL) -D -p -m644 debian/e2fsprogs-udeb.lintian-overrides \
+	    debian/e2fsprogs-udeb/usr/share/lintian/overrides/e2fsprogs-udeb
+endif
+
+override_dh_installinfo:
+  # HTML docs
+	$(INSTALL) -d debian/libext2fs-dev/usr/share/doc/libext2fs2/html-info/
+	$(INSTALL) -p -m 0644 ${stdbuilddir}/doc/*.html \
+	   debian/libext2fs-dev/usr/share/doc/libext2fs2/html-info/
+	$(INSTALL) -d debian/comerr-dev/usr/share/doc/comerr-dev/html-info/
+	$(INSTALL) -p -m 0644 ${stdbuilddir}/lib/et/*.html \
+	   debian/comerr-dev/usr/share/doc/comerr-dev/html-info/
+
+  # texinfo docs
+	mkdir -p debian/comerr-dev/usr/share/doc/comerr-dev
+	$(INSTALL) -p -m 0644 ${topdir}/doc/libext2fs.texinfo \
+	   debian/libext2fs-dev/usr/share/doc/libext2fs2/libext2fs.texi
+	$(INSTALL) -p -m 0644 ${topdir}/lib/et/com_err.texinfo \
+	   debian/comerr-dev/usr/share/doc/comerr-dev/com_err.texi
+
+	$(INSTALL) -d debian/comerr-dev/usr/share/doc/comerr-dev/examples
+	$(INSTALL) -p -m 0644 lib/ss/ss_err.et \
+		${stdbuilddir}/lib/ext2fs/ext2_err.et \
+		debian/comerr-dev/usr/share/doc/comerr-dev/examples
+	$(INSTALL) -d debian/ss-dev/usr/share/doc/ss-dev/examples
+	$(INSTALL) -p -m 0644 debugfs/debug_cmds.ct \
+		debian/ss-dev/usr/share/doc/ss-dev/examples
+
+	dh_installinfo -pcomerr-dev ${stdbuilddir}/lib/et/com_err.info
+	dh_installinfo -plibext2fs-dev ${stdbuilddir}/doc/libext2fs.info
+
+ifneq ($(DEB_HOST_ARCH_OS), hurd)
+override_dh_installsystemd:
+	dh_installsystemd -p e2fsprogs --no-restart-after-upgrade --no-stop-on-upgrade e2scrub_all.timer e2scrub_reap.service
+endif
+
+override_dh_makeshlibs:
+	for i in $(SYMBOL_LIBS); \
+	do \
+		echo "Generating symbols for $$i..."; \
+		dpkg-gensymbols -p$$i -Pdebian/$$i > debian/$$i.tmp-patch; \
+		cat debian/$$i.tmp-patch; \
+		patch debian/$$i.symbols < debian/$$i.tmp-patch; \
+		/bin/rm debian/$$i.tmp-patch; \
+	done
+	dh_makeshlibs $(if $(filter noudeb,$(DEB_BUILD_PROFILES)),,--add-udeb=e2fsprogs-udeb)
+
+override_dh_shlibdeps:
+	dh_shlibdeps -pe2fsprogs -l${stdbuilddir}/lib \
+		-- -Ldebian/e2fsprogs.shlibs.local
+ifeq (,$(filter noudeb,$(DEB_BUILD_PROFILES)))
+	dh_shlibdeps -pe2fsprogs-udeb -l${stdbuilddir}/lib \
+		-- -Ldebian/e2fsprogs-udeb.shlibs.local
+endif
+ifeq ($(SKIP_FUSE2FS),)
+	dh_shlibdeps -pfuse2fs -l${stdbuilddir}/lib \
+		-- -Ldebian/e2fsprogs.shlibs.local
+endif
+	dh_shlibdeps --remaining-packages -l${stdbuilddir}/lib
+
+override_dh_gencontrol:
+	dh_gencontrol -pcomerr-dev -- -v${COMERR_VERSION}-${DEB_VERSION} -VmainBinary=${DEB_VERSION}
+	dh_gencontrol -pss-dev -- -v${SS_VERSION}-${DEB_VERSION} -VmainBinary=${DEB_VERSION}
+	dh_gencontrol --remaining-packages
+
+override_dh_auto_test:
+ifeq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
+	PRINT_FAILED=yes $(MAKE) -C ${stdbuilddir} V=1 $(JOBS) check
+endif
+
+test_printenv:
+	printenv | sort

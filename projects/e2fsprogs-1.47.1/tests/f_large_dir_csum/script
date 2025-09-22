@@ -1,0 +1,84 @@
+OUT=$test_name.log
+EXP=$test_dir/expect
+E2FSCK=../e2fsck/e2fsck
+
+NAMELEN=255
+DIRENT_SZ=8
+BLOCKSZ=1024
+INODESZ=128
+CSUM_SZ=8
+CSUM_TAIL_SZ=12
+DIRENT_PER_LEAF=$(((BLOCKSZ - CSUM_TAIL_SZ) / (NAMELEN + DIRENT_SZ)))
+HEADER=32
+INDEX_SZ=8
+INDEX_L1=$(((BLOCKSZ - HEADER - CSUM_SZ) / INDEX_SZ))
+INDEX_L2=$(((BLOCKSZ - DIRENT_SZ - CSUM_SZ) / INDEX_SZ))
+DIRBLK=$((3 + INDEX_L1 * INDEX_L2))
+ENTRIES=$((DIRBLK * DIRENT_PER_LEAF))
+# directory leaf blocks - get twice as much because the leaves won't be full
+# and there are also other filesystem blocks.
+FSIZE=$((DIRBLK * 2))
+
+$MKE2FS -b 1024 -O extents,64bit,large_dir,uninit_bg,metadata_csum -N 50 \
+	-I $INODESZ -F $TMPFILE $FSIZE > $OUT.new 2>&1
+RC=$?
+if [ $RC -eq 0 ]; then
+{
+	# First some initial fs setup to create indexed dir
+	echo "mkdir /foo"
+	echo "cd /foo"
+	touch $TMPFILE.tmp
+	echo "write $TMPFILE.tmp foofile"
+	i=0
+	while test $i -lt $DIRENT_PER_LEAF ; do
+		printf "ln foofile f%0254u\n" $i
+		i=$((i + 1));
+	done
+	echo "expand ./"
+	printf "ln foofile f%0254u\n" $i
+} | $DEBUGFS -w $TMPFILE > /dev/null 2>> $OUT.new
+	RC=$?
+	# e2fsck should optimize the dir to become indexed
+	$E2FSCK -yfD $TMPFILE >> $OUT.new 2>&1
+	status=$?
+	echo Exit status is $status >> $OUT.new
+fi
+
+if [ $RC -eq 0 ]; then
+{
+	START=$SECONDS
+	i=$(($DIRENT_PER_LEAF+1))
+	last=$i
+	echo "cd /foo"
+	while test $i -lt $ENTRIES ; do
+	    ELAPSED=$((SECONDS - START))
+	    if test $((i % 5000)) -eq 0 -a $ELAPSED -gt 10; then
+		RATE=$(((i - last) / ELAPSED))
+		echo "$test_name: $i/$ENTRIES links, ${ELAPSED}s @ $RATE/s" >&2
+		START=$SECONDS
+		last=$i
+	    fi
+	    printf "ln foofile f%0254u\n" $i
+	    i=$((i + 1))
+	done
+} | $DEBUGFS -w $TMPFILE > /dev/null 2>> $OUT.new
+	RC=$?
+fi
+
+if [ $RC -eq 0 ]; then
+	$E2FSCK -yfD $TMPFILE >> $OUT.new 2>&1
+	status=$?
+	echo Exit status is $status >> $OUT.new
+	sed -f $cmd_dir/filter.sed -e "s;$TMPFILE;test.img;" $OUT.new > $OUT
+	rm -f $OUT.new
+
+	cmp -s $OUT $EXP
+	RC=$?
+fi
+if [ $RC -eq 0 ]; then
+	echo "$test_name: $test_description: ok"
+	touch $test_name.ok
+else
+	echo "$test_name: $test_description: failed"
+	diff -u $EXP $OUT > $test_name.failed
+fi

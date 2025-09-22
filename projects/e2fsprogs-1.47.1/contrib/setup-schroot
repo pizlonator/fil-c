@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# This script sets up a schroot suitable for building e2fsprogs
+# on a Debian portable box
+
+while [ "$1" != "" ];
+do
+    case "$1" in
+	--base)	shift
+		BASE_CHROOT="$1"
+		;;
+	--chroot) shift
+		  CHROOT="$1"
+		  ;;
+	--help|help)
+	    echo "Usage: setup-schroot [--base <base_chroot>] [--chroot <chroot>]"
+	    exit 0
+	    ;;
+	*)
+	    echo "unknown option: $1"
+	    exit 1
+	    ;;
+    esac
+    shift
+done
+
+if test -z "$BASE_CHROOT" ; then
+    BASE_CHROOT=sid
+fi
+
+if test -z "$CHROOT" ; then
+    CHROOT="$USER-$BASE_CHROOT"
+fi
+
+echo "Setting up $CHROOT using $BASE_CHROOT..."
+schroot -b -n "$CHROOT" -c "$BASE_CHROOT"
+dd-schroot-cmd -c "$CHROOT" apt-get update
+dd-schroot-cmd -c "$CHROOT" -y apt-get upgrade
+dd-schroot-cmd -c "$CHROOT" -y apt-get build-dep e2fsprogs
+dd-schroot-cmd -c "$CHROOT" -y apt-get install git gdb emacs-nox lintian \
+	acl libreadline-dev dh-exec cron
+dd-schroot-cmd -c "$CHROOT" -y apt-get install udev systemd
+echo " "
+echo "Start chroot by running: "
+echo "schroot -r -c $CHROOT"
+echo " "

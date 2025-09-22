@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# This script is used to generate the distribution tarball
+#
+srcdir=@srcdir@
+top_srcdir=@top_srcdir@
+top_dir=`cd $top_srcdir; pwd`
+base_ver=`echo @E2FSPROGS_PKGVER@`
+base_rel=`echo @E2FSPROGS_PKGREL@`
+base_e2fsprogs=`basename $top_dir`
+exclude=/tmp/exclude$$
+GZIP=gzip
+
+#
+# This hack is needed because texi2dvi blows up horribly if there are 
+# any '~' characters in the directory pathname.  So we kludge around it by
+# using a non-standard directory name for WIP releases.  dpkg-source
+# complains, but life goes on.
+#
+deb_pkgver="$base_ver${base_rel:+-$base_rel}"
+    
+case $1 in
+    debian|ubuntu)
+	SRCROOT="e2fsprogs-$deb_pkgver"
+	tarout="e2fsprogs_$deb_pkgver.orig.tar.gz"
+	;;
+   all|*)
+	SRCROOT="e2fsprogs-$base_ver"
+	tarout="$SRCROOT.tar.gz"
+	;;
+esac
+
+if test -z "$SOURCE_DATE_EPOCH" ; then
+    export SOURCE_DATE_EPOCH=$(cd $top_srcdir; git log -1 --pretty=%ct)
+fi
+
+(cd $top_srcdir/.. ; find $base_e2fsprogs \( -name \*~ -o -name \*.orig \
+		-o -name CVS -o -name \*.rej -o -name Makefile.pq \
+		-o -name TAGS -o -name \*.old -o -name SCCS \
+		-o -name changed-files -o -name .#\* -o -name \*.tar.gz \
+		-o -name autom4te.cache \) \
+		-print) > $exclude
+sed -e "s;^;$base_e2fsprogs/;" < $srcdir/all.exclude >> $exclude
+
+(cd $top_srcdir/.. ; \
+ tar -c -f - -X $exclude --sort=name --owner=0 --group=0 \
+     --transform "flags=r;s|^$base_e2fsprogs|$SRCROOT|" \
+     --numeric-owner --mtime="@${SOURCE_DATE_EPOCH}" $base_e2fsprogs) \
+    | $GZIP -9n -c > $tarout
+$GZIP -ln $tarout
+rm -f "$exclude"

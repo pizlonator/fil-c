@@ -1,0 +1,57 @@
+// Copyright 2017 The Android Open Source Project
+
+package {
+    default_applicable_licenses: ["external_e2fsprogs_lib_uuid_license"],
+}
+
+// Added automatically by a large-scale-change
+// See: http://go/android-license-faq
+license {
+    name: "external_e2fsprogs_lib_uuid_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-BSD",
+    ],
+    license_text: [
+        "COPYING",
+    ],
+}
+
+cc_library {
+    name: "libext2_uuid",
+    host_supported: true,
+    ramdisk_available: true,
+    vendor_ramdisk_available: true,
+    recovery_available: true,
+    vendor_available: true,
+    product_available: true,
+    unique_host_soname: true,
+    defaults: ["e2fsprogs-defaults"],
+    srcs: [
+        "clear.c",
+        "compare.c",
+        "copy.c",
+        "gen_uuid.c",
+        "isnull.c",
+        "pack.c",
+        "parse.c",
+        "unpack.c",
+        "unparse.c",
+        "uuid_time.c",
+    ],
+    target: {
+        darwin: {
+            enabled: true,
+        },
+        windows: {
+            enabled: true,
+        },
+    },
+    header_libs: ["libext2-headers"],
+    export_include_dirs: ["."],
+    export_header_lib_headers: ["libext2-headers"],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.virt",
+    ],
+}

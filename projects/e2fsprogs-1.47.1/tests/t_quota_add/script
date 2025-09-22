@@ -1,0 +1,46 @@
+FSCK_OPT=-yf
+
+if [ "$QUOTA" != "y" ]; then
+	echo "$test_name: $test_description: skipped"
+	return 0
+fi
+
+$MKE2FS -q -F -o Linux -b 4096 -O quota -E quotatype=prjquota $TMPFILE 10000 > $test_name.log 2>&1
+status=$?
+if [ "$status" != 0 ] ; then
+	echo "mke2fs failed" > $test_name.failed
+	echo "$test_name: $test_description: failed"
+	return $status
+fi
+
+for type in usrquota grpquota; do
+	$TUNE2FS -Q $type $TMPFILE >> $test_name.log 2>&1
+	status=$?
+	if [ "$status" != 0 ] ; then
+		echo "tune2fs -O quota failed with $status" > $test_name.failed
+		echo "$test_name: $test_description: failed"
+		return $status
+	fi
+done
+
+UUSAGE=$($DEBUGFS 2>/dev/null -R "lq user" $TMPFILE | grep "^ *0 ")
+for type in group project; do
+	TUSAGE=$($DEBUGFS 2>/dev/null -R "lq $type" $TMPFILE | grep "^ *0 ")
+	if [ "$TUSAGE" != "$UUSAGE" ]; then
+		echo "user and $type quota entries are different" >$test_name.failed
+		echo "$test_name: $test_description: failed"
+		return 1
+	fi
+done
+
+$FSCK $FSCK_OPT $TMPFILE >> $test_name.log 2>&1
+status=$?
+if [ "$status" = 0 ] ; then
+	echo "$test_name: $test_description: ok"
+	touch $test_name.ok
+else
+	echo "e2fsck with quota enabled failed with $status" > $test_name.failed
+	echo "$test_name: $test_description: failed"
+	return $status
+fi
+rm -f $TMPFILE

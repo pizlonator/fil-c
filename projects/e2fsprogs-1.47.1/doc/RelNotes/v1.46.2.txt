@@ -1,0 +1,64 @@
+E2fsprogs 1.46.2 (February 28, 2021)
+===================================
+
+Updates/Fixes since v1.46.1:
+
+UI and Features
+---------------
+
+Teach the tune2fs program to support "random" as an argument to the -c
+option, which sets the maximum mount count.  (Addresses Debian Bug:
+#926293)
+
+Add support for the FS_NOCOMP_FL flag to chattr and lsattr.
+
+
+Fixes
+-----
+
+When resizing a small file systems to a super-large file system size,
+avoid issuing some scary bitmap operation warnings.  (Addresses Github
+issue https://github.com/tytso/e2fsprogs/issues/60)
+
+Fix the debugfs rdump and ls commands so they will work correctly for
+uid's and gid's => 65536.  (Addresses Github issue issue
+https://github.com/tytso/e2fsprogs/issues/63)
+
+Fix the debugfs write and symlink commands so they support targets which
+contain a pathname (instead of only working when writing a file or
+creating a symlink in the current directory).  (Addresses Github issue
+https://github.com/tytso/e2fsprogs/issues/61)
+
+Fix Direct I/O support on block devices where the logical block size is
+greater 1k.  (This includes Advanced Format HDD's, where the sector size
+is 4k, and IBM Mainframe DASD's, where the sector size is 2k.)
+
+Fix debugfs's logdump so it works on file systems whose block size is
+greater than 8k.
+
+Fix a where e2fsck could a crash when there is error while e2fsck is
+trying to open the file system, and e2fsck calls ext2fs_mmp_stop()
+before MMP has been initialized.  (Addresses Debian Bug: #696609)
+
+Improved error checking in the fast commit replay code in e2fsck.
+
+Updated and clarified the chattr man page.
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Fix various compiler and Coverity warnings.
+
+Update the Spanish translation from the translation project.
+
+Update the e2fsck/iscan.c test program so that it builds again.
+
+Fix an environmental dependency bug for the m_rootdir_acl regression
+test.
+
+Avoid the use of loff_t, which is not available for all compilers /
+system include files.
+
+Fix failure of the t_mmp_fail test when running on a device with a 4k
+logical sector size.

@@ -1,0 +1,4 @@
+mke2fs -q -F -t ext4 -o Linux -b 1024 test.img 32M
+debugfs -w -R "set_bg 1 free_blocks_count 65536" /tmp/foo.img
+resize2fs -P /tmp/foo.img
+Estimated minimum size of the filesystem: 6604

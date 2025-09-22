@@ -1,0 +1,11 @@
+if ! test -x $DEBUGFS_EXE; then
+	echo "$test_name: $test_description: skipped (no debugfs)"
+	return 0
+fi
+
+touch $TMPFILE
+$MKE2FS -t ext4 -b 1024 $TMPFILE 2M
+$DEBUGFS -w -R 'set_inode_field <8> flags 0x80800' $TMPFILE
+
+SKIP_GUNZIP="true"
+. $cmd_dir/run_e2fsck

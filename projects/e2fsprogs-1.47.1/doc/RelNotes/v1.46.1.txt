@@ -1,0 +1,41 @@
+E2fsprogs 1.46.1 (February 9, 2021)
+===================================
+
+Updates/Fixes since v1.46.0:
+
+Fixes
+-----
+
+Fix a bug in libext2fs and debugfs when trying to set an extended
+attribute will result in a seg fault.
+
+Fix e2fsck so it properly accepts large_dir directories which are
+greater than 4GB in size.
+
+Fix fast commit support on big endian architectures.  Also avoid potential
+crash on an error handling case.
+
+Fix mke2fs -d so it correctly handles important a directory or small
+file which is stored using inline_data and contains an ACL or extended
+attribute.   (Addresses-Debian-Bug: #971014)
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Fix build failure on systems with pthread && without FUSE support.
+
+Fix various compiler warnings.
+
+Fix portability problems by not depending on the glibc specific qsort_r
+function.
+
+Change configure.ac to use AS_HELP_STRING instead of the deprecated
+AC_HELP_STRING, and explicitly declare that the configure.ac requires
+autoconf 2.69.
+
+Fixed/improved various Debian packaging issues.  (Addresses-Debian-Bug:
+#966686)
+
+Update the Czech, French, Malay, Polish, Portuguese, Swedish, and
+Ukranian translations from the translation project.

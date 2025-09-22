@@ -1,0 +1,32 @@
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Entry 'foo2' in /d1 (1881) references inode 500 found in group 0's unused inodes area.
+Fix? yes
+
+Entry 'foo2' in /d1 (1881) has an incorrect filetype (was 1, should be 0).
+Fix? yes
+
+Entry 'bar2' in /d2 (3761) references inode 2100 found in group 1's unused inodes area.
+Fix? yes
+
+Entry 'bar2' in /d2 (3761) has an incorrect filetype (was 1, should be 0).
+Fix? yes
+
+Restarting e2fsck from the beginning...
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Entry 'foo2' in /d1 (1881) has deleted/unused inode 500.  Clear? yes
+
+Entry 'bar2' in /d2 (3761) has deleted/unused inode 2100.  Clear? yes
+
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Unattached zero-length inode 1883.  Clear? yes
+
+Unattached zero-length inode 3763.  Clear? yes
+
+Pass 5: Checking group summary information
+
+test_filesys: ***** FILE SYSTEM WAS MODIFIED *****
+test_filesys: 21/7520 files (0.0% non-contiguous), 2352/30000 blocks
+Exit status is 1

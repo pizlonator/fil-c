@@ -1,0 +1,41 @@
+// Copyright 2017 The Android Open Source Project
+
+package {
+    // See: http://go/android-license-faq
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // all of the 'license_kinds' from "external_e2fsprogs_license"
+    // to get the below license kinds:
+    //   SPDX-license-identifier-0BSD
+    //   SPDX-license-identifier-BSD
+    //   SPDX-license-identifier-GPL-2.0
+    //   SPDX-license-identifier-MIT
+    default_applicable_licenses: ["external_e2fsprogs_license"],
+}
+
+cc_library {
+    name: "libext2_com_err",
+    host_supported: true,
+    ramdisk_available: true,
+    vendor_ramdisk_available: true,
+    recovery_available: true,
+    vendor_available: true,
+    unique_host_soname: true,
+    defaults: ["e2fsprogs-defaults"],
+    srcs: [
+        "error_message.c",
+        "et_name.c",
+        "init_et.c",
+        "com_err.c",
+        "com_right.c",
+    ],
+
+    target: {
+        windows: {
+            enabled: true,
+        },
+    },
+
+    header_libs: ["libext2-headers"],
+    export_include_dirs: ["."],
+    export_header_lib_headers: ["libext2-headers"],
+}

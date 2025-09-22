@@ -1,0 +1,84 @@
+.\" -*- nroff -*-
+.\" Copyright 2008 by Theodore Ts'o.  All Rights Reserved.
+.\" This file may be copied under the terms of the GNU Public License.
+.\"
+.TH E2UNDO 8 "@E2FSPROGS_MONTH@ @E2FSPROGS_YEAR@" "E2fsprogs version @E2FSPROGS_VERSION@"
+.SH NAME
+e2undo \- Replay an undo log for an ext2/ext3/ext4 file system
+.SH SYNOPSIS
+.B e2undo
+[
+.B \-f
+]
+[
+.B \-h
+]
+[
+.B \-n
+]
+[
+.B \-o
+.I offset
+]
+[
+.B \-v
+]
+[
+.B \-z
+.I undo_file
+]
+.I undo_log device
+.SH DESCRIPTION
+.B e2undo
+will replay the undo log
+.I undo_log
+for an ext2/ext3/ext4 file system found on
+.IR device .
+This can be
+used to undo a failed operation by an e2fsprogs program.
+.SH OPTIONS
+.TP
+.B \-f
+Normally,
+.B e2undo
+will check the file system superblock to make sure the undo log matches
+with the file system on the device.  If they do not match,
+.B e2undo
+will refuse to apply the undo log as a safety mechanism.  The
+.B \-f
+option disables this safety mechanism.
+.TP
+.B \-h
+Display a usage message.
+.TP
+.B \-n
+Dry-run; do not actually write blocks back to the file system.
+.TP
+.BI \-o " offset"
+Specify the file system's
+.I offset
+(in bytes) from the beginning of the device or file.
+.TP
+.B \-v
+Report which block we're currently replaying.
+.TP
+.BI \-z " undo_file"
+Before overwriting a file system block, write the old contents of the block to
+an undo file.  This undo file can be used with e2undo(8) to restore the old
+contents of the file system should something go wrong.  If the empty string is
+passed as the undo_file argument, the undo file will be written to a file named
+e2undo-\fIdevice\fR.e2undo in the directory specified via the
+\fIE2FSPROGS_UNDO_DIR\fR environment variable.
+
+WARNING: The undo file cannot be used to recover from a power or system crash.
+.SH AUTHOR
+.B e2undo
+was written by Aneesh Kumar K.V. (aneesh.kumar@linux.vnet.ibm.com)
+.SH AVAILABILITY
+.B e2undo
+is part of the e2fsprogs package and is available from
+http://e2fsprogs.sourceforge.net.
+.SH SEE ALSO
+.BR mke2fs (8),
+.BR tune2fs (8)
+

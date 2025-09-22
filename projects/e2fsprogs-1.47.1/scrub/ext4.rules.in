@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Copyright (C) 2023 Oracle.  All rights reserved.
+# Author: Darrick J. Wong <djwong@kernel.org>
+#
+# Don't let udisks automount ext4 filesystems without even asking a user.
+# This doesn't eliminate filesystems as an attack surface; it only prevents
+# evil maid attacks when all sessions are locked.
+#
+# According to http://storaged.org/doc/udisks2-api/latest/udisks.8.html,
+# supplying UDISKS_AUTO=0 here changes the HintAuto property of the block
+# device abstraction to mean "do not automatically start" (e.g. mount).
+SUBSYSTEM=="block", ENV{ID_FS_TYPE}=="ext2|ext3|ext4|ext4dev|jbd", ENV{UDISKS_AUTO}="0"

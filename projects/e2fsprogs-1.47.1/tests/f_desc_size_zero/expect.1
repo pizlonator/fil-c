@@ -1,0 +1,13 @@
+../e2fsck/e2fsck: Block group descriptor size incorrect while trying to open test.img
+../e2fsck/e2fsck: Trying to load superblock despite errors...
+../e2fsck/e2fsck: Block group descriptor size incorrect while trying to open test.img
+
+The superblock could not be read or does not describe a valid ext2/ext3/ext4
+filesystem.  If the device is valid and it really contains an ext2/ext3/ext4
+filesystem (and not swap or ufs or something else), then the superblock
+is corrupt, and you might try running e2fsck with an alternate superblock:
+    e2fsck -b 8193 <device>
+ or
+    e2fsck -b 32768 <device>
+
+Exit status is 8

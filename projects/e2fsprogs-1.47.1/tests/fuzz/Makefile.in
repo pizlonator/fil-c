@@ -1,0 +1,93 @@
+#
+# Makefile for the tests/fuzz directory
+#
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+top_builddir = ../..
+my_dir = tests/fuzz
+
+@MCONFIG@
+
+PROGS=	ext2fs_check_directory_fuzzer \
+		ext2fs_image_read_write_fuzzer \
+		ext2fs_read_bitmap_fuzzer
+
+SRCS=  $(srcdir)/ext2fs_check_directory_fuzzer.cc \
+		$(srcdir)/ext2fs_image_read_write_fuzzer.cc \
+		$(srcdir)/ext2fs_read_bitmap_fuzzer.cc
+
+LOCAL_CFLAGS= @fuzzer_cflags@
+LOCAL_LDFLAGS= @fuzzer_ldflags@
+
+LIBS= $(LIBEXT2FS) $(LIBCOM_ERR) $(LIBSUPPORT)
+DEPLIBS= $(LIBEXT2FS) $(DEPLIBCOM_ERR) $(DEPLIBSUPPORT)
+
+STATIC_LIBS= $(LIBSUPPORT) $(STATIC_LIBE2P) $(STATIC_LIBEXT2FS) \
+	$(STATIC_LIBCOM_ERR)
+STATIC_DEPLIBS= $(DEPLIBSUPPORT) $(STATIC_LIBE2P) $(STATIC_LIBEXT2FS) \
+	$(DEPSTATIC_LIBCOM_ERR)
+
+FUZZ_LDFLAGS= $(ALL_LDFLAGS)
+FUZZ_DEP= $(STATIC_DEPLIBS) $(srcdir)/Makefile.in
+
+.cc.o:
+	$(E) "	CXX $<"
+	$(Q) $(CXX) -c $(ALL_CFLAGS) $< -o $@
+
+@FUZZING_CMT@all::  $(PROGS)
+
+clean::
+	$(RM) -f $(PROGS) *.o
+
+install:
+
+install-strip:
+
+uninstall:
+
+mostlyclean: clean
+distclean: clean
+	$(RM) -f .depend Makefile $(srcdir)/TAGS $(srcdir)/Makefile.in.old
+
+ext2fs_check_directory_fuzzer: ext2fs_check_directory_fuzzer.o $(FUZZ_DEP)
+	$(E) "	LD $@"
+	$(Q) $(CXX) $(FUZZ_LDFLAGS) -o $@ $< $(STATIC_LIBS) $(SYSLIBS)
+
+ext2fs_image_read_write_fuzzer: ext2fs_image_read_write_fuzzer.o  $(FUZZ_DEP)
+	$(E) "	LD $@"
+	$(Q) $(CXX) $(FUZZ_LDFLAGS) -o $@ $< $(STATIC_LIBS) $(SYSLIBS)
+
+ext2fs_read_bitmap_fuzzer: ext2fs_read_bitmap_fuzzer.o $(FUZZ_DEP)
+	$(E) "	LD $@"
+	$(Q) $(CXX) $(FUZZ_LDFLAGS) -o $@ $< $(STATIC_LIBS) $(SYSLIBS)
+
+# +++ Dependency line eater +++
+# 
+# Makefile dependencies follow.  This must be the last section in
+# the Makefile.in file
+#
+ext2fs_check_directory_fuzzer.o: $(srcdir)/ext2fs_check_directory_fuzzer.cc \
+ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+ $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+ $(top_builddir)/lib/ext2fs/ext2_err.h \
+ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/hashmap.h \
+ $(top_srcdir)/lib/ext2fs/bitops.h
+ext2fs_image_read_write_fuzzer.o: $(srcdir)/ext2fs_image_read_write_fuzzer.cc \
+ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+ $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+ $(top_builddir)/lib/ext2fs/ext2_err.h \
+ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/hashmap.h \
+ $(top_srcdir)/lib/ext2fs/bitops.h $(top_srcdir)/lib/e2p/e2p.h \
+ $(top_srcdir)/lib/support/print_fs_flags.h
+ext2fs_read_bitmap_fuzzer.o: $(srcdir)/ext2fs_read_bitmap_fuzzer.cc \
+ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+ $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+ $(top_builddir)/lib/ext2fs/ext2_err.h \
+ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/hashmap.h \
+ $(top_srcdir)/lib/ext2fs/bitops.h $(top_srcdir)/lib/e2p/e2p.h \
+ $(top_srcdir)/lib/support/print_fs_flags.h

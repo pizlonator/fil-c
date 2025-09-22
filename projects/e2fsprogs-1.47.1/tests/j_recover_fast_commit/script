@@ -1,0 +1,26 @@
+#!/bin/bash
+
+FSCK_OPT=-fy
+IMAGE=$test_dir/image.gz
+CMDS=$test_dir/commands
+test_description="replay fast commit journal"
+
+gunzip < $IMAGE > $TMPFILE
+
+# Run fsck to fix things?
+EXP=$test_dir/expect
+OUT=$test_name.log
+
+$FSCK $FSCK_OPT -E journal_only -N test_filesys $TMPFILE 2>/dev/null | head -n 1000 | tail -n +2 > $OUT
+echo "Exit status is $?" >> $OUT
+
+$DEBUGFS -f $CMDS $TMPFILE >> $OUT 2>/dev/null
+
+# Figure out what happened
+if cmp -s $EXP $OUT; then
+	echo "$test_name: $test_description: ok"
+	touch $test_name.ok
+else
+	echo "$test_name: $test_description: failed"
+	diff -u $EXP $OUT >> $test_name.failed
+fi

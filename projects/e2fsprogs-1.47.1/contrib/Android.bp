@@ -1,0 +1,28 @@
+// Copyright 2017 The Android Open Source Project
+
+package {
+    // See: http://go/android-license-faq
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // all of the 'license_kinds' from "external_e2fsprogs_license"
+    // to get the below license kinds:
+    //   SPDX-license-identifier-Apache-2.0
+    //   SPDX-license-identifier-GPL
+    default_applicable_licenses: ["external_e2fsprogs_license"],
+}
+
+subdirs = ["android"]
+
+//########################################################################
+// Build add_ext4_encrypt
+
+cc_binary {
+    name: "add_ext4_encrypt",
+    host_supported: true,
+    defaults: ["e2fsprogs-defaults"],
+
+    srcs: ["add_ext4_encrypt.c"],
+    shared_libs: [
+        "libext2fs",
+        "libext2_com_err",
+    ],
+}

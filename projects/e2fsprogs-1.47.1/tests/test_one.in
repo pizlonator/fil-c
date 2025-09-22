@@ -1,0 +1,92 @@
+#!/bin/sh
+# run a single regression test
+
+export DD
+
+LC_ALL=C
+export LC_ALL
+
+case "$1" in
+    --valgrind)
+    	export USE_VALGRIND="valgrind -q --sim-hints=lax-ioctls"
+	shift;
+	;;
+    --valgrind-leakcheck)
+    	export USE_VALGRIND="valgrind --sim-hints=lax-ioctls --leak-check=full --show-reachable=yes --log-file=/tmp/valgrind-%p.log"
+	shift;
+	;;
+    --skip-slow-tests)
+	SKIP_SLOW_TESTS=yes
+	shift;
+	;;
+esac
+
+case "$1" in
+    *.failed|*.new|*.ok|*.log|*.tmp|*.slow)	exit 0 ;;
+esac
+
+test_dir=$1
+cmd_dir=$SRCDIR
+
+if test "$TEST_CONFIG"x = x; then
+	TEST_CONFIG=$SRCDIR/test_config
+fi
+
+. $TEST_CONFIG
+
+test_name=`echo $test_dir | sed -e 's;.*/;;'`
+
+if [ -f $test_dir ] ; then
+	exit 0;
+fi
+if [ ! -d $test_dir ] ; then
+	echo "The test '$test_name' does not exist."
+	exit 0;
+fi
+if [ -z "`ls $test_dir`" ]; then
+	exit 0
+fi
+if [ -f $test_dir/name ]; then
+	test_description=`cat $test_dir/name`
+else
+	test_description=
+fi
+
+if [ -n "$SKIP_SLOW_TESTS" -a -f $test_dir/is_slow_test ]; then
+    echo "$test_name: $test_description: skipped (slow test)"
+    exit 0
+fi
+
+rm -f $test_name.ok $test_name.failed $test_name.log $test_name.slow
+#echo -e -n "$test_name: $test_description:\r"
+
+TMPFILE=$(mktemp ${TMPDIR:-/tmp}/e2fsprogs-tmp-$test_name.XXXXXX)
+[ "$SKIP_UNLINK" != "true" ] && trap 'rm -f $TMPFILE ; exit' 0 1 2 15
+
+start=$SECONDS
+if [ -f $test_dir/script ]; then
+	. $test_dir/script
+else
+	test_base=`echo $test_name | sed -e 's/_.*//'`
+	default_script=$SRCDIR/defaults/${test_base}_script
+	if [ -f $default_script ]; then
+		. $SRCDIR/defaults/${test_base}_script
+	else
+		echo "$test_name: Missing test script $default_script!"
+	fi
+fi
+elapsed=$((SECONDS - start))
+if [ $elapsed -gt 60 -a ! -f $test_dir/is_slow_test ]; then
+	echo "$test_name:  *** took $elapsed seconds to finish ***" |
+		tee $test_name.slow
+	echo "$test_name:  consider adding $test_dir/is_slow_test"
+fi
+
+if [ -n "$PRINT_FAILED" -a -f $test_name.failed ] ; then
+	cat $test_name.failed
+fi
+
+if [ "$SKIP_UNLINK" != "true" ] ; then
+	rm -f $TMPFILE
+fi
+

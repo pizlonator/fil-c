@@ -1,0 +1,24 @@
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Entry 'foo' in / (2) references inode 14 found in group 0's unused inodes area.
+Fix? yes
+
+Restarting e2fsck from the beginning...
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+Inode bitmap differences:  -12
+Fix? yes
+
+Free inodes count wrong for group #0 (2037, counted=2035).
+Fix? yes
+
+Free inodes count wrong (4073, counted=2035).
+Fix? yes
+
+
+test_filesys: ***** FILE SYSTEM WAS MODIFIED *****
+test_filesys: 13/2048 files (0.0% non-contiguous), 1336/8192 blocks
+Exit status is 1

@@ -1,0 +1,19 @@
+1)  Do "make depend" if necessary
+
+2)  "make check"!!!
+
+3)  Use "git log" to assemble release notes and update RELEASE-NOTES symlink.
+
+4)  Update files which contain version information
+	version.h
+	README
+	e2fsprogs.lsm
+	e2fsprogs.spec
+	doc/libext2fs.texinfo (three places)
+
+5)  Run "(cd po; make e2fsprogs.pot-update)" to update the translation template.
+
+6)  Make source tarfile
+
+7)  Adjust sizes in e2fsprogs-VER.lsm; rebuild source files; regenerate source tarfile
+

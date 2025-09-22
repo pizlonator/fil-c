@@ -1,0 +1,119 @@
+Filesystem volume name:   <none>
+Last mounted on:          <not available>
+Filesystem magic number:  0xEF53
+Filesystem revision #:    1 (dynamic)
+Filesystem features:      has_journal ext_attr resize_inode dir_index filetype extent 64bit flex_bg inline_data sparse_super huge_file dir_nlink extra_isize metadata_csum
+Default mount options:    (none)
+Filesystem state:         clean
+Errors behavior:          Continue
+Filesystem OS type:       Linux
+Inode count:              1024
+Block count:              16384
+Reserved block count:     819
+Overhead clusters:        1799
+Free blocks:              14533
+Free inodes:              1003
+First block:              1
+Block size:               1024
+Fragment size:            1024
+Group descriptor size:    64
+Reserved GDT blocks:      127
+Blocks per group:         8192
+Fragments per group:      8192
+Inodes per group:         512
+Inode blocks per group:   256
+Flex block group size:    16
+Mount count:              0
+Check interval:           15552000 (6 months)
+Reserved blocks uid:      0
+Reserved blocks gid:      0
+First inode:              11
+Inode size:               512
+Required extra isize:     32
+Desired extra isize:      32
+Journal inode:            8
+Default directory hash:   half_md4
+Journal backup:           inode blocks
+Checksum type:            crc32c
+Journal features:         (none)
+Total journal size:       1024k
+Total journal blocks:     1024
+Max transaction length:   1024
+Fast commit length:       0
+Journal sequence:         0x00000001
+Journal start:            0
+
+
+Group 0: (Blocks 1-8192)
+  Primary superblock at 1, Group descriptors at 2-2
+  Reserved GDT blocks at 3-129
+  Block bitmap at 130 (+129)
+  Inode bitmap at 132 (+131)
+  Inode table at 134-389 (+133)
+  7495 free blocks, 491 free inodes, 5 directories, 491 unused inodes
+  Free blocks: 698-8192
+  Free inodes: 22-512
+Group 1: (Blocks 8193-16383) [INODE_UNINIT]
+  Backup superblock at 8193, Group descriptors at 8194-8194
+  Reserved GDT blocks at 8195-8321
+  Block bitmap at 131 (bg #0 + 130)
+  Inode bitmap at 133 (bg #0 + 132)
+  Inode table at 390-645 (bg #0 + 389)
+  7038 free blocks, 512 free inodes, 0 directories, 512 unused inodes
+  Free blocks: 9346-16383
+  Free inodes: 513-1024
+debugfs: stat /emptyfile
+Inode: III   Type: regular    
+Size: 0
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /bigfile
+Inode: III   Type: regular    
+Size: 32768
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /sparsefile
+Inode: III   Type: regular    
+Size: 1073741825
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /bigzerofile
+Inode: III   Type: regular    
+Size: 1073741825
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /fifo
+debugfs: stat /emptydir
+Inode: III   Type: directory    
+Size: 60
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /dir
+Inode: III   Type: directory    
+Size: 60
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /dir/file
+Inode: III   Type: regular    
+Size: 8
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /acl_dir
+Inode: III   Type: directory    
+Size: 60
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: stat /acl_dir/file
+Inode: III   Type: regular    
+Size: 10
+Fragment:  Address: 0    Number: 0    Size: 0
+debugfs: ea_list dir/file
+Extended attributes:
+  system.data (0)
+debugfs: ea_list acl_dir
+Extended attributes:
+  system.data (0)
+  system.posix_acl_access (28) = 01 00 00 00 01 00 07 00 04 00 05 00 08 00 05 00 2a 00 00 00 10 00 05 00 20 00 05 00 
+  system.posix_acl_default (28) = 01 00 00 00 01 00 07 00 04 00 05 00 08 00 05 00 04 00 00 00 10 00 05 00 20 00 05 00 
+debugfs: ea_list acl_dir/file
+Extended attributes:
+  system.data (0)
+  system.posix_acl_access (28) = 01 00 00 00 01 00 07 00 04 00 05 00 08 00 05 00 2a 00 00 00 10 00 05 00 20 00 05 00 
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+test.img: 21/1024 files (0.0% non-contiguous), 1851/16384 blocks

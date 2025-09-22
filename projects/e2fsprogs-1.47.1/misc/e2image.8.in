@@ -1,0 +1,335 @@
+.\" -*- nroff -*-
+.\" Copyright 2001 by Theodore Ts'o.  All Rights Reserved.
+.\" This file may be copied under the terms of the GNU Public License.
+.\"
+.TH E2IMAGE 8 "@E2FSPROGS_MONTH@ @E2FSPROGS_YEAR@" "E2fsprogs version @E2FSPROGS_VERSION@"
+.SH NAME
+e2image \- Save critical ext2/ext3/ext4 file system metadata to a file
+
+.SH SYNOPSIS
+.B e2image
+.RB [ \-r | \-Q " [" \-af ]]
+[
+.B \-b
+.I superblock
+]
+[
+.B \-B
+.I blocksize
+]
+[
+.B \-cnps
+]
+[
+.B \-o
+.I src_offset
+]
+[
+.B \-O
+.I dest_offset
+]
+.I device
+.I image-file
+.br
+.B e2image
+.B \-I
+.I device
+.I image-file
+
+.SH DESCRIPTION
+The
+.B e2image
+program will save critical ext2, ext3, or ext4 file system metadata located on
+.I device
+to a file specified by
+.IR image-file .
+The image file may be examined by
+.B dumpe2fs
+and
+.BR  debugfs ,
+by using the
+.B \-i
+option to those programs.  This can assist an expert in recovering
+catastrophically corrupted file systems.
+.PP
+It is a very good idea to create image files for all file systems on a
+system and save the partition layout (which can be generated using the
+.B fdisk \-l
+command) at regular intervals --- at boot time, and/or every week or so.
+The image file should be stored on some file system other than
+the file system whose data it contains, to ensure that this data is
+accessible in the case where the file system has been badly damaged.
+.PP
+To save disk space,
+.B e2image
+creates the image file as a sparse file, or in QCOW2 format.  Hence, if
+the sparse image file needs to be copied to another location, it should
+either be compressed first or copied using the
+.B \-\-sparse=always
+option to the GNU version of
+.BR cp (1).
+This does not apply to the QCOW2 image, which is not sparse.
+.PP
+The size of an ext2 image file depends primarily on the size of the
+file systems and how many inodes are in use.  For a typical 10 Gigabyte
+file system, with 200,000 inodes in use out of 1.2 million inodes, the image
+file will be approximately 35 Megabytes; a 4 Gigabyte file system with 15,000
+inodes in use out of 550,000 inodes will result in a 3 Megabyte image file.
+Image files tend to be quite compressible; an image file taking up 32 Megabytes
+of space on disk will generally compress down to 3 or 4 Megabytes.
+.PP
+If
+.I image-file
+is
+.BR \- ,
+then the output of
+.B e2image
+will be sent to standard output, so that the output can be piped to
+another program, such as
+.BR gzip (1).
+(Note that this is currently only supported when
+creating a raw image file using the
+.B \-r
+option, since the process of creating a normal image file, or QCOW2
+image currently
+requires random access to the file, which cannot be done using a
+pipe.
+
+.SH OPTIONS
+.TP
+.B \-a
+Include file data in the image file.  Normally
+.B e2image
+only includes fs metadata, not regular file data.  This option will
+produce an image that is suitable to use to clone the entire FS or
+for backup purposes.  Note that this option only works with the
+raw
+.RI ( \-r )
+or QCOW2
+.RI ( \-Q )
+formats.  In conjunction with the
+.B \-r
+option it is possible to clone all and only the used blocks of one
+file system to another device/image file.
+.TP
+.BI \-b " superblock"
+Get image from partition with broken primary superblock by using
+the superblock located at file system block number
+.IR superblock .
+The partition is copied as-is including broken primary superblock.
+.TP
+.BI \-B " blocksize"
+Set the file system blocksize in bytes.  Normally,
+.B e2image
+will search for the superblock at various different block sizes in an
+attempt to find the appropriate blocksize. This search can be fooled in
+some cases.  This option forces e2fsck to only try locating the superblock
+with a particular blocksize. If the superblock is not found, e2image will
+terminate with a fatal error.
+.TP
+.BI \-c
+Compare each block to be copied from the source
+.I device
+to the corresponding block in the target
+.IR image-file .
+If both are already the same, the write will be skipped.  This is
+useful if the file system is being cloned to a flash-based storage device
+(where reads are very fast and where it is desirable to avoid unnecessary
+writes to reduce write wear on the device).
+.TP
+.B \-f
+Override the read-only requirement for the source file system when saving
+the image file using the
+.B \-r
+and
+.B \-Q
+options.  Normally, if the source file system is in use, the resulting image
+file is very likely not going to be useful. In some cases where the source
+file system is in constant use this may be better than no image at all.
+.TP
+.B \-I
+install the metadata stored in the image file back to the device.
+It can be used to restore the file system metadata back to the device
+in emergency situations.
+.PP
+.B WARNING!!!!
+The
+.B \-I
+option should only be used as a desperation measure when other
+alternatives have failed.  If the file system has changed since the image
+file was created, data
+.B will
+be lost.  In general, you should make another full image backup of the
+file system first, in case you wish to try other recovery strategies afterward.
+.TP
+.B \-n
+Cause all image writes to be skipped, and instead only print the block
+numbers that would have been written.
+.TP
+.BI \-o " src_offset"
+Specify offset of the image to be read from the start of the source
+.I device
+in bytes.  See
+.B OFFSETS
+for more details.
+.TP
+.BI \-O " tgt_offset"
+Specify offset of the image to be written from the start of the target
+.I image-file
+in bytes.  See
+.B OFFSETS
+for more details.
+.TP
+.B \-p
+Show progress of image-file creation.
+.TP
+.B \-Q
+Create a QCOW2-format image file instead of a normal image file, suitable
+for use by virtual machine images, and other tools that can use the
+.B .qcow
+image format. See
+.B QCOW2 IMAGE FILES
+below for details.
+.TP
+.B \-r
+Create a raw image file instead of a normal image file.  See
+.B RAW IMAGE FILES
+below for details.
+.TP
+.B \-s
+Scramble directory entries and zero out unused portions of the directory
+blocks in the written image file to avoid revealing information about
+the contents of the file system.  However, this will prevent analysis of
+problems related to hash-tree indexed directories.
+
+.SH RAW IMAGE FILES
+The
+.B \-r
+option will create a raw image file, which differs
+from a normal image file in two ways.  First, the file system metadata is
+placed in the same relative offset within
+.I image-file
+as it is in the
+.I device
+so that
+.BR debugfs (8),
+.BR dumpe2fs (8),
+.BR e2fsck (8),
+.BR losetup (8),
+etc. and can be run directly on the raw image file.  In order to minimize
+the amount of disk space consumed by the raw image file, it is
+created as a sparse file.  (Beware of copying or
+compressing/decompressing this file with utilities that don't understand
+how to create sparse files; the file will become as large as the
+file system itself!)  Secondly, the raw image file also includes indirect
+blocks and directory blocks, which the standard image file does not have.
+.PP
+Raw image files are sometimes used when sending file systems to the maintainer
+as part of bug reports to e2fsprogs.  When used in this capacity, the
+recommended command is as follows (replace
+.B hda1
+with the appropriate device for your system):
+.PP
+.br
+	\fBe2image \-r /dev/hda1 \- | bzip2 > hda1.e2i.bz2\fR
+.PP
+This will only send the metadata information, without any data blocks.
+However, the filenames in the directory blocks can still reveal
+information about the contents of the file system that the bug reporter
+may wish to keep confidential.  To address this concern, the
+.B \-s
+option can be specified to scramble the filenames in the image.
+.PP
+Note that this will work even if you substitute
+.B /dev/hda1
+for another raw
+disk image, or QCOW2 image previously created by
+.BR e2image .
+
+.SH QCOW2 IMAGE FILES
+The
+.B \-Q
+option will create a QCOW2 image file instead of a normal, or raw image file.
+A QCOW2 image contains all the information the raw image does, however unlike
+the raw image it is not sparse. The QCOW2 image minimize the amount of space
+used by the image by storing it in special format which packs data closely
+together, hence avoiding holes while still minimizing size.
+.PP
+In order to send file system to the maintainer as a part of bug report to
+e2fsprogs, use following commands (replace
+.B hda1
+with the appropriate device for your system):
+.PP
+.br
+\	\fBe2image \-Q /dev/hda1 hda1.qcow2\fR
+.br
+\	\fBbzip2 -z hda1.qcow2\fR
+.PP
+This will only send the metadata information, without any data blocks.
+As described for
+.B RAW IMAGE FILES
+the
+.B \-s
+option can be specified to scramble the file system names in the image.
+.PP
+Note that the QCOW2 image created by
+.B e2image
+is a regular QCOW2 image and can be processed by tools aware of QCOW2 format
+such as for example
+.BR qemu-img .
+.PP
+You can convert a .qcow2 image into a raw image with:
+.PP
+.br
+\	\fBe2image \-r hda1.qcow2 hda1.raw\fR
+.br
+.PP
+This can be useful to write a QCOW2 image containing all data to a
+sparse image file where it can be loop mounted, or to a disk partition.
+Note that this may not work with QCOW2 images not generated by e2image.
+
+.SH OFFSETS
+Normally a file system starts at the beginning of a partition, and
+.B e2image
+is run on the partition.  When working with image files, you don't
+have the option of using the partition device, so you can specify
+the offset where the file system starts directly with the
+.B \-o
+option.  Similarly the
+.B \-O
+option specifies the offset that should be seeked to in the destination
+before writing the file system.
+.PP
+For example, if you have a
+.B dd
+image of a whole hard drive that contains an ext2 fs in a partition
+starting at 1 MiB, you can clone that image to a block device with:
+.PP
+.br
+\	\fBe2image \-aro 1048576 img /dev/sda1\fR
+.br
+.PP
+Or you can clone a file system from a block device into an image file,
+leaving room in the first MiB for a partition table with:
+.PP
+.br
+\	\fBe2image -arO 1048576 /dev/sda1 img\fR
+.br
+.PP
+If you specify at least one offset, and only one file, an in-place
+move will be performed, allowing you to safely move the file system
+from one offset to another.
+
+.SH AUTHOR
+.B e2image
+was written by Theodore Ts'o (tytso@mit.edu).
+
+.SH AVAILABILITY
+.B e2image
+is part of the e2fsprogs package and is available from
+http://e2fsprogs.sourceforge.net.
+
+.SH SEE ALSO
+.BR dumpe2fs (8),
+.BR debugfs (8)
+.BR e2fsck (8)

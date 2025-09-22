@@ -1,0 +1,34 @@
+Group descriptor 1 has invalid unused inodes count 2048.  Fix? yes
+
+Group descriptor 2 has invalid unused inodes count 2048.  Fix? yes
+
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+Group 1 block(s) in use but group is marked BLOCK_UNINIT
+Fix? yes
+
+Block bitmap differences:  +(8585--8777)
+Fix? yes
+
+Free blocks count wrong for group #2 (0, counted=7934).
+Fix? yes
+
+Free blocks count wrong (19530, counted=27464).
+Fix? yes
+
+Free inodes count wrong for group #1 (0, counted=2048).
+Fix? yes
+
+Free inodes count wrong for group #2 (0, counted=2048).
+Fix? yes
+
+Free inodes count wrong (4084, counted=8180).
+Fix? yes
+
+
+test_filesys: ***** FILE SYSTEM WAS MODIFIED *****
+test_filesys: 12/8192 files (8.3% non-contiguous), 5304/32768 blocks
+Exit status is 1

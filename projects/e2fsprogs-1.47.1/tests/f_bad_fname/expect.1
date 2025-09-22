@@ -1,0 +1,24 @@
+Pass 1: Checking inodes, blocks, and sizes
+Inode 12 has the ea_inode flag set but is not a regular file.  Clear flag? yes
+
+Pass 2: Checking directory structure
+Entry 'AM-^?' in /ci_dir (12) has illegal UTF-8 characters in its name.
+Fix? yes
+
+Entry 'AM-~' in /ci_dir (12) has illegal UTF-8 characters in its name.
+Fix? yes
+
+Duplicate entry 'A.' found.
+	Marking /ci_dir (12) to be rebuilt.
+
+Pass 3: Checking directory connectivity
+Pass 3A: Optimizing directories
+Entry 'A.' in /ci_dir (12) has a non-unique filename.
+Rename to A.~0? yes
+
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+
+test_filesys: ***** FILE SYSTEM WAS MODIFIED *****
+test_filesys: 14/16 files (0.0% non-contiguous), 22/100 blocks
+Exit status is 1

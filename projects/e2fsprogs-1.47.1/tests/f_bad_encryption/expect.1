@@ -1,0 +1,125 @@
+Pass 1: Checking inodes, blocks, and sizes
+Inode 17 has encrypt flag but no encryption extended attribute.
+Clear flag? yes
+
+Inode 18 has encrypt flag but no encryption extended attribute.
+Clear flag? yes
+
+Encrypted inode 19 has corrupt encryption extended attribute.
+Clear inode? yes
+
+Encrypted inode 20 has corrupt encryption extended attribute.
+Clear inode? yes
+
+Encrypted inode 21 has corrupt encryption extended attribute.
+Clear inode? yes
+
+Encrypted inode 22 has corrupt encryption extended attribute.
+Clear inode? yes
+
+Pass 2: Checking directory structure
+Encrypted entry 'd6M->'M-#I^VM-^KM-F~^WSJ+M-uM-zM-zXM-^' in /edir (12) references unencrypted inode 17.
+Clear? yes
+
+Encrypted entry '\M-!M-Y%DhM-OM-VM-zM-CM-gVM-R3M-^RM-IkE^JM-^S' in /edir (12) references unencrypted inode 18.
+Clear? yes
+
+Entry 'M-{^Qp-M-sM-U7eM-^C^L^PG^ZM-FM-,M-B' in /edir (12) has deleted/unused inode 19.  Clear? yes
+
+Entry 'M-f0M-f3/M-NM-GM-:M-^YM-jM-XM-91DM-^_M-V' in /edir (12) has deleted/unused inode 20.  Clear? yes
+
+Entry '^M-R"M-^K^P7M-'M-EM-C}^MM-yM-^LwM-^N^Z' in /edir (12) has deleted/unused inode 21.  Clear? yes
+
+Entry 'M-s^J_;uIvM-^Z[M-nIM-5vM-^AcM-o' in /edir (12) has deleted/unused inode 22.  Clear? yes
+
+Encrypted entry 'kK=,M-bM-^AM-{M-YM-^J6M-hM-y^XM-^W}M-M' in /edir (12) references unencrypted inode 23.
+Clear? yes
+
+Encrypted entry 'M-VM-cxM-jM-zM-b^WM-o*M-jM-uM-,R^PM-hM-2' in /edir (12) references unencrypted inode 24.
+Clear? yes
+
+Encrypted entry 'UqM-AM-#KM-^PM-_^kM-9P0M-^FM-_^@;A^J"R' in /edir (12) references unencrypted inode 25.
+Clear? yes
+
+Encrypted entry 'M-TM-N8^[M-3M-( M-[A^FR}^ZhkM-^?=M-c^Mo' in /edir (12) references inode 26, which has a different encryption policy.
+Clear? yes
+
+Encrypted entry 'M--aM-^?~M-^\M-u^FM-/!^YM-OZM-^LM-)M-p1' in /edir (12) references inode 27, which has a different encryption policy.
+Clear? yes
+
+Encrypted entry '(M-8RKM-LM-eM-^W^[M-'M-SM-@uM-^VM-|M-GiM-^JbM-nM-z' in /edir (12) references inode 28, which has a different encryption policy.
+Clear? yes
+
+Encrypted entry '\M-ggCeM-/?M-^BM-{(M-^OM-9M-^QQAM-^N=M-c^Mo' in /edir (12) references inode 29, which has a different encryption policy.
+Clear? yes
+
+Pass 3: Checking directory connectivity
+Unconnected directory inode 18 (was in /edir)
+Connect to /lost+found? yes
+
+Unconnected directory inode 24 (was in /edir)
+Connect to /lost+found? yes
+
+Unconnected directory inode 27 (was in /edir)
+Connect to /lost+found? yes
+
+Pass 4: Checking reference counts
+Unattached inode 17
+Connect to /lost+found? yes
+
+Inode 17 ref count is 2, should be 1.  Fix? yes
+
+Inode 18 ref count is 3, should be 2.  Fix? yes
+
+Unattached inode 23
+Connect to /lost+found? yes
+
+Inode 23 ref count is 2, should be 1.  Fix? yes
+
+Inode 24 ref count is 3, should be 2.  Fix? yes
+
+Unattached inode 25
+Connect to /lost+found? yes
+
+Inode 25 ref count is 2, should be 1.  Fix? yes
+
+Unattached inode 26
+Connect to /lost+found? yes
+
+Inode 26 ref count is 2, should be 1.  Fix? yes
+
+Inode 27 ref count is 3, should be 2.  Fix? yes
+
+Unattached inode 28
+Connect to /lost+found? yes
+
+Inode 28 ref count is 2, should be 1.  Fix? yes
+
+Unattached inode 29
+Connect to /lost+found? yes
+
+Inode 29 ref count is 2, should be 1.  Fix? yes
+
+Pass 5: Checking group summary information
+Block bitmap differences:  -(25--32)
+Fix? yes
+
+Free blocks count wrong for group #0 (75, counted=83).
+Fix? yes
+
+Free blocks count wrong (75, counted=83).
+Fix? yes
+
+Inode bitmap differences:  -(19--22)
+Fix? yes
+
+Free inodes count wrong for group #0 (95, counted=99).
+Fix? yes
+
+Free inodes count wrong (95, counted=99).
+Fix? yes
+
+
+test_filesys: ***** FILE SYSTEM WAS MODIFIED *****
+test_filesys: 29/128 files (0.0% non-contiguous), 45/128 blocks
+Exit status is 1

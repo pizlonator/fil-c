@@ -1,0 +1,169 @@
+# vim: filetype=sh
+
+use_mkgnutar=
+
+test_description="create fs image from GNU tarball"
+if ! test -x "$DEBUGFS_EXE"; then
+	echo "$test_name: $test_description: skipped (no debugfs)"
+	return 0
+fi
+if [ "$(grep -c 'define HAVE_ARCHIVE_H' ../lib/config.h)" -eq 0 ]; then
+	echo "$test_name: $test_description: skipped (no libarchive)"
+	exit 0
+fi
+
+if test -z "$use_mkgnutar" ; then
+    if type ztar > /dev/null 2>&1 && \
+	    tar --version 2>&1 | head -1 | grep -q "GNU tar" ; then
+	TAR=tar
+    elif type gtar > /dev/null 2>&1 && \
+	    gtar --version 2>&1 | head -1 | grep -q "GNU tar" ; then
+	TAR=gtar
+    else
+	# if GNU tar is not available, fall back to using mkgnutar.pl
+	use_mkgnutar=yes
+#	echo "$test_name: $test_description: skipped (no GNU tar)"
+#	exit 0
+    fi
+fi
+
+MKFS_TAR="$TMPFILE.tar"
+MKFS_DIR="$TMPFILE.dir"
+OUT="$test_name.log"
+EXP="$test_dir/expect"
+DEBUGFS_EXE_MTIME=$(perl -e 'print((stat ($ARGV[0]))[9])' "$DEBUGFS_EXE")
+
+# we put everything in a subdir because we cannot rdump the root as that would
+# require permissions to changing ownership of /lost+found
+rm -rf "$MKFS_DIR"
+mkdir -p "$MKFS_DIR/test"
+touch "$MKFS_DIR/test/emptyfile"
+dd if=/dev/zero bs=1024 count=32 2> /dev/null | tr '\0' 'a' > "$MKFS_DIR/test/bigfile"
+dd if=/dev/zero of="$MKFS_DIR/test/zerofile" bs=1 count=1 seek=1024 2> /dev/null
+ln -s /silly_bs_link "$MKFS_DIR/test/silly_bs_link"
+mkdir "$MKFS_DIR/test/emptydir"
+mkdir "$MKFS_DIR/test/dir"
+echo "will be overwritten" > "$MKFS_DIR/test/dir/file"
+
+if test -z "$use_mkgnutar"; then
+	# debugfs rdump does not preserve the timestamps when it extracts the
+	# files so we ignore them by using tar --clamp-mtime
+	# first write a partial tar
+    $TAR --sort=name -C "$MKFS_DIR" --mtime="$DEBUGFS_EXE" --clamp-mtime \
+	 --format=gnu -cf "$MKFS_TAR.dupl" test
+	# now overwrite the contents of a file
+	echo "Test me" > "$MKFS_DIR/test/dir/file"
+	# and update the tar so that it contains two entries for the same file
+	# we need this to test the code path that first unlinks and then overwrites an
+	# existing file
+	$TAR -C "$MKFS_DIR" --mtime="$DEBUGFS_EXE" --clamp-mtime \
+	     --format=gnu -rf "$MKFS_TAR.dupl" test/dir/file
+	# also add a duplicate directory entry because those must not be unlinked
+	echo test | $TAR -C "$MKFS_DIR" --mtime="$DEBUGFS_EXE" --clamp-mtime \
+			 --format=gnu -rf "$MKFS_TAR.dupl" --no-recursion \
+			 --verbatim-files-from --files-from=-
+	# also create a tarball of the directory with only one entry per file
+	$TAR --sort=name -C "$MKFS_DIR" --mtime="$DEBUGFS_EXE" --clamp-mtime \
+	     --format=gnu -cf "$MKFS_TAR.uniq" test
+else
+	# same as above but without using GNU tar
+	perl $test_dir/mkgnutar.pl --nopadding --directory="$MKFS_DIR" --mtime "$DEBUGFS_EXE_MTIME" test > "$MKFS_TAR.dupl"
+	echo "Test me" > "$MKFS_DIR/test/dir/file"
+	perl $test_dir/mkgnutar.pl --nopadding --directory="$MKFS_DIR" --mtime "$DEBUGFS_EXE_MTIME" test/dir/file >> "$MKFS_TAR.dupl"
+	perl $test_dir/mkgnutar.pl --nopadding --directory="$MKFS_DIR" --mtime "$DEBUGFS_EXE_MTIME" --no-recursion test/ >> "$MKFS_TAR.dupl"
+	# add end-of-archive entry
+	truncate -s +1024 "$MKFS_TAR.dupl"
+	# pad to a multiple of the record size
+	truncate -s %10240 "$MKFS_TAR.dupl"
+	perl $test_dir/mkgnutar.pl --directory="$MKFS_DIR" --mtime "$DEBUGFS_EXE_MTIME" test > "$MKFS_TAR.uniq"
+fi
+
+rm -r "$MKFS_DIR"
+
+cat > "$TMPFILE.cmd1" << ENDL
+stat /test/emptyfile
+stat /test/bigfile
+stat /test/zerofile
+stat /test/silly_bs_link
+stat /test/emptydir
+stat /test/dir
+stat /test/dir/file
+ENDL
+
+cat > "$TMPFILE.cmd2" << ENDL
+ex /test/emptyfile
+ex /test/bigfile
+ex /test/zerofile
+ex /test/silly_bs_link
+ex /test/emptydir
+ex /test/dir
+ex /test/dir/file
+ENDL
+
+# Create two file systems, one for each tar that was created above. The
+# tarballs differ but should result in the same filesystem contents
+#
+for ext in uniq dupl; do
+	mkdir "$MKFS_DIR"
+	{
+		$MKE2FS -q -F -o Linux -T ext4 -O metadata_csum,64bit -E lazy_itable_init=1 -b 1024 -d "$MKFS_TAR.$ext" "$TMPFILE.$ext" 16384 2>&1;
+		echo Exit status is $?;
+		$DUMPE2FS "$TMPFILE.$ext" 2>&1;
+		echo Exit status is $?;
+		$DEBUGFS -f "$TMPFILE.cmd1" "$TMPFILE.$ext" 2>&1 | grep -E "(stat|Size:|Type:|Links:|Blockcount:)"
+		echo Exit status is $?;
+		$DEBUGFS -f "$TMPFILE.cmd2" "$TMPFILE.$ext" 2>&1;
+		echo Exit status is $?;
+		$DEBUGFS -R "dump /test/dir/file $TMPFILE.testme" "$TMPFILE.$ext" 2>&1;
+		echo Exit status is $?;
+		# extract the files and directories from the image and tar them
+		# again to make sure that a tarball from the image contents is
+		# bit-by-bit identical to the tarball the image was created
+		# from -- essentially this checks whether a roundtrip from tar
+		# to ext4 to tar remains identical
+		$DEBUGFS -R "rdump /test $MKFS_DIR" "$TMPFILE.$ext" 2>&1;
+		echo Exit status is $?;
+		# debugfs rdump does not preserve the timestamps when it extracts the
+		if test -z "$use_mkgnutar"; then
+			# files so we ignore them by using tar --clamp-mtime
+		    $TAR --sort=name -C "$MKFS_DIR" \
+			 --mtime="$DEBUGFS_EXE" --clamp-mtime --format=gnu \
+			 -cvf "$TMPFILE.new.tar" test 2>&1;
+		else
+			perl $test_dir/mkgnutar.pl --verbose --directory="$MKFS_DIR" --mtime "$DEBUGFS_EXE_MTIME" test 2>&1 > "$TMPFILE.new.tar";
+		fi;
+		echo Exit status is $?;
+		$FSCK -f -n "$TMPFILE.$ext" 2>&1;
+		echo Exit status is $?;
+		# independent from which tarball the ext4 image was created,
+		# the tarball created from the files in it should be bit-by-bit
+		# identical to the tarball without duplicate entries
+		cmp "$MKFS_TAR.uniq" "$TMPFILE.new.tar" 2>&1;
+		echo Exit status is $?;
+	} | sed -f "$cmd_dir/filter.sed" -f "$test_dir/output.sed" -e "s;$TMPFILE.$ext;test.img;" | {
+		# In the first pass, store the output and append to the log
+		# file. In the second pass, compare the output to the output
+		# to the one from the first.
+		case $ext in
+			uniq) tee "$TMPFILE.log" >> "$OUT";;
+			dupl) cmp - "$TMPFILE.log" >> "$OUT" 2>&1 || echo "cmp failed" >> "$OUT";;
+		esac
+	}
+	rm -r "$MKFS_DIR" "$TMPFILE.new.tar"
+done
+
+# Do the verification
+cmp -s "$OUT" "$EXP"
+status=$?
+
+if [ "$status" = 0 ] ; then
+	echo "$test_name: $test_description: ok"
+	touch "$test_name.ok"
+else
+	echo "$test_name: $test_description: failed"
+	diff $DIFF_OPTS "$EXP" "$OUT" > "$test_name.failed"
+fi
+
+rm -rf "$MKFS_TAR.dupl" "$MKFS_TAR.uniq" "$TMPFILE.cmd1" "$TMPFILE.cmd2" \
+   "$TMPFILE.log" "$TMPFILE.dupl" "$TMPFILE.uniq" "$TMPFILE.testme"
+unset MKFS_TAR MKFS_DIR OUT EXP

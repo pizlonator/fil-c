@@ -1,0 +1,69 @@
+E2fsprogs 1.46.4 (August 18, 2021)
+==================================
+
+Updates/Fixes since v1.46.3:
+
+UI and Features
+---------------
+
+The defaults for mke2fs now call for 256 byte inodes for all file
+systems (with the exception of file systems for the GNU Hurd, which only
+supports 128 byte inodes).  Creating non-Hurd file systems with 128 byte
+inodes will trigger a warning message to make sure users are aware of
+the potential problems of using small/legacy inode sizes.
+
+The bigalloc feature is now considered supported if the cluster size no
+more than 16 times the block size.  So the mke2fs program has been
+changes to only warn if the cluster size is larger than that.
+
+
+Fixes
+-----
+
+E2fsck now checks to make sure directory entries do not reference
+internal quota inodes.
+
+E2image now includes the quota inodes when creating file system image,
+since they are part of the file system metadata.
+
+E2fsck now properly accounts the quota usage of the project quota file.
+
+Fix a regression introduced in 1.64.3 where attempting to create a file
+system image using mke2fs into a non-existent file would fail.
+(Addresses Debian Bug: #992094)
+
+Fix mke2fs to correctly create Posix ACL's on big-endian systems when
+copying files from a directory hierarchy.
+
+Updated and clarified the resize2fs man page.  (Addresses Debian Bug:
+#979411)
+
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Improve various regression tests to be more portable and to reflect the
+new default inode size of 256 byte inodes, even for small file systems.
+
+Fixed a GNU Hurd portability problem which was causing tests to fail.
+
+Fixed a test failure in f_baddotdir on big-endian systems.  This wasn't
+necessarily a bug per se in e2fsck, but rather e2fsck having different
+behaviour on big-endian systems.  (Addresses Debian Bug: #991922)
+
+Use WantedBy=multi-user.target in e2scrub_reap.service.  (Addresses
+Debian Bug: #991349)
+
+Synchronize e2fsck/recovery.c with the kernel's fs/jbd2/recovery.c
+
+Fix various Coverity and compiler warnings.
+
+Fix various error pathes to make sure we don't leak resources or
+potentially use or try to free uninitialized pointers.
+
+Added a setup-schroot command for use on Debian porter boxes.
+
+Updated config.guess and config.sub with newer versions from the FSF.
+
+Update Czech, Dutch, French, Polish, Portuguese, and Swedish translations.

@@ -1,0 +1,47 @@
+Pass 1: Checking inodes, blocks, and sizes
+Deleted inode 26363 has zero dtime.  Fix? yes
+
+Pass 2: Checking directory structure
+Entry 'nlink_eq_0' in / (2) has deleted/unused inode 26363.  Clear? yes
+
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Inode 2 ref count is 9, should be 8.  Fix? yes
+
+Inode 13201 ref count is 1, should be 2.  Fix? yes
+
+Inode 19763 ref count is 65535, should be 2.  Fix? yes
+
+Directory exceeds max links, but no DIR_NLINK feature in superblock.
+Fix? yes
+
+Inode 32963 ref count is 65000, should be 2.  Fix? yes
+
+Directory inode 39601 ref count set to overflow but could be exact value 2.  Fix? yes
+
+Pass 5: Checking group summary information
+Block bitmap differences:  -73383
+Fix? yes
+
+Free blocks count wrong for group #8 (0, counted=1).
+Fix? yes
+
+Free blocks count wrong (5388, counted=5389).
+Fix? yes
+
+Inode bitmap differences:  -26363
+Fix? yes
+
+Free inodes count wrong for group #3 (37, counted=38).
+Fix? yes
+
+Directories count wrong for group #3 (6563, counted=6562).
+Fix? yes
+
+Free inodes count wrong (382, counted=383).
+Fix? yes
+
+
+test_filesys: ***** FILE SYSTEM WAS MODIFIED *****
+test_filesys: 65617/66000 files (0.0% non-contiguous), 76531/81920 blocks
+Exit status is 1

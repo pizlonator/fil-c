@@ -1,0 +1,82 @@
+// Copyright 2017 The Android Open Source Project
+
+package {
+    default_applicable_licenses: ["external_e2fsprogs_license"],
+}
+
+// Added automatically by a large-scale-change that took the approach of
+// 'apply every license found to every target'. While this makes sure we respect
+// every license restriction, it may not be entirely correct.
+//
+// e.g. GPL in an MIT project might only apply to the contrib/ directory.
+//
+// Please consider splitting the single license below into multiple licenses,
+// taking care not to lose any license_kind information, and overriding the
+// default license using the 'licenses: [...]' property on targets as needed.
+//
+// For unused files, consider creating a 'fileGroup' with "//visibility:private"
+// to attach the license to, and including a comment whether the files may be
+// used in the current project.
+// See: http://go/android-license-faq
+license {
+    name: "external_e2fsprogs_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-0BSD",
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD",
+        "SPDX-license-identifier-GPL",
+        "SPDX-license-identifier-GPL-2.0",
+        "SPDX-license-identifier-LGPL",
+        "SPDX-license-identifier-LGPL-2.0",
+        "SPDX-license-identifier-LGPL-2.1",
+        "SPDX-license-identifier-LGPL-3.0",
+        "SPDX-license-identifier-MIT",
+        "legacy_notice",
+        "legacy_unencumbered",
+    ],
+    license_text: [
+        "NOTICE",
+    ],
+}
+
+cc_defaults {
+    name: "e2fsprogs-defaults",
+    cflags: [
+        "-Wall",
+        "-Werror",
+        // Some warnings that Android's build system enables by default are not
+        // supported by upstream e2fsprogs.  When such a warning shows up,
+        // disable it below.  Please don't disable warnings that upstream
+        // e2fsprogs is supposed to support; for those, fix the code instead.
+        "-Wno-pointer-arith",
+        "-Wno-sign-compare",
+        "-Wno-type-limits",
+        "-Wno-typedef-redefinition",
+        "-Wno-unused-parameter",
+    ],
+    target: {
+        bionic: {
+            system_shared_libs: [
+                "libc",
+                "libdl",
+            ],
+        },
+        darwin: {
+            // This matches what the upstream CI uses
+            cflags: ["-Wno-error=deprecated-declarations"],
+        },
+        windows: {
+            include_dirs: ["external/e2fsprogs/include/mingw"],
+        },
+    },
+}
+
+subdirs = [
+    "contrib",
+    "debugfs",
+    "e2fsck",
+    "lib",
+    "misc",
+    "resize",
+]

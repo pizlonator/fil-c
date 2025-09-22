@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+if test "$1" = install -o "$1" = upgrade; then
+    # DEP17 P1 mitigation. Remove these diversions via postinst once trixie is released.
+    for lib in e2p.so.2 e2p.so.2.3 ext2fs.so.2 ext2fs.so.2.4; do
+	dpkg-divert --package libext2fs2t64 --no-rename --divert "/lib/#DEB_HOST_MULTIARCH#/lib$lib.usr-is-merged" --add "/lib/#DEB_HOST_MULTIARCH#/lib$lib"
+    done
+fi
+
+#DEBHELPER#

@@ -1,0 +1,52 @@
+#!/bin/sh
+# Run all or specified test scripts
+#
+
+case "$1" in
+    --valgrind)
+    	export USE_VALGRIND="valgrind -q --sim-hints=lax-ioctls"
+	shift
+	;;
+    --valgrind-leakcheck)
+    	export USE_VALGRIND="valgrind --sim-hints=lax-ioctls --leak-check=full --show-reachable=yes --log-file=/tmp/valgrind-%p.log"
+	shift
+	;;
+    --failed)
+	DO_FAILED=yes
+	shift
+	;;
+esac
+
+TESTS=
+
+if test -n "$DO_FAILED"; then
+    FAILED=$(find . -maxdepth 1 -name \*.failed)
+    if test -z "$FAILED" ; then
+	echo " "
+	echo "No (more) failed tests!"
+	echo " "
+    fi
+    for fname in $FAILED ; do
+	TESTS="$TESTS $SRCDIR/${fname%%.failed}"
+    done
+fi
+
+for i; do
+  case $i in
+	[a-zA-Z])	TESTS="$TESTS $SRCDIR/${i}_*" ;;
+	*)		TESTS="$TESTS $SRCDIR/$i" ;;
+  esac
+done
+
+if test "$TESTS"x = x ; then
+    if test -n "$DO_FAILED"; then
+	exit 0
+    fi
+    TESTS=`ls -d $SRCDIR/[a-zA-Z]_*`
+fi
+
+for test_dir in $TESTS; do
+	./test_one $test_dir
+done
+
+$SRCDIR/test_post

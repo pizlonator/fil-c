@@ -1,0 +1,86 @@
+// Copyright 2017 The Android Open Source Project
+
+//########################
+// Build the e2fsck binary
+
+package {
+    // See: http://go/android-license-faq
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // all of the 'license_kinds' from "external_e2fsprogs_license"
+    // to get the below license kinds:
+    //   SPDX-license-identifier-GPL
+    //   SPDX-license-identifier-GPL-2.0
+    //   SPDX-license-identifier-LGPL
+    default_applicable_licenses: ["external_e2fsprogs_license"],
+}
+
+cc_defaults {
+    name: "e2fsck-defaults",
+    defaults: ["e2fsprogs-defaults"],
+    srcs: [
+        "e2fsck.c",
+        "super.c",
+        "pass1.c",
+        "pass1b.c",
+        "pass2.c",
+        "pass3.c",
+        "pass4.c",
+        "pass5.c",
+        "logfile.c",
+        "journal.c",
+        "recovery.c",
+        "revoke.c",
+        "badblocks.c",
+        "util.c",
+        "unix.c",
+        "dirinfo.c",
+        "dx_dirinfo.c",
+        "ehandler.c",
+        "problem.c",
+        "message.c",
+        "ea_refcount.c",
+        "quota.c",
+        "rehash.c",
+        "region.c",
+        "sigcatcher.c",
+        "readahead.c",
+        "extents.c",
+        "encrypted_files.c",
+    ],
+}
+
+e2fsck_libs = [
+    "libext2fs",
+    "libext2_blkid",
+    "libext2_com_err",
+    "libext2_uuid",
+    "libext2_quota",
+    "libext2_e2p",
+]
+
+cc_binary {
+    name: "e2fsck",
+    host_supported: true,
+    vendor_ramdisk_available: true,
+    defaults: ["e2fsck-defaults"],
+
+    shared_libs: e2fsck_libs,
+    required: ["badblocks"],
+}
+
+cc_binary {
+    name: "e2fsck_static",
+    static_executable: true,
+    defaults: ["e2fsck-defaults"],
+
+    static_libs: e2fsck_libs,
+}
+
+cc_binary {
+    name: "e2fsck_ramdisk",
+    stem: "e2fsck",
+    static_executable: true,
+    ramdisk: true,
+    defaults: ["e2fsck-defaults"],
+    static_libs: e2fsck_libs,
+}

@@ -1,0 +1,22 @@
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+test_filesys: 14/256 files (14.3% non-contiguous), 1365/2048 blocks
+Exit status is 0
+debugfs: ls
+ 2  (12) .    2  (12) ..    11  (20) lost+found    12  (968) a   
+debugfs: ls a/
+ 12  (12) .    2  (12) ..    13  (12) data    14  (976) new   
+debugfs: ex a/new
+Level Entries       Logical      Physical Length Flags
+ 0/ 0   1/  1     0 -     0  1107 -  1107      1 
+debugfs: ex a/data
+Level Entries       Logical      Physical Length Flags
+ 0/ 1   1/  1     0 -   255  1618            256
+ 1/ 1   1/  5     0 -    15  1619 -  1634     16 
+ 1/ 1   2/  5    16 -    31  1601 -  1616     16 
+ 1/ 1   3/  5    32 -    63  1985 -  2016     32 
+ 1/ 1   4/  5    64 -   127  1537 -  1600     64 
+ 1/ 1   5/  5   128 -   255  1793 -  1920    128 

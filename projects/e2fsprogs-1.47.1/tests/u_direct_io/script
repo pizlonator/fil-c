@@ -1,0 +1,49 @@
+DESCRIPTION="direct I/O in unix_io"
+OUT=$test_name.log
+if test "$(id -u)" -ne 0 ; then
+    echo "$test_name: $DESCRIPTION: skipped (not root)"
+elif ! command -v losetup >/dev/null ; then
+    echo "$test_name: $DESCRIPTION: skipped (no losetup)"
+elif test ! -x $DEBUGFS_EXE; then
+    echo "$test_name: $DESCRIPTION: skipped (no debugfs)"
+else
+    dd if=/dev/zero of=$TMPFILE bs=1M count=128 > /dev/null 2>&1
+    LOOP=$(losetup --show -f $TMPFILE 2>&1)
+    if [ ! -b "$LOOP" ]; then
+        echo "$test_name: $DESCRIPTION: skipped (no loop devices)"
+        rm -f $TMPFILE
+        exit 0
+    fi
+    echo mke2fs -F -b 4096 -o Linux -t ext4 -O ^metadata_csum,^uninit_bg -D \$LOOP > $OUT
+    $MKE2FS -F -b 4096 -o Linux -t ext4 -O ^metadata_csum,^uninit_bg -D $LOOP 2>&1 | \
+	sed -f $cmd_dir/filter.sed >> $OUT
+
+    echo debugfs -D -R stats \$LOOP >> $OUT
+    $DEBUGFS -D -R stats $LOOP 2>&1 | sed -f $cmd_dir/filter.sed >> $OUT
+
+    echo e2fsck -fn -N test_filesys \$LOOP > $OUT.new
+    $FSCK -fn -N test_filesys $LOOP >> $OUT.new 2>&1
+    echo Exit status is $? >> $OUT.new
+    sed -f $cmd_dir/filter.sed $OUT.new >> $OUT
+    rm -f $OUT.new
+
+    losetup -d $LOOP
+
+    echo e2fsck -fn -N test_filesys \$TMPFILE > $OUT.new
+    $FSCK -fn -N test_filesys $TMPFILE >> $OUT.new 2>&1
+    echo Exit status is $? >> $OUT.new
+    sed -f $cmd_dir/filter.sed $OUT.new >> $OUT
+    rm -f $OUT.new
+
+    cmp -s $test_name.log $test_dir/expect
+
+    if [ "$?" -eq 0 ]; then
+	echo "$test_name: $DESCRIPTION: ok"
+	touch $test_name.ok
+    else
+	echo "$test_name: $DESCRIPTION: failed"
+	diff $DIFF_OPTS $test_dir/expect $test_name.log >> $test_name.failed
+    fi
+fi
+
+unset LOOP

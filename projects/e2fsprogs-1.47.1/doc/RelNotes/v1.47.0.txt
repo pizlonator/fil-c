@@ -1,0 +1,53 @@
+E2fsprogs 1.47.0 (February 5, 2023)
+===================================
+
+Updates/Fixes since v1.46.6:
+
+UI and Features
+---------------
+
+Add support for the orphan_file feature, which speeds up workloads that
+are deleting or truncating a large number files in parallel.  This
+compat feature was first supported in the v5.15 Linux kernel.
+
+The mke2fs program (via the mke2fs.conf file) now enables the
+metadata_csum_seed and orphan_file features by default.  The
+metadata_csum_seed feature is an incompat feature which is first
+supported in the Linux kernel starting in the 4.4 kernel and e2fsprogs
+1.43.
+
+Mke2fs now supports the extended option "assume_storage_prezeroed" which
+causes mke2fs to skip zeroing the journal and inode tables and to mark
+the inode tables as zeroed.
+
+Add support to tune2fs and e2label to set the label and UUID for a
+mounted file system using a ioctl, which is more reliable than modifying
+the superblock via writing to the block device.  The kernel support for
+setting the label landed in v5.17, while the support for adding the UUID
+landed in v6.0.  If the ioctls are not supported, tune2fs and e2label
+will fall back old strategy of directly modifying the superblock.
+
+Allow tune2fs to disable the casefold feature after scanning all of the
+directories do not have the Casefold flag set.
+
+
+Fixes
+-----
+
+Fix a potential unbalanced mutex unlock when there is a short read while
+using the bounce buffer when using direct I/O.
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Fix various Coverity and compiler warnings.
+
+Add the new function ext2fs_xattrs_read_inode() which takes an in-memory
+inode to avoid needing to reread an inode that was already read into
+memory.
+
+Teach debugfs logdump command the -n option which forces printing a
+specified number of transactions, even when a block missing a magic
+number would have stopped the logdump.  (This is for debugging
+journalling problems.)

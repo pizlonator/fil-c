@@ -1,0 +1,190 @@
+E2fsprogs 1.47.1 (May 20, 2024)
+===============================
+
+Updates/Fixes since v1.47.0:
+
+UI and Features
+---------------
+
+Add post-2038 handling when e2fsprogs is compiled on a system with a
+64-bit time_t.
+
+Mke2fs -d can now support an input tar file if the libarchive library is
+available.
+
+Add a udev rule which inhibits ext4 file systems from being automounted
+by udisks.  This avoid security issues from exposing potentially
+maliciously fuzzed file systems from being mounted without being
+inspected using fsck first.  Distributions can of course override this
+feature inhibition, but then they get to own the security vulnerability
+liability.  Upstream ext4 file system developers are putting
+distributions on notice that blindly automounting file systems from
+(potentially) USB thumb drives which clueless users may have picked up
+in a parking lot is a ***bad*** idea, no matter what clueless enterprise
+Linux product managers might think.
+
+The debugfs 'hash' command will use the hash seed and algorithm from the
+superblock if debugfs has a file system open, instead of requiring the
+user to specify those parameters explicitly as options to the hash
+command.  Also add a hash -v option which prints the hash parameters so
+the user knows what parameters were used when calculating the hash for
+the filename.
+
+Teach mke2fs a new extended options, root_perms, which overrides the
+permissions for the root directory for the new file system.
+
+
+Fixes
+-----
+
+When various e2fsprogs are replaying the journal (tune2fs, fuse2fs,
+e2fsck, etc.) save any error indicator in the superblock, so it can be
+restored afterwards.  Most of the time (at least with modern kernels) if
+file system corruptions are discovered, the superblock update is
+journalled.  However, if the journal is aborted or the journal commit
+fails, the error code might only be written in the superblock, so we
+need to save it so that a subsequent fsck can repair the file system
+after the journal replay.
+
+When mke2fs was creating a file system with the orphan file inode, it
+tries to read and truncate the orphan inode before it has been
+initialized.  If there is an inode from a previous file system located
+there (as opposed to a all zeroes inode table block caused by a discard
+of the flash device or a newly created cloud block device or fille
+image), it can fail with bad checksum error, aborting the mke2fs
+operation.  Fix this in ext2fs_create_orphan_file() not trying to
+truncate the orphan file if it is newly allocated (which will always be
+the case when mke2fs calls this library function).
+
+In the case where e2fsck comes across an orphan file which is empty but
+the orphan_present feature is set, in preen mode, e2fsck will now clear
+the orphan_present feature flag silently.
+
+E2fsck will now perform more consistency checks on EA (extended
+attribute value) inodes.
+
+Fix a big where e2fsck could potentially leak an acl block when
+releasing an orphan inode.
+
+Avoid a divide by zero crash in libext2fs if the container
+infrastructure, such as lxcfs, reports that the system has zero CPU's
+via sysconf(_SC_NPROCESSORS_CONF).
+
+When resize2fs is performing an online resize, it's possible for reading
+the superblock can race with a kernel modifying the superblock with the
+checksum being invalid and causing the resize to fail with an bad
+superblock checksum in the buffer cache.  Have resize2fs open the file
+system using O_DIRECT to avoid the superblock with an invalid checksum.
+
+Fix a bug where a checksum failure in an htree directory can cause
+e2fsck's preen mode to abort unnecessarily.
+
+Fix e2fsck's handling of an invalid symlink in an inline_data directory.
+
+Fix e4crypt from issuing a spurious "success" error message when trying
+to set a policy on a non-directory.
+
+Fix a potential infinite loop in debugfs's logdump command in some edge
+cases.
+
+Fix e2fsck to correctly update quota usage after optimizing directories
+or deleting corrupted inodes.
+
+Fix fuse2fs so that directories are created with the correct permissions
+instead of having the other and group write permissions masked off.
+
+Fix a potential e2fsck divide by zero crash caused by a maliciously
+fuzzed file system.
+
+Fix dumpe2fs to report free block ranges correctly for bigalloc file
+systems.
+
+Fix resize2fs where resizing a bigalloc file system can result in the
+free cluster count in the last block group and the total free clusters
+count to be incorrect.
+
+Avoid spurious e2scrub failures caused by trying to scrub file syustems
+that do not have the journal enabled, and by aborting scrub runs while
+upgrading the e2fsprogs package on Debian/Ubuntu.
+
+Teach tune2fs to detect a file system which is mounted but is not
+mentioned in the mount namespace where tune2fs is run by treating a
+block device which is busy as if it is mounted.
+
+If tune2fs can't find the mountpoint for a file system which is
+apparently mounted (perhaps because it's not present in the current
+mount namespace) when attempting to set the label or UUID in the
+superblock, fall back to the old method of modifying block device and
+silence printing any error messages.
+
+If both the primary superblock and first block group's backup superblock
+are corrupted, e2fsck will now try additional backup superblocks if they
+are available.
+
+Avoid mke2fs from creating an invalid file system with an insufficient
+number of inodes when creating a file system which is very small (100k),
+a block size of 1k, and an inode size of 256 bytes.
+
+Fix a potential deadlock caused by e2fsck being run in Direct I/O mode
+with the threading optimization enabled.
+
+Fix e2scrub when the "systemctl" package is installed instead of
+systemd.  (Addresses Debian Bug #1070107)
+
+Fixed/improved various Debian packaging issues.
+
+Update and clarify various man pages.  (Addresses Debian Bugs #1038286,
+#1041115)
+
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Add support for SOURCE_DATE_EPOCH environment variable per the
+specification https://reproducible-builds.org/specs/source-date-epoch
+
+Improve resize2fs's performance by eliminating extra cache flushes.
+
+Improve mke2fs's performance when zeroing a large number of inode table
+blocks (when lazy inode table initialization is not enabled) by batching
+calls to ext2fs_zero_blocks.
+
+Use a safe_getenv function for all calls to fetch the environment
+variable in libext2fs.
+
+Fix a massive buffer overrun bug in ext2fs_image_super_read().  This
+function isn't actually used by e2image, and it's unlikely that there
+are any users of this function since the most common way the e2image
+file is read is via ext2fs_openfs() with the EXT2_FLAG_IMAGE_FILE, which
+doesn't actually use ext2fs_image_super_read().
+
+Add support for building fuse2fs using Fuse V3.
+
+Use FORTIFY_SOURCE=3 when hardening is enabled for more protection.
+
+Add support for continuous integration tests using Github Actions.
+
+Fix Windows-specific portability bugs to allow mke2fs to create a file
+system in a file which doesn't yet exist and to support file systems
+larger than 2GB.
+
+Fix a FreeBSD 14 build failure caused by changing the function signature
+of qsort_r() to be aligned with the POSIX and glibc definition of
+qsort_r().
+
+Fix various portability issues for the Linux 32-bit musl C library,
+GNU/Hurd and Android.  (Addresses Debian Bug: #1056145)
+
+Fix various portability problems in the regression test suite.
+
+Fix various sanitizer, static code analysis, and compiler warnings.
+
+Synchronized changes from Android's AOSP e2fsprogs tree.
+
+Updated config.guess and config.sub with newer versions from the FSF.
+
+Add Romainian translation.
+
+Update Chinese, Czech, French, Malay, Polish, Swedish, and Ukrainian
+translations.

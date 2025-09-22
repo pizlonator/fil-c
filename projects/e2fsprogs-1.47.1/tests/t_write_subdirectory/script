@@ -1,0 +1,29 @@
+FSCK_OPT=-nf
+
+$MKE2FS -q -F -o Linux -I 256 -b 4096 $TMPFILE 10000 > $test_name.log 2>&1
+status=$?
+if [ "$status" != 0 ] ; then
+	echo "mke2fs failed" > $test_name.failed
+	echo "$test_name: $test_description: failed"
+	return $status
+fi
+
+touch $TMPFILE.1
+cat <<- EOF | $DEBUGFS -w $TMPFILE >> $test_name.log 2>&1
+	mkdir aaa
+	mkdir aaa/bbb
+	write $TMPFILE.1 aaa/bbb/ccc
+EOF
+rm -f $TMPFILE.1
+
+$FSCK $FSCK_OPT $TMPFILE >> $test_name.log 2>&1
+status=$?
+if [ "$status" = 0 ] ; then
+	echo "$test_name: $test_description: ok"
+	touch $test_name.ok
+else
+	echo "e2fsck with failed with $status" > $test_name.failed
+	echo "$test_name: $test_description: failed"
+	return $status
+fi
+rm -f $TMPFILE

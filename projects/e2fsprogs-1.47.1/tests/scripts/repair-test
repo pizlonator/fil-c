@@ -1,0 +1,9 @@
+#!/bin/sh
+for T in "$*"; do
+	[ -f "$T.failed" -a -d "$T" ] ||
+		{ echo "usage: $0 <test_to_repair>"; exit 1; }
+
+	cp $T.1.log $T/expect.1
+	cp $T.2.log $T/expect.2
+	./test_one $T
+done

@@ -1,0 +1,63 @@
+mke2fs -F -b 4096 -o Linux -t ext4 -O ^metadata_csum,^uninit_bg -D $LOOP
+Creating filesystem with 32768 4k blocks and 32768 inodes
+
+Allocating group tables:    done                            
+Writing inode tables:    done                            
+Creating journal (4096 blocks): done
+Writing superblocks and filesystem accounting information:    done
+
+debugfs -D -R stats $LOOP
+Filesystem volume name:   <none>
+Last mounted on:          <not available>
+Filesystem magic number:  0xEF53
+Filesystem revision #:    1 (dynamic)
+Filesystem features:      has_journal ext_attr resize_inode dir_index filetype extent flex_bg sparse_super large_file huge_file dir_nlink extra_isize
+Default mount options:    (none)
+Filesystem state:         clean
+Errors behavior:          Continue
+Filesystem OS type:       Linux
+Inode count:              32768
+Block count:              32768
+Reserved block count:     1638
+Overhead clusters:        6155
+Free blocks:              26607
+Free inodes:              32757
+First block:              0
+Block size:               4096
+Fragment size:            4096
+Reserved GDT blocks:      7
+Blocks per group:         32768
+Fragments per group:      32768
+Inodes per group:         32768
+Inode blocks per group:   2048
+Flex block group size:    16
+Mount count:              0
+Check interval:           15552000 (6 months)
+Reserved blocks uid:      0
+Reserved blocks gid:      0
+First inode:              11
+Inode size:               256
+Required extra isize:     32
+Desired extra isize:      32
+Journal inode:            8
+Default directory hash:   half_md4
+Journal backup:           inode blocks
+Directories:              2
+ Group  0: block bitmap at 9, inode bitmap at 25, inode table at 41
+           26607 free blocks, 32757 free inodes, 2 used directories
+e2fsck -fn -N test_filesys $LOOP
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+test_filesys: 11/32768 files (9.1% non-contiguous), 6161/32768 blocks
+Exit status is 0
+e2fsck -fn -N test_filesys $TMPFILE
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+test_filesys: 11/32768 files (9.1% non-contiguous), 6161/32768 blocks
+Exit status is 0

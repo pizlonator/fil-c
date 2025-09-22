@@ -1,0 +1,108 @@
+E2fsprogs 1.46.0 (January 29, 2021)
+===================================
+
+Updates/Fixes since v1.45.7:
+
+UI and Features
+---------------
+
+E2fsprogs now supports the fast_commit (COMPAT_FAST_COMMIT) feature.
+This feature, first available in Linux version 5.10, adds a fine-grained
+journalling which improves the latency of the fsync(2) system call.  It
+should also improve the performance of ext4 file systems exported via
+NFS.
+
+E2fsprogs now supports the stable_inodes (COMPAT_STABLE_INODES) feature.
+This needed to support fscrypt siphash algorithm, which calculates the
+initial vector (IV) for encryption based on the UUID and the inode
+number.  This means that we can't renumber inodes (for example, when
+shrinking a file system) and the UUID can't be changed without breaking
+the ability to decrypt the encryption.
+
+E2fsprogs now supports file systems which have both file system
+encryption and the casefold feature enabled.  This is used in some
+Android handsets, but has not yet landed upstream yet.
+
+E2fsck now will check file names on file systems with case folding
+enabled to make sure the characters are valid UTF-8 characters.  This is
+done for file systems which enforce strict encodings, and optionally if
+the extended "check_encoding" option is requested.
+
+The fuse2fs program now supports the "-o norecovery" option, which will
+suppress any journal replay that might be necessary, and mounts the file
+system read-only.
+
+E2fsck will now find and fix file system corruptions when the encrypted
+files have a different policy from their containing directory.
+
+The "htree" command in debugfs now displays the metadata checksums for
+hash tree index blocks.
+
+Dumpe2fs will print the error code that Linux kernels newer than v5.6
+will save to indicate the class of error which triggered the ext4_error
+event.
+
+E2fsprogs programs (in particular, fuse2fs) can now update htree
+directories without clearing the htree index.
+
+Mke2fs now sets the s_overhead_cluster field, so that the kernel doesn't
+need to calculate it at mount time.  This speeds up mounting very large
+file systems.
+
+
+Fixes
+-----
+
+E2fsck will properly handle checking for duplicated file names when case
+folding is enabled.
+
+Fix various bugs where a maliciously corrupted file systems could case
+e2fsck and other e2fsprogs programs to crash.
+
+Tune2fs will properly recalculate directory block checksums when
+clearing the dir_index feature.
+
+Fix a bug in e2fsck directory rehashing which could fail with ENOSPC
+because it doesn't take into account the space needed for the metadata
+checksum, and doesn't create a sufficiently deep index tree.
+
+Clarify the e2fsck messages when it resets the directory link count when
+it is set to the overflow value but it is no longer needed.
+
+The filefrag program can now request the kernel to display the extent
+status cache by using "filefrag -E".  (This requires Linux version 5.4
+or newer.)
+
+
+Performance, Internal Implementation, Development Support etc.
+--------------------------------------------------------------
+
+Speed up mke2fs when creating large bigalloc file systems by optimizing
+ext2fs_convert_subcluster_bitmap().
+
+Bitmap blocks are now read using multiple threads (for systems with
+pthread support).  This speeds up dumpe2fs, e2fsck, and debugfs for very
+large file systems.
+
+The dumpe2fs and tune2fs will now avoiding to read the block group
+descriptors when they are not needed, which speeds up these program when
+operating on very large file systems.
+
+Drop use of the sysctl(2) system call, which is deprecated in Linux.
+
+Add support for "configure --enable-developer-features" which enables
+features only meant for developer.  The first such feature is "e2fsck -E
+clear_all_uninit_bits", which clears the uninitialized bit on all
+extents for all inodes.  Note that this can end up exposing uninitialized
+data to userspace, and should only used in very specialized situations.
+
+The e2fsck/revoke.c and e2fsck/recovery.c files are now kept idential
+with the fs/jbd2 versions of these files in the kernel.
+
+Fix various compiler and Coverity warnings.
+
+Update to use gettext 0.19.8.  This also removes the built-in "intl"
+directory as this is now considered deprecated by gettext.  This means
+that if the system doesn't have gettext installed on the build system,
+we will simply disable NLS support.
+

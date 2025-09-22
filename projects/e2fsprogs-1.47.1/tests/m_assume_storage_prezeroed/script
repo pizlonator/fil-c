@@ -1,0 +1,63 @@
+test_description="test prezeroed storage metadata allocation"
+FILE_SIZE=16M
+
+LOG=$test_name.log
+OUT=$test_name.out
+EXP=$test_dir/expect
+
+if test "$(id -u)" -ne 0 ; then
+    echo "$test_name: $test_description: skipped (not root)"
+elif ! command -v losetup >/dev/null ; then
+    echo "$test_name: $test_description: skipped (no losetup)"
+else
+    dd if=/dev/zero of=$TMPFILE.1 bs=1 count=0 seek=$FILE_SIZE >> $LOG 2>&1
+    dd if=/dev/zero of=$TMPFILE.2 bs=1 count=0 seek=$FILE_SIZE >> $LOG 2>&1
+
+    LOOP1=$(losetup --show --sector-size 4096 -f $TMPFILE.1)
+    if [ ! -b "$LOOP1" ]; then
+        echo "$test_name: $DESCRIPTION: skipped (no loop devices)"
+        rm -f $TMPFILE.1 $TMPFILE.2
+        exit 0
+    fi
+    LOOP2=$(losetup --show --sector-size 4096 -f $TMPFILE.2)
+    if [ ! -b "$LOOP2" ]; then
+        echo "$test_name: $DESCRIPTION: skipped (no loop devices)"
+        rm -f $TMPFILE.1 $TMPFILE.2
+	losetup -d $LOOP1
+        exit 0
+    fi
+
+    echo $MKE2FS -o Linux -t ext4 $LOOP1 >> $LOG 2>&1
+    $MKE2FS -o Linux -t ext4 $LOOP1 >> $LOG 2>&1
+    sync
+    stat $TMPFILE.1 >> $LOG 2>&1
+    SZ=$(stat -c "%b" $TMPFILE.1)
+    if test $SZ -gt 10000 ; then
+	echo "> 10000" > $OUT
+    else
+	echo "$SZ" > $OUT
+    fi
+
+    echo $MKE2FS -o Linux -t ext4 -E assume_storage_prezeroed=1 $LOOP2 >> $LOG 2>&1
+    $MKE2FS -o Linux -t ext4 -E assume_storage_prezeroed=1 $LOOP2 >> $LOG 2>&1
+    sync
+    stat $TMPFILE.2 >> $LOG 2>&1
+    stat -c "%b" $TMPFILE.2 >> $OUT
+
+    losetup -d $LOOP1
+    losetup -d $LOOP2
+    rm -f $TMPFILE.1 $TMPFILE.2
+
+    cmp -s $OUT $EXP
+    status=$?
+
+    if [ "$status" = 0 ] ; then
+	echo "$test_name: $test_description: ok"
+	touch $test_name.ok
+    else
+	echo "$test_name: $test_description: failed"
+	cat $LOG > $test_name.failed
+	diff $EXP $OUT >> $test_name.failed
+    fi
+fi
+unset LOG OUT EXP FILE_SIZE LOOP1 LOOP2
