@@ -1297,7 +1297,7 @@ libpipeline_la_SOURCES = \
 include_HEADERS = pipeline.h
 libpipeline_la_LIBADD = ../gl/lib/libgnu.la $(LTLIBOBJS)
 libpipeline_la_LDFLAGS = \
-	-export-symbols-regex '^(pipecmd|pipeline)_' \
+	-export-symbols-regex '^pizlonated_(pipecmd|pipeline)_' \
 	-no-undefined \
 	-version-info 6:7:5
 
