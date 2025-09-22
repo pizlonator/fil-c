@@ -5704,15 +5704,15 @@ echo "define(<GMP_AVX_NOT_REALLY_AVAILABLE>,1)" >> $gmp_tmpconfigm4
 	gcc_64_cflags="$gcc_cflags -m64"
 	gcc_64_cflags_optlist="cpu arch noavx"
 	CALLING_CONVENTIONS_OBJS_64='amd64call.lo amd64check$U.lo'
-	SPEED_CYCLECOUNTER_OBJ_64=x86_64.lo
-	cyclecounter_size_64=2
+	#SPEED_CYCLECOUNTER_OBJ_64=x86_64.lo
+	#cyclecounter_size_64=2
 
 	cclist_x32="gcc cc"
 	gcc_x32_cflags="$gcc_cflags -mx32"
 	gcc_x32_cflags_optlist="$gcc_64_cflags_optlist"
 	CALLING_CONVENTIONS_OBJS_x32="$CALLING_CONVENTIONS_OBJS_64"
-	SPEED_CYCLECOUNTER_OBJ_x32="$SPEED_CYCLECOUNTER_OBJ_64"
-	cyclecounter_size_x32="$cyclecounter_size_64"
+	#SPEED_CYCLECOUNTER_OBJ_x32="$SPEED_CYCLECOUNTER_OBJ_64"
+	#cyclecounter_size_x32="$cyclecounter_size_64"
 	path_x32="$path_64"
 	limb_x32=longlong
 	any_x32_testlist="sizeof-long-4"
