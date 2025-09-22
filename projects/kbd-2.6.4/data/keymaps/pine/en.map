@@ -1,0 +1,143 @@
+# Keymap for factory standard PinePhone keyboard. Modify the actions column to change what they keys do
+#    Copyright (C) 2022  Peter Thomason <pthom44@live.com.au>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+strings as usual
+compose as usual for "iso-8859-1"
+include "linux-keys-bare"
+keymaps 0-2,4-5,8-9,12
+
+# First Row
+keycode 1  = Escape	nul	nul	nul	nul	Meta_Escape
+keycode 2  = one	exclam	bar	nul	nul	Meta_one	Meta_bar
+keycode 3  = two	at	backslash	Control_backslash	nul	Meta_two	Meta_backslash
+keycode 4  = three	numbersign	sterling	nul	nul	Meta_three
+keycode 5  = four	dollar	euro	nul	nul	Meta_four
+keycode 6  = five	percent	asciitilde	nul	nul	Meta_five	Meta_asciitilde
+keycode 7  = six	asciicircum	grave	Control_asciicircum	nul	Meta_six	Meta_grave
+keycode 8  = seven	ampersand	minus	nul	nul	Meta_seven	Meta_minus
+keycode 9  = eight	asterisk	equal	nul	nul	Meta_eight	Meta_equal
+keycode 10 = nine	parenleft	underscore	Control_underscore	nul	Meta_nine
+keycode 11 = zero	parenright	plus	nul	nul	Meta_zero
+keycode 14 = BackSpace
+
+# Second Row
+keycode 15 = Tab	nul	nul	nul	nul	nul	Meta_Tab
+keycode 16 = q		Q	nul	Control_q
+keycode 17 = w		W	nul	Control_w
+keycode 18 = e		E	nul	Control_e
+keycode 19 = r		R	nul	Control_r
+keycode 20 = t		T	nul	Control_t
+keycode 21 = y		Y	nul	Control_y
+keycode 22 = u		U	nul	Control_u
+keycode 23 = i		I	nul	Control_i
+keycode 24 = o		O	nul	Control_o
+keycode 25 = p		P	nul	Control_p
+
+# Fifth Row, second from right and right keys
+keycode 26 = bracketleft	braceleft	nul	nul	nul	Meta_bracketleft
+keycode 27 = bracketright	braceright	Control_bracketright	nul	nul	Meta_bracketright
+
+# Second Row Enter key
+keycode 28 = Return
+
+# Fifth Row, left key
+keycode 29 = Control
+
+# Third Row
+keycode 30 = a		A	nul	Control_a
+keycode 31 = s		S	nul	Control_s
+keycode 32 = d		D	nul	Control_d
+keycode 33 = f		F	nul	Control_f
+keycode 34 = g		G	nul	Control_g
+keycode 35 = h		H	nul	Control_h
+keycode 36 = j		J	nul	Control_j
+keycode 37 = k		K	nul	Control_k
+keycode 38 = l		L	nul	Control_l
+keycode 39 = semicolon	colon	nul	nul	nul	Meta_semicolon
+
+# Fifth Row, third from right
+keycode 40 = apostrophe	quotedbl	nul	nul	nul	Meta_apostrophe
+
+# Fourth Row
+keycode 42 = Shift
+keycode 44 = z		Z	nul	Control_z
+keycode 45 = x		X	nul	Control_x
+keycode 46 = c		C	nul	Control_c
+keycode 47 = v		V	nul	Control_v
+keycode 48 = b		B	nul	Control_b
+keycode 49 = n		N	nul	Control_n
+keycode 50 = m		M	nul	Control_m
+keycode 51 = comma	less	nul	nul	nul	Meta_comma	Meta_less
+keycode 52 = period	greater	nul	nul	nul	Meta_period	Meta_greater
+keycode 53 = slash	question	nul	nul	nul		Meta_slash
+
+# Fifth Row, left of space bar, and space bar
+keycode 56 = Alt
+keycode 57 = space	nul	nul	nul	nul	Meta_space
+
+# First row with Fn key held in
+# Known isses with 1st Generation of the Keyboard
+# There is issues with the electrical signals between Alt + Fn + F2 and F3
+# This will cause multiple triggering of F2 or F3, normally has been F3
+# If you need access to Console 2 then use Alt + Arrow Key or Ctrl + Fn + F2 or F3
+# https://codeberg.org/HazardChem/PinePhone_Keyboard/issues/5
+keycode 59 = F1		F11	F21	Console_1	nul	Console_1	nul	Console_1
+keycode 60 = F2		F12	F22	Console_2	nul	Console_2	nul	Console_2
+keycode 61 = F3		F13	F23	Console_3	nul	Console_3	nul	Console_3
+keycode 62 = F4		F14	F24	Console_4	nul	Console_4	nul	Console_4
+keycode 63 = F5		F15	F25	Console_5	nul	Console_5	nul	Console_5
+keycode 64 = F6		F16	F26	Console_6	nul	Console_6	nul	Console_6
+keycode 65 = F7		F17	F27	Console_7	nul	Console_7	nul	Console_7
+keycode 66 = F8		F18	F28	Console_8	nul	Console_8	nul	Console_8
+keycode 67 = F9		F19	F29	Console_9	nul	Console_9	nul	Console_9
+keycode 68 = F10	F20	F30	Console_10	nul	Console_10	nul	Console_10
+
+# Pine key with Fn key held in
+#keycode 99 = Prtsc
+
+# Fifth Row, right of space bar
+keycode 100 = AltGr
+
+# Fourth row, third from right with Fn key held in
+keycode 102 = Home
+keycode 103 = Up	nul	nul	nul	nul	KeyboardSignal
+
+# Fifth row, third from right with Fn key held in
+keycode 105 = Left	nul	nul	nul	nul	Decr_Console
+
+# Fifth row, right hand key with Fn key held in
+keycode 106 = Right	nul	nul	nul	nul	Incr_Console
+
+# Fourth row, right hand key with Fn key held in
+keycode 107 = End
+
+# Fifth row, second from right with Fn key held in
+keycode 108 = Down
+
+# Third row, next to enter key with Fn key held in
+keycode 110 = Insert
+
+# First row, right hand side key with Fn key held in
+keycode 111 = Remove	nul	nul	nul	nul	Meta_Delete
+
+# Third row, left hand pine key
+#keycode 125 = LeftMeta
+
+# Fifth row, second from left
+#keycode 464 = Fn
+
+# Top row, first from the left with Fn key held in
+#keycode 465 = Fn_Escape

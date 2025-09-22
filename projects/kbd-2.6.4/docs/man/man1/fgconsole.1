@@ -1,0 +1,50 @@
+.TH FGCONSOLE 1 "14 February 2002" "kbd"
+
+.SH NAME
+fgconsole \- print the number of the active VT.
+
+.SH SYNOPSIS
+.B fgconsole
+[
+.B \-h \-\-help
+|
+.B \-V \-\-version
+|
+.B \-n \-\-next-available
+]
+.SH DESCRIPTION
+If the active Virtual Terminal is
+.IR /dev/ttyN ,
+then prints
+.I N
+on standard output.
+
+If the console is a serial console, then
+"serial"
+is printed instead.
+.TP
+.I \-h \-\-help
+Prints short usage message and exits.
+.TP
+.I \-V \-\-version
+Prints version number and exits.
+.TP
+.I \-\-next\-available
+Will show the next unallocated virtual terminal. Normally 6 virtual
+terminals are allocated, with number 7 used for X; this will return
+"8" in this case.
+
+.SH NOTES
+Under
+.IR devfs ,
+the consoles are in
+.IR /dev/vc/N .
+.I devfsd
+may maintain symlinks for compatibility.
+.SH "SEE ALSO"
+.BR chvt (1).
+.\" .SH "AUTHORS"
+.\" Andries Brouwer
+.\" .br
+.\" Manpage by Alastair McKinstry <mckinstry@computer.org>
+

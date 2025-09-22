@@ -1,0 +1,5 @@
+AT_SETUP([psfxtable (get unicode table)])
+AT_KEYWORDS([e2e psfxtable])
+E2E_CHECK(["$abs_top_builddir/src/psfxtable" -i "$abs_srcdir/data/consolefonts/UniCyrExt_8x16.psf" -ot -])
+E2E_COMPARE_STDOUT([sed -e "s@ /lib/kbd/@ $abs_srcdir/data/@" "$abs_srcdir/data/e2e/psfxtable-test01.stdout"])
+AT_CLEANUP

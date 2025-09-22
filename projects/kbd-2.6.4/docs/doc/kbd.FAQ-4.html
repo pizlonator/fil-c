@@ -1,0 +1,249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Resetting your terminal</TITLE>
+ <LINK HREF="kbd.FAQ-5.html" REL=next>
+ <LINK HREF="kbd.FAQ-3.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-5.html">Next</A>
+<A HREF="kbd.FAQ-3.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4. Resetting your terminal</A></H2>
+
+<P>
+<!--
+terminal!resetting
+-->
+
+<!--
+screen!clearing
+-->
+
+<!--
+console!clearing
+-->
+<P>There is garbage on the screen, or all your keystrokes are echoed
+as line drawing characters. What to do?
+<P>Many programs will redraw the screen when Ctrl-L is typed. This might
+help when there is some modem noise or broadcast message on your screen.
+The command <CODE>clear</CODE> will clear the screen.
+<P>The command <CODE>reset</CODE> will reset the console driver. This helps when
+the screen is full of funny graphic characters, and also if it is
+reduced to the bottom line. If you don't have this command, or if it
+does something else, make your own by putting the following two lines
+in an executable file <CODE>reset</CODE> in your PATH:
+<BLOCKQUOTE><CODE>
+<PRE>
+        #!/bin/sh
+        echo -e \\033c
+</PRE>
+</CODE></BLOCKQUOTE>
+
+that is, you want to send the two characters ESC c to the console.
+<P>Why is it that the display sometimes gets confused and gives you
+a 24-line or 1-line screen, instead of the usual 25 lines?
+Well, the main culprit is the use of <CODE>TERM=vt100</CODE> (or some other
+entry with 24 lines) instead of <CODE>TERM=linux</CODE> when logged in remotely.
+If this happens on <CODE>/dev/tty2</CODE> then typing
+<BLOCKQUOTE><CODE>
+<PRE>
+        % cat > /dev/tty2
+        ^[c
+        ^D
+</PRE>
+</CODE></BLOCKQUOTE>
+
+on some other VT (where 4 symbols are typed to <CODE>cat</CODE>: ESC, c, ENTER,
+Ctrl-D) and refreshing the screen on <CODE>/dev/tty2</CODE>
+(perhaps using Ctrl-L) will fix things. Of course the permanent fix
+is to use the right termcap or terminfo entry.
+A command that only changes the number of lines is
+<BLOCKQUOTE><CODE>
+<PRE>
+        % echo -e "\033[1;25r"
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>Why is it that you sometimes get a lot of line-drawing characters,
+e.g., after catting a binary to the screen?
+Well, there are various character set changing escape sequences,
+and by accident your binary might contain some of these.
+The ESC c is a general reset, a cure for all, but if you know
+precisely what went wrong you can repair it without resetting
+other console attributes. For example, after
+<BLOCKQUOTE><CODE>
+<PRE>
+        % cat
+        ^N
+        ^D
+</PRE>
+</CODE></BLOCKQUOTE>
+
+your shell prompt will be all line-drawing characters.
+Now do (typing blindly)
+<BLOCKQUOTE><CODE>
+<PRE>
+        % cat
+        ^O
+        ^D
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and all is well again. (Three symbols typed to each <CODE>cat</CODE>:
+Ctrl-N (or Ctrl-O), ENTER, Ctrl-D.) To understand what is happening,
+see `The console character sets' below.
+<P>If you loaded some strange font, and want to return to the default,
+<BLOCKQUOTE><CODE>
+<PRE>
+        % setfont
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will do (provided you stored the default font in the default place).
+If this default font does not contain an embedded Unicode map (and
+gives the wrong symbols for accented characters), then say
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadunimap
+</PRE>
+</CODE></BLOCKQUOTE>
+
+For example, if I do
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys de-latin1
+</PRE>
+</CODE></BLOCKQUOTE>
+
+then I have a German keyboard, and the key left of the Enter key
+gives me a-umlaut. This works, because the a-umlaut occurs
+on the CP437 code page and the kernel Unicode map is initialized
+to CP437, and my video card has a CP437 font built-in.
+If I now load an ISO 8859-1 font with
+<BLOCKQUOTE><CODE>
+<PRE>
+        % setfont iso01.f16
+</PRE>
+</CODE></BLOCKQUOTE>
+
+then everything still works, because <CODE>setfont</CODE> invalidates the kernel
+Unicode map (if there is no Unicode map attached to the font), and without
+map the kernel goes directly to the font, and that is precisely correct
+for an ISO 8859-1 system with <CODE>iso01.f16</CODE> font.
+But going back to the previous font with
+<BLOCKQUOTE><CODE>
+<PRE>
+        % setfont
+</PRE>
+</CODE></BLOCKQUOTE>
+
+gives capital Sigma's instead of a-umlaut - all accented letters
+are mixed up because also this font has no embedded Unicode map. After
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadunimap
+</PRE>
+</CODE></BLOCKQUOTE>
+
+which loads the default Unicode map (which is right for the default
+font) all works correctly again. Usually <CODE>loadunimap</CODE> is not
+invoked directly, but via <CODE>setfont</CODE>. Thus, the previous two
+commands may be replaced by
+<BLOCKQUOTE><CODE>
+<PRE>
+        % setfont -u def
+</PRE>
+</CODE></BLOCKQUOTE>
+
+These days most fonts have embedded Unicode maps (often this is
+indicated by the extension <CODE>.psfu</CODE>), and none of this nonsense
+is needed anymore.
+<P>On very old terminals output involving tabs may require a delay,
+and you have to say
+<BLOCKQUOTE><CODE>
+<PRE>
+        % stty tab3
+</PRE>
+</CODE></BLOCKQUOTE>
+
+(see stty(1)).
+<P>You can change the video mode using <CODE>resizecons</CODE> or
+<CODE>SVGATextMode</CODE>. Or by rebooting and having "vga=ask"
+in the LILO configuration file.
+<P>This usually settles the output side.
+<P>On the input side there are many things that might be wrong. If <CODE>X</CODE> or
+<CODE>DOOM</CODE> or some other program using raw mode crashed, your keyboard may
+still be in raw (or mediumraw) mode, and you must give the command
+<BLOCKQUOTE><CODE>
+<PRE>
+        % kbd_mode -a
+</PRE>
+</CODE></BLOCKQUOTE>
+
+or
+<BLOCKQUOTE><CODE>
+<PRE>
+        % kbd_mode -u
+</PRE>
+</CODE></BLOCKQUOTE>
+
+to get back to normal 8-bit or Unicode mode again. Of course in this
+situation it may be difficult to give commands.
+(See "How to get out of raw mode" below.)
+<P>If you loaded a bad keymap, then
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys -d
+</PRE>
+</CODE></BLOCKQUOTE>
+
+loads the default map again, but it may well be difficult to type `-'!
+An alternative is
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys defkeymap
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Sometimes even the letters are garbled. It is useful to know that there
+are four main types of keyboards: QWERTY, QWERTZ, AZERTY and DVORAK.
+The first three are named after the first six letter keys, and roughly
+represent the English, German and French speaking countries.
+Compared to QWERTY, the QWERTZ map interchanges Y and Z.
+Compared to QWERTY, the AZERTY map interchanges Q and A, W and Z, and has
+its M right of the L, at the semicolon position.
+DVORAK has an entirely different letter ordering.
+There are two types of Turkish keyboard. The so-called `Q'-keyboard
+has a QWERTY layout, while the `F'-keyboard has an entirely
+different layout, let us say fgGIod, where G stands for Gbreve
+and I for dotlessi.
+<P>
+<H2><A NAME="ss4.1">4.1 Keyboard hardware reset</A>
+</H2>
+
+<P>
+<!--
+keyboard!resetting
+-->
+<P>Things may be wrong on a lower level than Linux knows about.
+There are at least two distinct lower levels (keyboard and keyboard controller)
+where one can give the command "keyboard disable" to the keyboard hardware.
+Keyboards can often be programmed to use one out of three
+different sets of scancodes.
+<P>However, I do not know of cases where this turned out to be
+a problem.
+<P>Some keyboards have a remapping capability built in.
+Stormy Henderson (<CODE>stormy@Ghost.Net</CODE>) writes:
+`If it's your keyboard accidently being reprogrammed, you can
+(on a Gateway AnyKey keyboard) press control-alt-suspend_macro
+to reset the keys to normal.'
+<P>
+<HR>
+<A HREF="kbd.FAQ-5.html">Next</A>
+<A HREF="kbd.FAQ-3.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc4">Contents</A>
+</BODY>
+</HTML>

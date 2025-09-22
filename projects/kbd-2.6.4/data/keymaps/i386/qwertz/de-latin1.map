@@ -1,0 +1,58 @@
+# de-latin1.map: German keymap
+# (Renamed from gr-latin1.map, since it is not a Greek map.)
+# Some changes due to Olaf Flebbe (flebbe@pluto.tat.physik.uni-tuebingen.de)
+# More changes by Jochen Hein <jochen@jochen.org>.
+
+keymaps 0-2,4-6,8-10,12
+alt_is_meta
+include "qwertz-layout"
+	altgr keycode  16 = at
+control altgr keycode  16 = nul
+	altgr keycode  50 = mu
+include "linux-with-alt-and-altgr"
+	plain keycode  83 = KP_Comma
+include "euro2.map"
+include "compose.latin1"
+strings as usual
+
+#             Normal           Shift            AltGr           Strg
+keycode   1 = Escape           Escape
+keycode   2 = one              exclam
+keycode   3 = two              quotedbl         twosuperior     nul
+keycode   4 = three            section          threesuperior   Escape
+keycode   5 = four             dollar
+keycode   6 = five             percent
+keycode   7 = six              ampersand
+keycode   8 = seven            slash            braceleft
+keycode   9 = eight            parenleft        bracketleft
+keycode  10 = nine             parenright       bracketright
+        control altgr keycode  10 = Control_bracketright
+keycode  11 = zero             equal            braceright
+keycode  12 = ssharp           question         backslash
+        control altgr keycode  12 = Control_backslash
+keycode  13 = dead_acute       dead_grave
+        alt     keycode  13 = Meta_acute
+        shift   alt   keycode  13 = Meta_grave
+keycode  14 = Delete           Delete
+        alt     keycode  14 = Meta_Delete
+keycode  15 = Tab              Meta_Tab
+keycode  26 = +udiaeresis       +Udiaeresis
+keycode  27 = plus             asterisk         dead_tilde
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = +odiaeresis       +Odiaeresis
+keycode  40 = +adiaeresis       +Adiaeresis
+keycode  41 = dead_circumflex   degree   Meta_asciicircum        Control_asciicircum
+keycode  42 = Shift
+keycode  43 = numbersign       apostrophe
+keycode  51 = comma            semicolon
+keycode  52 = period           colon
+keycode  53 = minus            underscore       Meta_minus
+        shift control keycode  53 = Control_underscore
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space            space            Meta_space      nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+keycode  97 = Control

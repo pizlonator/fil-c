@@ -1,0 +1,89 @@
+# Estonian keymap
+# Ville Hallik <Ville.Hallik@mail.ee>
+#
+# Please note that there are two characters on estonian keyboard that
+# are'nt available in ISO-8859-15 charset: "currency" and "one_half". These
+# are provided here as hexadecimal codes 0xa4 and 0xbd as a convenience for
+# people who want to use this keymap with ISO-8859-1.
+
+charset "iso-8859-15"
+alt_is_meta
+keymaps 0-15
+strings as usual
+
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+
+keycode   1 = Escape Escape
+keycode   2 = one exclam
+keycode   3 = two quotedbl at at nul nul nul nul
+keycode   4 = three numbersign sterling sterling
+keycode   5 = four 0xa4 dollar dollar
+keycode   6 = five percent
+keycode   7 = six ampersand VoidSymbol VoidSymbol \
+		Control_asciicircum Control_asciicircum \
+		Control_asciicircum Control_asciicircum
+keycode   8 = seven slash braceleft braceleft
+keycode   9 = eight parenleft bracketleft bracketleft \
+		Escape Escape Escape Escape
+keycode  10 = nine parenright bracketright bracketright \
+		Control_bracketright Control_bracketright \
+		Control_bracketright Control_bracketright
+keycode  11 = zero equal braceright braceright
+keycode  12 = plus question backslash backslash \
+		Control_underscore Control_underscore \
+		Control_backslash Control_backslash
+keycode  13 = dead_acute dead_grave dead_acute dead_grave
+keycode  14 = Delete Delete
+	control keycode  14 = BackSpace
+keycode  15 = Tab Meta_Tab
+keycode  18 = +e +E euro euro Control_e Control_e
+keycode  26 = +udiaeresis +Udiaeresis +udiaeresis +Udiaeresis Escape
+keycode  27 = +otilde +Otilde section section Control_bracketright
+keycode  28 = Return
+	alt keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  31 = +s +S +scaron +Scaron Control_s Control_s
+keycode  39 = +odiaeresis +Odiaeresis +odiaeresis +Odiaeresis
+keycode  40 = +adiaeresis +Adiaeresis asciicircum asciicircum \
+		Control_asciicircum Control_asciicircum \
+		Control_asciicircum Control_asciicircum
+keycode  41 = dead_caron dead_tilde dead_caron dead_tilde
+	control keycode  41 = dead_diaeresis
+keycode  42 = Shift
+keycode  43 = apostrophe asterisk 0xbd 0xbd \
+		Control_backslash Control_backslash
+keycode  44 = +z +Z +zcaron +Zcaron Control_z Control_z
+keycode  51 = comma semicolon
+keycode  52 = period colon
+	control keycode  52 = Compose
+keycode  53 = minus underscore VoidSymbol VoidSymbol \
+		Control_underscore Control_underscore
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space space
+	control keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  83 = KP_Comma
+keycode  86 = less greater bar bar
+keycode  97 = Control
+
+# These are the three extra keys found on Win95 keyboards:
+keycode 125 = 
+keycode 126 = 
+keycode 127 = Compose
+
+# Most compose definitions are same as for iso-8859-1
+compose as usual for "iso-8859-1"
+
+# Add some ISO-8859-15 specific compose definitions:
+compose '^' 's' to scaron
+compose '^' 'S' to Scaron
+compose '^' 'z' to zcaron
+compose '^' 'Z' to Zcaron
+compose 'o' 'e' to oe
+compose 'O' 'E' to OE
+compose '"' 'Y' to Ydiaeresis
+compose 'I' 'J' to Ydiaeresis
+compose '=' 'c' to euro
+compose '=' 'C' to euro

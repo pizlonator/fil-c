@@ -1,0 +1,244 @@
+#           Keyboard Mapping for Atari Keyboards, German Layout
+#           ---------------------------------------------------
+#
+# Copyright 1994 Roman Hodek
+#
+# This file is subject to the terms and conditions of the GNU General Public
+# License.  See the file README.legal in the main directory of this archive
+# for more details.
+#
+# Notes:
+# ------
+#
+# This file assumes that the currently active mapping is the Atari default
+# mapping (US layout) in my version as found in drivers/char/defkeymap.c
+# (conditionalized to machine type). Only the necessary alternations are
+# done!
+#
+# Dead keys (i.e. pressing ^ and e gives œ, an e with hat) are not
+# used, because I consider this annoying. All characters needed for 
+# German are possible without deadkeys. If you want them, apply the following
+# replacements:
+#   grave       -> dead_grave
+#   apostrophe  -> dead_acute
+#   asciicircum -> dead_circumflex
+#   asciitelde  -> dead_tilde
+#
+# Lines commented out by '!' are settings that are done implicitly by
+# loadkeys.
+#
+# There is no natural way to generate Meta codes for the characters [,],{,},
+# @ and \, that already need Alt to be pressed together with one of the 
+# umlaut keys. I've choosen the following scheme, though it may not be
+# very intuitive in all cases (who knows a better solution??):
+# 1) The key with Alt (and maybe shift) gives the character engraved to the
+#    right (i.e. [,@,\,...)
+# 2) The key with Control (and maybe shift) gives the control character
+#    corresponding the the character engraved to the _right_, if one exists.
+#    This happens because the umlaut characters have no corresponding control
+#	 character anyway.
+# 3) The key with Control and Alt (and maybe shift) gives the Meta equivalent
+#    (with 8. bit set or prepended by ESC) of the character engraved to the
+#	 right. Again, Meta's of the umlaut characters do not exist, since they
+#	 already have their 8. bit set.
+# One could argue that it would be more consistent to require Alt and Control
+# to be pressed to get the control characters (case 2). That's true, but in
+# my opinion, it is even more inconsistent to generate Meta codes without the
+# Alt key pressed (but just with Control). And it would be very bad, if the
+# Meta versions of [,{,@,... could not be typed at all!
+#
+# I've kept the convention that the digit keys 2..8 on the main keyboard
+# generate the control characters not corresponding to letters (^@, ^[ .. ^_
+# and ^?=DEL) when pressed with Control. It is convention, too, that the shift
+# key must not be pressed for this effect. Also, Meta+Control plus these keys
+# give the Metas of these controls.
+#
+# The standard loadkeys (at least the version I have) doesn't understand the
+# combination of Meta and Control in symbolic names (i.e. Meta_Control_a is
+# invalid, but some names like Meta_Backspace or Meta_Tab are). For this
+# reason, I replaced the offending names by their numeric equivalent. This
+# depends on KT_META being 8!
+#
+# The umlaut keys cannot be set via ?diaeresis, because this would make them
+# to be of type KT_LATIN1, and they should be type KT_LETTER to be affected
+# by CAPSLOCK. Their definition is thus in hex :-(
+#
+
+keycode   2 = one exclam
+!	control       keycode   2 = VoidSymbol
+!	shift control keycode   2 = VoidSymbol
+    alt           keycode   2 = Meta_one
+	shift alt     keycode   2 = Meta_exclam
+
+keycode   3 = two quotedbl
+	control       keycode   3 = nul # = Control_at
+!	shift control keycode   3 = VoidSymbol
+    alt           keycode   3 = Meta_two
+	shift alt     keycode   3 = Meta_quotedbl
+	alt control   keycode   3 = 0x0800 # Meta_Control_at
+
+keycode   4 = three section
+	control       keycode   4 = Escape # = Control_bracketleft
+!	shift control keycode   4 = VoidSymbol
+    alt           keycode   4 = Meta_three
+!	shift alt     keycode   4 = VoidSymbol  # already has 8. bit set!
+	alt control   keycode   4 = Meta_Escape # = Meta_Control_bracketleft
+
+keycode   5 = four dollar
+	control       keycode   5 = Control_backslash
+!	shift control keycode   5 = VoidSymbol
+    alt           keycode   5 = Meta_four
+	shift alt     keycode   5 = Meta_dollar
+	alt control   keycode   5 = 0x081c # Meta_Control_backslash
+
+keycode   6 = five percent
+	control       keycode   6 = Control_bracketright
+!	shift control keycode   6 = VoidSymbol
+    alt           keycode   6 = Meta_five
+	shift alt     keycode   6 = Meta_percent
+	alt control   keycode   6 = 0x081d # Meta_Control_bracketright
+
+keycode   7 = six ampersand
+	control       keycode   7 = Control_asciicircum
+!	shift control keycode   7 = VoidSymbol
+    alt           keycode   7 = Meta_six
+	shift alt     keycode   7 = Meta_ampersand
+	alt control   keycode   7 = 0x081e # Meta_Control_asciicircum
+
+keycode   8 = seven slash
+	control       keycode   8 = Control_underscore
+!	shift control keycode   8 = VoidSymbol
+    alt           keycode   8 = Meta_seven
+	shift alt     keycode   8 = Meta_slash
+	alt control   keycode   8 = 0x081f # Meta_Control_underscore
+
+keycode   9 = eight parenleft
+	control       keycode   9 = Delete
+!	shift control keycode   9 = VoidSymbol
+    alt           keycode   9 = Meta_eight
+	shift alt     keycode   9 = Meta_parenleft
+	alt control   keycode   9 = Meta_Delete
+
+keycode  10 = nine parenright
+!	control       keycode  10 = VoidSymbol
+!	shift control keycode  10 = VoidSymbol
+    alt           keycode  10 = Meta_nine
+	shift alt     keycode  10 = Meta_parenright
+
+keycode  11 = zero equal
+!	control       keycode  11 = VoidSymbol
+!	shift control keycode  11 = VoidSymbol
+    alt           keycode  11 = Meta_zero
+	shift alt     keycode  11 = Meta_equal
+
+keycode  12 = ssharp question
+!	control       keycode  12 = VoidSymbol
+!	shift control keycode  12 = VoidSymbol
+!	alt           keycode  12 = VoidSymbol  # already has 8. bit set!
+	shift alt     keycode  12 = Meta_question
+
+keycode  13 = apostrophe grave
+!	control       keycode  13 = VoidSymbol
+!	shift control keycode  13 = VoidSymbol
+    alt           keycode  13 = Meta_apostrophe
+	shift alt     keycode  13 = Meta_grave
+
+keycode  14 = Delete Delete
+	control       keycode  14 = Delete
+	control shift keycode  14 = Delete
+	alt           keycode  14 = Meta_Delete
+	alt shift     keycode  14 = Meta_Delete
+	alt control   keycode  14 = Meta_Delete
+	alt control shift keycode  14 = Meta_Delete
+
+keycode  21 = z
+	# rest done by loadkeys!
+
+keycode  26 = 0x0bfc 0x0bdc # udiaeresis Udiaeresis with type KT_LETTER
+	control       keycode  26 = nul # = Control_at
+	shift control keycode  26 = Control_backslash
+    alt           keycode  26 = at
+	shift alt     keycode  26 = backslash
+	# Who knows a better way to implement these?
+	alt control       keycode  26 = Meta_at
+	shift alt control keycode  26 = Meta_backslash
+
+keycode  27 = plus asterisk
+!	control       keycode  27 = VoidSymbol
+!	shift control keycode  27 = VoidSymbol
+    alt           keycode  27 = Meta_plus 
+	shift alt     keycode  27 = Meta_asterisk
+
+keycode  39 = 0x0bf6 0x0bd6 # odiaeresis Odiaeresis with type KT_LETTER
+	control       keycode  39 = Escape # = Control_bracketleft
+!	shift control keycode  39 = VoidSymbol
+    alt           keycode  39 = bracketleft
+	shift alt     keycode  39 = braceleft
+	# Who knows a better way to implement these?
+	alt control       keycode  39 = Meta_bracketleft
+	shift alt control keycode  39 = Meta_braceleft
+
+keycode  40 = 0x0be4 0x0bc4 # adiaeresis Adiaeresis with type KT_LETTER
+	control       keycode  40 = Control_bracketright
+!	shift control keycode  40 = VoidSymbol
+    alt           keycode  40 = bracketright
+	shift alt     keycode  40 = braceright
+	# Who knows a better way to implement these?
+	alt control       keycode  40 = Meta_bracketright
+	shift alt control keycode  40 = Meta_braceright
+
+keycode  41 = numbersign asciicircum
+	control       keycode  41 = Control_asciicircum # for convenience
+	shift control keycode  41 = Control_asciicircum
+    alt           keycode  41 = Meta_numbersign
+	shift alt     keycode  41 = Meta_asciicircum
+	alt control       keycode  41 = 0x081e # Meta_Control_asciicircum
+	shift alt control keycode  41 = 0x081e # Meta_Control_asciicircum
+
+keycode  43 = asciitilde bar
+!	control       keycode  43 = VoidSymbol
+!	shift control keycode  43 = VoidSymbol
+    alt           keycode  43 = Meta_asciitilde
+	shift alt     keycode  43 = Meta_bar
+
+keycode  44 = y
+	# rest done by loadkeys!
+
+keycode  51 = comma semicolon
+!	control       keycode  51 = VoidSymbol
+!	shift control keycode  51 = VoidSymbol
+    alt           keycode  51 = Meta_comma
+	shift alt     keycode  51 = Meta_semicolon
+
+keycode  52 = period colon
+!	control       keycode  52 = VoidSymbol
+!	shift control keycode  52 = VoidSymbol
+    alt           keycode  52 = Meta_period
+	shift alt     keycode  52 = Meta_colon
+
+keycode  53 = minus underscore
+	control       keycode  53 = Control_underscore # for convenience
+	shift control keycode  53 = Control_underscore
+    alt           keycode  53 = Meta_minus
+	shift alt     keycode  53 = Meta_underscore
+	alt control       keycode  53 = 0x081f # Meta_Control_underscore
+	shift alt control keycode  53 = 0x081f # Meta_Control_underscore
+
+# These two are for Emacs-style editing: Alt+Cursor Left/Right send
+# Meta b or f to jump over words.
+	alt keycode  75 = Meta_b
+	alt keycode  77 = Meta_f
+
+keycode  83 = Remove Remove
+	control       keycode  83 = Remove
+	control shift keycode  83 = Remove
+	alt           keycode  83 = Meta_d
+	alt shift     keycode  83 = Meta_d
+	alt control   keycode  83 = Boot
+	alt shift control keycode  83 = 0x0804 # Meta_Control_d
+
+keycode  96 = less greater
+!	control       keycode  96 = VoidSymbol
+!	shift control keycode  96 = VoidSymbol
+    alt           keycode  96 = Meta_less
+	shift alt     keycode  96 = Meta_greater

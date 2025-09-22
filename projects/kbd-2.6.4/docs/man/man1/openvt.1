@@ -1,0 +1,93 @@
+.\" Copyright 1994-95 Jon Tombs (jon@gtex02.us.es, jon@robots.ox.ac.uk)
+.\" May be distributed under the GNU General Public License
+.TH OPENVT 1 "19 Jul 1996" "kbd"
+.SH NAME
+openvt \- start a program on a new virtual terminal (VT).
+.SH SYNOPSIS
+.B openvt
+[\-c vtnumber] [OPTIONS] [\-\-] command
+.SH DESCRIPTION
+.B openvt
+will find the first available VT, and run on it the given
+.B command
+with the given
+.B "command options",
+standard input, output and error are directed to that terminal. The current
+search path ($PATH) is used to find the requested command. If no command is
+specified then the environment variable $SHELL is used.
+.SS OPTIONS
+.TP
+.I "\-c, \-\-console=VTNUMBER"
+Use the given VT number and not the first available. Note you
+must have write access to the supplied VT for this to work.
+.TP
+.I "\-f, \-\-force"
+Force opening a VT without checking whether it is already in use.
+.TP
+.I "\-e, \-\-exec"
+Directly execute the given command, without forking.
+This option is meant for use in
+.IR /etc/inittab .
+.TP
+.I "\-s, \-\-switch"
+Switch to the new VT when starting the command. The VT of the new command
+will be made the new current VT.
+.TP
+.I "\-u, \-\-user"
+Figure out the owner of the current VT, and run login as that user.
+Suitable to be called by init. Shouldn't be used with \fI\-c\fR or \fI\-l\fR.
+.TP
+.I "\-l, \-\-login"
+Make the command a login shell. A \- is prepended to the name of the command
+to be executed.
+.TP
+.I "\-v, \-\-verbose"
+Be a bit more verbose.
+.TP
+.I "\-w, \-\-wait"
+wait for command to complete. If \-w and \-s are used together then
+.B openvt
+will switch back to the controlling terminal when the command completes.
+.TP
+.I "\-V, \-\-version"
+print program version and exit.
+.TP
+.I "\-h, \-\-help"
+show this text and exit.
+.TP
+.I "\-\-"
+end of options to
+.BR openvt .
+.SH NOTE
+If
+.B openvt
+is compiled with a getopt_long() and you wish to set
+options to the command to be run, then you must supply
+the end of options \-\- flag before the command.
+.SH EXAMPLES
+.B openvt
+can be used to start a shell on the next free VT, by using the command:
+.TP
+.I "openvt bash"
+.TP
+
+To start the shell as a login shell, use:
+.TP
+.I "openvt -l bash"
+.TP
+
+To get a long listing you must supply the \-\- separator:
+.TP
+.I "openvt -- ls -l"
+.SH HISTORY
+Earlier,
+.B openvt
+was called
+.BR open .
+It was written by Jon Tombs <jon@gtex02.us.es> or <jon@robots.ox.ac.uk>.
+The \fI\-w\fR idea is from "sam".
+
+.SH "SEE ALSO"
+.BR chvt (1),
+.BR doshell (8),
+.BR login (1)

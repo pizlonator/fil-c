@@ -1,0 +1,27 @@
+# Most people will prefer the default Unicode hex input
+# sequences (that use the keypad, with A-F represented
+# by the keys around the digits in natural order).
+# However, ISO-14755 suggests to use Ctrl-Shift and
+# the ordinary letters and digits. That is also possible
+# (but then Ctrl-Shift-2 will no longer be Ctrl-@).
+control shift keycode  11 = Hex_0
+control shift keycode   2 = Hex_1
+control shift keycode   3 = Hex_2
+control shift keycode   4 = Hex_3
+control shift keycode   5 = Hex_4
+control shift keycode   6 = Hex_5
+control shift keycode   7 = Hex_6
+control shift keycode   8 = Hex_7
+control shift keycode   9 = Hex_8
+control shift keycode  10 = Hex_9
+control shift keycode  30 = Hex_A
+control shift keycode  48 = Hex_B
+control shift keycode  46 = Hex_C
+control shift keycode  32 = Hex_D
+control shift keycode  18 = Hex_E
+control shift keycode  33 = Hex_F
+#
+# If the keyboard is in Unicode mode, then pressing
+# Ctrl-Shift, typing 4 hex digits and releasing Ctrl-Shift
+# will produce the unicode character with the given code.
+#

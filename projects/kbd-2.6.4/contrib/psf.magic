@@ -1,0 +1,19 @@
+#
+# PC Screen (console) Fonts - psf1 header
+#
+0       leshort         0x0436          psf screen font data
+>2      byte            0               256 characters, no index
+>2      byte            1               512 characters, no index
+>2	byte		2		256 characters, Unicode index
+>2	byte		3		512 characters, Unicode index
+>2	byte		4		256 characters, Unicode level 2 index 
+>2	byte		5		512 characters, Unicode level 2 index
+>3	byte		x		8x%d
+#
+# PC Screen (console) Fonts - psf2 header
+#
+0       lelong		0x864ab572	psf2 screen font data
+>12	lelong&1	1		with Unicode index
+>16	lelong		x		\b, %d glyphs
+>28	lelong		x		\b, %dx
+>24	lelong		x		\b%d

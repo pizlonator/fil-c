@@ -1,0 +1,118 @@
+.\" @(#)man/man8/mapscrn.8	1.0 3/19/93 17:04:00
+.TH MAPSCRN 8 "20 March 1993" "kbd"
+.SH NAME
+mapscrn \- load screen output mapping table
+.SH SYNOPSIS
+.BR mapscrn " [" -V "] [" -v "] [" -o
+.IR map.orig ]
+.I mapfile
+.SH DESCRIPTION
+The
+.B mapscrn
+command is obsolete - its function is now built-in into setfont.
+However, for backwards compatibility it is still available
+as a separate command.
+.LP
+The
+.I mapscrn
+command loads a user defined output character mapping table into the
+console driver. The console driver may be later put into
+.B use user-defined mapping table
+mode by outputting a special escape sequence to the console device.
+This sequence is
+.I <esc>(K
+for the
+.B G0
+character set and
+.I <esc>)K
+for the
+.B G1
+character set.
+When the
+.I -o
+option is given, the old map is saved in
+.I map.orig.
+.SH USE
+There are two kinds of mapping tables: direct-to-font tables,
+that give a font position for each user byte value, and user-to-unicode
+tables that give a unicode value for each user byte. The corresponding
+glyph is now found using the unicode index of the font.
+The command
+.RS
+mapscrn trivial
+.RE
+sets up a one-to-one direct-to-font table where user bytes
+directly address the font. This is useful for fonts that are
+in the same order as the character set one uses.
+A command like
+.RS
+mapscrn 8859-2
+.RE
+sets up a user-to-unicode table that assumes that the user
+uses ISO 8859-2.
+.SH "INPUT FORMAT"
+The
+.I mapscrn
+command can read the map in either of two formats:
+.br
+1. 256 or 512 bytes binary data
+.br
+2. two-column text file
+.br
+Format (1) is a direct image of the translation
+.I table. The 256-bytes tables are direct-to-font,
+the 512-bytes tables are user-to-unicode tables.
+Format (2) is used to fill the
+.I table
+as follows: cell with offset mentioned in the first column is filled
+with the value mentioned in the second column.
+When values larger than 255 occur, or values are written using
+the U+xxxx notation, the table is assumed to be a user-to-unicode
+table, otherwise it is a direct-to-font table.
+.PP
+Values in the file may be specified in one of several
+.B formats:
+.br
+.B 1. Decimal:
+String of decimal digits not starting with '0'
+.br
+.B 2. Octal:
+String of octal digits beginning with '0'.
+.br
+.B 3. Hexadecimal:
+String of hexadecimal digits preceded by "0x".
+.br
+.B 4. Unicode:
+String of four hexadecimal digits preceded by "U+".
+.br
+.B 5. Character:
+Single character enclosed in single quotes. (And the binary value is used.)
+Note that blank, comma, tab character and '#' cannot be specified
+with this format.
+.br
+.B 6. UTF-8 Character:
+Single (possibly multi-byte) UTF-8 character, enclosed in single quotes.
+.PP
+Note that control characters (with codes < 32) cannot be re-mapped with
+.I mapscrn
+because they have special meaning for the driver.
+.SH OTHER OPTIONS
+.TP
+.B \-V
+Prints version number and exits.
+.TP
+.B \-v
+Be verbose.
+.SH FILES
+.TP
+.I @DATADIR@/consoletrans
+The default directory for screen mappings.
+.LP
+.SH "SEE ALSO"
+.IR setfont (8)
+.SH AUTHOR
+Copyright (C) 1993 Eugene G. Crosser
+.br
+<crosser@pccross.msk.su>
+.br
+This software and documentation may be distributed freely.

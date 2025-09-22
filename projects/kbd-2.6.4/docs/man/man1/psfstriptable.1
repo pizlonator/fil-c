@@ -1,0 +1,23 @@
+.\" @(#)psfstriptable.1
+.TH PSFSTRIPTABLE 1 "25 Oct 1994" "kbd"
+.SH NAME
+psfstriptable \- remove the embedded Unicode character table from a console font
+.SH SYNOPSIS
+.B psfstriptable
+.I fontfile outfile
+.SH DESCRIPTION
+.IX "psfstriptable command" "" "\fLpsfstriptable\fR command"  
+.LP
+.B psfstriptable
+reads a .psf format console font from 
+.IR fontfile ,
+removes the embedded Unicode font table if there is one,
+and writes the result to
+.IR outfile .
+An input file name of "\-" denotes standard input,
+and an output file name of "\-" denotes standard output.
+.SH "SEE ALSO"
+.BR setfont (8),
+.BR psfaddtable (1),
+.BR psfgettable (1),
+.BR psfxtable (1)

@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Screensaving</TITLE>
+ <LINK HREF="kbd.FAQ-20.html" REL=next>
+ <LINK HREF="kbd.FAQ-18.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc19" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-20.html">Next</A>
+<A HREF="kbd.FAQ-18.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc19">Contents</A>
+<HR>
+<H2><A NAME="s19">19. Screensaving</A></H2>
+
+<P>
+<!--
+screensaving!controlling
+-->
+
+<!--
+screen blanking
+-->
+<P><CODE>setterm -blank</CODE> <I>nn</I> will tell the console driver to blank the
+screen after <I>nn</I> minutes of inactivity. (With <I>nn</I> = 0, screensaving
+is turned off. In some old kernels this first took effect after the next
+keyboard interrupt.)
+<P>The <CODE>s</CODE> option of xset(1) will set the X screensaving parameters:
+<CODE>xset s off</CODE> turns off the screensaver,
+<CODE>xset s 10</CODE> blanks the screen after 10 minutes.
+<P>The video hardware powersaving modes can be enabled/disabled
+using the <CODE>setvesablank</CODE> program given in the starting comment of
+<CODE>/usr/src/linux/drivers/char/vesa_blank.c</CODE>.
+<P>
+<HR>
+<A HREF="kbd.FAQ-20.html">Next</A>
+<A HREF="kbd.FAQ-18.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc19">Contents</A>
+</BODY>
+</HTML>

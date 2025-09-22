@@ -1,0 +1,61 @@
+.\" @(#)setmetamode.1 1.0 940130 aeb
+.TH SETMETAMODE 1 "30 Jan 1994" "kbd"
+.SH NAME
+setmetamode \- define the keyboard meta key handling
+.SH SYNOPSIS
+.B setmetamode
+[
+.I options
+]
+[
+.I argument
+]
+.SH DESCRIPTION
+.IX "setmetamode command" "" "\fLsetmetamode\fR command"  
+.LP
+Without argument,
+.B setmetamode
+prints the current Meta key mode.
+With argument, it sets the Meta key mode as indicated.
+The setting before and after the change are reported.
+.LP
+The Meta key mode is specific for each VT (and the VT
+corresponding to stdin is used).
+One might use
+.B setmetamode
+in /etc/rc to define the initial state of the Meta key mode,
+e.g. by
+.LP
+.br
+.in +5m
+INITTY=/dev/tty[1-8]
+.br
+for tty in $INITTY; do
+.br
+.in +5m
+setmetamode escprefix < $tty
+.br
+.in -5m
+done
+.in -5m
+.SH ARGUMENTS
+.TP
+\fBesc\fR, \fBprefix\fR, \fBescprefix\fR
+The Meta key sends an Escape prefix.
+.TP
+\fBmeta\fR, \fBbit\fR, \fBmetabit\fR
+The Meta key sets the high order bit of the character.
+.SH OPTIONS
+.TP
+\fB\-C\fR, \fB\-\-console\fR=\fI\,DEV\/\fR
+the console device to be used;
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+print version number;
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+print this usage message.
+.SH "SEE ALSO"
+.BR loadkeys (1),
+.BR kbdinfo (1)
+

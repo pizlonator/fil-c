@@ -1,0 +1,10 @@
+- selection can now cut & paste 8-bit chars, but not yet Unicode
+- compose does not work together with Unicode
+  (struct kbdiacr has three chars: base + diacr -> result,
+   but the result should be a string)
+- strings produced by a function key cannot contain \000;
+  many other places this char is excluded
+- current status (translation table, Unicode output) can be set,
+  but not read out from the kernel; thus, showconsolefont changes the
+  status, but cannot restore it
+

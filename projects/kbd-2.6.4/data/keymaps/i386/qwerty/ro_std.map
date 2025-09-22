@@ -1,0 +1,161 @@
+# English:
+# ro.map - Standard romanian layout as of SR13992:2004
+# variant with ş and ţ with comma below (the correct one, 
+# but many fonts do not have these characters, it should be kept as an option
+# for now
+
+keymaps 0-6,8-10,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one		exclam		one 		exclam
+keycode   3 = two		at		at		at		nul		nul
+keycode   4 = three            numbersign
+ control keycode   4 = Escape
+keycode   5 = four             dollar           dollar           dollar		Control_backslash
+keycode   6 = five             percent
+ control keycode   6 = Control_bracketright
+keycode   7 = six              asciicircum
+ control keycode   7 = Control_asciicircum
+keycode   8 = seven            ampersand        braceleft	braceleft	Control_underscore
+keycode   9 = eight            asterisk         bracketleft	bracketleft	Delete
+keycode  10 = nine             parenleft        bracketright	parenleft
+keycode  11 = zero             parenright       braceright	parenright
+keycode  12 = minus            underscore       backslash	backslash	Control_underscore Control_underscore
+keycode  13 = equal            plus
+keycode  14 = Delete		Delete		Delete
+keycode  15 = Tab		Tab		Tab
+keycode  26 = U+0103           U+0102
+	control	keycode  26 = Escape
+keycode  27 = +0xEE            +0xCE       asciitilde       asciitilde	Control_bracketright
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = U+0219           U+0218
+keycode  40 = U+021B           U+021A
+	control	keycode  40 = Control_g
+keycode  41 = U+201E	U+201D grave            asciitilde
+	control	keycode  41 = nul
+keycode  42 = Shift
+	alt	keycode  42 = AltGr_Lock
+	altgr	alt	keycode  42 = AltGr_Lock		# warning
+keycode  43 = +0xE2	+0xC2
+	control	keycode  43 = Control_backslash
+keycode  51 = comma            semicolon
+keycode  52 = period           colon
+keycode  53 = slash            question		slash		question
+	control	keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space		space		space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+keycode  97 = Control
+
+shift 	alt	keycode 100 = AltGr_Lock		# altgr = 100
+
+#keycode 102 = Control_a # Home
+#keycode 107 = Control_e # End
+
+#keycode 126 = Decr_Console # Buton windows
+#keycode 127 = Incr_Console # Buton windows
+
+#
+# Caracterele româneşti sunt mapate astfel:
+#  AltGr + a = ă
+#  AltGr + i = î
+#  AltGr + s = ş
+#  AltGr + t = ţ
+#  AltGr + q = â
+#  AltGr + [ = „ (ghilimele jos)
+#  AltGr + ] = ” (ghilimele sus)_
+#  AltGr + , = « (croşete stânga)_
+#  AltGr + . = » (croşete dreapta)_
+#  AltGr + e = ” (euro - disponibil pe puţine fonturi cu diacritice româneşti)_
+#  AltGr + c = ” (copyright)_
+
+# alt-left + shift-left = AltGr_Lock
+
+altgr keycode  41 =  grave
+shift altgr keycode  41 = asciitilde
+
+altgr keycode  26 = bracketleft      
+shift altgr keycode  26 = braceleft
+
+altgr keycode  27 = bracketright      
+shift altgr keycode  27 = braceright
+
+altgr keycode  43 = backslash
+shift altgr keycode  43 = bar
+
+altgr keycode  39 = semicolon
+shift altgr keycode  39 = colon
+
+altgr keycode  40 = apostrophe
+shift altgr keycode  40 = quotedbl
+
+altgr keycode  51 = less
+shift altgr keycode  51 = +0xAB
+
+altgr keycode  52 = greater
+shift altgr keycode  52 = +0xBB
+
+# ß
+altgr keycode  31 = ssharp
+
+# €
+altgr keycode  18 = U+20AC
+
+# ©
+altgr keycode  46 = +0xA9
+
+# €
+altgr keycode  18 = U+20AC
+
+# ~
+altgr keycode   2 = asciitilde
+
+# ˇ
+altgr keycode   3 = U+02C7
+
+# ^
+altgr keycode   4 = U+005E
+
+# ˘
+altgr keycode   5 = U+02D8
+
+# ˚
+altgr keycode   6 = U+02DA
+
+# ˛
+altgr keycode   7 = U+02DB
+
+# `
+altgr keycode   8 = U+0060
+
+# ˙
+altgr keycode   9 = U+02D9
+
+# ´
+altgr keycode  10 = U+00B4
+
+# ˝
+altgr keycode  11 = U+02DD
+
+# ¨
+altgr keycode  12 = U+00A8
+
+# §
+altgr keycode  25 = U+00A7
+
+# łŁ
+altgr keycode  38 = U+0142
+shift altgr keycode  38 = U+0141
+
+# đĐ
+altgr keycode  32 = U+0111
+shift altgr keycode  32 = U+0110

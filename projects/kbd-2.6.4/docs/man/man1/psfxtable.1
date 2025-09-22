@@ -1,0 +1,55 @@
+.\" @(#)psfxtable.1
+.TH PSFXTABLE 1 "9 Dec 1999" "kbd"
+.SH NAME
+psfxtable \- handle Unicode character tables for console fonts
+.SH SYNOPSIS
+.B psfxtable
+.RB [ \-i
+.IR infont ]
+.RB [ \-o
+.IR outfont ]
+.RB [ \-it
+.IR intable ]
+.RB [ \-ot
+.IR outtable ]
+.RB [ \-nt ]
+.SH DESCRIPTION
+.IX "psfxtable command" "" "\fLpsfxtable\fR command"
+.LP
+.B psfxtable
+handles the embedded Unicode character table for .psf format
+console fonts. It reads a font and possibly a table
+and writes a font and/or a table.
+.BR psfaddtable (1),
+.BR psfgettable (1)
+and
+.BR psfstriptable (1)
+are links to it.
+
+Each of the filenames
+.IR infont ,
+.IR outfont ,
+.IR intable ,
+and
+.I outtable
+may be replaced by a single dash (\-), in which case
+standard input or standard output is used.
+If no \fI\-i\fR option is given, the font is read from standard input.
+If no \fI\-it\fR or \fI\-o\fR or \fI\-ot\fR option is given,
+no input table is read or no output font or output table is written.
+
+By default the output font (if any) will have a Unicode table
+when either the input font has one, or an explicit table
+(which overrides an input font table) has been provided.
+The option \fI\-nt\fR causes output of a font without table.
+When
+.I outfont
+is requested it will get a psf1 header when infont has
+a psf1 header and
+.I intable
+does not have sequences and a psf2 header otherwise.
+.SH "SEE ALSO"
+.BR setfont (8),
+.BR psfaddtable (1),
+.BR psfgettable (1),
+.BR psfstriptable (1)

@@ -1,0 +1,51 @@
+.\" @(#)kbd_mode.1 1.0 940406 aeb
+.TH KBD_MODE 1 "6 Apr 1994" "kbd"
+.SH NAME
+kbd_mode \- report or set the keyboard mode
+.SH SYNOPSIS
+.B kbd_mode
+[
+.I -a | -u | -k | -s 
+] [
+.I -f
+] [
+.I -C CONSOLE
+]
+.SH DESCRIPTION
+.IX "kbd_mode command" "" "\fLkbd_mode\fR command"  
+.LP
+Without argument,
+.B kbd_mode
+prints the current keyboard mode (RAW, MEDIUMRAW or XLATE).
+With argument, it sets the keyboard mode as indicated:
+.LP
+\-s: scancode mode (RAW),
+.LP
+\-k: keycode mode (MEDIUMRAW),
+.LP
+\-a: ASCII mode (XLATE),
+.LP
+\-u: UTF-8 mode (UNICODE).
+.LP
+Of course the "\-a" is only traditional, and the code used can be any
+8-bit character set.  With "\-u" a 16-bit character set is expected,
+and these chars are transmitted to the kernel as 1, 2, or 3 bytes
+(following the UTF-8 coding).
+In these latter two modes the key mapping defined by
+.BR loadkeys (1)
+is used.
+
+kbd_mode operates on the console specified by the "\-C" option; if there
+is none, the console associated with stdin is used.
+
+Warning: changing the keyboard mode, other than between ASCII and
+Unicode, will probably make your keyboard unusable. Set the "\-f" option
+to force such changes.
+This command is only meant for use (say via remote login)
+when some program left your keyboard in the wrong state.
+Note that in some obsolete versions of this program the "\-u"
+option was a synonym for "\-s" and older versions of this program may
+not recognize the "\-f" option.
+.SH "SEE ALSO"
+.BR loadkeys (1)
+

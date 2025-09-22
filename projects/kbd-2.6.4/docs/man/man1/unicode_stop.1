@@ -1,0 +1,20 @@
+.\" @(#)unicode_stop.1 1.0 010203 aeb
+.TH UNICODE_STOP 1 "3 Feb 2001" "kbd"
+.SH NAME
+unicode_stop \- revert keyboard and console from unicode mode
+.SH SYNOPSIS
+.B unicode_stop
+.SH DESCRIPTION
+.IX "unicode_stop command" "" "\fLunicode_stop\fR command"
+.LP
+The
+.B unicode_stop
+command will more-or-less undo the effect of
+.BR unicode_start .
+It puts the keyboard in ASCII (XLATE) mode, and clears
+the console UTF-8 mode.
+.SH "SEE ALSO"
+.BR kbd_mode (1),
+.BR unicode_start (1),
+.BR utf-8 (7),
+.BR setfont (8)

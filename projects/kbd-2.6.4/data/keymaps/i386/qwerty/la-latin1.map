@@ -1,0 +1,104 @@
+# From jfernand@dc.uba.ar Mon Apr 21 22:00:42 1997
+! Latin American keyboard, loosely based on Jon Tombs' and Julio Sanchez's
+! Spanish keyboard. Read the Spanish and Keyboard HOWTOs for information on
+! how to configure your system to use the extended symbols.
+!
+keymaps 0-2,4-6,8-10,12-14
+alt_is_meta
+include "qwerty-layout"
+	altgr   keycode  16 = at
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one              exclam
+keycode   3 = two              quotedbl
+keycode   4 = three            numbersign
+keycode   5 = four             dollar
+keycode   6 = five             percent
+keycode   7 = six              ampersand
+keycode   8 = seven            slash
+keycode   9 = eight            parenleft
+keycode  10 = nine             parenright
+keycode  11 = zero             equal
+keycode  12 = apostrophe       question         backslash
+	altgr	control	keycode  12 = Control_backslash
+keycode  13 = questiondown     exclamdown
+keycode  14 = Delete
+	control	keycode  14 = BackSpace
+	alt     keycode  14 = Meta_BackSpace
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = dead_acute       dead_diaeresis
+keycode  27 = plus             asterisk         asciitilde
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = ntilde           Ntilde
+keycode  40 = braceleft        bracketleft      dead_circumflex
+	altgr	control	keycode  40 = Control_asciicircum
+keycode  41 = bar              degree        notsign
+keycode  42 = Shift
+keycode  43 = braceright       bracketright     dead_grave
+	shift	control	keycode  43 = Control_bracketright
+keycode  51 = comma            semicolon
+keycode  52 = period           colon
+keycode  53 = minus            underscore
+	shift	control	keycode  53 = Control_underscore
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater
+keycode  97 = Control
+
+compose '\'' 'a' to aacute
+compose '\'' 'e' to eacute
+compose '\'' 'i' to iacute
+compose '\'' 'o' to oacute
+compose '\'' 'u' to uacute
+compose '\'' 'y' to yacute
+compose '\'' 'A' to Aacute
+compose '\'' 'E' to Eacute
+compose '\'' 'I' to Iacute
+compose '\'' 'O' to Oacute
+compose '\'' 'U' to Uacute
+compose '\'' 'Y' to Yacute
+
+compose '"' 'a' to adiaeresis
+compose '"' 'e' to ediaeresis
+compose '"' 'i' to idiaeresis
+compose '"' 'o' to odiaeresis
+compose '"' 'u' to udiaeresis
+compose '"' 'y' to ydiaeresis
+compose '"' 'A' to Adiaeresis
+compose '"' 'E' to Ediaeresis
+compose '"' 'I' to Idiaeresis
+compose '"' 'O' to Odiaeresis
+compose '"' 'U' to Udiaeresis
+compose '"' 'Y' to Ydiaeresis
+
+compose '`' 'a' to agrave
+compose '`' 'e' to egrave
+compose '`' 'i' to igrave
+compose '`' 'o' to ograve
+compose '`' 'u' to ugrave
+compose '`' 'A' to Agrave
+compose '`' 'E' to Egrave
+compose '`' 'I' to Igrave
+compose '`' 'O' to Ograve
+compose '`' 'U' to Ugrave
+compose '`' ' ' to grave
+
+compose '^' 'a' to acircumflex
+compose '^' 'e' to ecircumflex
+compose '^' 'i' to icircumflex
+compose '^' 'o' to ocircumflex
+compose '^' 'u' to ucircumflex
+compose '^' 'A' to Acircumflex
+compose '^' 'E' to Ecircumflex
+compose '^' 'I' to Icircumflex
+compose '^' 'O' to Ocircumflex
+compose '^' 'U' to Ucircumflex
+compose '^' ' ' to asciicircum

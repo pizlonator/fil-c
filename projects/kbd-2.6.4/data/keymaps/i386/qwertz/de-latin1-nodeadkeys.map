@@ -1,0 +1,14 @@
+# de-latin1-nodeadkeys.map: German keymap
+# Due to Olaf Flebbe (flebbe@pluto.tat.physik.uni-tuebingen.de)
+
+include "de-latin1.map"
+
+control keycode   7 = Control_asciicircum
+keycode  13 = apostrophe       grave
+keycode  27 = plus             asterisk         asciitilde
+keycode  41 = asciicircum      degree
+
+# corresponding keys in de-latin1.map:
+# keycode  13 = dead_acute       dead_grave
+# keycode  27 = plus             asterisk         dead_tilde
+# keycode  41 = dead_circumflex  degree

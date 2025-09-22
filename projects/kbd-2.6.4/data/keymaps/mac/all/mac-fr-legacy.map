@@ -1,0 +1,123 @@
+# marc.shapiro@inria.fr 4-october-1998
+# French Macintosh keyboard
+# attempt to align to the standard Mac meaning of keys.
+# mostly intuitive!
+# option=AltGr; Apple/Command=Alt (==> meta)
+
+# TODO: CONTROL AND META COMBINATIONS
+
+charset "iso-8859-1"
+include "mac-azerty-layout.inc"
+include "mac-linux-keys-bare.inc"
+compose as usual for "iso-8859-1"
+strings as usual
+
+# 1st row
+keycode  50 = at			numbersign
+		alt	keycode  50 =	Meta_at
+		control keycode  50 = 	nul
+	shift	alt	keycode  50 =	Meta_numbersign
+
+keycode  18 = ampersand        one
+		alt	keycode  18 =	Meta_ampersand
+	shift	alt 	keycode  18 =	Meta_one
+
+keycode  19 = eacute           two
+	shift	alt	keycode  19 =	Meta_two
+
+keycode  20 = quotedbl	         three
+		alt	keycode  20 =	Meta_quotedbl
+	shift	alt	keycode  20 =	Meta_three
+
+keycode  21 = apostrophe	       four
+		alt	keycode  21 =	Meta_apostrophe
+	shift	alt	keycode  21 =	Meta_four
+
+keycode  23 = parenleft	        five             braceleft 	bracketleft
+		alt	keycode  23 =	Meta_parenleft
+	shift	alt	keycode  23 =	Meta_five
+
+# **** insert meta, control
+keycode  22 = section            six
+		shift	alt	keycode  22 =	Meta_six
+
+keycode  26 = egrave           seven            guillemotleft	guillemotright
+		shift	alt	keycode  26 =	Meta_seven
+
+keycode  28 = exclam	       eight
+		alt	keycode  28 =	Meta_exclam
+	shift	alt	keycode  28 =	Meta_eight
+
+keycode  25 = ccedilla         nine
+		shift	alt	keycode  25 =	Meta_nine
+
+keycode  29 = agrave           zero
+		shift	alt	keycode  29 =	Meta_zero
+
+keycode  27 = parenright		degree          braceright 	bracketright
+		alt	keycode  27 =	Meta_parenright
+
+keycode  24 = minus			underscore
+		alt	keycode  24 =	Meta_minus
+	shift 	alt	keycode  24 = 	Meta_underscore
+	shift	control keycode  24 =	Control_underscore
+
+# 2nd row
+
+
+keycode  33 = dead_circumflex		dead_diaeresis
+		control	keycode  33 = 	Control_asciicircum
+
+keycode  30 = dollar			asterisk	VoidSymbol	yen
+		alt	keycode  30 =	Meta_dollar
+	shift	alt keycode  30 =	Meta_dollar
+
+
+# 3d row
+
+			altgr	keycode  37 = notsign
+	shift		altgr	keycode  37 = bar
+#		alt	altgr	keycode  37 = Meta_notsign # Doesn't work???
+	shift	alt	altgr	keycode  37 = Meta_bar
+
+
+keycode  39 = ugrave		percent
+	shift	alt	keycode  39 =	Meta_percent
+
+keycode  42 = dead_grave 	sterling		at	numbersign
+		alt	keycode  42 =	Meta_grave
+#	shift	alt	keycode  42 =	Meta_sterling # doesn't work ?
+		altgr	keycode  42 =	Meta_at
+	shift	altgr	keycode  42 =	Meta_numbersign
+
+# 4th row
+
+keycode  10 = less 		greater
+		alt	keycode  10 =	Meta_less
+	shift	alt	keycode  10 =	Meta_greater
+
+
+keycode  45 = +n		N		dead_tilde
+		control	keycode  45 =	Control_n
+	shift	control	keycode  45 =	Control_n
+		alt	keycode  45 =	Meta_n
+	shift	alt	keycode  45 =	Meta_n
+
+keycode  46 = comma			question
+		alt	keycode  46 =	Meta_comma
+	shift	alt 	keycode  46 =	Meta_question
+	shift	control	keycode  46 =	Delete
+
+keycode  43 = semicolon			period
+		alt	keycode  43 =	Meta_semicolon
+	shift	alt keycode  43 =	Meta_period
+
+keycode  47 = colon			slash		division	backslash
+		alt	keycode  47 =	Meta_colon
+	shift	alt	keycode  47 =	Meta_slash
+	shift	altgr	control	keycode  47 =	Control_backslash
+
+keycode  44 = equal			plus
+		alt	keycode  44 =	Meta_equal
+	shift	alt	keycode  44 =	Meta_plus
+

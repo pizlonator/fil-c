@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: X</TITLE>
+ <LINK HREF="kbd.FAQ-14.html" REL=next>
+ <LINK HREF="kbd.FAQ-12.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc13" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-14.html">Next</A>
+<A HREF="kbd.FAQ-12.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc13">Contents</A>
+<HR>
+<H2><A NAME="s13">13. X</A></H2>
+
+<P>
+<P>This FAQ/HOWTO is about the Linux keyboard and console, not about X,
+which substitutes its own handling. However, it seems useful to
+document some of the Linux keyboard and console related properties
+of X.
+<P>First of all, when X is started (say using <CODE>startx</CODE> or <CODE>xinit</CODE>)
+it opens the first unused console, unless the desired console has been
+indicated explicitly, as in <CODE>xinit -- vt12</CODE>.
+Note that this will fail when there is no device file <CODE>/dev/tty12</CODE>,
+but that it will not fail when the indicated console was in use already.
+When X finishes, it will return to the original console.
+While it is running one can use Ctrl-Alt-Fn to switch to VTn.
+<P>The XFree86 keymap mechanism is much poorer than the Linux mechanism.
+For each keycode there are at most 4 symbols defined, namely for the
+4 keymaps plain, shift, mod, mod+shift. What is the modifier mod?
+It is the one designated by the symbol <CODE>Mode_switch</CODE>.
+For example, the command <CODE>xmodmap keys.dk</CODE>, where the file
+<CODE>keys.dk</CODE> contains
+<BLOCKQUOTE><CODE>
+<PRE>
+keycode 64 = Mode_switch
+keycode 113 = Mode_switch
+keycode 38 = a A aring Aring
+keycode 26 = e E ae AE
+keycode 32 = o O oslash Ooblique
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will make both Alt keys into mod keys, so that Alt+a gives å (a-ring), etc.
+(Note the illogical naming of oslash and Ooblique.)
+Such an <CODE>xmodmap</CODE> command can be placed in the <CODE>.xinitrc</CODE>
+shell script that is executed by default when X is started.
+<P>
+<H2><A NAME="ss13.1">13.1 What precisely does XFree86-2.1 do when it initializes its keymap?</A>
+</H2>
+
+<P>
+<!--
+keymap!initialization by XFree86
+-->
+
+<!--
+XFree86!keymap initialization
+-->
+<P>Since version 2.1, XFree86 will initialize its keymap from the Linux keymap,
+as far as possible. However, Linux had 16 entries per key (one for each
+combination of the Shift, AltGr, Ctrl, Alt modifiers) and presently has
+256 entries per key, while X has 4 entries per key (one for each combination
+of Shift, Mod), so some information is necessarily lost.
+<P>First <CODE>X</CODE> reads the <CODE>Xconfig</CODE> file, where definitions of the LeftAlt, RightAlt,
+RightCtl, ScrollLock keys as Meta, ModeShift, Compose, ModeLock or ScrollLock
+might be found - see X386keybd(1), later XFree86kbd(1).
+<P>For Mod the LeftAlt key is taken, unless RightCtl was defined as ModeShift or
+ModeLock, in which case RightCtl is taken, or RightAlt was so defined, in which
+case RightAlt is taken.
+This determines how the 4 XFree86 meanings of a key are selected from the 16
+Linux meanings.
+Note that Linux today does not distinguish by default between the two Ctrl keys
+or between the two Shift keys. <CODE>X</CODE> does distinguish.
+<P>Now the kernel keymap is read and the usually obvious corresponding X
+bindings are made. The bindings for the "action keys" Show_Memory, Show_State,
+Show_Registers, Last_Console, Console_n, Scroll_Backward, Scroll_Forward,
+Caps_On and Boot are ignored, as are the dead diacriticals, and the locks
+(except for ShiftLock), and the "ASCII-x" keys.
+<P>Next, the definitions in the <CODE>Xconfig</CODE> file are used. (Thus, a definition
+of Compose in <CODE>Xconfig</CODE> will override its value as found in the Linux
+keymap.)
+<P>What happens to the strings associated with the function keys? Nothing,
+X does not have such a concept. (But it is possible to define strings
+for function keys in <CODE>xterm</CODE> - note however that the window manager gets the
+keys first.)
+<P>I don't know how to convince <CODE>xterm</CODE> that it should use the X keymap
+when Alt is pressed; it seems just to look at its resource <CODE>eightBitInput</CODE>,
+and depending on whether that is true or false either set the high order bit
+of the character, or generate an additional Escape character
+(just like setmetamode(1) does for the console).
+<P>
+<HR>
+<A HREF="kbd.FAQ-14.html">Next</A>
+<A HREF="kbd.FAQ-12.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc13">Contents</A>
+</BODY>
+</HTML>

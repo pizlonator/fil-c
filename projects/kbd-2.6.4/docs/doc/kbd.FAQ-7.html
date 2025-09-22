@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Console switching</TITLE>
+ <LINK HREF="kbd.FAQ-8.html" REL=next>
+ <LINK HREF="kbd.FAQ-6.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc7" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-8.html">Next</A>
+<A HREF="kbd.FAQ-6.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc7">Contents</A>
+<HR>
+<H2><A NAME="s7">7. Console switching</A></H2>
+
+<P>
+<!--
+console!switching
+-->
+<P>By default, console switching is done using Alt-Fn or Ctrl-Alt-Fn.
+Under <CODE>X</CODE> (or recent versions of <CODE>dosemu</CODE>), only Ctrl-Alt-Fn works.
+Many keymaps will allow cyclic walks through all allocated consoles
+using Alt-RightArrow and Alt-LeftArrow.
+<P>XFree86 1.3 does not know that Alt is down when you switch to the X
+window. Thus, you cannot switch immediately to some other VT again
+but have to release Alt first.
+In the other direction this should work: the kernel always keeps
+track of the up/down status of all keys. (As far as possible: on some
+keyboards some keys do not emit a scancode when pressed (e.g.: the PFn
+keys of a FOCUS 9000) or released (e.g.: the Pause key of many keyboards).)
+<P>XFree86 1.3 saves the fonts loaded in the character ROMs when started,
+and restores it on a console switch. Thus, the result of <CODE>setfont</CODE> on
+a VT is wiped out when you go to X and back.
+Using <CODE>setfont</CODE> under X will lead to funny results.
+<P>One can change VT under program control using the <CODE>chvt</CODE> command.
+<P>
+<H2><A NAME="ss7.1">7.1 Changing the number of Virtual Consoles</A>
+</H2>
+
+<P>
+<!--
+console!changing number of
+-->
+<P>This question still comes up from time to time, but the answer is:
+you already have enough of them.
+Since kernel version 1.1.54, there are between 1 and 63 virtual
+consoles. A new one is created as soon as it is opened. It is
+removed by the utility <CODE>deallocvt</CODE> (but it can be removed only when
+no processes are associated to it anymore, and no text on it has been
+selected by programs like <CODE>selection</CODE> or <CODE>gpm</CODE>).
+<P>For older kernels, change the line
+<BLOCKQUOTE><CODE>
+<PRE>
+        #define NR_CONSOLES     8
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>include/linux/tty.h</CODE> (don't increase this number beyond 63),
+and recompile the kernel.
+<P>If they do not exist yet, create the tty devices with <CODE>MAKEDEV</CODE>
+or <CODE>mknod tty</CODE>N <CODE>c 4</CODE> N where N denotes the tty number. For example,
+<BLOCKQUOTE><CODE>
+<PRE>
+        for i in 9 10 11 12; do mknod /dev/tty$i c 4 $i; done
+</PRE>
+</CODE></BLOCKQUOTE>
+
+or, better (since it also takes care of owner and permissions),
+<BLOCKQUOTE><CODE>
+<PRE>
+        for i in 9 10 11 12; do /dev/MAKEDEV tty$i; done
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>If you want the new VCs to run <CODE>getty</CODE>, add lines in <CODE>/etc/inittab</CODE>.
+(But it is much better to have only two <CODE>getty</CODE>'s running,
+and to create more consoles dynamically as the need arises.
+That way you'll have more memory when you don't use all these consoles,
+and also more consoles, in case you really need them.
+Edit <CODE>/etc/inittab</CODE> and comment out all <CODE>getty</CODE>'s except
+for the first two.)
+<P>When the consoles are allocated dynamically, it is usually easiest
+to have only one or two running <CODE>getty</CODE>. More are opened by
+<CODE>open -l -s bash</CODE>. Unused consoles (without associated processes)
+are deallocated using <CODE>deallocvt</CODE> (formerly <CODE>disalloc</CODE>).
+But, you say, I am involved in activities when I suddenly need more
+consoles, and do not have a bash prompt available to give the <CODE>open</CODE>
+command.
+Fortunately it is possible to create a new console upon a single
+keystroke, regardless of what is happening at the current console.
+<P>If you have <CODE>spawn_login</CODE> from <CODE>kbd-1.04.tar.gz</CODE> and you put
+<BLOCKQUOTE><CODE>
+<PRE>
+        loadkeys &lt;&lt; EOF
+        alt keycode 103 = Spawn_Console
+        EOF
+        spawn_login &amp;
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>/etc/rc.local</CODE>, then typing Alt-UpArrow will create a fresh VC
+running <CODE>login</CODE> (and switch to it). With <CODE>spawn_console &amp;</CODE> instead of
+<CODE>spawn_login &amp;</CODE> you'll have bash running there.
+See also <CODE>open-1.4.tgz</CODE> and <CODE>dynamic-vc-1.1.tar.gz</CODE>.
+<P>What action should be taken upon this Spawn_Console keypress
+can also be set in <CODE>/etc/inittab</CODE> under <CODE>kbrequest</CODE>,
+if you have a recent <CODE>init</CODE>. See inittab(5).
+<P>(This action can be something entirely different - I just called
+the key Spawn_Console because that is what I used it for.
+When used for other purposes it is less confusing to use
+its synonym KeyboardSignal.
+For example, some people like to put the lines
+<BLOCKQUOTE><CODE>
+<PRE>
+        kb::kbrequest:/sbin/shutdown -h now
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>/etc/inittab</CODE>, and
+<BLOCKQUOTE><CODE>
+<PRE>
+        control alt keycode 79 = KeyboardSignal
+        control alt keycode 107 = KeyboardSignal
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in their keymap. Now Ctrl-Alt-End will do a system shutdown.)
+<P>You can only login as "root" on terminals listed in <CODE>/etc/securetty</CODE>.
+There exist programs that read terminal settings from files
+<CODE>/etc/ttys</CODE> and <CODE>/etc/ttytype</CODE>. If you have such
+files, and create additional consoles, then it might be a good idea
+to also add entries for them in these files.
+<P>
+<HR>
+<A HREF="kbd.FAQ-8.html">Next</A>
+<A HREF="kbd.FAQ-6.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc7">Contents</A>
+</BODY>
+</HTML>

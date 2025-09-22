@@ -1,0 +1,167 @@
+# Slovak ISO 8859-2 keyboard map for text console (ver. 2)
+# Layout: qwerty
+# Written and (c) copyright by Jan Ondrej (ondrejj@salstar.shadow.sk)
+# You can distribute this file under the terms of GNU General
+# Public License (GPL). See the file COPYING.
+#
+# Slovenska klavesnica sa zapne a vypne klavesou Pause.
+# Klavesou AltGr (Right Alt) je mozne sa prepnut zo slovenskej do US a naopak.
+# Klavesa Pause potom funguje ako AltGr-lock.
+# Znak o s vokanom mozete dostat stlacenim klavesu makcen a "o".
+#
+# Zdalo sa mi, ze diaeresis nefunguje celkom spravne, pretoze
+# pri kombinacii s pismenom a daval vysledok dva znaky "a .
+# Upravil som to pridanim compose.
+#
+# Dalej som pridal prepinanie konzoli pomocou CTRL+ALT+F1 az F12
+# podla klasickej klavesovej mapy. Pridal som aj zopar includov,
+# ale neviem, ci nieco upravia.
+#
+# Tento subor bol vytvoreny zo suboru cz-lat2.map, ktory
+# napisal Jan Kasprzak (kas@ics.muni.cz).
+#
+alt_is_meta
+charset "iso-8859-2"
+keymaps 0-15
+include "linux-keys-bare.inc"
+include "linux-keys-extd.inc"
+include "linux-with-modeshift-altgr.inc"
+include "qwerty-layout.inc"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one exclam plus one
+keycode   3 = two at lcaron two
+keycode   4 = three numbersign scaron three Escape
+keycode   5 = four dollar ccaron four Control_backslash
+keycode   6 = five percent tcaron five Control_bracketright
+keycode   7 = six asciicircum zcaron six Control_asciicircum
+keycode   8 = seven ampersand yacute seven Control_underscore
+keycode   9 = eight asterisk aacute eight Delete
+keycode  10 = nine parenleft iacute nine
+keycode  11 = zero parenright eacute zero
+keycode  12 = minus underscore equal percent
+keycode  13 = equal plus dead_acute dead_circumflex
+keycode  14 = Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = bracketleft braceleft uacute slash Escape
+keycode  27 = bracketright braceright adiaeresis parenleft Control_bracketright
+keycode  28 = Return 
+altgr keycode  28 = Return
+alt keycode  28 = Meta_Control_m
+alt altgr keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon colon ocircumflex quotedbl
+keycode  40 = apostrophe quotedbl 0xa7 exclam Control_g
+keycode  41 = grave asciitilde dead_diaeresis dead_circumflex nul
+keycode  42 = Shift
+keycode  43 = backslash bar ncaron parenright Control_backslash
+keycode  51 = comma less comma question
+keycode  52 = period greater period colon Compose
+keycode  53 = slash question minus underscore Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space space space space nul nul nul nul
+keycode  58 = Caps_Lock
+keycode  70 = Scroll_Lock Show_Memory Show_Registers
+control keycode  70 = Show_State
+alt keycode  70 = Scroll_Lock
+keycode  84 = Last_Console
+keycode  86 = less greater bar
+alt keycode  86 = Meta_less
+keycode  97 = Control
+keycode  99 = VoidSymbol
+	control keycode  99 = Control_backslash
+	alt keycode  99 = Control_backslash
+keycode 100 = AltGr
+	alt altgr keycode 105 = Decr_Console
+	alt altgr keycode 106 = Incr_Console
+control alt keycode 111 = Boot
+
+keycode 119 = AltGr_Lock
+
+compose ',' 'A' to '¡'
+compose '/' 'L' to '£'
+compose '^' 'L' to '¥'
+compose '\'' 'S' to '¦'
+compose '^' 'S' to '©'
+compose ',' 'S' to 'ª'
+compose '^' 'T' to '«'
+compose '\'' 'Z' to '¬'
+compose '^' 'Z' to '®'
+compose '.' 'Z' to '¯'
+compose ',' 'a' to '±'
+compose '/' 'l' to '³'
+compose '^' 'l' to 'µ'
+compose '\'' 's' to '¶'
+compose '^' 's' to '¹'
+compose ',' 's' to 'º'
+compose '^' 't' to '»'
+compose '\'' 'z' to '¼'
+compose '^' 'z' to '¾'
+compose '.' 'z' to '¿'
+compose '\'' 'R' to 'À'
+compose '\'' 'A' to 'Á'
+compose '^' 'A' to 'Â'
+compose '^' 'A' to 'Ã'
+compose ':' 'A' to 'Ä'
+compose '"' 'A' to 'Ä'
+compose '\'' 'L' to 'Å'
+compose '\'' 'C' to 'Æ'
+compose ',' 'C' to 'Ç'
+compose '^' 'C' to 'È'
+compose '\'' 'E' to 'É'
+compose ',' 'E' to 'Ê'
+compose '"' 'E' to 'Ë'
+compose '^' 'E' to 'Ì'
+compose '\'' 'I' to 'Í'
+compose '^' 'I' to 'Î'
+compose '^' 'D' to 'Ï'
+compose '-' 'D' to 'Ð'
+compose '\'' 'N' to 'Ñ'
+compose '^' 'N' to 'Ò'
+compose '\'' 'O' to 'Ó'
+compose '^' 'O' to 'Ô'
+compose '"' 'O' to 'Õ'
+compose ':' 'O' to 'Ö'
+compose '^' 'R' to 'Ø'
+compose '^' 'U' to 'Ù'
+compose '\'' 'U' to 'Ú'
+compose '"' 'U' to 'Û'
+compose ':' 'U' to 'Ü'
+compose '\'' 'Y' to 'Ý'
+compose ',' 'T' to 'Þ'
+compose 's' 's' to 'ß'
+compose 'S' 'S' to 'ß'
+compose '\'' 'r' to 'à'
+compose '\'' 'a' to 'á'
+compose '^' 'a' to 'â'
+compose '^' 'a' to 'ã'
+compose ':' 'a' to 'ä'
+compose '"' 'a' to 'ä'
+compose '\'' 'l' to 'å'
+compose '\'' 'c' to 'æ'
+compose ',' 'c' to 'ç'
+compose '^' 'c' to 'è'
+compose '\'' 'e' to 'é'
+compose ',' 'e' to 'ê'
+compose ':' 'e' to 'ë'
+compose '^' 'e' to 'ì'
+compose '\'' 'i' to 'í'
+compose '^' 'e' to 'î'
+compose '^' 'd' to 'ï'
+compose '-' 'd' to 'ð'
+compose '\'' 'n' to 'ñ'
+compose '^' 'n' to 'ò'
+compose '\'' 'o' to 'ó'
+compose '^' 'o' to 'ô'
+compose ':' 'o' to 'õ'
+compose '"' 'o' to 'ö'
+compose '^' 'r' to 'ø'
+compose '^' 'u' to 'ù'
+compose '\'' 'u' to 'ú'
+compose '"' 'u' to 'û'
+compose ':' 'u' to 'ü'
+compose '\'' 'y' to 'ý'
+compose ',' 't' to 'þ'

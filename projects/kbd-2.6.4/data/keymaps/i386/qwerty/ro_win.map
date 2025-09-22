@@ -1,0 +1,88 @@
+# ro_win.map - A new romanian keymap [i386-qwerty]
+# From bela@home.ro
+# From ro.map - Tue Mar 21 10:32:56 2000
+
+charset "iso-8859-2"
+keymaps 0-6,8-10,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one		exclam		one 		exclam
+keycode   3 = two		at		at		at		nul		nul
+keycode   4 = three            numbersign
+ control keycode   4 = Escape
+keycode   5 = four             dollar           dollar           dollar		Control_backslash
+keycode   6 = five             percent
+ control keycode   6 = Control_bracketright
+keycode   7 = six              asciicircum
+ control keycode   7 = Control_asciicircum
+keycode   8 = seven            ampersand        braceleft	braceleft	Control_underscore
+keycode   9 = eight            asterisk         bracketleft	bracketleft	Delete
+keycode  10 = nine             parenleft        bracketright	parenleft
+keycode  11 = zero             parenright       braceright	parenright
+keycode  12 = minus            underscore       backslash	backslash	Control_underscore Control_underscore
+keycode  13 = equal            plus
+keycode  14 = Delete		Delete		Delete
+keycode  15 = Tab		Meta_Tab		Tab
+keycode  26 = bracketleft      braceleft
+	control	keycode  26 = Escape
+keycode  27 = bracketright     braceright       asciitilde       asciitilde	Control_bracketright
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon        colon
+keycode  40 = apostrophe       quotedbl
+	control	keycode  40 = Control_g
+keycode  41 = grave            asciitilde
+	control	keycode  41 = nul
+keycode  42 = Shift
+	alt	keycode  42 = AltGr_Lock
+	altgr	alt	keycode  42 = AltGr_Lock		# warning
+keycode  43 = backslash        bar
+	control	keycode  43 = Control_backslash
+keycode  51 = comma            less		comma
+keycode  52 = period           greater		period
+keycode  53 = slash            question		slash		question
+	control	keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space		space		space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+keycode  97 = Control
+
+shift 	alt	keycode 100 = AltGr_Lock		# altgr = 100
+
+#keycode 102 = Control_a # Home
+#keycode 107 = Control_e # End
+
+#keycode 126 = Decr_Console # Buton windows
+#keycode 127 = Incr_Console # Buton windows
+
+#
+# Caracterele româneºti sunt mapate astfel:
+#  AltGr + [(26) = ã
+#  AltGr + ](27) = î
+#  AltGr + ;(39) = º
+#  AltGr + '(40) = þ
+#  AltGr + \(43) = â
+# alt-left + shift-left = AltGr_Lock
+
+altgr keycode  40 = +0xFE
+shift altgr keycode  40 = +0xDE
+
+altgr keycode  27 = +0xEE
+shift altgr keycode  27 = +0xCE
+
+altgr keycode  26 = +0xE3
+shift altgr keycode  26 = +0xC3
+
+altgr keycode  39 = +0xBA
+shift altgr keycode  39 = +0xAA
+
+altgr keycode  43 = +0xE2
+shift altgr keycode  43 = +0xC2

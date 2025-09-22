@@ -1,0 +1,257 @@
+# Czech ISO 8859-2 keyboard map for text console
+# Written and (c) copyright by Jan Kasprzak (kas@ics.muni.cz)
+# You can distribute this file under the terms of GNU General
+# Public License (GPL). See the file COPYING.
+# Modified by Jan Kybic, kybic@earn.cvut.cz
+#
+# Ceska klavesnice se zapne a vypne klavesou Pause.
+# Klavesou AltGr (Right Alt) je mozne se prepnout z ceske do US a naopak.
+# Klavesa Pause pak funguje jako AltGr-lock.
+#
+# Klavesnice je programatorska - klavesy prvni rady generuji mala
+# akcentovana pismena, se Shiftem pak cislice. Ostatni pismena s diakritikou
+# je nutne psat pomoci mrtve klavesy, coz je klavesa s kodem 86 - v mem
+# pripade je to klavesa vlevo od Z, puvodne dublujici klavesu s kodem 43,
+# t.j. '\' a '|'. Vyznam ostatnich klaves zustava nezmenen.
+#
+# Contributed by "Pavel JANIK ml." <pjanik@aida.inet.cz>
+#             Date: Thu, 6 Mar 1997 20:24:27 +0100 (MET)
+# ftp site:   ftp://ftp.inet.cz/pub/People/Pavel.Janik/CzechKeyMaps/
+#
+charset "iso-8859-2"
+keymaps 0-15
+strings as usual
+keycode   1 = Escape Escape Escape Escape Escape Escape Escape Escape Meta_Escape Meta_Escape Meta_Escape Meta_Escape Meta_Escape Meta_Escape Meta_Escape Meta_Escape
+keycode   2 = one exclam plus one VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_one Meta_exclam Meta_one Meta_one
+keycode   3 = two at ecaron two nul nul nul nul Meta_two Meta_two Meta_two Meta_two
+keycode   4 = three numbersign scaron three Escape VoidSymbol Escape VoidSymbol Meta_three Meta_three Meta_three Meta_three Meta_three
+keycode   5 = four dollar ccaron four Control_backslash VoidSymbol Control_backslash VoidSymbol Meta_four Meta_four Meta_four Meta_four
+keycode   6 = five percent rcaron five Control_bracketright VoidSymbol Control_bracketright VoidSymbol Meta_five Meta_five Meta_five Meta_five
+keycode   7 = six asciicircum zcaron six Control_asciicircum VoidSymbol Control_asciicircum VoidSymbol Meta_six Meta_six Meta_six Meta_six
+keycode   8 = seven ampersand yacute seven Control_underscore  VoidSymbol Control_underscore VoidSymbol Meta_seven Meta_seven Meta_seven Meta_seven
+keycode   9 = eight asterisk aacute eight Delete VoidSymbol Delete VoidSymbol Meta_eight Meta_eight Meta_eight Meta_eight
+keycode  10 = nine parenleft iacute nine VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_nine Meta_nine Meta_nine Meta_nine
+keycode  11 = zero parenright eacute zero VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_zero Meta_zero Meta_zero Meta_zero
+keycode  12 = minus underscore minus underscore Control_underscore Control_underscore Control_underscore Control_underscore Meta_minus Meta_minus Meta_minus Meta_minus
+keycode  13 = equal plus dead_acute dead_circumflex VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_equal Meta_equal Meta_equal Meta_equal
+keycode  14 = Delete Delete Delete Delete VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_Delete Meta_Delete Meta_Delete Meta_Delete
+keycode  15 = Tab Meta_Tab Tab Tab VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_Tab Meta_Tab Meta_Tab Meta_Tab
+keycode  16 = q
+keycode  17 = w
+keycode  18 = e
+keycode  19 = r
+keycode  20 = t
+keycode  21 = y
+keycode  22 = u
+keycode  23 = i
+keycode  24 = o
+keycode  25 = p
+keycode  26 = bracketleft braceleft  bracketleft braceleft
+keycode  27 = bracketright braceright  bracketright braceright
+keycode  28 = Return
+altgr keycode  28 = Return
+alt keycode  28 = Meta_Control_m
+alt altgr keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  30 = a
+keycode  31 = s
+keycode  32 = d
+keycode  33 = f
+keycode  34 = g
+keycode  35 = h
+keycode  36 = j
+keycode  37 = k
+keycode  38 = l
+keycode  39 = semicolon colon  semicolon colon
+keycode  40 = apostrophe quotedbl  apostrophe quotedbl
+keycode  41 = grave asciitilde grave asciitilde
+keycode  42 = Shift
+keycode  43 = backslash bar backslash bar Control_backslash VoidSymbol Control_backslash VoidSymbol Meta_backslash VoidSymbol Meta_backslash
+keycode  44 = z
+keycode  45 = x
+keycode  46 = c
+keycode  47 = v
+keycode  48 = b
+keycode  49 = n
+keycode  50 = m
+keycode  51 = comma less comma less VoidSymbol VoidSymbol VoidSymbol VoidSymbol Meta_comma Meta_less Meta_comma Meta_less
+keycode  52 = period greater period greater Compose VoidSymbol Compose VoidSymbol Meta_period Meta_greater Meta_period Meta_greater
+keycode  53 = slash question slash question Delete VoidSymbol Delete VoidSymbol Meta_slash Meta_question Meta_slash Meta_question 
+keycode  54 = Shift
+keycode  55 = KP_Multiply
+keycode  56 = Alt
+keycode  57 = space space space space nul nul nul nul Meta_space Meta_space Meta_space Meta_space
+keycode  58 = Caps_Lock
+keycode  59 = F1 F13 F1 F13 F1 VoidSymbol F1 VoidSymbol Console_1 VoidSymbol Console_1
+keycode  60 = F2 F14 F2 F14 F2 VoidSymbol F2 VoidSymbol Console_2 VoidSymbol Console_2
+keycode  61 = F3 F15 F3 F15 F3 VoidSymbol F3 VoidSymbol Console_3 VoidSymbol Console_3
+keycode  62 = F4 F16 F4 F15 F4 VoidSymbol F4 VoidSymbol Console_4 VoidSymbol Console_4
+keycode  63 = F5 F17 F5 F15 F5 VoidSymbol F5 VoidSymbol Console_5 VoidSymbol Console_5
+keycode  64 = F6 F18 F6 F15 F6 VoidSymbol F6 VoidSymbol Console_6 VoidSymbol Console_6
+keycode  65 = F7 F19 F7 F15 F7 VoidSymbol F7 VoidSymbol Console_7 VoidSymbol Console_7
+keycode  66 = F8 F20 F8 F15 F8 VoidSymbol F8 VoidSymbol Console_8 VoidSymbol Console_8
+keycode  67 = F9 F9 F9 F9 F9 VoidSymbol F9 VoidSymbol Console_9 VoidSymbol Console_9
+keycode  68 = F10 F10 F10 F10 F10 VoidSymbol F10 VoidSymbol Console_10 VoidSymbol Console_10
+keycode  69 = Num_Lock
+keycode  70 = Scroll_Lock Show_Memory Show_Registers
+control keycode  70 = Show_State
+alt keycode  70 = Scroll_Lock
+keycode  71 = KP_7
+alt keycode  71 = Ascii_7
+keycode  72 = KP_8
+alt keycode  72 = Ascii_8
+keycode  73 = KP_9
+alt keycode  73 = Ascii_9
+keycode  74 = KP_Subtract
+keycode  75 = KP_4
+alt keycode  75 = Ascii_4
+keycode  76 = KP_5
+alt keycode  76 = Ascii_5
+keycode  77 = KP_6
+alt keycode  77 = Ascii_6
+keycode  78 = KP_Add
+keycode  79 = KP_1
+alt keycode  79 = Ascii_1
+keycode  80 = KP_2
+alt keycode  80 = Ascii_2
+keycode  81 = KP_3
+alt keycode  81 = Ascii_3
+keycode  82 = KP_0
+alt keycode  82 = Ascii_0
+keycode  83 = KP_Period
+control alt keycode  83 = Boot
+keycode  84 = Last_Console
+keycode  85 =
+keycode  86 = backslash bar dead_acute dead_circumflex
+alt keycode  86 = Meta_less
+keycode  87 = F11 F11 F11 F11 F11 VoidSymbol F11 VoidSymbol Console_11 VoidSymbol Console_11
+keycode  88 = F12 F12 F12 F12 F12 VoidSymbol F12 VoidSymbol Console_12 VoidSymbol Console_12
+keycode  89 =
+keycode  90 =
+keycode  91 =
+keycode  92 =
+keycode  93 =
+keycode  94 =
+keycode  95 =
+keycode  96 = KP_Enter
+keycode  97 = Control
+keycode  98 = KP_Divide
+keycode  99 = VoidSymbol
+	control keycode  99 = Control_backslash
+	alt keycode  99 = Control_backslash
+keycode 100 = AltGr
+keycode 101 = Break
+keycode 102 = Find
+keycode 103 = Up
+keycode 104 = Prior Scroll_Backward Prior Scroll_Backward VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol 
+keycode 105 = Left
+	alt keycode 105 = Decr_Console
+	alt altgr keycode 105 = Decr_Console
+keycode 106 = Right
+	alt keycode 106 = Incr_Console
+	alt altgr keycode 106 = Incr_Console
+keycode 107 = Select
+keycode 108 = Down
+keycode 109 = Next Scroll_Forward Next Scroll_Forward VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol VoidSymbol
+keycode 110 = Insert
+keycode 111 = Remove
+control alt keycode 111 = Boot
+keycode 112 = Macro
+keycode 113 = F13
+keycode 114 = F14
+keycode 115 = Help
+keycode 116 = Do
+keycode 117 = F17
+keycode 118 = KP_MinPlus
+keycode 119 = AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock AltGr_Lock
+keycode 120 =
+keycode 121 =
+keycode 122 =
+keycode 123 =
+keycode 124 =
+keycode 125 =
+keycode 126 =
+keycode 127 =
+compose ',' 'A' to '¡'
+compose '/' 'L' to '£'
+compose '^' 'L' to '¥'
+compose '\'' 'S' to '¦'
+compose '^' 'S' to '©'
+compose ',' 'S' to 'ª'
+compose '^' 'T' to '«'
+compose '\'' 'Z' to '¬'
+compose '^' 'Z' to '®'
+compose '.' 'Z' to '¯'
+compose ',' 'a' to '±'
+compose '/' 'l' to '³'
+compose '^' 'l' to 'µ'
+compose '\'' 's' to '¶'
+compose '^' 's' to '¹'
+compose ',' 's' to 'º'
+compose '^' 't' to '»'
+compose '\'' 'z' to '¼'
+compose '^' 'z' to '¾'
+compose '.' 'z' to '¿'
+compose '\'' 'R' to 'À'
+compose '\'' 'A' to 'Á'
+compose '^' 'A' to 'Â'
+compose '^' 'A' to 'Ã'
+compose ':' 'A' to 'Ä'
+compose '\'' 'L' to 'Å'
+compose '\'' 'C' to 'Æ'
+compose ',' 'C' to 'Ç'
+compose '^' 'C' to 'È'
+compose '\'' 'E' to 'É'
+compose ',' 'E' to 'Ê'
+compose '"' 'E' to 'Ë'
+compose '^' 'E' to 'Ì'
+compose '\'' 'I' to 'Í'
+compose '^' 'I' to 'Î'
+compose '^' 'D' to 'Ï'
+compose '-' 'D' to 'Ð'
+compose '\'' 'N' to 'Ñ'
+compose '^' 'N' to 'Ò'
+compose '\'' 'O' to 'Ó'
+compose '^' 'O' to 'Ô'
+compose '"' 'O' to 'Õ'
+compose ':' 'O' to 'Ö'
+compose '^' 'R' to 'Ø'
+compose '^' 'U' to 'Ù'
+compose '\'' 'U' to 'Ú'
+compose '"' 'U' to 'Û'
+compose ':' 'U' to 'Ü'
+compose '\'' 'Y' to 'Ý'
+compose ',' 'T' to 'Þ'
+compose 's' 's' to 'ß'
+compose 'S' 'S' to 'ß'
+compose '\'' 'r' to 'à'
+compose '\'' 'a' to 'á'
+compose '^' 'a' to 'â'
+compose '^' 'a' to 'ã'
+compose ':' 'a' to 'ä'
+compose '\'' 'l' to 'å'
+compose '\'' 'c' to 'æ'
+compose ',' 'c' to 'ç'
+compose '^' 'c' to 'è'
+compose '\'' 'e' to 'é'
+compose ',' 'e' to 'ê'
+compose ':' 'e' to 'ë'
+compose '^' 'e' to 'ì'
+compose '\'' 'i' to 'í'
+compose '^' 'e' to 'î'
+compose '^' 'd' to 'ï'
+compose '-' 'd' to 'ð'
+compose '\'' 'n' to 'ñ'
+compose '^' 'n' to 'ò'
+compose '\'' 'o' to 'ó'
+compose '^' 'o' to 'ô'
+compose ':' 'o' to 'õ'
+compose '"' 'o' to 'ö'
+compose '^' 'r' to 'ø'
+compose '^' 'u' to 'ù'
+compose '\'' 'u' to 'ú'
+compose '\'' 'u' to 'ú'
+compose '"' 'u' to 'û'
+compose ':' 'u' to 'ü'
+compose '\'' 'y' to 'ý'
+compose ',' 't' to 'þ'

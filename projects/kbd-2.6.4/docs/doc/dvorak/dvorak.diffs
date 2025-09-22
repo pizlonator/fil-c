@@ -1,0 +1,30 @@
+The gif picture here shows a Mac keyboard with ANSI-dvorak layout.
+This layout differs in three places from the dvorak layout:
+
+keycode 12:  (us.map -_)	dvorak [{	ANSI-dvorak ][
+keycode 13:  (us.map =+)	dvorak ]}	ANSI-dvorak =+
+keycode 27:  (us.map ]})	dvorak =+	ANSI-dvorak {}
+
+Of course ANSI-dvorak is illogical in that both parentheses
+are shifted, the brackets are on one key with the closing
+one unshifted, the braces are on one key with the opening
+one unshifted.
+The description given by Marcus Brooks in dvorak.txt
+coincides completely with our dvorak.map.
+==================================================================
+The xmodmap file in dvorak-l.xmodmap differs from dvorak-l.map
+in maybe 4 places:
+
+keycode  2:  (us.map 1!)	dvorak-l [{	dvorak-l.xmodmap =+
+keycode  3:  (us.map 2@)	dvorak-l ]}	dvorak-l.xmodmap ][
+keycode 27:  (us.map ]})	dvorak-l =+	dvorak-l.xmodmap }{
+keycode 14:  (us.map <BS>)	dvorak-l <BS>	dvorak-l.xmodmap \|
+==================================================================
+The xmodmap file in dvorak-r.xmodmap differs from dvorak-r.map
+in maybe 4 places:
+
+keycode 12:  (us.map -_)	dvorak-r [{	dvorak-r.xmodmap ][
+keycode 13:  (us.map =+)	dvorak-r ]}	dvorak-r.xmodmap =+
+keycode 27:  (us.map ]})        dvorak-r =+     dvorak-r.xmodmap }{
+keycode 14:  (us.map <BS>)	dvorak-r <BS>	dvorak-r.xmodmap \|
+==================================================================

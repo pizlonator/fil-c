@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: The console character sets</TITLE>
+ <LINK HREF="kbd.FAQ-7.html" REL=next>
+ <LINK HREF="kbd.FAQ-5.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc6" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-7.html">Next</A>
+<A HREF="kbd.FAQ-5.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc6">Contents</A>
+<HR>
+<H2><A NAME="s6">6. The console character sets</A></H2>
+
+<P>
+<!--
+console character sets
+-->
+
+<!--
+character sets, console
+-->
+<P>The kernel first tries to figure out what symbol is meant by any given
+user byte, and next where this symbol is located in the current font.
+<P>The kernel knows about 5 translations of bytes into console-screen symbols.
+In Unicode (UTF-8) mode, the UTF-8 code is just converted directly into
+Unicode. The assumption is that almost all symbols one needs are present
+in Unicode, and for the cases where this does not hold the codes
+0xf000-0xf1ff are reserved for direct font access.
+When not in Unicode mode, one of four translation tables is used.
+The four tables are: a) Latin1 -&gt; Unicode,  b) VT100 graphics -&gt; Unicode,
+c) PC -&gt; Unicode, d) user-defined.
+<P>There are two character sets, called G0 and G1, and one of them
+is the current character set. (Initially G0.)
+Typing Ctrl-N causes G1 to become current, Ctrl-O causes G0 to become current.
+<P>These variables G0 and G1 point at a translation table, and can be changed
+by the user. Initially they point at tables a) and b), respectively.
+The sequences ESC ( B and ESC ( 0 and ESC ( U and ESC ( K cause G0 to point
+at translation table a), b), c) and d), respectively.
+The sequences ESC ) B and ESC ) 0 and ESC ) U and ESC ) K cause G1 to point
+at translation table a), b), c) and d), respectively.
+<P>The sequence ESC c causes a terminal reset, which is what you want if the
+screen is all garbled. The oft-advised <CODE>echo ^V^O</CODE> will only
+make G0 current, but there is no guarantee that G0 points at table a).
+In some distributions there is a program reset(1) that just does
+<CODE>echo ^[c</CODE>.
+If your termcap entry for the console is correct (and has an entry
+<CODE>:rs=\Ec:</CODE>), then also <CODE>setterm -reset</CODE> will work.
+<P>The user-defined mapping table can be set using mapscrn(8).
+The result of the mapping is that if a symbol c is printed, the symbol
+<CODE>s = map[c]</CODE> is sent to the video memory. The bitmap that corresponds to
+<CODE>s</CODE> is found in the character ROM, and can be changed using setfont(8).
+<P>
+<HR>
+<A HREF="kbd.FAQ-7.html">Next</A>
+<A HREF="kbd.FAQ-5.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc6">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,89 @@
+
+
+   VV       VV  LL          OOO       CCCCC  KK   KK
+    VV     VV   LL        OO   OO   CC       KK KK    written by
+     VV   VV    LL       OO     OO  CC       KK        Michael K. Johnson
+      VV VV     LL        OO   OO   CC       KK KK    for Linux Journal
+       VVV      LLLLLLLL    OOO       CCCCC  KK   KK
+
+
+This is vlock, the Linux _V_irtual Console locking program.  It
+allows you to lock one or all of the sessions of your Linux console
+display.
+
+Usage is very simple; by default, vlock locks the single console
+you are on.  The -a or --all flags cause it to lock the console
+completely, so that users cannot switch to another virtual
+console.
+
+If you are working on a shared Linux computer, and want to lock
+a console session as you left it, but want to allow other users
+to log onto other sessions, simply run vlock when you leave the
+computer.
+
+If you want to lock the console so that no one else can log onto
+any of the virtual consoles (perhaps because you have login sessions
+running on several other virtual consoles at the same time), you
+use the -a or --all flag to cause vlock to not allow any user
+to switch to any console without typing your password.
+
+  WARNING: If you lock all the consoles, they will be *really*
+  locked.  Unless you have a serial terminal, or can log in
+  remotely via a network to kill vlock, you *will not* be able
+  to get back to your terminal session without entering the
+  correct password.  While I was developing this program, a few
+  small bugs forced me to do *hard resets*.  If you loose data
+  because you have to reset your computer because of vlock -a,
+  it is your own problem, not mine.  I warned you.
+
+If anyone else can log in as you, they can send a
+SIGKILL to vlock, which *will* kill it.
+
+The vlock binary can be installed wherever you like, with
+whatever name you like.
+
+"vlock -h" or "vlock --help" will get you a help message.
+
+If you have the "open" program, try doing `open vlock -a' to
+run vlock on a new VC.  This will keep your current VC from getting
+obscured by silly password messages...
+
+*** Features: ***
+Currently, vlock doesn't have very many features.  It locks the
+console, and now will even try to lock other sessions as well.
+I hope that non-VC sessions will be locked securely, but I
+don't know for sure.
+
+vlock supports no other authentication methods but PAM authentication.
+
+*** Bugs fixed: ***
+Quits if the tty is closed (not applicable to VCs).
+Asks for password on non-PAM systems.  March 12, 1998.
+
+Moved to new PAM conversationg function conventions.  October 10, 1997.
+
+Shadow support was minimal.  Fixed May 16, 1996.
+Used /dev/console instead of /dev/tty.  Fixed May 16, 1996.
+
+Ctrl-Break was able to kill vlock.  Fixed July 3, 1994.
+
+With vlock -a, after guessing the password wrong once, it was
+possible to switch VC's.  Fixed July 3, 1994.
+
+Root was not allowed to lock his tty because I took my
+password reading program from GNU su, for which it is
+appropriate for root not to be asked to enter a password...
+This was fixed March 21, 1994.
+
+Message said to use Control-function key, not Alt-function key.
+This was fixed March 23, 1994.
+
+SIGQUIT could break out of vlock in some cases.
+This was fixed March 23, 1994.
+
+
+Please email me any comments you have about vlock: johnsonm@redhat.com
+
+I wrote this code as a demonstration of the VT ioctls for Linux
+Journal.  Subscription information is available on the web at
+http://www.ssc.com/lj and via email through info@ssc.com

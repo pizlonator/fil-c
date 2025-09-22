@@ -1,0 +1,42 @@
+.\" @(#)mk_modmap.8 2002-02-22 mckinstry@computer.org
+.TH MK_MODMAP 8 "2002-02-22" "kbd"
+
+.SH NAME
+mk_modmap \- translate a Linux keytable file into an xmodmap file
+
+.SH SYNOPSIS
+.B mk_modmap
+[
+.B -v
+]
+keymap_file
+
+.SH DESCRIPTION
+The
+.B mk_modmap
+command tries to translate a Linux console keytable file into
+a file that can be parsed by xmodmap, and used within X.
+It outputs the results to standard out.
+.P
+If the
+.B -v
+flag is used, verbose output is given.
+.P
+It requires the X header files to be installed.
+(In Debian, these are in the "xlibs-dev" package).
+.SH NOTES
+Since XFree version 2.1, X initialises its keymap using the Linux
+keymap, so xmodmap will often be superfluous.
+
+.SH SEE ALSO
+.BR dumpkeys (1),
+.BR keymaps (5),
+.BR xmodmap (1)
+
+
+.\" .SH AUTHORS
+.\" Kjetil T. Homme <kjetilho@ifi.uio.no>
+.\" .br
+.\" Pablo Saratxaga <pablo@mandrakesoft.com>
+.\" .br
+.\" Manpage by Alastair McKinstry, <mckinstry@computer.org>

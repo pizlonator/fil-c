@@ -1,0 +1,80 @@
+! Spanish keymap for OLPC; based upon es.map
+! Walter Bender (3 January 2008)
+!
+charset "iso-8859-15"
+keymaps 0-2,4,6,8-9,12
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+	alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam    bar
+	alt     keycode   2 = Meta_one
+keycode   3 = two             quotedbl	 at
+	control keycode   3 = nul
+	alt     keycode   3 = Meta_two
+keycode   4 = three           grave	numbersign
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_grave
+keycode   5 = four             dollar
+	alt     keycode   5 = Meta_four
+keycode   6 = five             percent	asciicircum
+	control keycode   6 = Control_asciicircum
+	alt     keycode   6 = Meta_five
+keycode   7 = six              ampersand notsign
+	alt     keycode   7 = Meta_six
+keycode   8 = seven            slash 		backslash
+	control keycode   8 = Control_backslash
+	alt     keycode   8 = Meta_seven
+keycode   9 = eight            parenleft
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenright
+	alt     keycode  10 = Meta_nine
+keycode  11 = zero             equal
+	alt     keycode  11 = Meta_equal
+keycode  12 = apostrophe       question
+	alt     keycode  12 = Meta_apostrophe
+keycode  13 = exclamdown questiondown
+keycode  14 = Delete
+	control keycode  14 = Control_underscore
+	alt     keycode  14 = Meta_Delete
+keycode  15 = Tab
+	alt     keycode  15 = Meta_Tab
+keycode  18 = e		       E		euro
+keycode  26 = apostrophe       diaeresis      degree
+keycode  27 = bracketleft     braceleft
+	control keycode  27 = Escape
+	alt     keycode  27 = Meta_bracketleft
+keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = +ntilde +Ntilde
+keycode  40 = plus     asterisk		asciitilde
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_asciitilde
+keycode  41 = masculine ordfeminine backslash		
+	control keycode  41 = Control_backslash
+	alt     keycode  41 = Meta_backslash
+keycode  42 = Shift
+keycode  43 = bracketright	braceright
+	control keycode  43 = Control_bracketright
+	alt     keycode  43 = Meta_bracketright
+keycode  51 = comma  semicolon
+	alt     keycode  51 = Meta_comma
+	shift alt keycode  51 = Meta_semicolon
+keycode  52 = period       colon
+	alt     keycode  52 = Meta_period
+keycode  53 = minus      underscore
+	control keycode  53 = Control_underscore
+	alt     keycode  53 = Meta_minus
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+keycode 211 = less greater
+	alt     keycode 211 = Meta_less
+	shift alt keycode 211 = Meta_greater
+

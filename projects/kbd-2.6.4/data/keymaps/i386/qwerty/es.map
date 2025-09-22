@@ -1,0 +1,96 @@
+! Spanish keymap, note the spanish IBM keyboard lacks an ascitilde (~), I
+! have used ALT-Gr 4 as per IBM/AIX and some sun keyboards. ascitilde is also
+! on ALT-Gr-exclamdown for compatibility with Julio Sanchez' Spanish keymap.
+!
+! Jon Tombs <jon@gtex02.us.es> with corrections from
+! Julio Sanchez <jsanchez@gmv.es> and Urko Lusa <ulusa@arrakis.es>
+!
+! Added keymaps line - aeb
+!
+keymaps 0-2,4,6,8-9,12
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+	alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam    bar
+	alt     keycode   2 = Meta_one
+keycode   3 = two              quotedbl	at
+	control keycode   3 = nul
+	alt     keycode   3 = Meta_two
+keycode   4 = three           periodcentered        numbersign
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_three
+keycode   5 = four             dollar          asciitilde
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four
+keycode   6 = five             percent
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five
+keycode   7 = six              ampersand notsign
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+keycode   8 = seven            slash 		braceleft
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+keycode   9 = eight            parenleft	bracketleft
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenright	bracketright
+	alt     keycode  10 = Meta_nine
+keycode  11 = zero             equal       braceright
+	alt     keycode  11 = Meta_zero
+keycode  12 = apostrophe       question       backslash
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+keycode  13 = exclamdown questiondown		asciitilde
+	alt     keycode  13 = Meta_equal
+keycode  14 = Delete
+	control keycode  14 = Control_underscore
+	alt     keycode  14 = Meta_Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+	alt     keycode  15 = Meta_Tab
+!keycode  26 =   dead_grave    asciicircum      bracketleft
+keycode  26 =   dead_grave    dead_circumflex      bracketleft
+	control keycode  26 = Escape
+	alt     keycode  26 = Meta_bracketleft
+keycode  27 = plus     asterisk       bracketright
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = Meta_bracketright
+keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = +ntilde +Ntilde
+	alt     keycode  39 = Meta_semicolon
+keycode  40 = dead_acute     dead_diaeresis	braceleft
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_apostrophe
+keycode  41 = masculine ordfeminine backslash		
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = +ccedilla		+Ccedilla       braceright
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash
+	shift alt keycode  43 = Meta_asciitilde
+keycode  51 = comma  semicolon
+	alt     keycode  51 = Meta_comma
+	shift alt keycode  51 = Meta_less
+keycode  52 = period       colon
+	alt     keycode  52 = Meta_period
+	shift alt keycode  52 = Meta_greater
+keycode  53 = minus      underscore
+	control keycode  53 = Delete
+	alt     keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = less greater
+	alt     keycode  86 = Meta_less
+	shift alt keycode  86 = Meta_bar
+keycode  97 = Control

@@ -1,0 +1,473 @@
+# v0.95 Sat Jun 21 21:49:26 EET 1997. Replaces: v0.90 Tue Apr  5 17:20:51 1994
+# This is the improved greek map, (file gr.map), for linux kbd.
+# The compose combinations are back in, and better mode switch keys.
+#
+# Use:
+# Left-shift-alt is the greek-lock key (the same as in Win95).
+# The new win95 keys (on win95 keyboard) can be used too
+# (until a better use of them is found):
+# Left and Right win95 keys act like shift-to-greek,
+# and Right win95menu key acts like greek-lock.
+#
+# I was unable to define two dead keys in a row, so:
+# For both accent and dialytika use Ctrl and the accent key.
+#
+# For bugs/remarks, send mail to sarantos@ics.forth.gr
+# You can get updated versions from
+# http://www.ics.forth.gr/~sarantos/gr.map
+#
+# This is an iso-8859-7 mapping. Use together with "setfont iso07.*"
+# activated by sending Esc ( K to the console.
+#
+charset "iso-8859-7"
+keymaps 0-2,4-6,8-9,12,64-66,68-70,72-73,76
+include "linux-with-alt-and-altgr"
+strings as usual
+#
+# The definitions are divided into 6 parts.
+
+#
+# Part one: The full us map (us.map, from 14 Mar 1994),
+# without the (empty) keycodes for 125, 126 and 127.
+# The strings are appended at the end.
+#
+
+keycode   1 = Escape           Escape
+	alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam
+	alt     keycode   2 = Meta_one
+	alt shift keycode   2 = Meta_exclam
+keycode   3 = two              at               at
+	control keycode   3 = nul
+	control shift keycode   3 = nul
+	alt     keycode   3 = Meta_two
+	alt shift keycode   3 = Meta_at
+keycode   4 = three            numbersign
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_three
+	alt shift keycode   4 = Meta_numbersign
+keycode   5 = four             dollar           dollar
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four
+	alt shift keycode   5 = Meta_dollar
+keycode   6 = five             percent
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five
+	alt shift keycode   6 = Meta_percent
+keycode   7 = six              asciicircum
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+	alt shift keycode   7 = Meta_asciicircum
+keycode   8 = seven            ampersand        braceleft
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+keycode   9 = eight            asterisk         bracketleft
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenleft        bracketright
+	alt     keycode  10 = Meta_nine
+keycode  11 = zero             parenright       braceright
+	alt     keycode  11 = Meta_zero
+keycode  12 = minus            underscore       backslash
+	control keycode  12 = Control_underscore
+	control shift keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+keycode  13 = equal            plus
+	alt     keycode  13 = Meta_equal
+keycode  14 = Delete           Delete
+	control	keycode  14 = BackSpace
+	alt     keycode  14 = Meta_Delete
+keycode  15 = Tab              Meta_Tab
+	alt     keycode  15 = Meta_Tab
+keycode  16 = q
+keycode  17 = w
+keycode  18 = e
+keycode  19 = r
+keycode  20 = t
+keycode  21 = y
+keycode  22 = u
+keycode  23 = i
+keycode  24 = o
+keycode  25 = p
+keycode  26 = bracketleft      braceleft
+	control keycode  26 = Escape
+	alt     keycode  26 = Meta_bracketleft
+	alt shift keycode  26 = Meta_braceleft
+keycode  27 = bracketright     braceright       asciitilde
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = Meta_bracketright
+	alt shift keycode  27 = Meta_braceright
+keycode  28 = Return
+	alt     keycode  28 = 0x080d
+keycode  29 = Control
+keycode  30 = a
+keycode  31 = s
+keycode  32 = d
+keycode  33 = f
+keycode  34 = g
+keycode  35 = h
+keycode  36 = j
+keycode  37 = k
+keycode  38 = l
+keycode  39 = semicolon        colon
+	alt     keycode  39 = Meta_semicolon
+keycode  40 = apostrophe       quotedbl
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_apostrophe
+keycode  41 = grave            asciitilde
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = backslash        bar
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash
+	alt shift keycode  43 = Meta_bar
+keycode  44 = z
+keycode  45 = x
+keycode  46 = c
+keycode  47 = v
+keycode  48 = b
+keycode  49 = n
+keycode  50 = m
+keycode  51 = comma            less
+	alt     keycode  51 = Meta_comma
+	alt shift keycode  51 = Meta_less
+keycode  52 = period           greater
+	alt     keycode  52 = Meta_period
+	alt shift keycode  52 = Meta_greater
+keycode  53 = slash            question
+	control keycode  53 = Delete
+	alt     keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+	alt     keycode  86 = Meta_less
+keycode  97 = Control
+
+#
+# Part two: all these definitions, in CtrlL (greek) mode.
+# Only the redefined keys (letters, accents and quotas)
+# and the keys with one symbol defined for all modes, are excluded.
+#
+CtrlL	keycode   1 = Escape
+CtrlL	shift	keycode   1 = Escape
+CtrlL	alt	keycode   1 = Meta_Escape
+CtrlL	keycode   2 = one
+CtrlL	shift	keycode   2 = exclam
+CtrlL	alt	keycode   2 = Meta_one
+CtrlL	alt	shift	keycode   2 = Meta_exclam
+CtrlL	keycode   3 = two
+CtrlL	shift	keycode   3 = at
+CtrlL	altgr	keycode   3 = at
+CtrlL	control	keycode   3 = nul
+CtrlL	control	shift	keycode   3 = nul
+CtrlL	alt	keycode   3 = Meta_two
+CtrlL	alt	shift	keycode   3 = Meta_at
+CtrlL	keycode   4 = three
+CtrlL	shift	keycode   4 = numbersign
+CtrlL	control	keycode   4 = Escape
+CtrlL	alt	keycode   4 = Meta_three
+CtrlL	alt	shift	keycode   4 = Meta_numbersign
+CtrlL	keycode   5 = four
+CtrlL	shift	keycode   5 = dollar
+CtrlL	altgr	keycode   5 = dollar
+CtrlL	control	keycode   5 = Control_backslash
+CtrlL	alt	keycode   5 = Meta_four
+CtrlL	alt	shift	keycode   5 = Meta_dollar
+CtrlL	keycode   6 = five
+CtrlL	shift	keycode   6 = percent
+CtrlL	control	keycode   6 = Control_bracketright
+CtrlL	alt	keycode   6 = Meta_five
+CtrlL	alt	shift	keycode   6 = Meta_percent
+CtrlL	keycode   7 = six
+CtrlL	shift	keycode   7 = asciicircum
+CtrlL	control	keycode   7 = Control_asciicircum
+CtrlL	alt	keycode   7 = Meta_six
+CtrlL	alt	shift	keycode   7 = Meta_asciicircum
+CtrlL	keycode   8 = seven
+CtrlL	shift	keycode   8 = ampersand
+CtrlL	altgr	keycode   8 = braceleft
+CtrlL	control	keycode   8 = Control_underscore
+CtrlL	alt	keycode   8 = Meta_seven
+CtrlL	keycode   9 = eight
+CtrlL	shift	keycode   9 = asterisk
+CtrlL	altgr	keycode   9 = bracketleft
+CtrlL	control	keycode   9 = Delete
+CtrlL	alt	keycode   9 = Meta_eight
+CtrlL	keycode  10 = nine
+CtrlL	shift	keycode  10 = parenleft
+CtrlL	altgr	keycode  10 = bracketright
+CtrlL	alt	keycode  10 = Meta_nine
+CtrlL	keycode  11 = zero
+CtrlL	shift	keycode  11 = parenright
+CtrlL	altgr	keycode  11 = braceright
+CtrlL	alt	keycode  11 = Meta_zero
+CtrlL	keycode  12 = minus
+CtrlL	shift	keycode  12 = underscore
+CtrlL	altgr	keycode  12 = backslash
+CtrlL	control	keycode  12 = Control_underscore
+CtrlL	control	shift	keycode  12 = Control_underscore
+CtrlL	alt	keycode  12 = Meta_minus
+CtrlL	keycode  13 = equal
+CtrlL	shift	keycode  13 = plus
+CtrlL	alt	keycode  13 = Meta_equal
+CtrlL	keycode  14 = Delete
+CtrlL	shift	keycode  14 = Delete
+CtrlL	control	keycode  14 = BackSpace
+CtrlL	alt	keycode  14 = Meta_Delete
+CtrlL	keycode  15 = Tab
+CtrlL	shift	keycode  15 = Tab
+CtrlL	alt	keycode  15 = Meta_Tab
+CtrlL	keycode  26 = bracketleft
+CtrlL	shift	keycode  26 = braceleft
+CtrlL	control	keycode  26 = Escape
+CtrlL	alt	keycode  26 = Meta_bracketleft
+CtrlL	alt	shift	keycode  26 = Meta_braceleft
+CtrlL	keycode  27 = bracketright
+CtrlL	shift	keycode  27 = braceright
+CtrlL	altgr	keycode  27 = asciitilde
+CtrlL	control	keycode  27 = Control_bracketright
+CtrlL	alt	keycode  27 = Meta_bracketright
+CtrlL	alt	shift	keycode  27 = Meta_braceright
+CtrlL	alt	keycode  28 = 0x080d
+#CtrlL	keycode  39 = semicolon
+#CtrlL	shift	keycode  39 = colon
+CtrlL	alt	keycode  39 = Meta_semicolon
+#CtrlL	keycode  40 = apostrophe
+#CtrlL	shift	keycode  40 = quotedbl
+CtrlL	control	keycode  40 = Control_g
+CtrlL	alt	keycode  40 = Meta_apostrophe
+CtrlL	keycode  41 = grave
+CtrlL	shift	keycode  41 = asciitilde
+CtrlL	control	keycode  41 = nul
+CtrlL	alt	keycode  41 = Meta_grave
+CtrlL	keycode  43 = backslash
+CtrlL	shift	keycode  43 = bar
+CtrlL	control	keycode  43 = Control_backslash
+CtrlL	alt	keycode  43 = Meta_backslash
+CtrlL	alt	shift	keycode  43 = Meta_bar
+CtrlL	keycode  51 = comma
+CtrlL	shift	keycode  51 = less
+CtrlL	alt	keycode  51 = Meta_comma
+CtrlL	alt	shift	keycode  51 = Meta_less
+CtrlL	keycode  52 = period
+CtrlL	shift	keycode  52 = greater
+CtrlL	alt	keycode  52 = Meta_period
+CtrlL	alt	shift	keycode  52 = Meta_greater
+CtrlL	keycode  53 = slash
+CtrlL	shift	keycode  53 = question
+CtrlL	control	keycode  53 = Delete
+CtrlL	alt	keycode  53 = Meta_slash
+CtrlL	keycode  57 = space
+CtrlL	shift	keycode  57 = space
+CtrlL	control	keycode  57 = nul
+CtrlL	alt	keycode  57 = Meta_space
+CtrlL	keycode  59 = F1
+CtrlL	shift	keycode  59 = F11
+CtrlL	altgr	keycode  59 = Console_13
+CtrlL	control	keycode  59 = F1
+CtrlL	alt	keycode  59 = Console_1
+CtrlL	control	alt	keycode  59 = Console_1
+CtrlL	keycode  60 = F2
+CtrlL	shift	keycode  60 = F12
+CtrlL	altgr	keycode  60 = Console_14
+CtrlL	control	keycode  60 = F2
+CtrlL	alt	keycode  60 = Console_2
+CtrlL	control	alt	keycode  60 = Console_2
+CtrlL	keycode  61 = F3
+CtrlL	shift	keycode  61 = F13
+CtrlL	altgr	keycode  61 = Console_15
+CtrlL	control	keycode  61 = F3
+CtrlL	alt	keycode  61 = Console_3
+CtrlL	control	alt	keycode  61 = Console_3
+CtrlL	keycode  62 = F4
+CtrlL	shift	keycode  62 = F14
+CtrlL	altgr	keycode  62 = Console_16
+CtrlL	control	keycode  62 = F4
+CtrlL	alt	keycode  62 = Console_4
+CtrlL	control	alt	keycode  62 = Console_4
+CtrlL	keycode  63 = F5
+CtrlL	shift	keycode  63 = F15
+CtrlL	altgr	keycode  63 = Console_17
+CtrlL	control	keycode  63 = F5
+CtrlL	alt	keycode  63 = Console_5
+CtrlL	control	alt	keycode  63 = Console_5
+CtrlL	keycode  64 = F6
+CtrlL	shift	keycode  64 = F16
+CtrlL	altgr	keycode  64 = Console_18
+CtrlL	control	keycode  64 = F6
+CtrlL	alt	keycode  64 = Console_6
+CtrlL	control	alt	keycode  64 = Console_6
+CtrlL	keycode  65 = F7
+CtrlL	shift	keycode  65 = F17
+CtrlL	altgr	keycode  65 = Console_19
+CtrlL	control	keycode  65 = F7
+CtrlL	alt	keycode  65 = Console_7
+CtrlL	control	alt	keycode  65 = Console_7
+CtrlL	keycode  66 = F8
+CtrlL	shift	keycode  66 = F18
+CtrlL	altgr	keycode  66 = Console_20
+CtrlL	control	keycode  66 = F8
+CtrlL	alt	keycode  66 = Console_8
+CtrlL	control	alt	keycode  66 = Console_8
+CtrlL	keycode  67 = F9
+CtrlL	shift	keycode  67 = F19
+CtrlL	altgr	keycode  67 = Console_21
+CtrlL	control	keycode  67 = F9
+CtrlL	alt	keycode  67 = Console_9
+CtrlL	control	alt	keycode  67 = Console_9
+CtrlL	keycode  68 = F10
+CtrlL	shift	keycode  68 = F20
+CtrlL	altgr	keycode  68 = Console_22
+CtrlL	control	keycode  68 = F10
+CtrlL	alt	keycode  68 = Console_10
+CtrlL	control	alt	keycode  68 = Console_10
+CtrlL	keycode  70 = Scroll_Lock
+CtrlL	shift	keycode  70 = Show_Memory
+CtrlL	altgr	keycode  70 = Show_Registers
+CtrlL	control	keycode  70 = Show_State
+CtrlL	alt	keycode  70 = Scroll_Lock
+CtrlL	alt	keycode  71 = Ascii_7
+CtrlL	alt	keycode  72 = Ascii_8
+CtrlL	alt	keycode  73 = Ascii_9
+CtrlL	alt	keycode  75 = Ascii_4
+CtrlL	alt	keycode  76 = Ascii_5
+CtrlL	alt	keycode  77 = Ascii_6
+CtrlL	alt	keycode  79 = Ascii_1
+CtrlL	alt	keycode  80 = Ascii_2
+CtrlL	alt	keycode  81 = Ascii_3
+CtrlL	alt	keycode  82 = Ascii_0
+CtrlL	altgr	control	keycode  83 = Boot
+CtrlL	control	alt	keycode  83 = Boot
+CtrlL	keycode  86 = less
+CtrlL	shift	keycode  86 = greater
+CtrlL	altgr	keycode  86 = bar
+CtrlL	alt	keycode  86 = Meta_less
+CtrlL	keycode  87 = F11
+CtrlL	shift	keycode  87 = F11
+CtrlL	altgr	keycode  87 = Console_23
+CtrlL	control	keycode  87 = F11
+CtrlL	alt	keycode  87 = Console_11
+CtrlL	control	alt	keycode  87 = Console_11
+CtrlL	keycode  88 = F12
+CtrlL	shift	keycode  88 = F12
+CtrlL	altgr	keycode  88 = Console_24
+CtrlL	control	keycode  88 = F12
+CtrlL	alt	keycode  88 = Console_12
+CtrlL	control	alt	keycode  88 = Console_12
+CtrlL	control	keycode  99 = Control_backslash
+CtrlL	alt	keycode  99 = Control_backslash
+CtrlL	shift	keycode 104 = Scroll_Backward
+CtrlL	alt	keycode 105 = Decr_Console
+CtrlL	alt	keycode 106 = Incr_Console
+CtrlL	shift	keycode 109 = Scroll_Forward
+CtrlL	altgr	control	keycode 111 = Boot
+CtrlL	control	alt	keycode 111 = Boot
+
+#
+# Part three: The switching keys to CtrlL (greek) mode
+#
+# alt+shift, shift+alt (left side alt and shift only)
+	alt	keycode  42 = CtrlL_Lock
+	shift	keycode  56 = CtrlL_Lock
+CtrlL	alt	keycode  42 = CtrlL_Lock
+CtrlL	shift	keycode  56 = CtrlL_Lock
+
+# on win95 keyboards, we define extra keys
+
+keycode 125 = CtrlL
+keycode 126 = CtrlL
+keycode 127 = CtrlL_Lock
+
+#
+# Part four: The particular definitions of CtrlL (greek) mode
+#
+CtrlL	keycode  16 = semicolon
+CtrlL	shift	keycode  16 = colon
+CtrlL	keycode  17 = terminalsigma
+CtrlL	shift	keycode  17 = 0267 # anv teleia
+CtrlL	keycode  18 = +epsilon
+CtrlL	shift	keycode  18 = +Epsilon
+CtrlL	keycode  19 = +rho
+CtrlL	shift	keycode  19 = +Rho
+CtrlL	keycode  20 = +tau
+CtrlL	shift	keycode  20 = +Tau
+CtrlL	keycode  21 = +upsilon
+CtrlL	shift	keycode  21 = +Upsilon
+CtrlL	keycode  22 = +theta
+CtrlL	shift	keycode  22 = +Theta
+CtrlL	keycode  23 = +iota
+CtrlL	shift	keycode  23 = +Iota
+CtrlL	keycode  24 = +omicron
+CtrlL	shift	keycode  24 = +Omicron
+CtrlL	keycode  25 = +pi
+CtrlL	shift	keycode  25 = +Pi
+CtrlL	keycode  30 = +alpha
+CtrlL	shift	keycode  30 = +Alpha
+CtrlL	keycode  31 = +sigma
+CtrlL	shift	keycode  31 = +Sigma
+CtrlL	keycode  32 = +delta
+CtrlL	shift	keycode  32 = +Delta
+CtrlL	keycode  33 = +phi
+CtrlL	shift	keycode  33 = +Phi
+CtrlL	keycode  34 = +gamma
+CtrlL	shift	keycode  34 = +Gamma
+CtrlL	keycode  35 = +eta
+CtrlL	shift	keycode  35 = +Eta
+CtrlL	keycode  36 = +ksi
+CtrlL	shift	keycode  36 = +Ksi
+CtrlL	keycode  37 = +kappa
+CtrlL	shift	keycode  37 = +Kappa
+CtrlL	keycode  38 = +lambda
+CtrlL	shift	keycode  38 = +Lambda
+CtrlL	keycode  39 = dead_acute
+CtrlL	shift	keycode  39 = dead_diaeresis
+CtrlL	control	keycode  39 = dead_circumflex
+CtrlL	keycode  40 = semicolon
+CtrlL	shift	keycode  40 = colon
+CtrlL	keycode  44 = +zeta
+CtrlL	shift	keycode  44 = +Zeta
+CtrlL	keycode  45 = +khi
+CtrlL	shift	keycode  45 = +Khi
+CtrlL	keycode  46 = +psi
+CtrlL	shift	keycode  46 = +Psi
+CtrlL	keycode  47 = +omega
+CtrlL	shift	keycode  47 = +Omega
+CtrlL	keycode  48 = +beta
+CtrlL	shift	keycode  48 = +Beta
+CtrlL	keycode  49 = +nu
+CtrlL	shift	keycode  49 = +Nu
+CtrlL	keycode  50 = +mu
+CtrlL	shift	keycode  50 = +Mu
+
+#
+# Part five: The compose sequences
+#
+compose '\'' 'Á' to '¶' # Alphaaccent
+compose '\'' 'Å' to '¸' # Epsilonaccent
+compose '\'' 'Ç' to '¹' # Etaaccent
+compose '\'' 'É' to 'º' # Iotaaccent
+compose '\'' 'Ï' to '¼' # Omicronaccent
+compose '\'' 'Õ' to '¾' # Upsilonaccent
+compose '\'' 'Ù' to '¿' # Omegaaccent
+compose '\'' 'á' to 'Ü' # alphaaccent
+compose '\'' 'å' to 'Ý' # epsilonaccent
+compose '\'' 'ç' to 'Þ' # etaaccent
+compose '\'' 'é' to 'ß' # iotaaccent
+compose '\'' 'ï' to 'ü' # omicronaccent
+compose '\'' 'õ' to 'ý' # upsilonaccent
+compose '\'' 'ù' to 'þ' # omegaaccent
+compose '"' 'É' to 'Ú' # Iotadiaeresis
+compose '"' 'Õ' to 'Û' # Upsilondiaeresis
+compose '"' 'é' to 'ú' # iotadiaeresis
+compose '"' 'õ' to 'û' # upsilondiaeresis
+compose '^' 'é' to 'À' # iotadiaeresisaccent
+compose '^' 'õ' to 'à' # upsilondiaeresisaccent
+compose '\'' '\'' to ';' # semicolon
+compose '"' '"' to ':' # colon
+compose '\'' ' ' to '\'' # quota/accent
+

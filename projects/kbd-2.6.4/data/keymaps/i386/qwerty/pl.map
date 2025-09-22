@@ -1,0 +1,152 @@
+# From: Rafal Maszkowski <rzm@dain.oso.chalmers.se>
+# Date: Mon, 7 Feb 1994 12:00:39 +0100 (MET)
+#
+# Polish "programmers' keyboard" + paragraph sign AltGr-4, v. 0.92
+# Rafal Maszkowski <rzm@oso.chalmers.se>, <rzm@mat.uni.torun.pl>, 94.02.16
+#
+# Added keymaps line - aeb
+
+charset "iso-8859-2"
+keymaps 0-4,6,8,9,12
+include "linux-with-alt-and-altgr"
+strings as usual
+alt_is_meta
+
+keycode   1 = Escape
+	alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam
+	alt     keycode   2 = Meta_one
+keycode   3 = two              at               at
+	control keycode   3 = nul
+	alt     keycode   3 = Meta_two
+keycode   4 = three            numbersign
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_three
+keycode   5 = four             dollar           section
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four
+keycode   6 = five             percent
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five
+keycode   7 = six              asciicircum
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+keycode   8 = seven            ampersand        braceleft
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+keycode   9 = eight            asterisk         bracketleft
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenleft        bracketright
+	alt     keycode  10 = Meta_nine
+keycode  11 = zero             parenright       braceright
+	alt     keycode  11 = Meta_zero
+keycode  12 = minus            underscore       backslash
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+keycode  13 = equal            plus
+	alt     keycode  13 = Meta_equal
+keycode  14 = Delete
+	alt     keycode  14 = Meta_Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+	alt     keycode  15 = Meta_Tab
+keycode  16 = q
+keycode  17 = w
+keycode  18 = e
+	Alt   keycode  18 = +eogonek
+	AltGr keycode  18 = +eogonek
+	Alt   Shift keycode  18 = +Eogonek
+	AltGr Shift keycode  18 = +Eogonek
+keycode  19 = r
+keycode  20 = t
+keycode  21 = y
+keycode  22 = u
+keycode  23 = i
+keycode  24 = o
+	Alt   keycode  24 = +oacute
+	AltGr keycode  24 = +oacute
+	Alt   Shift keycode  24 = +Oacute
+	AltGr Shift keycode  24 = +Oacute
+keycode  25 = p
+keycode  26 = bracketleft      braceleft
+	control keycode  26 = Escape
+	alt     keycode  26 = Meta_bracketleft
+keycode  27 = bracketright     braceright       asciitilde
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = Meta_bracketright
+keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  30 = a
+	Alt   keycode  30 = +aogonek
+	AltGr keycode  30 = +aogonek
+	Alt   Shift keycode  30 = +Aogonek
+	AltGr Shift keycode  30 = +Aogonek
+keycode  31 = s
+	Alt   keycode  31 = +sacute
+	AltGr keycode  31 = +sacute
+	Alt   Shift keycode  31 = +Sacute
+	AltGr Shift keycode  31 = +Sacute
+keycode  32 = d
+keycode  33 = f
+keycode  34 = g
+keycode  35 = h
+keycode  36 = j
+keycode  37 = k
+keycode  38 = l
+	Alt   keycode  38 = +lstroke
+	AltGr keycode  38 = +lstroke
+	Alt   Shift keycode  38 = +Lstroke
+	AltGr Shift keycode  38 = +Lstroke
+keycode  39 = semicolon        colon
+	alt     keycode  39 = Meta_semicolon
+keycode  40 = apostrophe       quotedbl
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_apostrophe
+keycode  41 = grave            asciitilde
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = backslash        bar
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash
+keycode  44 = z
+	Alt   keycode  44 = +zabovedot
+	AltGr keycode  44 = +zabovedot
+	Alt   Shift keycode  44 = +Zabovedot
+	AltGr Shift keycode  44 = +Zabovedot
+keycode  45 = x
+	Alt   keycode  45 = +zacute
+	AltGr keycode  45 = +zacute
+	Alt   Shift keycode  45 = +Zacute
+	AltGr Shift keycode  45 = +Zacute
+keycode  46 = c
+	Alt   keycode  46 = +cacute
+	AltGr keycode  46 = +cacute
+	Alt   Shift keycode  46 = +Cacute
+	AltGr Shift keycode  46 = +Cacute
+keycode  47 = v
+keycode  48 = b
+keycode  49 = n
+	Alt   keycode  49 = +nacute
+	AltGr keycode  49 = +nacute
+	Alt   Shift keycode  49 = +Nacute
+	AltGr Shift keycode  49 = +Nacute
+keycode  50 = m
+keycode  51 = comma            less
+	alt     keycode  51 = Meta_comma
+keycode  52 = period           greater
+	alt     keycode  52 = Meta_period
+keycode  53 = slash            question
+	control keycode  53 = Delete
+	alt     keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+	alt     keycode  86 = Meta_less
+keycode  97 = Control

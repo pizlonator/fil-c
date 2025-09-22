@@ -1,0 +1,394 @@
+Path: cwi.nl!sun4nl!EU.net!news.sprintlink.net!sunic!sunic.sunet.se!news.funet.fi!news.helsinki.fi!usenet
+From: Peter Jones <thanatos@drealm.org>
+Newsgroups: comp.os.linux.announce
+Subject: Linux Console Terminal Documentation
+Followup-To: comp.os.linux.misc
+Date: Sat, 30 Sep 95 16:37:05 GMT
+Organization: ?
+Lines: 331
+Approved: linux-announce@news.ornl.gov (Lars Wirzenius)
+Message-ID: <cola-liw-812479025-13056-1@oravannahka.helsinki.fi>
+NNTP-Posting-Host: kruuna.helsinki.fi
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+
+-----BEGIN PGP SIGNED MESSAGE-----
+
+I thought I'd do "something" for the Linux community (apart from
+co-authoring drealmBBS :-)).
+
+So, here's my first (and maybe only) issue of the Linux Console Driver
+documentation.  Anyone wanting to take this on as a support task, feel
+free - I _really_ don't have time to keep up with new 1.3.x kernels.
+
+- -- Peter
+
+Linux Console Driver
+====================
+====================
+(Everything you ever wanted to know but couldn't be bothered to look in the
+source for.)
+
+Author: Peter L Jones <thanatos@drealm.org>
+~Date: Wed Sep 27 19:12:25 BST 1995
+Kernel: 1.2.13
+Addendum for: 1.3.28
+
+
+General Processing
+==================
+I don't use UTF.  I've only covered it to the extent I can fathom from the
+source.
+
+I've not documented "hardware scrollback".
+
+In UTF mode, once a complete character is assembled, it is translated.
+
+Otherwise, the character then has its top bit set if requested and is then
+translated.
+
+A glyph is to be displayed if
+	* we've assembled a complete UTF character
+	* we translated it okay
+	* it's not a control character, or we're displaying control
+	  characters
+Otherwise, it might be a control character.
+Otherwise it's ignored.
+
+
+Glyphs
+======
+These are characters that make a mark on the display.
+
+You can never display the glyph for char(27) by transmitting ESC.
+
+You cannot display glyphs for any character in the Control Characters table,
+unless enabled.
+
+If there is a "pending newline"
+	a crlf sequence is issued prior to the glyph.
+
+If we're in "insert mode",
+	the rest of the line is shifted right; the character in the
+	last column is lost.
+
+The glyph is then displayed.
+
+If the cursor is in the last column,
+	If automatic margins are turned on,
+		the "pending newline" state is set
+	otherwise,
+		the next glyph can overwrite this one.
+Otherwise the cursor is advanced.
+
+
+Control Characters
+==================
+Control characters can occur during ESCape sequence processing.
+
+^g		bell - make a tone on the console speaker
+^h		bs - cursor to previous character (backspace)
+		(will not wrap to previous line)
+^i		tab - cursor to next tab position
+^j ^k ^l	lf - cursor to next line, scroll if end of scrolling region
+		(linefeed); if CRLF mode select, cr as well
+^m		cr - cursor to start of current line (carriage return)
+^n		charset 1, translate table G1, display control characters
+		as glyphs
+^o		charset 0, translate table G0, don't display control
+		characters as glyphs
+{-- "charset" sets the current translate table; e.g. ^n sets charset
+1, translate table G1, display control characters as glyphs - followed by
+^[[10m would leave G1 in effect but disable display of control characters as
+glyphs and display setting the top bit of glyphs --}
+
+^x ^z		cancel any ESCape sequence in progress
+^[		begin an ESCape sequence
+^?		"delete" - ignored
+128+^[		begin a CSI sequence
+
+
+ESCape Sequences
+================
+^[[		begin a CSI sequence
+^[%		begin a UTF control sequence
+^[(		begin a set G0 sequence
+^[)		begin a set G1 sequence
+^[#		begin a DEC test sequence
+^[E		cr, lf
+^[M		ri - cursor up, reverse scroll if top of scrolling region
+		(reverse index)
+^[D		lf
+^[H		set tab in the current column
+^[Z		request for terminal ID (response is ^[[?6c - VT102)
+^[7		store cursor position
+^[8		restore cursor position
+^[c		reset terminal completely
+^[>		Keypad is numeric (normal)
+^[=		Keypad is application (act as function keys)
+
+
+CSI sequences
+=============
+
+There are two formats.  Function keys are indicated by CSI [ and are dealt
+with later.  The general format is CSI (i.e. ^[[), zero to 16 parameters and
+a character to indicate the function being performed.  E.g ^[[1;43;37m.
+
+Missing parameters are defaulted.  Screen co-ordinates and movements start
+at and default to 1 (unless otherwise stated).  Parameters are named par1,
+par2 etc in the following descriptions.
+
+CSI h and CSI l can have an optional ? after the CSI and before any
+parameters.  This indicates "DEC Private" modes.  {-- Other manufacturers
+use different characters to select their private modes - Linux doesn't
+support any but DEC. --}
+
+CSI h		Set Mode sequence
+CSI l		Clear Mode sequence
+CSI n		Request report:
+		par1 = 5 - Status report: response is ^[[0n (terminal okay)
+		par1 = 6 - Cursor report: response is ^[[y;xR - where y is
+		relative if origin mode is selected
+CSI A		Cursor Up by par1 lines
+CSI F		Cursor Up by par1 lines, and to start of line
+CSI B CSI e	Cursor Down by par1 lines
+CSI E		Cursor Down by par1 lines, and to start of line
+CSI C CSI a	Cursor Right by par1 characters
+CSI D		Cursor Left by par1 characters
+CSI d		Set cursor vertical position to par1
+CSI G CSI `	Set cursor horizonal position to par1
+CSI H CSI f	Set cursor vertical position to par2 and horizontal position
+		to par1
+CSI L		Insert par1 lines
+CSI M		Delete par1 lines
+CSI @		Insert par1 characters
+CSI P		Delete par1 characters
+CSI X		Erase par1 characters (wraps around line ends)
+CSI J		Screen Erase sequence:
+		par1 = 0 - erase from cursor to end of display
+		par1 = 1 - erase from start of display to cursor
+		par1 = 2 - erase whole display
+CSI K		Line Clear sequence:
+		par1 = 0 - erase from cursor to end of line
+		par1 = 1 - erase from start of line to cursor
+		par1 = 2 - erase whole line
+CSI c		If par1 = 0 (default), requests terminal ID
+		(response is ^[[?6c - VT102)
+CSI g		Clear tabs:
+		par1 = 0 - Clears tab at the current column
+		par1 = 3 - Clears all tabs
+CSI q		Set LEDs = par1 indicates which LED to turn on -
+		0 - none, 1 - , 2 - , 3 - .
+CSI r		Set scrolling region
+		par1 - top, default and minimum 1, must be less than par2
+		par2 - bottom, default and maximum end of display
+CSI s		Store cursor position
+CSI u		Restore cursor position
+CSI m		Character Rendition sequence
+CSI ]		setterm(1) command sequence
+
+
+Set and Clear Mode Sequences
+- ----------------------------
+CSI h sets modes; CSI l clears modes.  There are two sets of modes -
+ANSI standard and DEC private.
+
+ANSI modes:
+3	Monitor (display control characters)
+4	Insert
+20	CRLF
+
+DEC modes:
+1	Cursor keys as application keys (send ^[Ox as appl, ^[[x as normal)
+3	80 (off) or 132 (on) columns
+5	Inverse video
+6	Origin mode (and go to origin)
+7	Autowrap (right margin)
+8	Autorepeat
+9	Mouse reports #1
+25	Cursor visible
+1000	Mouse reports #2
+
+
+Character Rendition Sequences
+- -----------------------------
+Each parameter is actioned in order.  You cannot get bright backgrounds
+(rather, I can't).  {-- On SVR4, attribute code 6 is used for bright
+background, if I remember correctly --}
+
+0	default (intensity normal, underline off, blink off, normal video,
+	default colours (which start as white on black))
+1	intensity bold
+2	intensity dim
+4	underline on
+5	blink on
+7	reverse video
+10	restore translate table, turn off display of control chars, don't
+	set the "top" bit of glyphs displayed
+11	disable the translate table, display control chars as glyphs, don't
+	set the "top" bit of glyphs displayed
+12	disable the translate table, display control chars as glyphs,
+	set the "top" bit of glyphs displayed
+21 22	intensity normal
+24	underline off
+25	blink off
+27	normal video
+38	underline on, set foreground colour to default
+39	underline off, set foreground colour to default
+49	set background colour to default
+30-37	set foreground colour (0-black, 1-red, 2-green, 3-brown, 4-blue,
+	5-magenta, 6-cyan, 7-white)
+40-47	set background colour
+
+
+Setterm Commmand Sequences
+- --------------------------
+The command is in par1, followed by parameters.
+
+1	Set underline colour - par2 is 0 to 15, which is 0 to 7 as above,
+	plus bold versions
+2	Set dim colour - par2 as above
+8	Store current attributes as defaults (so that CSI 0 m restores to
+	them)
+9	Set blanking interval to par2 minutes (max one hour)
+
+
+UTF Control Sequences
+=====================
+^[%@		Turn off UTF
+^[%G ^[%8	Turn on UTF (^[%8 is deprecated)
+
+
+G0/G1 Sequences
+===============
+There are two character sets, known as G0 and G1.  G0 is the default
+character set.  Each can be set to one of four mappings.  The mappings, and
+the sequences to select them, are:
+
+ G0   G1  Map  Name
+- ---- ---- ---  ----
+^[(B ^[)B  0   Normal Map (default G0 map)
+^[(0 ^[)0  1   Graphics Map (default G1 map)
+^[(U ^[)U  2   Null Map
+^[(K ^[)K  3   User Map
+
+The maps themselves are defined in "consolemap.c".  "Normal Map" translates
+the standard IBM PC ROM character set to standard 8-bit ISO Latin-1. 
+"Graphics Map" translates to the VT100 character set in graphics mode. 
+"Null Map" passed the ROM characters straight through, except BS, CR, LF,
+LL, SO, SI and ESC.  "User Map" is available to be changed in the source or
+by mapscrn(8).
+
+
+DEC Test Sequences
+==================
+Only one test, ^[#8, is defined.  This fills the display with the character
+'E' to allow the display to be centred.
+
+
+Addendum
+========
+The console driver changed in 1.3.x.  This documents the changes between
+1.2.13 and 1.3.28.
+
+Each virtual console gains a palette, which defines the actual colours used
+on the display (so you can get yellow rather than brown, for example).
+
+Font support is enhanced.
+
+In addition to ESC, some other control characters cannot have their glyphs
+displayed - ^@ ^H ^J ^L ^M ^N ^O ^[.
+
+Hardware scrollback has been enhanced.
+
+The "Normal Map" has been renamed "Latin 1 Map" (LAT1_MAP).
+
+UTF support has been enhanced.
+
+(UTF mode can be used to display the excluded control characters - display
+UTF character 0xF0cc, where cc is the hex code of the position in the ROM
+character set to display.)
+
+A new set of Nonstandard Sequences is defined, prefixed by ESC ].  (setterm
+commands are still CSI ].)
+
+Colour palette support is added.
+
+512 byte font support is added.
+
+Font height support allows the screen to resize to fit the font.
+
+Nonstandard Sequences
+- ---------------------
+^[]P	Set palette
+	Seven parameters are collected
+	par1 is the palette element to redefine
+	par2, par3 set the red component
+	par4, par5 set the green component
+	par6, par7 set the blue component
+^[]R	Resets the default palette
+
+
+- --
+Send comp.os.linux.announce submissions to: linux-announce@news.ornl.gov
+PLEASE remember a short description of the software.
+
+-----BEGIN PGP SIGNATURE-----
+Version: 2.6.2i
+
+iQCVAwUBMG1wkYQRll5MupLRAQHZRgP+IdvvxOk6svo5Gum8wY31vtyILGYuadRU
+rj84hrUAgvKZG3iaz+MOikx5PIcbxXA4LlfpPLkq9EfyT9sDJfEPYI8w+9I8bbvB
+a0G1vpDCG8WbC+G3vwVMK0fnySFjhru4JaXHCTeagUzGLXVFqD4JhWbuXkhQH08f
+9jt/ZgNgaB4=
+=m2ca
+-----END PGP SIGNATURE-----
+
+Path: cwi.nl!sun4nl!EU.net!news.sprintlink.net!tank.news.pipex.net!pipex!dispatch.news.demon.net!demon!mail2news.demon.co.uk!drealm.demon.co.uk
+From: Peter Jones <thanatos@drealm.org>
+Newsgroups: comp.os.linux.misc
+Subject: Re: Linux Console Terminal Documentation
+Date: 30 Sep 1995 20:12:27 +0100
+Organization: drealm conference system +44 (0)181 568 2204
+Lines: 35
+Message-ID: <44k4qr$6aj@drealm.drealm.org>
+References: <cola-liw-812479025-13056-1@oravannahka.helsinki.fi>
+X-NNTP-Posting-Host: drealm.demon.co.uk
+X-Newsreader: TIN [version 1.2 PL2]
+
+I (thanatos@drealm.org) wrote, in col-announce:
+[chop chop]
+: Nonstandard Sequences
+: - ---------------------
+: ^[]P	Set palette
+: 	Seven parameters are collected
+: 	par1 is the palette element to redefine
+: 	par2, par3 set the red component
+: 	par4, par5 set the green component
+: 	par6, par7 set the blue component
+: ^[]R	Resets the default palette
+
+
+This should read (i.e. it makes sense...) like this:
+
+Nonstandard Sequences
+---------------------
+^[]P	Set palette
+	Seven hex digits should follow (0-9, a-f, A-F):
+	1 is the palette element to redefine
+	2*16 + 3 set the red component
+	4*16 + 5 set the green component
+	6*16 + 7 set the blue component
+^[]R	Resets the default palette
+
+
+Hope that helps...
+
+(One day my "other" linux box (crash-n-burn...) will have colour...)
+
+-- Peter
+-- 
+Drealm Conference System -- (+44) 181 568 2204 (V.FC)
+The home of drealmBBS -------- six lines -- live chat
+

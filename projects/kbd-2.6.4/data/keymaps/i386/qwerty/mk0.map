@@ -1,0 +1,109 @@
+# From: Danko Ilik <danko@mindless.com>
+# Date: Sun Feb  7 19:58:47 CET 1999
+#
+# Macedonian Cyrilic Unicode keyboard mapping
+###############################################
+#
+# Vkluchuvanje/iskluchuvanje na kirilichen mod se pravi so left_alt+left_shift
+# 
+# kaj mene, so slednata niza naredbi se vkluchuva terminalskata podrshka
+# za nashiot jazik:
+#	setfont iso05.f14
+#	loadunimap iso05.uni
+#	kbd_mode -u
+#	loadkeys mk.map
+# so
+#	echo -e '\033%G'
+# se ovozmozhuva prikaz na kirilichni simboli na terminalot, shto nekogash
+# znae da go razneubavi displayot (kaj programi shto koristat ncurses,
+# na primer) pa e zgodno da se iskluchi ispisot na kirilicata:
+#	echo -e '\033%@'
+# 
+# Mnogu od programite se zbunuvaat koga kje im se prati tolku mokjen :)
+# karakter kako kirilichniot, pa treba da se iskluchat soodvetnite
+# blokadi na 8-bitovi.
+#
+# Verojatno, tekst so komentari za nashite raboti mozhe da najdete na
+# http://eon.pmf.ukim.edu.mk/~danko/linux.mk/
+#
+# Pratete komentar so sugestii.
+#
+# korisna e dokumentacijata za kbd paketot (/usr/doc/kbd*)
+###############################################
+# (adapted a bit, aeb)
+#
+charset "iso-8859-5"
+alt_is_meta
+keymaps 0-10,12,14
+include "linux-with-modeshift-altgr.inc"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one exclam one exclam
+keycode   3 = two at two at nul nul
+keycode   4 = three numbersign three numbersign Escape
+keycode   5 = four dollar four dollar Control_backslash
+keycode   6 = five percent five percent Control_bracketright
+keycode   7 = six asciicircum six asciicircum Control_asciicircum
+keycode   8 = seven ampersand seven ampersand Control_underscore
+keycode   9 = eight asterisk eight asterisk Delete
+keycode  10 = nine parenleft nine parenleft
+keycode  11 = zero parenright zero parenright
+keycode  12 = minus underscore minus underscore Control_underscore Control_underscore
+keycode  13 = equal plus equal plus
+keycode  14 = Delete Delete Delete Delete BackSpace
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  16 = +q +Q U+0459 U+0409 Control_q Control_q Control_q Control_q
+keycode  17 = +w +W U+045a U+040a Control_w Control_w Control_w Control_w
+keycode  18 = +e +E U+0435 U+0415 Control_e Control_e Control_e Control_e
+keycode  19 = +r +R U+0440 U+0420 Control_r Control_r Control_r Control_r
+keycode  20 = +t +T U+0442 U+0422 Control_t Control_t Control_t Control_t
+keycode  21 = +y +Y U+0455 U+0405 Control_y Control_y Control_y Control_y
+keycode  22 = +u +U U+0443 U+0423 Control_u Control_u Control_u Control_u
+keycode  23 = +i +I U+0438 U+0418 Tab Tab Tab Tab
+keycode  24 = +o +O U+043e U+041e Control_o Control_o Control_o Control_o
+keycode  25 = +p +P U+043f U+041f Control_p Control_p Control_p Control_p
+keycode  26 = bracketleft braceleft U+0448 U+0428 Escape
+keycode  27 = bracketright braceright U+0453 U+0403 Control_bracketright
+keycode  28 = Return
+alt keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  30 = +a +A U+0430 U+0410 Control_a Control_a Control_a Control_a
+keycode  31 = +s +S U+0441 U+0421 Control_s Control_s Control_s Control_s
+keycode  32 = +d +D U+0434 U+0414 Control_d Control_d Control_d Control_d
+keycode  33 = +f +F U+0444 U+0424 Control_f Control_f Control_f Control_f
+keycode  34 = +g +G U+0433 U+0413 Control_g Control_g Control_g Control_g
+keycode  35 = +h +H U+0445 U+0425 BackSpace BackSpace BackSpace BackSpace
+keycode  36 = +j +J U+0458 U+0408 Linefeed Linefeed Linefeed Linefeed
+keycode  37 = +k +K U+043a U+041a Control_k Control_k Control_k Control_k
+keycode  38 = +l +L U+043b U+041b Control_l Control_l Control_l Control_l
+keycode  39 = semicolon colon U+0447 U+0427
+keycode  40 = apostrophe quotedbl U+045c U+040c Control_g
+keycode  41 = grave asciitilde apostrophe quotedbl nul
+
+keycode  42 = Shift
+alt keycode  42 = AltGr_Lock
+altgr alt keycode  42 = AltGr_Lock
+
+keycode  43 = backslash bar U+0436 U+0416 Control_backslash
+keycode  44 = +z +Z U+0437 U+0417 Control_z Control_z Control_z Control_z
+keycode  45 = +x +X U+045f U+040f Control_x Control_x Control_x Control_x
+keycode  46 = +c +C U+0446 U+0426 Control_c Control_c Control_c Control_c
+keycode  47 = +v +V U+0432 U+0412 Control_v Control_v Control_v Control_v
+keycode  48 = +b +B U+0431 U+0411 Control_b Control_b Control_b Control_b
+keycode  49 = +n +N U+043d U+041d Control_n Control_n Control_n Control_n
+keycode  50 = +m +M U+043c U+041c Control_m Control_m Control_m Control_m
+keycode  51 = comma less comma semicolon
+keycode  52 = period greater period colon
+keycode  53 = slash question slash question Delete Delete
+keycode  54 = Shift
+keycode  55 = KP_Multiply
+keycode  56 = Alt
+keycode  57 = space
+control keycode  57 = nul
+keycode  58 = Caps_Lock
+
+keycode  86 = less greater bar
+
+altgr control alt keycode 111 = Boot

@@ -1,0 +1,15 @@
+# mac-de-latin1-nodeadkeys.map: German keymap
+# Due to Olaf Flebbe (flebbe@pluto.tat.physik.uni-tuebingen.de)
+# Mac version from olh@suse.de
+
+include "mac-de-latin1.map"
+
+keycode  24 = apostrophe       grave
+keycode  30 = plus             asterisk         asciitilde
+keycode  50 = asciicircum      degree
+	altgr keycode  45 = asciitilde
+
+# corresponding keys in mac-de-latin1.map:
+# keycode  24 = dead_acute       dead_grave
+# keycode  30 = plus             asterisk         dead_tilde
+# keycode  50 = dead_circumflex  degree

@@ -1,0 +1,59 @@
+#!/bin/sh
+
+trap "" 0 1 2 15
+
+tput clear
+
+# Find the non-local logins, probably on ttyp etc. Or on pts/N.
+LOG=$(w -s | grep -E -v 'tty[0-9]' | tail +2)
+count=$(echo "$LOG" | wc -l)
+
+dont_panic() {
+ dialog --infobox "
+
+               THE SYSTEM IS SHUTTING DOWN
+
+                   !!!!!!!WAIT!!!!!!
+
+            !!!!DON'T POWER DOWN YET!!!!!!!!
+
+             wait for this message to clear.
+             $*
+
+ " 15 60 &
+}
+
+if [ $count -lt 2 ]; then
+ dont_panic "
+              The system is shutting down"
+ /sbin/shutdown -r now "sistema esta en shutdown"
+else
+ dialog --yesno "
+There are the following users in
+the machine:
+
+`echo "$LOG"`
+
+Shutdown will be delayed by 2 minutes
+in order to warn the users.
+
+Do you still want to start the shutdown?
+
+" `expr 14 + $count` 70
+
+
+if [ $? = 0 ];then
+  dont_panic "
+               Shutting down in 2 minutes"
+  /sbin/shutdown -r +2 "sistema esta en shutdown"
+else
+  sleep 1
+  dialog --infobox "
+
+        The shutdown has been aborted
+
+  " 7 50 &
+ sleep 5
+ tput clear
+fi
+fi

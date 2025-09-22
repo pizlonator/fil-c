@@ -1,0 +1,116 @@
+# dvorak-sv-a1.map - "Swedish version" of the Dvorak layout (Svorak)
+#
+# Author: xevz
+# Keymap modificators: Shift and AltGr
+# Url: http://aoeu.info/s/dvorak/svorak
+#
+# The A1 keeps the special symbols (like !"#¤%&/()=?) where they
+# are on a normal Qwerty layout (the number keys with shift modifier),
+# while A5 moves them to the keypad (with alt gr modifier).
+#
+charset "iso-8859-1"
+keymaps 0-2,4-6,8,12
+alt_is_meta
+include "linux-with-alt-and-altgr.inc"
+strings as usual
+
+keycode   1 = Escape
+        alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam
+        alt     keycode   2 = Meta_one
+keycode   3 = two              quotedbl         at
+        control keycode   3 = nul
+        alt     keycode   3 = Meta_two
+keycode   4 = three            numbersign       sterling
+        control keycode   4 = Escape
+        alt     keycode   4 = Meta_three
+keycode   5 = four             ccedilla
+        control keycode   5 = Control_backslash
+        alt     keycode   5 = Meta_four
+        altgr   keycode   5 = dollar
+keycode   6 = five             percent
+        control keycode   6 = Control_bracketright
+        alt     keycode   6 = Meta_five
+keycode   7 = six              ampersand        notsign
+        control keycode   7 = Control_asciicircum
+        alt     keycode   7 = Meta_six
+keycode   8 = seven            slash            braceleft
+        control keycode   8 = Control_underscore
+        alt     keycode   8 = Meta_seven
+keycode   9 = eight            parenleft        bracketleft
+        control keycode   9 = Delete
+        alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenright	bracketright
+        alt     keycode  10 = Meta_nine
+keycode  11 = zero             equal		braceright
+        alt     keycode  11 = Meta_zero
+keycode  12 = plus       question         backslash
+        control keycode  12 = Control_underscore
+        alt     keycode  12 = Meta_minus
+keycode  13 = dead_acute  dead_grave
+        alt     keycode  13 = Meta_equal
+keycode  14 = Delete
+        alt     keycode  14 = Meta_Delete
+keycode  15 = Tab
+        alt     keycode  15 = Meta_Tab
+keycode  16 = +aring          +Aring
+        control keycode  16 = Escape
+        alt     keycode  16 = Meta_bracketleft
+keycode  17 = +adiaeresis       +Adiaeresis
+        control keycode  17 = Control_g
+        alt     keycode  17 = Meta_apostrophe            
+keycode  18 = +odiaeresis       +Odiaeresis
+        alt     keycode  18 = Meta_semicolon         
+keycode  19 = p               
+keycode  20 = y               
+keycode  21 = f               
+keycode  22 = g               
+keycode  23 = c               
+keycode  24 = r               
+keycode  25 = l                     
+keycode  26 = comma            semicolon
+        alt     keycode  26 = Meta_comma
+keycode  27 = dead_diaeresis   asciicircum           asciitilde
+        control keycode  27 = Control_bracketright
+        alt     keycode  27 = Meta_bracketright
+keycode  28 = Return
+        alt     keycode  28 = Meta_Control_m
+keycode  29 = Control         
+keycode  30 = a               
+keycode  31 = o               
+keycode  32 = e               
+keycode  33 = u               
+keycode  34 = i               
+keycode  35 = d               
+keycode  36 = h               
+keycode  37 = t               
+keycode  38 = n               
+keycode  39 = s               
+keycode  40 = minus            underscore
+        control keycode  40 = Delete
+        alt     keycode  40 = Meta_slash
+        shift control keycode 40 = Control_underscore
+keycode  41 = section          degree
+        control keycode  41 = nul
+        alt     keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = apostrophe       asterisk
+keycode  44 = period           colon
+        alt     keycode  44 = Meta_period           
+keycode  45 = q               
+keycode  46 = j               
+keycode  47 = k               
+keycode  48 = x               
+keycode  49 = b               
+keycode  50 = m               
+keycode  51 = w               
+keycode  52 = v               
+keycode  53 = z               
+keycode  54 = Shift           
+keycode  56 = Alt             
+keycode  57 = space            space           
+	control keycode  57 = nul             
+keycode  58 = Caps_Lock       
+keycode  86 = less             greater          bar             
+	alt     keycode  86 = Meta_less       
+keycode  97 = Control         

@@ -1,0 +1,56 @@
+Date: Wed, 23 Nov 1994 09:14:14 +0000
+From: iek@arrc.salf.ac.uk (Ian King)
+To: aeb@cwi.nl
+Subject: kbd 0.89, source of more fonts and cirrus logic mode database
+
+Firstly thanks for the current (0.89?) kbd package.  The resize
+program is great especially when combined with the kernel patch
+on sunsite that provides extra vga modes ;-)  I enclose the saved mode
+files I have generated for my generic cirrus logic card at the bottom
+of this file (boy do they compress well 22k to 650bytes ;-)  You
+mentioned collecting a database of files for various cards in the
+resize.c source code, feel free to include these as they take a while
+to generate and save, esp when you include the kernel rebuild.
+
+Obviously I cannot guarantee they will work, but they do for me. With
+of course disclaimers about exploding monitors and VGA cards.
+
+Secondly, something you could mention in the consolefonts documentation
+is that 200 more fonts are available from any simtel mirror.  The file
+.../whatever_simtel20/screen/fntcol16.zip which contains hundreds of public
+domain PC fonts all that work with setfont directly with no conversion
+required (you can even make a VC look like a windowless mac ;-)  The only
+problem is that the /usr/lib/kbd/consolefonts directory becomes a mess.
+I have divided mine up into f16, f14, f12, ... f8 subdirectories to make
+things easier.  Fortunately all the files in fntcol16 have .f?? extensions
+which makes things much easier.
+
+Ian
+
+-------------------------------------------------------------------
+Modes included in cl-gd5428-vlb-generic.tar.gz
+
+ 80x25	 80x28	 80x30	 80x36	 80x40	 80x44	 80x50
+132x25	132x28	132x30	132x36	132x40	132x44	132x50	132x60
+
+begin 664 cl-gd5428-vlb-generic.tar.gz
+M'XL("(;"SRX" W9I9&UO9&5S+G1A<@#MVCU/%$$<Q_&!P]T[=KD#)2%JXJY6
+MY"R8V?\\G$\GN88+A$!CHX5::6$X@YA8JIB8:&&EE3$FO@4;;7P#%)1VEB3&
+MQ)> ^W %0:)2W#C<_KX4) N4G_SF=A"4/$H4&VB"<RUES.(LON][&@D>QTJG
+M7R04E^D38[AA,6<6>OA@X_9Z'+/U7F_C3[_WMY\?T=YO/MM\\>Y+Q%8FZM['
+M>?:V_JH3O?[\@8V,5L:.3?NM"Q<O7;[2OEIEC?Y?3-;9;N5LA8WV=HL'C>/L
+M\=VIQ1N=ZY/%@Z^"C;#S<U&;(=<3F?^6*_XE&46Y_X3@WZK_Y2"L=3/_S^&_
+M9/Z).^-?"3*Y?Y' OSW_03O;_^;6//L>?NM$.V/_XO\G_ ^)?^V,?RDD+_P+
+M^+>Z_XO5VL2/;/]?8O]+YE\ZM/\JZ>^_AG^K^[\T'IRYA_TOI7_ISOY+$H5_
+M?/ZWN_]=SZ]M8?_+Z%^YL_]2)_WS/X=_J_X7//_$--[_E]&_=L8_$5<2_O_'
+M^3_U?VH;Y_^RU>(#O_X_E'^C\_L_+?'^WTHW5U:?7GM2W/^?7,WW?S9Z\^DW
+M_R%K5/?XCU/_=_;X#S/_:_O\-\'K2/AO.>2?N,[]$][_V?6_'(3G;N7W__!?
+M+O^#OOX_S.=_GB2%_P3^+?HO[O]G[N?G_]F#SO\'^-^!_^'PKYWQ3T90<?XG
+M_/^OW?WO>OY,G+__Q_Z7R[]T:/]):5'XE_!O=?^7QH,FQ_Z7T;]TQC\98U3N
+M7^']G_7]G^+8_Q+Z5^[L/Y$R_?U7\&_5_X+GG][&^W^$$$(((8000@@AA! :
++EGX!=[;,B0!0  #Z
+ 
+end
+
+
+

@@ -1,0 +1,350 @@
+# Bulgarian Phonetic Cyrillic code page 1251 keyboard map version 0.2.
+# Cyrillic mode is toggled by Right_Ctrl key and shifted by AltGr key.
+# Console_13...24 are invoked with Alt-Shift-F1...F12. All other AltGr
+# keys are bound to Control-Shift, except for the unbound AltGr-Minus.
+# Based on the kbd defkeymap.       -- Dimitar Zhekov <jimmy@is-vn.bg>
+
+keymaps 0-15
+
+strings as usual
+
+keycode   1 =	Escape		Escape		Escape		Escape
+	alt	keycode   1 = Meta_Escape
+	altgr	alt	keycode   1 = Meta_Escape
+keycode   2 =	one		exclam		one		exclam         \
+		VoidSymbol	VoidSymbol	VoidSymbol	VoidSymbol     \
+		Meta_one	Meta_exclam	Meta_one	Meta_exclam
+keycode   3 =	two		at		two		at             \
+		nul		nul		nul		nul            \
+		Meta_two	Meta_at		Meta_two	Meta_at
+keycode   4 =	three		numbersign	three		numbersign     \
+		Escape		VoidSymbol	Escape		VoidSymbol     \
+		Meta_three	Meta_numbersign	Meta_three	Meta_numbersign
+keycode   5 =	four		dollar		four		dollar         \
+		Control_backslash    dollar	Control_backslash    dollar    \
+		Meta_four	Meta_dollar	Meta_four	Meta_dollar
+keycode   6 =	five		percent		five		percent        \
+		Control_bracketright VoidSymbol	Control_bracketright VoidSymbol\
+		Meta_five	Meta_percent	Meta_five	Meta_percent
+keycode   7 =	six		asciicircum	six		asciicircum    \
+		Control_asciicircum VoidSymbol	Control_asciicircum VoidSymbol \
+		Meta_six      Meta_asciicircum	Meta_six      Meta_asciicircum
+keycode   8 =	seven		ampersand	seven		ampersand      \
+		Control_underscore  braceleft	Control_underscore  braceleft  \
+		Meta_seven	Meta_ampersand	Meta_seven	Meta_ampersand
+keycode   9 =	eight		asterisk	eight		asterisk       \
+		Delete		bracketleft	Delete		bracketleft    \
+		Meta_eight	Meta_asterisk	Meta_eight	Meta_asterisk
+keycode  10 =	nine		parenleft	nine		parenleft      \
+		VoidSymbol	bracketright	VoidSymbol	bracketright   \
+		Meta_nine	Meta_parenleft	Meta_nine	Meta_parenleft
+keycode  11 =	zero		parenright	zero		parenright     \
+		VoidSymbol	braceright	VoidSymbol	braceright     \
+		Meta_zero	Meta_parenright	Meta_zero	Meta_parenright
+keycode  12 =	minus		underscore	minus		underscore     \
+    Control_underscore Control_underscore Control_underscore Control_underscore\
+		Meta_minus	Meta_underscore	Meta_minus	Meta_underscore
+keycode  13 =	equal		plus		equal		plus           \
+		VoidSymbol	VoidSymbol	VoidSymbol	VoidSymbol     \
+		Meta_equal	Meta_plus	Meta_equal	Meta_plus
+keycode  14 =	Delete		Delete		Delete		Delete
+	control keycode  14 = BackSpace
+	alt	keycode  14 = Meta_Delete
+	altgr	control keycode  14 = BackSpace
+	altgr	alt	keycode  14 = Meta_Delete
+keycode  15 =	Tab		Tab		Tab		Tab
+	shift	keycode  15 = Meta_Tab
+	alt	keycode  15 = Meta_Tab
+	altgr	alt	keycode  15 = Meta_Tab
+keycode  16 =	q		Q		+255		+223           \
+		Control_q	Control_q	Control_q	Control_q      \
+		Meta_q		Meta_Q		Meta_q		Meta_Q         \
+		Meta_Control_q	Meta_Control_q	Meta_Control_q	Meta_Control_q
+keycode  17 =	w		W		+226		+194           \
+		Control_w	Control_w	Control_w	Control_w      \
+		Meta_w		Meta_W		Meta_w		Meta_W         \
+		Meta_Control_w	Meta_Control_w	Meta_Control_w	Meta_Control_w
+keycode  18 =	e		E		+229		+197           \
+		Control_e	Control_e	Control_e	Control_e      \
+		Meta_e		Meta_E		Meta_e		Meta_E         \
+		Meta_Control_e	Meta_Control_e	Meta_Control_e	Meta_Control_e
+keycode  19 =	r		R		+240		+208           \
+		Control_r	Control_r	Control_r	Control_r      \
+		Meta_r		Meta_R		Meta_r		Meta_R         \
+		Meta_Control_r	Meta_Control_r	Meta_Control_r	Meta_Control_r
+keycode  20 =	t		T		+242		+210           \
+		Control_t	Control_t	Control_t	Control_t      \
+		Meta_t		Meta_T		Meta_t		Meta_T         \
+		Meta_Control_t	Meta_Control_t	Meta_Control_t	Meta_Control_t
+keycode  21 =	y		Y		+250		+218           \
+		Control_y	Control_y	Control_y	Control_y      \
+		Meta_y		Meta_Y		Meta_y		Meta_Y         \
+		Meta_Control_y	Meta_Control_y	Meta_Control_y	Meta_Control_y
+keycode  22 =	u		U		+243		+211           \
+		Control_u	Control_u	Control_u	Control_u      \
+		Meta_u		Meta_U		Meta_u		Meta_U         \
+		Meta_Control_u	Meta_Control_u	Meta_Control_u	Meta_Control_u
+keycode  23 =	i		I		+232		+200           \
+		Control_i	Control_i	Control_i	Control_i      \
+		Meta_i		Meta_I		Meta_i		Meta_I         \
+		Meta_Control_i	Meta_Control_i	Meta_Control_i	Meta_Control_i
+keycode  24 =	o		O		+238		+206           \
+		Control_o	Control_o	Control_o	Control_o      \
+		Meta_o		Meta_O		Meta_o		Meta_O         \
+		Meta_Control_o	Meta_Control_o	Meta_Control_o	Meta_Control_o
+keycode  25 =	p		P		+239		+207           \
+		Control_p	Control_p	Control_p	Control_p      \
+		Meta_p		Meta_P		Meta_p		Meta_P         \
+		Meta_Control_p	Meta_Control_p	Meta_Control_p	Meta_Control_p
+keycode  26 =	bracketleft	braceleft	+248		+216           \
+		Escape		VoidSymbol	Escape		VoidSymbol     \
+		Meta_bracketleft Meta_braceleft	Meta_bracketleft Meta_braceleft
+keycode  27 =	bracketright	braceright	+249		+217           \
+		Control_bracketright asciitilde	Control_bracketright asciitilde\
+	    Meta_bracketright Meta_braceright Meta_bracketright Meta_braceright
+keycode  28 =	Return
+	alt	keycode  28 = Meta_Control_m
+	altgr	alt	keycode  28 = Meta_Control_m
+keycode  29 =	Control
+keycode  30 =	a		A		+224		+192           \
+		Control_a	Control_a	Control_a	Control_a      \
+		Meta_a		Meta_A		Meta_a		Meta_A         \
+		Meta_Control_a	Meta_Control_a	Meta_Control_a	Meta_Control_a
+keycode  31 =	s		S		+241		+209           \
+		Control_s	Control_s	Control_s	Control_s      \
+		Meta_s		Meta_S		Meta_s		Meta_S         \
+		Meta_Control_s	Meta_Control_s	Meta_Control_s	Meta_Control_s
+keycode  32 =	d		D		+228		+196           \
+		Control_d	Control_d	Control_d	Control_d      \
+		Meta_d		Meta_D		Meta_d		Meta_D         \
+		Meta_Control_d	Meta_Control_d	Meta_Control_d	Meta_Control_d
+keycode  33 =	f		F		+244		+212           \
+		Control_f	Control_f	Control_f	Control_f      \
+		Meta_f		Meta_F		Meta_f		Meta_F         \
+		Meta_Control_f	Meta_Control_f	Meta_Control_f	Meta_Control_f
+keycode  34 =	g		G		+227		+195           \
+		Control_g	Control_g	Control_g	Control_g      \
+		Meta_g		Meta_G		Meta_g		Meta_G         \
+		Meta_Control_g	Meta_Control_g	Meta_Control_g	Meta_Control_g
+keycode  35 =	h		H		+245		+213           \
+		Control_h	Control_h	Control_h	Control_h      \
+		Meta_h		Meta_H		Meta_h		Meta_H         \
+		Meta_Control_h	Meta_Control_h	Meta_Control_h	Meta_Control_h
+keycode  36 =	j		J		+233		+201           \
+		Control_j	Control_j	Control_j	Control_j      \
+		Meta_j		Meta_J		Meta_j		Meta_J         \
+		Meta_Control_j	Meta_Control_j	Meta_Control_j	Meta_Control_j
+keycode  37 =	k		K		+234		+202           \
+		Control_k	Control_k	Control_k	Control_k      \
+		Meta_k		Meta_K		Meta_k		Meta_K         \
+		Meta_Control_k	Meta_Control_k	Meta_Control_k	Meta_Control_k
+keycode  38 =	l		L		+235		+203           \
+		Control_l	Control_l	Control_l	Control_l      \
+		Meta_l		Meta_L		Meta_l		Meta_L         \
+		Meta_Control_l	Meta_Control_l	Meta_Control_l	Meta_Control_l
+keycode  39 =	semicolon	colon		semicolon	colon          \
+		VoidSymbol	VoidSymbol	VoidSymbol	VoidSymbol     \
+		Meta_semicolon	Meta_colon	Meta_semicolon	Meta_colon
+keycode  40 =	apostrophe	quotedbl	apostrophe	quotedbl       \
+		Control_g	VoidSymbol	Control_g	VoidSymbol     \
+		Meta_apostrophe	Meta_quotedbl	Meta_apostrophe	Meta_quotedbl
+keycode  41 =	grave		asciitilde	+247		+215           \
+		nul		VoidSymbol	nul		VoidSymbol     \
+		Meta_grave	Meta_asciitilde	Meta_grave	Meta_asciitilde
+keycode  42 =	Shift
+keycode  43 =	backslash	bar		+254		+222           \
+		Control_backslash  VoidSymbol	Control_backslash  VoidSymbol  \
+		Meta_backslash	Meta_bar	Meta_backslash	Meta_bar
+keycode  44 =	z		Z		+231		+199           \
+		Control_z	Control_z	Control_z	Control_z      \
+		Meta_z		Meta_Z		Meta_z		Meta_Z         \
+		Meta_Control_z	Meta_Control_z	Meta_Control_z	Meta_Control_z
+keycode  45 =	x		X		+252		+220           \
+		Control_x	Control_x	Control_x	Control_x      \
+		Meta_x		Meta_X		Meta_x		Meta_X         \
+		Meta_Control_x	Meta_Control_x	Meta_Control_x	Meta_Control_x
+keycode  46 =	c		C		+246		+214           \
+		Control_c	Control_c	Control_c	Control_c      \
+		Meta_c		Meta_C		Meta_c		Meta_C         \
+		Meta_Control_c	Meta_Control_c	Meta_Control_c	Meta_Control_c
+keycode  47 =	v		V		+230		+198           \
+		Control_v	Control_v	Control_v	Control_v      \
+		Meta_v		Meta_V		Meta_v		Meta_V         \
+		Meta_Control_v	Meta_Control_v	Meta_Control_v	Meta_Control_v
+keycode  48 =	b		B		+225		+193           \
+		Control_b	Control_b	Control_b	Control_b      \
+		Meta_b		Meta_B		Meta_b		Meta_B         \
+		Meta_Control_b	Meta_Control_b	Meta_Control_b	Meta_Control_b
+keycode  49 =	n		N		+237		+205           \
+		Control_n	Control_n	Control_n	Control_n      \
+		Meta_n		Meta_N		Meta_n		Meta_N         \
+		Meta_Control_n	Meta_Control_n	Meta_Control_n	Meta_Control_n
+keycode  50 =	m		M		+236		+204           \
+		Control_m	Control_m	Control_m	Control_m      \
+		Meta_m		Meta_M		Meta_m		Meta_M         \
+		Meta_Control_m	Meta_Control_m	Meta_Control_m	Meta_Control_m
+keycode  51 =	comma		less		comma		less           \
+		VoidSymbol	VoidSymbol	VoidSymbol	VoidSymbol     \
+		Meta_comma	Meta_less	Meta_comma	Meta_less
+keycode  52 =	period		greater		period		greater        \
+		Compose		VoidSymbol	Compose		VoidSymbol     \
+		Meta_period	Meta_greater	Meta_period	Meta_greater
+keycode  53 =	slash		question	slash		question       \
+		Delete		Delete		Delete		Delete         \
+		Meta_slash	Meta_question	Meta_slash	Meta_question
+keycode  54 =	Shift
+keycode  55 =	KP_Multiply
+keycode  56 =	Alt
+keycode  57 =	space		space		space		space
+	control	keycode  57 = nul
+	alt	keycode  57 = Meta_space
+	altgr	control	keycode  57 = nul
+	altgr	alt	keycode  57 = Meta_space
+keycode  58 =	Caps_Lock
+keycode  59 =	F1		F13		F1		F13            \
+		F25		F37		F25		F37            \
+		Console_1	Console_13	Console_1	Console_13     \
+		Console_1	Console_13	Console_1	Console_13
+keycode  60 =	F2		F14		F2		F14            \
+		F26		F38		F26		F38            \
+		Console_2	Console_14	Console_2	Console_14     \
+		Console_2	Console_14	Console_2	Console_14
+keycode  61 =	F3		F15		F3		F15            \
+		F27		F39		F27		F39            \
+		Console_3	Console_15	Console_3	Console_15     \
+		Console_3	Console_15	Console_3	Console_15
+keycode  62 =	F4		F16		F4		F16            \
+		F28		F40		F28		F40            \
+		Console_4	Console_16	Console_4	Console_16     \
+		Console_4	Console_16	Console_4	Console_16
+keycode  63 =	F5		F17		F5		F17            \
+		F29		F41		F29		F41            \
+		Console_5	Console_17	Console_5	Console_17     \
+		Console_5	Console_17	Console_5	Console_17
+keycode  64 =	F6		F18		F6		F18            \
+		F30		F42		F30		F42            \
+		Console_6	Console_18	Console_6	Console_18     \
+		Console_6	Console_18	Console_6	Console_18
+keycode  65 =	F7		F19		F7		F19            \
+		F31		F43		F31		F43            \
+		Console_7	Console_19	Console_7	Console_19     \
+		Console_7	Console_19	Console_7	Console_19
+keycode  66 =	F8		F20		F8		F20            \
+		F32		F44		F32		F44            \
+		Console_8	Console_20	Console_8	Console_20     \
+		Console_8	Console_20	Console_8	Console_20
+keycode  67 =	F9		F21		F9		F21            \
+		F33		F45		F33		F45            \
+		Console_9	Console_21	Console_9	Console_21     \
+		Console_9	Console_21	Console_9	Console_21
+keycode  68 =	F10		F22		F10		F22            \
+		F34		F46		F34		F46            \
+		Console_10	Console_22	Console_10	Console_22     \
+		Console_10	Console_22	Console_10	Console_22
+keycode  69 =	Num_Lock
+	shift	keycode  69 =	Bare_Num_Lock
+	altgr	shift	keycode  69 =	Bare_Num_Lock
+keycode  70 =	Scroll_Lock	Show_Memory	Scroll_Lock	Show_Memory    \
+		Show_State	Show_Registers	Show_State	Show_Registers \
+		Scroll_Lock	VoidSymbol	Scroll_Lock	VoidSymbol
+keycode  71 =	KP_7
+	alt	keycode  71 = Ascii_7
+	altgr	alt	keycode  71 = Ascii_7
+keycode  72 =	KP_8
+	alt	keycode  72 = Ascii_8
+	altgr	alt	keycode  72 = Ascii_8
+keycode  73 =	KP_9
+	alt	keycode  73 = Ascii_9
+	altgr	alt	keycode  73 = Ascii_9
+keycode  74 =	KP_Subtract
+keycode  75 =	KP_4
+	alt	keycode  75 = Ascii_4
+	altgr	alt	keycode  75 = Ascii_4
+keycode  76 =	KP_5
+	alt	keycode  76 = Ascii_5
+	altgr	alt	keycode  76 = Ascii_5
+keycode  77 =	KP_6
+	alt	keycode  77 = Ascii_6
+	altgr	alt	keycode  77 = Ascii_6
+keycode  78 =	KP_Add
+keycode  79 =	KP_1
+	alt	keycode  79 = Ascii_1
+	altgr	alt	keycode  79 = Ascii_1
+keycode  80 =	KP_2
+	alt	keycode  80 = Ascii_2
+	altgr	alt	keycode  80 = Ascii_2
+keycode  81 =	KP_3
+	alt	keycode  81 = Ascii_3
+	altgr	alt	keycode  81 = Ascii_3
+keycode  82 =	KP_0
+	alt	keycode  82 = Ascii_0
+	altgr	alt	keycode  82 = Ascii_0
+keycode  83 =	KP_Period
+	alt	control	keycode  83 = Boot
+	altgr	alt	control	keycode  83 = Boot
+keycode  84 =	Last_Console
+keycode  85 =
+keycode  86 =	less		greater		less		greater        \
+		VoidSymbol	bar		VoidSymbol	bar            \
+		Meta_less	Meta_greater	Meta_less	Meta_greater
+keycode  87 =	F11		F23		F11		F23            \
+		F35		F47		F35		F47            \
+		Console_11	Console_23	Console_11	Console_23     \
+		Console_11	Console_23	Console_11	Console_23
+keycode  88 =	F12		F24		F12		F24            \
+		F36		F48		F36		F48            \
+		Console_12	Console_24	Console_12	Console_24     \
+		Console_12	Console_24	Console_12	Console_24
+keycode  89 =
+keycode  90 =
+keycode  91 =
+keycode  92 =
+keycode  93 =
+keycode  94 =
+keycode  95 =
+keycode  96 =	KP_Enter
+keycode  97 =	AltGr_Lock
+keycode  98 =	KP_Divide
+keycode  99 =	Control_backslash
+	control	keycode  99 = Control_backslash
+	alt	keycode  99 = Control_backslash
+	altgr	control	keycode  99 = Control_backslash
+	altgr	alt	keycode  99 = Control_backslash
+keycode 100 =	AltGr
+keycode 101 =	Break
+keycode 102 =	Find
+keycode 103 =	Up
+keycode 104 =	Prior
+	shift	keycode 104 = Scroll_Backward
+	altgr	shift	keycode 104 = Scroll_Backward
+keycode 105 =	Left
+	alt	keycode 105 = Decr_Console
+	altgr	alt	keycode 105 = Decr_Console
+keycode 106 =	Right
+	alt	keycode 106 = Incr_Console
+	altgr	alt	keycode 106 = Incr_Console
+keycode 107 =	Select
+keycode 108 =	Down
+keycode 109 =	Next
+	shift	keycode 109 = Scroll_Forward
+	altgr	shift	keycode 109 = Scroll_Forward
+keycode 110 =	Insert
+keycode 111 =	Remove
+	alt	control	keycode 111 = Boot
+	altgr	alt	control	keycode 111 = Boot
+keycode 112 =	Macro
+keycode 113 =	F13
+keycode 114 =	F14
+keycode 115 =	Help
+keycode 116 =	Do
+keycode 117 =	F17
+keycode 118 =	KP_MinPlus
+keycode 119 =	Pause
+keycode 120 =
+keycode 121 =
+keycode 122 =
+keycode 123 =
+keycode 124 =
+keycode 125 =
+keycode 126 =
+keycode 127 =

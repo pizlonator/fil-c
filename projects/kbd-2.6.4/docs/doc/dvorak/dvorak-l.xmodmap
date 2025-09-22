@@ -1,0 +1,92 @@
+!
+! left-handed keyboard
+!
+! Author: Jeff Bigler (jcb@mit.edu)
+! Last modified: 1997/04/18 16:41:18 by jcb@mit.edu
+!
+! This file should be given as an argument to xmodmap to
+! switch from a qwerty to a left-handed keyboard (designed
+! for amputees and other people who type with only their
+! left hand).
+!
+! The keyboard layout is:
+!
+! ~   +   [   ?   P   F   M   L   J   $   #   @   !   |
+! `   =   ]   /   p   f   m   l   j   4   3   2   1   \
+!
+!      :   Q   B   Y   U   R   S   O   >   ^   %   {
+!      ;   q   b   y   u   r   s   o   .   6   5   }
+!
+!       _   K   C   D   T   H   E   A   Z   *   &
+!       -   k   c   d   t   h   e   a   z   8   7
+!
+!        "   X   G   V   W   N   I   <   )   (
+!        '   x   g   v   w   n   i   ,   0   9
+!
+! Note that Null translations have been included as
+! comments.
+!
+! If you want to be easily able to switch the keyboard
+! back to its previous state, first run xmodmap -pke and
+! redirect the output to a file.  Then you can switch back
+! by giving that file as an argument to xmodmap.  For
+! example, if you type:
+!
+!     xmodmap -pke > /tmp/keyboard.default
+!
+! before switching the keyboard, you can then type:
+!
+!     xmodmap /tmp/keyboard.default
+!
+! to reset the keyboard to its previous state.
+!
+! Note that if you pass this file again as an argument to
+! xmodmap, you will apply these translations a second time
+! and come out with gibberish!
+!
+keysym 1 = equal plus
+keysym 2 = bracketright bracketleft
+keysym 3 = slash question
+keysym 4 = p P
+keysym 5 = f F
+keysym 6 = m M
+keysym 7 = l L
+keysym 8 = j J
+keysym 9 = 4 dollar
+keysym 0 = 3 numbersign
+keysym minus = 2 at
+keysym equal = 1 exclam
+keysym q = semicolon colon
+keysym w = q Q
+keysym e = b B
+keysym r = y Y
+keysym t = u U
+keysym y = r R
+keysym u = s S
+keysym i = o O
+keysym o = period greater
+keysym p = 6 asciicircum
+keysym bracketleft = 5 percent
+keysym bracketright = braceright braceleft
+keysym a = minus underscore
+keysym s = k K
+keysym d = c C
+keysym f = d D
+keysym g = t T
+keysym h = h H
+keysym j = e E
+keysym k = a A
+keysym l = z Z
+keysym semicolon = 8 asterisk
+keysym quoteright = 7 ampersand
+keysym z = quoteright quotedbl
+! keysym x = x X
+keysym c = g G
+! keysym v = v V
+keysym b = w W
+! keysym n = n N
+keysym m = i I
+! keysym comma = comma less
+keysym period = 0 parenright
+keysym slash = 9 parenleft
+

@@ -1,0 +1,23 @@
+# azerty.map with modified numeric key assignements
+# to fit an azerty wang belgium keyboard
+# Servaas Vandenberghe, servaas.vandenberghe@esat.kuleuven.ac.be - 1997.
+
+include "azerty.map"		# has two alt keys
+keymaps 6			# add one more keymap
+
+keycode 100 = AltGr		# install AltGr on right Alt
+
+control altgr keycode  83 = Boot
+control altgr keycode 111 = Boot
+
+altgr keycode  71 = less
+altgr keycode  72 = greater
+altgr keycode  73 = asciicircum
+altgr keycode  75 = bracketleft
+altgr keycode  76 = bracketright
+altgr keycode  77 = dollar
+altgr keycode  79 = ampersand
+altgr keycode  80 = at
+altgr keycode  81 = numbersign
+altgr keycode  82 = apostrophe
+altgr keycode  83 = comma

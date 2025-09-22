@@ -1,0 +1,35 @@
+.\" @(#)deallocvt.1 1.0 970317 aeb
+.TH DEALLOCVT 1 "17 Mar 1997" "kbd"
+.SH NAME
+deallocvt \- deallocate unused virtual consoles
+.SH SYNOPSIS
+.B deallocvt
+[\fI\,option\/\fR...]
+.RI [ N " ...]"
+.SH DESCRIPTION
+.LP
+The command
+.B deallocvt
+deallocates kernel memory and data structures
+for all unused virtual consoles.
+If one or more arguments
+.IR N " ..."
+are given, only the corresponding consoles
+.I /dev/ttyN
+are deallocated.
+
+A virtual console is unused if it is not the foreground console,
+and no process has it open for reading or writing, and no text
+has been selected on its screen.
+.SH OPTIONS
+.TP
+.I "\-V, \-\-version"
+print program version and exit.
+.TP
+.I "\-h, \-\-help"
+show this text and exit.
+.SH "SEE ALSO"
+.BR chvt (1),
+.BR openvt (1)
+
+

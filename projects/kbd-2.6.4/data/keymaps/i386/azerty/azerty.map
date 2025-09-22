@@ -1,0 +1,62 @@
+# This describes the key engravings on an AZERTY keyboard (brand Tandon)
+# that I just got. It might be useful in French-speaking countries.
+# aeb - April 1994.
+charset "iso-8859-1"
+keymaps 0-2,4-5,8,12
+include "azerty-layout"
+include "linux-with-two-alt-keys"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape           Escape          
+keycode   2 = ampersand        one              bar             
+	alt     keycode   2 = bar             
+keycode   3 = eacute           two              at
+        control keycode   3 = nul
+        control shift keycode   3 = nul             
+	alt     keycode   3 = at              
+keycode   4 = quotedbl         three            numbersign      
+	alt     keycode   4 = numbersign      
+keycode   5 = apostrophe       four            
+keycode   6 = parenleft        five            
+keycode   7 = section          six              asciicircum     
+	alt     keycode   7 = asciicircum     
+keycode   8 = egrave           seven           
+keycode   9 = exclam           eight           
+keycode  10 = ccedilla         nine             braceleft       
+	alt     keycode  10 = braceleft       
+keycode  11 = agrave           zero             braceright      
+	alt     keycode  11 = braceright      
+keycode  12 = parenright       degree          
+keycode  13 = minus            underscore       backslash
+	control keycode  13 = Control_underscore
+	control shift keycode  13 = Control_underscore
+keycode  14 = Delete           Delete          
+keycode  15 = Tab              Meta_Tab             
+keycode  26 = dead_circumflex  dead_diaeresis   bracketleft     
+	control keycode  26 = Escape          
+	alt     keycode  26 = bracketleft     
+keycode  27 = dollar           asterisk         bracketright    
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = bracketright    
+keycode  28 = Return          
+keycode  29 = Control         
+keycode  40 = ugrave           percent          acute           
+	alt     keycode  40 = dead_acute      
+keycode  41 = twosuperior      threesuperior   
+keycode  42 = Shift           
+keycode  43 = mu               sterling         grave           
+	alt     keycode  43 = dead_grave      
+keycode  50 = comma            question        
+keycode  51 = semicolon        period          
+keycode  52 = colon            slash           
+keycode  53 = equal            plus             asciitilde      
+	alt     keycode  53 = asciitilde      
+keycode  54 = Shift           
+keycode  56 = Alt             
+keycode  57 = space            space           
+	control keycode  57 = nul             
+keycode  58 = Caps_Lock       
+keycode  86 = less             greater          backslash       
+	alt     keycode  86 = backslash       
+keycode  97 = Control         

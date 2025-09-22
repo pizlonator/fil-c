@@ -1,0 +1,100 @@
+# From: Rafal Narloch <rnarloch@manta.univ.gda.pl>
+# Date: Wed, 14 May 2003 12:49
+#
+# Polish "programers' keyboard" (left Alt + Shift + ..., 
+# Ctrl + Shift + `-', ...)
+# version 0.22
+# Rafal Narloch <rnarloch@interia.pl>, <rnarloch@manta.univ.gda.pl>
+# Based on:
+#    - `emacs2.kmap.gz' (Stig <stig@hackvan.com>
+#                              <stig@netcom.com>
+#            Joched Hein   <rafael@cse.ucsc.edu>)
+#    - `pl1.kmap.gz' (Rafal Maszkowski <rzm@oso.chalmers.se>,
+#				       <rzm@mat.uni.torun.pl>)
+# Thanks to:
+#    Jakub Bogusz
+#
+
+charset "iso-8859-2"
+keymaps 0-6,8-9,12
+alt_is_meta
+include "compose.latin2"
+include "linux-with-alt-and-altgr"
+include "qwerty-layout"
+	keycode  69 = Num_Lock         Caps_Lock
+	control	keycode 105 = Meta_b
+	control	keycode 106 = Meta_f
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one              exclam
+keycode   3 = two              at               at               nul              nul
+keycode   4 = three            numbersign
+	control	keycode   4 = Escape
+keycode   5 = four             dollar           dollar           Control_backslash
+keycode   6 = five             percent
+	control	keycode   6 = Control_bracketright
+keycode   7 = six              asciicircum
+	control	keycode   7 = Control_asciicircum
+keycode   8 = seven            ampersand        braceleft        Control_underscore
+keycode   9 = eight            asterisk         bracketleft      Delete
+keycode  10 = nine             parenleft        bracketright
+keycode  11 = zero             parenright       braceright
+keycode  12 = minus            underscore       backslash        Control_underscore Control_underscore
+keycode  13 = equal            plus
+keycode  14 = Delete
+keycode  15 = Tab
+	AltGr keycode  18 = +eogonek
+	AltGr Shift keycode  18 = +Eogonek
+keycode  24 = o
+	AltGr keycode  24 = +oacute
+	AltGr Shift keycode  24 = +Oacute
+keycode  26 = bracketleft      braceleft
+	control	keycode  26 = Escape
+keycode  27 = bracketright     braceright
+	control	keycode  27 = Control_bracketright
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+	shift	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  30 = a
+	AltGr keycode  30 = +aogonek
+	AltGr Shift keycode  30 = +Aogonek	
+keycode  31 = s
+	AltGr keycode  31 = +sacute
+	AltGr Shift keycode  31 = +Sacute
+keycode  38 = l
+	Control Shift keycode  12 = Control_underscore
+	AltGr keycode  38 = +lstroke
+	AltGr Shift keycode  38 = +Lstroke
+keycode  39 = semicolon        colon
+keycode  40 = apostrophe       quotedbl
+keycode  41 = grave            asciitilde
+keycode  42 = Shift
+keycode  43 = backslash        bar
+	control	keycode  43 = Control_backslash
+keycode  44 = z
+	AltGr keycode  44 = +zabovedot
+	AltGr Shift keycode  44 = +Zabovedot
+keycode  45 = x
+	AltGr keycode  45 = +zacute
+	AltGr Shift keycode  45 = +Zacute
+keycode  46 = c
+	AltGr keycode  46 = +cacute
+	AltGr Shift keycode  46 = +Cacute
+keycode  49 = n
+	AltGr keycode  49 = +nacute
+	AltGr Shift keycode  49 = +Nacute
+keycode  51 = comma            less
+keycode  52 = period           greater
+keycode  53 = slash            question
+	control	keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+keycode  97 = Control
+keycode  99 = Compose
+        alt keycode 100 = Compose

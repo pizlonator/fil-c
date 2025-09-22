@@ -1,0 +1,692 @@
+# Czech keyboard map for the Sun Type4/Type5 keyboards
+# found on SparcStations
+# Tue Dec 1 1998, Jakub Jelinek <jj@ultra.linux.cz>
+# The primary map is US, secondary CZ QWERTZ.
+# The real left Meta key acts as a temporary switch to the CZ keymap,
+# the Front/L5 key acts as a lock into CZ keymap and back.
+# If you want to have CZ keymap as primary, use
+# sunt5-cz-us.map.
+# Supports Euro: AltGr+E is Euro, AltGr+C is Cent (in US keymap only),
+# Compose e = is Euro.
+keymaps 0-5,8,12,64-79
+strings as usual
+charset "iso-8859-2"
+#
+#
+# Stop/L1
+keycode        0x01 =
+# SND_LOWER
+keycode        0x02 =
+# Again/L2
+keycode        0x03 =
+# SND_LOUDER
+keycode        0x04 =
+keycode        0x05 = F1                       F11     Console_13
+       control keycode                 0x05 = F1
+       alt     keycode                 0x05 = Console_1
+       control alt     keycode         0x05 = Console_1
+       CtrlL   keycode                 0x05 = F1
+       CtrlL   shift keycode           0x05 = F11
+       CtrlL   altgr keycode           0x05 = Console_13
+       CtrlL   control keycode         0x05 = F1
+       CtrlL   alt keycode             0x05 = Console_1
+       CtrlL   control alt keycode     0x05 = Console_1
+keycode        0x06 = F2                       F12     Console_14
+       control keycode                 0x06 = F2
+       alt     keycode                 0x06 = Console_2
+       control alt     keycode         0x06 = Console_2
+       CtrlL   keycode                 0x06 = F2
+       CtrlL   shift keycode           0x06 = F12
+       CtrlL   altgr keycode           0x06 = Console_14
+       CtrlL   control keycode         0x06 = F2
+       CtrlL   alt keycode             0x06 = Console_2
+       CtrlL   control alt keycode     0x06 = Console_2
+keycode        0x07 = F10                      F20     Console_22
+       control keycode                 0x07 = F10
+       alt     keycode                 0x07 = Console_10
+       control alt     keycode         0x07 = Console_10
+       CtrlL   keycode                 0x07 = F10
+       CtrlL   shift keycode           0x07 = F20
+       CtrlL   altgr keycode           0x07 = Console_22
+       CtrlL   control keycode         0x07 = F10
+       CtrlL   alt keycode             0x07 = Console_10
+       CtrlL   control alt keycode     0x07 = Console_10
+keycode        0x08 = F3                       F13     Console_15
+       control keycode                 0x08 = F3
+       alt     keycode                 0x08 = Console_3
+       control alt     keycode         0x08 = Console_3
+       CtrlL   keycode                 0x08 = F3
+       CtrlL   shift keycode           0x08 = F13
+       CtrlL   altgr keycode           0x08 = Console_15
+       CtrlL   control keycode         0x08 = F3
+       CtrlL   alt keycode             0x08 = Console_3
+       CtrlL   control alt keycode     0x08 = Console_3
+keycode        0x09 = F11                      F11     Console_23
+       control keycode                 0x09 = F11
+       alt     keycode                 0x09 = Console_11
+       control alt     keycode         0x09 = Console_11
+       CtrlL   keycode                 0x09 = F11
+       CtrlL   shift keycode           0x09 = F11
+       CtrlL   altgr keycode           0x09 = Console_23
+       CtrlL   control keycode         0x09 = F11
+       CtrlL   alt keycode             0x09 = Console_11
+       CtrlL   control alt keycode     0x09 = Console_11
+keycode        0x0a = F4                       F14     Console_16
+       control keycode                 0x0a = F4
+       alt     keycode                 0x0a = Console_4
+       control alt     keycode         0x0a = Console_4
+       CtrlL   keycode                 0x0a = F4
+       CtrlL   shift keycode           0x0a = F14
+       CtrlL   altgr keycode           0x0a = Console_16
+       CtrlL   control keycode         0x0a = F4
+       CtrlL   alt keycode             0x0a = Console_4
+       CtrlL   control alt keycode     0x0a = Console_4
+keycode        0x0b = F12                      F12     Console_24
+       control keycode                 0x0b = F12
+       alt     keycode                 0x0b = Console_12
+       control alt     keycode         0x0b = Console_12
+       CtrlL   keycode                 0x0b = F12
+       CtrlL   shift keycode           0x0b = F12
+       CtrlL   altgr keycode           0x0b = Console_12
+       CtrlL   control keycode         0x0b = F12
+       CtrlL   alt keycode             0x0b = Console_12
+       CtrlL   control alt keycode     0x0b = Console_12
+keycode        0x0c = F5                       F15     Console_17
+       control Keycode                 0x0c = F5
+       alt     keycode                 0x0c = Console_5
+       control alt     keycode         0x0c = Console_5
+       CtrlL   keycode                 0x0c = F5
+       CtrlL   shift keycode           0x0c = F15
+       CtrlL   altgr keycode           0x0c = Console_17
+       CtrlL   control keycode         0x0c = F5
+       CtrlL   alt keycode             0x0c = Console_5
+       CtrlL   control alt keycode     0x0c = Console_5
+keycode        0x0d = AltGr
+keycode 0x0e = F6                      F16     Console_18
+       control keycode                 0x0e = F6
+       alt     keycode                 0x0e = Console_6
+       control alt     keycode         0x0e = Console_6
+       CtrlL   keycode                 0x0e = F6
+       CtrlL   shift keycode           0x0e = F16
+       CtrlL   altgr keycode           0x0e = Console_18
+       CtrlL   control keycode         0x0e = F6
+       CtrlL   alt keycode             0x0e = Console_6
+       CtrlL   control alt keycode     0x0e = Console_6
+# BLANK KEY on type 5 keyboards
+keycode 0x0f =
+keycode 0x10 = F7                      F17     Console_19
+       control keycode                 0x10 = F7
+       alt     keycode                 0x10 = Console_7
+       control alt     keycode         0x10 = Console_7
+       CtrlL   keycode                 0x10 = F7
+       CtrlL   shift keycode           0x10 = F17
+       CtrlL   altgr keycode           0x10 = Console_19
+       CtrlL   control keycode         0x10 = F7
+       CtrlL   alt keycode             0x10 = Console_7
+       CtrlL   control alt keycode     0x10 = Console_7
+keycode 0x11 = F8                      F18     Console_20
+       control keycode                 0x11 = F8
+       alt     keycode                 0x11 = Console_8
+       control alt     keycode         0x11 = Console_8
+       CtrlL   keycode                 0x11 = F8
+       CtrlL   shift keycode           0x11 = F18
+       CtrlL   altgr keycode           0x11 = Console_20
+       CtrlL   control keycode         0x11 = F8
+       CtrlL   alt keycode             0x11 = Console_8
+       CtrlL   control alt keycode     0x11 = Console_8
+keycode 0x12 = F9                      F19     Console_21
+       control keycode                 0x12 = F9
+       alt     keycode                 0x12 = Console_9
+       control alt     keycode         0x12 = Console_9
+       CtrlL   keycode                 0x12 = F9
+       CtrlL   shift keycode           0x12 = F19
+       CtrlL   altgr keycode           0x12 = Console_21
+       CtrlL   control keycode         0x12 = F9
+       CtrlL   alt keycode             0x12 = Console_9
+       CtrlL   control alt keycode     0x12 = Console_9
+keycode 0x13 = Alt
+keycode 0x14 = Up
+keycode 0x15 = Pause
+# Print Screen
+keycode 0x16 =
+keycode 0x17 = Scroll_Lock     Show_Memory     Show_Registers
+       control keycode                         0x17 = Show_State
+       alt     keycode                         0x17 = Scroll_Lock
+       CtrlL   keycode                         0x17 = Scroll_Lock
+       CtrlL   shift keycode                   0x17 = Show_Memory
+       CtrlL   altgr keycode                   0x17 = Show_Registers
+       CtrlL   control keycode                 0x17 = Show_State
+       CtrlL   alt keycode                     0x17 = Scroll_Lock
+keycode 0x18 = Left
+       alt     keycode                         0x18 = Decr_Console
+       CtrlL   alt keycode                     0x18 = Decr_Console
+# Props/L3
+keycode 0x19 =
+# UNDO/L4
+keycode 0x1a =
+keycode 0x1b = Down
+keycode 0x1c = Right
+       alt     keycode                         0x1c = Incr_Console
+       CtrlL   alt keycode                     0x1c = Incr_Console
+keycode 0x1d = Escape          Escape
+       alt     keycode                         0x1d = Meta_Escape
+       CtrlL   keycode                         0x1d = Escape
+       CtrlL   alt keycode                     0x1d = Meta_Escape
+keycode 0x1e = one             exclam
+       alt     keycode                         0x1e = Meta_one
+       CtrlL   keycode                         0x1e = plus
+       CtrlL   shift keycode                   0x1e = one
+       CtrlL   alt keycode                     0x1e = Meta_one
+keycode 0x1f = two             at              at
+       control keycode                         0x1f = nul
+       shift   control keycode                 0x1f = nul
+       alt     keycode                         0x1f = Meta_two
+       CtrlL   keycode                         0x1f = ecaron
+       CtrlL   shift keycode                   0x1f = two
+       CtrlL   altgr keycode                   0x1f = at
+       CtrlL   control keycode                 0x1f = nul
+       CtrlL   shift control keycode           0x1f = nul
+       CtrlL   alt keycode                     0x1f = Meta_two
+keycode 0x20 = three           numbersign
+       control keycode                         0x20 = Escape
+       alt     keycode                         0x20 = Meta_three
+       CtrlL   keycode                         0x20 = scaron
+       CtrlL   shift keycode                   0x20 = three
+       CtrlL   control keycode                 0x20 = Escape
+       CtrlL   alt keycode                     0x20 = Meta_three
+keycode 0x21 = four            dollar          dollar
+       control keycode                         0x21 = Control_backslash
+       alt     keycode                         0x21 = Meta_four
+       CtrlL   keycode                         0x21 = ccaron
+       CtrlL   shift keycode                   0x21 = four
+       CtrlL   altgr keycode                   0x21 = dollar
+       CtrlL   control keycode                 0x21 = Control_backslash
+       CtrlL   alt keycode                     0x21 = Meta_four
+keycode 0x22 = five            percent
+       control keycode                         0x22 = Control_bracketright
+       alt     keycode                         0x22 = Meta_five
+       CtrlL   keycode                         0x22 = rcaron
+       CtrlL   shift keycode                   0x22 = five
+       CtrlL   control keycode                 0x22 = Control_bracketright
+       CtrlL   alt keycode                     0x22 = Meta_five
+keycode 0x23 = six             asciicircum
+       control keycode                         0x23 = Control_asciicircum
+       alt     keycode                         0x23 = Meta_six
+       CtrlL   keycode                         0x23 = zcaron
+       CtrlL   shift keycode                   0x23 = six
+       CtrlL   control keycode                 0x23 = Control_asciicircum
+       CtrlL   alt keycode                     0x23 = Meta_six
+keycode 0x24 = seven           ampersand       braceleft
+       control keycode                         0x24 = Control_underscore
+       alt     keycode                         0x24 = Meta_seven
+       CtrlL   keycode                         0x24 = yacute
+       CtrlL   shift keycode                   0x24 = seven
+       CtrlL   altgr keycode                   0x24 = braceleft
+       CtrlL   control keycode                 0x24 = Control_underscore
+       CtrlL   alt keycode                     0x24 = Meta_seven
+keycode 0x25 = eight           asterisk        bracketleft
+       control keycode                         0x25 = Delete
+       alt     keycode                         0x25 = Meta_eight
+       CtrlL   keycode                         0x25 = aacute
+       CtrlL   shift keycode                   0x25 = eight
+       CtrlL   altgr keycode                   0x25 = bracketleft
+       CtrlL   control keycode                 0x25 = Delete
+       CtrlL   alt keycode                     0x25 = Meta_eight
+keycode 0x26 = nine            parenleft       bracketright
+       alt     keycode                         0x26 = Meta_nine
+       CtrlL   keycode                         0x26 = iacute
+       CtrlL   shift keycode                   0x26 = nine
+       CtrlL   altgr keycode                   0x26 = bracketright
+       CtrlL   alt keycode                     0x26 = Meta_nine
+keycode 0x27 = zero            parenright      braceright
+       alt     keycode                         0x27 = Meta_zero
+       CtrlL   keycode                         0x27 = eacute
+       CtrlL   shift keycode                   0x27 = zero
+       CtrlL   altgr keycode                   0x27 = braceright
+       CtrlL   alt keycode                     0x27 = Meta_zero
+keycode 0x28 = minus           underscore      backslash
+       control keycode                         0x28 = Control_underscore
+       shift   control keycode                 0x28 = Control_underscore
+       alt     keycode                         0x28 = Meta_minus
+       CtrlL   keycode                         0x28 = equal
+       CtrlL   shift keycode                   0x28 = percent
+       CtrlL   altgr keycode                   0x28 = backslash
+       CtrlL   control keycode                 0x28 = Control_underscore
+       CtrlL   shift control keycode           0x28 = Control_underscore
+       CtrlL   alt keycode                     0x28 = Meta_minus
+keycode 0x29 = equal           plus
+       alt     keycode                         0x29 = Meta_equal
+       CtrlL   keycode                         0x29 = dead_acute
+       CtrlL   shift keycode                   0x29 = dead_circumflex
+       CtrlL   alt keycode                     0x29 = Meta_equal
+keycode 0x2a = grave           asciitilde
+       control keycode                         0x2a = nul
+       alt     keycode                         0x2a = Meta_grave
+       CtrlL   keycode                         0x2a = grave
+       CtrlL   shift keycode                   0x2a = semicolon
+       CtrlL   control keycode                 0x2a = nul
+       CtrlL   alt keycode                     0x2a = Meta_grave
+# Is marked as BackSpace but we define it as delete just like the i386
+# keyboard maps does
+keycode 0x2b = Delete          Delete
+       control keycode                         0x2b = BackSpace
+       alt     keycode                         0x2b = Meta_Delete
+       CtrlL   keycode                         0x2b = Delete
+       CtrlL   shift keycode                   0x2b = Delete
+       CtrlL   control keycode                 0x2b = BackSpace
+       CtrlL   alt keycode                     0x2b = Meta_Delete
+keycode 0x2c = Insert
+# This is really keypad = on type 4 keyboards
+keycode 0x2d = equal
+keycode 0x2e = KP_Divide
+keycode 0x2f = KP_Multiply
+# Power ON/OFF key on type 5 keyboard
+keycode 0x30 =
+# FRONT/L5
+keycode 0x31 = CtrlL_Lock
+keycode 0x32 = KP_Period
+#      altgr   control keycode                 0x32 = Boot
+       control alt     keycode                 0x32 = Boot
+       CtrlL   control alt keycode             0x32 = Boot
+# COPY/L6
+keycode 0x33 =
+# Home key, same difference
+keycode 0x34 = Find
+keycode 0x35 = Tab             Tab
+       alt     keycode                         0x35 = Meta_Tab
+       CtrlL   keycode                         0x35 = Tab
+       CtrlL   shift keycode                   0x35 = Tab
+       CtrlL   alt keycode                     0x35 = Meta_Tab
+keycode 0x36 = q
+keycode 0x37 = w
+keycode 0x38 = e
+       altgr   keycode                         0x38 = currency
+       altgr   shift keycode                   0x38 = Hex_E
+       CtrlL   altgr keycode                   0x38 = currency
+       CtrlL   altgr shift keycode             0x38 = Hex_E
+keycode 0x39 = r
+keycode 0x3a = t
+keycode 0x3b = y
+	CtrlL  keycode                         0x3b = z
+	CtrlL  shift keycode                   0x3b = Z
+	CtrlL  altgr keycode                   0x3b = z
+	CtrlL  altgr shift keycode             0x3b = Z
+	CtrlL  control keycode                 0x3b = Control_z
+	CtrlL  control shift keycode           0x3b = Control_z
+	CtrlL  control altgr keycode           0x3b = Control_z
+	CtrlL  control altgr shift keycode     0x3b = Control_z
+	CtrlL  alt keycode                     0x3b = Meta_z
+	CtrlL  alt shift keycode               0x3b = Meta_Z
+	CtrlL  alt altgr keycode               0x3b = Meta_z
+	CtrlL  alt altgr shift keycode         0x3b = Meta_Z
+	CtrlL  alt control keycode             0x3b = Meta_Control_z
+	CtrlL  alt control shift keycode       0x3b = Meta_Control_z
+	CtrlL  alt control altgr keycode       0x3b = Meta_Control_z
+	CtrlL  alt control altgr shift keycode 0x3b = Meta_Control_z
+keycode 0x3c = u
+keycode 0x3d = i
+keycode 0x3e = o
+keycode 0x3f = p
+keycode 0x40 = bracketleft     braceleft
+       control keycode                         0x40 = Escape
+       alt     keycode                         0x40 = Meta_bracketleft
+       CtrlL   keycode                         0x40 = uacute
+       CtrlL   shift keycode                   0x40 = slash
+       CtrlL   control keycode                 0x40 = Escape
+       CtrlL   alt keycode                     0x40 = Meta_bracketleft
+keycode 0x41 = bracketright    braceright      asciitilde
+       control keycode                         0x41 = Control_bracketright
+       alt     keycode                         0x41 = Meta_bracketright
+       CtrlL   keycode                         0x41 = parenright
+       CtrlL   shift keycode                   0x41 = parenleft
+       CtrlL   control keycode                 0x41 = Control_bracketright
+       CtrlL   alt keycode                     0x41 = Meta_bracketright
+keycode 0x42 = Delete          Delete
+       control keycode                         0x42 = BackSpace
+       alt     keycode                         0x42 = Meta_Delete
+       control alt     keycode                 0x42 = Boot
+       CtrlL   keycode                         0x42 = Delete
+       CtrlL   shift keycode                   0x42 = Delete
+       CtrlL   control keycode                 0x42 = BackSpace
+       CtrlL   alt keycode                     0x42 = Meta_Delete
+       CtrlL   control alt keycode             0x42 = Boot
+keycode 0x43 = Compose
+keycode 0x44 = KP_7
+       alt     keycode                         0x44 = Ascii_7
+       altgr   keycode                         0x44 = Hex_7
+       CtrlL   alt keycode                     0x44 = Ascii_7
+       CtrlL   altgr keycode                   0x44 = Hex_7
+keycode 0x45 = KP_8
+       alt     keycode                         0x45 = Ascii_8
+       altgr   keycode                         0x45 = Hex_8
+       CtrlL   alt keycode                     0x45 = Ascii_8
+       CtrlL   altgr keycode                   0x45 = Hex_8
+keycode 0x46 = KP_9
+       alt     keycode                         0x46 = Ascii_9
+       altgr   keycode                         0x46 = Hex_9
+       CtrlL   alt keycode                     0x46 = Ascii_9
+       CtrlL   altgr keycode                   0x46 = Hex_9
+keycode 0x47 = KP_Subtract
+# OPEN/L6
+keycode 0x48 =
+# PASTE/L8
+keycode 0x49 =
+keycode 0x4a = Select
+# No key produces 0x4b to my knowledge
+keycode 0x4b =
+keycode 0x4c = Control
+keycode 0x4d = a
+       altgr   keycode                         0x4d = Hex_A
+       altgr   shift keycode                   0x4d = Hex_A
+       CtrlL   altgr keycode                   0x4d = Hex_A
+       CtrlL   altgr shift keycode             0x4d = Hex_A
+keycode 0x4e = s
+keycode 0x4f = d
+       altgr   keycode                         0x4f = Hex_D
+       altgr   shift keycode                   0x4f = Hex_D
+       CtrlL   altgr keycode                   0x4f = Hex_D
+       CtrlL   altgr shift keycode             0x4f = Hex_D
+keycode 0x50 = f
+       altgr   keycode                         0x50 = Hex_F
+       altgr   shift keycode                   0x50 = Hex_F
+       CtrlL   altgr keycode                   0x50 = Hex_F
+       CtrlL   altgr shift keycode             0x50 = Hex_F
+keycode 0x51 = g
+keycode 0x52 = h
+keycode 0x53 = j
+keycode 0x54 = k
+keycode 0x55 = l
+keycode 0x56 = semicolon       colon
+       alt     keycode                         0x56 = Meta_semicolon
+       CtrlL   keycode                         0x56 = uring
+       CtrlL   shift keycode                   0x56 = quotedbl
+       CtrlL   alt keycode                     0x56 = Meta_semicolon
+keycode 0x57 = apostrophe      quotedbl
+       control keycode                         0x57 = Control_g
+       alt     keycode                         0x57 = Meta_apostrophe
+       CtrlL   keycode                         0x57 = 0xa7
+       CtrlL   shift keycode                   0x57 = exclam
+       CtrlL   control keycode                 0x57 = Control_g
+       CtrlL   alt keycode                     0x57 = Meta_apostrophe
+keycode 0x58 = backslash       bar
+       control keycode                         0x58 = Control_backslash
+       alt     keycode                         0x58 = Meta_backslash
+       CtrlL   keycode                         0x58 = backslash
+       CtrlL   shift keycode                   0x58 = bar
+       CtrlL   control keycode                 0x58 = Control_backslash
+       CtrlL   alt keycode                     0x58 = Meta_backslash
+keycode 0x59 = Return
+       alt     keycode                         0x59 = Meta_Control_m
+       CtrlL   alt keycode                     0x59 = Meta_Control_m
+keycode 0x5a = KP_Enter
+keycode 0x5b = KP_4
+       alt     keycode                         0x5b = Ascii_4
+       altgr   keycode                         0x5b = Hex_4
+       CtrlL   alt keycode                     0x5b = Ascii_4
+       CtrlL   altgr keycode                   0x5b = Hex_4
+keycode 0x5c = KP_5
+       alt     keycode                         0x5c = Ascii_5
+       altgr   keycode                         0x5c = Hex_5
+       CtrlL   alt keycode                     0x5c = Ascii_5
+       CtrlL   altgr keycode                   0x5c = Hex_5
+keycode 0x5d = KP_6
+       alt     keycode                         0x5d = Ascii_6
+       altgr   keycode                         0x5d = Hex_6
+       CtrlL   alt keycode                     0x5d = Ascii_6
+       CtrlL   altgr keycode                   0x5d = Hex_6
+keycode 0x5e = KP_0
+       alt     keycode                         0x5e = Ascii_0
+       altgr   keycode                         0x5e = Hex_0
+       CtrlL   alt keycode                     0x5e = Ascii_0
+       CtrlL   altgr keycode                   0x5e = Hex_0
+# FIND/L9
+keycode 0x5f =
+keycode 0x60 = Prior
+       shift   keycode                         0x60 = Scroll_Backward
+       CtrlL   shift keycode                   0x60 = Scroll_Backward
+# CUT/L10
+keycode 0x61 =
+keycode 0x62 = Num_Lock
+# Linux/i386 console makes no distinction between right/left shift
+# so neither do we.
+keycode 0x63 = Shift
+keycode 0x64 = z
+	CtrlL  keycode                         0x64 = y
+	CtrlL  shift keycode                   0x64 = Y
+	CtrlL  altgr keycode                   0x64 = y
+	CtrlL  altgr shift keycode             0x64 = Y
+	CtrlL  control keycode                 0x64 = Control_y
+	CtrlL  control shift keycode           0x64 = Control_y
+	CtrlL  control altgr keycode           0x64 = Control_y
+	CtrlL  control altgr shift keycode     0x64 = Control_y
+	CtrlL  alt keycode                     0x64 = Meta_y
+	CtrlL  alt shift keycode               0x64 = Meta_Y
+	CtrlL  alt altgr keycode               0x64 = Meta_y
+	CtrlL  alt altgr shift keycode         0x64 = Meta_Y
+	CtrlL  alt control keycode             0x64 = Meta_Control_y
+	CtrlL  alt control shift keycode       0x64 = Meta_Control_y
+	CtrlL  alt control altgr keycode       0x64 = Meta_Control_y
+	CtrlL  alt control altgr shift keycode 0x64 = Meta_Control_y
+keycode 0x65 = x
+keycode 0x66 = c
+       altgr   keycode                         0x66 = 0xa2
+       altgr   shift keycode                   0x66 = Hex_C
+       CtrlL   altgr keycode                   0x66 = Hex_C
+       CtrlL   altgr shift keycode             0x66 = Hex_C
+keycode 0x67 = v
+keycode 0x68 = b
+       altgr   keycode                         0x68 = Hex_B
+       altgr   shift keycode                   0x68 = Hex_B
+       CtrlL   altgr keycode                   0x68 = Hex_B
+       CtrlL   altgr shift keycode             0x68 = Hex_B
+keycode 0x69 = n
+keycode 0x6a = m
+keycode 0x6b = comma           less
+       alt     keycode                         0x6b = Meta_comma
+       CtrlL   keycode                         0x6b = comma
+       CtrlL   shift keycode                   0x6b = question
+       CtrlL   alt keycode                     0x6b = Meta_comma
+keycode 0x6c = period          greater
+       control keycode                         0x6c = Compose
+       alt     keycode                         0x6c = Meta_period
+       CtrlL   keycode                         0x6c = period
+       CtrlL   shift keycode                   0x6c = colon
+       CtrlL   control keycode                 0x6c = Compose
+       CtrlL   alt keycode                     0x6c = Meta_period
+keycode 0x6d = slash           question
+       control keycode                         0x6d = Delete
+       alt     keycode                         0x6d = Meta_slash
+       CtrlL   keycode                         0x6d = minus
+       CtrlL   shift keycode                   0x6d = underscore
+       CtrlL   control keycode                 0x6d = Delete
+       CtrlL   alt keycode                     0x6d = Meta_slash
+keycode 0x6e = Shift
+keycode 0x6f = Linefeed
+keycode 0x70 = KP_1
+       alt     keycode                         0x70 = Ascii_1
+       altgr   keycode                         0x70 = Hex_1
+       CtrlL   alt keycode                     0x70 = Ascii_1
+       CtrlL   altgr keycode                   0x70 = Hex_1
+keycode 0x71 = KP_2
+       alt     keycode                         0x71 = Ascii_2
+       altgr   keycode                         0x71 = Hex_2
+       CtrlL   alt keycode                     0x71 = Ascii_2
+       CtrlL   altgr keycode                   0x71 = Hex_2
+keycode 0x72 = KP_3
+       alt     keycode                         0x72 = Ascii_3
+       altgr   keycode                         0x72 = Hex_3
+       CtrlL   alt keycode                     0x72 = Ascii_3
+       CtrlL   altgr keycode                   0x72 = Hex_3
+# To my knowledge no key produces 0x73, 0x74, or 0x75
+keycode 0x73 =
+keycode 0x74 =
+keycode 0x75 =
+keycode 0x76 = Help
+keycode 0x77 = Caps_Lock
+keycode 0x78 = CtrlL
+keycode 0x79 = space           space
+       control keycode                         0x79 = nul
+       alt     keycode                         0x79 = Meta_space
+       CtrlL   keycode                         0x79 = space
+       CtrlL   shift keycode                   0x79 = space
+       CtrlL   control keycode                 0x79 = nul
+       CtrlL   alt keycode                     0x79 = Meta_space
+keycode 0x7a = Pause
+keycode 0x7b = Next
+       shift   keycode                         0x7b = Scroll_Forward
+       CtrlL   shift keycode                   0x7b = Scroll_Forward
+# No keys produce the following
+keycode 0x7c =
+keycode 0x7d = KP_Add
+keycode 0x7e =
+# keycode 0x7f is special and it means 'all keys released' and is
+# taken care of within the sun keyboard driver itself
+keycode 0x7f =
+# That's all folks...
+# Compose sequences
+# This should work for latin1 and latin2,
+# unfortunately some keys compose sequences had to be modified
+# a little bit, so that both latin1 and latin2 can be shared,
+# particularly " something has been replaced by : something
+# in latin1 composes.
+compose ',' 'A' to '¡'
+compose '`' 'A' to 'À'
+compose '\'' 'A' to 'Á'
+compose '^' 'A' to 'Â'
+compose 'v' 'A' to 'Ã'
+compose '~' 'A' to 'Ã'
+compose '"' 'A' to 'Ä'
+compose ':' 'A' to 'Ä'
+compose '0' 'A' to 'Å'
+compose 'A' 'A' to 'Å'
+compose 'O' 'A' to 'Å'
+compose ',' 'a' to '±'
+compose '`' 'a' to 'à'
+compose '\'' 'a' to 'á'
+compose '^' 'a' to 'â'
+compose 'v' 'a' to 'ã'
+compose '~' 'a' to 'ã'
+compose '"' 'a' to 'ä'
+compose ':' 'a' to 'ä'
+compose '0' 'a' to 'å'
+compose 'a' 'a' to 'å'
+compose 'o' 'a' to 'å'
+compose '\'' 'C' to 'Æ'
+compose ',' 'C' to 'Ç'
+compose '^' 'C' to 'È'
+compose 'v' 'C' to 'È'
+compose '\'' 'c' to 'æ'
+compose ',' 'c' to 'ç'
+compose '^' 'c' to 'è'
+compose 'v' 'c' to 'è'
+compose '^' 'D' to 'Ï'
+compose 'v' 'D' to 'Ï'
+compose '-' 'D' to 'Ð'
+compose '^' 'd' to 'ï'
+compose 'v' 'd' to 'ï'
+compose '-' 'd' to 'ð'
+compose 'A' 'E' to 'Æ'
+compose '`' 'E' to 'È'
+compose '\'' 'E' to 'É'
+compose ',' 'E' to 'Ê'
+compose '"' 'E' to 'Ë'
+compose '"' 'E' to 'Ë'
+compose '^' 'E' to 'Ì'
+compose 'v' 'E' to 'Ì'
+compose 'a' 'e' to 'æ'
+compose '`' 'e' to 'è'
+compose '\'' 'e' to 'é'
+compose ',' 'e' to 'ê'
+compose '"' 'e' to 'ë'
+compose ':' 'e' to 'ë'
+compose '^' 'e' to 'ì'
+compose 'v' 'e' to 'ì'
+compose 'T' 'H' to 'Þ'
+compose 't' 'h' to 'þ'
+compose '`' 'I' to 'Ì'
+compose '\'' 'I' to 'Í'
+compose '^' 'I' to 'Î'
+compose '"' 'I' to 'Ï'
+compose ':' 'I' to 'Ï'
+compose '`' 'i' to 'ì'
+compose '\'' 'i' to 'í'
+compose '^' 'i' to 'î'
+compose '"' 'i' to 'ï'
+compose ':' 'i' to 'ï'
+compose 'i' 'j' to 'ÿ'
+compose '/' 'L' to '£'
+compose '^' 'L' to '¥'
+compose '\'' 'L' to 'Å'
+compose '\'' 'l' to 'å'
+compose '/' 'l' to '³'
+compose '^' 'l' to 'µ'
+compose '\'' 'N' to 'Ñ'
+compose '~' 'N' to 'Ñ'
+compose '^' 'N' to 'Ò'
+compose 'v' 'N' to 'Ò'
+compose '\'' 'n' to 'ñ'
+compose '~' 'n' to 'ñ'
+compose '^' 'n' to 'ò'
+compose 'v' 'n' to 'ò'
+compose '`' 'O' to 'Ò'
+compose '\'' 'O' to 'Ó'
+compose '^' 'O' to 'Ô'
+compose '"' 'O' to 'Õ'
+compose '~' 'O' to 'Õ'
+compose ':' 'O' to 'Ö'
+compose '/' 'O' to 'Ø'
+compose '`' 'o' to 'ò'
+compose '\'' 'o' to 'ó'
+compose '^' 'o' to 'ô'
+compose '"' 'o' to 'õ'
+compose '~' 'o' to 'õ'
+compose ':' 'o' to 'ö'
+compose '/' 'o' to 'ø'
+compose '\'' 'R' to 'À'
+compose '^' 'R' to 'Ø'
+compose 'v' 'R' to 'Ø'
+compose '\'' 'r' to 'à'
+compose '^' 'r' to 'ø'
+compose 'v' 'r' to 'ø'
+compose '\'' 'S' to '¦'
+compose '^' 'S' to '©'
+compose 'v' 'S' to '©'
+compose ',' 'S' to 'ª'
+compose 'S' 'S' to 'ß'
+compose '\'' 's' to '¶'
+compose '^' 's' to '¹'
+compose 'v' 's' to '¹'
+compose ',' 's' to 'º'
+compose 's' 's' to 'ß'
+compose '^' 'T' to '«'
+compose 'v' 'T' to '«'
+compose '^' 't' to '»'
+compose 'v' 't' to '»'
+compose ',' 'T' to 'Þ'
+compose ',' 't' to 'þ'
+compose '^' 'U' to 'Ù'
+compose 'o' 'U' to 'Ù'
+compose '`' 'U' to 'Ù'
+compose '\'' 'U' to 'Ú'
+compose '"' 'U' to 'Û'
+compose ':' 'U' to 'Ü'
+compose '^' 'u' to 'ù'
+compose 'o' 'u' to 'ù'
+compose '`' 'u' to 'ù'
+compose '\'' 'u' to 'ú'
+compose '"' 'u' to 'û'
+compose ':' 'u' to 'ü'
+compose '\'' 'Y' to 'Ý'
+compose '\'' 'y' to 'ý'
+compose '"' 'y' to 'ÿ'
+compose ':' 'y' to 'ÿ'
+compose '\'' 'Z' to '¬'
+compose '^' 'Z' to '®'
+compose 'v' 'Z' to '®'
+compose '.' 'Z' to '¯'
+compose '\'' 'z' to '¼'
+compose '^' 'z' to '¾'
+compose 'v' 'z' to '¾'
+compose '.' 'z' to '¿'
+compose 's' 'z' to 'ß'
+compose 'e' '=' to '¤'

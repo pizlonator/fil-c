@@ -1,0 +1,97 @@
+# br-abnt2.map
+# Mapa para teclados ABNT2
+# Antonio Dias <accdias@sst.com.br>
+#
+# (slightly adapted, aeb)
+#
+# Ruda Moura <ruda@conectiva.com.br>
+#   Added keycode 89 (slash/question)
+#   Keypad fix
+#   WinL/WinR is Scroll_*
+#   Menu is Compose
+#
+# Vinícius Oliveira <vini.ipsmaker@gmail.com>
+#   Added altgr + q (slash)
+#   Added altgr + w (question)
+alt_is_meta
+keymaps 0-2,4-6,8,12
+include "qwerty-layout"
+	altgr   keycode  19 = registered
+	altgr  	keycode  50 = mu               
+include "linux-with-alt-and-altgr"
+strings as usual
+compose as usual for "iso-8859-1"
+keycode   1 = Escape
+keycode   2 = one exclam onesuperior          
+keycode   3 = two at twosuperior
+keycode   4 = three numbersign threesuperior      
+	control		keycode   4 = Escape          
+keycode   5 = four dollar sterling Control_backslash
+keycode   6 = five percent cent         
+keycode   7 = six dead_diaeresis notsign     
+keycode   8 = seven ampersand braceleft Control_underscore
+keycode   9 = eight asterisk bracketleft Delete          
+keycode  10 = nine parenleft bracketright    
+keycode  11 = zero parenright braceright      
+keycode  12 = minus underscore 
+        control 	keycode  12 = Control_underscore 
+keycode  13 = equal plus section            
+keycode  14 = Delete
+	control		keycode  14 = BackSpace       
+keycode  15 = Tab
+	shift   keycode  15 = Meta_Tab        
+keycode  26 = dead_acute dead_grave       
+	control		keycode  26 = Escape          
+keycode  27 = bracketleft braceleft ordfeminine 
+keycode  28 = Return          
+	alt		keycode  28 = Meta_Control_m  
+keycode  29 = Control         
+
+keycode  39 = +ccedilla +Ccedilla
+keycode  40 = dead_tilde dead_circumflex
+        shift control 	keycode  40 = Control_asciicircum
+keycode  41 = apostrophe quotedbl      
+	control	    	keycode  41 = nul             
+	alt	    	keycode  41 = Meta_grave      
+keycode  42 = Shift           
+keycode  43 = bracketright braceright masculine
+        control     	keycode  43 = Control_bracketright
+        control alt 	keycode  43 = Meta_Control_bracketright
+
+keycode  51 = comma less            
+keycode  52 = period greater         
+	control	        keycode  52 = Compose         
+keycode  53 = semicolon colon
+keycode  54 = Shift           
+
+keycode  56 = Alt             
+keycode  57 = space
+	control	        keycode  57 = nul             
+keycode  58 = Caps_Lock       
+
+keycode  69 = Num_Lock        
+	shift		keycode  69 = Bare_Num_Lock   
+keycode  70 = Scroll_Lock Show_Memory Show_Registers Show_State      
+	alt		keycode  70 = Scroll_Lock     
+
+keycode  83 = KP_Comma
+	shift		keycode  83 = comma
+        control alt     keycode  83 = Boot
+
+keycode  86 = backslash bar             
+	alt		keycode  86 = Meta_less
+
+keycode  89 = slash question degree
+        control         keycode  89 = Delete
+        alt             keycode  89 = Meta_slash
+
+keycode 121 = KP_Period
+	shift		keycode 121 = period
+
+# Do whatever you want...
+keycode 125 = Scroll_Backward
+keycode 126 = Scroll_Forward
+keycode 127 = Compose
+
+	altgr   keycode  16 = slash
+	altgr   keycode  17 = question

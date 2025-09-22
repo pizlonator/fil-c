@@ -1,0 +1,112 @@
+#keymaps 0-2,4-5,8,9,12
+include "mac-linux-keys-bare.inc"
+strings as usual
+compose as usual for "iso-8859-1" 
+charset "iso-8859-2"
+#keycode   2 = +d                +D                Hex_D            Control_d        Control_d        Meta_d           Meta_Control_d  
+#keycode   3 = +f                +F                Hex_F            Control_f        Control_f        Meta_f           Meta_Control_f  
+#keycode   8 = +c                +C                Hex_C            Control_c        Control_c        Meta_c           Meta_Control_c  
+keycode  50 = grave            asciitilde      
+	control	keycode  50 = nul             
+	alt	keycode  50 = Meta_grave      
+#keycode  11 = +b                +B                Hex_B            Control_b        Control_b        Meta_b           Meta_Control_b  
+#keycode  14 = +e                +E                Hex_E            Control_e        Control_e        Meta_e           Meta_Control_e  
+keycode  18 = one              exclam          
+	alt	keycode  18 = Meta_one        
+keycode  19 = two              at               at               nul              nul              Meta_two        
+keycode  20 = three            numbersign      
+	control	keycode  20 = Escape          
+	alt	keycode  20 = Meta_three      
+keycode  21 = four             dollar           dollar           Control_backslash
+	alt	keycode  21 = Meta_four       
+keycode  22 = six              asciicircum     
+	control	keycode  22 = Control_asciicircum
+	alt	keycode  22 = Meta_six        
+keycode  23 = five             percent         
+	control	keycode  23 = Control_bracketright
+	alt	keycode  23 = Meta_five       
+keycode  24 = equal            plus            
+	alt	keycode  24 = Meta_equal      
+keycode  25 = nine             parenleft        bracketright    
+	alt	keycode  25 = Meta_nine       
+keycode  26 = seven            ampersand        braceleft        Control_underscore
+	alt	keycode  26 = Meta_seven      
+keycode  27 = minus            underscore       backslash        Control_underscore Control_underscore Meta_minus      
+keycode  28 = eight            asterisk         bracketleft      Delete          
+	alt	keycode  28 = Meta_eight      
+keycode  29 = zero             parenright       braceright      
+	alt	keycode  29 = Meta_zero       
+keycode  30 = bracketright     braceright       asciitilde       Control_bracketright
+	alt	keycode  30 = Meta_bracketright
+keycode  33 = bracketleft      braceleft       
+	control	keycode  33 = Escape          
+	alt	keycode  33 = Meta_bracketleft
+keycode  39 = apostrophe       quotedbl        
+	control	keycode  39 = Control_g       
+	alt	keycode  39 = Meta_apostrophe 
+keycode  41 = semicolon        colon           
+	alt	keycode  41 = Meta_semicolon  
+keycode  42 = backslash        bar             
+	control	keycode  42 = Control_backslash
+	alt	keycode  42 = Meta_backslash  
+keycode  43 = comma            less            
+	alt	keycode  43 = Meta_comma      
+keycode  44 = slash            question        
+	control	keycode  44 = Delete          
+	alt	keycode  44 = Meta_slash      
+keycode  47 = period           greater         
+	control	keycode  47 = Compose         
+	alt	keycode  47 = Meta_period     
+keycode  65 = KP_Period       
+#keycode  90 = +a                +A                Hex_A            Control_a        Control_a        Meta_a           Meta_Control_a  
+keycode 107 = Scroll_Lock      Show_Memory      Show_Registers   Show_State      
+	alt	keycode 107 = Scroll_Lock    
+
+# qwertz-layout
+keycode  12 = q
+keycode  13 = w
+keycode  14 = e
+	AltGr keycode  14 = +eogonek
+	AltGr Shift keycode  14 = +Eogonek
+keycode  15 = r
+keycode  17 = t
+keycode  16 = y
+keycode  32 = u
+keycode  34 = i
+keycode  31 = o
+	AltGr keycode  31 = +oacute
+	AltGr Shift keycode  31 = +Oacute
+keycode  35 = p
+#
+keycode   0 = a
+	AltGr keycode   0 = +aogonek
+	AltGr Shift keycode   0 = +Aogonek
+keycode   1 = s
+	AltGr keycode   1 = +sacute
+	AltGr Shift keycode   1 = +Sacute
+keycode   2 = d
+keycode   3 = f
+keycode   5 = g
+keycode   4 = h
+keycode  38 = j
+keycode  40 = k
+keycode  37 = l
+	AltGr keycode  37 = +lstroke
+	AltGr Shift keycode  37 = +Lstroke
+#
+keycode   6 = z
+	AltGr keycode   6 = +zabovedot
+	AltGr Shift keycode   6 = +Zabovedot
+keycode   7 = x
+	AltGr keycode   7 = +zacute
+	AltGr Shift keycode   7 = +Zacute
+keycode   8 = c
+	AltGr keycode   8 = +cacute
+	AltGr Shift keycode   8 = +Cacute
+keycode   9 = v
+keycode  11 = b
+keycode  45 = n
+	AltGr keycode  45 = +nacute
+	AltGr Shift keycode  45 = +Nacute
+keycode  46 = m
+#

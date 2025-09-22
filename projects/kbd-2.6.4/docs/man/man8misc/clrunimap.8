@@ -1,0 +1,24 @@
+.TH CLRUNIMAP 8 "2002-10-12" "kbd"
+
+.SH NAME
+clrunimap \- Clear the current console unicode map
+
+.SH SYNOPSIS
+.B clrunimap
+
+.SH DESCRIPTION
+
+The command
+.B clrunimap
+clears the unicode map (also called "Screen Font Map") for the current console.
+
+.SH NOTES
+If you are not the maintainer of the kbd package, it is very unlikely
+that you want to use this command. On many kernels the result will be
+that your screen is black. On some kernels a reboot will be necessary.
+.br
+Use
+.B "setfont -u"
+to load a Unicode map for a console.
+.SH SEE ALSO
+.BR setfont (8).

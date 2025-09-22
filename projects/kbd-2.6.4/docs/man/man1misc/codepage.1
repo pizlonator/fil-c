@@ -1,0 +1,63 @@
+.TH CODEPAGE 1 "2002-02-19" "kbd"
+
+.SH NAME
+codepage \- extract a codepage from an MSDOS codepage file
+
+.SH SYNOPSIS
+.B codepage 
+[ 
+.I \-c 
+| 
+.I \-l
+| 
+.I \-L 
+|
+.I \-a 
+| 
+.I nnn
+] 
+.I file.cpi
+
+.SH DESCRIPTION
+The
+.B codepage
+command extracts codepages from an MSDOS codepage file.
+
+.SH OPTIONS
+.TP
+.I \-c 
+Input file is a single codepage
+
+.TP
+.I \-L 
+Print header info (you don't want to see this).
+
+.TP
+.I \-l 
+List all codepages contained in the file.
+
+.TP
+.I \-a
+Extract all codepages from the file
+
+.TP
+.I nnn
+(3 digits): extract codepage
+.I nnn
+from the file.
+
+.SH EXAMPLE
+To create a file 850.cp, with codepage 850 from a file
+ega.cpi, execute:
+.LP
+.RS
+	codepage ega.cpi 850
+.RE
+
+.\" .SH AUTHORS
+.\" Ahmed M. Naas <ahmed@oea.xs4all.nl>
+.\" .br
+.\" Andries Brouwer <aeb@cwi.nl>
+.\" .br
+.\" Manpage by Alastair McKinstry <mckinstry@computer.org>
+

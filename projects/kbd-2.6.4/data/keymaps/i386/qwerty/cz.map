@@ -1,0 +1,1433 @@
+# *** toto neni originalni verze souboru:
+# *** upraveno z puvodni QWERTZ na QWERTY + opraveno par preklepu
+#
+# Tato keymapa NENI urcena pro jadro "opatchovane" programem "patch-capslock"
+#
+# klavesova mapa kompatibilni s windows QWERTY
+#
+# Vytvoril: Richard S~puta, Richard.Sputa@os3.os.ds.mfcr.cz
+#
+# verze: 2.0.2
+#
+# License: GNU GPL 2
+#
+# Links: ftp://ftp.penguin.cz/pub/cestina/klavesnice/console/
+#        - primary ftp archiv
+#        http://www.debian.cz/proj/czkbd/index.php3
+#        - czech keyboard standards
+#
+#
+# POZOR: Tato klavesova mapa obsahuje ve skutecnosti 2 (dve) klavesnice
+#        Primarni je CESKA
+#        Sekundarni je US
+#        Prepinani se provadi pomoci klavesy "Pause"
+#                  ktera funguje jako "ShiftR_Lock"
+#        CESKA: Control-Klavesa, Alt-Klavesa, Alt-Shift-Klavesa
+#               => funguje stejne jako v US klavesnici
+#        US:    AltGr-Klavesa, AltGr-Shift-Klavesa
+#               => funguje stejne jako v CESKE klavesnici
+#           (i dead klavesy na AltGr-2 az AltGr-9, AltGr-0, AltGr--, AltGr-=)
+#               Navic klavesa "PrintScreen" funguje jako carka a hacek
+#
+#
+# Rozsireni oproti standardni_CESKE_unikodove_klavesnici
+#         (zde jsou popsany pouze kombinace, jejichz umisteni je diskutabilni)
+#         (popis ostatnich rozsireni je v souboru "readme.txt")
+#        1) AltGr-SPACE => znak "nobreakspace" (neoddelitelna mezera kod 0xa0)
+#        2) Ctrl-SPACE  => znak "nul" (kod 0x00)
+#        3) AltGr-A     => ~ (tilda - pozor AltGr-1 genruje mrtvou tildu)
+#        4) AltGr-H     => ` (zpetny apostrof)
+#        5) AltGr-J     => ' (apostrof)
+#        6) AltGr-M     => ^ (jiz nikdy vice us-klavesnice) 
+#        7) AltGr-Z     => ° (stupen "degree")
+#
+#
+# Mrtve klavesy (u obou klavesnic - CESKE i US)
+#   AltGr-2 => dead_caron (hacek_nad_pismenem)
+#   AltGr-3 => dead_circumflex (striska_nad_pismenem)
+#   AltGr-4 => dead_breve (obloucek_nad_pismenem)
+#   AltGr-5 => (krouzek_nad_pismenem)
+#   AltGr-6 => dead_cedilla (ocasek_pod_pismenem_smerujici_zprava_doleva)
+#   AltGr-7 => (nedefinovano)
+#   AltGr-8 => (tecka_nad_pismenem)
+#   AltGr-9 => dead_acute (carka_nad_pismenem)
+#   AltGr-0 => dead_doubleacute (dve_carky_nad_pismenem)
+#   AltGr-- => dead_diaeresis (dve_tecky_nad_pismenem)
+#   AltGr-= => dead_ogonek (ocasek_pod_pismenem_smerujici_zleva_doprava)
+# Mrtve klavesy (pouze u US klavesnice)
+#   PrintScreen => dead_acute (carka_nad_pismenem)
+#   Shift-PrintScreen => dead_caron (hacek_nad_pismenem)
+#                     => mozno pouzit i na krouzkovane U
+# Mrtve klavesy (pouze u CESKE klavesnice)
+#   = => dead_acute (carka_nad_pismenem)
+#   Shift-= => dead_caron (hacek_nad_pismenem)
+#   Shift-~ => (krouzek_nad_pismenem)
+# Mrtva klavesa (pouze u ceske - ne vsak slovenske)
+#   \ => dead_diaeresis (dve_tecky_nad_pismenem)
+#
+#
+#
+# Prosim zasilejte mi navrhy na zmeny a vylepseni - staci slovne.
+# (prosim piste pred kazdou klavesou slova "fyzicka" "logicka")
+# napr. Fyzicky stisk AltGr-Q generuje logickou klavesu \
+#
+#
+# Poznamka: Prosim napiste mi jak klavesnice funguje v emacsu
+#           (mam na mysli klavesove kombinace jako Alt-Control-"neco")
+#
+# Poznamka: Ponevadz program "loadkeys" nezna keysym-y
+#           dead_ring => mrtva klavesa pro krouzek
+#           dead_dot  => mrtva klavesa pro tecku_nad_pismenem
+#           (krouzek            je nutny pro U s krouzkem - cesky znak)
+#           (tecka_nad_pismenem je nutna pro Z s teckou   - polsky znak)
+#           Naopak zna "dead_grave"  => carka_nad_pismenem
+#                                       v opacnem smeru nez je ceska carka
+#                                    => nevyuzite v ISO-8859-2
+#           pouzil jsem "dead_grave" misto "dead_ring" a "dead_abovedot"
+#           KEYSYM-y kterych se to tyka:
+#                  dead_abovedot => "keysym 9" -> AltGr-8
+#                  dead_ring     => "keysym 6" -> AltGr-5
+#                                   "keysym 41" -> klavesa_pod_ESCAPE
+#           U "keysym 8" by mnel byt definovan "pravy dead_grave"
+#             ale protoze zadny znak v ISO-8859-2 toto nepouziva
+#             a take proto, ze "dead_grave" je pouzit na neco jineho
+#             tak tam neni nadefinovan
+#           U "keysym 2" by mnel byt definovan "pravy dead_tilde"
+#             ale protoze zadny znak v ISO-8859-2 toto nepouziva
+#             tak tam neni nadefinovan
+#           U "keysym 41" by mnel byt definovan "pravy dead_carka_nad_pismenem"
+#             ale protoze zadny znak v ISO-8859-2 toto nepouziva
+#             tak tam neni nadefinovan
+#             navic tato dead klavesa neni ani definovana (v jadru 2.0.3x)
+#
+#
+#
+#
+#
+# znakova sada: Iso Latin 2
+charset "iso-8859-2"
+#
+# modifikator "ShiftL" byl pouzit pri stisku klaves "Shift"
+# modifikator "Shift"  se meni pouze pri stisku klavesy "CapsLock"
+# modifikatory:
+###############
+#              Shift                     1
+#              AltGr                     2
+#              Control                   4
+#              Alt                       8
+#              ShiftL                   16
+#              ShiftR                   32
+#              CtrlL                    64
+#              CtrlR                   128
+#
+# plain                      0 +32=32
+# Shift                      1 +32=33
+# AltGr                      2 +32=34
+# AltGr+Shift                3 +32=35
+# Control                    4 +32=36
+# Control+Shift              5 +32=37
+# Control+AltGr              6 +32=38
+# Control+AltGr+Shift        7 +32=39
+# Alt                        8 +32=40
+# Alt+Shift                  9 +32=41
+# Alt+Control               12 +32=44
+# Alt+Control+Shift         13 +32=45
+# ShiftL                    16 +32=48
+# ShiftL+Shift              17 +32=49
+# ShiftL+AltGr              18 +32=50
+# ShiftL+AltGr+Shift        19 +32=51
+# ShiftL+Control            20 +32=52
+# ShiftL+Control+AltGr      22 +32=54
+# ShiftL+Alt                24 +32=56
+# ShiftL+Alt+Shift          25 +32=57
+# ShiftL+Alt+Control        28 +32=60
+keymaps 0-9,12-13,16-20,22,24-25,28,32-41,44-45,48-52,54,56-57,60
+# Alt je Meta klavesa
+alt_is_meta
+#
+# synonyma:
+#          BackSpace (primarni) => Control_h
+#          Tab       (primarni) => Control_i
+#          Linefeed  (primarni) => Control_j
+#
+# vzdalenost mezi zacatky symbolu:
+#          12 znaku (standardne) vyhovuje 80% symbolickych nazvu
+#          25 znaku ma symbolicky nazev Meta_Control_bracketright
+#             123456789012 123456789012 123456789012 123456789012 123456789012 
+keycode   1 = Escape       Escape       VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Escape       Escape       VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode   2 = plus         plus         VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_one     Meta_one    \
+              VoidSymbol   VoidSymbol   one          one          exclam      \
+              exclam       VoidSymbol   VoidSymbol   Meta_exclam  Meta_exclam \
+              VoidSymbol                                                      \
+              one          one          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_one     Meta_one    \
+              VoidSymbol   VoidSymbol   exclam       exclam       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_exclam  Meta_exclam \
+              VoidSymbol
+keycode   3 = +ecaron      Ecaron       dead_caron   dead_caron   nul         \
+              nul          VoidSymbol   VoidSymbol   Meta_two     Meta_two    \
+              VoidSymbol   VoidSymbol   two          two          at          \
+              at           VoidSymbol   VoidSymbol   Meta_at      Meta_at     \
+              VoidSymbol                                                      \
+              two          two          dead_caron   dead_caron   nul         \
+              nul          VoidSymbol   VoidSymbol   Meta_two     Meta_two    \
+              VoidSymbol   VoidSymbol   at           at           VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_at      Meta_at     \
+              VoidSymbol
+keycode   4 = +scaron      Scaron       dead_circumflex                       \
+              dead_circumflex           Escape       Escape       VoidSymbol  \
+              VoidSymbol   Meta_three   Meta_three   VoidSymbol   VoidSymbol  \
+              three        three        numbersign   numbersign   VoidSymbol  \
+              VoidSymbol   Meta_numbersign           Meta_numbersign          \
+              VoidSymbol                                                      \
+              three        three        dead_circumflex                       \
+              dead_circumflex           Escape       Escape       VoidSymbol  \
+              VoidSymbol   Meta_three   Meta_three   VoidSymbol   VoidSymbol  \
+              numbersign   numbersign   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_numbersign           Meta_numbersign          \
+              VoidSymbol
+keycode   5 = +ccaron      Ccaron       dead_breve   dead_breve               \
+              Control_backslash         Control_backslash         VoidSymbol  \
+              VoidSymbol   Meta_four    Meta_four    VoidSymbol   VoidSymbol  \
+              four         four         dollar       dollar       VoidSymbol  \
+              VoidSymbol   Meta_dollar  Meta_dollar  VoidSymbol               \
+              four         four         dead_breve   dead_breve               \
+              Control_backslash         Control_backslash         VoidSymbol  \
+              VoidSymbol   Meta_four    Meta_four    VoidSymbol   VoidSymbol  \
+              dollar       dollar       VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_dollar  Meta_dollar  VoidSymbol
+keycode   6 = +rcaron      Rcaron       dead_grave   dead_grave               \
+              Control_bracketright      Control_bracketright      VoidSymbol  \
+              VoidSymbol   Meta_five    Meta_five    VoidSymbol   VoidSymbol  \
+              five         five         percent      percent      VoidSymbol  \
+              VoidSymbol   Meta_percent              Meta_percent VoidSymbol  \
+              five         five         dead_grave   dead_grave               \
+              Control_bracketright      Control_bracketright      VoidSymbol  \
+              VoidSymbol   Meta_five    Meta_five    VoidSymbol   VoidSymbol  \
+              percent      percent      VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_percent              Meta_percent VoidSymbol
+keycode   7 = +zcaron      Zcaron       dead_ogonek  dead_ogonek              \
+              Control_asciicircum       Control_asciicircum       VoidSymbol  \
+              VoidSymbol   Meta_six     Meta_six     VoidSymbol   VoidSymbol  \
+              six          six          asciicircum  asciicircum  VoidSymbol  \
+              VoidSymbol   Meta_asciicircum          Meta_asciicircum         \
+              VoidSymbol                                                      \
+              six          six          dead_ogonek  dead_ogonek              \
+              Control_asciicircum       Control_asciicircum       VoidSymbol  \
+              VoidSymbol   Meta_six     Meta_six     VoidSymbol   VoidSymbol  \
+              asciicircum  asciicircum  VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_asciicircum          Meta_asciicircum         \
+              VoidSymbol
+keycode   8 = +yacute      Yacute       VoidSymbol   VoidSymbol               \
+              Control_underscore        Control_underscore        VoidSymbol  \
+              VoidSymbol   Meta_seven   Meta_seven   VoidSymbol   VoidSymbol  \
+              seven        seven        ampersand    ampersand    VoidSymbol  \
+              VoidSymbol   Meta_ampersand            Meta_ampersand           \
+              VoidSymbol                                                      \
+              seven        seven        VoidSymbol   VoidSymbol               \
+              Control_underscore        Control_underscore        VoidSymbol  \
+              VoidSymbol   Meta_seven   Meta_seven   VoidSymbol   VoidSymbol  \
+              ampersand    ampersand    VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_ampersand            Meta_ampersand           \
+              VoidSymbol
+#
+#
+# "Delete" je znak s kodem 0x7f (127)
+#
+keycode   9 = +aacute      Aacute       dead_grave   dead_grave   Delete      \
+              Delete       VoidSymbol   VoidSymbol   Meta_eight   Meta_eight  \
+              VoidSymbol   VoidSymbol   eight        eight        asterisk    \
+              asterisk     VoidSymbol   VoidSymbol   Meta_asterisk            \
+              Meta_asterisk             VoidSymbol                            \
+              eight        eight        dead_grave   dead_grave   Delete      \
+              Delete       VoidSymbol   VoidSymbol   Meta_eight   Meta_eight  \
+              VoidSymbol   VoidSymbol   asterisk     asterisk     VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_asterisk            \
+              Meta_asterisk             VoidSymbol
+#
+#
+keycode  10 = +iacute      Iacute       dead_acute   dead_acute   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_nine    Meta_nine   \
+              VoidSymbol   VoidSymbol   nine         nine         parenleft   \
+              parenleft    VoidSymbol   VoidSymbol   Meta_parenleft           \
+              Meta_parenleft            VoidSymbol                            \
+              nine         nine         dead_acute   dead_acute   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_nine    Meta_nine   \
+              VoidSymbol   VoidSymbol   parenleft    parenleft    VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_parenleft           \
+              Meta_parenleft            VoidSymbol
+keycode  11 = +eacute      Eacute       dead_doubleacute                      \
+              dead_doubleacute          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_zero    Meta_zero    VoidSymbol   VoidSymbol  \
+              zero         zero         parenright   parenright   VoidSymbol  \
+              VoidSymbol   Meta_parenright           Meta_parenright          \
+              VoidSymbol                                                      \
+              zero         zero         dead_doubleacute                      \
+              dead_doubleacute          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_zero    Meta_zero    VoidSymbol   VoidSymbol  \
+              parenright   parenright   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_parenright           Meta_parenright          \
+              VoidSymbol
+keycode  12 = equal        equal        dead_diaeresis                        \
+              dead_diaeresis            Control_underscore                    \
+              Control_underscore        VoidSymbol   VoidSymbol   Meta_minus  \
+              Meta_minus   VoidSymbol   VoidSymbol   percent      percent     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol               \
+              Meta_underscore           Meta_underscore           VoidSymbol  \
+              minus        minus        dead_diaeresis                        \
+              dead_diaeresis            Control_underscore                    \
+              Control_underscore        VoidSymbol   VoidSymbol   Meta_minus  \
+              Meta_minus   VoidSymbol   VoidSymbol   underscore   underscore  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol               \
+              Meta_underscore           Meta_underscore           VoidSymbol
+keycode  13 = dead_acute   dead_acute   dead_cedilla dead_cedilla VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_equal   Meta_equal  \
+              VoidSymbol   VoidSymbol   dead_caron   dead_caron   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_plus    Meta_plus   \
+              VoidSymbol                                                      \
+              equal        equal        dead_cedilla dead_cedilla VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_equal   Meta_equal  \
+              VoidSymbol   VoidSymbol   plus         plus         VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_plus    Meta_plus   \
+              VoidSymbol
+#
+#
+# Toto je spatne => linux consola pouziva znak "Delete" (0x7f)
+#                                 misto znaku "BackSpace" (0x08) (Control-H)
+#
+#keycode  14 = BackSpace    BackSpace    VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   Meta_BackSpace          \
+#              Meta_BackSpace            VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol                           \
+#              BackSpace    BackSpace    VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   Meta_BackSpace          \
+#              Meta_BackSpace            VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol
+#
+keycode  14 = Delete       Delete       VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Delete              \
+              Meta_Delete               VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol                            \
+              Delete       Delete       VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Delete              \
+              Meta_Delete               VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol
+keycode  15 = Tab          Meta_Tab          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Tab     Meta_Tab    \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Tab          Tab          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Tab     Meta_Tab    \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  16 = +q           Q            backslash    backslash    Control_q   \
+              Control_q    Control_backslash         Control_backslash        \
+              Meta_q       Meta_Q       VoidSymbol   VoidSymbol   +Q          \
+              q            VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_Q       Meta_q       VoidSymbol                            \
+              +q           Q            backslash    backslash    Control_q   \
+              Control_q    Control_backslash         Control_backslash        \
+              Meta_q       Meta_Q       VoidSymbol   VoidSymbol   +Q          \
+              q            VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_Q       Meta_q       VoidSymbol
+keycode  17 = +w           W            bar          bar          Control_w   \
+              Control_w    VoidSymbol   VoidSymbol   Meta_w       Meta_W      \
+              VoidSymbol   VoidSymbol   +W           w            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_W       Meta_w      \
+              VoidSymbol                                                      \
+              +w           W            bar          bar          Control_w   \
+              Control_w    VoidSymbol   VoidSymbol   Meta_w       Meta_W      \
+              VoidSymbol   VoidSymbol   +W           w            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_W       Meta_w      \
+              VoidSymbol
+keycode  18 = +e           E            VoidSymbol   VoidSymbol   Control_e   \
+              Control_e    VoidSymbol   VoidSymbol   Meta_e       Meta_E      \
+              VoidSymbol   VoidSymbol   +E           e            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_E       Meta_e      \
+              VoidSymbol                                                      \
+              +e           E            VoidSymbol   VoidSymbol   Control_e   \
+              Control_e    VoidSymbol   VoidSymbol   Meta_e       Meta_E      \
+              VoidSymbol   VoidSymbol   +E           e            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_E       Meta_e      \
+              VoidSymbol
+keycode  19 = +r           R            VoidSymbol   VoidSymbol   Control_r   \
+              Control_r    VoidSymbol   VoidSymbol   Meta_r       Meta_R      \
+              VoidSymbol   VoidSymbol   +R           r            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_R       Meta_r      \
+              VoidSymbol                                                      \
+              +r           R            VoidSymbol   VoidSymbol   Control_r   \
+              Control_r    VoidSymbol   VoidSymbol   Meta_r       Meta_R      \
+              VoidSymbol   VoidSymbol   +R           r            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_R       Meta_r      \
+              VoidSymbol
+keycode  20 = +t           T            VoidSymbol   VoidSymbol   Control_t   \
+              Control_t    VoidSymbol   VoidSymbol   Meta_t       Meta_T      \
+              VoidSymbol   VoidSymbol   +T           t            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_T       Meta_t      \
+              VoidSymbol                                                      \
+              +t           T            VoidSymbol   VoidSymbol   Control_t   \
+              Control_t    VoidSymbol   VoidSymbol   Meta_t       Meta_T      \
+              VoidSymbol   VoidSymbol   +T           t            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_T       Meta_t      \
+              VoidSymbol
+keycode  21 = +y           Y            VoidSymbol   VoidSymbol   Control_y   \
+              Control_y    VoidSymbol   VoidSymbol   Meta_y       Meta_Y      \
+              VoidSymbol   VoidSymbol   +Y           y            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Z       Meta_y      \
+              VoidSymbol                                                      \
+              +y           Y            VoidSymbol   VoidSymbol   Control_y   \
+              Control_y    VoidSymbol   VoidSymbol   Meta_y       Meta_Y      \
+              VoidSymbol   VoidSymbol   +Y           y            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Y       Meta_y      \
+              VoidSymbol
+keycode  22 = +u           U            VoidSymbol   VoidSymbol   Control_u   \
+              Control_u    VoidSymbol   VoidSymbol   Meta_u       Meta_U      \
+              VoidSymbol   VoidSymbol   +U           u            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_U       Meta_u      \
+              VoidSymbol                                                      \
+              +u           U            VoidSymbol   VoidSymbol   Control_u   \
+              Control_u    VoidSymbol   VoidSymbol   Meta_u       Meta_U      \
+              VoidSymbol   VoidSymbol   +U           u            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_U       Meta_u      \
+              VoidSymbol
+keycode  23 = +i           I            VoidSymbol   VoidSymbol   Control_i   \
+              Control_i    VoidSymbol   VoidSymbol   Meta_i       Meta_I      \
+              VoidSymbol   VoidSymbol   +I           i            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_I       Meta_i      \
+              VoidSymbol                                                      \
+              +i           I            VoidSymbol   VoidSymbol   Control_i   \
+              Control_i    VoidSymbol   VoidSymbol   Meta_i       Meta_I      \
+              VoidSymbol   VoidSymbol   +I           i            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_I       Meta_i      \
+              VoidSymbol
+keycode  24 = +o           O            VoidSymbol   VoidSymbol   Control_o   \
+              Control_o    VoidSymbol   VoidSymbol   Meta_o       Meta_O      \
+              VoidSymbol   VoidSymbol   +O           o            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_O       Meta_o      \
+              VoidSymbol                                                      \
+              +o           O            VoidSymbol   VoidSymbol   Control_o   \
+              Control_o    VoidSymbol   VoidSymbol   Meta_o       Meta_O      \
+              VoidSymbol   VoidSymbol   +O           o            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_O       Meta_o      \
+              VoidSymbol
+keycode  25 = +p           P            VoidSymbol   VoidSymbol   Control_p   \
+              Control_p    VoidSymbol   VoidSymbol   Meta_p       Meta_P      \
+              VoidSymbol   VoidSymbol   +P           p            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_P       Meta_p      \
+              VoidSymbol                                                      \
+              +p           P            VoidSymbol   VoidSymbol   Control_p   \
+              Control_p    VoidSymbol   VoidSymbol   Meta_p       Meta_P      \
+              VoidSymbol   VoidSymbol   +P           p            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_P       Meta_p      \
+              VoidSymbol
+keycode  26 = +uacute      Uacute       division     division     Escape      \
+              Escape       VoidSymbol   VoidSymbol   Meta_bracketleft         \
+              Meta_bracketleft          VoidSymbol   VoidSymbol   slash       \
+              slash        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_braceleft            Meta_braceleft            VoidSymbol  \
+              bracketleft  bracketleft  division     division     Escape      \
+              Escape       VoidSymbol   VoidSymbol   Meta_bracketleft         \
+              Meta_bracketleft          VoidSymbol   VoidSymbol   braceleft   \
+              braceleft    VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_braceleft            Meta_braceleft            VoidSymbol
+keycode  27 = parenright   parenright   multiply     multiply                 \
+              Control_bracketright      Control_bracketright      VoidSymbol  \
+              VoidSymbol   Meta_bracketright         Meta_bracketright        \
+              VoidSymbol   VoidSymbol   parenleft    parenleft    VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_braceright          \
+              Meta_braceright           VoidSymbol                            \
+              bracketright bracketright multiply     multiply                 \
+              Control_bracketright      Control_bracketright      VoidSymbol  \
+              VoidSymbol   Meta_bracketright         Meta_bracketright        \
+              VoidSymbol   VoidSymbol   braceright   braceright   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_braceright          \
+              Meta_braceright           VoidSymbol
+keycode  28 = Return       Return       VoidSymbol   VoidSymbol   Control_m   \
+              Control_m    VoidSymbol   VoidSymbol   Meta_Control_m           \
+              Meta_Control_m            VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol                            \
+              Return       Return       VoidSymbol   VoidSymbol   Control_m   \
+              Control_m    VoidSymbol   VoidSymbol   Meta_Control_m           \
+              Meta_Control_m            VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol
+keycode  29 = Control
+keycode  30 = +a           A            asciitilde   asciitilde   Control_a   \
+              Control_a    VoidSymbol   VoidSymbol   Meta_a       Meta_A      \
+              VoidSymbol   VoidSymbol   +A           a            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_A       Meta_a      \
+              VoidSymbol                                                      \
+              +a           A            asciitilde   asciitilde   Control_a   \
+              Control_a    VoidSymbol   VoidSymbol   Meta_a       Meta_A      \
+              VoidSymbol   VoidSymbol   +A           a            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_A       Meta_a      \
+              VoidSymbol
+keycode  31 = +s           S            dstroke      dstroke      Control_s   \
+              Control_s    VoidSymbol   VoidSymbol   Meta_s       Meta_S      \
+              VoidSymbol   VoidSymbol   +S           s            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_S       Meta_s      \
+              VoidSymbol                                                      \
+              +s           S            dstroke      dstroke      Control_s   \
+              Control_s    VoidSymbol   VoidSymbol   Meta_s       Meta_S      \
+              VoidSymbol   VoidSymbol   +S           s            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_S       Meta_s      \
+              VoidSymbol
+keycode  32 = +d           D            Dstroke      Dstroke      Control_d   \
+              Control_d    VoidSymbol   VoidSymbol   Meta_d       Meta_D      \
+              VoidSymbol   VoidSymbol   +D           d            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_D       Meta_d      \
+              VoidSymbol                                                      \
+              +d           D            Dstroke      Dstroke      Control_d   \
+              Control_d    VoidSymbol   VoidSymbol   Meta_d       Meta_D      \
+              VoidSymbol   VoidSymbol   +D           d            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_D       Meta_d      \
+              VoidSymbol
+keycode  33 = +f           F            bracketleft  bracketleft  Control_f   \
+              Control_f    Escape       Escape       Meta_f       Meta_F      \
+              VoidSymbol   VoidSymbol   +F           f            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_F       Meta_f      \
+              VoidSymbol                                                      \
+              +f           F            bracketleft  bracketleft  Control_f   \
+              Control_f    Escape       Escape       Meta_f       Meta_F      \
+              VoidSymbol   VoidSymbol   +F           f            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_F       Meta_f      \
+              VoidSymbol
+keycode  34 = +g           G            bracketright bracketright Control_g   \
+              Control_g    Control_bracketright      Control_bracketright     \
+              Meta_g       Meta_G       VoidSymbol   VoidSymbol   +G          \
+              g            VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_G       Meta_g       VoidSymbol                            \
+              +g           G            bracketright bracketright Control_g   \
+              Control_g    Control_bracketright      Control_bracketright     \
+              Meta_g       Meta_G       VoidSymbol   VoidSymbol   +G          \
+              g            VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_G       Meta_g       VoidSymbol
+keycode  35 = +h           H            grave        grave        Control_h   \
+              Control_h    VoidSymbol   VoidSymbol   Meta_h       Meta_H      \
+              VoidSymbol   VoidSymbol   +H           h            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_H       Meta_h      \
+              VoidSymbol                                                      \
+              +h           H            grave        grave        Control_h   \
+              Control_h    VoidSymbol   VoidSymbol   Meta_h       Meta_H      \
+              VoidSymbol   VoidSymbol   +H           h            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_H       Meta_h      \
+              VoidSymbol
+keycode  36 = +j           J            apostrophe   apostrophe   Control_j   \
+              Control_j    VoidSymbol   VoidSymbol   Meta_j       Meta_J      \
+              VoidSymbol   VoidSymbol   +J           j            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_J       Meta_j      \
+              VoidSymbol                                                      \
+              +j           J            apostrophe   apostrophe   Control_j   \
+              Control_j    VoidSymbol   VoidSymbol   Meta_j       Meta_J      \
+              VoidSymbol   VoidSymbol   +J           j            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_J       Meta_j      \
+              VoidSymbol
+keycode  37 = +k           K            lstroke      lstroke      Control_k   \
+              Control_k    VoidSymbol   VoidSymbol   Meta_k       Meta_K      \
+              VoidSymbol   VoidSymbol   +K           k            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_K       Meta_k      \
+              VoidSymbol                                                      \
+              +k           K            lstroke      lstroke      Control_k   \
+              Control_k    VoidSymbol   VoidSymbol   Meta_k       Meta_K      \
+              VoidSymbol   VoidSymbol   +K           k            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_K       Meta_k      \
+              VoidSymbol
+keycode  38 = +l           L            Lstroke      Lstroke      Control_l   \
+              Control_l    VoidSymbol   VoidSymbol   Meta_l       Meta_L      \
+              VoidSymbol   VoidSymbol   +L           l            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_L       Meta_l      \
+              VoidSymbol                                                      \
+              +l           L            Lstroke      Lstroke      Control_l   \
+              Control_l    VoidSymbol   VoidSymbol   Meta_l       Meta_L      \
+              VoidSymbol   VoidSymbol   +L           l            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_L       Meta_l      \
+              VoidSymbol
+keycode  39 = +uring       Uring        dollar       dollar       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_semicolon           \
+              Meta_semicolon            VoidSymbol   VoidSymbol   quotedbl    \
+              quotedbl     VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_colon   Meta_colon   VoidSymbol                            \
+              semicolon    semicolon    dollar       dollar       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_semicolon           \
+              Meta_semicolon            VoidSymbol   VoidSymbol   colon       \
+              colon        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_colon   Meta_colon   VoidSymbol
+keycode  40 = section      section      ssharp       ssharp       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_apostrophe          \
+              Meta_apostrophe           VoidSymbol   VoidSymbol   exclam      \
+              exclam       VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_quotedbl             Meta_quotedbl             VoidSymbol  \
+              apostrophe   apostrophe   ssharp       ssharp       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_apostrophe          \
+              Meta_apostrophe           VoidSymbol   VoidSymbol   quotedbl    \
+              quotedbl     VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Meta_quotedbl             Meta_quotedbl             VoidSymbol
+keycode  41 = semicolon    semicolon    VoidSymbol   VoidSymbol   nul         \
+              nul          VoidSymbol   VoidSymbol   Meta_grave   Meta_grave  \
+              VoidSymbol   VoidSymbol   dead_grave   dead_grave   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_asciitilde          \
+              Meta_asciitilde           VoidSymbol                            \
+              grave        grave        VoidSymbol   VoidSymbol   nul         \
+              nul          VoidSymbol   VoidSymbol   Meta_grave   Meta_grave  \
+              VoidSymbol   VoidSymbol   asciitilde   asciitilde   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_asciitilde          \
+              Meta_asciitilde           VoidSymbol
+keycode  42 = ShiftL
+keycode  43 = dead_diaeresis            dead_diaeresis            currency    \
+              currency     Control_backslash         Control_backslash        \
+              VoidSymbol   VoidSymbol   Meta_backslash                        \
+              Meta_backslash            Meta_Control_backslash                \
+              Meta_Control_backslash    apostrophe   apostrophe   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_bar     Meta_bar    \
+              VoidSymbol                                                      \
+              backslash                 backslash                 currency    \
+              currency     Control_backslash         Control_backslash        \
+              VoidSymbol   VoidSymbol   Meta_backslash                        \
+              Meta_backslash            Meta_Control_backslash                \
+              Meta_Control_backslash    bar          bar          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_bar     Meta_bar    \
+              VoidSymbol
+keycode  44 = +z           Z            degree       degree       Control_z   \
+              Control_z    VoidSymbol   VoidSymbol   Meta_z       Meta_Z      \
+              VoidSymbol   VoidSymbol   +Z           z            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Z       Meta_z      \
+              VoidSymbol                                                      \
+              +z           Z            degree       degree       Control_z   \
+              Control_z    VoidSymbol   VoidSymbol   Meta_z       Meta_Z      \
+              VoidSymbol   VoidSymbol   +Z           z            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_Z       Meta_z      \
+              VoidSymbol
+keycode  45 = +x           X            numbersign   numbersign   Control_x   \
+              Control_x    VoidSymbol   VoidSymbol   Meta_x       Meta_X      \
+              VoidSymbol   VoidSymbol   +X           x            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_X       Meta_x      \
+              VoidSymbol                                                      \
+              +x           X            numbersign   numbersign   Control_x   \
+              Control_x    VoidSymbol   VoidSymbol   Meta_x       Meta_X      \
+              VoidSymbol   VoidSymbol   +X           x            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_X       Meta_x      \
+              VoidSymbol
+keycode  46 = +c           C            ampersand    ampersand    Control_c   \
+              Control_c    VoidSymbol   VoidSymbol   Meta_c       Meta_C      \
+              VoidSymbol   VoidSymbol   +C           c            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_C       Meta_c      \
+              VoidSymbol                                                      \
+              +c           C            ampersand    ampersand    Control_c   \
+              Control_c    VoidSymbol   VoidSymbol   Meta_c       Meta_C      \
+              VoidSymbol   VoidSymbol   +C           c            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_C       Meta_c      \
+              VoidSymbol
+keycode  47 = +v           V            at           at           Control_v   \
+              Control_v    VoidSymbol   VoidSymbol   Meta_v       Meta_V      \
+              VoidSymbol   VoidSymbol   +V           v            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_V       Meta_v      \
+              VoidSymbol                                                      \
+              +v           V            at           at           Control_v   \
+              Control_v    VoidSymbol   VoidSymbol   Meta_v       Meta_V      \
+              VoidSymbol   VoidSymbol   +V           v            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_V       Meta_v      \
+              VoidSymbol
+keycode  48 = +b           B            braceleft    braceleft    Control_b   \
+              Control_b    VoidSymbol   VoidSymbol   Meta_b       Meta_B      \
+              VoidSymbol   VoidSymbol   +B           b            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_B       Meta_b      \
+              VoidSymbol                                                      \
+              +b           B            braceleft    braceleft    Control_b   \
+              Control_b    VoidSymbol   VoidSymbol   Meta_b       Meta_B      \
+              VoidSymbol   VoidSymbol   +B           b            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_B       Meta_b      \
+              VoidSymbol
+keycode  49 = +n           N            braceright   braceright   Control_n   \
+              Control_n    VoidSymbol   VoidSymbol   Meta_n       Meta_N      \
+              VoidSymbol   VoidSymbol   +N           n            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_N       Meta_n      \
+              VoidSymbol                                                      \
+              +n           N            braceright   braceright   Control_n   \
+              Control_n    VoidSymbol   VoidSymbol   Meta_n       Meta_N      \
+              VoidSymbol   VoidSymbol   +N           n            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_N       Meta_n      \
+              VoidSymbol
+keycode  50 = +m           M            asciicircum  asciicircum  Control_m   \
+              Control_m    VoidSymbol   VoidSymbol   Meta_m       Meta_M      \
+              VoidSymbol   VoidSymbol   +M           M            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_M       Meta_m      \
+              VoidSymbol                                                      \
+              +m           M            asciicircum  asciicircum  Control_m   \
+              Control_m    VoidSymbol   VoidSymbol   Meta_m       Meta_M      \
+              VoidSymbol   VoidSymbol   +M           M            VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_M       Meta_m      \
+              VoidSymbol
+keycode  51 = comma        comma        less         less         VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_comma   Meta_comma  \
+              VoidSymbol   VoidSymbol   question     question     less        \
+              less         VoidSymbol   VoidSymbol   Meta_less    Meta_less   \
+              VoidSymbol                                                      \
+              comma        comma        less         less         VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_comma   Meta_comma  \
+              VoidSymbol   VoidSymbol   less         less         less        \
+              less         VoidSymbol   VoidSymbol   Meta_less    Meta_less   \
+              VoidSymbol
+keycode  52 = period       period       greater      greater      VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_period  Meta_period \
+              VoidSymbol   VoidSymbol   colon        colon        greater     \
+              greater      VoidSymbol   VoidSymbol   Meta_greater             \
+              Meta_greater VoidSymbol                                         \
+              period       period       greater      greater      VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Meta_period  Meta_period \
+              VoidSymbol   VoidSymbol   greater      greater      greater     \
+              greater      VoidSymbol   VoidSymbol   Meta_greater             \
+              Meta_greater VoidSymbol
+keycode  53 = minus        minus        asterisk     asterisk                 \
+              Control_underscore        Control_underscore        VoidSymbol  \
+              VoidSymbol   Meta_slash   Meta_slash   VoidSymbol   VoidSymbol  \
+              underscore   underscore   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_question             Meta_question            \
+              VoidSymbol                                                      \
+              slash        slash        asterisk     asterisk                 \
+              Control_underscore        Control_underscore        VoidSymbol  \
+              VoidSymbol   Meta_slash   Meta_slash   VoidSymbol   VoidSymbol  \
+              question     question     VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_question             Meta_question            \
+              VoidSymbol
+keycode  54 = ShiftL
+keycode  55 = KP_Multiply  KP_Multiply  asterisk     asterisk     VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Do           Do          \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_Multiply  KP_Multiply  asterisk     asterisk     VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Do           Do          \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  56 = Alt
+keycode  57 = space        space        nobreakspace nobreakspace nul         \
+              nul          VoidSymbol   VoidSymbol   Meta_space   Meta_space  \
+              Meta_nul     Meta_nul     space        space        VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              space        space        nobreakspace nobreakspace nul         \
+              nul          VoidSymbol   VoidSymbol   Meta_space   Meta_space  \
+              Meta_nul     Meta_nul     space        space        VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  58 = Caps_Lock
+keycode  59 = F1           F1           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_1    Console_1    Console_1    Console_1   \
+              Console_1    Console_1    F11          F11          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F1           F1           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_1    Console_1    Console_1    Console_1   \
+              Console_1    Console_1    F11          F11          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  60 = F2           F2           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_2    Console_2    Console_2    Console_2   \
+              Console_2    Console_2    F12          F12          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F2           F2           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_2    Console_2    Console_2    Console_2   \
+              Console_2    Console_2    F12          F12          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  61 = F3           F3           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_3    Console_3    Console_3    Console_3   \
+              Console_3    Console_3    F13          F13          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F3           F3           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_3    Console_3    Console_3    Console_3   \
+              Console_3    Console_3    F13          F13          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  62 = F4           F4           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_4    Console_4    Console_4    Console_4   \
+              Console_4    Console_4    F14          F14          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F4           F4           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_4    Console_4    Console_4    Console_4   \
+              Console_4    Console_4    F14          F14          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  63 = F5           F5           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_5    Console_5    Console_5    Console_5   \
+              Console_5    Console_5    F15          F15          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F5           F5           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_5    Console_5    Console_5    Console_5   \
+              Console_5    Console_5    F15          F15          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  64 = F6           F6           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_6    Console_6    Console_6    Console_6   \
+              Console_6    Console_6    F16          F16          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F6           F6           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_6    Console_6    Console_6    Console_6   \
+              Console_6    Console_6    F16          F16          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  65 = F7           F7           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_7    Console_7    Console_7    Console_7   \
+              Console_7    Console_7    F17          F17          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F7           F7           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_7    Console_7    Console_7    Console_7   \
+              Console_7    Console_7    F17          F17          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  66 = F8           F8           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_8    Console_8    Console_8    Console_8   \
+              Console_8    Console_8    F18          F18          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F8           F8           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_8    Console_8    Console_8    Console_8   \
+              Console_8    Console_8    F18          F18          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  67 = F9           F9           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_9    Console_9    Console_9    Console_9   \
+              Console_9    Console_9    F19          F19          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F9           F9           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_9    Console_9    Console_9    Console_9   \
+              Console_9    Console_9    F19          F19          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  68 = F10          F10          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_10   Console_10   Console_10   Console_10  \
+              Console_10   Console_10   F20          F20          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F10          F10          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_10   Console_10   Console_10   Console_10  \
+              Console_10   Console_10   F20          F20          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  69 = Num_Lock     Num_Lock     Bare_Num_Lock                         \
+              Bare_Num_Lock             VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Bare_Num_Lock             Bare_Num_Lock            \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Num_Lock     Num_Lock     Bare_Num_Lock                         \
+              Bare_Num_Lock             VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Bare_Num_Lock             Bare_Num_Lock            \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  70 = Scroll_Lock  Scroll_Lock  VoidSymbol   VoidSymbol               \
+              Show_State   Show_State   VoidSymbol   VoidSymbol               \
+              Show_Registers            Show_Registers            VoidSymbol  \
+              VoidSymbol   Show_Memory  Show_Memory  VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Scroll_Lock  Scroll_Lock  VoidSymbol   VoidSymbol               \
+              Show_State   Show_State   VoidSymbol   VoidSymbol               \
+              Show_Registers            Show_Registers            VoidSymbol  \
+              VoidSymbol   Show_Memory  Show_Memory  VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol
+keycode  71 = KP_7         KP_7         seven        seven        Hex_7       \
+              Hex_7        VoidSymbol   VoidSymbol   Ascii_7      Ascii_7     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_7         KP_7         seven        seven        Hex_7       \
+              Hex_7        VoidSymbol   VoidSymbol   Ascii_7      Ascii_7     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  72 = KP_8         KP_8         eight        eight        Hex_8       \
+              Hex_8        VoidSymbol   VoidSymbol   Ascii_8      Ascii_8     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_8         KP_8         eight        eight        Hex_8       \
+              Hex_8        VoidSymbol   VoidSymbol   Ascii_8      Ascii_8     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  73 = KP_9         KP_9         nine         nine         Hex_9       \
+              Hex_9        VoidSymbol   VoidSymbol   Ascii_9      Ascii_9     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_9         KP_9         nine         nine         Hex_9       \
+              Hex_9        VoidSymbol   VoidSymbol   Ascii_9      Ascii_9     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  74 = KP_Subtract  KP_Subtract  minus        minus        VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_Subtract  KP_Subtract  minus        minus        VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  75 = KP_4         KP_4         four         four         Hex_4       \
+              Hex_4        VoidSymbol   VoidSymbol   Ascii_4      Ascii_4     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_4         KP_4         four         four         Hex_4       \
+              Hex_4        VoidSymbol   VoidSymbol   Ascii_4      Ascii_4     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  76 = KP_5         KP_5         five         five         Hex_5       \
+              Hex_5        VoidSymbol   VoidSymbol   Ascii_5      Ascii_5     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_5         KP_5         five         five         Hex_5       \
+              Hex_5        VoidSymbol   VoidSymbol   Ascii_5      Ascii_5     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  77 = KP_6         KP_6         six          six          Hex_6       \
+              Hex_6        VoidSymbol   VoidSymbol   Ascii_6      Ascii_6     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_6         KP_6         six          six          Hex_6       \
+              Hex_6        VoidSymbol   VoidSymbol   Ascii_6      Ascii_6     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  78 = KP_Add       KP_Add       plus         plus         VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_Add       KP_Add       plus         plus         VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  79 = KP_1         KP_1         one          one          Hex_1       \
+              Hex_1        VoidSymbol   VoidSymbol   Ascii_1      Ascii_1     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_1         KP_1         one          one          Hex_1       \
+              Hex_1        VoidSymbol   VoidSymbol   Ascii_1      Ascii_1     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  80 = KP_2         KP_2         two          two          Hex_2       \
+              Hex_2        VoidSymbol   VoidSymbol   Ascii_2      Ascii_2     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_2         KP_2         two          two          Hex_2       \
+              Hex_2        VoidSymbol   VoidSymbol   Ascii_2      Ascii_2     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  81 = KP_3         KP_3         three        three        Hex_3       \
+              Hex_3        VoidSymbol   VoidSymbol   Ascii_3      Ascii_3     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_3         KP_3         three        three        Hex_3       \
+              Hex_3        VoidSymbol   VoidSymbol   Ascii_3      Ascii_3     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  82 = KP_0         KP_0         zero         zero         Hex_0       \
+              Hex_0        VoidSymbol   VoidSymbol   Ascii_0      Ascii_0     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_0         KP_0         zero         zero         Hex_0       \
+              Hex_0        VoidSymbol   VoidSymbol   Ascii_0      Ascii_0     \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+#
+keycode  83 = KP_Period    KP_Period    period       period       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_Period    KP_Period    period       period       VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+# Desetinna carka na numericke klavesnici
+#
+#keycode  83 = KP_Comma     KP_Comma     comma        comma        VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol                                                     \
+#              KP_Comma     KP_Comma     comma        comma        VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol
+#
+#
+#
+#keycode  84 = Alt PrintScreen => SysRq
+keycode  84 = Spawn_Console             Spawn_Console             VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol                            \
+              Spawn_Console             Spawn_Console             VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol
+#
+#
+# 102-ha klavesa
+#
+keycode  86 = backslash    backslash    slash        slash                    \
+              Control_backslash         Control_backslash                     \
+              Control_underscore        Control_underscore                    \
+              Meta_backslash            Meta_backslash                        \
+              Meta_Control_backslash    Meta_Control_backslash                \
+              bar          bar          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_bar     Meta_bar     VoidSymbol               \
+              backslash    backslash    slash        slash                    \
+              Control_backslash         Control_backslash                     \
+              Control_underscore        Control_underscore                    \
+              Meta_backslash            Meta_backslash                        \
+              Meta_Control_backslash    Meta_Control_backslash                \
+              bar          bar          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Meta_bar     Meta_bar     VoidSymbol
+#
+#
+keycode  87 = F11          F11          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_11   Console_11   Console_11   Console_11  \
+              Console_11   Console_11   F21          F21          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F11          F11          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_11   Console_11   Console_11   Console_11  \
+              Console_11   Console_11   F21          F21          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  88 = F12          F12          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_12   Console_12   Console_12   Console_12  \
+              Console_12   Console_12   F22          F22          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F12          F12          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_12   Console_12   Console_12   Console_12  \
+              Console_12   Console_12   F22          F22          VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  96 = KP_Enter     KP_Enter     VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_Enter     KP_Enter     VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode  97 = Control
+keycode  98 = KP_Divide    KP_Divide    slash        slash        VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Macro        Macro       \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              KP_Divide    KP_Divide    slash        slash        VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   Macro        Macro       \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+#keycode  99 = PrintScreen  => POZOR: Alt PrintScreen = keycode 84
+keycode  99 = dead_acute   dead_acute   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   dead_caron   dead_caron   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode 100 = AltGr
+#
+#keycode 101 = Break
+keycode 101 = Break        Break        VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Break        Break        VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+# synonyma:
+#          Find   (primarni) => Home
+#          Select (primarni) => End
+#          Prior  (primarni) => PageUp
+#          Next   (primarni) => PageDown
+#
+keycode 102 = Home         Home         +b           B            Hex_B       \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Home         Home         +b           B            Hex_B       \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode 103 = Up           Up           Console_1    Console_1    Up          \
+              Up           VoidSymbol   VoidSymbol   Console_1    Console_1   \
+              VoidSymbol   VoidSymbol   Up           Up           VoidSymbol  \
+              VoidSymbol   Up           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Up           Up           Console_1    Console_1    Up          \
+              Up           VoidSymbol   VoidSymbol   Console_1    Console_1   \
+              VoidSymbol   VoidSymbol   Up           Up           VoidSymbol  \
+              VoidSymbol   Up           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode 104 = PageUp       PageUp       +c           C            Hex_C       \
+              Hex_C        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   Scroll_Backward                       \
+              Scroll_Backward           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol               \
+              PageUp       PageUp       +c           C            Hex_C       \
+              Hex_C        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   Scroll_Backward                       \
+              Scroll_Backward           VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol
+keycode 105 = Left         Left         Decr_Console Decr_Console Left        \
+              Left         VoidSymbol   VoidSymbol   Decr_Console             \
+              Decr_Console VoidSymbol   VoidSymbol   Left         Left        \
+              VoidSymbol   VoidSymbol   Left         VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol                                         \
+              Left         Left         Decr_Console Decr_Console Left        \
+              Left         VoidSymbol   VoidSymbol   Decr_Console             \
+              Decr_Console VoidSymbol   VoidSymbol   Left         Left        \
+              VoidSymbol   VoidSymbol   Left         VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol
+keycode 106 = Right        Right        Incr_Console Incr_Console Right       \
+              Right        VoidSymbol   VoidSymbol   Incr_Console             \
+              Incr_Console VoidSymbol   VoidSymbol   Right        Right       \
+              VoidSymbol   VoidSymbol   Right        VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol                                         \
+              Right        Right        Incr_Console Incr_Console Right       \
+              Right        VoidSymbol   VoidSymbol   Incr_Console             \
+              Incr_Console VoidSymbol   VoidSymbol   Right        Right       \
+              VoidSymbol   VoidSymbol   Right        VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol
+keycode 107 = End          End          +e           E            Hex_E       \
+              Hex_E        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              End          End          +e           E            Hex_E       \
+              Hex_E        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode 108 = Down         Down         Last_Console Last_Console Down        \
+              Down         VoidSymbol   VoidSymbol   Last_Console             \
+              Last_Console VoidSymbol   VoidSymbol   Down         Down        \
+              VoidSymbol   VoidSymbol   Down         VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol                                         \
+              Down         Down         Last_Console Last_Console Down        \
+              Down         VoidSymbol   VoidSymbol   Last_Console             \
+              Last_Console VoidSymbol   VoidSymbol   Down         Down        \
+              VoidSymbol   VoidSymbol   Down         VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol
+keycode 109 = PageDown     PageDown     +f           F            Hex_F       \
+              Hex_F        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   Scroll_Forward                        \
+              Scroll_Forward            VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol               \
+              PageDown     PageDown     +f           F            Hex_F       \
+              Hex_F        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   Scroll_Forward                        \
+              Scroll_Forward            VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol
+keycode 110 = Insert       Insert       +a           A            Hex_A       \
+              Hex_A        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Insert       Insert       +a           A            Hex_A       \
+              Hex_A        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+#
+# Keysym Delete reprezentuje znak s kodem 0x7f (127)
+#               - je pouzit pro klavesu BackSpace (viz keycode 14)
+#
+#keycode 111 = Delete       Delete       +d           D            Hex_D      \
+#              Hex_D        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              Boot         Boot         VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol                                                     \
+#              Delete       Delete       +d           D            Hex_D      \
+#              Hex_D        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              Boot         Boot         VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol
+#
+keycode 111 = Remove       Remove       +d           D            Hex_D       \
+              Hex_D        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Boot         Boot         VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              Remove       Remove       +d           D            Hex_D       \
+              Hex_D        VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              Boot         Boot         VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+#
+#
+#keycode 119 = Pause  => POZOR: Control Pause = keycode 101
+#keycode 119 = Pause        Pause        VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol                                                     \
+#              Pause        Pause        VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol \
+#              VoidSymbol
+#
+# Pause se pouziva pro prepinani CESKE a ANGLICKE klavesnice
+#       - funguje jako ShiftR_Lock
+#
+keycode 119 = ShiftR_Lock  ShiftR_Lock  VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              ShiftR_Lock  ShiftR_Lock  VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+#
+#
+#
+# keycode 125 = > Windows klavesa vlevo (symbol okna)
+# keycode 126 = > Windows klavesa vpravo (symbol okna)
+# keycode 127 = > Windows klavesa nejvice vpravo (symbol menu)
+keycode 125 = F13          F13          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_13   Console_13   Console_13   Console_13  \
+              Console_13   Console_13   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F13          F13          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_13   Console_13   Console_13   Console_13  \
+              Console_13   Console_13   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode 126 = F13          F13          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_13   Console_13   Console_13   Console_13  \
+              Console_13   Console_13   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F13          F13          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_13   Console_13   Console_13   Console_13  \
+              Console_13   Console_13   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+keycode 127 = F14          F14          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_14   Console_14   Console_14   Console_14  \
+              Console_14   Console_14   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol                                                      \
+              F14          F14          VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   Console_14   Console_14   Console_14   Console_14  \
+              Console_14   Console_14   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol   VoidSymbol  \
+              VoidSymbol
+#
+#
+#
+# string: kdyz je jedne klavese prirazeno vice znaku (napr. funkcni klavesy)
+#
+# Vite-li nekdo co maji generovat klavesy F21 a F22 prosim reknete mi to
+#
+string F1 = "\033[[A"
+string F2 = "\033[[B"
+string F3 = "\033[[C"
+string F4 = "\033[[D"
+string F5 = "\033[[E"
+string F6 = "\033[17~"
+string F7 = "\033[18~"
+string F8 = "\033[19~"
+string F9 = "\033[20~"
+string F10 = "\033[21~"
+string F11 = "\033[23~"
+string F12 = "\033[24~"
+string F13 = "\033[25~"
+string F14 = "\033[26~"
+string F15 = "\033[28~"
+string F16 = "\033[29~"
+string F17 = "\033[31~"
+string F18 = "\033[32~"
+string F19 = "\033[33~"
+string F20 = "\033[34~"
+string F21 = ""
+string F22 = ""
+#
+# compose: jak se pomoci mrtvych klaves generuji znaky s diakritikou
+# transformace dead klavesy na prvni znak za compose:
+# (v zavorce jsou synonyma -> proto maji stejne oznaceni dead klavesy)
+# dead_grave ======================================> '`'
+# dead_acute --------------------------------------> '\''
+# dead_diaeresis ==================================> '"' (:)
+# dead_circumflex (dead_caron) --------------------> '^'
+# dead_tilde      (dead_breve) (dead_doubleacute) => '~'
+# dead_cedilla    (dead_ogonek) -------------------> ','
+# --
+# dead_grave       => pouzito misto nedefinovanych "dead_ring" a "dead_dot"
+# dead_acute       => carka_nad_pismenem (pozivaji take cesi)
+# dead_diaeresis   => dve_tecky_nad_pismenem - pouzivaji napr. nemci
+# dead_circumflex  => striska_nad_pismenem
+# dead_caron       => hacek_nad_pismenem
+# dead_tilde       => vlnovka_nad_pismenem (neni v ISO-8859-2)
+# dead_breve       => obloucek_nad_pismenem
+# dead_doubleacute => dve_carky_nad_pismenem (myslim ze je to madarsky prehlas)
+# dead_cedilla     => ocasek_pod_pismenem_smerujici_zprava_doleva
+# dead_ogonek      => ocasek_pod_pismenem_smerujici_zleva_doprava
+# --
+#
+# dead_grave => pouzito pro krouzek a tecku_nad_pismenem (a znak stupne)
+compose '`' 'u' to 'ù'
+compose '`' 'U' to 'Ù'
+compose '`' 'z' to '¿'
+compose '`' 'Z' to '¯'
+# dead_acute (pouze ceske)
+compose '\'' 'a' to 'á'
+compose '\'' 'A' to 'Á'
+compose '\'' 'e' to 'é'
+compose '\'' 'E' to 'É'
+compose '\'' 'i' to 'í'
+compose '\'' 'I' to 'Í'
+compose '\'' 'o' to 'ó'
+compose '\'' 'O' to 'Ó'
+compose '\'' 'u' to 'ú'
+compose '\'' 'U' to 'Ú'
+compose '\'' 'y' to 'ý'
+compose '\'' 'Y' to 'Ý'
+# dead_caron (pouze ceske)
+compose '^' 'u' to 'ù'
+compose '^' 'U' to 'Ù'
+compose '^' 'c' to 'è'
+compose '^' 'C' to 'È'
+compose '^' 'd' to 'ï'
+compose '^' 'D' to 'Ï'
+compose '^' 'e' to 'ì'
+compose '^' 'E' to 'Ì'
+compose '^' 'n' to 'ò'
+compose '^' 'N' to 'Ò'
+compose '^' 'r' to 'ø'
+compose '^' 'R' to 'Ø'
+compose '^' 's' to '¹'
+compose '^' 'S' to '©'
+compose '^' 't' to '»'
+compose '^' 'T' to '«'
+compose '^' 'z' to '¾'
+compose '^' 'Z' to '®'
+#
+# Zde je misto pro neceske znaky generovane pres mrtvou klavesu
+#
+# dead_acute (neceske znaky)
+compose '\'' 'c' to 'æ'
+compose '\'' 'C' to 'Æ'
+compose '\'' 'l' to 'å'
+compose '\'' 'L' to 'Å'
+compose '\'' 'n' to 'ñ'
+compose '\'' 'N' to 'Ñ'
+compose '\'' 'r' to 'à'
+compose '\'' 'R' to 'À'
+compose '\'' 's' to '¶'
+compose '\'' 'S' to '¦'
+compose '\'' 'z' to '¼'
+compose '\'' 'Z' to '¬'
+# dead_caron (neceske znaky)
+compose '^' 'l' to 'µ'
+compose '^' 'L' to '¥'
+# dead_circumflex (neceske znaky)
+compose '^' 'a' to 'â'
+compose '^' 'A' to 'Â'
+compose '^' 'i' to 'î'
+compose '^' 'I' to 'Î'
+compose '^' 'o' to 'ô'
+compose '^' 'O' to 'Ô'
+# dead_tilde (neceske znaky) => nedefinovan znak v ISO-8859-2
+#
+# dead_breve (neceske_znaky)
+compose '~' 'a' to 'ã'
+compose '~' 'A' to 'Ã'
+# dead_doubleacute (neceske znaky)
+compose '~' 'o' to 'õ'
+compose '~' 'O' to 'Õ'
+compose '~' 'u' to 'û'
+compose '~' 'U' to 'Û'
+# dead_diaeresis (neceske znaky)
+compose '"' 'a' to 'ä'
+compose '"' 'A' to 'Ä'
+compose '"' 'e' to 'ë'
+compose '"' 'E' to 'Ë'
+compose '"' 'o' to 'ö'
+compose '"' 'O' to 'Ö'
+compose '"' 'u' to 'ü'
+compose '"' 'U' to 'Ü'
+# dead_cedilla (neceske znaky)
+compose ',' 'c' to 'ç'
+compose ',' 'C' to 'Ç'
+compose ',' 's' to 'º'
+compose ',' 'S' to 'ª'
+compose ',' 't' to 'þ'
+compose ',' 'T' to 'Þ'
+# dead_ogonek (neceske znaky)
+compose ',' 'a' to '±'
+compose ',' 'A' to '¡'
+compose ',' 'e' to 'ê'
+compose ',' 'E' to 'Ê'
+

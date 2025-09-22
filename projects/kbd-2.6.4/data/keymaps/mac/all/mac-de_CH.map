@@ -1,0 +1,47 @@
+! Swiss-German keymap for PowerBook G3 (Bronze Series)
+! augmented by keys on macally ikey keyboard
+
+! Shift   1
+! AltGr   2 command key
+! Ctrl    4
+! Alt     8 option key
+! ShiftL 16 not used
+! ShiftR 32 not used
+! CtrlL  64 not used
+! CtrlR 128 not used
+
+! plain,shift,command,control,alt,ctrl-alt
+# from http://www.claudio.ch/Etc/pb-sg.kmap
+# modified by olh@suse.de
+
+alt_is_meta
+include "mac-qwertz-layout"
+include "mac-linux-keys-bare.inc"
+include "mac-euro.map"
+compose as usual for "iso-8859-1"
+strings as usual
+
+
+keycode  50 = section degree asciitilde nul Meta_asciitilde
+keycode  18 = one	plus
+keycode  19 = two	quotedbl	at 
+keycode  20 = three	asterisk	numbersign 
+keycode  21 = four	ccedilla	backslash	Control_backslash Meta_backslash Meta_Control_backslash
+keycode  22 = six	ampersand	bracketright	Control_bracketright Meta_bracketright Meta_Control_bracketright
+keycode  23 = five	percent		bracketleft Escape bracketleft Meta_Escape
+keycode  24 = asciicircum	grave	Control_asciicircum Meta_asciicircum Meta_Control_asciicircum 
+keycode  25 = nine	parenright	braceright Control_bracketright Meta_braceright Meta_Control_bracketright
+keycode  26 = seven	slash		bar		Control_backslash Meta_bar Meta_Control_backslash
+keycode  27 = apostrophe	question
+keycode  28 = eight	parenleft	braceleft Escape Meta_braceleft Meta_Escape
+keycode  29 = zero	equal		nul nul Meta_equal Meta_nul
+keycode  30 = dead_diaeresis	exclam
+keycode  39 = adiaeresis agrave
+keycode  41 = odiaeresis eacute
+keycode  42 = dollar sterling
+keycode  43 = comma semicolon
+keycode  44 = minus underscore backslash Control_underscore Meta_minus Meta_Control_underscore
+keycode  47 = period colon
+keycode  10 = less greater
+keycode  16 = z
+keycode   6 = y

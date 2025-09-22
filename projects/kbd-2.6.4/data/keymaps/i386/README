@@ -1,0 +1,27 @@
+These maps are as contributed. Use at your own risk.
+(But please tell me if something is seriously wrong.)
+Mail corrections, improvements and new maps to aeb@cwi.nl.
+
+Several corrections were pointed out by Tom.Kartes@Materna.DE.
+
+mk_modmap is a utility that might help synchronizing
+your keymaps for loadkeys and for xmodmap (but note that
+(since version 2.1 of XFree86) X initialises its keymap using
+the Linux keymap, so that xmodmap will often be superfluous).
+
+Since version 0.87, put a line `charset "iso-8859-x"' in front
+of a map, when you are using symbols outside iso-8859-1.
+
+Since version 0.88, put a line `keymaps 0-1,4-5,8,12' or so
+in front of a map, in order to indicate what keymaps should
+be used.
+
+hypermap.m4 was contributed by shields@tembel.org (Michael Shields).
+Use: m4 hypermap.m4 | loadkeys .
+
+Please, if you submit something that includes compose key
+combinations, uuencode the keymap, since SMTP-compliant
+mailers will strip the eighth bit.
+
+Andries
+

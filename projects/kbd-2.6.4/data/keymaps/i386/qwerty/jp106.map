@@ -1,0 +1,68 @@
+# jp106.map : Japanese 106 keyboard keymap
+#
+# Date: Tue, 20 Aug 1996 16:15:31 +0900
+# From: Hideya Hane <wing@aries.bekkoame.or.jp>
+#
+keymaps 0-1,4-5,8-9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-two-alt-keys"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape
+keycode   2 = one              exclam
+keycode   3 = two              quotedbl
+keycode   4 = three            numbersign
+	control	keycode   4 = Escape
+keycode   5 = four             dollar
+	control	keycode   5 = Control_backslash
+keycode   6 = five             percent
+	control	keycode   6 = Control_bracketright
+keycode   7 = six              ampersand
+	control	keycode   7 = Control_underscore
+keycode   8 = seven            apostrophe
+keycode   9 = eight            parenleft
+keycode  10 = nine             parenright
+keycode  11 = zero             asciitilde
+	control	keycode  11 = nul
+keycode  12 = minus            equal
+keycode  13 = asciicircum      asciitilde
+	control	keycode  13 = Control_asciicircum
+keycode  14 = Delete
+	control	keycode  14 = BackSpace
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = at               grave
+	control	keycode  26 = nul
+keycode  27 = bracketleft      braceleft
+	control	keycode  27 = Escape
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon        plus
+keycode  40 = colon            asterisk
+	control keycode  40 = Control_g
+keycode  41 = Escape
+keycode  42 = Shift
+keycode  43 = bracketright     braceright
+	control	keycode  43 = Control_bracketright
+keycode  51 = comma            less
+keycode  52 = period           greater
+	control	keycode  52 = Compose
+keycode  53 = slash            question
+	control	keycode  53 = Delete
+	shift	control	keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater
+keycode  89 = backslash        underscore
+	control	keycode  89 = Control_backslash
+keycode  92 = space
+keycode  94 = space
+keycode  97 = Control
+keycode 124 = backslash        bar
+	control	keycode 124 = Control_backslash

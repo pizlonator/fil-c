@@ -1,0 +1,34 @@
+From: johnsonm@stolaf.edu (Michael K. Johnson)
+Subject: changing keyboard repeat rate.
+
+OK, I have gotten several requests for info on how to change the
+keyboard repeat rate, so here goes.  Note:  I can't just give diffs,
+because there are lots of options, and for heaven's sake it's only
+three lines of code.
+
+In boot/setup.S, there are the lines:
+
+! set the keyboard repeat rate to the max
+
+	mov	ax,#0x0305
+	mov	bx,0x0000
+	int	0x16
+
+If you don't want to change the repeat rate at all, just comment out
+these lines by prefacing them with !'s.  If you want something in the
+middle, change the
+	mov	bx,0x0000
+to	mov	bx,0x????
+where ???? is determined by (from Ralf Brown's interrupt list)
+bh = delay value (0x00 = 250 ms to 0x03 = 1000 ms (one second))
+	this is the delay before the repeat starts happening
+bl = repeat rate (0x00 = 30/sec to 0x0c = 10/sec [default] to 0x1f = 2/sec)
+
+I use	mov	bx,0x0006
+to delay 1/4 sec, then repeat at what I think is a comfortable rate.
+I am too lazy to calculate the exact speed -- maybe 20/sec? ;-)
+
+Hope this helps people.
+
+michaelkjohnson
+johnsonm@stolaf.edu

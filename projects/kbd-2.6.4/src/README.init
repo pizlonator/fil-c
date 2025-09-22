@@ -1,0 +1,17 @@
+You don't have to log into a getty on every virtual console anymore:
+just run a single getty on tty1, put this line in your /etc/inittab:
+
+	kb::kbrequest:/usr/bin/openvt -us
+
+and put this in your rc.local (or equivalent):
+
+	echo "alt keycode 103 = Spawn_Console" | loadkeys
+
+Then, once you login, you can press alt-up-arrow to spawn another
+virtual console. This behavior requires a recent sysvinit package.
+I used 2.64, but as early as 2.60 might support it. You also must
+be using the proc filesystem.
+
+WARNING: this may circumvent vlock.
+
+Joshua Spoerri

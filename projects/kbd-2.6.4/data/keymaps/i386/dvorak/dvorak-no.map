@@ -1,0 +1,104 @@
+# Date: Sun, 10 Feb 2008 10:56:47 +0100
+# From: "Thomas Geirhovd" <thomas@tg90nor.net>
+# Subject: Norwegian dvorak keymap
+# 
+# Hi,
+# 
+# I made a norwegian dvorak keymap for the console.
+# It can be found on http://www.tg90nor.net/no-dvorak.map.gz
+# Feel free to include it in kbd if you want to.
+# 
+# -- 
+# Regards,
+# Thomas Geirhovd
+#
+keymaps 0-2,4-6,8-9,12
+alt_is_meta
+include "linux-with-alt-and-altgr.inc"
+strings as usual
+
+		keycode   1 = Escape
+	alt	keycode   1 = Meta_Escape
+		keycode   2 = one	exclam
+	alt	keycode   2 = Meta_one
+		keycode   3 = two	quotedbl	at
+	control	keycode   3 = nul
+	alt	keycode   3 = Meta_two
+		keycode   4 = three	numbersign
+	control	keycode   4 = Escape
+	alt	keycode   4 = Meta_three
+		keycode   5 = four	dollar		dollar
+	control	keycode   5 = Control_backslash
+	alt	keycode   5 = Meta_four
+		keycode   6 = five	percent         
+	control	keycode   6 = Control_bracketright
+	alt	keycode   6 = Meta_five
+		keycode   7 = six	ampersand
+	control	keycode   7 = Control_asciicircum
+	alt	keycode   7 = Meta_six
+		keycode   8 = seven	slash		braceleft
+	control	keycode   8 = Control_underscore
+	alt	keycode   8 = Meta_seven
+		keycode   9 = eight	parenleft	bracketleft
+	control	keycode   9 = Delete
+	alt	keycode   9 = Meta_eight
+		keycode  10 = nine	parenright	bracketright
+	alt	keycode  10 = Meta_nine
+		keycode  11 = zero	equal		braceright
+	alt	keycode  11 = Meta_zero
+		keycode  12 = plus	question       
+	control	keycode  12 = Control_underscore
+	alt	keycode  12 = Meta_minus
+		keycode  13 = backslash	grave		apostrophe
+	alt	keycode  13 = Meta_equal
+		keycode  14 = Delete
+	alt	keycode  14 = Meta_Delete
+		keycode  15 = Tab              
+	shift	keycode  15 = Meta_Tab
+		keycode  16 = +aring	+Aring
+		keycode  17 = comma            semicolon            
+		keycode  18 = period           colon       
+		keycode  19 = p               
+		keycode  20 = y               
+		keycode  21 = f               
+		keycode  22 = g               
+		keycode  23 = c               
+		keycode  24 = r               
+		keycode  25 = l               
+		keycode  26 = apostrophe	asterisk
+		keycode  27 = asciitilde	asciicircum
+		keycode  28 = Return          
+        alt     keycode  28 = Meta_Control_m
+		keycode  29 = Control         
+		keycode  30 = a               
+		keycode  31 = o               
+		keycode  32 = e               
+		keycode  33 = u               
+		keycode  34 = i               
+		keycode  35 = d               
+		keycode  36 = h               
+		keycode  37 = t               
+		keycode  38 = n               
+		keycode  39 = s               
+		keycode  40 = minus           underscore
+		keycode  41 = bar		section
+	control keycode  41 = nul             
+keycode  42 = Shift           
+keycode  43 = less greater
+keycode  44 = +ae	+AE
+keycode  45 = q               
+keycode  46 = j               
+keycode  47 = k               
+keycode  48 = x               
+keycode  49 = b               
+keycode  50 = m               
+keycode  51 = w               
+keycode  52 = v               
+keycode  53 = z               
+keycode  54 = Shift           
+keycode  56 = Alt             
+		keycode  57 = space            
+	control keycode  57 = nul             
+		keycode  58 = Caps_Lock       
+		keycode  86 = +oslash +Ooblique
+keycode  97 = Control         

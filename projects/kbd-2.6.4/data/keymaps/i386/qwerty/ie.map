@@ -1,0 +1,160 @@
+# Irish keyboard map
+#
+# acute-accented vowels as AltGr+vowel and AltGr+Shift+vowel
+# euro currency sign as AltGr+4
+# non-breaking space as AltGr+Space and AltGr+Shift+Space
+# matches hardware (keys and engraved symbols) for Irish keyboards
+#
+# Based on Seamus O Ciardhuain <seoc@cnds.ucd.ie> (19 December 2002) XKB keymap
+# Adopted by Cian Donovan <cian@donovan.id> (24 September 2021) for KBD
+
+charset "iso-8859-15"
+keymaps 0-6,8,9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+              keycode  1 = Escape
+        shift keycode  1 = Escape
+
+              keycode  2 = one
+        shift keycode  2 = exclam
+
+              keycode  3 = two
+        shift keycode  3 = quotedbl
+      control keycode  3 = nul
+shift control keycode  3 = nul
+
+              keycode  4 = three
+        shift keycode  4 = sterling
+      control keycode  4 = Escape
+
+              keycode  5 = four
+        shift keycode  5 = dollar
+        altgr keycode  5 = euro
+      control keycode  5 = Control_backslash
+
+              keycode  6 = five
+        shift keycode  6 = percent
+      control keycode  6 = Control_bracketright
+
+              keycode  7 = six
+        shift keycode  7 = asciicircum
+      control keycode  7 = Control_asciicircum
+
+              keycode  8 = seven
+        shift keycode  8 = ampersand
+      control keycode  8 = Control_underscore
+
+              keycode  9 = eight
+        shift keycode  9 = asterisk
+      control keycode  9 = Delete
+
+              keycode 10 = nine
+        shift keycode 10 = parenleft
+
+              keycode 11 = zero
+        shift keycode 11 = parenright
+
+              keycode 12 = minus
+        shift keycode 12 = underscore
+      control keycode 12 = Control_underscore
+
+              keycode 13 = equal
+        shift keycode 13 = plus
+
+              keycode 14 = Delete
+      control keycode 14 = Control_underscore
+
+              keycode 15 = Tab
+        shift keycode 15 = Meta_Tab
+
+              keycode 18 = +e
+        shift keycode 18 = +E
+        altgr keycode 18 = +eacute
+  shift altgr keycode 18 = +Eacute
+
+              keycode 22 = +u
+        shift keycode 22 = +U
+        altgr keycode 22 = +uacute
+  shift altgr keycode 22 = +Uacute
+
+              keycode 23 = +i
+        shift keycode 23 = +I
+        altgr keycode 23 = +iacute
+  shift altgr keycode 23 = +Iacute
+
+              keycode 24 = +o
+        shift keycode 24 = +O
+        altgr keycode 24 = +oacute
+  shift altgr keycode 24 = +Oacute
+
+              keycode 26 = bracketleft
+        shift keycode 26 = braceleft
+      control keycode 26 = Escape
+
+              keycode 27 = bracketright
+        shift keycode 27 = braceright
+      control keycode 27 = Control_bracketright
+
+              keycode 28 = Return
+          alt keycode 28 = Meta_Control_m
+
+              keycode 29 = Control
+
+              keycode 30 = +a
+        shift keycode 30 = +A
+        altgr keycode 30 = +aacute
+  shift altgr keycode 30 = +Aacute
+
+              keycode 34 = +g
+        shift keycode 34 = +G
+      control keycode 34 = Control_g
+shift control keycode 34 = Control_g
+
+              keycode 39 = semicolon
+        shift keycode 39 = colon
+
+              keycode 40 = apostrophe
+        shift keycode 40 = at
+      control keycode 40 = Control_g
+shift control keycode 40 = Control_g
+
+              keycode 41 = grave
+        shift keycode 41 = notsign
+        altgr keycode 41 = brokenbar
+      control keycode 41 = nul
+
+              keycode 42 = Shift
+
+              keycode 43 = numbersign
+        shift keycode 43 = asciitilde
+      control keycode 43 = Control_backslash
+
+              keycode 51 = comma
+        shift keycode 51 = less
+
+              keycode 52 = period
+        shift keycode 52 = greater
+
+              keycode 53 = slash
+        shift keycode 53 = question
+      control keycode 53 = Delete
+
+              keycode 54 = Shift
+
+              keycode 56 = Alt
+
+              keycode 57 = space
+        altgr keycode 57 = nobreakspace
+  shift altgr keycode 57 = nobreakspace
+      control keycode 57 = nul
+
+              keycode 58 = Caps_Lock
+
+              keycode 86 = backslash
+        shift keycode 86 = bar
+      control keycode 86 = Control_backslash
+
+              keycode 97 = Control

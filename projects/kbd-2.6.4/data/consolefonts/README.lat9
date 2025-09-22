@@ -1,0 +1,65 @@
+From: Guylhem AZNAR <guylhem@oeil.qc.ca>, GPL
+
+Basically, lat is psf, latu is psfu (currency is replaced by EURO), latv
+is pure unicode (currency will not be replaced by EURO symbol, only
+unicode EURO are replaced) and latw replaces unicode EURO and currency
+by EURO.
+
+Here's a chart, please tell me if it isn't clear enough (I wanted font
+support to become exhaustive since many people asked for special
+replacement of currency or instead non replacement since they already
+use UNICODE, etcetera......)
+
+      |  Iso encoding | Unicode map |     Single    |      Cross
+      |  within font  |  included   | compatibility | compatibility
+-------------------------------------------------------------------
+lat9  |      y        |      n      |       n       |   lat1 + lat9
+-------------------------------------------------------------------
+lat9u |      n        |      y      |       n       |   lat1 + lat9
+-------------------------------------------------------------------
+lat9v |      y        |      y      |   unicode     |       n  
+-------------------------------------------------------------------
+lat9w |      y        |      y      |       n       |   lat1 + lat9
+      |               |             |               |    + unicode
+-------------------------------------------------------------------
+
+                * lat9 fonts do not include any unicode translation map,
+therefore each currency sign will look like euro, what could cause
+compatibility problems for files coming from windows computers (cp1252 or
+latin1 are "incompatible" with latin9) but the huge advantage is it works
+right now with linux.
+
+                * lat9u fonts are encoded in a non standard sequence (but
+identical to latXu fonts from kbd) compared to the latter, therefore it
+brings the same problems with cp1252 and latin1 but the unicode translation
+map allows nice chars. for semi graphical applications like Yast, mc or
+other ncurses or dialog based programs.
+
+                * lat9v encoded in iso official sequence just like lat9 but
+with a full fledged unicode translation map, so no currency sign will be
+replaced by euro
+This avoids export problems if you use pure unicode and a unicode keymap :
+each latin9 char. is replaced by the adequate unicode char. and then
+displayed what is not only technically elegant but also useless with
+"standard" linux console. Very few systems are unicode ready !
+
+Therefore only use lat9, lat9u or lat9v fonts if you know what you are
+doing, else you can go with lat9w, the best compromise : you can
+be latin9 compatible immediately.
+There is no obligation of unicode or whatever, semi graphical chars.  are
+not messed up and if you feel like trying unicode, latin9 chars are
+displayed correctly (only the 0.3% latin9 incompatible chars. from latin1
+lack)
+
+You do not need to understand anything to use euro in everyday life, and if
+you still hesitate, trust my choice : lat9w.
+
+In order to use lat9-16.psf (or another lat9 .psf), you must supply a
+unicode map :
+
+		loadunimap lat9.uni
+		setfont lat9-16.psf
+
+To use lat9w-16.psf (or another lat9u, lat9v or lat9w) :
+
+                setfont lat9w-16.psf

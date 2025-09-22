@@ -1,0 +1,48 @@
+#!/bin/bash
+#written by Martin Lohner, SuSE GmbH, Dec 1998
+echo "This script converts 256 character font to psf-fonts"
+echo "It simply assumes that all files in the current directory"
+echo "that have a size of (256*n) are fontfiles of 8xn pixel" 
+echo "fonts. If there are 512 character, non-psf-fonts you will"
+echo "recognise this soon... Anyway, the setfont program isn´t"
+echo "aware of this type of fonts, too. So there shouln´d be to"
+echo "much of theese around."
+echo "This script cares for font highs of 6,8,10,12,14,16 and 19" 
+echo "pixels"
+echo ""
+echo -n "Start converting now? (Old file will not be touched) (Y/N)"
+read a
+random=hfdsvnpoh97k
+if [ $a = y   -o $a = Y ] ; then
+	echo "Creating psf-headers..."
+	echo -ne "\066" > $random
+	echo -ne "\004" >> $random
+	echo -ne "\000" >> $random
+
+	
+	echo -ne "\006" > $random.6.tmp
+	cat $random $random.6.tmp > $random.6
+	echo -ne "\010" > $random.8.tmp
+	cat $random $random.8.tmp > $random.8
+	echo -ne "\012" > $random.10.tmp
+	cat $random $random.10.tmp > $random.10
+	echo -ne "\014" > $random.12.tmp
+	cat $random $random.12.tmp > $random.12
+	echo -ne "\016" > $random.14.tmp
+	cat $random $random.14.tmp > $random.14
+	echo -ne "\020" > $random.16.tmp
+	cat $random $random.16.tmp > $random.16
+	echo -ne "\023" > $random.19.tmp
+	cat $random $random.19.tmp > $random.19
+	
+	for i in 6 8 10 12 14 16 19; do
+	echo "Looking for 8x"$i"-fonts..."
+		for j in `find . -maxdepth 1 -type f -size $((i*=256))c`;
+		do
+		cat $random.$i $j > $j.psf
+		done
+	done
+	rm $random.*	 
+else
+	exit 1
+fi  

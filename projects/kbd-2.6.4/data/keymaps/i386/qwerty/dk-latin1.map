@@ -1,0 +1,86 @@
+# danish keymap with dead accents
+# Niels Kristian Bech Jensen <nkbj@kemi.aau.dk>:
+#  shift keycode 5 is currency, not dollar
+#
+keymaps 0-2,4-6,8,12
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+	plain keycode  83 = KP_Comma
+strings as usual
+
+keycode   1 = Escape           Escape
+	alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam
+	alt     keycode   2 = Meta_one
+keycode   3 = two              quotedbl         at
+	control keycode   3 = nul
+	alt     keycode   3 = Meta_two
+keycode   4 = three            numbersign       sterling
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_three
+# keycode   5 = four             dollar           dollar
+keycode   5 = four             currency           dollar
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four
+keycode   6 = five             percent
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five
+keycode   7 = six              ampersand
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+keycode   8 = seven            slash            braceleft
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+keycode   9 = eight            parenleft        bracketleft
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenright       bracketright
+	alt     keycode  10 = Meta_nine
+keycode  11 = zero             equal            braceright
+	alt     keycode  11 = Meta_zero
+keycode  12 = plus             question
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+keycode  13 = dead_acute       dead_grave       bar
+	alt     keycode  13 = Meta_equal
+keycode  14 = Delete           Delete
+	alt     keycode  14 = Meta_Delete
+keycode  15 = Tab              Meta_Tab
+	alt     keycode  15 = Meta_Tab
+keycode  26 = +aring            +Aring
+	control keycode  26 = Escape
+	alt     keycode  26 = Meta_bracketleft
+keycode  27 = dead_diaeresis   dead_circumflex  dead_tilde
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = Meta_bracketright
+keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = +ae               +AE
+	alt     keycode  39 = Meta_semicolon
+keycode  40 = +oslash             +Oslash
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_apostrophe
+keycode  41 = onehalf          section
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = apostrophe       asterisk
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash
+keycode  51 = comma            semicolon
+	alt     keycode  51 = Meta_comma
+keycode  52 = period           colon
+	alt     keycode  52 = Meta_period
+keycode  53 = minus            underscore
+	control keycode  53 = Delete
+	alt     keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space            space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          backslash
+	alt     keycode  86 = Meta_less
+keycode  97 = Control

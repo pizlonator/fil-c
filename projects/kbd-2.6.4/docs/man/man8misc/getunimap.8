@@ -1,0 +1,65 @@
+.TH GETUNIMAP 8 "2004-01-01" "kbd"
+
+.SH NAME
+getunimap \- dump the unicode map for the current console to stdout
+
+.SH SYNOPSIS
+.B getunimap [ \-s ] [ \-C
+.I console
+]
+
+.SH DESCRIPTION
+The
+.B getunimap
+program is old and obsolete. It is now part of
+.B setfont (1).
+.LP
+The
+.B getunimap
+program outputs the unicode map (also called a "Screen Font Map")
+for the current console to standard output.
+.LP
+The
+.B \-C
+option may be used with Linux 2.6.1 and later to get the map for
+a console different from the current one. Its argument is a pathname.
+.LP
+The output of
+.B getunimap
+is of the form
+.LP
+.RS
+	0xAA U+1234 # comment
+.RE
+.LP
+where 0xAA is the font character code and U+1234 is a unicode character,
+that if displayed, will be displayed using glyph 0xAA in the font.
+Many unicode characters may be mapped to the same glyph.
+.br
+the Hash symbol
+.B #
+is used as a comment delimiter; characters after a hash sign (to the end of
+the line) are comments.
+.P
+The
+.B \-s
+option will sort and merge elements, sorting on font character.
+Hence, it will produce output of the form:
+.LP
+.RS
+	0x22 U+1234 U+5678 U+3456
+.br
+	0x23 U+0023
+.RE
+.LP	
+	etc., listing the multiple unicode characters that map to a font glyph.
+.P
+The output of
+.B getunimap
+is of the form accepted by
+.B setfont
+and
+.B psfaddtable
+.SH SEE ALSO
+.BR psfaddtable (1),
+.BR setfont (1).

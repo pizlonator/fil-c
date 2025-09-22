@@ -1,0 +1,84 @@
+! Latin American Dvorak keyboard.  Based on Javiar Fernandez Ivern Latin
+! American keyboard and Diego Fernández Capitán Spanish Dvorak keyboard.
+! All basic keys works (I guess).
+! Please send any comments or suggestions to edgar_uriel84@mailoo.org
+
+keymaps 0-2,4-6,8-10,12-14
+alt_is_meta
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one              exclam
+keycode   3 = two              quotedbl
+keycode   4 = three            numbersign
+keycode   5 = four             dollar
+keycode   6 = five             percent
+keycode   7 = six              ampersand
+keycode   8 = seven            slash
+keycode   9 = eight            parenleft
+keycode  10 = nine             parenright
+keycode  11 = zero             equal
+keycode  12 = apostrophe       question         backslash
+	altgr	control	keycode  12 = Control_backslash
+keycode  13 = questiondown     exclamdown
+keycode  14 = Delete
+	control	keycode  14 = BackSpace
+	alt     keycode  14 = Meta_BackSpace
+
+
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  16 = period           colon
+keycode  17 = comma            semicolon
+keycode  18 = +ntilde	       +Ntilde
+keycode	 19 = p
+keycode	 20 = y
+keycode	 21 = f
+keycode	 22 = g
+keycode	 23 = c
+keycode	 24 = h
+keycode	 25 = l
+keycode  26 = dead_acute       dead_diaeresis
+keycode  27 = plus             asterisk         asciitilde
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+
+keycode	 30 = a
+keycode	 31 = o
+keycode	 32 = +e	+E	euro
+keycode	 33 = u
+keycode	 34 = i
+keycode	 35 = d
+keycode	 36 = r
+keycode	 37 = t
+keycode	 38 = n
+keycode	 39 = s
+keycode  40 = braceleft        bracketleft      asciicircum
+	altgr	control	keycode  40 = Control_asciicircum
+keycode  41 = bar              masculine        notsign
+keycode  42 = Shift
+keycode  43 = braceright       bracketright     grave
+	shift	control	keycode  43 = Control_bracketright
+
+
+keycode  44 = minus            underscore
+	shift	control	keycode  53 = Control_underscore
+keycode	 45 = +q	+Q	 at
+keycode	 46 = j
+keycode	 47 = k
+keycode	 48 = x
+keycode	 49 = b
+keycode	 50 = m
+keycode	 51 = w
+keycode	 52 = v
+keycode	 53 = z
+
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater
+keycode  97 = Control

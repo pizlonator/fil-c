@@ -1,0 +1,304 @@
+
+# German keymap for Linux/m68k for Amiga 2000/3000/4000 keyboards V1.0
+# Put together by Frank Neumann on Dec 13th, 1994
+# In case of questions, bug reports or suggestions, send E-Mail to:
+# Frank.Neumann@informatik.uni-oldenburg.de
+#
+# Important modifications compared to the U.S. keymap:
+# The [, ], { and } are accessible from the keypad, as well as
+# the digits and /, *, -, +, . and Enter (same function as Return)
+
+# The Backspace key now produces a backspace character instead of Delete.
+
+# Shift+KP[ and Shift+KP] do not produce the kernel messages anymore,
+# as I needed those keys for their natural mappings. The functions
+# Show_Memory and Show_State have been moved to Shift-Help and Control-Help,
+# respectively (although I have serious problems with these sometimes - 
+# Show_State often doesn't output anything, and sometimes triggering
+# Show_Memory several times in rapid succession causes the CAPS state of
+# all (?) keys to be inverted. This can be very nasty if you are not
+# logged in and the getty also switches to upper-case mode..beware.
+# While logged in, I found that using Shift+KP[ sometimes resets the CAPS
+# state to its normal behaviour.
+
+# To see what nice things you can do now (including deadkeys and Alt-keys),
+# start the AmigaDOS program 'Keyshow' (should be under SYS:Tools). Blue
+# keys are deadkeys, characters written in italics are...well, what the hell
+# are they for ? Documentation on that program is quite poor.. Anyway, I
+# tried to copy the behaviour from what I could find out with KeyShow as 
+# close as possible.
+
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   0 = grave            asciitilde
+	control keycode   0 = nul
+	alt     keycode   0 = Meta_grave
+keycode   1 = one              exclam
+	alt     keycode   1 = onesuperior
+keycode   2 = two              quotedbl
+	control keycode   2 = two
+	alt     keycode   2 = at
+keycode   3 = three            section
+	alt     keycode   3 = threesuperior
+keycode   4 = four             dollar           dollar
+	alt     keycode   4 = degree
+keycode   5 = five             percent
+	alt     keycode   5 = onequarter
+keycode   6 = six              ampersand
+	control keycode   6 = Control_asciicircum
+	alt     keycode   6 = onehalf
+keycode   7 = seven            slash
+	alt     keycode   7 = threequarters
+keycode   8 = eight            parenleft
+	alt     keycode   8 = periodcentered
+keycode   9 = nine             parenright
+	alt     keycode   9 = guillemotleft
+keycode  10 = zero             equal
+	alt     keycode  10 = guillemotright
+keycode  11 = ssharp            question
+	control keycode  11 = Control_underscore
+	alt     keycode  11 = Meta_minus
+keycode  12 = dead_acute        dead_grave
+	alt     keycode  12 = Meta_equal
+keycode  13 = backslash        bar
+	control keycode  13 = Control_backslash
+	alt     keycode  13 = Meta_backslash
+keycode  14 =
+keycode  15 = zero
+keycode  16 = +q                +Q
+	control      keycode  16 = Control_q
+	alt          keycode  16 = aring
+	shift alt    keycode  16 = Aring
+keycode  17 = +w                +W
+	control keycode  17 = Control_w
+	alt     keycode  17 = degree
+keycode  18 = +e                +E
+	control keycode  18 = Control_e
+	alt     keycode  18 = copyright
+keycode  19 = +r                +R
+	control keycode  19 = Control_r
+	alt     keycode  19 = registered
+keycode  20 = +t                +T
+	control       keycode  20 = Control_t
+	alt           keycode  20 = THORN
+	shift alt     keycode  20 = thorn
+keycode  21 = +z                +Z
+	control       keycode  21 = Control_z
+	alt           keycode  21 = currency
+	shift alt     keycode  21 = yen
+keycode  22 = +u                +U
+	control keycode  22 = Control_u
+	alt     keycode  22 = mu
+keycode  23 = +i                +I
+	control       keycode  23 = Tab
+	alt           keycode  23 = exclamdown
+	shift alt     keycode  23 = brokenbar
+keycode  24 = +o                +O
+	control       keycode  24 = Control_o
+	alt           keycode  24 = Ooblique
+	shift alt     keycode  24 = oslash
+keycode  25 = +p                +P
+	control keycode  25 = Control_p
+	alt     keycode  25 = paragraph
+keycode  26 = udiaeresis       Udiaeresis
+	control       keycode  26 = Escape
+	alt           keycode  26 = bracketleft
+	shift alt     keycode  26 = braceleft
+keycode  27 = plus              asterisk
+	control       keycode  27 = Control_bracketright
+	alt           keycode  27 = bracketright
+	shift alt     keycode  27 = braceright
+keycode  28 =
+keycode  29 = one
+	alt     keycode  29 = Ascii_1
+keycode  30 = two
+	alt     keycode  30 = Ascii_2
+keycode  31 = three Next
+	alt     keycode  31 = Ascii_3
+keycode  32 = +a                +A
+	control       keycode  32 = Control_a
+	alt           keycode  32 = ae
+	shift alt     keycode  32 = AE
+keycode  33 = +s                +S
+	control       keycode  33 = Control_s
+	alt           keycode  33 = ssharp
+	shift alt     keycode  33 = section
+keycode  34 = +d                +D
+	control       keycode  34 = Control_d
+	alt           keycode  34 = eth
+	shift alt     keycode  34 = ETH
+keycode  35 = +f                +F
+	control keycode  35 = Control_f
+	alt     keycode  35 = dead_acute
+keycode  36 = +g                +G
+	control keycode  36 = Control_g
+	alt     keycode  36 = dead_grave
+keycode  37 = +h                +H
+	control keycode  37 = BackSpace
+	alt     keycode  37 = dead_circumflex
+keycode  38 = +j                +J
+	control keycode  38 = Linefeed
+	alt     keycode  38 = dead_tilde
+keycode  39 = +k                +K
+	control keycode  39 = Control_k
+	alt     keycode  39 = dead_diaeresis
+keycode  40 = +l                +L
+	control keycode  40 = Control_l
+	alt     keycode  40 = sterling
+keycode  41 = odiaeresis       Odiaeresis
+	alt           keycode  41 = semicolon
+	shift alt     keycode  41 = colon
+keycode  42 = adiaeresis       Adiaeresis
+	alt           keycode  42 = apostrophe
+	shift alt     keycode  42 = quotedbl
+keycode  43 = numbersign       asciicircum
+    control keycode  43 = Control_asciicircum
+keycode  44 =
+keycode  45 = four
+	alt     keycode  45 = Ascii_4
+keycode  46 = five
+	alt     keycode  46 = Ascii_5
+keycode  47 = six
+	alt     keycode  47 = Ascii_6
+keycode  48 = less              greater
+keycode  49 = +y                +Y
+	control       keycode  49 = Control_y
+	alt           keycode  49 = plusminus
+	shift alt     keycode  49 = notsign
+keycode  50 = +x                +X
+	control       keycode  50 = Control_x
+	alt           keycode  50 = multiplication
+	shift alt     keycode  50 = division
+keycode  51 = +c                +C
+	control       keycode  51 = Control_c
+	alt           keycode  51 = ccedilla
+	shift alt     keycode  51 = Ccedilla
+keycode  52 = +v                +V
+	control keycode  52 = Control_v
+	alt     keycode  52 = ordfeminine
+keycode  53 = +b                +B
+	control keycode  53 = Control_b
+	alt     keycode  53 = masculine
+keycode  54 = +n                +N
+	control       keycode  54 = Control_n
+	alt           keycode  54 = hyphen
+	shift alt     keycode  54 = macron
+keycode  55 = +m                +M
+	control       keycode  55 = Control_m
+	alt           keycode  55 = cedilla
+	shift alt     keycode  55 = questiondown
+keycode  56 = comma            semicolon
+	alt           keycode  56 = comma
+	shift alt     keycode  56 = less
+keycode  57 = period           colon
+	alt           keycode  57 = period
+	shift alt     keycode  57 = greater
+keycode  58 = minus            underscore
+	control       keycode  58 = Delete
+	alt           keycode  58 = slash
+	shift alt     keycode  58 = question
+keycode  59 =
+keycode  60 = period
+	altgr   control keycode  60 = Boot
+	control alt     keycode  60 = Boot
+keycode  61 = seven
+	alt     keycode  61 = Ascii_7
+keycode  62 = eight
+	alt     keycode  62 = Ascii_8
+keycode  63 = nine Prior
+	alt     keycode  63 = Ascii_9
+keycode  64 = space            space
+	control keycode  64 = nul
+	alt     keycode  64 = Meta_space
+keycode  65 = BackSpace
+keycode  66 = Tab              Meta_Tab
+	alt     keycode  66 = Meta_Tab
+keycode  67 = Return
+keycode  68 = Return
+    control keycode  68 = Linefeed
+	alt     keycode  68 = Meta_Control_m
+keycode  69 = Escape           Escape
+	alt     keycode  69 = Meta_Escape
+keycode  70 = Delete           Delete
+	alt     keycode  70 = Meta_Delete
+keycode  71 =
+keycode  72 =
+keycode  73 =
+keycode  74 = KP_Subtract
+keycode  75 =
+keycode  76 = Up
+keycode  77 = Down
+keycode  78 = Right
+keycode  79 = Left
+keycode  80 = F1               F11              Console_13
+	control keycode  80 = F1
+	alt     keycode  80 = Console_1
+keycode  81 = F2               F12              Console_14
+	control keycode  81 = F2
+	alt     keycode  81 = Console_2
+keycode  82 = F3               F13              Console_15
+	control keycode  82 = F3
+	alt     keycode  82 = Console_3
+keycode  83 = F4               F14              Console_16
+	control keycode  83 = F4
+	alt     keycode  83 = Console_4
+keycode  84 = F5               F15              Console_17
+	control keycode  84 = F5
+	alt     keycode  84 = Console_5
+keycode  85 = F6               F16              Console_18
+	control keycode  85 = F6
+	alt     keycode  85 = Console_6
+keycode  86 = F7               F17              Console_19
+	control keycode  86 = F7
+	alt     keycode  86 = Console_7
+keycode  87 = F8               F18              Console_20
+	control keycode  87 = F8
+	alt     keycode  87 = Console_8
+keycode  88 = F9               F19              Console_21
+	control keycode  88 = F9
+	alt     keycode  88 = Console_9
+keycode  89 = F10              F20              Console_22
+	control keycode  89 = F10
+	alt     keycode  89 = Console_10
+keycode  90 = bracketleft      braceleft
+keycode  91 = bracketright     braceright
+	control keycode  91 = Control_bracketright
+	alt     keycode  91 = Scroll_Lock
+keycode  92 = slash
+keycode  93 = asterisk
+keycode  94 = KP_Add
+keycode  95 = Help   Insert Show_Memory   Show_State
+keycode  96 = Shift
+keycode  97 = Shift
+keycode  98 = Caps_Lock
+keycode  99 = Control
+keycode 100 = Alt
+keycode 101 = AltGr
+keycode 102 =
+keycode 103 =
+keycode 104 =
+keycode 105 =
+keycode 106 =
+keycode 107 =
+keycode 108 =
+keycode 109 =
+keycode 110 =
+keycode 111 =
+keycode 112 =
+keycode 113 =
+keycode 114 =
+keycode 115 =
+keycode 116 =
+keycode 117 =
+keycode 118 =
+keycode 119 =
+keycode 120 =
+keycode 121 =
+keycode 122 =
+keycode 123 =
+keycode 124 =
+keycode 125 =
+keycode 126 =
+keycode 127 =
+

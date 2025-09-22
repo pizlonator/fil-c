@@ -1,0 +1,47 @@
+.\" @(#)psfaddtable.1
+.TH PSFADDTABLE 1 "25 Oct 1994" "kbd"
+.SH NAME
+psfaddtable \- add a Unicode character table to a console font
+.SH SYNOPSIS
+.B psfaddtable
+.I fontfile tablefile outfile
+.SH DESCRIPTION
+.IX "psfaddtable command" "" "\fLpsfaddtable\fR command"  
+.LP
+.B psfaddtable
+takes a console font in .psf format given by
+.I fontfile
+and merges it with the Unicode character table given by
+.I tablefile
+to produce a font file with an embedded character table, which is
+written to
+.IR outfile .
+An input file name of "\-" denotes standard input,
+and an output file name of "\-" denotes standard output.
+If the
+.I fontfile
+already contains an embedded character table, it is ignored.
+.SH TABLE FILE FORMAT
+Each line in the
+.I tablefile
+should be either blank, contain a comment (preceded by
+.IR # ),
+or contain a sequence of numbers in either decimal (default), octal
+(preceded by
+.IR 0 ),
+or hexadecimal (preceded by
+.IR 0x )
+format, separated by spaces or tabs.
+The first number on each line indicates the glyph slot in the
+font that is being referred to, this is between 0 and 0xff for a
+256-character font and 0 and 0x1ff for a 512-character font.  Any
+subsequent numbers on the same line are Unicodes matched by this
+specific glyph slot.  Instead of a single Unicode one may have
+a sequence of Unicodes separates by commas, to denote that the
+glyph depicts the corresponding composed symbol.
+It is permissible to have multiple lines for the same glyph.
+.SH "SEE ALSO"
+.BR setfont (8),
+.BR psfgettable (1),
+.BR psfstriptable (1),
+.BR psfxtable (1)

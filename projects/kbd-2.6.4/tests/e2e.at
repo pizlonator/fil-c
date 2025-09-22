@@ -1,0 +1,50 @@
+m4_define([E2E_RUN_PIPE],[[
+rc=0;
+$1 | libtool --mode=execute -- \
+strace -o syscalls.raw -s 1073741823 -e abbrev=none -e trace=/open.*,/ioctl -- $2 1>stdout 2>stderr || rc=$?;
+"$abs_srcdir/syscall-filter.sed" < syscalls.raw > syscalls ||:;
+exit $rc;
+]])
+
+m4_define([E2E_RUN],[[
+rc=0;
+libtool --mode=execute -- \
+strace -o syscalls.raw -s 1073741823 -e abbrev=none -e trace=/open.*,/ioctl -- $1 1>stdout 2>stderr || rc=$?;
+"$abs_srcdir/syscall-filter.sed" < syscalls.raw > syscalls ||:
+exit $rc;
+]])
+
+m4_define([E2E_CHECK_PIPE],[
+AT_CHECK([E2E_RUN_PIPE([$1], [$2])], [0], [], [], [$3], [$4])
+])
+
+m4_define([E2E_CHECK],[
+AT_CHECK([E2E_RUN([$1])], [0], [], [], [$2], [$3])
+])
+
+m4_define([E2E_CHECK_FAIL],[
+AT_CHECK([E2E_RUN([$1])], [$2], [], [], [$3], [$4])
+])
+
+m4_define([E2E_COMPARE_CONTENT],[
+$1 > "$2.expect";
+ln -f -s -- "$2.expect" expout;
+AT_CHECK([[cat -- "$2"]], [0], [expout], [])
+])
+
+m4_define([E2E_COMPARE_SYSCALLS], [E2E_COMPARE_CONTENT([$1], [syscalls])])
+m4_define([E2E_COMPARE_STDOUT],   [E2E_COMPARE_CONTENT([$1], [stdout])])
+m4_define([E2E_COMPARE_STDERR],   [E2E_COMPARE_CONTENT([$1], [stderr])])
+
+AT_BANNER([e2e tests])
+
+m4_include([e2e-clrunimap.at])
+m4_include([e2e-getunimap.at])
+m4_include([e2e-kbd_mode.at])
+m4_include([e2e-kbdinfo.at])
+m4_include([e2e-loadkeys.at])
+m4_include([e2e-dumpkeys.at])
+m4_include([e2e-loadunimap.at])
+m4_include([e2e-psfxtable.at])
+m4_include([e2e-setfont.at])
+m4_include([e2e-setvtrgb.at])

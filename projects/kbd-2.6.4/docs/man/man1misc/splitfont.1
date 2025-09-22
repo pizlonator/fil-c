@@ -1,0 +1,28 @@
+.TH SPLITFONT 1 "2002-02-24" "kbd"
+
+.SH NAME
+splitfont \- extract characters from an ISO-type font.
+
+.SH SYNOPSIS
+.B
+splitfont
+.I fontfile
+.I <character range>...
+
+.SH DESCRIPTION
+The command
+.B splitfont
+removes characters from a given font file; it removes all the
+specified characters from the named font file.
+.P
+This works for Linux console fonts, without PSF headers,
+and containing just 256 characters.
+.P
+The character range is of the form
+.LP
+.RS
+	17,23-30,
+.RE
+
+.SH "SEE ALSO"
+.BR setfont (8)

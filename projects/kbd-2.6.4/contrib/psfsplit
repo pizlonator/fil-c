@@ -1,0 +1,27 @@
+#!/bin/sh
+# (c) Ricardas Cepas <rch@pub.osf.lt>. Copying policy: GNU GPL V2.
+set -o errexit
+#set -x
+if [ $# != 1 ]
+then	echo '  Usage: psfsplit <psf_bitmap_font_filename> '
+	exit
+fi
+if [ `hexdump -e '/2 "%X" ' -n2 $1 ` != "436" ]
+then	echo $1 -- non .psf file
+	exit
+fi
+size=`hexdump -e '/1 "%i" ' -n1 -s2 $1 `
+size=$[ ($size % 2 + 1) * 256 ]
+height=`hexdump -e '/1 "%i" ' -n1 -s3 $1 `
+echo $size chars, height=$height
+mkdir $1_
+dd bs=4 count=1 if=$1 of=$1_/#psf_header &>/dev/null
+i=0
+while let $[ i < $size ]
+do
+	dd bs=1 count=$height skip=$[ $i * $height + 4 ] if=$1 \
+		of=$1_/`printf "%.3x" $i` &>/dev/null
+	let i+=1
+done
+dd bs=1 skip=$[ $i * $height + 4 ] if=$1 of=$1_/map_tables &>/dev/null
+

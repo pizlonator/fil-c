@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Font-formats recognized by the Linux kbd package: PSF fonts</TITLE>
+ <LINK HREF="font-formats-2.html" REL=next>
+
+ <LINK HREF="font-formats.html#toc1" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="font-formats-2.html">Next</A>
+Previous
+<A HREF="font-formats.html#toc1">Contents</A>
+<HR>
+<H2><A NAME="s1">1. PSF fonts</A></H2>
+
+<P>PSF fonts come in two types: old (psf1) and new (psf2).
+A PSF font consists of
+(1) 
+<A HREF="#psfheader">The header</A>,
+(2) 
+<A HREF="#psffont">The font</A>,
+(3) 
+<A HREF="#psfunimap">Unicode information</A>.
+<P>
+<H2><A NAME="psfheader"></A> <A NAME="ss1.1">1.1 The header</A>
+</H2>
+
+<P>For psf1 this is
+<BLOCKQUOTE><CODE>
+<PRE>
+#define PSF1_MAGIC0     0x36
+#define PSF1_MAGIC1     0x04
+
+#define PSF1_MODE512    0x01
+#define PSF1_MODEHASTAB 0x02
+#define PSF1_MODEHASSEQ 0x04
+#define PSF1_MAXMODE    0x05
+
+#define PSF1_SEPARATOR  0xFFFF
+#define PSF1_STARTSEQ   0xFFFE
+
+struct psf1_header {
+        unsigned char magic[2];     /* Magic number */
+        unsigned char mode;         /* PSF font mode */
+        unsigned char charsize;     /* Character size */
+};
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>For psf2 this is
+<BLOCKQUOTE><CODE>
+<PRE>
+#define PSF2_MAGIC0     0x72
+#define PSF2_MAGIC1     0xb5
+#define PSF2_MAGIC2     0x4a
+#define PSF2_MAGIC3     0x86
+
+/* bits used in flags */
+#define PSF2_HAS_UNICODE_TABLE 0x01
+
+/* max version recognized so far */
+#define PSF2_MAXVERSION 0
+
+/* UTF8 separators */
+#define PSF2_SEPARATOR  0xFF
+#define PSF2_STARTSEQ   0xFE
+
+struct psf2_header {
+        unsigned char magic[4];
+        unsigned int version;
+        unsigned int headersize;    /* offset of bitmaps in file */
+        unsigned int flags;
+        unsigned int length;        /* number of glyphs */
+        unsigned int charsize;      /* number of bytes for each character */
+        unsigned int height, width; /* max dimensions of glyphs */
+        /* charsize = height * ((width + 7) / 8) */
+};
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>The meaning is fairly clear from the field names.
+The fonts here are bitmap fonts (not, for example, vector fonts),
+and each glyph has a <CODE>height</CODE> and a <CODE>width</CODE>.
+The bitmap for a glyph is stored as <CODE>height</CODE> consecutive
+pixel rows, where each pixel row consists of <CODE>width</CODE> bits
+followed by some filler bits in order to fill an integral number
+of (8-bit) bytes. Altogether the bitmap of a glyph takes
+<CODE>charsize</CODE> bytes.
+<P>For psf1 the width is constant 8, so that the height equals the charsize.
+<P>The number of glyphs in the font equals <CODE>length</CODE>.
+For psf1 the length is constant 256, unless the <CODE>PSF1_MODE512</CODE> bit
+is set in the <CODE>mode</CODE> field, in which case it is 512.
+<P>The font is followed by a table associating Unicode values with each
+glyph in case (for psf1) the <CODE>PSF1_MODEHASTAB</CODE> bit is set in
+the <CODE>mode</CODE> field, or (for psf2) the <CODE>PSF2_HAS_UNICODE_TABLE</CODE>
+bit is set in the <CODE>flags</CODE> field.
+<P>The starting offset of the bitmaps in the font file is given by
+<CODE>headersize</CODE>. (This allows the header to grow, probably
+depending on <CODE>version</CODE>, without changes in the code.)
+<P>The integers in the psf2 header struct are little endian 4-byte integers.
+<P>
+<H2><A NAME="psffont"></A> <A NAME="ss1.2">1.2 The font</A>
+</H2>
+
+<P>The actual bitmaps.
+<P>
+<H2><A NAME="psfunimap"></A> <A NAME="ss1.3">1.3 Unicode information</A>
+</H2>
+
+<P>The bitmaps may be followed by a Unicode description
+of the glyphs. This Unicode description of a position
+has grammar
+<BLOCKQUOTE><CODE>
+<PRE>
+&lt;unicodedescription> := &lt;uc>*&lt;seq>*&lt;term>
+&lt;seq> := &lt;ss>&lt;uc>&lt;uc>*
+&lt;ss> := psf1 ? 0xFFFE : 0xFE
+&lt;term> := psf1 ? 0xFFFF : 0xFF
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where <CODE>&lt;uc&gt;</CODE> is a 2-byte little endian Unicode value (psf1),
+or a Unicode value coded in UTF-8 (psf2),
+and <CODE>*</CODE> denotes zero or more occurrences of the preceding item.
+<P>The semantics is as follows.
+The leading <CODE>&lt;uc&gt;*</CODE> part gives Unicode symbols that are all
+represented by this font position. The following sequences
+are sequences of Unicode symbols - probably a symbol
+together with combining accents - also represented by
+this font position.
+<P>Example:
+At the font position for a capital A-ring glyph, we
+may have (psf1):
+<BLOCKQUOTE><CODE>
+<PRE>
+     00C5,212B,FFFE,0041,030A,FFFF
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where the Unicode values here are
+LATIN CAPITAL LETTER A WITH RING ABOVE
+and
+ANGSTROM SIGN
+and
+LATIN CAPITAL LETTER A
+and
+COMBINING RING ABOVE.
+Some font positions may be described by sequences only,
+namely when there is no precomposed Unicode value for the glyph.
+<P>
+<H2><A NAME="ss1.4">1.4 Historical</A>
+</H2>
+
+<P>PSF stands for PC Screen Font.
+The psf1 format without Unicode map was designed by
+H. Peter Anvin in 1989 or so for his DOS screen font editor
+<CODE>FONTEDIT.EXE</CODE>. In Oct 1994 he added the Unicode map
+and the programs <CODE>psfaddtable</CODE>, <CODE>psfgettable</CODE>,
+<CODE>psfstriptable</CODE> to manipulate it - see <CODE>kbd-0.90</CODE>.
+Andries Brouwer added support for sequences of Unicode values
+and the psf2 format in Sep 1999 in order to handle Tibetan -
+see <CODE>kbd-1.00</CODE>.
+<P>
+<HR>
+<A HREF="font-formats-2.html">Next</A>
+Previous
+<A HREF="font-formats.html#toc1">Contents</A>
+</BODY>
+</HTML>

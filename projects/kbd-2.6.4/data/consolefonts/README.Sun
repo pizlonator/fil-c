@@ -1,0 +1,23 @@
+Sun fonts:
+==============
+lat0-sun16.psf
+lat2-sun16.psf
+
+these are fonts which have uniform look and feel compatible with the builtin
+sun font all sparclinux boxes used to have from beginning (currently it is
+font_sun8x16 in fbcon), but add characters for latin0, latin1 and latin2.
+lat0-sun16.psf contains all latin1, latin0 (like latin1, but contains Euro,
+z<, Z<, s<, S<, Y: instead of some useless characters), VT100 linedrawing
+characters and as many as possible CP850 characters, lat2-sun16.psf contains
+full latin2 character set, VT100 linedrawing and most of CP850 characters
+that fit in.
+To use these fonts, you should load the ACM mapping of your desired coding,
+e.g. iso01.acm for latin1, iso15.acm for latin0 with lat0-sun16.psf and
+iso02.acm or iso02+euro.acm (the latter is a hack which just replaces the
+useless currency symbol with Euro, I don't know if anybody is going to
+standardize some ISO character set with CE characters and Euro at the same
+time).
+The linedrawing characters are put into the range VGA displays should paint
+it correctly, so the font should be useful outside of sun boxes as well.
+
+			Jakub Jelinek <jj@ultra.linux.cz>

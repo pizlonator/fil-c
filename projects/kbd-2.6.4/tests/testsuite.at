@@ -1,0 +1,11 @@
+m4_include([atconfig])
+m4_include([atpackage])
+
+# Enable colored test output if available
+m4_ifdef([AT_COLOR_TESTS], [AT_COLOR_TESTS])
+
+AT_INIT
+
+m4_include([libkeymap.at])
+m4_include([libkbdfile.at])
+m4_include([e2e.at])

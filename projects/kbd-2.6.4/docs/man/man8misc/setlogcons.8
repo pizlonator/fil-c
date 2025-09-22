@@ -1,0 +1,26 @@
+.TH SETLOGCONS 8 "18 Apr 2004" "kbd"
+
+.SH NAME
+setlogcons \- Send kernel messages to console N
+.SH SYNOPSIS
+.B setlogcons
+.I N
+
+.SH DESCRIPTION
+The command
+.B setlogcons
+.I N
+sets all kernel messages to the console specified as N.
+.P
+By default kernel messages are sent to the current console.
+.P
+To change the level of messages sent, use
+.B dmesg
+
+.SH "AUTHORS"
+.B setlogcons
+was originally written by Andries Brouwer for the kbd package.
+.P
+This manual page was written by Alastair McKinstry.
+.SH "SEE ALSO"
+.BR dmesg (1)

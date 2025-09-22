@@ -1,0 +1,48 @@
+AT_SETUP([kbd_mode (UTF-8 -> ASCII)])
+AT_KEYWORDS([e2e kbd_mode])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -u;
+E2E_CHECK(["$abs_top_builddir/src/kbd_mode" -a], [kbd_mode -a])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbd_mode-test01.calls])
+AT_CLEANUP
+
+AT_SETUP([kbd_mode (UTF-8 -> scancode)])
+AT_KEYWORDS([e2e kbd_mode])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -u;
+E2E_CHECK(["$abs_top_builddir/src/kbd_mode" -s], [kbd_mode -a])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbd_mode-test02.calls])
+AT_CLEANUP
+
+AT_SETUP([kbd_mode (scancode -> ASCII) without force])
+AT_KEYWORDS([e2e kbd_mode])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -s;
+E2E_CHECK_FAIL(["$abs_top_builddir/src/kbd_mode" -a], [1], [kbd_mode -a])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbd_mode-test03.calls])
+E2E_COMPARE_STDERR([cat $abs_srcdir/data/e2e/kbd_mode-test03.stderr])
+AT_CLEANUP
+
+AT_SETUP([kbd_mode (scancode -> ASCII) with force])
+AT_KEYWORDS([e2e kbd_mode])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -s;
+E2E_CHECK(["$abs_top_builddir/src/kbd_mode" -a -f], [kbd_mode -a])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbd_mode-test04.calls])
+AT_CLEANUP
+
+AT_SETUP([kbd_mode (scancode -> keycode)])
+AT_KEYWORDS([e2e kbd_mode])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -s;
+E2E_CHECK(["$abs_top_builddir/src/kbd_mode" -k], [kbd_mode -a])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbd_mode-test05.calls])
+AT_CLEANUP
+
+AT_SETUP([kbd_mode (ASCII -> UTF-8)])
+AT_KEYWORDS([e2e kbd_mode])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -a -f;
+E2E_CHECK(["$abs_top_builddir/src/kbd_mode" -u], [kbd_mode -a])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbd_mode-test06.calls])
+AT_CLEANUP

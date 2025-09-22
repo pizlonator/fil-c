@@ -1,0 +1,564 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Delete and Backspace</TITLE>
+ <LINK HREF="kbd.FAQ-6.html" REL=next>
+ <LINK HREF="kbd.FAQ-4.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc5" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-6.html">Next</A>
+<A HREF="kbd.FAQ-4.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc5">Contents</A>
+<HR>
+<H2><A NAME="s5">5. Delete and Backspace</A></H2>
+
+<P>
+<!--
+delete key!problems with
+-->
+
+<!--
+backspace key!problems with
+-->
+<P>Getting Delete and Backspace to work just right is nontrivial,
+especially in a mixed environment, where you talk to console,
+to <CODE>X</CODE>, to <CODE>bash</CODE>, to <CODE>emacs</CODE>, login remotely, etc.
+You may have to edit several configuration files to tell all
+of the programs involved precisely what you want.
+On the one hand, there is the matter of which keys generate
+which codes (and how these codes are remapped by e.g. <CODE>kermit</CODE>
+or <CODE>emacs</CODE>), and on the other hand the question of what functions
+are bound to what codes.
+<P>People often complain `my backspace key does not work', as if this
+key had a built-in function `delete previous character'.
+Unfortunately, all this key, or any key, does is producing a code,
+and one only can hope that the kernel tty driver and
+all application programs can be configured such that
+the backspace key indeed does function as a `delete previous character'
+key.
+<P>Most Unix programs get their tty input via the kernel tty driver
+in `cooked' mode, and a simple <CODE>stty</CODE> command determines the
+erase character. However, programs like <CODE>bash</CODE> and <CODE>emacs</CODE>
+and <CODE>X</CODE> do their own input handling, and have to be convinced
+one-by-one to do the right thing.
+<P>
+<H2><A NAME="ss5.1">5.1 How to tell Unix what character you want to use to delete the last typed character</A>
+</H2>
+
+<P>
+<!--
+stty!using to set erase character
+-->
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        % stty erase ^?
+</PRE>
+</CODE></BLOCKQUOTE>
+
+If the character is erased, but in a funny way, then something is
+wrong with your tty settings. If <CODE>echoprt</CODE> is set, then erased characters
+are enclosed between <CODE>\</CODE> and <CODE>/</CODE>.
+If <CODE>echoe</CODE> is not set, then the erase char is echoed
+(which is reasonable when it is a printing character, like #).
+Most people will want <CODE>stty echoe -echoprt</CODE>. Saying <CODE>stty sane</CODE>
+will do this and more. Saying <CODE>stty -a</CODE> shows your current settings.
+How come this is not right by default? It is, if you use the right
+<CODE>getty</CODE>.
+<P>Note that many programs (like <CODE>bash</CODE>, <CODE>emacs</CODE> etc.) have their own
+keybindings (defined in <CODE>~/.inputrc</CODE>,
+<CODE>~/.emacs</CODE> etc.) and are unaffected by the setting
+of the erase character.
+<P>The standard Unix tty driver does not recognize a cursor, or keys
+(like the arrow keys) to move the current position, and hence does not
+have a command `delete current character' either. But for example
+you can get <CODE>bash</CODE> on the console to recognize the Delete key by putting
+<BLOCKQUOTE><CODE>
+<PRE>
+        set editing-mode emacs
+        "\e[3~":delete-char
+</PRE>
+</CODE></BLOCKQUOTE>
+
+into <CODE>~/.inputrc</CODE>.
+<P>
+<H3>`Getty used to do the right thing with DEL and BS but is broken now?'</H3>
+
+<P>
+<!--
+getty!problems with BS and DEL
+-->
+<P>Earlier, the console driver would do BS Space BS
+(<CODE>\010\040\010</CODE>)
+when it got a DEL (<CODE>\177</CODE>).
+Nowadays, DEL's are ignored (as they should be,
+since the driver emulates a vt100). Get a better getty, i.e.,
+one that does not output DEL.
+<P>
+<H3>`Login behaves differently at the first and second login attempts?'</H3>
+
+<P>
+<!--
+login!problems with BS and DEL
+-->
+<P>At the first attempt, you are talking to <CODE>getty</CODE>. At the second attempt,
+you are talking to <CODE>login</CODE>, a different program.
+<P>
+<H2><A NAME="ss5.2">5.2 How to tell Linux what code to generate when a key is pressed</A>
+</H2>
+
+<P>
+<!--
+keyboard!keycode remapping
+-->
+
+<!--
+keycode remapping
+-->
+<P>On the console, or, more precisely, when not in (MEDIUM)RAW mode, use
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys mykeys.map
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and under X use
+<BLOCKQUOTE><CODE>
+<PRE>
+        % xmodmap mykeys.xmap
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Note that (since XFree86-2.1) X reads the Linux settings of the keymaps
+when initialising the X keymap. Although the two systems are not
+100% compatible, this should mean that in many cases the use of
+<CODE>xmodmap</CODE> has become superfluous.
+<P>For example, suppose that you would like the Backspace key
+to send a BackSpace (Ctrl-H, octal 010) and the grey Delete key
+a DEL (octal 0177). Add the following to <CODE>/etc/rc.local</CODE>
+(or wherever you keep your local boot-time stuff):
+<BLOCKQUOTE><CODE>
+<PRE>
+        /usr/bin/loadkeys &lt;&lt; EOF
+        keycode 14 = BackSpace
+        keycode 111 = Delete
+        EOF
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Note that this will only change the function of these keys
+when no modifiers are used. (You need to specify a keymaps line
+to tell which keymaps should be affected if you want to change
+bindings on more keymaps.)
+The Linux kernel default lets
+Ctrl-Backspace generate BackSpace - this is sometimes useful
+as emergency escape, when you find you can only generate DELs.
+<P>The left Alt key is sometimes called the Meta key, and by
+default the combinations AltL-X are bound to the symbol MetaX.
+But what character sequence is MetaX?
+That is determined (per-tty) by the Meta flag, set by the command
+<CODE>setmetamode</CODE>. The two choices are: ESC X or X or-ed with 0200.
+<P>Many distributions have a <CODE>loadkeys</CODE> command somewhere in the
+bootup sequence. For example, one may have the name of the desired
+keymap in <CODE>/etc/sysconfig/keyboard</CODE> and the <CODE>loadkeys</CODE>
+command that loads it in <CODE>/etc/rc.d/init.d/keytable</CODE>.
+Or one may have the actual default keymap in <CODE>/etc/default.keytab</CODE>
+and the loadkeys command that loads it in <CODE>/etc/rc.d/boot</CODE>.
+Etc. Instead of adding a local modification to the default, one can
+of course change the default by editing the default keymap or changing
+the name of the keymap to be loaded at boot time. Note that <CODE>loadkeys</CODE>
+itself has default keymap <CODE>defkeymap.map</CODE> located somewhere under
+<CODE>/usr/lib/kbd</CODE> or <CODE>/usr/share/kbd</CODE> (just like all other
+keymaps) and this may not yet be available in single user boot before
+<CODE>/usr</CODE> has been mounted.
+<P>
+<H3>`How do I get a dvorak keyboard?'</H3>
+
+<P>
+<!--
+dvorak keyboard
+-->
+
+The command
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys dvorak
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will give you a dvorak layout, probably by loading
+something like <CODE>/usr/lib/kbd/keymaps/i386/dvorak/dvorak.map.gz</CODE>.
+Under <CODE>X</CODE>, put
+<BLOCKQUOTE><CODE>
+<PRE>
+        XkbLayout       "dvorak"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>XF86Config</CODE>.
+<P>
+<H3>`Why doesn't the Backspace key generate BackSpace by default?'</H3>
+
+<P>
+<!--
+backspace key!not generating correct keycode
+-->
+<P>(i) Because the VT100 had a Delete key above the Enter key.
+<P>(ii) Because Linus decided so.
+<P>
+<H2><A NAME="ss5.3">5.3 How to tell X to interchange Delete and Backspace</A>
+</H2>
+
+<P>
+<!--
+X!swapping DEL, BS
+-->
+
+<!--
+xmodmap!using to swap DEL, BS
+-->
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        % xmodmap -e "keysym BackSpace = Delete" -e "keysym Delete = BackSpace"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Or, if you just want the Backspace key to generate a BackSpace:
+<BLOCKQUOTE><CODE>
+<PRE>
+        % xmodmap -e "keycode 22 = BackSpace"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Or, if you just want the Delete key to generate a Delete:
+<BLOCKQUOTE><CODE>
+<PRE>
+        % xmodmap -e "keycode 107 = Delete"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+(but usually this is the default binding already).
+<P>
+<H2><A NAME="ss5.4">5.4 How to tell emacs what to do when it receives a Delete or Backspace</A>
+</H2>
+
+<P>
+<!--
+emacs!binding DEL, BS
+-->
+<P>Put in your <CODE>.emacs</CODE> file lines like
+<BLOCKQUOTE><CODE>
+<PRE>
+        (global-set-key "\?" 'help-command)
+        (global-set-key "\C-h" 'delete-backward-char)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Of course you can bind other commands to other keys in the same way.
+Note that various major and minor modes redefine keybindings.
+For example, in incremental search mode one finds the code
+<BLOCKQUOTE><CODE>
+<PRE>
+        (define-key map "\177" 'isearch-delete-char)
+        (define-key map "\C-h" 'isearch-mode-help)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+This means that it may be a bad idea to use the above two
+global-set-key commands. There are too many places where
+there are built-in assumptions about Ctrl-H = help and DEL = delete.
+That doesn't mean that you have to setup keys so that Backspace
+generates DEL. But if it doesn't then it is easiest to remap
+them at the lowest possible level in emacs.
+<P>
+<H2><A NAME="ss5.5">5.5 How to tell emacs to interchange Delete and Backspace</A>
+</H2>
+
+<P>
+<!--
+emacs!swapping DEL, BS
+-->
+<P>Put in your <CODE>.emacs</CODE> file lines
+<BLOCKQUOTE><CODE>
+<PRE>
+        (setq keyboard-translate-table (make-string 128 0))
+        (let ((i 0))
+          (while (&lt; i 128)
+            (aset keyboard-translate-table i i)
+            (setq i (1+ i))))
+        (aset keyboard-translate-table ?\b ?\^?)
+        (aset keyboard-translate-table ?\^? ?\b)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Recent versions of emacs have a function <CODE>keyboard-translate</CODE>
+and one may simplify the above to
+<BLOCKQUOTE><CODE>
+<PRE>
+        (keyboard-translate ?\C-h ?\C-?)
+        (keyboard-translate ?\C-? ?\C-h)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Note that under X emacs can distinguish between Ctrl-h and the
+Backspace key (regardless of what codes these produce on the console),
+and by default emacs will view the Backspace key as DEL
+(and do deletion things, as bound to that character, rather than
+help things, bound to Ctrl-H). One can distinguish Backspace and Delete,
+e.g. by
+<BLOCKQUOTE><CODE>
+<PRE>
+        (global-unset-key [backspace] )
+        (global-set-key [backspace] 'delete-backward-char)
+        (global-unset-key [delete] )
+        (global-set-key [delete] 'delete-char)
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<H2><A NAME="ss5.6">5.6 How to tell kermit to interchange Delete and Backspace</A>
+</H2>
+
+<P>
+<!--
+kermit!swapping DEL, BS
+-->
+<P>Put in your <CODE>.kermrc</CODE> file the lines
+<BLOCKQUOTE><CODE>
+<PRE>
+        set key \127 \8
+        set key \8 \127
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<H2><A NAME="ss5.7">5.7 How to tell xterm to interchange Delete and Backspace</A>
+</H2>
+
+<P>
+<!--
+xterm!swapping DEL, BS
+-->
+
+<BLOCKQUOTE><CODE>
+<PRE>
+XTerm*VT100.Translations:       #override\n\
+        &lt;KeyPress> BackSpace : string(0x7f)\n\
+        &lt;KeyPress> Delete : string(0x08)\n
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<H2><A NAME="ss5.8">5.8 How to tell xterm about your favourite tty modes</A>
+</H2>
+
+<P>
+<!--
+xterm!setting tty modes for
+-->
+<P>Normally xterm will inherit the tty modes from its invoker.
+Under <CODE>xdm</CODE>, the default erase and kill characters are <CODE>#</CODE> and <CODE>@</CODE>,
+as in good old Unix Version 6.
+If you don't like that, you might put something like
+<BLOCKQUOTE><CODE>
+<PRE>
+        XTerm*ttymodes: erase ^? kill ^U intr ^C quit ^\ eof ^D \ 
+                        susp ^Z start ^Q stop ^S eol ^@
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>/usr/lib/X11/app-defaults/XTerm</CODE> or in
+<CODE>$HOME/.Xresources</CODE>, assuming that you have a line
+<BLOCKQUOTE><CODE>
+<PRE>
+        xrdb -merge $HOME/.Xresources
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in your <CODE>$HOME/.xinitrc</CODE> or <CODE>$HOME/.xsession</CODE>.
+<P>
+<H2><A NAME="ss5.9">5.9 How to tell non-Motif X applications that the Del key deletes forward</A>
+</H2>
+
+<P>Put
+<BLOCKQUOTE><CODE>
+<PRE>
+*Text.translations:    #override \
+        ~Shift ~Meta &lt;Key>Delete: delete-next-character()
+</PRE>
+</CODE></BLOCKQUOTE>
+
+into <CODE>.Xresources</CODE> to make non-Motif X applications such as
+<CODE>xfig</CODE>, <CODE>xedit</CODE>, etc., work correctly. (Daniel T. Cobra)
+<P>
+<H2><A NAME="ss5.10">5.10 How to tell xmosaic that the Backspace key generates a DEL</A>
+</H2>
+
+<P>
+<!--
+xmosaic!remapping BS key
+-->
+
+<!--
+Netscape!remapping BS
+-->
+<P>Putting
+<BLOCKQUOTE><CODE>
+<PRE>
+        *XmText.translations: #override\n\
+           &lt;Key>osfDelete: delete-previous-character()
+        *XmTextField.translations: #override\n\
+           &lt;Key>osfDelete: delete-previous-character()
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in your <CODE>$HOME/.Xdefaults</CODE> or
+<CODE>$HOME/.Xresources</CODE> helps.
+(What file? The file that is fed to <CODE>xrdb</CODE>, for example
+in <CODE>.xinitrc</CODE>.)
+<P>The netscape FAQ, however, says:
+<PRE>
+        Why doesn't my Backspace key work in text fields? 
+        By default, Linux and XFree86 come with the Backspace and Delete keys
+        misconfigured. All Motif programs (including, of course, Netscape
+        Navigator) will malfunction in the same way.
+
+        The Motif spec says that Backspace is supposed to delete the previous
+        character and Delete is supposed to delete the following character.
+        Linux and XFree86 come configured with both the Backspace and Delete
+        keys generating Delete.
+
+        You can fix this by using any one of the xmodmap, xkeycaps, or
+        loadkeys programs to make the key in question generate the BackSpace
+        keysym instead of Delete.
+
+        You can also fix it by having a .motifbind file; see the man page
+        for VirtualBindings(3).
+
+        Note: Don't use the *XmText.translations or *XmTextField.translations
+        resources to attempt to fix this problem. If you do, you will blow
+        away Netscape Navigator's other text-field key bindings.
+</PRE>
+<P>
+<H2><A NAME="ss5.11">5.11 A better solution for Motif-using programs, like netscape</A>
+</H2>
+
+<P>
+<!--
+Netscape!remapping BS
+-->
+
+<!--
+Motif!remapping BS
+-->
+<P>Ted Kandell (<CODE>ted@tcg.net</CODE>) suggests the following:
+<P>Somewhere in your .profile add the following:
+<BLOCKQUOTE><CODE>
+<PRE>
+stty erase ^H
+</PRE>
+</CODE></BLOCKQUOTE>
+
+If you are using <CODE>bash</CODE>, add the following lines to your <CODE>.inputrc</CODE>:
+<BLOCKQUOTE><CODE>
+<PRE>
+"\C-?": delete-char
+"\C-h": backward-delete-char
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Add the following lines to your .xinitrc file:
+<BLOCKQUOTE><CODE>
+<PRE>
+xmodmap &lt;&lt;-EOF
+keycode 22  =  BackSpace osfBackSpace
+keycode 107 =  Delete
+EOF
+
+# start your window manager here,  for example:
+#(fvwm) 2>&amp;1 | tee /dev/tty /dev/console
+
+stty sane
+stty erase ^H
+loadmap &lt;&lt;-EOF
+keycode 14  = BackSpace
+keycode 111 = Delete
+EOF
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>This will definitely work for a PC 101 or 102 key keyboard
+with any Linux/XFree86 layout.
+<P>The important part to making Motif apps like Netscape work properly
+is adding osfBackSpace to keycode 22 in addition to BackSpace.
+<P>Note that there must be spaces on either side of the = sign.
+<P>
+<P>
+<H2><A NAME="ss5.12">5.12 What about termcap and terminfo?</A>
+</H2>
+
+<P>
+<!--
+termcap!remapping BS with
+-->
+
+<!--
+terminfo!remapping BS with
+-->
+<P>When people have problems with backspace, they tend to look at their termcap
+(or terminfo) entry for the terminal, and indeed, there does exist a kb
+(or kbs) capability describing the code generated by the Backspace key.
+However, not many programs use it, so unless you are having problems with one
+particular program only, probably the fault is elsewhere.
+Of course it is a good idea anyway to correct your termcap (terminfo) entry.
+See also below under "The TERM variable".
+<P>
+<H2><A NAME="ss5.13">5.13 A complete solution</A>
+</H2>
+
+<P>There are many possibilities to get a functioning system.
+Can't you give one complete set of settings that works?
+<!--
+delete key!a solution
+-->
+
+<!--
+backspace key!a solution
+-->
+<P>One way of getting a setup that works in all contexts
+is to have the Backspace key generate DEL when on the
+console (or xterm), and BackSpace when under X.
+Maybe that is most convenient - there are too many X utilities
+that expect BackSpace, and emacs on the console or xterm
+expects DEL, while emacs under X can distinguish [BackSpace]
+from Ctrl-H and does the right thing.
+<P>What is needed?
+No loadkeys changes, since the Backspace key already generates
+DEL by default.  No stty settings, they are OK by default.
+No X settings, they are OK by default.
+One just has to tell xterm that the Backspace key should generate DEL:
+put 
+<BLOCKQUOTE><CODE>
+<PRE>
+XTerm*VT100.Translations:       #override\n\
+        &lt;KeyPress> BackSpace : string(0x7f)\n\
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>.Xresources</CODE>, and
+<BLOCKQUOTE><CODE>
+<PRE>
+xrdb -merge .Xresources
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>.xinitrc</CODE>, and you are settled.
+<P>For a much more extensive discussion of these things, and
+alternative solutions, see
+<A HREF="http://www.ibb.net/~anne/keyboard.html">Anne Baretta's page</A>.
+<P>
+<HR>
+<A HREF="kbd.FAQ-6.html">Next</A>
+<A HREF="kbd.FAQ-4.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc5">Contents</A>
+</BODY>
+</HTML>

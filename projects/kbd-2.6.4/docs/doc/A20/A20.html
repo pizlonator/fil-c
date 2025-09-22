@@ -1,0 +1,374 @@
+<html>
+<head>
+<title>A20 - a pain from the past</title>
+</head>
+<body>
+<h1>A20 - a pain from the past</h1>
+
+Everybody hates the CapsLock key, but keyboard manufacturers continue
+producing keyboards with CapsLock - it could be that someone wants it.
+<p>
+With A20 it is similar but worse. Really nobody wants it, but it
+continues to haunt us.
+<p>
+<h2>History</h2>
+The 8088 in the original PC had only 20 address lines, good for 1 MB.
+The maximum address FFFF:FFFF addresses 0x10ffef, and this would silently
+wrap to 0x0ffef.
+When the 286 (with 24 address lines) was introduced, it had a real mode
+that was intended to be 100% compatible with the 8088. However, it failed
+to do this address truncation (a bug), and people found that there existed
+programs that actually depended on this truncation.
+Trying to achieve perfect compatibility, IBM invented a switch
+to enable/disable the 0x100000 address bit.
+Since the 8042 keyboard controller happened to have a spare pin,
+that was used to control the AND gate that disables this address bit.
+The signal is called A20, and if it is zero, bit 20 of all addresses
+is cleared.
+
+<h2>Present</h2>
+Why do we have to worry about this nonsense?
+Because by default the A20 address line is disabled at boot time,
+so the operating system has to find out how to enable it, and that
+may be nontrivial since the details depend on the chipset used.
+
+<h2>Classical A20 control, via the keyboard controller</h2>
+The output port of the keyboard controller has a number of functions.
+<br>
+Bit 0 is used to reset the CPU (go to real mode) - a reset happens
+when bit 0 is 0.
+<br>
+Bit 1 is used to control A20 - it is enabled when bit 1 is 1,
+disabled when bit 1 is 0.
+<br>
+One sets the output port of the keyboard controller by first writing
+0xd1 to port 0x64, and the the desired value of the output port
+to port 0x60. One usually sees the values 0xdd and 0xdf used to
+disable/enable A20. Thus:
+<pre>
+        call    empty_8042
+        mov     al,#0xd1                ! command write
+        out     #0x64,al
+        call    empty_8042
+        mov     al,#0xdf                ! A20 on
+        out     #0x60,al
+        call    empty_8042
+</pre>
+where <tt>empty_8042</tt> has to wait for the kbd to finish
+handling input, say
+<pre>
+empty_8042:
+        call    delay
+        in      al,#0x64
+        test    al,#2
+        jnz     empty_8042
+        ret
+</pre>
+
+<h3>Variation</h3>
+The HP Vectra accepts a shortcut, where writing
+0xdd or 0xdf to port 0x64 will disable/enable A20.
+<pre>
+! For the HP Vectra
+        call    empty_8042
+        jnz     err
+        mov     al,#0xdf
+        out     #0x64,al
+        call    empty_8042
+        jnz     err
+        mov     al,#0xdf        ! Do it again
+        out     #0x64,al
+        call    empty_8042
+        jnz     err
+! Success
+</pre>
+(HIMEM.SYS in DOS 5.0 incorrectly identifies some computers as HP Vectra -
+this may cause a hang at boot. Fixed in DOS5.0a.)
+
+<h2>A20 control via System Control Port A</h2>
+Some operating systems use the switching off and on of A20 as part
+of the standard procedure to switch between real (16-bit) and protected
+mode. Since the keyboard microcontroller is slow, it was desirable to
+avoid it, and a Fast Gate A20 Option was introduced, where I/O port
+0x92 (System Control Port A) is used to handle A20, circumventing
+the keyboard controller.
+<p>
+Thus, MCA, EISA and other systems can also control A20 via port 0x92.
+This port has a number of functions, and the details depend on
+the manufacturer. Bits 0,1,3,6,7 seem to have the same meaning
+everywhere this port is implemented.
+<br>
+Bit 0 (w): writing 1 to this bit causes a
+fast reset (used to switch back to real mode; for MCA this took 13.4 ms).
+<br>
+Bit 1 (rw): 0: disable A20, 1: enable A20.
+<br>
+Bit 3 (rw?): 0/1: power-on password bytes (stored in CMOS bytes 0x38-0x3f
+or 0x36-0x3f) accessible/inaccessible. This bit can be written to only
+when it is 0.
+<br>
+Bits 6-7 (rw): 00: hard disk activity LED off,
+01,10,11: hard disk activity LED on.
+<br>
+Bits 2,4,5 are unused or have varying meanings.
+(On MCA bit 4 (r): 1: watchdog timeout occurred.)
+<p>
+<h3>Using 0x92 may be necessary</h3>
+Sometimes (especially on embedded systems, maybe also on some
+"legacy-free" systems) no keyboard controller is present,
+and it may be necessary to use 0x92.
+Often however, the chip will catch accesses to ports 0x64 and 0x60
+and simulate the expected behaviour, also when no keyboard controller
+is present. Sometimes, this snooping behaviour must be enabled first.
+
+<h3>Using 0x92 may be dangerous</h3>
+Gianluca Anzolin <g.anzolin@inwind.it> reports:
+I have an Olivetti M4 (P166) with TRIDENT 9660 video card integrated
+on the mainboard. Linux boots well, but after LILO has loaded the kernel,
+the screen becomes black and remains black ever after. Removing
+<pre>
+        inb     $0x92, %al                      #
+        orb     $02, %al                        # "fast A20" version
+        outb    %al, $0x92                      # some chips have only this
+</pre>
+from <tt>setup.S</tt> solved this. Apparently on his machine
+writing to some of these bits is dangerous and does something
+to the on-board video card (disable it? lspci shows it only when
+0x92 is not touched).
+Similar things are reported by others:
+<blockquote>
+<i>I am trying to install Linux on an old Olivetti pc M4 Modulo P75 but
+I am quickly stopped. I always got the same display problem very soon
+during the installation.The display is not updated anymore.
+The embedded display adapter is a "Trident 9xxx PCI".</i>
+</blockquote>
+and
+<blockquote>
+<i>I have a strange problem with an old Olivetti M4 (pentium 75)
+machine. I buy for a very cheap price 5 of these, but when I
+boot the machine the screen goes blank. The (embedded on MoBo)
+video chip is a Trident TGUI9780.</i>
+</blockquote>
+<p>
+Petr Vandrovec <vandrove@vc.cvut.cz> suggests to do the write
+only when it is really necessary:
+<pre>
+        inb     $0x92, %al                      #
++       testb   $02, %al
++       jnz     no92
+        orb     $02, %al                        # "fast A20" version
+        outb    %al, $0x92                      # some chips have only this
++no92:
+</pre>
+Since bit 0 sometimes is write-only, and writing a one there
+causes a reset, it must be a good idea to add the line
+<pre>
+        andb    $0xfe, %al
+</pre>
+before the <tt>outb</tt>.
+
+<h3>Using only 0x92 may be dangerous</h3>
+Kai Germaschewski reports that he gets a spontaneous kernel reboot
+(on a Sony PCG-Z600NE) after suspend/resume when A20 was enabled
+using 0x92 but not via the keyboard controller. Apparently state
+set via keyboard controller is correctly saved and restored, but
+state set via 0x92 is not.
+
+<h3>Port 0x92 may have to be enabled</h3>
+Various SMSC super I/O chips will emulate the keyboard controller,
+but emulate port 0x92 only when that has been enabled.
+
+<h3>CMOS indicating the presence of a Fast A20 Gate</h3>
+Depending on the BIOS, the possibility of using a fast A20 switch
+may be visible in the CMOS. For example, some AMI BIOSes have
+in CMOS location 0x2d a byte with contents
+<pre>
+     System Operational Flags
+     Bit 7 = 1: Weitek math coprocessor present
+     Bit 6 = 1: Floppy drive seek at boot disabled
+     Bit 5 = 1: System boot sequence A:,C: (otherwise C:,A:)
+     Bit 4 = 1: System boot CPU speed high
+     Bit 3 = 1: External cache enabled
+     Bit 2 = 1: Internal cache enabled
+     Bit 1 = 1: Fast gate A20 operation enabled
+     Bit 0 = 1: Turbo switch function enabled
+</pre>
+Of course, this does not help at all.
+
+<h3>FreeBSD</h3>
+FreeBSD does
+<pre>
+/*
+ * Gate A20 for high memory
+ */
+void
+gateA20(void)
+{
+#ifdef PC98
+        outb(0xf2, 0x00);
+        outb(0xf6, 0x02);
+#else
+#ifdef  IBM_L40
+        outb(0x92, 0x2);
+#else   IBM_L40
+        while (inb(K_STATUS) & K_IBUF_FUL);
+        while (inb(K_STATUS) & K_OBUF_FUL)
+                (void)inb(K_RDWR);
+
+        outb(K_CMD, KC_CMD_WOUT);
+        while (inb(K_STATUS) & K_IBUF_FUL);
+        outb(K_RDWR, KB_A20);
+        while (inb(K_STATUS) & K_IBUF_FUL);
+#endif  IBM_L40
+#endif
+}
+</pre>
+that is, uses 0x92 only for a IBM_L40 (whatever that may be).
+The FreeBSD handbook describes PC98 as
+"an alternative development branch of PC hardware, popular in Japan"
+and "the NEC PC98 platform".
+<p>
+
+<h3>Minix and HIMEM.ASM</h3>
+<a href="xfix-286mode2">Here</a> is a patch fragment for minix.
+It contains the interesting part
+<pre>
+!       movb    al, #0xff       ! Pulse output port
+!       outb    0x64
+!       call    kb_wait         ! Wait for the A20 line to settle down
+</pre>
+from some old HIMEM.ASM source (that one still can find on the net).
+I have seen no other places where command 0xff is described as
+doing something useful.
+
+<h2>Access of 0xee</h2>
+On some systems reading ioport 0xee enables A20, and writing it
+disables A20. (Or, sometimes, this action only occurs when ioport
+0xee is enabled.) And similar things hold for ioport 0xef and
+reset (a write causes a reset).
+<p>
+The i386SL/i486SL documents say
+<pre>
+The following ports are visible only when enabled,
+Any writes to these ports cause the action named.
+Name of Register     Address   Default Value  Where placed    Size
+FAST CPU RESET         EFh          N/A         82360SL         8
+FAST A20 GATE          EEh          N/A         82360SL         8  
+</pre>
+<p>
+The AMD Elan SC400 docs
+(<a href="http://www.amd.com/products/epd/processors/4.32bitcont/13.lan4xxfam/22.lansc400/a21032/21032.pdf">21032.pdf</a>) say:
+<blockquote>
+<i>Register EEh can be used to cause the same type of masking of the CPU
+A20 signal that was historically performed by an external SCP (System
+Control Processor) in a PC/AT Compatible system, but much faster. This
+control defaults to not forcing the propagation of A20:
+Dummy Read = Returns FFh, and forces the A20 signal to propagate.
+Dummy Write = Deasserts the forcing of the propagation of the A20 signal
+via this particular control, data value written is N/A.
+For software compatibility and other reasons, there are several sources
+of GateA20 control. These controls are effectively ORed together with
+the output of the OR gate driving the Enhanced Am486 microprocessor
+A20M pin. Therefore, A20 will propagate if ANY of the independent sources
+are forcing A20 to propagate.</i>
+</blockquote>
+
+<h2>Other ports</h2>
+It is rumoured that systems exist that use bit 2 of ioport 0x65
+or bit 0 of ioport 0x1f8 for A20 control (0: disabled, 1: enabled).
+Don't know what systems that might be.
+The AT&T 6300+ needs a write of 0x90 to port 0x3f20 to enable
+(and a write of 0x0 to disable) A20.
+
+<h2>Disabling A20</h2>
+It may be necessary to do both the keyboard controller write and
+the 0x92 write (and the 0xee write) to disable A20.
+
+<h2>A20 and reset</h2>
+If (in protected mode) A20 is disabled, the odd megabytes are inaccessible.
+After a reset, execution begins at top-of-memory:
+0xfffff0 on the 286 and 0xfffffff0 on 386 and later.
+With disabled A20 this becomes 0xeffff0 or 0xffeffff0
+and the machine will probably crash, having no memory mapped there.
+
+<h2>A20 and cache</h2>
+One tests A20 by writing something to an address with bit 0x100000 set,
+and seeing whether the corresponding location in low memory changes.
+However, this plan may be thwarted by the cache that remembers the
+old value and doesn't know about A20.
+<p>
+<a href="http://qdn.qnx.com/support/docs/neutrino_qrp/building/startup.html">
+Neutrino</a> describes the following function <tt>x86_enable_a20()</tt>:
+<blockquote>
+<i>Enable address line A20, which is often disabled on many PCs on reset.
+It first checks if address line A20 is enabled and if so returns 0.
+Otherwise, it sets bit 0x02 in port 0x92, which is used by many systems
+as a fast A20 enable. It again checks to see if A20 is enabled and if so
+returns 0. Otherwise, it uses the keyboard microcontroller to enable A20
+as defined by the old PC/AT standard. It again checks to see if A20 is
+enabled and if so returns 0. Otherwise, it returns -1. 
+If cpu is a 486 or greater, it issues a <tt>wbinvd</tt> opcode
+to invalidate the cache when doing a read/write test of memory to see
+if A20 is enabled.
+In the rare case where setting bit 0x02 in port 0x92 may affect
+other hardware, you can skip this by setting <tt>only_keyboard</tt> to 1.
+In this case, it will attempt to use only the keyboard microcontroller.</i>
+</blockquote>
+hpa comments:
+<blockquote>
+<i>As far as I know the only machines which have the cache
+problem are i386 boxen, but the i386 doesn't have WBINVD.  The i486
+has a pin on the CPU for A20, which takes effect inside the L1 cache,
+and so it shouldn't have any A20 cache issues.</i>
+</blockquote>
+<p>
+Jens Maurer
+<a href="http://www.cck.uni-kl.de/misc/tecra710/linux-problem">reported</a>
+in 1996 on boot problems with a bzImage kernel:
+<blockquote>
+<i>On the Toshiba laptop, the first two bytes at 0x100000 are incorrect and
+identical to those from address 0x000000 (which was an alias for
+0x100000 before the A20 gate enable). At a second read from 0x100000
+immediately afterwards, the correct memory content is returned.
+Asus P55TP5XE boards (Triton I chipset) show quite the same
+problem, but there, only the first byte is incorrect and booting
+bzImage kernels works fine.
+To me, this looks like some buffer or cache coherency problem
+although I think that caches are organized in at least 16 byte cache lines.
+...
+This exact same problem reportedly also exists on Fujitsu 555T
+(report from Andrea Caltroni) laptop and Compudyne Pentium 60
+(report from David Kerr) desktop computers.</i>
+</blockquote>
+He gives a patch, and adds
+"<i>Unfortunately, Philip Hands reports that the above patch makes some people
+with other non-laptop computers unable to boot.</i>"
+<p>
+Using zImage instead of bzImage avoids the problem (since zImage
+is not loaded high).
+Debian has distributed special Tecra boot floppies for a while.
+Later it was found out that these laptops just have an incredibly
+slow keyboard controller and that all is fine with a larger timeout.
+
+<h2>BIOS</h2>
+If it is difficult, maybe impossible, to write a routine that
+will enable A20 on all PCs, one might ask the BIOS to do so.
+Many recent BIOS versions implement INT15 AX=240x functions,
+as follows:
+<pre>
+INT 15 AX=2400 disable A20
+INT 15 AX=2401 enable A20
+INT 15 AX=2402 query status A20
+INT 15 AX=2403 query A20 support (kbd or port 92)
+
+Return:
+  If successful: CF clear, AH = 00h
+  On error: CF set, AH = status
+  Status: 01h keyboard controller is in secure mode
+          86h function not supported
+  For AX=2402 the status (0: disabled, 1: enabled) is returned in AL
+  For AX=2403 the status (bit 0: kbd, bit 1: port 92) is returned in BX
+</pre>
+
+</body>
+</html>

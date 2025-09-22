@@ -1,0 +1,32 @@
+AT_SETUP([kbdinfo (getmode)])
+AT_KEYWORDS([e2e kbdinfo])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/kbdinfo" getmode])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbdinfo-test01.calls])
+E2E_COMPARE_STDOUT([cat $abs_srcdir/data/e2e/kbdinfo-test01.stdout])
+AT_CLEANUP
+
+AT_SETUP([kbdinfo (gkbmode)])
+AT_KEYWORDS([e2e kbdinfo])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+kbd_mode -u -f
+E2E_CHECK(["$abs_top_builddir/src/kbdinfo" gkbmode])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbdinfo-test02.calls])
+E2E_COMPARE_STDOUT([cat $abs_srcdir/data/e2e/kbdinfo-test02.stdout])
+AT_CLEANUP
+
+AT_SETUP([kbdinfo (gkbmeta)])
+AT_KEYWORDS([e2e kbdinfo])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/kbdinfo" gkbmeta])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbdinfo-test03.calls])
+E2E_COMPARE_STDOUT([cat $abs_srcdir/data/e2e/kbdinfo-test03.stdout])
+AT_CLEANUP
+
+AT_SETUP([kbdinfo (gkbled)])
+AT_KEYWORDS([e2e kbdinfo])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/kbdinfo" gkbled])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/kbdinfo-test04.calls])
+E2E_COMPARE_STDOUT([cat $abs_srcdir/data/e2e/kbdinfo-test04.stdout])
+AT_CLEANUP

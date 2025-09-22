@@ -1,0 +1,103 @@
+! dvorak-r.map - Right single-handed Dvorak keyboard layout
+! Derived from a file that was
+!  Copyright (C) 1996 Dominik Kubla, <dominik@debian.org>
+!
+! This file is free software; you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2 of the License, or
+! (at your option) any later version.
+!
+! This program is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+! Thanks to Eddie Maddox for providing the information.
+!
+ 		charset "ISO-8859-1"
+		keymaps 0,1,4,8,12
+		include "linux-with-two-alt-keys.inc"
+		strings as usual
+		compose as usual for "iso-8859-1"
+! --------------------------------------------------------------------------
+! Row 1 (Function keys)
+! --------------------------------------------------------------------------
+		keycode   1 = Escape
+! --------------------------------------------------------------------------
+! Row 2
+! --------------------------------------------------------------------------
+		keycode  41 = grave		asciitilde      
+		keycode   2 = one		exclam
+		keycode   3 = two		at
+		keycode   4 = three		numbersign
+		keycode   5 = four		dollar
+		keycode   6 = j
+		keycode   7 = l
+		keycode   8 = m
+		keycode   9 = f
+		keycode  10 = p
+		keycode  11 = slash		question
+		keycode  12 = bracketleft	braceleft
+		keycode  13 = bracketright	braceright
+		keycode  14 = BackSpace		Delete
+! --------------------------------------------------------------------------
+! Row 3
+! --------------------------------------------------------------------------
+		keycode  15 = Tab
+		keycode  16 = five		percent
+		keycode  17 = six		asciicircum
+		keycode  18 = q
+		keycode  19 = period		greater
+		keycode  20 = o
+		keycode  21 = r
+		keycode  22 = s
+		keycode  23 = u
+		keycode  24 = y
+		keycode  25 = b
+		keycode  26 = semicolon		colon
+		keycode  27 = equal		plus
+		keycode  43 = backslash		bar
+		keycode  28 = Return
+! --------------------------------------------------------------------------
+! Row 4
+! --------------------------------------------------------------------------
+		keycode  58 = Caps_Lock
+		keycode  30 = seven		ampersand
+		keycode  31 = eight		asterisk
+		keycode  32 = z
+		keycode  33 = a
+		keycode  34 = e
+		keycode  35 = h
+		keycode  36 = t
+		keycode  37 = d
+		keycode  38 = c
+		keycode  39 = k
+		keycode  40 = minus	       underscore        
+! --------------------------------------------------------------------------
+! Row 5
+! --------------------------------------------------------------------------
+		keycode  42 = Shift
+		keycode  44 = nine		parenleft
+		keycode  45 = zero		parenright
+		keycode  46 = x
+		keycode  47 = comma		less
+	control	keycode  47 = Compose
+		keycode  48 = i
+		keycode  49 = n
+		keycode  50 = w
+		keycode  51 = v
+		keycode  52 = g
+		keycode  53 = apostrophe	quotedbl
+		keycode  54 = Shift
+! --------------------------------------------------------------------------
+! Row 6
+! --------------------------------------------------------------------------
+		keycode  29 = Control
+		keycode  56 = Alt
+		keycode  57 = space
+#		keycode 100 = Alt
+		keycode  97 = Control

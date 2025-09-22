@@ -1,0 +1,70 @@
+# Apple USB keyboard model A1048 with keypad, plastic enclosure
+#
+# This mapping is designed to correspond to standard Apple keys.
+#
+# idVendor     0x05ac Apple, Inc.
+# idProduct    0x020c Extended Keyboard
+# bCountryCode     13 International (ISO) Swedish localization
+
+strings as usual
+
+include "apple-a1048-base"
+
+keymaps 0,1,4,8,9 # Plain Shift Control Alt Shift+Alt
+
+keycode   2 = one   exclam     VoidSymbol           copyright    exclamdown
+keycode   3 = two   quotedbl   VoidSymbol           at           U+201D
+keycode   4 = three numbersign VoidSymbol           sterling     yen
+keycode   5 = four  euro       Control_backslash    dollar       cent
+keycode   6 = five  percent    Control_bracketright U+221E       permille
+keycode   7 = six   ampersand  Control_asciicircum  section      paragraph
+keycode   8 = seven slash      Control_underscore   bar          backslash
+keycode   9 = eight parenleft  VoidSymbol           bracketleft  braceleft
+keycode  10 = nine  parenright VoidSymbol           bracketright braceright
+keycode  11 = zero  equal      VoidSymbol           U+2248       U+2260
+keycode  12 = plus  question   Control_underscore   plusminus    questiondown
+
+keycode  13 = dead_acute dead_grave VoidSymbol acute grave
+
+keycode  16 = +q +Q Control_q  bullet      degree
+keycode  17 = +w +W Control_w  U+03A9      U+02DD
+keycode  18 = +e +E Control_e +eacute     +Eacute
+keycode  19 = +r +R Control_r  registered  U+221A
+keycode  20 = +t +T Control_t  U+2020      U+2021
+keycode  21 = +y +Y Control_y  mu          U+02DC
+keycode  22 = +u +U Control_u +udiaeresis +Udiaeresis
+keycode  23 = +i +I Control_i  U+0131      U+02C6
+keycode  24 = +o +O Control_o +U+0153     +U+0152
+keycode  25 = +p +P Control_p +U+03C0     +U+220F
+
+keycode  26 = +aring          +Aring           VoidSymbol U+02D9     U+02DA
+keycode  27 =  dead_diaeresis  dead_circumflex VoidSymbol dead_tilde circumflex
+
+keycode  30 = +a +A Control_a VoidSymbol  U+25CA
+keycode  31 = +s +S Control_s ssharp      U+2211
+keycode  32 = +d +D Control_d U+2202      U+2206
+keycode  33 = +f +F Control_f U+0192      U+222B
+keycode  34 = +g +G Control_g cedilla     macron
+keycode  35 = +h +H Control_h U+02DB      U+02D8
+keycode  36 = +j +J Control_j U+221A      notsign
+keycode  37 = +k +K Control_k ordfeminine masculine
+keycode  38 = +l +L Control_l # FIXME: U+FB01      U+FB02
+
+keycode  39 = +odiaeresis +Odiaeresis VoidSymbol +oslash +Oslash
+keycode  40 = +adiaeresis +Adiaeresis VoidSymbol +ae     +AE
+keycode  86 = less         greater    VoidSymbol  U+2264  U+2265
+keycode  43 = apostrophe   asterisk   VoidSymbol  U+2122  U+2019
+
+keycode  44 = +z +Z Control_z  division  U+2044
+keycode  45 = +x +X Control_x  U+2248    U+02C7
+keycode  46 = +c +C Control_c +ccedilla +Ccedilla
+keycode  47 = +v +V Control_v  U+2039    guillemotleft
+keycode  48 = +b +B Control_b  U+203A    guillemotright
+keycode  49 = +n +N Control_n  U+2018    U+201C
+keycode  50 = +m +M Control_m  U+2019    U+201D
+
+keycode  51 = comma  semicolon  VoidSymbol U+201A U+201E
+keycode  52 = period colon      VoidSymbol U+2026 periodcentered
+keycode  53 = minus  underscore VoidSymbol U+2013 U+2014
+
+keycode  41 = section degree VoidSymbol paragraph bullet

@@ -1,0 +1,261 @@
+# From gcapnias@acrogate.ath.forthnet.gr                   Sun Jul 10 1994
+#
+#	This is the map file that I use to have the greek Characters in
+# setup. The map was made according the map that exists at the IBM-clones
+# machines (437). The switch from greek to latin is with alt-enter key as
+# used here. You can't switch console when in greek mode (I didn't want to
+# do that for security reasons. If someone feels like, all he has to do is
+# to add, to each line that exists for a switch console key, a second
+# line that includes the 'altgr').
+#
+#   +=[ Dr Doom ]===========================+============================+
+#   | George Capnias - Athens, HellAs       | OOOIII   OOO III OOO II II |
+#   |                                       | O  O  I  O  O   I   OI I I |
+#   | drdoom@ars.ath.forthnet.gr            | O  OIII  O  O   I   OI I I |
+#   | drdoom@hol.ath.forthnet.gr            | O  O  I  O  O   I   OI   I |
+#   | gcapnias@acrogate.ath.forthnet.gr     | OOOI  I  OOO III OOO I   I |
+#   +=======================================+============================+
+#
+#
+# A rather similar keymap was constructed by Angelos Karageorgiou:
+#
+# Greek keyboard setup - compatible with the ELOT 437 standard
+# Angelos Karageorgiou angelos@netaxis.com - July 1994
+# >ª„’“‡ˆŽ    <ªœ¨«¬Ÿ ¦§
+# €‘ƒ”‚†‰Š      ˜©›­šž¥¡¢
+#  …•–—Œ‹        ®¯à™¤£
+#
+# [This is not an iso mapping, and code page 437 does not have the Greek
+# alphabet. I don't have information on DOS code pages for Greek.
+# Use this keymap together with the gr*.psf fonts. - aeb]
+#
+keymaps 0-4,6,8,10,12-13
+include "linux-with-alt-and-altgr"
+	keycode 100 = Alt	# but note keycode 28
+strings as usual
+
+keycode   1 = Escape           Escape
+	alt     keycode   1 = Meta_Escape
+keycode   2 = one              exclam
+	altgr   keycode   2 = one
+	shift altgr keycode   2 = exclam
+	alt     keycode   2 = Meta_one
+keycode   3 = two              at
+	altgr   keycode   3 = two
+	shift altgr keycode   3 = at
+	control keycode   3 = nul
+	alt     keycode   3 = Meta_two
+keycode   4 = three            numbersign
+	altgr   keycode   4 = three
+	shift altgr keycode   4 = numbersign
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_three
+keycode   5 = four             dollar
+	altgr   keycode   5 = four
+	shift altgr keycode   5 = dollar
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four
+keycode   6 = five             percent
+	altgr   keycode   6 = five
+	shift altgr keycode   6 = percent
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five
+keycode   7 = six              asciicircum
+	altgr   keycode   7 = six
+	shift altgr keycode   6 = asciicircum
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+keycode   8 = seven            ampersand
+	altgr   keycode   8 = seven
+	shift altgr keycode   8 = ampersand
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+keycode   9 = eight            asterisk
+	altgr   keycode   9 = eight
+	shift altgr keycode   9 = asterisk
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = nine             parenleft
+	altgr   keycode  10 = nine
+	shift altgr keycode  10 = parenleft
+	alt     keycode  10 = Meta_nine
+keycode  11 = zero             parenright
+	altgr   keycode  11 = zero
+	shift altgr keycode  11 = parenright
+	alt     keycode  11 = Meta_zero
+keycode  12 = minus            underscore
+	altgr   keycode  12 = minus
+	shift altgr keycode  12 = underscore
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+keycode  13 = equal            plus
+	altgr   keycode  13 = equal
+	shift altgr keycode  13 = plus
+	alt     keycode  13 = Meta_equal
+keycode  14 = Delete           Delete
+	altgr   keycode  14 = Delete
+	shift altgr keycode  14 = Delete
+	alt     keycode  14 = Meta_Delete
+keycode  15 = Tab              Meta_Tab
+	altgr   keycode  15 = Tab
+	shift altgr keycode  15 = Tab
+	alt     keycode  15 = Meta_Tab
+keycode  16 = q
+	altgr keycode  16 = semicolon
+	shift altgr keycode  16 = colon
+keycode  17 = w
+	altgr keycode  17 = 0xAA
+	shift altgr keycode  17 = 0x91
+keycode  18 = e
+	altgr keycode  18 = +0x9C
+	shift altgr keycode  18 = +0x84
+keycode  19 = r
+	altgr keycode  19 = +0xA8
+	shift altgr keycode  19 = +0x90
+keycode  20 = t
+	altgr keycode  20 = +0xAB
+	shift altgr keycode  20 = +0x92
+keycode  21 = y
+	altgr keycode  21 = +0xAC
+	shift altgr keycode  21 = +0x93
+keycode  22 = u
+	altgr keycode  22 = +0x9F
+	shift altgr keycode  22 = +0x87
+keycode  23 = i
+	altgr keycode  23 = +0xA0
+	shift altgr keycode  23 = +0x88
+keycode  24 = o
+	altgr keycode  24 = +0xA6
+	shift altgr keycode  24 = +0x8E
+keycode  25 = p
+	altgr keycode  25 = +0xA7
+	shift altgr keycode  25 = +0x8F
+keycode  26 = bracketleft      braceleft
+	altgr   keycode  26 = bracketleft
+	shift altgr keycode  26 = braceleft
+	control keycode  26 = Escape
+	alt     keycode  26 = Meta_bracketleft
+keycode  27 = bracketright     braceright
+	altgr   keycode  27 = bracketright
+	shift altgr keycode  27 = braceright
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = Meta_bracketright
+keycode  28 = Return
+	altgr   keycode  28 = Return
+	alt     keycode  28 = AltGr_Lock
+	altgr alt keycode  28 = AltGr_Lock
+keycode  29 = Control
+keycode  30 = a
+	altgr keycode  30 = +0x98
+	shift altgr keycode  30 = +0x80
+keycode  31 = s
+	altgr keycode  31 = +0xA9
+	shift altgr keycode  31 = +0x91
+keycode  32 = d
+	altgr keycode  32 = +0x9B
+	shift altgr keycode  32 = +0x83
+keycode  33 = f
+	altgr keycode  33 = +0xAD
+	shift altgr keycode  33 = +0x94
+keycode  34 = g
+	altgr keycode  34 = +0x9A
+	shift altgr keycode  34 = +0x82
+keycode  35 = h
+	altgr keycode  35 = +0x9E
+	shift altgr keycode  35 = +0x86
+keycode  36 = j
+	altgr keycode  36 = +0xA5
+	shift altgr keycode  36 = +0x8D
+keycode  37 = k
+	altgr keycode  37 = +0xA1
+	shift altgr keycode  37 = +0x89
+keycode  38 = l
+	altgr keycode  38 = +0xA2
+	shift altgr keycode  38 = +0x8A
+keycode  39 = semicolon        colon
+	altgr keycode  39 = dead_acute
+	shift altgr keycode  39 = dead_diaeresis
+	alt     keycode  39 = Meta_semicolon
+keycode  40 = apostrophe       quotedbl
+	altgr   keycode  40 = apostrophe
+	shift altgr keycode  40 = quotedbl
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_apostrophe
+keycode  41 = grave            asciitilde
+	altgr   keycode  41 = grave
+	shift altgr keycode  41 = asciitilde
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = backslash        bar
+	altgr   keycode  43 = backslash
+	shift altgr keycode  43 = bar
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash
+keycode  44 = z
+	altgr keycode  44 = +0x9D
+	shift altgr keycode  44 = +0x85
+keycode  45 = x
+	altgr keycode  45 = +0xAE
+	shift altgr keycode  45 = +0x95
+keycode  46 = c
+	altgr keycode  46 = +0xAF
+	shift altgr keycode  46 = +0x96
+keycode  47 = v
+	altgr keycode  47 = +0xE0
+	shift altgr keycode  47 = +0x97
+keycode  48 = b
+	altgr keycode  48 = +0x99
+	shift altgr keycode  48 = +0x81
+keycode  49 = n
+	altgr keycode  49 = +0xA4
+	shift altgr keycode  49 = +0x8C
+keycode  50 = m
+	altgr keycode  50 = +0xA3
+	shift altgr keycode  50 = +0x8B
+keycode  51 = comma            less
+	altgr   keycode  51 = comma
+	shift altgr keycode  51 = less
+	alt     keycode  51 = Meta_comma
+keycode  52 = period           greater
+	altgr   keycode  52 = period
+	shift altgr keycode  52 = greater
+	alt     keycode  52 = Meta_period
+keycode  53 = slash            question
+	altgr   keycode  53 = slash
+	shift altgr keycode  53 = question
+	control keycode  53 = Delete
+	alt     keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = less             greater
+	alt     keycode  86 = Meta_less
+keycode  97 = Control
+
+compose '\'' '€' to 'ê'
+compose '\'' '„' to 'ë'
+compose '\'' '†' to 'ì'
+compose '\'' 'ˆ' to 'í'
+compose '\'' 'Ž' to 'î'
+compose '\'' '“' to 'ï'
+compose '\'' '—' to 'ð'
+compose '\'' '˜' to 'á'
+compose '\'' 'œ' to 'â'
+compose '\'' 'ž' to 'ã'
+compose '\'' ' ' to 'å'
+compose '\'' '¦' to 'æ'
+compose '\'' '¬' to 'ç'
+compose '\'' 'à' to 'é'
+compose '"' 'ˆ' to 'ˆ'
+compose '"' '“' to '“'
+compose '"' ' ' to 'ä'
+compose '"' '¬' to 'è'
+compose '^' ' ' to '+'
+compose '^' '¬' to '+'
+compose '\'' '\'' to ';'
+compose '"' '"' to ':'
+compose '\'' ' ' to '\''

@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: How to get out of raw mode</TITLE>
+ <LINK HREF="kbd.FAQ-10.html" REL=next>
+ <LINK HREF="kbd.FAQ-8.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc9" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-10.html">Next</A>
+<A HREF="kbd.FAQ-8.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc9">Contents</A>
+<HR>
+<H2><A NAME="s9">9. How to get out of raw mode</A></H2>
+
+<P>
+<!--
+raw mode, exiting
+-->
+<P>If some program using K_RAW keyboard mode exits without restoring the keyboard
+mode to K_XLATE, then it is difficult to do anything - not even Ctrl-Alt-Del
+works. However, it is sometimes possible to avoid hitting the reset button.
+(And desirable as well: your users may get angry if you kill their Hack game
+by rebooting; you might also damage your file system.)
+Easy solutions involve logging in from another terminal or another machine
+and doing <CODE>kbd_mode -a</CODE>.
+The procedure below assumes that no X is running, that the display is in
+text mode, and that you are at your bash prompt, that you are using a US
+keyboard layout, and that your interrupt character is Ctrl-C.
+<P>Step 1. Start X.
+As follows: press 2 (and don't release), press F12 (and don't release)
+and immediately afterwards press = . This starts X.
+(Explanation: if a key press produces keycode K, then the key release
+produces keycode K+128. Probably your shell does not like these high
+characters, so we avoid generating them by not releasing any key.
+However, we have to be quick, otherwise key repeat starts. The digit 2
+produces a Ctrl-C that discards previous junk, the F12 produces an X
+and the = a Return.)
+Probably your screen will be grey now, since no <CODE>.xinitrc</CODE> was specified.
+However, Ctrl-Alt-Fn will work and you can go to another VT.
+(Ctrl-Alt-Backspace also works, but that exits X, and gets you back into
+the previous state, which is not what you want.)
+<P>Step 2. Setup to change the keyboard mode.
+(For example, by <CODE>sleep 5; kbd_mode -a</CODE>.)
+<P>Step 3. Leave X again.
+Alt-Fx (often Alt-F7) brings you back to X, and then Ctrl-Alt-Backspace
+exits X. Within 5 seconds your keyboard will be usable again.
+<P>If you want to prepare for the occasion, then make
+<CODE>\215A\301</CODE> (3 symbols) an alias for <CODE>kbd_mode -a</CODE>.
+Now just hitting = F7 = (3 symbols) will return you to sanity.
+<P>
+<HR>
+<A HREF="kbd.FAQ-10.html">Next</A>
+<A HREF="kbd.FAQ-8.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc9">Contents</A>
+</BODY>
+</HTML>

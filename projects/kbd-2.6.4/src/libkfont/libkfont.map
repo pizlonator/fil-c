@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: LGPL-2.0-or-later
+#
+# Copyright (C) 2020  Alexey Gladkov <gladkov.alexey@gmail.com>
+#
+
+KFONT_1.0 {
+  global:
+    kfont_activatemap;
+    kfont_disactivatemap;
+    kfont_get_font;
+    kfont_get_fontsize;
+    kfont_get_unicodemap;
+    kfont_get_uniscrnmap;
+    kfont_init;
+    kfont_free;
+    kfont_load_font;
+    kfont_load_fonts;
+    kfont_load_consolemap;
+    kfont_load_unicodemap;
+    kfont_put_unicodemap;
+    kfont_put_uniscrnmap;
+    kfont_read_psffont;
+    kfont_restore_font;
+    kfont_save_font;
+    kfont_save_consolemap;
+    kfont_save_unicodemap;
+    kfont_set_option;
+    kfont_unset_option;
+    kfont_write_psffont;
+    kfont_read_unicodetable;
+    kfont_write_unicodetable;
+    kfont_get_verbosity;
+    kfont_inc_verbosity;
+    kfont_set_logger;
+
+  local:
+    *;
+};

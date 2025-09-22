@@ -1,0 +1,75 @@
+# colemak.kmap for Linux console.
+# 2006-01-01 Shai Coleman, http://colemak.com/ . Public domain.
+alt_is_meta
+charset "iso-8859-15"  # use a ISO-8859-15 font, e.g.: consolechars -f lat9v-14
+keymaps 0-12
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode  41 =          grave    asciitilde       dead_tilde        asciitilde    nul
+keycode   2 =            one        exclam       exclamdown       onesuperior
+keycode   3 =            two            at        masculine       twosuperior    nul
+keycode   4 =          three    numbersign      ordfeminine     threesuperior    Escape
+keycode   5 =           four        dollar             cent          sterling    Control_backslash
+keycode   6 =           five       percent             euro               yen    Control_bracketright               #          EuroSign               yen
+keycode   7 =            six   asciicircum       asciitilde        asciitilde 	 Control_asciicircum               #           hstroke           Hstroke 
+keycode   8 =          seven     ampersand              eth               ETH    Control_underscore
+keycode   9 =          eight      asterisk            thorn             THORN    Delete
+keycode  10 =           nine     parenleft       asciitilde        asciitilde               #   leftsinglequotemark   leftdoublequotemark
+keycode  11 =           zero    parenright       asciitilde        asciitilde               #  rightsinglequotemark   rightdoublequotemark
+keycode  12 =          minus    underscore       asciitilde        asciitilde 	 Control_underscore          #            endash            emdash
+keycode  13 =          equal          plus         multiply          division
+                                                                                        
+keycode  16 =              q             Q       adiaeresis        Adiaeresis    Control_q
+keycode  17 =              w             W            aring             Aring    Control_w 
+keycode  18 =              f             F           atilde            Atilde    Control_f
+keycode  19 =              p             P           oslash          Ooblique    Control_p
+keycode  20 =              g             G       asciitilde        asciitilde    Control_g 	#       dead_ogonek        asciitilde
+keycode  21 =              j             J       asciitilde        asciitilde    Control_j 	#           dstroke           Dstroke
+keycode  22 =              l             L       asciitilde        asciitilde    Control_l 	#           lstroke           Lstroke
+keycode  23 =              u             U           uacute            Uacute    Control_u
+keycode  24 =              y             Y       udiaeresis        Udiaeresis    Control_y
+keycode  25 =      semicolon         colon       odiaeresis        Odiaeresis
+keycode  26 =    bracketleft     braceleft    guillemotleft        asciitilde    Escape               #     guillemotleft         0x1002039
+keycode  27 =   bracketright    braceright   guillemotright        asciitilde    Control_bracketright #    guillemotright         0x100203a
+keycode  43 =      backslash           bar       asciitilde        asciitilde    Control_backslash
+
+keycode  30 =              a             A           aacute            Aacute    Control_a
+keycode  31 =              r             R       dead_grave        asciitilde    Control_r
+keycode  32 =              s             S           ssharp        asciitilde    Control_s
+keycode  33 =              t             T       dead_acute        asciitilde    Control_t 	#        dead_acute  dead_doubleacute
+keycode  34 =              d             D   dead_diaeresis        asciitilde    Control_d
+keycode  35 =              h             H       asciitilde        asciitilde    Control_h 	#        dead_caron        asciitilde
+keycode  36 =              n             N           ntilde            Ntilde    Control_n
+keycode  37 =              e             E           eacute            Eacute    Control_e
+keycode  38 =              i             I           iacute            Iacute    Control_i
+keycode  39 =              o             O           oacute            Oacute    Control_o
+keycode  40 =     apostrophe      quotedbl           otilde            Otilde
+
+keycode  44 =              z             Z               ae                AE    Control_z
+keycode  45 =              x             X  dead_circumflex        asciitilde    Control_x
+keycode  46 =              c             C         ccedilla          Ccedilla    Control_c
+keycode  47 =              v             V               oe                OE    Control_v
+keycode  48 =              b             B       asciitilde        asciitilde    Control_b 	#        dead_breve        asciitilde
+keycode  49 =              k             K       asciitilde        asciitilde    Control_k      #    dead_abovering        asciitilde
+keycode  50 =              m             M       asciitilde        asciitilde    Control_m 	#       dead_macron        asciitilde
+keycode  51 =          comma          less     dead_cedilla        asciitilde
+keycode  52 =         period       greater       asciitilde        asciitilde           	#     dead_abovedot        asciitilde
+keycode  53 =          slash      question     questiondown        asciitilde    Delete
+                                                                             
+keycode  58 =      BackSpace     BackSpace        BackSpace         BackSpace
+keycode  86 =          minus    underscore       asciitilde        asciitilde 	 Control_underscore          #            endash            emdash
+keycode  57 =          space         space            space      nobreakspace    nul
+
+
+keycode   1 = Escape
+keycode  14 = Delete
+keycode  15 = Tab
+keycode  28 = Return
+        alt     keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  42 = Shift
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  97 = Control

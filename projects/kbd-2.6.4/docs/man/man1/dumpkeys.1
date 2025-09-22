@@ -1,0 +1,251 @@
+.\" @(#)loadkeys.1 1.0 93/09/1 RK
+.TH DUMPKEYS 1 "1 Sep 1993" "kbd"
+.SH NAME
+dumpkeys \- dump keyboard translation tables
+.SH SYNOPSIS
+.B dumpkeys
+[OPTIONS]
+.SH DESCRIPTION
+.IX "dumpkeys command" "" "\fLdumpkeys\fR command"
+.LP
+.B dumpkeys
+writes, to the standard output, the current contents of the keyboard
+driver's translation tables, in the format specified by
+.BR keymaps (5).
+.LP
+Using the various options, the format of the output can be controlled
+and also other information from the kernel and the programs
+.BR dumpkeys (1)
+and
+.BR loadkeys (1)
+can be obtained.
+.SH OPTIONS
+.TP
+.B \-h \-\-help
+Prints the program's version number and a short usage message to the
+program's standard error output and exits.
+.TP
+.B \-i \-\-short-info
+Prints some characteristics of the kernel's keyboard driver. The items
+shown are:
+.LP
+.RS
+Keycode range supported by the kernel
+.LP
+.RS
+This tells what values can be used after the
+.B keycode
+keyword in keytable files. See
+.BR keymaps (5)
+for more information and the syntax of these files.
+.RE
+.LP
+Number of actions bindable to a key
+.LP
+.RS
+This tells how many different actions a single key can output using
+various modifier keys. If the value is 16 for example, you can define up
+to 16 different actions to a key combined with modifiers. When the value
+is 16, the kernel probably knows about four modifier keys, which you can
+press in different combinations with the key to access all the bound
+actions.
+.RE
+.LP
+Ranges of action codes supported by the kernel
+.LP
+.RS
+This item contains a list of action code ranges in hexadecimal notation.
+These are the values that can be used in the right hand side of a key
+definition, ie. the
+.IR vv 's
+in a line
+.LP
+.RS
+.B keycode
+.I xx
+=
+.I vv vv vv vv
+.RE
+.LP
+(see
+.BR keymaps (5)
+for more information about the format of key definition lines).
+.BR dumpkeys (1)
+and
+.BR loadkeys (1)
+support a symbolic notation, which is preferable to the numeric one, as
+the action codes may vary from kernel to kernel while the symbolic names
+usually remain the same. However, the list of action code ranges can be
+used to determine, if the kernel actually supports all the symbols
+.BR loadkeys (1)
+knows, or are there maybe some actions supported by the kernel that
+have no symbolic name in your
+.BR loadkeys (1)
+program. To see this, you compare the range list with the action symbol
+list, see option
+.B --long-info
+below.
+.RE
+.LP
+Number of function keys supported by kernel
+.LP
+.RS
+This tells the number of action codes that can be used to output
+strings of characters. These action codes are traditionally bound to
+the various function and editing keys of the keyboard and are defined
+to send standard escape sequences. However, you can redefine these to
+send common command lines, email addresses or whatever you like.
+Especially if the number of this item is greater than the number of
+function and editing keys in your keyboard, you may have some "spare"
+action codes that you can bind to AltGr-letter combinations, for example,
+to send some useful strings. See
+.BR loadkeys (1)
+for more details.
+.RE
+.LP
+Function strings
+.LP
+.RS
+You can see you current function key definitions with the command
+.LP
+.RS
+.B dumpkeys --funcs-only
+.RE
+.LP
+.RE
+.RE
+.LP
+.TP
+.B \-l \-s \-\-long-info
+This option instructs
+.B dumpkeys
+to print a long information listing. The output is the same as with the
+.B --short-info
+appended with the list of action symbols supported by
+.BR loadkeys (1)
+and
+.BR dumpkeys (1),
+along with the symbols' numeric values.
+.LP
+.TP
+.B \-n \-\-numeric
+This option causes
+.B dumpkeys
+to by-pass the conversion of action code values to symbolic notation and
+to print the in hexadecimal format instead.
+.LP
+.TP
+.B \-f \-\-full-table
+This makes
+.B dumpkeys
+skip all the short-hand heuristics (see
+.BR keymaps (5))
+and output the key bindings in the canonical form. First a keymaps
+line describing the currently defined modifier combinations
+is printed. Then for each key a row with a column for each
+modifier combination is printed. For
+example, if the current keymap in use uses seven modifiers,
+every row will have seven action code columns. This format
+can be useful for example to programs that post-process the
+output of
+.BR dumpkeys .
+.LP
+.TP
+.BI \-S shape " " " " \-\-shape= shape
+Available shapes:
+.LP
+.RS
+.B 2
+default output.
+.RE
+.LP
+.RS
+.B 4
+one line for each keycode.
+.RE
+.LP
+.RS
+.B 8
+one line for each (modifier,keycode) pair.
+.RE
+.LP
+.RS
+.B 16
+one line for each keycode until 1st hole.
+.RE
+.LP
+.TP
+.B \-1 \-\-separate-lines
+This forces
+.B dumpkeys
+to write one line per (modifier,keycode) pair. It prefixes the word
+.I plain
+for plain keycodes.
+.LP
+.TP
+.B \-t \-\-funcs-only
+When this option is given,
+.B dumpkeys
+prints only the function key string definitions. Normally
+.B dumpkeys
+prints both the key bindings and the string definitions.
+.LP
+.TP
+.B \-k \-\-keys-only
+When this option is given,
+.B dumpkeys
+prints only the key bindings. Normally
+.B dumpkeys
+prints both the key bindings and the string definitions.
+.LP
+.TP
+.B \-d \-\-compose-only
+When this option is given,
+.B dumpkeys
+prints only the compose key combinations.
+This option is available only if your kernel has compose key support.
+.LP
+.TP
+.BI \-c charset " " " " \-\-charset= charset
+This instructs
+.B dumpkeys
+to interpret character code values according to the specified character
+set. This affects only the translation of character code values to
+symbolic names. Valid values for
+.I charset
+currently are
+.BR iso-8859-X ,
+Where X is a digit in 1-9.  If no
+.I charset
+is specified,
+.B iso-8859-1
+is used as a default.
+This option produces an output line `charset "iso-8859-X"', telling
+loadkeys how to interpret the keymap. (For example, "division" is
+0xf7 in iso-8859-1 but 0xba in iso-8859-8.)
+.LP
+.TP
+.BI \-C dev " " " " \-\-console= dev
+The affected console device can be specified using the
+.I -C
+(or
+.I --console
+) option. This option supports exactly one device name.
+.LP
+.TP
+.B \-v \-\-verbose
+Turn on verbose output.
+.LP
+.TP
+.B \-V \-\-version
+Prints version number and exits.
+.LP
+.SH FILES
+.TP
+.I @DATADIR@/keymaps
+The recommended directory for keytable files.
+.LP
+.SH "SEE ALSO"
+.BR loadkeys (1),
+.BR keymaps (5)
+

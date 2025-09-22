@@ -1,0 +1,31 @@
+.\" @(#)chvt.1 1.0 970126 aeb
+.TH CHVT 1 "26 January 1997" "kbd"
+.SH NAME
+chvt \- change foreground virtual terminal
+.SH SYNOPSIS
+.B chvt
+[\fI\,option\/\fR...]
+.I N
+.SH DESCRIPTION
+The command
+.B chvt
+.I N
+makes
+.I /dev/ttyN
+the foreground terminal.
+(The corresponding screen is created if it did not exist yet.
+To get rid of unused VTs,
+use
+.BR deallocvt (1).)
+The key combination
+.RI (Ctrl-)LeftAlt-F N
+(with
+.I N
+in the range 1-12) usually has a similar effect.
+.SH OPTIONS
+.TP
+.I "\-V, \-\-version"
+print program version and exit.
+.TP
+.I "\-h, \-\-help"
+show this text and exit.

@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Font-formats recognized by the Linux kbd package: CPI fonts</TITLE>
+ <LINK HREF="font-formats-4.html" REL=next>
+ <LINK HREF="font-formats-2.html" REL=previous>
+ <LINK HREF="font-formats.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="font-formats-4.html">Next</A>
+<A HREF="font-formats-2.html">Previous</A>
+<A HREF="font-formats.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="s3">3. CPI fonts</A></H2>
+
+<P>In the DOS world screen or printer fonts come in
+<I>Code Page Information</I> format. There are two versions:
+the MS-DOS/PC-DOS "FONT" format, and the DR-DOS/Novell DOS
+"DRFONT" compressed format.
+These <CODE>*.CPI</CODE> files may contain fonts for several
+code pages, and, given a code page, for several point sizes.
+MS-DOS files usually have 16x8, 14x8, 8x8 fonts, while
+DR-DOS files often have 6x8, 8x8, 14x8, 16x8 fonts (in this order).
+Printer .CPI files have only one font.
+<P>(One sometimes encounters entirely different <CODE>.cpi</CODE> files,
+namely Unix <CODE>.cpio</CODE> files moved to a DOS machine with 8.3 filenames.
+Such files are archives.)
+<P>The files in "FONT" format have the following layout.
+First a 23-byte header.
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    char id0;              /* 0: 0xff */
+    char id[7];            /* 1-7: "FONT   " */
+    char reserved[8];      /* 8-15: 0 */
+    short pnum;            /* 16-17: number of pointers: 1 */
+    char ptyp;             /* 18: type of pointers: 1 */
+    long fih_offset;       /* 19-22: file offset of FontInfoHeader: 0x17 */
+} FontFileHeader;      /* 0-22 */
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>(Files in "DRFONT compressed format" have 0x7f "DRFONT " in bytes 0-7.
+After this FontFileHeader they have an extended header
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    char num_fonts_per_codepage; /* 23: N=4 */
+    char font_height[N];         /* 24-27: height of each font */
+    long dfd_offset[N];          /* 28-43: file offsets of DisplayFontData */
+} DRDOSExtendedFontFileHeader;
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and consequently <CODE>fih_offset</CODE> will be 44 (0x2c) instead of 23 (0x17).)
+<P>Next a 2-byte header that tells how many code pages this file contains.
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    short num_codepages;
+} FontInfoHeader;      /* 23-24 */
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>Next the indicated number of code pages.
+Each code page has a header and font data. In some files all headers
+come first and then all font data. In other files headers and font data
+alternate, that is, data for one code page is kept together.
+The code page header (the offsets given are for the first occurrence):
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    short cpeh_size;       /* 25-26: size of this header: 28 */
+    long next_cpeh_offset; /* 27-30: offset of next header; 0 or -1 for last */
+    short device_type;     /* 31-32: 1: screen, 2: printer */
+    char device_name[8];   /* 33-40: e.g. "EGA     " */
+    short codepage;        /* 41-42: 0, 437, 737, 85[0257], 86[013569], ... */
+    char reserved[6];      /* 43-48: 0 */
+    long cpih_offset;      /* 49-52: pointer to CPInfoHeader or 0 */
+} CPEntryHeader;       /* 25-52 */
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>MS-DOS and PC-DOS sometimes have 26 instead of 28 for the <CODE>cpeh_size</CODE>
+field in printer font files; one even meets both 26 and 28 in the same file.
+Probably there is confusion over whether <CODE>cpih_offset</CODE>
+is short or long.
+When headers and fonts are interspersed, <CODE>next_cpeh_offset</CODE>
+will point past the font, regardless of whether more entries follow.
+When first all headers are given, <CODE>next_cpeh_offset</CODE> is zero
+in the last header.
+It happens that <CODE>next_cpeh_offset</CODE> does not point to the
+next header, but to the one after that, or that it is zero while
+still one header follows. In such cases <CODE>num_codepages</CODE>
+gives the correct number of headers. (In the cases where it is
+zero while still one header follows, the last header is a dummy
+one, for codepage 0 and with no associated font.)
+Early DR-DOS printer font files have 1 instead of 2 in <CODE>device_type</CODE>.
+Device names include "EGA     ", "LCD     " for screen, and
+"4201    ", "4208    ", "5202    ", "1050    ", "EPS     ", "PPDS    "
+for printer devices.
+<P>A code page font starts with a general header:
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    short version;         /* 53-54: 1: FONT, 2: DRFONT */
+    short num_fonts;       /* 55-56 */
+    short size;            /* 57-58: length of font data for each font */
+} CPInfoHeader;      /* 53-58 */
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>(For printer fonts <CODE>num_fonts</CODE> is 1 or 2, while only a single
+font follows. For screen fonts <CODE>num_fonts</CODE> is 1, 3 or 4.
+DRFONT files have in the <CODE>size</CODE> field the size (24) of the
+DRFONT header without the index table.)
+<P>And then for each font a header followed by the actual data.
+For screen fonts
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    char height;           /* 59: one of 6, 8, 14, 16 */
+    char width;            /* 60: 8 */
+    short reserved;        /* 61-62: 0 */
+    short num_chars;       /* 63-64: 256 */
+} ScreenFontHeader;    /* 59-64 */
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and for printer fonts
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+    short printer_type;    /* 59-60: 1=4201/1050/EPS, 2=5202/4208/PPDS */
+    short seqlength;       /* 61-62: length of escape sequences */
+} PrinterFontHeader;   /* 59-62 */
+</PRE>
+</CODE></BLOCKQUOTE>
+
+followed by two escape sequences of the indicated length
+to select the hardware codepage or the downloaded codepage.
+<P>However, in DRFONT files the CPInfoHeader is followed by
+the DRFONT header, consisting first of 4 ScreenFontHeaders,
+one for each point size, and then an index indicating where
+in the font bitmap the corresponding characters can be found.
+<BLOCKQUOTE><CODE>
+<PRE>
+struct {
+        struct ScreenFontHeader sfh[4];
+        short FontIndex[256];
+} DRFONTheader;
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The font index is some integer, in the range 0-400 or so,
+indicating where in the font this code position can be found.
+In this way the font data is separated from the code used.
+<P>
+<H2><A NAME="ss3.1">3.1 Linux use</A>
+</H2>
+
+<P>Linux does not accept <CODE>.CPI</CODE> files, but the <CODE>codepage</CODE>
+utility from the kbd package is willing to read <CODE>.CPI</CODE> files
+of "FONT" type, and output <CODE>.cp</CODE> files suitable for <CODE>setfont</CODE>.
+For example, the call <CODE>codepage -a iso.cpi</CODE> will create
+ten font files <CODE>850.cp</CODE>, <CODE>437.cp</CODE>, ..., <CODE>869.cp</CODE>
+each containing a single font of pointsize 16, and
+<CODE>codepage -a ega2.cpi</CODE> six font files
+<CODE>850.cp</CODE>, ..., <CODE>737.cp</CODE> each containing three fonts
+of pointsizes 8, 14, 16.
+<P>
+<HR>
+<A HREF="font-formats-4.html">Next</A>
+<A HREF="font-formats-2.html">Previous</A>
+<A HREF="font-formats.html#toc3">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,9 @@
+jrv@vanzandt.mv.com (Jim Van Zandt) writes:
+
+I have found that I can construct the definitions of
+the keysyms with the command
+
+dumpkeys --long-info | awk '/^0x0000/, /^$/ {
+        if(/^$/) exit;
+        printf("#define KS_%-22s %s\n", $2, $1);
+}' >keysyms.h

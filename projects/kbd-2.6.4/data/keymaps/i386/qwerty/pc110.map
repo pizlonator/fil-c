@@ -1,0 +1,18 @@
+# pc110.map
+# Japanese/English keyboard on IBM PC110 Palm Top
+# The strange japanese key next to '1' is mapped to ESC
+# Those on either side of the space bar are mapped to SPACE
+# The one next to the right ALT key doesn't register!
+# The yen symbol is mapped to backslash (for no good reason)
+# 4 Apr 1997 robin@acm.org
+
+include "jp106.map"
+
+keycode  13 = circumflex       underscore
+	control keycode  13 = Control_underscore
+	control shift keycode  13 = Control_underscore
+	alt     keycode  13 = Meta_asciitilde
+
+# Are these keyboards really different?
+# What scancode do these extra keys produce?
+# Info is welcome - aeb@cwi.nl

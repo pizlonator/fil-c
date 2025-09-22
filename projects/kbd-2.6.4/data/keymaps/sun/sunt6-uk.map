@@ -1,0 +1,248 @@
+# UK keyboard map for the Sun Type-6 keyboard with Euro
+# and Latin 1/2 compose sequences support
+#
+# Zdenek Brichacek <zdenek[dot]brichacek[at]seznam[dot]cz>
+#
+# AltGr+C = Cent
+# AltGr+E or AltGr+4 = Euro
+
+strings as usual
+
+keycode	1 = Escape
+keycode	2 = one	exclam
+    control shift keycode	2 = Hex_1
+keycode	3 = two	quotedbl	at
+    control shift keycode	3 = Hex_2
+keycode	4 = three	sterling	numbersign
+    control shift keycode	4 = Hex_3
+keycode	5 = four	dollar	currency
+    control shift keycode	5 = Hex_4
+keycode	6 = five	percent
+    control shift keycode	6 = Hex_5
+keycode	7 = six	asciicircum
+    control shift keycode	7 = Hex_6
+keycode	8 = seven	ampersand	braceleft
+    control shift keycode	8 = Hex_7
+keycode	9 = eight	asterisk	bracketleft
+    control shift keycode	9 = Hex_8
+keycode	10 = nine	parenleft	bracketright
+    control shift keycode	10 = Hex_9
+keycode	11 = zero	parenright	braceright
+    control shift keycode	11 = Hex_0
+
+keycode	16 = q
+keycode	17 = w
+keycode	18 = e
+    altgr keycode	18 = currency
+    control shift keycode	18 = Hex_E
+keycode	19 = r
+keycode	20 = t
+keycode	21 = y
+keycode	22 = u
+keycode	23 = i
+keycode	24 = o
+keycode	25 = p
+
+keycode	30 = a
+    control shift keycode	30 = Hex_A
+keycode	31 = s
+keycode	32 = d
+    control shift keycode	32 = Hex_D
+keycode	33 = f
+    control shift keycode	33 = Hex_F
+keycode	34 = g
+keycode	35 = h
+keycode	36 = j
+keycode	37 = k
+keycode	38 = l
+
+keycode	40 = apostrophe	at	quotedbl
+keycode	41 = grave	notsign	bar
+
+keycode	43 = numbersign	asciitilde
+keycode	44 = z
+keycode	45 = x
+keycode	46 = c
+    altgr	keycode	46 = cent
+    control shift keycode	46 = Hex_C
+keycode	47 = v
+keycode	48 = b
+    control shift keycode	48 = Hex_B
+keycode	49 = n
+keycode	50 = m
+
+keycode	86 = backslash	bar
+
+keycode	100 = AltGr
+
+# keys above standard keypad
+keycode	113 = 	# Mute
+keycode	114 = 	# VolumeDown
+keycode	115 = 	# VolumeUp
+keycode	116 = 	# Power
+
+keycode	125 = 	# LeftMeta
+keycode	126 = 	# RightMeta
+keycode	127 = Compose
+# "function" keys in first two columns on keyboard
+keycode	128 = 	# Stop
+keycode	129 = 	# Again
+keycode	130 = 	# Props
+keycode	131 = 	# Undo
+keycode	132 = 	# Front
+keycode	133 = 	# Copy
+keycode	134 = 	# Open
+keycode	135 = 	# Paste
+keycode	136 = 	# Find
+keycode	137 = 	# Cut
+keycode	138 = 	# Help
+
+
+# Compose sequences
+# This part is from sunt5-us-cz.map file created by Jakub Jelinek.
+# This should work for latin1 and latin2,
+# unfortunately some keys compose sequences had to be modified
+# a little bit, so that both latin1 and latin2 can be shared,
+# particularly " something has been replaced by : something
+# in latin1 composes.
+compose ',' 'A' to '¡'
+compose '`' 'A' to 'À'
+compose '\'' 'A' to 'Á'
+compose '^' 'A' to 'Â'
+compose 'v' 'A' to 'Ã'
+compose '~' 'A' to 'Ã'
+compose '"' 'A' to 'Ä'
+compose ':' 'A' to 'Ä'
+compose '0' 'A' to 'Å'
+compose 'A' 'A' to 'Å'
+compose 'O' 'A' to 'Å'
+compose ',' 'a' to '±'
+compose '`' 'a' to 'à'
+compose '\'' 'a' to 'á'
+compose '^' 'a' to 'â'
+compose 'v' 'a' to 'ã'
+compose '~' 'a' to 'ã'
+compose '"' 'a' to 'ä'
+compose ':' 'a' to 'ä'
+compose '0' 'a' to 'å'
+compose 'a' 'a' to 'å'
+compose 'o' 'a' to 'å'
+compose '\'' 'C' to 'Æ'
+compose ',' 'C' to 'Ç'
+compose '^' 'C' to 'È'
+compose 'v' 'C' to 'È'
+compose '\'' 'c' to 'æ'
+compose ',' 'c' to 'ç'
+compose '^' 'c' to 'è'
+compose 'v' 'c' to 'è'
+compose '^' 'D' to 'Ï'
+compose 'v' 'D' to 'Ï'
+compose '-' 'D' to 'Ð'
+compose '^' 'd' to 'ï'
+compose 'v' 'd' to 'ï'
+compose '-' 'd' to 'ð'
+compose 'A' 'E' to 'Æ'
+compose '`' 'E' to 'È'
+compose '\'' 'E' to 'É'
+compose ',' 'E' to 'Ê'
+compose '"' 'E' to 'Ë'
+compose '"' 'E' to 'Ë'
+compose '^' 'E' to 'Ì'
+compose 'v' 'E' to 'Ì'
+compose 'a' 'e' to 'æ'
+compose '`' 'e' to 'è'
+compose '\'' 'e' to 'é'
+compose ',' 'e' to 'ê'
+compose '"' 'e' to 'ë'
+compose ':' 'e' to 'ë'
+compose '^' 'e' to 'ì'
+compose 'v' 'e' to 'ì'
+compose 'T' 'H' to 'Þ'
+compose 't' 'h' to 'þ'
+compose '`' 'I' to 'Ì'
+compose '\'' 'I' to 'Í'
+compose '^' 'I' to 'Î'
+compose '"' 'I' to 'Ï'
+compose ':' 'I' to 'Ï'
+compose '`' 'i' to 'ì'
+compose '\'' 'i' to 'í'
+compose '^' 'i' to 'î'
+compose '"' 'i' to 'ï'
+compose ':' 'i' to 'ï'
+compose 'i' 'j' to 'ÿ'
+compose '/' 'L' to '£'
+compose '^' 'L' to '¥'
+compose '\'' 'L' to 'Å'
+compose '\'' 'l' to 'å'
+compose '/' 'l' to '³'
+compose '^' 'l' to 'µ'
+compose '\'' 'N' to 'Ñ'
+compose '~' 'N' to 'Ñ'
+compose '^' 'N' to 'Ò'
+compose 'v' 'N' to 'Ò'
+compose '\'' 'n' to 'ñ'
+compose '~' 'n' to 'ñ'
+compose '^' 'n' to 'ò'
+compose 'v' 'n' to 'ò'
+compose '`' 'O' to 'Ò'
+compose '\'' 'O' to 'Ó'
+compose '^' 'O' to 'Ô'
+compose '"' 'O' to 'Õ'
+compose '~' 'O' to 'Õ'
+compose ':' 'O' to 'Ö'
+compose '/' 'O' to 'Ø'
+compose '`' 'o' to 'ò'
+compose '\'' 'o' to 'ó'
+compose '^' 'o' to 'ô'
+compose '"' 'o' to 'õ'
+compose '~' 'o' to 'õ'
+compose ':' 'o' to 'ö'
+compose '/' 'o' to 'ø'
+compose '\'' 'R' to 'À'
+compose '^' 'R' to 'Ø'
+compose 'v' 'R' to 'Ø'
+compose '\'' 'r' to 'à'
+compose '^' 'r' to 'ø'
+compose 'v' 'r' to 'ø'
+compose '\'' 'S' to '¦'
+compose '^' 'S' to '©'
+compose 'v' 'S' to '©'
+compose ',' 'S' to 'ª'
+compose 'S' 'S' to 'ß'
+compose '\'' 's' to '¶'
+compose '^' 's' to '¹'
+compose 'v' 's' to '¹'
+compose ',' 's' to 'º'
+compose 's' 's' to 'ß'
+compose '^' 'T' to '«'
+compose 'v' 'T' to '«'
+compose '^' 't' to '»'
+compose 'v' 't' to '»'
+compose ',' 'T' to 'Þ'
+compose ',' 't' to 'þ'
+compose '^' 'U' to 'Ù'
+compose 'o' 'U' to 'Ù'
+compose '`' 'U' to 'Ù'
+compose '\'' 'U' to 'Ú'
+compose '"' 'U' to 'Û'
+compose ':' 'U' to 'Ü'
+compose '^' 'u' to 'ù'
+compose 'o' 'u' to 'ù'
+compose '`' 'u' to 'ù'
+compose '\'' 'u' to 'ú'
+compose '"' 'u' to 'û'
+compose ':' 'u' to 'ü'
+compose '\'' 'Y' to 'Ý'
+compose '\'' 'y' to 'ý'
+compose '"' 'y' to 'ÿ'
+compose ':' 'y' to 'ÿ'
+compose '\'' 'Z' to '¬'
+compose '^' 'Z' to '®'
+compose 'v' 'Z' to '®'
+compose '.' 'Z' to '¯'
+compose '\'' 'z' to '¼'
+compose '^' 'z' to '¾'
+compose 'v' 'z' to '¾'
+compose '.' 'z' to '¿'
+compose 's' 'z' to 'ß'
+compose 'e' '=' to '¤'

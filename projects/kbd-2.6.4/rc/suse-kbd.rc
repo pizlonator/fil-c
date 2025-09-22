@@ -1,0 +1,97 @@
+#! /bin/sh
+# Copyright (c) 1995-1998 S.u.S.E. GmbH Fuerth, Germany.
+#
+# Author:   Burchard Steinbild <bs@suse.de>
+#
+# /sbin/init.d/kbd
+#
+#   and symbolic its link
+#
+# /sbin/rckbd
+#
+
+. /etc/rc.config
+
+test -n "$KEYTABLE" -a "$KEYTABLE" != YAST_ASK || {
+    echo KEYTABLE is not set in /etc/rc.config.  Exit.
+    exit 0
+}
+
+test -x /usr/bin/find || {
+    echo $0: /usr/bin/find does not exist. Exit.
+    exit 1
+}
+
+test -d /usr/lib/kbd/keymaps || {
+    echo Directory /usr/lib/kbd/keymaps does not exit.  Exit.
+    exit 1
+}
+
+#
+# first search the wanted keytable.
+#
+MACHINE=`/bin/uname -m 2> /dev/null`
+case $MACHINE in
+  i?86)
+    KEY_PATH=/usr/lib/kbd/keymaps/i386
+  ;;
+  *)
+    KEY_PATH=/usr/lib/kbd/keymaps/$MACHINE
+  ;;
+esac
+
+FIND_PARAMS="-name $KEYTABLE -o -name $KEYTABLE.gz -o -name $KEYTABLE.map -o -name $KEYTABLE.map.gz"
+
+if test -e /$KEYTABLE ; then
+    KEYMAP=$KEYTABLE
+else
+    KEYMAP=`/usr/bin/find $KEY_PATH $FIND_PARAMS 2> /dev/null`
+fi
+
+test -z "$KEYMAP" && \
+    KEYMAP=`/usr/bin/find /usr/lib/kbd/keymaps $FIND_PARAMS`
+
+
+return=$rc_done
+case "$1" in
+    start|restart|reload)
+        if test -z "$KEYMAP" ; then
+            echo Can not find a keymap for $KEYTABLE.  Exit.
+            exit 1
+        else
+            if test ! -f "$KEYMAP" ; then
+                echo Found more than one keymap for $KEYTABLE:
+                for i in $KEYMAP ; do
+                    echo "      $i"
+                    KEYMAP=$i
+                done
+                echo Using $KEYMAP.
+                echo If you want another one, please add complete path to 
+                echo KEYTABLE in /etc/rc.config.
+            fi
+        fi
+	retmsg="`loadkeys $KEYMAP 2>&1`"
+	if test $? -eq 0 ; then
+	    echo $KEYMAP > /var/run/keymap
+	else
+	    return=$rc_failed
+	fi
+	echo -e "Loading keymap ${retmsg#Loading*/usr/lib/kbd/keymaps/*/}${return}"
+	;;
+    stop)
+	;;
+    check|status)
+        if test -f /var/run/keymap ; then
+            echo Keymap `cat /var/run/keymap` is loaded.
+        else
+            exit 1
+        fi
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|check}"
+	exit 1
+	;;
+esac
+
+test "$return" = "$rc_done" || exit 1
+exit 0

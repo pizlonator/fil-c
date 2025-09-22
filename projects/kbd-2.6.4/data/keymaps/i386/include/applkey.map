@@ -1,0 +1,18 @@
+# VT220 auxiliary keypad in application mode
+# Use 4 auxiliary strings.
+
+# Num Lock key
+keycode  69 = F21
+# Divide key
+keycode  98 = F22
+# Multiply key
+keycode  55 = F23
+# Subtract key
+keycode  74 = F24
+
+string F21 = "\033OP"
+string F22 = "\033OQ"
+string F23 = "\033OR"
+string F24 = "\033OS"
+
+# This is also what one gets after sending Esc = to the console.

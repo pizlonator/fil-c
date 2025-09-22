@@ -1,0 +1,11 @@
+#!/usr/bin/loadkeys
+# Make BackSpace key send a BS, and make Delete key send a DEL
+keycode  14 = BackSpace        Delete
+        control keycode  14 = Delete
+        alt     keycode  14 = Meta_Delete
+keycode 111 = Delete           Remove           Remove
+        control keycode 111 = Remove
+        shift   control keycode 111 = Remove
+        alt     keycode 111 = Remove
+        control alt     keycode 111 = Boot
+# Mark Lord

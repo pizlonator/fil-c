@@ -1,0 +1,584 @@
+#encoding "UTF-8"
+#
+# version 1.12.
+#     Lithuanian key-map for PC	 101/102 keyboard.
+# Comments & bug reports to: Ričardas Čepas <rch@WriteMe.Com>
+# http://www.angelfire.com/me/rch/ll.html
+#
+#     Usage:
+#	kbd_mode -a; loadkeys lt.l4.map; setfont lat4u* -m vga2iso
+# and press Ctrl+Alt+4
+#     Or:
+#	kbd_mode -u; loadkeys lt.map; setfont LatArCyrHeb* -m vga2iso
+# and press Ctrl+Alt+8
+#
+# `vga2iso' screen-map is  for non-Unicode mode to get proper ISO 8859-4
+# font mapping.
+#
+#
+#     BUGS: Caps-Lock doesn't work  properly for Unicode characters. Use
+# Shift-Lock (Control+Caps-Lock) instead if you really need that.
+#     Differences between this and  default Linux 2.0.29 key-map:
+#     AltGr is used  for Lithuanian mode and  AltGr+key combinations are
+# changed to Alt+Shift+key. Hex codes can  be entered using keypad while
+# Control+Shift or Alt+Shift is pressed. Keypad layout for hex digits:
+#		A  B  C	 D
+#		7  8  9	 E
+#		4  5  6	 E
+#		1  2  3	 F
+#		 00	 F
+#     Latin   <->  Lithuanian	modes  are   toggled  by   Alt+Enter  or
+# Alt+Control+Enter or	Alt+Caps-Lock. AltGr (right Alt) can  be used to
+# shift the mode. Key between left Control and Alt on German keyboard is
+# another AltGr.
+#     Keyboard layout (upper row of number keys) :
+#   1!Ą    2@Č    3#Ę    4$Ė   5 %Į    6^Š   7&Ų     8*Ū    9(„ 0)“ -_  +=Ž�
+# Aogonek Ccaron Eogonek Edot Iogonek Scaron Uogonek Umacron ,,  "  -_ Zcaron
+# All other keys are the same in both modes.
+#     Control+Alt+u   or  Control+Alt+8   generates  command   line  for
+# switching *current* (only) virtual console to Unicode mode.
+#     Control+Alt+1 - default ISO 8859-1 charset mapping and non-Unicode
+# mode.
+#     Control+Alt+4  - ISO  8859-4 charset  mapping if  you have  loaded
+# LatArCyrHeb* (or  lat4u-*) font  with `vga2iso' screen  map. Or lat4-*
+# font with `trivial' screen map.
+#
+#     Backspace key (above Return/Enter)  generates BackSpace (^H, octal
+# 010) and should delete a character before cursor. Delete key generates
+# Delete (^?, octal 177) and  should delete a character above cursor. If
+# that doesn't happen you should:
+# 1) Edit /etc/login.defs - ERASE_CHAR 010
+# or run `reset' - should set stty erase character to ^H
+# or run `stty erase ^H'
+#
+# 2) Add to /etc/profile commands:
+#	kbd_mode -u  if you want input characters in Unicode.
+#
+# 3) [You don't need 3) if you use linux+utf8 or linux+k terminfo entry.]
+#  Fix terminfo entry:  infocmp -L linux >/tmp/linux
+#  Edit file /tmp/linux	 It should have key_backspace and key_dc entries:
+#	key_backspace=^H, key_btab=\E[Z, key_dc=\177, 
+#	key_sdc=\E[3$, key_send=\E[8$, key_shome=\E[7$, key_sic=\E[2$,
+#	key_sleft=\E[d, key_sright=\E[c,
+#  Compile entry (as root):  tic /tmp/linux
+# 4) For bash and other programs using readline library create
+# ~/.inputrc or file pointed by INPUTRC variable, or /etc/inputrc
+# for newer versions:
+#	       set meta-flag On
+#	       set convert-meta Off
+#	       set input-meta On
+#	       set output-meta On
+#	       "\C-h": backward-delete-char
+#	       "\e\C-h": backward-kill-word
+#	       "\e[1~": beginning-of-line
+#	       "\e[H": beginning-of-line
+#	       "\e[7~": beginning-of-line
+#	       "\eOH": beginning-of-line
+#	       "\e[d": backward-word
+#	       "\C-?": delete-char
+#	       "\e[3~": delete-char
+#	       "\e[4~": end-of-line
+#	       "\e[F": end-of-line
+#	       "\e[8~": end-of-line
+#	       "\eOF": end-of-line
+#	       "\e[c": forward-word
+#	       "\e\C-?": kill-word
+# 5) Add to /etc/init.d/boot ( this startup file may be other for you system):
+#	 kbd_mode -u; loadkeys lt.map
+# or	 kbd_mode -a; loadkeys lt.l4.map
+# loadkeys affects all virtual consoles.
+#
+#      Control+BackSpace   is  Delete	and  Control+Delete   is  Remove
+# (VT100   key).   Most	  Meta_	 and   Control_Meta_  combinations   are
+# enabled.
+#      Control+Space gives nul, Shift+Control+Space - non-break space.
+#      Shift+Control+minus    gives    discretionary   (soft)    hyphen,
+# Shift+Alt+minus - quotation dash  (long) and Shift+Control+Alt+minus -
+# non-breaking hyphen.
+#      Control+Alt+double_quote  gives  double  turned  comma  quotation
+# mark,  Shift+Control+Alt+double_quote  gives  double  comma  quotation
+# mark.
+#      Shift+Function  gives functions  F11..22,  Control+F. -  F21..32,
+# Shift+Control+F. - F31..42. Shift+[Control+]Alt+F.  - virtual consoles
+# 13..24.
+#      Added  Back_Tab as  Shift+Tab,  shifted  arrows, Insert,  Delete,
+# Home, End as in rxvt terminal.
+#      Added F1 as Shift+Control+H (Emacs "feature").
+#
+#      See kbd.FAQ for more info on Linux key-map.
+
+keymaps 0-15
+#	       Plain  +Shift	      +Shift
+#			      +AltGr  +AltGr
+# Plain		 0	 1	 2	 3
+# +Control	 4	 5	 6	 7
+# +Alt		 8	 9	10	11
+# +Control+Alt	12	13	14	15
+
+#	AltGr = right Alt
+
+
+keycode   1 = Escape	       Escape		Escape		 Escape	   \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol \
+	      Meta_Escape      Meta_Escape	Meta_Escape	 Meta_Escape 
+
+#						+aogonek ą	 +Aogonek Ą
+keycode   2 = one	       exclam		U+0105		 U+0104	   \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol \
+	      Meta_one	       Meta_exclam	Meta_one	 Meta_exclam \
+	      F202	       F202		F202		 F202
+# ISO 8859-1 - default Linux map
+string F202 = "kbd_mode -a; echo -ne '\\033\\045@\\033(B'\015"
+
+#						+ccaron č	 +Ccaron Č
+keycode   3 = two	       at		U+010d		 U+010c	   \
+	      nul	       nul		nul		 nul	    \
+	      Meta_two	       Meta_at		Meta_two	 Meta_at     \
+	      nul	       nul		nul		 nul
+
+#						+eogonek ę	 +Eogonek Ę
+keycode   4 = three	       numbersign	U+0119		 U+0118	   \
+	      Escape	       Escape		Escape		 Escape	    \
+	      Meta_three       Meta_numbersign	Meta_three	 Meta_numbersign
+
+#						+eabovedot ė	 +Eabovedot Ė
+keycode   5 = four	       dollar		U+0117		 U+0116	   \
+    Control_backslash Control_backslash Control_backslash Control_backslash \
+	      Meta_four	       Meta_dollar	Meta_four	 Meta_dollar \
+	      F201	       F201		F201		 F201
+# ISO 8859-4 or other user map
+string F201 = "kbd_mode -a; echo -ne '\\033\\045@\\033(K'\015"
+
+#						+iogonek į	  +Iogonek Į
+keycode   6 = five	       percent		U+012f		 U+012e	    \
+	Control_bracketright Control_bracketright Control_bracketright \
+							Control_bracketright \
+	      Meta_five	       Meta_percent	Meta_five	 Meta_percent
+
+#						+scaron	 š	 +Scaron Š
+keycode   7 = six	       asciicircum	U+0161		 U+0160	    \
+	      Control_asciicircum Control_asciicircum Control_asciicircum \
+							 Control_asciicircum \
+	      Meta_six	       Meta_asciicircum Meta_six    Meta_asciicircum \
+ Meta_Control_asciicircum Meta_Control_asciicircum Meta_Control_asciicircum \
+						       Meta_Control_asciicircum
+
+#						+uogonek ų	 +Uogonek Ų
+keycode   8 = seven	       ampersand	U+0173		 U+0172	   \
+	      Control_underscore Control_underscore Control_underscore \
+							Control_underscore  \
+	      Meta_seven       Meta_ampersand	Meta_seven	 Meta_ampersand
+
+#						+umacron ū	 +Umacron Ū	 
+keycode   9 = eight	       asterisk		U+016b		 U+016a	 \
+	      Delete	       Delete		Delete		 Delete	  \
+	      Meta_eight       Meta_asterisk	Meta_eight   Meta_asterisk \
+	      F200	       F200	        F200	         F200
+# UTF-8
+string F200 = "kbd_mode -u; echo -ne '\\033\\045G\\033(K'\015" 
+
+
+# 201E    not available in ISO 8859-4 low_double_comma_quotation_mark „
+keycode  10 = nine	       parenleft	U+201e		 parenleft \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol \
+	      Meta_nine	       Meta_parenleft	Meta_nine	 Meta_parenleft
+
+# 201C    not available in ISO 8859-4 double_turned_comma_quotation_mark “
+keycode  11 = zero	       parenright	U+201c		 parenright \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol  \
+	      Meta_zero	       Meta_parenright	Meta_zero	 Meta_parenright
+
+# 00AD    soft hyphen = discretionary hyphen
+# 2015    horizontal bar = quotation dash * long dash introducing quoted text
+# 2011    non-breaking hyphen
+keycode  12 = minus	       underscore	minus		 underscore  \
+	      Control_underscore U+00ad		Control_underscore U+00ad \
+	      Meta_minus       U+2015		Meta_minus	 U+2015 \
+	      Meta_Control_underscore U+2011	Meta_Control_underscore U+2011
+
+#						+zcaron ž	 +Zcaron  Ž
+keycode  13 = equal	       plus		U+017e		 U+017d	    \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol  \
+	      Meta_equal       Meta_plus	Meta_equal	 Meta_plus 
+
+#	edit this if you want the key above <Enter> to delete symbols above
+# cursor, not before.
+keycode  14 = \
+	      BackSpace	       BackSpace	BackSpace	 BackSpace  \
+	      Delete	       Delete		Delete		 Delete	     \
+	      Meta_BackSpace   Meta_BackSpace	Meta_BackSpace Meta_BackSpace \
+	      Meta_Delete      Meta_Delete	Meta_Delete	 Meta_Delete  
+
+string F215 = "\033[Z"
+keycode  15 = Tab	       F215		Tab		 F215	   \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol \
+	      Meta_Tab	       Meta_Tab		Meta_Tab	 Meta_Tab  
+
+# Single characters are defined by default.
+keycode  16 = +q
+keycode  17 = +w
+keycode  18 = +e
+keycode  19 = +r
+keycode  20 = +t
+keycode  21 = +y
+keycode  22 = +u
+	      control  alt     keycode  22 = F200
+  shift	      control  alt     keycode  22 = F200
+	altgr control  alt     keycode  22 = F200
+  shift altgr control  alt     keycode  22 = F200
+# UTF-8
+#string F200 = "kbd_mode -u; echo -ne '\\033\\045G\\033(K'\015" 
+
+keycode  23 = +i
+keycode  24 = +o
+keycode  25 = +p
+keycode  26 = bracketleft      braceleft       bracketleft	braceleft  \
+	      Escape	       Escape	       Escape		Escape	    \
+	      Meta_bracketleft Meta_braceleft  Meta_bracketleft Meta_braceleft
+
+keycode  27 = bracketright     braceright      bracketright	braceright \
+	      Control_bracketright Control_bracketright \
+				  Control_bracketright Control_bracketright \
+	 Meta_bracketright Meta_braceright Meta_bracketright Meta_braceright \
+	      Meta_Control_bracketright Meta_Control_bracketright \
+			   Meta_Control_bracketright Meta_Control_bracketright
+
+keycode  28 = Return	       Return		Return		Return	  \
+	      Return	       Return		Return		Return	   \
+	      AltGr_Lock       AltGr_Lock	AltGr_Lock	AltGr_Lock  \
+	      AltGr_Lock       AltGr_Lock	AltGr_Lock	AltGr_Lock
+
+keycode  29 = Control
+keycode  30 = +a
+keycode  31 = +s
+keycode  32 = +d
+keycode  33 = +f
+keycode  34 = +g
+keycode  35 = +h
+	shift control   keycode  35 = F1
+	shift AltGr control   keycode  35 = F1
+
+keycode  36 = +j
+keycode  37 = +k
+keycode  38 = +l
+keycode  39 = semicolon	       colon	       semicolon	colon	  \
+	      VoidSymbol       VoidSymbol      VoidSymbol	VoidSymbol \
+	      Meta_semicolon   Meta_colon      Meta_semicolon	Meta_colon
+
+# 201C    left double quotation mark = double turned comma quotation mark “
+# 201D    right double quotation mark = double comma quotation mark ”
+keycode  40 = apostrophe       quotedbl	       apostrophe	quotedbl  \
+	      Control_g	       Control_g       Control_g	Control_g  \
+	      Meta_apostrophe  Meta_quotedbl   Meta_apostrophe	Meta_quotedbl \
+	      U+201C	       U+201D	       U+201C	        U+201D
+
+keycode  41 = grave	       asciitilde      grave		asciitilde \
+	      nul	       nul	       nul		nul	    \
+	      Meta_grave       Meta_asciitilde Meta_grave     Meta_asciitilde
+
+keycode  42 = Shift
+
+keycode  43 = backslash	       bar	       backslash	bar \
+      Control_backslash Control_backslash Control_backslash Control_backslash \
+	      Meta_backslash   Meta_bar	       Meta_backslash	Meta_bar \
+	      Meta_Control_backslash Meta_Control_backslash \
+				 Meta_Control_backslash Meta_Control_backslash
+keycode  44 = +z
+keycode  45 = +x
+keycode  46 = +c
+keycode  47 = +v
+keycode  48 = +b
+keycode  49 = +n
+keycode  50 = +m
+keycode  51 = comma	       less		comma		 less	   \
+	      VoidSymbol       VoidSymbol	VoidSymbol	 VoidSymbol \
+	      Meta_comma       Meta_less	Meta_comma	 Meta_less
+
+keycode  52 = period	       greater		period		 greater    \
+	      Compose	       Compose		Compose		 Compose     \
+	      Meta_period      Meta_greater	Meta_period	 Meta_greater
+
+keycode  53 = slash	       question		slash		 question    \
+	      Delete	       Delete		Delete		 Delete	      \
+	      Meta_slash       Meta_question	Meta_slash	 Meta_question
+
+keycode  54 = Shift	      
+
+keycode  55 = KP_Multiply      KP_Multiply	KP_Multiply	 KP_Multiply \
+	      KP_Multiply      Hex_C		KP_Multiply	 Hex_C	     \
+	      KP_Multiply      Hex_C		KP_Multiply	 Hex_C	      \
+	      KP_Multiply      KP_Multiply	KP_Multiply	 KP_Multiply
+
+keycode  56 = Alt
+
+#			       0xA0 no-break space
+keycode  57 = space	       space		space		 space	     \
+	      nul	       U+00a0		nul		 U+00a0	      \
+	      Meta_space       Meta_space	Meta_space	 Meta_space    \
+	      VoidSymbol       U+00a0		VoidSymbol	 U+00a0
+
+keycode  58 = Caps_Lock	       Caps_Lock	Caps_Lock	 Caps_Lock \
+	      Shift_Lock       Shift_Lock	Shift_Lock	 Shift_Lock \
+	      AltGr_Lock       AltGr_Lock	AltGr_Lock	 AltGr_Lock  \
+	      Caps_Lock	       Caps_Lock	Caps_Lock	 Caps_Lock
+
+keycode  59 = F1	       F11		F1		 F11	  \
+	      F21	       F31		F21		 F31	   \
+	      Console_1	       Console_13	Console_1	 Console_13 \
+	      Console_1	       Console_13	Console_1	 Console_13
+keycode  60 = F2	       F12		F2		 F12	  \
+	      F22	       F32		F22		 F32	   \
+	      Console_2	       Console_14	Console_2	 Console_14 \
+	      Console_2	       Console_14	Console_2	 Console_14
+keycode  61 = F3	       F13		F3		 F13	  \
+	      F23	       F33		F23		 F33	   \
+	      Console_3	       Console_15	Console_3	 Console_15 \
+	      Console_3	       Console_15	Console_3	 Console_15
+keycode  62 = F4	       F14		F4		 F14	  \
+	      F24	       F34		F24		 F34	   \
+	      Console_4	       Console_16	Console_4	 Console_16 \
+	      Console_4	       Console_16	Console_4	 Console_16
+keycode  63 = F5	       F15		F5		 F15	  \
+	      F25	       F35		F25		 F35	   \
+	      Console_5	       Console_17	Console_5	 Console_17 \
+	      Console_5	       Console_17	Console_5	 Console_17
+keycode  64 = F6	       F16		F6		 F16	  \
+	      F26	       F36		F26		 F36	   \
+	      Console_6	       Console_18	Console_6	 Console_18 \
+	      Console_6	       Console_18	Console_6	 Console_18
+keycode  65 = F7	       F17		F7		 F17	  \
+	      F27	       F37		F27		 F37	   \
+	      Console_7	       Console_19	Console_7	 Console_19 \
+	      Console_7	       Console_19	Console_7	 Console_19
+keycode  66 = F8	       F18		F8		 F18	  \
+	      F28	       F38		F28		 F38	   \
+	      Console_8	       Console_20	Console_8	 Console_20 \
+	      Console_8	       Console_20	Console_8	 Console_20
+keycode  67 = F9	       F19		F9		 F19	  \
+	      F29	       F39		F29		 F39	   \
+	      Console_9	       Console_21	Console_9	 Console_21 \
+	      Console_9	       Console_21	Console_9	 Console_21
+keycode  68 = F10	       F20		F10		 F20	  \
+	      F30	       F40		F30		 F40	   \
+	      Console_10       Console_22	Console_10	 Console_22 \
+	      Console_10       Console_22	Console_10	 Console_22
+keycode  69 = Num_Lock	       Bare_Num_Lock	Num_Lock	 Bare_Num_Lock \
+	      Num_Lock	       Hex_A		Num_Lock	 Hex_A	    \
+	      Num_Lock	       Hex_A		Num_Lock	 Hex_A	     \
+	      Num_Lock	       Num_Lock		Num_Lock	 Num_Lock
+keycode  70 = Scroll_Lock      Show_Memory	Scroll_Lock	 Show_Memory \
+	      Show_State       VoidSymbol	Show_State	 VoidSymbol   \
+	      Scroll_Lock      Show_Registers	Scroll_Lock	 Show_Registers
+keycode  71 = KP_7	       KP_7		KP_7		 KP_7  \
+	      KP_7	       Hex_7		KP_7		 Hex_7	\
+	      Ascii_7	       Hex_7		Ascii_7		 Hex_7	 \
+	      KP_7	       KP_7		KP_7		 KP_7
+keycode  72 = KP_8	       KP_8		KP_8		 KP_8  \
+	      KP_8	       Hex_8		KP_8		 Hex_8	\
+	      Ascii_8	       Hex_8		Ascii_8		 Hex_8	 \
+	      KP_8	       KP_8		KP_8		 KP_8
+keycode  73 = KP_9	       KP_9		KP_9		 KP_9  \
+	      KP_9	       Hex_9		KP_9		 Hex_9	\
+	      Ascii_9	       Hex_9		Ascii_9		 Hex_9	 \
+	      KP_9	       KP_9		KP_9		 KP_9
+keycode  74 = KP_Subtract      KP_Subtract	KP_Subtract	 KP_Subtract \
+	      KP_Subtract      Hex_D		KP_Subtract	 Hex_D	     \
+	      KP_Subtract      Hex_D		KP_Subtract	 Hex_D	      \
+	      KP_Subtract      KP_Subtract	KP_Subtract	 KP_Subtract
+keycode  75 = KP_4	       KP_4		KP_4		 KP_4  \
+	      KP_4	       Hex_4		KP_4		 Hex_4	\
+	      Ascii_4	       Hex_4		Ascii_4		 Hex_4	 \
+	      KP_4	       KP_4		KP_4		 KP_4
+keycode  76 = KP_5	       KP_5		KP_5		 KP_5  \
+	      KP_5	       Hex_5		KP_5		 Hex_5	\
+	      Ascii_5	       Hex_5		Ascii_5		 Hex_5	 \
+	      KP_5	       KP_5		KP_5		 KP_5
+keycode  77 = KP_6	       KP_6		KP_6		 KP_6  \
+	      KP_6	       Hex_6		KP_6		 Hex_6	\
+	      Ascii_6	       Hex_6		Ascii_6		 Hex_6	 \
+	      KP_6	       KP_6		KP_6		 KP_6
+keycode  78 = KP_Add	       KP_Add		KP_Add		 KP_Add \
+	      KP_Add	       Hex_E		KP_Add		 Hex_E	 \
+	      KP_Add	       Hex_E		KP_Add		 Hex_E	  \
+	      KP_Add	       KP_Add		KP_Add		 KP_Add
+keycode  79 = KP_1	       KP_1		KP_1		 KP_1  \
+	      KP_1	       Hex_1		KP_1		 Hex_1	\
+	      Ascii_1	       Hex_1		Ascii_1		 Hex_1	 \
+	      KP_1	       KP_1		KP_1		 KP_1
+keycode  80 = KP_2	       KP_2		KP_2		 KP_2  \
+	      KP_2	       Hex_2		KP_2		 Hex_2	\
+	      Ascii_2	       Hex_2		Ascii_2		 Hex_2	 \
+	      KP_2	       KP_2		KP_2		 KP_2
+keycode  81 = KP_3	       KP_3		KP_3		 KP_3  \
+	      KP_3	       Hex_3		KP_3		 Hex_3	\
+	      Ascii_3	       Hex_3		Ascii_3		 Hex_3	 \
+	      KP_3	       KP_3		KP_3		 KP_3
+keycode  82 = KP_0	       KP_0		KP_0		 KP_0  \
+	      KP_0	       Hex_0		KP_0		 Hex_0	\
+	      Ascii_0	       Hex_0		Ascii_0		 Hex_0	 \
+	      KP_0	       KP_0		KP_0		 KP_0
+keycode  83 = KP_Period
+	control alt	keycode  83 = Boot	      
+	altgr control	alt	keycode  83 = Boot	      
+
+#	 Alt + print-screen
+keycode  84 = Last_Console
+keycode  85 =
+#keycode  86 = less		greater		 bar		 
+#	 alt	 keycode  86 = Meta_less       
+
+# On German keyboards it is between left control and left alt keys:
+keycode  86 = AltGr
+
+keycode  87 = F11	       F21		F11		 F21	  \
+	      F31	       F41		F31		 F41	   \
+	      Console_11       Console_23	Console_11	 Console_23 \
+	      Console_11       Console_23	Console_11	 Console_23
+keycode  88 = F12	       F22		F12		 F22	  \
+	      F32	       F42		F32		 F42	   \
+	      Console_12       Console_24	Console_12	 Console_24 \
+	      Console_12       Console_24	Console_12	 Console_24
+keycode  89 =
+keycode  90 =
+keycode  91 =
+keycode  92 =
+keycode  93 =
+keycode  94 =
+keycode  95 =
+keycode  96 = KP_Enter	       KP_Enter		KP_Enter	 KP_Enter \
+	      KP_Enter	       Hex_F		KP_Enter	 Hex_F	   \
+	      AltGr_Lock       Hex_F		AltGr_Lock	 Hex_F	    \
+	      AltGr_Lock       AltGr_Lock	AltGr_Lock	 AltGr_Lock
+
+keycode  97 = Control
+
+keycode  98 = KP_Divide	       KP_Divide	KP_Divide	 KP_Divide \
+	      KP_Divide	       Hex_B		KP_Divide	 Hex_B	    \
+	      KP_Divide	       Hex_B		KP_Divide	 Hex_B	     \
+	      KP_Divide	       KP_Divide	KP_Divide	 KP_Divide
+
+keycode  99 = VoidSymbol	 # 99=Print-Screen
+	control keycode  99 = Control_backslash
+	alt     keycode  99 = Control_backslash
+keycode 100 = AltGr
+keycode 101 = Break #	101=Control-Pause
+string F102 = "\033[7$"
+keycode 102 = Find  #	=Home
+	shift	      keycode 102 = F102
+	shift AltGr   keycode 102 = F102
+string F103 = "\033[a"
+keycode 103 = Up
+	shift	      keycode 103 = F103
+	shift AltGr   keycode 103 = F103
+	alt	      keycode 103 = Spawn_Console   
+	AltGr alt     keycode 103 = Spawn_Console   
+	shift alt	    keycode 103 = Spawn_Console	  
+	shift AltGr alt	    keycode 103 = Spawn_Console	  
+keycode 104 = Prior #	=PageUp
+	shift	      keycode 104 = Scroll_Backward
+	AltGr shift   keycode 104 = Scroll_Backward
+string F105 = "\033[d"
+keycode 105 =	Left		F105		Left		F105 \
+		Left		F105		Left		F105 \
+		Decr_Console	Decr_Console	Decr_Console	Decr_Console \
+		Decr_Console	Decr_Console	Decr_Console	Decr_Console
+string F106 = "\033[c"
+keycode 106 =	Right		F106		Right		F106 \
+		Right		F106		Right		F106 \
+		Incr_Console	Incr_Console	Incr_Console	Incr_Console \
+		Incr_Console	Incr_Console	Incr_Console	Incr_Console
+string F107 = "\033[8$"
+keycode 107 = Select   # =End
+	shift	      keycode 107 = F107
+	shift AltGr   keycode 107 = F107
+string F108 = "\033[b"
+keycode 108 = Down
+	shift	      keycode 108 = F108
+	shift AltGr   keycode 108 = F108
+keycode 109 = Next  #	 =PageDown
+	shift	      keycode 109 = Scroll_Forward
+	AltGr shift   keycode 109 = Scroll_Forward
+string F110 = "\033[2$"
+keycode 110 = Insert
+	shift	      keycode 110 = F110
+	shift AltGr   keycode 110 = F110
+
+# Edit this if you want strict VT100 emulation.
+string F111 = "\033[3$"
+keycode 111 = Delete	       F111		Delete		 F111	   \
+	      Remove	       Remove		Remove		 Remove	    \
+	      Meta_Delete      Meta_Delete	Meta_Delete	 Meta_Delete \
+	      Boot	       Boot		Boot		 Boot
+
+# My PC 102 keyboard seems don't have 112-118. 
+keycode 112 = Macro
+keycode 113 = F13
+keycode 114 = F14
+keycode 115 = Help
+keycode 116 = Do
+keycode 117 = F17
+keycode 118 = KP_MinPlus
+
+keycode 119 = Pause
+keycode 120 =
+keycode 121 =
+keycode 122 =
+keycode 123 =
+keycode 124 =
+keycode 125 =
+keycode 126 =
+keycode 127 =
+string F1 = "\033[[A"
+string F2 = "\033[[B"
+string F3 = "\033[[C"
+string F4 = "\033[[D"
+string F5 = "\033[[E"
+string F6 = "\033[17~"
+string F7 = "\033[18~"
+string F8 = "\033[19~"
+string F9 = "\033[20~"
+string F10 = "\033[21~"
+string F11 = "\033[23~"
+string F12 = "\033[24~"
+string F13 = "\033[25~"
+string F14 = "\033[26~"
+string F15 = "\033[28~"
+string F16 = "\033[29~"
+string F17 = "\033[31~"
+string F18 = "\033[32~"
+string F19 = "\033[33~"
+string F20 = "\033[34~"
+string F21 = "\033[35~"
+string F22 = "\033[36~"
+string F23 = "\033[37~"
+string F24 = "\033[38~"
+string F25 = "\033[39~"
+string F26 = "\033[40~"
+string F27 = "\033[41~"
+string F28 = "\033[42~"
+string F29 = "\033[43~"
+string F30 = "\033[44~"
+string F31 = "\033[45~"
+string F32 = "\033[46~"
+string F33 = "\033[47~"
+string F34 = "\033[48~"
+string F35 = "\033[49~"
+string F36 = "\033[50~"
+string F37 = "\033[51~"
+string F38 = "\033[52~"
+string F39 = "\033[53~"
+string F40 = "\033[54~"
+string F41 = "\033[55~"
+string F42 = "\033[56~"
+string Find = "\033[1~"
+string Insert = "\033[2~"
+string Remove = "\033[3~"
+string Select = "\033[4~"
+string Prior = "\033[5~"
+string Next = "\033[6~"
+string Macro = "\033[M"
+string Pause = "\033[P"
+
+#   ISO-8859-1 characters - don't work in Unicode mode as of
+# loadkeys V.89 and Linux 2.0.29. Use Control+Alt+1 to see them.
+compose as usual for "iso-8859-1"

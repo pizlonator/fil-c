@@ -1,0 +1,22 @@
+.\" @(#)psfgettable.1
+.TH PSFGETTABLE 1 "25 Oct 1994" "kbd"
+.SH NAME
+psfgettable \- extract the embedded Unicode character table from a console font
+.SH SYNOPSIS
+.B psfgettable
+.I fontfile
+.RI [ outfile ]
+.SH DESCRIPTION
+.IX "psfgettable command" "" "\fLpsfgettable\fR command"  
+.LP
+.B psfgettable
+extracts the embedded Unicode character table from a .psf format
+console font into a human readable ASCII file of the format used by
+.BR psfaddtable (1).
+If the font file name is a single dash (\-), the font is read from
+standard input.
+.SH "SEE ALSO"
+.BR setfont (8),
+.BR psfaddtable (1),
+.BR psfstriptable (1),
+.BR psfxtable (1)

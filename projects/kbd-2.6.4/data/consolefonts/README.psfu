@@ -1,0 +1,9 @@
+The .psfu files have a built-in Unicode mapping,
+the .psf files don't.
+
+If you load a font (with setfont) without built-in
+mapping, then you'll have to provide one separately
+on the setfont command line.
+
+Eventually we expect that all fonts will have built-in Unicode mappings,
+and the .psfu files will be renamed .psf again.

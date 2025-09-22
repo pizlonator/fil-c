@@ -1,0 +1,178 @@
+AT_BANNER([libkeymap unit tests])
+
+AT_SETUP([test 01])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test01], [0])
+AT_CLEANUP
+
+AT_SETUP([test 02])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test02], [0])
+AT_CLEANUP
+
+AT_SETUP([test 03])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test03], [0])
+AT_CLEANUP
+
+AT_SETUP([test 04])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test04], [0])
+AT_CLEANUP
+
+AT_SETUP([test 05])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test05], [0])
+AT_CLEANUP
+
+AT_SETUP([test 06])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test06], [0])
+AT_CLEANUP
+
+AT_SETUP([test 07])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test07], [0])
+AT_CLEANUP
+
+AT_SETUP([test 08])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test08], [0])
+AT_CLEANUP
+
+AT_SETUP([test 09])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test09], [0])
+AT_CLEANUP
+
+AT_SETUP([test 10])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test10], [0])
+AT_CLEANUP
+
+AT_SETUP([test 11])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test11], [0])
+AT_CLEANUP
+
+AT_SETUP([test 12])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test12], [0])
+AT_CLEANUP
+
+AT_SETUP([test 13])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test13], [0])
+AT_CLEANUP
+
+AT_SETUP([test 14])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test14], [0])
+AT_CLEANUP
+
+AT_SETUP([test 15])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test15], [0])
+AT_CLEANUP
+
+AT_SETUP([test 16])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test16], [0])
+AT_CLEANUP
+
+AT_SETUP([test 17])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test17], [0])
+AT_CLEANUP
+
+AT_SETUP([test 18])
+AT_KEYWORDS([libkeymap unittest])
+AT_CHECK([$abs_builddir/libkeymap/libkeymap-test18], [0])
+AT_CLEANUP
+
+AT_SETUP([test 19 (alt-is-meta)])
+AT_KEYWORDS([libkeymap unittest])
+cp -f -- \
+	"$abs_srcdir/data/alt-is-meta/alt-is-meta.output" \
+	expout
+AT_CHECK([$abs_builddir/helpers/libkeymap-showmaps $abs_srcdir/data/alt-is-meta/alt-is-meta.map],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([test 20 (bkeymap)])
+AT_KEYWORDS([libkeymap unittest])
+AT_SKIP_IF([ test "$(arch)" != "x86_64" ])
+cp -f -- \
+	"$abs_srcdir/data/bkeymap-2.0.4/defkeymap.map.bin" \
+	expout
+AT_CHECK([$abs_builddir/helpers/libkeymap-bkeymap $abs_srcdir/../data/keymaps/i386/qwerty/defkeymap.map],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([test 21 (mktable)])
+AT_KEYWORDS([libkeymap unittest])
+cp -f -- \
+	"$abs_srcdir/data/dumpkeys-mktable/defkeymap.c" \
+	expout
+AT_CHECK([$abs_builddir/helpers/libkeymap-mktable $abs_srcdir/../data/keymaps/i386/qwerty/defkeymap.map],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([test 22 (fulltable numeric=1 ts=FULL_TABLE)])
+AT_KEYWORDS([libkeymap unittest])
+cp -f -- \
+	"$abs_srcdir/data/dumpkeys-fulltable/ruwin_cplk-UTF-8.map" \
+	expout
+AT_CHECK([$abs_builddir/helpers/libkeymap-dumpkeys $abs_srcdir/data/dumpkeys-fulltable/ruwin_cplk-UTF-8.map FULL_TABLE TRUE],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([test 23 (fulltable numeric=0 ts=DEFAULT)])
+AT_KEYWORDS([libkeymap unittest])
+cp -f -- \
+	"$abs_srcdir/data/dumpkeys-fulltable/qwerty-layout.map" \
+	expout
+AT_CHECK([$abs_builddir/helpers/libkeymap-dumpkeys $abs_srcdir/data/dumpkeys-fulltable/qwerty-layout.map DEFAULT FALSE],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([test 24 (fulltable numeric=0 ts=SEPARATE_LINES)])
+AT_KEYWORDS([libkeymap unittest])
+sed -n \
+	-e 's/#\(keymaps[[:space:]]\+\)/\1/p' \
+	"$abs_srcdir/data/dumpkeys-fulltable/ua-ws.map" > expout
+AT_CHECK([$abs_builddir/helpers/libkeymap-dumpkeys $abs_srcdir/data/dumpkeys-fulltable/ua-ws.map SEPARATE_LINES FALSE |
+	grep '^keymaps '
+],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([binary keymap (us.map)])
+AT_KEYWORDS([libkeymap unittest])
+AT_SKIP_IF([ test "$(arch)" != "x86_64" ])
+cp -f -- \
+	"$abs_srcdir/data/bkeymap-2.0.4/us.map.bin" \
+	expout
+AT_CHECK([$abs_top_builddir/src/loadkeys -b "$abs_srcdir/data/keymaps/i386/qwerty/us.map"],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([binary keymap (pt-latin9.map)])
+AT_KEYWORDS([libkeymap unittest])
+AT_SKIP_IF([ test "$(arch)" != "x86_64" ])
+cp -f -- \
+	"$abs_srcdir/data/bkeymap-2.0.4/pt-latin9.map.bin" \
+	expout
+AT_CHECK([$abs_top_builddir/src/loadkeys -b "$abs_srcdir/data/keymaps/i386/qwerty/pt-latin9.map"],
+	[0], [expout])
+AT_CLEANUP
+
+AT_SETUP([binary keymap (cz.map)])
+AT_KEYWORDS([libkeymap unittest])
+AT_SKIP_IF([ test "$(arch)" != "x86_64" ])
+cp -f -- \
+	"$abs_srcdir/data/bkeymap-2.0.4/cz.map.bin" \
+	expout
+AT_CHECK([$abs_top_builddir/src/loadkeys -b "$abs_srcdir/data/keymaps/i386/qwerty/cz.map"],
+	[0], [expout])
+AT_CLEANUP

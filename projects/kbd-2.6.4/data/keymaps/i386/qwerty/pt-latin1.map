@@ -1,0 +1,75 @@
+# Derived from pt.map by lacyp@unicorn.it.wsu.edu
+# This is good for my `Tatung' keyboard - aeb, 970222.
+#
+# With fixes for keycode 43 from pmmm@camoes.rnl.ist.utl.pt, 980626.
+# With fixes for keycodes 27 and 43 from Francisco Miguel Pedroso Honório Colaço
+# (fcolaco@wolf.fis.uc.pt).
+#
+charset "iso-8859-1"
+keymaps 0-2,4,6,8,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+include "euro2.map"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape
+keycode   2 = one              exclam
+keycode   3 = two              quotedbl         at
+	control keycode   3 = nul
+keycode   4 = three            numbersign       sterling
+	control keycode   4 = Escape
+keycode   5 = four             dollar           section
+	control keycode   5 = Control_backslash
+keycode   6 = five             percent
+	control	keycode   6 = Control_bracketright
+keycode   7 = six              ampersand
+	control	keycode   7 = Control_asciicircum
+keycode   8 = seven            slash            braceleft
+	control keycode   8 = Control_underscore
+keycode   9 = eight            parenleft        bracketleft
+	control keycode   9 = Delete
+keycode  10 = nine             parenright       bracketright
+keycode  11 = zero             equal            braceright
+keycode  12 = apostrophe       question         backslash
+	control keycode  12 = Control_underscore
+	alt	keycode  12 = Meta_minus
+keycode  13 = guillemotleft    guillemotright
+	alt	keycode  13 = Meta_equal
+keycode  14 = Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = plus             asterisk         dead_diaeresis
+	control keycode  26 = Escape
+	alt	keycode  26 = Meta_bracketleft
+keycode  27 = dead_acute       dead_grave       apostrophe       grave
+	control keycode  27 = Control_bracketright
+	alt	keycode  27 = Meta_bracketright
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = +ccedilla         Ccedilla
+	alt	keycode  39 = Meta_semicolon
+keycode  40 = masculine        ordfeminine
+	control	keycode  40 = Control_g
+	alt	keycode  40 = Meta_apostrophe
+keycode  41 = backslash        bar
+	control	keycode  41 = nul
+	alt	keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = dead_tilde       dead_circumflex   asciitilde  asciicircum
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash
+keycode  51 = comma            semicolon
+keycode  52 = period           colon
+keycode  53 = minus            underscore
+	control	keycode  53 = Delete
+	alt	keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+keycode  97 = Control

@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO</TITLE>
+ <LINK HREF="kbd.FAQ-1.html" REL=next>
+
+
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-1.html">Next</A>
+Previous
+Contents
+<HR>
+<H1>The Linux keyboard and console HOWTO</H1>
+
+<H2>Andries Brouwer, <CODE>aeb@cwi.nl</CODE></H2>v2.13, 2002-10-12
+<P><HR>
+<EM>This note contains some information about the Linux keyboard
+and console, and the use of non-ASCII characters.
+It describes Linux 2.0.
+<!--
+HOWTOs!keyboard and console
+-->
+
+<!--
+HOWTOs!console and keyboard
+-->
+</EM>
+<HR>
+<P>
+<H2><A NAME="toc1">1.</A> <A HREF="kbd.FAQ-1.html">Useful programs</A></H2>
+
+<P>
+<H2><A NAME="toc2">2.</A> <A HREF="kbd.FAQ-2.html">Keyboard generalities</A></H2>
+
+<P>
+<H2><A NAME="toc3">3.</A> <A HREF="kbd.FAQ-3.html">Console generalities</A></H2>
+
+<P>
+<H2><A NAME="toc4">4.</A> <A HREF="kbd.FAQ-4.html">Resetting your terminal</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-4.html#ss4.1">4.1 Keyboard hardware reset</A>
+</UL>
+<P>
+<H2><A NAME="toc5">5.</A> <A HREF="kbd.FAQ-5.html">Delete and Backspace</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-5.html#ss5.1">5.1 How to tell Unix what character you want to use to delete the last typed character</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.2">5.2 How to tell Linux what code to generate when a key is pressed</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.3">5.3 How to tell X to interchange Delete and Backspace</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.4">5.4 How to tell emacs what to do when it receives a Delete or Backspace</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.5">5.5 How to tell emacs to interchange Delete and Backspace</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.6">5.6 How to tell kermit to interchange Delete and Backspace</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.7">5.7 How to tell xterm to interchange Delete and Backspace</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.8">5.8 How to tell xterm about your favourite tty modes</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.9">5.9 How to tell non-Motif X applications that the Del key deletes forward</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.10">5.10 How to tell xmosaic that the Backspace key generates a DEL</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.11">5.11 A better solution for Motif-using programs, like netscape</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.12">5.12 What about termcap and terminfo?</A>
+<LI><A HREF="kbd.FAQ-5.html#ss5.13">5.13 A complete solution</A>
+</UL>
+<P>
+<H2><A NAME="toc6">6.</A> <A HREF="kbd.FAQ-6.html">The console character sets</A></H2>
+
+<P>
+<H2><A NAME="toc7">7.</A> <A HREF="kbd.FAQ-7.html">Console switching</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-7.html#ss7.1">7.1 Changing the number of Virtual Consoles</A>
+</UL>
+<P>
+<H2><A NAME="toc8">8.</A> <A HREF="kbd.FAQ-8.html">Ctrl-Alt-Del and other special key combinations</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-8.html#ss8.1">8.1 Ctrl-Alt-Del (Boot)</A>
+<LI><A HREF="kbd.FAQ-8.html#ss8.2">8.2 Other combinations</A>
+<LI><A HREF="kbd.FAQ-8.html#ss8.3">8.3 X Combinations</A>
+<LI><A HREF="kbd.FAQ-8.html#ss8.4">8.4 Dosemu Combinations</A>
+<LI><A HREF="kbd.FAQ-8.html#ss8.5">8.5 Composing symbols</A>
+<LI><A HREF="kbd.FAQ-8.html#ss8.6">8.6 The SysRq key</A>
+<LI><A HREF="kbd.FAQ-8.html#ss8.7">8.7 Problems</A>
+</UL>
+<P>
+<H2><A NAME="toc9">9.</A> <A HREF="kbd.FAQ-9.html">How to get out of raw mode</A></H2>
+
+<P>
+<H2><A NAME="toc10">10.</A> <A HREF="kbd.FAQ-10.html">The keyboard LEDs</A></H2>
+
+<P>
+<H2><A NAME="toc11">11.</A> <A HREF="kbd.FAQ-11.html">The TERM variable</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-11.html#ss11.1">11.1 Terminfo</A>
+</UL>
+<P>
+<H2><A NAME="toc12">12.</A> <A HREF="kbd.FAQ-12.html">How to make other programs work with non-ASCII chars</A></H2>
+
+<P>
+<H2><A NAME="toc13">13.</A> <A HREF="kbd.FAQ-13.html">X</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-13.html#ss13.1">13.1 What precisely does XFree86-2.1 do when it initializes its keymap?</A>
+</UL>
+<P>
+<H2><A NAME="toc14">14.</A> <A HREF="kbd.FAQ-14.html">Unusual keys and keyboards</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-14.html#ss14.1">14.1 Funkeys</A>
+</UL>
+<P>
+<H2><A NAME="toc15">15.</A> <A HREF="kbd.FAQ-15.html">Examples of use of loadkeys and xmodmap</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-15.html#ss15.1">15.1 `I can use only one finger to type with'</A>
+<LI><A HREF="kbd.FAQ-15.html#ss15.2">15.2 Sticky keys under <CODE>X</CODE></A>
+</UL>
+<P>
+<H2><A NAME="toc16">16.</A> <A HREF="kbd.FAQ-16.html">Changing the video mode</A></H2>
+
+<UL>
+<LI><A HREF="kbd.FAQ-16.html#ss16.1">16.1 Instructions for the use of resizecons</A>
+</UL>
+<P>
+<H2><A NAME="toc17">17.</A> <A HREF="kbd.FAQ-17.html">Changing the keyboard repeat rate</A></H2>
+
+<P>
+<H2><A NAME="toc18">18.</A> <A HREF="kbd.FAQ-18.html">Scrolling</A></H2>
+
+<P>
+<H2><A NAME="toc19">19.</A> <A HREF="kbd.FAQ-19.html">Screensaving</A></H2>
+
+<P>
+<H2><A NAME="toc20">20.</A> <A HREF="kbd.FAQ-20.html">Screen dumps</A></H2>
+
+<P>
+<H2><A NAME="toc21">21.</A> <A HREF="kbd.FAQ-21.html">Some properties of the VT100 - application key mode</A></H2>
+
+<P>
+<H2><A NAME="toc22">22.</A> <A HREF="kbd.FAQ-22.html">Hardware incompatibility</A></H2>
+
+<P>
+<H2><A NAME="toc23">23.</A> <A HREF="kbd.FAQ-23.html">Copyright</A></H2>
+
+<HR>
+<A HREF="kbd.FAQ-1.html">Next</A>
+Previous
+Contents
+</BODY>
+</HTML>

@@ -1,0 +1,455 @@
+# 3L Keyboard Layout
+# ==================
+# 3L is a derivative of the Neo keyboard layout, designed for typing
+# English text.  For more information, visit:
+# https://github.com/jackrosenthal/threelayout
+#
+# In this implementation, the Sym layer (Mod3 in Neo) is implemented under
+# AltGr, and the Cur layer (Mod4 in Neo) is implemented under CtrlL.
+
+#==========================================================================
+# Prelude
+#==========================================================================
+
+keymaps 0-127
+strings as usual
+include "linux-keys-bare"
+
+#==========================================================================
+# Number Row
+#==========================================================================
+
+# KEY_1
+                              keycode   2 = one
+
+# KEY_2
+                              keycode   3 = two
+
+# KEY_3
+                              keycode   4 = three
+
+# KEY_4
+                              keycode   5 = four
+
+# KEY_5
+                              keycode   6 = five
+
+# KEY_6
+                              keycode   7 = six
+
+# KEY_7
+                              keycode   8 = seven
+
+# KEY_8
+                              keycode   9 = eight
+
+# KEY_9
+                              keycode  10 = nine
+
+# KEY_0
+                              keycode  11 = zero
+
+# KEY_BACKSPACE
+                              keycode  14 = BackSpace
+
+#==========================================================================
+# Top Row
+#==========================================================================
+
+# KEY_TAB
+                              keycode  15 = Escape
+
+# KEY_Q
+                              keycode  16 = q
+                  altgr       keycode  16 = quotedbl
+      alt         altgr       keycode  16 = Meta_quotedbl
+      alt         altgr shift keycode  16 = Meta_quotedbl
+ctrll                         keycode  16 = PageUp
+ctrll             altgr       keycode  16 = quotedbl
+ctrll alt                     keycode  16 = Meta_PageUp
+ctrll alt         altgr       keycode  16 = Meta_quotedbl
+
+# KEY_W
+                              keycode  17 = f
+                  altgr       keycode  17 = underscore
+      alt         altgr       keycode  17 = Meta_underscore
+      alt         altgr shift keycode  17 = Meta_underscore
+ctrll                         keycode  17 = BackSpace
+ctrll             altgr       keycode  17 = underscore
+ctrll alt                     keycode  17 = Meta_BackSpace
+ctrll alt         altgr       keycode  17 = Meta_underscore
+
+# KEY_E
+                              keycode  18 = u
+                  altgr       keycode  18 = bracketleft
+      alt         altgr       keycode  18 = Meta_bracketleft
+      alt         altgr shift keycode  18 = Meta_bracketleft
+ctrll                         keycode  18 = Up
+ctrll             altgr       keycode  18 = bracketleft
+ctrll alt                     keycode  18 = Meta_Up
+ctrll alt         altgr       keycode  18 = Meta_bracketleft
+
+# KEY_R
+                              keycode  19 = y
+                  altgr       keycode  19 = bracketright
+      alt         altgr       keycode  19 = Meta_bracketright
+      alt         altgr shift keycode  19 = Meta_bracketright
+ctrll                         keycode  19 = Delete
+ctrll             altgr       keycode  19 = bracketright
+ctrll alt                     keycode  19 = Meta_Delete
+ctrll alt         altgr       keycode  19 = Meta_bracketright
+
+# KEY_T
+                              keycode  20 = z
+                  altgr       keycode  20 = asciicircum
+      alt         altgr       keycode  20 = Meta_asciicircum
+      alt         altgr shift keycode  20 = Meta_asciicircum
+ctrll                         keycode  20 = PageDown
+ctrll             altgr       keycode  20 = asciicircum
+ctrll alt                     keycode  20 = Meta_PageDown
+ctrll alt         altgr       keycode  20 = Meta_asciicircum
+
+# KEY_Y
+                              keycode  21 = x
+                  altgr       keycode  21 = exclam
+      alt         altgr       keycode  21 = Meta_exclam
+      alt         altgr shift keycode  21 = Meta_exclam
+ctrll                         keycode  21 = X
+ctrll             altgr       keycode  21 = exclam
+ctrll alt         altgr       keycode  21 = Meta_exclam
+
+# KEY_U
+                              keycode  22 = k
+                  altgr       keycode  22 = less
+      alt         altgr       keycode  22 = Meta_less
+      alt         altgr shift keycode  22 = Meta_less
+ctrll                         keycode  22 = one
+ctrll             altgr       keycode  22 = less
+ctrll alt                     keycode  22 = Meta_one
+ctrll alt         altgr       keycode  22 = Meta_less
+
+# KEY_I
+                              keycode  23 = c
+                  altgr       keycode  23 = greater
+      alt         altgr       keycode  23 = Meta_greater
+      alt         altgr shift keycode  23 = Meta_greater
+ctrll                         keycode  23 = two
+ctrll             altgr       keycode  23 = greater
+ctrll alt                     keycode  23 = Meta_two
+ctrll alt         altgr       keycode  23 = Meta_greater
+
+# KEY_O
+                              keycode  24 = w
+                  altgr       keycode  24 = equal
+      alt         altgr       keycode  24 = Meta_equal
+      alt         altgr shift keycode  24 = Meta_equal
+ctrll                         keycode  24 = three
+ctrll             altgr       keycode  24 = equal
+ctrll alt                     keycode  24 = Meta_three
+ctrll alt         altgr       keycode  24 = Meta_equal
+
+# KEY_P
+                              keycode  25 = b
+                  altgr       keycode  25 = ampersand
+      alt         altgr       keycode  25 = Meta_ampersand
+      alt         altgr shift keycode  25 = Meta_ampersand
+ctrll                         keycode  25 = B
+ctrll             altgr       keycode  25 = ampersand
+ctrll alt         altgr       keycode  25 = Meta_ampersand
+
+#==========================================================================
+# Home Row
+#==========================================================================
+
+# KEY_CAPSLOCK
+                              keycode  58 = Tab
+      alt                     keycode  58 = Meta_Tab
+      alt               shift keycode  58 = Meta_Tab
+      alt         altgr       keycode  58 = Meta_Tab
+      alt         altgr shift keycode  58 = Meta_Tab
+      alt control             keycode  58 = Meta_Tab
+      alt control       shift keycode  58 = Meta_Tab
+ctrll alt                     keycode  58 = Meta_Tab
+ctrll alt               shift keycode  58 = Meta_Tab
+ctrll alt         altgr       keycode  58 = Meta_Tab
+ctrll alt control             keycode  58 = Meta_Tab
+
+# KEY_LEFTMETA
+                              keycode 125 = Tab
+      alt                     keycode 125 = Meta_Tab
+      alt               shift keycode 125 = Meta_Tab
+      alt         altgr       keycode 125 = Meta_Tab
+      alt         altgr shift keycode 125 = Meta_Tab
+      alt control             keycode 125 = Meta_Tab
+      alt control       shift keycode 125 = Meta_Tab
+ctrll alt                     keycode 125 = Meta_Tab
+ctrll alt               shift keycode 125 = Meta_Tab
+ctrll alt         altgr       keycode 125 = Meta_Tab
+ctrll alt control             keycode 125 = Meta_Tab
+
+# KEY_A
+                              keycode  30 = o
+                  altgr       keycode  30 = slash
+      alt         altgr       keycode  30 = Meta_slash
+      alt         altgr shift keycode  30 = Meta_slash
+ctrll                         keycode  30 = Home
+ctrll             altgr       keycode  30 = slash
+ctrll alt                     keycode  30 = Meta_Home
+ctrll alt         altgr       keycode  30 = Meta_slash
+
+# KEY_S
+                              keycode  31 = h
+                  altgr       keycode  31 = minus
+          control             keycode  31 = BackSpace
+          control       shift keycode  31 = BackSpace
+      alt         altgr       keycode  31 = Meta_minus
+      alt         altgr shift keycode  31 = Meta_minus
+      alt control             keycode  31 = Meta_BackSpace
+      alt control       shift keycode  31 = Meta_BackSpace
+ctrll                         keycode  31 = Left
+ctrll             altgr       keycode  31 = minus
+ctrll     control             keycode  31 = BackSpace
+ctrll     control       shift keycode  31 = BackSpace
+ctrll alt                     keycode  31 = Meta_Left
+ctrll alt         altgr       keycode  31 = Meta_minus
+ctrll alt control             keycode  31 = Meta_BackSpace
+
+# KEY_D
+                              keycode  32 = e
+                  altgr       keycode  32 = braceleft
+      alt         altgr       keycode  32 = Meta_braceleft
+      alt         altgr shift keycode  32 = Meta_braceleft
+ctrll                         keycode  32 = Down
+ctrll             altgr       keycode  32 = braceleft
+ctrll alt                     keycode  32 = Meta_Down
+ctrll alt         altgr       keycode  32 = Meta_braceleft
+
+# KEY_F
+                              keycode  33 = a
+                  altgr       keycode  33 = braceright
+      alt         altgr       keycode  33 = Meta_braceright
+      alt         altgr shift keycode  33 = Meta_braceright
+ctrll                         keycode  33 = Right
+ctrll             altgr       keycode  33 = braceright
+ctrll alt                     keycode  33 = Meta_Right
+ctrll alt         altgr       keycode  33 = Meta_braceright
+
+# KEY_G
+                              keycode  34 = i
+                  altgr       keycode  34 = asterisk
+          control             keycode  34 = Tab
+          control       shift keycode  34 = Tab
+      alt         altgr       keycode  34 = Meta_asterisk
+      alt         altgr shift keycode  34 = Meta_asterisk
+      alt control             keycode  34 = Meta_Tab
+      alt control       shift keycode  34 = Meta_Tab
+ctrll                         keycode  34 = End
+ctrll             altgr       keycode  34 = asterisk
+ctrll     control             keycode  34 = Tab
+ctrll     control       shift keycode  34 = Tab
+ctrll alt                     keycode  34 = Meta_End
+ctrll alt         altgr       keycode  34 = Meta_asterisk
+ctrll alt control             keycode  34 = Meta_Tab
+
+# KEY_H
+                              keycode  35 = d
+                  altgr       keycode  35 = question
+      alt         altgr       keycode  35 = Meta_question
+      alt         altgr shift keycode  35 = Meta_question
+ctrll                         keycode  35 = period
+ctrll             altgr       keycode  35 = question
+ctrll alt                     keycode  35 = Meta_period
+ctrll alt         altgr       keycode  35 = Meta_question
+
+# KEY_J
+                              keycode  36 = r
+                  altgr       keycode  36 = parenleft
+      alt         altgr       keycode  36 = Meta_parenleft
+      alt         altgr shift keycode  36 = Meta_parenleft
+ctrll                         keycode  36 = four
+ctrll             altgr       keycode  36 = parenleft
+ctrll alt                     keycode  36 = Meta_four
+ctrll alt         altgr       keycode  36 = Meta_parenleft
+
+# KEY_K
+                              keycode  37 = t
+                  altgr       keycode  37 = parenright
+      alt         altgr       keycode  37 = Meta_parenright
+      alt         altgr shift keycode  37 = Meta_parenright
+ctrll                         keycode  37 = five
+ctrll             altgr       keycode  37 = parenright
+ctrll alt                     keycode  37 = Meta_five
+ctrll alt         altgr       keycode  37 = Meta_parenright
+
+# KEY_L
+                              keycode  38 = n
+                  altgr       keycode  38 = apostrophe
+      alt         altgr       keycode  38 = Meta_apostrophe
+      alt         altgr shift keycode  38 = Meta_apostrophe
+ctrll                         keycode  38 = six
+ctrll             altgr       keycode  38 = apostrophe
+ctrll alt                     keycode  38 = Meta_six
+ctrll alt         altgr       keycode  38 = Meta_apostrophe
+
+# KEY_SEMICOLON
+                              keycode  39 = s
+                  altgr       keycode  39 = colon
+      alt         altgr       keycode  39 = Meta_colon
+      alt         altgr shift keycode  39 = Meta_colon
+ctrll                         keycode  39 = S
+ctrll             altgr       keycode  39 = colon
+ctrll alt         altgr       keycode  39 = Meta_colon
+
+# KEY_APOSTROPHE
+                              keycode  40 = AltGr
+
+#==========================================================================
+# Bottom Row
+#==========================================================================
+
+# KEY_LEFTSHIFT
+                              keycode  42 = Shift
+
+# KEY_Z
+                              keycode  44 = comma
+                  altgr       keycode  44 = numbersign
+      alt                     keycode  44 = Meta_comma
+      alt               shift keycode  44 = Meta_comma
+      alt         altgr       keycode  44 = Meta_numbersign
+      alt         altgr shift keycode  44 = Meta_numbersign
+      alt control             keycode  44 = Meta_comma
+      alt control       shift keycode  44 = Meta_comma
+ctrll                         keycode  44 = slash
+ctrll             altgr       keycode  44 = numbersign
+ctrll alt                     keycode  44 = Meta_slash
+ctrll alt               shift keycode  44 = Meta_comma
+ctrll alt         altgr       keycode  44 = Meta_numbersign
+ctrll alt control             keycode  44 = Meta_comma
+
+# KEY_X
+                              keycode  45 = m
+                  altgr       keycode  45 = dollar
+          control             keycode  45 = Return
+          control       shift keycode  45 = Return
+      alt         altgr       keycode  45 = Meta_dollar
+      alt         altgr shift keycode  45 = Meta_dollar
+ctrll                         keycode  45 = asterisk
+ctrll             altgr       keycode  45 = dollar
+ctrll     control             keycode  45 = Return
+ctrll     control       shift keycode  45 = Return
+ctrll alt                     keycode  45 = Meta_asterisk
+ctrll alt         altgr       keycode  45 = Meta_dollar
+
+# KEY_C
+                              keycode  46 = period
+                  altgr       keycode  46 = bar
+          control             keycode  46 = Compose
+          control       shift keycode  46 = Compose
+      alt                     keycode  46 = Meta_period
+      alt               shift keycode  46 = Meta_period
+      alt         altgr       keycode  46 = Meta_bar
+      alt         altgr shift keycode  46 = Meta_bar
+      alt control             keycode  46 = Compose
+      alt control       shift keycode  46 = Compose
+ctrll                         keycode  46 = minus
+ctrll             altgr       keycode  46 = bar
+ctrll     control             keycode  46 = Compose
+ctrll     control       shift keycode  46 = Compose
+ctrll alt                     keycode  46 = Meta_minus
+ctrll alt               shift keycode  46 = Meta_period
+ctrll alt         altgr       keycode  46 = Meta_bar
+ctrll alt control             keycode  46 = Compose
+
+# KEY_V
+                              keycode  47 = j
+                  altgr       keycode  47 = asciitilde
+          control             keycode  47 = Linefeed
+          control       shift keycode  47 = Linefeed
+      alt         altgr       keycode  47 = Meta_asciitilde
+      alt         altgr shift keycode  47 = Meta_asciitilde
+      alt control             keycode  47 = Meta_Linefeed
+      alt control       shift keycode  47 = Meta_Linefeed
+ctrll                         keycode  47 = plus
+ctrll             altgr       keycode  47 = asciitilde
+ctrll     control             keycode  47 = Linefeed
+ctrll     control       shift keycode  47 = Linefeed
+ctrll alt                     keycode  47 = Meta_plus
+ctrll alt         altgr       keycode  47 = Meta_asciitilde
+ctrll alt control             keycode  47 = Meta_Linefeed
+
+# KEY_B
+                              keycode  48 = semicolon
+                  altgr       keycode  48 = grave
+      alt                     keycode  48 = Meta_semicolon
+      alt               shift keycode  48 = Meta_semicolon
+      alt         altgr       keycode  48 = Meta_grave
+      alt         altgr shift keycode  48 = Meta_grave
+      alt control       shift keycode  48 = Meta_semicolon
+ctrll                         keycode  48 = comma
+ctrll             altgr       keycode  48 = grave
+ctrll alt                     keycode  48 = Meta_comma
+ctrll alt               shift keycode  48 = Meta_semicolon
+ctrll alt         altgr       keycode  48 = Meta_grave
+
+# KEY_N
+                              keycode  49 = g
+                  altgr       keycode  49 = plus
+      alt         altgr       keycode  49 = Meta_plus
+      alt         altgr shift keycode  49 = Meta_plus
+ctrll                         keycode  49 = zero
+ctrll             altgr       keycode  49 = plus
+ctrll alt                     keycode  49 = Meta_zero
+ctrll alt         altgr       keycode  49 = Meta_plus
+
+# KEY_M
+                              keycode  50 = l
+                  altgr       keycode  50 = percent
+      alt         altgr       keycode  50 = Meta_percent
+      alt         altgr shift keycode  50 = Meta_percent
+ctrll                         keycode  50 = seven
+ctrll             altgr       keycode  50 = percent
+ctrll alt                     keycode  50 = Meta_seven
+ctrll alt         altgr       keycode  50 = Meta_percent
+
+# KEY_COMMA
+                              keycode  51 = p
+                  altgr       keycode  51 = backslash
+      alt         altgr       keycode  51 = Meta_backslash
+      alt         altgr shift keycode  51 = Meta_backslash
+ctrll                         keycode  51 = eight
+ctrll             altgr       keycode  51 = backslash
+ctrll alt                     keycode  51 = Meta_eight
+ctrll alt         altgr       keycode  51 = Meta_backslash
+
+# KEY_DOT
+                              keycode  52 = v
+                  altgr       keycode  52 = at
+      alt         altgr       keycode  52 = Meta_at
+      alt         altgr shift keycode  52 = Meta_at
+ctrll                         keycode  52 = nine
+ctrll             altgr       keycode  52 = at
+ctrll alt                     keycode  52 = Meta_nine
+ctrll alt         altgr       keycode  52 = Meta_at
+
+# KEY_SLASH
+                              keycode  53 = CtrlL
+
+# KEY_RIGHTSHIFT
+                              keycode  54 = Shift
+
+#==========================================================================
+# Spacebar Row
+#==========================================================================
+
+# KEY_LEFTCTRL
+                              keycode  29 = Control
+
+# KEY_LEFTALT
+                              keycode  56 = Alt
+
+# KEY_RIGHTALT
+                              keycode 100 = Alt
+
+# KEY_RIGHTCTRL
+                              keycode  97 = Control
+

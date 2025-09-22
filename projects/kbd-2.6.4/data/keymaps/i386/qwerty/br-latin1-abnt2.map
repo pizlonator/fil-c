@@ -1,0 +1,82 @@
+#
+# $Id: Brazilian Mapping for Brazilian ABNT2 Keyboards $
+# $Revision: 1.1.2 $
+# $Author: Antonio Dias <accdias@sst.com.br> $
+#
+# Console fonts lat1-*.psfu work best with this mapping
+#
+# Changelog:
+# 2000-03-06	accdias	Initial Release
+# 2000-03-12	accdias	Modified keycode 14 to send Delete
+# 2001-01-10	accdias	Modified keycode 53 to send semicolon colon
+#		as pointed by Frédéric Meunier
+# 2001-03-01    aeb, added keycode 89 for slash question degree
+#
+keymaps 0-2,4-6,8-9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+compose as usual for "iso-8859-1"
+compose '\''	'C'	to	Ccedilla
+compose '\''	'c'	to	ccedilla
+
+keycode   1 = Escape
+keycode   2 = one	exclam		onesuperior
+keycode   3 = two	at		twosuperior	nul		nul
+keycode   4 = three	numbersign	threesuperior
+	control	keycode   4 = Escape          
+keycode   5 = four	dollar		sterling	Control_backslash
+keycode   6 = five	percent		cent         
+	control keycode   6 = Control_bracketright       
+keycode   7 = six	dead_diaeresis	notsign     
+	control keycode   7 = Control_asciicircum        
+keycode   8 = seven		ampersand	braceleft	Control_underscore
+keycode   9 = eight		asterisk	bracketleft	Delete          
+keycode  10 = nine		parenleft	bracketright    
+keycode  11 = zero		parenright	braceright      
+keycode  12 = minus		underscore 	backslash	Control_underscore Control_underscore
+keycode  13 = equal		plus		section            
+keycode  14 = Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = dead_acute	dead_grave       
+	control	keycode  26 = Escape          
+keycode  27 = bracketleft	braceleft	ordfeminine
+keycode  28 = Return          
+	alt	keycode  28 = Meta_Control_m  
+keycode  29 = Control 
+keycode  39 = +ccedilla		+Ccedilla
+keycode  40 = dead_tilde	dead_circumflex
+        control	keycode  40 = Control_g
+keycode  41 = apostrophe	quotedbl      
+	control	    keycode  41 = nul             
+keycode  42 = Shift           
+keycode  43 = bracketright	braceright	masculine
+        control	keycode  43 = Control_bracketright
+keycode  51 = comma		less            
+keycode  52 = period		greater         
+	control	keycode  52 = nul
+keycode  53 = semicolon	colon
+keycode  54 = Shift           
+keycode  56 = Alt             
+keycode  57 = space
+	control	keycode  57 = nul             
+	alt	        keycode  57 = Meta_space      
+keycode  58 = Caps_Lock       
+keycode  97 = Control         
+#
+# additional key has scancode 0x73
+keycode  89 = slash		question	degree
+#
+# Windows Left and Right Keys
+#
+keycode 125 = Decr_Console
+keycode 126 = Incr_Console
+#
+# Windows Menu Key
+#
+keycode 127 = Last_Console
+#
+# End of file
+#

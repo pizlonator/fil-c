@@ -1,0 +1,20 @@
+alt_is_meta
+include "mac-qwerty-layout"
+include "mac-linux-keys-bare.inc"
+#include "mac-euro.map"
+strings as usual
+
+# only here to have a working keymap
+include "mac-us.map"
+
+# some examples 
+#									Shift+				Shift+
+#					Shift+		Shift+	AltGr+	AltGr+		Shift+	AltGr+	AltGr+	Alt+
+#		Normal	Shift	AltGr	AltGr	Ctrl	Ctrl	Ctrl	Ctrl	Alt	Alt	Alt	Alt	Ctrl
+keycode  18 =	one	exclam	a	b	c	d	e	f	g	h	i	j	k	
+
+keycode  16 = z
+keycode   6 = y
+
+	alt keycode  12 = at
+	alt keycode  50 = bar

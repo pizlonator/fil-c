@@ -1,0 +1,134 @@
+# This describes the key engravings on an AZERTY keyboard (brand Tandon)
+# that I just got. It might be useful in French-speaking countries.
+# aeb - April 1994.
+# This is the modified version for an azerty Wang belguim keyboard, 
+# model 724 serial 725-3771-EA/REV1.  The numeric key assignments are extended:
+#  7  8  9           <  >  ^
+#  4  5  6  +AltGr   [  ]  $
+#  1  2  3  ----->   &  @  #
+#  0  .  r           '  ,  r
+# Servaas Vandenberghe, vdb128@tele.kotnet.org, 1999.
+# For compatibility with X windows and Emacs one should try to do the following
+#  1 shift 
+#  2 right alt --> other character set, add 64 ?
+#  4 control   --> subract 64 of the ascii code
+#  8 left alt  --> meta of the symbol
+
+keymaps 0-2,4-6,8-10,12
+include "azerty-layout"
+	AltGr 	keycode  19 = registered
+	AltGr 	keycode  21 = yen
+	AltGr 	keycode  25 = paragraph
+	AltGr 	keycode  31 = section
+	AltGr 	keycode  39 = mu
+	AltGr 	keycode  45 = multiply
+	AltGr 	keycode  46 = copyright
+include "linux-with-alt-and-altgr.inc"
+        AltGr   keycode  71 = less
+        AltGr   keycode  72 = greater
+        AltGr   keycode  73 = asciicircum
+        AltGr   keycode  75 = bracketleft
+        AltGr   keycode  76 = bracketright
+        AltGr   keycode  77 = dollar
+        AltGr   keycode  79 = ampersand
+        AltGr   keycode  80 = at
+        AltGr   keycode  81 = numbersign
+        AltGr   keycode  82 = apostrophe
+        AltGr   keycode  83 = KP_Comma
+	Control AltGr 	keycode  71 = bar
+	Control AltGr 	keycode  72 = asciitilde
+	Control AltGr 	keycode  75 = Escape
+	Control AltGr 	keycode  76 = Control_bracketright
+	Control AltGr 	keycode  80 = nul
+strings as usual
+compose as usual for "iso-8859-1"
+keycode   1 = Escape           Escape          
+	alt keycode   1 = Meta_Escape
+keycode   2 = ampersand        one              bar             less
+	Control AltGr 	keycode   2 = less
+	alt     keycode   2 = Meta_one        
+	AltGr 	alt 	keycode   2 = Meta_bar
+keycode   3 = eacute         	two           	at      
+	alt     keycode   3 = Meta_two          
+	AltGr 	alt	keycode   3 = Meta_at
+keycode   4 = quotedbl         three            numbersign      Escape
+	alt     keycode   4 = Meta_three
+keycode   5 = apostrophe       four    		dollar       	Control_backslash
+	alt 	keycode   5 = Meta_four
+keycode   6 = parenleft        five             bracketleft  	Escape
+	Control AltGr 	keycode   6 = Escape
+	alt 	keycode   6 = Meta_five
+keycode   7 = section          six              asciicircum  	Control_asciicircum
+	Control AltGr 	keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+keycode   8 = egrave           seven           	underscore 	Control_underscore
+	Control AltGr 	keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+keycode   9 = exclam           eight         	question	Delete
+	Control AltGr 	keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+keycode  10 = ccedilla         nine             braceleft       semicolon
+	Control AltGr 	keycode  10 = semicolon
+	alt     keycode  10 = Meta_nine
+keycode  11 = agrave           zero             braceright      equal
+	Control AltGr 	keycode  11 = equal
+	alt     keycode  11 = Meta_zero
+keycode  12 = parenright       degree           bracketright 	Control_bracketright
+	Control AltGr 	keycode  12 = Control_bracketright
+	alt 	keycode  12 = bracketright
+keycode  13 = minus            underscore       backslash     \
+		Control_underscore Control_underscore Control_backslash \
+		Meta_minus 	Meta_underscore 	Meta_backslash 
+keycode  14 = Delete           Delete          
+	alt 	keycode  14 = Meta_Delete
+keycode  15 = Tab              Meta_Tab             
+	alt 	keycode  15 = Meta_Tab
+keycode  26 = dead_circumflex  dead_diaeresis   bracketleft   	Escape          
+	Control AltGr 	keycode  26 = Escape
+	alt   keycode  26 = Meta_bracketleft     
+keycode  27 = dollar           asterisk         bracketright  	Control_bracketright
+	Control AltGr 	keycode  27 = Control_bracketright
+	alt   keycode  27 = Meta_bracketright    
+keycode  28 = Return       
+	alt 	keycode  28 = Meta_Control_m
+        #alt 	keycode  28 = 0x080d
+keycode  29 = Control         
+keycode  40 = ugrave           percent          acute           dead_acute
+	alt     keycode  40 = dead_acute
+	alt shift 	keycode  40 = Meta_percent
+keycode  41 = twosuperior      threesuperior    dead_grave
+	alt keycode  41 = Meta_grave
+keycode  42 = Shift           
+keycode  43 = mu               sterling         grave           dead_grave
+	alt     keycode  43 = dead_grave      
+keycode  50 = comma            question      	questiondown
+	Control Shift	keycode  50 = Delete
+	alt 	keycode  50 = Meta_comma
+	alt 	Shift 	keycode  50 = Meta_question
+keycode  51 = semicolon        period      	guillemotleft
+	alt  	keycode  51 = Meta_semicolon
+	alt shift keycode  51 = Meta_period
+keycode  52 = colon            slash         	guillemotright
+	alt 	keycode  52 = Meta_colon
+	alt shift keycode  52 = Meta_slash
+keycode  53 = equal            plus             asciitilde 	dead_tilde      
+	Control AltGr 	keycode  53 = dead_tilde
+	alt     keycode  53 = Meta_equal
+	alt shift 	keycode  53 = Meta_plus
+	alt AltGr 	keycode  53 = Meta_asciitilde
+keycode  54 = Shift           
+keycode  56 = Alt             
+keycode  57 = space            space           
+	control keycode  57 = nul             
+	alt 	keycode  57 = Meta_space
+keycode  58 = Caps_Lock       
+keycode  86 = less           	greater       	backslash    \
+		bar 		asciitilde 	Control_backslash  \
+		Meta_less     	Meta_greater 	Meta_backslash
+	alt Control keycode  86 = Meta_bar
+keycode  97 = Control         
+keycode  99 = VoidSymbol
+	control keycode  99 = Control_backslash
+	alt     keycode  99 = Control_backslash
+keycode 118 = KP_MinPlus      
+

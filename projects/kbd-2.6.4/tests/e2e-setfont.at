@@ -1,0 +1,20 @@
+AT_SETUP([setfont (path/UniCyrExt_8x16.psf)])
+AT_KEYWORDS([e2e setfont])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setfont" -v "$abs_srcdir/data/consolefonts/UniCyrExt_8x16.psf"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setfont-test01.calls])
+AT_CLEANUP
+
+AT_SETUP([setfont (UniCyrExt_8x16.psf)])
+AT_KEYWORDS([e2e setfont])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setfont" -v "UniCyrExt_8x16.psf"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setfont-test01.calls])
+AT_CLEANUP
+
+AT_SETUP([setfont (UniCyrExt_8x16)])
+AT_KEYWORDS([e2e setfont])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setfont" -v "UniCyrExt_8x16"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setfont-test01.calls])
+AT_CLEANUP

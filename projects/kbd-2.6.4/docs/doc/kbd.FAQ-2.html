@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Keyboard generalities</TITLE>
+ <LINK HREF="kbd.FAQ-3.html" REL=next>
+ <LINK HREF="kbd.FAQ-1.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc2" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-3.html">Next</A>
+<A HREF="kbd.FAQ-1.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc2">Contents</A>
+<HR>
+<H2><A NAME="s2">2. Keyboard generalities</A></H2>
+
+<P>
+<!--
+keyboard!theory of operation
+-->
+<P>You press a key, and the keyboard controller sends
+<A HREF="http://www.win.tue.nl/~aeb/linux/kbd/scancodes.html">scancodes</A>
+to the kernel keyboard driver. Some keyboards can be programmed,
+but usually the scancodes corresponding to your keys are fixed.
+The kernel keyboard driver just transmits whatever it receives
+to the application program when it is in <EM>scancode mode</EM>,
+like when <CODE>X</CODE> is running. Otherwise, it parses the stream of scancodes
+into keycodes, corresponding to key press or key release events.
+(A single key press can generate up to 6 scancodes.)
+These keycodes are transmitted to the application program when it is
+in <EM>keycode mode</EM> (as used, for example, by <CODE>showkey</CODE>
+and some X servers).
+Otherwise, these keycodes are looked up in the keymap, and the character
+or string found there is transmitted to the application, or the action
+described there is performed.
+(For example, if one presses and releases the <CODE>a</CODE> key, then the keyboard
+produces scancodes 0x1e and 0x9e, this is converted to keycodes 30 and 158,
+and then transmitted as 0141, the ASCII or latin-1 code for `a';
+if one presses and releases <CODE>Delete</CODE>, then the keyboard produces scancodes
+0xe0 0x53 0xe0 0xd3, these are converted to keycodes 111 and 239, and then
+transmitted as the 4-symbol sequence ESC [ 3 ~, all assuming
+a US keyboard and a default keymap. An example of a key combination to which
+an action is assigned is Ctrl-Alt-Del.)
+<P>The translation between unusual scancodes and keycodes can be set using the
+utility <CODE>setkeycodes</CODE> - only few people will need it.
+The translation between keycodes and characters or strings or actions, that is,
+the keymap, is set using the utilities <CODE>loadkeys</CODE> and <CODE>setmetamode</CODE>.
+For details, see getkeycodes(8), setkeycodes(8), dumpkeys(1), loadkeys(1),
+setmetamode(1). The format of the files output by <CODE>dumpkeys</CODE> and read
+by <CODE>loadkeys</CODE> is described in keymaps(5).
+<P>Where it says `transmitted to the application' in the above description,
+this really means `transmitted to the terminal driver'. That is, further
+processing is just like that of text that comes in over a serial line.
+The details of this processing are set by the program <CODE>stty</CODE>.
+<P>
+<HR>
+<A HREF="kbd.FAQ-3.html">Next</A>
+<A HREF="kbd.FAQ-1.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc2">Contents</A>
+</BODY>
+</HTML>

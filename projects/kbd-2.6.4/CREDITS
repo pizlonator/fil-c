@@ -1,0 +1,70 @@
+The programs loadkeys, dumpkeys and showkey were derived from
+Risto Kankkunen's kbd-0.81.
+
+The font loading code goes back to the codepage package by
+Joel Hoffman (joel@wam.umd.edu). (He tells me that the original
+reference is: "From: p. 307 of _Programmer's Guide to PC & PS/2
+Video Systems_ by Richard Wilton. 1987.  Microsoft Press".)
+
+The kernel and user interface for the font loading were derived
+from Eugene Crosser's intl_con package.
+
+[Similar things were done earlier by
+ Jerry Kaidor (tr2!jerry@abekas.com, jkaidor@synoptics.com) : fontpak,
+ H. Peter Anvin (hpa@nwu.edu) and Pavel Zaboj (xzaboj@vse.cs).
+Their code was not used, but the Latin-1 *.psf fonts were developed
+by H. Peter Anvin, and the Latin-2 ones by Pavel Zaboj.]
+
+The file
+	kbdrate.c
+is Copyright (C) 1992 Rickard E. Faith.
+
+The files
+	dumpkeys.c loadkeys.y loadkeys.analyze.l ksyms.c ksyms.h
+	showkey.c keymaps.5 loadkeys.1 dumpkeys.1 showkey.1
+are Copyright (C) 1993 Risto Kankkunen.
+
+The files
+	setfont.c setfont.8 mapscrn.c mapscrn.8
+(and changes to loadkeys.y)
+are Copyright (C) 1993 Eugene G. Crosser.
+
+The files
+	psfaddtable.1 psfgettable.1 psfstriptable.1
+are Copyright (C) 1994 H. Peter Anvin.
+
+The files
+	chvt.c clrunimap.c deallocvt.c fgconsole.c findfile.c
+	getfd.c getkeycodes.c getunimap.c kbd_mode.c loadunimap.c
+	psffontop.c psfxtable.c resizecons.c screendump.c setkeycodes.c
+	setleds.c setmetamode.c setvesablank.c showconsolefont.c
+	spawn_console.c spawn_login.c
+	chvt.1 deallocvt.1 kbd_mode.1 setleds.1 setmetamode.1
+	getkeycodes.8 loadunimap.8 resizecons.8 setkeycodes.8
+	kbd.FAQ.*
+(and changes to earlier mentioned programs)
+are Copyright (C) 1994-1999 Andries E. Brouwer.
+
+The file
+	openvt.c
+is Copyright (C) 1994 by Jon Tombs <jon@gtex02.us.es>
+portions also authors: Andries E. Brouwer <aeb@cwi.nl>
+                       Joshua Spoerri <josh@cooper.edu>
+                       Chuck Martin <cmartin@bigfoot.com>
+                       Alexey Gladkov <gladkov.alexey@gmail.com>
+
+The file
+	kbdinfo.c
+is Copyright (C) 2011 Alexey Gladkov <gladkov.alexey@gmail.com>.
+
+The file
+       setvtrgb.c
+is Copyright (C) 2011 Alexey Gladkov,
+portions also Copyright (C) 2011 Canonical Ltd.
+              Authors: Seth Forshee <seth.forshee@canonical.com>
+                       Dustin Kirkland <kirkland@canonical.com>
+
+The files
+       auth.c pam_auth.h pam.c parse.c screen.c username.c vlock.c vlock.h vt.c
+is Copyright (C) 1994-1998 Michael K. Johnson <johnsonm@redhat.com>
+   Copyright (C) 2002-2006 Dmitry V. Levin <ldv@altlinux.org>

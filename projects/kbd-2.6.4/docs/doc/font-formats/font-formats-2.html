@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Font-formats recognized by the Linux kbd package: Combining PSF fonts</TITLE>
+ <LINK HREF="font-formats-3.html" REL=next>
+ <LINK HREF="font-formats-1.html" REL=previous>
+ <LINK HREF="font-formats.html#toc2" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="font-formats-3.html">Next</A>
+<A HREF="font-formats-1.html">Previous</A>
+<A HREF="font-formats.html#toc2">Contents</A>
+<HR>
+<H2><A NAME="s2">2. Combining PSF fonts</A></H2>
+
+<P>The program <CODE>setfont</CODE> will accept font descriptions like
+<BLOCKQUOTE><CODE>
+<PRE>
+# combine partial fonts
+none.00-17.16
+ascii.20-7f.16
+none.00-17.16
+8859-1.a0-ff.16
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where the first line is precisely <CODE># combine partial fonts</CODE>
+and the remaining lines contain filenames for PSF fonts to load.
+The above example (it is the file <CODE>iso01.16</CODE>)
+describes a font with 256 positions, of which the first 32 are taken
+from the file <CODE>none.00-17.16</CODE>, the following 96 from
+<CODE>ascii.20-7f.16</CODE>, the following 32 from
+<CODE>none.00-17.16</CODE> again, and the final 96 from
+<CODE>8859-1.a0-ff.16</CODE>.
+In this way all ISO 8859-* fonts of a given pointsize (here 16)
+can share the same initial 160 positions.
+<P>
+<HR>
+<A HREF="font-formats-3.html">Next</A>
+<A HREF="font-formats-1.html">Previous</A>
+<A HREF="font-formats.html#toc2">Contents</A>
+</BODY>
+</HTML>

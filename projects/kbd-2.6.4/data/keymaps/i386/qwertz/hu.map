@@ -1,0 +1,162 @@
+#
+# The standard Hungarian keymap (iso8859-2)
+#
+# Modified by Soos Peter <sp@osb.hu>, 1997, 1998
+# based on Levárdy Zoltán's <pogacsa@programmer.net> keymap
+#
+# The 1998 change interchanged Backspace and Delete
+#
+charset "iso-8859-2"
+keymaps 0-2,4-6,8,10,12
+alt_is_meta
+include "linux-with-alt-and-altgr"
+	plain keycode  83 = KP_Comma
+strings as usual
+
+		keycode   1 = Escape
+
+		keycode   2 = one              	apostrophe	asciitilde
+
+		keycode   3 = two              	quotedbl	caron
+	control keycode   3 = nul
+
+		keycode   4 = three            	plus		asciicircum
+	control keycode   4 = Escape
+
+		keycode   5 = four             	exclam		breve
+	control keycode   5 = Control_backslash
+
+		keycode   6 = five             	percent		degree
+	control keycode   6 = Control_bracketright
+
+		keycode   7 = six              	slash		ogonek
+	control keycode   7 = Control_asciicircum
+
+		keycode   8 = seven            	equal		grave
+	control keycode   8 = Control_underscore
+
+		keycode   9 = eight            	parenleft       abovedot
+	control keycode   9 = Delete
+
+		keycode  10 = nine              parenright      acute
+
+		keycode  11 = +odiaeresis	+Odiaeresis	doubleacute
+	alt     keycode  11 = Meta_zero
+
+		keycode  12 = +udiaeresis	+Udiaeresis	diaeresis
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+altgr	control	keycode  12 = Control_backslash
+
+		keycode  13 = +oacute		+Oacute		cedilla
+	alt     keycode  13 = Meta_plus
+
+		keycode  14 = Delete
+	control	keycode  14 = BackSpace
+
+		keycode  15 = Tab
+
+		keycode  16 = +q	+Q	backslash
+	control keycode  16 = Control_q
+altgr	control	keycode  16 = Control_backslash
+
+		keycode  17 = +w	+W	bar
+	control keycode  17 = Control_w
+
+		keycode  18 = e
+		keycode  19 = r
+		keycode  20 = t
+		keycode  21 = z
+		keycode  22 = u
+
+		keycode  23 = +i	+I		Iacute
+	control	keycode  23 = Control_i
+
+		keycode  24 = o
+		keycode  25 = p
+
+		keycode  26 = +odoubleacute	+Odoubleacute	division
+
+		keycode  27 = +uacute	+Uacute		multiplication
+
+		keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+
+		keycode  29 = Control
+
+		keycode  30 = a
+
+		keycode  31 = +s	+S		dstroke
+	control	keycode  31 = Control_s
+
+		keycode  32 = +d	+D		Dstroke
+	control	keycode  32 = Control_d
+
+		keycode  33 = +f	+F		bracketleft
+	control keycode  33 = Control_f
+
+		keycode  34 = +g	+G		bracketright
+	control keycode  34 = Control_g
+
+		keycode  35 = h
+
+		keycode  36 = +j	+J		iacute
+	control keycode  36 = Control_j
+
+		keycode  37 = +k	+K		lstroke
+	control keycode  37 = Control_k
+
+		keycode  38 = +l	+L		Lstroke
+	control keycode  38 = Control_l
+
+		keycode  39 = +eacute	+Eacute		dollar
+
+		keycode  40 = +aacute	+Aacute		ssharp
+
+		keycode  41 = zero	section
+	control keycode  41 = nul
+
+		keycode  42 = Shift
+
+		keycode  43 = +udoubleacute	+Udoubleacute	currency
+
+		keycode  44 = +y	+Y		greater
+	control keycode  44 = Control_y
+	
+                keycode  45 = +x        +X		numbersign
+        control keycode  45 = Control_x
+
+		keycode  46 = +c	+C		ampersand
+	control keycode  46 = Control_c
+
+		keycode  47 = +v	+V		at
+	control keycode  47 = Control_v
+
+		keycode  48 = +b	+B		braceleft
+	control keycode  48 = Control_b
+
+		keycode  49 = +n	+N		braceright
+	control keycode  49 = Control_n
+
+		keycode  50 = m
+
+		keycode  51 = comma	question	semicolon
+
+		keycode  52 = period	colon
+
+		keycode  53 = minus	underscore	asterisk
+	control keycode  53 = Delete
+shift	control	keycode  53 = Control_underscore
+
+		keycode  54 = Shift
+		keycode  56 = Alt
+
+		keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+
+		keycode  58 = Caps_Lock
+
+		keycode  86 = +iacute		+Iacute		less
+
+		keycode  97 = Control

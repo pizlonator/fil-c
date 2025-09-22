@@ -1,0 +1,68 @@
+! Portuguese keymap for OLPC; based upon pt.map
+! Walter Bender (8 January 2008)
+!
+charset "iso-8859-15"
+keymaps 0-2,4,6,8,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+	alt	keycode   1 = Meta_Escape
+keycode   2 = one             exclam 		onesuperior
+keycode   3 = two             at		twosuperior
+keycode   4 = three           numbersign	threesuperior
+keycode   5 = four            dollar           
+keycode   6 = five            percent		cent
+keycode   7 = six             dead_diaeresis    notsign
+keycode   8 = seven           ampersand
+keycode   9 = eight           asterisk
+keycode  10 = nine            parenleft        
+keycode  11 = zero            parenright       
+keycode  12 = minus	      underscore
+	control keycode  12 = Control_underscore
+	alt	keycode  12 = Meta_minus
+keycode  13 = equal	plus			section
+	alt	keycode  13 = Meta_equal
+keycode  14 = Delete
+keycode  15 = Tab
+keycode  18 = e		       E		euro
+keycode  26 = apostrophe       grave		dead_acute       dead_grave       
+	alt	keycode  26 = Meta_apostrophe
+keycode  27 = bracketleft	braceleft	ordfeminine
+	control	keycode  27 = Escape
+	alt	keycode  27 = Meta_bracketleft
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+        shift   keycode  29 = Compose
+keycode  39 = +ccedilla         Ccedilla
+keycode  40 = asciitilde  asciicircum	dead_tilde       dead_circumflex
+	control	keycode  40 = Control_asciicircum
+	alt 	keycode  40 = Meta_asciitilde
+keycode  41 = apostrophe        quotedbl
+	alt	keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = bracketright	braceright	masculine       
+	control	keycode  43 = Control_bracketright
+	alt	keycode  43 = Meta_bracketright
+keycode  44 = z		       Z		bar
+keycode  51 = comma     less       
+	alt	keycode  51 = Meta_comma
+keycode  52 = period    greater	backslash
+	control keycode  52 = Control_backslash
+	alt	keycode  52 = Meta_period
+keycode  53 = semicolon	colon
+	alt	keycode  53 = Meta_semicolon
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode 211 = slash	question
+	alt	keycode 211 = Meta_slash
+compose 'e' '=' to '¤'
+compose '-' 'e' to '¤'
+compose '-' 'E' to '¤'
+compose '=' 'E' to '¤'
+

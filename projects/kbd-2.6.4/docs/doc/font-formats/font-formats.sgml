@@ -1,0 +1,347 @@
+<!doctype linuxdoc system>
+<article>
+<title>Font-formats recognized by the Linux kbd package
+<author>Andries Brouwer, <tt/aeb@cwi.nl/
+<date>v0.2, 2001-02-10
+
+<abstract>
+Setfont will either load one single font, or concatenate
+and load a collection of psf fonts. Some details are given here.
+</abstract>
+
+<sect>PSF fonts<p>
+PSF fonts come in two types: old (psf1) and new (psf2).
+A PSF font consists of
+(1) <ref id="psfheader" name="The header">,
+(2) <ref id="psffont" name="The font">,
+(3) <ref id="psfunimap" name="Unicode information">.
+
+<sect1>The header
+<label id="psfheader">
+<p>
+For psf1 this is
+<tscreen><verb>
+#define PSF1_MAGIC0     0x36
+#define PSF1_MAGIC1     0x04
+
+#define PSF1_MODE512    0x01
+#define PSF1_MODEHASTAB 0x02
+#define PSF1_MODEHASSEQ 0x04
+#define PSF1_MAXMODE    0x05
+
+#define PSF1_SEPARATOR  0xFFFF
+#define PSF1_STARTSEQ   0xFFFE
+
+struct psf1_header {
+        unsigned char magic[2];     /* Magic number */
+        unsigned char mode;         /* PSF font mode */
+        unsigned char charsize;     /* Character size */
+};
+</verb></tscreen>
+
+For psf2 this is
+<tscreen><verb>
+#define PSF2_MAGIC0     0x72
+#define PSF2_MAGIC1     0xb5
+#define PSF2_MAGIC2     0x4a
+#define PSF2_MAGIC3     0x86
+
+/* bits used in flags */
+#define PSF2_HAS_UNICODE_TABLE 0x01
+
+/* max version recognized so far */
+#define PSF2_MAXVERSION 0
+
+/* UTF8 separators */
+#define PSF2_SEPARATOR  0xFF
+#define PSF2_STARTSEQ   0xFE
+
+struct psf2_header {
+        unsigned char magic[4];
+        unsigned int version;
+        unsigned int headersize;    /* offset of bitmaps in file */
+        unsigned int flags;
+        unsigned int length;        /* number of glyphs */
+        unsigned int charsize;      /* number of bytes for each character */
+        unsigned int height, width; /* max dimensions of glyphs */
+        /* charsize = height * ((width + 7) / 8) */
+};
+</verb></tscreen>
+
+The meaning is fairly clear from the field names.
+The fonts here are bitmap fonts (not, for example, vector fonts),
+and each glyph has a <tt>height</tt> and a <tt>width</tt>.
+The bitmap for a glyph is stored as <tt>height</tt> consecutive
+pixel rows, where each pixel row consists of <tt>width</tt> bits
+followed by some filler bits in order to fill an integral number
+of (8-bit) bytes. Altogether the bitmap of a glyph takes
+<tt>charsize</tt> bytes.
+
+For psf1 the width is constant 8, so that the height equals the charsize.
+
+The number of glyphs in the font equals <tt>length</tt>.
+For psf1 the length is constant 256, unless the <tt>PSF1_MODE512</tt> bit
+is set in the <tt>mode</tt> field, in which case it is 512.
+
+The font is followed by a table associating Unicode values with each
+glyph in case (for psf1) the <tt>PSF1_MODEHASTAB</tt> bit is set in
+the <tt>mode</tt> field, or (for psf2) the <tt>PSF2_HAS_UNICODE_TABLE</tt>
+bit is set in the <tt>flags</tt> field.
+
+The starting offset of the bitmaps in the font file is given by
+<tt>headersize</tt>. (This allows the header to grow, probably
+depending on <tt>version</tt>, without changes in the code.)
+
+The integers in the psf2 header struct are little endian 4-byte integers.
+
+<sect1>The font
+<label id="psffont">
+<p>
+The actual bitmaps.
+
+<sect1>Unicode information
+<label id="psfunimap">
+<p>
+The bitmaps may be followed by a Unicode description
+of the glyphs. This Unicode description of a position
+has grammar
+<tscreen><verb>
+<unicodedescription> := <uc>*<seq>*<term>
+<seq> := <ss><uc><uc>*
+<ss> := psf1 ? 0xFFFE : 0xFE
+<term> := psf1 ? 0xFFFF : 0xFF
+</verb></tscreen>
+where <tt>&lt;uc&gt;</tt> is a 2-byte little endian Unicode value (psf1),
+or a Unicode value coded in UTF-8 (psf2),
+and <tt>*</tt> denotes zero or more occurrences of the preceding item.
+<p>
+The semantics is as follows.
+The leading <tt>&lt;uc&gt;*</tt> part gives Unicode symbols that are all
+represented by this font position. The following sequences
+are sequences of Unicode symbols - probably a symbol
+together with combining accents - also represented by
+this font position.
+<p>
+Example:
+At the font position for a capital A-ring glyph, we
+may have (psf1):
+<tscreen><verb>
+     00C5,212B,FFFE,0041,030A,FFFF
+</verb></tscreen>
+where the Unicode values here are
+LATIN CAPITAL LETTER A WITH RING ABOVE
+and
+ANGSTROM SIGN
+and
+LATIN CAPITAL LETTER A
+and
+COMBINING RING ABOVE.
+Some font positions may be described by sequences only,
+namely when there is no precomposed Unicode value for the glyph.
+
+<sect1>Historical<p>
+PSF stands for PC Screen Font.
+The psf1 format without Unicode map was designed by
+H. Peter Anvin in 1989 or so for his DOS screen font editor
+<tt>FONTEDIT.EXE</tt>. In Oct 1994 he added the Unicode map
+and the programs <tt>psfaddtable</tt>, <tt>psfgettable</tt>,
+<tt>psfstriptable</tt> to manipulate it - see <tt>kbd-0.90</tt>.
+Andries Brouwer added support for sequences of Unicode values
+and the psf2 format in Sep 1999 in order to handle Tibetan -
+see <tt>kbd-1.00</tt>.
+
+<sect>Combining PSF fonts<p>
+The program <tt>setfont</tt> will accept font descriptions like
+<tscreen><verb>
+# combine partial fonts
+none.00-17.16
+ascii.20-7f.16
+none.00-17.16
+8859-1.a0-ff.16
+</verb></tscreen>
+where the first line is precisely <tt># combine partial fonts</tt>
+and the remaining lines contain filenames for PSF fonts to load.
+The above example (it is the file <tt>iso01.16</tt>)
+describes a font with 256 positions, of which the first 32 are taken
+from the file <tt>none.00-17.16</tt>, the following 96 from
+<tt>ascii.20-7f.16</tt>, the following 32 from
+<tt>none.00-17.16</tt> again, and the final 96 from
+<tt>8859-1.a0-ff.16</tt>.
+In this way all ISO 8859-* fonts of a given pointsize (here 16)
+can share the same initial 160 positions.
+
+<sect>CPI fonts<p>
+In the DOS world screen or printer fonts come in
+<it>Code Page Information</it> format. There are two versions:
+the MS-DOS/PC-DOS "FONT" format, and the DR-DOS/Novell DOS
+"DRFONT" compressed format.
+These <tt>*.CPI</tt> files may contain fonts for several
+code pages, and, given a code page, for several point sizes.
+MS-DOS files usually have 16x8, 14x8, 8x8 fonts, while
+DR-DOS files often have 6x8, 8x8, 14x8, 16x8 fonts (in this order).
+Printer .CPI files have only one font.
+<p>
+(One sometimes encounters entirely different <tt>.cpi</tt> files,
+namely Unix <tt>.cpio</tt> files moved to a DOS machine with 8.3 filenames.
+Such files are archives.)
+<p>
+The files in "FONT" format have the following layout.
+First a 23-byte header.
+<tscreen><verb>
+struct {
+    char id0;              /* 0: 0xff */
+    char id[7];            /* 1-7: "FONT   " */
+    char reserved[8];      /* 8-15: 0 */
+    short pnum;            /* 16-17: number of pointers: 1 */
+    char ptyp;             /* 18: type of pointers: 1 */
+    long fih_offset;       /* 19-22: file offset of FontInfoHeader: 0x17 */
+} FontFileHeader;      /* 0-22 */
+</verb></tscreen>
+
+(Files in "DRFONT compressed format" have 0x7f "DRFONT " in bytes 0-7.
+After this FontFileHeader they have an extended header
+<tscreen><verb>
+struct {
+    char num_fonts_per_codepage; /* 23: N=4 */
+    char font_height[N];         /* 24-27: height of each font */
+    long dfd_offset[N];          /* 28-43: file offsets of DisplayFontData */
+} DRDOSExtendedFontFileHeader;
+</verb></tscreen>
+and consequently <tt>fih_offset</tt> will be 44 (0x2c) instead of 23 (0x17).)
+
+Next a 2-byte header that tells how many code pages this file contains.
+<tscreen><verb>
+struct {
+    short num_codepages;
+} FontInfoHeader;      /* 23-24 */
+</verb></tscreen>
+
+Next the indicated number of code pages.
+Each code page has a header and font data. In some files all headers
+come first and then all font data. In other files headers and font data
+alternate, that is, data for one code page is kept together.
+The code page header (the offsets given are for the first occurrence):
+<tscreen><verb>
+struct {
+    short cpeh_size;       /* 25-26: size of this header: 28 */
+    long next_cpeh_offset; /* 27-30: offset of next header; 0 or -1 for last */
+    short device_type;     /* 31-32: 1: screen, 2: printer */
+    char device_name[8];   /* 33-40: e.g. "EGA     " */
+    short codepage;        /* 41-42: 0, 437, 737, 85[0257], 86[013569], ... */
+    char reserved[6];      /* 43-48: 0 */
+    long cpih_offset;      /* 49-52: pointer to CPInfoHeader or 0 */
+} CPEntryHeader;       /* 25-52 */
+</verb></tscreen>
+
+MS-DOS and PC-DOS sometimes have 26 instead of 28 for the <tt>cpeh_size</tt>
+field in printer font files; one even meets both 26 and 28 in the same file.
+Probably there is confusion over whether <tt>cpih_offset</tt>
+is short or long.
+When headers and fonts are interspersed, <tt>next_cpeh_offset</tt>
+will point past the font, regardless of whether more entries follow.
+When first all headers are given, <tt>next_cpeh_offset</tt> is zero
+in the last header.
+It happens that <tt>next_cpeh_offset</tt> does not point to the
+next header, but to the one after that, or that it is zero while
+still one header follows. In such cases <tt>num_codepages</tt>
+gives the correct number of headers. (In the cases where it is
+zero while still one header follows, the last header is a dummy
+one, for codepage 0 and with no associated font.)
+Early DR-DOS printer font files have 1 instead of 2 in <tt>device_type</tt>.
+Device names include "EGA     ", "LCD     " for screen, and
+"4201    ", "4208    ", "5202    ", "1050    ", "EPS     ", "PPDS    "
+for printer devices.
+
+A code page font starts with a general header:
+<tscreen><verb>
+struct {
+    short version;         /* 53-54: 1: FONT, 2: DRFONT */
+    short num_fonts;       /* 55-56 */
+    short size;            /* 57-58: length of font data for each font */
+} CPInfoHeader;      /* 53-58 */
+</verb></tscreen>
+
+(For printer fonts <tt>num_fonts</tt> is 1 or 2, while only a single
+font follows. For screen fonts <tt>num_fonts</tt> is 1, 3 or 4.
+DRFONT files have in the <tt>size</tt> field the size (24) of the
+DRFONT header without the index table.)
+
+And then for each font a header followed by the actual data.
+For screen fonts
+<tscreen><verb>
+struct {
+    char height;           /* 59: one of 6, 8, 14, 16 */
+    char width;            /* 60: 8 */
+    short reserved;        /* 61-62: 0 */
+    short num_chars;       /* 63-64: 256 */
+} ScreenFontHeader;    /* 59-64 */
+</verb></tscreen>
+and for printer fonts
+<tscreen><verb>
+struct {
+    short printer_type;    /* 59-60: 1=4201/1050/EPS, 2=5202/4208/PPDS */
+    short seqlength;       /* 61-62: length of escape sequences */
+} PrinterFontHeader;   /* 59-62 */
+</verb></tscreen>
+followed by two escape sequences of the indicated length
+to select the hardware codepage or the downloaded codepage.
+
+However, in DRFONT files the CPInfoHeader is followed by
+the DRFONT header, consisting first of 4 ScreenFontHeaders,
+one for each point size, and then an index indicating where
+in the font bitmap the corresponding characters can be found.
+<tscreen><verb>
+struct {
+	struct ScreenFontHeader sfh[4];
+	short FontIndex[256];
+} DRFONTheader;
+</verb></tscreen>
+The font index is some integer, in the range 0-447 or so,
+indicating where in the font this code position can be found.
+In this way the font data is separated from the code used.
+
+<sect1>Linux use<p>
+Linux does not accept <tt>.CPI</tt> files, but the <tt>codepage</tt>
+utility from the kbd package is willing to read <tt>.CPI</tt> files
+of "FONT" type, and output <tt>.cp</tt> files suitable for <tt>setfont</tt>.
+For example, the call <tt>codepage -a iso.cpi</tt> will create
+ten font files <tt>850.cp</tt>, <tt>437.cp</tt>, ..., <tt>869.cp</tt>
+each containing a single font of pointsize 16, and
+<tt>codepage -a ega2.cpi</tt> six font files
+<tt>850.cp</tt>, ..., <tt>737.cp</tt> each containing three fonts
+of pointsizes 8, 14, 16.
+
+<sect>CP and raw fonts<p>
+PSF is the Linux standard font format, but various old and very
+obsolete formats still exist.
+<p>
+CP font files are just fragments of CPI fonts, obtained by concatenating
+<tt>CPEntryHeader</tt> (28 bytes), <tt>FontDataHeader</tt> (6 bytes),
+and for each font <tt>ScreenFontHeader</tt> (6 bytes) and
+<tt>ScreenFontData</tt>, that is, the part of a CPI font describing
+one code page.
+<p>
+(History: the first <tt>.cp</tt> files used with Linux that I know of
+were <tt>972.cp</tt> and <tt>880.cp</tt> included in
+<tt>codepage.tar.gz</tt> by Joel M. Hoffman, dated June 14, 1992.
+Support for such files was added in <tt>kbd-0.84</tt>.)
+<p>
+Of the <tt>CPEntryHeader</tt>, the only meaningful field is <tt>codepage</tt>.
+Of the <tt>FontDataHeader</tt>, the only meaningful fields are
+<tt>num_fonts</tt> (1 or 3) and <tt>size</tt>, giving the size
+of the following <tt>ScreenFontData</tt>.
+A CP file containing three fonts of pointsizes 16, 14, 8 will have
+size 34+(6+16*256)+(6+14*256)+(6+8*256) = 9780 bytes, with the three
+fonts at offsets 40, 4142, 7732.
+A CP file containing one font of point size 16 will have size
+34+(6+16*256) = 4136 bytes, with the font at offset 40.
+<p>
+There are other sources of fonts, and binary files with a length
+that is a multiple of 256 or a multiple of 256 plus 40 are
+accepted as possible binary font data (perhaps with a 40-byte
+header) for fonts of size 256.
+<p>
+Binary font files of size 32768 are treated as binary font data
+for a 512-char font of height 32. Such files are written by
+the obsolete <tt>restorefont -w</tt>.
+</article>

@@ -1,0 +1,276 @@
+#
+# de-mac.map: German Mac (Intel) Keymap
+#
+# Copyright (c) 2007 Jochen Kuhnle <jochenk@users.sourceforge.net>
+#
+# Distributed under the GNU General Public License Version 2
+# see http://www.gnu.org/licenses/gpl.txt for details
+#
+alt_is_meta
+include "qwertz-layout"
+include "linux-with-alt-and-altgr"
+include "compose.latin1"
+strings as usual
+
+keymaps 0,1,9,13
+
+# Keycode       Normal          Shift
+keycode   1 =   Escape          Escape
+keycode   2 =   one             exclam
+keycode   3 =   two             quotedbl  
+keycode   4 =   three           numbersign
+keycode   5 =   four            dollar                                          
+keycode   6 =   five            percent
+keycode   7 =   six             ampersand
+keycode   8 =   seven           slash
+keycode   9 =   eight           parenleft
+keycode  10 =   nine            parenright
+keycode  11 =   zero            equal
+keycode  12 =   ssharp          question
+keycode  13 =   dead_acute      dead_grave 
+keycode  14 =   Delete          Delete
+keycode  15 =   Tab             Tab
+keycode  26 =   +udiaeresis     +Udiaeresis
+keycode  27 =   plus            asterisk
+keycode  28 =   Return
+keycode  29 =   Control
+keycode  39 =   +odiaeresis     +Odiaeresis
+keycode  40 =   +adiaeresis     +Adiaeresis
+keycode  41 =   dead_circumflex degree
+keycode  42 =   Shift
+keycode  43 =   numbersign      apostrophe
+keycode  51 =   comma           semicolon
+keycode  52 =   period          colon
+keycode  53 =   minus           underscore
+keycode  54 =   Shift
+keycode  56 =   Alt             
+keycode  57 =   space           space
+keycode  58 =   Caps_Lock
+keycode  70 =   F14
+keycode  86 =   less            greater
+keycode  97 =   Control
+keycode  99 =   F13
+keycode 100 =   Alt
+keycode 119 =   F15
+keycode 125 =   AltGr           # Windows-Key ???
+keycode 126 =   AltGr
+
+# Alt Keys
+alt keycode   2 = exclamdown
+alt keycode   3 = U+201C        # left double quote
+alt keycode   4 = paragraph
+alt keycode   5 = cent
+alt keycode   6 = bracketleft
+alt keycode   7 = bracketright
+alt keycode   8 = bar
+alt keycode   9 = braceleft
+alt keycode  10 = braceright
+alt keycode  11 = U+2260        # not equal to
+alt keycode  12 = questiondown
+alt keycode  13 = apostrophe
+alt keycode  16 = guillemotleft
+alt keycode  17 = U+2211        # n-ary summation
+alt keycode  18 = U+20AC        # euro
+alt keycode  19 = registered
+alt keycode  20 = U+2020        # dagger
+alt keycode  21 = U+03A9        # Omega
+alt keycode  22 = dead_diaeresis
+alt keycode  23 = U+2044        # fraction slash
+alt keycode  24 = oslash
+alt keycode  25 = U+03C0        # pi
+alt keycode  26 = U+2022        # bullet
+alt keycode  27 = plusminus
+alt keycode  30 = aring
+alt keycode  31 = U+201A        # sinle low-9 quote
+alt keycode  32 = U+2202        # partial differential
+alt keycode  33 = U+0192        # f hook
+alt keycode  34 = copyright
+alt keycode  35 = ordfeminine
+alt keycode  36 = masculine
+alt keycode  37 = U+2206        # increment
+alt keycode  38 = at
+alt keycode  39 = ae
+alt keycode  40 = U+0153        # oe
+alt keycode  41 = U+201E        # double low-9 quote
+alt keycode  43 = U+2018        # left single quote
+alt keycode  44 = yen
+alt keycode  45 = U+2248        # almost equal
+alt keycode  46 = ccedilla
+alt keycode  47 = U+221A        # square root
+alt keycode  48 = U+222B        # integral
+alt keycode  49 = dead_tilde
+alt keycode  50 = mu
+alt keycode  51 = U+221E        # infinity
+alt keycode  52 = U+2026        # horizontal ellipsis
+alt keycode  53 = U+2013        # en dash
+alt keycode  86 = U+2264        # less than or equal tp
+
+# Ctrl+Alt Keys
+control alt keycode   2 = exclamdown
+control alt keycode   3 = U+201C        # left double quote
+control alt keycode   4 = paragraph
+control alt keycode   5 = cent
+control alt keycode   6 = bracketleft
+control alt keycode   7 = bracketright
+control alt keycode   8 = bar
+control alt keycode   9 = braceleft
+control alt keycode  10 = braceright
+control alt keycode  11 = U+2260        # not equal to
+control alt keycode  12 = questiondown
+control alt keycode  13 = apostrophe
+control alt keycode  16 = guillemotleft
+control alt keycode  17 = U+2211        # n-ary summation
+control alt keycode  18 = U+20AC        # euro
+control alt keycode  19 = registered
+control alt keycode  20 = U+2020        # dagger
+control alt keycode  21 = U+03A9        # Omega
+control alt keycode  22 = diaeresis
+control alt keycode  23 = U+2044        # fraction slash
+control alt keycode  24 = oslash
+control alt keycode  25 = U+03C0        # pi
+control alt keycode  26 = U+2022        # bullet
+control alt keycode  27 = plusminus
+control alt keycode  30 = aring
+control alt keycode  31 = U+201A        # sinle low-9 quote
+control alt keycode  32 = U+2202        # partial differential
+control alt keycode  33 = U+0192        # f hook
+control alt keycode  34 = copyright
+control alt keycode  35 = ordfeminine
+control alt keycode  36 = masculine
+control alt keycode  37 = U+2206        # increment
+control alt keycode  38 = at
+control alt keycode  39 = ae
+control alt keycode  40 = U+0153        # oe
+control alt keycode  41 = U+201E        # double low-9 quote
+control alt keycode  43 = U+2018        # left single quote
+control alt keycode  44 = yen
+control alt keycode  45 = U+2248        # almost equal
+control alt keycode  46 = ccedilla
+control alt keycode  47 = U+221A        # square root
+control alt keycode  48 = U+222B        # integral
+control alt keycode  49 = tilde
+control alt keycode  50 = mu
+control alt keycode  51 = U+221E        # infinity
+control alt keycode  52 = U+2026        # horizontal ellipsis
+control alt keycode  53 = U+2013        # en dash
+control alt keycode  86 = U+2264        # less than or equal tp
+
+# Shift+Alt Keys
+shift alt keycode   2 = U+00AC  # notsign
+shift alt keycode   3 = U+201D  # right double quote
+shift alt keycode   4 = numbersign
+shift alt keycode   5 = sterling
+shift alt keycode   6 = U+FB01  # fi ligature
+shift alt keycode   7 = dead_circumflex
+shift alt keycode   8 = backslash
+shift alt keycode   9 = U+02DC  # small tilde
+Shift alt keycode  10 = periodcentered
+shift alt keycode  11 = macron
+shift alt keycode  12 = U+02D9  # dot above
+shift alt keycode  13 = U+02DA  # ring above
+shift alt keycode  16 = guillemotright
+shift alt keycode  17 = U+201E  # double low-9 quote
+shift alt keycode  18 = U+2030  # per mille
+shift alt keycode  19 = cedilla
+shift alt keycode  20 = U+02DD  # double acute accent
+shift alt keycode  21 = U+02C7  # caron
+shift alt keycode  22 = Aacute
+shift alt keycode  23 = Ucircumflex
+shift alt keycode  24 = Ooblique
+shift alt keycode  25 = U+220F  # n-ary product
+shift alt keycode  26 = degree
+shift alt keycode  27 = U+F8FF  # apple logo
+shift alt keycode  30 = Aring
+shift alt keycode  31 = Iacute
+shift alt keycode  32 = U+2122  # trade mark
+shift alt keycode  33 = Idiaeresis
+shift alt keycode  34 = Igrave
+shift alt keycode  35 = Oacute
+shift alt keycode  36 = U+0131  # dotless i
+shift alt keycode  37 = U+02C6  # circumflex accent
+shift alt keycode  38 = U+FB02  # fl ligature
+shift alt keycode  39 = U+0152  # OE
+shift alt keycode  40 = AE
+shift alt keycode  41 = U+201C  # left double quote
+shift alt keycode  43 = U+2019  # right single quote
+shift alt keycode  44 = U+2021  # double dagger
+shift alt keycode  45 = Ugrave
+shift alt keycode  46 = Ccedilla
+shift alt keycode  47 = U+25CA  # lozenge
+shift alt keycode  48 = U+2039  # single left angle quote
+shift alt keycode  49 = U+203A  # single right angle quote
+shift alt keycode  50 = U+02D8  # breve
+shift alt keycode  51 = U+02DB  # ogonek
+shift alt keycode  52 = division
+shift alt keycode  53 = U+2014  # em dash
+shift alt keycode  86 = U+2265  # greater than or equal to
+
+# Control+Shift+Alt Keys
+control shift alt keycode   2 = U+00AC  # notsign
+control shift alt keycode   3 = U+201D  # right double quote
+control shift alt keycode   4 = numbersign
+control shift alt keycode   5 = sterling
+control shift alt keycode   6 = U+FB01  # fi ligature
+control shift alt keycode   7 = circumflex
+control shift alt keycode   8 = backslash
+control shift alt keycode   9 = U+02DC  # small tilde
+Control Shift alt keycode  10 = periodcentered
+control shift alt keycode  11 = macron
+control shift alt keycode  12 = U+02D9  # dot above
+control shift alt keycode  13 = U+02DA  # ring above
+control shift alt keycode  16 = guillemotright
+control shift alt keycode  17 = U+201E  # double low-9 quote
+control shift alt keycode  18 = U+2030  # per mille
+control shift alt keycode  19 = cedilla
+control shift alt keycode  20 = U+02DD  # double acute accent
+control shift alt keycode  21 = U+02C7  # caron
+control shift alt keycode  22 = Aacute
+control shift alt keycode  23 = Ucircumflex
+control shift alt keycode  24 = Ooblique
+control shift alt keycode  25 = U+220F  # n-ary product
+control shift alt keycode  26 = degree
+control shift alt keycode  27 = U+F8FF  # apple logo
+control shift alt keycode  30 = Aring
+control shift alt keycode  31 = Iacute
+control shift alt keycode  32 = U+2122  # trade mark
+control shift alt keycode  33 = Idiaeresis
+control shift alt keycode  34 = Igrave
+control shift alt keycode  35 = Oacute
+control shift alt keycode  36 = U+0131  # dotless i
+control shift alt keycode  37 = U+02C6  # circumflex accent
+control shift alt keycode  38 = U+FB02  # fl ligature
+control shift alt keycode  39 = U+0152  # OE
+control shift alt keycode  40 = AE
+control shift alt keycode  41 = U+201C  # left double quote
+control shift alt keycode  43 = U+2019  # right single quote
+control shift alt keycode  44 = U+2021  # double dagger
+control shift alt keycode  45 = Ugrave
+control shift alt keycode  46 = Ccedilla
+control shift alt keycode  47 = U+25CA  # lozenge
+control shift alt keycode  48 = U+2039  # single left angle quote
+control shift alt keycode  49 = U+203A  # single right angle quote
+control shift alt keycode  50 = U+02D8  # breve
+control shift alt keycode  51 = U+02DB  # ogonek
+control shift alt keycode  52 = division
+control shift alt keycode  53 = U+2014  # em dash
+control shift alt keycode  86 = U+2265  # greater than or equal to
+
+# fn keys
+keycode  51 = KP_Comma
+keycode  55 = KP_Multiply
+# keycode  69 = VoidSymbol      # fn 6 ???
+keycode  71 = KP_7
+keycode  72 = KP_8
+keycode  73 = KP_9
+keycode  74 = KP_Subtract
+keycode  75 = KP_4
+keycode  76 = KP_5
+keycode  77 = KP_6
+keycode  78 = KP_Add
+keycode  79 = KP_1
+keycode  80 = KP_2
+keycode  81 = KP_3
+keycode  82 = KP_0
+keycode  83 = KP_Period
+keycode  98 = KP_Divide
+keycode 117 = equal

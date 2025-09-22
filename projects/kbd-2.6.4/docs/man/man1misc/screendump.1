@@ -1,0 +1,56 @@
+.TH SCREENDUMP 1 "2002-02-24" "kbd"
+
+.SH NAME
+screendump \- dump the contents of a virtual console to stdout
+
+.SH SYNOPSIS
+.B screendump 
+[
+.I N
+]
+
+.SH DESCRIPTION
+The
+.B screendump
+command dumps the contents of virtual console 
+.B N
+, (or the current console if N is omitted)
+to standard out.
+
+Just saying
+.RS
+cat /dev/vcsN
+.RE
+has a similar effect.
+
+.SH NOTES
+For security reasons,
+.B screendump
+uses linux devices "virtual console screen" and 
+"virtual console screen with attributes" to give access for screendump.
+.P
+Ensure these files exist, using
+.LP
+.RS
+cd /dev
+for i in 0 1 2 3 ...; do
+.br
+	mknod vcs$i c 7 $i
+.br
+	mknod vcsa$i c 7 `expr 128 + $i`
+.br
+done
+.RE
+
+(filling in the ellipses) and give the device files appropriate
+permissions, or run 
+.B screendump
+as root.
+
+.SH SEE ALSO
+.BR setterm (1)
+
+.\" .SH AUTHORS
+.\" Andries Brouwer <aeb@cwi.nl>
+.\" .br
+.\" Manpage by Alastair McKinstry <mckinstry@computer.org>

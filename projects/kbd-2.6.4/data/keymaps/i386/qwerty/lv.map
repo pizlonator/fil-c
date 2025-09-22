@@ -1,0 +1,77 @@
+# encoding "UTF-8"
+# lv.map
+keymaps 0-6,8-9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+include "euro1.map"
+strings as usual
+
+#               0                1                2              3                   4                         5                   6              8
+#             Plain            Shift            AltGr            AltGr+Shift      Control                 Control+Shift         Control+AltGr    Alt
+keycode   1 = Escape
+keycode   2 = one              exclam           onesuperior      exclamdown
+keycode   3 = two              at               twosuperior      U+2158           nul                     nul
+keycode   4 = three            numbersign       threesuperior    pound            Escape
+keycode   5 = four             dollar           U+20AC           cent             Control_backslash
+keycode   6 = five             percent          onehalf          U+215C           Control_bracketright
+keycode   7 = six              asciicircum      threequarters    U+215D           Control_asciicircum
+keycode   8 = seven            ampersand        braceleft        U+215E           Control_underscore
+keycode   9 = eight            asterisk         bracketleft      U+2122           Delete
+keycode  10 = nine             parenleft        bracketright     U+0081
+keycode  11 = zero             parenright       braceright       U+00B0
+keycode  12 = minus            underscore       backslash        U+00BF           Control_underscore      Control_underscore
+keycode  13 = equal            plus             U+2013           U+2014
+keycode  14 = Delete
+keycode  15 = Tab              Meta_Tab
+keycode  26 = bracketleft      braceleft        guillemotleft    U+201C           Escape
+keycode  27 = bracketright     braceright       guillemotright   U+201D           Control_bracketright
+keycode  28 = Return           Return           Return           Return           Return                  Return                Return           Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon        colon            semicolon        colon
+keycode  40 = dead_acute       quotedbl         U+201C           U+201E           Control_g               quotedbl              apostrophe       apostrophe
+keycode  41 = grave            asciitilde       grave            U+0084           grave                   asciitilde            grave            grave
+keycode  42 = Shift
+keycode  43 = backslash        bar              grave            U+02D8           Control_backslash
+keycode  51 = comma            less             comma            multiply
+keycode  52 = period           greater          periodcentered   division
+keycode  53 = slash            question         slash            U+02D9           Control_underscore      Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space            space            asciitilde       space            nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar              brokenbar
+keycode  83 = KP_Comma
+keycode  97 = Control
+
+
+compose '\'' '\'' to '\''
+
+compose '\'' 'E' to U+0112  #  Ē  LATIN CAPITAL LETTER E WITH MACRON
+compose '\'' 'e' to U+0113  #  ē  LATIN SMALL LETTER E WITH MACRON
+compose '\'' 'R' to U+0156  #  Ŗ  LATIN CAPITAL LETTER R WITH CEDILLA
+compose '\'' 'r' to U+0157  #  ŗ  LATIN SMALL LETTER R WITH CEDILLA
+compose '\'' 'U' to U+016A  #  Ū  LATIN CAPITAL LETTER U WITH MACRON
+compose '\'' 'u' to U+016B  #  ū  LATIN SMALL LETTER U WITH MACRON
+compose '\'' 'I' to U+012A  #  Ī  LATIN CAPITAL LETTER I WITH MACRON
+compose '\'' 'i' to U+012B  #  ī  LATIN SMALL LETTER I WITH MACRON
+compose '\'' 'O' to U+014C  #  Ō  LATIN CAPITAL LETTER O WITH MACRON
+compose '\'' 'o' to U+014D  #  ō  LATIN SMALL LETTER O WITH MACRON
+
+compose '\'' 'A' to U+0100  #  Ā  LATIN CAPITAL LETTER A WITH MACRON
+compose '\'' 'a' to U+0101  #  ā  LATIN SMALL LETTER A WITH MACRON
+compose '\'' 'S' to U+0160  #  Š  LATIN CAPITAL LETTER S WITH CARON
+compose '\'' 's' to U+0161  #  š  LATIN SMALL LETTER S WITH CARON
+compose '\'' 'G' to U+0122  #  Ģ  LATIN CAPITAL LETTER G WITH CEDILLA
+compose '\'' 'g' to U+0123  #  ģ  LATIN SMALL LETTER G WITH CEDILLA
+compose '\'' 'K' to U+0136  #  Ķ  LATIN CAPITAL LETTER K WITH CEDILLA
+compose '\'' 'k' to U+0137  #  ķ  LATIN SMALL LETTER K WITH CEDILLA
+compose '\'' 'L' to U+013B  #  Ļ  LATIN CAPITAL LETTER L WITH CEDILLA
+compose '\'' 'l' to U+013C  #  ļ  LATIN SMALL LETTER L WITH CEDILLA
+
+compose '\'' 'Z' to U+017D  #  Ž  LATIN CAPITAL LETTER Z WITH CARON
+compose '\'' 'z' to U+017E  #  ž  LATIN SMALL LETTER Z WITH CARON
+compose '\'' 'C' to U+010C  #  Č  LATIN CAPITAL LETTER C WITH CARON
+compose '\'' 'c' to U+010D  #  č  LATIN SMALL LETTER C WITH CARON
+compose '\'' 'N' to U+0145  #  Ņ  LATIN CAPITAL LETTER N WITH CEDILLA
+compose '\'' 'n' to U+0146  #  ņ  LATIN SMALL LETTER N WITH CEDILLA

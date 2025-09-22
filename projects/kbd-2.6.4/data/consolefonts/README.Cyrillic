@@ -1,0 +1,56 @@
+Cyrillic fonts:
+
+Type A. Alt
+
+[Reference: codepage 866 (as given in Unicode 1.0, Vol 2, Appendix C).]
+The Alt fonts have the Cyrillic letters in the ranges
+0200-0237: capitals, 0240-0257,0340-0357: lower case,
+0360-0367: some additional letters.
+
+Here we have the alt* fonts (except that the positions 0362-0367 do not
+carry upper and lower case e, yi, short u).
+However, altc has some additional slavic characters
+(and fewer line drawing characters).
+
+Cyr_a8xN follows cp866 in the positions 0200-0257 and
+0340-0357. This means that upper and lower case io
+(cp866 codes 0360, 0361) are also missing.
+
+
+Type B. Koi8
+
+[Reference: RFC 1489 for koi8-r, RFC 2319 for koi8-u]
+
+The koi8-r and koi8-u character sets are almost identical.
+For the 8 letters in koi8-u, not in koi8-r, see src/koi8.syms.h.
+
+The koi8* fonts here are the koi8 equivalents of the alt*
+fonts above; in particular, koi8c-8x16 includes koi8u but
+has additional slavic characters.
+
+koi8-14.psf follows koi8r in the positions 0300-0377
+(and has some iso-8859-5 symbols in 0240-0277,
+and yat, fita, izhitsa in 0200-0202, 0220-0222).
+In particular, it does not have the io and IO at
+0243, 0263.
+
+qinglong@Bolizm.ihep.su writes:
+"BTW, there is no full rfc1489 compliant russian font shipping with `kbd'."
+and contributed koi8r-8x8.
+
+
+Type C. ISO 8859-5
+
+iso05.fN precisely follows iso-8859-5 in all positions
+where that norm defines a symbol.
+It has no symbols in the range 0200-0237.
+
+880.cp follows iso-8859-5 in the positions 0240-0377
+except that the four symbols 0244, 0364, 0371, 0372
+[Ukrainian Cyrillic letter ie (upper and lower case),
+and Cyrillic small letter lje, nje] are missing.
+It has a few old Russian symbols in the range 0200-0202,
+0220-222 (yat, fita, izhitsa).
+Thus, in spite of its name it has very little to do
+with the ibm cp880 (as described in GNU recode).
+

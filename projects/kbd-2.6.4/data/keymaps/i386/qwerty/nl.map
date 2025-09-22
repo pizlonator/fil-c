@@ -1,0 +1,80 @@
+# From eha@dasc.nl Wed Mar 31 13:55:06 1999
+# From: Eric Hameleers <eha@dasc.nl>
+#
+# Dutch keymap for IBM ThinkPads (765L, 600, 770 and 380).
+#
+# Key mapping for dutch keyboard (on my IBM-ThinkPad but generally useable)
+# Contributed by Eric Hameleers (eric.hameleers@nl.ibm.com)
+#
+#   Added the circumflex as AltGr func. of the key with the dead_circumflex
+#
+charset "iso-8859-1"
+keymaps 0-6,8-9,12
+alt_is_meta
+include "qwerty-layout"
+  altgr        keycode  19 = paragraph
+  altgr        keycode  31 = ssharp
+  altgr        keycode  44 = guillemotleft
+  altgr        keycode  45 = guillemotright
+  altgr        keycode  46 = cent
+  altgr        keycode  50 = mu
+# extension
+  altgr keycode  24 = +oslash
+  altgr shift keycode  24 = +Oslash
+include "linux-with-alt-and-altgr"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape
+keycode   2 = one		exclam		onesuperior
+keycode   3 = two		quotedbl	twosuperior
+keycode   4 = three		numbersign	threesuperior
+  control       keycode   4 = Escape
+keycode   5 = four		dollar		onequarter
+  control       keycode   5 = Control_backslash
+keycode   6 = five		percent		onehalf
+  control       keycode   6 = Control_bracketright
+keycode   7 = six		ampersand	threequarters
+  control       keycode   7 = Control_asciicircum
+keycode   8 = seven		underscore	pound
+  control       keycode   8 = Control_underscore
+  control shift keycode   8 = Control_underscore
+keycode   9 = eight		parenleft	braceleft
+  control       keycode   9 = Delete
+keycode  10 = nine		parenright	braceright
+keycode  11 = zero		apostrophe
+keycode  12 = slash		question	backslash
+  control altgr keycode  12 = Control_backslash
+# some use dead_tilde instead of asciitilde
+keycode  13 = degree		asciitilde	dead_cedilla
+keycode  14 = Delete
+  control       keycode  14 = BackSpace
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = dead_diaeresis	dead_circumflex		circumflex
+  control      keycode  26 = Escape
+keycode  27 = asterisk		bar
+keycode  28 = Return
+  alt          keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = plus		plusminus
+keycode  40 = dead_acute	dead_grave
+  control      keycode  40 = Control_g
+  alt          keycode  40 = Meta_apostrophe
+keycode  41 = at		section		notsign
+  control keycode  41 = nul
+  control shift keycode  41 = nul
+  control alt keycode  41 = Meta_nul
+keycode  42 = Shift
+keycode  43 = less		greater
+keycode  51 = comma		semicolon
+keycode  52 = period		colon		periodcentered
+  control      keycode  52 = Compose
+keycode  53 = minus		equal
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+  control      keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = bracketright	bracketleft	brokenbar
+keycode  97 = Control

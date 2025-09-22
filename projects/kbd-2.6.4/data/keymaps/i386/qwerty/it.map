@@ -1,0 +1,167 @@
+# Italian keymap
+#
+# '@', '#', '[', and ']' are obtained by AltGr with the appropriate key.
+#
+# I have added '{', '}', '~', '`', iacute and uacute.
+# They can be obtained by AltGr-(, AltGr-), AltGr-=, AltGr-', AltGr-igrave
+# and AltGr-ugrave respectively.
+#
+# Added also euro sign and cent, obtained by AltGr-e and AltGr-c respectively.
+#
+# The compose key is PrintScrn.
+#
+# Emanuele Tomasi <targzeta@gmail.com>
+
+# Added '{' and '}', obtained respectively by Shift-[ and Shift-].
+#
+# Tommaso Bonvicini <tommasobonvicini@gmail.com>
+
+keymaps 0-3,4-6,8-10,12-14
+include "qwerty-layout"
+include "linux-keys-bare"
+
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one
+keycode   3 = two
+keycode   4 = three
+keycode   5 = four
+keycode   6 = five
+keycode   7 = six
+keycode   8 = seven
+keycode   9 = eight
+keycode  10 = nine
+keycode  11 = zero
+keycode  12 = apostrophe
+keycode  13 = igrave
+keycode  14 = Delete
+#keycode  14 = BackSpace
+keycode  15 = Tab
+keycode  26 = egrave
+keycode  27 = plus
+keycode  28 = Return
+keycode  29 = Control
+keycode  39 = ograve
+keycode  40 = agrave
+keycode  41 = backslash
+keycode  42 = Shift
+keycode  43 = ugrave
+keycode  51 = comma
+keycode  52 = period
+keycode  53 = minus
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+keycode  58 = Caps_Lock
+keycode  86 = less
+keycode  97 = Control
+keycode  99 = Compose  # PrintScrn
+keycode 100 = AltGr
+
+shift keycode   1 = Escape
+shift keycode   2 = exclam
+shift keycode   3 = quotedbl
+shift keycode   4 = sterling
+shift keycode   5 = dollar
+shift keycode   6 = percent
+shift keycode   7 = ampersand
+shift keycode   8 = slash
+shift keycode   9 = parenleft
+shift keycode  10 = parenright
+shift keycode  11 = equal
+shift keycode  12 = question
+shift keycode  13 = asciicircum
+shift keycode  26 = eacute
+shift keycode  27 = asterisk
+shift keycode  39 = ccedilla
+shift keycode  40 = degree
+shift keycode  41 = bar
+shift keycode  43 = section
+shift keycode  51 = semicolon
+shift keycode  52 = colon
+shift keycode  53 = underscore
+shift keycode  86 = greater
+
+altgr keycode   9 = braceleft
+altgr keycode  10 = braceright
+altgr keycode  11 = asciitilde
+altgr keycode  12 = grave
+altgr keycode  13 = iacute
+altgr keycode  18 = currency       # Euro sign
+altgr keycode  26 = bracketleft
+altgr keycode  27 = bracketright
+altgr keycode  39 = at
+altgr keycode  40 = numbersign
+altgr keycode  43 = uacute
+altgr keycode  46 = cent
+
+shift altgr keycode  46 = copyright
+
+control keycode  41 = Control_backslash
+control keycode  58 = Control_Lock
+
+shift control keycode  13 = Control_asciicircum
+shift control keycode  53 = Control_underscore
+
+altgr control keycode  27 = Control_bracketright
+
+alt keycode   1 = Meta_Escape
+alt keycode   2 = Meta_one
+alt keycode   3 = Meta_two
+alt keycode   4 = Meta_three
+alt keycode   5 = Meta_four
+alt keycode   6 = Meta_five
+alt keycode   7 = Meta_six
+alt keycode   8 = Meta_seven
+alt keycode   9 = Meta_eight
+alt keycode  10 = Meta_nine
+alt keycode  11 = Meta_zero
+alt keycode  12 = Meta_apostrophe
+alt keycode  13 = Meta_igrave
+alt keycode  14 = Meta_Delete
+#alt keycode  14 = Meta_BackSpace
+alt keycode  15 = Meta_Tab
+alt keycode  27 = Meta_plus
+alt keycode  41 = Meta_backslash
+alt keycode  51 = Meta_comma
+alt keycode  52 = Meta_period
+alt keycode  53 = Meta_minus
+alt keycode  57 = Meta_space
+alt keycode  86 = Meta_less
+
+shift alt keycode   2 = Meta_exclam
+shift alt keycode   3 = Meta_quotedbl
+shift alt keycode   5 = Meta_dollar
+shift alt keycode   6 = Meta_percent
+shift alt keycode   7 = Meta_ampersand
+shift alt keycode   8 = Meta_slash
+shift alt keycode   9 = Meta_parenleft
+shift alt keycode  10 = Meta_parenright
+shift alt keycode  11 = Meta_equal
+shift alt keycode  12 = Meta_question
+shift alt keycode  13 = Meta_asciicircum
+shift alt keycode  27 = Meta_asterisk
+shift alt keycode  41 = Meta_bar
+shift alt keycode  51 = Meta_semicolon
+shift alt keycode  52 = Meta_colon
+shift alt keycode  86 = Meta_greater
+
+altgr alt keycode   9 = Meta_braceleft
+altgr alt keycode  10 = Meta_braceright
+altgr alt keycode  11 = Meta_asciitilde
+altgr alt keycode  12 = Meta_grave
+altgr alt keycode  26 = Meta_bracketleft
+altgr alt keycode  27 = Meta_bracketright
+altgr alt keycode  39 = Meta_at
+altgr alt keycode  40 = Meta_numbersign
+
+control alt keycode  41 = Meta_Control_backslash
+
+shift control alt keycode  53 = Meta_Control_underscore
+shift control alt keycode  13 = Meta_Control_asciicircum
+
+altgr control alt keycode  27 = Meta_Control_bracketright
+
+shift altgr keycode  26 = braceleft
+shift altgr keycode  27 = braceright

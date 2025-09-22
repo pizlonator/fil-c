@@ -1,0 +1,73 @@
+# From ad.h.huikeshoven@nl.arthurandersen.com Sun Apr 18 23:47:10 1999
+# Subject: Dutch Keyboard
+# I installed SuSE Linux 6.0 on my IBM Aptiva this weekend.
+# The machine comes with a Dutch, Windows compatible, 104 key keyboard.
+# I developed a keymap for this keyboard
+# The keyboard features dead keys, a pretty weird rearrangement
+# of keys like (){}[]<>~` etc., a Euro sign.
+#
+# nl2.map - based on us.map
+# Developed by Ad H. Huikeshoven, April 18, 1999.
+# For IBM manufactured Windows Keyboard, 104 key, for the Dutch market.
+# This is an alpha version of the map. Not all AltGr keys are
+# implemented yet. 
+# If you feel like mailing me, mail ad.h.huikeshoven@nl.arthurandersen.com.
+#
+keymaps 0-2,4-6,8-9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+#number       Normal           Shift          AltGr
+#--------------------------------------------------------------------------
+keycode   1 = Escape
+keycode   2 = one              exclam           onesuperior
+keycode   3 = two              quotedbl         twosuperior
+keycode   4 = three            numbersign       threesuperior
+     control   keycode   4 = Escape
+keycode   5 = four             dollar           onequarter
+keycode   6 = five             percent          onehalf
+     control   keycode   6 = Control_bracketright
+keycode   7 = six              ampersand        threequarters
+     control   keycode   7 = Control_asciicircum
+keycode   8 = seven            underscore        sterling
+keycode   9 = eight            parenleft         braceleft
+keycode  10 = nine             parenright        braceright
+keycode  11 = zero             apostrophe        braceright
+keycode  12 = slash            question          backslash	Control_underscore
+keycode  13 = degree           asciitilde        dead_cedilla
+keycode  14 = Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  18 = e                E                 euro
+keycode  19 = r                R                 paragraph
+keycode  26 = dead_diaeresis   dead_circumflex
+     control   keycode  26 = Escape
+keycode  27 = asterisk         bar
+keycode  28 = Return
+     alt  keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  31 = s                S                   ssharp
+keycode  39 = plus             plusminus
+keycode  40 = dead_acute       dead_grave
+     control   keycode  40 = Control_g
+keycode  41 = at               section             notsign
+     control   keycode  41 = nul
+keycode  42 = Shift
+keycode  43 = less             greater
+keycode  44 = z                Z                   guillemotleft
+keycode  45 = x                X                   guillemotright
+keycode  46 = c                C                   currency
+     control   keycode  43 = Control_backslash
+keycode  50 = m                M                   mu
+keycode  51 = comma            semicolon
+keycode  52 = period           colon               period
+keycode  53 = minus            equal
+     control   keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+     control   keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = bracketright     bracketleft          brokenbar
+# end of nl.map

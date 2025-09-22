@@ -1,0 +1,212 @@
+.\" @(#)loadkeys.1
+.TH LOADKEYS 1 "6 Feb 1994" "kbd"
+.SH NAME
+loadkeys \- load keyboard translation tables
+.SH SYNOPSIS
+.B loadkeys
+[\fI\,OPTION\/\fR]... \fI\,FILENAME\/\fR...
+.br
+.B loadkeys
+.I --default
+.br
+.B loadkeys
+.I --mktable
+.br
+.B loadkeys
+.I --bkeymap
+.br
+.B loadkeys
+.I --parse
+.LP
+.SH DESCRIPTION
+.IX "loadkeys command" "" "\fLloadkeys\fR command"
+.LP
+The program
+.B loadkeys
+reads the file or files specified by
+.IR FILENAME... .
+Its main purpose is to load the kernel keymap for the console.
+You can specify console device by the
+.I -C
+(or
+.I --console
+) option.
+.SH "RESET TO DEFAULT"
+If the
+.I -d
+(or
+.I --default
+) option is given,
+.B loadkeys
+loads a default keymap, probably the file
+.I defkeymap.map
+either in
+.I @DATADIR@/keymaps
+or in
+.IR /usr/src/linux/drivers/char .
+(Probably the former was user-defined, while the latter
+is a qwerty keyboard map for PCs - maybe not what was desired.)
+Sometimes, with a strange keymap loaded (with the minus on
+some obscure unknown modifier combination) it is easier to
+type `loadkeys defkeymap'.
+.SH "LOAD KERNEL KEYMAP"
+The main function of
+.B loadkeys
+is to load or modify the keyboard driver's translation tables.
+When specifying the file names, standard input can be denoted
+by dash (-). If no file is specified, the data is read from
+the standard input.
+.LP
+For many countries and keyboard types appropriate keymaps
+are available already, and a command like `loadkeys uk' might
+do what you want. On the other hand, it is easy to construct
+one's own keymap. The user has to tell what symbols belong
+to each key. She can find the keycode for a key by use of
+.BR showkey (1),
+while the keymap format is given in
+.BR keymaps (5)
+and can also be seen from the output of
+.BR dumpkeys (1).
+.SH "LOAD KERNEL ACCENT TABLE"
+If the input file does not contain any compose key definitions,
+the kernel accent table is left unchanged, unless the
+.I -c
+(or
+.I --clearcompose
+) option is given, in which case the kernel accent table is emptied.
+If the input file does contain compose key definitions, then all
+old definitions are removed, and replaced by the specified new entries.
+The kernel accent table is a sequence of (by default 68) entries
+describing how dead diacritical signs and compose keys behave.
+For example, a line
+.LP
+.RS
+compose ',' 'c' to ccedilla
+.RE
+.LP
+means that <ComposeKey><,><c> must be combined to <ccedilla>.
+The current content of this table can be see
+using `dumpkeys \-\-compose\-only'.
+.SH "LOAD KERNEL STRING TABLE"
+The option
+.I -s
+(or
+.I --clearstrings
+) clears the kernel string table. If this option is not given,
+.B loadkeys
+will only add or replace strings, not remove them.
+(Thus, the option \-s is required to reach a well-defined state.)
+The kernel string table is a sequence of strings
+with names like F31. One can make function key F5 (on
+an ordinary PC keyboard) produce the text `Hello!',
+and Shift+F5 `Goodbye!' using lines
+.LP
+.RS
+keycode 63 = F70 F71
+.br
+string F70 = "Hello!"
+.br
+string F71 = "Goodbye!"
+.RE
+.LP
+in the keymap.
+The default bindings for the function keys are certain
+escape sequences mostly inspired by the VT100 terminal.
+.SH "CREATE KERNEL SOURCE TABLE"
+If the
+.I -m
+(or
+.I --mktable
+) option is given
+.B loadkeys
+prints to the standard output a file that may be used as
+.I /usr/src/linux\%/drivers\%/char\%/defkeymap.c,
+specifying the default key bindings for a kernel
+(and does not modify the current keymap).
+.SH "CREATE BINARY KEYMAP"
+If the
+.I -b
+(or
+.I --bkeymap
+) option is given
+.B loadkeys
+prints to the standard output a file that may be used as a binary
+keymap as expected by Busybox
+.B loadkmap
+command (and does not modify the current keymap).
+.SH "UNICODE MODE"
+.B loadkeys
+automatically detects whether the console is in Unicode or
+ASCII (XLATE) mode.  When a keymap is loaded, literal
+keysyms (such as
+.BR section )
+are resolved accordingly; numerical keysyms are converted to
+fit the current console mode, regardless of the way they are
+specified (decimal, octal, hexadecimal or Unicode).
+.LP
+The
+.I -u
+(or
+.IR --unicode )
+switch forces
+.B loadkeys
+to convert all keymaps to Unicode.  If the keyboard is in a
+non-Unicode mode, such as XLATE,
+.B loadkeys
+will change it to Unicode for the time of its execution.  A
+warning message will be printed in this case.
+.LP
+It is recommended to run
+.BR kbd_mode (1)
+before
+.B loadkeys
+instead of using the
+.I -u
+option.
+.SH "OTHER OPTIONS"
+.TP
+.B \-a \-\-ascii
+Force conversion to ASCII.
+.TP
+.B \-h \-\-help
+.B loadkeys
+prints its version number and a short usage message to the programs
+standard error output and exits.
+.TP
+.B \-p \-\-parse
+.B loadkeys
+searches and parses keymap without action.
+.TP
+.B \-q \-\-quiet
+.B loadkeys
+suppresses all normal output.
+.TP
+.B \-V \-\-version
+.B loadkeys
+prints version number and exits.
+.SH WARNING
+Note that anyone having read access to
+.B /dev/console
+can run
+.B loadkeys
+and thus change the keyboard layout, possibly making it unusable. Note
+that the keyboard translation table is common for all the virtual
+consoles, so any changes to the keyboard bindings affect all the virtual
+consoles simultaneously.
+.LP
+Note that because the changes affect all the virtual consoles, they also
+outlive your session. This means that even at the login prompt the key
+bindings may not be what the user expects.
+.SH FILES
+.TP
+.I @DATADIR@/keymaps
+default directory for keymaps.
+.LP
+.TP
+.I /usr/src/linux/drivers/char/defkeymap.map
+default kernel keymap.
+.LP
+.SH "SEE ALSO"
+.BR dumpkeys (1),
+.BR keymaps (5)
+

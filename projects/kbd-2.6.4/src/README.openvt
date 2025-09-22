@@ -1,0 +1,21 @@
+
+openvt opens a new vt and runs a command on it. It can be used as a simple
+way to start several console logins without having to type your passwd
+on each VT in turn.
+
+openvt can be used as a simpler to use replacement for the doshell(8) command.
+
+openvt is similar in functionality to the AIX/RS6000 command open.
+
+
+To use openvt it must be installed setuid root (type make install; make
+setuid) or all the VT device that are not allocated to getty should be
+read/write by all, e.g.
+
+chmod a=rw /dev/tty[5678]
+
+Note, new in v1.1 -- is required to separate command/child options. See
+the manual page.
+
+Jon.
+

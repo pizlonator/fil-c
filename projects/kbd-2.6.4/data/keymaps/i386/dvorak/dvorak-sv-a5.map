@@ -1,0 +1,98 @@
+# dvorak-sv-a5.map - "Swedish version" of the Dvorak layout (Svorak)
+#
+# Author: Xerxes Rånby (nickname "Liket")
+# Keymap modificators: Shift and AltGr
+# Url: http://aoeu.info/s/dvorak/svorak
+#
+# The A1 keeps the special symbols (like !"#¤%&/()=?) where they
+# are on a normal Qwerty layout (the number keys with shift modifier),
+# while A5 moves them to the keypad (with alt gr modifier).
+#
+charset "iso-8859-1"
+keymaps 0-2,4-6,8,12
+alt_is_meta
+include "linux-with-alt-and-altgr.inc"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one
+keycode   3 = two
+keycode   4 = three
+keycode   5 = four
+keycode   6 = five
+keycode   7 = six
+keycode   8 = seven
+keycode   9 = eight
+keycode  10 = nine
+keycode  11 = zero
+keycode  12 = plus
+keycode  13 = dead_acute  dead_grave
+keycode  14 = Delete
+        alt     keycode  14 = Meta_Delete
+keycode  15 = Tab
+        alt     keycode  15 = Meta_Tab
+keycode  16 = +aring          +Aring			braceleft
+keycode  17 = +adiaeresis       +Adiaeresis		braceright
+keycode  18 = +odiaeresis       +Odiaeresis		bracketleft
+keycode  19 = p
+		altgr	keycode	 19 = bracketright
+keycode  20 = y               
+		altgr	keycode	 20 = dollar
+keycode  21 = f               
+		altgr	keycode  21 = quotedbl
+keycode  22 = g               
+		altgr	keycode  22 = question
+keycode  23 = c               
+		altgr	keycode  23 = ampersand
+keycode  24 = r               
+		altgr	keycode  24 = less
+keycode  25 = l                   
+		altgr	keycode	 25 = greater
+keycode  26 = comma
+keycode  27 = quotedbl   asciicircum           asciitilde
+keycode  28 = Return
+keycode  29 = Control         
+keycode  30 = a
+		altgr	keycode  30 = semicolon
+keycode  31 = o               
+		altgr	keycode  31 = slash
+keycode  32 = e               
+		altgr	keycode	 32 = parenleft
+keycode  33 = u               
+		altgr	keycode  33 = parenright
+keycode  34 = i               
+		altgr	keycode  34 = bar
+keycode  35 = d               
+		altgr	keycode  35 = numbersign
+keycode  36 = h               
+keycode  37 = t               
+		altgr	keycode  37 = numbersign
+keycode  38 = n               
+		altgr	keycode	 38 = quotedbl
+keycode  39 = s               
+keycode  40 = minus            underscore
+keycode  41 = section          degree
+keycode  42 = Shift
+keycode  43 = apostrophe       asterisk
+keycode  44 = period           colon
+		altgr	keycode  44 = colon       
+keycode  45 = q  
+		altgr	keycode  45 = equal
+keycode  46 = j               
+		altgr	keycode  46 = at
+keycode  47 = k               
+		altgr	keycode  47 = exclam
+keycode  48 = x               
+		altgr	keycode  48 = backslash
+keycode  49 = b               
+		altgr	keycode  49 = percent
+keycode  50 = m               
+keycode  51 = w               
+keycode  52 = v               
+keycode  53 = z               
+keycode  54 = Shift           
+keycode  56 = Alt             
+keycode  57 = space            space           
+keycode  58 = Caps_Lock       
+keycode  86 = nul
+keycode  97 = Control         

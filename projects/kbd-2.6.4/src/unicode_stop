@@ -1,0 +1,24 @@
+#!/bin/sh
+
+TTY=$(/usr/bin/tty)
+case "$TTY" in
+	/dev/console|/dev/vc*|/dev/tty[0-9]*)
+		;;
+	*)
+		echo "unicode_stop skipped on $TTY"
+		exit 0
+		;;
+esac
+
+# stop unicode
+kbd_mode -a
+if test -t ; then
+	printf '\033%%@'
+fi
+stty -iutf8
+
+uid="$(id -u 2>/dev/null)" ||:
+if [ "$uid" = 0 ]; then
+	[ ! -r "$HOME/.kbd/.keymap_sv" ] ||
+		loadkeys "$HOME/.kbd/.keymap_sv"
+fi

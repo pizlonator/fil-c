@@ -1,0 +1,389 @@
+Contents:
+
+1. About.
+1.1. Quick installation.
+1.2. Recommended modes.
+1.3. Legend.
+1.4. Variants.
+1.5. Notes.
+
+2. Linux console.
+2.1. consoletools.
+2.2. kbd.
+2.3. Quick reference.
+2.4. Legend.
+2.5. Notes.
+
+3. UNIX console.
+3.1. bsd-pcvt.
+3.2. Legend.
+3.3. Notes.
+
+4. X11 Window System.
+4.1. Installation.
+4.2. Notes.
+
+5. Frequently Asked Questions.
+
+6. Bugs.
+
+7. Legal information.
+7.1. License.
+7.2. Copyright.
+
+
+1. About.
+
+This archive contains source code for generating and installing Terminus
+Font for Linux console, UNIX console and X11 Window System.
+
+- version	4.20
+- sizes		6x12, 8x14, 8x16, 10x20, 12x24, 14x28, 16x32
+- styles	normal, bold, EGA/VGA bold
+- code pages	ISO10646-1
+- characters	690
+- format	Bitmap Distribution Format (BDF) version 2.1
+
+The character set covers ISO8859-1/2/5/9/13/15/16, IBM-437/852/855/866,
+Windows-1250/1251/1252/1254/1257, KOI8-R/U/E/F, Paratype-PT154/PT254,
+Bulgarian-MIK, Macintosh-Ukrainian, Esperanto and many others (a total of
+about 110 language sets). Also included are the IBM VGA, vt100 and xterm
+pseudographic characters.
+
+1.1. Quick installation.
+
+The commands:
+
+$ ./configure [--prefix=PREFIX]
+$ make
+# make install
+
+compile and install the Linux console and X11 Window System fonts, and
+
+# make fontdir
+
+updates fonts.dir for X11 (if you don't know what fonts.dir is, execute the
+command).
+
+1.2. Recommended modes.
+
+Obviously, the larger and better a monitor is, the higher modes (with the
+respective rates) can be used, and the more text may fit on the screen while
+remaining comfortably readable - and vice versa. As a comparison base, it is
+considered normal to use 640x480 and 800x600 modes with font size 8x16 and
+10x20 respectively (that is, 80 columns by 30 lines) on 14" and 15" CRT
+monitors.
+
+Use modes that match your display ratio. Most personal computer monitors are
+4:3, so use 1280x960 (4:3) instead of 1280x1024 (5:4) if possible. The
+EGA/VGA text modes are 720x400 (9:5), but the font (i.e. sizes 8x14 and
+8x16) is designed to work with them.
+
+1.3. Legend.
+
+The file names are structured as follows:
+
+ter-u<SIZE><STYLE>.bdf
+
+where <SIZE> is 12, 14, 16, 20, 24, 28 or 32, and <STYLE> is n for normal
+(all sizes), b for bold (all sizes except 6x12) and v for EGA/VGA bold (8x14
+and 8x16 only, makes use of the eight character matrix column).
+
+1.4. Variants.
+
+Some characters are implemented in two variants. The alternate variants are
+on the font WEB page. To use a variant, download it and execute:
+
+zcat terminus-font-<VERSION>-<NAME>.diff.gz | patch -p1
+
+before installation. <VERSION> is the font version and <NAME> identifies the
+variant.
+
+1.5. Notes.
+
+The commands marked with $ can be executed by a regular user.
+The configure commands are optional.
+
+Almost all characters which are not part of the code pages listed above are
+available on X11/ISO10646-1 only (UTF+8/Unicode).
+
+
+2. Linux console.
+
+- sizes		6x12, 8x14, 8x16, 12x24, 10x20, 14x28 and 16x32
+- styles	normal, bold, framebuffer-bold
+- code pages	ISO8859-1/ISO8859-15/Windows-1252, ISO8859-2/Windows-1250,
+		Windows-1251/ISO8859-5, ISO8859-9/Windows-1254, ISO8859-16,
+		ISO8859-13/Windows-1257, IBM-437, Bulgarian-MIK, KOI8-R,
+		KOI8-U, Paratype-PT154, combined
+- characters	582
+- format	PC Screen Font (PSF) with unicode data
+
+2.1. consoletools.
+
+$ ./configure [--prefix=PREFIX | --psfdir=DIRECTORY]
+$ make psf
+# make install-psf
+
+The files are compressed with gzip and installed in DIRECTORY. If DIRECTORY
+does not exist, it is created. The default PREFIX is /usr. The default
+DIRECTORY is PREFIX/share/consolefonts. Requires Perl.
+
+If you don't have mappings for Windows-1252/1250/1251/1254/1257, ISO8859-16,
+IBM-437, KOI8-R, Bulgarian-MIK or Paratype-PT154/PT254, also run:
+
+$ ./configure [--prefix=PREFIX | --acmdir=DIRECTORY]
+$ make txt
+# make install-acm
+
+The default DIRECTORY is PREFIX/share/consoletrans. Requires awk.
+Uninstallation of the mappings is not supported. To load a font:
+
+$ consolechars [-m MAPPING] -f ter-<X><SIZE><STYLE>
+
+where <X> is a character identifying the code page as listed in p.2.4.
+
+2.2. kbd.
+
+$ ./configure [--psfdir=DIRECTORY]
+$ make psf
+# make install-psf
+
+where DIRECTORY should be either PREFIX/lib/kbd/consolefonts or
+PREFIX/share/kbd/consolefonts, depending on kbd version, and PREFIX is
+usually /usr. The missing mappings are installed with:
+
+$ ./configure [--prefix=PREFIX | --unidir=DIRECTORY]
+$ make txt
+# make install-uni
+
+The default DIRECTORY is PREFIX/share/kbd/consoletrans. Requires awk. To
+load a font:
+
+$ setfont [-m MAPPING] ter-<X><SIZE><STYLE>
+
+where <X> is a character identifying the code page as listed in p.2.4.
+
+2.3. Quick reference.
+
+$ ./configure [--prefix=PREFIX | --psfdir=DIRECTORY | --ref=FILENAME]
+# make install-ref
+
+Installs the text from p.2.4. as FILENAME (the default is README.terminus)
+in DIRECTORY.
+
+2.4. Legend.
+
+names	mappings		covered codepage(s)
+
+ter-1*	iso01, iso15, cp1252	ISO8859-1, ISO8859-15, Windows-1252
+ter-2*	iso02, cp1250		ISO8859-2, Windows-1250
+ter-9*	iso09, cp1254		ISO8859-9, Windows-1254
+ter-c*	cp1251, iso05		Windows-1251, ISO8859-5
+ter-d*	iso13, cp1257		ISO8859-13, Windows-1257
+ter-g*	iso16			ISO8859-16
+ter-i*	cp437			IBM-437
+ter-k*	koi8r			KOI8-R
+ter-m*	mik			Bulgarian-MIK
+ter-p*	pt154			Paratype-PT154
+ter-u*	koi8u			KOI8-U
+ter-v*	all listed above,	all listed above, Paratype-PT254,
+	pt254 etc. (if you	Macintosh-Ukrainian, KOI8-U/E/F and
+	have such mappings)	IBM-852/855/866, 8 foreground colors
+
+names	style
+
+ter-*n	normal
+ter-*b	bold
+ter-*f	framebuffer-bold
+
+2.5. Notes.
+
+The combined code page is based on IBM-437 (character 0xFF is ogonek).
+The ISO8859-16 font also includes all letters and accents from Windows-1250.
+
+The Linux kernel 2.4 framebuffers support widths 8, 12 and 16 only; kernel
+2.6 and a relevant framebuffer are required to use the other sizes.
+
+
+3. UNIX console.
+
+- sizes		8x14, 8x16
+- styles	normal, bold, framebuffer-bold
+- code pages	ISO8859-1/Windows-1252, ISO8859-2, ISO8859-5, ISO8859-9,
+		ISO8859-9/Windows-1254, ISO8859-13, ISO8859-15, ISO8859-16,
+		IBM-437, KOI8-R, KOI8-U, Paratype-PT154
+- characters	542
+- format	raw data
+
+3.1. bsd-pcvt.
+
+$ ./configure [--prefix=PREFIX | --rawdir=DIRECTORY]
+$ make raw
+# make install.raw
+
+or, for file names with minus instead of period:
+
+# make install-raw
+
+The default DIRECTORY is PREFIX/share/misc/pcvtfonts. The fonts are
+installed uncompressed. Requires Perl. To load a font:
+
+$ loadfont -f /usr/share/misc/pcvtfonts/ter-<X><STYLE>.8<SIZE>
+
+or, for file names with minus instead of period:
+
+$ loadfont -f /usr/share/misc/pcvtfonts/ter-<X><STYLE>-8x<SIZE>
+
+where <X> is a character identifying the code page as listed in p.3.2.
+
+3.2. Legend.
+
+names	covered codepage(s)
+
+ter-1*	ISO8859-1, Windows-1252
+ter-2*	ISO8859-2
+ter-5*	ISO8859-5
+ter-9*	ISO8859-9, Windows-1254
+ter-c*	Windows-1251
+ter-d*	ISO8859-13
+ter-f*	ISO8859-15
+ter-g*	ISO8859-16
+ter-i*	IBM-437
+ter-k*	KOI8-R
+ter-p*	Paratype-PT154
+ter-u*	KOI8-U
+
+names	style
+
+ter-*n	normal
+ter-*b	bold
+ter-*f	framebuffer-bold
+
+3.3. Notes.
+
+The RAW font contains data only and should be compatible with all UNIX
+systems. If any of the bold fonts doesn't look good try framebuffer-bold,
+or, if you are using an EGA/VGA adapter, program it to to clear column 8 of
+the character matrix (attribute controller register 0x10 bit 0x02).
+
+
+4. X11 Window System.
+
+- sizes		6x12, 8x14, 8x16, 10x20, 12x24, 14x28 and 16x32
+- styles	normal, bold
+- code pages	ISO8859-1/Windows-1252, ISO8859-2, ISO8859-5,
+		ISO8859-9/Windows-1254, ISO8859-13, ISO8859-15, ISO8859-16,
+		Windows-1251, KOI8-R, KOI8-U, Paratype-PT154, ISO10646-1
+- characters	689
+- format	Portable Compiled Font (PCF)
+
+4.1. Installation.
+
+$ ./configure [--prefix=PREFIX | --x11dir=DIRECTORY]
+$ make pcf
+# make install-pcf
+
+The files are compressed with gzip and installed in DIRECTORY. If DIRECTORY
+does not exist, it is created. The default PREFIX is /usr. The default
+DIRECTORY is PREFIX/X11R6/lib/X11/fonts/local. Requires Perl and bdftopcf.
+Some X11 libraries and applications substitute the missing bold fonts by
+shifting the normal fonts. To avoid such substitution for 6x12, run:
+
+# make install-12b
+
+To update fonts.dir file in DIRECTORY after (un)installation, use:
+
+# make fontdir
+
+The configuration file which lists the font directories must contain
+DIRECTORY. If xfs or the X-server have been active during the installation,
+they should be restarted so the font list can be updated.
+
+See also mkfontdir(1), xorg.conf(5), xfs(1), xlsfonts(1) and fonts-conf(5).
+
+4.2. Notes.
+
+The ISO8859-1 and ISO8859-9 fonts contain the Windows Western characters and
+can be used as Windows-1252 and Windows-1254 respectively.
+
+
+5. Frequently Asked Questions.
+
+Q. Italic version?
+
+A. No. The quality is significantly lower, and preserving the font width
+requires overlapping characters, which are not handled very well by X11/Xft.
+If you need it than much, try mkitalic from FreeBSD or bdfslant from Debian.
+
+Q. Scalable version?
+
+A. Probably a TrueType font in 2006/7. No italic version will be included
+unless it is very easy to implement.
+
+Q. Win32 version?
+
+A. No, there are problems with the raster font codepages and sizes. You can
+try the pseudo-TrueType version by Eric Shao-yu Cheng.
+
+Q. How to create an italic version with mkitalic?
+
+A. Sorry, but I do not answer questions about mkitalic, bdfslant and the
+pseudo-TrueType version, neither to questions specific to a particular Linux
+distribution. Read the sources/documentation or write to the respective
+package maintainer.
+
+Q. How about some new characters?
+
+A. Fine, if they aren't very complex - but be ready to help. To make the new
+characters easily readable, I must have a very good idea what they should
+look like. The digits and most of the letters and punctuation characters
+that I'm familiar with are already included in the font, so your assistance
+will most probably be required for the new ones.
+
+Q. The bold 6x12 font...
+
+A. ...does not exist - see 4.1.
+
+Q. The font works in X11/Motif, but not in GNOME/KDE/Xfce.
+
+A. See fonts-conf(5).
+                                                                                                        variant
+Q. The lowercase cyrillic k...
+
+A. ...has been fixed, and the previous (high) k is now a varianth.
+
+
+6. Bugs.
+
+Size 6x12, size 14x28 bold style and size 16x32 normal style are of worse
+quality than the others. Avoid them.
+
+The eth modifier should be based on curve not diagonal.
+
+Shha, Dje, Tshe, shha, dje tshe and may be wrong and/or font incompliant.
+
+The upper-P-part of Thorn in sizes 6x12 and 12x24 is not centered.
+
+The modifiers of Ghe middlehook, ghe middlehook, Eng and eng are mostly
+random.
+
+Several accents are implemented as combining accents, commaturnedmod is
+arbitary.
+
+
+7. Legal information.
+
+7.1. License.
+
+You can use and distribute this archive and the character varianths freely
+and without charge under the terms of the GNU General Public License version
+2.0 or (at your choice) any later version.
+
+7.2. Copyright.
+
+Terminus Font 4.20, Copyright (C) 2006 Dimitar Toshkov Zhekov.
+Report bugs to <jimmy@is-vn.bg>
+
+
+Thanks to Anton Zinoviev, Kir Koliushkin and all others who helped.

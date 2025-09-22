@@ -1,0 +1,696 @@
+# Copyright (c) 1997, 1998 Guylhem Aznar <guylhem @ oeil.qc.ca> : GPL
+# Copyright (c) 1997 Pierre-Charles David <pcdavid @ club-internet.fr>
+#
+# Les accents circonflexes des principales voyelles sont obtenus avec
+# la touche Alt_Gr, les trémas sont obtenus par Alt_Gr + Shift.
+#
+#  ____                                     _________ _____________ _______
+# | S A| S = Shift,  A = AltGr + Shift     | Compose | Arrêt défil | Pause |
+# | s a| s = normal, a = AltGr             |  Ferme  | Mem/Reg/Ste | Halte |
+#  ¯¯¯¯                                     ¯¯¯¯¯¯¯¯¯ ¯¯¯¯¯¯¯¯¯¯¯¯¯ ¯¯¯¯¯¯¯
+#  ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ _______
+# | ½ «| 1 ·| 2 É| 3 ¸| 4 ´| 5 ¨| 6 ¦| 7 È| 8 ¯| 9 Ç| 0 À| ° ÿ| + ¾| <--   |
+# | ¼ »| & '| é ~| " #| ' {| ( [| - || è `| _ \| ç ^| à @| ) ]| = }|       |
+#  ========================================================================
+# | |<-  | A ä| Z Å| E ë| R Ç| T Þ| Y Ý| U ü| I ï| O ö| P '| " `| £ ê|   , |
+# |  ->| | a â| z å| e ¤| r ç| t þ| y ý| u û| i î| o ô| p ¶| ^ ~| $ ¢| <-' |
+#  ===================================================================¬    |
+# |       | Q Ä| S Ø| D Ë| F ª| G Æ| H Ð| J Ü| K Ï| L Ö| M º| % Ù| µ ¥|    |
+# | MAJ   | q Â| s ø| d Ê| f ±| g æ| h ð| j Û| k Î| l Ô| m ¹| ù ²| * ³|    |
+#  ========================================================================
+# | ^   | >  | W  | X  | C  | V  | B  | N  | ?  | .  | /  | §  |     ^     |
+# | |   | < || w «| x »| c ©| v ®| b ß| n ¬| , ¿| ; ×| : ÷| ! ¡|     |     |
+#  ========================================================================
+# |      |      |      |                       |       |      |     |      |
+# | Ctrl | Con+ | Alt  | Space    Nobreakspace | AltGr | Con- | Con | Ctrl |
+#  ¯¯¯¯¯¯ ¯¯¯¯¯¯ ¯¯¯¯¯¯ ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ ¯¯¯¯¯¯¯ ¯¯¯¯¯¯ ¯¯¯¯¯ ¯¯¯¯¯¯
+#
+# 1. Control & Alt
+#
+# Les définitions de Alt & Control (touche) sont *NORMALEMENT* implicites ;
+# n'ont donc été redéfinis qu'Alt (nombre) & Alt + Shift (nombre) pour
+# inverser le comportement par défaut ainsi que les Alt(azqwm) pour coller
+# au clavier AZERTY au lieu de QWERTY :
+#
+# 		touche = signe
+#		touche + Shift = nombre
+#
+# La correspondance devient donc :
+#
+# 		Alt touche = Meta_nombre
+#		Alt + Shift touche = Meta_signe
+#
+# Signalez-moi si cette correspondance n'est pas implicite chez vous !
+#
+# 2. Hexadécimal :
+#
+# Shift (touche du pavé numérique) permet de taper de l'héxadécimal.
+#
+# 3. Fonctions :
+#
+# Redémarrer ou arrêter l'ordinateur, sont disponibles directement au clavier
+#
+#		Control Alt Delete/Backspace : redémarrer
+#		AltGr + Impr. Écran : arrêter
+#
+# Ajouter pour ces deux fonctions les lignes suivantes à /etc/inittab :
+#
+#		ca:12345:ctrlaltdel:/sbin/shutdown -t1 -r now
+#		kb:12345:kbrequest:/sbin/halt
+#
+# 4. Accentuations :
+#
+# Les touches é, è, ç, à & ù, présentes en mode minuscule (i.e. sans shift)
+# ne sont pas disponibles en mode majuscule : elles sont respectivement
+# remplacées par 2, 7, 9, 0 & % ; donc pour obtenir les majuscules
+# accentuées É, È, Ç, À & Ù:
+#
+#	* Si les dead_keys ne fonctionnaient pas (certains programmes
+#	les refusent), vous pouvez toujours utiliser AltGr + Shift
+#	(minuscule accentuée) pour obtenir la majuscule ; pour
+#	l'accent circonflexe & le tréma :
+#
+#		AltGr (voyelle) : voyelle-minuscule ^
+#		AltGr + Shift (voyelle) : voyelle-minuscule "
+#		AltGr (en dessous de la voyelle) : voyelle-majuscule ^
+#		AltGr + Shift (en dessous de la voyelle) : voyelle majuscule "
+#
+# Seule exception : AltGr (e) donnant l'euro ¤, AltGr + Shift ($) donne ê 
+#
+#	* Si les dead_keys fonctionnent, utiliser les accents dits
+#	«morts», i.e. fonctionnant comme l'accent circonflexe & le
+#	tréma des machines à écrire ; sont disponibles :
+#
+#		(^) : accent circonflexe,
+#		Shift+  (^) : tréma,
+#		Shift + AltGr (^) : tilde,
+#		AltGr (1) : accent aigü,
+#		AltGr (7) : accent grave
+#
+# Pour s'en servir, procéder comme avec l'accent circonflexe & le tréma
+# sur les vielles machines à écrire :
+#
+#		AltGr (1) puis e : é
+#		Shift+AltGr (1) puis e : É ...
+#
+# 5. Les touches supplémentaires des claviers 105 touches
+#
+# Celles-ci servent à changer de console très facilement :
+#		Window Gauche : décrémente console
+#		Window Droite : incrémente console
+#		Souris sur menu : précédente console
+#
+# 6. Mode majuscule (CapsLock)
+#
+# Celui-ci à été refait pour correspondre à celui par défaut des vieilles
+# machines à écrire ou PC sous d'autres systèmes d'exploitation :
+#		CapsLock : passe toutes les touches en mode majuscule
+#		CapsLock à nouveau : repasse toutes les touches en minuscules
+#		Shift + touche : touche temporairement en majuscule
+#		Shift après CapsLock : repasse toues les touches en minuscules
+charset "iso-8859-15"
+
+keycode   0 =
+
+keycode   1 = Escape
+
+keycode   2 = +ampersand        +one              dead_acute       periodcentered
+        alt     keycode   2 = Meta_one
+        alt     shift   keycode   2 = Meta_ampersand
+
+keycode   3 = +eacute           +two              tilde            Eacute
+        alt     keycode   3 = Meta_two
+        alt     shift   keycode   3 = Meta_asciitilde
+
+keycode   4 = +quotedbl         +three            numbersign       cedilla
+        alt     keycode   4 = Meta_three
+        alt     shift   keycode   4 = Meta_quotedbl
+
+keycode   5 = +apostrophe       +four             braceleft        acute
+        alt     keycode   5 = Meta_four
+        alt     shift   keycode   5 = Meta_apostrophe
+
+keycode   6 = +parenleft        +five             bracketleft      diaeresis
+        alt     keycode   6 = Meta_five
+        alt     shift   keycode   6 = Meta_parenleft
+
+keycode   7 = +minus            +six              bar              brokenbar
+        alt     keycode   7 = Meta_six
+        alt     shift   keycode   7 = Meta_minus
+
+keycode   8 = +egrave           +seven            dead_grave       Egrave
+        alt     keycode   8 = Meta_seven
+        alt     shift   keycode   8 = Meta_grave
+
+keycode   9 = +underscore       +eight            backslash        macron
+        alt     keycode   9 = Meta_eight
+        alt     shift   keycode   9 = Meta_underscore
+
+keycode  10 = +ccedilla         +nine             asciicircum      Ccedilla
+        alt     keycode  10 = Meta_nine
+        alt     shift   keycode  10 = Meta_asciicircum
+
+keycode  11 = +agrave           +zero             at               Agrave
+        alt     keycode  11 = Meta_zero
+        alt     shift   keycode  11 = Meta_at
+
+keycode  12 = +parenright       +degree           bracketright     ydiaeresis
+        alt     keycode  12 = Meta_parenright
+        alt     shift   keycode  12 = Meta_bracketright
+
+keycode  13 = +equal            +plus             braceright       threequarters
+        alt     keycode  13 = Meta_equal
+        alt     shift   keycode  13 = Meta_plus
+
+keycode  14 = Delete           BackSpace
+        alt     keycode 111 = Meta_backslash
+        control keycode 111 = Control_backslash
+        alt     control keycode  14 = Boot
+        altgr   control keycode  14 = KeyboardSignal
+
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+	control keycode  15 = Meta_Tab
+	alt     keycode  15 = Last_Console
+
+keycode  16 = +a                +A		acircumflex     adiaeresis
+        control keycode  16 = Control_a
+
+keycode  17 = +z                +Z		aring           Aring
+        control keycode  17 = Control_z
+
+keycode  18 = +e                +E		currency        ediaeresis
+
+keycode  19 = +r                +R		ccedilla	Ccedilla
+
+keycode  20 = +t                +T		thorn		THORN
+
+keycode  21 = +y                +Y		yacute          Yacute
+
+keycode  22 = +u                +U		ucircumflex	udiaeresis
+
+keycode  23 = +i                +I		icircumflex	idiaeresis
+
+keycode  24 = +o                +O		ocircumflex 	odiaeresis
+
+keycode  25 = +p                +P		paragraph       apostrophe
+
+keycode  26 = dead_circumflex	dead_diaeresis	dead_tilde      grave
+
+keycode  27 = +dollar		+sterling	cent            ecircumflex
+
+keycode  28 = Return
+        alt     keycode  28 = 0x080d
+        altgr   keycode  28 = Linefeed
+
+keycode  29 = Control
+
+keycode  30 = +q                +Q		Acircumflex	Adiaeresis
+        control keycode  30 = Control_q
+
+keycode  31 = +s                +S		oslash		Ooblique
+
+keycode  32 = +d                +D		Ecircumflex	Ediaeresis 
+
+keycode  33 = +f                +F		plusminus	ordfeminine
+
+keycode  34 = +g                +G		ae		AE
+
+keycode  35 = +h                +H		eth		ETH
+
+keycode  36 = +j                +J		Ucircumflex	Udiaeresis
+
+keycode  37 = +k                +K		Icircumflex     Idiaeresis
+
+keycode  38 = +l                +L		Ocircumflex     Odiaeresis
+
+keycode  39 = +m                +M		onesuperior     masculine
+	alt     keycode  39 = Meta_semicolon
+        control keycode  39 = Control_m
+
+keycode  40 = +ugrave           +percent	twosuperior     +Ugrave
+#
+# Les 2 solutions de l'ancien comportement sont remplacées pour la norme latin0
+#
+#keycode  41 = twosuperior      threesuperior	onesuperior	macron
+#keycode  41 = guillemotleft    guillemotright   twosuperior	threesuperior
+keycode  41 =  +onehalf       +onequarter	guillemotleft	guillemotright
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+
+keycode  42 = CapsShift
+
+keycode  43 = +asterisk         +mu		threesuperior	yen
+
+keycode  44 = +w                +W		guillemotleft
+        control keycode  44 = Control_w
+
+keycode  45 = +x                +X		guillemotright
+
+keycode  46 = +c                +C		copyright
+
+keycode  47 = +v                +V		registered
+
+keycode  48 = +b                +B		ssharp
+
+keycode  49 = +n                +N		notsign
+
+keycode  50 = +comma            +question	questiondown
+
+keycode  51 = +semicolon        +period		multiply
+
+keycode  52 = +colon            +slash		division
+
+keycode  53 = +exclam           +section	exclamdown
+
+keycode  54 = CapsShift
+
+keycode  55 = asterisk          Hex_A		Hex_D
+
+keycode  56 = Alt
+
+keycode  57 = space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+	altgr	keycode  57 = nobreakspace
+#
+# Au choix Caps_Lock ou Caps_On, avec des raccourcis pour les
+# personnes n'ayant pas l'usage de leurs 2 mains.
+#
+keycode  58 = Caps_Lock
+        shift   keycode  58 = Shift_Lock
+        control keycode  58 = Control_Lock
+        alt     keycode  58 = Alt_Lock
+        altgr   keycode  58 = AltGr_Lock
+
+keycode  59 = F1               F11              Console_13
+	alt     keycode  59 = Console_1
+	control	alt     keycode  59 = Console_1
+
+keycode  60 = F2               F12              Console_14
+	alt     keycode  60 = Console_2
+	control	alt     keycode  60 = Console_2
+
+keycode  61 = F3               F13              Console_15
+	alt     keycode  61 = Console_3
+	control	alt     keycode  61 = Console_3
+
+keycode  62 = F4               F14              Console_16
+	alt     keycode  62 = Console_4
+	control	alt     keycode  62 = Console_4
+
+keycode  63 = F5               F15              Console_17
+	alt     keycode  63 = Console_5
+	control	alt     keycode  63 = Console_5
+
+keycode  64 = F6               F16              Console_18
+	alt     keycode  64 = Console_6
+	control	alt     keycode  64 = Console_6
+
+keycode  65 = F7               F17              Console_19
+	alt     keycode  65 = Console_7
+	control	alt     keycode  65 = Console_7
+
+keycode  66 = F8               F18              Console_20
+	alt     keycode  66 = Console_8
+	control	alt     keycode  66 = Console_8
+
+keycode  67 = F9               F19              Console_21
+	alt     keycode  67 = Console_9
+	control	alt     keycode  67 = Console_9
+
+keycode  68 = F10              F20              Console_22
+	alt     keycode  68 = Console_10
+	control	alt     keycode  68 = Console_10
+
+keycode  69 = Num_Lock	       Bare_Num_Lock
+
+keycode  70 = Scroll_Lock      Show_Memory      Show_Registers
+	control keycode  70 = Show_State
+
+keycode  71 = seven            Hex_7
+	alt     keycode  71 = Ascii_7
+
+keycode  72 = eight            Hex_8
+	alt     keycode  72 = Ascii_8
+
+keycode  73 = nine             Hex_9
+	alt     keycode  73 = Ascii_9
+
+keycode  74 = minus            Hex_B		Hex_E
+	alt	keycode  74 = minus
+
+keycode  75 = four             Hex_4
+	alt     keycode  75 = Ascii_4
+
+keycode  76 = five             Hex_5
+	alt     keycode  76 = Ascii_5
+
+keycode  77 = six              Hex_6
+	alt     keycode  77 = Ascii_6
+
+keycode  78 = plus             Hex_C		Hex_F
+	alt	keycode  78 = plus
+
+keycode  79 = one              Hex_1
+	alt     keycode  79 = Ascii_1
+
+keycode  80 = two              Hex_2
+	alt     keycode  80 = Ascii_2
+
+keycode  81 = three            Hex_3
+	alt     keycode  81 = Ascii_3
+
+keycode  82 = zero             Hex_0
+	alt     keycode  82 = Ascii_0
+
+keycode  83 = period           comma
+        altgr   control keycode  83 = KeyboardSignal
+        control alt     keycode  83 = Boot
+
+#
+# La touche AltGr+«Impr. Écran» = «SysReq» a un code pour elle-même
+#
+keycode  84 = SAK
+
+keycode  85 =
+
+keycode  86 = +less            +greater          bar
+	alt     keycode  86 = Meta_less
+
+keycode  87 = F11              F11              Console_23
+	alt     keycode  87 = Console_11
+	control	alt     keycode  87 = Console_11
+
+keycode  88 = F12              F12              Console_24
+	alt     keycode  88 = Console_12
+	control	alt     keycode  88 = Console_12
+
+keycode  89 =
+
+keycode  90 =
+
+keycode  91 =
+
+keycode  92 =
+
+keycode  93 =
+
+keycode  94 =
+
+keycode  95 =
+
+keycode  96 = Return
+
+keycode  97 = Control
+
+keycode  98 = slash
+
+#
+# La touche «Impr. Écran» ne sert à rien sous Linux, alors mettons-y «Compose»
+#
+keycode  99 = Compose
+
+keycode 100 = AltGr
+        alt     keycode 100 = Compose
+
+#
+# La touche Ctrl+Pause = Attn = 101 a un code pour elle-même
+#
+keycode 101 = Break
+
+keycode 102 = Home
+
+keycode 103 = Up
+#       alt     keycode 103 = First_Console
+
+keycode 104 = PageUp
+	shift   keycode 104 = Scroll_Backward
+
+keycode 105 = Left
+        alt     keycode 105 = Decr_Console
+
+keycode 106 = Right
+        alt     keycode 106 = Incr_Console
+
+keycode 107 = End
+
+keycode 108 = Down
+        alt     keycode 108 = Last_Console
+
+keycode 109 = PageDown
+	shift   keycode 109 = Scroll_Forward
+
+keycode 110 = Insert
+
+keycode 111 = Remove       BackSpace
+        alt     keycode 111 = Meta_backslash
+        control keycode 111 = Control_backslash
+        alt     control keycode  14 = Boot
+        altgr   control keycode  14 = KeyboardSignal
+
+keycode 112 = Macro
+
+keycode 113 = F13
+
+keycode 114 = F14
+
+keycode 115 = Help
+
+keycode 116 = Do
+
+keycode 117 = F17
+
+keycode 118 = plusminus
+
+keycode 119 = Pause
+
+keycode 120 =
+
+keycode 121 =
+
+keycode 122 =
+
+keycode 123 =
+
+keycode 124 =
+
+#
+# Touches supplémentaires des claviers 105 touches
+#
+
+#
+# Fenêtre gauche = Console précédente
+#
+keycode 125 = Decr_Console
+#
+# Fenêtre droite = Console suivante
+#
+keycode 126 = Incr_Console
+#
+# Menu = Dernière console
+#
+keycode 127 = Last_Console
+
+string Home = "\033[1~"
+string Insert = "\033[2~"
+string Remove = "\033[3~"
+string End = "\033[4~"
+string PageUp = "\033[5~"
+string PageDown = "\033[6~"
+string Macro = "\033[M"
+string Pause = "\033[P"
+string F1 = "\033[[A"
+string F2 = "\033[[B"
+string F3 = "\033[[C"
+string F4 = "\033[[D"
+string F5 = "\033[[E"
+string F6 = "\033[17~"
+string F7 = "\033[18~"
+string F8 = "\033[19~"
+string F9 = "\033[20~"
+string F10 = "\033[21~"
+string F11 = "\033[23~"
+string F12 = "\033[24~"
+string F13 = "\033[25~"
+string F14 = "\033[26~"
+string F15 = "\033[28~"
+string F16 = "\033[29~"
+string F17 = "\033[31~"
+string F18 = "\033[32~"
+string F19 = "\033[33~"
+string F20 = "\033[34~"
+string F21 = "\033[35~"
+string F22 = "\033[36~"
+string F23 = "\033[37~"
+string F24 = "\033[38~"
+string F25 = "\033[39~"
+string F26 = "\033[40~"
+string F27 = "\033[41~"
+string F28 = "\033[42~"
+string F29 = "\033[43~"
+string F30 = "\033[44~"
+string F31 = "\033[45~"
+string F32 = "\033[46~"
+string F33 = "\033[47~"
+string F34 = "\033[48~"
+string F35 = "\033[49~"
+
+# Latin1 compatible
+compose '`' 'A' to 'À'
+compose '`' 'a' to 'à'
+compose '\'' 'A' to 'Á'
+compose '\'' 'a' to 'á'
+compose '^' 'A' to 'Â'
+compose '^' 'a' to 'â'
+compose '~' 'A' to 'Ã'
+compose '~' 'a' to 'ã'
+compose '"' 'A' to 'Ä'
+compose '"' 'a' to 'ä'
+compose '-' 'a' to 'ª'
+compose '-' 'A' to 'ª'
+compose 'O' 'A' to 'Å'
+compose 'o' 'A' to 'Å'
+compose 'O' 'a' to 'å'
+compose 'o' 'a' to 'å'
+compose '0' 'A' to 'Å'
+compose '0' 'a' to 'å'
+compose '°' 'A' to 'Å'
+compose '°' 'a' to 'å'
+compose 'A' 'A' to 'Å'
+compose 'a' 'a' to 'å'
+compose 'A' 'E' to 'Æ'
+compose 'A' 'e' to 'Æ'
+compose 'a' 'e' to 'æ'
+compose ',' 'C' to 'Ç'
+compose ',' 'c' to 'ç'
+compose '^' 'C' to 'Ç'
+compose '^' 'c' to 'ç'
+compose '`' 'E' to 'È'
+compose '`' 'e' to 'è'
+compose '\'' 'E' to 'É'
+compose '\'' 'e' to 'é'
+compose '^' 'E' to 'Ê'
+compose '^' 'e' to 'ê'
+compose '"' 'E' to 'Ë'
+compose '"' 'e' to 'ë'
+compose '`' 'I' to 'Ì'
+compose '`' 'i' to 'ì'
+compose '\'' 'I' to 'Í'
+compose '\'' 'i' to 'í'
+compose '^' 'I' to 'Î'
+compose '^' 'i' to 'î'
+compose '"' 'I' to 'Ï'
+compose '"' 'i' to 'ï'
+compose '-' 'D' to 'Ð'
+compose '-' 'd' to 'ð'
+compose '^' 'D' to 'Ð'
+compose '^' 'd' to 'ð'
+compose '~' 'N' to 'Ñ'
+compose '~' 'n' to 'ñ'
+compose '^' 'N' to 'Ñ'
+compose '^' 'n' to 'ñ'
+compose 'n' 'n' to 'ñ'
+compose 'n' 'h' to 'ñ'
+compose 'N' 'Y' to 'Ñ'
+compose 'N' 'N' to 'Ñ'
+compose 'N' 'H' to 'Ñ'
+compose 'N' 'y' to 'Ñ'
+compose 'N' 'n' to 'Ñ'
+compose 'N' 'h' to 'Ñ'
+compose '`' 'O' to 'Ò'
+compose '`' 'o' to 'ò'
+compose '\'' 'O' to 'Ó'
+compose '\'' 'o' to 'ó'
+compose '^' 'O' to 'Ô'
+compose '^' 'o' to 'ô'
+compose '~' 'O' to 'Õ'
+compose '~' 'o' to 'õ'
+compose '"' 'O' to 'Ö'
+compose '"' 'o' to 'ö'
+compose '/' 'O' to 'Ø'
+compose '/' 'o' to 'ø'
+compose '-' 'o' to 'º'
+compose '-' 'O' to 'º'
+compose '`' 'U' to 'Ù'
+compose '`' 'u' to 'ù'
+compose '\'' 'U' to 'Ú'
+compose '\'' 'u' to 'ú'
+compose '^' 'U' to 'Û'
+compose '^' 'u' to 'û'
+compose '"' 'U' to 'Ü'
+compose '"' 'u' to 'ü'
+compose '\'' 'Y' to 'Ý'
+compose '\'' 'y' to 'ý'
+compose 'T' 'H' to 'Þ'
+compose 't' 'h' to 'þ'
+compose 's' 's' to 'ß'
+compose 'S' 'S' to '§'
+compose '+' '-' to '±'
+compose '|' '-' to '¬'
+compose '-' '|' to '¬'
+compose '|' '_' to '¬'
+compose '_' '|' to '¬'
+compose 's' 'z' to 'ß'
+compose 's' 's' to 'ß'
+compose '^' '1' to '¹'
+compose '^' '2' to '²'
+compose '^' '3' to '³'
+compose '<' '<' to '«'
+compose '>' '>' to '»'
+compose '?' '?' to '¿'
+compose '^' '?' to '¿'
+compose '!' '!' to '¡'
+compose '^' '!' to '¡'
+compose '-' 'y' to '¥'
+compose '-' 'Y' to '¥'
+compose '-' 'c' to '¢'
+compose '-' 'C' to '¢'
+compose '-' 'l' to '£'
+compose '-' 'L' to '£'
+compose '(' 'c' to '©'
+compose '(' 'r' to '®'
+compose 'm' 'u' to 'µ'
+compose '^' '!' to '¡'
+compose '^' '?' to '¿'
+compose '^' '-' to '¯'
+compose '^' '_' to '¯'
+compose '^' '.' to '·'
+compose '^' 'x' to '×'
+compose '^' 'X' to '×'
+compose '^' '*' to '×'
+compose '^' 'x' to '×'
+compose '^' 'X' to '×'
+compose '^' '*' to '×'
+compose '^' '/' to '÷'
+compose '<' '<' to '«'
+compose '>' '>' to '»'
+compose '"' 'c' to '©'
+compose '"' 'r' to '®'
+compose '"' 'y' to 'ÿ'
+compose 'i' 'j' to 'ÿ'
+# Latin0 specific
+compose '"' 'Y' to '¾'
+compose 'I' 'J' to '¾'
+compose '-' 'e' to '¤'
+compose '-' 'E' to '¤'
+compose '=' 'e' to '¤'
+compose '=' 'c' to '¤'
+compose '=' 'E' to '¤'
+compose '=' 'C' to '¤'
+compose 'e' '=' to '¤'
+compose 'c' '=' to '¤'
+compose 'E' '=' to '¤'
+compose 'C' '=' to '¤'
+compose '^' 'S' to '¦'
+compose '^' 's' to '¨'
+compose '^' 'Z' to '´'
+compose '^' 'z' to '¸'
+compose 'v' 'S' to '¦'
+compose 'v' 's' to '¨'
+compose 'v' 'Z' to '´'
+compose 'v' 'z' to '¸'
+compose 'O' 'E' to '¼'
+compose 'O' 'e' to '¼'
+compose 'o' 'e' to '½'
+compose '"' 'Y' to '¾'

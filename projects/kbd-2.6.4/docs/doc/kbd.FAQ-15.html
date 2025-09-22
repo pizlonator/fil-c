@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Examples of use of loadkeys and xmodmap</TITLE>
+ <LINK HREF="kbd.FAQ-16.html" REL=next>
+ <LINK HREF="kbd.FAQ-14.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc15" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-16.html">Next</A>
+<A HREF="kbd.FAQ-14.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc15">Contents</A>
+<HR>
+<H2><A NAME="s15">15. Examples of use of loadkeys and xmodmap</A></H2>
+
+<P>
+<!--
+loadkeys!example using
+-->
+
+<!--
+xmodmap!example using
+-->
+<P>Switching Caps Lock and Control on the keyboard (assuming you use
+keymaps 0-15; check with <CODE>dumpkeys | head -1</CODE>)
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys
+        keymaps 0-15
+        keycode 58 = Control
+        keycode 29 = Caps_Lock
+        %
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Switching them under X only:
+<BLOCKQUOTE><CODE>
+<PRE>
+        % xmodmap .xmodmaprc
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where <CODE>.xmodmaprc</CODE> contains lines
+<BLOCKQUOTE><CODE>
+<PRE>
+        remove Lock = Caps_Lock
+        remove Control = Control_L
+        keysym Control_L = Caps_Lock
+        keysym Caps_Lock = Control_L
+        add Lock = Caps_Lock
+        add Control = Control_L
+</PRE>
+</CODE></BLOCKQUOTE>
+
+What is this about the key numbering? Backspace is 14 under Linux,
+22 under X?  Well, the numbering can best be regarded as arbitrary;
+the Linux number of a key can be found using showkey(1), and the
+X number using xev(1). Often the X number will be 8 more than the
+Linux number.
+<P>Something else people like to change are the bindings of the function keys.
+Suppose that you want to make F12 produce the string "emacs ".
+Then
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys
+        keycode 88 = F12
+        string F12 = "emacs "
+        %
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will do this. More explicitly, the procedure is like this:
+(i) find the keycodes of the keys to be remapped, using showkey(1).
+(ii) save the current keymap, make a copy and edit that:
+<BLOCKQUOTE><CODE>
+<PRE>
+        % dumpkeys > my_keymap
+        % cp my_keymap trial_keymap
+        % emacs trial_keymap
+        % loadkeys trial_keymap
+        %
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The format of the table can be guessed by looking at the output
+of <CODE>dumpkeys</CODE>, and is documented in keymaps(5).
+When the new keymap functions as desired, you can put an invocation
+<BLOCKQUOTE><CODE>
+<PRE>
+        loadkeys my_new_keymap
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in <CODE>/etc/rc.local</CODE> or so, to execute it automatically at boot-up.
+Note that changing modifier keys is tricky, and a newbie can easily
+get into a situation only an expert can get out of.
+<P>The default directory for keymaps is <CODE>/usr/lib/kbd/keymaps</CODE>.
+The default extension for keymaps is <CODE>.map</CODE>.
+For example, <CODE>loadkeys uk</CODE> would probably load
+<CODE>/usr/lib/kbd/keymaps/i386/qwerty/uk.map</CODE>.
+(With kbd-0.95 and older this would be <CODE>/usr/lib/kbd/keytables</CODE>
+and <CODE>/usr/lib/kbd/keytables/uk.map</CODE>.)
+<P>
+<P>(On my machine) <CODE>/dev/console</CODE> is a symbolic link to <CODE>/dev/tty0</CODE>,
+and the kernel regards <CODE>/dev/tty0</CODE> as a synonym for the current VT.
+XFree86 1.3 changes the owner of <CODE>/dev/tty0</CODE>, but does not reset this
+after finishing. Thus, <CODE>loadkeys</CODE> or <CODE>dumpkeys</CODE> might fail because
+someone else owns <CODE>/dev/tty0</CODE>;
+in such a case you might run X first.
+Note that you cannot change keyboard mappings when not at the console
+(and not superuser).
+<P>
+<H2><A NAME="ss15.1">15.1 `I can use only one finger to type with'</A>
+</H2>
+
+<P>
+<!--
+keyboard!making modifier keys toggle
+-->
+<P>"Can the Shift, Ctrl and Alt keys be made to behave as toggles?"
+<P>Yes, after saying
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys
+        keymaps 0-15
+        keycode 29 = Control_Lock
+        keycode 42 = Shift_Lock
+        keycode 56 = Alt_Lock
+        %
+</PRE>
+</CODE></BLOCKQUOTE>
+
+the left Control, Shift and Alt keys will act as toggles.
+The numbers involved are revealed by showkey
+(and usually are 29, 97, 42, 54, 56, 100 for left and right control,
+shift and alt, respectively), and the functions are
+Control_Lock, Shift_Lock, Alt_Lock, ALtGr_Lock.
+<P>"What about `sticky' modifier keys?"
+<P>Since version 1.3.33, the kernel knows about `sticky' modifier keys.
+These act on the next key pressed. So, where one earlier needed
+the 3-symbol sequence Shift_Lock a Shift_Lock to type `A', one
+can now use the 2-symbol sequence SShift a.
+You can say
+<BLOCKQUOTE><CODE>
+<PRE>
+        % loadkeys
+        keymaps 0-15
+        keycode 54 = SShift
+        keycode 97 = SCtrl
+        keycode 100 = SAlt
+        %
+</PRE>
+</CODE></BLOCKQUOTE>
+
+to make the right Shift, Ctrl, Alt sticky versions of the left ones.
+This will allow you to type Ctrl-Alt-Del in three keystrokes with one hand.
+<P>The keymaps line in these examples should cover all keymaps you have in use.
+You find what keymaps you have in use by
+<BLOCKQUOTE><CODE>
+<PRE>
+        % dumpkeys | head -1
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<P>
+<H2><A NAME="ss15.2">15.2 Sticky keys under <CODE>X</CODE></A>
+</H2>
+
+<P>The following text was contributed by Piotr Mitros.
+<P>XFree86 supports an accessibility option which allows disabled users
+to type single-handed. With sticky keys enabled, the user can hit a
+modifier key (ctrl, alt, shift) followed by another key, rather than
+having to hold the modifier key while hitting the letter. 
+<P>To enable sticky keys, first make sure the xkb extension is enabled
+(this is done during initial <CODE>X</CODE> server configuration and is usually
+enabled by default). Next, run the <CODE>X</CODE> server with the <CODE>+accessx</CODE>
+option. If you use <CODE>startx</CODE>, either run <CODE>startx -- +accessx</CODE> or
+add <CODE>+accessx</CODE> to the serverargs line in the <CODE>startx</CODE> script.
+If you use <CODE>xdm</CODE>, add <CODE>+accessx</CODE> to the appropriate server line
+in <CODE>/etc/X11/xdm/Xservers</CODE>.
+<P>It is also possible to enable <CODE>X</CODE> accessibility with some end-user
+utilities with a running <CODE>X</CODE> server.
+<P>Once <CODE>X</CODE> accessibility is enabled, press the shift key five times in a
+row to enable sticky keys. To disable sticky keys, either press the
+shift key five times again, or press a key while holding a modifier
+key.
+<P>XFree86 also supports Slow Keys, Repeat Keys, Bounce Keys and an
+audible bell. <CODE>xkbcomp</CODE> can be used to generate a <CODE>.xkm</CODE> file
+to enable these. The appropriate <CODE>xkbcomp</CODE> commands are listed in
+<CODE>/usr/X11R6/lib/X11/xkb/compat/accessx</CODE>.
+Unfortunately, the exact process is still undocumented.
+<P>
+<HR>
+<A HREF="kbd.FAQ-16.html">Next</A>
+<A HREF="kbd.FAQ-14.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc15">Contents</A>
+</BODY>
+</HTML>

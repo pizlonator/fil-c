@@ -1,0 +1,17 @@
+# Apple USB keyboard model A1243 with keypad, aluminium enclosure
+#
+# The mapping is designed to correspond to standard Apple keys,
+# including the behaviour of the shift and the alternate keys. Use
+# "apple-a1243-sv-fn-reverse.map" to reverse the default behaviour
+# of the Fn key for feature and function keys.
+#
+# idVendor     0x05ac Apple, Inc.
+# idProduct    0x0221 Aluminum Keyboard (ISO)
+# bCountryCode     13 International (ISO) Swedish localization
+
+include "apple-a1048-sv.map"
+include "apple-a1243-fn"
+
+keycode 41 = less    greater VoidSymbol U+2264    U+2265
+keycode 86 = section degree  VoidSymbol paragraph bullet
+keycode 83 = comma # Keypad comma

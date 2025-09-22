@@ -1,0 +1,67 @@
+.\" @(#)man/man8/setkeycodes.8	1.0 Nov  8 22:30:48 MET 1994
+.TH SETKEYCODES 8 "8 Nov 1994" "kbd"
+.SH NAME
+setkeycodes \- load kernel scancode-to-keycode mapping table entries
+.SH SYNOPSIS
+.B setkeycodes
+.I "scancode keycode ..."
+.SH DESCRIPTION
+The
+.I setkeycodes
+command reads its arguments two at a time, each pair of arguments
+consisting of a scancode (given in hexadecimal) and a keycode (given
+in decimal). For each such pair, it tells the kernel keyboard driver
+to map the specified scancode to the specified keycode.
+
+This command is useful only for people with slightly unusual keyboards,
+that have a few keys which produce scancodes that the kernel does not
+recognize.
+
+.SH THEORY
+The usual PC keyboard produces a series of scancodes for each
+key press and key release. (Scancodes are shown by
+\fBshowkey \-s\fP, see
+.BR showkey (1)
+) The kernel parses this stream of scancodes, and converts it to
+a stream of keycodes (key press/release events).
+(Keycodes are shown by \fBshowkey\fP.)
+Apart from a few scancodes with special meaning, and apart from
+the sequence produced by the Pause key, and apart from shiftstate
+related scancodes, and apart from the key up/down bit,
+the stream of scancodes consists of unescaped
+scancodes xx (7 bits) and escaped scancodes e0 xx (8+7 bits).
+To these scancodes or scancode pairs, a corresponding keycode can be
+assigned (in the range 1-127).
+For example, if you have a Macro key that produces e0 6f according
+to
+.BR showkey (1),
+the command
+.RS
+.B "setkeycodes e06f 112"
+.RE
+will assign the keycode 112 to it, and then
+.BR loadkeys (1)
+can be used to define the function of this key.
+.LP
+Some older kernels might hardwire a low scancode range to the
+equivalent keycodes; setkeycodes will fail when you try to remap
+these.
+
+.SH "2.6 KERNELS"
+In 2.6 kernels key codes lie in the range 1-255, instead of 1-127.
+(It might be best to confine oneself to the range 1-239.)
+.LP
+In 2.6 kernels raw mode, or scancode mode, is not very raw at all.
+The code returned by showkey \-s will change after use of setkeycodes.
+A kernel bug. See also
+.BR showkey (1).
+.SH OPTIONS
+None.
+.SH BUGS
+The keycodes of X have nothing to do with those of Linux.
+Unusual keys can be made visible under Linux, but not under X.
+.SH "SEE ALSO"
+.BR dumpkeys (1),
+.BR loadkeys (1),
+.BR showkey (1),
+.BR getkeycodes (8)

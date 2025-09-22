@@ -1,0 +1,122 @@
+# From: Primoz Peterlin <peterlin@biofiz.mf.uni-lj.si>
+# Date: Tue, 10 Jan 95 22:22:55 MET
+#
+# Following is the Slovene keytable.  You are free to include it
+# with the next release of kbd.  BTW:  Pavel Zaboj's ISO 8859-2
+# fonts have misplaced Rcaron at 0xEB in place of ediaeresis
+# (actually, I have only checked lat2-16).
+#
+charset "iso-8859-2"
+keymaps 0-2,4-6,8,10,12
+include "qwertz-layout"
+	altgr keycode  16 = backslash
+	altgr keycode  17 = bar
+	altgr keycode  33 = bracketleft
+	altgr keycode  34 = bracketright
+	altgr keycode  37 = lstroke
+	altgr keycode  38 = Lstroke
+	altgr keycode  47 = at
+	altgr keycode  48 = braceleft
+	altgr keycode  49 = braceright
+	altgr keycode  50 = section
+include "linux-with-alt-and-altgr.inc"
+	plain keycode  83 = KP_Comma
+strings as usual
+
+		keycode   1 = Escape
+	alt     keycode   1 = Meta_Escape
+
+		keycode   2 = one              	exclam		asciitilde
+	alt     keycode   2 = Meta_one
+
+		keycode   3 = two              	quotedbl	caron
+	control keycode   3 = nul
+	alt     keycode   3 = Meta_two
+
+		keycode   4 = three            	numbersign	asciicircum
+	control keycode   4 = Escape
+	alt     keycode   4 = Meta_three
+
+		keycode   5 = four             	dollar		breve
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four
+
+		keycode   6 = five             	percent		degree
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five
+
+		keycode   7 = six              	ampersand	ogonek
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six
+
+		keycode   8 = seven            	slash           grave
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven
+
+		keycode   9 = eight            	parenleft       abovedot
+	control keycode   9 = Delete
+	alt     keycode   9 = Meta_eight
+
+		keycode  10 = nine              parenright      acute
+	alt     keycode  10 = Meta_nine
+
+		keycode  11 = zero              equal           doubleacute
+	alt     keycode  11 = Meta_zero
+
+		keycode  12 = apostrophe	question        diaeresis
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus
+control altgr	keycode  12 = Control_backslash
+
+		keycode  13 = plus		asterisk	cedilla
+	alt     keycode  13 = Meta_plus
+
+		keycode  14 = Delete		Delete
+	control keycode  14 = Control_backslash			# emacs UNDO
+	alt     keycode  14 = Meta_Delete
+
+		keycode  15 = Tab
+	alt     keycode  15 = Meta_Tab
+
+		keycode  26 = +scaron	+Scaron		division
+		keycode  27 = +dstroke	+Dstroke	multiplication
+
+		keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+
+		keycode  29 = Control
+
+		keycode  39 = +ccaron	+Ccaron
+		keycode  40 = +cacute	+Cacute		ssharp
+
+		keycode  41 = cedilla	diaeresis
+	control keycode  41 = nul
+	alt     keycode  41 = Meta_grave
+
+		keycode  42 = Shift
+		keycode  43 = +zcaron	+Zcaron		currency
+
+		keycode  51 = comma	semicolon
+	alt     keycode  51 = Meta_comma
+
+		keycode  52 = period	colon
+	alt     keycode  52 = Meta_period
+
+		keycode  53 = minus	underscore
+	control keycode  53 = Delete
+	alt     keycode  53 = Meta_slash
+shift	control	keycode  53 = Control_underscore
+
+		keycode  54 = Shift
+		keycode  56 = Alt
+
+		keycode  57 = space	space
+	control keycode  57 = nul
+	alt     keycode  57 = Meta_space
+
+		keycode  58 = Caps_Lock
+
+		keycode  86 = less             greater
+	alt     keycode  86 = Meta_less
+
+		keycode  97 = Control

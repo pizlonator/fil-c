@@ -1,0 +1,57 @@
+# mac-uk.map  olh@suse.de
+include "mac-qwerty-layout.inc"
+include "mac-linux-keys-bare.inc"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode  50 = grave            asciitilde      
+	control	keycode  50 = nul             
+	alt	keycode  50 = Meta_grave      
+keycode  18 = one              exclam          exclamdown
+	alt	keycode  18 = Meta_one        
+keycode  19 = two              at		
+keycode  20 = three            sterling		numbersign
+	control	keycode  20 = Escape          
+keycode  21 = four             dollar           dollar           Control_backslash
+	alt	keycode  21 = Meta_four       
+keycode  22 = six              asciicircum      section
+	control	keycode  22 = Control_asciicircum
+	alt	keycode  22 = Meta_six        
+keycode  23 = five             percent         macron
+	control	keycode  23 = Control_bracketright
+	alt	keycode  23 = Meta_five       
+keycode  24 = equal            plus            
+	alt	keycode  24 = Meta_equal      
+keycode  25 = nine             parenleft        bracketright    
+	alt	keycode  25 = Meta_nine       
+keycode  26 = seven            ampersand        braceleft        Control_underscore
+	alt	keycode  26 = Meta_seven      
+keycode  27 = minus            underscore       backslash        Control_underscore Control_underscore Meta_minus      
+keycode  28 = eight            asterisk         bracketleft      Delete          
+	alt	keycode  28 = Meta_eight      
+keycode  29 = zero             parenright       braceright      
+	alt	keycode  29 = Meta_zero       
+keycode  30 = bracketright     braceright       asciitilde       Control_bracketright
+	alt	keycode  30 = Meta_bracketright
+keycode  33 = bracketleft      braceleft       
+	control	keycode  33 = Escape          
+	alt	keycode  33 = Meta_bracketleft
+keycode  39 = apostrophe       quotedbl        
+	control	keycode  39 = Control_g       
+	alt	keycode  39 = Meta_apostrophe 
+keycode  41 = semicolon        colon           
+	alt	keycode  41 = Meta_semicolon  
+keycode  42 = backslash        bar             
+	control	keycode  42 = Control_backslash
+	alt	keycode  42 = Meta_backslash  
+keycode  43 = comma            less            
+	alt	keycode  43 = Meta_comma      
+keycode  44 = slash            question        
+	control	keycode  44 = Delete          
+	alt	keycode  44 = Meta_slash      
+keycode  47 = period           greater         
+	control	keycode  47 = Compose         
+	alt	keycode  47 = Meta_period     
+keycode  65 = KP_Period       
+keycode 107 = Scroll_Lock      Show_Memory      Show_Registers   Show_State      
+	alt	keycode 107 = Scroll_Lock     

@@ -1,0 +1,40 @@
+The maps found here are as contributed. Use at your own risk.
+(But please tell me if something is seriously wrong.)
+Mail corrections, improvements and new maps to aeb@cwi.nl.
+
+If the below talks about /usr/lib/kbd, that may well be
+something like /lib/kbd or /usr/share/kbd in other distributions.
+
+The old setup had a directory /usr/lib/kbd/keytables containing
+all keymaps. But this is getting messy - there are too many.
+The present setup has a directory /usr/lib/kbd/keymaps with
+subdirectories
+	amiga, atari, i386, mac, sun
+indicating the desired architecture.
+(I believe alpha uses the i386 keyboard.)
+The 386 directory is split further into subdirectories
+	qwerty, qwertz, azerty, fgGIod, dvorak
+indicating the layout of the letters.
+(Very roughly speaking, qwerty is English, qwertz is German,
+azerty is French, fgGIod is Turkish, dvorak is international.)
+Loadkeys will first search /usr/lib/kbd/keymaps, and then its
+subdirectories, so the default keymap should probably live in
+/usr/lib/kbd/keymaps.
+
+Many keymaps now use the include directive, both for clarity
+and to save space.  One can avoid includes by doing
+"loadkeys map-with-includes; dumpkeys > map-without-includes".
+This may be desirable for the default keymap loaded at boot time.
+
+I hope that this setup will make it possible for distribution
+developers to make the keymap-choosing phase of a new installation
+somewhat more user-friendly.
+Note that one of the possible user choices should be *not* to
+load any keymap, and get the compiled-in kernel default.
+Note that only files *.map are candidate keymaps.
+
+Andries
+aeb@cwi.nl
+
+
+Added in kbd-1.00: symlink ppc -> mac.

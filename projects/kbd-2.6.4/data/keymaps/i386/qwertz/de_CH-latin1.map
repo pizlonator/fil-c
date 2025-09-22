@@ -1,0 +1,16 @@
+# de_CH-latin1.map: Swiss German keymap
+# Due to Björn Jacke <bjacke@suse.de>
+
+include "fr_CH-latin1.map"
+
+keycode  26 = udiaeresis	egrave	bracketleft
+	control keycode  26 = Escape
+	alt     keycode  26 = Meta_bracketleft
+keycode  39 = odiaeresis	eacute           
+	alt     keycode  39 = Meta_semicolon
+keycode  40 = adiaeresis	agrave               braceleft
+	control keycode  40 = Control_g
+	alt     keycode  40 = Meta_apostrophe
+
+# corresponding keys in Swiss French have German umlauts and
+# French accented characters exchanged

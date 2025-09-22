@@ -1,0 +1,105 @@
+# French-Canadian keyboard
+#
+# Original from Simon Kaczor <shogun@step.polymtl.ca>
+# Corrections by Nicolas Pitre <nico@cam.org>
+# April 5, 1997
+#
+keymaps 0-6,8-9,12
+include "qwerty-layout"
+	altgr keycode  24 = section
+	altgr keycode  25 = paragraph
+	altgr keycode  50 = mu
+include "linux-with-alt-and-altgr"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape           Escape
+	alt	keycode   1 = Meta_Escape
+keycode   2 = one              exclam           plusminus
+	alt	keycode   2 = Meta_one
+	shift	alt	keycode   2 = Meta_exclam
+keycode   3 = two              quotedbl         at
+	control	keycode   3 = nul
+	shift	control	keycode   3 = nul
+	alt	keycode   3 = Meta_two
+	shift	alt	keycode   3 = Meta_at
+keycode   4 = three            slash            sterling
+	control	keycode   4 = Escape
+	alt	keycode   4 = Meta_three
+	shift	alt	keycode   4 = Meta_numbersign
+keycode   5 = four             dollar           cent
+	control	keycode   5 = Control_backslash
+	alt	keycode   5 = Meta_four
+	shift	alt	keycode   5 = Meta_dollar
+keycode   6 = five             percent          currency
+	control	keycode   6 = Control_bracketright
+	alt	keycode   6 = Meta_five
+	shift	alt	keycode   6 = Meta_percent
+keycode   7 = six              question         notsign
+	control	keycode   7 = Control_asciicircum
+	alt	keycode   7 = Meta_six
+	shift	alt	keycode   7 = Meta_asciicircum
+keycode   8 = seven            ampersand        brokenbar
+	control	keycode   8 = Control_underscore
+	alt	keycode   8 = Meta_seven
+keycode   9 = eight            asterisk         twosuperior
+	control	keycode   9 = Delete
+	alt	keycode   9 = Meta_eight
+keycode  10 = nine             parenleft        threesuperior
+	alt	keycode  10 = Meta_nine
+keycode  11 = zero             parenright       onequarter
+	alt	keycode  11 = Meta_zero
+keycode  12 = minus            underscore       onehalf
+	control	keycode  12 = Control_underscore
+	shift	control	keycode  12 = Control_underscore
+	alt	keycode  12 = Meta_minus
+keycode  13 = equal            plus             threequarters
+	alt	keycode  13 = Meta_equal
+keycode  14 = Delete           Delete
+	control	keycode  14 = BackSpace
+	alt	keycode  14 = Meta_Delete
+keycode  15 = Tab              Meta_Tab
+	alt	keycode  15 = Meta_Tab
+keycode  26 = dead_circumflex  dead_circumflex  bracketleft
+	control	keycode  26 = Escape
+	alt	keycode  26 = Meta_bracketleft
+	shift	alt	keycode  26 = Meta_braceleft
+keycode  27 = dead_cedilla     dead_diaeresis   bracketright
+	control	keycode  27 = Control_bracketright
+	alt	keycode  27 = Meta_bracketright
+	shift	alt	keycode  27 = Meta_braceright
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon        colon            asciitilde
+	alt	keycode  39 = Meta_semicolon
+keycode  40 = dead_grave       dead_grave       braceleft
+	control	keycode  40 = Control_g
+	alt	keycode  40 = Meta_apostrophe
+keycode  41 = numbersign       bar              backslash
+	control	keycode  41 = nul
+	alt	keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = less             greater          braceright
+	control	keycode  43 = Control_backslash
+	alt	keycode  43 = Meta_backslash
+	shift	alt	keycode  43 = Meta_bar
+keycode  51 = comma            apostrophe       underscore
+	alt	keycode  51 = Meta_comma
+	shift	alt	keycode  51 = Meta_less
+keycode  52 = period           period
+	control	keycode  52 = Compose
+	alt	keycode  52 = Meta_period
+	shift	alt	keycode  52 = Meta_greater
+keycode  53 = +eacute           +Eacute           dead_acute
+	control	keycode  53 = Delete
+	alt	keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space            space
+	control	keycode  57 = nul
+	alt	keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = guillemotleft    guillemotright   degree
+	alt	keycode  86 = Meta_less
+keycode  97 = Control

@@ -1,0 +1,105 @@
+# This mainly follows
+#  is-latin1.map: Icelandic keyboard for Latin 1 character set
+#  Kristjan Jonsson (kj@raunvis.hi.is)
+# but also has some features of "ice-latin1.map' as submitted
+# by Einar Indridason (einari@rhi.hi.is)
+#
+# Note that this map uses the right control key as Alt
+# People with a keyboard without a key with keycode 86
+# will not be able to produce < and > using this keymap.
+# - aeb, 950825
+#
+# Minor fixes, added euro1, aeb, Jan 2004.
+charset "iso-8859-1"
+keymaps 0-2,4-6,8,12
+alt_is_meta
+include "linux-with-alt-and-altgr"
+	plain keycode  83 = KP_Comma
+	shift keycode  83 = KP_Comma
+	altgr keycode  83 = KP_Comma
+include "euro1"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape
+keycode   2 = one              exclam           onesuperior
+keycode   3 = two              quotedbl         twosuperior
+#       altgr   keycode   3 = at
+	control keycode   3 = nul
+keycode   4 = three            numbersign       threesuperior
+	control keycode   4 = Escape
+keycode   5 = four             dollar           onequarter
+	control keycode   5 = Control_backslash
+keycode   6 = five             percent          onehalf
+	control keycode   6 = Control_bracketright
+keycode   7 = six              ampersand        threequarters
+	control keycode   7 = Control_asciicircum
+keycode   8 = seven            slash            braceleft
+	control keycode   8 = Control_underscore
+keycode   9 = eight            parenleft        bracketleft
+	control keycode   9 = Delete
+keycode  10 = nine             parenright       bracketright
+keycode  11 = zero             equal            braceright
+keycode  12 = +odiaeresis      +Odiaeresis      backslash
+	control keycode  12 = Control_underscore
+keycode  13 = minus            underscore       hyphen
+keycode  14 = Delete           Delete           Meta_Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+ 	alt     keycode  15 = Meta_Tab
+keycode  16 = +q                +Q                at
+	control keycode  16 = Control_q
+#	alt     keycode  16 = at
+keycode  17 = w
+keycode  18 = e
+keycode  19 = r
+keycode  20 = t
+keycode  21 = y
+keycode  22 = u
+keycode  23 = i
+keycode  24 = o
+keycode  25 = p
+keycode  26 = +eth             +ETH
+	control keycode  26 = Escape
+keycode  27 = apostrophe       question         asciitilde
+	control keycode  27 = Control_bracketright
+keycode  28 = Return
+	alt     keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  30 = a
+keycode  31 = s
+keycode  32 = d
+keycode  33 = f
+keycode  34 = g
+keycode  35 = h
+keycode  36 = j
+keycode  37 = k
+keycode  38 = l
+keycode  39 = +ae              +AE
+keycode  40 = dead_acute       asciicircum      asciicircum
+#keycode  40 = dead_acute       dead_acute       asciicircum
+	control keycode  40 = Control_g
+keycode  41 = degree             dead_diaeresis          bar
+#keycode  41 = apostrophe            asciitilde
+	control keycode  41 = nul
+keycode  42 = Shift
+keycode  43 = plus             asterisk         grave
+	control keycode  43 = Control_backslash
+keycode  44 = z
+keycode  45 = x
+keycode  46 = c
+keycode  47 = v
+keycode  48 = b
+keycode  49 = n
+keycode  50 = m
+keycode  51 = comma            semicolon        guillemotleft
+keycode  52 = period           colon            guillemotright
+keycode  53 = +thorn           +THORN
+	control keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater          bar
+keycode  97 = Alt

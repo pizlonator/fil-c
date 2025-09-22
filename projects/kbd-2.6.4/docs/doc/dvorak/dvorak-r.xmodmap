@@ -1,0 +1,92 @@
+!
+! right-handed keyboard
+!
+! Author: Jeff Bigler (jcb@mit.edu)
+! Last modified: 1997/04/18 16:38:05 by jcb@mit.edu
+!
+! This file should be given as an argument to xmodmap to
+! switch from a qwerty to a right-handed keyboard (designed
+! for amputees and other people who type with only their
+! right hand).
+!
+! The keyboard layout is:
+!
+! ~   !   @   #   $   J   L   M   F   P   ?   [   +   |
+! `   1   2   3   4   j   l   m   f   p   /   ]   =   \
+!
+!      %   ^   Q   >   O   R   S   U   Y   B   :   {
+!      5   6   q   .   o   r   s   u   y   b   ;   }
+!
+!       &   *   Z   A   E   H   T   D   C   K   _
+!       7   8   z   a   e   h   t   d   c   k   -
+!
+!        (   )   X   <   I   N   W   V   G   "
+!        9   0   x   ,   i   n   w   v   g   '
+!
+! Note that Null translations have been included as
+! comments.
+!
+! If you want to be easily able to switch the keyboard
+! back to its previous state, first run xmodmap -pke and
+! redirect the output to a file.  Then you can switch back
+! by giving that file as an argument to xmodmap.  For
+! example, if you type:
+!
+!     xmodmap -pke > /tmp/keyboard.default
+!
+! before switching the keyboard, you can then type:
+!
+!     xmodmap /tmp/keyboard.default
+!
+! to reset the keyboard to its previous state.
+!
+! Note that if you pass this file again as an argument to
+! xmodmap, you will apply these translations a second time
+! and come out with gibberish!
+!
+! keysym 1 = 1 exclam
+! keysym 2 = 2 at
+! keysym 3 = 3 numbersign
+! keysym 4 = 4 dollar
+keysym 5 = j J
+keysym 6 = l L
+keysym 7 = m M
+keysym 8 = f F
+keysym 9 = p P
+keysym 0 = slash question
+keysym minus = bracketright bracketleft
+! keysym equal = equal plus
+keysym q = 5 percent
+keysym w = 6 asciicircum
+keysym e = q Q
+keysym r = period greater
+keysym t = o O
+keysym y = r R
+keysym u = s S
+keysym i = u U
+keysym o = y Y
+keysym p = b B
+keysym bracketleft = semicolon colon
+keysym bracketright = braceright braceleft
+keysym a = 7 ampersand
+keysym s = 8 asterisk
+keysym d = z Z
+keysym f = a A
+keysym g = e E
+keysym h = h H
+keysym j = t T
+keysym k = d D
+keysym l = c C
+keysym semicolon = k K
+keysym quoteright = minus underscore
+keysym z = 9 parenleft
+keysym x = 0 parenright
+keysym c = x X
+keysym v = comma less
+keysym b = i I
+keysym n = n N
+keysym m = w W
+keysym comma = v V
+keysym period = g G
+keysym slash = quoteright quotedbl
+

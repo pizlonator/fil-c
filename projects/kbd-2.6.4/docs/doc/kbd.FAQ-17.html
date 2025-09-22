@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Changing the keyboard repeat rate</TITLE>
+ <LINK HREF="kbd.FAQ-18.html" REL=next>
+ <LINK HREF="kbd.FAQ-16.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc17" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-18.html">Next</A>
+<A HREF="kbd.FAQ-16.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc17">Contents</A>
+<HR>
+<H2><A NAME="s17">17. Changing the keyboard repeat rate</A></H2>
+
+<P>
+<!--
+keyboard!repeat rate, setting
+-->
+<P>At startup, the Linux kernel sets the repeat rate to its maximal value.
+For most keyboards this is reasonable, but for some it means that you
+can hardly touch a key without getting three copies of the corresponding
+symbol. Use the program kbdrate(8) to change the repeat rate, or, if
+that doesn't help, edit or remove the section
+<HR>
+<PRE>
+     ! set the keyboard repeat rate to the max
+
+         mov     ax,#0x0305
+         xor     bx,bx           ! clear bx
+         int     0x16
+</PRE>
+<HR>
+
+of <CODE>/usr/src/linux/[arch/i386/]boot/setup.S</CODE>.
+<P>Scott Johnston (<CODE>sj@zule.com</CODE>) reports: `To program the
+repeat rate of a Gateway AnyKey keyboard all one has to do
+is press the "Repeat Rate" key, then a function key
+F1-F8, then "Repeat Rate" again.  F1 is the slowest possible repeat rate,
+and F8 is really fast.  If you somehow manage to mess up your AnyKey
+keyboard doing this, simply press Ctrl-Alt-SuspndMacro to reset
+your keyboard to factory default settings.'
+<P>
+<HR>
+<A HREF="kbd.FAQ-18.html">Next</A>
+<A HREF="kbd.FAQ-16.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc17">Contents</A>
+</BODY>
+</HTML>

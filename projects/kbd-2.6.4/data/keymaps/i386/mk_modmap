@@ -1,0 +1,377 @@
+#!/bin/sh
+# mk_modmap
+# Tries to translate a keytable file into a file parseable by xmodmap
+#
+# This is a hack, and has a lot of magic numbers and names hardcoded
+# into it. Suggestions on how to avoid this are welcome.
+#
+# Kjetil T. Homme, University of Oslo 1993
+# <kjetilho@ifi.uio.no>
+#
+# Added support for BackSpace, dead keys, Cyrillic, Greek and Hebrew keysysms
+# Pablo Saratxaga <srtxg@chanae.stben.be> - May 1997
+#
+# Added support for keys found in Microsoft keyboards, Compose keysym
+# (translates to Multi_key in X11) and for numeric hexadecimal values.
+# Pablo Saratxaga <srtxg@f2219.n293.z2.fidonet.org> - Jun 1997
+
+case $1 in
+	-v*)	verbose=1; shift ;;
+esac
+
+if test ! -f /usr/include/X11/X.h; then
+	echo Make sure you have a link to you X include files called
+	echo /usr/include/X11 first.
+	exit 1
+fi
+
+cat <<__EOH__
+! Converted keytable file to xmodmap file
+! with `basename $0` by `whoami`@`hostname` `date`
+clear Mod1
+clear Mod2
+__EOH__
+
+awk -F'#' '
+	/[a-z]+.*keycode/ { next }
+	/^[ \t]*$/ { next }
+	/^string/ { next }
+	{ sub("^[ \t]*", "") }
+	NF > 1 {
+		printf("!");
+		for (i = 2; i <= NF; i++) {
+			printf(" " $i);
+			$i = "";
+		}
+		print "";
+		if ($1 == "")
+			next;
+	}
+	{ print }
+' "$@" | awk -v verbose=$verbose '
+	BEGIN {
+		while (getline < "/usr/include/X11/keysymdef.h" == 1) {
+			if ($0 ~ /XK_/) {
+				sub(/.*XK_/, "");
+				sub(/[\t ].*/, "");
+				valid[$0] = 1;
+			}
+		}
+		valid["X386Sys_Req"] = 1;
+		valid["BackSpace"] = 1;
+
+		shifts["Control"] = shifts["Shift"] = 1;
+
+		shift_keys[29]  = "Control_L";
+		shift_keys[97]  = "Control_R";
+		shift_keys[42]  = "Shift_L";
+		shift_keys[54]  = "Shift_R";
+
+		trans_keys[ 96] = 108; # KP_Enter
+		trans_keys[ 97] = 109; # Control_R
+		trans_keys[ 98] = 112; # KP_Divide
+		trans_keys[100] = 113; # Mode_switch (AltGr)
+		trans_keys[101] = 114; # Break
+		trans_keys[103] =  98; # Up
+		trans_keys[104] =  99; # Prior
+		trans_keys[105] = 100; # Left
+		trans_keys[106] = 102; # Right
+		trans_keys[108] = 104; # Down
+		trans_keys[109] = 105; # Next
+		trans_keys[110] = 106; # Insert
+		trans_keys[111] = 107; # Delete
+		trans_keys[125] = 115; # left windows key (MS keyboards)
+		trans_keys[126] = 116; # right windows key (MS keyboards)
+		trans_keys[127] = 117; # menu key (MS keyboards)
+
+		trans_names["Alt"]	= "Alt_L Meta_L";
+		trans_names["AltGr"]	= "Mode_switch";
+		trans_names["one"]	= "1";
+		trans_names["two"]	= "2";
+		trans_names["three"]	= "3";
+		trans_names["four"]	= "4";
+		trans_names["five"]	= "5";
+		trans_names["six"]	= "6";
+		trans_names["seven"]	= "7";
+		trans_names["eight"]	= "8";
+		trans_names["nine"]	= "9";
+		trans_names["zero"]	= "0";
+		trans_names["KP_Comma"]	= "KP_Decimal";
+		trans_names["dead_tilde"]	= "dead_tilde";
+		trans_names["dead_circumflex"]	= "dead_circumflex";
+		trans_names["dead_acute"]	= "dead_acute";
+		trans_names["dead_grave"]	= "dead_grave";
+		trans_names["dead_diaeresis"]	= "dead_diaeresis";
+		trans_names["dead_cedilla"]	= "dead_cedilla";
+		trans_names["dead_ogonek"]	= "dead_ogonek";
+		trans_names["dead_caron"]	= "dead_caron";
+		trans_names["dead_breve"]	= "dead_breve";
+		trans_names["dead_doubleacute"]	= "dead_doubleacute";
+		trans_names["Compose"]		= "Multi_key";
+#		trans_names["Last_Console"]	= "X386Sys_Req";
+# Greek
+		trans_names["Alphaaccent"]	= "Greek_ALPHAaccent";
+		trans_names["Epsilonaccent"]	= "Greek_EPSILONaccent";
+		trans_names["Etaaccent"]	= "Greek_ETAaccent";
+		trans_names["Iotaaccent"]	= "Greek_IOTAaccent";
+		trans_names["Iotadiaeresis"]	= "Greek_IOTAdiaeresis";
+		trans_names["Omicronaccent"]	= "Greek_OMICRONaccent";
+		trans_names["Upsilonaccent"]	= "Greek_UPSILONaccent";
+		trans_names["Upsilondieresis"]	= "Greek_UPSILONdieresis";
+		trans_names["Omegaaccent"]	= "Greek_OMEGAaccent";
+		trans_names["Alpha"]	= "Greek_ALPHA";
+		trans_names["Beta"]	= "Greek_BETA";
+		trans_names["Gamma"]	= "Greek_GAMMA";
+		trans_names["Delta"]	= "Greek_DELTA";
+		trans_names["Epsilon"]	= "Greek_EPSILON";
+		trans_names["Zeta"]	= "Greek_ZETA";
+		trans_names["Eta"]	= "Greek_ETA";
+		trans_names["Theta"]	= "Greek_THETA";
+		trans_names["Iota"]	= "Greek_IOTA";
+		trans_names["Kappa"]	= "Greek_KAPPA";
+		trans_names["Lamda"]	= "Greek_LAMDA";
+		trans_names["Lambda"]	= "Greek_LAMBDA";
+		trans_names["Mu"]	= "Greek_MU";
+		trans_names["Nu"]	= "Greek_NU";
+		trans_names["Xi"]	= "Greek_XI";
+		trans_names["Ksi"]	= "Greek_XI";
+		trans_names["Omicron"]	= "Greek_OMICRON";
+		trans_names["Pi"]	= "Greek_PI";
+		trans_names["Rho"]	= "Greek_RHO";
+		trans_names["Sigma"]	= "Greek_SIGMA";
+		trans_names["Tau"]	= "Greek_TAU";
+		trans_names["Upsilon"]	= "Greek_UPSILON";
+		trans_names["Phi"]	= "Greek_PHI";
+		trans_names["Chi"]	= "Greek_CHI";
+		trans_names["Khi"]	= "Greek_CHI";
+		trans_names["Psi"]	= "Greek_PSI";
+		trans_names["Omega"]	= "Greek_OMEGA";
+		trans_names["accent"]	= "Greek_accentdieresis";
+		trans_names["horizbar"]	= "Greek_horizbar";
+		trans_names["alphaaccent"]	= "Greek_alphaaccent";
+		trans_names["epsilonaccent"]	= "Greek_epsilonaccent";
+		trans_names["etaaccent"]	= "Greek_etaaccent";
+		trans_names["iotaaccent"]	= "Greek_iotaaccent";
+		trans_names["iotadieresis"]	= "Greek_iotadieresis";
+		trans_names["iotaaccentdieresis"]	= "Greek_iotaaccentdieresis";
+		trans_names["omicronaccent"]	= "Greek_omicronaccent";
+		trans_names["upsilonaccent"]	= "Greek_upsilonaccent";
+		trans_names["upsilondieresis"]	= "Greek_upsilondieresis";
+		trans_names["upsilonaccentdieresis"]	= "Greek_upsilonaccentdieresis";
+		trans_names["omegaaccent"]	= "Greek_omegaaccent";
+		trans_names["alpha"]	= "Greek_alpha";
+		trans_names["beta"]	= "Greek_beta";
+		trans_names["gamma"]	= "Greek_gamma";
+		trans_names["delta"]	= "Greek_delta";
+		trans_names["epsilon"]	= "Greek_epsilon";
+		trans_names["zeta"]	= "Greek_zeta";
+		trans_names["eta"]	= "Greek_eta";
+		trans_names["theta"]	= "Greek_theta";
+		trans_names["iota"]	= "Greek_iota";
+		trans_names["kappa"]	= "Greek_kappa";
+		trans_names["lamda"]	= "Greek_lamda";
+		trans_names["lambda"]	= "Greek_lambda";
+		trans_names["mu"]	= "Greek_mu";
+		trans_names["nu"]	= "Greek_nu";
+		trans_names["xi"]	= "Greek_xi";
+		trans_names["ksi"]	= "Greek_xi";
+		trans_names["omicron"]	= "Greek_omicron";
+		trans_names["pi"]	= "Greek_pi";
+		trans_names["rho"]	= "Greek_rho";
+		trans_names["sigma"]	= "Greek_sigma";
+		trans_names["terminalsigma"]	= "Greek_finalsmallsigma";
+		trans_names["tau"]	= "Greek_tau";
+		trans_names["upsilon"]	= "Greek_upsilon";
+		trans_names["phi"]	= "Greek_phi";
+		trans_names["chi"]	= "Greek_chi";
+		trans_names["khi"]	= "Greek_chi";
+		trans_names["psi"]	= "Greek_psi";
+		trans_names["omega"]	= "Greek_omega";
+		trans_names["switch"]	= "Greek_switch";
+# Cyrillic
+		trans_names["cyrillic_capital_letter_io"]	= "Cyrillic_IO";
+		trans_names["cyrillic_capital_letter_je"]	= "Cyrillic_JE";
+		trans_names["cyrillic_capital_letter_lje"]	= "Cyrillic_LJE";
+		trans_names["cyrillic_capital_letter_nje"]	= "Cyrillic_NJE";
+		trans_names["cyrillic_capital_letter_dzhe"]	= "Cyrillic_DZHE";
+		trans_names["cyrillic_capital_letter_yu"]	= "Cyrillic_YU";
+		trans_names["cyrillic_capital_letter_iu"]	= "Cyrillic_YU";
+		trans_names["cyrillic_capital_letter_a"]	= "Cyrillic_A";
+		trans_names["cyrillic_capital_letter_be"]	= "Cyrillic_BE";
+		trans_names["cyrillic_capital_letter_tse"]	= "Cyrillic_TSE";
+		trans_names["cyrillic_capital_letter_de"]	= "Cyrillic_DE";
+		trans_names["cyrillic_capital_letter_ie"]	= "Cyrillic_IE";
+		trans_names["cyrillic_capital_letter_ef"]	= "Cyrillic_EF";
+		trans_names["cyrillic_capital_letter_ghe"]	= "Cyrillic_GHE";
+		trans_names["cyrillic_capital_letter_ge"]	= "Cyrillic_GHE";
+		trans_names["cyrillic_capital_letter_ha"]	= "Cyrillic_HA";
+		trans_names["cyrillic_capital_letter_kha"]	= "Cyrillic_HA";
+		trans_names["cyrillic_capital_letter_i"]	= "Cyrillic_I";
+		trans_names["cyrillic_capital_letter_ii"]	= "Cyrillic_I";
+		trans_names["cyrillic_capital_letter_short_i"]	= "Cyrillic_SHORTI";
+		trans_names["cyrillic_capital_letter_short_ii"]	= "Cyrillic_SHORTI";
+		trans_names["cyrillic_capital_letter_ka"]	= "Cyrillic_KA";
+		trans_names["cyrillic_capital_letter_el"]	= "Cyrillic_EL";
+		trans_names["cyrillic_capital_letter_em"]	= "Cyrillic_EM";
+		trans_names["cyrillic_capital_letter_en"]	= "Cyrillic_EN";
+		trans_names["cyrillic_capital_letter_o"]	= "Cyrillic_O";
+		trans_names["cyrillic_capital_letter_pe"]	= "Cyrillic_PE";
+		trans_names["cyrillic_capital_letter_ya"]	= "Cyrillic_YA";
+		trans_names["cyrillic_capital_letter_ia"]	= "Cyrillic_YA";
+		trans_names["cyrillic_capital_letter_er"]	= "Cyrillic_ER";
+		trans_names["cyrillic_capital_letter_es"]	= "Cyrillic_ES";
+		trans_names["cyrillic_capital_letter_te"]	= "Cyrillic_TE";
+		trans_names["cyrillic_capital_letter_u"]	= "Cyrillic_U";
+		trans_names["cyrillic_capital_letter_zhe"]	= "Cyrillic_ZHE";
+		trans_names["cyrillic_capital_letter_ve"]	= "Cyrillic_VE";
+		trans_names["cyrillic_capital_soft_sign"]	= "Cyrillic_SOFTSIGN";
+		trans_names["cyrillic_capital_letter_yeru"]	= "Cyrillic_YERU";
+		trans_names["cyrillic_capital_letter_yeri"]	= "Cyrillic_YERU";
+		trans_names["cyrillic_capital_letter_ze"]	= "Cyrillic_ZE";
+		trans_names["cyrillic_capital_letter_sha"]	= "Cyrillic_SHA";
+		trans_names["cyrillic_capital_letter_e"]	= "Cyrillic_E";
+		trans_names["cyrillic_capital_letter_reversed_e"]	= "Cyrillic_E";
+		trans_names["cyrillic_capital_letter_shcha"]	= "Cyrillic_SHCHA";
+		trans_names["cyrillic_capital_letter_che"]	= "Cyrillic_CHE";
+		trans_names["cyrillic_capital_hard_sign"]	= "Cyrillic_HARDSIGN";
+		trans_names["cyrillic_small_letter_io"]	= "Cyrillic_io";
+		trans_names["cyrillic_small_letter_je"]	= "Cyrillic_je";
+		trans_names["cyrillic_small_letter_lje"]	= "Cyrillic_lje";
+		trans_names["cyrillic_small_letter_nje"]	= "Cyrillic_nje";
+		trans_names["cyrillic_small_letter_dzhe"]	= "Cyrillic_dzhe";
+		trans_names["cyrillic_small_letter_yu"]	= "Cyrillic_yu";
+		trans_names["cyrillic_small_letter_iu"]	= "Cyrillic_yu";
+		trans_names["cyrillic_small_letter_a"]	= "Cyrillic_a";
+		trans_names["cyrillic_small_letter_be"]	= "Cyrillic_be";
+		trans_names["cyrillic_small_letter_tse"]	= "Cyrillic_tse";
+		trans_names["cyrillic_small_letter_de"]	= "Cyrillic_de";
+		trans_names["cyrillic_small_letter_ie"]	= "Cyrillic_ie";
+		trans_names["cyrillic_small_letter_ef"]	= "Cyrillic_ef";
+		trans_names["cyrillic_small_letter_ghe"]	= "Cyrillic_ghe";
+		trans_names["cyrillic_small_letter_ge"]	= "Cyrillic_ghe";
+		trans_names["cyrillic_small_letter_ha"]	= "Cyrillic_ha";
+		trans_names["cyrillic_small_letter_kha"]	= "Cyrillic_ha";
+		trans_names["cyrillic_small_letter_i"]	= "Cyrillic_i";
+		trans_names["cyrillic_small_letter_ii"]	= "Cyrillic_i";
+		trans_names["cyrillic_small_letter_short_i"]	= "Cyrillic_shorti";
+		trans_names["cyrillic_small_letter_short_ii"]	= "Cyrillic_shorti";
+		trans_names["cyrillic_small_letter_ka"]	= "Cyrillic_ka";
+		trans_names["cyrillic_small_letter_el"]	= "Cyrillic_el";
+		trans_names["cyrillic_small_letter_em"]	= "Cyrillic_em";
+		trans_names["cyrillic_small_letter_en"]	= "Cyrillic_en";
+		trans_names["cyrillic_small_letter_o"]	= "Cyrillic_o";
+		trans_names["cyrillic_small_letter_pe"]	= "Cyrillic_pe";
+		trans_names["cyrillic_small_letter_ya"]	= "Cyrillic_ya";
+		trans_names["cyrillic_small_letter_ia"]	= "Cyrillic_ya";
+		trans_names["cyrillic_small_letter_er"]	= "Cyrillic_er";
+		trans_names["cyrillic_small_letter_es"]	= "Cyrillic_es";
+		trans_names["cyrillic_small_letter_te"]	= "Cyrillic_te";
+		trans_names["cyrillic_small_letter_u"]	= "Cyrillic_u";
+		trans_names["cyrillic_small_letter_zhe"]	= "Cyrillic_zhe";
+		trans_names["cyrillic_small_letter_ve"]	= "Cyrillic_ve";
+		trans_names["cyrillic_small_soft_sign"]	= "Cyrillic_softsign";
+		trans_names["cyrillic_small_letter_yeru"]	= "Cyrillic_yeru";
+		trans_names["cyrillic_small_letter_yeri"]	= "Cyrillic_yeru";
+		trans_names["cyrillic_small_letter_ze"]	= "Cyrillic_ze";
+		trans_names["cyrillic_small_letter_sha"]	= "Cyrillic_sha";
+		trans_names["cyrillic_small_letter_e"]	= "Cyrillic_e";
+		trans_names["cyrillic_small_letter_reversed_e"]	= "Cyrillic_e";
+		trans_names["cyrillic_small_letter_shcha"]	= "Cyrillic_shcha";
+		trans_names["cyrillic_small_letter_che"]	= "Cyrillic_che";
+		trans_names["cyrillic_small_hard_sign"]	= "Cyrillic_hardsign";
+		trans_names["serbocroatian_cyrillic_capital_letter_dje"]	= "Serbian_DJE";
+		trans_names["serbocroatian_cyrillic_capital_letter_je"]	= "Serbian_JE";
+		trans_names["serbocroatian_cyrillic_capital_letter_lje"]	= "Serbian_LJE";
+		trans_names["serbocroatian_cyrillic_capital_letter_nje"]	= "Serbian_NJE";
+		trans_names["serbocroatian_cyrillic_capital_letter_tshe"]	= "Serbian_TSHE";
+		trans_names["serbocroatian_cyrillic_capital_letter_dze"]	= "Serbian_DZE";
+		trans_names["serbocroatian_cyrillic_small_letter_dje"]	= "Serbian_dje";
+		trans_names["serbocroatian_cyrillic_small_letter_je"]	= "Serbian_je";
+		trans_names["serbocroatian_cyrillic_small_letter_lje"]	= "Serbian_lje";
+		trans_names["serbocroatian_cyrillic_small_letter_nje"]	= "Serbian_nje";
+		trans_names["serbocroatian_cyrillic_small_letter_tshe"]	= "Serbian_tshe";
+		trans_names["serbocroatian_cyrillic_small_letter_dze"]	= "Serbian_dze";
+		trans_names["macedonian_cyrillic_capital_letter_gje"]	= "Macedonia_GJE";
+		trans_names["macedonian_cyrillic_capital_letter_dze"]	= "Macedonia_DSE";
+		trans_names["macedonian_cyrillic_capital_letter_kje"]	= "Macedonia_KJE";
+		trans_names["macedonian_cyrillic_small_letter_gje"]	= "Macedonia_gje";
+		trans_names["macedonian_cyrillic_small_letter_dze"]	= "Macedonia_dse";
+		trans_names["macedonian_cyrillic_small_letter_kje"]	= "Macedonia_kje";
+		trans_names["ukrainian_cyrillic_capital_letter_ie"]	= "Ukrainian_JE";
+		trans_names["ukrainian_cyrillic_capital_letter_i"]	= "Ukrainian_I";
+		trans_names["ukrainian_cyrillic_capital_letter_yi"]	= "Ukrainian_YI";
+		trans_names["ukrainian_cyrillic_small_letter_ie"]	= "Ukrainian_ie";
+		trans_names["ukrainian_cyrillic_small_letter_i"]	= "Ukrainian_i";
+		trans_names["ukrainian_cyrillic_small_letter_yi"]	= "Ukrainian_yi";
+		trans_names["bielorussian_cyrillic_capital_letter_short_u"]	= "Byelorussian_SHORTU";
+		trans_names["bielorussian_cyrillic_capital_letter_i"]	= "Ukrainian_I";
+		trans_names["bielorussian_cyrillic_small_letter_short_u"]	= "Byelorussian_shortu";
+		trans_names["bielorussian_cyrillic_small_letter_i"]	= "Ukrainian_i";
+# Hebrew
+		trans_names["doubleunderscore"]	= "hebrew_doublelowline";
+		trans_names["alef"]	= "hebrew_aleph";
+		trans_names["bet"]	= "hebrew_bet";
+		trans_names["gimel"]	= "hebrew_gimel";
+		trans_names["dalet"]	= "hebrew_dalet";
+		trans_names["he"]	= "hebrew_he";
+		trans_names["vav"]	= "hebrew_waw";
+		trans_names["zayin"]	= "hebrew_zain";
+		trans_names["het"]	= "hebrew_chet";
+		trans_names["tet"]	= "hebrew_tet";
+		trans_names["yod"]	= "hebrew_yod";
+		trans_names["finalkaf"]	= "hebrew_finalkaph";
+		trans_names["kaf"]	= "hebrew_kaph";
+		trans_names["lamed"]	= "hebrew_lamed";
+		trans_names["finalmem"]	= "hebrew_finalmem";
+		trans_names["mem"]	= "hebrew_mem";
+		trans_names["finalnun"]	= "hebrew_finalnun";
+		trans_names["nun"]	= "hebrew_nun";
+		trans_names["samekh"]	= "hebrew_samech";
+		trans_names["ayin"]	= "hebrew_ayin";
+		trans_names["finalpe"]	= "hebrew_finalpe";
+		trans_names["pe"]	= "hebrew_pe";
+		trans_names["finaltsadi"]	= "hebrew_finalzade";
+		trans_names["tsadi"]	= "hebrew_zade";
+		trans_names["qof"]	= "hebrew_qoph";
+		trans_names["resh"]	= "hebrew_resh";
+		trans_names["shin"]	= "hebrew_shin";
+		trans_names["tav"]	= "hebrew_taw";
+	}
+	$1 == "keycode" {
+		output = "";
+		keycode = $2;
+		i = ($3 == "=") ? 4 : 3;
+		for ( ; i <= NF; i++) {
+			sub(/^\+/, "", $i);
+			n = $i;
+			if ($i in shifts)
+				n = shift_keys[keycode];
+			else if ($i in trans_names)
+				n = trans_names[$i];
+
+			if (n in valid || n in valid || $i in trans_names)
+				output = output " " n;
+			else if (n ~ /0x[0-9a-fA-F]*/)
+				output = output " " n;
+			else
+				msg("Skipped " $i);
+		}
+
+		if (keycode in trans_keys)
+			keycode = trans_keys[keycode];
+		else
+			keycode += 8;
+
+		if (keycode > 117)
+			msg("Skipped keycode " keycode-8 ": " output);
+	 	else if (output)
+			printf("keycode %3d = %s\n", keycode, output);
+		next;
+	}
+	{ print }
+	function msg(m) { if (verbose) print m > "/dev/stderr"; }'
+
+cat <<__EOH__
+add Mod1 = Alt_L
+add Mod2 = Mode_switch
+__EOH__

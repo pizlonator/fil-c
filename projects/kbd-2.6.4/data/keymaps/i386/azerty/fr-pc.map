@@ -1,0 +1,81 @@
+# fr-pc.map for French PC keyboard (non-US 102 keys)
+#
+#  1997-3-5
+#  Seak, Teng-Fong <seak@drfc.cad.cea.fr>
+#
+keymaps 0-2,4,6,8,12
+include "azerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape           Escape          
+	alt     keycode   1 = Meta_Escape     
+keycode   2 = ampersand        one             
+	alt     keycode   2 = Meta_one        
+keycode   3 = eacute           two              asciitilde      
+	control keycode   3 = nul             
+	alt     keycode   3 = Meta_two        
+keycode   4 = quotedbl         three            numbersign      
+	control keycode   4 = Escape          
+	alt     keycode   4 = Meta_three      
+keycode   5 = apostrophe       four             braceleft       
+	control keycode   5 = Control_backslash
+	alt     keycode   5 = Meta_four       
+keycode   6 = parenleft        five             bracketleft     
+	control keycode   6 = Control_bracketright
+	alt     keycode   6 = Meta_five       
+keycode   7 = minus            six              bar             
+	control keycode   7 = Control_asciicircum
+	alt     keycode   7 = Meta_six        
+keycode   8 = egrave           seven            grave           
+	control keycode   8 = Control_underscore
+	alt     keycode   8 = Meta_seven      
+keycode   9 = underscore       eight            backslash       
+	control keycode   9 = Delete          
+	alt     keycode   9 = Meta_eight      
+keycode  10 = ccedilla         nine             asciicircum     
+	alt     keycode  10 = Meta_nine       
+keycode  11 = agrave           zero             at              
+	alt     keycode  11 = Meta_zero       
+keycode  12 = parenright       degree           bracketright    
+	control keycode  12 = Control_underscore
+	alt     keycode  12 = Meta_minus      
+keycode  13 = equal            plus             braceright      
+	alt     keycode  13 = Meta_equal      
+keycode  14 = Delete           Delete          
+	alt     keycode  14 = Meta_Delete     
+keycode  15 = Tab              Meta_Tab             
+	alt     keycode  15 = Meta_Tab        
+keycode  26 = dead_circumflex  dead_diaeresis
+	control keycode  26 = Escape          
+	alt     keycode  26 = Meta_bracketleft
+keycode  27 = dollar           sterling         currency      
+	control keycode  27 = Control_bracketright
+	alt     keycode  27 = Meta_bracketright
+keycode  28 = Return          
+	alt     keycode  28 = Meta_Control_m          
+keycode  29 = Control         
+keycode  40 = ugrave           percent         
+	control keycode  40 = Control_g       
+	alt     keycode  40 = Meta_apostrophe 
+keycode  41 = twosuperior
+	control keycode  41 = nul             
+	alt     keycode  41 = Meta_grave      
+keycode  42 = Shift           
+keycode  43 = asterisk         mu
+	control keycode  43 = Control_backslash
+	alt     keycode  43 = Meta_backslash  
+keycode  50 = comma            question      
+keycode  51 = semicolon        period          
+keycode  52 = colon            slash           
+keycode  53 = exclam           section
+	control keycode  53 = Delete          
+keycode  54 = Shift           
+keycode  56 = Alt             
+keycode  57 = space            space           
+	control keycode  57 = nul             
+	alt     keycode  57 = Meta_space      
+keycode  58 = Caps_Lock       
+keycode  86 = less             greater          bar             
+	alt     keycode  86 = Meta_less       
+keycode  97 = Control         

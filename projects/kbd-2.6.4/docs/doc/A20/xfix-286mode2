@@ -1,0 +1,143 @@
+
+The following is edited from several messages from Kees Bot dated May 4
+and 5, 1998. 
+
+From: Kees J Bot <kjb=731391@CS.VU.NL>
+Subject: Re: 286 protected mode patch
+
+Below is a patch to klib88.s for the changes I made after I got hold of
+HIMEM.ASM, a somewhat old source of HIMEM.SYS.  The A20 en/disable code
+is a bit better for the AT, and I also added code to en/disable the A20
+line for a PC with an MCA bus, i.e.  most PS/2's.
+
+So if any of you is running 16-bit Minix on a machine with an MCA bus
+then this may be for you to get rid of processor=86.  
+
+The PS/2 side of the patch is the great unknown, since I don't have a
+PS/2 to test it on.  Who knows, maybe someone will tell us if it works
+this time.
+
+Apply the patch like this:
+	cd /usr/src/kernel
+	patch klib88.s klib88.dif
+	cd ../tools
+	make hdboot
+	shutdown -x 'unset processor;boot'
+
+[Please note that this is experimental, there is another patch in this
+directory that attempts to solve the same problems.  Neither may be
+correct for every machine. -- asw 12.06.98]
+_._. .._ _   ._ ._.. ___ _. __.   _ .... .   _.. ___ _ _ . _..   ._.. .. _. .
+*** /save/std/2.0.0/src/kernel/klib88.s	Wed Jul 10 20:17:12 1996
+--- klib88.s	Mon May 04 12:20:59 1998
+***************
+*** 72,75 ****
+--- 72,76 ----
+  .extern	_vid_mask
+  .extern	_level0_func
++ .extern	_ps_mca
+  
+  	.text
+***************
+*** 201,205 ****
+  	ltr	ax			! set TSS register
+  
+! 	movb	ah, #0xDF
+  	jmp	gate_A20		! enable the A20 address line
+  
+--- 202,206 ----
+  	ltr	ax			! set TSS register
+  
+! 	movb	ah, #0x02
+  	jmp	gate_A20		! enable the A20 address line
+  
+***************
+*** 214,224 ****
+  	jae	p2r386
+  p2r286:
+! 	mov	_gdt+ES_286_OFFSET+DESC_BASE, #0x0400
+  	movb	_gdt+ES_286_OFFSET+DESC_BASE_MIDDLE, #0x00
+  	mov	ax, #ES_286_SELECTOR
+  	mov	es, ax			! BIOS data segment
+!   eseg	mov	0x0067, #real		! set return from shutdown address
+    cseg	mov	ax, kernel_cs
+!   eseg	mov	0x0069, ax
+  	movb	al, #0x8F
+  	outb	0x70			! select CMOS byte 0x0F (disable NMI)
+--- 215,225 ----
+  	jae	p2r386
+  p2r286:
+! 	mov	_gdt+ES_286_OFFSET+DESC_BASE, #0x0000
+  	movb	_gdt+ES_286_OFFSET+DESC_BASE_MIDDLE, #0x00
+  	mov	ax, #ES_286_SELECTOR
+  	mov	es, ax			! BIOS data segment
+!   eseg	mov	0x0467, #real		! set return from shutdown address
+    cseg	mov	ax, kernel_cs
+!   eseg	mov	0x0469, ax
+  	movb	al, #0x8F
+  	outb	0x70			! select CMOS byte 0x0F (disable NMI)
+***************
+*** 254,273 ****
+  	mov	sp, save_sp		! restore stack
+  
+! 	movb	ah, #0xDD
+  	!jmp	gate_A20		! disable the A20 address line
+  
+! ! Enable (ah = 0xDF) or disable (ah = 0xDD) the A20 address line.
+  gate_A20:
+  	call	kb_wait
+  	movb	al, #0xD1	! Tell keyboard that a command is coming
+  	outb	0x64
+  	call	kb_wait
+! 	movb	al, ah		! Enable or disable code
+  	outb	0x60
+  	call	kb_wait
+! 	mov	ax, #25		! 25 microsec delay for slow keyboard chip
+! 0:	out	0xED		! Write to an unused port (1us)
+! 	dec	ax
+! 	jne	0b
+  	ret
+  kb_wait:
+--- 255,276 ----
+  	mov	sp, save_sp		! restore stack
+  
+! 	xorb	ah, ah
+  	!jmp	gate_A20		! disable the A20 address line
+  
+! ! Enable (ah = 0x02) or disable (ah = 0x00) the A20 address line.
+  gate_A20:
++ 	cmp	_ps_mca, #0	! PS/2 bus?
++ 	jnz	gate_PS_A20
+  	call	kb_wait
+  	movb	al, #0xD1	! Tell keyboard that a command is coming
+  	outb	0x64
+  	call	kb_wait
+! 	movb	al, #0xDD	! 0xDD = A20 disable code if ah = 0x00
+! 	orb	al, ah		! 0xDF = A20 enable code if ah = 0x02
+  	outb	0x60
+  	call	kb_wait
+! 	movb	al, #0xFF	! Pulse output port
+! 	outb	0x64
+! 	call	kb_wait		! Wait for the A20 line to settle down
+  	ret
+  kb_wait:
+***************
+*** 275,278 ****
+--- 278,293 ----
+  	testb	al, #0x02	! Keyboard input buffer full?
+  	jnz	kb_wait		! If so, wait
++ 	ret
++ 
++ gate_PS_A20:		! The PS/2 can twiddle A20 using port A
++ 	inb	0x92		! Read port A
++ 	andb	al, #0xFD
++ 	orb	al, ah		! Set A20 bit to the required state
++ 	outb	0x92		! Write port A
++ 	jmp	.+2		! Small delay
++ A20ok:	inb	0x92		! Check port A
++ 	andb	al, #0x02
++ 	cmpb	al, ah		! A20 line settled down to the new state?
++ 	jne	A20ok		! If not then wait
+  	ret
+  
+

@@ -1,0 +1,124 @@
+ LatGrkCyr - brief notes, primarily about which glyphs are available.
+
+ These two fonts are intended to cover current European languages
+written with latin, greek, and cyrillic alphabets.  Also esperanto.
+
+ For a long time I've been happy with an 8x16 font, but now that I use
+kms on a big screen I thought it best to have a bigger font (but I
+still use the 1024x768 setting with an 8x16 font on that screen with
+one machine).
+
+  The 8x16 version will also be available in my sigma-consolefonts
+package (a bdf font, some map files to identify which glyphs to use,
+some perl, and a Makefile).  That package is targetted at people who
+build from source and allows you to easily change the letter forms or
+to add different glyphs if you need to.  Because of the limited size
+of the character cell, it is sans-serif.  The font is public domain,
+the other items are under BSD-style licenses.
+
+ The 12x22 font is derived from iso01-12x22 and hence from the sun
+12x22 font included in the linux kernel, therefore it is licensed
+under the GPLv2.  This font has serifs, although for a few of the
+added glyphs I've had to trim them.  As with the sigma font, the
+letters have been resized to better allow for accents and diacritical
+marks.
+
+ My aim is to make the different glyphs reasonably easy to identify,
+so I often ignore the "rules" about how to write them - in particular
+see the acute, circumflex, and grave accents in the 12x22 font.
+
+ Similarly, letters with descenders such as g, p, q have a raised base
+so that the descender appears longer.
+
+ I've also added a few obscure glyphs which are in the iso01 or latin1
+fonts, just in case anyone still uses them.
+
+ Latin letters and variants
+ --------------------------
+
+ Aa Àà Áá Ââ Ãã Ää Åå Āā Ăă Ąą
+ Bb
+ Cc Çç Ćć Ĉĉ Ċċ Čč
+ Dd Ďď Đđ
+ Ee Èè Éé Êê Ëë Ēē Ėė Ęę Ěě
+ Ff
+ Gg Ĝĝ Ğğ Ġġ Ģģ Ǥǥ Ǧǧ
+ Hh Ĥĥ Ħħ
+ Ii Ìì Íí Îî Ïï Īī Įį İı
+ Jj Ĵĵ
+ Kk Ķķ Ǩǩ
+ Ll Ĺĺ Ļļ Ľľ Ŀŀ Łł
+ Mm
+ Nn Ññ Ńń Ņņ Ňň
+ Oo Òò Óó Ôô Õõ Öö Øø Ōō Őő
+ Pp
+ Qq
+ Rr Ŕŕ Řř
+ Ss  ß Śś Ŝŝ Şş Šš Șș
+ Tt Ťť Ŧŧ  Țț (also maps Ţţ for old romanian text)
+ Uu Ùù Úú Ûû Üü Ūū Ŭŭ Ůů Űű Ųų
+ Vv
+ Ww Ŵŵ Ẁẁ Ẃẃ Ẅẅ
+ Xx
+ Yy Ýý Ŷŷ Ÿÿ Ỳỳ [ NB these are ordered by the capitals! ]
+ Zz Źź Żż Žž
+ Ææ
+ Ðð
+ Þþ
+ Ŋŋ
+ Œœ
+ Əə [ not really a european letter ]
+ Ʒʒ Ǯǯ
+  ĸ [ obsolete, but it's presence is my 'signature' ]
+
+ Greek letters, etc
+ ------------------
+
+ ʹ number sign  ͵ lower number sign  ΄ tonos  ΅ dialytika and tonos
+ ; greek question mark
+ Αα Άά Ββ Γγ Δδ Εε Έέ Ζζ Ηη Ήή Θθ Ιι Ίί Ϊϊ  ΐ Κκ Λλ Μμ Νν Ξξ Οο Όό Ππ
+  Ρρ Σςσ   Ττ  Υυ Ύύ Ϋϋ ΰ [ again, ordered by the uppercase versions ]
+ Φφ Χχ Ψψ Ωω Ώώ
+
+ Cyrillic letters and variants
+ -----------------------------
+
+ Аа Ӓӓ Бб Вв Гг Ѓѓ Ґґ Дд Ее Ѐѐ Ёё Жж Ӂӂ Зз Ии Йй Ѝѝ Ҋҋ Кк Лл Ӆӆ Мм Ӎӎ
+ Нн Ӈӈ Ӊӊ Оо Пп Рр Ҏҏ Сс Тт Уу Ўў Фф Хх Цц Чч Шш Щщ Ъъ Ыы Ьь Ээ Ӭӭ Юю
+ Яя Ђђ Єє Ѕѕ Іі Її Јј Љљ Њњ Ћћ Ќќ Џџ Ҍҍ Һһ
+
+ Digits
+ ------
+
+ 0 1 2 3 4 5 6 7 8 9
+
+ Currencies
+ ----------
+
+ $ dollar
+ ¢ cent
+ £ sterling
+ ¤ number sign used for other currencies
+ ¥ yen
+ ƒ florin (a cheat, but costs nothing)
+ € euro
+ ₴ hryvnia
+
+ Punctuation
+ -----------
+
+ ! " ' ( ) , - : ; ? [ ] _ ` { | } ¡ « » ¿ „ … ‹ ›
+
+
+ Accents and other diacriticals
+ ^ ~ ¨ ¯ ° ´ ¸ ˇ ˘ ˙ ˛
+
+ Other symbols
+
+ # $ % & * + < = > @ \ § © ª ® ° ± ² ³ µ ¶ · ¹ º ¼ ½ ¾ × ÷ ‰ ™ Ω K Å ← ↑ → ↓
+
+ and of course � (U+fffd) for invalid-unicode or no-glyph
+
+ There are also some graphics characters, but I doubt anyone uses
+those now.
+

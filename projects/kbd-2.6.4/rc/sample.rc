@@ -1,0 +1,45 @@
+# Consoles to be initialized
+# INITTY=/dev/tty[1-9]*
+INITTY=/dev/tty1
+
+# set numlock and set metabit mode on all virtual consoles
+for tty in $INITTY
+do
+	setleds -D +num < $tty > /dev/null
+	setmetamode metabit < /dev/tty$t > /dev/null
+done
+
+# Cyrillic keyboard/console
+setfont	Cyr_a8x16 -m koi2alt
+loadkeys ru
+
+# or: Latin1 keyboard/console
+setfont lat1-16 -m trivial
+loadkeys -d
+
+# enable mapping
+for tty in $INITTY
+do
+	echo -n -e "\\033(K" > $tty
+done
+
+# Opening a tty for reading or writing will create the corresponding
+# console. So, probably you want to do the above not on all /dev/tty*
+# but only on those where you start a getty. If the remaining ones
+# are opened using "open -s -l bash", then a "setleds -D +num" or so
+# in .profile will take care of the newly opened console.
+
+# Let alt-uparrow (given at the shell prompt) create a new virtual console
+#
+loadkeys << EOF
+alt keycode 103 = F100
+string F100 = "open -l -s bash\n"
+EOF
+#
+# Let alt-uparrow (anytime) create a new virtual console
+# (watch out for security aspects!)
+#
+spawn_console&	# start a daemon that listens to the keyboard
+loadkeys << EOF
+alt keycode 103 = Spawn_Console
+EOF

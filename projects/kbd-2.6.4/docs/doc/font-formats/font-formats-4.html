@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Font-formats recognized by the Linux kbd package: CP and raw fonts</TITLE>
+ <LINK HREF="font-formats-3.html" REL=previous>
+ <LINK HREF="font-formats.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="font-formats-3.html">Previous</A>
+<A HREF="font-formats.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4. CP and raw fonts</A></H2>
+
+<P>PSF is the Linux standard font format, but various old and very
+obsolete formats still exist.
+<P>CP font files are just fragments of CPI fonts, obtained by concatenating
+<CODE>CPEntryHeader</CODE> (28 bytes), <CODE>FontDataHeader</CODE> (6 bytes),
+and for each font <CODE>ScreenFontHeader</CODE> (6 bytes) and
+<CODE>ScreenFontData</CODE>, that is, the part of a CPI font describing
+one code page.
+<P>(History: the first <CODE>.cp</CODE> files used with Linux that I know of
+were <CODE>972.cp</CODE> and <CODE>880.cp</CODE> included in
+<CODE>codepage.tar.gz</CODE> by Joel M. Hoffman, dated June 14, 1992.
+Support for such files was added in <CODE>kbd-0.84</CODE>.)
+<P>Of the <CODE>CPEntryHeader</CODE>, the only meaningful field is <CODE>codepage</CODE>.
+Of the <CODE>FontDataHeader</CODE>, the only meaningful fields are
+<CODE>num_fonts</CODE> (1 or 3) and <CODE>size</CODE>, giving the size
+of the following <CODE>ScreenFontData</CODE>.
+A CP file containing three fonts of pointsizes 16, 14, 8 will have
+size 34+(6+16*256)+(6+14*256)+(6+8*256) = 9780 bytes, with the three
+fonts at offsets 40, 4142, 7732.
+A CP file containing one font of point size 16 will have size
+34+(6+16*256) = 4136 bytes, with the font at offset 40.
+<P>There are other sources of fonts, and binary files with a length
+that is a multiple of 256 or a multiple of 256 plus 40 are
+accepted as possible binary font data (perhaps with a 40-byte
+header) for fonts of size 256.
+<P>Binary font files of size 32768 are treated as binary font data
+for a 512-char font of height 32. Such files are written by
+the obsolete <CODE>restorefont -w</CODE>.
+<HR>
+Next
+<A HREF="font-formats-3.html">Previous</A>
+<A HREF="font-formats.html#toc4">Contents</A>
+</BODY>
+</HTML>

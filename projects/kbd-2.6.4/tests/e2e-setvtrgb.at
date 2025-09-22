@@ -1,0 +1,49 @@
+AT_SETUP([setvtrgb (vga)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setvtrgb" vga])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test01.calls])
+AT_CLEANUP
+
+AT_SETUP([setvtrgb (vtrgb.ubuntu)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setvtrgb" "$abs_srcdir/data/setvtrgb/vtrgb.ubuntu"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test02.calls])
+AT_CLEANUP
+
+AT_SETUP([setvtrgb (vtrgb.ubuntu.hex)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setvtrgb" "$abs_srcdir/data/setvtrgb/vtrgb.ubuntu.hex"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test02.calls])
+AT_CLEANUP
+
+AT_SETUP([setvtrgb from pipe (vtrgb.ubuntu)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK_PIPE([cat "$abs_srcdir/data/setvtrgb/vtrgb.ubuntu"], ["$abs_top_builddir/src/setvtrgb" -])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test03.calls])
+AT_CLEANUP
+
+AT_SETUP([setvtrgb from pipe (vtrgb.ubuntu.hex)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK_PIPE([cat "$abs_srcdir/data/setvtrgb/vtrgb.ubuntu.hex"], ["$abs_top_builddir/src/setvtrgb" -])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test03.calls])
+AT_CLEANUP
+
+AT_SETUP([setvtrgb from stdin (vtrgb.ubuntu)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setvtrgb" - < "$abs_srcdir/data/setvtrgb/vtrgb.ubuntu"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test03.calls])
+AT_CLEANUP
+
+AT_SETUP([setvtrgb from stdin (vtrgb.ubuntu.hex)])
+AT_KEYWORDS([e2e setvtrgb])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+E2E_CHECK(["$abs_top_builddir/src/setvtrgb" - < "$abs_srcdir/data/setvtrgb/vtrgb.ubuntu.hex"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/setvtrgb-test03.calls])
+AT_CLEANUP
+

@@ -1,0 +1,52 @@
+# International console driver fixes for Linux kernel .99pl13
+# Eugene G. Crosser <crosser@pccross.msk.su>
+
+This package provide fixes in the kernel (console.c, keydoard.c and vt.c),
+setfont and mapscrn utilities, and fixes to the loadkey utility.
+setfont loads custom EGA/VGA fonts, mapscrn specifies screen output mapping,
+and loadkeys with this fixes provides "AltGr-Lock" state of the keyboard,
+and makes possible to specify which characters are alphabetic and therefore
+should be affected by the CapsLock.
+
+make all	-	compile utilities and binary tables
+make apply	-	apply cdiffs to the kernel code & .h files
+make install	-	install utilities in the /etc directory
+
+Utilities make use of ioctl() entries added to the kernel as follows:
+
+"setfont" accepts binary font from the file specified as a paramter.
+File size may be 2048, 3584 and 4096 bytes for 8x8, 8x14 and 8x16
+fonts respectively.
+
+"mapscrn" accepts a 256 byte translation table from the file specified as a
+parameter and passes it to the "user definable" (fourth) mapping table
+in the kernel. First 32 bytes of the file (control characters) are always 
+ignored. All screen output will be translated if a "\033(K" (or "\033)K")
+sequence was outputted to select the "user definable" table.
+
+All this witchkraft with the output mapping is nesseccary because of
+VGA architecture: it extends the character bitmap from 8 to 9 columns
+for some interval of codes on the hardware level. This is appropriate
+for certain graphic characters, but inappropriate if you have letters
+in that place ot the character table. In the latter case, you can place
+character bitmaps on not-extendable positions in the font table, and
+use appropriate mapping table. This is done for Cyrillic character set
+"koi8-r" (RFC1489).
+
+The fixes in loadkey utility are necessary because of two reasons.
+First, non-Latin based character sets (such as Cyrillic) require a
+special lock state for the keyboard. Current "shift-locks" implementation
+in the keyboard driver is inconvenient, as it does not allow "switchback"
+when the "shift" key is pressed while "shift-lock" is active.  Second, 
+with non-ISO-8859 compliant character sets one cannot easily figure out 
+if a certain character is a "lowercase letter" and should therefore be 
+affected by CapsLock.  A plus sign ('+') in front of the character 
+definition in the keymapping table is used to identify this character 
+as "affectable by CapsLock". Loadkeys utility treats lowercase latin 
+characters ('a'-'z') as affectable in any case. Effect of CapsLock is 
+to invert the "shift" state (unlike the original driver, where it always
+"shifts up").
+
+Note that if you need to make custom screen mapping default, you will
+have to output the magic escape sequence ("\033(K" or "\033)K") to every
+virtual screen in use. That can be done from /etc/profile. 

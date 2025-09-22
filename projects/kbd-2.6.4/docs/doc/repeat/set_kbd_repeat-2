@@ -1,0 +1,34 @@
+Date:   Wed, 21 Jul 1999 23:34:05 -0700
+From: Marc Merlin <marc_news@merlins.org>
+Cc: linux-kernel@vger.rutgers.edu, Larry Augustin <lma@valinux.com>
+
+There is an issue with setup.S:
+! Set the keyboard repeat rate to the max
+        mov     ax,#0x0305
+        xor     bx,bx           ! clear bx
+        int     0x16
+
+Those lines  are not really  needed but they cause  a problem on  some (very
+few) systems where every other boot (or so) the keyboard won't be found (and
+has to be plugged/unplugged before it re-appears).
+It happens to affect  some of the Pentium Pro systems  that VA Linux Systems
+used to sell.
+Larry Augustin  (CEO VA)  found that  removing those  three lines  fixes the
+problem and VA has been shipping kernels with them disabled for at least two
+years without any adverse effects.
+The patch  actually got in  the 2.0.31pre series  (by David Miller)  but got
+dropped/lost when David gave up.
+
+More details from Larry:
+
+----- Forwarded message from Larry Augustin <lma@valinux.com> -----
+From: Larry Augustin <lma@valinux.com>
+
+Specifically,  we had  the  problem  on Intel  Venus  (VS440FX) Pentium  Pro
+systems.   I have  a feeling  the  problem could  be traced  to a  Keytronic
+keyboard BIOS bug, but I never tracked it down.
+
+Interesting enough, that was one of the patches david miller had in the code
+base that got dropped when he quit doing 2.0 maintenance releases.
+
+Larry

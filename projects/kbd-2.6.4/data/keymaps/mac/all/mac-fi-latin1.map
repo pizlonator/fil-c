@@ -1,0 +1,68 @@
+# mac-fi-latin1.kmap
+# converted from mac-us-ext by bronx 070600
+# tested on MacAlly ext USB kbd
+# euro sign on number 4, keycode 21
+# 
+# keycode 0 is the 'a', for some reason keycode 90 is
+# also defined as an 'a', I'm not sure why.
+#
+alt_is_meta
+include "mac-qwerty-layout"
+include "mac-linux-keys-bare.inc"
+include "mac-euro.map"
+compose as usual for "iso-8859-1"
+strings as usual
+
+keycode  18 = one              exclam          
+	alt	keycode  18 = Meta_one        
+keycode  19 = two              quotedbl               quotedbl               nul              nul
+	alt	keycode  19 = Meta_two
+keycode  20 = three            numbersign      
+	control	keycode  20 = Escape          
+	alt	keycode  20 = Meta_three      
+keycode  21 = four             dollar           currency           Control_backslash
+	alt	keycode  21 = Meta_four       
+keycode  22 = six              ampersand
+	control	keycode  22 = Control_asciicircum
+	alt	keycode  22 = Meta_six        
+keycode  23 = five             percent         
+	control	keycode  23 = Control_bracketright
+	alt	keycode  23 = Meta_five       
+keycode  24 = acute            grave
+	alt	keycode  24 = Meta_equal      
+keycode  25 = nine             parenright        bracketright    braceright
+	alt	keycode  25 = braceright       
+keycode  26 = seven            slash	        bar
+	alt	keycode  26 = backslash     
+keycode  27 = plus            question       backslash        Control_underscore Control_underscore Meta_minus      
+keycode  28 = eight            parenleft        bracketleft      
+	alt	keycode  28 = braceleft
+keycode  29 = zero             equal       braceright      
+	alt	keycode  29 = Meta_zero       
+keycode  30 = diaeresis     asciicircum       asciitilde       Control_bracketright
+	alt	keycode  30 = Meta_bracketright
+keycode  33 = aring	Aring     
+	control	keycode  33 = Escape          
+	alt	keycode  33 = Meta_bracketleft
+keycode  39 = adiaeresis	Adiaeresis        
+	control	keycode  39 = Control_g       
+	alt	keycode  39 = Meta_apostrophe 
+keycode  41 = odiaeresis	Odiaeresis           
+	alt	keycode  41 = Meta_semicolon  
+keycode  42 = apostrophe	asterisk	at             
+	control	keycode  42 = Control_backslash
+	alt	keycode  42 = Meta_backslash  
+keycode  43 = comma            semicolon            
+	alt	keycode  43 = Meta_comma      
+keycode  44 = minus	underscore
+	control	keycode  44 = Delete          
+	alt	keycode  44 = Meta_minus      
+keycode  47 = period           colon
+	control	keycode  47 = Compose         
+	alt	keycode  47 = Meta_period     
+keycode  10 = less	greater      
+	control	keycode  10 = nul             
+	alt	keycode  10 = Meta_grave      
+keycode  51 = Delete           Remove
+	alt	keycode  51 = Meta_Delete     
+keycode  65 = KP_Period       

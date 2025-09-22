@@ -1,0 +1,39 @@
+.\" @(#)unicode_start.1 1.0 010203 aeb
+.TH UNICODE_START 1 "3 Feb 2001" "kbd"
+.SH NAME
+unicode_start \- put keyboard and console in unicode mode
+.SH SYNOPSIS
+.B unicode_start
+.RI [ font " [" umap ]]
+.SH DESCRIPTION
+.IX "unicode_start command" "" "\fLunicode_start\fR command"
+.LP
+The
+.B unicode_start
+command will put the keyboard and console into Unicode (UTF-8) mode.
+.LP
+For the keyboard this means that one can attach 16-bit U+xxxx values
+to keyboard keys using
+.BR loadkeys (1),
+and have these appear as UTF-8 input to user programs.
+Also, that one can type hexadecimal Alt-xxxx using the numeric keypad,
+and again produce UTF-8.
+.LP
+For the console this means that the kernel expects UTF-8 output
+from user programs, and displays the output accordingly.
+.LP
+The parameter
+.I font
+is a font that is loaded. It should have a built-in Unicode map,
+or, if it hasn't, such a map can be given explicitly as second parameter.
+When no font was specified, the current font is kept.
+.SH NOTE
+Unicode mode is a parameter with a value per virtual console.
+However, usually the font and keymap is common to all consoles.
+.SH "SEE ALSO"
+.BR dumpkeys (1),
+.BR kbd_mode (1),
+.BR loadkeys (1),
+.BR unicode_stop (1),
+.BR utf-8 (7),
+.BR setfont (8)

@@ -1,0 +1,277 @@
+.TH SETFONT 8 "11 Feb 2001" "kbd"
+.SH NAME
+setfont \- load EGA/VGA console screen font
+.SH SYNOPSIS
+.B setfont
+.RB [ -O
+.IR font+umap.orig ]
+.RB [ -o
+.IR font.orig ]
+.RB [ -om
+.IR cmap.orig ]
+.RB [ -ou
+.IR umap.orig ]
+.RB [ -\c
+.IR N ]
+.RI [ "font.new ...\&" ]
+.RB [ -m
+.IR cmap ]
+.RB [ -u
+.IR umap ]
+.RB [ -C
+.IR console ]
+.RB [ -h\c
+.IR H ]
+.RB [ -f ]
+.RB [ -v ]
+.RB [ -V ]
+.IX "setfont command" "" "\fLsetfont\fR command"
+.SH DESCRIPTION
+The
+.B setfont
+command reads a font from the file
+.I font.new
+and loads it into the EGA/VGA character generator,
+and optionally outputs the previous font.
+It can also load various mapping tables
+and output the previous versions.
+.LP
+If no args are given (or only the option
+.RI \- N
+for some number
+.IR N ),
+then a default
+.RI (8x N )
+font is loaded (see below).
+One may give several small fonts, all containing
+a Unicode table, and
+.B setfont
+will combine them and load the union.
+Typical use:
+.TP
+.B setfont
+Load a default font.
+.TP
+.B "setfont drdos8x16"
+Load a given font (here the 448-glyph drdos font).
+.TP
+.B "setfont cybercafe -u cybercafe"
+Load a given font that does not have a Unicode map
+and provide one explicitly.
+.TP
+.B "setfont LatArCyrHeb-19 -m 8859-2"
+Load a given font (here a 512-glyph font combining several
+character sets) and indicate that one's local character set
+is ISO 8859-2.
+.LP
+Note: if a font has more than 256 glyphs, only 8 out of 16 colors
+can be used simultaneously. It can make console perception worse
+(loss of intensity and even some colors).
+
+.SH "FONT FORMATS"
+The standard Linux font format is the PSF font.
+It has a header describing font properties like character size,
+followed by the glyph bitmaps, optionally followed by a Unicode mapping
+table giving the Unicode value for each glyph.
+Several other (obsolete) font formats are recognized.
+If the input file has code page format (probably with suffix .cp),
+containing three fonts with sizes e.g. 8x8, 8x14 and 8x16, then one of
+the options \-8 or \-14 or \-16 must be used to select one.
+Raw font files are binary files of size
+.RI 256* N
+bytes, containing bit images for each of 256 characters,
+one byte per scan line, and
+.I N
+bytes per character (0 <
+.I N
+<= 32).
+Most fonts have a width of 8 bits, but with the framebuffer device (fb)
+other widths can be used.
+
+.SH "FONT HEIGHT"
+The program
+.B setfont
+has no built-in knowledge of VGA video modes, but just asks
+the kernel to load the character ROM of the video card with
+certain bitmaps. However, since Linux 1.3.1 the kernel knows
+enough about EGA/VGA video modes to select a different line
+distance. The default character height will be the number
+.I N
+inferred from the font or specified by option. However, the
+user can specify a different character height
+.I H
+using the
+.I "\-h"
+option.
+
+.SH "CONSOLE MAPS"
+Several mappings are involved in the path from user program
+output to console display. If the console is in utf8 mode (see
+.BR unicode_start (1))
+then the kernel expects that user program output is coded as UTF-8 (see
+.BR utf-8 (7)),
+and converts that to Unicode (ucs2).
+Otherwise, a translation table is used from the 8-bit program output
+to 16-bit Unicode values. Such a translation table is called a
+.IR "Unicode console map" .
+There are four of them: three built into the kernel, the fourth
+settable using the
+.I "\-m"
+option of
+.BR setfont .
+An escape sequence chooses between these four tables; after loading a
+.IR cmap ,
+.B setfont
+will output the escape sequence Esc ( K that makes it the active translation.
+.LP
+Suitable arguments for the
+.I "\-m"
+option are for example
+.IR 8859-1 ,
+.IR 8859-2 ", ...,"
+.IR 8859-15 ,
+.IR cp437 ", ...,"
+.IR cp1250 .
+.LP
+Given the Unicode value of the symbol to be displayed, the kernel
+finds the right glyph in the font using the Unicode mapping info
+of the font and displays it.
+.LP
+Old fonts do not have Unicode mapping info, and in order to handle
+them there are direct-to-font maps (also loaded using
+.IR "\-m" )
+that give a correspondence between user bytes and font positions.
+The most common correspondence is the one given in the file
+.I trivial
+(where user byte values are used directly as font positions).
+Other correspondences are sometimes preferable since the
+PC video hardware expects line drawing characters in certain
+font positions.
+.LP
+Giving a
+.I "\-m none"
+argument inhibits the loading and activation of a mapping table.
+The previous console map can be saved to a file using the
+.I "\-om file"
+option.
+These options of setfont render
+.BR mapscrn (8)
+obsolete. (However, it may be useful to read that man page.)
+
+.SH "UNICODE FONT MAPS"
+The correspondence between the glyphs in the font and
+Unicode values is described by a Unicode mapping table.
+Many fonts have a Unicode mapping table included in
+the font file, and an explicit table can be indicated using
+the
+.I "\-u"
+option. The program
+.B setfont
+will load such a Unicode mapping table, unless a
+.I "\-u none"
+argument is given. The previous Unicode mapping table
+will be saved as part of the saved font file when the \-O
+option is used. It can be saved to a separate file using the
+.I "\-ou file"
+option.
+These options of setfont render
+.BR loadunimap (8)
+obsolete.
+.LP
+The Unicode mapping table should assign some glyph to
+the `missing character' value U+fffd, otherwise missing
+characters are not translated, giving a usually very confusing
+result.
+
+Usually no mapping table is needed, and a Unicode mapping table
+is already contained in the font (sometimes this is indicated
+by the .psfu extension), so that most users need not worry
+about the precise meaning and functioning of these mapping tables.
+
+One may add a Unicode mapping table to a psf font using
+.BR psfaddtable (1).
+
+.SH OPTIONS
+.TP
+.BI "\-h " H
+Override font height.
+.TP
+.B \-d
+Doubles the size of the font, by replicating all of its pixels
+vertically and horizontally.  This is suitable for high pixel density
+(e.g. "4k") displays on which the standard fonts are too small to be
+easily legible.  Due to kernel limitations, this is suitable only for
+16x16 or smaller fonts.
+.TP
+.BI "\-m " file
+Load console map or Unicode console map from
+.IR file .
+.TP
+.BI "\-o " file
+Save previous font in
+.IR file .
+.TP
+.BI "\-O " file
+Save previous font and Unicode map in
+.IR file .
+.TP
+.BI "\-om " file
+Store console map in
+.IR file .
+.TP
+.BI "\-ou " file
+Save previous Unicode map in
+.IR file .
+.TP
+.BI "\-u " file
+Load Unicode table describing the font from
+.IR file .
+.TP
+.BI "\-C " console
+Set the font for the indicated console. (May require root permissions.)
+.TP
+.B \-f
+Force-load unicode map: Setfont`issues the system call to load the unicode
+map even if the specified map is empty.  This may be useful in unusual cases.
+.TP
+.B \-v
+Be verbose.
+.TP
+.B \-V
+Print version and exit.
+
+.SH NOTE
+PC video hardware allows one to use the "intensity" bit
+either to indicate brightness, or to address 512 (instead of 256)
+glyphs in the font. So, if the font has more than 256 glyphs,
+the console will be reduced to 8 (instead of 16) colors.
+
+.SH FILES
+.TP
+.I @DATADIR@/consolefonts
+The default font directory.
+.LP
+.TP
+.I @DATADIR@/unimaps
+The default directory for Unicode maps.
+.LP
+.TP
+.I @DATADIR@/consoletrans
+The default directory for screen mappings.
+.LP
+The default font is a file
+.I default
+(or
+.IR default8x N
+if the \-N option was given for some number N)
+perhaps with suitable extension (like .psf).
+.SH "SEE ALSO"
+.BR psfaddtable (1),
+.BR unicode_start (1),
+.BR loadunimap (8),
+.BR utf-8 (7),
+.BR mapscrn (8)
+.\" .SH "AUTHORS"
+.\" Eugene G. Crosser (crosser@pccross.msk.su)
+.\" .br
+.\" Andries E. Brouwer (aeb@cwi.nl)

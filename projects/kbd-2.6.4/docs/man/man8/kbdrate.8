@@ -1,0 +1,71 @@
+.\" Copyright 1992, 1994 Rickard E. Faith (faith@cs.unc.edu)
+.\" May be distributed under the GNU General Public License
+.\" Updated Wed Jun 22 21:09:43 1994, faith@cs.unc.edu
+.\"
+.TH KBDRATE 8 "22 June 1994" "kbd"
+.SH NAME
+kbdrate \- reset the keyboard repeat rate and delay time
+.SH SYNOPSIS
+.B kbdrate
+[\fI\,options\/\fR...]
+.SH DESCRIPTION
+.B kbdrate
+is used to change the keyboard repeat rate and delay time. The delay
+is the amount of time that a key must be depressed before it will start to
+repeat.
+
+Using
+.B kbdrate
+without any options will reset the repeat rate to 10.9 characters per second (cps)
+and the delay to 250 milliseconds (ms) for Intel- and M68K-based systems.
+These are the IBM defaults. On SPARC-based systems it will reset the repeat rate
+to 5 cps and the delay to 200 ms.
+
+.SH OPTIONS
+.TP
+\fB\-r\fR, \fB\-\-rate\fR=\fI\,NUMBER\/\fR
+Change the keyboard repeat rate to
+.I NUMBER
+cps. For Intel-based systems, the allowable range is from 2.0 to 30.0 cps.
+Only certain, specific values are possible, and the program will select the
+nearest possible value to the one specified. The possible values are given,
+in characters per second, as follows: 2.0, 2.1, 2.3, 2.5, 2.7, 3.0, 3.3, 3.7,
+4.0, 4.3, 4.6, 5.0, 5.5, 6.0, 6.7, 7.5, 8.0, 8.6, 9.2, 10.0, 10.9, 12.0, 13.3,
+15.0, 16.0, 17.1, 18.5, 20.0, 21.8, 24.0, 26.7, 30.0.
+For SPARC-based systems, the allowable range is from 0 (no repeat) to 50 cps.
+.TP
+\fB\-d\fR, \fB\-\-delay\fR=\fI\,NUMBER\/\fR
+Change the delay to
+.I NUMBER
+milliseconds.
+For Intel-based systems, the allowable range is from 250 to 1000 ms,
+in 250 ms steps. For SPARC systems, possible values are between 10 ms and 1440 ms,
+in 10 ms steps.
+.TP
+\fB\-s\fR, \fB\-\-silent\fR
+Silent. No messages are printed.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display a help text.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display a version number and exit.
+.SH BUGS
+Not all keyboards support all rates.
+.PP
+Not all keyboards have the rates mapped in the same way.
+.PP
+Setting the repeat rate on the Gateway AnyKey keyboard does not work.  If
+someone with a Gateway figures out how to program the keyboard, please send
+mail to util-linux@math.uio.no.
+.PP
+All this is very architecture dependent.
+Nowadays
+.B kbdrate
+first tries the KDKBDREP and KIOCSRATE ioctls.
+(The former usually works on an m68k/i386 machine, the latter for SPARC.)
+When these ioctls fail an ioport interface.
+.SH FILES
+.I /etc/rc.local
+.br
+.I /dev/port

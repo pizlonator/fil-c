@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Screen dumps</TITLE>
+ <LINK HREF="kbd.FAQ-21.html" REL=next>
+ <LINK HREF="kbd.FAQ-19.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc20" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-21.html">Next</A>
+<A HREF="kbd.FAQ-19.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc20">Contents</A>
+<HR>
+<H2><A NAME="s20">20. Screen dumps</A></H2>
+
+<P>
+<!--
+console!screenshots, obtaining
+-->
+
+<!--
+screenshots!obtaining from console
+-->
+<P><CODE>setterm -dump</CODE> <I>N</I> will dump the contents of the
+screen of <CODE>/dev/tty</CODE><I>N</I> to a file <CODE>screen.dump</CODE>
+in the current directory. See setterm(1).
+<P>The current contents of the screen of <CODE>/dev/tty</CODE><I>N</I>
+can be accessed using the device <CODE>/dev/vcs</CODE><I>N</I>
+(where `vcs' stands for `virtual console screen').
+For example, you could have a clock program that displays the
+current time in the upper right hand corner of the console screen
+(see the program <CODE>vcstime</CODE> in <CODE>kbd-1.04.tar.gz</CODE>).
+Just dumping the contents goes with <CODE>cat /dev/vcs</CODE><I>N</I>.
+These device files <CODE>/dev/vcs</CODE><I>N</I> do not contain
+newlines, and do not contain attributes, like colors. From a program
+it is usually better to use <CODE>/dev/vcsa</CODE><I>N</I>
+(`virtual console screen with attributes') instead - it starts with
+a header giving the number of rows and columns and the location
+of the cursor.
+See vcs(4).
+<P>
+<HR>
+<A HREF="kbd.FAQ-21.html">Next</A>
+<A HREF="kbd.FAQ-19.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc20">Contents</A>
+</BODY>
+</HTML>

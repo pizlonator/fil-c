@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libkfont
+Version: @VERSION@
+Description: Library to manage the Linux console fonts
+Requires:
+Libs: -L${libdir} -lkfont -lkbdfile
+Libs.private:
+Cflags: -I${includedir}

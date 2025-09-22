@@ -1,0 +1,169 @@
+# Croatian keymap 1.0
+# Based on keymaps available in kbd-0.90
+#
+# Alen Zekulic <azekulic@fesb.hr>
+
+charset "iso-8859-2"
+keymaps 0-2,4-6,8,10,12
+include "linux-with-alt-and-altgr.inc"
+strings as usual
+
+                keycode   1 = Escape
+        alt     keycode   1 = Meta_Escape
+
+                keycode   2 = one               exclam          asciitilde
+        alt     keycode   2 = Meta_one
+
+                keycode   3 = two               quotedbl        caron
+        control keycode   3 = nul
+        alt     keycode   3 = Meta_two
+
+                keycode   4 = three             numbersign      asciicircum
+        control keycode   4 = Escape
+        alt     keycode   4 = Meta_three
+
+                keycode   5 = four              dollar          breve
+        control keycode   5 = Control_backslash
+        alt     keycode   5 = Meta_four
+
+                keycode   6 = five              percent         degree
+        control keycode   6 = Control_bracketright
+        alt     keycode   6 = Meta_five
+
+                keycode   7 = six               ampersand       ogonek
+        control keycode   7 = Control_asciicircum
+        alt     keycode   7 = Meta_six
+
+                keycode   8 = seven             slash           grave
+        control keycode   8 = Control_underscore
+        alt     keycode   8 = Meta_seven
+
+                keycode   9 = eight             parenleft       abovedot
+        control keycode   9 = Delete
+        alt     keycode   9 = Meta_eight
+
+                keycode  10 = nine              parenright      acute
+        alt     keycode  10 = Meta_nine
+
+                keycode  11 = zero              equal           doubleacute
+        alt     keycode  11 = Meta_zero
+
+                keycode  12 = apostrophe        question        diaeresis
+        control keycode  12 = Control_underscore
+        alt     keycode  12 = Meta_minus
+control altgr   keycode  12 = Control_backslash
+
+                keycode  13 = plus              asterisk        cedilla
+        alt     keycode  13 = Meta_plus
+
+                keycode  14 = Delete            Delete
+        control keycode  14 = Control_backslash
+        alt     keycode  14 = Meta_Delete
+
+                keycode  15 = Tab              Tab
+        alt     keycode  15 = Meta_Tab
+
+                keycode  16 = +q        +Q      backslash
+        control keycode  16 = Control_q
+        alt     keycode  16 = Meta_q
+altgr   alt     keycode  16 = Meta_backslash
+altgr   control keycode  16 = Control_backslash
+
+                keycode  17 = +w        +W      bar
+        control keycode  17 = Control_w
+        alt     keycode  17 = Meta_w
+
+                keycode  18 = e
+                keycode  19 = r
+                keycode  20 = t
+                keycode  21 = z
+                keycode  22 = u
+                keycode  23 = i
+                keycode  24 = o
+                keycode  25 = p
+
+                keycode  26 = +scaron   +Scaron         division
+                keycode  27 = +dstroke  +Dstroke        multiplication
+
+                keycode  28 = Return
+        alt     keycode  28 = 0x080d
+
+                keycode  29 = Control
+
+                keycode  30 = a
+                keycode  31 = s
+                keycode  32 = d
+
+                keycode  33 = +f        +F              bracketleft
+        control keycode  33 = Control_f
+        alt     keycode  33 = Meta_f
+
+                keycode  34 = +g        +G              bracketright
+        control keycode  34 = Control_g
+        alt     keycode  34 = Meta_g
+
+                keycode  35 = h
+                keycode  36 = j
+
+                keycode  37 = +k        +K              lstroke
+        control keycode  37 = Control_k
+        alt     keycode  37 = Meta_k
+
+                keycode  38 = +l        +L              Lstroke
+        control keycode  38 = Control_l
+        alt     keycode  38 = Meta_l
+
+                keycode  39 = +ccaron   +Ccaron         backslash
+                keycode  40 = +cacute   +Cacute         ssharp
+
+                keycode  41 = cedilla   diaeresis
+        control keycode  41 = nul
+        alt     keycode  41 = Meta_grave
+
+                keycode  42 = Shift
+                keycode  43 = +zcaron   +Zcaron         currency
+
+                keycode  44 = y
+                keycode  45 = x
+                keycode  46 = c
+
+                keycode  47 = +v        +V              at
+        control keycode  47 = Control_v
+        alt     keycode  47 = Meta_v
+
+                keycode  48 = +b        +B              braceleft
+        control keycode  48 = Control_b
+        alt     keycode  48 = Meta_b
+
+                keycode  49 = +n        +N              braceright
+        control keycode  49 = Control_n
+        alt     keycode  49 = Meta_n
+
+                keycode  50 = +m        +M              section
+        control keycode  50 = Control_m
+        alt     keycode  50 = Meta_m
+
+                keycode  51 = comma     semicolon
+        alt     keycode  51 = Meta_comma
+
+                keycode  52 = period    colon           bar
+        alt     keycode  52 = Meta_period
+
+                keycode  53 = minus     underscore      slash
+        control keycode  53 = Delete
+        alt     keycode  53 = Meta_minus
+shift   control keycode  53 = Control_underscore
+
+                keycode  54 = Shift
+                keycode  56 = Alt
+
+                keycode  57 = space     space
+        control keycode  57 = nul
+        alt     keycode  57 = Meta_space
+
+                keycode  58 = Caps_Lock
+
+                keycode  86 = less             greater
+        alt     keycode  86 = Meta_less
+
+                keycode  97 = Control

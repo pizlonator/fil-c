@@ -1,0 +1,23 @@
+AT_SETUP([loadunimap (path/cp866)])
+AT_KEYWORDS([e2e loadunimap])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+clrunimap || "$abs_top_builddir/src/clrunimap"
+E2E_CHECK(["$abs_top_builddir/src/loadunimap" "$abs_srcdir/data/unimaps/cp866.uni"])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/loadunimap-test01.calls])
+AT_CLEANUP
+
+AT_SETUP([loadunimap (cp866)])
+AT_KEYWORDS([e2e loadunimap])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+clrunimap || "$abs_top_builddir/src/clrunimap"
+E2E_CHECK(["$abs_top_builddir/src/loadunimap" cp866])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/loadunimap-test01.calls])
+AT_CLEANUP
+
+AT_SETUP([loadunimap (cp1250.uni)])
+AT_KEYWORDS([e2e loadunimap])
+AT_SKIP_IF([ test "$SANDBOX" != "priviliged" ])
+clrunimap || "$abs_top_builddir/src/clrunimap"
+E2E_CHECK(["$abs_top_builddir/src/loadunimap" cp1250.uni])
+E2E_COMPARE_SYSCALLS([cat $abs_srcdir/data/e2e/loadunimap-test02.calls])
+AT_CLEANUP

@@ -1,0 +1,245 @@
+# Bépo : Improved ergonomic french keymap using Dvorak method. -*- conf -*-
+# Built by community on 'Dvorak Fr / Bépo' :
+# see http://www.clavier-dvorak.org/wiki/ to join and help.
+
+include "linux-with-alt-and-altgr"
+
+
+### CapsLock with '+eacute' doesn't work, nor with egrave, ccedilla,
+### ecircumflex, agrave and guillemotleft/right : bug ?
+
+
+# We define at most 16 levels for each keycode :
+# plain, Shift, AltGr, Shift+AltGr,
+# Control, Control+Shift, Control+AltGr, Control+Shift+AltGr,
+# Alt, Alt+Shift, Alt+AltGr, Alt+Shift+Altgr
+# Alt+Control, Alt+Control+Shift, Alt+Control+AltGr, Alt+Control+Shift+AltGr.
+#
+# Note that incomplete lines are completed with VoidSymbol.
+keymaps 0-15
+
+keycode   1 = Escape Escape
+keycode  14 = Delete  Delete
+keycode  15 = Tab Tab
+keycode  28 = Return
+keycode  29 = Control
+keycode  42 = Shift
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  58 = Caps_Lock
+keycode  97 = Control
+
+# First row
+keycode  41 = dollar numbersign       U+2013  U+00b6
+         Alt             keycode  41 = Meta_dollar
+         Alt Shift       keycode  41 = Meta_numbersign
+
+keycode   2 = +quotedbl +one          U+2014  U+201e
+         Alt             keycode   2 = Meta_quotedbl
+         Alt Shift       keycode   2 = Meta_one
+
+keycode   3 = +guillemotleft  +two     less    U+201c
+         Alt Shift       keycode   3 = Meta_two
+         Alt       AltGr keycode   3 = Meta_less
+
+keycode   4 = +guillemotright +three  greater U+201d
+         Alt Shift       keycode   4 = Meta_three
+         Alt       AltGr keycode   4 = Meta_greater
+
+keycode   5 = +parenleft +four        bracketleft  U+2264
+         Alt             keycode   5 = Meta_parenleft
+         Alt Shift       keycode   5 = Meta_four
+         Alt       AltGr keycode   5 = Meta_bracketleft
+
+keycode   6 = +parenright +five       bracketright  U+2265
+         Alt             keycode   6 = Meta_parenright
+         Alt Shift       keycode   6 = Meta_five
+         Alt       AltGr keycode   6 = Meta_bracketright
+ Control Alt       AltGr keycode   6 = Meta_Control_bracketright
+
+keycode   7 = +at       +six          asciicircum  asciicircum
+         Alt             keycode   7 = Meta_at
+         Alt Shift       keycode   7 = Meta_six
+         Alt       AltGr keycode   7 = Meta_asciicircum
+         Alt Shift AltGr keycode   7 = Meta_asciicircum
+ Control Alt AltGr       keycode   7 = Meta_Control_asciicircum
+ Control Alt Shift AltGr keycode   7 = Meta_Control_asciicircum
+
+keycode   8 = +plus     +seven        U+00b1  U+00ac
+         Alt             keycode   8 = Meta_plus
+         Alt Shift       keycode   8 = Meta_seven
+
+keycode   9 = +minus    +eight        U+2212  U+00bc
+         Alt             keycode   9 = Meta_minus
+         Alt Shift       keycode   9 = Meta_eight
+
+keycode  10 = +slash    +nine         U+00f7  U+00bd
+         Alt             keycode  10 = Meta_slash
+         Alt Shift       keycode  10 = Meta_nine
+
+keycode  11 = +asterisk +zero         U+00d7  U+00be
+         Alt             keycode  11 = Meta_asterisk
+         Alt Shift       keycode  11 = Meta_zero
+
+keycode  12 = equal     U+00b0        U+2260  U+2032
+         Alt             keycode  12 = Meta_equal
+
+keycode  13 = percent   grave         U+2030  U+2033
+         Alt             keycode  13 = Meta_percent
+         Alt Shift       keycode  13 = Meta_grave
+
+
+# Second row
+
+# simplified letter definitions notation :
+keycode 16 = b
+keycode 18 = p
+keycode 19 = o
+keycode 22 = v
+keycode 23 = d
+keycode 24 = l
+keycode 25 = j
+keycode 26 = z
+keycode 27 = w
+
+# then, add specific definitions
+                   AltGr keycode  16 = bar
+             Shift AltGr keycode  16 = brokenbar
+         Alt       AltGr keycode  16 = Meta_bar
+
+keycode 17 = +eacute +Eacute dead_acute
+
+                   AltGr keycode  18 = ampersand
+             Shift AltGr keycode  18 = U+00a7
+         Alt       AltGr keycode  18 = Meta_ampersand
+
+                   AltGr keycode  19 = +U+0153
+             Shift AltGr keycode  19 = +U+0152
+
+keycode 20 = +egrave +Egrave dead_grave grave # no Meta !
+
+keycode 21 = dead_circumflex exclam exclamdown
+         Alt Shift       keycode  21 = Meta_exclam
+
+                   AltGr keycode  22 = dead_caron
+             Shift AltGr keycode  22 = dead_caron
+
+                   AltGr keycode  23 = eth
+             Shift AltGr keycode  23 = ETH
+
+                   AltGr keycode  25 = +U+0133
+             Shift AltGr keycode  25 = +U+0132
+
+                   AltGr keycode  26 = +U+0259
+             Shift AltGr keycode  26 = +U+018f
+
+
+
+# Third row
+
+# simplified letter definitions notation :
+keycode 30 = a
+keycode 31 = u
+keycode 32 = i
+keycode 33 = e
+keycode 35 = c
+keycode 36 = t
+keycode 37 = s
+keycode 38 = r
+keycode 39 = n
+keycode 40 = m
+
+# then, add specific definitions
+                   AltGr keycode  30 = +ae
+             Shift AltGr keycode  30 = +AE
+
+                   AltGr keycode  31 = +ugrave
+             Shift AltGr keycode  31 = +ugrave
+
+                   AltGr keycode  32 = dead_diaeresis
+             Shift AltGr keycode  32 = VoidSymbol
+
+                   AltGr keycode  33 = U+20ac
+             Shift AltGr keycode  33 = VoidSymbol
+
+keycode 34 = comma semicolon U+2019 +U+031b
+         Alt             keycode  34 = Meta_comma
+         Alt Shift       keycode  34 = Meta_semicolon
+
+                   AltGr keycode  35 = copyright
+             Shift AltGr keycode  35 = U+017f
+
+                   AltGr keycode  36 = +thorn
+             Shift AltGr keycode  36 = +THORN
+
+                   AltGr keycode  37 = +ssharp
+             Shift AltGr keycode  37 = U+1e9e
+
+                   AltGr keycode  38 = registered
+             Shift AltGr keycode  38 = U+2122
+
+                   AltGr keycode  39 = dead_tilde
+             Shift AltGr keycode  39 = dead_tilde
+
+                   AltGr keycode  40 = VoidSymbol
+             Shift AltGr keycode  40 = masculine
+
+keycode 43 = +ccedilla +Ccedilla dead_cedilla
+
+
+# Fourth row
+
+# simplified letter definitions notation :
+keycode 45 = y
+keycode 46 = x
+keycode 48 = k
+keycode 50 = q
+keycode 51 = g
+keycode 52 = h
+keycode 53 = f
+
+# then, add specific definitions
+keycode 86 = +ecircumflex +Ecircumflex slash slash
+         Alt       AltGr keycode  86 = Meta_slash
+         Alt Shift AltGr keycode  86 = Meta_slash
+
+keycode 44 = +agrave +Agrave backslash backslash
+         Alt       AltGr keycode  44 = Meta_backslash
+         Alt Shift AltGr keycode  44 = Meta_backslash
+
+                   AltGr keycode  45 = braceleft
+             Shift AltGr keycode  45 = U+2018
+         Alt       AltGr keycode  45 = Meta_braceleft
+
+                   AltGr keycode  46 = braceright
+             Shift AltGr keycode  46 = U+2019
+         Alt       AltGr keycode  46 = Meta_braceright
+
+keycode 47 = period colon U+2026 periodcentered
+         Alt             keycode  47 = Meta_period
+         Alt Shift       keycode  47 = Meta_colon
+
+                   AltGr keycode  48 = asciitilde
+             Shift AltGr keycode  48 = asciitilde
+         Alt       AltGr keycode  48 = Meta_asciitilde
+         Alt Shift AltGr keycode  48 = Meta_asciitilde
+
+keycode 49 = apostrophe question questiondown +U+0309
+         Alt             keycode  49 = Meta_apostrophe
+         Alt Shift       keycode  49 = Meta_question
+
+                   AltGr keycode  51 = mu
+             Shift AltGr keycode  51 = VoidSymbol
+
+                   AltGr keycode  52 = U+2020
+             Shift AltGr keycode  52 = U+2021
+
+                   AltGr keycode  53 = VoidSymbol
+             Shift AltGr keycode  53 = ordfeminine
+
+
+
+keycode 57 = space nobreakspace underscore U+202f
+         Alt             keycode  52 = Meta_space
+         Alt       AltGr keycode  52 = Meta_underscore
+ Control Alt       AltGr keycode  52 = Meta_Control_underscore

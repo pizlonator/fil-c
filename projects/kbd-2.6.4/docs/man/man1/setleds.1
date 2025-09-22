@@ -1,0 +1,84 @@
+.\" @(#)setleds.1 1.0 940924 aeb
+.TH SETLEDS 1 "24 Sep 1994" "kbd"
+.SH NAME
+setleds \- set the keyboard leds
+.SH SYNOPSIS
+.B setleds
+.RI [ "-v" "] [" "-L" "] [" "-D" "] [" "-F" ]
+.RI [ {+|-}num "] [" {+|-}caps "] [" {+|-}scroll ]
+.SH DESCRIPTION
+.IX "setleds command" "" "\fLsetleds\fR command"
+.LP
+.B Setleds
+reports and changes the led flag settings of a VT
+(namely NumLock, CapsLock and ScrollLock).
+Without arguments,
+.B setleds
+prints the current settings.
+With arguments, it sets or clears the indicated flags
+(and leaves the others unchanged). The settings before
+and after the change are reported if the \-v flag is given.
+.LP
+The led flag settings are specific for each VT (and the VT
+corresponding to stdin is used).
+.LP
+By default (or with option \-F),
+.B setleds
+will only change the VT flags (and their setting may be
+reflected by the keyboard leds).
+.LP
+With option \-D,
+.B setleds
+will change both the VT flags and their default settings
+(so that a subsequent reset will not undo the change).
+This might be useful for people who always want to have numlock set.
+.LP
+With option \-L,
+.B setleds
+will not touch the VT flags, but only change the leds.
+From this moment on, the leds will no longer reflect the VT flags
+(but display whatever is put into them). The command
+.B "setleds -L"
+(without further arguments) will restore the situation in which
+the leds reflect the VT flags.
+.LP
+One might use
+.B setleds
+in /etc/rc to define the initial and default state of NumLock,
+e.g. by
+.br
+.in +5m
+INITTY=/dev/tty[1-8]
+.br
+for tty in $INITTY; do
+.br
+.in +5m
+setleds \-D +num < $tty
+.br
+.in -5m
+done
+.in -5m
+.SH OPTIONS
+.TP
+\-num +num
+Clear or set NumLock.
+(At present, the NumLock setting influences the
+interpretation of keypad keys.
+Pressing the NumLock key complements the NumLock setting.)
+.TP
+\-caps +caps
+Clear or set CapsLock.
+(At present, the CapsLock setting complements the Shift key
+when applied to letters.
+Pressing the CapsLock key complements the CapsLock setting.)
+.TP
+\-scroll +scroll
+Clear or set ScrollLock.
+(At present, pressing the ScrollLock key (or ^S/^Q) stops/starts
+console output.)
+.SH "BUGS"
+In keyboard application mode the NumLock key does not
+influence the NumLock flag setting.
+.SH "SEE ALSO"
+.BR loadkeys (1)
+

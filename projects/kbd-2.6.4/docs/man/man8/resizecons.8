@@ -1,0 +1,70 @@
+.\" @(#)man/man8/resizecons.8	1.0 Jan 17 12:04:28 MET 1995
+.TH RESIZECONS 8 "17 Jan 1995" "kbd"
+.SH NAME
+resizecons \- change kernel idea of the console size
+.SH SYNOPSIS
+.BI "resizecons " COLSxROWS
+.br
+.BI "resizecons -lines " ROWS
+.SH DESCRIPTION
+The
+.I resizecons
+command tries to change the videomode of the console.
+There are several aspects to this: (a) the kernel must know about it,
+(b) the hardware must know about it, (c) user programs must know
+about it, (d) the console font may have to be adapted.
+
+(a) The kernel is told about the change using the ioctl VT_RESIZE.
+This causes the kernel to reallocate console screen memory for
+all virtual consoles, and might fail if there is not enough memory.
+(In that case, try to disallocate some virtual consoles first.)
+If this ioctl succeeds, but a later step fails (e.g., because
+you do not have root permissions), you may be left with a very messy
+screen.
+
+The most difficult part of this is (b), since it requires detailed
+knowledge of the video card hardware, and the setting of numerous
+registers. Only changing the number of rows is slightly easier, and
+.I resizecons
+will try to do that itself, when given the
+.I -lines
+option. (Probably, root permission will be required.)
+The command
+.I "resizecons COLSxROWS"
+will execute
+.I "restoretextmode -r COLSxROWS"
+(and hence requires that you have svgalib installed). Here COLSxROWS
+is a file that was created earlier by
+.I "restoretextmode -w COLSxROWS."
+Again, either root permissions are required, or
+.I restoretextmode
+has to be suid root.
+
+In order to deal with (c),
+.I resizecons
+does a `stty rows ROWS cols COLS' for each active console (in the
+range tty0..tty15), and sends a SIGWINCH signal to
+.I selection
+if it finds the file /tmp/selection.pid.
+
+Finally, (d) is dealt with by executing a
+.I setfont
+command. Most likely, the wrong font is loaded, and you may want to
+do another
+.I setfont
+yourself afterwards.
+
+.SH BUGS
+.I resizecons
+does not work on all hardware.
+This command used to be called
+.I resize,
+but was renamed to avoid conflict with another command with the same name.
+
+.SH "SEE ALSO"
+.BR setfont (8),
+.BR stty (1),
+.BR selection (1),
+.BR restoretextmode (8),
+.BR disalloc (8)
+

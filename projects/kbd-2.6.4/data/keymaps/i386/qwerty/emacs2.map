@@ -1,0 +1,59 @@
+#Originally From stig@netcom.com Mon Feb 21 22:05:14 1994
+# (now stig@hackvan.com)
+#
+#Modified by rafael@cse.ucsc.edu, Jochen Hein, aeb
+#
+keymaps 0-2,4-6,8-9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+	keycode  69 = Num_Lock         Caps_Lock
+	control	keycode 105 = Meta_b
+	control	keycode 106 = Meta_f
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape
+keycode   2 = one              exclam
+keycode   3 = two              at               at               nul              nul
+keycode   4 = three            numbersign
+	control	keycode   4 = Escape
+keycode   5 = four             dollar           dollar           Control_backslash
+keycode   6 = five             percent
+	control	keycode   6 = Control_bracketright
+keycode   7 = six              asciicircum
+	control	keycode   7 = Control_asciicircum
+keycode   8 = seven            ampersand        braceleft        Control_underscore
+keycode   9 = eight            asterisk         bracketleft      Delete
+keycode  10 = nine             parenleft        bracketright
+keycode  11 = zero             parenright       braceright
+keycode  12 = minus            underscore       backslash        Control_underscore Control_underscore
+keycode  13 = equal            plus
+keycode  14 = Delete
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = bracketleft      braceleft
+	control	keycode  26 = Escape
+keycode  27 = bracketright     braceright
+	control	keycode  27 = Control_bracketright
+keycode  28 = Return
+	alt	keycode  28 = Meta_Control_m
+	shift	alt	keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon        colon
+keycode  40 = apostrophe       quotedbl
+keycode  41 = grave            asciitilde
+keycode  42 = Shift
+keycode  43 = backslash        bar
+	control	keycode  43 = Control_backslash
+keycode  51 = comma            less
+keycode  52 = period           greater
+keycode  53 = slash            question
+	control	keycode  53 = Delete
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control	keycode  57 = nul
+keycode  58 = Control
+keycode  86 = less             greater          bar
+keycode  97 = Control

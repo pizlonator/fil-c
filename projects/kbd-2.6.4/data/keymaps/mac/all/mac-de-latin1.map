@@ -1,0 +1,61 @@
+# mac-de-latin1.map: German keymap
+# (Renamed from gr-latin1.map, since it is not a Greek map.)
+# Some changes due to Olaf Flebbe (flebbe@pluto.tat.physik.uni-tuebingen.de)
+# More changes by Jochen Hein <jochen.hein@delphi.central.de>.
+
+
+alt_is_meta
+include "mac-qwerty-layout"
+	altgr keycode  12 = at
+	altgr keycode  46 = mu
+#include "linux-with-alt-and-altgr"
+include "mac-linux-keys-bare.inc"
+	plain keycode  65 = KP_Comma
+include "mac-euro2.map"
+compose as usual for "iso-8859-1"
+strings as usual
+
+#             Normal           Shift            AltGr           Shift+AltGr	Ctrl	Shift+Ctrl	AltGr+Ctrl	Shift+AltGr+Ctrl	Alt	Shift+Alt	AltGr+Alt	Shift+AltGr+Alt
+keycode  18 = one              exclam
+	shift altgr keycode  18 = at
+keycode  19 = two              quotedbl         twosuperior
+	control keycode  19 = nul
+keycode  20 = three            section          threesuperior
+	control keycode  29 = Escape
+keycode  21 = four             dollar
+keycode  23 = five             percent		bracketleft
+keycode  22 = six              ampersand	bracketright
+keycode  26 = seven            slash            bar
+keycode  28 = eight            parenleft        braceleft
+keycode  25 = nine             parenright       braceright
+        control altgr keycode  25 = Control_bracketright
+keycode  29 = zero             equal            braceright
+keycode  27 = ssharp           question         backslash
+        control altgr keycode  27 = Control_backslash
+keycode  24 = dead_acute       dead_grave
+        alt     keycode  24 = Meta_acute
+        shift   alt   keycode  24 = Meta_grave
+keycode  33 = +udiaeresis       +Udiaeresis
+keycode  30 = plus             asterisk         dead_tilde
+keycode  41 = +odiaeresis       +Odiaeresis
+keycode  39 = +adiaeresis       +Adiaeresis
+keycode  50 = dead_circumflex   degree
+	alt keycode  50 = Meta_asciicircum
+	control keycode  50 = Control_asciicircum
+keycode  42 = numbersign       apostrophe
+keycode  43 = comma            semicolon
+keycode  47 = period           colon
+keycode  44 = minus            underscore
+        shift control keycode  44 = Control_underscore
+keycode  49 = space            space
+	control keycode  49 = nul
+keycode  10 = less             greater          bar
+
+keycode  16 = z
+keycode   6 = y
+
+	altgr keycode  12 = at
+	altgr keycode  37 = at
+	altgr keycode  42 = bar
+#	altgr keycode  26 = bar
+	altgr keycode  45 = dead_tilde

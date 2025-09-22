@@ -1,0 +1,22 @@
+The file with a strange name in this directory is no mistake.
+It shows that Linux handles filenames in Unicode (UTF-8)
+without ever realizing that they are in Unicode.
+[However, some old tar's are unhappy with this filename.]
+
+If you want to see it (the filename consists of two musical notes):
+% setfont		# load PC font, just to be sure
+% setfont -u def.uni	# load Unicode mapping table
+% echo -e '\033%8'	# set Unicode output mode
+% ls -N			# show filenames (raw)
+% echo -e '\033%@'	# set Latin1 output mode again.
+
+If you want to remove it:
+% rm ./??????
+
+If you want to input Unicode:
+% kbd_mode -u		# Be careful! Do this only with a kbd_mode
+			# from kbd-0.88.tar.gz or later!
+and next tell loadkeys what key combinations correspond to which
+Unicode values. (See also the contents of that musical file.)
+
+See also the scripts unicode_start and unicode_stop in ../../src.

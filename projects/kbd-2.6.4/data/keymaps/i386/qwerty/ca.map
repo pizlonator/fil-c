@@ -1,0 +1,98 @@
+# Canadian Multilingual keyboard
+#
+# Built from the Canadian-French keymap
+# Christian Perrier <bubulle@debian.org>
+# 2008
+#
+# Changes to line up with the XKB layout
+# Anthony Perkins <anthony@acperkins.com>
+# 2020
+#
+
+keymaps 0-6,8-9,12
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+compose as usual for "iso-8859-1"
+
+keycode   1 = Escape          Escape
+	alt keycode   1 = Meta_Escape
+keycode   2 = one             exclam          plusminus
+	alt keycode   2 = Meta_one
+	shift alt keycode   2 = Meta_exclam
+keycode   3 = two             at              at
+	control keycode   3 = nul
+	shift control keycode   3 = nul
+	alt keycode   3 = Meta_two
+	shift alt keycode   3 = Meta_at
+keycode   4 = three           numbersign      sterling
+	control keycode   4 = Escape
+	alt keycode   4 = Meta_three
+	shift alt keycode   4 = Meta_numbersign
+keycode   5 = four            dollar          cent
+	alt keycode   5 = Meta_four
+	shift alt keycode   5 = Meta_dollar
+keycode   6 = five            percent         currency
+	alt keycode   6 = Meta_five
+	shift alt keycode   6 = Meta_percent
+keycode   7 = six             question
+	shift control keycode   7 = Delete
+	alt keycode   7 = Meta_six
+	shift alt keycode   7 = Meta_question
+keycode   8 = seven           ampersand       braceleft
+	alt keycode   8 = Meta_seven
+	shift alt keycode   8 = Meta_ampersand
+keycode   9 = eight           asterisk        braceright
+	alt keycode   9 = Meta_eight
+	shift alt keycode   9 = Meta_asterisk
+keycode  10 = nine            parenleft       bracketleft
+	control keycode  10 = Escape
+	alt keycode  10 = Meta_nine
+keycode  11 = zero            parenright      bracketright
+	control keycode  11 = Control_bracketright
+	alt keycode  11 = Meta_zero
+keycode  12 = minus           underscore      onehalf
+	control keycode  12 = Control_underscore
+	alt keycode  12 = Meta_minus
+keycode  13 = equal           plus            notsign
+	alt keycode  13 = Meta_equal
+keycode  14 = Delete          Delete
+	control keycode  14 = BackSpace
+	alt keycode  14 = Meta_Delete
+keycode  15 = Tab             Tab
+	alt keycode  15 = Meta_Tab
+keycode  24 = +o              +O              section
+keycode  25 = +p              +P              paragraph
+keycode  26 = dead_circumflex dead_diaeresis  dead_grave
+	control keycode  26 = Control_asciicircum
+keycode  27 = ccedilla        Ccedilla        tilde
+keycode  28 = Return
+	alt keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = semicolon       colon           degree
+keycode  40 = egrave          Egrave
+keycode  41 = slash           backslash       bar
+	shift control keycode  41 = Control_backslash
+keycode  42 = Shift
+keycode  43 = agrave          Agrave
+keycode  44 = +z              +Z              guillemotleft
+keycode  45 = +x              +X              guillemotright
+keycode  50 = +m              +M              mu
+keycode  51 = comma           apostrophe      less
+	control keycode  51 = Control_g
+	alt keycode  51 = Meta_comma
+	shift alt keycode  51 = Meta_apostrophe
+keycode  52 = period          quotedbl        greater
+	control keycode  52 = Compose
+	alt keycode  52 = Meta_period
+	shift alt keycode  52 = Meta_quotedbl
+keycode  53 = +eacute         +Eacute         dead_acute
+	alt keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space           space           nobreakspace
+	control keycode  57 = nul
+	alt keycode  57 = Meta_space
+keycode  58 = Caps_Lock
+keycode  86 = ugrave          Ugrave
+keycode  97 = Control

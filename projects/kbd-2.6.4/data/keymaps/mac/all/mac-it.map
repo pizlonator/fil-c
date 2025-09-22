@@ -1,0 +1,48 @@
+# Apple Keyboard Italiana
+# Cristiano Bertossi bertossi@polimedia.it
+# it-cris.map
+# 18 August 1998
+# modified by olh@suse.de
+
+alt_is_meta
+include "mac-azerty-layout"
+include "mac-linux-keys-bare.inc"
+include "mac-euro.map"
+compose as usual for "iso-8859-1"
+strings as usual
+
+
+# Prima riga
+keycode  50 = at               numbersign
+keycode  18 = ampersand        one		guillemotleft
+keycode  19 = quotedbl         two             
+keycode  20 = apostrophe       three		grave
+keycode  21 = parenleft        four		braceleft	bracketleft
+keycode  23 = ccedilla         five         	Ccedilla
+keycode  22 = egrave           six                   
+keycode  26 = parenright       seven		braceright	bracketright
+keycode  28 = sterling         eight                 
+keycode  25 = agrave           nine                 
+keycode  29 = eacute           zero                   
+keycode  27 = minus            underscore      
+keycode  24 = equal            plus            
+keycode  51 = Delete           Remove
+
+# Seconda riga
+keycode  33 = igrave           asciicircum       
+keycode  30 = dollar           asterisk      
+
+# Terza riga
+keycode  39 = ugrave           percent        
+keycode  42 = section          degree      	at
+
+# Quarta riga
+keycode  10 = less             greater
+keycode   8 = c			C	copyright
+keycode  45 = n         
+	altgr keycode  45 = asciitilde
+keycode  46 = comma            question		questiondown
+keycode  43 = semicolon        period            
+keycode  47 = colon            slash		bar	backslash
+keycode  44 = ograve           exclam        
+

@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: How to make other programs work with non-ASCII chars</TITLE>
+ <LINK HREF="kbd.FAQ-13.html" REL=next>
+ <LINK HREF="kbd.FAQ-11.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc12" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-13.html">Next</A>
+<A HREF="kbd.FAQ-11.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc12">Contents</A>
+<HR>
+<H2><A NAME="s12">12. How to make other programs work with non-ASCII chars</A></H2>
+
+<P>
+<!--
+non-ASCII characters, using
+-->
+<P>In the bad old days this used to be quite a hassle. Every separate
+program had to be convinced individually to leave your bits alone.
+Not that all is easy now, but recently a lot of gnu utilities have
+learned to react to <CODE>LC_CTYPE=iso_8859_1</CODE> or <CODE>LC_CTYPE=iso-8859-1</CODE>.
+Try this first, and if it doesn't help look at the hints below.
+Note that in recent versions of libc the routine setlocale() only
+works if you have installed the locale files (e.g. in
+<CODE>/usr/lib/locale</CODE>).
+<P>NOTE! The above was written years ago. Today locale stuff is a bit different.
+Try the command <CODE>locale -a</CODE> to see which locales are available.
+Then use one of these locale names instead of the <CODE>iso_8859-1</CODE>
+mentioned above. For example, <CODE>LC_CTYPE=fr_FR.ISO-8859-1</CODE> or
+<CODE>LC_CTYPE=fr_FR@euro</CODE>.
+<P>NOTE! Some of the below may still be true. Most of it is outdated.
+(Please report on what is incorrect today, so that it can be deleted.)
+<P>First of all, the 8-th bit should survive the kernel input processing,
+so make sure to have <CODE>stty cs8 -istrip -parenb</CODE> set.
+<P>A. For <CODE>emacs</CODE> the details strongly depend on the version.
+The information below is for version 19.34. Put lines
+<BLOCKQUOTE><CODE>
+<PRE>
+        (set-input-mode nil nil 1)
+        (standard-display-european t)
+        (require 'iso-syntax)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+into your <CODE>$HOME/.emacs</CODE>.
+The first line (to be precise: the final 1)
+tells <CODE>emacs</CODE> not to discard the 8-th bit from input characters.
+The second line tells <CODE>emacs</CODE> not to display non-ASCII characters
+as octal escapes.
+The third line specifies the syntactic properties
+and case conversion table for the Latin-1 character set
+These last two lines are superfluous if you have something like
+<CODE>LC_CTYPE=ISO-8859-1</CODE> in your environment.
+(The variable may also be <CODE>LC_ALL</CODE> or even <CODE>LANG</CODE>.
+The value may be anything with a substring `88591' or `8859-1'
+or `8859_1'.)
+<P>This is a good start.
+On a terminal that cannot display non-ASCII ISO 8859-1 symbols,
+the command
+<BLOCKQUOTE><CODE>
+<PRE>
+        (load-library "iso-ascii")
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will cause accented characters to be displayed comme {,c}a.
+If your keymap does not make it easy to produce non-ASCII characters, 
+then
+<BLOCKQUOTE><CODE>
+<PRE>
+        (load-library "iso-transl")
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will make the 2-character sequence Ctrl-X 8 a compose character,
+so that the 4-character sequence Ctrl-X 8 , c produces c-cedilla.
+Very inconvenient.
+<P>The command
+<BLOCKQUOTE><CODE>
+<PRE>
+        (iso-accents-mode)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will toggle ISO-8859-1 accent mode, in which the six
+characters ', `, ", ^, ~, / are dead keys
+modifying the following symbol.
+Special combinations: ~c gives a c with cedilla,
+~d gives an Icelandic eth, ~t gives an Icelandic thorn,
+"s gives German sharp s, /a gives a with ring,
+/e gives an a-e ligature, ~&lt; and ~&gt; give guillemots,
+~! gives an inverted exclamation mark,
+~? gives an inverted question mark, and '' gives an acute accent.
+This is the default mapping of accents.
+The variable <CODE>iso-languages</CODE> is a list of pairs (language name,
+accent mapping), and a non-default mapping can be selected using
+<BLOCKQUOTE><CODE>
+<PRE>
+        (iso-accents-customize LANGUAGE)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Here LANGUAGE can be one of <CODE>"portuguese"</CODE>, <CODE>"irish"</CODE>,
+<CODE>"french"</CODE>, <CODE>"latin-2"</CODE>, <CODE>"latin-1"</CODE>.
+<P>Since the Linux default compose character is Ctrl-.
+it might be convenient to use that everywhere. Try
+<BLOCKQUOTE><CODE>
+<PRE>
+        (load-library "iso-insert.el")
+        (define-key global-map [?\C-.] 8859-1-map)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The latter line will not work under <CODE>xterm</CODE>, if you use <CODE>emacs -nw</CODE>,
+but in that case you can put
+<BLOCKQUOTE><CODE>
+<PRE>
+        XTerm*VT100.Translations:       #override\n\
+              Ctrl &lt;KeyPress> . : string("\0308")
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in your <CODE>.Xresources</CODE>.)
+<P>B. For <CODE>less</CODE>, put <CODE>LESSCHARSET=latin1</CODE> in the environment.
+This is also what you need if you see <CODE>\255</CODE> or <CODE>&lt;AD&gt;</CODE>
+in <CODE>man</CODE> output: some versions of <CODE>less</CODE> will render the soft hyphen
+(octal 0255, hex 0xAD) this way when not given permission to output Latin-1.
+<P>C. For <CODE>ls</CODE>, give the option <CODE>-N</CODE>. (Probably you want to make an alias.)
+<P>D. For <CODE>bash</CODE> (version 1.13.*), put
+<BLOCKQUOTE><CODE>
+<PRE>
+        set meta-flag on
+        set convert-meta off
+        set output-meta on
+</PRE>
+</CODE></BLOCKQUOTE>
+
+into your <CODE>$HOME/.inputrc</CODE>.
+<P>E. For <CODE>tcsh</CODE>, use
+<BLOCKQUOTE><CODE>
+<PRE>
+        setenv LANG     en_US
+        setenv LC_CTYPE iso_8859_1
+</PRE>
+</CODE></BLOCKQUOTE>
+
+If you have nls on your system, then the corresponding routines are used.
+Otherwise <CODE>tcsh</CODE> will assume iso_8859_1, regardless of the values given to
+LANG and LC_CTYPE. See the section NATIVE LANGUAGE SYSTEM in tcsh(1).
+(The Danish HOWTO says: <CODE>setenv LC_CTYPE ISO-8859-1; stty pass8</CODE>)
+<P>F. For <CODE>flex</CODE>, give the option <CODE>-8</CODE> if the parser it generates must be
+able to handle 8-bit input. (Of course it must.)
+<P>G. For <CODE>elm</CODE>, set <CODE>displaycharset</CODE> to <CODE>ISO-8859-1</CODE>.
+(Danish HOWTO: <CODE>LANG=C</CODE> and <CODE>LC_CTYPE=ISO-8859-1</CODE>)
+<P>H. For programs using curses (such as <CODE>lynx</CODE>) David Sibley reports:
+The regular curses package uses the high-order bit for reverse video mode
+(see flag _STANDOUT defined in <CODE>/usr/include/curses.h</CODE>).  However,
+<CODE>ncurses</CODE> seems to be 8-bit clean and does display iso-latin-8859-1
+correctly.
+<P>I. For programs using <CODE>groff</CODE> (such as <CODE>man</CODE>), make sure to use
+<CODE>-Tlatin1</CODE> instead of <CODE>-Tascii</CODE>. Old versions of the program <CODE>man</CODE>
+also use <CODE>col</CODE>, and the next point also applies.
+<P>K. For <CODE>rlogin</CODE>, use option <CODE>-8</CODE>.
+<P>L. For <CODE>joe</CODE>,
+<CODE>metalab.unc.edu:/pub/Linux/apps/editors/joe-1.0.8-linux.tar.gz</CODE>
+is said to work after editing the configuration file. Someone else said:
+<CODE>joe</CODE>: Put the <CODE>-asis</CODE> option in <CODE>/isr/lib/joerc</CODE> in the
+first column.
+<P>M. For LaTeX: <CODE>\documentstyle[isolatin]{article}</CODE>.
+For LaTeX2e: <CODE>\documentclass{article}\usepackage{isolatin}</CODE>
+where <CODE>isolatin.sty</CODE> is available from
+<A HREF="ftp://ftp.vlsivie.tuwien.ac.at/pub/8bit">ftp.vlsivie.tuwien.ac.at/pub/8bit</A>.
+<P>A nice discussion on the topic of ISO-8859-1 and how to manage 8-bit
+characters is contained in the file <CODE>grasp.insa-lyon.fr:/pub/faq/fr/accents</CODE>
+(in French). Another fine discussion (in English) can be found in
+<A HREF="ftp://rtfm.mit.edu/pub/usenet-by-group/comp.answers/internationalization/iso-8859-1-charset">rtfm.mit.edu:pub/usenet-by-group/comp.answers/internationalization/iso-8859-1-charset</A>.
+<P>If you need to fix a program that behaves badly with 8-bit characters,
+one thing to keep in mind is that if you have a signed char type then
+characters may be negative, and using them as an array index will fail.
+Several programs can be fixed by judiciously adding (unsigned char) casts.
+<P>
+<HR>
+<A HREF="kbd.FAQ-13.html">Next</A>
+<A HREF="kbd.FAQ-11.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc12">Contents</A>
+</BODY>
+</HTML>

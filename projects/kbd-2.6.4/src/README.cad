@@ -1,0 +1,16 @@
+
+cad is a simple program to handle Cntrl Alt Delete in an enviroment
+where there may be remote logins. It give the remote users time to
+finish up before shutting down.
+
+
+usage:
+In /etc/inittab add the lines
+
+# What to do at the "Three Finger Salute".
+ca::ctrlaltdel:openvt -sw /sbin/cad
+
+
+If you already have a ca: line, comment it out with a #
+
+Jon.

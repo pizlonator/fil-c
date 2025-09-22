@@ -1,0 +1,249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Linux keyboard and console HOWTO: Ctrl-Alt-Del and other special key combinations</TITLE>
+ <LINK HREF="kbd.FAQ-9.html" REL=next>
+ <LINK HREF="kbd.FAQ-7.html" REL=previous>
+ <LINK HREF="kbd.FAQ.html#toc8" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="kbd.FAQ-9.html">Next</A>
+<A HREF="kbd.FAQ-7.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc8">Contents</A>
+<HR>
+<H2><A NAME="s8">8. Ctrl-Alt-Del and other special key combinations</A></H2>
+
+<P>
+<P>
+<H2><A NAME="ss8.1">8.1 Ctrl-Alt-Del (Boot)</A>
+</H2>
+
+<P>
+<!--
+ctrl-alt-del!action taken by
+-->
+<P>If you press Ctrl-Alt-Del (or whatever key was assigned the keysym Boot by
+loadkeys) then either the machine reboots immediately (without sync), or
+<CODE>init</CODE> is sent a SIGINT. The former behaviour is the default. The default
+can be changed by root, using the system call reboot(), see ctrlaltdel(8).
+Some <CODE>init</CODE>'s change the default. What happens when <CODE>init</CODE> gets SIGINT depends
+on the version of <CODE>init</CODE> used - often it will be determined by the pf entry in
+<CODE>/etc/inittab</CODE> (which means that you can run an arbitrary program
+in this case).
+In the current kernel Ctrl-AltGr-Del is no longer by default assigned to Boot.
+<P>
+<H2><A NAME="ss8.2">8.2 Other combinations</A>
+</H2>
+
+<P>
+<!--
+keyboard!special key combinations
+-->
+
+<!--
+key combinations, special
+-->
+<P>
+<PRE>
+Name            Default binding
+-------------------------------
+Show_Memory     Shift-Scrollock
+Show_Registers  AltGr-ScrollLock
+Show_State      Ctrl-ScrollLock
+Console_n       Alt-Fn and Ctrl-Alt-Fn  (1 &lt;= n &lt;= 12)
+Console_{n+12}  AltGr-Fn                (1 &lt;= n &lt;= 12)
+Incr_Console    Alt-RightArrow
+Decr_Console    Alt-LeftArrow
+Last_Console    Alt[Gr]-PrintScreen
+Scroll_Backward Shift-PageUp
+Scroll_Forward  Shift-PageDown
+Caps_On                                 (CapsLock is a toggle; this key sets)
+Compose         Ctrl-.
+</PRE>
+<P>
+<H2><A NAME="ss8.3">8.3 X Combinations</A>
+</H2>
+
+<P>
+<!--
+keyboard!key combinations for X
+-->
+
+<!--
+key combinations, X
+-->
+
+<!--
+X!key combinations for
+-->
+<P>
+<PRE>
+Ctrl-Alt-Fn     Switch to VT n
+Ctrl-Alt-KP+    Next mode
+Ctrl-Alt-KP-    Previous mode
+Ctrl-Alt-Backspace      Kill X
+</PRE>
+
+On some motherboards, Ctrl-Alt-KP- and Ctrl-Alt-KP+ will be equivalent to
+pressing the Turbo button. That is, both will produce the scancodes
+1d 38 4a ca b8 9d and 1d 38 4e ce b8 9d, and both will switch between
+Turbo (&gt;= 25MHz) and non-Turbo (8 or 12 MHz).
+(Often these key combinations only function this way when enabled
+by jumpers on the motherboard.)
+<P>Perry F Nguyen (<CODE>pfnguyen@netcom22.netcom.com</CODE>) writes:
+AMI BIOS has a feature that locks up the keyboard and flashes the LED's
+if the Ctrl-Alt-Backspace combination is pressed while a BIOS password
+is enabled, until the CMOS/BIOS password is typed in.
+<P>On some SiS based motherboards the combination Ctrl-Alt-Backspace
+will cause a power off, or puts the machine in power save mode.
+(Reported for SiS 630 and for SiS645DX.)
+<P>
+<H2><A NAME="ss8.4">8.4 Dosemu Combinations</A>
+</H2>
+
+<P>
+<!--
+key combinations!dosemu
+-->
+
+<!--
+dosemu!key combinations for
+-->
+<P>
+<PRE>
+Ctrl-Alt-Fn     Switch to VT n (from version 0.50; earlier Alt-Fn)
+Ctrl-Alt-PgDn   Kill dosemu (when in RAW keyboard mode)
+(and many other combinations - see the dosemu documentation)
+</PRE>
+<P>
+<H2><A NAME="ss8.5">8.5 Composing symbols</A>
+</H2>
+
+<P>
+<!--
+keyboard!composing symbols with
+-->
+
+<!--
+symbols!composing with keyboard
+-->
+<P>One symbol may be constructed using several keystrokes.
+<UL>
+<LI>LeftAlt-press, followed by a decimal number typed on the keypad, followed
+by LeftAlt-release, yields the symbol with code given by this number.
+(In Unicode mode this same mechanism, but then with 4 hexadecimal digits,
+may be used to define a Unicode symbol.)</LI>
+<LI>A dead diacritic followed by a symbol, yields that symbol adorned with
+that diacritic. If the combination is undefined, both keys are taken
+separately.
+Which keys are dead diacritics is user-settable; none is by default.
+Five (since 2.0.25 six) dead diacritics can be defined (using loadkeys(1)):
+dead_grave, dead_acute, dead_circumflex, dead_tilde, dead_diaeresis
+(and dead_cedilla).
+Precisely what this adorning means is also user-settable:
+dead-diacritic, symbol is equivalent to Compose + diacritic + symbol.</LI>
+<LI>Compose followed by two symbols yields a combination symbol. These
+combinations are user-settable. Today there are 68 combinations
+defined by default; you can see them by saying "dumpkeys | grep compose".</LI>
+<LI>Then there are `Sticky' modifier keys (since 1.3.33). For example,
+one can type Ctrl-C as SControl, C and Ctrl-Alt-BackSpace as SControl,
+SAlt, BackSpace.</LI>
+</UL>
+<P>Note that there are at least four such composition mechanisms:
+<OL>
+<LI>The Linux keyboard driver mechanism, used in conjunction with loadkeys.</LI>
+<LI>The X mechanism - see X386keybd(1), later XFree86kbd(1).
+Under X11R6: edit <CODE>/usr/X11R6/lib/X11/locale/iso8859-1/Compose</CODE>.<P>See also Andrew D. Balsa's comments at
+<A HREF="http://wauug.erols.com/~balsa/linux/deadkeys/index.html">http://wauug.erols.com/~balsa/linux/deadkeys/index.html</A>.
+</LI>
+<LI>The emacs mechanism obtained by loading "iso-insert.el" or
+calling `iso-accents-mode'.</LI>
+<LI>The vim mechanism: insert a composed symbol by pressing Ctrl-K
+followed by two symbols. A list of the possible combinations is
+obtained by the command <CODE>:digraphs</CODE>.</LI>
+</OL>
+
+For X the order of the two symbols is arbitrary: both Compose-,-c and
+Compose-c-, yield a c-cedilla; for Linux and emacs only the former sequence
+works by default. For X and vim the list of compose combinations is fixed.
+Linux and emacs are flexible.
+The default lists are somewhat similar, but the details are different.
+<P>
+<H2><A NAME="ss8.6">8.6 The SysRq key</A>
+</H2>
+
+<P>
+<!--
+SysRq key
+-->
+
+In case your kernel was compiled with CONFIG_MAGIC_SYSRQ enabled
+(a feature that is present since Linux 2.1.43)
+there is a single key (defined in <CODE>&lt;linux/keyboard.h&gt;</CODE>)
+to which special system functions are attached, regardless of the
+current keyboard mode. For the PC architecture this special key is,
+naturally, the Alt+SysRq key, and any of the two Alt keys will work.
+(Note that if CONFIG_MAGIC_SYSRQ was not enabled, the default action
+of this key is to return to the previous console.)
+<P>If you press this key, do not release it, and hit another key,
+a corresponding action is performed. The action is performed whether
+anybody is logged in or not, is root or not. For the details, see
+<CODE>drivers/char/sysrq.c</CODE>. Since this feature is meant only
+for kernel hackers, that should suffice. Still, let me add a few
+remarks.
+<P>For the key r the keyboard mode is reset to K_XLATE.
+For the key k a SAK and console reset is done.
+For the key b the machine is rebooted immediately.
+(See, not something you want to have enabled on a production machine.)
+For the key o the power is turned off (when the machine is capable of that).
+For the key s an emergency sync is scheduled.
+For the key u an emergency read-only remount is scheduled.
+For the keys p,t,m various information is shown
+(namely the same information also shown for RAlt,RCtrl,RShift+ScrollLock).
+For the keys e,i,l all processes get a SIG_TERM or SIG_KILL, respectively;
+for l even the init process is killed.
+Digits set the log level. Anything else prints a short summary:
+<CODE>SysRq: unRaw saK Boot Off Sync Unmount showPc showTasks showMem
+loglevel0-8 tErm kIll killalL</CODE>.
+<P>Note: These are very dangerous actions! And they do not use your
+keymap - indeed, are meant for emergency cases where the state
+of your keymap, or even of the entire kernel, is uncertain.
+If you use a dvorak keyboard - bad luck! Most other people will
+be able to survive: the dangerous letters A,M,Q,W,Y,Z that are
+differently placed on English, French and German keyboards, are
+not used for actions. (But if your finger slips and you hit L
+instead of K - bye bye to your system.)
+<P>In Linux 2.3.13 the possibility to enable/disable SysRq was added.
+<BLOCKQUOTE><CODE>
+<PRE>
+        echo 0 > /proc/sys/kernel/sysrq
+</PRE>
+</CODE></BLOCKQUOTE>
+
+will disable it (if the kernel was compiled with CONFIG_MAGIC_SYSRQ).
+<P>
+<H2><A NAME="ss8.7">8.7 Problems</A>
+</H2>
+
+<P>A good keyboard accurately reports multiple key presses.
+Especially for people using a keyboard as Braille input device,
+where they have to be able to press up to six keys simultaneously,
+this is important. Many modern keyboards fail here due to sloppy
+design and testing - they misreport or fail in other ways when
+four or more keys are pressed simultaneously, sometimes already
+when two non-modifier keys are pressed simultaneously.
+This affects Linux users a bit: the SysRq key is not a modifier key,
+and people report problems using Alt-SysRq-<I>X</I> for various
+letters or digits <I>X</I>.
+<P>Long ago a similar problem (`ghosting') was caused by the design
+of the scan matrix: when three keys were pressed a fourth was
+also seen. That problem was solved by the use of diodes.
+Today it is the interface logic that is deficient.
+<P>
+<HR>
+<A HREF="kbd.FAQ-9.html">Next</A>
+<A HREF="kbd.FAQ-7.html">Previous</A>
+<A HREF="kbd.FAQ.html#toc8">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,134 @@
+! Teclado espa§ol ajustado a la p†gina de c¢digos CP-850. Especialmente creado
+! para aplicaciones que sean portadas de UNIX a MS-DOS o viceversa (como el
+! COBOL).
+!
+! Para obtener un mejor resultado recomiendo usar este mapa de caracteres junto
+! con el "setfont cp850-8x16".
+!
+! Para poder visualizar todos los caracteres dentro del editor VI, es posible
+! que deba modificarse la variable "isprint" y ajustarla con unos valores m†s
+! anchos. (recomiendo "set isprint=@,128-255").
+!
+! Jordi Sanfeliu <mikaku@arrakis.es>
+!
+keymaps 0-2,4,6,8-9,12
+alt_is_meta
+include "qwerty-layout"
+include "linux-with-alt-and-altgr"
+strings as usual
+
+keycode   1 = Escape
+keycode   2 = one              exclam           bar
+keycode   3 = two              quotedbl         at               nul
+keycode   4 = three            0372   numbersign       Escape
+keycode   5 = four             dollar           asciitilde       Control_backslash
+keycode   6 = five             percent          VoidSymbol       Control_bracketright
+keycode   7 = six              ampersand        +0252          Control_asciicircum
+keycode   8 = seven            slash            braceleft        Control_underscore
+keycode   9 = eight            parenleft        bracketleft      Delete
+keycode  10 = nine             parenright       bracketright
+keycode  11 = zero             equal            braceright
+keycode  12 = apostrophe       question         backslash        Control_underscore
+	alt keycode  12 = Meta_minus
+keycode  13 = 0255       0250     asciitilde
+	alt keycode  13 = Meta_equal
+keycode  14 = Delete           Delete           Delete           Control_underscore Delete           Meta_Delete      Delete           Delete          
+keycode  15 = Tab
+	shift	keycode  15 = Meta_Tab
+keycode  26 = dead_grave       dead_circumflex  bracketleft      Escape           VoidSymbol       Meta_bracketleft
+keycode  27 = plus             asterisk         bracketright     Control_bracketright VoidSymbol       Meta_bracketright
+keycode  28 = Return
+	alt keycode  28 = Meta_Control_m
+keycode  29 = Control
+keycode  39 = +0244           +0245
+	alt keycode  39 = Meta_semicolon
+keycode  40 = dead_acute       dead_diaeresis   braceleft        Control_g
+	alt keycode  40 = Meta_apostrophe
+keycode  41 = 0247        0246      backslash        nul
+	alt keycode  41 = Meta_grave
+keycode  42 = Shift
+keycode  43 = +0207         +0200         braceright       Control_backslash
+	alt keycode  43 = Meta_backslash
+	shift alt keycode  43 = Meta_asciitilde
+keycode  51 = comma            semicolon
+	shift alt keycode  51 = Meta_less
+keycode  52 = period           colon
+	shift alt keycode  52 = Meta_greater
+keycode  53 = minus            underscore       VoidSymbol       Delete
+	alt keycode  53 = Meta_slash
+keycode  54 = Shift
+keycode  56 = Alt
+keycode  57 = space
+	control keycode  57 = nul
+keycode  58 = Caps_Lock
+keycode  86 = less             greater
+	shift alt keycode  86 = Meta_bar
+! compose for cp 850
+compose '`' 'A' to '∑'
+compose '`' 'a' to 'Ö'
+compose '\'' 'A' to 'µ'
+compose '\'' 'a' to '†'
+compose '^' 'A' to '∂'
+compose '^' 'a' to 'É'
+compose '~' 'A' to '«'
+compose '~' 'a' to '∆'
+compose '"' 'A' to 'é'
+compose '"' 'a' to 'Ñ'
+compose 'O' 'A' to 'è'
+compose 'o' 'a' to 'Ü'
+compose '0' 'A' to 'è'
+compose '0' 'a' to 'Ü'
+compose 'A' 'A' to 'è'
+compose 'a' 'a' to 'Ü'
+compose 'A' 'E' to 'í'
+compose 'a' 'e' to 'ë'
+compose ',' 'C' to 'Ä'
+compose ',' 'c' to 'á'
+compose '`' 'E' to '‘'
+compose '`' 'e' to 'ä'
+compose '\'' 'E' to 'ê'
+compose '\'' 'e' to 'Ç'
+compose '^' 'E' to '“'
+compose '^' 'e' to 'à'
+compose '"' 'E' to '”'
+compose '"' 'e' to 'â'
+compose '`' 'I' to 'ﬁ'
+compose '`' 'i' to 'ç'
+compose '\'' 'I' to '÷'
+compose '\'' 'i' to '°'
+compose '^' 'I' to '◊'
+compose '^' 'i' to 'å'
+compose '"' 'I' to 'ÿ'
+compose '"' 'i' to 'ã'
+compose '-' 'D' to '—'
+compose '-' 'd' to '–'
+compose '~' 'N' to '•'
+compose '~' 'n' to '§'
+compose '`' 'O' to '„'
+compose '`' 'o' to 'ï'
+compose '\'' 'O' to '‡'
+compose '\'' 'o' to '¢'
+compose '^' 'O' to '‚'
+compose '^' 'o' to 'ì'
+compose '~' 'O' to 'Â'
+compose '~' 'o' to '‰'
+compose '"' 'O' to 'ô'
+compose '"' 'o' to 'î'
+compose '/' 'O' to 'ù'
+compose '/' 'o' to 'õ'
+compose '`' 'U' to 'Î'
+compose '`' 'u' to 'ó'
+compose '\'' 'U' to 'È'
+compose '\'' 'u' to '£'
+compose '^' 'U' to 'Í'
+compose '^' 'u' to 'ñ'
+compose '"' 'U' to 'ö'
+compose '"' 'u' to 'Å'
+compose '\'' 'Y' to 'Ì'
+compose '\'' 'y' to 'Ï'
+compose 'T' 'H' to 'Ë'
+compose 't' 'h' to 'Á'
+compose 's' 's' to '·'
+compose '"' 'y' to 'ò'
+compose 's' 'z' to '·'
+compose 'i' 'j' to 'ò'

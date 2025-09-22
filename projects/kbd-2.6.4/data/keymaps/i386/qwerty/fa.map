@@ -1,0 +1,146 @@
+# From: Behdad Esfahbod <bicon@behdad.org>
+# Date: Jun 13 2002
+#
+# Persian ISIRI-2901 Unicode console keyboard driver.
+#
+# ChangeLog:
+#
+# 2002-06-13  Behdad Esfahbod <bicon@behdad.org>
+#	* U+FDFC RIAL SIGN added.
+# 2002-06-11  Behdad Esfahbod <bicon@behdad.org>
+#	* Bidi Marks added.
+# 2001-06-19  Behdad Esfahbod <bicon@behdad.org>
+#	* First written.
+
+alt_is_meta
+keymaps 0-10,12,14
+include "linux-with-modeshift-altgr.inc"
+strings as usual
+
+# Set alt-shift key combination to change between Persian and English layouts
+keycode 42		= Shift
+alt keycode 42		= AltGr_Lock
+altgr alt keycode 42	= AltGr_Lock
+
+# Enable the win key to change between layouts too
+#keycode 125		= AltGr_Lock
+#altgr keycode 125	= AltGr_Lock
+
+keycode 86		= less greater bar
+altgr control alt keycode 111	= Boot
+keycode 1		= Escape
+keycode 14		= Delete Delete Delete Delete BackSpace
+keycode 15		= Tab
+keycode 28		= Return
+alt keycode 28		= Meta_Control_m
+keycode  29		= Control
+keycode 54		= Shift
+keycode 55		= KP_Multiply
+keycode 56		= Alt
+control keycode 57	= nul
+keycode 58		= Caps_Lock
+
+altgr keycode 57	= U+0020	# SPACE
+altgr shift keycode 2	= U+0021	# EXCLAMATION MARK
+altgr shift keycode 40	= U+061B	# ARABIC SEMICOLON
+altgr shift keycode 4 	= U+066B	# ARABIC DECIMAL SEPARATOR
+altgr shift keycode 6	= U+066A	# ARABIC PERCENT SIGN
+altgr shift keycode 8	= U+060C	# ARABIC COMMA
+altgr keycode 40	= U+06AF	# ARABIC LETTER GAF
+altgr shift keycode 10	= U+0029	# CLOSE PARENTHESIS
+altgr shift keycode 11	= U+0028	# OPEN PARENTHESIS
+altgr shift keycode 9	= U+002A	# ASTERISK
+altgr shift keycode 13	= U+002B	# PLUS SIGN
+altgr keycode 51	= U+0648	# ARABIC LETTER WAW
+altgr keycode 12	= U+002D	# HYPHEN-MINUS
+altgr keycode 52	= U+002E	# FULL STOP
+altgr keycode 53	= U+002F	# SOLIDUS
+altgr keycode 11	= U+06F0	# EXTENDED ARABIC-INDIC DIGIT ZERO
+altgr keycode 2		= U+06F1	# EXTENDED ARABIC-INDIC DIGIT ONE
+altgr keycode 3		= U+06F2	# EXTENDED ARABIC-INDIC DIGIT TWO
+altgr keycode 4		= U+06F3	# EXTENDED ARABIC-INDIC DIGIT THREE
+altgr keycode 5		= U+06F4	# EXTENDED ARABIC-INDIC DIGIT FOUR
+altgr keycode 6		= U+06F5	# EXTENDED ARABIC-INDIC DIGIT FIVE
+altgr keycode 7		= U+06F6	# EXTENDED ARABIC-INDIC DIGIT SIX
+altgr keycode 8		= U+06F7	# EXTENDED ARABIC-INDIC DIGIT SEVEN
+altgr keycode 9		= U+06F8	# EXTENDED ARABIC-INDIC DIGIT EIGHT
+altgr keycode 10	= U+06F9	# EXTENDED ARABIC-INDIC DIGIT NINE
+altgr shift keycode 39	= U+003A	# COLON
+altgr keycode 39	= U+06A9	# ARABIC LETTER KEHEH
+altgr shift keycode 51	= U+003E	# GREATER-THAN SIGN
+altgr keycode 13	= U+003D	# EQUALS SIGN
+altgr shift keycode 52	= U+003C	# LESS-THAN SIGN
+altgr shift keycode 53	= U+061F	# ARABIC QUESTION MARK
+altgr shift keycode 3	= U+066C	# ARABIC THOUSANDS SEPARATOR
+altgr shift keycode 30	= U+0624	# ARABIC LETTER WAW WITH HAMZA ABOVE
+altgr shift keycode 48	= U+200C	# ZERO WIDTH NON-JOINER
+altgr shift keycode 57	= U+200C	# ZERO WIDTH NON-JOINER
+altgr shift keycode 46	= U+0698	# ARABIC LETTER JEH
+altgr shift keycode 32	= U+064A	# ARABIC LETTER YEH
+altgr shift keycode 18	= U+064D	# ARABIC KASRATAN
+altgr shift keycode 33	= U+0625	# ARABIC LETTER ALEF WITH HAMZA BELOW
+altgr shift keycode 34	= U+0623	# ARABIC LETTER ALEF WITH HAMZA ABOVE
+altgr shift keycode 35	= U+0622	# ARABIC LETTER ALEF WITH MADDA ABOVE
+altgr shift keycode 23	= U+0651	# ARABIC SHADDA
+altgr shift keycode 36	= U+0629	# ARABIC LETTER TEH MARBUTA
+altgr shift keycode 37	= U+00BB	# RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+altgr shift keycode 38	= U+00AB	# LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+altgr shift keycode 50	= U+0621	# ARABIC LETTER HAMZA
+altgr shift keycode 49	= VoidSymbol	# Reserved
+altgr shift keycode 24	= U+005D	# RIGHT SQUARE BRACKET
+altgr shift keycode 25	= U+005B	# LEFT SQUARE BRACKET
+altgr shift keycode 16	= U+0652	# ARABIC SUKUN
+altgr shift keycode 19	= U+064B	# ARABIC FATHATAN
+altgr shift keycode 31	= U+0626	# ARABIC LETTER YEH WITH HAMZA ABOVE
+altgr shift keycode 20	= U+064F	# ARABIC DAMMA
+altgr shift keycode 22	= U+064E	# ARABIC FATHA
+altgr shift keycode 47	= U+0670	# ARABIC LETTER SUPERSCRIPT ALEF
+altgr shift keycode 17	= U+064C	# ARABIC DAMMATAN
+altgr shift keycode 45	= VoidSymbol	# Reserved
+altgr shift keycode 21	= U+0650	# ARABIC KASRA
+altgr shift keycode 44	= U+0643	# ARABIC LETTER KAF
+altgr keycode 26	= U+062C	# ARABIC LETTER JEEM
+altgr keycode 43	= U+005C	# REVERSE SOLIDUS
+altgr keycode 27	= U+0686	# ARABIC LETTER TCHEH
+altgr shift keycode 7	= U+00D7	# MULTIPLICATION SIGN
+altgr shift keycode 12	= U+0640	# ARABIC TATWEEL
+altgr keycode 41	= U+200D	# ZERO WIDTH JOINER
+altgr keycode 30	= U+0634	# ARABIC LETTER SHEEN
+altgr keycode 48	= U+0630	# ARABIC LETTER THAL
+altgr keycode 46	= U+0632	# ARABIC LETTER ZAIN
+altgr keycode 32	= U+06CC	# ARABIC LETTER FARSI YEH
+altgr keycode 18	= U+062B	# ARABIC LETTER THEH
+altgr keycode 33	= U+0628	# ARABIC LETTER BEH
+altgr keycode 34	= U+0644	# ARABIC LETTER LAM
+altgr keycode 35	= U+0627	# ARABIC LETTER ALEF
+altgr keycode 23	= U+0647	# ARABIC LETTER HEH
+altgr keycode 36	= U+062A	# ARABIC LETTER TEH
+altgr keycode 37	= U+0646	# ARABIC LETTER NOON
+altgr keycode 38	= U+0645	# ARABIC LETTER MEEM
+altgr keycode 50	= U+067E	# ARABIC LETTER PEH
+altgr keycode 49	= U+062F	# ARABIC LETTER DAL
+altgr keycode 24	= U+062E	# ARABIC LETTER KHAH
+altgr keycode 25	= U+062D	# ARABIC LETTER HAH
+altgr keycode 16	= U+0636	# ARABIC LETTER DAD
+altgr keycode 19	= U+0642	# ARABIC LETTER QAF
+altgr keycode 31	= U+0633	# ARABIC LETTER SEEN
+altgr keycode 20	= U+0641	# ARABIC LETTER FEH
+altgr keycode 22	= U+0639	# ARABIC LETTER AIN
+altgr keycode 47	= U+0631	# ARABIC LETTER REH
+altgr keycode 17	= U+0635	# ARABIC LETTER SAD
+altgr keycode 45	= U+0637	# ARABIC LETTER TAH
+altgr keycode 21	= U+063A	# ARABIC LETTER GHAIN
+altgr keycode 44	= U+0638	# ARABIC LETTER ZAH
+altgr shift keycode 26	= U+007D	# OPEN CURLY BRACKET
+altgr shift keycode 43	= U+007C	# VERTICAL LINE
+altgr shift keycode 27	= U+007B	# CLOSE CURLY BRACKET
+altgr shift keycode 41	= VoidSymbol	# Reserved
+
+# Proposed keys for bidi marks
+altgr alt keycode 51	= U+200E	# LEFT-TO-RIGHT MARK		# ALT ,
+altgr alt keycode 52	= U+200F	# RIGHT-TO-LEFT MARK		# ALT .
+altgr alt keycode 26	= U+202A	# LEFT-TO-RIGHT EMBEDDING	# ALT [
+altgr alt keycode 27	= U+202B	# RIGHT-TO-LEFT EMBEDDING	# ALT ]
+altgr alt keycode 25	= U+202C	# POP DIRECTIONAL FORMATTING	# ALT p
+altgr alt keycode 23	= U+202D	# LEFT-TO-RIGHT OVERRIDE	# ALT i
+altgr alt keycode 24	= U+202E	# RIGHT-TO-LEFT OVERRIDE	# ALT o
