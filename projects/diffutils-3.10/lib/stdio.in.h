@@ -20,6 +20,8 @@
 #endif
 @PRAGMA_COLUMNS@
 
+#pragma clang diagnostic ignored "-Winclude-next-absolute-path"
+
 #if defined __need_FILE || defined __need___FILE || defined _GL_ALREADY_INCLUDING_STDIO_H
 /* Special invocation convention:
    - Inside glibc header files.

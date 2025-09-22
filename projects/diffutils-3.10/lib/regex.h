@@ -535,6 +535,7 @@ typedef struct
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wvla"
 #endif
+#pragma clang diagnostic ignored "-Wvla"
 
 #ifndef _Attr_access_
 # ifdef __attr_access

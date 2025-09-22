@@ -30,6 +30,8 @@
 #endif
 @PRAGMA_COLUMNS@
 
+#pragma clang diagnostic ignored "-Winclude-next-absolute-path"
+
 #if (defined __MINGW32__ && defined __CTYPE_H_SOURCED__)
 
 /* Special invocation convention:

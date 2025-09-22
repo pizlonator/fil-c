@@ -43,6 +43,8 @@
 #include <xstdopen.h>
 #include <binary-io.h>
 
+#pragma clang diagnostic ignored "-Wbool-operation"
+
 /* The official name of this program (e.g., no 'g' prefix).  */
 static char const PROGRAM_NAME[] = "diff";
 

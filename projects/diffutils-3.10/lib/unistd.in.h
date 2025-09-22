@@ -16,6 +16,8 @@
 
 #ifndef _@GUARD_PREFIX@_UNISTD_H
 
+#pragma clang diagnostic ignored "-Winclude-next-absolute-path"
+
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
 #endif
