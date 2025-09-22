@@ -58,12 +58,12 @@
 
 static inline void rb_set_black(struct rb_node *rb)
 {
-	rb->__rb_parent_color += RB_BLACK;
+	rb->__rb_parent_color = (struct rb_node *)((char *)rb->__rb_parent_color + RB_BLACK);
 }
 
 static inline struct rb_node *rb_red_parent(struct rb_node *red)
 {
-	return (struct rb_node *)red->__rb_parent_color;
+	return red->__rb_parent_color;
 }
 
 /*

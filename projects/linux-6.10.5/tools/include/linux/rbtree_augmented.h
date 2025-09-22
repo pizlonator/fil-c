@@ -147,9 +147,9 @@ RB_DECLARE_CALLBACKS(RBSTATIC, RBNAME,					      \
 #define	RB_RED		0
 #define	RB_BLACK	1
 
-#define __rb_parent(pc)    ((struct rb_node *)(pc & ~3))
+#define __rb_parent(pc)    ((struct rb_node *)((unsigned long)(pc) & ~3))
 
-#define __rb_color(pc)     ((pc) & 1)
+#define __rb_color(pc)     ((unsigned long)(pc) & 1)
 #define __rb_is_black(pc)  __rb_color(pc)
 #define __rb_is_red(pc)    (!__rb_color(pc))
 #define rb_color(rb)       __rb_color((rb)->__rb_parent_color)
@@ -158,13 +158,13 @@ RB_DECLARE_CALLBACKS(RBSTATIC, RBNAME,					      \
 
 static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p)
 {
-	rb->__rb_parent_color = rb_color(rb) + (unsigned long)p;
+	rb->__rb_parent_color = (struct rb_node *)((char *)p + rb_color(rb));
 }
 
 static inline void rb_set_parent_color(struct rb_node *rb,
 				       struct rb_node *p, int color)
 {
-	rb->__rb_parent_color = (unsigned long)p + color;
+	rb->__rb_parent_color = (struct rb_node *)((char *)p + color);
 }
 
 static inline void
@@ -190,7 +190,7 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 	struct rb_node *child = node->rb_right;
 	struct rb_node *tmp = node->rb_left;
 	struct rb_node *parent, *rebalance;
-	unsigned long pc;
+	struct rb_node *pc;
 
 	if (!tmp) {
 		/*
@@ -276,7 +276,7 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 			rb_set_parent_color(child2, parent, RB_BLACK);
 			rebalance = NULL;
 		} else {
-			unsigned long pc2 = successor->__rb_parent_color;
+			struct rb_node *pc2 = successor->__rb_parent_color;
 			successor->__rb_parent_color = pc;
 			rebalance = __rb_is_black(pc2) ? parent : NULL;
 		}

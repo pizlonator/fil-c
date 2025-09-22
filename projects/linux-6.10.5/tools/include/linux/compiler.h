@@ -128,48 +128,18 @@
 
 #include <linux/types.h>
 
-/*
- * Following functions are taken from kernel sources and
- * break aliasing rules in their original form.
- *
- * While kernel is compiled with -fno-strict-aliasing,
- * perf uses -Wstrict-aliasing=3 which makes build fail
- * under gcc 4.4.
- *
- * Using extra __may_alias__ type to allow aliasing
- * in this case.
- */
-typedef __u8  __attribute__((__may_alias__))  __u8_alias_t;
-typedef __u16 __attribute__((__may_alias__)) __u16_alias_t;
-typedef __u32 __attribute__((__may_alias__)) __u32_alias_t;
-typedef __u64 __attribute__((__may_alias__)) __u64_alias_t;
+#include <stdfil.h>
+
+/* FIXME: We could just set the HOSTCC to use no strict aliasing. */
 
 static __always_inline void __read_once_size(const volatile void *p, void *res, int size)
 {
-	switch (size) {
-	case 1: *(__u8_alias_t  *) res = *(volatile __u8_alias_t  *) p; break;
-	case 2: *(__u16_alias_t *) res = *(volatile __u16_alias_t *) p; break;
-	case 4: *(__u32_alias_t *) res = *(volatile __u32_alias_t *) p; break;
-	case 8: *(__u64_alias_t *) res = *(volatile __u64_alias_t *) p; break;
-	default:
-		barrier();
-		__builtin_memcpy((void *)res, (const void *)p, size);
-		barrier();
-	}
+	zmemmove((void *)res, (void *)p, size);
 }
 
 static __always_inline void __write_once_size(volatile void *p, void *res, int size)
 {
-	switch (size) {
-	case 1: *(volatile  __u8_alias_t *) p = *(__u8_alias_t  *) res; break;
-	case 2: *(volatile __u16_alias_t *) p = *(__u16_alias_t *) res; break;
-	case 4: *(volatile __u32_alias_t *) p = *(__u32_alias_t *) res; break;
-	case 8: *(volatile __u64_alias_t *) p = *(__u64_alias_t *) res; break;
-	default:
-		barrier();
-		__builtin_memcpy((void *)p, (const void *)res, size);
-		barrier();
-	}
+	zmemmove((void *)p, (void *)res, size);
 }
 
 /*
