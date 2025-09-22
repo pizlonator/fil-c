@@ -28,25 +28,8 @@
 set -e
 set -x
 
-# This is the set of programs that I've confirmed build fine with glibc, but haven't confirmed that
-# they build fine with musl. If we confirm that they build with musl we should move the build command
-# to build_all.sh.
-
-./build_gmp.sh
-./build_attr.sh
-./build_shadow.sh
-./build_sed.sh
-./build_gettext.sh
-./build_grep.sh
-./build_xml_parser.sh
-./build_elfutils.sh
-./build_check.sh
-./build_diffutils.sh
-./build_bison.sh
-./build_libpipeline.sh
-./build_texinfo.sh
-./build_libcap.sh
-./build_util_linux.sh
-./build_procps.sh
-./build_make.sh
-
+cd projects/XML-Parser-2.47
+extract_source
+../../../pizfix/bin/perl Makefile.PL
+make -j $NCPU
+make -j $NCPU install
