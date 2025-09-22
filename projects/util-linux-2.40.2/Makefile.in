@@ -228,7 +228,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 
 @BUILD_LIBUUID_TRUE@am__append_24 = test_uuid_parser
 @BUILD_LIBUUID_TRUE@am__append_25 = libuuid.la
-@BUILD_LIBUUID_TRUE@@HAVE_VSCRIPT_TRUE@am__append_26 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libuuid/src/libuuid.sym
+@BUILD_LIBUUID_TRUE@@HAVE_VSCRIPT_TRUE@am__append_26 = --version-script=$(top_srcdir)/libuuid/src/libuuid.sym
 @BUILD_LIBUUID_TRUE@am__append_27 = libuuid/src/libuuid.sym \
 @BUILD_LIBUUID_TRUE@	libuuid/COPYING
 @BUILD_LIBUUID_TRUE@am__append_28 = install-exec-hook-libuuid
@@ -256,7 +256,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 @BUILD_LIBLASTLOG2_TRUE@	liblastlog2/man/ll2_write_entry.3.adoc
 
 @BUILD_LIBLASTLOG2_TRUE@am__append_34 = liblastlog2.la
-@BUILD_LIBLASTLOG2_TRUE@@HAVE_VSCRIPT_TRUE@am__append_35 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/liblastlog2/src/liblastlog2.sym
+@BUILD_LIBLASTLOG2_TRUE@@HAVE_VSCRIPT_TRUE@am__append_35 = --version-script=$(top_srcdir)/liblastlog2/src/liblastlog2.sym
 @BUILD_LIBLASTLOG2_TRUE@am__append_36 =  \
 @BUILD_LIBLASTLOG2_TRUE@	liblastlog2/src/liblastlog2.sym \
 @BUILD_LIBLASTLOG2_TRUE@	liblastlog2/COPYING
@@ -283,7 +283,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 @BUILD_LIBBLKID_TRUE@@LINUX_TRUE@	libblkid/src/topology/sysfs.c
 
 @BUILD_LIBBLKID_TRUE@@HAVE_ECONF_TRUE@am__append_44 = -leconf
-@BUILD_LIBBLKID_TRUE@@HAVE_VSCRIPT_TRUE@am__append_45 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libblkid/src/libblkid.sym
+@BUILD_LIBBLKID_TRUE@@HAVE_VSCRIPT_TRUE@am__append_45 = --version-script=$(top_srcdir)/libblkid/src/libblkid.sym
 @BUILD_LIBBLKID_TRUE@am__append_46 = libblkid/src/libblkid.sym \
 @BUILD_LIBBLKID_TRUE@	libblkid/COPYING
 @BUILD_LIBBLKID_TESTS_TRUE@@BUILD_LIBBLKID_TRUE@am__append_47 = \
@@ -336,7 +336,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 @BUILD_LIBMOUNT_TRUE@@HAVE_BTRFS_TRUE@@LINUX_TRUE@am__append_60 = libmount/src/btrfs.c
 @BUILD_LIBMOUNT_TRUE@@CRYPTSETUP_VIA_DLOPEN_TRUE@@HAVE_CRYPTSETUP_TRUE@am__append_61 = -ldl
 @BUILD_LIBMOUNT_TRUE@@CRYPTSETUP_VIA_DLOPEN_FALSE@@HAVE_CRYPTSETUP_TRUE@am__append_62 = $(CRYPTSETUP_LIBS)
-@BUILD_LIBMOUNT_TRUE@@HAVE_VSCRIPT_TRUE@am__append_63 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libmount/src/libmount.sym
+@BUILD_LIBMOUNT_TRUE@@HAVE_VSCRIPT_TRUE@am__append_63 = --version-script=$(top_srcdir)/libmount/src/libmount.sym
 @BUILD_LIBMOUNT_TRUE@am__append_64 = libmount/src/libmount.sym \
 @BUILD_LIBMOUNT_TRUE@	libmount/COPYING
 @BUILD_LIBMOUNT_TESTS_TRUE@@BUILD_LIBMOUNT_TRUE@am__append_65 = \
@@ -387,7 +387,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 @BUILD_LIBSMARTCOLS_TRUE@	$(SCOLS_LEX_STEMP) \
 @BUILD_LIBSMARTCOLS_TRUE@	libsmartcols/src/libsmartcols.sym \
 @BUILD_LIBSMARTCOLS_TRUE@	libsmartcols/COPYING
-@BUILD_LIBSMARTCOLS_TRUE@@HAVE_VSCRIPT_TRUE@am__append_82 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libsmartcols/src/libsmartcols.sym
+@BUILD_LIBSMARTCOLS_TRUE@@HAVE_VSCRIPT_TRUE@am__append_82 = --version-script=$(top_srcdir)/libsmartcols/src/libsmartcols.sym
 @BUILD_LIBSMARTCOLS_TRUE@am__append_83 = install-exec-hook-libsmartcols
 @BUILD_LIBSMARTCOLS_TRUE@am__append_84 = uninstall-hook-libsmartcols
 @BUILD_LIBSMARTCOLS_TRUE@am__append_85 = \
@@ -410,7 +410,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 @BUILD_LIBSMARTCOLS_TRUE@am__append_90 = libsmartcols/scols-filter.5
 @BUILD_LIBSMARTCOLS_TRUE@am__append_91 = libsmartcols/scols-filter.5.adoc
 @BUILD_LIBFDISK_TRUE@am__append_92 = libfdisk.la
-@BUILD_LIBFDISK_TRUE@@HAVE_VSCRIPT_TRUE@am__append_93 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libfdisk/src/libfdisk.sym
+@BUILD_LIBFDISK_TRUE@@HAVE_VSCRIPT_TRUE@am__append_93 = --version-script=$(top_srcdir)/libfdisk/src/libfdisk.sym
 @BUILD_LIBBLKID_TRUE@@BUILD_LIBFDISK_TRUE@am__append_94 = libblkid.la
 @BUILD_LIBBLKID_TRUE@@BUILD_LIBFDISK_TRUE@am__append_95 = -I$(ul_libblkid_incdir)
 @BUILD_LIBFDISK_TRUE@am__append_96 = libfdisk/src/libfdisk.sym \
@@ -1007,7 +1007,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) test_buffer$(EXEEXT) \
 @BUILD_PAM_LASTLOG2_TRUE@	pam_lastlog2/man/pam_lastlog2.8.adoc
 
 @BUILD_PAM_LASTLOG2_TRUE@am__append_597 = pam_lastlog2.la
-@BUILD_PAM_LASTLOG2_TRUE@@HAVE_VSCRIPT_TRUE@am__append_598 = pam_lastlog2_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(top_srcdir)/pam_lastlog2/src/pam_lastlog2.sym
+@BUILD_PAM_LASTLOG2_TRUE@@HAVE_VSCRIPT_TRUE@am__append_598 = pam_lastlog2_la_LDFLAGS += --version-script=$(top_srcdir)/pam_lastlog2/src/pam_lastlog2.sym
 @BUILD_PAM_LASTLOG2_TRUE@am__append_599 =  \
 @BUILD_PAM_LASTLOG2_TRUE@	pam_lastlog2/src/pam_lastlog2.sym \
 @BUILD_PAM_LASTLOG2_TRUE@	pam_lastlog2/COPYING \

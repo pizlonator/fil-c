@@ -15603,7 +15603,7 @@ _LT_EOF
           archive_expsym_cmds='echo "{ global:" > $output_objdir/$libname.ver~
             cat $export_symbols | $SED -e "s/\(.*\)/\1;/" >> $output_objdir/$libname.ver~
             echo "local: *; };" >> $output_objdir/$libname.ver~
-            $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags $wl-soname $wl$soname $wl-version-script $wl$output_objdir/$libname.ver -o $lib'
+            $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags $wl-soname $wl$soname --version-script=$output_objdir/$libname.ver -o $lib'
         fi
 
 	case $cc_basename in
@@ -19593,7 +19593,7 @@ fi
 	      archive_expsym_cmds_CXX='echo "{ global:" > $output_objdir/$libname.ver~
                 cat $export_symbols | $SED -e "s/\(.*\)/\1;/" >> $output_objdir/$libname.ver~
                 echo "local: *; };" >> $output_objdir/$libname.ver~
-                $CC -qmkshrobj $libobjs $deplibs $compiler_flags $wl-soname $wl$soname $wl-version-script $wl$output_objdir/$libname.ver -o $lib'
+                $CC -qmkshrobj $libobjs $deplibs $compiler_flags $wl-soname $wl$soname --version-script=$output_objdir/$libname.ver -o $lib'
 	    fi
 	    ;;
 	  *)
@@ -21831,7 +21831,7 @@ then :
     echo "{" >> conftest.map
 
 fi
-  LDFLAGS="$LDFLAGS -Wl,--version-script,conftest.map"
+  LDFLAGS="$LDFLAGS --version-script=conftest.map"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 int show, hide;
