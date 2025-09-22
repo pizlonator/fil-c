@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+[Unit]
+Description=Relabel all filesystems
+DefaultDependencies=no
+Requires=local-fs.target
+After=local-fs.target
+Conflicts=shutdown.target
+Before=shutdown.target basic.target
+ConditionSecurity=selinux
+ConditionPathExists=|/.autorelabel
+SuccessAction=reboot
+
+[Service]
+ExecStart=sh -xec 'echo 0 >/sys/fs/selinux/enforce; fixfiles -f -F relabel; rm /.autorelabel;'
+Type=oneshot
+TimeoutSec=infinity
+
+[Install]
+WantedBy=basic.target

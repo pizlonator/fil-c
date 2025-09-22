@@ -1,0 +1,1003 @@
+<?xml version='1.0'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<!-- SPDX-License-Identifier: LGPL-2.1-or-later -->
+
+<refentry id="repart.d" conditional='ENABLE_REPART'
+          xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <refentryinfo>
+    <title>repart.d</title>
+    <productname>systemd</productname>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>repart.d</refentrytitle>
+    <manvolnum>5</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>repart.d</refname>
+    <refpurpose>Partition Definition Files for Automatic Boot-Time Repartitioning</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <para><simplelist>
+      <member><filename>/etc/repart.d/*.conf</filename></member>
+      <member><filename>/run/repart.d/*.conf</filename></member>
+      <member><filename>/usr/local/lib/repart.d/*.conf</filename></member>
+      <member><filename>/usr/lib/repart.d/*.conf</filename></member>
+    </simplelist></para>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para><filename>repart.d/*.conf</filename> files describe basic properties of partitions of block
+    devices of the local system. They may be used to declare types, names and sizes of partitions that shall
+    exist. The
+    <citerefentry><refentrytitle>systemd-repart</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    service reads these files and attempts to add new partitions currently missing and enlarge existing
+    partitions according to these definitions. Operation is generally incremental, i.e. when applied, what
+    exists already is left intact, and partitions are never shrunk, moved or deleted.</para>
+
+    <para>These definition files are useful for implementing operating system images that are prepared and
+    delivered with minimally sized images (for example lacking any state or swap partitions), and which on
+    first boot automatically take possession of any remaining disk space following a few basic rules.</para>
+
+    <para>Currently, support for partition definition files is only implemented for GPT partition
+    tables.</para>
+
+    <para>Partition files are generally matched against any partitions already existing on disk in a simple
+    algorithm: the partition files are sorted by their filename (ignoring the directory prefix), and then
+    compared in order against existing partitions matching the same partition type UUID. Specifically, the
+    first existing partition with a specific partition type UUID is assigned the first definition file with
+    the same partition type UUID, and the second existing partition with a specific type UUID the second
+    partition file with the same type UUID, and so on. Any left-over partition files that have no matching
+    existing partition are assumed to define new partition that shall be created. Such partitions are
+    appended to the end of the partition table, in the order defined by their names utilizing the first
+    partition slot greater than the highest slot number currently in use. Any existing partitions that have
+    no matching partition file are left as they are.</para>
+
+    <para>Note that these definitions may only be used to create and initialize new partitions or to grow
+    existing ones. In the latter case it will not grow the contained files systems however; separate
+    mechanisms, such as
+    <citerefentry><refentrytitle>systemd-growfs</refentrytitle><manvolnum>8</manvolnum></citerefentry> may be
+    used to grow the file systems inside of these partitions. Partitions may also be marked for automatic
+    growing via the <varname>GrowFileSystem=</varname> setting, in which case the file system is grown on
+    first mount by tools that respect this flag. See below for details.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>[Partition] Section Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term><varname>Type=</varname></term>
+
+        <listitem><para>The GPT partition type UUID to match. This may be a GPT partition type UUID such as
+        <constant>4f68bce3-e8cd-4db1-96e7-fbcaf984b709</constant>, or an identifier.
+        Architecture specific partition types can use one of these architecture identifiers:
+        <constant>alpha</constant>, <constant>arc</constant>, <constant>arm</constant> (32-bit),
+        <constant>arm64</constant> (64-bit, aka aarch64), <constant>ia64</constant>,
+        <constant>loongarch64</constant>, <constant>mips-le</constant>, <constant>mips64-le</constant>,
+        <constant>parisc</constant>, <constant>ppc</constant>, <constant>ppc64</constant>,
+        <constant>ppc64-le</constant>, <constant>riscv32</constant>, <constant>riscv64</constant>,
+        <constant>s390</constant>, <constant>s390x</constant>, <constant>tilegx</constant>,
+        <constant>x86</constant> (32-bit, aka i386) and <constant>x86-64</constant> (64-bit, aka amd64).
+        </para>
+
+        <para>The supported identifiers are:</para>
+
+        <table>
+          <title>GPT partition type identifiers</title>
+
+          <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <colspec colname="name" />
+            <colspec colname="explanation" />
+
+            <thead>
+              <row>
+                <entry>Identifier</entry>
+                <entry>Explanation</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry><constant>esp</constant></entry>
+                <entry>EFI System Partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>xbootldr</constant></entry>
+                <entry>Extended Boot Loader Partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>swap</constant></entry>
+                <entry>Swap partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>home</constant></entry>
+                <entry>Home (<filename>/home/</filename>) partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>srv</constant></entry>
+                <entry>Server data (<filename>/srv/</filename>) partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>var</constant></entry>
+                <entry>Variable data (<filename>/var/</filename>) partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>tmp</constant></entry>
+                <entry>Temporary data (<filename>/var/tmp/</filename>) partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>linux-generic</constant></entry>
+                <entry>Generic Linux file system partition</entry>
+              </row>
+
+              <row>
+                <entry><constant>root</constant></entry>
+                <entry>Root file system partition type appropriate for the local architecture (an alias for an architecture root file system partition type listed below, e.g. <constant>root-x86-64</constant>)</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-verity</constant></entry>
+                <entry>Verity data for the root file system partition for the local architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-verity-sig</constant></entry>
+                <entry>Verity signature data for the root file system partition for the local architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-secondary</constant></entry>
+                <entry>Root file system partition of the secondary architecture of the local architecture (usually the matching 32-bit architecture for the local 64-bit architecture)</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-secondary-verity</constant></entry>
+                <entry>Verity data for the root file system partition of the secondary architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-secondary-verity-sig</constant></entry>
+                <entry>Verity signature data for the root file system partition of the secondary architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-{arch}</constant></entry>
+                <entry>Root file system partition of the given architecture (such as <constant>root-x86-64</constant> or <constant>root-riscv64</constant>)</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-{arch}-verity</constant></entry>
+                <entry>Verity data for the root file system partition of the given architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>root-{arch}-verity-sig</constant></entry>
+                <entry>Verity signature data for the root file system partition of the given architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr</constant></entry>
+                <entry><filename>/usr/</filename> file system partition type appropriate for the local architecture (an alias for an architecture <filename>/usr/</filename> file system partition type listed below, e.g. <constant>usr-x86-64</constant>)</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-verity</constant></entry>
+                <entry>Verity data for the <filename>/usr/</filename> file system partition for the local architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-verity-sig</constant></entry>
+                <entry>Verity signature data for the <filename>/usr/</filename> file system partition for the local architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-secondary</constant></entry>
+                <entry><filename>/usr/</filename> file system partition of the secondary architecture of the local architecture (usually the matching 32-bit architecture for the local 64-bit architecture)</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-secondary-verity</constant></entry>
+                <entry>Verity data for the <filename>/usr/</filename> file system partition of the secondary architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-secondary-verity-sig</constant></entry>
+                <entry>Verity signature data for the <filename>/usr/</filename> file system partition of the secondary architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-{arch}</constant></entry>
+                <entry><filename>/usr/</filename> file system partition of the given architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-{arch}-verity</constant></entry>
+                <entry>Verity data for the <filename>/usr/</filename> file system partition of the given architecture</entry>
+              </row>
+
+              <row>
+                <entry><constant>usr-{arch}-verity-sig</constant></entry>
+                <entry>Verity signature data for the <filename>/usr/</filename> file system partition of the given architecture</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>This setting defaults to <constant>linux-generic</constant>.</para>
+
+        <para>Most of the partition type UUIDs listed above are defined in the <ulink
+        url="https://uapi-group.org/specifications/specs/discoverable_partitions_specification">Discoverable Partitions
+        Specification</ulink>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Label=</varname></term>
+
+        <listitem><para>The textual label to assign to the partition if none is assigned yet. Note that this
+        setting is not used for matching. It is also not used when a label is already set for an existing
+        partition. It is thus only used when a partition is newly created or when an existing one had a no
+        label set (that is: an empty label). If not specified a label derived from the partition type is
+        automatically used. Simple specifier expansion is supported, see below.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>UUID=</varname></term>
+
+        <listitem><para>The UUID to assign to the partition if none is assigned yet. Note that this
+        setting is not used for matching. It is also not used when a UUID is already set for an existing
+        partition. It is thus only used when a partition is newly created or when an existing one had a
+        all-zero UUID set. If set to <literal>null</literal>, the UUID is set to all zeroes. If not specified
+        a UUID derived from the partition type is automatically used.</para>
+
+        <xi:include href="version-info.xml" xpointer="v246"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Priority=</varname></term>
+
+        <listitem><para>A numeric priority to assign to this partition, in the range -2147483648…2147483647,
+        with smaller values indicating higher priority, and higher values indicating smaller priority. This
+        priority is used in case the configured size constraints on the defined partitions do not permit
+        fitting all partitions onto the available disk space. If the partitions do not fit, the highest
+        numeric partition priority of all defined partitions is determined, and all defined partitions with
+        this priority are removed from the list of new partitions to create (which may be multiple, if the
+        same priority is used for multiple partitions). The fitting algorithm is then tried again. If the
+        partitions still do not fit, the now highest numeric partition priority is determined, and the
+        matching partitions removed too, and so on. Partitions of a priority of 0 or lower are never
+        removed. If all partitions with a priority above 0 are removed and the partitions still do not fit on
+        the device the operation fails. Note that this priority has no effect on ordering partitions, for
+        that use the alphabetical order of the filenames of the partition definition files. Defaults to
+        0.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Weight=</varname></term>
+
+        <listitem><para>A numeric weight to assign to this partition in the range 0…1000000. Available disk
+        space is assigned the defined partitions according to their relative weights (subject to the size
+        constraints configured with <varname>SizeMinBytes=</varname>, <varname>SizeMaxBytes=</varname>), so
+        that a partition with weight 2000 gets double the space as one with weight 1000, and a partition with
+        weight 333 a third of that. Defaults to 1000.</para>
+
+        <para>The <varname>Weight=</varname> setting is used to distribute available disk space in an
+        "elastic" fashion, based on the disk size and existing partitions. If a partition shall have a fixed
+        size use both <varname>SizeMinBytes=</varname> and <varname>SizeMaxBytes=</varname> with the same
+        value in order to fixate the size to one value, in which case the weight has no
+        effect.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>PaddingWeight=</varname></term>
+
+        <listitem><para>Similar to <varname>Weight=</varname>, but sets a weight for the free space after the
+        partition (the "padding"). When distributing available space the weights of all partitions and all
+        defined padding is summed, and then each partition and padding gets the fraction defined by its
+        weight. Defaults to 0, i.e. by default no padding is applied.</para>
+
+        <para>Padding is useful if empty space shall be left for later additions or a safety margin at the
+        end of the device or between partitions.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>SizeMinBytes=</varname></term>
+        <term><varname>SizeMaxBytes=</varname></term>
+
+        <listitem><para>Specifies minimum and maximum size constraints in bytes. Takes the usual K, M, G, T,
+        …  suffixes (to the base of 1024). If <varname>SizeMinBytes=</varname> is specified the partition is
+        created at or grown to at least the specified size. If <varname>SizeMaxBytes=</varname> is specified
+        the partition is created at or grown to at most the specified size. The precise size is determined
+        through the weight value configured with <varname>Weight=</varname>, see above. When
+        <varname>SizeMinBytes=</varname> is set equal to <varname>SizeMaxBytes=</varname> the configured
+        weight has no effect as the partition is explicitly sized to the specified fixed value. Note that
+        partitions are never created smaller than 4096 bytes, and since partitions are never shrunk the
+        previous size of the partition (in case the partition already exists) is also enforced as lower bound
+        for the new size. The values should be specified as multiples of 4096 bytes, and are rounded upwards
+        (in case of <varname>SizeMinBytes=</varname>) or downwards (in case of
+        <varname>SizeMaxBytes=</varname>) otherwise. If the backing device does not provide enough space to
+        fulfill the constraints placing the partition will fail. For partitions that shall be created,
+        depending on the setting of <varname>Priority=</varname> (see above) the partition might be dropped
+        and the placing algorithm restarted. By default a minimum size constraint of 10M and no maximum size
+        constraint is set.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>PaddingMinBytes=</varname></term>
+        <term><varname>PaddingMaxBytes=</varname></term>
+
+        <listitem><para>Specifies minimum and maximum size constraints in bytes for the free space after the
+        partition (the "padding"). Semantics are similar to <varname>SizeMinBytes=</varname> and
+        <varname>SizeMaxBytes=</varname>, except that unlike partition sizes free space can be shrunk and can
+        be as small as zero. By default no size constraints on padding are set, so that only
+        <varname>PaddingWeight=</varname> determines the size of the padding applied.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>CopyBlocks=</varname></term>
+
+        <listitem><para>Takes a path to a regular file, block device node or directory, or the special value
+        <literal>auto</literal>. If specified and the partition is newly created, the data from the specified
+        path is written to the newly created partition, on the block level. If a directory is specified, the
+        backing block device of the file system the directory is on is determined, and the data read directly
+        from that. This option is useful to efficiently replicate existing file systems onto new partitions
+        on the block level — for example to build a simple OS installer or an OS image builder.</para>
+
+        <para>If the special value <literal>auto</literal> is specified, the source to copy from is
+        automatically picked up from the running system (or the image specified with
+        <option>--image=</option> — if used). A partition that matches both the configured partition type (as
+        declared with <varname>Type=</varname> described above), and the currently mounted directory
+        appropriate for that partition type is determined. For example, if the partition type is set to
+        <literal>root</literal> the partition backing the root directory (<filename>/</filename>) is used as
+        source to copy from — if its partition type is set to <literal>root</literal> as well. If the
+        declared type is <literal>usr</literal> the partition backing <filename>/usr/</filename> is used as
+        source to copy blocks from — if its partition type is set to <literal>usr</literal> too. The logic is
+        capable of automatically tracking down the backing partitions for encrypted and Verity-enabled
+        volumes. <literal>CopyBlocks=auto</literal> is useful for implementing "self-replicating" systems,
+        i.e. systems that are their own installer.</para>
+
+        <para>The file specified here must have a size that is a multiple of the basic block size 512 and not
+        be empty. If this option is used, the size allocation algorithm is slightly altered: the partition is
+        created at least as big as required to fit the data in, i.e. the data size is an additional minimum
+        size value taken into consideration for the allocation algorithm, similar to and in addition to the
+        <varname>SizeMin=</varname> value configured above.</para>
+
+        <para>This option has no effect if the partition it is declared for already exists, i.e. existing
+        data is never overwritten. Note that the data is copied in before the partition table is updated,
+        i.e. before the partition actually is persistently created. This provides robustness: it is
+        guaranteed that the partition either doesn't exist or exists fully populated; it is not possible that
+        the partition exists but is not or only partially populated.</para>
+
+        <para>This option cannot be combined with <varname>Format=</varname> or
+        <varname>CopyFiles=</varname>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v246"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Format=</varname></term>
+
+        <listitem><para>Takes a file system name, such as <literal>ext4</literal>, <literal>btrfs</literal>,
+        <literal>xfs</literal>, <literal>vfat</literal>, <literal>erofs</literal>,
+        <literal>squashfs</literal> or the special value <literal>swap</literal>. If specified and the partition
+        is newly created it is formatted with the specified file system (or as swap device). The file system
+        UUID and label are automatically derived from the partition UUID and label. If this option is used,
+        the size allocation algorithm is slightly altered: the partition is created at least as big as
+        required for the minimal file system of the specified type (or 4KiB if the minimal size is not
+        known).</para>
+
+        <para>This option has no effect if the partition already exists.</para>
+
+        <para>Similarly to the behaviour of <varname>CopyBlocks=</varname>, the file system is formatted
+        before the partition is created, ensuring that the partition only ever exists with a fully
+        initialized file system.</para>
+
+        <para>This option cannot be combined with <varname>CopyBlocks=</varname>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v247"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>CopyFiles=</varname></term>
+
+        <listitem><para>Takes a pair of colon separated absolute file system paths. The first path refers to
+        a source file or directory on the host, the second path refers to a target in the file system of the
+        newly created partition and formatted file system. This setting may be used to copy files or
+        directories from the host into the file system that is created due to the <varname>Format=</varname>
+        option. If <varname>CopyFiles=</varname> is used without <varname>Format=</varname> specified
+        explicitly, <literal>Format=</literal> with a suitable default is implied (currently
+        <literal>vfat</literal> for <literal>ESP</literal> and <literal>XBOOTLDR</literal> partitions, and
+        <literal>ext4</literal> otherwise, but this may change in the future). This option may be used
+        multiple times to copy multiple files or directories from host into the newly formatted file system.
+        The colon and second path may be omitted in which case the source path is also used as the target
+        path (relative to the root of the newly created file system). If the source path refers to a
+        directory it is copied recursively.</para>
+
+        <para>This option has no effect if the partition already exists: it cannot be used to copy additional
+        files into an existing partition, it may only be used to populate a file system created anew.</para>
+
+        <para>The copy operation is executed before the file system is registered in the partition table,
+        thus ensuring that a file system populated this way only ever exists fully initialized.</para>
+
+        <para>Note that <varname>CopyFiles=</varname> will skip copying files that aren't supported by the
+        target filesystem (e.g symlinks, fifos, sockets and devices on vfat). When an unsupported file type
+        is encountered, <command>systemd-repart</command> will skip copying this file and write a log message
+        about it.</para>
+
+        <para>Note that <command>systemd-repart</command> does not change the UIDs/GIDs of any copied files
+        and directories. When running <command>systemd-repart</command> as an unprivileged user to build an
+        image of files and directories owned by the same user, you can run <command>systemd-repart</command>
+        in a user namespace with the current user mapped to the root user to make sure the files and
+        directories in the image are owned by the root user.</para>
+
+        <para>Note that when populating XFS filesystems with <command>systemd-repart</command> and loop
+        devices are not available, populating XFS filesystems with files containing spaces, tabs or newlines
+        might fail on old versions of
+        <citerefentry project='man-pages'><refentrytitle>mkfs.xfs</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+        due to limitations of its protofile format.</para>
+
+        <para>Note that when populating XFS filesystems with <command>systemd-repart</command> and loop
+        devices are not available, extended attributes will not be copied into generated XFS filesystems
+        due to limitations <citerefentry project='man-pages'><refentrytitle>mkfs.xfs</refentrytitle><manvolnum>8</manvolnum></citerefentry>'s
+        protofile format.</para>
+
+        <para>This option cannot be combined with <varname>CopyBlocks=</varname>.</para>
+
+        <para>When
+        <citerefentry><refentrytitle>systemd-repart</refentrytitle><manvolnum>8</manvolnum></citerefentry> is
+        invoked with the <option>--copy-source=</option> command line switch the file paths are taken
+        relative to the specified directory. If <option>--copy-source=</option> is not used, but the
+        <option>--image=</option> or <option>--root=</option> switches are used, the source paths are taken
+        relative to the specified root directory or disk image root.</para>
+
+        <xi:include href="version-info.xml" xpointer="v247"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>ExcludeFiles=</varname></term>
+        <term><varname>ExcludeFilesTarget=</varname></term>
+
+        <listitem><para>Takes an absolute file system path referring to a source file or directory on the
+        host. This setting may be used to exclude files or directories from the host from being copied into
+        the file system when <varname>CopyFiles=</varname> is used. This option may be used multiple times to
+        exclude multiple files or directories from host from being copied into the newly formatted file
+        system.</para>
+
+        <para>If the path is a directory and ends with <literal>/</literal>, only the directory's
+        contents are excluded but not the directory itself. If the path is a directory and does not end with
+        <literal>/</literal>, both the directory and its contents are excluded.</para>
+
+        <para><varname>ExcludeFilesTarget=</varname> is like <varname>ExcludeFiles=</varname> except that
+        instead of excluding the path on the host from being copied into the partition, we exclude any files
+        and directories from being copied into the given path in the partition.</para>
+
+        <para>When
+        <citerefentry><refentrytitle>systemd-repart</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+        is invoked with the <option>--image=</option> or <option>--root=</option> command line switches the
+        paths specified are taken relative to the specified root directory or disk image root.
+        </para>
+
+        <xi:include href="version-info.xml" xpointer="v254"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>MakeDirectories=</varname></term>
+
+        <listitem><para>Takes one or more absolute paths, separated by whitespace, each declaring a directory
+        to create within the new file system. Behaviour is similar to <varname>CopyFiles=</varname>, but
+        instead of copying in a set of files this just creates the specified directories with the default
+        mode of 0755 owned by the root user and group, plus all their parent directories (with the same
+        ownership and access mode). To configure directories with different ownership or access mode, use
+        <varname>CopyFiles=</varname> and specify a source tree to copy containing appropriately
+        owned/configured directories. This option may be used more than once to create multiple
+        directories. When <varname>CopyFiles=</varname> and <varname>MakeDirectories=</varname> are used
+        together the former is applied first. If a directory listed already exists no operation is executed
+        (in particular, the ownership/access mode of the directories is left as is).</para>
+
+        <para>The primary use case for this option is to create a minimal set of directories that may be
+        mounted over by other partitions contained in the same disk image. For example, a disk image where
+        the root file system is formatted at first boot might want to automatically pre-create
+        <filename>/usr/</filename> in it this way, so that the <literal>usr</literal> partition may
+        over-mount it.</para>
+
+        <para>Consider using
+        <citerefentry><refentrytitle>systemd-tmpfiles</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+        with its <option>--image=</option> option to pre-create other, more complex directory hierarchies (as
+        well as other inodes) with fine-grained control of ownership, access modes and other file
+        attributes.</para>
+
+        <xi:include href="version-info.xml" xpointer="v249"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Subvolumes=</varname></term>
+
+        <listitem><para>Takes one or more absolute paths, separated by whitespace, each declaring a directory
+        that should be a subvolume within the new file system. This option may be used more than once to
+        specify multiple directories. Note that this setting does not create the directories themselves, that
+        can be configured with <varname>MakeDirectories=</varname> and <varname>CopyFiles=</varname>.</para>
+
+        <para>Note that this option only takes effect if the target filesystem supports subvolumes, such as
+        <literal>btrfs</literal>.</para>
+
+        <para>Note that due to limitations of <literal>mkfs.btrfs</literal>, this option is only supported
+        when running with <option>--offline=no</option>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v255"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>DefaultSubvolume=</varname></term>
+
+        <listitem><para>Takes an absolute path specifying the default subvolume within the new filesystem.
+        Note that this setting does not create the subvolume itself, that can be configured with
+        <varname>Subvolumes=</varname>.</para>
+
+        <para>Note that this option only takes effect if the target filesystem supports subvolumes, such as
+        <literal>btrfs</literal>.</para>
+
+        <para>Note that due to limitations of <literal>mkfs.btrfs</literal>, this option is only supported
+        when running with <option>--offline=no</option>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v256"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Encrypt=</varname></term>
+
+        <listitem><para>Takes one of <literal>off</literal>, <literal>key-file</literal>,
+        <literal>tpm2</literal> and <literal>key-file+tpm2</literal> (alternatively, also accepts a boolean
+        value, which is mapped to <literal>off</literal> when false, and <literal>key-file</literal> when
+        true). Defaults to <literal>off</literal>. If not <literal>off</literal> the partition will be
+        formatted with a LUKS2 superblock, before the blocks configured with <varname>CopyBlocks=</varname>
+        are copied in or the file system configured with <varname>Format=</varname> is created.</para>
+
+        <para>The LUKS2 UUID is automatically derived from the partition UUID in a stable fashion. If
+        <literal>key-file</literal> or <literal>key-file+tpm2</literal> is used, a key is added to the LUKS2
+        superblock, configurable with the <option>--key-file=</option> option to
+        <command>systemd-repart</command>. If <literal>tpm2</literal> or <literal>key-file+tpm2</literal> is
+        used, a key is added to the LUKS2 superblock that is enrolled to the local TPM2 chip, as configured
+        with the <option>--tpm2-device=</option> and <option>--tpm2-pcrs=</option> options to
+        <command>systemd-repart</command>.</para>
+
+        <para>When used this slightly alters the size allocation logic as the implicit, minimal size limits
+        of <varname>Format=</varname> and <varname>CopyBlocks=</varname> are increased by the space necessary
+        for the LUKS2 superblock (see above).</para>
+
+        <para>This option has no effect if the partition already exists.</para>
+
+        <xi:include href="version-info.xml" xpointer="v247"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Verity=</varname></term>
+
+        <listitem><para>Takes one of <literal>off</literal>, <literal>data</literal>,
+        <literal>hash</literal> or <literal>signature</literal>. Defaults to <literal>off</literal>. If set
+        to <literal>off</literal> or <literal>data</literal>, the partition is populated with content as
+        specified by <varname>CopyBlocks=</varname> or <varname>CopyFiles=</varname>. If set to
+        <literal>hash</literal>, the partition will be populated with verity hashes from the matching verity
+        data partition. If set to <literal>signature</literal>, the partition will be populated with a JSON
+        object containing a signature of the verity root hash of the matching verity hash partition.</para>
+
+        <para>A matching verity partition is a partition with the same verity match key (as configured with
+        <varname>VerityMatchKey=</varname>).</para>
+
+        <para>If not explicitly configured, the data partition's UUID will be set to the first 128
+        bits of the verity root hash. Similarly, if not configured, the hash partition's UUID will be set to
+        the final 128 bits of the verity root hash. The verity root hash itself will be included in the
+        output of <command>systemd-repart</command>.</para>
+
+        <para>This option has no effect if the partition already exists.</para>
+
+        <para>Usage of this option in combination with <varname>Encrypt=</varname> is not supported.</para>
+
+        <para>For each unique <varname>VerityMatchKey=</varname> value, a single verity data partition
+        (<literal>Verity=data</literal>) and a single verity hash partition (<literal>Verity=hash</literal>)
+        must be defined.</para>
+
+        <xi:include href="version-info.xml" xpointer="v252"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>VerityMatchKey=</varname></term>
+
+        <listitem><para>Takes a short, user-chosen identifier string. This setting is used to find sibling
+        verity partitions for the current verity partition. See the description for
+        <varname>Verity=</varname>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v252"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>VerityDataBlockSizeBytes=</varname></term>
+
+        <listitem><para>Configures the data block size of the generated verity hash partition. Must be between 512 and
+        4096 bytes and must be a power of 2. Defaults to the sector size if configured explicitly, or the underlying
+        block device sector size, or 4K if systemd-repart is not operating on a block device.
+        </para>
+
+        <xi:include href="version-info.xml" xpointer="v255"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>VerityHashBlockSizeBytes=</varname></term>
+
+        <listitem><para>Configures the hash block size of the generated verity hash partition. Must be between 512 and
+        4096 bytes and must be a power of 2. Defaults to the sector size if configured explicitly, or the underlying
+        block device sector size, or 4K if systemd-repart is not operating on a block device.
+        </para>
+
+        <xi:include href="version-info.xml" xpointer="v255"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>FactoryReset=</varname></term>
+
+        <listitem><para>Takes a boolean argument. If specified the partition is marked for removal during a
+        factory reset operation. This functionality is useful to implement schemes where images can be reset
+        into their original state by removing partitions and creating them anew. Defaults to off.</para>
+
+        <xi:include href="version-info.xml" xpointer="v245"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Flags=</varname></term>
+
+        <listitem><para>Configures the 64-bit GPT partition flags field to set for the partition when creating
+        it. This option has no effect if the partition already exists. If not specified the flags values is
+        set to all zeroes, except for the three bits that can also be configured via
+        <varname>NoAuto=</varname>, <varname>ReadOnly=</varname> and <varname>GrowFileSystem=</varname>; see
+        below for details on the defaults for these three flags. Specify the flags value in hexadecimal (by
+        prefixing it with <literal>0x</literal>), binary (prefix <literal>0b</literal>) or decimal (no
+        prefix).</para>
+
+        <xi:include href="version-info.xml" xpointer="v249"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>NoAuto=</varname></term>
+        <term><varname>ReadOnly=</varname></term>
+        <term><varname>GrowFileSystem=</varname></term>
+
+        <listitem><para>Configures the No-Auto, Read-Only and Grow-File-System partition flags (bit 63, 60
+        and 59) of the partition table entry, as defined by the <ulink
+        url="https://uapi-group.org/specifications/specs/discoverable_partitions_specification">Discoverable Partitions Specification</ulink>. Only
+        available for partition types supported by the specification. This option is a friendly way to set
+        bits 63, 60 and 59 of the partition flags value without setting any of the other bits, and may be set
+        via <varname>Flags=</varname> too, see above.</para>
+
+        <para>If <varname>Flags=</varname> is used in conjunction with one or more of
+        <varname>NoAuto=</varname>/<varname>ReadOnly=</varname>/<varname>GrowFileSystem=</varname> the latter
+        control the value of the relevant flags, i.e. the high-level settings
+        <varname>NoAuto=</varname>/<varname>ReadOnly=</varname>/<varname>GrowFileSystem=</varname> override
+        the relevant bits of the low-level setting <varname>Flags=</varname>.</para>
+
+        <para>Note that the three flags affect only automatic partition mounting, as implemented by
+        <citerefentry><refentrytitle>systemd-gpt-auto-generator</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+        or the <option>--image=</option> option of various commands (such as
+        <citerefentry><refentrytitle>systemd-nspawn</refentrytitle><manvolnum>1</manvolnum></citerefentry>). It
+        has no effect on explicit mounts, such as those done via <citerefentry
+        project='man-pages'><refentrytitle>mount</refentrytitle><manvolnum>8</manvolnum></citerefentry> or
+        <citerefentry
+        project='man-pages'><refentrytitle>fstab</refentrytitle><manvolnum>5</manvolnum></citerefentry>.</para>
+
+        <para>If both bit 50 and 59 are set for a partition (i.e. the partition is marked both read-only and
+        marked for file system growing) the latter is typically without effect: the read-only flag takes
+        precedence in most tools reading these flags, and since growing the file system involves writing to
+        the partition it is consequently ignored.</para>
+
+        <para><varname>NoAuto=</varname> defaults to off. <varname>ReadOnly=</varname> defaults to on for
+        Verity partition types, and off for all others. <varname>GrowFileSystem=</varname> defaults to on for
+        all partition types that support it, except if the partition is marked read-only (and thus
+        effectively, defaults to off for Verity partitions).</para>
+
+        <xi:include href="version-info.xml" xpointer="v249"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>SplitName=</varname></term>
+
+        <listitem><para>Configures the suffix to append to split artifacts when the <option>--split</option>
+        option of
+        <citerefentry><refentrytitle>systemd-repart</refentrytitle><manvolnum>8</manvolnum></citerefentry> is
+        used. Simple specifier expansion is supported, see below. Defaults to <literal>%t</literal>. To
+        disable split artifact generation for a partition, set <varname>SplitName=</varname> to
+        <literal>-</literal>.</para>
+
+        <xi:include href="version-info.xml" xpointer="v252"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>Minimize=</varname></term>
+
+        <listitem><para>Takes one of <literal>off</literal>, <literal>best</literal>, and
+        <literal>guess</literal> (alternatively, also accepts a boolean value, which is mapped to
+        <literal>off</literal> when false, and <literal>best</literal> when true). Defaults to
+        <literal>off</literal>. If set to <literal>best</literal>, the partition will have the minimal size
+        required to store the sources configured with <varname>CopyFiles=</varname>. <literal>best</literal>
+        is currently only supported for read-only filesystems. If set to <literal>guess</literal>, the
+        partition is created at least as big as required to store the sources configured with
+        <varname>CopyFiles=</varname>. Note that unless the filesystem is a read-only filesystem,
+        <command>systemd-repart</command> will have to populate the filesystem twice to guess the minimal
+        required size, so enabling this option might slow down repart when populating large partitions.
+        </para>
+
+        <xi:include href="version-info.xml" xpointer="v253"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>MountPoint=</varname></term>
+
+        <listitem><para>Specifies where and how the partition should be mounted. Takes at least one and at
+        most two fields separated with a colon (<literal>:</literal>). The first field specifies where the
+        partition should be mounted. The second field specifies extra mount options to append to the default
+        mount options. These fields correspond to the second and fourth column of the
+        <citerefentry project='man-pages'><refentrytitle>fstab</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        format. This setting may be specified multiple times to mount the partition multiple times. This can
+        be used to add mounts for different btrfs subvolumes located on the same btrfs partition.</para>
+
+        <para>Note that this setting is only taken into account when <option>--generate-fstab=</option> is
+        specified on the <command>systemd-repart</command> command line.</para>
+
+        <xi:include href="version-info.xml" xpointer="v256"/></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>EncryptedVolume=</varname></term>
+
+        <listitem><para>Specify how the encrypted partition should be set up. Takes at least one and at most
+        three fields separated with a colon (<literal>:</literal>). The first field specifies the encrypted
+        volume name under <filename>/dev/mapper/</filename>. If not specified, <literal>luks-UUID</literal>
+        will be used where <literal>UUID</literal> is the LUKS UUID. The second field specifies the keyfile
+        to use following the same format as specified in crypttab. The third field specifies a
+        comma-delimited list of crypttab options. These fields correspond to the first, third and fourth
+        column of the
+        <citerefentry><refentrytitle>crypttab</refentrytitle><manvolnum>5</manvolnum></citerefentry> format.
+        </para>
+
+        <para>Note that this setting is only taken into account when <option>--generate-crypttab=</option>
+        is specified on the <command>systemd-repart</command> command line.</para>
+
+        <xi:include href="version-info.xml" xpointer="v256"/></listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>Specifiers</title>
+
+    <para>Specifiers may be used in the <varname>Label=</varname>, <varname>CopyBlocks=</varname>,
+    <varname>CopyFiles=</varname>, <varname>MakeDirectories=</varname>, <varname>SplitName=</varname>
+    settings. The following expansions are understood:</para>
+      <table class='specifiers'>
+        <title>Specifiers available</title>
+        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+          <colspec colname="spec" />
+          <colspec colname="mean" />
+          <colspec colname="detail" />
+          <thead>
+            <row>
+              <entry>Specifier</entry>
+              <entry>Meaning</entry>
+              <entry>Details</entry>
+            </row>
+          </thead>
+          <tbody>
+            <xi:include href="standard-specifiers.xml" xpointer="a"/>
+            <xi:include href="standard-specifiers.xml" xpointer="A"/>
+            <xi:include href="standard-specifiers.xml" xpointer="b"/>
+            <xi:include href="standard-specifiers.xml" xpointer="B"/>
+            <xi:include href="standard-specifiers.xml" xpointer="H"/>
+            <xi:include href="standard-specifiers.xml" xpointer="l"/>
+            <xi:include href="standard-specifiers.xml" xpointer="m"/>
+            <xi:include href="standard-specifiers.xml" xpointer="M"/>
+            <xi:include href="standard-specifiers.xml" xpointer="o"/>
+            <xi:include href="standard-specifiers.xml" xpointer="v"/>
+            <xi:include href="standard-specifiers.xml" xpointer="w"/>
+            <xi:include href="standard-specifiers.xml" xpointer="W"/>
+            <xi:include href="standard-specifiers.xml" xpointer="T"/>
+            <xi:include href="standard-specifiers.xml" xpointer="V"/>
+            <xi:include href="standard-specifiers.xml" xpointer="percent"/>
+          </tbody>
+        </tgroup>
+      </table>
+
+    <para>Additionally, for the <varname>SplitName=</varname> setting, the following specifiers are also
+    understood:</para>
+      <table class='specifiers'>
+        <title>Specifiers available</title>
+        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+          <colspec colname="spec" />
+          <colspec colname="mean" />
+          <colspec colname="detail" />
+          <thead>
+            <row>
+              <entry>Specifier</entry>
+              <entry>Meaning</entry>
+              <entry>Details</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row id='T'>
+              <entry><literal>%T</literal></entry>
+              <entry>Partition Type UUID</entry>
+              <entry>The partition type UUID, as configured with <varname>Type=</varname></entry>
+            </row>
+            <row id='t'>
+              <entry><literal>%t</literal></entry>
+              <entry>Partition Type Identifier</entry>
+              <entry>The partition type identifier corresponding to the partition type UUID</entry>
+            </row>
+            <row id='U'>
+              <entry><literal>%U</literal></entry>
+              <entry>Partition UUID</entry>
+              <entry>The partition UUID, as configured with <varname>UUID=</varname></entry>
+            </row>
+            <row id='n'>
+              <entry><literal>%n</literal></entry>
+              <entry>Partition Number</entry>
+              <entry>The partition number assigned to the partition</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+  </refsect1>
+
+  <refsect1>
+    <title>Environment</title>
+
+    <para>Extra filesystem formatting options can be provided using filesystem-specific environment variables:
+    <varname>$SYSTEMD_REPART_MKFS_OPTIONS_BTRFS</varname>, <varname>$SYSTEMD_REPART_MKFS_OPTIONS_XFS</varname>,
+    <varname>$SYSTEMD_REPART_MKFS_OPTIONS_VFAT</varname>, <varname>$SYSTEMD_REPART_MKFS_OPTIONS_EROFS</varname>,
+    and <varname>$SYSTEMD_REPART_MKFS_OPTIONS_SQUASHFS</varname>. Each variable accepts valid
+    <command>mkfs.<replaceable>filesystem</replaceable></command> command-line arguments.
+    The content of those variables is passed as-is to the command, without any verification.
+    </para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <example>
+      <title>Grow the root partition to the full disk size at first boot</title>
+
+      <para>With the following file the root partition is automatically grown to the full disk if possible
+      during boot.</para>
+
+      <para><programlisting># /usr/lib/repart.d/50-root.conf
+[Partition]
+Type=root
+</programlisting></para>
+    </example>
+
+    <example>
+      <title>Create a swap and home partition automatically on boot, if missing</title>
+
+      <para>The home partition gets all available disk space while the swap partition gets 1G at most and 64M
+      at least. We set a priority > 0 on the swap partition to ensure the swap partition is not used if not
+      enough space is available. For every three bytes assigned to the home partition the swap partition gets
+      assigned one.</para>
+
+      <para><programlisting># /usr/lib/repart.d/60-home.conf
+[Partition]
+Type=home
+</programlisting></para>
+
+      <para><programlisting># /usr/lib/repart.d/70-swap.conf
+[Partition]
+Type=swap
+SizeMinBytes=64M
+SizeMaxBytes=1G
+Priority=1
+Weight=333
+</programlisting></para>
+    </example>
+
+    <example>
+      <title>Create B partitions in an A/B Verity setup, if missing</title>
+
+      <para>Let's say the vendor intends to update OS images in an A/B setup, i.e. with two root partitions
+      (and two matching Verity partitions) that shall be used alternatingly during upgrades. To minimize
+      image sizes the original image is shipped only with one root and one Verity partition (the "A" set),
+      and the second root and Verity partitions (the "B" set) shall be created on first boot on the free
+      space on the medium.</para>
+
+      <para><programlisting># /usr/lib/repart.d/50-root.conf
+[Partition]
+Type=root
+SizeMinBytes=512M
+SizeMaxBytes=512M
+</programlisting></para>
+
+      <para><programlisting># /usr/lib/repart.d/60-root-verity.conf
+[Partition]
+Type=root-verity
+SizeMinBytes=64M
+SizeMaxBytes=64M
+</programlisting></para>
+
+      <para>The definitions above cover the "A" set of root partition (of a fixed 512M size) and Verity
+      partition for the root partition (of a fixed 64M size). Let's use symlinks to create the "B" set of
+      partitions, since after all they shall have the same properties and sizes as the "A" set.</para>
+
+<para><programlisting># ln -s 50-root.conf /usr/lib/repart.d/70-root-b.conf
+# ln -s 60-root-verity.conf /usr/lib/repart.d/80-root-verity-b.conf
+</programlisting></para>
+    </example>
+
+     <example>
+      <title>Create a data partition and corresponding verity partitions from a OS tree</title>
+
+      <para>Assuming we have an OS tree at <filename index='false'>/var/tmp/os-tree</filename> that we want
+      to package in a root partition together with matching verity partitions, we can do so as follows:
+      </para>
+
+      <para><programlisting># 50-root.conf
+[Partition]
+Type=root
+CopyFiles=/var/tmp/os-tree
+Verity=data
+VerityMatchKey=root
+Minimize=guess
+</programlisting></para>
+
+      <para><programlisting># 60-root-verity.conf
+[Partition]
+Type=root-verity
+Verity=hash
+VerityMatchKey=root
+# Explicitly set the hash and data block size to 4K
+VerityDataBlockSizeBytes=4096
+VerityHashBlockSizeBytes=4096
+Minimize=best
+</programlisting></para>
+
+<para><programlisting># 70-root-verity-sig.conf
+[Partition]
+Type=root-verity-sig
+Verity=signature
+VerityMatchKey=root
+</programlisting></para>
+    </example>
+
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+    <para><simplelist type="inline">
+      <member><citerefentry><refentrytitle>systemd</refentrytitle><manvolnum>1</manvolnum></citerefentry></member>
+      <member><citerefentry><refentrytitle>systemd-repart</refentrytitle><manvolnum>8</manvolnum></citerefentry></member>
+      <member><citerefentry project='man-pages'><refentrytitle>sfdisk</refentrytitle><manvolnum>8</manvolnum></citerefentry></member>
+      <member><citerefentry><refentrytitle>systemd-cryptenroll</refentrytitle><manvolnum>1</manvolnum></citerefentry></member>
+    </simplelist></para>
+  </refsect1>
+
+</refentry>
