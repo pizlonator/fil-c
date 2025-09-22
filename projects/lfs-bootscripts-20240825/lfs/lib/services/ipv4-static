@@ -1,0 +1,81 @@
+#!/bin/sh
+########################################################################
+# Begin /lib/services/ipv4-static
+#
+# Description : IPV4 Static Boot Script
+#
+# Authors     : Nathan Coulson - nathan@linuxfromscratch.org
+#               Kevin P. Fleming - kpfleming@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+. /lib/lsb/init-functions
+. ${IFCONFIG}
+
+if [ -z "${IP}" ]; then
+   log_failure_msg "\nIP variable missing from ${IFCONFIG}, cannot continue."
+   exit 1
+fi
+
+if [ -z "${PREFIX}" -a -z "${PEER}" ]; then
+   log_warning_msg "\nPREFIX variable missing from ${IFCONFIG}, assuming 24."
+   PREFIX=24
+   args="${args} ${IP}/${PREFIX}"
+
+elif [ -n "${PREFIX}" -a -n "${PEER}" ]; then
+   log_failure_msg "\nPREFIX and PEER both specified in ${IFCONFIG}, cannot continue."
+   exit 1
+
+elif [ -n "${PREFIX}" ]; then
+   args="${args} ${IP}/${PREFIX}"
+
+elif [ -n "${PEER}" ]; then
+   args="${args} ${IP} peer ${PEER}"
+fi
+
+if [ -n "${LABEL}" ]; then
+   args="${args} label ${LABEL}"
+fi
+
+if [ -n "${BROADCAST}" ]; then
+   args="${args} broadcast ${BROADCAST}"
+fi
+
+case "${2}" in
+   up)
+      if [ "$(ip addr show ${1} 2>/dev/null | grep ${IP}/)" = "" ]; then
+         log_info_msg "Adding IPv4 address ${IP} to the ${1} interface..."
+         ip addr add ${args} dev ${1}
+         evaluate_retval
+      else
+         log_warning_msg "Cannot add IPv4 address ${IP} to ${1}.  Already present."
+      fi
+   ;;
+
+   down)
+      if [ "$(ip addr show ${1} 2>/dev/null | grep ${IP}/)" != "" ]; then
+         log_info_msg "Removing IPv4 address ${IP} from the ${1} interface..."
+         ip addr del ${args} dev ${1}
+         evaluate_retval
+      fi
+
+      if [ -n "${GATEWAY}" ]; then
+         # Only remove the gateway if there are no remaining ipv4 addresses
+         if [ "$(ip addr show ${1} 2>/dev/null | grep 'inet ')" != "" ]; then
+            log_info_msg "Removing default gateway..."
+            ip route del default
+            evaluate_retval
+         fi
+      fi
+   ;;
+
+   *)
+      echo "Usage: ${0} [interface] {up|down}"
+      exit 1
+   ;;
+esac
+
+# End /lib/services/ipv4-static

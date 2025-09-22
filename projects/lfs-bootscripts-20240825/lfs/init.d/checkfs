@@ -1,0 +1,149 @@
+#!/bin/sh
+########################################################################
+# Begin checkfs
+#
+# Description : File System Check
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               A. Luebke - luebke@users.sourceforge.net
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+# Based on checkfs script from LFS-3.1 and earlier.
+#
+# From man fsck
+# 0    - No errors
+# 1    - File system errors corrected
+# 2    - System should be rebooted
+# 4    - File system errors left uncorrected
+# 8    - Operational error
+# 16   - Usage or syntax error
+# 32   - Fsck canceled by user request
+# 128  - Shared library error
+#
+#########################################################################
+
+### BEGIN INIT INFO
+# Provides:            checkfs
+# Required-Start:      udev swap
+# Should-Start:
+# Required-Stop:
+# Should-Stop:
+# Default-Start:       S
+# Default-Stop:
+# Short-Description:   Checks local filesystems before mounting.
+# Description:         Checks local filesystems before mounting.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      if [ -f /fastboot ]; then
+         msg="/fastboot found, will omit "
+         msg="${msg} file system checks as requested.\n"
+         log_info_msg "${msg}"
+         exit 0
+      fi
+
+      log_info_msg "Mounting root file system in read-only mode... "
+      mount -n -o remount,ro / >/dev/null
+
+      if [ ${?} != 0 ]; then
+         log_failure_msg2
+         msg="\n\nCannot check root "
+         msg="${msg}filesystem because it could not be mounted "
+         msg="${msg}in read-only mode.\n\n"
+         msg="${msg}After you press Enter, this system will be "
+         msg="${msg}halted and powered off.\n\n"
+         log_failure_msg "${msg}"
+
+         log_info_msg "Press Enter to continue..."
+         wait_for_user
+         /etc/rc.d/init.d/halt start
+      else
+         log_success_msg2
+      fi
+
+      if [ -f /forcefsck ]; then
+         msg="/forcefsck found, forcing file"
+         msg="${msg} system checks as requested."
+         log_success_msg "$msg"
+         options="-f"
+      else
+         options=""
+      fi
+
+      log_info_msg "Checking file systems..."
+      # Note: -a option used to be -p; but this fails e.g. on fsck.minix
+      if is_true "$VERBOSE_FSCK"; then
+        fsck ${options} -a -A -C -T
+      else
+        fsck ${options} -a -A -C -T >/dev/null
+      fi
+
+      error_value=${?}
+
+      if [ "${error_value}" = 0 ]; then
+         log_success_msg2
+      fi
+
+      if [ "${error_value}" = 1 ]; then
+         msg="\nWARNING:\n\nFile system errors "
+         msg="${msg}were found and have been corrected.\n"
+         msg="${msg}      You may want to double-check that "
+         msg="${msg}everything was fixed properly."
+         log_warning_msg "$msg"
+      fi
+
+      if [ "${error_value}" = 2 -o "${error_value}" = 3 ]; then
+         msg="\nWARNING:\n\nFile system errors "
+         msg="${msg}were found and have been "
+         msg="${msg}corrected, but the nature of the "
+         msg="${msg}errors require this system to be rebooted.\n\n"
+         msg="${msg}After you press enter, "
+         msg="${msg}this system will be rebooted\n\n"
+         log_failure_msg "$msg"
+
+         log_info_msg "Press Enter to continue..."
+         wait_for_user
+         reboot -f
+      fi
+
+      if [ "${error_value}" -gt 3 -a "${error_value}" -lt 16 ]; then
+         msg="\nFAILURE:\n\nFile system errors "
+         msg="${msg}were encountered that could not be "
+         msg="${msg}fixed automatically.\nThis system "
+         msg="${msg}cannot continue to boot and will "
+         msg="${msg}therefore be halted until those "
+         msg="${msg}errors are fixed manually by a "
+         msg="${msg}System Administrator.\n\n"
+         msg="${msg}After you press Enter, this system will be "
+         msg="${msg}halted and powered off.\n\n"
+         log_failure_msg "$msg"
+
+         log_info_msg "Press Enter to continue..."
+         wait_for_user
+         /etc/rc.d/init.d/halt start
+      fi
+
+      if [ "${error_value}" -ge 16 ]; then
+         msg="FAILURE:\n\nUnexpected failure "
+         msg="${msg}running fsck.  Exited with error "
+         msg="${msg} code: ${error_value}.\n"
+         log_info_msg $msg
+         exit ${error_value}
+      fi
+
+      exit 0
+      ;;
+   *)
+      echo "Usage: ${0} {start}"
+      exit 1
+      ;;
+esac
+
+# End checkfs

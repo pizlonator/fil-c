@@ -1,0 +1,74 @@
+Network Configuration:
+   Script Files:
+      /etc/rc.d/init.d/*
+      /sbin/ifup
+      /sbin/ifdown
+      /lib/lsb/*
+
+   Configuration Files:
+      /etc/sysconfig/ifconfig.*
+      Note: ifconfig.* files will be processed
+            in alphanumerical order on boot, and reversed on shutdown.
+      - IFACE  : The interface that is being configured (e.g. eth0)
+      - SERVICE: Which script to run in services directory.
+      - ONBOOT : If set to yes, this interface will be started on bootup
+
+      /etc/sysconfig/network
+      - HOSTNAME: Value of the system's hostname  (From LFS Book)
+                  This value may also be set in /etc/sysconfig/rc.site
+
+   Additional Configuration:
+      SERVICE ipv4-static:
+      - IP       : Static IP Address
+      - GATEWAY  : Specifies the IP Address of the gateway server
+      - PREFIX   : CIDR prefix of IP Address, defaults to 24 if not set
+      - PEER     : IP Address of peer (for point-to-point connections and tunnels)
+      - BROADCAST: Broadcast address
+
+      SERVICE ipv4-static-route:
+      - TYPE   : network (default type if not specified), default, host or unreachable
+      - IP     : IP Address of target (for network, host and unreachable)
+      - PREFIX : CIDR prefix of target (for network, host and unreachable)
+      - GATEWAY: IP Address of gateway to reach target (for network and default)
+
+
+SetClock configuration:
+
+   Configuration Files:
+      /etc/sysconfig/clock or /etc/sysconfig/rc.site
+      - UTC: 1 assumes hwclock is in UTC
+             0 assumes hwclock is in local time
+      - CLOCKPARAMS: any additional options to be passed to hwclock
+
+CleanFS configuration:
+   Script Files:
+      /etc/rc.d/init.d/cleanfs
+
+   Configuration Files:
+      /etc/sysconfig/rc.site
+      - SKIPTMPCLEAN: skips cleaning of /tmp directory
+
+      /etc/sysconfig/createfiles
+         Each line is parsed, using space as a deliminator.
+         [NAME] [TYPE] [PERMISSIONS] [USER] [GROUP]
+         The below fields are currently only used on dev type.
+         ([DEV TYPE] [MAJOR#] [MINOR#])
+         Name:
+            File/Directory/Device name
+         Type:
+            dir:  creates a directory
+            file: creates a file
+            dev:  creates a device
+         Permissions:
+            chmod the created file
+         User/Group:
+            chown the created file/dir to this user/group
+         Dev Type:
+            char:  character [needs MAJOR#, MINOR#]
+            block: block     [needs MAJOR#, MINOR#]
+            pipe:  pipe
+         Major#:
+            Used by character and block devices.
+         Minor#:
+            Used by character and block devices.
+

@@ -1,0 +1,82 @@
+#!/bin/sh
+########################################################################
+# Begin modules
+#
+# Description : Module auto-loading script
+#
+# Authors     : Zack Winkles
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            modules
+# Required-Start:      mountvirtfs
+# Should-Start:
+# Required-Stop:
+# Should-Stop:
+# Default-Start:       S
+# Default-Stop:
+# Short-Description:   Loads required modules.
+# Description:         Loads modules listed in /etc/sysconfig/modules.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+# Assure that the kernel has module support.
+[ -e /proc/modules ] || exit 0
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      # Exit if there's no modules file or there are no
+      # valid entries
+      [ -r /etc/sysconfig/modules ]             || exit 0
+      grep -E -qv '^($|#)' /etc/sysconfig/modules || exit 0
+
+      log_info_msg "Loading modules:"
+
+      # Only try to load modules if the user has actually given us
+      # some modules to load.
+
+      while read module args; do
+
+         # Ignore comments and blank lines.
+         case "$module" in
+            ""|"#"*) continue ;;
+         esac
+
+         # Attempt to load the module, passing any arguments provided.
+         modprobe ${module} ${args} >/dev/null
+
+         # Print the module name if successful, otherwise take note.
+         if [ $? -eq 0 ]; then
+            log_info_msg2 " ${module}"
+         else
+            failedmod="${failedmod} ${module}"
+         fi
+      done < /etc/sysconfig/modules
+
+      # Print a message about successfully loaded modules on the correct line.
+      log_success_msg2
+
+      # Print a failure message with a list of any modules that
+      # may have failed to load.
+      if [ -n "${failedmod}" ]; then
+         log_failure_msg "Failed to load modules:${failedmod}"
+         exit 1
+      fi
+      ;;
+
+   *)
+      echo "Usage: ${0} {start}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End modules

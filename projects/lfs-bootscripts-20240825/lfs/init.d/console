@@ -1,0 +1,107 @@
+#!/bin/sh
+########################################################################
+# Begin console
+#
+# Description : Sets keymap and screen font
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               Alexander E. Patrakov
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            console
+# Required-Start:      $local_fs
+# Should-Start:        udev_retry
+# Required-Stop:
+# Should-Stop:
+# Default-Start:       S
+# Default-Stop:
+# Short-Description:   Sets up a localised console.
+# Description:         Sets up fonts and language settings for the user's
+#                      local as defined by /etc/sysconfig/console.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+# Native English speakers probably don't have /etc/sysconfig/console at all
+[ -r /etc/sysconfig/console ] && . /etc/sysconfig/console
+
+failed=0
+
+case "${1}" in
+   start)
+      # See if we need to do anything
+      if [ -z "${KEYMAP}"         ] && [ -z "${KEYMAP_CORRECTIONS}" ] &&
+         [ -z "${FONT}"           ] && [ -z "${LEGACY_CHARSET}"     ] &&
+         ! is_true "${UNICODE}"; then
+         exit 0
+      fi
+
+      # There should be no bogus failures below this line!
+      log_info_msg "Setting up Linux console..."
+
+      # Figure out if a framebuffer console is used
+      [ -d /sys/class/graphics/fbcon ] && use_fb=1 || use_fb=0
+
+      # Figure out the command to set the console into the
+      # desired mode
+      is_true "${UNICODE}" &&
+         MODE_COMMAND="echo -en '\033%G' && kbd_mode -u" ||
+         MODE_COMMAND="echo -en '\033%@\033(K' && kbd_mode -a"
+
+      # On framebuffer consoles, font has to be set for each vt in
+      # UTF-8 mode. This doesn't hurt in non-UTF-8 mode also.
+
+      ! is_true "${use_fb}" || [ -z "${FONT}" ] ||
+         MODE_COMMAND="${MODE_COMMAND} && setfont ${FONT}"
+
+      # Apply that command to all consoles mentioned in
+      # /etc/inittab. Important: in the UTF-8 mode this should
+      # happen before setfont, otherwise a kernel bug will
+      # show up and the unicode map of the font will not be
+      # used.
+
+      for TTY in `grep '^[^#].*respawn:/sbin/agetty' /etc/inittab |
+         grep -o '\btty[[:digit:]]*\b'`
+      do
+         openvt -f -w -c ${TTY#tty} -- \
+            /bin/sh -c "${MODE_COMMAND}" || failed=1
+      done
+
+      # Set the font (if not already set above) and the keymap
+      [ "${use_fb}" == "1" ] || [ -z "${FONT}" ] || setfont $FONT || failed=1
+
+      [ -z "${KEYMAP}" ] ||
+         loadkeys ${KEYMAP} >/dev/null 2>&1 ||
+         failed=1
+
+      [ -z "${KEYMAP_CORRECTIONS}" ] ||
+         loadkeys ${KEYMAP_CORRECTIONS} >/dev/null 2>&1 ||
+         failed=1
+
+      # Convert the keymap from $LEGACY_CHARSET to UTF-8
+      [ -z "$LEGACY_CHARSET" ] ||
+         dumpkeys -c "$LEGACY_CHARSET" | loadkeys -u >/dev/null 2>&1 ||
+         failed=1
+
+      # If any of the commands above failed, the trap at the
+      # top would set $failed to 1
+      ( exit $failed )
+      evaluate_retval
+
+      exit $failed
+      ;;
+
+   *)
+      echo "Usage:  ${0} {start}"
+      exit 1
+      ;;
+esac
+
+# End console

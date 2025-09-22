@@ -1,0 +1,73 @@
+#!/bin/sh
+########################################################################
+# Begin udev_retry
+#
+# Description : Udev cold-plugging script (retry)
+#
+# Authors     : Alexander E. Patrakov
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#               Bryan Kadzban -
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            udev_retry
+# Required-Start:      udev
+# Should-Start:        $local_fs cleanfs
+# Required-Stop:
+# Should-Stop:
+# Default-Start:       S
+# Default-Stop:
+# Short-Description:   Replays failed uevents and creates additional devices.
+# Description:         Replays any failed uevents that were skipped due to
+#                      slow hardware initialization, and creates those needed
+#                      device nodes
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Retrying failed uevents, if any..."
+
+      rundir=/run/udev
+      # From Debian: "copy the rules generated before / was mounted
+      # read-write":
+
+      for file in ${rundir}/tmp-rules--*; do
+         dest=${file##*tmp-rules--}
+         [ "$dest" = '*' ] && break
+         cat $file >> /etc/udev/rules.d/$dest
+         rm -f $file
+      done
+
+      # Re-trigger the uevents that may have failed,
+      # in hope they will succeed now
+      /bin/sed -e 's/#.*$//' /etc/sysconfig/udev_retry | /bin/grep -v '^$' | \
+      while read line ; do
+         for subsystem in $line ; do
+            /bin/udevadm trigger --subsystem-match=$subsystem --action=add
+         done
+      done
+
+      # Now wait for udevd to process the uevents we triggered
+      if ! is_true "$OMIT_UDEV_RETRY_SETTLE"; then
+         /bin/udevadm settle
+      fi
+
+      evaluate_retval
+      ;;
+
+   *)
+      echo "Usage ${0} {start}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End udev_retry

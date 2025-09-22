@@ -1,0 +1,83 @@
+#!/bin/sh
+########################################################################
+# Begin mountfs
+#
+# Description : File System Mount Script
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            $local_fs
+# Required-Start:      udev checkfs
+# Should-Start:        modules
+# Required-Stop:       localnet
+# Should-Stop:
+# Default-Start:       S
+# Default-Stop:        0 6
+# Short-Description:   Mounts/unmounts local filesystems defined in /etc/fstab.
+# Description:         Remounts root filesystem read/write and mounts all
+#                      remaining local filesystems defined in /etc/fstab on
+#                      start.  Remounts root filesystem read-only and unmounts
+#                      remaining filesystems on stop.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Remounting root file system in read-write mode..."
+      mount --options remount,rw / >/dev/null
+      evaluate_retval
+
+      # Remove fsck-related file system watermarks.
+      rm -f /fastboot /forcefsck
+
+      # Make sure /dev/pts exists
+      mkdir -p /dev/pts
+
+      # This will mount all filesystems that do not have _netdev in
+      # their option list.  _netdev denotes a network filesystem.
+
+      log_info_msg "Mounting remaining file systems..."
+      failed=0
+      mount --all --test-opts no_netdev >/dev/null || failed=1
+      evaluate_retval
+      exit $failed
+      ;;
+
+   stop)
+      # Don't unmount virtual file systems like /run
+      log_info_msg "Unmounting all other currently mounted file systems..."
+      # Ensure any loop devices are removed
+      losetup -D
+      umount --all --detach-loop --read-only \
+             --types notmpfs,nosysfs,nodevtmpfs,noproc,nodevpts >/dev/null
+      evaluate_retval
+
+      # Make sure / is mounted read only (umount bug)
+      mount --options remount,ro /
+
+      # Make all LVM volume groups unavailable, if appropriate
+      # This fails if swap or / are on an LVM partition
+      #if [ -x /sbin/vgchange ]; then /sbin/vgchange -an > /dev/null; fi
+      if [ -r /etc/mdadm.conf ]; then
+         log_info_msg "Mark arrays as clean..."
+         mdadm --wait-clean --scan
+         evaluate_retval
+      fi
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop}"
+      exit 1
+      ;;
+esac
+
+# End mountfs

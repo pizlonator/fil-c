@@ -1,0 +1,63 @@
+#!/bin/sh
+########################################################################
+# Begin swap
+#
+# Description : Swap Control Script
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            swap
+# Required-Start:      udev
+# Should-Start:        modules
+# Required-Stop:       localnet
+# Should-Stop:         $local_fs
+# Default-Start:       S
+# Default-Stop:        0 6
+# Short-Description:   Activates and deactivates swap partitions.
+# Description:         Activates and deactivates swap partitions defined in
+#                      /etc/fstab.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Activating all swap files/partitions..."
+      swapon -a
+      evaluate_retval
+      ;;
+
+   stop)
+      log_info_msg "Deactivating all swap files/partitions..."
+      swapoff -a
+      evaluate_retval
+      ;;
+
+   restart)
+      ${0} stop
+      sleep 1
+      ${0} start
+      ;;
+
+   status)
+      log_success_msg "Retrieving swap status."
+      swapon -s
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop|restart|status}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End swap

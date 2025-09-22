@@ -1,0 +1,43 @@
+#!/bin/sh
+########################################################################
+# Begin halt
+#
+# Description : Halt Script
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#             : Pierre Labastie - pierre@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+# Notes       : Update March 24th, 2022: change "stop" to "start".
+#               Add the $last facility to Required-start
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            halt
+# Required-Start:      $last
+# Should-Start:
+# Required-Stop:
+# Should-Stop:
+# Default-Start:       0
+# Default-Stop:
+# Short-Description:   Halts the system.
+# Description:         Halts the System.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+case "${1}" in
+   start)
+      halt -d -f -i -p
+      ;;
+
+   *)
+      echo "Usage: {start}"
+      exit 1
+      ;;
+esac
+
+# End halt

@@ -1,0 +1,185 @@
+ifup(8)                                                   ifup(8)
+
+NAME
+       ifup - bring a network interface up
+       ifdown - take a network interface down
+
+SYNOPSIS
+       ifup  IFACE
+       ifup -h|--help
+       ifup -V|--version
+
+       ifdown IFACE
+       ifdown -h|--help
+       ifdown -V|--version
+
+DESCRIPTION
+       The  ifup  and  ifdown  commands  may be used to configure
+       (or, respectively, deconfigure) a network interface based
+       on interface  definitions in the file
+       /etc/sysconfig/ifconfig.IFACE.
+
+OPTIONS
+       A summary of options is included below.
+
+       -h, --help
+              Show summary of options.
+
+       -V, --version
+              Show version information.
+
+EXAMPLES
+       ifup eth0
+              Bring up the interface defined in the file
+              /etc/sysconfig/ifconfig.eth0
+
+                ONBOOT=no
+                IFACE=eth0
+                SERVICE=ipv4-static
+                IP=192.168.1.22
+                GATEWAY=192.168.1.1
+                PREFIX=24
+                BROADCAST=192.168.1.255
+
+       ifdown eth0:2
+              Bring down the interface defined in the file
+              /etc/sysconfig/ifconfig.eth0:2
+
+                ONBOOT=no
+                IFACE=eth0
+                LABEL=eth0:2
+                SERVICE=dhcpcd
+
+                DHCP_START="--waitip"
+                DHCP_STOP="-k"
+
+                # Set PRINTIP="yes" to have the script print the DHCP IP address
+                PRINTIP="yes"
+
+                # Set PRINTALL="yes" to print the DHCP assigned values for
+                # IP, SM, DG, and 1st NS.
+                PRINTALL="no"
+
+       ifup br0
+              Bring up the interface defined in the file
+              /etc/sysconfig/ifconfig.br0
+
+                ONBOOT=yes
+                IFACE=br0
+                SERVICE="bridge ipv4-static"
+                IP=192.168.1.22
+                GATEWAY=192.168.1.1
+                PREFIX=24
+                BROADCAST=192.168.1.255
+                STP=no                      # Spanning tree protocol, default no
+                INTERFACE_COMPONENTS=eth0   # Add to IFACE
+                IP_FORWARD=true
+
+NOTES
+       The program does not configure network interfaces direct-
+       ly.  It runs scripts defined by the SERVICE variable in
+       the network configuration file.
+
+       The configuration files must have the following environ-
+       ment variables set:
+
+       IFACE   - The interface to configure, e.g. eth0.  It must
+                 be available in /sys/class/net.
+
+       SERVICE - The service script to run to bring up the inter-
+                 face.  Standard services are ipv4-static and
+                 ipv4-static-route.  Other services such as dhcp
+                 or bridge may be installed.  This value may
+                 be a list of services when the interface is a
+                 compound device such as a bridge.
+
+       ONBOOT  - If set to 'yes', the specified interface is
+                 configured by the network boot script.
+
+       GATEWAY - The default IP address to use for routing if
+                 the destination IP address is not in a static
+                 route or on a local network, e.g., 192.168.1.1.
+                 For secondary IP addresses on an interface, this
+                 parameter should not be specified.  If the service
+                 is ipv4-static-route, this parameter must NOT
+                 be set.
+
+       STATIC_GATEWAY - The default IP address to use for routing
+                 when setting a static routing address.
+
+       INTERFACE_COMPONENTS - A list of component interfaces
+                 only needed for a compound device such as a bridge.
+                 This list is normally a single value, e.g. eth0,
+                 for use with a virtual host such as kvm.
+
+       Other parameters that are service specific include:
+
+       ipv4-static
+
+         IP        - The IP address of the interface,
+                     e.g. 192.168.1.2.
+
+         PREFIX    - The number of bits that specify the network
+                     number of the interface.  The default, if not
+                     specified, is 24.
+
+         LABEL     - The label to be assigned to the interface.
+                     This is normally specified for assigning
+                     additional IP addresses to a network
+                     device.  Example: eth0:2 (optional)
+
+         BROADCAST - The broadcast address for this interface,
+                     e.g 192.168.1.255.  If not specified,
+                     the broadcast address will be calculated
+                     from the IP and PREFIX.
+
+       ipv4-static-route
+
+         TYPE    -  The type of route, typically 'default',
+                    'network', 'or host'.
+
+         IP      -  The IP address for a network or host, if the
+                    TYPE is not 'default'.
+
+         PREFIX  -  The prefix for the associated IP address.
+
+         STATIC_GATEWAY - The IP address for a network route.
+
+         SOURCE  -  The source IP address to prefer when sending
+                    to the destinations covered by the specified
+                    route. (optional)
+
+       dhcp/dhclient
+
+         DHCP_START - Optional parameters to pass to the dhcp client
+                      at startup.
+
+         DHCP_STOP  - Optional parameters to pass to the dhcp client
+                      at shutdown.
+
+         PRINTIP    - Flag to print the dhcp address to stdout
+
+         PRINTALL   - Flag to print all obtained dhcp data to stdout
+
+       bridge
+
+         IP_FORWARD - An optional flag to enable the system to forward
+                      inbound IP packets received by one interface to
+                      another outbound interface.
+
+         STP        - Set bridge spanning tree protocol.  Default is no.
+
+FILES
+       /etc/sysconfig/ifconfig.*
+              definitions of network interfaces
+
+AUTHORS
+       The ifup/ifdown suite was written by Nathan Coulson
+       <nathan@linuxfromscratch.org> and Kevin P. Fleming
+       <kpfleming@linuxfromscratch.org>
+       and updated by Bruce Dubbs <bdubbs@linuxfromscratch>.
+
+SEE ALSO
+       ip(8).
+
+IFUP/IFDOWN                   8 February 2015                    ifup(8)

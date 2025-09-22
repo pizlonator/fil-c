@@ -1,0 +1,77 @@
+#!/bin/sh
+########################################################################
+# Begin udev
+#
+# Description : Udev cold-plugging script
+#
+# Authors     : Zack Winkles, Alexander E. Patrakov
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#               Xi Ruoyao - xry111@xry111.site
+#
+# Version     : LFS 12.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            udev $time
+# Required-Start:      localnet
+# Should-Start:        modules
+# Required-Stop:
+# Should-Stop:
+# Default-Start:       S
+# Default-Stop:
+# Short-Description:   Populates /dev with device nodes.
+# Description:         Mounts a tempfs on /dev and starts the udevd daemon.
+#                      Device nodes are created as defined by udev.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Populating /dev with device nodes... "
+      if ! grep -q '[[:space:]]sysfs' /proc/mounts; then
+         log_failure_msg2
+         msg="FAILURE:\n\nUnable to create "
+         msg="${msg}devices without a SysFS filesystem\n\n"
+         msg="${msg}After you press Enter, this system "
+         msg="${msg}will be halted and powered off.\n\n"
+         log_info_msg "$msg"
+         log_info_msg "Press Enter to continue..."
+         wait_for_user
+         /etc/rc.d/init.d/halt start
+      fi
+
+      # Start the udev daemon to continually watch for, and act on,
+      # uevents
+      SYSTEMD_LOG_TARGET=kmsg /sbin/udevd --daemon
+
+      # Now traverse /sys in order to "coldplug" devices that have
+      # already been discovered
+      /bin/udevadm trigger --action=add    --type=subsystems
+      /bin/udevadm trigger --action=add    --type=devices
+      /bin/udevadm trigger --action=change --type=devices
+
+      # Now wait for udevd to process the uevents we triggered
+      if ! is_true "$OMIT_UDEV_SETTLE"; then
+         /bin/udevadm settle
+      fi
+
+      # If any LVM based partitions are on the system, ensure they
+      # are activated so they can be used.
+      if [ -x /sbin/vgchange ]; then /sbin/vgchange -a y >/dev/null; fi
+
+      log_success_msg2
+      ;;
+
+   *)
+      echo "Usage ${0} {start}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End udev

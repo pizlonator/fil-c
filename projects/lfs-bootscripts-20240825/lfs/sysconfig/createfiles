@@ -1,0 +1,31 @@
+########################################################################
+# Begin /etc/sysconfig/createfiles
+#
+# Description : Createfiles script config file
+#
+# Authors     :
+#
+# Version     : 00.00
+#
+# Notes       : The syntax of this file is as follows:
+#               if type is equal to "file" or "dir"
+#                <filename> <type> <permissions> <user> <group>
+#               if type is equal to "dev"
+#                <filename> <type> <permissions> <user> <group> <devtype>
+#             <major> <minor>
+#
+#               <filename> is the name of the file which is to be created
+#               <type> is either file, dir, or dev.
+#                       file creates a new file
+#                       dir creates a new directory
+#                       dev creates a new device
+#               <devtype> is either block, char or pipe
+#                       block creates a block device
+#                       char creates a character device
+#                       pipe creates a pipe, this will ignore the <major> and
+#           <minor> fields
+#               <major> and <minor> are the major and minor numbers used for
+#     the device.
+########################################################################
+
+# End /etc/sysconfig/createfiles

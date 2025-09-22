@@ -1,0 +1,63 @@
+#!/bin/sh
+########################################################################
+# Begin setclock
+#
+# Description : Setting Linux Clock
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:
+# Required-Start:
+# Should-Start:        modules
+# Required-Stop:
+# Should-Stop:         $syslog
+# Default-Start:       S
+# Default-Stop:
+# Short-Description:   Stores and restores time from the hardware clock
+# Description:         On boot, system time is obtained from hwclock.  The
+#                      hardware clock can also be set on shutdown.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+[ -r /etc/sysconfig/clock ] && . /etc/sysconfig/clock
+
+
+case "${UTC}" in
+   yes|true|1)
+      CLOCKPARAMS="${CLOCKPARAMS} --utc"
+      ;;
+
+   no|false|0)
+      CLOCKPARAMS="${CLOCKPARAMS} --localtime"
+      ;;
+
+esac
+
+case ${1} in
+   start)
+      hwclock --hctosys ${CLOCKPARAMS} >/dev/null
+      ;;
+
+   stop)
+      log_info_msg "Setting hardware clock..."
+      hwclock --systohc ${CLOCKPARAMS} >/dev/null
+      evaluate_retval
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop}"
+      exit 1
+      ;;
+
+esac
+
+exit 0

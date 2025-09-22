@@ -1,0 +1,90 @@
+#!/bin/sh
+########################################################################
+# Begin network
+#
+# Description : Network Control Script
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               Nathan Coulson - nathan@linuxfromscratch.org
+#               Kevin P. Fleming - kpfleming@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            $network
+# Required-Start:      $local_fs localnet swap
+# Should-Start:        $syslog firewalld iptables nftables
+# Required-Stop:       $local_fs localnet swap
+# Should-Stop:         $syslog firewalld iptables nftables
+# Default-Start:       2 3 4 5
+# Default-Stop:        0 1 6
+# Short-Description:   Starts and configures network interfaces.
+# Description:         Starts and configures network interfaces.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+case "${1}" in
+   start)
+      # if the default route exists, network is already configured
+      if ip route | grep -q "^default"; then return 0; fi
+      # Start all network interfaces
+      for file in /etc/sysconfig/ifconfig.*
+      do
+         interface=${file##*/ifconfig.}
+
+         # Skip if $file is * (because nothing was found)
+         if [ "${interface}" = "*" ]; then continue; fi
+
+         /sbin/ifup ${interface}
+      done
+      ;;
+
+   stop)
+      # Unmount any network mounted file systems
+       umount --all --force --types nfs,cifs,nfs4
+
+      # Reverse list
+      net_files=""
+      for file in  /etc/sysconfig/ifconfig.*
+      do
+         net_files="${file} ${net_files}"
+      done
+
+      # Stop all network interfaces
+      for file in ${net_files}
+      do
+         interface=${file##*/ifconfig.}
+
+         # Skip if $file is * (because nothing was found)
+         if [ "${interface}" = "*" ]; then continue; fi
+
+         # See if interface exists
+         if [ ! -e /sys/class/net/$interface ]; then continue; fi
+
+         # Is interface UP?
+         ip link show $interface 2>/dev/null | grep -q "state UP"
+         if [ $? -ne 0 ];  then continue; fi
+
+         /sbin/ifdown ${interface}
+      done
+      ;;
+
+   restart)
+      ${0} stop
+      sleep 1
+      ${0} start
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop|restart}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End network

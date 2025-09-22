@@ -1,0 +1,1231 @@
+2024-08-25 Xi Ruoyao <xry111@xry111.site>
+   * Remove an empty line and an outdated comment (not valid anymore after
+     /usr merge) from init-functions.
+
+2024-08-24 Andrew Kreimer <algonell@gmail.com>
+   * Fix typos.
+
+2024-08-23 Xi Ruoyao <xry111@xry111.site>
+   * In console, detect FB console by checking /sys/class/graphics/fbcon
+     instead of fb0.  The latter does not exist if CONFIG_FB=n, but
+     CONFIG_DRM_FBDEV_EMULATION=y can support a FB console without
+     CONFIG_FB.
+
+2024-07-12 Xi Ruoyao <xry111@xry111.site>
+   * In mountvirtfs, recreate /dev/fd correctly if it's already created
+     by the initramfs.
+
+2024-07-06 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Add logic to init-functions to only print escape sequences
+	  if stdin and stdout are connected to a terminal.
+
+2024-04-16 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove blank output line generated in ifup script when bringing
+	  up wireless interface.
+
+2023-10-04 Pierre Labastie <pierre.labastie@neuf.fr>
+   * After the changes done on 2022-03-24, several "halt stop" should
+     have been changed to "halt start". Done now. Fortunately, those
+     occur only when something wrong happens with disks or devices.
+
+2023-07-28 Xi Ruoyao <xry111@xry111.site>
+   * In mountvirtfs, mount /sys/fs/cgroup for udev from systemd-254.
+
+2023-07-22 Xi Ruoyao <xry111@xry111.site>
+   * In mountvirtfs, create symlinks /dev/{fd,std{in,out,err}} and
+     /dev/core (optional).
+
+2023-07-16 Xi Ruoyao <xry111@xry111.site>
+   * In udev, set SYSTEMD_LOG_TARGET=kmsg so systemd-udevd will correctly
+     log messages.
+
+2023-07-15 Xi Ruoyao <xry111@xry111.site>
+   * Use /bin/udevadm instead of /sbin/udevadm.
+
+2022-09-30 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Mount /dev/shm as a tmpfs.
+
+2022-07-23 Thomas Trepl <thomas@linuxfromscratch.org>
+   * Mark an raid array clean when root (/) has been remounted
+     r/o when system goes down. Otherwise, array does remain
+     always 'dirty', causing a resync at next boot.
+
+2022-03-24 Pierre Labastie <pierre dot labastie at neuf dot fr>
+   * New semantics for K and S scripts:
+     - S scripts only started if not already marked S in the previous runlevel
+     - K scripts only started if not already marked K in the previous runlevel
+     - remove the convention of running S scripts with "stop" in rl 0/6
+2021-06-08 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * When shutting down the network, ignore invalid interfaces
+     or interfaces that are not UP.
+
+2021-06-02 Thomas Trepl <thomas@linuxfromscratch.org>
+   * Prevent sendsignals from killing an active mdmon
+
+2021-04-28 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Make check_signal more robust.
+   * Use a better methog for killproc to remove a dead pid file.
+   * Clarify what signals killproc accepts.
+   * Thanks to input and discussion from Scott Andrews.
+
+2021-02-01 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Tweak mountfs to properly exit when an error is found.
+
+2021-01-13 Xi Ruoyao <xry111@mengyan1223.wang>
+   * Use /run instead of deprecated /var/run
+
+2020-10-02 DJ Lucas <dj@linuxfromscratch.org>
+   * make $local_fs a Should-Stop dependency of swap to allow clean install
+
+2020-08-02 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Fix a minor display problem in checkfs
+
+2019-10-31 DJ Lucas <dj@linuxfromscratch.org>
+   * Syslog should not start in runlevel 2 due to network logging
+   * Remove errant swap dependency for checkfs
+
+2019-10-04 DJ Lucas <dj@linuxfromscratch.org>
+   * Additional updates to facilities in LSB headers to keep proper order
+   * Network script depends on firewall scripts from BLFS if activated
+
+2019-09-02 DJ Lucas <dj@linuxfromscratch.org>
+   * Update facilities in LSB headers
+
+2015-06-24 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Unmount network file systems before bringing down the network
+   * Spell out some mount/umount options
+
+2017-03-25 DJ Lucas <dj@linuxfromscratch.org>
+   * Bash-4.4 changes no longer allow continue in function to pass to calling
+     loop.
+
+2015-02-22 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Cosmetic changes to network scripts' output
+
+2015-02-08 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Modify ipv4-static to support ethernet labels
+   * Output a newline if an interface is skipped during boot
+
+2014-12-24 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Clarify rationale for sysklog run levels
+
+2014-11-10 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Make /run/lock have 1777 permissions
+
+2014-07-06 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove obsolete reference to /proc/sys/kernel/hotplug in udev boot script
+
+2014-07-02 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove obsolete check for /proc/ksyms in modules boot script
+
+2014-06-29 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove systemd references and files
+
+2014-03-31 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Changes made to be consistent with common systemd functions
+
+2013-08-21 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Delete duplicate entry in rc.site file.
+
+2013-08-05 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Use STATIC_GATEWAY for ipv4-static-route purposes
+
+2013-05-15 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove unneeded options and commands from mountfs and
+     mountvirtfs when mtab is a symlink to /proc/self/mounts
+
+2013-05-11 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Make sure the root fs is mounted read only in mountfs
+     before halting
+
+2013-01-24 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove local attribue of some variables for Bourne
+     shell compatability
+   * Specify /bin/echo in commands with -e switch for
+     Bourne shell compatability
+
+2012-10-13 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove unneeded sleep in killproc
+   * Add option for verbose fsck
+   * Flatten directory structure of tarball
+   * Remove /fastboot or /forcecheck if set
+
+2012-09-05 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Add udevadm trigger --action=change line to udev script
+     to support initramfs better
+
+2012-08-24 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Read /etc/sysconfig/console when needed in rc
+
+2012-06-17 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Only mount /run in mountvirtfs if it is not already mounted
+     (from an initrd).
+   * Force the /dev/shm->/run/shm symlink
+   * Skip making LVM virtual groups unavailable at shutdown
+     because the / or swap partitions may be still in use.
+
+2012-05-30 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Copy all entries in /lib/udev/devices to /dev in mounvirtfs
+
+2012-05-24 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Remove mkdir from mountvirtfs because fs is read only
+
+2012-04-09 Bruce Dubbs <bdubbs@linuxfromscratch.org>
+
+   * General update of network scripts ifup/ifdown and services
+   ** Add if_true utility function to init_functions
+   ** Change variable INTERFACES to COMPONENT_INTERFACES for bridge interface
+   ** ifdown now only uses the first SERVICE
+   ** Updated ifup.8 to reflect current usage
+   ** ifup
+   *** Move interface up logic to after service scripts.  Eliminates the
+       need for the LINK_CHECK variable.
+   *** Sets the GATEWAY if the variable is set
+   *** Add MTU logic to ifup
+
+2012-01-22  Matt Burgess <matthew@linuxfromscratch.org>
+
+   * lfs/init.d/udev: Change udevd path following upstream changes to its
+                      location
+
+2011-12-23  Matt Burgess <matthew@linuxfromscratch.org>
+
+   * lfs/init.d/mountvirtfs: Correct permissions on /run/shm
+
+2011-11-28  DJ Lucas <dj@linuxfromscratch.org>
+
+   * lfs/init.d/mountfs: Add '-t nosysfs' to umount command
+   * lfs/init.d/mountvirtfs: remove unneeded spaces in output
+   * lfs/init.d/rc: Correct double interactive prompt and set prompt defaults
+   * lfs/init.d/setclock: Remove screen output from start case (udev)
+   * lfs/init.d/udev{,_retry}:  Restore output to screen and log
+   * lfs/sbin/ifup: Change "..." to ": " (not awaiting additional output)
+
+2011-11-14  Bruce Dubbs <bdubbs@linuxfromscratch.org>
+
+   * The following are from suggestions by DJ Lucas
+   ** General cleanup of scripts
+   ** Move consolelog function to rc
+   ** Clean up boot logging functions
+   ** Fix interactive prompt between run level S and target run level
+
+2011-10-06  Bryan Kadzban <bryan@linuxfromscratch.org>
+
+   * Add configuration for udev_retry, and remove --type=failed (which does
+     not work with recent udev versions anyway, since no events can possibly
+     trigger it).  Start with just the "rtc" subsystem.  BLFS should eventually
+     add "sound" to this file, and perhaps others.
+
+2011-09-18
+   * Review and update of changes made in previous change.
+   ** Rename /etc/sysconfig/init_params to /etc/sysconfig/rc.site.
+   ** Move network services to /lib/services.
+   ** Move init-functions to /lib/lsb.
+   *** /lib/lsb is a symlink to /lib/services.
+   * Create convenience symlink /etc/init.d->/etc/rc.d/init.d.
+   * Add help and man pages to upup/ifdown.
+   * Append /run/var/bootlog to /var/log/boot.log at the end of
+     the boot sequence.
+   * Add capabiltiy to step through the boot scripts at boot time
+   * Optionally allow environment variables in sysconfig directory's
+     console, network, and clock files to be placed in rc.site.
+   * Add an optional FASTBOOT parameter to set /fastboot when rebooting.
+
+2011-07-14  Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * Major rewrite of all LFS scripts
+   ** Move ifup/ifdown to /sbin
+   ** Move functions and network services to /lib/boot
+   ** Remove contrib directory
+   ** Move all READ commands to functions and allow the user to specify
+      HEADLESS=1 to skip READ commands
+   ** Add /etc/sysconfig/init_params for adding environmental parameters
+      to all functions used in bootscripts
+   ** Move network configuration to /etc/sysconfig/ifconfig.*.  The
+      ifconfig files can have any extension.  Use IFACE parameter to
+      specify the target network interface within the configuration file.
+   ** Adds an optional parameter, SKIPTMPCLEAN, to skip the removal of
+      files in /tmp at bootup.  Specify the variable in
+      /etc/sysconfig/init_params.
+
+2011-05-31  DJ Lucas <dj@linuxfromscratch.org>
+   * lfs/init.d/udev: Add multiple udev triggers for both subsystems and
+     devices per upstream recommendation.
+
+2011-04-19  Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * lfs/init.d/mountvirtfs: Add creation of /run/{var,lock,shm}.
+   * lfs/init.d/udev: Add /dev/shm -> /run/shm symlink.
+
+2011-04-18  Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * lfs/init.d/mountvirtfs: Change name from mountkernfs to mountvirtfs.
+     Add mounting of /run filesystem.
+
+2010-05-29  Matt Burgess <matthew@linuxfromscratch.org>
+   * lfs/init.d/udev: Only copy /lib/udev/devices/null, as Udev >= 155 copies
+     devices from /lib/udev/devices to /dev itself.  Udevd still needs /dev/null
+     present before starting up though.
+
+2010-04-20  Bryan Kadzban <bryan@linuxfromscratch.org>
+   * lfs/init.d/udev, lfs/init.d/udev_retry: Add --action=add, to handle udev
+   version 152 and newer, which send "change" events by default in udevtrigger
+   now.
+
+2010-01-24  Matthew Burgess <matthew@linuxfromscratch.org>
+   * lfs/init.d/udev: Check to see if /dev is already mounted, as it may be if
+     under an initramfs environment.  See ticket #2550.
+
+2009-08-14  Bryan Kadzban <bryan@linuxfromscratch.org>
+   * lfs/init.d/udev_retry: Use "udevadm trigger --type=failed", which
+     apparently replaced "--retry-failed" some time ago.  "--retry-failed" is
+     removed in udev-146.
+
+2009-01-02  Bruce Dubbs <bdubbs@linuxfromscratch.org>
+   * lfs/init.d/functions:
+   * lfs/sysconfig/network-devices/ifup:
+     Updated line widths to accommodate pdf generation in both the above
+     files.
+
+2008-10-27  DJ Lucas <dj@linuxfromscratch.org>
+   * lfs/init.d/cleanfs: Removed '! -newer /proc' from find commands in
+     check for stale files in /var/lock and /var/run.
+   * Makefile: Reversed cleanfs and udev_retry scripts so that cleanfs
+     runs immediately after mountfs.
+
+2008-10-26  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/functions: Remove stale pid files when encountered
+     in loadproc/killproc/reloadproc. When the bootscript specifies
+     a pid file to use with the "-p pidfile" argument, *proc
+     functions previously bailed out when the referenced file
+     contains an invalid pid.
+
+2008-10-23  DJ Lucas <dj@linuxfromscratch.org>
+   * lfs/init.d/console: Removed BROKEN_COMPOSE as kernel patch has
+     been accepted upstream.
+
+2008-05-21  Bryan Kadzban  <bryan@linuxfromscratch.org>
+   * lfs/init.d/udev, lfs/init.d/udev_retry: Use new udevadm program.
+
+2007-08-20  DJ Lucas <dj@linuxfromscratch.org>
+   * lfs/init.d/setclock: Added missing 'stop' argument to usage text
+
+2007-08-13  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/checkfs: Don't suppress error messages from the screen.
+
+2007-07-18  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * Makefile, lfs/init.d/consolelog: New bootscript controlling the
+     kernel log level on the console. This is controlled by the LOGLEVEL
+     variable in /etc/sysconfig/console.
+   * lfs/init.d/modules: Remove the log level handling since this is
+     done in the consolelog script now.
+   * lfs/init.d/modules: Clean up the script by removing the file
+     descriptor duplication and instead just redirecting
+     /etc/sysconfig/modules to the input of the while loop.
+
+2007-06-16  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/mountfs, lfs/init.d/mountkernfs, lfs/init.d/setclock,
+     lfs/init.d/modules, lfs/sysconfig/network-devices/if{up,down}:
+     Don't suppress stderr during bootscripts unless necessary. This
+     would prevent potentially critical messages from reaching the screen.
+
+2007-04-24  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/functions: When killproc is executed, it checks that
+     the process is still running, sleeps if it is, then checks again.
+     The sleep is 1 second in between checks. By sleeping for 0.1 seconds
+     in between checks, killproc is much faster as it's wasting much
+     less time sleeping in the normal case that the process has died
+     after a short delay.
+
+2007-04-16  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/functions: Redirect stderr when using kill to suppress
+     output.
+   * lfs/init.d/functions: killproc() was not handling the case where a
+     pidfile is passed to the function. The logic with the signal to be
+     used was causing issues with the handling of pidfiles. This has been
+     fixes, and now killproc() will recheck the process if the signal
+     was TERM (the default) or KILL.
+   * lfs/init.d/functions: statusproc() has been changed to use pidofproc()
+     instead of the deprecated getpids(). Additionally, it now accepts
+     the -p argument to specify a pidfile.
+   * lfs/init.d/functions: Currently, statusproc() always returns
+     successfully, and the only way to know if the process is running
+     is to parse the output. This changes statusproc() to return the
+     status of pidofproc(), which will return unsuccessfully if the
+     requested process is not running.
+   * lfs/init.d/functions: Changed reloadproc() to use pidofproc() and
+     respect the -p argument for pidfiles.
+   * lfs/init.d/sysklogd: Remove a useless argument to reloadproc().
+
+2007-03-13  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/functions: If pidofproc() is passed the -p argument
+     it can bomb testing a null variable with an integer expression.
+
+2007-02-22  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/mountfs, lfs/init.d/console, lfs/init.d/setclock,
+     lfs/init.d/mountkernfs: &> redirection is not supported in POSIX.
+     Fortunately, it's equivalent to >word 2>&1 according to bash(1).
+
+2007-02-22  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/console: POSIX says that shells only need to trap on
+     signals. Trapping on ERR isn't always supported. Conditionals have
+     been added to set the $failed variable in spots that seemed
+     appropriate for checking errors.
+
+2007-02-22  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/functions: Use arithmetic expansion and string length,
+     which are both mandated by POSIX, rather than spawning two processes
+     every time boot_mesg() is called.
+
+2007-02-22  Dan Nicholson  <dnicholson@linuxfromscratch.org>
+   * lfs/init.d/functions: In order to provide an `echo' which provides
+     handles the -e and -n options for all POSIX shells, a feature test
+     is added which stores its result in $ECHO. /bin/echo will be used
+     if the default echo is not capable. Changed the existing functions
+     to reference $ECHO when needed.
+   * lfs/init.d/console: Use $ECHO when -en is needed.
+
+2007-02-03  Bryan Kadzban  <bryan@linuxfromscratch.org>
+   * ChangeLog: Rename from CHANGELOG, start using GNU style entries.
+
+   * Makefile: Move setclock before checkfs.  Fixes #1948.
+
+2006-11-25  Bryan Kadzban  <bryan@linuxfromscratch.org>
+   * lfs/init.d/udev_retry: Copy Debian's "copy generated rules" initscript
+     code, to clean up when the rule_generator scripts run before / is
+     writable.  (Since the rule_generator code is from Debian, I assume their
+     cleanup code is appropriate.)
+
+2006-10-15  Bryan Kadzban  <bryan@linuxfromscratch.org>
+   * lfs/init.d/udev_retry: Fix to work with udev >= 099.
+
+n/a - June 2, 2006
+   * Removed console config file and makefile targets.
+   * Removed references to /dev/bug and bugreport in udev and
+     udev_retry bootscripts. (DJ Lucas)
+
+n/a - April 17, 2006
+   * Updated udev script to use the new udevsettle program.
+   * Added udev_retry script for systems that have /usr on a different
+     partition or for some other reason fail the initial replay. (Archaic)
+
+n/a - April 15, 2006
+   * Cleaned up contrib directory.  Removed: contrib/init.d,
+     contrib/enhanced, contrib/livecd, contrib/hotplug, and raq2
+     patch. (DJ Lucas)
+
+n/a - April 14, 2006
+   * Merged changes from udev_update branch (DJ Lucas)
+   * Replaced a return with an exit and reversed comment changes in
+     udev bootscript. (Dan Nicholson)
+   * Replaced walk_sysfs function in udev bootscript with new udevtrigger
+     program and move wait_for_uevents function inline. (DJ Lucas)
+   * Removed extra evaluate_retval in udev bootscript. (Ken Moffat)
+   * Wait for uevents to be processed in the udev script.  See ticket
+     #1720 for details. (Matthew Burgess)
+
+n/a - March 21, 2006
+   * Removed old references to boot_log function and arguments passed
+     to boot_mesg_flush in echo_* functions. (DJ Lucas)
+
+n/a - March 10, 2006
+   * Moved src argument to ipv4-static-route service script and
+     removed from ipv4-static service script. (DJ Lucas)
+
+n/a - March 8. 2006
+   * Correct sourced path in checkfs script. (Matthew Burgess)
+
+n/a - December 31, 2005
+   * Replaced /etc/rc.d with ${rc_base} in checkfs. (Vincent Fretin)
+
+n/a - December 24, 2005
+   * Added UTF-8 support to console script. (Alexander E. Patrakov)
+
+n/a - September 11, 2005
+   * Removed text wraping and boot logging.
+   * Changed killproc to use warning if not running
+   * Changed 'print_status warning' to use old style output
+   * Fixed display error with LSB init-functions script
+   * Made above killproc/print_status changes in enhanced
+     bootscripts.
+   * Made logger service configurable in enhanced
+     bootscripts. (DJ Lucas)
+
+n/a - August 14, 2005
+   * Added -s flag to pidofproc() for backwards
+     compatibility (DJ Lucas)
+   * Fixed erronous values returned by pidofproc() which
+     broke the functionality of statusproc (DJ Lucas)
+
+n/a - July 1, 2005
+   * Changed a == to a = in lfs/init.d/functions, in the boot_mesg
+     function for ash compliancy (Nathan Coulson)
+
+n/a - June 26, 2005
+   * Removed consolelog script from contrib
+   * Updated interactive rc script in contrib and added
+     README.rc-Interactive, added install target to the
+     Makefile. (DJ Lucas)
+
+3.2.2 - May 29, 2005
+   * Tagged as 3.2.2 (Nathan Coulson)
+
+n/a - May 26, 2005
+   * Added minimal target for cross-lfs book (Jim Gifford)
+   * Fixed raq2 patch (Jim Gifford)
+
+3.2.1 - May 1, 2005
+   * Tagged as 3.2.1 (Nathan Coulson)
+
+n/a - April 17, 2005
+   * removed touch from hotplug bootscript (Matthew Burgess)
+   * moved commands around in localnet bootscript (Andrew Benton)
+
+3.2.0 - March 30, 2005
+   * Changed from syslog-ng to sysklogd (Archaic)
+   * Temporairly changed loadproc to return 0 if the program is
+     already running (Nathan Coulson)
+   * Fixed (by reverting) ifup/ifdown/network (Nathan Coulson),
+     Reported by Jim Gifford
+   * Fixed network up/down along with adding support of ONHOTPLUG
+   * Tagged as 3.2.0
+
+n/a - March 19, 2005
+   * Updated RaQ2 patch (Jim Gifford)
+   * Added net.agent for Hotplug of Network adapters in contrib
+     (Jim Gifford)
+
+n/a - March 16, 2005
+   * Reverted the change from loadproc to start_daemon,
+     Moved compatibility code into one single function.
+     (Nathan Coulson)
+   * Readded the ONHOTPLUG option for ifup/ifdown (Nathan Coulson)
+   * Fixed killproc's output
+
+n/a - March 01, 2005
+   * Added CHECK_LINK variable in ifconfig.*/*, so if the
+     interface does not exist, it will not fail.
+     (Nathan Coulson)
+
+n/a - February 19, 2005
+   * Added evaluate_retval to the end of loadproc and killproc.
+     lsb does not say that killproc should print [  OK  ],
+     but required for compatibility.  (Nathan Coulson)
+
+n/a - February 9, 2005
+   * Accidentally mounted /dev with 775 instead of 755, fixed
+     (Reported by Alexander E. Patrakov)
+
+n/a - February 9, 2005
+   * Bugfix for /dev, now mounted with 755 permission
+
+n/a - February 8, 2005
+   * changed pidof, so it doesn't check the process id
+     of running bootscripts, and to process shell scripts
+     (Nathan Coulson)
+
+n/a - February 6, 2005
+   * Updated main functions file with lsb functions file
+     Should now be LSB compliant (Nathan Coulson)
+
+n/a - January 10, 2005
+   * Moved ONBOOT check back to network (Nathan Coulson)
+   * Removed ONHOTPLUG check (Nathan Coulson)
+
+n/a - January 6, 2005
+   * fixed mountkernfs output (Nathan Coulson)
+   * reverted mountfs fakemounting (Nathan Coulson)
+
+n/a - January 5, 2005
+   * Attempted to simplify network bootup files (Nathan Coulson)
+   * Modified mountkernfs to use mountpoint (Nathan Coulson)
+   * Assuming sysfs is always mounted (Nathan Coulson)
+   * Moved fakemount to below mounting (Nathan Coulson)
+   * Removed -t noramfs from umount, as we now use tmpfs (Nathan Coulson)
+   * moved sysctl from mountkernfs to sysctl (Nathan Coulson)
+   * Added -q to sysctl (Nathan Coulson)
+
+n/a - January 2, 2005
+   * Fixed statusproc output. (DJ Lucas)
+
+3.1.0 - December 31, 2004
+   * fixed textoutput
+   * Tagged as 3.1.0
+
+n/a - December 30, 2004
+   * Fixed name of LSB Functions file
+   * Changed boot_mesg to act like echo instead of echo -n, boot_mesg now
+     takes the -n argument if you do not wish to goto the next line
+
+3.0.1 - December 25, 2004
+   * Released as 3.0.1
+
+n/a - December 20, 2004
+   * Cleaned up header.
+   * Added RaQ2 Patch
+
+n/a - December 16, 2004
+   * Fixed a text typo in udev, tmpfs instead of ramfs (Steve Crosby)
+
+n/a - December 14, 2004
+   * Fixed a warning with find in cleanfs
+
+
+3.0 - December 8, 2004
+
+n/a - December 5, 2004
+   * Moved bootlog to use local2 service to avoide conflict with
+     dhcpcd (DJ Lucas)
+
+3.0-rc1 - December 1, 2004
+   * rc-Interactive added (DJ Lucas)
+   * rc-Interactive moved to contrib (Nathan Coulson)
+
+n/a - November 27, 2004
+   * Moved bootlog to use local1 to avoid conflict with ppd (DJ Lucas)
+
+n/a - November 25, 2004
+   * Added consolelog to contrib/sysconfig (DJ Lucas)
+   * Rewrite of line wraping in boot_mesg and various fixes
+     related to boot_mesg changes (DJ Lucas, Alexander Patrakov)
+   * syslog-ng is now installed by default (Jeremy Utley)
+   * hotplug is now installed by default (Jeremy Utley)
+   * udev now uses /sbin/hotplug as the default hotplug handler
+     (Nathan Coulson)
+   * udev now mounts a tmpfs instead of a ramfs onto /dev,
+     as suggested by Greg K-H (Nathan Coulson)
+   * Created contrib/lsb, and added a LSB compliant functions file
+     (Nathan Coulson, and Alexander Patrakov)
+   * Modified find [requires find 4.2.3+] (Matthew Burgess)
+
+n/a - November 20, 2004
+   * Modifed modules script to return to previous kernel message
+     level (DJ Lucas)
+
+n/a - November 02, 2004
+   * Added sysctl -p to mountkernfs (Matthew Burgess, DJ Lucas)
+
+n/a - October 07, 2004
+   * statusproc modified not to send data to bootlog (Nathan Coulson)
+   * Fixed halt commands in checkfs and udev (James Robertson)
+
+n/a - October 04, 2004
+   * Fixes to commit on 2004/09/30 (James Robertson)
+   * Revert a few changes until later (Nathan Coulson)
+   * Added a warning about switching from a 8bit font
+     to a 9bit font (Alexander Patrakov)
+
+n/a - September 30, 2004
+   * Finished off boot_mesg() (James Robertson)
+   * Standardized all scripts to same variable format and other
+     internal sh/bash function calls (James Robertson)
+   * Fully implemented boot_mesg across all scripts in sysconfig
+     and init.d (James Robertson)
+
+n/a - September 26, 2004
+   * Added BOOTMESG_PREFIX variable, so users can optionally set a
+     prefix for boot messages (James Robertson)
+   * Fixed localnet status, to use ip instead of ifconfig (Jim Gifford)
+   * Added consolelog to contrib (DJ Lucas)
+   * loadproc and killproc can have the -nomsg parameter to avoid
+     calling evaluate_retval or print_status (Jim Gifford)
+   * boot_mesg no longer explicitly adds a \n onto end of lines
+   * Added a function called boot_mesg_flush, which can
+     dump the BOOTMESG to the bootlog.  This helps avoid making
+     everything have to end in OK/WARN/FAIL (Nathan Coulson)
+
+n/a - September 24, 2004
+   * Removed /dev/udev.tdb test
+
+n/a - September 23, 2004
+   * Fixed boot_log so it output's $@'s contents, not @$
+   * Added support for colors in boot_mesg (James Robertson)
+   * Modified udev's error checking
+   * Modified hotplug's error checking
+   * Converted checkfs's error handling to use boot_mesg with
+     color support
+   * Added $INFO color to functions (James Robertson)
+
+n/a - September 22, 2004
+   * Removed the dependency on wl by replacing it with grep (Bryan Kadzban)
+   * Fixed getpids, to remove unused pids obtained from $PIDFILE
+   * Removed ${NORMAL} from echo "$BOOTMESG" in functions, and removed
+      space added to each additional sentence tacked onto BOOTMESG
+   * boot_mesg now handles \n's properly, and does not dimish the size of
+     the next line (James Robertson)
+   * boot_log has been added.  The echo_ functions commit the log,
+     and then clear the BOOTMSG variable
+   * All scriptes have been converted to use boot_mesg
+
+n/a - September 21, 2004
+   * boot_mesg has been enhanced.  Subsequent calls will overwrite
+     previous text, and it will wrap text basedupon the variable ${WCOL}.
+     (James Robertson)
+   * Fixed mtu optional service typo (Kevin P Fleming)
+   * Added SOURCE variable to ipv4-static-route (Kevin P Fleming)
+
+n/a - September 16, 2004
+   * nework interfaces are now brought down in reverse order
+
+n/a - September 15, 2004
+   * Added blue bracket, from dj's 3.0-pre1 bootscript package
+     [echo_failure, echo_warning, and echo_ok]
+   * Added a new function called boot_mesg, meant to replace the echo
+     command.
+     This will give us the posibility of doing logging at a later date
+   * Do not set COLUMNS if COLUMNS is already set
+   * Modified getpids, loadproc, killproc, reloadproc, and statusproc as
+     done by DJ
+
+2.2.3 - September 04, 2004
+   * Tagged as 2.2.3
+
+n/a - September 04, 2004
+   * Added new script to contrib for syslog-ng, which is now part of
+     LFS-Unstable, and a new Makefile target install-syslog-ng which
+     removes the sysklogd links, and replaces them with syslog-ng (JU)
+
+2.2.2 - August 11, 2004
+   * Tagged as 2.2.2
+
+n/a - August 7, 2004
+   * Added missing error redirect (/dev/null) in getpids. (DJ)
+
+n/a - August 4, 2004
+   * Added MODE, DIRMODE, and CONFMODE variables to the makefile
+     to allow permissions to be set at install. (DJ)
+
+n/a - July 31, 2004
+   * Moved PIDFILE check to getpids and removed arguments from
+     killproc and reloadproc.  Signals are now set at beginning of
+     funtcions script with KILLDELAY. (DJ)
+   * Added a optional service script which can set the MTU for a given
+     interface
+
+n/a - July 21, 2004
+
+   * Committed DJ Lucas's patch for the killproc function.  It no
+     longer requires arguments if PIDFILE is set
+   * added --backup to all sysconfig configuration files, so they are not
+     replaced on a make install
+
+n/a - July 13, 2004
+
+   * Added the PEER variable to the ifconfig.*/* file, done by
+     Kevin P. Fleming
+
+2.2.1 - July 12, 2004
+
+   * Tagged as 2.2.1
+
+n/a - July 12, 2004
+
+   * Hotplug was moved from rcsysinit.d to rc{1,2,3,4,5} to help bring
+     up/down network interfaces started by hotplug.  This has been revoked
+     at this time
+   * Networking interfaces are now brought down in reverse order
+   * Moved the ONBOOT check to within ifup/ifdown, so we can bring up/down
+     the interfaces at boottime/shutdown properly, done by Kevin P. Fleming
+   * Use PREFIX instead of NETMASK for adding addresses in ipv4-static,
+     done by Kevin P. Fleming
+   * Fix reversal of services inside ifconfig.* directories in ifdown,
+     done by Kevin P. Fleming
+   * Add ipv4-static-route service, supplied by Kevin P. Fleming
+
+2.2.0 - July 12, 2004
+
+   * Tagged as 2.2.0
+
+n/a - July 11, 2004
+
+   * Minor script output changes
+   * Repaired networking scripts broken in previous commits
+
+n/a - July 10, 2004
+
+   * We now use the ip program [from iproute2] instead of ipconfig
+     [net-tools] to bring up/down ethernet interfaces, and local
+     connections, submitted by Jim Gifford
+   * Removed gateway backward compatibility
+   * Removed ifup-eth0 ifdown-eth0 compatibility
+   * Removed the "assume SERVICE=static if SERVICE is unset" compatibility
+   * Pass the IFCONFIG environmental variable to services, so they can
+     locate the file with the parameters they must read
+   * Rename static to ipv4-static
+   * Stage1 for network configuration via directories, ifup and ifdown
+     modified, and the static service modified
+   * Stage2 for network configuration via directories complete, network was
+     modified to check within subdirectories for ONBOOT=yes.  Final Stage
+
+n/a - July 8, 2004
+
+   * Changed iso01 to lat1 everywhere in /etc/sysconfig/console. This
+     fixes the problem with line-drawing characters.
+
+n/a - July 7, 2004
+
+   * Halted the computer, if unable to mount /dev as a ramfs
+
+n/a - July 6, 2004
+
+   * Moved the hotplug bootscript back to contrib, it will not be used in
+     the testing branch of the lfs book at this time
+
+n/a - July 4, 2004
+
+   * Modified ifup and ifdown to be hotplug aware
+
+n/a - July 3, 2004
+
+   * Change the check for ONBOOT into a source within a subshell
+
+n/a - July 1, 2004
+
+   * Moved hotplug start to runlevels 3-5 from sysinit
+
+n/a - June 30, 2004
+
+   * Pass -depth in cleanfs
+
+n/a - June 29, 2004
+
+   * Made the grep for ONBOOT in the network script more exact
+
+2.1.2 - June 27, 2004
+
+   * Install the automatic module loading script by default
+   * Tagged as 2.1.2
+
+n/a - June 26, 2004
+
+   * Fixed font for UK in /etc/sysconfig/console
+
+n/a - June 23, 2004
+
+   * Fixed a typo in the hotplug installation procedure
+
+n/a - June 21, 2004
+
+   * Re-ordered the "mount" and "echo" commands in the udev script, to
+     prevent a possible race
+   * Converted the udev script to use udevsend/udevd
+   * Moved removal of /fastboot and /forcefsck to just after the root fs
+     becomes writable, and dropped the removal of /etc/nologin
+   * Cleaned and tweaked both the output and actions of cleanfs
+   * Removed the disabling of hotplug from sendsignals
+   * Removed anything that might call "rmmod" in hotplug, since rmmod is
+     notoriously troublesome in the 2.6.x kernels, and call it with the
+     stop argument from runlevels 0 and 6
+   * Fixed previous modifications to the udev and cleanfs scripts
+
+n/a - June 20, 2004
+
+   * Rolled back to the /dev/.udev.tdb check from 2.1.1, since the new
+     one doesn't work as well, and the bug that caused it to change is
+     now fixed
+
+n/a - June 18, 2004
+
+   * Updated sysconfig/console
+   * Fixed disabling hotplug in sendsignals
+   * hotplug is now installed by default
+
+n/a - June 15, 2004
+
+   * Reset /proc/sys/kernel/hotplug to /bin/true when running the "stop"
+     command for hotplug
+   * Cleaned the output of the mountkernfs script
+   * Don't output "Creating files and directories" when it's a lie
+
+n/a - June 8, 2004
+
+   * Changed the location the optional module script is installed to
+     /etc/rc.d/rcsysinit.d/S05modules.
+
+n/a - June 4, 2004
+
+   * Added a echo to the > /proc/sys/kernel/hotplug line, as > did not
+     clear it
+
+n/a - June 3, 2004
+
+   * Added '> /proc/sys/kernel/hotplug' to sendsignals, to disable hotplug
+     events, which may start up new daemons
+   * Added elementry bootup logging support.  If it can write to
+     /var/log/boot.log, it will
+   * Removed logging support, it kept / from being remounted ro
+
+n/a - June 2, 2004
+
+   * Reorganize what goes on in the udev script
+   * Reorganize what goes on in the hotplug script
+   * Moved setting /sbin/hotplug as the default hotplug manager into the
+     hotplug script
+
+n/a - June 1, 2004
+
+   * Removed usbfs from mountkernfs, and mountfs
+   * Edited the udev script, so it'll always set /proc/sys/kernel/hotplug
+
+n/a - May 24, 2004
+
+   * Added more example keymaps and font settings to /etc/sysconfig/console
+   * Install the /etc/sysconfig/console file by default
+
+n/a - May 23, 2004
+
+   * Changed the symlink for the optional modules script
+   * Removed depmod from the optional modules script
+
+n/a - May 20, 2004
+
+   * Removed the random script.  There is not a strong enough case for
+     adding it to the lfs-bootscripts.
+
+n/a - May 19, 2004
+
+   * Added the random bootscript from blfs-bootscripts
+
+2.1.1 - May 18, 2004
+
+   * Fixed installation of modules configuration
+   * Tagged as 2.1.1
+
+n/a - May 16, 2004
+
+   * Added sysklogd configuration file
+   * Added example /etc/sysconfig/console file
+   * Do not attempt to populate /dev if that directory has already been
+     set up earlier in bootup (such as on initramfs/initrd)
+   * Prevent excessive kernel output once klogd starts
+   * Added hotplug script
+
+n/a - May 15, 2004
+
+   * Namespace rework (enumeration of scripts is now cleaner)
+   * Removed directories: blfs, contrib/new-boot-0.2, contrib/rlv
+
+n/a - May 13, 2004
+
+   * Repaired the console script
+   * Added a check to cleanfs [createfiles], to make sure that we have
+     a valid devicetype, if we have type=dev
+
+n/a - May 11, 2004
+
+   * Added usbfs to mountkernfs and mountfs
+
+n/a - May 6, 2004
+
+   * Don't use loadproc in localnet, it's not meant for that
+   * Quote tests of $PIDFILE, so that things behave when it's empty
+   * Removed unused kill -0 from killproc
+
+2.1.0 - May 4, 2004
+
+   * Update to the console script, prevent install of the console script
+   * Chgrp /var/run/utmp to group utmp if it exists.
+   * Moved udev from contrib to lfs
+   * Moved GATEWAY setup from /etc/rc.d/init.d/network to
+     /etc/sysconfig/network-devices/services/static
+   * Use the contents of $PIDFILE, if it is set in the script
+   * Tagged as 2.1.0.
+
+n/a - April 30, 2004
+
+   * Moved the loadkeys script to console, and added setfont.  Contributed
+     by Alexander E. Patrakov
+
+2.0.5 - April 29, 2004
+
+   * Added the heimdal init script.
+   * Tagged as 2.0.5
+
+2.0.4 - April 27, 2004
+
+   * Tagged as 2.0.4
+
+n/a - April 24, 2004
+
+   * Added a example script for /etc/sysconfig/createfiles
+   * Added a check for /sys before mounting sysfs
+   * Added -t noramfs to umount on /etc/rc.d/init.d/mountfs.
+     This will prevent /dev from being unmounted, if /proc/mounts
+     is symlinked to /etc/mtab
+
+n/a - April 18, 2004
+
+   * Small fix to a if statement in netfs
+
+n/a - April 17, 2004
+
+   * Added the lisa bootscript, lisa is part of the KDE Network package
+   * Add proper error checking to the mountfs script when writing out mtab
+   * Add more comments to the udev script, and conditionalize various
+     things that should've been done this way in the first place
+   * Include a template module auto-loading configuration file instead of
+     having syntax comments in the script itself
+
+n/a - April 12, 2004
+
+   * Added a automatic modules loading script to the contrib directory
+     submitted by Zack
+   * Edited mountkernfs, so that if you can mount sysfs on /sys, it will
+     be mounted at boottime.  Should not affect 2.4 systems
+   * Since all entries are added to /etc/mtab, we should not require
+     the NO_FS variable.  It has been removed from mountfs
+   * Added the udev script into the contrib directory, submitted by Zack
+
+2.0.3 - April 8, 2004
+
+   * Updated cleanfs, so it can create devices.  Supplied by Zack
+   * Tagged as 2.0.3
+
+n/a - March 31, 2004
+
+   * Changed "Press Enter" on unknown error to white
+   * Moved S10swap to S20swap.  When udev is added, it has to be
+     ran before swap is setup
+
+n/a - March 29, 2004
+
+   * Fixed the rc5.d symlink for ntp so it creates S26ntp instead
+     of S26npt
+   * Moved S20mountkernfs to S00mountkernfs in rcsysinit.d.  Will help in
+     the addition of udev in the future.
+
+n/a - March 27, 2004
+
+   * Changed gdm path from hardcoded to program name.  There are 2 spots
+     gnome can be installed
+
+n/a - March 26, 2004
+
+   * Updated fam daemon script.  It now uses the famd daemon instead of fam
+
+n/a - March 24, 2004
+
+   * Removed mount command out of nfs.  the netfs script already handles
+     this
+
+2.0.2 - March 24, 2004
+
+   * Edited cleanfs to solve a problem.  [if /tmp does not exist, it
+     could run the find command on the root filesystem]
+   * Tagged as 2.0.2
+
+2.0.1 - March 24, 2004
+
+   * Found typo in BLFS MySQL Script.
+   * Tagged as 2.0.1
+
+2.0.0 - March 23, 2004
+
+   * Tagged as 2.0.0, no changes from 2.0.0-pre2
+
+2.0.0-pre2 - March 23, 2004
+
+   * Cleaned the /tmp directory on bootup.  find command supplied by Zack
+   * Added a script which can automatically create files and directories
+     on startup.  [Handles files/directories, permissions, and user/group].
+     Created by Zack
+   * Added blfs/init.d/fam script
+   * Tagged as 2.0.0-pre2
+
+n/a - March 20, 2004
+
+   * Added create-service-dir target and removed from create-dirs
+   * Changed service script install targets to use
+     create-service-dir
+   * Added check for dhcpcd service script for stale pid file
+     Suggested by Jeremy
+   * Added ifconfig to ipx service script for hosting device not up
+
+n/a - March 19, 2004
+
+   * Added support for ETCDIR, and DESTDIR in the Makefile,
+     compliments of Tushar
+   * Renamed mountproc to mountkernfs
+   * Updated the README file
+   * Coloured the print_error_message in functions red
+   * added stop to the setclock script
+   * changed echo > to > in cleanfs, suggested by winkie
+   * BLFS Scripts Added,  collected by Zack
+   * Edited killproc, so it checks for running pids, rather then
+     the completion of the above kill command.  Suggested by Zack
+   * Added network services found in blfs, removed adsl.  Submitted by
+     DJ.
+
+1.99.4 - March 17, 2004
+
+   * Fixed one last halt line in checkfs script
+   * Moved the directory structure around
+   * Tagged as development release 1.99.4
+
+n/a - February 28, 2004
+
+   * Added stty sane to the top of rc.d/init.d/rc.  Hopefully, this will
+     fix the problems
+   * Also changed all instances of <ctrl-j> back to enter
+
+1.99.3 - February 23, 2004
+
+   * Tagged as development release 1.99.3
+
+n/a - February 19, 2004
+
+   * Fixed checkfs script, so it will no longer continue to boot after a
+     failure in the init.d/checkfs script.  Tested with the help of Andre
+     Müller.  Fix suggested by Zack
+
+n/a - February 7, 2004
+
+   * Added -s onto grep on network stop
+   * Replaced a few more enter's with ctrl-j
+
+1.99.2 - February 6, 2004
+
+   * Added -s onto grep in network start
+   * Tagged as development release 1.99.2
+
+n/a - February 4, 2004
+
+   * Fixed $WARNING $NORMAL and $ERROR lines, broken by changes in
+     functions
+   * Changed above fixes to work with ash
+   * Fixed checkfs symlink in Makefile
+   * functions is no longer installed as executable
+   * Added a check to checkfs, for errors above 16.  These are caused by
+     being unable to run fsck, either due to user input, or a unfunctional
+     linux system
+
+1.99.1 - February 2, 2004
+
+   * Tagged as development release 1.99.1
+
+n/a - February 2, 2004:
+
+   * Added -d to umount in mountfs.
+   * Fixed network shutdown script
+   * Fixed Makefile rc.6 to reboot
+   * Added -s flag to grep command in rc.d/init.d/network -
+     suppresses an error if no ifconfig.* files exist
+
+n/a - January 30, 2004:
+
+   * Reorganized the network system to accept multiple services.
+   * Ash Compliancy
+   * Modified some scripts to follow template
+   * Reorganized functions, based upon Ash Compliancy Patch
+   * Added a sleep 5 to failure for evaulate_retval, and changed
+     evaulate_retval to return true instead of false.  Instead, a
+     exit 1 will indicate the script terminated abnormally, causing
+     your system to wait until you hit ctrl-J
+   * Switched "Press enter to continue" to "Press <ctrl-j> to continue"
+   * replaced 3 with $KILLDELAY in sendsignals
+   * mountfs does not mount network filesystems [identified by _netdev
+     in /etc/fstab]
+   * removed unneded touch out of cleanfs
+
+n/a - January 30, 2004:
+
+   * New maintainers for the lfs-bootscripts package are:
+     Jeremy Utley (jeremy@linuxfromscratch.org)
+     Nathan Coulson (nathan@linuxfromscratch.org)
+
+1.11 - February 3rd, 2003:
+
+   * /etc/mtab is now a real file and is handled correctly so there are
+   no errors even when the machine has crashed.
+
+1.10 - September 12th, 2002:
+
+   * Fixed up checkfs to work with non-ext2 filesystems too (such as
+     minix).
+
+1.9 - April 5th, 2002:
+
+   * reloadproc function had a missing '=' in the "failure 1" command (it
+     should be failure=1)
+
+   * When script exists with unexpected value, you have to hit "Enter" to
+     continue, not just a random key as printed on the screen.
+
+   * Moved K10sysklogd, K20sendsignals, K30mount and K40swap to
+     K40sysklogd, K50sendsignals, K60mount, K70swap
+
+   * Changed the #!/bin/sh lines to #!/bin/bash - /bin/sh may not be
+     linked to bash but to some other shell of your choice. These scripts
+     are written to work with bash, so you can't just run them when
+     /bin/sh -> csh or ash or whatever else tickles your fancy. This
+     change should fix that.
+
+1.8 - March 14th, 2002:
+
+   * Fixed the getpids function call so PPID's would be taken into account
+     properly.
+
+   * Added the 'contrib' directory with other people's bootscript
+     implementations.
+
+1.7 - March 10th, 2002:
+
+   * Used code from Matthias Benkmann's simpleinit-msb @
+     http://winterdrache.de/linux/newboot/index.html mainly for improved
+     killproc function handling
+
+   * When a requested process isn't running, or is already running, a
+     warning "Not running" or "Already running" will be displayed. This
+     was out of allignment due to a missing $CURS_UP
+
+   * Removed "||exit" from ifup and ifdown scripts. They are useless.
+
+   * Changed the loadkeys script to run "loadkeys -d" and removed the need
+     for the /etc/sysconfig/keyboard file. The kbd patch fixes the
+     "loadkeys -d" behavior.
+
+1.6 - February 26th, 2002:
+
+   * replaced -o %PPID with -o $PPID throughout the functions script. This
+     construct does what it's supposed to do (don't take PPID into account
+     because this would fail if a running daemon and the bootscript have
+     the same name).
+
+   * added 'restart' to the swap script
+
+   * instead of using 'echo -n' to suppress newlines so the [ OK ] and
+     related messages align properly, substitute this with a single echo
+     command that simply goes one line up before outputting anything. This
+     also has the benefit that when programs have their own output (like
+     swapon, fsck and loadkeys), there won't be an unwanted blank line
+     between the program's output and the [ OK ] et all. messages.
+
+1.5 - February 2nd, 2002:
+
+   * added 'exit 1' to the statusproc function when there aren't enough
+   parameters passed to it (such as the name of process to check for)
+
+1.4 - February 2nd, 2002:
+
+   * when /fastboot is detected and the message about it is printed,
+     don't run 'exit 1' else the rc script will cause a [FAILED] to
+     be printed which is undesired in this case.
+
+1.3 - January 30th, 2002:
+   * network script: changed default route detection by using the same
+     method as used when starting the script: check if the GATEWAY
+     variable is set
+
+   * removed the emptying of /etc/mtab since it's a symlink to
+     /proc/mounts now
+
+   * added the mountproc script which mounts the proc system. This is done
+     because we need proc mounted even before the mountfs script is ran
+     (now that /etc/mtab is a symlink to /proc/mounts)
+
+   * removed all absolute paths from command calls
+
+   * added umask 022 and PATH="/bin:/usr/bin:/sbin:/usr/sbin" to the
+     functions script. Every file now sources this so that umask and PATH
+     are set correctly
+
+1.2 - January 26th, 2002:
+   * network script: detect if a default route is set before removing it
+

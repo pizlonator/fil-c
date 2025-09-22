@@ -1,0 +1,69 @@
+#!/bin/sh
+########################################################################
+# Begin sendsignals
+#
+# Description : Sendsignals Script
+#
+# Authors     : Gerard Beekmans - gerard@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            sendsignals
+# Required-Start:
+# Should-Start:
+# Required-Stop:       $local_fs swap localnet
+# Should-Stop:
+# Default-Start:
+# Default-Stop:        0 6
+# Short-Description:   Attempts to kill remaining processes.
+# Description:         Attempts to kill remaining processes.
+# X-LFS-Provided-By:   LFS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   stop)
+      omit=$(pidof mdmon)
+      [ -n "$omit" ] && omit="-o $omit"
+
+      log_info_msg "Sending all processes the TERM signal..."
+      killall5 -15 $omit
+      error_value=${?}
+
+      sleep ${KILLDELAY}
+
+      if [ "${error_value}" = 0 -o "${error_value}" = 2 ]; then
+         log_success_msg
+      else
+         log_failure_msg
+      fi
+
+      log_info_msg "Sending all processes the KILL signal..."
+      killall5 -9 $omit
+      error_value=${?}
+
+      sleep ${KILLDELAY}
+
+      if [ "${error_value}" = 0 -o "${error_value}" = 2 ]; then
+         log_success_msg
+      else
+         log_failure_msg
+      fi
+      ;;
+
+   *)
+      echo "Usage: ${0} {stop}"
+      exit 1
+      ;;
+
+esac
+
+exit 0
+
+# End sendsignals

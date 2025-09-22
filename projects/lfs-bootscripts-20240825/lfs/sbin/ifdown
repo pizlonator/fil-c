@@ -1,0 +1,100 @@
+#!/bin/bash
+########################################################################
+# Begin /sbin/ifdown
+#
+# Description : Interface Down
+#
+# Authors     : Nathan Coulson - nathan@linuxfromscratch.org
+#               Kevin P. Fleming - kpfleming@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#
+# Version     : LFS 7.0
+#
+# Notes       : the IFCONFIG variable is passed to the scripts found
+#               in the /lib/services directory, to indicate what file the
+#               service should source to get interface specifications.
+#
+########################################################################
+
+RELEASE="7.0"
+
+USAGE="Usage: $0 [ -hV ] [--help] [--version] interface"
+VERSTR="LFS ifdown, version ${RELEASE}"
+
+while [ $# -gt 0 ]; do
+   case "$1" in
+      --help | -h)     help="y"; break ;;
+
+      --version | -V)  echo "${VERSTR}"; exit 0 ;;
+
+      -*)              echo "ifup: ${1}: invalid option" >&2
+                       echo "${USAGE}" >& 2
+                       exit 2 ;;
+
+      *)               break ;;
+   esac
+done
+
+if [ -n "$help" ]; then
+   echo "${VERSTR}"
+   echo "${USAGE}"
+   echo
+   cat << HERE_EOF
+ifdown is used to bring down a network interface.  The interface
+parameter, e.g. eth0 or eth0:2, must match the trailing part of the
+interface specifications file, e.g. /etc/sysconfig/ifconfig.eth0:2.
+
+HERE_EOF
+   exit 0
+fi
+
+file=/etc/sysconfig/ifconfig.${1}
+
+# Skip backup files
+[ "${file}" = "${file%""~""}" ] || exit 0
+
+. /lib/lsb/init-functions
+
+if [ ! -r "${file}" ]; then
+   log_warning_msg "${file} is missing or cannot be accessed."
+   exit 1
+fi
+
+. ${file}
+
+if [ "$IFACE" = "" ]; then
+   log_failure_msg "${file} does not define an interface [IFACE]."
+   exit 1
+fi
+
+# We only need to first service to bring down the interface
+S=`echo ${SERVICE} | cut -f1 -d" "`
+
+if ip link show ${IFACE} > /dev/null 2>&1; then
+   if [ -n "${S}" -a -x "/lib/services/${S}" ]; then
+     IFCONFIG=${file} /lib/services/${S} ${IFACE} down
+   else
+     MSG="Unable to process ${file}.  Either "
+     MSG="${MSG}the SERVICE variable was not set "
+     MSG="${MSG}or the specified service cannot be executed."
+     log_failure_msg "$MSG"
+     exit 1
+  fi
+else
+   log_warning_msg "Interface ${1} doesn't exist."
+fi
+
+# Leave the interface up if there are additional interfaces in the device
+link_status=`ip link show ${IFACE} 2>/dev/null`
+
+if [ -n "${link_status}" ]; then
+   if [ "$(echo "${link_status}" | grep UP)" != "" ]; then
+      if [ "$(ip addr show ${IFACE} | grep 'inet ')" == ""  ]; then
+         log_info_msg "Bringing down the ${IFACE} interface..."
+         ip link set ${IFACE} down
+         evaluate_retval
+      fi
+   fi
+fi
+
+# End /sbin/ifdown

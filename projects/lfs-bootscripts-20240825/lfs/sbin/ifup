@@ -1,0 +1,150 @@
+#!/bin/sh
+########################################################################
+# Begin /sbin/ifup
+#
+# Description : Interface Up
+#
+# Authors     : Nathan Coulson - nathan@linuxfromscratch.org
+#               Kevin P. Fleming - kpfleming@linuxfromscratch.org
+# Update      : Bruce Dubbs - bdubbs@linuxfromscratch.org
+#               DJ Lucas - dj@linuxfromscratch.org
+#
+# Version     : LFS 7.7
+#
+# Notes       : The IFCONFIG variable is passed to the SERVICE script
+#               in the /lib/services directory, to indicate what file the
+#               service should source to get interface specifications.
+#
+########################################################################
+
+up()
+{
+  log_info_msg "Bringing up the ${1} interface..."
+
+  if ip link show $1 > /dev/null 2>&1; then
+     link_status=`ip link show $1`
+
+     if [ -n "${link_status}" ]; then
+        if ! echo "${link_status}" | grep -q UP; then
+           ip link set $1 up
+        fi
+     fi
+
+  else
+     log_failure_msg "Interface ${IFACE} doesn't exist."
+     exit 1
+  fi
+
+  evaluate_retval
+}
+
+RELEASE="7.7"
+
+USAGE="Usage: $0 [ -hV ] [--help] [--version] interface"
+VERSTR="LFS ifup, version ${RELEASE}"
+
+while [ $# -gt 0 ]; do
+   case "$1" in
+      --help | -h)     help="y"; break ;;
+
+      --version | -V)  echo "${VERSTR}"; exit 0 ;;
+
+      -*)              echo "ifup: ${1}: invalid option" >&2
+                       echo "${USAGE}" >& 2
+                       exit 2 ;;
+
+      *)               break ;;
+   esac
+done
+
+if [ -n "$help" ]; then
+   echo "${VERSTR}"
+   echo "${USAGE}"
+   echo
+   cat << HERE_EOF
+ifup is used to bring up a network interface.  The interface
+parameter, e.g. eth0 or eth0:2, must match the trailing part of the
+interface specifications file, e.g. /etc/sysconfig/ifconfig.eth0:2.
+
+HERE_EOF
+   exit 0
+fi
+
+file=/etc/sysconfig/ifconfig.${1}
+
+# Skip backup files
+[ "${file}" = "${file%""~""}" ] || exit 0
+
+. /lib/lsb/init-functions
+
+if [ ! -r "${file}" ]; then
+   log_failure_msg "Unable to bring up ${1} interface! ${file} is missing or cannot be accessed."
+   exit 1
+fi
+
+.  $file
+
+if [ "$IFACE" = "" ]; then
+   log_failure_msg "Unable to bring up ${1} interface! ${file} does not define an interface [IFACE]."
+   exit 1
+fi
+
+# Do not process this service if started by boot, and ONBOOT
+# is not set to yes
+if [ "${IN_BOOT}" = "1" -a "${ONBOOT}" != "yes" ]; then
+   exit 0
+fi
+
+# Bring up the interface
+if [ "$VIRTINT" != "yes" ]; then
+   up ${IFACE}
+fi
+
+for S in ${SERVICE}; do
+  if [ ! -x "/lib/services/${S}" ]; then
+    MSG="\nUnable to process ${file}.  Either "
+    MSG="${MSG}the SERVICE '${S} was not present "
+    MSG="${MSG}or cannot be executed."
+    log_failure_msg "$MSG"
+    exit 1
+  fi
+done
+
+#if [ "${SERVICE}" = "wpa" ]; then log_success_msg; fi
+
+# Create/configure the interface
+for S in ${SERVICE}; do
+  IFCONFIG=${file} /lib/services/${S} ${IFACE} up
+done
+
+# Set link up virtual interfaces
+if [ "${VIRTINT}" == "yes" ]; then
+   up ${IFACE}
+fi
+
+# Bring up any additional interface components
+for I in $INTERFACE_COMPONENTS; do up $I; done
+
+# Set MTU if requested. Check if MTU has a "good" value.
+if test -n "${MTU}"; then
+   if [[ ${MTU} =~ ^[0-9]+$ ]] && [[ $MTU -ge 68 ]] ; then
+      for I in $IFACE $INTERFACE_COMPONENTS; do
+         ip link set dev $I mtu $MTU;
+      done
+   else
+      log_info_msg2 "Invalid MTU $MTU"
+   fi
+fi
+
+# Set the route default gateway if requested
+if [ -n "${GATEWAY}" ]; then
+   if ip route | grep -q default; then
+      log_warning_msg "Gateway already setup; skipping."
+   else
+      log_info_msg "Adding default gateway ${GATEWAY} to the ${IFACE} interface..."
+      ip route add default via ${GATEWAY} dev ${IFACE}
+      evaluate_retval
+   fi
+fi
+
+# End /sbin/ifup

@@ -1,0 +1,69 @@
+#!/bin/sh
+########################################################################
+# Begin scriptname
+#
+# Description :
+#
+# Authors     :
+#
+# Version     : LFS x.x
+#
+# Notes       :
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            template
+# Required-Start:
+# Should-Start:
+# Required-Stop:
+# Should-Stop:
+# Default-Start:
+# Default-Stop:
+# Short-Description:
+# Description:
+# X-LFS-Provided-By:
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+      log_info_msg "Starting..."
+    # if it is possible to use start_daemon
+      start_daemon fully_qualified_path
+    # if it is not possible to use start_daemon
+    # (command to start the daemon is not simple enough)
+      if ! pidofproc daemon_name_as_reported_by_ps >/dev/null; then
+         command_to_start_the_service
+      fi
+      evaluate_retval
+      ;;
+
+   stop)
+      log_info_msg "Stopping..."
+    # if it is possible to use killproc
+      killproc fully_qualified_path
+    # if it is not possible to use killproc
+    # (the daemon shouldn't be stopped by killing it)
+      if pidofproc daemon_name_as_reported_by_ps >/dev/null; then
+         command_to_stop_the_service
+      fi
+      evaluate_retval
+      ;;
+
+   restart)
+      ${0} stop
+      sleep 1
+      ${0} start
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop|restart}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End scriptname
