@@ -1,0 +1,37 @@
+# Echo the interface flags, reason and message options
+
+if [ "$reason" = "TEST" ]; then
+	# General variables at the top
+	set | while read line; do
+		case "$line" in
+		interface=*|pid=*|reason=*|protocol=*|profile=*|skip_hooks=*)
+			echo "$line";;
+		esac
+	done
+	# Interface flags
+	set | while read line; do
+		case "$line" in
+		ifcarrier=*|ifflags=*|ifmetric=*|ifmtu=*|ifwireless=*|ifssid=*)
+			echo "$line";;
+		esac
+	done
+	# Old lease
+	set | while read line; do
+		case "$line" in
+		old_*) echo "$line";;
+		esac
+	done
+	# New lease
+	set | while read line; do
+		case "$line" in
+		new_*) echo "$line";;
+		esac
+	done
+	# Router Advertisements
+	set | while read line; do
+		case "$line" in
+		nd[0-9]*_*) echo "$line";;
+		esac
+	done
+	exit 0
+fi

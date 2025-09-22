@@ -1,0 +1,233 @@
+.\" Copyright (c) 2006-2023 Roy Marples
+.\" All rights reserved
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd August 31, 2022
+.Dt DHCPCD-RUN-HOOKS 8
+.Os
+.Sh NAME
+.Nm dhcpcd-run-hooks
+.Nd DHCP client configuration script
+.Sh DESCRIPTION
+.Nm
+is used by
+.Xr dhcpcd 8
+to run any system and user defined hook scripts.
+System hook scripts are found in
+.Pa @HOOKDIR@
+and the user defined hooks are
+.Pa @SYSCONFDIR@/dhcpcd.enter-hook .
+and
+.Pa @SYSCONFDIR@/dhcpcd.exit-hook .
+The default install supplies hook scripts for configuring
+.Pa /etc/resolv.conf
+and the hostname.
+Your distribution may have included other hook scripts to say configure
+ntp or ypbind.
+A test hook is also supplied that simply echos the dhcp variables to the
+console from DISCOVER message.
+.Pp
+The hooks scripts are loaded into the current shell rather than executed
+in their own process.
+This allows each hook script, such as
+.Pa @SYSCONFDIR@/dhcpcd.enter-hook
+to customise environment variables or provide alternative functions to hooks
+further down the chain.
+As such, using the shell builtins
+.Ic exit ,
+.Ic exec
+or similar will cause
+.Nm
+to exit at that point.
+.Pp
+Each time
+.Nm
+is invoked,
+.Ev $interface
+is set to the interface that
+.Nm dhcpcd
+is run on and
+.Ev $reason
+is set to the reason why
+.Nm
+was invoked.
+DHCP information to be configured is held in variables starting with the word
+new_ and old DHCP information to be removed is held in variables starting with
+the word old_.
+.Nm dhcpcd
+can display the full list of variables it knows about by using the
+.Fl V , -variables
+argument.
+.Pp
+Here's a list of reasons why
+.Nm
+could be invoked:
+.Bl -tag -width EXPIREXXXEXPIRE6
+.It Dv PREINIT
+dhcpcd is starting up and any pre-initialisation required should be performed now.
+.It Dv CARRIER
+dhcpcd has detected the carrier is up.
+This is generally just a notification and no action need be taken.
+.It Dv NOCARRIER
+dhcpcd lost the carrier.
+The cable may have been unplugged or association to the wireless point lost.
+.It Dv NOCARRIER_ROAMING
+dhcpcd lost the carrier but the interface configuration is persisted.
+The OS has to support wireless roaming or IP Persistence for this to happen.
+.It Dv INFORM | Dv INFORM6
+dhcpcd informed a DHCP server about its address and obtained other
+configuration details.
+.It Dv BOUND | Dv BOUND6
+dhcpcd obtained a new lease from a DHCP server.
+.It Dv RENEW | Dv RENEW6
+dhcpcd renewed its lease.
+.It Dv REBIND | Dv REBIND6
+dhcpcd has rebound to a new DHCP server.
+.It Dv REBOOT | Dv REBOOT6
+dhcpcd successfully requested a lease from a DHCP server.
+.It Dv DELEGATED6
+dhcpcd assigned a delegated prefix to the interface.
+.It Dv IPV4LL
+dhcpcd obtained an IPV4LL address, or one was removed.
+.It Dv STATIC
+dhcpcd has been configured with a static configuration which has not been
+obtained from a DHCP server.
+.It Dv 3RDPARTY
+dhcpcd is monitoring the interface for a 3rd party to give it an IP address.
+.It Dv TIMEOUT
+dhcpcd failed to contact any DHCP servers but was able to use an old lease.
+.It Dv EXPIRE | EXPIRE6
+dhcpcd's lease or state expired and it failed to obtain a new one.
+.It Dv NAK
+dhcpcd received a NAK from the DHCP server.
+This should be treated as EXPIRE.
+.It Dv RECONFIGURE
+dhcpcd has been instructed to reconfigure an interface.
+.It Dv ROUTERADVERT
+dhcpcd has received an IPv6 Router Advertisement, or one has expired.
+.It Dv STOP | Dv STOP6
+dhcpcd stopped running on the interface.
+.It Dv STOPPED
+dhcpcd has stopped entirely.
+.It Dv DEPARTED
+The interface has been removed.
+.It Dv FAIL
+dhcpcd failed to operate on the interface.
+This normally happens when dhcpcd does not support the raw interface, which
+means it cannot work as a DHCP or ZeroConf client.
+Static configuration and DHCP INFORM is still allowed.
+.It Dv TEST
+dhcpcd received an OFFER from a DHCP server but will not configure the
+interface.
+This is primarily used to test the variables are filled correctly for the
+script to process them.
+.El
+.Sh ENVIRONMENT
+.Nm dhcpcd
+will clear the environment variables aside from
+.Ev $PATH .
+The following variables will then be set, along with any protocol supplied
+ones.
+.Bl -tag -width xnew_delegated_dhcp6_prefix
+.It Ev $interface
+the name of the interface.
+.It Ev $protocol
+the protocol that triggered the event.
+.It Ev $reason
+as described above.
+.It Ev $pid
+the pid of
+.Nm dhcpcd .
+.It Ev $ifcarrier
+the link status of
+.Ev $interface :
+.Dv unknown ,
+.Dv up
+or
+.Dv down .
+.It Ev $ifmetric
+.Ev $interface
+preference, lower is better.
+.It Ev $ifwireless
+.Dv 1 if
+.Ev $interface
+is wireless, otherwise
+.Dv 0 .
+.It Ev $ifflags
+.Ev $interface
+flags.
+.It Ev $ifmtu
+.Ev $interface
+MTU.
+.It Ev $ifssid
+the SSID the
+.Ev interface
+is connected to.
+.It Ev $interface_order
+A list of interfaces, in order of preference.
+.It Ev $if_up
+.Dv true
+if the
+.Ev interface
+is up, otherwise
+.Dv false .
+This is more than IFF_UP and may not be equal.
+.It Ev $if_down
+.Dv true
+if the
+.Ev interface
+is down, otherwise
+.Dv false .
+This is more than IFF_UP and may not be equal.
+.It Ev $af_waiting
+Address family waiting for, as defined in
+.Xr dhcpcd.conf 5 .
+.It Ev $profile
+the name of the profile selected from
+.Xr dhcpcd.conf 5 .
+.It Ev $new_delegated_dhcp6_prefix
+space-separated list of delegated prefixes.
+.El
+.Sh FILES
+When
+.Nm
+runs, it loads
+.Pa @SYSCONFDIR@/dhcpcd.enter-hook ,
+any scripts found in
+.Pa @HOOKDIR@
+in lexical order, then finally
+.Pa @SYSCONFDIR@/dhcpcd.exit-hook .
+.Sh SEE ALSO
+.Xr dhcpcd 8
+.Sh AUTHORS
+.An Roy Marples Aq Mt roy@marples.name
+.Sh BUGS
+Please report them to
+.Lk https://roy.marples.name/projects/dhcpcd
+.Sh SECURITY CONSIDERATIONS
+.Nm dhcpcd
+will validate the content of each option against its encoding.
+For string, ascii, raw or binhex encoding it's up to the user to validate it
+for the intended purpose.
+.Pp
+When used in a shell script, each variable must be quoted correctly.

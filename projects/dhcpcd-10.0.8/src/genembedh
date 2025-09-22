@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+: ${TOOL_SED:=sed}
+: ${TOOL_GREP:=grep}
+: ${TOOL_WC:=wc}
+CONF=${1:-dhcpcd-definitions.conf}
+CONF_SMALL=${2:-dhcpcd-definitions-small.conf}
+H=${3:-dhcpcd-embedded.h.in}
+
+INITDEFINES=$($TOOL_GREP "^define " $CONF | $TOOL_WC -l)
+INITDEFINENDS=$($TOOL_GREP "^definend " $CONF | $TOOL_WC -l)
+INITDEFINE6S=$($TOOL_GREP "^define6 " $CONF | $TOOL_WC -l)
+INITDEFINES_SMALL=$($TOOL_GREP "^define " $CONF_SMALL | $TOOL_WC -l)
+INITDEFINENDS_SMALL=$($TOOL_GREP "^definend " $CONF_SMALL | $TOOL_WC -l)
+INITDEFINE6S_SMALL=$($TOOL_GREP "^define6 " $CONF_SMALL | $TOOL_WC -l)
+$TOOL_SED \
+	-e "s/@INITDEFINES@/$INITDEFINES/" \
+	-e "s/@INITDEFINENDS@/$INITDEFINENDS/" \
+	-e "s/@INITDEFINE6S@/$INITDEFINE6S/" \
+	-e "s/@INITDEFINES_SMALL@/$INITDEFINES_SMALL/" \
+	-e "s/@INITDEFINENDS_SMALL@/$INITDEFINENDS_SMALL/" \
+	-e "s/@INITDEFINE6S_SMALL@/$INITDEFINE6S_SMALL/" \
+	$H

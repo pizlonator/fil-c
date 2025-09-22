@@ -1,0 +1,888 @@
+.\" SPDX-License-Identifier: BSD-2-Clause
+.\"
+.\" Copyright (c) 2006-2023 Roy Marples
+.\" All rights reserved
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd December 10, 2023
+.Dt DHCPCD 8
+.Os
+.Sh NAME
+.Nm dhcpcd
+.Nd a DHCP client
+.Sh SYNOPSIS
+.Nm
+.Op Fl 146ABbDdEGgHJKLMNPpqTV
+.Op Fl C , Fl Fl nohook Ar hook
+.Op Fl c , Fl Fl script Ar script
+.Op Fl e , Fl Fl env Ar value
+.Op Fl F , Fl Fl fqdn Ar FQDN
+.Op Fl f , Fl Fl config Ar file
+.Op Fl h , Fl Fl hostname Ar hostname
+.Op Fl I , Fl Fl clientid Ar clientid
+.Op Fl i , Fl Fl vendorclassid Ar vendorclassid
+.Op Fl j , Fl Fl logfile Ar logfile
+.Op Fl l , Fl Fl leasetime Ar seconds
+.Op Fl m , Fl Fl metric Ar metric
+.Op Fl O , Fl Fl nooption Ar option
+.Op Fl o , Fl Fl option Ar option
+.Op Fl Q , Fl Fl require Ar option
+.Op Fl r , Fl Fl request Ar address
+.Op Fl S , Fl Fl static Ar value
+.Op Fl s , Fl Fl inform Ar address Ns Op Ar /cidr Ns Op Ar /broadcast_address
+.Op Fl Fl inform6
+.Op Fl t , Fl Fl timeout Ar seconds
+.Op Fl u , Fl Fl userclass Ar class
+.Op Fl v , Fl Fl vendor Ar code , Ar value
+.Op Fl W , Fl Fl whitelist Ar address Ns Op Ar /cidr
+.Op Fl w
+.Op Fl Fl waitip Ns = Ns Op 4 | 6
+.Op Fl y , Fl Fl reboot Ar seconds
+.Op Fl X , Fl Fl blacklist Ar address Ns Op Ar /cidr
+.Op Fl Z , Fl Fl denyinterfaces Ar pattern
+.Op Fl z , Fl Fl allowinterfaces Ar pattern
+.Op Fl Fl inactive
+.Op Fl Fl configure
+.Op Fl Fl noconfigure
+.Op interface
+.Op ...
+.Nm
+.Fl n , Fl Fl rebind
+.Op interface
+.Nm
+.Fl k , Fl Fl release
+.Op interface
+.Nm
+.Fl U , Fl Fl dumplease
+.Op Ar interface
+.Nm
+.Fl Fl version
+.Nm
+.Fl x , Fl Fl exit
+.Op interface
+.Sh DESCRIPTION
+.Nm
+is an implementation of the DHCP client specified in
+.Li RFC 2131 .
+.Nm
+gets the host information
+.Po
+IP address, routes, etc
+.Pc
+from a DHCP server and configures the network
+.Ar interface
+of the
+machine on which it is running.
+.Nm
+then runs the configuration script which writes DNS information to
+.Xr resolvconf 8 ,
+if available, otherwise directly to
+.Pa /etc/resolv.conf .
+If the hostname is currently blank, (null) or localhost, or
+.Va force_hostname
+is YES or TRUE or 1 then
+.Nm
+sets the hostname to the one supplied by the DHCP server.
+.Nm
+then daemonises and waits for the lease renewal time to lapse.
+It will then attempt to renew its lease and reconfigure if the new lease
+changes when the lease begins to expire or the DHCP server sends a message
+to renew early.
+.Pp
+If any interface reports a working carrier then
+.Nm
+will try to obtain a lease before forking to the background,
+otherwise it will fork right away.
+This behaviour can be modified with the
+.Fl b , Fl Fl background
+and
+.Fl w , Fl Fl waitip
+options.
+.Pp
+.Nm
+is also an implementation of the BOOTP client specified in
+.Li RFC 951 .
+.Pp
+.Nm
+is also an implementation of the IPv6 Router Solicitor as specified in
+.Li RFC 4861
+and
+.Li RFC 6106 .
+.Pp
+.Nm
+is also an implementation of the IPv6 Privacy Extensions to AutoConf as
+specified in
+.Li RFC 4941 .
+This feature needs to be enabled in the kernel and
+.Nm
+will start using it.
+.Pp
+.Nm
+is also an implementation of the DHCPv6 client as specified in
+.Li RFC 3315 .
+By default,
+.Nm
+only starts DHCPv6 when instructed to do so by an IPV6 Router Advertisement.
+If no Identity Association is configured,
+then a Non-temporary Address is requested.
+.Ss Local Link configuration
+If
+.Nm
+failed to obtain a lease, it probes for a valid IPv4LL address
+.Po
+aka ZeroConf, aka APIPA
+.Pc .
+Once obtained it restarts the process of looking for a DHCP server to get a
+proper address.
+.Pp
+When using IPv4LL,
+.Nm
+nearly always succeeds and returns an exit code of 0.
+In the rare case it fails, it normally means that there is a reverse ARP proxy
+installed which always defeats IPv4LL probing.
+To disable this behaviour, you can use the
+.Fl L , Fl Fl noipv4ll
+option.
+.Ss Multiple interfaces
+If a list of interfaces are given on the command line, then
+.Nm
+only works with those interfaces, otherwise
+.Nm
+discovers available Ethernet interfaces that can be configured.
+When
+.Nm
+is not limited to one interface on the command line,
+it is running in Manager mode.
+The
+.Nm dhcpcd-ui
+project expects dhcpcd to be running this way.
+.Pp
+If a single interface is given then
+.Nm
+only works for that interface and runs as a separate instance to other
+.Nm
+processes.
+The
+.Fl w , Fl Fl waitip
+option is enabled in this instance to maintain compatibility with older
+versions.
+Using a single interface,
+optionally further limited to an address protocol,
+also affects the
+.Fl k ,
+.Fl N ,
+.Fl n
+and
+.Fl x
+options, where the same interface and any address protocol
+will need to be specified, as a lack of an
+interface will imply Manager mode which this is not.
+To force starting in Manager mode with only one interface, the
+.Fl M , Fl Fl manager
+option can be used.
+.Pp
+Interfaces are preferred by carrier, DHCP lease/IPv4LL and then lowest metric.
+For systems that support route metrics, each route will be tagged with the
+metric, otherwise
+.Nm
+changes the routes to use the interface with the same route and the lowest
+metric.
+See options below for controlling which interfaces we allow and deny through
+the use of patterns.
+.Pp
+Non-ethernet interfaces and some virtual ethernet interfaces
+such as TAP and bridge are ignored by default,
+as is the FireWire interface.
+To work with these devices they either need to be specified on the command line,
+be listed in
+.Fl Fl allowinterfaces
+or have an interface directive in
+.Pa @SYSCONFDIR@/dhcpcd.conf .
+.Ss Hooking into events
+.Nm
+runs
+.Pa @SCRIPT@ ,
+or the script specified by the
+.Fl c , Fl Fl script
+option.
+This script runs each script found in
+.Pa @HOOKDIR@
+in a lexical order.
+The default installation supplies the scripts
+.Pa 01-test ,
+.Pa 20-resolv.conf
+and
+.Pa 30-hostname .
+You can disable each script by using the
+.Fl C , Fl Fl nohook
+option.
+See
+.Xr dhcpcd-run-hooks 8
+for details on how these scripts work.
+.Nm
+currently ignores the exit code of the script.
+.Pp
+More scripts are supplied in
+.Pa @DATADIR@/dhcpcd/hooks
+and need to be copied to
+.Pa @HOOKDIR@
+if you intend to use them.
+For example, you could install
+.Pa 29-lookup-hostname
+so that
+.Nm
+can lookup the hostname of the IP address in DNS if no hostname
+is given by the lease and one is not already set.
+.Ss Fine tuning
+You can fine-tune the behaviour of
+.Nm
+with the following options:
+.Bl -tag -width indent
+.It Fl b , Fl Fl background
+Background immediately.
+This is useful for startup scripts which don't disable link messages for
+carrier status.
+.It Fl c , Fl Fl script Ar script
+Use this
+.Ar script
+instead of the default
+.Pa @SCRIPT@ .
+.It Fl D , Fl Fl duid Op Ar ll | lt | uuid | value
+Use a DHCP Unique Identifier.
+If a system UUID is available, that will be used to create a DUID-UUID,
+otherwise if persistent storage is available then a DUID-LLT
+(link local address + time) is generated,
+otherwise DUID-LL is generated (link local address).
+The DUID type can be hinted as an optional parameter if the file
+.Pa @DBDIR@/duid
+does not exist.
+If not
+.Va ll ,
+.Va lt
+or
+.Va uuid
+then
+.Va value
+will be converted from 00:11:22:33 format.
+This, plus the IAID will be used as the
+.Fl I , Fl Fl clientid .
+The DUID generated will be held in
+.Pa @DBDIR@/duid
+and should not be copied to other hosts.
+This file also takes precedence over the above rules except for setting a value.
+.It Fl d , Fl Fl debug
+Echo debug messages to the stderr and syslog.
+.It Fl E , Fl Fl lastlease
+If
+.Nm
+cannot obtain a lease, then try to use the last lease acquired for the
+interface.
+.It Fl Fl lastleaseextend
+Same as the above, but the lease will be retained even if it expires.
+.Nm
+will give it up if any other host tries to claim it for their own via ARP.
+This violates RFC 2131, section 3.7, which states the lease should be
+dropped once it has expired.
+.It Fl e , Fl Fl env Ar value
+Push
+.Ar value
+to the environment for use in
+.Xr dhcpcd-run-hooks 8 .
+For example, you can force the hostname hook to always set the hostname with
+.Fl e
+.Va force_hostname=YES .
+.It Fl g , Fl Fl reconfigure
+.Nm
+will re-apply IP address, routing and run
+.Xr dhcpcd-run-hooks 8
+for each interface.
+This is useful so that a 3rd party such as PPP or VPN can change the routing
+table and / or DNS, etc and then instruct
+.Nm
+to put things back afterwards.
+.Nm
+does not read a new configuration when this happens - you should rebind if you
+need that functionality.
+.It Fl F , Fl Fl fqdn Ar fqdn
+Requests that the DHCP server update DNS using FQDN instead of just a
+hostname.
+Valid values for
+.Ar fqdn
+are disable, none, ptr and both.
+.Nm
+itself never does any DNS updates.
+.Nm
+encodes the FQDN hostname as specified in
+.Li RFC 1035 .
+.It Fl f , Fl Fl config Ar file
+Specify a config to load instead of
+.Pa @SYSCONFDIR@/dhcpcd.conf .
+.Nm
+always processes the config file before any command line options.
+.It Fl h , Fl Fl hostname Ar hostname
+Sends
+.Ar hostname
+to the DHCP server so it can be registered in DNS.
+If
+.Ar hostname
+is an empty string then the current system hostname is sent.
+If
+.Ar hostname
+is a FQDN (i.e., contains a .) then it will be encoded as such.
+.It Fl I , Fl Fl clientid Ar clientid
+Send the
+.Ar clientid .
+If the string is of the format 01:02:03 then it is encoded as hex.
+For interfaces whose hardware address is longer than 8 bytes, or if the
+.Ar clientid
+is an empty string then
+.Nm
+sends a default
+.Ar clientid
+of the hardware family and the hardware address.
+.It Fl i , Fl Fl vendorclassid Ar vendorclassid
+Override the DHCPv4
+.Ar vendorclassid
+field sent.
+The default is
+dhcpcd-<version>:<os>:<machine>:<platform>.
+For example
+.D1 dhcpcd-5.5.6:NetBSD-6.99.5:i386:i386
+If not set then none is sent.
+Some badly configured DHCP servers reject unknown vendorclassids.
+To work around it, try and impersonate Windows by using the MSFT vendorclassid.
+.It Fl j , Fl Fl logfile Ar logfile
+Writes to the specified
+.Ar logfile .
+.Nm
+still writes to
+.Xr syslog 3 .
+The
+.Ar logfile
+is reopened when
+.Nm
+receives the
+.Dv SIGUSR2
+signal.
+.It Fl k , Fl Fl release Op Ar interface
+This causes an existing
+.Nm
+process running on the
+.Ar interface
+to release its lease and de-configure the
+.Ar interface
+regardless of the
+.Fl p , Fl Fl persistent
+option.
+If no
+.Ar interface
+is specified then this applies to all interfaces in Manager mode.
+If no interfaces are left running,
+.Nm
+will exit.
+.It Fl l , Fl Fl leasetime Ar seconds
+Request a lease time of
+.Ar seconds .
+.Ar -1
+represents an infinite lease time.
+By default
+.Nm
+does not request any lease time and leaves it in the hands of the
+DHCP server.
+.It Fl M , Fl Fl manager
+Start
+.Nm
+in Manager mode even if only one interface specified on the command line.
+See the Multiple Interfaces section above.
+.It Fl m , Fl Fl metric Ar metric
+Metrics are used to prefer an interface over another one, lowest wins.
+.Nm
+will supply a default metric of 1000 +
+.Xr if_nametoindex 3 .
+This will be offset by 2000 for wireless interfaces, with additional offsets
+of 1000000 for IPv4LL and 2000000 for roaming interfaces.
+.It Fl n , Fl Fl rebind Op Ar interface
+Notifies
+.Nm
+to reload its configuration and rebind the specified
+.Ar interface .
+If no
+.Ar interface
+is specified then this applies to all interfaces in Manager mode.
+If
+.Nm
+is not running, then it starts up as normal.
+.It Fl N , Fl Fl renew Op Ar interface
+Notifies
+.Nm
+to renew existing addresses on the specified
+.Ar interface .
+If no
+.Ar interface
+is specified then this applies to all interfaces in Manager mode.
+If
+.Nm
+is not running, then it starts up as normal.
+Unlike the
+.Fl n , Fl Fl rebind
+option above, the configuration for
+.Nm
+is not reloaded.
+.It Fl o , Fl Fl option Ar option
+Request the DHCP
+.Ar option
+variable for use in
+.Pa @SCRIPT@ .
+.It Fl p , Fl Fl persistent
+.Nm
+de-configures the
+.Ar interface
+when it exits unless this option is enabled.
+Sometimes, this isn't desirable if, for example, you have root mounted over
+NFS or SSH clients connect to this host and they need to be notified of
+the host shutting down.
+You can use this option to stop this from happening.
+.It Fl r , Fl Fl request Ar address
+Request the
+.Ar address
+in the DHCP DISCOVER message.
+There is no guarantee this is the address the DHCP server will actually give.
+If no
+.Ar address
+is given then the first address currently assigned to the
+.Ar interface
+is used.
+.It Fl s , Fl Fl inform Ar address Ns Op Ar /cidr Ns Op Ar /broadcast_address
+Behaves like
+.Fl r , Fl Fl request
+as above, but sends a DHCP INFORM instead of DISCOVER/REQUEST.
+This does not get a lease as such, just notifies the DHCP server of the
+.Ar address
+in use.
+You should also include the optional
+.Ar cidr
+network number in case the address is not already configured on the interface.
+.Nm
+remains running and pretends it has an infinite lease.
+.Nm
+will not de-configure the interface when it exits.
+If
+.Nm
+fails to contact a DHCP server then it returns a failure instead of falling
+back on IPv4LL.
+.It Fl Fl inform6
+Performs a DHCPv6 Information Request.
+No address is requested or specified, but all other DHCPv6 options are allowed.
+This is normally performed automatically when the IPv6 Router Advertises
+that the client should perform this operation.
+This option is only needed when
+.Nm
+is not processing IPv6RA messages and the need for DHCPv6 Information Request
+exists.
+.It Fl S , Fl Fl static Ar value
+Configures a static DHCP
+.Ar value .
+If you set
+.Ic ip_address
+then
+.Nm
+will not attempt to obtain a lease and just use the value for the address with
+an infinite lease time.
+.Pp
+Here is an example which configures a static address, routes and DNS.
+.D1 dhcpcd -S ip_address=192.168.0.10/24 \e
+.D1 -S routers=192.168.0.1 \e
+.D1 -S domain_name_servers=192.168.0.1 \e
+.D1 eth0
+.Pp
+You cannot presently set static DHCPv6 values.
+Use the
+.Fl e , Fl Fl env
+option instead.
+.It Fl t , Fl Fl timeout Ar seconds
+Timeout after
+.Ar seconds ,
+instead of the default 30.
+A setting of 0
+.Ar seconds
+causes
+.Nm
+to wait forever to get a lease.
+If
+.Nm
+is working on a single interface then
+.Nm
+will exit when a timeout occurs, otherwise
+.Nm
+will fork into the background.
+.It Fl u , Fl Fl userclass Ar class
+Tags the DHCPv4 message with the userclass
+.Ar class .
+DHCP servers use this to give members of the class DHCP options other than the
+default, without having to know things like hardware address or hostname.
+.It Fl v , Fl Fl vendor Ar code , Ns Ar value
+Add an encapsulated vendor option.
+.Ar code
+should be between 1 and 254 inclusive.
+To add a raw vendor string, omit
+.Ar code
+but keep the comma.
+Examples.
+.Pp
+Set the vendor option 01 with an IP address.
+.D1 dhcpcd \-v 01,192.168.0.2 eth0
+Set the vendor option 02 with a hex code.
+.D1 dhcpcd \-v 02,01:02:03:04:05 eth0
+Set the vendor option 03 with an IP address as a string.
+.D1 dhcpcd \-v 03,\e"192.168.0.2\e" eth0
+Set un-encapsulated vendor option to hello world.
+.D1 dhcpcd \-v ,"hello world" eth0
+.It Fl Fl version
+Display both program version and copyright information.
+.Nm
+then exits before doing any configuration.
+.It Fl w
+Wait for an address to be assigned before forking to the background.
+Does not take an argument, unlike the below option.
+.It Fl Fl waitip Ns = Ns Op 4 | 6
+Wait for an address to be assigned before forking to the background.
+4 means wait for an IPv4 address to be assigned.
+6 means wait for an IPv6 address to be assigned.
+If no argument is given,
+.Nm
+will wait for any address protocol to be assigned.
+It is possible to wait for more than one address protocol and
+.Nm
+will only fork to the background when all waiting conditions are satisfied.
+.It Fl x , Fl Fl exit Op Ar interface
+This will signal an existing
+.Nm
+process running on the
+.Ar interface
+to exit.
+If no
+.Ar interface
+is specified, then the above is applied to all interfaces in Manager mode.
+See the
+.Fl p , Fl Fl persistent
+option to control configuration persistence on exit,
+which is enabled by default in
+.Xr dhcpcd.conf 5 .
+.Nm
+then waits until this process has exited.
+.It Fl y , Fl Fl reboot Ar seconds
+Allow
+.Ar reboot
+seconds before moving to the discover phase if we have an old lease to use.
+Allow
+.Ar reboot
+seconds before starting fallback states from the discover phase.
+IPv4LL is started when the first
+.Ar reboot
+timeout is reached.
+The default is 5 seconds.
+A setting of 0 seconds causes
+.Nm
+to skip the reboot phase and go straight into discover.
+This has no effect on DHCPv6 other than skipping the reboot phase.
+.El
+.Ss Restricting behaviour
+.Nm
+will try to do as much as it can by default.
+However, there are sometimes situations where you don't want the things to be
+configured exactly how the DHCP server wants.
+Here are some options that deal with turning these bits off.
+.Pp
+Note that when
+.Nm
+is restricted to a single interface then the interface also needs to be
+specified when asking
+.Nm
+to exit using the commandline.
+If the protocol is restricted as well then the protocol needs to be included
+with the exit instruction.
+.Bl -tag -width indent
+.It Fl 1 , Fl Fl oneshot
+Exit after configuring an interface.
+Use the
+.Fl w , Fl Fl waitip
+option to specify which protocol(s) to configure before exiting.
+.It Fl 4 , Fl Fl ipv4only
+Configure IPv4 only.
+.It Fl 6 , Fl Fl ipv6only
+Configure IPv6 only.
+.It Fl A , Fl Fl noarp
+Don't request or claim the address by ARP.
+This also disables IPv4LL.
+.It Fl B , Fl Fl nobackground
+Don't run in the background when we acquire a lease.
+This is mainly useful for running under the control of another process, such
+as a debugger or a network manager.
+.It Fl C , Fl Fl nohook Ar script
+Don't run this hook script.
+Matches full name, or prefixed with 2 numbers optionally ending with
+.Pa .sh .
+.Pp
+So to stop
+.Nm
+from touching your DNS settings you would do:-
+.D1 dhcpcd -C resolv.conf eth0
+.It Fl G , Fl Fl nogateway
+Don't set any default routes.
+.It Fl H , Fl Fl xidhwaddr
+Use the last four bytes of the hardware address as the DHCP xid instead
+of a randomly generated number.
+.It Fl J , Fl Fl broadcast
+Instructs the DHCP server to broadcast replies back to the client.
+Normally this is only set for non-Ethernet interfaces,
+such as FireWire and InfiniBand.
+In most instances,
+.Nm
+will set this automatically.
+.It Fl K , Fl Fl nolink
+Don't receive link messages for carrier status.
+You should only have to use this with buggy device drivers or running
+.Nm
+through a network manager.
+.It Fl L , Fl Fl noipv4ll
+Don't use IPv4LL (aka APIPA, aka Bonjour, aka ZeroConf).
+.It Fl O , Fl Fl nooption Ar option
+Removes the
+.Ar option
+from the DHCP message before processing.
+.It Fl P , Fl Fl printpidfile
+Print the
+.Pa pidfile
+.Nm
+will use based on command-line arguments to stdout.
+.It Fl Q , Fl Fl require Ar option
+Requires the
+.Ar option
+to be present in all DHCP messages, otherwise the message is ignored.
+To enforce that
+.Nm
+only responds to DHCP servers and not BOOTP servers, you can
+.Fl Q
+.Ar dhcp_message_type .
+.It Fl q , Fl Fl quiet
+Quiet
+.Nm
+on the command line, only warnings and errors will be displayed.
+If this option is used another time then all console output is disabled.
+These messages are still logged via
+.Xr syslog 3 .
+.It Fl T , Fl Fl test
+On receipt of DHCP messages just call
+.Pa @SCRIPT@
+with the reason of TEST which echos the DHCP variables found in the message
+to the console.
+The interface configuration isn't touched and neither are any configuration
+files.
+The
+.Ar rapid_commit
+option is not sent in TEST mode so that the server does not lease an address.
+To test INFORM the interface needs to be configured with the desired address
+before starting
+.Nm .
+.It Fl U , Fl Fl dumplease Op Ar interface
+Dumps the current lease for the
+.Ar interface
+to stdout.
+If no
+.Ar interface
+is given then all interfaces are dumped.
+Use the
+.Fl 4
+or
+.Fl 6
+flags to specify an address family.
+If a lease is piped in via standard input then that is dumped.
+In this case, specifying an address family is mandatory.
+.It Fl V , Fl Fl variables
+Display a list of option codes, the associated variable and encoding for use in
+.Xr dhcpcd-run-hooks 8 .
+Variables are prefixed with new_ and old_ unless the option number is -.
+Variables without an option are part of the DHCP message and cannot be
+directly requested.
+.It Fl W , Fl Fl whitelist Ar address Ns Op /cidr
+Only accept packets from
+.Ar address Ns Op /cidr .
+.Fl X , Fl Fl blacklist
+is ignored if
+.Fl W , Fl Fl whitelist
+is set.
+.It Fl X , Fl Fl blacklist Ar address Ns Op Ar /cidr
+Ignore all packets from
+.Ar address Ns Op Ar /cidr .
+.It Fl Z , Fl Fl denyinterfaces Ar pattern
+When discovering interfaces, the interface name must not match
+.Ar pattern
+which is a space or comma separated list of patterns passed to
+.Xr fnmatch 3 .
+.It Fl z , Fl Fl allowinterfaces Ar pattern
+When discovering interfaces, the interface name must match
+.Ar pattern
+which is a space or comma separated list of patterns passed to
+.Xr fnmatch 3 .
+If the same interface is matched in
+.Fl Z , Fl Fl denyinterfaces
+then it is still denied.
+.It Fl Fl inactive
+Don't start any interfaces other than those specified on the command line.
+This allows
+.Nm
+to be started in Manager mode and then wait for subsequent
+.Nm
+commands to start each interface as required.
+.It Fl Fl configure
+Allows
+.Nm
+to configure the system.
+This is the default behaviour and sets
+.Ev if_configured=true .
+.It Fl Fl noconfigure
+.Nm
+will not configure the system at all.
+This is only of use if the
+.Fl Fl script
+that
+.Nm
+calls at each network event configures the system instead.
+This is different from
+.Fl T , Fl Fl test
+mode in that it's not one shot and the only change to the environment is the
+addition of
+.Ev if_configured=false .
+.It Fl Fl nodev
+Don't load any
+.Pa /dev
+management modules.
+.El
+.Sh 3RDPARTY LINK MANAGEMENT
+Some interfaces require configuration by 3rd parties, such as PPP or VPN.
+When an interface configuration in
+.Nm
+is marked as STATIC or INFORM without an address then
+.Nm
+will monitor the interface until an address is added or removed from it and
+act accordingly.
+For point to point interfaces (like PPP), a default route to its
+destination is automatically added to the configuration.
+If the point to point interface is configured for INFORM, then
+.Nm
+unicasts INFORM to the destination, otherwise it defaults to STATIC.
+.Sh NOTES
+.Nm
+requires a Berkeley Packet Filter, or BPF device on BSD based systems and a
+Linux Socket Filter, or LPF device on Linux based systems for all IPv4
+configuration.
+.Pp
+If restricting
+.Nm
+to a single interface and optionally address family via the command-line
+then all further calls to
+.Nm
+to rebind, reconfigure or exit need to include the same restrictive flags
+so that
+.Nm
+knows which process to signal.
+.Pp
+Some DHCP servers implement ClientID filtering.
+If
+.Nm
+is replacing an in-use DHCP client then you might need to adjust the clientid
+option
+.Nm
+sends to match.
+If using a DUID in place of the ClientID, edit
+.Pa @DBDIR@/duid
+accordingly.
+.Sh FILES
+.Bl -ohang
+.It Pa @SYSCONFDIR@/dhcpcd.conf
+Configuration file for dhcpcd.
+If you always use the same options, put them here.
+.It Pa @SCRIPT@
+Bourne shell script that is run to configure or de-configure an interface.
+.It Pa @LIBDIR@/dhcpcd/dev
+Linux
+.Pa /dev
+management modules.
+.It Pa @HOOKDIR@
+A directory containing Bourne shell scripts that are run by the above script.
+Each script can be disabled by using the
+.Fl C , Fl Fl nohook
+option described above.
+.It Pa @DBDIR@/duid
+Text file that holds the DUID used to identify the host.
+.It Pa @DBDIR@/secret
+Text file that holds a secret key known only to the host.
+.It Pa @DBDIR@/ Ns Ar interface Ns Ar -ssid Ns .lease
+The actual DHCP message sent by the server.
+We use this when reading the last
+lease and use the file's mtime as when it was issued.
+.It Pa @DBDIR@/ Ns Ar interface Ns Ar -ssid Ns .lease6
+The actual DHCPv6 message sent by the server.
+We use this when reading the last
+lease and use the file's mtime as when it was issued.
+.It Pa @DBDIR@/rdm_monotonic
+Stores the monotonic counter used in the
+.Ar replay
+field in Authentication Options.
+.It Pa @RUNDIR@/pid
+Stores the PID of
+.Nm
+running on all interfaces.
+.It Pa @RUNDIR@/ Ns Ar interface Ns .pid
+Stores the PID of
+.Nm
+running on the
+.Ar interface .
+.It Pa @RUNDIR@/sock
+Control socket to the manager daemon.
+.It Pa @RUNDIR@/unpriv.sock
+Unprivileged socket to the manager daemon, only allows state retrieval.
+.It Pa @RUNDIR@/ Ns Ar interface Ns .sock
+Control socket to per interface daemon.
+.It Pa @RUNDIR@/ Ns Ar interface Ns .unpriv.sock
+Unprivileged socket to per interface daemon, only allows state retrieval.
+.El
+.Sh SEE ALSO
+.Xr fnmatch 3 ,
+.Xr if_nametoindex 3 ,
+.Xr dhcpcd.conf 5 ,
+.Xr resolv.conf 5 ,
+.Xr dhcpcd-run-hooks 8 ,
+.Xr resolvconf 8
+.Sh STANDARDS
+RFC\ 951, RFC\ 1534, RFC\ 2104, RFC\ 2131, RFC\ 2132, RFC\ 2563, RFC\ 2855,
+RFC\ 3004, RFC\ 3118, RFC\ 3203, RFC\ 3315, RFC\ 3361, RFC\ 3633, RFC\ 3396,
+RFC\ 3397, RFC\ 3442, RFC\ 3495, RFC\ 3925, RFC\ 3927, RFC\ 4039, RFC\ 4075,
+RFC\ 4242, RFC\ 4361, RFC\ 4390, RFC\ 4702, RFC\ 4074, RFC\ 4861, RFC\ 4833,
+RFC\ 4941, RFC\ 5227, RFC\ 5942, RFC\ 5969, RFC\ 6106, RFC\ 6334, RFC\ 6355,
+RFC\ 6603, RFC\ 6704, RFC\ 7217, RFC\ 7550, RFC\ 7844.
+.Sh AUTHORS
+.An Roy Marples Aq Mt roy@marples.name
+.Sh BUGS
+Please report them to
+.Lk https://roy.marples.name/projects/dhcpcd

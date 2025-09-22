@@ -1,0 +1,47 @@
+# Configure timezone
+
+: ${localtime:=/etc/localtime}
+
+set_zoneinfo()
+{
+	[ -z "$new_tzdb_timezone" ] && return 0
+
+	zoneinfo_dir=
+	for d in \
+		/usr/share/zoneinfo	\
+		/usr/lib/zoneinfo	\
+		/var/share/zoneinfo	\
+		/var/zoneinfo		\
+	; do
+		if [ -d "$d" ]; then
+			zoneinfo_dir="$d"
+			break
+		fi
+	done
+
+	if [ -z "$zoneinfo_dir" ]; then
+		syslog warning "timezone directory not found"
+		return 1
+	fi
+
+	zone_file="$zoneinfo_dir/$new_tzdb_timezone"
+	if [ ! -e "$zone_file" ]; then
+		syslog warning "no timezone definition for $new_tzdb_timezone"
+		return 1
+	fi
+
+	if copy_file "$zone_file" "$localtime"; then
+		syslog info "timezone changed to $new_tzdb_timezone"
+	fi
+}
+
+# For ease of use, map DHCP6 names onto our DHCP4 names
+case "$reason" in
+BOUND6|RENEW6|REBIND6|REBOOT6|INFORM6)
+	new_tzdb_timezone="$new_dhcp6_tzdb_timezone"
+	;;
+esac
+
+if $if_configured && $if_up; then
+ 	set_zoneinfo
+fi

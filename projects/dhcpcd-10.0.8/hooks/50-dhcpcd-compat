@@ -1,0 +1,41 @@
+# Compat enter hook shim for older dhcpcd versions
+
+IPADDR=$new_ip_address
+INTERFACE=$interface
+NETMASK=$new_subnet_mask
+BROADCAST=$new_broadcast_address
+NETWORK=$new_network_number
+DHCPSID=$new_dhcp_server_identifier
+GATEWAYS=$new_routers
+DNSSERVERS=$new_domain_name_servers
+DNSDOMAIN=$new_domain_name
+DNSSEARCH=$new_domain_search
+NISDOMAIN=$new_nis_domain
+NISSERVERS=$new_nis_servers
+NTPSERVERS=$new_ntp_servers
+
+GATEWAY=
+for x in $new_routers; do
+	GATEWAY="$GATEWAY${GATEWAY:+,}$x"
+done
+DNS=
+for x in $new_domain_name_servers; do
+	DNS="$DNS${DNS:+,}$x"
+done
+
+r="down"
+case "$reason" in
+RENEW) r="up";;
+BOUND|INFORM|REBIND|REBOOT|TEST|TIMEOUT|IPV4LL) r="new";;
+esac
+
+if [ "$r" != "down" ]; then
+	rm -f /var/lib/dhcpcd-"$INTERFACE".info
+	for x in IPADDR INTERFACE NETMASK BROADCAST NETWORK DHCPSID GATEWAYS \
+		DNSSERVERS DNSDOMAIN DNSSEARCH NISDOMAIN NISSERVERS \
+		NTPSERVERS GATEWAY DNS; do
+		eval echo "$x=\'\$$x\'" >> /var/lib/dhcpcd-"$INTERFACE".info
+	done
+fi
+
+set -- /var/lib/dhcpcd-"$INTERFACE".info "$r"

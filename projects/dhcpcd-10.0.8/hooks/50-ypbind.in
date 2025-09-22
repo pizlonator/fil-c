@@ -1,0 +1,84 @@
+# Sample dhcpcd hook for ypbind
+# This script is only suitable for the BSD versions.
+
+: ${ypbind_restart_cmd:=service_command ypbind restart}
+: ${ypbind_stop_cmd:=service_condcommand ypbind stop}
+ypbind_dir="$state_dir/ypbind"
+: ${ypdomain_dir:=@YPDOMAIN_DIR@}
+: ${ypdomain_suffix:=@YPDOMAIN_SUFFIX@}
+
+best_domain()
+{
+	for i in "$ypbind_dir/$interface_order".*; do
+		if [ -f "$i" ]; then
+			cat "$i"
+			return 0
+		fi
+	done
+	return 1
+}
+
+make_yp_binding()
+{
+	[ -d "$ypbind_dir" ] || mkdir -p "$ypbind_dir"
+	echo "$new_nis_domain" >"$ypbind_dir/$ifname"
+
+	if [ -z "$ypdomain_dir" ]; then
+		false
+	else
+		cf="$ypdomain_dir/$new_nis_domain$ypdomain_suffix"
+		if [ -n "$new_nis_servers" ]; then
+			ncf="$cf.$ifname"
+			rm -f "$ncf"
+			for x in $new_nis_servers; do
+				echo "$x" >>"$ncf"
+			done
+			change_file "$cf" "$ncf"
+		else
+			[ -e "$cf" ] && rm "$cf"
+		fi
+	fi
+
+	nd="$(best_domain)"
+	if [ $? = 0 ] && [ "$nd" != "$(domainname)" ]; then
+		domainname "$nd"
+		if [ -n "$ypbind_restart_cmd" ]; then
+			eval $ypbind_restart_cmd
+		fi
+	fi
+}
+
+restore_yp_binding()
+{
+	rm -f "$ypbind_dir/$ifname"
+	nd="$(best_domain)"
+	# We need to stop ypbind if there is no best domain
+	# otherwise it will just stall as we cannot set domainname
+	# to blank :/
+	if [ -z "$nd" ]; then
+		if [ -n "$ypbind_stop_cmd" ]; then
+			eval $ypbind_stop_cmd
+		fi
+	elif [ "$nd" != "$(domainname)" ]; then
+		domainname "$nd"
+		if [ -n "$ypbind_restart_cmd" ]; then
+			eval $ypbind_restart_cmd
+		fi
+	fi
+}
+
+if ! $if_configured; then
+	;
+elif [ "$reason" = PREINIT ]; then
+	rm -f "$ypbind_dir/$interface".*
+elif $if_up || $if_down; then
+	if [ -n "$new_nis_domain" ]; then
+		if valid_domainname "$new_nis_domain"; then
+			make_yp_binding
+		else
+			syslog err "Invalid NIS domain name: $new_nis_domain"
+		fi
+	elif [ -n "$old_nis_domain" ]; then
+		restore_yp_binding
+	fi
+fi

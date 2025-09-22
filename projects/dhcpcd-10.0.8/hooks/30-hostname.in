@@ -1,0 +1,158 @@
+# Set the hostname from DHCP data if required
+
+# A hostname can either be a short hostname or a FQDN.
+# hostname_fqdn=true
+# hostname_fqdn=false
+# hostname_fqdn=server
+
+# A value of server means just what the server says, don't manipulate it.
+# This could lead to an inconsistent hostname on a DHCPv4 and DHCPv6 network
+# where the DHCPv4 hostname is short and the DHCPv6 has an FQDN.
+# DHCPv6 has no hostname option.
+# RFC4702 section 3.1 says FQDN should be prefered over hostname.
+#
+# As such, the default is hostname_fqdn=true so that a consistent hostname
+# is always assigned.
+: ${hostname_fqdn:=true}
+
+# If we used to set the hostname, but relinquish control of it, we should
+# reset to the default value.
+: ${hostname_default=@DEFAULT_HOSTNAME@}
+
+# Some systems don't have hostname(1)
+_hostname()
+{
+	if [ -z "${1+x}" ]; then
+		if [ -r /proc/sys/kernel/hostname ]; then
+			read name </proc/sys/kernel/hostname && echo "$name"
+		elif command -v hostname >/dev/null 2>/dev/null; then
+			hostname
+		elif sysctl kern.hostname >/dev/null 2>&1; then
+			sysctl -n kern.hostname
+		elif sysctl kernel.hostname >/dev/null 2>&1; then
+			sysctl -n kernel.hostname
+		else
+			return 1
+		fi
+		return $?
+	fi
+
+	if [ -w /proc/sys/kernel/hostname ]; then
+		echo "$1" >/proc/sys/kernel/hostname
+	elif [ -n "$1" ] && command -v hostname >/dev/null 2>&1; then
+		hostname "$1"
+	elif sysctl kern.hostname >/dev/null 2>&1; then
+		sysctl -w "kern.hostname=$1" >/dev/null
+	elif sysctl kernel.hostname >/dev/null 2>&1; then
+		sysctl -w "kernel.hostname=$1" >/dev/null
+	else
+		# May fail to set a blank hostname
+		hostname "$1"
+	fi
+}
+
+is_default_hostname()
+{
+	case "$1" in
+	""|"$hostname_default"|localhost|localhost.localdomain)
+		return 0;;
+	esac
+	return 1
+}
+
+need_hostname()
+{
+	# Always load the hostname variable for future use
+	hostname="$(_hostname)"
+	is_default_hostname "$hostname" && return 0
+
+	case "$force_hostname" in
+	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|1) return 0;;
+	esac
+
+	if [ -n "$old_fqdn" ]; then
+		if ${hfqdn} || ! ${hshort}; then
+			[ "$hostname" = "$old_fqdn" ]
+		else
+			[ "$hostname" = "${old_fqdn%%.*}" ]
+		fi
+	elif [ -n "$old_host_name" ]; then
+		if ${hfqdn}; then
+			if [ -n "$old_domain_name" ] &&
+			   [ "$old_host_name" = "${old_host_name#*.}" ]
+			then
+				[ "$hostname" = \
+				    "$old_host_name.$old_domain_name" ]
+			else
+				[ "$hostname" = "$old_host_name" ]
+			fi
+		elif ${hshort}; then
+			[ "$hostname" = "${old_host_name%%.*}" ]
+		else
+			[ "$hostname" = "$old_host_name" ]
+		fi
+	else
+		# No old hostname
+		false
+	fi
+}
+
+try_hostname()
+{
+	[ "$hostname" = "$1" ] && return 0
+	if valid_domainname "$1"; then
+		syslog info "Setting hostname: $1"
+		_hostname "$1"
+	else
+		syslog err "Invalid hostname: $1"
+	fi
+}
+
+set_hostname()
+{
+	hfqdn=false
+	hshort=false
+	case "$hostname_fqdn" in
+	[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|1)	hfqdn=true;;
+	""|[Ss][Ee][Rr][Vv][Ee][Rr])		;;
+	*)					hshort=true;;
+	esac
+
+	need_hostname || return 0
+
+	if [ -n "$new_fqdn" ]; then
+		if ${hfqdn} || ! ${hshort}; then
+			try_hostname "$new_fqdn"
+		else
+			try_hostname "${new_fqdn%%.*}"
+		fi
+	elif [ -n "$new_host_name" ]; then
+		if ${hfqdn}; then
+			if [ -n "$new_domain_name" ] &&
+			   [ "$new_host_name" = "${new_host_name#*.}" ]
+			then
+				try_hostname "$new_host_name.$new_domain_name"
+			else
+				try_hostname "$new_host_name"
+			fi
+		elif ${hshort}; then
+			try_hostname "${new_host_name%%.*}"
+		else
+			try_hostname "$new_host_name"
+		fi
+	elif ! is_default_hostname "$hostname"; then
+		try_hostname "$hostname_default"
+	fi
+}
+
+# For ease of use, map DHCP6 names onto our DHCP4 names
+case "$reason" in
+BOUND6|RENEW6|REBIND6|REBOOT6|INFORM6)
+	new_fqdn="$new_dhcp6_fqdn"
+	old_fqdn="$old_dhcp6_fqdn"
+	;;
+esac
+
+if $if_configured && $if_up && [ "$reason" != ROUTERADVERT ]; then
+	set_hostname
+fi
