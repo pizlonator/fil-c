@@ -1,0 +1,176 @@
+--
+--  File used in the test sequence Test_tree.
+--
+
+TEST_TREE {iso(1) identified-organization(3) dod(6) internet(1)
+  security(5) mechanisms(5) pkix(7) id-mod(0) id-pkix1-implicit-88(2)}
+
+DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+KrbError ::= [APPLICATION 30] SEQUENCE {
+    pvno[0]   INTEGER
+}
+
+Checksum        ::= SEQUENCE {
+        checksum        [1] OCTET STRING
+}
+
+CertTemplate ::= SEQUENCE {
+    version      [0] INTEGER               OPTIONAL,
+    issuer       [3] Name                  OPTIONAL,
+    validity     [4] INTEGER               OPTIONAL
+}
+
+Name            ::=   CHOICE {
+    rdnSequence  RDNSequence }
+
+RDNSequence     ::=   RelativeDistinguishedName
+
+RelativeDistinguishedName  ::=
+
+                    SET SIZE (1 .. MAX) OF AttributeTypeAndValue
+
+AttributeTypeAndValue           ::=     SEQUENCE {
+        type    AttributeType,
+        value   AttributeValue }
+
+AttributeType           ::=   OBJECT IDENTIFIER
+AttributeValue          ::=   ANY
+
+
+sequenceEmpty ::= SEQUENCE{
+  int1   INTEGER,
+  seq1   [1] IMPLICIT Sequence_octetTest1,
+  set1   [2] EXPLICIT SET OF INTEGER
+}
+
+
+IndefiniteLengthTest ::= SEQUENCE{
+  seq1   [1] IMPLICIT Sequence_octetTest1,
+  set1   SET OF OBJECT IDENTIFIER,
+  int1   INTEGER
+}
+
+
+OidTest ::= SEQUENCE{
+   oid3 [3]   OBJECT IDENTIFIER DEFAULT id-Test,
+   oid  [1]   OBJECT IDENTIFIER DEFAULT id-anyTest2,
+   oid2	[2]   OBJECT IDENTIFIER DEFAULT id-anyTest
+}
+
+OidAndTimeTest ::= SEQUENCE{
+   set     SET OF INTEGER,
+   oid     OBJECT IDENTIFIER,
+   time2   GeneralizedTime,
+   bol     BOOLEAN,
+   oct     OCTET STRING,
+   bit     BIT STRING OPTIONAL,
+   bol2    BOOLEAN DEFAULT TRUE,
+   enum    ENUMERATED {v1(1),v2(2)} DEFAULT v1,
+   any     [1] ANY OPTIONAL,
+   gen     GeneralString OPTIONAL,
+   time1   UTCTime
+}
+
+SequenceTestTag ::= SEQUENCE{
+   int1   [2] EXPLICIT INTEGER,
+   int2   [3] IMPLICIT INTEGER,
+   str1   [1] IMPLICIT PrintableString,
+   str2                UniversalString,
+   str3   [2] EXPLICIT UniversalString
+}
+
+
+Sequence1 ::= SEQUENCE{
+    int1 [0] INTEGER {v1(0),v2(1),v3(2)} DEFAULT v2,
+    int2     INTEGER,
+    seq      SET OF INTEGER,
+    id       OBJECT IDENTIFIER,
+    oct      OCTET STRING,
+    any1     ANY DEFINED BY id OPTIONAL
+}
+
+DHParameter ::= SEQUENCE {
+    prime INTEGER,
+    base  INTEGER,
+    privateValueLength INTEGER OPTIONAL
+}
+
+id-octetTest1 OBJECT IDENTIFIER  ::=  {1 2 3 4}
+
+Sequence_octetTest1 ::= SEQUENCE{
+    int     INTEGER OPTIONAL
+}
+
+
+AnyTest2 ::= CHOICE{
+     str    OCTET STRING,
+     int    INTEGER
+}
+
+id-ic OBJECT IDENTIFIER  ::=  {2 5}
+id-anyTest OBJECT IDENTIFIER  ::=  {id-ic 29 1}
+id-anyTest2 OBJECT IDENTIFIER  ::=  {id-ic 29 2}
+
+
+anyTest2  ::= INTEGER
+
+
+VisibleString ::= [UNIVERSAL 26] IMPLICIT OCTET STRING
+
+NumericString ::= [UNIVERSAL 18] IMPLICIT OCTET STRING
+
+IA5String ::= [UNIVERSAL 22] IMPLICIT OCTET STRING
+
+TeletexString ::= [UNIVERSAL 20] IMPLICIT OCTET STRING
+
+PrintableString ::= [UNIVERSAL 19] IMPLICIT OCTET STRING
+
+UniversalString ::= [UNIVERSAL 28] IMPLICIT OCTET STRING
+        -- UniversalString is defined in ASN.1:1993
+
+BMPString ::= [UNIVERSAL 30] IMPLICIT OCTET STRING
+      -- BMPString is the subtype of UniversalString and models
+       -- the Basic Multilingual Plane of ISO/IEC/ITU 10646-1
+
+UTF8String ::= [UNIVERSAL 12] IMPLICIT OCTET STRING
+        -- The content of this type conforms to RFC 2279.
+
+
+Test3 ::= SEQUENCE{
+     a      INTEGER,
+     b      [1] EXPLICIT GeneralString2
+}
+
+GeneralString2 ::= [2] EXPLICIT GeneralString
+
+X520LocalityName ::= CHOICE {
+      teletexString       TeletexString,
+      printableString     PrintableString,
+      universalString     UniversalString,
+      utf8String          UTF8String,
+      bmpString           BMPString    }
+
+
+id-Test OBJECT IDENTIFIER  ::=  {1 2 29 2}
+
+END
+
+-- Copyright (C) 2002-2022 Free Software Foundation, Inc.
+--
+-- This file is part of LIBTASN1.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.

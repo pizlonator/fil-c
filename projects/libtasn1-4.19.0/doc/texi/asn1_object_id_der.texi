@@ -1,0 +1,18 @@
+@subheading asn1_object_id_der
+@anchor{asn1_object_id_der}
+@deftypefun {int} {asn1_object_id_der} (const char * @var{str}, unsigned char * @var{der}, int * @var{der_len}, unsigned @var{flags})
+@var{str}: An object identifier in numeric, dot format.
+
+@var{der}: buffer to hold the returned encoding (may be @code{NULL} ).
+
+@var{der_len}: initially the size of  @code{der} ; will hold the final size.
+
+@var{flags}: must be zero
+
+Creates the DER encoding of the provided object identifier.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if DER encoding was OK, @code{ASN1_VALUE_NOT_VALID} 
+if  @code{str} is not a valid OID, @code{ASN1_MEM_ERROR}  if the  @code{der} vector isn't big enough and in this case  @code{der_len} will contain the
+length needed.
+@end deftypefun
+

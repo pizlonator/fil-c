@@ -1,0 +1,70 @@
+# Copyright (C) 2009-2022 Free Software Foundation, Inc.
+#
+# This file is part of LIBTASN1.
+#
+# The LIBTASN1 library is free software; you can redistribute it
+# and/or modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA
+
+LIBTASN1_0_3
+{
+  global:
+    asn1_array2tree;
+    asn1_bit_der;
+    asn1_check_version;
+    asn1_copy_node;
+    asn1_create_element;
+    asn1_delete_element;
+    asn1_delete_structure;
+    asn1_der_coding;
+    asn1_der_decoding2;
+    asn1_der_decoding;
+    asn1_der_decoding_element;
+    asn1_der_decoding_startEnd;
+    asn1_expand_any_defined_by;
+    asn1_expand_octet_string;
+    asn1_find_node;
+    asn1_find_structure_from_oid;
+    asn1_get_bit_der;
+    asn1_get_length_ber;
+    asn1_get_length_der;
+    asn1_get_octet_der;
+    asn1_get_tag_der;
+    asn1_length_der;
+    asn1_number_of_elements;
+    asn1_octet_der;
+    asn1_parser2array;
+    asn1_parser2tree;
+    asn1_perror;
+    asn1_print_structure;
+    asn1_read_tag;
+    asn1_read_value;
+    asn1_strerror;
+    asn1_write_value;
+    asn1_read_node_value;
+    asn1_encode_simple_der;
+    asn1_decode_simple_der;
+    asn1_read_value_type;
+    asn1_delete_structure2;
+    asn1_dup_node;
+    asn1_decode_simple_ber;
+    asn1_get_object_id_der;
+  local:
+    *;
+};
+
+LIBTASN1_4_16_0 {
+  global:
+    asn1_object_id_der;
+} LIBTASN1_0_3;

@@ -1,0 +1,16 @@
+@subheading asn1_number_of_elements
+@anchor{asn1_number_of_elements}
+@deftypefun {int} {asn1_number_of_elements} (asn1_node_const @var{element}, const char * @var{name}, int * @var{num})
+@var{element}: pointer to the root of an ASN1 structure.
+
+@var{name}: the name of a sub-structure of ROOT.
+
+@var{num}: pointer to an integer where the result will be stored
+
+Counts the number of elements of a sub-structure called NAME with
+names equal to "?1","?2", ...
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+ @code{name} is not known, @code{ASN1_GENERIC_ERROR}  if pointer  @code{num} is @code{NULL} .
+@end deftypefun
+

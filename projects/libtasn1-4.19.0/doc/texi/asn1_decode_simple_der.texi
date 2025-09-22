@@ -1,0 +1,19 @@
+@subheading asn1_decode_simple_der
+@anchor{asn1_decode_simple_der}
+@deftypefun {int} {asn1_decode_simple_der} (unsigned int @var{etype}, const unsigned char * @var{der}, unsigned int @var{_der_len}, const unsigned char ** @var{str}, unsigned int * @var{str_len})
+@var{etype}: The type of the string to be encoded (ASN1_ETYPE_)
+
+@var{der}: the encoded string
+
+@var{_der_len}: the bytes of the encoded string
+
+@var{str}: a pointer to the data
+
+@var{str_len}: the length of the data
+
+Decodes a simple DER encoded type (e.g. a string, which is not constructed).
+The output is a pointer inside the  @code{der} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful or an error value.
+@end deftypefun
+

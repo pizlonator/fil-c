@@ -1,0 +1,13 @@
+@subheading asn1_dup_node
+@anchor{asn1_dup_node}
+@deftypefun {asn1_node} {asn1_dup_node} (asn1_node_const @var{src}, const char * @var{src_name})
+@var{src}: Source asn1 node.
+
+@var{src_name}: Field name in source node.
+
+Create a deep copy of a asn1_node variable. This function
+will return an exact copy of the provided structure.
+
+@strong{Returns:} Return @code{NULL}  on failure.
+@end deftypefun
+

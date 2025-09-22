@@ -1,0 +1,30 @@
+TEST {}
+DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+Choice2 ::= CHOICE {
+ oct1 OCTET STRING,
+ int1 [3] INTEGER,
+ oct2 OCTET STRING
+}
+
+
+Choice1 ::= CHOICE {
+ int4 [0] INTEGER,
+ choice2 Choice2,
+ int5 [1] INTEGER
+}
+
+Choice0 ::= CHOICE {
+ int6 [0] INTEGER,
+ choice1 Choice1,
+ int7 [1] INTEGER
+}
+
+Main ::= SEQUENCE {
+  pad1 INTEGER,
+  choice0 Choice0,
+  pad2 INTEGER
+}
+
+END

@@ -1,0 +1,32 @@
+@subheading asn1_der_decoding2
+@anchor{asn1_der_decoding2}
+@deftypefun {int} {asn1_der_decoding2} (asn1_node * @var{element}, const void * @var{ider}, int * @var{max_ider_len}, unsigned int @var{flags}, char * @var{errorDescription})
+@var{element}: pointer to an ASN1 structure.
+
+@var{ider}: vector that contains the DER encoding.
+
+@var{max_ider_len}: pointer to an integer giving the information about the
+maximal number of bytes occupied by * @code{ider} . The real size of the DER
+encoding is returned through this pointer.
+
+@var{flags}: flags controlling the behaviour of the function.
+
+@var{errorDescription}: null-terminated string contains details when an
+error occurred.
+
+Fill the structure * @code{element} with values of a DER encoding string. The
+structure must just be created with function @code{asn1_create_element()} .
+
+If @code{ASN1_DECODE_FLAG_ALLOW_PADDING}  flag is set then the function will ignore
+padding after the decoded DER data. Upon a successful return the value of
+* @code{max_ider_len} will be set to the number of bytes decoded.
+
+If @code{ASN1_DECODE_FLAG_STRICT_DER}  flag is set then the function will
+not decode any BER-encoded elements.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if DER encoding OK, @code{ASN1_ELEMENT_NOT_FOUND} 
+if  @code{ELEMENT} is @code{NULL} , and @code{ASN1_TAG_ERROR}  or
+@code{ASN1_DER_ERROR}  if the der encoding doesn't match the structure
+name (* @code{ELEMENT} deleted).
+@end deftypefun
+

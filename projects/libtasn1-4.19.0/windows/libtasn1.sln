@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtasn1", "libtasn1\libtasn1.vcproj", "{4DE20933-A72B-4261-9B63-0DE9AF31DAB2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-tree", "test-tree\test-tree.vcproj", "{53CDE0B4-BA0D-4911-8730-41B03CDC310A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2} = {4DE20933-A72B-4261-9B63-0DE9AF31DAB2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-parser", "test-parser\test-parser.vcproj", "{CE8F8E2E-E5E9-43F6-A567-CB813B18C58A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2} = {4DE20933-A72B-4261-9B63-0DE9AF31DAB2}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asn1-parser", "asn1-parser\asn1-parser.vcproj", "{3E96D323-99DD-497F-991A-9316C9FFA99A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2} = {4DE20933-A72B-4261-9B63-0DE9AF31DAB2}
+		{0C4318E2-FFD7-40DC-945C-40016B10665C} = {0C4318E2-FFD7-40DC-945C-40016B10665C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gnulib", "gnulib\gnulib.vcproj", "{0C4318E2-FFD7-40DC-945C-40016B10665C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2}.Debug|Win32.Build.0 = Debug|Win32
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2}.Release|Win32.ActiveCfg = Release|Win32
+		{4DE20933-A72B-4261-9B63-0DE9AF31DAB2}.Release|Win32.Build.0 = Release|Win32
+		{53CDE0B4-BA0D-4911-8730-41B03CDC310A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{53CDE0B4-BA0D-4911-8730-41B03CDC310A}.Debug|Win32.Build.0 = Debug|Win32
+		{53CDE0B4-BA0D-4911-8730-41B03CDC310A}.Release|Win32.ActiveCfg = Release|Win32
+		{53CDE0B4-BA0D-4911-8730-41B03CDC310A}.Release|Win32.Build.0 = Release|Win32
+		{CE8F8E2E-E5E9-43F6-A567-CB813B18C58A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CE8F8E2E-E5E9-43F6-A567-CB813B18C58A}.Debug|Win32.Build.0 = Debug|Win32
+		{CE8F8E2E-E5E9-43F6-A567-CB813B18C58A}.Release|Win32.ActiveCfg = Release|Win32
+		{CE8F8E2E-E5E9-43F6-A567-CB813B18C58A}.Release|Win32.Build.0 = Release|Win32
+		{3E96D323-99DD-497F-991A-9316C9FFA99A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3E96D323-99DD-497F-991A-9316C9FFA99A}.Debug|Win32.Build.0 = Debug|Win32
+		{3E96D323-99DD-497F-991A-9316C9FFA99A}.Release|Win32.ActiveCfg = Release|Win32
+		{3E96D323-99DD-497F-991A-9316C9FFA99A}.Release|Win32.Build.0 = Release|Win32
+		{0C4318E2-FFD7-40DC-945C-40016B10665C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0C4318E2-FFD7-40DC-945C-40016B10665C}.Debug|Win32.Build.0 = Debug|Win32
+		{0C4318E2-FFD7-40DC-945C-40016B10665C}.Release|Win32.ActiveCfg = Release|Win32
+		{0C4318E2-FFD7-40DC-945C-40016B10665C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

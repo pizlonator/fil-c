@@ -1,0 +1,25 @@
+@subheading asn1_parser2tree
+@anchor{asn1_parser2tree}
+@deftypefun {int} {asn1_parser2tree} (const char * @var{file}, asn1_node * @var{definitions}, char * @var{error_desc})
+@var{file}: specify the path and the name of file that contains
+ASN.1 declarations.
+
+@var{definitions}: return the pointer to the structure created from
+"file" ASN.1 declarations.
+
+@var{error_desc}: return the error description or an empty
+string if success.
+
+Function used to start the parse algorithm.  Creates the structures
+needed to manage the definitions included in  @code{file} file.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if the file has a correct syntax and every
+identifier is known, @code{ASN1_ELEMENT_NOT_EMPTY}  if  @code{definitions} not
+@code{NULL} , @code{ASN1_FILE_NOT_FOUND}  if an error occurred while
+opening  @code{file} , @code{ASN1_SYNTAX_ERROR}  if the syntax is not
+correct, @code{ASN1_IDENTIFIER_NOT_FOUND}  if in the file there is an
+identifier that is not defined, @code{ASN1_NAME_TOO_LONG}  if in the
+file there is an identifier with more than @code{ASN1_MAX_NAME_SIZE} 
+characters.
+@end deftypefun
+

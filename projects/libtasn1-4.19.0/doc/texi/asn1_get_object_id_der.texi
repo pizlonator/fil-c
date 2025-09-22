@@ -1,0 +1,19 @@
+@subheading asn1_get_object_id_der
+@anchor{asn1_get_object_id_der}
+@deftypefun {int} {asn1_get_object_id_der} (const unsigned char * @var{der}, int @var{der_len}, int * @var{ret_len}, char * @var{str}, int @var{str_size})
+@var{der}: DER data to decode containing the OBJECT IDENTIFIER
+
+@var{der_len}: Length of DER data to decode.
+
+@var{ret_len}: Output variable containing the length of the DER data.
+
+@var{str}: Pre-allocated output buffer to put the textual object id in.
+
+@var{str_size}: Length of pre-allocated output buffer.
+
+Converts a DER encoded object identifier to its textual form. This
+function expects the DER object identifier without the tag.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  on success, or an error.
+@end deftypefun
+

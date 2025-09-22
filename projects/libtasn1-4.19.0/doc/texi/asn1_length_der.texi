@@ -1,0 +1,16 @@
+@subheading asn1_length_der
+@anchor{asn1_length_der}
+@deftypefun {void} {asn1_length_der} (unsigned long int @var{len}, unsigned char * @var{der}, int * @var{der_len})
+@var{len}: value to convert.
+
+@var{der}: buffer to hold the returned encoding (may be @code{NULL} ).
+
+@var{der_len}: number of meaningful bytes of ANS (der[0]..der[der_len-1]).
+
+Creates the DER encoding of the provided length value.
+The  @code{der} buffer must have enough room for the output. The maximum
+length this function will encode is @code{ASN1_MAX_LENGTH_SIZE} .
+
+To know the size of the DER encoding use a @code{NULL}  value for  @code{der} .
+@end deftypefun
+

@@ -1,0 +1,111 @@
+@subheading asn1_write_value
+@anchor{asn1_write_value}
+@deftypefun {int} {asn1_write_value} (asn1_node @var{node_root}, const char * @var{name}, const void * @var{ivalue}, int @var{len})
+@var{node_root}: pointer to a structure
+
+@var{name}: the name of the element inside the structure that you want to set.
+
+@var{ivalue}: vector used to specify the value to set. If len is >0,
+VALUE must be a two's complement form integer.  if len=0 *VALUE
+must be a null terminated string with an integer value.
+
+@var{len}: number of bytes of *value to use to set the value:
+value[0]..value[len-1] or 0 if value is a null terminated string
+
+Set the value of one element inside a structure.
+
+If an element is OPTIONAL and you want to delete it, you must use
+the value=NULL and len=0.  Using "pkix.asn":
+
+result=asn1_write_value(cert, "tbsCertificate.issuerUniqueID",
+NULL, 0);
+
+Description for each type:
+
+@strong{INTEGER:} VALUE must contain a two's complement form integer.
+
+value[0]=0xFF ,               len=1 -> integer=-1.
+value[0]=0xFF value[1]=0xFF , len=2 -> integer=-1.
+value[0]=0x01 ,               len=1 -> integer= 1.
+value[0]=0x00 value[1]=0x01 , len=2 -> integer= 1.
+value="123"                 , len=0 -> integer= 123.
+
+@strong{ENUMERATED:} As INTEGER (but only with not negative numbers).
+
+@strong{BOOLEAN:} VALUE must be the null terminated string "TRUE" or
+"FALSE" and LEN != 0.
+
+value="TRUE" , len=1 -> boolean=TRUE.
+value="FALSE" , len=1 -> boolean=FALSE.
+
+OBJECT IDENTIFIER: VALUE must be a null terminated string with
+each number separated by a dot (e.g. "1.2.3.543.1").  LEN != 0.
+
+value="1 2 840 10040 4 3" , len=1 -> OID=dsa-with-sha.
+
+@strong{UTCTime:} VALUE must be a null terminated string in one of these
+formats: "YYMMDDhhmmssZ", "YYMMDDhhmmssZ",
+"YYMMDDhhmmss+hh'mm'", "YYMMDDhhmmss-hh'mm'",
+"YYMMDDhhmm+hh'mm'", or "YYMMDDhhmm-hh'mm'".  LEN != 0.
+
+value="9801011200Z" , len=1 -> time=Jannuary 1st, 1998
+at 12h 00m Greenwich Mean Time
+
+@strong{GeneralizedTime:} VALUE must be in one of this format:
+"YYYYMMDDhhmmss.sZ", "YYYYMMDDhhmmss.sZ",
+"YYYYMMDDhhmmss.s+hh'mm'", "YYYYMMDDhhmmss.s-hh'mm'",
+"YYYYMMDDhhmm+hh'mm'", or "YYYYMMDDhhmm-hh'mm'" where ss.s
+indicates the seconds with any precision like "10.1" or "01.02".
+LEN != 0
+
+value="2001010112001.12-0700" , len=1 -> time=Jannuary
+1st, 2001 at 12h 00m 01.12s Pacific Daylight Time
+
+OCTET STRING: VALUE contains the octet string and LEN is the
+number of octets.
+
+value="$\backslash$x01$\backslash$x02$\backslash$x03" ,
+len=3 -> three bytes octet string
+
+@strong{GeneralString:} VALUE contains the generalstring and LEN is the
+number of octets.
+
+value="$\backslash$x01$\backslash$x02$\backslash$x03" ,
+len=3 -> three bytes generalstring
+
+BIT STRING: VALUE contains the bit string organized by bytes and
+LEN is the number of bits.
+
+value="$\backslash$xCF" , len=6 -> bit string="110011" (six
+bits)
+
+@strong{CHOICE:} if NAME indicates a choice type, VALUE must specify one of
+the alternatives with a null terminated string. LEN != 0. Using
+"pkix.asn"\:
+
+result=asn1_write_value(cert,
+"certificate1.tbsCertificate.subject", "rdnSequence",
+1);
+
+@strong{ANY:} VALUE indicates the der encoding of a structure.  LEN != 0.
+
+SEQUENCE OF: VALUE must be the null terminated string "NEW" and
+LEN != 0. With this instruction another element is appended in
+the sequence. The name of this element will be "?1" if it's the
+first one, "?2" for the second and so on.
+
+Using "pkix.asn"\:
+
+result=asn1_write_value(cert,
+"certificate1.tbsCertificate.subject.rdnSequence", "NEW", 1);
+
+SET OF: the same as SEQUENCE OF.  Using "pkix.asn":
+
+result=asn1_write_value(cert,
+"tbsCertificate.subject.rdnSequence.?LAST", "NEW", 1);
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if the value was set,
+@code{ASN1_ELEMENT_NOT_FOUND}  if  @code{name} is not a valid element, and
+@code{ASN1_VALUE_NOT_VALID}  if  @code{ivalue} has a wrong format.
+@end deftypefun
+

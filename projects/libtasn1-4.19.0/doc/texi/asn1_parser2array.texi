@@ -1,0 +1,30 @@
+@subheading asn1_parser2array
+@anchor{asn1_parser2array}
+@deftypefun {int} {asn1_parser2array} (const char * @var{inputFileName}, const char * @var{outputFileName}, const char * @var{vectorName}, char * @var{error_desc})
+@var{inputFileName}: specify the path and the name of file that
+contains ASN.1 declarations.
+
+@var{outputFileName}: specify the path and the name of file that will
+contain the C vector definition.
+
+@var{vectorName}: specify the name of the C vector.
+
+@var{error_desc}: return the error description or an empty
+string if success.
+
+Function that generates a C structure from an ASN1 file.  Creates a
+file containing a C vector to use to manage the definitions
+included in  @code{inputFileName} file. If  @code{inputFileName} is
+"/aa/bb/xx.yy" and  @code{outputFileName} is @code{NULL} , the file created is
+"/aa/bb/xx_asn1_tab.c".  If  @code{vectorName} is @code{NULL}  the vector name
+will be "xx_asn1_tab".
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if the file has a correct syntax and every
+identifier is known, @code{ASN1_FILE_NOT_FOUND}  if an error occurred
+while opening  @code{inputFileName} , @code{ASN1_SYNTAX_ERROR}  if the syntax is
+not correct, @code{ASN1_IDENTIFIER_NOT_FOUND}  if in the file there is
+an identifier that is not defined, @code{ASN1_NAME_TOO_LONG}  if in the
+file there is an identifier with more than @code{ASN1_MAX_NAME_SIZE} 
+characters.
+@end deftypefun
+

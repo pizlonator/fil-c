@@ -1,0 +1,44 @@
+--
+--  File used in the test sequence Test_parser.
+--
+
+
+TEST_PARSER {iso(1) identified-organization(3) dod(6) internet(1) security(5) mechanisms(5) pkix(7) id-mod(0) id-pkix1-implicit-88(2)}
+
+DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+
+Sequence1 ::= SEQUENCE{
+    int1  -- Test --   INTEGER (5),
+    int2     INTEGER (10 | 12),
+    generic  GeneralString
+}
+
+OidTest ::= SEQUENCE{
+   oid1    OBJECT IDENTIFIER DEFAULT Oid-type1
+}
+
+Oid-type1 OBJECT IDENTIFIER ::= {1 2 3 4}
+
+Bitstringsizetest ::= BIT STRING (SIZE(42))
+
+END
+
+-- Copyright (C) 2002-2022 Free Software Foundation, Inc.
+--
+-- This file is part of LIBTASN1.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.

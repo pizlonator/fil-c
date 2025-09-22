@@ -1,0 +1,22 @@
+@subheading asn1_octet_der
+@anchor{asn1_octet_der}
+@deftypefun {void} {asn1_octet_der} (const unsigned char * @var{str}, int @var{str_len}, unsigned char * @var{der}, int * @var{der_len})
+@var{str}: the input data.
+
+@var{str_len}: STR length (str[0]..str[*str_len-1]).
+
+@var{der}: encoded string returned.
+
+@var{der_len}: number of meaningful bytes of DER (der[0]..der[der_len-1]).
+
+Creates a length-value DER encoding for the input data.
+The DER encoding of the input data will be placed in the  @code{der} variable.
+
+Note that the OCTET STRING tag is not included in the output.
+
+This function does not return any value because it is expected
+that  @code{der_len} will contain enough bytes to store the string
+plus the DER encoding. The DER encoding size can be obtained using
+@code{asn1_length_der()} .
+@end deftypefun
+

@@ -1,0 +1,4988 @@
+2022-08-23  Simon Josefsson  <simon@josefsson.org>
+
+	version 4.19.0
+	* NEWS: Record release date.
+
+	Work around unfixed gtk-doc problem.
+	Reported by Roman Bogorodskiy in
+	https://lists.gnu.org/archive/html/help-libtasn1/2021-11/msg00004.html
+	https://gitlab.gnome.org/GNOME/gtk-doc/-/issues/37
+	https://gitlab.gnome.org/GNOME/gtk-doc/-/merge_requests/67
+
+	Improve CI/CD artifacts, and fail on errors.
+
+	Put version checks in tests/version.c.
+
+	Deduplicate.
+
+	bootstrap.conf (src_gnulib_modules): Add getopt-gnu.
+	Needed on UnixWare for getopt_long.
+	Reported by Tim Rice <tim@multitalents.net>.
+
+	Build check with tcc/lld/pcc.
+
+2022-08-18  Simon Josefsson  <simon@josefsson.org>
+
+	Some C89 fixes.  Closes: !70.
+
+	Attempt to reproduce !70 build error.
+
+2022-08-17  Simon Josefsson  <simon@josefsson.org>
+
+	Bump LT_REVISION.
+
+	Add sc_libtool_version_bump syntax-check.
+
+	Move gnulib's dummy test directory from tests-gl to lib/gl/tests.
+
+	Add NEWS entry.
+
+	Fix ETYPE_OK off by one array size check.  Closes: #32.
+	Reported by David Trabish in
+	<https://gitlab.com/gnutls/libtasn1/-/issues/32>.
+
+	Make sure syntax-check catches indent mistakes during cicd.
+
+	Add self-check for #32 to see if cicd catches it.
+
+	Fix license header.  Closes: #38.
+
+	Add NEWS entry.
+
+	Silence syntax-check.
+
+	Silence sc_makefile_DISTCHECK_CONFIGURE_FLAGS until we clean up coverage code.
+
+	Put gtkdocize in bootstrap_post_import_hook.
+
+	Update bootstrap.
+
+	Update gnulib.
+
+	Bump copyright years.
+
+2021-11-11  Simon Josefsson  <simon@josefsson.org>
+
+	Don't use -static when linking in fuzz/.  Closes: !61.
+
+2021-11-10  Simon Josefsson  <simon@josefsson.org>
+
+	Use portable way to remove carriage returns.
+
+	Don't use non-portable diff --strip-trailing-cr.
+
+	cicd: Add targets, reduce texlive.
+
+	maint: Fix builddir!=srcdir abi-check failure.
+
+	maint: Attempt to minimize texlive dependencies.
+
+	maint: Fix (and CICD-test) builddir!=srcdir bootstrap builds.
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	maint: Remove really old release announcement template.
+
+	maint: Really remove texinfo.css.
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 4.18.0
+	* NEWS: Record release date.
+
+	maint: Bump shared library version.  Prepare NEWS file for release.
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-indent' into 'master'
+	Maintainer fixes including code indent.
+
+	See merge request gnutls/libtasn1!87
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	maint: Run syntax-check in CICD.
+
+	maint: Sync gdoc with libidn2.
+
+	maint: Fix syntax-check flaws.
+
+	maint: Indent code.
+
+	maint: Update .gitignore.
+
+	maint: Regenerate README-release diff.
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-doc-fixes' into 'master'
+	Doc fixes.  Version handling fixes.
+
+	See merge request gnutls/libtasn1!86
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	doc: Fix deps.  Generate --help from tools.
+
+	maint: Fix generating version number.
+
+	doc: Don't dist html/ps/pdf.  Drop old css.  Fix man page versions.  Sync gdoc.
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-src-gnulib' into 'master'
+	Update gnulib and use it in src/.
+
+	Closes #37
+
+	See merge request gnutls/libtasn1!85
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	Fix potential NULL-dereferencing (compiler warning).
+
+	maint: Use gnulib modules in src/ tools. Closes: #37.
+	Partially reverts 9b6c6519.
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-buildfixes' into 'master'
+	Maintainer fixes
+
+	See merge request gnutls/libtasn1!84
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	cicd: Make it build.
+	Use versioned images (because package names are release dependent).
+	Don't fail on abidiff v2.0.
+	Replace failing "x86" cross build with new "armcross".
+	Use faster git submodule approach.
+
+	maint: Update .gitignore.
+
+	doc: Suggest running ./configure.
+
+2021-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-gtkdoc-fixes' into 'master'
+	doc: Improve GTK-DOC manual.  Closes: #35.
+
+	Closes #35
+
+	See merge request gnutls/libtasn1!83
+
+2021-07-22  Simon Josefsson  <simon@josefsson.org>
+
+	doc: Improve GTK-DOC manual.  Closes: #35.
+
+2021-05-25  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-gnulib-update' into 'master'
+	Update gnulib.
+
+	See merge request gnutls/libtasn1!82
+
+2021-05-25  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib.
+
+2021-05-16  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'kk/rename-files' into 'master'
+	Rename test files. Avoid using ':', which is illegal on Windows.
+
+	See merge request gnutls/libtasn1!81
+
+2021-05-14  Konstantin Kouptsov  <kkouptsov@s141.home>
+
+	Rename test files. Avoid using ':', which is illegal on Windows.
+
+2021-05-13  Simon Josefsson  <simon@josefsson.org>
+
+	maint: post-release administrivia
+	* NEWS: Add header line for next release.
+	* .prev-version: Record previous version.
+	* cfg.mk (old_NEWS_hash): Auto-update.
+
+	version 4.17.0
+	* NEWS: Record release date.
+
+	Modernize versioning and release infrastructure.
+
+	Add NEWS item for last commit.
+
+2021-05-12  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'covscan_fixes' into 'master'
+	Fix bugs unvelieled by Static Analysis
+
+	See merge request gnutls/libtasn1!80
+
+2021-05-11  Simo Sorce  <simo@redhat.com>
+
+	Fix potential buffer overflow via fscanf
+	Scanner Output
+	--------------
+	Error: DC.STREAM_BUFFER (CWE-120): [#def4]
+	libtasn1-4.16.0/src/asn1Coding.c:75: dont_call: "fscanf" assumes an arbitrarily long string, so callers must use correct precision specifiers or never use "fscanf".
+	libtasn1-4.16.0/src/asn1Coding.c:75: remediation: Use correct precision specifiers or implement your own parsing.
+	 #   73|     int ret;
+	 #   74|
+	 #   75|->   ret = fscanf (file, "%s", varName);
+	 #   76|     if (ret == EOF)
+	 #   77|       return ASSIGNMENT_EOF;
+
+	Error: DC.STREAM_BUFFER (CWE-120): [#def5]
+	libtasn1-4.16.0/src/asn1Coding.c:81: dont_call: "fscanf" assumes an arbitrarily long string, so callers must use correct precision specifiers or never use "fscanf".
+	libtasn1-4.16.0/src/asn1Coding.c:81: remediation: Use correct precision specifiers or implement your own parsing.
+	 #   79|       varName[0] = 0;
+	 #   80|
+	 #   81|->   ret = fscanf (file, "%s", value);
+	 #   82|     if (ret == EOF)
+	 #   83|       return ASSIGNMENT_ERROR;
+
+2021-05-11  Simo Sorce  <simo@redhat.com>
+
+	Fix String overflow warning
+	Scanner Output
+	--------------
+	rror: COMPILER_WARNING (CWE-758): [#def2]
+	libtasn1-4.16.0/lib/element.c: scope_hint: In function '_asn1_append_sequence_set'
+	libtasn1-4.16.0/lib/element.c:186:7: warning[-Wstringop-overflow=]: '_asn1_ltostr' accessing 22 bytes in a region of size 21
+	 #  186 |       _asn1_ltostr (n, temp + 1);
+	 #      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+	libtasn1-4.16.0/lib/element.c:186:7: note: referencing argument 2 of type 'char *'
+	libtasn1-4.16.0/lib/element.c:30: included_from: Included from here.
+	libtasn1-4.16.0/lib/parser_aux.h:70:7: note: in a call to function '_asn1_ltostr'
+	 #   70 | char *_asn1_ltostr (int64_t v, char str[LTOSTR_MAX_SIZE]);
+	 #      |       ^~~~~~~~~~~~
+	 #  184|         n++;
+	 #  185|         temp[0] = '?';
+	 #  186|->       _asn1_ltostr (n, temp + 1);
+	 #  187|       }
+	 #  188|     _asn1_set_name (p2, temp);
+
+	Fix resource leak (node)
+	Scanner Output
+	--------------
+	Error: RESOURCE_LEAK (CWE-772): [#def1]
+	libtasn1-4.16.0/lib/coding.c:1099: alloc_fn: Storage is returned from allocation function "_asn1_copy_structure3".
+	libtasn1-4.16.0/lib/coding.c:1099: var_assign: Assigning: "node" = storage returned from "_asn1_copy_structure3(node)".
+	libtasn1-4.16.0/lib/coding.c:1106: leaked_storage: Variable "node" going out of scope leaks the storage it points to.
+	 # 1104|
+	 # 1105|     if (der == NULL && max_len > 0)
+	 # 1106|->     return ASN1_VALUE_NOT_VALID;
+	 # 1107|
+	 # 1108|     counter = 0;
+
+2021-05-08  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-more-cicd' into 'master'
+	Support both old and new bison. Closes: #33.
+
+	Closes #33
+
+	See merge request gnutls/libtasn1!79
+
+2021-05-08  Simon Josefsson  <simon@josefsson.org>
+
+	Support both old and new bison. Closes: #33.
+	Update build dependencies.
+	Improve cicd.
+
+2021-05-07  Simon Josefsson  <simon@josefsson.org>
+
+	Bump copyright years.
+
+2021-05-07  Simon Josefsson  <simon@josefsson.org>
+
+	Merge branch 'tmp-update-gnulib' into 'master'
+	Update gnulib files.
+
+	See merge request gnutls/libtasn1!78
+
+2021-05-07  Simon Josefsson  <simon@josefsson.org>
+
+	Check that malloc returned non-NULL.
+
+	Remove or update updated gnulib files.
+
+	Gnulib requires autoconf 2.64 now.
+
+	Update gnulib files.
+
+2021-05-03  Andreas Metzler  <gitlab@bebt.de>
+
+	Merge branch 'tmp-fix-readme' into 'master'
+	Fix homepage URL.  Remove text duplicated from LICENSE.
+
+	See merge request gnutls/libtasn1!77
+
+2021-05-03  Simon Josefsson  <simon@josefsson.org>
+
+	Fix homepage URL.  Remove text duplicated from LICENSE.
+
+2021-03-29  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'ihsinme-master-patch-00221' into 'master'
+	fix invalid unsigned arithmetic.
+
+	See merge request gnutls/libtasn1!75
+
+2021-03-22  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'wip/dueno/bison-bootstrap' into 'master'
+	Revert "bootstrap.conf: require bison 3.6 or later"
+
+	See merge request gnutls/libtasn1!76
+
+2021-03-22  Daiki Ueno  <ueno@gnu.org>
+
+	Revert "bootstrap.conf: require bison 3.6 or later"
+	This reverts commit b6de8e01dec78ac0a43bccae49d1ecda64ad9b98.  The
+	condition was too rigid on oss-fuzz.  This was introduced for the
+	default string change ("$eof" -> "end of file"), but ideally we should
+	have a way to produce the same error message for either version of
+	bison.
+
+2021-03-01  ihsinme  <ihsinme@gmail.com>
+
+	I believe your checks are not correct. in my opinion they are equivalent to checks !=. I suggest a simple fix. only fix!
+
+2021-02-25  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'tmp-restore-size' into 'master'
+	SIZE: restore handling of SIZE nodes
+
+	See merge request gnutls/libtasn1!68
+
+2021-02-25  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'wip/dueno/ci-fixes' into 'master'
+	Merge !71 along with CI fixes
+
+	See merge request gnutls/libtasn1!74
+
+2021-02-25  Stefan Weil  <sw@weilnetz.de>
+
+	Remove NULL checks which are no longer needed
+
+	Fix handling of code which uses NULL pointers + offset
+	Apple clang optimizes illegal pointers like (der + counter) with
+	der == NULL which makes several tests fail, so better avoid that.
+
+2021-02-25  Daiki Ueno  <ueno@gnu.org>
+
+	doc: update copyright year
+
+	bootstrap.conf: require bison 3.6 or later
+
+	tests: adjust Test_parser error message to Bison 3.6+
+	Bison 3.6 refers YYEOF as "end of file" instead of "$end".
+
+	.gitlab-ci.yml: use Fedora 33 image
+
+2020-09-10  Daiki Ueno  <ueno@gnu.org>
+
+	Merge branch 'tmp-gnulib' into 'master'
+	src: link against libgnu.la for "c-ctype.h" symbols
+
+	Closes #28
+
+	See merge request gnutls/libtasn1!69
+
+2020-09-05  Daiki Ueno  <ueno@gnu.org>
+
+	lib: include "c-ctype.h" in a documented way
+	https://git.savannah.gnu.org/cgit/gnulib.git/tree/modules/c-ctype#n18
+
+	src: link against libgnu.la for "c-ctype.h" symbols
+	libtasn1.la now uses functions from "c-ctype.h", which needs the
+	tools to be linked with libgnu.la.
+
+2020-05-25  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	SIZE: restore handling of SIZE nodes
+	Gcr library uses asn1Parser to generate parsing tables. It has it's own
+	parser which handles SIZE nodes correctly. Several tests inside Gcr fail
+	if ASN.1 tables were rebuilt with SIZE nodes. Restore compatibility of
+	Gcr library with fresh libtasn1 by restoring support for SIZE nodes.
+
+2020-05-13  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-length-fuzz' into 'master'
+	fuzz: add fuzzers for asn1_get_length_b/der
+
+	See merge request gnutls/libtasn1!65
+
+2020-05-13  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	run-clang.sh: work with out-of-tree builds
+	run-clang.sh contains rudimentary (incomplete) support for out-of-tree
+	builds. Fix it to work correctly.
+
+	fuzz: add fuzzers for asn1_get_length_b/der
+	Add two simple fuzzers for asn1_get_length_b/der.
+
+2020-05-11  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-tests' into 'master'
+	Update testing routines
+
+	See merge request gnutls/libtasn1!64
+
+2020-05-08  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	Merge branch 'tmp-fix-16159' into 'master'
+	parser: fix parser2tree memory leak (and parsing error)
+
+	See merge request gnutls/libtasn1!67
+
+2020-05-07  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fix-docs' into 'master'
+	Misc fixes for documentation
+
+	Closes #20
+
+	See merge request gnutls/libtasn1!66
+
+2020-05-07  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	parser: fix parser2tree memory leak (and parsing error)
+	Fix oss-fuzz 16159, leak in parser2tree. The leak was caused by parser
+	code ignoring all defined types if first one was a known type.
+
+2020-05-06  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	libtasn1.h.in: merge asn1_static_node definition for gtk-doc
+	Gtk-doc fails to find asn1_static_node fields documentation. Merge
+	struct asn1_static_node_st with typedef asn1_static_node to let Gtk-doc
+	find the documentation.
+
+	libtasn1.h.in: update section documentation
+	Follow new gtk-doc section documentation format.
+
+2020-05-06  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	doc/reference: hide deprecated symbols
+	Put ASN1_DISABLE_DEPRECATED guards around deprecated symbols to stop
+	gtkdoc-scan from complaining.
+
+	Fixes #20
+
+2020-05-06  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	doc/reference: skip gl headers
+	Do not parse gnulib headers.
+
+	doc/reference: work in out-of-tree builds
+	Point gtkdoc-scan to top_builddir to also scan libtasn1.h file generated
+	inside $(top_builddir)/lib/includes.
+
+	doc/Makefile.am: work correctly in out-of-tree builds
+	Reference $(srcdir)/Makefile.am rather than just Makefile.am to make it
+	work in out-of-tree builds.
+
+2020-05-05  Dmitry Baryshkov  <dbaryshkov@gmail.com>
+
+	fuzz: support running single test at a time
+	Support testing single input file at a time.
+
+	tests/crlf: enable calling asn1Decoding using VALGRIND
+
+	tests: remove --leak-check=no from scripts
+	Reenable valgrind's leaks checking in scripts
+
+	tests: run valgrind on a test, not on a shell
+	Rename scripts and use SH_LOG_COMPILER to call VALGRIND inside a script
+	rather than valgrinding the whole script (including bash and the rest of
+	utils).
+
+2020-03-20  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-deprecation' into 'master'
+	Tmp deprecation
+
+	See merge request gnutls/libtasn1!58
+
+2020-03-20  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Replace deprecated macros in examples and fuzzers
+
+	Print deprecation warning for deprecated macros
+	Use _Pragma to print warning for using deprecated macros.
+	This is enabled for gcc >= 3.1.
+
+2020-02-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 4.16.0
+
+	asn1_object_id_der: reformatted for gdoc detection
+
+2020-01-19  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	bumped version
+
+	NEWS: clarifications
+
+2020-01-19  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-oid-fix' into 'master'
+	asn1_get_object_id_der: enhance the range of decoded OIDs
+
+	Closes #25
+
+	See merge request gnutls/libtasn1!55
+
+2020-01-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-ber-constructed-octet-string' into 'master'
+	asn1_decode_simple_ber: added support for constructed definite octet string
+
+	See merge request gnutls/libtasn1!56
+
+2020-01-11  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	updated auto-generated files
+
+	asn1_object_id_der: introduced
+	This introduces a function to encode from a textual object
+	identifier to a DER encoding. This complements asn1_get_object_id_der().
+
+2020-01-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	_asn1_object_id_der: expanded to handle all OIDs that can be decoded
+	In addition to making a more precise OID encoding, we add
+	a unit test.
+
+2020-01-11  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	asn1_get_object_id_der: enhance the range of decoded OIDs
+	The function would only successfully decode OIDs that started
+	with a single octet. This fixes that limitation.
+
+	Resolves: #25
+
+2020-01-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	asn1_decode_simple_ber: added support for constructed definite octet string
+	This allows to decode the whole set of BER encodings for
+	OCTET STRINGs.
+
+	_asn1_decode_simple_ber: allow empty fields
+	Allow empty subcomponents of BER OCTET STRINGS. These
+	are not prohibited by BER.
+
+	asn1_der_decoding2: force the right tag on DER
+	When decoding an OCTET STRING ensure that the right
+	tag is present when strict DER is specified.
+
+	asn1_der_decoding2: fix flag checking
+
+	lib: append: cleanup
+	This simplifies the use of the append() function and
+	fixes the error code on failure.
+
+2020-01-07  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	.gitlab-ci.yml: save artifacts on failure
+
+2020-01-07  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	fuzz: added fuzzers for simple decoding functions
+
+2020-01-02  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-update-to-f31' into 'master'
+	.gitlab-ci.yml: use fedora 31
+
+	See merge request gnutls/libtasn1!54
+
+2020-01-02  Nikos Mavrogiannopoulos  <n.mavrogiannopoulos@gmail.com>
+
+	Updated copyright of manual to 2020
+
+	.gitlab-ci.yml: use fedora 31
+
+2019-12-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	README.md: updated build badge
+
+2019-12-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-c-ctype' into 'master'
+	isdigit: replace with gnulib's c-ctype
+
+	See merge request gnutls/libtasn1!53
+
+2019-12-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	isdigit: replace with gnulib's c-ctype
+
+2019-11-21  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-correct-installed-files' into 'master'
+	fuzz: do not install generated fuzzers and tools
+
+	See merge request gnutls/libtasn1!52
+
+2019-11-21  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	fuzz: do not install generated fuzzers and tools
+
+	released 4.15.0
+
+2019-10-31  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-use-after-free' into 'master'
+	_asn1_expand_object_id: added safety against use after free
+
+	See merge request gnutls/libtasn1!51
+
+2019-10-31  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	_asn1_expand_object_id: protect from unbounded recursion
+	That introduces a large maximum limit on the number of constants that can
+	be forming an object identifier. That protects from a large allocations of
+	memory in specially crafted .asn files.
+
+	Resolves:
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=17750
+
+2019-10-31  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	_asn1_expand_object_id: added safety against use after free
+	Resolves:
+	  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=16161
+
+2019-10-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-git2cl' into 'master'
+	ChangeLog: do not depend on git2cl [ci skip]
+
+	See merge request gnutls/libtasn1!50
+
+2019-10-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	ChangeLog: do not depend on git2cl
+	This package is not universally available and its value is not
+	that significant to depend on.
+
+2019-09-09  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'gtkdoc' into 'master'
+	doc/reference: don't add empty object hierarchy chapter
+
+	See merge request gnutls/libtasn1!49
+
+2019-09-09  Ross Burton  <ross.burton@intel.com>
+
+	doc/reference: don't add empty object hierarchy chapter
+	The object hierarchy section is empty because there are no GObjects in the
+	libtasn1 API.  With gtk-doc 1.30 onwards if there are no objects then the object
+	hierarchy file won't exist, resulting in a failure when building the
+	documentation:
+
+	| ../libtasn1-docs.xml:39: element include: XInclude error : could not load ../xml/tree_index.sgml, and no fallback was found
+
+2019-08-09  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-gnutls-fuzzer' into 'master'
+	Add another fuzzer with code from gnutls
+
+	See merge request gnutls/libtasn1!48
+
+2019-08-09  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix harmless integer overflows
+	This triggered several undefined behaviors when
+	CONST_DOWN is a signed integer:
+
+	unsigned type;
+	type & (~CONST_DOWN)
+
+2019-08-09  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add first fuzz corpora for libtasn1_gnutls_der_fuzzer
+
+	Add new fuzzer libtasn1_pkix_der_fuzzer.c
+	This fuzzer is testing arbitrary DER input data with GnuTLS's ASN.1
+	definition (lib/gnutls.asn). Any issues found here likely have a
+	real world impact on every software using libgnutls.
+
+2019-08-09  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fix-ossfuzz-16249' into 'master'
+	Fix OSS-Fuzz issue 16249
+
+	See merge request gnutls/libtasn1!47
+
+2019-08-09  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix OSS-Fuzz issue 16249
+	This removes an exit() during fuzzing which prevents fuzz progress.
+
+2019-08-08  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-pkix-der-fuzzer' into 'master'
+	Add pkix der fuzzer
+
+	See merge request gnutls/libtasn1!46
+
+2019-08-08  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add first fuzz corpora for libtasn1_pkix_der_fuzzer
+
+	Add new fuzzer libtasn1_pkix_der_fuzzer.c
+	This fuzzer is testing arbitrary DER input data with GnuTLS's ASN.1
+	definition (lib/pkix.asn). So, any issues found here likely have a real world
+	impact on every software using libgnutls.
+
+2019-08-02  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fix-ossfuzz-16158' into 'master'
+	Fix null dereference in _asn1_expand_object_id()
+
+	See merge request gnutls/libtasn1!42
+
+2019-08-02  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix null dereference in _asn1_expand_object_id()
+	Fixes OSS-Fuzz issue #16158
+
+2019-08-02  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-issue-trackers' into 'master'
+	README.md: added links to issue trackers [ci skip]
+
+	See merge request gnutls/libtasn1!41
+
+2019-08-02  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	README.md: added links to issue trackers [ci skip]
+
+2019-08-01  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fuzzing' into 'master'
+	Add initial fuzzing implementation
+
+	See merge request gnutls/libtasn1!38
+
+2019-08-01  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add fuzz corpora for libtasn1_array2tree_fuzzer
+
+	Add fuzz corpora for libtasn1_parser2tree_fuzzer
+
+	Fix memleaks in asn1_array2tree()
+	Introduce _asn1_delete_structure() that keeps the node list
+	in sync when deleting a tree structure.
+
+	Suppress warnings when fuzzing
+
+2019-08-01  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add initial fuzzing
+	The initial fuzzing includes two basic fuzzers:
+	- libtasn1_array2tree_fuzzer.c
+	  Test asn1_array2tree()'s robustness
+	- libtasn1_parser2tree_fuzzer.c
+	  Test asn1_parser2tree()'s robustness
+
+	The make target 'oss-fuzz' is included for building the fuzzers
+	on the OSS-Fuzz platform for continuous fuzzing.
+
+2019-07-30  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fix-path' into 'master'
+	docs: Fix path for ASN1.c
+
+	See merge request gnutls/libtasn1!40
+
+2019-07-30  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	docs: Fix path for ASN1.c
+
+2019-07-29  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-20190727-delete-cyclo-subdir' into 'master'
+	doc: removed cyclo subdir
+
+	See merge request gnutls/libtasn1!39
+
+2019-07-29  Andreas Metzler  <ametzler@bebt.de>
+
+	doc: removed cyclo subdir
+	The calculation of cyclomatic complexity was not kept up to date (or
+	functional in the tarball).
+
+2019-07-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-minor-fixes' into 'master'
+	Minor fixes based on LGTM.com input
+
+	See merge request gnutls/libtasn1!37
+
+2019-07-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-fix-memleak-b' into 'master'
+	ASN1.y: improved detection of built-in types
+
+	Closes #16
+
+	See merge request gnutls/libtasn1!36
+
+2019-07-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	_asn1_copy_structure3: removed FIXME comment
+	It was hinting the possibility of a leak. However without any
+	more information, any reproducer, or hint the information was not very
+	useful and possibly misleading. Removing.
+
+	headers: added guards
+
+2019-07-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	ASN1.y: improved detection of built-in types
+	The built-in types are now detected via the yacc syntax and not
+	in the _asn1_yyerror() routine. This addresses a memory leak on
+	invalid syntax, and also reduces the generated tree by eliminating
+	unnecessary types.
+
+	Resolves: #16
+
+2019-07-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-no-yacc-warnings' into 'master'
+	ASN1.y: move old definitions to new; remove warnings
+
+	See merge request gnutls/libtasn1!35
+
+2019-07-27  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	ASN1.y: move old definitions to new; remove warnings
+	Autotools pass by the default the posix yacc (-y) flag to bison,
+	which causes lots of warnings to be printed. As libtasn1 was never
+	posix-yacc compliant there is no reason for these warnings to be
+	printed.
+
+2019-07-27  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-20190727-typo-whith' into 'master'
+	typo fix: whith -> with
+
+	See merge request gnutls/libtasn1!34
+
+2019-07-27  Andreas Metzler  <ametzler@bebt.de>
+
+	typo fix: whith -> with
+
+2019-07-26  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add .lgtm.yml for LGTM integration [ci skip]
+
+2019-07-25  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Cleanup asn1_parser2tree()
+
+2019-07-24  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fix-memleak+ubsan' into 'master'
+	Tmp fix memleak+ubsan
+
+	See merge request gnutls/libtasn1!33
+
+2019-07-24  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix memleaks in asn1_parser2tree(), found by fuzzing
+
+	Fix two (harmless) UBSAN messages, found by fuzzing
+
+2019-07-24  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-simplify-hash' into 'master'
+	Simplified hash function in lib/parser_aux.c
+
+	See merge request gnutls/libtasn1!32
+
+2019-07-24  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Simplified hash function in lib/parser_aux.c
+
+2019-07-24  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-am-ldflags' into 'master'
+	Fix LDFLAGS to AM_LDFLAGS in src/Makefile.am
+
+	Closes #15
+
+	See merge request gnutls/libtasn1!31
+
+2019-07-23  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-avoid-eol-brackets' into 'master'
+	Tmp avoid eol brackets
+
+	See merge request gnutls/libtasn1!30
+
+2019-07-23  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix LDFLAGS to AM_LDFLAGS in src/Makefile.am
+
+	Add sc_prohibit_eol_brackets syntax-check rule
+
+	Prepare code for sc_prohibit_eol_brackets
+
+2019-07-23  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-memleak-a' into 'master'
+	Fix memleaks in asn1_array2tree()
+
+	Closes #14
+
+	See merge request gnutls/libtasn1!29
+
+2019-07-23  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add memleak reproducer in tests/reproducers.c
+
+	Fix two memleaks in asn1_array2tree()
+
+2019-07-23  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-warnings' into 'master'
+	Fix warnings and add a Werror build
+
+	See merge request gnutls/libtasn1!28
+
+2019-07-23  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	configure: do not suggest pure keyword
+	It is suggested for several functions which handle nodes
+	but it is not clear to me that this is a correct suggestion.
+	A tree may change by accessing another pointer as well.
+
+	marked strerror and check_version functions as pure
+
+	.gitlab-ci.yml: introduce a run with -Werror to prevent new warnings
+
+	asn1Decoding.c: eliminated warning
+
+	configure: remove warning flags which are hard to eliminate
+
+	fix old-style function definition
+
+2019-07-22  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-amended-hash' into 'master'
+	Use amended version of gnulib's hash_pjw_bare()
+
+	Closes #13
+
+	See merge request gnutls/libtasn1!27
+
+2019-07-22  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Use amended version of gnulib's hash_pjw_bare()
+	Amended hash_pjw_bare() to return 'unsigned int' instead of 'size_t'.
+	Renamed the hash function to _asn1_hash().
+	Added a suppression for clang's UBSAN, needed for fuzzing.
+
+2019-07-22  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-parsing-fixes' into 'master'
+	Fixes and cleanups in the yacc parser
+
+	See merge request gnutls/libtasn1!24
+
+2019-07-21  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	.gitlab-ci.yml: disable valgrind runs by default; added special CI run
+
+	SIZE: do not store values; they were unused
+	Additionally some of these values were incorrectly added as
+	hanging (non-connected) nodes, which caused memory leaks.
+
+	INTEGER: ignore (0..MAX) values; they were not used
+	Additionally some of these values were incorrectly added as
+	hanging (non-connected) nodes, which caused memory leaks.
+
+	_asn1_expand_object_id: fix memory leak on error
+
+2019-07-21  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	ASN1.y: account for SIZE in BIT STRING
+	This addresses a memory leak.
+
+2019-07-21  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: fix run under valgrind
+
+2019-07-21  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	asn1_parser2tree, ans1_parser2array: simplified
+
+2019-07-21  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-fix-uint-overflow' into 'master'
+	Fix uint overflow using explicit casts
+
+	Closes #11
+
+	See merge request gnutls/libtasn1!26
+
+2019-07-21  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-gcc-manywarnings' into 'master'
+	Add manywarnings module
+
+	See merge request gnutls/libtasn1!25
+
+2019-07-21  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix uint overflow using explicit casts
+
+	Add manywarnings module
+	--disable-gcc-manywarning was offered by ./configure but
+	was non-functional.
+
+2019-07-21  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	cfg.mk: set release type [ci skip]
+
+	cfg.mk: removed legacy rules
+
+	released 4.14
+
+2019-07-19  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Fix endless loop in _asn1_check_identifier()
+
+2019-07-19  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: removed VALGRIND variable from environment
+
+2019-07-19  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Add version number defines for libtasn1.h
+
+2019-07-19  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	repo: require bison for building
+
+2019-07-19  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tools: included in code coverage
+
+	.gitmodules: gnulib repo was moved to gitlab mirror
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-mingw32' into 'master'
+	.gitlab-ci.yml: ensure that we don't have libtasn1 installed in windows build
+
+	See merge request gnutls/libtasn1!21
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-fixes' into 'master'
+	Minor fixes in apps
+
+	Closes #10
+
+	See merge request gnutls/libtasn1!20
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	asn1Coding: minor improvements and memory allocation checks
+	Resolves: #10
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	asn1Parser: address static analyzer warnings
+	We exit on invalid input; in practice input cannot be
+	invalid unless there is a getopt() bug.
+
+	Relates: #10
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: ensure that we don't have libtasn1 installed in windows build
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-coverage' into 'master'
+	Added code coverage capture which is included in web site
+
+	See merge request gnutls/libtasn1!15
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-remove-maint.mk' into 'master'
+	Remove maint.mk from repo
+
+	See merge request gnutls/libtasn1!18
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Added code coverage capture which is included in web site
+
+2019-07-18  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Merge branch 'tmp-remove-m4-gl' into 'master'
+	Tmp remove m4 gl
+
+	See merge request gnutls/libtasn1!14
+
+2019-07-18  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Remove maint.mk from repo
+
+	Remove lib/gl from repo
+
+	Remove auto-generated m4-gl/ from repo
+
+2019-07-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	LICENSE: fix blank spaces to pass syntax-check
+
+	.gitignore: updated
+
+	Added LICENSE file describing the license terms
+
+2019-07-17  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-single-gnulib-copy' into 'master'
+	gnulib: keep a single gnulib in the repo
+
+	See merge request gnutls/libtasn1!13
+
+2019-07-17  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	_asn1_copy_structure3: eliminate warning in clang run
+
+	.gitignore: updated
+
+	.gitlab-ci.yml: added make distcheck run
+
+	README: merged alpha and README.md
+
+2019-07-17  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	gnulib: introduced bootstrap
+	This removes all gnulib files, which are auto-generated via
+	./bootstrap.
+
+	gnulib: update and merge
+	This merges the two copies of the gnulib, removes unnecessary
+	wrappers or dependencies that are not under lgpl2.
+
+2019-07-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-fix-cve-2018-1000654' into 'master'
+	Fix and reproducer for cve-2018-1000654
+
+	Closes #4
+
+	See merge request gnutls/libtasn1!11
+
+2019-07-16  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: added basic regression test of asn1Parser
+
+	bumped version
+
+	doc update
+
+	ASN.1: updated auto-generated file
+
+	_asn1_add_static_node: made thread safe
+
+2019-07-16  Mike Gorse  <mgorse@alum.wpi.edu>
+
+	_asn1_expand_object_id: Limit recursion
+	Resolves #4
+
+2019-07-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: added reproducer for CVE-2018-1000654
+
+2019-07-12  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated auto-generated files
+
+	asn1_parser2array: convert dashes to underscores
+
+2019-07-11  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update [ci skip]
+
+2019-07-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-asn1_node_const' into 'master'
+	Make use of const variant of asn1_node
+
+	See merge request gnutls/libtasn1!9
+
+2019-07-11  Tim Rühsen  <tim.ruehsen@gmx.de>
+
+	Update ABI dump files
+
+	Make use of const variant of asn1_node
+
+2019-07-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-ci-updates' into 'master'
+	CI updates
+
+	See merge request gnutls/libtasn1!10
+
+2019-07-10  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: fix warning
+
+	.gitlab-ci.yml: check ABI and make dist
+
+2019-07-10  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: ensure libtasn1-devel is not installed
+
+	updated CI to f30
+
+2019-03-29  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	removed debugging code
+
+2019-01-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	configure: fix gcc-8 Wabi warnings
+
+2019-01-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-updated-builders' into 'master'
+	.gitlab-ci.yml: updated builders to latest used by gnutls
+
+	Closes #6
+
+	See merge request gnutls/libtasn1!7
+
+2019-01-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	asn1_der_coding: added extra checks to avoid copying on null variable
+	The existing checks were sufficient on normal input, but improved for
+	some illegal input. Detected by static analyzer.
+
+	ASN1.y: safer use of snprintf to detect issues with oversize value
+	Resolves #6
+
+	.gitlab-ci.yml: save the static analyzers' output
+
+	.gitlab-ci.yml: gnutls is run using bootstrap
+
+	doc: updated copyright year
+
+	.gitlab-ci.yml: updated builders to latest used by gnutls
+
+2018-12-12  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: fixed web pages generation
+
+	.gitlab-ci.yml: added manual build
+	Resolves: #2
+
+2018-06-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	CONTRIBUTING.md: added and refer to GnuTLS contribution guide
+
+	doc update
+
+2018-06-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-2018-fix-gtk-doc' into 'master'
+	Update/fix gtk-doc support
+
+	See merge request gnutls/libtasn1!4
+
+2018-05-27  Andreas Metzler  <ametzler@bebt.de>
+
+	Add gtk-doc-strings for compat #defines and ASN1_VERSION:
+
+	Make existing comments parseable by gtk-doc
+
+	gtk-doc: Add long and short project descriptions
+
+	Sync function declarations in header and .c
+	The public header and the .c file need to use not only the same
+	argument types but also the same argument identifiers. Otherwise
+	gtk-doc fails.
+
+	gtk-doc: Fix typo in function description identifier.
+
+	Drop base indent (2 spaces) for gtk-doc compatibility
+	gtkdoc-scan expects struct definitions to start at the start
+	of the line.
+
+	Use .xml filename for gtk-doc
+	gtk-doc uses a .xml instead of .sgml filename by default nowadays.
+
+	Update gtk-doc files
+	Update gtk-doc infrastructure from gtk-doc-tools 1.28.
+	Drop superfluous file. Since gtk-doc >= 1.25 generates
+	xml/gtkdocentities.ent there is no need to export the package version to
+	xml from ./configure.
+
+2018-05-21  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	removed README from git, and fixed newline in README.md
+
+	Added README.md
+	This allows pointing to the CI results.
+
+2018-05-20  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-move-to-f28' into 'master'
+	.gitlab-ci.yml: move to f28 build images
+
+	See merge request gnutls/libtasn1!5
+
+2018-05-20  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	coding: added sanity check on input parameters
+
+	decoding: avoid potential truncation with snprintf
+
+	.gitlab-ci.yml: move to f28 build images
+
+2018-03-06  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-simplify-setof-sorting' into 'master'
+	simplify sorting of setof items
+
+	See merge request gnutls/libtasn1!2
+
+2018-03-06  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	coding: simplify ordering of SET OF elements
+	That moves to using qsort instead of implementing
+	sorting internally.
+
+	tests: added unit test of setof encoding
+
+2018-03-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Merge branch 'tmp-gitlab-ci-update' into 'master'
+	Added static analyzers and gnutls test suite
+
+	See merge request gnutls/libtasn1!3
+
+2018-03-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	work-around clang analyzer issues
+	This allows using the analyzer to detect potential new
+	issues in code base.
+
+	several fixes for make syntax-check
+
+	doc: corrected copyright date
+
+	.gitlab-ci.yml: added static-analyzers and gnutls build
+
+2018-01-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 4.13
+
+2018-01-09  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Improved documentation on decoding flags
+
+2018-01-04  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: removed references to i686 package installation
+
+	bumped version
+
+	doc update
+
+	_asn1_decode_simple_ber: restrict the levels of recursion to 3
+	On indefinite string decoding, setting a maximum level of recursions
+	protects the BER decoder from a stack exhaustion due to large amounts
+	of recursion.
+
+	tests: Added octet string which causes a large number of recursions
+	That could lead in stack exhaustion.
+
+2017-06-30  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	_asn1_check_identifier: safer access to values read
+
+2017-05-29  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	doc update
+
+	fixed so-version bump
+
+2017-05-27  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	regenerated ASN1.c file
+
+	bumped version
+
+2017-05-19  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	doc update
+
+2017-05-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: added reproducer for encoding issue
+
+	tests: added reproducer for encoding issue
+
+	asn1_find_node: added safety check on asn1_find_node()
+	This prevents a stack overflow in asn1_find_node() which
+	is triggered by too long variable names in the definitions
+	files. That means that applications have to deliberately
+	pass a too long 'name' constant to asn1_write_value()
+	and friends.  Reported by Jakub Jirasek.
+
+	doc update
+
+	tests: check decoding with ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME flag
+
+	asn1Decoding: allow decoding with ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME flag
+
+	decoding: added flag ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME
+	This flag allows decoding errors in time fields even when
+	in strict DER mode. That is introduced in order to allow
+	toleration of invalid times in certificates (which are common)
+	even though strict DER adherence is enforced in other fields.
+
+2017-05-01  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	Introduced error code ASN1_TIME_ENCODING_ERROR
+	This error code indicates an invalid encoding in the TIME
+	field.
+
+2017-01-19  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: cast to avoid compiler warning
+
+	DER decoding: check the return value of _asn1_append_sequence_set
+	Ensure that the return value of _asn1_append_sequence_set. This
+	addresses a potential NULL pointer dereference.
+
+2017-01-17  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Cast input to isdigit() to integer
+	That prevents complaints from isdigit() implementations using
+	the input as an array index without casting.
+
+2017-01-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: added missing file (mscat.asn)
+
+	Makefile: added abi-dump target
+
+	Updated ABI dump with a more precise dump of the 3.0 library
+
+	released 4.10
+
+2017-01-16  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	added missing gnulib files
+
+	doc update
+
+	asn1_get_length_ber: pass the correct length to _asn1_get_indefinite_length_string
+	This addresses reading 1-byte past the end of data.
+
+	bumped version
+
+	tests: added additional invalid PKCS#7 structs
+	These structures cause a read overflow in the heap.
+
+	_asn1_ltostr: avoid undefined negation of int64_t
+	Use cast to (uint64_t) and negation instead.
+
+	updated gnulib
+
+	Bring in par valgrind and asan tests
+	Ensure that exit code on failure is something different
+	than "1" (to detect parsing errors from heap errors), and
+	that address sanitizer will not detect leaks (there are few
+	by design leaks in libtasn1).
+
+	tests: run decoding-invalid-pkcs7 on make check
+
+	.gitlab-ci.yml: install bison on all platforms
+
+2017-01-13  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: force mingw32 build in gitlab shared runners
+	That is, because this build requires a privileged container.
+
+	tests: added missing file
+
+2017-01-13  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	_asn1_ltostr: ensure that input value will always be printed
+	That is, use an unsigned type to store the output of the negation
+	(in case the input is negative).
+
+	This addresses the issue found in PKCS#7 decoding:
+	https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=388
+
+2017-01-13  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: added invalid PKCS#7 struct checks
+	The added struct causes an integer overflow.
+
+	decoding-invalid-x509: output log on error
+
+2016-12-05  Vasiliy Olekhov  <olekhov@gmail.com>
+
+	MSVS 2013 and 2015 native builds
+
+2016-10-24  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: added copyright statements to files
+
+	doc update
+
+2016-10-24  Andreas Schneider  <asn@samba.org>
+
+	Add spc_pe_image_data test
+
+2016-10-11  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+2016-10-04  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	benchmark: made alarm handler static
+	This prevents a compiler warning.
+
+2016-09-27  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: added mingw32 build
+
+	Makefile.am: only build examples if documentation is also built
+
+	tests: use the 'rb' modifier in fopen
+	This allows the tests to be run under wine.
+
+2016-09-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	space/tab fixes
+
+	space/tab fixes
+
+2016-09-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	.gitlab-ci.yml: use shared gitlab.com runners for CI
+
+2016-07-27  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: added build with clang
+
+	ASN1.c: regenerated with bison 3.0.4
+
+	ASN1.y: updated for new yacc syntax (according to bison warnings)
+
+2016-07-27  Andreas Metzler  <ametzler@bebt.de>
+
+	Fix some typoes found by lintian.
+
+2016-07-26  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	gnulib: added missing verify.h
+
+	bumped version
+
+	doc update
+
+	tools: eliminated compiler warnings
+
+	parser_aux: corrected potential null pointer dereferences
+
+	ASN.y: corrected compiler warning
+
+	configure: don't add -Werror to build flags
+
+	updated gnulib
+
+2016-07-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 4.9
+
+2016-07-08  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: added unit tests for asn1_get_object_id_der()
+
+	asn1_get_object_id_der: doc update
+
+2016-07-08  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	.gitlab-ci.yml: added separate builds for x86 and x86_64
+
+	encode and decode object identifiers with elements larger than 2^32 in 32-bit systems
+
+2016-07-07  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	tests: add test for OIDs with elements larger than 2^32
+	That is, add a check which re-encodes a certificate which contains
+	OIDs with elements of size > 2^32.
+
+	_asn1_objectid_der: encode object identifiers with elements larger than 2^32
+
+2016-06-03  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	asn1Decoding: Simplified allocation and copy
+	Based on patch and suggestions by Pascal Cuoq.
+
+2016-04-29  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	configure: enable all gcc warnings by default
+
+2016-04-20  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	decoding: removed unused constants
+
+	decoding: added null pointer check
+
+	_asn1_append_sequence_set: fail if _asn1_copy_structure3 fails
+
+	coding: prevented an unsigned to signed conversion
+
+2016-04-11  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	added ABI check for x86-64 as part of release process
+
+2016-04-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	tests: corrected inclusion of new files
+
+	released 4.8
+
+2016-04-08  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: added several invalid certificates
+	Provided by Pascal Cuoq.
+
+	doc update
+
+	_asn1_expand_object_id: addressed crash when no value is present is node
+	With a specially crafted ASN.1 description _asn1_expand_object_id,
+	passes a null pointer as p4->value to the function _asn1_str_cat,
+	which expects a pointer to a string. This patch addresses the issue.
+	Reported by Pascal Cuoq.
+
+	tests: removed OCSP choice known issue tags; it is now resolved
+
+	tests: corrected byKey definition
+	OCSP is defined in an EXPLICIT tags module, and as such
+	we must tag explicitly all of its tags.
+
+	decoding: removed redundant functions
+	Simplified the STRING BER decoding by using asn1_decode_simple_ber().
+	This removes complex duplicate code.
+
+	tests: added various octet string encoding/decoding tests
+	This includes BER and DER decodings.
+
+	asn1_decode_simple_ber: simplified and cleaned up
+
+	tests: added check on OCSP BasicOCSPResponse parsing
+
+2016-04-07  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	asn1_get_octet_der: doc update
+
+	tests: removed non-existant file from Makefile
+
+2016-04-06  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	_asn1_extract_der_octet: properly account the bytes read through indefinite encodings
+	This prevents infinite recursions in the function loop.
+	Reported by Pascal Cuoq.
+
+2016-04-05  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: corrected invalid input to asn1Decoding
+
+	tests: enhance the test suite with more invalid X.509 input
+	The input was provided by Pascal Cuoq.
+
+2016-04-04  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	libtasn1.h: updated for 4.8
+
+	tests: avoid errors on known memory leaks from _asn1_add_static_node
+
+	document the global state issue
+
+2016-04-04  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	tests: added missing decoding-inf
+
+	bumped version
+
+	doc update
+
+	_asn1_extract_der_octet: catch invalid input cases early
+	That is, check the calculated lengths for validity prior
+	to entering a loop. This avoids an infinite recursion.
+	Reported by Pascal Cuoq.
+
+	tests: added check on infinite recursion
+
+	Simplify _asn1_append_value() and avoid memcpy's with zero length
+	Based on patch of Pascal Cuoq <pascal.cuoq@trust-in-soft.com>
+
+	use a safer variant of realloc
+	This variant does not create memory leaks if allocation fails.
+	Report and initial patch by Pascal Cuoq.
+
+	decoding: improved tail cache in _asn1_append_sequence_set
+	We keep the head node in addition to the tail information
+	to allow easier deduction of the validity of the cache.
+
+2016-04-03  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	fixed incorrect parameter to _asn1_append_sequence_set()
+	This was uncovered by the previous revert, and seemed working
+	due to the optimization semantics.
+
+	Revert "optimized _asn1_find_up()."
+	This reverts commit 4010bb04588fca86a9f6d683b637c05b4cec24e0.
+	This optimization did not offer much benefit and there may be
+	corner cases in the internal structure handling that may not
+	be possibly to handle with this optimization.
+
+	doc update
+
+2016-04-03  Pascal Cuoq  <pascal.cuoq@trust-in-soft.com>
+
+	%x expects an unsigned int, but unsigned char is promoted to int
+
+2016-02-29  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	.gitlab-ci.yml: added libubsan builds
+
+	coding: Fixes to prevent undefined behavior (found with libubsan)
+
+	.gitlab-ci.yml: don't build documentation
+
+	configure: added --disable-doc
+	This allows to conditionally build the documentation
+
+	Added .gitlab-ci.yml
+
+2016-01-08  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	der_coding: always null terminate errorDescription
+
+	asn1_array2tree: always null terminate errorDescription
+
+2015-09-18  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc enhanced the asn1Coding example
+
+	asn1Coding: Allow handling NULL values
+
+2015-09-14  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	libtasn1.h updated version
+
+	bumped version
+
+	doc update
+
+2015-09-14  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	tests: added check for EXPLICIT encoding of tagged values
+	This catches the regression introduced by multi-byte tags fix.
+
+	corrected regression in multi-byte tag handling
+	That is don't treat the explicit tag as part of the inner tag.
+
+2015-09-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated for 4.6
+
+2015-06-20  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	don't export asn1_get_time_der
+
+2015-06-08  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	tests: added encoding and decoding check with multi-byte tags
+
+	Allow decoding octet strings with multi-byte tags
+	Report and initial patch by Tomas Petrilak.
+
+	simplified asn1_get_time_der
+
+2015-06-02  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	doc update
+
+	export asn1_get_time_der()
+
+	doc update
+
+	export asn1_get_object_id_der
+
+	enforce type checks in asn1_decode_simple_der and ber
+
+2015-04-29  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 4.5
+
+	bumped version
+
+2015-04-20  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	tests: Added test case based on Hanno Boeck's certificate
+
+	asn1Decoding: added a debug flag which enforces strict memory alignment
+
+	asn1Decode: added --strict option
+
+	_asn1_extract_der_octet: prevent past of boundary access
+	Reported by Hanno Böck.
+
+2015-03-29  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	bumped versions
+
+2015-03-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	doc update
+
+	doc update
+
+	increased size of LTOSTR_MAX_SIZE to account for sign and null byte
+	This address an overflow found by Hanno Böck in DER decoding.
+
+2015-03-09  Alon Bar-Lev  <alon.barlev@gmail.com>
+
+	build: tests: fix Test_choice_ocsp on separate builddir
+
+2015-03-09  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated auto-generated files
+
+	updated copyright dates
+
+	released 4.3
+
+2015-03-06  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	removed debug flag
+
+	updated error text in Test_choice_ocsp
+
+	simplified string test for BER
+
+	asn1_decode_simple_ber() will decode unsupported types as DER
+
+2015-03-04  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Added missing file
+
+2015-03-04  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	doc update
+
+	bumped version
+
+	doc update
+
+	tests: Added tests for asn1_decode_simple_ber
+
+	Added asn1_decode_simple_ber()
+
+2015-02-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	only assign value if the previous node has one
+	This addresses the crash in the ASN.1 definitions parser
+	reported in http://lists.gnu.org/archive/html/help-libtasn1/2015-01/msg00000.html
+
+2014-11-14  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Added test for ResponseData decoding-encoding issue
+
+	doc update
+
+	doc update
+
+2014-09-15  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	modified date
+
+	bumped version
+
+	doc update
+
+2014-09-15  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	enforce the new time tests only in strict DER mode
+
+2014-09-04  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	avoid warning
+
+2014-09-04  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	corrected regression which caused the failure of octet string extraction
+	This affected octet strings placed at the end of the structure.
+	Fixes issue with OCSP response parsing in gnutls.
+
+	added more warnings
+
+2014-08-29  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	updated todo
+
+	perform sanity checks in Time field
+
+2014-08-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 4.1
+
+2014-08-20  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	doc update
+
+	tests: Added test for ASN1_DECODE_FLAG_STRICT_DER flag
+	The PKCS #12 BER encoded data are tested to fail decoding
+	if this flag is set.
+
+	doc update
+
+	Added decoding flag ASN1_DECODE_FLAG_STRICT_DER
+
+2014-08-20  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	corrected check for infinite encoding
+
+	tests: added additional test for the indefinite any tag
+
+	corrected typo
+
+	doc update
+
+	BER decoding: corrected indefinite tag check in ANY constructions
+
+	Added another BER-encoded PKCS #12 file to test indefinite decoding
+
+2014-07-29  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	threadsafety: use $# instead of $1
+	That works around an issue with an "unbound variable" error
+	in latest automakes. Reported by LRN.
+
+2014-07-24  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	updated TODO
+
+2014-06-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 4.0
+
+2014-06-26  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc: Added new functions
+
+	doc update
+
+2014-06-20  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	bumped version
+
+	doc update
+
+2014-06-20  Karel Slany  <karel.slany@nic.cz>
+
+	Renamed asn1_der_decoding_relaxed(), added ASN1_DECODE_FLAG_ALLOW_PADDING.
+
+	Added asn1_der_decoding_relaxed().
+
+2014-06-19  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	bumped version
+
+	doc update
+
+2014-06-17  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	doc update
+
+	doc update
+
+	corrected file name
+
+2014-06-09  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	When encoding DER note the positions of the DER start and end.
+	That will allow using asn1_der_decoding_startEnd() without
+	performing decoding.
+
+	Added new test that combines asn1_der_decoding_startEnd() with asn1_der_coding().
+
+	Added copyright information
+
+	Added test for asn1_der_decoding_startEnd() after an asn1_dup_node().
+
+	When duplicating a node, keep the DER start and end information.
+
+	decoding: corrected the end position of the total structure.
+
+2014-06-08  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	remove -Werror from automake
+
+2014-06-08  Alon Bar-Lev  <alon.barlev@gmail.com>
+
+	build: tests: fix Test_choice within separate builddir
+
+2014-06-05  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Document that ider and ider_len are optional in asn1_der_decoding_startEnd()
+
+	updated map file for asn1_dup_node
+
+	renamed asn1_copy_node2 to asn1_dup_node
+
+2014-06-04  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	DER decoding: optimize tail seek by using the value providing by _asn1_append_sequence_set.
+
+	Optimized _asn1_append_sequence_set() by caching the tail of the element to append on.
+
+	doc update
+
+	asn1_read_value() and friends understand the ?CURRENT keyword.
+	That keyword allows to specify the current element if the given
+	node is a node in a sequence or set.
+
+	optimized _asn1_find_up().
+
+	more efficient check for '?LAST' and error checking.
+
+2014-06-03  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Add a sanity check in asn1_der_decoding_startEnd()
+
+2014-05-30  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	removed unused variable
+
+	doc update
+
+	Added asn1_copy_node2()
+
+	Added test for asn1_copy_node()
+
+	simplified and optimized asn1_der_decoding_startEnd().
+	The second pass decoding is now avoided as the start and end
+	values are cached during decoding.
+
+	Added check for decoding_startEnd().
+
+	Simplify temporary value storage during coding.
+
+	Simplify temporary value storage during decoding.
+
+2014-05-27  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	doc update
+
+2014-05-27  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	safe_memset: allow memset of zero bytes.
+
+2014-05-26  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	removed unnecessary and wrong test.
+
+	fixes in length calculation in _asn1_extract_der_octet().
+
+	asn1_der_decoding_element() is no more; it is simply an alias to asn1_der_decoding().
+
+2014-05-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released 3.6
+
+	doc update
+
+2014-05-22  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Allow a NULL value in asn1_read_value() for all types.
+
+	updated TODO
+
+	bumped version
+
+	doc update
+
+2014-05-22  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+2014-05-17  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Reverted ltostr() changes as the cause a significant delay to the library.
+	The best approach would be to eliminate the need for ltostr() completely.
+	Added LTOSTR_MAX_SIZE, to avoid overflows.
+
+	Revert "simplify ltostr()"
+	This reverts commit f93acf7f0a3f19692c71fc9022981b6f64ffdbc1.
+
+	Revert "made _asn1_ltostr() safer."
+	This reverts commit 07a5adb87880f3fce80aa12121409bbf652f1b6d.
+
+	doc update
+
+	Marked asn1_der_decoding_element() as deprecated.
+
+	Use the new functions in asn1_decoding_element()
+
+	Revert "asn1_der_decoding_element is just an alias of asn1_der_decoding()."
+	This reverts commit a8866ebf9a62386bd24f107e8384bbbf032baa52.
+
+	made _asn1_ltostr() safer.
+
+	safer usage of memcpy().
+
+	check for zero size in time and object ids.
+
+	Allow for zero strings.
+
+2014-05-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	simplify ltostr()
+
+	doc update
+
+	Do not return illegal values in asn1_get_bit_der().
+
+	return the correct error code in asn1_read_value_type()
+
+2014-05-16  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	removed debug definition
+
+	doc update
+
+	use DECR_LEN() in _asn1_get_indefinite_length_string().
+
+	use DECR_LEN in _asn1_get_octet_string()
+
+	Fixes in _asn1_extract_der_octet() and usage of DECR_LEN().
+
+	use DECR_LEN() in _asn1_extract_tag_der()
+
+	simplified check for indefinite.
+
+	expanded usage of DECR_LEN().
+
+	simplified _asn1_get_octet_string().
+
+	simplified _asn1_get_indefinite_length_string()
+
+	More precise tracking of data.
+
+	asn1_der_decoding_element is just an alias of asn1_der_decoding().
+	This eliminates the need of massive code duplication.
+
+2014-05-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	More precise length check in _asn1_get_indefinite_length_string().
+
+	Use the correct max length definition.
+
+2014-05-10  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	cleaned up a bit _asn1_remove_node().
+
+	prevent memset() from being optimized out.
+
+2014-05-05  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+2014-05-04  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Corrected an off-by-one error.
+	The issue was discovered using the codenomicon TLS suite.
+
+2014-05-02  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Added stable mark
+
+2014-05-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	bumped version
+
+	bumped version
+
+2014-05-01  Kurt Roeckx  <kurt@roeckx.be>
+
+	Use the smallest of the 2 lengths for the comparison
+	We're sorting 2 strings here based on X.690 section 11.6 and 6.3
+
+2014-04-28  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Added minmax gnulib module.
+
+	more files to ignore
+
+2014-04-27  Kurt Roeckx  <kurt@roeckx.be>
+
+	Make asn1_ordering_set_of() return error if it can't find data for one of the entries.
+
+	Check that p is not NULL
+	As far as I can tell this should never happen.
+
+2014-04-27  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated bison file
+
+2014-04-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	undid optimization in patch 057193dcc2089520ab36d95f42d12f4ffd8127b5
+
+	Added test that decodes and re-encodes a DER CRL.
+
+	doc update
+
+2014-04-26  Kurt Roeckx  <kurt@roeckx.be>
+
+	Fix memory leak.
+
+	_asn1_ordering_*(): Fix memory leak in case of error
+
+	Make _asn1_ordering_* return error values and check them.
+
+	Call ordering functions with the right length
+	We're going to insert the length of the set and at this point are going to order
+	it.  But we called it with the wrong length.  Also updates the check to only do
+	it when the buffer isn't to small.
+
+2014-04-22  Simon Josefsson  <simon@josefsson.org>
+
+	Fix syntax-check nits.
+
+	Update copyright years.
+
+	Update gnulib files.
+
+2014-04-17  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	simplified asn1_find_structure_from_oid() and asn1_expand_any_defined_by().
+
+2014-04-15  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+	Do not try to write over null values
+
+	fixed several coverity reported bugs.
+
+2014-03-28  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	doc update
+
+2014-03-28  Jean-Louis Thekekara  <jean-louis.thekekara@openwide.fr>
+
+	asn1_write_value: fix segfault when deleting an unauthorized element
+	Segfaults can occur, since value is dereferenced later, ex:
+
+	 352       if ((isdigit (value[0])) || (value[0] == '-')
+
+2014-03-28  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	cleaned up code
+
+2014-03-28  Jean-Louis Thekekara  <jean-louis.thekekara@openwide.fr>
+
+	asn1_write_value: allow SET_OF elements deletion
+	SET_OF elements could just be deleted as SEQUENCE_OF ones.
+
+2014-03-28  Jean-Louis Thekekara  <jean-louis.thekekara@openwide.fr>
+
+	extract_tag_der_recursive: fix compilation errors
+	Fix the following errors introduced by extract_tag_der_recursive usage:
+
+	decoding.c: In function 'extract_tag_der_recursive':
+	decoding.c:560:5: error: 'ris' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+
+	decoding.c: In function 'asn1_der_decoding_startEnd':
+	decoding.c:2192:40: error: unused variable 'p3' [-Werror=unused-variable]
+
+2014-03-14  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	corrected delete_unneeded_choice_fields().
+
+	free all allocated memory
+
+	doc update
+
+	Added self-check for recursive choices.
+
+	Handle recursive CHOICEs.
+
+	Use special function for common usage of _asn1_extract_tag_der().
+
+2013-11-27  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	distribute stamp_docs to avoid regenerating docs everywhere.
+
+2013-11-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	corrected so-number
+
+	doc update
+
+	include asn1_delete_structure2() to tests
+
+	exported function
+
+	The parser accepts negative numbers in INTEGER ranges. Use snprintf() instead of strcpy() in parser.
+
+2013-11-13  Nikos Mavrogiannopoulos  <nmav@redhat.com>
+
+	Added asn1_delete_structure2().
+	The new function accepts additional flags to be used during deinitialization.
+	For the moment the only available flag is ASN1_DELETE_FLAG_ZEROIZE which zeroizes
+	all values in the structure prior to deinitialization.
+
+	updated documentation generation rules.
+
+	updated gdoc from gnutls
+
+	updated ASN1.c
+
+	doc fixes
+
+2013-03-24  Simon Josefsson  <simon@josefsson.org>
+
+	Bump version.
+
+	Fix syntax-check warnings.
+
+	Bump versions.
+
+	Fix syntax-check warnings.
+
+	Generated.
+
+	Bump version.
+
+	Update copyright years.
+
+	Version 3.3.
+
+	Indent code.
+
+	Silence warnings.
+
+	Update gnulib files.
+
+2013-03-04  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated
+
+2013-01-15  Andoni Morales Alastruey  <ylatuya@gmail.com>
+
+	Fix check for Android x86
+
+	Fix includes for Bionic X86
+
+	Fix include for Bionic, where SIZE_MAX is in limits.h
+
+2013-01-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	More precise overflow checks using gnulib's intprops module.
+
+	Added intprops
+
+2012-12-10  Simon Josefsson  <simon@josefsson.org>
+
+	Fix GTK-DOC warnings.
+
+2012-11-30  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	released
+
+2012-11-29  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	bumped version
+
+2012-11-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	documented update
+
+	corrected possible buffer overflow in parser errors.
+
+2012-11-24  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated
+
+	released 3.1
+
+	revert to use strlen when writing time values.
+
+	Documented the new functions
+
+	bumped version
+
+	corrected compatibility mode with old structures.
+
+	simplified
+
+	simplified
+
+	corrected typo
+
+	better error reporting
+
+	some simplifications in time handling
+
+	Introduced ASN1_ETYPE_UTC_TIME and ASN1_ETYPE_GENERALIZED_TIME
+
+	updates in ETYPE_OK
+
+2012-11-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Added asn1_read_value_type().
+
+	simplified and renamed asn1_encode_string_der() and asn1_decode_string_der()
+
+	renamed types
+
+	Added asn1_decode_string_der() and asn1_encode_string_der().
+
+	zeroize last_error_token on unknown errors.
+
+	updated generated structures
+
+	better error printing
+
+	init strings
+
+	store duplicate (with built-in values) in structure to be compatible with old version.
+
+	documented new types
+
+2012-11-22  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	use const for the data
+
+	updated
+
+	better name
+
+	small simplifications
+
+	documented updates
+
+	indented C code in ASN1.y, and added more verbose error reporting.
+
+	idented code
+
+	Added more ASN.1 string types and several simplifications.
+
+2012-11-10  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Check for errors reading the assignment file in asn1Coding.
+	src/asn1Coding.c: Check the value returned by readAssignment ()
+	to be either ASSIGNMENT_SUCCESS or ASSIGNMENT_EOF.
+	Patch by Ivan Shmakov.
+
+2012-11-06  Ivan Shmakov  <oneingray@gmail.com>
+
+	use stderr for status messages in asn1{Coding, Decoding, Parser}
+
+	Typographical and wording fixes to doc/libtasn1.texi
+	doc/libtasn1.texi: A bunch of typographical and wording fixes
+	and improvements.
+
+2012-11-06  Simon Josefsson  <simon@josefsson.org>
+
+	Ignore more.
+
+	Don't overload the 'time' global name.
+
+	Generated.
+
+2012-11-01  Thierry Reding  <thierry.reding@avionic-design.de>
+
+	Fix out of tree build
+	This fixes a few occurrences where files are incorrectly referenced from
+	the build directory instead of the source directory, therefore causing
+	breakage when building out of tree.
+
+	Fix bootstrap with automake 1.12
+	automake 1.12 and later require explicit checking for the archiver using
+	the AM_PROG_AR command when building libraries using libtool.
+
+2012-11-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Corrected type asn1_static_node_t -> asn1_static_node.
+	The old type was left for compatibility. Reported by Andreas Metzler.
+
+2012-10-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	break compatibility with previous releases.
+
+	corrected types
+
+	bumped version
+
+2012-10-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Renamed structures.
+	Avoid using the reserved by POSIX _t. Suggested by Ivan Shmakov.
+	asn1_static_node_t -> asn1_static_node
+	asn1_node_t -> asn1_node
+
+2012-10-09  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Silence tests.
+
+	Allow empty IDENTIFIERS in ASN1 definitions. Suggested by Ivan Shmakov.
+
+2012-10-06  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	asn_ -> asn1_
+
+	Set the error description to null initialy.
+
+2012-10-04  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	updated
+
+2012-10-02  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	removed unneeded variables and files.
+
+	Updated gllib and added hash-pjw-bare.
+
+	Use hash-pjw-bare instead of asn1_bhash().
+
+2012-10-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	eliminated use of old types
+
+	documented update
+
+	ASN1_TYPE definition corrected
+
+	updated to new types
+
+	node_data_struct -> asn_data_node_st
+
+	ASN1_ARRAY_TYPE -> asn_static_node_t
+
+	Renamed types.
+	node_asn -> asn_node_st
+	ASN1_TYPE -> node_asn_t
+	ASN1_TYPE_EMPTY -> NULL
+
+	asn1_retCode -> int
+
+2012-09-26  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+2012-09-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	small optimizations to avoid recalculation of hashes when copying nodes.
+
+	improve performance by 50% by using hashes to compare strings.
+
+2012-09-22  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	increased benchmark time
+
+2012-09-20  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	other small fix
+
+	Some small optimizations and better checking of tree accesses.
+
+2012-09-17  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	documented updates
+
+2012-09-14  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Corrected the test.
+
+	name has size of ASN1_MAX_NAME_SIZE+1 to allow for a terminating null.
+
+	removed unneeded casts
+
+2012-09-13  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Revert "small_value_size changed to 8. No visible difference in performance"
+	This reverts commit b86e75de8bc3a35620f069b7b00d680284d86eb5.
+
+	Added symbol into old API
+
+	_asn1_add_node_only -> _asn1_add_single_node
+
+	_asn1_add_node -> _asn1_add_static_node
+
+	Eliminated _asn1_malloc, _asn1_free and _asn_calloc.
+
+	reduced maximum name size
+
+	no need to reserve.
+
+2012-09-12  Simon Josefsson  <simon@josefsson.org>
+
+	Drop long-time deprecated functions.
+
+	Bump years.
+
+2012-09-12  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Node type field is now included in ASN1_DATA_NODE.
+
+	Added asn1_read_node_value()
+
+	small_value_size changed to 8. No visible difference in performance
+
+	name is now a statically allocated string and other optimizations.
+
+	internal structure removed
+
+	bumped version
+
+2012-09-09  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	eliminates few leaks
+
+2012-09-08  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Added tool to benchmark X.509 structure decoding.
+
+	Updated to new gnulib and added gettime.
+
+2012-09-08  Tim Ruehsen  <tim.ruehsen@gmx.de>
+
+	cleanup _asn1_copy_structure3
+
+2012-08-18  Simon Josefsson  <simon@josefsson.org>
+
+	Fix compilation warnings.
+
+2012-05-31  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Update for 2.12.
+
+	Fix release targets.
+
+	Version 2.13.
+
+	Bump versions.
+
+	Use devhelp2 format.
+
+	Don't store ChangeLog in git, it is auto-generated.
+
+	Fix syntax-check warnings.
+
+	Update gnulib files.
+
+	Silence compiler warnings about unsigned vs signed comparisons.
+
+2012-04-19  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	documented fix.
+
+2012-04-06  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	long is always signed.
+
+2012-04-01  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Simplified the overflow tests by using unsigned int numbers, suggested by Niels Moeller.
+
+2012-03-31  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Added additional test case
+
+	Added overflow detection that does not depend on specific compiler, and asn1_get_der_length() verifies the length of the input data in small numbers as well.
+
+2012-03-19  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Version 2.12.
+
+	Indent code.
+
+	Update gnulib files.
+
+2012-03-14  Simon Josefsson  <simon@josefsson.org>
+
+	Give credit.
+
+	Mention severity.
+
+	Simplify overflow check.
+
+2012-03-13  Simon Josefsson  <simon@josefsson.org>
+
+	Add self-check.
+
+2012-03-13  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	for some reason the tot < 0 test wasn't successful on negative results. Replaced with tot < ret.
+
+	the change was reverted
+
+	reverted to the old ABI.
+
+	reverted to the old ABI.
+
+	documented fix
+
+	check for overflows
+
+	int is signed.
+
+	bumped shared lib version
+
+	Added asn1_get_length_der_checked() to put some of the common checks in a single function.
+
+	cleanups in asn1_der_decoding_element().
+
+	API is based on integers instead of long to prevent errors in systems where sizeof(int)!=sizeof(long)
+
+	asn1_get_length_der() may handle up to signed long values.
+
+	updated to bison 2.5
+
+	better cleanup in decoding.
+
+2012-03-09  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+2012-03-07  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2012-01-23  Simon Josefsson  <simon@josefsson.org>
+
+	Bump copyright years.
+
+	Update gnulib files.
+
+2011-12-06  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+	Drop unnecessary configure.ac checks.
+
+	Bump versions.
+
+2011-11-25  Simon Josefsson  <simon@josefsson.org>
+
+	Update for 2.11.
+
+	Update for 2.10.
+
+	Generated.
+
+	Version 2.11.
+
+	Add.
+
+	Fix valgrind check.
+
+2011-11-21  Simon Josefsson  <simon@josefsson.org>
+
+	Generalize gnupload command.
+
+	Generalize cyclo rules.
+
+	Make Windows build part of release process.
+
+	Reorder.
+
+	Fix srcdir!=builddir gtk-doc build.
+
+	Fix syntax-check.
+
+	Improve release rules.
+
+2011-11-20  Simon Josefsson  <simon@josefsson.org>
+
+	Fix links in output.
+
+	Update gnulib files.
+
+	Update manywarnings again.
+
+	Update gnulib files.
+
+	Remove unnecessary (?) dependency on glib/gobject.
+
+	Update GTK-DOC infrastructure.
+
+	Silence warnings.
+
+2011-11-19  Simon Josefsson  <simon@josefsson.org>
+
+	Use silent rules.  Drop unneeded check for perl path.
+
+	Update gnulib files.
+
+	build: Don't hard code path to perl in doc/gdoc.
+
+2011-11-14  Simon Josefsson  <simon@josefsson.org>
+
+	Add const keyword.
+
+	Silence some warnings.
+
+	Cleanup and add some more test vectors.
+
+	Add.
+
+	Mark bit string bitmask variable with static and unsigned keywords.
+
+	tests: Added self-test of bit string functions.
+
+	Update gnulib files.
+
+2011-10-26  Simon Josefsson  <simon@josefsson.org>
+
+	build: Added windows/libtasn14win.mk rules to produce Windows binaries.
+
+	Bump versions.
+
+2011-10-25  Simon Josefsson  <simon@josefsson.org>
+
+	Drop igloo, the directory is gone from the server.
+
+	Generated.
+
+	Add.
+
+	Version 2.10.
+
+	Add.
+
+	libtasn1.texi: Add examples to asn1Coding and asn1Decoding tools.
+
+	Add.
+
+	Update copyright years.
+
+	asn1Decoding: Drop the useless -c parameter.
+
+	asn1Coding: Implement the -c parameter.
+
+	Remove unused variable.
+
+	README-alpha: Mention make as dependency.
+
+	Update gnulib files.
+
+2011-08-30  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	small optimization
+
+2011-07-14  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2011-05-03  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2011-04-24  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files and fix syntax-check warnings.
+
+2011-01-08  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Update copyright years.
+
+	Update gnulib files.
+
+2010-12-06  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Update for 2.9.
+
+	Generated.
+
+	Version 2.9.
+
+	Doc fix.
+	Reported by Jeffrey Walton <noloader@gmail.com>.
+
+	Ignore more.
+
+	Update gnulib files.
+
+2010-10-04  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2010-09-30  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+	doc: Fix bug reporting address to point at help-libtasn1@gnu.org.
+
+	tests: Link to gnulib to avoid build error related to 'rpl_ftello' on Solaris.
+	Reported by Dagobert Michelsen.
+
+2010-09-25  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Update for 2.8.
+
+	Fix release target.
+
+	Generated.
+
+	Version 2.8.
+
+	Fix.
+
+	Update gnulib files.
+
+	Add.
+
+2010-09-21  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2010-06-15  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.  Fix syntax-check warnings.
+
+	Fix text.
+
+2010-05-20  Simon Josefsson  <simon@josefsson.org>
+
+	Bump version.
+
+	Update announcement for v2.7.
+
+	Generated.
+
+	Version 2.7.
+
+	Add.
+
+	Build gtk-doc PDF by default and publish it.
+
+	Upgrade GTK-DOC files to get PDF files.
+
+	Update gnulib files, use valgrind-tests module.
+
+2010-04-20  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Update gnulib files.
+
+	Add.
+
+	Re-add doc for asn1_check_version after move to separate file.
+
+	Bump version.
+
+	Update for 2.6.
+
+	Generated.
+
+	Version 2.6.
+
+	Update gnulib files.
+
+2010-04-14  Simon Josefsson  <simon@josefsson.org>
+
+	Fix links.
+
+	Update gnulib files.
+
+	Fix GTK-DOC API location.
+
+2010-04-13  Simon Josefsson  <simon@josefsson.org>
+
+	Add version.c.
+
+	Add license notes to files.
+
+	Reorder license header, for some reason the Test_parser fails otherwise.
+
+	Add people, based on git log reading.
+
+	Add.
+
+	Indent code.
+
+	Add.
+
+	Indent examples.  Fix syntax-check warnings.
+
+	Update gnulib files, fix new syntax-check warnings, add license.
+
+2010-03-30  Simon Josefsson  <simon@josefsson.org>
+
+	Add threadsafety self check.
+
+	Add.
+
+	Sync valgrind.m4.
+
+	Export libtasn1_* too, for backwards compatibility functions.
+	Reported by ludo@gnu.org (Ludovic Courtès).
+
+	Remove generated file.
+
+	Fix @acronym usage.
+
+	Add.
+
+	Update gnulib files.
+
+	Link to gnulib library.
+	Reported by ludo@gnu.org (Ludovic Courtès).
+
+2010-03-16  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	tests/Test_errors: Add, for more error checking.
+
+	Generated.
+
+	Update gnulib files.
+
+	asn1_check_version: Simplify.
+
+	Doc fixes.
+
+	Doc fixes.
+
+	Doc fixes.
+
+2010-03-15  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Add.
+
+	Generated.
+
+	Version 2.5.
+
+	Chmod.
+
+	Update gnulib files.
+
+2010-02-17  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Generated.
+
+	More GTK-DOC fixes.
+
+	Generated.
+
+	Fix.
+
+	More GTK-DOC comment fixes.
+
+	More GTK-DOC comment fixes.
+
+	Improve GTK-DOC comments.
+
+	Add.
+
+	Update gnulib files.
+
+2010-01-18  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Generated.
+
+	Version 2.4.
+
+	Make it work.
+
+	Cleanup.
+
+	Bump copyright year.
+
+	Update gnulib files.
+
+2010-01-12  Simon Josefsson  <simon@josefsson.org>
+
+	Fix syntax-check rules.
+
+	Add.
+
+	Update gnulib files.
+
+2010-01-11  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Regenerate.
+
+	Merge Fabio and Nikos copyrights to the FSF, both have signed papers.
+
+	Merge Fabio and Nikos copyrights to the FSF, both have signed papers.
+
+	Update copyright notices.
+
+	Add gnulib update-copyright module.
+
+	Fix ignore.
+
+	Ignore more.
+
+	Bump version.
+
+	Add.
+
+	Add.
+
+	Update gnulib files.
+
+2010-01-10  Andreas Metzler  <ametzler@downhill.at.eu.org>
+
+	Typos: sructure, stucture. There is no function named create_stucture, but one named asn1_create_element.
+
+2010-01-10  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	ignore more files
+
+2009-07-29  Simon Josefsson  <simon@josefsson.org>
+
+	Typo.
+
+	Bump version.
+
+	Generated.
+
+	Mark v2.3 as stable.
+
+	Version 2.3.
+
+	Update gnulib files.
+
+2009-07-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	documented last commit.
+
+	more careful decoding of OID.
+
+2009-06-23  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+	Doc fix.
+
+	Doc fix.
+
+2009-06-08  Simon Josefsson  <simon@josefsson.org>
+
+	Improve --help and --version outputs.
+
+	Update gnulib files.
+
+2009-06-02  Simon Josefsson  <simon@josefsson.org>
+
+	Fix typo.
+
+	Update gnulib files.
+
+2009-05-30  Simon Josefsson  <simon@josefsson.org>
+
+	Fix URLs.
+
+2009-05-29  Simon Josefsson  <simon@josefsson.org>
+
+	Fix.
+
+	Official GNU project.
+
+	Fix name.
+
+	Reflect GNU status.
+
+	Rewrite.
+
+	Add.
+
+	Fix.
+
+	Drop (L)GPL from manual.
+
+	Change info category.
+
+2009-05-28  Simon Josefsson  <simon@josefsson.org>
+
+	Use NEWS that matches announce-gen regexps.
+
+	Configure maint.mk more.
+
+	Fix.
+
+	Fix.
+
+	Fix.
+
+	Add.
+
+	Generated.
+
+	Add.
+
+	Replace TRUE/FALSE with ASN1_TRUE/ASN1_FALSE to work around problem on Tru64. Reported by Didier Godefroy <dg@ulysium.net> in <http://permalink.gmane.org/gmane.comp.encryption.gpg.gnutls.devel/3581>.
+
+	Add.
+
+	Bump versions.
+
+	Update gnulib files.
+
+2009-05-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	removed duplicate token.
+
+2009-05-20  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Fix release target.
+
+	Upgrade gtk-doc scripts, fixes make release.
+
+	Version 2.2.
+
+	Add.
+
+	Fix GTK-DOC.
+
+	Doc fix.
+
+	Revert.
+
+	Fix warning flags.
+
+	Add --enable-gcc-warnings.
+
+	Ignore ASN1_API.
+
+	Fix syntax-check problems.
+
+	Add.
+
+	Fix syntax-check problems.
+
+	Update gnulib files.
+
+2009-05-06  Simon Josefsson  <simon@josefsson.org>
+
+	Relicense libtasn1.pc to LGPLv2.1+
+
+	Fix.
+
+2009-04-17  Simon Josefsson  <simon@josefsson.org>
+
+	Bump version.
+
+	Generated.
+
+	Version 2.1.
+
+2009-04-16  Simon Josefsson  <simon@josefsson.org>
+
+	Sync upstream.
+
+	Fix license info.
+
+	Bump versions.
+
+	Add NEWS entry.
+
+	Update gnulib files.  Fix compile failure on Mac OS X.
+
+2009-04-13  Simon Josefsson  <simon@josefsson.org>
+
+	Copy cyclo page.
+
+	Generated.
+
+	Version 2.0.
+
+	Fix.
+
+	Fix typo.
+
+	Only use warnings when using gcc.
+
+	Update gnulib files.
+
+2009-03-23  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Make it compile.
+
+	Update gnulib files.
+
+	Re-add obsolete stuff for compatibility.
+
+	Re-add old ASN1_TYPE struct fields for compatibility.
+
+2009-03-04  Simon Josefsson  <simon@josefsson.org>
+
+	Use -fvisibility=hidden and mark public APIs explicitly.
+
+	Synx gdoc with libidn.  Use -pkg-name to improve man pages.
+
+	Add.
+
+	Indent code.  Reproduce using 'make indent' with GNU indent 2.2.10.
+
+	Add a INDENT_SOURCES to make 'make indent' work.
+
+	Remove dead code.
+
+	Add.
+
+	Generated.
+
+	Simplify unused debug code.
+
+	Add.
+
+	Rename.
+
+	Can't use -Wunused-macros.
+
+	Cleanup.
+
+	Update.
+
+	Add.
+
+	Use explicit list of symbols.
+
+	Fix.
+
+	Rename for consistency.
+
+	Use linker script test from gnulib.
+
+	Merge from libtasn1-1.
+
+	Merge from libtasn1-1.
+
+	Bump copyright years.
+
+	Add -I to get gnulib stdint.h.
+
+	Update gnulib files.
+
+	Add gnulib stdint module from gnulib under lib/.
+
+	Add gnulib stdint module from gnulib under lib/.
+
+2008-12-01  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+	Make crlf self-test work under Mingw+Wine.
+
+2008-11-17  Simon Josefsson  <simon@josefsson.org>
+
+	Rework warning initialization.
+
+	Update gnulib files.
+
+	Update gnulib files.
+
+	Add.
+
+	Update to sync with configure.ac rename.
+
+	Rename.
+
+	Fix warning parameters.
+
+	Fix more warnings.
+
+	Generated.
+
+	Fix warnings.
+
+	Drop deprecated, we don't have any deprecated symbols now.
+
+	Doc fix.
+
+	Merge in v1.7 changes.
+
+2008-11-12  Simon Josefsson  <simon@josefsson.org>
+
+	Add URL field.  Add license.
+
+	Split up operations into external M4 files.
+
+	Update gnulib files.
+
+	Neatify.
+
+2008-11-11  Simon Josefsson  <simon@josefsson.org>
+
+	Add summary.
+
+	Update gnulib files.
+
+	Move -Werror from configure to cfg.
+
+2008-11-10  Simon Josefsson  <simon@josefsson.org>
+
+	Drop AC_C_CONST and debug notices.
+
+	Update gnulib files.
+
+	Use gnulib warnings module.
+
+	Make tests compile.
+
+	Fix compile error.
+
+	Reapply Nikos' optimization patch.  Remove deprecated functions.
+
+	Generated.
+
+	Version 1.6.
+
+	Revert small_value patch temporarily.
+
+2008-11-07  Simon Josefsson  <simon@josefsson.org>
+
+	Don't use now obsolete functions.
+
+	Test for -Wl,--version-script properly.
+
+	Put headers before C++ block.  Improve comments.
+
+	Update gnulib files.
+
+2008-11-06  Simon Josefsson  <simon@josefsson.org>
+
+	Add ASN1_DISABLE_DEPRECATED.
+
+	Fix LIBTASN1_VERSION namespace violation.
+
+	Generated.
+
+	Fix error function namespace.
+
+	Generated.
+
+	Use v1.6 for next release instead.
+
+	Use static keyword.
+
+2008-11-05  Simon Josefsson  <simon@josefsson.org>
+
+	Add texinfo stylesheet.
+
+2008-11-04  Simon Josefsson  <simon@josefsson.org>
+
+	Add cyclo reports.
+
+2008-11-04  Nikos Mavrogiannopoulos  <nmav@crystal.(none)>
+
+	Merge branch 'master' of ssh://git.savannah.gnu.org/srv/git/libtasn1
+
+	added missing file.
+
+2008-11-04  Simon Josefsson  <simon@josefsson.org>
+
+	Remove.
+
+	No need to publish _asn1_copy_structure2.
+
+	Move struct node_asn_struct to int.h.
+
+	Use new makefile rules.
+
+	Remove libtasn1-config.  Use warnings.
+
+	Remove libtasn1-config and libtasn1.m4.
+
+	Add.
+
+	Remove.
+
+	Update from upstream.
+
+	Fix.
+
+	Add.
+
+	Remove.
+
+	Doc fix.  Fix asn1_get_length_ber signature.
+
+	Build fixes.
+
+	Add description.  Add list of recently added symbols.
+
+	Sync gdoc with GnuTLS.
+
+	Update gnulib files.  Use GFDLv1.3 for manual.
+
+	Bump version.  Fix NEWS.
+
+	Reorder small_value member to avoid ABI breakage.  Fix namespace.
+
+2008-11-03  Nikos Mavrogiannopoulos  <nmav@crystal.(none)>
+
+	moved entries to correct version.
+
+2008-11-03  Nikos Mavrogiannopoulos  <nmav@crystal.(none)>
+
+	* Optimized tree generation by adding a small_value field in every node.   If the node contains few data they will be stored there instead of a   malloced buffer.
+	* Added ability to DER decoder to decode BER encoded octet strings.
+
+	* Added test case with a pkcs-12 formatted structure to test the ability
+	  to parse those strings.
+
+	* Added asn1_append_value() and asn1_set_value_octet() to reduce code being copied.
+
+2008-11-03  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2008-10-08  Simon Josefsson  <simon@josefsson.org>
+
+	Update usages of MAX_* constants.
+
+	Fix namespace violation.
+
+	Add warning flags mechanism.  Fix warnings.
+
+	Assume strdup and string.h.
+
+	Avoid warnings in modern libtool.
+
+	Remove.
+
+	Update gnulib files.
+
+2008-09-08  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2008-08-29  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Fix gnupload.
+
+	Generated.
+
+	Generated.
+
+	Typo.
+
+	Version 1.5.
+
+	Fix release target.
+
+	Fix release target.
+
+	Update gnulib files.
+
+2008-08-26  Simon Josefsson  <simon@josefsson.org>
+
+	Autobuild is invoked from gnulib now.
+
+2008-08-25  Simon Josefsson  <simon@josefsson.org>
+
+	Add credits.
+
+	Fix memory leaks, tiny patch from Christian Grothoff <christian@grothoff.org>.
+
+2008-08-21  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2008-08-12  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2008-05-07  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Update gnulib files.
+
+2008-04-21  Simon Josefsson  <simon@josefsson.org>
+
+	Regenerate.
+
+	Bump versions.
+
+	Generated.
+
+	Version 1.4.
+
+	Drop mem.h.
+
+	Drop mem.h.
+
+	Update gnulib files.
+
+	Replace use of alloca with malloc.
+
+2008-04-17  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2008-03-25  Simon Josefsson  <simon@josefsson.org>
+
+	Update gnulib files.
+
+2008-03-02  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Update.
+
+2008-02-06  Simon Josefsson  <simon@josefsson.org>
+
+	Avoid brace expansion.
+
+2008-02-03  Simon Josefsson  <simon@josefsson.org>
+
+	Bump version.
+
+	Bump versions.
+
+	Typo.
+
+	Fix cut'n'paste typo.
+
+2008-02-01  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Version 1.3.
+
+	Add.
+
+	Fix mem leak.
+
+	Update gnulib files.
+
+	Don't bother with strings.h.
+
+	Fix my e-mail address.
+
+	Bump copyright years.
+
+	Add Michele.
+
+	(_asn1_create_static_structure): Write NULL instead of 0.  Indent output. Reported by Michele Baldessari <michele@pupazzo.org>.
+
+	Added some static initializers.  Tiny patch from Michele Baldessari <michele@pupazzo.org>.
+
+	Add.
+
+	Add.
+
+	Add.
+
+	Don't duplicate pkix.asn.
+
+	Fix building of examples.
+
+	Bump version.
+
+	Add, based on src/Makefile.am.
+
+	Move examples from src/ to new directory examples/.
+
+	Generated from ASN1.y.
+
+	Fix dependencies.
+
+	Build pkix_asn1_tab.c using asn1Parser.
+
+	Add.
+
+	Handle 'INTEGER { ...} (a..b)', as used by src/pkix.asn1. Reverts part of Fabio's patch on Sep 18 2003.
+
+	Update gnulib files.
+
+2008-01-31  Simon Josefsson  <simon@josefsson.org>
+
+	Merge defines.h into int.h.
+
+	Use gnulib stdint module.
+
+	Drop unnecessary gcc -pipe check.
+
+	Bump versions.
+
+	Add.
+
+	Update gnulib files.
+
+2007-12-10  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Reorder release targets.
+
+	Fix release target.
+
+	Version 1.2.
+
+	Bump versions.
+
+	Bump versions.
+
+	Update gnulib.
+
+	Update gnulib.
+
+	Add.
+
+2007-08-31  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Version 1.1.
+
+	Bump versions.
+
+	Bump copyright years.
+
+	Bump versions.
+
+	Fix asn1_check_version to accept that (e.g.) 1.0 is more recent than 0.3.10.
+
+	Add.
+
+	Generated.
+
+	Version 1.0.
+
+	Fix release target.
+
+	Dist (l)gpl.texi.
+
+	Add.
+
+	Bump version.
+
+	Fixes.
+
+	Typo.
+
+	Use GPLv3 for self tests, tools, build infrastructure.
+
+	Use GPLv3 for self tests, tools, build infrastructure.
+
+	Use GPLv3 for self tests, tools, build infrastructure.
+
+	Fix.
+
+	Update gnulib files.
+
+	Fixes for license.  Add Introduction section.
+
+	Update gnulib files.
+
+	Bump versions.
+
+	Add.
+
+	Drop gnits mode.
+
+2007-05-25  Simon Josefsson  <jas@mocca.josefsson.org>
+
+	Generated.
+
+	Generated.
+
+	Version 0.3.10.
+
+	Add.
+
+	Use a diff.
+
+	Remove.
+
+	Update.
+
+2007-03-09  Simon Josefsson  <simon@josefsson.org>
+
+	Use modern constructs.
+
+	Bump versions.
+
+2007-03-02  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Fix release.
+
+	Fix release.
+
+	Generated.
+
+	Typo.
+
+	Version 0.3.9.
+
+	Add.
+
+	Git fixes of release target.
+
+2007-03-01  Simon Josefsson  <simon@josefsson.org>
+
+	Generated.
+
+	Bump versions.
+
+	Fix.
+
+	Add.
+
+	Fix.
+
+	Use GNUmakefile from build-aux/.
+
+	Reorder.
+
+	Rewrite, gnulib's real GNUmakefile is in build-aux.
+
+	Update.
+
+	Put gnulib stuff in build-aux/.
+
+	Update.
+
+2007-02-27  Simon Josefsson  <simon@josefsson.org>
+
+	Mention cvs->git.
+
+2007-02-13  Simon Josefsson  <simon@josefsson.org>
+
+	Update.
+
+	Remove.
+
+	Fix.
+
+	Add.
+
+	Pull in config.h in generated code.
+
+2006-11-16  Simon Josefsson  <simon@josefsson.org>
+
+	Fix make release.
+
+	*** empty log message ***
+
+	Version 0.3.8.
+
+	Bump version.
+
+	Revert, problems was double EXTRA_DIST.
+
+	Add -I's.
+
+	Fix.
+
+	Bump versions.
+
+	Update.
+
+	Use read_binary_file to read data, for Windows.  Add self-test to test regressions.
+
+2006-10-30  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Fix last commit.
+
+	Handle arbitrary large DER output lenghts.
+
+2006-10-19  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Version 0.3.7.
+
+	Fix GTK-DOC warning.
+
+	No need to test for getopt.
+
+	Fix copyright.
+
+	Add.
+
+	Improve --help output.  Assume getopt_long, since gnulib provides it.
+
+	Remove unused version variable.
+
+	*** empty log message ***
+
+	Use progname and version-etc-fsf modules.
+
+	Update.
+
+	Update gnulib files, don't require LGPL modules (the libtasn1 library doesn't use gnulib).
+
+	Add.
+
+	Fix -Wno-pointer-sign test to respect user-defined CFLAGS.  Reported by "Diego 'Flameeyes' Pettenò" <flameeyes@gentoo.org>.
+
+2006-09-19  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Add.
+
+	(asn1_der_coding): For TYPE_NULL, increment counter even if we don't write any output.  Reported by Stephen Wrobleski <steve@localtoast.org>.
+
+2006-08-13  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Version 0.3.6.
+
+	Update.
+
+2006-07-13  Simon Josefsson  <simon@josefsson.org>
+
+	Fix -I's.
+
+	Change gendocs place.
+
+	Update.
+
+	Update.
+
+	Fix valgrind test.
+
+2006-06-27  Simon Josefsson  <simon@josefsson.org>
+
+	Use GNU-style warnings.
+
+	Fix texinfo output, from gnutls.
+
+	Add.
+
+	Add.
+
+	Need -Igl, for unistd.h.
+
+	Sync with Shishi, fixes man page bug in debian.
+
+	Only optionally use valgrind.
+
+	Bump version.
+
+	Test for valgrind.
+
+	*** empty log message ***
+
+	Version 0.3.5.
+
+	Fix distcheck.
+
+2006-06-26  Simon Josefsson  <simon@josefsson.org>
+
+	Support --la-file and --help with proper exit code.
+
+	Bump version.
+
+	Remove igloo upload, it's broken.
+
+	Fix srcdir!=objdir.
+
+	Fix.
+
+	Add.
+
+	Add.
+
+	Add.
+
+	Bump version.
+
+	Add Libs.private.
+
+	Update.
+
+	Fix -Wno-pointer-sign test.
+
+	Add.
+
+	Trigger a bug that made Shishi self tests fail on 64-bit platforms.
+
+	(asn1_octet_der): Work even if str_len is 0, i.e., write an ASN.1 length of zero.  Otherwise encodings became garbled on 64-bit platforms, detected while running the Shishi self-tests on the Debian build robots.  A self test to reproduce this is in Test_tree.
+
+2006-06-22  Simon Josefsson  <simon@josefsson.org>
+
+	Make portable to mingw.
+
+2006-05-10  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Version 0.3.4.
+
+	*** empty log message ***
+
+	Fix typo.
+
+	Fix.
+
+	Use --tool, needed on some platforms.
+
+	Add.
+
+	Check for pointer-sign before using it.
+
+	*** empty log message ***
+
+	Add.
+
+	Add Test_encoding. Simplify.
+
+	Remove unused.
+
+	Add.
+
+	Add, from Nikos. I fixed treefile and library version checking, and indentation.
+
+	Bump version.
+
+	Add -no-install.
+
+	Run tests under valgrind, if available.
+
+	Add.
+
+	Bump versions.
+
+2006-05-09  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	some fixes. node_asn now has value_len set to zero on initialization.
+
+2006-05-07  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Version 0.3.3.
+
+	Add dates for releases.
+
+	Update.
+
+2006-05-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	corrected bug in copy_structure3(). This caused bad encodings.
+
+2006-04-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	changed the coding style to -i2, so the source code is readable again.
+
+	class conflicts with c++
+
+2006-04-26  Simon Josefsson  <simon@josefsson.org>
+
+	Update.
+
+	Add.
+
+	Bump versions.
+
+2006-03-30  Simon Josefsson  <simon@josefsson.org>
+
+	Fix warnings and C++ use, from Nikos.
+
+2006-03-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	added -Wno-pointer-sign to gcc to avoid tons of useless warnings.
+
+	Removed some of signedness warnings. Still many to go.
+
+2006-03-21  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+2006-03-12  Simon Josefsson  <simon@josefsson.org>
+
+	Add header.
+
+	*** empty log message ***
+
+	Fix help2man formatting.
+
+	Fix info name.
+
+	Build man pages.
+
+	Look for help2man.
+
+	Fix typo.
+
+	Add.
+
+	Install asn1Parser, asn1Coding, asn1Decoding (asn1Parser needed by Shishi).
+
+2006-03-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2006-03-11  Simon Josefsson  <simon@josefsson.org>
+
+	Update.
+
+2006-03-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+	some improvements in coding
+
+	some improvements in coding
+
+	Corrected bug which caused an overwrite of an element during DER encoding.
+
+2006-03-08  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Update.
+
+	Fixes for GTK-DOC.
+
+	Fix prototype (for GTK-DOC).
+
+	Add.
+
+	Remove.
+
+	Add.
+
+	Add asn1_copy_node.
+
+	Add, from GnuTLS.
+
+	Typo.
+
+	Revert, don't export asn1_find_up.
+
+	Revert.
+
+	Add back libtasn1-dont.h stuff.
+
+	Add.
+
+	Move new APIs to libtasn1-dont.h.
+
+	Include libtasn1-dont.h.
+
+	Add.
+
+	Add libtasn1-dont.h.
+
+	New file, mostly with the new "bad" APIs from libtasn1.h.
+
+	Fix.
+
+	Fix.
+
+	Add.
+
+	Map back type_field().
+
+	Add ASN1_TYPE_FIELD.
+
+	Map back TYPE_* and CLASS_*.
+
+	Export ASN1_CONST_*, taken from int.h.
+
+	Map short TYPE_* keywords.
+
+	Export ASN1_TYPE_*, taken from int.h.  GnuTLS needs this.
+
+	Update.
+
+	Add.
+
+	Fix prototypes.
+
+	Export asn1_find_node and asn1_find_up.
+
+	Bump version.
+
+	Update version number in lib/libtasn1.h.
+
+	Fix unistd.h.
+
+	Remove unistd.h, fixed by gnulib.
+
+	Bump versions.
+
+	Add.
+
+	Update.
+
+	Add BIT STRING SIZE test.
+
+	Support 'BIT STRING (SIZE(42))' constructs, suggested by Cyril Holweck <cyril.holweck@q-free.com>.
+
+2006-02-28  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Fix.
+
+	Dist windows/ stuff.
+
+	Don't dist windows/ stuff.
+
+	Fix.
+
+	Add.
+
+	Move MSVS project files to top-level directory, and add self-tests and src/ tools.
+
+	Update.
+
+	Fix.
+
+	Add getopt, for src/ tools in MSVS.
+
+	Update.
+
+	Add, mostly for MSVS builds.
+
+	Update.
+
+	Remove duplicate definitions.
+
+	Remove duplicate prototypes.
+
+	Remove redundant definitions.
+
+	Fix HIGNORE's.
+
+	Make ASN1_CLASS_* official.
+
+2006-02-23  Simon Josefsson  <simon@josefsson.org>
+
+	Add strdup.
+
+	Update.
+
+	Add.
+
+	Update.
+
+	Remove unneeded stuff.
+
+	Remove unneeded def.
+
+	Remove, just use 'make' instead.
+
+	Add maintainer-makefile stuff.
+
+	Remove der.h.
+
+	Move from der.h.
+
+	Remove redundant code.
+
+	Assume C89.
+
+	Doc fix for asn1_bit_der.
+
+	Doc fix for asn1_length_der and asn1_octet_der.
+
+	Doc fix for asn1_get_length_der.
+
+	Doc fix for asn1_get_bit_der.
+
+	Doc fix for asn1_get_octet_der.
+
+	Add.
+
+	Distribute MSVS files.
+
+	Fix release target.
+
+	Add config.h to project.
+
+	Add MSVS files.
+
+	Typo.
+
+	Convert to Unix EOLs.
+
+2006-02-11  Simon Josefsson  <simon@josefsson.org>
+
+	Remove unused.
+
+	Remove errors_int.h.
+
+	Remove unused.
+
+	Remove unused.
+
+	Remove unused code.
+
+	Bump version.
+
+	Add.
+
+	Bump ABI version to 0.3. Don't export _asn1*.
+
+	Bump version.
+
+	Bump versions.
+
+	Add.
+
+	Export DER utility functions.
+
+	Add copyright.
+
+2006-02-09  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Fix.
+
+	Fix typos.
+
+	Add.
+
+	Fix.
+
+	Reorder slightly.
+
+	Update gnulib.
+
+	Fix copyright.
+
+	Fix copying conditions.
+
+	Fix copyright.
+
+	Add.
+
+	Fix.
+
+	Further length fixes.
+
+2006-02-08  Simon Josefsson  <simon@josefsson.org>
+
+	Update _asn1_get_length_der fix.
+
+	Bump version.
+
+	Add.
+
+	Add libtasn1 fixes from Nikos, prompted by report from "Evgeny Legerov" <admin@gleg.net>.
+
+2006-01-27  Simon Josefsson  <simon@josefsson.org>
+
+	Fix.
+
+	Fix make check for objdir != srcdir, reported by Bernard Leak <bernard@brenda-arkle.demon.co.uk>.
+
+	Fix objdir != srcdir.
+
+	Fix objdir != srcdir.
+
+	*** empty log message ***
+
+	Add, to workaround gtk-dock bug.
+
+	Add.
+
+	Add const, tiny patch from "ZIGLIO, Frediano, VF-IT" <Frediano.Ziglio@vodafone.com>.
+
+2006-01-18  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Add.
+
+	Fix -I, reported by Bernard Leak <bernard@brenda-arkle.demon.co.uk>.
+
+2005-08-31  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Version 0.2.17.
+
+	Bump versions.
+
+	Dist libtasn1.vers.
+
+	*** empty log message ***
+
+	Fix typo.
+
+	Bump version.
+
+	Add license.
+
+	Bump versions.
+
+	Add.
+
+	Replace --export-symbols-regex with version script.
+
+	Add --enable-ld-version-script.
+
+2005-08-12  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Fix.
+
+	Support autobuild.
+
+	Update.
+
+	Remove.
+
+	Don't use getopt from gnulib after all.
+
+	Revert.
+
+	Bump version.
+
+	*** empty log message ***
+
+	Add.
+
+	Fix error.
+
+	Fix error.
+
+	Look for *.m4 in gl/m4/.
+
+	Revert (stdint was GPL..).
+
+	Use stdint module.
+
+	Add getopt.
+
+	Use getopt gnulib module.  Always use getopt_long.
+
+	Remove inline check (unused).
+
+	Remove unused function checks.
+
+	Add.
+
+	Add.
+
+	Use gnulib to replace memmove.
+
+	Remove C99 check (not needed).
+
+	Don't use C99 macros.
+
+	Simplify.
+
+	Remove unused _libtasn1_assert defines. Don't use C99 macros.
+
+2005-07-16  Simon Josefsson  <simon@josefsson.org>
+
+	Bump versions.
+
+	Add (belatedly).
+
+	Fix release target.
+
+	*** empty log message ***
+
+	Removed (not needed).
+
+	*** empty log message ***
+
+	Bump version. Fix license.
+
+	Bump version. Add license.
+
+	Add.
+
+	*** empty log message ***
+
+	Remove (built from ASN1.y anyway).
+
+	Fix address in license.
+
+	Fix license.
+
+2005-04-21  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	added the -D_REENTRANT and -D_THREAD_SAFE to CFLAGS.
+
+2005-02-16  Simon Josefsson  <simon@josefsson.org>
+
+	Protect config.h #include.
+
+2005-01-22  Simon Josefsson  <simon@josefsson.org>
+
+	Add.
+
+	Add pkg-config file. Convert to use of $GCC to test if GCC is available. Redirect STDERR to /dev/null when determining if GNU as available, to avoid useless error message if not. Remove extra commas after check for bzero memset memmove bcopy. Convert to AC_MSG_NOTICE rather than AC_MSG_RESULT for status messages. Tiny change from Albert Chin <gnutls-dev@mlists.thewrittenword.com>.
+
+2004-12-15  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	(release): Fix.
+
+	Bump versions.
+
+	Fix version (perhaps use libtasn1.h.in to avoid this in the future?).
+
+	Add.
+
+2004-12-10  Simon Josefsson  <simon@josefsson.org>
+
+	*** empty log message ***
+
+	Add.
+
+	Add.
+
+	Add.
+
+	(release): Copy GTK-DOC manual.
+
+	Link to GTK-DOC stuff.
+
+	(release): Run gendocs.sh.
+
+	Add.
+
+	Don't split HTML.
+
+	Update.
+
+	Doc fix.
+
+	Add GTK-DOC.
+
+	*** empty log message ***
+
+	Suggest --enable-gtk-doc.
+
+	Need GTK-DOC.
+
+	Need GTK-DOC.
+
+	Doc fix.
+
+	Doc fix.
+
+	Doc fix.
+
+	Doc fixes.
+
+	Add.
+
+	(asn1_write_value): Fix prototype, to avoid warnings.
+
+	(asn1_read_value): Fix prototype to avoid warning.
+
+	Fix typo.
+
+	Remove tex manual stuff. Simplify.
+
+	Include libtasn1.h, to make sure we are using the same prototypes that are exported.  Avoids duplication of code.
+
+	Fix warning.
+
+	Simplify shared library version computation.
+
+	Remove unused stuff. Use modern autoconf/automake interface.
+
+	Remove doc/scripts/.
+
+	*** empty log message ***
+
+	Remove.
+
+	Add.
+
+	Build texinfo manual.
+
+	Add, rewritten from asn1.tex.
+
+	Add, from GNU Libidn.
+
+	Add.
+
+	Generated.
+
+	(ChangeLog): Use FSF format.  Use .cvsusers.
+
+	Add.
+
+	Fix.
+
+	*** empty log message ***
+
+	Add release target.
+
+	Fix.
+
+	Remove (generated automatically by buildconf).
+
+2004-11-10  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+	corrected some access to invalid data.
+
+2004-11-03  Simon Josefsson  <simon@josefsson.org>
+
+	Use EXTRA_DIST less.
+
+	Use dist target for libtasn1.m4.
+
+	Remove libtasn1.vers.
+
+	Use autoreconf.
+
+	Replace ld version script with libtool -export-symbols-regex.
+
+	Fix library dependency order.
+
+	GTK-DOC fixes.
+
+2004-10-29  Simon Josefsson  <simon@josefsson.org>
+
+	Doc fixes, from Martijn Koster <mak@greenhills.co.uk>.
+
+2004-09-08  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	add self test
+
+2004-07-23  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2004-05-18  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Corrected a DER decoding bug which was reported by Max Vozeler <max@hinterhof.net>.
+
+2004-05-16  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+	Added scripts to assist in libtasn1 version detection from configure scripts.
+
+2004-04-20  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	change INTEGR size management
+
+2004-04-14  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	add asn1_delete_elemenadd asn1_delete_element
+
+2004-02-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2004-02-27  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2004-02-26  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	some fixes in prototypes.
+
+	*** empty log message ***
+
+	removed the asn1c utility (it was replaced by asn1Coding anyway).
+
+2004-02-14  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	added versioned symbols.
+
+2004-02-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2003-11-12  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	some fixes with alloca()
+
+2003-09-18  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	manage 'INTEGER(1 | 2)' syntax
+
+2003-07-30  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	Add BER decoding
+
+2003-03-25  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	Add DEFAULT with OID
+
+2003-03-19  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	change asn1_find_structure_from_oid prototype
+
+2003-03-18  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	change asn1_find_structure_from_oid prototype
+
+2003-02-25  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	add vector length check
+
+	add vector length check
+
+2003-02-12  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	add read_tag and get_structure_from_oid functions
+
+2003-02-10  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	OID with dots
+
+2003-02-06  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	made the static string table constant.
+
+2003-02-05  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	change asn1_create_element interface
+
+2003-02-03  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	change asn1_create_element interface
+
+	change asn1_create_element interface
+
+	change asn1_create_element interface
+
+2003-02-03  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Error description is only used if it is != NULL.
+
+2002-12-28  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	some changes for minitasn1
+
+	moved mem.h inclusion to int.h.
+
+2002-10-09  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	C99 macro
+
+2002-10-08  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	*** empty log message ***
+
+2002-10-07  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	*** empty log message ***
+
+2002-10-03  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Added .cvsusers, for use in ChangeLong generation.
+
+2002-10-03  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	libtasn1
+
+	version 0.1.2
+
+	add Simon
+
+	add GeneralString type
+
+	prefix symbols and functions
+
+2002-10-02  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	improved check for gnu assembler
+
+2002-07-09  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2002-07-01  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	*** empty log message ***
+
+	version 0.1.1
+
+	add const keyword
+
+2002-06-25  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	fix bug in asn1_der_decoding_element
+
+2002-06-25  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	added a check for null pointer.
+
+	some minor fixes.
+
+2002-06-24  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	*** empty log message ***
+
+	add asn1_expand_octet_string and asn1_der_decoding_element functions
+
+2002-06-20  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	*** empty log message ***
+
+	fix asn1_expand_any_defined_by
+
+2002-06-20  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	added some required prototypes
+
+2002-06-19  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	add asn1_expand_any_defined_by
+
+	*** empty log message ***
+
+2002-06-15  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2002-06-14  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Removed xml_print.c. Will be moved to gnutls.
+
+	license changed to GNU Lesser GPL.
+
+2002-06-13  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+	added xml_print
+
+2002-06-12  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2002-06-11  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+	*** empty log message ***
+
+	renamed libasn1 to libtasn1
+
+	Added check for NULL pointer in given error strings.
+
+2002-05-27  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	version 0.1.0
+
+	correct e-mail address
+
+2002-05-15  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	Start Up version
+
+	Start Up Version
+
+	Start Up version
+
+	Start Up Version
+
+2002-04-10  Fabio Fiorina  <fiorinaf@gnutls.org>
+
+	warning fix
+
+2002-04-08  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	*** empty log message ***
+
+2002-04-06  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	better function reference - depends on latex now
+
+	*** empty log message ***
+
+2002-04-05  Nikos Mavrogiannopoulos  <nmav@gnutls.org>
+
+	Initial revision

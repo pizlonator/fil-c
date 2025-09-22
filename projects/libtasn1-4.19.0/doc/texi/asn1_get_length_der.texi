@@ -1,0 +1,16 @@
+@subheading asn1_get_length_der
+@anchor{asn1_get_length_der}
+@deftypefun {long} {asn1_get_length_der} (const unsigned char * @var{der}, int @var{der_len}, int * @var{len})
+@var{der}: DER data to decode.
+
+@var{der_len}: Length of DER data to decode.
+
+@var{len}: Output variable containing the length of the DER length field.
+
+Extract a length field from DER data.
+
+@strong{Returns:} Return the decoded length value, or -1 on indefinite
+length, or -2 when the value was too big to fit in a int, or -4
+when the decoded length value plus  @code{len} would exceed  @code{der_len} .
+@end deftypefun
+

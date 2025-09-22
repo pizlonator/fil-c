@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<book xmlns="http://www.devhelp.net/book" title="GNU Libtasn1 Reference Manual" link="index.html" author="" name="libtasn1" version="2" language="c" online="https://www.gnu.org/software/libtasn1/reference/">
+  <chapters>
+    <sub name="GNU Libtasn1 API Reference Manual" link="ch01.html">
+      <sub name="libtasn1" link="libtasn1-libtasn1.html"/>
+    </sub>
+    <sub name="API Index" link="api-index-full.html"/>
+    <sub name="Index of deprecated API" link="deprecated-api-index.html"/>
+    <sub name="Index of new API in 1.6" link="api-index-1-6.html"/>
+    <sub name="Index of new API in 2.0" link="api-index-2-0.html"/>
+  </chapters>
+  <functions>
+    <keyword type="function" name="asn1_parser2tree ()" link="libtasn1-libtasn1.html#asn1-parser2tree"/>
+    <keyword type="function" name="asn1_parser2array ()" link="libtasn1-libtasn1.html#asn1-parser2array"/>
+    <keyword type="function" name="asn1_array2tree ()" link="libtasn1-libtasn1.html#asn1-array2tree"/>
+    <keyword type="function" name="asn1_print_structure ()" link="libtasn1-libtasn1.html#asn1-print-structure"/>
+    <keyword type="function" name="asn1_create_element ()" link="libtasn1-libtasn1.html#asn1-create-element"/>
+    <keyword type="function" name="asn1_delete_structure ()" link="libtasn1-libtasn1.html#asn1-delete-structure"/>
+    <keyword type="function" name="asn1_delete_structure2 ()" link="libtasn1-libtasn1.html#asn1-delete-structure2"/>
+    <keyword type="function" name="asn1_delete_element ()" link="libtasn1-libtasn1.html#asn1-delete-element"/>
+    <keyword type="function" name="asn1_write_value ()" link="libtasn1-libtasn1.html#asn1-write-value"/>
+    <keyword type="function" name="asn1_read_value ()" link="libtasn1-libtasn1.html#asn1-read-value"/>
+    <keyword type="function" name="asn1_read_value_type ()" link="libtasn1-libtasn1.html#asn1-read-value-type"/>
+    <keyword type="function" name="asn1_read_node_value ()" link="libtasn1-libtasn1.html#asn1-read-node-value"/>
+    <keyword type="function" name="asn1_number_of_elements ()" link="libtasn1-libtasn1.html#asn1-number-of-elements"/>
+    <keyword type="function" name="asn1_der_coding ()" link="libtasn1-libtasn1.html#asn1-der-coding"/>
+    <keyword type="function" name="asn1_der_decoding2 ()" link="libtasn1-libtasn1.html#asn1-der-decoding2"/>
+    <keyword type="function" name="asn1_der_decoding ()" link="libtasn1-libtasn1.html#asn1-der-decoding"/>
+    <keyword type="function" name="asn1_der_decoding_element ()" link="libtasn1-libtasn1.html#asn1-der-decoding-element" deprecated=""/>
+    <keyword type="function" name="asn1_der_decoding_startEnd ()" link="libtasn1-libtasn1.html#asn1-der-decoding-startEnd"/>
+    <keyword type="function" name="asn1_expand_any_defined_by ()" link="libtasn1-libtasn1.html#asn1-expand-any-defined-by"/>
+    <keyword type="function" name="asn1_expand_octet_string ()" link="libtasn1-libtasn1.html#asn1-expand-octet-string"/>
+    <keyword type="function" name="asn1_read_tag ()" link="libtasn1-libtasn1.html#asn1-read-tag"/>
+    <keyword type="function" name="asn1_find_structure_from_oid ()" link="libtasn1-libtasn1.html#asn1-find-structure-from-oid"/>
+    <keyword type="function" name="asn1_check_version ()" link="libtasn1-libtasn1.html#asn1-check-version"/>
+    <keyword type="function" name="asn1_perror ()" link="libtasn1-libtasn1.html#asn1-perror" since="1.6"/>
+    <keyword type="function" name="asn1_get_length_der ()" link="libtasn1-libtasn1.html#asn1-get-length-der"/>
+    <keyword type="function" name="asn1_get_length_ber ()" link="libtasn1-libtasn1.html#asn1-get-length-ber" since="2.0"/>
+    <keyword type="function" name="asn1_length_der ()" link="libtasn1-libtasn1.html#asn1-length-der"/>
+    <keyword type="function" name="asn1_decode_simple_der ()" link="libtasn1-libtasn1.html#asn1-decode-simple-der"/>
+    <keyword type="function" name="asn1_decode_simple_ber ()" link="libtasn1-libtasn1.html#asn1-decode-simple-ber"/>
+    <keyword type="function" name="asn1_encode_simple_der ()" link="libtasn1-libtasn1.html#asn1-encode-simple-der"/>
+    <keyword type="function" name="asn1_find_node ()" link="libtasn1-libtasn1.html#asn1-find-node"/>
+    <keyword type="function" name="asn1_copy_node ()" link="libtasn1-libtasn1.html#asn1-copy-node"/>
+    <keyword type="function" name="asn1_dup_node ()" link="libtasn1-libtasn1.html#asn1-dup-node"/>
+    <keyword type="function" name="asn1_get_tag_der ()" link="libtasn1-libtasn1.html#asn1-get-tag-der"/>
+    <keyword type="function" name="asn1_octet_der ()" link="libtasn1-libtasn1.html#asn1-octet-der"/>
+    <keyword type="function" name="asn1_get_octet_der ()" link="libtasn1-libtasn1.html#asn1-get-octet-der"/>
+    <keyword type="function" name="asn1_bit_der ()" link="libtasn1-libtasn1.html#asn1-bit-der"/>
+    <keyword type="function" name="asn1_get_bit_der ()" link="libtasn1-libtasn1.html#asn1-get-bit-der"/>
+    <keyword type="function" name="asn1_get_object_id_der ()" link="libtasn1-libtasn1.html#asn1-get-object-id-der"/>
+    <keyword type="function" name="asn1_object_id_der ()" link="libtasn1-libtasn1.html#asn1-object-id-der"/>
+    <keyword type="macro" name="ASN1_API" link="libtasn1-libtasn1.html#ASN1-API:CAPS"/>
+    <keyword type="macro" name="ASN1_VERSION" link="libtasn1-libtasn1.html#ASN1-VERSION:CAPS"/>
+    <keyword type="macro" name="ASN1_VERSION_MAJOR" link="libtasn1-libtasn1.html#ASN1-VERSION-MAJOR:CAPS"/>
+    <keyword type="macro" name="ASN1_VERSION_MINOR" link="libtasn1-libtasn1.html#ASN1-VERSION-MINOR:CAPS"/>
+    <keyword type="macro" name="ASN1_VERSION_PATCH" link="libtasn1-libtasn1.html#ASN1-VERSION-PATCH:CAPS"/>
+    <keyword type="macro" name="ASN1_VERSION_NUMBER" link="libtasn1-libtasn1.html#ASN1-VERSION-NUMBER:CAPS"/>
+    <keyword type="macro" name="ASN1_SUCCESS" link="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS"/>
+    <keyword type="macro" name="ASN1_FILE_NOT_FOUND" link="libtasn1-libtasn1.html#ASN1-FILE-NOT-FOUND:CAPS"/>
+    <keyword type="macro" name="ASN1_ELEMENT_NOT_FOUND" link="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS"/>
+    <keyword type="macro" name="ASN1_IDENTIFIER_NOT_FOUND" link="libtasn1-libtasn1.html#ASN1-IDENTIFIER-NOT-FOUND:CAPS"/>
+    <keyword type="macro" name="ASN1_DER_ERROR" link="libtasn1-libtasn1.html#ASN1-DER-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_VALUE_NOT_FOUND" link="libtasn1-libtasn1.html#ASN1-VALUE-NOT-FOUND:CAPS"/>
+    <keyword type="macro" name="ASN1_GENERIC_ERROR" link="libtasn1-libtasn1.html#ASN1-GENERIC-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_VALUE_NOT_VALID" link="libtasn1-libtasn1.html#ASN1-VALUE-NOT-VALID:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_ERROR" link="libtasn1-libtasn1.html#ASN1-TAG-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_IMPLICIT" link="libtasn1-libtasn1.html#ASN1-TAG-IMPLICIT:CAPS"/>
+    <keyword type="macro" name="ASN1_ERROR_TYPE_ANY" link="libtasn1-libtasn1.html#ASN1-ERROR-TYPE-ANY:CAPS"/>
+    <keyword type="macro" name="ASN1_SYNTAX_ERROR" link="libtasn1-libtasn1.html#ASN1-SYNTAX-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_MEM_ERROR" link="libtasn1-libtasn1.html#ASN1-MEM-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_MEM_ALLOC_ERROR" link="libtasn1-libtasn1.html#ASN1-MEM-ALLOC-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_DER_OVERFLOW" link="libtasn1-libtasn1.html#ASN1-DER-OVERFLOW:CAPS"/>
+    <keyword type="macro" name="ASN1_NAME_TOO_LONG" link="libtasn1-libtasn1.html#ASN1-NAME-TOO-LONG:CAPS"/>
+    <keyword type="macro" name="ASN1_ARRAY_ERROR" link="libtasn1-libtasn1.html#ASN1-ARRAY-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_ELEMENT_NOT_EMPTY" link="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-EMPTY:CAPS"/>
+    <keyword type="macro" name="ASN1_TIME_ENCODING_ERROR" link="libtasn1-libtasn1.html#ASN1-TIME-ENCODING-ERROR:CAPS"/>
+    <keyword type="macro" name="ASN1_RECURSION" link="libtasn1-libtasn1.html#ASN1-RECURSION:CAPS"/>
+    <keyword type="macro" name="ASN1_PRINT_NAME" link="libtasn1-libtasn1.html#ASN1-PRINT-NAME:CAPS"/>
+    <keyword type="macro" name="ASN1_PRINT_NAME_TYPE" link="libtasn1-libtasn1.html#ASN1-PRINT-NAME-TYPE:CAPS"/>
+    <keyword type="macro" name="ASN1_PRINT_NAME_TYPE_VALUE" link="libtasn1-libtasn1.html#ASN1-PRINT-NAME-TYPE-VALUE:CAPS"/>
+    <keyword type="macro" name="ASN1_PRINT_ALL" link="libtasn1-libtasn1.html#ASN1-PRINT-ALL:CAPS"/>
+    <keyword type="macro" name="ASN1_CLASS_UNIVERSAL" link="libtasn1-libtasn1.html#ASN1-CLASS-UNIVERSAL:CAPS"/>
+    <keyword type="macro" name="ASN1_CLASS_APPLICATION" link="libtasn1-libtasn1.html#ASN1-CLASS-APPLICATION:CAPS"/>
+    <keyword type="macro" name="ASN1_CLASS_CONTEXT_SPECIFIC" link="libtasn1-libtasn1.html#ASN1-CLASS-CONTEXT-SPECIFIC:CAPS"/>
+    <keyword type="macro" name="ASN1_CLASS_PRIVATE" link="libtasn1-libtasn1.html#ASN1-CLASS-PRIVATE:CAPS"/>
+    <keyword type="macro" name="ASN1_CLASS_STRUCTURED" link="libtasn1-libtasn1.html#ASN1-CLASS-STRUCTURED:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_BOOLEAN" link="libtasn1-libtasn1.html#ASN1-TAG-BOOLEAN:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_INTEGER" link="libtasn1-libtasn1.html#ASN1-TAG-INTEGER:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_SEQUENCE" link="libtasn1-libtasn1.html#ASN1-TAG-SEQUENCE:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_SET" link="libtasn1-libtasn1.html#ASN1-TAG-SET:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_OCTET_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-OCTET-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_BIT_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-BIT-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_UTCTime" link="libtasn1-libtasn1.html#ASN1-TAG-UTCTime"/>
+    <keyword type="macro" name="ASN1_TAG_GENERALIZEDTime" link="libtasn1-libtasn1.html#ASN1-TAG-GENERALIZEDTime"/>
+    <keyword type="macro" name="ASN1_TAG_OBJECT_ID" link="libtasn1-libtasn1.html#ASN1-TAG-OBJECT-ID:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_ENUMERATED" link="libtasn1-libtasn1.html#ASN1-TAG-ENUMERATED:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_NULL" link="libtasn1-libtasn1.html#ASN1-TAG-NULL:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_GENERALSTRING" link="libtasn1-libtasn1.html#ASN1-TAG-GENERALSTRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_NUMERIC_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-NUMERIC-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_IA5_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-IA5-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_TELETEX_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-TELETEX-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_PRINTABLE_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-PRINTABLE-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_UNIVERSAL_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-UNIVERSAL-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_BMP_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-BMP-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_UTF8_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-UTF8-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_TAG_VISIBLE_STRING" link="libtasn1-libtasn1.html#ASN1-TAG-VISIBLE-STRING:CAPS"/>
+    <keyword type="typedef" name="asn1_node_st" link="libtasn1-libtasn1.html#asn1-node-st"/>
+    <keyword type="typedef" name="asn1_node" link="libtasn1-libtasn1.html#asn1-node"/>
+    <keyword type="typedef" name="asn1_node_const" link="libtasn1-libtasn1.html#asn1-node-const"/>
+    <keyword type="macro" name="ASN1_MAX_NAME_SIZE" link="libtasn1-libtasn1.html#ASN1-MAX-NAME-SIZE:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_INVALID" link="libtasn1-libtasn1.html#ASN1-ETYPE-INVALID:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_CONSTANT" link="libtasn1-libtasn1.html#ASN1-ETYPE-CONSTANT:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_IDENTIFIER" link="libtasn1-libtasn1.html#ASN1-ETYPE-IDENTIFIER:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_INTEGER" link="libtasn1-libtasn1.html#ASN1-ETYPE-INTEGER:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_BOOLEAN" link="libtasn1-libtasn1.html#ASN1-ETYPE-BOOLEAN:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_SEQUENCE" link="libtasn1-libtasn1.html#ASN1-ETYPE-SEQUENCE:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_BIT_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-BIT-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_OCTET_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-OCTET-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_TAG" link="libtasn1-libtasn1.html#ASN1-ETYPE-TAG:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_DEFAULT" link="libtasn1-libtasn1.html#ASN1-ETYPE-DEFAULT:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_SIZE" link="libtasn1-libtasn1.html#ASN1-ETYPE-SIZE:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_SEQUENCE_OF" link="libtasn1-libtasn1.html#ASN1-ETYPE-SEQUENCE-OF:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_OBJECT_ID" link="libtasn1-libtasn1.html#ASN1-ETYPE-OBJECT-ID:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_ANY" link="libtasn1-libtasn1.html#ASN1-ETYPE-ANY:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_SET" link="libtasn1-libtasn1.html#ASN1-ETYPE-SET:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_SET_OF" link="libtasn1-libtasn1.html#ASN1-ETYPE-SET-OF:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_DEFINITIONS" link="libtasn1-libtasn1.html#ASN1-ETYPE-DEFINITIONS:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_CHOICE" link="libtasn1-libtasn1.html#ASN1-ETYPE-CHOICE:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_IMPORTS" link="libtasn1-libtasn1.html#ASN1-ETYPE-IMPORTS:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_NULL" link="libtasn1-libtasn1.html#ASN1-ETYPE-NULL:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_ENUMERATED" link="libtasn1-libtasn1.html#ASN1-ETYPE-ENUMERATED:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_GENERALSTRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-GENERALSTRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_NUMERIC_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-NUMERIC-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_IA5_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-IA5-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_TELETEX_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-TELETEX-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_PRINTABLE_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-PRINTABLE-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_UNIVERSAL_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-UNIVERSAL-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_BMP_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-BMP-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_UTF8_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-UTF8-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_VISIBLE_STRING" link="libtasn1-libtasn1.html#ASN1-ETYPE-VISIBLE-STRING:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_UTC_TIME" link="libtasn1-libtasn1.html#ASN1-ETYPE-UTC-TIME:CAPS"/>
+    <keyword type="macro" name="ASN1_ETYPE_GENERALIZED_TIME" link="libtasn1-libtasn1.html#ASN1-ETYPE-GENERALIZED-TIME:CAPS"/>
+    <keyword type="macro" name="ASN1_DELETE_FLAG_ZEROIZE" link="libtasn1-libtasn1.html#ASN1-DELETE-FLAG-ZEROIZE:CAPS"/>
+    <keyword type="macro" name="ASN1_DECODE_FLAG_ALLOW_PADDING" link="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-ALLOW-PADDING:CAPS"/>
+    <keyword type="macro" name="ASN1_DECODE_FLAG_STRICT_DER" link="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-STRICT-DER:CAPS"/>
+    <keyword type="macro" name="ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME" link="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-ALLOW-INCORRECT-TIME:CAPS"/>
+    <keyword type="struct" name="struct asn1_data_node_st" link="libtasn1-libtasn1.html#asn1-data-node-st"/>
+    <keyword type="macro" name="ASN1_MAX_ERROR_DESCRIPTION_SIZE" link="libtasn1-libtasn1.html#ASN1-MAX-ERROR-DESCRIPTION-SIZE:CAPS"/>
+    <keyword type="macro" name="ASN1_MAX_TAG_SIZE" link="libtasn1-libtasn1.html#ASN1-MAX-TAG-SIZE:CAPS"/>
+    <keyword type="macro" name="ASN1_MAX_LENGTH_SIZE" link="libtasn1-libtasn1.html#ASN1-MAX-LENGTH-SIZE:CAPS"/>
+    <keyword type="macro" name="ASN1_MAX_TL_SIZE" link="libtasn1-libtasn1.html#ASN1-MAX-TL-SIZE:CAPS"/>
+    <keyword type="typedef" name="_ASN1_GCC_ATTR_DEPRECATED" link="libtasn1-libtasn1.html#ASN1-GCC-ATTR-DEPRECATED:CAPS" deprecated=""/>
+    <keyword type="macro" name="node_asn_struct" link="libtasn1-libtasn1.html#node-asn-struct" deprecated="3.0: Use #asn1_node instead."/>
+    <keyword type="macro" name="node_asn" link="libtasn1-libtasn1.html#node-asn" deprecated="3.0: Use #asn1_node instead."/>
+    <keyword type="macro" name="ASN1_TYPE" link="libtasn1-libtasn1.html#ASN1-TYPE:CAPS" deprecated="3.0: Use #asn1_node instead."/>
+    <keyword type="macro" name="ASN1_TYPE_EMPTY" link="libtasn1-libtasn1.html#ASN1-TYPE-EMPTY:CAPS" deprecated="3.0: Use NULL instead."/>
+    <keyword type="macro" name="static_struct_asn" link="libtasn1-libtasn1.html#static-struct-asn" deprecated="3.0: Use #asn1_static_node instead."/>
+    <keyword type="macro" name="ASN1_ARRAY_TYPE" link="libtasn1-libtasn1.html#ASN1-ARRAY-TYPE:CAPS" deprecated="3.0: Use #asn1_static_node instead."/>
+    <keyword type="macro" name="asn1_static_node_t" link="libtasn1-libtasn1.html#asn1-static-node-t" deprecated="3.0: Use #asn1_static_node instead."/>
+    <keyword type="macro" name="node_data_struct" link="libtasn1-libtasn1.html#node-data-struct" deprecated="3.0: Use #asn1_data_node_st instead."/>
+    <keyword type="macro" name="ASN1_DATA_NODE" link="libtasn1-libtasn1.html#ASN1-DATA-NODE:CAPS" deprecated="3.0: Use #asn1_data_node_st instead."/>
+    <keyword type="member" name="asn1-data-node-st.name" link="libtasn1-libtasn1.html#asn1-data-node-st.name"/>
+    <keyword type="member" name="asn1-data-node-st.value" link="libtasn1-libtasn1.html#asn1-data-node-st.value"/>
+    <keyword type="member" name="asn1-data-node-st.value-len" link="libtasn1-libtasn1.html#asn1-data-node-st.value-len"/>
+    <keyword type="member" name="asn1-data-node-st.type" link="libtasn1-libtasn1.html#asn1-data-node-st.type"/>
+  </functions>
+</book>

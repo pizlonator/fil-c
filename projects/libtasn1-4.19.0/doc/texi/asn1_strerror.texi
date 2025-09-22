@@ -1,0 +1,15 @@
+@subheading asn1_strerror
+@anchor{asn1_strerror}
+@deftypefun {const char *} {asn1_strerror} (int @var{error})
+@var{error}: is an error returned by a libtasn1 function.
+
+Returns a string with a description of an error.  This function is
+similar to strerror.  The only difference is that it accepts an
+error (number) returned by a libtasn1 function.
+
+@strong{Returns:} Pointer to static zero-terminated string describing error
+code.
+
+@strong{Since:} 1.6
+@end deftypefun
+

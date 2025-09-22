@@ -1,0 +1,25 @@
+If you want to contribute (implement something from the current list, or
+anything), contact the developer's mailing list ...,
+in order to avoid having people working on the same thing.
+
+Current list:
++ Audit the code
+* Avoid the usage of any global state in array2tree or parser2tree
+  functions.
+* Allow extracting the time in a reasonable format (e.g. time_t)
+* C structure generation instead of a single array
+* CHOICE in CHOICE (e.g., RDN in byName in ResponderID in OCSP) cannot
+  be read directly. Also the OCTET string (ByKey) in the same choice
+  is not encoded properly.
+- Add the checking of default value (e.g. 'INTEGER DEFAULT v1')
+- Check _asn1_objectid_der, crashes on "0" input, gives incorrect encoding?
+
+(+) Means high priority
+(*) Means medium priority
+(-) Means low priority (ie. nobody is interested to develop that)
+
+----------------------------------------------------------------------
+Copyright (C) 2002-2022 Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

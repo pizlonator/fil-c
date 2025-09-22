@@ -1,0 +1,20 @@
+@subheading asn1_array2tree
+@anchor{asn1_array2tree}
+@deftypefun {int} {asn1_array2tree} (const asn1_static_node * @var{array}, asn1_node * @var{definitions}, char * @var{errorDescription})
+@var{array}: specify the array that contains ASN.1 declarations
+
+@var{definitions}: return the pointer to the structure created by
+*ARRAY ASN.1 declarations
+
+@var{errorDescription}: return the error description.
+
+Creates the structures needed to manage the ASN.1 definitions.
+ @code{array} is a vector created by @code{asn1_parser2array()} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if structure was created correctly,
+@code{ASN1_ELEMENT_NOT_EMPTY}  if * @code{definitions} not NULL,
+@code{ASN1_IDENTIFIER_NOT_FOUND}  if in the file there is an identifier
+that is not defined (see  @code{errorDescription} for more information),
+@code{ASN1_ARRAY_ERROR}  if the array pointed by  @code{array} is wrong.
+@end deftypefun
+

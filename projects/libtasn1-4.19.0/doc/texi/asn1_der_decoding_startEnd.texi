@@ -1,0 +1,35 @@
+@subheading asn1_der_decoding_startEnd
+@anchor{asn1_der_decoding_startEnd}
+@deftypefun {int} {asn1_der_decoding_startEnd} (asn1_node @var{element}, const void * @var{ider}, int @var{ider_len}, const char * @var{name_element}, int * @var{start}, int * @var{end})
+@var{element}: pointer to an ASN1 element
+
+@var{ider}: vector that contains the DER encoding.
+
+@var{ider_len}: number of bytes of * @code{ider} :  @code{ider} [0].. @code{ider} [len-1]
+
+@var{name_element}: an element of NAME structure.
+
+@var{start}: the position of the first byte of NAME_ELEMENT decoding
+( @code{ider} [*start])
+
+@var{end}: the position of the last byte of NAME_ELEMENT decoding
+( @code{ider} [*end])
+
+Find the start and end point of an element in a DER encoding
+string. I mean that if you have a der encoding and you have already
+used the function @code{asn1_der_decoding()}  to fill a structure, it may
+happen that you want to find the piece of string concerning an
+element of the structure.
+
+One example is the sequence "tbsCertificate" inside an X509
+certificate.
+
+Note that since libtasn1 3.7 the  @code{ider} and  @code{ider_len} parameters
+can be omitted, if the element is already decoded using @code{asn1_der_decoding()} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if DER encoding OK, @code{ASN1_ELEMENT_NOT_FOUND} 
+if ELEMENT is @code{asn1_node}  EMPTY or  @code{name_element} is not a valid
+element, @code{ASN1_TAG_ERROR}  or @code{ASN1_DER_ERROR}  if the der encoding
+doesn't match the structure ELEMENT.
+@end deftypefun
+

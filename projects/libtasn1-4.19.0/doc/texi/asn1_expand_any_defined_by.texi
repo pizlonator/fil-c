@@ -1,0 +1,19 @@
+@subheading asn1_expand_any_defined_by
+@anchor{asn1_expand_any_defined_by}
+@deftypefun {int} {asn1_expand_any_defined_by} (asn1_node_const @var{definitions}, asn1_node * @var{element})
+@var{definitions}: ASN1 definitions
+
+@var{element}: pointer to an ASN1 structure
+
+Expands every "ANY DEFINED BY" element of a structure created from
+a DER decoding process (asn1_der_decoding function). The element
+ANY must be defined by an OBJECT IDENTIFIER. The type used to
+expand the element ANY is the first one following the definition of
+the actual value of the OBJECT IDENTIFIER.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if Substitution OK, @code{ASN1_ERROR_TYPE_ANY}  if
+some "ANY DEFINED BY" element couldn't be expanded due to a
+problem in OBJECT_ID -> TYPE association, or other error codes
+depending on DER decoding.
+@end deftypefun
+

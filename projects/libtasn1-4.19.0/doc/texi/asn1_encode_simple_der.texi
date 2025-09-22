@@ -1,0 +1,23 @@
+@subheading asn1_encode_simple_der
+@anchor{asn1_encode_simple_der}
+@deftypefun {int} {asn1_encode_simple_der} (unsigned int @var{etype}, const unsigned char * @var{str}, unsigned int @var{str_len}, unsigned char * @var{tl}, unsigned int * @var{tl_len})
+@var{etype}: The type of the string to be encoded (ASN1_ETYPE_)
+
+@var{str}: the string data.
+
+@var{str_len}: the string length
+
+@var{tl}: the encoded tag and length
+
+@var{tl_len}: the bytes of the  @code{tl} field
+
+Creates the DER encoding for various simple ASN.1 types like strings etc.
+It stores the tag and length in  @code{tl} , which should have space for at least
+@code{ASN1_MAX_TL_SIZE}  bytes. Initially  @code{tl_len} should contain the size of  @code{tl} .
+
+The complete DER encoding should consist of the value in  @code{tl} appended
+with the provided  @code{str} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful or an error value.
+@end deftypefun
+

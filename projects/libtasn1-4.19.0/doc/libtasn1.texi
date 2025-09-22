@@ -1,0 +1,482 @@
+\input texinfo   @c -*-texinfo-*-
+@comment %**start of header
+@setfilename libtasn1.info
+@include version.texi
+@settitle GNU Libtasn1 @value{VERSION}
+
+@c Unify some of the indices.
+@syncodeindex tp fn
+@syncodeindex pg fn
+
+@comment %**end of header
+@copying
+This manual is for GNU Libtasn1
+(version @value{VERSION}, @value{UPDATED}),
+which is a library for Abstract Syntax Notation One (ASN.1) and
+Distinguished Encoding Rules (DER) manipulation.
+
+Copyright @copyright{} 2001--2022 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled ``GNU Free
+Documentation License''.
+@end quotation
+@end copying
+
+@dircategory Software libraries
+@direntry
+* libtasn1: (libtasn1). Library for Abstract Syntax Notation One (ASN.1).
+@end direntry
+
+@titlepage
+@title Libtasn1
+@subtitle Abstract Syntax Notation One (ASN.1) library for the GNU system
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Fabio Fiorina
+@author Simon Josefsson
+@author Nikos Mavrogiannopoulos (@email{help-libtasn1@@gnu.org})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Libtasn1
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::
+* ASN.1 structure handling::
+* Utilities::
+* Function reference::
+* Copying Information::
+
+Indices
+
+* Concept Index::               Index of concepts and programs.
+* Function and Data Index::     Index of functions, variables and data types.
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+This document describes the Libtasn1 library that provides
+Abstract Syntax Notation One (ASN.1, as specified by the X.680 ITU-T
+recommendation) parsing and structures management,
+and Distinguished Encoding Rules (DER, as per X.690) encoding and
+decoding functions.
+
+The main features of this library are:
+
+@itemize @bullet
+
+@item On-line ASN.1 structure management that doesn't require any
+C code file generation.
+
+@item Off-line ASN.1 structure management with C code file generation
+containing an array.
+
+@item Distinguished Encoding Rules (DER) encoding support.
+
+@item No limits for INTEGER and ENUMERATED values.
+
+@item It's Free Software.
+Anybody can use, modify, and redistribute the library under the terms
+of the GNU Lesser General Public License version 2.1 or later.  The
+command line tools, self-tests and build infrastructure are licensed
+under the GNU General Public License version 3.0 or later.
+
+@item Thread-safety.
+@cindex threads
+No global variables are used and multiple library handles and session
+handles may be used in parallel.
+
+@item Portability.
+@cindex Porting
+The code should work on all Unix like operating systems, and Windows.
+The library itself should be portable to any C89 system, not even
+POSIX is required.
+@end itemize
+
+@node ASN.1 structure handling
+@chapter ASN.1 structure handling
+
+@menu
+* ASN.1 syntax::
+* Naming::
+* Simple parsing::
+* Library Notes::
+* Future developments::
+@end menu
+
+@node ASN.1 syntax
+@section ASN.1 syntax
+
+@cindex ASN.1 schema
+
+The parser is case sensitive.  The comments begin with @code{--} and
+end either with another @code{--}, or at the end of the respective
+line, whichever comes first.  The C-style @code{/*}, @code{*/}
+comments are not supported.
+
+For an example of the syntax, check the @file{pkix.asn} file
+distributed with the library.
+
+ASN.1 definitions must follow the syntax below:
+
+@verbatim
+      definitions_name {<object definition>}
+
+      DEFINITIONS <EXPLICIT or IMPLICIT> TAGS ::=
+
+      BEGIN
+
+      <type and constants definitions>
+
+      END
+@end verbatim
+
+The @code{::=} token must be separate from other elements, so the
+following declaration is invalid:
+
+@example
+   -- INCORRECT
+   Version ::=INTEGER
+@end example
+
+The correct form is:
+
+@example
+   Version ::= INTEGER
+@end example
+
+Here is the list of types that the parser can manage:
+
+@cindex Supported ASN.1 types, list of
+
+@itemize @bullet
+
+@item @code{INTEGER};
+@item @code{ENUMERATED};
+@item @code{BOOLEAN};
+@item @code{OBJECT IDENTIFIER};
+@item @code{NULL};
+@item @code{BIT STRING};
+@item @code{OCTET STRING};
+@item @code{UTCTime};
+@item @code{GeneralizedTime};
+@item @code{GeneralString};
+@item @code{NumericString};
+@item @code{IA5String};
+@item @code{TeletexString};
+@item @code{PrintableString};
+@item @code{UniversalString};
+@item @code{BMPString};
+@item @code{UTF8String};
+@item @code{VisibleString};
+@item @code{SEQUENCE};
+@item @code{SEQUENCE OF};
+@item @code{SET};
+@item @code{SET OF};
+@item @code{CHOICE};
+@item @code{ANY};
+@item @code{ANY DEFINED BY}.
+
+@end itemize
+
+This version doesn't handle the @code{REAL} type.  It doesn't support
+the @code{AUTOMATIC TAGS} option, and the @code{EXPORT} and
+@code{IMPORT} sections, either.
+
+The @code{SIZE} constraints are allowed, but no check is done on them.
+
+@node Naming
+@section Naming
+
+Consider this definition:
+
+@verbatim
+      Example { 1 2 3 4 }
+
+      DEFINITIONS EXPLICIT TAGS ::=
+
+      BEGIN
+
+      Group ::= SEQUENCE {
+         id   OBJECT IDENTIFIER,
+         value  Value
+      }
+
+      Value ::= SEQUENCE {
+         value1  INTEGER,
+         value2  BOOLEAN
+      }
+
+      END
+@end verbatim
+
+The notation to access the @samp{Group} type of the @samp{Example}
+definition above is @samp{Example.Group} (as a NUL-terminated string.)
+Such strings are used in the functions described below.
+
+Others examples:
+
+@itemize @bullet
+
+@item field @samp{id} of the @samp{Group} type: @samp{Example.Group.id};
+
+@item field @samp{value1} of the @samp{value} field of the @samp{Group}
+type: @samp{Example.Group.value.value1}.
+
+@end itemize
+
+Elements of structured types unnamed by the respective definition
+receive the names @code{?1}, @code{?2}, and so on.
+
+The @code{?LAST} name indicates the last element of a @code{SET OF} or
+@code{SEQUENCE OF}.
+
+@node Simple parsing
+@section Simple parsing
+
+For simple types like @code{OCTET STRING} the simple parsing functions listed
+below may be used instead.
+
+@itemize
+@item @ref{asn1_decode_simple_der}
+@item @ref{asn1_encode_simple_der}
+@end itemize
+
+@node Library Notes
+@section Library Notes
+
+@cindex Header file libtasn1.h
+
+The header file of this library is @file{libtasn1.h}.
+
+@cindex Main type asn1_node
+
+The main type used in it is @code{asn1_node}, and it's used to store
+the ASN.1 definitions and structures (instances).
+
+The @code{NULL} constant can be used for the variable
+initialization.  For example:
+
+@example
+ asn1_node definitions = NULL;
+@end example
+
+Some functions require an @code{errorDescription} argument of type
+@code{char *}, pointing to a pre-allocated buffer of at least
+@code{ASN1_MAX_ERROR_DESCRIPTION_SIZE} bytes size (e.g., as in
+@samp{char description[ASN1_MAX_ERROR_DESCRIPTION_SIZE];}).
+
+@code{ASN1_MAX_NAME_SIZE} is the maximum number of characters allowed
+for an ASN.1 identifier.
+
+@node Future developments
+@section Future developments
+@cindex Future developments
+
+@itemize @bullet
+
+@item Add functions for a C code file generation containing equivalent
+data structures (not a single array like now).
+
+@item The @code{REAL} type.
+
+@end itemize
+
+@node Utilities
+@chapter Utilities
+
+@menu
+* Invoking asn1Parser::
+* Invoking asn1Coding::
+* Invoking asn1Decoding::
+@end menu
+
+@node Invoking asn1Parser
+@section Invoking asn1Parser
+@cindex asn1Parser program
+
+@command{asn1Parser} reads a single file with ASN.1 definitions and
+generates a
+file with an array to use with libtasn1 functions.
+
+@verbatiminclude asn1Parser-help.texi
+
+@node Invoking asn1Coding
+@section Invoking asn1Coding
+@cindex asn1Coding program
+
+@command{asn1Coding} generates a DER encoding from a file with ASN.1
+definitions and another one with assignments.
+
+The file with assignments must have this syntax:
+
+@verbatim
+InstanceName  Asn1Definition
+
+nameString  value
+
+nameString  value
+...
+@end verbatim
+
+To specify the field of a @code{CHOICE} to be used, specify its name
+as a value to the @code{CHOICE} element itself.  Use @code{''} to
+denote the root element itself.
+(as in the example below.)
+
+The output file is a binary file with the DER encoding.
+
+@verbatiminclude asn1Coding-help.texi
+
+For example, consider an ASN.1 definitions file as follows:
+
+@verbatim
+MYPKIX1 { }
+
+DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+OtherStruct := SEQUENCE {
+     x       INTEGER,
+     y       CHOICE {
+         y1 INTEGER,
+         y2 OCTET STRING },
+}
+
+Dss-Sig-Value ::= SEQUENCE {
+     r       INTEGER,
+     s       INTEGER,
+     other   OtherStruct
+     z       INTEGER OPTIONAL,
+}
+
+END
+@end verbatim
+
+And a assignments file as follows:
+
+@verbatim
+dp MYPKIX1.Dss-Sig-Value
+
+r 42
+s 47
+other.x 66
+other.y y1
+other.y.y1 15
+z (NULL)
+@end verbatim
+
+Running the command below will generate a @file{assign.out} file,
+containing the DER encoding of @code{PKIX1.Dss-Sig-Value}.
+
+@verbatim
+$ asn1Coding pkix.asn assign.asn1
+@end verbatim
+
+If the root element is of the @code{CHOICE} type, the assignment file
+may be like (using the types defined in @file{pkix.asn}):
+@verbatim
+elt PKIX1Implicit88.GeneralName
+
+''      dNSName
+dNSName example.org
+@end verbatim
+
+@node Invoking asn1Decoding
+@section Invoking asn1Decoding
+@cindex asn1Decoding program
+
+@command{asn1Decoding} generates an ASN.1 structure from a file with
+ASN.1
+definitions and a binary file with a DER encoding.
+
+@verbatiminclude asn1Decoding-help.texi
+
+For example, after generating the @file{assign.out} file from the
+example section of the @command{asn1Coding} command above, the
+following
+invocation will decode the DER data.
+
+@verbatim
+$ asn1Decoding pkix.asn assign.out PKIX1.Dss-Sig-Value
+@end verbatim
+
+@node Function reference
+@chapter Function reference
+
+@menu
+* ASN.1 schema functions::
+* ASN.1 field functions::
+* DER functions::
+* Error handling functions::
+* Auxilliary functions::
+@end menu
+
+@node ASN.1 schema functions
+@section ASN.1 schema functions
+
+@include texi/ASN1.c.texi
+
+@node ASN.1 field functions
+@section ASN.1 field functions
+
+@include texi/structure.c.texi
+@include texi/element.c.texi
+
+@node DER functions
+@section DER functions
+
+@include texi/coding.c.texi
+@include texi/decoding.c.texi
+
+@node Error handling functions
+@section Error handling functions
+
+@include texi/errors.c.texi
+
+@node Auxilliary functions
+@section Auxilliary functions
+
+@include texi/parser_aux.c.texi
+@include texi/version.c.texi
+
+@node Copying Information
+@appendix Copying Information
+
+@menu
+* GNU Free Documentation License::   License for copying this manual.
+@end menu
+
+@node GNU Free Documentation License
+@appendixsec GNU Free Documentation License
+
+@cindex FDL, GNU Free Documentation License
+
+@include fdl-1.3.texi
+
+@node Concept Index
+@unnumbered Concept Index
+
+@printindex cp
+
+@node Function and Data Index
+@unnumbered Function and Data Index
+
+@printindex fn
+
+@bye

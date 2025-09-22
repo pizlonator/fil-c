@@ -1,0 +1,22 @@
+@subheading asn1_decode_simple_ber
+@anchor{asn1_decode_simple_ber}
+@deftypefun {int} {asn1_decode_simple_ber} (unsigned int @var{etype}, const unsigned char * @var{der}, unsigned int @var{_der_len}, unsigned char ** @var{str}, unsigned int * @var{str_len}, unsigned int * @var{ber_len})
+@var{etype}: The type of the string to be encoded (ASN1_ETYPE_)
+
+@var{der}: the encoded string
+
+@var{_der_len}: the bytes of the encoded string
+
+@var{str}: a pointer to the data
+
+@var{str_len}: the length of the data
+
+@var{ber_len}: the total length occupied by BER (may be @code{NULL} )
+
+Decodes a BER encoded type. The output is an allocated value
+of the data. This decodes BER STRINGS only. Other types are
+decoded as DER.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful or an error value.
+@end deftypefun
+

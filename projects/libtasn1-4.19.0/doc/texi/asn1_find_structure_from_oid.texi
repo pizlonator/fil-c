@@ -1,0 +1,14 @@
+@subheading asn1_find_structure_from_oid
+@anchor{asn1_find_structure_from_oid}
+@deftypefun {const char *} {asn1_find_structure_from_oid} (asn1_node_const @var{definitions}, const char * @var{oidValue})
+@var{definitions}: ASN1 definitions
+
+@var{oidValue}: value of the OID to search (e.g. "1.2.3.4").
+
+Search the structure that is defined just after an OID definition.
+
+@strong{Returns:} @code{NULL}  when  @code{oidValue} not found, otherwise the pointer to a
+constant string that contains the element name defined just after
+the OID.
+@end deftypefun
+

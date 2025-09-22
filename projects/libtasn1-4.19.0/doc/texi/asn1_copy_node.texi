@@ -1,0 +1,17 @@
+@subheading asn1_copy_node
+@anchor{asn1_copy_node}
+@deftypefun {int} {asn1_copy_node} (asn1_node @var{dst}, const char * @var{dst_name}, asn1_node_const @var{src}, const char * @var{src_name})
+@var{dst}: Destination asn1 node.
+
+@var{dst_name}: Field name in destination node.
+
+@var{src}: Source asn1 node.
+
+@var{src_name}: Field name in source node.
+
+Create a deep copy of a asn1_node variable. That
+function requires  @code{dst} to be expanded using @code{asn1_create_element()} .
+
+@strong{Returns:} Return @code{ASN1_SUCCESS}  on success.
+@end deftypefun
+

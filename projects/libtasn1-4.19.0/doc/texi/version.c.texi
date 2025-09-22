@@ -1,0 +1,16 @@
+@subheading asn1_check_version
+@anchor{asn1_check_version}
+@deftypefun {const char *} {asn1_check_version} (const char * @var{req_version})
+@var{req_version}: Required version number, or @code{NULL} .
+
+Check that the version of the library is at minimum the
+requested one and return the version string; return @code{NULL}  if the
+condition is not satisfied.  If a @code{NULL}  is passed to this function,
+no check is done, but the version string is simply returned.
+
+See @code{ASN1_VERSION}  for a suitable  @code{req_version} string.
+
+@strong{Returns:} Version string of run-time library, or @code{NULL}  if the
+run-time library does not meet the required version number.
+@end deftypefun
+

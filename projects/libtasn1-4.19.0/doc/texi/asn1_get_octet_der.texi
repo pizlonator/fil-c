@@ -1,0 +1,22 @@
+@subheading asn1_get_octet_der
+@anchor{asn1_get_octet_der}
+@deftypefun {int} {asn1_get_octet_der} (const unsigned char * @var{der}, int @var{der_len}, int * @var{ret_len}, unsigned char * @var{str}, int @var{str_size}, int * @var{str_len})
+@var{der}: DER data to decode containing the OCTET SEQUENCE.
+
+@var{der_len}: The length of the  @code{der} data to decode.
+
+@var{ret_len}: Output variable containing the encoded length of the DER data.
+
+@var{str}: Pre-allocated output buffer to put decoded OCTET SEQUENCE in.
+
+@var{str_size}: Length of pre-allocated output buffer.
+
+@var{str_len}: Output variable containing the length of the contents of the OCTET SEQUENCE.
+
+Extract an OCTET SEQUENCE from DER data. Note that this function
+expects the DER data past the tag field, i.e., the length and
+content octets.
+
+@strong{Returns:} Returns @code{ASN1_SUCCESS}  on success, or an error.
+@end deftypefun
+

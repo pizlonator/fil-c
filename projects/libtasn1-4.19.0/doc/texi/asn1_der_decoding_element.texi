@@ -1,0 +1,30 @@
+@subheading asn1_der_decoding_element
+@anchor{asn1_der_decoding_element}
+@deftypefun {int} {asn1_der_decoding_element} (asn1_node * @var{structure}, const char * @var{elementName}, const void * @var{ider}, int @var{len}, char * @var{errorDescription})
+@var{structure}: pointer to an ASN1 structure
+
+@var{elementName}: name of the element to fill
+
+@var{ider}: vector that contains the DER encoding of the whole structure.
+
+@var{len}: number of bytes of *der: der[0]..der[len-1]
+
+@var{errorDescription}: null-terminated string contains details when an
+error occurred.
+
+Fill the element named  @code{ELEMENTNAME} with values of a DER encoding
+string.  The structure must just be created with function
+@code{asn1_create_element()} .  The DER vector must contain the encoding
+string of the whole  @code{STRUCTURE} .  If an error occurs during the
+decoding procedure, the * @code{STRUCTURE} is deleted and set equal to
+@code{NULL} .
+
+This function is deprecated and may just be an alias to asn1_der_decoding
+in future versions. Use @code{asn1_der_decoding()}  instead.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if DER encoding OK, @code{ASN1_ELEMENT_NOT_FOUND} 
+if ELEMENT is @code{NULL}  or  @code{elementName} == NULL, and
+@code{ASN1_TAG_ERROR}  or @code{ASN1_DER_ERROR}  if the der encoding doesn't
+match the structure  @code{structure} (*ELEMENT deleted).
+@end deftypefun
+

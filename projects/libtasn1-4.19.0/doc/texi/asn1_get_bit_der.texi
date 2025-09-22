@@ -1,0 +1,20 @@
+@subheading asn1_get_bit_der
+@anchor{asn1_get_bit_der}
+@deftypefun {int} {asn1_get_bit_der} (const unsigned char * @var{der}, int @var{der_len}, int * @var{ret_len}, unsigned char * @var{str}, int @var{str_size}, int * @var{bit_len})
+@var{der}: DER data to decode containing the BIT SEQUENCE.
+
+@var{der_len}: Length of DER data to decode.
+
+@var{ret_len}: Output variable containing the length of the DER data.
+
+@var{str}: Pre-allocated output buffer to put decoded BIT SEQUENCE in.
+
+@var{str_size}: Length of pre-allocated output buffer.
+
+@var{bit_len}: Output variable containing the size of the BIT SEQUENCE.
+
+Extract a BIT SEQUENCE from DER data.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  on success, or an error.
+@end deftypefun
+

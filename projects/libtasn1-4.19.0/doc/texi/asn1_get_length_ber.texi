@@ -1,0 +1,19 @@
+@subheading asn1_get_length_ber
+@anchor{asn1_get_length_ber}
+@deftypefun {long} {asn1_get_length_ber} (const unsigned char * @var{ber}, int @var{ber_len}, int * @var{len})
+@var{ber}: BER data to decode.
+
+@var{ber_len}: Length of BER data to decode.
+
+@var{len}: Output variable containing the length of the BER length field.
+
+Extract a length field from BER data.  The difference to
+@code{asn1_get_length_der()}  is that this function will return a length
+even if the value has indefinite encoding.
+
+@strong{Returns:} Return the decoded length value, or negative value when
+the value was too big.
+
+@strong{Since:} 2.0
+@end deftypefun
+

@@ -1,0 +1,3742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>libtasn1: GNU Libtasn1 Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="GNU Libtasn1 Reference Manual">
+<link rel="up" href="ch01.html" title="GNU Libtasn1 API Reference Manual">
+<link rel="prev" href="ch01.html" title="GNU Libtasn1 API Reference Manual">
+<link rel="next" href="api-index-full.html" title="API Index">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libtasn1-libtasn1.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch01.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="api-index-full.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libtasn1-libtasn1"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libtasn1-libtasn1.top_of_page"></a>libtasn1</span></h2>
+<p>libtasn1 — GNU ASN.1 library</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libtasn1-libtasn1.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-parser2tree" title="asn1_parser2tree ()">asn1_parser2tree</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-parser2array" title="asn1_parser2array ()">asn1_parser2array</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-array2tree" title="asn1_array2tree ()">asn1_array2tree</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-print-structure" title="asn1_print_structure ()">asn1_print_structure</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-create-element" title="asn1_create_element ()">asn1_create_element</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-delete-structure" title="asn1_delete_structure ()">asn1_delete_structure</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-delete-structure2" title="asn1_delete_structure2 ()">asn1_delete_structure2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-delete-element" title="asn1_delete_element ()">asn1_delete_element</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-write-value" title="asn1_write_value ()">asn1_write_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-read-value" title="asn1_read_value ()">asn1_read_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-read-value-type" title="asn1_read_value_type ()">asn1_read_value_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-read-node-value" title="asn1_read_node_value ()">asn1_read_node_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-number-of-elements" title="asn1_number_of_elements ()">asn1_number_of_elements</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-der-coding" title="asn1_der_coding ()">asn1_der_coding</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding2" title="asn1_der_decoding2 ()">asn1_der_decoding2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding" title="asn1_der_decoding ()">asn1_der_decoding</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding-element" title="asn1_der_decoding_element ()">asn1_der_decoding_element</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding-startEnd" title="asn1_der_decoding_startEnd ()">asn1_der_decoding_startEnd</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-expand-any-defined-by" title="asn1_expand_any_defined_by ()">asn1_expand_any_defined_by</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-expand-octet-string" title="asn1_expand_octet_string ()">asn1_expand_octet_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-read-tag" title="asn1_read_tag ()">asn1_read_tag</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-find-structure-from-oid" title="asn1_find_structure_from_oid ()">asn1_find_structure_from_oid</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-check-version" title="asn1_check_version ()">asn1_check_version</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-perror" title="asn1_perror ()">asn1_perror</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">long</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-length-der" title="asn1_get_length_der ()">asn1_get_length_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">long</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-length-ber" title="asn1_get_length_ber ()">asn1_get_length_ber</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-length-der" title="asn1_length_der ()">asn1_length_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-decode-simple-der" title="asn1_decode_simple_der ()">asn1_decode_simple_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-decode-simple-ber" title="asn1_decode_simple_ber ()">asn1_decode_simple_ber</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-encode-simple-der" title="asn1_encode_simple_der ()">asn1_encode_simple_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="returnvalue">asn1_node</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-find-node" title="asn1_find_node ()">asn1_find_node</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-copy-node" title="asn1_copy_node ()">asn1_copy_node</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="returnvalue">asn1_node</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-dup-node" title="asn1_dup_node ()">asn1_dup_node</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-tag-der" title="asn1_get_tag_der ()">asn1_get_tag_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-octet-der" title="asn1_octet_der ()">asn1_octet_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-octet-der" title="asn1_get_octet_der ()">asn1_get_octet_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-bit-der" title="asn1_bit_der ()">asn1_bit_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-bit-der" title="asn1_get_bit_der ()">asn1_get_bit_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-object-id-der" title="asn1_get_object_id_der ()">asn1_get_object_id_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libtasn1-libtasn1.html#asn1-object-id-der" title="asn1_object_id_der ()">asn1_object_id_der</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libtasn1-libtasn1.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-API:CAPS" title="ASN1_API">ASN1_API</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VERSION:CAPS" title="ASN1_VERSION">ASN1_VERSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VERSION-MAJOR:CAPS" title="ASN1_VERSION_MAJOR">ASN1_VERSION_MAJOR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VERSION-MINOR:CAPS" title="ASN1_VERSION_MINOR">ASN1_VERSION_MINOR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VERSION-PATCH:CAPS" title="ASN1_VERSION_PATCH">ASN1_VERSION_PATCH</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VERSION-NUMBER:CAPS" title="ASN1_VERSION_NUMBER">ASN1_VERSION_NUMBER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS">ASN1_SUCCESS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-FILE-NOT-FOUND:CAPS" title="ASN1_FILE_NOT_FOUND">ASN1_FILE_NOT_FOUND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND">ASN1_ELEMENT_NOT_FOUND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-IDENTIFIER-NOT-FOUND:CAPS" title="ASN1_IDENTIFIER_NOT_FOUND">ASN1_IDENTIFIER_NOT_FOUND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DER-ERROR:CAPS" title="ASN1_DER_ERROR">ASN1_DER_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-FOUND:CAPS" title="ASN1_VALUE_NOT_FOUND">ASN1_VALUE_NOT_FOUND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-GENERIC-ERROR:CAPS" title="ASN1_GENERIC_ERROR">ASN1_GENERIC_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-VALID:CAPS" title="ASN1_VALUE_NOT_VALID">ASN1_VALUE_NOT_VALID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-ERROR:CAPS" title="ASN1_TAG_ERROR">ASN1_TAG_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-IMPLICIT:CAPS" title="ASN1_TAG_IMPLICIT">ASN1_TAG_IMPLICIT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ERROR-TYPE-ANY:CAPS" title="ASN1_ERROR_TYPE_ANY">ASN1_ERROR_TYPE_ANY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-SYNTAX-ERROR:CAPS" title="ASN1_SYNTAX_ERROR">ASN1_SYNTAX_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MEM-ERROR:CAPS" title="ASN1_MEM_ERROR">ASN1_MEM_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MEM-ALLOC-ERROR:CAPS" title="ASN1_MEM_ALLOC_ERROR">ASN1_MEM_ALLOC_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DER-OVERFLOW:CAPS" title="ASN1_DER_OVERFLOW">ASN1_DER_OVERFLOW</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-NAME-TOO-LONG:CAPS" title="ASN1_NAME_TOO_LONG">ASN1_NAME_TOO_LONG</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ARRAY-ERROR:CAPS" title="ASN1_ARRAY_ERROR">ASN1_ARRAY_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-EMPTY:CAPS" title="ASN1_ELEMENT_NOT_EMPTY">ASN1_ELEMENT_NOT_EMPTY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TIME-ENCODING-ERROR:CAPS" title="ASN1_TIME_ENCODING_ERROR">ASN1_TIME_ENCODING_ERROR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-RECURSION:CAPS" title="ASN1_RECURSION">ASN1_RECURSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-NAME:CAPS" title="ASN1_PRINT_NAME">ASN1_PRINT_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-NAME-TYPE:CAPS" title="ASN1_PRINT_NAME_TYPE">ASN1_PRINT_NAME_TYPE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-NAME-TYPE-VALUE:CAPS" title="ASN1_PRINT_NAME_TYPE_VALUE">ASN1_PRINT_NAME_TYPE_VALUE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-ALL:CAPS" title="ASN1_PRINT_ALL">ASN1_PRINT_ALL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-UNIVERSAL:CAPS" title="ASN1_CLASS_UNIVERSAL">ASN1_CLASS_UNIVERSAL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-APPLICATION:CAPS" title="ASN1_CLASS_APPLICATION">ASN1_CLASS_APPLICATION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-CONTEXT-SPECIFIC:CAPS" title="ASN1_CLASS_CONTEXT_SPECIFIC">ASN1_CLASS_CONTEXT_SPECIFIC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-PRIVATE:CAPS" title="ASN1_CLASS_PRIVATE">ASN1_CLASS_PRIVATE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-STRUCTURED:CAPS" title="ASN1_CLASS_STRUCTURED">ASN1_CLASS_STRUCTURED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-BOOLEAN:CAPS" title="ASN1_TAG_BOOLEAN">ASN1_TAG_BOOLEAN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-INTEGER:CAPS" title="ASN1_TAG_INTEGER">ASN1_TAG_INTEGER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-SEQUENCE:CAPS" title="ASN1_TAG_SEQUENCE">ASN1_TAG_SEQUENCE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-SET:CAPS" title="ASN1_TAG_SET">ASN1_TAG_SET</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-OCTET-STRING:CAPS" title="ASN1_TAG_OCTET_STRING">ASN1_TAG_OCTET_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-BIT-STRING:CAPS" title="ASN1_TAG_BIT_STRING">ASN1_TAG_BIT_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-UTCTime" title="ASN1_TAG_UTCTime">ASN1_TAG_UTCTime</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-GENERALIZEDTime" title="ASN1_TAG_GENERALIZEDTime">ASN1_TAG_GENERALIZEDTime</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-OBJECT-ID:CAPS" title="ASN1_TAG_OBJECT_ID">ASN1_TAG_OBJECT_ID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-ENUMERATED:CAPS" title="ASN1_TAG_ENUMERATED">ASN1_TAG_ENUMERATED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-NULL:CAPS" title="ASN1_TAG_NULL">ASN1_TAG_NULL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-GENERALSTRING:CAPS" title="ASN1_TAG_GENERALSTRING">ASN1_TAG_GENERALSTRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-NUMERIC-STRING:CAPS" title="ASN1_TAG_NUMERIC_STRING">ASN1_TAG_NUMERIC_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-IA5-STRING:CAPS" title="ASN1_TAG_IA5_STRING">ASN1_TAG_IA5_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-TELETEX-STRING:CAPS" title="ASN1_TAG_TELETEX_STRING">ASN1_TAG_TELETEX_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-PRINTABLE-STRING:CAPS" title="ASN1_TAG_PRINTABLE_STRING">ASN1_TAG_PRINTABLE_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-UNIVERSAL-STRING:CAPS" title="ASN1_TAG_UNIVERSAL_STRING">ASN1_TAG_UNIVERSAL_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-BMP-STRING:CAPS" title="ASN1_TAG_BMP_STRING">ASN1_TAG_BMP_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-UTF8-STRING:CAPS" title="ASN1_TAG_UTF8_STRING">ASN1_TAG_UTF8_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-VISIBLE-STRING:CAPS" title="ASN1_TAG_VISIBLE_STRING">ASN1_TAG_VISIBLE_STRING</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#asn1-node-st" title="asn1_node_st">asn1_node_st</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node">asn1_node</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const">asn1_node_const</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-NAME-SIZE:CAPS" title="ASN1_MAX_NAME_SIZE">ASN1_MAX_NAME_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-INVALID:CAPS" title="ASN1_ETYPE_INVALID">ASN1_ETYPE_INVALID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-CONSTANT:CAPS" title="ASN1_ETYPE_CONSTANT">ASN1_ETYPE_CONSTANT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-IDENTIFIER:CAPS" title="ASN1_ETYPE_IDENTIFIER">ASN1_ETYPE_IDENTIFIER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-INTEGER:CAPS" title="ASN1_ETYPE_INTEGER">ASN1_ETYPE_INTEGER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-BOOLEAN:CAPS" title="ASN1_ETYPE_BOOLEAN">ASN1_ETYPE_BOOLEAN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-SEQUENCE:CAPS" title="ASN1_ETYPE_SEQUENCE">ASN1_ETYPE_SEQUENCE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-BIT-STRING:CAPS" title="ASN1_ETYPE_BIT_STRING">ASN1_ETYPE_BIT_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-OCTET-STRING:CAPS" title="ASN1_ETYPE_OCTET_STRING">ASN1_ETYPE_OCTET_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-TAG:CAPS" title="ASN1_ETYPE_TAG">ASN1_ETYPE_TAG</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-DEFAULT:CAPS" title="ASN1_ETYPE_DEFAULT">ASN1_ETYPE_DEFAULT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-SIZE:CAPS" title="ASN1_ETYPE_SIZE">ASN1_ETYPE_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-SEQUENCE-OF:CAPS" title="ASN1_ETYPE_SEQUENCE_OF">ASN1_ETYPE_SEQUENCE_OF</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-OBJECT-ID:CAPS" title="ASN1_ETYPE_OBJECT_ID">ASN1_ETYPE_OBJECT_ID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-ANY:CAPS" title="ASN1_ETYPE_ANY">ASN1_ETYPE_ANY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-SET:CAPS" title="ASN1_ETYPE_SET">ASN1_ETYPE_SET</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-SET-OF:CAPS" title="ASN1_ETYPE_SET_OF">ASN1_ETYPE_SET_OF</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-DEFINITIONS:CAPS" title="ASN1_ETYPE_DEFINITIONS">ASN1_ETYPE_DEFINITIONS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-CHOICE:CAPS" title="ASN1_ETYPE_CHOICE">ASN1_ETYPE_CHOICE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-IMPORTS:CAPS" title="ASN1_ETYPE_IMPORTS">ASN1_ETYPE_IMPORTS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-NULL:CAPS" title="ASN1_ETYPE_NULL">ASN1_ETYPE_NULL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-ENUMERATED:CAPS" title="ASN1_ETYPE_ENUMERATED">ASN1_ETYPE_ENUMERATED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-GENERALSTRING:CAPS" title="ASN1_ETYPE_GENERALSTRING">ASN1_ETYPE_GENERALSTRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-NUMERIC-STRING:CAPS" title="ASN1_ETYPE_NUMERIC_STRING">ASN1_ETYPE_NUMERIC_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-IA5-STRING:CAPS" title="ASN1_ETYPE_IA5_STRING">ASN1_ETYPE_IA5_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-TELETEX-STRING:CAPS" title="ASN1_ETYPE_TELETEX_STRING">ASN1_ETYPE_TELETEX_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-PRINTABLE-STRING:CAPS" title="ASN1_ETYPE_PRINTABLE_STRING">ASN1_ETYPE_PRINTABLE_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-UNIVERSAL-STRING:CAPS" title="ASN1_ETYPE_UNIVERSAL_STRING">ASN1_ETYPE_UNIVERSAL_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-BMP-STRING:CAPS" title="ASN1_ETYPE_BMP_STRING">ASN1_ETYPE_BMP_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-UTF8-STRING:CAPS" title="ASN1_ETYPE_UTF8_STRING">ASN1_ETYPE_UTF8_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-VISIBLE-STRING:CAPS" title="ASN1_ETYPE_VISIBLE_STRING">ASN1_ETYPE_VISIBLE_STRING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-UTC-TIME:CAPS" title="ASN1_ETYPE_UTC_TIME">ASN1_ETYPE_UTC_TIME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ETYPE-GENERALIZED-TIME:CAPS" title="ASN1_ETYPE_GENERALIZED_TIME">ASN1_ETYPE_GENERALIZED_TIME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DELETE-FLAG-ZEROIZE:CAPS" title="ASN1_DELETE_FLAG_ZEROIZE">ASN1_DELETE_FLAG_ZEROIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-ALLOW-PADDING:CAPS" title="ASN1_DECODE_FLAG_ALLOW_PADDING">ASN1_DECODE_FLAG_ALLOW_PADDING</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-STRICT-DER:CAPS" title="ASN1_DECODE_FLAG_STRICT_DER">ASN1_DECODE_FLAG_STRICT_DER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-ALLOW-INCORRECT-TIME:CAPS" title="ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME">ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#asn1-data-node-st" title="struct asn1_data_node_st">asn1_data_node_st</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-ERROR-DESCRIPTION-SIZE:CAPS" title="ASN1_MAX_ERROR_DESCRIPTION_SIZE">ASN1_MAX_ERROR_DESCRIPTION_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-TAG-SIZE:CAPS" title="ASN1_MAX_TAG_SIZE">ASN1_MAX_TAG_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-LENGTH-SIZE:CAPS" title="ASN1_MAX_LENGTH_SIZE">ASN1_MAX_LENGTH_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-TL-SIZE:CAPS" title="ASN1_MAX_TL_SIZE">ASN1_MAX_TL_SIZE</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-GCC-ATTR-DEPRECATED:CAPS" title="_ASN1_GCC_ATTR_DEPRECATED">_ASN1_GCC_ATTR_DEPRECATED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#node-asn-struct" title="node_asn_struct">node_asn_struct</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#node-asn" title="node_asn">node_asn</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TYPE:CAPS" title="ASN1_TYPE">ASN1_TYPE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-TYPE-EMPTY:CAPS" title="ASN1_TYPE_EMPTY">ASN1_TYPE_EMPTY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#static-struct-asn" title="static_struct_asn">static_struct_asn</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-ARRAY-TYPE:CAPS" title="ASN1_ARRAY_TYPE">ASN1_ARRAY_TYPE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#asn1-static-node-t" title="asn1_static_node_t">asn1_static_node_t</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#node-data-struct" title="node_data_struct">node_data_struct</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libtasn1-libtasn1.html#ASN1-DATA-NODE:CAPS" title="ASN1_DATA_NODE">ASN1_DATA_NODE</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libtasn1-libtasn1.description"></a><h2>Description</h2>
+<p>The Libtasn1 library provides Abstract Syntax Notation One (ASN.1, as
+specified by the X.680 ITU-T recommendation) parsing and structures
+management, and Distinguished Encoding Rules (DER, as per X.690)
+encoding and decoding functions.</p>
+</div>
+<div class="refsect1">
+<a name="libtasn1-libtasn1.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="asn1-parser2tree"></a><h3>asn1_parser2tree ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_parser2tree (<em class="parameter"><code>const <span class="type">char</span> *file</code></em>,
+                  <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *definitions</code></em>,
+                  <em class="parameter"><code><span class="type">char</span> *error_desc</code></em>);</pre>
+<p>Function used to start the parse algorithm.  Creates the structures
+needed to manage the definitions included in <em class="parameter"><code>file</code></em>
+ file.</p>
+<div class="refsect3">
+<a name="asn1-parser2tree.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>specify the path and the name of file that contains
+ASN.1 declarations.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>definitions</p></td>
+<td class="parameter_description"><p>return the pointer to the structure created from
+"file" ASN.1 declarations.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error_desc</p></td>
+<td class="parameter_description"><p>return the error description or an empty
+string if success.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-parser2tree.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if the file has a correct syntax and every
+identifier is known, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-EMPTY:CAPS" title="ASN1_ELEMENT_NOT_EMPTY"><code class="literal">ASN1_ELEMENT_NOT_EMPTY</code></a> if <em class="parameter"><code>definitions</code></em>
+not
+<code class="literal">NULL</code>, <a class="link" href="libtasn1-libtasn1.html#ASN1-FILE-NOT-FOUND:CAPS" title="ASN1_FILE_NOT_FOUND"><code class="literal">ASN1_FILE_NOT_FOUND</code></a> if an error occurred while
+opening <em class="parameter"><code>file</code></em>
+, <a class="link" href="libtasn1-libtasn1.html#ASN1-SYNTAX-ERROR:CAPS" title="ASN1_SYNTAX_ERROR"><code class="literal">ASN1_SYNTAX_ERROR</code></a> if the syntax is not
+correct, <a class="link" href="libtasn1-libtasn1.html#ASN1-IDENTIFIER-NOT-FOUND:CAPS" title="ASN1_IDENTIFIER_NOT_FOUND"><code class="literal">ASN1_IDENTIFIER_NOT_FOUND</code></a> if in the file there is an
+identifier that is not defined, <a class="link" href="libtasn1-libtasn1.html#ASN1-NAME-TOO-LONG:CAPS" title="ASN1_NAME_TOO_LONG"><code class="literal">ASN1_NAME_TOO_LONG</code></a> if in the
+file there is an identifier with more than <a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-NAME-SIZE:CAPS" title="ASN1_MAX_NAME_SIZE"><code class="literal">ASN1_MAX_NAME_SIZE</code></a>
+characters.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-parser2array"></a><h3>asn1_parser2array ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_parser2array (<em class="parameter"><code>const <span class="type">char</span> *inputFileName</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *outputFileName</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *vectorName</code></em>,
+                   <em class="parameter"><code><span class="type">char</span> *error_desc</code></em>);</pre>
+<p>Function that generates a C structure from an ASN1 file.  Creates a
+file containing a C vector to use to manage the definitions
+included in <em class="parameter"><code>inputFileName</code></em>
+ file. If <em class="parameter"><code>inputFileName</code></em>
+ is
+"/aa/bb/xx.yy" and <em class="parameter"><code>outputFileName</code></em>
+ is <code class="literal">NULL</code>, the file created is
+"/aa/bb/xx_asn1_tab.c".  If <em class="parameter"><code>vectorName</code></em>
+ is <code class="literal">NULL</code> the vector name
+will be "xx_asn1_tab".</p>
+<div class="refsect3">
+<a name="asn1-parser2array.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>inputFileName</p></td>
+<td class="parameter_description"><p>specify the path and the name of file that
+contains ASN.1 declarations.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>outputFileName</p></td>
+<td class="parameter_description"><p>specify the path and the name of file that will
+contain the C vector definition.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>vectorName</p></td>
+<td class="parameter_description"><p>specify the name of the C vector.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error_desc</p></td>
+<td class="parameter_description"><p>return the error description or an empty
+string if success.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-parser2array.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if the file has a correct syntax and every
+identifier is known, <a class="link" href="libtasn1-libtasn1.html#ASN1-FILE-NOT-FOUND:CAPS" title="ASN1_FILE_NOT_FOUND"><code class="literal">ASN1_FILE_NOT_FOUND</code></a> if an error occurred
+while opening <em class="parameter"><code>inputFileName</code></em>
+, <a class="link" href="libtasn1-libtasn1.html#ASN1-SYNTAX-ERROR:CAPS" title="ASN1_SYNTAX_ERROR"><code class="literal">ASN1_SYNTAX_ERROR</code></a> if the syntax is
+not correct, <a class="link" href="libtasn1-libtasn1.html#ASN1-IDENTIFIER-NOT-FOUND:CAPS" title="ASN1_IDENTIFIER_NOT_FOUND"><code class="literal">ASN1_IDENTIFIER_NOT_FOUND</code></a> if in the file there is
+an identifier that is not defined, <a class="link" href="libtasn1-libtasn1.html#ASN1-NAME-TOO-LONG:CAPS" title="ASN1_NAME_TOO_LONG"><code class="literal">ASN1_NAME_TOO_LONG</code></a> if in the
+file there is an identifier with more than <a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-NAME-SIZE:CAPS" title="ASN1_MAX_NAME_SIZE"><code class="literal">ASN1_MAX_NAME_SIZE</code></a>
+characters.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-array2tree"></a><h3>asn1_array2tree ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_array2tree (<em class="parameter"><code>const <span class="type">asn1_static_node</span> *array</code></em>,
+                 <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *definitions</code></em>,
+                 <em class="parameter"><code><span class="type">char</span> *errorDescription</code></em>);</pre>
+<p>Creates the structures needed to manage the ASN.1 definitions.
+<em class="parameter"><code>array</code></em>
+ is a vector created by <a class="link" href="libtasn1-libtasn1.html#asn1-parser2array" title="asn1_parser2array ()"><code class="function">asn1_parser2array()</code></a>.</p>
+<div class="refsect3">
+<a name="asn1-array2tree.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>array</p></td>
+<td class="parameter_description"><p>specify the array that contains ASN.1 declarations</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>definitions</p></td>
+<td class="parameter_description"><p>return the pointer to the structure created by
+*ARRAY ASN.1 declarations</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>errorDescription</p></td>
+<td class="parameter_description"><p>return the error description.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-array2tree.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if structure was created correctly,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-EMPTY:CAPS" title="ASN1_ELEMENT_NOT_EMPTY"><code class="literal">ASN1_ELEMENT_NOT_EMPTY</code></a> if *<em class="parameter"><code>definitions</code></em>
+not NULL,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-IDENTIFIER-NOT-FOUND:CAPS" title="ASN1_IDENTIFIER_NOT_FOUND"><code class="literal">ASN1_IDENTIFIER_NOT_FOUND</code></a> if in the file there is an identifier
+that is not defined (see <em class="parameter"><code>errorDescription</code></em>
+for more information),
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ARRAY-ERROR:CAPS" title="ASN1_ARRAY_ERROR"><code class="literal">ASN1_ARRAY_ERROR</code></a> if the array pointed by <em class="parameter"><code>array</code></em>
+is wrong.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-print-structure"></a><h3>asn1_print_structure ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+asn1_print_structure (<em class="parameter"><code><span class="type">FILE</span> *out</code></em>,
+                      <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> structure</code></em>,
+                      <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> mode</code></em>);</pre>
+<p>Prints on the <em class="parameter"><code>out</code></em>
+ file descriptor the structure's tree starting
+from the <em class="parameter"><code>name</code></em>
+ element inside the structure <em class="parameter"><code>structure</code></em>
+.</p>
+<div class="refsect3">
+<a name="asn1-print-structure.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>pointer to the output file (e.g. stdout).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>structure</p></td>
+<td class="parameter_description"><p>pointer to the structure that you want to visit.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>an element of the structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>mode</p></td>
+<td class="parameter_description"><p>specify how much of the structure to print, can be
+<a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-NAME:CAPS" title="ASN1_PRINT_NAME"><code class="literal">ASN1_PRINT_NAME</code></a>, <a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-NAME-TYPE:CAPS" title="ASN1_PRINT_NAME_TYPE"><code class="literal">ASN1_PRINT_NAME_TYPE</code></a>,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-NAME-TYPE-VALUE:CAPS" title="ASN1_PRINT_NAME_TYPE_VALUE"><code class="literal">ASN1_PRINT_NAME_TYPE_VALUE</code></a>, or <a class="link" href="libtasn1-libtasn1.html#ASN1-PRINT-ALL:CAPS" title="ASN1_PRINT_ALL"><code class="literal">ASN1_PRINT_ALL</code></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-create-element"></a><h3>asn1_create_element ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_create_element (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> definitions</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *source_name</code></em>,
+                     <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *element</code></em>);</pre>
+<p>Creates a structure of type <em class="parameter"><code>source_name</code></em>
+.  Example using
+ "pkix.asn":</p>
+<p>rc = asn1_create_element(cert_def, "PKIX1.Certificate", certptr);</p>
+<div class="refsect3">
+<a name="asn1-create-element.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>definitions</p></td>
+<td class="parameter_description"><p>pointer to the structure returned by "parser_asn1" function</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>source_name</p></td>
+<td class="parameter_description"><p>the name of the type of the new structure (must be
+inside p_structure).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to the structure created.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-create-element.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if creation OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if
+<em class="parameter"><code>source_name</code></em>
+is not known.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-delete-structure"></a><h3>asn1_delete_structure ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_delete_structure (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *structure</code></em>);</pre>
+<p>Deletes the structure *<em class="parameter"><code>structure</code></em>
+.  At the end, *<em class="parameter"><code>structure</code></em>
+ is set
+to NULL.</p>
+<div class="refsect3">
+<a name="asn1-delete-structure.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>structure</p></td>
+<td class="parameter_description"><p>pointer to the structure that you want to delete.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-delete-structure.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if
+*<em class="parameter"><code>structure</code></em>
+was NULL.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-delete-structure2"></a><h3>asn1_delete_structure2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_delete_structure2 (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *structure</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> flags</code></em>);</pre>
+<p>Deletes the structure *<em class="parameter"><code>structure</code></em>
+.  At the end, *<em class="parameter"><code>structure</code></em>
+ is set
+to NULL.</p>
+<div class="refsect3">
+<a name="asn1-delete-structure2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>structure</p></td>
+<td class="parameter_description"><p>pointer to the structure that you want to delete.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>additional flags (see <a class="link" href="libtasn1-libtasn1.html#ASN1-DELETE-FLAG-ZEROIZE:CAPS" title="ASN1_DELETE_FLAG_ZEROIZE"><code class="literal">ASN1_DELETE_FLAG_ZEROIZE</code></a>)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-delete-structure2.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if
+*<em class="parameter"><code>structure</code></em>
+was NULL.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-delete-element"></a><h3>asn1_delete_element ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_delete_element (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> structure</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *element_name</code></em>);</pre>
+<p>Deletes the element named *<em class="parameter"><code>element_name</code></em>
+ inside *<em class="parameter"><code>structure</code></em>
+.</p>
+<div class="refsect3">
+<a name="asn1-delete-element.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>structure</p></td>
+<td class="parameter_description"><p>pointer to the structure that contains the element you
+want to delete.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>element_name</p></td>
+<td class="parameter_description"><p>element's name you want to delete.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-delete-element.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if
+the <em class="parameter"><code>element_name</code></em>
+was not found.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-write-value"></a><h3>asn1_write_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_write_value (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> node_root</code></em>,
+                  <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                  <em class="parameter"><code>const <span class="type">void</span> *ivalue</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+<p>Set the value of one element inside a structure.</p>
+<p>If an element is OPTIONAL and you want to delete it, you must use
+the value=NULL and len=0.  Using "pkix.asn":</p>
+<p>result=asn1_write_value(cert, "tbsCertificate.issuerUniqueID",
+NULL, 0);</p>
+<p>Description for each type:</p>
+<p>INTEGER: VALUE must contain a two's complement form integer.</p>
+<p>           value[0]=0xFF ,               len=1 -&gt; integer=-1.
+           value[0]=0xFF value[1]=0xFF , len=2 -&gt; integer=-1.
+           value[0]=0x01 ,               len=1 -&gt; integer= 1.
+           value[0]=0x00 value[1]=0x01 , len=2 -&gt; integer= 1.
+           value="123"                 , len=0 -&gt; integer= 123.</p>
+<p>ENUMERATED: As INTEGER (but only with not negative numbers).</p>
+<p>BOOLEAN: VALUE must be the null terminated string "TRUE" or
+  "FALSE" and LEN != 0.</p>
+<p>           value="TRUE" , len=1 -&gt; boolean=TRUE.
+           value="FALSE" , len=1 -&gt; boolean=FALSE.</p>
+<p>OBJECT IDENTIFIER: VALUE must be a null terminated string with
+  each number separated by a dot (e.g. "1.2.3.543.1").  LEN != 0.</p>
+<p>           value="1 2 840 10040 4 3" , len=1 -&gt; OID=dsa-with-sha.</p>
+<p>UTCTime: VALUE must be a null terminated string in one of these
+  formats: "YYMMDDhhmmssZ", "YYMMDDhhmmssZ",
+  "YYMMDDhhmmss+hh'mm'", "YYMMDDhhmmss-hh'mm'",
+  "YYMMDDhhmm+hh'mm'", or "YYMMDDhhmm-hh'mm'".  LEN != 0.</p>
+<p>           value="9801011200Z" , len=1 -&gt; time=Jannuary 1st, 1998
+           at 12h 00m Greenwich Mean Time</p>
+<p>GeneralizedTime: VALUE must be in one of this format:
+  "YYYYMMDDhhmmss.sZ", "YYYYMMDDhhmmss.sZ",
+  "YYYYMMDDhhmmss.s+hh'mm'", "YYYYMMDDhhmmss.s-hh'mm'",
+  "YYYYMMDDhhmm+hh'mm'", or "YYYYMMDDhhmm-hh'mm'" where ss.s
+  indicates the seconds with any precision like "10.1" or "01.02".
+  LEN != 0</p>
+<p>           value="2001010112001.12-0700" , len=1 -&gt; time=Jannuary
+           1st, 2001 at 12h 00m 01.12s Pacific Daylight Time</p>
+<p>OCTET STRING: VALUE contains the octet string and LEN is the
+  number of octets.</p>
+<p>           value="$\backslash$x01$\backslash$x02$\backslash$x03" ,
+           len=3 -&gt; three bytes octet string</p>
+<p>GeneralString: VALUE contains the generalstring and LEN is the
+  number of octets.</p>
+<p>           value="$\backslash$x01$\backslash$x02$\backslash$x03" ,
+           len=3 -&gt; three bytes generalstring</p>
+<p>BIT STRING: VALUE contains the bit string organized by bytes and
+  LEN is the number of bits.</p>
+<p>  value="$\backslash$xCF" , len=6 -&gt; bit string="110011" (six
+  bits)</p>
+<p>CHOICE: if NAME indicates a choice type, VALUE must specify one of
+  the alternatives with a null terminated string. LEN != 0. Using
+  "pkix.asn"\:</p>
+<p>          result=asn1_write_value(cert,
+          "certificate1.tbsCertificate.subject", "rdnSequence",
+          1);</p>
+<p>ANY: VALUE indicates the der encoding of a structure.  LEN != 0.</p>
+<p>SEQUENCE OF: VALUE must be the null terminated string "NEW" and
+  LEN != 0. With this instruction another element is appended in
+  the sequence. The name of this element will be "?1" if it's the
+  first one, "?2" for the second and so on.</p>
+<p>  Using "pkix.asn"\:</p>
+<p>  result=asn1_write_value(cert,
+  "certificate1.tbsCertificate.subject.rdnSequence", "NEW", 1);</p>
+<p>SET OF: the same as SEQUENCE OF.  Using "pkix.asn":</p>
+<p>          result=asn1_write_value(cert,
+          "tbsCertificate.subject.rdnSequence.?LAST", "NEW", 1);</p>
+<div class="refsect3">
+<a name="asn1-write-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>node_root</p></td>
+<td class="parameter_description"><p>pointer to a structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name of the element inside the structure that you want to set.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ivalue</p></td>
+<td class="parameter_description"><p>vector used to specify the value to set. If len is &gt;0,
+VALUE must be a two's complement form integer.  if len=0 *VALUE
+must be a null terminated string with an integer value.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>number of bytes of *value to use to set the value:
+value[0]..value[len-1] or 0 if value is a null terminated string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-write-value.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if the value was set,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if <em class="parameter"><code>name</code></em>
+is not a valid element, and
+<a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-VALID:CAPS" title="ASN1_VALUE_NOT_VALID"><code class="literal">ASN1_VALUE_NOT_VALID</code></a> if <em class="parameter"><code>ivalue</code></em>
+has a wrong format.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-read-value"></a><h3>asn1_read_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_read_value (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> root</code></em>,
+                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *ivalue</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> *len</code></em>);</pre>
+<p>Returns the value of one element inside a structure.
+If an element is OPTIONAL and this returns
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>, it means that this element wasn't present
+in the der encoding that created the structure.  The first element
+of a SEQUENCE_OF or SET_OF is named "?1". The second one "?2" and
+so on. If the <em class="parameter"><code>root</code></em>
+ provided is a node to specific sequence element,
+then the keyword "?CURRENT" is also acceptable and indicates the
+current sequence element of this node.</p>
+<p>Note that there can be valid values with length zero. In these case
+this function will succeed and <em class="parameter"><code>len</code></em>
+ will be zero.</p>
+<p>INTEGER: VALUE will contain a two's complement form integer.</p>
+<p>           integer=-1  -&gt; value[0]=0xFF , len=1.
+           integer=1   -&gt; value[0]=0x01 , len=1.</p>
+<p>ENUMERATED: As INTEGER (but only with not negative numbers).</p>
+<p>BOOLEAN: VALUE will be the null terminated string "TRUE" or
+  "FALSE" and LEN=5 or LEN=6.</p>
+<p>OBJECT IDENTIFIER: VALUE will be a null terminated string with
+  each number separated by a dot (i.e. "1.2.3.543.1").</p>
+<p>                     LEN = strlen(VALUE)+1</p>
+<p>UTCTime: VALUE will be a null terminated string in one of these
+  formats: "YYMMDDhhmmss+hh'mm'" or "YYMMDDhhmmss-hh'mm'".
+  LEN=strlen(VALUE)+1.</p>
+<p>GeneralizedTime: VALUE will be a null terminated string in the
+  same format used to set the value.</p>
+<p>OCTET STRING: VALUE will contain the octet string and LEN will be
+  the number of octets.</p>
+<p>GeneralString: VALUE will contain the generalstring and LEN will
+  be the number of octets.</p>
+<p>BIT STRING: VALUE will contain the bit string organized by bytes
+  and LEN will be the number of bits.</p>
+<p>CHOICE: If NAME indicates a choice type, VALUE will specify the
+  alternative selected.</p>
+<p>ANY: If NAME indicates an any type, VALUE will indicate the DER
+  encoding of the structure actually used.</p>
+<div class="refsect3">
+<a name="asn1-read-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>root</p></td>
+<td class="parameter_description"><p>pointer to a structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name of the element inside a structure that you want to read.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ivalue</p></td>
+<td class="parameter_description"><p>vector that will contain the element's content, must be a
+pointer to memory cells already allocated (may be <code class="literal">NULL</code>).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>number of bytes of *value: value[0]..value[len-1]. Initialy
+holds the sizeof value.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-read-value.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if value is returned,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if <em class="parameter"><code>name</code></em>
+is not a valid element,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-FOUND:CAPS" title="ASN1_VALUE_NOT_FOUND"><code class="literal">ASN1_VALUE_NOT_FOUND</code></a> if there isn't any value for the element
+selected, and <a class="link" href="libtasn1-libtasn1.html#ASN1-MEM-ERROR:CAPS" title="ASN1_MEM_ERROR"><code class="literal">ASN1_MEM_ERROR</code></a> if The value vector isn't big enough
+to store the result, and in this case <em class="parameter"><code>len</code></em>
+will contain the number of
+bytes needed. On the occasion that the stored data are of zero-length
+this function may return <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> even if the provided <em class="parameter"><code>len</code></em>
+is zero.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-read-value-type"></a><h3>asn1_read_value_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_read_value_type (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> root</code></em>,
+                      <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                      <em class="parameter"><code><span class="type">void</span> *ivalue</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> *len</code></em>,
+                      <em class="parameter"><code>unsigned <span class="type">int</span> *etype</code></em>);</pre>
+<p>Returns the type and value of one element inside a structure.
+If an element is OPTIONAL and this returns
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>, it means that this element wasn't present
+in the der encoding that created the structure.  The first element
+of a SEQUENCE_OF or SET_OF is named "?1". The second one "?2" and
+so on. If the <em class="parameter"><code>root</code></em>
+ provided is a node to specific sequence element,
+then the keyword "?CURRENT" is also acceptable and indicates the
+current sequence element of this node.</p>
+<p>Note that there can be valid values with length zero. In these case
+this function will succeed and <em class="parameter"><code>len</code></em>
+ will be zero.</p>
+<p>INTEGER: VALUE will contain a two's complement form integer.</p>
+<p>           integer=-1  -&gt; value[0]=0xFF , len=1.
+           integer=1   -&gt; value[0]=0x01 , len=1.</p>
+<p>ENUMERATED: As INTEGER (but only with not negative numbers).</p>
+<p>BOOLEAN: VALUE will be the null terminated string "TRUE" or
+  "FALSE" and LEN=5 or LEN=6.</p>
+<p>OBJECT IDENTIFIER: VALUE will be a null terminated string with
+  each number separated by a dot (i.e. "1.2.3.543.1").</p>
+<p>                     LEN = strlen(VALUE)+1</p>
+<p>UTCTime: VALUE will be a null terminated string in one of these
+  formats: "YYMMDDhhmmss+hh'mm'" or "YYMMDDhhmmss-hh'mm'".
+  LEN=strlen(VALUE)+1.</p>
+<p>GeneralizedTime: VALUE will be a null terminated string in the
+  same format used to set the value.</p>
+<p>OCTET STRING: VALUE will contain the octet string and LEN will be
+  the number of octets.</p>
+<p>GeneralString: VALUE will contain the generalstring and LEN will
+  be the number of octets.</p>
+<p>BIT STRING: VALUE will contain the bit string organized by bytes
+  and LEN will be the number of bits.</p>
+<p>CHOICE: If NAME indicates a choice type, VALUE will specify the
+  alternative selected.</p>
+<p>ANY: If NAME indicates an any type, VALUE will indicate the DER
+  encoding of the structure actually used.</p>
+<div class="refsect3">
+<a name="asn1-read-value-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>root</p></td>
+<td class="parameter_description"><p>pointer to a structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name of the element inside a structure that you want to read.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ivalue</p></td>
+<td class="parameter_description"><p>vector that will contain the element's content, must be a
+pointer to memory cells already allocated (may be <code class="literal">NULL</code>).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>number of bytes of *value: value[0]..value[len-1]. Initialy
+holds the sizeof value.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>etype</p></td>
+<td class="parameter_description"><p>The type of the value read (ASN1_ETYPE)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-read-value-type.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if value is returned,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if <em class="parameter"><code>name</code></em>
+is not a valid element,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-FOUND:CAPS" title="ASN1_VALUE_NOT_FOUND"><code class="literal">ASN1_VALUE_NOT_FOUND</code></a> if there isn't any value for the element
+selected, and <a class="link" href="libtasn1-libtasn1.html#ASN1-MEM-ERROR:CAPS" title="ASN1_MEM_ERROR"><code class="literal">ASN1_MEM_ERROR</code></a> if The value vector isn't big enough
+to store the result, and in this case <em class="parameter"><code>len</code></em>
+will contain the number of
+bytes needed. On the occasion that the stored data are of zero-length
+this function may return <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> even if the provided <em class="parameter"><code>len</code></em>
+is zero.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-read-node-value"></a><h3>asn1_read_node_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_read_node_value (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> node</code></em>,
+                      <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-data-node-st" title="struct asn1_data_node_st"><span class="type">asn1_data_node_st</span></a> *data</code></em>);</pre>
+<p>Returns the value a data node inside a asn1_node structure.
+The data returned should be handled as constant values.</p>
+<div class="refsect3">
+<a name="asn1-read-node-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>node</p></td>
+<td class="parameter_description"><p>pointer to a node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>a point to a asn1_data_node_st</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-read-node-value.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if the node exists.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-number-of-elements"></a><h3>asn1_number_of_elements ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_number_of_elements (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> element</code></em>,
+                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> *num</code></em>);</pre>
+<p>Counts the number of elements of a sub-structure called NAME with
+names equal to "?1","?2", ...</p>
+<div class="refsect3">
+<a name="asn1-number-of-elements.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to the root of an ASN1 structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name of a sub-structure of ROOT.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>num</p></td>
+<td class="parameter_description"><p>pointer to an integer where the result will be stored</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-number-of-elements.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if
+<em class="parameter"><code>name</code></em>
+is not known, <a class="link" href="libtasn1-libtasn1.html#ASN1-GENERIC-ERROR:CAPS" title="ASN1_GENERIC_ERROR"><code class="literal">ASN1_GENERIC_ERROR</code></a> if pointer <em class="parameter"><code>num</code></em>
+is <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-der-coding"></a><h3>asn1_der_coding ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_der_coding (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> element</code></em>,
+                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *ider</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> *len</code></em>,
+                 <em class="parameter"><code><span class="type">char</span> *ErrorDescription</code></em>);</pre>
+<p>Creates the DER encoding for the NAME structure (inside *POINTER
+structure).</p>
+<div class="refsect3">
+<a name="asn1-der-coding.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 element</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name of the structure you want to encode (it must be
+inside *POINTER).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider</p></td>
+<td class="parameter_description"><p>vector that will contain the DER encoding. DER must be a
+pointer to memory cells already allocated.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>number of bytes of *<em class="parameter"><code>ider</code></em>
+: <em class="parameter"><code>ider</code></em>
+[0]..<em class="parameter"><code>ider</code></em>
+[len-1], Initialy
+holds the sizeof of der vector.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ErrorDescription</p></td>
+<td class="parameter_description"><p>return the error description or an empty
+string if success.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-der-coding.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if DER encoding OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>
+if <em class="parameter"><code>name</code></em>
+is not a valid element, <a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-FOUND:CAPS" title="ASN1_VALUE_NOT_FOUND"><code class="literal">ASN1_VALUE_NOT_FOUND</code></a> if there
+is an element without a value, <a class="link" href="libtasn1-libtasn1.html#ASN1-MEM-ERROR:CAPS" title="ASN1_MEM_ERROR"><code class="literal">ASN1_MEM_ERROR</code></a> if the <em class="parameter"><code>ider</code></em>
+vector isn't big enough and in this case <em class="parameter"><code>len</code></em>
+will contain the
+length needed.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-der-decoding2"></a><h3>asn1_der_decoding2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_der_decoding2 (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *element</code></em>,
+                    <em class="parameter"><code>const <span class="type">void</span> *ider</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> *max_ider_len</code></em>,
+                    <em class="parameter"><code>unsigned <span class="type">int</span> flags</code></em>,
+                    <em class="parameter"><code><span class="type">char</span> *errorDescription</code></em>);</pre>
+<p>Fill the structure *<em class="parameter"><code>element</code></em>
+ with values of a DER encoding string. The
+structure must just be created with function <a class="link" href="libtasn1-libtasn1.html#asn1-create-element" title="asn1_create_element ()"><code class="function">asn1_create_element()</code></a>.</p>
+<p>If <a class="link" href="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-ALLOW-PADDING:CAPS" title="ASN1_DECODE_FLAG_ALLOW_PADDING"><code class="literal">ASN1_DECODE_FLAG_ALLOW_PADDING</code></a> flag is set then the function will ignore
+padding after the decoded DER data. Upon a successful return the value of
+*<em class="parameter"><code>max_ider_len</code></em>
+ will be set to the number of bytes decoded.</p>
+<p>If <a class="link" href="libtasn1-libtasn1.html#ASN1-DECODE-FLAG-STRICT-DER:CAPS" title="ASN1_DECODE_FLAG_STRICT_DER"><code class="literal">ASN1_DECODE_FLAG_STRICT_DER</code></a> flag is set then the function will
+not decode any BER-encoded elements.</p>
+<div class="refsect3">
+<a name="asn1-der-decoding2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider</p></td>
+<td class="parameter_description"><p>vector that contains the DER encoding.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>max_ider_len</p></td>
+<td class="parameter_description"><p>pointer to an integer giving the information about the
+maximal number of bytes occupied by *<em class="parameter"><code>ider</code></em>
+. The real size of the DER
+encoding is returned through this pointer.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags controlling the behaviour of the function.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>errorDescription</p></td>
+<td class="parameter_description"><p>null-terminated string contains details when an
+error occurred.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-der-decoding2.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if DER encoding OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>
+if <em class="parameter"><code>ELEMENT</code></em>
+is <code class="literal">NULL</code>, and <a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-ERROR:CAPS" title="ASN1_TAG_ERROR"><code class="literal">ASN1_TAG_ERROR</code></a> or
+<a class="link" href="libtasn1-libtasn1.html#ASN1-DER-ERROR:CAPS" title="ASN1_DER_ERROR"><code class="literal">ASN1_DER_ERROR</code></a> if the der encoding doesn't match the structure
+name (*<em class="parameter"><code>ELEMENT</code></em>
+deleted).</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-der-decoding"></a><h3>asn1_der_decoding ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_der_decoding (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *element</code></em>,
+                   <em class="parameter"><code>const <span class="type">void</span> *ider</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> ider_len</code></em>,
+                   <em class="parameter"><code><span class="type">char</span> *errorDescription</code></em>);</pre>
+<p>Fill the structure *<em class="parameter"><code>element</code></em>
+ with values of a DER encoding
+string. The structure must just be created with function
+<a class="link" href="libtasn1-libtasn1.html#asn1-create-element" title="asn1_create_element ()"><code class="function">asn1_create_element()</code></a>.</p>
+<p>Note that the *<em class="parameter"><code>element</code></em>
+ variable is provided as a pointer for
+historical reasons.</p>
+<div class="refsect3">
+<a name="asn1-der-decoding.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider</p></td>
+<td class="parameter_description"><p>vector that contains the DER encoding.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider_len</p></td>
+<td class="parameter_description"><p>number of bytes of *<em class="parameter"><code>ider</code></em>
+: <em class="parameter"><code>ider</code></em>
+[0]..<em class="parameter"><code>ider</code></em>
+[len-1].</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>errorDescription</p></td>
+<td class="parameter_description"><p>null-terminated string contains details when an
+error occurred.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-der-decoding.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if DER encoding OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>
+if <em class="parameter"><code>ELEMENT</code></em>
+is <code class="literal">NULL</code>, and <a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-ERROR:CAPS" title="ASN1_TAG_ERROR"><code class="literal">ASN1_TAG_ERROR</code></a> or
+<a class="link" href="libtasn1-libtasn1.html#ASN1-DER-ERROR:CAPS" title="ASN1_DER_ERROR"><code class="literal">ASN1_DER_ERROR</code></a> if the der encoding doesn't match the structure
+name (*<em class="parameter"><code>ELEMENT</code></em>
+deleted).</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-der-decoding-element"></a><h3>asn1_der_decoding_element ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_der_decoding_element (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *structure</code></em>,
+                           <em class="parameter"><code>const <span class="type">char</span> *elementName</code></em>,
+                           <em class="parameter"><code>const <span class="type">void</span> *ider</code></em>,
+                           <em class="parameter"><code><span class="type">int</span> len</code></em>,
+                           <em class="parameter"><code><span class="type">char</span> *errorDescription</code></em>);</pre>
+<div class="warning"><p><code class="literal">asn1_der_decoding_element</code> is deprecated and should not be used in newly-written code.</p></div>
+<p>Fill the element named <em class="parameter"><code>ELEMENTNAME</code></em>
+ with values of a DER encoding
+string.  The structure must just be created with function
+<a class="link" href="libtasn1-libtasn1.html#asn1-create-element" title="asn1_create_element ()"><code class="function">asn1_create_element()</code></a>.  The DER vector must contain the encoding
+string of the whole <em class="parameter"><code>STRUCTURE</code></em>
+.  If an error occurs during the
+decoding procedure, the *<em class="parameter"><code>STRUCTURE</code></em>
+ is deleted and set equal to
+<code class="literal">NULL</code>.</p>
+<p>This function is deprecated and may just be an alias to asn1_der_decoding
+in future versions. Use <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding" title="asn1_der_decoding ()"><code class="function">asn1_der_decoding()</code></a> instead.</p>
+<div class="refsect3">
+<a name="asn1-der-decoding-element.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>structure</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>elementName</p></td>
+<td class="parameter_description"><p>name of the element to fill</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider</p></td>
+<td class="parameter_description"><p>vector that contains the DER encoding of the whole structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>number of bytes of *der: der[0]..der[len-1]</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>errorDescription</p></td>
+<td class="parameter_description"><p>null-terminated string contains details when an
+error occurred.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-der-decoding-element.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if DER encoding OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>
+if ELEMENT is <code class="literal">NULL</code> or <em class="parameter"><code>elementName</code></em>
+== NULL, and
+<a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-ERROR:CAPS" title="ASN1_TAG_ERROR"><code class="literal">ASN1_TAG_ERROR</code></a> or <a class="link" href="libtasn1-libtasn1.html#ASN1-DER-ERROR:CAPS" title="ASN1_DER_ERROR"><code class="literal">ASN1_DER_ERROR</code></a> if the der encoding doesn't
+match the structure <em class="parameter"><code>structure</code></em>
+(*ELEMENT deleted).</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-der-decoding-startEnd"></a><h3>asn1_der_decoding_startEnd ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_der_decoding_startEnd (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> element</code></em>,
+                            <em class="parameter"><code>const <span class="type">void</span> *ider</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> ider_len</code></em>,
+                            <em class="parameter"><code>const <span class="type">char</span> *name_element</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> *start</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> *end</code></em>);</pre>
+<p>Find the start and end point of an element in a DER encoding
+string. I mean that if you have a der encoding and you have already
+used the function <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding" title="asn1_der_decoding ()"><code class="function">asn1_der_decoding()</code></a> to fill a structure, it may
+happen that you want to find the piece of string concerning an
+element of the structure.</p>
+<p>One example is the sequence "tbsCertificate" inside an X509
+certificate.</p>
+<p>Note that since libtasn1 3.7 the <em class="parameter"><code>ider</code></em>
+ and <em class="parameter"><code>ider_len</code></em>
+ parameters
+can be omitted, if the element is already decoded using <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding" title="asn1_der_decoding ()"><code class="function">asn1_der_decoding()</code></a>.</p>
+<div class="refsect3">
+<a name="asn1-der-decoding-startEnd.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 element</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider</p></td>
+<td class="parameter_description"><p>vector that contains the DER encoding.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ider_len</p></td>
+<td class="parameter_description"><p>number of bytes of *<em class="parameter"><code>ider</code></em>
+: <em class="parameter"><code>ider</code></em>
+[0]..<em class="parameter"><code>ider</code></em>
+[len-1]</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name_element</p></td>
+<td class="parameter_description"><p>an element of NAME structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start</p></td>
+<td class="parameter_description"><p>the position of the first byte of NAME_ELEMENT decoding
+(<em class="parameter"><code>ider</code></em>
+[*start])</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>end</p></td>
+<td class="parameter_description"><p>the position of the last byte of NAME_ELEMENT decoding
+(<em class="parameter"><code>ider</code></em>
+[*end])</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-der-decoding-startEnd.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if DER encoding OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>
+if ELEMENT is <a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><code class="literal">asn1_node</code></a> EMPTY or <em class="parameter"><code>name_element</code></em>
+is not a valid
+element, <a class="link" href="libtasn1-libtasn1.html#ASN1-TAG-ERROR:CAPS" title="ASN1_TAG_ERROR"><code class="literal">ASN1_TAG_ERROR</code></a> or <a class="link" href="libtasn1-libtasn1.html#ASN1-DER-ERROR:CAPS" title="ASN1_DER_ERROR"><code class="literal">ASN1_DER_ERROR</code></a> if the der encoding
+doesn't match the structure ELEMENT.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-expand-any-defined-by"></a><h3>asn1_expand_any_defined_by ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_expand_any_defined_by (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> definitions</code></em>,
+                            <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *element</code></em>);</pre>
+<p>Expands every "ANY DEFINED BY" element of a structure created from
+a DER decoding process (asn1_der_decoding function). The element
+ANY must be defined by an OBJECT IDENTIFIER. The type used to
+expand the element ANY is the first one following the definition of
+the actual value of the OBJECT IDENTIFIER.</p>
+<div class="refsect3">
+<a name="asn1-expand-any-defined-by.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>definitions</p></td>
+<td class="parameter_description"><p>ASN1 definitions</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-expand-any-defined-by.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if Substitution OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ERROR-TYPE-ANY:CAPS" title="ASN1_ERROR_TYPE_ANY"><code class="literal">ASN1_ERROR_TYPE_ANY</code></a> if
+some "ANY DEFINED BY" element couldn't be expanded due to a
+problem in OBJECT_ID -&gt; TYPE association, or other error codes
+depending on DER decoding.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-expand-octet-string"></a><h3>asn1_expand_octet_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_expand_octet_string (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> definitions</code></em>,
+                          <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> *element</code></em>,
+                          <em class="parameter"><code>const <span class="type">char</span> *octetName</code></em>,
+                          <em class="parameter"><code>const <span class="type">char</span> *objectName</code></em>);</pre>
+<p>Expands an "OCTET STRING" element of a structure created from a DER
+decoding process (the <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding" title="asn1_der_decoding ()"><code class="function">asn1_der_decoding()</code></a> function).  The type used
+for expansion is the first one following the definition of the
+actual value of the OBJECT IDENTIFIER indicated by OBJECTNAME.</p>
+<div class="refsect3">
+<a name="asn1-expand-octet-string.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>definitions</p></td>
+<td class="parameter_description"><p>ASN1 definitions</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>element</p></td>
+<td class="parameter_description"><p>pointer to an ASN1 structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>octetName</p></td>
+<td class="parameter_description"><p>name of the OCTECT STRING field to expand.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>objectName</p></td>
+<td class="parameter_description"><p>name of the OBJECT IDENTIFIER field to use to define
+the type for expansion.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-expand-octet-string.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if substitution OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a>
+if <em class="parameter"><code>objectName</code></em>
+or <em class="parameter"><code>octetName</code></em>
+are not correct,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-VALID:CAPS" title="ASN1_VALUE_NOT_VALID"><code class="literal">ASN1_VALUE_NOT_VALID</code></a> if it wasn't possible to find the type to
+use for expansion, or other errors depending on DER decoding.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-read-tag"></a><h3>asn1_read_tag ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_read_tag (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> root</code></em>,
+               <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+               <em class="parameter"><code><span class="type">int</span> *tagValue</code></em>,
+               <em class="parameter"><code><span class="type">int</span> *classValue</code></em>);</pre>
+<p>Returns the TAG and the CLASS of one element inside a structure.
+CLASS can have one of these constants: <a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-APPLICATION:CAPS" title="ASN1_CLASS_APPLICATION"><code class="literal">ASN1_CLASS_APPLICATION</code></a>,
+<a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-UNIVERSAL:CAPS" title="ASN1_CLASS_UNIVERSAL"><code class="literal">ASN1_CLASS_UNIVERSAL</code></a>, <a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-PRIVATE:CAPS" title="ASN1_CLASS_PRIVATE"><code class="literal">ASN1_CLASS_PRIVATE</code></a> or
+<a class="link" href="libtasn1-libtasn1.html#ASN1-CLASS-CONTEXT-SPECIFIC:CAPS" title="ASN1_CLASS_CONTEXT_SPECIFIC"><code class="literal">ASN1_CLASS_CONTEXT_SPECIFIC</code></a>.</p>
+<div class="refsect3">
+<a name="asn1-read-tag.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>root</p></td>
+<td class="parameter_description"><p>pointer to a structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name of the element inside a structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tagValue</p></td>
+<td class="parameter_description"><p>variable that will contain the TAG value.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>classValue</p></td>
+<td class="parameter_description"><p>variable that will specify the TAG type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-read-tag.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful, <a class="link" href="libtasn1-libtasn1.html#ASN1-ELEMENT-NOT-FOUND:CAPS" title="ASN1_ELEMENT_NOT_FOUND"><code class="literal">ASN1_ELEMENT_NOT_FOUND</code></a> if
+<em class="parameter"><code>name</code></em>
+is not a valid element.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-find-structure-from-oid"></a><h3>asn1_find_structure_from_oid ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+asn1_find_structure_from_oid (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> definitions</code></em>,
+                              <em class="parameter"><code>const <span class="type">char</span> *oidValue</code></em>);</pre>
+<p>Search the structure that is defined just after an OID definition.</p>
+<div class="refsect3">
+<a name="asn1-find-structure-from-oid.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>definitions</p></td>
+<td class="parameter_description"><p>ASN1 definitions</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>oidValue</p></td>
+<td class="parameter_description"><p>value of the OID to search (e.g. "1.2.3.4").</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-find-structure-from-oid.returns"></a><h4>Returns</h4>
+<p> <code class="literal">NULL</code> when <em class="parameter"><code>oidValue</code></em>
+not found, otherwise the pointer to a
+constant string that contains the element name defined just after
+the OID.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-check-version"></a><h3>asn1_check_version ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+asn1_check_version (<em class="parameter"><code>const <span class="type">char</span> *req_version</code></em>);</pre>
+<p>Check that the version of the library is at minimum the
+requested one and return the version string; return <code class="literal">NULL</code> if the
+condition is not satisfied.  If a <code class="literal">NULL</code> is passed to this function,
+no check is done, but the version string is simply returned.</p>
+<p>See <a class="link" href="libtasn1-libtasn1.html#ASN1-VERSION:CAPS" title="ASN1_VERSION"><code class="literal">ASN1_VERSION</code></a> for a suitable <em class="parameter"><code>req_version</code></em>
+ string.</p>
+<div class="refsect3">
+<a name="asn1-check-version.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>req_version</p></td>
+<td class="parameter_description"><p>Required version number, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-check-version.returns"></a><h4>Returns</h4>
+<p> Version string of run-time library, or <code class="literal">NULL</code> if the
+run-time library does not meet the required version number.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-perror"></a><h3>asn1_perror ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+asn1_perror (<em class="parameter"><code><span class="type">int</span> error</code></em>);</pre>
+<p>Prints a string to stderr with a description of an error.  This
+function is like <code class="function">perror()</code>.  The only difference is that it accepts
+an error returned by a libtasn1 function.</p>
+<div class="refsect3">
+<a name="asn1-perror.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>is an error returned by a libtasn1 function.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-1-6.html#api-index-1.6">1.6</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-get-length-der"></a><h3>asn1_get_length_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">long</span>
+asn1_get_length_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> der_len</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> *len</code></em>);</pre>
+<p>Extract a length field from DER data.</p>
+<div class="refsect3">
+<a name="asn1-get-length-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>DER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>Length of DER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>Output variable containing the length of the DER length field.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-get-length-der.returns"></a><h4>Returns</h4>
+<p> Return the decoded length value, or -1 on indefinite
+length, or -2 when the value was too big to fit in a int, or -4
+when the decoded length value plus <em class="parameter"><code>len</code></em>
+would exceed <em class="parameter"><code>der_len</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-get-length-ber"></a><h3>asn1_get_length_ber ()</h3>
+<pre class="programlisting"><span class="returnvalue">long</span>
+asn1_get_length_ber (<em class="parameter"><code>const unsigned <span class="type">char</span> *ber</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> ber_len</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> *len</code></em>);</pre>
+<p>Extract a length field from BER data.  The difference to
+<a class="link" href="libtasn1-libtasn1.html#asn1-get-length-der" title="asn1_get_length_der ()"><code class="function">asn1_get_length_der()</code></a> is that this function will return a length
+even if the value has indefinite encoding.</p>
+<div class="refsect3">
+<a name="asn1-get-length-ber.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ber</p></td>
+<td class="parameter_description"><p>BER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ber_len</p></td>
+<td class="parameter_description"><p>Length of BER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>Output variable containing the length of the BER length field.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-get-length-ber.returns"></a><h4>Returns</h4>
+<p> Return the decoded length value, or negative value when
+the value was too big.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-2-0.html#api-index-2.0">2.0</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-length-der"></a><h3>asn1_length_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+asn1_length_der (<em class="parameter"><code>unsigned long <span class="type">int</span> len</code></em>,
+                 <em class="parameter"><code>unsigned <span class="type">char</span> *der</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> *der_len</code></em>);</pre>
+<p>Creates the DER encoding of the provided length value.
+The <em class="parameter"><code>der</code></em>
+ buffer must have enough room for the output. The maximum
+length this function will encode is <a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-LENGTH-SIZE:CAPS" title="ASN1_MAX_LENGTH_SIZE"><code class="literal">ASN1_MAX_LENGTH_SIZE</code></a>.</p>
+<p>To know the size of the DER encoding use a <code class="literal">NULL</code> value for <em class="parameter"><code>der</code></em>
+.</p>
+<div class="refsect3">
+<a name="asn1-length-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>value to convert.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>buffer to hold the returned encoding (may be <code class="literal">NULL</code>).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>number of meaningful bytes of ANS (der[0]..der[der_len-1]).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-decode-simple-der"></a><h3>asn1_decode_simple_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_decode_simple_der (<em class="parameter"><code>unsigned <span class="type">int</span> etype</code></em>,
+                        <em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> _der_len</code></em>,
+                        <em class="parameter"><code>const unsigned <span class="type">char</span> **str</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> *str_len</code></em>);</pre>
+<p>Decodes a simple DER encoded type (e.g. a string, which is not constructed).
+The output is a pointer inside the <em class="parameter"><code>der</code></em>
+.</p>
+<div class="refsect3">
+<a name="asn1-decode-simple-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>etype</p></td>
+<td class="parameter_description"><p>The type of the string to be encoded (ASN1_ETYPE_)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>the encoded string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>_der_len</p></td>
+<td class="parameter_description"><p>the bytes of the encoded string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>a pointer to the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_len</p></td>
+<td class="parameter_description"><p>the length of the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-decode-simple-der.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful or an error value.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-decode-simple-ber"></a><h3>asn1_decode_simple_ber ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_decode_simple_ber (<em class="parameter"><code>unsigned <span class="type">int</span> etype</code></em>,
+                        <em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> _der_len</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">char</span> **str</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> *str_len</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> *ber_len</code></em>);</pre>
+<p>Decodes a BER encoded type. The output is an allocated value
+of the data. This decodes BER STRINGS only. Other types are
+decoded as DER.</p>
+<div class="refsect3">
+<a name="asn1-decode-simple-ber.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>etype</p></td>
+<td class="parameter_description"><p>The type of the string to be encoded (ASN1_ETYPE_)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>the encoded string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>_der_len</p></td>
+<td class="parameter_description"><p>the bytes of the encoded string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>a pointer to the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_len</p></td>
+<td class="parameter_description"><p>the length of the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ber_len</p></td>
+<td class="parameter_description"><p>the total length occupied by BER (may be <code class="literal">NULL</code>)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-decode-simple-ber.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful or an error value.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-encode-simple-der"></a><h3>asn1_encode_simple_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_encode_simple_der (<em class="parameter"><code>unsigned <span class="type">int</span> etype</code></em>,
+                        <em class="parameter"><code>const unsigned <span class="type">char</span> *str</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> str_len</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">char</span> *tl</code></em>,
+                        <em class="parameter"><code>unsigned <span class="type">int</span> *tl_len</code></em>);</pre>
+<p>Creates the DER encoding for various simple ASN.1 types like strings etc.
+It stores the tag and length in <em class="parameter"><code>tl</code></em>
+, which should have space for at least
+<a class="link" href="libtasn1-libtasn1.html#ASN1-MAX-TL-SIZE:CAPS" title="ASN1_MAX_TL_SIZE"><code class="literal">ASN1_MAX_TL_SIZE</code></a> bytes. Initially <em class="parameter"><code>tl_len</code></em>
+ should contain the size of <em class="parameter"><code>tl</code></em>
+.</p>
+<p>The complete DER encoding should consist of the value in <em class="parameter"><code>tl</code></em>
+ appended
+with the provided <em class="parameter"><code>str</code></em>
+.</p>
+<div class="refsect3">
+<a name="asn1-encode-simple-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>etype</p></td>
+<td class="parameter_description"><p>The type of the string to be encoded (ASN1_ETYPE_)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>the string data.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_len</p></td>
+<td class="parameter_description"><p>the string length</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tl</p></td>
+<td class="parameter_description"><p>the encoded tag and length</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tl_len</p></td>
+<td class="parameter_description"><p>the bytes of the <em class="parameter"><code>tl</code></em>
+field</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-encode-simple-der.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if successful or an error value.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-find-node"></a><h3>asn1_find_node ()</h3>
+<pre class="programlisting"><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="returnvalue">asn1_node</span></a>
+asn1_find_node (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> pointer</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>Searches for an element called <em class="parameter"><code>name</code></em>
+ starting from <em class="parameter"><code>pointer</code></em>
+.  The
+name is composed by different identifiers separated by dots.  When
+*<em class="parameter"><code>pointer</code></em>
+ has a name, the first identifier must be the name of
+*<em class="parameter"><code>pointer</code></em>
+, otherwise it must be the name of one child of *<em class="parameter"><code>pointer</code></em>
+.</p>
+<div class="refsect3">
+<a name="asn1-find-node.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>pointer</p></td>
+<td class="parameter_description"><p>NODE_ASN element pointer.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>null terminated string with the element's name to find.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-find-node.returns"></a><h4>Returns</h4>
+<p> the search result, or <code class="literal">NULL</code> if not found.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-copy-node"></a><h3>asn1_copy_node ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_copy_node (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> dst</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *dst_name</code></em>,
+                <em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> src</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *src_name</code></em>);</pre>
+<p>Create a deep copy of a asn1_node variable. That
+function requires <em class="parameter"><code>dst</code></em>
+ to be expanded using <a class="link" href="libtasn1-libtasn1.html#asn1-create-element" title="asn1_create_element ()"><code class="function">asn1_create_element()</code></a>.</p>
+<div class="refsect3">
+<a name="asn1-copy-node.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>dst</p></td>
+<td class="parameter_description"><p>Destination asn1 node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dst_name</p></td>
+<td class="parameter_description"><p>Field name in destination node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>src</p></td>
+<td class="parameter_description"><p>Source asn1 node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>src_name</p></td>
+<td class="parameter_description"><p>Field name in source node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-copy-node.returns"></a><h4>Returns</h4>
+<p> Return <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> on success.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-dup-node"></a><h3>asn1_dup_node ()</h3>
+<pre class="programlisting"><a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="returnvalue">asn1_node</span></a>
+asn1_dup_node (<em class="parameter"><code><a class="link" href="libtasn1-libtasn1.html#asn1-node-const" title="asn1_node_const"><span class="type">asn1_node_const</span></a> src</code></em>,
+               <em class="parameter"><code>const <span class="type">char</span> *src_name</code></em>);</pre>
+<p>Create a deep copy of a asn1_node variable. This function
+will return an exact copy of the provided structure.</p>
+<div class="refsect3">
+<a name="asn1-dup-node.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>src</p></td>
+<td class="parameter_description"><p>Source asn1 node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>src_name</p></td>
+<td class="parameter_description"><p>Field name in source node.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-dup-node.returns"></a><h4>Returns</h4>
+<p> Return <code class="literal">NULL</code> on failure.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-get-tag-der"></a><h3>asn1_get_tag_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_get_tag_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> der_len</code></em>,
+                  <em class="parameter"><code>unsigned <span class="type">char</span> *cls</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> *len</code></em>,
+                  <em class="parameter"><code>unsigned <span class="type">long</span> *tag</code></em>);</pre>
+<p>Decode the class and TAG from DER code.</p>
+<div class="refsect3">
+<a name="asn1-get-tag-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>DER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>Length of DER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cls</p></td>
+<td class="parameter_description"><p>Output variable containing decoded class.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>Output variable containing the length of the DER TAG data.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tag</p></td>
+<td class="parameter_description"><p>Output variable containing the decoded tag (may be <code class="literal">NULL</code>).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-get-tag-der.returns"></a><h4>Returns</h4>
+<p> Returns <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> on success, or an error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-octet-der"></a><h3>asn1_octet_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+asn1_octet_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *str</code></em>,
+                <em class="parameter"><code><span class="type">int</span> str_len</code></em>,
+                <em class="parameter"><code>unsigned <span class="type">char</span> *der</code></em>,
+                <em class="parameter"><code><span class="type">int</span> *der_len</code></em>);</pre>
+<p>Creates a length-value DER encoding for the input data.
+The DER encoding of the input data will be placed in the <em class="parameter"><code>der</code></em>
+ variable.</p>
+<p>Note that the OCTET STRING tag is not included in the output.</p>
+<p>This function does not return any value because it is expected
+that <em class="parameter"><code>der_len</code></em>
+ will contain enough bytes to store the string
+plus the DER encoding. The DER encoding size can be obtained using
+<a class="link" href="libtasn1-libtasn1.html#asn1-length-der" title="asn1_length_der ()"><code class="function">asn1_length_der()</code></a>.</p>
+<div class="refsect3">
+<a name="asn1-octet-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>the input data.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_len</p></td>
+<td class="parameter_description"><p>STR length (str[0]..str[*str_len-1]).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>encoded string returned.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>number of meaningful bytes of DER (der[0]..der[der_len-1]).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-get-octet-der"></a><h3>asn1_get_octet_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_get_octet_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> der_len</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> *ret_len</code></em>,
+                    <em class="parameter"><code>unsigned <span class="type">char</span> *str</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> str_size</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> *str_len</code></em>);</pre>
+<p>Extract an OCTET SEQUENCE from DER data. Note that this function
+expects the DER data past the tag field, i.e., the length and
+content octets.</p>
+<div class="refsect3">
+<a name="asn1-get-octet-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>DER data to decode containing the OCTET SEQUENCE.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>The length of the <em class="parameter"><code>der</code></em>
+data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ret_len</p></td>
+<td class="parameter_description"><p>Output variable containing the encoded length of the DER data.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>Pre-allocated output buffer to put decoded OCTET SEQUENCE in.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_size</p></td>
+<td class="parameter_description"><p>Length of pre-allocated output buffer.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_len</p></td>
+<td class="parameter_description"><p>Output variable containing the length of the contents of the OCTET SEQUENCE.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-get-octet-der.returns"></a><h4>Returns</h4>
+<p> Returns <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> on success, or an error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-bit-der"></a><h3>asn1_bit_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+asn1_bit_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *str</code></em>,
+              <em class="parameter"><code><span class="type">int</span> bit_len</code></em>,
+              <em class="parameter"><code>unsigned <span class="type">char</span> *der</code></em>,
+              <em class="parameter"><code><span class="type">int</span> *der_len</code></em>);</pre>
+<p>Creates a length-value DER encoding for the input data
+as it would have been for a BIT STRING.
+The DER encoded data will be copied in <em class="parameter"><code>der</code></em>
+.</p>
+<p>Note that the BIT STRING tag is not included in the output.</p>
+<p>This function does not return any value because it is expected
+that <em class="parameter"><code>der_len</code></em>
+ will contain enough bytes to store the string
+plus the DER encoding. The DER encoding size can be obtained using
+<a class="link" href="libtasn1-libtasn1.html#asn1-length-der" title="asn1_length_der ()"><code class="function">asn1_length_der()</code></a>.</p>
+<div class="refsect3">
+<a name="asn1-bit-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>BIT string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>bit_len</p></td>
+<td class="parameter_description"><p>number of meaningful bits in STR.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>string returned.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>number of meaningful bytes of DER
+(der[0]..der[ans_len-1]).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-get-bit-der"></a><h3>asn1_get_bit_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_get_bit_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> der_len</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> *ret_len</code></em>,
+                  <em class="parameter"><code>unsigned <span class="type">char</span> *str</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> str_size</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> *bit_len</code></em>);</pre>
+<p>Extract a BIT SEQUENCE from DER data.</p>
+<div class="refsect3">
+<a name="asn1-get-bit-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>DER data to decode containing the BIT SEQUENCE.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>Length of DER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ret_len</p></td>
+<td class="parameter_description"><p>Output variable containing the length of the DER data.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>Pre-allocated output buffer to put decoded BIT SEQUENCE in.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_size</p></td>
+<td class="parameter_description"><p>Length of pre-allocated output buffer.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>bit_len</p></td>
+<td class="parameter_description"><p>Output variable containing the size of the BIT SEQUENCE.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-get-bit-der.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> on success, or an error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-get-object-id-der"></a><h3>asn1_get_object_id_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_get_object_id_der (<em class="parameter"><code>const unsigned <span class="type">char</span> *der</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> der_len</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> *ret_len</code></em>,
+                        <em class="parameter"><code><span class="type">char</span> *str</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> str_size</code></em>);</pre>
+<p>Converts a DER encoded object identifier to its textual form. This
+function expects the DER object identifier without the tag.</p>
+<div class="refsect3">
+<a name="asn1-get-object-id-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>DER data to decode containing the OBJECT IDENTIFIER</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>Length of DER data to decode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ret_len</p></td>
+<td class="parameter_description"><p>Output variable containing the length of the DER data.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>Pre-allocated output buffer to put the textual object id in.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str_size</p></td>
+<td class="parameter_description"><p>Length of pre-allocated output buffer.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-get-object-id-der.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> on success, or an error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-object-id-der"></a><h3>asn1_object_id_der ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+asn1_object_id_der (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                    <em class="parameter"><code>unsigned <span class="type">char</span> *der</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> *der_len</code></em>,
+                    <em class="parameter"><code><span class="type">unsigned </span> flags</code></em>);</pre>
+<p>Creates the DER encoding of the provided object identifier.</p>
+<div class="refsect3">
+<a name="asn1-object-id-der.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>An object identifier in numeric, dot format.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der</p></td>
+<td class="parameter_description"><p>buffer to hold the returned encoding (may be <code class="literal">NULL</code>).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>der_len</p></td>
+<td class="parameter_description"><p>initially the size of <em class="parameter"><code>der</code></em>
+; will hold the final size.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>must be zero</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="asn1-object-id-der.returns"></a><h4>Returns</h4>
+<p> <a class="link" href="libtasn1-libtasn1.html#ASN1-SUCCESS:CAPS" title="ASN1_SUCCESS"><code class="literal">ASN1_SUCCESS</code></a> if DER encoding was OK, <a class="link" href="libtasn1-libtasn1.html#ASN1-VALUE-NOT-VALID:CAPS" title="ASN1_VALUE_NOT_VALID"><code class="literal">ASN1_VALUE_NOT_VALID</code></a>
+if <em class="parameter"><code>str</code></em>
+is not a valid OID, <a class="link" href="libtasn1-libtasn1.html#ASN1-MEM-ERROR:CAPS" title="ASN1_MEM_ERROR"><code class="literal">ASN1_MEM_ERROR</code></a> if the <em class="parameter"><code>der</code></em>
+vector isn't big enough and in this case <em class="parameter"><code>der_len</code></em>
+will contain the
+length needed.</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libtasn1-libtasn1.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ASN1-API:CAPS"></a><h3>ASN1_API</h3>
+<pre class="programlisting">#   define ASN1_API __attribute__((__visibility__("default")))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VERSION:CAPS"></a><h3>ASN1_VERSION</h3>
+<pre class="programlisting"># define ASN1_VERSION "4.19.0"
+</pre>
+<p>Version of the library as a string.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VERSION-MAJOR:CAPS"></a><h3>ASN1_VERSION_MAJOR</h3>
+<pre class="programlisting"># define ASN1_VERSION_MAJOR 4
+</pre>
+<p>Major version number of the library.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VERSION-MINOR:CAPS"></a><h3>ASN1_VERSION_MINOR</h3>
+<pre class="programlisting"># define ASN1_VERSION_MINOR 19
+</pre>
+<p>Minor version number of the library.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VERSION-PATCH:CAPS"></a><h3>ASN1_VERSION_PATCH</h3>
+<pre class="programlisting"># define ASN1_VERSION_PATCH 0
+</pre>
+<p>Patch version number of the library.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VERSION-NUMBER:CAPS"></a><h3>ASN1_VERSION_NUMBER</h3>
+<pre class="programlisting"># define ASN1_VERSION_NUMBER 0x041300
+</pre>
+<p>Version number of the library as a number.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-SUCCESS:CAPS"></a><h3>ASN1_SUCCESS</h3>
+<pre class="programlisting"># define ASN1_SUCCESS			0
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-FILE-NOT-FOUND:CAPS"></a><h3>ASN1_FILE_NOT_FOUND</h3>
+<pre class="programlisting"># define ASN1_FILE_NOT_FOUND		1
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ELEMENT-NOT-FOUND:CAPS"></a><h3>ASN1_ELEMENT_NOT_FOUND</h3>
+<pre class="programlisting"># define ASN1_ELEMENT_NOT_FOUND		2
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-IDENTIFIER-NOT-FOUND:CAPS"></a><h3>ASN1_IDENTIFIER_NOT_FOUND</h3>
+<pre class="programlisting"># define ASN1_IDENTIFIER_NOT_FOUND 3
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DER-ERROR:CAPS"></a><h3>ASN1_DER_ERROR</h3>
+<pre class="programlisting"># define ASN1_DER_ERROR			4
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VALUE-NOT-FOUND:CAPS"></a><h3>ASN1_VALUE_NOT_FOUND</h3>
+<pre class="programlisting"># define ASN1_VALUE_NOT_FOUND		5
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-GENERIC-ERROR:CAPS"></a><h3>ASN1_GENERIC_ERROR</h3>
+<pre class="programlisting"># define ASN1_GENERIC_ERROR		6
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-VALUE-NOT-VALID:CAPS"></a><h3>ASN1_VALUE_NOT_VALID</h3>
+<pre class="programlisting"># define ASN1_VALUE_NOT_VALID		7
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-ERROR:CAPS"></a><h3>ASN1_TAG_ERROR</h3>
+<pre class="programlisting"># define ASN1_TAG_ERROR			8
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-IMPLICIT:CAPS"></a><h3>ASN1_TAG_IMPLICIT</h3>
+<pre class="programlisting"># define ASN1_TAG_IMPLICIT		9
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ERROR-TYPE-ANY:CAPS"></a><h3>ASN1_ERROR_TYPE_ANY</h3>
+<pre class="programlisting"># define ASN1_ERROR_TYPE_ANY		10
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-SYNTAX-ERROR:CAPS"></a><h3>ASN1_SYNTAX_ERROR</h3>
+<pre class="programlisting"># define ASN1_SYNTAX_ERROR		11
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MEM-ERROR:CAPS"></a><h3>ASN1_MEM_ERROR</h3>
+<pre class="programlisting"># define ASN1_MEM_ERROR			12
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MEM-ALLOC-ERROR:CAPS"></a><h3>ASN1_MEM_ALLOC_ERROR</h3>
+<pre class="programlisting"># define ASN1_MEM_ALLOC_ERROR		13
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DER-OVERFLOW:CAPS"></a><h3>ASN1_DER_OVERFLOW</h3>
+<pre class="programlisting"># define ASN1_DER_OVERFLOW		14
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-NAME-TOO-LONG:CAPS"></a><h3>ASN1_NAME_TOO_LONG</h3>
+<pre class="programlisting"># define ASN1_NAME_TOO_LONG		15
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ARRAY-ERROR:CAPS"></a><h3>ASN1_ARRAY_ERROR</h3>
+<pre class="programlisting"># define ASN1_ARRAY_ERROR		16
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ELEMENT-NOT-EMPTY:CAPS"></a><h3>ASN1_ELEMENT_NOT_EMPTY</h3>
+<pre class="programlisting"># define ASN1_ELEMENT_NOT_EMPTY		17
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TIME-ENCODING-ERROR:CAPS"></a><h3>ASN1_TIME_ENCODING_ERROR</h3>
+<pre class="programlisting"># define ASN1_TIME_ENCODING_ERROR 18
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-RECURSION:CAPS"></a><h3>ASN1_RECURSION</h3>
+<pre class="programlisting"># define ASN1_RECURSION			19
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-PRINT-NAME:CAPS"></a><h3>ASN1_PRINT_NAME</h3>
+<pre class="programlisting"># define ASN1_PRINT_NAME			1
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-PRINT-NAME-TYPE:CAPS"></a><h3>ASN1_PRINT_NAME_TYPE</h3>
+<pre class="programlisting"># define ASN1_PRINT_NAME_TYPE		2
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-PRINT-NAME-TYPE-VALUE:CAPS"></a><h3>ASN1_PRINT_NAME_TYPE_VALUE</h3>
+<pre class="programlisting"># define ASN1_PRINT_NAME_TYPE_VALUE 3
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-PRINT-ALL:CAPS"></a><h3>ASN1_PRINT_ALL</h3>
+<pre class="programlisting"># define ASN1_PRINT_ALL			4
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-CLASS-UNIVERSAL:CAPS"></a><h3>ASN1_CLASS_UNIVERSAL</h3>
+<pre class="programlisting"># define ASN1_CLASS_UNIVERSAL		0x00 /* old: 1 */
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-CLASS-APPLICATION:CAPS"></a><h3>ASN1_CLASS_APPLICATION</h3>
+<pre class="programlisting"># define ASN1_CLASS_APPLICATION		0x40 /* old: 2 */
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-CLASS-CONTEXT-SPECIFIC:CAPS"></a><h3>ASN1_CLASS_CONTEXT_SPECIFIC</h3>
+<pre class="programlisting"># define ASN1_CLASS_CONTEXT_SPECIFIC 0x80 /* old: 3 */
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-CLASS-PRIVATE:CAPS"></a><h3>ASN1_CLASS_PRIVATE</h3>
+<pre class="programlisting"># define ASN1_CLASS_PRIVATE		0xC0 /* old: 4 */
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-CLASS-STRUCTURED:CAPS"></a><h3>ASN1_CLASS_STRUCTURED</h3>
+<pre class="programlisting"># define ASN1_CLASS_STRUCTURED		0x20
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-BOOLEAN:CAPS"></a><h3>ASN1_TAG_BOOLEAN</h3>
+<pre class="programlisting"># define ASN1_TAG_BOOLEAN		0x01
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-INTEGER:CAPS"></a><h3>ASN1_TAG_INTEGER</h3>
+<pre class="programlisting"># define ASN1_TAG_INTEGER		0x02
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-SEQUENCE:CAPS"></a><h3>ASN1_TAG_SEQUENCE</h3>
+<pre class="programlisting"># define ASN1_TAG_SEQUENCE		0x10
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-SET:CAPS"></a><h3>ASN1_TAG_SET</h3>
+<pre class="programlisting"># define ASN1_TAG_SET			0x11
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-OCTET-STRING:CAPS"></a><h3>ASN1_TAG_OCTET_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_OCTET_STRING		0x04
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-BIT-STRING:CAPS"></a><h3>ASN1_TAG_BIT_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_BIT_STRING		0x03
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-UTCTime"></a><h3>ASN1_TAG_UTCTime</h3>
+<pre class="programlisting"># define ASN1_TAG_UTCTime		0x17
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-GENERALIZEDTime"></a><h3>ASN1_TAG_GENERALIZEDTime</h3>
+<pre class="programlisting"># define ASN1_TAG_GENERALIZEDTime 0x18
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-OBJECT-ID:CAPS"></a><h3>ASN1_TAG_OBJECT_ID</h3>
+<pre class="programlisting"># define ASN1_TAG_OBJECT_ID		0x06
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-ENUMERATED:CAPS"></a><h3>ASN1_TAG_ENUMERATED</h3>
+<pre class="programlisting"># define ASN1_TAG_ENUMERATED		0x0A
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-NULL:CAPS"></a><h3>ASN1_TAG_NULL</h3>
+<pre class="programlisting"># define ASN1_TAG_NULL			0x05
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-GENERALSTRING:CAPS"></a><h3>ASN1_TAG_GENERALSTRING</h3>
+<pre class="programlisting"># define ASN1_TAG_GENERALSTRING		0x1B
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-NUMERIC-STRING:CAPS"></a><h3>ASN1_TAG_NUMERIC_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_NUMERIC_STRING		0x12
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-IA5-STRING:CAPS"></a><h3>ASN1_TAG_IA5_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_IA5_STRING		0x16
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-TELETEX-STRING:CAPS"></a><h3>ASN1_TAG_TELETEX_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_TELETEX_STRING		0x14
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-PRINTABLE-STRING:CAPS"></a><h3>ASN1_TAG_PRINTABLE_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_PRINTABLE_STRING 0x13
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-UNIVERSAL-STRING:CAPS"></a><h3>ASN1_TAG_UNIVERSAL_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_UNIVERSAL_STRING 0x1C
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-BMP-STRING:CAPS"></a><h3>ASN1_TAG_BMP_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_BMP_STRING		0x1E
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-UTF8-STRING:CAPS"></a><h3>ASN1_TAG_UTF8_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_UTF8_STRING		0x0C
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TAG-VISIBLE-STRING:CAPS"></a><h3>ASN1_TAG_VISIBLE_STRING</h3>
+<pre class="programlisting"># define ASN1_TAG_VISIBLE_STRING		0x1A
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-node-st"></a><h3>asn1_node_st</h3>
+<pre class="programlisting">  typedef struct asn1_node_st asn1_node_st;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-node"></a><h3>asn1_node</h3>
+<pre class="programlisting">  typedef asn1_node_st *asn1_node;
+</pre>
+<p>Structure definition used for the node of the tree
+that represents an ASN.1 DEFINITION.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-node-const"></a><h3>asn1_node_const</h3>
+<pre class="programlisting">  typedef const asn1_node_st *asn1_node_const;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MAX-NAME-SIZE:CAPS"></a><h3>ASN1_MAX_NAME_SIZE</h3>
+<pre class="programlisting"># define ASN1_MAX_NAME_SIZE 64
+</pre>
+<p>Maximum number of characters of a name
+inside a file with ASN1 definitions.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-INVALID:CAPS"></a><h3>ASN1_ETYPE_INVALID</h3>
+<pre class="programlisting"># define ASN1_ETYPE_INVALID        0
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-CONSTANT:CAPS"></a><h3>ASN1_ETYPE_CONSTANT</h3>
+<pre class="programlisting"># define ASN1_ETYPE_CONSTANT       1
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-IDENTIFIER:CAPS"></a><h3>ASN1_ETYPE_IDENTIFIER</h3>
+<pre class="programlisting"># define ASN1_ETYPE_IDENTIFIER     2
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-INTEGER:CAPS"></a><h3>ASN1_ETYPE_INTEGER</h3>
+<pre class="programlisting"># define ASN1_ETYPE_INTEGER        3
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-BOOLEAN:CAPS"></a><h3>ASN1_ETYPE_BOOLEAN</h3>
+<pre class="programlisting"># define ASN1_ETYPE_BOOLEAN        4
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-SEQUENCE:CAPS"></a><h3>ASN1_ETYPE_SEQUENCE</h3>
+<pre class="programlisting"># define ASN1_ETYPE_SEQUENCE       5
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-BIT-STRING:CAPS"></a><h3>ASN1_ETYPE_BIT_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_BIT_STRING     6
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-OCTET-STRING:CAPS"></a><h3>ASN1_ETYPE_OCTET_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_OCTET_STRING   7
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-TAG:CAPS"></a><h3>ASN1_ETYPE_TAG</h3>
+<pre class="programlisting"># define ASN1_ETYPE_TAG            8
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-DEFAULT:CAPS"></a><h3>ASN1_ETYPE_DEFAULT</h3>
+<pre class="programlisting"># define ASN1_ETYPE_DEFAULT        9
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-SIZE:CAPS"></a><h3>ASN1_ETYPE_SIZE</h3>
+<pre class="programlisting"># define ASN1_ETYPE_SIZE          10
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-SEQUENCE-OF:CAPS"></a><h3>ASN1_ETYPE_SEQUENCE_OF</h3>
+<pre class="programlisting"># define ASN1_ETYPE_SEQUENCE_OF   11
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-OBJECT-ID:CAPS"></a><h3>ASN1_ETYPE_OBJECT_ID</h3>
+<pre class="programlisting"># define ASN1_ETYPE_OBJECT_ID     12
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-ANY:CAPS"></a><h3>ASN1_ETYPE_ANY</h3>
+<pre class="programlisting"># define ASN1_ETYPE_ANY           13
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-SET:CAPS"></a><h3>ASN1_ETYPE_SET</h3>
+<pre class="programlisting"># define ASN1_ETYPE_SET           14
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-SET-OF:CAPS"></a><h3>ASN1_ETYPE_SET_OF</h3>
+<pre class="programlisting"># define ASN1_ETYPE_SET_OF        15
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-DEFINITIONS:CAPS"></a><h3>ASN1_ETYPE_DEFINITIONS</h3>
+<pre class="programlisting"># define ASN1_ETYPE_DEFINITIONS   16
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-CHOICE:CAPS"></a><h3>ASN1_ETYPE_CHOICE</h3>
+<pre class="programlisting"># define ASN1_ETYPE_CHOICE        18
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-IMPORTS:CAPS"></a><h3>ASN1_ETYPE_IMPORTS</h3>
+<pre class="programlisting"># define ASN1_ETYPE_IMPORTS       19
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-NULL:CAPS"></a><h3>ASN1_ETYPE_NULL</h3>
+<pre class="programlisting"># define ASN1_ETYPE_NULL          20
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-ENUMERATED:CAPS"></a><h3>ASN1_ETYPE_ENUMERATED</h3>
+<pre class="programlisting"># define ASN1_ETYPE_ENUMERATED    21
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-GENERALSTRING:CAPS"></a><h3>ASN1_ETYPE_GENERALSTRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_GENERALSTRING 27
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-NUMERIC-STRING:CAPS"></a><h3>ASN1_ETYPE_NUMERIC_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_NUMERIC_STRING 28
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-IA5-STRING:CAPS"></a><h3>ASN1_ETYPE_IA5_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_IA5_STRING     29
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-TELETEX-STRING:CAPS"></a><h3>ASN1_ETYPE_TELETEX_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_TELETEX_STRING 30
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-PRINTABLE-STRING:CAPS"></a><h3>ASN1_ETYPE_PRINTABLE_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_PRINTABLE_STRING 31
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-UNIVERSAL-STRING:CAPS"></a><h3>ASN1_ETYPE_UNIVERSAL_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_UNIVERSAL_STRING 32
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-BMP-STRING:CAPS"></a><h3>ASN1_ETYPE_BMP_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_BMP_STRING     33
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-UTF8-STRING:CAPS"></a><h3>ASN1_ETYPE_UTF8_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_UTF8_STRING    34
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-VISIBLE-STRING:CAPS"></a><h3>ASN1_ETYPE_VISIBLE_STRING</h3>
+<pre class="programlisting"># define ASN1_ETYPE_VISIBLE_STRING 35
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-UTC-TIME:CAPS"></a><h3>ASN1_ETYPE_UTC_TIME</h3>
+<pre class="programlisting"># define ASN1_ETYPE_UTC_TIME       36
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ETYPE-GENERALIZED-TIME:CAPS"></a><h3>ASN1_ETYPE_GENERALIZED_TIME</h3>
+<pre class="programlisting"># define ASN1_ETYPE_GENERALIZED_TIME 37
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DELETE-FLAG-ZEROIZE:CAPS"></a><h3>ASN1_DELETE_FLAG_ZEROIZE</h3>
+<pre class="programlisting"># define ASN1_DELETE_FLAG_ZEROIZE 1
+</pre>
+<p>Used by: <a class="link" href="libtasn1-libtasn1.html#asn1-delete-structure2" title="asn1_delete_structure2 ()"><code class="function">asn1_delete_structure2()</code></a></p>
+<p>Zeroize values prior to deinitialization.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DECODE-FLAG-ALLOW-PADDING:CAPS"></a><h3>ASN1_DECODE_FLAG_ALLOW_PADDING</h3>
+<pre class="programlisting"># define ASN1_DECODE_FLAG_ALLOW_PADDING 1
+</pre>
+<p>Used by: <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding2" title="asn1_der_decoding2 ()"><code class="function">asn1_der_decoding2()</code></a></p>
+<p>This flag would allow arbitrary data past the DER data.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DECODE-FLAG-STRICT-DER:CAPS"></a><h3>ASN1_DECODE_FLAG_STRICT_DER</h3>
+<pre class="programlisting"># define ASN1_DECODE_FLAG_STRICT_DER (1&lt;&lt;1)
+</pre>
+<p>Used by: <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding2" title="asn1_der_decoding2 ()"><code class="function">asn1_der_decoding2()</code></a></p>
+<p>This flag would ensure that no BER decoding takes place.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DECODE-FLAG-ALLOW-INCORRECT-TIME:CAPS"></a><h3>ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME</h3>
+<pre class="programlisting"># define ASN1_DECODE_FLAG_ALLOW_INCORRECT_TIME (1&lt;&lt;2)
+</pre>
+<p>Used by: <a class="link" href="libtasn1-libtasn1.html#asn1-der-decoding2" title="asn1_der_decoding2 ()"><code class="function">asn1_der_decoding2()</code></a></p>
+<p>This flag will tolerate Time encoding errors when in strict DER.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-data-node-st"></a><h3>struct asn1_data_node_st</h3>
+<pre class="programlisting">struct asn1_data_node_st {
+    const char *name;		/* Node name */
+    const void *value;		/* Node value */
+    unsigned int value_len; /* Node value size */
+    unsigned int type;		/* Node value type (ASN1_ETYPE_*) */
+};
+</pre>
+<p>Data node inside a <a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> structure.</p>
+<div class="refsect3">
+<a name="asn1-data-node-st.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p>const <span class="type">char</span> *<em class="structfield"><code><a name="asn1-data-node-st.name"></a>name</code></em>;</p></td>
+<td class="struct_member_description"><p>Node name</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p>const <span class="type">void</span> *<em class="structfield"><code><a name="asn1-data-node-st.value"></a>value</code></em>;</p></td>
+<td class="struct_member_description"><p>Node value</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p>unsigned <span class="type">int</span> <em class="structfield"><code><a name="asn1-data-node-st.value-len"></a>value_len</code></em>;</p></td>
+<td class="struct_member_description"><p>Node value size</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p>unsigned <span class="type">int</span> <em class="structfield"><code><a name="asn1-data-node-st.type"></a>type</code></em>;</p></td>
+<td class="struct_member_description"><p>Node value type (ASN1_ETYPE_*)</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MAX-ERROR-DESCRIPTION-SIZE:CAPS"></a><h3>ASN1_MAX_ERROR_DESCRIPTION_SIZE</h3>
+<pre class="programlisting"># define ASN1_MAX_ERROR_DESCRIPTION_SIZE 128
+</pre>
+<p>Maximum number of characters
+of a description message
+(null character included).</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MAX-TAG-SIZE:CAPS"></a><h3>ASN1_MAX_TAG_SIZE</h3>
+<pre class="programlisting"># define ASN1_MAX_TAG_SIZE 4
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MAX-LENGTH-SIZE:CAPS"></a><h3>ASN1_MAX_LENGTH_SIZE</h3>
+<pre class="programlisting"># define ASN1_MAX_LENGTH_SIZE 9
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-MAX-TL-SIZE:CAPS"></a><h3>ASN1_MAX_TL_SIZE</h3>
+<pre class="programlisting"># define ASN1_MAX_TL_SIZE (ASN1_MAX_TAG_SIZE+ASN1_MAX_LENGTH_SIZE)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-GCC-ATTR-DEPRECATED:CAPS"></a><h3>_ASN1_GCC_ATTR_DEPRECATED</h3>
+<pre class="programlisting">  typedef int asn1_retCode _ASN1_GCC_ATTR_DEPRECATED;
+</pre>
+<div class="warning"><p><code class="literal">_ASN1_GCC_ATTR_DEPRECATED</code> is deprecated and should not be used in newly-written code.</p></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="node-asn-struct"></a><h3>node_asn_struct</h3>
+<pre class="programlisting">#   define node_asn_struct _Pragma ("GCC warning \"'node_asn_struct' macro is deprecated, use 'asn1_node' instead.\"") asn1_node_st
+</pre>
+<div class="warning">
+<p><code class="literal">node_asn_struct</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="node-asn"></a><h3>node_asn</h3>
+<pre class="programlisting">#   define node_asn _Pragma ("GCC warning \"'node_asn' macro is deprecated, use 'asn1_node' instead.\"") asn1_node_st
+</pre>
+<div class="warning">
+<p><code class="literal">node_asn</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TYPE:CAPS"></a><h3>ASN1_TYPE</h3>
+<pre class="programlisting">#   define ASN1_TYPE _Pragma ("GCC warning \"'ASN1_TYPE' macro is deprecated, use 'asn1_node' instead.\"") asn1_node
+</pre>
+<div class="warning">
+<p><code class="literal">ASN1_TYPE</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libtasn1-libtasn1.html#asn1-node" title="asn1_node"><span class="type">asn1_node</span></a> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-TYPE-EMPTY:CAPS"></a><h3>ASN1_TYPE_EMPTY</h3>
+<pre class="programlisting">#   define ASN1_TYPE_EMPTY _Pragma ("GCC warning \"'ASN1_TYPE_EMPTY' macro is deprecated, use 'NULL' instead.\"") NULL
+</pre>
+<div class="warning">
+<p><code class="literal">ASN1_TYPE_EMPTY</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use NULL instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="static-struct-asn"></a><h3>static_struct_asn</h3>
+<pre class="programlisting">#   define static_struct_asn _Pragma ("GCC warning \"'static_struct_asn' macro is deprecated, use 'asn1_static_node_st' instead.\"") asn1_static_node_st
+</pre>
+<div class="warning">
+<p><code class="literal">static_struct_asn</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <span class="type">asn1_static_node</span> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-ARRAY-TYPE:CAPS"></a><h3>ASN1_ARRAY_TYPE</h3>
+<pre class="programlisting">#   define ASN1_ARRAY_TYPE _Pragma ("GCC warning \"'ASN1_ARRAY_TYPE' macro is deprecated, use 'asn1_static_node' instead.\"") asn1_static_node
+</pre>
+<div class="warning">
+<p><code class="literal">ASN1_ARRAY_TYPE</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <span class="type">asn1_static_node</span> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="asn1-static-node-t"></a><h3>asn1_static_node_t</h3>
+<pre class="programlisting">#   define asn1_static_node_t _Pragma ("GCC warning \"'asn1_static_node_t' macro is deprecated, use 'asn1_static_node' instead.\"") asn1_static_node
+</pre>
+<div class="warning">
+<p><code class="literal">asn1_static_node_t</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <span class="type">asn1_static_node</span> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="node-data-struct"></a><h3>node_data_struct</h3>
+<pre class="programlisting">#   define node_data_struct _Pragma ("GCC warning \"'node_data_struct' macro is deprecated, use 'asn1_data_node_st' instead.\"") asn1_data_node_st
+</pre>
+<div class="warning">
+<p><code class="literal">node_data_struct</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libtasn1-libtasn1.html#asn1-data-node-st" title="struct asn1_data_node_st"><span class="type">asn1_data_node_st</span></a> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ASN1-DATA-NODE:CAPS"></a><h3>ASN1_DATA_NODE</h3>
+<pre class="programlisting">#   define ASN1_DATA_NODE _Pragma ("GCC warning \"'asn1_static_node_t' macro is deprecated, use 'asn1_static_node' instead.\"") asn1_data_node_st
+</pre>
+<div class="warning">
+<p><code class="literal">ASN1_DATA_NODE</code> has been deprecated since version 3.0 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libtasn1-libtasn1.html#asn1-data-node-st" title="struct asn1_data_node_st"><span class="type">asn1_data_node_st</span></a> instead.</p>
+</div>
+<p>Compat #define.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

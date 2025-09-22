@@ -1,0 +1,18 @@
+@subheading asn1_get_tag_der
+@anchor{asn1_get_tag_der}
+@deftypefun {int} {asn1_get_tag_der} (const unsigned char * @var{der}, int @var{der_len}, unsigned char * @var{cls}, int * @var{len}, unsigned long * @var{tag})
+@var{der}: DER data to decode.
+
+@var{der_len}: Length of DER data to decode.
+
+@var{cls}: Output variable containing decoded class.
+
+@var{len}: Output variable containing the length of the DER TAG data.
+
+@var{tag}: Output variable containing the decoded tag (may be @code{NULL} ).
+
+Decode the class and TAG from DER code.
+
+@strong{Returns:} Returns @code{ASN1_SUCCESS}  on success, or an error.
+@end deftypefun
+

@@ -1,0 +1,20 @@
+@subheading asn1_read_tag
+@anchor{asn1_read_tag}
+@deftypefun {int} {asn1_read_tag} (asn1_node_const @var{root}, const char * @var{name}, int * @var{tagValue}, int * @var{classValue})
+@var{root}: pointer to a structure
+
+@var{name}: the name of the element inside a structure.
+
+@var{tagValue}: variable that will contain the TAG value.
+
+@var{classValue}: variable that will specify the TAG type.
+
+Returns the TAG and the CLASS of one element inside a structure.
+CLASS can have one of these constants: @code{ASN1_CLASS_APPLICATION} ,
+@code{ASN1_CLASS_UNIVERSAL} , @code{ASN1_CLASS_PRIVATE}  or
+@code{ASN1_CLASS_CONTEXT_SPECIFIC} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+ @code{name} is not a valid element.
+@end deftypefun
+

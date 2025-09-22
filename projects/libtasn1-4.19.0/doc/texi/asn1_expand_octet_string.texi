@@ -1,0 +1,23 @@
+@subheading asn1_expand_octet_string
+@anchor{asn1_expand_octet_string}
+@deftypefun {int} {asn1_expand_octet_string} (asn1_node_const @var{definitions}, asn1_node * @var{element}, const char * @var{octetName}, const char * @var{objectName})
+@var{definitions}: ASN1 definitions
+
+@var{element}: pointer to an ASN1 structure
+
+@var{octetName}: name of the OCTECT STRING field to expand.
+
+@var{objectName}: name of the OBJECT IDENTIFIER field to use to define
+the type for expansion.
+
+Expands an "OCTET STRING" element of a structure created from a DER
+decoding process (the @code{asn1_der_decoding()}  function).  The type used
+for expansion is the first one following the definition of the
+actual value of the OBJECT IDENTIFIER indicated by OBJECTNAME.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if substitution OK, @code{ASN1_ELEMENT_NOT_FOUND} 
+if  @code{objectName} or  @code{octetName} are not correct,
+@code{ASN1_VALUE_NOT_VALID}  if it wasn't possible to find the type to
+use for expansion, or other errors depending on DER decoding.
+@end deftypefun
+

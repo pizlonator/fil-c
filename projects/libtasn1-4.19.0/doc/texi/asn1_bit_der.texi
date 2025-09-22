@@ -1,0 +1,24 @@
+@subheading asn1_bit_der
+@anchor{asn1_bit_der}
+@deftypefun {void} {asn1_bit_der} (const unsigned char * @var{str}, int @var{bit_len}, unsigned char * @var{der}, int * @var{der_len})
+@var{str}: BIT string.
+
+@var{bit_len}: number of meaningful bits in STR.
+
+@var{der}: string returned.
+
+@var{der_len}: number of meaningful bytes of DER
+(der[0]..der[ans_len-1]).
+
+Creates a length-value DER encoding for the input data
+as it would have been for a BIT STRING.
+The DER encoded data will be copied in  @code{der} .
+
+Note that the BIT STRING tag is not included in the output.
+
+This function does not return any value because it is expected
+that  @code{der_len} will contain enough bytes to store the string
+plus the DER encoding. The DER encoding size can be obtained using
+@code{asn1_length_der()} .
+@end deftypefun
+

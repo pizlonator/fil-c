@@ -1,0 +1,71 @@
+@subheading asn1_read_value
+@anchor{asn1_read_value}
+@deftypefun {int} {asn1_read_value} (asn1_node_const @var{root}, const char * @var{name}, void * @var{ivalue}, int * @var{len})
+@var{root}: pointer to a structure.
+
+@var{name}: the name of the element inside a structure that you want to read.
+
+@var{ivalue}: vector that will contain the element's content, must be a
+pointer to memory cells already allocated (may be @code{NULL} ).
+
+@var{len}: number of bytes of *value: value[0]..value[len-1]. Initialy
+holds the sizeof value.
+
+Returns the value of one element inside a structure.
+If an element is OPTIONAL and this returns
+@code{ASN1_ELEMENT_NOT_FOUND} , it means that this element wasn't present
+in the der encoding that created the structure.  The first element
+of a SEQUENCE_OF or SET_OF is named "?1". The second one "?2" and
+so on. If the  @code{root} provided is a node to specific sequence element,
+then the keyword "?CURRENT" is also acceptable and indicates the
+current sequence element of this node.
+
+Note that there can be valid values with length zero. In these case
+this function will succeed and  @code{len} will be zero.
+
+@strong{INTEGER:} VALUE will contain a two's complement form integer.
+
+integer=-1  -> value[0]=0xFF , len=1.
+integer=1   -> value[0]=0x01 , len=1.
+
+@strong{ENUMERATED:} As INTEGER (but only with not negative numbers).
+
+@strong{BOOLEAN:} VALUE will be the null terminated string "TRUE" or
+"FALSE" and LEN=5 or LEN=6.
+
+OBJECT IDENTIFIER: VALUE will be a null terminated string with
+each number separated by a dot (i.e. "1.2.3.543.1").
+
+LEN = strlen(VALUE)+1
+
+@strong{UTCTime:} VALUE will be a null terminated string in one of these
+formats: "YYMMDDhhmmss+hh'mm'" or "YYMMDDhhmmss-hh'mm'".
+LEN=strlen(VALUE)+1.
+
+@strong{GeneralizedTime:} VALUE will be a null terminated string in the
+same format used to set the value.
+
+OCTET STRING: VALUE will contain the octet string and LEN will be
+the number of octets.
+
+@strong{GeneralString:} VALUE will contain the generalstring and LEN will
+be the number of octets.
+
+BIT STRING: VALUE will contain the bit string organized by bytes
+and LEN will be the number of bits.
+
+@strong{CHOICE:} If NAME indicates a choice type, VALUE will specify the
+alternative selected.
+
+@strong{ANY:} If NAME indicates an any type, VALUE will indicate the DER
+encoding of the structure actually used.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if value is returned,
+@code{ASN1_ELEMENT_NOT_FOUND}  if  @code{name} is not a valid element,
+@code{ASN1_VALUE_NOT_FOUND}  if there isn't any value for the element
+selected, and @code{ASN1_MEM_ERROR}  if The value vector isn't big enough
+to store the result, and in this case  @code{len} will contain the number of
+bytes needed. On the occasion that the stored data are of zero-length
+this function may return @code{ASN1_SUCCESS}  even if the provided  @code{len} is zero.
+@end deftypefun
+

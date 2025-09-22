@@ -1,0 +1,14 @@
+@subheading asn1_delete_element
+@anchor{asn1_delete_element}
+@deftypefun {int} {asn1_delete_element} (asn1_node @var{structure}, const char * @var{element_name})
+@var{structure}: pointer to the structure that contains the element you
+want to delete.
+
+@var{element_name}: element's name you want to delete.
+
+Deletes the element named * @code{element_name} inside * @code{structure} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+the  @code{element_name} was not found.
+@end deftypefun
+

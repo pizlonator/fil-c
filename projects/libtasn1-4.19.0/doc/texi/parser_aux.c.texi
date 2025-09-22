@@ -1,0 +1,15 @@
+@subheading asn1_find_node
+@anchor{asn1_find_node}
+@deftypefun {asn1_node} {asn1_find_node} (asn1_node_const @var{pointer}, const char * @var{name})
+@var{pointer}: NODE_ASN element pointer.
+
+@var{name}: null terminated string with the element's name to find.
+
+Searches for an element called  @code{name} starting from  @code{pointer} .  The
+name is composed by different identifiers separated by dots.  When
+* @code{pointer} has a name, the first identifier must be the name of
+* @code{pointer} , otherwise it must be the name of one child of * @code{pointer} .
+
+@strong{Returns:} the search result, or @code{NULL}  if not found.
+@end deftypefun
+

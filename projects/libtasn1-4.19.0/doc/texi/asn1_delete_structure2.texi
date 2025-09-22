@@ -1,0 +1,14 @@
+@subheading asn1_delete_structure2
+@anchor{asn1_delete_structure2}
+@deftypefun {int} {asn1_delete_structure2} (asn1_node * @var{structure}, unsigned int @var{flags})
+@var{structure}: pointer to the structure that you want to delete.
+
+@var{flags}: additional flags (see @code{ASN1_DELETE_FLAG_ZEROIZE} )
+
+Deletes the structure * @code{structure} .  At the end, * @code{structure} is set
+to NULL.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+* @code{structure} was NULL.
+@end deftypefun
+

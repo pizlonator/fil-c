@@ -1,0 +1,156 @@
+@subheading asn1_array2tree
+@anchor{asn1_array2tree}
+@deftypefun {int} {asn1_array2tree} (const asn1_static_node * @var{array}, asn1_node * @var{definitions}, char * @var{errorDescription})
+@var{array}: specify the array that contains ASN.1 declarations
+
+@var{definitions}: return the pointer to the structure created by
+*ARRAY ASN.1 declarations
+
+@var{errorDescription}: return the error description.
+
+Creates the structures needed to manage the ASN.1 definitions.
+ @code{array} is a vector created by @code{asn1_parser2array()} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if structure was created correctly,
+@code{ASN1_ELEMENT_NOT_EMPTY}  if * @code{definitions} not NULL,
+@code{ASN1_IDENTIFIER_NOT_FOUND}  if in the file there is an identifier
+that is not defined (see  @code{errorDescription} for more information),
+@code{ASN1_ARRAY_ERROR}  if the array pointed by  @code{array} is wrong.
+@end deftypefun
+
+@subheading asn1_delete_structure
+@anchor{asn1_delete_structure}
+@deftypefun {int} {asn1_delete_structure} (asn1_node * @var{structure})
+@var{structure}: pointer to the structure that you want to delete.
+
+Deletes the structure * @code{structure} .  At the end, * @code{structure} is set
+to NULL.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+* @code{structure} was NULL.
+@end deftypefun
+
+@subheading asn1_delete_structure2
+@anchor{asn1_delete_structure2}
+@deftypefun {int} {asn1_delete_structure2} (asn1_node * @var{structure}, unsigned int @var{flags})
+@var{structure}: pointer to the structure that you want to delete.
+
+@var{flags}: additional flags (see @code{ASN1_DELETE_FLAG_ZEROIZE} )
+
+Deletes the structure * @code{structure} .  At the end, * @code{structure} is set
+to NULL.
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+* @code{structure} was NULL.
+@end deftypefun
+
+@subheading asn1_delete_element
+@anchor{asn1_delete_element}
+@deftypefun {int} {asn1_delete_element} (asn1_node @var{structure}, const char * @var{element_name})
+@var{structure}: pointer to the structure that contains the element you
+want to delete.
+
+@var{element_name}: element's name you want to delete.
+
+Deletes the element named * @code{element_name} inside * @code{structure} .
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+the  @code{element_name} was not found.
+@end deftypefun
+
+@subheading asn1_create_element
+@anchor{asn1_create_element}
+@deftypefun {int} {asn1_create_element} (asn1_node_const @var{definitions}, const char * @var{source_name}, asn1_node * @var{element})
+@var{definitions}: pointer to the structure returned by "parser_asn1" function
+
+@var{source_name}: the name of the type of the new structure (must be
+inside p_structure).
+
+@var{element}: pointer to the structure created.
+
+Creates a structure of type  @code{source_name} .  Example using
+"pkix.asn":
+
+rc = asn1_create_element(cert_def, "PKIX1.Certificate", certptr);
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if creation OK, @code{ASN1_ELEMENT_NOT_FOUND}  if
+ @code{source_name} is not known.
+@end deftypefun
+
+@subheading asn1_print_structure
+@anchor{asn1_print_structure}
+@deftypefun {void} {asn1_print_structure} (FILE * @var{out}, asn1_node_const @var{structure}, const char * @var{name}, int @var{mode})
+@var{out}: pointer to the output file (e.g. stdout).
+
+@var{structure}: pointer to the structure that you want to visit.
+
+@var{name}: an element of the structure
+
+@var{mode}: specify how much of the structure to print, can be
+@code{ASN1_PRINT_NAME} , @code{ASN1_PRINT_NAME_TYPE} ,
+@code{ASN1_PRINT_NAME_TYPE_VALUE} , or @code{ASN1_PRINT_ALL} .
+
+Prints on the  @code{out} file descriptor the structure's tree starting
+from the  @code{name} element inside the structure  @code{structure} .
+@end deftypefun
+
+@subheading asn1_number_of_elements
+@anchor{asn1_number_of_elements}
+@deftypefun {int} {asn1_number_of_elements} (asn1_node_const @var{element}, const char * @var{name}, int * @var{num})
+@var{element}: pointer to the root of an ASN1 structure.
+
+@var{name}: the name of a sub-structure of ROOT.
+
+@var{num}: pointer to an integer where the result will be stored
+
+Counts the number of elements of a sub-structure called NAME with
+names equal to "?1","?2", ...
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if successful, @code{ASN1_ELEMENT_NOT_FOUND}  if
+ @code{name} is not known, @code{ASN1_GENERIC_ERROR}  if pointer  @code{num} is @code{NULL} .
+@end deftypefun
+
+@subheading asn1_find_structure_from_oid
+@anchor{asn1_find_structure_from_oid}
+@deftypefun {const char *} {asn1_find_structure_from_oid} (asn1_node_const @var{definitions}, const char * @var{oidValue})
+@var{definitions}: ASN1 definitions
+
+@var{oidValue}: value of the OID to search (e.g. "1.2.3.4").
+
+Search the structure that is defined just after an OID definition.
+
+@strong{Returns:} @code{NULL}  when  @code{oidValue} not found, otherwise the pointer to a
+constant string that contains the element name defined just after
+the OID.
+@end deftypefun
+
+@subheading asn1_copy_node
+@anchor{asn1_copy_node}
+@deftypefun {int} {asn1_copy_node} (asn1_node @var{dst}, const char * @var{dst_name}, asn1_node_const @var{src}, const char * @var{src_name})
+@var{dst}: Destination asn1 node.
+
+@var{dst_name}: Field name in destination node.
+
+@var{src}: Source asn1 node.
+
+@var{src_name}: Field name in source node.
+
+Create a deep copy of a asn1_node variable. That
+function requires  @code{dst} to be expanded using @code{asn1_create_element()} .
+
+@strong{Returns:} Return @code{ASN1_SUCCESS}  on success.
+@end deftypefun
+
+@subheading asn1_dup_node
+@anchor{asn1_dup_node}
+@deftypefun {asn1_node} {asn1_dup_node} (asn1_node_const @var{src}, const char * @var{src_name})
+@var{src}: Source asn1 node.
+
+@var{src_name}: Field name in source node.
+
+Create a deep copy of a asn1_node variable. This function
+will return an exact copy of the provided structure.
+
+@strong{Returns:} Return @code{NULL}  on failure.
+@end deftypefun
+

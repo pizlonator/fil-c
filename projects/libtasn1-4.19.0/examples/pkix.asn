@@ -1,0 +1,954 @@
+-- Copyright (C) 2002-2022 Free Software Foundation, Inc.
+--
+-- This file is part of LIBTASN1.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+PKIX1Implicit88 {iso(1) identified-organization(3) dod(6) internet(1)
+  security(5) mechanisms(5) pkix(7) id-mod(0) id-pkix1-implicit-88(2)}
+
+DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+-- ISO arc for standard certificate and CRL extensions
+
+id-ce OBJECT IDENTIFIER  ::=  {joint-iso-ccitt(2) ds(5) 29}
+
+
+-- authority key identifier OID and syntax
+
+id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 }
+
+AuthorityKeyIdentifier ::= SEQUENCE {
+      keyIdentifier             [0] KeyIdentifier            OPTIONAL,
+      authorityCertIssuer       [1] GeneralNames             OPTIONAL,
+      authorityCertSerialNumber [2] CertificateSerialNumber  OPTIONAL }
+    -- authorityCertIssuer and authorityCertSerialNumber shall both
+    -- be present or both be absgent
+
+KeyIdentifier ::= OCTET STRING
+
+-- subject key identifier OID and syntax
+
+id-ce-subjectKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 14 }
+
+SubjectKeyIdentifier ::= KeyIdentifier
+
+-- key usage extension OID and syntax
+
+id-ce-keyUsage OBJECT IDENTIFIER ::=  { id-ce 15 }
+
+KeyUsage ::= BIT STRING {
+     digitalSignature        (0),
+     nonRepudiation          (1),
+     keyEncipherment         (2),
+     dataEncipherment        (3),
+     keyAgreement            (4),
+     keyCertSign             (5),
+     cRLSign                 (6),
+     encipherOnly            (7),
+     decipherOnly            (8) }
+
+-- private key usage period extension OID and syntax
+
+id-ce-privateKeyUsagePeriod OBJECT IDENTIFIER ::=  { id-ce 16 }
+
+PrivateKeyUsagePeriod ::= SEQUENCE {
+     notBefore       [0]     GeneralizedTime OPTIONAL,
+     notAfter        [1]     GeneralizedTime OPTIONAL }
+     -- either notBefore or notAfter shall be present
+
+-- certificate policies extension OID and syntax
+
+id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
+
+CertificatePolicies ::= SEQUENCE SIZE (1..MAX) OF PolicyInformation
+
+PolicyInformation ::= SEQUENCE {
+     policyIdentifier   CertPolicyId,
+     policyQualifiers   SEQUENCE SIZE (1..MAX) OF
+             PolicyQualifierInfo OPTIONAL }
+
+CertPolicyId ::= OBJECT IDENTIFIER
+
+PolicyQualifierInfo ::= SEQUENCE {
+       policyQualifierId  PolicyQualifierId,
+       qualifier        ANY DEFINED BY policyQualifierId }
+
+-- Implementations that recognize additional policy qualifiers shall
+-- augment the following definition for PolicyQualifierId
+
+PolicyQualifierId ::=
+    OBJECT IDENTIFIER  -- ( id-qt-cps | id-qt-unotice )
+
+-- CPS pointer qualifier
+
+CPSuri ::= IA5String
+
+-- user notice qualifier
+
+UserNotice ::= SEQUENCE {
+     noticeRef        NoticeReference OPTIONAL,
+     explicitText     DisplayText OPTIONAL}
+
+NoticeReference ::= SEQUENCE {
+     organization     DisplayText,
+     noticeNumbers    SEQUENCE OF INTEGER }
+
+DisplayText ::= CHOICE {
+     visibleString    VisibleString  (SIZE (1..200)),
+     bmpString        BMPString      (SIZE (1..200)),
+     utf8String       UTF8String     (SIZE (1..200)) }
+
+-- policy mapping extension OID and syntax
+
+id-ce-policyMappings OBJECT IDENTIFIER ::=  { id-ce 33 }
+
+PolicyMappings ::= SEQUENCE SIZE (1..MAX) OF SEQUENCE {
+     issuerDomainPolicy      CertPolicyId,
+     subjectDomainPolicy     CertPolicyId }
+
+-- subject alternative name extension OID and syntax
+
+id-ce-subjectAltName OBJECT IDENTIFIER ::=  { id-ce 17 }
+
+SubjectAltName ::= GeneralNames
+
+GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+
+GeneralName ::= CHOICE {
+     otherName                       [0]     AnotherName,
+     rfc822Name                      [1]     IA5String,
+     dNSName                         [2]     IA5String,
+     x400Address                     [3]     ORAddress,
+     directoryName                   [4]     Name,
+     ediPartyName                    [5]     EDIPartyName,
+     uniformResourceIdentifier       [6]     IA5String,
+     iPAddress                       [7]     OCTET STRING,
+     registeredID                    [8]     OBJECT IDENTIFIER }
+
+-- AnotherName replaces OTHER-NAME ::= TYPE-IDENTIFIER, as
+-- TYPE-IDENTIFIER is not supported in the '88 ASN.1 syntax
+
+AnotherName ::= SEQUENCE {
+     type-id    OBJECT IDENTIFIER,
+     value      [0] EXPLICIT ANY DEFINED BY type-id }
+
+EDIPartyName ::= SEQUENCE {
+     nameAssigner            [0]     DirectoryString OPTIONAL,
+     partyName               [1]     DirectoryString }
+
+-- issuer alternative name extension OID and syntax
+
+id-ce-issuerAltName OBJECT IDENTIFIER ::=  { id-ce 18 }
+
+IssuerAltName ::= GeneralNames
+
+id-ce-subjectDirectoryAttributes OBJECT IDENTIFIER ::=  { id-ce 9 }
+
+SubjectDirectoryAttributes ::= SEQUENCE SIZE (1..MAX) OF Attribute
+
+-- basic constraints extension OID and syntax
+
+id-ce-basicConstraints OBJECT IDENTIFIER ::=  { id-ce 19 }
+
+BasicConstraints ::= SEQUENCE {
+     cA                      BOOLEAN DEFAULT FALSE,
+     pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
+
+-- name constraints extension OID and syntax
+
+id-ce-nameConstraints OBJECT IDENTIFIER ::=  { id-ce 30 }
+
+NameConstraints ::= SEQUENCE {
+     permittedSubtrees       [0]     GeneralSubtrees OPTIONAL,
+     excludedSubtrees        [1]     GeneralSubtrees OPTIONAL }
+
+GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
+
+GeneralSubtree ::= SEQUENCE {
+     base                    GeneralName,
+     minimum         [0]     BaseDistance DEFAULT 0,
+     maximum         [1]     BaseDistance OPTIONAL }
+
+BaseDistance ::= INTEGER (0..MAX)
+
+-- policy constraints extension OID and syntax
+
+id-ce-policyConstraints OBJECT IDENTIFIER ::=  { id-ce 36 }
+
+PolicyConstraints ::= SEQUENCE {
+     requireExplicitPolicy           [0] SkipCerts OPTIONAL,
+     inhibitPolicyMapping            [1] SkipCerts OPTIONAL }
+
+SkipCerts ::= INTEGER (0..MAX)
+
+-- CRL distribution points extension OID and syntax
+
+id-ce-cRLDistributionPoints     OBJECT IDENTIFIER  ::=  {id-ce 31}
+
+CRLDistPointsSyntax ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
+
+DistributionPoint ::= SEQUENCE {
+     distributionPoint       [0]     DistributionPointName OPTIONAL,
+     reasons                 [1]     ReasonFlags OPTIONAL,
+     cRLIssuer               [2]     GeneralNames OPTIONAL }
+
+DistributionPointName ::= CHOICE {
+     fullName                [0]     GeneralNames,
+     nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
+
+
+
+ReasonFlags ::= BIT STRING {
+     unused                  (0),
+     keyCompromise           (1),
+     cACompromise            (2),
+     affiliationChanged      (3),
+     superseded              (4),
+     cessationOfOperation    (5),
+     certificateHold         (6) }
+
+-- extended key usage extension OID and syntax
+
+id-ce-extKeyUsage OBJECT IDENTIFIER ::= {id-ce 37}
+
+ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
+
+KeyPurposeId ::= OBJECT IDENTIFIER
+
+-- extended key purpose OIDs
+id-kp-serverAuth      OBJECT IDENTIFIER ::= { id-kp 1 }
+id-kp-clientAuth      OBJECT IDENTIFIER ::= { id-kp 2 }
+id-kp-codeSigning     OBJECT IDENTIFIER ::= { id-kp 3 }
+id-kp-emailProtection OBJECT IDENTIFIER ::= { id-kp 4 }
+id-kp-ipsecEndSystem  OBJECT IDENTIFIER ::= { id-kp 5 }
+id-kp-ipsecTunnel     OBJECT IDENTIFIER ::= { id-kp 6 }
+id-kp-ipsecUser       OBJECT IDENTIFIER ::= { id-kp 7 }
+id-kp-timeStamping    OBJECT IDENTIFIER ::= { id-kp 8 }
+
+-- authority info access
+
+id-pe-authorityInfoAccess OBJECT IDENTIFIER ::= { id-pe 1 }
+
+AuthorityInfoAccessSyntax  ::=
+        SEQUENCE SIZE (1..MAX) OF AccessDescription
+
+AccessDescription  ::=  SEQUENCE {
+        accessMethod          OBJECT IDENTIFIER,
+        accessLocation        GeneralName  }
+
+-- CRL number extension OID and syntax
+
+id-ce-cRLNumber OBJECT IDENTIFIER ::= { id-ce 20 }
+
+CRLNumber ::= INTEGER (0..MAX)
+
+-- issuing distribution point extension OID and syntax
+
+id-ce-issuingDistributionPoint OBJECT IDENTIFIER ::= { id-ce 28 }
+
+IssuingDistributionPoint ::= SEQUENCE {
+     distributionPoint       [0] DistributionPointName OPTIONAL,
+     onlyContainsUserCerts   [1] BOOLEAN DEFAULT FALSE,
+     onlyContainsCACerts     [2] BOOLEAN DEFAULT FALSE,
+     onlySomeReasons         [3] ReasonFlags OPTIONAL,
+     indirectCRL             [4] BOOLEAN DEFAULT FALSE }
+
+
+id-ce-deltaCRLIndicator OBJECT IDENTIFIER ::= { id-ce 27 }
+
+-- deltaCRLIndicator ::= BaseCRLNumber
+
+BaseCRLNumber ::= CRLNumber
+
+-- CRL reasons extension OID and syntax
+
+id-ce-cRLReasons OBJECT IDENTIFIER ::= { id-ce 21 }
+
+CRLReason ::= ENUMERATED {
+     unspecified             (0),
+     keyCompromise           (1),
+     cACompromise            (2),
+     affiliationChanged      (3),
+     superseded              (4),
+     cessationOfOperation    (5),
+     certificateHold         (6),
+     removeFromCRL           (8) }
+
+-- certificate issuer CRL entry extension OID and syntax
+
+id-ce-certificateIssuer OBJECT IDENTIFIER ::= { id-ce 29 }
+
+CertificateIssuer ::= GeneralNames
+
+-- hold instruction extension OID and syntax
+
+id-ce-holdInstructionCode OBJECT IDENTIFIER ::= { id-ce 23 }
+
+HoldInstructionCode ::= OBJECT IDENTIFIER
+
+-- ANSI x9 holdinstructions
+
+-- ANSI x9 arc holdinstruction arc
+holdInstruction OBJECT IDENTIFIER ::=
+          {joint-iso-itu-t(2) member-body(2) us(840) x9cm(10040) 2}
+
+-- ANSI X9 holdinstructions referenced by this standard
+id-holdinstruction-none OBJECT IDENTIFIER  ::=
+                {holdInstruction 1} -- deprecated
+id-holdinstruction-callissuer OBJECT IDENTIFIER ::=
+                {holdInstruction 2}
+id-holdinstruction-reject OBJECT IDENTIFIER ::=
+                {holdInstruction 3}
+
+-- invalidity date CRL entry extension OID and syntax
+
+id-ce-invalidityDate OBJECT IDENTIFIER ::= { id-ce 24 }
+
+InvalidityDate ::=  GeneralizedTime
+
+
+-- --------------------------------------
+--  EXPLICIT
+-- --------------------------------------
+
+-- UNIVERSAL Types defined in '93 and '98 ASN.1
+-- but required by this specification
+
+VisibleString ::= [UNIVERSAL 26] IMPLICIT OCTET STRING
+
+NumericString ::= [UNIVERSAL 18] IMPLICIT OCTET STRING
+
+IA5String ::= [UNIVERSAL 22] IMPLICIT OCTET STRING
+
+TeletexString ::= [UNIVERSAL 20] IMPLICIT OCTET STRING
+
+PrintableString ::= [UNIVERSAL 19] IMPLICIT OCTET STRING
+
+UniversalString ::= [UNIVERSAL 28] IMPLICIT OCTET STRING
+        -- UniversalString is defined in ASN.1:1993
+
+BMPString ::= [UNIVERSAL 30] IMPLICIT OCTET STRING
+      -- BMPString is the subtype of UniversalString and models
+       -- the Basic Multilingual Plane of ISO/IEC/ITU 10646-1
+
+UTF8String ::= [UNIVERSAL 12] IMPLICIT OCTET STRING
+        -- The content of this type conforms to RFC 2279.
+
+
+-- PKIX specific OIDs
+
+id-pkix  OBJECT IDENTIFIER  ::=
+         { iso(1) identified-organization(3) dod(6) internet(1)
+                    security(5) mechanisms(5) pkix(7) }
+
+-- PKIX arcs
+
+id-pe OBJECT IDENTIFIER  ::=  { id-pkix 1 }
+        -- arc for private certificate extensions
+id-qt OBJECT IDENTIFIER ::= { id-pkix 2 }
+        -- arc for policy qualifier types
+id-kp OBJECT IDENTIFIER ::= { id-pkix 3 }
+        -- arc for extended key purpose OIDS
+id-ad OBJECT IDENTIFIER ::= { id-pkix 48 }
+        -- arc for access descriptors
+
+-- policyQualifierIds for Internet policy qualifiers
+
+id-qt-cps      OBJECT IDENTIFIER ::=  { id-qt 1 }
+        -- OID for CPS qualifier
+id-qt-unotice  OBJECT IDENTIFIER ::=  { id-qt 2 }
+        -- OID for user notice qualifier
+
+-- access descriptor definitions
+
+id-ad-ocsp      OBJECT IDENTIFIER ::= { id-ad 1 }
+id-ad-caIssuers OBJECT IDENTIFIER ::= { id-ad 2 }
+
+-- attribute data types --
+
+Attribute       ::=     SEQUENCE {
+        type            AttributeType,
+        values  SET OF AttributeValue
+                -- at least one value is required --
+}
+
+AttributeType           ::=   OBJECT IDENTIFIER
+
+AttributeValue          ::=   ANY
+
+AttributeTypeAndValue           ::=     SEQUENCE {
+        type    AttributeType,
+        value   AttributeValue }
+
+-- suggested naming attributes: Definition of the following
+--  information object set may be augmented to meet local
+--  requirements.  Note that deleting members of the set may
+--  prevent interoperability with conforming implementations.
+--  presented in pairs: the AttributeType followed by the
+--  type definition for the corresponding AttributeValue
+
+-- Arc for standard naming attributes
+id-at           OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4}
+
+-- Attributes of type NameDirectoryString
+id-at-name              AttributeType   ::=     {id-at 41}
+id-at-surname           AttributeType   ::=     {id-at 4}
+id-at-givenName         AttributeType   ::=     {id-at 42}
+id-at-initials          AttributeType   ::=     {id-at 43}
+id-at-generationQualifier       AttributeType   ::=     {id-at 44}
+
+X520name        ::= CHOICE {
+      teletexString         TeletexString (SIZE (1..ub-name)),
+      printableString       PrintableString (SIZE (1..ub-name)),
+      universalString       UniversalString (SIZE (1..ub-name)),
+      utf8String            UTF8String (SIZE (1..ub-name)),
+      bmpString             BMPString (SIZE(1..ub-name))   }
+
+--
+
+id-at-commonName        AttributeType   ::=     {id-at 3}
+
+X520CommonName  ::=      CHOICE {
+      teletexString         TeletexString (SIZE (1..ub-common-name)),
+      printableString       PrintableString (SIZE (1..ub-common-name)),
+      universalString       UniversalString (SIZE (1..ub-common-name)),
+      utf8String            UTF8String (SIZE (1..ub-common-name)),
+      bmpString             BMPString (SIZE(1..ub-common-name))   }
+
+--
+
+id-at-localityName      AttributeType   ::=     {id-at 7}
+
+X520LocalityName ::= CHOICE {
+      teletexString       TeletexString (SIZE (1..ub-locality-name)),
+      printableString     PrintableString (SIZE (1..ub-locality-name)),
+      universalString     UniversalString (SIZE (1..ub-locality-name)),
+      utf8String          UTF8String (SIZE (1..ub-locality-name)),
+      bmpString           BMPString (SIZE(1..ub-locality-name))   }
+
+--
+
+id-at-stateOrProvinceName       AttributeType   ::=     {id-at 8}
+
+X520StateOrProvinceName         ::= CHOICE {
+      teletexString       TeletexString (SIZE (1..ub-state-name)),
+      printableString     PrintableString (SIZE (1..ub-state-name)),
+      universalString     UniversalString (SIZE (1..ub-state-name)),
+      utf8String          UTF8String (SIZE (1..ub-state-name)),
+      bmpString           BMPString (SIZE(1..ub-state-name))   }
+
+--
+
+id-at-organizationName          AttributeType   ::=     {id-at 10}
+
+X520OrganizationName ::= CHOICE {
+  teletexString     TeletexString (SIZE (1..ub-organization-name)),
+  printableString   PrintableString (SIZE (1..ub-organization-name)),
+  universalString   UniversalString (SIZE (1..ub-organization-name)),
+  utf8String        UTF8String (SIZE (1..ub-organization-name)),
+  bmpString         BMPString (SIZE(1..ub-organization-name))   }
+
+--
+
+id-at-organizationalUnitName    AttributeType   ::=     {id-at 11}
+
+X520OrganizationalUnitName ::= CHOICE {
+ teletexString    TeletexString (SIZE (1..ub-organizational-unit-name)),
+ printableString        PrintableString
+                      (SIZE (1..ub-organizational-unit-name)),
+ universalString        UniversalString
+                      (SIZE (1..ub-organizational-unit-name)),
+ utf8String       UTF8String (SIZE (1..ub-organizational-unit-name)),
+ bmpString        BMPString (SIZE(1..ub-organizational-unit-name))   }
+
+--
+
+id-at-title     AttributeType   ::=     {id-at 12}
+
+X520Title ::=   CHOICE {
+      teletexString         TeletexString (SIZE (1..ub-title)),
+      printableString       PrintableString (SIZE (1..ub-title)),
+      universalString       UniversalString (SIZE (1..ub-title)),
+      utf8String            UTF8String (SIZE (1..ub-title)),
+      bmpString             BMPString (SIZE(1..ub-title))   }
+
+--
+
+id-at-dnQualifier       AttributeType   ::=     {id-at 46}
+X520dnQualifier ::=     PrintableString
+
+id-at-countryName       AttributeType   ::=     {id-at 6}
+X520countryName ::=     PrintableString (SIZE (2)) -- IS 3166 codes
+
+ -- Legacy attributes
+
+pkcs-9 OBJECT IDENTIFIER ::=
+       { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 9 }
+
+emailAddress AttributeType      ::= { pkcs-9 1 }
+
+Pkcs9email ::= IA5String (SIZE (1..ub-emailaddress-length))
+
+-- naming data types --
+
+Name            ::=   CHOICE { -- only one possibility for now --
+                                 rdnSequence  RDNSequence }
+
+RDNSequence     ::=   SEQUENCE OF RelativeDistinguishedName
+
+DistinguishedName       ::=   RDNSequence
+
+RelativeDistinguishedName  ::=
+                    SET SIZE (1 .. MAX) OF AttributeTypeAndValue
+
+-- Directory string type --
+
+DirectoryString ::= CHOICE {
+      teletexString             TeletexString (SIZE (1..MAX)),
+      printableString           PrintableString (SIZE (1..MAX)),
+      universalString           UniversalString (SIZE (1..MAX)),
+      utf8String              UTF8String (SIZE (1..MAX)),
+      bmpString               BMPString (SIZE(1..MAX))   }
+
+
+-- --------------------------------------------------------
+-- certificate and CRL specific structures begin here
+-- --------------------------------------------------------
+
+Certificate  ::=  SEQUENCE  {
+     tbsCertificate       TBSCertificate,
+     signatureAlgorithm   AlgorithmIdentifier,
+     signature            BIT STRING  }
+
+TBSCertificate  ::=  SEQUENCE  {
+     version         [0]  EXPLICIT Version DEFAULT v1,
+     serialNumber         CertificateSerialNumber,
+     signature            AlgorithmIdentifier,
+     issuer               Name,
+     validity             Validity,
+     subject              Name,
+     subjectPublicKeyInfo SubjectPublicKeyInfo,
+     issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
+                          -- If present, version shall be v2 or v3
+     subjectUniqueID [2]  IMPLICIT UniqueIdentifier OPTIONAL,
+                          -- If present, version shall be v2 or v3
+     extensions      [3]  EXPLICIT Extensions OPTIONAL
+                          -- If present, version shall be v3 --
+}
+
+Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
+
+CertificateSerialNumber  ::=  INTEGER
+
+Validity ::= SEQUENCE {
+     notBefore      Time,
+     notAfter       Time }
+
+Time ::= CHOICE {
+     utcTime        UTCTime,
+     generalTime    GeneralizedTime }
+
+UniqueIdentifier  ::=  BIT STRING
+
+SubjectPublicKeyInfo  ::=  SEQUENCE  {
+     algorithm            AlgorithmIdentifier,
+     subjectPublicKey     BIT STRING  }
+
+Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
+
+Extension  ::=  SEQUENCE  {
+     extnID      OBJECT IDENTIFIER,
+     critical    BOOLEAN DEFAULT FALSE,
+     extnValue   OCTET STRING  }
+
+
+-- ------------------------------------------
+-- CRL structures
+-- ------------------------------------------
+
+CertificateList  ::=  SEQUENCE  {
+     tbsCertList          TBSCertList,
+     signatureAlgorithm   AlgorithmIdentifier,
+     signature            BIT STRING  }
+
+TBSCertList  ::=  SEQUENCE  {
+     version                 Version OPTIONAL,
+                                  -- if present, shall be v2
+     signature               AlgorithmIdentifier,
+     issuer                  Name,
+     thisUpdate              Time,
+     nextUpdate              Time OPTIONAL,
+     revokedCertificates     SEQUENCE OF SEQUENCE  {
+          userCertificate         CertificateSerialNumber,
+          revocationDate          Time,
+          crlEntryExtensions      Extensions OPTIONAL
+                                         -- if present, shall be v2
+                               }  OPTIONAL,
+     crlExtensions           [0] EXPLICIT Extensions OPTIONAL
+                                         -- if present, shall be v2 --
+}
+
+-- Version, Time, CertificateSerialNumber, and Extensions were
+-- defined earlier for use in the certificate structure
+
+AlgorithmIdentifier  ::=  SEQUENCE  {
+     algorithm               OBJECT IDENTIFIER,
+     parameters              ANY DEFINED BY algorithm OPTIONAL  }
+                                -- contains a value of the type
+                                -- registered for use with the
+                                -- algorithm object identifier value
+
+-- Algorithm OIDs and parameter structures
+
+pkcs-1 OBJECT IDENTIFIER ::= {
+     iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 }
+
+rsaEncryption OBJECT IDENTIFIER ::=  { pkcs-1 1 }
+
+md2WithRSAEncryption OBJECT IDENTIFIER  ::=  { pkcs-1 2 }
+
+md5WithRSAEncryption OBJECT IDENTIFIER  ::=  { pkcs-1 4 }
+
+sha1WithRSAEncryption OBJECT IDENTIFIER  ::=  { pkcs-1 5 }
+
+id-dsa-with-sha1 OBJECT IDENTIFIER ::=  {
+     iso(1) member-body(2) us(840) x9-57 (10040) x9algorithm(4) 3 }
+
+Dss-Sig-Value  ::=  SEQUENCE  {
+     r       INTEGER,
+     s       INTEGER  }
+
+dhpublicnumber OBJECT IDENTIFIER ::= {
+     iso(1) member-body(2) us(840) ansi-x942(10046) number-type(2) 1 }
+
+DomainParameters ::= SEQUENCE {
+     p       INTEGER, -- odd prime, p=jq +1
+     g       INTEGER, -- generator, g
+     q       INTEGER, -- factor of p-1
+     j       INTEGER OPTIONAL, -- subgroup factor, j>= 2
+     validationParms  ValidationParms OPTIONAL }
+
+ValidationParms ::= SEQUENCE {
+     seed             BIT STRING,
+     pgenCounter      INTEGER }
+
+id-dsa OBJECT IDENTIFIER ::= {
+     iso(1) member-body(2) us(840) x9-57(10040) x9algorithm(4) 1 }
+
+Dss-Parms  ::=  SEQUENCE  {
+     p             INTEGER,
+     q             INTEGER,
+     g             INTEGER  }
+
+-- x400 address syntax starts here
+--      OR Names
+
+ORAddress ::= SEQUENCE {
+   built-in-standard-attributes BuiltInStandardAttributes,
+   built-in-domain-defined-attributes
+                        BuiltInDomainDefinedAttributes OPTIONAL,
+   -- see also teletex-domain-defined-attributes
+   extension-attributes ExtensionAttributes OPTIONAL }
+--      The OR-address is semantically absent from the OR-name if the
+--      built-in-standard-attribute sequence is empty and the
+--      built-in-domain-defined-attributes and extension-attributes are
+--      both omitted.
+
+--      Built-in Standard Attributes
+
+BuiltInStandardAttributes ::= SEQUENCE {
+   country-name CountryName OPTIONAL,
+   administration-domain-name AdministrationDomainName OPTIONAL,
+   network-address      [0] EXPLICIT NetworkAddress OPTIONAL,
+   -- see also extended-network-address
+   terminal-identifier  [1] EXPLICIT TerminalIdentifier OPTIONAL,
+   private-domain-name  [2] EXPLICIT PrivateDomainName OPTIONAL,
+   organization-name    [3] EXPLICIT OrganizationName OPTIONAL,
+   -- see also teletex-organization-name
+   numeric-user-identifier      [4] EXPLICIT NumericUserIdentifier OPTIONAL,
+   personal-name        [5] EXPLICIT PersonalName OPTIONAL,
+   -- see also teletex-personal-name
+   organizational-unit-names    [6] EXPLICIT OrganizationalUnitNames OPTIONAL
+   -- see also teletex-organizational-unit-names --
+}
+
+CountryName ::= [APPLICATION 1] CHOICE {
+   x121-dcc-code NumericString
+                (SIZE (ub-country-name-numeric-length)),
+   iso-3166-alpha2-code PrintableString
+                (SIZE (ub-country-name-alpha-length)) }
+
+AdministrationDomainName ::= [APPLICATION 2] EXPLICIT CHOICE {
+   numeric NumericString (SIZE (0..ub-domain-name-length)),
+   printable PrintableString (SIZE (0..ub-domain-name-length)) }
+
+NetworkAddress ::= X121Address  -- see also extended-network-address
+
+X121Address ::= NumericString (SIZE (1..ub-x121-address-length))
+
+TerminalIdentifier ::= PrintableString (SIZE (1..ub-terminal-id-length))
+
+PrivateDomainName ::= CHOICE {
+   numeric NumericString (SIZE (1..ub-domain-name-length)),
+   printable PrintableString (SIZE (1..ub-domain-name-length)) }
+
+OrganizationName ::= PrintableString
+                            (SIZE (1..ub-organization-name-length))
+-- see also teletex-organization-name
+
+NumericUserIdentifier ::= NumericString
+                            (SIZE (1..ub-numeric-user-id-length))
+
+PersonalName ::= SET {
+   surname [0] PrintableString (SIZE (1..ub-surname-length)),
+   given-name [1] PrintableString
+                        (SIZE (1..ub-given-name-length)) OPTIONAL,
+   initials [2] PrintableString (SIZE (1..ub-initials-length)) OPTIONAL,
+   generation-qualifier [3] PrintableString
+                (SIZE (1..ub-generation-qualifier-length)) OPTIONAL }
+-- see also teletex-personal-name
+
+OrganizationalUnitNames ::= SEQUENCE SIZE (1..ub-organizational-units)
+                                        OF OrganizationalUnitName
+-- see also teletex-organizational-unit-names
+
+OrganizationalUnitName ::= PrintableString (SIZE
+                        (1..ub-organizational-unit-name-length))
+
+--      Built-in Domain-defined Attributes
+
+BuiltInDomainDefinedAttributes ::= SEQUENCE SIZE
+                                (1..ub-domain-defined-attributes) OF
+                                BuiltInDomainDefinedAttribute
+
+BuiltInDomainDefinedAttribute ::= SEQUENCE {
+   type PrintableString (SIZE
+                        (1..ub-domain-defined-attribute-type-length)),
+   value PrintableString (SIZE
+                        (1..ub-domain-defined-attribute-value-length))}
+
+--      Extension Attributes
+
+ExtensionAttributes ::= SET SIZE (1..ub-extension-attributes) OF
+                        ExtensionAttribute
+
+ExtensionAttribute ::=  SEQUENCE {
+   extension-attribute-type [0] EXPLICIT INTEGER (0..ub-extension-attributes),
+   extension-attribute-value [1] EXPLICIT
+                        ANY DEFINED BY extension-attribute-type }
+
+-- Extension types and attribute values
+--
+
+common-name INTEGER ::= 1
+
+CommonName ::= PrintableString (SIZE (1..ub-common-name-length))
+
+teletex-common-name INTEGER ::= 2
+
+TeletexCommonName ::= TeletexString (SIZE (1..ub-common-name-length))
+
+teletex-organization-name INTEGER ::= 3
+
+TeletexOrganizationName ::=
+                TeletexString (SIZE (1..ub-organization-name-length))
+
+teletex-personal-name INTEGER ::= 4
+
+TeletexPersonalName ::= SET {
+   surname [0] EXPLICIT TeletexString (SIZE (1..ub-surname-length)),
+   given-name [1] EXPLICIT TeletexString
+                (SIZE (1..ub-given-name-length)) OPTIONAL,
+   initials [2] EXPLICIT TeletexString (SIZE (1..ub-initials-length)) OPTIONAL,
+   generation-qualifier [3] EXPLICIT TeletexString (SIZE
+                (1..ub-generation-qualifier-length)) OPTIONAL }
+
+teletex-organizational-unit-names INTEGER ::= 5
+
+TeletexOrganizationalUnitNames ::= SEQUENCE SIZE
+        (1..ub-organizational-units) OF TeletexOrganizationalUnitName
+
+TeletexOrganizationalUnitName ::= TeletexString
+                        (SIZE (1..ub-organizational-unit-name-length))
+
+pds-name INTEGER ::= 7
+
+PDSName ::= PrintableString (SIZE (1..ub-pds-name-length))
+
+physical-delivery-country-name INTEGER ::= 8
+
+PhysicalDeliveryCountryName ::= CHOICE {
+   x121-dcc-code NumericString (SIZE (ub-country-name-numeric-length)),
+   iso-3166-alpha2-code PrintableString
+                        (SIZE (ub-country-name-alpha-length)) }
+
+postal-code INTEGER ::= 9
+
+PostalCode ::= CHOICE {
+   numeric-code NumericString (SIZE (1..ub-postal-code-length)),
+   printable-code PrintableString (SIZE (1..ub-postal-code-length)) }
+
+physical-delivery-office-name INTEGER ::= 10
+
+PhysicalDeliveryOfficeName ::= PDSParameter
+
+physical-delivery-office-number INTEGER ::= 11
+
+PhysicalDeliveryOfficeNumber ::= PDSParameter
+
+extension-OR-address-components INTEGER ::= 12
+
+ExtensionORAddressComponents ::= PDSParameter
+
+physical-delivery-personal-name INTEGER ::= 13
+
+PhysicalDeliveryPersonalName ::= PDSParameter
+
+physical-delivery-organization-name INTEGER ::= 14
+
+PhysicalDeliveryOrganizationName ::= PDSParameter
+
+extension-physical-delivery-address-components INTEGER ::= 15
+
+ExtensionPhysicalDeliveryAddressComponents ::= PDSParameter
+
+unformatted-postal-address INTEGER ::= 16
+
+UnformattedPostalAddress ::= SET {
+   printable-address SEQUENCE SIZE (1..ub-pds-physical-address-lines) OF
+           PrintableString (SIZE (1..ub-pds-parameter-length)) OPTIONAL,
+   teletex-string TeletexString
+         (SIZE (1..ub-unformatted-address-length)) OPTIONAL }
+
+street-address INTEGER ::= 17
+
+StreetAddress ::= PDSParameter
+
+post-office-box-address INTEGER ::= 18
+
+PostOfficeBoxAddress ::= PDSParameter
+
+poste-restante-address INTEGER ::= 19
+
+PosteRestanteAddress ::= PDSParameter
+
+unique-postal-name INTEGER ::= 20
+
+UniquePostalName ::= PDSParameter
+
+local-postal-attributes INTEGER ::= 21
+
+LocalPostalAttributes ::= PDSParameter
+
+PDSParameter ::= SET {
+   printable-string PrintableString
+                (SIZE(1..ub-pds-parameter-length)) OPTIONAL,
+   teletex-string TeletexString
+                (SIZE(1..ub-pds-parameter-length)) OPTIONAL }
+
+extended-network-address INTEGER ::= 22
+
+ExtendedNetworkAddress ::= CHOICE {
+   e163-4-address SEQUENCE {
+        number [0] EXPLICIT NumericString (SIZE (1..ub-e163-4-number-length)),
+        sub-address [1] EXPLICIT NumericString
+                (SIZE (1..ub-e163-4-sub-address-length)) OPTIONAL },
+   psap-address [0] EXPLICIT PresentationAddress }
+
+PresentationAddress ::= SEQUENCE {
+        pSelector       [0] EXPLICIT OCTET STRING OPTIONAL,
+        sSelector       [1] EXPLICIT OCTET STRING OPTIONAL,
+        tSelector       [2] EXPLICIT OCTET STRING OPTIONAL,
+        nAddresses      [3] EXPLICIT SET SIZE (1..MAX) OF OCTET STRING }
+
+terminal-type  INTEGER ::= 23
+
+TerminalType ::= INTEGER {
+   telex (3),
+   teletex (4),
+   g3-facsimile (5),
+   g4-facsimile (6),
+   ia5-terminal (7),
+   videotex (8) } (0..ub-integer-options)
+
+--      Extension Domain-defined Attributes
+
+teletex-domain-defined-attributes INTEGER ::= 6
+
+TeletexDomainDefinedAttributes ::= SEQUENCE SIZE
+   (1..ub-domain-defined-attributes) OF TeletexDomainDefinedAttribute
+
+TeletexDomainDefinedAttribute ::= SEQUENCE {
+        type TeletexString
+               (SIZE (1..ub-domain-defined-attribute-type-length)),
+        value TeletexString
+               (SIZE (1..ub-domain-defined-attribute-value-length)) }
+
+--  specifications of Upper Bounds shall be regarded as mandatory
+--  from Annex B of ITU-T X.411 Reference Definition of MTS Parameter
+--  Upper Bounds
+
+--      Upper Bounds
+ub-name INTEGER ::=     32768
+ub-common-name  INTEGER ::=     64
+ub-locality-name        INTEGER ::=     128
+ub-state-name   INTEGER ::=     128
+ub-organization-name    INTEGER ::=     64
+ub-organizational-unit-name     INTEGER ::=     64
+ub-title        INTEGER ::=     64
+ub-match        INTEGER ::=     128
+
+ub-emailaddress-length INTEGER ::= 128
+
+ub-common-name-length INTEGER ::= 64
+ub-country-name-alpha-length INTEGER ::= 2
+ub-country-name-numeric-length INTEGER ::= 3
+ub-domain-defined-attributes INTEGER ::= 4
+ub-domain-defined-attribute-type-length INTEGER ::= 8
+ub-domain-defined-attribute-value-length INTEGER ::= 128
+ub-domain-name-length INTEGER ::= 16
+ub-extension-attributes INTEGER ::= 256
+ub-e163-4-number-length INTEGER ::= 15
+ub-e163-4-sub-address-length INTEGER ::= 40
+ub-generation-qualifier-length INTEGER ::= 3
+ub-given-name-length INTEGER ::= 16
+ub-initials-length INTEGER ::= 5
+ub-integer-options INTEGER ::= 256
+ub-numeric-user-id-length INTEGER ::= 32
+ub-organization-name-length INTEGER ::= 64
+ub-organizational-unit-name-length INTEGER ::= 32
+ub-organizational-units INTEGER ::= 4
+ub-pds-name-length INTEGER ::= 16
+ub-pds-parameter-length INTEGER ::= 30
+ub-pds-physical-address-lines INTEGER ::= 6
+ub-postal-code-length INTEGER ::= 16
+ub-surname-length INTEGER ::= 40
+ub-terminal-id-length INTEGER ::= 24
+ub-unformatted-address-length INTEGER ::= 180
+ub-x121-address-length INTEGER ::= 16
+
+-- Note - upper bounds on string types, such as TeletexString, are
+-- measured in characters.  Excepting PrintableString or IA5String, a
+-- significantly greater number of octets will be required to hold
+-- such a value.  As a minimum, 16 octets, or twice the specified upper
+-- bound, whichever is the larger, should be allowed for TeletexString.
+-- For UTF8String or UniversalString at least four times the upper
+-- bound should be allowed.
+
+
+
+END

@@ -1,0 +1,34 @@
+CATALOG {}
+DEFINITIONS IMPLICIT TAGS ::= -- assuming implicit tags, should try explicit too
+
+BEGIN
+
+-- SPC_PE_IMAGE_DATA
+SpcPEImageData ::= SEQUENCE {
+    flags       SpcPeImageFlags DEFAULT includeResources,
+    link        [0] EXPLICIT SpcLink OPTIONAL
+}
+
+SpcPeImageFlags ::= BIT STRING {
+    includeResources            (0),
+    includeDebugInfo            (1),
+    includeImportAddressTable   (2)
+}
+
+SpcLink ::= CHOICE {
+    url         [0]    IMPLICIT IA5String,
+    moniker     [1]    IMPLICIT SpcSerializedObject,
+    file        [2]    EXPLICIT SpcString
+}
+
+SpcSerializedObject ::= SEQUENCE {
+    classId     OCTET STRING, -- GUID
+    data        OCTET STRING  -- Binary structure
+}
+
+SpcString ::= CHOICE {
+    unicode     [0] IMPLICIT BMPString,
+    ascii       [1] IMPLICIT IA5String
+}
+
+END

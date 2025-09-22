@@ -1,0 +1,26 @@
+@subheading asn1_der_coding
+@anchor{asn1_der_coding}
+@deftypefun {int} {asn1_der_coding} (asn1_node_const @var{element}, const char * @var{name}, void * @var{ider}, int * @var{len}, char * @var{ErrorDescription})
+@var{element}: pointer to an ASN1 element
+
+@var{name}: the name of the structure you want to encode (it must be
+inside *POINTER).
+
+@var{ider}: vector that will contain the DER encoding. DER must be a
+pointer to memory cells already allocated.
+
+@var{len}: number of bytes of * @code{ider} :  @code{ider} [0].. @code{ider} [len-1], Initialy
+holds the sizeof of der vector.
+
+@var{ErrorDescription}: return the error description or an empty
+string if success.
+
+Creates the DER encoding for the NAME structure (inside *POINTER
+structure).
+
+@strong{Returns:} @code{ASN1_SUCCESS}  if DER encoding OK, @code{ASN1_ELEMENT_NOT_FOUND} 
+if  @code{name} is not a valid element, @code{ASN1_VALUE_NOT_FOUND}  if there
+is an element without a value, @code{ASN1_MEM_ERROR}  if the  @code{ider} vector isn't big enough and in this case  @code{len} will contain the
+length needed.
+@end deftypefun
+

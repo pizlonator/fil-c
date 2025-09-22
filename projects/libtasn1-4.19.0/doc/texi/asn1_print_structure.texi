@@ -1,0 +1,17 @@
+@subheading asn1_print_structure
+@anchor{asn1_print_structure}
+@deftypefun {void} {asn1_print_structure} (FILE * @var{out}, asn1_node_const @var{structure}, const char * @var{name}, int @var{mode})
+@var{out}: pointer to the output file (e.g. stdout).
+
+@var{structure}: pointer to the structure that you want to visit.
+
+@var{name}: an element of the structure
+
+@var{mode}: specify how much of the structure to print, can be
+@code{ASN1_PRINT_NAME} , @code{ASN1_PRINT_NAME_TYPE} ,
+@code{ASN1_PRINT_NAME_TYPE_VALUE} , or @code{ASN1_PRINT_ALL} .
+
+Prints on the  @code{out} file descriptor the structure's tree starting
+from the  @code{name} element inside the structure  @code{structure} .
+@end deftypefun
+
