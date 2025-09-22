@@ -64,7 +64,7 @@ enum source_mark_status {
 typedef struct KEY_PAIR {
     char *key;
     enum extra_type type;
-    intptr_t value;
+    void *value;
 } KEY_PAIR;
 
 typedef struct ELEMENT_LIST {

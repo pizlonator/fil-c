@@ -19,7 +19,7 @@
 #include "parser.h"
 
 static void
-add_associated_info_key (ASSOCIATED_INFO *a, char *key, intptr_t value,
+add_associated_info_key (ASSOCIATED_INFO *a, char *key, void *value,
                          enum extra_type type)
 {
   int i;
@@ -51,7 +51,7 @@ void
 add_extra_element (ELEMENT *e, char *key, ELEMENT *value)
 {
   add_associated_info_key (&e->extra_info, key,
-                           (intptr_t) value, extra_element);
+                           value, extra_element);
 }
 
 /* Add an extra key that is a reference to another element that is
@@ -62,14 +62,14 @@ void
 add_extra_element_oot (ELEMENT *e, char *key, ELEMENT *value)
 {
   add_associated_info_key (&e->extra_info,
-                           key, (intptr_t) value, extra_element_oot);
+                           key, value, extra_element_oot);
 }
 
 void
 add_info_element_oot (ELEMENT *e, char *key, ELEMENT *value)
 {
   add_associated_info_key (&e->info_info,
-                           key, (intptr_t) value, extra_element_oot);
+                           key, value, extra_element_oot);
 }
 
 /* Add an extra key that is a reference to the contents array of another
@@ -78,7 +78,7 @@ void
 add_extra_contents (ELEMENT *e, char *key, ELEMENT *value)
 {
   add_associated_info_key (&e->extra_info,
-                           key, (intptr_t) value, extra_contents);
+                           key, value, extra_contents);
 }
 
 /* Add an extra key that is a reference to the text field of another
@@ -86,7 +86,7 @@ add_extra_contents (ELEMENT *e, char *key, ELEMENT *value)
 void
 add_extra_text (ELEMENT *e, char *key, ELEMENT *value)
 {
-  add_associated_info_key (&e->extra_info, key, (intptr_t) value, extra_text);
+  add_associated_info_key (&e->extra_info, key, value, extra_text);
 }
 
 void
@@ -94,41 +94,41 @@ add_extra_misc_args (ELEMENT *e, char *key, ELEMENT *value)
 {
   if (!value) return;
   add_associated_info_key (&e->extra_info,
-                           key, (intptr_t) value, extra_misc_args);
+                           key, value, extra_misc_args);
 }
 
 void
 add_extra_string (ELEMENT *e, char *key, char *value)
 {
   add_associated_info_key (&e->extra_info, key,
-                           (intptr_t) value, extra_string);
+                           value, extra_string);
 }
 
 void
 add_info_string (ELEMENT *e, char *key, char *value)
 {
-  add_associated_info_key (&e->info_info, key, (intptr_t) value, extra_string);
+  add_associated_info_key (&e->info_info, key, value, extra_string);
 }
 
 void
 add_extra_string_dup (ELEMENT *e, char *key, char *value)
 {
   add_associated_info_key (&e->extra_info,
-                           key, (intptr_t) strdup (value), extra_string);
+                           key, strdup (value), extra_string);
 }
 
 void
 add_info_string_dup (ELEMENT *e, char *key, char *value)
 {
   add_associated_info_key (&e->info_info,
-                           key, (intptr_t) strdup (value), extra_string);
+                           key, strdup (value), extra_string);
 }
 
 void
 add_extra_integer (ELEMENT *e, char *key, long value)
 {
   add_associated_info_key (&e->extra_info,
-                           key, (intptr_t) value, extra_integer);
+                           key, (void *) value, extra_integer);
 }
 
 KEY_PAIR *
