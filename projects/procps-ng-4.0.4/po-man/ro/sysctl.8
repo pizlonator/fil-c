@@ -1,0 +1,182 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL 8 19.08.2023 procps\-ng "Administrare sistem"
+.SH NUME
+sysctl \- configurează parametrii nucleului în timpul rulării
+.SH REZUMAT
+\fBsysctl\fP [\fIopțiuni\fP] [\fIvariabilă\fP[\fB=\fP\fIvaloare\fP]] [...]
+.br
+\fBsysctl \-p\fP [\fIfișier\fP sau \fIexp_reg\fP] [...]
+.SH DESCRIERE
+\fBsysctl\fP este folosit pentru a modifica parametrii nucleului în timpul
+rulării.  Parametrii disponibili sunt cei enumerați în \fI/proc/sys/\fP.
+Procfs este necesar pentru suportul \fBsysctl\fP în Linux.  Puteți folosi
+\fBsysctl\fP atât pentru a citi, cât și pentru a scrie date \fIsysctl\fP.
+.SH PARAMETRI
+.TP 
+\fIvariabilă\fP
+Numele unei chei din care să citiți. Un exemplu este „kernel.ostype”.
+Separatorul „/” este de asemenea acceptat în locul unui „.”.
+.TP 
+\fIvariabilă\fP=\fIvaloare\fP
+Pentru a configura o cheie, utilizați forma \fIvariabilă\fP=\fIvaloare\fP unde
+\fIvariabilă\fP este cheia și \fIvaloare\fP este valoarea la care să o
+configurați.  Dacă valoarea conține ghilimele sau caracterele care sunt
+analizate de shell, poate fi necesar să includeți valoarea între ghilimele
+duble.
+.TP 
+\fB\-n\fP, \fB\-\-values\fP
+Utilizați această opțiune pentru a dezactiva afișarea numelui cheii atunci
+când se afișează valori.
+.TP 
+\fB\-e\fP, \fB\-\-ignore\fP
+Utilizați această opțiune pentru a ignora erorile legate de cheile
+necunoscute.
+.TP 
+\fB\-N\fP, \fB\-\-names\fP
+Utilizați această opțiune pentru a afișa numai numele.  Poate fi util cu
+shell\-uri care au o completare programabilă.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Utilizați această opțiune pentru a nu afișa valorile configurate la ieșirea
+standard.
+.TP 
+\fB\-w\fP, \fB\-\-write\fP
+Forțează toate argumentele să fie argumente de scriere și afișează o eroare
+dacă acestea nu pot fi analizate în acest mod.
+.TP 
+\fB\-p\fP[\fIFIȘIER\fP], \fB\-\-load\fP[=\fIFIȘIER\fP]
+Încărcați configurările \fIsysctl\fP din fișierul specificat sau
+\fI/etc/sysctl.conf\fP dacă nu este specificat niciunul.  Specificarea „\-” ca
+nume de fișier înseamnă citirea datelor de la intrarea standard.  Utilizarea
+acestei opțiuni va însemna că argumentele pentru \fBsysctl\fP sunt fișiere,
+care sunt citite în ordinea în care sunt specificate.  Argumentul fișier
+poate fi specificat ca expresie regulată.
+.TP 
+\fB\-a\fP, \fB\-\-all\fP
+Afișează toate valorile disponibile în prezent.
+.TP 
+\fB\-\-deprecated\fP
+Include parametrii învechiți în lista cu valori \fB\-\-all\fP.
+.TP 
+\fB\-b\fP, \fB\-\-binary\fP
+Afișează valoarea fără linie nouă.
+.TP 
+\fB\-\-system\fP
+Încarcă configurările din toate fișierele de configurare a sistemului.
+Consultați secțiunea \fBPRECEDENȚA FIȘIERELOR DE SISTEM\fP de mai jos.
+.TP 
+\fB\-r\fP, \fB\-\-pattern\fP \fImodel\fP
+Aplică doar configurările care se potrivesc cu \fImodel\fP.  Opțiunea
+\fI\-\-pattern\fP folosește sintaxa extinsă a expresiei regulate.
+.TP 
+\fB\-A\fP
+Alias de \fB\-a\fP
+.TP 
+\fB\-d\fP
+Alias al \fB\-h\fP
+.TP 
+\fB\-f\fP
+Alias de \fB\-p\fP
+.TP 
+\fB\-X\fP
+Alias de \fB\-a\fP
+.TP 
+\fB\-o\fP
+Nu face nimic, există pentru compatibilitatea cu BSD.
+.TP 
+\fB\-x\fP
+Nu face nimic, există pentru compatibilitatea cu BSD.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează acest mesaj de ajutor.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune și iese.
+.SH "PRECEDENȚA FIȘIERELOR DE SISTEM"
+Când se utilizează opțiunea \fB\-\-system\fP, \fBsysctl\fP va citi fișierele din
+directoarele din următoarea listă, în ordinea dată de sus în jos.  Odată ce
+un fișier cu un anumit nume de fișier este încărcat, orice fișier cu același
+nume din directoarele ulterioare este ignorat.
+
+/etc/sysctl.d/*.conf
+.br
+/run/sysctl.d/*.conf
+.br
+/usr/local/lib/sysctl.d/*.conf
+.br
+/usr/lib/sysctl.d/*.conf
+.br
+/lib/sysctl.d/*.conf
+.br
+/etc/sysctl.conf
+
+Toate fișierele de configurare sunt sortate în ordine lexicografică,
+indiferent de directorul în care se află . Fișierele de configurare pot fi
+fie complet înlocuite (prin a avea un nou fișier de configurare cu același
+nume într\-un director cu prioritate mai mare), fie parțial înlocuite (prin a
+avea un fișier de configurare care este ordonat ulterior).
+.SH EXEMPLE
+/sbin/sysctl \-a
+.br
+/sbin/sysctl \-n kernel.hostname
+.br
+/sbin/sysctl \-w kernel.domainname="example.com"
+.br
+/sbin/sysctl \-p/etc/sysctl.conf
+.br
+/sbin/sysctl \-a \-\-pattern forward
+.br
+/sbin/sysctl \-a \-\-pattern forward$
+.br
+/sbin/sysctl \-a \-\-pattern 'net.ipv4.conf.(eth|wlan)0.arp'
+.br
+/sbin/sysctl \-\-pattern '\[char94]net.ipv6' \-\-system
+.SH "PARAMETRI ÎNVECIȚI"
+Parametrii \fBbase_reachable_time\fP și \fBretrans_time\fP sunt învechiți.
+Comanda \fBsysctl\fP nu permite modificarea valorilor acestor parametri.
+Utilizatorii care insistă să folosească interfețe de nucleu depreciate ar
+trebui să introducă valori în sistemul de fișiere \fB/proc\fP prin alte
+mijloace.  De exemplu:
+.PP
+echo 256 > /proc/sys/net/ipv6/neigh/eth0/base_reachable_time
+.SH FIȘIERE
+\fI/proc/sys\fP
+.br
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+.SH "CONSULTAȚI ȘI"
+\fBproc\fP(5), \fBsysctl.conf\fP(5), \fBregex\fP(7)
+.SH AUTOR
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

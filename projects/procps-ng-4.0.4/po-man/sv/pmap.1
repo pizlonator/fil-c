@@ -1,0 +1,99 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PMAP 1 2020\-06\-04 procps\-ng Användarkommandon
+.SH NAMN
+pmap — rapportera minneskartan över en process
+.SH SYNOPSIS
+\fBpmap\fP [\fIflaggor\fP] \fIpid\fP […]
+.SH BESKRIVNING
+Kommandot \fBpmap\fP rapporterar minneskartan över en process eller processer.
+.SH FLAGGOR
+.TP 
+\fB\-x\fP, \fB\-\-extended\fP
+Visa det utökade formatet.
+.TP 
+\fB\-d\fP, \fB\-\-device\fP
+Visa enhetsformatet.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Visa inte några huvud\- och fotrader.
+.TP 
+\fB\-A\fP, \fB\-\-range\fP \fIlåg\fP,\fIhög\fP
+Begränsa resultaten till adressintervallet från \fIlåg\fP till \fIhög\fP.
+Observera att argumenten låg och hög är en enda sträng separerad med komma.
+.TP 
+\fB\-X\fP
+Visa ännu fler detaljer än flaggan \fB\-x\fP.  VARNING: formatet ändras i
+enlighet med \fI/proc/PID/smaps\fP
+.TP 
+\fB\-XX\fP
+Visa allt kärnan tillhandahåller
+.TP 
+\fB\-p\fP, \fB\-\-show\-path\fP
+Visa den fullständiga sökvägen till filer i mappningskolumnen
+.TP 
+\fB\-c\fP, \fB\-\-read\-rc\fP
+Läs standardkonfigurationen
+.TP 
+\fB\-C\fP, \fB\-\-read\-rc\-from\fP \fIfil\fP
+Läs konfigurationen från \fIfil\fP
+.TP 
+\fB\-n\fP, \fB\-\-create\-rc\fP
+Skapa en ny standardkonfiguration
+.TP 
+\fB\-N\fP, \fB\-\-create\-rc\-to\fP \fIfil\fP
+Skapa en ny konfiguration i \fIfil\fP
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa hjälptext och avsluta.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation och avsluta.
+.SH SLUTSTATUS
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Gick bra.
+.TP 
+\fB1\fP
+Misslyckades.
+.TP 
+\fB42\fP
+Hittade inte alla efterfrågade processer.
+.PD
+.RE
+.SH "SE ÄVEN"
+\fBps\fP(1), \fBpgrep\fP(1)
+.SH STANDARDER
+Inga standarder är tillämpliga, men \fBpmap\fP liknar väldigt mycket ett
+SunOS\-kommando.
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

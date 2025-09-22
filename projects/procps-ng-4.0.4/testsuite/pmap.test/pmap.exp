@@ -1,0 +1,106 @@
+#
+# Dejagnu tests for pgrep - part of procps
+#
+set pmap "${topdir}src/pmap"
+set mypid [pid]
+
+set pmap_procname "${mypid}:\\s+\\S+\[^\\r\]+\\s+"
+set pmap_initname "1:\\s+\\S+\[^\\r\]+\\s+"
+set pmap_std_header $pmap_procname
+set pmap_device_header "${pmap_procname}Address\\s+Kbytes\\s+Mode\\s+Offset\\s+Device\\s+Mapping\\s+"
+set pmap_ext_header "${pmap_procname}Address\\s+Kbytes\\s+RSS\\s+Dirty\\s+Mode\\s+Mapping\\s+"
+set pmap_generic_header "${pmap_procname}\\s+\(?:\[A-Z\]\[a-z\]+ +\)+"
+
+set pmap_std_items "\(\[0-9a-f\]+\\s+\\d+K \[rwx-\]{5}\\s+\\S+\[^\\r\]+\\s*\)+"
+set pmap_device_items "\(\[0-9a-f\]+\\s+\\d+ \[rwx-\]{5}\\s+\[0-9a-f\]+\\s+\[0-9a-f\]{3}:\[0-9a-f\]{5}\\s+\\S+\[^\\r\]+\\s*\)+"
+set pmap_ext_items "\(\[0-9a-f\]+\\s+\\d+\\s+\\d+\\s+\\d+ \[rwx-\]{5}\\s+\\S+\[^\\r\]+\\s*\)+"
+
+set pmap_std_footer "total\\s+\\d+K\\s*\$"
+set pmap_device_footer "mapped:\\s+\\d+K\\s+writeable\/private:\\s+\\d+K\\s+shared:\\s+\\d+K\\s*\$"
+set pmap_ext_footer "\[ -\]+\\s+total kB\\s+\\d+(\\s+\[\\d-\]+){2,3}\\s*\$"
+
+set test "pmap with no arguments"
+spawn $pmap
+#expect_pass "$test" "^\(lt-\)\?pmap: argument missing"
+expect_pass "$test" "Usage:\\s+\(lt-\)?pmap \\\[options\\\] PID \\\[PID \.\.\.\\\]"
+
+set test "pmap standard output"
+spawn $pmap $mypid
+expect_table $test $pmap_std_header $pmap_std_items $pmap_std_footer
+
+set test "pmap standard output with quiet"
+spawn $pmap -q $mypid
+expect_table $test $pmap_procname $pmap_std_items "\$"
+
+set test "pmap device output"
+spawn $pmap -d $mypid
+expect_table $test $pmap_device_header $pmap_device_items $pmap_device_footer
+
+
+set test "pmap device output quiet (dq)"
+spawn $pmap -dq $mypid
+expect_table $test $pmap_procname $pmap_device_items "\$"
+
+set test "pmap device output quiet (qd)"
+spawn $pmap -qd $mypid
+expect_table $test $pmap_procname $pmap_device_items "\$"
+
+if  { [ file readable "/proc/self/smaps" ] == 0 } {
+    unsupported "Skipping test which require pmap to access /proc/<pid>/smaps, because kernel seems to be compiled without CONFIG_PROC_PAGE_MONITOR."
+} else {
+    set test "pmap extended output"
+    spawn $pmap -x $mypid
+    expect_table $test $pmap_ext_header $pmap_ext_items $pmap_ext_footer
+
+    # -X and -XX have no real format as its dependent on smaps
+    set test "pmap extra extended output"
+    spawn $pmap -X $mypid
+    expect_table $test $pmap_generic_header "\[^=\]+" "\[= \]+"
+
+    set test "pmap double extra extended output"
+    spawn $pmap -XX $mypid
+    expect_table $test $pmap_generic_header "\[^=\]+" "\[= \]+"
+
+    set test "pmap X with unreachable process"
+    spawn $pmap -X 1
+    expect_pass $test "$pmap_initname\$"
+
+    set test "pmap XX with unreachable process"
+    spawn $pmap -XX 1
+    expect_pass $test "$pmap_initname\$"
+}
+
+
+proc expect_twice_total { test } {
+    set totkb 0
+    expect {
+        -re "\r\n\\s+(\\d+)\[0-9 \]*KB" {
+            set totkb $expect_out(1,string)
+            expect {
+                -re "\r\n\\s+$totkb\[0-9 \]*KB" { pass "$test" }
+                eof { fail "$test" }
+                timeout { fail "$test" }
+            }
+        }
+        eof { fail "$test" }
+        timeout { fail "$test" }
+    }
+}
+
+set test "pmap X pid pid has same total"
+spawn $pmap -X $mypid $mypid
+expect_twice_total "$test"
+
+set test "pmap XX pid pid has same total"
+spawn $pmap -XX $mypid $mypid
+expect_twice_total "$test"
+
+set test "pmap finding shm"
+make_testshm_proc
+if { $shmid == "" } {
+    unsupported "$test - could not start test_shm"
+} else {
+    spawn $pmap $testshmproc_pid
+    expect_pass $test "\[ shmid=0x$shmid \]"
+}
+kill_testshm_proc

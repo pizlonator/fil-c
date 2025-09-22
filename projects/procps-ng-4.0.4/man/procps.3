@@ -1,0 +1,185 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.TH PROCPS 3 "August 2022" "libproc2"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAME
+procps \- API to access system level information in the /proc filesystem
+
+.SH SYNOPSIS
+Five distinct interfaces are represented in this synopsis and named after
+the files they access in the /proc pseudo filesystem:
+.BR diskstats ", " meminfo ", " slabinfo ", " stat " and " vmstat .
+
+.nf
+.RS +4
+#include <libproc2/\fBnamed_interface\fR.h>
+
+.RI "int\fB procps_new  \fR (struct info **" info );
+.RI "int\fB procps_ref  \fR (struct info  *" info );
+.RI "int\fB procps_unref\fR (struct info **" info );
+
+.RB "struct result *" procps_get " ("
+.RI "    struct info *" info ,
+.RI "[   const char *" name ",      ]   \fBdiskstats\fR api only"
+.RI "    enum item " item );
+
+.RB "struct stack *" procps_select " ("
+.RI "    struct info *" info ,
+.RI "[   const char *" name ",      ]   \fBdiskstats\fR api only"
+.RI "    enum item *" items ,
+.RI "    int " numitems );
+
+.RB "struct reaped *" procps_reap " ("
+.RI "    struct info *" info ,
+.RI "[   enum reap_type " what ",   ]   \fBstat\fR api only"
+.RI "    enum item *" items ,
+.RI "    int " numitems );
+
+.RB "struct stack **" procps_sort " ("
+.RI "    struct info *" info ,
+.RI "    struct stack *" stacks [],
+.RI "    int " numstacked ,
+.RI "    enum item " sortitem ,
+.RI "    enum sort_order " order );
+
+.fi
+
+The above functions and structures are generic but the specific
+\fBnamed_interface\fR would also be part of any identifiers.
+For example, `procps_new' would actually be `procps_\fBmeminfo\fR_new'
+and `info' would really be `\fBdiskstats\fR_info', etc.
+
+The same \fBnamed_interface\fR is used in each header file name with
+an appended `.h' suffix.
+
+Link with \fI\-lproc2\fP.
+
+.SH DESCRIPTION
+.SS Overview
+Central to these interfaces is a simple `result'
+structure reflecting an `item' plus its value (in a union
+with standard C language types as members).
+All `result' structures are automatically allocated and
+provided by the library.
+
+By specifying an array of `items', these structures can be
+organized as a `stack', potentially yielding many results
+with a single function call.
+Thus, a `stack' can be viewed as a variable length record
+whose content and order is determined solely by the user.
+
+As part of each interface there are two unique enumerators.
+The `noop' and `extra' items exist to hold user values.
+They are never set by the library, but the `extra'
+result will be zeroed with each library interaction.
+
+The \fBnamed_interface\fR header file will be an essential
+document during user program development.
+There you will find available items, their return type
+(the `result' struct member name) and the source for such values.
+Additional enumerators and structures are also documented there.
+
+.SS Usage
+The following would be a typical sequence of calls to
+these interfaces.
+
+.nf
+.RB "1. " procps_new()
+.RB "2. " procps_get() ", " procps_select() " or " procps_reap()
+.RB "3. " procps_unref()
+.fi
+
+The \fBget\fR function is used to retrieve a `result' structure for
+a single `item'.
+Alternatively, a \fBGET\fR macro is available when only the return
+value is of interest.
+
+The \fBselect\fR function can retrieve multiple `result' structures
+in a single `stack'.
+
+For unpredictable variable outcomes, the \fBdiskstats\fR, \fBslabinfo\fR
+and \fBstat\fR interfaces export a \fBreap\fR function.
+It is used to retrieve multiple `stacks' each containing multiple
+`result' structures.
+Optionally, a user may choose to \fBsort\fR those results.
+
+To exploit any `stack', and access individual `result' structures,
+a \fIrelative_enum\fR is required as shown in the \fBVAL\fR macro
+defined in the header file.
+Such values could be hard coded as: 0 through numitems-1.
+However, this need is typically satisfied by creating your own
+enumerators corresponding to the order of the `items' array.
+
+.SS Caveats
+The \fBnew\fR, \fBref\fR, \fBunref\fR, \fBget\fR and \fBselect\fR
+functions are available in all five interfaces.
+
+For the \fBnew\fR and \fBunref\fR functions, the address of an \fIinfo\fR
+struct pointer must be supplied.
+With \fBnew\fR it must have been initialized to NULL.
+With \fBunref\fR it will be reset to NULL if the reference count reaches zero.
+
+In the case of the \fBdiskstats\fR interface, a \fIname\fR parameter
+on the \fBget\fR and \fBselect\fR functions identifies a disk or
+partition name
+
+For the \fBstat\fR interface, a \fIwhat\fR parameter on the \fBreap\fR
+function identifies whether data for just CPUs or both CPUs and NUMA
+nodes is to be gathered.
+
+When using the \fBsort\fR function, the parameters \fIstacks\fR and
+\fInumstacked\fR would normally be those returned in the `reaped'
+structure.
+
+.SH RETURN VALUE
+.SS Functions Returning an `int'
+An error will be indicated by a negative number that
+is always the inverse of some well known errno.h value.
+
+Success is indicated by a zero return value.
+However, the \fBref\fR and \fBunref\fR functions return
+the current \fIinfo\fR structure reference count.
+
+.SS Functions Returning an `address'
+An error will be indicated by a NULL return pointer
+with the reason found in the formal errno value.
+
+Success is indicated by a pointer to the named structure.
+
+.SH DEBUGGING
+To aid in program development, there is a provision that can
+help ensure `result' member references agree with library
+expectations.
+It assumes that a supplied macro in the header file is
+used to access the `result' value.
+
+This feature can be activated through either of the following
+methods and any discrepancies will be written to \fBstderr\fR.
+
+.IP 1) 3
+Add CFLAGS='-DXTRA_PROCPS_DEBUG' to any other ./configure
+options employed.
+
+.IP 2) 3
+Add #include <procps/xtra-procps-debug.h> to any program
+\fIafter\fR the named interface includes.
+
+.PP
+This verification feature incurs substantial overhead.
+Therefore, it is important that it \fInot\fR be activated
+for a production/release build.
+
+.SH SEE ALSO
+.BR procps_misc (3),
+.BR procps_pids (3),
+.BR proc (5).

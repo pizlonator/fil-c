@@ -1,0 +1,131 @@
+#
+# Dejagnu tests for pgrep - part of procps
+#
+set mypid [pid]
+set not_ppid [ expr { $mypid + 1 } ]
+set pgrep "${topdir}src/pgrep"
+set uid [ exec id -u ]
+set not_uid [ expr { $uid + 1 } ]
+set gid [ exec id -g ]
+set not_gid [ expr { $gid + 1 } ]
+set ps "${topdir}src/ps/pscommand"
+set tty [ get_tty ]
+
+set test "pgprep with no arguments"
+spawn $pgrep
+expect_pass "$test" "^\(lt-\)\?pgrep: no matching criteria specified\\s*"
+
+make_testproc
+
+set testproc_len [ string length $testproc_comm ]
+set testproc_trim [ string range $testproc_comm 0 [ expr { $testproc_len - 2 } ] ]
+set testproc1_sid [ string trim [ exec $ps --no-headers -o sid $testproc1_pid ] ]
+set not_testproc1_sid [ expr { $testproc1_sid + 1 } ]
+
+set test "pgrep find both test pids"
+spawn $pgrep $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+# In Debian only
+set test "pgrep counts 2 test pids"
+spawn $pgrep -c $testproc_comm
+expect_pass "$test" "^2\\s*"
+
+set test "pgrep with : delimiter"
+spawn $pgrep -d : $testproc_comm
+expect_pass "$test" "^${testproc1_pid}:${testproc2_pid}\\s*$"
+
+set test "pgrep match against full process name"
+spawn $pgrep -f "$testproc_path\\s+$testproc_arg_str"
+expect_pass "$test" "^$testproc1_pid\\s*$"
+
+set test "pgrep with matching gid"
+spawn $pgrep -G $gid $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep with not matching gid"
+spawn $pgrep -G $not_gid $testproc_comm
+expect_blank $test
+
+set test "pgrep with process name"
+spawn $pgrep -l $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc_comm\\s+$testproc2_pid\\s+$testproc_comm\\s*$"
+
+set test "pgrep with full command line"
+spawn $pgrep -af "$testproc_path$"
+expect_pass "$test" "^$testproc2_pid\\s+$testproc_path\\s*$"
+
+set test "pgrep find newest test pid"
+spawn $pgrep -n $testproc_comm
+expect_pass "$test" "^$testproc2_pid\\s*$"
+
+set test "pgrep find oldest test pid"
+spawn $pgrep -o $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s*$"
+
+set test "pgrep matches with parent pid"
+spawn $pgrep -P $mypid $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep doesn't match with bogus parent pid"
+spawn $pgrep -P $not_ppid $testproc_comm
+expect_blank "$test"
+
+set test "pgrep matches with its own sid"
+spawn $pgrep -s $testproc1_sid $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep doesn't match with bogus sid"
+spawn $pgrep -s $not_testproc1_sid $testproc_comm
+expect_blank "$test"
+
+set test1 "pgrep matches on tty"
+set test2 "pgrep doesn't match on tty and wrong runstate"
+if { $tty == "" } {
+  untested "$test1"
+  untested "$test2"
+} else {
+    spawn $pgrep -t $tty $testproc_comm
+    expect_pass "$test1" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+    spawn $pgrep -t $tty -r D $testproc_comm
+    expect_blank "$test2"
+}
+
+set test "pgrep doesn't match with bogus tty"
+spawn $pgrep -t glass $testproc_comm
+expect_blank "$test"
+
+set test "pgrep with matching euid"
+spawn $pgrep -u $uid $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep with not matching euid"
+spawn $pgrep -u $not_uid $testproc_comm
+expect_blank $test
+
+set test "pgrep with matching uid"
+spawn $pgrep -U $uid $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep with not matching uid"
+spawn $pgrep -U $not_uid $testproc_comm
+expect_blank $test
+
+set test "pgrep matches on substring"
+spawn $pgrep $testproc_trim
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep matches full string with exact"
+spawn $pgrep -x $testproc_comm
+expect_pass "$test" "^$testproc1_pid\\s+$testproc2_pid\\s*$"
+
+set test "pgrep does not match substring with exact"
+spawn $pgrep -x $testproc_trim
+expect_blank $test
+
+set test "pgrep with long non-matching pattern gives warning"
+spawn $pgrep gnome-session-bi
+expect_pass "$test" "pattern that searches for process name longer than 15 characters will result in zero matches"
+
+# Cleanup
+kill_testproc

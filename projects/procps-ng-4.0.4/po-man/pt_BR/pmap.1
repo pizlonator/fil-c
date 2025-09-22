@@ -1,0 +1,96 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PMAP 1 2020\-06\-04 procps\-ng "Comandos de usuário"
+.SH NOME
+pmap \- relata mapa de memória de um processo
+.SH SINOPSE
+\fBpmap\fP [\fIopções\fP] \fIpid\fP [...]
+.SH DESCRIÇÃO
+O comando \fBpmap\fP relata o mapa de memória de um processo ou processos.
+.SH OPÇÕES
+.TP 
+\fB\-x\fP, \fB\-\-extended\fP
+Mostra o formato estendido.
+.TP 
+\fB\-d\fP, \fB\-\-device\fP
+Mostra o formato do dispositivo.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Não exibe algumas linhas de cabeçalho ou rodapé.
+.TP 
+\fB\-A\fP, \fB\-\-range\fP \fIbaixo\fP,\fIalto\fP
+Limita os resultados ao intervalo dado de endereços \fIbaixo\fP e \fIalto\fP. Note
+que os argumentos baixo e alto são strings separadas por vírgula.
+.TP 
+\fB\-X\fP
+Mostra ainda mais detalhes que a opção \fB\-x\fP. AVISO: alterações de formato
+conforme \fI/proc/PID/smaps\fP
+.TP 
+\fB\-XX\fP
+Mostra tudo que o kernel fornece
+.TP 
+\fB\-p\fP, \fB\-\-show\-path\fP
+Mostra caminho completo aos arquivos na coluna de mapeamento
+.TP 
+\fB\-c\fP, \fB\-\-read\-rc\fP
+Lê a configuração padrão
+.TP 
+\fB\-C\fP, \fB\-\-read\-rc\-from\fP \fIarquivo\fP
+Lê a configuração a partir do \fIarquivo\fP
+.TP 
+\fB\-n\fP, \fB\-\-create\-rc\fP
+Cria um novo configuração padrão
+.TP 
+\fB\-N\fP, \fB\-\-create\-rc\-to\fP \fIarquivo\fP
+Cria uma nova configuração para \fIarquivo\fP
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Exibe um texto de ajuda e sai.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão e sai.
+.SH "STATUS DE SAÍDA"
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Sucesso.
+.TP 
+\fB1\fP
+Falha.
+.TP 
+\fB42\fP
+Não encontrou todos os processos solicitados.
+.PD
+.RE
+.SH "VEJA TAMBÉM"
+\fBps\fP(1), \fBpgrep\fP(1)
+.SH PADRÕES
+Nenhum padrão aplicável, mas \fBpmap\fP se parece muito com um comando do
+SunOS.
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

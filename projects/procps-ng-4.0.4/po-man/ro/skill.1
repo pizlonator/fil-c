@@ -1,0 +1,116 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2006 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SKILL 1 19.08.2023 procps\-ng "Comenzi utilizator"
+.SH NUME
+skill, snice – trimite un semnal sau raportează starea procesului
+.SH REZUMAT
+\fBskill\fP [\fIsemnal\fP] [\fIopțiuni\fP] \fIexpresie\fP
+.br
+\fBsnice\fP [\fInouă_prioritate\fP] [\fIopțiuni\fP] \fIexpresie\fP
+.SH DESCRIERE
+Aceste instrumente sunt învechite și neportabile.  Sintaxa comenzii este
+prost definită.  Luați în considerare utilizarea comenzilor \fBkillall\fP,
+\fBpkill\fP și \fBpgrep\fP.
+.PP
+Semnalul implicit pentru \fBskill\fP este \fITERM\fP. Folosiți opțiunile „\fB\-l\fP
+sau \fB\-L\fP pentru a lista semnalele disponibile.  Printre cele mai utile
+semnale, sunt: HUP, INT, KILL, STOP, CONT și 0.  Semnalele pot fi
+specificate în trei moduri: \fB\-9\fP, \fB\-SIGKILL\fP și \fB\-KILL\fP.
+.PP
+Prioritatea implicită pentru \fBsnice\fP este +4.  Numerele de prioritate
+variază de la +20 (cel mai lent) la \-20 (cel mai rapid).  Numerele cu
+prioritate negativă sunt limitate la utilizatorii administrativi.
+.SH OPȚIUNI
+.TP 
+\fB\-f\fP, \fB\-\-fast\fP
+Modul rapid.  Această opțiune nu a fost implementată.
+.TP 
+\fB\-i\fP, \fB\-\-interactive\fP
+Utilizare interactivă.  Vi se va solicita să aprobați fiecare acțiune.
+.TP 
+\fB\-l\fP, \fB\-\-list\fP
+Listează toate numele semnalelor.
+.TP 
+\fB\-L\fP, \fB\-table\fP
+Listează toate numele semnalelor într\-un tabel ordonat.
+.TP 
+\fB\-n\fP, \fB\-\-no\-action\fP
+Nicio acțiune; efectuează o simulare a evenimentelor care ar avea loc, dar
+nu schimbă de fapt sistemul.
+.TP 
+\fB\-v\fP, \fB\-\-verbose\fP
+Informații detaliate; explică ce se face.
+.TP 
+\fB\-w\fP, \fB\-\-warnings\fP
+Activează avertismentele. Această opțiune nu a fost implementată.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează acest mesaj de ajutor.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișați informațiile despre versiune.
+.PD
+.SH "OPȚIUNI DE SELECTARE A PROCESULUI"
+Criteriile de selecție pot fi: terminal, user, pid, command.  Opțiunile de
+mai jos pot fi utilizate pentru a asigura o interpretare corectă.
+.TP 
+\fB\-t\fP, \fB\-\-tty\fP \fItty\fP
+Următoarea expresie este un terminal (tty sau pty).
+.TP 
+\fB\-u\fP, \fB\-\-user\fP \fIutilizator\fP
+Următoarea expresie este un nume de utilizator.
+.TP 
+\fB\-p\fP, \fB\-\-pid\fP \fIpid\fP
+Următoarea expresie este un număr de identificare a procesului.
+.TP 
+\fB\-c\fP, \fB\-\-command\fP \fIcomanda\fP
+Următoarea expresie este un nume de comandă.
+.TP 
+\fB\-\-ns\fP \fIpid\fP
+Potrivește procesele care aparțin aceluiași spațiu de nume ca pid.
+.TP 
+\fB\-\-nslist \fP\fIns\/\fP,\,\fI...\/\fP
+listează spațiile de nume care vor fi luate în considerare pentru opțiunea
+\fB\-\-ns\fP.  Spațiile de nume disponibile, sunt: ipc, mnt, net, pid, user, uts.
+.PD
+.SH SEMNALE
+Comportamentul semnalelor este explicat în pagina de manual \fBsignal\fP(7).
+.SH EXEMPLE
+.TP 
+\fBsnice \-c seti \-c crack +7\fP
++Încetinește comenzile \fBseti\fP și \fBcrack\fP.
+.TP 
+\fBskill \-KILL \-t /dev/pts/*\fP
+Omoară sesiunile de utilizator pe dispozitivele PTY.
+.TP 
+\fBskill \-STOP \-u viro \-u lm \-u davem\fP
+Oprește trei utilizatori.
+.SH "CONSULTAȚI ȘI"
+\fBkill\fP(1), \fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1),
+\fBrenice\fP(1), \fBsignal\fP(7)
+.SH STANDARDE
+Nu este respectat niciun standard.
+.SH AUTOR
+.MT albert@users.sf.net
+Albert Cahalan
+.ME
+a scris «skill» și «snice»
+în 1999 pentru a înlocui versiunile care nu erau libere.
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

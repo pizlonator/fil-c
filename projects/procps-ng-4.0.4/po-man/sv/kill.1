@@ -1,0 +1,95 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KILL 1 2023\-01\-16 procps\-ng Användarkommandon
+.SH NAMN
+kill — skicka en signal till en process
+.SH SYNOPSIS
+\fBkill\fP [flaggor] <pid> […]
+.SH BESKRIVNING
+Standardsignalen för kill är TERM.  Använd \fB\-l\fP eller \fB\-L\fP för att lista
+tillgängliga signaler.  Särskilt användbara signaler inkluderar HUP, INT,
+KILL, STOP, CONT och 0.  Alternativa signaler kan anges på tre sätt: \fB\-9\fP,
+\fB\-SIGKILL\fP eller \fB\-KILL\fP.  Negativa PID\-värden kan användas för att välja
+hela processgrupper; se kolumnen PGID i utdata från kommandot ps.  En PID på
+\fB\-1\fP är speciell; den indikerar alla processer utom kill\-processen själv
+och init.
+.SH FLAGGOR
+.TP 
+\fB<pid> […]\fP
+Skicka signal till varje listad <pid>.
+.TP 
+\fB\-<signal>\fP
+.TQ
+\fB\-s <signal>\fP
+.TQ
+\fB\-\-signal <signal>\fP
+Ange den \fBsignal\fP som skall skickas.  Signalen kan anges genom att använda
+namn eller nummer.  Beteendet hos signaler beskrivs i manualsidan
+\fBsignal\fP(7).
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIvärde\fP
+Använd \fBsigqueue\fP(3) istället för \fBkill\fP(2) och värdeargumentet används
+för att ange ett heltal att skickas med signalen. Om den mottagande
+processen har installerat en hanterare för denna signal med flaggan
+SA_SIGINFO till \fBsigaction\fP(2) så kan den hämta denna data via fältet
+si_value i posten siginfo_t.
+.TP 
+\fB\-l\fP, \fB\-\-list\fP [\fIsignal\fP]
+Lista signalnamn.  Denna flagga kan ta ett argument, vilket kommer
+konvertera signalnummer till signalnamn, eller vice versa.
+.TP 
+\fB\-L\fP,\fB\ \-\-table\fP
+Lista signalnamn i en trevlig tabell.
+.TP 
+.PD
+.SH OBSERVERA
+Ditt skal (kommandoradstolk) kan ha ett inbyggt kill\-kommando.  Du kan
+behöva köra kommandot som beskrivs här som /bin/kill för att lösa upp
+konflikten.
+.SH EXEMPEL
+.TP 
+\fBkill \-9 \-1\fP
+Döda alla processer du kan döda.
+.TP 
+\fBkill \-l 11\fP
+Översätt nummer 11 till ett signalnamn.
+.TP 
+\fBkill \-L\fP
+Lista de tillgängliga signalvalen i en trevlig tabell.
+.TP 
+\fBkill 123 543 2341 3453\fP
+Skicka standardsignalen, SIGTERM, till alla dessa processer.
+.SH "SE ÄVEN"
+\fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1), \fBrenice\fP(1),
+\fBsignal\fP(7), \fBsigqueue\fP(3), \fBskill\fP(1)
+.SH STANDARDER
+Detta kommand uppfyller tillämpliga standarder. Flaggan \fB\-L\fP är
+Linux\-specifik.
+.SH UPPHOVSMAN
+.UR albert@users.sf.net
+Albert Cahalan
+.UE
+skrev kill 1999 för att
+ersätta en version i bsdutils som inte följde standarder. Den i util\-linux
+kan dessuotom fungera korrekt.
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

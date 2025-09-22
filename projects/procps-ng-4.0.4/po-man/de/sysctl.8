@@ -1,0 +1,181 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL 8 "19. August 2023" procps\-ng System\-Administration
+.SH BEZEICHNUNG
+sysctl \- Kernelparameter zur Laufzeit konfigurieren
+.SH ÜBERSICHT
+\fBsysctl\fP [\fIOptionen\fP] [\fIVariable\fP[\fB=\fP\fIWert\fP]] […]
+.br
+\fBsysctl \-p\fP [\fIDatei\fP oder \fIregulärer_Ausdruck\fP] […]
+.SH BESCHREIBUNG
+\fBsysctl\fP wird dazu verwendet, Kernelparameter zur Laufzeit zu ändern. Die
+verfügbaren Parameter sind unter \fI/proc/sys/\fP aufgelistet. Für die
+\fBsysctl\fP\-Unterstützung in Linux ist Procfs notwendig. Sie können \fBsysctl\fP
+sowohl zum Lesen als auch zum Schreiben von Sysctl\-Daten verwenden.
+.SH PARAMETER
+.TP 
+\fIVariable\fP
+bezeichnet den Namen des Schlüssels, aus dem gelesen werden soll. Ein
+Beispiel ist kernel.ostype. Anstelle von ».« wird auch »/« als Trenner
+akzeptiert.
+.TP 
+\fIVariable\fP=\fIWert\fP
+Um einen Schlüssel zu setzen, verwenden Sie die Form \fIVariable\fP=\fIWert\fP,
+wobei die \fIVariable\fP der Schlüssel ist und \fIWert\fP der Wert, auf den er
+gesetzt werden soll. Wenn der Wert Anführungszeichen oder Zeichen enthält,
+die von der Shell ausgewertet werden, müssen Sie den Wert in doppelte
+Anführungszeichen (") einschließen.
+.TP 
+\fB\-n\fP, \fB\-\-values\fP
+deaktiviert die Ausgabe des Schlüsselnamens, wenn Werte ausgegeben werden.
+.TP 
+\fB\-e\fP, \fB\-\-ignore\fP
+ignoriert Fehlermeldungen über unbekannte Schlüssel.
+.TP 
+\fB\-N\fP, \fB\-\-names\fP
+gibt nur die Namen aus. Dies könnte mit Shells nützlich sein, die über eine
+programmierbare Vervollständigung verfügen.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+bewirkt, dass die gesetzten Werte nicht in die Standardausgabe geschrieben
+werden.
+.TP 
+\fB\-w\fP, \fB\-\-write\fP
+erzwingt, dass alle Argumente Schreibargumente sind und gibt einen Fehler
+aus, wenn die Argumente nicht nach dieser Vorgabe ausgewertet werden können.
+.TP 
+\fB\-p\fP[\fIDATEI\fP], \fB\-\-load\fP[=\fIDATEI\fP]
+lädt \fBsysctl\fP\-Einstellungen aus der angegebenen Datei oder aus
+\fI/etc/sysctl.conf\fP, falls keine Datei angegeben ist. Die Angabe von \fB\-\fP
+als Dateiname bewirkt, dass die Daten aus der Standardeingabe gelesen
+werden. Mit dieser Option sieht \fBsysctl\fP Argumente als Dateien an, die in
+der Reihenfolge gelesen werden, in der sie angegeben sind. Das
+Datei\-Argument kann als regulärer Ausdruck angegeben werden.
+.TP 
+\fB\-a\fP, \fB\-\-all\fP
+zeigt alle aktuell verfügbaren Werte an.
+.TP 
+\fB\-\-deprecated\fP
+schließt veraltete Parameter in die Auflistung der Werte mit \fB\-\-all\fP ein.
+.TP 
+\fB\-b\fP, \fB\-\-binary\fP
+gibt Werte ohne Zeilenumbrüche aus.
+.TP 
+\fB\-\-system\fP
+lädt Einstellungen aus allen Systemkonfigurationsdateien. Siehe \fBRANGFOLGE DER SYSTEMDATEIEN\fP unten.
+.TP 
+\fB\-r\fP, \fB\-\-pattern\fP \fIMuster\fP
+wendet nur Einstellungen an, die dem angegebenen \fIMuster\fP entsprechen. Das
+\fIMuster\fP kann ein erweiterter regulärer Ausdruck sein.
+.TP 
+\fB\-A\fP
+Alias für \fB\-a\fP
+.TP 
+\fB\-d\fP
+Alias für \fB\-h\fP
+.TP 
+\fB\-f\fP
+Alias für \fB\-p\fP
+.TP 
+\fB\-X\fP
+Alias für \fB\-a\fP
+.TP 
+\fB\-o\fP
+bewirkt nichts; ist nur zwecks BSD\-Kompatibilität vorhanden.
+.TP 
+\fB\-x\fP
+bewirkt nichts; ist nur zwecks BSD\-Kompatibilität vorhanden.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt einen Hilfetext an und beendet das Programm.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.SH "RANGFOLGE DER SYSTEMDATEIEN"
+Wenn Sie die Option \fB\-\-system\fP verwenden, liest \fBsysctl\fP Dateien aus den
+Verzeichnissen in der folgenden Liste in der angegebenen Reihenfolge von
+oben nach unten. Sobald eine Datei eines angegebenen Namens geladen ist,
+werden jegliche Dateien gleichen Namens in darauf folgenden Verzeichnissen
+ignoriert.
+
+/etc/sysctl.d/*.conf
+.br
+/run/sysctl.d/*.conf
+.br
+/usr/local/lib/sysctl.d/*.conf
+.br
+/usr/lib/sysctl.d/*.conf
+.br
+/lib/sysctl.d/*.conf
+.br
+/etc/sysctl.conf
+
+All configuration files are sorted in lexicographic order, regardless of the
+directory they reside in. Configuration files can either be completely
+replaced (by having a new configuration file with the same name in a
+directory of higher priority) or partially replaced (by having a
+configuration file that is ordered later).
+.SH BEISPIELE
+/sbin/sysctl \-a
+.br
+/sbin/sysctl \-n kernel.hostname
+.br
+/sbin/sysctl \-w kernel.domainname="example.com"
+.br
+/sbin/sysctl \-p/etc/sysctl.conf
+.br
+/sbin/sysctl \-a \-\-pattern forward
+.br
+/sbin/sysctl \-a \-\-pattern forward$
+.br
+/sbin/sysctl \-a \-\-pattern 'net.ipv4.conf.(eth|wlan)0.arp'
+.br
+/sbin/sysctl \-\-pattern '\[char94]net.ipv6' \-\-system
+.SH "VERALTETE PARAMETER"
+Die Parameter \fBbase_reachable_time\fP und \fBretrans_time\fP sind veraltet. Der
+Befehl \fBsysctl\fP erlaubt keine Änderungen der Werte dieser
+Parameter. Benutzer, die nach wie vor veraltete Kernel\-Schnittstellen
+verwenden, sollten die Werte auf anderen Wegen in das /\fIproc\fP\-Dateisystem
+befördern. Zum Beispiel:
+.PP
+echo 256 > /proc/sys/net/ipv6/neigh/eth0/base_reachable_time
+.SH DATEIEN
+\fI/proc/sys\fP
+.br
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+.SH "SIEHE AUCH"
+\fBproc\fP(5), \fBsysctl.conf\fP(5), \fBregex\fP(7)
+.SH AUTOR
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

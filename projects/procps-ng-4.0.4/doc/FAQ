@@ -1,0 +1,97 @@
+Why does "ps -aux" complain about a bogus '-'?
+
+	According to the POSIX and UNIX standards, the above command asks to
+	display all processes with a TTY (generally the commands users are
+	running) plus all processes owned by a user named "x".  If that user
+	doesn't exist, then ps will assume you really meant "ps aux".  The
+	warning is given to gently break you of a habit that will cause you
+	trouble if a user named "x" were created.
+
+Why don't I see SMP (per-CPU) stats in top?
+
+	You didn't enable it. Press '?' for built-in help or read the man
+	page.  Per-CPU stats are disabled by default because they take up too
+	much space.  Some Linux systems have hundreds of CPUs.
+
+Why do long usernames get printed as numbers?
+
+	The UNIX and POSIX standards require that user names and group names
+	be printed as decimal integers when there is not enough room in the
+	column.  Truncating the names, besides being a violation of the
+	standard, would lead to confusion between names like MichelleRichards
+	and MichelleRichardson.  The UNIX and POSIX way to change column
+	width is to rename the column:
+
+		ps -o pid,user=CumbersomeUserNames -o comm
+
+	The easy way is to directly specify the desired width:
+
+		ps -o pid,user:19,comm
+
+Why is %CPU underreported for multi-threaded (Java, etc.) apps?
+
+	You need to upgrade to the 2.6.10 kernel at least. Older kernels do
+	not provide a reasonable way to get this information.
+
+Why do ps and top show threads individually?
+
+	The 2.4.xx kernel does not provide proper support for grouping
+	threads by process.  Hacks exist to group them anyway, but such hacks
+	will falsely group similar tasks and will fail to group tasks due to
+	race conditions.  The hacks are also slow.  As none of this is
+	acceptable in a critical system tool, task grouping is not currently
+	available for the 2.4.xx kernel.  The 2.6.xx kernel allows for proper
+	thread grouping and reporting.  To take advantage of this, your
+	programs must use a threading library that features the CLONE_THREAD
+	flag.  The NPTL pthreads provided by recent glibc releases use
+	CLONE_THREAD.
+
+What systems are supported?
+
+	Linux 2.4.xx 2.6.xx and 3.xx are commonly tested and expected to work
+	well.  SMP is well supported.  Multi-node cluster views require a
+	multi-node /proc filesystem; without that you will see a single-node
+	view.
+
+Where to I send bug reports?
+
+	You may use the Debian bug tracking system or send your report to
+	procps@freelists.org (no subscription required) instead.
+
+Why are there so many procps projects?
+
+	The original maintainer seems to have had little time for procps.
+	Whatever his reasons, the project didn't get maintained.  Starting in
+	1997, Albert Cahalan wrote a new ps program for the package.  For the
+	next few years, Albert quietly helped the Debian package maintainer
+	fix bugs.  In 2001, Rik van Riel decided to do something about what
+	appeared to be the lack of a maintainer.  He picked up the buggy old
+	code in Red Hat's CVS and started adding patches.  Meanwhile, other
+	people have patched procps in a great many ways.
+
+	In 2002, Albert moved procps to http://procps.sourceforge.net.  This
+	was done to ensure that years of testing and bug fixes would not be
+	lost.  The major version number was changed to 3, partly to avoid
+	confusing users and partly because the top program had been redone.
+
+	After development essentially stopped on sourceforge.net, in 2011 the
+	project found a new home at http://gitorious.org/procps.  This
+	represents the Debian, Fedora and openSUSE fork of procps.  To avoid
+	confusion and potential name clashes the package is now known as
+	procps-ng (next generation), the version number was raised to 3.3.0
+	and the library so-name changed to libprocps.so
+
+What is being done to procps-ng at its new home?
+
+	All programs are in the process of being modernized, both in terms of
+	coding style and supporting documentation.  Autotools have been
+	integrated and the library API has been expanded with many new fields
+	supported such as control groups, supplementary groups, etc.  The top
+	program has been rewritten offering many new capabilities while
+	providing performance improvements up to 300%.
+
+Why does ps get signal 17?
+
+	No ps release has ever had this problem. Most likely your system has
+	been broken into.  You might want to install a more recent version of
+	the OS.  If you'd rather take your chances, simply upgrade procps.

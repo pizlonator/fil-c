@@ -1,0 +1,72 @@
+.\"
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998      Miquel van Smoorenburg
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PIDOF 1 2023\-01\-16 "" Användarkommandon
+.SH NAMN
+pidof — hitta process\-ID för ett körande program
+.SH SYNOPSIS
+\fBpidof\fP [\fB\-s\fP] [\fB\-c\fP] [\fB\-q\fP] [\fB\-w\fP] [\fB\-x\fP] [\fB\-o\fP
+\fIskippapid[,skippapid…]…\fP] \fB\-t\fP [\fB\-S\fP \fIseparator\fP] \fIprogram\fP
+\fI[\fP\fBprogram…\fP\fI]\fP
+.SH BESKRIVNING
+\fBPidof\fP hittar process\-id:t (pid:ar) för de namngivna programmen.  Det
+skriver ut dessa id:n till standard ut.
+.SH FLAGGOR
+.IP \fB\-s\fP
+Enkelskott — detta instruerar programmet att endast returnera en \fIpid\fP.
+.IP \fB\-c\fP
+Returnera endast process\-id:n som kör med samma rotkatalog.  Denna flagga
+ignoreras för andra användare än root, eftersom de inte kommer kunna
+kontrollera den aktuella rotkatalogen för processer de inte äger.
+.IP \fB\-q\fP
+Tyst läge, undertryck all utdata och sätt bara slutstatus.
+.IP \fB\-w\fP
+Visa även processer som inte har en synlig kommandorad
+(t.ex. kärnarbetstrådar).
+.IP \fB\-x\fP
+Även skript — detta får programmet att även returnera process\-id:n för skal
+som kör de namngivna skripten.
+.IP "\fB\-o\fP \fIskippapid\fP"
+Säger till \fBpidof\fP att utesluta processer med det process\-id:t.  Den
+speciella processen \fB%PPID\fP kan användas för att namnge föräldraprocessen
+till \fBpidof\fP\-programmet, med andra ord det anropande skalet eller
+skalskriptet.
+.IP \fB\-t\fP
+Visa alla tråd\-id:n istället för pid:n.
+.IP "\fB\-S\fP \fIseparator\fP"
+Använd \fIseparator\fP som separator placerad mellan pid:er.  Använd endast när
+mer än en pid skrivs för programmet.  Flaggan \fB\-d\fP är ett alias för denna
+flagga för kompatibilitet med sysvinit:s \fBpidof\fP.
+.SH SLUTSTATUS
+.TP 
+\fB0\fP
+Åtminstone ett program hittades med det begärda namnet.
+.TP 
+\fB1\fP
+Inget program hittades med det begärda namnet.
+
+.SH FEL
+När flaggan \fB\-x\fP används har \fBpidof\fP endast en enkel metod för att
+upptäcka skript och kommer missa skript som, till exempel, använder env.
+Denna begränsning beror på hur skripten ser ut i proc\-filsystemet.
+
+.SH "SE ÄVEN"
+\fBpgrep\fP(1), \fBpkill\fP(1)
+.SH UPPHOVSMAN
+.UR jcapik@redhat.com
+Jaromir Capik
+.UE

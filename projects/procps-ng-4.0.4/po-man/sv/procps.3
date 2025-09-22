@@ -1,0 +1,176 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS 3 "Augusti 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAMN
+procps — API för att komma åt information på systemnivå i filsystemet /proc
+
+.SH SYNOPSIS
+Fem distinkta gränssnitt representeras i detta synopsis namnges efter filen
+de använder i pseudofilsystemet /proc: \fBdiskstats\fP, \fBmeminfo\fP,
+\fBslabinfo\fP, \fBstat\fP och \fBvmstat\fP.
+
+.nf
+.RS +4
+#include <libproc2/\fBnamngivet_gränssnitt\fP.h>
+
+int\fB procps_new  \fP (struct info **\fIinfo\fP);
+int\fB procps_ref  \fP (struct info  *\fIinfo\fP);
+int\fB procps_unref\fP (struct info **\fIinfo\fP);
+
+struct result *\fBprocps_get\fP (
+    struct info *\fIinfo\fP,
+[   const char *\fInamn\fP,      ]   endast \fBdiskstats\fP\-api:et
+    enum item \fIpost\fP);
+
+struct stack *\fBprocps_select\fP (
+    struct info *\fIinfo\fP,
+[   const char *\fInamn\fP,      ]   endast \fBdiskstats\fP\-api:et
+    enum item *\fIposter\fP,
+    int \fIpostantal\fP);
+
+struct reaped *\fBprocps_reap\fP (
+    struct info *\fIinfo\fP,
+[   enum reap_type \fIvad\fP,   ]   endast \fBstat\fP\-api:et
+    enum item *\fIposter\fP,
+    int \fIpostantal\fP);
+
+struct stack **\fBprocps_sort\fP (
+    struct info *\fIinfo\fP,
+    struct stack *\fIstackar\fP[],
+    int \fIstackantal\fP,
+    enum item \fIsortpost\fP,
+    enum sort_order \fIordning\fP);
+
+.fi
+
+Ovanstående funktioner och poster är generella men det specifika
+\fBnamngivna_gränssnittet\fP skall också vara en del av alla
+identifierare. Till exempel, ”procps_new” skulle faktiskt vara
+”procps_\fBmeminfo\fP_new” och "info" skulle faktiskt vara ”\fBdiskstats\fP_info”,
+etc.
+
+Samma \fBnamngivna_gränssnitt\fP används i varje huvudfilnamn med en ändelse .h
+tillagd.
+
+Länka med \fI\-lproc2\fP.
+
+.SH BESKRIVNING
+.SS Översikt
+Centralt för dessa gränssnitt är en enkel ”resultat”\-post so avspelgar ett
+”element” plus dess värde (i en union med typer från standardspråket C som
+medlemmar). Alla ”resultat”\-poster allokeras automatiskt och levereras av
+biblioteket.
+
+Genom att ange en vektor av ”element” kan dessa strukturer organiseras som
+en ”stack”, som potentiellt ger många resultat med ett enda
+funktionsanrop. Alltså kan en ”stack” ses som en post med variabel längd
+vars innehåll och ordning helt avgörs av användaren.
+
+Som en del av varje gränssnitt finns det två unika uppräknare. Elementen
+”noop” och ”extra” finns för att hålla användarvärden. De sätts aldrig av
+bilbioteket, men resultatet ”extra” kommer nollställas med varje
+biblioteksinteratkion.
+
+Huvudfilen \fBnamngivet_gränssnitt\fP kommer vara ett viktigt dokument under
+programutveckling. Där hittar man tillgängliga element, deras returtyper
+(medlemsnamn i posten ”resultat”) och källan för sådana värden. Ytterligare
+uppräknare och poster dokumenteras också där.
+
+.SS Användning
+Följande skulle vara en typisk sekvens av anrop till dessa gränssnitt.
+
+.nf
+1. \fBprocps_new()\fP
+2. \fBprocps_get()\fP, \fBprocps_select()\fP eller \fBprocps_reap()\fP
+3. \fBprocps_unref()\fP
+.fi
+
+Funktionen \fBget\fP används för att hämta posten ”resultat” för ett visst
+”element”. Alternativt är ett \fBGET\fP\-makro tillgängligt när endast
+returvärdet är intressant.
+
+Funktionen \fBselect\fP kan hämta flera ”resultat”\-poster i en enda ”stack”.
+
+För oförutsägbara variabla resultat exporterar gränssnitten \fBdiskstats\fP,
+\fBslabinfo\fP och \fBstat\fP en funktion \fBreap\fP. Den används för att hämta
+multipla ”stackar” där var och en innehåller flera ”resultat”\-poster. Om
+önskas kan en användare välja att \fBsortera\fP dessa resultat.
+
+För att använda någon ”stack”, och komma åt individuella ”resultat”\-poster,
+krävs en \fIrelativ_uppräkning\fP som visas i makrot \fBVAL\fP definierat i
+huvudfilen. Sådana värden skulle kunna hårdkodas som: 0 till
+antalelement\-1. Dock uppfylls detta behov typiskt genom att skapa ens egna
+uppräknare motsvarande ordningen i vektorn av ”element”.
+
+.SS Förbehåll
+Funktionerna \fBnew\fP, \fBref\fP, \fBunref\fP, \fBget\fP och \fBselect\fP är tillgängliga
+i alla fem gränssnitten.
+
+För funktionerna \fBnew\fP och \fBunref\fP måste adressen till en
+\fIinfo\fP\-postpekare ges.  Med \fBnew\fP måste den ha initierats till NULL.  Med
+\fBunref\fP kommer den återställas till NULL om referensräknaren når noll.
+
+Vad gäller gränssnittet \fBdiskstats\fP identifierar en parameter \fInamn\fP till
+funktionerna \fBget\fP och \fBselect\fP en disk eller ett partitionsnamn
+
+För gränssnittet \fBstat\fP identifierar en \fIvad\fP\-parameter till funktionen
+\fBreap\fP huruvida data för endast CPU:er eller både CPU:er och NUMA\-noder
+skall samlas in.
+
+När man använder funktionen \fBsort\fP skall normalt parametrarna \fIstackar\fP
+och \fIstackantal\fP normalt vara de som returneras av posten ”reaped”.
+
+.SH RETURVÄRDE
+.SS "Funktioner som returnerar en ”int”"
+Ett fel kommer indikera ett negativt tal som alltid är inversen av något
+känt värde från errno.h.
+
+Lyckat resultat markeras med ett returvärde av noll. Dock returnerar
+funktionerna \fBref\fP och \fBunref\fP det aktuella värdet på referensräknaren för
+\fIinfo\fP\-posten.
+
+.SS "Funktioner som returnerar en ”adress”"
+Ett fel kommer indikeras av en NULL\-returpekare och orsaken går att hitta i
+dett formella errno\-värdet.
+
+Lyckat resultat indikeras med en pekare till den namngivna posten.
+
+.SH FELSÖKNING
+För att hjälpa till i programutveckling finns det ett medel som kan hjälpa
+till att säkerställa att ”resultat”\-medlemsreferenser stämmer överens med
+bibliotekets förväntningar. Det förutsätter att ett av de tillgängliga
+makrona i huvudfilen används för att komma åt ”resultat”\-värdet.
+
+Denna funktion kan aktiveras genom någon av de följande metoderna och
+eventuella avvikelser kommer att skrivas till \fBstandard fel\fP.
+
+.IP 1) 3
+Lägg till CFLAGS='\-DXTRA_PROCPS_DEBUG' till eventuella övriga flaggor som
+används till ./configure.
+
+.IP 2) 3
+Lägg till #include <procps/xtra\-procps\-debug.h> till alla program
+\fIefter\fP inkluderandet av de namngivna gränssnitten.
+
+.PP
+Denna verifieringsfunktion orsakar en väsentlig kostnad. Därför är det
+viktigt att den \fIinte\fP är aktiverad för produktions\-/utgåvebyggen.
+
+.SH "SE ÄVEN"
+\fBprocps_misc\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

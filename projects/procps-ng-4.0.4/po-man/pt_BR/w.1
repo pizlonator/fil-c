@@ -1,0 +1,104 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2015-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2012-2013 Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH W 1 2023\-01\-15 procps\-ng "Comandos de usuário"
+.SH NOME
+w \- Mostra quem está conectado e o que está fazendo.
+.SH SINOPSE
+\fBw\fP [\fIoptions\fP] [\fIuser\fP]
+.SH DESCRIÇÃO
+\fBw\fP exibe informações sobre os usuários atualmente conectados à máquina e
+seus processos. O cabeçalho mostra, nesta ordem, o tempo atual, quanto tempo
+o sistema está ativo, quantos usuários estão conectados no momento e as
+médias de carga do sistema nos últimos 1, 5 e 15 minutos.
+.PP
+As seguintes entradas são exibidas para cada usuário: nome de login, nome do
+tty, host remoto, tempo de login, tempo ocioso, JCPU, PCPU e a linha de
+comando de seu processo atual.
+.PP
+O tempo de JCPU é o tempo usado por todos os processos anexados ao tty. Não
+inclui trabalhos em segundo plano anteriores, mas inclui trabalhos em
+segundo plano atualmente em execução.
+.PP
+O tempo de PCPU é o tempo usado pelo processo atual, dado no campo "o que".
+.SH "OPÇÕES DE LINHA DE COMANDO"
+.TP 
+\fB\-h\fP, \fB\-\-no\-header\fP
+Não exibe o cabeçalho.
+.TP 
+\fB\-u\fP, \fB\-\-no\-current\fP
+Ignora o nome de usuário enquanto calcula os tempos do processo atual e da
+CPU. Para demonstrar isso, faça um \fBsu\fP e faça um \fBw\fP e um \fBw \-u\fP.
+.TP 
+\fB\-s\fP, \fB\-\-short\fP
+Usa o formato curto. Não exibe o tempo de login e os tempos de JCPU ou PCPU.
+.TP 
+\fB\-f\fP, \fB\-\-from\fP
+Ativa a exibição do campo \fBde\fP (nome do host remoto). O padrão por design é
+para o campo \fBde\fP não ser exibido, embora o administrador do sistema ou o
+mantenedor de distribuição possa ter compilado uma versão na qual o campo
+\fBde\fP é mostrado por padrão.
+.TP 
+\fB\-\-help\fP
+Exibe um texto de ajuda e sai.
+.TP 
+\fB\-i\fP, \fB\-\-ip\-addr\fP
+Exibe o endereço IP em vez do nome de host para o campo \fBde\fP.
+.TP 
+\fB\-p\fP, \fB\-\-pids\fP
+Display pid of the login process/the "what" process in the "what" field.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão.
+.TP 
+\fB\-o\fP, \fB\-\-old\-style\fP
+Saída no estilo antigo. Emite espaço em branco para tempos de ociosidade
+menores que um minuto.
+.TP 
+\fBusuário \fP
+Mostra informações sobre somente o usuários especificado.
+.SH AMBIENTE
+.TP 
+PROCPS_USERLEN
+Sobrescreve a largura padrão da coluna de nome de usuário. O padrão é 8.
+.TP 
+PROCPS_FROMLEN
+Sobrescreve a largura padrão da coluna de "de". O padrão é 16.
+.SH ARQUIVOS
+.TP 
+\fI/var/run/utmp\fP
+informações sobre quem está atualmente conectado
+.TP 
+\fI/proc\fP
+informações de processos
+.SH "VEJA TAMBÉM"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fButmp\fP(5), \fBwho\fP(1)
+.SH AUTORES
+\fBw\fP foi reescrito quase que em sua totalidade por Charles Blake, baseado na
+versão por
+.UR greenfie@\:gauss.\:rutgers.\:edu
+Larry Greenfield
+.UE
+e
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

@@ -1,0 +1,94 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KILL 1 16.01.2023 procps\-ng "Comenzi utilizator"
+.SH NUME
+kill \- trimite un semnal către un proces
+.SH REZUMAT
+\fBkill\fP [\fIopțiuni\fP] <pid> [...]
+.SH DESCRIERE
+Semnalul implicit pentru «kill» este TERM.  Utilizați opțiunea \fB\-l\fP sau
+\fB\-L\fP pentru a lista semnalele disponibile.  Semnalele care sunt în mod
+special utile sunt: HUP, INT, KILL, STOP, CONT și 0.  Semnalele pot fi
+indicate în trei moduri diferite: \fB\-9\fP, \fB\-SIGKILL\fP sau \fB\-KILL\fP.  Valorile
+PID negative pot fi utilizate pentru a alege grupuri întregi de procese;
+vedeți coloana PGID din ieșirea comenzii «ps».  Un PID de \fB\-1\fP este
+special; indică toate procesele, cu excepția procesului «kill» însuși și a
+procesului «init».
+.SH OPȚIUNI
+.TP 
+\fB<pid> [...]\fP
+Trimite un semnal către fiecare <pid> listat.
+.TP 
+\fB\-<semnal>\fP
+.TQ
+\fB\-s <semnal>\fP
+.TQ
+\fB\-\-signal <semnal>\fP
+Specifică \fBsemnalul\fP care trebuie trimis.  Semnalul poate fi specificat
+folosind numele sau numărul.  Comportamentul semnalelor este explicat în
+pagina de manual \fBsignal\fP(7).
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIvaloare\fP
+Utilizează \fBsigqueue\fP(3) mai degrabă decât \fBkill\fP(2) și valoarea
+argumentului este folosită pentru a specifica un număr întreg care trebuie
+trimis împreună cu semnalul. Dacă procesul de recepție a instalat un
+operator pentru a gestiona acest semnal utilizând indicatorul SA_SIGINFO la
+\fBsigaction\fP(2), atunci poate obține aceste date prin câmpul si_value al
+structurii siginfo_t.
+.TP 
+\fB\-l\fP, \fB\-\-list\fP [\fIsemnal\fP]
+Listează numele semnalelor.  Această opțiune are un argument opțional, care
+va converti numărul semnalului în nume de semnal sau invers.
+.TP 
+\fB\-L\fP, \fB\-table\fP
+Listează numele semnalelor într\-un tabel amiabil.
+.TP 
+.PD
+.SH NOTE
+Shell\-ul dumneavoastră (interpretul de linie de comandă) poate avea o
+comandă «kill» încorporată.  Poate fi necesar să rulați comanda descrisă
+aici ca «/bin/kill» pentru a rezolva conflictul.
+.SH EXEMPLE
+.TP 
+\fBkill \-9 \-1\fP
+Omoară toate procesele pe care le puteți omorî.
+.TP 
+\fBkill \-l 11\fP
+Transformă numărul 11 într\-un nume de semnal.
+.TP 
+\fBkill \-L\fP
+Listează opțiunile de semnal disponibile într\-un tabel amiabil.
+.TP 
+\fBkill 123 543 2341 3453\fP
+Trimite semnalul implicit, SIGTERM, tuturor acestor procese.
+.SH "CONSULTAȚI ȘI"
+\fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1), \fBrenice\fP(1),
+\fBsignal\fP(7), \fBsigqueue\fP(3), \fBskill\fP(1)
+.SH STANDARDE
+Această comandă îndeplinește standardele adecvate.  Indicatorul \fB\-L\fP este
+specific pentru Linux.
+.SH AUTOR
+.UR albert@users.sf.net
+Albert Cahalan
+.UE
+a scris «kill» în 1999
+pentru a înlocui pe cel din „bsdutils” care nu era conform cu standardele.
+Cel din „util\-linux” ar putea, de asemenea, să funcționeze corect.
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

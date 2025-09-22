@@ -1,0 +1,74 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UPTIME 1 "grudzień 2012" procps\-ng "Polecenia użytkownika"
+.SH NAZWA
+uptime \- informacja, jak długo działa system.
+.SH SKŁADNIA
+\fBuptime\fP [\fIopcje\fP]
+.SH OPIS
+\fBuptime\fP w pojedynczej linii podaje następujące informacje: bieżący czas;
+czas, jak długo działa system; liczbę aktualnie zalogowanych użytkowników;
+średnie obciążenie systemu dla ostatnich 1, 5 i 15 minut.
+.PP
+Są to te same informacje, które zawiera linia nagłówka wyświetlana przez
+polecenie \fBw\fP(1).
+.PP
+Średnie obciążenie systemu to średnia liczba procesów w stanie działającym
+lub nieprzerywalnym. Proces jest w stanie działającym, kiedy używa procesora
+lub oczekuje na procesor. Proces jest w stanie nieprzerywalnym, kiedy
+oczekuje na jakiś dostęp we/wy, np. na dysk. Średnie są obliczane dla trzech
+okresów czasu. Nie są normalizowane pod kątem liczby procesorów w systemie,
+więc średnie obciążenie 1 oznacza, że system jednoprocesorowy jest obciążony
+cały czas, podczas gdy system 4\-procesorowy jest bezczynny przez 75% czasu.
+.SH OPCJE
+.TP 
+\fB\-p\fP, \fB\-\-pretty\fP
+wyświetlenie czasu działania w ładnym formacie
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+wyświetlenie tego opisu
+.TP 
+\fB\-s\fP, \fB\-\-since\fP
+początek czasu działania systemu w formacie rrrr\-mm\-dd GG:MM:SS
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+wyświetlenie informacji o wersji i zakończenie
+.SH PLIKI
+.TP 
+\fI/var/run/utmp\fP
+informacja o tym, kto jest obecnie zalogowany
+.TP 
+\fI/proc\fP
+informacje o procesach
+.SH AUTORZY
+Program \fBuptime\fP napisali
+.UR greenfie@gauss.\:rutgers.\:edu
+Larry
+Greenfield
+.UE
+oraz
+.UR johnsonm@sunsite.\:unc.\:edu
+Michael
+K. Johnson
+.UE
+.SH "ZOBACZ TAKŻE"
+\fBps\fP(1), \fBtop\fP(1), \fButmp\fP(5), \fBw\fP(1)
+.SH "ZGŁASZANIE BŁĘDÓW"
+Zgłoszenia błędów prosimy wysyłać na adres
+.UR procps@freelists.org
+.UE

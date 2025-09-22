@@ -1,0 +1,103 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2015-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2012-2013 Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH W 1 15.01.2023 procps\-ng "Comenzi utilizator"
+.SH NUME
+w \- Afișează cine este conectat și ce face fiecare.
+.SH REZUMAT
+\fBw\fP [\fIopțiuni\fP] [\fIutilizator\fP]
+.SH DESCRIERE
+\fBw\fP afișează informații despre utilizatorii aflați în prezent conectați la
+mașină și despre procesele acestora.  Antetul arată, în această ordine, ora
+curentă, de cât timp funcționează sistemul, câți utilizatori sunt conectați
+în prezent și mediile de încărcare a sistemului pentru ultimele 1, 5 și 15
+minute.
+.PP
+Următoarele intrări sunt afișate pentru fiecare utilizator: numele de
+conectare, numele tty, gazda la distanță, timpul de conectare, timpul de
+inactivitate, JCPU, PCPU și linia de comandă a procesului curent.
+.PP
+Timpul JCPU este timpul folosit de toate procesele atașate la tty.  Nu
+include lucrările din fundal anterioare, dar include lucrările din fundal
+care rulează în prezent.
+.PP
+Timpul PCPU este timpul utilizat de procesul curent, numit în câmpul „ce”.
+.SH "OPȚIUNI DE LINIE DE COMANDĂ"
+.TP 
+\fB\-h\fP, \fB\-\-no\-header\fP
+Nu afișează antetul.
+.TP 
+\fB\-u\fP, \fB\-\-no\-current\fP
+Ignoră numele de utilizator în timp ce determină procesul curent și timpii
+CPU.  Pentru a demonstra acest lucru, executați comanda \fBsu\fP și apoi
+comanda \fBw\fP și comanda \fBw \-u\fP.
+.TP 
+\fB\-s\fP, \fB\-\-short\fP
+Utilizează formatul scurt.  Nu afișează ora de conectare, timpii JCPU sau
+PCPU.
+.TP 
+\fB\-f\fP, \fB\-\-from\fP
+Comută afișarea/neafișarea câmpului \fBdin\fP (numele gazdei de la distanță).
+Valoarea implicită, așa cum a fost lansată, este ca câmpul \fBdin\fP să nu fie
+afișat, deși administratorul de sistem sau întreținătorul distribuției poate
+să fi compilat o versiune în care câmpul \fBdin\fP este afișat implicit.
+.TP 
+\fB\-\-help\fP
+Afișează acest mesaj de ajutor.
+.TP 
+\fB\-i\fP, \fB\-\-ip\-addr\fP
+Afișează adresa IP în loc de numele gazdei pentru câmpul \fBDIN\fP.
+.TP 
+\fB\-p\fP, \fB\-\-pids\fP
+Afișează pid\-ul procesului de autentificare sau al procesului „what” în
+câmpul „what”.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișați informațiile despre versiune.
+.TP 
+\fB\-o\fP, \fB\-\-old\-style\fP
+Afișare în stil vechi.  Imprimă spațiu liber pentru timpi de inactivitate
+mai mici de un minut.
+.TP 
+\fButilizator\fP
+Afișează informații numai despre utilizatorul specificat.
+.SH "VARIABILE DE MEDIU"
+.TP 
+PROCPS_USERLEN
+Suprascrie lățimea implicită a coloanei numelui de „utilizator”.  Valoarea
+implicită este 8.
+.TP 
+PROCPS_FROMLEN
+Suprascrie lățimea implicită a coloanei „din”.  Valoarea implicită este 16.
+.SH FIȘIERE
+.TP 
+\fI/var/run/utmp\fP
+informații despre cine este conectat în prezent
+.TP 
+\fI/proc\fP
+informații despre procese
+.SH "CONSULTAȚI ȘI"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fButmp\fP(5), \fBwho\fP(1)
+.SH AUTORI
+\fBw\fP a fost aproape în întregime rescris de Charles Blake pe baza unei
+versiuni a lui Larry Greenfield <\fIgreenfie@gauss.rutgers.edu\fP> și
+Michael K. Johnson < \fIjohnsonm@redhat .com\fP>.
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

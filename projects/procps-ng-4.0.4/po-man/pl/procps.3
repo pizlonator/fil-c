@@ -1,0 +1,175 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS 3 "Sierpień 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAZWA
+procps \- API do dostępu do informacji systemowych w systemie plików /proc
+
+.SH SKŁADNIA
+W niniejszym opisie jest reprezentowanych pięć różnych interfejsów,
+nazwanych od plików służących do dostępu w pseudo systemie plików /proc:
+\fBdiskstats\fP, \fBmeminfo\fP, \fBslabinfo\fP, \fBstat\fP oraz \fBvmstat\fP.
+
+.nf
+.RS +4
+#include <libproc2/\fBinterfejs\fP.h>
+
+int\fB procps_new  \fP (struct info **\fIinfo\fP);
+int\fB procps_ref  \fP (struct info  *\fIinfo\fP);
+int\fB procps_unref\fP (struct info **\fIinfo\fP);
+
+struct result *\fBprocps_get\fP (
+    struct info *\fIinfo\fP,
+[   const char *\fIname\fP,      ]   tylko API \fBdiskstats\fP
+    enum item \fIitem\fP);
+
+struct stack *\fBprocps_select\fP (
+    struct info *\fIinfo\fP,
+[   const char *\fIname\fP,      ]   tylko API \fBdiskstats\fP
+    enum item *\fIitems\fP,
+    int \fInumitems\fP);
+
+struct reaped *\fBprocps_reap\fP (
+    struct info *\fIinfo\fP,
+[   enum reap_type \fIwhat\fP,   ]   tylko API \fBstat\fP
+    enum item *\fIitems\fP,
+    int \fInumitems\fP);
+
+struct stack **\fBprocps_sort\fP (
+    struct info *\fIinfo\fP,
+    struct stack *\fIstacks\fP[],
+    int \fInumstacked\fP,
+    enum item \fIsortitem\fP,
+    enum sort_order \fIorder\fP);
+
+.fi
+
+Powyższe funkcje i struktury są ogólne, ale konkretne \fBinterfejsy\fP stają
+się częścią identyfikatorów. Np. `procps_new' właściwie staje się
+`procps_\fBmeminfo\fP_new', `info' staje się `\fBdiskstats\fP_info' itd.
+
+Ten sam \fBinterfejs\fP jest używany w nazwie każdego pliku nagłówkowego z
+dodanym rozszerzeniem `.h'.
+
+Konsolidować z \fI\-lproc2\fP.
+
+.SH OPIS
+.SS Przegląd
+Interfejsy te opierają się na prostej strukturze `result',
+odzwierciedlającej element `item' wraz z jego wartością (w unii ze
+standardowymi typami C jako składowymi). Wszystkie struktury `result' są
+automatycznie przydzielane i dostarczane przez bibliotekę.
+
+Podając tablicę elementów `item', struktury te mogą być zorganizowane w
+"stos", potencjalnie zwracając wiele wyników w pojedynczym wywołaniu
+funkcji. W ten sposób na "stos" można patrzeć jak na rekord zmiennej
+długości, którego zawartość i porządek są określane wyłącznie przez
+użytkownika.
+
+Częścią każdego interfejsu jest para unikatowych enumeratorów. Elementy
+`noop' i `extra' istnieją w celu trzymania wartości użytkownika. Nie są
+nigdy ustawiane przez bibliotekę, ale wynik `extra' jest zerowany przy
+każdej interakcji z biblioteką.
+
+Plik nagłówkowy \fBinterfejsu\fP jest podstawowym dokumentem przy tworzeniu
+programu użytkownika. Tam można zaleźć dostępne elementy, ich typ zwracany
+(nazwę składowej struktury `result') oraz źródła tych wartości. Tam też są
+udokumentowane dodatkowe enumeratory czy struktury.
+
+.SS Użycie
+Poniżej znajduje się typowa sekwencja wywołań tych intefejsów.
+
+.nf
+1. \fBprocps_new()\fP
+2. \fBprocps_get()\fP, \fBprocps_select()\fP lub \fBprocps_reap()\fP
+3. \fBprocps_unref()\fP
+.fi
+
+Funkcja \fBget\fP służy do odczytania struktury `result' dla pojedynczego
+elementu `item'. Alternatywnie dostępne jest makro \fBGET\fP, kiedy istotna
+jest tylko wartość zwracana.
+
+Funkcja \fBselect\fP potrafi odczytać wiele struktur `result' z pojedynczego
+"stosu".
+
+Na potrzeby nieprzewidywalnych, zmiennych wyników, interfejsy \fBdiskstats\fP,
+\fBslabinfo\fP oraz \fBstat\fP eksportują funkcję \fBreap\fP. Służy do odczytania
+wielu "stosów", zawierających wiele struktur `result'. Opcjonalnie
+użytkownik może zdecydować, aby wykonać \fBsort\fP tych wyników.
+
+Aby wykorzystać dowolny "stos" i dostać się do poszczególnych struktur
+`result', wymagana jest wartość \fIrelative_enum\fP, jak widać w makrze \fBVAL\fP
+zdefiniowanym w pliku nagłówkowym. Takie wartości mogą być sztywno
+zakodowane od 0 do numitems\-1. Zwykle jednak tę potrzebę zaspokaja się
+tworząc własne enumeratory odpowiadające kolejności tablicy `items'.
+
+.SS Zastrzeżenia
+Funkcje \fBnew\fP, \fBref\fP, \fBunref\fP, \fBget\fP oraz \fBselect\fP są dostępne we
+wszystkich pięciu interfejsach.
+
+W przypadku funkcji \fBnew\fP i \fBunref\fP, trzeba przekazać adres wskaźnika do
+struktury \fIinfo\fP. W przypadku \fBnew\fP musi być zainicjowany na NULL. W
+przypadku \fBunref\fP zostanie ustawiony na NULL, jeśli licznik odwołań
+osiągnie zero.
+
+W przypadku interfejsu \fBdiskstats\fP, parametr \fIname\fP funkcji \fBget\fP i
+\fBselect\fP określa nazwę dysku lub partycji
+
+W przypadku interfejsu \fBstat\fP, parametr \fIwhat\fP funkcji \fBreap\fP określa,
+czy zebrane mają być dane tylko dla CPU, czy dla CPU oraz NUMA.
+
+Przy używaniu funkcji \fBsort\fP, parametry \fIstacks\fP i \fInumstacked\fP są zwykle
+zwracame w strukturze `reaped'.
+
+.SH "WARTOŚĆ ZWRACANA"
+.SS "Funkcje zwracające `int'"
+Błąd jest oznaczany poprzez liczbę ujemną, będącą liczbą przeciwną do znanej
+wartości errno.h.
+
+Sukces jest oznaczany wartością zerową. Jednak funkcje \fBref\fP i \fBunref\fP
+zwracają bieżący licznik odwołań struktury \fIinfo\fP.
+
+.SS "Funkcje zwracające adres"
+Błąd jest oznaczany zwracanym wskaźnikiem NULL, a powód można znaleźć w
+wartości errno.
+
+Sukces jest oznaczany wskaźnikiem na nazwaną strukturę.
+
+.SH DIAGNOSTYKA
+Aby pomóc przy rozwijaniu programów, jest udogodnienie pozwalające zapewnić,
+że odwołania do składowej `result' zgadzają się z oczekiwaniami
+biblioteki. Zakłada, że do dostępu do wartości `result' jest używane makro
+udostępnione w pliku nagłówkowym.
+
+Tę opcję można włączyć w jeden z poniższych sposobów, a wszystkie
+niezgodności będą wypisane na \fBstderr\fP.
+
+.IP 1) 3
+Dodanie CFLAGS='\-DXTRA_PROCPS_DEBUG' do pozostałych użytych opcji
+\&./configure.
+
+.IP 2) 3
+Dodanie #include <procps/xtra\-procps\-debug.h> do dowolnego programu
+\fIpo\fP nagłówkach nazwanych interfejsów.
+
+.PP
+Ta opcja weryfikacji dodaje istotny narzut. W związku z tym ważne jest, żeby
+\fInie\fP była włączona w binariach produkcyjnych.
+
+.SH "ZOBACZ TAKŻE"
+\fBprocps_misc\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

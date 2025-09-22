@@ -1,0 +1,77 @@
+.\"
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998      Miquel van Smoorenburg
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PIDOF 1 16.01.2023 "" "Comenzi utilizator"
+.SH NUME
+pidof \- găsește ID\-ul de proces al unui program care rulează
+.SH REZUMAT
+\fBpidof\fP [\fB\-s\fP] [\fB\-c\fP] [\fB\-q\fP] [\fB\-w\fP] [\fB\-x\fP] [\fB\-o\fP
+\fIomitpid[,omitpid...]...\fP] [\fB\-t\fP] [\fB\-S\fP \fIseparator\fP] \fIprogram\fP
+\fI[\fP\fBprogram...\fP\fI]\fP
+.SH DESCRIERE
+\fBPidof\fP găsește ID\-urile de proces (pid\-urile) ale programelor numite.
+Afișează acele id\-uri la ieșirea standard.
+.SH OPȚIUNI
+.IP \fB\-s\fP
+O singură „împușcătură” \- această opțiune indică programului să returneze
+doar un \fIpid\fP.
+.IP \fB\-c\fP
+Returnează numai ID\-urile de proces care rulează cu același director
+rădăcină.  Această opțiune este ignorată pentru utilizatorii non\-root,
+deoarece aceștia nu vor putea verifica directorul rădăcină curent al
+proceselor pe care nu le dețin.
+.IP \fB\-q\fP
+Modul silențios, suprimă orice ieșire și afișează numai starea de
+ieșire(codul de ieșire) corespunzătoare.
+.IP \fB\-w\fP
+Afișează, de asemenea, procesele care nu au linie de comandă vizibilă (de
+exemplu firele de execuție ale kernelului).
+.IP \fB\-x\fP
+Scripturi de asemenea \- acest lucru face ca programul să returneze și
+ID\-urile de proces ale shell\-urilor care rulează scripturile numite.
+.IP "\fB\-o\fP \fIomitpid\fP"
+Îi indică lui \fBpidof\fP să omită procesele cu acel ID de proces. Pid\-ul
+special \fB%PPID\fP poate fi folosit pentru a numii procesul părinte al
+programului \fBpidof\fP, cu alte cuvinte shell\-ul de apelare sau scriptul
+shell.
+.IP \fB\-t\fP
+Afișează toți identificatorii firelor de execuție în loc de identificatorii
+proceselor.
+.IP "\fB\-S\fP \fIseparator\fP"
+Utilizează \fIseparator\fP ca separator pus între pid\-uri. Folosit numai atunci
+când sunt afișate mai multe pid\-uri pentru program.  Opțiunea \fB\-d\fP este un
+alias pentru această opțiune pentru compatibilitate cu sysvinit \fBpidof\fP.
+.SH "STARE DE IEȘIRE"
+.TP 
+\fB0\fP
+A fost găsit cel puțin un program cu numele solicitat.
+.TP 
+\fB1\fP
+Nu a fost găsit niciun program cu numele solicitat.
+
+.SH ERORI
+Când se utilizează opțiunea \fB\-x\fP, \fBpidof\fP are doar o metodă simplă de
+detectare a scripturilor și va pierde scripturile care, de exemplu, folosesc
+„env”. Această limitare se datorează modului în care arată scripturile în
+sistemul de fișiere \fIproc\fP.
+
+.SH "CONSULTAȚI ȘI"
+\fBpgrep\fP(1), \fBpkill\fP(1)
+.SH AUTOR
+.UR jcapik@redhat.com
+Jaromir Capik
+.UE

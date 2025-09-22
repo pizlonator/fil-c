@@ -1,0 +1,82 @@
+.\"
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998      Miquel van Smoorenburg
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH PIDOF 1 "2023-01-16" "" "User Commands"
+.SH NAME
+pidof \- find the process ID of a running program
+.SH SYNOPSIS
+.B pidof
+.RB [ \-s ]
+.RB [ \-c ]
+.RB [ \-q ]
+.RB [ \-w ]
+.RB [ \-x ]
+.RB [ \-o
+.IR omitpid[,omitpid...]... ]
+.RB [ \-t ]
+.RB [ \-S
+.IR separator ]
+.I program
+.IB [ program... ]
+.SH DESCRIPTION
+.B Pidof
+finds the process id's (pids) of the named programs. It prints those
+id's on the standard output.
+.SH OPTIONS
+.IP \fB\-s\fP
+Single shot - this instructs the program to only return one \fIpid\fP.
+.IP \fB\-c\fP
+Only return process ids that are running with the same root directory.
+This option is ignored for non-root users, as they will be unable to check
+the current root directory of processes they do not own.
+.IP \fB\-q\fP
+Quiet mode, suppress any output and only sets the exit status accordingly.
+.IP \fB\-w\fP
+Show also processes that do not have visible command line (e.g. kernel
+worker threads).
+.IP \fB\-x\fP
+Scripts too - this causes the program to also return process id's of
+shells running the named scripts.
+.IP "\fB-o\fP \fIomitpid\fP"
+Tells \fBpidof\fP to omit processes with that process id. The special
+pid \fB%PPID\fP can be used to name the parent process of the \fBpidof\fP
+program, in other words the calling shell or shell script.
+.IP \fB\-t\fP
+Shows all thread ids instead of pids.
+.IP "\fB-S\fP \fIseparator\fP"
+Use \fIseparator\fP as a separator put between pids. Used only when
+more than one pids are printed for the program.
+The \fB\-d\fR option is an alias for this option for sysvinit
+.B pidof
+compatibility.
+.SH "EXIT STATUS"
+.TP
+.B 0
+At least one program was found with the requested name.
+.TP
+.B 1
+No program was found with the requested name.
+
+.SH BUGS
+When using the \fB\-x\fP option,
+.B pidof
+only has a simple method for detecting scripts and will miss scripts that,
+for example, use env. This limitation is due to how the scripts look in
+the proc filesystem.
+
+.SH SEE ALSO
+.BR pgrep (1),
+.BR pkill (1)
+.SH AUTHOR
+.UR jcapik@redhat.com
+Jaromir Capik
+.UE

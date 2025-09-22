@@ -1,0 +1,169 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2003 Albert Cahalan
+.\" Copyright (c) 1993      Matt Welsh <mdw@sunsite.unc.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH FREE 1 "2023-05-02" "procps-ng" "User Commands"
+.SH NAME
+free \- Display amount of free and used memory in the system
+.SH SYNOPSIS
+.B free
+.RI [ options ]
+.SH DESCRIPTION
+.B free
+displays the total amount of free and used physical and swap memory in the
+system, as well as the buffers and caches used by the kernel. The
+information is gathered by parsing /proc/meminfo. The displayed
+columns are:
+.TP
+\fBtotal\fR
+Total usable memory (MemTotal and SwapTotal in /proc/meminfo). This includes
+the physical and swap memory minus a few reserved bits and kernel binary code.
+.TP
+\fBused\fR
+Used or unavailable memory (calculated as \fBtotal\fR - \fBavailable\fR)
+.TP
+\fBfree\fR
+Unused memory (MemFree and SwapFree in /proc/meminfo)
+.TP
+\fBshared\fR
+Memory used (mostly) by tmpfs (Shmem in /proc/meminfo)
+.TP
+\fBbuffers\fR
+Memory used by kernel buffers (Buffers in /proc/meminfo)
+.TP
+\fBcache\fR
+Memory used by the page cache and slabs (Cached and SReclaimable in /proc/meminfo)
+.TP
+\fBbuff/cache\fR
+Sum of \fBbuffers\fR and \fBcache\fR
+.TP
+\fBavailable\fR
+Estimation of how much memory is available for starting
+new applications, without swapping. Unlike the data
+provided by the \fBcache\fR or \fBfree\fR fields,
+this field takes into account page cache and also that
+not all reclaimable memory slabs will be reclaimed
+due to items being in use (MemAvailable in /proc/meminfo, available on
+kernels 3.14, emulated on kernels 2.6.27+, otherwise the same as \fBfree\fR)
+.SH OPTIONS
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+Display the amount of memory in bytes.
+.TP
+\fB\-k\fR, \fB\-\-kibi\fR
+Display the amount of memory in kibibytes.  This is the default.
+.TP
+\fB\-m\fR, \fB\-\-mebi\fR
+Display the amount of memory in mebibytes.
+.TP
+\fB\-g\fR, \fB\-\-gibi\fR
+Display the amount of memory in gibibytes.
+.TP
+\fB\-\-tebi\fR
+Display the amount of memory in tebibytes.
+.TP
+\fB\-\-pebi\fR
+Display the amount of memory in pebibytes.
+.TP
+\fB\-\-kilo\fR
+Display the amount of memory in kilobytes. Implies --si.
+.TP
+\fB\-\-mega\fR
+Display the amount of memory in megabytes. Implies --si.
+.TP
+\fB\-\-giga\fR
+Display the amount of memory in gigabytes. Implies --si.
+.TP
+\fB\-\-tera\fR
+Display the amount of memory in terabytes. Implies --si.
+.TP
+\fB\-\-peta\fR
+Display the amount of memory in petabytes. Implies --si.
+.TP
+\fB\-h\fR, \fB\-\-human\fP
+Show all output fields automatically scaled to shortest three digit unit and
+display the units of print out.  Following units are used.
+.sp
+.nf
+  B = bytes
+  Ki = kibibyte
+  Mi = mebibyte
+  Gi = gibibyte
+  Ti = tebibyte
+  Pi = pebibyte
+.fi
+.sp
+If unit is missing, and you have exbibyte of RAM or swap, the number is in
+tebibytes and columns might not be aligned with header.
+.TP
+\fB\-w\fR, \fB\-\-wide\fR
+Switch to the wide mode. The wide mode produces lines longer
+than 80 characters. In this mode \fBbuffers\fR and \fBcache\fR
+are reported in two separate columns.
+.TP
+\fB\-c\fR, \fB\-\-count\fR \fIcount\fR
+Display the result
+.I count
+times.  Requires the
+.B \-s
+option.
+.TP
+\fB\-l\fR, \fB\-\-lohi\fR
+Show detailed low and high memory statistics.
+.TP
+\fB\-L\fR, \fB\-\-line\fR
+Show output on a single line, often used with the
+.B \-s
+option to show memory statistics repeatedly.
+.TP
+\fB\-s\fR, \fB\-\-seconds\fR \fIdelay\fR
+Continuously display the result \fIdelay\fR  seconds
+apart.  You may actually specify any floating point number for
+\fIdelay\fR using either . or , for decimal point.
+.BR usleep (3)
+is used for microsecond resolution delay times.
+.TP
+\fB\-\-si\fR
+Use kilo, mega, giga etc (power of 1000) instead of kibi, mebi, gibi (power
+of 1024).
+.TP
+\fB\-t\fR, \fB\-\-total\fR
+Display a line showing the column totals.
+.TP
+\fB\-v\fR, \fB\-\-committed\fR
+Display a line showing the memory commit limit and amount of committed/uncommitted
+memory. The \fBtotal\fR column on this line will display the memory commit
+limit.   This line is relevant if memory overcommit is disabled.
+.TP
+\fB\-\-help\fR
+Print help.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information.
+.PD
+.SH FILES
+.TP
+/proc/meminfo
+memory information
+.PD
+.SH BUGS
+The value for the \fBshared\fR column is not available from kernels before
+2.6.32 and is displayed as zero.
+.TP
+Please send bug reports to
+.UR procps@freelists.org
+.UE
+.SH "SEE ALSO"
+.BR ps (1),
+.BR slabtop (1),
+.BR top "(1),
+.BR vmstat (8).

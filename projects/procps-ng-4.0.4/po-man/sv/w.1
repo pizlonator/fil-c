@@ -1,0 +1,108 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2015-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2012-2013 Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH W 1 2023\-01\-15 procps\-ng Användarkommandon
+.SH NAMN
+w — Visa vem som är inloggad och vad de gör.
+.SH SYNOPSIS
+\fBw\fP [\fIflaggor\fP] [\fIanvändare\fP]
+.SH BESKRIVNING
+\fBw\fP visar information om de användare som just nu är inloggade på maskinen
+och deras processer. Rubrikraden visar, i denna ordning, den aktuella tiden,
+hur länge systemet har kört, hur många användare som för tillfället är
+inloggade och systemets genomsnittslast under de senaste 1, 5 och 15
+minuterna.
+.PP
+Följande poster visas för varje användare: inloggningsnamn, tty\-namnet,
+fjärrvärden, inloggningstid, inaktiv tid, JCPU, PCPU och kommandoraden för
+deras aktuella process.
+.PP
+JCPU\-tiden är tiden som använts av alla processer kopplade till tty:n.  Det
+inkluderar inte tidigare bakgrundsjobb, men det inkluderar de för närvarande
+körande bakgrundsjobben.
+.PP
+PCPU\-tiden är tiden som används av den aktuella processen, med namnet i
+”vad”\-fältet.
+.SH KOMMANDORADSFLAGGOR
+.TP 
+\fB\-h\fP, \fB\-\-no\-header\fP
+Skriv inte ut huvudet.
+.TP 
+\fB\-u\fP, \fB\-\-no\-current\fP
+Ignorerar användarnamnet när programmet listar ut den aktuella processen och
+cpu\-tider. För att demonstrera detta, gör \fBsu\fP och gör \fBw\fP och \fBw \-u\fP.
+.TP 
+\fB\-s\fP, \fB\-\-short\fP
+Använd kort format.  Skriv inte ut inloggningstid, JCPU\- eller PCPU\-tider.
+.TP 
+\fB\-f\fP, \fB\-\-from\fP
+Växla utskriften av fältet \fBfrån\fP (fjärrvärdsnamn).  Standard i utgåvan är
+att fältet \fBfrån\fP inte visas, men din systemadministratör eller
+distributionsansvarige kan ha kompilerat en version i vilken fältet \fBfrån\fP
+visas som standard.
+.TP 
+\fB\-\-help\fP
+Visa hjälptext och avsluta.
+.TP 
+\fB\-i\fP, \fB\-\-ip\-addr\fP
+Visa IP\-adress istället för värdnamn i fältet \fBfrån\fP.
+.TP 
+\fB\-p\fP, \fB\-\-pids\fP
+Visa pid för inloggningsprocessen/”vad”\-processen i fältet ”vad”.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation.
+.TP 
+\fB\-o\fP, \fB\-\-old\-style\fP
+Gammaldags utmatning.  Skriver mellanslag för inaktiva tider mindre än en
+minut.
+.TP 
+\fBanvändare \fP
+Visa information endast om den angivna användaren.
+.SH MILJÖ
+.TP 
+PROCPS_USERLEN
+Åsidosätt standardbredden på kolumnen för användarnamn.  Standard är 8.
+.TP 
+PROCPS_FROMLEN
+Åsidosätt standardbredden på kolumnen från.  Standard är 16.
+.SH FILER
+.TP 
+\fI/var/run/utmp\fP
+information om vem som är inloggad för närvarande
+.TP 
+\fI/proc\fP
+processinformation
+.SH "SE ÄVEN"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fButmp\fP(5), \fBwho\fP(1)
+.SH UPPHOVSMÄN
+\fBw\fP skrevs om nestan fullständigt av Charles Blake, baserat på versionen av
+.UR greenfie@gauss.\:rutgers.\:edu
+Larry Greenfield
+.UE
+och
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

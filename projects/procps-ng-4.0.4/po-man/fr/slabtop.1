@@ -1,0 +1,108 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (C) 2003      Chris Rivera
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU Lesser General Public License as
+.\" published by the Free Software Foundation; either version 2.1 of the
+.\" License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SLABTOP 1 2021\-03\-11 procps\-ng "Commandes de l'utilisateur"
+.SH NOM
+slabtop \- Afficher en temps réel les informations des caches slab du noyau
+.SH SYNOPSIS
+\fBslabtop\fP [\fIoptions\fP]
+.SH DESCRIPTION
+\fBslabtop\fP affiche en temps réel les informations détaillées des caches slab
+(objets alloués au noyau) du noyau. Une liste des principaux caches, triée
+selon différents critères, est présentée. Un en\-tête présente également des
+statistiques de la couche slab.
+.SH OPTIONS
+Un appel normal de \fBslabtop\fP ne demande aucune option. Le comportement peut
+cependant être affiné en ajoutant une ou plusieurs des options suivantes\ :
+.TP 
+\fB\-d\fP, \fB\-\-delay=\fP\fIN\fP
+Refresh the display every \fIn\fP in seconds.  By default, \fBslabtop\fP refreshes
+the display every three seconds.  To exit the program, hit \fBq\fP.  This
+cannot be combined with the \fB\-o\fP option.
+.TP 
+\fB\-s\fP, \fB\-\-sort=\fP\fIS\fP
+Trier selon le critère de tri \fIS\fP.
+.TP 
+\fB\-o\fP, \fB\-\-once\fP
+Afficher la sortie une seule fois et quitter.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afficher la version du logiciel et quitter.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afficher l'aide\-mémoire et quitter.
+.SH "CRITÈRES DE TRI"
+Les critères de tri suivants sont utilisés pour classer les caches slab un
+par un et déterminer ceux qui seront affichés en tête du classement. Le
+classement par défaut est fait selon le nombre d'objets («\ o\ »).
+.PP
+Les critères de tri peuvent également être modifiés pendant l'exécution de
+\fBslabtop\fP en entrant le caractère associé.
+.TS
+l l l.
+\fBcaractère\fP	\fBdescription\fP	\fBheader\fP
+a	nombre d'objets actifs	ACTIF
+b	nombre d'objets par slab	OBJ/SLAB
+c	taille du cache	TAILLE DU CACHE
+l	nombre de slabs	SLABS
+v	nombre de slabs actifs	N/A
+n	nom	NOM\:
+o	nombre d'objets	OBJS
+p	nombre de pages par slab	N/A
+s	taille des objets	TAILLE OBJ
+u	utilisation du cache	USAGE
+.TE
+.SH COMMANDES
+\fBslabtop\fP accepte les commandes entrées au clavier par l'utilisateur
+pendant l'exécution. Les commandes suivantes sont gérées. Lorsqu'il s'agit
+de lettres, les minuscules et les majuscules sont acceptées.
+.PP
+Tous les caractères de tri valables sont aussi acceptés, afin de changer la
+méthode de tri. Consultez la section \fBCRITÈRES DE TRI\fP.
+.TP 
+\fB<BARRE_D'ESPACE>\fP
+Rafraîchir l'écran.
+.TP 
+\fBQ\fP
+Quitter le programme.
+.SH FICHIERS
+.TP 
+\fI/proc/slabinfo\fP
+informations sur slab
+.SH "VOIR AUSSI"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBvmstat\fP(8)
+.SH NOTES
+Actuellement, \fBslabtop\fP requiert un noyau\ 2.4 ou supérieur (en
+particulier, une version\ 1.1 ou supérieure de \fI/proc/slabinfo\fP). Les
+noyaux\ 2.2 devraient être gérés dans le futur.
+.PP
+The \fBslabtop\fP statistic header is tracking how many bytes of slabs are
+being used and is not a measure of physical memory.  The 'Slab' field in the
+\fI/proc/meminfo\fP file is tracking information about used slab physical
+memory.
+.PP
+The \fBCACHE SIZE\fP column is not accurate, it's the upper limit of memory
+used by specific slab. When system using slub (most common case) is under
+high memory pressure, there are slab order fallbacks, which means "pages per
+slab" is not constant and may decrease.
+.SH AUTEURS
+Écrit par Chris Rivera et Robert Love.
+.PP
+\fBslabtop\fP a été inspiré par le script Perl \fBvmtop\fP de Martin Bligh.
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

@@ -1,0 +1,18 @@
+#
+# check the ps personalities
+#
+set ps ${topdir}src/ps/pscommand
+
+set pers_match {
+  bsd       "\\s+PID\\s+TTY\\s+STAT\\s+TIME\\s+COMMAND\\r"
+  linux     "\\s+PID\\s+TTY\\s+TIME\\s+CMD\\r"
+  old       "\\s+PID\\s+TTY\\s+STAT\\s+TIME\\s+COMMAND\\r"
+  }
+
+foreach { pers match } $pers_match  {
+  set test "ps with $pers personality"
+  set  env(PS_PERSONALITY) $pers
+  spawn $ps
+  expect_pass "$test" $match
+}
+

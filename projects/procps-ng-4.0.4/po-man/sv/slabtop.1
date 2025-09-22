@@ -1,0 +1,113 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (C) 2003      Chris Rivera
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU Lesser General Public License as
+.\" published by the Free Software Foundation; either version 2.1 of the
+.\" License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SLABTOP 1 2021\-03\-11 procps\-ng Användarkommandon
+.SH NAMN
+slabtop — visa information om kärnans skivcache i realtid
+.SH SYNOPSIS
+\fBslabtop\fP [\fIflaggor\fP]
+.SH BESKRIVNING
+\fBslabtop\fP visar detaljerad information om kärnans skiv\-cache i realtid.
+Det visar en lista över toppskivorna sorterade efter en av de listade
+sorteringskriterierna.  Det visar också ett huvud med statistisk information
+om skivnivåer.
+.SH FLAGGOR
+Normalt anrop av \fBslabtop\fP kräver inte några flaggor.  Beteendet kan dock
+finjusteras genom att ange en eller flera av följande flaggor:
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP=\fIN\fP
+Uppdatera presentationen var \fIn\fP:e sekund. Som standard uppdaterar
+\fBslabtop\fP presentationen var tredje sekund. För att avsluta programmet,
+skriv \fBq\fP. Detta kan inte kombineras med flaggan \fB\-o\fP.
+.TP 
+\fB\-s\fP, \fB\-\-sort\fP=\fIS\fP
+Sortera efter \fIS\fP, där \fIS\fP är ett av sorteringskriterierna.
+.TP 
+\fB\-o\fP, \fB\-\-once\fP
+Visa utdata en gång och avsluta sedan.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation och avsluta.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa användningsinformation och avsluta.
+.SH SORTERINGSKRITERIER
+Följande är giltiga sorteringskriterier som används för att sortera de
+enskilda skiv\-cacharna och därigenom avgöra vilka ”topp”\-skiv\-cacharna som
+visas skall vara.  Standardsorteringskriteriet är att sortera efter antal
+objekt (”o”).
+.PP
+Sorteringskriteriet kan även ändras medan \fBslabtop\fP kör genom att trycka
+den tillhörande bokstaven.
+.TS
+l l l.
+\fBtecken\fP	\fBbeskrivning\fP	\fBhuvud\fP
+a	antal aktiva objekt	AKTIVT
+b	objekt per skiva	OBJ/SKIVA
+c	cachestorlek	CACHESTORLEK
+l	antal skivor	SKIVOR
+v	antal aktiva skivor	saknas
+n	namn	NAMN\:
+o	antal objekt	OBJ
+p	sidor per skiva	saknas
+s	objektstorlek	OBJ\-STRL
+u	cacheanvändning	ANV
+.TE
+.SH KOMMANDON
+\fBslabtop\fP tar emot tangentbordskommandon från användaren under körning.
+Följande stödjs.  Vad gäller bokstäver tas både versaler och gemener emot.
+.PP
+Var och en av de giltiga sorteringskriterierna tas också emot, för att ändra
+sorteringsrutinen.  Se avsnittet \fBSORTERINGSKRITERIER\fP.
+.TP 
+\fB<MELLANSLAG>\fP
+Uppdatera skärmen.
+.TP 
+\fBQ\fP
+Avsluta programmet.
+.SH FILER
+.TP 
+\fI/proc/slabinfo\fP
+skivinformation
+.SH "SE ÄVEN"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBvmstat\fP(8)
+.SH OBSERVERA
+För närvarande kräver \fBslabtop\fP en kärna 2.4 eller senare (specifikt,
+version 1.1 eller senare av \fI/proc/slabinfo\fP).  Kärna 2.2 bör stödjas i
+framtiden.
+.PP
+Statistikhuvudet i \fBslabtop\fP följer hur många byte av skivor som används
+och är inte ett mått på fysiskt minne.  Fältet ”Slab” i filen
+\fI/proc/meminfo\fP följer information om skivors använda fysiska minne.
+.PP
+Kolumnen \fBCACHE\-STRL\fP är inte precis, det är den övre gränsen på minne som
+används av en specifik slab. När ett system som använder slub (det
+vanligaste fallet) är under högt minnestryck finns det reserver för
+slab\-ordrar, vilket betyder att ”sidor per slab” inte är konstant och kan
+minska.
+.SH UPPHOVSMÄN
+Skrivet av Chris Rivera och Robert Love.
+.PP
+\fBslabtop\fP inspirerades av Martin Blighs perl\-skript \fBvmtop\fP.
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

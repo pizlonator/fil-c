@@ -1,0 +1,260 @@
+.\"
+.\" Copyright (c) 2004-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\" Copyright (c) 2000      Kjetil Torgrim Homme
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PGREP 1 16.01.2023 procps\-ng "Comenzi utilizator"
+.SH NUME
+pgrep, pkill, pidwait \- caută, semnalează sau așteaptă procesele pe baza
+numelui și a altor atribute
+.SH REZUMAT
+\fBpgrep\fP [opțiuni] model
+.br
+\fBpkill\fP [opțiuni] model
+.br
+\fBpidwait\fP [opțiuni] model
+.SH DESCRIERE
+\fBpgrep\fP examinează procesele care rulează în prezent și listează ID\-urile
+proceselor care corespund criteriilor de selecție la ieșirea standard.
+Toate criteriile trebuie să se potrivească.  De exemplu,
+.IP
+$ pgrep \-u root sshd
+.PP
+va lista numai procesele numite \fBsshd\fP ȘI deținute de \fBroot\fP.  Pe de altă
+parte,
+.IP
+$ pgrep \-u root,daemon
+.PP
+va lista procesele deținute de \fBroot\fP SAU \fBdaemon\fP.
+.PP
+\fBpkill\fP va trimite semnalul specificat (în mod implicit \fBSIGTERM\fP)  către
+fiecare proces în loc să le listeze la ieșirea standard.
+.PP
+\fBpidwait\fP va aștepta pentru fiecare proces în loc să le listeze la ieșirea
+standard.
+.SH OPȚIUNI
+.TP 
+\fB\-\fP\fIsemnal\fP
+.TQ
+\fB\-\-signal\fP \fIsemnal\fP
+Definește semnalul care urmează să fie trimis fiecărui proces asociat.  Se
+poate utiliza fie numele numeric, fie numele simbolic al semnalului. În
+modul \fBpgrep\fP sau \fBpidwait\fP, se poate utiliza numai opțiunea lungă, care
+nu are niciun efect, cu excepția cazului în care este utilizată împreună cu
+\fB\-\-require\-handler\fP pentru a filtra procesele care au un gestionar de
+semnal în spațiul utilizatorului pentru un anumit semnal.
+
+.TP 
+\fB\-c\fP, \fB\-\-count\fP
+Suprimă ieșirea normală; în schimb, afișează un număr de procese de
+potrivire.  Când numărul nu corespunde cu nimic, de exemplu returnează zero,
+comanda va returna o valoare diferită de zero. Rețineți că pentru pkill și
+pidwait, numărul este numărul de procese de potrivire, nu procesele care au
+fost semnalate cu succes sau așteptate.
+.TP 
+\fB\-d\fP, \fB\-\-delimiter\fP \fIdelimitator\fP
+Stabilește șirul utilizat pentru a delimita fiecare ID de proces din ieșire
+(în mod implicit, o linie nouă).  (Numai \fBpgrep\fP.)
+.TP 
+\fB\-e\fP, \fB\-\-echo\fP
+Afișează numele și PID\-ul procesului în curs de omorâre.  (Numai \fBpkill\fP.)
+.TP 
+\fB\-f\fP, \fB\-\-full\fP
+\fImodelul\fP se potrivește în mod normal doar cu numele procesului.  Când este
+dată opțiunea \fB\-f\fP, se utilizează linia de comandă completă.
+.TP 
+\fB\-g\fP, \fB\-\-pgroup\fP \fIPGID\fP,...
+Potrivește numai procesele din ID\-urile grupului de procese enumerate.
+Grupul de procese 0 este convertit în grupul de procese propriu al lui
+\fBpgrep\fP, \fBpkill\fP sau \fBpidwait\fP.
+.TP 
+\fB\-G\fP, \fB\-\-group\fP \fIGID\fP,...
+Potrivește numai procesele al căror ID de grup real este listat.  Se poate
+folosi fie valoarea numerică, fie valoarea simbolică.
+.TP 
+\fB\-i\fP, \fB\-\-ignore\-case\fP
+Potrivește procesele fără a ține seama de diferența dintre majuscule și
+minuscule.
+.TP 
+\fB\-l\fP, \fB\-\-list\-name\fP
+Listează numele procesului, precum și ID\-ul procesului.  (Numai \fBpgrep\fP.)
+.TP 
+\fB\-a\fP, \fB\-\-list\-full\fP
+Listează linia de comandă completă, precum și ID\-ul procesului.  (Numai
+\fBpgrep\fP.)
+.TP 
+\fB\-n\fP, \fB\-\-newest\fP
+Selectează doar cel mai nou (cel mai recent început) dintre procesele care
+s\-au potrivit modelului dat.
+.TP 
+\fB\-o\fP, \fB\-\-oldest\fP
+Selectați doar cel mai vechi (cel mai puțin recent) început dintre procesele
+care s\-au potrivit modelului dat.
+.TP 
+\fB\-O\fP, \fB\-\-older\fP \fIsecunde\fP
+Selectează procesele mai vechi de \fIsecunde\fP secunde.
+.TP 
+\fB\-P\fP, \fB\-\-parent\fP \fIppid\fP,...
+Potrivește doar procesele al căror ID de proces părinte este listat.
+.TP 
+\fB\-s\fP, \fB\-\-session\fP \fISID\fP,...
+Potrivește doar procesele al căror ID de sesiune de proces este listat.
+ID\-ul de sesiune 0 este convertit în ID\-ul de sesiune al lui \fBpgrep\fP,
+\fBpkill\fP sau \fBpidwait\fP.
+.TP 
+\fB\-t\fP, \fB\-\-terminal\fP \fIterminal\fP,...
+Potrivește numai procesele al căror terminal de control este listat.  Numele
+terminalului trebuie specificat fără prefixul „/dev/”.
+.TP 
+\fB\-u\fP, \fB\-\-euid\fP \fIuid_efectiv\fP,...
+Potrivește numai procesele al căror ID de utilizator efectiv este listat.
+Se poate folosi fie valoarea numerică, fie valoarea simbolică.
+.TP 
+\fB\-U\fP, \fB\-\-uid\fP \fIuid\fP,...
+Potrivește numai procesele al căror ID de utilizator real este listat.  Se
+poate folosi fie valoarea numerică, fie valoarea simbolică.
+.TP 
+\fB\-v\fP, \fB\-\-inverse\fP
+Inversează rezultatul potrivirii(va afișa toate procesele ce NU se potrivesc
+cu modelul).  Această opțiune este de obicei folosită în contextul lui
+\fBpgrep\fP sau \fBpidwait\fP.  În contextul lui \fBpkill\fP, opțiunea scurtă este
+dezactivată pentru a evita utilizarea accidentală a opțiunii.
+.TP 
+\fB\-w\fP, \fB\-\-lightweight\fP
+Afișează toate ID\-urile firelor de execuție în loc de id\-urile proceselor în
+contextul lui \fBpgrep\fP sau \fBpidwait\fP.  În contextul lui \fBpkill\fP, această
+opțiune este dezactivată.
+.TP 
+\fB\-x\fP, \fB\-\-exact\fP
+Potrivește numai procesele ale căror nume (sau linii de comandă dacă este
+specificată opțiunea \fB\-f\fP) se potrivesc \fBexact\fP cu \fImodelul\fP.
+.TP 
+\fB\-F\fP, \fB\-\-pidfile\fP \fIfișier\fP
+Citește \fIPID\fP\-urile din \fIfișier\fP.  Această opțiune este mai utilă pentru
+\fBpkill\fP sau \fBpidwait\fP decât pentru \fBpgrep\fP.
+.TP 
+\fB\-L\fP, \fB\-\-logpidfile\fP
+Eșuează dacă fișierul pid (a se vedea \fB\-F\fP) nu este blocat.
+.TP 
+\fB\-r\fP, \fB\-\-runstates\fP \fID,R,S,Z,\fP...
+Potrivește numai procesele care se potrivesc cu starea procesului.
+.TP 
+\fB\-A\fP, \fB\-\-ignore\-ancestors\fP
+Ignoră toți antecesorii lui \fBpgrep\fP, \fBpkill\fP și \fBpidwait\fP.  De exemplu,
+acest lucru poate fi util atunci când escaladați drepturile de acces
+folosind \fBsudo\fP sau instrumente similare.
+.TP 
+\fB\-H\fP, \fB\-\-require\-handler\fP
+Se potrivește numai cu procesele care au un gestionar de semnal din spațiul
+utilizatorului prezent pentru semnalul care urmează să fie trimis.
+.TP 
+\fB\-\-cgroup \fP\fInume\fP\fB,...\fP
+Potriviți pe numele grupului de control (cgroup) v2 furnizat.  A se vedea
+\fBcgroups\fP(8)
+.TP 
+\fB\-\-ns\fP \fIpid\fP
+Potrivește procesele care aparțin acelorași spații de nume. Este necesar să
+ruleze ca root pentru a potrivi procesele de la alți utilizatori. Consultați
+\fB\-\-nslist\fP pentru cum să limitați spațiile de nume care să corespundă.
+.TP 
+\fB\-\-nslist \fP\fInume\fP\fB,...\fP
+Potrivește numai spațiile de nume furnizate.  Spațiile de nume disponibile,
+sunt: ipc, mnt, net, pid, user, uts.
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIvaloare\fP
+Utilizează \fBsigqueue\fP(3) mai degrabă decât \fBkill\fP(2) și valoarea
+argumentului este folosită pentru a specifica un număr întreg care trebuie
+trimis împreună cu semnalul. Dacă procesul de recepție a instalat un
+operator pentru a gestiona acest semnal utilizând indicatorul SA_SIGINFO la
+\fBsigaction\fP(2), atunci poate obține aceste date prin câmpul si_value al
+structurii siginfo_t.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune și iese.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează mesajul de ajutor și iese.
+.PD
+.SH OPERANZI
+.TP 
+\fImodel\fP
+Specifică o expresie regulată extinsă pentru potrivirea cu numele proceselor
+sau liniile de comandă.
+.SH EXEMPLE
+Exemplul 1: Găsiți ID\-ul de proces al demonului \fBnamed\fP:
+.IP
+$ pgrep \-u root named
+.PP
+Exemplul 2: Face ca \fBsyslog\fP să recitească fișierul său de configurare:
+.IP
+$ pkill \-HUP syslogd
+.PP
+Exemplul 3: Oferă informații detaliate despre toate procesele \fBxterm\fP:
+.IP
+$ ps \-fp $(pgrep \-d, \-x xterm)
+.PP
+Exemplul 4: Face ca toate procesele \fBchrome\fP să ruleze cu o valoare „nice”,
+incrementată (să ruleze cu o prioritate mai mică):
+.IP
+$ renice +4 $(pgrep chrome)
+.SH "STARE DE IEȘIRE"
+.PD 0
+.TP 
+0
+Unul sau mai multe procese s\-au potrivit cu criteriile. Pentru \fBpkill\fP și
+\fBpidwait\fP, unul sau mai multe procese trebuie, de asemenea, să fi fost
+semnalate sau așteptate cu succes.
+.TP 
+1
+Niciun proces nu s\-a potrivit sau niciunul dintre ele nu a putut fi
+semnalat.
+.TP 
+2
+Eroare de sintaxă în linia de comandă.
+.TP 
+3
+Eroare fatală: memorie insuficientă, etc.
+.PD
+.SH NOTE
+Numele procesului folosit pentru potrivire este limitat la cele 15 caractere
+prezente în ieșirea /proc/\fIpid\fP/stat.  Utilizați opțiunea \fB\-f\fP pentru a se
+potrivi cu linia de comandă completă, /proc/\fIpid\fP/cmdline. Este posibil ca
+firele de execuție să nu aibă același nume de proces ca și procesul părinte,
+dar vor avea aceeași linie de comandă.
+.PP
+Procesul care rulează \fBpgrep\fP, \fBpkill\fP sau \fBpidwait\fP nu se va raporta
+niciodată ca o potrivire.
+.PP
+Opțiunea \fB\-O \-\-older\fP va eșua în tăcere dacă \fI/proc\fP este montat cu
+opțiunea \fIsubset=pid\fP.
+.SH ERORI
+Opțiunile \fB\-n\fP și \fB\-o\fP și \fB\-v\fP nu pot fi combinate.  Anunțați autorii,
+dacă credeți că este necesar să puteți face asta.
+.PP
+Sunt raportate procesele defuncte.
+.PP
+\fBpidwait\fP necesită apelul de sistem \fBpidfd_open\fP(2) care a apărut pentru
+prima dată în nucleul Linux versiunea 5.3.
+.SH "CONSULTAȚI ȘI"
+\fBps\fP(1), \fBregex\fP(7), \fBsignal\fP(7), \fBsigqueue\fP(3), \fBkillall\fP(1),
+\fBskill\fP(1), \fBkill\fP(1), \fBkill\fP(2), \fBcgroups\fP(8).
+.SH AUTOR
+.UR kjetilho@ifi.uio.no
+Kjetil Torgrim Homme
+.UE
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

@@ -1,0 +1,63 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1993      Matt Welsh <mdw@tc.cornell.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TLOAD 1 2020\-06\-04 procps\-ng Användarkommandon
+.SH NAMN
+tload — grafisk representation av systemets genomsnittslast
+.SH SYNOPSIS
+\fBtload\fP [\fIflaggor\fP] [\fItty\fP]
+.SH BESKRIVNING
+\fBtload\fP skriver ut en graf över systemets aktuella genomsnittslast på den
+angivna \fItty\fPn (eller \fBtload\fP\-processens tty om ingen anges).
+.SH FLAGGOR
+.TP 
+\fB\-s\fP, \fB\-\-scale\fP \fItal\fP
+Flaggan scale gör att en vertikal skala kan anges för visning (i antal
+tecken mellan steg i grafen); alltså representerar ett mindre värde en
+större skala och vice versa.
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP \fIsekunder\fP
+Fördröjningen anger väntetiden mellan uppdateringar av grafen i \fIsekunder\fP.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa denna hjälptext.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation och avsluta.
+.PP
+.SH FILER
+\fI/proc/loadavg\fP information om genomsnittslast
+.SH "SE ÄVEN"
+\fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fBw\fP(1)
+.SH FEL
+Flaggan \fB\-d\fP\fI fördröjning\fP anger tidsargumentet för ett anrop av
+\fBalarm\fP(2); om \-d 0 anges är larmet satt till 0, vilket aldrig kommer
+skicka någon \fBSIGALRM\fP och uppdatera visningen.
+.SH UPPHOVSMÄN
+Branko Lankester,
+.UR david@\:ods.\:com
+David Engel
+.UE , och
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE .
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

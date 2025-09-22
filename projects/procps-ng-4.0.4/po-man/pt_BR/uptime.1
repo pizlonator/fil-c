@@ -1,0 +1,75 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UPTIME 1 "Dezembro de 2012" procps\-ng "Comandos de usuário"
+.SH NOME
+uptime \- Fala a quanto tempo o sistema está em execução.
+.SH SINOPSE
+\fBuptime\fP [\fIopções\fP]
+.SH DESCRIÇÃO
+\fBuptime\fP fornece uma exibição de uma linha das seguintes informações. O
+tempo atual, a quanto tempo o sistema está funcionando, quantos usuários
+estão conectados no momento e as médias de carga do sistema nos últimos 1, 5
+e 15 minutos.
+.PP
+Essa é a mesma informação que aparece na linha de cabeçalho do \fBw\fP(1).
+.PP
+As médias de carga do sistema são o número médio de processos que estão em
+um estado executável ou ininterrupto. Um processo em um estado executável
+está usando a CPU ou aguardando o uso da CPU. Um processo em estado
+ininterrupto está aguardando algum acesso de E/S (p.ex., aguardando o
+disco). As médias são tomadas ao longo dos três intervalos de tempo. As
+médias de carga não são normalizadas para o número de CPUs em um sistema e,
+portanto, uma média de carga de 1 significa que um único sistema de CPU está
+carregado o tempo todo, enquanto que em um sistema de 4 CPUs significa que
+estava ocioso 75% do tempo.
+.SH OPÇÕES
+.TP 
+\fB\-p\fP, \fB\-\-pretty\fP
+mostra o tempo de atividade em um formato bonito
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+exibe esse texto de ajuda
+.TP 
+\fB\-s\fP, \fB\-\-since\fP
+sistema ativo desde, no formato aaaa\-mm\-dd HH:MM:SS
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+exibe informação da versão e sai
+.SH ARQUIVOS
+.TP 
+\fI/var/run/utmp\fP
+informações sobre quem está atualmente conectado
+.TP 
+\fI/proc\fP
+informações de processos
+.SH AUTORES
+\fBuptime\fP foi escrito por
+.UR greenfie@gauss.\:rutgers.\:edu
+Larry
+Greenfield
+.UE
+e
+.UR johnsonm@sunsite.\:unc.\:edu
+Michael K. Johnson
+.UE
+.SH "VEJA TAMBÉM"
+\fBps\fP(1), \fBtop\fP(1), \fButmp\fP(5), \fBw\fP(1)
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

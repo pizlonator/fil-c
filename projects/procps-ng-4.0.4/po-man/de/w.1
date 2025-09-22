@@ -1,0 +1,107 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2015-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2012-2013 Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH W 1 "15. Januar 2023" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+w \- anzeigen, welche Benutzer angemeldet sind und was sie machen.
+.SH ÜBERSICHT
+\fBw\fP [\fIOptionen\fP] [\fIBenutzer\fP]
+.SH BESCHREIBUNG
+\fBw\fP zeigt Informationen über die gerade angemeldeten Benutzer und ihre
+Prozesse an. Die Kopfzeile enthält in dieser Reihenfolge die aktuelle Zeit,
+die Laufzeit des Systems, wie viele Benutzer gerade angemeldet sind und die
+durchschnittliche Systemlast der letzten 1, 5 und 15 Minuten.
+.PP
+Die folgenden Daten werden für jeden Benutzer angezeigt: Der Anmeldename,
+der TTY\-Name, der ferne Rechner, die Anmeldezeit, die Leerlaufzeit, JCPU,
+PCPU und die Befehlszeile des laufenden Prozesses.
+.PP
+Die JCPU\-Zeit ist die Zeit, die von allen Prozessen genutzt wurde, die zu
+dem jeweiligen Terminal gehören. Sie enthält keine abgeschlossenen
+Hintergrund\-Aufträge, jedoch die derzeit laufenden Hintergrund\-Aufträge.
+.PP
+Die PCPU\-Zeit ist die Zeit, die vom derzeit laufenden Prozess bisher genutzt
+wurde und im Feld »what« benannt ist.
+.SH BEFEHLSZEILENOPTIONEN
+.TP 
+\fB\-h\fP, \fB\-\-no\-header\fP
+gibt keine Kopfzeile aus.
+.TP 
+\fB\-u\fP, \fB\-\-no\-current\fP
+ignoriert den Benutzernamen, während der aktuelle Prozess und die CPU\-Zeiten
+ermittelt werden. Probieren Sie die Option aus, indem Sie zunächst \fBsu\fP,
+danach \fBw\fP und \fBw \-u\fP eingeben.
+.TP 
+\fB\-s\fP, \fB\-\-short\fP
+verwendet das Kurzformat. Die Anmeldezeit, die JCPU\- und die PCPU\-Zeit
+werden nicht ausgegeben.
+.TP 
+\fB\-f\fP, \fB\-\-from\fP
+schaltet die Anzeige des \fBfrom\fP\-Feldes (ferner Rechnername) ein oder
+aus. Standardmäßig wird das \fBfrom\fP\-Feld nicht angezeigt. Allerdings könnte
+Ihr Systemadministrator oder Ihr Distributor eine Version kompiliert haben,
+in der das \fBfrom\fP\-Feld standardmäßig angezeigt wird.
+.TP 
+\fB\-\-help\fP
+zeigt einen Hilfetext an und beendet das Programm.
+.TP 
+\fB\-i\fP, \fB\-\-ip\-addr\fP
+zeigt die IP\-Adresse anstelle des Rechnernamens im Feld \fBfrom\fP an.
+.TP 
+\fB\-p\fP, \fB\-\-pids\fP
+Display pid of the login process/the "what" process in the "what" field.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Versionsinformationen anzeigen.
+.TP 
+\fB\-o\fP, \fB\-\-old\-style\fP
+aktiviert die Ausgabe im alten Stil. Für Leerlaufzeiten unter einer Minute
+werden Leerräume ausgegeben.
+.TP 
+\fBBenutzer \fP
+zeigt Informationen nur für den angegebenen Benutzer an.
+.SH UMGEBUNGSVARIABLEN
+.TP 
+PROCPS_USERLEN
+setzt die vorgegebene Breite der USER\-Spalte außer Kraft. Standardmäßig 8.
+.TP 
+PROCPS_FROMLEN
+setzt die vorgegebene Breite der From\-Spalte außer Kraft. Standardmäßig 16.
+.SH DATEIEN
+.TP 
+\fI/var/run/utmp\fP
+Informationen darüber, wer aktuell angemeldet ist
+.TP 
+\fI/proc\fP
+Prozessinformation
+.SH "SIEHE AUCH"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fButmp\fP(5), \fBwho\fP(1)
+.SH AUTOREN
+\fBw\fP wurde von Charles Blake fast vollständig neu geschrieben, basierend auf
+der Version von
+.UR greenfie@\:gauss.\:rutgers.\:edu
+Larry Greenfield
+.UE
+und
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

@@ -1,0 +1,65 @@
+#
+# Dejagnu testsuite for kill - part of procps
+#
+set kill ${topdir}src/kill
+
+if { ![ file exists $kill ] } {
+    untested { skipping (not build)}
+    return
+}
+
+set test "kill with no arguments"
+spawn $kill
+expect_pass "$test" "Usage:\\s+\(lt-\)?kill \\\[options\\\] <pid>"
+
+set test "kill list signal names"
+spawn $kill -l
+expect_pass "$test" "^\(\[A-Z12+-\]\\s*\)+$"
+
+set test "kill list signal names in table"
+spawn $kill -L
+expect_pass "$test" "^\(\\s+\\d+ \[A-Z12+-\]+\)+\\s*$"
+
+set test "kill convert signal name to number no space"
+spawn  $kill -lHUP
+expect_pass "$test" "^1\\s*"
+
+set test "kill convert signal name to number with space"
+spawn  $kill -l HUP
+expect_pass "$test" "^1\\s*"
+
+set test "kill convert SIG-prefixed signal name to number no space"
+spawn  $kill -lSIGHUP
+expect_pass "$test" "^1\\s*$"
+
+set test "kill convert SIG-prefixed signal name to number with space"
+spawn  $kill -l SIGHUP
+
+expect_pass "$test" "^1\\s*$"
+
+set test "kill convert signal number to name no space"
+spawn  $kill -l1
+expect_pass "$test" "^HUP\\s*"
+
+set test "kill convert signal number to name with space"
+spawn  $kill -l 1
+expect_pass "$test" "^HUP\\s*"
+
+make_pipeproc
+
+set test "kill with SIGUSR1"
+spawn $kill -USR1 $pipeproc_pid
+expect_blank_continue "$test"
+expect_pipeproc_pass "$test" "SIG SIGUSR1"
+
+set test "kill with long SIGUSR2"
+spawn $kill -s SIGUSR2 $pipeproc_pid
+expect_blank_continue "$test"
+expect_pipeproc_pass "$test" "SIG SIGUSR2"
+
+set test "kill with queued int"
+spawn $kill -USR1 -q 42 $pipeproc_pid
+expect_blank_continue "$test"
+expect_pipeproc_pass "$test" "SIG SIGUSR1 value=42"
+
+kill_pipeproc

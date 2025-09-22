@@ -1,0 +1,191 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSTAT 8 "18. Januar 2023" procps\-ng System\-Administration
+.SH BEZEICHNUNG
+vmstat \- Statistiken zum virtuellen Speicher anzeigen
+.SH ÜBERSICHT
+\fBvmstat\fP [Optionen] [\fIVerzögerung\fP [\fIAnzahl\fP]]
+.SH BESCHREIBUNG
+\fBvmstat\fP zeigt Informationen zu Prozessen, Speicher, Paging, Block\-E/A,
+Traps, Laufwerken und CPU\-Aktivität an.
+.PP
+Der erste erzeugte Bericht zeigt Durchschnittswerte seit dem letzten
+Neustart des Systems an. Weitere erzeugte Berichte beziehen diese
+Informationen auf ein Zeitintervall, das in \fIVerzögerung\fP definiert
+ist. Die Berichte zu Prozessen und Speicher werden unverzüglich ausgegeben.
+.SH OPTIONEN
+.TP 
+\fIVerzögerung\fP
+gibt die \fIVerzögerung\fP zwischen Aktualisierungen in Sekunden an. Falls
+keine \fIVerzögerung\fP angegeben ist, wird nur ein Bericht ausgegeben, der die
+Durchschnittswerte seit dem Systemstart enthält.
+.TP 
+\fIAnzahl\fP
+gibt die Anzahl der Aktualisierungen an. Wenn die \fIAnzahl\fP nicht angegeben,
+aber eine \fIVerzögerung\fP definiert ist, dann ist die Anzahl der
+Aktualisierungen unendlich.
+.TP 
+\fB\-a\fP, \fB\-\-active\fP
+zeigt aktiven und inaktiven Speicher an. Dafür ist ein Kernel 2.5.41 oder
+neuer erforderlich.
+.TP 
+\fB\-f\fP, \fB\-\-forks\fP
+Der Schalter \fB\-f\fP zeigt die Anzahl der Forks seit dem Systemstart an. Dies
+bezieht die Systemaufrufe »fork«, »vfork« und »clone« ein und entspricht der
+Gesamtzahl der erzeugten Tasks. Jeder Prozess wird durch ein oder mehrere
+Tasks repräsentiert, abhängig von der Thread\-Nutzung. Diese Anzeige wird
+nicht wiederholt.
+.TP 
+\fB\-m\fP, \fB\-\-slabs\fP
+zeigt Slabinfo an.
+.TP 
+\fB\-n\fP, \fB\-\-one\-header\fP
+zeigt den Header nur einmalig anstatt periodisch an.
+.TP 
+\fB\-s\fP, \fB\-\-stats\fP
+zeigt eine Tabelle verschiedener Ereigniszähler und Speicherstatistiken
+an. Diese Anzeige wird nicht wiederholt.
+.TP 
+\fB\-d\fP, \fB\-\-disk\fP
+zeigt Plattenstatistiken an (Kernel 2.5.70 oder neuer erforderlich).
+.TP 
+\fB\-D\fP, \fB\-\-disk\-sum\fP
+zeigt eine statistische Zusammenfassung der Plattenaktivitäten an.
+.TP 
+\fB\-p\fP, \fB\-\-partition\fP \fIGerät\fP
+zeigt detaillierte Statistiken zu Partitionen an (Kernel 2.5.70 oder neuer
+erforderlich).
+.TP 
+\fB\-S\fP, \fB\-\-unit\fP \fIZeichen\fP
+wechselt die Einheit der Ausgabe zwischen 1000 (\fIk\fP), 1024 (\fIK\fP), 1000000
+(\fIm\fP) oder 1048576 (\fIM\fP) Byte. Beachten Sie, dass diese Änderung die Swap\-
+(si/so) oder Block\-Felder (bi/bo) nicht beeinflusst, die stets in Blöcken
+gemessen werden.
+.TP 
+\fB\-t\fP, \fB\-\-timestamp\fP
+hängt an jede Zeile einen Zeitstempel an.
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Breiter Ausgabemodus. Dieser ist sinnvoll, wenn der vorgegebene Ausgabemodus
+unerwünschte Umbrüche in den Spalten enthält, was für Systeme mit einer
+größeren Menge an Speicher vorkommt. Die Ausgabe ist breiter als 80 Zeichen
+pro Zeile.
+.TP 
+\fB\-y\fP, \fB\-\-no\-first\fP
+überspringt den ersten Bericht mit Statistiken seit dem Systemstart.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt eine Hilfe an und beendet das Programm.
+.PD
+.SH "FELDBESCHREIBUNG FÜR VM\-MODUS"
+.SS Prozesse
+.nf
+r: die Anzahl der ausführbaren Prozesse (laufend oder auf Ausführungszeit wartend).
+b: die Anzahl der blockierten Prozesse, auf Ein\-/Ausgaben zum Abschluss wartend.
+.fi
+.SS Speicher
+Diese werden von der Option \fB\-\-unit\fP beeinflusst.
+.nf
+swpd: die Menge des verwendeten Auslagerungsspeichers.
+free: die Menge des untätigen Speichers.
+buff: die Menge des als Puffer verwendeten Speichers.
+cache: die Menge des als Zwischenspeicher verwendeten Speichers.
+inact: die Menge des inaktiven Speichers (Option \fB\-a\fP)
+active: die Menge des aktiven Speichers (Option \fB\-a\fP)
+.fi
+.SS Swap
+Diese werden von der Option \fB\-\-unit\fP beeinflusst.
+.nf
+si: Speichermenge aus dem Auslagerungsspeicher geholt (/s).
+so: Speichermenge in den Auslagerungsspeicher geschrieben (/s).
+.fi
+.SS E/A
+.nf
+bi: von einem Blockgerät empfangene Kibibyte (KiB/s).
+bo: an ein Blockgerät gesendete Kibibyte (KiB/s).
+.fi
+.SS System
+.nf
+in: Anzahl der Interrupts pro Sekunde, einschließlich der Uhr.
+cs: Anzahl der Kontext\-Switches pro Sekunde.
+.fi
+.SS CPU
+Dies sind Prozentsätze der gesamten CPU\-Zeit.
+.nf
+us: Verbrauchte Zeit für Nicht\-Kernel\-Code (Benutzerzeit, einschließlich Nice\-Zeit)
+sy: Verbrauchte Zeit für Kernel\-Code (Systemzeit)
+id: Verbrauchte Zeit für Leerlauf. Vor Linux 2.5.41 bezieht dies die E/A\-Wartezeit ein.
+wa: Verbrauchte Zeit für Warten auf E/A. Vor Linux 2.5.41 bezieht dies die Leerlaufzeit ein.
+st: Von einer virtuellen Maschine abgezweigte Zeit. Vor Linux 2.6.11 ist diese unbekannt.
+gu: Verbrauchte Zeit für KVM\-Gastcode (Gastzeit, einschließlich Gast\-Nice).
+.fi
+.SH "FELDBESCHREIBUNG FÜR PlattenMODUS"
+.SS Lesevorgänge
+.nf
+total: Gesamtzahl erfolgreich abgeschlossener Lesevorgänge
+merged: Gruppierte Lesevorgänge (resultierend in einem E/A\-Vorgang)
+sectors: Erfolgreich gelesene Sektoren
+ms: Zeit für Lesevorgänge in Millisekunden
+.fi
+.SS Schreibvorgänge
+.nf
+total: Gesamtzahl erfolgreich abgeschlossener Schreibvorgänge
+merged: Gruppierte Schreibvorgänge (resultierend in einem E/A\-Vorgang)
+sectors: Erfolgreich geschriebene Sektoren
+ms: Zeit für Schreibvorgänge in Millisekunden
+.fi
+.SS E/A
+.nf
+cur: E/A in Verarbeitung
+s: für E/A verbrauchte Sekunden
+.fi
+.SH "FELDBESCHREIBUNG FÜR PLATTENPARTITIONSMODUS"
+.nf
+reads: Gesamtzahl der Lesevorgänge auf dieser Partition
+read sectors: Insgesamt gelesene Sektoren auf dieser Partition
+writes : Gesamtzahl der Schreibvorgänge auf dieser Partition
+requested writes: Gesamtzahl der für diese Partition
+                  angeforderten Schreibvorgänge
+.fi
+.SH "FELDBESCHREIBUNG FÜR SLAB\-MODUS"
+Der Slab\-Modus zeigt Statistiken pro Slab an; weitere Informationen hierzu
+finden Sie in \fBslabinfo\fP(5).
+.PP
+.nf
+cache: Zwischenspeichername
+num: Anzahl der gegenwärtig aktiven Objekte
+total: Gesamtzahl der verfügbaren Objekte
+size: Größe jedes Objekts
+pages: Anzahl der Seiten mit mindestens einem aktiven Objekt
+.fi
+.SH ANMERKUNGEN
+\fBvmstat\fP benötigt Lesezugriff auf Dateien unterhalb von \fI/proc\fP. Die
+Option \fB\-m\fP erfordert Lesezugriff auf \fI/proc/slabinfo\fP, was bei
+Standardbenutzern unter Umständen nicht der Fall ist. Auch die
+Einhängeoptionen für \fI/proc\fP, wie beispielsweise \fIsubset=PID\fP, könnten
+sich darauf auswirken, was tatsächlich angezeigt wird.
+.SH "SIEHE AUCH"
+\fBfree\fP(1), \fBiostat\fP(1), \fBmpstat\fP(1), \fBps\fP(1), \fBsar\fP(1), \fBtop\fP(1),
+\fBslabinfo\fP(5)
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

@@ -1,0 +1,57 @@
+
+#
+# Dejagnu tests for vmstat - part of procps
+
+set vmstat "${topdir}src/vmstat"
+
+# Tests that need to see /proc/vmstat
+if { [ file readable "/proc/vmstat" ] == 0 } {
+    unsupported "vmstat with no arguments - /proc/vmstat is unreadable"
+    unsupported "vmstat with -a flag - /proc/vmstat is unreadable"
+    unsupported "vmstat fork option - /proc/vmstat is unreadable"
+} else {
+    set test "vmstat with no arguments"
+    spawn $vmstat
+    expect_pass "$test" "^procs\[ -\]+memory\[ -\]+swap\[ -\]+io\[ -\]+system\[ -\]+cpu\[ -\]+\\s*r\\s+b\\s+swpd\\s+free\\s+buff\\s+cache\\s+si\\s+so\\s+bi\\s+bo\\s+in\\s+cs us sy id wa st gu\\s*\(\\s+\\d+\){18}\\s*$"
+
+    set test "vmstat with -a flag"
+    spawn $vmstat -a
+    expect_pass "$test" "^procs\[ -\]+memory\[ -\]+swap\[ -\]+io\[ -\]+system\[ -\]+cpu\[ -\]+\\s*r\\s+b\\s+swpd\\s+free\\s+inact\\s+active\\s+si\\s+so\\s+bi\\s+bo\\s+in\\s+cs us sy id wa st gu\\s*\(\\s+\\d+\){18}\\s*$"
+
+    set test "vmstat fork option"
+    spawn $vmstat -f
+    expect_pass "$test" "^\\s+\\d+ forks\\s*$"
+}
+
+if { [ file readable "/proc/slabinfo" ] == 0 } {
+    unsupported "slabinfo (-m option) test disabled as /proc/slabinfo is unreadable"
+} else {
+set test "vmstat slabinfo (-m option)"
+spawn $vmstat -m
+expect_pass "$test" "^Cache\\s+Num\\s+Total\\s+Size\\s+Pages\\s+\(\\S+\\s+\\d+\\s+\\d+\\s+\\d+\\s+\\d+\\s*\){1,}"
+}
+
+set test "vmstat disk information (-d option)"
+if { [ file readable "/sys/block" ] == 0 }  {
+    unsupported "$test /sys/block not readable"
+} else {
+    set fp [open /proc/diskstats ]
+    if { [ read $fp ] == "" } {
+	close $fp
+        unsupported "$test /proc/diskstats empty"
+    } else {
+        close $fp
+        spawn $vmstat -d
+        expect_pass "$test" "^disk\[ -\]+reads\[ -\]+writes\[ -\]+IO\[ -\]+\\s+total\\s+merged\\s+sectors\\s+ms\\s+total\\s+merged\\s+sectors\\s+ms\\s+cur\\s+sec\\s+"
+
+	# Need a partition
+        set diskstats [ exec cat /proc/diskstats ]
+        if [ regexp "\\s+\\d+\\s+\\d+\\s+\((?:hd|sd|vd)\[a-z\]\\d+\)\\s+\[0-9\]\[0-9\]+" $diskstats line partition == 1 ] {
+            set test "vmstat partition (using $partition)"
+            spawn $vmstat -p $partition
+            expect_pass "$test" "^${partition}\\s+reads"
+        } else {
+            unsupported "vmstat partition (cannot find partition)"
+        }
+    }
+}

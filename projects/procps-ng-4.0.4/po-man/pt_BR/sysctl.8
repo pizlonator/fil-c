@@ -1,0 +1,177 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL 8 2023\-08\-19 procps\-ng "Administração do sistema"
+.SH NOME
+sysctl \- configura parâmetros do kernel em tempo de execução
+.SH SINOPSE
+\fBsysctl\fP [\fIopções\fP] [\fIvariável\fP[\fB=\fP\fIvalor\fP]] [...]
+.br
+\fBsysctl \-p\fP [\fIarquivo\fP ou \fIregexp\fP] [...]
+.SH DESCRIÇÃO
+\fBsysctl\fP is used to modify kernel parameters at runtime.  The parameters
+available are those listed under \fI/proc/sys/\fP.  Procfs is required for
+\fBsysctl\fP support in Linux.  You can use \fBsysctl\fP to both read and write
+sysctl data.
+.SH PARÂMETROS
+.TP 
+\fIvariável\fP
+O nome da chave a ser lida (p. ex., kernel.ostype). O separador "/" também é
+aceito no lugar de um ".".
+.TP 
+\fIvariável\fP=\fIvalor\fP
+Para definir uma chave, use a forma \fIvariável\fP=\fIvalor\fP, sendo \fIvariável\fP
+a chave e \fIvalor\fP o valor para configurá\-la. Se o valor contiver aspas ou
+os caracteres que são analisados pelo shell, talvez seja necessário incluir
+o valor entre aspas duplas.
+.TP 
+\fB\-n\fP, \fB\-\-values\fP
+Use essa opção para desabilitar impressão do nome da chave ao imprimir
+valores.
+.TP 
+\fB\-e\fP, \fB\-\-ignore\fP
+Use essa opção para ignorar erros sobre as chaves desconhecidas.
+.TP 
+\fB\-N\fP, \fB\-\-names\fP
+Use esta opção para exibir apenas os nomes. Pode ser útil com shells que
+tenham um completamento programável.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Use essa opção para não exibir os valores definidos para stdout (saída
+padrão).
+.TP 
+\fB\-w\fP, \fB\-\-write\fP
+Force all arguments to be write arguments and print an error if they cannot
+be parsed this way.
+.TP 
+\fB\-p\fP[\fIARQUIVO\fP], \fB\-\-load\fP[=\fIARQUIVO\fP]
+Load in \fBsysctl\fP settings from the file specified or \fI/etc/sysctl.conf\fP if
+none given.  Specifying \- as filename means reading data from standard
+input. Using this option will mean arguments to \fBsysctl\fP are files, which
+are read in the order they are specified.  The file argument may be
+specified as regular expression.
+.TP 
+\fB\-a\fP, \fB\-\-all\fP
+Exibe todos os valores disponíveis atualmente.
+.TP 
+\fB\-\-deprecated\fP
+Inclui parâmetros obsoletos para listagem de valores de \fB\-\-all\fP.
+.TP 
+\fB\-b\fP, \fB\-\-binary\fP
+Exibe valor sem nova linha.
+.TP 
+\fB\-\-system\fP
+Load settings from all system configuration files. See the \fBSYSTEM FILE PRECEDENCE\fP section below.
+.TP 
+\fB\-r\fP, \fB\-\-pattern\fP \fIpadrão\fP
+Só aplica configurações que corresponderem ao \fIpadrão\fP. O \fIpadrão\fP usa a
+sintaxe de expressão regular estendidas.
+.TP 
+\fB\-A\fP
+Apelido de \fB\-a\fP
+.TP 
+\fB\-d\fP
+Apelido de \fB\-h\fP
+.TP 
+\fB\-f\fP
+Apelido de \fB\-p\fP
+.TP 
+\fB\-X\fP
+Apelido de \fB\-a\fP
+.TP 
+\fB\-o\fP
+Faz nada, existe para compatibilidade com BSD.
+.TP 
+\fB\-x\fP
+Faz nada, existe para compatibilidade com BSD.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Exibe um texto de ajuda e sai.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão e sai.
+.SH "SYSTEM FILE PRECEDENCE"
+When using the \fB\-\-system\fP option, \fBsysctl\fP will read files from
+directories in the following list in given order from top to bottom. Once a
+file of a given filename is loaded, any file of the same name in subsequent
+directories is ignored.
+
+/etc/sysctl.d/*.conf
+.br
+/run/sysctl.d/*.conf
+.br
+/usr/local/lib/sysctl.d/*.conf
+.br
+/usr/lib/sysctl.d/*.conf
+.br
+/lib/sysctl.d/*.conf
+.br
+/etc/sysctl.conf
+
+All configuration files are sorted in lexicographic order, regardless of the
+directory they reside in. Configuration files can either be completely
+replaced (by having a new configuration file with the same name in a
+directory of higher priority) or partially replaced (by having a
+configuration file that is ordered later).
+.SH EXEMPLOS
+/sbin/sysctl \-a
+.br
+/sbin/sysctl \-n kernel.hostname
+.br
+/sbin/sysctl \-w kernel.domainname="example.com"
+.br
+/sbin/sysctl \-p/etc/sysctl.conf
+.br
+/sbin/sysctl \-a \-\-pattern forward
+.br
+/sbin/sysctl \-a \-\-pattern forward$
+.br
+/sbin/sysctl \-a \-\-pattern 'net.ipv4.conf.(eth|wlan)0.arp'
+.br
+/sbin/sysctl \-\-pattern '\[char94]net.ipv6' \-\-system
+.SH "PARÂMETROS OBSOLETOS"
+The \fBbase_reachable_time\fP and \fBretrans_time\fP are deprecated.  The
+\fBsysctl\fP command does not allow changing values of these parameters.  Users
+who insist to use deprecated kernel interfaces should push values to
+\fB/proc\fP file system by other means.  For example:
+.PP
+echo 256 > /proc/sys/net/ipv6/neigh/eth0/base_reachable_time
+.SH ARQUIVOS
+\fI/proc/sys\fP
+.br
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+.SH "VEJA TAMBÉM"
+\fBproc\fP(5), \fBsysctl.conf\fP(5), \fBregex\fP(7)
+.SH AUTOR
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

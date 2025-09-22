@@ -1,0 +1,1831 @@
+.\"
+.\" Copyright (c) 2004-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PS 1 19.08.2023 procps\-ng "Comenzi utilizator"
+.\"
+.\" Ragged-right text.
+.na
+.\" Disable hyphenation.
+.nh
+.\"
+.\" ColSize is used for the format spec table.
+.\" It's the left margin, minus the right, minus
+.\" the space needed for the 1st two columns.
+.\" Making it messy: inches, ens, points, scaled points...
+.\"
+.nr ColSize ((\n[.l] - \n[.i]) / 1n - 29)
+.\"
+.SH NUME
+ps \- raportează un instantaneu al proceselor curente.
+.SH REZUMAT
+\fBps\fP [\,\fIopțiuni\/\fP]
+.SH DESCRIERE
+\fBps\fP afișează informații despre o selecție a proceselor active.  Dacă
+doriți o actualizare repetitivă a selecției și a informațiilor afișate,
+utilizați în schimb \fBtop\fP.
+.P
+Această versiune de \fBps\fP acceptă mai multe tipuri de opțiuni:
+.IP
+.PD 0
+.IP 1 4
+Opțiuni UNIX, care pot fi grupate și trebuie să fie precedate de o liniuță.
+.IP 2 4
+Opțiuni BSD, care pot fi grupate și nu trebuie să fie precedate de o
+liniuță.
+.IP 3 4
+Opțiuni lungi GNU, care sunt precedate de două liniuțe.
+.PD
+.PP
+Opțiunile de diferite tipuri pot fi amestecate liber, dar pot apărea
+conflicte.  Există câteva opțiuni sinonime, care sunt identice din punct de
+vedere funcțional, datorită numeroaselor standarde și implementări \fBps\fP cu
+care este compatibil acest \fBps\fP.
+.P
+În mod implicit, \fBps\fP selectează toate procesele cu același ID de
+utilizator efectiv (euid=EUID) ca utilizatorul curent și asociate cu același
+terminal ca și apelantul.  Afișează ID\-ul procesului (pid=PID), terminalul
+asociat procesului (tname=TTY), timpul cumulat al procesorului în format
+[DD\-]hh:mm:ss (time=TIME) și numele executabilului (ucmd). =CMD).  Ieșirea
+nu este sortată în mod implicit.
+.P
+Utilizarea opțiunilor în stil BSD va adăuga starea procesului (stat=STAT) la
+afișarea implicită și va afișa argumentele comenzii (args=COMMAND) în loc de
+numele executabilului.  Puteți suprascrie acest lucru cu variabila de mediu
+\fBPS_FORMAT\fP.  Utilizarea opțiunilor în stil BSD va modifica, de asemenea,
+selecția procesului pentru a include procese de pe alte terminale (TTY) care
+sunt deținute de dvs.; cu alte cuvinte, este selecția tuturor proceselor,
+filtrate pentru a exclude procesele aparținând altor utilizatori sau din
+afara unui terminal.  Aceste efecte nu sunt luate în considerare pentru
+opțiunile descrise mai jos ca fiind „identice”, deci \fB\-M\fP va fi considerată
+identică cu \fBZ\fP și așa mai departe.
+.P
+Cu excepția celor descrise mai jos, opțiunile de selecție a procesului sunt
+aditive.  Selecția implicită este înlăturată, iar apoi procesele selectate
+sunt adăugate la setul de procese care urmează să fie afișate.  Astfel, un
+proces va fi afișat dacă îndeplinește oricare dintre criteriile de selecție
+date.
+.SH EXEMPLE
+.TP  3
+Pentru a vedea fiecare proces din sistem folosind sintaxa standard:
+\fBps\ \-e\fP
+.br
+\fBps\ \-ef\fP
+.br
+\fBps\ \-eF\fP
+.br
+\fBps\ \-ely\fP
+.TP 
+Pentru a vedea fiecare proces din sistem folosind sintaxa BSD:
+\fBps\ ax\fP
+.br
+\fBps\ axu\fP
+.TP 
+Pentru a afișa un arbore de procese:
+\fBps\ \-ejH\fP
+.br
+\fBps\ axjf\fP
+.TP 
+Pentru a obține informații despre firele de execuție:
+\fBps\ \-eLf\fP
+.br
+\fBps\ axms\fP
+.TP 
+Pentru a obține informații de securitate:
+\fBps\ \-eo euser,ruser,suser,fuser,f,comm,label\fP
+.br
+\fBps\ axZ\fP
+.br
+\fBps\ \-eM\fP
+.TP 
+Pentru a vedea fiecare proces care rulează ca root (ID real și efectiv) în format utilizator:
+\fBps\ \-U\ root\ \-u\ root\ u\fP
+.TP 
+Pentru a vedea fiecare proces cu un format definit de utilizator:
+\fBps\ \-eo\ pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,wchan:14,comm\fP
+.br
+\fBps\ axo\ stat,euid,ruid,tty,tpgid,sess,pgrp,ppid,pid,pcpu,comm\fP
+.br
+\fBps\ \-Ao\ pid,tt,user,fname,tmout,f,wchan\fP
+.TP 
+Afișează doar ID\-urile de proces ale syslogd:
+\fBps\ \-C\ syslogd\ \-o\ pid=\fP
+.TP 
+Afișează doar numele PID\-ului 42:
+\fBps\ \-q\ 42\ \-o\ comm=\fP
+.SH "SELECTARE SIMPLĂ A PROCESULUI"
+.TP 
+\fBa\fP
+Ridică restricția „doar eu însumi” în stil BSD, care este impusă setului
+tuturor proceselor atunci când sunt utilizate unele opțiuni în stil BSD
+(fără „\-”) sau când configurarea de personalitate a \fBps\fP este asemănătoare
+cu cea din BSD.  Setul de procese selectate în acest mod se adaugă setului
+de procese selectate prin alte mijloace.  Cu alte cuvinte, această opțiune
+determină \fBps\fP să listeze toate procesele cu un terminal (tty) sau să
+listeze toate procesele atunci când este utilizată împreună cu opțiunea
+\fBx\fP.
+.TP 
+\fB\-A\fP
+Selectează toate procesele.  Identică cu \fB\-e\fP.
+.TP 
+\fB\-a\fP
+Selectează toate procesele cu excepția atât a liderilor de sesiune (vezi
+\fIgetsid\fP(2)) cât și a proceselor care nu sunt asociate cu un terminal.
+.TP 
+\fB\-d\fP
+Selectați toate procesele, cu excepția liderilor de sesiune.
+.TP 
+\fB\-\-deselect\fP
+Selectează toate procesele, cu excepția celor care îndeplinesc condițiile
+specificate (inversează selecția).  La fel ca opțiunea \fB\-N\fP.
+.TP 
+\fB\-e\fP
+.\" Current "g" behavior: add in the session leaders, which would
+.\" be excluded in the sunos4 personality. Supposed "g" behavior:
+.\" add in the group leaders -- at least according to the SunOS 4
+.\" man page on the FreeBSD site. Uh oh. I think I had tested SunOS
+.\" though, so maybe the code is correct.
+Selectează toate procesele.  Identică cu \fB\-A\fP.
+.TP 
+\fBg\fP
+Într\-adevăr totul, chiar și liderii de sesiune.  Această opțiune este
+învechită și poate dispărea într\-o versiune viitoare.  În mod normal, este
+implicită cu opțiunea \fBa\fP și este utilă doar când rulați cu personalitatea
+sunos4.
+.TP 
+\fB\-N\fP
+Selectează toate procesele, cu excepția celor care îndeplinesc condițiile
+specificate (inversează selecția).  La fel ca opțiunea \fB\-\-deselect\fP.
+.TP 
+\fBT\fP
+Selectează toate procesele asociate cu acest terminal.  Identică cu opțiunea
+\fBt\fP fără niciun argument.
+.TP 
+\fBr\fP
+Restricționează selecția doar la procesele care rulează.
+.TP 
+\fBx\fP
+Ridică restricția „trebuie să aibă un tty” în stil BSD, care este impusă
+setului tuturor proceselor atunci când sunt utilizate unele opțiuni în stil
+BSD (fără „\-”) sau când configurarea de personalitate a \fBps\fP este
+asemănătoare cu cea din BSD.  Setul de procese selectate în acest mod se
+adaugă setului de procese selectate prin alte mijloace.  Cu alte cuvinte,
+această opțiune determină \fBps\fP să listeze toate procesele deținute de
+dumneavoastră (același EUID ca \fBps\fP) sau să listeze toate procesele atunci
+când este utilizat cu opțiunea \fBa\fP.
+.PD
+.SH "SELECTARE PROCES DIN LISTĂ"
+Aceste opțiuni acceptă un singur argument sub forma unei liste separate prin
+virgule sau spații.  Acestea pot fi folosite de mai multe ori.  De exemplu:
+\fBps\ \-p\ "1\ 2"\ \-p\ 3,4\fP
+.TP 
+\fI123\fP
+Identic cu \fB\-\-pid\ \fP\fI123\fP.
+.TP 
+\+\fI123\fP
+Identic cu \fB\-\-sid\ \fP\fI123\fP.
+.TP 
+\-\fI123\fP
+Selectează după identificatorul grupului de procese (PGID).
+.TP 
+\fB\-C\fP\fI\ listă_comenzi\fP
+Selectează după numele comenzii.  Aceasta selectează procesele al căror nume
+de executabil este dat în \fIlistă_comenzi\fP.  NOTĂ: Numele comenzii nu este
+același cu numele din linia de comandă.  Versiunile anterioare ale \fIprocps\fP
+și ale nucleului au trunchiat acest nume de comandă la 15 caractere.
+Această limitare nu mai este prezentă în ambele.  Dacă veți efectua căutarea
+doar cu 15 caractere, este posibil să nu mai obțineți o potrivire.
+.TP 
+\fB\-G\fP\fI\ listă_grupuri\fP
+Selectează după ID\-ul real al grupului (RGID) sau nume.  Aceasta selectează
+procesele al căror nume sau ID real de grup se află în lista
+\fIlistă_grupuri\fP.  ID\-ul real al grupului identifică grupul utilizatorului
+care a creat procesul, vezi \fIgetgid\fP(2).
+.TP 
+\fB\-g\fP\fI\ listă_grupuri\fP
+Selectează după sesiune SAU după numele efectiv al grupului.  Selectarea
+după sesiune este specificată de mai multe standarde, dar selecția după grup
+efectiv este comportamentul logic pe care îl folosesc mai multe alte sisteme
+de operare.  Acest \fBps\fP va selecta după sesiune când lista este complet
+numerică (așa cum sunt sesiunile).  Numerele ID de grup vor funcționa numai
+atunci când sunt specificate și unele nume de grup.  Consultați opțiunile
+\fB\-s\fP și \fB\-\-group\fP.
+.TP 
+\fB\-\-Group\fP\fI\ listă_grupuri\fP
+Selectează după ID\-ul real al grupului (RGID) sau nume.  Identică cu \fB\-G\fP.
+.TP 
+\fB\-\-group\fP\fI\ listă_grupuri\fP
+Selectează după ID\-ul efectiv al grupului (EGID) sau nume.  Aceasta
+selectează procesele al căror nume de grup efectiv sau ID este în
+\fIlistă_grupuri\fP.  ID\-ul efectiv al grupului descrie grupul ale cărui
+permisiuni de acces la fișiere sunt utilizate de proces (consultați
+\fIgetegid\fP(2)).  Opțiunea \fB\-g\fP este adesea o alternativă la \fB\-\-group\fP.
+.TP 
+\fBp\fP\fI\ listă_pid\-uri\fP
+Selectează după ID\-ul procesului.  Identică cu \fB\-p\fP și \fB\-\-pid\fP.
+.TP 
+\fB\-p\fP\fI\ listă_pid\-uri\fP
+Selectează după PID.  Aceasta selectează procesele ale căror numere ID de
+proces apar în \fIlistă_pid\-uri\fP.  Identică cu \fBp\fP și \fB\-\-pid\fP.
+.TP 
+\fB\-\-pid\fP\fI\ listă_pid\-uri\fP
+Selectează după identificatorul procesului (PID).  La fel ca \fB\-p\fP și \fBp\fP.
+.TP 
+\fB\-\-ppid\fP\fI\ listă_pid\-uri\fP
+Selectează după ID\-ul procesului părinte.  Aceasta selectează procesele cu
+un identificator de proces părinte în \fIlistă_pid\-uri\fP.  Adică selectează
+procesele care sunt copii ale celor enumerate în \fIlistă_pid\-uri\fP.
+.TP 
+\fBq\fP\fI\ listă_pid\-uri\fP
+Selectează după ID\-ul procesului (modul rapid).  Identică cu \fB\-q\fP și
+\fB\-\-quick\-pid\fP.
+.TP 
+\fB\-q\fP\fI\ listă_pid\-uri\fP
+Selectează după PID (modul rapid).  Aceasta selectează procesele ale căror
+numere ID de proces apar în \fIlistă_pid\-uri\fP.  Cu această opțiune, \fBps\fP
+citește informațiile necesare numai pentru pid\-urile enumerate în
+\fIlistă_pid\-uri\fP și nu aplică reguli suplimentare de filtrare.  Ordinea
+numerelor pid este nesortată și păstrată.  Nu sunt permise opțiuni
+suplimentare de selecție, sortare și listare de tip arborescent în acest
+mod.  Identică cu \fBq\fP și \fB\-\-quick\-pid\fP.
+.TP 
+\fB\-\-quick\-pid\fP\fI\ listă_pid\-uri\fP
+Selectează după ID\-ul procesului (modul rapid).  Identică cu \fB\-q\fP și \fBq\fP.
+.TP 
+\fB\-s\fP\fI\ listă_sesiuni\fP
+Selectează după ID\-ul sesiunii. Aceasta selectează procesele cu un ID de
+sesiune specificat în \fIlistă_sesiuni\fP.
+.TP 
+\fB\-\-sid\fP\fI\ listă_sesiuni\fP
+Selectează după ID\-ul sesiunii.  Identică cu \fB\-s\fP.
+.TP 
+\fBt\fP\fI\ listă_tty\-uri\fP
+Selectează după tty.  Aproape identică cu \fB\-t\fP și \fB\-\-tty\fP, dar poate fi
+folosită și cu o \fIlistă_tty\-uri\fP goală pentru a indica terminalul asociat
+cu \fBps\fP.  Utilizarea opțiunii \fBT\fP este considerată mai curată decât
+utilizarea \fBt\fP cu o \fIlistă_tty\-uri\fP goală.
+.TP 
+\fB\-t\fP\fI\ listă_tty\-uri\fP
+Selectează după tty.  Aceasta selectează procesele asociate cu terminalele
+date în \fIlistă_tty\-uri\fP.  Terminalele (ttys, sau ecrane pentru ieșire de
+text) pot fi specificate în mai multe forme: /dev/ttyS1, ttyS1, S1.  Un
+simplu „\-” poate fi folosit pentru a selecta procese care nu sunt atașate la
+niciun terminal.
+.TP 
+\fB\-\-tty\fP\fI\ listă_tty\-uri\fP
+Selectează după terminal. Identică cu \fB\-t\fP și \fBt\fP.
+.TP 
+\fBU\fP\fI\ listă_utilizatori\fP
+Selectează după ID\-ul de utilizator efectiv (EUID) sau nume.  Aceasta
+selectează procesele al căror nume de utilizator efectiv sau ID este în
+\fIlistă_utilizatori\fP.  ID\-ul de utilizator efectiv descrie utilizatorul ale
+cărui permisiuni de acces la fișiere sunt utilizate de proces (vezi
+\fIgeteuid\fP(2)).  Identică cu \fB\-u\fP și \fB\-\-user\fP.
+.TP 
+\fB\-U\fP\fI\ listă_utilizatori\fP
+Selectează după ID\-ul utilizatorului real (RUID) sau nume.  Selectează
+procesele al căror nume sau ID real de utilizator se află în lista
+\fIlistă_utilizatori\fP.  ID\-ul de utilizator real identifică utilizatorul care
+a creat procesul, vezi \fIgetuid\fP(2).
+.TP 
+\fB\-u\fP\fI\ listă_utilizatori\fP
+Selectează după ID\-ul de utilizator efectiv (EUID) sau nume.  Aceasta
+selectează procesele al căror nume de utilizator efectiv sau ID este în
+\fIlistă_utilizatori\fP.
+
+ID\-ul de utilizator efectiv descrie utilizatorul ale cărui permisiuni de
+acces la fișiere sunt utilizate de proces (vezi \fIgeteuid\fP(2)).  Identică cu
+\fBU\fP și \fB\-\-user\fP.
+.TP 
+\fB\-\-User\fP\fI\ listă_utilizatori\fP
+Selectează după ID\-ul utilizatorului real (RUID) sau nume. Identică cu
+\fB\-U\fP.
+.TP 
+\fB\-\-user\fP\fI\ listă_utilizatori\fP
+Selectează după ID\-ul utilizatorului efectiv (EUID) sau nume.  Identică cu
+\fB\-u\fP și \fBU\fP.
+.PD
+.SH "CONTROLUL FORMATULUI DE IEȘIRE"
+Aceste opțiuni sunt folosite pentru a alege informațiile afișate de \fBps\fP.
+Ieșirea poate diferi în funcție de personalizare.
+.TP 
+\fB\-c\fP
+Afișează diferite informații de planificare pentru opțiunea \fB\-l\fP.
+.TP 
+\fB\-\-context\fP
+Afișează formatul contextului de securitate (pentru SELinux).
+.TP 
+\fB\-f\fP
+Afișează listarea în format complet.  Această opțiune poate fi combinată cu
+multe alte opțiuni în stil UNIX pentru a adăuga coloane suplimentare.  De
+asemenea, determină afișarea argumentelor comenzii.  Când este utilizată cu
+\fB\-L\fP, se vor adăuga coloanele NLWP (număr de fire) și LWP (ID fir).
+Consultați opțiunea \fBc\fP, cuvântul cheie pentru format \fBargs\fP și cuvântul
+cheie pentru format \fBcomm\fP.
+.TP 
+\fB\-F\fP
+Format extra complet.  Vedeți opțiunea \fB\-f\fP, ceea ce implică \fB\-F\fP.
+.TP 
+\fB\-\-format\fP\fI\ format\fP
+Format definit de utilizator. Identică cu \fB\-o\fP și \fBo\fP.
+.TP 
+\fBj\fP
+Format de control al sarcinilor BSD.
+.TP 
+\fB\-j\fP
+Format sarcini.
+.TP 
+\fBl\fP
+Afișează formatul BSD lung.
+.TP 
+\fB\-l\fP
+Format lung.  Opțiunea \fB\-y\fP este adesea utilă cu aceasta.
+.TP 
+\fB\-M\fP
+Adaugă o coloană cu date de securitate. Identică cu \fBZ\fP (pentru SELinux).
+.TP 
+\fBO\fP\fI\ format\fP
+Este preîncărcat \fBo\fP (supraîncărcat).  Opțiunea BSD \fBO\fP poate acționa ca
+opțiunea \fB\-O\fP (format de ieșire definit de utilizator cu unele câmpuri
+comune predefinite) sau poate fi folosită pentru a specifica ordinea de
+sortare.  Euristicele sunt folosite pentru a determina comportamentul
+acestei opțiuni.  Pentru a vă asigura că se obține comportamentul dorit
+(sortare sau formatare), specificați opțiunea într\-un alt mod (de exemplu,
+cu \fB\-O\fP sau \fB\-\-sort\fP).  Când este folosită ca opțiune de formatare, este
+identică cu \fB\-O\fP, cu personalitatea BSD.
+.TP 
+\fB\-O\fP\fI\ format\fP
+La fel ca \fB\-o\fP, dar preîncărcată cu unele coloane implicite.  Identică cu
+\fB\-o\ pid,\:\fP\fIformat\fP\fB,\:state,\:tname,\:time,\:command\fP sau \fB\-o\ pid,\:\fP\fIformat\fP \fB,\:tname,\:time,\:cmd\fP, vedeți opțiunea \fB\-o\fP mai jos.
+.TP 
+\fBo\fP\fI\ format\fP
+Specifică un format definit de utilizator.  Identică cu \fB\-o\fP și
+\fB\-\-format\fP.
+.TP 
+\fB\-o\fP\fI\ format\fP
+Format definit de utilizator.  \fIformat\fP este un singur argument sub forma
+unei liste separate prin spații în alb sau prin virgule, care oferă o
+modalitate de a specifica individual coloanele de ieșire.  Cuvintele cheie
+recunoscute sunt descrise în secțiunea \fBSPECIFICATORI DE FORMAT STANDARD\fP
+de mai jos.  Titlurile coloanelor pot fi redenumite (\fBps \-o pid,\:ruser=RealUser \-o comm=Command\fP) după cum doriți.  Dacă toate
+titlurile de coloană sunt goale (\fBps \-o pid= \-o comm=\fP), atunci linia de
+titluri nu va fi afișată . Lățimea coloanei va crește după cum este necesar
+pentru titlurile largi; aceasta poate fi folosită pentru a lărgi coloane
+precum WCHAN (\fBps \-o pid,\:wchan=\:WIDE\-\:WCHAN\-\:COLUMN \-o comm\fP).
+Controlul explicit al lățimii (\fBps opid,\:wchan:42,\:cmd\fP) este de asemenea
+posibil.  Comportamentul lui \fBps \-o pid=X,\:comm=Y\fP variază în funcție de
+personalitate; ieșirea poate fi o coloană numită „X,\:comm=Y” sau două
+coloane numite „X” și „Y”.  Utilizați mai multe opțiuni \fB\-o\fP atunci când
+aveți îndoieli.  Utilizați variabila de mediu \fBPS_FORMAT\fP pentru a
+specifica o valoare implicită după cum doriți; DefSysV și DefBSD sunt
+macrocomenzi care pot fi utilizate pentru a alege coloanele UNIX sau BSD
+implicite.
+.TP 
+\fB\-P\fP
+Adaugă o coloană care afișează \fBpsr\fP.
+.TP 
+\fBs\fP
+Afișează formatul semnalului.
+.TP 
+\fBu\fP
+Afișează formatul orientat către utilizator.
+.TP 
+\fBv\fP
+Afișează formatul memoriei virtuale.
+.TP 
+\fBX\fP
+Format de registru.
+.TP 
+\fB\-y\fP
+Nu afișează fanioane; afișează rss în locul de adresă.  Această opțiune
+poate fi utilizată numai cu \fB\-l\fP.
+.TP 
+\fBZ\fP
+Adaugă o coloană cu date de securitate.  Identică cu \fB\-M\fP (pentru SELinux).
+.PD
+.SH "MODIFICATORI DE IEȘIRE"
+.TP 
+\fBc\fP
+Afișați numele adevărat al comenzii.  Acesta este derivat din numele
+fișierului executabil, mai degrabă decât din valoarea \fIargv\fP.  Prin urmare,
+argumentele comenzii și orice modificări aduse acestora nu sunt afișate.
+Această opțiune transformă efectiv cuvântul cheie de format \fBargs\fP în
+cuvântul cheie de format \fBcomm\fP; este utilă cu opțiunea de format \fB\-f\fP și
+cu diferitele opțiuni de format în stil BSD, care toate afișează în mod
+normal argumentele comenzii.  Consultați opțiunea \fB\-f\fP, cuvântul cheie de
+format \fBargs\fP și cuvântul cheie de format \fBcomm\fP.
+.TP 
+\fB\-\-cols\fP\fI\ n\fP
+Stabilește lățimea ecranului.
+.TP 
+\fB\-\-columns\fP\fI\ n\fP
+Stabilește lățimea ecranului.
+.TP 
+\fB\-\-cumulative\fP
+Include unele date despre proces\-copil mort (ca o sumă cu părintele).
+.TP 
+.TP 
+\fB\-D\fP\fI\ format\fP
+Stabilește formatul de dată al câmpului \fBlstart\fP la \fIformat\fP. Acest format
+este analizat de \fBstrftime\fP(3) și ar trebui să aibă maximum 24 de caractere
+pentru a nu alinia greșit coloanele.
+.TP 
+\fB\-\-date\-format\fP\fI\ format\fP
+Identic cu \fB\-D\fP.
+.TP 
+\fBe\fP
+Afișează mediul după comandă.
+.TP 
+\fBf\fP
+Afișează ierarhia (arborescența) proceselor sub formatul unui desen ASCII.
+.TP 
+\fB\-\-forest\fP
+Afișează arborele de procese în format de desen ASCII.
+.TP 
+\fBh\fP
+Fără antet (sau, un antet pe ecran în personalitatea BSD).  Opțiunea \fBh\fP
+este problematică.  \fBps\fP standard de BSD utilizează această opțiune pentru
+a afișa un antet pe fiecare pagină de ieșire, dar \fBps\fP în standardul mai
+vechi Linux folosește această opțiune pentru a dezactiva total antetul.
+Această versiune de \fBps\fP urmează utilizarea Linux de a nu afișa antetul
+decât dacă personalitatea BSD a fost selectată, caz în care afișează un
+antet pe fiecare pagină de ieșire.  Indiferent de personalitatea actuală,
+puteți folosi opțiunile lungi \fB\-\-headers\fP și \fB\-\-no\-headers\fP pentru a
+activa afișarea antetelor pe fiecare pagină sau, respectiv, pentru a
+dezactiva integral anteturile.
+.TP 
+\fB\-H\fP
+Afișează ierarhia (arborescența) proceselor.
+.TP 
+\fB\-\-headers\fP
+Repetă liniile de antet, câte una pe pagină la ieșire.
+.TP 
+\fBk\fP\fI\ spec\fP
+Specifică ordinea de sortare.  Sintaxa de sortare este
+[\fB+\fP|\fB\-\fP]\fIcheie\/.RB [,[ + | \- ].IR cheie [,...]].\fP  Alegeți o cheie cu
+mai multe litere din secțiunea \fBSPECIFICATORI DE FORMAT STANDARD\fP. „+” este
+opțional, deoarece direcția implicită este în creștere în ordine numerică
+sau lexicografică.  Identică cu \fB\-\-sort\fP.
+.RS 8
+.IP
+Exemple:
+.br
+\fBps jaxkuid,\-ppid,+pid\fP
+.br
+\fBps axk comm o comm,args\fP
+.br
+\fBps kstart_time \-ef\fP
+.RE
+.TP 
+\fB\-\-lines\fP\fI\ n\fP
+Stabilește înălțimea ecranului.
+.TP 
+\fBn\fP
+Ieșire numerică pentru WCHAN și USER (inclusiv toate tipurile de UID și
+GID).
+.TP 
+\fB\-\-no\-headers\fP
+Nu afișează nicio linie de antet.  \fB\-\-no\-heading\fP este un alias pentru
+această opțiune.
+.TP 
+\fBO\fP\fI\ order\fP
+Ordinea de sortare (supraîncărcată).  Opțiunea BSD \fBO\fP poate acționa ca
+\fB\-O\fP (format de ieșire definit de utilizator cu unele câmpuri comune
+predefinite) sau poate fi folosită pentru a specifica ordinea de sortare.
+Euristicele sunt folosite pentru a determina comportamentul acestei
+opțiuni.  Pentru a vă asigura că se obține comportamentul dorit (sortare sau
+formatare), specificați opțiunea într\-un alt mod (de exemplu, cu \fB\-O\fP sau
+\fB\-\-sort\fP).
+.IP
+Pentru sortare, sintaxa învechită a opțiunii BSD \fBO\fP este
+\fBO\fP[\fB+\fP|\fB\-\fP]\fIk1\fP[,[\fB+\fP|\fB\-\fP]\fIk2\fP[, ...]].  Acesta ordonează listarea
+proceselor în funcție de sortarea pe mai multe niveluri specificată de
+secvența cheilor scurte cu o literă \fIk1\fP,\fIk2\fP, ... descrisă în secțiunea
+\fBCHEI DE SORTARE OBSOLETE\fP de mai jos.  În prezent, „+” este opțional, doar
+reiterând direcția implicită pe o cheie, dar poate ajuta la distingerea unui
+format \fBO\fP de un format \fBO\fP. „\-” inversează direcția doar pentru cheia pe
+care o precede.
+.TP 
+\fB\-\-rows\fP\fI\ n\fP
+Stabilește înălțimea ecranului.
+.TP 
+\fBS\fP
+Rezumă unele informații, cum ar fi utilizarea procesorului, de la
+procesele\-copil moarte în părintele lor.  Acest lucru este util pentru
+examinarea unui sistem în care un proces parental generează în mod repetat
+procese\-copil de scurtă durată pentru a\-și îndeplini treaba.
+.TP 
+\fB\-\-sort\fP\fI\ spec\fP
+Specifică ordinea de sortare.  Sintaxa de sortare este
+[\fI+\fP|\fI\-\fP]\fIcheie\fP[,[\fB+\fP|\fB\-\fP]\fIcheie\fP[,...]].  Alegeți o cheie cu mai
+multe litere din secțiunea \fBSPECIFICATORI DE FORMAT STANDARD\fP. „+” este
+opțional, deoarece direcția implicită este în creștere în ordinea numerică
+sau lexicografică.  Identic cu \fBk\fP.  De exemplu: \fBps jax \-\-sort=\:uid,\:\-ppid,\:+pid\fP
+.TP 
+\fB\-\-signames\fP
+Afișează măștile de semnal folosind nume de semnal prescurtate și extinde
+coloana.  În cazul în care lățimea coloanei nu poate afișa toate semnalele,
+coloana se va termina cu un plus „\fI+\fP”.  Coloanele care au doar o liniuță,
+nu au semnale.
+.TP 
+\fBw\fP
+Ieșire lungă.  Utilizați această opțiune de două ori pentru o lățime
+nelimitată.
+.TP 
+\fB\-w\fP
+Ieșire lungă.  Utilizați această opțiune de două ori pentru o lățime
+nelimitată.
+.TP 
+\fB\-\-width\fP\fI\ n\fP
+Stabilește lățimea ecranului.
+.PD
+.SH "AFIȘAREA PROCESELOR FIRELOR DE EXECUȚIE"
+.TP 
+\fBH\fP
+Afișează firele de execuție ca și cum ar fi procese.
+.TP 
+\fB\-L\fP
+Afișează firele de execuție, eventual cu coloane LWP și NLWP.
+.TP 
+\fBm\fP
+Afișează firele de execuție după procese.
+.TP 
+\fB\-m\fP
+Afișează firele de execuție după procese.
+.TP 
+\fB\-T\fP
+Afișează firele de execuție, eventual cu coloana SPID.
+.SH "ALTE INFORMAȚII"
+.TP 
+\fB\-\-help\fP\fI\ secțiunea\fP
+Afișează un mesaj de ajutor.  Argumentul \fIsecțiune\fP poate fi unul dintre
+\fIs\fPimple (simplu), \fIl\fPist (listă), \fIo\fPutput (ieșire), \fIt\fPhreads (fire de
+execuție), \fIm\fPisc (diverse) sau \fIa\fPll (toate).  Argumentul poate fi
+scurtat la una dintre literele subliniate ca în:
+s\^|\^l\^|\^o\^|\^t\^|\^m\^|\^a.
+.TP 
+\fB\-\-info\fP
+Afișează informațiile de depanare.
+.TP 
+\fBL\fP
+Listează toți specificatorii de format.
+.TP 
+\fBV\fP
+Afișează versiunea procps\-ng.
+.TP 
+\fB\-V\fP
+Afișează versiunea procps\-ng.
+.TP 
+\fB\-\-version\fP
+Afișează versiunea procps\-ng.
+.SH NOTE
+Acest \fBps\fP funcționează prin citirea fișierelor virtuale din \fI/proc\fP.
+Acest \fBps\fP nu trebuie să aibă bitul setuid kmem activat, sau să aibă
+privilegii pentru a rula.  Nu acordați acestui \fBps\fP nicio permisiune
+specială.
+.PP
+Utilizarea procesorului este exprimată în prezent ca procentul de timp
+petrecut rulând pe întreaga durată de viață a unui proces.  Acest lucru nu
+este ideal și nici nu este conform standardelor pe care \fBps\fP le respectă
+dealtfel.  Este puțin probabil ca utilizarea procesorului să ajungă la exact
+100%.
+.PP
+Câmpurile SIZE și RSS nu contorizează unele părți ale unui proces, inclusiv
+tabelele de pagini, stiva de nucleu, structura thread_info și structura
+task_struct.  Aceasta este de obicei cel puțin 20 Kio de memorie care este
+întotdeauna rezidentă.  SIZE este dimensiunea virtuală a procesului
+(cod+\:date+\:stivă).
+.PP
+Procesele marcate <defunct> sunt procese moarte (așa\-numitele
+„zombi”) care rămân deoarece părintele lor nu le\-a distrus corespunzător.
+Aceste procese vor fi distruse de procesul \fIinit\fP(8) dacă procesul părinte
+iese.
+.PP
+Dacă lungimea numelui de utilizator este mai mare decât lungimea coloanei de
+afișare, numele de utilizator va fi trunchiat.  Consultați opțiunile de
+formatare \fB\-o\fP și \fB\-O\fP pentru a personaliza lungimea.
+.PP
+Opțiunile de comenzi precum \fBps \-aux\fP nu sunt recomandate deoarece este o
+confuzie a două standarde diferite.  Conform standardelor POSIX și UNIX,
+comanda de mai sus solicită afișarea tuturor proceselor cu un TTY (în
+general, comenzile pe care utilizatorii le execută) plus toate procesele
+deținute de un utilizator numit \fIx\fP.  Dacă acel utilizator nu există,
+atunci \fBps\fP va presupune că de fapt ați vrut să spuneți «\fBps\fP \fIaux\fP».
+.SH "FANIOANE DE PROCESE"
+Suma acestor valori este afișată în coloana „F”, care este furnizată de
+specificatorul de ieșire \fBfanioane\fP:
+.PP
+.RS 8
+.PD 0
+.TP  5
+1
+bifurcat, dar nu s\-a executat
+.TP 
+4
+utilizat cu privilegii de superutilizator
+.PD
+.RE
+.SH "CODURI DE STARE A PROCESULUI"
+Iată diferitele valori pe care specificatorii de ieșire \fBs\fP, \fBstat\fP și
+\fBstate\fP (antetul „STAT” sau „S”) le vor afișa pentru a descrie starea unui
+proces:
+.PP
+.RS 8
+.PD 0
+.TP  5
+D
+somn neîntrerupt (de regulă In/Ieș)
+.TP 
+I
+Fir de execuție al nucleului inactiv
+.TP 
+R
+rulează sau se poate rula (în coada de rulare)
+.TP 
+S
+somn întreruptibil (așteaptă finalizarea unui eveniment)
+.TP 
+T
+oprit de semnalul de control al lucrării
+.TP 
+t
+oprit de depanator în timpul urmăririi
+.TP 
+W
+paginare (nu este valabilă de la nucleul 2.6.xx)
+.TP 
+X
+mort (nu ar trebui să fie văzut niciodată)
+.TP 
+Z
+proces defunct ("zombie"), încheiat, dar nerecules de părintele său
+.PD
+.RE
+.PP
+Pentru formatele BSD și când este utilizat cuvântul cheie \fBstat\fP, pot fi
+afișate caractere suplimentare:
+.PP
+.RS 8
+.PD 0
+.TP  5
+<
+cu prioritate ridicată (nu este „nice” pentru alți utilizatori)
+.TP 
+N
+cu prioritate scăzută (este „nice” pentru alți utilizatori)
+.TP 
+L
+are pagini blocate în memorie (pentru Intrări/Ieșiri în timp real și
+personalizate)
+.TP 
+s
+este un lider de sesiune
+.TP 
+l
+are mai multe fire de execuție (folosind CLONE_THREAD, așa cum fac
+pthreads(firele de execuție posix) NPTL)
+.TP 
++
+se află în grupul de procese din primplan
+.PD
+.RE
+.SH "CHEI DE SORTARE OBSOLETE"
+Aceste chei sunt folosite de opțiunea BSD \fBO\fP (când este folosită pentru
+sortare).  Opțiunea GNU \fB\-\-sort\fP nu folosește aceste chei, ci
+specificatorii descriși mai jos în secțiunea \fBSPECIFICATORI DE FORMAT STANDARD\fP.  Rețineți că valorile utilizate în sortare sunt valorile interne
+pe care le utilizează \fBps\fP și nu valorile „gătite” utilizate în unele
+dintre câmpurile formatului de ieșire (de exemplu, sortarea pe tty va sorta
+după numărul dispozitivului, nu în funcție de numele terminalului afișat) .
+Transmiteți ieșirea \fBps\fP la comanda \fBsort\fP(1) utilizând o conductă dacă
+doriți să sortați valorile „gătite”.
+.TS
+l l lw(3i).
+\fBCHEIE\fP	\fBLUNG\fP	\fBDESCRIERE\fP
+c	cmd	numele fișierului executabil
+C	pcpu	utilizarea procesorului
+f	fanioane	fanioane ca în câmpul F de format lung
+g	pgrp	identificatorul grupului de procese
+G	tpgid	identificatorul grupului de procese ce controlează tty
+j	cutime	timpul cumulat al utilizatorului
+J	cstime	timpul cumulat al sistemului
+k	utime	timpul utilizatorului
+m	min_flt	numărul de erori de pagină minore
+M	maj_flt	numărul de erori de pagină majore
+n	cmin_flt	erori de pagină minore cumulate
+N	cmaj_flt	erori de pagină majore cumulate
+o	sesiune	identificatorul sesiunii (sid)
+p	pid	identificatorul procesului (pid)
+P	ppid	identificatorul procesului părinte (ppid)
+r	rss	dimensiunea memoriei rezidente
+R	resident	pagini din memoria rezidentă
+s	size	dimensiunea memoriei în kiloocteți
+S	share	numărul de pagini partajate
+t	tty	numărul dispozitivului de control al terminalului
+T	start_time	momentul în care a început procesul
+U	uid	numărul ID al utilizatorului
+u	utilizator	numele utilizatorului
+v	vsize	dimensiunea totală a memoriei virtuale în Kio
+y	priority	prioritatea de planificare a nucleului
+.\"K	stime	system time (conflict, system vs. start time)
+.TE
+.SH "DESCRIPTORI DE FORMAT AIX"
+Acest \fBps\fP acceptă descriptori de format AIX, care funcționează oarecum
+precum codurile de formatare ale \fIprintf\fP(1) și \fIprintf\fP(3).  De exemplu,
+ieșirea implicită normală poate fi produsă cu: \fBps \-eo "%p %y %x %c"\fP..
+Codurile \fBNORMAL\fP sunt descrise în secțiunea următoare.
+.TS
+l l l.
+\fBCOD\fP	\fBNORMAL\fP	\fBTITLU\fP
+%C	pcpu	%CPU
+%G	group	GROUP
+%P	ppid	PPID
+%U	utilizator	USER
+%a	args	COMANDA
+%c	comm	COMANDA
+%g	rgroup	RGROUP
+%n	nice	NI
+%p	pid	PID
+%r	pgid	PGID
+%t	etime	ELAPSED
+%u	ruser	RUSER
+%x	time	TIME
+%y	tty	TTY
+%z	vsz	VSZ
+.TE
+.SH "SPECIFICATORI DE FORMAT STANDARD"
+Iată diferitele cuvinte cheie care pot fi folosite pentru a controla
+formatul de ieșire (de exemplu, cu opțiunea \fB\-o\fP) sau pentru a sorta
+procesele selectate cu opțiunea \fB\-\-sort\fP în stil GNU.
+.PP
+De exemplu: \fBps \-eo pid,\:user,\:args \-\-sort user\fP
+.PP
+Această versiune a \fBps\fP încearcă să recunoască majoritatea cuvintelor cheie
+utilizate în alte implementări ale \fBps\fP.
+.PP
+Următorii specificatori de format definiți de utilizator pot conține spații:
+\fBargs\fP, \fBcmd\fP, \fBcomm\fP, \fBcommand\fP, \fBfname\fP, \fBucmd\fP, \fBucomm\fP,
+\fBlstart\fP, \fBbsdstart\fP, \fBstart\fP.
+.PP
+Este posibil ca unele cuvinte cheie să nu fie disponibile pentru sortare.
+
+.\" #######################################################################
+.\" lB1 lB1 lB1 lB1 s s s
+.\" lB1 l1  l1  l1  s s s.
+.\"
+.\" lB1 lB1 lBw(5.5i)
+.\" lB1 l1  l.
+.\"
+.TS
+expand;
+l1B l1B lBw(\n[ColSize]n)
+l1B l1  l.
+COD	TITLU	DESCRIERE
+
+%cpu	%CPU	T{
+utilizarea CPU\-ului de către proces în format „##.#”.  În prezent, este
+timpul folosit de procesor împărțit la timpul în care procesul a rulat
+(raportul timp de procesare/timp real), exprimat ca procent. Cu excepția
+cazului în care sunteți norocos, această valoare nu va ajunge la 100% (alias
+\fBpcpu\fP).
+T}
+
+%mem	%MEM	T{
+raportul dintre dimensiunea memoriei rezidente („resident set size” sau RSS)
+a procesului și memoria fizică a mașinii, exprimat ca procent (alias
+\fBpmem\fP).
+T}
+
+ag_id	AGID	T{
+identificatorul autogrupului asociat cu un proces care funcționează împreună
+cu planificatorul CFS pentru a îmbunătăți performanța biroului interactiv.
+T}
+
+ag_nice	AGNI	T{
+valoarea priorității „nice” a autogrupului care se aplică planificării tuturor proceselor din acest grup.
+T}
+
+args	COMANDA	T{
+comanda cu toate argumentele sale ca șir. Pot fi afișate modificări ale
+argumentelor.
+Rezultatul din această coloană poate conține spații.
+Un proces marcat <defunct> este parțial mort, așteaptă să fie
+complet distrus de părintele său.
+Uneori, argumentele procesului vor fi indisponibile; când se întâmplă
+acest lucru,
+\fBps\fP
+va afișa în schimb numele executabilului între paranteze (alias
+\fBcmd\fP, \fBcomanda\fP).
+Consultați, de asemenea, cuvântul cheie de formatare \fBcomm\fP,
+opțiunea \fB\-f\fP și opțiunea \fBc\fP.
+.br
+când este specificată ultima, această coloană se va extinde până la marginea afișajului.  Dacă \fBps\fP nu poate determina lățimea de afișare, ca atunci când ieșirea este redirecționată (prin conductă) într\-un fișier sau altă comandă, lățimea de ieșire este nedefinită (poate fi 80, nelimitată, determinată de variabila \fBTERM\fP ș.a.m.d.).  Variabila de mediu \fBCOLUMNS\fP sau opțiunea \fB\-\-cols\fP poate fi folosită pentru a determina exact lățimea în acest caz.  Opțiunea \fBw\fP sau \fB \-w\fP poate fi, de asemenea, utilizată pentru a ajusta lățimea..
+T}
+
+blocked	BLOCKED	T{
+masca semnalelor blocate, a se vedea \fIsignal\fP(7).
+În funcție de lățimea câmpului, este afișată o mască de 32 sau 64 de biți
+în format hexazecimal. (alias \fBsig_block\fP, \fBsigmask\fP).
+T}
+
+bsdstart	START	T{
+momentul în care comanda a început.  Dacă procesul a fost pornit
+cu mai puțin de 24 de ore în urmă, formatul de ieșire este „HH:MM”,
+altfel este „Mmm:SS” (unde Mmm reprezintă cele trei litere ale lunii).
+A se vedea, de asemenea, \fBlstart\fP, \fBstart\fP, \fBstart_time\fP și \fBstime\fP.
+T}
+
+bsdtime	TIME	T{
+timpul CPU acumulat, utilizator + sistem.  Formatul de afișare este de obicei
+„MMM:SS”, dar poate fi mutat la dreapta dacă procesul a folosit mai mult de
+999 de minute de timp CPU.
+T}
+
+c	C	T{
+utilizarea procesorului. În prezent, aceasta este valoarea întreagă a 
+procentului de utilizare pe durata de viață a procesului. (a se vedea
+\fB%cpu\fP).
+T}
+
+caught	CAUGHT	T{
+masca semnalelor captate, a se vedea
+\fIsemnal\fP(7).
+În funcție de lățimea câmpului, este afișată o mască de 32 sau 64 de biți
+în format hexazecimal (alias
+\fBsig_catch\fP, \fBsigcatch\fP)
+T}
+
+cgname	CGNAME	T{
+afișează numele grupurilor de control cărora le aparține procesul.
+T}
+
+cgroup	CGROUP	T{
+afișează grupurile de control cărora le aparține procesul.
+T}
+
+cgroupns	CGROUPNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+class	CLS	T{
+clasa de planificare a procesului.  (alias
+\fBpolicy\fP, \fBcls\fP).
+Valorile posibile ale câmpului sunt:
+.sp 1
+.in +9n
+\-	nu este raportată
+.br
+TS	SCHED_OTHER
+.br
+FF	SCHED_FIFO
+.br
+RR	SCHED_RR
+.br
+B	SCHED_BATCH
+.br
+ISO	SCHED_ISO
+.br
+IDL	SCHED_IDLE
+.br
+DLN	SCHED_DEADLINE
+.br
+?	valoare necunoscută
+.in
+T}
+
+cls	CLS	T{
+clasa de planificare a procesului.  (alias
+\fBpolicy\fP, \fBcls\fP).
+Valorile posibile ale câmpului sunt:
+.sp 1
+.in +9n
+\-	nu este raportată
+.br
+TS	SCHED_OTHER
+.br
+FF	SCHED_FIFO
+.br
+RR	SCHED_RR
+.br
+B	SCHED_BATCH
+.br
+ISO	SCHED_ISO
+.br
+IDL	SCHED_IDLE
+.br
+DLN	SCHED_DEADLINE
+.br
+?	valoare necunoscută
+.in
+T}
+
+cmd	CMD	T{
+a se vedea
+\fBargs\fP.
+(alias
+\fBargs\fP, \fBcommand\fP).
+T}
+
+comm	COMANDA	T{
+numele comenzii (numai numele executabilului).  Rezultatul din această
+coloană poate conține spații (alias
+\fBucmd\fP,\fBucomm\fP).
+Consultați, de asemenea, cuvântul cheie format
+\fBargs\fP,
+opțiunea
+\fB\-f\fP
+și opțiunea
+\fBc\fP.
+.br
+Când este specificată ultima, această coloană se va extinde până la marginea afișajului.  Dacă \fBps\fP nu poate determina lățimea de afișare, ca atunci când ieșirea este redirecționată (prin conductă) într\-un fișier sau altă comandă, lățimea de ieșire este nedefinită (poate fi 80, nelimitată, determinată de variabila \fBTERM\fP ș.a.m.d.).  Variabila de mediu \fBCOLUMNS\fP sau opțiunea \fB\-\-cols\fP poate fi folosită pentru a determina exact lățimea în acest caz.  Opțiunea \fBw\fP sau \fB \-w\fP poate fi, de asemenea, utilizată pentru a ajusta lățimea.
+T}
+
+command	COMANDA	T{
+a se vedea
+\fBargs\fP.
+(alias
+\fBargs\fP, \fBcommand\fP).
+T}
+
+cp	CP	T{
+utilizarea CPU\-ului în miimi (zecimi de procent) (a se vedea
+\fB%cpu\fP).
+T}
+
+cputime	TIME	T{
+timpul cumulat al CPU\-ului, în formatul „[ZZ\-]hh:mm:ss” (alias
+\fBtime\fP).
+T}
+
+cputimes	TIME	T{
+timpul cumulat al CPU\-ului în secunde (alias
+\fBtime\fP).
+T}
+
+cuc	%CUC	T{
+Utilizarea CPU\-ului de către un proces, inclusiv procesele\-copii moarte,
+într\-un format extins „##.###” (consultați, de asemenea,
+\fB%cpu\fP,
+\fBc\fP,
+\fBcp\fP,
+\fBcuu\fP,
+\fBpcpu\fP).
+T}
+
+cuu	%CUU	T{
+Utilizarea CPU\-ului de către un proces într\-un format extins „##.###”
+(consultați, de asemenea,
+\fB%cpu\fP,
+\fBc\fP,
+\fBcp\fP,
+\fBcuc\fP,
+\fBpcpu\fP).
+T}
+
+drs	DRS	T{
+dimensiunea setului rezident de date, cantitatea de memorie privată \fIrezervată\fP de către un proces.
+Este cunoscută și sub numele de DATA. Este posibil ca această memorie să nu fie încă repartizată în \fBrss\fP, dar va fi întotdeauna inclusă în cantitatea \fBvsz\fP.
+
+T}
+
+egid	EGID	T{
+numărul ID\-ului grupului efectiv al procesului ca număr întreg zecimal (alias
+\fBgid\fP).
+T}
+
+egroup	EGROUP	T{
+ID\-ul grupului efectiv al procesului.  Acesta va fi ID\-ul grupului textual,
+dacă poate fi obținut și lățimea câmpului o permite, sau o reprezentare
+zecimală în caz contrar (alias
+\fBgroup\fP).
+T}
+
+eip	EIP	T{
+indicatorul de instrucțiune.  Începând cu nucleul 4.9.xx, va fi reinițiat
+la zero, cu excepția cazului în care sarcina iese sau sistemul creează
+un fișier cu descărcarea conținutului acesteia din memorie.
+T}
+
+esp	ESP	T{
+indicatorul de stivă.  Începând cu nucleul 4.9.xx, va fi reinițiat la zero,
+cu excepția cazului în care sarcina iese sau sistemul creează un fișier cu
+descărcarea conținutului acesteia din memorie.
+T}
+
+etime	ELAPSED	T{
+timpul scurs de la pornirea procesului, în formatul [[ZZ\-]hh:]mm:ss.
+T}
+
+etimes	ELAPSED	T{
+timpul scurs de la pornirea procesului, în secunde.
+T}
+
+euid	EUID	T{
+ID\-ul utilizatorului efectiv (alias
+\fBuid\fP).
+T}
+
+euser	EUSER	T{
+numele utilizatorului efectiv.  Acesta va fi ID\-ul textual al utilizatorului,
+dacă poate fi obținut și lățimea câmpului o permite, sau o reprezentare zecimală
+în caz contrar.  Opțiunea
+\fBn\fP
+poate fi folosită pentru a forța reprezentarea zecimală (alias
+\fBuname\fP, \fBuser\fP).
+T}
+
+exe	EXE	T{
+calea către executabil.  Util dacă calea nu poate fi afișată prin opțiunile
+de format
+\fBcmd\fP, \fBcomm\fP
+sau
+\fBargs\fP.
+T}
+
+f	F	T{
+fanioanele asociate procesului, consultați secțiunea
+\fBPROCESS FLAGS\fP
+(alias
+\fBflag\fP, \fBflags\fP).
+T}
+
+fgid	FGID	T{
+ID\-ul grupului de acces la sistemul de fișiere (alias
+\fBfsgid\fP).
+T}
+
+fgroup	FGROUP	T{
+ID\-ul grupului de acces la sistemul de fișiere.  Acesta va fi ID\-ul textual al
+grupului, dacă poate fi obținut și lățimea câmpului o permite,
+sau o reprezentare zecimală în caz contrar (alias
+\fBfsgroup\fP).
+T}
+
+fanion	F	T{
+consultați
+\fBf\fP.
+(alias
+\fBf\fP, \fBflags\fP).
+T}
+
+fanioane	F	T{
+consultați
+\fBf\fP.
+(alias
+\fBf\fP, \fBflag\fP).
+T}
+
+fname	COMANDA	T{
+primii 8 octeți ai numelui de bază al fișierului executabil al procesului.
+Rezultatul din această coloană poate conține spații.
+T}
+
+fuid	FUID	T{
+ID\-ul utilizatorului de acces la sistemul de fișiere (alias
+\fBfsuid\fP).
+T}
+
+fuser	FUSER	T{
+ID\-ul utilizatorului de acces la sistemul de fișiere.  Acesta va fi ID\-ul
+textual al utilizatorului, dacă poate fi obținut și lățimea câmpului o permite,
+sau o reprezentare zecimală în caz contrar.
+T}
+
+gid	GID	T{
+consultați
+\fBegid\fP.
+(alias
+\fBegid\fP).
+T}
+
+group	GROUP	T{
+consultați
+\fBegroup\fP.
+(alias
+\fBegroup\fP).
+T}
+
+ignored	IGNORED	T{
+masca semnalelor ignorate, a se vedea
+\fIsignal\fP(7).
+În funcție de lățimea câmpului, este afișată o mască de 32 sau 64 de biți în
+format hexazecimal (alias
+\fBsig_ignore\fP, \fBsigignore\fP).
+T}
+
+ipcns	IPCNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+label	LABEL	T{
+etichetă de securitate, folosită cel mai frecvent pentru datele de context SELinux.
+Aceasta este pentru
+(\fIcontrol de acces obligatoriu\fP)
+\fIMandatory Access Control\fP sau „MAC”
+care se găsește pe sistemele de înaltă securitate.
+T}
+
+lstart	STARTED	T{
+ora la care a început comanda. Aceasta va fi sub forma „DDD mmm HH:MM:SS YYY”,
+cu excepția cazului în care este modificată prin opțiunea \fB\-D\fP.
+T}
+
+lsession	SESSION	T{
+afișează identificatorul de sesiune de conectare al unui proces,
+dacă a fost inclus suportul pentru «systemd».
+T}
+
+luid	LUID	T{
+afișează ID\-ul de autentificare asociat unui proces.
+T}
+
+lwp	LWP	T{
+ID\-ul procesului ușor („light weight process” sau „thread”) al entității distribuibile (alias
+\fBspid\fP, \fBtid\fP).
+Consultați
+\fBtid\fP
+pentru informații suplimentare
+T}
+
+lxc	LXC	T{
+numele containerului lxc în care rulează o sarcină.
+Dacă un proces nu rulează în interiorul unui container, va fi afișată o liniuță („\-”).
+T}
+
+machine	MACHINE	T{
+afișează numele mașinii pentru procesele atribuite mașinii virtuale (VM)
+sau containerului, dacă a fost inclus suportul pentru «systemd».
+T}
+
+maj_flt	MAJFLT	T{
+numărul de erori majore de pagină care au apărut cu acest proces.
+T}
+
+min_flt	MINFLT	T{
+numărul de erori minore de pagină care au apărut cu acest proces.
+T}
+
+mntns	MNTNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+netns	NETNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+ni	NI	T{
+valoarea priorității „nice”. Acesta variază de la 19 (cea mai „drăguță” nicest) la \-20 (nu este „drăguță” cu alte procese),
+consultați
+\fInice\fP(1).
+(alias
+\fBnice\fP).
+T}
+
+nice	NI	T{
+consultați
+\fBni\fP.\fB(alias\fP
+\fBni\fP).
+T}
+
+nlwp	NLWP	T{
+numărul de lwps (fire de execuție) „threads” în proces (alias
+\fBthcount\fP).
+T}
+
+numa	NUMA	T{
+Nodul asociat cu cel mai recent procesor utilizat.
+Un \fI\-1\fP înseamnă că informațiile NUMA sunt indisponibile.
+T}
+
+nwchan	WCHAN	T{
+adresa funcției de nucleu în care se află procesul (utilizați
+\fBwchan\fP
+dacă doriți numele funcției nucleului).
+T}
+
+oom	OOM	T{
+estimarea depășirii limitelor memoriei disponibile. Valoarea, care variază
+de la 0 la +1000, utilizată pentru a selecta sarcinile de omorât atunci când
+memoria este epuizată. Zero se traduce prin „nu ucide niciodată”, în timp ce
+1000 înseamnă „ucide întotdeauna”.
+T}
+
+oomadj	OOMADJ	T{
+factorul de ajustare a depășirii limitelor memoriei disponibile. Valoarea se adaugă la estimarea actuală de depășire a memoriei, care este apoi utilizată pentru a determina ce sarcină să fie omorâtă atunci când memoria este epuizată.
+T}
+
+ouid	OWNER	T{
+afișează identificatorul de utilizator Unix al proprietarului sesiunii unui proces, dacă a fost inclus suportul pentru «systemd».
+T}
+
+pcpu	%CPU	T{
+consultați
+\fB%cpu\fP.
+(alias
+\fB%cpu\fP).
+T}
+
+pending	PENDING	T{
+masca semnalelor în așteptare. A se vedea \fIsignal\fP(7). Semnalele aflate în așteptarea procesului sunt distincte de semnalele în așteptare ale firelor individuale. Utilizați opțiunea \fBm\fP sau opțiunea \fB\-m\fP pentru a le vedea pe ambele. În funcție de lățimea câmpului, este afișată o mască de 32 sau 64 de biți în format hexazecimal, cu excepția cazului în care se utilizează opțiunea \fB\-\-signames\fP (alias \fBsig\fP).
+T}
+
+pgid	PGID	T{
+ID\-ul grupului de procese sau, echivalent, ID\-ul procesului al liderului grupului de procese (alias
+\fBpgrp\fP).
+T}
+
+pgrp	PGRP	T{
+consultați
+\fBpgid\fP.
+(alias
+\fBpgid\fP).
+T}
+
+pid	PID	T{
+un număr reprezentând identificatorul procesului (alias
+\fBtgid\fP).
+T}
+
+pidns	PIDNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+pmem	%MEM	T{
+consultați
+\fB%mem\fP.
+(alias
+\fB%mem\fP).
+T}
+
+policy	POL	T{
+clasa de planificare a procesului.  (alias
+\fBclass\fP, \fBcls\fP).
+Valorile posibile sunt:
+.sp 1
+.in +9n
+\-	nu este raportată
+.br
+TS	SCHED_OTHER
+.br
+FF	SCHED_FIFO
+.br
+RR	SCHED_RR
+.br
+B	SCHED_BATCH
+.br
+ISO	SCHED_ISO
+.br
+IDL	SCHED_IDLE
+.br
+DLN	SCHED_DEADLINE
+.br
+?	valoare necunoscută
+.in
+T}
+
+ppid	PPID	T{
+identificatorul procesului părinte.
+T}
+
+pri	PRI	T{
+prioritatea procesului. Un număr mai mare înseamnă o prioritate mai mare.
+T}
+
+psr	PSR	T{
+procesorul pe care a fost executat ultima dată procesul.
+T}
+
+pss	PSS	T{
+dimensiunea cotei proporționale, memoria fizică neinterschimbabilă(non\-swapped), 
+cu memoria partajată raportată proporțional cu toate sarcinile care îi sunt asociate.
+T}
+
+rbytes	RBYTES	T{
+numărul de octeți care au fost preluați efectiv din stratul de stocare de date prin acest proces.
+T}
+
+rchars	RCHARS	T{
+Numărul de octeți citiți din spațiul de stocare datorită acestei sarcini.
+T}
+
+rgid	RGID	T{
+identificatorul grupului real.
+T}
+
+rgroup	RGROUP	T{
+numele real al grupului.  Acesta va fi ID\-ul textual al grupului, dacă poate fi
+obținut și lățimea câmpului o permite, sau o reprezentare zecimală în caz contrar.
+T}
+
+rops	ROPS	T{
+Numărul de operații de citire In/Ieș — adică apeluri de sistem, cum ar fi
+\fBread\fP(2) și \fBpread\fP(2).
+T}
+
+rss	RSS	T{
+dimensiunea memoriei rezidente („resident set size” sau RSS), memoria fizică
+netransferată în spațiul de interschimb pe care o sarcină l\-a folosit (în
+kiloocteți) (alias
+\fBrssize\fP, \fBrsz\fP).
+T}
+
+rssize	RSS	T{
+consultați
+\fBrss\fP.
+(alias
+\fBrss\fP, \fBrsz\fP).
+T}
+
+rsz	RSZ	T{
+consultați
+\fBrss\fP.
+(alias
+\fBrss\fP, \fBrssize\fP).
+T}
+
+rtprio	RTPRIO	T{
+prioritate în timp real.
+T}
+
+ruid	RUID	T{
+identificatorul utilizatorului real.
+T}
+
+ruser	RUSER	T{
+identificatorul utilizatorului real.  Acesta va fi ID\-ul textual al utilizatorului,
+dacă poate fi obținut și lățimea câmpului o permite, sau o reprezentare zecimală
+în caz contrar.
+T}
+
+s	S	T{
+afișare minimă a stării (un caracter).  Consultați secțiunea
+\fBCODURI DE STARE A PROCESULUI\fP
+sau diferitele valori.  Consultați de asemenea
+\fBstat\fP
+dacă doriți să fie afișate informații suplimentare (alias
+\fBstate\fP).
+T}
+
+sched	SCH	T{
+politica de planificare a procesului.  Politicile SCHED_OTHER (SCHED_NORMAL),
+SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_ISO, SCHED_IDLE și SCHED_DEADLINE sunt
+afișate respectiv ca 0, 1, 2, 3, 4, 5 și 6.
+T}
+
+seat	SEAT	T{
+afișează identificatorul asociat cu toate dispozitivele hardware alocate unei anumite stații de lucru, dacă a fost inclus suportul pentru «systemd».
+T}
+
+sess	SESS	T{
+identificatorul de sesiune sau, în mod echivalent, identificatorul de proces al liderului de sesiune (alias
+\fBsession\fP, \fBsid\fP).
+T}
+
+sgi_p	P	T{
+procesorul pe care se execută în prezent procesul.  Afișează „*” dacă procesul nu rulează în prezent sau nu poate fi executat.
+T}
+
+sgid	SGID	T{
+ID\-ul de grup salvat (alias \fBsvgid\fP).
+T}
+
+sgroup	SGROUP	T{
+numele de grup salvat.  Acesta va fi ID\-ul textual al grupului, dacă poate fi obținut și lățimea câmpului o permite, sau o reprezentare zecimală în caz contrar.
+T}
+
+sid	SID	T{
+consultați
+\fBsess\fP.
+(alias
+\fBsess\fP, \fBsession\fP).
+T}
+
+sig	PENDING	T{
+consultați
+\fBpending\fP.
+(alias
+\fBpending\fP, \fBsig_pend\fP).
+T}
+
+sigcatch	CAUGHT	T{
+consultați
+\fBcaught\fP.
+(alias
+\fBcaught\fP, \fBsig_catch\fP).
+T}
+
+sigignore	IGNORED	T{
+consultați
+\fBignored\fP.
+(alias
+\fBignored\fP, \fBsig_ignore\fP).
+T}
+
+sigmask	BLOCKED	T{
+consultați
+\fBblocked\fP.
+(alias
+\fBblocked\fP, \fBsig_block\fP).
+T}
+
+size	DIMENSIUNE	T{
+cantitatea aproximativă de spațiu de interschimb care ar fi necesară dacă procesul ar fi pe cale să modifice (mâzgălească „dirty”) toate paginile inscriptibile și apoi să se transfere în spațiul de schimb (swap).  Acest număr este foarte aproximativ!
+T}
+
+slice	SLICE	T{
+afișează unitatea de felie (slice) căreia îi aparține un proces, dacă a fost inclus suportul pentru «systemd».
+T}
+
+spid	SPID	T{
+consultați
+\fBlwp\fP.
+(alias
+\fBlwp\fP, \fBtid\fP).
+T}
+
+stackp	STACKP	T{
+adresa de la partea de jos (început) a stivei pentru proces.
+T}
+
+start	STARTED	T{
+momentul în care comanda a început.  Dacă procesul a fost pornit cu mai puțin de 24 de ore în urmă, formatul de ieșire este „HH:MM:SS”, altfel este „\ \ Mmm\ dd” (unde Mmm este un nume de lună format din trei litere).  Consultați, de asemenea, \fBlstart\fP, \fBbsdstart\fP, \fBstart_time\fP și \fBstime\fP.
+T}
+
+start_time	START	T{
+ora sau data de începere a procesului.  Doar anul va fi afișat dacă procesul nu a fost început în același an în care a fost invocat \fBps\fP, sau „MmmDD” dacă nu a fost început în aceeași zi, sau „HH:MM” în caz contrar.  Consultați, de asemenea, \fBbsdstart\fP, \fBstart\fP, \fBlstart\fP și \fBstime\fP.
+T}
+
+stat	STAT	T{
+starea procesului cu mai multe caractere. Consultați secțiunea
+\fBCODURI DE STARE A PROCESULUI\fP
+pentru diferitele semnificații ale valorilor.Consultați și
+\fBs\fP și \fBstate\fP
+dacă doriți doar să fie afișat primul caracter.
+T}
+
+state	S	T{
+consultați
+\fBs\fP. (alias \fBs\fP).
+T}
+
+stime	STIME	T{
+consultați \fBstart_time\fP. (alias \fBstart_time\fP).
+T}
+
+suid	SUID	T{
+identificatorul utilizatorului salvat. (alias
+\fBsvuid\fP).
+T}
+
+supgid	SUPGID	T{
+identificatoare de grup ale grupurilor suplimentare, dacă există.  Consultați
+\fBgetgroups\fP(2).
+T}
+
+supgrp	SUPGRP	T{
+numele de grup ale grupurilor suplimentare, dacă există.  Consultați
+\fBgetgroups\fP(2).
+T}
+
+suser	SUSER	T{
+numele de utilizator salvat.  Acesta va fi ID\-ul textual al utilizatorului,
+dacă poate fi obținut și lățimea câmpului o permite, sau o reprezentare
+zecimală în caz contrar. (alias
+\fBsvuser\fP).
+T}
+
+svgid	SVGID	T{
+consultați
+\fBsgid\fP.
+(alias
+\fBsgid\fP).
+T}
+
+svuid	SVUID	T{
+consultați
+\fBsuid\fP.
+(alias
+\fBsuid\fP).
+T}
+
+sz	SZ	T{
+dimensiunea în paginile fizice a imaginii din memorie a procesului. Aceasta include text, date și spațiu de stivă. Cartografierile în memorie ale dispozitivelor sunt în prezent excluse; acest lucru este supus modificării.  Consultați
+\fBvsz\fP și \fBrss\fP.
+T}
+
+tgid	TGID	T{
+un număr care reprezintă grupul de fire căruia îi aparține o sarcină (alias
+\fBpid\fP).
+Este identificatorul de proces al liderului grupului de fire.
+T}
+
+thcount	THCNT	T{
+consultați
+\fBnlwp\fP.
+(alias
+\fBnlwp\fP).
+numărul de fire de execuție a nucleului deținute de proces.
+T}
+
+tid	TID	T{
+numărul unic reprezentând identificatorul unei entități distribuibile (alias
+\fBlwp\fP, \fBspid\fP).
+Această valoare poate apărea și ca: un ID de proces (pid); un ID de grup
+de procese (pgrp); un ID de sesiune pentru liderul de sesiune (sid); un
+ID de grup de fire pentru liderul grupului de fire (tgid); și un ID de grup
+de procese tty pentru liderul grupului de procese
+(tpgid).
+T}
+
+time	TIME	T{
+timpul cumulat al procesorului, în formatul „[DD\-]HH:MM:SS” (alias
+\fBcputime\fP).
+T}
+
+timens	TIMENS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+times	TIME	T{
+timpul cumulat al procesorului în secunde (alias
+\fBcputimes\fP).
+T}
+
+tname	TTY	T{
+tty (terminal) de control (alias
+\fBtt\fP, \fBtty\fP).
+T}
+
+tpgid	TPGID	T{
+identificatorul grupului de procese din primplan pe tty (terminalul) la care este conectat procesul sau \-1 dacă procesul nu este conectat la un tty.
+T}
+
+trs	TRS	T{
+dimensiunea textului în memoria rezidentă, cantitatea de memorie fizică dedicată codului executabil.
+T}
+
+tt	TT	T{
+tty (terminal) de control (alias
+\fBtname\fP, \fBtty\fP).
+T}
+
+tty	TT	T{
+tty (terminal) de control (alias
+\fBtname\fP, \fBtt\fP).
+T}
+
+ucmd	CMD	T{
+consultați
+\fBcomm\fP.
+(alias
+\fBcomm\fP, \fBucomm\fP).
+T}
+
+ucomm	COMANDA	T{
+consultați
+\fBcomm\fP.
+(alias
+\fBcomm\fP, \fBucmd\fP).
+T}
+
+uid	UID	T{
+consultați
+\fBeuid\fP.
+(alias
+\fBeuid\fP).
+T}
+
+uname	USER	T{
+consultați
+\fBeuser\fP.
+(alias
+\fBeuser\fP, \fBuser\fP).
+T}
+
+unit	UNIT	T{
+afișează unitatea căreia îi aparține un proces, dacă a fost inclus suportul pentru «systemd».
+T}
+
+utilizator	USER	T{
+consultați
+\fBeuser\fP.
+(alias
+\fBeuser\fP, \fBuname\fP).
+T}
+
+userns	USERNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+uss	USS	T{
+dimensiunea memoriei unice, memoria fizică neinterschimbată (non\-swapped), care nu este partajată cu o altă sarcină.
+T}
+
+utsns	UTSNS	T{
+numărul unic de nod\-i care descrie spațiul de nume căruia îi aparține procesul.
+A se vedea
+\fInamespaces\fP(7).
+T}
+
+uunit	UUNIT	T{
+afișează unitatea utilizator căreia îi aparține un proces, dacă a fost inclus suportul pentru «systemd».
+T}
+
+vsize	VSZ	T{
+consultați
+\fBvsz\fP.
+(alias
+\fBvsz\fP).
+T}
+
+vsz	VSZ	T{
+dimensiunea memoriei virtuale a procesului în Kio (unități de 1024 de octeți).  Cartografierile în memorie ale dispozitivelor sunt în prezent excluse; acest lucru este supus modificării (alias \fBvsize\fP).
+T}
+
+wbytes	WBYTES	T{
+numărul de octeți care au fost trimiși la stratul de stocare prin acest proces.
+T}
+
+wcbytes	WCBYTES	T{
+numărul de octeți de scriere anulați.
+T}
+
+wchan	WCHAN	T{
+numele funcției de nucleu în care procesul se află dormind.
+T}
+
+wchars	WCHARS	T{
+numărul de octeți pe care această sarcină l\-a cauzat, sau îl va face să fie scris pe disc.
+T}
+
+wops	WOPS	T{
+Numărul de operații de scriere In/Ieș — adică apeluri de sistem, cum ar fi
+\fBwrite\fP(2) și \fBpwrite\fP(2).
+T}
+
+.TE
+.SH "VARIABILE DE MEDIU"
+Următoarele variabile de mediu ar putea afecta \fBps\fP:
+.TP  3
+\fBCOLOANE\fP
+Reamplasează lățimea de afișare implicită.
+.TP 
+\fBLINII\fP
+Reamplasează înălțimea de afișare implicită.
+.TP 
+\fBPS_PERSONALITY\fP
+Stabilește una dintre valorile: posix, old, linux, bsd, sun, digital...\&
+(consultați secțiunea \fBPERSONALITATE\fP de mai jos).
+.TP 
+\fBCMD_ENV\fP
+Stabilește una dintre valorile: posix, old, linux, bsd, sun, digital...\&
+(consultați secțiunea \fBPERSONALITATE\fP de mai jos).
+.TP 
+\fBI_WANT_A_BROKEN_PS\fP
+Forțează interpretarea liniei de comandă învechite.
+.TP 
+\fBLC_TIME\fP
+Formatul de dată.
+.TP 
+\fBLIBPROC_HIDE_KERNEL\fP
+Stabiliți această variabilă la orice valoare pentru a ascunde firele de
+nucleu afișate în mod normal cu opțiunea \fB\-e\fP. Acest lucru este echivalent
+cu selectarea \fB\-\-ppid 2 \-p 2 \-\-deselect\fP. Funcționează și în modul BSD.
+.TP 
+\fBPS_COLORS\fP
+Nu este acceptată momentan.
+.TP 
+\fBPS_FORMAT\fP
+Suprascrierea formatului de ieșire implicit. Puteți configura această
+variabilă la un șir de format de tipul utilizat pentru opțiunea \fB\-o\fP.
+Valorile \fBDefSysV\fP și \fBDefBSD\fP sunt deosebit de utile.
+.TP 
+\fBPOSIXLY_CORRECT\fP
+Nu căutați scuze pentru a ignora „caracteristicile” incorecte.
+.TP 
+\fBPOSIX2\fP
+Când este fixată la „on”, acționează ca \fBPOSIXLY_CORRECT\fP.
+.TP 
+\fBUNIX95\fP
+Nu căutați scuze pentru a ignora „caracteristicile” incorecte.
+.TP 
+\fB_XPG\fP
+Anulează comportamentul non\-standard \fBCMD_ENV\fP=\fIirix\fP.
+.PP
+În general, este o idee proastă să configurați aceste variabile.  Singura
+excepție este \fBCMD_ENV\fP sau \fBPS_PERSONALITY\fP, care ar putea fi configurată
+la „Linux” pentru sisteme normale.  Fără această configurare, \fBps\fP urmează
+părțile inutile și proaste ale standardului Unix98.
+.SH PERSONALITATE
+.TS
+l	l.
+390	similar cu \fBps\fP pentru OS/390 OpenEdition
+aix	similar cu \fBps\fP pentru AIX
+bsd	similar cu \fBps\fP pentru FreeBSD (cu desăvârșire nestandard)
+compaq	similar cu \fBps\fP pentru Digital Unix
+debian	similar cu \fBps\fP pentru vechiul Debian
+digital	similar cu \fBps\fP pentru Tru64 (fost Digital Unix, fost OSF/1)
+gnu	similar cu \fBps\fP pentru vechiul Debian
+hp	similar cu \fBps\fP pentru HP\-UX
+hpux	similar cu \fBps\fP pentru HP\-UX
+irix	similar cu \fBps\fP pentru Irix
+linux	***** \fBrecomandat\fP *****
+old	similar cu originalul \fBps\fP pentru Linux (cu desăvârșire nestandard)
+os390	similar cu \fBps\fP pentru OS/390 OpenEdition
+posix	standard
+s390	similar cu \fBps\fP pentru OS/390 OpenEdition
+sco	similar cu \fBps\fP pentru SCO
+sgi	similar cu \fBps\fP pentru Irix
+solaris2	similar cu \fBps\fP pentru Solaris 2+ (SunOS 5)
+sunos4	similar cu \fBps\fP pentru SunOS 4 (Solaris 1) (cu desăvârșire nestandard)
+svr4	standard
+sysv	standard
+tru64	similar cu \fBps\fP pentru Tru64 (fost Digital Unix, fost OSF/1)
+unix	standard
+unix95	standard
+unix98	standard
+.TE
+.SH ERORI
+Câmpurile \fBbsdstart\fP și \fBstart\fP vor afișa doar numele prescurtat al lunii
+în limba engleză. Câmpurile \fBlstart\fP și \fBstime\fP vor afișa numele
+prescurtat al lunii în limba locală configurată, dar pot depăși lățimea
+coloanei din cauza lungimilor diferite ale numelor prescurtate ale lunii și
+zilei în funcție de limbă.
+.PP
+.SH "CONSULTAȚI ȘI"
+\fBpgrep\fP(1), \fBpstree\fP(1), \fBtop\fP(1), \fBstrftime\fP(3), \fBproc\fP(5).
+.SH STANDARDE
+Acest \fBps\fP este conform cu:
+.PP
+.PD 0
+.IP 1 4
+Versiunea 2 a Single Unix Specification
+.IP 2 4
+The Open Group Technical Standard Base Specifications, versiunea 6
+.IP 3 4
+IEEE Std 1003.1, ediția 2004
+.IP 4 4
+X/Open System Interfaces Extension [UP XSI]
+.IP 5 4
+ISO/IEC 9945:2003
+.PD
+.SH AUTOR
+\fBps\fP a fost scris inițial de
+.MT lankeste@\:fwi.\:uva.\:nl
+Branko
+Lankester
+.ME .
+.MT johnsonm@\:redhat.\:com
+Michael K. Johnson
+.ME
+l\-a rescris extensiv pentru a folosi sistemul de fișiere \fIproc\fP, schimbând
+câteva detalii pe parcurs.
+.MT mjshield@\:nyx.\:cs.\:du.\:edu
+Michael
+Shields
+.ME
+a adăugat funcționalitatea listei PID.
+.MT cblake@\:bbn.\:com
+Charles Blake
+.ME
+a adăugat sortarea pe mai multe
+niveluri, biblioteca în stilul „dirent”, baza de date „mmaped” de la nume la
+număr al dispozitivului, căutarea binară aproximativă direct pe System.map,
+și multe curățări de cod și documentație.  David Mossberger\-Tang a scris
+suportul BFD generic pentru „psupdate”.
+.MT albert@\:users.\:sf.\:net
+Albert Cahalan
+.ME
+a rescris \fBps\fP pentru a suporta pe deplin Unix98 și
+BSD, plus câteva soluții pentru sintaxe învechite și externe.
+.PP
+Trimiteți rapoartele de eroare la
+.MT procps@\:freelists.\:org
+.ME .
+Nu este necesară sau sugerată nicio înscriere.

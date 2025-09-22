@@ -1,0 +1,17 @@
+#
+# Dejagnu tests for uptime - part of procps
+#
+set uptime "${topdir}src/uptime"
+
+set test "uptime"
+spawn $uptime
+expect_pass "$test" "^\\s+\\d{2}:\\d{2}:\\d{2} up (\\d+ days?,)?\\s*\\d+( min|:\\d+), +\\d+ users?, +load average: \[0-9.\]+, \[0-9.\]+, \[0-9.\]+\\s*$"
+
+set test "uptime since option"
+spawn $uptime --since
+expect_pass "$test" "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\s*$"
+
+set test "uptime pretty option"
+spawn $uptime --pretty
+expect_pass "$test" "up (\\d+ decades?, )?(\\d+ years?, )?(\\d+ weeks?, )?(\\d+ days?, )?(\\d+ hours?, )?(\\d+ minutes?)\\s*$"
+

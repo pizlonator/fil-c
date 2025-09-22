@@ -1,0 +1,334 @@
+.\"
+.\" Copyright (c) 2004-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\" Copyright (c) 2000      Kjetil Torgrim Homme
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.TH PGREP "1" "2023-01-16" "procps-ng" "User Commands"
+.SH NAME
+pgrep, pkill, pidwait \- look up, signal, or wait for processes based on name and other attributes
+.SH SYNOPSIS
+.B pgrep
+[options] pattern
+.br
+.B pkill
+[options] pattern
+.br
+.B pidwait
+[options] pattern
+.SH DESCRIPTION
+.B pgrep
+looks through the currently running processes and lists the process IDs which
+match the selection criteria to stdout.  All the criteria have to match.
+For example,
+.IP
+$ pgrep \-u root sshd
+.PP
+will only list the processes called
+.B sshd
+AND owned by
+.BR root .
+On the other hand,
+.IP
+$ pgrep \-u root,daemon
+.PP
+will list the processes owned by
+.B root
+OR
+.BR daemon .
+.PP
+.B pkill
+will send the specified signal (by default
+.BR SIGTERM )
+to each process instead of listing them on stdout.
+.PP
+.B pidwait
+will wait for each process instead of listing them on stdout.
+.SH OPTIONS
+.TP
+\fB\-\fR\fIsignal\fP
+.TQ
+\fB\-\-signal\fR \fIsignal\fR
+Defines the signal to send to each matched process.  Either the numeric or
+the symbolic signal name can be used. In
+.B pgrep
+or
+.B pidwait
+mode only the long option can be used and has no effect unless used in conjunction with
+\fB\-\-require\-handler\fR to filter to processes with a userspace signal
+handler present for a particular signal.
+
+.TP
+\fB\-c\fR, \fB\-\-count\fR
+Suppress normal output; instead print a count of matching processes.  When
+count does not match anything, e.g. returns zero, the command will return
+non-zero value. Note that for pkill and pidwait, the count is the number of
+matching processes, not the processes that were successfully signaled or waited
+for.
+.TP
+\fB\-d\fR, \fB\-\-delimiter\fR \fIdelimiter\fP
+Sets the string used to delimit each process ID in the output (by default a
+newline).
+.RB ( pgrep
+only.)
+.TP
+\fB\-e\fR, \fB\-\-echo\fR
+Display name and PID of the process being killed.
+.RB ( pkill
+only.)
+.TP
+\fB\-f\fR, \fB\-\-full\fR
+The
+.I pattern
+is normally only matched against the process name.  When
+.B \-f
+is set, the full command line is used.
+.TP
+\fB\-g\fR, \fB\-\-pgroup\fR \fIpgrp\fP,...
+Only match processes in the process group IDs listed.  Process group 0 is
+translated into
+.BR pgrep 's,
+.BR pkill 's,
+or
+.BR pidwait 's
+own process group.
+.TP
+\fB\-G\fR, \fB\-\-group\fR \fIgid\fP,...
+Only match processes whose real group ID is listed.  Either the numerical or
+symbolical value may be used.
+.TP
+\fB\-i\fR, \fB\-\-ignore\-case\fR
+Match processes case-insensitively.
+.TP
+\fB\-l\fR, \fB\-\-list\-name\fR
+List the process name as well as the process ID.
+.RB ( pgrep
+only.)
+.TP
+\fB\-a\fR, \fB\-\-list\-full\fR
+List the full command line as well as the process ID.
+.RB ( pgrep
+only.)
+.TP
+\fB\-n\fR, \fB\-\-newest\fR
+Select only the newest (most recently started) of the matching processes.
+.TP
+\fB\-o\fR, \fB\-\-oldest\fR
+Select only the oldest (least recently started) of the matching processes.
+.TP
+\fB\-O\fR, \fB\-\-older\fR \fIsecs\fP
+Select processes older than secs.
+.TP
+\fB\-P\fR, \fB\-\-parent\fR \fIppid\fP,...
+Only match processes whose parent process ID is listed.
+.TP
+\fB\-s\fR, \fB\-\-session\fR \fIsid\fP,...
+Only match processes whose process session ID is listed.  Session ID 0
+is translated into
+.BR pgrep 's,
+.BR pkill 's,
+or
+.BR pidwait 's
+own session ID.
+.TP
+\fB\-t\fR, \fB\-\-terminal\fR \fIterm\fP,...
+Only match processes whose controlling terminal is listed.  The terminal name
+should be specified without the "/dev/" prefix.
+.TP
+\fB\-u\fR, \fB\-\-euid\fR \fIeuid\fP,...
+Only match processes whose effective user ID is listed.  Either the numerical
+or symbolical value may be used.
+.TP
+\fB\-U\fR, \fB\-\-uid\fR \fIuid\fP,...
+Only match processes whose real user ID is listed.  Either the numerical or
+symbolical value may be used.
+.TP
+\fB\-v\fR, \fB\-\-inverse\fR\fR
+Negates the matching.  This option is usually used in
+.BR pgrep 's
+or
+.BR pidwait 's
+context.  In
+.BR pkill 's
+context the short option is disabled to avoid accidental usage of the option.
+.TP
+\fB\-w\fR, \fB\-\-lightweight\fR\fR
+Shows all thread ids instead of pids in
+.BR pgrep 's
+or
+.BR pidwait 's
+context.  In
+.BR pkill 's
+context this option is disabled.
+.TP
+\fB\-x\fR, \fB\-\-exact\fR\fR
+Only match processes whose names (or command lines if \fB\-f\fR is specified)
+.B exactly
+match the
+.IR pattern .
+.TP
+\fB\-F\fR, \fB\-\-pidfile\fR \fIfile\fR
+Read \fIPID\fRs from \fIfile\fR.  This option is more useful for
+.B pkill
+or
+.B pidwait
+than
+.BR pgrep .
+.TP
+\fB\-L\fR, \fB\-\-logpidfile\fR
+Fail if pidfile (see \fB\-F\fR) not locked.
+.TP
+\fB\-r\fR, \fB\-\-runstates\fR \fID,R,S,Z,\fP...
+Match only processes which match the process state.
+.TP
+\fB\-A\fR, \fB\-\-ignore-ancestors\fR\fR
+Ignore all ancestors of
+.BR pgrep ,
+.BR pkill ,
+or
+.BR pidwait .
+For example, this can be useful when elevating with
+.BR sudo
+or similar tools.
+.TP
+\fB\-H\fR, \fB\-\-require\-handler\fR\fR
+Only match processes with a userspace signal handler present for the signal to
+be sent.
+.TP
+\fB\-\-cgroup \fIname\fP,...
+Match on provided control group (cgroup) v2 name. See
+.BR cgroups (8)
+.TP
+\fB\-\-ns \fIpid\fP
+Match processes that belong to the same namespaces. Required to run as
+root to match processes from other users. See \fB\-\-nslist\fR for how to
+limit which namespaces to match.
+.TP
+\fB\-\-nslist \fIname\fP,...
+Match only the provided namespaces. Available namespaces:
+ipc, mnt, net, pid, user, uts.
+.TP
+\fB\-q\fR, \fB\-\-queue \fIvalue\fP
+Use
+.BR sigqueue (3)
+rather than
+.BR kill (2)
+and the value argument is used to specify
+an integer to be sent with the signal. If the receiving process has
+installed a handler for this signal using the SA_SIGINFO flag to
+.BR sigaction (2),
+then it can obtain this data via the si_value field of the
+siginfo_t structure.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display help and exit.
+.PD
+.SH OPERANDS
+.TP
+.I pattern
+Specifies an Extended Regular Expression for matching against the process
+names or command lines.
+.SH EXAMPLES
+Example 1: Find the process ID of the
+.B named
+daemon:
+.IP
+$ pgrep \-u root named
+.PP
+Example 2: Make
+.B syslog
+reread its configuration file:
+.IP
+$ pkill \-HUP syslogd
+.PP
+Example 3: Give detailed information on all
+.B xterm
+processes:
+.IP
+$ ps \-fp $(pgrep \-d, \-x xterm)
+.PP
+Example 4: Make all
+.B chrome
+processes run nicer:
+.IP
+$ renice +4 $(pgrep chrome)
+.SH "EXIT STATUS"
+.PD 0
+.TP
+0
+One or more processes matched the criteria. For
+.B pkill
+and
+.BR pidwait ,
+one or more
+processes must also have been successfully signalled or waited for.
+.TP
+1
+No processes matched or none of them could be signalled.
+.TP
+2
+Syntax error in the command line.
+.TP
+3
+Fatal error: out of memory etc.
+.PD
+.SH NOTES
+The process name used for matching is limited to the 15 characters present in
+the output of /proc/\fIpid\fP/stat.  Use the \fB\-f\fR option to match against the
+complete command line, /proc/\fIpid\fP/cmdline. Threads may not have the
+same process name as the parent process but will have the same command line.
+.PP
+The running
+.BR pgrep ,
+.BR pkill ,
+or
+.B pidwait
+process will never report itself as a
+match.
+.PP
+The
+.B \-O \-\-older
+option will silently fail if \fI/proc\fR is mounted with the \fIsubset=pid\fR option.
+.SH BUGS
+The options
+.B \-n
+and
+.B \-o
+and
+.B \-v
+can not be combined.  Let
+me know if you need to do this.
+.PP
+Defunct processes are reported.
+.PP
+.B pidwait
+requires the
+.BR pidfd_open (2)
+system call which first appeared in Linux 5.3.
+.SH "SEE ALSO"
+.BR ps (1),
+.BR regex (7),
+.BR signal (7),
+.BR sigqueue (3),
+.BR killall (1),
+.BR skill (1),
+.BR kill (1),
+.BR kill (2),
+.BR cgroups (8).
+.SH AUTHOR
+.UR kjetilho@ifi.uio.no
+Kjetil Torgrim Homme
+.UE
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

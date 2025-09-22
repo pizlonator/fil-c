@@ -1,0 +1,99 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PMAP 1 "4. April 2020" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+pmap \- die Speicherzuordnung eines Prozesses melden
+.SH ÜBERSICHT
+\fBpmap\fP [\fIOptionen\fP] \fIProzesskennung\fP […]
+.SH BESCHREIBUNG
+Der Befehl \fBpmap\fP meldet die Speicherzuordnung eines oder mehrerer
+Prozesse.
+.SH OPTIONEN
+.TP 
+\fB\-x\fP, \fB\-\-extended\fP
+zeigt im erweiterten Format an.
+.TP 
+\fB\-d\fP, \fB\-\-device\fP
+zeigt im Geräteformat an.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+zeigt nicht alle Kopf\- oder Fußzeilen an.
+.TP 
+\fB\-A\fP, \fB\-\-range\fP \fIUntergrenze\fP,\fIObergrenze\fP
+begrenzt die Ergebnisse auf den angegebenen Adressbereich zwischen
+\fIUntergrenze\fP und \fIObergrenze\fP. Beachten Sie, dass die Argumente für
+Unter\- und Obergrenze eine einzige, durch ein Komma getrennte Zeichenkette
+sind.
+.TP 
+\fB\-X\fP
+zeigt noch mehr Details als die Option \fB\-x\fP an. WARNUNG: Das Format ändert
+sich entsprechend \fI/proc/Prozesskennung/smaps\fP.
+.TP 
+\fB\-XX\fP
+zeigt alles, was der Kernel bereitstellt.
+.TP 
+\fB\-p\fP, \fB\-\-show\-path\fP
+zeigt den vollständigen Pfad zu den Dateien in der Zuordnungs\-Spalte an.
+.TP 
+\fB\-c\fP, \fB\-\-read\-rc\fP
+liest die Standard\-Konfigurationsdatei ein.
+.TP 
+\fB\-C\fP, \fB\-\-read\-rc\-from\fP \fIDatei\fP
+liest die Konfiguration aus der angegebenen \fIDatei\fP.
+.TP 
+\fB\-n\fP, \fB\-\-create\-rc\fP
+erstellt eine neue Standardkonfiguration.
+.TP 
+\fB\-N\fP, \fB\-\-create\-rc\-to\fP \fIDatei\fP
+legt eine neue Konfiguration in der angegebenen \fIDatei\fP an.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt einen Hilfetext an und beendet das Programm.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.SH EXIT\-STATUS
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Erfolg.
+.TP 
+\fB1\fP
+Fehlschlag.
+.TP 
+\fB42\fP
+Nicht alle Prozesse, nach denen gefragt wurde, konnten gefunden werden.
+.PD
+.RE
+.SH "SIEHE AUCH"
+\fBps\fP(1), \fBpgrep\fP(1)
+.SH STANDARDS
+Es sind keine Standards anwendbar, aber \fBpmap\fP ähnelt stark einem
+SunOS\-Befehl.
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

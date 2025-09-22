@@ -1,0 +1,33 @@
+How to use check suite
+----------------------
+
+You need DejaGNU package.  Assuming you have it all you need to do is
+
+make check
+
+
+Something failed now what
+-------------------------
+
+First determine what did not work.  If only one check failed you can
+run it individually in debugging mode.  For example
+
+runtest -a -de -v w.test/w.exp
+Expect binary is /usr/bin/expect
+Using /usr/share/dejagnu/runtest.exp as main test driver
+[...]
+
+Do not bother capturing screen output, it is in testrun.log which
+test suite generated.
+
+$ ls  testrun.* dbg.log
+dbg.log  testrun.log  testrun.sum
+
+The reason why test failed should be in dbg.log.  Assuming you
+figured out the reason you could write a patch fixing w.test/w.exp
+and send it to upstream.
+
+If you do not know how, or have time, to fix the issue create tar.gz
+file containing test run logs and submit it to upstream maintainers.
+Notice that in later case upstream sometimes has to ask clarifying
+questions about environment where problem occurred.

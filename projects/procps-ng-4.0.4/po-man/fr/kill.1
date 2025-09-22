@@ -1,0 +1,91 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KILL 1 2023\-01\-16 procps\-ng "Commandes de l'utilisateur"
+.SH NOM
+kill \- Envoyer un signal à un processus
+.SH SYNOPSIS
+\fBkill\fP [\fIoptions\fP] \fIPID\fP [...]
+.SH DESCRIPTION
+Le \fIsignal\fP par défaut de \fBkill\fP est \fBTERM\fP. Les options \fB\-l\fP et \fB\-L\fP
+affichent les signaux disponibles. Les signaux particulièrement utiles sont
+\fBHUP\fP, \fBINT\fP, \fBKILL\fP, \fBSTOP\fP, \fBCONT\fP et \fB0\fP. Les signaux peuvent être
+indiqués de 3 façons différentes\ : \fB\-9\fP \fB\-SIGKILL\fP \fB\-KILL\fP. Une valeur de
+\fIPID\fP négative peut être utilisée pour sélectionner des groupes de
+processus tout entiers\ ; regardez la colonne PGID de la sortie de la
+commande \fBps\fP. Un \fIPID\fP de valeur \fB\-1\fP est particulier\ : il indique tous
+les processus sauf le processus \fBkill\fP lui\-même et \fBinit\fP.
+.SH OPTIONS
+.TP 
+\fIPID\fP [...]
+Envoyer un signal à tous les \fIPID\fP indiqués.
+.TP 
+\fB\-\fP\fIsignal\fP
+.TQ
+\fB\-s\fP \fIsignal\fP
+.TQ
+\fB\-\-signal\fP \fIsignal\fP
+Indiquer le \fIsignal\fP à envoyer. Le signal peut être indiqué en utilisant un
+nom ou un nombre. Le comportement du signal est expliqué dans la page de
+manuel \fBsignal\fP(7).
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIvaleur\fP
+Use \fBsigqueue\fP(3)  rather than \fBkill\fP(2)  and the value argument is used
+to specify an integer to be sent with the signal. If the receiving process
+has installed a handler for this signal using the SA_SIGINFO flag to
+\fBsigaction\fP(2), then it can obtain this data via the si_value field of the
+siginfo_t structure.
+.TP 
+\fB\-l\fP, \fB\-\-list\fP [\fIsignal\fP]
+Afficher les noms de signaux. Cette option a un paramètre facultatif qui
+sera converti en nom de signal, s'il s'agit d'un numéro de signal, et vice
+versa.
+.TP 
+\fB\-L\fP, \fB\-\-table\fP
+Afficher les noms de signaux en un tableau bien présenté.
+.TP 
+.PD
+.SH NOTES
+Votre interpréteur de commandes possède probablement une commande kill
+interne. Vous devriez saisir /bin/kill pour exécuter la commande décrite ici
+au lieu de la commande interne.
+.SH EXEMPLES
+.TP 
+\fBkill \-9 \-1\fP
+Tuer tous les processus possibles.
+.TP 
+\fBkill \-l 11\fP
+Traduire le nombre 11 en nom de signal.
+.TP 
+\fBkill \-L\fP
+Afficher les choix de signaux disponibles en un tableau bien présenté.
+.TP 
+\fBkill 123 543 2341 3453\fP
+Envoyer le signal \fBSIGTERM\fP par défaut à tous ces processus.
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1), \fBrenice\fP(1),
+\fBsignal\fP(7), \fBsigqueue\fP(3), \fBskill\fP(1)
+.SH STANDARDS
+This command meets appropriate standards. The \fB\-L\fP flag is Linux\-specific.
+.SH AUTEUR
+.UR albert@users.sf.net
+Albert Cahalan
+.UE
+wrote kill in 1999 to
+replace a bsdutils one that was not standards compliant.  The util\-linux one
+might also work correctly.
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

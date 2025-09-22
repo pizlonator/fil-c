@@ -1,0 +1,188 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSTAT 8 18.01.2023 procps\-ng "Administrare sistem"
+.SH NUME
+vmstat \- Raportează statisticile memoriei virtuale
+.SH REZUMAT
+\fBvmstat\fP [opțiuni] [\fIîntârziere\fP [\fInumăr\fP]]
+.SH DESCRIERE
+\fBvmstat\fP raportează informații despre procese, memorie, paginare, bloc IO,
+întreruperi, discuri și activitatea CPU.
+.PP
+Primul raport realizat oferă valorile medii de la ultima repornire.
+Rapoartele suplimentare oferă informații cu privire la o perioadă de
+eșantionare cu lungimea \fIîntârziere\fP.  Rapoartele de proces și de memorie
+sunt instantanee în ambele cazuri.
+.SH OPȚIUNI
+.TP 
+\fIîntârziere\fP
+\fIîntârzierea\fP dintre actualizări în secunde.  Dacă nu este specificată
+\fIîntârzierea\fP, este afișat un singur raport cu valorile medii de la
+pornire.
+.TP 
+\fInumăr\fP
+Numărul de actualizări.  În absența \fInumărului\fP, când \fIîntârzierea\fP este
+definită, implicit este infinit.
+.TP 
+\fB\-a\fP, \fB\-\-active\fP
+Afișează memoria activă și inactivă pentru nucleele cu versiunea 2.5.41 sau
+ulterioară.
+.TP 
+\fB\-f\fP, \fB\-\-forks\fP
+Opțiunea \fB\-f\fP afișează numărul de bifurcări de la pornire.  Aceasta include
+apelurile de sistem fork(), vfork() și clone(), și este echivalent cu
+numărul total de sarcini create.  Fiecare proces este reprezentat de una sau
+mai multe sarcini, în funcție de utilizarea firului.  Această afișare nu se
+repetă.
+.TP 
+\fB\-m\fP, \fB\-\-slabs\fP
+Afișează informațiile „ slab”.
+.TP 
+\fB\-n\fP, \fB\-\-one\-header\fP
+Afișează antetul doar o singură dată, nu periodic.
+.TP 
+\fB\-s\fP, \fB\-\-stats\fP
+Afișează un tabel cu diverse contoare de evenimente și statistici de
+memorie.  Acest tabel nu se repetă.
+.TP 
+\fB\-d\fP, \fB\-\-disk\fP
+Afișează statisticile discului (pentru nucleele cu versiunea 2.5.70 sau mai
+recentă).
+.TP 
+\fB\-D\fP, \fB\-\-disk\-sum\fP
+Afișează câteva statistici rezumate despre activitatea discului.
+.TP 
+\fB\-p\fP, \fB\-\-partition\fP \fIpartiția\fP
+Afișează statistici detaliate despre partiții (pentru nucleele cu versiunea
+2.5.70 sau mai recentă).
+.TP 
+\fB\-S\fP, \fB\-\-unit\fP \fIunitatea_de_măsură\fP
+Comută unitățile de măsură de la ieșire, între 1000 (\fIk\fP), 1024 (\fIK\fP),
+1000000 (\fIm\fP) sau 1048576 (\fIM\fP) octeți.  Rețineți că acest lucru nu
+modifică câmpurile swap (sin/sieș) sau bloc (bin/bieș).
+.TP 
+\fB\-t\fP, \fB\-\-timestamp\fP
+Adaugă marcaj de timp la fiecare linie
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Mod de ieșire larg (util pentru sistemele cu o cantitate mai mare de
+memorie, unde modul de ieșire implicit suferă de întreruperi nedorite ale
+coloanelor).  Ieșirea este mai mare de 80 de caractere pe linie.
+.TP 
+\fB\-y\fP, \fB\-\-no\-first\fP
+Omite primul raport cu statistici de la pornirea sistemului.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune și iese.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează mesajul de ajutor și iese.
+.PD
+.SH "DESCRIEREA CÂMPULUI PENTRU MODUL VM"
+.SS Procese
+.nf
+r: Numărul de procese care pot fi executate (în rulare sau în așteptare pentru timpul de rulare).
+b: Numărul de procese blocate care așteaptă accesul de In/Ieș pentru a finaliza.
+.fi
+.SS Memorie
+Acestea sunt afectate de opțiunea \fB\-\-unit\fP.
+.nf
+swpd: cantitatea de memorie swap utilizată.
+liberă: cantitatea de memorie neutilizată.
+buff: cantitatea de memorie utilizată ca memorie tampon.
+cache: cantitatea de memorie utilizată ca zonă de prestocare.
+inact: cantitatea de memorie inactivă.  (opțiunea \fB\-a\fP)
+activă: cantitatea de memorie activă.  (opțiunea \fB\-a\fP)
+.fi
+.SS Swap
+Acestea sunt afectate de opțiunea \fB\-\-unit\fP.
+.nf
+sin: Cantitatea de memorie de interschimb citită de pe disc (/s).
+sieș: Cantitatea de memorie de interschimb scrisă pe disc (/s).
+.fi
+.SS In/Ieș
+.nf
+bin: Kibiocteți preluați de la un dispozitiv bloc (Kio/s).
+bieș: Kibiocteți transferați la un dispozitiv bloc (Kio/s).
+.fi
+.SS Sistem
+.nf
+in: Numărul de întreruperi pe secundă, inclusiv ceasul.
+cs: Numărul de schimbări de context pe secundă.
+.fi
+.SS CPU
+Acestea sunt procente din timpul total al procesorului.
+.nf
+us: Timpul petrecut rulând cod non\-nucleu.  (timpul utilizatorului, inclusiv timpul „nice”)
+sy: Timpul petrecut rulând codul nucleului  (timpul sistemului)
+id: Timpul petrecut inactiv.  Înainte de versiunea 2.5.41 a nucleului Linux, acesta includea timpul de așteptare IO.
+wa: Timpul petrecut în așteptarea In/Ieș  Înainte de versiunea 2.5.41 a nucleului Linux, era inclus în timpul petrecut inactiv (idle).
+st: Timpul furat de la o mașină virtuală.  Înainte de versiunea 2.6.11 a nucleului Linux, necunoscut.
+gu: Timpul petrecut rulând codul de invitat KVM (timpul pentru invitat, inclusiv timpul „nice” al invitatului).
+.fi
+.SH "DESCRIEREA CÂMPULUI PENTRU MODUL DISC"
+.SS Citiri
+.nf
+total: Numărul total de citiri finalizate cu succes
+merged: citiri grupate (rezultând o singură In/Ieș)
+sectors: Numărul de sectoare citite cu succes
+ms: numărul de milisecunde petrecute citind
+.fi
+.SS Scrieri
+.nf
+total: Numărul total de scrieri finalizate cu succes
+merged: scrieri grupate (rezultând o singură In/Ieș)
+sectors: Numărul de sectoare scrise cu succes
+ms: numărul de milisecunde petrecute scriind
+.fi
+.SS In/Ieș
+.nf
+cur: In/Ieș în curs de desfășurare
+s: secunde petrecute pentru In/Ieș
+.fi
+.SH "DESCRIEREA CÂMPULUI PENTRU MODUL DE PARTIȚIE DISC"
+.nf
+reads: Numărul total de citiri efectuate pentru această partiție
+read sectors: Numărul total de sectoare citite pentru această partiție
+writes : Numărul total de scrieri efectuate pentru această partiție
+requested writes: Numărul total de sectoare scrise pentru această partiție
+.fi
+.SH "DESCRIEREA CÂMPULUI PENTRU MODUL SLAB"
+Modul Slab arată statisticile pentru fiecare „slab”, pentru mai multe
+informații despre aceste informații consultați \fBslabinfo\fP(5)
+.PP
+.nf
+cache: Nume cache
+num: Numărul de obiecte active în prezent
+total: Numărul total de obiecte disponibile
+dim.: Dimensiunea fiecărui obiect
+pagini: Numărul de pagini cu cel puțin un obiect activ
+.fi
+.SH NOTE
+\fBvmstat\fP necesită acces de citire la fișierele de sub \fI/proc\fP. \fB\-m\fP
+necesită acces de citire la \fI/proc/slabinfo\fP, care poate să nu fie
+disponibil pentru utilizatorii standard.  Opțiunile de montare pentru
+\fI/proc\fP, cum ar fi \fIsubset=pid\fP, pot avea, de asemenea, un impact asupra a
+ceea ce este vizibil.
+.SH "CONSULTAȚI ȘI"
+\fBfree\fP(1), \fBiostat\fP(1), \fBmpstat\fP(1), \fBps\fP(1), \fBsar\fP(1), \fBtop\fP(1),
+\fBslabinfo\fP(5)
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

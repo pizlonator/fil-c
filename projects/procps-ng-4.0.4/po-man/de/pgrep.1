@@ -1,0 +1,263 @@
+.\"
+.\" Copyright (c) 2004-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\" Copyright (c) 2000      Kjetil Torgrim Homme
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PGREP 1 "16. Januar 2023" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+pgrep, pkill, pidwait \- Prozesse finden oder ein Signal auf Basis des Namens
+oder anderer Attribute senden oder auf Prozesse warten
+.SH ÜBERSICHT
+\fBpgrep\fP [Optionen] Muster
+.br
+\fBpkill\fP [Optionen] Muster
+.br
+\fBpidwait\fP [Optionen] Muster
+.SH BESCHREIBUNG
+\fBpgrep\fP durchsucht die gegenwärtig laufenden Prozesse und listet die
+Prozesskennungen (IDs), welche den Auswahlkriterien entsprechen, in der
+Standardausgabe auf. Übereinstimmungen sind für alle Auswahlkriterien
+erforderlich. Beispielsweise listet
+.IP
+$ pgrep \-u root sshd
+.PP
+nur die Prozesse auf, deren Name \fBsshd\fP lautet UND \fBroot\fP
+gehören. Andererseits listet
+.IP
+$ pgrep \-u root,daemon
+.PP
+jene Prozesse auf, die entweder \fBroot\fP ODER \fBdaemon\fP gehören.
+.PP
+\fBpkill\fP sendet das angegebene Signal (per Vorgabe \fBSIGTERM\fP) an jeden
+Prozess, anstatt diese in der Standardausgabe aufzulisten.
+.PP
+\fBpidwait\fP wartet auf jeden Prozess, anstatt diesen in der Standardausgabe
+aufzulisten.
+.SH OPTIONEN
+.TP 
+\fB\-\fP\fISignal\fP
+.TQ
+\fB\-\-signal\fP \fISignal\fP
+definiert das Signal, das an jeden der passenden Prozesse gesendet werden
+soll. Dafür kann entweder der numerische oder ein symbolischer Signalname
+verwendet werden. Nur im \fBpgrep\fP\- oder \fBpidwait\fP\-Modus kann die lange
+Option verwendet werden. Sie ist allerdings dann wirkungslos, wenn sie nicht
+zusammen mit \fB\-\-require\-handler\fP verwendet wird, um nur Prozesse
+anzuzeigen, für die bei einem bestimmten Signal ein Userspace\-Signalhandler
+vorhanden ist.
+
+.TP 
+\fB\-c\fP, \fB\-\-count\fP
+unterdrückt normale Ausgaben und gibt stattdessen die Anzahl der passenden
+Prozesse aus. Wenn keine Übereinstimmungen gefunden werden, liefert der
+Befehl einen von 0 verschiedenen Rückgabewert. Beachten Sie, dass für
+\fBpkill\fP und \fBpidwait\fP die Anzahl der Anzahl der passenden Prozesse
+entspricht und nicht der Anzahl der Prozesse, an die erfolgreich ein Signal
+gesendet oder auf die gewartet wurde.
+.TP 
+\fB\-d\fP, \fB\-\-delimiter\fP \fITrenner\fP
+legt die in der Ausgabe als Trenner für die Prozesskennungen zu verwendende
+Zeichenkette fest. Vorgabe ist ein Zeilenumbruch (gilt nur für \fBpgrep\fP).
+.TP 
+\fB\-e\fP, \fB\-\-echo\fP
+zeigt Name und Prozesskennung des zu killenden Prozesses an (nur für
+\fBpkill\fP).
+.TP 
+\fB\-f\fP, \fB\-\-full\fP
+Das \fIMuster\fP wird normalerweise nur auf den Prozessnamen angewendet. Wenn
+\fB\-f\fP gesetzt ist, wird die vollständige Befehlszeile verwendet.
+.TP 
+\fB\-g\fP, \fB\-\-pgroup\fP \fIProzessgruppe\fP, …
+sucht nur nach passenden Prozessen, die in den Prozessgruppenkennungen
+aufgelistet sind. Die Prozessgruppe 0 wird in die eigene Prozessgruppe von
+\fBpgrep\fP, \fBpkill\fP oder \fBpidwait\fP übersetzt.
+.TP 
+\fB\-G\fP, \fB\-\-group\fP \fIGruppenkennung\fP, …
+berücksichtigt nur Prozesse, deren reale Gruppenkennung aufgelistet
+ist. Hier kann entweder der numerische oder der symbolische Wert verwendet
+werden.
+.TP 
+\fB\-i\fP, \fB\-\-ignore\-case\fP
+ignoriert Groß\-/Kleinschreibung bei der Suche.
+.TP 
+\fB\-l\fP, \fB\-\-list\-name\fP
+listet sowohl den Prozessnamen als auch die Prozesskennung auf (nur für
+\fBpgrep\fP).
+.TP 
+\fB\-a\fP, \fB\-\-list\-full\fP
+listet sowohl die vollständige Befehlszeile als auch die Prozesskennung auf
+(nur für \fBpgrep\fP).
+.TP 
+\fB\-n\fP, \fB\-\-newest\fP
+wählt nur den neuesten (zuletzt gestarteten) aus den passenden Prozessen
+aus.
+.TP 
+\fB\-o\fP, \fB\-\-oldest\fP
+wählt nur den ältesten (zuerst gestarteten) aus den passenden Prozessen aus.
+.TP 
+\fB\-O\fP, \fB\-\-older\fP \fISekunden\fP
+wählt Prozesse aus, die älter als die angegebene Anzahl Sekunden sind.
+.TP 
+\fB\-P\fP, \fB\-\-parent\fP \fIEltern\-Prozesskennung\fP, …
+sucht nur nach Prozessen, von denen die Kennung des übergeordneten Prozesses
+aufgelistet ist.
+.TP 
+\fB\-s\fP, \fB\-\-session\fP \fISitzungskennung\fP, …
+sucht nur nach passenden Prozessen, die in den Prozess\-Sitzungskennungen
+aufgelistet ist. Die Sitzungskennung 0 wird in die eigene Prozessgruppe von
+\fBpgrep\fP, \fBpkill\fP oder \fBpidwait\fP übersetzt.
+.TP 
+\fB\-t\fP, \fB\-\-terminal\fP \fITerminal\fP, …
+sucht nur nach passenden Prozessen, deren steuerndes Terminal aufgelistet
+ist. Der Terminalname sollte ohne das Präfix »dev« angegeben werden.
+.TP 
+\fB\-u\fP, \fB\-\-euid\fP \fIeffektive_Benutzerkennung\fP, …
+sucht nur nach passenden Prozessen, deren effektive Benutzerkennung
+aufgelistet ist. Sie können entweder numerische oder symbolische Werte
+verwenden.
+.TP 
+\fB\-U\fP, \fB\-\-uid\fP \fIBenutzerkennung\fP, …
+sucht nur nach passenden Prozessen, deren reale Benutzerkennung aufgelistet
+ist. Sie können entweder numerische oder symbolische Werte verwenden.
+.TP 
+\fB\-v\fP, \fB\-\-inverse\fP
+negiert die Anwendung der Suchkriterien. Diese Option wird üblicherweise mit
+\fBpgrep\fP oder \fBpidwait\fP verwendet. In \fBpkill\fP ist die Kurzoption
+deaktiviert, um die zufällige Anwendung dieser Option zu vermeiden.
+.TP 
+\fB\-w\fP, \fB\-\-lightweight\fP
+zeigt bei \fBpgrep\fP oder \fBpidwait\fP alle Thread\-Kennungen anstelle der
+Prozess\-Kennungen an. In \fBpkill\fP ist diese Option deaktiviert.
+.TP 
+\fB\-x\fP, \fB\-\-exact\fP
+sucht nur nach passenden Prozessen, deren Namen (oder Befehlszeilen, falls
+\fB\-f\fP angegeben ist) \fBexakt\fP dem \fIMuster\fP entsprechen.
+.TP 
+\fB\-F\fP, \fB\-\-pidfile\fP \fIDatei\fP
+liest die \fIProzesskennungen\fP aus einer \fIDatei\fP. Diese Option ist eher für
+\fBpkill\fP oder \fBpidwait\fP als für \fBpgrep\fP sinnvoll.
+.TP 
+\fB\-L\fP, \fB\-\-logpidfile\fP
+schlägt fehl, wenn die PID\-Datei (siehe \fB\-F\fP) nicht gesperrt ist.
+.TP 
+\fB\-r\fP, \fB\-\-runstates\fP \fID,R,S,Z,\fP …
+sucht nur nach Prozessen, die diesem Prozessstatus entsprechen.
+.TP 
+\fB\-A\fP, \fB\-\-ignore\-ancestors\fP
+ignoriert alle Vorgänger von \fBpgrep\fP, \fBpkill\fP oder \fBpidwait\fP. Dies kann
+beispielsweise in Verbindung mit \fBsudo\fP oder ähnlichen Werkzeugen nützlich
+sein.
+.TP 
+\fB\-H\fP, \fB\-\-require\-handler\fP
+sucht nur nach Prozessen, für die für das zu sendende Signal ein
+Userspace\-Signalhandler vorhanden ist.
+.TP 
+\fB\-\-cgroup \fP\fIName\fP\fB,…\fP
+Match on provided control group (cgroup) v2 name. See \fBcgroups\fP(8)
+.TP 
+\fB\-\-ns \fP\fIProzesskennung\fP
+sucht nach passenden Prozessen, die zu den gleichen Namensräumen gehören. Um
+Prozesse anderer Benutzer zu finden, sind Root\-Rechte erforderlich. In
+\fB\-\-nslist\fP finden Sie Informationen, wie Sie die Übereinstimmungen im
+Zusammenhang mit Namensräumen begrenzen können.
+.TP 
+\fB\-\-nslist \fP\fIName\fP\fB, …\fP
+sucht nur in den angegebenen Namensräumen nach Übereinstimmungen. Verfügbare
+Namensräume: ipc, mnt, net, pid, user, uts.
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIWert\fP
+verwendet \fBsigqueue\fP(3) anstatt \fBkill\fP(2) und das \fIWert\fP\-Argument wird
+zur Angabe einer Ganzzahl verwendet, die mit dem Signal gesendet wird. Falls
+der empfangende Prozess mit dem SA_SIGINFO\-Flag für \fBsigaction\fP(2) einen
+Handler für dieses Signal installiert hat, dann kann er diese Daten über das
+\fIsi_value\fP\-Feld der Struktur \fIsiginfo_t\fP beziehen.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt eine Hilfe an und beendet das Programm.
+.PD
+.SH OPERANDEN
+.TP 
+\fIMuster\fP
+gibt einen erweiterten regulären Ausdruck für die Übereinstimmungen von
+Prozessnamen oder Befehlszeilen an.
+.SH BEISPIELE
+Beispiel 1: Prozesskennung des \fBnamed\fP\-Daemons suchen:
+.IP
+$ pgrep \-u root named
+.PP
+Beispiel 2: \fBsyslog\fP veranlassen, seine Konfigurationsdatei neu einzulesen:
+.IP
+$ pkill \-HUP syslogd
+.PP
+Beispiel 3: Detaillierte Informationen zu allen \fBxterm\fP\-Prozessen ausgeben:
+.IP
+$ ps \-fp $(pgrep \-d, \-x xterm)
+.PP
+Beispiel 4: Den Nice\-Wert für alle \fBchrome\fP\-Prozesse erhöhen:
+.IP
+$ renice +4 $(pgrep chrome)
+.SH EXIT\-STATUS
+.PD 0
+.TP 
+0
+Einer oder mehrere Prozesse entsprechen dem Kriterium. Für \fBpkill\fP und
+\fBpidwait\fP muss auch ein Signal erfolgreich an einen oder mehrere Prozesse
+gesendet oder auf sie gewartet worden sein.
+.TP 
+1
+Es wurden keine passenden Prozesse gefunden oder an keine von ihnen konnte
+ein Signal gesendet werden.
+.TP 
+2
+Syntaxfehler in der Befehlszeile.
+.TP 
+3
+Schwerwiegender Fehler: Speicher ausgeschöpft usw.
+.PD
+.SH ANMERKUNGEN
+Der für die Suche verwendete Prozessname ist auf die 15 Zeichen in der
+Ausgabe von /proc/\fIProzesskennung\fP/stat beschränkt. Verwenden Sie die
+Option \fB\-f\fP, um stattdessen Übereinstimmungen in der gesamten Befehlszeile
+(/proc/\fIProzesskennung\fP/cmdline) zu suchen. Threads könnten nicht den
+gleichen Prozessnamen wie der Elternprozess haben, wohl aber die gleiche
+Befehlszeile.
+.PP
+Die laufenden \fBpgrep\fP\-, \fBpkill\fP\- oder \fBpidwait\fP\-Prozesse werden niemals
+selbst als Treffer gemeldet.
+.PP
+Die Option \fB\-O \-\-older\fP wird stillschweigend fehlschlagen, falls \fI/proc\fP
+mit der Option \fIsubset=pid\fP eingehängt ist.
+.SH FEHLER
+Die Optionen \fB\-n\fP, \fB\-o\fP und \fB\-v\fP können nicht kombiniert werden. Bitte
+informieren Sie die Entwickler, falls das für Ihre Zwecke nötig sein sollte.
+.PP
+Bereits beendete Prozesse werden gemeldet.
+.PP
+\fBpidwait\fP erfordert den Systemaufruf \fBpidfd_open\fP(2), der zuerst in Linux
+5.3 erschien.
+.SH "SIEHE AUCH"
+\fBps\fP(1), \fBregex\fP(7), \fBsignal\fP(7), \fBsigqueue\fP(3), \fBkillall\fP(1),
+\fBskill\fP(1), \fBkill\fP(1), \fBkill\fP(2), \fBcgroups\fP(8)
+.SH AUTOR
+.UR kjetilho@ifi.uio.no
+Kjetil Torgrim Homme
+.UE
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

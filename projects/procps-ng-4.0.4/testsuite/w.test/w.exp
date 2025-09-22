@@ -1,0 +1,59 @@
+#
+# Dejagnu tests for w - part of procps
+#
+# FIXME - the user lines only go to idle
+set w "${topdir}src/w"
+
+set w_uptime "\\s+\\d{2}:\\d{2}:\\d{2} up (\\d+ days?,)?\\s*\\d+( min|:\\d+), +\\d+ users?, +load average: \[0-9.\]+, \[0-9.\]+, \[0-9.\]+\\s+"
+set w_std_header "${w_uptime}USER\\s+TTY\\s+LOGIN@\\s+IDLE\\s+JCPU\\s+PCPU\\s+WHAT\\s+"
+set w_short_header "${w_uptime}USER\\s+TTY\\s+IDLE\\s+WHAT\\s+"
+set w_from_header "${w_uptime}USER\\s+TTY\\s+FROM\\s+LOGIN@\\s+IDLE\\s+JCPU\\s+PCPU\\s+WHAT\\s+"
+set w_fromshort_header "${w_uptime}USER\\s+TTY\\s+FROM\\s+IDLE\\s+WHAT\\s+"
+
+set w_user "\[A-Za-z0-9_-\]+"
+set w_tty "\[a-z0-9/]+"
+set w_from "\[A-Za-z0-9.:-\]*"
+set w_login "\(\\d+\[A-Z\]\[a-z\]{2}\\d+\|\[A-Z\]\[a-z\]{2}\\d+\|\\d+:\\d+\)"
+set w_idle  "\(\\?xdm\\?\|\\?\|\\d+days\|\\d+:\\d+m?\|\\d+.\\d+s\)"
+set w_ival7  "\(\\?\|\\d+days\|\\d+:\\d+m?\|\\d+.\\d+s\)"
+set w_what  "\[A-Za-z0-9_\/\\-\]+"
+set w_pids  "\\d+/\\d+"
+set w_std_userlines "\(${w_user}\\s+${w_tty}\\s+${w_login}\\s+${w_idle}\\s+${w_ival7}\\s+${w_ival7}\\s+${w_what}\\s*\)*"
+set w_short_userlines "\(${w_user}\\s+${w_tty}\\s+${w_idle}\\s+${w_what}\\s*\)*"
+set w_from_userlines "\(${w_user}\\s+${w_tty}\\s+${w_from}\\s+${w_login}\\s+${w_idle}\\s+${w_ival7}\\s+${w_ival7}\\s+${w_what}\\s*\)*"
+set w_fromshort_userlines "\(${w_user}\\s+${w_tty}\\s+${w_from}\\s+${w_idle}\\s+${w_what}\\s*\)*"
+set w_pid_userlines "\(${w_user}\\s+${w_tty}\\s+${w_idle}\\s+%{w_pids}\s+${w_what}\\s*\)*"
+
+set test "w with no arguments"
+spawn $w
+expect_pass "$test" "^${w_std_header}${w_std_userlines}"
+
+
+set test "w with no headers"
+spawn $w -h
+expect_pass "$test" "^${w_std_userlines}"
+
+set test "w with -u flag"
+spawn $w -u
+expect_pass "$test" "^${w_std_header}${w_std_userlines}"
+
+set test "w with short output"
+spawn $w -s
+expect_pass "$test" "^${w_short_header}${w_short_userlines}"
+
+set test "w with from flag"
+spawn $w -f
+expect_pass "$test" "^${w_from_header}${w_from_userlines}"
+
+set test "w with from and short flags"
+spawn $w -fs
+expect_pass "$test" "^${w_fromshort_header}${w_fromshort_userlines}"
+
+set test "w with short and from flags"
+spawn $w -sf
+expect_pass "$test" "^${w_fromshort_header}${w_fromshort_userlines}"
+
+set test "w with pids display"
+spawn $w -p
+expect_pass "$test" "^${w_std_header}${w_pid_userlines}"
+

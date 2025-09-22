@@ -1,0 +1,96 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PMAP 1 2020\-06\-04 procps\-ng "Commandes de l'utilisateur"
+.SH NOM
+pmap \- Afficher l'empreinte mémoire d'un processus
+.SH SYNOPSIS
+\fBpmap\fP [\fIoptions\fP] \fIPID\fP [...]
+.SH DESCRIPTION
+La commande \fBpmap\fP affiche l'empreinte mémoire d'un ou plusieurs processus.
+.SH OPTIONS
+.TP 
+\fB\-x\fP, \fB\-\-extended\fP
+Afficher la sortie au format étendu.
+.TP 
+\fB\-d\fP, \fB\-\-device\fP
+Afficher la sortie au format périphérique.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Ne pas afficher certaines lignes d'en\-tête ou de pied de page.
+.TP 
+\fB\-A\fP, \fB\-\-range\fP \fIbas\fP\fB,\fP\fIhaut\fP
+Restreindre les résultats à l'intervalle d'adresses comprises entre \fIbas\fP
+et \fIhaut\fP. Remarquez que les paramètres \fIbas\fP et \fIhaut\fP sont de simples
+chaînes séparées par une virgule.
+.TP 
+\fB\-X\fP
+Afficher encore plus de précisions qu'avec l'option \fB\-x\fP. Attention, le
+format change en fonction de \fI/proc/PID/smaps\fP.
+.TP 
+\fB\-XX\fP
+Afficher tout ce que le noyau fournit.
+.TP 
+\fB\-p\fP, \fB\-\-show\-path\fP
+Montrer le chemin complet vers les fichiers dans la colonne de
+correspondance.
+.TP 
+\fB\-c\fP, \fB\-\-read\-rc\fP
+Lire la configuration par défaut.
+.TP 
+\fB\-C\fP, \fB\-\-read\-rc\-from\fP \fIfichier\fP
+Lire le fichier de configuration \fIfichier\fP.
+.TP 
+\fB\-n\fP, \fB\-\-create\-rc\fP
+Créer une nouvelle configuration par défaut.
+.TP 
+\fB\-N\fP, \fB\-\-create\-rc\-to\fP \fIfichier\fP
+Créer une nouvelle configuration dans \fIfichier\fP.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afficher l'aide et quitter.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afficher la version du logiciel et quitter.
+.SH "CODES DE RETOUR"
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Réussite.
+.TP 
+\fB1\fP
+Échec.
+.TP 
+\fB42\fP
+Les processus demandés n'ont pas tous été trouvés.
+.PD
+.RE
+.SH "VOIR AUSSI"
+\fBps\fP(1), \fBpgrep\fP(1)
+.SH STANDARDS
+Aucune norme n'est respectée mais \fBpmap\fP ressemble fortement à une commande
+SunOS.
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

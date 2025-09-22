@@ -1,0 +1,86 @@
+.\"
+.\" Copyright (c) 2016-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL.CONF 5 2021\-09\-15 procps\-ng "Formats de fichier"
+.SH NOM
+sysctl.conf \- Fichier de configuration et de chargement pour sysctl
+.SH DESCRIPTION
+\fIsysctl.conf\fP est un simple fichier contenant les valeurs qui doivent être
+définies par \fBsysctl\fP. La syntaxe est la suivante\ :
+.RS
+.sp
+.nf
+.ne 7
+# commentaire
+; commentaire
+
+élément = valeur
+.fi
+.RE
+.PP
+Notez que les lignes vides et les espaces avant ou après un élément ou une
+valeur sont ignorées. Une valeur peut, cependant, contenir des espaces. Les
+lignes commençant par un \fI#\fP ou un \fI;\fP sont des commentaires et sont donc
+ignorées.
+
+Si une ligne débute par un seul \-, toute tentative échouée de définir cette
+valeur sera ignorée.
+
+.SH NOTES
+Comme le fichier \fB/etc/sysctl.conf\fP est utilisé pour redéfinir les
+paramètres par défaut du noyau, seul un petit nombre de paramètres est
+possible dans ce fichier. Utiliser \fI/sbin/sysctl\ \-a\fP ou suivre
+\fBsysctl\fP(8) pour afficher les paramètres disponibles. Chaque paramètre est
+décrit dans la documentation du noyau.
+
+Maximum supported line length of the value is 4096 characters due to a
+limitation of \fI/proc\fP entries in Linux kernel.
+.SH EXEMPLE
+.RS
+.sp
+.nf
+.ne 7
+# Exemple de fichier sysctl.conf
+#
+  kernel.domainname = example.com
+; la ligne suivante contient une espace
+; qui sera passée à la commande sysctl.
+  kernel.modprobe = /sbin/mod probe
+.fi
+.RE
+.PP
+.SH FICHIERS
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+
+Les chemins où les fichiers préchargés de \fBsysctl\fP qui existent
+d’habitude. Consultez aussi l'option \fB\-\-system\fP de \fBsysctl\fP(8).
+.SH "VOIR AUSSI"
+\fBsysctl\fP(8)
+.SH AUTEUR
+George Staikos <\fIstaikos@wnedorg\fP>
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

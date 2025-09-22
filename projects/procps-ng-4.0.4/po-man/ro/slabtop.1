@@ -1,0 +1,116 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (C) 2003      Chris Rivera
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU Lesser General Public License as
+.\" published by the Free Software Foundation; either version 2.1 of the
+.\" License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SLABTOP 1 11.03.2021 procps\-ng "Comenzi utilizator"
+.SH NUME
+slabtop \- afișează în timp real informațiile din zona de prestocare a
+memoriei „slab” din nucleu
+.SH REZUMAT
+\fBslabtop\fP [\fIopțiuni\fP]
+.SH DESCRIERE
+\fBslabtop\fP afișează în timp real informații detaliate din zona de prestocare
+a memoriei „slab” din nucleu.  Afișează o listă cu principale zone de
+prestocare a memoriei, sortate după unul dintre criteriile de sortare
+enumerate. De asemenea, afișează un antet de statistici plin cu informații
+despre stratul „slab” (obiecte alocate nucleului).
+.SH OPȚIUNI
+Invocarea normală a lui \fBslabtop\fP nu necesită nicio opțiune.
+Comportamentul, totuși, poate fi ajustat prin specificarea uneia sau a mai
+multora dintre următoarele opțiuni:
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP=\fIN\fP
+Reîmprospătează afișajul la fiecare \fIn\fP secunde.  În mod implicit,
+\fBslabtop\fP reîmprospătează afișajul la fiecare trei secunde.  Pentru a ieși
+din program, apăsați \fBq\fP.  Această opțiune nu poate fi combinată cu
+opțiunea \fB\-o\fP.
+.TP 
+\fB\-s\fP, \fB\-\-sort\fP=\fIS\fP
+Sortați după \fIS\fP, unde \fIS\fP este unul dintre criteriile de sortare.
+.TP 
+\fB\-o\fP, \fB\-\-once\fP
+Afișează ieșirea o dată și apoi iese.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune și iese.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează informațiile de utilizare și iese.
+.SH "CRITERIILE DE SORTARE"
+Următoarele sunt criterii de sortare valide utilizate pentru a sorta zonele
+de prestocare «slab» individuale și, prin urmare, pentru a determina care
+sunt zonele de prestocare «slab» „principale” de afișat.  Criteriul implicit
+de sortare este sortarea după numărul de obiecte ("o").
+.PP
+Criteriile de sortare pot fi modificate și în timp ce \fBslabtop\fP rulează
+apăsând caracterul asociat.
+.TS
+l l l.
+\fBcaracter\fP	\fBdescriere\fP	\fBantet\fP
+a	numărul de obiecte active	ACTIVE
+b	obiecte per „slab”	OBJ/SLAB
+c	dimensiunea zonei de prestocare	DIM. CACHE
+l	numărul de „slabs”	SLABS
+v	numărul de „slabs” active	N/D
+n	nume	NUME\:
+o	numărul de obiecte	OBJS
+p	pagini per „slab”	N/D
+s	dimensiunea obiectului	DIM. OBJ
+u	utilizarea zonei de prestocare	USE
+.TE
+.SH COMENZI
+\fBslabtop\fP acceptă comenzi de la tastatură de la utilizator în timpul
+utilizării.  Sunt acceptate următoarele.  În cazul literelor, ambele tipuri
+(majuscule + minuscule) sunt acceptate.
+.PP
+Fiecare dintre caracterele de sortare valide sunt de asemenea acceptate,
+pentru a schimba rutina de sortare. Consultați secțiunea \fBCRITERIILE DE SORTARE\fP.
+.TP 
+\fB<BARA_DE_SPAȚIU>\fP
+Reîmprospătează ecranul.
+.TP 
+\fBQ\fP
+Ieșire din program.
+.SH FIȘIERE
+.TP 
+\fI/proc/slabinfo\fP
+informații despre „slab”
+.SH "CONSULTAȚI ȘI"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBvmstat\fP(8)
+.SH NOTE
+În prezent, \fBslabtop\fP necesită un nucleu 2.4 sau mai recent (în special, o
+versiune 1.1 sau mai recentă a \fI/proc/slabinfo\fP).  Nucleul 2.2 ar trebui să
+fie acceptat în viitor.
+.PP
+Antetul statistic \fBslabtop\fP urmărește câți octeți de „slabs” sunt utilizați
+și nu este o măsură a memoriei fizice.  Câmpul „Slab” din fișierul
+\fI/proc/meminfo\fP urmărește informații despre memoria fizică „slab”
+utilizate.
+.PP
+Coloana \fBDIM. CACHE\fP nu este precisă, ci reprezintă limita superioară a
+memoriei utilizate de un anumit „slab”. Atunci când sistemul care utilizează
+„slub” (cel mai frecvent caz) este supus unei presiuni mari asupra memoriei,
+există scăpări de ordine a „slabs”, ceea ce înseamnă că «paginile per
+„slab”» nu sunt constante și pot scădea.
+.SH AUTORI
+Scris de Chris Rivera și Robert Love.
+.PP
+\fBslabtop\fP a fost inspirat de scriptul perl al lui Martin Bligh, \fBvmtop\fP.
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

@@ -1,0 +1,19 @@
+#
+# Testsuite for lib/fileutils program
+#
+
+set noarg "${topdir}src/tests/test_fileutils"
+
+set test "without argument"
+spawn $noarg
+expect_pass "$test" "Hello, World!"
+
+set badfd "${srcdir}/lib.test/fileutils_badfd.sh"
+set test "test bad file descriptor"
+spawn $badfd
+expect_pass "$test" "test_fileutils: write error: Bad file descriptor"
+
+set full "${srcdir}/lib.test/fileutils_full.sh"
+set test "test no space left on device"
+spawn $full
+expect_pass "$test" "test_fileutils: write error: No space left on device"

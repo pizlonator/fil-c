@@ -1,0 +1,153 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_MISC 3 "Augusti 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAMN
+procps_misc — API för diverse information i filsystemet /proc
+.SH SYNOPSIS
+.nf
+\fB#include <libproc2/misc.h>\fP
+.PP
+Plattformsegenskaper
+.RS 4
+.PP
+long         \fBprocps_cpu_count\fP (void);
+long         \fBprocps_hertz_get\fP (void);
+unsigned int \fBprocps_pid_length\fP (void);
+int          \fBprocps_linux_version\fP (void);
+.RE
+.PP
+Körtidsegenskaper
+.PP
+.RS 4
+int  \fB procps_loadavg\fP (double *\fIgs1\fP, double *\fIgs5\fP, double *\fIgs15\fP);
+int  \fB procps_uptime\fP (double *\fIuppetid_s\fP, double *\fIinaktiv_s\fP);
+char *\fBprocps_uptime_sprint\fP (void);
+char *\fBprocps_uptime_sprint_short\fP (void);
+.RE
+.PP
+Namnrymdsegenskaper
+.PP
+.RS 4
+int       \fB  procps_ns_get_id\fP (const char *\fInamn\fP);
+const char\fB *procps_ns_get_name\fP (int \fIid\fP);
+int       \fB  procps_ns_read_pid\fP (int \fIpid\fP, struct procps_ns *\fInrd\fP);
+.RE
+
+Länka med \fI\-lproc2\fP.
+
+.SH BESKRIVNING
+\fBprocps_cpu_count\fP()  returnerar antalet CPU:er som för närvarande är
+inkopplade liksom \fBsysconf(\fP\fI_SC_NPROCESSORS_ONLY\fP\fB)\fP eller ett antaget
+\fI1\fP.
+
+\fBprocps_hertz_get\fP()  returnerar antalet klocktick per sekund liksom
+\fBsysconf(\fP\fI_SC_CLK_TCK\fP\fB)\fP eller ett antaget \fI100\fP. Att dividera tick
+med detta värder ger sekunder.
+
+\fBprocps_pid_length\fP()  returnerar den maximala stränglängden för en PID på
+systemet. Till exempel, om det största möjliga värdet på en PID var 123, då
+skulle längden vara 3. Om filen \fI/proc/sys/kernel/pid_max\fP är oläsbar antas
+värdet vara \fI5\fP.
+
+\fBprocps_linux_version\fP()  returnerar den aktuella Linuxversionen som ett
+kodat heltal. På ett icke\-Linuxsystem som har ett emulerat proc\-filsystem
+returnerar denna funktionen versionen på Linuxemuleringen
+istället. Versionen består av tre positiva heltal som representerar nivåerna
+större, mindre och fix. Följande makron finns för att koda en given
+Linuxversion eller att separera ut komponenterna av den aktuella versionen.
+.RS 4
+.PP
+LINUX_VERSION(\ större\ ,\ mindre\ ,\ fix\ )
+.PP
+LINUX_VERSION_MAJOR(\ ver\ )
+.PP
+LINUX_VERSION_MINOR(\ ver\ )
+.PP
+LINUX_VERSION_PATCH(\ ver\ )
+.RE
+
+\fBprocps_loadavg\fP()  hämtar genomsnittlig systemlast och lägger genomsnitten
+över 1, 5 och 15 minuter i platserna som anges av de pekare som inte är
+\fINULL\fP.
+
+\fBprocps_uptime\fP()  returnerar uppetiden och eller inaktiva sekunder i
+platserna som anges av de pekare som inte är \fINULL\fP.  Varianterna \fBsprint\fP
+returnerar en mänskligt läsbar sträng på en av två former.
+.RS 4
+.PP
+HH:MM:SS up HH:MM, # users, load average: 1, 5, 15 MM averages
+.PP
+up HH, MM
+.RE
+
+\fBprocps_ns_get_id\fP()  returnerar heltals\-id:t (enum namespace_type) för
+namnrymden för den angivna namnrymden \fInamn\fP.
+
+\fBprocps_ns_get_name\fP()  returnerar namnet på namnrymden för det angivna
+\fIid:t\fP (enum namespace_type).
+
+\fBprocps_ns_read_pid\fP()  returnerar inoderna för namnrymderna för den
+angivna processen procps_ns\-posten som pekas ut av \fInrp\fP. Dessa inoder
+kommer komma i den ordning som föreskrivs av enum namespace_type.
+.PP
+.RS 4
+.nf
+enum namespace_type {
+    PROCPS_NS_CGROUP,
+    PROCPS_NS_IPC,
+    PROCPS_NS_MNT,
+    PROCPS_NS_NET,
+    PROCPS_NS_PID,
+    PROCPS_NS_TIME,
+    PROCPS_NS_USER,
+    PROCPS_NS_UTS
+};
+.fi
+.RE
+
+
+.SH RETURVÄRDE
+.SS "Funktioner som returnerar en ”int” eller ”long”"
+Ett fel kommer indikera ett negativt tal som alltid är inversen av något
+känt värde från errno.h.
+
+.SS "Funktioner som returnerar en ”adress”"
+Ett fel kommer indikeras av en NULL\-returpekare och orsaken går att hitta i
+dett formella errno\-värdet.
+
+.SH FILER
+.TP 
+\fI/proc/loadavg\fP
+De råa värdena för lastgenomsnitt.
+.TP 
+\fI/proc/sys/kernel/osrelease\fP
+Innehåller utgåveversionen för Linuxkärnan eller proc\-filsystemet.
+.TP 
+\fI/proc/sys/kernel/pid_max\fP
+Innehåller värdet vid vilket PID:ar slår runt, ett större än det maximala
+PID\-värdet.
+.TP 
+\fI/proc/uptime\fP
+De råa värdena för uppetid och inaktiv tid.
+.TP 
+\fI/proc/<PID>/ns\fP
+innehåller uppsättningen av namnrymder för en viss \fBPID\fP.
+
+.SH "SE ÄVEN"
+\fBprocps\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

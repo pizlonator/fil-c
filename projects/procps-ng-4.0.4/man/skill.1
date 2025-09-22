@@ -1,0 +1,128 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2006 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH SKILL 1 "2023-08-19" "procps-ng" "User Commands"
+.SH NAME
+skill, snice \- send a signal or report process status
+.SH SYNOPSIS
+.B skill
+.RI [ signal ]
+.RI [ options ]
+.I expression
+.br
+.B snice
+.RI [ "new priority" ]
+.RI [ options ]
+.I expression
+.SH DESCRIPTION
+These tools are obsolete and unportable.  The command syntax is
+poorly defined.  Consider using the
+.BR killall ,
+.BR pkill ,
+and
+.B pgrep
+commands instead.
+.PP
+The default signal for \fBskill\fP is TERM.  Use \fB\-l\fP or \fB\-L\fP to list
+available signals.  Particularly useful signals include HUP, INT,
+KILL, STOP, CONT, and 0.  Alternate signals may be specified in three
+ways: \fB\-9\fP \fB\-SIGKILL\fP \fB\-KILL\fP.
+.PP
+The default priority for \fBsnice\fP is +4.  Priority numbers range from
++20 (slowest) to \-20 (fastest).  Negative priority numbers are
+restricted to administrative users.
+.SH OPTIONS
+.TP
+.BR \-f , \ \-\-fast
+Fast mode.  This option has not been implemented.
+.TP
+.BR \-i , \ \-\-interactive
+Interactive use.  You will be asked to approve each action.
+.TP
+.BR \-l , \ \-\-list
+List all signal names.
+.TP
+.BR \-L , \ \-\-table
+List all signal names in a nice table.
+.TP
+.BR \-n , \ \-\-no\-action
+No action; perform a simulation of events that would occur but do not
+actually change the system.
+.TP
+.BR \-v , \ \-\-verbose
+Verbose; explain what is being done.
+.TP
+.BR \-w , \ \-\-warnings
+Enable warnings.  This option has not been implemented.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display help text and exit.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information.
+.PD
+.SH "PROCESS SELECTION OPTIONS"
+Selection criteria can be: terminal, user, pid, command.  The options
+below may be used to ensure correct interpretation.
+.TP
+\fB\-t\fR, \fB\-\-tty\fR \fItty\fR
+The next expression is a terminal (tty or pty).
+.TP
+\fB\-u\fR, \fB\-\-user\fR \fIuser\fR
+The next expression is a username.
+.TP
+\fB\-p\fR, \fB\-\-pid\fR \fIpid\fR
+The next expression is a process ID number.
+.TP
+\fB\-c\fR, \fB\-\-command\fR \fIcommand\fR
+The next expression is a command name.
+.TP
+\fB\-\-ns \fIpid\fR
+Match the processes that belong to the same namespace as pid.
+.TP
+\fB\-\-nslist \fIns\/\fR,\,\fI...\/\fR
+list which namespaces will be considered for the \fB\-\-ns\fP option.
+Available namespaces: ipc, mnt, net, pid, user, uts.
+.PD
+.SH SIGNALS
+The behavior of signals is explained in
+.BR signal (7)
+manual page.
+.SH EXAMPLES
+.TP
+.B snice \-c seti \-c crack +7
++Slow down \fBseti\fP and \fBcrack\fP commands.
+.TP
+.B skill \-KILL \-t /dev/pts/*
+Kill users on PTY devices.
+.TP
+.B skill \-STOP \-u viro \-u lm \-u davem
+Stop three users.
+.SH "SEE ALSO"
+.BR kill (1),
+.BR kill (2),
+.BR killall (1),
+.BR nice (1),
+.BR pkill (1),
+.BR renice (1),
+.BR signal (7)
+.SH STANDARDS
+No standards apply.
+.SH AUTHOR
+.MT albert@users.sf.net
+Albert Cahalan
+.ME
+wrote skill and snice in 1999 as a replacement for a non-free
+version.
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

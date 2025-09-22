@@ -1,0 +1,90 @@
+.\"
+.\" Copyright (c) 2016-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL.CONF 5 15.09.2021 procps\-ng "Formate de fișiere"
+.SH NUME
+sysctl.conf \- fișierul de preîncărcare/configurare al «sysctl»
+.SH DESCRIERE
+\fBsysctl.conf\fP este un fișier simplu care conține valori „sysctl” care
+trebuie citite și stabilite de \fBsysctl\fP.  Sintaxa este pur și simplu după
+cum urmează:
+.RS
+.sp
+.nf
+.ne 7
+# comentariu
+; comentariu
+
+element = valoare
+.fi
+.RE
+.PP
+Rețineți că liniile goale și spațiile înainte sau după un element sau
+valoare sunt ignorate.  O valoare poate conține totuși spații.  Rândurile
+care încep cu un \fI#\fP sau un \fI;\fP sunt comentarii și, prin urmare, sunt
+ignorate.
+
+Dacă o linie începe cu un singur \-, orice încercare de a definii valoarea
+care eșuează va fi ignorată.
+
+.SH NOTE
+Deoarece fișierul \fB/etc/sysctl.conf\fP este folosit pentru a suprascrie
+valorile implicite ale parametrilor nucleului, doar un număr mic de
+parametri este predefinit în fișier.  Folosiți \fI/sbin/sysctl\ \-a\fP sau
+urmați \fBsysctl\fP(8) pentru o listă cu toți parametrii posibili.  Descrierea
+parametrilor individuali poate fi găsită în documentația nucleului.
+
+Lungimea maximă de linie acceptată a valorii este de 4096 de caractere din
+cauza unei limitări a intrărilor \fI/proc\fP în nucleul Linux.
+.SH EXEMPLU
+.RS
+.sp
+.nf
+.ne 7
+# model de sysctl.conf
+#
+   kernel.domainname = exemplu.com
+; acesta are un spațiu care va fi scris în sysctl!
+   kernel.modprobe = /sbin/mod probe
+.fi
+.RE
+.PP
+.SH FIȘIERE
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+
+Căile în care fișierele de preîncărcare \fBsysctl\fP se găsesc de obicei.  A se
+vedea, de asemenea, opțiunea \fBsysctl\fP \fI\-\-system\fP.
+.SH "CONSULTAȚI ȘI"
+\fBsysctl\fP(8)
+.SH AUTOR
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

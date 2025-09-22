@@ -1,0 +1,201 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2003      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WATCH 1 2023\-01\-17 procps\-ng Användarkommandon
+.SH NAMN
+watch — kör ett program periodiskt och visa utdata i helskärm
+.SH SYNOPSIS
+\fBwatch\fP [\fIflaggor\fP] \fIkommando\fP
+.SH BESKRIVNING
+\fBwatch\fP kör \fIkommando\fP upprepade gånger, och visar dess utmatning och fel
+(den första skärmen).  Detta gör att du kan se programmets utdata ändras
+över tiden.  Som standard körs \fIkommando\fP varannan sekund och \fBwatch\fP körs
+tills det avbryts.
+.SH FLAGGOR
+.TP 
+\fB\-b\fP, \fB\-\-beep\fP
+Pip om kommandot har en slutstatus skild från noll.
+.TP 
+\fB\-c\fP, \fB\-\-color\fP
+Tolka ANSI:s färg\- och stilsekvenser.
+.TP 
+\fB\-C\fP, \fB\-\-no\-color\fP
+Tolka inte ANSI:s färg\- och stilsekvenser.
+.TP 
+\fB\-d\fP, \fB\-\-differences\fP[=\fIpermanent\fP]
+Markera skillnaderna mellan påföljande uppdateringar. Om det valfria
+argumentet \fIpermanent\fP anges kommer \fBwatch\fP visa alla ändringar sedan den
+första iterationen.
+.TP 
+\fB\-e\fP, \fB\-\-errexit\fP
+Frys uppdateringar vid kommandofel, och avsluta efter en tangenttryckning.
+.TP 
+\fB\-g\fP, \fB\-\-chgexit\fP
+Avsluta när utdata från \fIkommando\fP ändras.
+.TP 
+\fB\-n\fP, \fB\-\-interval\fP \fIsekunder\fP
+Ange uppdateringsintervall. Kommandot kommer inte tillåta snabbare
+uppdateringar än 0,1 sekunders intervall, då mindre värden kommer
+konverteras. Både ”.” och ”,” fungerar för alla lokaler. Miljövariabeln
+\fBWATCH_INTERVAL\fP kan användas för att sätta ett bestående annat intervall
+än standard (och följer samma regler och formatering).
+.TP 
+\fB\-p\fP, \fB\-\-precise\fP
+Gör att \fBwatch\fP försöker köra \fIkommando\fP var \fB\-\-interval\fP \fIsekund\fP.
+Prova det med \fBntptime\fP (om tillgängligt) och notera hur delarna av
+sekunden är (nästan) desamma, till skillnad mot det normala läget då de ökar
+kontinuerligt.
+.TP 
+\fB\-q\fP, \fB\-\-equexit\fP <cykler>
+Avsluta när utmatningen från \fIkommando\fP inte ändras under det angivna
+antalet cykler.
+.TP 
+\fB\-r\fP, \fB\-\-no\-rerun\fP
+Kör inte programmet när terminalens storlek ändras, utdata från programmet
+kommer återkomma vid nästa ordinarie körtillfälle.
+.TP 
+\fB\-t\fP, \fB\-\-no\-title\fP
+Slå av huvudet som visar intervallet, kommandot och aktuell tid längst upp
+på skärmen, liksom den följande tomma raden.
+.TP 
+\fB\-w\fP, \fB\-\-no\-wrap\fP
+Slå av radbrytning. Långa rader kommer huggas av istället för att brytas
+till nästa rad.
+.TP 
+\fB\-x\fP, \fB\-\-exec\fP
+Skicka \fIkommando\fP till \fBexec\fP(2) istället för \fBsh \-c\fP vilket reducerar
+behovet av extra citationstecken för att få den önskade effekten.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa hjälptext och avsluta.
+.TP 
+\fB\-v\fP, \fB\-\-version\fP
+Visa versionsinformation och avsluta.
+.SH SLUTSTATUS
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Gick bra.
+.TP 
+\fB1\fP
+Diverse fel.
+.TP 
+\fB2\fP
+Att grena av processen att övervaka misslyckades.
+.TP 
+\fB3\fP
+Att ersätta en barnprocess standard ut med skrivsidan av ett rör
+misslyckades.
+.TP 
+\fB4\fP
+Kommandokörningen misslyckades.
+.TP 
+\fB5\fP
+Att stänga barnprocessens skrivrör misslyckades.
+.TP 
+\fB7\fP
+Att skapa ett IPC\-rör misslyckades.
+.TP 
+\fB8\fP
+Att få reda på barnprocessens returvärde med \fBwaitpid\fP(2) misslyckades,
+eller kommandot gav upp vid ett fel.
+.TP 
+\fBövriga\fP
+Watch kommer skicka vidare kommandots slutstatus som barnets slutstatus.
+.SH MILJÖ
+Beteendet hos \fBwatch\fP påverkas av följande miljövariabler.
+
+.TP 
+\fBWATCH_INTERVAL\fP
+Uppdateringsintervall, följer samma regler som kommandoradsflaggan
+\fB\-\-interval\fP.
+.sp
+.SH OBSERVERA
+POSIX flagghantering används (d.v.s., flaggbearbetning slutar vid det första
+argumentet som inte är en flagga).  Detta betyder att flaggor efter
+\fIkommando\fP inte tolkas av \fBwatch\fP självt.
+.sp
+.SH FEL
+När storleken på terminalen ändras kommer inte skärmen ritas om korrekt
+förrän nästa schemalagda uppdatering.  All markering med \fB\-\-differences\fP
+går också förlorade vid den uppdateringen. När flaggan \fB\-\-no\-rerun\fP används
+kommer ingen utdata vara synlig.
+
+Icke skrivbara tecken tas bort från programs utdata.  Använd \fBcat \-v\fP som
+en del av kommandoröret om du vill se dem.
+
+Kombinerande tecken som är tänkta att visas som tecknet i sista kolumnen på
+skärmen kan komma att visas en kolumn för tidigt, eller kan komma att inte
+visas alls.
+
+Kombinerande tecken räknas aldrig som olika i läget \fB\-\-differences\fP.
+Endast grundtecknet räknas.
+
+Tomma rader direkt efter en rad som slutar i sista kolumnen visas inte.
+
+Läget \fB\-\-precise\fP har inte ännu avancerad temporal distorsionsteknik för
+att kompensera för ett \fIkommando\fP som tar mer än \fB\-\-intervall\fP \fIsekunder\fP
+att köra.  \fBwatch\fP kan också hamna i ett läge där det i snabb följd kör så
+många exekveringar det kan av \fIkommando\fP för att komma ifatt efter en
+tidigare körning som varit längre än \fB\-\-interval\fP (till exempel om
+\fBnetstat\fP(8) tar evigheter för att göra en DNS\-uppslagning).
+.sp
+.SH EXEMPEL
+.PP
+För att titta efter post skulle du kunna göra
+.IP
+watch \-n 60 from
+.PP
+För att se innehållet i en katalog ändras kan du använda
+.IP
+watch \-d ls \-l
+.PP
+Om du bara är intresserad av filer som ägs av användaren kalle skulle du
+kunna använda
+.IP
+watch \-d 'ls \-l | fgrep kalle'
+.PP
+För att se effekterna av att citera, prova dessa
+.IP
+watch echo $$
+.br
+watch echo '$$'
+.br
+watch echo "'"'$$'"'"
+.PP
+För att se effekten av att hålla tiden med precision, prova att lägga till
+\fB\-p\fP till
+.IP
+watch \-n 10 sleep 1
+.PP
+Du kan se om din administratör installerar den senaste kärnan med
+.IP
+watch uname \-r
+.PP
+(Observera att \fB\-p\fP inte är garanterat att fungera över en omstart,
+särskilt med hänsyn till \fBntpdate\fP eller andra mekanismer som ändrar tiden
+under uppstart)
+.sp
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

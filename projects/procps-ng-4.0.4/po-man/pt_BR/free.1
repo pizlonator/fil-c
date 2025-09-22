@@ -1,0 +1,166 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2003 Albert Cahalan
+.\" Copyright (c) 1993      Matt Welsh <mdw@sunsite.unc.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FREE 1 2023\-05\-02 procps\-ng "Comandos de usuário"
+.SH NOME
+free \- Exibe quantidade de memória livre e usada no sistema
+.SH SINOPSE
+\fBfree\fP [\fIopções\fP]
+.SH DESCRIÇÃO
+\fBfree\fP exibe a quantidade total de memória física e de swap livre e usada
+no sistema, bem como os buffers e caches usados pelo kernel. A informação é
+coletada através da análise de /proc/meminfo. As colunas exibidas são:
+.TP 
+\fBtotal\fP
+Total usable memory (MemTotal and SwapTotal in /proc/meminfo). This includes
+the physical and swap memory minus a few reserved bits and kernel binary
+code.
+.TP 
+\fBusada\fP
+Used or unavailable memory (calculated as \fBtotal\fP \- \fBavailable\fP)
+.TP 
+\fBlivre\fP
+Memória não usada (MemFree e SwapFree em /proc/meminfo)
+.TP 
+\fBcompart.\fP
+Memória usada (geralmente) por tmpfs (Shmem em /proc/meminfo)
+.TP 
+\fBbuffers\fP
+Memória usada por buffers do kernel (Buffers em /proc/meminfo)
+.TP 
+\fBcache\fP
+Memória usada por slabs e cache de páginas (Cached e SReclaimable em
+/proc/meminfo)
+.TP 
+\fBbuff/cache\fP
+Soma de \fBbuffers\fP e \fBcache\fP
+.TP 
+\fBdisponível\fP
+Estimativa da quantidade de memória disponível para iniciar novos
+aplicativos, sem fazer uso da swap. Ao contrário dos dados fornecidos pelos
+campos \fBcache\fP ou \fBlivre\fP, este campo leva em consideração o cache da
+página e também que nem todos os slabs recuperáveis de memória serão
+recuperados devido a itens em uso (MemAvailable em /proc/meminfo, disponível
+em kernels 3.14, emulado em kernels 2.6.27+; caso contrário, o mesmo que
+\fBlivre\fP)
+.SH OPÇÕES
+.TP 
+\fB\-b\fP, \fB\-\-bytes\fP
+Exibe a quantidade de memória em bytes.
+.TP 
+\fB\-k\fP, \fB\-\-kibi\fP
+Exibe a quantidade de memória em kibibytes. Esse é o padrão.
+.TP 
+\fB\-m\fP, \fB\-\-mebi\fP
+Exibe a quantidade de memória em mebibytes.
+.TP 
+\fB\-g\fP, \fB\-\-gibi\fP
+Exibe a quantidade de memória em gibibytes.
+.TP 
+\fB\-\-tebi\fP
+Exibe a quantidade de memória em tebibytes.
+.TP 
+\fB\-\-pebi\fP
+Exibe a quantidade de memória em pebibytes.
+.TP 
+\fB\-\-kilo\fP
+Exibe a quantidade de memória em kilobytes. Implica em \-\-si.
+.TP 
+\fB\-\-mega\fP
+Exibe a quantidade de memória em megabytes. Implica em \-\-si.
+.TP 
+\fB\-\-giga\fP
+Exibe a quantidade de memória em gigabytes. Implica em \-\-si.
+.TP 
+\fB\-\-tera\fP
+Exibe a quantidade de memória em terabytes. Implica em \-\-si.
+.TP 
+\fB\-\-peta\fP
+Exibe a quantidade de memória em megabytes. Implica em \-\-si.
+.TP 
+\fB\-h\fP, \fB\-\-human\fP
+Mostra todos os campos de saída automaticamente dimensionados para a unidade
+de três dígitos mais curta e exibe as unidades do resultado. As unidades a
+seguir são usadas.
+.sp
+.nf
+  B = bytes
+  Ki = kibibyte
+  Mi = mebibyte
+  Gi = gibibyte
+  Ti = tebibyte
+  Pi = pebibyte
+.fi
+.sp
+Se a unidade for omitida, e você tiver exbibyte de RAM ou swap, o número
+está em tebibytes e as colunas podem não estar alinhadas com o cabeçalho.
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Muda para o modo amplo. O modo amplo produz linhas com mais de 80
+caracteres. Neste modo, \fBbuffers\fP e \fBcache\fP são relatados em duas colunas
+separadas.
+.TP 
+\fB\-c\fP, \fB\-\-count\fP \fInúm\fP
+Exibe o resultado \fInúm\fP vezes. Requer a opção \fB\-s\fP.
+.TP 
+\fB\-l\fP, \fB\-\-lohi\fP
+Mostra estatísticas detalhadas de memória baixa e alta.
+.TP 
+\fB\-L\fP, \fB\-\-line\fP
+Show output on a single line, often used with the \fB\-s\fP option to show
+memory statistics repeatedly.
+.TP 
+\fB\-s\fP, \fB\-\-seconds\fP \fIatraso\fP
+Mostra continuamente o resultado a cada \fIatraso\fP segundos. Você pode
+especificar qualquer número de ponto flutuante para \fIatraso\fP usando . ou ,
+para ponto decimal. \fBusleep\fP(3) é usado para tempos de atraso com resolução
+em microssegundos.
+.TP 
+\fB\-\-si\fP
+Usa kilo, mega, giga etc (potência de 1000) em vez de kibi, mebi, gibi
+(potência de 1024).
+.TP 
+\fB\-t\fP, \fB\-\-total\fP
+Exibe uma linha mostrando os totais das colunas.
+.TP 
+\fB\-v\fP, \fB\-\-committed\fP
+Display a line showing the memory commit limit and amount of
+committed/uncommitted memory. The \fBtotal\fP column on this line will display
+the memory commit limit.  This line is relevant if memory overcommit is
+disabled.
+.TP 
+\fB\-\-help\fP
+Exibe a ajuda.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão.
+.PD
+.SH ARQUIVOS
+.TP 
+/proc/meminfo
+informações da memória
+.PD
+.SH ERROS
+O valor para a coluna \fBcompart.\fP não está disponível para kernels
+anteriores a 2.6.32 e é exibido como zero.
+.TP 
+Por favor, envie relatórios de erro para
+.UR procps@freelists.org
+.UE
+.SH "VEJA TAMBÉM"
+\fBps\fP(1), \fBslabtop\fP(1), \fBtop\fP(1), \fBvmstat\fP(8).

@@ -1,0 +1,76 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UPTIME 1 "decembrie 2012" procps\-ng "Comenzi utilizator"
+.SH NUME
+uptime \- Indică timpul de când sistemul se află în funcționare.
+.SH REZUMAT
+\fBuptime\fP [\fIopțiuni\fP]
+.SH DESCRIERE
+\fBuptime\fP oferă o afișare pe o singură linie a următoarelor informații.  Ora
+curentă, de cât timp funcționează sistemul, câți utilizatori sunt conectați
+în prezent și mediile de încărcare a sistemului pentru ultimele 1, 5 și 15
+minute.
+.PP
+Acestea sunt aceleași informații conținute în linia antetului afișată de
+comanda \fBw\fP(1).
+.PP
+Mediile de încărcare a sistemului reprezintă numărul mediu de procese care
+se află fie într\-o stare rulabilă, fie într\-una neîntreruptibilă.  Un proces
+într\-o stare rulabilă fie folosește procesorul, fie așteaptă să folosească
+procesorul.  Un proces în stare neîntreruptibilă așteaptă vreun acces de
+In/Ieș, de exemplu, așteaptă accesul la disc.  Mediile sunt luate pe cele
+trei intervale de timp.  Mediile de încărcare nu sunt normalizate pentru
+numărul de CPU\-uri dintr\-un sistem, așa că o medie de încărcare de 1
+înseamnă că un singur CPU al sistemului este încărcat tot timpul, în timp ce
+pe un sistem cu 4 CPU înseamnă că a fost inactiv 75% din timp.
+.SH OPȚIUNI
+.TP 
+\fB\-p\fP, \fB\-\-pretty\fP
+afișează timpul de funcționare într\-un format amiabil
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+afișează acest mesaj de ajutor
+.TP 
+\fB\-s\fP, \fB\-\-since\fP
+sistemul este activat de când; în format aaaa\-mm\-zz HH:MM:SS
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+afișează informațiile despre versiune și iese
+.SH FIȘIERE
+.TP 
+\fI/var/run/utmp\fP
+informații despre cine este conectat în prezent
+.TP 
+\fI/proc\fP
+informații despre procese
+.SH AUTORI
+\fBuptime\fP a fost scris de
+.UR greenfie@gauss.\:rutgers.\:edu
+Larry
+Greenfield
+.UE
+și
+.UR johnsonm@sunsite.\:unc.\:edu
+Michael K. Johnson
+.UE
+.SH "CONSULTAȚI ȘI"
+\fBps\fP(1), \fBtop\fP(1), \fButmp\fP(5), \fBw\fP(1)
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

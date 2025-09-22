@@ -1,0 +1,89 @@
+.\"
+.\" Copyright (c) 2016-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL.CONF 5 "15. September 2021" procps\-ng Dateiformate
+.SH BEZEICHNUNG
+sysctl.conf \- Vorlade\-/Konfigurationsdatei für Sysctl
+.SH BESCHREIBUNG
+\fBsysctl.conf\fP ist eine einfache Datei, welche Sysctl\-Werte enthält, die in
+\fBsysctl\fP gelesen und gesetzt werden. Die Syntax ist einfach, wie folgt:
+.RS
+.sp
+.nf
+.ne 7
+# Kommentar
+; Kommentar
+
+Token = Wert
+.fi
+.RE
+.PP
+Beachten Sie, dass leere Zeilen sowie Leerräume vor und nach einem Token
+oder einem Wert ignoriert werden, obwohl ein Token auch Leerraum enthalten
+kann. Zeilen, die mit einem \fI#\fP oder \fI;\fP beginnen, werden als
+Kommentarzeilen angesehen und ignoriert.
+
+Falls eine Zeile mit einem einzelnen \fB\-\fP beginnt, werden alle
+fehlschlagenden Versuche, den Wert zu setzen, ignoriert.
+
+.SH ANMERKUNGEN
+Da die Datei \fB/etc/sysctl.conf\fP zur Außerkraftsetzung standardmäßiger Werte
+der Kernelparameter verwendet wird, ist in der Datei nur eine kleine Anzahl
+Parameter vordefiniert. Verwenden Sie \fI/sbin/sysctl\ \-a\fP oder folgen Sie
+\fBsysctl\fP(8), um alle möglichen Parameter aufzulisten. Die Beschreibungen
+der einzelnen Parameter finden Sie in der Kerneldokumentation.
+
+Aufgrund einer Beschränkung der \fI/proc\fP\-Einträge im Linux\-Kernel ist die
+maximal mögliche Zeilenlänge auf 4096 Zeichen begrenzt.
+.SH BEISPIEL
+.RS
+.sp
+.nf
+.ne 7
+# sysctl.conf sample
+#
+  kernel.domainname = example.com
+; this one has a space which will be written to the sysctl!
+  kernel.modprobe = /sbin/mod probe
+.fi
+.RE
+.PP
+.SH DATEIEN
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+
+Die Pfade, aus denen \fBsysctl\fP Dateien vorlädt, existieren
+üblicherweise. Siehe auch die Option \fB\-\-system\fP zu \fBsysctl\fP.
+.SH "SIEHE AUCH"
+\fBsysctl\fP(8)
+.SH AUTOR
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

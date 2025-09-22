@@ -1,0 +1,22 @@
+
+make_testproc
+
+set pwdx "${topdir}src/pwdx"
+# Run pwdx with no arguments
+set test "pwdx no args"
+spawn $pwdx
+expect_pass "$test" "^\\s*Usage:\\s+\(lt-\)\?pwdx \\\[options\\\] pid\.\.\."
+
+# Run pwdx with pid 0 which is invalid
+set test "pwdx pid 0 should be invalid"
+spawn $pwdx 0
+expect_pass "$test" "\(lt-\)\?pwdx\: invalid process id\: 0"
+
+# Run pwdx with existing pid
+set test "pwdx find test process cwd"
+set my_pwd [ pwd ]
+spawn $pwdx $testproc1_pid
+expect_pass "$test" "^$testproc1_pid: $my_pwd"
+
+# Cleanup
+kill_testproc

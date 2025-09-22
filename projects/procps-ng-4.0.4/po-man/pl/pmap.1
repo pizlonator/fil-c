@@ -1,0 +1,97 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PMAP 1 2020\-06\-04 procps\-ng "Polecenia użytkownika"
+.SH NAZWA
+pmap \- informacje o odwzorowaniu pamięci procesu
+.SH SKŁADNIA
+\fBpmap\fP [\fIopcje\fP] \fIpid\fP [...]
+.SH OPIS
+Polecenie \fBpmap\fP wypisuje mapę pamięci procesu lub procesów.
+.SH OPCJE
+.TP 
+\fB\-x\fP, \fB\-\-extended\fP
+Wyświetlanie w formacie rozszerzonym.
+.TP 
+\fB\-d\fP, \fB\-\-device\fP
+Wyświetlanie w formacie urządzeń.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Bez wyświetlania linii nagłówka i stopki.
+.TP 
+\fB\-A\fP, \fB\-\-range\fP \fIdolny\fP,\fIgórny\fP
+Ograniczenie wyników do podanego przedziału adresów:
+\fIdolny\fP,\fIgórny\fP. Limity dolny i górny podaje się rozdzielone przecinkiem
+jako pojedynczy argument.
+.TP 
+\fB\-X\fP
+Wypisywanie jeszcze więcej szczegółów niż z opcją \fB\-x\fP. UWAGA: format
+zmienia się z \fI/proc/PID/smaps\fP
+.TP 
+\fB\-XX\fP
+Wypisywanie wszystkiego, co udostępnia jądro
+.TP 
+\fB\-p\fP, \fB\-\-show\-path\fP
+Wypisywanie pełnych ścieżek do plików w kolumnie odwzorowań
+.TP 
+\fB\-c\fP, \fB\-\-read\-rc\fP
+Odczyt domyślnej konfiguracji
+.TP 
+\fB\-C\fP, \fB\-\-read\-rc\-from\fP \fIplik\fP
+Odczyt konfiguracji z \fIpliku\fP
+.TP 
+\fB\-n\fP, \fB\-\-create\-rc\fP
+Utworzenie nowej konfiguracji domyślnej
+.TP 
+\fB\-N\fP, \fB\-\-create\-rc\-to\fP \fIplik\fP
+Utworzenie nowej konfiguracji w \fIpliku\fP
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Wyświetlenie tekstu pomocy i zakończenie.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Wyświetlenie informacji o wersji i zakończenie.
+.SH "KOD WYJŚCIA"
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Sukces.
+.TP 
+\fB1\fP
+Niepowodzenie.
+.TP 
+\fB42\fP
+Nie znaleziono wszystkich żądanych procesów.
+.PD
+.RE
+.SH "ZOBACZ TAKŻE"
+\fBps\fP(1), \fBpgrep\fP(1)
+.SH STANDARDY
+Polecenia \fBpmap\fP nie dotyczą żadne standardy, ale wygląda równie brzydko,
+co polecenie SunOS.
+.SH "ZGŁASZANIE BŁĘDÓW"
+Zgłoszenia błędów prosimy wysyłać na adres
+.UR procps@freelists.org
+.UE

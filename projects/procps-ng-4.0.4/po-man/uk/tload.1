@@ -1,0 +1,62 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1993      Matt Welsh <mdw@tc.cornell.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TLOAD 1 "4 червня 2020 року" procps\-ng "Команди користувача"
+.SH НАЗВА
+tload — програма для графічного представлення середніх значень навантаження
+на систему.
+.SH "КОРОТКИЙ ОПИС"
+\fBtload\fP [\fIпараметри\fP] [\fItty\fP]
+.SH ОПИС
+\fBtload\fP виводить графік поточних середніх значень навантаження на систему
+до вказаного \fItty\fP (або tty процесу \fBtload\fP, якщо термінала не вказано).
+.SH ПАРАМЕТРИ
+.TP 
+\fB\-s\fP, \fB\-\-scale\fP \fIчисло\fP
+За допомогою параметра масштабування можна встановити вертикальний масштаб
+показу (у символах між позначками на графіку). Менше значення відповідає
+більшому масштабу, а більше значення меншому масштабу.
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP \fIчисло\fP
+Число визначає затримку у \fIсекундах\fP між оновленнями графіка.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Вивести цю довідку.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Вивести дані щодо версії і завершити роботу.
+.PP
+.SH ФАЙЛИ
+\fI/proc/loadavg\fP — завантажити осереднені дані
+.SH "ТАКОЖ ПЕРЕГЛЯНЬТЕ"
+\fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fBw\fP(1)
+.SH ВАДИ
+Параметр \fB\-d\fP\fI затримка\fP встановлює значення аргументу часу для програми
+\fBalarm\fP(2). Якщо вказано параметр \-d 0, затримку сигналу буде встановлено
+рівною 0, що скасує надсилання сигналу \fBSIGALRM\fP і оновлення показаних
+даних.
+.SH АВТОРИ
+Branko Lankester,
+.UR david@\:ods.\:com
+David Engel
+.UE , та
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE .
+.SH "Як надіслати звіт про вади"
+Про вади, будь ласка, повідомляйте на адресу
+.UR procps@freelists.org
+.UE

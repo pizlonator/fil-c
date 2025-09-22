@@ -1,0 +1,79 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UPTIME 1 "Dezember 2012" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+uptime \- feststellen, wie lange das System schon läuft
+.SH ÜBERSICHT
+\fBuptime\fP [\fIOptionen\fP]
+.SH BESCHREIBUNG
+\fBuptime\fP zeigt in einer Zeile die folgenden Informationen an: die aktuelle
+Zeit, wie lange das System bereits läuft, die Anzahl der aktuell
+angemeldeten Benutzer und die durchschnittliche Auslastung des Systems in
+den letzten 1, 5 und 15 Minuten.
+.PP
+Dies sind dieselben Informationen, die auch in der Kopfzeile des Befehls
+\fBw\fP(1) angezeigt werden.
+.PP
+Die durchschnittliche Auslastung des Systems ist die durchschnittliche
+Anzahl der Prozesse, die entweder in einem lauffähigen oder nicht
+unterbrechbaren Zustand sind. Lauffähiger Zustand bedeutet, dass ein Prozess
+entweder gerade die CPU benutzt oder darauf wartet, sie benutzen zu
+können. Der nicht unterbrechbare Zustand bedeutet, dass ein Prozess auf
+einen E/A\-Zugriff wartet, beispielsweise auf die Festplatte. Die
+Durchschnitte werden über drei Zeitintervalle gebildet. Die
+durchschnittliche Auslastung wird nicht auf die Anzahl der CPUs in einem
+System normalisiert, so dass eine Auslastung von 1 bei einem System mit
+einer CPU bedeutet, dass das System zu jeder Zeit voll ausgelastet ist. Auf
+einem System mit vier CPUs bedeutet dieselbe Auslastung, dass der Rechner
+während 75% der Zeit im Leerlauf war.
+.SH OPTIONEN
+.TP 
+\fB\-p\fP, \fB\-\-pretty\fP
+Uptime im schönen Format anzeigen
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Diesen Hilfetext anzeigen
+.TP 
+\fB\-s\fP, \fB\-\-since\fP
+System ist hochgefahren seit, im Format »yyyy\-mm\-dd HH:MM:SS«
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Versionsinformationen anzeigen und das Programm beenden.
+.SH DATEIEN
+.TP 
+\fI/var/run/utmp\fP
+Informationen darüber, wer aktuell angemeldet ist
+.TP 
+\fI/proc\fP
+Prozessinformation
+.SH AUTOREN
+\fBuptime\fP wurde von
+.UR greenfie@gauss.\:rutgers.\:edu
+Larry Greenfield
+.UE
+und
+.UR johnsonm@sunsite.\:unc.\:edu
+Michael K. Johnson
+.UE
+geschrieben.
+.SH "SIEHE AUCH"
+\fBps\fP(1), \fBtop\fP(1), \fButmp\fP(5), \fBw\fP(1)
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

@@ -1,0 +1,76 @@
+.\"
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998      Miquel van Smoorenburg
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PIDOF 1 "16. Januar 2023" "" "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+pidof \- die Prozesskennung eines laufenden Programms ermitteln
+.SH ÜBERSICHT
+\fBpidof\fP [\fB\-s\fP] [\fB\-c\fP] [\fB\-q\fP] [\fB\-w\fP] [\fB\-x\fP] [\fB\-o\fP
+\fIüberspringen[,überspringen …] …\fP] [\fB\-t\fP] [\fB\-S\fP \fITrenner\fP] \fIProgramm\fP
+\fI[\fP\fBProgramm …\fP\fI]\fP
+.SH BESCHREIBUNG
+\fBPidof\fP findet die Prozesskennungen (PIDs) der benannten Programme. Es
+schreibt diese Kennungen in die Standardausgabe.
+.SH OPTIONEN
+.IP \fB\-s\fP
+weist das Programm an, nur eine \fIPID\fP auszugeben.
+.IP \fB\-c\fP
+gibt nur Kennungen von Prozessen zurück, die im gleichen Wurzelverzeichnis
+laufen. Diese Option wird für gewöhnliche Benutzer (ohne
+Administratorrechte) ignoriert, da diese das aktuelle Wurzelverzeichnis
+nicht nach Prozessen durchsuchen können, deren Eigentümer sie nicht sind.
+.IP \fB\-q\fP
+aktiviert den stillen Modus, unterdrückt sämtliche Ausgaben und setzt den
+Exit\-Status entsprechend.
+.IP \fB\-w\fP
+zeigt auch Prozesse an, die keine sichtbare Befehlszeile haben (zum Beispiel
+Kernel\-Arbeits\-Threads).
+.IP \fB\-x\fP
+berücksichtigt auch Skripte. Das Programm gibt auch Prozesskennungen der
+Shells zurück, die die benannten Skripte ausführen.
+.IP "\fB\-o\fP \fIüberspringen\fP"
+weist \fBpidof\fP an, Prozesse mit der angegebenen PID zu überspringen. Die
+spezielle PID \fB%PPID\fP kann verwendet werden, um den Elternprozess des
+\fBpidof\fP\-Programms zu bezeichnen, also die aufrufende Shell oder das
+Shell\-Skript.
+.IP \fB\-t\fP
+zeigt alle Thread\-IDs anstelle von PIDs an.
+.IP "\fB\-S\fP \fITrenner\fP"
+verwendet den angegebenen \fITrenner\fP zwischen PIDs. Dieser wird nur
+verwendet, wenn für das Programm mehrere PIDs ausgegeben werden. Die Option
+\fI\-d\fP ist ein Alias für diese Option, der aus Gründen der Kompatibilität zu
+\fBpidof\fP aus Sysvinit zur Verfügung steht.
+.SH EXIT\-STATUS
+.TP 
+\fB0\fP
+Es wurde mindestens ein Programm mit dem angegebenen Namen gefunden.
+.TP 
+\fB1\fP
+Es wurde kein Programm mit dem angegebenen Namen gefunden.
+
+.SH FEHLER
+Wenn Sie die Option \fB\-x\fP verwenden, verfügt \fBpidof\fP nur eine einfache
+Methode zum Erkennen von Skripten und wird beispielsweise Skripte nicht
+erkennen, die \fBenv\fP verwenden. Diese Einschränkung ist darauf
+zurückzuführen, wie die Skripte im proc\-Dateisystem aussehen.
+
+.SH "SIEHE AUCH"
+\fBpgrep\fP(1), \fBpkill\fP(1)
+.SH AUTOR
+.UR jcapik@redhat.com
+Jaromir Capik
+.UE

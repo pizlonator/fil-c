@@ -1,0 +1,882 @@
+procps-ng-4.0.4
+---------------
+  * library (API & ABI unchanged)
+    increment revision: 0:2:0
+    tolerates all potential 'cpuinfo' formats              issue #272
+    restore the proper main thread tics valuations         issue #280
+    Remove myself from proc count                          merge #193
+    Refactor the escape code                               Debian #1035649
+  * free: -L one line output                               issue #156
+  * pgrep: Use only --signal option for signal             Debian #1031765
+  * pgrep: suppress >15 warning if using regex             Debian #1037450
+  * pidof: Add -t option to show threads                   merge #190
+  * pmap: Reset totals between processes                   issue #298
+  * ps: fixed missing or corrupted fields with -m option   Debian #1036631, issue #279
+  * ps: Fix buffer overflow in -C option CVE-2023-4016     Debian #1042887, issue #297
+  * ps: Add --signames to show signal names in masks       merge #98
+  * sysctl: -N show names                                  merge #198, RH #2222056
+  * tests: dont compare floats with ==                     issue #271
+  * tests: skips tests if maps missing                     merge #197, Gentoo #583036
+  * top: bad command line arguments yield EXIT_FAILURE     issue #273
+  * top: avoids keystroke induced '%Cpu' distortions
+  * top: includes VM (guest) tics in 'system' overhead     issue #274
+  * top: includes VM (guest) tics with '!' toggle          merge #179
+  * top: lessen summary cpu distortions on first display   merge #180
+  * top: better backspace handling wtth line edits         issue #278
+  * vmstat: Print guest time in non-wide mode
+  * w: Fix musl UT_HOSTSIZE issue
+  * watch: Add color support at compile time               issue #296
+
+procps-ng-4.0.3
+---------------
+  * library
+    Only changes were in copyright headers and tests
+  * docs: Don't install English manpages twice
+  * pgrep: Add -H match on userspace signal handler        merge #165
+  * pgrep: make --terminal respect other criteria
+  * ps: c flag shows command name again                    Debian #1026326
+  * ps.1: Match drs description from top.1                 merge #156
+  * skill: Match on -p again                               Debian #1025915
+  * top: E/P-core toggle ('5' key) added to help
+  * vmstat: Referesh memory statistics                     Debian #1027963
+  * vmstat: Fix initial si,so,bi,bo,in & cs values         issue #15
+                                                           Debian #668580
+  * vmstat: Fix conversion errors due to precision         merge #75
+  * w: Add --pids option                                   merge #159
+  * watch: Pass through beep                               issue #104
+  * watch: -r option to not re-exec on SIGWINCH            merge #125
+  * watch: find eol with --no-linewrap                     merge #157
+
+procps-ng-4.0.2
+---------------
+  * library revision - 0:1:0
+    Handle absent 'core_id' in /proc/cpuinfo
+  * w: Show time with D_TIME_BITS=64 on 32bit env          issue #256
+
+procps-ng-4.0.1
+---------------
+  * library
+    Re-add elogind support                                 merge #151
+    Used memory is Total - Available
+    Renaming, it is now libproc2
+  * free: Use --kilo when only specifying --si             merge #163
+  * pgrep: Add -A to ignore ancestors                      merge #160
+  * pidwait: Better warning if pidfd_open not implemented
+  * pmap: Dont reuse stdin filehandle                      issue #231
+  * ps: threads again display when -L is used with -q      issue #234
+  * ps: proper aix format string behavior was restored
+  * sysctl: print dotted keys again
+  * top: fix 'smaps' bug preventing build under clang      issue #235
+  * top: column highlighting allowed under 'L' or 'O'
+  * top: can alter autogroup nice value (like 'r' renice)
+  * top: can display the following with no need to scroll
+  *      cmdline, control groups, environment,
+         supplimentary groups, namespaces
+  * top: adds a 'message log' recall capability
+  * top: will accept utf8 multi-byte input with support
+         for full line editing and previous line recall
+  * top: can show more than 2 abreast in summary display
+  * top: can distinguish P-Core and E-core cpus
+  * top: can filter both P-Core and E-core cpus
+  * watch: Add equexit no-change and exit option           merge #153
+
+procps-ng-4.0.0
+---------------
+  * Rename pwait to pidwait
+  * free: Add committed line option                        merge #25
+  * free: Fix -h --si combined options                     issue #133, #223
+  * free: Fix first column justification                   issue #229, #204, #206, Debian #1001689
+  * free: Better spacing for Chinese language              issue #213
+  * library: renamed to libproc-2 and reset to 0:0:0
+  * library: add support for accessing smaps_rollup        issue #112, #201
+  * library: add support for accessing autogroups
+  * library: add support for LIBPROC_HIDE_KERNEL env var   merge #147
+  * library: add support for cpu utilization to pids i/f
+  * pkill: Check for lt- variants of program name          issue #192
+  * pgrep: Add newline after regex error message           merge #91
+  * pgrep: Fix selection where uid/gid > 2^31              merge !146
+  * pgrep: Select on cgroup v2 paths                       issue #168
+  * ps: Add OOM and OOMADJ fields                          issue #198
+  * ps: Add IO Accounting fields                           issue #184
+  * ps: Add PSS and USS fields                             issue #112
+  * ps: Add two new autogroup fields
+  * ps: Ignore SIGURG                                      merge !142
+  * slabtop: Don't combine d and o options                 issue #160
+  * sysctl: Add support for systemd glob patterns          issue #191
+  * sysctl: Check resolved path to be under /proc/sys      issue #179
+  * sysctl: return non-zero if EINVAL return for write     merge #76
+  * sysctl.conf.5: Note max line length                    issue #77
+  * top: added LOGID similar to 3.3.13 ps LUID
+  * top: added EXE identical to 3.3.17 ps EXE
+  * top: exploit some library smaps_rollup provisions      issue #112
+  * top: added four new IO accounting fields               issue #184
+  * top: 'F' key is now a new forest view 'focus' toggle
+  * top: summary area memory lines can print two abreast
+  * top: added two new autogroup fields
+  * top: added long versions of command line options
+  * top: added cpu utilization & 2 time related fields
+  * top: the time related fields can now be user scaled
+  * uptime: print short/pretty format correctly            issue #217
+  * vmstat: add -y option to remove first line             merge !72
+
+procps-ng-3.3.17
+---------------
+  * library: Incremented to 8:3:0
+    (no removals or additions, internal changes only)
+  * all: properly handle utf8 cmdline translations         issue #176
+  * kill: Pass int to signalled process                    merge #32
+  * pgrep: Pass int to signalled process                   merge #32
+  * pgrep: Check sanity of SG_ARG_MAX                      issue #152
+  * pgrep: Add older than selection                        merge #79
+  * pidof: Quiet mode                                      merge #83
+  * pidof: show worker threads                             Redhat #1803640
+  * ps.1: Mention stime alias                              issue #164
+  * ps: check also match on truncated 16 char comm names
+  * ps: Add exe output option                              Redhat #1399206
+  * pwait: New command waits for a process                 merge #97
+  * sysctl: Match systemd directory order                  Debian #950788
+  * sysctl: Document directory order                       Debian #951550
+  * top: ensure config file backward compatibility         Debian #951335
+  * top: add command line 'e' for symmetry with 'E'        issue #165
+  * top: add '4' toggle for two abreast cpu display        issue #172
+  * top: add '!' toggle for combining multiple cpus
+  * top: fix potential SEGV involving -p switch            merge #114
+  * vmstat: Wide mode gives wider proc columns             merge #48
+  * watch: Add environment variable for interval           merge #62
+  * watch: Add no linewrap option                          issue #182
+  * watch: Support more colors                             merge #106,#109
+  * free,uptime,slabtop: complain about extra ops          issue #181
+
+procps-ng-3.3.16
+----------------
+  * docs: Use correct symbols for -h option in free.1      Debian #898774
+  * docs: ps.1 now warns about command name length         issue #101
+  * pgrep: Match on runstate                               issue #109, Debian #919381
+  * top: can now exploit 256-color terminals               issue #96
+  * top: preserves 'other filters' in configuration file   issue #99
+  * top: can now collapse/expand forest view children      issue #99
+  * top: parent %CPU time includes collapsed children
+  * top: improve xterm support for vim navigation keys     issue #135
+  * top: avoid segmentation fault at program termination   Redhat #1737552
+
+procps-ng-3.3.15
+----------------
+  * library: Increment to 8:0:1
+    No removals, no new functions
+    Changes: slab and pid structures
+  * library: Just check for SIGLOST and don't delete it    issue #93
+  * library: Fix integer overflow and LPE in file2strvec   CVE-2018-1124
+  * library: Use size_t for alloc functions                CVE-2018-1126
+  * library: Increase comm size to 64
+  * pgrep: Fix stack-based buffer overflow                 CVE-2018-1125
+  * pgrep: Remove >15 warning as comm can be longer        issue #92
+  * ps: Fix buffer overflow in output buffer, causing DOS  CVE-2018-1123
+  * ps: Increase command name selection field to 64
+  * top: Don't use cwd for location of config              CVE-2018-1122
+
+procps-ng-3.3.14
+----------------
+  * free: Fix scaling on 32-bit systems                    issue #89
+  * pgrep: Don't segfault on non match                     Debian #894917
+  * pgrep/pkill: Revert so matches all namespaces          issue #91
+  * library: Build on non-glibc systems                    issue #88
+
+procps-ng-3.3.13
+----------------
+  * library: Increment to 7:0:1
+    No changes, no removals
+    New fuctions: numa_init, numa_max_node, numa_node_of_cpu,
+      numa_uninit, xalloc_err_handler
+  * doc: Document I idle state in ps.1 and top.1           Debian #886967
+  * free: fix some of the SI multiples                     issue #45
+  * kill: -l space between name parses correctly           Debian #854407
+  * library: dont use vm_min_free on non Linux             Debian #831396
+  * library: dont use SIGPWR on FreeBSD                    Debian #832148
+  * library: don't strip off wchan prefixes (ps & top)     Redhat #1322111
+  * pgrep: warn about 15+ char name only if -f not used
+  * pgrep/pkill: only match in same namespace by default   merge #41
+  * pidof: specify separator between pids                  merge #58
+  * pkill: Return 0 only if we can kill process            Debian #852758
+  * pmap: fix duplicate output line under '-x' option      Redhat #1374061
+  * ps: avoid eip/esp address truncations                  Debian #846361
+  * ps: recognizes SCHED_DEADLINE as valid CPU scheduler
+  * ps: display NUMA node under which a thread ran         issue #58
+  * ps: Add seconds display for cputime and time           merge #43
+  * ps: Add LUID field                                     merge #57 Redhat #1518986
+  * sysctl: Permit empty string for value                  issue #74
+  * sysctl: Don't segv when file not available             issue #76
+  * sysctl: Read and write large buffers                   merge #56
+  * top: add config file support for XDG specification
+  * top: eliminated minor libnuma memory leak
+  * top: show fewer memory decimal places (configurable)   issue #50
+  * top: provide command line switch for memory scaling    Redhat #1034466, issue #53
+  * top: provide command line switch for CPU States        issue #55
+  * top: provides more accurate cpu usage at startup       Redhat #1182327
+  * top: display NUMA node under which a thread ran        issue #58
+  * top: fix argument parsing quirk resulting in SEGV      Redhat #1450429
+  * top: delay interval accepts non-locale radix point     Redhat #1182248
+  * top: address a wishlist man page NLS suggestion        Debian #865689
+  * top: fix potential distortion in 'Mem' graph display   issue #64
+  * top: provide proper multi-byte string handling         issue #68
+  * top: startup defaults are fully customizable           Redhat #1153049, #1499410, issues #6, #78
+  *      see man page 6c. SYSTEM Configuration File
+  * watch: define HOST_NAME_MAX where not defined          Debian #830734
+  * vmstat: Fix alignment for disk partition format        issue #69
+  * watch: Support ANSI 39,49 reset sequences              issue #73
+
+procps-ng-3.3.12
+----------------
+  * libprocps API 6:0:0
+  * build: formerly optional --enable-oomem unconditional
+  * free: man document rewritten for shared                Debian #755233
+  * free: interpret intervals in non-locale way            Debian #692113
+  * kill: report error if cannot kill process              Debian #733172
+  * library: refine calculation of 'cached' memory
+  * library: find tty quicker                              Debian #770215
+  * library: eliminate threads display inconsistencies     Redhat #1284091
+  * pidof: check cmd if space found in argv0
+  * pmap: fixed detail parsing on long mapping lines
+  * pmap: fix occasional incorrect memory usage values     Redhat #1262864
+  * ps: sort by cgroup                                     Debian #692279
+  * ps: display control group name with -o cgname
+  * ps: fallback to attr/current for context               Debian #786956
+  * ps: enabled broken 'thcount' option                    Redhat #1174313
+  * tests: conditionally add prctl                         Debian #816237
+  * top: displays the 3 new linux-4.5 RES memory fields
+  * top: man page memory fields corrected + new narrative
+  * top: added display of CGNAME (control group name)
+  * top: is now more responsive to cpus brought online
+  * top: namespace cols use suppressible zero
+  * top: zero suppress ('0') includes out-of-memory & nice
+  * top: better 'i' toggle management when scrolled
+  * top: the '=' key now includes active locate requests
+  * vmstat: devices exceeding 15 chars now displayed       Redhat #586078
+  * watch: hostname added to header
+  * watch: better handling ANSI including esc[m            Debian #830313
+  * watch: use locale-independent float                    Debian #692113
+
+procps-ng-3.3.11
+----------------
+  * libprocps API 5:0:0
+  * pgrep: don't crash with -a -w flags. Merge 33, Debian #768190
+  * skill: command line with signal number interpreted correctly
+  * pmap: print process name even if smaps is unreadable Debian #775624
+  * ps: sort by etimes column, uses etime Debian #794619
+  * ps, top: Add support for LXC containers. Ubuntu #1174911
+  * w: work with smaller window sizes Debian #183394
+  * w: correctly find "best" proc with pid wrap
+  * library: use merged systemd library Debian #731256
+  * kill,skill,pkill: fix option parsing
+  * top once again will fully honor a saved rcfile,
+    without requiring --disable-modern-top. Debian #762928, #762947
+  * vmstat: Not crash if partition appears before disk Debian #736628
+  * free: -s without -c works Debian #733758
+
+procps-ng-3.3.10
+----------------
+  * sysctl --system loads default config file - Debian #732920
+  * ps doesn't exit on SIGCONT
+  * top better accommodates discontinuous NUMA nodes
+  * ps cmdline trailing spaces suppressed under zsh, redhat #1057600
+  * kill restores the '-HUP -1' functionality
+  * vmstat -d / -p segfault eliminated when /sys is not mounted
+  * pgrep properly shows full command line when -au are combined
+  * vmstat supports timestamps with -t/--timestamp option
+  * top is now immune to distortions when system time is reset
+  * top standardized the <Esc> key support with prompted input
+  * top missing summary area info added to man document, ubuntu #574624
+  * top properly responds to the current locale LC_NUMERIC setting
+  * top provides alternate graph modes for cpu states and memory usage
+  * top offers new startup defaults, plus ./configure --disable-modern-top
+  * top exploits MemAvailable field and offers improved memory statistics
+  * ps new --quick-pid option, a more efficient alternative to --pid option
+  * usernames up to 32 characters now accommodated (up from 19), redhat #1112734
+  * free exploits MemAvailable field and offers improved memory statistics
+  * free considers slabs in displayed totals, debian #565518, ubuntu #126329
+  * watch supports new ANSI styles and background colors
+
+procps-ng-3.3.9
+---------------
+  * kernel namespaces support added to skill, pgrep, ps and top
+  * pidof was reimplemented from scratch (replacing sysvinit pidof)
+  * ps has configurable libselinux support (--enable-libselinux)
+  * ps provides for display of systemd slice unit (--with-systemd)
+  * free can once again report non-zero 'shared' memory
+  * sysctl provides '--system' to ignore missing /etc/sysctl.conf
+  * watch interval capacity was increased - debian #720445
+  * pwdx no longer fails in a nonexistent locale - debian #718766
+  * top clarified summary area Mem/Swap stats - debian #718670
+  * top batch mode -w (width) abend fixed - debian #721204
+  * top man page removed 'Bd/Ed' mdoc macros - debian #725713
+  * top no longer clears screen at exit - redhat #977561
+  * top adapted to potential libnuma stderr message - redhat #998678
+  * top added missing batch mode newline - redhat #1008674
+
+
+procps-ng-3.3.8
+---------------
+  * top adds extensions for linux NUMA/Node capability
+  * top has reverted to former %CPU and %MEM precision
+    but also provides a '--enable-wide-percent' option
+    Debian #707648
+  * eliminate the potential library segmentation fault
+    Debian #706259, RedHat #951391
+  * top now accommodates a window manager like 'screen'
+    RedHat #962022
+  * ps shows systemd unit and user unit for a process
+
+
+procps-ng-3.3.7
+---------------
+
+  * top adds a powerful new filter feature wherein any
+    window can include or exlude selected fields which
+    contain specific values - Debian #682082 & #682083
+  * top preserves user input for later recall and edit
+  * top provides true input editing vs. just backspace
+  * top user filtering with exclusion - Debian #682086
+  * top field management resize errors no longer fatal
+  * top is more responsive to window resize (SIGWINCH)
+  * top will now preserve user's context when signaled
+
+
+procps-ng-3.3.6
+---------------
+
+  * top adds a powerful new feature where the contents
+    of some file or output from a program, pipeline or
+    shell script can be viewed in its own scrollable &
+    searchable window while pausing the normal display
+  * top highlights matches with 'locate/next' commands
+  * top adds summary/task area memory scaling commands
+  * top adds a command to suppress insignificant zeros
+  * top adds a command line sort field override switch
+  * top provides a default PID for kill, nice commands
+  * top allows core dump generation, if a signal would
+  * pmap adds 2 new options based on smaps, -X and -XX
+  * Adjusted pmap pidlist storage Debian #688180
+  * programs will permit core-dumps RedHat #87825, 512857
+  * receiving a signal is not a crash RedHat #871824, 441656
+  * ps: Fixed negative etime RedHat #871819, #433266
+  * pkill -c option returns Debian #693783
+  * pmap uses correct types for memory allocation Debian #688180
+  * expose freeproc, adds function to API Debian #681653
+
+
+procps-ng-3.3.5
+---------------
+  * Bumped SONAME to take into acccount API change
+
+procps-ng-3.3.4
+---------------
+  * Removed ps -aux bogus message
+  * w get -i option to display IP addresses
+  * watch 8bit fixes Debian #675069
+  * Fixed FTBFS for non-linux Debian #677055
+  * pkill -u <uid> doesn't need space Debian #676239
+  * top enables intra-column horizontal scrolling
+  * top can display a task's environment
+  * top can display major/minor pg fault deltas, Debian ##84992
+  * top provides additional control over column widths
+  * top offers user controlled left/right justification
+
+procps-ng-3.3.3
+---------------
+  * watch -g command repeats until something changes
+  * Changed labels of kB etc to KiB Debian #662786
+  * top supports hotplugged memory and cpus Debian #351934, #459287
+  * top %cpu not distorted when switch to/from threads Debian #441166
+  * top can read old toprc configuration files Debian #651213, #651863
+  * top supports input paste once again Debian #663334
+  * top -p avoids SEGV when pid doesn't exist Debian 668335
+  * Various DejaGNU test cases fixed
+  * pgrep.1 graoff syntax fix Debian #665425
+  * sysctl avoid crash when -p file has unexpected input
+  * sysctl .conf off-by-one error Debian #669128
+  * libprocps: protect locale env getting overwrite RedHat #548711
+
+  * Documentation catch up (fixed prior to 3.3.3)
+    . top repeating "%" wastes space Debian #322984
+    . top -U user name parse error Debian #623200
+    . top memory leaks Debian #627257
+    . top impossible task swap statistics Debian #628462
+    . top forest view segfault Debian #650864
+
+
+procps-ng-3.3.1 --> procps-ng-3.3.2
+--------------------------------
+
+  * Redefined library to use version-info
+  * NLS added! Programs can use po files to localise the output to suite
+    any supported languages.
+  * Imported a bunch of distribution patches:
+      watch: support unicode
+      watch: add precision wait time option -p
+      watch: interpret ANSI color code sequences
+      watch: add -exec and -beep flags and has better quoting
+      w: use environment to set user and from/host column widths
+      w: use COLUMNS environment if TIOCGWINSZ fails
+      w: bassman emulation with -o option
+      vmstat: do not scale si/so just like bi/bo
+      libprocps-ng: sysinfo.c: truncate the vmstat figure to 32 bits
+      tload: remote unneeded optarg and optind variables
+      sysctl: fix up some option processing
+      skill: kill prints perror
+      skill: do not treat skill null parameter as 0
+      skill: fix too greedy option parser
+      libprocps-ng: readproc.c: some type conversion help
+      ps: rename SZ to SIZE
+      ps: add sorting to %mem for ps
+      pmap: provide information for -x option
+      pgrep: distinguish between invalid commandline parameters and '-?'
+      pgrep: fix compiler warning saved_start_time might be used uninitialized
+      pgrep: add -c option for counting number of matched proceesses
+      pwdx & libprocps-ng: Hurd does not have MAX_PATH defined
+      ps: --sort does not work with time argument
+      skill: add CR to warning line
+      contrib: minimal ps: define mips PAGE_SIZE
+      libproc-ng: prettyfy proc mount messages
+      ps: add build option to disable ps option warning
+      libproc-ng: support building without WCHAR support
+      sysctl: remove index() for buildroot
+  * top now has a search capability
+  * User import is validated better to stop negative values for intervals etc
+
+procps-ng-3.3.0 --> procps-ng-3.3.1
+--------------------------------
+
+  * Added DejaGNU regression testing
+  * Fixed pgrep -u not finding processes Debian#649591
+  * Fixed pgrep crashing
+  * vmstat -p <part> finds partitions. Was Debian patch vmstat_part_format
+    fixes closed bugs RH#485243 and Debian#588677
+  * watch 8-bit clean, Was Debian patch watch_8bitchar
+  * slabtop prints plain ASCII in once mode
+
+procps-3.2.8 --> procps-ng-3.3.0
+------------------------------------------------------
+Debian, Fedora and openSUSE fork of procps.
+https://gitlab.com/procps-ng/procps
+
+environment/build changes:
+ . autotools integrated
+ . procps-ng specific options
+     --enable-oomem  (add out-of-memory flds)
+     --disable-kill  (do not build kill pgm)
+     --enable-w-from (from as default for w)
+
+library changes:
+ . added control groups support
+ . added supplementary groups support
+ . introduced proc_t memory management
+ . enabled hot-plugged cpu support
+ . introduced new api's
+     readeither   (readproc.c)
+     readproctab3 (readproc.c)
+     escaped_copy (escape.c)
+
+free changes:
+ . rewritten/modernized
+     improved help
+     includes long options
+     added new processing options
+ . updated manual page
+
+ps changes:
+ . added new fields
+     cgroups,etimes,supgid,supgrp,tgid
+ . exploited new library api's
+
+top changes:
+ . redesigned fields management
+ . added new fields
+     cgroups,gid,nmin,nth,pgrp,ruid,
+     sid,suid,supgids,supgrps,suser,
+     tgid,tpgid
+ . added horizontal/vertical scrolling
+ . added flexible output override via -w
+ . added COMMAND column forest view via V
+ . added hot-plugged cpu/memory support
+ . improved user filtering via u|U
+ . improved signal handling
+ . restored zero delay functionality
+ . introduced true line input editing
+ . exploited new library api's
+ . improved performance up to 300%
+
+Debian, Fedora and openSUSE fork of procps.
+https://gitlab.com/procps-ng/procps
+------------------------------------------------------
+
+procps-3.2.8 --> procps-3.2.9 (pending)
+
+top: fix an aliasing problem -- thanks David Owen
+
+procps-3.2.7 --> procps-3.2.8
+
+ps: allow "+" in sort specifications, as in man page     rh208217
+ps: recognize SCHED_ISO and SCHED_IDLE
+ps: document SCHED_BATCH and add a "see also" for stime
+ps: man page less ambiguous
+top: normal exit code should be 0     #341272 #354255 rh199174 suse493210
+top: misc fixes
+pgrep: usage error should exit with 2       #413383
+vmstat: use EXIT_FAILURE -- thanks Yoshio Nakamura   #425492
+sysctl: fix crash -- thanks Steinar Gunderson      #423704
+watch: tolerate umlauts                          #207103
+pmap: range limits with -A low,high
+update /dev/tty* info to May 2009 devices.txt
+don't read off end of string const                rh469495 rh498182
+
+procps-3.2.6 --> procps-3.2.7
+
+top: document H option -- thanks Tony Ernst
+top: terabytes -- thanks Tony Ernst
+top: CPU usage column width fixes -- thanks Tony Ernst
+top: *roff change                                   #326517
+ps: SCHED_BATCH is B
+ps: fix s format (signals) output with thread display
+watch: avoid integer overflow for the time delay
+pwdx: buffer overflow fixed -- thanks Ulf Harnhammar
+procps.spec needed a slash -- thanks Jesse Brandeburg
+w: stale utmp entries snuck in via uninitialized var -- thanks Robert A Basch
+pgrep/pkill: fix some realloc-related crashes       #353894
+pgrep/pkill: g is criteria (PLD Linux, patch found in locked filing cabinet)
+sysctl: use - for stdin (PLD Linux: beware of the leopard)
+top: show CPU time stolen from a virtual machine
+
+procps-3.2.5 --> procps-3.2.6
+
+vmstat: /proc/stat buffer big enough for 1024 CPUs
+dietlibc needs termios.h for struct winsize -- thanks Thomas Ogrisegg
+top: can do per-task display -- thanks John Blackwood     rh114012
+more MIPS crud  -- thanks Jim Gifford and Ryan Oliver
+begin prep for setuid
+top: fix %CPU max on 2..9 CPU SMP -- thanks Ga*tan LEURENT  rh110555
+ps: fix crash related to realloc -- thanks David Houlder
+ps: man page more detailed                         #334682
+spelling fixes                       #300333 #334684 #334685
+top: crash on resize fixed -- thanks Michal Maruska   #320289
+vmstat: -p handles /dev/ and does not overflow  #319523 #330969
+
+procps-3.2.4 --> procps-3.2.5
+
+display problem on 64-bit systems fixed   #287947
+top: variable-width PID and PPID
+top: variable-width %CPU                   rh110555
+sysctl: better error messages
+ps: security labels can contain any printable ASCII
+top: help and version message on stdout, with exit(0)    #283541
+ps: SIGTSTP and SIGTTOU shouldn't print bug email address    #246123
+slabtop: compile with glibc 2.2.17 (and older, likely)
+slabtop: fix overflow on huge NUMA boxes                #264640
+slabtop: accept any slabinfo 2.x format        g77301  #287691 rh145369 rh145906
+ps: alignment after WCHAN fixed                            ub5385
+pmap: when no -x or -d option, show full path        rh142751
+
+procps-3.2.3 --> procps-3.2.4
+
+support 64-bit MIPS with n32 binary
+sparc32 optimized for sparc32 again
+pwdx: new command -- thanks Nicholas Miell
+ps: UTF-8 username + command -- thanks Karel Zak rh134763,rh112518,rh134780
+ps: more room for some columns
+ps: tolerate SubDomain security module CONTEXT/LABEL data    #277401
+watch: passes COLUMNS and LINES in environment
+top: in batch mode, tolerate unknown $TERM -- thanks Daniel Walsh
+pkill: quiet about processes that die before kill()
+
+procps-3.2.2 --> procps-3.2.3
+
+avoid truncating long usernames
+avoid warning about -lncurses when not linking (more)
+new names for shared libraries (packagers: watch out!)
+"make install" no longer rebuilds everything
+wchan now '*' for multi-threaded processes
+ps: new man page -- thanks Nicolas Francois
+ps: STAT shows l for multi-threaded processes
+vmstat: some overflow problems fixed -- thanks Holger Kiehl
+sysctl: man page fix
+
+procps-3.2.1 --> procps-3.2.2
+
+new packager (downstream maintainer) guidelines in README
+move striping from install command to CFLAGS
+new gcc options in use: -fweb, -frename-registers, etc.
+avoid warning about -lncurses when not linking -- thanks FLWM
+tolerate IA-64 headers without PAGE_SIZE
+ps: k option, same as --sort
+ps: personality-specific -x support (HP-UX and SVR4-MP)
+pgrep: man page SEE ALSO updated                    #226817
+sysctl: -q and -N options
+sysctl: better error handling of failed writes
+top: tolerate sparse CPU numbering
+top: try to handle terminals lacking rmam and smam     #235003
+top: xterm dislikes clear-to-eol at eol (char lost)
+vmstat: fixed -d
+watch: allow sub-second intervals -- thanks Thomas Stewart
+
+procps-3.2.0 --> procps-3.2.1
+
+build even w/ curses in an odd location -- thanks to Segher Boessenkool
+ps: STAT flags for fg process group and session leader
+ps: STAT flags for swapped out process dropped (was broken)
+ps: new -M and Z options for security data (SELinux, etc.)
+slabtop: detect broken /proc/slabinfo -- thanks to Fabian Frederick
+slabtop: ensure that error messages show up on the screen -- FF again
+
+procps-3.1.15 --> procps-3.2.0
+
+build on IA-64 again                            #227933
+pmap: output like Solaris 9, not Solaris 7
+ps: also handle SELinux on the 2.4.xx kernels
+top: during a ^Z, the terminal was messed up     #228822
+future-proof the tty handling   (thanks to Zhou Wei)
+slabtop  (Chris Rivera and Robert Love)          #226778
+pmap: detect the primary stack
+pmap: -d format
+free: report high and low memory
+
+procps-3.1.14 --> procps-3.1.15
+
+install to /lib64 if it exists
+hide kernel PID bug (Linux 2.4.13-pre1 to 2.4.MAX)   #217278 #219730 #217525 #224470
+ps: faster threaded display
+top: auto-margin problem                           #217559
+ps: support NSA SELinux, all builds, Linux 2.6+    #193648
+sysctl: tweak man page for ESR's broken parser
+
+procps-3.1.13 --> procps-3.1.14
+
+top: displays on more genuine serial terminals
+handle 32-bit dev_t of Linux 2.6
+ps: finally, m and -m satisfy the original design
+ps: distinct per-thread and whole-process pending signals
+
+procps-3.1.12 --> procps-3.1.13
+
+ps: can display NPTL threads w/ kernel patch
+no seLinux for now (new kernel interface)
+
+procps-3.1.11 --> procps-3.1.12
+
+ps: explicit width ("ps -o pid,wchan:42,args")
+ps: $PS_FORMAT works properly                    #201575
+top: new Linux 2.6.0-test4 CPU stats shown
+top: multiple -p options work again
+top: fixed 4 GB wrap-around
+ps: has a set of tests to ensure correctness
+man page: /var/run/utmp, not /etc/utmp           #206583
+required flags moved out of CFLAGS               #205429
+RPM generation handles /lib64
+WCHAN skips leading '.'
+vmstat: numerous new features
+
+procps-3.1.10 --> procps-3.1.11
+
+compile with gcc 2.95 again (C99 issue)
+
+procps-3.1.9 --> procps-3.1.10
+
+handle GPLONLY_ symbols                       #143549 #188374
+kill: better man page
+skill: better man page
+ps: PID-like columns change width as needed
+top: COMMAND instead of Command
+vmstat: -m displays slabinfo
+vmstat: -d displays disk stats
+
+procps-3.1.8 --> procps-3.1.9
+
+memory sizes fixed for 64-bit w/ gcc 3.x      #194376 #191933
+ps: detect broken OS install w/o /proc mounted        #172735
+top: fix suspend/resume behavior
+top: ditch warning until a GOOD interface is found    #188271
+kill: more info in the man page                       #182414
+ps: document the -o, o, -O, and O options             #169301
+vmstat: choose units you like: 1000, 1024, 1000000...
+
+procps-3.1.7 --> procps-3.1.8
+
+top: fix keyboard handling (help screen, etc.)
+
+procps-3.1.6 --> procps-3.1.7
+
+Makefile: made SKIP feature easier to use
+watch: --help now explains -t, --no-title    #182246
+ps: warning directs users to the FAQ
+top: batch mode can refresh by fractional seconds
+top: faster start-up
+top: do not refresh like crazy
+ps: better crash message
+
+procps-3.1.5 --> procps-3.1.6
+
+handle the 2.5.61 kernel
+top: memory leak fixed
+ps: new --ppid option selects by PPID
+watch: new --no-title option              #179862
+handle SPARC Linux badness
+rare crash fixed
+compile with gcc 2.91.xx again
+more informative "ps --info"
+README update
+ps: compare more with "ps -C verylongname"     #178127
+
+procps-3.1.4 --> procps-3.1.5
+
+ancient (2.x.xx era) data corruption fixed
+serious hidden-process problem (3.1.3+) fixed
+w: escape sequence vulnerability fixed
+
+procps-3.1.3 --> procps-3.1.4
+
+top: was trashing every "3" in a command name
+top: when killing a process, the PID was cut at a "3"
+top: more reliable %CPU
+update copyright dates (GPL & LGPL require this)
+RPM generation works now
+
+procps-3.1.2 --> procps-3.1.3
+
+uses /proc/*/wchan files when available
+top: user selection
+sysctl: add -e for Red Hat 8.0 boot scripts
+sysctl: the obvious --help, -V, and --version
+sysctl: some command line error checking
+w: stdout, not stderr -- thanks to Sander van Malssen
+
+procps-3.1.1 --> procps-3.1.2
+
+better RPM generation
+use C99 features
+some seLinux fixes
+now count Inact_laundry as needed  #172163
+ps: fewer globals
+ps: hardware-enforced buffer protection
+ps: 1 kB smaller
+top: B command added (for bold on/off)
+top: handle old (and future) config files
+top: man page tweak
+top: old sort keys     #167249
+top: out-of-bounds RT as "RT"
+top: several times faster
+top: t command fixed
+vmstat: -f
+vmstat: -s
+w: much faster
+watch: don't drop empty lines   #171005
+watch: re-indented
+
+procps-3.1.0 --> procps-3.1.1
+
+vmstat faster on 2.5.xx kernels
+vmstat header fixed
+vmstat -a re-fixed
+
+procps-3.0.5 --> procps-3.1.0
+
+vmstat displays IO-wait time instead of bogus "w"
+can build w/o shared library (set SHARED=0)
+when IO-wait hidden, count as idle, not as sys
+pmap command added (like Sun has)
+do not crash GNU make 3.79
+top slightly faster
+
+procps-3.0.4 --> procps-3.0.5
+
+top tolerates super-wide displays
+better (?) RPM generation
+XConsole and top.desktop removed
+old build system removed
+code cleanup
+pgrep and pkill get "-o" (oldest matching process)
+had vmstat "bi" and "bo" output interchanged on 2.5.xx
+fix man page tbl directives
+top man page cleaned up
+
+procps-3.0.3 --> procps-3.0.4
+
+make top go faster
+Linux 2.2.xx ELF note warning removed
+only show IO-wait on recent kernels
+fix top's SMP stats
+fix top for "dumb" and "vt510" terminals
+in top, limit the priority values to -99 ... 99
+
+procps-3.0.2 --> procps-3.0.3
+
+more "make install" fixes
+lib CFLAGS working again
+top.1 codes fixed
+bad (int*) cast in top removed
+top runs faster
+libproc memory corruption fixed
+rant moved out of top.1 man page
+ability to SKIP installing things
+fixed ps --sort crash
+
+procps-3.0.1 --> procps-3.0.2
+
+top defaults to the old layout
+top defaults to sorting by %CPU
+fix top for non-SMP 2.2.xx and 2.0.xx
+new "make install" fixed
+vmstat -a fixed
+vmstat compiles with latest gcc-3.x
+vmstat does 64-bit time
+
+procps-3.0.0 --> procps-3.0.1
+
+sysctl handles net/ipv4/conf/eth1.0123/tag (VLAN interface)
+sysctl handles net.ipv4.conf.eth1/0123.tag (VLAN interface)
+"ps" is now about 2x faster than in procps-2.x.x
+"ps -F" now documented
+w works in KOI8-R locale
+vmstat documentation update
+"skill -n blah blah blah" lets you test options
+simple "make && make install" now
+
+procps-2.x.x --> procps-3.0.0
+
+designed to support Linux 2.0 through 2.5.41 and beyond
+new top, with optional: color, windowing, SMP stats
+runs faster
+more "it crashes" bugs fixed
+top shows IO-wait time
+vmstat can show active/inactive memory stats
+real-time info supported in ps
+correct "ps -o size" and "ps --sort size"
+new maintainers
+reduced memory usage for ps
+allow large PIDs to be specified
+SELINUX support is just a recompile away
+the "F" column shrank, so "ps -l" has more command name room
+64-bit time reduces the overflow problem
+support S/390, IA-64 emulator, and user-mode Linux
+oldps is gone
+configure script -- use "make -f Makefile.noam" as a backup
+"w" program better at determining what a user is doing
+more stable
+code at http://procps.sf.net/ now (SourceForge)
+
+Earlier changes, for those not using Debian already:
+
+more stable
+runs faster
+-F format option
+better error reporting in ps for unknown format specifiers
+BSD's sysctl options -b and -X
+top displays well on large-memory systems
+old BSD-style select-by-PID ("ps l$$")
+15-character user names
+ps 'f' ASCII art forest fixed
+add SIGSYS on i386
+top reports real RSS value
+large-memory systems work
+minimal ps program for embedded systems (minimal.c)
+BSD personality process selection fixed
+support locale (French) with ',' and '.' mixed up
+pgrep program
+includes the "kill" and "nice" programs
+don't chop non-tty ps output at 80 columns

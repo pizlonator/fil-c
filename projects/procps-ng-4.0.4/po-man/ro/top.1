@@ -1,0 +1,2957 @@
+.ig
+. manual page for NEW and IMPROVED linux top
+.
+. Copyright (c) 2002-2023 Jim Warner <james.warner@comcast.net
+.
+. This file may be copied under the terms of the GNU Public License.
+..
+.\"  Setup ////////////////////////////////////////////////////////////////
+.\"                      Commonly used strings (for consistency) ----------
+.\"                           - our em-dashes
+.ds Em  — 
+.ds EM \fB — \fP
+.\"                           - our program name (makes great grammar)
+.ds We top
+.ds WE \fBtop\fP
+.\"                           - other misc strs for consistent usage
+.ds F \fIDezact.\fP
+.ds O \fIActivat\fP
+.
+.ds AK asterisc („*”)
+.ds AM modul de afișare alternativ
+.ds AS stocare auxiliară
+.ds CF fișier de configurare
+.ds CG grup de ferestre/câmpuri „curente”
+.ds CI comandă interactivă
+.ds CO opțiune de linie de comandă
+.ds CT comandă de comutare
+.ds CW fereastra „activă”
+.ds FG grup de câmpuri
+.ds FM modul ecran complet
+.ds KA tasta săgeată
+.ds KS tasta de deplasare
+.ds MP memoria fizică
+.ds MS fișier de interschimb
+.ds MV memorie virtuală
+.ds NT \fBNotă\fP:
+.ds PU CPU
+.ds Pu cpu
+.ds SA zona de rezumat
+.ds TA zona de sarcini
+.ds TD afișarea sarcinilor
+.ds TT \fBprocese\fP sau \fBfire de execuție\fP
+.ds TW fereastra de sarcină
+.\"                      Reference to the various widths/sizes ------------
+.\"                           - the max screen width limit
+.ds WX 512
+.\"                           - the header width w/ all fields
+.ds WF aproximativ 250
+.\"                           - pid monitoring limit
+.\"                      Xref's that depend on/mention other stuff --------
+.ds Xa a se vedea
+.ds XC A se vedea
+.ds Xc a se vedea
+.ds XT A se vedea subiectul
+.ds Xt a se vedea subiectul
+.ds XX Consultați „PREZENTARE GENERALĂ, Tipuri de memorie Linux” pentru detalii suplimentare
+.ds ZX Accesarea valorilor smaps este de 10 ori mai costisitoare din punct de vedere computațional decât accesarea altor statistici de memorie, iar datele pentru alți utilizatori necesită privilegii „root”
+.
+.\" Document /////////////////////////////////////////////////////////////
+.\" ----------------------------------------------------------------------
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TOP 1 "august 2023" procps\-ng "Comenzi utilizator"
+.\" ----------------------------------------------------------------------
+.nh
+
+.\" ----------------------------------------------------------------------
+.SH NUME
+.\" ----------------------------------------------------------------------
+top \- Afișează procesele Linux
+
+.\" ----------------------------------------------------------------------
+.SH REZUMAT
+.\" ----------------------------------------------------------------------
+\*(WE [opțiuni]
+
+.\" ----------------------------------------------------------------------
+.SH DESCRIERE
+.\" ----------------------------------------------------------------------
+Programul \\*(WE oferă o vizualizare dinamică în timp real a sistemului care
+rulează.  Poate afișa un rezumat al informațiilor \fBsistem\fP, precum și o
+listă a \\*(TT) gestionate în prezent de către nucleu.  Tipurile de
+informații rezumate ale sistemului afișate și tipurile, ordinea și
+dimensiunea informațiilor afișate pentru procese sunt toate configurabile de
+utilizator și acea configurație poate fi persistentă în timpul repornirilor.
+
+Programul oferă o interfață interactivă limitată pentru manipularea
+procesului, precum și o interfață mult mai extinsă pentru configurarea
+personală \-\- cuprinzând fiecare aspect al funcționării sale.  Și în timp ce
+\*(WE este menționat în acest document, sunteți liber să denumiți programul
+oricum doriți.  Noul nume, eventual un alias, va fi apoi reflectat pe
+afișajul lui \*(WE și va fi folosit la citirea și scrierea unui fișier de
+configurare.
+
+.\" ----------------------------------------------------------------------
+.SH "PREZENTARE GENERALĂ"
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS Documentație
+.\" ----------------------------------------------------------------------
+Cuprins
+
+.nf
+    PREZENTARE GENERALĂ
+       Funcționarea programului
+       Tipuri de memorie Linux
+    1. Opțiuni pentru LINIA DE COMANDĂ
+    2. Afișarea REZUMATULUI
+       a. Mediile de ÎNCĂRCARE și TIMPUL de FUNCȚIONARE
+       b. SARCINI și Stări CPU
+       c. Utilizarea MEMORIEI
+    3. CÂMPURI / Afișarea coloanelor
+       a. DESCRIEREA Câmpurilor
+       b. GESTIONAREA Câmpurilor
+    4. Comenzi INTERACTIVE
+       a. Comenzi GLOBALE
+       b. Comenzi din ZONA de REZUMAT
+       c. Comenzi din ZONA de SARCINI
+          1. Aspect
+          2. Conținut
+          3. Dimensiune
+          4. Sortare
+       d. Paleta de CULORI
+    5. Dispoziții privind AFIȘAREA ALTERNATIVĂ
+       a. Prezentare generală pentru ferestre
+       b. Comenzi pentru ferestre
+       c. Derularea unei ferestre
+       d. Căutarea într\-o fereastră
+       e. Filtrarea într\-o fereastră
+    6. FIȘIERE
+       a. Fișier de configurare PERSONAL
+       b. Adăugarea de intrări de INSPECTARE
+       c. Fișier de configurare a SISTEMULUI
+       d. Fișier de restricții ale SISTEMULUI
+    7. VARIABILE DE MEDIU
+    8. Exemplu de TRUCURI STUPIDE
+       a. Magia nucleului
+       b. Ferestre care apar
+       c. Fereastra Pasărea Mare
+       d. Vechiul comutator
+    9. ERORI, 10. CONSULTAȚI ȘI
+.fi
+
+.\" ......................................................................
+.SS "Funcționarea programului"
+.\" ----------------------------------------------------------------------
+Când lucrați cu \*(We, cele mai importante taste sunt tasta de ajutor (h sau
+?) și tasta de ieșire („q”).  Alternativ, puteți utiliza pur și simplu tasta
+tradițională de întrerupere (^C) când ați terminat.
+
+Când porniți pentru prima dată, vi se vor prezenta aceste elemente
+tradiționale în ecranul principal al \*(We: 1) Zona de rezumat; 2) Antet
+Câmpuri/Coloane; 3) Zona de sarcini.  Fiecare dintre acestea va fi explorată
+în secțiunile care urmează.  Există, de asemenea, o linie de intrare/mesaj
+între zona de rezumat și antetul coloanelor care nu are nevoie de explicații
+suplimentare.
+
+Ecranul principal al \*(We este, \fIîn general\fP, destul de adaptabil la
+modificările dimensiunilor terminalului sub X\-Windows.  Alte ecrane \*(We
+pot fi mai puțin adaptabile, mai ales cele cu text static.  Totuși, aceasta
+depinde în cele din urmă de managerul de ferestre și de emulatorul de
+terminal, în particular.  Pot exista ocazii în care viziunea lor asupra
+dimensiunii terminalului și a conținutului curent diferă de viziunea lui
+\*(We, care se bazează întotdeauna pe apelurile sistemului de operare.
+
+În urma oricărei operațiuni de redimensionare, dacă un ecran \*(We este
+corupt, apare incomplet sau dezordonat, simpla tastare a ceva inofensiv, cum
+ar fi un caracter de punctuație sau o tastă de mișcare a cursorului, îl va
+restabili de obicei.  În cazuri extreme, următoarea secvență va avea aproape
+sigur, acest efect:
+.nf
+       \fItasta/cmd  obiectiv \fP
+       ^Z       \fBsuspendare\fP \*(We
+       fg       \fBreluare\fP \*(We
+       <Stânga>   forțează redesenarea ecranului (dacă este necesar)
+.fi
+
+Dar dacă afișajul este încă corupt, mai există un pas pe care îl puteți
+încerca.  Introduceți această comandă după ce \*(We a fost suspendat, dar
+înainte de al relua.
+.nf
+       \fItasta/cmd  obiectiv \fP
+       reset    restabilește \fBconfigurările terminalului\fP
+.fi
+
+\*(NT lățimea afișajului lui \*(We va fi limitată la \*(WX poziții.
+Afișarea tuturor câmpurilor necesită aproximativ \*(WF de caractere.
+Lățimea rămasă a ecranului este de obicei alocată oricăror coloane cu lățime
+variabilă vizibile în prezent.  Coloanele cu lățime variabilă, cum ar fi
+COMANDĂ, sunt notate în subiectul 3a. DESCRIEREA Câmpurilor.  Lățimea reală
+de ieșire poate fi, de asemenea, influențată de opțiunea „\-w”, care este
+discutată în subiectul 1. Opțiuni pentru LINIA DE COMANDĂ.
+
+În cele din urmă, unele dintre ecranele sau funcțiile lui \*(We necesită
+utilizarea tastelor de mișcare a cursorului, cum ar fi tastele săgeți
+standard plus tastele «Home», «Fin», «PgUp» și «PgDn».  Dacă terminalul sau
+emulatorul dumneavoastră nu furnizează acele chei, următoarele combinații
+sunt acceptate ca alternative:
+.nf
+      \fI tasta    taste echivalente \fP
+       Stânga   alt +\fB h \fP
+       Jos      alt +\fB j \fP
+       Sus      alt +\fB k \fP
+       Dreapta  alt +\fB l \fP
+       Home     alt + ctrl +\fB h \fP
+       PgDn     alt + ctrl +\fB j \fP
+       PgUp     alt + ctrl +\fB k \fP
+       End      alt + ctrl +\fB l \fP
+.fi
+
+Tastele săgeată \fBSus\fP și \fBJos\fP au o semnificație specială atunci când
+solicitarea liniei de intrare este terminată cu tasta <Enter>.
+Aceste taste, sau aliasurile lor, pot fi folosite pentru a prelua liniile de
+intrare anterioare care pot fi apoi editate și reintroduse.  Și există patru
+taste suplimentare disponibile orientate pe linia de intrare.
+.nf
+      \fI tasta    semnificația specială \fP
+       Sus      reapelează șirurile \fBmai vechi\fP pentru re\-editare
+       Jos      reapelează șirurile \fBmai noi\fP sau \fBșterge\fP întreaga linie
+       Insert   comută între modurile de \fBinserare\fP și \fBsuprascriere\fP
+       Delete   \fBelimină\fP caracterul de la cursor, deplasându\-le pe celelalte spre stânga
+       Home     saltă la \fBînceputul\fP liniei de intrare
+       End      saltă la \fBsfârșitul\fP liniei de intrare
+.fi
+
+.\" ......................................................................
+.SS "Tipuri de memorie Linux"
+.\" ----------------------------------------------------------------------
+Pentru scopurile noastre, există trei tipuri de memorie, din care unul este
+opțional.  Primul este memoria fizică, o resursă limitată în care codul și
+datele trebuie să se găsească atunci când sunt executate sau referențiate.
+Următorul este fișierul de interschimb(swap) opțional, unde memoria
+modificată (murdară) poate fi salvată și ulterior preluată dacă se solicită
+prea multe memorie fizică.  În cele din urmă, avem memoria virtuală, o
+resursă aproape nelimitată care servește următoarele obiective:
+
+.nf
+   1. abstractizare, liberă de adresele sau limitele memoriei fizice
+   2. izolare, fiecare proces într\-un spațiu de adrese separat
+   3. partajare, o singură memorizare(mapping) poate satisface nevoi multiple
+   4. flexibilitate, atribuirea unei adrese virtuale unui fișier
+.fi
+
+Indiferent de care dintre aceste forme o poate lua memoria, toate sunt
+gestionate ca pagini (de obicei 4096 de octeți), dar sunt exprimate implicit
+în \*(We ca Kio (kibiocteți). Memoria discutată la punctul „2c. Utilizarea
+MEMORIEI” se ocupă de memoria fizică și fișierul de interschimb(swap) pentru
+sistemul în ansamblul său.  Memoria examinată la punctul „3. CÂMPURI /
+Afișarea coloanelor” cuprinde toate cele trei tipuri de memorie, dar pentru
+procese individuale.
+
+Pentru fiecare astfel de proces, fiecare pagină de memorie este
+restricționată la un singur cadran din tabelul de mai jos.  Atât memoria
+fizică, cât și memoria virtuală pot include oricare dintre cele patru, în
+timp ce fișierul de interschimb (swap) include doar de la #1 la #3.  Memoria
+din cadranul #4, când este modificată, acționează ca propriul fișier de
+interschimb dedicat.
+
+.nf
+                                     \fBPrivată\fP | \fBPartajată\fP
+                                 \fB1\fP           |          \fB2\fP
+     \fBAnonimă\fP           . stack               |
+                       . malloc()            |
+                       . brk()/sbrk()        | . POSIX shm*
+                       . mmap(PRIVATE, ANON) | . mmap(SHARED, ANON)
+                      \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                       . mmap(PRIVATE, fd)   | . mmap(SHARED, fd)
+   \fBPe baza fișierului\fP  . pgms/shared libs    |
+                                 \fB3\fP           |          \fB4\fP
+.fi
+
+Următoarele pot ajuta la interpretarea valorilor de memorie la nivel de
+proces afișate sub formă de coloane scalabile și discutate în subiectul
+„3a. DESCRIEREA Câmpurilor”.
+
+.nf
+   %MEM \- pur și simplu RES împărțită la memoria fizică totală
+   CODE \- porțiunea „pgms” din cadranul \fB3\fP
+   DATA \- întreaga porțiune din cadranul \fB1\fP a VIRT plus toate
+          paginile salvate în fișiere mmap explicite din cadranul \fB3\fP
+   RES  \- orice ocupă memorie fizică care, începând cu Linux\-4.5,
+          este suma următoarelor trei câmpuri:
+          RSan \- paginile cadranului \fB1\fP, care includ orice pagini
+                 din cadranul \fB3\fP anterior, dacă sunt modificate
+          RSfd \- paginile cadranului \fB3\fP și cadranului \fB4\fP
+          RSsh \- paginile cadranului \fB2\fP
+   RSlk \- subset de RES care nu poate fi transferat (orice cadran)
+   SHR  \- subset de RES (exclude \fB1\fP, include toate \fB2\fP și \fB4\fP, unele \fB3\fP)
+   SWAP \- potențial orice cadran, cu excepția cadranului \fB4\fP
+   USED \- pur și simplu suma dintre RES și SWAP
+   VIRT \- tot ce este în uz și/sau rezervat (toate cadranele)
+.fi
+
+\*(NT Chiar dacă imaginile de program și bibliotecile partajate sunt
+considerate \fIprivate\fP pentru un proces, ele vor fi considerate ca fiind
+\fIpartajate\fP (SHR) de către nucleu.
+
+.\" ----------------------------------------------------------------------
+.SH "1. Opțiuni pentru LINIA DE COMANDĂ"
+.\" ----------------------------------------------------------------------
+\fIArgumentele\fP obligatorii pentru opțiunile lungi sunt deasemenea
+obligatorii pentru opțiunile scurte.
+
+Deși nu este necesar, semnul egal poate fi folosit cu fiecare formă de
+opțiune, iar spațiile în alb înainte și/sau după „=” sunt permise.
+
+.TP  3
+\-\fBb\fP, \fB\-\-batch\fP
+Pornește \*(We în modul Loturi de comenzi (Batch), care poate fi util pentru
+a trimite ieșirea din \*(We către alte programe sau către un fișier.  În
+acest mod, \*(We nu acceptă intrări și rulează până la limita de iterații pe
+care ați stabilit\-o cu opțiunea de linie de comandă „\-n” sau până când este
+omorât.
+
+.TP  3
+\-\fBc\fP, \fB\-\-cmdline\-toggle\fP
+Lansează \*(We cu ultima stare „c” memorată inversată. Astfel, dacă \*(We
+afișa linii de comandă, acum acel câmp va afișa numele programelor și
+invers. Consultați comanda interactivă „c” pentru informații suplimentare.
+
+.TP  3
+\-\fBd\fP, \fB\-\-delay\fP = \fISECUNDE\fP [\fI.ZECIMI\fP]
+Specifică întârzierea dintre actualizările ecranului și înlocuiește valoarea
+corespunzătoare din fișierul de configurare personal sau valoarea implicită
+de pornire.  Ulterior, această valoare poate fi modificată cu ajutorul
+comenzilor interactive „d” sau „s”.
+
+Fracțiunile de secunde sunt luate în calcul, dar nu este permis un număr
+negativ.  Cu toate acestea, în toate cazurile, astfel de modificări sunt
+interzise dacă \*(We rulează în modul Securizat, cu excepția root (cu
+excepția cazului în care a fost utilizată opțiunea de linie de comandă
+„s”).  Pentru informații suplimentare despre modul Securizat, consultați
+subiectul 6d. Fișier de restricții ale SISTEMULUI.
+
+.TP  3
+\-\fBE\fP, \fB\-\-scale\-summary\-mem\fP = \fIk\fP | \fIm\fP | \fIg\fP | \fIt\fP | \fIp\fP | \fIe\fP
+Solicită lui \*(We să forțeze ca memoria zonei de rezumat să fie afișată
+după cum urmează:
+.nf
+   k = kibiocteți
+   m = mebiocteți
+   g = gibiocteți
+   t = tebiocteți
+   p = pebiocteți
+   e = exbiocteți
+
+.fi
+
+Ulterior, acest lucru poate fi schimbat cu ajutorul comenzii „E”.
+
+.TP  3
+\-\fBe\fP, \fB\-\-scale\-task\-mem\fP = \fIk\fP | \fIm\fP | \fIg\fP | \fIt\fP | \fIp\fP
+Solicită lui \*(We să forțeze ca memoria zonei de sarcini să fie afișată
+după cum urmează:
+.nf
+   k = kibiocteți
+   m = mebiocteți
+   g = gibiocteți
+   t = tebiocteți
+   p = pebiocteți
+.fi
+
+Ulterior, acest lucru poate fi schimbat cu ajutorul comenzii „e”.
+
+.TP  3
+\-\fBH\fP, \fB\-\-threads\-show\fP
+Solicită lui top să afișeze firele de execuție individuale.  Fără această
+opțiune de linie de comandă, este afișată o însumare a tuturor firelor de
+execuție din fiecare proces.  Ulterior, acest lucru poate fi modificat cu
+ajutorul comenzii interactive „H”.
+
+.TP  3
+\fBh\fP, \fB\-\-help\fP
+Afișează acest mesaj de ajutor, apoi iese.
+
+.TP  3
+\-\fBi\fP, \fB\-\-idle\-toggle\fP
+Lansează \*(We cu ultima stare „i” memorată inversată. Când această comutare
+este \fIDezactivată\fP (Off), sarcinile care nu au folosit niciun procesor de
+la ultima actualizare nu vor fi afișate. Pentru informații suplimentare cu
+privire la acest comutator, consultați subiectul 4c. Comenzi din ZONA de
+SARCINI, Dimensiune.
+
+.TP  3
+\-\fBn\fP, \fB\-\-iterations\fP = \fINUMĂR\fP
+Specifică numărul maxim de iterații, sau de cadre, pe care \*(We trebuie să
+le producă înainte de a se încheia.
+
+.TP  3
+\-\fBO\fP, \fB\-\-list\-fields\fP
+Această opțiune acționează ca o formă de ajutor pentru opțiunea „\-o”
+prezentată mai jos.  Aceasta va face ca \*(We să afișeze fiecare dintre
+numele câmpurilor disponibile pe o linie separată, apoi va ieși.  Aceste
+nume sunt obiectul traducerii NLS (National Language Support „Suport pentru
+limba națională”).
+
+.TP  3
+\-\fBo\fP, \fB\-\-sort\-override\fP = \fINUME_CÂMP\fP
+Specifică numele câmpului pe care vor fi sortate sarcinile, independent de
+ceea ce se reflectă în fișierul de configurare.  Puteți adăuga un „+” sau
+„\-” la numele câmpului pentru a schimba, de asemenea, direcția de sortare.
+Un „+” înainte va forța sortarea de la mare la mic, în timp ce un „\-” va
+asigura o ordonare de la mic la mare.
+
+Această opțiune există în primul rând pentru a sprijini operarea în modul
+automat/loturi de comenzii.
+
+.TP  3
+\-\fBp\fP, \fB\-\-pid\fP = \fILISTĂ_PID\fP (ca: \fI1\fP,\fI2\fP,\fI3\fP, ... sau \-p\fI1\fP \-p\fI2\fP \-p\fI3\fP ...)
+Monitorizează numai procesele cu ID\-urile de proces specificate.  Cu toate
+acestea, atunci când este combinat cu modul Fire de execuție („H”), toate
+procesele din grupul de fire (a se vedea TGID) al fiecărui PID monitorizat
+vor fi de asemenea afișate.
+
+Această opțiune poate fi dată de până la 20 de ori sau puteți furniza o
+listă delimitată prin virgule cu până la 20 de pid\-uri.  Este permisă
+combinarea ambelor abordări.
+
+O valoare pid de zero va fi tratată ca fiind id\-ul de proces al programului
+\*(We însuși, odată ce acesta rulează.
+
+Aceasta este doar o opțiune de linie de comandă și dacă doriți să reveniți
+la funcționarea normală, nu este necesar să părăsiți și să reporniți \*(We
+\-\- pur și simplu lansați oricare dintre aceste comenzi interactive: „=”, „u”
+sau „U”.
+
+Opțiunile de linie de comandă „p”, „u” și „U” se exclud reciproc.
+
+.TP  3
+\-\fBS\fP, \fB\-\-accum\-time\-toggle\fP
+Lansează \*(We cu ultima stare „S” memorată inversată.  Atunci când modul de
+Timp cumulat este \*O (On), fiecare proces este listat cu timpul de
+procesare pe care el și copiii săi morți l\-au folosit.  Consultați comanda
+interactivă „S” pentru informații suplimentare privind acest mod.
+
+.TP  3
+\-\fBs\fP, \fB\-\-secure\-mode\fP
+Lansează \*(Wes cu modul securizat forțat, chiar și pentru root.  Acest mod
+este mult mai bine controlat prin intermediul unui fișier de configurare a
+sistemului (a se vedea subiectul 6. FIȘIERE).
+
+.TP  3
+\-\fBU\fP, \fB\-\-filter\-any\-user\fP = \fIUTILIZATOR\fP (ca: \fInumăr\fP sau \fInume\fP)
+Afișează numai procesele cu un id de utilizator sau un nume de utilizator
+care se potrivește cu cel dat.  Această opțiune se potrivește cu orice
+utilizator (\fIreal\fP, \fIefectiv\fP, \fIsalvat\fP sau \fIsistemul de fișiere\fP).
+
+Adăugarea unui semn de exclamare („!”) la ID\-ul sau numele utilizatorului îi
+indică lui \*(We să afișeze numai procesele cu utilizatori care nu se
+potrivesc cu cel furnizat.
+
+Opțiunile de linie de comandă „p”, „U” și „u” se exclud reciproc.
+
+.TP  3
+\-\fBu\fP, \fB\-\-filter\-only\-user\fP = \fIUTILIZATOR\fP (ca: \fInumăr\fP sau \fInume\fP)
+Afișează numai procesele cu un id de utilizator sau un nume de utilizator
+care se potrivește cu cel dat.  Această opțiune se potrivește numai cu ID\-ul
+de utilizator \fIefectiv\fP.
+
+Adăugarea unui semn de exclamare („!”) la ID\-ul sau numele utilizatorului îi
+indică lui \*(We să afișeze numai procesele cu utilizatori care nu se
+potrivesc cu cel furnizat.
+
+Opțiunile de linie de comandă „p”, „U” și „u” se exclud reciproc.
+
+.TP  3
+\fBV\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune, apoi iese.
+
+.TP  3
+\-\fBw\fP, \fB\-\-width\fP [=\fICOLOANE\fP]
+În modul Loturi de comenzi (Batch), atunci când este utilizată fără un
+argument, \*(We va formata ieșirea folosind variabilele de mediu COLUMNS= și
+LINES=, dacă sunt definite. În caz contrar, lățimea va fi fixată la maximum
+de \*(WX coloane. Cu un argument, lățimea de ieșire poate fi micșorată sau
+mărită (până la \*(WX), dar numărul de rânduri este considerat nelimitat.
+
+În modul de afișare normal, atunci când este utilizată fără un argument,
+\*(We va \fIîncerca\fP să formateze ieșirea folosind variabilele de mediu
+COLUMNS= și LINES=, dacă sunt definite.  Cu un argument, lățimea de ieșire
+poate fi doar micșorată, nu și mărită.  Indiferent dacă se utilizează
+variabilele de mediu sau un argument cu opțiunea „\-w”, atunci când \fInu se află\fP în modul Loturi de comenzi (Batch), dimensiunile reale ale
+terminalului nu pot fi niciodată depășite.
+
+Notă: Fără utilizarea acestei opțiuni de linie de comandă, lățimea de ieșire
+se bazează întotdeauna pe terminalul la care a fost invocat top, indiferent
+dacă este sau nu în modul Loturi de comenzi (Batch).
+
+.TP  3
+\-\fB1\fP, \fB\-\-single\-cpu\-toggle\fP
+Lansează \*(We cu ultima porțiune memorată a stărilor Cpu din zona de
+rezumat inversată.  Fie toate informațiile despre \*(Pu vor fi afișate pe un
+singur rând, fie fiecare \*(Pu va fi afișat separat, în funcție de starea
+comenzii de comutare a nodului NUMA („2”).
+
+Pentru informații suplimentare, consultați comenzile interactive „1” și „2”.
+
+.\" ----------------------------------------------------------------------
+.SH "2. Afișarea REZUMATULUI"
+.\" ----------------------------------------------------------------------
+Fiecare dintre următoarele trei zone este controlată individual prin
+intermediul uneia sau mai multor comenzi interactive.  A se vedea subiectul
+4b. Comenzi din ZONA de REZUMAT pentru informații suplimentare referitoare
+la aceste dispoziții.
+
+.\" ......................................................................
+.SS "2a. Mediile de ÎNCĂRCARE și TIMPUL de FUNCȚIONARE"
+.\" ----------------------------------------------------------------------
+Această porțiune constă dintr\-o singură linie care conține:
+.nf
+    numele \fBprogramului\fP sau al \fBferestrei\fP, în funcție de modul de afișare
+    ora curentă și durata de timp de la ultima pornire (timpul de funcționare)
+    numărul total de utilizatori
+    încărcarea medie a sistemului în ultimele 1, 5 și 15 minute
+.fi
+
+.\" ......................................................................
+.SS "2b. SARCINI și Stări CPU"
+.\" ----------------------------------------------------------------------
+Această porțiune constă din minim două linii.  Într\-un mediu SMP, liniile
+suplimentare pot reflecta procentele individuale ale stării CPU.
+
+Prima linie arată numărul total de \fBsarcini\fP sau de \fBfire de execuție\fP, în
+funcție de starea comutatorului de mod al Firelor de execuție.  Acest total
+este clasificat în continuare astfel:
+.nf
+    rulând (running); adormit (sleeping); oprit (stopped); zombi
+.fi
+
+A doua linie arată procentajele de stare a CPU în funcție de intervalul de
+la ultima reîmprospătare.
+
+În mod implicit, sunt afișate procentele pentru aceste categorii
+individuale.  În funcție de versiunea nucleului dumneavoastră, este posibil
+ca ultimul câmp, \fBst\fP, să nu fie afișat.
+.nf
+    \fBus\fP : timpul de execuție al proceselor de utilizator fără curtoazie (cu prioritate de execuție ridicată)
+    \fBsy\fP : timpul de rulare al proceselor nucleului
+    \fBni\fP : timpul de execuție al proceselor de utilizator cu curtoazie (cu prioritate de execuție scăzută)
+    \fBid\fP : timpul petrecut în gestionarea inactivității nucleului
+    \fBwa\fP : timpul de așteptare pentru finalizarea intrărilor/ieșirilor
+    \fBhi\fP : timpul petrecut la deservirea întreruperilor hardware
+    \fBsi\fP : timpul petrecut la deservirea întreruperilor software
+    \fBst\fP : timpul furat de la această mașină virtuală de către hipervizor
+.fi
+
+Valoarea „sy” de mai sus reflectă, de asemenea, timpul de rulare a unui
+\*(Pu virtual pentru sistemele de operare invitate, inclusiv pentru cele
+care au fost modificate.
+
+Dincolo de prima linie de sarcini/fire de execuție, există moduri
+alternative de afișare a procesorului, disponibile prin intermediul comenzii
+„t” cu 4 direcții de comutare.  Aceste moduri afișează un rezumat
+simplificat format din aceste elemente:
+.nf
+               a    b     c    d
+    %Cpu(s):  \fB75.0\fP/25.0  \fB100\fP[ ... ]
+
+.fi
+
+Unde: a) este procentul „utilizator” (us + ni); b) este procentul „sistem”
+(sy + hi + si + guests); c) este procentul total; și d) este unul dintre
+cele două grafice vizuale ale acelor reprezentări.  Astfel de grafice
+reflectă, de asemenea, porțiuni separate „utilizator” și „sistem”.
+
+Dacă comanda de comutare „”' este utilizată pentru a obține mai mult de două
+procesoare (CPU) pe linie, rezultatele vor fi reduse și mai mult,
+eliminându\-se elementele a) și b).  Cu toate acestea, aceste informații sunt
+încă reflectate în graficul propriu\-zis, presupunând că culoarea este activă
+sau, în caz contrar, că sunt afișate bare și blocuri.
+
+A se vedea subiectul 4b. Comenzi din ZONA de REZUMAT pentru informații
+suplimentare privind comenzile de comutare „t” și „4”.
+
+.\" ......................................................................
+.SS "2c. Utilizarea MEMORIEI"
+.\" ----------------------------------------------------------------------
+Această porțiune este formată din două linii care pot exprima valori de la
+kibiocteți (Kio) la exbiocteți (Eio), în funcție de factorul de scalare
+aplicat prin intermediul comenzii interactive „E”. Câmpurile sursă
+/proc/meminfo sunt afișate între paranteze.
+
+Prima linie reflectă memoria fizică, clasificată ca:
+.nf
+    total          ( MemTotal )
+    free           ( MemFree )
+    used           ( MemTotal \- MemAvailable )
+    buff/cache     ( Buffers + Cached + SReclaimable )
+.fi
+
+A doua linie reflectă în principal memoria virtuală, clasificată ca:
+.nf
+    total          ( SwapTotal )
+    free           ( SwapFree )
+    used           ( SwapTotal \- SwapFree )
+    avail          ( MemAvailable, care este Memoria fizică)
+.fi
+
+Cantitatea \fBdisponibilă (avail)\fP de pe a doua linie este o estimare a
+memoriei fizice disponibile pentru lansarea de noi aplicații, fără
+utilizarea spațiului de interschimb (swapping).  Spre deosebire de câmpul
+„liberă”, aceasta încearcă să țină cont de zonele de prestocare (cache) ale
+paginilor ușor de recuperat și blocurile de memorie „slabs”.  Este
+disponibilă pe nucleele 3.14, emulată pe nucleele 2.6.27+, altfel la fel ca
+„liberă”.
+
+În modurile de afișare a memoriei alternative, sunt afișate două linii de
+rezumat abreviate, formate din aceste elemente:
+.nf
+               a    b          c
+    Gio Mem : \fB18.7\fP/15.738   [ ... ]
+    Gio Swap: \fB 0.0\fP/7.999    [ ... ]
+.fi
+
+Unde: a) este procentul utilizat; b) este totalul disponibil; și c) este
+unul dintre cele două grafice vizuale ale acestor reprezentări.
+
+În cazul memoriei fizice, procentul reprezintă \fBtotalul\fP minus cantitatea
+\fBdisponibilă\fP estimată menționată mai sus.  Graficul „Mem” în sine este
+împărțit între porțiunea de memorie \fButilizată\fP care nu se află în memoria
+cache și orice memorie rămasă care nu este altfel luată în considerare de
+cantitatea de memorie \fBdisponibilă\fP.  A se vedea subiectul 4b. Comenzi din
+ZONA de REZUMAT și comanda „m” pentru informații suplimentare despre acea
+comutare specială în 4 căi.
+
+Acest tabel poate ajuta la interpretarea valorilor scalate afișate:
+.nf
+    Kio = kibiocteți = 1024 octeți
+    Mio = mebiocteți = 1024 Kio = 1.048.576 octeți
+    Gio = gibiocteți = 1024 Mio = 1.073.741.824 octeți
+    Tio = tebiocteți = 1024 Gio = 1.099.511.627.776 octeți
+    Pio = pebiocteți = 1024 Tio = 1.125.899.906.842.624 octeți
+    Eio = exbiocteți = 1024 Pio = 1.152.921.504.606.846.976 octeți
+.fi
+
+.\" ----------------------------------------------------------------------
+.SH "3. CÂMPURI / Coloane"
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS "3a. DESCRIEREA Câmpurilor"
+.\" ----------------------------------------------------------------------
+Mai jos sunt enumerate câmpurile de procesare (coloanele) disponibile în
+\*(We.  Acestea sunt afișate în ordine alfabetică ascii strictă.  Puteți
+personaliza poziția lor și dacă sunt sau nu afișabile cu ajutorul comenzii
+interactive „f” (Gestionarea câmpurilor).
+
+Orice câmp poate fi selectat drept câmp de sortare, iar dvs. puteți controla
+dacă acestea sunt sortate de la mare la mic sau de la mic la mare.   Pentru
+informații suplimentare privind dispozițiile de sortare, consultați
+subiectul 4c. Comenzi din ZONA de SARCINI, Sortare.
+
+Câmpurile legate de memoria fizică sau de memoria virtuală se referă la
+„(Kio)”, care reprezintă modul de afișare fără sufix.  Cu toate acestea,
+aceste câmpuri pot fi scalate de la Kio la Pio.  Această scalare este
+influențată prin intermediul comenzii interactive „e” sau stabilită la
+pornire printr\-o opțiune de compilare.
+
+.TP  4
+\fB%CPU \*(Em Utilizarea \*(PU\-ului\fP
+Procentul sarcinii din timpul de CPU scurs de la ultima actualizare a
+ecranului, exprimată ca procent din timpul total al CPU.
+
+Într\-un mediu SMP adevărat, dacă un proces are mai multe fire de execuție și
+\*(We \fInu\fP funcționează în modul „Fire de execuție”, pot fi raportate
+cantități mai mari de 100%.  Puteți să activați modul „Fire de execuție” cu
+ajutorul comenzii interactive „H”.
+
+De asemenea, pentru mediile cu mai multe procesoare, dacă modul Irix este
+dezactivat (\*F), \*(We va funcționa în modul Solaris, în care utilizarea
+cpu a unei sarcini va fi împărțită la numărul total de procesoare.  Puteți
+comuta modurile Irix/Solaris cu ajutorul comenzii interactive „I”.
+
+Notă: Atunci când se execută în modul de vizualizare arborescentă („V”) cu
+copii colapsați („v”), acest câmp va include și timpul CPU al acelor copii
+nevăzuți.   A se vedea subiectul 4c. Comenzi din ZONA de SARCINI, Conținut
+pentru mai multe informații privind comutatoarele „V” și „v”.
+
+.TP  4
+\fB%CUC \*(Em Utilizarea \*(PU\-ului\fP
+Acest câmp este identic cu %CUU de mai jos, cu excepția faptului că
+procentul reflectă și procesele copil recoltate.
+
+.TP  4
+\fB%CUU \*(Em Utilizarea \*(PU\-ului\fP
+Utilizarea totală a CPU a unei sarcini împărțită la timpul de execuție
+scurs, exprimată ca procent.
+
+În cazul în care un proces afișează în prezent o utilizare ridicată a CPU,
+acest câmp poate ajuta la determinarea dacă acest comportament este normal.
+În schimb, dacă un proces are o utilizare scăzută a CPU în prezent, %CUU
+poate reflecta solicitări istorice mai mari de\-a lungul vieții sale.
+
+.TP  4
+\fB%MEM \*(Em Utilizarea memoriei (RES) \fP
+Procentul de memorie fizică disponibilă a unei sarcini care este în prezent
+rezidentă.
+
+\*(XX.
+
+.TP  4
+\fBAGID \*(Em Identificator de autogrup\fP
+Identificatorul auto\-grupului asociat unui proces.  Această caracteristică
+funcționează împreună cu planificatorul CFS pentru a îmbunătăți performanța
+biroului interactiv.
+
+Când „/proc/sys/kernel/sched_autogroup_enabled” este activat, un nou grup
+automat este creat cu fiecare sesiune nouă (a se vedea SID). Toate procesele
+bifurcate ulterior din acea sesiune moștenesc apartenența la acest grup
+automat. Nucleul încearcă apoi să egalizeze distribuția ciclurilor CPU între
+astfel de grupuri. Astfel, un auto\-grup cu multe procese intensive de CPU
+(de exemplu «make \-j») nu va domina un auto\-grup cu doar unul sau două
+procese.
+
+Când se afișează \fB\-1\fP înseamnă că această informație nu este disponibilă.
+
+.TP  4
+\fBAGNI \*(Em Valoarea priorității auto\-grupului\fP
+Valoarea priorității (nice) a auto\-grupului care afectează planificarea
+tuturor proceselor din grupul respectiv.  O valoare „nice” negativă înseamnă
+o prioritate mai mare, în timp ce o valoare „nice” pozitivă înseamnă o
+prioritate mai mică.
+
+.TP  4
+\fBCGNAME \*(Em Numele grupului de control\fP
+Numele grupului de control căruia îi aparține un proces, sau „\-” dacă nu se
+aplică procesului respectiv.
+
+Aceasta va fi de obicei ultima intrare din lista completă a grupurilor de
+control, așa cum se arată în următorul titlu (CGROUPS).  La fel ca și acolo,
+acest câmp este de o lățime variabilă.
+
+.TP  4
+\fBCGROUPS \*(Em Grupuri de control\fP
+Numele grupului/grupurilor de control căruia îi aparține un proces, sau „\-”
+dacă nu se aplică procesului respectiv.
+
+Grupurile de control asigură alocarea resurselor (procesor, memorie, lățime
+de bandă de rețea etc.) între grupurile de procese definite de instalare.
+Acestea permit un control fin asupra alocării, refuzării, prioritizării,
+gestionării și monitorizării acestor resurse.
+
+Pe un sistem pot exista simultan mai multe ierarhii diferite de grupuri de
+control „cgroups”, fiecare ierarhie fiind atașată la unul sau mai multe
+subsisteme.  Un subsistem reprezintă o singură resursă.
+
+Notă: Câmpul „CGROUPS”, spre deosebire de majoritatea coloanelor, nu are o
+lățime fixă.  Atunci când este afișat, acestuia și oricăror alte coloane cu
+lățime variabilă li se alocă toată lățimea rămasă pe ecran (până la maximum
+\*(WX caractere).  Chiar și așa, astfel de câmpuri cu lățime variabilă pot
+suferi trunchieri.   A se vedea subiectul 5c. Derularea unei ferestre pentru
+informații suplimentare privind accesarea oricăror date trunchiate.
+
+.TP  4
+\fBCODE \*(Em Dimensiunea codului (Kio)\fP
+Cantitatea de memorie fizică dedicată în prezent codului executabil,
+cunoscută și sub numele de dimensiunea setului rezident de text „Text
+Resident Set size” sau „TRS”.
+
+\*(XX.
+
+.TP  4
+\fBCOMMAND \*(Em Numele comenzii\fP sau \fBLinia\fP de comandă
+Afișează linia de comandă utilizată pentru a porni o sarcină sau numele
+programului asociat.  Comutați între \fIlinia\fP de comandă și \fInume\fP cu „c”,
+care este atât o opțiune de linie de comandă, cât și o comandă interactivă.
+
+Dacă ați ales să afișați liniile de comandă, procesele fără o linie de comandă (cum ar fi firele de execuție ale nucleului) vor fi afișate doar cu numele programului între paranteze, ca în acest exemplu:
+    [kthreadd]
+
+Acest câmp poate fi influențat, de asemenea, de modul de afișare a
+vizualizării arborescente.  Consultați comanda interactivă „V” pentru
+informații suplimentare privind acest mod.
+
+Notă: Câmpul COMANDA, spre deosebire de majoritatea coloanelor, nu are o
+lățime fixă.  Atunci când este afișat, acesta, precum și orice alte coloane
+cu lățime variabilă, vor fi alocate toate coloanele lățimea rămasă a
+ecranului (până la maximum \*(WX caractere).  Chiar și așa, astfel de
+câmpuri cu lățime variabilă ar putea suferi trunchiere.   Acest lucru se
+întâmplă în special adevărat pentru acest câmp atunci când sunt afișate
+linii de comandă (comanda interactivă „c”.) A se vedea subiectul
+5c. Derularea unei ferestre pentru informații suplimentare informații
+suplimentare privind accesarea oricăror date trunchiate.
+
+.TP  4
+\fBDATA \*(Em Dimensiunea date + stivă (Kio)\fP
+Cantitatea de memorie privată \fIrezervată\fP de un proces.  Este cunoscută și
+sub numele de setul de date rezident „Data Resident Set” sau „DRS”.  Este
+posibil ca această memorie să nu fie încă repartizată în memoria fizică
+(RES), dar va fi întotdeauna inclusă în cantitatea de memorie virtuală
+(VIRT).
+
+\*(XX.
+
+.TP  4
+\fBELAPSED \*(Em Timpul de rulare scurs\fP
+Perioada de timp de la începutul unui proces. Astfel, sarcina cea mai recent
+începută va afișa cel mai mic interval de timp.
+
+Valoarea va fi exprimată ca „HH,MM” (ore, minute), dar este supusă unei
+scalări suplimentare dacă intervalul devine prea mare pentru a se potrivi cu
+lățimea coloanei.  În acel moment, va fi scalată la „DD+HH” (zile+ore) și,
+dacă este cazul, și mai departe.
+
+.TP  4
+\fBENVIRON \*(Em Variabile de mediu\fP
+Afișează toate variabilele de mediu, dacă există, așa cum sunt văzute de
+procesele respective.  Aceste variabile vor fi afișate în ordinea lor nativă
+brută, nu în ordinea în care sunteți obișnuit să le vedeți cu un „set”
+necalificat.
+
+Notă: Câmpul „ENVIRON”, spre deosebire de majoritatea coloanelor, nu are o
+lățime fixă.  Atunci când este afișat, acestuia și oricăror alte coloane cu
+lățime variabilă li se va aloca toată lățimea rămasă pe ecran (până la
+maximum \*(WX caractere).  Chiar și așa, astfel de câmpuri cu lățime
+variabilă ar putea suferi trunchiere.   Acest lucru este valabil în special
+pentru acest câmp.  A se vedea subiectul 5c. Derularea unei ferestre pentru
+informații suplimentare privind accesarea oricăror date trunchiate.
+
+.TP  4
+\fBEXE \*(Em Calea la executabil\fP
+În cazul în care este disponibilă, aceasta este calea completă către
+executabil, inclusiv numele programului.
+
+Notă: Câmpul EXE, spre deosebire de majoritatea coloanelor, nu are o lățime
+fixă.  Atunci când este afișat, acestuia și oricăror alte coloane cu lățime
+variabilă li se va aloca toată lățimea rămasă pe ecran (până la maximum
+\*(WX caractere).
+
+.TP  4
+\fBFlags \*(Em Indicatori sarcină\fP
+Această coloană reprezintă indicatorii de planificare curenți ai sarcinii,
+care sunt exprimați în notație hexazecimală și fără zerouri.  Acești
+indicatori sunt documentați oficial în <linux/sched.h>.
+
+.TP  4
+\fBGID \*(Em Identificatorul de grup\fP
+Identificatorul grupului \fIefectiv\fP.
+
+.TP  4
+\fBGROUP \*(Em Numele grupului\fP
+Numele grupului \fIefectiv\fP.
+
+.TP  4
+\fBLOGID \*(Em Identificatorul utilizatorului autentificat\fP
+Identificatorul utilizatorului folosit la \fIautentificare\fP. Când este afișat
+„\-1”, înseamnă că această informație nu este disponibilă.
+
+.TP  4
+\fBLXC \*(Em Numele containerului Lxc\fP
+Numele containerului lxc în care rulează o sarcină.  Dacă un proces nu
+rulează în interiorul unui container, va fi afișată o liniuță (`\-').
+
+.TP  4
+\fBNI \*(Em Valoarea curtoaziei „nice”\fP
+Valoarea curtoaziei sarcinii.  O valoare de curtoazie negativă înseamnă o
+prioritate mai mare, în timp ce o valoare de curtoazie pozitivă înseamnă o
+prioritate mai mică.  Zero în acest câmp înseamnă pur și simplu că
+prioritatea nu va fi ajustată la determinarea capacității de desfășurare a
+unei sarcini.
+
+Notă: Această valoare afectează numai prioritatea de planificare în raport
+cu alte procese din același auto\-grup.  A se vedea câmpurile „AGID” și
+„AGNI” pentru informații suplimentare despre auto\-grupuri.
+
+.TP  4
+\fBNU \*(Em Ultimul nod NUMA cunoscut\fP
+Un număr reprezentând nodul NUMA asociat cu ultimul procesor utilizat
+(„P”).  Când este afișat „\-1” înseamnă că informațiile NUMA nu sunt
+disponibile.
+
+Consultați comenzile interactive „2” și „3” pentru prevederi suplimentare
+NUMA care afectează Zona de Rezumat.
+
+.TP  4
+\fBOOMa \*(Em Factorul de ajustare a depășirii limitelor memoriei disponibile\fP
+Valoarea, care variază de la \-1000 la +1000, se adaugă la estimarea actuală
+de depășire a memoriei (OOMs), care este apoi utilizat pentru a determina ce
+sarcină trebuie eliminată atunci când memoria este epuizată.
+
+.TP  4
+\fBOOMs \*(Em Estimarea de depășire a memoriei\fP
+Valoarea, cuprinsă între 0 și +1000, utilizată pentru a selecta sarcina
+(sarcinile) care urmează să fie omorâte atunci când memoria este epuizată.
+Zero se traduce prin „nu omorî niciodată”, în timp ce 1000 înseamnă „omoară
+întotdeauna”.
+
+.TP  4
+\fBP \*(Em Ultimul \*(PU utilizat (SMP)\fP
+Un număr care reprezintă ultimul procesor utilizat.  Într\-un mediu SMP
+adevărat, acest număr se va schimba probabil frecvent, deoarece nucleul
+utilizează în mod intenționat o afinitate slabă.  De asemenea, simplul fapt
+de a rula \*(We poate rupe această afinitate slabă și poate face ca mai
+multe procese să schimbe procesoarele mai des (din cauza necesității
+suplimentare de timp \*(Pu)..
+
+.TP  4
+\fBPGRP \*(Em Identificatorul grupului de procese\fP
+Fiecare proces este membru al unui grup de procese unic, care este utilizat
+pentru distribuirea semnalelor și de către terminale pentru a arbitra
+cererile de intrare și ieșire.  Atunci când un proces este creat (bifurcat),
+acesta devine membru al grupului de procese al părintelui său.  Prin
+convenție, această valoare este egală cu identificatorul procesului (a se
+vedea PID) al primului membru al unui grup de procese, numit liderul
+grupului de procese.
+
+.TP  4
+\fBPID \*(Em Identificatorul procesului\fP
+Identificatorul unic de proces al sarcinii, care se reînnoiește periodic,
+dar nu repornește niciodată de la zero.  În termeni de nucleu, este o
+entitate care poate fi gestionată definită de o „task_struct”.
+
+Această valoare poate fi, de asemenea, utilizată ca: un ID de grup de
+procese (a se vedea PGRP); un ID de sesiune pentru liderul sesiunii (a se
+vedea SID); un ID de grup de fire de execuție pentru liderul grupului de
+fire de execuție (a se vedea TGID); și un ID de grup de procese TTY pentru
+liderul grupului de procese (a se vedea TPGID).
+
+.TP  4
+\fBPPID \*(Em Identificatorul procesului părinte\fP
+Identificatorul de proces (pid) al părintelui unei sarcini.
+
+.TP  4
+\fBPR \*(Em Prioritatea\fP
+Prioritatea de planificare a sarcinii.  Dacă vedeți „rt” în acest câmp,
+înseamnă că sarcina se execută cu prioritate de planificare în timp real.
+
+În Linux, prioritatea în timp real este oarecum înșelătoare, deoarece, în
+mod tradițional, sistemul de operare în sine nu era predictibil.  Și, deși
+nucleul 2.6 poate fi făcut în mare parte predictibil, nu este întotdeauna
+așa.
+
+.TP  4
+\fBPSS \*(Em Proporția de memorie rezidentă, smaps (Kio)\fP
+Proporția din porțiunea de „RSS” a acestei sarcini în care fiecare pagină
+este împărțită la numărul de procese care o partajează.  Este, de asemenea,
+suma câmpurilor „PSan”, „PSfd” și „PSsh”.
+
+De exemplu, dacă un proces are 1000 de pagini rezidente singur și 1000 de
+pagini rezidente partajate cu un alt proces, „PSS”\-ul acestuia va fi de 1500
+(multiplicat cu dimensiunea paginii (1000 x 1,5)).
+
+\*(ZX.
+
+.PP
+\fBPSan \*(Em Proporția de memorie anonimă, smaps (Kio)\fP
+.br
+\fBPSfd \*(Em Proporția de memorie pe fișier, smaps (KiB)\fP
+.br
+\fBPSsh \*(Em Proporția de memorie shmem, smaps (KiB) \fP
+.RS 4
+La fel ca și în cazul lui „PSS” de mai sus (memorie rezidentă proporțională
+totală), aceste câmpuri reprezintă proporția părții din fiecare tip de
+memorie care revine acestei sarcini, împărțită la numărul de procese care o
+partajează.
+
+\*(ZX.
+.RE
+
+.TP  4
+\fBRES \*(Em Dimensiunea memoriei rezidente (Kio)\fP
+Un subset al spațiului de adrese virtuale (VIRT) reprezentând memoria fizică
+(fără memoria spațiului de interschimb „swap”) pe care o sarcină o folosește
+în prezent.  Este, de asemenea, suma câmpurilor „RSan”, „RSfd” și „RSsh”.
+
+Aceasta poate include pagini anonime private, pagini private alocate
+fișierelor (inclusiv imagini de program și biblioteci partajate) și pagini
+anonime partajate.  Toată această memorie este susținută de fișierul „swap”
+reprezentat separat la secțiunea \fISWAP\fP.
+
+În cele din urmă, acest câmp poate include, de asemenea, pagini partajate
+susținute de fișiere care, atunci când sunt modificate, acționează ca un
+fișier „swap” dedicat și, prin urmare, nu vor afecta niciodată \fISWAP\fP.
+
+\*(XX.
+
+.TP  4
+\fBRSS \*(Em Memoria rezidentă, smaps (Kio)\fP
+O altă vizualizare, mai precisă, a memoriei fizice (fără memoria spațiului
+de interschimb „swap”) a procesului.  Este obținută din fișierul
+„smaps_rollup” și este, în general, puțin mai mare decât cea prezentată
+pentru \fIRES\fP.
+
+\*(ZX.
+
+.TP  4
+\fBRSan \*(Em Dimensiunea memoriei rezidente anonime (Kio)\fP
+Un subset de memorie rezidentă (RES) care reprezintă pagini private care nu
+sunt alocate unui fișier.
+
+.TP  4
+\fBRSfd \*(Em Dimensiunea memoriei rezidente cu suport de fișiere (Kio)\fP
+Un subset de memorie rezidentă (RES) reprezentând paginile implicit
+partajate care suportă imagini de program și biblioteci partajate. Include,
+de asemenea, alocări explicite ale fișierelor, atât private, cât și
+partajate.
+
+.TP  4
+\fBRSlk \*(Em Dimensiunea memoriei rezidente blocate (Kio)\fP
+Un subset de memorie rezidentă (RES) care nu poate fi interschimbată.
+
+.TP  4
+\fBRSsh \*(Em Dimensiunea memoriei partajate rezidente (Kio)\fP
+Un subset de memorie rezidentă (RES) reprezentând paginile „shm*/mmap”
+anonime partajate în mod explicit.
+
+.TP  4
+\fBRUID \*(Em Identificatorul utilizatorului real\fP
+Identificatorul utilizatorului \fIreal\fP.
+
+.TP  4
+\fBRUSER \*(Em Numele utilizatorului real\fP
+Numele utilizatorului \fIreal\fP.
+
+.TP  4
+\fBS \*(Em Starea procesului\fP
+Starea sarcinii, care poate fi una dintre următoarele:
+    \fBD\fP = în somn neîntrerupt
+    \fBI\fP = inactivă
+    \fBR\fP = rulează
+    \fBS\fP = dormind
+    \fBT\fP = oprită de semnalul de control al lucrării
+    \fBt\fP = oprită de depanator în timpul urmăririi
+    \fBZ\fP = zombi
+
+Sarcinile afișate ca rulând ar trebui să fie considerate mai degrabă ca
+fiind pregătite să ruleze \*(Em task_struct lor este reprezentat pur și
+simplu în coada de execuție Linux.   Chiar și în lipsa unei mașini SMP
+adevărate, este posibil să vedeți numeroase sarcini în această stare, în
+funcție de intervalul de întârziere și de valoarea „nice” a lui \*(We.
+
+.TP  4
+\fBSHR \*(Em Dimensiunea memoriei partajate (Kio)\fP
+Un subset de memorie rezidentă (RES) care poate fi utilizat de alte
+procese. Acesta va include pagini anonime partajate și pagini partajate
+susținute de fișiere. De asemenea, include pagini private asociate la
+fișiere reprezentând imagini de program și biblioteci partajate.
+
+\*(XX.
+
+.TP  4
+\fBSID \*(Em Identificatorul sesiunii\fP
+O sesiune este o colecție de grupuri de procese (a se vedea PGRP), stabilite
+de obicei de shell\-ul de conectare.  Un proces nou bifurcat se alătură
+sesiunii creatorului său.  Prin convenție, această valoare este egală cu
+ID\-ul procesului (a se vedea PID) al primului membru al sesiunii, numit
+lider de sesiune, care este de obicei shell\-ul de conectare.
+
+.TP  4
+\fBSTARTED \*(Em Intervalul de timp de pornire\fP
+Durata de timp scursă de la pornirea sistemului când a fost inițiat un
+proces.  Astfel, cea mai recentă sarcină pornită va afișa cel mai mare
+interval de timp.
+
+Valoarea va fi exprimată ca „MM:SS” (minute:secunde).  Dar dacă intervalul
+este prea mare pentru a se potrivi cu lățimea coloanei, acesta va fi scalat
+ca „HH,MM” (ore, minute) și, eventual, mai departe.
+
+.TP  4
+\fBSUID \*(Em Identificatorul utilizatorului salvat\fP
+Identificatorul utilizatorului \fIsalvat\fP.
+
+.TP  4
+\fBSUPGIDS \*(Em Identificatori de grup suplimentari\fP
+Identificatorii oricăror grupuri suplimentare stabilite la conectare sau
+moștenite de la părintele unei sarcini.  Acestea sunt afișate într\-o listă
+delimitată prin virgule.
+
+Notă: Câmpul SUPGIDS, spre deosebire de majoritatea coloanelor, nu are o
+lățime fixă.  Atunci când este afișat, acestuia și oricăror alte coloane cu
+lățime variabilă li se va aloca toată lățimea rămasă pe ecran (până la
+maximum \*(WX caractere).
+
+.TP  4
+\fBSUPGRPS \*(Em Nume de grupuri suplimentare\fP
+Numele oricăror grupuri suplimentare stabilite la conectare sau moștenite de
+la părintele unei sarcini.  Acestea sunt afișate într\-o listă delimitată
+prin virgule.
+
+Notă: Câmpul SUPGRPS, spre deosebire de majoritatea coloanelor, nu are o
+lățime fixă.  Atunci când este afișat, acestuia și oricăror alte coloane cu
+lățime variabilă li se va aloca toată lățimea rămasă pe ecran (până la
+maximum \*(WX caractere).
+
+.TP  4
+\fBSUID \*(Em Numele utilizatorului salvat\fP
+Numele utilizatorului \fIsalvat\fP.
+
+.TP  4
+\fBSWAP \*(Em Dimensiunea spațiului de interschimb (Kio)\fP
+Porțiunea rezidentă anterior a spațiului de adrese al unei sarcini care se
+scrie în fișierul „swap” atunci când memoria fizică este suprasolicitată.
+
+\*(XX.
+
+.TP  4
+\fBTGID \*(Em Identificatorul grupului de fire de execuție\fP
+Identificatorul grupului de fire de execuție din care face parte o sarcină.
+Este PID\-ul liderului grupului de fire.  În termeni de nucleu, reprezintă
+acele sarcini care partajează o structură mm_struct.
+
+.TP  4
+\fBTIME \*(Em Timpul \*(PU\fP
+Timpul total \*(PU pe care sarcina a folosit\-o de când a început.  Când
+modul cumulativ este \*O (On), fiecare proces este listat cu timpul \*(Pu pe
+care l\-au folosit el și copiii săi morți.  Comutați modul Cumulativ cu „S”,
+care este atât o opțiune de linie de comandă, cât și o comandă interactivă.
+Consultați comanda interactivă „S” pentru informații suplimentare despre
+acest mod.
+
+.TP  4
+\fBTIME+ \*(Em Timpul \*(PU, în sutimi de secundă\fP
+La fel ca TIMPUL, dar reflectând mai multă finețe prin sutimi de secundă.
+
+.TP  4
+\fBTPGID \*(Em Identificatorul grupului de procese care controlează terminalul (tty)\fP
+Identificatorul grupului de procese al procesului din prim\-plan pentru
+terminalul (tty) conectat sau „\-1” dacă un proces nu este conectat la un
+terminal.  Prin convenție, această valoare este egală cu identificatorul de
+proces (a se vedea PID) al liderului grupului de procese (a se vedea PGRP).
+
+.TP  4
+\fBTTY \*(Em Terminalul de control\fP
+Numele terminalului de control.  Acesta este, de obicei, dispozitivul (port
+serial, pty etc.) de la care a fost pornit procesul și pe care îl folosește
+pentru intrare sau ieșire.  Cu toate acestea, nu este necesar ca o sarcină
+să fie asociată cu un terminal, caz în care veți vedea afișat „?”.
+
+.TP  4
+\fBUID \*(Em Identificatorul utilizatorului\fP
+Identificatorul de utilizator \fIefectiv\fP al proprietarului sarcinii.
+
+.TP  4
+\fBUSED \*(Em Memoria utilizată (Kio)\fP
+Acest câmp reprezintă memoria fizică fără memoria din spațiul de interschimb
+pe care o sarcină o folosește (RES) plus porțiunea spațiului de interschimb
+din spațiul său de adrese (SWAP).
+
+\*(XX.
+
+.TP  4
+\fBUSER \*(Em Numele utilizatorului\fP
+Numele de utilizator \fIefectiv\fP al proprietarului sarcinii.
+
+.TP  4
+\fBUSS \*(Em Dimensiune unică a setului\fP
+Porțiunea de memorie fizică fără memoria din spațiul de interschimb („RSS”)
+care nu este partajată cu nici un alt proces.  Este derivată din fișierul
+„smaps_rollup”.
+
+\*(ZX.
+
+.TP  4
+\fBVIRT \*(Em Dimensiunea memoriei virtuale (Kio)\fP
+Cantitatea totală de memorie virtuală utilizată de sarcină.  Include tot
+codul, datele și bibliotecile partajate plus paginile care au fost schimbate
+și paginile care au fost alocate, dar nu utilizate.
+
+\*(XX.
+
+.TP  4
+\fBWCHAN \*(Em Dormirea în funcție\fP
+Acest câmp va afișa numele funcției din nucleu în care doarme în prezent
+sarcina.  Sarcinile care rulează vor afișa o liniuță („\-”) în câmpul din
+această coloană.
+
+.TP  4
+\fBioR \*(Em Numărul de octeți de In/Ieș citiți\fP
+Numărul de octeți pe care un proces i\-a determinat să fie preluați din
+stratul de stocare.
+
+Sunt necesare privilegii de root pentru a afișa datele de„in/ieș” pentru
+alți utilizatori.
+
+.TP  4
+\fBioRop \*(Em Numărul de operații de citire de la In/Ieș\fP
+Numărul de operații de citire a In/Ieș (apeluri de sistem „syscalls”) pentru
+un proces.  Este posibil ca astfel de apeluri să nu aibă ca rezultat o
+In/Ieș efectivă a discului fizic.
+
+.TP  4
+\fBioW \*(Em Numărul de octeți de In/Ieș scriși\fP
+Numărul de octeți pe care un proces i\-a determinat să fie trimiși la stratul
+de stocare.
+
+.TP  4
+\fBioWop \*(Em Numărul de operații de scriere la In/Ieș\fP
+Numărul de operații de scriere la In/Ieș (apeluri de sistem „syscalls”)
+pentru un proces.  Este posibil ca astfel de apeluri să nu aibă ca rezultat
+o In/Ieș efectivă a discului fizic.
+
+.TP  4
+\fBnDRT \*(Em Numărul de pagini corupte\fP
+Numărul de pagini care au fost modificate de când au fost scrise ultima dată
+în memoria auxiliară.  Paginile corupte trebuie să fie scrise în memoria
+auxiliară. înainte ca locația de memorie fizică corespunzătoare să poată fi
+utilizată pentru o altă pagină virtuală.
+
+Acest câmp a fost desființat odată cu linux 2.6 și este întotdeauna zero.
+
+.TP  4
+\fBnMaj \*(Em Numărul de erori de pagină majore\fP
+Numărul de erori de pagină \fBmajore\fP care au avut loc pentru o sarcină.  O
+eroare de pagină apare atunci când un proces încearcă să citească sau să
+scrie pe o pagină virtuală care nu este prezentă în acel moment în spațiul
+său de adrese.  O eroare majoră de pagină este atunci când este implicat un
+acces la o stocare auxiliară pentru a face pagina respectivă disponibilă.
+
+.TP  4
+\fBnMaj \*(Em Numărul de erori de pagină minore\fP
+Numărul de erori de pagină \fBminore\fP care au avut loc pentru o sarcină.  O
+eroare de pagină apare atunci când un proces încearcă să citească sau să
+scrie pe o pagină virtuală care nu este prezentă în acel moment în spațiul
+său de adrese.  O eroare de pagină minoră nu implică accesul la stocarea
+auxiliară pentru a face pagina respectivă disponibilă.
+
+.TP  4
+\fBnTH \*(Em Numărul de fire de execuție\fP
+Numărul de fire de execuție asociate unui proces.
+
+.TP  4
+\fBnsCGROUP \*(Em Spațiul de nume al grupului de control „CGROUP”\fP
+Nodul\-i al spațiului de nume utilizat pentru a ascunde identitatea grupului
+de control al cărui membru este procesul.
+
+.TP  4
+\fBnsIPC \*(Em Spațiul de nume IPC\fP
+Nodul\-i al spațiului de nume utilizat pentru a izola resursele de comunicare
+interproces (IPC), cum ar fi obiectele IPC System V și cozile de mesaje
+POSIX.
+
+.TP  4
+\fBnsMNT \*(Em Spațiul de nume MNT\fP
+Nodul\-i al spațiului de nume utilizat pentru a izola punctele de montare a
+sistemului de fișiere, oferind astfel diferite vizualizări ale ierarhiei
+sistemului de fișiere.
+
+.TP  4
+\fBnsNET \*(Em Spațiul de nume NET\fP
+Nodul\-i al spațiului de nume utilizat pentru a izola resurse precum
+dispozitive de rețea, adrese IP, rutare IP, numere de port, etc.
+
+.TP  4
+\fBnsPID \*(Em Spațiul de nume PID\fP
+Nodul\-i al spațiului de nume utilizat pentru a izola numerele de
+identificare a proceselor, ceea ce înseamnă că acestea nu trebuie să rămână
+unice.  Astfel, fiecare astfel de spațiu de nume ar putea avea propriul
+„init/systemd” (PID #1) pentru a gestiona diverse sarcini de inițializare și
+pentru a culege procesele copil orfane.
+
+.TP  4
+\fBnsTIME \*(Em Spațiul de nume TIME\fP
+Nodul\-i al spațiului de nume care permite proceselor să vadă diferite ore de
+sistem într\-un mod similar cu spațiul de nume UTS.
+
+.TP  4
+\fBnsUSER \*(Em Spațiul de nume USER\fP
+Nodul\-i al spațiului de nume utilizat pentru a izola numerele de
+identificare ale utilizatorilor și grupurilor.  Astfel, un proces ar putea
+avea un ID de utilizator normal, fără privilegii, în afara unui spațiu de
+nume de utilizator, în timp ce în interiorul acelui spațiu de nume ar putea
+avea un ID de utilizator 0, cu privilegii complete de root.
+
+.TP  4
+\fBnsUTS \*(Em Spațiul de nume UTS\fP
+Nodul\-i al spațiului de nume utilizat pentru a izola numele de gazdă și
+numele de domeniu NIS.  UTS înseamnă pur și simplu "UNIX Time\-sharing
+System" (Sistemul UNIX de partajare a timpului).
+
+.TP  4
+\fBvMj \*(Em Numărul delta de erori de pagină majore\fP
+Numărul de erori de pagină \fBmajore\fP care au avut loc de la ultima
+actualizare (a se vedea nMaj).
+
+.TP  4
+\fBvMn \*(Em Numărul delta de erori de pagină minore\fP
+Numărul de erori de pagină \fBminore\fP care au avut loc de la ultima
+actualizare (a se vedea nMin).
+
+.\" ......................................................................
+.SS "3b. GESTIONAREA câmpurilor"
+.\" ----------------------------------------------------------------------
+După apăsarea comenzii interactive „f” (Gestionarea câmpurilor) vi se va
+afișa un ecran care arată: 1) numele ferestrei „actuale”; 2) câmpul de
+sortare desemnat; 3) toate câmpurile în ordinea lor curentă împreună cu
+descrierile.  Intrările marcate cu un asterisc sunt câmpurile afișate în
+prezent, dacă lățimea ecranului o permite.
+
+.RS +4
+.IP \(bu 3
+După cum indică instrucțiunile de pe ecran, navigați printre câmpuri cu
+tastele săgeți \fBSus\fP și \fBJos\fP.  Tastele „PgUp”, „PgDn”, „Home” și „End”
+pot fi, de asemenea, folosite pentru a ajunge rapid la primul sau ultimul
+câmp disponibil.
+
+.IP \(bu 3
+Tasta săgeată \fBDreapta\fP selectează un câmp pentru repoziționare, iar tasta
+săgeată \fBStânga\fP sau tasta <\fBEnter\fP> validează plasarea câmpului
+respectiv.
+
+.IP \(bu 3
+Tasta „\fBd\fP” sau bara \fBSpațiu\fP comută starea de afișare a unui câmp și,
+prin urmare, prezența sau absența asteriscului.
+
+.IP \(bu 3
+Tasta „\fBs\fP” desemnează un câmp ca fiind câmpul de sortare.  A se vedea
+subiectul 4c. „Comenzi din zona de sarcini, Sortare” pentru informații
+suplimentare privind selectarea unui câmp de sortare.
+
+.IP \(bu 3
+Tastele „\fBa\fP” și „\fBw\fP” pot fi folosite pentru a parcurge toate ferestrele
+disponibile, iar tastele „\fBq\fP” sau <\fBEsc\fP> fac ieșirea din
+„Gestionarea câmpurilor”.
+.RS -4
+
+.PP
+Ecranul de „Gestionarea câmpurilor” poate fi utilizat, de asemenea, pentru a
+schimba fereastra/grupul de câmpuri „curent”, fie în modul ecran complet,
+fie în modul de afișare alternativă.   Ceea ce a fost vizat atunci când a
+fost apăsată tasta „q” sau <Esc> va fi făcut curent atunci când
+reveniți la afișarea \*(We.  A se vedea subiectul 5. Dispoziții privind
+AFIȘAREA ALTERNATIVĂ și comanda interactivă „g” pentru o perspectivă asupra
+ferestrelor și grupurilor de câmpuri „curente”.
+
+.PP
+Notă: Orice fereastră care a fost derulată pe \fIorizontală\fP va fi
+restabilită în cazul în care se efectuează modificări ale câmpurilor prin
+intermediul ecranului „Gestionarea câmpurilor”.  Cu toate acestea, orice
+poziție derulată pe \fIverticală\fP nu va fi afectată.  Consultați subiectul
+5c. Derularea unei ferestre pentru informații suplimentare privind derularea
+pe verticală și orizontală.
+
+.\" ----------------------------------------------------------------------
+.SH "4. Comenzi INTERACTIVE"
+.\" ----------------------------------------------------------------------
+Mai jos este listat un scurt index al comenzilor din categorii.  Unele
+comenzi apar de mai multe ori \*(Em semnificația sau domeniul lor pot varia
+în funcție de contextul în care sunt emise.
+
+.nf
+  4a.\fI Comenzi GLOBALE \fP
+        <Enter/Spațiu> ?, =, 0,
+        A, B, d, E, e, g, H, h, I, k, q, r, s, W, X, Y, Z,
+        ^G, ^K, ^N, ^P, ^U, ^L, ^R
+  4b.\fI Comenzi din ZONA de REZUMAT \fP
+        C, l, t, m, 1, 2, 3, 4, 5, !
+  4c.\fI Comenzi din ZONA de SARCINI \fP
+        Aspect:  b, J, j, x, y, z
+        Conținut:     c, F, f, O, o, S, U, u, V, v, ^E
+        Dimensiune:        #, i, n
+        Sortare:     <, >, f, R
+  4d.\fI Paleta de CULORI \fP
+        <Ret>, a, B, b, H, M, q, S, T, w, z, 0 \- 7
+  5b.\fI Comenzi pentru ferestre \fP
+        \-, _, =, +, A, a, G, g, w
+  5c.\fI Derularea unei ferestre \fP
+        C, Sus, Jos, Stânga, Dreapta, PgUp, PgDn, Home, End
+  5d.\fI Căutarea într\-o fereastră \fP
+        L, &
+  5e.\fI Filtrarea într\-o fereastră         O, o, ^O, =, +\fP
+.fi
+
+.\" ......................................................................
+.SS "4a. Comenzi GLOBALE"
+.\" ----------------------------------------------------------------------
+Comenzile interactive globale sunt \fBîntotdeauna\fP disponibile atât în modul
+ecran complet, cât și în modul de afișare alternativă.  Cu toate acestea,
+unele dintre aceste comenzi interactive \fBnu sunt disponibile\fP atunci când
+se execută în modul „Securizat”.
+
+Dacă doriți să știți dinainte dacă \*(We) a fost sau nu securizat, nu aveți
+decât să cereți Ajutor și să vedeți rezumatul sistemului pe a doua linie.
+
+.TP  7
+\ \ <\fBEnter\fP> sau <\fBBara de spațiu\fP>\ \ :\fIReîmprospătare afișare\fP
+Aceste comenzi reactivează \*(We și, după primirea oricărei intrări,
+întregul afișaj va fi redesenat.  De asemenea, ele forțează o actualizare a
+oricăror modificări aduse de comenzile interactive \*(Pu\-ului sau memoriei
+fizice.
+
+Utilizați oricare dintre aceste taste dacă aveți un interval de întârziere
+mare și doriți să vedeți starea curentă,
+
+.TP  7
+\ \ \ \fB?\fP | \fBh\fP\ \ :\fIAjutor\fP
+Sunt disponibile două niveluri de ajutor.  Primul vă va reaminti toate
+comenzile interactive de bază.  Dacă \*(We este \fIsecurizat\fP, acest ecran va
+fi abreviat.
+
+Tastând „h” sau „?” pe acest ecran de ajutor, veți accesa ajutorul pentru
+acele comenzi interactive aplicabile în modul de afișare alternativă.
+
+.TP  7
+\ \ \ \fB=\fP\ \ :\fIElimină limitele de afișare\fP
+Elimină restricțiile privind ceea ce se afișează.  Această comandă va anula
+orice comenzi „i” (sarcini inactive), „n” (sarcini maxime), „v” (ascunde
+copii) și „F” (focalizare). care ar putea fi active.  De asemenea, permite
+ieșirea de la monitorizarea PID, filtrarea utilizatorului, alte filtre,
+procesarea Căutării și modul de Combinare a CPU\-urilor.
+
+În plus, dacă fereastra a fost derulată, aceasta va fi restabilită cu
+această comandă.
+
+.TP  7
+\ \ \ \fB0\fP\ \ :comutare \fIafișare/suprimare Zerouri\fP 
+Această comandă determină dacă zerourile sunt afișate sau suprimate pentru
+multe dintre câmpurile din fereastra unei sarcini.  Câmpuri precum UID, GID,
+NI, PR sau P nu sunt afectate de această comutare.
+
+.TP  7
+\ \ \ \fBA\fP\ \ :comutare \fIMod de afișare alternativă\fP 
+Această comandă va comuta între modul de afișare pe ecran complet și modul
+de afișare alternativă.  A se vedea subiectul 5. Dispoziții privind AFIȘAREA
+ALTERNATIVĂ și comanda interactivă „g” pentru a obține informații despre
+ferestrele și grupurile de câmpuri „actuale”.
+
+.TP  7
+\ \ \ \fBB\fP\ \ :comutare \fIActivează/dezactivează afișarea în Aldin\fP 
+Această comandă va influența utilizarea capacității de afișare în «Aldin» a
+„termifo” (terminfo bold) și modifică atât zona de rezumat, cât și zona de
+sarcini pentru fereastra „curentă”.  În timp ce este destinată în primul
+rând utilizării cu terminale simple, neevoluate, ea poate fi aplicată
+oricând.
+
+Notă: Când această comutare este \fIActivată\fP (On) și \*(We funcționează în
+modul monocrom, \fBîntregul afișaj\fP va apărea ca text normal.  Astfel, cu
+excepția cazului în care comenzile „x'”și/sau „y'”folosesc inversarea pentru
+accentuare, nu va exista nicio confirmare vizuală că acestea sunt activate.
+
+.TP  7
+*\ \ \fBd\fP | \fBs\fP\ \ :\fIModifică intervalul de întârziere\fP
+Vi se va solicita să introduceți timpul de întârziere, în secunde, între
+actualizările afișării
+
+Fracțiunile de secundă sunt recunoscute, dar nu se acceptă un număr
+negativ.  Introducerea valorii 0 determină actualizări (aproape) continue,
+cu un rezultat nesatisfăcător. deoarece sistemul și controlorul terminalului
+(tty) încearcă să țină pasul cu cerințele emise de \*(We.  Valoarea
+întârzierii este invers proporțională cu încărcarea sistemului, așa că
+stabiliți\-o cu atenție.
+
+Dacă, în orice moment, doriți să știți care este timpul de întârziere
+actual, cereți pur și simplu să primiți Ajutor și vizualizați rezumatul
+sistemului pe a doua linie.
+
+.TP  7
+\ \ \ \fBE\fP\ \ :Forțează \fIscalarea rezumatului de memorie\fP în Zona de Rezumat
+Cu această comandă puteți parcurge scara de memorie disponibilă în Zona de
+Rezumat, care variază de la Kio (kibiocteți sau 1.024 de octeți) la Eio
+(exbibiocteți sau 1.152.921.504.606.846.976 de octeți).
+
+Dacă vedeți un „+” între un număr afișat și următoarea etichetă, înseamnă că
+\*(We a fost forțat să trunchieze o parte din acel număr.  Prin creșterea
+factorului de scalare, o astfel de trunchiere poate fi evitată.
+
+.TP  7
+\ \ \ \fBE\fP\ \ :Forțează \fIscalarea memoriei sarcinilor\fP în Zona de Sarcini
+Cu această comandă puteți parcurge scara de memorie disponibilă pentru Zona
+de Sarcini, care variază de la Kio (kibiocteți sau 1.024 de octeți) la Pio
+(pebiocteți sau 1.125.899.906.842.624 de octeți).
+
+Deși \*(We va încerca să respecte intervalul țintă selectat, este posibil să
+fie necesară o scalare suplimentară pentru a se adapta la valorile actuale.
+În cazul în care doriți să vedeți un rezultat mai omogen în coloanele de
+memorie, mărirea plajei de scalare va îndeplini de obicei acest obiectiv.
+Creșterea prea mare a acesteia, cu toate acestea, este posibil să producă un
+rezultat complet zero, care nu poate fi suprimat cu comanda interactivă „0”.
+
+.TP  7
+\ \ \ \fBg\fP\ \ :\fIAlege o altă fereastră/grup de câmpuri\fP
+Vi se va cere să introduceți un număr între 1 și 4 pentru a desemna grupul
+de câmpuri care trebuie să devină fereastra „curentă”.  În scurt timp, vă
+veți simți confortabil cu aceste 4 ferestre, mai ales după ce veți
+experimenta cu modul de afișare alternativă.
+
+.TP  7
+\ \ \ \fBH\fP\ \ :comutare \fIMod fire de execuție\fP 
+Atunci când acest comutator este \*O (On), vor fi afișate firele individuale
+pentru toate procesele în toate ferestrele de sarcini vizibile.  În caz
+contrar, \*(We afișează o însumare a tuturor firelor din fiecare proces.
+
+.TP  7
+\ \ \ \fBI\fP\ \ :comutare \fIMod Irix/Solaris\fP 
+Atunci când funcționează în modul Solaris („I” \fIDezactivată\fP (Off)),
+utilizarea cpu a unei sarcini va fi împărțită la numărul total de unități
+centrale de procesare.  După lansarea acestei comenzi, vi se va comunica
+noua stare a acestei comutări.
+
+.TP  7
+*\ \ \fBk\fP\ \ :\fIOmoară o sarcină\fP
+Vi se va solicita un PID și apoi semnalul de trimis.
+
+Dacă nu se introduce niciun PID sau dacă se introduce un număr negativ,
+acesta va fi interpretat ca fiind valoarea implicită afișată în prompt
+(prima sarcină afișată).  O valoare PID de zero înseamnă programul
+propriu\-zis \*(We.
+
+Semnalul implicit, așa cum se reflectă în prompt, este SIGTERM.  Cu toate
+acestea, puteți trimite orice semnal, prin introducerea numărului sau
+numelui acestuia.
+
+Dacă doriți să întrerupeți procesul de omorâre, efectuați una dintre
+următoarele acțiuni, în funcție de progresul înregistrat:
+.nf
+    1) la promptul pid, introduceți un număr invalid
+    2) la promptul de semnal, introduceți 0 (sau orice semnal nevalid)
+    3) la orice prompt, tastați <Esc>
+.fi
+
+.TP  7
+\ \ \ \fBq\fP\ \ :\fIIeșire\fP
+
+.TP  7
+*\ \ \fBr\fP\ \ :\fIModifică valoarea de curtoazie „nice” a unei sarcini\fP
+Vi se va solicita un PID și apoi o valoare de curtoazie „nice” pentru
+acesta.
+
+Dacă nu se introduce niciun PID sau dacă se introduce un număr negativ,
+acesta va fi interpretat ca fiind valoarea implicită afișată în prompt
+(prima sarcină afișată).  O valoare PID de zero înseamnă programul
+propriu\-zis \*(We.
+
+O valoare pozitivă de curtoazie „nice” va face ca un proces să piardă
+prioritatea de execuție.  În schimb, o valoare negativă de curtoazie „nice”
+va face ca un proces să fie privit mai favorabil de către nucleu.  Ca regulă
+generală, utilizatorii obișnuiți nu pot decât să mărească valoarea de
+curtoazie „nice”, și nu au voie să o reducă.
+
+Dacă doriți să întrerupeți procesul de schimbare a valorii de curtoazie
+„nice”, efectuați una dintre următoarele acțiuni, în funcție de progresul
+înregistrat:
+.nf
+    1) la promptul pid, introduceți un număr nevalid
+    2) la promptul de curtoazie „nice”, tastați <Enter> fără nici o intrare
+    3) la orice prompt, tastați <Esc>
+.fi
+
+.TP  7
+\ \ \ \fBW\fP\ \ :\fIScrie fișierul de configurare\fP
+Aceasta va salva toate opțiunile și comutatoarele, precum și modul de
+afișare și timpul de întârziere curente.  Prin emiterea acestei comenzi
+chiar înainte de a ieși din \*(We, veți putea reporni mai târziu exact în
+aceeași stare.
+
+.TP  7
+\ \ \ \fBX\fP\ \ :\fILățime extra\-fixată\fP
+Unele câmpuri au lățime fixă și nu sunt scalabile.  Ca atare, acestea pot fi
+trunchiate, ceea ce va fi indicat printr\-un „+” în ultima poziție.
+
+Această comandă interactivă poate fi utilizată pentru a modifica lățimile
+următoarelor câmpuri:
+
+.nf
+   \fI câmpul  implicit    câmpul  implicit   câmpul   implicit \fP
+    GID        5        GROUP      8       WCHAN       10
+    LOGID      5        LXC        8       nsCGROUP    10
+    RUID       5        RUSER      8       nsIPC       10
+    SUID       5        SUSER      8       nsMNT       10
+    UID        5        TTY        8       nsNET       10
+                        USER       8       nsPID       10
+                                           nsTIME      10
+                                           nsUSER      10
+                                           nsUTS       10
+.fi
+
+Vi se va solicita valoarea care urmează să fie adăugată la lățimile
+implicite prezentate mai sus.  Dacă introduceți zero, se revine la valorile
+implicite.
+
+Dacă introduceți un număr negativ, \*(We va crește automat dimensiunea
+coloanei, după cum este necesar, până când nu mai există date trunchiate.
+
+Notă: Fie că sunt mărite în mod explicit sau automat, lățimile acestor
+câmpuri nu sunt niciodată reduse de \*(We.  Pentru a le restrânge, trebuie
+să specificați un număr mai mic sau să restabiliți valorile implicite.
+
+.TP  7
+\ \ \ \fBY\fP\ \ :\fIInspectează o altă ieșire\fP
+După lansarea comenzii interactive `Y', vi se va cere un PID țintă.
+Introducerea unei valori sau acceptarea valorii implicite are ca rezultat
+obținerea unui ecran separat.  Acest ecran poate fi utilizat pentru a
+vizualiza o varietate de fișiere sau de ieșire a comenzilor canalizate în
+timp ce afișajul iterativ normal al \*(We este în pauză.
+
+Notă: Această comandă interactivă este realizată pe deplin numai atunci când
+intrările de sprijin au fost adăugate manual la sfârșitul fișierului de
+configurare al \*(We.  Pentru detalii privind crearea acestor intrări,
+consultați subiectul 6b. Adăugarea de intrări de INSPECTARE.
+
+Majoritatea tastelor utilizate pentru a naviga cu funcția Inspectare sunt
+reflectate în prologul antetului acesteia.  Cu toate acestea, există taste
+suplimentare disponibile după ce ați selectat un anumit fișier sau o anumită
+comandă.  Acestea sunt familiare oricui a folosit pagerul «less» o dată și
+sunt rezumate aici pentru referințe viitoare:
+
+.nf
+   \fI tasta      funcția \fP
+    =          linie de stare alternativă, fișier sau conductă
+    /          găsește, echivalent cu „L” pentru localizează
+    n          găsește următorul, echivalent cu „&” pentru localizează următorul
+    <Spațiu>  derulează în jos, echivalent cu <PgDn>
+    b          derulează în sus, echivalent cu <PgUp>
+    g          prima linie, echivalent cu <Home>
+    G          ultima linie, echivalent cu <End>
+.fi
+
+.TP  7
+\ \ \ \fBZ\fP\ \ :\fISchimbă paleta de culori\fP
+Această tastă vă va duce la un ecran separat unde puteți schimba culorile
+pentru fereastra „curentă” sau pentru toate ferestrele.  Pentru detalii
+privind această comandă interactivă, consultați subiectul 4d. Paleta de
+CULORI.
+
+.P
+\ \ \fB^G\fP\ \ :\fIAfișează grupurile de control \fP (tasta Ctrl + „g”)
+.br
+\ \ \fB^K\fP\ \ :\fIAfișează Linia de comandă \fP (tasta Ctrl + „k”)
+.br
+\ \ \fB^N\fP\ \ :\fIAfișează mediul \fP (tasta Ctrl + „n”)
+.br
+\ \ \fB^P\fP\ \ :\fIAfișează spațiile de nume \fP (tasta Ctrl + „p”)
+.br
+\ \ \fB^U\fP\ \ :\fIAfișează grupurile suplimentare \fP (tasta Ctrl + „u”)
+.br
+.RS +7
+Aplicate la primul proces afișat, aceste comenzi vor afișa toate
+informațiile complete (potențial înfășurate) ale sarcinii respective.
+Aceste date vor fi afișate într\-o fereastră separată în partea de jos a
+ecranului, în timp ce monitorizarea normală \*(We continuă.
+
+Apăsarea \fIaceleiași\fP comenzi „Ctrl” a doua oară elimină fereastra separată,
+la fel ca și comanda „=”.  Apăsarea unei alte combinații „Ctrl”, în timp ce
+una este deja activă, face imediat tranziția la noile informații.
+
+Printre aceste dispoziții se numără și comanda Ctrl+N (mediu).  Ieșirea
+acesteia poate fi extinsă și nu este ușor de citit atunci când este
+desfășurată pe mai multe linii.  O versiune mai ușor de citit poate fi
+obținută cu o intrare de „Inspectare” în fișierul rc (de configurare), cum
+ar fi următoarea:
+
+.nf
+    pipe ^I Environment ^I cat /proc/%d/environ | tr '\e0' '\en'
+.fi
+
+A se vedea comanda interactivă `Y' de mai sus și subiectul 6b. Adăugarea de
+intrări de INSPECTARE pentru informații suplimentare.
+
+Ca o alternativă la „Inspectare”, și disponibilă pentru toate aceste comenzi
+„Ctrl”, tasta \fBTab\fP poate fi utilizată pentru a evidenția elemente
+individuale din fereastra de jos.
+.RS -7
+
+.TP  7
+\ \ \fB^L\fP\ \ :\fIAfișează mesajele jurnalizate \fP (tasta Ctrl + „l”)
+Cele mai recente 10 mesaje sunt afișate într\-o fereastră separată în partea
+de jos a ecranului, în timp ce monitorizarea normală a \*(We continuă.
+Apăsarea combinației de taste „^L” a a doua oară elimină această fereastră,
+la fel ca și comanda „=”.  Folosiți tasta \fBTab\fP pentru a evidenția mesajele
+individuale.
+
+.TP  7
+*\ \fB^R\fP\ \ :\fIModifică valoarea de curtoazie „nice” a unui auto\-grup \fP (tasta Ctrl + „r”)
+Vi se va solicita un PID și apoi valoarea de curtoazie „nice” pentru acest
+auto\-grup AGNI.
+
+Dacă nu se introduce niciun PID, se va interpreta ca fiind valoarea
+implicită afișată în prompt (prima sarcină afișată).
+
+O valoare AGNI pozitivă va face ca procesele din acel auto\-grup să piardă
+prioritate.  Dimpotrivă, o valoare negativă face ca acestea să fie privite
+mai favorabil de către nucleu.  Utilizatorii obișnuiți nu au voie să
+stabilească valori AGNI negative.
+
+Dacă doriți să întrerupeți procesul de modificare a valoarii de curtoazie
+„nice”, tastați <Esc>.
+
+.IP * 3
+Comenzile marcate cu un asterisc (`*') nu sunt disponibile în modul
+Securizat și nici nu vor fi afișate pe primul nivel al ecranului de ajutor.
+
+.\" ......................................................................
+.SS "4b. Comenzi din ZONA de REZUMAT"
+.\" ----------------------------------------------------------------------
+Comenzile interactive din zona de rezumat \fBsunt întotdeauna disponibile\fP
+atât în modul ecran complet, cât și în modul de afișare alternativă.
+Acestea afectează liniile de început ale fișierului afișajului și vor
+determina poziția mesajelor și a solicitărilor.
+
+Aceste comenzi au întotdeauna un impact doar asupra ferestrei/grupului de
+câmpuri „curent”.  A se vedea subiectul 5. Dispoziții privind AFIȘAREA
+ALTERNATIVĂ și comanda interactivă „g” pentru o perspectivă asupra
+ferestrelor și grupurilor de câmpuri „curente”.
+
+.TP  7
+\ \ \ \fBC\fP\ \ :comutare \fIAfișează coordonatele de derulare\fP 
+Activează un mesaj informativ care este afișat ori de câte ori linia de
+mesaje nu este utilizată în alt mod.  Pentru informații suplimentare,
+consultați subiectul 5c. Derularea unei ferestre.
+
+.TP  7
+\ \ \ \fBl\fP\ \ :comutare \fIMedia de încărcare / Timp de funcționare\fP 
+Aceasta este, de asemenea, linia care conține numele programului (eventual
+un alias) atunci când se operează în modul ecran complet sau numele
+ferestrei „curente” atunci când se operează în modul de afișare alternativă.
+
+.TP  7
+\ \ \ \fBt\fP\ \ :comutare \fISarcină / Stări CPU\fP 
+Această comandă afectează de la 2 la mai multe linii ale Zonei de Rezumat,
+în funcție de starea comutatoarelor de comandă „1”, „2” sau „3” și dacă
+\*(We rulează sau nu în SMP real.
+
+Această parte a zonei de rezumat este, de asemenea, influențată de comanda
+de comutare interactivă „H”, așa cum se reflectă în eticheta totală care
+arată fie Tasks (Sarcini) sau Threads (Fire de execuție).
+
+Această comandă servește ca un comutator cu patru poziții, trecând prin
+aceste moduri:
+.nf
+    1. procentaje detaliate pe categorii
+    2. procentaj abreviat utilizator/sistem și total + grafic cu bare
+    3. procentaj abreviat utilizator/sistem și total + grafic cu blocuri
+    4. dezactivează afișarea sarcinilor și a stărilor CPU
+.fi
+
+Când operează în oricare dintre modurile grafice, afișajul devine mult mai
+semnificativ atunci când sunt afișate și procesoarele individuale sau
+nodurile NUMA.  Consultați comenzile „1”, „2” și „3” de mai jos pentru
+informații suplimentare.
+
+.TP  7
+\ \ \ \fBm\fP\ \ :comutare \fIUtilizare Memorie/Swap\fP 
+Această comandă afectează cele două linii din Zona de Rezumat care se ocupă
+de memoria fizică și virtuală.
+
+Această comandă servește ca un comutator cu patru poziții, trecând prin
+aceste moduri:
+.nf
+    1. procentaje detaliate după tipul de memorie
+    2. procentaj utilizată/total disponibilă abreviat + grafic cu bare
+    3. procentaj utilizată/total disponibilă abreviat + grafic cu blocuri
+    4. dezactivează afișarea memoriei
+.fi
+
+.TP  7
+\ \ \ \fB1\fP\ \ :comutare \fIStări CPU pe o linie unică / pe linii separate\fP 
+Această comandă afectează modul în care este afișată porțiunea Stări Cpu a
+comenzii „t”.  Deși această comutare există în primul rând pentru a servi
+mașinilor SMP masiv\-paralele, nu este limitată doar la mediile SMP.
+
+Când vedeți „%Cpu(s):” în zona de rezumat, comanda de comutare „1” este
+activată și toate informațiile despre CPU sunt adunate pe o singură linie.
+În caz contrar, fiecare CPU este afișat separat ca: „%Cpu0, %Cpu1, ...” până
+la înălțimea disponibilă a ecranului.
+
+.TP  7
+\ \ \ \fB2\fP\ \ :comutare \fIRezumat Noduri NUMA/CPU\fP 
+Această comandă comută între afișarea (doar) a rezumatului de CPU al
+comenzii „1” sau afișarea rezumatului și a statisticilor de utilizare a CPU
+pentru fiecare nod NUMA.  Este disponibilă numai dacă un sistem are suportul
+NUMA necesar.
+
+.TP  7
+\ \ \ \fB3\fP\ \ :\fIExtinde Nodul NUMA.\fP
+Veți fi invitat să introduceți un număr care reprezintă un nod NUMA.
+Ulterior, va fi afișat un rezumat al nodului plus statisticile pentru
+fiecare CPU din acel nod până când se apasă comanda de comutare „1”, „2” sau
+„4”.   Această comandă interactivă este disponibilă numai dacă un sistem are
+suportul NUMA necesar.
+
+.TP  7
+\ \ \ \fB4\fP\ \ :comutare \fIAfișează mai multe elemente adiacente\fP 
+Această comandă dezactivează comanda „1” și afișează mai multe rezultate CPU
+și de memorie pe fiecare linie.  Fiecare tastă „4” succesivă adaugă un alt
+CPU până când se revine din nou la linii separate pentru rezultatele
+provenite de la CPU și memorie.
+
+În acest mod pot fi afișate maximum 8 CPU\-uri pe linie.  Cu toate acestea,
+este posibil ca datele să fie trunchiate înainte de a se ajunge la maxim.
+Acest lucru este cu siguranță valabil atunci când se afișează statistici
+detaliate prin intermediul comenzii de comutare „t”, deoarece astfel de date
+nu pot fi scalate la fel ca reprezentările grafice.
+
+Dacă se dorește să se iasă rapid din modul adiacent fără a se ajunge până la
+8, este suficient să se folosească comanda „1”.
+
+.TP  7
+\ \ \ \fB5\fP\ \ :comutare \fIAfișează P\-Core și E\-Core\fP 
+Această comandă este activă numai atunci când comanda de comutare „t” este
+activată, iar comenzile de comutare „1”, „2”, „3” și „!” sunt dezactivate,
+afișând astfel rezultatele individuale ale procesorului.  Aceasta presupune
+că o platformă are mai multe nuclee de două tipuri distincte, fie
+„multi\-threaded” (P\-Core), fie „single\-threaded” (E\-Core).
+
+În timp ce, în mod normal, fiecare CPU este afișat ca „%Cpu0, %Cpu1, ...”,
+această comutare poate fi utilizată pentru a identifica și/sau filtra aceste
+CPU\-uri în funcție de tipul de nucleu, fie P\-Core (performanță), fie E\-Core
+(eficiență).
+
+Prima dată când se apasă „5”, fiecare unitate centrală este afișată ca
+„%CpP” sau „%CpE”, reprezentând cele două tipuri de nuclee.  A 2\-a oară, vor
+fi afișate doar nucleele P\-Core (%CpP).  A 3\-a oară, doar nucleele E\-Core
+(%CpE) sunt afișate.  Când această comandă de comutare este apăsată pentru a
+4\-a oară, afișajul CPU revine la convenția normală „%Cpu'.
+
+În cazul în care nu există categorii separate de \fIperformanță\fP și
+\fIeficiență\fP, această comandă nu va avea niciun efect.
+
+.TP  7
+\ \ \ \fB!\fP\ \ :comutare \fIModul Combinare CPU\-uri\fP 
+Această comandă de comutare este destinată mediilor SMP masiv paralele în
+care, chiar și cu comanda de comutare „4”, nu pot fi afișate toate
+procesoarele.  La fiecare apăsare a tastei „!” numărul de CPU\-uri combinate
+se dublează, reducând astfel numărul total de linii de CPU\-uri afișate.
+
+De exemplu, la prima apăsare a tastei „!” se va combina o unitate de
+procesare suplimentară și va fi afișată ca „0\-1, 2\-3, ...” în loc de „%Cpu0,
+%Cpu1, %Cpu2, %Cpu3, ...”.  Cu o a doua apăsare a comenzii de comutare „!”,
+patru CPU\-uri sunt combinate și afișate ca „0\-3, 4\-7, ...”.  Apoi, a treia
+apăsare a comenzii „!”, combină opt CPU\-uri, ce se afișează ca „0\-7, 8\-15,
+\&...”, etc.
+
+Această progresie continuă până când se afișează din nou fiecare CPU și are
+un impact atât asupra comenzii de comutare „1”, cât și asupra comenzii de
+comutare „4” (una sau mai multe coloane).  Utilizați comanda „=” pentru a
+ieși din modul de Combinare a CPU\-urilor.
+
+.PP
+Notă: Dacă întreaga zonă de rezumat a fost dezactivată pentru orice
+fereastră, veți rămâne doar cu \fBlinia de mesaj\fP.  În acest fel, veți avea
+maximizate rândurile de sarcini disponibile, dar sacrificat (temporar)
+numele programului în modul ecran complet sau numele ferestrei „curente”
+atunci când se află în modul de afișare alternativă.
+
+.\" ......................................................................
+.SS "4c. Comenzi din ZONA de SARCINI"
+.\" ----------------------------------------------------------------------
+Comenzile interactive din Zona de Sarcini sunt \fBîntotdeauna\fP disponibile în
+modul ecran complet.
+
+Comenzile interactive din zona de sarcini nu sunt niciodată disponibile în
+modul de afișare alternativă dacă afișarea sarcinilor din fereastra
+„curentă” a fost dezactivată (a se vedea tema 5. Dispoziții privind AFIȘAREA
+ALTERNATIVĂ).
+
+.\" ..................................................
+.PP
+\fBASPECTUL\fP ferestrei de sarcini
+
+.TP  7
+\ \ \ \fBJ\fP\ \ :comutare \fIJustificarea(alinierea) coloanelor numerice\fP 
+Alternează între datele numerice justificate la dreapta (valoarea implicită)
+și cele justificate la stânga.  În cazul în care datele numerice umplu
+complet coloana disponibilă, această comandă de comutare poate avea un
+impact doar asupra antetului coloanei.
+
+.TP  7
+\ \ \ \fBj\fP\ \ :comutare \fIJustificarea(alinierea) coloanelor de caractere\fP 
+Alternează între datele de caractere justificate la stânga (valoarea
+implicită) și cele justificate la dreapta.  În cazul în care datele de
+caractere umplu complet coloana disponibilă, această comandă de comutare
+poate avea un impact doar asupra antetului coloanei.
+
+.PP
+.RS +2
+Următoarele comenzi vor fi, de asemenea, influențate de starea comutatorului
+global „B” (activează Aldin).
+.RS -2
+
+.TP  7
+\ \ \ \fBb\fP\ \ :comutare \fIAldin / Invers\fP 
+Această comandă va avea un impact asupra modului în care sunt afișate
+comutatoarele „x” și „y”.  De asemenea, poate avea un impact asupra Zonei de
+Rezumat atunci când a fost selectat un grafic cu bare pentru stările CPU sau
+utilizarea memoriei prin intermediul comenzilor de comutare „t” sau „m”.
+
+.TP  7
+\ \ \ \fBx\fP\ \ :comutare \fIEvidențiere coloană\fP 
+Modifică evidențierea pentru câmpul de sortare curent.  Dacă uitați ce câmp este sortat, această comandă poate servi ca o reamintire vizuală rapidă, cu condiția ca câmpul de sortare să fie afișat.  Câmpul de sortare ar putea să nu fie vizibil deoarece:
+    1) lățimea ecranului este insuficientă
+    2) comanda interactivă „f” l\-a dezactivat
+
+.TP  7
+\ \ \ \fBy\fP\ \ :comutare \fIEvidențiere rând\fP 
+Modifică evidențierea sarcinilor „care rulează”.  Pentru informații
+suplimentare despre această stare a sarcinilor, consultați subiectul
+3a. DESCRIEREA câmpurilor, câmpul „S” (Starea procesului).
+
+Utilizarea acestei prevederi oferă informații importante despre starea de
+sănătate a sistemului dumneavoastră.  Singurele costuri vor fi câteva
+secvențe suplimentare de eludare tty.
+
+.TP  7
+\ \ \ \fBz\fP\ \ :comutare \fICulori/Monocromie\fP 
+Comută fereastra „curentă” între ultima schemă de culori utilizată și forma
+mai veche de negru pe alb sau alb pe negru.  Această comandă va modifica
+atât Zona de Rezumat, cât și Zona de Sarcini, dar nu afectează starea
+comutatoarelor „x”, „y” sau „b”.
+
+.\" ..................................................
+.PP
+\fBCONȚINUTUL\fP ferestrei de sarcini
+
+.TP  7
+\ \ \ \fBc\fP\ \ :comutare \fILinia de comandă / Nume program\fP 
+Această comandă va fi onorată indiferent dacă coloana COMANDĂ este sau nu
+vizibilă în prezent.  Mai târziu, dacă acest câmp va fi afișat, modificarea
+pe care ați aplicat\-o va fi vizibilă.
+
+.TP  7
+\ \ \ \fBF\fP\ \ :comutare \fIMenține atenția asupra părintelui\fP 
+Când vă aflați în modul de vizualizare arborescentă, această tastă are rolul
+de a comuta pentru a menține concentrarea pe o sarcină țintă, probabil una
+cu copii bifurcați.  În cazul în care modul de vizualizare a pădurii este
+\fIDezactivat\fP (Off), această tastă nu are niciun efect.
+
+Comutarea se aplică primului proces (cel mai de sus) din fereastra
+„curentă”.  Odată stabilită, sarcina respectivă este întotdeauna afișată ca
+fiind primul proces (cel mai de sus) împreună cu copiii săi bifurcați.
+Toate celelalte procese vor fi suprimate.
+
+Notă: taste precum „i” (sarcini inactive), „n” (numărul maxim de sarcini),
+„v” (ascunde copii) și filtrarea Utilizator/Altul rămân accesibile și pot
+avea un impact asupra elementelor afișate.
+
+.TP  7
+\ \ \ \fBf\fP\ \ :\fIGestionarea câmpurilor\fP
+Această tastă afișează un ecran separat în care puteți modifica câmpurile
+care sunt afișate, ordinea lor și, de asemenea, puteți desemna câmpul de
+sortare.  Pentru informații suplimentare cu privire la această comandă
+interactivă, consultați subiectul 3b. Gestionarea câmpurilor.
+
+.TP  7
+\ \ \ \fBO\fP | \fBo\fP\ \ :\fIAltă filtrare\fP
+Vi se va cere să introduceți criteriile de selecție care vor determina apoi
+ce sarcini vor fi afișate în fereastra „curentă”.  Criteriile dumneavoastră
+pot fi făcute sensibile la majuscule sau minuscule sau pot fi ignorate.  Și
+dumneavoastră stabiliți dacă \*(We trebuie să includă sau să excludă
+sarcinile care coincid.
+
+Consultați subiectul 5e. „Filtrarea într\-o fereastră” pentru detalii despre
+aceste comenzi interactive și alte comenzi interactive conexe.
+
+.TP  7
+\ \ \ \fBS\fP\ \ :comutare \fIModul de timp cumulat\fP 
+Când modul cumulativ este \*O (On), fiecare proces este listat cu timpul de
+procesare pe care acesta și copiii săi morți l\-au folosit.
+
+Când este \fIDezactivat\fP (Off), programele care se bifurcă în mai multe
+sarcini separate vor părea mai puțin solicitante.  Pentru programe precum
+«init» sau un shell acest lucru este adecvat, dar pentru altele, precum
+compilatoarele, poate că nu.  Experimentați cu două ferestre de sarcini care
+împart același câmp de sortare, dar cu stări „S” diferite și vedeți ce
+reprezentare preferați.
+
+După lansarea acestei comenzi, veți fi informat cu privire la noua stare a
+acestei comutări.  Dacă doriți să știți în avans dacă modul cumulativ este
+sau nu activ, pur și simplu cereți Ajutor și vizualizați rezumatul ferestrei
+pe a doua linie.
+
+.TP  7
+\ \ \ \fBU\fP | \fBu\fP\ \ :\fIAfișează numai un anumit utilizator\fP
+Vi se va solicita \fBuid\fP\-ul sau \fBnumele\fP utilizatorului care urmează să fie
+afișat.  Opțiunea „\-u” se potrivește cu utilizatorul \fBefectiv\fP, în timp ce
+opțiunea „\-U” se potrivește cu \fBorice\fP utilizator (real, efectiv, salvat
+sau din sistemul de fișiere).
+
+Ulterior, în fereastra de sarcini se vor afișa numai utilizatorii
+corespunzători sau, eventual, nu se va afișa niciun proces.  Precedarea cu
+un semn de exclamare („!”) a ID\-ului sau a numelui utilizatorului îi indică
+lui \*(We să afișeze numai procesele cu utilizatori care nu se potrivesc cu
+cel furnizat.
+
+Diferite ferestre de sarcini pot fi utilizate pentru a filtra diferiți
+utilizatori.  Ulterior, dacă doriți să monitorizați din nou toți
+utilizatorii în fereastra „curentă”, reluați această comandă, dar apăsați
+doar tasta <Enter> la prompt.
+
+.TP  7
+\ \ \ \fBV\fP\ \ :comutare \fIModul de vizualizare arborescent\fP 
+În acest mod, procesele sunt reordonate în funcție de părinții lor, iar
+structura coloanei COMANDĂ seamănă cu cea a unui arbore.  În modul de
+vizualizare arborescentăi este încă posibil de a comuta între numele
+programului și linia de comandă (a se vedea comanda interactivă „c”) sau
+între procese și fire de execuție (a se vedea comanda interactivă „H”).
+
+Notă: Apăsarea oricărei taste care afectează ordinea de sortare vă va scoate
+din modul de vizualizare arborescentă în fereastra „curentă”.  A se vedea
+subiectul 4c. Comenzi din ZONA de SARCINI, Sortare pentru informații despre
+aceste taste.
+
+.TP  7
+\ \ \ \fBv\fP\ \ :comutare \fIAscunde/ Afișează copiii\fP 
+În modul de vizualizare arborescentă, această tastă servește drept comutator
+pentru a restrânge sau extinde copiii unui părinte.
+
+Comutarea se aplică primului proces (cel mai de sus) din fereastra
+„curentă”.  A se vedea subiectul 5c. Derularea unei ferestre pentru
+informații suplimentare referitoare la derularea verticală.
+
+În cazul în care procesul țintă nu a bifurcat niciun copil, această cheie nu
+are niciun efect.  De asemenea, nu are niciun efect atunci când nu se află
+în modul de vizualizare arborescentă.
+
+.TP  7
+\ \ \fB^E\fP\ \ :\fIScalează câmpurile de timp CPU\fP (tasta Ctrl + „e”)
+În mod normal, câmpurile „timp” sunt afișate cu cea mai mare precizie pe
+care o permite lățimea lor.  Acest comutator reduce această precizie până
+când aceasta se încadrează.  Ea ilustrează, de asemenea, scalarea pe care
+aceste câmpuri o \fIpot\fP experimenta automat, care depinde de obicei de
+durata de funcționare a sistemului.
+
+De exemplu, dacă este afișat „MMM:SS.hh”, fiecare apăsare de tastă ^E îl va
+schimba în: „MM:SS”, „Ore,MM”, „Zile+ore” și, în final, „Săptămâni+zile”.
+
+Nu toate câmpurile de timp sunt supuse la o gamă completă de astfel de
+scalări.
+
+.\" ..................................................
+.PP
+\fBDIMENSIUNEA\fP ferestrei de sarcini
+
+.TP  7
+\ \ \ \fBi\fP\ \ :comutare \fIProces inactiv\fP 
+Afișează toate sarcinile sau doar sarcinile active.  Atunci când acest
+comutator este \*F (Off), sarcinile care nu au utilizat niciun \*(PU de la
+ultima actualizare nu vor fi afișate.  Cu toate acestea, datorită precizieii
+câmpurilor %CPU și TIME+, este posibil să fie afișate în continuare unele
+procese care \fIpar\fP să \fInu\fP fi utilizat niciun \*(PU.
+
+Dacă această comandă este aplicată la ultima afișare a sarcinii atunci când
+se află în modul de afișare alternativă, atunci nu va afecta dimensiunea
+ferestrei, deoarece toate afișările anterioare ale sarcinii vor fi fost deja
+desenate.
+
+.TP  7
+\ \ \ \fBn\fP | \fB#\fP\ \ :\fIStabilește numărul maxim de sarcini\fP
+Vi se va solicita să introduceți numărul de sarcini care trebuie afișate.
+Se va utiliza valoarea cea mai mică dintre numărul dumneavoastră și numărul
+rândurilor disponibile pe ecran.
+
+Atunci când este utilizată în modul de afișare alternativă, aceasta este
+comanda care vă oferă un control precis asupra mărimii fiecărei afișări de
+sarcini vizibile în prezent, cu excepția ultimei.  Aceasta nu va afecta
+dimensiunea ultimei ferestre, deoarece toate afișajele anterioare au fost
+deja desenate.
+
+Notă: Dacă doriți să măriți dimensiunea ultimului afișaj de sarcini vizibil
+atunci când vă aflați în modul de afișare alternativă, reduceți pur și
+simplu dimensiunea afișajului (afișajelor) de sarcini de deasupra acestuia.
+
+.\" ..................................................
+.PP
+\fBSortarea\fP ferestrei de sarcini
+.PP
+.RS +3
+Din motive de compatibilitate, acest \*(We suportă majoritatea tastelor de
+sortare din fostul \*(We.  Deoarece acesta este în primul rând un serviciu
+pentru foștii utilizatori de \*(We, aceste comenzi nu apar în niciun ecran
+de ajutor.
+.nf
+     \fI comanda   câmpul sortat                 acceptată \fP
+      A         ora\-pornirii (neafișată)     \fB Nu \fP
+      M         %MEM                          Da
+      N         PID                           Da
+      P         %CPU                          Da
+      T         TIME+                         Da
+.fi
+
+Înainte de a utiliza oricare dintre următoarele metode de sortare, \*(We vă
+sugerează să activați temporar evidențierea coloanelor cu ajutorul comenzii
+interactive „x”.  Acest lucru va ajuta la asigurarea că mediul real de
+sortare corespunde intenției dumneavoastră.
+
+Următoarele comenzi interactive vor fi executate \fBnumai atunci\fP când câmpul de sortare curent este \fBvizibil\fP.  Este posibil ca acest câmp de sortare să \fInu\fP fie vizibil deoarece:
+      1) \fIlățimea ecranului\fP este insuficientă
+      2) comanda interactivă „f” l\-a \*F (Off)
+
+.TP  7
+\ \ \ \fB<\fP\ \ :\fIMută câmpul de sortare la stânga\fP
+Mută coloana de sortare la stânga, cu excepția cazului în care câmpul de
+sortare curent este primul câmp afișat.
+
+.TP  7
+\ \ \ \fB<\fP\ \ :\fIMută câmpul de sortare la dreapta\fP
+Mută coloana de sortare la dreapta, cu excepția cazului în care câmpul de
+sortare curent este ultimul câmp afișat.
+
+.PP
+Următoarele comenzi interactive vor fi \fBîntotdeauna\fP executate indiferent
+dacă este sau nu vizibil câmpul de sortare curent.
+
+.TP  7
+\ \ \ \fBf\fP\ \ :\fIGestionarea câmpurilor\fP
+Această tastă afișează un ecran separat în care, printre alte funcții,
+puteți schimba câmpul utilizat ca coloană de sortare.  Aceasta poate fi o
+modalitate convenabilă de a verifica pur și simplu câmpul de sortare curent,
+atunci când se execută \*(We cu evidențierea coloanelor \fIDezactivată\fP
+(Off).
+
+.TP  7
+\ \ \ \fBR\fP\ \ :comutare \fISortare inversă/normală câmpului\fP 
+Folosind această comandă interactivă, puteți alterna între sortarea de la
+mare la mic și de la mic la mare.
+
+.\" ......................................................................
+.SS "4d. Paleta de CULORI"
+.\" ----------------------------------------------------------------------
+Când lansați comanda interactivă „Z”, vi se va afișa un ecran separat.
+Acest ecran poate fi folosit pentru a schimba culorile doar în fereastra
+„actuală” sau în toate cele patru ferestre înainte de a reveni la afișajul
+de \*(We.
+
+.P
+Sunt disponibile următoarele comenzi interactive:
+.nf
+    \fB4\fP majuscule pentru a selecta o \fBțintă\fP
+    \fB8\fP numere pentru a selecta o \fBculoare\fP
+    comenzi de comutare disponibile:
+        B         :activează/dezactivează afișarea în „aldin”
+        b         :afișează în „aldin”/invers sarcinile ce rulează
+        z         :afișare în culori/monocromatică
+    alte comenzi disponibile:
+        a/w       :aplică, apoi va trece la următorul/precedentul
+        <Enter>   :aplică și iese
+        q         :abandonează schimbările făcute și iese
+.fi
+
+Dacă utilizați „a” sau „w” pentru a parcurge fereastra vizată, veți găsii
+aplicată schema de culori care a fost afișată când ați părăsit fereastra
+respectivă.  Desigur, puteți reveni cu ușurință la orice fereastră și să
+aplicați din nou culori diferite sau să dezactivați complet culorile cu
+ajutorul comenzii „z”.
+
+Ecranul „Paleta de culori” poate fi utilizat, de asemenea, pentru a schimba
+grupul de ferestre/câmpuri „curente”, fie în modul ecran complet, fie în
+modul de afișare alternativă.  Ceea ce a fost vizat atunci când s\-a apăsat
+tasta „q” sau <Enter>, va deveni curent atunci când reveniți la
+afișajul \*(We.
+
+.\" ----------------------------------------------------------------------
+.SH "5. Dispoziții privind AFIȘAREA ALTERNATIVĂ"
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS "5a. Prezentare generală pentru ferestre"
+.\" ----------------------------------------------------------------------
+.TP  3
+\fBGrupuri de câmpuri/Ferestre\fP:
+În modul ecran complet, există o singură fereastră reprezentată de întregul
+ecran.  Această fereastră unică poate fi modificată pentru a afișa 1 din 4
+\fBgrupuri de câmpuri\fP diferite (a se vedea comanda interactivă „g”, repetată
+mai jos).  Fiecare dintre cele 4 grupuri de câmpuri are o \fBZonă de Rezumat\fP
+unică, configurabilă separat, și propria sa \fBZonă de Sarcini\fP
+configurabilă.
+
+În modul de afișare alternativă, cele 4 grupuri de câmpuri subiacente pot fi
+acum vizibile simultan sau pot fi \fIDezactivate\fP (Off) individual, la
+alegerea dumneavoastră.
+
+Zona de rezumat va exista întotdeauna, chiar dacă este vorba doar de linia
+de mesaje.  La un moment dat, poate fi afișată \fIo singură\fP zonă de
+rezumat.  Cu toate acestea, în funcție de comenzile dumneavoastră, pe ecran
+pot exista de la \fIzero\fP până la \fIpatru\fP afișaje separate ale sarcinilor
+afișate în prezent.
+
+.TP  3
+\fBFereastra curentă\fP:
+Fereastra „curentă” este fereastra asociată cu Zona de Rezumat și fereastra
+către care sunt direcționate întotdeauna comenzile legate de sarcini.
+Deoarece în modul de afișare alternativă puteți \fIDezactiva\fP (Off) afișarea
+sarcinilor, unele comenzi pot fi restricționate pentru fereastra „curentă”.
+
+O altă complicație apare atunci când ați \*F (Off) prima linie din Zona de
+Rezumat.  Odată cu pierderea numelui ferestrei (linia comutată de comanda
+„l”), nu veți ști cu ușurință ce fereastră este fereastra „curentă”.
+
+.\" ......................................................................
+.SS "5b. Comenzi pentru ferestre"
+.\" ----------------------------------------------------------------------
+.TP  7
+\ \ \ \fB\-\fP | \fB_\fP\ \ :comutare \fIAfișează/Ascunde ferestre\fP 
+Tasta „\-” \fIActivează\fP (On) și \fIDezactivează\fP (Off) afișarea sarcinilor din
+fereastra „curentă”.  Atunci când este \fIActivată\fP (On), această Zonă de
+Sarcini va afișa un minim de antet de coloane pe care l\-ați stabilit cu
+comanda interactivă „f”.  Aceasta va reflecta, de asemenea, orice alte
+opțiuni/comutări ale zonei de sarcini pe care le\-ați aplicat și care produc
+zero sau mai multe sarcini.
+
+Tasta „_” face același lucru pentru toate afișările de sarcini.  Cu alte
+cuvinte, aceasta comută între afișajul (afișajele) de sarcini vizibil(e) în
+acel moment și orice afișaje de sarcini pe care le\-ați \*F (Off).  În cazul
+în care toate cele 4 afișaje de sarcini sunt vizibile în prezent, această
+comandă interactivă va lăsa Zona de Rezumat ca unic element de afișare.
+
+.TP  7
+*\ \ \fB=\fP | \fB+\fP\ \ :\fIEgalizare/Restaurare ferestre\fP
+Tasta „=” forțează afișarea sarcinii ferestrei „curente” să fie vizibilă.
+De asemenea, anulează orice sarcină activă „i” (sarcini inactive), „n”
+(numărul maxim de sarcini), „u/U” (filtru utilizator), „o/O” (alte filtre),
+„v” (ascunde procesul\-copil), „F” (focalizarea), „L” (localizarea) și „!”
+(combinare CPU\-uri).  De asemenea, în cazul în care fereastra a fost
+derulată, aceasta va fi restaurată cu această comandă.  A se vedea subiectul
+5c. Derularea unei ferestre, pentru informații suplimentare referitoare la
+derularea verticală și orizontală.
+
+Tasta „+” face același lucru pentru toate ferestrele.  Cele patru afișaje de
+sarcini vor reapărea, echilibrate în mod egal, păstrând în același timp
+toate personalizările aplicate anterior, în afară de cele mențioate pentru
+comanda de comutare „=”.
+
+.TP  7
+*\ \ \fBA\fP\ \ :comutare \fIModul de afișare alternativă\fP 
+Această comandă va comuta între modul ecran complet și modul de afișare
+alternativă.
+
+Prima dată când lansați această comandă, vor fi afișate toate cele patru
+afișaje de sarcini.  Ulterior, atunci când schimbați modurile, veți vedea
+numai afișajul (afișajele) de sarcini pe care ați ales să le faceți
+vizibile.
+
+.TP  7
+*\ \ \fBa\fP | \fBw\fP\ \ :\fIFereastra următoare „înainte/înapoi”\fP
+Acest lucru va schimba fereastra „curentă”, care la rândul ei va schimba
+fereastra către care sunt direcționate comenzile.  Aceste taste acționează
+în mod circular, astfel încât să puteți ajunge la orice fereastra dorită
+folosind oricare dintre aceste taste.
+
+Presupunând că numele ferestrei este vizibil (nu ați comutat `l' în modul
+\*F (Off)), ori de câte ori numele ferestrei „curente” își pierde
+tonalitatea/culoarea, acesta este un memento că afișajul sarcinii este \*F
+(Off) și multe comenzi vor fi restricționate.
+
+.TP  7
+\ \ \ \fBG\fP\ \ :\fISchimbă numele ferestrei/grupului de câmpuri\fP
+Vi se va solicita un nou nume care să fie aplicat ferestrei "curente".  Nu
+este necesar ca numele ferestrei să fie vizibil (comutatorul `l' în modul
+\*O (On)).
+
+.IP * 3
+Comenzile interactive marcate cu un asterisc („*”) sunt utilizate în afara
+modului de afișare alternativă.
+.nf
+    =, A, g    sunt întotdeauna disponibile
+    a, w       acționează la fel cu Paleta de culoril
+               și Gestionarea câmpurilor
+.fi
+
+.TP  7
+*\ \ \fBg\fP\ \ :\fIAlege o altă fereastră / un alt grup de câmpuri\fP
+Vi se va cere să introduceți un număr între 1 și 4 pentru a desemna grupul
+de câmpuri care trebuie să devină fereastra „curentă”.
+
+În modul ecran complet, această comandă este necesară pentru a modifica
+fereastra „curentă”.  În modul de afișare alternativă, este pur și simplu o
+alternativă mai puțin convenabilă la comenzile „a” și „w”.
+
+.\" ......................................................................
+.SS "5c. Derularea unei ferestre"
+.\" ----------------------------------------------------------------------
+În mod obișnuit, o fereastră de sarcini este o vizualizare parțială a
+tuturor sarcinilor/filelor unui sistem, care afișează doar o parte din
+câmpurile/coloanele disponibile.  Cu ajutorul acestor taste de defilare,
+puteți deplasa această vizualizare pe verticală sau pe orizontală pentru a
+dezvălui orice sarcină sau coloană dorită.
+
+.TP  4
+\fBUp\fP,\fBPgUp\fP\ \ :\fIDerulare sarcini \fP
+Deplasează vizualizarea în sus spre primul rând de sarcini, până când prima
+sarcină este afișată în partea de sus a ferestrei „curente”.  Tasta săgeată
+\fISus\fP deplasează o singură linie, în timp ce \fIPgUp\fP derulează întreaga
+fereastră.
+
+.TP  4
+\fBDown\fP,\fBPgDn\fP\ \ :\fIDerulare sarcini \fP
+Deplasează vizualizarea în jos spre ultimul rând de sarcini, până când
+ultima sarcină este singura afișată în partea de sus a ferestrei „curente”.
+Tasta săgeată \fIJos\fP deplasează o singură linie în timp ce \fIPgDn\fP
+deplasează întreaga fereastră.
+
+.TP  4
+\fBLeft\fP,\fBRight\fP\ \ :\fIDerulare coloane \fP
+Deplasează vizualizarea câmpurilor afișabile pe orizontală, coloană cu
+coloană.
+
+Notă: Ca reamintire, unele câmpuri/coloane nu au lățime fixă, ci au alocată
+toată lățimea rămasă a ecranului atunci când sunt vizibile.  Când derulați
+la dreapta sau la stânga, această funcție poate produce inițial rezultate
+neașteptate.
+
+În plus, există dispoziții speciale pentru orice câmp cu lățime variabilă
+atunci când este poziționat ca ultimul câmp afișat.  Odată ce câmpul
+respectiv este atins prin intermediul tastei săgeată dreapta,  și este
+astfel singura coloană afișată, puteți continua să derulați pe orizontală în
+cadrul unui astfel de câmp.  Pentru informații suplimentare, consultați
+comanda interactivă „C” de mai jos.
+
+.TP  4
+\fBHome\fP\ \ :\fISalt la poziția inițală \fP
+Repoziționează afișajul la coordonatele de dinainte de derulare.
+
+.TP  4
+\fBEnd\fP\ \ :\fISalt la poziția finală \fP
+Repoziționează afișajul astfel încât cea mai din dreapta coloană să reflecte
+ultimul câmp afișabil, iar rândul de jos al sarcinii să reprezinte ultima
+sarcină.
+
+Notă: Din această poziție este încă posibilă derularea în \fIjos\fP și la
+\fIdreapta\fP cu ajutorul tastelor săgeată.  Acest lucru este valabil până când
+o singură coloană și o singură sarcină rămân ca singurele element de
+afișare.
+
+.TP  4
+\fBC\fP\ \ :comutare \fIAfișează coordonatele de derulare\fP 
+Comută un mesaj informativ care este afișat ori de câte ori linia de mesaje
+nu este utilizată în alt mod.  Acest mesaj va lua una dintre cele două
+forme, în funcție de faptul dacă o coloană cu lățime variabilă a fost sau nu
+derulată.
+
+.nf
+  \fBcoordonate derulare: y = n/n (sarcini), x = n/n (câmpuri)\fP
+  coordonate derulare: y = n/n (sarcini), x = n/n (câmpuri)\fB + nn\fP
+.fi
+
+Coordonatele afișate ca \fBn\fP/\fBn\fP sunt relative la colțul din stânga sus al
+ferestrei „curente”.  Cifra suplimentară „\fB+\ nn\fP” reprezintă deplasarea
+într\-o coloană cu lățime variabilă atunci când aceasta a fost derulată pe
+orizontală.  O astfel de deplasare are loc în cantități normale de 8
+caractere de tabulare prin intermediul tastelor săgeată dreapta și stânga.
+
+.RS +4
+.TP  4
+\fBy = n/n (sarcini) \fP
+Primul \fBn\fP reprezintă sarcina cea mai vizibilă din partea de sus și este
+controlată prin intermediul tastelor de derulare.  Al doilea \fBn\fP este
+actualizat automat pentru a reflecta totalul sarcinilor.
+
+.TP  4
+\fBx = n/n (câmpuri) \fP
+Primul \fBn\fP reprezintă cea mai din stânga coloană afișată și este controlat
+prin intermediul tastelor de derulare.  Al doilea \fBn\fP reprezintă numărul
+total de câmpuri afișabile și se stabilește cu ajutorul comenzii interactive
+„\fBf\fP”.
+.RS -4
+
+.PP
+Comenzile interactive de mai sus sunt \fBîntotdeauna\fP disponibile în modul
+ecran complet, dar nu sunt \fBniciodată\fP disponibile în modul de afișare
+alternativă dacă afișarea sarcinilor din fereastra „curentă” a fost
+\fIDezactivată\fP (Off).
+
+Notă: Când orice formă de filtrare este activă, vă puteți aștepta la unele
+ușoare aberații la defilare, deoarece nu toate sarcinile vor fi vizibile.
+Acest lucru este evident mai ales atunci când utilizați tastele săgeți
+\fBSus/Jos\fP.
+
+.\" ......................................................................
+.SS "5d. Căutarea într\-o fereasră"
+.\" ----------------------------------------------------------------------
+Puteți utiliza aceste comenzi interactive pentru a localiza un rând de
+sarcini care conține o anumită valoare.
+
+.TP  4
+\fBL\fP\ \ :\fILocalizează un șir\fP
+Vi se va solicita șirul de caractere care trebuie localizat pornind de la
+coordonatele ferestrei curente.  Nu există restricții privind conținutul
+șirului de căutare.
+
+Căutările nu se limitează la valorile dintr\-un singur câmp sau dintr\-o
+singură coloană.  Toate valorile afișate într\-un rând de sarcini sunt
+permise într\-un șir de căutare.  Puteți include spații, numere, simboluri și
+chiar grafice de vizualizare arborescentă.
+
+Apăsarea tastei <Enter> fără a introduce date va dezactiva efectiv
+tasta „&” până când se introduce un nou șir de căutare.
+
+.TP  4
+\fB&\fP\ \ :\fILocalizează următorul șir\fP
+Presupunând că a fost stabilit un șir de căutare, \*(We va încerca să
+localizeze următoarea apariție.
+
+.PP
+Atunci când se găsește o potrivire, fereastra curentă este repoziționată pe
+verticală astfel încât rândul de sarcini care conține șirul respectiv să fie
+primul.  Mesajul coordonatelor de derulare poate oferi o confirmare a
+acestei repoziționări verticale (a se vedea comanda interactivă „C”).  Cu
+toate acestea, derularea orizontală nu este niciodată modificată prin
+intermediul căutării.
+
+Disponibilitatea unui șir care să corespundă va fi influențată de următorii
+factori.
+.RS +3
+.TP  3
+a. Ce câmpuri pot fi afișate din totalul disponibil,
+a se vedea 3b. GESTIONAREA Câmpurilor.
+.TP  3
+b. Derularea unei ferestre pe verticală și/sau pe orizontală,
+a se vedea 5c. Derularea unei ferestre.
+.TP  3
+c. Starea comutatorului „comandă/linia de comandă”,
+a se vedea comanda interactivă „c”.
+.TP  3
+d. Stabilitatea coloanei de sortare aleasă,
+de exemplu, PID este bun, dar %CPU este inadecvat.
+.RS -3
+
+.PP
+În cazul în care o căutare eșuează, restabilirea poziției inițiale a
+ferestrei „curente” (nederulată), derularea pe orizontală, afișarea liniilor
+de comandă sau alegerea unui câmp de sortare mai stabil ar putea duce totuși
+la o căutare „&” reușită.
+
+Comenzile interactive de mai sus sunt \fBîntotdeauna\fP disponibile în modul
+ecran complet, dar nu sunt \fBniciodată\fP disponibile în modul de afișare
+alternativă dacă afișarea sarcinilor din fereastra „curentă” a fost
+\fIDezactivată\fP (Off).
+
+.\" ......................................................................
+.SS "5e. Filtrarea într\-o fereastră"
+.\" ----------------------------------------------------------------------
+Puteți utiliza această caracteristică „Alt filtru” pentru a stabili criterii
+de selecție care vor determina apoi ce sarcini sunt afișate în fereastra
+„curentă”.  Astfel de filtre pot fi făcute persistente dacă sunt păstrate în
+fișierul de configurare prin intermediul comenzii interactive „W”.
+
+Stabilirea unui filtru necesită: 1) un nume de câmp; 2) un operator; și 3) o
+valoare de selecție, cel puțin.  Aceasta este cea mai complexă dintre
+cerințele de introducere a datelor de către utilizator din \*(We, astfel
+încât, atunci când  faceți o greșeală, reapelarea comenzilor vă va fi
+prietenă.  Amintiți\-vă tastele săgeată \fISus/Jos\fP sau aliasurile lor atunci
+când vi se cere să introduceți date.
+
+\fBNoțiuni de bază despre filtre\fP
+.RS +3
+.TP  3
+1. numele câmpurilor sunt sensibile la majuscule și se scriu ca în antet
+.TP  3
+2. nu este necesar ca valorile de selecție să cuprindă întregul câmp afișat
+.TP  3
+3. o selecție este fie insensibilă la majuscule, fie sensibilă la majuscule
+.TP  3
+4. implicit este includerea, punerea lui „!” înainte, indică excluderea
+.TP  3
+5. se pot aplica mai multe criterii de selecție la o fereastră de sarcini
+.TP  3
+6. criteriile de includere și de excludere pot fi utilizate simultan
+.TP  3
+7. Filtrele 1 de egalitate și 2 relațional pot fi amestecate în mod liber
+.TP  3
+8. se mențin filtre unice separate pentru fiecare fereastră de sarcină
+
+.PP
+Dacă un câmp nu este activat sau nu este vizualizat în prezent, atunci
+criteriile de selecție nu vor afecta afișarea.  Ulterior, dacă un câmp
+filtrat devine vizibil, criteriile de selecție vor fi aplicate.
+.RE
+
+\fBRezumat al comenzilor de la tastatură\fP
+.TP  6
+\ \ \fBO\fP\ \ :\fIAlt filtru\fP (cu majuscule)
+Vi se va solicita să stabiliți un filtru \fBsensibil la majuscule\fP.
+
+.TP  6
+\ \ \fBo\fP\ \ :\fIAlt filtru\fP (cu minjuscule)
+Vi se va solicita să stabiliți un filtru care \fBignoră majusculele\fP atunci
+când se potrivește.
+
+.TP  6
+\ \fB^O\fP\ \ :\fIAfișează filtrele active\fP (tasta Ctrl + „o”)
+Acest lucru poate servi ca o reamintire a filtrelor care sunt active în
+fereastra „curentă”.  Un rezumat va fi afișat pe linia de mesaje până când
+apăsați tasta <Enter>.
+
+.TP  6
+\ \ \fB=\fP\ \ :\fIReinițializează filtrele\fP în fereastra curentă
+Această acțiune șterge toate criteriile de selecție din fereastra
+"curentă".  Are, de asemenea, un impact suplimentar, așa că n\-ar fi rău să
+consultați subiectul 4a. Comenzi GLOBALE.
+
+.TP  6
+\ \ \fB+\fP\ \ :\fIReinițializează filtrele\fP în toate ferestrele
+Această operație șterge criteriile de selecție din toate ferestrele,
+presupunând că vă aflați în modul de afișare alternativă.  Ca și comanda
+interactivă „=”, și aceasta are consecințe suplimentare așa că ar fi bine să
+consultați subiectul 5b. COMENZI pentru ferestre.
+
+.PP
+\fBCerințe de introducere\fP
+.RS +3
+.P
+Atunci când vi se solicită criteriile de selecție, datele pe care le
+furnizați trebuie să ia una dintre cele două forme.  Există trei informații
+obligatorii, iar a patra este opțională.  Aceste exemple folosesc spații
+pentru claritate, dar, în general, datele pe care le introduceți
+dumneavoastră nu ar trebui să le folosească.
+.nf
+        nr.1         \fBnr.2\fP  nr.3              ( necesare )
+        Nume câmp    ?      include\-dacă\-valoare
+     \fB!\fP  Nume câmp    ?      \fBexclude\fP\-dacă\-valoare
+     nr.4                                     ( opționale )
+.fi
+
+Elementele nr.1, nr.3 și nr.4 ar trebui să fie auto\-explicative  Elementul
+\fBnr2\fP reprezintă atât un \fIdelimitator\fP necesar, cât și \fIoperator\fP, care
+trebuie să fie unul dintre egalitatea („=”) sau relația („<” sau
+„>”).
+
+Operatorul de egalitate „=” necesită doar o potrivire parțială, ceea ce
+poate reduce cerințele de introducere a datelor „dacă\-valoare”.  Operatorii
+relaționali „>” sau „<” utilizează întotdeauna comparații de șiruri
+de caractere, chiar și în cazul câmpurilor numerice.  Aceștia sunt concepuți
+pentru a funcționa cu \fIjustificarea\fP implicită a unui câmp și cu date
+omogene.  Atunci când unele valori numerice ale unor câmpuri au fost supuse
+\fIscalării\fP în timp ce altele nu, datele respective nu mai sunt omogene.
+
+Dacă stabiliți un filtru relațional și \fBați\fP modificat \fIjustificarea\fP
+implicită numerică sau de caractere, este posibil ca acel filtru să eșueze.
+Atunci când un filtru relațional este aplicat unui câmp de memorie și \fBnu ați\fP modificat \fIscalarea\fP, acesta poate produce rezultate înșelătoare.
+Acest lucru se întâmplă, de exemplu, pentru că „100.0m” (Mio) ar părea mai
+mare decât „1.000g” (Gio) atunci când sunt comparate ca șiruri de caractere.
+
+În cazul în care rezultatele filtrate par suspecte, simpla modificare a
+justificării sau a scalării poate atinge obiectivul dorit.  Pentru
+informații suplimentare, consultați comenzile interactive „j”, „J” și „e”.
+.RE
+
+\fBProbleme potențiale\fP
+.RS +3
+.P
+Aceste filtre \fBGROUP\fP ar putea produce exact aceleași rezultate sau cel
+de\-al doilea ar putea să nu afișeze nimic, ci doar o fereastră de sarcini
+goală.
+.nf
+     GROUP=root        ( aceleași rezultate doar atunci când )
+     GROUP=ROOT        ( este invocat prin intermediul minusculelor „o” )
+.fi
+
+Oricare dintre aceste filtre \fBRES\fP ar putea produce rezultate incoerente
+și/sau înșelătoare, în funcție de factorul de scalare a memoriei curente.
+Sau ambele filtre ar putea produce exact aceleași rezultate.
+.nf
+     RES>9999          ( aceleași rezultate doar atunci când )
+     !RES<10000        ( scalarea memoriei este fixată la „KiB” )
+.fi
+
+Acest filtru \fBnMin\fP ilustrează o problemă unică pentru câmpurile
+scalabile.  Acest câmp special poate afișa maximum 4 cifre, dincolo de care
+valorile sunt scalate automat la KiB sau mai mult.  Astfel, deși există
+cantități mai mari de 9999, acestea vor apărea ca 2,6m, 197k, etc.
+.nf
+     nMin>9999         ( întotdeauna o fereastră de sarcini goală )
+.fi
+.RE
+
+\fBSoluții potențiale\fP
+.RS +3
+.P
+Aceste exemple ilustrează modul în care Alte filtre pot fi aplicate în mod
+creativ pentru a obține aproape orice rezultat dorit.  Ghilimelele simple
+sunt uneori afișate pentru a delimita spațiile care fac parte dintr\-un
+filtru sau pentru a reprezenta cu exactitate o cerere de stare (^O).  Dar
+dacă le\-ați folosi cu „dacă\-valori” (valori condiționale), nu s\-ar găsi
+nicio potrivire.
+
+Presupunând că este afișat câmpul \fBnTH\fP (câmpul antet, de titlu), primul
+filtru va avea ca rezultat afișarea numai a proceselor cu mai multe fire de
+execuție.  De asemenea, ne reamintește că un spațiu de sfârșit face parte
+din fiecare fișier câmp afișat.  Cel de\-al doilea filtru obține exact
+aceleași rezultate cu mai puțină tastare.
+.nf
+     !nTH=„ 1 ”                ( „” doar pentru claritate )
+     nTH>1                     ( același lucru mai direct (mai pe scurt) )
+.fi
+
+Cu modul Vizualizare arborescentă activ și cu coloana \fBCOMANDA\fP la vedere,
+acest filtru reduce efectiv procesele copil astfel încât sunt afișate doar 3
+niveluri.
+.nf
+     !COMMAND=„       „\- ”     ( „” doar pentru claritate )
+.fi
+
+Ultimele două filtre apar ca răspuns la tasta de solicitare a stării (^O).
+În realitate, fiecare filtru ar fi necesitat o intrare separată.  Exemplul
+\fBPR\fP prezintă cele două filtre simultane necesare pentru a afișa sarcinile
+cu priorități de 20 sau mai mult, deoarece unele ar putea fi negative.
+Apoi, prin exploatarea spațiilor de urmărire, seria de filtre \fBnMin\fP ar
+putea atinge obiectivul eșuat „9999” discutat mai sus.
+.nf
+     `PR>20' + `!PR=\-'         ( 2 pentru un rezultat corect )
+     `!nMin=0 ' + `!nMin=1 ' + `!nMin=2 ' + `!nMin=3 ' ...
+.fi
+.RS -3
+
+.\" ----------------------------------------------------------------------
+.SH "6. FIȘIERE"
+.\" ----------------------------------------------------------------------
+.SS "6a. Fișier de configurare PERSONAL"
+.\" ----------------------------------------------------------------------
+Acest fișier este creat sau actualizat prin intermediul comenzii interactive
+„W”.
+
+Versiunea veche este scrisă ca „$HOME/.numele\-dvs.\-pentru\-\*(We” + „rc” cu
+un punct înainte.
+
+Un fișier de configurare nou creat este scris ca
+procps/numele\-dvs.\-pentru\-top” + „rc” fără un punct înainte.  Directorul
+procps va fi subordonat fie lui $XDG_CONFIG_HOME atunci când este stabilită
+ca o cale absolută, fie directorului $HOME/.config.
+
+Deși nu a fost conceput pentru a fi editat manual, iată prezentarea generală
+a fișierului de configurare:
+.nf
+     global     # linia  1: numele programului/notația „alias” a numelui
+       \-"\-      # linia  2: id,altscr,irixps,delay,curwin
+     per ea     # linia  a: winname,fieldscur
+    fereastra   # linia  b: winflags,sortindx,maxtasks,etc
+       \-"\-      # linia  c: summclr,msgsclr,headclr,taskclr
+     global     # linia 15: configurări diverse suplimentare
+       \-"\-      # toate liniile rămase sunt dedicate „altor filtre”
+       \-"\-      # active opționale, discutate în secțiunea 5e de mai sus,
+       \-"\-      # plus intrările „inspect” discutate în secțiunea 6b de mai jos.
+.fi
+
+În cazul în care nu se poate stabili o cale absolută validă către fișierul
+fișierul de configurare „rc”, personalizările făcute la un \*(We în execuție
+vor fi imposibil de păstrat.
+
+.\" ......................................................................
+.SS "6b. Adăugarea de intrări de INSPECTARE"
+.\" ----------------------------------------------------------------------
+Pentru a exploata comanda interactivă „Y”, trebuie să adăugați intrări la
+\fBsfârșitul\fP fișierului de configurare personal al \*(We.  Aceste intrări
+reflectă pur și simplu un fișier care trebuie citit sau o „comandă”/„linie
+de comenzi în cascadă” care urmează să fie executată, ale cărei rezultate
+vor fi apoi afișate într\-o fereastră separată care poate fi derulată și
+căutată.
+
+Dacă nu cunoașteți locația sau numele fișierului dvs. configurare al \*(We,
+utilizați comanda interactivă „W” pentru a\-l rescrie și notați aceste
+detalii.
+
+Intrările de inspectare pot fi adăugate cu ajutorul unui ecou redirecționat
+sau prin editarea fișierului de configurare.  Redirecționarea unui ecou
+riscă să suprascrie fișierul configurare în cazul în care înlocuiește
+(>) în loc să adauge (>>) la fișierul respectiv.   În schimb,
+atunci când se utilizează un editor, trebuie să se aibă grijă să nu se
+corupă liniile existente, unele dintre acestea putând conține date
+neimprimabile sau caractere neobișnuite, în funcție de versiunea de \*(We
+sub care a fost salvat fișierul de configurare respectiv.
+
+Acele intrări Inspect (de inspectare) care încep cu caracterul „#” sunt
+ignorate, indiferent de conținut.  În caz contrar, acestea sunt formate din
+următoarele 3 elemente, fiecare dintre ele trebuind să fie separat de un
+caracter de tabulare (deci 2 „\et” în total):
+
+.nf
+  .type:  fie „file” (fișier), fie „pipe” (conductă)
+  .name:  selecția afișată pe ecranul de Inspectare
+  .fmts:  șir reprezentând o rută sau o comandă
+.fi
+
+Cele două tipuri de intrări de Inspectare nu sunt interschimbabile.  Cele
+desemnate „file” vor fi accesate utilizând fopen() și trebuie să facă
+referire la un singur fișier în elementul „.fmts”.  Intrările care specifică
+„pipe” vor folosi popen(), elementul lor „.fmts” poate conține mai multe
+comenzi în linie și niciuna nu poate fi interactivă.
+
+În cazul în care fișierul sau linia de comenzi în cascadă (pipeline)
+reprezentată în elementul „.fmts” se referă la un PID specific introdus sau
+acceptat atunci când vi se solicită, atunci șirul de format trebuie să
+conțină, de asemenea, specificatorul „\fB%d\fP”, după cum ilustrează aceste
+exemple.
+
+.nf
+  .fmts=  /proc/\fI%d\fP/numa_maps
+  .fmts=  lsof \-P \-p\fI %d\fP
+.fi
+
+Doar pentru intrările de tip „\fBpipe\fP”, ați putea dori, de asemenea, să
+redirecționați ieșirea de eroare standard către ieșirea standard pentru un
+rezultat mai cuprinzător.  Astfel șirul de format devine:
+
+.nf
+  .fmts=  pmap \-x %d\fI 2>&1\fP
+.fi
+
+Iată exemple de ambele tipuri de intrări Inspect așa cum ar putea apărea în
+fișierul de configurare.  Prima intrare va fi ignorată din cauza
+caracterului inițial „#”.  Pentru mai multă claritate, pseudo\-tabulatoarele
+(^I) sunt înconjurate de un spațiu suplimentar, dar tabulatoarele reale nu
+ar trebui să fie.
+.nf
+
+  # pipe ^I Socluri ^I lsof \-n \-P \-i 2>&1
+  pipe ^I Fișiere deschise ^I lsof \-P \-p %d 2>&1
+  file ^I Informații NUMA ^I /proc/%d/numa_maps
+  pipe ^I Jurnal ^I tail \-n100 /var/log/syslog | sort \-Mr
+.fi
+
+Cu excepția intrării comentate de mai sus, următoarele exemple arată ce ar
+putea fi transmis pentru a obține rezultate similare, presupunând că numele
+fișierului de configurare este „.toprc”.  Cu toate acestea, din cauza
+caracterelor de tabulare încorporate, fiecare dintre aceste linii ar trebui
+să fie precedată de „\fB/bin/echo \-e\fP”, nu doar de un simplu „echo”, pentru a
+permite interpretarea barelor oblice inverse indiferent de shell\-ul
+utilizat.
+
+.nf
+  "pipe\etFișiere deschise\etlsof \-P \-p %d 2>&1" >> ~/.toprc
+  "file\etInformații NUMA\et/proc/%d/numa_maps" >> ~/.toprc
+  "pipe\etJurnal\ettail \-n200 /var/log/syslog | sort \-Mr" >> ~/.toprc
+.fi
+
+În cazul în care orice intrare de inspectare pe care o creați produce o
+ieșire cu caractere neimprimabile, acestea vor fi afișate fie în notația ^C,
+fie în formatul hexazecimal <FF>, în funcție de valoarea lor.  Acest
+lucru este valabil și pentru caracterele de tabulare, care vor fi afișate
+sub forma „^I”.  Dacă doriți o reprezentare mai veridică, orice tabulație
+încorporată trebuie dezvoltată.  Exemplul următor ia ceea ce ar fi putut fi
+o intrare „file”, dar folosește în schimb o „pipe” pentru a extinde
+tabulatoarele încorporate.
+
+.nf
+  # următorul ar fi conținut „\et” ...
+  # file ^I <numele_dvs.> ^I /proc/%d/status
+  # dar acest lucru ar elimina „\et” încorporat ...
+  pipe ^I <numele_dvs.> ^I cat /proc/%d/status | expand \-
+.fi
+
+Notă: Unele programe se pot baza pe \fISIGINT\fP pentru a se încheia.  Prin
+urmare, dacă se stabilește o „pipe” precum cea de mai jos, trebuie să se
+utilizeze Ctrl\-C pentru a\-o încheia pentru a se putea revizui rezultatele.
+Aceasta este singura ocazie în care un „^C” nu va încheia de asemenea și
+\*(We.
+
+.nf
+  pipe ^I Trace ^I /usr/bin/strace \-p %d 2>&1
+.fi
+
+În sfârșit, în timp ce intrările de tip „pipe” au fost discutate în termeni
+de conducte și comenzi, nimic nu vă împiedică să includeți și scripturi
+shell.  Poate chiar scripturi nou create, concepute special pentru comanda
+interactivă „Y”.
+
+De exemplu, pe măsură ce numărul de intrări Inspect crește în timp, rândul
+„Opțiuni:” va fi trunchiat atunci când lățimea ecranului este depășită.
+Acest lucru nu afectează funcționarea decât pentru a face unele selecții
+invizibile.  Cu toate acestea, dacă unele alegeri sunt pierdute din cauza
+trunchierii, dar doriți să vedeți mai multe opțiuni, există o soluție simplă
+sugerată mai jos.
+
+.nf
+  Pauză de inspectare la pid ...
+  Utilizați:  tastele săgeți stânga/dreapta apoi <Enter> ...
+  Opțiuni:  help  1  2  3  4  5  6  7  8  9  10  11 ...
+.fi
+
+Intrările din fișierul de configurare al \*(We vor avea un număr pentru
+elementul „.name”, iar intrarea „help” va identifica un script shell pe care
+l\-ați scris pentru a explica ce înseamnă de fapt aceste selecții
+numerotate.  În acest fel, pot fi făcute vizibile mult mai multe alegeri.
+
+.\" ......................................................................
+.SS "6c. Fișier de configurare a SISTEMULUI"
+.\" ----------------------------------------------------------------------
+Acest fișier de configurare reprezintă valorile implicite pentru
+utilizatorii care nu și\-au salvat propriul fișier de configurare.  Formatul
+oglindește exact fișierul de configurare personal și poate, de asemenea, să
+includă intrări „de inspectare”, așa cum s\-a explicat mai sus.
+
+Crearea acestuia este un proces simplu.
+
+1. Configurați \*(We în mod corespunzător pentru instalarea dvs. și salvați
+acea configurație cu comanda interactivă „W”.
+
+2. Adăugați și testați toate intrările de „inspectare” dorite.
+
+3. Copiați acest fișier de configurare în directorul /etc/ ca
+„topdefaultrc”.
+
+.\" ......................................................................
+.SS "6d. Fișier de restricții ale SISTEMULUI"
+.\" ----------------------------------------------------------------------
+Prezența acestui fișier va influența ce versiune a ecranului de ajutor este
+afișată unui utilizator obișnuit.
+
+Cel mai important, va limita ceea ce utilizatorii obișnuiți au voie să facă
+atunci când \*(We este în funcțiune.  Aceștia nu vor putea emite următoarele
+comenzi:
+.nf
+    k         Omorârea unei sarcini
+    r         Redefinirea valorii de curtoazie (nice) a unei sarcini
+    d sau s   Modificarea intervalului de întârziere/dormire
+.fi
+
+Acest fișier de configurare nu este creat de \*(We.  Mai degrabă, este creat
+manual și plasat în directorul „/etc/” sub numele de „toprc”.
+
+Acesta trebuie să aibă exact două linii, așa cum se arată în acest exemplu:
+.nf
+    s        # linia 1: comutator de mod securizat
+    5.0      # linia 2: intervalul de întârziere în secunde
+.fi
+
+.\" ----------------------------------------------------------------------
+.SH "7. VARIABILE DE MEDIU"
+.\" ----------------------------------------------------------------------
+Valoarea stabilită pentru următoarea variabilă este neimportantă, doar
+prezența acesteia.
+
+.IP LIBPROC_HIDE_KERNEL
+Acest lucru va împiedica afișarea oricăror fire de execuție ale nucleului și
+va exclude astfel de procese din numărul de sarcini/fire de execuție din
+Zona de Rezumat.
+
+.\" ----------------------------------------------------------------------
+.SH "8. Exemplu de TRUCURI STUPIDE"
+.\" ----------------------------------------------------------------------
+Multe dintre aceste trucuri funcționează cel mai bine atunci când îi dați
+lui \*(We) un impuls de planificare.  Așa că plănuiește să\-l lansezi cu o
+valoare de curtoazie (nice) de „\-10”, presupunând că ai autoritatea
+necesară.
+
+.\" ......................................................................
+.SS "7a. Magia nucleului"
+.\" ----------------------------------------------------------------------
+.\" sorry, just can't help it -- don't ya love the sound of this?
+.\" ( apparently AM static was a potential concern )
+Pentru aceste trucuri stupide, \*(We are nevoie de modul ecran complet.
+
+.IP \(bu 3
+Interfața cu utilizatorul, prin solicitări și ajutor, implică în mod
+intenționat că intervalul de întârziere este limitat la zecimi de secundă.
+Cu toate acestea, sunteți liber să stabiliți orice întârziere dorită.  Dacă
+doriți să vedeți Linux (nucleul) la cea mai bună planificare, încercați o
+întârziere de 0,09 secunde sau mai puțin.
+
+Pentru acest experiment, sub x\-windows deschideți un terminal «xterm» și
+maximizați\-l.  Apoi faceți următoarele:
+.nf
+  . stabiliți o creștere a priorității și o mică întârziere prin:
+      nice \-n \-10 \*(We \-d.09
+  . păstrați evidențierea coloanelor sortate Dezactivat
+    pentru a minimiza lungimea căii
+  . activați evidențierea rândului invers pentru accentuare
+  . încercați diferite coloane de sortare (TIME/MEM
+    funcționează bine) și sortarea normală sau inversă
+    pentru a aduce cele mai active procese la vedere
+.fi
+
+Ceea ce veți vedea este un Linux foarte ocupat făcând ceea ce a făcut
+întotdeauna pentru dvs., dar nu a existat niciun program disponibil pentru a
+ilustra acest lucru.
+
+.IP \(bu 3
+Sub un xterm care folosește culori „alb\-pe\-negru”, în ecranul de asociere a
+culorilor din \*(We stabiliți culoarea sarcinii la negru și asigurați\-vă că
+evidențierea sarcinii este setată la aldin, nu invers.  Apoi stabiliți
+intervalul de întârziere la aproximativ 0,3 secunde.
+
+După ce ați adus la vedere cele mai active procese, ceea ce veți vedea sunt
+imaginile fantomatice ale sarcinilor în curs de desfășurare.
+
+.IP \(bu 3
+Ștergeți fișierul rc existent sau creați o legătură simbolică nouă.  Porniți
+această nouă versiune, apoi tastați „T” (o cheie secretă, \*(Xt „4c. Comenzi
+în zona de sarcini, SORTARE”) urmat de „W” și „q”.  În cele din urmă,
+reporniți programul cu \-d0 (întârziere zero).
+
+Afișajul dvs. va fi reîmprospătat cu o rată de trei ori mai mare decât cea
+din fostul \*(We, un avantaj de viteză de 300%.  Pe măsură ce \*(We urcă pe
+scara TIMPULUI, fiți cât de răbdător puteți în timp ce speculați dacă \*(We
+va ajunge vreodată în \*(We.
+
+.\" ......................................................................
+.SS "7b. Ferestre care apar"
+.\" ----------------------------------------------------------------------
+Pentru aceste trucuri stupide, \*(We are nevoie de un mod de afișare
+alternativ.
+
+.IP \(bu 3
+Cu 3 sau 4 afișări de sarcini vizibile, alegeți orice altă fereastră decât
+ultima și dezactivați procesele inactive folosind comutatorul de comandă
+„i”.  În funcție de locul în care ați aplicat „i”, uneori mai multe afișări
+de sarcini trec și uneori este ca un acordeon, deoarece top încearcă din
+răsputeri să aloce spațiu.
+
+.IP \(bu 3
+Configurați liniile de sumar ale fiecărei ferestre în mod diferit: una fără
+memorie (`m'); alta fără stări (`t'); poate una fără nimic, doar linia de
+mesaj.  Apoi țineți apăsat „a” sau „w” și urmăriți o variație a ferestrelor
+care apar \-\- ferestrele săltărețe.
+
+.IP \(bu 3
+Afișați toate cele 4 ferestre și pentru fiecare, la rândul său, stabiliți
+procesele inactive la Dezactivate folosind comutatorul de comandă „i”.
+Tocmai ați intrat în zona de „sărire extremă”.
+
+.\" ......................................................................
+.SS "7c. Fereastra Pasărea Mare"
+.\" ----------------------------------------------------------------------
+Acest truc stupid necesită, de asemenea, modul de afișare alternativ.
+
+.IP \(bu 3
+Afișați toate cele 4 ferestre și asigurați\-vă că 1:Def este fereastra
+„actuală”.  Apoi, continuați să creșteți dimensiunea ferestrei cu comanda
+interactivă `n' până când toate celelalte afișări de sarcini sunt „împinse
+în afara cuibului”.
+
+Când toate au fost deplasate, comutați între toate ferestrele
+vizibile/invizibile folosind comutatorul de comandă „_”.  Atunci gândiți\-vă
+la asta:
+.br
+   \*(We inventează rezultate sau spune cu sinceritate adevărul impus?
+
+.\" ......................................................................
+.SS "7d. Vechiul comutator"
+.\" ----------------------------------------------------------------------
+Acest truc stupid funcționează cel mai bine fără modul de afișare
+alternativă, deoarece justificarea este activă pentru fiecare fereastră.
+
+.IP \(bu 3
+Porniți \*(WE și faceți „COMANDA” ultima coloană afișată (cea mai din
+dreapta).  Dacă este necesar, utilizați comanda de comutare „c” pentru a
+afișa liniile de comandă și asigurați\-vă că vizualizarea arborescentă este
+activă cu comanda de comutare „V”.
+
+Apoi utilizați tastele săgeți sus/jos pentru a poziționa afișarea astfel
+încât să fie afișate niște linii de comandă trunchiate („+” în ultima
+poziție).  Poate fi necesar să redimensionați „xterm” pentru a produce
+trunchierea.
+
+În cele din urmă, utilizați comanda de comutare „j” pentru a face coloana
+COMANDA justificată la dreapta.
+
+Acum folosiți tasta săgeată dreapta pentru a ajunge la coloana COMANDA.
+Continuând cu tasta săgeată dreapta, urmăriți cu atenție direcția de mers
+pentru liniile de comandă afișate.
+
+.br
+   unele linii se deplasează spre stânga, în timp ce altele se deplasează spre dreapta
+
+   în cele din urmă, toate liniile se vor schimba și se vor muta la dreapta
+
+.\" ----------------------------------------------------------------------
+.SH "9. ERORI"
+.\" ----------------------------------------------------------------------
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE .
+
+ 
+.\" ----------------------------------------------------------------------
+.SH "10. CONSULTAȚI ȘI"
+.\" ----------------------------------------------------------------------
+\fBfree\fP(1), \fBps\fP(1), \fBuptime\fP(1), \fBatop\fP(1), \fBslabtop\fP(1), \fBvmstat\fP(8),
+\fBw\fP(1)

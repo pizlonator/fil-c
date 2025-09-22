@@ -1,0 +1,54 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1993      Matt Welsh <mdw@tc.cornell.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TLOAD 1 2020\-06\-04 procps\-ng "Commandes de l'utilisateur"
+.SH NOM
+tload \- Représentation graphique de la charge moyenne du système
+.SH SYNOPSIS
+\fBtload\fP [\fIoptions\fP] [\fItty\fP]
+.SH DESCRIPTION
+\fBtload\fP affiche un graphe de la charge moyenne du système dans la console
+\fItty\fP (ou la console du processus de \fBtload\fP si aucune n'est précisée).
+.SH OPTIONS
+.TP 
+\fB\-s\fP, \fB\-\-scale\fP \fIéchelle\fP
+L'option \fIéchelle\fP permet d'indiquer une échelle verticale pour l'affichage
+(en caractères entre les tirets)\ ; ainsi une plus petite valeur représente
+une plus grande échelle, et vice versa.
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP \fIdélai\fP
+Le \fIdélai\fP définit le délai en seconde entre les mises à jour des graphes.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afficher l'aide et quitter.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afficher la version du logiciel et quitter.
+.PP
+.SH FICHIERS
+\fI/proc/loadavg\fP information sur la charge moyenne
+.SH "VOIR AUSSI"
+\fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fBw\fP(1)
+.SH BOGUES
+L'option \fB\-d\fP\fI délai\fP définit le paramètre de temps de la commande
+\fBalarm\fP(2)\ ; si \-d 0 est indiqué, l'alarme est désactivée, elle n'enverra
+jamais de signal \fBSIGALRM\fP bloquant ainsi la mise à jour de l'affichage.
+.SH AUTEURS
+Branko Lankester <\fIlankeste@fwi.uva.nl\fP>, David Engel
+<\fIdavid@ods.com\fP> et Michael K. Johnson
+<\fIjohnsonm@redhat.com\fP>.
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

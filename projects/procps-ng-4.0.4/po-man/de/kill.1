@@ -1,0 +1,94 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KILL 1 "16. Januar 2023" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+kill \- ein Signal an einen Prozess senden
+.SH ÜBERSICHT
+\fBkill\fP [Optionen] <Prozesskennung> […]
+.SH BESCHREIBUNG
+Das Standardsignal für \fBkill\fP ist TERM. Mit \fB\-l\fP oder \fB\-L\fP können Sie die
+verfügbaren Signale auflisten. Im einzelnen sind HUP, INT, KILL, STOP, CONT
+und 0 nützliche Signale. Alternative Signale können auf drei Arten angegeben
+werden: \fB\-9\fP, \fB\-SIGKILL\fP oder \fB\-KILL\fP. Negative Werte für die
+Prozesskennung können verwendet werden, um ganze Prozessgruppen auszuwählen;
+siehe die Spalte PGID der Ausgabe des Befehls \fBps\fP. Eine Prozesskennung von
+\fB\-1\fP ist besonders. Sie bezeichnet alle Prozesse außer \fBinit\fP und den
+\fBkill\fP\-Prozess selbst.
+.SH OPTIONEN
+.TP 
+\fB<Prozesskennung> […]\fP
+sendet das Signal an alle aufgelisteten <Prozesskennungen>.
+.TP 
+\fB\-<Signal>\fP
+.TQ
+\fB\-s <Signal>\fP
+.TQ
+\fB\-\-signal <Signal>\fP
+gibt das zu sendende \fBSignal\fP an. Es kann als Name oder Nummer angegeben
+werden. Das Verhalten der Signale ist in der Handbuchseite zu \fBsignal\fP(7)
+beschrieben.
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIWert\fP
+verwendet \fBsigqueue\fP(3) anstatt \fBkill\fP(2) und das \fIWert\fP\-Argument wird
+zur Angabe einer Ganzzahl verwendet, die mit dem Signal gesendet wird. Falls
+der empfangende Prozess mit dem SA_SIGINFO\-Flag für \fBsigaction\fP(2) einen
+Handler für dieses Signal installiert hat, dann kann er diese Daten über das
+\fIsi_value\fP\-Feld der Struktur \fIsiginfo_t\fP beziehen.
+.TP 
+\fB\-l\fP, \fB\-\-list\fP [\fISignal\fP]
+listet Signalnamen auf. Diese Option kann ein Argument haben, welches die
+Signalnummer in einen Signalnamen umwandelt oder umgekehrt.
+.TP 
+\fB\-L\fP,\fB\ \-\-table\fP
+listet Signalnamen in einer übersichtlichen Tabelle auf.
+.TP 
+.PD
+.SH ANMERKUNGEN
+In Ihrer Shell (dem Befehlszeileninterpreter) könnte bereits ein Kill\-Befehl
+eingebaut sein. In diesem Fall müssen Sie den hier beschriebenen Befehl als
+/bin/kill aufrufen, um den Konflikt zu umgehen.
+.SH BEISPIELE
+.TP 
+\fBkill \-9 \-1\fP
+killt alle Prozesse, die gekillt werden können.
+.TP 
+\fBkill \-l 11\fP
+übersetzt die Zahl 11 in einen Signalnamen.
+.TP 
+\fBkill \-L\fP
+listet die Auswahl der verfügbaren Signale in einer übersichtlichen Tabelle
+auf.
+.TP 
+\fBkill 123 543 2341 3453\fP
+Sendet das Standardsignal SIGTERM an alle diese Prozesse.
+.SH "SIEHE AUCH"
+\fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1), \fBrenice\fP(1),
+\fBsignal\fP(7), \fBsigqueue\fP(3), \fBskill\fP(1)
+.SH STANDARDS
+Dieser Befehl erfüllt die entsprechenden Standards. Der Schalter \fB\-L\fP ist
+Linux\-spezifisch.
+.SH AUTOR
+.MT albert@users.sf.net
+Albert Cahalan
+.ME
+schrieb \fBkill\fP im Jahre
+1999, um die Version aus den Bsdutils zu ersetzen, die nicht standardkonform
+war. Die Version aus Util\-linux sollte ebenfalls korrekt funktionieren.
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

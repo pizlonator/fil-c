@@ -1,0 +1,170 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2003 Albert Cahalan
+.\" Copyright (c) 1993      Matt Welsh <mdw@sunsite.unc.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FREE 1 "2. Mai 2023" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+free \- Anzeige des freien und belegten Speichers
+.SH ÜBERSICHT
+\fBfree\fP [\fIOptionen\fP]
+.SH BESCHREIBUNG
+\fBfree\fP zeigt den gesamten freien und genutzten physischen Speicher und
+Auslagerungsspeicher im System sowie die vom Kernel verwendeten Puffer und
+Zwischenspeicher an. Die Informationen werden durch Auslesen von
+/proc/meminfo ermittelt. Folgende Spalten werden angezeigt:
+.TP 
+\fBgesamt\fP
+Gesamter nutzbarer Speicher (MemTotal und SwapTotal in /proc/meminfo). Dies
+umfasst den physischen und den Auslagerungsspeicher, abzüglich reservierter
+Bits und Kernel\-Binärcode.
+.TP 
+\fBbenutzt\fP
+Benutzter oder nicht verfügbarer Speicher (errechnet durch \fBgesamt\fP minus
+\fBverfügbar\fP)
+.TP 
+\fBfrei\fP
+Ungenutzter Speicher (MemFree und SwapFree in /proc/meminfo)
+.TP 
+\fBgemns.\fP
+(Meist) von Tmpfs genutzter Speicher (Shmem in /proc/meminfo)
+.TP 
+\fBPuffer\fP
+Von den Kernel\-Puffern genutzter Speicher (Buffers in /proc/meminfo)
+.TP 
+\fBCache\fP
+Vom Page\-Cache und Slabs genutzter Speicher (Cached und SReclaimable in
+/proc/meminfo)
+.TP 
+\fBPuffer/Cache\fP
+Summe von \fBPuffer\fP und \fBCache\fP
+.TP 
+\fBverfügbar\fP
+Schätzung des zum Starten neuer Anwendungen verfügbaren Speichers, ohne den
+Auslagerungsspeicher zu nutzen. Im Gegensatz zu den in den Feldern \fBCache\fP
+oder \fBFrei\fP angezeigten Daten bezieht dieses Feld den Page\-Cache mit ein,
+und beachtet außerdem, dass nicht alle beanspruchbaren Speicher\-Slabs durch
+in Verwendung befindliche Objekte auch wirklich beansprucht
+werden. (MemAvailable in /proc/meminfo, verfügbar ab Kernel 3.14, emuliert
+in Kernel 2.6.27 und neuer, anderenfalls gleichbedeutend mit \fBFrei\fP)
+.SH OPTIONEN
+.TP 
+\fB\-b\fP, \fB\-\-bytes\fP
+zeigt die Speichergröße in Byte an.
+.TP 
+\fB\-k\fP, \fB\-\-kibi\fP
+zeigt die Speichergröße in Kibibyte an. Das ist die Voreinstellung.
+.TP 
+\fB\-m\fP, \fB\-\-mebi\fP
+zeigt die Speichergröße in Mebibyte an.
+.TP 
+\fB\-g\fP, \fB\-\-gibi\fP
+zeigt die Speichergröße in Gibibyte an.
+.TP 
+\fB\-\-tebi\fP
+zeigt die Speichergröße in Tebibyte an.
+.TP 
+\fB\-\-pebi\fP
+Zeigt die Speichergröße in Pebibyte an.
+.TP 
+\fB\-\-kilo\fP
+zeigt die Speichergröße in Kilobyte an. Impliziert \-\-si.
+.TP 
+\fB\-\-mega\fP
+zeigt die Speichergröße in Megabyte an. Impliziert \-\-si.
+.TP 
+\fB\-\-giga\fP
+zeigt die Speichergröße in Gigabyte an. Impliziert \-\-si.
+.TP 
+\fB\-\-tera\fP
+zeigt die Speichergröße in Terabyte an. Impliziert \-\-si.
+.TP 
+\fB\-\-peta\fP
+zeigt die Speichergröße in Petabyte an. Impliziert \-\-si.
+.TP 
+\fB\-h\fP, \fB\-\-human\fP
+Alle angezeigten Felder werden automatisch auf die kleinste Einheit mit drei
+Ziffern skaliert. Die Einheiten werden in der Ausgabe angezeigt. Es werden
+die folgenden Einheiten verwendet.
+.sp
+.nf
+  B = Byte
+  Ki = Kibibyte
+  Mi = Mebibyte
+  Gi = Gibibyte
+  Ti = Tebibyte
+  Pi = Pebibyte
+.fi
+.sp
+Falls die Einheit fehlt und Sie Exbibyte an RAM oder Auslagerungsspeicher
+haben, wird die Zahl in Tebibyte angezeigt und die Spalten sind
+möglicherweise nicht an den Kopfzeilen ausgerichtet.
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+wechselt in den breiten Modus. In diesem Modus können Zeilen dargestellt
+werden, die länger als 80 Zeichen sind. \fBPuffer\fP und \fBCache\fP werden dann
+in zwei separaten Spalten dargestellt.
+.TP 
+\fB\-c\fP, \fB\-\-count\fP \fIAnzahl\fP
+zeigt das Ergebnis \fIAnzahl\fP mal an. Erfordert die Option \fB\-s\fP.
+.TP 
+\fB\-l\fP, \fB\-\-lohi\fP
+zeigt detailliert die Belegung von »low memory« und »high memory« an.
+.TP 
+\fB\-L\fP, \fB\-\-line\fP
+zeigt die Ausgabe in einer einzelnen Zeile an; wird oft mit der Option \fB\-s\fP
+verwendet, um Speicherstatistiken wiederholt anzuzeigen.
+.TP 
+\fB\-s\fP, \fB\-\-seconds\fP \fIIntervall\fP
+Fortlaufende Aktualisierung der Anzeige nach \fIIntervall\fP Sekunden. Sie
+können für \fIIntervall\fP eine beliebige Gleitkommazahl angeben mit einem
+Punkt oder Komma als Dezimaltrenner angeben. Durch die Nutzung von
+\fBusleep\fP(3) können die Intervalle bis auf die Mikrosekunde genau festgelegt
+werden.
+.TP 
+\fB\-\-si\fP
+verwendet Kilo, Mega, Giga usw. (Vielfache von 1000) anstelle von Kibi,
+Mebi, Gibi (Vielfache von 1024).
+.TP 
+\fB\-t\fP, \fB\-\-total\fP
+zeigt eine Zeile mit den Spaltensummen an.
+.TP 
+\fB\-v\fP, \fB\-\-committed\fP
+Display a line showing the memory commit limit and amount of
+committed/uncommitted memory. The \fBtotal\fP column on this line will display
+the memory commit limit.  This line is relevant if memory overcommit is
+disabled.
+.TP 
+\fB\-\-help\fP
+Hilfe ausgeben.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Versionsinformationen anzeigen.
+.PD
+.SH DATEIEN
+.TP 
+/proc/meminfo
+Speicherinformationen
+.PD
+.SH FEHLER
+Der Wert der Spalte \fBgemns.\fP ist für Kernel vor 2.6.32 nicht verfügbar und
+wird als Null angezeigt.
+.TP 
+Bitte senden Sie Fehlermeldungen (auf Englisch) an
+.UR procps@freelists.org
+.UE
+.SH "SIEHE AUCH"
+\fBps\fP(1), \fBslabtop\fP(1), \fBtop\fP(1), \fBvmstat\fP(8).

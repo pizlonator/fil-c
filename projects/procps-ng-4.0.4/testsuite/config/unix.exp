@@ -1,0 +1,244 @@
+
+set env(LC_ALL) "C"
+regexp "(.*\/)testsuite" $objdir objdir topdir
+
+# These are the same as include/c.h
+set usage_help "\\s*-h, --help\\s+display this help and exit\\s+"
+set usage_version "\\s*-V, --version\\s+output version information and exit\\s+"
+set usage_man "\\s*For more details see \\S+\\."
+
+proc kill_process pid {
+    set cmdline "kill $pid"
+    if { [catch { exec /bin/sh -c $cmdline } msg]} {
+        warning "Could not kill process: $msg\n"
+    }
+}
+
+proc procps_v_version { tool } {
+  global topdir
+  set toolpath ${topdir}src/${tool}
+  set tmp [ exec $toolpath -V ]
+  regexp "from procps-ng (\[0-9.\]*)" $tmp tmp version
+  clone_output "$toolpath version $version\n"
+}
+
+proc free_version {} { procps_v_version free }
+proc kill_version {} { procps_v_version kill }
+proc pgrep_version {} { procps_v_version pgrep }
+proc pkill_version {} { procps_v_version pkill }
+proc pmap_version {} { procps_v_version pmap }
+proc pwdx_version {} { procps_v_version pwdx }
+proc sysctl_version {} { procps_v_version sysctl }
+proc uptime_version {} { procps_v_version uptime }
+proc vmstat_version {} { procps_v_version vmstat }
+proc w_version {} { procps_v_version w }
+
+#
+#
+# common utilities
+proc expect_continue { testname reg } {
+    expect {
+        -re "$reg" { }
+        eof { fail "$testname" }
+        timeout { fail "$testname" }
+    }
+}
+
+proc expect_pass { testname reg } {
+    expect {
+        -re "$reg" { pass "$testname" }
+        default { fail "$testname" }
+		timeout { fail "$testname" }
+    }
+}
+
+# Fail if we see this message, pass if we get to EOF
+proc expect_fail { testname reg } {
+    expect {
+        -re "$reg" { fail "$testname" }
+        timeout { fail "$testname" }
+        eof { pass "$testname" }
+    }
+}
+
+proc expect_pipeproc_pass { testname reg } {
+    global pipeproc_spawnid
+
+    expect {
+	-i $pipeproc_spawnid
+        -re "$reg" { pass "$testname" }
+        default { fail "$testname" }
+		timeout { fail "$testname (timeout)" }
+    }
+}
+
+proc expect_blank { testname } {
+    expect {
+        -re "\\w" { fail "$testname" }
+        eof { pass "$testname" }
+        timeout { pass "$testname" }
+    }
+}
+
+proc expect_blank_continue { testname } {
+    expect {
+        -re "\\w" { fail "$testname" }
+        eof { }
+        timeout { pass "$testname (timeout)" }
+    }
+}
+
+proc expect_table { test match_header match_items match_footer } {
+    expect {
+        -re "$match_header" {
+            expect {
+                -re "$match_items" {
+                    expect {
+                        -re "$match_footer" { pass "$test" }
+                        default { fail "$test (footer)" }
+                    }
+                }
+                default { fail "$test (items)" }
+            }
+        }
+        default { fail "$test (header)" }
+    }
+}
+
+proc expect_table_dsc { test match_header match_item } {
+    expect {
+        -re $match_header {}
+        default {
+            fail "$test (header)"
+            return
+        }
+    }
+
+    set do_loop 1
+    set last_value 99999999
+    set found_item 0
+    while { $do_loop ==1 } {
+    expect {
+        -re $match_item {
+            set current_value $expect_out(1,string)
+            if { $current_value > $last_value } {
+                fail "$test (sorting $current_value > $last_value)"
+                return
+            } else {
+                set found_item 1
+                set last_value $current_value
+            }
+        }
+        default {
+            if { $found_item == 0 } {
+                fail "$test (items)"
+            } else {
+                pass $test
+            }
+            return
+        }
+    }
+    }
+    #expect {
+    #    -re $match_footer { pass $test }
+    #    default { fail "$test (footer)" }
+    #}
+}
+
+proc expect_spawn_retval { test retval } {
+    foreach {pid spawnid os_error_flag value} [wait] break
+
+    if {$value == $retval} {
+      return
+    }
+    fail "$test (exit value)"
+}
+
+proc make_pipeproc { } {
+    global pipeproc_pid pipeproc_spawnid topdir
+
+    set testproc_realpath "${topdir}/src/tests/test_process"
+
+    set pipeproc_pid [ spawn $testproc_realpath ]
+    set pipeproc_spawnid $spawn_id
+
+}
+proc make_testproc { } {
+    global testproc_path testproc_comm testproc_arg_str testproc1_pid testproc2_pid topdir
+
+    set testproc_realpath "${topdir}/src/tests/test_process"
+    set testproc_comm "spcorp"
+
+    set testproc_path [ exec mktemp -u ]
+    exec ln -s $testproc_realpath $testproc_path
+
+    spawn readlink $testproc_path
+    expect {
+        -re "^$testproc_realpath\\s*$" { }
+        timeout { perror "test proc does not link to test process" }
+        eof { perror "test proc does not link to test process" }
+    }
+
+    # make a process with the argument set to a fraction of ARG_MAX length
+    # but small enough we do not run TCL out of memory for regular expressions
+    # nor do we get argument list too long (104857 was found to work on Ubuntu 18.04)
+    set max_arg_len [ expr min([ exec /usr/bin/getconf ARG_MAX ], 104857) ]
+    # ensure we have enough slack to launch the test prog and pgrep
+    set reserved_space [expr max([ string length $testproc_path ], [ string length $topdir ] + 10)]
+    set testproc_arg_str "a"
+    set i $reserved_space
+    while {$i<$max_arg_len} {
+      incr i
+      append testproc_arg_str "a"
+    }
+    set testproc1_pid [ exec $testproc_path $testproc_arg_str & ]
+    set testproc2_pid [ exec $testproc_path & ]
+}
+
+proc make_testshm_proc { } {
+    global testshmproc_pid testshm_spawnid topdir shmid
+
+    set testshm_realpath "${topdir}/src/tests/test_shm"
+
+    set testshmproc_pid [ spawn $testshm_realpath ]
+    set testshmproc_spawnid $spawn_id
+    expect {
+	-i $testshmproc_spawnid
+	-re "^SHMID: (\[0-9a-f\]+)" { set shmid $expect_out(1,string) }
+	default { set shmid "" }
+    }
+
+}
+
+proc kill_testshm_proc { } {
+    global testshmproc_pid
+
+    kill_process $testshmproc_pid
+}
+
+proc kill_testproc { } {
+    global testproc_path testproc1_pid testproc2_pid
+
+    kill_process $testproc1_pid
+    kill_process $testproc2_pid
+    file delete $testproc_path
+}
+
+proc kill_pipeproc { } {
+    global pipeproc_pid
+    kill_process $pipeproc_pid
+}
+
+proc get_tty {} {
+    if { [catch { set raw_tty [ exec tty ] } msg]} {
+        warning "No TTY found"
+        return ""
+    }
+    regexp "/dev/(.+)" $raw_tty > tty
+    if { $tty == "tty" } {
+        warning "TTY is tty"
+        return ""
+    }
+
+    return $tty
+}

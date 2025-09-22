@@ -1,0 +1,62 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1993      Matt Welsh <mdw@tc.cornell.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TLOAD 1 04.06.2020 procps\-ng "Comenzi utilizator"
+.SH NUME
+tload \- reprezentare grafică a mediei de încărcare a sistemului
+.SH REZUMAT
+\fBtload\fP [\fIopțiuni\fP] [\fItty\fP]
+.SH DESCRIERE
+\fBtload\fP afișează un grafic al mediei curente de încărcare a sistemului la
+\fItty\fP specificat (sau tty\-ul procesului \fBtload\fP dacă nu este specificat
+niciunul).
+.SH OPȚIUNI
+.TP 
+\fB\-s\fP, \fB\-\-scale\fP \fInumber\fP
+Opțiunea \fI\-\-scale\fP este folosită pentru a indica o scară verticală pentru
+afișaj (în caractere între liniuțe); astfel o valoare mai mică reprezintă o
+scară mai mare și viceversa.
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP \fIsecunde\fP
+Opțiunea \fI\-\-delay\fP stabilește întârzierea dintre actualizările graficului
+în \fIsecunde\fP.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează acest mesaj de ajutor.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune și iese.
+.PP
+.SH FIȘIERE
+\fI/proc/loadavg\fP informații despre încărcarea medie
+.SH "CONSULTAȚI ȘI"
+\fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fBw\fP(1)
+.SH ERORI
+Opțiunea \fB\-d\fP\fIîntârzierea\fP stabilește argumentul de timp pentru comanda
+\fBalarm\fP(2); dacă se specifică „\-d 0”, alarma este stabilită la 0, ceea ce
+nu va trimite niciodată \fBSIGALRM\fP și nu va actualiza afișarea.
+.SH AUTORI
+Branko Lankester,
+.UR david@\:ods.\:com
+David Engel
+.UE , and
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE .
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

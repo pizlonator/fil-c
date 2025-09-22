@@ -1,0 +1,97 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PMAP 1 "4 червня 2020 року" procps\-ng "Команди користувача"
+.SH НАЗВА
+pmap — вивести карту пам’яті певного процесу.
+.SH "КОРОТКИЙ ОПИС"
+\fBpmap\fP [\fIпараметри\fP] \fIpid\fP [...]
+.SH ОПИС
+Команда \fBpmap\fP виводить карту пам’яті процесу або процесів.
+.SH ПАРАМЕТРИ
+.TP 
+\fB\-x\fP, \fB\-\-extended\fP
+Вивести дані у розширеному форматі.
+.TP 
+\fB\-d\fP, \fB\-\-device\fP
+Вивести дані щодо формату пристрою.
+.TP 
+\fB\-q\fP, \fB\-\-quiet\fP
+Не виводити деякі початкові і кінцеві рядки.
+.TP 
+\fB\-A\fP, \fB\-\-range\fP \fIнижня межа\fP,\fIверхня межа\fP
+Обмежити результати вказаним діапазоном адрес від значення \fIнижня межа\fP до
+значення \fIверхня межа\fP. Зауважте, що аргументи нижньої і верхньої меж є
+одним рядком, значення у якому відокремлено комою.
+.TP 
+\fB\-X\fP
+Показати додаткові подробиці, більші, ніж якщо використовується параметр
+\fB\-x\fP. ПОПЕРЕДЖЕННЯ: зміни у форматі відповідають змінам у
+\fI/proc/PID/smaps\fP.
+.TP 
+\fB\-XX\fP
+Вивести усе, що надається ядром.
+.TP 
+\fB\-p\fP, \fB\-\-show\-path\fP
+Виводити шлях до файлів у стовпчику прив’язки повністю.
+.TP 
+\fB\-c\fP, \fB\-\-read\-rc\fP
+Прочитати типові налаштування.
+.TP 
+\fB\-C\fP, \fB\-\-read\-rc\-from\fP \fIфайл\fP
+Прочитати налаштування з файла \fIфайл\fP.
+.TP 
+\fB\-n\fP, \fB\-\-create\-rc\fP
+Створити нові типові налаштування.
+.TP 
+\fB\-N\fP, \fB\-\-create\-rc\-to\fP \fIфайл\fP
+Створити налаштування у файлі \fIфайл\fP
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Вивести текст довідки і завершити роботу.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Вивести дані щодо версії і завершити роботу.
+.SH "СТАН ВИХОДУ"
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Успіх.
+.TP 
+\fB1\fP
+Невдача.
+.TP 
+\fB42\fP
+Не знайдено усі процеси, щодо яких було надіслано запит.
+.PD
+.RE
+.SH "ТАКОЖ ПЕРЕГЛЯНЬТЕ"
+\fBps\fP(1), \fBpgrep\fP(1)
+.SH СТАНДАРТИ
+Стандарти не застосовувалися, але \fBpmap\fP є схожим на програму для SunOS.
+.SH "Як надіслати звіт про вади"
+Про вади, будь ласка, повідомляйте на адресу
+.UR procps@freelists.org
+.UE

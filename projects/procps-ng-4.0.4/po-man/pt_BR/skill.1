@@ -1,0 +1,116 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2006 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SKILL 1 2023\-08\-19 procps\-ng "Comandos de usuário"
+.SH NOME
+skill, snice \- envia um sinal ou relata status de processo
+.SH SINOPSE
+\fBskill\fP [\fIsinal\fP] [\fIopções\fP] \fIexpressão\fP
+.br
+\fBsnice\fP [\fInova prioridade\fP] [\fIopções\fP] \fIexpressão\fP
+.SH DESCRIÇÃO
+These tools are obsolete and unportable.  The command syntax is poorly
+defined.  Consider using the \fBkillall\fP, \fBpkill\fP, and \fBpgrep\fP commands
+instead.
+.PP
+The default signal for \fBskill\fP is TERM.  Use \fB\-l\fP or \fB\-L\fP to list
+available signals.  Particularly useful signals include HUP, INT, KILL,
+STOP, CONT, and 0.  Alternate signals may be specified in three ways: \fB\-9\fP
+\fB\-SIGKILL\fP \fB\-KILL\fP.
+.PP
+The default priority for \fBsnice\fP is +4.  Priority numbers range from +20
+(slowest) to \-20 (fastest).  Negative priority numbers are restricted to
+administrative users.
+.SH OPÇÕES
+.TP 
+\fB\-f\fP,\fB\ \-\-fast\fP
+Modo rápido. Essa opção não foi implementada.
+.TP 
+\fB\-i\fP,\fB\ \-\-interactive\fP
+Uso interativo. Você será solicitado aprovação para cada ação.
+.TP 
+\fB\-l\fP,\fB\ \-\-list\fP
+Lista todos os nomes de sinais.
+.TP 
+\fB\-L\fP,\fB\ \-\-table\fP
+Lista todos os nomes de sinais em uma tabela legal.
+.TP 
+\fB\-n\fP,\fB\ \-\-no\-action\fP
+Nenhuma ação; realiza uma simulação dos eventos que ocorreriam, mas não
+chega a alterar o sistema.
+.TP 
+\fB\-v\fP,\fB\ \-\-verbose\fP
+Verboso; explica o que está sendo feito.
+.TP 
+\fB\-w\fP,\fB\ \-\-warnings\fP
+Habilita avisos. Essa opção não foi implementada.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Exibe um texto de ajuda e sai.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão.
+.PD
+.SH "OPÇÕES DE SELEÇÃO DE PROCESSO"
+Critérios de seleção podem ser: terminal, user, pid, command. As opções
+abaixo podem ser usadas para garantir interpretação correta.
+.TP 
+\fB\-t\fP, \fB\-\-tty\fP \fItty\fP
+A próxima expressão é um terminal (tty ou pty).
+.TP 
+\fB\-u\fP, \fB\-\-user\fP \fIusuário\fP
+A próxima expressão é um nome de usuário.
+.TP 
+\fB\-p\fP, \fB\-\-pid\fP \fIpid\fP
+A próxima expressão é um número de ID de processo.
+.TP 
+\fB\-c\fP, \fB\-\-command\fP \fIcomando\fP
+A próxima expressão é um nome de comando.
+.TP 
+\fB\-\-ns \fP\fIpid\fP
+Corresponde os processos que pertencem ao mesmo espaço de nomes e pid.
+.TP 
+\fB\-\-nslist \fP\fIns\/\fP,\,\fI...\/\fP
+list which namespaces will be considered for the \fB\-\-ns\fP option.  Available
+namespaces: ipc, mnt, net, pid, user, uts.
+.PD
+.SH SINAIS
+O comportamento de sinais é explicado na página de manual \fBsignal\fP(7).
+.SH EXEMPLOS
+.TP 
+\fBsnice \-c seti \-c crack +7\fP
++Slow down \fBseti\fP and \fBcrack\fP commands.
+.TP 
+\fBskill \-KILL \-t /dev/pts/*\fP
+Termina usuários nos dispositivos PTY.
+.TP 
+\fBskill \-STOP \-u viro \-u lm \-u davem\fP
+Para três usuários.
+.SH "VEJA TAMBÉM"
+\fBkill\fP(1), \fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1),
+\fBrenice\fP(1), \fBsignal\fP(7)
+.SH PADRÕES
+Nenhum padrão aplicável.
+.SH AUTOR
+.MT albert@users.sf.net
+Albert Cahalan
+.ME
+escreveu skill e snice em
+1999 como uma substituição para uma versão não livre.
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

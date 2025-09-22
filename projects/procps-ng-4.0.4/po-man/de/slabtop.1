@@ -1,0 +1,113 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (C) 2003      Chris Rivera
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU Lesser General Public License as
+.\" published by the Free Software Foundation; either version 2.1 of the
+.\" License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SLABTOP 1 "11. März 2021" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+slabtop \- zeigt Informationen zum Slab\-Zwischenspeicher des Kernels in
+Echtzeit an
+.SH ÜBERSICHT
+\fBslabtop\fP [\fIOptionen\fP]
+.SH BESCHREIBUNG
+\fBslabtop\fP zeigt detaillierte Informationen zum Slab\-Zwischenspeicher des
+Kernels in Echtzeit an. Es zeigt eine Liste der Top\-Zwischenspeicher, nach
+einem der aufgeführten Kriterien sortiert. Außerdem werden
+Statistik\-Kopfzeilen mit Slab\-Ebenen\-Informationen angezeigt.
+.SH OPTIONEN
+Der normale Aufruf von \fBslabtop\fP erfordert keine Optionen. Sie können das
+Verhalten beeinflussen, indem Sie einen oder mehrere der folgenden Schalter
+angeben:
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP=\fIN\fP
+aktualisiert die Anzeige alle \fIn\fP Sekunden. Per Vorgabe aktualisiert
+\fBslabtop\fP die Anzeige alle drei Sekunden. Um das Programm zu beenden,
+drücken Sie \fBq\fP. Dies kann nicht mit der Option \fB\-o\fP kombiniert werden.
+.TP 
+\fB\-s\fP, \fB\-\-sort\fP=\fIS\fP
+sortiert nach \fIS\fP, wobei \fIS\fP eines der Suchkritieren ist.
+.TP 
+\fB\-o\fP, \fB\-\-once\fP
+zeigt die Ausgabe einmal an und beendet das Programm.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt Informationen zur Benutzung an und beendet das Programm.
+.SH SORTIERKRITERIEN
+Folgende Kriterien sind für die Sortierung der einzelnen
+Slab\-Zwischenspeicher zulässig und bestimmen, welche die obersten
+Zwischenspeicher für die Anzeige sind. Die Voreinstellung ist die Sortierung
+nach der Anzahl der Objekte (»o«).
+.PP
+Die Sortierkriterien können auch angepasst werden, während \fBslabtop\fP läuft,
+indem Sie die Taste mit dem entsprechenden Zeichen drücken.
+.TS
+l l l.
+\fBZeichen\fP	\fBBeschreibung\fP	\fBHeader\fP
+a	Anzahl der aktiven Objekte	ACTIVE
+b	Objekte pro Slab	OBJ/SLAB
+c	Cache\-Größe	CACHE SIZE
+l	Anzahl der Slabs	SLABS
+v	Anzahl der aktiven Slabs	n.v.
+n	Name	NAME\:
+o	Anzahl der Objekte	OBJS
+p	Seiten pro Slab	n.v.
+s	Objektgröße	OBJ SIZE
+u	Zwischenspeichernutzung	USE
+.TE
+.SH BEFEHLE
+\fBslabtop\fP akzeptiert Tastaturbefehle des Benutzers, während das Programm
+läuft. Die folgenden Befehle werden unterstützt, wobei für Buchstaben die
+Groß\- oder Kleinschreibung nicht berücksichtigt wird.
+.PP
+Jedes der zulässigen Sortierzeichen wird zum Anpassen der Sortierroutine
+ebenfalls unterstützt. Siehe Abschnitt \fBSORTIERKRITERIEN\fP.
+.TP 
+\fB<LEERTASTE>\fP
+aktualisiert den Bildschirm.
+.TP 
+\fBQ\fP
+beendet das Programm.
+.SH DATEIEN
+.TP 
+\fI/proc/slabinfo\fP
+Slab\-Information
+.SH "SIEHE AUCH"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBvmstat\fP(8)
+.SH ANMERKUNGEN
+Gegenwärtig benötigt \fBslabtop\fP einen Kernel der Version 2.4 oder neuer
+(speziell \fI/proc/slabinfo\fP in Version 1.1 oder neuer). Der Kernel 2.2 wird
+wahrscheinlich in zukünftigen Versionen unterstützt.
+.PP
+Die Statistik\-Kopfzeile von \fBslabtop\fP verfolgt die Byte\-Anzahl der
+genutzten Slabs, bezieht sich aber nicht auf den tatsächlichen physischen
+Speicher. Das »Slab«\-Feld in der Datei \fI/proc/meminfo\fP enthält
+Informationen über den physischen Slab\-Speicher.
+.PP
+The \fBCACHE SIZE\fP column is not accurate, it's the upper limit of memory
+used by specific slab. When system using slub (most common case) is under
+high memory pressure, there are slab order fallbacks, which means "pages per
+slab" is not constant and may decrease.
+.SH AUTOREN
+Geschrieben von Chris Rivera und Robert Love.
+.PP
+\fBslabtop\fP wurde vom Perl\-Skript \fBvmtop\fP von Martin Bligh inspiriert.
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

@@ -1,0 +1,151 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_MISC 3 "Sierpień 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAZWA
+procps_misc \- API do różnych informacji w systemie plików /proc
+.SH SKŁADNIA
+.nf
+\fB#include <libproc2/misc.h>\fP
+.PP
+Szczegóły platformy
+.RS 4
+.PP
+long         \fBprocps_cpu_count\fP (void);
+long         \fBprocps_hertz_get\fP (void);
+unsigned int \fBprocps_pid_length\fP (void);
+int          \fBprocps_linux_version\fP (void);
+.RE
+.PP
+Szczegóły czasu działania
+.PP
+.RS 4
+int  \fB procps_loadavg\fP (double *\fIav1\fP, double *\fIav5\fP, double *\fIav15\fP);
+int  \fB procps_uptime\fP (double *\fIuptime_secs\fP, double *\fIidle_secs\fP);
+char *\fBprocps_uptime_sprint\fP (void);
+char *\fBprocps_uptime_sprint_short\fP (void);
+.RE
+.PP
+Szczegóły przestrzeni nazw
+.PP
+.RS 4
+int       \fB  procps_ns_get_id\fP (const char *\fIname\fP);
+const char\fB *procps_ns_get_name\fP (int \fIid\fP);
+int       \fB  procps_ns_read_pid\fP (int \fIpid\fP, struct procps_ns *\fInsp\fP);
+.RE
+
+Konsolidować z \fI\-lproc2\fP.
+
+.SH OPIS
+\fBprocps_cpu_count\fP()  zwraca liczbę CPU obecnie włączonych, jak w
+\fBsysconf(\fP\fI_SC_NPROCESSORS_ONLY\fP\fB)\fP lub przyjęte \fI1\fP.
+
+\fBprocps_hertz_get\fP()  zwraca liczbę tyknięć zegara na sekundę, jak w
+\fBsysconf(\fP\fI_SC_CLK_TCK\fP\fB)\fP lub przyjęte \fI100\fP. Podzielenie tyknięć przez
+tę wartość daje sekundy.
+
+\fBprocps_pid_length\fP()  zwraca maksymalną długość łańcucha dla PIDu w
+systemie. Na przykład, jeśli największa możliwa wartość PID to 123, długość
+wynosi 3. Jeśli plik \fI/proc/sys/kernel/pid_max\fP jest nieczytelny,
+przyjmowana jest wartość \fI5\fP.
+
+\fBprocps_linux_version\fP()  zwraca bieżącą wersję Linuksa zakodowaną w
+liczbie całkowitej. Na systemach innych niż Linux, mających emulację systemu
+plików proc, ta funkcja zwraca wersję emulacji Linuksa. Wersja składa się z
+trzech dodatnich liczb całkowitych, oznaczających poziomy główny, poboczny i
+poprawek. Do kodowania danej wersji Linuksa lub podziału wersji na składniki
+służą poniższe makra:
+.RS 4
+.PP
+LINUX_VERSION(\ major\ ,\ minor\ ,\ patch\ )
+.PP
+LINUX_VERSION_MAJOR(\ ver\ )
+.PP
+LINUX_VERSION_MINOR(\ ver\ )
+.PP
+LINUX_VERSION_PATCH(\ ver\ )
+.RE
+
+\fBprocps_loadavg\fP()  pobiera średnie obciążenie systemu i wpisuje średnie
+1\-, 5\- i 15\-minutowe w miejsce określone wskaźnikiem różnym niż \fINULL\fP.
+
+\fBprocps_uptime\fP()  zwraca czas działania systemu i/lub liczbę sekund
+bezczynności w miejsce określone wskaźnikiem innym niż \fINULL\fP. Odmiana
+\fBsprint\fP zwraca łańcuch czytelny dla użytkownika w jednej z dwóch postaci.
+.RS 4
+.PP
+HH:MM:SS up HH:MM, # users, load average: średnie 1, 5, 15 minutowe
+.PP
+up HH, MM
+.RE
+
+\fBprocps_ns_get_id\fP()  zwraca całkowite id (enum namespace_type) przestrzeni
+nazw dla podanej przestrzeni nazw \fIname\fP.
+
+\fBprocps_ns_get_name\fP()  zwraca nazwę przestrzeni nazw dla podanego \fIid\fP
+(enum namespace_type).
+
+\fBprocps_ns_read_pid\fP()  zwraca i\-węzły przestrzeni nazw podanego procesu w
+strukturze procps_ns wskazanej przez \fInsp\fP. I\-węzły będą w kolejności
+określonej przez enum namespace_type.
+.PP
+.RS 4
+.nf
+enum namespace_type {
+    PROCPS_NS_CGROUP,
+    PROCPS_NS_IPC,
+    PROCPS_NS_MNT,
+    PROCPS_NS_NET,
+    PROCPS_NS_PID,
+    PROCPS_NS_TIME,
+    PROCPS_NS_USER,
+    PROCPS_NS_UTS
+};
+.fi
+.RE
+
+
+.SH "WARTOŚĆ ZWRACANA"
+.SS "Funkcje zwracające `int' lub `long'"
+Błąd jest oznaczany poprzez liczbę ujemną, będącą liczbą przeciwną do znanej
+wartości errno.h.
+
+.SS "Funkcje zwracające adres"
+Błąd jest oznaczany zwracanym wskaźnikiem NULL, a powód można znaleźć w
+wartości errno.
+
+.SH PLIKI
+.TP 
+\fI/proc/loadavg\fP
+Surowe wartości średniego obciążenia.
+.TP 
+\fI/proc/sys/kernel/osrelease\fP
+Wersja wydania jądra Linuksa lub systemu plików proc.
+.TP 
+\fI/proc/sys/kernel/pid_max\fP
+Wartość, przy której licznik PIDów się przekręca \- o jeden większa, niż
+maksymalna wartość PID.
+.TP 
+\fI/proc/uptime\fP
+Surowe wartości czasu włączenia systemu i bezczynności.
+.TP 
+\fI/proc/<PID>/ns\fP
+zbiór przestrzeni nazw dla określonegu \fBPIDu\fP.
+
+.SH "ZOBACZ TAKŻE"
+\fBprocps\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

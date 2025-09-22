@@ -1,0 +1,115 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2015-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2012-2013 Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH W "1" "2023-01-15" "procps-ng" "User Commands"
+.SH NAME
+w \- Show who is logged on and what they are doing.
+.SH SYNOPSIS
+.B w
+[\fIoptions\fR] [\fIuser\fR]
+.SH DESCRIPTION
+.B w
+displays information about the users currently on the machine, and their
+processes.  The header shows, in this order, the current time, how long the
+system has been running, how many users are currently logged on, and the
+system load averages for the past 1, 5, and 15 minutes.
+.PP
+The following entries are displayed for each user: login name, the tty name,
+the remote host, login time, idle time, JCPU, PCPU, and the command line of
+their current process.
+.PP
+The JCPU time is the time used by all processes attached to the tty.  It does
+not include past background jobs, but does include currently running
+background jobs.
+.PP
+The PCPU time is the time used by the current process, named in the "what"
+field.
+.SH "COMMAND\-LINE OPTIONS"
+.TP
+\fB\-h\fR, \fB\-\-no\-header\fR
+Don't print the header.
+.TP
+\fB\-u\fR, \fB\-\-no\-current\fR
+Ignores the username while figuring out the
+current process and cpu times.  To demonstrate this, do a
+.B su
+and do a
+.B w
+and a
+.BR "w \-u".
+.TP
+\fB\-s\fR, \fB\-\-short\fR
+Use the short format.  Don't print the login time, JCPU or PCPU times.
+.TP
+\fB\-f\fR, \fB\-\-from\fR
+Toggle printing the
+.B from
+(remote hostname) field.  The default as released is for the
+.B from
+field to not be printed, although your system administrator or distribution
+maintainer may have compiled a version in which the
+.B from
+field is shown by default.
+.TP
+\fB\-\-help\fR
+Display help text and exit.
+.TP
+\fB\-i\fR, \fB\-\-ip\-addr\fR
+Display IP address instead of hostname for \fBfrom\fR field.
+.TP
+\fB\-p\fR, \fB\-\-pids\fR
+Display pid of the login process/the "what" process in the "what" field.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information.
+.TP
+\fB\-o\fR, \fB\-\-old\-style\fR
+Old style output.  Prints blank space for idle times less than one minute.
+.TP
+.B "user "
+Show information about the specified user only.
+.SH ENVIRONMENT
+.TP
+PROCPS_USERLEN
+Override the default width of the username column.  Defaults to 8.
+.TP
+PROCPS_FROMLEN
+Override the default width of the from column.  Defaults to 16.
+.SH FILES
+.TP
+.I /var/run/utmp
+information about who is currently logged on
+.TP
+.I /proc
+process information
+.SH "SEE ALSO"
+.BR free (1),
+.BR ps (1),
+.BR top (1),
+.BR uptime (1),
+.BR utmp (5),
+.BR who (1)
+.SH AUTHORS
+.B w
+was re-written almost entirely by Charles Blake, based on the version by
+.UR greenfie@\:gauss.\:rutgers.\:edu
+Larry Greenfield
+.UE
+and
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

@@ -1,0 +1,63 @@
+#
+# Dejagnu tests for ps (output options) - part of procps
+#
+set ps ${topdir}src/ps/pscommand
+
+set mypid [pid]
+set not_ppid [ expr { $mypid + 1 } ]
+set uid [ exec id -u ]
+set not_uid [ expr { $uid + 1 } ]
+set gid [ exec id -g ]
+set not_gid [ expr { $gid + 1 } ]
+
+# All the fields
+# Cannot do args,cmd,comm
+set ps_digit "\\d+\\s*"
+set ps_state "\[A-Z<sl+\]\\s*"
+#set ps_pct "\\d{1,2}\\.\\d\\s*"
+set ps_pct "\\d"
+set ps_hex "\[0-9a-f\]\\s*"
+set ps_time "\\d{1,3}:\\d{2}\\s*"
+set ps_time "\(\d+-\)?\\\d{1,3}:\\d{2}\\s*"
+set ps_class "\[A-Z?-\]\\s*"
+
+set flag_match {
+    "%cpu,pcpu,%mem,pmem"   "%CPU\\s+%CPU\\s+%MEM\\s+%MEM\\s+\(\(\\d+\.\\d+\\s*\){4}\)+$"
+    "blocked,sig_block,sigmask,caught,sigcatch,sig_catch" "\(BLOCKED\\s+\){3}\(CAUGHT\\s+\){2}CATCHED\\s+\(<?\[0-9a-f\]+\\s*\)+$"
+    "bsdstart,start,lstart" "\\s*START\\s+STARTED\\s+STARTED\\s+\(\\s*\(\[A-Z\]\[a-z\]{2} \\d+|\\d+:\\d{2}\)\\s+\(\[A-Z\]\[a-z\]{2} \\d+|\\d+:\\d{2}:\\d{2}\)\\s+\[A-Z\]\[a-z\]{2} \[A-Z\]\[a-z\]{2}\\s+\\d+ \\d{2}:\\d{2}:\\d{2} \\d{4}\\s*\)+$"
+    "bsdtime,cputime,etime,etimes" "\\s*TIME\\s+TIME\\s+ELAPSED\\s+ELAPSED\\s*\(\\s*\\d+:\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}\\s+\(\\d{2}:\)?\\d{2}:\\d{2}\\s+\\d+\\s*\)+$"
+    "user,ruser,group,rgroup,uid,ruid,gid,rgid" "\\s*USER\\s+RUSER\\s+GROUP\\s+RGROUP\\s+UID\\s+RUID\\s+GID\\s+RGID\\s+\(\(\\s*\[A-Za-z0-9_+-\]+\\s+\){4}\(\\d+\\s+\){4}\\s*\)+$"
+    "cputimes,times" "\\s*TIME\\s+TIME\\s+\\d+\\s+\\d+\\s*"
+}
+
+foreach { flag match } $flag_match  {
+  set test "ps with output flag $flag"
+  spawn $ps -o $flag
+  expect_pass "$test" $match
+}
+
+set test "ps with correct AIX field"
+spawn $ps -o "%p"
+expect_pass "$test" "\\s*PID\\s+\(\\s*\\d+\\s+\)+$"
+
+set test "ps with improper AIX field"
+spawn $ps -o "%p %G{"
+expect_pass "$test" "error: improper AIX field descriptor"
+
+set test "ps with missing AIX field"
+spawn $ps -o "%p %%a"
+expect_pass "$test" "error: missing AIX field descriptor"
+
+set test "ps with unknown AIX field"
+spawn $ps -o "%p %Z"
+expect_pass "$test" "error: unknown AIX field descriptor"
+
+make_testproc
+set test "ps with c option"
+spawn $ps co command $testproc1_pid
+expect_pass "$test" "^COMMAND\\s+spcorp\\s*$"
+kill_testproc
+
+set test "ps with l and m options"
+spawn $ps -lm
+expect_fail "$test" "please report this bug"

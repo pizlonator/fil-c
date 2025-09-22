@@ -1,0 +1,119 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2006 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SKILL 1 "19. August 2023" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+skill, snice \- ein Signal senden oder den Prozessstatus ermitteln
+.SH ÜBERSICHT
+\fBskill\fP [\fISignal\fP] [\fIOptionen\fP] \fIAusdruck\fP
+.br
+\fBsnice\fP [\fIneue Priorität\fP] [\fIOptionen\fP] \fIAusdruck\fP
+.SH BESCHREIBUNG
+Diese Dienstprogramme sind veraltet und nicht portabel. Die Befehlssyntax
+ist unzureichend dokumentiert. Bitte verwenden Sie stattdessen die Befehle
+\fBkillall\fP(1), \fBpkill\fP(1) und \fBpgrep\fP(1).
+.PP
+Das Standardsignal für \fBskill\fP ist TERM. Verwenden Sie \fB\-l\fP oder \fB\-L\fP, um
+verfügbare Signale aufzulisten. Im Einzelnen sind diese Signale HUP, INT,
+KILL, STOP, CONT und 0. Andere Signale können auf drei verschiedene Arten
+angegeben werden: \fB\-9\fP, \fB\-SIGKILL\fP oder \fB\-KILL\fP.
+.PP
+Die Vorgabepriorität für \fBsnice\fP ist +4. Prioritätskennziffern liegen im
+Bereich von +20 (am langsamsten) und \-20 (am schnellsten). Negative
+Prioritätskennziffern sind Benutzern mit Administratorrechten vorbehalten.
+.SH OPTIONEN
+.TP 
+\fB\-f\fP,\fB\ \-\-fast\fP
+Schneller Modus. Diese Option wurde nicht implementiert.
+.TP 
+\fB\-i\fP,\fB\ \-\-interactive\fP
+Interaktiver Modus. Sie werden vor der Ausführung einer Aktion stets um
+Bestätigung gebeten.
+.TP 
+\fB\-l\fP,\fB\ \-\-list\fP
+listet alle Signalnamen auf.
+.TP 
+\fB\-L\fP,\fB\ \-\-table\fP
+listet alle Signalnamen in einer Tabelle auf.
+.TP 
+\fB\-n\fP,\fB\ \-\-no\-action\fP
+führt keine Aktion aus. Es wird eine Simulation ausgeführt, aber keine
+Änderung am System vorgenommen.
+.TP 
+\fB\-v\fP,\fB\ \-\-verbose\fP
+Ausführlicher Modus, es wird erklärt, was geschieht.
+.TP 
+\fB\-w\fP,\fB\ \-\-warnings\fP
+aktiviert Warnungen. Diese Option wurde nicht implementiert.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt einen Hilfetext an und beendet das Programm.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Versionsinformationen anzeigen.
+.PD
+.SH "OPTIONEN ZUR PROZESSAUSWAHL"
+Auswahlkriterien können sein: terminal, user, pid, command. Die
+nachfolgenden Optionen können verwendet werden, um eine korrekte
+Interpretation zu gewährleisten.
+.TP 
+\fB\-t\fP, \fB\-\-tty\fP \fITTY\fP
+Der nächste Ausdruck ist ein Terminal (tty oder pty).
+.TP 
+\fB\-u\fP, \fB\-\-user\fP \fIBenutzer\fP
+Der nächste Ausdruck ist ein Benutzername.
+.TP 
+\fB\-p\fP, \fB\-\-pid\fP \fIPID\fP
+Der nächste Ausdruck ist eine Prozesskennung (ID).
+.TP 
+\fB\-c\fP, \fB\-\-command\fP \fIBEFEHL\fP
+Der nächste Ausdruck ist ein Befehlsname.
+.TP 
+\fB\-\-ns \fP\fIProzesskennung\fP
+sucht nach Prozessen, die zum gleichen Namensraum wie \fIPID\fP gehören.
+.TP 
+\fB\-\-nslist \fP\fINamensraum\/\fP,\,\fI…\/\fP
+listet die Namensräume auf, die in der Option \fB\-\-ns\fP berücksichtigt
+werden. Verfügbare Namensräume: ipc, mnt, net, pid, user, uts.
+.PD
+.SH SIGNALE
+Das Verhalten der Signale ist in der Handbuchseite zu \fBsignal\fP(7)
+beschrieben.
+.SH BEISPIELE
+.TP 
+\fBsnice \-c seti \-c crack +7\fP
+verlangsamt die Ausführung der \fBseti\fP\- und \fBcrack\fP\-Befehle.
+.TP 
+\fBskill \-KILL \-t /dev/pts/*\fP
+killt Benutzer auf PTY\-Geräten.
+.TP 
+\fBskill \-STOP \-u viro \-u lm \-u davem\fP
+stoppt drei Benutzer.
+.SH "SIEHE AUCH"
+\fBkill\fP(1), \fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1),
+\fBrenice\fP(1), \fBsignal\fP(7)
+.SH STANDARDS
+Es sind keine Standards anwendbar.
+.SH AUTOR
+.MT albert@users.sf.net
+Albert Cahalan
+.ME
+schrieb \fBskill\fP und
+\fBsnice\fP im Jahre 1999 als Ersatz für eine unfreie Version.
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

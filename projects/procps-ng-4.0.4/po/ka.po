@@ -1,0 +1,4631 @@
+# procps-ng Georgian translaton
+# Copyright (C) 2023 Free Software Foundation, Inc.
+# This file is distributed under the same license as the procps-ng package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022-2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: procps-ng-4.0.4-rc1\n"
+"Report-Msgid-Bugs-To: procps@freelists.org\n"
+"POT-Creation-Date: 2023-08-19 17:38+1000\n"
+"PO-Revision-Date: 2023-08-20 11:17+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.3.2\n"
+
+#: local/fileutils.c:38
+msgid "write error"
+msgstr "ჩაწერის შეცდომა"
+
+#: src/free.c:74 src/slabtop.c:106 src/uptime.c:65
+#, c-format
+msgid " %s [options]\n"
+msgstr " %s [პარამეტრები]\n"
+
+#: src/free.c:76
+msgid " -b, --bytes         show output in bytes\n"
+msgstr " -b, --bytes         მნიშვნელოების ბაიტებში გამოტანა\n"
+
+#: src/free.c:77
+msgid "     --kilo          show output in kilobytes\n"
+msgstr "     --kilo          მნიშვნელობების კილობაიტებში გამოტანა\n"
+
+#: src/free.c:78
+msgid "     --mega          show output in megabytes\n"
+msgstr "     --mega          მნიშვნელობების მეგაბაიტებში გამოტანა\n"
+
+#: src/free.c:79
+msgid "     --giga          show output in gigabytes\n"
+msgstr "     --giga          მნიშვნელობების გიგაბაიტებში გამოტანა\n"
+
+#: src/free.c:80
+msgid "     --tera          show output in terabytes\n"
+msgstr "     --tera          მნიშვნელობების ტერაბაიტებში გამოტანა\n"
+
+#: src/free.c:81
+msgid "     --peta          show output in petabytes\n"
+msgstr "     --peta          მნიშვნელობების პეტაბაიტებში გამოტანა\n"
+
+#: src/free.c:82
+msgid " -k, --kibi          show output in kibibytes\n"
+msgstr " -k, --kibi          მნიშვნელობების კიბიბაიტებში გამოტანა\n"
+
+#: src/free.c:83
+msgid " -m, --mebi          show output in mebibytes\n"
+msgstr " -m, --mebi          მნიშვნელობების მებიბაიტებში გამოტანა\n"
+
+#: src/free.c:84
+msgid " -g, --gibi          show output in gibibytes\n"
+msgstr " -g, --gibi          მნიშვნელობების გიბიბაიტებში გამოტანა\n"
+
+#: src/free.c:85
+msgid "     --tebi          show output in tebibytes\n"
+msgstr "     --tebi          მნიშვნელობების ტერიბაიტებში გამოტანა\n"
+
+#: src/free.c:86
+msgid "     --pebi          show output in pebibytes\n"
+msgstr "     --pebi          მნიშვნელობების პებიბაიტებში გამოტანა\n"
+
+#: src/free.c:87
+msgid " -h, --human         show human-readable output\n"
+msgstr " -h, --human         ადამიანისთვის წაკითხვადი სახით გამოტანა\n"
+
+#: src/free.c:88
+msgid "     --si            use powers of 1000 not 1024\n"
+msgstr "     --si            1024-ის მაგიერ 1000-ის ხარისხის გამოყენება\n"
+
+#: src/free.c:89
+msgid " -l, --lohi          show detailed low and high memory statistics\n"
+msgstr ""
+" -l, --lohi          ზედა და ქვედა მეხსიერების დეტალური სტატისტიკის ჩვენება\n"
+
+#: src/free.c:90
+msgid " -L, --line          show output on a single line\n"
+msgstr " -L, --line          გამოტანის ერთ ხაზში ჩატევა\n"
+
+#: src/free.c:91
+msgid " -t, --total         show total for RAM + swap\n"
+msgstr " -t, --total         ჯამური, RAM + სვოპის ჩვენება\n"
+
+#: src/free.c:92
+msgid " -v, --committed     show committed memory and commit limit\n"
+msgstr ""
+
+#: src/free.c:93
+msgid " -s N, --seconds N   repeat printing every N seconds\n"
+msgstr " -s N, --seconds N   გამოტანის ყოველ N წამში გამეორება\n"
+
+#: src/free.c:94
+msgid " -c N, --count N     repeat printing N times, then exit\n"
+msgstr " -c N, --count N     გამოტანის N-ჯერ გამოტანა და გასვლა\n"
+
+#: src/free.c:95
+msgid " -w, --wide          wide output\n"
+msgstr " -w, --wide          ფართო გამოტანა\n"
+
+#: src/free.c:97 src/w.c:666
+msgid "     --help     display this help and exit\n"
+msgstr "     --help     ამ დახმარების გამოტანა და გასვლა\n"
+
+#: src/free.c:172
+msgid "Multiple unit options don't make sense."
+msgstr "ერთზე მეტი ერთეულის პარამეტრის მითითებას აზრი არ აქვს."
+
+#: src/free.c:341
+#, c-format
+msgid "seconds argument `%s' is not positive number"
+msgstr "მეორე არგუმენტი '%s' დადებითი რიცხვი არაა"
+
+#: src/free.c:347
+msgid "failed to parse count argument"
+msgstr "რაოდენობის არგუმენტის დამუშავების შეცდომა"
+
+#: src/free.c:350
+#, c-format
+msgid "failed to parse count argument: '%s'"
+msgstr "რაოდენობის არგუმენტის დამუშავების შეცდომა: \"%s\""
+
+#: src/free.c:370
+msgid "Memory information file /proc/meminfo does not exist"
+msgstr "მეხსიერების ინფორმაცის ფაილი /proc/meminfo არ არსებობს"
+
+#: src/free.c:373 src/vmstat.c:378 src/vmstat.c:872
+msgid "Unable to create meminfo structure"
+msgstr "შეცდომა meminfo-ის სტრუქტურის შექმნისას"
+
+#. Translation Hint: These are shortened column headers
+#. * that are all 7 characters long. Use spaces and right
+#. * align if the translation is shorter.
+#.
+#: src/free.c:381
+msgid "SwapUse"
+msgstr "სვოპისგამოყ"
+
+#: src/free.c:382
+msgid "CachUse"
+msgstr "კეშისგამოყ"
+
+#: src/free.c:384
+msgid " MemUse"
+msgstr " მეხსგამოყ"
+
+#: src/free.c:385
+msgid "MemFree"
+msgstr "მეხსთავის"
+
+#: src/free.c:395
+#, c-format
+msgid ""
+"               total        used        free      shared     buffers       "
+"cache   available"
+msgstr ""
+"               სულl        გამოყენებული        თავისუფალი      "
+"გაზიარებული     ბუფერი       ქეში   ხელმისაწვდომი"
+
+#: src/free.c:397
+#, c-format
+msgid ""
+"               total        used        free      shared  buff/cache   "
+"available"
+msgstr ""
+"               სულl        გამოყ        თავის      გაზიარ  ბუფ/ქეში   "
+"ხელმისაწვდომი"
+
+#: src/free.c:400
+msgid "Mem:"
+msgstr "მეხს:"
+
+#: src/free.c:423
+msgid "Low:"
+msgstr "დაბალი:"
+
+#: src/free.c:429
+msgid "High:"
+msgstr "მაღალი:"
+
+#: src/free.c:436
+msgid "Swap:"
+msgstr "სვოპი:"
+
+#: src/free.c:443
+msgid "Total:"
+msgstr "ჯამი:"
+
+#: src/free.c:456
+msgid "Comm:"
+msgstr "ბრძანება:"
+
+#: src/kill.c:40
+#, c-format
+msgid " %s [options] <pid> [...]\n"
+msgstr " %s [options] <pid> [...]\n"
+
+#: src/kill.c:42
+msgid " <pid> [...]            send signal to every <pid> listed\n"
+msgstr ""
+" <pid> [...]            სიგნალის ყველა ჩამოთვლილი <pid>-სთვის გაგზავნა\n"
+
+#: src/kill.c:43
+msgid ""
+" -<signal>, -s, --signal <signal>\n"
+"                        specify the <signal> to be sent\n"
+msgstr ""
+" -<signal>, -s, --signal <signal>\n"
+"                        მიუთითეთ გასაგზავნი <signal>\n"
+
+#: src/kill.c:45
+msgid " -q, --queue <value>    integer value to be sent with the signal\n"
+msgstr " -q, --queue <value>    სიგნალთან ერთად გასაგზავნი მთელი რიცხვი\n"
+
+#: src/kill.c:46
+msgid ""
+" -l, --list=[<signal>]  list all signal names, or convert one to a name\n"
+msgstr ""
+" -l, --list=[<signal>]  ყველა სიგნალის სიის გამოტანა ან სახელში გადაყვანა\n"
+
+#: src/kill.c:47
+msgid " -L, --table            list all signal names in a nice table\n"
+msgstr " -L, --table            სიგნალის სახელების ცხრილის სახით გამოტანა\n"
+
+#: src/kill.c:112
+#, c-format
+msgid "unknown signal name %s"
+msgstr "უცნობი სიგნალის სახელი: %s"
+
+#: src/kill.c:131
+msgid "must be an integer value to be passed with the signal."
+msgstr ""
+"სიგნალთან ერთად გადასაცემად დადებით მთელი რიცხვის მქონე მნიშვნელობას უნდა "
+"წარმოადგენდეს."
+
+#: src/kill.c:136
+#, c-format
+msgid "invalid argument %c"
+msgstr "არასწორი არგუმენტი %c"
+
+#: src/kill.c:146 src/pgrep.c:792 src/pidof.c:250 src/pidof.c:290
+#: src/sysctl.c:867
+msgid "internal error"
+msgstr "შიდა შეცდომა"
+
+#: src/kill.c:158 src/pmap.c:771 src/pmap.c:786 src/skill.c:381 src/skill.c:465
+#: src/tload.c:135 src/tload.c:140 src/vmstat.c:1047 src/vmstat.c:1057
+#: src/watch.c:891 src/watch.c:906
+msgid "failed to parse argument"
+msgstr "არგუმენტის დამუშავების შეცდომა"
+
+#: src/pgrep.c:92 src/pidof.c:40 src/skill.c:74
+msgid "integer overflow"
+msgstr "მთელი რიცხვის მაქსიმალური მნიშვნელობის გადაცილება"
+
+#: src/pgrep.c:155
+#, c-format
+msgid " %s [options] <pattern>\n"
+msgstr " %s [options] <pattern>\n"
+
+#: src/pgrep.c:159
+msgid " -d, --delimiter <string>  specify output delimiter\n"
+msgstr " -d, --delimiter <string>  გამოტანის გამყოფის მითითება\n"
+
+#: src/pgrep.c:160
+msgid " -l, --list-name           list PID and process name\n"
+msgstr " -l, --list-name           PID-ების და პროცესის სახელების სია\n"
+
+#: src/pgrep.c:161
+msgid " -a, --list-full           list PID and full command line\n"
+msgstr ""
+" -a, --list-full           PID-ის და სრული ბრძანების სტრიქონის ჩვენება\n"
+
+#: src/pgrep.c:162
+msgid " -v, --inverse             negates the matching\n"
+msgstr " -v, --inverse             დამთხვევის შებრუნება\n"
+
+#: src/pgrep.c:163
+msgid " -w, --lightweight         list all TID\n"
+msgstr " -w, --lightweight         ყველა TID-ის ჩამონათვალი\n"
+
+#: src/pgrep.c:166
+msgid " -<sig>                    signal to send (either number or name)\n"
+msgstr "  -<სიგ>                   გასაგზავნი სიგნალი (რიცხვი ან სახელი)\n"
+
+#: src/pgrep.c:167
+msgid " -H, --require-handler     match only if signal handler is present\n"
+msgstr ""
+" -H, --require-handler     დამთხვევა მხოლოდ მაშინ, თუ სიგნალის დამმუშავებელი "
+"ხელმისაწვდომია\n"
+
+#: src/pgrep.c:168
+msgid " -q, --queue <value>       integer value to be sent with the signal\n"
+msgstr " -q, --queue <value>       სიგნალთან ერთად გასაგზავნი მთელი რიცხვი\n"
+
+#: src/pgrep.c:169
+msgid " -e, --echo                display what is killed\n"
+msgstr " -e, --echo                მოკლული პროცესების სიის ჩვენება\n"
+
+#: src/pgrep.c:173
+msgid " -e, --echo                display PIDs before waiting\n"
+msgstr " -e, --echo                PID-ების მოცდამდე ჩვენება\n"
+
+#: src/pgrep.c:177
+msgid " -c, --count               count of matching processes\n"
+msgstr " -c, --count               დამთხვეული პროცესების რაოდენობა\n"
+
+#: src/pgrep.c:178
+msgid " -f, --full                use full process name to match\n"
+msgstr ""
+" -f, --full                დასამთხვევად სრული პროცესის სახელის გამოყენება\n"
+
+#: src/pgrep.c:179
+msgid " -g, --pgroup <PGID,...>   match listed process group IDs\n"
+msgstr ""
+" -g, --pgroup <PGID,...>   ჩამოთვლილი პროცესის ჯგუფის ID-ების დამთხვევა\n"
+
+#: src/pgrep.c:180
+msgid " -G, --group <GID,...>     match real group IDs\n"
+msgstr " -G, --group <GID,...>     რეალური ჯგუფის ID-ების დამთხვევა\n"
+
+#: src/pgrep.c:181
+msgid " -i, --ignore-case         match case insensitively\n"
+msgstr ""
+" -i, --ignore-case         დამთხვევა რეგისტრისთვის ყურადღების მიქცევის "
+"გარეშე\n"
+
+#: src/pgrep.c:182
+msgid " -n, --newest              select most recently started\n"
+msgstr ""
+
+#: src/pgrep.c:183
+msgid " -o, --oldest              select least recently started\n"
+msgstr ""
+
+#: src/pgrep.c:184
+msgid " -O, --older <seconds>     select where older than seconds\n"
+msgstr ""
+
+#: src/pgrep.c:185
+msgid ""
+" -P, --parent <PPID,...>   match only child processes of the given parent\n"
+msgstr ""
+
+#: src/pgrep.c:186
+msgid " -s, --session <SID,...>   match session IDs\n"
+msgstr ""
+
+#: src/pgrep.c:187
+msgid "     --signal <sig>        signal to send (either number or name)\n"
+msgstr ""
+
+#: src/pgrep.c:188
+msgid " -t, --terminal <tty,...>  match by controlling terminal\n"
+msgstr ""
+
+#: src/pgrep.c:189
+msgid " -u, --euid <ID,...>       match by effective IDs\n"
+msgstr " -u, --euid <ID,...>       ეფექტური ID-ებით დამთხვევა\n"
+
+#: src/pgrep.c:190
+msgid " -U, --uid <ID,...>        match by real IDs\n"
+msgstr " -U, --uid <ID,...>        რეალური ID-ებით დამთხვევა\n"
+
+#: src/pgrep.c:191
+msgid " -x, --exact               match exactly with the command name\n"
+msgstr ""
+
+#: src/pgrep.c:192
+msgid " -F, --pidfile <file>      read PIDs from file\n"
+msgstr ""
+
+#: src/pgrep.c:193
+msgid " -L, --logpidfile          fail if PID file is not locked\n"
+msgstr ""
+
+#: src/pgrep.c:194
+msgid " -r, --runstates <state>   match runstates [D,S,Z,...]\n"
+msgstr ""
+
+#: src/pgrep.c:195
+msgid " -A, --ignore-ancestors    exclude our ancestors from results\n"
+msgstr ""
+
+#: src/pgrep.c:196
+msgid " --cgroup <grp,...>        match by cgroup v2 names\n"
+msgstr ""
+
+#: src/pgrep.c:197
+msgid ""
+" --ns <PID>                match the processes that belong to the same\n"
+"                           namespace as <pid>\n"
+msgstr ""
+
+#: src/pgrep.c:199
+msgid ""
+" --nslist <ns,...>         list which namespaces will be considered for\n"
+"                           the --ns option.\n"
+"                           Available namespaces: ipc, mnt, net, pid, user, "
+"uts\n"
+msgstr ""
+
+#: src/pgrep.c:224 src/pgrep.c:700 src/w.c:455
+msgid "Unable to create pid info structure"
+msgstr "Pid-ის ინფორმაციის სტრუქტურის შექმნის შეცდომა"
+
+#: src/pgrep.c:388
+#, c-format
+msgid "invalid user name: %s"
+msgstr "არასწორი მომხმარებლის სახელი: %s"
+
+#: src/pgrep.c:405
+#, c-format
+msgid "invalid group name: %s"
+msgstr "არასწორი ჯგუფის სახელი: %s"
+
+#: src/pgrep.c:416
+#, c-format
+msgid "invalid process group: %s"
+msgstr "არასწორი პროცესის ჯგუფი: %s"
+
+#: src/pgrep.c:428
+#, c-format
+msgid "invalid session id: %s"
+msgstr "არასწორი სესიის id: %s"
+
+#: src/pgrep.c:440
+#, c-format
+msgid "not a number: %s"
+msgstr "რიცხვი არაა: %s"
+
+#: src/pgrep.c:490
+#, c-format
+msgid "not a hex string: %s"
+msgstr "ტექსვსმ. სტრიქონი არაა: %s"
+
+#: src/pgrep.c:525 src/skill.c:162
+msgid "Unable to read process namespace information"
+msgstr "პროცესის სახელების სივრცის ინფორმაციის წაკითხვა შეუძლებელია"
+
+#: src/pgrep.c:612
+#, c-format
+msgid "regex error: %s"
+msgstr "რეგექსის შეცდომა: %s"
+
+#: src/pgrep.c:695
+msgid "Error reading reference namespace information\n"
+msgstr "მიმართვის სახელების სივრცის ინფორმაციის წაკითხვის შეცდომა\n"
+
+#: src/pgrep.c:809
+#, c-format
+msgid ""
+"pattern that searches for process name longer than 15 characters will result "
+"in zero matches\n"
+"Try `%s -f' option to match against the complete command line."
+msgstr ""
+
+#: src/pgrep.c:924
+#, c-format
+msgid "Unknown signal \"%s\"."
+msgstr "უცნობი სიგნალი \"%s\"."
+
+#: src/pgrep.c:1090
+#, c-format
+msgid ""
+"-L without -F makes no sense\n"
+"Try `%s --help' for more information."
+msgstr ""
+
+#: src/pgrep.c:1097
+#, c-format
+msgid ""
+"pidfile not valid\n"
+"Try `%s --help' for more information."
+msgstr ""
+
+#: src/pgrep.c:1106
+#, c-format
+msgid ""
+"only one pattern can be provided\n"
+"Try `%s --help' for more information."
+msgstr ""
+
+#: src/pgrep.c:1110
+#, c-format
+msgid ""
+"no matching criteria specified\n"
+"Try `%s --help' for more information."
+msgstr ""
+
+#: src/pgrep.c:1162
+#, c-format
+msgid "%s killed (pid %lu)\n"
+msgstr "%s მოკვდა (pid %lu)\n"
+
+#: src/pgrep.c:1169
+#, c-format
+msgid "killing pid %ld failed"
+msgstr "pid %ld -ის მოკვლის შეცდომა"
+
+#: src/pgrep.c:1181
+#, c-format
+msgid "waiting for %s (pid %lu)\n"
+msgstr "%s (pid %lu)-ის მოლოდინი\n"
+
+#: src/pgrep.c:1185
+msgid "pidfd_open() not implemented in Linux < 5.3"
+msgstr ""
+
+#: src/pgrep.c:1188
+#, c-format
+msgid "opening pid %ld failed"
+msgstr "pid %ld -ის გახსნის შეცდომა"
+
+#: src/pgrep.c:1202
+msgid "epoll_wait failed"
+msgstr "epoll_wait -ის შეცდომა"
+
+#: src/pidof.c:75
+#, c-format
+msgid " %s [options] [program [...]]\n"
+msgstr " %s [options] [program [...]]\n"
+
+#: src/pidof.c:77
+msgid " -s, --single-shot         return one PID only\n"
+msgstr ""
+
+#: src/pidof.c:78
+msgid " -c, --check-root          omit processes with different root\n"
+msgstr ""
+
+#: src/pidof.c:79
+msgid " -q,                       quiet mode, only set the exit code\n"
+msgstr ""
+
+#: src/pidof.c:80
+msgid " -w, --with-workers        show kernel workers too\n"
+msgstr ""
+
+#: src/pidof.c:81
+msgid " -x                        also find shells running the named scripts\n"
+msgstr ""
+
+#: src/pidof.c:82
+msgid " -o, --omit-pid <PID,...>  omit processes with PID\n"
+msgstr ""
+
+#: src/pidof.c:83
+msgid " -t, --lightweight         list threads too\n"
+msgstr " -t, --lightweight         ასევე ნაჩვენები იქნება ნაკადებიც\n"
+
+#: src/pidof.c:84
+msgid " -S, --separator SEP       use SEP as separator put between PIDs"
+msgstr ""
+
+#: src/pidof.c:293
+#, c-format
+msgid "illegal omit pid value (%s)!\n"
+msgstr ""
+
+#: src/pmap.c:72
+msgid "Address"
+msgstr "მისამართი"
+
+#: src/pmap.c:73
+msgid "Offset"
+msgstr "გადაწევა"
+
+#: src/pmap.c:74
+msgid "Device"
+msgstr "მოწყობილობა"
+
+#: src/pmap.c:75
+msgid "Mapping"
+msgstr "მიბმა"
+
+#: src/pmap.c:79
+msgid "Perm"
+msgstr "პერმი"
+
+#: src/pmap.c:80
+msgid "Inode"
+msgstr "Inode"
+
+#: src/pmap.c:83
+msgid "Kbytes"
+msgstr "კბაიტი"
+
+#: src/pmap.c:84
+msgid "Mode"
+msgstr "რეჟიმი"
+
+#. Translation Hint: With the next 5 fields, notice how an extra space
+#. has been added ahead of one 'KiB' so that they all
+#. align. You need not preserve such alignment.
+#. Translation Hint: maximum 'RSS' = 6
+#: src/pmap.c:85 src/top/top_nls.c:337
+msgid "RSS"
+msgstr "RSS"
+
+#: src/pmap.c:86
+msgid "Dirty"
+msgstr "ბინძური"
+
+#: src/pmap.c:120
+#, c-format
+msgid " %s [options] PID [PID ...]\n"
+msgstr " %s [options] PID [PID ...]\n"
+
+#: src/pmap.c:122
+msgid " -x, --extended              show details\n"
+msgstr " -x, --extended              დეტალების ჩვენება\n"
+
+#: src/pmap.c:123
+msgid " -X                          show even more details\n"
+msgstr " -X                          კიდევ უფრო მეტი დეტალის ჩვენება\n"
+
+#: src/pmap.c:124
+msgid "            WARNING: format changes according to /proc/PID/smaps\n"
+msgstr ""
+
+#: src/pmap.c:125
+msgid " -XX                         show everything the kernel provides\n"
+msgstr ""
+
+#: src/pmap.c:126
+msgid " -c, --read-rc               read the default rc\n"
+msgstr " -c, --read-rc               ნაგულისხმები rc-ის წაკითხვა\n"
+
+#: src/pmap.c:127
+msgid " -C, --read-rc-from=<file>   read the rc from file\n"
+msgstr ""
+
+#: src/pmap.c:128
+msgid " -n, --create-rc             create new default rc\n"
+msgstr ""
+
+#: src/pmap.c:129
+msgid " -N, --create-rc-to=<file>   create new rc to file\n"
+msgstr ""
+
+#: src/pmap.c:130
+msgid "            NOTE: pid arguments are not allowed with -n, -N\n"
+msgstr ""
+
+#: src/pmap.c:131
+msgid " -d, --device                show the device format\n"
+msgstr " -d, --device                მოწყობილობის ფორმატის ჩვენება\n"
+
+#: src/pmap.c:132
+msgid " -q, --quiet                 do not display header and footer\n"
+msgstr ""
+" -q, --quiet                 თავსართი და ქვემო კოლონტიტული ნაჩვენები არ "
+"იქნება\n"
+
+#: src/pmap.c:133
+msgid " -p, --show-path             show path in the mapping\n"
+msgstr ""
+
+#: src/pmap.c:134
+msgid " -A, --range=<low>[,<high>]  limit results to the given range\n"
+msgstr ""
+
+#: src/pmap.c:215
+msgid "shared memory detach"
+msgstr "გაზიარებული მეხსიერების მოხსნა"
+
+#: src/pmap.c:220
+msgid "shared memory remove"
+msgstr "გაზიარებული მეხსიერების წაშლა"
+
+#: src/pmap.c:245
+msgid "  [ anon ]"
+msgstr "  [ ანონ ]"
+
+#: src/pmap.c:248
+msgid "  [ stack ]"
+msgstr "  [ სტეკი ]"
+
+#: src/pmap.c:334 src/pmap.c:340
+msgid "Unknown format in smaps file!"
+msgstr ""
+
+#: src/pmap.c:365
+msgid "ERROR: memory allocation failed"
+msgstr "მეხსიერების გამოყოფის შეცდომა"
+
+#: src/pmap.c:382
+msgid "inconsistent detail field in smaps file, line:\n"
+msgstr ""
+
+#: src/pmap.c:731
+msgid "total kB"
+msgstr "სულ კბ"
+
+#: src/pmap.c:742
+#, c-format
+msgid "mapped: %ldK    writeable/private: %ldK    shared: %ldK\n"
+msgstr ""
+
+#. Translation Hint: keep total string length
+#. * as 24 characters. Adjust %16 if needed
+#: src/pmap.c:751
+#, c-format
+msgid " total %16ldK\n"
+msgstr " სულ %16ldკ\n"
+
+#. Translation Hint: keep total string length
+#. * as 16 characters. Adjust %8 if needed
+#: src/pmap.c:757
+#, c-format
+msgid " total %8ldK\n"
+msgstr " სულ %8ldკ\n"
+
+#: src/pmap.c:832
+#, c-format
+msgid "config line too long - line %d"
+msgstr "კონფიგურაციის ხაზი ძალიან გრძელია - ხაზი: %d"
+
+#: src/pmap.c:857
+#, c-format
+msgid "unsupported section found in the config - line %d"
+msgstr ""
+
+#: src/pmap.c:860 src/pmap.c:871 src/pmap.c:882 src/pmap.c:905 src/pmap.c:917
+#, c-format
+msgid "syntax error found in the config - line %d"
+msgstr ""
+
+#: src/pmap.c:887 src/pmap.c:1010
+msgid "memory allocation failed"
+msgstr "მეხსიერების გამოყოფის შეცდომა"
+
+#: src/pmap.c:939
+msgid "the file already exists - delete or rename it first"
+msgstr ""
+
+#: src/pmap.c:1002
+msgid "HOME variable undefined"
+msgstr "გარემოს ცვლადი HOME აღწერილი არაა"
+
+#: src/pmap.c:1061
+msgid "option -r is ignored as SunOS compatibility"
+msgstr ""
+
+#: src/pmap.c:1108
+msgid "options -c, -C, -d, -n, -N, -x, -X are mutually exclusive"
+msgstr "პარამეტრები -c, -C, -d, -n, -N, -x, -X ურთიერთგამომრიცხავია"
+
+#: src/pmap.c:1111
+msgid "options -p, -q are mutually exclusive with -n, -N"
+msgstr ""
+
+#: src/pmap.c:1114 src/pmap.c:1163
+msgid "too many arguments"
+msgstr "მეტისმეტად ბევრი არგუმენტი"
+
+#: src/pmap.c:1118
+msgid "rc file successfully created, feel free to edit the content"
+msgstr ""
+
+#: src/pmap.c:1121
+msgid "couldn't create the rc file"
+msgstr "rc ფაილის შექმნა შეუძლებელია"
+
+#: src/pmap.c:1133
+#, c-format
+msgid "~/.%src file successfully created, feel free to edit the content"
+msgstr ""
+
+#: src/pmap.c:1136
+#, c-format
+msgid "couldn't create ~/.%src"
+msgstr "~/.%src-ის შექმნის შეცდომა"
+
+#: src/pmap.c:1141
+msgid "argument missing"
+msgstr "ნაკლული არგუმენტი"
+
+#: src/pmap.c:1154
+msgid "couldn't read the rc file"
+msgstr "rc ფაილის წაკითხვის შეცდომა"
+
+#: src/pmap.c:1156
+#, c-format
+msgid "couldn't read ~/.%src"
+msgstr "~/.%src-ის წაკითხვის შეცდომა"
+
+#: src/pmap.c:1165 src/pmap.c:1190
+msgid "library failed pids statistics"
+msgstr ""
+
+#: src/ps/display.c:61
+#, c-format
+msgid "Signal %d (%s) caught by %s (%s).\n"
+msgstr ""
+
+#: src/ps/display.c:75 src/ps/display.c:252 src/ps/display.c:407
+#: src/ps/output.c:2359 src/ps/parser.c:509 src/ps/parser.c:756
+#: src/ps/select.c:95 src/ps/sortformat.c:263 src/ps/sortformat.c:301
+#: src/ps/sortformat.c:549
+msgid "please report this bug"
+msgstr "გთხოვთ გადააგზავნოთ ანგარიში ამ შეცდომის შესახებ"
+
+#: src/ps/display.c:315 src/ps/display.c:484
+#, c-format
+msgid "fatal library error, reap\n"
+msgstr "ბიბლიოთეკის ფატალური შეცდომა, reap\n"
+
+#: src/ps/display.c:365
+#, c-format
+msgid "could not find ppid\n"
+msgstr "ppid-ის პოვნის შეცდომა\n"
+
+#: src/ps/display.c:375
+#, c-format
+msgid "could not find start_time\n"
+msgstr "start_time-ის პოვნის შეცდომა\n"
+
+#: src/ps/global.c:287
+#, c-format
+msgid "your %dx%d screen size is bogus. expect trouble\n"
+msgstr ""
+
+#: src/ps/global.c:360 src/ps/global.c:372
+msgid "environment specified an unknown personality"
+msgstr ""
+
+#: src/ps/global.c:364
+#, c-format
+msgid "cannot strdup() personality text\n"
+msgstr ""
+
+#: src/ps/global.c:495
+#, c-format
+msgid "fatal library error, context\n"
+msgstr "ფატალური ბიბლიოთეკის შეცდომა, კონტექსტი\n"
+
+#: src/ps/global.c:503
+#, c-format
+msgid "fatal library error, lookup self\n"
+msgstr "ფატალური ბიბლიოთეკის შეცდომა, საკუთარი თავის ძებნა\n"
+
+#. Translation Note:
+#. . The following translatable word will be used to recognize the
+#. . user's request for help text.  In other words, the translation
+#. . you provide will alter program behavior.
+#. .
+#. . It must be limited to 15 characters or less.
+#.
+#: src/ps/global.c:542
+msgid "help"
+msgstr "დახმარება"
+
+#. Translation Notes for ps Help #1 ---------------------------------
+#. .  This next group of lines represents 6 pairs of words + abbreviations
+#. .  which are the basis of the 'ps' program help text.
+#. .
+#. .  The words and abbreviations you provide will alter program behavior.
+#. .  They will also appear in the help usage summary associated with the
+#. .  "Notes for ps Help #2" below.
+#. .
+#. .  In their English form, help text would look like this:
+#. .      Try 'ps --help <simple|list|output|threads|misc|all>'
+#. .       or 'ps --help <s|l|o|t|m|a>'
+#. .      for additional help text.
+#. .
+#. .  When translating these 6 pairs you may choose any appropriate
+#. .  language equivalents and the only requirement is the abbreviated
+#. .  representations must be unique.
+#. .
+#. .  By default, those abbreviations are single characters.  However,
+#. .  they are not limited to only one character after translation.
+#. .
+#. Translation Hint, Pair #1
+#: src/ps/help.c:67
+msgid "simple"
+msgstr "მარტივი"
+
+#: src/ps/help.c:67
+msgid "s"
+msgstr "s"
+
+#. Translation Hint, Pair #2
+#: src/ps/help.c:69
+msgid "list"
+msgstr "სია"
+
+#: src/ps/help.c:69
+msgid "l"
+msgstr "l"
+
+#. Translation Hint, Pair #3
+#: src/ps/help.c:71
+msgid "output"
+msgstr "გამოტანა"
+
+#: src/ps/help.c:71
+msgid "o"
+msgstr "o"
+
+#. Translation Hint, Pair #4
+#: src/ps/help.c:73
+msgid "threads"
+msgstr "ნაკადები"
+
+#: src/ps/help.c:73
+msgid "t"
+msgstr "t"
+
+#. Translation Hint, Pair #5
+#: src/ps/help.c:75
+msgid "misc"
+msgstr "სხვ"
+
+#: src/ps/help.c:75
+msgid "m"
+msgstr "მილი"
+
+#. Translation Hint, Pair #6
+#: src/ps/help.c:77
+msgid "all"
+msgstr "ყველა"
+
+#: src/ps/help.c:77
+msgid "a"
+msgstr "a"
+
+#: src/ps/help.c:98
+#, c-format
+msgid ""
+"\n"
+"Usage:\n"
+" %s [options]\n"
+msgstr ""
+"\n"
+"გამოყენება:\n"
+" %s [პარამეტრები]\n"
+
+#: src/ps/help.c:103
+msgid ""
+"\n"
+"Basic options:\n"
+msgstr ""
+"\n"
+"ძირითადი პარამეტრები:\n"
+
+#: src/ps/help.c:104
+msgid " -A, -e               all processes\n"
+msgstr " -A, -e               ყველა პროცესი\n"
+
+#: src/ps/help.c:105
+msgid " -a                   all with tty, except session leaders\n"
+msgstr ""
+
+#: src/ps/help.c:106
+msgid "  a                   all with tty, including other users\n"
+msgstr ""
+
+#: src/ps/help.c:107
+msgid " -d                   all except session leaders\n"
+msgstr ""
+
+#: src/ps/help.c:108
+msgid " -N, --deselect       negate selection\n"
+msgstr " -N, --deselect       მონიშნულის შებრუნება\n"
+
+#: src/ps/help.c:109
+msgid "  r                   only running processes\n"
+msgstr "  r                   მხოლოდ გაშვებული პროცესები\n"
+
+#: src/ps/help.c:110
+msgid "  T                   all processes on this terminal\n"
+msgstr "  T                   მხოლოდ ამ ტერმინალის პროცესები\n"
+
+#: src/ps/help.c:111
+msgid "  x                   processes without controlling ttys\n"
+msgstr ""
+
+#: src/ps/help.c:114
+msgid ""
+"\n"
+"Selection by list:\n"
+msgstr ""
+"\n"
+"სიის მიხედვით არჩევა:\n"
+
+#: src/ps/help.c:115
+msgid " -C <command>         command name\n"
+msgstr " -C <command>         ბრძანების სახელი\n"
+
+#: src/ps/help.c:116
+msgid " -G, --Group <GID>    real group id or name\n"
+msgstr " -G, --Group <GID>    რეალური ჯგუფის id ან სახელი\n"
+
+#: src/ps/help.c:117
+msgid " -g, --group <group>  session or effective group name\n"
+msgstr " -g, --group <group>  სესიის ან ეფექტური ჯგუფის სახელი\n"
+
+#: src/ps/help.c:118
+msgid " -p, p, --pid <PID>   process id\n"
+msgstr " -p, p, --pid <PID>   პროცესის id\n"
+
+#: src/ps/help.c:119
+msgid "        --ppid <PID>  parent process id\n"
+msgstr "        --ppid <PID>  მშობელი პროცესის id\n"
+
+#: src/ps/help.c:120
+msgid ""
+" -q, q, --quick-pid <PID>\n"
+"                      process id (quick mode)\n"
+msgstr ""
+" -q, q, --quick-pid <PID>\n"
+"                      პროცესის id (სწრაფი რეჟიმი)\n"
+
+#: src/ps/help.c:122
+msgid " -s, --sid <session>  session id\n"
+msgstr " -s, --sid <session>  სესიის id\n"
+
+#: src/ps/help.c:123
+msgid " -t, t, --tty <tty>   terminal\n"
+msgstr " -t, t, --tty <tty>   ტერმინალი\n"
+
+#: src/ps/help.c:124
+msgid " -u, U, --user <UID>  effective user id or name\n"
+msgstr " -u, U, --user <UID>  ეფექტური მომხმარებლის id ან სახელი\n"
+
+#: src/ps/help.c:125
+msgid " -U, --User <UID>     real user id or name\n"
+msgstr " -U, --User <UID>     რეალური მომხმარებლის id ან სახელი\n"
+
+#: src/ps/help.c:126
+msgid ""
+"\n"
+"  The selection options take as their argument either:\n"
+"    a comma-separated list e.g. '-u root,nobody' or\n"
+"    a blank-separated list e.g. '-p 123 4567'\n"
+msgstr ""
+
+#: src/ps/help.c:132
+msgid ""
+"\n"
+"Output formats:\n"
+msgstr ""
+"\n"
+"გამოტანის ფორმატები:\n"
+
+#: src/ps/help.c:133
+msgid " -D <format>          date format for lstart\n"
+msgstr ""
+
+#: src/ps/help.c:134
+msgid " -F                   extra full\n"
+msgstr " -F                   დამატებით სრული\n"
+
+#: src/ps/help.c:135
+msgid " -f                   full-format, including command lines\n"
+msgstr ""
+
+#: src/ps/help.c:136
+msgid "  f, --forest         ascii art process tree\n"
+msgstr ""
+
+#: src/ps/help.c:137
+msgid " -H                   show process hierarchy\n"
+msgstr ""
+
+#: src/ps/help.c:138
+msgid " -j                   jobs format\n"
+msgstr " -j                   დავალების ფორმატი\n"
+
+#: src/ps/help.c:139
+msgid "  j                   BSD job control format\n"
+msgstr "  j                   BSD-ის დავალების კონტროლის ფორმატი\n"
+
+#: src/ps/help.c:140
+msgid " -l                   long format\n"
+msgstr " -l                   გრძელი ფორმატი\n"
+
+#: src/ps/help.c:141
+msgid "  l                   BSD long format\n"
+msgstr "  l                   BSD-ის გრძელი ფორმატი\n"
+
+#: src/ps/help.c:142
+msgid " -M, Z                add security data (for SELinux)\n"
+msgstr ""
+
+#: src/ps/help.c:143
+msgid " -O <format>          preloaded with default columns\n"
+msgstr ""
+
+#: src/ps/help.c:144
+msgid "  O <format>          as -O, with BSD personality\n"
+msgstr ""
+
+#: src/ps/help.c:145
+msgid ""
+" -o, o, --format <format>\n"
+"                      user-defined format\n"
+msgstr ""
+
+#: src/ps/help.c:147
+msgid "  -P                  add psr column\n"
+msgstr "  -d                   -h -ის მეტსახელი\n"
+
+#: src/ps/help.c:148
+msgid "  s                   signal format\n"
+msgstr "  s                   სიგნალის ფორმატი\n"
+
+#: src/ps/help.c:149
+msgid "  u                   user-oriented format\n"
+msgstr ""
+
+#: src/ps/help.c:150
+msgid "  v                   virtual memory format\n"
+msgstr "  v                   ვირტუალური მეხსიერების ფორმატი\n"
+
+#: src/ps/help.c:151
+msgid "  X                   register format\n"
+msgstr "  X                   ფორმატის რეგისტრაცია\n"
+
+#: src/ps/help.c:152
+msgid ""
+" -y                   do not show flags, show rss vs. addr (used with -l)\n"
+msgstr ""
+
+#: src/ps/help.c:153
+msgid "     --context        display security context (for SELinux)\n"
+msgstr ""
+
+#: src/ps/help.c:154
+msgid "     --headers        repeat header lines, one per page\n"
+msgstr ""
+
+#: src/ps/help.c:155
+msgid "     --no-headers     do not print header at all\n"
+msgstr ""
+
+#: src/ps/help.c:156
+msgid ""
+"     --cols, --columns, --width <num>\n"
+"                      set screen width\n"
+msgstr ""
+
+#: src/ps/help.c:158
+msgid ""
+"     --rows, --lines <num>\n"
+"                      set screen height\n"
+msgstr ""
+
+#: src/ps/help.c:160
+msgid "     --signames       display signal masks using signal names\n"
+msgstr ""
+" --signames         სიგნალის ნიღბების ჩვენება სიგნალის სახელების "
+"გამოყენებით\n"
+
+#: src/ps/help.c:163
+msgid ""
+"\n"
+"Show threads:\n"
+msgstr ""
+"\n"
+"ნაკადების ჩვენება:\n"
+
+#: src/ps/help.c:164
+msgid "  H                   as if they were processes\n"
+msgstr "  H                   როგორც პროცესების\n"
+
+#: src/ps/help.c:165
+msgid " -L                   possibly with LWP and NLWP columns\n"
+msgstr ""
+
+#: src/ps/help.c:166
+msgid " -m, m                after processes\n"
+msgstr " -m, m                პროცესების შემდეგ\n"
+
+#: src/ps/help.c:167
+msgid " -T                   possibly with SPID column\n"
+msgstr ""
+
+#: src/ps/help.c:170
+msgid ""
+"\n"
+"Miscellaneous options:\n"
+msgstr ""
+"\n"
+"სხვადასხვა პარამეტრები:\n"
+
+#: src/ps/help.c:171
+msgid " -c                   show scheduling class with -l option\n"
+msgstr ""
+
+#: src/ps/help.c:172
+msgid "  c                   show true command name\n"
+msgstr ""
+
+#: src/ps/help.c:173
+msgid "  e                   show the environment after command\n"
+msgstr ""
+
+#: src/ps/help.c:174
+msgid ""
+"  k,    --sort        specify sort order as: [+|-]key[,[+|-]key[,...]]\n"
+msgstr ""
+
+#: src/ps/help.c:175
+msgid "  L                   show format specifiers\n"
+msgstr ""
+
+#: src/ps/help.c:176
+msgid "  n                   display numeric uid and wchan\n"
+msgstr ""
+
+#: src/ps/help.c:177
+msgid "  S,    --cumulative  include some dead child process data\n"
+msgstr ""
+
+#: src/ps/help.c:178
+msgid " -y                   do not show flags, show rss (only with -l)\n"
+msgstr ""
+
+#: src/ps/help.c:179
+msgid " -V, V, --version     display version information and exit\n"
+msgstr ""
+"  -V, V, --version                 ვერსიის ინფორმაციის ჩვენება და გასვლა\n"
+
+#: src/ps/help.c:180
+msgid " -w, w                unlimited output width\n"
+msgstr ""
+
+#: src/ps/help.c:181
+#, c-format
+msgid ""
+"\n"
+"        --%s <%s|%s|%s|%s|%s|%s>\n"
+"                      display help and exit\n"
+msgstr ""
+"\n"
+"        --%s <%s|%s|%s|%s|%s|%s>\n"
+"                      დახმარების გამოტანა და გასვლა\n"
+
+#. Translation Notes for ps Help #2 ---------------------------------
+#. .  Most of the following c-format string is derived from the 6
+#. .  pairs of words + chars mentioned above in "Notes for ps Help #1".
+#. .
+#. .  In its full English form, help text would look like this:
+#. .      Try 'ps --help <simple|list|output|threads|misc|all>'
+#. .       or 'ps --help <s|l|o|t|m|a>'
+#. .      for additional help text.
+#. .
+#. .  The word for "help" will be translated elsewhere.  Thus, the only
+#. .  translations below will be: "Try", "or" and "for additional...".
+#. .
+#: src/ps/help.c:202
+#, c-format
+msgid ""
+"\n"
+" Try '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+"  or '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+" for additional help text.\n"
+msgstr ""
+"\n"
+" დამატებითი დახმარებისთვის '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+"  ან '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+" სცადეთ.\n"
+
+#: src/ps/help.c:215
+#, c-format
+msgid ""
+"\n"
+"For more details see ps(1).\n"
+msgstr ""
+"\n"
+"მეტი დეტალებისთვის იხილეთ ps(1).\n"
+
+#: src/ps/output.c:104
+msgid "Unable to get system boot time"
+msgstr ""
+
+#: src/ps/output.c:119
+msgid "Unable to get total memory"
+msgstr "სრული მეხსიერების მიღების შეცდომა"
+
+#: src/ps/output.c:2206
+#, c-format
+msgid "fix bigness error\n"
+msgstr ""
+
+#: src/ps/output.c:2289
+#, c-format
+msgid "bad alignment code\n"
+msgstr "არასწორი სწორების კოდი\n"
+
+#: src/ps/parser.c:63
+msgid "the option is exclusive: "
+msgstr "პარამეტრი ექსკლუზიურია: "
+
+#: src/ps/parser.c:93
+msgid "process ID list syntax error"
+msgstr "პროცესის ID-ების სიის სინტაქსის შეცდომა"
+
+#: src/ps/parser.c:94 src/ps/parser.c:95
+msgid "process ID out of range"
+msgstr "პროცესის ID დიაპაზონს გარეთაა"
+
+#: src/ps/parser.c:108
+msgid "user name does not exist"
+msgstr "მომხმარებლის სახელი არ არსებობს"
+
+#: src/ps/parser.c:114
+msgid "user ID out of range"
+msgstr "მომხმარებლის ID დიაპაზონს გარეთაა"
+
+#: src/ps/parser.c:127
+msgid "group name does not exist"
+msgstr "ჯგუფის სახელი არ არსებობს"
+
+#: src/ps/parser.c:133
+msgid "group ID out of range"
+msgstr "ჯგუფის ID დიაპაზონს გარეთაა"
+
+#: src/ps/parser.c:149 src/ps/parser.c:173
+msgid "TTY could not be found"
+msgstr "TTY ვერ ვიპოვე"
+
+#: src/ps/parser.c:175
+msgid "list member was not a TTY"
+msgstr ""
+
+#: src/ps/parser.c:200
+msgid "improper list"
+msgstr "არასწორი სია"
+
+#: src/ps/parser.c:249
+msgid "list of command names must follow -C"
+msgstr ""
+
+#: src/ps/parser.c:257
+msgid "date format must follow -D"
+msgstr "თარიღის ფორმატი -D-ს უნდა მოსდევდეს"
+
+#: src/ps/parser.c:270
+msgid "list of real groups must follow -G"
+msgstr ""
+
+#: src/ps/parser.c:283
+msgid "list of jobs must follow -J"
+msgstr "-J-ს დავალებების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:311
+msgid "format or sort specification must follow -O"
+msgstr "-O-ს დალაგების სპეციფიკაცია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:322
+msgid "list of PRM groups must follow -R"
+msgstr "-R-ს PRM-ის ჯგუფების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:341
+msgid "list of real users must follow -U"
+msgstr "-U-ს რეალური მომხმარებლები უნდა მოსდევდეს"
+
+#: src/ps/parser.c:382
+msgid "list of session leaders OR effective group names must follow -g"
+msgstr "-g-ს სესიის ლიდერების სია ან ეფექტური ჯგუფის სახელები უნდა მოსდევდეს"
+
+#: src/ps/parser.c:393
+msgid "list of session leaders OR effective group IDs was invalid"
+msgstr "სესიის ლიდერების სია ან ეფექტური ჯგუფის ID-ები არასწორია"
+
+#: src/ps/parser.c:417
+msgid "format specification must follow -o"
+msgstr "-o-ს ფორმატის სპეციფიკაცია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:423
+msgid "list of process IDs must follow -p"
+msgstr "-p-ს პროცესის ID-ების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:440
+msgid "the -r option is reserved"
+msgstr "პარამეტრი -r დარეზერვებულია"
+
+#: src/ps/parser.c:446
+msgid "list of session IDs must follow -s"
+msgstr "-s-ს სესიების ID-ების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:454
+msgid "list of terminals (pty, tty...) must follow -t"
+msgstr "-t-ს ტერმინალების სია (pty,tty….) უნდა მოსდევდეს"
+
+#: src/ps/parser.c:462
+msgid "list of users must follow -u"
+msgstr "-u-ს მომხმარებლების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:484
+msgid "must set personality to get -x option"
+msgstr ""
+
+#: src/ps/parser.c:499
+msgid "list of zones (contexts, labels, whatever?) must follow -z"
+msgstr ""
+
+#: src/ps/parser.c:506
+msgid "embedded '-' among SysV options makes no sense"
+msgstr ""
+
+#: src/ps/parser.c:512
+msgid "unsupported SysV option"
+msgstr ""
+
+#: src/ps/parser.c:525
+msgid "cannot happen - problem #1"
+msgstr "ვერ მოხდება - პრობლემა #1"
+
+#: src/ps/parser.c:529
+msgid "cannot happen - problem #2"
+msgstr "ვერ მოხდება - პრობლემა #2"
+
+#: src/ps/parser.c:531
+msgid "second chance parse failed, not BSD or SysV"
+msgstr ""
+
+#: src/ps/parser.c:548
+msgid "option A is reserved"
+msgstr "პარამეტრი A დარეზერვებულია"
+
+#: src/ps/parser.c:553
+msgid "option C is reserved"
+msgstr "პარამეტრი C დარეზერვებულია"
+
+#: src/ps/parser.c:573
+msgid "format or sort specification must follow O"
+msgstr ""
+
+#: src/ps/parser.c:598
+msgid "list of users must follow U"
+msgstr ""
+
+#: src/ps/parser.c:610
+msgid "obsolete W option not supported (you have a /dev/drum?)"
+msgstr ""
+
+#: src/ps/parser.c:646 src/ps/parser.c:921 src/ps/parser.c:930
+msgid "only one heading option may be specified"
+msgstr ""
+
+#: src/ps/parser.c:661
+msgid "long sort specification must follow 'k'"
+msgstr ""
+
+#: src/ps/parser.c:689
+msgid "format specification must follow o"
+msgstr ""
+
+#: src/ps/parser.c:695
+msgid "list of process IDs must follow p"
+msgstr ""
+
+#: src/ps/parser.c:753
+msgid "embedded '-' among BSD options makes no sense"
+msgstr ""
+
+#: src/ps/parser.c:759
+msgid "unsupported option (BSD syntax)"
+msgstr ""
+
+#: src/ps/parser.c:847 src/ps/parser.c:859
+msgid "unknown gnu long option"
+msgstr "უცნობი GNU გრძელი პარამეტრი"
+
+#: src/ps/parser.c:867
+msgid "list of real groups must follow --Group"
+msgstr "ნამდვილი ჯგუფების სია --Group-ს უნდა მოსდევდეს"
+
+#: src/ps/parser.c:875
+msgid "list of real users must follow --User"
+msgstr "ნამდვლი მომხმარებლების სია --User-ს უნდა მოსდევდეს"
+
+#: src/ps/parser.c:894
+msgid "number of columns must follow --cols, --width, or --columns"
+msgstr ""
+
+#: src/ps/parser.c:897
+msgid "option --cumulative does not take an argument"
+msgstr ""
+
+#: src/ps/parser.c:902
+msgid "date format must follow --date-format"
+msgstr ""
+
+#: src/ps/parser.c:908
+msgid "option --deselect does not take an argument"
+msgstr "პარამეტრს --deselect არგუმენტები არ გააჩნია"
+
+#: src/ps/parser.c:920
+msgid "option --no-heading does not take an argument"
+msgstr "პარამეტრს --no-heading არგუმენტები არ გააჩნია"
+
+#: src/ps/parser.c:929
+msgid "option --heading does not take an argument"
+msgstr "პარამეტრს --heading არგუმენტები არ გააჩნია"
+
+#: src/ps/parser.c:935
+msgid "option --forest does not take an argument"
+msgstr "პარამეტრს --forest არგუმენტები არ გააჩნია"
+
+#: src/ps/parser.c:941
+msgid "format specification must follow --format"
+msgstr "--format-ს ფორმატის სპეციფიკაცია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:947
+msgid "list of effective groups must follow --group"
+msgstr "--group-ს ეფექტური ჯგუფების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:965
+msgid "list of process IDs must follow --pid"
+msgstr "--pid-ს პროცესის ID-ების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:981
+msgid "list of process IDs must follow --ppid"
+msgstr "--ppid-ს პროცესის ID-ების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:999
+msgid "number of rows must follow --rows or --lines"
+msgstr "--row და --lines პარამეტრად რიცხვი უნდა მოსდევდეს"
+
+#: src/ps/parser.c:1003
+msgid "some sid thing(s) must follow --sid"
+msgstr "--sid-ს sid-ის რამე უნდა მოჰყვებოდეს"
+
+#: src/ps/parser.c:1015
+msgid "long sort specification must follow --sort"
+msgstr "--sort-ს გრძელი დალაგების სპეციფიკაცია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:1021
+msgid "list of ttys must follow --tty"
+msgstr "--tty-ის tty-ების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:1029
+msgid "list of effective users must follow --user"
+msgstr "--user-ს ეფექტური მომხმარებლების სია უნდა მოსდევდეს"
+
+#: src/ps/parser.c:1145
+msgid "way bad"
+msgstr "უარესი"
+
+#: src/ps/parser.c:1159
+msgid "garbage option"
+msgstr "ნაგავი პარამეტრი"
+
+#: src/ps/parser.c:1163
+msgid "something broke"
+msgstr "რაღაც გაფუჭდა"
+
+#: src/ps/parser.c:1183
+msgid "thread display conflicts with forest display"
+msgstr ""
+
+#: src/ps/parser.c:1188
+msgid "thread flags conflict; can't use H with m or -m"
+msgstr ""
+
+#: src/ps/parser.c:1190
+msgid "thread flags conflict; can't use both m and -m"
+msgstr ""
+
+#: src/ps/parser.c:1192
+msgid "thread flags conflict; can't use both -L and -T"
+msgstr ""
+
+#: src/ps/parser.c:1265 src/ps/parser.c:1266
+#, c-format
+msgid "error: %s\n"
+msgstr "შეცდომა: %s\n"
+
+#: src/ps/select.c:71
+msgid "process selection options conflict"
+msgstr "პროცესის არჩევის პარამეტრების კონფლიქტი"
+
+#: src/ps/sortformat.c:110 src/ps/sortformat.c:115
+msgid "seriously crashing: goodbye cruel world"
+msgstr ""
+
+#: src/ps/sortformat.c:150 src/ps/sortformat.c:169
+msgid "missing AIX field descriptor"
+msgstr ""
+
+#: src/ps/sortformat.c:152
+msgid "improper AIX field descriptor"
+msgstr ""
+
+#: src/ps/sortformat.c:174
+msgid "unknown AIX field descriptor"
+msgstr ""
+
+#: src/ps/sortformat.c:179
+msgid "AIX field descriptor processing bug"
+msgstr ""
+
+#: src/ps/sortformat.c:287
+#, c-format
+msgid "unknown user-defined format specifier \"%s\""
+msgstr ""
+
+#: src/ps/sortformat.c:314
+msgid "empty format list"
+msgstr "ფორმატების ცარიელი სია"
+
+#: src/ps/sortformat.c:315
+msgid "improper format list"
+msgstr "ფორმატების არასწორი სია"
+
+#: src/ps/sortformat.c:316
+msgid "column widths must be unsigned decimal numbers"
+msgstr ""
+
+#: src/ps/sortformat.c:317
+msgid "can not set width for a macro (multi-column) format specifier"
+msgstr ""
+
+#: src/ps/sortformat.c:371 src/ps/sortformat.c:387
+msgid "improper sort list"
+msgstr "დალაგების არასწორი სია"
+
+#: src/ps/sortformat.c:382
+msgid "empty sort list"
+msgstr "ცააარიელი დალაგების სია"
+
+#: src/ps/sortformat.c:403 src/ps/sortformat.c:482 src/ps/sortformat.c:484
+msgid "unknown sort specifier"
+msgstr "უცნობი დალაგების მიმთითებელი"
+
+#: src/ps/sortformat.c:430 src/ps/sortformat.c:435 src/ps/sortformat.c:442
+#: src/ps/sortformat.c:448
+msgid "bad sorting code"
+msgstr "არასწორი დალაგების კოდი"
+
+#: src/ps/sortformat.c:445
+msgid "PPID sort and forest output conflict"
+msgstr ""
+
+#: src/ps/sortformat.c:519
+msgid "option -O can not follow other format options"
+msgstr ""
+
+#: src/ps/sortformat.c:526 src/ps/sortformat.c:544
+msgid "multiple sort options"
+msgstr "დალაგების ბევრი პარამეტრი"
+
+#: src/ps/sortformat.c:534
+msgid "option O is neither first format nor sort order"
+msgstr ""
+
+#: src/ps/sortformat.c:661
+msgid "modifier -y without format -l makes no sense"
+msgstr ""
+
+#: src/ps/sortformat.c:760
+msgid "bug: must reset the list first"
+msgstr ""
+
+#: src/ps/sortformat.c:797
+msgid "tell <procps@freelists.org> what you expected"
+msgstr "უთხარით <procps@freelists.org>-ს, რას მოელოდით"
+
+#: src/ps/sortformat.c:807
+msgid ""
+"tell <procps@freelists.org> what you want (-L/-T, -m/m/H, and $PS_FORMAT)"
+msgstr ""
+"უთხარით <procps@freelists.org>-ს, რა გნებავთ (-L/-T, -m/m/H, და $PS_FORMAT)"
+
+#: src/ps/sortformat.c:824
+#, c-format
+msgid "warning: $PS_FORMAT ignored. (%s)\n"
+msgstr ""
+
+#: src/ps/sortformat.c:829 src/ps/sortformat.c:839
+msgid "conflicting format options"
+msgstr "ფორმატის ურთიერთგამომრიცხავი პარამეტრები"
+
+#: src/ps/sortformat.c:830
+msgid "can not use output modifiers with user-defined output"
+msgstr ""
+
+#: src/ps/sortformat.c:831
+msgid "-L/-T with H/m/-m and -o/-O/o/O is nonsense"
+msgstr ""
+
+#: src/ps/sortformat.c:889
+msgid "internal error: no PID or PPID for -j option"
+msgstr ""
+
+#: src/ps/sortformat.c:891
+msgid "lost my PGID"
+msgstr "დავკარგე ჩემი PGID"
+
+#: src/ps/sortformat.c:904
+msgid "internal error: no PRI for -c option"
+msgstr ""
+
+#: src/ps/sortformat.c:907
+msgid "lost my CLS"
+msgstr "დავკარგე ჩემი CSL"
+
+#: src/ps/sortformat.c:912
+msgid "-T with H/-m/m but no PID for SPID to follow"
+msgstr ""
+
+#: src/ps/sortformat.c:923
+msgid "-L with H/-m/m but no PID/PGID/SID/SESS for NLWP to follow"
+msgstr ""
+
+#: src/pwdx.c:41
+#, c-format
+msgid " %s [options] pid...\n"
+msgstr " %s [options] pid...\n"
+
+#: src/pwdx.c:117
+#, c-format
+msgid "invalid process id: %s"
+msgstr "პროცესის არასწორი ID: '%s'"
+
+#: src/skill.c:285
+msgid "Unable to create pid Pids_info structure"
+msgstr ""
+
+#: src/skill.c:288 src/w.c:458
+msgid "Unable to load process information"
+msgstr "პროცესის ინფორმაციის ჩატვირთვა შეუძლებელია"
+
+#: src/skill.c:319
+#, c-format
+msgid " %s [signal] [options] <expression>\n"
+msgstr " %s [signal] [options] <expression>\n"
+
+#: src/skill.c:323
+#, c-format
+msgid " %s [new priority] [options] <expression>\n"
+msgstr " %s [ახალი პრიორიტეტი] [პარამეტრები] <expression>\n"
+
+#: src/skill.c:327
+msgid " -f, --fast         fast mode (not implemented)\n"
+msgstr " -f, --fast         სწრაფი რეჟიმი (განხორციელებული არაა)\n"
+
+#: src/skill.c:328
+msgid " -i, --interactive  interactive\n"
+msgstr " -i, --interactive  ინტერაქტიური\n"
+
+#: src/skill.c:329
+msgid " -l, --list         list all signal names\n"
+msgstr " -l, --list         ყველა სიგნალის სიის გამოტანა\n"
+
+#: src/skill.c:330
+msgid " -L, --table        list all signal names in a nice table\n"
+msgstr ""
+
+#: src/skill.c:331
+msgid ""
+" -n, --no-action    do not actually kill processes; just print what would "
+"happen\n"
+msgstr ""
+
+#: src/skill.c:332
+msgid " -v, --verbose      explain what is being done\n"
+msgstr ""
+
+#: src/skill.c:333
+msgid " -w, --warnings     enable warnings (not implemented)\n"
+msgstr ""
+
+#: src/skill.c:335
+msgid ""
+"Expression can be: terminal, user, pid, command.\n"
+"The options below may be used to ensure correct interpretation.\n"
+msgstr ""
+
+#: src/skill.c:337
+msgid " -c, --command <command>  expression is a command name\n"
+msgstr ""
+
+#: src/skill.c:338
+msgid " -p, --pid <pid>          expression is a process id number\n"
+msgstr " -p, --pid <pid>          გამოსახულება პროცესის ID-ის ნომერია\n"
+
+#: src/skill.c:339
+msgid " -t, --tty <tty>          expression is a terminal\n"
+msgstr " -t, --tty <tty>          გამოსახულება ტერმინალია\n"
+
+#: src/skill.c:340
+msgid " -u, --user <username>    expression is a username\n"
+msgstr " -u, --user <username>    გამოსახულება მომხმარებლის სახელია\n"
+
+#: src/skill.c:342
+msgid "Alternatively, expression can be:\n"
+msgstr ""
+
+#: src/skill.c:343
+msgid ""
+" --ns <pid>               match the processes that belong to the same\n"
+"                          namespace as <pid>\n"
+msgstr ""
+
+#: src/skill.c:345
+msgid ""
+" --nslist <ns,...>        list which namespaces will be considered for\n"
+"                          the --ns option; available namespaces are\n"
+":                          ipc, mnt, net, pid, user, uts\n"
+msgstr ""
+
+#: src/skill.c:355
+#, c-format
+msgid ""
+"\n"
+"The default signal is TERM. Use -l or -L to list available signals.\n"
+"Particularly useful signals include HUP, INT, KILL, STOP, CONT, and 0.\n"
+"Alternate signals may be specified in three ways: -SIGKILL -KILL -9\n"
+msgstr ""
+
+#: src/skill.c:362
+#, c-format
+msgid ""
+"\n"
+"The default priority is +4. (snice +4 ...)\n"
+"Priority numbers range from +20 (slowest) to -20 (fastest).\n"
+"Negative priority numbers are restricted to administrative users.\n"
+msgstr ""
+
+#: src/skill.c:384
+#, c-format
+msgid "priority %lu out of range"
+msgstr ""
+
+#: src/skill.c:493
+#, c-format
+msgid "invalid pid number %s"
+msgstr "არასწორი pid რიცხვი: %s"
+
+#: src/skill.c:497
+msgid "error reading reference namespace information"
+msgstr ""
+
+#: src/skill.c:505
+msgid "invalid namespace list"
+msgstr "არასწორი სახელების სივრცის სია"
+
+#: src/skill.c:542
+msgid "no process selection criteria"
+msgstr ""
+
+#: src/skill.c:545
+msgid "general flags may not be repeated"
+msgstr ""
+
+#: src/skill.c:548
+msgid "-i makes no sense with -v, -f, and -n"
+msgstr ""
+
+#: src/skill.c:550
+msgid "-v makes no sense with -i and -f"
+msgstr ""
+
+#: src/skill.c:594
+#, c-format
+msgid "skill: \"%s\" is not supported\n"
+msgstr ""
+
+#: src/slabtop.c:108
+msgid " -d, --delay <secs>  delay updates\n"
+msgstr " -d, --delay <secs>  განახლებების დაყოვნება\n"
+
+#: src/slabtop.c:109
+msgid " -o, --once          only display once, then exit\n"
+msgstr " -o, --once          ერთხელ ჩვენება და გასვლა\n"
+
+#: src/slabtop.c:110
+msgid " -s, --sort <char>   specify sort criteria by character (see below)\n"
+msgstr ""
+
+#: src/slabtop.c:115
+msgid ""
+"\n"
+"The following are valid sort criteria:\n"
+msgstr ""
+
+#: src/slabtop.c:116
+msgid " a: sort by number of active objects\n"
+msgstr ""
+
+#: src/slabtop.c:117
+msgid " b: sort by objects per slab\n"
+msgstr ""
+
+#: src/slabtop.c:118
+msgid " c: sort by cache size\n"
+msgstr ""
+
+#: src/slabtop.c:119
+msgid " l: sort by number of slabs\n"
+msgstr ""
+
+#: src/slabtop.c:120
+msgid " v: sort by (non display) number of active slabs\n"
+msgstr ""
+
+#: src/slabtop.c:121
+msgid " n: sort by name\n"
+msgstr ""
+
+#: src/slabtop.c:122
+msgid " o: sort by number of objects (the default)\n"
+msgstr ""
+
+#: src/slabtop.c:123
+msgid " p: sort by (non display) pages per slab\n"
+msgstr ""
+
+#: src/slabtop.c:124
+msgid " s: sort by object size\n"
+msgstr ""
+
+#: src/slabtop.c:125
+msgid " u: sort by cache utilization\n"
+msgstr ""
+
+#: src/slabtop.c:188 src/slabtop.c:199
+msgid "Cannot combine -d and -o options"
+msgstr ""
+
+#: src/slabtop.c:190
+msgid "illegal delay"
+msgstr "არასწორი დაყოვნება"
+
+#: src/slabtop.c:192 src/tload.c:142 src/vmstat.c:1049
+msgid "delay must be positive integer"
+msgstr "დაყოვნება დადებითი მთელი რიცხვი უნდა იყოს"
+
+#: src/slabtop.c:236
+msgid "Error getting slab summary results"
+msgstr ""
+
+#. Translation Hint: Next five strings must not
+#. * exceed a length of 35 characters.
+#: src/slabtop.c:242
+#, no-c-format
+msgid "Active / Total Objects (% used)"
+msgstr ""
+
+#: src/slabtop.c:248
+#, no-c-format
+msgid "Active / Total Slabs (% used)"
+msgstr ""
+
+#: src/slabtop.c:254
+#, no-c-format
+msgid "Active / Total Caches (% used)"
+msgstr ""
+
+#: src/slabtop.c:260
+#, no-c-format
+msgid "Active / Total Size (% used)"
+msgstr ""
+
+#: src/slabtop.c:265
+msgid "Minimum / Average / Maximum Object"
+msgstr ""
+
+#. Translation Hint: Please keep alignment of the
+#. * following intact.
+#: src/slabtop.c:276
+msgid "  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME"
+msgstr ""
+
+#: src/slabtop.c:313 src/vmstat.c:767
+msgid "Unable to create slabinfo structure"
+msgstr ""
+
+#: src/slabtop.c:318
+msgid "terminal setting retrieval"
+msgstr ""
+
+#: src/slabtop.c:334 src/vmstat.c:774
+msgid "Unable to get slabinfo node data"
+msgstr ""
+
+#: src/slabtop.c:340 src/vmstat.c:776
+msgid "Unable to sort slab nodes"
+msgstr ""
+
+#: src/sysctl.c:118
+#, c-format
+msgid "Path is not under %s: %s"
+msgstr ""
+
+#: src/sysctl.c:136
+#, c-format
+msgid "separators should not be repeated: %s"
+msgstr ""
+
+#: src/sysctl.c:232
+#, c-format
+msgid " %s [options] [variable[=value] ...]\n"
+msgstr ""
+
+#: src/sysctl.c:235
+msgid "  -a, --all            display all variables\n"
+msgstr ""
+
+#: src/sysctl.c:236
+msgid "  -A                   alias of -a\n"
+msgstr ""
+
+#: src/sysctl.c:237
+msgid "  -X                   alias of -a\n"
+msgstr ""
+
+#: src/sysctl.c:238
+msgid "      --deprecated     include deprecated parameters to listing\n"
+msgstr ""
+
+#: src/sysctl.c:239
+msgid "      --dry-run        Print the key and values but do not write\n"
+msgstr ""
+
+#: src/sysctl.c:240
+msgid "  -b, --binary         print value without new line\n"
+msgstr ""
+
+#: src/sysctl.c:241
+msgid "  -e, --ignore         ignore unknown variables errors\n"
+msgstr ""
+
+#: src/sysctl.c:242
+msgid "  -N, --names          print variable names without values\n"
+msgstr ""
+
+#: src/sysctl.c:243
+msgid "  -n, --values         print only values of the given variable(s)\n"
+msgstr ""
+
+#: src/sysctl.c:244
+msgid "  -p, --load[=<file>]  read values from file\n"
+msgstr ""
+
+#: src/sysctl.c:245
+msgid "  -f                   alias of -p\n"
+msgstr ""
+
+#: src/sysctl.c:246
+msgid "      --system         read values from all system directories\n"
+msgstr ""
+
+#: src/sysctl.c:247
+msgid ""
+"  -r, --pattern <expression>\n"
+"                       select setting that match expression\n"
+msgstr ""
+
+#: src/sysctl.c:249
+msgid "  -q, --quiet          do not echo variable set\n"
+msgstr ""
+
+#: src/sysctl.c:250
+msgid "  -w, --write          enable writing a value to variable\n"
+msgstr ""
+
+#: src/sysctl.c:251
+msgid "  -o                   does nothing\n"
+msgstr ""
+
+#: src/sysctl.c:252
+msgid "  -x                   does nothing\n"
+msgstr ""
+
+#: src/sysctl.c:253
+msgid "  -d                   alias of -h\n"
+msgstr "  -d                   -h -ის მეტსახელი\n"
+
+#: src/sysctl.c:334 src/sysctl.c:390
+#, c-format
+msgid "\"%s\" is an unknown key"
+msgstr "\"%s\" არასწორი გასაღბია"
+
+#: src/sysctl.c:352 src/sysctl.c:508 src/sysctl.c:545
+#, c-format
+msgid "cannot stat %s"
+msgstr "%s-ის აღმოჩენის შეცდომა"
+
+#: src/sysctl.c:395 src/sysctl.c:437
+#, c-format
+msgid "permission denied on key '%s'"
+msgstr ""
+
+#: src/sysctl.c:402 src/sysctl.c:454
+#, c-format
+msgid "reading key \"%s\""
+msgstr ""
+
+#: src/sysctl.c:492
+#, c-format
+msgid "unable to open directory \"%s\""
+msgstr "საქაღალდის გახსნის შეცდომა: \"%s\""
+
+#: src/sysctl.c:557
+msgid "strdup key"
+msgstr ""
+
+#: src/sysctl.c:564 src/sysctl.c:571 src/sysctl.c:604
+#, c-format
+msgid "setting key \"%s\""
+msgstr ""
+
+#: src/sysctl.c:581
+#, c-format
+msgid "\"%s\" is an unknown key%s"
+msgstr ""
+
+#: src/sysctl.c:582 src/sysctl.c:591 src/sysctl.c:595
+msgid ", ignoring"
+msgstr ", იგნორირება"
+
+#: src/sysctl.c:590
+#, c-format
+msgid "permission denied on key \"%s\"%s"
+msgstr ""
+
+#: src/sysctl.c:594
+#, c-format
+msgid "setting key \"%s\"%s"
+msgstr ""
+
+#: src/sysctl.c:669
+#, c-format
+msgid "%s(%d): invalid syntax, continuing..."
+msgstr ""
+
+#: src/sysctl.c:761
+#, c-format
+msgid ""
+"GLOB_TILDE is not supported on your platform, the tilde in \"%s\" won't be "
+"expanded."
+msgstr ""
+
+#: src/sysctl.c:767
+msgid "glob failed"
+msgstr ""
+
+#: src/sysctl.c:773
+#, c-format
+msgid "cannot open \"%s\""
+msgstr ""
+
+#: src/sysctl.c:877 src/sysctl.c:884
+#, c-format
+msgid "* Applying %s ...\n"
+msgstr ""
+
+#: src/sysctl.c:1050
+#, c-format
+msgid ""
+"no variables specified\n"
+"Try `%s --help' for more information."
+msgstr ""
+
+#: src/sysctl.c:1054
+#, c-format
+msgid ""
+"options -N and -q cannot coexist\n"
+"Try `%s --help' for more information."
+msgstr ""
+
+#: src/tload.c:75 src/tload.c:77
+msgid "screen too small or too large"
+msgstr ""
+
+#: src/tload.c:80
+msgid "screen too small"
+msgstr "ეკრანი ძალიან პატარაა"
+
+#: src/tload.c:96
+#, c-format
+msgid " %s [options] [tty]\n"
+msgstr " %s [options] [tty]\n"
+
+#: src/tload.c:98
+msgid " -d, --delay <secs>  update delay in seconds\n"
+msgstr ""
+
+#: src/tload.c:99
+msgid " -s, --scale <num>   vertical scale\n"
+msgstr ""
+
+#: src/tload.c:137
+msgid "scale cannot be negative"
+msgstr ""
+
+#: src/tload.c:144 src/vmstat.c:1051
+msgid "too large delay value"
+msgstr ""
+
+#: src/tload.c:159
+msgid "can not open tty"
+msgstr "tty-ის გახსნის შეცდომა"
+
+#: src/tload.c:182
+msgid "Load average file /proc/loadavg does not exist"
+msgstr ""
+
+#: src/tload.c:185
+msgid "Unable to get load average"
+msgstr ""
+
+#: src/tload.c:227 src/tload.c:229
+msgid "writing to tty failed"
+msgstr "tty-ში ჩაწერის შეცდომა"
+
+#. Translation Notes ------------------------------------------------
+#. .  It is strongly recommend that the --no-wrap command line option
+#. .  be used with all supporting translation tools, when available.
+#. .
+#. .  The following line pairs contain only plain text and consist of:
+#. .     1) a field name/column header - mostly upper case
+#. .     2) the related description    - both upper and lower case
+#. .
+#. .  To avoid truncation on the main top display, each column header
+#. .  is noted with its maximum size, while a few are 'variable' width.
+#. .  Names for the latter should probably be 10 or fewer characters.
+#. .
+#. .  Those fields shown with a '+' are also eligible for user resizing
+#. .  using the 'X' command. That means the default width might produce
+#. .  truncation but need not if widened (see the man page 'X' command).
+#. .
+#. .  All headers are subject to a maximum of 8 on the Fields Management
+#. .  screen where truncation is entirely acceptable.
+#. .
+#. .  The associated descriptions are always limited to 20 characters,
+#. .  and are used only on the Fields Management screen.
+#. .
+#. .  In all cases, fewer characters are just fine.
+#. .
+#. Translation Hint: maximum 'PID' = 5
+#: src/top/top_nls.c:152
+msgid "PID"
+msgstr "PID"
+
+#: src/top/top_nls.c:153
+msgid "Process Id"
+msgstr "პროცესის ID"
+
+#. Translation Hint: maximum 'PPID' = 5
+#: src/top/top_nls.c:155
+msgid "PPID"
+msgstr "PPID"
+
+#: src/top/top_nls.c:156
+msgid "Parent Process pid"
+msgstr "მშობელი პროცესის ID"
+
+#. Translation Hint: maximum 'UID' = 5 +
+#: src/top/top_nls.c:158
+msgid "UID"
+msgstr "UID"
+
+#: src/top/top_nls.c:159
+msgid "Effective User Id"
+msgstr "ეფექტური მომხმარებლის ID"
+
+#. Translation Hint: maximum 'USER' = 8 +
+#: src/top/top_nls.c:161 src/w.c:799
+msgid "USER"
+msgstr "მომხმარებელი"
+
+#: src/top/top_nls.c:162
+msgid "Effective User Name"
+msgstr "ეფექტური მომხმარებლის სახელი"
+
+#. Translation Hint: maximum 'RUID' = 5 +
+#: src/top/top_nls.c:164
+msgid "RUID"
+msgstr "RUID"
+
+#: src/top/top_nls.c:165
+msgid "Real User Id"
+msgstr "რეალური მომხმარებლის ID"
+
+#. Translation Hint: maximum 'RUSER' = 8 +
+#: src/top/top_nls.c:167
+msgid "RUSER"
+msgstr "RUSER"
+
+#: src/top/top_nls.c:168
+msgid "Real User Name"
+msgstr "რეალური მომხმარებლის სახელი"
+
+#. Translation Hint: maximum 'SUID' = 5 +
+#: src/top/top_nls.c:170
+msgid "SUID"
+msgstr "SUID"
+
+#: src/top/top_nls.c:171
+msgid "Saved User Id"
+msgstr "შენახული მომხმარებლის ID"
+
+#. Translation Hint: maximum 'SUSER' = 8 +
+#: src/top/top_nls.c:173
+msgid "SUSER"
+msgstr "SUSER"
+
+#: src/top/top_nls.c:174
+msgid "Saved User Name"
+msgstr "შენახული მომხმარელის სახელი"
+
+#. Translation Hint: maximum 'GID' = 5 +
+#: src/top/top_nls.c:176
+msgid "GID"
+msgstr "GID"
+
+#: src/top/top_nls.c:177
+msgid "Group Id"
+msgstr "ჯგუფის ID"
+
+#. Translation Hint: maximum 'GROUP' = 8 +
+#: src/top/top_nls.c:179
+msgid "GROUP"
+msgstr "GROUP"
+
+#: src/top/top_nls.c:180
+msgid "Group Name"
+msgstr "ჯგუფის სახელი"
+
+#. Translation Hint: maximum 'PGRP' = 5
+#: src/top/top_nls.c:182
+msgid "PGRP"
+msgstr "PGRP"
+
+#: src/top/top_nls.c:183
+msgid "Process Group Id"
+msgstr "პროცესის ჯგუფის ID"
+
+#. Translation Hint: maximum 'TTY' = 8 +
+#: src/top/top_nls.c:185
+msgid "TTY"
+msgstr "TTY"
+
+#: src/top/top_nls.c:186
+msgid "Controlling Tty"
+msgstr "მაკონტროლებელი tty"
+
+#. Translation Hint: maximum 'TPGID' = 5
+#: src/top/top_nls.c:188
+msgid "TPGID"
+msgstr "TPGID"
+
+#: src/top/top_nls.c:189
+msgid "Tty Process Grp Id"
+msgstr "Tty პროცესის ჯგუფის ID"
+
+#. Translation Hint: maximum 'SID' = 5
+#: src/top/top_nls.c:191
+msgid "SID"
+msgstr "SID"
+
+#: src/top/top_nls.c:192
+msgid "Session Id"
+msgstr "სესიის ID"
+
+#. Translation Hint: maximum 'PR' = 3
+#: src/top/top_nls.c:194
+msgid "PR"
+msgstr "PR"
+
+#: src/top/top_nls.c:195
+msgid "Priority"
+msgstr "პრიორიტეტი"
+
+#. Translation Hint: maximum 'NI' = 3
+#: src/top/top_nls.c:197
+msgid "NI"
+msgstr "NI"
+
+#: src/top/top_nls.c:198
+msgid "Nice Value"
+msgstr ""
+
+#. Translation Hint: maximum 'nTH' = 3
+#: src/top/top_nls.c:200
+msgid "nTH"
+msgstr "nTH"
+
+#: src/top/top_nls.c:201
+msgid "Number of Threads"
+msgstr "ნაკადების რაოდენობა"
+
+#. Translation Hint: maximum 'P' = 1
+#: src/top/top_nls.c:203
+msgid "P"
+msgstr "პ"
+
+#: src/top/top_nls.c:204
+msgid "Last Used Cpu (SMP)"
+msgstr ""
+
+#. Translation Hint: maximum '%CPU' = 4
+#: src/top/top_nls.c:206
+#, c-format
+msgid "%CPU"
+msgstr "%CPU"
+
+#: src/top/top_nls.c:207
+msgid "CPU Usage"
+msgstr "CPU -ის გამოყენება"
+
+#. Translation Hint: maximum '' = 6
+#: src/top/top_nls.c:209
+msgid "TIME"
+msgstr "დრო"
+
+#: src/top/top_nls.c:210
+msgid "CPU Time"
+msgstr "CPU -ის დრო"
+
+#. Translation Hint: maximum 'TIME+' = 9
+#: src/top/top_nls.c:212
+msgid "TIME+"
+msgstr "TIME+"
+
+#: src/top/top_nls.c:213
+msgid "CPU Time, hundredths"
+msgstr "CPU -ის დრო, მეასედები"
+
+#. Translation Hint: maximum '%MEM' = 4
+#: src/top/top_nls.c:215
+msgid "%MEM"
+msgstr "%MEM"
+
+#: src/top/top_nls.c:216
+msgid "Memory Usage (RES)"
+msgstr "მეხსიერების გამოყენება (RES)"
+
+#. Translation Hint: maximum 'VIRT' = 7
+#: src/top/top_nls.c:218
+msgid "VIRT"
+msgstr "VIRT"
+
+#: src/top/top_nls.c:219
+msgid "Virtual Image (KiB)"
+msgstr "ვირტუალური ასლი (კიბ)"
+
+#. Translation Hint: maximum 'SWAP' = 6
+#: src/top/top_nls.c:221
+msgid "SWAP"
+msgstr "SWAP"
+
+#: src/top/top_nls.c:222
+msgid "Swapped Size (KiB)"
+msgstr "სვოპის ზომა (კიბ)"
+
+#. Translation Hint: maximum 'RES' = 6
+#: src/top/top_nls.c:224
+msgid "RES"
+msgstr "RES"
+
+#: src/top/top_nls.c:225
+msgid "Resident Size (KiB)"
+msgstr "რეზიდენტული ზომა (კიბ)"
+
+#. Translation Hint: maximum 'CODE' = 4
+#: src/top/top_nls.c:227
+msgid "CODE"
+msgstr "CODE"
+
+#: src/top/top_nls.c:228
+msgid "Code Size (KiB)"
+msgstr "კოდის ზომა (კიბ)"
+
+#. Translation Hint: maximum 'DATA' = 7
+#: src/top/top_nls.c:230
+msgid "DATA"
+msgstr "მონაცემები"
+
+#: src/top/top_nls.c:231
+msgid "Data+Stack (KiB)"
+msgstr ""
+
+#. Translation Hint: maximum 'SHR' = 6
+#: src/top/top_nls.c:233
+msgid "SHR"
+msgstr "SHR"
+
+#: src/top/top_nls.c:234
+msgid "Shared Memory (KiB)"
+msgstr "გაზიარებული მეხსიერება (კიბ)"
+
+#. Translation Hint: maximum 'nMaj' = 4
+#: src/top/top_nls.c:236
+msgid "nMaj"
+msgstr "nMaj"
+
+#: src/top/top_nls.c:237
+msgid "Major Page Faults"
+msgstr ""
+
+#. Translation Hint: maximum 'nMin' = 4
+#: src/top/top_nls.c:239
+msgid "nMin"
+msgstr "nMin"
+
+#: src/top/top_nls.c:240
+msgid "Minor Page Faults"
+msgstr ""
+
+#. Translation Hint: maximum 'nDRT' = 4
+#: src/top/top_nls.c:242
+msgid "nDRT"
+msgstr "nDRT"
+
+#: src/top/top_nls.c:243
+msgid "Dirty Pages Count"
+msgstr ""
+
+#. Translation Hint: maximum 'S' = 1
+#: src/top/top_nls.c:245
+msgid "S"
+msgstr "კ"
+
+#: src/top/top_nls.c:246
+msgid "Process Status"
+msgstr "პროცესის სტატუსი"
+
+#. Translation Hint: maximum 'COMMAND' = variable
+#: src/top/top_nls.c:248
+msgid "COMMAND"
+msgstr "ბრძანება"
+
+#: src/top/top_nls.c:249
+msgid "Command Name/Line"
+msgstr ""
+
+#. Translation Hint: maximum 'WCHAN' = 10 +
+#: src/top/top_nls.c:251
+msgid "WCHAN"
+msgstr "WCHAN"
+
+#: src/top/top_nls.c:252
+msgid "Sleeping in Function"
+msgstr ""
+
+#. Translation Hint: maximum 'Flags' = 8
+#: src/top/top_nls.c:254
+msgid "Flags"
+msgstr "ალმები"
+
+#: src/top/top_nls.c:255
+msgid "Task Flags <sched.h>"
+msgstr ""
+
+#. Translation Hint: maximum 'CGROUPS' = variable
+#: src/top/top_nls.c:257
+msgid "CGROUPS"
+msgstr "CGROUPS"
+
+#: src/top/top_nls.c:258
+msgid "Control Groups"
+msgstr "საკონტროლო ჯგუფები"
+
+#. Translation Hint: maximum 'SUPGIDS' = variable
+#: src/top/top_nls.c:260
+msgid "SUPGIDS"
+msgstr "SUPGIDS"
+
+#: src/top/top_nls.c:261
+msgid "Supp Groups IDs"
+msgstr ""
+
+#. Translation Hint: maximum 'SUPGRPS' = variable
+#: src/top/top_nls.c:263
+msgid "SUPGRPS"
+msgstr "SUPGRPS"
+
+#: src/top/top_nls.c:264
+msgid "Supp Groups Names"
+msgstr ""
+
+#. Translation Hint: maximum 'TGID' = 5
+#: src/top/top_nls.c:266
+msgid "TGID"
+msgstr "TGID"
+
+#: src/top/top_nls.c:267
+msgid "Thread Group Id"
+msgstr ""
+
+#. Translation Hint: maximum 'OOMa' = 5
+#: src/top/top_nls.c:269
+msgid "OOMa"
+msgstr "OOMa"
+
+#: src/top/top_nls.c:270
+msgid "OOMEM Adjustment"
+msgstr ""
+
+#. Translation Hint: maximum 'OOMs' = 4
+#: src/top/top_nls.c:272
+msgid "OOMs"
+msgstr "OOMs"
+
+#: src/top/top_nls.c:273
+msgid "OOMEM Score current"
+msgstr ""
+
+#. Translation Hint: maximum 'ENVIRON' = variable
+#: src/top/top_nls.c:275
+msgid "ENVIRON"
+msgstr "ENVIRON"
+
+#. Translation Hint: the abbreviation 'vars' below is shorthand for
+#. 'variables'
+#: src/top/top_nls.c:278
+msgid "Environment vars"
+msgstr ""
+
+#. Translation Hint: maximum 'vMj' = 3
+#: src/top/top_nls.c:280
+msgid "vMj"
+msgstr "vMj"
+
+#: src/top/top_nls.c:281
+msgid "Major Faults delta"
+msgstr ""
+
+#. Translation Hint: maximum 'vMn' = 3
+#: src/top/top_nls.c:283
+msgid "vMn"
+msgstr "vMn"
+
+#: src/top/top_nls.c:284
+msgid "Minor Faults delta"
+msgstr ""
+
+#. Translation Hint: maximum 'USED' = 6
+#: src/top/top_nls.c:286
+msgid "USED"
+msgstr "USED"
+
+#: src/top/top_nls.c:287
+msgid "Res+Swap Size (KiB)"
+msgstr ""
+
+#. Translation Hint: maximum 'nsIPC' = 10 +
+#: src/top/top_nls.c:289
+msgid "nsIPC"
+msgstr "nsIPC"
+
+#: src/top/top_nls.c:290
+msgid "IPC namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'nsMNT' = 10 +
+#: src/top/top_nls.c:292
+msgid "nsMNT"
+msgstr "nsMNT"
+
+#: src/top/top_nls.c:293
+msgid "MNT namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'nsNET' = 10 +
+#: src/top/top_nls.c:295
+msgid "nsNET"
+msgstr "nsNET"
+
+#: src/top/top_nls.c:296
+msgid "NET namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'nsPID' = 10 +
+#: src/top/top_nls.c:298
+msgid "nsPID"
+msgstr "nsPID"
+
+#: src/top/top_nls.c:299
+msgid "PID namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'nsUSER' = 10 +
+#: src/top/top_nls.c:301
+msgid "nsUSER"
+msgstr "nsUSER"
+
+#: src/top/top_nls.c:302
+msgid "USER namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'nsUTS' = 10 +
+#: src/top/top_nls.c:304
+msgid "nsUTS"
+msgstr "nsUTS"
+
+#: src/top/top_nls.c:305
+msgid "UTS namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'LXC' = 8 +
+#: src/top/top_nls.c:307
+msgid "LXC"
+msgstr "LXC"
+
+#: src/top/top_nls.c:308
+msgid "LXC container name"
+msgstr ""
+
+#. Translation Hint: maximum 'RSan' = 6
+#: src/top/top_nls.c:310
+msgid "RSan"
+msgstr "RSan"
+
+#: src/top/top_nls.c:311
+msgid "RES Anonymous (KiB)"
+msgstr ""
+
+#. Translation Hint: maximum 'RSfd' = 6
+#: src/top/top_nls.c:313
+msgid "RSfd"
+msgstr "RSfd"
+
+#: src/top/top_nls.c:314
+msgid "RES File-based (KiB)"
+msgstr ""
+
+#. Translation Hint: maximum 'RSlk' = 6
+#: src/top/top_nls.c:316
+msgid "RSlk"
+msgstr "RSlk"
+
+#: src/top/top_nls.c:317
+msgid "RES Locked (KiB)"
+msgstr ""
+
+#. Translation Hint: maximum 'RSsh' = 6
+#: src/top/top_nls.c:319
+msgid "RSsh"
+msgstr "RSsh"
+
+#: src/top/top_nls.c:320
+msgid "RES Shared (KiB)"
+msgstr ""
+
+#. Translation Hint: maximum 'CGNAME' = variable
+#: src/top/top_nls.c:322
+msgid "CGNAME"
+msgstr "CGNAME"
+
+#: src/top/top_nls.c:323
+msgid "Control Group name"
+msgstr ""
+
+#. Translation Hint: maximum 'NU' = 2
+#: src/top/top_nls.c:325
+msgid "NU"
+msgstr "NU"
+
+#: src/top/top_nls.c:326
+msgid "Last Used NUMA node"
+msgstr ""
+
+#. Translation Hint: maximum 'LOGID' = 5 +
+#: src/top/top_nls.c:328
+msgid "LOGID"
+msgstr "LOGID"
+
+#: src/top/top_nls.c:329
+msgid "Login User Id"
+msgstr "რეალური მომხმარებლის ID"
+
+#. Translation Hint: maximum 'EXE' = variable
+#: src/top/top_nls.c:331
+msgid "EXE"
+msgstr "EXE"
+
+#: src/top/top_nls.c:332
+msgid "Executable Path"
+msgstr "გამშვები ფაილის ბილიკი"
+
+#: src/top/top_nls.c:338
+msgid "Res Mem (smaps), KiB"
+msgstr ""
+
+#. Translation Hint: maximum 'PSS' = 6
+#: src/top/top_nls.c:340
+msgid "PSS"
+msgstr "PSS"
+
+#: src/top/top_nls.c:341
+msgid "Proportion RSS,  KiB"
+msgstr ""
+
+#. Translation Hint: maximum 'PSan' = 6
+#: src/top/top_nls.c:343
+msgid "PSan"
+msgstr "PSan"
+
+#: src/top/top_nls.c:344
+msgid "Proportion Anon, KiB"
+msgstr ""
+
+#. Translation Hint: maximum 'PSfd' = 6
+#: src/top/top_nls.c:346
+msgid "PSfd"
+msgstr "PSfd"
+
+#: src/top/top_nls.c:347
+msgid "Proportion File, KiB"
+msgstr ""
+
+#. Translation Hint: maximum 'PSsh' = 6
+#: src/top/top_nls.c:349
+msgid "PSsh"
+msgstr "PSsh"
+
+#: src/top/top_nls.c:350
+msgid "Proportion Shrd, KiB"
+msgstr ""
+
+#. Translation Hint: maximum 'USS' = 6
+#: src/top/top_nls.c:352
+msgid "USS"
+msgstr "USS"
+
+#: src/top/top_nls.c:353
+msgid "Unique RSS, KiB"
+msgstr ""
+
+#. Translation Hint: maximum 'ioR' = 6
+#: src/top/top_nls.c:355
+msgid "ioR"
+msgstr "ioR"
+
+#: src/top/top_nls.c:356
+msgid "I/O Bytes Read"
+msgstr ""
+
+#. Translation Hint: maximum 'ioRop' = 5
+#: src/top/top_nls.c:358
+msgid "ioRop"
+msgstr "ioRop"
+
+#: src/top/top_nls.c:359
+msgid "I/O Read Operations"
+msgstr ""
+
+#. Translation Hint: maximum 'ioW' = 6
+#: src/top/top_nls.c:361
+msgid "ioW"
+msgstr "ioW"
+
+#: src/top/top_nls.c:362
+msgid "I/O Bytes Written"
+msgstr ""
+
+#. Translation Hint: maximum 'ioWop' = 5
+#: src/top/top_nls.c:364
+msgid "ioWop"
+msgstr "ioWop"
+
+#: src/top/top_nls.c:365
+msgid "I/O Write Operations"
+msgstr ""
+
+#. Translation Hint: maximum 'AGID' = 5
+#: src/top/top_nls.c:367
+msgid "AGID"
+msgstr "AGID"
+
+#: src/top/top_nls.c:368
+msgid "Autogroup Identifier"
+msgstr ""
+
+#. Translation Hint: maximum 'AGNI' = 4
+#: src/top/top_nls.c:370
+msgid "AGNI"
+msgstr "AGNI"
+
+#: src/top/top_nls.c:371
+msgid "Autogroup Nice Value"
+msgstr ""
+
+#. Translation Hint: maximum 'STARTED' = 7
+#: src/top/top_nls.c:373
+msgid "STARTED"
+msgstr "STARTED"
+
+#: src/top/top_nls.c:374
+msgid "Start Time from boot"
+msgstr ""
+
+#. Translation Hint: maximum 'ELAPSED' = 7
+#: src/top/top_nls.c:376
+msgid "ELAPSED"
+msgstr ""
+
+#: src/top/top_nls.c:377
+msgid "Elapsed Running Time"
+msgstr ""
+
+#. Translation Hint: maximum '%CUU' = 6
+#: src/top/top_nls.c:379
+#, c-format
+msgid "%CUU"
+msgstr "%CUU"
+
+#: src/top/top_nls.c:380
+msgid "CPU Utilization"
+msgstr ""
+
+#. Translation Hint: maximum '%CUC' = 7
+#: src/top/top_nls.c:382
+#, c-format
+msgid "%CUC"
+msgstr "%CUC"
+
+#: src/top/top_nls.c:383
+msgid "Utilization + child"
+msgstr ""
+
+#. Translation Hint: maximum 'nsCGROUP' = 10 +
+#: src/top/top_nls.c:385
+msgid "nsCGROUP"
+msgstr "nsCGROUP"
+
+#: src/top/top_nls.c:386
+msgid "CGRP namespace Inode"
+msgstr ""
+
+#. Translation Hint: maximum 'nsTIME' = 10 +
+#: src/top/top_nls.c:388
+msgid "nsTIME"
+msgstr "დრო"
+
+#: src/top/top_nls.c:389
+msgid "TIME namespace Inode"
+msgstr ""
+
+#. Translation Notes ------------------------------------------------
+#. .  It is strongly recommend that the --no-wrap command line option
+#. .  be used with all supporting translation tools, when available.
+#. .
+#. .  This group of lines contains both plain text and c-format strings.
+#. .
+#. .  Some strings reflect switches used to affect the running program
+#. .  and should not be translated without also making corresponding
+#. .  c-code logic changes.
+#. .
+#: src/top/top_nls.c:409
+#, c-format
+msgid ""
+"\tsignal %d (%s) was caught by %s, please\n"
+"\tsend bug reports to <procps@freelists.org>\n"
+msgstr ""
+
+#: src/top/top_nls.c:439
+#, c-format
+msgid "bad delay interval '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:440
+#, c-format
+msgid "bad iterations argument '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:441
+#, c-format
+msgid "pid limit (%d) exceeded"
+msgstr "pid -ის ლიმიტი (%d) გადაჭარბებულია"
+
+#: src/top/top_nls.c:442
+#, c-format
+msgid "bad pid '%s'"
+msgstr "არასწორი pid '%s'"
+
+#: src/top/top_nls.c:443
+#, c-format
+msgid "-%c argument missing"
+msgstr "-%c არგუმენტი აკლია"
+
+#: src/top/top_nls.c:444
+#, c-format
+msgid "bad width arg '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:445
+#, c-format
+msgid "unknown option '%s'"
+msgstr "უცნობი პარამეტრი '%s'"
+
+#: src/top/top_nls.c:446
+msgid "-d disallowed in \"secure\" mode"
+msgstr ""
+
+#: src/top/top_nls.c:447
+msgid "-d requires positive argument"
+msgstr ""
+
+#: src/top/top_nls.c:448
+msgid "On"
+msgstr ""
+
+#: src/top/top_nls.c:449
+msgid "Off"
+msgstr "გამორთული"
+
+#: src/top/top_nls.c:450
+#, c-format
+msgid "%s from %s"
+msgstr "%s -ი %s-სგან"
+
+#: src/top/top_nls.c:451
+#, c-format
+msgid "Forest mode %s"
+msgstr "ტყის რეჟიმი %s"
+
+#: src/top/top_nls.c:452
+msgid "failed tty get"
+msgstr "tty-ის მიღების შეცდომა"
+
+#: src/top/top_nls.c:453
+#, c-format
+msgid "failed tty set: %s"
+msgstr "tty-ის დაყენების შეცდომა: %s"
+
+#: src/top/top_nls.c:454
+msgid "Choose field group (1 - 4)"
+msgstr ""
+
+#: src/top/top_nls.c:455
+msgid "Command disabled, 'A' mode required"
+msgstr ""
+
+#: src/top/top_nls.c:456
+#, c-format
+msgid "Command disabled, activate %s with '-' or '_'"
+msgstr ""
+
+#: src/top/top_nls.c:457
+msgid "No colors to map!"
+msgstr ""
+
+#: src/top/top_nls.c:458
+#, c-format
+msgid "Failed '%s' open: %s"
+msgstr ""
+
+#: src/top/top_nls.c:459
+#, c-format
+msgid "Wrote configuration to '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:460
+#, c-format
+msgid "Change delay from %.1f to"
+msgstr ""
+
+#: src/top/top_nls.c:461
+#, c-format
+msgid "Show threads %s"
+msgstr ""
+
+#: src/top/top_nls.c:462
+#, c-format
+msgid "Irix mode %s"
+msgstr "Irix -ის რეჟიმი %s"
+
+#: src/top/top_nls.c:463
+#, c-format
+msgid "PID to signal/kill [default pid = %d]"
+msgstr ""
+
+#: src/top/top_nls.c:464
+#, c-format
+msgid "Send pid %d signal [%d/sigterm]"
+msgstr ""
+
+#: src/top/top_nls.c:465
+#, c-format
+msgid "Failed signal pid '%d' with '%d': %s"
+msgstr ""
+
+#: src/top/top_nls.c:466
+msgid "Invalid signal"
+msgstr "არასწორი სიგნალი"
+
+#: src/top/top_nls.c:467
+#, c-format
+msgid "PID to renice [default pid = %d]"
+msgstr ""
+
+#: src/top/top_nls.c:468
+#, c-format
+msgid "Renice PID %d to value"
+msgstr ""
+
+#: src/top/top_nls.c:469
+#, c-format
+msgid "Failed renice of PID %d to %d: %s"
+msgstr ""
+
+#: src/top/top_nls.c:470
+#, c-format
+msgid "Rename window '%s' to (1-3 chars)"
+msgstr ""
+
+#: src/top/top_nls.c:471
+#, c-format
+msgid "Cumulative time %s"
+msgstr ""
+
+#: src/top/top_nls.c:472
+#, c-format
+msgid "Maximum tasks = %d, change to (0 is unlimited)"
+msgstr ""
+
+#: src/top/top_nls.c:473
+msgid "Invalid maximum"
+msgstr "არასწორი მაქსიმუმი"
+
+#: src/top/top_nls.c:474
+msgid "Which user (blank for all)"
+msgstr ""
+
+#: src/top/top_nls.c:475
+msgid "Unknown command - try 'h' for help"
+msgstr "უცნობი ბრძანება - დახმარებისთვის სცადეთ \"h\""
+
+#: src/top/top_nls.c:476
+#, c-format
+msgid "scroll coordinates: y = %d/%d (tasks), x = %d/%d (fields)"
+msgstr ""
+
+#: src/top/top_nls.c:477
+msgid "failed memory allocate"
+msgstr "მეხსიერების გამოყოფის შეცდომა"
+
+#: src/top/top_nls.c:478
+msgid "failed memory re-allocate"
+msgstr "მეხსიერების თავიდან გამოყოფის შეცდომა"
+
+#: src/top/top_nls.c:479
+msgid "Unacceptable floating point"
+msgstr ""
+
+#: src/top/top_nls.c:480
+msgid "Invalid user"
+msgstr "არასწორი მომხმარებელი"
+
+#: src/top/top_nls.c:481
+msgid "forest view"
+msgstr "ტყის ხედი"
+
+#: src/top/top_nls.c:482
+msgid "failed pid maximum size test"
+msgstr ""
+
+#: src/top/top_nls.c:483
+msgid "failed number of cpus test"
+msgstr ""
+
+#: src/top/top_nls.c:484
+#, c-format
+msgid "incompatible rcfile, you should delete '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:485
+#, c-format
+msgid "window entry #%d corrupt, please delete '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:486
+msgid "Unavailable in secure mode"
+msgstr ""
+
+#: src/top/top_nls.c:487
+msgid "Only 1 cpu detected"
+msgstr "ნაპოვნია მხოლოდ 1 CPU"
+
+#: src/top/top_nls.c:488
+msgid "Unacceptable integer"
+msgstr "დაუშვებელი მთელი რიცხვი"
+
+#: src/top/top_nls.c:489
+msgid "conflicting process selections (U/p/u)"
+msgstr ""
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 kibibytes (1024 bytes)
+#: src/top/top_nls.c:492
+msgid "KiB"
+msgstr "კიბ"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 mebibytes (1,048,576 bytes)
+#: src/top/top_nls.c:495
+msgid "MiB"
+msgstr "მიბ"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 gibibytes (1,073,741,824 bytes)
+#: src/top/top_nls.c:498
+msgid "GiB"
+msgstr "გიბ"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 tebibytes (1,099,511,627,776 bytes)
+#: src/top/top_nls.c:501
+msgid "TiB"
+msgstr "ტიბ"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 pebibytes (1,024 tebibytes)
+#: src/top/top_nls.c:504
+msgid "PiB"
+msgstr "პიბ"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 exbibytes (1,024 pebibytes)
+#: src/top/top_nls.c:507
+msgid "EiB"
+msgstr "ეიბ"
+
+#: src/top/top_nls.c:508
+msgid "Threads"
+msgstr "ნაკადები"
+
+#: src/top/top_nls.c:509
+msgid "Tasks"
+msgstr "Tasks"
+
+#. Translation Hint: The following "word" is meant to represent either a single
+#. .                 cpu or all of the processors in a multi-processor computer
+#. .                 (should be exactly 6 characters, excluding leading % & colon)
+#: src/top/top_nls.c:513
+#, c-format
+msgid "%Cpu(s):"
+msgstr "%CPU:"
+
+#. Translation Hint: The following "word" is meant to represent a single processor
+#. and 'the Cp' prefix will be combined with a  core id: 'p', 'e' or 'u'
+#. .                 (if 'Cp' is translated, it must be exactly 2 characters long)
+#: src/top/top_nls.c:517
+#, c-format
+msgid "%%Cp%c%-3d:"
+msgstr "%%Cp%c%-3d:"
+
+#. Translation Hint: The following word "another" must have 1 trailing space
+#: src/top/top_nls.c:519
+msgid "another "
+msgstr "სხვა "
+
+#: src/top/top_nls.c:520
+msgid "Locate next inactive, use \"L\""
+msgstr ""
+
+#: src/top/top_nls.c:521
+msgid "Locate string"
+msgstr ""
+
+#: src/top/top_nls.c:522
+#, c-format
+msgid "%s\"%s\" not found"
+msgstr "%s: %s: არ არსებობს"
+
+#: src/top/top_nls.c:523
+#, c-format
+msgid "width incr is %d, change to (0 default, -1 auto)"
+msgstr ""
+
+#: src/top/top_nls.c:524
+msgid "rcfile has inspect/other-filter error(s), save anyway?"
+msgstr ""
+
+#: src/top/top_nls.c:525
+#, c-format
+msgid "unrecognized field name '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:526
+msgid "even using field names only, window is now too small"
+msgstr ""
+
+#: src/top/top_nls.c:527
+msgid "Open Files"
+msgstr "ფაილების გახსნა"
+
+#: src/top/top_nls.c:528
+msgid "NUMA Info"
+msgstr "NUMA-ის ინფორმაცია"
+
+#: src/top/top_nls.c:529
+msgid "Log"
+msgstr "ჟურნალი"
+
+#: src/top/top_nls.c:530
+msgid ""
+"the '=' key will eventually show the actual file read or command(s) "
+"executed ..."
+msgstr ""
+
+#: src/top/top_nls.c:531
+msgid "demo"
+msgstr "დემო"
+
+#: src/top/top_nls.c:532
+#, c-format
+msgid ""
+"This is simulated output representing the contents of some file or the "
+"output\n"
+"from some command.  Exactly which commands and/or files are solely up to "
+"you.\n"
+"\n"
+"Although this text is for information purposes only, it can still be "
+"scrolled\n"
+"and searched like real output will be.  You are encouraged to experiment "
+"with\n"
+"those features as explained in the prologue above.\n"
+"\n"
+"To enable real Inspect functionality, entries must be added to the end of "
+"the\n"
+"top personal personal configuration file.  You could use your favorite "
+"editor\n"
+"to accomplish this, taking care not to disturb existing entries.\n"
+"\n"
+"Another way to add entries is illustrated below, but it risks overwriting "
+"the\n"
+"rcfile.  Redirected echoes must not replace (>) but append (>>) to that "
+"file.\n"
+"\n"
+"  /bin/echo -e \"pipe\\tOpen Files\\tlsof -P -p %d 2>&1\" >> ~/.toprc\n"
+"  /bin/echo -e \"file\\tNUMA Info\\t/proc/%d/numa_maps\" >> ~/.toprc\n"
+"  /bin/echo -e \"pipe\\tLog\\ttail -n200 /var/log/syslog | sort -Mr\" >> ~/."
+"toprc\n"
+"\n"
+"If you don't know the location or name of the top rcfile, use the 'W' "
+"command\n"
+"and note those details.  After backing up the current rcfile, try issuing "
+"the\n"
+"above echoes exactly as shown, replacing '.toprc' as appropriate.  The "
+"safest\n"
+"approach would be to use copy then paste to avoid any typing mistakes.\n"
+"\n"
+"Finally, restart top to reveal what actual Inspect entries combined with "
+"this\n"
+"new command can offer.  The possibilities are endless, especially "
+"considering\n"
+"that 'pipe' type entries can include shell scripts too!\n"
+"\n"
+"For additional important information, please consult the top(1) man "
+"document.\n"
+"Then, enhance top with your very own customized 'file' and/or 'pipe' "
+"entries.\n"
+"\n"
+"Enjoy!\n"
+msgstr ""
+
+#: src/top/top_nls.c:564
+msgid "to enable 'Y' press <Enter> then type 'W' and restart top"
+msgstr ""
+
+#: src/top/top_nls.c:565
+msgid "to enable 'Y' please consult the top man page (press Enter)"
+msgstr ""
+
+#: src/top/top_nls.c:566
+#, c-format
+msgid "Selection failed with: %s\n"
+msgstr ""
+
+#: src/top/top_nls.c:567
+#, c-format
+msgid "unable to inspect, pid %d not found"
+msgstr ""
+
+#: src/top/top_nls.c:568
+#, c-format
+msgid "inspect at PID [default pid = %d]"
+msgstr ""
+
+#: src/top/top_nls.c:569
+#, c-format
+msgid "%s: %*d-%-*d lines, %*d-%*d columns, %lu bytes read"
+msgstr ""
+
+#: src/top/top_nls.c:570
+msgid "patience please, working ..."
+msgstr "მოითმინეთ, გეთაყვა, ვმუშაობ ..."
+
+#: src/top/top_nls.c:571
+msgid "working, use Ctrl-C to end ..."
+msgstr ""
+
+#. Translation Hint: Below are 2 abbreviations which can be as long as needed:
+#. .                 FLD = FIELD, VAL = VALUE
+#: src/top/top_nls.c:574
+#, c-format
+msgid "add filter #%d (%s) as: [!]FLD?VAL"
+msgstr ""
+
+#: src/top/top_nls.c:575
+msgid "ignoring case"
+msgstr "რეგისტრის იგნორი"
+
+#: src/top/top_nls.c:576
+msgid "case sensitive"
+msgstr "დიდი და პატარა ასოების განსხვავება"
+
+#: src/top/top_nls.c:577
+msgid "duplicate filter was ignored"
+msgstr ""
+
+#: src/top/top_nls.c:578
+#, c-format
+msgid "'%s' filter delimiter is missing"
+msgstr ""
+
+#: src/top/top_nls.c:579
+#, c-format
+msgid "'%s' filter value is missing"
+msgstr ""
+
+#: src/top/top_nls.c:580
+msgid "include"
+msgstr "ჩასმა"
+
+#: src/top/top_nls.c:581
+msgid "exclude"
+msgstr "გამორიცხვა"
+
+#: src/top/top_nls.c:582
+#, c-format
+msgid "<Enter> to resume, filters: %s"
+msgstr ""
+
+#: src/top/top_nls.c:583
+msgid "none"
+msgstr "არცერთი"
+
+#. Translation Hint: The following word 'Node' should be exactly
+#. 4 characters, excluding leading %%, fmt chars & colon)
+#: src/top/top_nls.c:586
+#, c-format
+msgid "%%Node%-2d:"
+msgstr ""
+
+#: src/top/top_nls.c:587
+#, c-format
+msgid "expand which numa node (0-%d)"
+msgstr ""
+
+#: src/top/top_nls.c:588
+msgid "invalid numa node"
+msgstr "არასწორი კვანძი"
+
+#: src/top/top_nls.c:589
+msgid "sorry, NUMA extensions unavailable"
+msgstr "უკაცრავად, NUMA-ის გაფართოებები მოუწვდომელია"
+
+#. Translation Hint: 'Mem ' is an abbreviation for physical memory/ram
+#. .                 'Swap' represents the linux swap file --
+#. .                 please make both translations exactly 4 characters,
+#. .                 padding with extra spaces as necessary
+#: src/top/top_nls.c:594
+msgid "Mem "
+msgstr "Mem "
+
+#: src/top/top_nls.c:595
+msgid "Swap"
+msgstr "სვოპი"
+
+#: src/top/top_nls.c:596
+#, c-format
+msgid "library failed memory statistics, at %d: %s"
+msgstr ""
+
+#: src/top/top_nls.c:597
+#, c-format
+msgid "library failed cpu statistics, at %d: %s"
+msgstr ""
+
+#: src/top/top_nls.c:598
+#, c-format
+msgid "library failed pids statistics, at %d: %s"
+msgstr ""
+
+#: src/top/top_nls.c:599
+#, c-format
+msgid "bad memory scaling arg '%s'"
+msgstr ""
+
+#: src/top/top_nls.c:600
+#, c-format
+msgid "PID to collapse/expand [default pid = %d]"
+msgstr ""
+
+#: src/top/top_nls.c:601
+msgid "wrong mode, command inactive"
+msgstr ""
+
+#: src/top/top_nls.c:602
+msgid "saving prevents older top from reading, save anyway?"
+msgstr ""
+
+#: src/top/top_nls.c:603
+#, c-format
+msgid "failed sem_init() at %d: %s"
+msgstr "sem_init()-ის შეცდომა მისამართზე %d: %s"
+
+#: src/top/top_nls.c:604
+#, c-format
+msgid "failed pthread_create() at %d: %s"
+msgstr "pthread_create() -ის შეცდომა მისამართზე %d: %s"
+
+#: src/top/top_nls.c:605
+msgid "sorry, restricted namespace with reduced functionality"
+msgstr ""
+
+#: src/top/top_nls.c:606
+#, c-format
+msgid "set pid %d AGNI value to"
+msgstr ""
+
+#: src/top/top_nls.c:607
+msgid "valid AGNI range is -20 to +19"
+msgstr ""
+
+#: src/top/top_nls.c:608
+#, c-format
+msgid "autogroup open failed, %s"
+msgstr "ფაილის გახსნის შეცდომა: %s"
+
+#: src/top/top_nls.c:609
+#, c-format
+msgid "autogroup write failed, %s"
+msgstr ""
+
+#: src/top/top_nls.c:610
+#, c-format
+msgid "command line for pid %d, %s"
+msgstr ""
+
+#: src/top/top_nls.c:611
+#, c-format
+msgid "control groups for pid %d, %s"
+msgstr ""
+
+#: src/top/top_nls.c:612
+#, c-format
+msgid "environment for pid %d, %s"
+msgstr ""
+
+#: src/top/top_nls.c:613
+#, c-format
+msgid "namespaces for pid %d, %s"
+msgstr ""
+
+#: src/top/top_nls.c:614
+msgid "n/a"
+msgstr "მიუწვდომელია"
+
+#: src/top/top_nls.c:615
+#, c-format
+msgid "supplementary groups for pid %d, %s"
+msgstr ""
+
+#: src/top/top_nls.c:616
+msgid "message log, last 10 messages:"
+msgstr ""
+
+#. Translation Notes ------------------------------------------------
+#. .  It is strongly recommend that the --no-wrap command line option
+#. .  be used with all supporting translation tools, when available.
+#. .
+#. .  The next several text groups contain special escape sequences
+#. .  representing values used to index a table at run-time.
+#. .
+#. .  Each such sequence consists of a tilde (~) followed by an ascii
+#. .  number in the range of '1' - '8'.  Examples are '~2', '~8', etc.
+#. .  These escape sequences must never themselves be translated but
+#. .  could be deleted.
+#. .
+#. .  If you remove these escape sequences (both tilde and number) it
+#. .  would make translation easier.  However, the ability to display
+#. .  colors and bold text at run-time will have been lost.
+#. .
+#. .  Additionally, each of these text groups was designed to display
+#. .  in a 80x24 terminal window.  Hopefully, any translations will
+#. .  adhere to that goal lest the translated text be truncated.
+#. .
+#. .  If you would like additional information regarding these strings,
+#. .  please see the prologue to the show_special function in the top.c
+#. .  source file.
+#. .
+#. .  Caution:
+#. .    The next three items represent pages for interacting with a user.
+#. .    In all cases, the last lines of text must be treated with care.
+#. .
+#. .    They must not end with a newline character so that at runtime the
+#. .    cursor will remain on that final text line.
+#. .
+#. .    Also, the special sequences (tilde+number) must not appear on the
+#. .    last line (the one without the newline). So please avoid any line
+#. .    wraps that could place them there.
+#. .
+#: src/top/top_nls.c:661
+#, c-format
+msgid ""
+"Help for Interactive Commands~2 - %s\n"
+"Window ~1%s~6: ~1Cumulative mode ~3%s~2.  ~1System~6: ~1Delay ~3%.1f secs~2; "
+"~1Secure mode ~3%s~2.\n"
+"\n"
+"  Z~5,~1B~5,E,e   Global: '~1Z~2' colors; '~1B~2' bold; '~1E~2'/'~1e~2' "
+"summary/task memory scale\n"
+"  l,t,m,I,0 Toggle: '~1l~2' load avg; '~1t~2' task/cpu; '~1m~2' memory; "
+"'~1I~2' Irix; '~10~2' zeros\n"
+"  1,2,3,4,5 Toggle: '~11~2/~12~2/~13~2' cpu/numa views; '~14~2' cpus "
+"abreast; '~15~2' P/E-cores\n"
+"  f,X       Fields: '~1f~2' add/remove/order/sort; '~1X~2' increase fixed-"
+"width fields\n"
+"\n"
+"  L,&,<,> . Locate: '~1L~2'/'~1&~2' find/again; Move sort column: "
+"'~1<~2'/'~1>~2' left/right\n"
+"  R,H,J,C . Toggle: '~1R~2' Sort; '~1H~2' Threads; '~1J~2' Num justify; "
+"'~1C~2' Coordinates\n"
+"  c,i,S,j . Toggle: '~1c~2' Cmd name/line; '~1i~2' Idle; '~1S~2' Time; "
+"'~1j~2' Str justify\n"
+"  x~5,~1y~5     . Toggle highlights: '~1x~2' sort field; '~1y~2' running "
+"tasks\n"
+"  z~5,~1b~5     . Toggle: '~1z~2' color/mono; '~1b~2' bold/reverse (only if "
+"'x' or 'y')\n"
+"  u,U,o,O . Filter by: '~1u~2'/'~1U~2' effective/any user; '~1o~2'/'~1O~2' "
+"other criteria\n"
+"  n,#,^O  . Set: '~1n~2'/'~1#~2' max tasks displayed; Show: ~1Ctrl~2+'~1O~2' "
+"other filter(s)\n"
+"  V,v,F   . Toggle: '~1V~2' forest view; '~1v~2' hide/show children; '~1F~2' "
+"keep focused\n"
+"\n"
+"%s  ^G,K,N,U  View: ctl groups ~1^G~2; cmdline ~1^K~2; environment ~1^N~2; "
+"supp groups ~1^U~2\n"
+"  Y,!,^E,P  Inspect '~1Y~2'; Combine Cpus '~1!~2'; Scale time ~1^E~2; View "
+"namespaces ~1^P~2\n"
+"  W,q       Write config file '~1W~2'; Quit '~1q~2'\n"
+"          ( commands shown with '.' require a ~1visible~2 task display "
+"~1window~2 ) \n"
+"Press '~1h~2' or '~1?~2' for help with ~1Windows~2,\n"
+"Type 'q' or <Esc> to continue "
+msgstr ""
+
+#: src/top/top_nls.c:687
+#, c-format
+msgid ""
+"Help for Windows / Field Groups~2 - \"Current Window\" = ~1 %s ~6\n"
+"\n"
+". Use multiple ~1windows~2, each with separate config opts (color,fields,"
+"sort,etc)\n"
+". The 'current' window controls the ~1Summary Area~2 and responds to your "
+"~1Commands~2\n"
+"  . that window's ~1task display~2 can be turned ~1Off~2 & ~1On~2, growing/"
+"shrinking others\n"
+"  . with ~1NO~2 task display, some commands will be ~1disabled~2 "
+"('i','R','n','c', etc)\n"
+"    until a ~1different window~2 has been activated, making it the 'current' "
+"window\n"
+". You ~1change~2 the 'current' window by: ~1 1~2) cycling forward/backward;"
+"~1 2~2) choosing\n"
+"  a specific field group; or~1 3~2) exiting the color mapping or fields "
+"screens\n"
+". Commands ~1available anytime   -------------~2\n"
+"    A       . Alternate display mode toggle, show ~1Single~2 / ~1Multiple~2 "
+"windows\n"
+"    g       . Choose another field group and make it 'current', or change "
+"now\n"
+"              by selecting a number from: ~1 1~2 =%s;~1 2~2 =%s;~1 3~2 =%s; "
+"or~1 4~2 =%s\n"
+". Commands ~1requiring~2 '~1A~2' mode~1  -------------~2\n"
+"    G       . Change the ~1Name~5 of the 'current' window/field group\n"
+" ~1*~4  a , w   . Cycle through all four windows:  '~1a~5' Forward; '~1w~5' "
+"Backward\n"
+" ~1*~4  - , _   . Show/Hide:  '~1-~5' ~1Current~2 window; '~1_~5' all "
+"~1Visible~2/~1Invisible~2\n"
+"  The screen will be divided evenly between task displays.  But you can "
+"make\n"
+"  some ~1larger~2 or ~1smaller~2, using '~1n~2' and '~1i~2' commands.  Then "
+"later you could:\n"
+" ~1*~4  = , +   . Rebalance tasks:  '~1=~5' ~1Current~2 window; '~1+~5' "
+"~1Every~2 window\n"
+"              (this also forces the ~1current~2 or ~1every~2 window to "
+"become visible)\n"
+"\n"
+"In '~1A~2' mode, '~1*~4' keys are your ~1essential~2 commands.  Please try "
+"the '~1a~2' and '~1w~2'\n"
+"commands plus the 'g' sub-commands NOW.  Press <Enter> to make 'Current' "
+msgstr ""
+
+#. Translation Notes ------------------------------------------------
+#. .  The following 'Help for color mapping' simulated screen should
+#. .  probably NOT be translated.  It is terribly hard to follow in
+#. .  this form and any translation could produce unpleasing results
+#. .  that are unlikely to parallel the running top program.
+#. .
+#. .  If you decide to proceed with translation, please take care
+#. .  to not disturb the spaces and the tilde + number delimiters.
+#. .
+#: src/top/top_nls.c:722
+#, c-format
+msgid ""
+"Help for color mapping~2 - \"Current Window\" = ~1 %s ~6\n"
+"\n"
+"   color - 04:25:44 up 8 days, 50 min,  7 users,  load average:\n"
+"   Tasks:~3  64 ~2total,~3   2 ~3running,~3  62 ~2sleeping,~3   0 ~2stopped,"
+"~3\n"
+"   %%Cpu(s):~3  76.5 ~2user,~3  11.2 ~2system,~3   0.0 ~2nice,~3  12.3 "
+"~2idle~3\n"
+"   ~1 Nasty Message! ~4  -or-  ~1Input Prompt~5\n"
+"   ~1  PID TTY     PR  NI %%CPU    TIME+   VIRT SWAP S COMMAND    ~6\n"
+"   17284 ~8pts/2  ~7  8   0  0.0   0:00.75  1380    0 S /bin/bash   ~8\n"
+"   ~1 8601 pts/1    7 -10  0.4   0:00.03   916    0 R color -b -z~7\n"
+"   11005 ~8?      ~7  9   0  0.0   0:02.50  2852 1008 S amor -sessi~8\n"
+"   available toggles: ~1B~2 =disable bold globally (~1%s~2),\n"
+"       ~1z~2 =color/mono (~1%s~2), ~1b~2 =tasks \"bold\"/reverse (~1%s~2)\n"
+"\n"
+"1) Select a ~1target~2 as an upper case letter, ~1current target~2 is ~1 %c "
+"~4:\n"
+"   S~2 = Summary Data,~1  M~2 = Messages/Prompts,\n"
+"   H~2 = Column Heads,~1  T~2 = Task Information\n"
+"2) Select a ~1color~2 as a number or use the up/down arrow keys\n"
+"   to raise/lower the %d colors value, ~1current color~2 is ~1 %d ~4:\n"
+"   0~2 = black,~1  1~2 = red,    ~1  2~2 = green,~1  3~2 = yellow,\n"
+"   4~2 = blue, ~1  5~2 = magenta,~1  6~2 = cyan, ~1  7~2 = white\n"
+"\n"
+"3) Then use these keys when finished:\n"
+"   'q' or <Esc> to abort changes to window '~1%s~2'\n"
+"   'a' or 'w' to commit & change another, <Enter> to commit and end "
+msgstr ""
+
+#. Translation Hint: As is true for the text above, the "keys" shown to the left and
+#. .                 also embedded in the translatable text (along with escape seqs)
+#. .                 should never themselves be translated.
+#: src/top/top_nls.c:751
+msgid ""
+"  d,k,r,^R '~1d~2' set delay; '~1k~2' kill; '~1r~2' renice; ~1Ctrl~2+'~1R~2' "
+"renice autogroup\n"
+msgstr ""
+
+#. Translation Hint:
+#. .  This Fields Management header should be 3 lines long so as
+#. .  to allow 1 blank line before the fields & descriptions.
+#. .  If absolutely necessary, 4 lines could be used (but never more).
+#. .
+#: src/top/top_nls.c:759
+#, c-format
+msgid ""
+"Fields Management~2 for window ~1%s~6, whose current sort field is ~1%s~2\n"
+"   Navigate with Up/Dn, Right selects for move then <Enter> or Left "
+"commits,\n"
+"   'd' or <Space> toggles display, 's' sets sort.  Use 'q' or <Esc> to end!\n"
+msgstr ""
+
+#. Translation Hint:
+#. .  The next 5 items must each be translated as a single line.
+#. .
+#: src/top/top_nls.c:767
+#, c-format
+msgid ""
+"%s:~3 %3u ~2total,~3 %3u ~2running,~3 %3u ~2sleeping,~3 %3u ~2stopped,~3 %3u "
+"~2zombie~3\n"
+msgstr ""
+
+#. Translation Hint: Only the following abbreviations need be translated
+#. .                 us = user, sy = system, ni = nice, id = idle, wa = wait,
+#. .                 hi hardware interrupt, si = software interrupt
+#: src/top/top_nls.c:773
+#, c-format
+msgid ""
+"%s~3 %#5.1f ~2us,~3 %#5.1f ~2sy,~3 %#5.1f ~2ni,~3 %#5.1f ~2id,~3 %#5.1f ~2wa,"
+"~3 %#5.1f ~2hi,~3 %#5.1f ~2si~3 ~1"
+msgstr ""
+
+#. Translation Hint: Only the following abbreviations need be translated
+#. .                 us = user, sy = system, ni = nice, id = idle, wa = wait,
+#. .                 hi hardware interrupt, si = software interrupt, st = steal time
+#: src/top/top_nls.c:779
+#, c-format
+msgid ""
+"%s~3%#5.1f ~2us,~3%#5.1f ~2sy,~3%#5.1f ~2ni,~3%#5.1f ~2id,~3%#5.1f ~2wa,"
+"~3%#5.1f ~2hi,~3%#5.1f ~2si,~3%#5.1f ~2st~3 ~1"
+msgstr ""
+
+#. Translation Hint: next 2 must be treated together, with WORDS above & below aligned
+#: src/top/top_nls.c:783
+#, c-format
+msgid ""
+"%s %s:~3 %9.9s~2total,~3 %9.9s~2free,~3 %9.9s~2used,~3 %9.9s~2buff/cache~3 "
+"~1    "
+msgstr ""
+
+#: src/top/top_nls.c:785
+#, c-format
+msgid ""
+"%s %s:~3 %9.9s~2total,~3 %9.9s~2free,~3 %9.9s~2used.~3 %9.9s~2avail %s~3"
+msgstr ""
+
+#. Translation Hint:
+#. .  The next 2 headers for 'Inspection' must each be 3 lines or less
+#. .
+#: src/top/top_nls.c:791
+#, c-format
+msgid ""
+"Inspection~2 Pause at: pid ~1%d~6, running ~1%s~6\n"
+"Use~2:  left/right then <Enter> to ~1select~5 an option; 'q' or <Esc> to "
+"~1end~5 !\n"
+"Options~2: ~1%s\n"
+msgstr ""
+
+#: src/top/top_nls.c:796
+#, c-format
+msgid ""
+"Inspection~2 View at pid: ~1%s~3, running ~1%s~3.  Locating: ~1%s~6\n"
+"Use~2:  left/right/up/down/etc to ~1navigate~5 the output; 'L'/'&' to "
+"~1locate~5/~1next~5.\n"
+"Or~2:   <Enter> to ~1select another~5; 'q' or <Esc> to ~1end~5 !\n"
+msgstr ""
+
+#: src/uptime.c:51 src/uptime.c:123
+msgid "Cannot get system uptime"
+msgstr ""
+
+#: src/uptime.c:67
+msgid " -p, --pretty   show uptime in pretty format\n"
+msgstr ""
+
+#: src/uptime.c:69
+msgid " -s, --since    system up since\n"
+msgstr ""
+
+#: src/vmstat.c:220
+#, c-format
+msgid " %s [options] [delay [count]]\n"
+msgstr " %s [options] [დაყოვნება [რაოდენობა]]\n"
+
+#: src/vmstat.c:223
+msgid " -a, --active           active/inactive memory\n"
+msgstr ""
+
+#: src/vmstat.c:224
+msgid " -f, --forks            number of forks since boot\n"
+msgstr ""
+
+#: src/vmstat.c:225
+msgid " -m, --slabs            slabinfo\n"
+msgstr ""
+
+#: src/vmstat.c:226
+msgid " -n, --one-header       do not redisplay header\n"
+msgstr ""
+
+#: src/vmstat.c:227
+msgid " -s, --stats            event counter statistics\n"
+msgstr ""
+
+#: src/vmstat.c:228
+msgid " -d, --disk             disk statistics\n"
+msgstr ""
+
+#: src/vmstat.c:229
+msgid " -D, --disk-sum         summarize disk statistics\n"
+msgstr ""
+
+#: src/vmstat.c:230
+msgid " -p, --partition <dev>  partition specific statistics\n"
+msgstr ""
+
+#: src/vmstat.c:231
+msgid " -S, --unit <char>      define display unit\n"
+msgstr ""
+
+#: src/vmstat.c:232
+msgid " -w, --wide             wide output\n"
+msgstr " -w, --wide          ფართო გამოტანა\n"
+
+#: src/vmstat.c:233
+msgid " -t, --timestamp        show timestamp\n"
+msgstr " -t, --timestamp        დროის შტამპის ჩვენება\n"
+
+#: src/vmstat.c:234
+msgid " -y, --no-first         skips first line of output\n"
+msgstr " -w, --wide          ფართო გამოტანა\n"
+
+#: src/vmstat.c:253
+msgid ""
+"procs -----------memory---------- ---swap-- -----io---- -system-- -------"
+"cpu-------"
+msgstr ""
+
+#: src/vmstat.c:255
+msgid ""
+"--procs-- -----------------------memory---------------------- ---swap-- -----"
+"io---- -system-- ----------cpu----------"
+msgstr ""
+
+#: src/vmstat.c:256 src/vmstat.c:619
+msgid " -----timestamp-----"
+msgstr ""
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:275
+msgid "r"
+msgstr "r"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:277
+msgid "b"
+msgstr "b"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:279
+msgid "swpd"
+msgstr "swpd"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:281
+msgid "free"
+msgstr "თავისუფალია"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:283
+msgid "inact"
+msgstr "inact"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:285
+msgid "buff"
+msgstr "buff"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:287
+msgid "active"
+msgstr "აქტიური"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:289
+msgid "cache"
+msgstr "cache"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:291
+msgid "si"
+msgstr "si"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:293
+msgid "so"
+msgstr "so"
+
+#. Translation Hint: max 5 chars
+#: src/vmstat.c:295
+msgid "bi"
+msgstr "bi"
+
+#. Translation Hint: max 5 chars
+#: src/vmstat.c:297
+msgid "bo"
+msgstr "bo"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:299
+msgid "in"
+msgstr "in"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:301
+msgid "cs"
+msgstr "cs"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:303
+msgid "us"
+msgstr "us"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:305
+msgid "sy"
+msgstr "sy"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:307
+msgid "id"
+msgstr "id"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:309
+msgid "wa"
+msgstr "wa"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:311
+msgid "st"
+msgstr "st"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:313
+msgid "gu"
+msgstr "gu"
+
+#: src/vmstat.c:374 src/vmstat.c:870
+msgid "Unable to create vmstat structure"
+msgstr ""
+
+#: src/vmstat.c:376 src/vmstat.c:866 src/vmstat.c:919
+msgid "Unable to create system stat structure"
+msgstr ""
+
+#: src/vmstat.c:380
+msgid "Unable to get uptime"
+msgstr "ჩართულობის დროის მიღება შეუძლებელია"
+
+#: src/vmstat.c:391 src/vmstat.c:472 src/vmstat.c:874
+msgid "Unable to select memory information"
+msgstr ""
+
+#: src/vmstat.c:405 src/vmstat.c:458 src/vmstat.c:868
+msgid "Unable to select stat information"
+msgstr ""
+
+#. Translation Hint: Translating folloging disk partition
+#. * header fields that follow (marked with max x chars) might
+#. * not work, unless manual page is translated as well.
+#. Translation Hint: max 10 chars
+#: src/vmstat.c:565
+msgid "reads"
+msgstr "წაკითხვები"
+
+#. Translation Hint: max 16 chars
+#: src/vmstat.c:567
+msgid "read sectors"
+msgstr "წაკითხ სექტ"
+
+#. Translation Hint: max 10 chars
+#: src/vmstat.c:569
+msgid "writes"
+msgstr "ჩაწერები"
+
+#. Translation Hint: max 16 chars
+#: src/vmstat.c:571
+msgid "requested writes"
+msgstr "მოთხ ჩაწ"
+
+#: src/vmstat.c:584 src/vmstat.c:687 src/vmstat.c:813
+msgid "Unable to create diskstat structure"
+msgstr ""
+
+#: src/vmstat.c:587 src/vmstat.c:593
+#, c-format
+msgid "Disk/Partition %s not found"
+msgstr "დისკი/დანაყოფი %s ვერ ვიპოვე"
+
+#: src/vmstat.c:616
+msgid ""
+"disk- ------------reads------------ ------------writes----------- -----"
+"IO------"
+msgstr ""
+
+#: src/vmstat.c:618
+msgid ""
+"disk- -------------------reads------------------- -------------------"
+"writes------------------ ------IO-------"
+msgstr ""
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:637 src/vmstat.c:645
+msgid "total"
+msgstr "ჯამში"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:639 src/vmstat.c:647
+msgid "merged"
+msgstr "შერწყმ"
+
+#. Translation Hint: max 7 chars
+#: src/vmstat.c:641 src/vmstat.c:649
+msgid "sectors"
+msgstr "სექტ-ები"
+
+#. Translation Hint: max 7 chars
+#: src/vmstat.c:643 src/vmstat.c:651
+msgid "ms"
+msgstr "მწმ"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:653
+msgid "cur"
+msgstr "მიმდ"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:655
+msgid "sec"
+msgstr "წმ"
+
+#: src/vmstat.c:694 src/vmstat.c:815
+msgid "Unable to retrieve disk statistics"
+msgstr ""
+
+#. Translation Hint: Translating folloging slab fields that
+#. * follow (marked with max x chars) might not work, unless
+#. * manual page is translated as well.
+#. Translation Hint: max 24 chars
+#: src/vmstat.c:741
+msgid "Cache"
+msgstr "კეში"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:743
+msgid "Num"
+msgstr "რიცხვი"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:745
+msgid "Total"
+msgstr "ჯამში"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:747
+msgid "Size"
+msgstr "ზომა"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:749
+msgid "Pages"
+msgstr "გვერდი"
+
+#: src/vmstat.c:836
+#, c-format
+msgid "%13d disks\n"
+msgstr "%13d დისკი \n"
+
+#: src/vmstat.c:837
+#, c-format
+msgid "%13d partitions\n"
+msgstr "%13d დანაყოფი \n"
+
+#: src/vmstat.c:838
+#, c-format
+msgid "%13lu total reads\n"
+msgstr "%13lu სულ წაკითხვა\n"
+
+#: src/vmstat.c:839
+#, c-format
+msgid "%13lu merged reads\n"
+msgstr "%13lu შერწყმული წაკითხვა\n"
+
+#: src/vmstat.c:840
+#, c-format
+msgid "%13lu read sectors\n"
+msgstr "%13lu წაკითხული სექტორი\n"
+
+#: src/vmstat.c:841
+#, c-format
+msgid "%13lu milli reading\n"
+msgstr "%13lu მილი წაკითხვა\n"
+
+#: src/vmstat.c:842
+#, c-format
+msgid "%13lu writes\n"
+msgstr "%13lu ჩაწერა\n"
+
+#: src/vmstat.c:843
+#, c-format
+msgid "%13lu merged writes\n"
+msgstr "%13lu შერწყმული ჩაწერა\n"
+
+#: src/vmstat.c:844
+#, c-format
+msgid "%13lu written sectors\n"
+msgstr "%13lu ჩაწერილი სექტორი\n"
+
+#: src/vmstat.c:845
+#, c-format
+msgid "%13lu milli writing\n"
+msgstr "%13lu მილი ჩაწერა\n"
+
+#: src/vmstat.c:846
+#, c-format
+msgid "%13lu inprogress IO\n"
+msgstr "%13lu მიმდინარე IO\n"
+
+#: src/vmstat.c:847
+#, c-format
+msgid "%13lu milli spent IO\n"
+msgstr "%13lu მილი დახარჯული IO\n"
+
+#: src/vmstat.c:848
+#, c-format
+msgid "%13lu milli weighted IO\n"
+msgstr "%13lu მილი დახარჯული IO\n"
+
+#: src/vmstat.c:876
+#, c-format
+msgid "%13lu %s total memory\n"
+msgstr "%13lu %s სულ მეხსიერება\n"
+
+#: src/vmstat.c:877
+#, c-format
+msgid "%13lu %s used memory\n"
+msgstr "%13lu %s გამოყენებული მეხსიერება\n"
+
+#: src/vmstat.c:878
+#, c-format
+msgid "%13lu %s active memory\n"
+msgstr "%13lu %s აქტიური მეხსიერება\n"
+
+#: src/vmstat.c:879
+#, c-format
+msgid "%13lu %s inactive memory\n"
+msgstr "%13lu %s არააქტიური მეხსიერება\n"
+
+#: src/vmstat.c:880
+#, c-format
+msgid "%13lu %s free memory\n"
+msgstr "%13lu %s თავისუფალი მეხსიერება\n"
+
+#: src/vmstat.c:881
+#, c-format
+msgid "%13lu %s buffer memory\n"
+msgstr "%13lu %s ბუფერის მეხსიერება\n"
+
+#: src/vmstat.c:882
+#, c-format
+msgid "%13lu %s swap cache\n"
+msgstr "%13lu %s სვოპის ქეში\n"
+
+#: src/vmstat.c:883
+#, c-format
+msgid "%13lu %s total swap\n"
+msgstr "%13lu %s ჯამური სვოპი\n"
+
+#: src/vmstat.c:884
+#, c-format
+msgid "%13lu %s used swap\n"
+msgstr "%13lu %s გამოყენებული სვოპი\n"
+
+#: src/vmstat.c:885
+#, c-format
+msgid "%13lu %s free swap\n"
+msgstr "%13lu %s თავისუფალი სვოპი\n"
+
+#: src/vmstat.c:886
+#, c-format
+msgid "%13lld non-nice user cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:887
+#, c-format
+msgid "%13lld nice user cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:888
+#, c-format
+msgid "%13lld system cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:889
+#, c-format
+msgid "%13lld idle cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:890
+#, c-format
+msgid "%13lld IO-wait cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:891
+#, c-format
+msgid "%13lld IRQ cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:892
+#, c-format
+msgid "%13lld softirq cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:893
+#, c-format
+msgid "%13lld stolen cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:894
+#, c-format
+msgid "%13lld non-nice guest cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:895
+#, c-format
+msgid "%13lld nice guest cpu ticks\n"
+msgstr ""
+
+#: src/vmstat.c:896
+#, c-format
+msgid "%13lu K paged in\n"
+msgstr "%13lu შერწყმული ჩაწერა\n"
+
+#: src/vmstat.c:897
+#, c-format
+msgid "%13lu K paged out\n"
+msgstr "%13lu შერწყმული ჩაწერა\n"
+
+#: src/vmstat.c:898
+#, c-format
+msgid "%13lu pages swapped in\n"
+msgstr ""
+
+#: src/vmstat.c:899
+#, c-format
+msgid "%13lu pages swapped out\n"
+msgstr ""
+
+#: src/vmstat.c:900
+#, c-format
+msgid "%13lu interrupts\n"
+msgstr "%13lu წყვეტა\n"
+
+#: src/vmstat.c:901
+#, c-format
+msgid "%13lu CPU context switches\n"
+msgstr "%13lu ჩაწერა\n"
+
+#: src/vmstat.c:902
+#, c-format
+msgid "%13lu boot time\n"
+msgstr "%13lu ჩატვირთვის დრო\n"
+
+#: src/vmstat.c:903 src/vmstat.c:921
+#, c-format
+msgid "%13lu forks\n"
+msgstr "%13lu ფორკი\n"
+
+#. Translation Hint: do not change argument characters
+#: src/vmstat.c:1024
+msgid "-S requires k, K, m or M (default is KiB)"
+msgstr ""
+
+#: src/watch.c:94
+#, c-format
+msgid " %s [options] command\n"
+msgstr " %s [პარამეტრი] ბრძანება\n"
+
+#: src/watch.c:96
+msgid "  -b, --beep             beep if command has a non-zero exit\n"
+msgstr ""
+
+#: src/watch.c:97
+msgid "  -c, --color            interpret ANSI color and style sequences\n"
+msgstr ""
+
+#: src/watch.c:98
+msgid ""
+"  -C, --no-color         do not interpret ANSI color and style sequences\n"
+msgstr ""
+
+#: src/watch.c:99
+msgid ""
+"  -d, --differences[=<permanent>]\n"
+"                         highlight changes between updates\n"
+msgstr ""
+
+#: src/watch.c:101
+msgid "  -e, --errexit          exit if command has a non-zero exit\n"
+msgstr ""
+
+#: src/watch.c:102
+msgid "  -g, --chgexit          exit when output from command changes\n"
+msgstr ""
+
+#: src/watch.c:103
+msgid ""
+"  -q, --equexit <cycles>\n"
+"                         exit when output from command does not change\n"
+msgstr ""
+
+#: src/watch.c:105
+msgid "  -n, --interval <secs>  seconds to wait between updates\n"
+msgstr ""
+
+#: src/watch.c:106
+msgid "  -p, --precise          attempt run command in precise intervals\n"
+msgstr ""
+
+#: src/watch.c:107
+msgid "  -r, --no-rerun         do not rerun program on window resize\n"
+msgstr ""
+
+#: src/watch.c:108
+msgid "  -t, --no-title         turn off header\n"
+msgstr ""
+
+#: src/watch.c:109
+msgid "  -w, --no-wrap          turn off line wrapping\n"
+msgstr ""
+
+#: src/watch.c:110
+msgid "  -x, --exec             pass command to exec instead of \"sh -c\"\n"
+msgstr ""
+
+#: src/watch.c:113
+msgid " -v, --version  output version information and exit\n"
+msgstr "  -V, --version              ვერსიის ჩვენება და გასვლა\n"
+
+#: src/watch.c:485
+#, c-format
+msgid "Every %.1fs: "
+msgstr ""
+
+#: src/watch.c:486
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/watch.c:575
+msgid "unable to create IPC pipes"
+msgstr ""
+
+#: src/watch.c:585
+msgid "unable to fork process"
+msgstr ""
+
+#: src/watch.c:590
+msgid "dup2 failed"
+msgstr "dup2 failed"
+
+#: src/watch.c:597
+#, c-format
+msgid "unable to execute '%s'"
+msgstr ""
+
+#: src/watch.c:614
+msgid "fdopen"
+msgstr "fdopen"
+
+#: src/watch.c:788
+msgid "waitpid"
+msgstr "waitpid"
+
+#: src/watch.c:796
+msgid "command exit with a non-zero status, press a key to exit"
+msgstr ""
+
+#: src/watch.c:863
+msgid "Could not parse interval from WATCH_INTERVAL"
+msgstr ""
+
+#: src/watch.c:954
+#, c-format
+msgid "unicode handling error\n"
+msgstr ""
+
+#: src/watch.c:960
+#, c-format
+msgid "unicode handling error (malloc)\n"
+msgstr ""
+
+#: src/w.c:289 src/w.c:304
+#, c-format
+msgid " %2lludays"
+msgstr " %2lluდღე"
+
+#. Translation Hint: Minutes:Seconds
+#. Translation Hint: Hours:Minutes
+#: src/w.c:298 src/w.c:308
+#, c-format
+msgid " %2llu:%02um"
+msgstr " %2llu:%02uწთ"
+
+#. Translation Hint: Seconds:Centiseconds
+#: src/w.c:316
+#, c-format
+msgid " %2llu.%02us"
+msgstr " %2llu.%02uწმ"
+
+#: src/w.c:656
+#, c-format
+msgid " %s [options] [user]\n"
+msgstr " %s [options] [tty]\n"
+
+#: src/w.c:658
+msgid " -h, --no-header     do not print header\n"
+msgstr ""
+
+#: src/w.c:659
+msgid " -u, --no-current    ignore current process username\n"
+msgstr ""
+
+#: src/w.c:660
+msgid " -s, --short         short format\n"
+msgstr ""
+
+#: src/w.c:661
+msgid " -f, --from          show remote hostname field\n"
+msgstr ""
+
+#: src/w.c:662
+msgid " -o, --old-style     old style output\n"
+msgstr ""
+
+#: src/w.c:663
+msgid ""
+" -i, --ip-addr       display IP address instead of hostname (if possible)\n"
+msgstr ""
+
+#: src/w.c:664
+msgid " -p, --pids          show the PID(s) of processes in WHAT\n"
+msgstr " -A, -e               ყველა პროცესი\n"
+
+#: src/w.c:763
+#, c-format
+msgid ""
+"User length environment PROCPS_USERLEN must be between 8 and %i, ignoring.\n"
+msgstr ""
+
+#: src/w.c:773
+#, c-format
+msgid ""
+"from length environment PROCPS_FROMLEN must be between 8 and %d, ignoring\n"
+msgstr ""
+
+#. Translation Hint: Following five uppercase messages are
+#. * headers. Try to keep alignment intact.
+#: src/w.c:799
+#, c-format
+msgid "%-*s TTY      "
+msgstr "%-*s TTY      "
+
+#: src/w.c:801
+msgid "FROM"
+msgstr "საიდან"
+
+#: src/w.c:803
+#, c-format
+msgid "  LOGIN@   IDLE   JCPU   PCPU WHAT\n"
+msgstr ""
+
+#: src/w.c:805
+#, c-format
+msgid "   IDLE WHAT\n"
+msgstr ""
+
+#: src/w.c:815
+msgid "error getting sessions"
+msgstr ""
+
+#: src/w.c:823
+msgid "get user name failed"
+msgstr ""
+
+#: local/c.h:153
+msgid ""
+"\n"
+"Usage:\n"
+msgstr ""
+"\n"
+"გამოყენება:\n"
+
+#: local/c.h:154
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"პარამეტრები:\n"
+
+#: local/c.h:155
+msgid "\n"
+msgstr "\n"
+
+#: local/c.h:156
+msgid " -h, --help     display this help and exit\n"
+msgstr ""
+
+#: local/c.h:157
+msgid " -V, --version  output version information and exit\n"
+msgstr "  -V, --version              ვერსიის ჩვენება და გასვლა\n"
+
+#: local/c.h:158
+#, c-format
+msgid ""
+"\n"
+"For more details see %s.\n"
+msgstr ""
+"\n"
+"დამატებითი ინფორმაციისთვის იხილეთ %s.\n"
+
+#: local/c.h:160
+#, c-format
+msgid "%s from %s\n"
+msgstr "%s -ი %s-სგან\n"
+
+#~ msgid "error: not enough memory\n"
+#~ msgstr "შეცდომა: არასაკმარისი მეხსიერება\n"
+
+#~ msgid "error: can not access /proc\n"
+#~ msgstr "შეცდომა: /proc-თან წვდომის შეცდომა\n"
+
+#~ msgid "something at line %d\n"
+#~ msgstr "რაღაც უცნაური ხაზზე %d\n"
+
+#~ msgid ""
+#~ "  %s\n"
+#~ "Usage:\n"
+#~ "  %s%s"
+#~ msgstr ""
+#~ "  %s\n"
+#~ "გამოყენება:\n"
+#~ "  %s%s"
+
+#~ msgid "failed openproc: %s"
+#~ msgstr "openproc-ის შეცდომა: %s"
+
+#~ msgid "-%c requires argument"
+#~ msgstr "-%c -ისთვის არგუმენტის მითითება აუცილებელია"

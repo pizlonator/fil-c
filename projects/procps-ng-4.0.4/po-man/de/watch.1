@@ -1,0 +1,213 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2003      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WATCH 1 "17. Januar 2023" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+watch \- ein Programm periodisch ausführen, die Ausgabe im Vollbildmodus
+anzeigen
+.SH ÜBERSICHT
+\fBwatch\fP [\fIOptionen\fP] \fIBefehl\fP
+.SH BESCHREIBUNG
+\fBwatch\fP führt den \fIBefehl\fP wiederholt aus, wobei dessen Ausgabe und Fehler
+angezeigt werden (der erste Bildschirminhalt). Dies ermöglicht Ihnen die
+Überwachung der Änderungen der Programmausgaben über längere
+Zeit. Standardmäßig wird der \fIBefehl\fP alle zwei Sekunden ausgeführt und
+\fBwatch\fP läuft, bis es unterbrochen wird.
+.SH OPTIONEN
+.TP 
+\fB\-b\fP, \fB\-\-beep\fP
+lässt die Systemglocke ertönen, falls ein Befehl sich mit einem von Null
+verschiedenen Rückgabewert beendet.
+.TP 
+\fB\-c\fP, \fB\-\-color\fP
+interpretiert ANSI\-Farb\- und \-Stilsequenzen.
+.TP 
+\fB\-C\fP, \fB\-\-no\-color\fP
+interpretiert keine ANSI\-Farb\- und \-Stilsequenzen.
+.TP 
+\fB\-d\fP, \fB\-\-differences\fP[=\fIpermanent\fP]
+hebt die Unterschiede zwischen aufeinander folgenden Aktualisierungen
+hervor. Falls das optionale Argument \fIpermanent\fP angegeben ist, dann zeigt
+\fBwatch\fP alles, was sich seit dem ersten Durchlauf mindestens einmal
+geändert hat.
+.TP 
+\fB\-e\fP, \fB\-\-errexit\fP
+friert die Aktualisierungen bei Fehlern in der Befehlsausführung ein und
+bricht nach einem Tastendruck ab.
+.TP 
+\fB\-g\fP, \fB\-\-chgexit\fP
+beendet, wenn sich die Ausgabe des \fIBefehls\fP ändert.
+.TP 
+\fB\-n\fP, \fB\-\-interval\fP \fISekunden\fP
+gibt das Aktualisierungsintervall an. Der Befehl erlaubt kein Intervall
+kleiner als 0,1 Sekunden; kleinere Werte werden auf diesen Wert geändert. In
+einigen Locales funktionieren sowohl »,« als auch ».«. Mit der
+Umgebungsvariable \fBWATCH_INTERVAL\fP können Sie ein Nicht\-Standard\-Intervall
+dauerhaft setzen (den gleichen Regeln und der gleichen Formatierung
+folgend).
+.TP 
+\fB\-p\fP, \fB\-\-precise\fP
+lässt \fBwatch\fP versuchen, diesen \fIBefehl\fP im angegebenen \fB\-\-interval\fP in
+\fISekunden\fP auszuführen. Versuchen Sie es mit \fBntptime\fP (falls verfügbar)
+und beachten Sie, wie die Sekundenbruchteile (nahezu) gleich bleiben,
+während sie im normalen Modus fortwährend größer werden.
+.TP 
+\fB\-q\fP, \fB\-\-equexit\fP <Durchläufe>
+beendet, wenn sich die Ausgabe des \fIBefehls\fP über die angegebene Anzahl
+durchläufe nicht ändert.
+.TP 
+\fB\-r\fP, \fB\-\-no\-rerun\fP
+führt das Programm bei Änderungen der Terminalgröße nicht erneut aus; die
+Ausgabe des Programms erscheint wieder zum nächsten regulären
+Ausführungszeitpunkt.
+.TP 
+\fB\-t\fP, \fB\-\-no\-title\fP
+deaktiviert die Anzeige der Kopfzeile, in der Intervall, Befehl und die
+aktuelle Zeit oben in der Anzeige sowie eine nachfolgende Leerzeile
+dargestellt werden.
+.TP 
+\fB\-w\fP, \fB\-\-no\-wrap\fP
+deaktiviert den Zeilenumbruch. Lange Zeilen werden gekürzt, anstatt sie in
+die nächste Zeile umzubrechen.
+.TP 
+\fB\-x\fP, \fB\-\-exec\fP
+übergibt den \fIBefehl\fP an \fBexec\fP(2) anstelle von \fBsh \-c\fP, was das Setzen
+von Anführungszeichen unnötig macht, um den gewünschten Effekt zu erzielen.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt einen Hilfetext an und beendet das Programm.
+.TP 
+\fB\-v\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.SH EXIT\-STATUS
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Erfolg.
+.TP 
+\fB1\fP
+Verschiedene Fehlschläge.
+.TP 
+\fB2\fP
+Forken des zu überwachenden Prozesses ist fehlgeschlagen.
+.TP 
+\fB3\fP
+Ersetzen der Standardausgabe des Kindprozesses von der Schreibseite der Pipe
+aus ist fehlgeschlagen.
+.TP 
+\fB4\fP
+Befehlsausführung ist fehlgeschlagen.
+.TP 
+\fB5\fP
+Schließen der Schreib\-Pipe des Kindprozesses ist fehlgeschlagen.
+.TP 
+\fB7\fP
+Erzeugung der IPC\-Pipe ist fehlgeschlagen.
+.TP 
+\fB8\fP
+Das Ermitteln des Rückgabewertes des Kindprozesses mit \fBwaitpid\fP(2) ist
+fehlgeschlagen oder der Befehl brach aufgrund eines Fehlers ab.
+.TP 
+\fBother\fP
+Die Überwachung gibt den Exit\-Status des Befehls als Exit\-Status des
+Kindprozesses weiter.
+.SH UMGEBUNGSVARIABLEN
+Das Verhalten von \fBwatch\fP wird durch die folgenden Umgebungsvariablen
+beeinflusst.
+
+.TP 
+\fBWATCH_INTERVAL\fP
+Aktualisierungsintervall, welches den gleichen Regeln wie die
+Befehlszeilenoption \fB\-\-interval\fP folgt.
+.sp
+.SH ANMERKUNGEN
+Die Optionen werden gemäß POSIX verarbeitet (das heißt, die
+Optionsverarbeitung stoppt nach dem ersten Argument, das keine Option
+ist). Das bedeutet, dass Schalter nach dem \fIBefehl\fP nicht von \fBwatch\fP
+selbst interpretiert werden.
+.sp
+.SH FEHLER
+Bei Größenänderungen des Terminals wird der Bildschirm nicht korrekt neu
+gezeichnet, bis die nächste geplante Aktualisierung erfolgt. Jegliche
+Hervorhebungen durch \fB\-\-differences\fP gehen durch diese Aktualisierung
+ebenfalls verloren. Wenn Sie die Option \fB\-\-no\-rerun\fP verwenden, erfolgt
+keine Ausgabe.
+
+Nicht darstellbare Zeichen werden aus der Programmausgabe
+entfernt. Verwenden Sie \fBcat \-v\fP als Teil der Befehls\-Pipeline, wenn Sie
+diese sehen wollen.
+
+Kombinierende Zeichen, die mit einem Zeichen in der letzten Spalte des
+Bildschirms angezeigt werden sollen, könnten eine Spalte vorher erscheinen
+oder überhaupt nicht dargestellt werden.
+
+Kombinierende Zeichen werden im Modus \fB\-\-differences\fP nie als Unterschiede
+gewertet. Es wird nur das Basiszeichen ausgewertet.
+
+Leere Zeilen direkt nach einer Zeile, die in der letzten Spalte endet,
+werden nicht angezeigt.
+
+Der Modus \fB\-\-precise\fP verfügt noch nicht über eine fortgeschrittene
+Technologie zur zeitlichen Verzerrungskompensierung eines Befehls, dessen
+Ausführung mehr als die als \fB\-\-interval\fP angegebenen \fISekunden\fP
+benötigt. \fBwatch\fP kann auch in einen Zustand gelangen, wo es so viele
+Befehlsausführungen auslöst, wie es kann, um frühere Ausführungen
+aufzuholen, die länger als das \fB\-\-interval\fP benötigen (zum Beispiel wenn
+\fBnetstat\fP(8) eine unglaublich lange Zeit bei einem DNS\-Suchvorgang
+braucht).
+.sp
+.SH BEISPIELE
+.PP
+Nach neuen Mails schauen:
+.IP
+watch \-n 60 from
+.PP
+Den Inhalt eines Verzeichnisses auf Änderungen überwachen:
+.IP
+watch \-d ls \-l
+.PP
+Nur nach den Dateien des Benutzers »joe« schauen:
+.IP
+watch \-d 'ls \-l | fgrep joe'
+.PP
+Die Effekte von Anführungszeichen sehen:
+.IP
+watch echo $$
+.br
+watch echo '$$'
+.br
+watch echo "'"'$$'"'"
+.PP
+Um den Effekt der genauen Zeithaltung zu beobachten, versuchen Sie, \fI\-p\fP zu
+Folgendem hinzuzufügen:
+.IP
+watch \-n 10 sleep 1
+.PP
+Beobachten, wenn Ihr Administrator den neuesten Kernel installiert:
+.IP
+watch uname \-r
+.PP
+(Beachten Sie, dass nicht garantiert werden kann, dass \fB\-p\fP nach einem
+Neustart noch funktioniert, insbesondere im Hinblick auf \fBntpdate\fP (falls
+verfügbar) oder andere die Zeit beeinflussende Startmechanismen)
+.sp
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

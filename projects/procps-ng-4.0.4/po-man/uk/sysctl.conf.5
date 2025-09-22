@@ -1,0 +1,90 @@
+.\"
+.\" Copyright (c) 2016-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL.CONF 5 "15 вересня 2021 року" procps\-ng "Формати файлів"
+.SH НАЗВА
+sysctl.conf — файл попереднього завантаження або налаштувань sysctl.
+.SH ОПИС
+\fBsysctl.conf\fP — простий файл, що містить значення sysctl, які слід
+прочитати і встановити за допомогою \fBsysctl\fP. Синтаксис є простим:
+.RS
+.sp
+.nf
+.ne 7
+# коментар
+; коментар
+
+ключ = значення
+.fi
+.RE
+.PP
+Зауважте, що порожні рядки буде проігноровано так само, як пробіли перед і
+після ключа або значення, хоча самі значення можуть містити пробіли. Рядки,
+що починаються із символу \fI#\fP або \fI;\fP вважатимуться коментарями і
+ігноруватимуться.
+
+Якщо рядок починається з одинарного \-, будь\-які невдалі спроби встановити
+значення буде проігноровано.
+
+.SH ЗАУВАЖЕННЯ
+Оскільки файл \fB/etc/sysctl.conf\fP використовується для перевизначення
+типових значень параметрів ядра, у цьому файлі попередньо визначається лише
+незначна кількість параметрів. Щоб ознайомитися зі списком усіх можливих
+параметрів, скористайтеся командою \fI/sbin/sysctl\ \-a\fP або підручником із
+\fBsysctl\fP(8). Опис окремих параметрів можна знайти у документації до ядра
+системи.
+
+Максимальною довжиною рядка значення є 4096 символів через обмеження на
+записи \fI/proc\fP у ядрі Linux.
+.SH ПРИКЛАД
+.RS
+.sp
+.nf
+.ne 7
+# Зразок sysctl.conf
+#
+  kernel.domainname = example.com
+; тут є пробіл, який буде записано до sysctl!
+  kernel.modprobe = /sbin/mod probe
+.fi
+.RE
+.PP
+.SH ФАЙЛИ
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+
+Шляхи, де зазвичай зберігаються файли попереднього завантаження
+\fBsysctl\fP. Див. також параметр \fBsysctl\fP \fI\-\-system\fP.
+.SH "ТАКОЖ ПЕРЕГЛЯНЬТЕ"
+\fBsysctl\fP(8)
+.SH АВТОР
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "Як надіслати звіт про вади"
+Про вади, будь ласка, повідомляйте на адресу
+.UR procps@freelists.org
+.UE

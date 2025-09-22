@@ -1,0 +1,2810 @@
+.ig
+. manual page for NEW and IMPROVED linux top
+.
+. Copyright (c) 2002-2023 Jim Warner <james.warner@comcast.net
+.
+. This file may be copied under the terms of the GNU Public License.
+..
+\#  Setup ////////////////////////////////////////////////////////////////
+\#                      Commonly used strings (for consistency) ----------
+\#                           - our em-dashes
+.ds Em \fR\ \-\-\ \fR
+.ds EM \fB\ \-\-\ \fR
+\#                           - our program name (makes great grammar)
+.ds We top
+.ds WE \fBtop\fR
+\#                           - other misc strs for consistent usage
+.ds F \fIOff\fR
+.ds O \fIOn\fR
+.
+.ds AK asterisk (`*')
+.ds AM alternate\-display mode
+.ds AS auxiliary storage
+.ds CF configuration file
+.ds CG `current' window/field group
+.ds CI interactive command
+.ds CO command\-line option
+.ds CT command toggle
+.ds CW `current' window
+.ds FG field group
+.ds FM full\-screen mode
+.ds KA arrow key
+.ds KS scrolling key
+.ds MP physical memory
+.ds MS swap file
+.ds MV virtual memory
+.ds NT \fBNote\fR:
+.ds PU CPU
+.ds Pu cpu
+.ds SA summary area
+.ds TA task area
+.ds TD task display
+.ds TT \fBprocesses\fR or \fBthreads\fR
+.ds TW task window
+\#                      Reference to the various widths/sizes ------------
+\#                           - the max screen width limit
+.ds WX 512
+\#                           - the header width w/ all fields
+.ds WF approximately 250
+\#                           - pid monitoring limit
+\#                      Xref's that depend on/mention other stuff --------
+.ds Xa see
+.ds XC See the
+.ds Xc see the
+.ds XT See topic
+.ds Xt see topic
+.ds XX See `OVERVIEW, Linux Memory Types' for additional details
+.ds ZX Accessing smaps values is 10x more costly than other \
+memory statistics and data for other users requires root privileges
+.
+.\" Document /////////////////////////////////////////////////////////////
+.\" ----------------------------------------------------------------------
+.TH TOP 1 "August 2023" "procps-ng" "User Commands"
+.\" ----------------------------------------------------------------------
+.nh
+
+.\" ----------------------------------------------------------------------
+.SH NAME
+.\" ----------------------------------------------------------------------
+top \- display Linux processes
+
+.\" ----------------------------------------------------------------------
+.SH SYNOPSIS
+.\" ----------------------------------------------------------------------
+\*(WE [options]
+
+.\" ----------------------------------------------------------------------
+.SH DESCRIPTION
+.\" ----------------------------------------------------------------------
+The \*(WE program provides a dynamic real-time view of a running system.
+It can display\fB system\fR summary information as well as a list of
+\*(TT currently being managed by the Linux kernel.
+The types of system summary information shown and the types, order and
+size of information displayed for processes are all user configurable
+and that configuration can be made persistent across restarts.
+
+The program provides a limited interactive interface for process
+manipulation as well as a much more extensive interface for personal
+configuration \*(Em encompassing every aspect of its operation.
+And while \*(WE is referred to throughout this document, you are free
+to name the program anything you wish.
+That new name, possibly an alias, will then be reflected on \*(We's
+display and used when reading and writing a \*(CF.
+
+.\" ----------------------------------------------------------------------
+.SH OVERVIEW
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS Documentation
+.\" ----------------------------------------------------------------------
+The remaining Table of Contents
+
+.nf
+    OVERVIEW
+       Operation
+       Linux Memory Types
+    1. COMMAND\-LINE Options
+    2. SUMMARY Display
+       a. UPTIME and LOAD Averages
+       b. TASK and CPU States
+       c. MEMORY Usage
+    3. FIELDS / Columns Display
+       a. DESCRIPTIONS of Fields
+       b. MANAGING Fields
+    4. INTERACTIVE Commands
+       a. GLOBAL Commands
+       b. SUMMARY AREA Commands
+       c. TASK AREA Commands
+          1. Appearance
+          2. Content
+          3. Size
+          4. Sorting
+       d. COLOR Mapping
+    5. ALTERNATE\-DISPLAY Provisions
+       a. WINDOWS Overview
+       b. COMMANDS for Windows
+       c. SCROLLING a Window
+       d. SEARCHING in a Window
+       e. FILTERING in a Window
+    6. FILES
+       a. PERSONAL Configuration File
+       b. ADDING INSPECT Entries
+       c. SYSTEM Configuration File
+       d. SYSTEM Restrictions File
+    7. ENVIRONMENT VARIABLE(S)
+    8. STUPID TRICKS Sampler
+       a. Kernel Magic
+       b. Bouncing Windows
+       c. The Big Bird Window
+       d. The Ol' Switcheroo
+    9. BUGS, 10. SEE Also
+.fi
+
+.\" ......................................................................
+.SS Operation
+.\" ----------------------------------------------------------------------
+When operating \*(We, the two most important keys are the help (h or ?)
+key and quit (`q') key.
+Alternatively, you could simply use the traditional interrupt key (^C)
+when you're done.
+
+When started for the first time, you'll be presented with these traditional
+elements on the main \*(We screen: 1) Summary Area; 2) Fields/Columns Header;
+3) Task Area.
+Each of these will be explored in the sections that follow.
+There is also an Input/Message line between the Summary Area and Columns
+Header which needs no further explanation.
+
+The main \*(We screen is \fIgenerally\fR quite adaptive to changes in
+terminal dimensions under X-Windows.
+Other \*(We screens may be less so, especially those with static text.
+It ultimately depends, however, on your particular window manager and
+terminal emulator.
+There may be occasions when their view of terminal size and current contents
+differs from \*(We's view, which is always based on operating system calls.
+
+Following any re-size operation, if a \*(We screen is corrupted, appears
+incomplete or disordered, simply typing something innocuous like a
+punctuation character or cursor motion key will usually restore it.
+In extreme cases, the following sequence almost certainly will:
+.nf
+       \fIkey/cmd  objective \fR
+       ^Z       \fBsuspend\fR \*(We
+       fg       \fBresume\fR \*(We
+       <Left>   force a screen \fBredraw\fR (if necessary)
+.fi
+
+But if the display is still corrupted, there is one more step you could try.
+Insert this command after \*(We has been suspended but before resuming it.
+.nf
+       \fIkey/cmd  objective \fR
+       reset    restore your \fBterminal settings\fR
+.fi
+
+\*(NT the width of \*(We's display will be limited to \*(WX positions.
+Displaying all fields requires \*(WF characters.
+Remaining screen width is usually allocated to any variable width columns
+currently visible.
+The variable width columns, such as COMMAND, are noted in topic
+3a. DESCRIPTIONS of Fields.
+Actual output width may also be influenced by the \-w switch, which is
+discussed in topic 1. COMMAND\-LINE Options.
+
+Lastly, some of \*(We's screens or functions require the use of cursor
+motion keys like the standard \*(KAs plus the Home, End, PgUp and PgDn keys.
+If your terminal or emulator does not provide those keys, the following
+combinations are accepted as alternatives:
+.nf
+      \fI key      equivalent-keys \fR
+       Left     alt +\fB h \fR
+       Down     alt +\fB j \fR
+       Up       alt +\fB k \fR
+       Right    alt +\fB l \fR
+       Home     alt + ctrl +\fB h \fR
+       PgDn     alt + ctrl +\fB j \fR
+       PgUp     alt + ctrl +\fB k \fR
+       End      alt + ctrl +\fB l \fR
+.fi
+
+The \fBUp\fR and \fBDown\fR \*(KAs have special significance when prompted
+for line input terminated with the <Enter> key.
+Those keys, or their aliases, can be used to retrieve previous input lines
+which can then be edited and re-input.
+And there are four additional keys available with line oriented input.
+.nf
+      \fI key      special-significance \fR
+       Up       recall \fBolder\fR strings for re-editing
+       Down     recall \fBnewer\fR strings or \fBerase\fR entire line
+       Insert   toggle between \fBinsert\fR and \fBovertype\fR modes
+       Delete   character \fBremoved\fR at cursor, moving others left
+       Home     jump to \fBbeginning\fR of input line
+       End      jump to \fBend\fR of input line
+.fi
+
+.\" ......................................................................
+.SS Linux Memory Types
+.\" ----------------------------------------------------------------------
+For our purposes there are three types of memory, and one is optional.
+First is \*(MP, a limited resource where code and data must
+reside when executed or referenced.
+Next is the optional \*(MS, where modified (dirty) memory can be saved
+and later retrieved if too many demands are made on \*(MP.
+Lastly we have \*(MV, a nearly unlimited resource serving the
+following goals:
+
+.nf
+   1. abstraction, free from physical memory addresses/limits
+   2. isolation, every process in a separate address space
+   3. sharing, a single mapping can serve multiple needs
+   4. flexibility, assign a virtual address to a file
+.fi
+
+Regardless of which of these forms memory may take, all are managed as
+pages (typically 4096 bytes) but expressed by default in \*(We as
+KiB (kibibyte).
+The memory discussed under topic `2c. MEMORY Usage' deals with \*(MP
+and the \*(MS for the system as a whole.
+The memory reviewed in topic `3. FIELDS / Columns Display'
+embraces all three memory types, but for individual processes.
+
+For each such process, every memory page is restricted to a single
+quadrant from the table below.
+Both \*(MP and \*(MV can include any of the four, while the \*(MS only
+includes #1 through #3.
+The memory in quadrant #4, when modified, acts as its own dedicated \*(MS.
+
+.nf
+                              \fBPrivate\fR | \fBShared\fR
+                          \fB1\fR           |          \fB2\fR
+     \fBAnonymous\fR  . stack               |
+                . malloc()            |
+                . brk()/sbrk()        | . POSIX shm*
+                . mmap(PRIVATE, ANON) | . mmap(SHARED, ANON)
+               -----------------------+----------------------
+                . mmap(PRIVATE, fd)   | . mmap(SHARED, fd)
+   \fBFile-backed\fR  . pgms/shared libs    |
+                          \fB3\fR           |          \fB4\fR
+.fi
+
+The following may help in interpreting process level memory values displayed
+as scalable columns and discussed under topic `3a. DESCRIPTIONS of Fields'.
+
+.nf
+   %MEM \- simply RES divided by total \*(MP
+   CODE \- the `pgms' portion of quadrant \fB3\fR
+   DATA \- the entire quadrant \fB1\fR portion of VIRT plus all
+          explicit mmap file-backed pages of quadrant \fB3\fR
+   RES  \- anything occupying \*(MP which, beginning with
+          Linux-4.5, is the sum of the following three fields:
+          RSan \- quadrant \fB1\fR pages, which include any
+                 former quadrant \fB3\fR pages if modified
+          RSfd \- quadrant \fB3\fR and quadrant \fB4\fR pages
+          RSsh \- quadrant \fB2\fR pages
+   RSlk \- subset of RES which cannot be swapped out (any quadrant)
+   SHR  \- subset of RES (excludes \fB1\fR, includes all \fB2\fR & \fB4\fR, some \fB3\fR)
+   SWAP \- potentially any quadrant except \fB4\fR
+   USED \- simply the sum of RES and SWAP
+   VIRT \- everything in-use and/or reserved (all quadrants)
+.fi
+
+\*(NT Even though program images and shared libraries are considered
+\fIprivate\fR to a process, they will be accounted for as \fIshared\fR
+(SHR) by the kernel.
+
+.\" ----------------------------------------------------------------------
+.SH 1. COMMAND-LINE Options
+.\" ----------------------------------------------------------------------
+Mandatory\fI arguments\fR to long options are mandatory for short
+options too.
+
+Although not required, the equals sign can be used with either option
+form and whitespace before and/or after the `=' is permitted.
+
+.TP 3
+\-\fBb\fR, \fB\-\-batch\fR
+Starts \*(We in Batch mode, which could be useful for sending output
+from \*(We to other programs or to a file.
+In this mode, \*(We will not accept input and runs until the iterations
+limit you've set with the `\-n' \*(CO or until killed.
+
+.TP 3
+\-\fBc\fR, \fB\-\-cmdline\-toggle\fR
+Starts \*(We with the last remembered `c' state reversed.
+Thus, if \*(We was displaying command lines, now that field will show program
+names, and vice versa.
+\*(XC `c' \*(CI for additional information.
+
+.TP 3
+\-\fBd\fR, \fB\-\-delay\fR = \fISECS\fR [\fI.TENTHS\fR]\fR
+Specifies the delay between screen updates, and overrides the corresponding
+value in one's personal \*(CF or the startup default.
+Later this can be changed with the `d' or `s' \*(CIs.
+
+Fractional seconds are honored, but a negative number is not allowed.
+In all cases, however, such changes are prohibited if \*(We is running
+in Secure mode, except for root (unless the `s' \*(CO was used).
+For additional information on Secure mode \*(Xt 6d. SYSTEM Restrictions File.
+
+.TP 3
+\-\fBE\fR, \fB\-\-scale-summary-mem\fR = \fIk\fR | \fIm\fR | \fIg\fR | \fIt\fR | \fIp\fR | \fIe\fR
+Instructs \*(We to force \*(SA memory to be scaled as:
+.nf
+   k \- kibibytes
+   m \- mebibytes
+   g \- gibibytes
+   t \- tebibytes
+   p \- pebibytes
+   e \- exbibytes
+.fi
+
+Later this can be changed with the `E' \*(CT.
+
+.TP 3
+\-\fBe\fR, \fB\-\-scale-task-mem\fR = \fIk\fR | \fIm\fR | \fIg\fR | \fIt\fR | \fIp\fR
+Instructs \*(We to force \*(TA memory to be scaled as:
+.nf
+   k \- kibibytes
+   m \- mebibytes
+   g \- gibibytes
+   t \- tebibytes
+   p \- pebibytes
+.fi
+
+Later this can be changed with the `e' \*(CT.
+
+.TP 3
+\-\fBH\fR, \fB\-\-threads-show\fR
+Instructs \*(We to display individual threads.
+Without this \*(CO a summation of all threads in each process is shown.
+Later this can be changed with the `H' \*(CI.
+
+.TP 3
+\-\fBh\fR, \fB\-\-help\fR
+Display usage help text, then quit.
+
+.TP 3
+\-\fBi\fR, \fB\-\-idle-toggle\fR
+Starts \*(We with the last remembered `i' state reversed.
+When this toggle is \*F, tasks that have not used any \*(PU since the
+last update will not be displayed.
+For additional information regarding this toggle
+\*(Xt 4c. TASK AREA Commands, SIZE.
+
+.TP 3
+\-\fBn\fR, \fB\-\-iterations\fR = \fINUMBER\fR
+Specifies the maximum number of iterations, or frames, \*(We should
+produce before ending.
+
+.TP 3
+\-\fBO\fR, \fB\-\-list-fields\fR
+This option acts as a form of help for the \-o option shown below.
+It will cause \*(We to print each of the available field names on a
+separate line, then quit.
+Such names are subject to NLS (National Language Support) translation.
+
+.TP 3
+\-\fBo\fR, \fB\-\-sort-override\fR = \fIFIELDNAME\fR
+Specifies the name of the field on which tasks will be sorted, independent
+of what is reflected in the configuration file.
+You can prepend a `+' or `\-' to the field name to also override the sort
+direction.
+A leading `+' will force sorting high to low, whereas a `\-' will ensure
+a low to high ordering.
+
+This option exists primarily to support automated/scripted batch mode
+operation.
+
+.TP 3
+\-\fBp\fR, \fB\-\-pid\fR = \fIPIDLIST\fR \
+(as: \fI1\fR,\fI2\fR,\fI3\fR, ...\fR or \fR-p\fI1\fR -p\fI2\fR -p\fI3\fR ...)
+Monitor only processes with specified process IDs.
+However, when combined with Threads mode (`H'), all processes in the
+thread group (\*(Xa TGID) of each monitored PID will also be shown.
+
+This option can be given up to 20 times, or you can provide a comma delimited
+list with up to 20 pids.
+Co-mingling both approaches is permitted.
+
+A pid value of zero will be treated as the process id of the \*(We program
+itself once it is running.
+
+This is a \*(CO only and should you wish to return to normal operation,
+it is not necessary to quit and restart \*(We \*(Em just issue any
+of these \*(CIs: `=', `u' or `U'.
+
+The `p', `u' and `U' \*(COs are mutually exclusive.
+
+.TP 3
+\-\fBS\fR, \fB\-\-accum-time-toggle\fR
+Starts \*(We with the last remembered `S' state reversed.
+When Cumulative time mode is \*O, each process is listed with the \*(Pu
+time that it and its dead children have used.
+\*(XC `S' \*(CI for additional information regarding this mode.
+
+.TP 3
+\-\fBs\fR, \fB\-\-secure-mode\fR
+Starts \*(We with secure mode forced, even for root.
+This mode is far better controlled through a system \*(CF
+(\*(Xt 6. FILES).
+
+.TP 3
+\-\fBU\fR, \fB\-\-filter-any-user\fR = \fIUSER\fR (as: \fInumber\fR or \fIname\fR)
+Display only processes with a user id or user name matching that given.
+This option matches on\fI any\fR user (\fIreal\fR, \fIeffective\fR,
+\fIsaved\fR, or \fIfilesystem\fR).
+
+Prepending an exclamation point (`!') to the user id or name instructs \*(We
+to display only processes with users not matching the one provided.
+
+The `p', `U' and `u' \*(COs are mutually exclusive.
+
+.TP 3
+\-\fBu\fR, \fB\-\-filter-only-euser\fR = \fIUSER\fR (as: \fInumber\fR or \fIname\fR)
+Display only processes with a user id or user name matching that given.
+This option matches on the\fI effective\fR user id only.
+
+Prepending an exclamation point (`!') to the user id or name instructs \*(We
+to display only processes with users not matching the one provided.
+
+The `p', `U' and `u' \*(COs are mutually exclusive.
+
+.TP 3
+\-\fBV\fR, \fB\-\-version\fR
+Display version information, then quit.
+
+.TP 3
+\-\fBw\fR, \fB\-\-width\fR [=\fICOLUMNS\fR]
+In Batch mode, when used without an argument \*(We will format
+output using the COLUMNS= and LINES= environment variables, if set.
+Otherwise, width will be fixed at the maximum \*(WX columns.
+With an argument, output width can be decreased or increased (up to \*(WX)
+but the number of rows is considered unlimited.
+
+In normal display mode, when used without an argument \*(We will\fI attempt\fR
+to format output using the COLUMNS= and LINES= environment variables, if set.
+With an argument, output width can only be decreased, not increased.
+Whether using environment variables or an argument with \-w, when\fI not\fR
+in Batch mode actual terminal dimensions can never be exceeded.
+
+\*(NT Without the use of this \*(CO, output width is always based on the
+terminal at which \*(We was invoked whether or not in Batch mode.
+
+.TP 3
+\-\fB1\fR, \fB\-\-single-cpu-toggle\fR
+Starts \*(We with the last remembered Cpu States portion of the \*(SA reversed.
+Either all \*(Pu information will be displayed in a single line or
+each \*(Pu will be displayed separately, depending on the state of the NUMA Node
+\*(CT (`2').
+
+\*(XC `1' and `2' \*(CIs for additional information.
+
+.\" ----------------------------------------------------------------------
+.SH 2. SUMMARY Display
+.\" ----------------------------------------------------------------------
+Each of the following three areas are individually controlled through
+one or more \*(CIs.
+\*(XT 4b. SUMMARY AREA Commands for additional information regarding
+these provisions.
+
+.\" ......................................................................
+.SS 2a. UPTIME and LOAD Averages
+.\" ----------------------------------------------------------------------
+This portion consists of a single line containing:
+.nf
+    \fBprogram\fR or\fB window\fR name, depending on display mode
+    current time and length of time since last boot
+    total number of users
+    system load avg over the last 1, 5 and 15 minutes
+.fi
+
+.\" ......................................................................
+.SS 2b. TASK and CPU States
+.\" ----------------------------------------------------------------------
+This portion consists of a minimum of two lines.
+In an SMP environment, additional lines can reflect individual \*(PU
+state percentages.
+
+Line 1 shows total\fB tasks\fR or\fB threads\fR, depending on the state
+of the Threads-mode toggle.
+That total is further classified as:
+.nf
+    running; sleeping; stopped; zombie
+.fi
+
+Line 2 shows \*(PU state percentages based on the interval since the
+last refresh.
+
+As a default, percentages for these individual categories are displayed.
+Depending on your kernel version, the \fBst\fR field may not be shown.
+.nf
+    \fBus\fR : time running un-niced user processes
+    \fBsy\fR : time running kernel processes
+    \fBni\fR : time running niced user processes
+    \fBid\fR : time spent in the kernel idle handler
+    \fBwa\fR : time waiting for I/O completion
+    \fBhi\fR : time spent servicing hardware interrupts
+    \fBsi\fR : time spent servicing software interrupts
+    \fBst\fR : time stolen from this vm by the hypervisor
+.fi
+
+The `sy' value above also reflects the time running a virtual \*(Pu
+for guest operating systems, including those that have been niced.
+
+Beyond the first tasks/threads line, there are alternate \*(PU display
+modes available via the 4-way `t' \*(CT.
+They show an abbreviated summary consisting of these elements:
+.nf
+              \fR a  \fR  b    \fR c \fR   d
+    %Cpu(s):  \fB75.0\fR/25.0  \fB100\fR[ ... ]
+
+.fi
+
+Where: a) is the `user' (us + ni) percentage; b) is the `system'
+(sy + hi + si + guests) percentage; c) is the total percentage;
+and d) is one of two visual graphs of those representations.
+Such graphs also reflect separate `user' and `system' portions.
+
+If the `4' \*(CT is used to yield more than two cpus per line,
+results will be further abridged eliminating the a) and b) elements.
+However, that information is still reflected in the graph itself
+assuming color is active or, if not, bars vs. blocks are being shown.
+
+\*(XT 4b. SUMMARY AREA Commands for additional information on the `t'
+and `4' \*(CTs.
+
+.\" ......................................................................
+.SS 2c. MEMORY Usage
+.\" ----------------------------------------------------------------------
+This portion consists of two lines which may express values in kibibytes (KiB)
+through exbibytes (EiB) depending on the scaling factor enforced
+with the `E' \*(CI. The /proc/meminfo source fields are shown in parenthesis.
+
+Line 1 reflects \*(MP, classified as:
+.nf
+    total          ( MemTotal )
+    free           ( MemFree )
+    used           ( MemTotal - MemAvailable )
+    buff/cache     ( Buffers + Cached + SReclaimable )
+.fi
+
+Line 2 reflects mostly \*(MV, classified as:
+.nf
+    total          ( SwapTotal )
+    free           ( SwapFree )
+    used           ( SwapTotal - SwapFree )
+    avail          ( MemAvailable, which is \*(MP )
+.fi
+
+The \fBavail\fR number on line 2 is an estimation of \*(MP available for
+starting new applications, without swapping.
+Unlike the \fBfree\fR field, it attempts to account for readily reclaimable
+page cache and memory slabs.
+It is available on kernels 3.14, emulated on kernels 2.6.27+, otherwise
+the same as \fBfree\fR.
+
+In the alternate memory display modes, two abbreviated summary lines
+are shown consisting of these elements:
+.nf
+              \fR a  \fR  b          c
+    GiB Mem : \fB18.7\fR/15.738   [ ... ]
+    GiB Swap: \fB 0.0\fR/7.999    [ ... ]
+.fi
+
+Where: a) is the percentage used; b) is the total available; and c) is one of two
+visual graphs of those representations.
+
+In the case of \*(MP, the percentage represents the \fBtotal\fR minus the estimated
+\fBavail\fR noted above.
+The `Mem' graph itself is divided between the non-cached portion of \fBused\fR and
+any remaining memory not otherwise accounted for by \fBavail\fR.
+\*(XT 4b. SUMMARY AREA Commands and the `m' command for additional information
+on that special 4-way toggle.
+
+This table may help in interpreting the scaled values displayed:
+.nf
+    KiB = kibibyte = 1024 bytes
+    MiB = mebibyte = 1024 KiB = 1,048,576 bytes
+    GiB = gibibyte = 1024 MiB = 1,073,741,824 bytes
+    TiB = tebibyte = 1024 GiB = 1,099,511,627,776 bytes
+    PiB = pebibyte = 1024 TiB = 1,125,899,906,842,624 bytes
+    EiB = exbibyte = 1024 PiB = 1,152,921,504,606,846,976 bytes
+.fi
+
+.\" ----------------------------------------------------------------------
+.SH 3. FIELDS / Columns
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS 3a. DESCRIPTIONS of Fields
+.\" ----------------------------------------------------------------------
+Listed below are \*(We's available process fields (columns).
+They are shown in strict ascii alphabetical order.
+You may customize their position and whether or not they are displayable
+with the `f' (Fields Management) \*(CI.
+
+Any field is selectable as the sort field, and you control whether they
+are sorted high-to-low or low-to-high.
+For additional information on sort provisions
+\*(Xt 4c. TASK AREA Commands, SORTING.
+
+The fields related to \*(MP or \*(MV reference `(KiB)' which is the
+unsuffixed display mode.
+Such fields may, however, be scaled from KiB through PiB.
+That scaling is influenced via the `e' \*(CI or established for startup
+through a build option.
+
+.TP 4
+\fB%CPU \*(Em \*(PU Usage \fR
+The task's share of the elapsed \*(PU time since the last screen update,
+expressed as a percentage of total \*(PU time.
+
+In a true SMP environment, if a process is multi-threaded and \*(We is
+\fInot\fR operating in Threads mode, amounts greater than 100% may be
+reported.
+You toggle Threads mode with the `H' \*(CI.
+
+Also for multi-processor environments, if Irix mode is \*F, \*(We
+will operate in Solaris mode where a task's \*(Pu usage will be
+divided by the total number of \*(PUs.
+You toggle Irix/Solaris modes with the `I' \*(CI.
+
+\*(NT When running in forest view mode (`V') with children
+collapsed (`v'), this field will also include the \*(PU time of
+those unseen children.
+\*(XT 4c. TASK AREA Commands, CONTENT for more information regarding
+the `V' and `v' toggles.
+
+.TP 4
+\fB%CUC \*(Em \*(PU Utilization \fR
+This field is identical to %CUU below, except the percentage also
+reflects reaped child processes.
+
+.TP 4
+\fB%CUU \*(Em \*(PU Utilization \fR
+A task's total \*(PU usage divided by its elapsed running time,
+expressed as a percentage.
+
+If a process currently displays high \*(PU usage, this field can help
+determine if such behavior is normal.
+Conversely, if a process has low \*(PU usage currently, %CUU may reflect
+historically higher demands over its lifetime.
+
+.TP 4
+\fB%MEM \*(Em Memory Usage (RES) \fR
+A task's currently resident share of available \*(MP.
+
+\*(XX.
+
+.TP 4
+\fBAGID \*(Em Autogroup Identifier \fR
+The autogroup identifier associated with a process.
+This feature operates in conjunction with the CFS scheduler
+to improve interactive desktop performance.
+
+When /proc/sys/kernel/sched_autogroup_enabled is set, a new
+autogroup is created with each new session (\*(Xa SID).
+All subsequently forked processes in that session inherit membership in
+this autogroup.
+The kernel then attempts to equalize distribution of CPU cycles
+across such groups.
+Thus, an autogroup with many \*(PU intensive processes (e.g make -j)
+will not dominate an autogroup with only one or two processes.
+
+When -1 is displayed it means this information is not available.
+
+.TP 4
+\fBAGNI \*(Em Autogroup Nice Value \fR
+The autogroup nice value which affects scheduling of all processes
+in that group.
+A negative nice value means higher priority, whereas a positive nice
+value means lower priority.
+
+.TP 4
+\fBCGNAME \*(Em Control Group Name \fR
+The name of the control group to which a process belongs,
+or `\-' if not applicable for that process.
+
+This will typically be the last entry in the full list of control
+groups as shown under the next heading (CGROUPS).
+And as is true there, this field is also variable width.
+
+.TP 4
+\fBCGROUPS \*(Em Control Groups \fR
+The names of the control group(s) to which a process belongs,
+or `\-' if not applicable for that process.
+
+Control Groups provide for allocating resources (cpu, memory, network
+bandwidth, etc.) among installation-defined groups of processes.
+They enable fine-grained control over allocating, denying, prioritizing,
+managing and monitoring those resources.
+
+Many different hierarchies of cgroups can exist simultaneously on a system
+and each hierarchy is attached to one or more subsystems.
+A subsystem represents a single resource.
+
+\*(NT The CGROUPS field, unlike most columns, is not fixed-width.
+When displayed, it plus any other variable width columns will be allocated
+all remaining screen width (up to the maximum \*(WX characters).
+Even so, such variable width fields could still suffer truncation.
+\*(XT 5c. SCROLLING a Window for additional information on accessing
+any truncated data.
+
+.TP 4
+\fBCODE \*(Em Code Size (KiB) \fR
+The amount of \*(MP currently devoted to executable code, also known
+as the Text Resident Set size or TRS.
+
+\*(XX.
+
+.TP 4
+\fBCOMMAND \*(Em Command\fB Name\fR or Command\fB Line \fR
+Display the command line used to start a task or the name of the associated
+program.
+You toggle between command\fI line\fR and\fI name\fR with `c', which is both
+a \*(CO and an \*(CI.
+
+When you've chosen to display command lines, processes without a command
+line (like kernel threads) will be shown with only the program name in
+brackets, as in this example:
+    \fR[kthreadd]
+
+This field may also be impacted by the forest view display mode.
+\*(XC `V' \*(CI for additional information regarding that mode.
+
+\*(NT The COMMAND field, unlike most columns, is not fixed-width.
+When displayed, it plus any other variable width columns will be allocated
+all remaining screen width (up to the maximum \*(WX characters).
+Even so, such variable width fields could still suffer truncation.
+This is especially true for this field when command lines are being
+displayed (the `c' \*(CI.)
+\*(XT 5c. SCROLLING a Window for additional information on accessing
+any truncated data.
+
+.TP 4
+\fBDATA \*(Em Data + Stack Size (KiB) \fR
+The amount of private memory \fIreserved\fR by a process.
+It is also known as the Data Resident Set or DRS.
+Such memory may not yet be mapped to \*(MP (RES) but will always be
+included in the \*(MV (VIRT) amount.
+
+\*(XX.
+
+.TP 4
+\fBELAPSED \*(Em Elapsed Running Time\fR
+The length of time since a process was started.
+Thus, the most recently started task will display the smallest time interval.
+
+The value will be expressed as `HH,MM' (hours,minutes) but is subject to
+additional scaling if the interval becomes too great to fit column width.
+At that point it will be scaled to `DD+HH' (days+hours) and possibly
+beyond.
+
+.TP 4
+\fBENVIRON \*(Em Environment variables \fR
+Display all of the environment variables, if any, as seen by the
+respective processes.
+These variables will be displayed in their raw native order, not the
+sorted order you are accustomed to seeing with an unqualified `set'.
+
+\*(NT The ENVIRON field, unlike most columns, is not fixed-width.
+When displayed, it plus any other variable width columns will be allocated
+all remaining screen width (up to the maximum \*(WX characters).
+Even so, such variable width fields could still suffer truncation.
+This is especially true for this field.
+\*(XT 5c. SCROLLING a Window for additional information on accessing
+any truncated data.
+
+.TP 4
+\fBEXE \*(Em Executable Path \fR
+Where available, this is the full path to the executable,
+including the program name.
+
+\*(NT The EXE field, unlike most columns, is not fixed-width.
+When displayed, it plus any other variable width columns will be allocated
+all remaining screen width (up to the maximum \*(WX characters).
+
+.TP 4
+\fBFlags \*(Em Task Flags \fR
+This column represents the task's current scheduling flags which are
+expressed in hexadecimal notation and with zeros suppressed.
+These flags are officially documented in <linux/sched.h>.
+
+.TP 4
+\fBGID \*(Em Group Id \fR
+The\fI effective\fR group ID.
+
+.TP 4
+\fBGROUP \*(Em Group Name \fR
+The\fI effective\fR group name.
+
+.TP 4
+\fBLOGID \*(Em Login User Id \fR
+The user ID used at\fI login\fR.
+When -1 is displayed it means this information is not available.
+
+.TP 4
+\fBLXC \*(Em Lxc Container Name \fR
+The name of the lxc container within which a task is running.
+If a process is not running inside a container, a dash (`\-') will be shown.
+
+.TP 4
+\fBNI \*(Em Nice Value \fR
+The nice value of the task.
+A negative nice value means higher priority, whereas a positive nice value
+means lower priority.
+Zero in this field simply means priority will not be adjusted in determining
+a task's dispatch-ability.
+
+\*(NT This value only affects scheduling priority relative to other processes
+in the same autogroup.
+\*(XC `AGID' and `AGNI' fields for additional information on autogroups.
+
+.TP 4
+\fBNU \*(Em Last known NUMA node \fR
+A number representing the NUMA node associated with the last used processor (`P').
+When -1 is displayed it means that NUMA information is not available.
+
+\*(XC `2' and `3' \*(CIs for additional NUMA provisions affecting the \*(SA.
+
+.TP 4
+\fBOOMa \*(Em Out of Memory Adjustment Factor \fR
+The value, ranging from -1000 to +1000, added to the current out of memory
+score (OOMs) which is then used to determine which task to kill when memory
+is exhausted.
+
+.TP 4
+\fBOOMs \*(Em Out of Memory Score \fR
+The value, ranging from 0 to +1000, used to select task(s) to kill when memory
+is exhausted.
+Zero translates to `never kill' whereas 1000 means `always kill'.
+
+.TP 4
+\fBP \*(Em Last used \*(PU (SMP) \fR
+A number representing the last used processor.
+In a true SMP environment this will likely change frequently since the kernel
+intentionally uses weak affinity.
+Also, the very act of running \*(We may break this weak affinity and cause more
+processes to change \*(PUs more often (because of the extra demand for
+\*(Pu time).
+
+.TP 4
+\fBPGRP \*(Em Process Group Id \fR
+Every process is member of a unique process group which is used for
+distribution of signals and by terminals to arbitrate requests for their
+input and output.
+When a process is created (forked), it becomes a member of the process
+group of its parent.
+By convention, this value equals the process ID (\*(Xa PID) of the first
+member of a process group, called the process group leader.
+
+.TP 4
+\fBPID \*(Em Process Id \fR
+The task's unique process ID, which periodically wraps, though never
+restarting at zero.
+In kernel terms, it is a dispatchable entity defined by a task_struct.
+
+This value may also be used as: a process group ID (\*(Xa PGRP);
+a session ID for the session leader (\*(Xa SID);
+a thread group ID for the thread group leader (\*(Xa TGID);
+and a TTY process group ID for the process group leader (\*(Xa TPGID).
+
+.TP 4
+\fBPPID \*(Em Parent Process Id \fR
+The process ID (pid) of a task's parent.
+
+.TP 4
+\fBPR \*(Em Priority \fR
+The scheduling priority of the task.
+If you see `rt' in this field, it means the task is running
+under real time scheduling priority.
+
+Under linux, real time priority is somewhat misleading since traditionally
+the operating itself was not preemptible.
+And while the 2.6 kernel can be made mostly preemptible, it is not always so.
+
+.TP 4
+\fBPSS \*(Em Proportional Resident Memory, smaps (KiB) \fR
+The proportion of this task's share of `RSS' where each page is divided by
+the number of processes sharing it.
+It is also the sum of the `PSan', `PSfd' and `PSsh' fields.
+
+For example, if a process has 1000 resident pages alone and 1000 resident
+pages shared with another process, its `PSS' would be 1500 (times page size).
+
+\*(ZX.
+
+.PP
+\fBPSan \*(Em Proportional Anonymous Memory, smaps (KiB) \fR
+.br
+\fBPSfd \*(Em Proportional File Memory, smaps (KiB) \fR
+.br
+\fBPSsh \*(Em Proportional Shmem Memory, smaps (KiB) \fR
+.RS 4
+As was true for `PSS' above (total proportional resident memory),
+these fields represent the proportion of this task's share of each type
+of memory divided by the number of processes sharing it.
+
+\*(ZX.
+.RE
+
+.TP 4
+\fBRES \*(Em Resident Memory Size (KiB) \fR
+A subset of the virtual address space (VIRT) representing the non-swapped
+\*(MP a task is currently using.
+It is also the sum of the `RSan', `RSfd' and `RSsh' fields.
+
+It can include private anonymous pages, private pages mapped to files
+(including program images and shared libraries) plus shared anonymous pages.
+All such memory is backed by the \*(MS represented separately under SWAP.
+
+Lastly, this field may also include shared file-backed pages which, when
+modified, act as a dedicated \*(MS and thus will never impact SWAP.
+
+\*(XX.
+
+.TP 4
+\fBRSS \*(Em Resident Memory, smaps (KiB) \fR
+Another, more precise view of process non-swapped \*(MP.
+It is obtained from the `smaps_rollup' file and is
+generally slightly larger than that shown for `RES'.
+
+\*(ZX.
+
+.TP 4
+\fBRSan \*(Em Resident Anonymous Memory Size (KiB) \fR
+A subset of resident memory (RES) representing private pages not
+mapped to a file.
+
+.TP 4
+\fBRSfd \*(Em Resident File-Backed Memory Size (KiB) \fR
+A subset of resident memory (RES) representing the implicitly shared
+pages supporting program images and shared libraries.
+It also includes explicit file mappings, both private and shared.
+
+.TP 4
+\fBRSlk \*(Em Resident Locked Memory Size (KiB) \fR
+A subset of resident memory (RES) which cannot be swapped out.
+
+.TP 4
+\fBRSsh \*(Em Resident Shared Memory Size (KiB) \fR
+A subset of resident memory (RES) representing the explicitly shared
+anonymous shm*/mmap pages.
+
+.TP 4
+\fBRUID \*(Em Real User Id \fR
+The\fI real\fR user ID.
+
+.TP 4
+\fBRUSER \*(Em Real User Name \fR
+The\fI real\fR user name.
+
+.TP 4
+\fBS \*(Em Process Status \fR
+The status of the task which can be one of:
+    \fBD\fR = uninterruptible sleep
+    \fBI\fR = idle
+    \fBR\fR = running
+    \fBS\fR = sleeping
+    \fBT\fR = stopped by job control signal
+    \fBt\fR = stopped by debugger during trace
+    \fBZ\fR = zombie
+
+Tasks shown as running should be more properly thought of as ready to run
+\*(Em their task_struct is simply represented on the Linux run-queue.
+Even without a true SMP machine, you may see numerous tasks in this state
+depending on \*(We's delay interval and nice value.
+
+.TP 4
+\fBSHR \*(Em Shared Memory Size (KiB) \fR
+A subset of resident memory (RES) that may be used by other processes.
+It will include shared anonymous pages and shared file-backed pages.
+It also includes private pages mapped to files representing
+program images and shared libraries.
+
+\*(XX.
+
+.TP 4
+\fBSID \*(Em Session Id \fR
+A session is a collection of process groups (\*(Xa PGRP),
+usually established by the login shell.
+A newly forked process joins the session of its creator.
+By convention, this value equals the process ID (\*(Xa PID) of the first
+member of the session, called the session leader, which is usually the
+login shell.
+
+.TP 4
+\fBSTARTED \*(Em Start Time Interval\fR
+The length of time since system boot when a process started.
+Thus, the most recently started task will display the largest time interval.
+
+The value will be expressed as `MM:SS' (minutes:seconds).
+But if the interval is too great to fit column width it will be scaled
+as `HH,MM' (hours,minutes) and possibly beyond.
+
+.TP 4
+\fBSUID \*(Em Saved User Id \fR
+The\fI saved\fR user ID.
+
+.TP 4
+\fBSUPGIDS \*(Em Supplementary Group IDs \fR
+The IDs of any supplementary group(s) established at login or
+inherited from a task's parent.
+They are displayed in a comma delimited list.
+
+\*(NT The SUPGIDS field, unlike most columns, is not fixed-width.
+When displayed, it plus any other variable width columns will be allocated
+all remaining screen width (up to the maximum \*(WX characters).
+
+.TP 4
+\fBSUPGRPS \*(Em Supplementary Group Names \fR
+The names of any supplementary group(s) established at login or
+inherited from a task's parent.
+They are displayed in a comma delimited list.
+
+\*(NT The SUPGRPS field, unlike most columns, is not fixed-width.
+When displayed, it plus any other variable width columns will be allocated
+all remaining screen width (up to the maximum \*(WX characters).
+
+.TP 4
+\fBSUSER \*(Em Saved User Name \fR
+The\fI saved\fR user name.
+
+.TP 4
+\fBSWAP \*(Em Swapped Size (KiB) \fR
+The formerly resident portion of a task's address space written
+to the \*(MS when \*(MP becomes over committed.
+
+\*(XX.
+
+.TP 4
+\fBTGID \*(Em Thread Group Id \fR
+The ID of the thread group to which a task belongs.
+It is the PID of the thread group leader.
+In kernel terms, it represents those tasks that share an mm_struct.
+
+.TP 4
+\fBTIME \*(Em \*(PU Time \fR
+Total \*(PU time the task has used since it started.
+When Cumulative mode is \*O, each process is listed with the \*(Pu
+time that it and its dead children have used.
+You toggle Cumulative mode with `S', which is both a \*(CO and an \*(CI.
+\*(XC `S' \*(CI for additional information regarding this mode.
+
+.TP 4
+\fBTIME+ \*(Em \*(PU Time, hundredths \fR
+The same as TIME, but reflecting more granularity through hundredths
+of a second.
+
+.TP 4
+\fBTPGID \*(Em Tty Process Group Id \fR
+The process group ID of the foreground process for the connected tty,
+or \-1 if a process is not connected to a terminal.
+By convention, this value equals the process ID (\*(Xa PID) of the
+process group leader (\*(Xa PGRP).
+
+.TP 4
+\fBTTY \*(Em Controlling Tty \fR
+The name of the controlling terminal.
+This is usually the device (serial port, pty, etc.) from which the
+process was started, and which it uses for input or output.
+However, a task need not be associated with a terminal, in which case
+you'll see `?' displayed.
+
+.TP 4
+\fBUID \*(Em User Id \fR
+The\fI effective\fR user ID of the task's owner.
+
+.TP 4
+\fBUSED \*(Em Memory in Use (KiB) \fR
+This field represents the non-swapped \*(MP a task is using (RES) plus
+the swapped out portion of its address space (SWAP).
+
+\*(XX.
+
+.TP 4
+\fBUSER \*(Em User Name \fR
+The\fI effective\fR user name of the task's owner.
+
+.TP 4
+\fBUSS \*(Em Unique Set Size \fR
+The non-swapped portion of \*(MP (`RSS') not shared with
+any other process.
+It is derived from the `smaps_rollup' file.
+
+\*(ZX.
+
+.TP 4
+\fBVIRT \*(Em Virtual Memory Size (KiB) \fR
+The total amount of \*(MV used by the task.
+It includes all code, data and shared libraries plus pages that have been
+swapped out and pages that have been mapped but not used.
+
+\*(XX.
+
+.TP 4
+\fBWCHAN \*(Em Sleeping in Function \fR
+This field will show the name of the kernel function in which the task
+is currently sleeping.
+Running tasks will display a dash (`\-') in this column.
+
+.TP 4
+\fBioR \*(Em I/O Bytes Read \fR
+The number of bytes a process caused to be fetched from the storage layer.
+
+Root privileges are required to display `io' data for other users.
+
+.TP 4
+\fBioRop \*(Em I/O Read Operations \fR
+The number of read I/O operations (syscalls) for a process.
+Such calls might not result in actual physical disk I/O.
+
+.TP 4
+\fBioW \*(Em I/O Bytes Written \fR
+The number of bytes a process caused to be sent to the storage layer.
+
+.TP 4
+\fBioWop \*(Em I/O Write Operations \fR
+The number of write I/O operations (syscalls) for a process.
+Such calls might not result in actual physical disk I/O.
+
+.TP 4
+\fBnDRT \*(Em Dirty Pages Count \fR
+The number of pages that have been modified since they were last
+written to \*(AS.
+Dirty pages must be written to \*(AS before the corresponding physical
+memory location can be used for some other virtual page.
+
+This field was deprecated with linux 2.6 and is always zero.
+
+.TP 4
+\fBnMaj \*(Em Major Page Fault Count \fR
+The number of\fB major\fR page faults that have occurred for a task.
+A page fault occurs when a process attempts to read from or write to a
+virtual page that is not currently present in its address space.
+A major page fault is when \*(AS access is involved in making that
+page available.
+
+.TP 4
+\fBnMin \*(Em Minor Page Fault count \fR
+The number of\fB minor\fR page faults that have occurred for a task.
+A page fault occurs when a process attempts to read from or write to a
+virtual page that is not currently present in its address space.
+A minor page fault does not involve \*(AS access in making that
+page available.
+
+.TP 4
+\fBnTH \*(Em Number of Threads \fR
+The number of threads associated with a process.
+
+.TP 4
+\fBnsCGROUP \*(Em CGROUP namespace \fR
+The Inode of the namespace used to hide the identity of the control group of
+which process is a member.
+
+.TP 4
+\fBnsIPC \*(Em IPC namespace \fR
+The Inode of the namespace used to isolate interprocess communication (IPC)
+resources such as System V IPC objects and POSIX message queues.
+
+.TP 4
+\fBnsMNT \*(Em MNT namespace \fR
+The Inode of the namespace used to isolate filesystem mount points thus
+offering different views of the filesystem hierarchy.
+
+.TP 4
+\fBnsNET \*(Em NET namespace \fR
+The Inode of the namespace used to isolate resources such as network devices,
+IP addresses, IP routing, port numbers, etc.
+
+.TP 4
+\fBnsPID \*(Em PID namespace \fR
+The Inode of the namespace used to isolate process ID numbers
+meaning they need not remain unique.
+Thus, each such namespace could have its own `init/systemd' (PID #1) to
+manage various initialization tasks and reap orphaned child processes.
+
+.TP 4
+\fBnsTIME \*(Em TIME namespace \fR
+The Inode of the namespace which allows processes to see different system
+times in a way similar to the UTS namespace.
+
+.TP 4
+\fBnsUSER \*(Em USER namespace \fR
+The Inode of the namespace used to isolate the user and group ID numbers.
+Thus, a process could have a normal unprivileged user ID outside a user
+namespace while having a user ID of 0, with full root privileges, inside
+that namespace.
+
+.TP 4
+\fBnsUTS \*(Em UTS namespace \fR
+The Inode of the namespace used to isolate hostname and NIS domain name.
+UTS simply means "UNIX Time-sharing System".
+
+.TP 4
+\fBvMj \*(Em Major Page Fault Count Delta\fR
+The number of\fB major\fR page faults that have occurred since the
+last update (see nMaj).
+
+.TP 4
+\fBvMn \*(Em Minor Page Fault Count Delta\fR
+The number of\fB minor\fR page faults that have occurred since the
+last update (see nMin).
+
+.\" ......................................................................
+.SS 3b. MANAGING Fields
+.\" ----------------------------------------------------------------------
+After pressing the \*(CI `f' (Fields Management) you will be presented
+with a screen showing: 1) the \*(CW name; 2) the designated sort field;
+3) all fields in their current order along with descriptions.
+Entries marked with an asterisk are the currently displayed fields,
+screen width permitting.
+
+.RS +4
+.IP \(bu 3
+As the on screen instructions indicate, you navigate among the fields with
+the\fB Up\fR and\fB Down\fR \*(KAs.
+The PgUp, PgDn, Home and End keys can also be used to quickly reach the
+first or last available field.
+
+.IP \(bu 3
+The\fB Right\fR \*(KA selects a field for repositioning and
+the\fB Left\fR \*(KA or the <\fBEnter\fR> key commits that field's
+placement.
+
+.IP \(bu 3
+The `\fBd\fR' key or the <\fBSpace\fR> bar toggles a field's display
+status, and thus the presence or absence of the asterisk.
+
+.IP \(bu 3
+The `\fBs\fR' key designates a field as the sort field.
+\*(XT 4c. TASK AREA Commands, SORTING for additional information regarding
+your selection of a sort field.
+
+.IP \(bu 3
+The `\fBa\fR' and `\fBw\fR' keys can be used to cycle through all available
+windows and the `\fBq\fR' or <\fBEsc\fR> keys exit Fields Management.
+.RS -4
+
+.PP
+The Fields Management screen can also be used to change the \*(CG in
+either \*(FM or \*(AM.
+Whatever was targeted when `q' or <Esc> was pressed will be made current
+as you return to the \*(We display.
+\*(XT 5. ALTERNATE\-DISPLAY Provisions and the `g' \*(CI for insight
+into \*(CWs and \*(FGs.
+
+.PP
+\*(NT Any window that has been scrolled\fI horizontally\fR will be reset if any
+field changes are made via the Fields Management screen.
+Any\fI vertical\fR scrolled position, however, will not be affected.
+\*(XT 5c. SCROLLING a Window for additional information regarding vertical
+and horizontal scrolling.
+
+.\" ----------------------------------------------------------------------
+.SH 4. INTERACTIVE Commands
+.\" ----------------------------------------------------------------------
+Listed below is a brief index of commands within categories.
+Some commands appear more than once \*(Em their meaning or scope may vary
+depending on the context in which they are issued.
+
+.nf
+  4a.\fI Global-Commands \fR
+        <Ent/Sp> ?, =, 0,
+        A, B, d, E, e, g, H, h, I, k, q, r, s, W, X, Y, Z,
+        ^G, ^K, ^N, ^P, ^U, ^L, ^R
+  4b.\fI Summary-Area-Commands \fR
+        C, l, t, m, 1, 2, 3, 4, 5, !
+  4c.\fI Task-Area-Commands \fR
+        Appearance:  b, J, j, x, y, z
+        Content:     c, F, f, O, o, S, U, u, V, v, ^E
+        Size:        #, i, n
+        Sorting:     <, >, f, R
+  4d.\fI Color-Mapping \fR
+        <Ret>, a, B, b, H, M, q, S, T, w, z, 0 \- 7
+  5b.\fI Commands-for-Windows \fR
+        \-, _, =, +, A, a, G, g, w
+  5c.\fI Scrolling-a-Window \fR
+        C, Up, Dn, Left, Right, PgUp, PgDn, Home, End
+  5d.\fI Searching-in-a-Window \fR
+        L, &
+  5e.\fI Filtering-in-a-Window
+        O, o, ^O, =, +
+.fi
+
+.\" ......................................................................
+.SS 4a. GLOBAL Commands
+.\" ----------------------------------------------------------------------
+The global \*(CIs are\fB always\fR available\fR in both \*(FM and \*(AM.
+However, some of these \*(CIs are\fB not available\fR when running
+in Secure mode.
+
+If you wish to know in advance whether or not your \*(We has been
+secured, simply ask for help and view the system summary on the second
+line.
+
+.TP 7
+\ \ <\fBEnter\fR> or <\fBSpace\fR>\ \ :\fIRefresh-Display \fR
+These commands awaken \*(We and following receipt of any input
+the entire display will be repainted.
+They also force an update of any hotplugged \*(Pu or \*(MP changes.
+
+Use either of these keys if you have a large delay interval and wish
+to see current status,
+
+.TP 7
+\ \ \ \fB?\fR | \fBh\fR\ \ :\fIHelp \fR
+There are two help levels available.
+The first will provide a reminder of all the basic \*(CIs.
+If \*(We is\fI secured\fR, that screen will be abbreviated.
+
+Typing `h' or `?' on that help screen will take you to help for
+those \*(CIs applicable to \*(AM.
+
+.TP 7
+\ \ \ \fB=\fR\ \ :\fIExit-Display-Limits \fR
+Removes restrictions on what is shown.
+This command will reverse any `i' (idle tasks), `n' (max tasks),
+`v' (hide children) and `F' focus commands that might be active.
+It also provides for an exit from PID monitoring, User filtering,
+Other filtering, Locate processing and Combine Cpus mode.
+
+Additionally, if the window has been scrolled it will be reset with
+this command.
+
+.TP 7
+\ \ \ \fB0\fR\ \ :\fIZero-Suppress\fR toggle \fR
+This command determines whether zeros are shown or suppressed for many
+of the fields in a \*(TW.
+Fields like UID, GID, NI, PR or P are not affected by this toggle.
+
+.TP 7
+\ \ \ \fBA\fR\ \ :\fIAlternate-Display-Mode\fR toggle \fR
+This command will switch between \*(FM and \*(AM.
+\*(XT 5. ALTERNATE\-DISPLAY Provisions and the `g' \*(CI for insight
+into \*(CWs and \*(FGs.
+
+.TP 7
+\ \ \ \fBB\fR\ \ :\fIBold-Disable/Enable\fR toggle \fR
+This command will influence use of the bold terminfo capability and
+alters\fB both\fR the \*(SA and \*(TA for the \*(CW.
+While it is intended primarily for use with dumb terminals, it can be
+applied anytime.
+
+\*(NT When this toggle is \*O and \*(We is operating in monochrome mode,
+the\fB entire display\fR will appear as normal text.
+Thus, unless the `x' and/or `y' toggles are using reverse for emphasis,
+there will be no visual confirmation that they are even on.
+
+.TP 7
+*\ \ \fBd\fR | \fBs\fR\ \ :\fIChange-Delay-Time-interval \fR
+You will be prompted to enter the delay time, in seconds, between
+display updates.
+
+Fractional seconds are honored, but a negative number is not allowed.
+Entering 0 causes (nearly) continuous updates, with an unsatisfactory
+display as the system and tty driver try to keep up with \*(We's demands.
+The delay value is inversely proportional to system loading,
+so set it with care.
+
+If at any time you wish to know the current delay time, simply ask for
+help and view the system summary on the second line.
+
+.TP 7
+\ \ \ \fBE\fR\ \ :\fIEnforce-Summary-Memory-Scale\fR in Summary Area
+With this command you can cycle through the available \*(SA memory scaling
+which ranges from KiB (kibibytes or 1,024 bytes) through EiB (exbibytes or
+1,152,921,504,606,846,976 bytes).
+
+If you see a `+' between a displayed number and the following label, it
+means that \*(We was forced to truncate some portion of that number.
+By raising the scaling factor, such truncation can be avoided.
+
+.TP 7
+\ \ \ \fBe\fR\ \ :\fIEnforce-Task-Memory-Scale\fR in Task Area
+With this command you can cycle through the available \*(TA memory scaling
+which ranges from KiB (kibibytes or 1,024 bytes) through PiB (pebibytes or
+1,125,899,906,842,624 bytes).
+
+While \*(We will try to honor the selected target range, additional
+scaling might still be necessary in order to accommodate current values.
+If you wish to see a more homogeneous result in the memory columns,
+raising the scaling range will usually accomplish that goal.
+Raising it too high, however, is likely to produce an all zero result
+which cannot be suppressed with the `0' \*(CI.
+
+.TP 7
+\ \ \ \fBg\fR\ \ :\fIChoose-Another-Window/Field-Group \fR
+You will be prompted to enter a number between 1 and 4 designating the
+\*(FG which should be made the \*(CW.
+You will soon grow comfortable with these 4 windows, especially after
+experimenting with \*(AM.
+
+.TP 7
+\ \ \ \fBH\fR\ \ :\fIThreads-mode\fR toggle \fR
+When this toggle is \*O, individual threads will be displayed for all
+processes in all visible \*(TWs.
+Otherwise, \*(We displays a summation of all threads in each process.
+
+.TP 7
+\ \ \ \fBI\fR\ \ :\fIIrix/Solaris-Mode\fR toggle \fR
+When operating in Solaris mode (`I' toggled \*F), a task's \*(Pu usage
+will be divided by the total number of \*(PUs.
+After issuing this command, you'll be told the new state of this toggle.
+
+.TP 7
+*\ \ \fBk\fR\ \ :\fIKill-a-task \fR
+You will be prompted for a PID and then the signal to send.
+
+Entering no PID or a negative number will be interpreted as
+the default shown in the prompt (the first task displayed).
+A PID value of zero means the \*(We program itself.
+
+The default signal, as reflected in the prompt, is SIGTERM.
+However, you can send any signal, via number or name.
+
+If you wish to abort the kill process, do one of the following
+depending on your progress:
+.nf
+    1) at the pid prompt, type an invalid number
+    2) at the signal prompt, type 0 (or any invalid signal)
+    3) at any prompt, type <Esc>
+.fi
+
+.TP 7
+\ \ \ \fBq\fR\ \ :\fIQuit \fR
+
+.TP 7
+*\ \ \fBr\fR\ \ :\fIRenice-a-Task \fR
+You will be prompted for a PID and then the value to nice it to.
+
+Entering no PID or a negative number will be interpreted as
+the default shown in the prompt (the first task displayed).
+A PID value of zero means the \*(We program itself.
+
+A positive nice value will cause a process to lose priority.
+Conversely, a negative nice value will cause a process to be viewed
+more favorably by the kernel.
+As a general rule, ordinary users can only increase the nice value
+and are prevented from lowering it.
+
+If you wish to abort the renice process, do one of the following
+depending on your progress:
+.nf
+    1) at the pid prompt, type an invalid number
+    2) at the nice prompt, type <Enter> with no input
+    3) at any prompt, type <Esc>
+.fi
+
+.TP 7
+\ \ \ \fBW\fR\ \ :\fIWrite-the-Configuration-File \fR
+This will save all of your options and toggles plus the current
+display mode and delay time.
+By issuing this command just before quitting \*(We, you will be able
+restart later in exactly that same state.
+
+.TP 7
+\ \ \ \fBX\fR\ \ :\fIExtra-Fixed-Width \fR
+Some fields are fixed width and not scalable.
+As such, they are subject to truncation which would be indicated
+by a `+' in the last position.
+
+This \*(CI can be used to alter the widths of the following fields:
+
+.nf
+   \fI field  default    field  default    field   default \fR
+    GID       5       GROUP     8       WCHAN      10
+    LOGID     5       LXC       8       nsCGROUP   10
+    RUID      5       RUSER     8       nsIPC      10
+    SUID      5       SUSER     8       nsMNT      10
+    UID       5       TTY       8       nsNET      10
+                      USER      8       nsPID      10
+                                        nsTIME     10
+                                        nsUSER     10
+                                        nsUTS      10
+.fi
+
+You will be prompted for the amount to be added to the default
+widths shown above.
+Entering zero forces a return to those defaults.
+
+If you enter a negative number, \*(We will automatically increase
+the column size as needed until there is no more truncated data.
+
+\*(NT Whether explicitly or automatically increased, the widths for
+these fields are never decreased by \*(We.
+To narrow them you must specify a smaller number or restore the defaults.
+
+.TP 7
+\ \ \ \fBY\fR\ \ :\fIInspect-Other-Output \fR
+After issuing the `Y' \*(CI, you will be prompted for a target PID.
+Typing a value or accepting the default results in a separate screen.
+That screen can be used to view a variety of files or piped command output
+while the normal \*(We iterative display is paused.
+
+\*(NT This \*(CI is only fully realized when supporting entries have been
+manually added to the end of the \*(We \*(CF.
+For details on creating those entries, \*(Xt 6b. ADDING INSPECT Entries.
+
+Most of the keys used to navigate the Inspect feature are reflected in
+its header prologue.
+There are, however, additional keys available once you have selected a
+particular file or command.
+They are familiar to anyone who has used the pager `less' and are
+summarized here for future reference.
+
+.nf
+   \fI key      function \fR
+    =        alternate status\-line, file or pipeline
+    /        find, equivalent to `L' locate
+    n        find next, equivalent to `&' locate next
+    <Space>  scroll down, equivalent to <PgDn>
+    b        scroll up, equivalent to <PgUp>
+    g        first line, equivalent to <Home>
+    G        last line, equivalent to <End>
+.fi
+
+.TP 7
+\ \ \ \fBZ\fR\ \ :\fIChange-Color-Mapping \fR
+This key will take you to a separate screen where you can change the
+colors for the \*(CW, or for all windows.
+For details regarding this \*(CI \*(Xt 4d. COLOR Mapping.
+
+.P
+\ \ \fB^G\fR\ \ :\fIDisplay-Control-Groups \fR       (Ctrl key + `g')
+.br
+\ \ \fB^K\fR\ \ :\fIDisplay-Cmdline \fR              (Ctrl key + `k')
+.br
+\ \ \fB^N\fR\ \ :\fIDisplay-Environment \fR          (Ctrl key + `n')
+.br
+\ \ \fB^P\fR\ \ :\fIDisplay-Namesspaces \fR          (Ctrl key + `p')
+.br
+\ \ \fB^U\fR\ \ :\fIDisplay-Supplementary-Groups \fR (Ctrl key + `u')
+.br
+.RS +7
+Applied to the first process displayed, these commands will show
+that task's full (potentially wrapped) information.
+Such data will be displayed in a separate window at the bottom of
+the screen while normal \*(We monitoring continues.
+
+Keying the\fI same\fR `Ctrl' command a second time removes that
+separate window as does the `=' command.
+Keying a different `Ctrl' combination, while one is already active,
+immediately transitions to the new information.
+
+Notable among these provisions is the Ctrl+N (environment) command.
+Its output can be extensive and not easily read when line wrapped.
+A more readable version can be achieved with an `Inspect' entry
+in the rcfile like the following.
+
+.nf
+    pipe ^I Environment ^I cat /proc/%d/environ | tr '\\0' '\\n'
+.fi
+
+\*(XC `Y' \*(CI above and topic 6b. ADDING INSPECT Entries for
+additional information.
+
+As an alternative to `Inspect', and available to all of these `Ctrl'
+commands, the tab key can be used to highlight individual elements
+in the bottom window.
+.RS -7
+
+.TP 7
+\ \ \fB^L\fR\ \ :\fILogged-Messages \fR (Ctrl key + `l')
+The 10 most recent messages are displayed in a separate window at
+the bottom of the screen while normal \*(We monitoring continues.
+Keying `^L' a second time removes that window as does the `=' command.
+Use the tab key to highlight individual messages.
+
+.TP 7
+*\ \fB^R\fR\ \ :\fIRenice-an-Autogroup \fR (Ctrl key + `r')
+You will be prompted for a PID and then the value for its
+autogroup AGNI.
+
+Entering no PID will be interpreted as the default shown in
+the prompt (the first task displayed).
+
+A positive AGNI value will cause processes in that autogroup
+to lose priority.
+Conversely, a negative value causes them to be viewed more
+favorably by the kernel.
+Ordinary users are not allowed to set negative AGNI values.
+
+If you wish to abort the renice process type <Esc>.
+
+.IP "*" 3
+The commands shown with an \*(AK are not available in Secure mode,
+nor will they be shown on the level-1 help screen.
+
+.\" ......................................................................
+.SS 4b. SUMMARY AREA Commands
+.\" ----------------------------------------------------------------------
+The \*(SA \*(CIs are\fB always available\fR in both \*(FM and \*(AM.
+They affect the beginning lines of your display and will determine the
+position of messages and prompts.
+
+These commands always impact just the \*(CG.
+\*(XT 5. ALTERNATE\-DISPLAY Provisions and the `g' \*(CI for insight into
+\*(CWs and \*(FGs.
+
+.TP 7
+\ \ \ \fBC\fR\ \ :\fIShow-scroll-coordinates\fR toggle \fR
+Toggle an informational message which is displayed whenever the message
+line is not otherwise being used.
+For additional information \*(Xt 5c. SCROLLING a Window.
+
+.TP 7
+\ \ \ \fBl\fR\ \ :\fILoad-Average/Uptime\fR toggle \fR
+This is also the line containing the program name (possibly an alias)
+when operating in \*(FM or the \*(CW name when operating in \*(AM.
+
+.TP 7
+\ \ \ \fBt\fR\ \ :\fITask/Cpu-States\fR toggle \fR
+This command affects from 2 to many \*(SA lines, depending on the state
+of the `1', `2' or `3' \*(CTs and whether or not \*(We is running under
+true SMP.
+
+This portion of the \*(SA is also influenced by the `H' \*(CI toggle,
+as reflected in the total label which shows either Tasks or Threads.
+
+This command serves as a 4-way toggle, cycling through these modes:
+.nf
+    1. detailed percentages by category
+    2. abbreviated user/system and total % + bar graph
+    3. abbreviated user/system and total % + block graph
+    4. turn off task and cpu states display
+.fi
+
+When operating in either of the graphic modes, the display becomes much
+more meaningful when individual CPUs or NUMA nodes are also displayed.
+\*(XC the `1', `2' and `3' commands below for additional information.
+
+.TP 7
+\ \ \ \fBm\fR\ \ :\fIMemory/Swap-Usage\fR toggle \fR
+This command affects the two \*(SA lines dealing with physical
+and virtual memory.
+
+This command serves as a 4-way toggle, cycling through these modes:
+.nf
+    1. detailed percentages by memory type
+    2. abbreviated % used/total available + bar graph
+    3. abbreviated % used/total available + block graph
+    4. turn off memory display
+.fi
+
+.TP 7
+\ \ \ \fB1\fR\ \ :\fISingle/Separate-Cpu-States\fR toggle \fR
+This command affects how the `t' command's Cpu States portion is shown.
+Although this toggle exists primarily to serve massively-parallel SMP
+machines, it is not restricted to solely SMP environments.
+
+When you see `%Cpu(s):' in the \*(SA, the `1' toggle is \*O and all
+\*(Pu information is gathered in a single line.
+Otherwise, each \*(Pu is displayed separately as: `%Cpu0, %Cpu1, ...'
+up to available screen height.
+
+.TP 7
+\ \ \ \fB2\fR\ \ :\fINUMA-Nodes/Cpu-Summary\fR toggle \fR
+This command toggles between the `1' command cpu summary display (only)
+or a summary display plus the cpu usage statistics for each NUMA Node.
+It is only available if a system has the requisite NUMA support.
+
+.TP 7
+\ \ \ \fB3\fR\ \ :\fIExpand-NUMA-Node \fR
+You will be invited to enter a number representing a NUMA Node.
+Thereafter, a node summary plus the statistics for each cpu in that
+node will be shown until the `1', `2' or `4' \*(CT is pressed.
+This \*(CI is only available if a system has the requisite NUMA support.
+
+.TP 7
+\ \ \ \fB4\fR\ \ :\fIDisplay-Multiple-Elements-Adjacent\fR toggle \fR
+This \*(CT turns the `1' toggle \*F and shows multiple \*(PU and
+Memory results on each line.
+Each successive `4' key adds another \*(PU until again reverting
+to separate lines for \*(PU and Memory results.
+
+A maximum of 8 \*(PUs per line can be displayed in this manner.
+However, data truncation may occur before reaching the maximum.
+That is definitely true when displaying detailed statistics via
+the `t' \*(CT since such data cannot be scaled like the graphic
+representations.
+
+If one wished to quickly exit adjacent mode without cycling all the
+way to 8, simply use the `1' \*(CT.
+
+.TP 7
+\ \ \ \fB5\fR\ \ :\fIDisplay-P-Cores-and-E-Cores\fR toggle \fR
+This \*(CT is only active when the `t' toggle is \*O and the `1', `2',
+`3' and `!' toggles are \*F, thus showing individual \*(PU results.
+It assumes a platform has multiple cores of two distinct types,
+either multi-threaded (P-Core) or single-threaded (E-Core).
+
+While normally each \*(Pu is displayed as `%Cpu0, %Cpu1, ...', this
+toggle can be used to identify and/or filter those \*(Pus by their
+core type, either P-Core (performance) or E-Core (efficient).
+
+The 1st time `5' is struck, each \*(PU is displayed as `%Cp\fBP\fR'
+or `%Cp\fBE\fR' representing the two core types.
+The 2nd time, only P-Cores (%Cp\fBP\fR) will be shown.
+The 3rd time, only E-Cores (%Cp\fBE\fR) are displayed.
+When this \*(CT is struck for the 4th time, the \*(PU display
+returns to the normal `%Cpu' convention.
+
+If separate\fI performance\fR and\fI efficient\fR categories are
+not present, this \*(CT will have no effect.
+
+.TP 7
+\ \ \ \fB!\fR\ \ :\fICombine-Cpus-Mode\fR toggle \fR
+This \*(CT is intended for massively parallel SMP environments where,
+even with the `4' \*(CT, not all processors can be displayed.
+With each press of `!' the number of \*(Pus combined is doubled thus
+reducing the total number of \*(Pu lines displayed.
+
+For example, with the first press of `!' two \*(Pus will be combined and
+displayed as `0-1, 2-3, ...' instead of the normal `%Cpu0, %Cpu1, %Cpu2,
+%Cpu3, ...'. With a second `!' \*(CT four \*(Pus are combined and shown
+as `0-3, 4-7, ...'.
+Then the third `!' press, combining eight \*(Pus, shows as `0-7, 8-15, ...',
+etc.
+
+Such progression continues until individual \*(Pus are again displayed
+and impacts both the `1' and `4' toggles (one or multiple columns).
+Use the `=' command to exit \fBCombine Cpus\fR mode.
+
+.PP
+\*(NT If the entire \*(SA has been toggled \*F for any window, you would
+be left with just the\fB message line\fR.
+In that way, you will have maximized available task rows but (temporarily)
+sacrificed the program name in \*(FM or the \*(CW name when in \*(AM.
+
+.\" ......................................................................
+.SS 4c. TASK AREA Commands
+.\" ----------------------------------------------------------------------
+The \*(TA \*(CIs are\fB always\fR available in \*(FM.
+
+The \*(TA \*(CIs are\fB never available\fR in \*(AM\fI if\fR the \*(CW's
+\*(TD has been toggled \*F (\*(Xt 5. ALTERNATE\-DISPLAY Provisions).
+
+.\" ..................................................
+.PP
+.B APPEARANCE\fR of \*(TW
+
+.TP 7
+\ \ \ \fBJ\fR\ \ :\fIJustify-Numeric-Columns\fR toggle \fR
+Alternates between right-justified (the default) and
+left-justified numeric data.
+If the numeric data completely fills the available column, this
+\*(CT may impact the column header only.
+
+.TP 7
+\ \ \ \fBj\fR\ \ :\fIJustify-Character-Columns\fR toggle \fR
+Alternates between left-justified (the default) and
+right-justified character data.
+If the character data completely fills the available column, this
+\*(CT may impact the column header only.
+
+.PP
+.RS +2
+The following commands will also be influenced by the state of the
+global `B' (bold enable) toggle.
+.RS -2
+
+.TP 7
+\ \ \ \fBb\fR\ \ :\fIBold/Reverse\fR toggle \fR
+This command will impact how the `x' and `y' toggles are displayed.
+It may also impact the \*(SA when a bar graph has been selected for \*(Pu
+states or memory usage via the `t' or `m' toggles.
+
+.TP 7
+\ \ \ \fBx\fR\ \ :\fIColumn-Highlight\fR toggle \fR
+Changes highlighting for the current sort field.
+If you forget which field is being sorted this command can serve as a quick
+visual reminder, providing the sort field is being displayed.
+The sort field might\fI not\fR be visible because:
+    1) there is insufficient\fI Screen Width \fR
+    2) the `f' \*(CI turned it \*F
+
+.TP 7
+\ \ \ \fBy\fR\ \ :\fIRow-Highlight\fR toggle \fR
+Changes highlighting for "running" tasks.
+For additional insight into this task state,
+\*(Xt 3a. DESCRIPTIONS of Fields, the `S' field (Process Status).
+
+Use of this provision provides important insight into your system's health.
+The only costs will be a few additional tty escape sequences.
+
+.TP 7
+\ \ \ \fBz\fR\ \ :\fIColor/Monochrome\fR toggle \fR
+Switches the \*(CW between your last used color scheme and the older form
+of black-on-white or white-on-black.
+This command will alter\fB both\fR the \*(SA and \*(TA but does not affect
+the state of the `x', `y' or `b' toggles.
+
+.\" ..................................................
+.PP
+.B CONTENT\fR of \*(TW
+
+.TP 7
+\ \ \ \fBc\fR\ \ :\fICommand-Line/Program-Name\fR toggle \fR
+This command will be honored whether or not the COMMAND column
+is currently visible.
+Later, should that field come into view, the change you applied will be seen.
+
+.TP 7
+\ \ \ \fBF\fR\ \ :\fIMaintain-Parent-Focus\fR toggle \fR
+When in forest view mode, this key serves as a toggle to retain focus
+on a target task, presumably one with forked children.
+If forest view mode is \*F this key has no effect.
+
+The toggle is applied to the first (topmost) process in the \*(CW.
+Once established, that task is always displayed as the first (topmost)
+process along with its forked children.
+All other processes will be suppressed.
+
+\*(NT keys like `i' (idle tasks), `n' (max tasks), `v' (hide children)
+and User/Other filtering remain accessible and can impact what is displayed.
+
+.TP 7
+\ \ \ \fBf\fR\ \ :\fIFields-Management \fR
+This key displays a separate screen where you can change which fields are
+displayed, their order and also designate the sort field.
+For additional information on this \*(CI
+\*(Xt 3b. MANAGING Fields.
+
+.TP 7
+\ \ \ \fBO\fR | \fBo\fR\ \ :\fIOther-Filtering \fR
+You will be prompted for the selection criteria which then determines
+which tasks will be shown in the \*(CW.
+Your criteria can be made case sensitive or case can be ignored.
+And you determine if \*(We should include or exclude matching tasks.
+
+\*(XT 5e. FILTERING in a window for details on these and additional
+related \*(CIs.
+
+.TP 7
+\ \ \ \fBS\fR\ \ :\fICumulative-Time-Mode\fR toggle \fR
+When Cumulative mode is \*O, each process is listed with the \*(Pu
+time that it and its dead children have used.
+
+When \*F, programs that fork into many separate tasks will appear
+less demanding.
+For programs like `init' or a shell this is appropriate but for others,
+like compilers, perhaps not.
+Experiment with two \*(TWs sharing the same sort field but with different `S'
+states and see which representation you prefer.
+
+After issuing this command, you'll be informed of the new state of this toggle.
+If you wish to know in advance whether or not Cumulative mode is in
+effect, simply ask for help and view the window summary on the second line.
+
+.TP 7
+\ \ \ \fBU\fR | \fBu\fR\ \ :\fIShow-Specific-User-Only \fR
+You will be prompted for the\fB uid\fR or\fB name\fR of the user to display.
+The \-u option matches on \fB effective\fR user whereas the \-U option
+matches on\fB any\fR user (real, effective, saved, or filesystem).
+
+Thereafter, in that \*(TW only matching users will be shown, or possibly
+no processes will be shown.
+Prepending an exclamation point (`!') to the user id or name instructs \*(We
+to display only processes with users not matching the one provided.
+
+Different \*(TWs can be used to filter different users.
+Later, if you wish to monitor all users again in the \*(CW, re-issue this
+command but just press <Enter> at the prompt.
+
+.TP 7
+\ \ \ \fBV\fR\ \ :\fIForest-View-Mode\fR toggle \fR
+In this mode, processes are reordered according to their parents and
+the layout of the COMMAND column resembles that of a tree.
+In forest view mode it is still possible to toggle between program
+name and command line (\*(Xc `c' \*(CI) or between processes and
+threads (\*(Xc `H' \*(CI).
+
+\*(NT Typing any key affecting the sort order will exit forest view
+mode in the \*(CW.
+\*(XT 4c. TASK AREA Commands, SORTING for information on those keys.
+
+.TP 7
+\ \ \ \fBv\fR\ \ :\fIHide/Show-Children\fR toggle \fR
+When in forest view mode, this key serves as a toggle to collapse or
+expand the children of a parent.
+
+The toggle is applied against the first (topmost) process in the \*(CW.
+\*(XT 5c. SCROLLING a Window for additional information regarding
+vertical scrolling.
+
+If the target process has not forked any children, this key has no effect.
+It also has no effect when not in forest view mode.
+
+.TP 7
+\ \ \fB^E\fR\ \ :\fIScale-CPU-Time-fields\fR (Ctrl key + `e')
+The `time' fields are normally displayed with the greatest
+precision their widths permit.
+This toggle reduces that precision until it wraps.
+It also illustrates the scaling those fields \fImight\fR experience
+automatically, which usually depends on how long the system runs.
+
+For example, if `MMM:SS.hh' is shown, each ^E keystroke would change
+it to: `MM:SS', `Hours,MM', `Days+Hours' and finally `Weeks+Days'.
+
+Not all time fields are subject to the full range of such scaling.
+
+.\" ..................................................
+.PP
+.B SIZE\fR of \*(TW
+
+.TP 7
+\ \ \ \fBi\fR\ \ :\fIIdle-Process\fR toggle \fR
+Displays all tasks or just active tasks.
+When this toggle is \*F, tasks that have not used any \*(PU since the
+last update will not be displayed.
+However, due to the granularity of the %CPU and TIME+ fields,
+some processes may still be displayed that\fI appear\fR to have
+used\fI no\fR \*(PU.
+
+If this command is applied to the last \*(TD when in \*(AM, then it will not
+affect the window's size, as all prior \*(TDs will have already been painted.
+
+.TP 7
+\ \ \ \fBn\fR | \fB#\fR\ \ :\fISet-Maximum-Tasks \fR
+You will be prompted to enter the number of tasks to display.
+The lessor of your number and available screen rows will be used.
+
+When used in \*(AM, this is the command that gives you precise control over
+the size of each currently visible \*(TD, except for the very last.
+It will not affect the last window's size, as all prior \*(TDs will have
+already been painted.
+
+\*(NT If you wish to increase the size of the last visible \*(TD when in \*(AM,
+simply decrease the size of the \*(TD(s) above it.
+
+.\" ..................................................
+.PP
+.B SORTING\fR of \*(TW
+.PP
+.RS +3
+For compatibility, this \*(We supports most of the former \*(We sort keys.
+Since this is primarily a service to former \*(We users, these commands do
+not appear on any help screen.
+.nf
+     \fI command   sorted-field                  supported \fR
+      A         start time (non-display)     \fB No \fR
+      M         %MEM                          Yes
+      N         PID                           Yes
+      P         %CPU                          Yes
+      T         TIME+                         Yes
+.fi
+
+Before using any of the following sort provisions, \*(We suggests that you
+temporarily turn on column highlighting using the `x' \*(CI.
+That will help ensure that the actual sort environment matches your intent.
+
+The following \*(CIs will\fB only\fR be honored when the current sort field
+is\fB visible\fR.
+The sort field might\fI not\fR be visible because:
+      1) there is insufficient\fI Screen Width \fR
+      2) the `f' \*(CI turned it \*F
+
+.TP 7
+\ \ \ \fB<\fR\ \ :\fIMove-Sort-Field-Left \fR
+Moves the sort column to the left unless the current sort field is
+the first field being displayed.
+
+.TP 7
+\ \ \ \fB>\fR\ \ :\fIMove-Sort-Field-Right \fR
+Moves the sort column to the right unless the current sort field is
+the last field being displayed.
+
+.PP
+The following \*(CIs will\fB always\fR be honored whether or not
+the current sort field is visible.
+
+.TP 7
+\ \ \ \fBf\fR\ \ :\fIFields-Management \fR
+This key displays a separate screen where you can change which field
+is used as the sort column, among other functions.
+This can be a convenient way to simply verify the current sort field,
+when running \*(We with column highlighting turned \*F.
+
+.TP 7
+\ \ \ \fBR\fR\ \ :\fIReverse/Normal-Sort-Field\fR toggle \fR
+Using this \*(CI you can alternate between high-to-low and low-to-high sorts.
+
+.\" ......................................................................
+.SS 4d. COLOR Mapping
+.\" ----------------------------------------------------------------------
+When you issue the `Z' \*(CI, you will be presented with a separate screen.
+That screen can be used to change the colors in just the \*(CW or
+in all four windows before returning to the \*(We display.
+
+.P
+The following \*(CIs are available.
+.nf
+    \fB4\fR upper case letters to select a\fB target \fR
+    \fB8\fR numbers to select a\fB color \fR
+    normal toggles available \fR
+        B         :bold disable/enable
+        b         :running tasks "bold"/reverse
+        z         :color/mono
+    other commands available \fR
+        a/w       :apply, then go to next/prior
+        <Enter>   :apply and exit
+        q         :abandon current changes and exit
+.fi
+
+If you use `a' or `w' to cycle the targeted window, you will
+have applied the color scheme that was displayed when you left that window.
+You can, of course, easily return to any window and reapply different
+colors or turn colors \*F completely with the `z' toggle.
+
+The Color Mapping screen can also be used to change the \*(CG in
+either \*(FM or \*(AM.
+Whatever was targeted when `q' or <Enter> was pressed will be made current
+as you return to the \*(We display.
+
+.\" ----------------------------------------------------------------------
+.SH 5. ALTERNATE\-DISPLAY Provisions
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS 5a. WINDOWS Overview
+.\" ----------------------------------------------------------------------
+.TP 3
+.B Field Groups/Windows\fR:
+In \*(FM there is a single window represented by the entire screen.
+That single window can still be changed to display 1 of 4 different\fB field
+groups\fR (\*(Xc `g' \*(CI, repeated below).
+Each of the 4 \*(FGs has a unique separately configurable\fB \*(SA \fR
+and its own configurable\fB \*(TA\fR.
+
+In \*(AM, those 4 underlying \*(FGs can now be made visible
+simultaneously, or can be turned \*F individually at your command.
+
+The \*(SA will always exist, even if it's only the message line.
+At any given time only\fI one\fR \*(SA can be displayed.
+However, depending on your commands, there could be from\fI zero \fR
+to\fI four\fR separate \*(TDs currently showing on the screen.
+
+.TP 3
+.B Current Window\fR:
+The \*(CW is the window associated with the \*(SA and the window to which
+task related commands are always directed.
+Since in \*(AM you can toggle the \*(TD \*F, some commands might be
+restricted for the \*(CW.
+
+A further complication arises when you have toggled the first \*(SA
+line \*F.
+With the loss of the window name (the `l' toggled line), you'll not easily
+know what window is the \*(CW.
+
+.\" ......................................................................
+.SS 5b. COMMANDS for Windows
+.\" ----------------------------------------------------------------------
+.TP 7
+\ \ \ \fB-\fR | \fB_\fR\ \ :\fIShow/Hide-Window(s)\fR toggles \fR
+The `\-' key turns the \*(CW's \*(TD \*O and \*F.
+When \*O, that \*(TA will show a minimum of the columns header you've
+established with the `f' \*(CI.
+It will also reflect any other \*(TA options/toggles you've applied
+yielding zero or more tasks.
+
+The `_' key does the same for all \*(TDs.
+In other words, it switches between the currently visible \*(TD(s) and any
+\*(TD(s) you had toggled \*F.
+If all 4 \*(TDs are currently visible, this \*(CI will leave the \*(SA
+as the only display element.
+
+.TP 7
+*\ \ \fB=\fR | \fB+\fR\ \ :\fIEqualize/Reset-Window(s) \fR
+The `=' key forces the \*(CW's \*(TD to be visible.
+It also reverses any active `i' (idle tasks), `n' (max tasks), `u/U'
+(user filter), `o/O' (other filter), `v' (hide children), `F' focused,
+`L' (locate) and `!' (combine cpus) commands.
+Also, if the window had been scrolled, it will be reset with this command.
+\*(XT 5c. SCROLLING a Window for additional information regarding vertical
+and horizontal scrolling.
+
+The `+' key does the same for all windows.
+The four \*(TDs will reappear, evenly balanced, while retaining
+any customizations previously applied beyond those noted
+for the `=' \*(CT.
+
+.TP 7
+*\ \ \fBA\fR\ \ :\fIAlternate-Display-Mode\fR toggle \fR
+This command will switch between \*(FM and \*(AM.
+
+The first time you issue this command, all four \*(TDs will be shown.
+Thereafter when you switch modes, you will see only the \*(TD(s) you've
+chosen to make visible.
+
+.TP 7
+*\ \ \fBa\fR | \fBw\fR\ \ :\fINext-Window-Forward/Backward \fR
+This will change the \*(CW, which in turn changes the window to which
+commands are directed.
+These keys act in a circular fashion so you can reach any desired window
+using either key.
+
+Assuming the window name is visible (you have not toggled `l' \*F),
+whenever the \*(CW name loses its emphasis/color, that's a reminder
+the \*(TD is \*F and many commands will be restricted.
+
+.TP 7
+\ \ \ \fBG\fR\ \ :\fIChange-Window/Field-Group-Name \fR
+You will be prompted for a new name to be applied to the \*(CW.
+It does not require that the window name be visible
+(the `l' toggle to be \*O).
+
+.IP "*" 3
+The \*(CIs shown with an \*(AK have use beyond \*(AM.
+.nf
+    =, A, g    are always available
+    a, w       act the same with color mapping
+               and fields management
+.fi
+
+.TP 7
+*\ \ \fBg\fR\ \ :\fIChoose-Another-Window/Field-Group \fR
+You will be prompted to enter a number between 1 and 4 designating the
+\*(FG which should be made the \*(CW.
+
+In \*(FM, this command is necessary to alter the \*(CW.
+In \*(AM, it is simply a less convenient alternative to the `a' and `w'
+commands.
+
+.\" ......................................................................
+.SS 5c. SCROLLING a Window
+.\" ----------------------------------------------------------------------
+Typically a \*(TW is a partial view into a system's total tasks/threads
+which shows only some of the available fields/columns.
+With these \*(KSs, you can move that view vertically or horizontally to
+reveal any desired task or column.
+
+.TP 4
+\fBUp\fR,\fBPgUp\fR\ \ :\fIScroll-Tasks \fR
+Move the view up toward the first task row, until the first task is
+displayed at the top of the \*(CW.
+The \fIUp\fR \*(KA moves a single line while \fIPgUp\fR scrolls the
+entire window.
+
+.TP 4
+\fBDown\fR,\fBPgDn\fR\ \ :\fIScroll-Tasks \fR
+Move the view down toward the last task row, until the last task is
+the only task displayed at the top of the \*(CW.
+The \fIDown\fR \*(KA moves a single line while \fIPgDn\fR scrolls the
+entire window.
+
+.TP 4
+\fBLeft\fR,\fBRight\fR\ \ :\fIScroll-Columns \fR
+Move the view of displayable fields horizontally one column at a time.
+
+\*(NT As a reminder, some fields/columns are not fixed-width but
+allocated all remaining screen width when visible.
+When scrolling right or left, that feature may produce some
+unexpected results initially.
+
+Additionally, there are special provisions for any variable width field
+when positioned as the last displayed field.
+Once that field is reached via the right arrow key, and is thus the only
+column shown, you can continue scrolling horizontally within such a field.
+\*(XC `C' \*(CI below for additional information.
+
+.TP 4
+\fBHome\fR\ \ :\fIJump-to-Home-Position \fR
+Reposition the display to the un-scrolled coordinates.
+
+.TP 4
+\fBEnd\fR\ \ :\fIJump-to-End-Position \fR
+Reposition the display so that the rightmost column reflects the last
+displayable field and the bottom task row represents the last task.
+
+\*(NT From this position it is still possible to scroll\fI down\fR
+and\fI right\fR using the \*(KAs.
+This is true until a single column and a single task is left as the only
+display element.
+
+.TP 4
+\fBC\fR\ \ :\fIShow-scroll-coordinates\fR toggle \fR
+Toggle an informational message which is displayed whenever the message
+line is not otherwise being used.
+That message will take one of two forms depending on whether or not a
+variable width column has also been scrolled.
+
+.nf
+  \fBscroll coordinates: y = n/n (tasks), x = n/n (fields)\fR
+  \fRscroll coordinates: y = n/n (tasks), x = n/n (fields)\fB + nn\fR
+.fi
+
+The coordinates shown as \fBn\fR/\fBn\fR are relative to the upper left
+corner of the \*(CW.
+The additional `\fB+\ nn\fR' represents the displacement into a variable
+width column when it has been scrolled horizontally.
+Such displacement occurs in normal 8 character tab stop amounts via
+the right and left arrow keys.
+
+.RS +4
+.TP 4
+\fBy = n/n (tasks) \fR
+The first \fBn\fR represents the topmost visible task and is controlled
+by \*(KSs.
+The second \fBn\fR is updated automatically to reflect total tasks.
+
+.TP 4
+\fBx = n/n (fields) \fR
+The first \fBn\fR represents the leftmost displayed column and is
+controlled by \*(KSs.
+The second \fBn\fR is the total number of displayable fields and is
+established with the `\fBf\fR' \*(CI.
+.RS -4
+
+.PP
+The above \*(CIs are\fB always\fR available in \*(FM but\fB never\fR
+available in \*(AM if the \*(CW's \*(TD has been toggled \*F.
+
+\*(NT When any form of filtering is active, you can expect some slight
+aberrations when scrolling since not all tasks will be visible.
+This is particularly apparent when using the Up/Down \*(KAs.
+
+.\" ......................................................................
+.SS 5d. SEARCHING in a Window
+.\" ----------------------------------------------------------------------
+You can use these \*(CIs to locate a task row containing a particular value.
+
+.TP 4
+\fBL\fR\ \ :\fILocate-a-string\fR
+You will be prompted for the case-sensitive string to locate starting from
+the current window coordinates.
+There are no restrictions on search string content.
+
+Searches are not limited to values from a single field or column.
+All of the values displayed in a task row are allowed in a search string.
+You may include spaces, numbers, symbols and even forest view artwork.
+
+Keying <Enter> with no input will effectively disable the `&' key until
+a new search string is entered.
+
+.TP 4
+\fB&\fR\ \ :\fILocate-next\fR
+Assuming a search string has been established, \*(We will attempt to locate
+the next occurrence.
+
+.PP
+When a match is found, the current window is repositioned vertically so the
+task row containing that string is first.
+The scroll coordinates message can provide confirmation of such vertical
+repositioning (\*(Xc `C' \*(CI).
+Horizontal scrolling, however, is never altered via searching.
+
+The availability of a matching string will be influenced by the following
+factors.
+.RS +3
+.TP 3
+a. Which fields are displayable from the total available,
+\*(Xt 3b. MANAGING Fields.
+.TP 3
+b. Scrolling a window vertically and/or horizontally,
+\*(Xt 5c. SCROLLING a Window.
+.TP 3
+c. The state of the command/command-line toggle,
+\*(Xc `c' \*(CI.
+.TP 3
+d. The stability of the chosen sort column,
+for example PID is good but %CPU bad.
+.RS -3
+
+.PP
+If a search fails, restoring the \*(CW home (unscrolled) position, scrolling
+horizontally, displaying command-lines or choosing a more stable sort field
+could yet produce a successful `&' search.
+
+The above \*(CIs are\fB always\fR available in \*(FM but\fB never\fR
+available in \*(AM if the \*(CW's \*(TD has been toggled \*F.
+
+.\" ......................................................................
+.SS 5e. FILTERING in a Window
+.\" ----------------------------------------------------------------------
+You can use this `Other Filter' feature to establish selection criteria which
+will then determine which tasks are shown in the \*(CW.
+Such filters can be made persistent if preserved in the rcfile via
+the `W' \*(CI.
+
+Establishing a filter requires: 1) a field name; 2) an operator; and
+3) a selection value, as a minimum.
+This is the most complex of \*(We's user input requirements so, when you make
+a mistake, command recall will be your friend.
+Remember the Up/Down \*(KAs or their aliases when prompted for input.
+
+.B Filter Basics
+.RS +3
+.TP 3
+1. field names are case sensitive and spelled as in the header
+.TP 3
+2. selection values need not comprise the full displayed field
+.TP 3
+3. a selection is either case insensitive or sensitive to case
+.TP 3
+4. the default is inclusion, prepending `!' denotes exclusions
+.TP 3
+5. multiple selection criteria can be applied to a \*(TW
+.TP 3
+6. inclusion and exclusion criteria can be used simultaneously
+.TP 3
+7. the 1 equality and 2 relational filters can be freely mixed
+.TP 3
+8. separate unique filters are maintained for each \*(TW
+
+.PP
+If a field is not turned on or is not currently in view, then your selection
+criteria will not affect the display.
+Later, should a filtered field become visible, the selection criteria will
+then be applied.
+.RE
+
+.B Keyboard Summary
+.TP 6
+\ \ \fBO\fR\ \ :\fIOther-Filter\fR (upper case)
+You will be prompted to establish a \fBcase sensitive\fR filter.
+
+.TP 6
+\ \ \fBo\fR\ \ :\fIOther-Filter\fR (lower case)
+You will be prompted to establish a filter that \fBignores case\fR when
+matching.
+
+.TP 6
+\ \fB^O\fR\ \ :\fIShow-Active-Filters\fR (Ctrl key + `o')
+This can serve as a reminder of which filters are active in the \*(CW.
+A summary will be shown on the message line until you press the <Enter> key.
+
+.TP 6
+\ \ \fB=\fR\ \ :\fIReset-Filtering\fR in current window
+This clears all of your selection criteria in the \*(CW.
+It also has additional impact so please \*(Xt 4a. GLOBAL Commands.
+
+.TP 6
+\ \ \fB+\fR\ \ :\fIReset-Filtering\fR in all windows
+This clears the selection criteria in all windows, assuming you are in \*(AM.
+As with the `=' \*(CI, it too has additional consequences so you might wish to
+\*(Xt 5b. COMMANDS for Windows.
+
+.PP
+.B Input Requirements
+.RS +3
+.P
+When prompted for selection criteria, the data you provide must take one
+of two forms.
+There are 3 required pieces of information, with a 4th as optional.
+These examples use spaces for clarity but your input generally would not.
+.nf
+        #1           \fB#2\fR  #3              ( required )
+        Field\-Name   ?   include\-if\-value
+     \fB!\fR  Field\-Name   ?   \fBexclude\fR\-if\-value
+     #4                                  ( optional )
+.fi
+
+Items #1, #3 and #4 should be self\-explanatory.
+Item \fB#2\fR represents both a required \fIdelimiter\fR and the \fIoperator\fR
+which must be one of either equality (`=') or relation (`<' or `>').
+
+The `=' equality operator requires only a partial match and that
+can reduce your `if\-value' input requirements.
+The `>' or `<' relational operators always employ string comparisons,
+even with numeric fields.
+They are designed to work with a field's default \fIjustification\fR and
+with homogeneous data.
+When some field's numeric amounts have been subjected to \fIscaling\fR
+while others have not, that data is no longer homogeneous.
+
+If you establish a relational filter and you \fBhave\fR changed the
+default Numeric or Character \fIjustification\fR, that filter is likely to fail.
+When a relational filter is applied to a memory field and you \fBhave not\fR
+changed the \fIscaling\fR, it may produce misleading results.
+This happens, for example, because `100.0m' (MiB) would appear greater
+than `1.000g' (GiB) when compared as strings.
+
+If your filtered results appear suspect, simply altering justification or
+scaling may yet achieve the desired objective.
+See the `j', `J' and `e' \*(CIs for additional information.
+.RE
+
+.B Potential Problems
+.RS +3
+.P
+These \fBGROUP\fR filters could produce the exact same results or the
+second one might not display anything at all, just a blank \*(TW.
+.nf
+     GROUP=root        ( only the same results when )
+     GROUP=ROOT        ( invoked via lower case `o' )
+.fi
+
+Either of these \fBRES\fR filters might yield inconsistent and/or
+misleading results, depending on the current memory scaling factor.
+Or both filters could produce the exact same results.
+.nf
+     RES>9999          ( only the same results when )
+     !RES<10000        ( memory scaling is at `KiB' )
+.fi
+
+This \fBnMin\fR filter illustrates a problem unique to scalable fields.
+This particular field can display a maximum of 4 digits, beyond which values
+are automatically scaled to KiB or above.
+So while amounts greater than 9999 exist, they will appear as 2.6m, 197k, etc.
+.nf
+     nMin>9999         ( always a blank \*(TW )
+.fi
+.RE
+
+.B Potential Solutions
+.RS +3
+.P
+These examples illustrate how Other Filtering can be creatively
+applied to achieve almost any desired result.
+Single quotes are sometimes shown to delimit the spaces which are part of
+a filter or to represent a request for status (^O) accurately.
+But if you used them with if-values in real life, no matches would be found.
+
+Assuming field \fBnTH\fR is displayed, the first filter will result in
+only multi-threaded processes being shown.
+It also reminds us that a trailing space is part of every displayed field.
+The second filter achieves the exact same results with less typing.
+.nf
+     !nTH=` 1 '                ( ` for clarity only )
+     nTH>1                     ( same with less i/p )
+.fi
+
+With Forest View mode active and the \fBCOMMAND\fR column in view, this
+filter effectively collapses child processes so that just 3 levels are shown.
+.nf
+     !COMMAND=`       `- '     ( ` for clarity only )
+.fi
+
+The final two filters appear as in response to the status request key (^O).
+In reality, each filter would have required separate input.
+The \fBPR\fR example shows the two concurrent filters necessary to display
+tasks with priorities of 20 or more, since some might be negative.
+Then by exploiting trailing spaces, the \fBnMin\fR series of filters could
+achieve the failed `9999' objective discussed above.
+.nf
+     `PR>20' + `!PR=-'         ( 2 for right result )
+     `!nMin=0 ' + `!nMin=1 ' + `!nMin=2 ' + `!nMin=3 ' ...
+.fi
+.RS -3
+
+.\" ----------------------------------------------------------------------
+.SH 6. FILES
+.\" ----------------------------------------------------------------------
+.SS 6a. PERSONAL Configuration File
+.\" ----------------------------------------------------------------------
+This file is created or updated via the `W' \*(CI.
+
+The legacy version is written as `$HOME/.your\-name\-4\-\*(We' + `rc'
+with a leading period.
+
+A newly created \*(CF is written as procps/your\-name\-4\-\*(We' + `rc'
+without a leading period.
+The procps directory will be subordinate to either $XDG_CONFIG_HOME when
+set as an absolute path or the $HOME/.config directory.
+
+While not intended to be edited manually, here is the general layout:
+.nf
+    global   # line  1: the program name/alias notation
+      "      # line  2: id,altscr,irixps,delay,curwin
+    per ea   # line  a: winname,fieldscur
+    window   # line  b: winflags,sortindx,maxtasks,etc
+      "      # line  c: summclr,msgsclr,headclr,taskclr
+    global   # line 15: additional miscellaneous settings
+      "      # any remaining lines are devoted to optional
+      "      # active `other filters' discussed in section 5e above
+      "      # plus `inspect' entries discussed in section 6b below
+.fi
+
+If a valid absolute path to the rcfile cannot be established, customizations
+made to a running \*(We will be impossible to preserve.
+
+.\" ......................................................................
+.SS 6b. ADDING INSPECT Entries
+.\" ----------------------------------------------------------------------
+To exploit the `Y' \*(CI, you must add entries at the\fB end\fR of the
+\*(We personal \*(CF.
+Such entries simply reflect a file to be read or command/pipeline to be
+executed whose results will then be displayed in a separate scrollable,
+searchable window.
+
+If you don't know the location or name of your \*(We rcfile, use the `W'
+\*(CI to rewrite it and note those details.
+
+Inspect entries can be added with a redirected echo or by editing the \*(CF.
+Redirecting an echo risks overwriting the rcfile should it replace (>)
+rather than append (>>) to that file.
+Conversely, when using an editor care must be taken not to corrupt existing
+lines, some of which could contain unprintable data or unusual characters
+depending on the \*(We version under which that \*(CF was saved.
+
+Those Inspect entries beginning with a `#' character are ignored, regardless
+of content.
+Otherwise they consist of the following 3 elements, each of which\fI must\fR
+be separated by a tab character (thus 2 `\\t' total):
+
+.nf
+  .type:  literal `file' or `pipe'
+  .name:  selection shown on the Inspect screen
+  .fmts:  string representing a path or command
+.fi
+
+The two types of Inspect entries are\fI not\fR interchangeable.
+Those designated `\fBfile\fR' will be accessed using fopen and
+must reference a single file in the `.fmts' element.
+Entries specifying `\fBpipe\fR' will employ popen, their `.fmts' element
+could contain many pipelined commands and, none can be interactive.
+
+If the file or pipeline represented in your `.fmts' deals with the specific PID
+input or accepted when prompted, then the format string must also contain
+the `\fB%d\fR' specifier, as these examples illustrate.
+
+.nf
+  .fmts=  /proc/\fI%d\fR/numa_maps
+  .fmts=  lsof -P -p\fI %d\fR
+.fi
+
+For `\fBpipe\fR' type entries only, you may also wish to redirect stderr to
+stdout for a more comprehensive result.
+Thus the format string becomes:
+
+.nf
+  .fmts=  pmap -x %d\fI 2>&1\fR
+.fi
+
+Here are examples of both types of Inspect entries as they might appear
+in the rcfile.
+The first entry will be ignored due to the initial `#' character.
+For clarity, the pseudo tab depictions (^I) are surrounded by an
+extra space but the actual tabs would not be.
+.nf
+
+  # pipe ^I Sockets ^I lsof -n -P -i 2>&1
+  pipe ^I Open Files ^I lsof -P -p %d 2>&1
+  file ^I NUMA Info ^I /proc/%d/numa_maps
+  pipe ^I Log ^I tail -n100 /var/log/syslog | sort -Mr
+.fi
+
+Except for the commented entry above, these next examples show what could
+be echoed to achieve similar results, assuming the rcfile name was `.toprc'.
+However, due to the embedded tab characters, each of these lines should be
+preceded by `\fB/bin/echo \-e\fR', not just a simple an `echo', to
+enable backslash interpretation regardless of which shell you use.
+
+.nf
+  "pipe\\tOpen Files\\tlsof -P -p %d 2>&1" >> ~/.toprc
+  "file\\tNUMA Info\\t/proc/%d/numa_maps" >> ~/.toprc
+  "pipe\\tLog\\ttail -n200 /var/log/syslog | sort -Mr" >> ~/.toprc
+.fi
+
+If any inspect entry you create produces output with unprintable characters
+they will be displayed in either the ^C notation or hexadecimal <FF> form,
+depending on their value.
+This applies to tab characters as well, which will show as `^I'.
+If you want a truer representation, any embedded tabs should be expanded.
+The following example takes what could have been a `file' entry but employs
+a `pipe' instead so as to expand the embedded tabs.
+
+.nf
+  # next would have contained `\\t' ...
+  # file ^I <your_name> ^I /proc/%d/status
+  # but this will eliminate embedded `\\t' ...
+  pipe ^I <your_name> ^I cat /proc/%d/status | expand \-
+.fi
+
+\*(NT Some programs might rely on \fISIGINT\fR to end.
+Therefore, if a `\fBpipe\fR' such as the following is established, one must
+use Ctrl-C to terminate it in order to review the results.
+This is the single occasion where a `^C' will not also terminate \*(We.
+
+.nf
+  pipe ^I Trace ^I /usr/bin/strace -p %d 2>&1
+.fi
+
+Lastly, while `\fBpipe\fR' type entries have been discussed in terms of pipelines
+and commands, there is nothing to prevent you from including \fI shell scripts\fR
+as well.
+Perhaps even newly created scripts designed specifically for the `Y' \*(CI.
+
+For example, as the number of your Inspect entries grows over time, the `Options:'
+row will be truncated when screen width is exceeded.
+That does not affect operation other than to make some selections invisible.
+However, if some choices are lost to truncation but you want to see more options,
+there is an easy solution hinted at below.
+
+.nf
+  Inspection Pause at pid ...
+  Use:  left/right then <Enter> ...
+  Options:  help  1  2  3  4  5  6  7  8  9  10  11 ...
+.fi
+
+The entries in the \*(We rcfile would have a number for the `.name' element and
+the `help' entry would identify a shell script you've written explaining what
+those numbered selections actually mean.
+In that way, many more choices can be made visible.
+
+.\" ......................................................................
+.SS 6c. SYSTEM Configuration File
+.\" ----------------------------------------------------------------------
+This \*(CF represents defaults for users who have not saved their own \*(CF.
+The format mirrors exactly the personal \*(CF and can also include `inspect'
+entries as explained above.
+
+Creating it is a simple process.
+
+1. Configure \*(We appropriately for your installation and preserve that
+configuration with the `W' \*(CI.
+
+2. Add and test any desired `inspect' entries.
+
+3. Copy that \*(CF to the \fI/etc/\fR directory as `\fBtopdefaultrc\fR'.
+
+.\" ......................................................................
+.SS 6d. SYSTEM Restrictions File
+.\" ----------------------------------------------------------------------
+The presence of this file will influence which version of the help screen
+is shown to an ordinary user.
+
+More importantly, it will limit what ordinary users are allowed
+to do when \*(We is running.
+They will not be able to issue the following commands.
+.nf
+    k        Kill a task
+    r        Renice a task
+    d or s   Change delay/sleep interval
+.fi
+
+This \*(CF is not created by \*(We.
+Rather, it is created manually and placed it in the \fI/etc/\fR
+directory as `\fBtoprc\fR'.
+
+It should have exactly two lines, as shown in this example:
+.nf
+    s        # line 1: secure mode switch
+    5.0      # line 2: delay interval in seconds
+.fi
+
+.\" ----------------------------------------------------------------------
+.SH 7. ENVIRONMENT VARIABLE(S)
+.\" ----------------------------------------------------------------------
+The value set for the following is unimportant, just its presence.
+
+.IP LIBPROC_HIDE_KERNEL
+This will prevent display of any kernel threads and exclude such processes
+from the \*(SA Tasks/Threads counts.
+
+.\" ----------------------------------------------------------------------
+.SH 8. STUPID TRICKS Sampler
+.\" ----------------------------------------------------------------------
+Many of these tricks work best when you give \*(We a scheduling boost.
+So plan on starting him with a nice value of \-10, assuming you've got
+the authority.
+
+.\" ......................................................................
+.SS 7a. Kernel Magic
+.\" ----------------------------------------------------------------------
+.\" sorry, just can't help it -- don't ya love the sound of this?
+For these stupid tricks, \*(We needs \*(FM.
+.\" ( apparently AM static was a potential concern )
+
+.IP \(bu 3
+The user interface, through prompts and help, intentionally implies
+that the delay interval is limited to tenths of a second.
+However, you're free to set any desired delay.
+If you want to see Linux at his scheduling best, try a delay of .09
+seconds or less.
+
+For this experiment, under x-windows open an xterm and maximize it.
+Then do the following:
+.nf
+  . provide a scheduling boost and tiny delay via:
+      nice -n -10 \*(We -d.09
+  . keep sorted column highlighting \*F so as to
+    minimize path length
+  . turn \*O reverse row highlighting for emphasis
+  . try various sort columns (TIME/MEM work well),
+    and normal or reverse sorts to bring the most
+    active processes into view
+.fi
+
+What you'll see is a very busy Linux doing what he's always done for you,
+but there was no program available to illustrate this.
+
+.IP \(bu 3
+Under an xterm using `white-on-black' colors, on \*(We's Color Mapping screen
+set the task color to black and be sure that task highlighting is set to bold,
+not reverse.
+Then set the delay interval to around .3 seconds.
+
+After bringing the most active processes into view, what you'll see are
+the ghostly images of just the currently running tasks.
+
+.IP \(bu 3
+Delete the existing rcfile, or create a new symlink.
+Start this new version then type `T' (a secret key,
+\*(Xt 4c. Task Area Commands, SORTING) followed by `W' and `q'.
+Finally, restart the program with \-d0 (zero delay).
+
+Your display will be refreshed at three times the rate of the former \*(We,
+a 300% speed advantage.
+As \*(We climbs the TIME ladder, be as patient as you can while speculating
+on whether or not \*(We will ever reach the \*(We.
+
+.\" ......................................................................
+.SS 7b. Bouncing Windows
+.\" ----------------------------------------------------------------------
+For these stupid tricks, \*(We needs \*(AM.
+
+.IP \(bu 3
+With 3 or 4 \*(TDs visible, pick any window other than the last
+and turn idle processes \*F using the `i' \*(CT.
+Depending on where you applied `i', sometimes several \*(TDs are bouncing and
+sometimes it's like an accordion, as \*(We tries his best to allocate space.
+
+.IP \(bu 3
+Set each window's summary lines differently: one with no memory (`m'); another
+with no states (`t'); maybe one with nothing at all, just the message line.
+Then hold down `a' or `w' and watch a variation on bouncing windows \*(Em
+hopping windows.
+
+.IP \(bu 3
+Display all 4 windows and for each, in turn, set idle processes to \*F using
+the `i' \*(CT.
+You've just entered the "extreme bounce" zone.
+
+.\" ......................................................................
+.SS 7c. The Big Bird Window
+.\" ----------------------------------------------------------------------
+This stupid trick also requires \*(AM.
+
+.IP \(bu 3
+Display all 4 windows and make sure that 1:Def is the \*(CW.
+Then, keep increasing window size with the `n' \*(CI until all the other
+\*(TDs are "pushed out of the nest".
+
+When they've all been displaced, toggle between all visible/invisible windows
+using the `_' \*(CT.
+Then ponder this:
+.br
+   is \*(We fibbing or telling honestly your imposed truth?
+
+.\" ......................................................................
+.SS 7d. The Ol' Switcheroo
+.\" ----------------------------------------------------------------------
+This stupid trick works best without \*(AM, since justification is active
+on a per window basis.
+
+.IP \(bu 3
+Start \*(We and make COMMAND the last (rightmost) column displayed.
+If necessary, use the `c' \*(CT to display command lines and ensure
+that forest view mode is active with the `V' \*(CT.
+
+Then use the up/down arrow keys to position the display so that some
+truncated command lines are shown (`+' in last position).
+You may have to resize your xterm to produce truncation.
+
+Lastly, use the `j' \*(CT to make the COMMAND column right justified.
+
+Now use the right arrow key to reach the COMMAND column.
+Continuing with the right arrow key, watch closely the direction
+of travel for the command lines being shown.
+
+.br
+   some lines travel left, while others travel right
+
+   eventually all lines will Switcheroo, and move right
+
+.\" ----------------------------------------------------------------------
+.SH 9. BUGS
+.\" ----------------------------------------------------------------------
+Please send bug reports to
+.UR procps@freelists.org
+.UE .
+
+ \" ----------------------------------------------------------------------
+.SH 10. SEE Also
+.\" ----------------------------------------------------------------------
+.BR free (1),
+.BR ps (1),
+.BR uptime (1),
+.BR atop (1),
+.BR slabtop (1),
+.BR vmstat (8),
+.BR w (1)

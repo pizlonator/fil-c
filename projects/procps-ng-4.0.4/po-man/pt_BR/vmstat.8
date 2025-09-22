@@ -1,0 +1,184 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSTAT 8 2023\-01\-18 procps\-ng "Administração do sistema"
+.SH NOME
+vmstat \- Relata estatísticas de memória virtual
+.SH SINOPSE
+\fBvmstat\fP [opções] [\fIatraso\fP [\fIcontagem\fP]]
+.SH DESCRIÇÃO
+\fBvmstat\fP relata informações sobre processos, memória, paginação, E/S de
+bloco, traps, discos e atividade de cpu.
+.PP
+O primeiro relatório produzido fornece as médias desde a última
+reinicialização. Relatórios adicionais fornecem informações sobre um período
+de amostragem de \fIatraso\fP de comprimento. Os relatórios de processos e de
+memória são instantâneos em ambos os casos.
+.SH OPÇÕES
+.TP 
+\fIatraso\fP
+O \fIatraso\fP entre atualizações em segundos. Se nenhum \fIatraso\fP for
+especificado, apenas um relatório é impresso com os valores médios desde a
+inicialização.
+.TP 
+\fIcontagem\fP
+Número de atualizações. Na ausência de \fIcontagem\fP, quando \fIatraso\fP é
+definido, o padrão é infinito.
+.TP 
+\fB\-a\fP, \fB\-\-active\fP
+Exibe memória ativa e inativa, com um kernel 2.5.41 ou superior.
+.TP 
+\fB\-f\fP, \fB\-\-forks\fP
+A opção \fB\-f\fP exibe o número de bifurcações (forks) desde a
+inicialização. Isso inclui as chamadas do sistema de fork, vfork e clone, e
+é equivalente ao número total de tarefas criadas. Cada processo é
+representado por uma ou mais tarefas, dependendo do uso do segmento. Esta
+exibição não se repete.
+.TP 
+\fB\-m\fP, \fB\-\-slabs\fP
+Exibe slabinfo.
+.TP 
+\fB\-n\fP, \fB\-\-one\-header\fP
+Exibe o cabeçalho apenas uma vez em vez de periodicamente.
+.TP 
+\fB\-s\fP, \fB\-\-stats\fP
+Exibe uma tabela de vários contadores de eventos e estatísticas de
+memória. Esta exibição não se repete.
+.TP 
+\fB\-d\fP, \fB\-\-disk\fP
+Relata estatísticas de disco (requer 2.5.70 ou superior).
+.TP 
+\fB\-D\fP, \fB\-\-disk\-sum\fP
+Relata algumas estatísticas de resumo sobre a atividade do disco.
+.TP 
+\fB\-p\fP, \fB\-\-partition\fP \fIdispositivo\fP
+Estatísticas detalhadas sobre partição (requer 2.5.70 ou superior).
+.TP 
+\fB\-S\fP, \fB\-\-unit\fP \fIcaractere\fP
+Switches outputs between 1000 (\fIk\fP), 1024 (\fIK\fP), 1000000 (\fIm\fP), or
+1048576 (\fIM\fP)  bytes.  Note this does not change the swap (si/so) or block
+(bi/bo)  fields.
+.TP 
+\fB\-t\fP, \fB\-\-timestamp\fP
+Anexa o carimbo de tempo para cada linha.
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Modo de saída ampla (útil para sistemas com maior quantidade de memória,
+onde o modo de saída padrão sofre de quebras de coluna indesejadas). A saída
+é maior do que 80 caracteres por linha.
+.TP 
+\fB\-y\fP, \fB\-\-no\-first\fP
+Omits first report with statistics since system boot.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão e sai.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Exibe a ajuda e sai.
+.PD
+.SH "DESCRIÇÃO DE CAMPOS PARA MODO DE VM"
+.SS Procs
+.nf
+r: O número de processos executáveis (executando ou aguardando o tempo de execução).
+b: O número de processos bloqueados aguardando E/S para concluir.
+.fi
+.SS Memória
+Estes não são afetados pela opção \fB\-\-unit\fP.
+.nf
+swpd: a quantidade de memória virtual usada.
+livre: a quantidade de memória ociosa.
+buff: a quantidade de memória usada como buffers.
+cache: a quantidade de memória utilizada como cache.
+inativ: a quantidade de memória inativa. (opção \fB\-a\fP)
+ativo: a quantidade de memória ativa. (opção \fB\-a\fP)
+.fi
+.SS Swap
+Estes não são afetados pela opção \fB\-\-unit\fP.
+.nf
+si: Quantidade de memória trocada do disco (/s).
+so: Quantidade de memória trocada para o disco (/s).
+.fi
+.SS E/S
+.nf
+bi: Kibibyte received from a block device (KiB/s).
+bo: Kibibyte sent to a block device (KiB/s).
+.fi
+.SS Sistema
+.nf
+in: O número de interrupções por segundo, incluindo o relógio.
+cs: o número de trocas de contexto por segundo.
+.fi
+.SS CPU
+Esses são percentuais de tempo total de CPU.
+.nf
+us: Time spent running non\-kernel code.  (user time, including nice time)
+sy: Time spent running kernel code.  (system time)
+id: Time spent idle.  Prior to Linux 2.5.41, this includes IO\-wait time.
+wa: Time spent waiting for IO.  Prior to Linux 2.5.41, included in idle.
+st: Time stolen from a virtual machine.  Prior to Linux 2.6.11, unknown.
+gu: Time spent running KVM guest code (guest time, including guest nice).
+.fi
+.SH "DESCRIÇÃO DE CAMPOS PARA MODO DE DISCO"
+.SS Leituras
+.nf
+total: Total de leituras concluídas com sucesso
+mescl.: Leituras agrupadas (resultando em uma E/S)
+setores: Setores lidos com sucesso
+ms: Milissegundos gastos lendo
+.fi
+.SS Escritas
+.nf
+total: Total de escritas concluídas com sucesso
+mescl.: Escritas agrupadas (resultando em uma E/S)
+setores: Setores escritos com sucesso
+ms: Milissegundos gastos escrevendo
+.fi
+.SS E/S
+.nf
+atu: E/S em progresso
+s: segundos gastos para E/S
+.fi
+.SH "DESCRIÇÃO DE CAMPOS PARA MODO DE PARTIÇÃO"
+.nf
+leituras: Número total de leituras emitidas para esta partição
+set. lidos: Total de setores lidos para a partição
+escritas: Número total de escritas emitidas para esta partição
+escrit. solic: Número total de solicitações de escrita feitas para partição
+.fi
+.SH "DESCRIÇÃO DE CAMPOS PARA MODO DE SLAB"
+Slab mode shows statistics per slab, for more information about this
+information see \fBslabinfo\fP(5)
+.PP
+.nf
+cache: Nome do cache
+núm: Número de objetos atualmente ativos
+total: Número total de objetos disponíveis
+tam.: Tamanho de cada objeto
+págs.: Número de páginas com pelo menos um objeto ativo
+.fi
+.SH NOTAS
+\fBvmstat\fP requires read access to files under \fI/proc\fP. The \fB\-m\fP requires
+read access to \fI/proc/slabinfo\fP which may not be available to standard
+users.  Mount options for \fI/proc\fP such as \fIsubset=pid\fP may also impact
+what is visible.
+.SH "VEJA TAMBÉM"
+\fBfree\fP(1), \fBiostat\fP(1), \fBmpstat\fP(1), \fBps\fP(1), \fBsar\fP(1), \fBtop\fP(1),
+\fBslabinfo\fP(5)
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

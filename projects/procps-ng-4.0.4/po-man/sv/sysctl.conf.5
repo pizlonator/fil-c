@@ -1,0 +1,92 @@
+.\"
+.\" Copyright (c) 2016-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL.CONF 5 2021\-09\-15 procps\-ng Filformat
+.SH NAMN
+sysctl.conf — förinställnings\-/konfigurationsfil till sysctl
+.SH BESKRIVNING
+\fBsysctl.conf\fP är en enkel fil som innehåller sysctl\-värden att läsas in och
+sättas av \fBsysctl\fP.  Syntaxen är som följer:
+.RS
+.sp
+.nf
+.ne 7
+# kommentar
+; kommentar
+
+symbol = värde
+.fi
+.RE
+.PP
+Observera att tomma rader ignoreras, och blanktecken före och efter en
+symbol eller ett värde ignoreras, även om ett värde kan innehålla
+blanktecken inuti.  Rader som börjar med en \fB#\fP eller ett \fB;\fP betraktas
+som kommentarer och ignoreras.
+
+Om en rad börjar med ett ensamt \- kommer alla misslyckade försök att sätta
+värdet ignoreras.
+
+.SH OBSERVERA
+Eftersom filen \fB/etc/sysctl.conf\fP används för att åsidosätta standardvärden
+på kärnparametrar är endast ett litet antal parametrar fördefinierade i
+filen.  Använd \fI/sbin/sysctl\ \-a\fP eller följ \fBsysctl\fP(8) för att lista
+alla möjliga parametrar.  Beskrivningen av enskilda parametrar finns i
+kärnans dokumentation.
+
+Maximal radlängt som stöds för värdet är 4096 tecken på grund av en
+begränsning hos \fI/proc\fP\-poster i Linuxkärnan.
+.SH EXEMPEL
+.RS
+.sp
+.nf
+.ne 7
+# sysctl.conf\-exempel
+#
+  kernel.domainname = example.com
+; detta värde har ett mellanslag som kommer att skrivas av sysctl!
+  kernel.modprobe = /sbin/mod probe
+.fi
+.RE
+.PP
+.SH FILER
+\fI/etc/sysctl.d/*.conf\fP
+.br
+\fI/run/sysctl.d/*.conf\fP
+.br
+\fI/usr/local/lib/sysctl.d/*.conf\fP
+.br
+\fI/usr/lib/sysctl.d/*.conf\fP
+.br
+\fI/lib/sysctl.d/*.conf\fP
+.br
+\fI/etc/sysctl.conf\fP
+
+Sökvägarna där förinställningsfiler till \fBsysctl\fP normalt finns.  Se även
+flaggan \fI\-\-system\fP till \fBsysctl\fP.
+.SH "SE ÄVEN"
+\fBsysctl\fP(8)
+.SH UPPHOVSMAN
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

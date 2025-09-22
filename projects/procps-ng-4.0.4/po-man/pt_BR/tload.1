@@ -1,0 +1,60 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1993      Matt Welsh <mdw@tc.cornell.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TLOAD 1 2020\-06\-04 procps\-ng "Comandos de usuário"
+.SH NOME
+tload \- representação gráfica da média de carga do sistema
+.SH SINOPSE
+\fBtload\fP [\fIopções\fP] [\fItty\fP]
+.SH DESCRIÇÃO
+\fBtload\fP emite um gráfico da média da carga atual do sistema para o \fItty\fP
+especificado (ou o tty do processo do \fBtload\fP se nenhum for especificado).
+.SH OPÇÕES
+.TP 
+\fB\-s\fP, \fB\-\-scale\fP \fInúmero\fP
+A opção de escala permite que uma escala vertical seja especificada na tela
+(em caracteres entre tiques de gráfico); portanto, um valor menor representa
+uma escala maior e vice\-versa.
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP \fIsegundos\fP
+O atraso define o atraso entre atualizações de gráfico em \fIsegundos\fP.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Exibe esse texto de ajuda.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Exibe informação da versão e sai.
+.PP
+.SH ARQUIVOS
+\fI/proc/loadavg\fP informações de média da carga
+.SH "VEJA TAMBÉM"
+\fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fBw\fP(1)
+.SH ERROS
+A opção \fB\-d\fP\fI segundos\fP define o argumento de tempo para um \fBalarm\fP(2);
+se \-d 0 for especificado, o alarme é definido para 0, o que nunca envia o
+\fBSIGALRM\fP e atualiza a tela.
+.SH AUTORES
+Branko Lankester,
+.UR david@\:ods.\:com
+David Engel
+.UE e
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE .
+.SH "RELATANDO ERROS"
+Por favor, envie relatórios de erros para
+.UR procps@freelists.org
+.UE

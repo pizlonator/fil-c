@@ -1,0 +1,185 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSTAT 8 2023\-01\-18 procps\-ng "Administration système"
+.SH NOM
+vmstat \- Afficher des statistiques sur la mémoire virtuelle
+.SH SYNOPSIS
+\fBvmstat\fP [\fIoptions\fP] [\fIdélai\fP [\fItotal\fP]]
+.SH DESCRIPTION
+\fBvmstat\fP affiche des informations sur les processus, la mémoire, la
+pagination, les blocs d'entrées et sorties, les interruptions et l'activité
+du processeur et des disques.
+.PP
+Le premier rapport produit présente les moyennes depuis le dernier
+démarrage. Les rapports ultérieurs présentent un compte rendu tous les
+\fIdélai\fP. Les rapports sur les processus et la mémoire sont immédiats dans
+tous les cas de figure.
+.SH OPTIONS
+.TP 
+\fIdélai\fP
+Le \fIdélai\fP en seconde entre les mises à jour. Si aucun \fIdélai\fP n'est
+précisé, seul un rapport est affiché avec les valeurs moyennes depuis le
+démarrage.
+.TP 
+\fItotal\fP
+Le nombre de mises à jour. Si \fItotal\fP n'est pas indiqué, quand \fIdélai\fP est
+défini, \fItotal\fP vaut l'infini par défaut.
+.TP 
+\fB\-a\fP, \fB\-\-active\fP
+Afficher la mémoire active et inactive pour les noyaux\ 2.5.41 et supérieurs.
+.TP 
+\fB\-f\fP, \fB\-\-forks\fP
+L'option \fB\-f\fP affiche le nombre de processus fils depuis le démarrage du
+système, à savoir les «\ fork\ », «\ vfork\ » et les clones d'appels
+système. Cela correspond au nombre total de tâches créées. Chaque processus
+est représenté par une ou plusieurs tâches dépendant de l'utilisation des
+processus légers («\ threads\ »). Il n'y a pas de rafraîchissement.
+.TP 
+\fB\-m\fP, \fB\-\-slabs\fP
+Afficher le slabinfo.
+.TP 
+\fB\-n\fP, \fB\-\-one\-header\fP
+N'afficher l'en\-tête qu'une fois plutôt que périodiquement.
+.TP 
+\fB\-s\fP, \fB\-\-stats\fP
+Afficher un tableau de compteurs d'événements et des statistiques sur la
+mémoire. Il s'agit d'un affichage unique.
+.TP 
+\fB\-d\fP, \fB\-\-disk\fP
+Afficher des statistiques sur le disque (pour les versions\ 2.5.70 ou
+supérieures).
+.TP 
+\fB\-D\fP, \fB\-\-disk\-sum\fP
+Afficher des statistiques succinctes à propos de l'activité des disques.
+.TP 
+\fB\-p\fP, \fB\-\-partition\fP \fIpériphérique\fP
+Afficher des statistiques sur les partitions (pour les versions\ 2.5.70 ou
+supérieures).
+.TP 
+\fB\-S\fP, \fB\-\-unit\fP \fIlettre\fP
+Switches outputs between 1000 (\fIk\fP), 1024 (\fIK\fP), 1000000 (\fIm\fP), or
+1048576 (\fIM\fP)  bytes.  Note this does not change the swap (si/so) or block
+(bi/bo)  fields.
+.TP 
+\fB\-t\fP, \fB\-\-timestamp\fP
+Ajouter un horodatage à toutes les lignes.
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Mode de sortie large (utile pour les systèmes avec une grande quantité de
+mémoire, où le mode d’affichage par défaut est victime de rupture de colonne
+involontaire). La sortie est plus grande que 80\ caractères par ligne.
+.TP 
+\fB\-y\fP, \fB\-\-no\-first\fP
+Omits first report with statistics since system boot.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afficher la version du logiciel et quitter.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afficher l'aide et quitter.
+.PD
+.SH "DESCRIPTIONS DES CHAMPS POUR LE MODE VM"
+.SS "procs (processus)"
+.nf
+r: The number of runnable processes (running or waiting for run time).
+b: The number of processes blocked waiting for I/O to complete.
+.fi
+.SS "memory (mémoire)"
+Ceci est affecté par l'option \fB\-\-unit\fP.
+.nf
+swpd: the amount of swap memory used.
+free: the amount of idle memory.
+buff: the amount of memory used as buffers.
+cache: the amount of memory used as cache.
+inact: the amount of inactive memory.  (\fB\-a\fP option)
+active: the amount of active memory.  (\fB\-a\fP option)
+.fi
+.SS "swap (espace d'échange)"
+Ceci est affecté par l'option \fB\-\-unit\fP.
+.nf
+si\ : Quantité de mémoire paginée lue depuis le disque en ko/s.
+so\ : Quantité de mémoire paginée transférée sur disque en ko/s.
+.fi
+.SS "io (entrées et sorties)"
+.nf
+bi: Kibibyte received from a block device (KiB/s).
+bo: Kibibyte sent to a block device (KiB/s).
+.fi
+.SS "system (système)"
+.nf
+in\ : Nombre d'interruptions par seconde, incluant l'horloge.
+cs\ : Nombre de bascules du contexte par seconde.
+.fi
+.SS CPU
+Il s'agit de la répartition du temps processeur en pourcentage.
+.nf
+us: Time spent running non\-kernel code.  (user time, including nice time)
+sy: Time spent running kernel code.  (system time)
+id: Time spent idle.  Prior to Linux 2.5.41, this includes IO\-wait time.
+wa: Time spent waiting for IO.  Prior to Linux 2.5.41, included in idle.
+st: Time stolen from a virtual machine.  Prior to Linux 2.6.11, unknown.
+gu: Time spent running KVM guest code (guest time, including guest nice).
+.fi
+.SH "DESCRIPTIONS DES CHAMPS POUR LE MODE DISQUE"
+.SS "reads (lectures)"
+.nf
+total\ : Nombre total de lectures réussies.
+merged\ : Lectures groupées (en une seule opération d'entrée ou sortie).
+sectors\ : Secteurs lus avec succès.
+ms\ : Temps de lecture en milliseconde.
+.fi
+.SS "writes (écritures)"
+.nf
+total\ : Nombre total d'écritures terminées avec succès.
+merged\ : Écritures groupées (en une seule opération d'entrée ou sortie).
+sectors\ : Secteurs écrits avec succès.
+ms\ : Temps d'écriture en milliseconde.
+.fi
+.SS "io (entrées et sorties)"
+.nf
+cur\ : Entrées et sorties en cours.
+s\ : Temps en seconde utilisé par les entrées et sorties.
+.fi
+.SH "DESCRIPTIONS DES CHAMPS POUR LE MODE DE PARTITION DE DISQUE"
+.nf
+reads\ : Nombre total de lectures de la partition.
+read sectors\ : Nombre total de secteurs lus pour la partition.
+writes\ : Nombre total d'écritures sur la partition.
+requested writes\ : Nombre total de requêtes d'écriture sur la partition.
+.fi
+.SH "DESCRIPTIONS DES CHAMPS POUR LE MODE SLAB"
+Slab mode shows statistics per slab, for more information about this
+information see \fBslabinfo\fP(5)
+.PP
+.nf
+cache\ : Nom du cache.
+num\ : Nombre d'objets actuellement actifs.
+total\ : Nombre total d'objets disponibles.
+size\ : Taille de chaque objet.
+pages\ : Nombre de pages avec au moins un objet actif.
+.fi
+.SH NOTES
+\fBvmstat\fP requires read access to files under \fI/proc\fP. The \fB\-m\fP requires
+read access to \fI/proc/slabinfo\fP which may not be available to standard
+users.  Mount options for \fI/proc\fP such as \fIsubset=pid\fP may also impact
+what is visible.
+.SH "VOIR AUSSI"
+\fBfree\fP(1), \fBiostat\fP(1), \fBmpstat\fP(1), \fBps\fP(1), \fBsar\fP(1), \fBtop\fP(1),
+\fBslabinfo\fP(5)
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

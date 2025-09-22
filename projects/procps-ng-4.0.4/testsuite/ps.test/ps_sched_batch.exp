@@ -1,0 +1,11 @@
+#
+# check the ps SCHED_BATCH scheduler policy output
+#
+set ps "${topdir}src/ps/pscommand"
+set schedbatch "${topdir}testsuite/test-schedbatch"
+
+spawn $schedbatch 18
+
+set test "ps SCHED_BATCH scheduler"
+spawn $ps --no-header -o comm,cls,nice -a
+expect_pass "$test" "(?n)^test-schedbatch\\s+B\\s+18\\r?\$"

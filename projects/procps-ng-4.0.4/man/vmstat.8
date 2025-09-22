@@ -1,0 +1,202 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH VMSTAT 8 "2023-01-18" "procps-ng" "System Administration"
+.SH NAME
+vmstat \- Report virtual memory statistics
+.SH SYNOPSIS
+.B vmstat
+[options]
+.RI [ delay " [" count ]]
+.SH DESCRIPTION
+.B vmstat
+reports information about processes, memory, paging, block IO, traps, disks
+and cpu activity.
+.PP
+The first report produced gives averages since the last reboot.  Additional
+reports give information on a sampling period of length
+.IR delay .
+The process and memory reports are instantaneous in either case.
+.SH OPTIONS
+.TP
+.I delay
+The
+.I delay
+between updates in seconds.  If no
+.I delay
+is specified, only one report is printed with the average values since boot.
+.TP
+.I count
+Number of updates.  In absence of
+.IR count ,
+when
+.I delay
+is defined, default is infinite.
+.TP
+\fB\-a\fR, \fB\-\-active\fR
+Display active and  inactive memory, given a 2.5.41 kernel or better.
+.TP
+\fB\-f\fR, \fB\-\-forks\fR
+The
+.B \-f
+switch displays the number of forks since boot.  This includes the fork,
+vfork, and clone system calls, and is equivalent to the total number of tasks
+created.  Each process is represented by one or more tasks, depending on
+thread usage.  This display does not repeat.
+.TP
+\fB\-m\fR, \fB\-\-slabs\fR
+Displays slabinfo.
+.TP
+\fB\-n\fR, \fB\-\-one-header\fR
+Display the header only once rather than periodically.
+.TP
+\fB\-s\fR, \fB\-\-stats\fR
+Displays a table of various event counters and memory statistics.  This
+display does not repeat.
+.TP
+\fB\-d\fR, \fB\-\-disk\fR
+Report disk statistics (2.5.70 or above required).
+.TP
+\fB\-D\fR, \fB\-\-disk-sum\fR
+Report some summary statistics about disk activity.
+.TP
+\fB\-p\fR, \fB\-\-partition\fR \fIdevice\fR
+Detailed statistics about partition (2.5.70 or above required).
+.TP
+\fB\-S\fR, \fB\-\-unit\fR \fIcharacter\fR
+Switches outputs between 1000
+.RI ( k ),
+1024
+.RI ( K ),
+1000000
+.RI ( m ),
+or 1048576
+.RI ( M )
+bytes.  Note this does not change the swap (si/so) or block (bi/bo)
+fields.
+.TP
+\fB\-t\fR, \fB\-\-timestamp\fR
+Append timestamp to each line
+.TP
+\fB\-w\fR, \fB\-\-wide\fR
+Wide output mode (useful for systems with higher amount of memory,
+where the default output mode suffers from unwanted column breakage).
+The output is wider than 80 characters per line.
+.TP
+\fB\-y\fR, \fB\-\-no-first\fR
+Omits first report with statistics since system boot.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display help and exit.
+.PD
+.SH FIELD DESCRIPTION FOR VM MODE
+.SS Procs
+.nf
+r: The number of runnable processes (running or waiting for run time).
+b: The number of processes blocked waiting for I/O to complete.
+.fi
+.SS Memory
+These are affected by the \fB\-\-unit\fR option.
+.nf
+swpd: the amount of swap memory used.
+free: the amount of idle memory.
+buff: the amount of memory used as buffers.
+cache: the amount of memory used as cache.
+inact: the amount of inactive memory.  (\fB\-a\fR option)
+active: the amount of active memory.  (\fB\-a\fR option)
+.fi
+.SS Swap
+These are affected by the \fB\-\-unit\fR option.
+.nf
+si: Amount of memory swapped in from disk (/s).
+so: Amount of memory swapped to disk (/s).
+.fi
+.SS IO
+.nf
+bi: Kibibyte received from a block device (KiB/s).
+bo: Kibibyte sent to a block device (KiB/s).
+.fi
+.SS System
+.nf
+in: The number of interrupts per second, including the clock.
+cs: The number of context switches per second.
+.fi
+.SS CPU
+These are percentages of total CPU time.
+.nf
+us: Time spent running non\-kernel code.  (user time, including nice time)
+sy: Time spent running kernel code.  (system time)
+id: Time spent idle.  Prior to Linux 2.5.41, this includes IO\-wait time.
+wa: Time spent waiting for IO.  Prior to Linux 2.5.41, included in idle.
+st: Time stolen from a virtual machine.  Prior to Linux 2.6.11, unknown.
+gu: Time spent running KVM guest code (guest time, including guest nice).
+.fi
+.SH FIELD DESCRIPTION FOR DISK MODE
+.SS Reads
+.nf
+total: Total reads completed successfully
+merged: grouped reads (resulting in one I/O)
+sectors: Sectors read successfully
+ms: milliseconds spent reading
+.fi
+.SS Writes
+.nf
+total: Total writes completed successfully
+merged: grouped writes (resulting in one I/O)
+sectors: Sectors written successfully
+ms: milliseconds spent writing
+.fi
+.SS IO
+.nf
+cur: I/O in progress
+s: seconds spent for I/O
+.fi
+.SH FIELD DESCRIPTION FOR DISK PARTITION MODE
+.nf
+reads: Total number of reads issued to this partition
+read sectors: Total read sectors for partition
+writes : Total number of writes issued to this partition
+requested writes: Total number of write requests made for partition
+.fi
+.SH FIELD DESCRIPTION FOR SLAB MODE
+Slab mode shows statistics per slab, for more information
+about this information see
+.BR slabinfo (5)
+.PP
+.nf
+cache: Cache name
+num: Number of currently active objects
+total: Total number of available objects
+size: Size of each object
+pages: Number of pages with at least one active object
+.fi
+.SH NOTES
+.B vmstat
+requires read access to files under \fI/proc\fR. The \fB\-m\fR requires read
+access to \fI/proc/slabinfo\fR which may not be available to standard users.
+Mount options for \fI/proc\fR such as \fIsubset=pid\fR may also impact what
+is visible.
+.SH "SEE ALSO"
+.BR free (1),
+.BR iostat (1),
+.BR mpstat (1),
+.BR ps (1),
+.BR sar (1),
+.BR top (1),
+.BR slabinfo (5)
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

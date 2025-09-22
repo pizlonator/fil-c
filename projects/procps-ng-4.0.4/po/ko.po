@@ -1,0 +1,4846 @@
+# Korean translation of procps-ng package.
+# Copyright (C) 2022 Free Software Foundation, Inc.
+# This file is distributed under the same license as the procps-ng package.
+# Seong-ho Cho <darkcircle.0426@gmail.com>, 2022-2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: procps-ng 4.0.4-rc1\n"
+"Report-Msgid-Bugs-To: procps@freelists.org\n"
+"POT-Creation-Date: 2023-08-19 17:38+1000\n"
+"PO-Revision-Date: 2023-08-22 12:13+0900\n"
+"Last-Translator: Seong-ho Cho <darkcircle.0426@gmail.com>\n"
+"Language-Team: Korean <translation-team-ko@googlegroups.com>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: local/fileutils.c:38
+msgid "write error"
+msgstr "쓰기 오류"
+
+#: src/free.c:74 src/slabtop.c:106 src/uptime.c:65
+#, c-format
+msgid " %s [options]\n"
+msgstr " %s [<옵션>]\n"
+
+#: src/free.c:76
+msgid " -b, --bytes         show output in bytes\n"
+msgstr " -b, --bytes         바이트 단위로 출력 표시\n"
+
+#: src/free.c:77
+msgid "     --kilo          show output in kilobytes\n"
+msgstr "     --kilo          킬로바이트 단위로 출력 표시\n"
+
+#: src/free.c:78
+msgid "     --mega          show output in megabytes\n"
+msgstr "     --mega          메가바이트 단위로 출력 표시\n"
+
+#: src/free.c:79
+msgid "     --giga          show output in gigabytes\n"
+msgstr "     --giga          기가바이트 단위로 출력 표시\n"
+
+#: src/free.c:80
+msgid "     --tera          show output in terabytes\n"
+msgstr "     --tera          테라바이트 단위로 출력 표시\n"
+
+#: src/free.c:81
+msgid "     --peta          show output in petabytes\n"
+msgstr "     --peta          페타바이트 단위로 출력 표시\n"
+
+#: src/free.c:82
+msgid " -k, --kibi          show output in kibibytes\n"
+msgstr " -k, --kibi          키비바이트 단위로 출력 표시\n"
+
+#: src/free.c:83
+msgid " -m, --mebi          show output in mebibytes\n"
+msgstr " -m, --mebi          메비바이트 단위로 출력 표시\n"
+
+#: src/free.c:84
+msgid " -g, --gibi          show output in gibibytes\n"
+msgstr " -g, --gibi          기비바이트 단위로 출력 표시\n"
+
+#: src/free.c:85
+msgid "     --tebi          show output in tebibytes\n"
+msgstr "     --tebi          테비바이트 단위로 출력 표시\n"
+
+#: src/free.c:86
+msgid "     --pebi          show output in pebibytes\n"
+msgstr "     --pebi          페비바이트 단위로 출력 표시\n"
+
+#: src/free.c:87
+msgid " -h, --human         show human-readable output\n"
+msgstr " -h, --human         가독 형식으로 출력 표시\n"
+
+#: src/free.c:88
+msgid "     --si            use powers of 1000 not 1024\n"
+msgstr "     --si            1024배수가 아닌 1000배수 사용\n"
+
+#: src/free.c:89
+msgid " -l, --lohi          show detailed low and high memory statistics\n"
+msgstr " -l, --lohi          자세한 하위 상위 메모리 통계 표시\n"
+
+#: src/free.c:90
+msgid " -L, --line          show output on a single line\n"
+msgstr " -L, --line          단일 행에 출력을 나타냅니다\n"
+
+#: src/free.c:91
+msgid " -t, --total         show total for RAM + swap\n"
+msgstr " -t, --total         RAM + 스왑 총계 표시\n"
+
+#: src/free.c:92
+msgid " -v, --committed     show committed memory and commit limit\n"
+msgstr " -v, --committed     커밋 메모리와 커밋 제한 표시\n"
+
+#: src/free.c:93
+msgid " -s N, --seconds N   repeat printing every N seconds\n"
+msgstr " -s N, --seconds <N> 매 N초당 출력 반복\n"
+
+#: src/free.c:94
+msgid " -c N, --count N     repeat printing N times, then exit\n"
+msgstr " -c N, --count <N>   N번 출력 반복 후 나감\n"
+
+#: src/free.c:95
+msgid " -w, --wide          wide output\n"
+msgstr " -w, --wide          넓게 출력\n"
+
+#: src/free.c:97 src/w.c:666
+msgid "     --help     display this help and exit\n"
+msgstr "     --help     이 도움말을 표시하고 나갑니다\n"
+
+#: src/free.c:172
+msgid "Multiple unit options don't make sense."
+msgstr "여러 단위 옵션의 지정은 올바르지 않습니다."
+
+#: src/free.c:341
+#, c-format
+msgid "seconds argument `%s' is not positive number"
+msgstr "두번째 `%s' 인자는 양수가 아닙니다"
+
+#: src/free.c:347
+msgid "failed to parse count argument"
+msgstr "계수 인자 해석 실패"
+
+#: src/free.c:350
+#, c-format
+msgid "failed to parse count argument: '%s'"
+msgstr "계수 인자 해석 실패: '%s'"
+
+#: src/free.c:370
+msgid "Memory information file /proc/meminfo does not exist"
+msgstr "/proc/meminfo 메모리 정보 파일이 없습니다"
+
+#: src/free.c:373 src/vmstat.c:378 src/vmstat.c:872
+msgid "Unable to create meminfo structure"
+msgstr "meminfo 구조 정보를 구성할 수 없습니다"
+
+#. Translation Hint: These are shortened column headers
+#. * that are all 7 characters long. Use spaces and right
+#. * align if the translation is shorter.
+#.
+#: src/free.c:381
+msgid "SwapUse"
+msgstr "사용스왑"
+
+#: src/free.c:382
+msgid "CachUse"
+msgstr "사용캐시"
+
+#: src/free.c:384
+msgid " MemUse"
+msgstr "사용 RAM"
+
+#: src/free.c:385
+msgid "MemFree"
+msgstr "가용 RAM"
+
+#: src/free.c:395
+#, c-format
+msgid ""
+"               total        used        free      shared     buffers       "
+"cache   available"
+msgstr ""
+"               총계         사용        여분      공유       버퍼          캐"
+"시    가용"
+
+#: src/free.c:397
+#, c-format
+msgid ""
+"               total        used        free      shared  buff/cache   "
+"available"
+msgstr ""
+"               총계         사용        여분      공유    버퍼/캐시    가용"
+
+#: src/free.c:400
+msgid "Mem:"
+msgstr "메모리:"
+
+#: src/free.c:423
+msgid "Low:"
+msgstr "하  위:"
+
+#: src/free.c:429
+msgid "High:"
+msgstr "상  위:"
+
+#: src/free.c:436
+msgid "Swap:"
+msgstr "스  왑:"
+
+#: src/free.c:443
+msgid "Total:"
+msgstr "총  계:"
+
+#: src/free.c:456
+msgid "Comm:"
+msgstr "커  밋:"
+
+#: src/kill.c:40
+#, c-format
+msgid " %s [options] <pid> [...]\n"
+msgstr " %s [<옵션>] <PID> [...]\n"
+
+#: src/kill.c:42
+msgid " <pid> [...]            send signal to every <pid> listed\n"
+msgstr " <PID> [...]            지정한 모든 <PID>에 시그널을 보냅니다\n"
+
+#: src/kill.c:43
+msgid ""
+" -<signal>, -s, --signal <signal>\n"
+"                        specify the <signal> to be sent\n"
+msgstr ""
+" -<시그널>, -s, --signal <시그널>\n"
+"                        보낼 <시그널>을 지정합니다\n"
+
+#: src/kill.c:45
+msgid " -q, --queue <value>    integer value to be sent with the signal\n"
+msgstr " -q, --queue <값>       시그널로 보낼 정수값\n"
+
+#: src/kill.c:46
+msgid ""
+" -l, --list=[<signal>]  list all signal names, or convert one to a name\n"
+msgstr ""
+" -l, --list=[<시그널>]  모든 시그널의 이름을 보여주거나 지정 시그널 하나를 이"
+"름으로 보여줍니다\n"
+
+#: src/kill.c:47
+msgid " -L, --table            list all signal names in a nice table\n"
+msgstr " -L, --table            모든 시그널 이름을 nice 테이블로 보여줍니다\n"
+
+#: src/kill.c:112
+#, c-format
+msgid "unknown signal name %s"
+msgstr "알 수 없는 %s 시그널 이름"
+
+#: src/kill.c:131
+msgid "must be an integer value to be passed with the signal."
+msgstr "시그널로 전달할 값은 정수여야 합니다."
+
+#: src/kill.c:136
+#, c-format
+msgid "invalid argument %c"
+msgstr "부적절한 %c 인자"
+
+#: src/kill.c:146 src/pgrep.c:792 src/pidof.c:250 src/pidof.c:290
+#: src/sysctl.c:867
+msgid "internal error"
+msgstr "내부 오류"
+
+#: src/kill.c:158 src/pmap.c:771 src/pmap.c:786 src/skill.c:381 src/skill.c:465
+#: src/tload.c:135 src/tload.c:140 src/vmstat.c:1047 src/vmstat.c:1057
+#: src/watch.c:891 src/watch.c:906
+msgid "failed to parse argument"
+msgstr "인자 해석 실패"
+
+#: src/pgrep.c:92 src/pidof.c:40 src/skill.c:74
+msgid "integer overflow"
+msgstr "정수 범위 초과"
+
+#: src/pgrep.c:155
+#, c-format
+msgid " %s [options] <pattern>\n"
+msgstr " %s [<옵션>] <패턴>\n"
+
+#: src/pgrep.c:159
+msgid " -d, --delimiter <string>  specify output delimiter\n"
+msgstr " -d, --delimiter <문자열>  출력 구분 문자를 지정합니다\n"
+
+#: src/pgrep.c:160
+msgid " -l, --list-name           list PID and process name\n"
+msgstr " -l, --list-name           PID와 프로세스 이름을 보여줍니다\n"
+
+#: src/pgrep.c:161
+msgid " -a, --list-full           list PID and full command line\n"
+msgstr " -a, --list-full           PID와 전체 명령행을 보여줍니다\n"
+
+#: src/pgrep.c:162
+msgid " -v, --inverse             negates the matching\n"
+msgstr " -v, --inverse             조건의 반대 결과를 보여줍니다\n"
+
+#: src/pgrep.c:163
+msgid " -w, --lightweight         list all TID\n"
+msgstr " -w, --lightweight         모든 TID를 보여줍니다\n"
+
+#: src/pgrep.c:166
+msgid " -<sig>                    signal to send (either number or name)\n"
+msgstr " -<시그널>                 보낼 시그널 (숫자 또는 이름)\n"
+
+#: src/pgrep.c:167
+msgid " -H, --require-handler     match only if signal handler is present\n"
+msgstr " -H, --require-handler     시그널 핸들러가 있을 때만 검색 일치\n"
+
+#: src/pgrep.c:168
+msgid " -q, --queue <value>       integer value to be sent with the signal\n"
+msgstr " -q, --queue <값>          시그널로 보낼 정수값\n"
+
+#: src/pgrep.c:169
+msgid " -e, --echo                display what is killed\n"
+msgstr " -e, --echo                강제로 끝낸 항목 표시\n"
+
+#: src/pgrep.c:173
+msgid " -e, --echo                display PIDs before waiting\n"
+msgstr " -e, --echo                기다리기 전 PID 표시\n"
+
+#: src/pgrep.c:177
+msgid " -c, --count               count of matching processes\n"
+msgstr " -c, --count               일치하는 프로세스 수 계수\n"
+
+#: src/pgrep.c:178
+msgid " -f, --full                use full process name to match\n"
+msgstr " -f, --full                검색어와 완전히 일치하는 프로세스만\n"
+
+#: src/pgrep.c:179
+msgid " -g, --pgroup <PGID,...>   match listed process group IDs\n"
+msgstr " -g, --pgroup <PGID,...>   프로세스 그룹 ID와 일치하는 항목만\n"
+
+#: src/pgrep.c:180
+msgid " -G, --group <GID,...>     match real group IDs\n"
+msgstr " -G, --group <GID,...>     실제 그룹 ID와 일치하는 항목만\n"
+
+#: src/pgrep.c:181
+msgid " -i, --ignore-case         match case insensitively\n"
+msgstr " -i, --ignore-case         대소문자 무관하게 일치\n"
+
+#: src/pgrep.c:182
+msgid " -n, --newest              select most recently started\n"
+msgstr " -n, --newest              가장 최근에 시작한 항목 선택\n"
+
+#: src/pgrep.c:183
+msgid " -o, --oldest              select least recently started\n"
+msgstr " -o, --oldest              가장 늦게 시작한 항목 선택\n"
+
+#: src/pgrep.c:184
+msgid " -O, --older <seconds>     select where older than seconds\n"
+msgstr " -O, --older <초>          지정 초 이전의 항목 선택\n"
+
+#: src/pgrep.c:185
+msgid ""
+" -P, --parent <PPID,...>   match only child processes of the given parent\n"
+msgstr ""
+" -P, --parent <PPID,...>   주어진 상위 프로세스 ID가 일치하는 하위 프로세스"
+"만\n"
+
+#: src/pgrep.c:186
+msgid " -s, --session <SID,...>   match session IDs\n"
+msgstr " -s, --session <SID,...>   세션 ID가 일치하는 항목만\n"
+
+#: src/pgrep.c:187
+msgid "     --signal <sig>        signal to send (either number or name)\n"
+msgstr "     --signal <시그널>     보낼 시그널 (숫자 또는 이름)\n"
+
+#: src/pgrep.c:188
+msgid " -t, --terminal <tty,...>  match by controlling terminal\n"
+msgstr " -t, --terminal <tty,...>  제어 터미널이 일치하는 항목\n"
+
+#: src/pgrep.c:189
+msgid " -u, --euid <ID,...>       match by effective IDs\n"
+msgstr " -u, --euid <ID,...>       해당 ID가 일치하는 항목\n"
+
+#: src/pgrep.c:190
+msgid " -U, --uid <ID,...>        match by real IDs\n"
+msgstr " -U, --uid <ID,...>        실제 ID가 일치하는 항목\n"
+
+#: src/pgrep.c:191
+msgid " -x, --exact               match exactly with the command name\n"
+msgstr " -x, --exact               명령 이름이 완전히 일치하는 항목\n"
+
+#: src/pgrep.c:192
+msgid " -F, --pidfile <file>      read PIDs from file\n"
+msgstr " -F, --pidfile <파일>      파일에서 PID 읽기\n"
+
+#: src/pgrep.c:193
+msgid " -L, --logpidfile          fail if PID file is not locked\n"
+msgstr " -L, --logpidfile          PID 파일을 잠그지 않았다면 실패로 간주\n"
+
+#: src/pgrep.c:194
+msgid " -r, --runstates <state>   match runstates [D,S,Z,...]\n"
+msgstr ""
+" -r, --runstates <상태>    지정 실행상태[D,S,Z,...]와 일치하는 항목만\n"
+
+#: src/pgrep.c:195
+msgid " -A, --ignore-ancestors    exclude our ancestors from results\n"
+msgstr " -A, --ignore-ancestors    결과의 상위 항목 제외\n"
+
+#: src/pgrep.c:196
+msgid " --cgroup <grp,...>        match by cgroup v2 names\n"
+msgstr " --cgroup <grp,...>        cgroup v2 이름과 일치하는 항목만\n"
+
+#: src/pgrep.c:197
+msgid ""
+" --ns <PID>                match the processes that belong to the same\n"
+"                           namespace as <pid>\n"
+msgstr ""
+" --ns <PID>                <PID>와 동일한 이름 영역을 소유한 프로세스만\n"
+
+#: src/pgrep.c:199
+msgid ""
+" --nslist <ns,...>         list which namespaces will be considered for\n"
+"                           the --ns option.\n"
+"                           Available namespaces: ipc, mnt, net, pid, user, "
+"uts\n"
+msgstr ""
+" --nslist <ns,...>         --ns 옵션에 지정한 이름 영역만 표시합니다.\n"
+"                           가용 이름 영역 값: ipc, mnt, net, pid, user, uts\n"
+
+#: src/pgrep.c:224 src/pgrep.c:700 src/w.c:455
+msgid "Unable to create pid info structure"
+msgstr "PID 정보를 구성할 수 없습니다"
+
+#: src/pgrep.c:388
+#, c-format
+msgid "invalid user name: %s"
+msgstr "부적절한 사용자 이름: %s"
+
+#: src/pgrep.c:405
+#, c-format
+msgid "invalid group name: %s"
+msgstr "부적절한 그룹 이름: %s"
+
+#: src/pgrep.c:416
+#, c-format
+msgid "invalid process group: %s"
+msgstr "부적절한 프로세스 그룹: %s"
+
+#: src/pgrep.c:428
+#, c-format
+msgid "invalid session id: %s"
+msgstr "부적절한 세션 ID: %s"
+
+#: src/pgrep.c:440
+#, c-format
+msgid "not a number: %s"
+msgstr "숫자 아님: %s"
+
+#: src/pgrep.c:490
+#, c-format
+msgid "not a hex string: %s"
+msgstr "16진수 아님: %s"
+
+#: src/pgrep.c:525 src/skill.c:162
+msgid "Unable to read process namespace information"
+msgstr "프로세스 이름 영역 정보를 읽을 수 없습니다"
+
+#: src/pgrep.c:612
+#, c-format
+msgid "regex error: %s"
+msgstr "정규 표현식 오류: %s"
+
+#: src/pgrep.c:695
+msgid "Error reading reference namespace information\n"
+msgstr "참조 이름 영역 정보 읽기 오류\n"
+
+#: src/pgrep.c:809
+#, c-format
+msgid ""
+"pattern that searches for process name longer than 15 characters will result "
+"in zero matches\n"
+"Try `%s -f' option to match against the complete command line."
+msgstr ""
+"15글자를 넘는 프로세스 이름 패턴 검색시 일치하는 항목이 없을 수 있습니다\n"
+"완전한 명령행과 일치하는 항목을 검색하려면 `%s -f' 옵션을 사용하십시오."
+
+#: src/pgrep.c:924
+#, c-format
+msgid "Unknown signal \"%s\"."
+msgstr "알 수 없는 \"%s\" 시그널."
+
+#: src/pgrep.c:1090
+#, c-format
+msgid ""
+"-L without -F makes no sense\n"
+"Try `%s --help' for more information."
+msgstr ""
+"-F 옵션을 뺀 -L 옵션의 사용은 부적절합니다\n"
+"자세한 정보는 `%s --help'를 입력하십시오."
+
+#: src/pgrep.c:1097
+#, c-format
+msgid ""
+"pidfile not valid\n"
+"Try `%s --help' for more information."
+msgstr ""
+"PID 파일이 올바르지 않습니다\n"
+"자세한 정보는 `%s --help'를 입력하십시오."
+
+#: src/pgrep.c:1106
+#, c-format
+msgid ""
+"only one pattern can be provided\n"
+"Try `%s --help' for more information."
+msgstr ""
+"한 번에 패턴 하나만 지정할 수 있습니다\n"
+"자세한 정보는 `%s --help'를 입력하십시오."
+
+#: src/pgrep.c:1110
+#, c-format
+msgid ""
+"no matching criteria specified\n"
+"Try `%s --help' for more information."
+msgstr ""
+"지정한 검색어에 일치하는 항목이 없습니다\n"
+"자세한 정보는 `%s --help'를 입력하십시오."
+
+#: src/pgrep.c:1162
+#, c-format
+msgid "%s killed (pid %lu)\n"
+msgstr "%s 강제로 끝냄 (PID %lu)\n"
+
+#: src/pgrep.c:1169
+#, c-format
+msgid "killing pid %ld failed"
+msgstr "PID %ld번 강제로 끝내기 실패"
+
+#: src/pgrep.c:1181
+#, c-format
+msgid "waiting for %s (pid %lu)\n"
+msgstr "%s 기다리는 중 (PID %lu)\n"
+
+#: src/pgrep.c:1185
+msgid "pidfd_open() not implemented in Linux < 5.3"
+msgstr ""
+"리눅스 커널 버전 5.3 이전에서는 pidfd_open() 함수를 구현하지 않았습니다"
+
+#: src/pgrep.c:1188
+#, c-format
+msgid "opening pid %ld failed"
+msgstr "PID %ld번 열기 실패"
+
+#: src/pgrep.c:1202
+msgid "epoll_wait failed"
+msgstr "epoll_wait 실패"
+
+#: src/pidof.c:75
+#, c-format
+msgid " %s [options] [program [...]]\n"
+msgstr " %s [<옵션>] [<프로그램> [...]]\n"
+
+#: src/pidof.c:77
+msgid " -s, --single-shot         return one PID only\n"
+msgstr " -s, --single-shot         PID 하나만 반환\n"
+
+#: src/pidof.c:78
+msgid " -c, --check-root          omit processes with different root\n"
+msgstr " -c, --check-root          루트가 다른 프로세스는 생략\n"
+
+#: src/pidof.c:79
+msgid " -q,                       quiet mode, only set the exit code\n"
+msgstr " -q,                       미출력 모드. 종료 코드만 설정합니다\n"
+
+#: src/pidof.c:80
+msgid " -w, --with-workers        show kernel workers too\n"
+msgstr " -w, --with-workers        커널 워커도 표시\n"
+
+#: src/pidof.c:81
+msgid " -x                        also find shells running the named scripts\n"
+msgstr " -x                        명명 스크립트를 실행하는 셸도 찾음\n"
+
+#: src/pidof.c:82
+msgid " -o, --omit-pid <PID,...>  omit processes with PID\n"
+msgstr " -o, --omit-pid <PID,...>  지정 PID 프로세스 생략\n"
+
+#: src/pidof.c:83
+msgid " -t, --lightweight         list threads too\n"
+msgstr " -t, --lightweight         스레드도 목록에 나타냅니다\n"
+
+#: src/pidof.c:84
+msgid " -S, --separator SEP       use SEP as separator put between PIDs"
+msgstr " -S, --separator <구분자>  PID 사이에 입력한 <구분자>를 구분자로 활용"
+
+#: src/pidof.c:293
+#, c-format
+msgid "illegal omit pid value (%s)!\n"
+msgstr "잘못된 생략 PID 값입니다(%s)!\n"
+
+#: src/pmap.c:72
+msgid "Address"
+msgstr "주  소"
+
+#: src/pmap.c:73
+msgid "Offset"
+msgstr "오프셋"
+
+#: src/pmap.c:74
+msgid "Device"
+msgstr "장  치"
+
+#: src/pmap.c:75
+msgid "Mapping"
+msgstr "매  핑"
+
+#: src/pmap.c:79
+msgid "Perm"
+msgstr "권  한"
+
+#: src/pmap.c:80
+msgid "Inode"
+msgstr "I-노드"
+
+#: src/pmap.c:83
+msgid "Kbytes"
+msgstr "Kbytes"
+
+#: src/pmap.c:84
+msgid "Mode"
+msgstr "모  드"
+
+#. Translation Hint: With the next 5 fields, notice how an extra space
+#. has been added ahead of one 'KiB' so that they all
+#. align. You need not preserve such alignment.
+#. Translation Hint: maximum 'RSS' = 6
+#: src/pmap.c:85 src/top/top_nls.c:337
+msgid "RSS"
+msgstr "RSS"
+
+#: src/pmap.c:86
+msgid "Dirty"
+msgstr "Dirty"
+
+#: src/pmap.c:120
+#, c-format
+msgid " %s [options] PID [PID ...]\n"
+msgstr " %s [옵션] <PID> [<PID> ...]\n"
+
+#: src/pmap.c:122
+msgid " -x, --extended              show details\n"
+msgstr " -x, --extended              자세한 내용 표시\n"
+
+#: src/pmap.c:123
+msgid " -X                          show even more details\n"
+msgstr " -X                          더 자세한 내용 표시\n"
+
+#: src/pmap.c:124
+msgid "            WARNING: format changes according to /proc/PID/smaps\n"
+msgstr "            경고: /proc/<PID>/smaps에 따라 형식이 바뀝니다\n"
+
+#: src/pmap.c:125
+msgid " -XX                         show everything the kernel provides\n"
+msgstr " -XX                         모든 커널 가용 정보 표시\n"
+
+#: src/pmap.c:126
+msgid " -c, --read-rc               read the default rc\n"
+msgstr " -c, --read-rc               기본 rc 읽기\n"
+
+#: src/pmap.c:127
+msgid " -C, --read-rc-from=<file>   read the rc from file\n"
+msgstr " -C, --read-rc-from=<파일>   파일에서 rc 읽기\n"
+
+#: src/pmap.c:128
+msgid " -n, --create-rc             create new default rc\n"
+msgstr " -n, --create-rc             새 기본 rc 구성\n"
+
+#: src/pmap.c:129
+msgid " -N, --create-rc-to=<file>   create new rc to file\n"
+msgstr " -N, --create-rc-to=<파일>   파일에 새 기본 rc 구성\n"
+
+#: src/pmap.c:130
+msgid "            NOTE: pid arguments are not allowed with -n, -N\n"
+msgstr "            참고: PID 인자는 -n, -N 옵션과 사용할 수 없습니다\n"
+
+#: src/pmap.c:131
+msgid " -d, --device                show the device format\n"
+msgstr " -d, --device                장치 형식 표시\n"
+
+#: src/pmap.c:132
+msgid " -q, --quiet                 do not display header and footer\n"
+msgstr " -q, --quiet                 헤더 및 푸터 표시 안함\n"
+
+#: src/pmap.c:133
+msgid " -p, --show-path             show path in the mapping\n"
+msgstr " -p, --show-path             매핑 경로 표시\n"
+
+#: src/pmap.c:134
+msgid " -A, --range=<low>[,<high>]  limit results to the given range\n"
+msgstr " -A, --range=<하위>[,<상위>] 주어진 경로로 결과 표시 제한\n"
+
+#: src/pmap.c:215
+msgid "shared memory detach"
+msgstr "공유 메모리 분리"
+
+#: src/pmap.c:220
+msgid "shared memory remove"
+msgstr "공유 메모리 제거"
+
+#: src/pmap.c:245
+msgid "  [ anon ]"
+msgstr "  [ anon ]"
+
+#: src/pmap.c:248
+msgid "  [ stack ]"
+msgstr "  [ stack ]"
+
+#: src/pmap.c:334 src/pmap.c:340
+msgid "Unknown format in smaps file!"
+msgstr "smaps 파일의 형식을 알 수 없습니다!"
+
+#: src/pmap.c:365
+msgid "ERROR: memory allocation failed"
+msgstr "오류: 메모리 할당 실패"
+
+#: src/pmap.c:382
+msgid "inconsistent detail field in smaps file, line:\n"
+msgstr "smaps 파일의 세부 필드의 일관성이 없습니다, 행:\n"
+
+#: src/pmap.c:731
+msgid "total kB"
+msgstr "총계  kB"
+
+#: src/pmap.c:742
+#, c-format
+msgid "mapped: %ldK    writeable/private: %ldK    shared: %ldK\n"
+msgstr "매  핑: %ldK     기록가능/자체: %ldK         공유: %ldK\n"
+
+#. Translation Hint: keep total string length
+#. * as 24 characters. Adjust %16 if needed
+#: src/pmap.c:751
+#, c-format
+msgid " total %16ldK\n"
+msgstr " 총계  %16ldK\n"
+
+#. Translation Hint: keep total string length
+#. * as 16 characters. Adjust %8 if needed
+#: src/pmap.c:757
+#, c-format
+msgid " total %8ldK\n"
+msgstr " 총계  %8ldK\n"
+
+#: src/pmap.c:832
+#, c-format
+msgid "config line too long - line %d"
+msgstr "구성 행이 너무 깁니다 - %d행"
+
+#: src/pmap.c:857
+#, c-format
+msgid "unsupported section found in the config - line %d"
+msgstr "설정에 지원하지 않는 섹션이 있습니다 - %d행"
+
+#: src/pmap.c:860 src/pmap.c:871 src/pmap.c:882 src/pmap.c:905 src/pmap.c:917
+#, c-format
+msgid "syntax error found in the config - line %d"
+msgstr "설정에 문법 오류 발견 - %d행"
+
+#: src/pmap.c:887 src/pmap.c:1010
+msgid "memory allocation failed"
+msgstr "메모리 할당 실패"
+
+#: src/pmap.c:939
+msgid "the file already exists - delete or rename it first"
+msgstr "파일이 이미 있습니다 - 우선 삭제하거나 이름을 바꾸십시오"
+
+#: src/pmap.c:1002
+msgid "HOME variable undefined"
+msgstr "HOME 환경 변수를 지정하지 않았습니다"
+
+#: src/pmap.c:1061
+msgid "option -r is ignored as SunOS compatibility"
+msgstr "-r 옵션은 SunOS 호환 요소로 무시합니다"
+
+#: src/pmap.c:1108
+msgid "options -c, -C, -d, -n, -N, -x, -X are mutually exclusive"
+msgstr "-c, -C, -d, -n, -N, -x, -X 옵션은 함께 사용할 수 없습니다"
+
+#: src/pmap.c:1111
+msgid "options -p, -q are mutually exclusive with -n, -N"
+msgstr "-p, -q 옵션은 -n, -N 옵션과 함께 사용할 수 없습니다"
+
+#: src/pmap.c:1114 src/pmap.c:1163
+msgid "too many arguments"
+msgstr "인자가 너무 많습니다"
+
+#: src/pmap.c:1118
+msgid "rc file successfully created, feel free to edit the content"
+msgstr "rc 파일 만들기에 성공했습니다. 내용을 자유롭게 편집하십시오"
+
+#: src/pmap.c:1121
+msgid "couldn't create the rc file"
+msgstr "rc 파일을 만들 수 없습니다"
+
+#: src/pmap.c:1133
+#, c-format
+msgid "~/.%src file successfully created, feel free to edit the content"
+msgstr "~/.%src 파일 만들기에 성공했습니다. 내용을 자유롭게 편집하십시오"
+
+#: src/pmap.c:1136
+#, c-format
+msgid "couldn't create ~/.%src"
+msgstr "~/.%src 파일을 만들 수 없습니다"
+
+#: src/pmap.c:1141
+msgid "argument missing"
+msgstr "인자가 빠졌습니다"
+
+#: src/pmap.c:1154
+msgid "couldn't read the rc file"
+msgstr "rc 파일을 읽을 수 없습니다"
+
+#: src/pmap.c:1156
+#, c-format
+msgid "couldn't read ~/.%src"
+msgstr "~/.%src 파일을 읽을 수 없습니다"
+
+#: src/pmap.c:1165 src/pmap.c:1190
+msgid "library failed pids statistics"
+msgstr "library에서 PID 통계에 실패했습니다"
+
+#: src/ps/display.c:61
+#, c-format
+msgid "Signal %d (%s) caught by %s (%s).\n"
+msgstr "시그널 %d번(%s)을 %s(%s)에서 잡음.\n"
+
+#: src/ps/display.c:75 src/ps/display.c:252 src/ps/display.c:407
+#: src/ps/output.c:2359 src/ps/parser.c:509 src/ps/parser.c:756
+#: src/ps/select.c:95 src/ps/sortformat.c:263 src/ps/sortformat.c:301
+#: src/ps/sortformat.c:549
+msgid "please report this bug"
+msgstr "이 버그를 보고해주십시오"
+
+#: src/ps/display.c:315 src/ps/display.c:484
+#, c-format
+msgid "fatal library error, reap\n"
+msgstr "치명적인 라이브러리 오류, reap\n"
+
+#: src/ps/display.c:365
+#, c-format
+msgid "could not find ppid\n"
+msgstr "PPID를 찾을 수 없습니다\n"
+
+#: src/ps/display.c:375
+#, c-format
+msgid "could not find start_time\n"
+msgstr "start_time 정보를 찾을 수 없습니다\n"
+
+#: src/ps/global.c:287
+#, c-format
+msgid "your %dx%d screen size is bogus. expect trouble\n"
+msgstr "%dx%d 화면 크기가 잘못됐습니다. 문제가 예상됩니다\n"
+
+#: src/ps/global.c:360 src/ps/global.c:372
+msgid "environment specified an unknown personality"
+msgstr "환경에 알 수 없는 개인 설정을 지정했습니다"
+
+#: src/ps/global.c:364
+#, c-format
+msgid "cannot strdup() personality text\n"
+msgstr "개인 설정 내용을 strdup() 처리할 수 없습니다\n"
+
+#: src/ps/global.c:495
+#, c-format
+msgid "fatal library error, context\n"
+msgstr "치명적 라이브러리 오류, context\n"
+
+#: src/ps/global.c:503
+#, c-format
+msgid "fatal library error, lookup self\n"
+msgstr "치명적 라이브러리 오류, lookup self\n"
+
+#. Translation Note:
+#. . The following translatable word will be used to recognize the
+#. . user's request for help text.  In other words, the translation
+#. . you provide will alter program behavior.
+#. .
+#. . It must be limited to 15 characters or less.
+#.
+#: src/ps/global.c:542
+msgid "help"
+msgstr "도움말"
+
+#. Translation Notes for ps Help #1 ---------------------------------
+#. .  This next group of lines represents 6 pairs of words + abbreviations
+#. .  which are the basis of the 'ps' program help text.
+#. .
+#. .  The words and abbreviations you provide will alter program behavior.
+#. .  They will also appear in the help usage summary associated with the
+#. .  "Notes for ps Help #2" below.
+#. .
+#. .  In their English form, help text would look like this:
+#. .      Try 'ps --help <simple|list|output|threads|misc|all>'
+#. .       or 'ps --help <s|l|o|t|m|a>'
+#. .      for additional help text.
+#. .
+#. .  When translating these 6 pairs you may choose any appropriate
+#. .  language equivalents and the only requirement is the abbreviated
+#. .  representations must be unique.
+#. .
+#. .  By default, those abbreviations are single characters.  However,
+#. .  they are not limited to only one character after translation.
+#. .
+#. Translation Hint, Pair #1
+#: src/ps/help.c:67
+msgid "simple"
+msgstr "간단히"
+
+#: src/ps/help.c:67
+msgid "s"
+msgstr "s"
+
+#. Translation Hint, Pair #2
+#: src/ps/help.c:69
+msgid "list"
+msgstr "목  록"
+
+#: src/ps/help.c:69
+msgid "l"
+msgstr "l"
+
+#. Translation Hint, Pair #3
+#: src/ps/help.c:71
+msgid "output"
+msgstr "출  력"
+
+#: src/ps/help.c:71
+msgid "o"
+msgstr "o"
+
+#. Translation Hint, Pair #4
+#: src/ps/help.c:73
+msgid "threads"
+msgstr "스레드"
+
+#: src/ps/help.c:73
+msgid "t"
+msgstr "t"
+
+#. Translation Hint, Pair #5
+#: src/ps/help.c:75
+msgid "misc"
+msgstr "기  타"
+
+#: src/ps/help.c:75
+msgid "m"
+msgstr "m"
+
+#. Translation Hint, Pair #6
+#: src/ps/help.c:77
+msgid "all"
+msgstr "모  두"
+
+#: src/ps/help.c:77
+msgid "a"
+msgstr "a"
+
+#: src/ps/help.c:98
+#, c-format
+msgid ""
+"\n"
+"Usage:\n"
+" %s [options]\n"
+msgstr ""
+"\n"
+"사용법:\n"
+" %s [<옵션>]\n"
+
+#: src/ps/help.c:103
+msgid ""
+"\n"
+"Basic options:\n"
+msgstr ""
+"\n"
+"기본 옵션:\n"
+
+#: src/ps/help.c:104
+msgid " -A, -e               all processes\n"
+msgstr " -A, -e               모든 프로세스\n"
+
+#: src/ps/help.c:105
+msgid " -a                   all with tty, except session leaders\n"
+msgstr ""
+" -a                   세션 선행자를 제외한 모든 tty 터미널 정보 포함\n"
+"\n"
+
+#: src/ps/help.c:106
+msgid "  a                   all with tty, including other users\n"
+msgstr "  a                   기타 사용자 및 모든 tty 터미널 정보 포함\n"
+
+#: src/ps/help.c:107
+msgid " -d                   all except session leaders\n"
+msgstr " -d                   세션 선행자를 제외한 모든 정보 포함\n"
+
+#: src/ps/help.c:108
+msgid " -N, --deselect       negate selection\n"
+msgstr " -N, --deselect       선택 조건 반전\n"
+
+#: src/ps/help.c:109
+msgid "  r                   only running processes\n"
+msgstr "  r                   실행 프로세스만\n"
+
+#: src/ps/help.c:110
+msgid "  T                   all processes on this terminal\n"
+msgstr "  T                   이 터미널에서 실행하는 모든 프로세스만\n"
+
+#: src/ps/help.c:111
+msgid "  x                   processes without controlling ttys\n"
+msgstr "  x                   tty를 제어하는 프로세스 제외\n"
+
+#: src/ps/help.c:114
+msgid ""
+"\n"
+"Selection by list:\n"
+msgstr ""
+"\n"
+"목록 선택:\n"
+
+#: src/ps/help.c:115
+msgid " -C <command>         command name\n"
+msgstr ""
+" -C <명령>            명령 이름\n"
+"\n"
+
+#: src/ps/help.c:116
+msgid " -G, --Group <GID>    real group id or name\n"
+msgstr " -G, --Group <GID>    실제 그룹 ID 또는 이름\n"
+
+#: src/ps/help.c:117
+msgid " -g, --group <group>  session or effective group name\n"
+msgstr " -g, --group <그룹>   세션 또는 해당 그룹 이름\n"
+
+#: src/ps/help.c:118
+msgid " -p, p, --pid <PID>   process id\n"
+msgstr " -p, p, --pid <PID>   프로세스 ID\n"
+
+#: src/ps/help.c:119
+msgid "        --ppid <PID>  parent process id\n"
+msgstr "        --ppid <PID>  상위 프로세스 ID\n"
+
+#: src/ps/help.c:120
+msgid ""
+" -q, q, --quick-pid <PID>\n"
+"                      process id (quick mode)\n"
+msgstr ""
+" -q, q, --quick-pid <PID>\n"
+"                      프로세스 ID (간단 모드)\n"
+
+#: src/ps/help.c:122
+msgid " -s, --sid <session>  session id\n"
+msgstr " -s, --sid <세션>     세션 ID\n"
+
+#: src/ps/help.c:123
+msgid " -t, t, --tty <tty>   terminal\n"
+msgstr " -t, t, --tty <tty>   터미널\n"
+
+#: src/ps/help.c:124
+msgid " -u, U, --user <UID>  effective user id or name\n"
+msgstr " -u, U, --user <UID>  해당 사용자 ID 또는 이름\n"
+
+#: src/ps/help.c:125
+msgid " -U, --User <UID>     real user id or name\n"
+msgstr " -U, --User <UID>     실제 사용자 ID 또는 이름\n"
+
+#: src/ps/help.c:126
+msgid ""
+"\n"
+"  The selection options take as their argument either:\n"
+"    a comma-separated list e.g. '-u root,nobody' or\n"
+"    a blank-separated list e.g. '-p 123 4567'\n"
+msgstr ""
+"\n"
+"  선택 옵션은 다음 두가지 방식으로 인자 값을 취합니다:\n"
+"    쉼표 구분 목록. 예시: '-u root,nobody' or\n"
+"    빈칸 구분 목록. 예시: '-p 123 4567'\n"
+
+#: src/ps/help.c:132
+msgid ""
+"\n"
+"Output formats:\n"
+msgstr ""
+"\n"
+"출력 형식:\n"
+
+#: src/ps/help.c:133
+msgid " -D <format>          date format for lstart\n"
+msgstr " -D <형식>            lstart 날짜 형식\n"
+
+#: src/ps/help.c:134
+msgid " -F                   extra full\n"
+msgstr " -F                   최대로 완전히\n"
+
+#: src/ps/help.c:135
+msgid " -f                   full-format, including command lines\n"
+msgstr " -f                   명령행을 수반한 전체 형식\n"
+
+#: src/ps/help.c:136
+msgid "  f, --forest         ascii art process tree\n"
+msgstr "  f, --forest         아스키아트 형식 프로세스 트리\n"
+
+#: src/ps/help.c:137
+msgid " -H                   show process hierarchy\n"
+msgstr " -H                   프로세스 계층 표시\n"
+
+#: src/ps/help.c:138
+msgid " -j                   jobs format\n"
+msgstr " -j                   작업 형식\n"
+
+#: src/ps/help.c:139
+msgid "  j                   BSD job control format\n"
+msgstr "  j                   BSD 작업 컨트롤 형식\n"
+
+#: src/ps/help.c:140
+msgid " -l                   long format\n"
+msgstr " -l                   긴 형식\n"
+
+#: src/ps/help.c:141
+msgid "  l                   BSD long format\n"
+msgstr "  l                   BSD 긴 형식\n"
+
+#: src/ps/help.c:142
+msgid " -M, Z                add security data (for SELinux)\n"
+msgstr " -M, Z                보안 데이터 추가(SELinux용)\n"
+
+#: src/ps/help.c:143
+msgid " -O <format>          preloaded with default columns\n"
+msgstr " -O <형식>            기본 컬럼으로 미리 불러오기\n"
+
+#: src/ps/help.c:144
+msgid "  O <format>          as -O, with BSD personality\n"
+msgstr ""
+"  O <형식>            -O 옵션과 마찬가지이나, BSD 특유의 형식으로 출력\n"
+
+#: src/ps/help.c:145
+msgid ""
+" -o, o, --format <format>\n"
+"                      user-defined format\n"
+msgstr ""
+" -o, o, --format <형식>\n"
+"                      사용자 지정 형식\n"
+
+#: src/ps/help.c:147
+msgid "  -P                  add psr column\n"
+msgstr "  -P                  psr 컬럼 추가\n"
+
+#: src/ps/help.c:148
+msgid "  s                   signal format\n"
+msgstr "  s                   시그널 형식\n"
+
+#: src/ps/help.c:149
+msgid "  u                   user-oriented format\n"
+msgstr "  u                   사용자 지향 형식\n"
+
+#: src/ps/help.c:150
+msgid "  v                   virtual memory format\n"
+msgstr "  v                   가상 메모리 형식\n"
+
+#: src/ps/help.c:151
+msgid "  X                   register format\n"
+msgstr "  X                   레지스터 형식\n"
+
+#: src/ps/help.c:152
+msgid ""
+" -y                   do not show flags, show rss vs. addr (used with -l)\n"
+msgstr ""
+" -y                   플래그를 나타내지 않고, RSS 대비 주소 정보 표시(-l 옵션"
+"으로 표시)\n"
+
+#: src/ps/help.c:153
+msgid "     --context        display security context (for SELinux)\n"
+msgstr "     --context        보안 컨텍스트 표시(SELinux용)\n"
+
+#: src/ps/help.c:154
+msgid "     --headers        repeat header lines, one per page\n"
+msgstr "     --headers        페이지 당 한번씩 헤더 행 반복\n"
+
+#: src/ps/help.c:155
+msgid "     --no-headers     do not print header at all\n"
+msgstr "     --no-headers     헤더를 표시하지 않음\n"
+
+#: src/ps/help.c:156
+msgid ""
+"     --cols, --columns, --width <num>\n"
+"                      set screen width\n"
+msgstr ""
+"     --cols, --columns, --width <숫자>\n"
+"                      화면 너비 설정\n"
+
+#: src/ps/help.c:158
+msgid ""
+"     --rows, --lines <num>\n"
+"                      set screen height\n"
+msgstr ""
+"     --rows, --lines <숫자>\n"
+"                      화면 높이 설정\n"
+
+#: src/ps/help.c:160
+msgid "     --signames       display signal masks using signal names\n"
+msgstr "     --signames       시그널 이름으로 시그널 마스크를 나타냅니다\n"
+
+#: src/ps/help.c:163
+msgid ""
+"\n"
+"Show threads:\n"
+msgstr ""
+"\n"
+"스레드 표시:\n"
+
+#: src/ps/help.c:164
+msgid "  H                   as if they were processes\n"
+msgstr "  H                   프로세스 였는지 표시\n"
+
+#: src/ps/help.c:165
+msgid " -L                   possibly with LWP and NLWP columns\n"
+msgstr " -L                   가능하면 LWP 및 NLWP 컬럼 표시\n"
+
+#: src/ps/help.c:166
+msgid " -m, m                after processes\n"
+msgstr " -m, m                다음 프로세스\n"
+
+#: src/ps/help.c:167
+msgid " -T                   possibly with SPID column\n"
+msgstr " -T                   가능하면 SPID 컬럼 표시\n"
+
+#: src/ps/help.c:170
+msgid ""
+"\n"
+"Miscellaneous options:\n"
+msgstr ""
+"\n"
+"기타 옵션:\n"
+
+#: src/ps/help.c:171
+msgid " -c                   show scheduling class with -l option\n"
+msgstr " -c                   -l 옵션을 함께 사용하면 스케쥴링 수준 표시\n"
+
+#: src/ps/help.c:172
+msgid "  c                   show true command name\n"
+msgstr "  c                   실제 명령 이름 표시\n"
+
+#: src/ps/help.c:173
+msgid "  e                   show the environment after command\n"
+msgstr "  e                   명령 실행 후 환경 표시\n"
+
+#: src/ps/help.c:174
+msgid ""
+"  k,    --sort        specify sort order as: [+|-]key[,[+|-]key[,...]]\n"
+msgstr "  k,    --sort        정렬 순서 지정: [+|-]<키>[,[+|-]<키>[,...]]\n"
+
+#: src/ps/help.c:175
+msgid "  L                   show format specifiers\n"
+msgstr "  L                   형식 지정자 표시\n"
+
+#: src/ps/help.c:176
+msgid "  n                   display numeric uid and wchan\n"
+msgstr "  n                   숫자 UID 및 WCHAN 값 표시\n"
+
+#: src/ps/help.c:177
+msgid "  S,    --cumulative  include some dead child process data\n"
+msgstr "  S,    --cumulative  일부 죽은 하위 프로세스 데이터 포함\n"
+
+#: src/ps/help.c:178
+msgid " -y                   do not show flags, show rss (only with -l)\n"
+msgstr ""
+" -y                   플래그 표시 안함. RSS 표시(-l 옵션 지정했을 경우)\n"
+
+#: src/ps/help.c:179
+msgid " -V, V, --version     display version information and exit\n"
+msgstr " -V, V, --version     버전 정보를 표시한 후 나갑니다\n"
+
+#: src/ps/help.c:180
+msgid " -w, w                unlimited output width\n"
+msgstr " -w, w                출력 너비를 제한하지 않음\n"
+
+#: src/ps/help.c:181
+#, c-format
+msgid ""
+"\n"
+"        --%s <%s|%s|%s|%s|%s|%s>\n"
+"                      display help and exit\n"
+msgstr ""
+"\n"
+"        --%s <%s|%s|%s|%s|%s|%s>\n"
+"                      도움말을 표시한 후 나갑니다\n"
+
+#. Translation Notes for ps Help #2 ---------------------------------
+#. .  Most of the following c-format string is derived from the 6
+#. .  pairs of words + chars mentioned above in "Notes for ps Help #1".
+#. .
+#. .  In its full English form, help text would look like this:
+#. .      Try 'ps --help <simple|list|output|threads|misc|all>'
+#. .       or 'ps --help <s|l|o|t|m|a>'
+#. .      for additional help text.
+#. .
+#. .  The word for "help" will be translated elsewhere.  Thus, the only
+#. .  translations below will be: "Try", "or" and "for additional...".
+#. .
+#: src/ps/help.c:202
+#, c-format
+msgid ""
+"\n"
+" Try '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+"  or '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+" for additional help text.\n"
+msgstr ""
+"\n"
+" 추가 도움말 내용은\n"
+" '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+"  또는 '%s --%s <%s|%s|%s|%s|%s|%s>'\n"
+" 명령을 입력하십시오.\n"
+
+#: src/ps/help.c:215
+#, c-format
+msgid ""
+"\n"
+"For more details see ps(1).\n"
+msgstr ""
+"\n"
+"더 자세한 내용은 ps(1)을 참고하십시오.\n"
+
+#: src/ps/output.c:104
+msgid "Unable to get system boot time"
+msgstr "시스템 부팅 시간 정보를 가져올 수 없습니다"
+
+#: src/ps/output.c:119
+msgid "Unable to get total memory"
+msgstr "전체 메모리 양을 가져올 수 없습니다"
+
+#: src/ps/output.c:2206
+#, c-format
+msgid "fix bigness error\n"
+msgstr "고정 치수 오류\n"
+
+#: src/ps/output.c:2289
+#, c-format
+msgid "bad alignment code\n"
+msgstr "잘못된 정렬 코드\n"
+
+#: src/ps/parser.c:63
+msgid "the option is exclusive: "
+msgstr "옵션을 같이 사용할 수 없습니다: "
+
+#: src/ps/parser.c:93
+msgid "process ID list syntax error"
+msgstr "프로세스 ID 목록 문법 오류"
+
+#: src/ps/parser.c:94 src/ps/parser.c:95
+msgid "process ID out of range"
+msgstr "프로세스 ID 범위를 벗어납니다"
+
+#: src/ps/parser.c:108
+msgid "user name does not exist"
+msgstr "그런 사용자 이름이 없습니다"
+
+#: src/ps/parser.c:114
+msgid "user ID out of range"
+msgstr "사용자 ID 번호 값이 범위를 벗어납니다"
+
+#: src/ps/parser.c:127
+msgid "group name does not exist"
+msgstr "그런 그룹 이름이 없습니다"
+
+#: src/ps/parser.c:133
+msgid "group ID out of range"
+msgstr "그룹 ID 번호 값이 범위를 벗어납니다"
+
+#: src/ps/parser.c:149 src/ps/parser.c:173
+msgid "TTY could not be found"
+msgstr "TTY를 찾을 수 없습니다"
+
+#: src/ps/parser.c:175
+msgid "list member was not a TTY"
+msgstr "목록 구성 항목이 TTY가 아닙니다"
+
+#: src/ps/parser.c:200
+msgid "improper list"
+msgstr "부적절한 목록"
+
+#: src/ps/parser.c:249
+msgid "list of command names must follow -C"
+msgstr "명령 이름 지정시 -C 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:257
+msgid "date format must follow -D"
+msgstr "날짜 형식이 -D 다음에 와야 합니다"
+
+#: src/ps/parser.c:270
+msgid "list of real groups must follow -G"
+msgstr "해당 그룹 지정시 -G 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:283
+msgid "list of jobs must follow -J"
+msgstr "작업 지정시 -J 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:311
+msgid "format or sort specification must follow -O"
+msgstr "형식 또는 정렬 기준 지정시 -O 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:322
+msgid "list of PRM groups must follow -R"
+msgstr "PRM 그룹 지정시 -R 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:341
+msgid "list of real users must follow -U"
+msgstr "실제 사용자 지정시 -U 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:382
+msgid "list of session leaders OR effective group names must follow -g"
+msgstr "세션 리더 또는 해당 그룹 이름 지정시 -g 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:393
+msgid "list of session leaders OR effective group IDs was invalid"
+msgstr "세션 리더 또는 해당 그룹 이름이 부적절합니다"
+
+#: src/ps/parser.c:417
+msgid "format specification must follow -o"
+msgstr "형식 지정시 -o 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:423
+msgid "list of process IDs must follow -p"
+msgstr "프로세스 ID 지정시 -p 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:440
+msgid "the -r option is reserved"
+msgstr "-r 옵션은 예약 옵션입니다"
+
+#: src/ps/parser.c:446
+msgid "list of session IDs must follow -s"
+msgstr "세션 ID 지정시 -s 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:454
+msgid "list of terminals (pty, tty...) must follow -t"
+msgstr "터미널(pty, tty...) 지정시 -t 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:462
+msgid "list of users must follow -u"
+msgstr "사용자 지정시 -u 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:484
+msgid "must set personality to get -x option"
+msgstr "-x 옵션 결과를 가져오려면 개별 설정 값을 지정해야 합니다"
+
+#: src/ps/parser.c:499
+msgid "list of zones (contexts, labels, whatever?) must follow -z"
+msgstr ""
+"영역(contexts, labels, 그리고 또 무엇?) 지정시 -z 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:506
+msgid "embedded '-' among SysV options makes no sense"
+msgstr "SysV 옵션에 넣은 '-' 옵션은 적절하지 않습니다"
+
+#: src/ps/parser.c:512
+msgid "unsupported SysV option"
+msgstr "지원하지 않는 SysV 옵션"
+
+#: src/ps/parser.c:525
+msgid "cannot happen - problem #1"
+msgstr "일어나서는 안될 동작 - 문제 #1"
+
+#: src/ps/parser.c:529
+msgid "cannot happen - problem #2"
+msgstr "일어나서는 안될 동작 - 문제 #2"
+
+#: src/ps/parser.c:531
+msgid "second chance parse failed, not BSD or SysV"
+msgstr "2회차 해석 실패, BSD 또는 SysV가 아닙니다"
+
+#: src/ps/parser.c:548
+msgid "option A is reserved"
+msgstr "A 옵션은 예약 옵션입니다"
+
+#: src/ps/parser.c:553
+msgid "option C is reserved"
+msgstr "C 옵션은 예약 옵션입니다"
+
+#: src/ps/parser.c:573
+msgid "format or sort specification must follow O"
+msgstr "형식 또는 정렬 지정시 O를 지정해야 합니다"
+
+#: src/ps/parser.c:598
+msgid "list of users must follow U"
+msgstr "사용자 목록에는 U를 지정해야 합니다"
+
+#: src/ps/parser.c:610
+msgid "obsolete W option not supported (you have a /dev/drum?)"
+msgstr "오래된 W 옵션을 지원하지 않습니다(/dev/drum이 있습니까?)"
+
+#: src/ps/parser.c:646 src/ps/parser.c:921 src/ps/parser.c:930
+msgid "only one heading option may be specified"
+msgstr "헤딩 옵션은 하나만 지정해야 합니다"
+
+#: src/ps/parser.c:661
+msgid "long sort specification must follow 'k'"
+msgstr "긴 정렬 옵션 지정시 'k'를 지정해야 합니다"
+
+#: src/ps/parser.c:689
+msgid "format specification must follow o"
+msgstr "형식 지정시 o를 지정해야 합니다"
+
+#: src/ps/parser.c:695
+msgid "list of process IDs must follow p"
+msgstr "프로세스 ID 지정시 p를 지정해야합니다"
+
+#: src/ps/parser.c:753
+msgid "embedded '-' among BSD options makes no sense"
+msgstr "BSD 옵션에 넣은 '-' 옵션은 적절하지 않습니다"
+
+#: src/ps/parser.c:759
+msgid "unsupported option (BSD syntax)"
+msgstr "지원하지 않는 옵션 (BSD 문법)"
+
+#: src/ps/parser.c:847 src/ps/parser.c:859
+msgid "unknown gnu long option"
+msgstr "알 수 없는 GNU 긴 옵션"
+
+#: src/ps/parser.c:867
+msgid "list of real groups must follow --Group"
+msgstr "실제 그룹 지정시 --Group 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:875
+msgid "list of real users must follow --User"
+msgstr "실제 사용자 지정시 --User(pty, tty...) 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:894
+msgid "number of columns must follow --cols, --width, or --columns"
+msgstr "컬럼 수 지정시 --cols, --width, --columns 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:897
+msgid "option --cumulative does not take an argument"
+msgstr "--cumulative 옵션에는 인자 값을 취하지 않습니다"
+
+#: src/ps/parser.c:902
+msgid "date format must follow --date-format"
+msgstr "날짜 형식이 --date-format 다음에 와야 함니다"
+
+#: src/ps/parser.c:908
+msgid "option --deselect does not take an argument"
+msgstr "--deselect 옵션에는 인자 값을 취하지 않습니다"
+
+#: src/ps/parser.c:920
+msgid "option --no-heading does not take an argument"
+msgstr "--no-heading 옵션에는 인자 값을 취하지 않습니다"
+
+#: src/ps/parser.c:929
+msgid "option --heading does not take an argument"
+msgstr "--heading 옵션에는 인자 값을 취하지 않습니다"
+
+#: src/ps/parser.c:935
+msgid "option --forest does not take an argument"
+msgstr "--forest 옵션에는 인자 값을 취하지 않습니다"
+
+#: src/ps/parser.c:941
+msgid "format specification must follow --format"
+msgstr "형식 지정시 --format 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:947
+msgid "list of effective groups must follow --group"
+msgstr "해당 그룹 지정시 --group 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:965
+msgid "list of process IDs must follow --pid"
+msgstr "프로세스 ID 지정시 --pid 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:981
+msgid "list of process IDs must follow --ppid"
+msgstr "상위 프로세스 ID 지정시 --ppid 옵션을 지정해아 합니다"
+
+#: src/ps/parser.c:999
+msgid "number of rows must follow --rows or --lines"
+msgstr "행 수 지정시 --rows 옵션 또는 --lines 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:1003
+msgid "some sid thing(s) must follow --sid"
+msgstr "세션 ID 지정시 --sid 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:1015
+msgid "long sort specification must follow --sort"
+msgstr "긴 정렬 옵션 지정시 --sort 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:1021
+msgid "list of ttys must follow --tty"
+msgstr "tty 터미널 지정시 --tty 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:1029
+msgid "list of effective users must follow --user"
+msgstr "해당 사용자 지정시 --user 옵션을 지정해야 합니다"
+
+#: src/ps/parser.c:1145
+msgid "way bad"
+msgstr "방법이 잘못됨"
+
+#: src/ps/parser.c:1159
+msgid "garbage option"
+msgstr "필요 없는 옵션"
+
+#: src/ps/parser.c:1163
+msgid "something broke"
+msgstr "뭔가가 깨졌습니다?"
+
+#: src/ps/parser.c:1183
+msgid "thread display conflicts with forest display"
+msgstr "스레드 표시 방식 지정이 포레스트 출력 방식 지정과 겹칩니다"
+
+#: src/ps/parser.c:1188
+msgid "thread flags conflict; can't use H with m or -m"
+msgstr "스레드 플래그갸 겹칩니다. H 옵션을 m 또는 -m 옵션과 사용할 수 없습니다"
+
+#: src/ps/parser.c:1190
+msgid "thread flags conflict; can't use both m and -m"
+msgstr "스레드 플래그갸 겹칩니다. m 옵션을 -m 옵션과 사용할 수 없습니다"
+
+#: src/ps/parser.c:1192
+msgid "thread flags conflict; can't use both -L and -T"
+msgstr "스레드 플래그갸 겹칩니다. -L 옵션을 -T 옵션과 사용할 수 없습니다"
+
+#: src/ps/parser.c:1265 src/ps/parser.c:1266
+#, c-format
+msgid "error: %s\n"
+msgstr "오류: %s\n"
+
+#: src/ps/select.c:71
+msgid "process selection options conflict"
+msgstr "프로세스 선택 옵션이 겹칩니다"
+
+#: src/ps/sortformat.c:110 src/ps/sortformat.c:115
+msgid "seriously crashing: goodbye cruel world"
+msgstr "심한 상황의 오류: 거지같은 세상이여 안녕"
+
+#: src/ps/sortformat.c:150 src/ps/sortformat.c:169
+msgid "missing AIX field descriptor"
+msgstr "빠진 AIX 필드 서술자"
+
+#: src/ps/sortformat.c:152
+msgid "improper AIX field descriptor"
+msgstr "부적절한 AIX 필드 서술자"
+
+#: src/ps/sortformat.c:174
+msgid "unknown AIX field descriptor"
+msgstr "알 수 없는 AIX 필드 서술자"
+
+#: src/ps/sortformat.c:179
+msgid "AIX field descriptor processing bug"
+msgstr "AIX 필드 서술자 처리 문제"
+
+#: src/ps/sortformat.c:287
+#, c-format
+msgid "unknown user-defined format specifier \"%s\""
+msgstr "알 수 없는 사용자 지정 형식 지정자 \"%s\""
+
+#: src/ps/sortformat.c:314
+msgid "empty format list"
+msgstr "빈 형식 목록"
+
+#: src/ps/sortformat.c:315
+msgid "improper format list"
+msgstr "부적절한 형식 목록"
+
+#: src/ps/sortformat.c:316
+msgid "column widths must be unsigned decimal numbers"
+msgstr "컬럼 너비는 비부호 10진수여야 합니다"
+
+#: src/ps/sortformat.c:317
+msgid "can not set width for a macro (multi-column) format specifier"
+msgstr "매크로(다중 컬럼) 형식 지정자에 대해 너비를 설정할 수 없습니다"
+
+#: src/ps/sortformat.c:371 src/ps/sortformat.c:387
+msgid "improper sort list"
+msgstr "부적절한 정렬 목록"
+
+#: src/ps/sortformat.c:382
+msgid "empty sort list"
+msgstr "빈 정렬 목록"
+
+#: src/ps/sortformat.c:403 src/ps/sortformat.c:482 src/ps/sortformat.c:484
+msgid "unknown sort specifier"
+msgstr "알 수 없는 정렬 기준 지정자"
+
+#: src/ps/sortformat.c:430 src/ps/sortformat.c:435 src/ps/sortformat.c:442
+#: src/ps/sortformat.c:448
+msgid "bad sorting code"
+msgstr "잘못된 정렬 코드"
+
+#: src/ps/sortformat.c:445
+msgid "PPID sort and forest output conflict"
+msgstr "PPID 정렬 방식과 포레스트 출력 방식 지정이 겹칩니다"
+
+#: src/ps/sortformat.c:519
+msgid "option -O can not follow other format options"
+msgstr "-O 옵션은 다른 형식 옵션을 같이 지정할 수 없습니다"
+
+#: src/ps/sortformat.c:526 src/ps/sortformat.c:544
+msgid "multiple sort options"
+msgstr "다중 정렬 옵션"
+
+#: src/ps/sortformat.c:534
+msgid "option O is neither first format nor sort order"
+msgstr "O 옵션은 첫 형식 지정 값이거나 정렬 순서 값일 수 없습니다"
+
+#: src/ps/sortformat.c:661
+msgid "modifier -y without format -l makes no sense"
+msgstr "-y 옵션에 형식 지정자가 빠진 -l 옵션 지정은 동작하지 않습니다"
+
+#: src/ps/sortformat.c:760
+msgid "bug: must reset the list first"
+msgstr "버그: 우선 목록을 초기화 해야 합니다"
+
+#: src/ps/sortformat.c:797
+msgid "tell <procps@freelists.org> what you expected"
+msgstr "<procps@freelists.org>에 기대 동작을 알려주십시오"
+
+#: src/ps/sortformat.c:807
+msgid ""
+"tell <procps@freelists.org> what you want (-L/-T, -m/m/H, and $PS_FORMAT)"
+msgstr ""
+"<procps@freelists.org>에 원하는 동작(-L/-T, -m/m/H, $PS_FORMAT)을 알려주십시"
+"오"
+
+#: src/ps/sortformat.c:824
+#, c-format
+msgid "warning: $PS_FORMAT ignored. (%s)\n"
+msgstr "경고: $PS_FORMAT 무시함. (%s)\n"
+
+#: src/ps/sortformat.c:829 src/ps/sortformat.c:839
+msgid "conflicting format options"
+msgstr "형식 옵션이 서로 중복입니다"
+
+#: src/ps/sortformat.c:830
+msgid "can not use output modifiers with user-defined output"
+msgstr "출력 지정자를 사용자 지정 출력 값으로 사용할 수 없습니다"
+
+#: src/ps/sortformat.c:831
+msgid "-L/-T with H/m/-m and -o/-O/o/O is nonsense"
+msgstr "-L/-T, H/m/-m, -o/-O/o/O 옵션을 함께 사용할 수 없습니다"
+
+#: src/ps/sortformat.c:889
+msgid "internal error: no PID or PPID for -j option"
+msgstr "내부 오류: -j 옵션을 실행할 PID 또는 PPID 값이 없습니다"
+
+#: src/ps/sortformat.c:891
+msgid "lost my PGID"
+msgstr "PGID 분실"
+
+#: src/ps/sortformat.c:904
+msgid "internal error: no PRI for -c option"
+msgstr "내부 오류: -c 옵션을 실행할 PRI 값이 없습니다"
+
+#: src/ps/sortformat.c:907
+msgid "lost my CLS"
+msgstr "CLS 값 분실"
+
+#: src/ps/sortformat.c:912
+msgid "-T with H/-m/m but no PID for SPID to follow"
+msgstr ""
+"-T 옵션과 H/-m/m 옵션을 지정했지만 SPID에 대한 PID 값을 지정하지 않았습니다"
+
+#: src/ps/sortformat.c:923
+msgid "-L with H/-m/m but no PID/PGID/SID/SESS for NLWP to follow"
+msgstr ""
+"-L 옵션과 H/-m/m 옵션을 지정했지만 NLWP에 대한 PID/PGID/SID/SESS 값을 지정하"
+"지 않았습니다"
+
+#: src/pwdx.c:41
+#, c-format
+msgid " %s [options] pid...\n"
+msgstr " %s [<옵션>] <PID>...\n"
+
+#: src/pwdx.c:117
+#, c-format
+msgid "invalid process id: %s"
+msgstr "부적절한 프로세스 ID: %s"
+
+#: src/skill.c:285
+msgid "Unable to create pid Pids_info structure"
+msgstr "PID의 Pids_info 구조 정보를 만들 수 없습니다"
+
+#: src/skill.c:288 src/w.c:458
+msgid "Unable to load process information"
+msgstr "프로세스 정보를 불러올 수 없습니다"
+
+#: src/skill.c:319
+#, c-format
+msgid " %s [signal] [options] <expression>\n"
+msgstr " %s [<시그널>] [<옵션>] <표현식>\n"
+
+#: src/skill.c:323
+#, c-format
+msgid " %s [new priority] [options] <expression>\n"
+msgstr " %s [<새_우선순위>] [<옵션>] <표현식>\n"
+
+#: src/skill.c:327
+msgid " -f, --fast         fast mode (not implemented)\n"
+msgstr " -f, --fast         고속 모드 (구현 안함)\n"
+
+#: src/skill.c:328
+msgid " -i, --interactive  interactive\n"
+msgstr " -i, --interactive  대화식 처리\n"
+
+#: src/skill.c:329
+msgid " -l, --list         list all signal names\n"
+msgstr " -l, --list         모든 시그널 이름 표시\n"
+
+#: src/skill.c:330
+msgid " -L, --table        list all signal names in a nice table\n"
+msgstr " -L, --table        nice 테이블에 모든 시그널 이름 표시\n"
+
+#: src/skill.c:331
+msgid ""
+" -n, --no-action    do not actually kill processes; just print what would "
+"happen\n"
+msgstr ""
+" -n, --no-action    실제로 프로세스를 강제로 끝내지 않음. 어떤 일이 일어날 지"
+"만 출력\n"
+
+#: src/skill.c:332
+msgid " -v, --verbose      explain what is being done\n"
+msgstr " -v, --verbose      어떤 동작이 일어났는지 출력\n"
+
+#: src/skill.c:333
+msgid " -w, --warnings     enable warnings (not implemented)\n"
+msgstr " -w, --warnings     경고 출력 사용 (구현 안함)\n"
+
+#: src/skill.c:335
+msgid ""
+"Expression can be: terminal, user, pid, command.\n"
+"The options below may be used to ensure correct interpretation.\n"
+msgstr ""
+"표현식은 터미널, 사용자, PID, 명령 이름으로 지정할 수 있습니다.\n"
+"아래 옵션은 올바르게 해석할 수 있도록 보조하는 용도로 활용합니다.\n"
+
+#: src/skill.c:337
+msgid " -c, --command <command>  expression is a command name\n"
+msgstr " -c, --command <명령>     표현식이 명령 이름임\n"
+
+#: src/skill.c:338
+msgid " -p, --pid <pid>          expression is a process id number\n"
+msgstr " -p, --pid <PID>          표현식이 프로세스 ID 번호 값임\n"
+
+#: src/skill.c:339
+msgid " -t, --tty <tty>          expression is a terminal\n"
+msgstr " -t, --tty <tty>          표현식이 터미널임\n"
+
+#: src/skill.c:340
+msgid " -u, --user <username>    expression is a username\n"
+msgstr " -u, --user <사용자이름>  표현식이 사용자 이름임\n"
+
+#: src/skill.c:342
+msgid "Alternatively, expression can be:\n"
+msgstr "대신 표현식을 다음처럼 지정할 수 있습니다:\n"
+
+#: src/skill.c:343
+msgid ""
+" --ns <pid>               match the processes that belong to the same\n"
+"                          namespace as <pid>\n"
+msgstr ""
+" --ns <PID>               <PID>와 동일한 이름 여역을 소유한 프로세스만\n"
+"\t\n"
+
+#: src/skill.c:345
+msgid ""
+" --nslist <ns,...>        list which namespaces will be considered for\n"
+"                          the --ns option; available namespaces are\n"
+":                          ipc, mnt, net, pid, user, uts\n"
+msgstr ""
+" --nslist <ns,...>        --ns 옵션에 지정한 이름 영역만 표시합니다.\n"
+"                          가용 이름 영역 값:ipc, mnt, net, pid, user, uts\n"
+
+#: src/skill.c:355
+#, c-format
+msgid ""
+"\n"
+"The default signal is TERM. Use -l or -L to list available signals.\n"
+"Particularly useful signals include HUP, INT, KILL, STOP, CONT, and 0.\n"
+"Alternate signals may be specified in three ways: -SIGKILL -KILL -9\n"
+msgstr ""
+"\n"
+"기본 시그널은 TERM 입니다. 가용 시그널 목록을 보려면 -l 또는 -L 옵션을 사용하"
+"십시오.\n"
+"HUP, INT, KILL, STOP, CONT, 0 등의 시그널이 일부 쓸만합니다.\n"
+"-SIGKILL -KILL -9 세가지 방식으로 시그널을 대신 지정할 수 있습니다.\n"
+
+#: src/skill.c:362
+#, c-format
+msgid ""
+"\n"
+"The default priority is +4. (snice +4 ...)\n"
+"Priority numbers range from +20 (slowest) to -20 (fastest).\n"
+"Negative priority numbers are restricted to administrative users.\n"
+msgstr ""
+"\n"
+"기본 우선순위는 +4입니다. (snice +4 ...)\n"
+"우선순위 숫자 값 범위는 +20(가장 느림)에서 -20(가장 빠름)까지 입니다.\n"
+"음수 우선순위값 사용 권한은 관리자에 한정합니다.\n"
+
+#: src/skill.c:384
+#, c-format
+msgid "priority %lu out of range"
+msgstr "%lu 우선순위 값은 범위를 벗어납니다"
+
+#: src/skill.c:493
+#, c-format
+msgid "invalid pid number %s"
+msgstr "부적절한 %s PID 숫자값"
+
+#: src/skill.c:497
+msgid "error reading reference namespace information"
+msgstr "참조 이름 영역 정보 읽기 오류"
+
+#: src/skill.c:505
+msgid "invalid namespace list"
+msgstr "부적절한 이름 영역 목록"
+
+#: src/skill.c:542
+msgid "no process selection criteria"
+msgstr "프로세스 선택 검색어가 없습니다"
+
+#: src/skill.c:545
+msgid "general flags may not be repeated"
+msgstr "일반 플래그를 반복 사용하지 않는게 좋습니다"
+
+#: src/skill.c:548
+msgid "-i makes no sense with -v, -f, and -n"
+msgstr "-v, -f, -n 옵션과 -i 옵션의 사용이 올바르지 않습니다"
+
+#: src/skill.c:550
+msgid "-v makes no sense with -i and -f"
+msgstr "-i, -f 옵션과 -v 옵션의 사용이 올바르지 않습니다"
+
+#: src/skill.c:594
+#, c-format
+msgid "skill: \"%s\" is not supported\n"
+msgstr "skill: \"%s\"을(를) 지원하지 않습니다\n"
+
+#: src/slabtop.c:108
+msgid " -d, --delay <secs>  delay updates\n"
+msgstr " -d, --delay <초>    지연 시간 갱신\n"
+
+#: src/slabtop.c:109
+msgid " -o, --once          only display once, then exit\n"
+msgstr " -o, --once          한 번만 나타내고 나갑니다\n"
+
+#: src/slabtop.c:110
+msgid " -s, --sort <char>   specify sort criteria by character (see below)\n"
+msgstr " -s, --sort <문자>   정렬 기준을 문자로 지정합니다(하단 참조)\n"
+
+#: src/slabtop.c:115
+msgid ""
+"\n"
+"The following are valid sort criteria:\n"
+msgstr ""
+"\n"
+"다음 문자가 정렬 기준에 해당합니다:\n"
+
+#: src/slabtop.c:116
+msgid " a: sort by number of active objects\n"
+msgstr " a: 활성 개체순 정렬\n"
+
+#: src/slabtop.c:117
+msgid " b: sort by objects per slab\n"
+msgstr " b: slab당 개체순 정렬\n"
+
+#: src/slabtop.c:118
+msgid " c: sort by cache size\n"
+msgstr " c: 캐시 크기순 정렬\n"
+
+#: src/slabtop.c:119
+msgid " l: sort by number of slabs\n"
+msgstr " l: slab 갯수순 정렬\n"
+
+#: src/slabtop.c:120
+msgid " v: sort by (non display) number of active slabs\n"
+msgstr " v: (표시하지 않는) 활성 slab 수순 정렬\n"
+
+#: src/slabtop.c:121
+msgid " n: sort by name\n"
+msgstr " n: 이름순 정렬\n"
+
+#: src/slabtop.c:122
+msgid " o: sort by number of objects (the default)\n"
+msgstr " o: 개체 수순 정렬(기본값)\n"
+
+#: src/slabtop.c:123
+msgid " p: sort by (non display) pages per slab\n"
+msgstr " p: slab당 (표시하지 않는) 페이지 수순 정렬\n"
+
+#: src/slabtop.c:124
+msgid " s: sort by object size\n"
+msgstr " s: 개체 크기순 정렬\n"
+
+#: src/slabtop.c:125
+msgid " u: sort by cache utilization\n"
+msgstr " u: 캐시 활용순 정렬\n"
+
+#: src/slabtop.c:188 src/slabtop.c:199
+msgid "Cannot combine -d and -o options"
+msgstr "-d 옵션과 -o 옵션을 함께 사용할 수 없습니다"
+
+#: src/slabtop.c:190
+msgid "illegal delay"
+msgstr "잘못된 지연 시간 값"
+
+#: src/slabtop.c:192 src/tload.c:142 src/vmstat.c:1049
+msgid "delay must be positive integer"
+msgstr "지연 시간 값은 양의 정수값이어야 합니다"
+
+#: src/slabtop.c:236
+msgid "Error getting slab summary results"
+msgstr "slab 메모리 결과값 가져오기 오류"
+
+#. Translation Hint: Next five strings must not
+#. * exceed a length of 35 characters.
+#: src/slabtop.c:242
+#, no-c-format
+msgid "Active / Total Objects (% used)"
+msgstr "활성 / 총 개체 수 (사용 %)"
+
+#: src/slabtop.c:248
+#, no-c-format
+msgid "Active / Total Slabs (% used)"
+msgstr "활성 / 총 slab 수 (사용 %)"
+
+#: src/slabtop.c:254
+#, no-c-format
+msgid "Active / Total Caches (% used)"
+msgstr "활성 / 총 캐시 수 (사용 %)"
+
+#: src/slabtop.c:260
+#, no-c-format
+msgid "Active / Total Size (% used)"
+msgstr "활성 / 총 크기 (사용 %)"
+
+#: src/slabtop.c:265
+msgid "Minimum / Average / Maximum Object"
+msgstr "최소 / 평균 / 최대 개체 수"
+
+#. Translation Hint: Please keep alignment of the
+#. * following intact.
+#: src/slabtop.c:276
+msgid "  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME"
+msgstr "  활성 개체    사용개체크기  SLAB 개체/SLAB 캐시  크기 이름"
+
+#: src/slabtop.c:313 src/vmstat.c:767
+msgid "Unable to create slabinfo structure"
+msgstr "slabinfo 구조 데이터를 만들 수 없습니다"
+
+#: src/slabtop.c:318
+msgid "terminal setting retrieval"
+msgstr "터미널 설정 가져오기"
+
+#: src/slabtop.c:334 src/vmstat.c:774
+msgid "Unable to get slabinfo node data"
+msgstr "slabinfo 노드 데이터를 가져올 수 없습니다"
+
+#: src/slabtop.c:340 src/vmstat.c:776
+msgid "Unable to sort slab nodes"
+msgstr "slab 노드를 정렬할 수 없습니다"
+
+#: src/sysctl.c:118
+#, c-format
+msgid "Path is not under %s: %s"
+msgstr "%s에 경로가 없습니다: %s"
+
+#: src/sysctl.c:136
+#, c-format
+msgid "separators should not be repeated: %s"
+msgstr "구분자를 반복 입력하면 안됩니다: %s"
+
+#: src/sysctl.c:232
+#, c-format
+msgid " %s [options] [variable[=value] ...]\n"
+msgstr " %s [<옵션>] [<변수>[=<값>] ...]\n"
+
+#: src/sysctl.c:235
+msgid "  -a, --all            display all variables\n"
+msgstr "  -a, --all            모든 변수 표시\n"
+
+#: src/sysctl.c:236
+msgid "  -A                   alias of -a\n"
+msgstr "  -A                   -a 대용\n"
+
+#: src/sysctl.c:237
+msgid "  -X                   alias of -a\n"
+msgstr "  -X                   -a 대용\n"
+
+#: src/sysctl.c:238
+msgid "      --deprecated     include deprecated parameters to listing\n"
+msgstr "      --deprecated     오래된 매개변수를 표시 내용에 포함\n"
+
+#: src/sysctl.c:239
+msgid "      --dry-run        Print the key and values but do not write\n"
+msgstr "      --dry-run        키=값을 출력하고 기록하지 않음\n"
+
+#: src/sysctl.c:240
+msgid "  -b, --binary         print value without new line\n"
+msgstr "  -b, --binary         개행하지 않고 값 출력\n"
+
+#: src/sysctl.c:241
+msgid "  -e, --ignore         ignore unknown variables errors\n"
+msgstr "  -e, --ignore         알 수 없는 변수 오류 무시\n"
+
+#: src/sysctl.c:242
+msgid "  -N, --names          print variable names without values\n"
+msgstr "  -N, --names          값을 뺀 변수 이름만 출력\n"
+
+#: src/sysctl.c:243
+msgid "  -n, --values         print only values of the given variable(s)\n"
+msgstr "  -n, --values         지정 변수의 값만 출력\n"
+
+#: src/sysctl.c:244
+msgid "  -p, --load[=<file>]  read values from file\n"
+msgstr "  -p, --load[=<파일>]  파일에서 값 읽기\n"
+
+#: src/sysctl.c:245
+msgid "  -f                   alias of -p\n"
+msgstr "  -f                   -p 대용\n"
+
+#: src/sysctl.c:246
+msgid "      --system         read values from all system directories\n"
+msgstr "      --system         모든 시스템 디렉터리의 값 읽기\n"
+
+#: src/sysctl.c:247
+msgid ""
+"  -r, --pattern <expression>\n"
+"                       select setting that match expression\n"
+msgstr ""
+"  -r, --pattern <표현식>\n"
+"                       표현식에 일치하는 설정 값 선택\n"
+
+#: src/sysctl.c:249
+msgid "  -q, --quiet          do not echo variable set\n"
+msgstr "  -q, --quiet          변수 모음을 출력하지 않음\n"
+
+#: src/sysctl.c:250
+msgid "  -w, --write          enable writing a value to variable\n"
+msgstr "  -w, --write          변수에 값 쓰기 동작 사용\n"
+
+#: src/sysctl.c:251
+msgid "  -o                   does nothing\n"
+msgstr "  -o                   아무것도 안 함\n"
+
+#: src/sysctl.c:252
+msgid "  -x                   does nothing\n"
+msgstr "  -x                   아무것도 안 함\n"
+
+#: src/sysctl.c:253
+msgid "  -d                   alias of -h\n"
+msgstr "  -d                   -h 대용\n"
+
+#: src/sysctl.c:334 src/sysctl.c:390
+#, c-format
+msgid "\"%s\" is an unknown key"
+msgstr "\"%s\"은(는) 알 수 없는 키입니다"
+
+#: src/sysctl.c:352 src/sysctl.c:508 src/sysctl.c:545
+#, c-format
+msgid "cannot stat %s"
+msgstr "%s 상태를 확인할 수 없습니다"
+
+#: src/sysctl.c:395 src/sysctl.c:437
+#, c-format
+msgid "permission denied on key '%s'"
+msgstr "'%s' 키 사용 권한을 거부했습니다"
+
+#: src/sysctl.c:402 src/sysctl.c:454
+#, c-format
+msgid "reading key \"%s\""
+msgstr "\"%s\" 키 읽는 중"
+
+#: src/sysctl.c:492
+#, c-format
+msgid "unable to open directory \"%s\""
+msgstr "\"%s\" 디렉터리를 열 수 없습니다"
+
+#: src/sysctl.c:557
+msgid "strdup key"
+msgstr "키 strdup"
+
+#: src/sysctl.c:564 src/sysctl.c:571 src/sysctl.c:604
+#, c-format
+msgid "setting key \"%s\""
+msgstr "\"%s\" 키 설정 중"
+
+#: src/sysctl.c:581
+#, c-format
+msgid "\"%s\" is an unknown key%s"
+msgstr "\"%s\"은(는) 알 수 없는 키입니다%s"
+
+#: src/sysctl.c:582 src/sysctl.c:591 src/sysctl.c:595
+msgid ", ignoring"
+msgstr ", 무시함"
+
+#: src/sysctl.c:590
+#, c-format
+msgid "permission denied on key \"%s\"%s"
+msgstr "\"%s\" 키 사용 권한을 거부했습니다%s"
+
+#: src/sysctl.c:594
+#, c-format
+msgid "setting key \"%s\"%s"
+msgstr "\"%s\" 키 설정 중%s"
+
+#: src/sysctl.c:669
+#, c-format
+msgid "%s(%d): invalid syntax, continuing..."
+msgstr "%s(%d): 문법 잘못됨. 계속합니다..."
+
+#: src/sysctl.c:761
+#, c-format
+msgid ""
+"GLOB_TILDE is not supported on your platform, the tilde in \"%s\" won't be "
+"expanded."
+msgstr ""
+"GLOB_TILDE를 플랫폼에서 지원하지 않습니다. \"%s\"의 ~ 를 풀어 해석하지 않습니"
+"다."
+
+#: src/sysctl.c:767
+msgid "glob failed"
+msgstr "glob 실패"
+
+#: src/sysctl.c:773
+#, c-format
+msgid "cannot open \"%s\""
+msgstr "\"%s\"을(를) 열 수 없습니다"
+
+#: src/sysctl.c:877 src/sysctl.c:884
+#, c-format
+msgid "* Applying %s ...\n"
+msgstr "* %s 적용 중 ...\n"
+
+#: src/sysctl.c:1050
+#, c-format
+msgid ""
+"no variables specified\n"
+"Try `%s --help' for more information."
+msgstr ""
+"지정한 변수가 없습니다\n"
+"자세한 정보는 `%s --help'를 입력하십시오."
+
+#: src/sysctl.c:1054
+#, c-format
+msgid ""
+"options -N and -q cannot coexist\n"
+"Try `%s --help' for more information."
+msgstr ""
+"-N 옵션과 -q 옵션을 함께 사용할 수 없습니다\n"
+"자세한 정보는 `%s --help'를 입력하십시오."
+
+#: src/tload.c:75 src/tload.c:77
+msgid "screen too small or too large"
+msgstr "화면 구역이 너무 작거나 큽니다"
+
+#: src/tload.c:80
+msgid "screen too small"
+msgstr "화면 구역이 너무 작습니다"
+
+#: src/tload.c:96
+#, c-format
+msgid " %s [options] [tty]\n"
+msgstr " %s [<옵션>] [<tty>]\n"
+
+#: src/tload.c:98
+msgid " -d, --delay <secs>  update delay in seconds\n"
+msgstr " -d, --delay <초>    초 단위 지연 시간 갱신\n"
+
+#: src/tload.c:99
+msgid " -s, --scale <num>   vertical scale\n"
+msgstr " -s, --scale <숫자>  수직 스케일\n"
+
+#: src/tload.c:137
+msgid "scale cannot be negative"
+msgstr "스케일 값은 음수일 수 없습니다"
+
+#: src/tload.c:144 src/vmstat.c:1051
+msgid "too large delay value"
+msgstr "지연 시간 값이 너무 큽니다"
+
+#: src/tload.c:159
+msgid "can not open tty"
+msgstr "tty 터미널을 열 수 없습니다"
+
+#: src/tload.c:182
+msgid "Load average file /proc/loadavg does not exist"
+msgstr "/proc/loadavg 부하 평균 정보 파일이 없습니다"
+
+#: src/tload.c:185
+msgid "Unable to get load average"
+msgstr "부하 평균 정보를 가져올 수 없습니다"
+
+#: src/tload.c:227 src/tload.c:229
+msgid "writing to tty failed"
+msgstr "tty 터미널 쓰기 실패"
+
+#. Translation Notes ------------------------------------------------
+#. .  It is strongly recommend that the --no-wrap command line option
+#. .  be used with all supporting translation tools, when available.
+#. .
+#. .  The following line pairs contain only plain text and consist of:
+#. .     1) a field name/column header - mostly upper case
+#. .     2) the related description    - both upper and lower case
+#. .
+#. .  To avoid truncation on the main top display, each column header
+#. .  is noted with its maximum size, while a few are 'variable' width.
+#. .  Names for the latter should probably be 10 or fewer characters.
+#. .
+#. .  Those fields shown with a '+' are also eligible for user resizing
+#. .  using the 'X' command. That means the default width might produce
+#. .  truncation but need not if widened (see the man page 'X' command).
+#. .
+#. .  All headers are subject to a maximum of 8 on the Fields Management
+#. .  screen where truncation is entirely acceptable.
+#. .
+#. .  The associated descriptions are always limited to 20 characters,
+#. .  and are used only on the Fields Management screen.
+#. .
+#. .  In all cases, fewer characters are just fine.
+#. .
+#. Translation Hint: maximum 'PID' = 5
+#: src/top/top_nls.c:152
+msgid "PID"
+msgstr "PID"
+
+#: src/top/top_nls.c:153
+msgid "Process Id"
+msgstr "프로세스 ID"
+
+#. Translation Hint: maximum 'PPID' = 5
+#: src/top/top_nls.c:155
+msgid "PPID"
+msgstr "PPID"
+
+#: src/top/top_nls.c:156
+msgid "Parent Process pid"
+msgstr "상위 프로세스 ID"
+
+#. Translation Hint: maximum 'UID' = 5 +
+#: src/top/top_nls.c:158
+msgid "UID"
+msgstr "UID"
+
+#: src/top/top_nls.c:159
+msgid "Effective User Id"
+msgstr "해당 사용자 ID"
+
+#. Translation Hint: maximum 'USER' = 8 +
+#: src/top/top_nls.c:161 src/w.c:799
+msgid "USER"
+msgstr "USER"
+
+#: src/top/top_nls.c:162
+msgid "Effective User Name"
+msgstr "해당 사용자 이름"
+
+#. Translation Hint: maximum 'RUID' = 5 +
+#: src/top/top_nls.c:164
+msgid "RUID"
+msgstr "RUID"
+
+#: src/top/top_nls.c:165
+msgid "Real User Id"
+msgstr "실제 사용자 ID"
+
+#. Translation Hint: maximum 'RUSER' = 8 +
+#: src/top/top_nls.c:167
+msgid "RUSER"
+msgstr "RUSER"
+
+#: src/top/top_nls.c:168
+msgid "Real User Name"
+msgstr "실제 사용자 이름"
+
+#. Translation Hint: maximum 'SUID' = 5 +
+#: src/top/top_nls.c:170
+msgid "SUID"
+msgstr "SUID"
+
+#: src/top/top_nls.c:171
+msgid "Saved User Id"
+msgstr "저장한 사용자 ID"
+
+#. Translation Hint: maximum 'SUSER' = 8 +
+#: src/top/top_nls.c:173
+msgid "SUSER"
+msgstr "SUSER"
+
+#: src/top/top_nls.c:174
+msgid "Saved User Name"
+msgstr "저장한 사용자 이름"
+
+#. Translation Hint: maximum 'GID' = 5 +
+#: src/top/top_nls.c:176
+msgid "GID"
+msgstr "GID"
+
+#: src/top/top_nls.c:177
+msgid "Group Id"
+msgstr "그룹 ID"
+
+#. Translation Hint: maximum 'GROUP' = 8 +
+#: src/top/top_nls.c:179
+msgid "GROUP"
+msgstr "GROUP"
+
+#: src/top/top_nls.c:180
+msgid "Group Name"
+msgstr "그룹 이름"
+
+#. Translation Hint: maximum 'PGRP' = 5
+#: src/top/top_nls.c:182
+msgid "PGRP"
+msgstr "PGRP"
+
+#: src/top/top_nls.c:183
+msgid "Process Group Id"
+msgstr "프로세스 그룹 ID"
+
+#. Translation Hint: maximum 'TTY' = 8 +
+#: src/top/top_nls.c:185
+msgid "TTY"
+msgstr "TTY"
+
+#: src/top/top_nls.c:186
+msgid "Controlling Tty"
+msgstr "제어 tty 터미널"
+
+#. Translation Hint: maximum 'TPGID' = 5
+#: src/top/top_nls.c:188
+msgid "TPGID"
+msgstr "TPGID"
+
+#: src/top/top_nls.c:189
+msgid "Tty Process Grp Id"
+msgstr "tty 프로세스 그룹 ID"
+
+#. Translation Hint: maximum 'SID' = 5
+#: src/top/top_nls.c:191
+msgid "SID"
+msgstr "SID"
+
+#: src/top/top_nls.c:192
+msgid "Session Id"
+msgstr "세션 ID"
+
+#. Translation Hint: maximum 'PR' = 3
+#: src/top/top_nls.c:194
+msgid "PR"
+msgstr "PR"
+
+#: src/top/top_nls.c:195
+msgid "Priority"
+msgstr "우선순위"
+
+#. Translation Hint: maximum 'NI' = 3
+#: src/top/top_nls.c:197
+msgid "NI"
+msgstr "NI"
+
+#: src/top/top_nls.c:198
+msgid "Nice Value"
+msgstr "nice 값"
+
+#. Translation Hint: maximum 'nTH' = 3
+#: src/top/top_nls.c:200
+msgid "nTH"
+msgstr "nTH"
+
+#: src/top/top_nls.c:201
+msgid "Number of Threads"
+msgstr "스레드 갯수"
+
+#. Translation Hint: maximum 'P' = 1
+#: src/top/top_nls.c:203
+msgid "P"
+msgstr "P"
+
+#: src/top/top_nls.c:204
+msgid "Last Used Cpu (SMP)"
+msgstr "최종 사용 CPU (SMP)"
+
+#. Translation Hint: maximum '%CPU' = 4
+#: src/top/top_nls.c:206
+#, c-format
+msgid "%CPU"
+msgstr "%CPU"
+
+#: src/top/top_nls.c:207
+msgid "CPU Usage"
+msgstr "CPU 사용율"
+
+#. Translation Hint: maximum '' = 6
+#: src/top/top_nls.c:209
+msgid "TIME"
+msgstr "TIME"
+
+#: src/top/top_nls.c:210
+msgid "CPU Time"
+msgstr "CPU 사용시간"
+
+#. Translation Hint: maximum 'TIME+' = 9
+#: src/top/top_nls.c:212
+msgid "TIME+"
+msgstr "TIME+"
+
+#: src/top/top_nls.c:213
+msgid "CPU Time, hundredths"
+msgstr "CPU 사용시간, 100자리"
+
+#. Translation Hint: maximum '%MEM' = 4
+#: src/top/top_nls.c:215
+msgid "%MEM"
+msgstr "%MEM"
+
+#: src/top/top_nls.c:216
+msgid "Memory Usage (RES)"
+msgstr "메모리 사용율 (RES)"
+
+#. Translation Hint: maximum 'VIRT' = 7
+#: src/top/top_nls.c:218
+msgid "VIRT"
+msgstr "VIRT"
+
+#: src/top/top_nls.c:219
+msgid "Virtual Image (KiB)"
+msgstr "가상 이미지 (KiB)"
+
+#. Translation Hint: maximum 'SWAP' = 6
+#: src/top/top_nls.c:221
+msgid "SWAP"
+msgstr "SWAP"
+
+#: src/top/top_nls.c:222
+msgid "Swapped Size (KiB)"
+msgstr "스왑 크기 (KiB)"
+
+#. Translation Hint: maximum 'RES' = 6
+#: src/top/top_nls.c:224
+msgid "RES"
+msgstr "RES"
+
+#: src/top/top_nls.c:225
+msgid "Resident Size (KiB)"
+msgstr "점유 크기 (KiB)"
+
+#. Translation Hint: maximum 'CODE' = 4
+#: src/top/top_nls.c:227
+msgid "CODE"
+msgstr "CODE"
+
+#: src/top/top_nls.c:228
+msgid "Code Size (KiB)"
+msgstr "코드 크기 (KiB)"
+
+#. Translation Hint: maximum 'DATA' = 7
+#: src/top/top_nls.c:230
+msgid "DATA"
+msgstr "DATA"
+
+#: src/top/top_nls.c:231
+msgid "Data+Stack (KiB)"
+msgstr "데이터+스택 (KiB)"
+
+#. Translation Hint: maximum 'SHR' = 6
+#: src/top/top_nls.c:233
+msgid "SHR"
+msgstr "SHR"
+
+#: src/top/top_nls.c:234
+msgid "Shared Memory (KiB)"
+msgstr "공유 메모리 (KiB)"
+
+#. Translation Hint: maximum 'nMaj' = 4
+#: src/top/top_nls.c:236
+msgid "nMaj"
+msgstr "nMaj"
+
+#: src/top/top_nls.c:237
+msgid "Major Page Faults"
+msgstr "주 페이지 처리 실패 수"
+
+#. Translation Hint: maximum 'nMin' = 4
+#: src/top/top_nls.c:239
+msgid "nMin"
+msgstr "nMin"
+
+#: src/top/top_nls.c:240
+msgid "Minor Page Faults"
+msgstr "부 페이지 처리 실패 수"
+
+#. Translation Hint: maximum 'nDRT' = 4
+#: src/top/top_nls.c:242
+msgid "nDRT"
+msgstr "nDRT"
+
+#: src/top/top_nls.c:243
+msgid "Dirty Pages Count"
+msgstr "더티 페이지 갯수"
+
+#. Translation Hint: maximum 'S' = 1
+#: src/top/top_nls.c:245
+msgid "S"
+msgstr "S"
+
+#: src/top/top_nls.c:246
+msgid "Process Status"
+msgstr "프로세스 상태"
+
+#. Translation Hint: maximum 'COMMAND' = variable
+#: src/top/top_nls.c:248
+msgid "COMMAND"
+msgstr "COMMAND"
+
+#: src/top/top_nls.c:249
+msgid "Command Name/Line"
+msgstr "명령 이름/행"
+
+#. Translation Hint: maximum 'WCHAN' = 10 +
+#: src/top/top_nls.c:251
+msgid "WCHAN"
+msgstr "WCHAN"
+
+#: src/top/top_nls.c:252
+msgid "Sleeping in Function"
+msgstr "잠자기 함수"
+
+#. Translation Hint: maximum 'Flags' = 8
+#: src/top/top_nls.c:254
+msgid "Flags"
+msgstr "Flags"
+
+#: src/top/top_nls.c:255
+msgid "Task Flags <sched.h>"
+msgstr "작업 플래그 <sched.h>"
+
+#. Translation Hint: maximum 'CGROUPS' = variable
+#: src/top/top_nls.c:257
+msgid "CGROUPS"
+msgstr "CGROUPS"
+
+#: src/top/top_nls.c:258
+msgid "Control Groups"
+msgstr "제어 그룹"
+
+#. Translation Hint: maximum 'SUPGIDS' = variable
+#: src/top/top_nls.c:260
+msgid "SUPGIDS"
+msgstr "SUPGIDS"
+
+#: src/top/top_nls.c:261
+msgid "Supp Groups IDs"
+msgstr "Supp 그룹 ID"
+
+#. Translation Hint: maximum 'SUPGRPS' = variable
+#: src/top/top_nls.c:263
+msgid "SUPGRPS"
+msgstr "SUPGRPS"
+
+#: src/top/top_nls.c:264
+msgid "Supp Groups Names"
+msgstr "Supp 그룹 이름"
+
+#. Translation Hint: maximum 'TGID' = 5
+#: src/top/top_nls.c:266
+msgid "TGID"
+msgstr "TGID"
+
+#: src/top/top_nls.c:267
+msgid "Thread Group Id"
+msgstr "스레드 그룹 ID"
+
+#. Translation Hint: maximum 'OOMa' = 5
+#: src/top/top_nls.c:269
+msgid "OOMa"
+msgstr "OOMa"
+
+#: src/top/top_nls.c:270
+msgid "OOMEM Adjustment"
+msgstr "OOMEM 조정값"
+
+#. Translation Hint: maximum 'OOMs' = 4
+#: src/top/top_nls.c:272
+msgid "OOMs"
+msgstr "OOMs"
+
+#: src/top/top_nls.c:273
+msgid "OOMEM Score current"
+msgstr "현재 OOMEM 스코어"
+
+#. Translation Hint: maximum 'ENVIRON' = variable
+#: src/top/top_nls.c:275
+msgid "ENVIRON"
+msgstr "ENVIRON"
+
+#. Translation Hint: the abbreviation 'vars' below is shorthand for
+#. 'variables'
+#: src/top/top_nls.c:278
+msgid "Environment vars"
+msgstr "환경 변수"
+
+#. Translation Hint: maximum 'vMj' = 3
+#: src/top/top_nls.c:280
+msgid "vMj"
+msgstr "vMj"
+
+#: src/top/top_nls.c:281
+msgid "Major Faults delta"
+msgstr "주 실패 변이값"
+
+#. Translation Hint: maximum 'vMn' = 3
+#: src/top/top_nls.c:283
+msgid "vMn"
+msgstr "vMn"
+
+#: src/top/top_nls.c:284
+msgid "Minor Faults delta"
+msgstr "부 실패 변이값"
+
+#. Translation Hint: maximum 'USED' = 6
+#: src/top/top_nls.c:286
+msgid "USED"
+msgstr "USED"
+
+#: src/top/top_nls.c:287
+msgid "Res+Swap Size (KiB)"
+msgstr "Res+스왑 크기 (KiB)"
+
+#. Translation Hint: maximum 'nsIPC' = 10 +
+#: src/top/top_nls.c:289
+msgid "nsIPC"
+msgstr "nsIPC"
+
+#: src/top/top_nls.c:290
+msgid "IPC namespace Inode"
+msgstr "IPC 이름 영역 I-노드"
+
+#. Translation Hint: maximum 'nsMNT' = 10 +
+#: src/top/top_nls.c:292
+msgid "nsMNT"
+msgstr "nsMNT"
+
+#: src/top/top_nls.c:293
+msgid "MNT namespace Inode"
+msgstr "MNT 이름 영역 I-노드"
+
+#. Translation Hint: maximum 'nsNET' = 10 +
+#: src/top/top_nls.c:295
+msgid "nsNET"
+msgstr "nsNET"
+
+#: src/top/top_nls.c:296
+msgid "NET namespace Inode"
+msgstr "NET 이름 영역 I-노드"
+
+#. Translation Hint: maximum 'nsPID' = 10 +
+#: src/top/top_nls.c:298
+msgid "nsPID"
+msgstr "nsPID"
+
+#: src/top/top_nls.c:299
+msgid "PID namespace Inode"
+msgstr "PID 이름 영역 I-노드"
+
+#. Translation Hint: maximum 'nsUSER' = 10 +
+#: src/top/top_nls.c:301
+msgid "nsUSER"
+msgstr "nsUSER"
+
+#: src/top/top_nls.c:302
+msgid "USER namespace Inode"
+msgstr "USER 이름 영역 I-노드"
+
+#. Translation Hint: maximum 'nsUTS' = 10 +
+#: src/top/top_nls.c:304
+msgid "nsUTS"
+msgstr "nsUTS"
+
+#: src/top/top_nls.c:305
+msgid "UTS namespace Inode"
+msgstr "UTS 이름 영역 I-노드"
+
+#. Translation Hint: maximum 'LXC' = 8 +
+#: src/top/top_nls.c:307
+msgid "LXC"
+msgstr "LXC"
+
+#: src/top/top_nls.c:308
+msgid "LXC container name"
+msgstr "LXC 컨테이너 이름"
+
+#. Translation Hint: maximum 'RSan' = 6
+#: src/top/top_nls.c:310
+msgid "RSan"
+msgstr "RSan"
+
+#: src/top/top_nls.c:311
+msgid "RES Anonymous (KiB)"
+msgstr "RES 익명사용 (KiB)"
+
+#. Translation Hint: maximum 'RSfd' = 6
+#: src/top/top_nls.c:313
+msgid "RSfd"
+msgstr "RSfd"
+
+#: src/top/top_nls.c:314
+msgid "RES File-based (KiB)"
+msgstr "RES 파일기반 (KiB)"
+
+#. Translation Hint: maximum 'RSlk' = 6
+#: src/top/top_nls.c:316
+msgid "RSlk"
+msgstr "RSlk"
+
+#: src/top/top_nls.c:317
+msgid "RES Locked (KiB)"
+msgstr "RES 잠금 (KiB)"
+
+#. Translation Hint: maximum 'RSsh' = 6
+#: src/top/top_nls.c:319
+msgid "RSsh"
+msgstr "RSsh"
+
+#: src/top/top_nls.c:320
+msgid "RES Shared (KiB)"
+msgstr "RES 공유 (KiB)"
+
+#. Translation Hint: maximum 'CGNAME' = variable
+#: src/top/top_nls.c:322
+msgid "CGNAME"
+msgstr "CGNAME"
+
+#: src/top/top_nls.c:323
+msgid "Control Group name"
+msgstr "제어 그룹 이름"
+
+#. Translation Hint: maximum 'NU' = 2
+#: src/top/top_nls.c:325
+msgid "NU"
+msgstr "NU"
+
+#: src/top/top_nls.c:326
+msgid "Last Used NUMA node"
+msgstr "최종 사용 NUMA 노드"
+
+#. Translation Hint: maximum 'LOGID' = 5 +
+#: src/top/top_nls.c:328
+msgid "LOGID"
+msgstr "LOGID"
+
+#: src/top/top_nls.c:329
+msgid "Login User Id"
+msgstr "로그인 사용자 ID"
+
+#. Translation Hint: maximum 'EXE' = variable
+#: src/top/top_nls.c:331
+msgid "EXE"
+msgstr "EXE"
+
+#: src/top/top_nls.c:332
+msgid "Executable Path"
+msgstr "실행 경로"
+
+#: src/top/top_nls.c:338
+msgid "Res Mem (smaps), KiB"
+msgstr "Res Mem (smaps), KiB"
+
+#. Translation Hint: maximum 'PSS' = 6
+#: src/top/top_nls.c:340
+msgid "PSS"
+msgstr "PSS"
+
+#: src/top/top_nls.c:341
+msgid "Proportion RSS,  KiB"
+msgstr "부분 RSS,  KiB"
+
+#. Translation Hint: maximum 'PSan' = 6
+#: src/top/top_nls.c:343
+msgid "PSan"
+msgstr "PSan"
+
+#: src/top/top_nls.c:344
+msgid "Proportion Anon, KiB"
+msgstr "부분 Anon, KiB"
+
+#. Translation Hint: maximum 'PSfd' = 6
+#: src/top/top_nls.c:346
+msgid "PSfd"
+msgstr "PSfd"
+
+#: src/top/top_nls.c:347
+msgid "Proportion File, KiB"
+msgstr "부분 파일, KiB"
+
+#. Translation Hint: maximum 'PSsh' = 6
+#: src/top/top_nls.c:349
+msgid "PSsh"
+msgstr "PSsh"
+
+#: src/top/top_nls.c:350
+msgid "Proportion Shrd, KiB"
+msgstr "부분 Shrd, KiB"
+
+#. Translation Hint: maximum 'USS' = 6
+#: src/top/top_nls.c:352
+msgid "USS"
+msgstr "USS"
+
+#: src/top/top_nls.c:353
+msgid "Unique RSS, KiB"
+msgstr "유일 RSS, KiB"
+
+#. Translation Hint: maximum 'ioR' = 6
+#: src/top/top_nls.c:355
+msgid "ioR"
+msgstr "ioR"
+
+#: src/top/top_nls.c:356
+msgid "I/O Bytes Read"
+msgstr "읽은 I/O 바이트"
+
+#. Translation Hint: maximum 'ioRop' = 5
+#: src/top/top_nls.c:358
+msgid "ioRop"
+msgstr "ioRop"
+
+#: src/top/top_nls.c:359
+msgid "I/O Read Operations"
+msgstr "I/O 읽기 처리"
+
+#. Translation Hint: maximum 'ioW' = 6
+#: src/top/top_nls.c:361
+msgid "ioW"
+msgstr "ioW"
+
+#: src/top/top_nls.c:362
+msgid "I/O Bytes Written"
+msgstr "기록한 I/O 바이트"
+
+#. Translation Hint: maximum 'ioWop' = 5
+#: src/top/top_nls.c:364
+msgid "ioWop"
+msgstr "ioWop"
+
+#: src/top/top_nls.c:365
+msgid "I/O Write Operations"
+msgstr "I/O 기록 처리"
+
+#. Translation Hint: maximum 'AGID' = 5
+#: src/top/top_nls.c:367
+msgid "AGID"
+msgstr "AGID"
+
+#: src/top/top_nls.c:368
+msgid "Autogroup Identifier"
+msgstr "자동 그룹 식별자"
+
+#. Translation Hint: maximum 'AGNI' = 4
+#: src/top/top_nls.c:370
+msgid "AGNI"
+msgstr "AGNI"
+
+#: src/top/top_nls.c:371
+msgid "Autogroup Nice Value"
+msgstr "자동 그룹 nice 값"
+
+#. Translation Hint: maximum 'STARTED' = 7
+#: src/top/top_nls.c:373
+msgid "STARTED"
+msgstr "STARTED"
+
+#: src/top/top_nls.c:374
+msgid "Start Time from boot"
+msgstr "부팅 후 시작 시간"
+
+#. Translation Hint: maximum 'ELAPSED' = 7
+#: src/top/top_nls.c:376
+msgid "ELAPSED"
+msgstr "ELAPSED"
+
+#: src/top/top_nls.c:377
+msgid "Elapsed Running Time"
+msgstr "소요 실행 시간"
+
+#. Translation Hint: maximum '%CUU' = 6
+#: src/top/top_nls.c:379
+#, c-format
+msgid "%CUU"
+msgstr "%CUU"
+
+#: src/top/top_nls.c:380
+msgid "CPU Utilization"
+msgstr "CPU 활용율"
+
+#. Translation Hint: maximum '%CUC' = 7
+#: src/top/top_nls.c:382
+#, c-format
+msgid "%CUC"
+msgstr "%CUC"
+
+#: src/top/top_nls.c:383
+msgid "Utilization + child"
+msgstr "활용율 + 하위요소"
+
+#. Translation Hint: maximum 'nsCGROUP' = 10 +
+#: src/top/top_nls.c:385
+msgid "nsCGROUP"
+msgstr "nsCGROUP"
+
+#: src/top/top_nls.c:386
+msgid "CGRP namespace Inode"
+msgstr "CGRP 이름영역 I-노드"
+
+#. Translation Hint: maximum 'nsTIME' = 10 +
+#: src/top/top_nls.c:388
+msgid "nsTIME"
+msgstr "nsTIME"
+
+#: src/top/top_nls.c:389
+msgid "TIME namespace Inode"
+msgstr "TIME 이름 영역 I-노드"
+
+#. Translation Notes ------------------------------------------------
+#. .  It is strongly recommend that the --no-wrap command line option
+#. .  be used with all supporting translation tools, when available.
+#. .
+#. .  This group of lines contains both plain text and c-format strings.
+#. .
+#. .  Some strings reflect switches used to affect the running program
+#. .  and should not be translated without also making corresponding
+#. .  c-code logic changes.
+#. .
+#: src/top/top_nls.c:409
+#, c-format
+msgid ""
+"\tsignal %d (%s) was caught by %s, please\n"
+"\tsend bug reports to <procps@freelists.org>\n"
+msgstr ""
+"\t시그널 %d번(%s)을 %s에서 잡았습니다.\n"
+"\t<procps@freelists.org>에 문제점을 보고하여 주십시오\n"
+
+#: src/top/top_nls.c:439
+#, c-format
+msgid "bad delay interval '%s'"
+msgstr "잘못된 지연 시간 간격 '%s'"
+
+#: src/top/top_nls.c:440
+#, c-format
+msgid "bad iterations argument '%s'"
+msgstr "잘못된 순환 인자 '%s'"
+
+#: src/top/top_nls.c:441
+#, c-format
+msgid "pid limit (%d) exceeded"
+msgstr "PID 제한(%d) 초과"
+
+#: src/top/top_nls.c:442
+#, c-format
+msgid "bad pid '%s'"
+msgstr "잘못된 PID '%s'"
+
+#: src/top/top_nls.c:443
+#, c-format
+msgid "-%c argument missing"
+msgstr "-%c 옵션에 인자 값이 빠졌습니다"
+
+#: src/top/top_nls.c:444
+#, c-format
+msgid "bad width arg '%s'"
+msgstr "잘못된 너비 인자 '%s'"
+
+#: src/top/top_nls.c:445
+#, c-format
+msgid "unknown option '%s'"
+msgstr "알 수 없는 옵션 '%s'"
+
+#: src/top/top_nls.c:446
+msgid "-d disallowed in \"secure\" mode"
+msgstr "-d는 \"보안\" 모드에서 허용하지 않습니다"
+
+#: src/top/top_nls.c:447
+msgid "-d requires positive argument"
+msgstr "-d 옵션에 양수 인자 값이 필요합니다"
+
+#: src/top/top_nls.c:448
+msgid "On"
+msgstr "켬"
+
+#: src/top/top_nls.c:449
+msgid "Off"
+msgstr "끔"
+
+#: src/top/top_nls.c:450
+#, c-format
+msgid "%s from %s"
+msgstr "%2$s에서 %1$s"
+
+#: src/top/top_nls.c:451
+#, c-format
+msgid "Forest mode %s"
+msgstr "포레스트 모드 %s"
+
+#: src/top/top_nls.c:452
+msgid "failed tty get"
+msgstr "tty 정보 가져오기 실패"
+
+#: src/top/top_nls.c:453
+#, c-format
+msgid "failed tty set: %s"
+msgstr "tty 설정 실패: %s"
+
+#: src/top/top_nls.c:454
+msgid "Choose field group (1 - 4)"
+msgstr "필드 그룹 선택(1 - 4)"
+
+#: src/top/top_nls.c:455
+msgid "Command disabled, 'A' mode required"
+msgstr "명령을 껐습니다. 'A' 모드가 필요합니다"
+
+#: src/top/top_nls.c:456
+#, c-format
+msgid "Command disabled, activate %s with '-' or '_'"
+msgstr "명령을 껐습니다. %s을(를) '-' 또는 '_'로 활성화합니다"
+
+#: src/top/top_nls.c:457
+msgid "No colors to map!"
+msgstr "대응 색상 값이 없습니다!"
+
+#: src/top/top_nls.c:458
+#, c-format
+msgid "Failed '%s' open: %s"
+msgstr "'%s' 열기 실패: %s"
+
+#: src/top/top_nls.c:459
+#, c-format
+msgid "Wrote configuration to '%s'"
+msgstr "'%s'에 설정을 기록했습니다"
+
+#: src/top/top_nls.c:460
+#, c-format
+msgid "Change delay from %.1f to"
+msgstr "지연 값 %.1f의 변환 값"
+
+#: src/top/top_nls.c:461
+#, c-format
+msgid "Show threads %s"
+msgstr "%s 스레드 표시"
+
+#: src/top/top_nls.c:462
+#, c-format
+msgid "Irix mode %s"
+msgstr "%s 아이릭스 모드"
+
+#: src/top/top_nls.c:463
+#, c-format
+msgid "PID to signal/kill [default pid = %d]"
+msgstr "시그널 전송/강제 종료 PID [기본 PID = %d]"
+
+#: src/top/top_nls.c:464
+#, c-format
+msgid "Send pid %d signal [%d/sigterm]"
+msgstr "PID %d번에 시그널 보내기 [%d/SIGTERM]"
+
+#: src/top/top_nls.c:465
+#, c-format
+msgid "Failed signal pid '%d' with '%d': %s"
+msgstr "PID '%d'번에 '%d'번 시그널 보내기 실패: %s"
+
+#: src/top/top_nls.c:466
+msgid "Invalid signal"
+msgstr "부적절한 시그널"
+
+#: src/top/top_nls.c:467
+#, c-format
+msgid "PID to renice [default pid = %d]"
+msgstr "renice 처리할 PID [기본 PID = %d]"
+
+#: src/top/top_nls.c:468
+#, c-format
+msgid "Renice PID %d to value"
+msgstr "PID %d번을 값으로 renice"
+
+#: src/top/top_nls.c:469
+#, c-format
+msgid "Failed renice of PID %d to %d: %s"
+msgstr "PID %d번의 %d값 renice 실패: %s"
+
+#: src/top/top_nls.c:470
+#, c-format
+msgid "Rename window '%s' to (1-3 chars)"
+msgstr "'%s' 창의 바꿀 이름(1-3문자)"
+
+#: src/top/top_nls.c:471
+#, c-format
+msgid "Cumulative time %s"
+msgstr "누적 시간 %s"
+
+#: src/top/top_nls.c:472
+#, c-format
+msgid "Maximum tasks = %d, change to (0 is unlimited)"
+msgstr "최대 작업 수 = %d, 바꿀 값(0값은 무제한)"
+
+#: src/top/top_nls.c:473
+msgid "Invalid maximum"
+msgstr "부적절한 최대값"
+
+#: src/top/top_nls.c:474
+msgid "Which user (blank for all)"
+msgstr "대상 사용자(빈 값은 모든 사용자)"
+
+#: src/top/top_nls.c:475
+msgid "Unknown command - try 'h' for help"
+msgstr "명령을 알 수 없습니다 - 도움말은 'h'를 입력하십시오"
+
+#: src/top/top_nls.c:476
+#, c-format
+msgid "scroll coordinates: y = %d/%d (tasks), x = %d/%d (fields)"
+msgstr "좌표 스크롤: y = %d/%d (작업),  x = %d/%d (필드)"
+
+#: src/top/top_nls.c:477
+msgid "failed memory allocate"
+msgstr "메모리 할당 실패"
+
+#: src/top/top_nls.c:478
+msgid "failed memory re-allocate"
+msgstr "메모리 재할당 실패"
+
+#: src/top/top_nls.c:479
+msgid "Unacceptable floating point"
+msgstr "받아들일 수 없는 실수값"
+
+#: src/top/top_nls.c:480
+msgid "Invalid user"
+msgstr "잘못된 사용자"
+
+#: src/top/top_nls.c:481
+msgid "forest view"
+msgstr "포레스트 보기"
+
+#: src/top/top_nls.c:482
+msgid "failed pid maximum size test"
+msgstr "PID 최대 크기 시험 실패"
+
+#: src/top/top_nls.c:483
+msgid "failed number of cpus test"
+msgstr "CPU 갯수 시험 실패"
+
+#: src/top/top_nls.c:484
+#, c-format
+msgid "incompatible rcfile, you should delete '%s'"
+msgstr "호환성 없는 rcfile. '%s'을(를) 삭제하십시오"
+
+#: src/top/top_nls.c:485
+#, c-format
+msgid "window entry #%d corrupt, please delete '%s'"
+msgstr "#%d번 창 항목이 깨졌습니다. '%s'을(를) 삭제하십시오"
+
+#: src/top/top_nls.c:486
+msgid "Unavailable in secure mode"
+msgstr "보안 보드에서는 사용할 수 없습니다"
+
+#: src/top/top_nls.c:487
+msgid "Only 1 cpu detected"
+msgstr "CPU 1개만 찾았습니다"
+
+#: src/top/top_nls.c:488
+msgid "Unacceptable integer"
+msgstr "받아들일 수 없는 정수값"
+
+#: src/top/top_nls.c:489
+msgid "conflicting process selections (U/p/u)"
+msgstr "프로세스 선택 겹침 (U/p/u)"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 kibibytes (1024 bytes)
+#: src/top/top_nls.c:492
+msgid "KiB"
+msgstr "KiB"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 mebibytes (1,048,576 bytes)
+#: src/top/top_nls.c:495
+msgid "MiB"
+msgstr "MiB"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 gibibytes (1,073,741,824 bytes)
+#: src/top/top_nls.c:498
+msgid "GiB"
+msgstr "GiB"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 tebibytes (1,099,511,627,776 bytes)
+#: src/top/top_nls.c:501
+msgid "TiB"
+msgstr "TiB"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 pebibytes (1,024 tebibytes)
+#: src/top/top_nls.c:504
+msgid "PiB"
+msgstr "PiB"
+
+#. Translation Hint: This is an abbreviation (limit 3 characters) for:
+#. .                 exbibytes (1,024 pebibytes)
+#: src/top/top_nls.c:507
+msgid "EiB"
+msgstr "EiB"
+
+#: src/top/top_nls.c:508
+msgid "Threads"
+msgstr "스레드"
+
+#: src/top/top_nls.c:509
+msgid "Tasks"
+msgstr "작  업"
+
+#. Translation Hint: The following "word" is meant to represent either a single
+#. .                 cpu or all of the processors in a multi-processor computer
+#. .                 (should be exactly 6 characters, excluding leading % & colon)
+#: src/top/top_nls.c:513
+#, c-format
+msgid "%Cpu(s):"
+msgstr "%Cpu:"
+
+#. Translation Hint: The following "word" is meant to represent a single processor
+#. and 'the Cp' prefix will be combined with a  core id: 'p', 'e' or 'u'
+#. .                 (if 'Cp' is translated, it must be exactly 2 characters long)
+#: src/top/top_nls.c:517
+#, c-format
+msgid "%%Cp%c%-3d:"
+msgstr "%%Cp%c%-3d:"
+
+#. Translation Hint: The following word "another" must have 1 trailing space
+#: src/top/top_nls.c:519
+msgid "another "
+msgstr "기  타 "
+
+#: src/top/top_nls.c:520
+msgid "Locate next inactive, use \"L\""
+msgstr "다음 비활성 대상을 가리키려면, \"L\"을 누르십시오"
+
+#: src/top/top_nls.c:521
+msgid "Locate string"
+msgstr "문자열 가리키기"
+
+#: src/top/top_nls.c:522
+#, c-format
+msgid "%s\"%s\" not found"
+msgstr "%s\"%s\"이(가) 없습니다"
+
+#: src/top/top_nls.c:523
+#, c-format
+msgid "width incr is %d, change to (0 default, -1 auto)"
+msgstr "너비 증가 값 %d, 변경 값(기본값은 0, -1은 자동)"
+
+#: src/top/top_nls.c:524
+msgid "rcfile has inspect/other-filter error(s), save anyway?"
+msgstr "rc파일에 검사/기타-필터 오류가 있습니다, 그래도 저장하시겠습니까?"
+
+#: src/top/top_nls.c:525
+#, c-format
+msgid "unrecognized field name '%s'"
+msgstr "인식할 수 없는 '%s' 필드 이름"
+
+#: src/top/top_nls.c:526
+msgid "even using field names only, window is now too small"
+msgstr "필드 이름만 지정하더라도 창 크기가 너무 작습니다"
+
+#: src/top/top_nls.c:527
+msgid "Open Files"
+msgstr "파일 열기"
+
+#: src/top/top_nls.c:528
+msgid "NUMA Info"
+msgstr "NUMA 정보"
+
+#: src/top/top_nls.c:529
+msgid "Log"
+msgstr "로그"
+
+#: src/top/top_nls.c:530
+msgid ""
+"the '=' key will eventually show the actual file read or command(s) "
+"executed ..."
+msgstr "'='키를 사용하면 실제 읽은 파일 내용 또는 실행한 명령도 보여줍니다 ..."
+
+#: src/top/top_nls.c:531
+msgid "demo"
+msgstr "데모"
+
+#: src/top/top_nls.c:532
+#, c-format
+msgid ""
+"This is simulated output representing the contents of some file or the "
+"output\n"
+"from some command.  Exactly which commands and/or files are solely up to "
+"you.\n"
+"\n"
+"Although this text is for information purposes only, it can still be "
+"scrolled\n"
+"and searched like real output will be.  You are encouraged to experiment "
+"with\n"
+"those features as explained in the prologue above.\n"
+"\n"
+"To enable real Inspect functionality, entries must be added to the end of "
+"the\n"
+"top personal personal configuration file.  You could use your favorite "
+"editor\n"
+"to accomplish this, taking care not to disturb existing entries.\n"
+"\n"
+"Another way to add entries is illustrated below, but it risks overwriting "
+"the\n"
+"rcfile.  Redirected echoes must not replace (>) but append (>>) to that "
+"file.\n"
+"\n"
+"  /bin/echo -e \"pipe\\tOpen Files\\tlsof -P -p %d 2>&1\" >> ~/.toprc\n"
+"  /bin/echo -e \"file\\tNUMA Info\\t/proc/%d/numa_maps\" >> ~/.toprc\n"
+"  /bin/echo -e \"pipe\\tLog\\ttail -n200 /var/log/syslog | sort -Mr\" >> ~/."
+"toprc\n"
+"\n"
+"If you don't know the location or name of the top rcfile, use the 'W' "
+"command\n"
+"and note those details.  After backing up the current rcfile, try issuing "
+"the\n"
+"above echoes exactly as shown, replacing '.toprc' as appropriate.  The "
+"safest\n"
+"approach would be to use copy then paste to avoid any typing mistakes.\n"
+"\n"
+"Finally, restart top to reveal what actual Inspect entries combined with "
+"this\n"
+"new command can offer.  The possibilities are endless, especially "
+"considering\n"
+"that 'pipe' type entries can include shell scripts too!\n"
+"\n"
+"For additional important information, please consult the top(1) man "
+"document.\n"
+"Then, enhance top with your very own customized 'file' and/or 'pipe' "
+"entries.\n"
+"\n"
+"Enjoy!\n"
+msgstr ""
+"어떤 파일의 내용 또는 어떤 명령의 출력을 나타내는 출력을 모사했습니다.  정확"
+"히 어떤 명령 또는 파일만\n"
+"단독으로 뜹니다.\n"
+"\n"
+"이 내용은 정보 제공 목적으로 보여주지만 실제 출력처럼 스크롤하고 검색할 수 있"
+"습니다.  위에서 설명한\n"
+"대로 기능을 시험해보십시오.\n"
+"\n"
+"실제 기능 관찰을 활용하려면, 개인 설정 파일 뒷부분에 항목을 추가해야 합니"
+"다.  원하는 편집기를 사용\n"
+"하여 기존 항목을 건드리지 않을 수 있습니다.\n"
+"\n"
+"항목을 추가하는 다른 방법은 아래에 설명했지만, rc 파일을 덮어쓰는 위험이 있"
+"을 수 있습니다.  파일\n"
+"로의 출력 방향을 대체 (>) 방식이 아닌 추가 (>>) 방식으로 지정해야합니다.\n"
+"\n"
+"  /bin/echo -e \"pipe\\tOpen Files\\tlsof -P -p %d 2>&1\" >> ~/.toprc\n"
+"  /bin/echo -e \"file\\tNUMA Info\\t/proc/%d/numa_maps\" >> ~/.toprc\n"
+"  /bin/echo -e \"pipe\\tLog\\ttail -n200 /var/log/syslog | sort -Mr\" >> ~/."
+"toprc\n"
+"\n"
+"top rc 파일의 위치와 이름을 모르겠다면 'W' 명령을 사용하여 세부 내용을 참고하"
+"십시오.  현재 rc\n"
+"파일을 백업하고 나면, 위에 나타난 출력 내용을 정확하게 실행하여 '.toprc'의 내"
+"용을 적당하게 바꾸\n"
+"십시오.  가장 안전한 방법은 복사하고 붙여넣는 방식으로 입력 실수를 막는 방식"
+"입니다.\n"
+"\n"
+"마지막으로 top을 다시 시작하여 실제 관할 항목이 새 명령에서 제공할 수 있는 내"
+"용과 붙어 나타나게 합\n"
+"니다.  가능성은 끝이 없으며 '파이프'를 활용하여 셸 스크립트에 추가할 수도 있"
+"음을 고려해보십시오!\n"
+"\n"
+"중요한 추가 내용이 있다면, top(1) 맨 문서를 꼭 살펴보십시오. 그 다음 자체적으"
+"로 개별 구성한 \n"
+"'파일' 또는 '파이프' 항목으로 top 기능을 개선해보십시오.\n"
+"\n"
+"그럼, 즐겨보세요!\n"
+
+#: src/top/top_nls.c:564
+msgid "to enable 'Y' press <Enter> then type 'W' and restart top"
+msgstr ""
+"활성화하려면 'Y' 그리고 <Enter>를 누르신 다음 'W'를 입력하여 top을 다시 시작"
+"하십시오"
+
+#: src/top/top_nls.c:565
+msgid "to enable 'Y' please consult the top man page (press Enter)"
+msgstr ""
+"활성화하려면 'Y'를 입력 후 top 맨 페이지를 살펴보십시오 (Enter를 누르십시오)"
+
+#: src/top/top_nls.c:566
+#, c-format
+msgid "Selection failed with: %s\n"
+msgstr "선택 실패: %s\n"
+
+#: src/top/top_nls.c:567
+#, c-format
+msgid "unable to inspect, pid %d not found"
+msgstr "검사할 수 없음. PID %d번이 없습니다"
+
+#: src/top/top_nls.c:568
+#, c-format
+msgid "inspect at PID [default pid = %d]"
+msgstr "지정 PID 검사 [기본 PID = %d]"
+
+#: src/top/top_nls.c:569
+#, c-format
+msgid "%s: %*d-%-*d lines, %*d-%*d columns, %lu bytes read"
+msgstr "%s: %*d-%-*d 행, %*d-%*d 열, %lu 바이트 읽음"
+
+#: src/top/top_nls.c:570
+msgid "patience please, working ..."
+msgstr "기다려주십시오, 동작중입니다 ..."
+
+#: src/top/top_nls.c:571
+msgid "working, use Ctrl-C to end ..."
+msgstr "동작중입니다. 끝내려면 Ctrl-C를 누르십시오 ..."
+
+#. Translation Hint: Below are 2 abbreviations which can be as long as needed:
+#. .                 FLD = FIELD, VAL = VALUE
+#: src/top/top_nls.c:574
+#, c-format
+msgid "add filter #%d (%s) as: [!]FLD?VAL"
+msgstr "#%d(%s) 필터 추가: [!]FLD?VAL"
+
+#: src/top/top_nls.c:575
+msgid "ignoring case"
+msgstr "대소문자 무시"
+
+#: src/top/top_nls.c:576
+msgid "case sensitive"
+msgstr "대소문자 구별"
+
+#: src/top/top_nls.c:577
+msgid "duplicate filter was ignored"
+msgstr "중복 필터는 무시합니다"
+
+#: src/top/top_nls.c:578
+#, c-format
+msgid "'%s' filter delimiter is missing"
+msgstr "'%s' 필터 구분자가 빠졌습니다"
+
+#: src/top/top_nls.c:579
+#, c-format
+msgid "'%s' filter value is missing"
+msgstr "'%s' 필터 값이 빠졌습니다"
+
+#: src/top/top_nls.c:580
+msgid "include"
+msgstr "포함"
+
+#: src/top/top_nls.c:581
+msgid "exclude"
+msgstr "제외"
+
+#: src/top/top_nls.c:582
+#, c-format
+msgid "<Enter> to resume, filters: %s"
+msgstr "재개하려면 <Enter>를 누르십시오. 대상 필터: %s"
+
+#: src/top/top_nls.c:583
+msgid "none"
+msgstr "없음"
+
+#. Translation Hint: The following word 'Node' should be exactly
+#. 4 characters, excluding leading %%, fmt chars & colon)
+#: src/top/top_nls.c:586
+#, c-format
+msgid "%%Node%-2d:"
+msgstr "%%Node%-2d:"
+
+#: src/top/top_nls.c:587
+#, c-format
+msgid "expand which numa node (0-%d)"
+msgstr "확장 대상 NUMA 노드: (0-%d)"
+
+#: src/top/top_nls.c:588
+msgid "invalid numa node"
+msgstr "부적절한 NUMA 노드 지정 값"
+
+#: src/top/top_nls.c:589
+msgid "sorry, NUMA extensions unavailable"
+msgstr "죄송합니다만, NUMA 확장을 사용할 수 없습니다"
+
+#. Translation Hint: 'Mem ' is an abbreviation for physical memory/ram
+#. .                 'Swap' represents the linux swap file --
+#. .                 please make both translations exactly 4 characters,
+#. .                 padding with extra spaces as necessary
+#: src/top/top_nls.c:594
+msgid "Mem "
+msgstr "메모리 "
+
+#: src/top/top_nls.c:595
+msgid "Swap"
+msgstr "스  왑"
+
+#: src/top/top_nls.c:596
+#, c-format
+msgid "library failed memory statistics, at %d: %s"
+msgstr "%d에서 라이브러리의 메모리 통계 처리 실패: %s"
+
+#: src/top/top_nls.c:597
+#, c-format
+msgid "library failed cpu statistics, at %d: %s"
+msgstr "%d에서 라이브러리의 CPU 통계 실패: %s"
+
+#: src/top/top_nls.c:598
+#, c-format
+msgid "library failed pids statistics, at %d: %s"
+msgstr "%d에서 라이브러리의 PID 통계 실패: %s"
+
+#: src/top/top_nls.c:599
+#, c-format
+msgid "bad memory scaling arg '%s'"
+msgstr "잘못된 메모리 스케일링 인자 '%s'"
+
+#: src/top/top_nls.c:600
+#, c-format
+msgid "PID to collapse/expand [default pid = %d]"
+msgstr "축소/확장할 PID [기본 PID = %d]"
+
+#: src/top/top_nls.c:601
+msgid "wrong mode, command inactive"
+msgstr "잘못된 모드입니다. 명령 비활성"
+
+#: src/top/top_nls.c:602
+msgid "saving prevents older top from reading, save anyway?"
+msgstr "저장 동작은 top의 이전 읽기 동작을 막습니다. 그래도 저장하시겠습니까?"
+
+#: src/top/top_nls.c:603
+#, c-format
+msgid "failed sem_init() at %d: %s"
+msgstr "%d에서 sem_init() 동작 실패: %s"
+
+#: src/top/top_nls.c:604
+#, c-format
+msgid "failed pthread_create() at %d: %s"
+msgstr "%d에서 pthread_create() 동작 실패: %s"
+
+#: src/top/top_nls.c:605
+msgid "sorry, restricted namespace with reduced functionality"
+msgstr "죄송하지만, 기능 최소화 상태에서 이름 영역 사용을 제한합니다"
+
+#: src/top/top_nls.c:606
+#, c-format
+msgid "set pid %d AGNI value to"
+msgstr "PID %d번의 AGNI 설정 대상 값"
+
+#: src/top/top_nls.c:607
+msgid "valid AGNI range is -20 to +19"
+msgstr "올바른 AGNI 값 범위는 -20에서 +19까지입니다"
+
+#: src/top/top_nls.c:608
+#, c-format
+msgid "autogroup open failed, %s"
+msgstr "자동 그룹 열기 실패, %s"
+
+#: src/top/top_nls.c:609
+#, c-format
+msgid "autogroup write failed, %s"
+msgstr "자동 그룹 쓰기 실패, %s"
+
+#: src/top/top_nls.c:610
+#, c-format
+msgid "command line for pid %d, %s"
+msgstr "PID %d번 명령행, %s"
+
+#: src/top/top_nls.c:611
+#, c-format
+msgid "control groups for pid %d, %s"
+msgstr "PID %d번 제어 그룹, %s"
+
+#: src/top/top_nls.c:612
+#, c-format
+msgid "environment for pid %d, %s"
+msgstr "PID %d번 환경, %s"
+
+#: src/top/top_nls.c:613
+#, c-format
+msgid "namespaces for pid %d, %s"
+msgstr "PID %d번 이름 영역, %s"
+
+#: src/top/top_nls.c:614
+msgid "n/a"
+msgstr "없음"
+
+#: src/top/top_nls.c:615
+#, c-format
+msgid "supplementary groups for pid %d, %s"
+msgstr "PID %d번의 추가 그룹, %s"
+
+#: src/top/top_nls.c:616
+msgid "message log, last 10 messages:"
+msgstr "메시지 로그의 마지막 메시지 10건:"
+
+#. Translation Notes ------------------------------------------------
+#. .  It is strongly recommend that the --no-wrap command line option
+#. .  be used with all supporting translation tools, when available.
+#. .
+#. .  The next several text groups contain special escape sequences
+#. .  representing values used to index a table at run-time.
+#. .
+#. .  Each such sequence consists of a tilde (~) followed by an ascii
+#. .  number in the range of '1' - '8'.  Examples are '~2', '~8', etc.
+#. .  These escape sequences must never themselves be translated but
+#. .  could be deleted.
+#. .
+#. .  If you remove these escape sequences (both tilde and number) it
+#. .  would make translation easier.  However, the ability to display
+#. .  colors and bold text at run-time will have been lost.
+#. .
+#. .  Additionally, each of these text groups was designed to display
+#. .  in a 80x24 terminal window.  Hopefully, any translations will
+#. .  adhere to that goal lest the translated text be truncated.
+#. .
+#. .  If you would like additional information regarding these strings,
+#. .  please see the prologue to the show_special function in the top.c
+#. .  source file.
+#. .
+#. .  Caution:
+#. .    The next three items represent pages for interacting with a user.
+#. .    In all cases, the last lines of text must be treated with care.
+#. .
+#. .    They must not end with a newline character so that at runtime the
+#. .    cursor will remain on that final text line.
+#. .
+#. .    Also, the special sequences (tilde+number) must not appear on the
+#. .    last line (the one without the newline). So please avoid any line
+#. .    wraps that could place them there.
+#. .
+#: src/top/top_nls.c:661
+#, c-format
+msgid ""
+"Help for Interactive Commands~2 - %s\n"
+"Window ~1%s~6: ~1Cumulative mode ~3%s~2.  ~1System~6: ~1Delay ~3%.1f secs~2; "
+"~1Secure mode ~3%s~2.\n"
+"\n"
+"  Z~5,~1B~5,E,e   Global: '~1Z~2' colors; '~1B~2' bold; '~1E~2'/'~1e~2' "
+"summary/task memory scale\n"
+"  l,t,m,I,0 Toggle: '~1l~2' load avg; '~1t~2' task/cpu; '~1m~2' memory; "
+"'~1I~2' Irix; '~10~2' zeros\n"
+"  1,2,3,4,5 Toggle: '~11~2/~12~2/~13~2' cpu/numa views; '~14~2' cpus "
+"abreast; '~15~2' P/E-cores\n"
+"  f,X       Fields: '~1f~2' add/remove/order/sort; '~1X~2' increase fixed-"
+"width fields\n"
+"\n"
+"  L,&,<,> . Locate: '~1L~2'/'~1&~2' find/again; Move sort column: "
+"'~1<~2'/'~1>~2' left/right\n"
+"  R,H,J,C . Toggle: '~1R~2' Sort; '~1H~2' Threads; '~1J~2' Num justify; "
+"'~1C~2' Coordinates\n"
+"  c,i,S,j . Toggle: '~1c~2' Cmd name/line; '~1i~2' Idle; '~1S~2' Time; "
+"'~1j~2' Str justify\n"
+"  x~5,~1y~5     . Toggle highlights: '~1x~2' sort field; '~1y~2' running "
+"tasks\n"
+"  z~5,~1b~5     . Toggle: '~1z~2' color/mono; '~1b~2' bold/reverse (only if "
+"'x' or 'y')\n"
+"  u,U,o,O . Filter by: '~1u~2'/'~1U~2' effective/any user; '~1o~2'/'~1O~2' "
+"other criteria\n"
+"  n,#,^O  . Set: '~1n~2'/'~1#~2' max tasks displayed; Show: ~1Ctrl~2+'~1O~2' "
+"other filter(s)\n"
+"  V,v,F   . Toggle: '~1V~2' forest view; '~1v~2' hide/show children; '~1F~2' "
+"keep focused\n"
+"\n"
+"%s  ^G,K,N,U  View: ctl groups ~1^G~2; cmdline ~1^K~2; environment ~1^N~2; "
+"supp groups ~1^U~2\n"
+"  Y,!,^E,P  Inspect '~1Y~2'; Combine Cpus '~1!~2'; Scale time ~1^E~2; View "
+"namespaces ~1^P~2\n"
+"  W,q       Write config file '~1W~2'; Quit '~1q~2'\n"
+"          ( commands shown with '.' require a ~1visible~2 task display "
+"~1window~2 ) \n"
+"Press '~1h~2' or '~1?~2' for help with ~1Windows~2,\n"
+"Type 'q' or <Esc> to continue "
+msgstr ""
+"대화식 명령 도움말~2 - %s\n"
+"창 ~1%s~6: ~1누적 모드 ~3%s~2.  ~1시스템~6: ~1지연 ~3%.1f초~2. ~1보안 모드 "
+"~3%s~2.\n"
+"\n"
+"  Z~5,~1B~5,E,e   전역: '~1Z~2' 색상, '~1B~2' 강조, '~1E~2'/'~1e~2' 요약/작"
+"업 메모리 스케일링\n"
+"  l,t,m,I,0   전환: '~1l~2' 부하 평균, '~1t~2' 작업/CPU, '~1m~2' 메모리, "
+"'~1I~2' 아이릭스, 모드'~10~2' 0 갯수\n"
+"  1,2,3,4,5 전환: '~11~2/~12~2/~13~2' CPU/NUMA 보기, '~14~2' CPU 나란히 보"
+"기, '~15~2' P/E-코어수\n"
+"  f,X       필드: '~1f~2' 추가/제거/순서/정렬, '~1X~2' 고정폭 필드 길이 증"
+"가\n"
+"\n"
+"  L,&,<,> . 위치: '~1L~2'/'~1&~2' 찾기/다시, 정렬 컬럼 이동: '~1<~2'/'~1>~2' "
+"좌/우\n"
+"  R,H,J,C . 전환: '~1R~2' 정렬, '~1H~2' 스레드, '~1J~2' 숫자 정렬, '~1C~2' 좌"
+"표\n"
+"  c,i,S,j . 전환: '~1c~2' 명령이름/행, '~1i~2' Idle, '~1S~2' 시간, '~1j~2' 문"
+"자열 정렬\n"
+"  x~5,~1y~5     . 강조 전환: '~1x~2' 필드 정렬, '~1y~2' 실행 작업\n"
+"  z~5,~1b~5     . 전환: '~1z~2' 색상/흑백, '~1b~2' 강조/반전 ('x' 또는 'y'일 "
+"때만)\n"
+"  u,U,o,O . 필터기준: '~1u~2'/'~1U~2' 해당/임의 사용자, '~1o~2'/'~1O~2' 다른 "
+"기준\n"
+"  n,#,^O  . 설정: '~1n~2'/'~1#~2' 표시할 최대 작업 수, 보기: "
+"~1Ctrl~2+'~1O~2' 다른 필터\n"
+"  V,v,F   . 전환: '~1V~2' 포레스트 보기, '~1v~2' 하위요소 숨김/표시, '~1F~2' "
+"포커스 항목 유지\n"
+"\n"
+"%s  ^G,K,N,U  보기: 제어그룹 ~1^G~2; 명령행 ~1^K~2; 환경 ~1^N~2; 추가 그룹 "
+"~1^U~2\n"
+"  Y,!,^E,P  검사 '~1Y~2'; CPU 통합 '~1!~2'; 시간 스케일링 ~1^E~2'\n"
+"  W,q         설정기록 '~1W~2'; 끝내기\n"
+"          ( '.'과 나타낸 명령은 ~1창~2을 나타내는 ~1보이기~2 과정이 필요합니"
+"다 ) \n"
+"~1창~2 도움말은 '~1h~2' 또는 '~1?~2'를,\n"
+"계속하려면 'q' 또는 <Esc> 를 입력하십시오 "
+
+#: src/top/top_nls.c:687
+#, c-format
+msgid ""
+"Help for Windows / Field Groups~2 - \"Current Window\" = ~1 %s ~6\n"
+"\n"
+". Use multiple ~1windows~2, each with separate config opts (color,fields,"
+"sort,etc)\n"
+". The 'current' window controls the ~1Summary Area~2 and responds to your "
+"~1Commands~2\n"
+"  . that window's ~1task display~2 can be turned ~1Off~2 & ~1On~2, growing/"
+"shrinking others\n"
+"  . with ~1NO~2 task display, some commands will be ~1disabled~2 "
+"('i','R','n','c', etc)\n"
+"    until a ~1different window~2 has been activated, making it the 'current' "
+"window\n"
+". You ~1change~2 the 'current' window by: ~1 1~2) cycling forward/backward;"
+"~1 2~2) choosing\n"
+"  a specific field group; or~1 3~2) exiting the color mapping or fields "
+"screens\n"
+". Commands ~1available anytime   -------------~2\n"
+"    A       . Alternate display mode toggle, show ~1Single~2 / ~1Multiple~2 "
+"windows\n"
+"    g       . Choose another field group and make it 'current', or change "
+"now\n"
+"              by selecting a number from: ~1 1~2 =%s;~1 2~2 =%s;~1 3~2 =%s; "
+"or~1 4~2 =%s\n"
+". Commands ~1requiring~2 '~1A~2' mode~1  -------------~2\n"
+"    G       . Change the ~1Name~5 of the 'current' window/field group\n"
+" ~1*~4  a , w   . Cycle through all four windows:  '~1a~5' Forward; '~1w~5' "
+"Backward\n"
+" ~1*~4  - , _   . Show/Hide:  '~1-~5' ~1Current~2 window; '~1_~5' all "
+"~1Visible~2/~1Invisible~2\n"
+"  The screen will be divided evenly between task displays.  But you can "
+"make\n"
+"  some ~1larger~2 or ~1smaller~2, using '~1n~2' and '~1i~2' commands.  Then "
+"later you could:\n"
+" ~1*~4  = , +   . Rebalance tasks:  '~1=~5' ~1Current~2 window; '~1+~5' "
+"~1Every~2 window\n"
+"              (this also forces the ~1current~2 or ~1every~2 window to "
+"become visible)\n"
+"\n"
+"In '~1A~2' mode, '~1*~4' keys are your ~1essential~2 commands.  Please try "
+"the '~1a~2' and '~1w~2'\n"
+"commands plus the 'g' sub-commands NOW.  Press <Enter> to make 'Current' "
+msgstr ""
+"창 도움말 / 필드 그룹~2 - \"현재 창\" = ~1 %s ~6\n"
+"\n"
+". 다중 ~1창~2을 활용합니다 각 창에는 별도의 설정 옵션을 부여합니다(색상,필드,"
+"정렬,등)\n"
+". '현재' 창에서는 ~1요약 영역~2을 다루며, 창의 ~1끔~2과 ~1켬~2이 가능하고\n"
+"  . 나머지에 대해 펼치기/숨기기가 가능한 ~1작업 표시~2에서 ~1명령~2에 응답이 "
+"가능합니다\n"
+"  . 작업 표시부가 ~1없다~2면, ~1다른 창~2을 띄워서 '현재' 창으로 만들기 전까"
+"지는\n"
+"    일부 명령('i','R','n','c', 등)을 ~1사용할 수 없습니다~2\n"
+". '현재' 창을 ~1전환~2 하는 방법: ~1 1~2) 앞뒤 순환 ~1 2~2) 지정 필드 그룹 선"
+"택\n"
+"  ~1 3~2) 색상 대응 또는 필드 화면 선택\n"
+". ~1언제든 쓸 수 있는~2 명령~1   -------------~2\n"
+"    A       . ~1단일~2 / ~1다중~2 창 모드로 표시 모드를 전환합니다\n"
+"    g       . 다른 필드 그룹을 선택한 다음 '현재' 요소로 만들거나, ~1 1~2 "
+"=%s, ~1 2~2=%s,\n"
+"               ~1 3~2 =%s, ~1 4~2 =%s 숫자 중 하나를 선택하여 바꿉니다\n"
+". '~1A~2' 모드가 ~1필요한~2 명령~1  -------------~2\n"
+"    G       . '현재' 창/필드 그룹의 ~1이름~5을 바꿉니다\n"
+" ~1*~4  a , w   . 모든 창 네군데를 순환합니다:  '~1a~5' 이전, '~1w~5' 다음\n"
+" ~1*~4  - , _   . 표시/숨김:  '~1-~5' ~1현재~2 창, '~1_~5' 모두 ~1보이기~2/~1"
+"가리기~2\n"
+"  작업 화면도 화면을 나눕니다.  ~1n~2과 ~1i~2 명령으로 ~1더 큰~2 또는 ~1더 작"
+"은~2 화면을 만들 수도 있습니다.\n"
+"  그 다음:\n"
+" ~1*~4  = , +   . 작업 재균형화:  '~1=~5' ~1현재~2 창, '~1+~5' ~1모든~2 창\n"
+"              (이 명령으로 ~1현재~2 또는 ~1모든~2 창을 보이게 강제합니다)\n"
+"\n"
+"'~1A~2' 모드에서는, '~1*~4' 키가 ~1핵심~2 명령입니다.  하위 명령에서 "
+"'~1a~2'와 '~1w~2' 명령을 입력 후\n"
+"'g' 하위 명령을 입력해보십시오.  <Enter>키를 누르면 '현재' 창을 만듭니다 "
+
+#. Translation Notes ------------------------------------------------
+#. .  The following 'Help for color mapping' simulated screen should
+#. .  probably NOT be translated.  It is terribly hard to follow in
+#. .  this form and any translation could produce unpleasing results
+#. .  that are unlikely to parallel the running top program.
+#. .
+#. .  If you decide to proceed with translation, please take care
+#. .  to not disturb the spaces and the tilde + number delimiters.
+#. .
+#: src/top/top_nls.c:722
+#, c-format
+msgid ""
+"Help for color mapping~2 - \"Current Window\" = ~1 %s ~6\n"
+"\n"
+"   color - 04:25:44 up 8 days, 50 min,  7 users,  load average:\n"
+"   Tasks:~3  64 ~2total,~3   2 ~3running,~3  62 ~2sleeping,~3   0 ~2stopped,"
+"~3\n"
+"   %%Cpu(s):~3  76.5 ~2user,~3  11.2 ~2system,~3   0.0 ~2nice,~3  12.3 "
+"~2idle~3\n"
+"   ~1 Nasty Message! ~4  -or-  ~1Input Prompt~5\n"
+"   ~1  PID TTY     PR  NI %%CPU    TIME+   VIRT SWAP S COMMAND    ~6\n"
+"   17284 ~8pts/2  ~7  8   0  0.0   0:00.75  1380    0 S /bin/bash   ~8\n"
+"   ~1 8601 pts/1    7 -10  0.4   0:00.03   916    0 R color -b -z~7\n"
+"   11005 ~8?      ~7  9   0  0.0   0:02.50  2852 1008 S amor -sessi~8\n"
+"   available toggles: ~1B~2 =disable bold globally (~1%s~2),\n"
+"       ~1z~2 =color/mono (~1%s~2), ~1b~2 =tasks \"bold\"/reverse (~1%s~2)\n"
+"\n"
+"1) Select a ~1target~2 as an upper case letter, ~1current target~2 is ~1 %c "
+"~4:\n"
+"   S~2 = Summary Data,~1  M~2 = Messages/Prompts,\n"
+"   H~2 = Column Heads,~1  T~2 = Task Information\n"
+"2) Select a ~1color~2 as a number or use the up/down arrow keys\n"
+"   to raise/lower the %d colors value, ~1current color~2 is ~1 %d ~4:\n"
+"   0~2 = black,~1  1~2 = red,    ~1  2~2 = green,~1  3~2 = yellow,\n"
+"   4~2 = blue, ~1  5~2 = magenta,~1  6~2 = cyan, ~1  7~2 = white\n"
+"\n"
+"3) Then use these keys when finished:\n"
+"   'q' or <Esc> to abort changes to window '~1%s~2'\n"
+"   'a' or 'w' to commit & change another, <Enter> to commit and end "
+msgstr ""
+"색상 대응 도움말~2 - \"현재 \" = ~1 %s ~6\n"
+"\n"
+"   색상 - 04:25:44 가동시간 8일, 50분,  7 사용자,  평균 부하:\n"
+"   작업:~3  64 ~2총계,~3   2 ~3실행,~3  62 ~2대기,~3   0 ~2멈춤,~3\n"
+"   %%CPU:~3  76.5 ~2사용자,~3  11.2 ~2시스템,~3   0.0 ~2nice,~3  12.3 ~2대기"
+"~3\n"
+"   ~1 징그러운 메시지! ~4  또는  ~1입력 프롬프트~5\n"
+"   ~1  PID TTY     PR  NI %%CPU    TIME+   VIRT SWAP S COMMAND    ~6\n"
+"   17284 ~8pts/2  ~7  8   0  0.0   0:00.75  1380    0 S /bin/bash   ~8\n"
+"   ~1 8601 pts/1    7 -10  0.4   0:00.03   916    0 R color -b -z~7\n"
+"   11005 ~8?      ~7  9   0  0.0   0:02.50  2852 1008 S amor -sessi~8\n"
+"   가능한 전환: ~1B~2 =전체 강조 끄기 (~1%s~2),\n"
+"       ~1z~2 =색상/흑백 (~1%s~2), ~1b~2 =작업 \"강조\"/반전 (~1%s~2)\n"
+"\n"
+"1) ~1대상~2을 대문자로 선택하고, ~1현재 대상~2은 ~1 %c ~4:\n"
+"   S~2 = 요약 데이터,~1  M~2 = 메시지/프롬프트,\n"
+"   H~2 = 컬럼 헤더,~1  T~2 = 작업 정보\n"
+"2) 숫자로 ~1색상~2을 선택하거나 상/하 화살표키를 사용하여\n"
+"   %d 색상 값을 키우거나 낮추며, ~1현재 색상~2값은 ~1 %d ~4 입니다:\n"
+"   0~2 = 흑,~1  1~2 = 적,    ~1  2~2 = 녹,~1  3~2 = 황,\n"
+"   4~2 = 청, ~1  5~2 = 자,~1  6~2 = 옥, ~1  7~2 = 백\n"
+"\n"
+"3) 위 과정이 끝나면 아래 키를 활용합니다:\n"
+"   '~1%s~2'창 바꾸기를 취소하려면 'q' 또는 <Esc> 키를,\n"
+"   바뀐 설정을 반영하고 다른 항목을 바꾸려면 'a' 또는 'w' 키를, 반영하고 끝내"
+"려면 <Enter> 키를 누릅니다 "
+
+#. Translation Hint: As is true for the text above, the "keys" shown to the left and
+#. .                 also embedded in the translatable text (along with escape seqs)
+#. .                 should never themselves be translated.
+#: src/top/top_nls.c:751
+msgid ""
+"  d,k,r,^R '~1d~2' set delay; '~1k~2' kill; '~1r~2' renice; ~1Ctrl~2+'~1R~2' "
+"renice autogroup\n"
+msgstr ""
+"  d,k,r,^R '~1d~2' 지연 설정, '~1k~2' 강제 종료, '~1r~2' nice 재설정, "
+"~1Ctrl~2+'~1R~2' 자동 그룹 nice 재설정\n"
+
+#. Translation Hint:
+#. .  This Fields Management header should be 3 lines long so as
+#. .  to allow 1 blank line before the fields & descriptions.
+#. .  If absolutely necessary, 4 lines could be used (but never more).
+#. .
+#: src/top/top_nls.c:759
+#, c-format
+msgid ""
+"Fields Management~2 for window ~1%s~6, whose current sort field is ~1%s~2\n"
+"   Navigate with Up/Dn, Right selects for move then <Enter> or Left "
+"commits,\n"
+"   'd' or <Space> toggles display, 's' sets sort.  Use 'q' or <Esc> to end!\n"
+msgstr ""
+"필드 관리~2 창 용도 ~1%s~6, 현재 정렬 필드: ~1%s~2\n"
+"   상/하로 탐색, 우로 선택한 후 <Enter>를 누르거나 좌로 커밋,\n"
+"   'd' 또는 <Space> 키는 표시를 전환하며, 's'는 정렬 기준을 정합니다.  끝내려"
+"면 'q' 또는 <Esc>를 누르십시오!\n"
+
+#. Translation Hint:
+#. .  The next 5 items must each be translated as a single line.
+#. .
+#: src/top/top_nls.c:767
+#, c-format
+msgid ""
+"%s:~3 %3u ~2total,~3 %3u ~2running,~3 %3u ~2sleeping,~3 %3u ~2stopped,~3 %3u "
+"~2zombie~3\n"
+msgstr ""
+"%s:~3 %3u ~2총계,~3 %3u ~2실행,~3 %3u ~2대기,~3 %3u ~2멈춤,~3 %3u ~2좀비~3\n"
+
+#. Translation Hint: Only the following abbreviations need be translated
+#. .                 us = user, sy = system, ni = nice, id = idle, wa = wait,
+#. .                 hi hardware interrupt, si = software interrupt
+#: src/top/top_nls.c:773
+#, c-format
+msgid ""
+"%s~3 %#5.1f ~2us,~3 %#5.1f ~2sy,~3 %#5.1f ~2ni,~3 %#5.1f ~2id,~3 %#5.1f ~2wa,"
+"~3 %#5.1f ~2hi,~3 %#5.1f ~2si~3 ~1"
+msgstr ""
+"%s~3 %#5.1f ~2us,~3 %#5.1f ~2sy,~3 %#5.1f ~2ni,~3 %#5.1f ~2id,~3 %#5.1f ~2wa,"
+"~3 %#5.1f ~2hi,~3 %#5.1f ~2si~3 ~1"
+
+#. Translation Hint: Only the following abbreviations need be translated
+#. .                 us = user, sy = system, ni = nice, id = idle, wa = wait,
+#. .                 hi hardware interrupt, si = software interrupt, st = steal time
+#: src/top/top_nls.c:779
+#, c-format
+msgid ""
+"%s~3%#5.1f ~2us,~3%#5.1f ~2sy,~3%#5.1f ~2ni,~3%#5.1f ~2id,~3%#5.1f ~2wa,"
+"~3%#5.1f ~2hi,~3%#5.1f ~2si,~3%#5.1f ~2st~3 ~1"
+msgstr ""
+"%s~3%#5.1f ~2us,~3%#5.1f ~2sy,~3%#5.1f ~2ni,~3%#5.1f ~2id,~3%#5.1f ~2wa,"
+"~3%#5.1f ~2hi,~3%#5.1f ~2si,~3%#5.1f ~2st~3 ~1"
+
+#. Translation Hint: next 2 must be treated together, with WORDS above & below aligned
+#: src/top/top_nls.c:783
+#, c-format
+msgid ""
+"%s %s:~3 %9.9s~2total,~3 %9.9s~2free,~3 %9.9s~2used,~3 %9.9s~2buff/cache~3 "
+"~1    "
+msgstr ""
+"%s %s:~3 %9.9s~2총계,~3 %9.9s~2잔여,~3 %9.9s~2사용,~3 %9.9s~2버퍼/캐시~3 "
+"~1    "
+
+#: src/top/top_nls.c:785
+#, c-format
+msgid ""
+"%s %s:~3 %9.9s~2total,~3 %9.9s~2free,~3 %9.9s~2used.~3 %9.9s~2avail %s~3"
+msgstr ""
+"%s %s:~3 %9.9s~2총계,~3 %9.9s~2잔여,~3 %9.9s~2사용.~3 %9.9s~2가용  %s~3"
+
+#. Translation Hint:
+#. .  The next 2 headers for 'Inspection' must each be 3 lines or less
+#. .
+#: src/top/top_nls.c:791
+#, c-format
+msgid ""
+"Inspection~2 Pause at: pid ~1%d~6, running ~1%s~6\n"
+"Use~2:  left/right then <Enter> to ~1select~5 an option; 'q' or <Esc> to "
+"~1end~5 !\n"
+"Options~2: ~1%s\n"
+msgstr ""
+"검사~2 중지 위치: PID ~1%d~6, 실행 ~1%s~6\n"
+"사용~2:  좌/우 다음 <Enter>로 옵션 ~1선택~5; 'q' 또는 <Esc>로 ~1끝냅니다~5!\n"
+"옵션~2: ~1%s\n"
+
+#: src/top/top_nls.c:796
+#, c-format
+msgid ""
+"Inspection~2 View at pid: ~1%s~3, running ~1%s~3.  Locating: ~1%s~6\n"
+"Use~2:  left/right/up/down/etc to ~1navigate~5 the output; 'L'/'&' to "
+"~1locate~5/~1next~5.\n"
+"Or~2:   <Enter> to ~1select another~5; 'q' or <Esc> to ~1end~5 !\n"
+msgstr ""
+"검사~2 보기 위치 PID: ~1%s~3, 실행 ~1%s~3.  위치: ~1%s~6\n"
+"사용~2:  좌/우/상/하/등 으로 출력 ~1탐색~5; 'L'/'&'로 ~1가리키기~5/~1다음"
+"~5.\n"
+"또는~2:   <Enter>로 ~1다른 항목 선택~5; 'q' 또는 <Esc>로 ~1끝냅니다~5 !\n"
+
+#: src/uptime.c:51 src/uptime.c:123
+msgid "Cannot get system uptime"
+msgstr "시스템 가동 시간 정보를 가져올 수 없습니다"
+
+#: src/uptime.c:67
+msgid " -p, --pretty   show uptime in pretty format\n"
+msgstr " -p, --pretty   가지런한 형식으로 가동 시간 표시\n"
+
+#: src/uptime.c:69
+msgid " -s, --since    system up since\n"
+msgstr " -s, --since    시스템 가동 시작 시간 표시\n"
+
+#: src/vmstat.c:220
+#, c-format
+msgid " %s [options] [delay [count]]\n"
+msgstr " %s [<옵션>] [<지연시간> [<횟수>]]\n"
+
+#: src/vmstat.c:223
+msgid " -a, --active           active/inactive memory\n"
+msgstr " -a, --active           활성/비활성 메모리\n"
+
+#: src/vmstat.c:224
+msgid " -f, --forks            number of forks since boot\n"
+msgstr " -f, --forks            부팅 후 포킹 수 표시\n"
+
+#: src/vmstat.c:225
+msgid " -m, --slabs            slabinfo\n"
+msgstr " -m, --slabs            slab정보\n"
+
+#: src/vmstat.c:226
+msgid " -n, --one-header       do not redisplay header\n"
+msgstr " -n, --one-header       헤더를 다시 표시하지 않음\n"
+
+#: src/vmstat.c:227
+msgid " -s, --stats            event counter statistics\n"
+msgstr " -s, --stats            이벤트 카운터 통계\n"
+
+#: src/vmstat.c:228
+msgid " -d, --disk             disk statistics\n"
+msgstr " -d, --disk             디스크 통계\n"
+
+#: src/vmstat.c:229
+msgid " -D, --disk-sum         summarize disk statistics\n"
+msgstr " -D, --disk-sum         디스크 통계 요약\n"
+
+#: src/vmstat.c:230
+msgid " -p, --partition <dev>  partition specific statistics\n"
+msgstr " -p, --partition <장치> 분할 영역별 통계\n"
+
+#: src/vmstat.c:231
+msgid " -S, --unit <char>      define display unit\n"
+msgstr " -S, --unit <문자>      표시 단위 지정\n"
+
+#: src/vmstat.c:232
+msgid " -w, --wide             wide output\n"
+msgstr " -w, --wide             넓게 출력\n"
+
+#: src/vmstat.c:233
+msgid " -t, --timestamp        show timestamp\n"
+msgstr " -t, --timestamp        타임스탬프 표시\n"
+
+#: src/vmstat.c:234
+msgid " -y, --no-first         skips first line of output\n"
+msgstr " -y, --no-first         첫 줄 출력 건너뛰기\n"
+
+#: src/vmstat.c:253
+msgid ""
+"procs -----------memory---------- ---swap-- -----io---- -system-- -------"
+"cpu-------"
+msgstr ""
+"procs -----------메모리---------- ---스왑-- ---입출력-- -시스템-- -------"
+"CPU-------"
+
+#: src/vmstat.c:255
+msgid ""
+"--procs-- -----------------------memory---------------------- ---swap-- -----"
+"io---- -system-- ----------cpu----------"
+msgstr ""
+"--procs-- -----------------------메모리---------------------- ---스왑-- ---입"
+"출력-- -시스템-- ----------CPU----------"
+
+#: src/vmstat.c:256 src/vmstat.c:619
+msgid " -----timestamp-----"
+msgstr " -----타임스탬프----"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:275
+msgid "r"
+msgstr "r"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:277
+msgid "b"
+msgstr "b"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:279
+msgid "swpd"
+msgstr "스왑"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:281
+msgid "free"
+msgstr "가용"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:283
+msgid "inact"
+msgstr "비활"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:285
+msgid "buff"
+msgstr "버퍼"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:287
+msgid "active"
+msgstr "활성"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:289
+msgid "cache"
+msgstr "캐시"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:291
+msgid "si"
+msgstr "입"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:293
+msgid "so"
+msgstr "출"
+
+#. Translation Hint: max 5 chars
+#: src/vmstat.c:295
+msgid "bi"
+msgstr "입"
+
+#. Translation Hint: max 5 chars
+#: src/vmstat.c:297
+msgid "bo"
+msgstr "출"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:299
+msgid "in"
+msgstr "in"
+
+#. Translation Hint: max 4 chars
+#: src/vmstat.c:301
+msgid "cs"
+msgstr "cs"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:303
+msgid "us"
+msgstr "us"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:305
+msgid "sy"
+msgstr "sy"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:307
+msgid "id"
+msgstr "id"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:309
+msgid "wa"
+msgstr "wa"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:311
+msgid "st"
+msgstr "st"
+
+#. Translation Hint: max 2 chars
+#: src/vmstat.c:313
+msgid "gu"
+msgstr "gu"
+
+#: src/vmstat.c:374 src/vmstat.c:870
+msgid "Unable to create vmstat structure"
+msgstr "vmstat 구조 데이터를 만들 수 없습니다"
+
+#: src/vmstat.c:376 src/vmstat.c:866 src/vmstat.c:919
+msgid "Unable to create system stat structure"
+msgstr "시스템 상태 데이터 구조를 만들 수 없습니다"
+
+#: src/vmstat.c:380
+msgid "Unable to get uptime"
+msgstr "총 가동 시간을 가져올 수 없습니다"
+
+#: src/vmstat.c:391 src/vmstat.c:472 src/vmstat.c:874
+msgid "Unable to select memory information"
+msgstr "메모리 정보를 선택할 수 없습니다"
+
+#: src/vmstat.c:405 src/vmstat.c:458 src/vmstat.c:868
+msgid "Unable to select stat information"
+msgstr "상태 정보를 선택할 수 없습니다"
+
+#. Translation Hint: Translating folloging disk partition
+#. * header fields that follow (marked with max x chars) might
+#. * not work, unless manual page is translated as well.
+#. Translation Hint: max 10 chars
+#: src/vmstat.c:565
+msgid "reads"
+msgstr "읽음"
+
+#. Translation Hint: max 16 chars
+#: src/vmstat.c:567
+msgid "read sectors"
+msgstr "읽은 섹터"
+
+#. Translation Hint: max 10 chars
+#: src/vmstat.c:569
+msgid "writes"
+msgstr "기록"
+
+#. Translation Hint: max 16 chars
+#: src/vmstat.c:571
+msgid "requested writes"
+msgstr "요청한 기록"
+
+#: src/vmstat.c:584 src/vmstat.c:687 src/vmstat.c:813
+msgid "Unable to create diskstat structure"
+msgstr "diskstat 구조 데이터를 만들 수 없습니다"
+
+#: src/vmstat.c:587 src/vmstat.c:593
+#, c-format
+msgid "Disk/Partition %s not found"
+msgstr "%s 디스크/파티션이 없습니다"
+
+#: src/vmstat.c:616
+msgid ""
+"disk- ------------reads------------ ------------writes----------- -----"
+"IO------"
+msgstr ""
+"disk- ------------읽기------------- ------------쓰기------------- ----입출"
+"력---"
+
+#: src/vmstat.c:618
+msgid ""
+"disk- -------------------reads------------------- -------------------"
+"writes------------------ ------IO-------"
+msgstr ""
+"disk- -------------------읽기-------------------- -------------------쓰"
+"기-------------------- ----입출력-----"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:637 src/vmstat.c:645
+msgid "total"
+msgstr "총계"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:639 src/vmstat.c:647
+msgid "merged"
+msgstr "병합"
+
+#. Translation Hint: max 7 chars
+#: src/vmstat.c:641 src/vmstat.c:649
+msgid "sectors"
+msgstr "섹터"
+
+#. Translation Hint: max 7 chars
+#: src/vmstat.c:643 src/vmstat.c:651
+msgid "ms"
+msgstr "밀리초"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:653
+msgid "cur"
+msgstr "현"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:655
+msgid "sec"
+msgstr "초"
+
+#: src/vmstat.c:694 src/vmstat.c:815
+msgid "Unable to retrieve disk statistics"
+msgstr "디스크 통계를 가져올 수 없습니다"
+
+#. Translation Hint: Translating folloging slab fields that
+#. * follow (marked with max x chars) might not work, unless
+#. * manual page is translated as well.
+#. Translation Hint: max 24 chars
+#: src/vmstat.c:741
+msgid "Cache"
+msgstr "캐시"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:743
+msgid "Num"
+msgstr "숫자"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:745
+msgid "Total"
+msgstr "총계"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:747
+msgid "Size"
+msgstr "크기"
+
+#. Translation Hint: max 6 chars
+#: src/vmstat.c:749
+msgid "Pages"
+msgstr "페이지"
+
+#: src/vmstat.c:836
+#, c-format
+msgid "%13d disks\n"
+msgstr "%13d 디스크\n"
+
+#: src/vmstat.c:837
+#, c-format
+msgid "%13d partitions\n"
+msgstr "%13d 분할 영역\n"
+
+#: src/vmstat.c:838
+#, c-format
+msgid "%13lu total reads\n"
+msgstr "%13lu 읽음 총 횟수\n"
+
+#: src/vmstat.c:839
+#, c-format
+msgid "%13lu merged reads\n"
+msgstr "%13lu 병합 읽음\n"
+
+#: src/vmstat.c:840
+#, c-format
+msgid "%13lu read sectors\n"
+msgstr "%13lu 섹터 읽음\n"
+
+#: src/vmstat.c:841
+#, c-format
+msgid "%13lu milli reading\n"
+msgstr "%13lu 읽기 밀리초\n"
+
+#: src/vmstat.c:842
+#, c-format
+msgid "%13lu writes\n"
+msgstr "%13lu 기록\n"
+
+#: src/vmstat.c:843
+#, c-format
+msgid "%13lu merged writes\n"
+msgstr "%13lu 병합 기록\n"
+
+#: src/vmstat.c:844
+#, c-format
+msgid "%13lu written sectors\n"
+msgstr "%13lu 섹터 기록\n"
+
+#: src/vmstat.c:845
+#, c-format
+msgid "%13lu milli writing\n"
+msgstr "%13lu 기록 밀리초\n"
+
+#: src/vmstat.c:846
+#, c-format
+msgid "%13lu inprogress IO\n"
+msgstr "%13lu 진행 입출력\n"
+
+#: src/vmstat.c:847
+#, c-format
+msgid "%13lu milli spent IO\n"
+msgstr "%13lu 입출력 소요 밀리초\n"
+
+#: src/vmstat.c:848
+#, c-format
+msgid "%13lu milli weighted IO\n"
+msgstr "%13lu 가중 입출력 밀리초\n"
+
+#: src/vmstat.c:876
+#, c-format
+msgid "%13lu %s total memory\n"
+msgstr "%13lu %s 메모리 총량\n"
+
+#: src/vmstat.c:877
+#, c-format
+msgid "%13lu %s used memory\n"
+msgstr "%13lu %s 사용 메모리\n"
+
+#: src/vmstat.c:878
+#, c-format
+msgid "%13lu %s active memory\n"
+msgstr "%13lu %s 활성 메모리\n"
+
+#: src/vmstat.c:879
+#, c-format
+msgid "%13lu %s inactive memory\n"
+msgstr "%13lu %s 비활 메모리\n"
+
+#: src/vmstat.c:880
+#, c-format
+msgid "%13lu %s free memory\n"
+msgstr "%13lu %s 가용 메모리\n"
+
+#: src/vmstat.c:881
+#, c-format
+msgid "%13lu %s buffer memory\n"
+msgstr "%13lu %s 버퍼 메모리\n"
+
+#: src/vmstat.c:882
+#, c-format
+msgid "%13lu %s swap cache\n"
+msgstr "%13lu %s 스왑 캐시\n"
+
+#: src/vmstat.c:883
+#, c-format
+msgid "%13lu %s total swap\n"
+msgstr "%13lu %s 스왑 총량\n"
+
+#: src/vmstat.c:884
+#, c-format
+msgid "%13lu %s used swap\n"
+msgstr "%13lu %s 사용 스왑\n"
+
+#: src/vmstat.c:885
+#, c-format
+msgid "%13lu %s free swap\n"
+msgstr "%13lu %s 가용 스왑\n"
+
+#: src/vmstat.c:886
+#, c-format
+msgid "%13lld non-nice user cpu ticks\n"
+msgstr "%13lld nice 처리 안한 사용자 CPU 틱\n"
+
+#: src/vmstat.c:887
+#, c-format
+msgid "%13lld nice user cpu ticks\n"
+msgstr "%13lld nice 처리한 사용자 CPU 사이클\n"
+
+#: src/vmstat.c:888
+#, c-format
+msgid "%13lld system cpu ticks\n"
+msgstr "%13lld 시스템 CPU 사이클\n"
+
+#: src/vmstat.c:889
+#, c-format
+msgid "%13lld idle cpu ticks\n"
+msgstr "%13lld 대기 CPU 사이클\n"
+
+#: src/vmstat.c:890
+#, c-format
+msgid "%13lld IO-wait cpu ticks\n"
+msgstr "%13lld IO-대기 CPU 사이클\n"
+
+#: src/vmstat.c:891
+#, c-format
+msgid "%13lld IRQ cpu ticks\n"
+msgstr "%13lld IRQ CPU 사이클\n"
+
+#: src/vmstat.c:892
+#, c-format
+msgid "%13lld softirq cpu ticks\n"
+msgstr "%13lld 소프트 IRQ CPU 사이클\n"
+
+#: src/vmstat.c:893
+#, c-format
+msgid "%13lld stolen cpu ticks\n"
+msgstr "%13lld 탈취 CPU 사이클\n"
+
+#: src/vmstat.c:894
+#, c-format
+msgid "%13lld non-nice guest cpu ticks\n"
+msgstr "%13lld nice 처리 안한 게스트 CPU 사이클\n"
+
+#: src/vmstat.c:895
+#, c-format
+msgid "%13lld nice guest cpu ticks\n"
+msgstr "%13lld nice 처리한 게스트 CPU 사이클\n"
+
+#: src/vmstat.c:896
+#, c-format
+msgid "%13lu K paged in\n"
+msgstr "%13lu K 페이지 입력\n"
+
+#: src/vmstat.c:897
+#, c-format
+msgid "%13lu K paged out\n"
+msgstr "%13lu K 페이지 출력\n"
+
+#: src/vmstat.c:898
+#, c-format
+msgid "%13lu pages swapped in\n"
+msgstr "%13lu 페이지 스왑 입력\n"
+
+#: src/vmstat.c:899
+#, c-format
+msgid "%13lu pages swapped out\n"
+msgstr "%13lu 페이지 스왑 출력\n"
+
+#: src/vmstat.c:900
+#, c-format
+msgid "%13lu interrupts\n"
+msgstr "%13lu 인터럽트 수\n"
+
+#: src/vmstat.c:901
+#, c-format
+msgid "%13lu CPU context switches\n"
+msgstr "%13lu CPU 컨텍스트 전환\n"
+
+#: src/vmstat.c:902
+#, c-format
+msgid "%13lu boot time\n"
+msgstr "%13lu 부팅 타임\n"
+
+#: src/vmstat.c:903 src/vmstat.c:921
+#, c-format
+msgid "%13lu forks\n"
+msgstr "%13lu 포킹 횟수\n"
+
+#. Translation Hint: do not change argument characters
+#: src/vmstat.c:1024
+msgid "-S requires k, K, m or M (default is KiB)"
+msgstr "-S 옵션에 k, K, m, M 값이 필요합니다(기본값 KiB)"
+
+#: src/watch.c:94
+#, c-format
+msgid " %s [options] command\n"
+msgstr " %s [<옵션>] <명령>\n"
+
+#: src/watch.c:96
+msgid "  -b, --beep             beep if command has a non-zero exit\n"
+msgstr ""
+"  -b, --beep             명령이 0이 아닌 종료 상태값으로 나갔을 때 알림음\n"
+
+#: src/watch.c:97
+msgid "  -c, --color            interpret ANSI color and style sequences\n"
+msgstr "  -c, --color            ANSI 색상 및 표시 방식 시퀀스 해석\n"
+
+#: src/watch.c:98
+msgid ""
+"  -C, --no-color         do not interpret ANSI color and style sequences\n"
+msgstr ""
+"  -C, --no-color         ANSI 색상 및 모양새 시퀀스를 해석하지 않습니다\n"
+
+#: src/watch.c:99
+msgid ""
+"  -d, --differences[=<permanent>]\n"
+"                         highlight changes between updates\n"
+msgstr ""
+"  -d, --differences[=<영구>]\n"
+"                         업데이트 진행간 강조 상태 바꿈\n"
+
+#: src/watch.c:101
+msgid "  -e, --errexit          exit if command has a non-zero exit\n"
+msgstr ""
+"  -e, --errexit          명령이 0이 아닌 종료 상태값으로 나갔을 떄 나감\n"
+
+#: src/watch.c:102
+msgid "  -g, --chgexit          exit when output from command changes\n"
+msgstr "  -g, --chgexit          명령 출력 내용이 바뀌면 나감\n"
+
+#: src/watch.c:103
+msgid ""
+"  -q, --equexit <cycles>\n"
+"                         exit when output from command does not change\n"
+msgstr ""
+"  -q, --equexit <사이클>\n"
+"                         명령 출력이 바뀌지 않을 때 나감\n"
+
+#: src/watch.c:105
+msgid "  -n, --interval <secs>  seconds to wait between updates\n"
+msgstr "  -n, --interval <초>    업데이트간 기다릴 초 단위 시간\n"
+
+#: src/watch.c:106
+msgid "  -p, --precise          attempt run command in precise intervals\n"
+msgstr "  -p, --precise          정확한 시간 간격으로 명령 실행 시도\n"
+
+#: src/watch.c:107
+msgid "  -r, --no-rerun         do not rerun program on window resize\n"
+msgstr ""
+"  -r, --no-rerun         창 크기를 다시 조절할 때 프로그램을 다시 실행 안함\n"
+
+#: src/watch.c:108
+msgid "  -t, --no-title         turn off header\n"
+msgstr "  -t, --no-title         헤더 출력 안함\n"
+
+#: src/watch.c:109
+msgid "  -w, --no-wrap          turn off line wrapping\n"
+msgstr "  -w, --no-wrap          줄 바꿈 안함\n"
+
+#: src/watch.c:110
+msgid "  -x, --exec             pass command to exec instead of \"sh -c\"\n"
+msgstr "  -x, --exec             \"sh -c\" 대신 실행할 명령 전달\n"
+
+#: src/watch.c:113
+msgid " -v, --version  output version information and exit\n"
+msgstr " -v, --version  버전 정보를 표시하고 나갑니다\n"
+
+#: src/watch.c:485
+#, c-format
+msgid "Every %.1fs: "
+msgstr "매 %.1f초: "
+
+#: src/watch.c:486
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/watch.c:575
+msgid "unable to create IPC pipes"
+msgstr "IPC 파이프를 만들 수 없습니다"
+
+#: src/watch.c:585
+msgid "unable to fork process"
+msgstr "프로세스를 포킹할 수 없습니다"
+
+#: src/watch.c:590
+msgid "dup2 failed"
+msgstr "dup2 실패"
+
+#: src/watch.c:597
+#, c-format
+msgid "unable to execute '%s'"
+msgstr "'%s'을(를) 실행할 수 없음"
+
+#: src/watch.c:614
+msgid "fdopen"
+msgstr "fdopen"
+
+#: src/watch.c:788
+msgid "waitpid"
+msgstr "waitpid"
+
+#: src/watch.c:796
+msgid "command exit with a non-zero status, press a key to exit"
+msgstr ""
+"0이 아닌 종료 상태값으로 명령을 나왔습니다. 나가려면 아무 키나 누르십시오"
+
+#: src/watch.c:863
+msgid "Could not parse interval from WATCH_INTERVAL"
+msgstr "WATCH_INTERVAL의 주기 시간 값을 해석할 수 없습니다"
+
+#: src/watch.c:954
+#, c-format
+msgid "unicode handling error\n"
+msgstr "유니코드 처리 오류\n"
+
+#: src/watch.c:960
+#, c-format
+msgid "unicode handling error (malloc)\n"
+msgstr "유니코드 처리 오류 (malloc)\n"
+
+#: src/w.c:289 src/w.c:304
+#, c-format
+msgid " %2lludays"
+msgstr " %2llu일"
+
+#. Translation Hint: Minutes:Seconds
+#. Translation Hint: Hours:Minutes
+#: src/w.c:298 src/w.c:308
+#, c-format
+msgid " %2llu:%02um"
+msgstr " %2llu:%02u분"
+
+#. Translation Hint: Seconds:Centiseconds
+#: src/w.c:316
+#, c-format
+msgid " %2llu.%02us"
+msgstr " %2llu.%02u초"
+
+#: src/w.c:656
+#, c-format
+msgid " %s [options] [user]\n"
+msgstr " %s [<옵션>] [<사용자>]\n"
+
+#: src/w.c:658
+msgid " -h, --no-header     do not print header\n"
+msgstr " -h, --no-header     헤더 출력 안함\n"
+
+#: src/w.c:659
+msgid " -u, --no-current    ignore current process username\n"
+msgstr " -u, --no-current    현재 프로세서 사용자 이름 무시\n"
+
+#: src/w.c:660
+msgid " -s, --short         short format\n"
+msgstr " -s, --short         간단한 형식\n"
+
+#: src/w.c:661
+msgid " -f, --from          show remote hostname field\n"
+msgstr " -f, --from          원격 호스트 이름 필드 표시\n"
+
+#: src/w.c:662
+msgid " -o, --old-style     old style output\n"
+msgstr " -o, --old-style     오래된 방식 출력\n"
+
+#: src/w.c:663
+msgid ""
+" -i, --ip-addr       display IP address instead of hostname (if possible)\n"
+msgstr " -i, --ip-addr       호스트 이름 대신 IP 주소 표시(가능한 경우)\n"
+
+#: src/w.c:664
+msgid " -p, --pids          show the PID(s) of processes in WHAT\n"
+msgstr " -p, --pids          <세션> 프로세스의 PID 표시\n"
+
+#: src/w.c:763
+#, c-format
+msgid ""
+"User length environment PROCPS_USERLEN must be between 8 and %i, ignoring.\n"
+msgstr ""
+"PROCPS_USERLEN 사용자 길이 환경 변수 값이 8과 %i 사이여야 합니다. 무시함.\n"
+
+#: src/w.c:773
+#, c-format
+msgid ""
+"from length environment PROCPS_FROMLEN must be between 8 and %d, ignoring\n"
+msgstr ""
+"PROCPS_FROMLEN 길이 시작 환경 변수 값이 8과 %d 사이여야 합니다. 무시함\n"
+
+#. Translation Hint: Following five uppercase messages are
+#. * headers. Try to keep alignment intact.
+#: src/w.c:799
+#, c-format
+msgid "%-*s TTY      "
+msgstr "%-*s TTY      "
+
+#: src/w.c:801
+msgid "FROM"
+msgstr "FROM"
+
+#: src/w.c:803
+#, c-format
+msgid "  LOGIN@   IDLE   JCPU   PCPU WHAT\n"
+msgstr "  로그인   대기   JCPU   PCPU 세션\n"
+
+#: src/w.c:805
+#, c-format
+msgid "   IDLE WHAT\n"
+msgstr "   대기 세션\n"
+
+#: src/w.c:815
+msgid "error getting sessions"
+msgstr "세션 가져오기 오류"
+
+#: src/w.c:823
+msgid "get user name failed"
+msgstr "사용자 이름 가져오기에 실패했습니다"
+
+#: local/c.h:153
+msgid ""
+"\n"
+"Usage:\n"
+msgstr ""
+"\n"
+"사용법:\n"
+
+#: local/c.h:154
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"옵션:\n"
+
+#: local/c.h:155
+msgid "\n"
+msgstr "\n"
+
+#: local/c.h:156
+msgid " -h, --help     display this help and exit\n"
+msgstr " -h, --help     이 도움말을 나타낸 후 나갑니다\n"
+
+#: local/c.h:157
+msgid " -V, --version  output version information and exit\n"
+msgstr " -V, --version  버전 정보를 표시하고 나갑니다\n"
+
+#: local/c.h:158
+#, c-format
+msgid ""
+"\n"
+"For more details see %s.\n"
+msgstr ""
+"\n"
+"더 자세한 내용은 %s을(를) 참고하십시오.\n"
+
+#: local/c.h:160
+#, c-format
+msgid "%s from %s\n"
+msgstr "%2$s에서 %1$s\n"
+
+#~ msgid ""
+#~ "inappropriate '%s'\n"
+#~ "Usage:\n"
+#~ "  %s%s"
+#~ msgstr ""
+#~ "부적절한 '%s'\n"
+#~ "사용법:\n"
+#~ "  %s%s"

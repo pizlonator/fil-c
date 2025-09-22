@@ -1,0 +1,68 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UPTIME 1 "décembre 2012" procps\-ng "Commandes de l'utilisateur"
+.SH NOM
+uptime \- Indiquer depuis quand le système a été mis en route
+.SH SYNOPSIS
+\fBuptime\fP [\fIoptions\fP]
+.SH DESCRIPTION
+\fBuptime\fP affiche sur une ligne les informations suivantes\ : l'heure
+actuelle, la durée depuis laquelle le système fonctionne, le nombre
+d'utilisateurs actuellement connectés, et la charge système moyenne pour les
+1, 5, et 15 dernières minutes.
+.PP
+Ce sont les mêmes informations que celles contenues dans la ligne d'en\-tête
+de \fBw\fP(1).
+.PP
+La charge système moyenne est le nombre moyen de processus qui sont dans un
+état exécutable ou non interruptible. Un processus exécutable utilise le
+processeur ou est en attente pour l'utiliser. Un processus non interruptible
+est en attente pour des entrées et sorties, par exemple, attendre un
+disque. Les moyennes sont calculées sur trois intervalles de temps. La
+charge moyenne n'est pas normalisée par rapport au nombre de processeurs du
+système. Ainsi une charge moyenne de 1 signifie qu'un système monoprocesseur
+est chargé tout le temps alors qu'un système à quatre processeurs est
+inactif 75\ % du temps.
+.SH OPTIONS
+.TP 
+\fB\-p\fP, \fB\-\-pretty\fP
+Afficher en format élégant
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afficher l'aide
+.TP 
+\fB\-s\fP, \fB\-\-since\fP
+Date depuis laquelle le système est en route, au format aaaa\-mm\-jj HH:MM:SS
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afficher la version du logiciel et quitter
+.SH FICHIERS
+.TP 
+\fI/var/run/utmp\fP
+informations concernant les utilisateurs présents sur le système
+.TP 
+\fI/proc\fP
+informations concernant les processus
+.SH AUTEURS
+\fBuptime\fP a été écrit par Larry Greenfield
+<\fIgreenfie@gauss.rutgers.edu\fP> et Michael K. Johnson
+<\fIjohnsonm@sunsite.unc.edu\fP>.
+.SH "VOIR AUSSI"
+\fBps\fP(1), \fBtop\fP(1), \fButmp\fP(5), \fBw\fP(1)
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

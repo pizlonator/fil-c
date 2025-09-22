@@ -1,0 +1,170 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2003 Albert Cahalan
+.\" Copyright (c) 1993      Matt Welsh <mdw@sunsite.unc.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FREE 1 2023\-05\-02 procps\-ng Användarkommandon
+.SH NAMN
+free — Visa mängden fritt och använt minne i systemet
+.SH SYNOPSIS
+\fBfree\fP [\fIflaggor\fP]
+.SH BESKRIVNING
+\fBfree\fP visar den totala mängden fritt och använt fysiskt minne och
+växlingsminne i systemet, liksom buffertarna och cacharna som används av
+kärnan.  Informationen samlas in genom att tolka /proc/meminfo.  De visade
+kolumnerna är:
+.TP 
+\fBtotalt\fP
+Totalt användbart minne (MemTotal och SwapTotal i /proc/meminfo). Detta
+inkluderar det fysiska minnet och växlingsminnet mines några få reserverade
+bitar och kärnans binärkod.
+.TP 
+\fBanvänt\fP
+Använt eller otillgängligt minne (beräknat som \fBtotalt\fP \- \fBtillgängligt\fP)
+.TP 
+\fBfritt\fP
+Oanvänt minne (MemFree och SwapFree i /proc/meminfo)
+.TP 
+\fBdelat\fP
+Minne använt (huvudsakligen) av tmpfs (Shmem i /proc/meminfo)
+.TP 
+\fBbuffertar\fP
+Minne använt av kärnans buffertar (Buffers i /proc/meminfo)
+.TP 
+\fBcache\fP
+Minne använt av sidcachen och skivor (Cached och SReclaimable i
+/proc/meminfo)
+.TP 
+\fBbuff/cache\fP
+Summan av \fBbuffertar\fP och \fBcache\fP
+.TP 
+\fBtillgängligt\fP
+Uppskattning av hur mycket minne som är tillgängligt för att starta nya
+program, utan att börja växla.  Till skillnad mot data som tillhandahålls av
+fälten \fBcache\fP eller \fBfritt\fP tar detta fält hänsyn till sidcachen och även
+att inte alla återvinningsbara minnesskivor kommer återvinnas på grund av
+saker som används (MemAvailable i /proc/meminfo, tillgängligt i kärnan 3.14,
+emulerat i kärnor 2.6.27+, annars samma som \fBfritt\fP)
+.SH FLAGGOR
+.TP 
+\fB\-b\fP, \fB\-\-bytes\fP
+Visa mängden minne i byte.
+.TP 
+\fB\-k\fP, \fB\-\-kibi\fP
+Visa mängden minne i kibibyte.  Detta är standardvärdet.
+.TP 
+\fB\-m\fP, \fB\-\-mebi\fP
+Visa mängden minne i mebibyte.
+.TP 
+\fB\-g\fP, \fB\-\-gibi\fP
+Visa mängden minne i gibibyte.
+.TP 
+\fB\-\-tebi\fP
+Visa mängden minne i tebibyte.
+.TP 
+\fB\-\-pebi\fP
+Visa mängden minne i pebibyte.
+.TP 
+\fB\-\-kilo\fP
+Visa mängden minne i kilobyte.  Implicerar \-\-si.
+.TP 
+\fB\-\-mega\fP
+Visa mängden minne i megabyte.  Implicerar \-\-si.
+.TP 
+\fB\-\-giga\fP
+Visa mängden minne i gigabyte.  Implicerar \-\-si.
+.TP 
+\fB\-\-tera\fP
+Visa mängden minne i terabyte.  Implicerar \-\-si.
+.TP 
+\fB\-\-peta\fP
+Visa mängden minne i petabyte.  Implicerar \-\-si.
+.TP 
+\fB\-h\fP, \fB\-\-human\fP
+Visa alla utmatningsfält automatiskt skalade till den kortaste enheten med
+tre siffror och visa enheterna i utskriften.  Följande enheter används.
+.sp
+.nf
+  B = byte
+  Ki = kibibyte
+  Mi = mebibyte
+  Gi = gibibyte
+  Ti = tebibyte
+  Pi = pebibyte
+.fi
+.sp
+Om en enhet saknas, och du har exbibyte med RAM eller växlingsutrymme är
+talet i tebibyte och kolumnerna är inte nödvändigtvis justerade med
+rubriken.
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Byt till brett läge.  Det breda läget skapar rader som är längre än 80
+tecken.  I detta läge rapporteras \fBbuffertar\fP och \fBcache\fP i två separata
+kolumner.
+.TP 
+\fB\-c\fP, \fB\-\-count\fP \fIantal\fP
+Visa resultatet \fIantal\fP gånger.  Kräver flaggan \fB\-s\fP.
+.TP 
+\fB\-l\fP, \fB\-\-lohi\fP
+Visa detaljerad statistik över lägsta och högsta minne.
+.TP 
+\fB\-L\fP, \fB\-\-line\fP
+Visa utdata på en enda rad, används ofta med flagga \fB\-s\fP för att upprepat
+visa minnesstatistik.
+.TP 
+\fB\-s\fP, \fB\-\-seconds\fP \fIfördröjning\fP
+Visa kontinuerligt resultatet fördröjt \fIfördröjning\fP isär.  Du kan faktiskt
+ange godtyckligt flyttal som \fIfördröjning\fP med antingen . eller , som
+decimaltecken.  \fBusleep\fP(3) används för fördröjningstider med upplösning i
+mikrosekunder.
+.TP 
+\fB\-\-si\fP
+Använd kilo, mega, giga etc. (potenser av 1000) istället för kibi, mebi,
+gibi (potenser av 1024).
+.TP 
+\fB\-t\fP, \fB\-\-total\fP
+Visa en rad som visar kolumnernas summor.
+.TP 
+\fB\-v\fP, \fB\-\-committed\fP
+Visa en rad som visar minnestilldelningsgränsen och mängden
+tilldelat/otilldelat minne. Kolumnen \fBtotalt\fP på denna rad kommer visa
+minnestilldelningsgränsen. Raden är relevan om övertilldelning av minne är
+avaktiverat.
+.TP 
+\fB\-\-help\fP
+Skriv ut hjälp.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation.
+.PD
+.SH FILER
+.TP 
+/proc/meminfo
+minnesinformation
+.PD
+.SH FEL
+Värdet på kolumnen \fBdelat\fP är inte tillgängligt från kärnan före 2.6.32 och
+visas som noll.
+.TP 
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE
+.TP
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+.SH "SE ÄVEN"
+\fBps\fP(1), \fBslabtop\fP(1), \fBtop\fP(1), \fBvmstat\fP(8).

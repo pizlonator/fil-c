@@ -1,0 +1,186 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSTAT 8 2023\-01\-18 procps\-ng "Administracja systemem"
+.SH NAZWA
+vmstat \- statystyki pamięci wirtualnej
+.SH SKŁADNIA
+\fBvmstat\fP [opcje] [\fIopóźnienie\fP [\fIliczba\fP]]
+.SH OPIS
+\fBvmstat\fP raportuje informacje o aktywności procesów, pamięci,
+stronicowania, blokowego we/wy, pułapek, dysków i procesora.
+.PP
+Pierwszy tworzony raport podaje średnie wartości od ostatniego restartu
+systemu. Dodatkowe raporty podają informacje dla okresów próbkowania o
+długości \fIopóźnienia\fP. Raporty dotyczące procesów i pamięci są w obu
+przypadkach natychmiastowe.
+.SH OPCJE
+.TP 
+\fIopóźnienie\fP
+\fIOpóźnienie\fP pomiędzy uaktualnieniami w sekundach. Jeśli nie podano
+\fIopóźnienia\fP, wypisywany jest tylko raport z wartościami średnimi od
+rozruchu systemu.
+.TP 
+\fIliczba\fP
+Liczba uaktualnień. W przypadku braku \fIliczby\fP, jeśli podano \fIopóźnienie\fP,
+domyślna jest nieskończoność.
+.TP 
+\fB\-a\fP, \fB\-\-active\fP
+Wyświetlenie pamięci aktywnej i nieaktywnej, jeśli używane jest jądro 2.5.41
+lub nowsze.
+.TP 
+\fB\-f\fP, \fB\-\-forks\fP
+Opcja \fB\-f\fP wyświetla liczbę rozgałęzień procesów od rozruchu
+systemu. Liczba ta obejmuje wywołania systemowe fork, vfork oraz clone; jest
+odpowiednikiem całkowitej liczby utworzonych zadań. Każdy proces jest
+reprezentowany przez jedno lub więcej zadań, w zależności od wykorzystania
+wątków. Ten widok się nie powtarza.
+.TP 
+\fB\-m\fP, \fB\-\-slabs\fP
+Wyświetlenie slabinfo.
+.TP 
+\fB\-n\fP, \fB\-\-one\-header\fP
+Wyświetlenie nagłówka tylko raz zamiast regularnie.
+.TP 
+\fB\-s\fP, \fB\-\-stats\fP
+Wyświetlenie tabeli różnych liczników zdarzeń i statystyk pamięci. Ten widok
+się nie powtarza.
+.TP 
+\fB\-d\fP, \fB\-\-disk\fP
+Raport statystyk dysku (wymagane jądro 2.5.70 lub nowsze).
+.TP 
+\fB\-D\fP, \fB\-\-disk\-sum\fP
+Raport pewnych statystyk zbiorczych dotyczących aktywności dysku.
+.TP 
+\fB\-p\fP, \fB\-\-partition\fP \fIurządzenie\fP
+Szczegółowe statystyki dotyczące partycji (wymagane jądro 2.5.70 lub
+nowsze).
+.TP 
+\fB\-S\fP, \fB\-\-unit\fP \fIznak\fP
+Przełączenie wyjścia między jednostkami 1000 (\fIk\fP), 1024 (\fIK\fP),1000000
+(\fIm\fP) lub 1048576 (\fIM\fP) bajtów. Opcja nie zmienia pól operacji wymiany
+(si/so) ani blokowych (bi/bo).
+.TP 
+\fB\-t\fP, \fB\-\-timestamp\fP
+Dołączenie znacznika czasu do każdej linii
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Tryb szerokiego wyjścia (przydatny dla systemów z dużą ilością pamięci,
+gdzie domyślny tryb wyjścia cierpi przez niechciane łamanie kolumn). Wyjście
+jest szersze niż 80 znaków w linii.
+.TP 
+\fB\-y\fP, \fB\-\-no\-first\fP
+Pominięcie pierwszego raportu ze statystykami od rozruchu systemu.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Wyświetlenie informacji o wersji i zakończenie.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Wyświetlenie opisu i zakończenie.
+.PD
+.SH "OPIS PÓL DLA TRYBU VM"
+.SS Proc.
+.nf
+r: Liczba procesów działających (działających lub czekających na czas pracy).
+b: Liczba procesów zablokowanych na oczekiwaniu na zakończenie we/wy.
+.fi
+.SS Pamięć
+Te podlegają opcji \fB\-\-unit\fP.
+.nf
+swap:   ilość użytej pamięci wymiany.
+wolna:  ilość pamięci bezczynnej.
+bufor:  ilość pamięci używanej jako bufory.
+cache:  ilość pamięci używanej jako podręczna.
+nieakt: ilość pamięci nieaktywnej (opcja \fB\-a\fP).
+akt:    ilość pamięci aktywnej (opcja \fB\-a\fP).
+.fi
+.SS Swap
+Te podlegają opcji \fB\-\-unit\fP.
+.nf
+si: Ilość pamięci wymiany wczytanej z dysku (/s).
+so: Ilość pamięci wymiany zapisanej na dysk (/s).
+.fi
+.SS IO
+.nf
+bi: Kibibajty odebrane z urządzenia blokowego (bloki/s).
+bo: Kibibajty wysłane do urządzenia blokowego (bloki/s).
+.fi
+.SS System
+.nf
+in: Liczba przerwań na sekundę, włącznie z zegarowym.
+cs: Liczba przełączeń kontekstu na sekundę.
+.fi
+.SS CPU
+Procenty całkowitego czasu procesora.
+.nf
+us: Czas spędzony w kodzie poza jądrem (czas użytkownika, w tym nice).
+sy: Czas spędzony w kodzie jądra (czas systemu)
+id: Czas spędzony bezczynnie. Przed Linuksem 2.5.41 obejmował czas IO\-wait.
+wa: Czas spędzony na oczekiwaniu na we/wy. Przed 2.5.41 zawarty w bezczynnym.
+st: Czas skradziony wirtualnej maszynie. Przed Linuksem 2.6.11 nieznany.
+gu: Czas spędzony w kodzie gościa KVM (czas gościa, w tym nice).
+.fi
+.SH "OPIS PÓL DLA TRYBU DYSKOWEGO"
+.SS Odczyty
+.nf
+total: wszystkie odczyty zakończone poprawnie
+merged: odczyty zgrupowane (zakończone w jednym we/wy)
+sectors: sektory odczytane poprawnie
+ms: milisekundy spędzone na odczycie
+.fi
+.SS Zapisy
+.nf
+total: wszystkie zapisy zakończone poprawnie
+merged: zapisy zgrupowane (zakończone w jednym we/wy)
+sectors: sektory zapisane poprawnie
+ms: milisekundy spędzone na zapisie
+.fi
+.SS IO
+.nf
+cur: operacje we/wy w trakcie
+s: sekundy spędzone na operacjach we/wy
+.fi
+.SH "OPIS PÓL DLA TRYBU PARTYCJI DYSKU"
+.nf
+reads: całkowita liczba odczytów zleconych dla tej partycji
+read sectors: całkowita liczba sektorów odczytanych z partycji
+writes: całkowita liczba zapisów zleconych dla tej partycji
+requested writes: całkowita liczba żądań zapisu dla partycji
+.fi
+.SH "OPIS PÓL DLA TRYBU PŁYT"
+Slab mode shows statistics per slab, for more information about this
+information see \fBslabinfo\fP(5)
+.PP
+.nf
+cache: nazwa pamięci podręcznej
+num: liczba obecnie aktywnych obiektów
+total: całkowita liczba dostępnych obiektów
+size: rozmiar każdego obiektu
+pages: liczba stron z przynajmniej jednym aktywnym obiektem
+.fi
+.SH UWAGI
+\fBvmstat\fP requires read access to files under \fI/proc\fP. The \fB\-m\fP requires
+read access to \fI/proc/slabinfo\fP which may not be available to standard
+users.  Mount options for \fI/proc\fP such as \fIsubset=pid\fP may also impact
+what is visible.
+.SH "ZOBACZ TAKŻE"
+\fBfree\fP(1), \fBiostat\fP(1), \fBmpstat\fP(1), \fBps\fP(1), \fBsar\fP(1), \fBtop\fP(1),
+\fBslabinfo\fP(5)
+.SH "ZGŁASZANIE BŁĘDÓW"
+Zgłoszenia błędów prosimy wysyłać na adres
+.UR procps@freelists.org
+.UE

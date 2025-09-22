@@ -1,0 +1,110 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.TH KILL 1 "2023-01-16" "procps-ng" "User Commands"
+.SH NAME
+kill \- send a signal to a process
+.SH SYNOPSIS
+.B kill
+[options] <pid> [...]
+.SH DESCRIPTION
+The default signal for kill is TERM.  Use
+.B \-l
+or
+.B \-L
+to list available signals.  Particularly useful signals include HUP,
+INT, KILL, STOP, CONT, and 0.  Alternate signals may be specified in
+three ways:
+.BR \-9 ", " \-SIGKILL
+or
+.BR \-KILL .
+Negative PID values may be used to choose whole process groups; see
+the PGID column in ps command output.  A PID of
+.B \-1
+is special; it indicates all processes except the kill process itself
+and init.
+.SH OPTIONS
+.TP
+.B <pid> [...]
+Send signal to every <pid> listed.
+.TP
+.B \-<signal>
+.TQ
+.B \-s <signal>
+.TQ
+.B \-\-signal <signal>
+Specify the
+.B signal
+to be sent.  The signal can be specified by using name or number.
+The behavior of signals is explained in
+.BR signal (7)
+manual page.
+.TP
+\fB\-q\fR, \fB\-\-queue \fIvalue\fP
+Use
+.BR sigqueue (3)
+rather than
+.BR kill (2)
+and the value argument is used to specify
+an integer to be sent with the signal. If the receiving process has
+installed a handler for this signal using the SA_SIGINFO flag to
+.BR sigaction (2),
+then it can obtain this data via the si_value field of the
+siginfo_t structure.
+.TP
+\fB\-l\fR, \fB\-\-list\fR [\fIsignal\fR]
+List signal names.  This option has optional argument, which
+will convert signal number to signal name, or other way round.
+.TP
+.BR \-L , \ \-\-table
+List signal names in a nice table.
+.TP
+.PD
+.SH NOTES
+Your shell (command line interpreter) may have a built-in kill
+command.  You may need to run the command described here as /bin/kill
+to solve the conflict.
+.SH EXAMPLES
+.TP
+.B kill \-9 \-1
+Kill all processes you can kill.
+.TP
+.B kill \-l 11
+Translate number 11 into a signal name.
+.TP
+.B kill -L
+List the available signal choices in a nice table.
+.TP
+.B kill 123 543 2341 3453
+Send the default signal, SIGTERM, to all those processes.
+.SH "SEE ALSO"
+.BR kill (2),
+.BR killall (1),
+.BR nice (1),
+.BR pkill (1),
+.BR renice (1),
+.BR signal (7),
+.BR sigqueue (3),
+.BR skill (1)
+.SH STANDARDS
+This command meets appropriate standards. The
+.B \-L
+flag is Linux-specific.
+.SH AUTHOR
+.UR albert@users.sf.net
+Albert Cahalan
+.UE
+wrote kill in 1999 to replace a bsdutils one that was not standards
+compliant.  The util-linux one might also work correctly.
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

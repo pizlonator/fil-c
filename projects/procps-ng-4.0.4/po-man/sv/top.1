@@ -1,0 +1,2752 @@
+.ig
+. manual page for NEW and IMPROVED linux top
+.
+. Copyright (c) 2002-2023 Jim Warner <james.warner@comcast.net
+.
+. This file may be copied under the terms of the GNU Public License.
+..
+.\"  Setup ////////////////////////////////////////////////////////////////
+.\"                      Commonly used strings (for consistency) ----------
+.\"                           - our em-dashes
+.ds Em \ —\ 
+.ds EM \fB\ —\ \fP
+.\"                           - our program name (makes great grammar)
+.ds We top
+.ds WE \fBtop\fP
+.\"                           - other misc strs for consistent usage
+.ds F \fIAv\fP
+.ds O \fIPå\fP
+.
+.ds AK asterisk (”*”)
+.ds AM alternativt visningsläge
+.ds AS extra lagring
+.ds CF konfigurationsfil
+.ds CG ”aktuell” fönster\-/fältgrupp
+.ds CI interaktivt kommando
+.ds CO kommandoradsflagga
+.ds CT kommandoflagga
+.ds CW ”aktuellt” fönster
+.ds FG fältgrupp
+.ds FM helskärmsläge
+.ds KA piltangent
+.ds KS rullningstangent
+.ds MP fysiskt minne
+.ds MS växlingsfil
+.ds MV virtuellt minne
+.ds NT \fBObs\fP:
+.ds PU CPU
+.ds Pu cpu
+.ds SA sammanfattningsområde
+.ds TA uppgiftsområde
+.ds TD uppgiftsvisning
+.ds TT \fBprocesser\fP eller \fBtrådar\fP
+.ds TW uppgiftsfönster
+.\"                      Reference to the various widths/sizes ------------
+.\"                           - the max screen width limit
+.ds WX 512
+.\"                           - the header width w/ all fields
+.ds WF ungefär 250
+.\"                           - pid monitoring limit
+.\"                      Xref's that depend on/mention other stuff --------
+.ds Xa se
+.ds XC Se
+.ds Xc se
+.ds XT Se avsnittet
+.ds Xt se avsnittet
+.ds XX Se ”ÖVERSIKT, Linux minnestyper” för ytterligare detaljer
+.ds ZX Att komma åt smaps\-värden är 10× dyrare än annan minnesstatistik och data för andra användare kräver root\-privilegier
+.
+.\" Document /////////////////////////////////////////////////////////////
+.\" ----------------------------------------------------------------------
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TOP 1 "Augusti 2023" procps\-ng Användarkommandon
+.\" ----------------------------------------------------------------------
+.nh
+
+.\" ----------------------------------------------------------------------
+.SH NAMN
+.\" ----------------------------------------------------------------------
+top — visa Linuxprocesser
+
+.\" ----------------------------------------------------------------------
+.SH SYNOPSIS
+.\" ----------------------------------------------------------------------
+\*(WE [flaggor]
+
+.\" ----------------------------------------------------------------------
+.SH BESKRIVNING
+.\" ----------------------------------------------------------------------
+Programmet \*(WE visar en dynamisk vy av det körande systemet i realtid. Det
+kan visa sammanfattande information om \fBsystemet\fP liksom en lista över
+\*(TT som för närvarande hanteras av Linuxkärnan. Typerna av sammanfattande
+systeminformation som visas och typerna, ordningen och storleken på
+informationen som visas för processer är användarkonfigurerbart och den
+konfigurationen kan bevaras mellan omstarter.
+
+Programmet ger ett begränsat interaktivt gränssnitt för processhantering
+såväl som ett mycket mer omfattande gränssnitt för personlig konfiguration
+\*(Em omfattande dess funktion i alla avseenden. Och medan \*(WE rereras
+genomgående i detta dokument står det dig fritt att kalla programmet vad du
+vill. Det nya namnet, möjligen ett alias, kan sedan avspeglas i \*(Wes
+fönster och anvädas när man läser och skriver en \*(CF.
+
+.\" ----------------------------------------------------------------------
+.SH ÖVERSIKT
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS Dokumentation
+.\" ----------------------------------------------------------------------
+Återstående innehållsförteckning
+
+.nf
+    ÖVERSIKT
+       Funktion
+       Linux minnestyper
+    1. KOMMANDORADSflaggor
+    2. SAMMANFATTNINGSvisning
+       a. UPPETID och LASTgenomsnitt
+       b. UPPGIFTER och CPU\-tillstånd
+       c. MINNESanvändning
+    3. FÄLT\-/Kolumnvisning
+       a. BESKRIVNINGAR av fält
+       b. HANTERING av fält
+    4. INTERAKTIVA kommandon
+       a. GLOBALA kommandon
+       b. SAMMANFATTNINGSOMRÅDETS kommandon
+       c. UPPGIFTSOMRÅDETS kommandon
+          1. Utseende
+          2. Innehåll
+          3. Storlek
+          4. Sortering
+       d. FÄRGavbildning
+    5. ALTERNATIVA SKÄRMARS utseende
+       a. FÖNSTERöversikt
+       b. KOMMANDON för fönster
+       c. RULLA ett fönster
+       d. SÖKA i ett fönster
+       e. FILTRERA i ett fönster
+    6. FILER
+       a. PERSONLIG konfigurationfil
+       b. LÄGGA TILL INSPEKTIONSposter
+       c. SYSTEMkonfigurtionsfil
+       d. SYSTEMbegränsningsfil
+    7. MILJÖVARIABLER
+    8. DUMMA TRICK\-exempel
+       a. Kärnmagi
+       b. Studsande fönster
+       c. Den stora fågelns fönster
+       d. Den gamla förväxlingen
+    9. FEL, 10. SE även
+.fi
+
+.\" ......................................................................
+.SS Funktion
+.\" ----------------------------------------------------------------------
+När \*(We kör är de två viktigaste tangenterna hjälptagenten (h eller ?) och
+avslutningstangenten (”q”). Alternativt kan du helt enkelt använda den
+traditionella avbrottstangenten (^C) när du är klar.
+
+När det startas för första gången kommer du få se dessa traditionella
+elementen på hvudskärmen i \*(We: 1) sammanfattningsområde; 2)
+fält\-/kolumnhuvud; 3) uppgiftsområde. Var och en av dessa kommer utforskas i
+avsnitten som följer nedan. Det finns även en inmatnings\-/meddelanderad
+mellan sammanfattnigsområdet och kolumhuvudet som inte behöver någon
+ytterligare förklaring.
+
+Huvudskärmen för \*(We är \fIi allmänhet\fP väl anpassningsbar till ändringar
+av terminalens dimensioner under X\-Windows. Andra skärmar hos \*(We kan vara
+det i mindre utsträckning, särskilt de med statisk text. Det beror dock i
+slutänden på just din fönsterhanterare och terminalemulator. Det kan finnas
+tillfällen när deras vy av terminalstorleken och det aktuella innehållet
+skiljer från \*(Wes vy, vilket alltid baseras på operativsystemanrop.
+
+Efter en storleksändringsåtgärd, om en \*(We\-skärm blir trasig, förefaller
+ofullständig eller i oordning kommer att helt enkelt skriva något harmlöst
+som ett interpunktionstecken eller markörrörelsetangent vanligen att
+återställa den. I extrema fall kommer följande sekvens nästan säkert göra
+det:
+.nf
+       \fItgt/kmd     syfte \fP
+       ^Z          \fBgör uppehåll för\fP \*(We
+       fg          \fBåteruppta\fP \*(We
+       <Vänster>   framtvinga om skärm\fBomritning\fP (om nödvändigt)
+.fi
+
+Men om skärmen fortfarande är trasig är det ett steg till du kan
+prova. Infoga detta kommando efter att ha gjort uppehåll i \*(We men innan
+den återupptas.
+.nf
+       \fItgt/kmd     syfte\fP
+       reset       återställ dina \fBterminalinställningar\fP
+.fi
+
+\*(NT bredden på \*(Wes skärm kommer begränsas till \*(WX positioner. Att
+visa alla fälten kräver \*(WF tecken. Återstående skärmbredd allokeras
+vanligen till de variabla kolumnbredder som för närvarande är
+synliga. Kolumner med variabel bredd, såsom KOMMANDO finns noterade i
+avsnitt 3a. BESKRIVNING av fält. Faktiskt utskriftsbredd kan även påverkas
+av flaggan \-w vilken diskuteras i avsnitt 1. KOMMANDORADSflaggor.
+
+Slutligen kräver vissa av \*(Wes skärmar eller funktioner användningen av
+markörförflyttningstangeter som standard\*(KAerna plus tangenterna Home,
+End, PgUp och PgDn. Om din terminal eller emulator inte tillhandahåller
+dessa tangenter är följande kombinationer godkända som alternativ:
+.nf
+       \fItgt      likvärdig tangent\fP
+       Vänster  alt +\fB h \fP
+       Ned      alt +\fB j \fP
+       Upp      alt +\fB k \fP
+       Höger    alt +\fB l \fP
+       Home     alt + ctrl +\fB h \fP
+       PgDn     alt + ctrl +\fB j \fP
+       PgUp     alt + ctrl +\fB k \fP
+       End      alt + ctrl +\fB l \fP
+.fi
+
+Piltangenterna \fBupp\fP och \fBned\fP har speciell betydelse när en radinatning
+avslutad med tangenten <Enter> efterfrågas. Dessa tangenter, eller
+deras alias, kan användas för att tidigare inmatningsrader vilka sedan kan
+redigeras och matas in igen. Det finns fyra ytterligare tangenter
+tillgängliga med radorienterad inmatning.
+.nf
+       \fItgt      speciell betydelse\fP
+       Upp      hämta \fBtidigare\fP strängar för omredigering
+       Ned      hämta \fBnyare\fP strängar eller \fBradera\fP hela raden
+       Insert   växla mellan lägena \fBinfoga\fP och \fBskriv över\fP
+       Delete   tecknet \fBtas bort\fP vid markören, övriga flyttas till vänster
+       Home     hoppa till \fBbörjan\fP av inmatningsraden
+       End      hoppa till \fBslutet\fP av inmatningsraden
+.fi
+
+.\" ......................................................................
+.SS "Linux minnestyper"
+.\" ----------------------------------------------------------------------
+För våra syften finns det tre sorters minne, och en är valfri. Den första är
+\*(MP, en begränsad resurs där kod och data måste finnas när det körs eller
+refereras. Nästa är den valfria \*(MSen där ändrat (smutsigt) minne kan
+sparas och senare hämtas tillbaka ifall för mycket efterfrågan finns på
+\*(MP. Slutligen har vi \*(MV, en nästan obegränsad resurs som uppfyller
+följande mål:
+
+.nf
+   1. abstraktion, från från det fysiska minnets adresser/begränsningar
+   2. isolering, varje process i en separat minnesrymd
+   3. delning, en viss mappning kan uppfylla flera behov
+   4. flexibilitet, tilldela en virtuell minnesadress till en fil
+.fi
+
+Oavsett vilken av dessa former minnet kan ta hanteras alla som sidor
+(typiskt 4096 byte) men uttrycks som standard i \*(We som KiB
+(kibibyte). Minnet som diskuteras under avsnittet ”2c. MINNESanvändning”
+handlar om \*(MP och \*(MS för systemet som en helhet. Minnet som gås igenom
+i avsnittet ”3. FÄLT\-/Kolumnvisning” omfattar alla tre minnestyperna, men
+för enskilda processer.
+
+För varje sådan process är varje minnessida begränsat till en vis kvadrant
+från tabellen nedan. Både \*(MP och \*(MV kan inkludera vilken som helst av
+de fyra, medan \*(MSen endast inkluderar nr. 1 till 3. Minnet i kvadrant
+nr. 4 fungerar när det ändras som sin egen dedikerade \*(MS.
+
+.nf
+                              \fBPrivat\fP  | \fBDelat\fP
+                          \fB1\fP           |          \fB2\fP
+     \fBAnonymt\fP    . stack               |
+                . malloc()            |
+                . brk()/sbrk()        | . POSIX shm*
+                . mmap(PRIVATE, ANON) | . mmap(SHARED, ANON)
+               \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                . mmap(PRIVATE, fd)   | . mmap(SHARED, fd)
+   \fBFilstött\fP     . pgm/delade bibl     |
+                          \fB3\fP           |          \fB4\fP
+.fi
+
+Följande kan hjälpa till med att tolka minnesvärden som visas på processnivå
+som skalbara kolumner och diskuteras under avsnitt ”3a. BESKRIVNING av
+fält”.
+
+.nf
+   %MIN \- helt enkelt RES divederat med totalt \*(MP
+   KOD  \- ”pgm”\-delen av kvadrant \fB3\fP
+   DATA \- hela kvadrant \fB1\fP del av VIRT plus alla
+          explicit mmap:ade filstödda sidor i kvadrant \fB3\fP
+   RES  \- vad som helst som tar upp \*(MP vilket, med början med
+          Linux\-4.5, är summan ad de följande tre fälten:
+          RSan \- kvadrant \fB1\fP\-sidor, vilket inkluderar alla
+                 tidigare \fB3\fP\-sidor om de ändras
+          RSfb \- kvadrant \fB3\fP\- och kvadrant \fB4\fP\-sidor
+          RSdl \- kvadrant \fB2\fP\-sidor
+   RSlå \- delmängden av RES som inte kan växlas ut (oavsett kvadrant)
+   DELT \- delmängd av RES (exkluderar \fB1\fP, inkluderar hela \fB2\fP & \fB4\fP, delvis \fB3\fP)
+   VÄXL \- potentiellt vilken kvadrant som helst utom \fB4\fP
+   ANV  \- helt enkelt summan av RES och SWAP
+   VIRT \- allt använd och/eller reserverat (oavsett kvadrant)
+.fi
+
+\*(NT även om programavbilder och delade bibliotek betraktas som \fIprivata\fP
+hos en process kommer de räknas som \fIdelade\fP (DELT) av kärnan.
+
+.\" ----------------------------------------------------------------------
+.SH "1. KOMMANDORADSflaggor"
+.\" ----------------------------------------------------------------------
+Obligatoriska\fI argument\fP till långa flaggor är obligatoriska även för korta
+flaggor.
+
+Även om det inte krävs kan likhetstecknet med endera formen av flaggan och
+blanktecken före och/eller efter ”=” är tillåtet.
+
+.TP  3
+\-\fBb\fP, \fB\-\-batch\fP
+Startat \*(We i satsvis läge, vilket kan vara användbart för att skicka
+utdata från \*(We till andra program eller till en fil. I detta läge kommer
+\*(We inte acceptera indata och kör tills iterationsgränsen du satt med
+\*(COn ”\-n” eller tills den dödas.
+
+.TP  3
+\-\fBc\fP, \fB\-\-cmdline\-toggle\fP
+Startar \*(We med det senast sparade ”c”\-tillståndet omvänt. Alltså, om
+\*(We visade kommandorader kommer nu det fältet visa programnamn, och vice
+versa. \*(XC det interaktiva kommandot ”c” för ytterligare information.
+
+.TP  3
+\-\fBd\fP, \fB\-\-delay\fP = \fISEK\fP [\fI.TIONDELAR\fP]
+Anger fördröjningen mellan skärmuppdateringar, och åsidosätter motsvarande
+värde i den personliga \*(CFen eller uppstartsstandardvärdet. Senare kan
+detta ändras med de interaktiva kommandona ”d” eller ”s”.
+
+Delar av sekunder respekteras, men ett negativt tal är inte tillåtet. I
+vilket fall som helst är dock sådana ändringar otillåtna om \*(We kör i
+Säkert läge, utom för root (om inte \*(COn ”s” användes). För ytterligare
+information om Säkert läge, \*(Xt 6d. SYSTEMbegränsningsfil.
+
+.TP  3
+\-\fBE\fP, \fB\-\-scale\-summary\-mem\fP = \fIk\fP | \fIm\fP | \fIg\fP | \fIt\fP | \fIp\fP | \fIe\fP
+Instruerar \*(WE att framtvinga \*(SAminne att skalas som:
+.nf
+   k — kibibyte
+   m — mebibyte
+   g — gibibyte
+   t — tebibyte
+   p — pebibyte
+   e — exbibyte
+.fi
+
+Detta kan senare ändras med \*(CTn ”E”.
+
+.TP  3
+\-\fBe\fP, \fB\-\-scale\-task\-mem\fP = \fIk\fP | \fIm\fP | \fIg\fP | \fIt\fP | \fIp\fP
+Instruerar \*(We att framtvinga \*(TAsminne att skalas som:
+.nf
+   k — kibibyte
+   m — mebibyte
+   g — gibibyte
+   t — tebibyte
+   p — pebibyte
+.fi
+
+Detta kan senare ändras med \*(CTn ”e”.
+
+.TP  3
+\-\fBH\fP, \fB\-\-threads\-show\fP
+Instruerar \*(We att visa enskilda trådar. Utan denna \*(CO visas en
+sammanfattning av alla trådar i varje process. Detta kan senare ändras med
+det interaktiva kommandot ”H”.
+
+.TP  3
+\-\fBh\fP, \fB\-\-help\fP
+Visa användningshjälptext, avsluta sedan.
+
+.TP  3
+\-\fBi\fP, \fB\-\-idle\-toggle\fP
+Startar \*(We med det senast sparade ”i”\-tillståndet omvänt. När denna växel
+är \*F kommer uppgifter som inte har använt någon \*(PU sedan den senaste
+uppdateringen inte visas. För ytterligare information om denna växel \*(Xt
+4c. UPPGIFTOMRÅDETS kommandon, STORLEK.
+
+.TP  3
+\-\fBn\fP, \fB\-\-iterations\fP = \fIANTAL\fP
+Anger det maximala antalet iterationer, eller ramar, \*(We skall producera
+före det avslutar.
+
+.TP  3
+\-\fBO\fP, \fB\-\-list\-fields\fP
+Denna flagga fungerar som en slags hjälp för flaggan \-o som visas nedan. Den
+gör att \*(We skriver ut vart och ett av de tillgängliga fältnamnen på var
+sin rad, sedan avsluta. Sådana namn är föremål för översättningar enligt NLS
+(National Language Support, stöd för nationella språk).
+
+.TP  3
+\-\fBo\fP, \fB\-\-sort\-override\fP = \fIFÄLTNAMN\fP
+Anger namnet på fältet enligt vilket uppgifter skall sorteras, oavsett vad
+somavspeglas i konfigurationsfilen. Man kan lägga till ett ”+” eller ”\-”
+till filnamnet för att även åsidosätta sorteringsordningen. Ett inledande
+”+” kommer tvinga sortering högt till lågt, medan ett ”\-” ser till att
+ordningen blir lågt till högt.
+
+Denna flagga finns primärt för att stödja automatisk/skriptad satsvis drift.
+
+.TP  3
+\-\fBp\fP, \fB\-\-pid\fP = \fIPID\-LISTA\fP (som: \fI1\fP,\fI2\fP,\fI3\fP, … eller \-p\fI1\fP \-p\fI2\fP \-p\fI3\fP …)
+Övervaka endast processer med angivna process\-ID:n. Dock, när det kombineras
+med trådläge (”H”) kommer även alla processer i trådgruppen (\*(Xa TGID) för
+varje övervakad PID att visas.
+
+Denna flagga gan ges upp till 20 gånger, eller så kan man ge en
+kommaavgränsad lista med upp till 20 pid:ar. Att kombinera ihop båda
+metoderna är tillåtet.
+
+Ett pid\-värde på noll kommer tolkas som process\-id:t på programmet \*(We
+självt när det har startat.
+
+Detta är endast en \*(CO och skulle du vilja återgå till normal drift är det
+nödvändigt att avsluta och starta om \*(We \*(Em ge endast något av dessa
+interaktiva kommandon: ”=”, ”u” eller ”U”.
+
+Kommandoradsflaggorna ”p”, ”u” och ”U” är ömsesidigt uteslutande.
+
+.TP  3
+\-\fBS\fP, \fB\-\-accum\-time\-toggle\fP
+Startar \*(We med det senast sparade ”S”\-tillståndet omvänt. När ackumulerad
+tid\-läge är \*O listas varje process med \*(Pu\-tiden som den och dess döda
+barn har använt. \*(XC det interaktiva kommandot ”S” för ytterligare
+information om detta läge.
+
+.TP  3
+\-\fBs\fP, \fB\-\-secure\-mode\fP
+Startar \*(We med säkert läge påtvingat, även för root. Detta läge är mycket
+bättre styrt genom en system\*(CF (\*(Xt 6. FILER).
+
+.TP  3
+\-\fBU\fP, \fB\-\-filter\-any\-user\fP = \fIANVÄNDARE\fP (som: \fInummer\fP eller \fInamn\fP)
+Visa endast processer med ett användar\-id eller användarnamn som matchar det
+givna. Denna flagga mot \fIalla\fP användare (\fIverklig\fP, \fIverksam\fP, \fIsparad\fP
+eller \fIfilsystem\fP).
+
+Att lägga till ett utropstecken (”!”) till användar\-id:t eller \-namnet
+instruerar \*(We att visa endast processer med användare som inte stämmer
+med den angivna.
+
+Kommandoradsflaggorna ”p”, ”U” och ”u” är ömsesidigt uteslutande.
+
+.TP  3
+\-\fBu\fP, \fB\-\-filter\-only\-euser\fP = \fIANVÄNDARE\fP (som: \fInummer\fP eller \fInamn\fP)
+Visa endast processer med ett användar\-id eller användarnamn som som matchar
+den givna. Denna flagga matchar endast mot det \fIverksamma\fP användar\-id:t.
+
+Att lägga till ett utropstecken (”!”) till användar\-id:t eller \-namnet
+instruerar \*(We att visa endast processer med användare som inte stämmer
+med den angivna.
+
+Kommandoradsflaggorna ”p”, ”U” och ”u” är ömsesidigt uteslutande.
+
+.TP  3
+\-\fBV\fP, \fB\-\-version\fP
+Visa versionsinformation, avsluta sedan.
+
+.TP  3
+\-\fBw\fP, \fB\-\-width\fP [=\fIKOLUMNER\fP]
+I satsvis läge, när det används utan argument kommer \*(We formatera med
+användning av miljövariablerna COLUMNS= och LINES=, om de är satta. Annars
+kommer bredden vara fixerad till de maximala \*(WX kolumnerna. Med ett
+argument kan utmatningsbredden minskas eller ökas (upp till \*(WX) men
+antalet rader betraktas som obegränsat.
+
+I normalt visningsläge, när det används utan argument kommer \*(We
+\fIförsöka\fP att formatera utmatningen med miljövariablerna COLUMNS= och
+LINES=, om de är satta. Med ett argument kan utmatningsbredden bara minskas,
+inte ökas. Oavsett om miljövariabler används eller ett argument till \-w, när
+man \fIinte\fP är i satsvis läge, kan de faktiska terminaldimensionerna aldrig
+överskridas.
+
+\*(NT utan användning av denna \*(CO baseras utmatningsbredden alltid på
+terminalen i vilken \*(We anropades oavsett om man kör i satsvis läge eller
+inte.
+
+.TP  3
+\-\fB1\fP, \fB\-\-single\-cpu\-toggle\fP
+Startar \*(We med den senast sparade Cpu\-tillståndsdelen av \*(SAt
+omvänt. Antingen kommer all \*(Pu\-information visas på en ensam rad eller så
+kommer varje \*(Pu visas separat, beroende på tillståndet hos \*(CTn för
+NUMA\-nod (”2”).
+
+\*(XC de interaktiva kommandona ”1” och ”2” för ytterligare information.
+
+.\" ----------------------------------------------------------------------
+.SH "2. SAMMANFATTNINGSvisning"
+.\" ----------------------------------------------------------------------
+Var och en av de följande tre områdena styrs individellt genom en eller
+flera interaktiva kommandon. \*(XT 4b. SAMMANFATTNINGSOMRÅDETS kommandon för
+ytterligare information avseende dessa möjligheter.
+
+.\" ......................................................................
+.SS "2a. UPPETID och LASTgenomsnitts"
+.\" ----------------------------------------------------------------------
+Detta avsnitt består av en enda rad som innehåller:
+.nf
+    \fBprogram\fP\- eller \fBfönster\fPnamn, beroende på visningsläge
+    aktuell tid och tiden som gått sedan senaste start
+    totalt antal användare
+    systemlastsnitt över de senaste 1, 5 och 15 minuterna
+.fi
+
+.\" ......................................................................
+.SS "2b. UPPGIFTER och CPU\-tillstånd"
+.\" ----------------------------------------------------------------------
+Detta avsnitt består av minst två rader. I en SMP\-miljö kan ytterligare
+rader avspegla enskilda \*(PU\-tillståndsprocentsatser.
+
+Rad 1 visar totalt antal \fBuppgifter\fP eller \fBtrådar\fP, beroende på
+tillståndet hos Trådlägesväxeln. Den totalen är vidare klassificerad som:
+.nf
+    körande; sovande; stoppade; zombier
+.fi
+
+Rad 2 visar \*(PU\-tillståndsprocentsatser baserat på intervallet sedan den
+senaste uppdateringen.
+
+Som standard visas procentsatser för dessa individuella kategorier. Beroende
+på kärnversionen visas kanske inte fältet \fBst\fP.
+.nf
+    \fBan\fP : tid då icke nice:ade användarprocesser körts
+    \fBsy\fP : tid då kärnprocesser körts
+    \fBni\fP : tid då nice:ade användarprocesser körts
+    \fBia\fP : tid tillbringad i kärnans inaktivetetshanterare
+    \fBvä\fP : tid väntande på fullgord I/O
+    \fBha\fP : tid tillbringad med att betjäna hårdvaruavbrott
+    \fBma\fP : tid tillbringat med att betjäna mjukvaruavbrott
+    \fBst\fP : tid stulen från denna vm av hypervisorn
+.fi
+
+Värdet ”sy” ovan avspeglar även tiden som används till att köra en virtuell
+\*(Pu för gästoperativsystem, inklusive dem med ett nice\-värde.
+
+Utöver den första uppgifts\-/trådraden finns det alternativa
+\*(PU\-visningslägen tillgängliga via 4\-vägs\*(CTn ”t”. De visar en förkortad
+sammanfattning som består av dessa element:
+.nf
+               a    b     c    d
+    %Cpu/er:  \fB75.0\fP/25.0  \fB100\fP[ … ]
+
+.fi
+
+Där: a) är ”användarens” (an + ni) procent; b) är ”systemets” (wy + ha + ma
++ gäster) procent; c) är den totala procenten; och d) är en av två visuella
+grafer av dessa representationer. Sådana grafer avspeglar även separata
+”användar”\- och ”system”\-delar.
+
+Om \*(CTn ”4” används för att ge mer än två cpu:er per rad kommer resultaten
+ytterligare förkortas och eliminera element a) och b). Dock avspeglas den
+informationen fortfarande i själva grafen under antagandet att färg är
+aktivt eller, om inte, visas streck eller block.
+
+\*(XT 4b. SAMMANFATTNINGSOMRÅDETS kommandon för ytterligare information om
+kommandoradsflaggorna ”t” och ”4”.
+
+.\" ......................................................................
+.SS "2c. MINNESanvändning"
+.\" ----------------------------------------------------------------------
+Detta avsnitt består av två rader som kan uttrycka värden i kibibyte (KiB)
+till exbibyte (EiB) beroende på skalfaktorn med det interaktiva kommandot
+”E”. Källfälten från filen /proc/meminfo visas i parenteser.
+
+Rad 1 avspeglar \*(MP, klassificerat som:
+.nf
+    totalt         ( MemTotal )
+    fritt          ( MemFree )
+    anv.           ( MemTotal \- MemAvailable )
+    buff/cache     ( Buffers + Cached + SReclaimable )
+.fi
+
+Rad 2 avspeglar huvudsakligen \*(MV, klassificerat som:
+.nf
+    totalt         ( SwapTotal )
+    fritt          ( SwapFree )
+    anv.           ( SwapTotal \- SwapFree )
+    tillg          ( MemAvailable, vilket är \*(MP )
+.fi
+
+Värdet \fBtillg\fP på rad 2 är en uppskattning av \*(MP tillgängligt för att
+starta nya program, utan växling.  Till skillnad mot fältet \fBfritt\fP
+försöker det att ta hänsyn till sid\-cache och minnesskivor som kan begäras
+tillbaka direkt. Det är tillgängligt i kärna 3.14, emulerad med kärnor
+2.6.27+, och annars detsamma som \fBfritt\fP.
+
+I de alternativa minnesvisningslägena visas två förkortade
+sammanfattningsrader som innehåler dessa elment:
+.nf
+               a    b          c
+    GiB Minn: \fB18.7\fP/15.738   [ … ]
+    GiB Växl: \fB 0.0\fP/7.999    [ … ]
+.fi
+
+Där: a) är procentsatsen använt; b) är det totalt tillgängliga; och c) är en
+av två visuella grafer över dessa representationer.
+
+I fallet \*(MP representerar procentsatsen det \fBtotala\fP minus det
+uppskattade \fBtillgängliga\fP noterat ovan. Grafen ”Minn” själv är delad
+mellan den icke\-cachade delen av \fBanvänt\fP och det återstående minnet som
+inte i övrigt räknas in av \fBtillgängligt\fP. \*(XT
+4b. SAMMANFATTNINGSOMRÅDETS kommandon och kommandot ”m” för ytterligare
+information om denna speciella 4\-vägsväxel.
+
+Denna tabell kan vara till hjälp i att tolka de skalade värdena som visas:
+.nf
+    KiB = kibibyte = 1024 byte
+    MiB = mebibyte = 1024 KiB = 1 048 576 byte
+    GiB = gibibyte = 1024 MiB = 1 073 741 824 byte
+    TiB = tebibyte = 1024 GiB = 1 099 511 627 776 byte
+    PiB = pebibyte = 1024 TiB = 1 125 899 906 842 624 byte
+    EiB = exbibyte = 1024 PiB = 1 152 921 504 606 846 976 byte
+.fi
+
+.\" ----------------------------------------------------------------------
+.SH "3. FÄLT / kolumner"
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS "3a. BESKRIVNING av fält"
+.\" ----------------------------------------------------------------------
+Listat nedan är \*(Wes tillgängliga processfält (kolumner). De visas i
+strikt ascii\-alfabetisk ordning efter deras engelska namn. Man kan anpassa
+deras position och huruvida de visas eller inte med det interaktiva
+kommandot ”f” (Fälthantering).
+
+Alla fält kan väljas som sorteringsfält, och man kan styra huruvida de
+soteras högt\-till\-lågt eller lågt\-till\-högt. För ytterligare information om
+sorteringsmöjligheter \*(Xt 4c. UPPGIFTSOMRÅDETS kommandon,  SORTERING.
+
+Fälten relaterade till \*(MP eller \*(MV refererar ”(KiB)” vilket är
+visningsläget utan suffix. Sådana fält kan dock skalas från KiB till
+PiB. Skalningen styrs via det interaktiva kommandot ”e” eller etableras vid
+uppstart via en byggflagga.
+
+.TP  4
+\fB%CPU \*(Em \*(PU\-användning \fP
+Uppgiftens andel av den förlupna \*(PU\-tiden sedan den senaste
+uppdateringen, uttryckt som en procentsats av den totala \*(PU\-tiden.
+
+I en miljö med sann SMP, om en process är multitrådad och \*(We \fIinte\fP
+arbetar i  trådläge, kan andelar större än 100 % rapporteras. Man kan växla
+trådläge med det interaktiva kommandog ”H”.
+
+För multiprocessormiljöer gäller även att, om Irix\-läget är \*F, kommer
+\*(We köra i Solaris\-läge där en uppgifts \*(Pu\-användning delas med det
+totala antalet \*(PU:er. Man växlar Irix\-/Solaris\-lägen med det interaktiva
+kommandot ”I”.
+
+\*(NT när man kör i skogsvyläge (”V”) med barn infällda (”v”) kommer detta
+fält även inkludera \*(PU\-tiden för dessa osynliga barn. \*(XT
+4c. UPPGIFTSOMRÅDETS kommandon, INNEHÅLL för mer information om växlarna ”V”
+och ”v”.
+
+.TP  4
+\fB%CUB \*(Em \*(PU\-utnyttjande \fP
+Detta fält är identiskt med %CUA nedan, förutom att procentsatsen även
+avspeglar skördade barnprocesser.
+
+.TP  4
+\fB%CUA \*(Em \*(PU\-utnyttjande \fP
+En uppgifts totala \*(PU\-användning dividerat med den gångna körtiden,
+uttryckt som en procentsats.
+
+Om en process för närvarande visar högt \*(PU\-användande kan detta fält
+hjälpa till att avgöra om sådant beteende är normalt. Omvänt, om en proces
+har lågt \*(PU\-användande för närvarande kan %CUA avspegla högre historiska
+behov över dess livstid.
+
+.TP  4
+\fB%MIN \*(Em Minnesanvändning (RES) \fP
+En uppgifts aktuella residenta andel av tillgängligt \*(MP.
+
+\*(XX.
+
+.TP  4
+\fBAGID \*(Em Autogruppidentifierare \fP
+Autogruppidentifieraren som hör ihop med en process. Denna funktion fungerar
+tillsammans med CFS\-schemaläggaren för att förbättra interaktiv
+skrivbordsprestanda.
+
+När /proc/sys/kernel/sched_autogroup_enabled är satt skapas en ny autogrupp
+för varje ny session (\*(Xa SID). Alla processer som avgrenats därefter i
+den sessionen ärver medlemskapet i denna autogrupp. Kärnan försöker
+likafördela CPU\-sykler över sådana grupper. Alltså, en autogrupp med många
+\*(PU\-intensiva processer (t.ex. make \-j) kommer inte att dominera en
+autogrupp med endast en eller två processer.
+
+När \-1 visas betyder det att denna information inte är tillgänglig.
+
+.TP  4
+\fBAGNI \*(Em Autogruppens nice\-värde \fP
+Autogruppens nice\-värde vilket påverkar schemaläggningen för alla processer
+e den gruppen. Ett negativt nice\-värde betyder högre prioritet, medan ett
+positivt nice\-värde betyder lägre prioritet.
+
+.TP  4
+\fBKGNAMN \*(Em Styrgruppsnamn \fP
+Namnet på kontrollgruppen vilken en process hör, eller ”\-” om inte
+tillämpligt för den processen.
+
+Detta kommer typiskt vara den sista posten i den fullständiga listan av
+kontrollgrupper som visas under nästa rubrik (KGRUPPR). Och liksom gäller
+där, har detta fält variabel bredd.
+
+.TP  4
+\fBKGRUPPR \*(Em Styrgrupper \fP
+Namnen på kontrollgrupperna till vilken en process hör, eller ”\-” om inte
+tillämpligt för den processen.
+
+Kontrollgrupper gör att man kan allokera resurser (cpu, minne,
+nätverksbandbredd, etc.) bland installationsdefinierade grupper av
+processer. De möjliggör finkorning styrning av allokeringen, nekandet,
+prioriteringen, hanteringen och övervakningen av dessa resurser.
+
+Många olika hierarkier av kgrupper kan finnas samtidigt på ett system och
+varje hierarki är kopplat till ett eller flera subsystem. Ett subsystem
+representerar en ensam resurs.
+
+\*(NT Fältet KGRUPPR, till skillnad mot de flesta kolumner, har inte fast
+bredd. När det visas kommer det och alla andra kolumner med variabel bredd
+allokeras all återstående skärmbredd (upp till ett maximum \*(WX
+tecken). Trots det kan sådana fält med variabel bredd huggas av. \*(XT
+5c. RULLA ett fönster för ytterligare information om hur man kommer åt
+avhuggen data.
+
+.TP  4
+\fBKOD \*(Em Kodstorlek (KiB) \fP
+Mängden \*(MP som just nu ägnat åt körbar kod, även känt som den residenta
+textmängdens storlek eller TRS.
+
+\*(XX.
+
+.TP  4
+\fBKOMMANDO \*(Em Kommandonamn\fP eller kommando\fBrad \fP
+Visa kommandoraden som användes för att starta en uppgift eller namnet på
+det tillhörade programmet. Man växlar mellan kommando\fIrad\fP och \fInamn\fP med
+”c”, vilket är både en \*(CO och ett \*(CI.
+
+När man har valt att visa kommandorader kommer processer utan en kommandorad
+som kärntrådar) visas med endast programnamnet i hakparentesr, som i detta
+exempel:
+    [kthreadd]
+
+Detta fält kan även påverkas av visningsläget skogsvy. \*(XC det interaktiva
+kommandot ”V” för ytterligare information om det läget.
+
+\*(NT Fältet KOMMANDO, till skillnad mot de flesta kolumner, har inte fast
+bredd. När det visas kommer det och alla andra kolumner med variabel bredd
+allokeras all återstående skärmbredd (upp till ett maximum \*(WX
+tecken). Trots det kan sådana fält med variabel bredd huggas av. Detta
+gäller särskilt för detta fält när kommandorader visas (det interaktiva
+kommandot \*(CI). \*(XT 5c. RULLA ett fönster för ytterligare information om
+hur man kommer åt avhuggen data.
+
+.TP  4
+\fBDATA \*(Em Data\- + stackstorlek (KiB) \fP
+Mängden privat minne \fIreserverat\fP av en process. Detta är även känt även
+känt som den residenta datamängdens storlek eller DRS. Sådant minne behöver
+ännu inte vara mappat till \*(MP (RES) men kommer alltid att inkluderas i
+mängden \*(MV (VIRT).
+
+\*(XX.
+
+.TP  4
+\fBFÖRLUP. \*(Em Förlupen körtid\fP
+Tidsåtgången sedan en process startades. Alltså, den senast startade
+uppgiften kommer visa det minsta tidsintervallet.
+
+Värdet kommer uttryckas som ”HH,MM” (timmar,minuter) men är föremål för
+ytterligare skalning om intervallet blir för stort för att passa
+kolumnbredden. Vid den tidpunkten kommer det att skalas till 'DD+HH'
+(dagar+timmar) och möjligen därutöver.
+
+.TP  4
+\fBMILJÖ \*(Em Milöjövariabler \fP
+Visa alla miljövariablerna, om några, som ses av respektive processer. Dessa
+variabler kommer visas sin råa ordning, inte den sorterade ordning man är
+van vid att se med ett ”set” utan argument.
+
+\*(NT Fältet MILJÖ, till skillnad mot de flesta kolumner, har inte fast
+bredd. När det visas kommer det och alla andra kolumner med variabel bredd
+allokeras all återstående skärmbredd (upp till ett maximum \*(WX
+tecken). Trots det kan sådana fält med variabel bredd huggas av. Detta
+gäller särskilt för detta fält. \*(XT 5c. RULLA ett fönster för ytterligare
+information om hur man kommer åt avhuggen data.
+
+.TP  4
+\fBKÖRBAR \*(Em Körbars sökväg \fP
+Där det är tillgängligt är detta den fullständiga sökvägen till den körbara,
+inklusive programnamnet.
+
+\*(NT Fältet KÖRBAR har, till skillnad mot de flesta kolumner, inte fast
+bredd. När det visas kommer det plus eventuella andra kolumner med variabel
+bredd allokeras all återstående skärmbredd (upp till de maximala \*(WX
+tecknen).
+
+.TP  4
+\fBFlaggor \*(Em Uppgiftens flaggor \fP
+Denna kolumn representerar uppgiftens aktuella schemaläggningsflaggor vilka
+uttrycks i hexadecimal notation och med nollor utelämnade. Dessa flaggor är
+officiellt dokumenterade i <linux/sched.h>.
+
+.TP  4
+\fBGID \*(Em Grupp\-Id \fP
+Den \fIeffektiva\fP gruppens ID.
+
+.TP  4
+\fBGRUPP \*(Em Gruppnamn \fP
+Den \fIeffektiva\fP gruppens namn.
+
+.TP  4
+\fBLOGID \*(Em Inloggningsanvändar\-Id \fP
+Användar\-ID:t som användes vid \fIinloggning\fP. När \-1 visas betyder det att
+denna informaion inte är tillgänglig.
+
+.TP  4
+\fBLXC \*(Em Lxc\-behållarnamn \fP
+Namnet på den lxc\-behållare i vilken uppgiften kör. Om en process inte kör
+inuti en behållare kommer ett streck (”\-”) visas.
+
+.TP  4
+\fBNI \*(Em Nice\-värde \fP
+Nice\-värdet på uppgiften. Ett negativt nice\-värde betyder högre prioritet,
+medan ett positivt nice\-värde betyder lägre prioritet. Noll i detta fält
+betyder helt enkelt att prioriteten inte kommer justeras när en uppgifts
+körbarhet bestäms.
+
+\*(NT Detta värde påverkar bara schemaläggningsprioritet relativt mot andra
+processer i samma autogrupp. \*(XC fälten ”AGID” och ”AGNI” för ytterligare
+information om autogrupper.
+
+.TP  4
+\fBNU \*(Em Senast kända NUMA\-nod \fP
+Ett tal representerar NUMA\-noden associerad med den senast använda
+processorn (”P”). När \-1 visas betyder det att NUMA\-information inte är
+tillgänglig.
+
+\*(XC de interaktiva kommandona ”2” och ”3” för ytterligare NUMA\-möjligheter
+som påverkar \*(SAt.
+
+.TP  4
+\fBOOMj \*(Em Justeringsfaktor för slut på minnet \fP
+Värdet, som går från \-1000 till +1000, läggs till det aktuella
+slut\-på\-minnet\-värdet (OOMv) vilket sedan används för att avgöra vilken
+uppgift som skall dödas när minnet är uttömt.
+
+.TP  4
+\fBOOMv \*(Em Slut på minnet\-värde \fP
+Detta värde, som går från 0 till +1000, används för att välja uppgift(er)
+att döda när minnet är uttömt. Noll översätts till ”döda aldrig” medan 1000
+betyder ”döda alltid”.
+
+.TP  4
+\fBP \*(Em Senast använd \*(PU (SMP) \fP
+Ett nummer som representerar den senast använda processorn. I en sann
+SMP\-miljö kommer detta sannolikt ändras ofta eftersom kärnan avsiktligt
+använder svag affinitet. Dessutom kan själva körandet av \*(We bryta denna
+svaga affinitet få fler processer att byta \*(PU oftare (på grund av den
+ökade efterfrågan på \*(PU\-tid).
+
+.TP  4
+\fBPGRP \*(Em Processgrupps\-Id \fP
+Varje process är medlem av en unik processgrupp vilken används för att
+distribuera signaler och av terminaler för att skilja begäranden som sin
+indata och utdata. När en process skapas (grenas) blir den en medlem i sin
+förälders processgrupp. Enligt konvention är detta värde lika med process\-ID
+(\*(Xa PID) för den första medlemmen i processgruppen, kallad
+processgruppens ledare.
+
+.TP  4
+\fBPID \*(Em Process\-Id \fP
+En uppgifts unika process\-ID, vilket periodiskt slår runt, men aldrig
+startar om på noll. I kärnans termer är det en körbar enhet definerad av en
+task_struct.
+
+Detta värde kan även användas som: en processgrupps\-ID (\*(Xa PGRP); en
+sessions\-ID för sessionsledaren (\*(Xa SID); en trådgrupps\-ID för
+trådgruppsledaren ((\*(Xa TGID); och en TTY\-processgrupps\-iID för
+processgruppsledaren (\*(Xa TPGID).
+
+.TP  4
+\fBFPID \*(Em Föräldraprocess\-Id \fP
+Uppgiftens förälders process\-ID (pid).
+
+.TP  4
+\fBPR \*(Em Prioritet \fP
+Uppgiftens schemaläggningsprioritet. Om man ser ”rt” i detta fält betyder
+det att uppgiften kör under schemaläggningprioritet för realtid.
+
+Under linux är realtidsprioritet något missledande eftersom traditionellt
+operativsystemet självt inte gick att avbryta (preempt). Och medan kärna 2.6
+kan göras avbrytbar (preemptible) är den inte alltid det.
+
+.TP  4
+\fBARSS \*(Em Andel resident minne, smaps (KiB) \fP
+Proportionen av denna uppgifts andel av ”RSS” där varje sida delas av
+antalet processer som delar den. Det är även summan av fälten ”ASan”, ”ASfb”
+och ”ASdelt”.
+
+Till exempel, om en process ar 1000 residenta sidor själv och 1000 residenta
+sidor som delas med en annan process skulle dess ”ARSS” vara 1500 (gånger
+sidstorleken).
+
+\*(ZX.
+
+.PP
+\fBASan \*(Em Andel anonymt minne, smaps (KiB) \fP
+.br
+\fBASfb \*(Em Andel filminne, smaps (KiB) \fP
+.br
+\fBASdelt \*(Em Andel shmem\-minne, smaps (KiB) \fP
+.RS 4
+I liket med vad som gällde för ”ARSS” ovan (total proportionell andel
+resident minne) representerar dessa fält andelen av denna uppgifts del av
+varje typ av minne dividerat med antalet processer som delar det.
+
+\*(ZX.
+.RE
+
+.TP  4
+\fBRES \*(Em Storlek på resident minne (KiB) \fP
+En delmängd av den virtuella adressrymden (VIRT) som representerar det inte
+utväxlade fysiska minnet en uppgift just nu använder. Det är också summan av
+fälten ”RSan”, ”RSfb” och ”RSdl”.
+
+Det kan inkludera privata anonyma sidor, privata sidor avbildade mot filer
+(inklusive programavbilder och delade bibliotek) plus delade anonyma
+sidor. Allt sådant minne stödjs av den \*(MS som representeras separat under
+VÄXL.
+
+Slutligen kan detta fält även inkludera delade filstödda sidor som, när de
+modifieras, beter sig som en dedikerad \*(MS och alltså aldrig kommer
+påverka VÄXL.
+
+\*(XX.
+
+.TP  4
+\fBRSS \*(Em Resident minne, smaps (KiB) \fP
+En annan, mer exakt vy av processens ej utväxlade fysiska minne. Det hämtas
+från filen ”smaps_rollup” och är i allmänhet något större än det som visas
+för ”RES”.
+
+\*(ZX.
+
+.TP  4
+\fBRSan \*(Em Storlek på resident anonymt minne (KiB) \fP
+En delmängd av resident minne (RES) som representerar privata sidor inte
+avbildade mot en fil.
+
+.TP  4
+\fBRSfb \*(Em Storlek på resident minne med bakomliggande fil (KiB) \fP
+En delmängd av resident minne (RES) som representerar de implicit delade
+sidor som stöds av programavbilder och delade bibliotek. Det inkluderar även
+explicita filavbildningar, både privata och delade.
+
+.TP  4
+\fBRSlå \*(Em Storlek på resident låst minne (KiB) \fP
+En delmängd av resident minne (RES) som inte kan växlas ut.
+
+.TP  4
+\fBRSdl \*(Em Storlek på resident delat minne (KiB) \fP
+En delmängd av resident minne (RES) som reprecenterar de explicit delade
+anonyma shm*/mmap\-sidorna.
+
+.TP  4
+\fBVAID \*(Em Verkligt användar\-id \fP
+Det \fIverkliga\fP användar\-ID:t.
+
+.TP  4
+\fBVANV \*(Em Verkligt användarnamn \fP
+Det \fIverkliga\fP användarnamnet.
+
+.TP  4
+\fBS \*(Em Processtatus \fP
+Status för uppgiften kan vara en av:
+    \fBD\fP = oavbrytbar sömn
+    \fBI\fP = inaktiv
+    \fBR\fP = körande
+    \fBS\fP = sovande
+    \fBT\fP = stoppad av jobbstyrsignal
+    \fBt\fP = stoppad av felsökare under spårning
+    \fBZ\fP = zombie
+
+Uppgifter som visas som körande bör man egentligen tänka på som redo att
+köra \*(Em deras task_struct är helt enkelt representerad i Linux
+körkö. Även utan en sann SMP\-maskin kan man se flera uppgifter i detta
+tillstånd beroende på \*(Wes fördröjningsintervall och nice\-värde.
+
+.TP  4
+\fBDELT \*(Em Storlek på delat minne (KiB) \fP
+En delmängd av resident minne (RES) som kan användas av andra processer. Det
+kommer inkludera delade anonyma sidor och delade filstödda sidor. Det
+inkluderar även privata sidor som är avbildade på filer som representerar
+programavbilder och delade bibliotek.
+
+\*(XX.
+
+.TP  4
+\fBSID \*(Em Sessions\-id \fP
+En session är en samling processgrupper (\*(Xa PGRP), vanligen etablerad av
+inloggningsskalet. En nyavgrenad process går med i sin skapares session. Som
+konvention är detta värde lika med sessionens första medlems process\-ID
+(\*(Xa PID), kallad sessionsledaren, vilket vanligen är inloggningsskalet.
+
+.TP  4
+\fBSTARTAD \*(Em Starttidsintervall\fP
+Tidslängden sedan systemstarten när en process startades. Alltså kommer den
+senast startade uppgiften visa det största tidsintervallet.
+
+Värdet kommer uttryckas som ”MM:SS” (minuter:sekunder). Men om intervallet
+är för stort för att få plats i kolumnbredden kommer det att skalas som
+”HH,MM” (timmar,minuter) och möjligen därutöver.
+
+.TP  4
+\fBSAID \*(Em Sparat användar\-id \fP
+Det \fIsparade\fP användar\-ID:t.
+
+.TP  4
+\fBKOMPPGID \*(Em Komplementära grupp\-id:n \fP
+Eventuella kompletterande gruppers ID:n etablerade vid inloggning eller
+ärvda från en uppgifts förälder. De visas i en kommaseparerad lista.
+
+\*(NT Fältet KOMPGID har, till skillnad mot de flesta kolumner, inte fast
+bredd. När det visas kommer det plus eventuella andra kolumner med variabel
+bredd allokeras all återstående skärmbredd (upp till de maximala \*(WX
+tecknen).
+
+.TP  4
+\fBKOMPGRP \*(Em Komplementära gruppnamn \fP
+Eventuella kompletterande gruppers namn etablerade vid inloggning eller
+ärvda från en uppgifts förälder. De visas i en kommaseparerad lista.
+
+\*(NT Fältet KOMPGRP har, till skillnad mot de flesta kolumner, inte fast
+bredd. När det visas kommer det plus eventuella andra kolumner med variabel
+bredd allokeras all återstående skärmbredd (upp till de maximala \*(WX
+tecknen)
+
+.TP  4
+\fBSANV \*(Em Sparat användarnamn \fP
+Det \fIsparade\fP användarnamnet.
+
+.TP  4
+\fBVÄXL \*(Em Växlad storlek (KiB) \fP
+Den tidigare residenta delen av en uppgifts adressutrymme skrivet till
+\*(MSen när \*(MP blir överanvänt.
+
+\*(XX.
+
+.TP  4
+\fBTGID \*(Em Trådgrupps\-id \fP
+Trådgruppens ID som en uppgift hör till. Det är trådgruppledarens PID. I
+kärnans termer representerar det de uppgifter som delar en mm_struct.
+
+.TP  4
+\fBTID \*(Em \*(PU\-tid \fP
+Total \*(PU\-tid uppgiften har använt sedan den startades. När kumulativt
+läge är \*O listas varje process med \*(Pu\-tiden som den och dess döda barn
+har använt. Man växlar kumulativt läge med ”S”, vilket är både en \*(CO och
+ett \*(CI. \*(XC Det interaktiva kommandot ”S” för ytterligare information
+om detta läge.
+
+.TP  4
+\fBTID+ \*(Em \*(PU\-tid, hundradelar \fP
+Samma som TID, men avspeglar mer noggrannhet genom hundradelar av sekunder.
+
+.TP  4
+\fBTPGID \*(Em Tty\-processgrupps\-id \fP
+Förgrundsprocessens processgrupps\-ID för den anslutna tty:n, eller \-1 om en
+process inte är ansluten till en terminal. Enligt konvention är detta värde
+lika med processgruppsledarens (\*(Xa PGRP) process\-ID (\*(Xa PID).
+
+.TP  4
+\fBTTY \*(Em Styrande tty \fP
+Styrterminalens namn. Detta är vanligen enheten (serieporten, pty, etc.)
+processen startades ifrån, och vilken den använder för inmatning och
+utmatning. Dock behöver inte en terminal vara kopplad till en terminal, i
+vilket fall man ser en ”?” visad.
+
+.TP  4
+\fBAID \*(Em Användar\-id \fP
+Uppgiftens \fIeffektiva\fP ägares användar\-ID.
+
+.TP  4
+\fBANV \*(Em Använt minne (KiB) \fP
+Detta fält representerar ej växlat \*(MP en uppgift använder (RES) plus den
+utväxlade delen av dess adressutrymme (VÄXL).
+
+\*(XX.
+
+.TP  4
+\fBANVÄNDARE \*(Em Användarnamn \fP
+Uppgiftens \fIeffektiva\fP ägares användarnamn.
+
+.TP  4
+\fBURSS \*(Em Unika mängdens storlek \fP
+Den inte utväxlade andelen av \*(MP (”RSS”) som inte delas med någon annan
+process. Det härleds fron filen ”smaps_rollup”.
+
+\*(ZX.
+
+.TP  4
+\fBVIRT \*(Em Storleken på virtuellt minne (KiB) \fP
+Den totala mängden \*(MV som används av uppgiften. Den inkluderar all kod,
+data och delade bibliotek plus sidor som har växlats ut och sidor som har
+avbildats men inte använts.
+
+\*(XX.
+
+.TP  4
+\fBWKAN \*(Em Sover i en funktion \fP
+Detta fält kommer visa namnet på kärnfunktionen i vilken uppgiften just nu
+sover. Körande uppgifter kommer visa ett streck (”\-”) i denna kolumn.
+
+.TP  4
+\fBioL \*(Em I/O\-byte lästa \fP
+Antalet byte en process orsakade att de lästes från lagringsnivån.
+
+Root\-privilegier krävs för att visa ”io”\-data för andra användare.
+
+.TP  4
+\fBioLåt \*(Em I/O\-läsåtgärder \fP
+Antalet läs\-I/O\-åtgärder (systemanrop) för en process. Sådana anrop
+resulterar inte nödvändigtvis i faktisk fysisk disk\-I/O.
+
+.TP  4
+\fBioS \*(Em I/O\-byte skrivna \fP
+Antalet byte en process orsakade att de skickades till lagringsnivån.
+
+.TP  4
+\fBioSåt \*(Em I/O\-skrivåtgärder \fP
+Antalet skriv\-I/O\-åtgärder (systemanrop) för en process. Sådana anrop
+resulterar inte nödvändigtvis i faktisk fysisk disk\-I/O.
+
+.TP  4
+\fBaSmu \*(Em Antal smutsiga sidor \fP
+Antalet sidor som har ändrats sedan de senast skrevs till \*(AS. Smutsiga
+sidor måste skrivas till \*(AS före den motsvarande fysiska minnesplatsen
+kan användas för någon annan virtuell sida.
+
+Detta fält är föråldrat sedan linux 2.6 och är alltid noll.
+
+.TP  4
+\fBaSmå \*(Em Antal större sidfel \fP
+Antalet \fBstora\fP sidfel som inträffat för en uppgift. Ett sidfel inträffar
+när en process försöker läsa från eller skriva till en virtuell sida som
+inte för närvarande finns i dess adressrymd. Ett stort sidfel är när \*(AS
+är inblandat i att göra sidan tillgänglig.
+
+.TP  4
+\fBaSmå \*(Em Antal mindre sidfel \fP
+Antalet \fBsmå\fP sidfel som inträffat för en uppgift. Ett sidfel inträffar när
+en process försöker läsa från eller skriva till en virtuell sida som inte
+för närvarande finns i dess adressrymd. Ett litet sidfel blandar inte in
+åtkomst av \*(AS för att göra sidan tillgänglig.
+
+.TP  4
+\fBnTR \*(Em Antal trådar \fP
+Antalet trådar kopplade till en process.
+
+.TP  4
+\fBnrGRUPPER \*(Em CGROUP\-namnrymd \fP
+Inoden för namnrymden som används för att dölja identiteten på styrgruppen i
+vilken processen är en medlem.
+
+.TP  4
+\fBnrIPK \*(Em IPK\-namnrymd \fP
+Inoden för namnrymden som används för att isolera resurser för
+interprocesskommunikation (IPK) såsom System V IPC\-objekt och
+POSIX\-meddelandeköer.
+
+.TP  4
+\fBnrMNT \*(Em MNT\-namnrymd \fP
+Inoden för namnrymden som används för att isolera monteringspunkter för
+filsystem och därmed erbjuder olika vyer av filsystemshierarkin.
+
+.TP  4
+\fBnrNÄT \*(Em NÄT\-namnrymd \fP
+Inoden för namnrymden som används för att isolera resurser såsom
+nätverksenheter, IP\-adresser, IP\-ruttläggning, portnummer etc.
+
+.TP  4
+\fBnrPID \*(Em PID\-namnrymd \fP
+Inoden för namnrymden som används för att isolera process\-ID\-nummer vilket
+betyder att de inte behöver vara unika. Alltså kan varje sådan namnrymd ha
+sin egen ”init/systemd” (PID nr. 1) för att hantera diverse
+initieringsuppgifter och skörda föräldralösa barnprocesser.
+
+.TP  4
+\fBnrTID \*(Em TIDS\-namnrymd \fP
+Inoden för namnrymden som låter processer se olika systemtider på ett sätt
+liknande det för UTS\-namnrymden.
+
+.TP  4
+\fBnrANV \*(Em ANVÄNDAR\-namnrymd \fP
+Inoden för namnrymden som används för att isolera användar\- och
+grupp\-ID\-nummer. Alltså kan en process ha ett normalt opriviligierat
+anändar\-ID utanför en användarnamnrymd medan den har användar\-ID 0, men
+fullständiga root\-privilegier, inuti den namnrymden.
+
+.TP  4
+\fBnrUTS \*(Em UTS\-namnrymd \fP
+Inoden för namnrymden som används för att isolera värdnamn och
+NIS\-domännamn. UTS betyder helt enkelt ”UNIX Time\-sharing System”.
+
+.TP  4
+\fBvSt \*(Em Delta av antal stora sidfel\fP
+Antalet \fBstora\fP sidfel som har inträffat sedan den senaste uppdateringen
+(se aSto).
+
+.TP  4
+\fBvSm \*(Em Delta av antal mindre sidfel\fP
+Antalet \fBsmå\fP sidfel som har inträffat sedan den senaste uppdateringen (se
+aSmå).
+
+.\" ......................................................................
+.SS "3b. HANTERING av fält"
+.\" ----------------------------------------------------------------------
+Efter att trycka det interaktiva kommandot ”f” (fälthantering) kommer man
+presenteras med en skärm som visar: 1) namnet på \*(CW; 2) det utsedda
+sorteringsfältet; 3) alla fält i deras aktuella ordning tillsammans med
+beskrivningar. Poster markerade med en asterisk är fält som visas just nu, i
+den mån skärmbredden tillåter.
+
+.RS +4
+.IP \(bu 3
+Som intruktionerna på skärmen indikerar navigerar man mellan fälten med
+\*(KAerna \fBupp\fP och \fBner\fP. Tangenterna PgUp, PgDn, Home och End kan också
+användas för att snabbt nå det första eller sista tillgängliga fältet.
+
+.IP \(bu 3
+Piltangenten \fBhöger\fP väljer ett fält för att flyttas och \*(KAen \fBvänster\fP
+eller tangenten <\fBEnter\fP> fastställer det fältets placering.
+
+.IP \(bu 3
+Tangenten ”\fBd\fP” eller <\fBmellanslag\fP> växlar ett fälts
+visningsstatus, och därmed förekomsten eller frånvaron av asterisken.
+
+.IP \(bu 3
+Tangenten ”\fBs\fP” markerar ett fält som sorteringsfältet. \*(XT
+4c. UPPGIFTSOMRÅDETS kommandon, SORTERING för ytterligare information om
+valet av sorteringsfält.
+
+.IP \(bu 3
+Tangenterna ”\fBa\fP” och ”\fBw\fP” kan användas för att bläddra igenom alla
+tillgängliga fönster och tangenterna ”\fBq\fP” eller <\fBEsc\fP> går ur
+fälthanteringen.
+.RS -4
+
+.PP
+Fälthanteringsskärmen kan även användas för att ändra \*(CG i antingen \*(FM
+eller \*(AM. Det som var målet när ”q” eller <Esc> trycktes kommer
+att göras aktuellt när man återgår till \*(We\-visningen. \*(XT
+5. ALTERNATIVA SKÄRMARS utseende och det interaktiva kommandot ”g” för
+kunskap om aktuella fönster och \*(FGer.
+
+.PP
+\*(NT ett fönster som har rullats \fIhorisontellt\fP kommer att återställas om
+några fältändringar görs via fälthanteringsskärmen. Eventuell \fIvertikal\fP
+rullningsposition, däremot, kommer inte påverkas. \*(XT 5c. RULLA ett
+fönster för ytterligare information om att rulla vertikalt och horisontellt.
+
+.\" ----------------------------------------------------------------------
+.SH "4. INTERAKTIVA kommandon"
+.\" ----------------------------------------------------------------------
+Listade nedan är ett kort register över kommandon i kategorier. Några
+kommandon förekommer mer än en gång \*(Em deras betydelse eller omfattning
+kan variera beroende på sammahanget i vilket de ges.
+
+.nf
+  4a.\fI Globala\-kommandon \fP
+        <Ent/Sp> ?, =, 0,
+        A, B, d, E, e, g, H, h, I, k, q, r, s, W, X, Y, Z,
+        ^G, ^K, ^N, ^P, ^U, ^L, ^R
+  4b.\fI Sammanfattningsområdets.kommandon \fP
+        C, l, t, m, 1, 2, 3, 4, 5, !
+  4c.\fI Uppgiftområdets\-kommandon \fP
+        Utseende:    b, J, j, x, y, z
+        Innehåll:    c, F, f, O, o, S, U, u, V, v, ^E
+        Storlek:     #, i, n
+        Sortering:   <, >, f, R
+  4d.\fI FÄRGavbildning \fP
+        <Ret>, a, B, b, H, M, q, S, T, w, z, 0 \- 7
+  5b.\fI Kommandon\-för\-fönster \fP
+        \-, _, =, +, A, a, G, g, w
+  5c.\fI Rulla\-ett\-fönster \fP
+        C, Upp, Ned, Vänster, Höger, PgUp, PgDn, Home, End
+  5d.\fI Söka\-i\-ett\-fönster \fP
+        L, &
+  5e.\fI Filtrera\-i\-ett\-fönster \fP
+        O, o, ^O, =, +
+.fi
+
+.\" ......................................................................
+.SS "4a. GLOBALA kommandon"
+.\" ----------------------------------------------------------------------
+De globala interaktiva kommandona är \fBalltid\fP tillgängliga påde i \*(FM och
+\*(AM. Dock är några av dessa interaktiva kommandon \fBinte tillgängliga\fP när
+man kör i säkert läge.
+
+Om man vill veta i förväg huruvida eller inte ens \*(We har säkrats, fråga
+helt enkelt efter hjälp och titta på systemsammanfattningen på den andra
+raden.
+
+.TP  7
+\ \ <\fBEnter\fP> eller <\fBMellanslag\fP>\ \ :\fIUppdatera visningen\fP
+Dessa kommandon väcker upp \*(We och som följd av mottagande av någon indata
+kommer hela skärmen ritas om. De framtvingar även en uppdatering av
+eventuella ändringar i drift av \*(Pu eller \*(MP.
+
+Man kan använda vilken som helst av dessa tangenter om man har ett långt
+fördröjningsintervall och vill se den aktuella statusen.
+
+.TP  7
+\ \ \ \fB?\fP | \fBh\fP\ \ :\fIHjälp\fP
+Det finns två hjälpnivåer tillgängliga. Den första kommer ge en påminnelse
+om alla gruldäggande interaktiva kommandon. Om \*(We är \fIsäkrad\fP kommer den
+skärmen vara förkortad.
+
+Att trycka ”h” eller ”?” på den hjälpskärmen kommer ta en till hjälp för de
+interaktiva kommandon som är tillämpliga på \*(AM.
+
+.TP  7
+\ \ \ \fB=\fP\ \ :\fIGå ur visningsbegränsningar\fP
+Tar bort begränsningar på vad som visas. Detta kommando kommer återställa
+kommandon ”i” (inaktiva uppgifter), ”n” (max uppgifter), ”v” (dölj barn) och
+”F” fokus som kan vara aktiva. Det avslutar också PID\-monitorering,
+användarfiltrering, annan filtrering, lokaliseringsbearbetning och
+kombinera\-Cpu\-läge.
+
+Dessutom, om fönstret har rullats kommer det at återställas av detta
+kommando.
+
+.TP  7
+\ \ \ \fB0\fP\ \ :\fINollundertryckning\fPsväxel
+Detta kommando styr huruvida nollor visas eller undertrycks för många av
+fälten i ett \*(TW. Fält som AID, GID, NI, PR eller P påverkas inte av denna
+växel.
+
+.TP  7
+\ \ \ \fBA\fP\ \ :\fIAlternativt visningsläge\fPsväxel
+Detta kommando kommer att byta mellan \*(FM och \*(AM. \*(XT 5. ALTERNATIVA
+SKÄRMARS utseende och det interaktiva kommandot ”g” för insikt i aktuella
+fönster och \*(FGer.
+
+.TP  7
+\ \ \ \fBB\fP\ \ :\fIFetstil\-avaktiverings/aktiverings\fPväxel
+Detta kommando kommer påverka användningen av terminalegenskapen feltstil
+och ändrar \fBbåde\fP \*(SAt och \*(TSt för \*(CW. Även om det är tänkt i
+första hand för dumma terminaler kan det användas när som helst.
+
+\*(NT när denna växel är \*O och \*(We kör i monokromt läge kommer \fBhela skärmen\fP uppträda som normal text. Alltså, om inte växeln ”x” och/eller ”y”
+använder omvänd markering kommer det inte finnas någon visuell bekräftelse
+ens att de är på.
+
+.TP  7
+*\ \ \fBd\fP | \fBs\fP\ \ :\fIÄndra tidsfördröjningsintervallet\fP
+Man får frågan om att ange fördröjningstiden, i sekunder, mellan
+skärmuppdateringar.
+
+Delar av sekunder respekteras, men ett negativt tal är inte tillåtet. Att
+ange 0 medför (nästan) kontinuerliga uppdateringar, med en
+otillfredsställande bild eftersom systemet och tty\-drivritunen försöker
+hänga med i \*(Wes begäranden. Fördröjningsvärdet är omvänt proportionellt
+till systembelastningen, så sätt det med försiktighet.
+
+Om man vid något tillfälle vill veta den aktuella fördröjningstiden, be helt
+enkelt om hjälp och se systemsammanfattningen på andra raden.
+
+.TP  7
+\ \ \ \fBE\fP\ \ :\fIStyr sammanfattningens minnesskala\fP i sammanfattningsområdet
+Med detta kommando kan man gå runt mellan de möjliga minnesskalningarna i
+\*(SAt vilket går från KiB (kibibyte ller 1\ 024 byte) till EiB (exbibyte
+eller 1\ 152\ 921\ 504\ 606\ 846\ 976 byte).
+
+Om man ser ett ”+” mellan ett visat tal och den följande etiketten betyder
+det att \*(We var tvunget att hugga av en del av det talet. Genom att öka
+skalfaktorn kan sådan avhuggning undvikas.
+
+.TP  7
+\ \ \ \fBe\fP\ \ :\fIStyr uppgiftsminnesskallan\fP i uppgiftsområdet
+Med detta kommando kan man gå runt mellan de tillgängliga minnesskalningarna
+i \*(TAt viket går från KiB (kibibyte eller 1\ 024 byte) till PiB (pebibyte
+eller 1\ 125\ 899\ 906\ 842\ 624 byte).
+
+Även om \*(We kommer försöka respektera den valda målintervallet kan
+ytterligare skalning fortfarande vara nödvändigt för att få plats med
+aktuella värden. OM man vill se ett mer homgent resultat i minneskolumnerna
+är att höja skalintervallet vanligen ett sätt att nå det målet. Att öka det
+för högt kommer dock förmodligen skapa ett resultat med bara nollor vilket
+inte kan undertryckas med det interaktiva kommandot ”0”.
+
+.TP  7
+\ \ \ \fBg\fP\ \ :\fIVälj en annan fönster\-/fältgrupp\fP
+Man kommer få frågan om att ange ett tal mellan 1 och 4 som anger den \*(FG
+som skall göras till \*(CW. Man blir snart bekväm med dessa 4 fönster,
+särskilt efter att ha experimenterat med \*(AM.
+
+.TP  7
+\ \ \ \fBH\fP\ \ :\fITrådläges\fPväxel
+När denna växel är \*O kommer enskilda trådar visas för alla processer i
+alla synliga \*(TW. Annars visar \*(We en sammanfattning av alla trådar i
+varje process.
+
+.TP  7
+\ \ \ \fBI\fP\ \ :\fIIrix\-/Solaris\-läges\fPväxel
+När man arbetar i Solaris\-läge (”I” växlat \*F) kommer en uppgifts
+\*(Pu\-användning delas med det totala antalet \*(Pu:er. Efter att ge detta
+kommando blir man meddelad om det nya tillståndet för denna växel.
+
+.TP  7
+*\ \ \fBk\fP\ \ :\fIDöda en uppgift\fP
+Man får frågan om vilken PID och signalen som skall skickas.
+
+Att inte ange någon PID eller ett negativt tal kommer tolkas som
+standardvärdet i frågan (den första uppgift som är listad). Ett PID\-värde på
+noll betyer programmet \*(We självt.
+
+Standardsignalen, som den avspeglas i frågan, är SIGTERM. Man kan dock
+skicka vilken signal som helst, via nummer eller namn.
+
+Om man vill avbryta dödandeprocessen, gör men en av följande beroende på hur
+långt man kommit:
+.nf
+    1) vid frågan om pid, skriv ett ogiltigt nummer
+    2) vid frågan om signal, skriv 0 (eller godtycklig ogiltig signal)
+    3) vid godtycklig fråga, skriv <Esc>
+.fi
+
+.TP  7
+\ \ \ \fBq\fP\ \ :\fIAvsluta\fP
+
+.TP  7
+*\ \ \fBr\fP\ \ :\fIÄndra nice för en uppgift\fP
+Man får fråga om ett PID och sedan värdet att sätta dess nice till.
+
+Att inte ange någon PID eller ett negativt tal kommer tolkas som
+standardvärdet i frågan (den första uppgift som är listad). Ett PID\-värde på
+noll betyer programmet \*(We självt.
+
+Ett positivt nice\-värde gör att processen förlorar prioritet. Omvänt gör ett
+negativt nice\-värde att processen ses mer fördelaktigt av kärnan. Som en
+allmän regel kan vanliga användare bara öka nice\-värdet och hindras från att
+sänka det.
+
+Om man vill avbryta processen att ändra nice\-värde, gör men en av följande
+beroende på hur långt man kommit:
+.nf
+    1) vid frågan om pid, skriv ett ogiltigt nummer
+    2) vid frågan om nice, skriv <Enter> utan någon indata
+    3) vid godtycklig fråga, skriv <Esc>
+.fi
+
+.TP  7
+\ \ \ \fBW\fP\ \ :\fISkriv konfigurationsfilen\fP
+Detta kommer spara alla valda alternativ och växlar plus det aktuella
+visningsläget och fördröjningstiden. Genom att ge detta kommando just före
+man avslutar \*(We kan man återstarta senare i exakt samma tillstånd.
+
+.TP  7
+\ \ \ \fBX\fP\ \ :\fIExtra fältbredd\fP
+Några fält har fix bred och är inte skalbara. Som sådana är de föremål för
+avhuggning vilket indikeras av ett ”+” i den sista positionen.
+
+Detta interaktiva kommando kan användas för att ändra bredden på följande
+fält:
+
+.nf
+   \fI fält   standard   fält   standard   fält    standard \fP
+    GID       5       GRUPP     8       VKAN       10
+    LOGID     5       LXC       8       nrGRUPPER  10
+    VAID      5       VANV      8       nrIPK      10
+    SUID      5       SANV      8       nrMNT      10
+    AID       5       TTY       8       nrNÄT      10
+                      ANVÄNDARE 8       nrPID      10
+                                        nrTID      10
+                                        nrANV      10
+                                        nrUTS      10
+.fi
+
+Man får frågan om mängden att lägga till till standardbredderna visade
+ovan. Att ange noll återställer till dessa standardvärden.
+
+Om man anger ett negativt tal kommer \*(We automatiskt öka kolumstorleken så
+mycket som behövs tills det inte finns någon mer avhuggen data.
+
+\*(NT oavsett om de ökas explicit eller automatiskt minskas aldrig bredden
+på dessa fält av \*(We. För att smalna av dem måste man ange ett mindre tal
+eller återställa standardvärdena.
+
+.TP  7
+\ \ \ \fBY\fP\ \ :\fIInspektera annan utmatning\fP
+Efter att man gett det interaktiva kommandog ”Y” kommer man få frågan om en
+mål\-PID. Att skriva ett värde eller godta standardvärdet resulterar i en
+separat skärm. Den skärmen kan användas för att se olika filer eller
+rör\-kommandons utdata medan den normala iterativa uppdateringen av \*(We är
+pausad.
+
+\*(NT detta interaktiva kommando är bara fullt ut förverkligat när stödjande
+poster manuellt har lagts till till slutet av \*(CFen för \*(We. För
+detaljer om att skapa dessa poster, \*(XT 6b. LÄGGA TILL INSPEKTIONSposter.
+
+De flesta tangenter som används för att styra inspektionsfunktionen visas i
+dess huvudprolog. Det finns dock ytterligare tangenter tillgängliga när man
+har valt en viss fil eller ett visst kommando. De är bekanta för den som har
+använt bläddraren ”less” och sammanfattas här för framtida referens.
+
+.nf
+    \fItangent  funktion\fP
+    =        växla statusrad, fil eller rör
+    /        sök, ekvivalent med ”L” lokalisera
+    n        sök nästa, ekvivalent med ”&” lokalisera nästa
+    <Mellanslag> rulla ner, ekvivalent med <PgDn>
+    b        rulla upp, ekvivalent med <PgUp>
+    g        första raden, ekvivalent med <Home>
+    G        sista raden, ekvivalent med <End>
+.fi
+
+.TP  7
+\ \ \ \fBZ\fP\ \ :\fIByt färgavbildning\fP
+Med detta kommando tas man till en separat skärm där man kan ändra färger
+för \*(CW, eller för alla fönster. För detaljer om detta interaktiva
+kommando \*(Xt 4d. FÄRGavbildning.
+
+.P
+\ \ \fB^G\fP\ \ :\fIVisa\-styrgrupper \fP (Ctrl\-tangent + ”g”)
+.br
+\ \ \fB^K\fP\ \ :\fIVisa\-kommandorad \fP (Ctrl\-tangent + ”k”)
+.br
+\ \ \fB^N\fP\ \ :\fIVisa\-miljö \fP (Ctrl\-tangent + ”n”)
+.br
+\ \ \fB^P\fP\ \ :\fIVisa\-namnrymder \fP (Ctrl\-tangent + ”p”)
+.br
+\ \ \fB^U\fP\ \ :\fIVisa\-kompletterande\-grupper \fP (Ctrl\-tangent + ”u”)
+.br
+.RS +7
+Tillämpat på den första visade processen kommer dessa kommandon visa den
+uppgiftens fullständiga (eventuellt radbrutna) information. Sådana data
+kommer visas i ett separat fönster längst ner på skärmen medan normal
+\*(We\-monitorering fortsätter.
+
+Att trycka \fIsamma\fP ”Ctrl”\-kommando en andra gång tar bort det separata
+fönstret och detsamma gör kommandot ”=”. Att trycka en annan
+”Ctrl”\-kombination medan en redan är aktiv byter omedelbart till den nya
+informationen.
+
+Värt att notera bland dessa möjligheter är kommandot Ctrl+N (miljö). Dess
+utdata kan vara omfattande och inte lätt att läsa när den är radbruten. En
+mer läsbar version kan uppnås med ett ”Inspektera”\-post i rcfile\-filen
+liksom den följande.
+
+.nf
+    pipe ^I Miljö ^I cat /proc/%d/environ | tr '\e0' '\en'
+.fi
+
+\*(XC det interaktiva kommandot ”Y” ovan och avsnittet 6b. LÄGGA TILL
+INSPEKTIONSposter för ytterligare information.
+
+Som ett alternativ till ”Inspektera”, och tillgängligt för alla dessa
+”Ctrl”\-kommandon kan tabulatortangenten användas för att markera enskilda
+element i bottenfönstret.
+.RS -7
+
+.TP  7
+\ \ \fB^L\fP\ \ :\fILoggade\-meddelanden \fP (Ctrl\-tangent + ”l”)
+De 10 senaste meddelandena visas i ett separat fönster längst ner på skärmen
+samtidigt som normal \*(We\-monitorering fortsätter. Att trycka ”^L” en andra
+gång tar bort det fönstret och detsamma gör kommandot ”=”. Använd
+tabulatortangenten för att markera enskilda meddelanden.
+
+.TP  7
+*\ \fB^R\fP\ \ :\fIÄndra\-nice\-på\-en\-autogrupp \fP (Ctrl\-tangent + ”r”)
+Man får fråga om en PID och sedan värdet på dess autogrupps AGNI.
+
+Att inte ange någon PID kommer tolkas som standardvärdet som visas i
+prompten (den första visade uppgiften).
+
+Ett positivt AGNI\-värde kommer göra att processer i den autogruppen förlorar
+prioritet. Omvänt gör ett negativt värde att de kommer betraktas mer
+förmånligt av kärnan. Vanliga användare tillåts inte sätta negativa
+AGNI\-värden.
+
+Om man vill avbryta processen att ändra nice\-värde skriver man
+<Esc>.
+
+.IP * 3
+Kommandon som visas med en \*(AK är inte tillgängliga i säkert läge, inte
+heller kommer de visas på hjälpskärm nivå\-1.
+
+.\" ......................................................................
+.SS "4b. SAMMANFATTNINGSOMRÅDETS kommandon"
+.\" ----------------------------------------------------------------------
+Sammanfattningsområdets interaktiva kommandon är \fBalltid tillgängliga\fP i
+både \*(FM och \*(AM. De påverkar de inledande raderna på skärmen och avgör
+positionen för meddelanden och frågor.
+
+Dessa kommandon påverar alltid bara \*(CG. \*(XT 5. ALTERNATIVA SKÄRMARS
+utseende och det interaktiva kommandot ”g” för kunskap om \*(CW och \*(FGer.
+
+.TP  7
+\ \ \ \fBC\fP\ \ :\fIVisa rullkoordinaters\fPväxel
+Växla ett informationsmeddelande som visas när meddelanderaden inte används
+till något annat. För ytterligare information \*(Xt 5c. RULLA ett fönster.
+
+.TP  7
+\ \ \ \fBl\fP\ \ :\fILastgenomsnitts/uppetids\fPväxel
+Detta är också raden som innehåller programnamnet (möjligen ett alias) när
+man kör i \*(FM eller namnet på \*(CW när man kör i \*(AM.
+
+.TP  7
+\ \ \ \fBt\fP\ \ :\fIUppgifts/cpu\-tillstånds\fPväxel
+Detta kommando påverkar från 2 till många \*(SAsrader, beroende på
+tillståndet hos kommandoflaggorna ”1”, ”2” eller ”3” och huruvida eller inte
+\*(We kör under sant SMP.
+
+Denna del av av \*(SAt påverkas även av den den interaktiva kommandoflaggan
+”H”, eftersom den avspeglas i den totala etiketten vilken visar antinge
+uppgifter eller trådar.
+
+Detta kommando fungerar som en 4\-vägsväxel, och roterar genom dessa lägen:
+.nf
+    1. detaljerade procentsatser efter kategori
+    2. förkortade användar/system och total % + stapeldiagram
+    3. förkortade användar/system och total % + blockdiagram
+    4. slå av visning av uppgifter och cpu\-tillstånd
+.fi
+
+När man kör i endera av de grafiska lägena blir skärmen mycket mer
+meningsfull när individuella CPU:er eller NUMA\-noder också visas. \*(XC
+kommandona ”1”, ”2” och ”3” nedan för ytterligare information.
+
+.TP  7
+\ \ \ \fBm\fP\ \ :\fIMinnes\-/växlingsanvändnings\fPväxel
+Detta kommando påverkar de två \*(SAsraderna som hanterar fysiskt och
+virtuellt minne.
+
+Detta kommando fungerar som en 4\-vägsväxel, och roterar genom dessa lägen:
+.nf
+    1. detaljerade procentsatser efter minnestyp
+    2. förkortad % använt/totalt tillgängligt + stapeldiagram
+    3. förkortad % använt/totalt tillgängligt + blockdiagram
+    4. slå av visning av minne
+.fi
+
+.TP  7
+\ \ \ \fB1\fP\ \ :\fIEnkla/separata cpu\-tillstånds\fPväxel
+Detta kommando påverkar hur kommandot ”t”:s cpu\-tillståndsdel visas. Även om
+denna växel finns först och främst för att hantera massivt parallella
+SMP\-maskiner är den itne begränsad endast till SMP\-miljöer.
+
+När man ser ”%Cpu(s):' i \*(SA är växeln ”1” \*O och all \*(Pu\-information
+samlas på en enda rad. Annars visas varje \*(Pu separat som: ”%Cpu0, %Cpu1,
+…” upp till den tillgängliga skärmhöjden.
+
+.TP  7
+\ \ \ \fB2\fP\ \ :\fINUMA\-noder/cpu\-sammanfattnings\fPväxel
+Detta kommando vexlar mellan kommandot ”1” cpu\-sammanfattnignsskärm (endast)
+eller en sammanfattningsskärm plus cpu\-användningsstatistiken för varje
+NUMA\-nod. Det är endast tillgängligt om ett system har det nödvändiga stödet
+för NUMA.
+
+.TP  7
+\ \ \ \fB3\fP\ \ :\fIExpandera\-NUMA\-nod\fP
+Man erbjuds att ange ett nummer som representerar en NUMA\-nod. Därefter
+kommer en nodsammanfattning plus statistik för varje cpu i den noden att
+visas tills \*(CTn ”1”, ”2” eller ”4” trycks. Detta interaktiva kommando är
+endast tillgängligt om ett system har det nödvändiga stödet för NUMA.
+
+.TP  7
+\ \ \ \fB4\fP\ \ :\fIVisa\-flera\-element\-intill\fPväxel 
+Denna \*(CT slår \*F flaggan ”1” och visar flera \*(PU\- och minnesresultat
+på varje rad. Varje följande tangent ”4” lägger till en ytterligare \*(PU
+tills den återgår igen till separata rader för \*(PU\- och minnesresultat.
+
+Maximalt 8 \*(PU:er per rad kan visas på detta sätt. Dock kan avhuggning av
+data förekomma före maximum nås. Detta är särskilt sant när man visar
+detaljerad statistik via \*(CTn ”t” eftersom sådana data inte kan skalas
+såsom den grafiska representationen.
+
+Om man önskar att snabbt avsluta intilläge utan att gå igenom alla sätt till
+8, tryck helt enkelt på \*(CTn ”1”.
+
+.TP  7
+\ \ \ \fB5\fP\ \ :\fIVisa\-P\-kärnor\-och\-E\-kärnor\fPväxel 
+Denna \*(CT är endast aktiv när växeln ”t” är \*O och växlarna ”1”, ”2”, ”3”
+och ”!” är \*F, alltså visar individuella \*(PU\-resultat. Den antar att en
+plattform har flera kärnor av två olika typer, antingen multitrådade
+(P\-kärnor) eller enkeltrådade (E\-kärnor).
+
+Medan normalt varje \*(Pu visas som ”%Cpu0, %Cpu1, …” kan denna växel
+användas för att identifiera och/eller filtrera dessa \(PU:er efter sin
+kärntyp, antinge P\-kärna (prestanda) eller E\-kärna (effektivitet).
+
+Den 1:a gången ”5” skrivs visas varje \*(PU som ”Cp\fBP\fP” eller ”%Cp\fBE\fP” som
+representerar de två kärntyperna. Den 2:a gången kommer endast P\-kärnor
+(%Cp\fBP\fP) visas. Den 3:e gången visas E\-kärnor (%Cp\fBE\fP). När denna \*(CT
+trycks den 4:e gången återgår \*(PU\-visningen till den vanliga konventionen
+”%Cpu”.
+
+Om inte separata\fI prestanda\fP och\fI effektiva\fP kategorier finns har denna
+\*(CT ingen effekt.
+
+.TP  7
+\ \ \ \fB!\fP\ \ :\fIKombinera\-cpu:er\-läges\fPväxel 
+Denna \*(CT är avsedd för massivt parallella SMP\-miljöer där, även med
+\*(CTn ”4”, inte alla processer kan visas. Med varje tryck på ”!” dubblas
+antalet \*(Pu:er som kombineras och därmed reduceras det totala antalet
+\*(Pu\-rader som visas.
+
+Till exempel, med det första trycket på ”!” kmmer två \*(Pu:er kombineras
+och visas som ”0\-1, 2\-3, …” istället för de normala ”%Cpu0, %Cpu1, %Cpu2,
+%Cpu3, …”. Med en andra \*(CT ”!” kombineras fyra \*(Pu:er och visas som
+”0\-3, 4\-7, …”. Sedan med ett tredje tryck på ”!”, kombineras åtta \*(Pu:er,
+och visas som ”0\-7, 8\-15, …”, etc.
+
+Så fortsätter det tills individuella \*(Pu:er återigen visas och påverkar de
+båda växlarna ”1” och ”4” (en eller flera kolumner). Används kommandot ”=”
+för att avsluta läget \fBKombinera\-cpu:er\fP.
+
+.PP
+\*(NT om hela \*(SAt har slagits \*F för något fönster skulle  man bara ha
+kvar \fBmeddelanderaden\fP. På detta sätt har man då maximerat de tillgängliga
+raderna för uppgifter men (tillfälligt) offrat programnamnet i \*(FM eller
+namnet på \*(CW när man är i \*(AM.
+
+.\" ......................................................................
+.SS "4c. UPPGIFTOMRÅDETS kommandon"
+.\" ----------------------------------------------------------------------
+Uppgiftsområdets interaktiva kommandon är \fBalltid\fP tillgängliga i \*(FM.
+
+Uppgiftsområdets interaktiva kommandon är \fBaldrig tillgängliga\fP \*(AM \fIom\fP
+\*(TDen för \*(CW har slagits \*F (\*(Xt 5. ALTERNATIVA SKÄRMARS utseende).
+
+.\" ..................................................
+.PP
+\fBUTSEENDET\fP på uppgiftsfönstret
+
+.TP  7
+\ \ \ \fBJ\fP\ \ :\fIJustera numeriska kolumner\fPväxel
+Växlar mellan högerjusterad (standard) och vänsterjusterad numerisk
+information. Om den numeriska datan helt fyller ut den tillgängliga kolumnen
+kan denna \*(TC endast påverka kolumnhuvudet.
+
+.TP  7
+\ \ \ \fBj\fP\ \ :\fIJustera teckenkolumner\fPväxel
+Växlar mellan vänsterjusterad (standard) och högerjusterad
+teckeninformation. OM teckendatan helt fyller ut den tillgängliga kolumnen
+kan denna \*(CT endast påverka kolumnhuvudet.
+
+.PP
+.RS +2
+Följande kommandon kommer även att påverkas av tillståndet hos den globala
+växeln ”B” (aktivera fetstil).
+.RS -2
+
+.TP  7
+\ \ \ \fBb\fP\ \ :\fIFet/invers\fPväxel
+Detta kommando kommer påverka hur växlarna ”x” och ”y” visas. Det kan också
+påverka \*(SAt när stapeldiagram har valts för \*(Pu\-tillstånd eller
+minnesanvändning via växlarna ”t” eller ”m”.
+
+.TP  7
+\ \ \ \fBx\fP\ \ :\fIKolumnmarkerings\fPväxel
+Ändrar markeringen för det aktuella sorteringsfältet.
+Om man glömmer vilket fält som sorteras kan detta kommando fungera som en snabb
+visuell påminnelse, förutsat att sorteringsfältet visas.
+Sorteringsfältet behöver \fIinte\fP vara synligt på grund av att
+    1) det finns otillräckligt med \fIskärmbredd\fP
+    2) det interaktiva kommandot ”f” har slaget \*F det
+
+.TP  7
+\ \ \ \fBy\fP\ \ :\fIRadmarkerings\fPväxel
+Byter markering för ”körande” uppgifter. För ytterligare kunskap om detta
+uppgiftstillstånd, \*(Xt 3a. BESKRIVNING av fält, fältet ”S” (processtatus).
+
+Användning av denna möjlighet ger viktiga kunskaper om systemets hälsa. Den
+enda kostnaden kommer vara några få ytterligare tty\-flyktföljder.
+
+.TP  7
+\ \ \ \fBz\fP\ \ :\fIFärg/monokrom\fPväxel
+Byter det aktuella fönstret mellan det senast valda färgschemat och den
+äldre formen av svart\-på\-vitt eller vitt\-på\-svart. Detta kommando kommer
+ändra bådet \*(SAt och \*(TAt men påverkar inte tillståndet hos växlarna
+”x”, ”y” eller ”b”.
+
+.\" ..................................................
+.PP
+\fBINNEHÅLL\fP i uppgiftsfönstret
+
+.TP  7
+\ \ \ \fBc\fP\ \ :\fIKommandorad/programnamn\fPväxel 
+Detta kommando kommer att följas oavsett huruvida kolumnen KOMMANDO är
+synlig för närvarande eller inte. Skulle det fältet senare visas kommer
+ändringen man gjorde visas.
+
+.TP  7
+\ \ \ \fBF\fP\ \ :\fIBehåll\-föräldrafokus\fPväxel 
+I skogsvysläge fungerar denna tangent som en växel till att behålla fokus på
+en måluppgift, förmodligen en med avgrenade barn. Om skogsvysläget är \*F
+har denna tangent ingen effekt.
+
+Växeln tillämpas på den första (översta) processen i det ”aktuella”
+fönstret. När det är etablerat visas alltid uppgiften som den första
+(översta) processen tillsammans med dess avgrenade barn. Alla andra
+processer kommer utelämnas.
+
+\*(NT tangenter som ”i” (inaktiva uppgifter), ”n” (max uppgifter), ”v” (dölj
+barn) och filter av användare/övrigt fortsätter att vara tillgängliga och
+kan påverka vad som visas.
+
+.TP  7
+\ \ \ \fBf\fP\ \ :\fIFälthantering \fP
+Denna tangent visar en separat skärm där man kan ändra vilka fält som visas,
+deras ordning och även utse sorteringsfältet. För ytterligare information om
+detta interaktiva kommando \*(Xt 3b. HANTERING av fält.
+
+.TP  7
+\ \ \ \fBO\fP | \fBo\fP\ \ :\fIÖvrig\-filtrering \fP
+Man kommer få en fråga om urvalskriterier som sedan avgör vilka uppgifter
+som kommer visas i \*(CW. Kriterierna kan göras skiftlägeskänsliga eller så
+kan skiftläget ignoreras. Och man bestämmer om \*(We skall inkludera eller
+exkludera matchande uppgifter.
+
+\*(XT 5e. FILTRERA i ett fönster för detaljer om dessa och andra relaterade
+interaktiva kommandon.
+
+.TP  7
+\ \ \ \fBS\fP\ \ :\fIKumultativ\-tids\-läges\fPväxel
+När kumulativt läge är \*O listas varje process med \*(Pu\-tiden som den och
+dess döda barn har använt.
+
+När \*F kommer program som grenar av i många separata uppgifter förefalla
+mindre krävande. För program som ”init” eller ett skal är detta lämpligt men
+för andra, som kompilatorer, kanske inte. Experminetera med två \*(TW som
+delar samma sorteringsfält men med olika ”S”\-tillstånd och se vilken
+representation du föredrar.
+
+Efter att ha gett detta kommando blir man informerad om det nya tillstånded
+hos denna växel. Om man vill veta i förväg huruvida kumulativt läge är på
+eller inte, be helt enkelt om hjälp och se fönstersammanfattningen på andra
+raden.
+
+.TP  7
+\ \ \ \fBU\fP | \fBu\fP\ \ :\fIVisa\-endast\-specifik\-användare \fP
+Man får frågan om \fBuid\fP eller \fBnamn\fP på användaren som skall
+visas. Flaggan \-u matchar den \fBeffektiva\fP användaren medan flaggan \-U
+matchar \fBgodtycklig\fP användare (verklig, effektiv, sparad eller filsystem).
+
+Därefter visas endast matchande användare i det \*(TWt, eller möjligen visas
+inga processer. Genom att inleda med ett utropstecken (”!”) före anvädare\-id
+eller \-namn instruerar man \*(We att visa endast processer med användare som
+inte matchar den angivna.
+
+Olika \*(TW kan användas för att filtrera olika användare. Senare, om man
+vill se alla användare igen i \*(CW, ge detta kommando igen men tryck bara
+<Enter> vid frågan.
+
+.TP  7
+\ \ \ \fBV\fP\ \ :\fISkogsvysläges\fPväxel
+I detta läge ordnas processer om efter sina föräldrar och layouten av
+kolumnen KOMMANDO liknar den hos ett träd. I skogsvysläge är det fortfarande
+möjligt att växla mellan programnamn och kommandorad (\*(Xc det interaktiva
+kommandot ”c” eller mellan processer och trådar (\*(Xc det interaktiva
+kommandot ”H”).
+
+\*(NT att att trycka godtycklig tangent som anger sorteringsordning kommer
+lämna skogsvysläge i det aktuella fönstret. \*(XT 4c. UPPGIFTOMRÅDETS
+kommandon, SORTERING för information om dessa tangenter.
+
+.TP  7
+\ \ \ \fBv\fP\ \ :\fIDölj/visa barn\fP\-växel 
+I skogsvysläge fungerar denna tangent som en växel mellan att fälla ihop
+eller expandera en förälders barn.
+
+Växeln fungerar endast mot den första (översta) processen i det aktuella
+fönstret. \*(Xt 5c. RULLA ett fönster för ytterligare information om
+vertikal rullning.
+
+Om målprocessen inte har grenat av några barn har denna tangent ingen
+effekt. Den har inte heller någon effekt när man inte är i skogsvyläge.
+
+.TP  7
+\ \ \fB^E\fP\ \ :\fISkala\-CPU\-tidsfält\fP (Ctrl\-tangent + ”e”)
+”Tids”fälten visas normalt med den största precisionen deras bredd
+tillåter. Denna växel reducerar den precisionen tills det slår runt. Den
+illustrerar även skalningen dessa fält \fIkan\fP uppvisa automatiskt, vilket
+vanligen beror på hur länge systemet kör.
+
+Till exempel, om ”MMM:SS.hh” visas, skulle varje tryck på ^E ändra det till:
+”MM:SS”, ”timmar,MM”, ”dagar+timmar” och slutligen ”veckor+dagar”.
+
+Alla tidsfält är inte föremål för hela intervallet av sådan skalning.
+
+.\" ..................................................
+.PP
+\fBSTORLEK\fP på \*(TW
+
+.TP  7
+\ \ \ \fBi\fP\ \ :\fIInaktiv\-process\fPväxel
+Visar alla uppgifter eller bara aktiva uppgifter. När denna växel är \*F
+kommer uppgifter som inte använt någon \*(PU sedan den senaste uppdateringen
+inte att visas. Dock, på grund av granulariteten hos fälten %CPU och TID+,
+kan några processer fortfarande visas som \fIförefaller inte\fP ha använt någon
+\*(PU.
+
+Om detta kommando används på den sista \*(TDen när man är i \*(AM, då kommer
+den inte påverka fönsterstorleken, eftersom alla föregående \*(TDar redan
+kommer ha ritats ut.
+
+.TP  7
+\ \ \ \fBn\fP | \fB#\fP\ \ :\fIAnge maximala uppgifter\fP
+Man kommer ombeds ange antalet uppgifter att visa. Det lägre av talet och
+det tillgängliga antalet skärmrader kommer användas.
+
+När är i \*(AM ger detta kommando precis kontroll över storleken på varje
+samtidigt synlig \*(TD, utom den allra sista. Det kommer inte påverka det
+sista fönstrets storlek, eftersom alla föregående \*(TDar redan kommer ha
+ritats ut.
+
+\*(NT om man vill öka storleken på den sista synliga \*(TDen när man är i
+\*(AM, minska helt enkelt storleken på \*(TDen ovanför den.
+
+.\" ..................................................
+.PP
+\fBSORTERING\fP av \*(TW
+.PP
+.RS +3
+För kompatibilitet stödjer denna \*(We de flesta tidigare \*(We
+sorteringstangenter. Eftersom detta primärt är en tjänst till tidigare
+användare av \*(We, finns dessa kommandon inte med på någon hjälpskärm.
+.nf
+      \fIkommando  sorteringsfält                stödjs\fP
+      A         starttid (ej visat)           \fBNej\fP
+      M         %MEM                          Ja
+      N         PID                           Ja
+      P         %CPU                          Ja
+      T         TIME+                         Ja
+.fi
+
+Före man använder någon av följande sorteringsmöjligheter föreslår \*(We att
+man tillfälligt slår på kolumnmarkering med det interaktiva kommandog
+”x”. Det kommer hjälpa att säkerställa att den faktiska sorteringsmiljön
+motsvarar ens avsikt.
+
+Följande interaktiva kommandon kommer \fBbara\fP följas när det aktuella sorteringsfältet
+är \fBsynligt\fP.
+Anledning till att sorteringsfältet \fIinte\fP är synligt kan vara för att:
+      1) det finns otillräckligt med \fIskärmbredd\fP
+      2) det interaktiva kommandot ”f” slog \*F det
+
+.TP  7
+\ \ \ \fB<\fP\ \ :\fIFlytta sorteringsfält åt vänster\fP
+Flyttar sorteringskolumnen åt vänster om inte det aktuella sorteringsfältet
+är det första fältet som visas.
+
+.TP  7
+\ \ \ \fB>\fP\ \ :\fIFlytta sorteringsfält åt höger\fP
+Flyttar sorteringskolumnen åt höger om inte det aktuella sorteringsfältet är
+det sista fältet som visas.
+
+.PP
+Följande interaktiva kommandon kommer \fBalltid\fP följas oavsett huruvida det
+akutella sorteringsfältet är synligt eller inte.
+
+.TP  7
+\ \ \ \fBf\fP\ \ :\fIFälthantering \fP
+Denna tangent visar en separat skärm där man kan ändra vilket fält so
+används som sorteringskolumn, bland andra funktioner. Detta kan vara ett
+bekvämt sätt att enkelt verifiera det aktuella sorteringsfältet när man kör
+\*(We med kolumnmarkeringen \*F.
+
+.TP  7
+\ \ \ \fBR\fP\ \ :\fIInverst/Normalt sorteringsfälts\fPväxel
+Genom att använda detta interaktiva kommando kan man byta mellan
+hög\-till\-låg och låg\-till\-hög sortering.
+
+.\" ......................................................................
+.SS "4d. FÄRGavbildning"
+.\" ----------------------------------------------------------------------
+När man ger det interaktiva kommandot ”Z” visas en separat skärm. Den
+skärmen kan användas för att ändra färgerna i bara det ”aktuella” fönstret
+eller i alla fyra fönstren innan man återvänder till \*(We\-visningen.
+
+.P
+Följande interaktiva kommandon är tillgängliga.
+.nf
+    \fB4\fP versala bokstäver för att välja ett \fBmål\fP
+    \fB8\fP nummer för att välja en \fBfärg\fP
+    normala tillgänliga växlar
+        B         :fetstil avaktivera/aktivera
+        b         :körande uppgift ”fet”/invers
+        z         :färg/mono
+    andra tillgängliga kommandon
+        a/w       :verkställ, gå sedan till nästa/föregående
+        <Enter>   :verkställ och avsluta
+        q         :avbryt aktuella ändringar och avsluta
+.fi
+
+Om man använder ”a” eller ”w” för att gå igenom målfönster kommer man ha
+använt det färgschema som visades när man lämnade det fönstret. Man kan
+naturligtvis enkelt återvända till ett fönster och återapplicera andra
+färger eller helt slå \*F färger med växeln ”z”.
+
+Färgavbildningsskärmen kan även användas för att ändra den ”aktuella”
+fönster\-/fältgruppen i antingen \*(FM eller \*(AM. Oavsett vad som var målet
+när ”q” eller <Enter> trycktes kommer göras aktuellt när man
+återvänder till \*(We\-visningen.
+
+.\" ----------------------------------------------------------------------
+.SH "5. ALTERNATIVA SKÄRMARS utseende"
+.\" ----------------------------------------------------------------------
+.\" ......................................................................
+.SS "5a. FÖNSTERöversikt"
+.\" ----------------------------------------------------------------------
+.TP  3
+\fBFältgrupper/fönster\fP:
+I \*(FM finns det ett ensamt fönster representerat av hela skärmen. Det enda
+fönstret kan fortfarande ändras till att visa 1 av 4 olika \fBfältgrupper\fP
+(\*(Xc det interaktiva kommandot ”g”, repeterat nedan). Vart och ett av de 4
+\*(FGerna har ett unikt separat konfigurerbart \fB\*(SA\fP och sitt egen
+konfigurerbara \fB\*(TA\fP.
+
+I \*(AM kan dessa 4 underliggande \*(FGer nu göras synliga samtidigt, eller
+kan slås \*F individuellt på kommando.
+
+Sammanfattningsområdet kommer alltid finnas, även om det endast är
+meddelanderaden. Vid varje given tidpunkt kan endast \fIett\fP \*(SA
+visas. Dock, beroende på givna kommandon, kan det finnas från \fInoll\fP till
+\fIfyra\fP separata \*(TDar samtidigt visade på skärmen.
+
+.TP  3
+\fBAktuellt fönster\fP:
+Det ”aktuella” fönstret är fönstret som är kopplat till \*(SAt och fönstret
+till vilket uppgiftsrelaterade kommandon alltid skickas. Eftersom man i
+\*(AM kan växla \*F \*(TDen kan några kommandot vara begränsade för \*(CW.
+
+En ytterligare komplikation uppstår när man har slagit \*F den första raden
+i \*(SAt. I och med att fönsternamnet försvinner (raden som växlas med ”l”)
+vet man inte enkelt vilket fönster som är det ”aktuella” fönstret.
+
+.\" ......................................................................
+.SS "5b. KOMMANDON för fönster"
+.\" ----------------------------------------------------------------------
+.TP  7
+\ \ \ \fB\-\fP | \fB_\fP\ \ :\fIVisa/dölj fönster\fPväxel
+Tangenten ”\-” slår \*O och \*F det ”aktuella” fönstrets \*(TD. När det är
+\*O kommer det \*(TAt att visa ett minimum av kolumhuvuden som har angivits
+med det interaktiva kommandot ”f”. Det kommer även avspegla eventella andra
+flaggor/växlar för \*(TAt som har tillämpats vilket resulterar i noll eller
+flera uppgifter.
+
+Tangenten ”_” gör detsamma för alla \*(TDar. Med andra ord byter det mellan
+den för närvarande synliga \*(TDen och alla \*(TD man har slagit \*F. Om
+alla 4 \*(TDarna är syniga för närvarande kommer detta interaktiva kommando
+lämna kvar \*(SAt som det enda synliga elementet.
+
+.TP  7
+*\ \ \fB=\fP | \fB+\fP\ \ :\fIUtjämna/återställ fönster\fP
+Tangenten ”=” tvingar det ”aktuella” fönstrets \*(TD att vara synlig. Det
+återställer också eventuella kommandon ”i” (inaktiva uppgifter), ”n” (max
+uppgifter), ”u/U” (användarfilter), ”o/O” (övriga filter), ”v” (dölj barn),
+”F” fokuserat, ”L” (lokalisera) och ”!” (kombinera cpu:er). Dessutom, om
+fönstret är rullat, kommer det att återställas med detta kommando. \*(XT
+5c. RULLA ett fönster för ytterligare information avseende vertikal och
+horisontell rullning.
+
+Tangenten ”+” gör detsamma för alla fönster. De fyra \*(TDarna kommer komma
+tillbaka, jämnt balanserade, samtidigt som de behåller eventuella
+anpassningar som tidigare har gjorts utöver de som anges för det interaktiva
+kommandot ”=”.
+
+.TP  7
+*\ \ \fBA\fP\ \ :\fIAlternativt visningsläges\fPväxel
+Detta kommando kommer byta mellan \*(FM och \*(AM.
+
+Första gången man ger detta kommando kommer alla fyra \*(TDar att
+visas. Därefter kommer man när man byter läge bara se de \*(TD man har valt
+att göra synliga.
+
+.TP  7
+*\ \ \fBa\fP | \fBw\fP\ \ :\fINästa fönster framåt/bakåt\fP
+Detta kommer byta det ”aktuella” fönstret, vilket i sin tur byter fönstret
+till vilket kommandon riktas. Dessa tangenter fungerar på ett cirkulärt sätt
+så att man kan nå alla fönster med vilken som helst av tangenterna.
+
+Under antagandet att fönsternamnet är synligt (man inte har slagit \*F ”l”)
+så är när namnet på \*(CW tappar sin markering/färg är det en påminnelse om
+att \*(TDen är \*F och många kommandon kommer vara begränsade.
+
+.TP  7
+\ \ \ \fBG\fP\ \ :\fIÄndra fönster\-/fältgruppsnamn\fP
+Man ombeds ange ett nytt namn som skall användas för det ”aktuella”
+fönstret. Det kräver itne att fönsternamnet är synligt (att växeln ”l” är
+\*O).
+
+.IP * 3
+De interaktiva kommandon som visas med en \*(AK har användning vid sidan av
+\*(AM.
+.nf
+    =, A, g    är alltid tillgängliga
+    a, w       fungerar på samma sätt med färgavbildning
+               och fälthantering
+.fi
+
+.TP  7
+*\ \ \fBg\fP\ \ :\fIVälj ett annat fönster/fältgrupp\fP
+Man ombeds ange ett nummer mellan 1 och 4 som anger den \*(FG som skall
+göras till \*(CW.
+
+I \*(FM är detta kommando nödvändigt för att ändra \*(CW. I \*(AM är det
+bara ett mindre bekvämt alterantiv till kommandona ”a” och ”w”.
+
+.\" ......................................................................
+.SS "5c. RULLA ett fönster"
+.\" ----------------------------------------------------------------------
+Typiskt är ett \*(TW en partiell vy in i systemets totala uppgifter/trådar
+som visar endast några av de tillgängliga fälten/kolumnen. Med dessa \*(KSer
+kan man flytta den vyn vertikalt eller horisontellt för att uppvisa valfri
+uppgift eller kolumn.
+
+.TP  4
+\fBUpp\fP,\fBPgUp\fP\ \ :\fIRulla uppgifter\fP
+Flytta vyn upp mot den första uppgiftsraden, tills den första uppgiften
+visas på den översta raden av det ”aktuella” fönstret. Piltangenten \fIupp\fP
+flyttar en rad medan \fIPgUp\fP rullar hela fönstret.
+
+.TP  4
+\fBNed\fP,\fBPgDn\fP\ \ :\fIRulla uppgifter\fP
+Flytta vyn ned mot den sista uppgiftsraden, tills den sista uppgiften är den
+enda som visas på den översta raden av det ”aktuella” fönstret. Piltangenten
+\fIned\fP flyttar en rad medan \fIPgDn\fP rullar hela fönstret.
+
+.TP  4
+\fBVänster\fP,\fBHöger\fP\ \ :\fIRulla kolumner\fP
+Flytta vyn av visningsbara fält horisontellt en kolumn åt gången.
+
+\*(NT som en påminnelse, vissa fält/kolumner har inte fast bredd utan
+allokerar all återstånende skärmbredd när de är synliga. När man rullar till
+höger eller vänster kan den funktionen medföra i några oväntade resultat
+initialt.
+
+Dessutom finns det speciella möjligheter för alla fält med variabel bredd
+när de är det sista visade fältet. När det fältet nås via höger piltangent,
+och det alltså är den enda visade kolumnen, kan man fortsätta rulla
+horisontellt inom ett sådant fält. \*(XC det interaktiva kommandot ”C” nedan
+för ytterligare information.
+
+.TP  4
+\fBHome\fP\ \ :\fIHoppa till hemposition\fP
+Positionera om visningen till orullade koordinater.
+
+.TP  4
+\fBEnd\fP\ \ :\fIHoppa till slutposition\fP
+Positionera om visningen så att den högraste kolumnen visar det sista
+visningsbara fältet och nedersta uppgiften representerar den sista
+uppgiften.
+
+\*(NT från denna position är det fortfarande möjligt att rulla \fIned\fP och
+\fIhöger\fP med \*(KAerna. Detta gäller ända tills en enda kolumn och en enda
+uppgift är kvar som det enda visade elementet.
+
+.TP  4
+\fBC\fP\ \ :\fIVisa rullningskoordinaters\fPväxel
+Växla ett informationsmeddelande som visas närhelst meddelanderaden inte
+används till något annat. Det meddelandet kan ta en av två former beroende
+på huruvida en kolumn med variabel bredd också har rullats eller inte.
+
+.nf
+  \fBrullkoordinater: y = n/n (uppgifter), x = n/n (fält)\fP
+  rullkoordinater: y = n/n (uppgifter), x = n/n (fält) \fB+ nn\fP
+.fi
+
+Koordinaterna som visas som \fBn\fP/\fBn\fP är relativa till det övre vänstra
+hörnet av det ”aktuella” fönstret. Det ytterligare ”\fB+\ nn\fP” representerar
+förskjutningen in i en kolumn med variabel bredd när den har rullats
+horisontellt. En sådan förskjutning går i normala 8\-teckens tabulatorsteg
+via höger och vänster piltangent.
+
+.RS +4
+.TP  4
+\fBy = n/n (uppgifter)\fP
+Det första \fBn\fP representerar den översta synliga uppgiften och styrs av
+\*(KSer. Det andra \fBn\fP uppdateras automatiskt att avspegla det totala
+antalet uppgifter.
+
+.TP  4
+\fBx = n/n (fält)\fP
+Det första \fBn\fP representerar den nänstraste visade uppgiften och styrs av
+\*(KSer. Det andra \fBn\fP är det totala antalet visningsbara fält och bestäms
+med det interaktiva kommandot ”\fBf\fP”.
+.RS -4
+
+.PP
+Det ovanstående interaktiva kommandona är\fB alltid\fP tillgängliga i \*(FM
+men\fB aldrig\fP tillgängliga i \*(AM om \*(TDen för \*(CW har slagits \*F.
+
+\*(NT när någon sorts filtrering är aktiv kan man räkna med några mindre
+avvikelser när man rullar eftersom inte alla uppgifter kommer vara
+synliga. Detta är särskilt uppenbart när man använder \*(KAerna upp/ned.
+
+.\" ......................................................................
+.SS "5d. SÖKA i ett fönster"
+.\" ----------------------------------------------------------------------
+Man kan använda dessa interaktiva kommandon för att hitta en uppgiftsrad som
+innehåller ett visst värde.
+
+.TP  4
+\fBL\fP\ \ :\fILokalisera en sträng\fP
+Man ombeds ge en skiftlägeskänslig sträng att lokalisera med start från de
+aktuella fönsterkoordinaterna. Det finns inga begränsningar på söksträngens
+innehåll.
+
+Sökningar är inte begränsade till värden från ett ensamt fält eller
+kolumn. Alla värden som visas i en uppgiftsrad är tillåtna i en
+söksträng. Man kan inkludera mellanslag, siffror, symboler och till och med
+skogsvyns illustration.
+
+Att skriva <Enter> utan någon indata får effekten att avaktivera
+tangenten ”&” tills en ny söksträng skrivs in.
+
+.TP  4
+\fB&\fP\ \ :\fILokalisera nästa\fP
+Under antagandet att en söksträng har etablerats, \*(We kommer försöka att
+hitta nästa förekomst.
+
+.PP
+När en träff hittas positioneras det aktuella fönstret om vertikalt så att
+uppgiftsraden som innehåller den strängen är först. Meddelandet om
+rullningskoordinater kan ge bekräftelse om sådan vertikal ompositionering
+(\*(Xc det interaktiva kommandot ”C”). Horisantal skrollning ändras dock
+aldrig via sökningar.
+
+Tillgängligheten av en matchande sträng kommer påverkas av följande
+faktorer.
+.RS +3
+.TP  3
+a. Vilka fält som är visningsbara bland alla tillgängliga,
+\*(Xt 3b. HANTERING av fält.
+.TP  3
+b. Rullning av ett fönster vertikalt och/eller horisontellt,
+\*(Xt 5c. RULLA ett fönster.
+.TP  3
+c. Tillståndet på växeln kommando/kommandorad,
+\*(Xc det interaktiva kommandot ”c”.
+.TP  3
+d. Stabiliteten hos den valda sorteringskolumnen,
+till exempel är PID bra men %CPU dåligt.
+.RS -3
+
+.PP
+Om en sökning misslyckas kan att återställa det ”aktuella” fönstret till
+hempositionen (orullat), att rulla horisontellt, att visa kommandorader
+eller att välja ett mer stabilt sorteringsfält ändå ge en lyckad
+”&”\-sökning.
+
+Det ovanstående interaktiva kommandona är\fB alltid\fP tillgängliga i \*(FM
+men\fB aldrig\fP tillgängliga i \*(AM om \*(TDen för \*(CW har slagits \*F.
+
+.\" ......................................................................
+.SS "5e. FILTRERA i ett fönster"
+.\" ----------------------------------------------------------------------
+Man kan använda denna funktion ”övrigt filter” för att etablera
+urvalskriteria som sedan kommer att avgöra vilka uppgifter som visas i det
+”aktuella” fönstret. Sådana filter kan göras varaktiga om de sparas i
+rcfile:n via det interaktiva kommandot ”W”.
+
+Att skapa ett filter kräver: 1) ett fältnamn; 2) en operator; och 3) ett
+urvalsvärde, åtminstone. Detta är det mest komplexa av \*(Wes
+användarinmatningskrav, så när man gör ett misstag kommer återkallande av
+kommando att vara din vän. Kom ihåg \*(KAerna upp/ned eller deras alias när
+du får frågan om inmatning.
+
+\fBFiltergrunder\fP
+.RS +3
+.TP  3
+1. fältnamn är skiftlägeskänsliga och stavas som i huvudet
+.TP  3
+2. urvalsvärden behöver inte utgöra hela det visade fältet
+.TP  3
+3. ett urval är antingen skiftlägseokänsligt eller känsligt för skiftläge
+.TP  3
+4. standard är att inkludera, ett inledande ”!” markerar exkludering
+.TP  3
+5. flera urvalksriterium kan användas på ett \*(TW
+.TP  3
+6. inkluderings\- och exkluderingskriterium kan användas samtidigt
+.TP  3
+7. 1 likhetsfiltren och 2 jämförande filter kan blandas fritt
+.TP  3
+8. separata unika filter hanteras för varje \*(TW
+
+.PP
+Om ett fält inte är påslaget eller inte visas för närvarande kommer inte
+urvalskriteriumet påverka vad som visas. Skulle ett filtrerat fält senare
+bli synligt kommer urvalskriteriumet användas då.
+.RE
+
+\fBTangentbordssammanfattning\fP
+.TP  6
+\ \ \fBO\fP\ \ :\fIAnnat filter\fP (versalt)
+Man ombeds skapa ett \fBskiftlägskänsligt\fP filter.
+
+.TP  6
+\ \ \fBo\fP\ \ :\fIAnnat filter\fP (gement)
+Man ombeds skapa ett filter som \fBignorerar skiftläge\fP vid matchning.
+
+.TP  6
+\ \fB^O\fP\ \ :\fIVisa aktiva filter\fP (Ctrl\-tangent + ”o”)
+Detta kan fungera som en påminnelse om vilka filter som är aktiva i det
+”aktuella” fönstret. En sammanfattning kommer visas på meddelanderaden till
+man trycker på tangenten <Enter>.
+
+.TP  6
+\ \ \fB=\fP\ \ :\fIÅterställ filtrering\fP i aktuellt fönster
+Detta tömmar alla gjorda urvalskriterier i det ”aktuella” fönstret. Det har
+även ytterligare effekter, så \*(Xt 4a. GLOBALA kommandon.
+
+.TP  6
+\ \ \fB+\fP\ \ :\fIÅterställ filtrering\fP i alla fönster
+Detta tömmar alla gjorda urvalskriterier i alla fönster, under antagandet
+att man är i \*(AM. Liksom med det interaktiva kommandot ”=” har även detta
+ytterligare konsekvenser, så man kan vilja \*(Xt 5b. KOMMANDON för fönster.
+
+.PP
+\fBInmatningskrav\fP
+.RS +3
+.P
+Vid frågan om urvalskriterier måste de data man ger ta en av två former. Det
+finns 3 nödvändiga bitar information, med en frivillig 4:e. Dessa exempel
+använder mellanslag för tydlighet men ens inmatning gör i allmänhet inte
+det.
+.nf
+        #1           \fB#2\fP  #3              ( obligatorisk)
+        Fältnamn     ?   inkludera\-om\-värde
+     \fB!\fP  Fältnamn     ?   \fBexkludera\fP\-om\-värde
+     #4                                  ( frivilligt )
+.fi
+
+Posterna #1, #3 och #4 bör vara självförklarande. Post \fB#2\fP representerar
+påde en nödvändig \fIavgränsare\fP och \fIoperatorn\fP som måste vara en av
+antingen likhet (”=”) eller relation (”<” eller ”>”).
+
+Likhetsoperatorn ”=” behöver bara en partiell matchning och det kan begränsa
+kraven på ”om\-värdet”. Relationsoperatorerna ”>” eller ”<” gör
+alltid strängjämförelser, även med numeriska fält. De är gjorda för att
+fungera med ett fälts standard\fIjustering\fP och med homogena data. När några
+fälts numeriska storlekar har varit föremål för \fIskalning\fP medan andra inte
+har det, då är datan inte längre homogen.
+
+Om man skapar ett relationsfilter och man \fBhar\fP ändrat standardvärdet för
+numerisk\- eller tecken\fIjustering\fP är det troligt att det filtret
+misslyckas. När ett relationsfilter används på ett minnesfält och man \fBinte har\fP ändrat \fIskalningen\fP kan det generera missledande resultat. Detta
+händer, till exempel, för att ”100.0m” (MiB) skulle förefalla större än
+”1.000g” (GiB) när de jämförs som strängar.
+
+Om det filtrerade resultatet verkar misstänkt, kan att ändra justeringen
+eller skalningen åstadkomma det önskade resultatet. Se de interaktiva
+kommandona ”j”, ”J” och ”e” för ytterligare information.
+.RE
+
+\fBPotentiella problem\fP
+.RS +3
+.P
+Dessa \fBGRUPP\fPfilter kan ge exakt samma resultat eller så kan det andra inte
+visa någonting alls, bara ett blankt \*(TW.
+.nf
+     GRUPP=root        ( endast samma sak när de )
+     GRUPP=ROOT        ( skapats via gement  ”o” )
+.fi
+
+Endera av dessa \fBRES\fP\-filter kan ge inkonsistenta och/eller missledande
+resultat, beroende på den aktuella minnesskalningsfaktorn. Eller så kan båda
+filtren ge exakt samma resultat.
+.nf
+     RES>9999          ( endast samma resultat när )
+     !RES<10000        ( minnesskalningen är ”KiB” )
+.fi
+
+Detta \fBaSmå\fP\-filter illustrerar ett problem som är unikt för skalbara
+fält. Detta specifika fält kan visa maximalt 4 siffror, utöver vilket värden
+automatiskt skalas till KiB eller större. Så medan värden större än 9999
+förekommer, kommer de att uppträda som 2.6m, 197k, etc.
+.nf
+     aSmå>9999         ( alltid ett tomt \*(TW )
+.fi
+.RE
+
+\fBPotentiella lösningar\fP
+.RS +3
+.P
+Dessa exempel illustrerar hur annan filtrering kan göras på ett kreativt
+sätt för att uppnå nästan vilket önskat resultat som helst. Enkla
+citationstecken visas ibland för att avgränsa mellanrum som är del av ett
+filter eller för att representera en begäran om status (^O) precist. Men om
+man använder dem med om\-värden i verkligheten skulle inga matchningar
+hittas.
+
+Under antagandet att fältet \fBaTR\fP visas kommer det första filtret resultera
+i att endast multitrådade processer visas. Det påminner oss också om att ett
+efterföljande mellanslag utgör en del av varje visat fält. Det andra filtret
+åstadkommer precis samma sak med mindre att skriva.
+.nf
+     !aTR=` 1 '                ( ` endast för tydlighet )
+     aTR>1                     ( samma sak med mindre indata )
+.fi
+
+Med skogsvysläget aktivt och kolumnen \fBKOMMANDO\fP synlig fäller det här
+filtret i praktiken ihop barnprocesser så att endast 3 nivåer visas.
+.nf
+     !KOMMANDO=`       `\- '    ( ` endast för tydlighet )
+.fi
+
+De sista två filtren kommer som svar på tangenten för statusbegärande
+(^O). I praktiken skulle varje filter ha krävt en separat
+inmatning. Exemplet \fBPR\fP visar de två samtidiga filtren som behövs för att
+visa uppgifter med prioriteter på 20 eller mer, eftersom några kan vara
+negativa. Sedan genom att utnyttja efterföljande blanktecken skulle serien
+av \fBaSmå\fP\-filter åstadkomma det misslyckade syftet ”9999” som diskuterades
+ovan.
+.nf
+     `PR>20' + `!PR=\-'         ( 2 för rätt resultat )
+     `!aSmå=0 ' + `!aSmå=1 ' + `!aSmå=2 ' + `!aSmå=3 ' …
+.fi
+.RS -3
+
+.\" ----------------------------------------------------------------------
+.SH "6. FILER"
+.\" ----------------------------------------------------------------------
+.SS "6a. PERSONLIG konfigurationfil"
+.\" ----------------------------------------------------------------------
+Denna fil skapas eller uppdateras via det interaktiva kommandot ”W”.
+
+Den gamla versionen skrivs som ”$HOME/.ditt\-namn\-4\-\*(We” + ”rc” med en
+inledande punkt.
+
+En nyligen skapad \*(CF skrivs som ”procps/ditt\-namn\-4\-\*(We” + ”rc” utan en
+inledande punkt. Procps\-katalogen kommer ligga under antingen
+$XDG_CONFIG_HOME när den är satt till en aboslut sökväg eller katalogen
+$HOME/.config.
+
+Även om den inte är avsedd att redigeras manuellt följer här den allmänna
+layouten:
+.nf
+    global   # rad  1: programmets namn\-/aliasnotation
+      "      # rad  2: id,altscr,irixps,delay,curwin
+    för var  # rad  a: winname,fieldscur
+    fönster  # rad  b: winflags,sortindx,maxtasks,etc
+      "      # rad  c: summclr,msgsclr,headclr,taskclr
+    global   # rad 15: ytterligare blandade inställningar
+      "      # eventuella återstående rader är ägnade åt valfria
+      "      # aktiva ”andra filter” diskuterade i avsnitt 5e ovan
+      "      # plus ”inspektions”\-poster diskuterade i avsnitt 6b nedan
+.fi
+
+Om inte en giltig absolut sökväg till rcfil:en kan skapas kommer
+anpassningar gjorda till en körade \*(We vara omöjliga att bevara.
+
+.\" ......................................................................
+.SS "6b. LÄGGA TILL INSPEKTIONSposter"
+.\" ----------------------------------------------------------------------
+För att utnyttja det interaktiva kommandot ”Y” måste man lägga till poster
+till \fBslutet\fP av \*(Wes personliga \*(CF. Sådana poster visar en fil som
+skall läsas eller kommandon/rör som skall köras vars resultat sedan kommer
+visas i ett separat rullbart, sökbart fönster.
+
+Om man inte vet platsen för eller namnet på ens \*(We\-rcfil, använd det
+interaktiva kommandot ”W” för att skriva om den och notera dessa detaljer.
+
+Inspektionsposter kan läggas till med en omdirigerad echo eller genom att
+redigera \*(CFen. Omdirigering av echo riskerar att skriva över rcfile:n
+ifall det skulle ersätta (>) istället för att lägga till (>>)
+till den filen. Omvänt, när man använder en redigerare måste man vara noga
+att inte skada befintliga rader, där några av dem kan innehålla oskrivbara
+data eller ovanliga tecken beroende på versionen av \*(We under vilken den
+\*(CFen sparades.
+
+De inspektionsposter som börjar med ett ”#”\-tecken som ignoreras, oavsett
+deras innehåll. Annars består de av följande 3 element, varav vart och ett
+\fImåste\fP separeras av ett tabulatortecken (alltså 2 ”\et” totalt):
+
+.nf
+  .type:  ordagrannt ”file” eller ”pipe”
+  .name:  val visat på inspektionsskärmen
+  .fmts:  sträng representerande en sökväg eller ett kommando
+.fi
+
+De två typerna av inspektionsposter är \fIinte\fP utbytbara. De markerade
+”\fBfile\fP” kommer hämtas med fopen och måste referera en ensam fil i
+”.fmts”\-elementet. Poster som anger ”\fBpipe\fP” kommer använda popen, deras
+”.fmts”\-element kan innehålla flera kommandon i rör och inget av dem kan
+vara interaktivt.
+
+Om filen eller röret som representeras i ”.fmts” hanterar den specifika PID
+som matas in eller accepteras på förfrågan så måste formatsträngen även
+innehålla specificeraren ”\fB%d\fP”, som dessa exempel illustrerar.
+
+.nf
+  .fmts=  /proc/\fI%d\fP/numa_maps
+  .fmts=  lsof \-P \-p\fI %d\fP
+.fi
+
+Specifikt för poster av typen ”\fBpipe\fP” kan man även vilja omdirigera
+standard fel till standard ut för ett mer fullständigt
+resultat. Formatsträngen blir alltså:
+
+.nf
+  .fmts=  pmap \-x %d\fI 2>&1\fP
+.fi
+
+Här är exempel på båda typerna av inspektionsposter som de kan förekomma i
+rcfil:en. Den första posten kommer ignoreras på grund av det inledande
+”#”\-tecknet. För tydlighets skull är låtsastabulatorillustrationen (^I)
+omgiven av ett extra mellanslag men de faktiska tabulatorerna skall inte
+vara det.
+.nf
+
+  # pipe ^I Uttag ^I lsof \-n \-P \-i 2>&1
+  pipe ^I Öppna filer ^I lsof \-P \-p %d 2>&1
+  file ^I NUMA\-info ^I /proc/%d/numa_maps
+  pipe ^I Logg ^I tail \-n100 /var/log/syslog | sort \-Mr
+.fi
+
+Med undantag för den utkommenterade posten ovan visar dessa exempel vad som
+skulle kunna echo:as för att åstadkomma liknande resultat, under antagandet
+att rcfil:ens namn var ”.toprc”. På grund av de inbäddade tabulatortecknen
+skall dock var och en av dessa rader föregås av ”\fB/bin/echo \-e\fP”, inte bara
+ett ensamt ”echo”, för att aktivera tolkning av omvända snedstreck oavsett
+vilket skal man använder.
+
+.nf
+  "pipe\etÖppna filer\etlsof \-P \-p %d 2>&1" >> ~/.toprc
+  "file\etNUMA\-info\et/proc/%d/numa_maps" >> ~/.toprc
+  "pipe\etLogg\ettail \-n200 /var/log/syslog | sort \-Mr" >> ~/.toprc
+.fi
+
+Om någon inspektionspost man skapar ger utdata med oskrivbara tecken kommer
+de visas med antingen notationen ^C eller hexadesimalt <FF> där
+formen beror på deras värde. Detta gäller även tabulatortecken, vilka kommer
+visas som ”^I”. Om man vill ha en mer sann representation bör alla inbäddade
+tabulatorer expanderas. Följande exempel tar vad som skulle kunna ha varit
+en ”file”\-post men använder en ”pipe” istället för att expandera de
+inbäddade tabulatorerna.
+
+.nf
+  # det följande skulle ha innehållit ”\et” …
+  # file ^I <ditt_namn> ^I /proc/%d/status
+  # men detta kommer eliminera inbäddade ”\et” …
+  pipe ^I <ditt_namn> ^I cat /proc/%d/status | expand \-
+.fi
+
+\*(NT några program kan bero på \fISIGINT\fP för att avsluta. Därför måste man,
+om en ”\fBpipe\fP” som den följande skapas, använda Ctrl\-C för att avsluta den
+för att kunna se resultatet. Detta är det enda tillfälle då ett ”^C” inte
+även kommer avsluta \*(We.
+
+.nf
+  pipe ^I Spåra ^I /usr/bin/strace \-p %d 2>&1
+.fi
+
+Slutligen, även om poster av typen ”\fBpipe\fP” har diskuterats i termer av rör
+och kommandon finns det inget som hindrar att man också inkluderar
+\fIskalskript\fP. Kanske även nyskapade skript gjorde specifikt för det
+interaktiva kommandot ”Y”.
+
+Till exempel, allteftersom antalet inspektposter man har växer med tiden
+kommer raden ”Alternativ:” att huggas av när skärmbredden överskrids. Det
+påverkar inte funktionen annat än att det gör några val osynliga. Om några
+val förloras på grund av avhuggning men man vill se fler alternativ finns
+det dock en enkel lösning som antyds nedan.
+
+.nf
+  Inspektion Paus vid pid …
+  Använd:  vänster/höger och <Retur> …
+  Alternativ:  hjälp  1  2  3  4  5  6  7  8  9  10  11 …
+.fi
+
+Posterna i \*(Wes rcfil kunde ha ett nummer som elementet ”.name” och posten
+”hjälp” kunde identifiera ett skalskript man skriver som förklarar vad dessa
+numrerade val faktiskt betyder. På så sätt kan många fler val vara synliga.
+
+.\" ......................................................................
+.SS "6c. SYSTEMkonfigurtionsfil"
+.\" ----------------------------------------------------------------------
+Denna \*(CF representerar standardvärden för alla användare som inte har
+sparat sin egen \*(CF. Formatet speglar exakt den personliga \*(CFen och kan
+även innehålla ”inspektions”\-poster som förklaras ovan.
+
+Att skapa den är enkelt.
+
+1. Konfigurera \*(We som den skall vara för installationen och bevara den
+konfigurationen med det interaktiva kommandot ”W”.
+
+2. Lägg till och prova eventuella önskade ”inspektions”\-poster.
+
+3. Kopiera den \*(CFen till katalogen \fI/etc/\fP som ”\fBtopdefaultrc\fP”.
+
+.\" ......................................................................
+.SS "6d. SYSTEMbegränsningsfil"
+.\" ----------------------------------------------------------------------
+Förekomsten av denna fil kommer påverka vilken version av hjälpskärmen som
+visas för en vanlig användare.
+
+Viktigare än så kommer den begränsa vad vanliga användare tillåts göra när
+\*(We kör. De kommer inte att kunna ge följande kommandon.
+.nf
+    k        Döda en uppgift
+    r        Ändra nice\-värde för en uppgift
+    d el. s  Ändra fördröjnings\-/sovintervall
+.fi
+
+Denna \*(CF skapas inte av \*(We. Istället skapas den manuellt och placeras
+i katalogen \fI/etc/\fP som ”\fBtoprc\fP”.
+
+Den skall ha precis två rader, som visas i detta exempel:
+.nf
+    s        # rad 1: växel för byte till säkert läge
+    5.0      # rad 2: fördröjningsintervall i sekunder
+.fi
+
+.\" ----------------------------------------------------------------------
+.SH "7. MILJÖVARIABLER"
+.\" ----------------------------------------------------------------------
+Värdet som sätts på följande är oviktigt, bara att den finns.
+
+.IP LIBPROC_HIDE_KERNEL
+Detta kommer förhindra visningen av alla kärntrådar och utesluta sådana
+processer från \*(SAts sammanräkning av uppgifter/trådar.
+
+.\" ----------------------------------------------------------------------
+.SH "8. DUMMA TRICK\-exempel"
+.\" ----------------------------------------------------------------------
+Många av dessa trick fungerar bäst när man ger \*(We ett lyft i
+schemaläggningen. Så planera att starta den med ett nice\-värde på \-10, under
+antagandet att du har rätt till det.
+
+.\" ......................................................................
+.SS "7a. Kärnmagi"
+.\" ----------------------------------------------------------------------
+.\" sorry, just can't help it -- don't ya love the sound of this?
+.\" ( apparently AM static was a potential concern )
+För dessa dumma trick behöver \*(We \*(FM.
+
+.IP \(bu 3
+Användargränssnittet, via frågor och hjälp, implicerar avsiktligen att
+fördröjningsintervallet är begränsat till tiondelar av en sekund. Det står
+en dock fritt att sätta godtyckligt önskat värde. Vill man se Linux i sin
+bästa schemaläggningsform, prova en fördröjning på 0,09 sekunder eller
+mindre.
+
+För detta experiment öppna en xterm och maximera den. Gör sedan följande:
+.nf
+  . ge en schemaläggningslyft och en kort fördröjning via
+      nice \-n \-10 \*(We \-d.09
+  . håll markering av sorteringskolumn \*F för att
+    minimera sökvägslängd
+  . slå \*O markering med invers text för betoning
+  . prova olika sorteringskolumner (TID/MIN fungerar bra),
+    och vanlig eller omvänd sortering för att ta fram de
+    mest aktiva processerna i bild
+.fi
+
+Vad man får se är en väldigt upptagen Linux som gör vad den alltid gjort,
+men det fanns inget program tillgängligt för att illustrera detta.
+
+.IP \(bu 3
+Under en xterm med ”vitt\-på\-svart”\-färger sätt i \*(Wes färgavbildningsskärm
+uppgiftsfärgen till svart och se till att uppgiftsmarkering är satt till
+fetstil, inte invers. Sätt sedan fördröjningsintervallet till runt 0,3
+sekunder.
+
+Efter att ha fått de mest aktiva processerna i bild är vad man får se de
+spöklika avbilderna av de jus nu körande uppgifterna.
+
+.IP \(bu 3
+Radera den befintliga rcfil:en elelr skapa en ny symbolisk länk. Starta
+denna nya version och skriv sedan ”T” (en hemlig tangent, \*(Xt
+4c. uppgiftsområdets kommandon, SORTERING) följt av ”W” och ”q”. Slutligen,
+starta om programmet med \-d0 (noll i fördröjning).
+
+Skärmen kommer uppdateras med tre gånger så hög hastighet som den tidigare
+\*(We, en 300\ % hastighetsuppdatering. Eftersom \*(We klättrar uppför
+TID\-stegen, var så tålmodig som möjligt under spekulation huruvida \*(We
+någonsin kommer nå \*(Wepen, eller inte.
+
+.\" ......................................................................
+.SS "7b. Studsande fönster"
+.\" ----------------------------------------------------------------------
+För dessa dumma trick behöver \*(We \*(AM.
+
+.IP \(bu 3
+Med 3 eller 4 \*(TDar synliga, välj något annat fönster än det sista och slå
+\*F inaktiva processer med det interaktiva kommandot ”i”. Beroende på var du
+använde ”i” studsar ibland flera \*(TDar och ibland är det som ett dragspel,
+eftersom \*(We gör sitt bästa för att allokera plats.
+
+.IP \(bu 3
+Sätt varje fönsters sammanfattningsrader olika: en utan minne (”m”); ett
+annat utan tillstånd (”t”); kanske ett utan något alls, bara
+meddelanderaden. Håll sedan ner ”a” eller ”w” och se en variation av
+studsande fönster \*(Em hoppande fönster.
+
+.IP \(bu 3
+Visa alla 4 fönstren och för vart och ett i ordning sätt inaktiva processer
+\*F med det interaktiva kommandot ”i”. Du har just gått in i zonen ”extrem
+studs”.
+
+.\" ......................................................................
+.SS "7c. Den stora fågelns fönster"
+.\" ----------------------------------------------------------------------
+Detta dumma trick behöver också \*(AM.
+
+.IP \(bu 3
+Visa alla 4 fönster och se till att 1:Def är det ”aktuella” fönstret. Öka
+sedan fönsterstorleken med det interaktiva kommandot ”n” tills alla de andra
+\*(TDarna ”tryckts ur boet”.
+
+När de alla har tryckts undan, växla mellan alla synliga/osynliga fönster
+genom att använda \*(CTan ”_”. Fundera sedan på detta:
+.br
+    narras \*(We eller berättar den sanningsenligt din påtvingade sanning?
+
+.\" ......................................................................
+.SS "7d. Den gamla förväxlingen"
+.\" ----------------------------------------------------------------------
+Detta dumma trick fungerar bäst utan \*(AM eftersom justering är aktivt på
+basis av varje fönster.
+
+.IP \(bu 3
+Starta \*(We och gör KOMMANDO till den sista (högraste) kolumnen som
+visas. Om nödvändigt, använd \*(CTn ”c” för att visa kommandorader och se
+till att skogsvyläget är aktivt med \*(CTn ”V”.
+
+Använd sedan piltangenterna upp/ned för att placera skärmen så att några
+avhuggna kommandorader visas (”+” i sista positionen). Man kan behöva ändra
+storlek på sin xterm för att åstadkomma trunkering.
+
+Använd slutligen \*(CTn ”j” för att göra kolumnen KOMMANDO högerjusterad.
+
+Använd nu höger piltangent för att nå kolumnen KOMMANDO. Fortsätt med höger
+piltangent, och titta noga riktingen på rörelsen för kommandoraderna som
+visas.
+
+.br
+    några rader rör sig till vänster, medan andra rör sig åt höger
+
+    slutligen kommer alla rader växla runt, och röra sig åt höger
+
+.\" ----------------------------------------------------------------------
+.SH "9. FEL"
+.\" ----------------------------------------------------------------------
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE .
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE
+
+ 
+.\" ----------------------------------------------------------------------
+.SH "10. SE även"
+.\" ----------------------------------------------------------------------
+\fBfree\fP(1), \fBps\fP(1), \fBuptime\fP(1), \fBatop\fP(1), \fBslabtop\fP(1), \fBvmstat\fP(8),
+\fBw\fP(1)

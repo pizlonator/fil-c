@@ -1,0 +1,100 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2013      Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 1998-2002 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\" (The preceding line is a note to broken versions of man to tell
+.\" them to pre-process this man page with tbl)
+.\" Man page for pmap.
+.\" Licensed under version 2 of the GNU General Public License.
+.\" Written by Albert Cahalan.
+.\"
+.TH PMAP "1" "2020-06-04" "procps-ng" "User Commands"
+.SH NAME
+pmap \- report memory map of a process
+.SH SYNOPSIS
+.B pmap
+[\fIoptions\fR] \fIpid\fR [...]
+.SH DESCRIPTION
+The
+.B pmap
+command reports the memory map of a process or processes.
+.SH OPTIONS
+.TP
+\fB\-x\fR, \fB\-\-extended\fR
+Show the extended format.
+.TP
+\fB\-d\fR, \fB\-\-device\fR
+Show the device format.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Do not display some header or footer lines.
+.TP
+\fB\-A\fR, \fB\-\-range\fR \fIlow\fR,\fIhigh\fR
+Limit results to the given range to
+.I low
+and
+.I high
+address range.  Notice that the low and high arguments are single string
+separated with comma.
+.TP
+\fB\-X\fR
+Show even more details than the \fB\-x\fR option. WARNING: format changes
+according to \fI/proc/PID/smaps\fR
+.TP
+\fB\-XX\fR
+Show everything the kernel provides
+.TP
+\fB\-p\fR, \fB\-\-show\-path\fR
+Show full path to files in the mapping column
+.TP
+\fB\-c\fR, \fB\-\-read\-rc\fR
+Read the default configuration
+.TP
+\fB\-C\fR, \fB\-\-read\-rc\-from\fR \fIfile\fR
+Read the configuration from \fIfile\fR
+.TP
+\fB\-n\fR, \fB\-\-create\-rc\fR
+Create new default configuration
+.TP
+\fB\-N\fR, \fB\-\-create\-rc\-to\fR \fIfile\fR
+Create new configuration to \fIfile\fR
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display help text and exit.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information and exit.
+.SH "EXIT STATUS"
+.PP
+.RS
+.PD 0
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Failure.
+.TP
+.B 42
+Did not find all processes asked for.
+.PD
+.RE
+.SH "SEE ALSO"
+.BR ps (1),
+.BR pgrep (1)
+.SH STANDARDS
+No standards apply, but
+.B pmap
+looks an awful lot like a SunOS command.
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

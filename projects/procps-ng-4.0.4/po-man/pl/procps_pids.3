@@ -1,0 +1,201 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_PIDS 3 "Sierpień 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAZWA
+procps_pids \- API do dostępu do informacji o procesach w systemie plików
+/proc
+
+.SH SKŁADNIA
+.nf
+#include <libproc2/pids.h>
+
+int\fB procps_pids_new  \fP (struct pids_info **\fIinfo\fP, enum pids_item *\fIitems\fP, int \fInumitems\fP);
+int\fB procps_pids_ref  \fP (struct pids_info  *\fIinfo\fP);
+int\fB procps_pids_unref\fP (struct pids_info **\fIinfo\fP);
+
+
+struct pids_stack *\fBprocps_pids_get\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_fetch_type \fIwhich\fP);
+
+struct pids_fetch *\fBprocps_pids_reap\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_fetch_type \fIwhich\fP);
+
+struct pids_fetch *\fBprocps_pids_select\fP (
+    struct pids_info *\fIinfo\fP,
+    unsigned *\fIthese\fP,
+    int \fInumthese\fP,
+    enum pids_select_type \fIwhich\fP);
+
+struct pids_stack **\fBprocps_pids_sort\fP (
+    struct pids_info *\fIinfo\fP,
+    struct pids_stack *\fIstacks\fP[],
+    int \fInumstacked\fP,
+    enum pids_item \fIsortitem\fP,
+    enum pids_sort_order \fIorder\fP);
+
+int \fBprocps_pids_reset\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_item *\fInewitems\fP,
+    int \fInewnumitems\fP);
+
+struct pids_stack *\fBfatal_proc_unmounted\fP (
+    struct pids_info *\fIinfo\fP,
+    int \fIreturn_self\fP);
+
+.fi
+
+Konsolidować z \fI\-lproc2\fP.
+
+.SH OPIS
+.SS Przegląd
+Interfejs ten opiera się na prostej strukturze `result', odzwierciedlającej
+element `item' wraz z jego wartością (w unii ze standardowymi typami C jako
+składowymi). Wszystkie struktury `result' są automatycznie przydzielane i
+dostarczane przez bibliotekę.
+
+Podając tablicę elementów `item', struktury te mogą być zorganizowane w
+"stos", potencjalnie zwracając wiele wyników w pojedynczym wywołaniu
+funkcji. W ten sposób na "stos" można patrzeć jak na rekord zmiennej
+długości, którego zawartość i porządek są określane wyłącznie przez
+użytkownika.
+
+Częścią tego interfejsu jest para unikatowych enumeratorów. Elementy `noop'
+i `extra' istnieją w celu trzymania wartości użytkownika. Nie są nigdy
+ustawiane przez bibliotekę, ale wynik `extra' jest zerowany przy każdej
+interakcji z biblioteką.
+
+Plik pids.h jest podstawowym dokumentem przy tworzeniu programu
+użytkownika. Tam można zaleźć dostępne elementy, ich typ zwracany (nazwę
+składowej struktury `result') oraz źródła tych wartości. Tam też są
+udokumentowane dodatkowe enumeratory czy struktury.
+
+.SS Użycie
+Poniżej znajduje się typowa sekwencja wywołań tego intefejsu.
+
+.nf
+1. \fBfatal_proc_unmounted()\fP
+2. \fBprocps_pids_new()\fP
+3. \fBprocps_pids_get()\fP, \fBprocps_pids_reap()\fP lub \fBprocps_pids_select()\fP
+4. \fBprocps_pids_unref()\fP
+.fi
+
+Funkcja \fBget\fP to iterator dla kolejnych PIDów/TIDów, zwracający te elementy
+`item' wcześniej określane poprzez \fBnew\fP lub \fBreset\fP.
+
+Dwie funkcje obsługują nieprzewidywalne, zmienne wyniki. Funkcja \fBreap\fP
+zbiera dane dla wszystkich procesów, a funkcja \fBselect\fP obsługuje konkretne
+PIDy i UIDy. Obie mogą zwrócić wiele "stosów", z których każdy zawiera wiele
+struktur `result'. Opcjonalnie użytkownik może zdecydować, aby wykonać
+\fBsort\fP tych wyników.
+
+Aby wykorzystać dowolny "stos" i dostać się do poszczególnych struktur
+`result', wymagana jest wartość \fIrelative_enum\fP, jak widać w makrze \fBVAL\fP
+zdefiniowanym w pliku nagłówkowym. Takie wartości mogą być sztywno
+zakodowane od 0 do numitems\-1. Zwykle jednak tę potrzebę zaspokaja się
+tworząc własne enumeratory odpowiadające kolejności tablicy `items'.
+
+.SS Zastrzeżenia
+API <pids> różni się od innych tym, że interesujące elementy trzeba
+przekazać w czasie \fBnew\fP lub \fBreset\fP \- to drugie zachodzi tylko dla tego
+API. Jeśli w czasie \fBnew\fP parametr \fIitems\fP lub \fInumitems\fP jest zerowy,
+wywołanie \fBreset\fP jest obowiązkowe przed wykonaniem dowolnego innego
+wywołania.
+
+W przypadku funkcji \fBnew\fP i \fBunref\fP, trzeba przekazać adres wskaźnika do
+struktury \fIinfo\fP. W przypadku \fBnew\fP musi być zainicjowany na NULL. W
+przypadku \fBunref\fP zostanie ustawiony na NULL, jeśli licznik odwołań
+osiągnie zero.
+
+Funkcje \fBget\fP i \fBreap\fP wykorzystują parametr \fIwhich\fP, określający, czy
+pobrane mogą być tylko zadania, czy zadania i wątki.
+
+Funkcja \fBselect\fP wymaga jako \fIthese\fP wraz z \fInumthese\fP tablicy PIDów lub
+UIDów, określających procesy do pobrania. Ta funkcja operuje działa jako
+podzbiór \fBreap\fP.
+
+W przypadku funkcji \fBsort\fP, parametry \fIstacks\fP oraz \fInumstacked\fP będą
+zwykle zwracane w strukturze `pids_fetch'.
+
+Funkcja \fBfatal_proc_unmounted\fP może być wywołana przed dowolną inną
+funkcją, aby upewnić się, że katalog /proc/ jest zamontowany. W takim
+przypadku parametr \fIinfo\fP będzie NULLem, a parametr \fIreturn_self\fP
+zerem. Jeśli jednak jakieś elementy są pożądane przez wywołujący program
+(\fIreturn_self\fP inny niż zero), wywołanie \fBnew\fP musi je poprzedzać, aby
+określić elementy \fIitems\fP i uzyskać żądany wskaźnik \fIinfo\fP.
+
+.SH "WARTOŚĆ ZWRACANA"
+.SS "Funkcje zwracające `int'"
+Błąd jest oznaczany poprzez liczbę ujemną, będącą liczbą przeciwną do znanej
+wartości errno.h.
+
+Sukces jest oznaczany wartością zerową. Jednak funkcje \fBref\fP i \fBunref\fP
+zwracają bieżący licznik odwołań struktury \fIinfo\fP.
+
+.SS "Funkcje zwracające adres"
+Błąd jest oznaczany zwracanym wskaźnikiem NULL, a powód można znaleźć w
+wartości errno.
+
+Sukces jest oznaczany wskaźnikiem na nazwaną strukturę. Jednak, jeśli
+program przeżyje wywołanie \fBfatal_proc_unmounted\fP, zwracany jest zawsze
+NULL, jeśli \fIreturn_self\fP jest zerowy.
+
+.SH DIAGNOSTYKA
+Aby pomóc przy rozwijaniu programów, można wykorzystać dwa udogodnienia
+procps\-ng.
+
+Pierwsze do dołączony plik o nazwie `libproc.supp', który może być przydatny
+przy rozwijaniu aplikacji wielowątkowych. W przypadku użycia opcji valgrinda
+`\-\-suppressions=', pomijane będą ostrzeżenia związane z samą biblioteką
+procps.
+
+Ostrzeżenia takie mogą się pojawić, ponieważ biblioteka obsługuje
+przydzielanie pamięci na stercie w sposób bezpieczny dla wątków. Aplikacje
+jednowątkowe nie będą powodowały ostrzeżeń.
+
+Drugie udogodnienie pozwala zapewnić, że odwołania do składowej `result'
+zgadzają się z oczekiwaniami biblioteki. Zakłada, że do dostępu do wartości
+`result' jest używane makro udostępnione w pliku nagłówkowym.
+
+Tę opcję można włączyć w jeden z poniższych sposobów, a wszystkie
+niezgodności będą wypisane na \fBstderr\fP.
+
+.IP 1) 3
+Dodanie CFLAGS='\-DXTRA_PROCPS_DEBUG' do pozostałych użytych opcji
+\&./configure.
+
+.IP 2) 3
+Dodanie #include <procps/xtra\-procps\-debug.h> do dowolnego programu
+\fIpo\fP #include <procps/pids.h>.
+
+.PP
+Ta opcja weryfikacji dodaje istotny narzut. W związku z tym ważne jest, żeby
+\fInie\fP była włączona w binariach produkcyjnych.
+
+.SH "ZMIENNE ŚRODOWISKOWE"
+Ustawiona wartość następującej zmiennej nie jest istotna, a jedynie jej
+obecność.
+
+.IP LIBPROC_HIDE_KERNEL
+Zmienna ukrywa wątki jądra, które w innym wypadku byłyby zwrócone przez
+wywołania \fBprocps_pids_get\fP, \fBprocps_pids_select\fP i \fBprocps_pids_reap\fP.
+
+.SH "ZOBACZ TAKŻE"
+\fBprocps\fP(3), \fBprocps_misc\fP(3), \fBproc\fP(5).

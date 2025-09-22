@@ -1,0 +1,232 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2003      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH WATCH 1 "2023-01-17" "procps-ng" "User Commands"
+.SH NAME
+watch \- execute a program periodically, showing output fullscreen
+.SH SYNOPSIS
+.B watch
+[\fIoptions\fR] \fIcommand\fR
+.SH DESCRIPTION
+.B watch
+runs
+.I command
+repeatedly, displaying its output and errors (the first screenfull).  This
+allows you to watch the program output change over time.  By default,
+\fIcommand\fR is run every 2 seconds and \fBwatch\fR will run until interrupted.
+.SH OPTIONS
+.TP
+\fB\-b\fR, \fB\-\-beep\fR
+Beep if command has a non-zero exit.
+.TP
+\fB\-c\fR, \fB\-\-color\fR
+Interpret ANSI color and style sequences.
+.TP
+\fB\-C\fR, \fB\-\-no-color\fR
+Do not interpret ANSI color and style sequences.
+.TP
+\fB\-d\fR, \fB\-\-differences\fR[=\fIpermanent\fR]
+Highlight the differences between successive updates. If the optional
+\fIpermanent\fR argument is specified then
+.B watch
+will show all changes since the first iteration.
+.TP
+\fB\-e\fR, \fB\-\-errexit\fR
+Freeze updates on command error, and exit after a key press.
+.TP
+\fB\-g\fR, \fB\-\-chgexit\fR
+Exit when the output of
+.I command
+changes.
+.TP
+\fB\-n\fR, \fB\-\-interval\fR \fIseconds\fR
+Specify update interval.  The command will not allow quicker than 0.1 second
+interval, in which the smaller values are converted. Both '.' and ',' work
+for any locales. The \fBWATCH_INTERVAL\fR environment can be used to persistently
+set a non-default interval (following the same rules and formatting).
+.TP
+\fB\-p\fR, \fB\-\-precise\fR
+Make
+.BR watch
+attempt to run
+.I command
+every
+.B \-\-interval
+.IR seconds .
+Try it with
+.B ntptime
+(if present) and notice how the fractional seconds stays (nearly) the same, as opposed to
+normal mode where they continuously increase.
+.TP
+\fB\-q\fR, \fB\-\-equexit\fR <cycles>
+Exit when output of
+.I command
+does not change for the given number of cycles.
+.TP
+\fB\-r\fR, \fB\-\-no-rerun\fR
+Do not run the program on terminal resize, the output of the program will re-appear at the next
+regular run time.
+.TP
+\fB\-t\fR, \fB\-\-no\-title\fR
+Turn off the header showing the interval, command, and current time at the
+top of the display, as well as the following blank line.
+.TP
+\fB\-w\fR, \fB\-\-no\-wrap\fR
+Turn off line wrapping. Long lines will be truncated instead of wrapped to the next line.
+.TP
+\fB\-x\fR, \fB\-\-exec\fR
+Pass
+.I command
+to
+.BR exec (2)
+instead of
+.B sh \-c
+which reduces the need to use extra quoting to get the desired effect.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display help text and exit.
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Display version information and exit.
+.SH "EXIT STATUS"
+.PP
+.RS
+.PD 0
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Various failures.
+.TP
+.B 2
+Forking the process to watch failed.
+.TP
+.B 3
+Replacing child process stdout with write side pipe failed.
+.TP
+.B 4
+Command execution failed.
+.TP
+.B 5
+Closing child process write pipe failed.
+.TP
+.B 7
+IPC pipe creation failed.
+.TP
+.B 8
+Getting child process return value with
+.BR waitpid (2)
+failed, or command exited up on error.
+.TP
+.B other
+The watch will propagate command exit status as child exit status.
+.SH ENVIRONMENT
+The behavior of
+.B watch
+is affected by the following environment variables.
+
+.TP
+.B WATCH_INTERVAL
+Update interval, follows the same rules as the
+.B \-\-interval
+command line option.
+.sp
+.SH NOTES
+POSIX option processing is used (i.e., option processing stops at
+the first non\-option argument).  This means that flags after
+.I command
+don't get interpreted by
+.BR watch
+itself.
+.sp
+.SH BUGS
+Upon terminal resize, the screen will not be correctly repainted until the
+next scheduled update.  All
+.B \-\-differences
+highlighting is lost on that update as well. When using the
+.B \-\-no\-rerun
+option, no output of will be visible.
+
+Non-printing characters are stripped from program output.  Use \fBcat -v\fR as
+part of the command pipeline if you want to see them.
+
+Combining Characters that are supposed to display on the character at the
+last column on the screen may display one column early, or they may not
+display at all.
+
+Combining Characters never count as different in
+.B \-\-differences
+mode.  Only the base character counts.
+
+Blank lines directly after a line which ends in the last column do not
+display.
+
+.B \-\-precise
+mode doesn't yet have advanced temporal distortion technology to compensate
+for a
+.I command
+that takes more than
+.B \-\-interval
+.I seconds
+to execute.
+.B watch
+also can get into a state where it rapid-fires as many executions of
+.I command
+as it can to catch up from a previous executions running longer than
+.B \-\-interval
+(for example,
+.BR netstat (8)
+taking ages on a DNS lookup).
+.sp
+.SH EXAMPLES
+.PP
+To watch for mail, you might do
+.IP
+watch \-n 60 from
+.PP
+To watch the contents of a directory change, you could use
+.IP
+watch \-d ls \-l
+.PP
+If you're only interested in files owned by user joe, you might use
+.IP
+watch \-d 'ls \-l | fgrep joe'
+.PP
+To see the effects of quoting, try these out
+.IP
+watch echo $$
+.br
+watch echo '$$'
+.br
+watch echo "'"'$$'"'"
+.PP
+To see the effect of precision time keeping, try adding
+.B \-p
+to
+.IP
+watch \-n 10 sleep 1
+.PP
+You can watch for your administrator to install the latest kernel with
+.IP
+watch uname \-r
+.PP
+(Note that
+.B \-p
+isn't guaranteed to work across reboots, especially in the face of
+.B ntpdate
+(if present) or other bootup time-changing mechanisms)
+.sp
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

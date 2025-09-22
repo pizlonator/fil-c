@@ -1,0 +1,62 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1993      Matt Welsh <mdw@tc.cornell.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TLOAD 1 "4. April 2020" procps\-ng "Dienstprogramme für Benutzer"
+.SH BEZEICHNUNG
+tload \- grafische Darstellung der durchschnittlichen Systemlast
+.SH ÜBERSICHT
+\fBtload\fP [\fIOptionen\fP] [\fITTY\fP]
+.SH BESCHREIBUNG
+\fBtload\fP gibt eine Grafik der aktuellen durchschnittlichen Systemlast an das
+angegebene \fITerminal\fP aus (oder an das Terminal des \fBtload\fP\-Prozesses,
+falls keines angegeben wurde).
+.SH OPTIONEN
+.TP 
+\fB\-s\fP, \fB\-\-scale\fP \fIZahl\fP
+ermöglicht die Angabe eines vertikalen Maßstabes für die Anzeige (in Zeichen
+zwischen den Diagrammeinheiten). Ein kleinerer Wert bezeichnet daher einen
+größeren Maßstab und umgekehrt.
+.TP 
+\fB\-d\fP, \fB\-\-delay\fP \fISekunden\fP
+legt die Zeitspanne in \fISekunden\fP zwischen den Aktualisierungen des Graphen
+fest.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+zeigt einen Hilfetext an.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+zeigt Versionsinformationen an und beendet das Programm.
+.PP
+.SH DATEIEN
+\fI/proc/loadavg\fP enthält Informationen zur Durchschnittslast
+.SH "SIEHE AUCH"
+\fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fBw\fP(1)
+.SH FEHLER
+Die Option \fB\-d\fP\fI Verzögerung\fP setzt das Zeitargument für
+\fBalarm\fP(2). Falls \-d 0 angegeben ist, wird der Alarm auf 0 gesetzt, wodurch
+niemals das Signal \fBSIGALRM\fP gesendet und die Anzeige aktualisiert wird.
+.SH AUTOREN
+Branko Lankester,
+.UR david@\:ods.\:com
+David Engel
+.UE und
+.UR johnsonm@\:redhat.\:com
+Michael K. Johnson
+.UE .
+.SH "FEHLER MELDEN"
+Bitte schicken Sie Fehlermeldungen (auf Englisch) an
+.MT procps@freelists.org
+.ME

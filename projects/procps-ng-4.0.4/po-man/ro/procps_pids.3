@@ -1,0 +1,208 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_PIDS 3 "august 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NUME
+procps_pids \- API (interfață de program) pentru a accesa informații la nivel
+de sistem din sistemul de fișiere „/proc”
+
+.SH REZUMAT
+.nf
+#include <libproc2/pids.h>
+
+int\fB procps_pids_new  \fP (struct pids_info **\fIinfo\fP, enum pids_item *\fIitems\fP, int \fInumitems\fP);
+int\fB procps_pids_ref  \fP (struct pids_info  *\fIinfo\fP);
+int\fB procps_pids_unref\fP (struct pids_info **\fIinfo\fP);
+
+
+struct pids_stack *\fBprocps_pids_get\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_fetch_type \fIwhich\fP);
+
+struct pids_fetch *\fBprocps_pids_reap\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_fetch_type \fIwhich\fP);
+
+struct pids_fetch *\fBprocps_pids_select\fP (
+    struct pids_info *\fIinfo\fP,
+    unsigned *\fIthese\fP,
+    int \fInumthese\fP,
+    enum pids_select_type \fIwhich\fP);
+
+struct pids_stack **\fBprocps_pids_sort\fP (
+    struct pids_info *\fIinfo\fP,
+    struct pids_stack *\fIstacks\fP[],
+    int \fInumstacked\fP,
+    enum pids_item \fIsortitem\fP,
+    enum pids_sort_order \fIorder\fP);
+
+int \fBprocps_pids_reset\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_item *\fInewitems\fP,
+    int \fInewnumitems\fP);
+
+struct pids_stack *\fBfatal_proc_unmounted\fP (
+    struct pids_info *\fIinfo\fP,
+    int \fIreturn_self\fP);
+
+.fi
+
+Legătură cu \fI\-lproc2\fP.
+
+.SH DESCRIERE
+.SS "Prezentare generală"
+Esențial pentru această interfață este o structură simplă de „rezultat” care
+reflectă un „element” plus valoarea acestuia (într\-o uniune cu tipuri de
+limbaj C standard ca membri).  Toate structurile „rezultat” sunt alocate și
+furnizate automat de bibliotecă.
+
+Prin specificarea unei matrice de „elemente”, aceste structuri pot fi
+organizate ca o „stivă”, cu potențialul de\-a produce multe rezultate cu un
+singur apel către funcție.  Astfel, o „stivă” poate fi văzută ca o
+înregistrare cu lungime variabilă al cărei conținut și ordine sunt
+determinate exclusiv de utilizator.
+
+Ca parte a acestei interfețe există doi enumeratori unici.  Elementele
+„noop” și „extra” există pentru a păstra valorile utilizatorului.  Ele nu
+sunt niciodată definite de bibliotecă, dar rezultatul „extra” va fi redus la
+zero cu fiecare interacțiune cu bibliotecă.
+
+Fișierul pids.h va fi un document esențial în timpul dezvoltării programului
+utilizatorului.  Acolo veți găsi elementele disponibile, tipul lor de
+returnare (numele membrului structurii „rezultat)” și sursa acestor valori.
+Acolo sunt de asemenea documentate enumeratori și structuri suplimentare.
+
+.SS Utilizare
+Următoarele linii, ar fi o secvență tipică de apeluri la aceste interfețe.
+
+.nf
+1. \fBfatal_proc_unmounted()\fP
+2. \fBprocps_pids_new()\fP
+3. \fBprocps_pids_get()\fP, \fBprocps_pids_reap()\fP sau \fBprocps_pids_select()\fP
+4. \fBprocps_pids_unref()\fP
+.fi
+
+Funcția \fBget\fP este un iterator pentru PID\-uri/TID\-uri succesive, returnând
+acele „articole” identificate anterior prin \fBnew\fP sau \fBreset\fP.
+
+Două funcții asigură suport pentru rezultate variabile imprevizibile.
+Funcția \fBreap\fP adună date pentru toate procesele, în timp ce funcția
+\fBselect\fP se ocupă de PID\-uri sau UID\-uri specifice.  Ambele pot returna mai
+multe „stive” fiecare conținând mai multe structuri „rezultat”.  Opțional,
+un utilizator poate alege să  folosească \fBsort\fP pentru a sorta astfel de
+rezultate
+
+Pentru a exploata orice „stivă” și pentru a accesa structuri „rezultat”
+individuale, este necesar un \fIrelative_enum\fP, așa cum se arată în
+macrocomanda \fBVAL\fP definită în fișierul antet.  Astfel de valori ar putea
+fi codificate ca: de la 0 la numitems\-1.  Cu toate acestea, această nevoie
+este de obicei satisfăcută prin crearea propriilor enumeratori
+corespunzători ordinii matricei „elemente”.
+
+.SS Avertismente
+Interfața de program <pids> diferă de celelalte prin faptul că acele
+elemente de interes trebuie furnizate în timpul execuției \fBnew\fP sau
+\fBreset\fP, acesta din urmă fiind unic pentru acest API.  Dacă fie parametrul
+\fIitems\fP, fie \fInumitems\fP este zero în timpul execuției \fBnew\fP, atunci
+\fBreset\fP devine obligatoriu înainte de a lansa orice alt apel.
+
+Pentru funcțiile \fBnew\fP și \fBunref\fP, trebuie furnizată adresa unui indicator
+de structură \fIinfo\fP.  Cu \fBnew\fP, acesta trebuie să fi fost inițializat la
+NULL.  Cu \fBunref\fP va fi reinițializat la NULL dacă numărul de referințe
+ajunge la zero.
+
+Funcțiile \fBget\fP și \fBreap\fP folosesc parametrul \fIwhich\fP pentru a specifica
+dacă trebuie preluate doar sarcinile sau atât sarcinile cât și firele de
+execuție.
+
+Funcția \fBselect\fP necesită o matrice de PID\-uri sau UID\-uri ca \fIthese\fP
+împreună cu \fInumthese\fP pentru a identifica procesele care urmează să fie
+preluate.  Această funcție funcționează apoi ca un subset al lui \fBreap\fP.
+
+Când se utilizează funcția \fBsort\fP, parametrii \fIstacks\fP și \fInumstacked\fP ar
+fi în mod normal cei returnați în structura „pids_fetch”.
+
+În cele din urmă, o funcție \fBfatal_proc_unmounted\fP poate fi apelată
+înaintea oricărei alte funcții pentru a se asigura că directorul „/proc/”
+este montat.  Ca atare, parametrul \fIinfo\fP va fi NULL și parametrul
+\fIreturn_self\fP zero.  Dacă, totuși, unele elemente sunt dorite pentru
+programul emitent (un \fIreturn_self\fP altul decât zero), atunci apelul \fBnew\fP
+trebuie să îl precedă pentru a identifica \fIitems\fP și pentru a obține
+indicatorul \fIinfo\fP necesar.
+
+.SH "VALOARE RETURNATĂ"
+.SS "Funcții care returnează un „int” (număr întreg)"
+O eroare va fi indicată printr\-un număr negativ care este întotdeauna
+inversul unei valori binecunoscute a errno.h.
+
+Succesul este indicat de o valoare de returnare zero.  Cu toate acestea,
+funcțiile \fBref\fP și \fBunref\fP returnează numărul de referințe curent al
+structurii \fIinfo\fP.
+
+.SS "Funcții care returnează o „adresă”"
+O eroare va fi indicată printr\-un indicator de returnare NULL cu motivul
+găsit în valoarea formală errno (număr eroare).
+
+Succesul este indicat de un indicator către structura numită.  Cu toate
+acestea, dacă ceva supraviețuiește apelului \fBfatal_proc_unmounted\fP, NULL
+este întotdeauna returnat atunci când \fIreturn_self\fP este zero.
+
+.SH DEPANAREA
+Pentru a ajuta la dezvoltarea programului, există două facilități procps\-ng
+care pot fi exploatate.
+
+Prima este un fișier furnizat numit „libproc.supp” care poate fi util atunci
+când se dezvoltă o aplicație \fIcu multiple\-fire de execuție\fP.  Când este
+utilizat cu opțiunea valgrind „\-\-suppressions=”, avertismentele asociate cu
+biblioteca procps în sine sunt evitate.
+
+Astfel de avertismente apar deoarece biblioteca gestionează alocările bazate
+pe „heap” într\-o manieră sigură pentru fire.  O aplicație \fIcu un singur\-fir de execuție\fP nu va primi aceste avertismente.
+
+A doua facilitate poate ajuta să ne asigurăm că referințele membrului
+„rezultat” sunt în acord cu așteptările bibliotecii.  Se presupune că o
+macrocomandă furnizată în fișierul antet este utilizată pentru a accesa
+valoarea „rezultat”.
+
+Această caracteristică poate fi activată prin oricare dintre următoarele
+metode și orice discrepanțe vor fi scrise la \fBieșirea standard de eroare\fP.
+
+.IP 1) 3
+Adaugă CFLAGS='\-DXTRA_PROCPS_DEBUG' la orice alte opțiuni ./configure pe
+care le poate folosi proiectul dvs.
+
+.IP 2) 3
+Adaugă #include <procps/xtra\-procps\-debug.h> la orice program
+\fIdupă\fP linia #include <procps/pids.h>.
+
+.PP
+Această caracteristică de verificare implică o suprasarcină substanțială.
+Prin urmare, este important ca aceasta să \fInu\fP fie activată pentru o
+versiune de producție/lansare.
+
+.SH "VARIABILE DE MEDIU"
+Valoarea stabilită pentru următoarea variabilă este neimportantă, doar
+prezența acesteia.
+
+.IP LIBPROC_HIDE_KERNEL
+Acest lucru va ascunde firele de execuție ale nucleului care altfel ar fi
+returnate cu un apel \fBprocps_pids_get\fP, \fBprocps_pids_select\fP sau
+\fBprocps_pids_reap\fP.
+
+.SH "CONSULTAȚI ȘI"
+\fBprocps\fP(3), \fBprocps_misc\fP(3), \fBproc\fP(5).

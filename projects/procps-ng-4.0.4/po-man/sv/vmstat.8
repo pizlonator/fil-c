@@ -1,0 +1,185 @@
+.\"
+.\" Copyright (c) 2002-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2012-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1994      Henry Ware <al172@yfn.ysu.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSTAT 8 2023\-01\-18 procps\-ng Systemadministration
+.SH NAMN
+vmstat — Rapportera statistik över virtuellt minne
+.SH SYNOPSIS
+\fBvmstat\fP [flaggor] [\fIfördröjning\fP [\fIantal\fP]]
+.SH BESKRIVNING
+\fBvmstat\fP rapporterar information om processer, minne, sidväxling,
+block\-I/O, fällor, disk\- och cpu\-aktivitet.
+.PP
+Den första producerade rapporten ger genomsnitt sedan senaste omstarten.
+Följande rapporter ger information om en samplingsperiod med längden
+\fIfördröjning\fP.  Process\- och minnesrapporterna är ögonblickliga i båda
+fallen.
+.SH FLAGGOR
+.TP 
+\fIfördröjning\fP
+\fIFördröjningen\fP mellan uppdateringar i sekunder.  Om ingen \fIfördröjning\fP
+anges skrivs endast en rapport med genomsnittsvärdena sedan start.
+.TP 
+\fIantal\fP
+Antal uppdateringar.  I avsaknad av \fIantal\fP, när \fIfördröjning\fP är
+definierad, är standardvärdet oändligt.
+.TP 
+\fB\-a\fP, \fB\-\-active\fP
+Visa aktivt och inaktivt minne, förutsatt en kärna 2.5.41 eller bättre.
+.TP 
+\fB\-f\fP, \fB\-\-forks\fP
+Flaggan \fB\-f\fP visar antalet avgreningar sedan start.  Detta inkluderar
+systemanropen fork, vfork och clone, och är likvärdigt med antalet skapade
+uppgifter.  Varje process representeras av en eller flera uppgifter,
+beroende på trådanvändning.  Denna visning uppdateras inte.
+.TP 
+\fB\-m\fP, \fB\-\-slabs\fP
+Visa skivinformation.
+.TP 
+\fB\-n\fP, \fB\-\-one\-header\fP
+Visa endast huvudet en gång istället för periodiskt.
+.TP 
+\fB\-s\fP, \fB\-\-stats\fP
+Visar en tabell över olika händelseräknare och minnesstatistik.  Denna
+visning upprepas inte.
+.TP 
+\fB\-d\fP, \fB\-\-disk\fP
+Rapportera diskstatistik (2.5.70 eller senare krävs).
+.TP 
+\fB\-D\fP, \fB\-\-disk\-sum\fP
+Rapportera en del sammanfattande statistik om diskaktivitet.
+.TP 
+\fB\-p\fP, \fB\-\-partition\fP \fIenhet\fP
+Detaljerad statistik om partitioner (2.5.70 eller senare krävs).
+.TP 
+\fB\-S\fP, \fB\-\-unit\fP \fItecken\fP
+Byter utmatning mellan 1000 (\fIk\fP), 1024 (\fIK\fP), 1000000 (\fIm\fP) eller
+1048576 (\fIM\fP) byte.  Observera att detta inte ändrar fälten för växling
+(vi/vo) eller block (bi/bu).
+.TP 
+\fB\-t\fP, \fB\-\-timestamp\fP
+Lägg till en tidsstämpel till varje rad
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Brett utmatningsläge (användbart för system med större mängder minne, där
+standardläget för utmatning drabbas av oönskade trasiga kolumner).
+Utmatningen är bredare än 80 tecken per rad.
+.TP 
+\fB\-y\fP, \fB\-\-no\-first\fP
+Uteslut den första rapporten med statistik sedan systemstart.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation och avsluta.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa hjälp och avsluta.
+.PD
+.SH "FÄLTBESKRIVNING FÖR VM\-LÄGET"
+.SS Procs
+.nf
+k: Antalet körbara processer (körande eller väntande på körtid).
+b: Antalet processer blockerade väntande på I/O för att fortsätta.
+.fi
+.SS Minne
+Dessa påverkas av flaggan \fB\-\-unit\fP.
+.nf
+växl: mängden använt växlingsminne.
+fritt: mängden oanvänt minne.
+buff: mängden minne använt som buffertar.
+cache: mängden minne använt som cache.
+inakt: mängden inaktivt minne. (flaggan \fB\-a\fP)
+aktivt: mängden aktivt minne. (flaggan \fB\-a\fP)
+.fi
+.SS Växling
+Dessa påverkas av flaggan \fB\-\-unit\fP.
+.nf
+vi: Mängden minne växlat in från disk (/s).
+vu: Mängden minne växlat ut till disk (/s).
+.fi
+.SS IO
+.nf
+bi: Kibibyte mottagna från en blockenhet (KiB/s).
+bu: Kibibyte skickade till en blockenhet (KiB/s).
+.fi
+.SS System
+.nf
+avb: Antalet avbrott per sekund, inklusive klockan.
+ktxb: Antalet kontextbyten per sekund.
+.fi
+.SS CPU
+Detta är procentandelar av total CPU\-tid.
+.nf
+an: Tid tillbringad att köra icke\-kärnkod.  (användartid, inklusive nice\-tid)
+sy: Tid tillbringad att köra kärnkod.  (systemtid)
+in: Tid tillbringad inaktiv.  Före Linux 2.5.41 inkluderar detta IO\-väntetid.
+vä: Tid tillbringad väntande på IO.  Före Linux 2.5.41 inkluderat i inaktiv.
+st: Tid stulen från en virtuell maskin.  Före Linux 2.6.11, okänd.
+gä: Tid tillbringar med att köra KVM\-gästkod (gästtid, inklusive gäst\-nice).
+.fi
+.SH "FÄLTBESKRIVNING FÖR DISK\-LÄGET"
+.SS Läsningar
+.nf
+totalt: Totalt avslutade lyckade läsningar
+grupp: grupperade läsningar (resulterar i en I/O)
+sektor: Sektorer lyckat lästa
+ms: millisekunder tillbringat med läsningar
+.fi
+.SS Skrivningar
+.nf
+totalt: Totalt avslutade lyckade skrivningar
+grupp: grupperade skrivningar (resulterar i en I/O)
+sektor: Sektorer lyckat skrivna
+ms: millisekunder tillbringat med skrivningar
+.fi
+.SS IO
+.nf
+akt: pågående I/O
+s: sekunder tillbringat i I/O
+.fi
+.SH "FÄLTBESKRIVNING FÖR DISKPARTITIONSLÄGET"
+.nf
+läsningar: Totalt antal läsningar skickade till denna partition
+lästa sektorer: Totalt lästa sektorer från partitionen
+skrivningr: Totalt antal skrivningar skickade till denna partition
+beg skrivn: Totalt antal skrivbegäranden gjorda för partitionen
+.fi
+.SH "FÄLTBESKRIVNING FÖR SKIVLÄGET"
+Slab\-läge visar statistik per slab, för mer information om denna information
+se \fBslabinfo\fP(5)
+.PP
+.nf
+cache: Cachenamn
+antal: Antal för närvarande aktiva objekt
+totalt: Totalt antal tillgängliga objekt
+strlk: Storlek på varje objekt
+sidor: Antal sidor med åtminstone ett aktivt objekt
+.fi
+.SH OBSERVERA
+\fBvmstat\fP kräver läsåtkomst av filer under \fI/proc\fP. Flaggan \fB\-m\fP kräver
+läsåtkomst av \fI/proc/slabinfo\fP vilket kanske inte är tillgängligt för
+vanliga användare. Monteringsflaggor för \fI/proc\fP såsom \fIsubset=pid\fP kan
+också påverka vad som är synligt.
+.SH "SE ÄVEN"
+\fBfree\fP(1), \fBiostat\fP(1), \fBmpstat\fP(1), \fBps\fP(1), \fBsar\fP(1), \fBtop\fP(1),
+\fBslabinfo\fP(5)
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

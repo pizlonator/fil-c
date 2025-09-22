@@ -1,0 +1,92 @@
+.\"
+.\" Copyright (c) 2016-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2019-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1999      George Staikos <staikos@0wned.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH SYSCTL.CONF "5" "2021-09-15" "procps-ng" "File Formats"
+.SH NAME
+sysctl.conf \- sysctl preload/configuration file
+.SH DESCRIPTION
+.B sysctl.conf
+is a simple file containing sysctl values to be read in and set by
+.BR sysctl .
+The syntax is simply as follows:
+.RS
+.sp
+.nf
+.ne 7
+# comment
+; comment
+
+token = value
+.fi
+.RE
+.PP
+Note that blank lines are ignored, and whitespace before and after a token or
+value is ignored, although a value can contain whitespace within.  Lines which
+begin with a \fI#\fR or \fI;\fR are considered comments and ignored.
+
+If a line begins with a single \-, any attempts to set the value that fail will be
+ignored.
+
+.SH NOTES
+As the
+.BR /etc/sysctl.conf
+file is used to override default kernel parameter values, only a small number of parameters is predefined in the file.
+Use
+.IR /sbin/sysctl\ \-a
+or follow
+.BR sysctl (8)
+to list all possible parameters. The description of individual parameters can be found in the kernel documentation.
+
+Maximum supported line length of the value is 4096 characters due
+to a limitation of \fI/proc\fR entries in Linux kernel.
+.SH EXAMPLE
+.RS
+.sp
+.nf
+.ne 7
+# sysctl.conf sample
+#
+  kernel.domainname = example.com
+; this one has a space which will be written to the sysctl!
+  kernel.modprobe = /sbin/mod probe
+.fi
+.RE
+.PP
+.SH FILES
+.I /etc/sysctl.d/*.conf
+.br
+.I /run/sysctl.d/*.conf
+.br
+.I /usr/local/lib/sysctl.d/*.conf
+.br
+.I /usr/lib/sysctl.d/*.conf
+.br
+.I /lib/sysctl.d/*.conf
+.br
+.I /etc/sysctl.conf
+
+The paths where
+.B sysctl
+preload files usually exist.  See also
+.B sysctl
+option
+.IR \-\-system .
+.SH SEE ALSO
+.BR sysctl (8)
+.SH AUTHOR
+.UR staikos@0wned.org
+George Staikos
+.UE
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE

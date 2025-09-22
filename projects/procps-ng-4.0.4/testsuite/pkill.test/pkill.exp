@@ -1,0 +1,51 @@
+#
+# Dejagnu tests for pkill - part of procps
+#
+set mypid [pid]
+set not_ppid [ expr { $mypid + 1 } ]
+set pkill "${topdir}src/pkill"
+set uid [ exec id -u ]
+set not_uid [ expr { $uid + 1 } ]
+set gid [ exec id -g ]
+set not_gid [ expr { $gid + 1 } ]
+set ps "${topdir}src/ps/pscommand"
+set tty [ get_tty ]
+
+set test "pkill with no arguments"
+spawn $pkill
+expect_pass "$test" "^\(lt-\)\?pkill: no matching criteria specified\\s*"
+
+make_testproc
+set testproc_len [ string length $testproc_comm ]
+set testproc_trim [ string range $testproc_comm 0 [ expr { $testproc_len - 2 } ] ]
+
+set test "pkill find both test pids"
+spawn $pkill -0 -e $testproc_comm
+expect_pass "$test" "^$testproc_comm killed \\(pid $testproc1_pid\\)\\s+$testproc_comm killed \\(pid $testproc2_pid\\)\\s*$"
+
+set test "pkill signal option order"
+spawn $pkill -e $testproc_comm -0
+expect_pass "$test" "^$testproc_comm killed \\(pid $testproc1_pid\\)\\s+$testproc_comm killed \\(pid $testproc2_pid\\)\\s*$"
+
+set test "pkill with trailing garbage on int signal"
+spawn $pkill -0garbage $testproc_comm
+expect_pass "$test" "invalid option -- '0'"
+
+# Cleanup
+kill_testproc
+
+make_pipeproc
+
+set test "pkill with SIGUSR1"
+spawn $pkill -USR1 -e $testproc_comm
+expect_pipeproc_pass "$test" "SIG SIGUSR1"
+
+set test "pkill with SIGUSR2"
+spawn $pkill -USR2 -e $testproc_comm
+expect_pipeproc_pass "$test" "SIG SIGUSR2"
+
+set test "pkill with queued int"
+spawn $pkill -USR1 -e -q 42 $testproc_comm
+expect_pipeproc_pass "$test" "SIG SIGUSR1 value=42"
+
+kill_pipeproc

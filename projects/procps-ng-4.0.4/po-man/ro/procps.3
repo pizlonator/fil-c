@@ -1,0 +1,183 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS 3 "august 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NUME
+procps \- API (interfață de program) pentru a accesa informații la nivel de
+sistem din sistemul de fișiere „/proc”
+
+.SH REZUMAT
+Cinci interfețe distincte sunt reprezentate în acest rezumat și numite după
+fișierele pe care le accesează în pseudosistemul de fișiere „/proc”:
+\fBdiskstats\fP, \fBmeminfo\fP, \fBslabinfo\fP, \fBstat\fP și \fBvmstat\fP.
+
+.nf
+.RS +4
+#include <libproc2/\fBinterfața_numită\fP.h>
+
+int\fB procps_new  \fP (struct info **\fIinfo\fP);
+int\fB procps_ref  \fP (struct info  *\fIinfo\fP);
+int\fB procps_unref\fP (struct info **\fIinfo\fP);
+
+struct result *\fBprocps_get\fP (
+    struct info *\fIinfo\fP,
+[   const char *\fIname\fP,      ]   doar interfața programului \fBdiskstats\fP
+    enum item \fIitem\fP);
+
+struct stack *\fBprocps_select\fP (
+    struct info *\fIinfo\fP,
+[   const char *\fIname\fP,      ]   doar interfața programului \fBdiskstats\fP
+    enum item *\fIitems\fP,
+    int \fInumitems\fP);
+
+struct reaped *\fBprocps_reap\fP (
+    struct info *\fIinfo\fP,
+[   enum reap_type \fIwhat\fP,   ]   doar interfața programului \fBstat\fP
+    enum item *\fIitems\fP,
+    int \fInumitems\fP);
+
+struct stack **\fBprocps_sort\fP (
+    struct info *\fIinfo\fP,
+    struct stack *\fIstacks\fP[],
+    int \fInumstacked\fP,
+    enum item \fIsortitem\fP,
+    enum sort_order \fIorder\fP);
+
+.fi
+
+Funcțiile și structurile de mai sus sunt generice, dar specificația
+\fBinterfața_numită\fP ar fi, de asemenea, parte a oricăror identificatori.  De
+exemplu, „procps_new” ar fi de fapt „procps_\fBmeminfo\fP_new” și „info” ar fi
+cu adevărat „\fBdiskstats\fP_info”, etc.
+
+Același nume de \fBinterfața_numită\fP este folosit în fiecare nume de fișier
+antet cu un sufix `.h'.
+
+Legătură cu \fI\-lproc2\fP.
+
+.SH DESCRIERE
+.SS "Prezentare generală"
+Esențial pentru aceste interfețe este o structură simplă de „rezultat” care
+reflectă un „element” plus valoarea acestuia (într\-o uniune cu tipuri de
+limbaj C standard ca membri).  Toate structurile „rezultat” sunt alocate și
+furnizate automat de bibliotecă.
+
+Prin specificarea unei matrice de „elemente”, aceste structuri pot fi
+organizate ca o „stivă”, cu potențialul de\-a produce multe rezultate cu un
+singur apel către funcție.  Astfel, o „stivă” poate fi văzută ca o
+înregistrare cu lungime variabilă al cărei conținut și ordine sunt
+determinate exclusiv de utilizator.
+
+Ca parte a fiecărei interfețe există doi enumeratori unici.  Elementele
+„noop” și „extra” există pentru a păstra valorile utilizatorului.  Ele nu
+sunt niciodată definite de bibliotecă, dar rezultatul „extra” va fi redus la
+zero cu fiecare interacțiune cu bibliotecă.
+
+Documentul de bază în dezvoltarea unui program de utilizator va fi fișierul
+antet \fBinterfața_numită\fP.  Acolo veți găsi elementele disponibile, tipul pe
+care acestea îl returnează (numele membrului structurii „rezultat)” și sursa
+acestor valori.  Acolo sunt de asemenea documentați enumeratori și structuri
+suplimentare.
+
+.SS Utilizare
+Următoarele linii, ar fi o secvență tipică de apeluri la aceste interfețe.
+
+.nf
+1. \fBprocps_new()\fP
+2. \fBprocps_get()\fP, \fBprocps_select()\fP sau \fBprocps_reap()\fP
+3. \fBprocps_unref()\fP
+.fi
+
+Funcția \fBget\fP este folosită pentru a prelua o structură „rezultat” pentru
+un singur „element”.  Alternativ, o macrocomandă \fBGET\fP este disponibilă
+atunci când doar valoarea returnată este de interes.
+
+Funcția \fBselect\fP poate prelua mai multe structuri „rezultat” într\-o singură
+„stivă”.
+
+Pentru rezultate variabile imprevizibile, interfețele \fBdiskstats\fP,
+\fBslabinfo\fP și \fBstat\fP exportă o funcție \fBreap\fP.  Este folosită pentru a
+prelua mai multe „stive” fiecare conținând mai multe structuri „rezultat”.
+Opțional, un utilizator poate alege să \fBsorteze\fP acele rezultate.
+
+Pentru a exploata orice „stivă” și pentru a accesa structuri „rezultat”
+individuale, este necesar un \fIrelative_enum\fP, așa cum se arată în
+macrocomanda \fBVAL\fP definită în fișierul antet.  Astfel de valori ar putea
+fi codificate ca: de la 0 la numitems\-1.  Cu toate acestea, această nevoie
+este de obicei satisfăcută prin crearea propriilor enumeratori
+corespunzători ordinii matricei „elemente”.
+
+.SS Avertismente
+Funcțiile \fBnew\fP, \fBref\fP, \fBunref\fP, \fBget\fP și \fBselect\fP sunt disponibile în
+toate cele cinci interfețe.
+
+Pentru funcțiile \fBnew\fP și \fBunref\fP, trebuie furnizată adresa unui indicator
+de structură \fIinfo\fP.  Cu \fBnew\fP, acesta trebuie să fi fost inițializat la
+NULL.  Cu \fBunref\fP va fi reinițializat la NULL dacă numărul de referințe
+ajunge la zero.
+
+În cazul interfeței \fBdiskstats\fP, un parametru \fIname\fP în funcțiile \fBget\fP
+și \fBselect\fP identifică un nume de disc sau partiție
+
+Pentru interfața \fBstat\fP, un parametru \fIwhat\fP în funcția \fBreap\fP identifică
+dacă trebuie adunate date doar pentru CPU\-uri sau atât pentru CPU\-uri cât și
+pentru nodurile NUMA.
+
+Când se utilizează funcția \fBsort\fP, parametrii \fIstaks\fP și \fInumstacked\fP ar
+fi în mod normal cei returnați în structura „reaped”.
+
+.SH "VALOARE RETURNATĂ"
+.SS "Funcții care returnează un „int” (număr întreg)"
+O eroare va fi indicată printr\-un număr negativ care este întotdeauna
+inversul unei valori binecunoscute a errno.h.
+
+Succesul este indicat de o valoare de returnare zero.  Cu toate acestea,
+funcțiile \fBref\fP și \fBunref\fP returnează numărul de referințe curent al
+structurii \fIinfo\fP.
+
+.SS "Funcții care returnează o „adresă”"
+O eroare va fi indicată printr\-un indicator de returnare NULL cu motivul
+găsit în valoarea formală errno (număr eroare).
+
+Succesul este indicat de un indicator către structura numită.
+
+.SH DEPANAREA
+Pentru a ajuta la dezvoltarea programului, este prevăzută o facilitate care
+poate ajuta la asigurarea faptului că referințele la membrii „rezultate”
+sunt în concordanță cu așteptările bibliotecii.  Această facilitate
+presupune că macrocomanda furnizată în fișierul antet va fi utilizată pentru
+a accesa valoarea „rezultat”.
+
+Această caracteristică poate fi activată prin oricare dintre următoarele
+metode și orice discrepanțe vor fi scrise la \fBieșirea standard de eroare\fP.
+
+.IP 1) 3
+Adaugă CFLAGS='\-DXTRA_PROCPS_DEBUG' la orice alte opțiuni ./configure
+utilizate.
+
+.IP 2) 3
+Adaugă #include <procps/xtra\-procps\-debug.h> la orice program
+\fIdupă\fP comenzile include ale interfețelor numite.
+
+.PP
+Această caracteristică de verificare implică o suprasarcină substanțială.
+Prin urmare, este important ca aceasta să \fInu\fP fie activată pentru o
+versiune de producție/lansare.
+
+.SH "CONSULTAȚI ȘI"
+\fBprocps_misc\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

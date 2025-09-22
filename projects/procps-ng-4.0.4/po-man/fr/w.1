@@ -1,0 +1,105 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2015-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2012-2013 Jaromir Capik <jcapik@redhat.com>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH W 1 2023\-01\-15 procps\-ng "Commandes de l'utilisateur"
+.SH NOM
+w \- Afficher les utilisateurs présents sur le système et leur activité
+.SH SYNOPSIS
+\fBw\fP [\fIoptions\fP] [\fIuser\fP]
+.SH DESCRIPTION
+\fBw\fP affiche des informations concernant les utilisateurs qui sont
+actuellement présents sur le système et leurs processus. L'en\-tête affiche,
+dans cet ordre, l'heure actuelle, depuis combien de temps le système est
+actif, combien d'utilisateurs sont actuellement présents sur le système et
+la charge moyenne du système pour la dernière, les 5 et les 15 dernières
+minutes.
+.PP
+Les entrées suivantes sont affichées pour chacun des utilisateurs\ : nom
+d'utilisateur, nom du terminal («\ tty\ »), hôte distant, temps écoulé depuis
+le début de la connexion, temps d'inactivité, JCPU, PCPU, ainsi que la ligne
+de commande de leur processus en cours.
+.PP
+Le temps JCPU est le temps utilisé par tous les processus attachés au
+tty. Il n'inclut pas les travaux terminés qui ont été exécutés en tâche de
+fond, mais il inclut les travaux en tâche de fond qui sont actuellement
+actifs.
+.PP
+Le temps PCPU est le temps utilisé par le processus actuel, le nom de ce
+processus se trouve dans la colonne dont l'intitulé est «\ WHAT\ ».
+.SH "OPTIONS DE LA LIGNE DE COMMANDE"
+.TP 
+\fB\-h\fP, \fB\-\-no\-header\fP
+Ne pas afficher l'en\-tête
+.TP 
+\fB\-u\fP, \fB\-\-no\-current\fP
+Ignorer le nom d'utilisateur lors de la détermination du nombre de processus
+et des temps CPU. Pour en voir l'effet, faire \fBsu\fP puis \fBw\fP et \fBw \-u\fP.
+.TP 
+\fB\-s\fP, \fB\-\-short\fP
+Utiliser le format court. N'afficher ni le temps de présence ni les temps
+JCPU et PCPU.
+.TP 
+\fB\-f\fP, \fB\-\-from\fP
+Alterner entre l'activation et la désactivation de l'affichage du champ
+«\ FROM\ » (nom de l'hôte distant). Le comportement initial par défaut est de
+ne pas afficher le champ «\ FROM\ ». Cependant, une version affichant le champ
+«\ FROM\ » par défaut peut avoir été compilée par l'administrateur système ou
+les responsables de la distribution.
+.TP 
+\fB\-\-help\fP
+Afficher l'aide et quitter.
+.TP 
+\fB\-i\fP, \fB\-\-ip\-addr\fP
+Afficher l'adresse IP au lieu du nom d'hôte pour le champ «\ FROM\ ».
+.TP 
+\fB\-p\fP, \fB\-\-pids\fP
+Display pid of the login process/the "what" process in the "what" field.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afficher les informations de version.
+.TP 
+\fB\-o\fP, \fB\-\-old\-style\fP
+Formatage de la sortie selon l'ancien style. Laisser vierges les durées
+d'inactivité de moins d'une minute.
+.TP 
+\fButilisateur \fP
+N'afficher d'informations que pour l'utilisateur indiqué.
+.SH ENVIRONNEMENT
+.TP 
+PROCPS_USERLEN
+Remplace la largeur par défaut de la colonne «\ USER\ ». La valeur par défaut
+est de 8.
+.TP 
+PROCPS_FROMLEN
+Remplace la largeur par défaut de la colonne «\ FROM\ ». La valeur par défaut
+est de 16.
+.SH FICHIERS
+.TP 
+\fI/var/run/utmp\fP
+informations concernant les utilisateurs présents sur le système
+.TP 
+\fI/proc\fP
+informations concernant les processus
+.SH "VOIR AUSSI"
+\fBfree\fP(1), \fBps\fP(1), \fBtop\fP(1), \fBuptime\fP(1), \fButmp\fP(5), \fBwho\fP(1)
+.SH AUTEURS
+\fBw\fP a presque entièrement été réécrit par Charles Blake qui s'est basé sur
+une version de Larry Greenfield <\fIgreenfie@gauss.rutgers.edu\fP> et
+Michael K. Johnson <\fIjohnsonm@redhat.com\fP>.
+.SH BOGUES
+Signalez les bogues à <\fIprocps@freelists.org\fP>

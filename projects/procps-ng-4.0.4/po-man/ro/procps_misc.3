@@ -1,0 +1,157 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_MISC 3 "august 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NUME
+procps_misc \- API (interfață de program) pentru a accesa diverse informații
+din sistemul de fișiere „/proc”
+.SH REZUMAT
+.nf
+\fB#include <libproc2/misc.h>\fP
+.PP
+Detalii platformă
+.RS 4
+.PP
+long         \fBprocps_cpu_count\fP (void);
+long         \fBprocps_hertz_get\fP (void);
+unsigned int \fBprocps_pid_length\fP (void);
+int          \fBprocps_linux_version\fP (void);
+.RE
+.PP
+Detalii privind timpul de execuție
+.PP
+.RS 4
+int  \fB procps_loadavg\fP (double *\fIav1\fP, double *\fIav5\fP, double *\fIav15\fP);
+int  \fB procps_uptime\fP (double *\fIuptime_secs\fP, double *\fIidle_secs\fP);
+char *\fBprocps_uptime_sprint\fP (void);
+char *\fBprocps_uptime_sprint_short\fP (void);
+.RE
+.PP
+Detalii despre spațiul de nume
+.PP
+.RS 4
+int       \fB  procps_ns_get_id\fP (const char *\fIname\fP);
+const char\fB *procps_ns_get_name\fP (int \fIid\fP);
+int       \fB  procps_ns_read_pid\fP (int \fIpid\fP, struct procps_ns *\fInsp\fP);
+.RE
+
+Legătură cu \fI\-lproc2\fP.
+
+.SH DESCRIERE
+\fBprocps_cpu_count\fP()  returnează numărul de procesoare care sunt în prezent
+active ca \fBsysconf(\fP\fI_SC_NPROCESSORS_ONLY\fP\fB)\fP sau un presupus \fI1\fP.
+
+\fBprocps_hertz_get\fP() returnează numărul de cicluri de ceas pe secundă ca
+\fBsysconf(\fP\fI_SC_CLK_TCK\fP\fB)\fP sau se presupunu o valoare de \fI100\fP.
+Împărțirea ciclurilor la această valoare generează secunde.
+
+\fBprocps_pid_length\fP()  returnează lungimea maximă a șirului pentru un PID
+activ al sistemului. De exemplu, dacă cea mai mare valoare posibilă de PID
+activ a fost 123, atunci lungimea ar fi 3. Dacă fișierul
+\fI/proc/sys/kernel/pid_max\fP nu poate fi citit, se presupune că valoarea este
+\fI5\fP.
+
+\fBprocps_linux_version\fP()  returnează versiunea curentă a nucleului Linux ca
+un întreg codificat. Pe sistemele non\-Linux care au un sistem de fișiere
+proc emulat, această funcție returnează versiunea emulării Linux.  Versiunea
+constă din trei numere întregi pozitive reprezentând nivelurile major, minor
+și plasture(patch). Următoarele macrocomenzi sunt furnizate pentru a
+codifica o anumită versiune Linux sau pentru a separa componentele versiunii
+curente.
+.RS 4
+.PP
+LINUX_VERSION(\ major\ ,\ minor\ ,\ patch\ )
+.PP
+LINUX_VERSION_MAJOR(\ ver\ )
+.PP
+LINUX_VERSION_MINOR(\ ver\ )
+.PP
+LINUX_VERSION_PATCH(\ ver\ )
+.RE
+
+\fBprocps_loadavg\fP()  preia media de încărcare a sistemului și plasează
+mediile de 1, 5 și 15 minute în locațiile specificate de orice indicator
+care nu este \fINULL\fP.
+
+\fBprocps_uptime\fP()  returnează timpul de funcționare și/sau secundele de
+inactivitate în locațiile specificate de orice indicator care nu este
+\fINULL\fP.  Utilizarea formatului \fBsprint\fP returnează un șir care poate fi
+citit de om în una dintre cele două forme.
+.RS 4
+.PP
+HH:MM:SS up HH:MM, # users, load average: 1, 5, 15 MM averages
+.PP
+up HH, MM
+.RE
+
+\fBprocps_ns_get_id\fP() returnează id\-ul întreg (enum namespace_type) al
+spațiului de nume pentru spațiul de nume dat \fInume\fP.
+
+\fBprocps_ns_get_name\fP() returnează numele spațiului de nume pentru \fIid\fP\-ul
+dat (enum namespace_type).
+
+\fBprocps_ns_read_pid\fP() returnează nodul\-i pentru spațiile de nume ale
+procesului dat în structura procps_ns indicată de \fInsp\fP.  Acele noduri\-i
+vor apărea în ordinea prescrisă de enumerarea namespace_type.
+.PP
+.RS 4
+.nf
+enum namespace_type {
+    PROCPS_NS_CGROUP,
+    PROCPS_NS_IPC,
+    PROCPS_NS_MNT,
+    PROCPS_NS_NET,
+    PROCPS_NS_PID,
+    PROCPS_NS_TIME,
+    PROCPS_NS_USER,
+    PROCPS_NS_UTS
+};
+.fi
+.RE
+
+
+.SH "VALOARE RETURNATĂ"
+.SS "Funcții care returnează un „int” (număr întreg) sau un „long” (număr întreg lung)"
+O eroare va fi indicată printr\-un număr negativ care este întotdeauna
+inversul unei valori binecunoscute a errno.h.
+
+.SS "Funcții care returnează o „adresă”"
+O eroare va fi indicată printr\-un indicator de returnare NULL cu motivul
+găsit în valoarea formală errno (număr eroare).
+
+.SH FIȘIERE
+.TP 
+\fI/proc/loadavg\fP
+Valorile brute pentru media de încărcare.
+.TP 
+\fI/proc/sys/kernel/osrelease\fP
+Conține versiunea de lansare a nucleului Linux sau a sistemului de fișiere
+proc.
+.TP 
+\fI/proc/sys/kernel/pid_max\fP
+Conține valoarea la care se încadrează PID\-urile, cu una mai mare decât
+valoarea PID maximă.
+.TP 
+\fI/proc/uptime\fP
+Valorile brute pentru timpul de funcționare și timpul de inactivitate.
+.TP 
+\fI/proc/<PID>/ns\fP
+conține setul de spații de nume pentru un anumit \fBPID\fP.
+
+.SH "CONSULTAȚI ȘI"
+\fBprocps\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

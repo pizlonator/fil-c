@@ -1,0 +1,155 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_MISC 3 "серпень 2022 року" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH НАЗВА
+procps_misc — програмний інтерфейс до різноманітних даних у файловій системі
+/proc
+.SH "КОРОТКИЙ ОПИС"
+.nf
+\fB#include <libproc2/misc.h>\fP
+.PP
+Подробиці щодо платформи
+.RS 4
+.PP
+long         \fBprocps_cpu_count\fP (void);
+long         \fBprocps_hertz_get\fP (void);
+unsigned int \fBprocps_pid_length\fP (void);
+int          \fBprocps_linux_version\fP (void);
+.RE
+.PP
+Подробиці щодо середовища виконання
+.PP
+.RS 4
+int  \fB procps_loadavg\fP (double *\fIav1\fP, double *\fIav5\fP, double *\fIav15\fP);
+int  \fB procps_uptime\fP (double *\fIuptime_secs\fP, double *\fIidle_secs\fP);
+char *\fBprocps_uptime_sprint\fP (void);
+char *\fBprocps_uptime_sprint_short\fP (void);
+.RE
+.PP
+Подробиці щодо простору назв
+.PP
+.RS 4
+int       \fB  procps_ns_get_id\fP (const char *\fIname\fP);
+const char\fB *procps_ns_get_name\fP (int \fIid\fP);
+int       \fB  procps_ns_read_pid\fP (int \fIpid\fP, struct procps_ns *\fInsp\fP);
+.RE
+
+Компонувати з \fI\-lproc2\fP.
+
+.SH ОПИС
+\fBprocps_cpu_count\fP() повертає кількість робочих процесорів як
+\fBsysconf(\fP\fI_SC_NPROCESSORS_ONLY\fP\fB)\fP або типове значення \fI1\fP.
+
+\fBprocps_hertz_get\fP() повертає кількість тактів годинника на секунду як
+\fBsysconf(\fP\fI_SC_CLK_TCK\fP\fB)\fP або типове значення \fI100\fP. Якщо поділити
+такти на це значення, буде отримано секунди.
+
+\fBprocps_pid_length\fP() повертає максимальну довжину рядка для PID у
+системі. Наприклад, якщо найбільше можливе значення PID — 123, довжиною буде
+3. Якщо файл \fI/proc/sys/kernel/pid_max\fP виявиться недоступним до читання,
+типовим значенням буде \fI5\fP.
+
+\fBprocps_linux_version\fP() повертає версію поточної системи Linux у форматі
+закодованого цілого числа. У системах, відмінних від Linux, із імітацією
+файлової системи proc ця функція повертає версію емуляції Linux. Версія
+складається з трьох додатних цілих чисел, які відповідають основній,
+проміжній частинам і частині модифікації. Передбачено вказані нижче макроси
+для кодування заданої версії Linux або окремого використання компонентів
+поточної версії.
+.RS 4
+.PP
+LINUX_VERSION(\ major\ ,\ minor\ ,\ patch\ )
+.PP
+LINUX_VERSION_MAJOR(\ ver\ )
+.PP
+LINUX_VERSION_MINOR(\ ver\ )
+.PP
+LINUX_VERSION_PATCH(\ ver\ )
+.RE
+
+\fBprocps_loadavg\fP() отримує дані щодо середнього навантаження на систему і
+записує середні значення за 1, 5 і 15 хвилин у місця, які вказано будь\-яким
+вказівником, який не є порожнім (\fINULL\fP).
+
+\fBprocps_uptime\fP() повертає час роботи і/або бездіяльності у секундах у
+місця, які вказано будь\-яким вказівником, який не є порожнім
+(\fINULL\fP). Використання форматування \fBsprint\fP повертає рядок у зручному для
+читання форматі в одній із двох форм.
+.RS 4
+.PP
+ГГ:ХХ:СС up ГГ:ХХ, # users, load average: 1, 5, 15 MM averages
+.PP
+up ГГ, ХХ
+.RE
+
+\fBprocps_ns_get_id\fP() повертає цілочисельний ідентифікатор (enum
+namespace_type) простору назв для заданого простору назв \fIname\fP.
+
+\fBprocps_ns_get_name\fP() повертає назву простора назв для заданого \fIid\fP
+(enum namespace_type).
+
+\fBprocps_ns_read_pid\fP() повертає inode\-и для просторів назв із заданим
+процесом у структурі procps_ns на яку вказує \fInsp\fP. Ці inode\-и буде
+виведено у порядку, який визначається переліком namespace_type.
+.PP
+.RS 4
+.nf
+enum namespace_type {
+    PROCPS_NS_CGROUP,
+    PROCPS_NS_IPC,
+    PROCPS_NS_MNT,
+    PROCPS_NS_NET,
+    PROCPS_NS_PID,
+    PROCPS_NS_TIME,
+    PROCPS_NS_USER,
+    PROCPS_NS_UTS
+};
+.fi
+.RE
+
+
+.SH "ПОВЕРНУТЕ ЗНАЧЕННЯ"
+.SS "Функції, які повертають «int» або «long»"
+На помилку вказуватиме від'ємне число, яке є завжди оберненим до якогось
+відомого значення з errno.h.
+
+.SS "Функції, які повертають «address»"
+На помилку вказуватиме повернутий NUL\-вказівник із повідомлення про причину
+у формальному значенні errno.
+
+.SH ФАЙЛИ
+.TP 
+\fI/proc/loadavg\fP
+Необроблені значення для середнього навантаження.
+.TP 
+\fI/proc/sys/kernel/osrelease\fP
+Містить версію випуску ядра Linux або файлової системи proc.
+.TP 
+\fI/proc/sys/kernel/pid_max\fP
+Містить значення, на якому відбувається зациклювання PID, на одиницю більше
+за максимальне значення PID.
+.TP 
+\fI/proc/uptime\fP
+Необроблені значення для часу роботи та часу бездіяльності.
+.TP 
+\fI/proc/<PID>/ns\fP
+містить набір просторів назв для певного \fBPID\fP.
+
+.SH "ТАКОЖ ПЕРЕГЛЯНЬТЕ"
+\fBprocps\fP(3), \fBprocps_pids\fP(3), \fBproc\fP(5).

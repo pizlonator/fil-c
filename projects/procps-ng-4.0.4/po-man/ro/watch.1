@@ -1,0 +1,206 @@
+.\"
+.\" Copyright (c) 2009-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2018-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2003      Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WATCH 1 17.01.2023 procps\-ng "Comenzi utilizator"
+.SH NUME
+watch \- execut\- un program periodic, afișând ieșirea pe întreg ecranul
+.SH REZUMAT
+\fBwatch\fP [\fIopțiuni\fP] \fIcomanda\fP
+.SH DESCRIERE
+\fBwatch\fP rulează \fIcomanda\fP în mod repetat, afișând rezultatul și erorile
+(primul conținut al ecranului).  Acest lucru vă permite să urmăriți
+modificarea ieșirii programului în timp.  În mod implicit, \fIcomanda\fP este
+rulată la fiecare 2 secunde și \fBwatch\fP va rula până când este întrerupt.
+.SH OPȚIUNI
+.TP 
+\fB\-b\fP, \fB\-\-beep\fP
+Emite un bip dacă comanda are o ieșire diferită de zero.
+.TP 
+\fB\-c\fP, \fB\-\-color\fP
+Interpretează secvențele de culori și stil ANSI.
+.TP 
+\fB\-C\fP, \fB\-\-no\-color\fP
+Nu interpretează secvențele de culori și stil ANSI.
+.TP 
+\fB\-d\fP, \fB\-\-differences\fP[=\fIpermanent\fP]
+Evidențiază diferențele dintre actualizările succesive. Dacă este specificat
+argumentul opțional \fIpermanent\fP, atunci \fBwatch\fP va afișa toate
+modificările de la prima iterație.
+.TP 
+\fB\-e\fP, \fB\-\-errexit\fP
+Îngheață actualizările la producerea unei erori la ieșirea comenzii și iese
+după apăsarea unei taste.
+.TP 
+\fB\-g\fP, \fB\-\-chgexit\fP
+Iese, când ieșirea \fIcomenzii\fP se modifică.
+.TP 
+\fB\-n\fP, \fB\-\-interval\fP \fIsecunde\fP
+Specifică intervalul de actualizare.  Comanda nu va permite un interval mai
+rapid de 0,1 secunde, în care valorile mai mici sunt convertite.  Ambele
+semne de separare a zecimalelor „.’ și „,”, funcționează pentru orice
+configurare regională.  Variabila de mediu \fBWATCH_INTERVAL\fP, poate fi
+utilizată pentru a configura în mod persistent un interval care nu este
+implicit (urmând aceleași reguli și formatare).
+.TP 
+\fB\-p\fP, \fB\-\-precise\fP
+Face ca \fBwatch\fP să încerce să ruleze \fIcomanda\fP la fiecare \fB\-\-interval\fP
+\fIsecunde\fP.  Încercați\-o cu \fBntptime\fP (dacă este prezent) și observați cum
+fracțiile de secunde rămân (aproape) aceleași, spre deosebire de modul
+normal în care acestea cresc continuu.
+.TP 
+\fB\-q\fP, \fB\-\-equexit\fP <cycles>
+Iese, când ieșirea \fIcomenzii\fP nu se modifică pentru numărul de cicluri dat.
+.TP 
+\fB\-r\fP, \fB\-\-no\-rerun\fP
+Nu rulează programul la redimensionarea terminalului, ieșirea programului va
+apărea din nou la următoarea rulare obișnuită.
+.TP 
+\fB\-t\fP, \fB\-\-no\-title\fP
+Dezactivează antetul care afișează intervalul, comanda și ora curentă în
+partea de sus a afișajului, precum și următoarea linie goală.
+.TP 
+\fB\-w\fP, \fB\-\-no\-wrap\fP
+Dezactivează încadrarea liniilor (prin împărțirea lor la lățimea
+ferestrei). Liniile lungi vor fi trunchiate în loc să fie transferate pe
+linia următoare.
+.TP 
+\fB\-x\fP, \fB\-\-exec\fP
+Pasează \fIcomanda\fP la \fBexec\fP(2) în loc de la \fBsh \-c\fP, ceea ce reduce
+nevoia de a folosi ghilimele suplimentare pentru a obține efectul dorit.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Afișează acest mesaj de ajutor.
+.TP 
+\fB\-v\fP, \fB\-\-version\fP
+Afișează informațiile despre versiune și iese.
+.SH "STARE DE IEȘIRE"
+.PP
+.RS
+.PD 0
+.TP 
+\fB0\fP
+Succes.
+.TP 
+\fB1\fP
+Diverse eșecuri.
+.TP 
+\fB2\fP
+Bifurcarea procesului de monitorizare a eșuat.
+.TP 
+\fB3\fP
+Înlocuirea ieșirii standard a procesului\-copil din partea de scriere a
+conductei a eșuat.
+.TP 
+\fB4\fP
+Execuția comenzii a eșuat.
+.TP 
+\fB5\fP
+Închiderea conductei de scriere a procesului\-copil a eșuat.
+.TP 
+\fB7\fP
+O încercare de a crea o conductă IPC a eșuat.
+.TP 
+\fB8\fP
+Obținerea valorii de returnare a procesului\-copil cu \fBwaitpid\fP(2) a eșuat
+sau comanda a ieșit din eroare.
+.TP 
+\fBaltul\fP
+«watch» va transmite starea de ieșire a comenzii ca stare de ieșire a
+procesului\-copil.
+.SH "VARIABILE DE MEDIU"
+Comportamentul lui \fBwatch\fP este afectat de următoarele variabile de mediu.
+
+.TP 
+\fBWATCH_INTERVAL\fP
+Intervalul de actualizare, urmează aceleași reguli ca și opțiunea
+\fB\-\-interval\fP din linia de comandă.
+.sp
+.SH NOTE
+Se utilizează procesarea opțiunii POSIX (adică procesarea opțiunii se
+oprește la primul argument care nu este opțiunea). Aceasta înseamnă că
+opțiunile de după \fIcomandă\fP nu vor fi interpretate de \fBwatch\fP.
+.sp
+.SH ERORI
+După redimensionarea ferestrei terminalului, datele nu vor fi reformatate
+corespunzător până la următoarea actualizare programată.  Orice evidențiere
+obținută cu opțiunea \fB\-\-differences\fP va fi de asemenea pierdută. Atunci
+când se utilizează opțiunea \fB\-\-no\-rerun\fP, nu va fi vizibilă nicio ieșire.
+
+Caracterele care nu se imprimă sunt eliminate din ieșirea
+programului. Utilizați \fBcat \-v\fP ca parte a unei secvențe de comandă creată
+cu caracterul conductă (|) dacă doriți să le vedeți.
+
+Combinația de caractere care ar fi trebuit să fie afișată în ultima coloană
+de pe ecran poate să fie afișată cu o coloană mai devreme sau să nu fie
+afișată deloc.
+
+Combinațiile de caractere nu sunt niciodată considerate diferite în modul
+\fB\-\-differences\fP.  Sunt luate în considerare doar caracterele de bază.
+
+Liniile goale care urmează imediat după o linie care se termină în ultima
+coloană nu sunt afișate.
+
+Modul \fB\-\-precise\fP nu are încă funcții de sincronizare pentru a compensa o
+\fIcomandă\fP al cărei timp de execuție este mai mare de \fB\-\-interval\fP
+\fIsecunde\fP. \fBwatch\fP poate ajunge, de asemenea, într\-o stare în care să
+declanșeze în rafală cât mai multe execuții ale \fIcomenzii\fP pentru a „prinde
+din urmă” execuțiile anterioare care rulează mai mult decât \fB\-\-interval\fP
+(de exemplu, \fBnetstat\fP(8) luând ani de zile într\-o căutare DNS).
+.sp
+.SH EXEMPLE
+.PP
+Pentru a urmări corespondența, ați putea rula comanda:
+.IP
+watch \-n 60 from
+.PP
+Pentru a urmări conținutul modificării unui director, puteți utiliza
+următoarea comandă:
+.IP
+watch \-d ls \-l
+.PP
+Dacă sunteți interesat doar de fișierele deținute de utilizatorul „nicu”,
+ați putea folosi:
+.IP
+watch \-d 'ls \-l | fgrep nicu'
+.PP
+Pentru a vedea rezultatul folosirii ghilimelelor, încercați următoarea
+comandă:
+.IP
+watch echo $$
+.br
+watch echo '$$'
+.br
+watch echo "'"'$$'"'"
+.PP
+Pentru a vedea rezultatul sincronizării precise, încercați să adăugați
+opțiunea \fB\-p\fP la următoarea comandă:
+.IP
+watch \-n 10 sleep 1
+.PP
+Puteți urmări ca administratorul dumneavoastră să instaleze cel mai recent
+nucleu cu ajutorul comenzii:
+.IP
+watch uname \-r
+.PP
+(Rețineți că \fB\-p\fP nu este garantat să funcționeze la reporniri, mai ales
+din cauza a \fBntpdate\fP (dacă este prezent) sau a altor mecanisme de
+schimbare a timpului de pornire)
+.sp
+.SH "RAPORTAREA ERORILOR"
+Trimiteți rapoartele de eroare la
+.UR procps@freelists.org
+.UE

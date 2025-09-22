@@ -1,0 +1,156 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.TH PROCPS_MISC 3 "August 2022" "libproc2"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAME
+procps_misc \- API for miscellaneous information in the /proc filesystem
+.SH SYNOPSIS
+.nf
+.B #include <libproc2/misc.h>
+.PP
+Platform Particulars
+.RS 4
+.PP
+.RB "long         " procps_cpu_count " (void);
+.RB "long         " procps_hertz_get " (void);
+.RB "unsigned int " procps_pid_length " (void);
+.RB "int          " procps_linux_version " (void);
+.RE
+.PP
+Runtime Particulars
+.PP
+.RS 4
+.RI "int  \fB procps_loadavg\fR (double *" av1 ", double *" av5 ", double *" av15 ");"
+.RI "int  \fB procps_uptime\fR (double *" uptime_secs ", double *" idle_secs ");"
+.RB "char *" procps_uptime_sprint " (void);"
+.RB "char *" procps_uptime_sprint_short " (void);"
+.RE
+.PP
+Namespace Particulars
+.PP
+.RS 4
+.RI "int       \fB  procps_ns_get_id\fR (const char *" name ");"
+.RI "const char\fB *procps_ns_get_name\fR (int " id ");"
+.RI "int       \fB  procps_ns_read_pid\fR (int " pid ", struct procps_ns *" nsp ");"
+.RE
+
+Link with \fI\-lproc2\fP.
+
+.SH DESCRIPTION
+.BR procps_cpu_count ()
+returns the number of CPUs that are currently online as
+.BI sysconf( _SC_NPROCESSORS_ONLY )
+or an assumed \fI1\fR.
+
+.BR procps_hertz_get ()
+returns the number of clock ticks per second as
+.BI sysconf( _SC_CLK_TCK )
+or an assumed \fI100\fR.
+Dividing tics by this value yields seconds.
+
+.BR procps_pid_length ()
+returns the maximum string length for a PID on the system. For example, if the largest
+possible PID value on was 123, then the length would be 3. If the file
+\fI/proc/sys/kernel/pid_max\fR is unreadable, the value is assumed to be \fI5\fR.
+
+.BR procps_linux_version ()
+returns the current Linux version as an encoded integer. On non-Linux systems that
+have an emulated proc filesystem this function returns the version of the
+Linux emulation instead.
+The version consists of three positive integers representing the major,
+minor and patch levels.
+The following macros are provided for encoding a given Linux version or
+separating out the components of the current version.
+.RS 4
+.PP
+LINUX_VERSION(\ major\ ,\ minor\ ,\ patch\ )
+.PP
+LINUX_VERSION_MAJOR(\ ver\ )
+.PP
+LINUX_VERSION_MINOR(\ ver\ )
+.PP
+LINUX_VERSION_PATCH(\ ver\ )
+.RE
+
+.BR procps_loadavg ()
+fetches the system load average and puts the 1, 5 and 15 minute averages into
+location(s) specified by any pointer which is not \fINULL\fR.
+
+.BR procps_uptime ()
+returns uptime and/or idle seconds into location(s) specified by any pointer
+which is not \fINULL\fR.
+The \fBsprint\fR varieties return a human-readable string in one of two forms.
+.RS 4
+.PP
+HH:MM:SS up HH:MM, # users, load average: 1, 5, 15 MM averages
+.PP
+up HH, MM
+.RE
+
+.BR procps_ns_get_id ()
+returns the integer id (enum namespace_type) of the namespace for the given namespace \fIname\fR.
+
+.BR procps_ns_get_name ()
+returns the name of the namespace for the given \fIid\fR (enum namespace_type).
+
+.BR procps_ns_read_pid ()
+returns the inodes for the namespaces of the given process in the
+procps_ns structure pointed to by \fInsp\fR.
+Those inodes will appear in the order proscribed by enum namespace_type.
+.PP
+.RS 4
+.nf
+enum namespace_type {
+    PROCPS_NS_CGROUP,
+    PROCPS_NS_IPC,
+    PROCPS_NS_MNT,
+    PROCPS_NS_NET,
+    PROCPS_NS_PID,
+    PROCPS_NS_TIME,
+    PROCPS_NS_USER,
+    PROCPS_NS_UTS
+};
+.fi
+.RE
+
+
+.SH RETURN VALUE
+.SS Functions Returning an `int' or `long'
+An error will be indicated by a negative number that
+is always the inverse of some well known errno.h value.
+
+.SS Functions Returning an `address'
+An error will be indicated by a NULL return pointer
+with the reason found in the formal errno value.
+
+.SH FILES
+.TP
+.I /proc/loadavg
+The raw values for load average.
+.TP
+.I /proc/sys/kernel/osrelease
+Contains the release version of the Linux kernel or proc filesystem.
+.TP
+.I /proc/sys/kernel/pid_max
+Contains the value at which PIDs wrap around, one greater than the maximum PID value.
+.TP
+.I /proc/uptime
+The raw values for uptime and idle time.
+.TP
+.IB /proc/<PID>/ns
+contains the set of namespaces for a particular \fBPID\fR.
+
+.SH SEE ALSO
+.BR procps (3),
+.BR procps_pids (3),
+.BR proc (5).

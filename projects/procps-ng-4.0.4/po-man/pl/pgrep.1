@@ -1,0 +1,256 @@
+.\"
+.\" Copyright (c) 2004-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2004 Albert Cahalan
+.\" Copyright (c) 2000      Kjetil Torgrim Homme
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PGREP 1 2023\-01\-16 procps\-ng "Polecenia użytkownika"
+.SH NAZWA
+pgrep, pkill, pidwait \- wyszukiwanie, wysyłanie sygnałów lub oczekiwanie na
+procesy na podstawie nazwy i innych atrybutów
+.SH SKŁADNIA
+\fBpgrep\fP [opcje] wzorzec
+.br
+\fBpkill\fP [opcje] wzorzec
+.br
+\fBpidwait\fP [opcje] wzorzec
+.SH OPIS
+\fBpgrep\fP przeszukuje aktualnie działające procesy i wypisuje na standardowym
+wyjściu identyfikatory procesów, które pasują do wybranych
+kryteriów. Wszystkie kryteria muszą pasować. Na przykład:
+.IP
+$ pgrep \-u root sshd
+.PP
+wypisze tylko listę procesów o nazwie \fBsshd\fP ORAZ będących własnością
+\fBroota\fP. Z drugiej strony:
+.IP
+$ pgrep \-u root,daemon
+.PP
+wypisze procesy, których właścicielem jest \fBroot\fP LUB \fBdaemon\fP.
+.PP
+\fBpkill\fP zamiast wypisywania procesów wyśle do każdego podany sygnał
+(domyślnie \fBSIGTERM\fP).
+.PP
+\fBpidwait\fP zamiast wypisywania procesów oczekuje na nie.
+.SH OPCJE
+.TP 
+\fB\-\fP\fIsygnał\fP
+.TQ
+\fB\-\-signal\fP \fIsygnał\fP
+Defines the signal to send to each matched process.  Either the numeric or
+the symbolic signal name can be used. In \fBpgrep\fP or \fBpidwait\fP mode only
+the long option can be used and has no effect unless used in conjunction
+with \fB\-\-require\-handler\fP to filter to processes with a userspace signal
+handler present for a particular signal.
+
+.TP 
+\fB\-c\fP, \fB\-\-count\fP
+Pominięcie zwykłego wyjścia; zamiast niego wypisanie liczby pasujących
+procesów. Jeśli nic nie zostanie policzone (np. liczba będzie zerem),
+polecenie zwróci wartość niezerową. Uwaga: w przypadku pkill i pidwait
+zwracana wartość to liczba pasujących procesów, a nie procesów, do których
+udało się dostarczyć sygnał lub zaczekać na zakończenie.
+.TP 
+\fB\-d\fP, \fB\-\-delimiter\fP \fIseparator\fP
+Ustawienie łańcucha oddzielającego identyfikatory procesów na wyjściu
+(domyślnie nowa linia). (tylko \fBpgrep\fP)
+.TP 
+\fB\-e\fP, \fB\-\-echo\fP
+Wyświetlanie nazw oraz identyfikatorów zabijanych procesów (tylko \fBpkill\fP).
+.TP 
+\fB\-f\fP, \fB\-\-full\fP
+\fIwzorzec\fP normalnie jest dopasowywany tylko do nazwy procesu. Z ustawioną
+opcją \fB\-f\fP, wykorzystywana jest cała linia poleceń.
+.TP 
+\fB\-g\fP, \fB\-\-pgroup\fP \fIpgrp\fP,...
+Dopasowanie tylko do procesów z grup o podanych identyfikatorach. Grupa
+procesów 0 jest tłumaczona na własną grupę procesów polecenia \fBpgrep\fP,
+\fBpkill\fP lub \fBpidwait\fP.
+.TP 
+\fB\-G\fP, \fB\-\-group\fP \fIgid\fP,...
+Dopasowanie tylko do procesów o podanych identyfikatorach grup
+rzeczywistych. Można użyć wartości liczbowych lub symbolicznych.
+.TP 
+\fB\-e\fP, \fB\-\-ignore\-case\fP
+Dopasowywanie procesów bez rozróżniania wielkości liter.
+.TP 
+\fB\-l\fP, \fB\-\-list\-name\fP
+Wypisanie nazw oraz identyfikatorów procesów. (tylko \fBpgrep\fP)
+.TP 
+\fB\-a\fP, \fB\-\-list\-full\fP
+Wypisanie pełnych linii poleceń oraz identyfikatorów procesów. (tylko
+\fBpgrep\fP)
+.TP 
+\fB\-n\fP, \fB\-\-newest\fP
+Wybór tylko najnowszych (najpóźniej uruchomionych) spośród pasujących
+procesów.
+.TP 
+\fB\-o\fP, \fB\-\-oldest\fP
+Wybór tylko najstarszych (najwcześniej uruchomionych) spośród pasujących
+procesów.
+.TP 
+\fB\-O\fP, \fB\-\-older\fP \fIsekundy\fP
+Wybór procesów starszych niż podana liczba sekund.
+.TP 
+\fB\-P\fP, \fB\-\-parent\fP \fIppid\fP,...
+Dopasowanie tylko do procesów o wymienionych identyfikatorach procesów
+rodziców.
+.TP 
+\fB\-s\fP, \fB\-\-session\fP \fIsid\fP,...
+Dopasowanie tylko do procesów o wymienionych identyfikatorach sesji
+procesów. Identyfikator sesji 0 jest tłumaczony na własny procesu \fBpgrep\fP,
+\fBpkill\fP lub \fBpidwait\fP.
+.TP 
+\fB\-t\fP, \fB\-\-terminal\fP \fIterm\fP,...
+Dopasowanie tylko do procesów o wymienionych terminalach sterujących. Nazwa
+terminala powinna być podana bez przedrostka "/dev/".
+.TP 
+\fB\-u\fP, \fB\-\-euid\fP \fIeuid\fP,...
+Dopasowanie tylko do procesów o wymienionych identyfikatorach użytkowników
+efektywnych. Można użyć wartości liczbowych lub symbolicznych.
+.TP 
+\fB\-U\fP, \fB\-\-uid\fP \fIuid\fP,...
+Dopasowanie tylko do procesów o wymienionych identyfikatorach użytkowników
+rzeczywistych. Można użyć wartości liczbowych lub symbolicznych.
+.TP 
+\fB\-v\fP, \fB\-\-inverse\fP
+Negacja dopasowania. Zwykle używana w kontekście programu \fBpgrep\fP lub
+\fBpidwait\fP. W kontekście \fBpkill\fP krótka opcja jest wyłączona, aby zapobiec
+przypadkowemu użyciu.
+.TP 
+\fB\-w\fP, \fB\-\-lightweight\fP
+Wyświetlenie wszystkich identyfikatorów wątków zamiast pidów w kontekście
+programu \fBpgrep\fP lub \fBpidwait\fP. W kontekście \fBpkill\fP ta opcja jest
+wyłączona.
+.TP 
+\fB\-x\fP, \fB\-\-exact\fP
+Dopasowanie tylko do procesów, których nazwy (lub linie poleceń, jeśli
+podano opcję \fB\-f\fP) pasują \fBdokładnie\fP do \fIwzorca\fP.
+.TP 
+\fB\-F\fP, \fB\-\-pidfile\fP \fIplik\fP
+Read \fIPID\fPs from \fIfile\fP.  This option is more useful for \fBpkill\fP or
+\fBpidwait\fP than \fBpgrep\fP.
+.TP 
+\fB\-L\fP, \fB\-\-logpidfile\fP
+Niepowodzenie, jeśli plik PID (p. opcja \fB\-F\fP) nie jest zablokowany.
+.TP 
+\fB\-r\fP, \fB\-\-runstates\fP \fID,R,S,Z,\fP...
+Dopasowanie tylko do procesów o pasującym stanie.
+.TP 
+\fB\-e\fP, \fB\-\-ignore\-ancestors\fP
+Ignorowanie wszystkich przodków \fBpgrep\fP, \fBpkill\fP i \fBpidwait\fP. Może to być
+przydatne np. przy podnoszeniu uprawnień przez \fBsudo\fP lub podobne
+narzędzia.
+.TP 
+\fB\-H\fP, \fB\-\-require\-handler\fP
+Only match processes with a userspace signal handler present for the signal
+to be sent.
+.TP 
+\fB\-\-cgroup \fP\fInazwa\fP\fB,...\fP
+Dopasowanie po przekazanej nazwie grupy kontrolnej (cgroup)
+v2. P. \fBcgroups\fP(8)
+.TP 
+\fB\-\-ns \fP\fIpid\fP
+Dopasowanie do procesów należących do tych samych przestrzeni nazw. Wymagane
+w przypadku uruchamiania przez roota, aby dopasować do procesów innych
+użytkowników. Więcej o ograniczaniu dopasowywanych przestrzeni nazw przy
+opcji \fB\-\-nslist\fP.
+.TP 
+\fB\-\-nslist \fP\fInazwa\fP\fB,...\fP
+Match only the provided namespaces. Available namespaces: ipc, mnt, net,
+pid, user, uts.
+.TP 
+\fB\-q\fP, \fB\-\-queue \fP\fIwartość\fP
+Use \fBsigqueue\fP(3)  rather than \fBkill\fP(2)  and the value argument is used
+to specify an integer to be sent with the signal. If the receiving process
+has installed a handler for this signal using the SA_SIGINFO flag to
+\fBsigaction\fP(2), then it can obtain this data via the si_value field of the
+siginfo_t structure.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Wyświetlenie informacji o wersji i zakończenie.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Wyświetlenie opisu i zakończenie.
+.PD
+.SH ARGUMENTY
+.TP 
+\fIwzorzec\fP
+Określenie rozszerzonego wyrażenia regularnego do dopasowania nazwy procesu
+lub linii poleceń.
+.SH PRZYKŁADY
+Przykład 1: znalezienie identyfikatora procesu demona \fBnamed\fP:
+.IP
+$ pgrep \-u root named
+.PP
+Przykład 2: wymuszenie ponownego odczytu pliku konfiguracyjnego przez
+program \fBsyslog\fP:
+.IP
+$ pkill \-HUP syslogd
+.PP
+Przykład 3: podanie szczegółowych informacji o wszystkich procesach
+\fBxterm\fP:
+.IP
+$ ps \-fp $(pgrep \-d, \-x xterm)
+.PP
+Przykład 4: zwiększenie nice wszystkich procesów \fBchrome\fP:
+.IP
+$ renice +4 $(pgrep chrome)
+.SH "KOD WYJŚCIA"
+.PD 0
+.TP 
+0
+One or more processes matched the criteria. For \fBpkill\fP and \fBpidwait\fP, one
+or more processes must also have been successfully signalled or waited for.
+.TP 
+1
+Brak procesów pasujących do warunków lub do żadnego nie udało się wysłać
+sygnału.
+.TP 
+2
+Błąd składni w linii poleceń.
+.TP 
+3
+Błąd krytyczny: brak pamięci itp.
+.PD
+.SH UWAGI
+Nazwa procesu używana przy dopasowaniu jest ograniczona do 15 znaków
+obecnych w wyjściu /proc/\fIpid\fP/stat. Aby dopasować do pełnej linii poleceń
+(/proc/\fIpid\fP/cmdline), należy użyć opcji \fB\-f\fP. Wątki mogą nie mieć tej
+samej nazwy procesu jako rodzica, ale będą miały tę samą linię poleceń.
+.PP
+Działający proces \fBpgrep\fP, \fBpkill\fP ani \fBpidwait\fP nigdy nie zgłosi siebie
+jako dopasowania.
+.PP
+The \fB\-O \-\-older\fP option will silently fail if \fI/proc\fP is mounted with the
+\fIsubset=pid\fP option.
+.SH BŁĘDY
+Opcji \fB\-n\fP, \fB\-o\fP oraz \fB\-v\fP nie można łączyć. Gdyby było to przydatne,
+proszę zawiadomić autora.
+.PP
+Zgłoszono procesy nie funkcjonujące.
+.PP
+\fBpidwait\fP wymaga wywołania systemowego \fBpidfd_open\fP(2), które pojawiło się
+w Linuksie 5.3.
+.SH "ZOBACZ TAKŻE"
+\fBps\fP(1), \fBregex\fP(7), \fBsignal\fP(7), \fBsigqueue\fP(3), \fBkillall\fP(1),
+\fBskill\fP(1), \fBkill\fP(1), \fBkill\fP(2), \fBcgroups\fP(8).
+.SH AUTOR
+.UR kjetilho@ifi.uio.no
+Kjetil Torgrim Homme
+.UE
+.SH "ZGŁASZANIE BŁĘDÓW"
+Zgłoszenia błędów prosimy wysyłać na adres
+.UR procps@freelists.org
+.UE

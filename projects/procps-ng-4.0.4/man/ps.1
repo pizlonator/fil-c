@@ -1,0 +1,2124 @@
+.\"
+.\" Copyright (c) 2004-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 1998-2003 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.TH PS "1" "2023-08-19" "procps-ng" "User Commands"
+.\"
+.\" Ragged-right text.
+.na
+.\" Disable hyphenation.
+.nh
+.\"
+.\" ColSize is used for the format spec table.
+.\" It's the left margin, minus the right, minus
+.\" the space needed for the 1st two columns.
+.\" Making it messy: inches, ens, points, scaled points...
+.\"
+.nr ColSize ((\n[.l] - \n[.i]) / 1n - 29)
+.\"
+.SH NAME
+ps \- report a snapshot of the current processes.
+.SH SYNOPSIS
+\fBps\fR [\,\fIoptions\/\fR]
+.SH DESCRIPTION
+.B ps
+displays information about a selection of the active processes.  If you want
+a repetitive update of the selection and the displayed information, use
+.B top
+instead.
+.P
+This version of
+.B ps
+accepts several kinds of options:
+.IP
+.PD 0
+.IP 1 4
+UNIX options, which may be grouped and must be preceded by a dash.
+.IP 2 4
+BSD options, which may be grouped and must not be used with a dash.
+.IP 3 4
+GNU long options, which are preceded by two dashes.
+.PD
+.PP
+Options of different types may be freely mixed, but conflicts can appear.
+There are some synonymous options, which are functionally identical, due to
+the many standards and
+.B ps
+implementations that this
+.B ps
+is compatible with.
+.P
+By default,
+.B ps
+selects all processes with the same effective user ID (euid=EUID) as the
+current user and associated with the same terminal as the invoker.  It
+displays the process ID (pid=PID), the terminal associated with the process
+(tname=TTY), the cumulated CPU time in [DD\-]hh:mm:ss format (time=TIME), and
+the executable name (ucmd=CMD).  Output is unsorted by default.
+.P
+The use of BSD\-style options will add process state (stat=STAT) to the
+default display and show the command args (args=COMMAND) instead of the
+executable name.  You can override this with the
+.B PS_FORMAT
+environment variable.  The use of BSD\-style options will also change the
+process selection to include processes on other terminals (TTYs) that are
+owned by you; alternately, this may be described as setting the selection to
+be the set of all processes filtered to exclude processes owned by other
+users or not on a terminal.  These effects are not considered when options
+are described as being "identical" below, so
+.B \-M
+will be considered identical to \fBZ\fR and so on.
+.P
+Except as described below, process selection options are additive.  The
+default selection is discarded, and then the selected processes are added to
+the set of processes to be displayed.  A process will thus be shown if it
+meets any of the given selection criteria.
+.SH "EXAMPLES"
+.TP 3
+To see every process on the system using standard syntax:
+.B ps\ \-e
+.br
+.B ps\ \-ef
+.br
+.B ps\ \-eF
+.br
+.B ps\ \-ely
+.TP
+To see every process on the system using BSD syntax:
+.B ps\ ax
+.br
+.B ps\ axu
+.TP
+To print a process tree:
+.B ps\ \-ejH
+.br
+.B ps\ axjf
+.TP
+To get info about threads:
+.B ps\ \-eLf
+.br
+.B ps\ axms
+.TP
+To get security info:
+.B ps\ \-eo euser,ruser,suser,fuser,f,comm,label
+.br
+.B ps\ axZ
+.br
+.B ps\ \-eM
+.TP
+To see every process running as root (real\ &\ effective\ ID) in user format:
+.B ps\ \-U\ root\ \-u\ root\ u
+.TP
+To see every process with a user\-defined format:
+.B ps\ \-eo\ pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,wchan:14,comm
+.br
+.B ps\ axo\ stat,euid,ruid,tty,tpgid,sess,pgrp,ppid,pid,pcpu,comm
+.br
+.B ps\ \-Ao\ pid,tt,user,fname,tmout,f,wchan
+.TP
+Print only the process IDs of syslogd:
+.B ps\ \-C\ syslogd\ \-o\ pid=
+.TP
+Print only the name of PID 42:
+.B ps\ \-q\ 42\ \-o\ comm=
+.SH "SIMPLE PROCESS SELECTION"
+.TP
+.B a
+Lift the BSD\-style "only yourself" restriction, which is imposed upon the
+set of all processes when some BSD\-style (without "\-") options are used or
+when the
+.B ps
+personality setting is BSD\-like.  The set of processes selected in this
+manner is in addition to the set of processes selected by other means.  An
+alternate description is that this option causes
+.B ps
+to list all processes with a terminal (tty), or to list all processes when
+used together with the
+.B x
+option.
+.TP
+.B \-A
+Select all processes.  Identical to
+.BR \-e .
+.TP
+.B \-a
+Select all processes except both session leaders (see
+.IR getsid (2))
+and processes not associated with a terminal.
+.TP
+.B \-d
+Select all processes except session leaders.
+.TP
+.B \-\-deselect
+Select all processes except those that fulfill the specified conditions
+(negates the selection).  Identical to
+.BR \-N .
+.TP
+.B \-e
+Select all processes.  Identical to
+.BR \-A .
+.\" Current "g" behavior: add in the session leaders, which would
+.\" be excluded in the sunos4 personality. Supposed "g" behavior:
+.\" add in the group leaders -- at least according to the SunOS 4
+.\" man page on the FreeBSD site. Uh oh. I think I had tested SunOS
+.\" though, so maybe the code is correct.
+.TP
+.B g
+Really all, even session leaders.  This flag is obsolete and may be
+discontinued in a future release.  It is normally implied by the
+.B a
+flag, and is only useful when operating in the sunos4 personality.
+.TP
+.B \-N
+Select all processes except those that fulfill the specified conditions
+(negates the selection).  Identical to
+.BR \-\-deselect .
+.TP
+.B T
+Select all processes associated with this terminal.  Identical to the
+.B t
+option without any argument.
+.TP
+.B r
+Restrict the selection to only running processes.
+.TP
+.B x
+Lift the BSD\-style "must have a tty" restriction, which is imposed upon the
+set of all processes when some BSD\-style (without "\-") options are used or
+when the
+.B ps
+personality setting is BSD\-like.  The set of processes selected in this
+manner is in addition to the set of processes selected by other means.  An
+alternate description is that this option causes
+.B ps
+to list all processes owned by you (same EUID as
+.BR ps ),
+or to list all processes when used together with the
+.B a
+option.
+.PD
+.SH "PROCESS SELECTION BY LIST"
+These options accept a single argument in the form of a blank\-separated or
+comma\-separated list.  They can be used multiple times.  For example:
+.B ps\ \-p\ "1\ 2"\ \-p\ 3,4
+.TP
+.I 123
+Identical to
+.B \-\-pid\ \fI123\fR.
+.TP
+.RI \+ 123
+Identical to
+.B \-\-sid\ \fI123\fR.
+.TP
+.RI \- 123
+Select by process group ID (PGID).
+.TP
+.BI \-C \ cmdlist
+Select by command name.  This selects the processes whose executable name is
+given in
+.IR cmdlist .
+NOTE: The command name is not the same as the command line. Previous versions
+of procps and the kernel truncated this command name to 15 characters. This
+limitation is no longer present in both. If you depended on matching only
+15 characters, you may no longer get a match.
+.TP
+.BI \-G \ grplist
+Select by real group ID (RGID) or name.  This selects the processes whose
+real group name or ID is in the
+.I grplist
+list.  The real group ID identifies the group of the user who created the
+process, see
+.IR getgid (2).
+.TP
+.BI \-g \ grplist
+Select by session OR by effective group name.  Selection by session is
+specified by many standards, but selection by effective group is the logical
+behavior that several other operating systems use.  This
+.B ps
+will select by session when the list is completely numeric (as sessions
+are).  Group ID numbers will work only when some group names are also
+specified.  See the
+.B \-s
+and
+.B \-\-group
+options.
+.TP
+.BI \-\-Group \ grplist
+Select by real group ID (RGID) or name.  Identical to
+.BR \-G .
+.TP
+.BI \-\-group \ grplist
+Select by effective group ID (EGID) or name.  This selects the processes
+whose effective group name or ID is in
+.IR grplist .
+The effective group ID describes the group whose file access permissions are
+used by the process (see
+.IR getegid (2)).
+The
+.B \-g
+option is often an alternative to
+.BR \-\-group .
+.TP
+.BI p \ pidlist
+Select by process ID.  Identical to
+.B \-p
+and
+.BR \-\-pid .
+.TP
+.BI \-p \ pidlist
+Select by PID.  This selects the processes whose process ID numbers appear in
+.IR pidlist .
+Identical to
+.B p
+and
+.BR \-\-pid .
+.TP
+.BI  \-\-pid \ pidlist
+Select by process\ ID.  Identical to
+.B \-p
+and
+.BR p .
+.TP
+.BI \-\-ppid \ pidlist
+Select by parent process ID.  This selects the processes with a parent
+process\ ID in
+.IR pidlist .
+That is, it selects processes that are children of those listed in
+.IR pidlist .
+.TP
+.BI q \ pidlist
+Select by process ID (quick mode).  Identical to
+.B \-q
+and
+.BR \-\-quick\-pid .
+.TP
+.BI \-q \ pidlist
+Select by PID (quick mode).
+This selects the processes whose process ID numbers appear in
+.IR pidlist .
+With this option \fBps\fR reads the necessary info only
+for the pids listed in the \fIpidlist\fR and doesn't apply
+additional filtering rules. The order of pids is unsorted
+and preserved. No additional selection options, sorting
+and forest type listings are allowed in this mode.
+Identical to
+.B q
+and
+.BR \-\-quick\-pid .
+.TP
+.BI  \-\-quick\-pid \ pidlist
+Select by process\ ID (quick mode).  Identical to
+.B \-q
+and
+.BR q .
+.TP
+.BI \-s \ sesslist
+Select by session ID.  This selects the processes with a session ID specified
+in
+.IR sesslist .
+.TP
+.BI \-\-sid \ sesslist
+Select by session\ ID.  Identical to
+.BR \-s .
+.TP
+.BI t \ ttylist
+Select by tty.  Nearly identical to
+.B \-t
+and
+.BR \-\-tty ,
+but can also
+be used with an empty
+.I ttylist
+to indicate the terminal associated with
+.BR ps .
+Using the
+.B T
+option is considered cleaner than using
+.B t
+with an empty
+.IR ttylist .
+.TP
+.BI \-t \ ttylist
+Select by tty.  This selects the processes associated with the terminals
+given in
+.IR ttylist .
+Terminals (ttys, or screens for text output) can be specified in several
+forms: /dev/ttyS1, ttyS1, S1.  A plain "\-" may be used to select processes
+not attached to any terminal.
+.TP
+.BI \-\-tty \ ttylist
+Select by terminal.  Identical to
+.B \-t
+and
+.BR t .
+.TP
+.BI U \ userlist
+Select by effective user ID (EUID) or name.  This selects the processes whose
+effective user name or ID is in
+.IR userlist .
+The effective user ID describes the user whose file access permissions are
+used by the process (see
+.IR  geteuid (2)).
+Identical to
+.B \-u
+and
+.BR \-\-user .
+.TP
+.BI \-U \ userlist
+Select by real user ID (RUID) or name.  It selects the processes whose real
+user name or ID is in the
+.I userlist
+list.  The real user ID identifies the user who created the process, see
+.IR getuid (2).
+.TP
+.BI \-u \ userlist
+Select by effective user ID (EUID) or name.  This selects the processes whose
+effective user name or ID is in
+.IR userlist .
+
+The effective user ID describes the user whose file
+access permissions are used by the process (see
+.IR geteuid (2)).
+Identical to
+.B U
+and
+.BR \-\-user .
+.TP
+.BI \-\-User \ userlist
+Select by real user ID (RUID) or name.  Identical to
+.BR \-U .
+.TP
+.BI \-\-user \ userlist
+Select by effective user ID (EUID) or name.  Identical to
+.B \-u
+and
+.BR U .
+.PD
+.SH "OUTPUT FORMAT CONTROL"
+These options are used to choose the information displayed by
+.BR ps .
+The output may differ by personality.
+.TP
+.B \-c
+Show different scheduler information for the
+.B \-l
+option.
+.TP
+.B \-\-context
+Display security context format (for SELinux).
+.TP
+.B \-f
+Do full\-format listing.  This option can be combined with many other
+UNIX\-style options to add additional columns.  It also causes the command
+arguments to be printed.  When used with
+.BR \-L ,
+the NLWP (number of threads) and LWP (thread ID) columns will be added.  See
+the
+.B c
+option, the format keyword
+.BR args ,
+and the format keyword
+.BR comm .
+.TP
+.B \-F
+Extra full format.  See the
+.B \-f
+option, which
+.B \-F
+implies.
+.TP
+.BI \-\-format \ format
+user\-defined format.  Identical to
+.B \-o
+and
+.BR o .
+.TP
+.B j
+BSD job control format.
+.TP
+.B \-j
+Jobs format.
+.TP
+.B l
+Display BSD long format.
+.TP
+.B \-l
+Long format.  The
+.B \-y
+option is often useful with this.
+.TP
+.B \-M
+Add a column of security data.  Identical to
+.B Z
+(for SELinux).
+.TP
+.BI O \ format
+is preloaded
+.B o
+(overloaded).  The BSD
+.B O
+option can act like
+.B \-O
+(user\-defined output format with some common fields predefined) or can be
+used to specify sort order.  Heuristics are used to determine the behavior of
+this option.  To ensure that the desired behavior is obtained (sorting or
+formatting), specify the option in some other way (e.g.  with
+.B \-O
+or
+.BR \-\-sort ).
+When used as a formatting option, it is identical to
+.BR \-O ,
+with the BSD personality.
+.TP
+.BI \-O \ format
+Like
+.BR \-o ,
+but preloaded with some default columns.  Identical to
+.BI \-o\ pid,\: format ,\:state,\:tname,\:time,\:command
+or
+.BI \-o\ pid,\: format ,\:tname,\:time,\:cmd \fR,
+see
+.B \-o
+below.
+.TP
+.BI o \ format
+Specify user\-defined format.  Identical to
+.B \-o
+and
+.BR \-\-format .
+.TP
+.BI \-o \ format
+User\-defined format.
+.I format
+is a single argument in the form of a blank\-separated or comma\-separated
+list, which offers a way to specify individual output columns.  The
+recognized keywords are described in the
+.B STANDARD FORMAT SPECIFIERS
+section below.  Headers may be renamed
+.RB ( "ps \-o pid,\:ruser=RealUser \-o comm=Command" )
+as desired.
+If all column headers are empty
+.RB ( "ps \-o pid= \-o comm=" )
+then the header line will not be output.  Column width will increase as
+needed for wide headers; this may be used to widen up columns such as WCHAN
+.RB ( "ps \-o pid,\:wchan=\:WIDE\-\:WCHAN\-\:COLUMN \-o comm" ).
+Explicit width
+control
+.RB ( "ps opid,\:wchan:42,\:cmd" )
+is offered too.  The behavior of
+.B ps \-o pid=X,\:comm=Y
+varies with personality; output may be one column named "X,\:comm=Y" or two
+columns named "X" and "Y".  Use multiple
+.B \-o
+options when in doubt.  Use the
+.B PS_FORMAT
+environment variable to specify a default as desired; DefSysV and DefBSD are
+macros that may be used to choose the default UNIX or BSD columns.
+.TP
+.B \-P
+Add a column showing \fBpsr\fR.
+.TP
+.B s
+Display signal format.
+.TP
+.B u
+Display user\-oriented format.
+.TP
+.B v
+Display virtual memory format.
+.TP
+.B X
+Register format.
+.TP
+.B \-y
+Do not show flags; show rss in place of addr.  This option can only be used
+with
+.BR \-l .
+.TP
+.B Z
+Add a column of security data.  Identical to
+.B \-M
+(for SELinux).
+.PD
+.SH "OUTPUT MODIFIERS"
+.TP
+.B c
+Show the true command name.  This is derived from the name of the executable
+file, rather than from the argv value.  Command arguments and any
+modifications to them are thus not shown.  This option effectively turns the
+.B args
+format keyword into the
+.B comm
+format keyword; it is useful with the
+.B \-f
+format option and with the various BSD\-style format options, which all
+normally display the command arguments.  See the
+.B \-f
+option, the format
+keyword
+.BR args ,
+and the format keyword
+.BR comm .
+.TP
+.BI \-\-cols \ n
+Set screen width.
+.TP
+.BI \-\-columns \ n
+Set screen width.
+.TP
+.B \-\-cumulative
+Include some dead child process data (as a sum with the parent).
+.TP
+.TP
+.BI \-D \ format
+Set the date format of the \fBlstart\fR field to \fIformat\fR. This format is parsed
+by
+.BR strftime (3)
+and should be a maximum of 24 characters to not mis-align columns.
+.TP
+.BI \-\-date-format \ format
+Identical to \fB\-D\fR.
+.TP
+.B e
+Show the environment after the command.
+.TP
+.B f
+ASCII art process hierarchy (forest).
+.TP
+.B \-\-forest
+ASCII art process tree.
+.TP
+.B h
+No header.  (or, one header per screen in the BSD personality).  The
+.B h
+option is problematic.  Standard BSD
+.B ps
+uses this option to print a header on each page of output, but older Linux
+.B ps
+uses this option to totally disable the header.  This version of
+.B ps
+follows the Linux usage of not printing the header unless the BSD personality
+has been selected, in which case it prints a header on each page of output.
+Regardless of the current personality, you can use the long options
+.B \-\-headers
+and
+.B \-\-no\-headers
+to enable printing headers each page or disable headers entirely,
+respectively.
+.TP
+.B \-H
+Show process hierarchy (forest).
+.TP
+.B \-\-headers
+Repeat header lines, one per page of output.
+.TP
+.BI k \ spec
+Specify sorting order.  Sorting syntax is
+.RB [ + | \- ]\c
+.I key\/\c
+.RB [,[ + | \- ]\c
+.IR key [,...]].
+Choose a multi\-letter key from the
+.B STANDARD FORMAT SPECIFIERS
+section.  The "+" is optional since default direction is increasing
+numerical or lexicographic order.  Identical to
+.BR \-\-sort .
+.RS 8
+.IP
+Examples:
+.br
+.B ps jaxkuid,\-ppid,+pid
+.br
+.B ps axk comm o comm,args
+.br
+.B ps kstart_time \-ef
+.RE
+.TP
+.BI \-\-lines \ n
+Set screen height.
+.TP
+.B n
+Numeric output for WCHAN and USER (including all types of UID and GID).
+.TP
+.B \-\-no\-headers
+Print no header line at all.
+.B \-\-no\-heading
+is an alias for this option.
+.TP
+.BI O \ order
+Sorting order (overloaded).
+The BSD
+.B O
+option can act like
+.B \-O
+(user\-defined output format with some common fields predefined) or can be
+used to specify sort order.  Heuristics are used to determine the behavior of
+this option.  To ensure that the desired behavior is obtained (sorting or
+formatting), specify the option in some other way (e.g.  with
+.B \-O
+or
+.BR \-\-sort ).
+.IP
+For sorting, obsolete BSD
+.B O
+option syntax is
+.BR O [ + | \- ]\c
+.IR k1 [,[\c
+.BR + | \- ]\c
+.IR k2 [,...]].
+It orders the processes listing according to the multilevel sort specified by
+the sequence of one\-letter short keys
+.IR k1 , k2 ", ...\&"
+described in the
+.B OBSOLETE SORT KEYS
+section below.  The\ "+" is currently optional, merely re\-iterating the
+default direction on a key, but may help to distinguish an
+.B O
+sort from an
+.B O
+format.  The "\-" reverses direction only on the key it precedes.
+.TP
+.BI \-\-rows \ n
+Set screen height.
+.TP
+.B S
+Sum up some information, such as CPU usage, from dead child processes into
+their parent.  This is useful for examining a system where a parent process
+repeatedly forks off short\-lived children to do work.
+.TP
+.BI \-\-sort \ spec
+Specify sorting order.  Sorting syntax is
+.RI [ + | \- ]\c
+.IR key [,[\c
+.BR + | \- ]\c
+.IR key [,...]].
+Choose a multi\-letter key from the
+.B STANDARD FORMAT SPECIFIERS
+section.  The "+" is optional since default direction is increasing numerical
+or lexicographic order.  Identical to
+.BR k .
+For example:
+.B ps jax \-\-sort=\:uid,\:\-ppid,\:+pid
+.TP
+.B \-\-signames
+Show signal masks using abbreviated signal names and expands the collumn.
+If the column width cannot show all signals, the column will end with a plus "\fI+\fR".
+Columns with only a hyphen have no signals.
+.TP
+.B w
+Wide output.  Use this option twice for unlimited width.
+.TP
+.B \-w
+Wide output.  Use this option twice for unlimited width.
+.TP
+.BI \-\-width \ n
+Set screen width.
+.PD
+.SH "THREAD DISPLAY"
+.TP
+.B H
+Show threads as if they were processes.
+.TP
+.B \-L
+Show threads, possibly with LWP and NLWP columns.
+.TP
+.B m
+Show threads after processes.
+.TP
+.B \-m
+Show threads after processes.
+.TP
+.B \-T
+Show threads, possibly with SPID column.
+.SH "OTHER INFORMATION"
+.TP
+.BI \-\-help \ section
+Print a help message.  The \fIsection\fR argument can be one of
+.IR s imple,
+.IR l ist,
+.IR o utput,
+.IR t hreads,
+.IR m "isc, or"
+.IR a ll.
+The argument can be shortened to one of the underlined letters as in:
+s\^|\^l\^|\^o\^|\^t\^|\^m\^|\^a.
+.TP
+.B \-\-info
+Print debugging info.
+.TP
+.B L
+List all format specifiers.
+.TP
+.B V
+Print the procps-ng version.
+.TP
+.B \-V
+Print the procps-ng version.
+.TP
+.B \-\-version
+Print the procps-ng version.
+.SH NOTES
+This
+.B ps
+works by reading the virtual files in /proc.  This
+.B ps
+does not need to be setuid kmem or have any privileges to run.  Do not give
+this
+.B ps
+any special permissions.
+.PP
+CPU usage is currently expressed as the percentage of time spent running
+during the entire lifetime of a process.  This is not ideal, and\ it does not
+conform to the standards that
+.B ps
+otherwise conforms to.  CPU usage is unlikely to add up to exactly 100%.
+.PP
+The SIZE and RSS fields don't count some parts of a process including the
+page tables, kernel stack, struct thread_info, and struct task_struct.  This
+is usually at least 20\ KiB of memory that is always resident.  SIZE is the
+virtual size of the process (code+\:data+\:stack).
+.PP
+Processes marked <defunct> are dead processes (so\-called "zombies") that
+remain because their parent has not destroyed them properly.  These processes
+will be destroyed by
+.IR init (8)
+if the parent process exits.
+.PP
+If the length of the username is greater than the width of the display
+column, the username will be truncated.  See the \fB\-o\fR and \fB\-O\fR
+formatting options to customize length.
+.PP
+Commands options such as
+.B ps \-aux
+are not recommended as it is a confusion of two different standards.
+According to the POSIX and UNIX standards, the above command asks to
+display all processes with a TTY (generally the commands users are
+running) plus all processes owned by a user named \fIx\fR.  If that user
+doesn't exist, then
+.B ps
+will assume you really meant
+.RB """" ps
+.IR aux """."
+.SH "PROCESS FLAGS"
+The sum of these values is displayed in the "F" column,
+which is provided by the
+.B flags
+output specifier:
+.PP
+.RS 8
+.PD 0
+.TP 5
+1
+forked but didn't exec
+.TP
+4
+used super\-user privileges
+.PD
+.RE
+.SH "PROCESS STATE CODES"
+Here are the different values that the
+.BR s ", " stat " and " state
+output specifiers (header "STAT" or "S") will display to describe the state
+of a process:
+.PP
+.RS 8
+.PD 0
+.TP 5
+D
+uninterruptible sleep (usually IO)
+.TP
+I
+Idle kernel thread
+.TP
+R
+running or runnable (on run queue)
+.TP
+S
+interruptible sleep (waiting for an event to complete)
+.TP
+T
+stopped by job control signal
+.TP
+t
+stopped by debugger during the tracing
+.TP
+W
+paging (not valid since the 2.6.xx kernel)
+.TP
+X
+dead (should never be seen)
+.TP
+Z
+defunct ("zombie") process, terminated but not reaped by its parent
+.PD
+.RE
+.PP
+For BSD formats and when the
+.B stat
+keyword is used, additional characters may be displayed:
+.PP
+.RS 8
+.PD 0
+.TP 5
+<
+high\-priority (not nice to other users)
+.TP
+N
+low\-priority (nice to other users)
+.TP
+L
+has pages locked into memory (for real\-time and custom IO)
+.TP
+s
+is a session leader
+.TP
+l
+is multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
+.TP
++
+is in the foreground process group
+.PD
+.RE
+.SH "OBSOLETE SORT KEYS"
+These keys are used by the BSD
+.B O
+option (when it is used for sorting).  The GNU
+.B \-\-sort
+option doesn't use these keys, but the specifiers described below in the
+.B STANDARD FORMAT SPECIFIERS
+section.  Note that the values used in sorting are the internal values
+.B ps
+uses and not the "cooked" values used in some of the output format fields
+(e.g.  sorting on tty will sort into device number, not according to the
+terminal name displayed).  Pipe
+.B ps
+output into the
+.BR sort (1)
+command if you want to sort the cooked values.
+.TS
+l l lw(3i).
+\fBKEY	LONG	DESCRIPTION\fR
+c	cmd	simple name of executable
+C	pcpu	cpu utilization
+f	flags	flags as in long format F field
+g	pgrp	process group ID
+G	tpgid	controlling tty process group ID
+j	cutime	cumulative user time
+J	cstime	cumulative system time
+k	utime	user time
+m	min_flt	number of minor page faults
+M	maj_flt	number of major page faults
+n	cmin_flt	cumulative minor page faults
+N	cmaj_flt	cumulative major page faults
+o	session	session ID
+p	pid	process ID
+P	ppid	parent process ID
+r	rss	resident set size
+R	resident	resident pages
+s	size	memory size in kilobytes
+S	share	amount of shared pages
+t	tty	the device number of the controlling tty
+T	start_time	time process was started
+U	uid	user ID number
+u	user	user name
+v	vsize	total VM size in KiB
+y	priority	kernel scheduling priority
+.\"K	stime	system time (conflict, system vs. start time)
+.TE
+.SH "AIX FORMAT DESCRIPTORS"
+This
+.B ps
+supports AIX format descriptors, which work somewhat like the
+formatting codes of
+.IR printf (1)
+and
+.IR printf (3).
+For example, the normal default output can be produced with this:
+.B ps \-eo """%p %y %x %c""\fR."
+The
+.B NORMAL
+codes are described in the next section.
+.TS
+l l l.
+\fBCODE	NORMAL	HEADER\fR
+%C	pcpu	%CPU
+%G	group	GROUP
+%P	ppid	PPID
+%U	user	USER
+%a	args	COMMAND
+%c	comm	COMMAND
+%g	rgroup	RGROUP
+%n	nice	NI
+%p	pid	PID
+%r	pgid	PGID
+%t	etime	ELAPSED
+%u	ruser	RUSER
+%x	time	TIME
+%y	tty	TTY
+%z	vsz	VSZ
+.TE
+.SH "STANDARD FORMAT SPECIFIERS"
+Here are the different keywords that may be used to control the output
+format (e.g., with option
+.BR \-o )
+or to sort the selected processes with the GNU\-style
+.B \-\-sort
+option.
+.PP
+For example:
+.B ps \-eo pid,\:user,\:args \-\-sort user
+.PP
+This version of
+.B ps
+tries to recognize most of the keywords used in other implementations of
+.BR ps .
+.PP
+The following user\-defined format specifiers may contain
+spaces:
+.BR args ", " cmd ", " comm ", " command ", " fname ", " ucmd ", " ucomm ,
+.BR lstart ", " bsdstart ", " start .
+.PP
+Some keywords may not be available for sorting.
+
+.\" #######################################################################
+.\" lB1 lB1 lB1 lB1 s s s
+.\" lB1 l1  l1  l1  s s s.
+.\"
+.\" lB1 lB1 lBw(5.5i)
+.\" lB1 l1  l.
+.\"
+.TS
+expand;
+l1B l1B lBw(\n[ColSize]n)
+l1B l1  l.
+CODE	HEADER	DESCRIPTION
+
+%cpu	%CPU	T{
+cpu utilization of the process in "##.#" format.  Currently, it is the CPU
+time used divided by the time the process has been running (cputime/realtime
+ratio), expressed as a percentage.  It will not add up to 100% unless you are
+lucky.  (alias
+.BR pcpu ).
+T}
+
+%mem	%MEM	T{
+ratio of the process's resident set size  to the physical memory on the
+machine, expressed as a percentage.  (alias
+.BR pmem ).
+T}
+
+ag_id	AGID	T{
+The autogroup identifier associated with a process which operates in conjunction
+with the CFS scheduler to improve interactive desktop performance.
+T}
+
+ag_nice	AGNI	T{
+The autogroup nice value which affects scheduling of all processes in that group.
+T}
+
+args	COMMAND	T{
+command with all its arguments as a string. Modifications to the arguments
+may be shown.  The output in this column may contain spaces.  A process
+marked <defunct> is partly dead, waiting to be fully destroyed by its parent.
+Sometimes the process args will be unavailable; when this happens,
+.B ps
+will instead print the executable name in brackets.  (alias
+.BR cmd ", " command ).
+See also the
+.B comm
+format keyword, the
+.B \-f
+option, and the
+.B c
+option.
+.br
+When specified last, this column will extend to the edge of the display.  If
+.B ps
+can not determine display width, as when output is redirected (piped) into a
+file or another command, the output width is undefined (it may be 80,
+unlimited, determined by the
+.B TERM
+variable, and so on).  The
+.B COLUMNS
+environment variable or
+.B \-\-cols
+option may be used to exactly determine the width in this case.  The
+.B w
+or
+.B \-w
+option may be also be used to adjust width.
+T}
+
+blocked	BLOCKED	T{
+mask of the blocked signals, see
+.IR signal (7).
+According to the width of the field, a 32 or 64\-bit mask in hexadecimal
+format is displayed, unless the \fB\-\-signames\fR option is used.  (alias
+.BR sig_block ", " sigmask ).
+T}
+
+bsdstart	START	T{
+time the command started.  If the process was started less than 24 hours ago,
+the output format is "\ HH:MM", else it is " Mmm:SS" (where Mmm is the three
+letters of the month).  See also
+.BR lstart , \ start , \ start_time ", and" \ stime .
+T}
+
+bsdtime	TIME	T{
+accumulated cpu time, user + system.  The display format is usually
+"MMM:SS", but can be shifted to the right if the process used more than 999
+minutes of cpu time.
+T}
+
+c	C	T{
+processor utilization. Currently, this is the integer value of the percent
+usage over the lifetime of the process.  (see
+.BR %cpu ).
+T}
+
+caught	CAUGHT	T{
+mask of the caught signals, see
+.IR signal (7).
+According to the width of the field, a 32 or 64 bits mask in hexadecimal
+format is displayed, unless the \fB\-\-signames\fR option is used.  (alias
+.BR sig_catch ", " sigcatch ).
+T}
+
+cgname	CGNAME	T{
+display name of control groups to which the process belongs.
+T}
+
+cgroup	CGROUP	T{
+display control groups to which the process belongs.
+T}
+
+cgroupns	CGROUPNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+class	CLS	T{
+scheduling class of the process.  (alias
+.BR policy ", " cls ).
+Field's possible values are:
+.sp 1
+.in +9n
+\-	not reported
+.br
+TS	SCHED_OTHER
+.br
+FF	SCHED_FIFO
+.br
+RR	SCHED_RR
+.br
+B	SCHED_BATCH
+.br
+ISO	SCHED_ISO
+.br
+IDL	SCHED_IDLE
+.br
+DLN	SCHED_DEADLINE
+.br
+?	unknown value
+.in
+T}
+
+cls	CLS	T{
+scheduling class of the process.  (alias
+.BR policy ", " cls ).
+Field's possible values are:
+.sp 1
+.in +9n
+\-	not reported
+.br
+TS	SCHED_OTHER
+.br
+FF	SCHED_FIFO
+.br
+RR	SCHED_RR
+.br
+B	SCHED_BATCH
+.br
+ISO	SCHED_ISO
+.br
+IDL	SCHED_IDLE
+.br
+DLN	SCHED_DEADLINE
+.br
+?	unknown value
+.in
+T}
+
+cmd	CMD	T{
+see
+.BR args .
+(alias
+.BR args ", " command ).
+T}
+
+comm	COMMAND	T{
+command name (only the executable name).  The output in this column may
+contain spaces.
+(alias
+.BR ucmd ", " ucomm ).
+See also the
+.B args
+format keyword, the
+.B \-f
+option, and the
+.B c
+option.
+.br
+When specified last, this column will extend to the edge of the display.  If
+.B ps
+can not determine display width, as when output is redirected (piped) into a
+file or another command, the output width is undefined (it may be 80,
+unlimited, determined by the
+.B TERM
+variable, and so on).  The
+.B COLUMNS
+environment variable or
+.B \-\-cols
+option may be used to exactly determine the width in this case.  The
+.BR w \ or \ \-w
+option may be also be used to adjust width.
+T}
+
+command	COMMAND	T{
+See
+.BR args .
+(alias
+.BR args ", " command ).
+T}
+
+cp	CP	T{
+per\-mill (tenths of a percent) CPU usage.  (see
+.BR %cpu ).
+T}
+
+cputime	TIME	T{
+cumulative CPU time, "[DD\-]hh:mm:ss" format.  (alias
+.BR time ).
+T}
+
+cputimes	TIME	T{
+cumulative CPU time in seconds (alias
+.BR times ).
+T}
+
+cuc	%CUC	T{
+The CPU utilization of a process, including dead children, in an extended "##.###" format.
+(see also
+.BR %cpu ,
+.BR c ,
+.BR cp ,
+.BR cuu ,
+.BR pcpu ).
+T}
+
+cuu	%CUU	T{
+The CPU utilization of a process in an extended "##.###" format.
+(see also
+.BR %cpu ,
+.BR c ,
+.BR cp ,
+.BR cuc ,
+.BR pcpu ).
+T}
+
+drs	DRS	T{
+data resident set size, the amount of private memory \fIreserved\fR by a process.
+It is also known as DATA. Such memory may not yet be mapped to
+.B rss
+but will always be included
+included in the
+.B vsz
+amount.
+
+T}
+
+egid	EGID	T{
+effective group ID number of the process as a decimal integer.  (alias
+.BR gid ).
+T}
+
+egroup	EGROUP	T{
+effective group ID of the process.  This will be the textual group ID, if it
+can be obtained and the field width permits, or a decimal representation
+otherwise.  (alias
+.BR group ).
+T}
+
+eip	EIP	T{
+instruction pointer. As of kernel 4.9.xx will be zeroed out unless task is
+exiting or being core dumped.
+T}
+
+esp	ESP	T{
+stack pointer. As of kernel 4.9.xx will be zeroed out unless task is
+exiting or being core dumped.
+T}
+
+etime	ELAPSED	T{
+elapsed time since the process was started, in the form [[DD\-]hh:]mm:ss.
+T}
+
+etimes	ELAPSED	T{
+elapsed time since the process was started, in seconds.
+T}
+
+euid	EUID	T{
+effective user ID (alias
+.BR uid ).
+T}
+
+euser	EUSER	T{
+effective user name.  This will be the textual user ID, if it can be obtained
+and the field width permits, or a decimal representation otherwise.  The
+.B n
+option can be used to force the decimal representation.  (alias
+.BR uname ", "  user ).
+T}
+
+exe	EXE	T{
+path to the executable. Useful if path cannot be printed via
+.BR cmd ", " comm
+or
+.BR args
+format options.
+T}
+
+f	F	T{
+flags associated with the process, see the
+.B PROCESS FLAGS
+section.  (alias
+.BR flag ", " flags ).
+T}
+
+fgid	FGID	T{
+filesystem access group\ ID.  (alias
+.BR fsgid ).
+T}
+
+fgroup	FGROUP	T{
+filesystem access group ID.  This will be the textual group ID, if it can
+be obtained and the field width permits, or a decimal representation
+otherwise.  (alias
+.BR fsgroup ).
+T}
+
+flag	F	T{
+see
+.BR f .
+(alias
+.BR f ", " flags ).
+T}
+
+flags	F	T{
+see
+.BR f .
+(alias
+.BR f ", " flag ).
+T}
+
+fname	COMMAND	T{
+first 8 bytes of the base name of the process's executable file.  The output
+in this column may contain spaces.
+T}
+
+fuid	FUID	T{
+filesystem access user ID.  (alias
+.BR fsuid ).
+T}
+
+fuser	FUSER	T{
+filesystem access user ID.  This will be the textual user ID, if it can be
+obtained and the field width permits, or a decimal representation otherwise.
+T}
+
+gid	GID	T{
+see
+.BR egid .
+(alias
+.BR egid ).
+T}
+
+group	GROUP	T{
+see
+.BR egroup .
+(alias
+.BR egroup ).
+T}
+
+ignored	IGNORED	T{
+mask of the ignored signals, see
+.IR signal (7).
+According to the width of the field, a 32 or 64 bits mask in hexadecimal
+format is displayed, unless the \fB\-\-signames\fR option is used.  (alias
+.BR sig_ignore ", " sigignore ).
+T}
+
+ipcns	IPCNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+label	LABEL	T{
+security label, most commonly used for SELinux context data.  This is for
+the
+.I Mandatory Access Control
+("MAC") found on high\-security systems.
+T}
+
+lstart	STARTED	T{
+time the command started. This will be in the form "DDD mmm HH:MM:SS YYY"
+unless changed by the \fB\-D\fR option.
+T}
+
+lsession	SESSION	T{
+displays the login session identifier of a process,
+if systemd support has been included.
+T}
+
+luid	LUID	T{
+displays Login ID associated with a process.
+T}
+
+lwp	LWP	T{
+light weight process (thread) ID of the dispatchable entity (alias
+.BR spid , \ tid ).
+See
+.B tid
+for additional information.
+T}
+
+lxc	LXC	T{
+The name of the lxc container within which a task is running.
+If a process is not running inside a container, a dash ('\-') will be shown.
+T}
+
+machine	MACHINE	T{
+displays the machine name for processes assigned to VM or container,
+if systemd support has been included.
+T}
+
+maj_flt	MAJFLT	T{
+The number of major page faults that have occurred with this process.
+T}
+
+min_flt	MINFLT	T{
+The number of minor page faults that have occurred with this process.
+T}
+
+mntns	MNTNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+netns	NETNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+ni	NI	T{
+nice value. This ranges from 19 (nicest) to \-20 (not nice to others),
+see
+.IR nice (1).
+(alias
+.BR nice ).
+T}
+
+nice	NI	T{
+see
+.BR ni .  (alias
+.BR ni ).
+T}
+
+nlwp	NLWP	T{
+number of lwps (threads) in the process.  (alias
+.BR thcount ).
+T}
+
+numa	NUMA	T{
+The node associated with the most recently used processor.
+A \fI\-1\fR means that NUMA information is unavailable.
+T}
+
+nwchan	WCHAN	T{
+address of the kernel function where the process is sleeping (use
+.B wchan
+if you want the kernel function name).
+T}
+
+oom	OOM	T{
+Out of Memory Score. The value, ranging from 0 to +1000, used to select
+task(s) to kill when memory is exhausted.
+T}
+
+oomadj	OOMADJ	T{
+Out of Memory Adjustment Factor. The value is added to the current out of
+memory score which is then used to determine which task to kill when memory
+is exhausted.
+T}
+
+ouid	OWNER	T{
+displays the Unix user identifier of the owner of the session of a process,
+if systemd support has been included.
+T}
+
+pcpu	%CPU	T{
+see
+.BR %cpu .
+(alias
+.BR %cpu ).
+T}
+
+pending	PENDING	T{
+mask of the pending signals. See
+.IR signal (7).
+Signals pending on the process are distinct from signals pending on
+individual threads.  Use the
+.B m
+option or the
+.B \-m
+option to see both.  According to the width of the field, a 32 or 64 bits
+mask in hexadecimal
+format is displayed, unless the \fB\-\-signames\fR option is used.  (alias
+.BR sig ).
+T}
+
+pgid	PGID	T{
+process group ID or, equivalently, the process ID of the process group
+leader.  (alias
+.BR pgrp ).
+T}
+
+pgrp	PGRP	T{
+see
+.BR pgid .
+(alias
+.BR pgid ).
+T}
+
+pid	PID	T{
+a number representing the process ID (alias
+.BR tgid ).
+T}
+
+pidns	PIDNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+pmem	%MEM	T{
+see
+.BR %mem .
+(alias
+.BR %mem ).
+T}
+
+policy	POL	T{
+scheduling class of the process.  (alias
+.BR class ", " cls ).
+Possible values are:
+.sp 1
+.in +9n
+\-	not reported
+.br
+TS	SCHED_OTHER
+.br
+FF	SCHED_FIFO
+.br
+RR	SCHED_RR
+.br
+B	SCHED_BATCH
+.br
+ISO	SCHED_ISO
+.br
+IDL	SCHED_IDLE
+.br
+DLN	SCHED_DEADLINE
+.br
+?	unknown value
+.in
+T}
+
+ppid	PPID	T{
+parent process ID.
+T}
+
+pri	PRI	T{
+priority of the process.  Higher number means higher priority.
+T}
+
+psr	PSR	T{
+processor that process last executed on.
+T}
+
+pss	PSS	T{
+Proportional share size, the non-swapped physical memory, with shared memory
+proportionally accounted to all tasks mapping it.
+T}
+
+rbytes	RBYTES	T{
+Number of bytes which this process really did cause to be fetched from the storage layer.
+T}
+
+rchars	RCHARS	T{
+Number of bytes which this task has caused to be read from storage.
+T}
+
+rgid	RGID	T{
+real group ID.
+T}
+
+rgroup	RGROUP	T{
+real group name.  This will be the textual group ID, if it can be obtained
+and the field width permits, or a decimal representation otherwise.
+T}
+
+rops	ROPS	T{
+Number of read I/O operations—that is, system calls such as
+.BR read "(2) and " pread (2).
+T}
+
+rss	RSS	T{
+resident set size, the non\-swapped physical memory that a task has used (in
+kilobytes).  (alias
+.BR rssize ", " rsz ).
+T}
+
+rssize	RSS	T{
+see
+.BR rss .
+(alias
+.BR rss ", " rsz ).
+T}
+
+rsz	RSZ	T{
+see
+.BR rss .
+(alias
+.BR rss ", " rssize ).
+T}
+
+rtprio	RTPRIO	T{
+realtime priority.
+T}
+
+ruid	RUID	T{
+real user ID.
+T}
+
+ruser	RUSER	T{
+real user ID.  This will be the textual user ID, if it can be obtained and
+the field width permits, or a decimal representation otherwise.
+T}
+
+s	S	T{
+minimal state display (one character).  See section
+.B PROCESS STATE CODES
+for the different values.  See also
+.B stat
+if you want additional information displayed.  (alias
+.BR state ).
+T}
+
+sched	SCH	T{
+scheduling policy of the process.  The policies SCHED_OTHER (SCHED_NORMAL),
+SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_ISO, SCHED_IDLE and SCHED_DEADLINE are
+respectively displayed as 0, 1, 2, 3, 4, 5 and 6.
+T}
+
+seat	SEAT	T{
+displays the identifier associated with all hardware devices assigned
+to a specific workplace,
+if systemd support has been included.
+T}
+
+sess	SESS	T{
+session ID or, equivalently, the process ID of the session leader.  (alias
+.BR session ", " sid ).
+T}
+
+sgi_p	P	T{
+processor that the process is currently executing on.  Displays "*" if the
+process is not currently running or runnable.
+T}
+
+sgid	SGID	T{
+saved group ID.  (alias
+.BR svgid ).
+T}
+
+sgroup	SGROUP	T{
+saved group name.  This will be the textual group ID, if it can be obtained
+and the field width permits, or a decimal representation otherwise.
+T}
+
+sid	SID	T{
+see
+.BR sess .
+(alias
+.BR sess ", " session ).
+T}
+
+sig	PENDING	T{
+see
+.BR pending .
+(alias
+.BR pending ", " sig_pend ).
+T}
+
+sigcatch	CAUGHT	T{
+see
+.BR caught .
+(alias
+.BR caught ", " sig_catch ).
+T}
+
+sigignore	IGNORED	T{
+see
+.BR ignored .
+(alias
+.BR ignored ", " sig_ignore ).
+T}
+
+sigmask	BLOCKED	T{
+see
+.BR blocked .
+(alias
+.BR blocked ", " sig_block ).
+T}
+
+size	SIZE	T{
+approximate amount of swap space that would be required if the process were
+to dirty all writable pages and then be swapped out.  This number is very
+rough!
+T}
+
+slice	SLICE	T{
+displays the slice unit which a process belongs to,
+if systemd support has been included.
+T}
+
+spid	SPID	T{
+see
+.BR lwp .
+(alias
+.BR lwp ", " tid ).
+T}
+
+stackp	STACKP	T{
+address of the bottom (start) of stack for the process.
+T}
+
+start	STARTED	T{
+time the command started.  If the process was started less than 24 hours ago,
+the output format is "HH:MM:SS", else it is "\ \ Mmm\ dd" (where Mmm is a
+three\-letter month name).  See also
+.BR bsdstart ", " start ", " start_time ", and " stime .
+T}
+
+start_time	START	T{
+starting time or date of the process.  Only the year will be displayed if the
+process was not started the same year
+.B ps
+was invoked, or "MmmDD" if it was not started the same day, or "HH:MM"
+otherwise.  See also
+.BR bsdstart ", " start ", " lstart ", and "  stime .
+T}
+
+stat	STAT	T{
+multi\-character process state.  See section
+.B PROCESS STATE CODES
+for the different values meaning.  See also
+.BR s \ and \ state
+if you just want the first character displayed.
+T}
+
+state	S	T{
+see
+.BR s ".\& (alias" \ s ).
+T}
+
+stime	STIME	T{
+see \fBstart_time\fR. (alias \fBstart_time\fR).
+T}
+
+suid	SUID	T{
+saved user ID.  (alias
+.BR svuid ).
+T}
+
+supgid	SUPGID	T{
+group ids of supplementary groups, if any.  See
+.BR getgroups (2).
+T}
+
+supgrp	SUPGRP	T{
+group names of supplementary groups, if any.  See
+.BR getgroups (2).
+T}
+
+suser	SUSER	T{
+saved user name.  This will be the textual user ID, if it can be obtained and
+the field width permits, or a decimal representation otherwise.  (alias
+.BR svuser ).
+T}
+
+svgid	SVGID	T{
+see
+.BR sgid .
+(alias
+.BR sgid ).
+T}
+
+svuid	SVUID	T{
+see
+.BR suid .
+(alias
+.BR suid ).
+T}
+
+sz	SZ	T{
+size in physical pages of the core image of the process.  This includes text,
+data, and stack space.  Device mappings are currently excluded; this is
+subject to change.  See
+.BR vsz \ and \ rss .
+T}
+
+tgid	TGID	T{
+a number representing the thread group to which a task belongs (alias
+.BR pid ).
+It is the process ID of the thread group leader.
+T}
+
+thcount	THCNT	T{
+see
+.BR nlwp .
+(alias
+.BR nlwp ).
+number of kernel threads owned by the process.
+T}
+
+tid	TID	T{
+the unique number representing a dispatchable entity (alias
+.BR spid ", " tid ).
+This value may also appear as: a process ID (pid); a process group ID (pgrp);
+a session ID for the session leader (sid); a thread group ID for the thread
+group leader (tgid); and a tty process group ID for the process group leader
+(tpgid).
+T}
+
+time	TIME	T{
+cumulative CPU\ time, "[DD\-]HH:MM:SS" format.  (alias
+.BR cputime ).
+T}
+
+timens	TIMENS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+times	TIME	T{
+cumulative CPU\ time in seconds (alias
+.BR cputimes ).
+T}
+
+tname	TTY	T{
+controlling tty (terminal).  (alias
+.BR tt ", " tty ).
+T}
+
+tpgid	TPGID	T{
+ID of the foreground process group on the tty (terminal) that the process is
+connected to, or \-1 if the process is not connected to a tty.
+T}
+
+trs	TRS	T{
+text resident set size, the amount of physical memory devoted to executable code.
+T}
+
+tt	TT	T{
+controlling tty (terminal).  (alias
+.BR tname ", " tty ).
+T}
+
+tty	TT	T{
+controlling tty (terminal).  (alias
+.BR tname ", " tt ).
+T}
+
+ucmd	CMD	T{
+see
+.BR comm .
+(alias
+.BR comm ", " ucomm ).
+T}
+
+ucomm	COMMAND	T{
+see
+.BR comm .
+(alias
+.BR comm ", " ucmd ).
+T}
+
+uid	UID	T{
+see
+.BR euid .
+(alias
+.BR euid ).
+T}
+
+uname	USER	T{
+see
+.BR euser .
+(alias
+.BR euser ", " user ).
+T}
+
+unit	UNIT	T{
+displays unit which a process belongs to,
+if systemd support has been included.
+T}
+
+user	USER	T{
+see
+.BR euser .
+(alias
+.BR euser ", " uname ).
+T}
+
+userns	USERNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+uss	USS	T{
+Unique set size, the non-swapped physical memory, which
+is not shared with an another task.
+T}
+
+utsns	UTSNS	T{
+Unique inode number describing the namespace the process belongs to.
+See
+.IR namespaces (7).
+T}
+
+uunit	UUNIT	T{
+displays user unit which a process belongs to,
+if systemd support has been included.
+T}
+
+vsize	VSZ	T{
+see
+.BR vsz .
+(alias
+.BR vsz ).
+T}
+
+vsz	VSZ	T{
+virtual memory size of the process in KiB (1024\-byte units).  Device
+mappings are currently excluded; this is subject to change.  (alias
+.BR vsize ).
+T}
+
+wbytes	WBYTES	T{
+Number of bytes which this process caused to be sent to the storage layer.
+T}
+
+wcbytes	WCBYTES	T{
+Number of cancelled write bytes.
+T}
+
+wchan	WCHAN	T{
+name of the kernel function in which the process is sleeping.
+T}
+
+wchars	WCHARS	T{
+Number of bytes which this task has caused, or shall cause to be written to disk.
+T}
+
+wops	WOPS	T{
+Number of write I/O operations—that is, system calls such as
+.BR write "(2) and " pwrite (2).
+T}
+
+.TE
+.SH "ENVIRONMENT VARIABLES"
+The following environment variables could affect
+.BR ps :
+.TP 3
+.B COLUMNS
+Override default display width.
+.TP
+.B LINES
+Override default display height.
+.TP
+.B PS_PERSONALITY
+Set to one of posix, old, linux, bsd, sun, digital...\& (see section
+.B PERSONALITY
+below).
+.TP
+.B CMD_ENV
+Set to one of posix, old, linux, bsd, sun, digital...\& (see section
+.B PERSONALITY
+below).
+.TP
+.B I_WANT_A_BROKEN_PS
+Force obsolete command line interpretation.
+.TP
+.B LC_TIME
+Date format.
+.TP
+.B LIBPROC_HIDE_KERNEL
+Set this to any value to hide kernel threads normally displayed with the
+.B -e
+option. This is equivalent to selecting
+.B --ppid 2 -p 2 --deselect
+instead. Also works in BSD mode.
+.TP
+.B PS_COLORS
+Not currently supported.
+.TP
+.B PS_FORMAT
+Default output format override. You may set this to a format
+string of the type used for the
+.B \-o
+option.
+The
+.B DefSysV
+and
+.B DefBSD
+values are particularly useful.
+.TP
+.B POSIXLY_CORRECT
+Don't find excuses to ignore bad "features".
+.TP
+.B POSIX2
+When set to "on", acts as
+.BR POSIXLY_CORRECT .
+.TP
+.B UNIX95
+Don't find excuses to ignore bad "features".
+.TP
+.B _XPG
+Cancel
+.BR CMD_ENV =\c
+.I irix
+non\-standard behavior.
+.PP
+In general, it is a bad idea to set these variables.  The one exception is
+.B CMD_ENV
+or
+.BR PS_PERSONALITY ,
+which could be set to Linux for normal systems.  Without that setting,
+.B ps
+follows the useless and bad parts of the Unix98 standard.
+.SH "PERSONALITY"
+.TS
+l	l.
+390	like the OS/390 OpenEdition \fBps\fR
+aix	like AIX \fBps\fR
+bsd	like FreeBSD \fBps\fR (totally non\-standard)
+compaq	like Digital Unix \fBps\fR
+debian	like the old Debian \fBps\fR
+digital	like Tru64 (was Digital\ Unix, was OSF/1) \fBps\fR
+gnu	like the old Debian \fBps\fR
+hp	like HP\-UX \fBps\fR
+hpux	like HP\-UX \fBps\fR
+irix	like Irix \fBps\fR
+linux	***** \fBrecommended\fR *****
+old	like the original Linux \fBps\fR (totally non\-standard)
+os390	like OS/390 Open Edition \fBps\fR
+posix	standard
+s390	like OS/390 Open Edition \fBps\fR
+sco	like SCO \fBps\fR
+sgi	like Irix \fBps\fR
+solaris2	like Solaris 2+ (SunOS 5) \fBps\fR
+sunos4	like SunOS 4 (Solaris 1) \fBps\fR (totally non\-standard)
+svr4	standard
+sysv	standard
+tru64	like Tru64 (was Digital Unix, was OSF/1) \fBps\fR
+unix	standard
+unix95	standard
+unix98	standard
+.TE
+.SH BUGS
+The fields \fBbsdstart\fR and \fBstart\fR will only show the abbreviated
+month name in English. The fields \fBlstart\fR and \fBstime\fR will show
+the abbreviated month name in the configured locale but may exceed the
+column width due to the different lengths for abbreviated month and day
+names across languages.
+.PP
+.SH "SEE ALSO"
+.BR pgrep (1),
+.BR pstree (1),
+.BR top (1),
+.BR strftime (3),
+.BR proc (5).
+.SH STANDARDS
+This
+.B ps
+conforms to:
+.PP
+.PD 0
+.IP 1 4
+Version 2 of the Single Unix Specification
+.IP 2 4
+The Open Group Technical Standard Base Specifications, Issue\ 6
+.IP 3 4
+IEEE Std 1003.1, 2004\ Edition
+.IP 4 4
+X/Open System Interfaces Extension [UP\ XSI]
+.IP 5 4
+ISO/IEC 9945:2003
+.PD
+.SH AUTHOR
+.B ps
+was originally written by
+.MT lankeste@\:fwi.\:uva.\:nl
+Branko Lankester
+.ME .
+.MT johnsonm@\:redhat.\:com
+Michael K. Johnson
+.ME
+re\-wrote it significantly to use the proc filesystem, changing a few things
+in the process.
+.MT mjshield@\:nyx.\:cs.\:du.\:edu
+Michael Shields
+.ME
+added the pid\-list feature.
+.MT cblake@\:bbn.\:com
+Charles Blake
+.ME
+added multi\-level sorting, the dirent\-style library, the device
+name\-to\-number mmaped database, the approximate binary search directly on
+System.map, and many code and documentation cleanups.  David Mossberger\-Tang
+wrote the generic BFD support for psupdate.
+.MT albert@\:users.\:sf.\:net
+Albert Cahalan
+.ME
+rewrote ps for full Unix98 and BSD support, along with some ugly hacks for
+obsolete and foreign syntax.
+.PP
+Please send bug reports to
+.MT procps@\:freelists.\:org
+.ME .
+No subscription is required or suggested.

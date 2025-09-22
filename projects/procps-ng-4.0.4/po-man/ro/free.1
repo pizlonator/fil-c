@@ -1,0 +1,177 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2003 Albert Cahalan
+.\" Copyright (c) 1993      Matt Welsh <mdw@sunsite.unc.edu>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FREE 1 02.05.2023 procps\-ng "Comenzi utilizator"
+.SH NUME
+free \- Afișează cantitatea de memorie liberă și utilizată din sistem
+.SH REZUMAT
+\fBfree\fP [\fIopțiuni\fP]
+.SH DESCRIERE
+\fBfree\fP afișează cantitatea totală de memorie fizică și swap liberă și
+utilizată din sistem, precum și dimensiunile memoriilor tampon(buffer) și a
+zonelor de prestocare(cache) utilizate de nucleu. Informațiile sunt
+colectate prin analizarea fișierului \fI/proc/meminfo\fP. Coloanele afișate
+sunt:
+.TP 
+\fBtotală\fP
+Memoria totală utilizabilă (MemTotal și SwapTotal în
+„/proc/meminfo”. Aceasta include memoria fizică și memoria spațiului de
+interschimb (swap) minus câțiva biți rezervați și codul binar al nucleului.
+.TP 
+\fButilizată\fP
+Memoria utilizată sau indisponibilă (calculată ca \fBtotală\fP \-
+\fBdisponibilă\fP)
+.TP 
+\fBliberă\fP
+Memoria neutilizată (MemFree și SwapFree din „/proc/meminfo”)
+.TP 
+\fBpartajată\fP
+Memoria utilizată (în mare parte) de tmpfs (Shmem din „/proc/meminfo”)
+.TP 
+\fBmemoriile tampon(buffers)\fP
+Memoria utilizată de memoriile tampon ale nucleului (Buffers din
+„/proc/meminfo”)
+.TP 
+\fBzonele de prestocare(cache)\fP
+Memoria utilizată de zonele de prestocare ale paginării și de „slabs”
+(Cached și SReclaimable din „/proc/meminfo„)
+.TP 
+\fBbuff/cache\fP
+Suma dintre \fBmemoriile tampon(buffers)\fP și \fBzonele de prestocare(cache)\fP
+.TP 
+\fBdisponibilă\fP
+Estimarea cantității de memorie disponibilă pentru pornirea unor aplicații
+noi, fără schimbare. Spre deosebire de datele furnizate de câmpurile
+\fBzonele de prestocare(cache)\fP sau \fBliberă\fP, acest câmp ia în considerare
+zona de prestocare(cache) a paginii și, de asemenea, că nu toate blocurile
+de memorie „slabs” recuperabile vor fi recuperate din cauza elementelor care
+sunt în uz (MemAvailable în „/proc/meminfo”, disponibilă pe nucleele 3.14,
+emulat pe nucleele 2.6.27+, altfel la fel ca \fBliberă\fP)
+.SH OPȚIUNI
+.TP 
+\fB\-b\fP, \fB\-\-bytes\fP
+Afișează cantitatea de memorie în octeți.
+.TP 
+\fB\-k\fP, \fB\-\-kibi\fP
+Afișează cantitatea de memorie în kibiocteți.  Aceasta este valoarea
+implicită.
+.TP 
+\fB\-m\fP, \fB\-\-mebi\fP
+Afișează cantitatea de memorie în mebiocteți.
+.TP 
+\fB\-g\fP, \fB\-\-gibi\fP
+Afișează cantitatea de memorie în gibiocteți.
+.TP 
+\fB\-\-tebi\fP
+Afișează cantitatea de memorie în tebiocteți.
+.TP 
+\fB\-\-pebi\fP
+Afișează cantitatea de memorie în pebiocteți.
+.TP 
+\fB\-\-kilo\fP
+Afișează cantitatea de memorie în kiloocteți. Implică utilizarea opțiunii
+„\-\-si”.
+.TP 
+\fB\-\-mega\fP
+Afișează cantitatea de memorie în megaocteți. Implică utilizarea opțiunii
+„\-\-si”.
+.TP 
+\fB\-\-giga\fP
+Afișează cantitatea de memorie în gigaocteți. Implică utilizarea opțiunii
+„\-\-si”.
+.TP 
+\fB\-\-tera\fP
+Afișează cantitatea de memorie în teraocteți. Implică utilizarea opțiunii
+„\-\-si”.
+.TP 
+\fB\-\-peta\fP
+Afișează cantitatea de memorie în petaocteți. Implică utilizarea opțiunii
+„\-\-si”.
+.TP 
+\fB\-h\fP, \fB\-\-human\fP
+Afișează toate câmpurile de ieșire scalate automat la cea mai scurtă unitate
+de trei cifre și afișează unitățile de măsură.  Sunt utilizate următoarele
+unități.
+.sp
+.nf
+  B = octeți
+  Ki = kibiocteți
+  Mi = mebiocteți
+  Gi = gibiocteți
+  Ti = tebiocteți
+  Pi = pebiocteți
+.fi
+.sp
+Dacă unitatea lipsește și aveți extra\-biocteți de RAM sau swap, numărul este
+în tebiocteți, iar coloanele ar putea să nu fie aliniate cu antetul(titlul).
+.TP 
+\fB\-w\fP, \fB\-\-wide\fP
+Comută la modul larg. Modul larg produce linii mai lungi de 80 de
+caractere. În acest mod, \fBmemoriile tampon(buffers)\fP și \fBzonele de prestocare(cache)\fP sunt raportate în două coloane separate.
+.TP 
+\fB\-c\fP, \fB\-\-count\fP \fIN\-ori\fP
+Afișează rezultatul de \fInumăr\fP ori.  Necesită opțiunea \fB\-s\fP.
+.TP 
+\fB\-l\fP, \fB\-\-lohi\fP
+Afișează statistici detaliate despre memorie scăzută(lowmem) și
+ridicată(highmem).
+.TP 
+\fB\-L\fP, \fB\-\-line\fP
+Afișează ieșirea pe o singură linie, adesea utilizată împreună cu opțiunea
+\fB\-s\fP pentru a afișa statisticile de memorie în mod repetat.
+.TP 
+\fB\-s\fP, \fB\-\-seconds\fP \fIîntârzierea\fP
+Afișează în mod continuu rezultatul la un interval de \fIîntârziere\fP
+secunde.  Puteți specifica, de fapt, orice număr zecimal pentru
+\fIîntârziere\fP folosind fie «.», fie «,» pentru a marca virgula zecimală.
+\fBusleep\fP(3)  este utilizată pentru timpii de întârziere ai rezoluției în
+microsecunde.
+.TP 
+\fB\-\-si\fP
+Utilizează kilo, mega, giga, etc (putere de 1000) în loc de kibi, mebi, gibi
+(putere de 1024).
+.TP 
+\fB\-t\fP, \fB\-\-total\fP
+Afișează o linie care arată totalurile coloanelor.
+.TP 
+\fB\-v\fP, \fB\-\-committed\fP
+Afișează o linie care arată limita de alocare a memoriei și cantitatea de
+memorie alocată/nealocată.  Coloana \fBtotal\fP de pe această linie va afișa
+limita de alocare a memoriei.  Această linie este relevantă dacă
+supralocarea memoriei este dezactivată.
+.TP 
+\fB\-\-help\fP
+Afișează mesajul de ajutor.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Afișați informațiile despre versiune.
+.PD
+.SH FIȘIERE
+.TP 
+/proc/meminfo
+informații despre memorie
+.PD
+.SH ERORI
+Valoarea pentru coloana \fBpartajată\fP nu este disponibilă în nucleele
+dinainte de versiunea 2.6.32, și este afișată ca zero.
+.TP 
+Trimiteți rapoartele de erori la
+.UR procps@freelists.org
+.UE
+.SH "CONSULTAȚI ȘI"
+\fBps\fP(1), \fBslabtop\fP(1), \fBtop\fP(1), \fBvmstat\fP(8).

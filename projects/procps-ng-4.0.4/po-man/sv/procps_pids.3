@@ -1,0 +1,199 @@
+.\"
+.\" Copyright (c) 2020-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2020-2023 Craig Small <csmall@dropbear.xyz>
+.\"
+.\" This manual is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCPS_PIDS 3 "Augusti 2022" libproc2 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.nh
+.SH NAMN
+procps_pids — API för att hämta ut processinformation i filsystemet /proc
+
+.SH SYNOPSIS
+.nf
+#include <libproc2/pids.h>
+
+int\fB procps_pids_new  \fP (struct pids_info **\fIinfo\fP, enum pids_item *\fIelement\fP, int \fIantalelement\fP);
+int\fB procps_pids_ref  \fP (struct pids_info  *\fIinfo\fP);
+int\fB procps_pids_unref\fP (struct pids_info **\fIinfo\fP);
+
+
+struct pids_stack *\fBprocps_pids_get\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_fetch_type \fIvilken\fP);
+
+struct pids_fetch *\fBprocps_pids_reap\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_fetch_type \fIvilken\fP);
+
+struct pids_fetch *\fBprocps_pids_select\fP (
+    struct pids_info *\fIinfo\fP,
+    unsigned *\fIdessa\fP,
+    int \fIantaldessa\fP,
+    enum pids_select_type \fIvilken\fP);
+
+struct pids_stack **\fBprocps_pids_sort\fP (
+    struct pids_info *\fIinfo\fP,
+    struct pids_stack *\fIstackar\fP[],
+    int \fIantalstackade\fP,
+    enum pids_item \fIsortelement\fP,
+    enum pids_sort_order \fIordning\fP);
+
+int \fBprocps_pids_reset\fP (
+    struct pids_info *\fIinfo\fP,
+    enum pids_item *\fInyaelement\fP,
+    int \fInyaantalelement\fP);
+
+struct pids_stack *\fBfatal_proc_unmounted\fP (
+    struct pids_info *\fIinfo\fP,
+    int \fIreturnera_själv\fP);
+
+.fi
+
+Länka med \fI\-lproc2\fP.
+
+.SH BESKRIVNING
+.SS Översikt
+Centralt för detta gränssnitt är en enkel ”resultat”\-post som avspeglar ett
+”element” plus dess värde (i en union med standardtyper i språket C som
+medlemmar). Alla ”resultat”\-poster allokeras automatiskt och tillhandahålls
+av biblioteket.
+
+Genom att ange en vektor av ”element” kan dessa strukturer organiseras som
+en ”stack”, som potentiellt ger många resultat med ett enda
+funktionsanrop. Alltså kan en ”stack” ses som en post med variabel längd
+vars innehåll och ordning helt avgörs av användaren.
+
+Som en del av detta gränssnitt finns det två unika uppräknare. Elementen
+”noop” och ”extra” finns för att hålla användarvärden. De sätts aldrig av
+biblioteket, men ”extra”\-resultatet kommer nollställas vid varje
+biblioteksinteraktion.
+
+Filen pids.h kommer vara ett avgörande dokument under användarens utveckling
+av program. Där hittar man tillgängliga element, deras returtyp
+(medlemsnamnen i posten ”resultat”) och källan för sådana
+värden. Ytterligare uppräknare och poster dokumenteras också där.
+
+.SS Användning
+Följande skulle vara en typisk anropssekvens till detta gränssnitt.
+
+.nf
+1. \fBfatal_proc_unmounted()\fP
+2. \fBprocps_pids_new()\fP
+3. \fBprocps_pids_get()\fP, \fBprocps_pids_reap()\fP eller \fBprocps_pids_select()\fP
+4. \fBprocps_pids_unref()\fP
+.fi
+
+Funktionen \fBget\fP är en iterator för succesiva PID:n/TID:n, och returnerar
+dessa ”element” som tidigare identifierats via \fBnew\fP eller \fBreset\fP.
+
+Två funktioner stödjer oförutsägbara variabla utfall. Funktionen \fBreap\fP
+samlar dat för alla processer medan funktionen \fBselect\fP arbetar med
+specifikaPID:er eller UID:er. Båda kan returnera flera ”stackar” som var och
+en innehåller multipla ”resultat”\-poster. Om önskas kan en användare välja
+att \fBsort\fP sådana resultat
+
+För att använda någon ”stack”, och komma åt individuella ”resultat”\-poster,
+krävs en \fIrelativ_uppräkning\fP som visas i makrot \fBVAL\fP definierat i
+huvudfilen. Sådana värden skulle kunna hårdkodas som: 0 till
+antalelement\-1. Dock uppfylls detta behov typiskt genom att skapa ens egna
+uppräknare motsvarande ordningen i vektorn av ”element”.
+
+.SS Förbehåll
+API:et <pids> skiljer sig från andra genom att de intressanta
+elementen måste anges vid tidpunkten för \fBnew\fP eller \fBreset\fP, där den
+senare är unik för detta API. Om antingen parametern \fIelement\fP eller
+\fIantalelement\fP är noll vid tidpunkten för \fBnew\fP blir \fBreset\fP obligatorisk
+före man gör något annat anrop.
+
+För funktionerna \fBnew\fP och \fBunref\fP måste adressen till en
+\fIinfo\fP\-postpekare ges.  Med \fBnew\fP måste den ha initierats till NULL.  Med
+\fBunref\fP kommer den återställas till NULL om referensräknaren når noll.
+
+Funktionerna \fBget\fP och \fBreap\fP använder parametern \fIvilken\fP för att ange
+huruvida endast uppgifter eller både uppgifter och trådar skall hämtas.
+
+Funktionen \fBselect\fP behöver en vektor av PID:er eller UID:er som \fIdessa\fP
+tillsammans med \fIantaldessa\fP för att identifera vilka processer som skall
+hämtas. Denna funktion arbetar sedan som en delmängd av \fBreap\fP.
+
+När man använder funktionen \fBsort\fP skall parametrarna \fIstackar\fP och
+\fIantalstackade\fP normalt vara de som returneras i posten ”pids_fetch”.
+
+Slutligen kan funktion \fBfatal_proc_unmounted\fP anropas före någon annan
+funktion för att säkerställa att katalogen /proc/ är monterad. Därmed skall
+parametern \fIinfo\fP vara NULL och parametern \fIreturnera_själv\fP vara
+noll. Om, däremot, några element önskas av det anropande programmet (en
+\fIreturnera_själv\fP något annat än noll) då måste anropet av \fBnew\fP föregå
+det för att identfiera \fIelement\fPen och hämta den önskade \fIinfo\fP\-pekaren.
+
+.SH RETURVÄRDE
+.SS "Funktioner som returnerar en ”int”"
+Ett fel kommer indikera ett negativt tal som alltid är inversen av något
+känt värde från errno.h.
+
+Lyckat resultat markeras med ett returvärde av noll. Dock returnerar
+funktionerna \fBref\fP och \fBunref\fP det aktuella värdet på referensräknaren för
+\fIinfo\fP\-posten.
+
+.SS "Funktioner som returnerar en ”adress”"
+Ett fel kommer indikeras av en NULL\-returpekare och orsaken går att hitta i
+dett formella errno\-värdet.
+
+Lyckat resultat indikeras av en pekare på den namngivna posten. Dock, om man
+överlever anropet av \fBfatal_proc_unmounted\fP kommer NULL alltid returneras
+när \fIreturnera_själv\fP är noll.
+
+.SH FELSÖKNING
+För att hjälpa till med programutveckling finns det två metoder i procps\-ng
+som kan användas.
+
+Den första är en levererad fil med namnet ”libproc.supp” som kan vara
+användbar när man utvecklar ett \fImultitrådat\fP program. När den används med
+flaggan ”\-\-suppressions=” till valgrind undviks varningar som hör ihop med
+biblioteket procps självt.
+
+Sådana varningar uppstår för att biblioteket hanterar heap\-baserade
+allokeringar på ett trädsäkert sätt. Ett \fIenkeltrådat\fP program kommer inte
+att få dessa varningar.
+
+Den andra metoden kan hjälpa till att säkerställa att medlemsreferenser i
+”resultat” stämmer överens med bibliotekets förväntningar. Den räknar med
+att ett tillhandahållet makro i huvuddfilen används för att komma åt
+”resultat”\-värdet.
+
+Denna funktion kan aktiveras genom någon av de följande metoderna och
+eventuella avvikelser kommer att skrivas till \fBstandard fel\fP.
+
+.IP 1) 3
+Lägg till CFLAGS='\-DXTRA_PROCPS_DEBUG' till eventuella andra flaggor till
+\&./configure som ditt projekt kan tänkas använda.
+
+.IP 2) 3
+Lägg till #include <procps/xtra\-procps\-debug.h> till varje program
+\fIefter\fP raden #include <procps/pids.h>.
+
+.PP
+Denna verifieringsfunktion orsakar en väsentlig kostnad. Därför är det
+viktigt att den \fIinte\fP är aktiverad för produktions\-/utgåvebyggen.
+
+.SH MILJÖVARIABLER
+Värdet som sätts på följande är oviktigt, bara att den finns.
+
+.IP LIBPROC_HIDE_KERNEL
+Detta kommer dölja kärntrådar som annars skulle returnera med ett anrop av
+\fBprocps_pids_get\fP, \fBprocps_pids_select\fP eller \fBprocps_pids_reap\fP.
+
+.SH "SE ÄVEN"
+\fBprocps\fP(3), \fBprocps_misc\fP(3), \fBproc\fP(5).

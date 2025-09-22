@@ -1,0 +1,25 @@
+#
+# Testsuite for lib/strutils program
+#
+
+set teststr "${topdir}src/tests/test_strutils"
+
+set test "without argument"
+spawn $teststr
+expect_pass "$test" "test_strutils: no arguments"
+
+set test "test long"
+spawn $teststr 1
+expect_pass "$test" "1"
+
+set test "test long fail"
+spawn $teststr fail
+expect_pass "$test" "test_strutils: strtol_or_err: \'fail\'"
+
+set test "test double"
+spawn $teststr dummy 1.1
+expect_pass "$test" "1.100000"
+
+set test "test double fail"
+spawn $teststr dummy fail
+expect_pass "$test" "test_strutils: strtod_or_err: \'fail\'"

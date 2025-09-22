@@ -1,0 +1,119 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2002-2006 Albert Cahalan
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SKILL 1 2023\-08\-19 procps\-ng Användarkommandon
+.SH NAMN
+skill, snice — skicka en signal eller rapportera processtatus
+.SH SYNOPSIS
+\fBskill\fP [\fIsignal\fP] [\fIflaggor\fP] \fIuttryck\fP
+.br
+\fBsnice\fP [\fIny prioritet\fP] [\fIflaggor\fP] \fIuttryck\fP
+.SH BESKRIVNING
+Dessa verktyg är föråldrade och oportabla.  Kommandosyntaxen är dåligt
+definierad.  Överväg att använda kommandona \fBkillall\fP, \fBpkill\fP och
+\fBpgrep\fP istället.
+.PP
+Standardsignalen för \fBskill\fP är TERM.  Använd \fB\-l\fP eller \fB\-L\fP för att
+lista tillgängliga signaler. Särskilt användbara signaler inkluderar HUP,
+INT, KILL, STOP, CONT och 0. Alternativa signaler kan anges på tre sätt:
+\fB\-9\fP \fB\-SIGKILL\fP \fB\-KILL\fP.
+.PP
+Standardprioriteten för \fBsnice\fP är +4.  Prioritetstal går från +20
+(långsammast) till \-20 (snabbast). Negativa prioritetsvärden är begränsade
+till administrativa användare.
+.SH FLAGGOR
+.TP 
+\fB\-f\fP,\fB\ \-\-fast\fP
+Snabbt läge.  Denna flagga har inte implementerats.
+.TP 
+\fB\-i\fP,\fB\ \-\-interactive\fP
+Interaktiv användning.  Du kommer få en fråga om att godkänna varje åtgärd.
+.TP 
+\fB\-l\fP,\fB\ \-\-list\fP
+Lista alla signalnamn.
+.TP 
+\fB\-L\fP,\fB\ \-\-table\fP
+Lista alla signalnamn i en trevlig tabell.
+.TP 
+\fB\-n\fP,\fB\ \-\-no\-action\fP
+Ingen åtgärd; utför en simulering av de händelser som skulle ske men gör
+ingen faktisk ändring av systemet.
+.TP 
+\fB\-v\fP,\fB\ \-\-verbose\fP
+Utförlig; förklara vad som görs.
+.TP 
+\fB\-w\fP,\fB\ \-\-warnings\fP
+Aktivera varningar.  Denna flagga har inte implementerats.
+.TP 
+\fB\-h\fP, \fB\-\-help\fP
+Visa hjälptext och avsluta.
+.TP 
+\fB\-V\fP, \fB\-\-version\fP
+Visa versionsinformation.
+.PD
+.SH "FLAGGOR FÖR VAL AV PROCESS"
+Urvalskriterier kan vara: terminal, användare, pid, kommando.  Flaggorna
+nedan kan användas för att säkerställa rätt tolkning.
+.TP 
+\fB\-t\fP, \fB\-\-tty\fP \fItty\fP
+Nästa uttryck är en terminal (tty eller pty).
+.TP 
+\fB\-u\fP, \fB\-\-user\fP \fIanvändare\fP
+Nästa uttryck är ett användarnamn.
+.TP 
+\fB\-p\fP, \fB\-\-pid\fP \fIpid\fP
+Nästa uttryck är ett process\-ID\-nummer.
+.TP 
+\fB\-c\fP, \fB\-\-command\fP \fIkommando\fP
+Nästa uttryck är ett kommandonamn.
+.TP 
+\fB\-\-ns \fP\fIpid\fP
+Matcha processerna som tillhör samma namnrymd som pid.
+.TP 
+\fB\-\-nslist \fP\fInr\/\fP,\,\fI…\/\fP
+lista vilka namnrymder som skall beaktas av flaggan \fB\-\-ns\fP. Tillgängliga
+namnrymder: ipc, mnt, net, pid, user, uts.
+.PD
+.SH SIGNALER
+Beteendet hos signaler förklaras i manualsidan \fBsignal\fP(7).
+.SH EXEMPEL
+.TP 
+\fBsnice \-c seti \-c crack +7\fP
++Sakta ner kommandona \fBseti\fP och \fBcrack\fP.
+.TP 
+\fBskill \-KILL \-t /dev/pts/*\fP
+Döda användare på PTY\-enheter.
+.TP 
+\fBskill \-STOP \-u viro \-u lm \-u davem\fP
+Stoppa tre användare.
+.SH "SE ÄVEN"
+\fBkill\fP(1), \fBkill\fP(2), \fBkillall\fP(1), \fBnice\fP(1), \fBpkill\fP(1),
+\fBrenice\fP(1), \fBsignal\fP(7)
+.SH STANDARDER
+Inga standarder är tillämpliga.
+.SH UPPHOVSMAN
+.MT albert@users.sf.net
+Albert Cahalan
+.ME
+skrev skill och snice 1999
+som en ersättning för en ofri version.
+.SH "RAPPORTERA FEL"
+Skicka felrapporter till
+.UR procps@freelists.org
+.UE
+Skicka synpunkter på översättningen till
+.UR tp\-sv@listor.tp\-sv.se
+.UE

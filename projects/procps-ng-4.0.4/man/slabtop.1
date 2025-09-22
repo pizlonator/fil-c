@@ -1,0 +1,123 @@
+.\"
+.\" Copyright (c) 2011-2023 Craig Small <csmall@dropbear.xyz>
+.\" Copyright (c) 2013-2023 Jim Warner <james.warner@comcast.net>
+.\" Copyright (c) 2011-2012 Sami Kerola <kerolasa@iki.fi>
+.\" Copyright (c) 2004-2006 Albert Cahalan
+.\" Copyright (C) 2003      Chris Rivera
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU Lesser General Public License as
+.\" published by the Free Software Foundation; either version 2.1 of the
+.\" License, or (at your option) any later version.
+.\"
+.\"
+.TH SLABTOP "1" "2021-03-11" "procps-ng" "User Commands"
+.SH NAME
+slabtop \- display kernel slab cache information in real time
+.SH SYNOPSIS
+.B slabtop
+[\fIoptions\fR]
+.SH DESCRIPTION
+.B slabtop
+displays detailed kernel slab cache information in real time.  It displays a
+listing of the top caches sorted by one of the listed sort criteria.  It also
+displays a statistics header filled with slab layer information.
+.SH OPTIONS
+Normal invocation of
+.B slabtop
+does not require any options.  The behavior, however, can be fine-tuned by
+specifying one or more of the following flags:
+.TP
+\fB\-d\fR, \fB\-\-delay\fR=\fIN\fR
+Refresh the display every
+.I n
+in seconds.  By default,
+.B slabtop
+refreshes the display every three seconds.  To exit the program, hit
+.BR q .
+This cannot be combined with the \fB-o\fR option.
+.TP
+\fB\-s\fR, \fB\-\-sort\fR=\fIS\fR
+Sort by \fIS\fR, where \fIS\fR is one of the sort criteria.
+.TP
+\fB\-o\fR, \fB\-\-once\fR
+Display the output once and then exit.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version information and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display usage information and exit.
+.SH SORT CRITERIA
+The following are valid sort criteria used to sort the individual slab caches
+and thereby determine what are the "top" slab caches to display.  The default
+sort criteria is to sort by the number of objects ("o").
+.PP
+The sort criteria can also be changed while
+.B slabtop
+is running by pressing the associated character.
+.TS
+l l l.
+\fBcharacter	description	header\fR
+a	number of active objects	ACTIVE
+b	objects per slab	OBJ/SLAB
+c	cache size	CACHE SIZE
+l	number of slabs	SLABS
+v	number of active slabs	N/A
+n	name	NAME\:
+o	number of objects	OBJS
+p	pages per slab	N/A
+s	object size	OBJ SIZE
+u	cache utilization	USE
+.TE
+.SH COMMANDS
+.B slabtop
+accepts keyboard commands from the user during use.  The following are
+supported.  In the case of letters, both cases are accepted.
+.PP
+Each of the valid sort characters are also accepted, to change the sort
+routine. See the section
+.BR "SORT CRITERIA" .
+.TP
+.BR <SPACEBAR>
+Refresh the screen.
+.TP
+.BR Q
+Quit the program.
+.SH FILES
+.TP
+.I /proc/slabinfo
+slab information
+.SH "SEE ALSO"
+.BR free (1),
+.BR ps (1),
+.BR top (1),
+.BR vmstat (8)
+.SH NOTES
+Currently,
+.B slabtop
+requires a 2.4 or later kernel (specifically, a version 1.1 or later
+.IR /proc/slabinfo ).
+Kernel 2.2 should be supported in the future.
+.PP
+The
+.B slabtop
+statistic header is tracking how many bytes of slabs are being
+used and is not a measure of physical memory.  The 'Slab' field in the
+\fI/proc/meminfo\fR file is tracking information about used slab physical memory.
+.PP
+The
+.B CACHE SIZE
+column is not accurate, it's the upper limit of memory used by specific slab. When system
+using slub (most common case) is under high memory pressure, there are slab order
+fallbacks, which means "pages per slab" is not constant and may decrease.
+.SH AUTHORS
+Written by Chris Rivera and Robert Love.
+.PP
+.B slabtop
+was inspired by Martin Bligh's perl script,
+.BR vmtop .
+.SH "REPORTING BUGS"
+Please send bug reports to
+.UR procps@freelists.org
+.UE
