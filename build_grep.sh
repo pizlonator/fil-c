@@ -28,16 +28,20 @@
 set -e
 set -x
 
-# This is the set of programs that I've confirmed build fine with glibc, but haven't confirmed that
-# they build fine with musl. If we confirm that they build with musl we should move the build command
-# to build_all.sh.
+cd projects/grep-3.11
+extract_source
+CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
+make -j $NCPU
+make -j $NCPU install
 
-./build_gmp.sh
-./build_attr.sh
-./build_gettext.sh
-./build_grep.sh
-./build_elfutils.sh
-./build_check.sh
-./build_diffutils.sh
-./build_bison.sh
-
+# Do our own tests of grep. The actual grep test suite runs the gnulib tests :-/
+(echo "foo bar" && echo "thingy blah") > input.txt
+../../../pizfix/bin/grep foo input.txt > actual.txt
+echo "foo bar" > expected.txt
+diff actual.txt expected.txt
+rm actual.txt
+rm expected.txt
+(! ../../../pizfix/bin/grep stuff input.txt)
+rm input.txt
+echo foo | ../../../pizfix/bin/grep foo > /dev/null 2>&1
+echo success
