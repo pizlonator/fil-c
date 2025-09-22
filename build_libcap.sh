@@ -28,17 +28,8 @@
 set -e
 set -x
 
-# This is the set of programs that I've confirmed build fine with glibc, but haven't confirmed that
-# they build fine with musl. If we confirm that they build with musl we should move the build command
-# to build_all.sh.
-
-./build_gmp.sh
-./build_attr.sh
-./build_gettext.sh
-./build_grep.sh
-./build_elfutils.sh
-./build_check.sh
-./build_diffutils.sh
-./build_bison.sh
-./build_libcap.sh
+cd filsec/projects/libcap-2.70
+extract_source
+CC=$PWD/../../../build/bin/clang make prefix=$PWD/../../../pizfix lib=lib -j $NCPU
+CC=$PWD/../../../build/bin/clang make prefix=$PWD/../../../pizfix lib=lib -j $NCPU install
 
